@@ -260,6 +260,7 @@ The sections below describe each function in detail.
 * String Functions::            CONCAT INDEX LENGTH LOWER LPAD LTRIM NUMBER 
                                 RINDEX RPAD RTRIM STRING SUBSTR UPCASE
 * Time & Date::                 CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
+                                DATEDIFF DATESUM
 * Miscellaneous Functions::     LAG YRMODA VALUELABEL
 * Statistical Distribution Functions::  PDF CDF SIG IDF RV NPDF NCDF
 @end menu
@@ -708,6 +709,7 @@ Most time and date functions will not accept earlier dates.
 * Date Extraction::             XDATE.@{DATE HOUR JDAY MDAY MINUTE MONTH
                                        QUARTER SECOND TDAY TIME WEEK
                                        WKDAY YEAR@}
+* Time & Date Arithmetic::      DATEDIFF DATESUM
 @end menu
 
 @node Time & Date Concepts
@@ -740,27 +742,6 @@ given below correspond with the numeric PSPP dates given:
                1 Oct 1978        12,495,427,200
               24 Aug 1995        13,028,601,600
 @end example
-
-@cindex time, mathematical properties of
-@cindex mathematics, applied to times & dates
-@cindex dates, mathematical properties of
-@noindent
-Ordinary arithmetic operations on dates and times often produce
-sensible results.  Adding a time to, or subtracting one from, a date
-produces a new date that much earlier or later.  The difference of two
-dates yields the time between those dates.  Adding two times produces
-the combined time.  Multiplying a time by a scalar produces a time
-that many times longer.  Since times and dates are just numbers, the
-ordinary addition and subtraction operators are employed for these
-purposes.
-
-Adding two dates does not produce a useful result.
-
-As the table shows, dates and times may have very large values.  Thus,
-it is not a good idea to take powers of these values; also, the
-accuracy of some procedures may be affected.  If necessary, convert
-times or dates in seconds to some other unit, like days or years,
-before performing analysis.
 
 @node Time Construction
 @subsubsection Functions that Produce Times
@@ -1018,6 +999,68 @@ to @var{date}, where 1 represents Sunday.
 @deftypefn {Function} {} XDATE.YEAR (@var{date})
 Returns the year (as an integer 1582 or greater) corresponding to
 @var{date}.
+@end deftypefn
+
+@node Time & Date Arithmetic
+@subsubsection Time and Date Arithmetic
+
+@cindex time, mathematical properties of
+@cindex mathematics, applied to times & dates
+@cindex dates, mathematical properties of
+@noindent
+Ordinary arithmetic operations on dates and times often produce
+sensible results.  Adding a time to, or subtracting one from, a date
+produces a new date that much earlier or later.  The difference of two
+dates yields the time between those dates.  Adding two times produces
+the combined time.  Multiplying a time by a scalar produces a time
+that many times longer.  Since times and dates are just numbers, the
+ordinary addition and subtraction operators are employed for these
+purposes.
+
+Adding two dates does not produce a useful result.
+
+Dates and times may have very large values.  Thus,
+it is not a good idea to take powers of these values; also, the
+accuracy of some procedures may be affected.  If necessary, convert
+times or dates in seconds to some other unit, like days or years,
+before performing analysis.
+
+PSPP supplies a few functions for date arithmetic:
+
+@deftypefn {Function} {} DATEDIFF (@var{date1}, @var{date2}, @var{unit})
+Returns the span of time from @var{date1} to @var{date2} in terms of
+@var{unit}, which must be a quoted string, one of @samp{years},
+@samp{quarters}, @samp{months}, @samp{weeks}, @samp{days},
+@samp{hours}, @samp{minutes}, and @samp{seconds}.  The result is an
+integer, truncated toward zero.
+
+One year is considered to span from a given date to the same month,
+day, and time of day the next year.  Thus, from Jan.@tie{}1 of one
+year to Jan.@tie{}1 the next year is considered to be a full year, but
+Feb.@tie{}29 of a leap year to the following Feb.@tie{}28 is not.
+Similarly, one month spans from a given day of the month to the same
+day of the following month.  Thus, there is never a full month from
+Jan.@tie{}31 of a given year to any day in the following February.
+@end deftypefn
+
+@deftypefn {Function} {} DATESUM (@var{date}, @var{quantity}, @var{unit}[, @var{method}])
+Returns @var{date} advanced by the given @var{quantity} of the
+specified @var{unit}, which must be one of the strings @samp{years},
+@samp{quarters}, @samp{months}, @samp{weeks}, @samp{days},
+@samp{hours}, @samp{minutes}, and @samp{seconds}.
+
+When @var{unit} is @samp{years}, @samp{quarters}, or @samp{months},
+only the integer part of @var{quantity} is considered.  Adding one of
+these units can cause the day of the month to exceed the number of
+days in the month.  In this case, the @var{method} comes into
+play: if it is omitted or specified as @samp{closest} (as a quoted
+string), then the resulting day is the last day of the month;
+otherwise, if it is specified as @samp{rollover}, then the extra days
+roll over into the following month.
+
+When @var{unit} is @samp{weeks}, @samp{days}, @samp{hours},
+@samp{minutes}, or @samp{seconds}, the @var{quantity} is not rounded
+to an integer and @var{method}, if specified, is ignored.
 @end deftypefn
 
 @node Miscellaneous Functions

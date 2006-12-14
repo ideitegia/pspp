@@ -2,6 +2,7 @@
 #include "helpers.h"
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_sf.h>
+#include <libpspp/assertion.h>
 #include <libpspp/pool.h>
 #include "private.h"
 
@@ -115,6 +116,284 @@ expr_yrmoda (double year, double month, double day)
     }
 
   return expr_ymd_to_ofs (year, month, day);
+}
+
+/* A date unit. */
+enum date_unit 
+  {
+    DATE_YEARS,
+    DATE_QUARTERS,
+    DATE_MONTHS,
+    DATE_WEEKS,
+    DATE_DAYS,
+    DATE_HOURS,
+    DATE_MINUTES,
+    DATE_SECONDS
+  };
+
+#ifndef HAVE_TRUNC
+/* Return X rounded toward zero. */
+static double
+trunc (double x) 
+{
+  return x >= 0.0 ? floor (x) : ceil (x);
+}
+#endif /* !HAVE_TRUNC */
+
+/* Stores in *UNIT the unit whose name is NAME.
+   Return success. */
+static enum date_unit
+recognize_unit (struct substring name, enum date_unit *unit) 
+{
+  struct unit_name
+    {
+      enum date_unit unit;
+      const struct substring name;
+    };
+  static const struct unit_name unit_names[] = 
+    {
+      { DATE_YEARS, SS_LITERAL_INITIALIZER ("years") },
+      { DATE_QUARTERS, SS_LITERAL_INITIALIZER ("quarters") },
+      { DATE_MONTHS, SS_LITERAL_INITIALIZER ("months") },
+      { DATE_WEEKS, SS_LITERAL_INITIALIZER ("weeks") },
+      { DATE_DAYS, SS_LITERAL_INITIALIZER ("days") },
+      { DATE_HOURS, SS_LITERAL_INITIALIZER ("hours") },
+      { DATE_MINUTES, SS_LITERAL_INITIALIZER ("minutes") },
+      { DATE_SECONDS, SS_LITERAL_INITIALIZER ("seconds") },
+    };
+  const int unit_name_cnt = sizeof unit_names / sizeof *unit_names;
+
+  const struct unit_name *un;
+
+  for (un = unit_names; un < &unit_names[unit_name_cnt]; un++)
+    if (ss_equals_case (un->name, name)) 
+      {
+        *unit = un->unit;
+        return true;
+      }
+
+  msg (SE, _("Unrecognized date unit \"%.*s\".  "
+             "Valid date units are \"years\", \"quarters\", \"months\", "
+             "\"weeks\", \"days\", \"hours\", \"minutes\", and \"seconds\"."),
+       (int) ss_length (name), ss_data (name));
+  return false;
+}
+
+/* Returns the number of whole years from DATE1 to DATE2,
+   where a year is defined as the same or later month, day, and
+   time of day. */
+static int
+year_diff (double date1, double date2) 
+{
+  int y1, m1, d1, yd1;
+  int y2, m2, d2, yd2;
+  int diff;
+
+  assert (date2 >= date1);
+  calendar_offset_to_gregorian (date1 / DAY_S, &y1, &m1, &d1, &yd1);
+  calendar_offset_to_gregorian (date2 / DAY_S, &y2, &m2, &d2, &yd2);
+
+  diff = y2 - y1;
+  if (diff > 0) 
+    {
+      int yd1 = 32 * m1 + d1;
+      int yd2 = 32 * m2 + d2;
+      if (yd2 < yd1
+          || (yd2 == yd1 && fmod (date2, DAY_S) < fmod (date1, DAY_S)))
+        diff--;
+    }
+  return diff;
+}
+
+/* Returns the number of whole months from DATE1 to DATE2,
+   where a month is defined as the same or later day and time of
+   day. */
+static int
+month_diff (double date1, double date2) 
+{
+  int y1, m1, d1, yd1;
+  int y2, m2, d2, yd2;
+  int diff;
+
+  assert (date2 >= date1);
+  calendar_offset_to_gregorian (date1 / DAY_S, &y1, &m1, &d1, &yd1);
+  calendar_offset_to_gregorian (date2 / DAY_S, &y2, &m2, &d2, &yd2);
+
+  diff = ((y2 * 12) + m2) - ((y1 * 12) + m1);
+  if (diff > 0
+      && (d2 < d1
+          || (d2 == d1 && fmod (date2, DAY_S) < fmod (date1, DAY_S))))
+    diff--;
+  return diff;
+}
+
+/* Returns the number of whole quarter from DATE1 to DATE2,
+   where a quarter is defined as three months. */
+static int
+quarter_diff (double date1, double date2)
+{
+  return month_diff (date1, date2) / 3;
+}
+
+/* Returns the number of seconds in the given UNIT. */
+static int
+date_unit_duration (enum date_unit unit) 
+{
+  switch (unit) 
+    {
+    case DATE_WEEKS:
+      return WEEK_S;
+
+    case DATE_DAYS:
+      return DAY_S;
+
+    case DATE_HOURS:
+      return H_S;
+
+    case DATE_MINUTES:
+      return MIN_S;
+
+    case DATE_SECONDS:
+      return 1;
+
+    default:
+      NOT_REACHED ();
+    }
+}
+
+/* Returns the span from DATE to DATE2 in terms of UNIT_NAME. */
+double
+expr_date_difference (double date1, double date2, struct substring unit_name) 
+{
+  enum date_unit unit;
+  
+  if (!recognize_unit (unit_name, &unit))
+    return SYSMIS;
+  
+  switch (unit) 
+    {
+    case DATE_YEARS:
+      return (date2 >= date1
+              ? year_diff (date1, date2)
+              : -year_diff (date2, date1));
+
+    case DATE_QUARTERS:
+      return (date2 >= date1
+              ? quarter_diff (date1, date2)
+              : -quarter_diff (date2, date1));
+      
+    case DATE_MONTHS:
+      return (date2 >= date1
+              ? month_diff (date1, date2)
+              : -month_diff (date2, date1));
+
+    case DATE_WEEKS:
+    case DATE_DAYS:
+    case DATE_HOURS:
+    case DATE_MINUTES:
+    case DATE_SECONDS:
+      return trunc ((date2 - date1) / date_unit_duration (unit));
+    }
+
+  NOT_REACHED ();
+}
+
+/* How to deal with days out of range for a given month. */
+enum date_sum_method 
+  {
+    SUM_ROLLOVER,       /* Roll them over to the next month. */
+    SUM_CLOSEST         /* Use the last day of the month. */
+  };
+
+/* Stores in *METHOD the method whose name is NAME.
+   Return success. */
+static bool
+recognize_method (struct substring method_name, enum date_sum_method *method) 
+{
+  if (ss_equals_case (method_name, ss_cstr ("closest"))) 
+    {
+      *method = SUM_CLOSEST;
+      return true; 
+    }
+  else if (ss_equals_case (method_name, ss_cstr ("rollover"))) 
+    {
+      *method = SUM_ROLLOVER;
+      return true; 
+    }
+  else 
+    {
+      msg (SE, _("Invalid DATESUM method.  "
+                 "Valid choices are \"closest\" and \"rollover\"."));
+      return false;
+    }
+}
+
+/* Returns DATE advanced by the given number of MONTHS, with
+   day-of-month overflow resolved using METHOD. */
+static double
+add_months (double date, int months, enum date_sum_method method) 
+{
+  int y, m, d, yd;
+  double output;
+
+  calendar_offset_to_gregorian (date / DAY_S, &y, &m, &d, &yd);
+  y += months / 12;
+  m += months % 12;
+  if (m < 1) 
+    {
+      m += 12;
+      y--;
+    }
+  else if (m > 12) 
+    {
+      m -= 12;
+      y++;
+    }
+  assert (m >= 1 && m <= 12);
+
+  if (method == SUM_CLOSEST && d > calendar_days_in_month (y, m)) 
+    d = calendar_days_in_month (y, m);
+
+  output = calendar_gregorian_to_offset (y, m, d, expr_error, NULL);
+  if (output != SYSMIS)
+    output = (output * DAY_S) + fmod (date, DAY_S);
+  return output;
+}
+
+/* Returns DATE advanced by the given QUANTITY of units given in
+   UNIT_NAME, with day-of-month overflow resolved using
+   METHOD_NAME. */
+double
+expr_date_sum (double date, double quantity, struct substring unit_name,
+               struct substring method_name) 
+{
+  enum date_unit unit;
+  enum date_sum_method method;
+
+  if (!recognize_unit (unit_name, &unit)
+      || !recognize_method (method_name, &method))
+    return SYSMIS;
+  
+  switch (unit) 
+    {
+    case DATE_YEARS:
+      return add_months (date, trunc (quantity) * 12, method);
+
+    case DATE_QUARTERS:
+      return add_months (date, trunc (quantity) * 3, method);
+
+    case DATE_MONTHS:
+      return add_months (date, trunc (quantity), method);
+
+    case DATE_WEEKS:
+    case DATE_DAYS:
+    case DATE_HOURS:
+    case DATE_MINUTES:
+    case DATE_SECONDS:
+      return date + quantity * date_unit_duration (unit);
+    }
+
+  NOT_REACHED ();
 }
 
 int

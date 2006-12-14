@@ -210,3 +210,14 @@ calendar_offset_to_mday (int ofs)
   calendar_offset_to_gregorian (ofs, &y, &m, &d, &yd);
   return d;
 }
+
+/* Returns the number of days in the specified month. */
+int
+calendar_days_in_month (int y, int m) 
+{
+  static const int days_per_month[12]
+    = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+  assert (m >= 1 && m <= 12);
+  return m == 2 && is_leap_year (y) ? 29 : days_per_month[m - 1];
+}

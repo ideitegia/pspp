@@ -45,6 +45,7 @@ static inline double check_errno (double x)
 #define H_MIN 60.                       /* Minutes per hour. */
 #define MIN_S 60.                       /* Seconds per minute. */
 #define WEEK_DAY 7.                     /* Days per week. */
+#define WEEK_S (WEEK_DAY * DAY_S)       /* Seconds per week. */
 
 extern const struct substring empty_string;
 
@@ -55,6 +56,10 @@ double expr_ymd_to_ofs (double year, double month, double day);
 double expr_wkyr_to_date (double wk, double yr);
 double expr_yrday_to_date (double yr, double day);
 double expr_yrmoda (double year, double month, double day);
+double expr_date_difference (double date1, double date2,
+                             struct substring unit);
+double expr_date_sum (double date, double quantity, struct substring unit_name,
+                      struct substring method_name);
 
 struct substring alloc_string (struct expression *, size_t length);
 struct substring copy_string (struct expression *,

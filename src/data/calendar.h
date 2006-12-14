@@ -12,4 +12,6 @@ int calendar_offset_to_mday (int ofs);
 int calendar_offset_to_yday (int ofs);
 int calendar_offset_to_wday (int ofs);
 
+int calendar_days_in_month (int y, int m);
+
 #endif /* calendar.h */

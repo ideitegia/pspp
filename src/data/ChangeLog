@@ -1,3 +1,7 @@
+Wed Dec 13 19:30:11 2006  Ben Pfaff  <blp@gnu.org>
+
+	* calendar.c (calendar_days_in_month): New function.
+
 Mon Dec 11 07:53:39 2006  Ben Pfaff  <blp@gnu.org>
 
 	* value-labels.c (hash_int_val_lab): Only hash as many bytes as

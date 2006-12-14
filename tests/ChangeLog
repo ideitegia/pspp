@@ -1,3 +1,7 @@
+Wed Dec 13 19:34:29 2006  Ben Pfaff  <blp@gnu.org>
+
+	* expressions/expressions.sh: Test DATEDIFF, DATESUM functions.
+
 Sun Dec 10 16:52:04 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new test.
