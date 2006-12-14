@@ -83,6 +83,16 @@ while (defined (my $a = <EXPECTED>) && defined (my $b = <ACTUAL>)) {
 	$errors++;
     }
 }
+while (<EXPECTED>) {
+    print "Extra lines in $ARGV[0]\n";
+    $errors++;
+    last;
+}
+while (<ACTUAL>) {
+    print "Extra lines in $ARGV[1]\n";
+    $errors++;
+    last;
+}
 if ($verbose) {
     print "$errors errors\n";
     if (!$exact) {
