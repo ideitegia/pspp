@@ -8,6 +8,8 @@ following:
 
 	* Gettext 0.14.5 (or later).
 
+	* pkg-config 0.21 (or later).
+
 	* Gnulib, from CVS (see http://savannah.gnu.org/cvs/?group=gnulib).
 	  Note that Gnulib does not require any form of installation:
 	  simply checking it out into a directory is sufficient.
