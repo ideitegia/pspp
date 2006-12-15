@@ -81,7 +81,7 @@ AC_DEFUN([PSPP_ENABLE_WARNING],
 
 dnl Check for readline and history libraries.
 
-dnl Modified for PSPP by Ben Pfaff, based on readline.m4 serial 3 from
+dnl Modified for PSPP, based on readline.m4 serial 3 from
 dnl gnulib, which was written by Simon Josefsson, with help from Bruno
 dnl Haible and Oskar Liljeblad.
 

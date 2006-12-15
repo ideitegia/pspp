@@ -1,6 +1,5 @@
 /* q2c - parser generator for PSPP procedures.
    Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
-   Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as

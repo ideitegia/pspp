@@ -1,6 +1,5 @@
 /* PSPP - computes sample statistics.
    Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
-   Written by Ben Pfaff <blp@gnu.org>.
    Code for parsing floating-point numbers adapted from GNU C
    library.
 
