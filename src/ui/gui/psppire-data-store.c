@@ -715,9 +715,9 @@ geometry_get_justification(const GSheetColumn *geom, gint unit)
 
   pv = psppire_dict_get_variable(ds->dict, unit);
 
-  /* Kludge: Happily GtkJustification is defined similarly
-     to enum alignment from pspp/variable.h */
-  return var_get_alignment(pv);
+  return (var_get_alignment (pv) == ALIGN_LEFT ? GTK_JUSTIFY_LEFT
+          : var_get_alignment (pv) == ALIGN_RIGHT ? GTK_JUSTIFY_RIGHT
+          : GTK_JUSTIFY_CENTER);
 }
 
 

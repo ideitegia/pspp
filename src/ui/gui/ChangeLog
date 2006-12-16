@@ -1,3 +1,8 @@
+Sat Dec 16 14:13:07 2006  Ben Pfaff  <blp@gnu.org>
+
+	* psppire-data-store.c (geometry_get_justification): Don't assume
+	that ALIGN_* and GTK_JUSTIFY_* values coincide.
+
 Sat Dec 16 14:10:43 2006  Ben Pfaff  <blp@gnu.org>
 
 	* psppire-var-store.c (text_for_column): Adjust to account for new
