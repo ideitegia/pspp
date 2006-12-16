@@ -1027,7 +1027,7 @@ before performing analysis.
 
 PSPP supplies a few functions for date arithmetic:
 
-@deftypefn {Function} {} DATEDIFF (@var{date1}, @var{date2}, @var{unit})
+@deftypefn {Function} {} DATEDIFF (@var{date2}, @var{date1}, @var{unit})
 Returns the span of time from @var{date1} to @var{date2} in terms of
 @var{unit}, which must be a quoted string, one of @samp{years},
 @samp{quarters}, @samp{months}, @samp{weeks}, @samp{days},

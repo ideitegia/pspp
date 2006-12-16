@@ -318,7 +318,7 @@ function XDATE.WKDAY (date >= DAY_S) = calendar_offset_to_wday (date / DAY_S);
 function XDATE.YEAR (date >= DAY_S) = calendar_offset_to_year (date / DAY_S);
 
 // Date arithmetic functions.
-no_abbrev function DATEDIFF (date1 >= DAY_S, date2 >= DAY_S, string unit)
+no_abbrev function DATEDIFF (date2 >= DAY_S, date1 >= DAY_S, string unit)
      = expr_date_difference (date1, date2, unit);
 no_abbrev function DATESUM (date, quantity, string unit)
      = expr_date_sum (date, quantity, unit, ss_cstr ("closest"));

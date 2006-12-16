@@ -261,7 +261,7 @@ date_unit_duration (enum date_unit unit)
     }
 }
 
-/* Returns the span from DATE to DATE2 in terms of UNIT_NAME. */
+/* Returns the span from DATE1 to DATE2 in terms of UNIT_NAME. */
 double
 expr_date_difference (double date1, double date2, struct substring unit_name) 
 {
