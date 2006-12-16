@@ -1,8 +1,6 @@
 /* PSPP - computes sample statistics. -*-c-*-
 
    Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
-   Written by John Williams <johnr.williams@stonebow.otago.ac.nz>.
-   Almost completly re-written by John Darrington 2004
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as

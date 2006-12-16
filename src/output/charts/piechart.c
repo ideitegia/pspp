@@ -1,7 +1,6 @@
 /* PSPP - draws pie charts of sample statistics
 
 Copyright (C) 2004 Free Software Foundation, Inc.
-Written by John Darrington <john@darrington.wattle.id.au>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as

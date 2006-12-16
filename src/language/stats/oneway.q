@@ -1,7 +1,6 @@
 /* PSPP - One way ANOVA. -*-c-*-
 
 Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
-Author: John Darrington 2004
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as

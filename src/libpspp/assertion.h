@@ -1,6 +1,5 @@
 /* PSPP - computes sample statistics.
    Copyright (C) 2006 Free Software Foundation, Inc.
-   Written by John Darrington <john@darrington.wattle.id.au>
    and Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or

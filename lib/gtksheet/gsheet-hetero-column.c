@@ -1,7 +1,6 @@
 /* gsheet-hetero-column.c
  * PSPPIRE --- A Graphical User Interface for PSPP
  * Copyright (C) 2006  Free Software Foundation
- * Written by John Darrington
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

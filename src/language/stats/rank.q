@@ -1,7 +1,6 @@
 /* PSPP - RANK. -*-c-*-
 
 Copyright (C) 2005, 2006 Free Software Foundation, Inc.
-Author: John Darrington <john@darrington.wattle.id.au>, 
         Ben Pfaff <blp@gnu.org>.
 
 This program is free software; you can redistribute it and/or

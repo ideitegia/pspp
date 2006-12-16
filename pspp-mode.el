@@ -1,7 +1,6 @@
 ;;; pspp-mode-el -- Major mode for editing PSPP files
 
 ;; Copyright (C) 2005 Free Software Foundation
-;; Author: John Darrington <john@darrington.wattle.id.au>
 ;; Created: 05 March 2005
 ;; Keywords: PSPP major-mode
 

@@ -2,7 +2,6 @@
  
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2006  Free Software Foundation
-   Written by John Darrington
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
