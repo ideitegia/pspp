@@ -1,3 +1,8 @@
+Sat Dec 16 12:54:27 2006  Ben Pfaff  <blp@gnu.org>
+
+	* rank.q (rank_custom_variables): Allow grouping variables to be
+	strings.  Fixes bug #18533.  Thanks to John Darrington for review.
+
 Sat Dec  9 18:47:51 2006  Ben Pfaff  <blp@gnu.org>
 
 	* regression.q (is_depvar): Compare variable pointers instead of

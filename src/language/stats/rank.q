@@ -952,7 +952,7 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
 
       if (!parse_variables (lexer, dataset_dict (ds), 
 			    &group_vars, &n_group_vars,
-			    PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
+			    PV_NO_DUPLICATE | PV_NO_SCRATCH) )
 	{
 	  free (group_vars);
 	  return 0;
