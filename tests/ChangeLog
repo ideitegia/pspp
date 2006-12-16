@@ -1,3 +1,8 @@
+Sat Dec 16 14:00:48 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command/rank.sh: Fix test to allow string grouping variables.
+	See bug #18533.
+
 Sat Dec 16 12:20:58 2006  Ben Pfaff  <blp@gnu.org>
 
 	* expressions/expressions.sh: Fix DATEDIFF function tests to

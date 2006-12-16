@@ -125,11 +125,6 @@ RANK x
 * Too many variables in INTO
 RANK x 
  /RANK INTO foo  bar wiz.
-
-* Alpha group
-RANK x BY a.
-
-
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -145,7 +140,6 @@ $TEMPDIR/rank.sh.sps:15: error: RANK: Syntax error expecting \`(' at end of comm
 $TEMPDIR/rank.sh.sps:19: error: RANK: Syntax error expecting integer at \`d'.
 $TEMPDIR/rank.sh.sps:25: error: RANK: Variable x already exists.
 $TEMPDIR/rank.sh.sps:30: error: RANK: Too many variables in INTO clause.
-$TEMPDIR/rank.sh.sps:33: warning: RANK: a is not a numeric variable.  It will not be included in the variable list.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
