@@ -680,8 +680,8 @@ text_for_column(const struct variable *pv, gint c, GError **err)
       {
 	const gint measure = var_get_measure (pv);
 
-	g_assert (measure - 1 < n_MEASURES);
-	return g_locale_to_utf8 (gettext (measures[measure - 1]),
+	g_assert (measure < n_MEASURES);
+	return g_locale_to_utf8 (gettext (measures[measure]),
 				 -1, 0, 0, err);
       }
       break;

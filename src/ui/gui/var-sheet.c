@@ -160,7 +160,7 @@ change_measure(GtkComboBox *cb,
 
   if ( active_item < 0 ) return ;
 
-  var_set_measure (pv, active_item + 1);
+  var_set_measure (pv, active_item);
 }
 
 

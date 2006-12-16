@@ -813,7 +813,7 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
       int align = read_int32 (r);
       struct variable *v;
 
-      if (!measure_is_valid (measure) || !alignment_is_valid (align))
+      if (measure < 1 || measure > 3 || align < 0 || align > 2)
         {
           if (!warned)
             sys_warn (r, _("Invalid variable display parameters.  "
@@ -823,9 +823,13 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
         }
 
       v = dict_get_var (dict, i);
-      var_set_measure (v, measure);
+      var_set_measure (v, (measure == 1 ? MEASURE_NOMINAL
+                           : measure == 2 ? MEASURE_ORDINAL
+                           : MEASURE_SCALE));
       var_set_display_width (v, width);
-      var_set_alignment (v, align);
+      var_set_alignment (v, (align == 0 ? ALIGN_LEFT
+                             : align == 1 ? ALIGN_RIGHT
+                             : ALIGN_CENTRE));
     }
 }
 

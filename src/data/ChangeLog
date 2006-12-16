@@ -1,3 +1,15 @@
+Sat Dec 16 14:09:25 2006  Ben Pfaff  <blp@gnu.org>
+
+	* sys-file-reader.c (read_display_parameters): Don't assume that
+	MEASURE_* and ALIGN_* have the same values found in system files.
+
+	* sys-file-writer.c (write_variable_display_parameters): Ditto.
+
+	* variable.h: Change MEASURE_NOMINAL, MEASURE_ORDINAL,
+	MEASURE_SCALE to be 0-based instead of 1-based.  This also fixes
+	the value of n_MEASURES, which was off by 1 (at least from my
+	point of view).
+
 Sat Dec 16 12:17:34 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* dictionary.c dictionary.h vardict.h variable.c: Added optional

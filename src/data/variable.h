@@ -115,9 +115,9 @@ bool var_has_label (const struct variable *);
 /* How data is measured. */
 enum measure
   {
-    MEASURE_NOMINAL = 1,
-    MEASURE_ORDINAL = 2,
-    MEASURE_SCALE = 3,
+    MEASURE_NOMINAL = 0,
+    MEASURE_ORDINAL = 1,
+    MEASURE_SCALE = 2,
     n_MEASURES
   };
 

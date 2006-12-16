@@ -1,3 +1,10 @@
+Sat Dec 16 14:10:43 2006  Ben Pfaff  <blp@gnu.org>
+
+	* psppire-var-store.c (text_for_column): Adjust to account for new
+	values of the MEASURE_* enums.
+
+	* var-sheet.c (change_measure): Ditto.
+
 Sat Dec 16 12:24:35 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-variable.c psppire-variable.h: Deleted.

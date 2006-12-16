@@ -709,9 +709,13 @@ write_variable_display_parameters (struct sfm_writer *w,
 
       v = dict_get_var(dict, i);
 
-      params.measure = var_get_measure (v);
+      params.measure = (var_get_measure (v) == MEASURE_NOMINAL ? 1
+                        : var_get_measure (v) == MEASURE_ORDINAL ? 2
+                        : 3);
       params.width = var_get_display_width (v);
-      params.align = var_get_alignment (v);
+      params.align = (var_get_alignment (v) == ALIGN_LEFT ? 0
+                      : var_get_alignment (v) == ALIGN_RIGHT ? 1
+                      : 2);
       
       buf_write (w, &params, sizeof(params));
 
