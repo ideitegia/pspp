@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <libpspp/assertion.h>
+#include "variable.h"
 #include <libpspp/str.h>
 
 
@@ -302,17 +303,20 @@ can_resize_string (const char *s, int old_width, int new_width)
    contains only spaces in the characters that will be
    trimmed. */
 bool
-mv_is_resizable (const struct missing_values *mv, int width) 
+mv_is_resizable (const struct missing_values *mv, int width)
 {
-  assert ((width == 0) == (mv->width == 0));
+  if ( var_type_from_width (width) != var_type_from_width (mv->width) )
+    return false;
+
   if (width > MAX_SHORT_STRING && mv->type != MV_NONE)
     return false;
-  else if (width >= mv->width)
+
+  if (width >= mv->width)
     return true;
-  else 
+  else
     {
       int i;
-      
+
       for (i = 0; i < 3; i++)
         if (using_element (mv->type, i)
             && !can_resize_string (mv->values[i].s, mv->width, width))

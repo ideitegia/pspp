@@ -57,8 +57,7 @@ bool proc_cancel_temporary_transformations (struct dataset *ds);
 
 /* Procedures. */
 
-
-struct dataset *create_dataset (void);
+struct dataset * create_dataset (void);
 void destroy_dataset (struct dataset *);
 
 void proc_set_source (struct dataset *ds, struct case_source *);

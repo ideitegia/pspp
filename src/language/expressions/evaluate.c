@@ -155,13 +155,13 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
               lex_error (lexer, _("expecting number or string"));
               goto done;
             }
-	  
-	  if  ( ds == NULL ) 
+
+	  if  ( ds == NULL )
 	    {
 	      ds = create_dataset ();
 	      d = dataset_dict (ds);
 	    }
-          
+
           old_value_cnt = dict_get_next_value_idx (d);
           v = dict_create_var (d, name, width);
           if (v == NULL)

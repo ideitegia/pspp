@@ -32,7 +32,6 @@
 
 #include <gtksheet/gsheetmodel.h>
 
-#include "psppire-variable.h"
 #include "psppire-var-store.h"
 #include "var-sheet.h"
 #include "helper.h"
@@ -63,7 +62,7 @@ static gboolean psppire_var_store_set_string(GSheetModel *model,
 
 static gint psppire_var_store_get_row_count(const GSheetModel * model);
 
-static gchar *text_for_column(const struct PsppireVariable *pv, gint c, GError **err);
+static gchar *text_for_column(const struct variable *pv, gint c, GError **err);
 
 
 static void psppire_var_store_sheet_row_init (GSheetRowIface *iface);
@@ -151,15 +150,15 @@ psppire_var_store_item_editable(PsppireVarStore *var_store, gint row, gint colum
 {
   const struct fmt_spec *write_spec ;
 
-  struct PsppireVariable *pv = psppire_var_store_get_variable(var_store, row);
+  struct variable *pv = psppire_var_store_get_var (var_store, row);
 
   if ( !pv ) 
     return TRUE;
 
-  if ( VAR_STRING == psppire_variable_get_type(pv) && column == COL_DECIMALS ) 
+  if ( VAR_STRING == var_get_type (pv) && column == COL_DECIMALS ) 
     return FALSE;
 
-  write_spec = psppire_variable_get_write_spec(pv);
+  write_spec =var_get_write_format (pv);
 
   switch ( write_spec->type ) 
     {
@@ -184,6 +183,13 @@ psppire_var_store_item_editable(PsppireVarStore *var_store, gint row, gint colum
     }
 
   return TRUE;
+}
+
+
+struct variable * 
+psppire_var_store_get_var (PsppireVarStore *store, gint row)
+{
+  return psppire_dict_get_variable (store->dict, row);
 }
 
 static gboolean
@@ -324,28 +330,16 @@ psppire_var_store_get_string(const GSheetModel *model, gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
 
-  struct PsppireVariable *pv;
+  struct variable *pv;
 
   if ( row >= psppire_dict_get_var_cnt(store->dict))
     return 0;
   
   pv = psppire_dict_get_variable (store->dict, row);
   
-  return text_for_column(pv, column, 0);
+  return text_for_column (pv, column, 0);
 }
 
-
-struct PsppireVariable *
-psppire_var_store_get_variable(PsppireVarStore *store, gint row)
-{
-  g_return_val_if_fail(store, NULL);
-  g_return_val_if_fail(store->dict, NULL);
-
-  if ( row >= psppire_dict_get_var_cnt(store->dict))
-    return 0;
-
-  return psppire_dict_get_variable (store->dict, row);
-}
 
 /* Clears that part of the variable store, if possible, which corresponds 
    to ROW, COL.
@@ -354,14 +348,14 @@ psppire_var_store_get_variable(PsppireVarStore *store, gint row)
 static gboolean 
 psppire_var_store_clear(GSheetModel *model,  gint row, gint col)
 {
-  struct PsppireVariable *pv ;
+  struct variable *pv ;
 
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE(model);
 
-  if ( row >= psppire_dict_get_var_cnt(var_store->dict))
+  if ( row >= psppire_dict_get_var_cnt (var_store->dict))
       return FALSE;
 
-  pv = psppire_var_store_get_variable(var_store, row);
+  pv = psppire_var_store_get_var (var_store, row);
 
   if ( !pv ) 
     return FALSE;
@@ -369,7 +363,7 @@ psppire_var_store_clear(GSheetModel *model,  gint row, gint col)
   switch (col)
     {
     case COL_LABEL:
-      psppire_variable_set_label(pv, 0);
+      var_set_label (pv, 0);
       return TRUE;
       break;
     }
@@ -385,36 +379,73 @@ static gboolean
 psppire_var_store_set_string(GSheetModel *model, 
 			  const gchar *text, gint row, gint col)
 {
-  struct PsppireVariable *pv ;
+  struct variable *pv ;
 
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE(model);
 
   if ( row >= psppire_dict_get_var_cnt(var_store->dict))
       return FALSE;
 
-  pv = psppire_var_store_get_variable(var_store, row);
+  pv = psppire_var_store_get_var (var_store, row);
+
   if ( !pv ) 
     return FALSE;
 
   switch (col)
     {
     case COL_NAME:
-      return psppire_variable_set_name(pv, text);
+      psppire_dict_rename_var (var_store->dict, pv, text);
+      return TRUE;
       break;
     case COL_COLUMNS:
       if ( ! text) return FALSE;
-      return psppire_variable_set_columns(pv, atoi(text));
+      var_set_display_width (pv, atoi(text));
+      return TRUE;
       break;
     case COL_WIDTH:
-      if ( ! text) return FALSE;
-      return psppire_variable_set_width(pv, atoi(text));
+      {
+	int width = atoi (text);
+	if ( ! text) return FALSE;
+	if ( var_is_alpha (pv))
+	    var_set_width (pv, width);
+	else
+	  {
+	    struct fmt_spec fmt ;
+	    fmt = *var_get_write_format (pv);
+	    if ( width < fmt_min_output_width (fmt.type)
+		 ||
+		 width > fmt_max_output_width (fmt.type))
+	      return FALSE;
+
+	    fmt.w = width;
+	    fmt.d = MIN (fmt_max_output_decimals (fmt.type, width), fmt.d);
+
+	    var_set_both_formats (pv, &fmt);
+	  }
+
+	return TRUE;
+      }
       break;
     case COL_DECIMALS:
-      if ( ! text) return FALSE;
-      return psppire_variable_set_decimals(pv, atoi(text));
+      {
+	int decimals;
+	struct fmt_spec fmt;
+	if ( ! text) return FALSE;
+	decimals = atoi (text);
+	fmt = *var_get_write_format (pv);
+	if ( decimals >
+	     fmt_max_output_decimals (fmt.type,
+				      fmt.w
+				      ))
+	  return FALSE;
+
+	fmt.d = decimals;
+	var_set_both_formats (pv, &fmt);
+	return TRUE;
+      }
       break;
     case COL_LABEL:
-      psppire_variable_set_label(pv, text);
+      var_set_label(pv, text);
       return TRUE;
       break;
     case COL_TYPE:
@@ -435,7 +466,7 @@ psppire_var_store_set_string(GSheetModel *model,
 
 
 static  gchar *
-text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
+text_for_column(const struct variable *pv, gint c, GError **err)
 {
   static gchar none[] = N_("None");
 
@@ -453,12 +484,12 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
   enum {VT_NUMERIC, VT_COMMA, VT_DOT, VT_SCIENTIFIC, VT_DATE, VT_DOLLAR, 
 	VT_CUSTOM, VT_STRING};
 
-  const struct fmt_spec *write_spec = psppire_variable_get_write_spec(pv);
+  const struct fmt_spec *write_spec = var_get_write_format (pv);
 
   switch (c)
     {
     case COL_NAME:
-      return pspp_locale_to_utf8(psppire_variable_get_name(pv), -1, err);
+      return pspp_locale_to_utf8 ( var_get_name (pv), -1, err);
       break;
     case COL_TYPE:
       {
@@ -538,20 +569,20 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new(10);
-	g_string_printf(gstr, _("%d"), psppire_variable_get_columns(pv));
+	g_string_printf(gstr, _("%d"), var_get_display_width (pv));
 	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
 	g_string_free(gstr, TRUE);
 	return s;
       }
       break;
     case COL_LABEL:
-      return pspp_locale_to_utf8(psppire_variable_get_label(pv), -1, err);
+      return pspp_locale_to_utf8 (var_get_label (pv), -1, err);
       break;
 
     case COL_MISSING:
       {
 	gchar *s;
-	const struct missing_values *miss = psppire_variable_get_missing(pv);
+	const struct missing_values *miss = var_get_missing_values (pv);
 	if ( mv_is_empty(miss)) 
 	  return g_locale_to_utf8(gettext(none), -1, 0, 0, err);
 	else
@@ -611,47 +642,48 @@ text_for_column(const struct PsppireVariable *pv, gint c, GError **err)
       break;
     case COL_VALUES:
       {
-	const struct val_labs *vls = psppire_variable_get_value_labels(pv);
-	if ( ! vls || 0 == val_labs_count(vls) ) 
-	  return g_locale_to_utf8(gettext(none), -1, 0, 0, err);
+	if ( ! var_has_value_labels (pv))
+	  return g_locale_to_utf8 (gettext (none), -1, 0, 0, err);
 	else
 	  {
 	    gchar *ss;
-	    GString *gstr = g_string_sized_new(10);
+	    GString *gstr = g_string_sized_new (10);
+	    const struct val_labs *vls = var_get_value_labels (pv);
 	    struct val_labs_iterator *ip = 0;
 	    struct val_lab *vl = val_labs_first_sorted (vls, &ip);
 
-	    g_assert(vl);
+	    g_assert (vl);
 
 	    {
-	      gchar *const vstr = value_to_text(vl->value, *write_spec);
+	      gchar *const vstr = value_to_text (vl->value, *write_spec);
 
-	      g_string_printf(gstr, "{%s,\"%s\"}_", vstr, vl->label);
-	      g_free(vstr);
+	      g_string_printf (gstr, "{%s,\"%s\"}_", vstr, vl->label);
+	      g_free (vstr);
 	    }
 
-	    val_labs_done(&ip);
-	    
-	    ss = pspp_locale_to_utf8(gstr->str, gstr->len, err);
-	    g_string_free(gstr, TRUE);
+	    val_labs_done (&ip);
+
+	    ss = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
+	    g_string_free (gstr, TRUE);
 	    return ss;
 	  }
       }
       break;
     case COL_ALIGN:
       {
-	const gint align = psppire_variable_get_alignment(pv);
+	const gint align = var_get_alignment(pv);
 
-	g_assert(align < n_ALIGNMENTS);
+	g_assert (align < n_ALIGNMENTS);
 	return g_locale_to_utf8(gettext(alignments[align]), -1, 0, 0, err);
       }
       break;
     case COL_MEASURE:
       {
-	const gint measure = psppire_variable_get_measure(pv);
+	const gint measure = var_get_measure (pv);
 
-	g_assert(measure < n_MEASURES);
-	return g_locale_to_utf8(gettext(measures[measure]), -1, 0, 0, err);
+	g_assert (measure - 1 < n_MEASURES);
+	return g_locale_to_utf8 (gettext (measures[measure - 1]),
+				 -1, 0, 0, err);
       }
       break;
     }
@@ -736,7 +768,7 @@ static gchar *
 geometry_get_button_label(const GSheetRow *geom, gint unit, gpointer data)
 {
   gchar *label = g_strdup_printf(_("%d"), unit);
-  
+
   return label;
 }
 

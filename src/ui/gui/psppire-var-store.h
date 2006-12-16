@@ -77,14 +77,12 @@ struct _PsppireVarStoreClass
 GType         psppire_var_store_get_type         (void) G_GNUC_CONST;
 PsppireVarStore *psppire_var_store_new              (PsppireDict *dict);
 struct variable * psppire_var_store_get_var (PsppireVarStore *store, gint row);
-struct PsppireVariable * psppire_var_store_get_variable(PsppireVarStore *store, 
-						  gint row);
 
-void psppire_var_store_set_dictionary(PsppireVarStore *var_store, PsppireDict *dict);
+void psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict);
 
 
 /* Return the number of variables */
-gint psppire_var_store_get_var_cnt(PsppireVarStore      *var_store);
+gint psppire_var_store_get_var_cnt (PsppireVarStore      *var_store);
 
 void psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *fd);
 

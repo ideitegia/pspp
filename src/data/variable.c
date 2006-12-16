@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -22,13 +22,11 @@
 #include <stdlib.h>
 
 #include "cat-routines.h"
-#include "category.h"
 #include "data-out.h"
-#include "dictionary.h"
 #include "format.h"
+#include "dictionary.h"
 #include "identifier.h"
 #include "missing-values.h"
-#include "value.h"
 #include "value-labels.h"
 #include "vardict.h"
 
@@ -37,10 +35,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
-#include <libpspp/misc.h>
 #include <libpspp/str.h>
-
-#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -207,6 +202,7 @@ var_set_name (struct variable *v, const char *name)
   assert (var_is_plausible_name (name, false));
 
   str_copy_trunc (v->name, sizeof v->name, name);
+  dict_var_changed (v);
 }
 
 /* Returns true if NAME is an acceptable name for a variable,
@@ -353,27 +349,27 @@ var_get_width (const struct variable *v)
 
 /* Sets the width of V to WIDTH. */
 void
-var_set_width (struct variable *v, int new_width) 
+var_set_width (struct variable *v, int new_width)
 {
   enum var_type new_type = var_type_from_width (new_width);
-  
+
   if (mv_is_resizable (&v->miss, new_width))
     mv_resize (&v->miss, new_width);
   else
     mv_init (&v->miss, new_width);
 
-  if (v->val_labs != NULL) 
+  if (v->val_labs != NULL)
     {
       if (val_labs_can_set_width (v->val_labs, new_width))
         val_labs_set_width (v->val_labs, new_width);
-      else 
+      else
         {
           val_labs_destroy (v->val_labs);
           v->val_labs = NULL;
         }
     }
-  
-  if (var_get_type (v) != new_type) 
+
+  if (var_get_type (v) != new_type)
     {
       v->print = (new_type == VAR_NUMERIC
                   ? fmt_for_output (FMT_F, 8, 2)
@@ -387,6 +383,8 @@ var_set_width (struct variable *v, int new_width)
     }
 
   v->width = new_width;
+
+  dict_var_changed (v);
 }
 
 /* Returns true if variable V is numeric, false otherwise. */
@@ -450,6 +448,8 @@ var_set_missing_values (struct variable *v, const struct missing_values *miss)
     }
   else
     mv_init (&v->miss, v->width);
+
+  dict_var_changed (v);
 }
 
 /* Sets variable V to have no user-missing values. */
@@ -557,6 +557,7 @@ var_set_value_labels (struct variable *v, const struct val_labs *vls)
       assert (val_labs_can_set_width (vls, v->width));
       v->val_labs = val_labs_copy (vls);
       val_labs_set_width (v->val_labs, v->width);
+      dict_var_changed (v);
     }
 }
 
@@ -642,6 +643,7 @@ var_set_print_format (struct variable *v, const struct fmt_spec *print)
 {
   assert (fmt_check_width_compat (print, v->width));
   v->print = *print;
+  dict_var_changed (v);
 }
 
 /* Returns V's write format specification. */
@@ -659,6 +661,7 @@ var_set_write_format (struct variable *v, const struct fmt_spec *write)
 {
   assert (fmt_check_width_compat (write, v->width));
   v->write = *write;
+  dict_var_changed (v);
 }
 
 /* Sets V's print and write format specifications to FORMAT,
@@ -705,6 +708,7 @@ var_set_label (struct variable *v, const char *label)
       ss_truncate (&s, 255);
       if (!ss_is_empty (s)) 
         v->label = ss_xstrdup (s);
+      dict_var_changed (v);
     }
 }
 
@@ -744,6 +748,7 @@ var_set_measure (struct variable *v, enum measure measure)
 {
   assert (measure_is_valid (measure));
   v->measure = measure;
+  dict_var_changed (v);
 }
 
 /* Returns V's display width, which applies only to GUIs. */
@@ -753,11 +758,15 @@ var_get_display_width (const struct variable *v)
   return v->display_width;
 }
 
+
+
+
 /* Sets V's display width to DISPLAY_WIDTH. */
 void
 var_set_display_width (struct variable *v, int display_width) 
 {
   v->display_width = display_width;
+  dict_var_changed (v);
 }
 
 /* Returns true if A is a valid alignment,
@@ -781,6 +790,7 @@ var_set_alignment (struct variable *v, enum alignment alignment)
 {
   assert (alignment_is_valid (alignment));
   v->alignment = alignment;
+  dict_var_changed (v);
 }
 
 /* Whether variables' values should be preserved from case to
@@ -800,6 +810,7 @@ var_set_leave (struct variable *v, bool leave)
 {
   assert (leave || !var_must_leave (v));
   v->leave = leave;
+  dict_var_changed (v);
 }
 
 /* Returns true if V must be left from case to case,
@@ -841,6 +852,7 @@ var_set_short_name (struct variable *v, const char *short_name)
     }
   else
     v->short_name[0] = '\0';
+  dict_var_changed (v);
 }
 
 /* Clears V's short name. */

@@ -23,11 +23,14 @@
    This header file should only be included by variable.c and
    dictionary.c. */
 
+struct dictionary ;
+
 /* Dictionary data stored in variable. */
 struct vardict_info 
   {
     int dict_index;     /* Dictionary index containing the variable. */
     int case_index;     /* Index into case of variable data. */
+    struct dictionary *dict;  /* The dictionary containing the variable */
   };
 
 const struct vardict_info *var_get_vardict (const struct variable *);

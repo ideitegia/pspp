@@ -50,13 +50,7 @@ struct var_type_dialog
   GtkWidget *window;
 
   /* Variable to be updated */
-  struct PsppireVariable *pv;
-#if 0
-  struct variable *var;
-
-  /* Function to be run when the dialog changes a variable */
-  variable_changed_func var_change_func;
-#endif
+  struct variable *pv;
 
   /* Local copy of format specifier */
   struct fmt_spec fmt_l;
@@ -103,6 +97,5 @@ void var_type_dialog_set_variable(struct var_type_dialog *dialog,
 				  struct variable *var);
 
 void var_type_dialog_show(struct var_type_dialog *dialog);
-
 
 #endif

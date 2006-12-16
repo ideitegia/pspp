@@ -1,3 +1,13 @@
+Sat Dec 16 12:17:34 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* dictionary.c dictionary.h vardict.h variable.c: Added optional
+         	callbacks which are invoked when the dictionary or its 
+		variables are changed.  
+	
+	* missing-values.c missing-values.h value-labels.c: Tidied up
+		consistency checks, and made some of them return false 
+		instead of assert-failing. 
+
 Wed Dec 13 19:30:11 2006  Ben Pfaff  <blp@gnu.org>
 
 	* calendar.c (calendar_days_in_month): New function.

@@ -188,7 +188,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
   memset(&agr, 0 , sizeof (agr));
   agr.missing = ITEMWISE;
   case_nullify (&agr.break_case);
-  
+
   agr.dict = dict_create ();
   agr.src_dict = dict;
   dict_set_label (agr.dict, dict_get_label (dict));

@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2005, 2006  Free Software Foundation
     Written by John Darrington
@@ -32,7 +32,7 @@
 #include <data/missing-values.h>
 #include <data/variable.h>
 #include <data/data-in.h>
-#include "psppire-variable.h"
+
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -84,7 +84,7 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
 {
   struct missing_val_dialog *dialog = data;
 
-  const struct fmt_spec *write_spec = psppire_variable_get_write_spec(dialog->pv);
+  const struct fmt_spec *write_spec = var_get_write_format (dialog->pv);
   
   if ( gtk_toggle_button_get_active(dialog->button_discrete))
     {
@@ -174,9 +174,9 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
   if (gtk_toggle_button_get_active(dialog->button_none))
     mv_set_type(&dialog->mvl, MV_NONE);
 
-  psppire_variable_set_missing(dialog->pv, &dialog->mvl);
+  var_set_missing_values (dialog->pv, &dialog->mvl);
 
-  gtk_widget_hide(dialog->window);
+  gtk_widget_hide (dialog->window);
 }
 
 
@@ -266,9 +266,9 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
   g_return_if_fail(dialog);
   g_return_if_fail(dialog->pv);
 
-  mv_copy (&dialog->mvl, psppire_variable_get_missing(dialog->pv));
+  mv_copy (&dialog->mvl, var_get_missing_values (dialog->pv));
 
-  write_spec = psppire_variable_get_write_spec(dialog->pv);
+  write_spec = var_get_write_format (dialog->pv);
 
   /* Blank all entry boxes and make them insensitive */
   gtk_entry_set_text(GTK_ENTRY(dialog->low), "");
@@ -278,10 +278,11 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
   gtk_widget_set_sensitive(dialog->high, FALSE);      
   gtk_widget_set_sensitive(dialog->discrete, FALSE);   
 
-  gtk_widget_set_sensitive(GTK_WIDGET(dialog->button_range), 
-			   psppire_variable_get_type(dialog->pv) == VAR_NUMERIC);
+  gtk_widget_set_sensitive(GTK_WIDGET(dialog->button_range),
+			   var_is_numeric (dialog->pv));
 
-  for(i = 0 ; i < 3 ; ++i ) 
+
+  for(i = 0 ; i < 3 ; ++i )
     {
       gtk_entry_set_text(GTK_ENTRY(dialog->mv[i]), "");	  
       gtk_widget_set_sensitive(dialog->mv[i], FALSE);

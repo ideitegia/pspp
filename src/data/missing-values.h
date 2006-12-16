@@ -24,7 +24,7 @@
 
 /* Types of user-missing values.
    Invisible--use access functions defined below instead. */
-enum mv_type 
+enum mv_type
   {
     MV_NONE = 0,                /* No user-missing values. */
     MV_1 = 1,                   /* One user-missing value. */
@@ -36,9 +36,9 @@ enum mv_type
 
 /* Missing values.
    Opaque--use access functions defined below. */
-struct missing_values 
+struct missing_values
   {
-    unsigned type;              /* Number and type of missing values. */
+    enum mv_type type;          /* Number and type of missing values. */
     int width;                  /* 0=numeric, otherwise string width. */
     union value values[3];      /* Missing values.  [y,z] are the range. */
   };

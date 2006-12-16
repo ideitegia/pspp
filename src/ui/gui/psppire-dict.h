@@ -54,11 +54,6 @@ struct _PsppireDict
   GObject             parent;
   struct dictionary *dict;
 
-  /* Cache of variables */
-  struct PsppireVariable **variables;
-
-  gint cache_size;
-
   /* For GtkTreeModelIface */
   gint stamp;
 };
@@ -94,7 +89,7 @@ void psppire_dict_clear(PsppireDict *d);
 
 /* Return the IDXth variable */
 
-struct PsppireVariable * psppire_dict_get_variable(PsppireDict *d, gint idx);
+struct variable * psppire_dict_get_variable (PsppireDict *d, gint idx);
 
 /* Delete N variables beginning at FIRST */
 void psppire_dict_delete_variables(PsppireDict *d, gint first, gint n);
@@ -102,14 +97,17 @@ void psppire_dict_delete_variables(PsppireDict *d, gint first, gint n);
 /* Insert a new variable at posn IDX */
 void psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name);
 
-void psppire_dict_resize_variable(PsppireDict *d, 
-				  const struct PsppireVariable *pv,
-				  gint old_size, gint new_size);
+void psppire_dict_resize_variable(PsppireDict *, 
+				  const struct variable *,
+				  gint, gint );
 
 gboolean psppire_dict_check_name(const PsppireDict *dict, 
 			      const gchar *name, gboolean report);
 
 gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
+
+void psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
+			      const gchar *text);
 
 
 G_END_DECLS

@@ -29,7 +29,6 @@
 #include "helper.h"
 #include "val-labs-dialog.h"
 #include <data/value-labels.h>
-#include "psppire-variable.h"
 
 /* This callback occurs when the text in the label entry box
    is changed */
@@ -44,7 +43,7 @@ on_label_entry_change(GtkEntry *entry, gpointer data)
   text = gtk_entry_get_text(GTK_ENTRY(dialog->value_entry));
 
   text_to_value(text, &v,
-		*psppire_variable_get_write_spec(dialog->pv));
+		*var_get_write_format (dialog->pv));
 
 
   if ( val_labs_find (dialog->labs, v) )
@@ -114,7 +113,7 @@ on_value_entry_change(GtkEntry *entry, gpointer data)
 
   union value v;
   text_to_value(text, &v,
-		*psppire_variable_get_write_spec(dialog->pv));
+		*var_get_write_format (dialog->pv));
 
 
   g_signal_handler_block(GTK_ENTRY(dialog->label_entry),
@@ -148,9 +147,10 @@ val_labs_ok(GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
 
-  psppire_variable_set_value_labels(dialog->pv, dialog->labs);
+  var_set_value_labels (dialog->pv, dialog->labs);
 
   val_labs_destroy (dialog->labs);
+
   dialog->labs = 0;
 
   return FALSE;
@@ -210,12 +210,12 @@ on_change(GtkWidget *w, gpointer data)
   union value v;
 
   text_to_value(val_text, &v,
-		*psppire_variable_get_write_spec(dialog->pv));
+		*var_get_write_format (dialog->pv));
 
   val_labs_replace (dialog->labs, v,
-		    gtk_entry_get_text(GTK_ENTRY(dialog->label_entry)));
+		    gtk_entry_get_text (GTK_ENTRY(dialog->label_entry)));
 
-  gtk_widget_set_sensitive(dialog->change_button, FALSE);
+  gtk_widget_set_sensitive (dialog->change_button, FALSE);
 
   repopulate_dialog(dialog);
 
@@ -233,13 +233,13 @@ on_add(GtkWidget *w, gpointer data)
   const gchar *text = gtk_entry_get_text(GTK_ENTRY(dialog->value_entry));
 
   text_to_value(text, &v,
-		*psppire_variable_get_write_spec(dialog->pv));
+		*var_get_write_format (dialog->pv));
 
 
   if ( ! val_labs_add (dialog->labs, v,
-		       gtk_entry_get_text(GTK_ENTRY(dialog->label_entry)) ) )
+		       gtk_entry_get_text
+		       ( GTK_ENTRY (dialog->label_entry)) ) )
     return FALSE;
-
 
   gtk_widget_set_sensitive(dialog->add_button, FALSE);
 
@@ -279,7 +279,7 @@ on_select_row                  (GtkTreeView *treeview,
   struct val_lab * vl  = get_selected_tuple(dialog);
 
   gchar *const text = value_to_text(vl->value,
-				    *psppire_variable_get_write_spec(dialog->pv));
+				    *var_get_write_format (dialog->pv));
 
   g_signal_handler_block(GTK_ENTRY(dialog->value_entry),
 			 dialog->value_handler_id);
@@ -420,7 +420,7 @@ repopulate_dialog(struct val_labs_dialog *dialog)
 
       gchar *const vstr  =
 	value_to_text(vl->value,
-		      *psppire_variable_get_write_spec(dialog->pv));
+		      *var_get_write_format (dialog->pv));
 
       gchar *labeltext =
 	pspp_locale_to_utf8(vl->label, -1, 0);
@@ -455,13 +455,13 @@ val_labs_dialog_show(struct val_labs_dialog *dialog)
 
   g_assert(!dialog->labs);
 
-  value_labels = psppire_variable_get_value_labels (dialog->pv);
+  value_labels = var_get_value_labels (dialog->pv);
 
   if (value_labels)
     dialog->labs = val_labs_copy ( value_labels );
   else
-    dialog->labs = val_labs_create ( psppire_variable_get_width (dialog->pv));
-
+    dialog->labs = val_labs_create ( var_get_width (dialog->pv));
+  
   gtk_widget_set_sensitive(dialog->remove_button, FALSE);
   gtk_widget_set_sensitive(dialog->change_button, FALSE);
   gtk_widget_set_sensitive(dialog->add_button, FALSE);

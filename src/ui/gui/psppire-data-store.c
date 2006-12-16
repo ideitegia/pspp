@@ -29,6 +29,7 @@
 #include <data/casefile.h>
 #include <data/case.h>
 #include <data/data-out.h>
+#include <data/variable.h>
 
 #include <gtksheet/gtksheet.h>
 #include <gtksheet/gsheetmodel.h>
@@ -36,7 +37,6 @@
 
 #include <pango/pango-context.h>
 
-#include "psppire-variable.h"
 #include "psppire-data-store.h"
 #include "psppire-case-file.h"
 #include "helper.h"
@@ -299,10 +299,10 @@ insert_variable_callback(GObject *obj, gint var_num, gpointer data)
   
   if ( var_num > 0 ) 
     {
-      struct PsppireVariable *variable;
+      struct variable *variable;
       variable = psppire_dict_get_variable(store->dict, var_num);
 
-      posn = psppire_variable_get_fv(variable);
+      posn = var_get_case_index (variable);
     }
   else
     {
@@ -441,11 +441,11 @@ psppire_data_store_insert_new_case(PsppireDataStore *ds, gint posn)
 
   for (v = 0 ; v < psppire_dict_get_var_cnt (ds->dict) ; ++v) 
     {
-      const struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, v);
-      if (VAR_STRING ==  psppire_variable_get_type(pv) ) 
+      const struct variable *pv = psppire_dict_get_variable (ds->dict, v);
+      if ( var_is_alpha (pv))
 	continue;
 
-      case_data_rw_idx (&cc, psppire_variable_get_fv (pv))->f = SYSMIS;
+      case_data_rw (&cc, pv)->f = SYSMIS;
     }
 
   result = psppire_case_file_insert_case (ds->case_file, &cc, posn);
@@ -462,7 +462,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
   gint idx;
   char *text;
   const struct fmt_spec *fp ;
-  const struct PsppireVariable *pv ;
+  const struct variable *pv ;
   const union value *v ;
   GString *s;
   PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
@@ -478,7 +478,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 
   pv = psppire_dict_get_variable (store->dict, column);
 
-  idx = psppire_variable_get_fv (pv);
+  idx = var_get_case_index (pv);
 
   v = psppire_case_file_get_value (store->case_file, row, idx);
 
@@ -486,7 +486,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 
   if ( store->show_labels) 
     {
-      const struct val_labs * vl = psppire_variable_get_value_labels (pv);
+      const struct val_labs * vl = var_get_value_labels (pv);
 
       const gchar *label;
       if ( (label = val_labs_find(vl, *v)) )
@@ -495,7 +495,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 	}
     }
 
-  fp = psppire_variable_get_write_spec (pv);
+  fp = var_get_write_format (pv);
 
   s = g_string_sized_new (fp->w + 1);
   g_string_set_size (s, fp->w);
@@ -526,17 +526,18 @@ psppire_data_store_clear_datum (GSheetModel *model,
   PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
 
   union value v;
-  const struct PsppireVariable *pv = psppire_dict_get_variable(store->dict, col);
+  const struct variable *pv = psppire_dict_get_variable (store->dict, col);
 
-  const gint index = psppire_variable_get_fv(pv) ;
+  const gint index = var_get_case_index (pv) ;
 
-  if ( psppire_variable_get_type(pv) == VAR_NUMERIC) 
+  if ( var_is_numeric (pv))
     v.f = SYSMIS;
   else
     memcpy(v.s, "", MAX_SHORT_STRING);
 
   psppire_case_file_set_value(store->case_file, row, index, &v, 
-			      psppire_variable_get_width(pv));
+			      var_get_width (pv));
+
   return TRUE;
 }
 
@@ -551,7 +552,7 @@ psppire_data_store_set_string(GSheetModel *model,
 {
   PsppireDataStore *store = PSPPIRE_DATA_STORE(model);
 
-  const struct PsppireVariable *pv = psppire_dict_get_variable(store->dict, col);
+  const struct variable *pv = psppire_dict_get_variable(store->dict, col);
   g_return_val_if_fail(pv, FALSE);
 
 #if 0
@@ -570,8 +571,8 @@ psppire_data_store_set_string(GSheetModel *model,
 #endif
 
   psppire_case_file_data_in (store->case_file, row,
-                             psppire_variable_get_fv (pv), ss_cstr (text),
-                             psppire_variable_get_write_spec (pv));
+                             var_get_case_index (pv), ss_cstr (text),
+                             var_get_write_format (pv));
   
   return TRUE;
 }
@@ -677,18 +678,18 @@ geometry_get_column_count(const GSheetColumn *geom)
 static gint
 geometry_get_width(const GSheetColumn *geom, gint unit)
 {
-  const struct PsppireVariable *pv ;
+  const struct variable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
     return ds->width_of_m * 8 ;
 
-  pv = psppire_dict_get_variable(ds->dict, unit);
+  pv = psppire_dict_get_variable (ds->dict, unit);
 
   if ( pv == NULL ) 
     return ds->width_of_m * 8 ;
 
-  return ds->width_of_m * psppire_variable_get_columns(pv);
+  return ds->width_of_m * var_get_display_width (pv);
 }
 
 static void
@@ -696,9 +697,9 @@ geometry_set_width(GSheetColumn *geom, gint unit, gint width)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
-  struct PsppireVariable *pv = psppire_dict_get_variable(ds->dict, unit);
+  struct variable *pv = psppire_dict_get_variable (ds->dict, unit);
 
-  psppire_variable_set_columns(pv, width / ds->width_of_m );
+  var_set_display_width (pv, width / ds->width_of_m );
 }
 
 
@@ -707,7 +708,7 @@ static GtkJustification
 geometry_get_justification(const GSheetColumn *geom, gint unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
-  const struct PsppireVariable *pv ;
+  const struct variable *pv ;
 
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
@@ -717,7 +718,7 @@ geometry_get_justification(const GSheetColumn *geom, gint unit)
 
   /* Kludge: Happily GtkJustification is defined similarly
      to enum alignment from pspp/variable.h */
-  return psppire_variable_get_alignment(pv);
+  return var_get_alignment(pv);
 }
 
 
@@ -727,15 +728,15 @@ static gchar *
 geometry_get_column_button_label(const GSheetColumn *geom, gint unit)
 {
   gchar *text;
-  struct PsppireVariable *pv ;
+  struct variable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(geom);
 
   if ( unit >= psppire_dict_get_var_cnt(ds->dict) )
     return g_locale_to_utf8(null_var_name, -1, 0, 0, 0);
 
-  pv = psppire_dict_get_variable(ds->dict, unit);
+  pv = psppire_dict_get_variable (ds->dict, unit);
 
-  text =  pspp_locale_to_utf8(psppire_variable_get_name(pv), -1, 0);
+  text =  pspp_locale_to_utf8 (var_get_name (pv), -1, 0);
 
   return text;
 }

@@ -46,7 +46,6 @@
    8. The dialog box structure itself ought to be a GtkWindow and
       abstracted better.
 */
-   
 
 
 #include <config.h>
@@ -54,7 +53,6 @@
 #include "sort-cases-dialog.h"
 #include "psppire-dict.h"
 #include <math/sort.h>
-#include "psppire-variable.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -155,7 +153,7 @@ select_criteria(GtkTreeModel *model, GtkTreePath *path,
   GtkTreeIter new_iter;
   gint index;
   gint dir;
-  struct PsppireVariable *variable;
+  struct variable *variable;
   struct sort_cases_dialog *dialog = (struct sort_cases_dialog*) data;
 
   /* Get the variable from the dictionary */
@@ -163,7 +161,7 @@ select_criteria(GtkTreeModel *model, GtkTreePath *path,
 		      DICT_TVM_COL_VAR, &variable,
 		      -1);
 	
-  index = psppire_variable_get_index(variable);
+  index = var_get_dict_index (variable);
 
   dir = gtk_toggle_button_get_active (dialog->ascending_button) ? 
     SRT_ASCEND:SRT_DESCEND;
@@ -263,7 +261,7 @@ criteria_render_func(GtkTreeViewColumn *column, GtkCellRenderer *renderer,
 		     gpointer data)
 {
   gint var_index;
-  struct PsppireVariable *variable ;
+  struct variable *variable ;
   gint direction;
   gchar *buf;
   gchar *varname;
@@ -275,7 +273,7 @@ criteria_render_func(GtkTreeViewColumn *column, GtkCellRenderer *renderer,
 
   variable = psppire_dict_get_variable(dict, var_index);
 
-  varname = pspp_locale_to_utf8(psppire_variable_get_name(variable),
+  varname = pspp_locale_to_utf8 (var_get_name(variable),
 				-1, 0);
 
   if ( direction == SRT_ASCEND) 
@@ -464,7 +462,7 @@ convert_list_store_to_criteria(GtkListStore *list,
       valid;
       valid = gtk_tree_model_iter_next(model, &iter))
     {
-      struct PsppireVariable *variable;
+      struct variable *variable;
       gint index;
       struct sort_criterion *scn = &criteria->crits[n];
       g_assert ( n < criteria->crit_cnt);
@@ -477,8 +475,8 @@ convert_list_store_to_criteria(GtkListStore *list,
 
       variable = psppire_dict_get_variable(dict, index);
 
-      scn->fv    = psppire_variable_get_fv(variable);
-      scn->width = psppire_variable_get_width(variable);
+      scn->fv    = var_get_case_index (variable);
+      scn->width = var_get_width(variable);
     }
 }
 

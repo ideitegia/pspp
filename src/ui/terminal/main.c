@@ -130,7 +130,7 @@ main (int argc, char **argv)
             check_msg_count (the_source_stream);
         }
     }
-  
+
   terminate (!any_errors ());
 }
 

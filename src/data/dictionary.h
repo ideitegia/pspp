@@ -22,11 +22,24 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-/* Dictionary. */ 
+/* Dictionary. */
 
 struct variable;
+struct dictionary;
+
+struct dict_callbacks
+ {
+  void (*var_added) (struct dictionary *, int, void *);
+  void (*var_deleted) (struct dictionary *, int, void *);
+  void (*var_changed) (struct dictionary *, int, void *);
+ };
+
+
 struct dictionary *dict_create (void);
 struct dictionary *dict_clone (const struct dictionary *);
+void dict_set_callbacks (struct dictionary *, const struct dict_callbacks *,
+			 void *);
+
 void dict_clear (struct dictionary *);
 void dict_clear_aux (struct dictionary *);
 void dict_destroy (struct dictionary *);
@@ -114,5 +127,9 @@ const struct vector *dict_lookup_vector (const struct dictionary *,
 void dict_clear_vectors (struct dictionary *);
 
 void dict_assign_short_names (struct dictionary *);
+
+/* Called only from variable.c */
+void dict_var_changed (const struct variable *v);
+
 
 #endif /* dictionary.h */

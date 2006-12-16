@@ -46,7 +46,6 @@
 #include "helper.h"
 #include "menu-actions.h"
 #include "psppire-dict.h"
-#include "psppire-variable.h"
 #include "var-type-dialog.h"
 #include "var-sheet.h"
 #include "customentry.h"
@@ -141,28 +140,28 @@ static void
 change_alignment(GtkComboBox *cb,
     gpointer user_data)
 {
-  struct PsppireVariable *pv = user_data;
+  struct variable *pv = user_data;
   gint active_item = gtk_combo_box_get_active(cb);
 
   if ( active_item < 0 ) return ;
 
-  psppire_variable_set_alignment(pv, active_item);
+  var_set_alignment (pv, active_item);
 }
 
 
 
 /* Callback for when the measure combo box 
    item is selected */
-static void        
+static void
 change_measure(GtkComboBox *cb,
     gpointer user_data)
 {
-  struct PsppireVariable *pv = user_data;
+  struct variable *pv = user_data;
   gint active_item = gtk_combo_box_get_active(cb);
 
   if ( active_item < 0 ) return ;
 
-  psppire_variable_set_measure(pv, active_item);
+  var_set_measure (pv, active_item + 1);
 }
 
 
@@ -215,7 +214,7 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 {
   GtkSheetCellAttr attributes;
   PsppireVarStore *var_store ;
-  struct PsppireVariable *pv ;
+  struct variable *pv ;
 
   g_return_val_if_fail(sheet != NULL, FALSE);
 
@@ -233,7 +232,7 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 
   gtk_sheet_get_attributes(sheet, row, column, &attributes);
 
-  pv = psppire_var_store_get_variable(var_store, row);
+  pv = psppire_var_store_get_var (var_store, row);
 
   switch (column)
     {
@@ -267,15 +266,15 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 	  GTK_COMBO_BOX_ENTRY(gtk_sheet_get_entry(sheet)->parent);
 
 
-	if ( ! list_store) list_store = create_label_list(measures);
+	if ( ! list_store) list_store = create_label_list (measures);
 
 	gtk_combo_box_set_model(GTK_COMBO_BOX(cbe), 
 				GTK_TREE_MODEL(list_store));
 
 	gtk_combo_box_entry_set_text_column (cbe, 0);
 
-	g_signal_connect(G_OBJECT(cbe),"changed", 
-			 G_CALLBACK(change_measure), pv);
+	g_signal_connect (G_OBJECT(cbe),"changed",
+			  G_CALLBACK (change_measure), pv);
       }
       break;
 
@@ -315,7 +314,7 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 	if (!missing_val_dialog ) 
 	    missing_val_dialog = missing_val_dialog_create(xml);
 
-	missing_val_dialog->pv = psppire_var_store_get_variable(var_store, row);
+	missing_val_dialog->pv = psppire_var_store_get_var (var_store, row);
 
 	g_signal_connect_swapped(GTK_OBJECT(customEntry),
 				 "clicked",
@@ -367,16 +366,16 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 	      const gint current_value  = atoi(s);
 	      GtkObject *adj ;
 
-	      const struct fmt_spec *fmt = psppire_variable_get_write_spec(pv);
+	      const struct fmt_spec *fmt = var_get_write_format (pv);
 	      switch (column) 
 		{
 		case COL_WIDTH:
-		  r_min = fmt->d + 1;
-		  r_max = (psppire_variable_get_type(pv) == VAR_STRING) ? MAX_STRING : 40;
+		  r_min = MAX (fmt->d + 1, fmt_min_output_width (fmt->type));
+		  r_max = fmt_max_output_width (fmt->type);
 		  break;
 		case COL_DECIMALS:
 		  r_min = 0 ; 
-		  r_max = MIN(fmt->w - 1, 16);
+		  r_max = fmt_max_output_decimals (fmt->type, fmt->w);
 		  break;
 		case COL_COLUMNS:
 		  r_min = 1;

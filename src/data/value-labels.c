@@ -90,7 +90,8 @@ val_labs_copy (const struct val_labs *vls)
 bool
 val_labs_can_set_width (const struct val_labs *vls, int new_width) 
 {
-  assert ((vls->width == 0) == (new_width == 0));
+  if ( var_type_from_width (new_width) != var_type_from_width (vls->width ))
+    return false;
 
   if (vls->width == 0)
     return new_width == 0;

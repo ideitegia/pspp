@@ -1,3 +1,19 @@
+Sat Dec 16 12:24:35 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-variable.c psppire-variable.h: Deleted.
+
+	* psppire-dict.c psppire-dict.h: Removed the caching of the variable 
+	    data, which is now unecessary because src/data/vardict.h maintains 
+	    an association between variables and their dictionary.
+	
+	* data-sheet.c menu-actions.c missing-val-dialog.c 
+	  missing-val-dialog.h psppire-data-store.c 
+	  psppire-var-store.c psppire-var-store.h 
+	  sort-cases-dialog.c val-labs-dialog.c val-labs-dialog.h 
+	  var-sheet.c var-type-dialog.c var-type-dialog.h: Dealt with the 
+	    consequences of deleting psppire-variable.[ch]. 
+
+
 Sat Dec  9 20:03:04 2006  Ben Pfaff  <blp@gnu.org>
 
 	* var-type-dialog.c (var_type_dialog_create): Use

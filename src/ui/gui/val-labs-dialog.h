@@ -40,7 +40,7 @@ struct val_labs_dialog
 
 
   /* The variable to be updated */
-  struct PsppireVariable *pv;
+  struct variable *pv;
 
   /* Local copy of labels */
   struct val_labs *labs;

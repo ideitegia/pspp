@@ -35,8 +35,8 @@ struct missing_val_dialog
   GtkWidget *window;
 
   /* The variable whose missing values are to be updated */
-  struct PsppireVariable *pv;
-  
+  struct variable *pv;
+
   /* local copy */
   struct missing_values mvl;
 

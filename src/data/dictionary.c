@@ -61,14 +61,33 @@ struct dictionary
     char *documents;		/* Documents, as a string. */
     struct vector **vector;     /* Vectors of variables. */
     size_t vector_cnt;          /* Number of vectors. */
+    const struct dict_callbacks *callbacks; /* Callbacks on dictionary
+					       modification */
+    void *cb_data ;                  /* Data passed to callbacks */
   };
+
+
+/* Associate CALLBACKS with DICT.  Callbacks will be invoked whenever
+   the dictionary or any of the variables it contains are modified.
+   Each callback will get passed CALLBACK_DATA.
+   Any callback may be NULL, in which case it'll be ignored.
+*/
+void
+dict_set_callbacks (struct dictionary *dict,
+		    const struct dict_callbacks *callbacks,
+		    void *callback_data)
+{
+  dict->callbacks = callbacks;
+  dict->cb_data = callback_data;
+}
+
 
 /* Creates and returns a new dictionary. */
 struct dictionary *
-dict_create (void) 
+dict_create (void)
 {
-  struct dictionary *d = xmalloc (sizeof *d);
-  
+  struct dictionary *d = xzalloc (sizeof *d);
+
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
   d->name_tab = hsh_create (8, compare_vars_by_name, hash_var_by_name,
@@ -90,7 +109,7 @@ dict_create (void)
 /* Creates and returns a (deep) copy of an existing
    dictionary. */
 struct dictionary *
-dict_clone (const struct dictionary *s) 
+dict_clone (const struct dictionary *s)
 {
   struct dictionary *d;
   size_t i;
@@ -99,7 +118,7 @@ dict_clone (const struct dictionary *s)
 
   d = dict_create ();
 
-  for (i = 0; i < s->var_cnt; i++) 
+  for (i = 0; i < s->var_cnt; i++)
     {
       struct variable *sv = s->var[i];
       struct variable *dv = dict_clone_var_assert (d, sv, var_get_name (sv));
@@ -109,17 +128,17 @@ dict_clone (const struct dictionary *s)
   d->next_value_idx = s->next_value_idx;
 
   d->split_cnt = s->split_cnt;
-  if (d->split_cnt > 0) 
+  if (d->split_cnt > 0)
     {
       d->split = xnmalloc (d->split_cnt, sizeof *d->split);
-      for (i = 0; i < d->split_cnt; i++) 
+      for (i = 0; i < d->split_cnt; i++)
         d->split[i] = dict_lookup_var_assert (d, var_get_name (s->split[i]));
     }
 
-  if (s->weight != NULL) 
+  if (s->weight != NULL)
     d->weight = dict_lookup_var_assert (d, var_get_name (s->weight));
 
-  if (s->filter != NULL) 
+  if (s->filter != NULL)
     d->filter = dict_lookup_var_assert (d, var_get_name (s->filter));
 
   d->case_limit = s->case_limit;
@@ -137,7 +156,7 @@ dict_clone (const struct dictionary *s)
 /* Clears the contents from a dictionary without destroying the
    dictionary itself. */
 void
-dict_clear (struct dictionary *d) 
+dict_clear (struct dictionary *d)
 {
   /* FIXME?  Should we really clear case_limit, label, documents?
      Others are necessarily cleared by deleting all the variables.*/
@@ -148,7 +167,7 @@ dict_clear (struct dictionary *d)
   for (i = 0; i < d->var_cnt; i++)
     {
       var_clear_vardict (d->var[i]);
-      var_destroy (d->var[i]); 
+      var_destroy (d->var[i]);
     }
   free (d->var);
   d->var = NULL;
@@ -171,12 +190,12 @@ dict_clear (struct dictionary *d)
 /* Destroys the aux data for every variable in D, by calling
    var_clear_aux() for each variable. */
 void
-dict_clear_aux (struct dictionary *d) 
+dict_clear_aux (struct dictionary *d)
 {
   int i;
-  
+
   assert (d != NULL);
-  
+
   for (i = 0; i < d->var_cnt; i++)
     var_clear_aux (d->var[i]);
 }
@@ -185,7 +204,7 @@ dict_clear_aux (struct dictionary *d)
 void
 dict_destroy (struct dictionary *d)
 {
-  if (d != NULL) 
+  if (d != NULL)
     {
       dict_clear (d);
       hsh_destroy (d->name_tab);
@@ -195,7 +214,7 @@ dict_destroy (struct dictionary *d)
 
 /* Returns the number of variables in D. */
 size_t
-dict_get_var_cnt (const struct dictionary *d) 
+dict_get_var_cnt (const struct dictionary *d)
 {
   assert (d != NULL);
 
@@ -206,7 +225,7 @@ dict_get_var_cnt (const struct dictionary *d)
    must be between 0 and the count returned by
    dict_get_var_cnt(), exclusive. */
 struct variable *
-dict_get_var (const struct dictionary *d, size_t idx) 
+dict_get_var (const struct dictionary *d, size_t idx)
 {
   assert (d != NULL);
   assert (idx < d->var_cnt);
@@ -225,14 +244,14 @@ dict_get_vars (const struct dictionary *d, struct variable ***vars,
 {
   size_t count;
   size_t i;
-  
+
   assert (d != NULL);
   assert (vars != NULL);
   assert (cnt != NULL);
   assert ((exclude_classes & ~((1u << DC_ORDINARY)
                                | (1u << DC_SYSTEM)
                                | (1u << DC_SCRATCH))) == 0);
-  
+
   count = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
@@ -240,35 +259,39 @@ dict_get_vars (const struct dictionary *d, struct variable ***vars,
       if (!(exclude_classes & (1u << class)))
         count++;
     }
-  
+
   *vars = xnmalloc (count, sizeof **vars);
   *cnt = 0;
-  for (i = 0; i < d->var_cnt; i++) 
+  for (i = 0; i < d->var_cnt; i++)
     {
       enum dict_class class = dict_class_from_id (var_get_name (d->var[i]));
       if (!(exclude_classes & (1u << class)))
-        (*vars)[(*cnt)++] = d->var[i]; 
+        (*vars)[(*cnt)++] = d->var[i];
     }
   assert (*cnt == count);
 }
 
 static struct variable *
-add_var (struct dictionary *d, struct variable *v) 
+add_var (struct dictionary *d, struct variable *v)
 {
   /* Add dictionary info to variable. */
   struct vardict_info vdi;
   vdi.case_index = d->next_value_idx;
   vdi.dict_index = d->var_cnt;
+  vdi.dict = d;
   var_set_vardict (v, &vdi);
 
   /* Update dictionary. */
-  if (d->var_cnt >= d->var_cap) 
+  if (d->var_cnt >= d->var_cap)
     {
-      d->var_cap = 8 + 2 * d->var_cap; 
+      d->var_cap = 8 + 2 * d->var_cap;
       d->var = xnrealloc (d->var, d->var_cap, sizeof *d->var);
     }
   d->var[d->var_cnt++] = v;
   hsh_force_insert (d->name_tab, v);
+
+  if ( d->callbacks && d->callbacks->var_added )
+    d->callbacks->var_added (d, d->next_value_idx, d->cb_data);
 
   d->next_value_idx += var_get_value_cnt (v);
 
@@ -350,12 +373,12 @@ dict_lookup_var_assert (const struct dictionary *d, const char *name)
 bool
 dict_contains_var (const struct dictionary *d, const struct variable *v)
 {
-  if (var_has_vardict (v)) 
+  if (var_has_vardict (v))
     {
       const struct vardict_info *vdi = var_get_vardict (v);
       return (vdi->dict_index >= 0
               && vdi->dict_index < d->var_cnt
-              && d->var[vdi->dict_index] == v); 
+              && d->var[vdi->dict_index] == v);
     }
   else
     return false;
@@ -378,7 +401,7 @@ set_var_dict_index (struct variable *v, int dict_index)
 {
   struct vardict_info vdi = *var_get_vardict (v);
   vdi.dict_index = dict_index;
-  var_set_vardict (v, &vdi); 
+  var_set_vardict (v, &vdi);
 }
 
 /* Sets the case_index in V's vardict to DICT_INDEX. */
@@ -387,16 +410,16 @@ set_var_case_index (struct variable *v, int case_index)
 {
   struct vardict_info vdi = *var_get_vardict (v);
   vdi.case_index = case_index;
-  var_set_vardict (v, &vdi); 
+  var_set_vardict (v, &vdi);
 }
 
 /* Re-sets the dict_index in the dictionary variables with
    indexes from FROM to TO (exclusive). */
 static void
-reindex_vars (struct dictionary *d, size_t from, size_t to) 
+reindex_vars (struct dictionary *d, size_t from, size_t to)
 {
   size_t i;
-  
+
   for (i = from; i < to; i++)
     set_var_dict_index (d->var[i], i);
 }
@@ -442,9 +465,13 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   /* Update name hash. */
   hsh_force_delete (d->name_tab, v);
 
+
   /* Free memory. */
   var_clear_vardict (v);
   var_destroy (v);
+
+  if (d->callbacks && d->callbacks->var_deleted )
+    d->callbacks->var_deleted (d, dict_index, d->cb_data);
 }
 
 /* Deletes the COUNT variables listed in VARS from D.  This is
@@ -559,9 +586,9 @@ rename_var (struct dictionary *d, struct variable *v, const char *new_name)
 /* Changes the name of V in D to name NEW_NAME.  Assert-fails if
    a variable named NEW_NAME is already in D, except that
    NEW_NAME may be the same as V's existing name. */
-void 
+void
 dict_rename_var (struct dictionary *d, struct variable *v,
-                 const char *new_name) 
+                 const char *new_name)
 {
   assert (!strcasecmp (var_get_name (v), new_name)
           || dict_lookup_var (d, new_name) == NULL);
@@ -572,6 +599,9 @@ dict_rename_var (struct dictionary *d, struct variable *v,
 
   if (get_algorithm () == ENHANCED)
     var_clear_short_name (v);
+
+  if ( d->callbacks && d->callbacks->var_changed )
+    d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
 }
 
 /* Renames COUNT variables specified in VARS to the names given
@@ -1236,4 +1266,22 @@ dict_assign_short_names (struct dictionary *d)
 
   /* Get rid of hash table. */
   hsh_destroy (short_names);
+}
+
+
+/* Called from variable.c to notify the dictionary that some property of 
+   the variable has changed */
+void
+dict_var_changed (const struct variable *v)
+{
+  if ( var_has_vardict (v))
+    {
+      const struct vardict_info *vdi = var_get_vardict (v);
+      struct dictionary *d;
+
+      d = vdi->dict;
+
+      if ( d->callbacks && d->callbacks->var_changed )
+	d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
+    }
 }

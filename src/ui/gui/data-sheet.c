@@ -29,7 +29,6 @@
 #include <gtksheet/gsheet-uniform-row.h>
 
 #include "psppire-dict.h"
-#include "psppire-variable.h"
 #include "psppire-data-store.h"
 #include "helper.h"
 
@@ -103,7 +102,7 @@ update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
   PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(sheet));
   if (data_store)
     {
-      const struct PsppireVariable *pv = 
+      const struct variable *pv = 
 	psppire_dict_get_variable(data_store->dict, col);
 
       gchar *text ;
@@ -113,7 +112,7 @@ update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
 	return FALSE;
 
       text = g_strdup_printf("%d: %s", row, 
-			     pv ? psppire_variable_get_name(pv) : "");
+			     pv ? var_get_name (pv) : "");
   
       cell_ref_entry = GTK_ENTRY(get_widget_assert(xml, "cell_ref_entry"));
 

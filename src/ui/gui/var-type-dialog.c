@@ -32,7 +32,6 @@
 
 #include "var-type-dialog.h"
 
-#include "psppire-variable.h"
 #include "helper.h"
 
 #include <data/variable.h>
@@ -130,7 +129,7 @@ static void update_width_decimals(const struct var_type_dialog *dialog);
 static void
 set_local_width_decimals(struct var_type_dialog *dialog)
 {
-  dialog->fmt_l = * psppire_variable_get_write_spec(dialog->pv);
+  dialog->fmt_l = * var_get_write_format (dialog->pv);
 
   switch (dialog->active_button) 
     {
@@ -665,7 +664,7 @@ var_type_dialog_set_state(struct var_type_dialog *dialog)
   g_assert(dialog->pv);
 
   /* Populate width and decimals */
-  write_spec = psppire_variable_get_write_spec(dialog->pv);
+  write_spec = var_get_write_format (dialog->pv);
 
   g_string_printf(str, "%d", write_spec->d);
 
@@ -820,12 +819,10 @@ on_var_type_ok_clicked(GtkWidget *w, gpointer data)
 	break;
       }
 
-    if ( result == true ) 
+    if ( result == true )
       {
-	psppire_variable_set_type(dialog->pv, new_type);
-	psppire_variable_set_width(dialog->pv, new_width);
-	psppire_variable_set_write_spec(dialog->pv, spec);
-	psppire_variable_set_print_spec(dialog->pv, spec);
+	var_set_width (dialog->pv, new_width);
+	var_set_both_formats (dialog->pv, &spec);
       }
 
   }

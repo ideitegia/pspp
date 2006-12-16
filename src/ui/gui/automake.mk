@@ -55,8 +55,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dict.h \
 	src/ui/gui/psppire-object.c \
 	src/ui/gui/psppire-object.h \
-	src/ui/gui/psppire-variable.c \
-	src/ui/gui/psppire-variable.h \
 	src/ui/gui/psppire-var-store.c \
 	src/ui/gui/psppire-var-store.h \
 	src/ui/gui/sort-cases-dialog.c \

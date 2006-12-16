@@ -30,6 +30,7 @@
 #include <data/file-handle-def.h>
 #include <data/sys-file-reader.h>
 #include <data/case.h>
+#include <data/variable.h>
 
 #include <glade/glade.h>
 #include <gtk/gtk.h>
@@ -39,7 +40,7 @@
 #include <gtksheet/gtksheet.h>
 #include "helper.h"
 #include "menu-actions.h"
-#include "psppire-variable.h"
+
 #include "psppire-dict.h"
 
 #include "var-sheet.h"
@@ -398,24 +399,24 @@ on_clear_activate                    (GtkMenuItem     *menuitem,
 	  case GTK_SHEET_COLUMN_SELECTED:
 	    {
 	      gint fv;
-	      struct PsppireVariable *pv =
-		psppire_dict_get_variable(the_dictionary,
-					  data_sheet->range.col0);
-	      fv = psppire_variable_get_fv(pv);
+	      struct variable *pv =
+		psppire_dict_get_variable (the_dictionary,
+					   data_sheet->range.col0);
 
+	      fv = var_get_case_index (pv);
 
-	      psppire_dict_delete_variables(the_dictionary,
-					    data_sheet->range.col0,
-					    1);
+	      psppire_dict_delete_variables (the_dictionary,
+					     data_sheet->range.col0,
+					     1);
 
-	      psppire_case_file_insert_values(data_store->case_file,
-					      -1, fv);
+	      psppire_case_file_insert_values (data_store->case_file,
+					       -1, fv);
 	    }
 	    break;
 	  default:
-	    gtk_sheet_cell_clear(data_sheet,
-				 data_sheet->active_cell.row,
-				 data_sheet->active_cell.col);
+	    gtk_sheet_cell_clear (data_sheet,
+				  data_sheet->active_cell.row,
+				  data_sheet->active_cell.col);
 	    break;
 	  }
 
