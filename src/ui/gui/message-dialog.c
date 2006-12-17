@@ -136,7 +136,7 @@ popup_message(const struct msg *m)
       msg = _("PSPP Error");
       break;
     };
-  
+
   parent = GTK_WINDOW(get_widget_assert(xml, "data_editor"));
 
   dialog = gtk_message_dialog_new(parent,
@@ -144,10 +144,13 @@ popup_message(const struct msg *m)
 				  message_type,
 				  GTK_BUTTONS_CLOSE,
 				  msg);
-  
+
   gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
-                                           "%s", m->text);
-    
+                                           _("%s (line %d) %s"),
+					   m->where.file_name,
+					   m->where.line_number,
+					   m->text);
+
   gtk_window_set_transient_for(GTK_WINDOW(dialog), parent);
 
   gtk_dialog_run(GTK_DIALOG(dialog));

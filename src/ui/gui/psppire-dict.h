@@ -66,7 +66,6 @@ struct _PsppireDictClass
 
 /* -- PsppireDict --- */
 GType          psppire_dict_get_type (void);
-PsppireDict*     psppire_dict_new (void);
 PsppireDict*     psppire_dict_new_from_dict (struct dictionary *d);
 void           psppire_dict_set_name (PsppireDict* s, gint idx, const gchar *name);
 void           psppire_dict_delete_var (PsppireDict *s, gint idx);

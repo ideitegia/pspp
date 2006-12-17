@@ -24,10 +24,13 @@
 
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
+#include <data/file-handle-def.h>
 #include <data/format.h>
 #include <data/settings.h>
 #include <data/file-name.h>
+#include <data/procedure.h>
 #include <libpspp/getl.h>
+#include <language/lexer/lexer.h>
 
 #include <getopt.h>
 #include <gtk/gtk.h>
@@ -77,7 +80,10 @@ PsppireVarStore *var_store = 0;
 
 void create_icon_factory (void);
 
-static struct source_stream *the_source_stream ;
+struct source_stream *the_source_stream ;
+struct lexer *the_lexer;
+struct dataset * the_dataset = NULL;
+
 
 int 
 main(int argc, char *argv[]) 
@@ -118,13 +124,21 @@ main(int argc, char *argv[])
 
   fmt_init();
   settings_init();
+  fh_init ();
   the_source_stream = create_source_stream (
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
 
+  the_lexer = lex_create (the_source_stream);
+
+  the_dataset = create_dataset ();
+
   message_dialog_init (the_source_stream);
 
-  the_dictionary = psppire_dict_new();
+  the_dictionary =
+    psppire_dict_new_from_dict (
+				dataset_dict (the_dataset)
+				);
 
   bind_textdomain_codeset(PACKAGE, "UTF-8");
 

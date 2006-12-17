@@ -3138,7 +3138,7 @@
 		<widget class="GtkMenu" id="run1_menu">
 
 		  <child>
-		    <widget class="GtkMenuItem" id="all1">
+		    <widget class="GtkMenuItem" id="run_all">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">All</property>
 		      <property name="use_underline">True</property>
@@ -3146,7 +3146,7 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkMenuItem" id="selection1">
+		    <widget class="GtkMenuItem" id="run_selection">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Selection</property>
 		      <property name="use_underline">True</property>
@@ -3154,7 +3154,7 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkMenuItem" id="current_line1">
+		    <widget class="GtkMenuItem" id="run_current_line">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">Current Line</property>
 		      <property name="use_underline">True</property>
@@ -3162,7 +3162,7 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkMenuItem" id="to_end1">
+		    <widget class="GtkMenuItem" id="run_to_end">
 		      <property name="visible">True</property>
 		      <property name="label" translatable="yes">To End</property>
 		      <property name="use_underline">True</property>

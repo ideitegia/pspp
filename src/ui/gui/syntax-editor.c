@@ -26,17 +26,21 @@
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 #include <libpspp/message.h>
-
+#include <libpspp/getl.h>
 #include "helper.h"
 
-extern GladeXML *xml;
 
-struct syntax_editor
-{
-  GtkWidget *window;      /* The top level window of the editor */
-  GtkTextBuffer *buffer;  /* The buffer which contains the text */
-  gchar *name;            /* The name of this syntax buffer/editor */
-};
+
+#include <language/command.h>
+#include <data/procedure.h>
+#include "syntax-editor.h"
+#include "syntax-editor-source.h"
+
+extern struct source_stream *the_source_stream ;
+extern struct lexer *the_lexer;
+extern struct dataset *the_dataset;
+
+extern GladeXML *xml;
 
 static gboolean save_editor_to_file (struct syntax_editor *se,
 				     const gchar *filename,
@@ -188,6 +192,29 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
   return FALSE;
 }
 
+static void
+on_run_all (GtkMenuItem *menuitem, gpointer user_data)
+{
+  GtkTextIter begin, end;
+  struct syntax_editor *se = user_data;
+
+  gtk_text_buffer_get_iter_at_line (se->buffer, &begin, 0);
+  gtk_text_buffer_get_iter_at_line (se->buffer, &end, -1);
+
+  getl_append_source (the_source_stream,
+		      create_syntax_editor_source (se, begin, end));
+  for (;;)
+    {
+      int result = cmd_parse (the_lexer, the_dataset,
+			      proc_has_source (the_dataset)
+			      ? CMD_STATE_DATA : CMD_STATE_INITIAL);
+
+      if (result == CMD_EOF || result == CMD_FINISH)
+	break;
+    }
+}
+
+
 void
 new_syntax_window (GtkMenuItem     *menuitem,
 		   gpointer         user_data);
@@ -198,8 +225,9 @@ static void open_syntax_window (GtkMenuItem *menuitem,
 				gpointer user_data);
 
 
-/* Create a new syntax editor with NAME.
-   If NAME is NULL, a name will be automatically assigned
+/*
+  Create a new syntax editor with NAME.
+  If NAME is NULL, a name will be automatically assigned
 */
 static struct syntax_editor *
 new_syntax_editor (const gchar *name)
@@ -245,6 +273,12 @@ new_syntax_editor (const gchar *name)
 		    G_CALLBACK(on_syntax_save_as),
 		    se);
 
+
+  g_signal_connect (get_widget_assert (new_xml,"run_all"),
+		    "activate",
+		    G_CALLBACK(on_run_all),
+		    se);
+
   g_object_unref (new_xml);
 
   g_signal_connect (se->window, "delete-event",
@@ -253,7 +287,9 @@ new_syntax_editor (const gchar *name)
   return se;
 }
 
-/* Callback for the File->New->Syntax menuitem */
+/*
+   Callback for the File->New->Syntax menuitem
+*/
 void
 new_syntax_window (GtkMenuItem     *menuitem,
 		   gpointer         user_data)
@@ -280,8 +316,10 @@ set_window_title_from_filename (struct syntax_editor *se,
 }
 
 
-/* Save BUFFER to the file called FILENAME.
-   If successful, clears the buffer's modified flag */
+/*
+  Save BUFFER to the file called FILENAME.
+  If successful, clears the buffer's modified flag
+*/
 static gboolean
 save_editor_to_file (struct syntax_editor *se,
 		     const gchar *filename,
@@ -317,7 +355,8 @@ save_editor_to_file (struct syntax_editor *se,
 }
 
 
-/* Loads the buffer from the file called FILENAME
+/*
+  Loads the buffer from the file called FILENAME
 */
 static gboolean
 load_editor_from_file (struct syntax_editor *se,
@@ -422,4 +461,8 @@ on_syntax1_activate   (GtkMenuItem     *menuitem,
   new_syntax_window (menuitem, user_data);
 }
 #endif
+
+
+
+
 

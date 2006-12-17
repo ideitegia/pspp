@@ -8,13 +8,19 @@ src_ui_gui_psppire_LDFLAGS = \
 	-export-dynamic 
 
 src_ui_gui_psppire_LDADD = \
+	lib/gtksheet/libgtksheet.a \
+	src/language/liblanguage.a \
+	src/ui/libuicommon.a \
+	src/output/charts/libcharts.a \
+	src/output/liboutput.a \
+	src/math/libpspp_math.a  \
+	src/math/linreg/libpspp_linreg.a  \
+	lib/linreg/liblinreg.a	\
+	lib/gsl-extras/libgsl-extras.a	\
+	src/data/libdata.a \
+	src/libpspp/libpspp.a \
 	$(GTK_LIBS) \
 	$(GLADE_LIBS) \
-	$(top_builddir)/lib/gtksheet/libgtksheet.a \
-	$(top_builddir)/src/ui/libuicommon.a \
-	$(top_builddir)/src/math/libpspp_math.a \
-	$(top_builddir)/src/data/libdata.a \
-	$(top_builddir)/src/libpspp/libpspp.a \
 	$(top_builddir)/gl/libgl.a \
 	@LIBINTL@ @LIBREADLINE@
 
@@ -60,6 +66,9 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/sort-cases-dialog.c \
 	src/ui/gui/sort-cases-dialog.h \
 	src/ui/gui/syntax-editor.c \
+	src/ui/gui/syntax-editor.h \
+	src/ui/gui/syntax-editor-source.c \
+	src/ui/gui/syntax-editor-source.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-sheet.c \

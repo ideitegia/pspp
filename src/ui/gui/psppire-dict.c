@@ -200,25 +200,8 @@ static const struct dict_callbacks gui_callbacks =
 static void
 psppire_dict_init (PsppireDict *psppire_dict)
 {
-  psppire_dict->dict = dict_create ();
-
-  dict_set_callbacks (psppire_dict->dict, &gui_callbacks, psppire_dict);
-
   psppire_dict->stamp = g_random_int();
 }
-
-/**
- * psppire_dict_new:
- * @returns: a new #PsppireDict object
- *
- * Creates a new #PsppireDict.
- */
-PsppireDict*
-psppire_dict_new (void)
-{
-  return g_object_new (G_TYPE_PSPPIRE_DICT, NULL);
-}
-
 
 /**
  * psppire_dict_new_from_dict:
@@ -231,6 +214,8 @@ psppire_dict_new_from_dict (struct dictionary *d)
 {
   PsppireDict *new_dict = g_object_new (G_TYPE_PSPPIRE_DICT, NULL);
   new_dict->dict = d;
+
+  dict_set_callbacks (new_dict->dict, &gui_callbacks, new_dict);
 
   return new_dict;
 }

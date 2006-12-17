@@ -1,3 +1,15 @@
+Sun Dec 17 08:26:10 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* syntax-editor-source.c syntax-editor-source.h syntax-editor.h: 
+	New files. 
+
+	* message-dialog.c :  Now reports the filename and line number in 
+	error messages.
+	
+	* psppire.c psppire.glade syntax-editor.c: Added the ability to run 
+	syntax from the syntax editor.
+
+	
 Sat Dec 16 14:13:07 2006  Ben Pfaff  <blp@gnu.org>
 
 	* psppire-data-store.c (geometry_get_justification): Don't assume
