@@ -1,26 +1,8 @@
-Time-stamp: <2006-05-06 13:34:32 blp>
-
-Procedure processing:
-
-* Should not need temporary casefile in the common case.
-
-* LAG need not be as much of a special case.
-
-* Push FILTER, N OF CASES out of procedure.c.
-
-* Change sources into state machines?
+Time-stamp: <2006-12-17 18:45:35 blp>
 
 Get rid of need for GNU diff in `make check'.
 
-Format specifier code needs to be rewritten for lowered crappiness.
-
 CROSSTABS needs to be re-examined.
-
-RANK, which is needed for the Wilcoxon signed-rank statistic, Mann-Whitney U,
-Kruskal-Wallis on NPAR TESTS and for Spearman and the Johnkheere trend test (in
-other procedures).
-
-Add NOT_REACHED() macro.
 
 Scratch variables should not be available for use following TEMPORARY.
 
