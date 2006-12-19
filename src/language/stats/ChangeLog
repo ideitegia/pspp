@@ -1,3 +1,24 @@
+Sat Dec 16 22:26:44 2006  Ben Pfaff  <blp@gnu.org>
+
+	Make it possible to pull cases from the active file with a
+	function call, instead of requiring indirection through a callback
+	function.
+
+	* aggregate.c (cmd_aggregate): Take advantage of new procedure
+	interface.
+	(agr_to_active_file): Removed.
+	(presorted_agr_to_sysfile): Removed.
+
+	* autorecode.c (cmd_autorecode): Take advantage of new procedure
+	interface.
+	(autorecode_proc_func): Removed.
+
+	* flip.c (struct flip_pgm): New members to allow conformance with
+	new case_source_class interface.
+	(cmd_flip): Adapt to new case_source_class interface.
+	(flip_source_read): Ditto.
+	(flip_source_destroy): Ditto.
+
 Sat Dec 16 12:54:27 2006  Ben Pfaff  <blp@gnu.org>
 
 	* rank.q (rank_custom_variables): Allow grouping variables to be

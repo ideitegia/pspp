@@ -30,7 +30,6 @@ actually be read until a procedure is executed.
 * FILE HANDLE::                 Support for special file formats.
 * INPUT PROGRAM::               Support for complex input programs.
 * LIST::                        List cases in the active file.
-* MATRIX DATA::                 Read matrices in text format.
 * NEW FILE::                    Clear the active file and dictionary.
 * PRINT::                       Display values in print formats.
 * PRINT EJECT::                 Eject the current page then print.
@@ -694,108 +693,6 @@ to make them fit, variable names are displayed vertically.  If values
 cannot fit on a single line, then a multi-line format will be used.
 
 @cmd{LIST} is a procedure.  It causes the data to be read.
-
-@node MATRIX DATA
-@section MATRIX DATA
-@vindex MATRIX DATA
-
-@display
-MATRIX DATA
-        /VARIABLES=var_list
-        /FILE='file-name'
-        /FORMAT=@{LIST,FREE@} @{LOWER,UPPER,FULL@} @{DIAGONAL,NODIAGONAL@}
-        /SPLIT=@{new_var,var_list@}
-        /FACTORS=var_list
-        /CELLS=n_cells
-        /N=n
-        /CONTENTS=@{N_VECTOR,N_SCALAR,N_MATRIX,MEAN,STDDEV,COUNT,MSE,
-                   DFE,MAT,COV,CORR,PROX@}
-@end display
-
-@cmd{MATRIX DATA} command reads square matrices in one of several textual
-formats.  @cmd{MATRIX DATA} clears the dictionary and replaces it and
-reads a
-data file.
-
-Use VARIABLES to specify the variables that form the rows and columns of
-the matrices.  You may not specify a variable named @code{VARNAME_}.  You
-should specify VARIABLES first.
-
-Specify the file to read on FILE, either as a file name string or a file
-handle (@pxref{File Handles}).  If FILE is not specified then matrix data
-must immediately follow @cmd{MATRIX DATA} with a @cmd{BEGIN
-DATA}@dots{}@cmd{END DATA}
-construct (@pxref{BEGIN DATA}).
-
-The FORMAT subcommand specifies how the matrices are formatted.  LIST,
-the default, indicates that there is one line per row of matrix data;
-FREE allows single matrix rows to be broken across multiple lines.  This
-is analogous to the difference between @cmd{DATA LIST FREE} and
-@cmd{DATA LIST LIST}
-(@pxref{DATA LIST}).  LOWER, the default, indicates that the lower
-triangle of the matrix is given; UPPER indicates the upper triangle; and
-FULL indicates that the entire matrix is given.  DIAGONAL, the default,
-indicates that the diagonal is part of the data; NODIAGONAL indicates
-that it is omitted.  DIAGONAL/NODIAGONAL have no effect when FULL is
-specified.
-
-The SPLIT subcommand is used to specify @cmd{SPLIT FILE} variables for the
-input matrices (@pxref{SPLIT FILE}).  Specify either a single variable
-not specified on VARIABLES, or one or more variables that are specified
-on VARIABLES.  In the former case, the SPLIT values are not present in
-the data and ROWTYPE_ may not be specified on VARIABLES.  In the latter
-case, the SPLIT values are present in the data.
-
-Specify a list of factor variables on FACTORS.  Factor variables must
-also be listed on VARIABLES.  Factor variables are used when there are
-some variables where, for each possible combination of their values,
-statistics on the matrix variables are included in the data.
-
-If FACTORS is specified and ROWTYPE_ is not specified on VARIABLES, the
-CELLS subcommand is required.  Specify the number of factor variable
-combinations that are given.  For instance, if factor variable A has 2
-values and factor variable B has 3 values, specify 6.
-
-The N subcommand specifies a population number of observations.  When N
-is specified, one N record is output for each @cmd{SPLIT FILE}.
-
-Use CONTENTS to specify what sort of information the matrices include.
-Each possible option is described in more detail below.  When ROWTYPE_
-is specified on VARIABLES, CONTENTS is optional; otherwise, if CONTENTS
-is not specified then /CONTENTS=CORR is assumed.
-
-@table @asis
-@item N
-@item N_VECTOR
-Number of observations as a vector, one value for each variable.
-@item N_SCALAR
-Number of observations as a single value.
-@item N_MATRIX
-Matrix of counts.
-@item MEAN
-Vector of means.
-@item STDDEV
-Vector of standard deviations.
-@item COUNT
-Vector of counts.
-@item MSE
-Vector of mean squared errors.
-@item DFE
-Vector of degrees of freedom.
-@item MAT
-Generic matrix.
-@item COV
-Covariance matrix.
-@item CORR
-Correlation matrix.
-@item PROX
-Proximities matrix.
-@end table
-
-The exact semantics of the matrices read by @cmd{MATRIX DATA} are complex.
-Right now @cmd{MATRIX DATA} isn't too useful due to a lack of procedures
-accepting or producing related data, so these semantics aren't
-documented.  Later, they'll be described here in detail.
 
 @node NEW FILE
 @section NEW FILE

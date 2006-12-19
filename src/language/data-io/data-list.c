@@ -806,13 +806,11 @@ data_list_trns_proc (void *dls_, struct ccase *c, casenumber case_num UNUSED)
   return retval;
 }
 
-/* Reads all the records from the data file and passes them to
-   write_case().
-   Returns true if successful, false if an I/O error occurred. */
+/* Reads one case into OUTPUT_CASE.
+   Returns true if successful, false at end of file or if an
+   I/O error occurred. */
 static bool
-data_list_source_read (struct case_source *source,
-                       struct ccase *c,
-                       write_case_func *write_case, write_case_data wc_data)
+data_list_source_read (struct case_source *source, struct ccase *c)
 {
   struct data_list_pgm *dls = source->aux;
 
@@ -826,26 +824,19 @@ data_list_source_read (struct case_source *source,
       dls->skip_records--;
     }
   
-  for (;;) 
-    {
-      bool ok;
-
-      if (!read_from_data_list (dls, c)) 
-        return !dfm_reader_error (dls->reader);
-
-      dfm_push (dls->reader);
-      ok = write_case (wc_data);
-      dfm_pop (dls->reader);
-      if (!ok)
-        return false;
-    }
+  return read_from_data_list (dls, c);
 }
 
-/* Destroys the source's internal data. */
-static void
+/* Destroys the source.
+   Returns true if successful read, false if an I/O occurred
+   during destruction or previously. */
+static bool
 data_list_source_destroy (struct case_source *source)
 {
-  data_list_trns_free (source->aux);
+  struct data_list_pgm *dls = source->aux;
+  bool ok = !dfm_reader_error (dls->reader);
+  data_list_trns_free (dls);
+  return ok;
 }
 
 static const struct case_source_class data_list_source_class = 

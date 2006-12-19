@@ -30,7 +30,7 @@ enum trns_result
     TRNS_CONTINUE = -1,         /* Continue to next transformation. */
     TRNS_DROP_CASE = -2,        /* Drop this case. */
     TRNS_ERROR = -3,            /* A serious error, so stop the procedure. */
-    TRNS_NEXT_CASE = -4,        /* Skip to next case.  INPUT PROGRAM only. */
+    TRNS_END_CASE = -4,         /* Skip to next case.  INPUT PROGRAM only. */
     TRNS_END_FILE = -5          /* End of input.  INPUT PROGRAM only. */
   };
 
@@ -50,8 +50,8 @@ bool trns_chain_is_empty (const struct trns_chain *);
 void trns_chain_append (struct trns_chain *, trns_finalize_func *,
                         trns_proc_func *, trns_free_func *, void *);
 size_t trns_chain_next (struct trns_chain *);
-enum trns_result trns_chain_execute (struct trns_chain *, struct ccase *,
-                                     const size_t *case_nr);
+enum trns_result trns_chain_execute (struct trns_chain *, enum trns_result,
+                                     struct ccase *, const size_t *case_nr);
 
 void trns_chain_splice (struct trns_chain *, struct trns_chain *);
 

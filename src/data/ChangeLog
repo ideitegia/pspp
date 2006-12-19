@@ -1,3 +1,37 @@
+Sat Dec 16 22:05:18 2006  Ben Pfaff  <blp@gnu.org>
+
+	Make it possible to pull cases from the active file with a
+	function call, instead of requiring indirection through a callback
+	function.
+
+	* case-source.h (struct case_source_class): Change ->read function
+	to return a single case, instead of calling a callback function
+	for each case.  Change ->destroy function to return an error
+	status.
+
+	* case-source.c (free_case_source): Pass along the value returned
+	by the case_source ->destroy function.
+
+	* procedure.c (struct write_case_data): Removed.
+	(struct dataset): Added some members to track procedure state.
+	(procedure): Optimize the trivial case at this level.
+	(internal_procedure): Re-implement in terms of proc_open,
+	proc_read, proc_close.
+	(proc_open) New function.
+	(proc_read) New function.
+	(proc_close) New function.
+	(write_case) Moved into proc_read.
+	(close_active_file) Moved closing of data source into proc_close.
+
+	* storage-source.c: Rewrote to conform with modified
+	case_source_class interface.
+
+	* transformations.c (trns_chain_execute): Added argument to allow
+	starting execution from an arbitrary transformation.  Updated
+	callers.
+
+	* transformations.h (enum TRNS_NEXT_CASE) Renamed TRNS_END_CASE.
+
 Sat Dec 16 14:09:25 2006  Ben Pfaff  <blp@gnu.org>
 
 	* sys-file-reader.c (read_display_parameters): Don't assume that

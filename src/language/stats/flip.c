@@ -77,6 +77,9 @@ struct flip_pgm
     struct varname *new_names_tail; /* Last new variable. */
 
     FILE *file;                 /* Temporary file containing data. */
+    union value *input_buf;     /* Input buffer for temporary file. */
+    size_t cases_read;          /* Number of cases already read. */
+    bool error;                 /* Error reading temporary file? */
   };
 
 static void destroy_flip_pgm (struct flip_pgm *);
@@ -111,6 +114,9 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->new_names_head = NULL;
   flip->new_names_tail = NULL;
   flip->file = NULL;
+  flip->input_buf = NULL;
+  flip->cases_read = 0;
+  flip->error = false;
 
   lex_match (lexer, '/');
   if (lex_match_id (lexer, "VARIABLES"))
@@ -516,54 +522,54 @@ flip_source_create (struct flip_pgm *pgm)
   return create_case_source (&flip_source_class, pgm);
 }
 
-/* Reads the FLIP stream.  Copies each case into C and calls
-   WRITE_CASE passing WC_DATA.
-   Returns true if successful, false if an I/O error occurred. */
+/* Reads one case into C.
+   Returns true if successful, false at end of file or if an
+   I/O error occurred. */
 static bool
-flip_source_read (struct case_source *source,
-                  struct ccase *c,
-                  write_case_func *write_case, write_case_data wc_data)
+flip_source_read (struct case_source *source, struct ccase *c)
 {
   struct flip_pgm *flip = source->aux;
-  union value *input_buf;
   size_t i;
-  bool ok = true;
 
-  input_buf = xnmalloc (flip->case_cnt, sizeof *input_buf);
-  for (i = 0; ok && i < flip->var_cnt; i++)
+  if (flip->error || flip->cases_read >= flip->var_cnt)
+    return false;
+  
+  if (flip->input_buf == NULL)
+    flip->input_buf = pool_nmalloc (flip->pool,
+                                    flip->case_cnt, sizeof *flip->input_buf);
+
+  if (fread (flip->input_buf, sizeof *flip->input_buf, flip->case_cnt,
+             flip->file) != flip->case_cnt) 
     {
-      size_t j;
-      
-      if (fread (input_buf, sizeof *input_buf, flip->case_cnt,
-                 flip->file) != flip->case_cnt) 
-        {
-          if (ferror (flip->file))
-            msg (SE, _("Error reading FLIP temporary file: %s."),
-                 strerror (errno));
-          else if (feof (flip->file))
-            msg (SE, _("Unexpected end of file reading FLIP temporary file."));
-          else
-            NOT_REACHED ();
-          ok = false;
-          break;
-        }
-
-      for (j = 0; j < flip->case_cnt; j++)
-        case_data_rw_idx (c, j)->f = input_buf[j].f;
-      ok = write_case (wc_data);
+      if (ferror (flip->file))
+        msg (SE, _("Error reading FLIP temporary file: %s."),
+             strerror (errno));
+      else if (feof (flip->file))
+        msg (SE, _("Unexpected end of file reading FLIP temporary file."));
+      else
+        NOT_REACHED ();
+      flip->error = true;
+      return false;
     }
-  free (input_buf);
 
-  return ok;
+  for (i = 0; i < flip->case_cnt; i++)
+    case_data_rw_idx (c, i)->f = flip->input_buf[i].f;
+
+  flip->cases_read++;
+
+  return true;
 }
 
-/* Destroy internal data in SOURCE. */
-static void
+/* Destroys the source.
+   Returns true if successful read, false if an I/O occurred
+   during destruction or previously. */
+static bool
 flip_source_destroy (struct case_source *source)
 {
   struct flip_pgm *flip = source->aux;
-
+  bool ok = !flip->error;
   destroy_flip_pgm (flip);
+  return ok;
 }
 
 static const struct case_source_class flip_source_class = 

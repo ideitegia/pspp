@@ -1,3 +1,11 @@
+Sat Dec 16 22:15:55 2006  Ben Pfaff  <blp@gnu.org>
+
+	Make it possible to pull cases from the active file with a
+	function call, instead of requiring indirection through a callback
+	function.
+
+	* command.def: Marked MATRIX DATA as unimplemented.
+
 Sun Dec  3 11:59:10 2006  Ben Pfaff  <blp@gnu.org>
 
 	* syntax-file.c (read_syntax_file): Always read GETL_BATCH lines.

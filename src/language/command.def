@@ -44,7 +44,6 @@ DEF_CMD (S_INITIAL | S_DATA | S_INPUT_PROGRAM | S_FILE_TYPE, 0, "DATA LIST", cmd
 DEF_CMD (S_INITIAL | S_DATA, 0, "GET", cmd_get)
 DEF_CMD (S_INITIAL | S_DATA, 0, "IMPORT", cmd_import)
 DEF_CMD (S_INITIAL | S_DATA, 0, "INPUT PROGRAM", cmd_input_program)
-DEF_CMD (S_INITIAL | S_DATA, 0, "MATRIX DATA", cmd_matrix_data)
 
 /* Transformations and utilities that may appear after active
    file definition or within INPUT PROGRAM. */
@@ -188,6 +187,7 @@ UNIMPL_CMD ("LOGLINEAR", "General model fitting")
 UNIMPL_CMD ("MANOVA", "Multivariate analysis of variance")
 UNIMPL_CMD ("MAPS", "Geographical display")
 UNIMPL_CMD ("MATRIX", "Matrix processing")
+UNIMPL_CMD ("MATRIX DATA", "Matrix data input")
 UNIMPL_CMD ("MCONVERT", "Convert covariance/correlation matrices")
 UNIMPL_CMD ("MIXED", "Mixed linear models")
 UNIMPL_CMD ("MODEL CLOSE ", "Close server connection")

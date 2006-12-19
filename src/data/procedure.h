@@ -92,9 +92,11 @@ bool multipass_procedure_with_splits (struct dataset *ds,
 					   void *aux)
      WARN_UNUSED_RESULT;
 
-
-
 time_t time_of_last_procedure (struct dataset *ds);
+
+void proc_open (struct dataset *);
+bool proc_read (struct dataset *, struct ccase **);
+bool proc_close (struct dataset *);
 
 
 struct ccase *lagged_case (const struct dataset *ds, int n_before);

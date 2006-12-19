@@ -92,7 +92,6 @@ struct autorecode_pgm
 
 static trns_proc_func autorecode_trns_proc;
 static trns_free_func autorecode_trns_free;
-static bool autorecode_proc_func (const struct ccase *, void *, const struct dataset *);
 static hsh_compare_func compare_alpha_value, compare_numeric_value;
 static hsh_hash_func hash_alpha_value, hash_numeric_value;
 
@@ -104,6 +103,7 @@ int
 cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 {
   struct autorecode_pgm arc;
+  struct ccase *c;
   size_t dst_cnt;
   size_t i;
   bool ok;
@@ -184,7 +184,30 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
       arc.src_values[i] = hsh_create (10, compare_numeric_value,
                                       hash_numeric_value, NULL, NULL);
 
-  ok = procedure (ds, autorecode_proc_func, &arc);
+  proc_open (ds);
+  while (proc_read (ds, &c))
+    for (i = 0; i < arc.var_cnt; i++)
+      {
+        union arc_value v, *vp, **vpp;
+
+        if (var_is_numeric (arc.src_vars[i]))
+          v.f = case_num (c, arc.src_vars[i]);
+        else
+          v.c = (char *) case_str (c, arc.src_vars[i]);
+
+        vpp = (union arc_value **) hsh_probe (arc.src_values[i], &v);
+        if (*vpp == NULL)
+          {
+            vp = pool_alloc (arc.src_values_pool, sizeof *vp);
+            if (var_is_numeric (arc.src_vars[i]))
+              vp->f = v.f;
+            else
+              vp->c = pool_clone (arc.src_values_pool,
+                                  v.c, var_get_width (arc.src_vars[i]));
+            *vpp = vp;
+          }
+      }
+  ok = proc_close (ds);
 
   for (i = 0; i < arc.var_cnt; i++)
     arc.dst_vars[i] = dict_create_var_assert (dataset_dict (ds),
@@ -343,34 +366,4 @@ hash_numeric_value (const void *a_, const void *aux UNUSED)
   const union arc_value *a = a_;
 
   return hsh_hash_double (a->f);
-}
-
-static bool
-autorecode_proc_func (const struct ccase *c, void *arc_, const struct dataset *ds UNUSED)
-{
-  struct autorecode_pgm *arc = arc_;
-  size_t i;
-
-  for (i = 0; i < arc->var_cnt; i++)
-    {
-      union arc_value v, *vp, **vpp;
-
-      if (var_is_numeric (arc->src_vars[i]))
-        v.f = case_num (c, arc->src_vars[i]);
-      else
-        v.c = (char *) case_str (c, arc->src_vars[i]);
-
-      vpp = (union arc_value **) hsh_probe (arc->src_values[i], &v);
-      if (*vpp == NULL)
-        {
-          vp = pool_alloc (arc->src_values_pool, sizeof *vp);
-          if (var_is_numeric (arc->src_vars[i]))
-            vp->f = v.f;
-          else
-            vp->c = pool_clone (arc->src_values_pool,
-                                v.c, var_get_width (arc->src_vars[i]));
-          *vpp = vp;
-        }
-    }
-  return true;
 }

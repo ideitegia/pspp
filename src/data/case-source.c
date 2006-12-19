@@ -36,17 +36,21 @@ create_case_source (const struct case_source_class *class,
   return source;
 }
 
-/* Destroys case source SOURCE.  It is the caller's responsible to
-   call the source's destroy function, if any. */
-void
+/* Destroys case source SOURCE.
+   Returns true if successful,
+   false if the source encountered an I/O error during
+   destruction or reading cases. */
+bool
 free_case_source (struct case_source *source) 
 {
+  bool ok = true;
   if (source != NULL) 
     {
       if (source->class->destroy != NULL)
-        source->class->destroy (source);
+        ok = source->class->destroy (source);
       free (source);
     }
+  return ok;
 }
 
 /* Returns true if CLASS is the class of SOURCE. */

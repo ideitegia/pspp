@@ -31,33 +31,29 @@
 
 #include "xalloc.h"
 
-/* Information about storage sink or source. */
-struct storage_stream_info 
+/* Storage sink. */
+
+/* Information about storage sink. */
+struct storage_sink_info 
   {
     struct casefile *casefile;  /* Storage. */
   };
-
-/* Storage sink. */
+
+static struct storage_sink_info *
+get_storage_sink_info (struct case_sink *sink) 
+{
+  assert (sink->class == &storage_sink_class);
+  return sink->aux;
+}
 
 /* Initializes a storage sink. */
 static void
 storage_sink_open (struct case_sink *sink)
 {
-  struct storage_stream_info *info;
+  struct storage_sink_info *info;
 
   sink->aux = info = xmalloc (sizeof *info);
   info->casefile = fastfile_create (sink->value_cnt);
-}
-
-/* Destroys storage stream represented by INFO. */
-static void
-destroy_storage_stream_info (struct storage_stream_info *info) 
-{
-  if (info != NULL) 
-    {
-      casefile_destroy (info->casefile);
-      free (info); 
-    }
 }
 
 /* Writes case C to the storage sink SINK.
@@ -65,8 +61,7 @@ destroy_storage_stream_info (struct storage_stream_info *info)
 static bool
 storage_sink_write (struct case_sink *sink, const struct ccase *c)
 {
-  struct storage_stream_info *info = sink->aux;
-
+  struct storage_sink_info *info = get_storage_sink_info (sink);
   return casefile_append (info->casefile, c);
 }
 
@@ -74,7 +69,9 @@ storage_sink_write (struct case_sink *sink, const struct ccase *c)
 static void
 storage_sink_destroy (struct case_sink *sink)
 {
-  destroy_storage_stream_info (sink->aux);
+  struct storage_sink_info *info = get_storage_sink_info (sink);
+  casefile_destroy (info->casefile);
+  free (info); 
 }
 
 /* Closes the sink and returns a storage source to read back the
@@ -82,9 +79,9 @@ storage_sink_destroy (struct case_sink *sink)
 static struct case_source *
 storage_sink_make_source (struct case_sink *sink) 
 {
-  struct case_source *source
-    = create_case_source (&storage_source_class, sink->aux);
-  sink->aux = NULL;
+  struct storage_sink_info *info = get_storage_sink_info (sink);
+  struct case_source *source = storage_source_create (info->casefile);
+  info->casefile = NULL;
   return source;
 }
 
@@ -100,47 +97,101 @@ const struct case_sink_class storage_sink_class =
 
 /* Storage source. */
 
+struct storage_source_info 
+  {
+    struct casefile *casefile;  /* Storage. */
+    struct casereader *reader;  /* Reader. */
+  };
+
+static struct storage_source_info *
+get_storage_source_info (const struct case_source *source) 
+{
+  assert (source->class == &storage_source_class);
+  return source->aux;
+}
+
 /* Returns the number of cases that will be read by
    storage_source_read(). */
 static int
 storage_source_count (const struct case_source *source) 
 {
-  struct storage_stream_info *info = source->aux;
-
+  struct storage_source_info *info = get_storage_source_info (source);
   return casefile_get_case_cnt (info->casefile);
 }
 
-/* Reads all cases from the storage source and passes them one by one to
-   write_case(). */
+/* Reads one case into OUTPUT_CASE.
+   Returns true if successful, false at end of file or if an
+   I/O error occurred. */
 static bool
-storage_source_read (struct case_source *source,
-                     struct ccase *output_case,
-                     write_case_func *write_case, write_case_data wc_data)
+storage_source_read (struct case_source *source, struct ccase *output_case)
 {
-  struct storage_stream_info *info = source->aux;
+  struct storage_source_info *info = get_storage_source_info (source);
   struct ccase casefile_case;
-  struct casereader *reader;
-  bool ok = true;
 
-  for (reader = casefile_get_reader (info->casefile, NULL);
-       ok && casereader_read (reader, &casefile_case);
-       case_destroy (&casefile_case))
+  if (info->reader == NULL)
+    info->reader = casefile_get_reader (info->casefile, NULL);
+
+  if (casereader_read (info->reader, &casefile_case))
     {
       case_copy (output_case, 0,
                  &casefile_case, 0,
                  casefile_get_value_cnt (info->casefile));
-      ok = write_case (wc_data);
+      return true;
     }
-  casereader_destroy (reader);
+  else
+    return false;
+}
 
+/* Destroys the source.
+   Returns true if successful read, false if an I/O occurred
+   during destruction or previously. */
+static bool
+storage_source_destroy (struct case_source *source)
+{
+  struct storage_source_info *info = get_storage_source_info (source);
+  bool ok = true;
+  if (info->casefile)
+    {
+      ok = !casefile_error (info->casefile);
+      casefile_destroy (info->casefile); 
+    }
+  free (info);
   return ok;
 }
 
-/* Destroys the source's internal data. */
-static void
-storage_source_destroy (struct case_source *source)
+/* Returns the casefile encapsulated by SOURCE. */
+struct casefile *
+storage_source_get_casefile (struct case_source *source) 
 {
-  destroy_storage_stream_info (source->aux);
+  struct storage_source_info *info = get_storage_source_info (source);
+  return info->casefile;
+}
+
+/* Destroys SOURCE and returns the casefile that it
+   encapsulated. */
+struct casefile *
+storage_source_decapsulate (struct case_source *source) 
+{
+  struct storage_source_info *info = get_storage_source_info (source);
+  struct casefile *casefile = info->casefile;
+  assert (info->reader == NULL);
+  info->casefile = NULL;
+  free_case_source (source);
+  return casefile;
+}
+
+/* Creates and returns a new storage source that encapsulates
+   CASEFILE. */
+struct case_source *
+storage_source_create (struct casefile *casefile)
+{
+  struct storage_source_info *info;
+
+  info = xmalloc (sizeof *info);
+  info->casefile = casefile;
+  info->reader = NULL;
+
+  return create_case_source (&storage_source_class, info);
 }
 
 /* Storage source. */
@@ -151,41 +202,3 @@ const struct case_source_class storage_source_class =
     storage_source_read,
     storage_source_destroy,
   };
-
-/* Returns the casefile encapsulated by SOURCE. */
-struct casefile *
-storage_source_get_casefile (struct case_source *source) 
-{
-  struct storage_stream_info *info = source->aux;
-
-  assert (source->class == &storage_source_class);
-  return info->casefile;
-}
-
-/* Destroys SOURCE and returns the casefile that it
-   encapsulated. */
-struct casefile *
-storage_source_decapsulate (struct case_source *source) 
-{
-  struct storage_stream_info *info = source->aux;
-  struct casefile *casefile;
-
-  assert (source->class == &storage_source_class);
-  casefile = info->casefile;
-  info->casefile = NULL;
-  free_case_source (source);
-  return casefile;
-}
-
-/* Creates and returns a new storage stream that encapsulates
-   CASEFILE. */
-struct case_source *
-storage_source_create (struct casefile *casefile)
-{
-  struct storage_stream_info *info;
-
-  info = xmalloc (sizeof *info);
-  info->casefile = casefile;
-
-  return create_case_source (&storage_source_class, info);
-}

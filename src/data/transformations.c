@@ -188,13 +188,13 @@ trns_chain_next (struct trns_chain *chain)
    terminate, or TRNS_CONTINUE if the transformations finished
    due to "falling off the end" of the set of transformations. */
 enum trns_result
-trns_chain_execute (struct trns_chain *chain, struct ccase *c,
-                    const size_t *case_nr) 
+trns_chain_execute (struct trns_chain *chain, enum trns_result start,
+                    struct ccase *c, const size_t *case_nr) 
 {
   size_t i;
 
   assert (chain->finalized);
-  for (i = 0; i < chain->trns_cnt; )
+  for (i = start < 0 ? 0 : start; i < chain->trns_cnt; )
     {
       struct transformation *trns = &chain->trns[i];
       int retval = trns->execute (trns->aux, c, *case_nr);
@@ -202,8 +202,8 @@ trns_chain_execute (struct trns_chain *chain, struct ccase *c,
         i++;
       else if (retval >= 0)
         i = retval + trns->idx_ofs;
-      else
-        return retval; 
+      else 
+        return retval == TRNS_END_CASE ? i + 1 : retval; 
     }
 
   return TRNS_CONTINUE;

@@ -66,10 +66,10 @@ enum value_init_type
 struct input_program_pgm 
   {
     struct trns_chain *trns_chain;
+    enum trns_result restart;
 
+    bool inited_case;           /* Did one-time case initialization? */
     size_t case_nr;             /* Incremented by END CASE transformation. */
-    write_case_func *write_case;/* Called by END CASE. */
-    write_case_data wc_data;    /* Aux data used by END CASE. */
 
     enum value_init_type *init; /* How to initialize each `union value'. */
     size_t init_cnt;            /* Number of elements in inp_init. */
@@ -152,6 +152,10 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inp->trns_chain = proc_capture_transformations (ds);
   trns_chain_finalize (inp->trns_chain);
 
+  inp->restart = TRNS_CONTINUE;
+  inp->inited_case = false;
+  inp->case_nr = 1;
+
   /* Figure out how to initialize each input case. */
   inp->init_cnt = dict_get_next_value_idx (dataset_dict (ds));
   inp->init = xnmalloc (inp->init_cnt, sizeof *inp->init);
@@ -175,7 +179,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inp->case_size = dict_get_case_size (dataset_dict (ds));
 
   proc_set_source (ds, 
-		  create_case_source (&input_program_source_class, inp));
+                   create_case_source (&input_program_source_class, inp));
 
   return CMD_SUCCESS;
 }
@@ -237,28 +241,45 @@ clear_case (const struct input_program_pgm *inp, struct ccase *c)
       }
 }
 
-/* Executes each transformation in turn on a `blank' case.
-   Returns true if successful, false if an I/O error occurred. */
+/* Returns true if STATE is valid given the transformations that
+   are allowed within INPUT PROGRAM. */
 static bool
-input_program_source_read (struct case_source *source,
-                           struct ccase *c,
-                           write_case_func *write_case,
-                           write_case_data wc_data)
+is_valid_state (enum trns_result state) 
+{
+  return (state == TRNS_CONTINUE
+          || state == TRNS_ERROR
+          || state == TRNS_END_FILE
+          || state >= 0);
+}
+
+/* Reads one case into C.
+   Returns true if successful, false at end of file or if an
+   I/O error occurred. */
+static bool
+input_program_source_read (struct case_source *source, struct ccase *c)
 {
   struct input_program_pgm *inp = source->aux;
 
-  inp->case_nr = 1;
-  inp->write_case = write_case;
-  inp->wc_data = wc_data;
-  for (init_case (inp, c); ; clear_case (inp, c))
+  if (!inp->inited_case)
     {
-      enum trns_result result = trns_chain_execute (inp->trns_chain, c,
-                                                    &inp->case_nr);
-      if (result == TRNS_ERROR)
-        return false;
-      else if (result == TRNS_END_FILE)
-        return true;
+      init_case (inp, c);
+      inp->inited_case = true;
     }
+
+  do
+    {
+      assert (is_valid_state (inp->restart));
+      if (inp->restart == TRNS_ERROR || inp->restart == TRNS_END_FILE)
+        return false;
+
+      clear_case (inp, c);
+      inp->restart = trns_chain_execute (inp->trns_chain, inp->restart,
+                                         c, &inp->case_nr);
+      assert (is_valid_state (inp->restart));
+    }
+  while (inp->restart < 0);
+
+  return true;
 }
 
 static void
@@ -272,13 +293,16 @@ destroy_input_program (struct input_program_pgm *pgm)
     }
 }
 
-/* Destroys an INPUT PROGRAM source. */
-static void
+/* Destroys the source.
+   Returns true if successful read, false if an I/O occurred
+   during destruction or previously. */
+static bool
 input_program_source_destroy (struct case_source *source)
 {
   struct input_program_pgm *inp = source->aux;
-
+  bool ok = inp->restart != TRNS_ERROR;
   destroy_input_program (inp);
+  return ok;
 }
 
 static const struct case_source_class input_program_source_class =
@@ -300,16 +324,12 @@ cmd_end_case (struct lexer *lexer, struct dataset *ds UNUSED)
 
 /* Sends the current case as the source's output. */
 int
-end_case_trns_proc (void *inp_, struct ccase *c, casenumber case_nr UNUSED)
+end_case_trns_proc (void *inp_, struct ccase *c UNUSED,
+                    casenumber case_nr UNUSED)
 {
   struct input_program_pgm *inp = inp_;
-
-  if (!inp->write_case (inp->wc_data))
-    return TRNS_ERROR;
-
   inp->case_nr++;
-  clear_case (inp, c);
-  return TRNS_CONTINUE;
+  return TRNS_END_CASE;
 }
 
 /* REREAD transformation. */

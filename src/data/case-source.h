@@ -23,9 +23,6 @@
 
 struct ccase;
 
-typedef struct write_case_data *write_case_data;
-typedef bool write_case_func (write_case_data);
-
 /* A case source. */
 struct case_source 
   {
@@ -42,21 +39,21 @@ struct case_source_class
        WRITE_CASE, if known, or -1 otherwise. */
     int (*count) (const struct case_source *);
 
-    /* Reads the cases one by one into C and for each one calls
-       WRITE_CASE passing the given AUX data.
-       Returns true if successful, false if an I/O error occurred. */
-    bool (*read) (struct case_source *,
-                  struct ccase *c,
-                  write_case_func *write_case, write_case_data aux);
+    /* Reads one case into C.
+       Returns true if successful, false at end of file or if an
+       I/O error occurred. */
+    bool (*read) (struct case_source *, struct ccase *);
 
-    /* Destroys the source. */
-    void (*destroy) (struct case_source *);
+    /* Destroys the source.
+       Returns true if successful read, false if an I/O occurred
+       during destruction or previously. */
+    bool (*destroy) (struct case_source *);
   };
 
 
 struct case_source *create_case_source (const struct case_source_class *,
                                         void *);
-void free_case_source (struct case_source *);
+bool free_case_source (struct case_source *);
 
 bool case_source_is_class (const struct case_source *,
                           const struct case_source_class *);

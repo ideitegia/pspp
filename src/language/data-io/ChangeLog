@@ -1,3 +1,36 @@
+Sat Dec 16 22:16:18 2006  Ben Pfaff  <blp@gnu.org>
+
+	Make it possible to pull cases from the active file with a
+	function call, instead of requiring indirection through a callback
+	function.
+
+	* automake.mk: Removed matrix-data.c.
+
+	* matrix-data.c: Removed.
+
+	* data-list.c (data_list_source_read): Conform with new
+	case_source_class interface.
+	(data_list_source_destroy): Ditto.
+
+	* get.c (case_reader_source_class): Ditto.
+	(case_reader_source_destroy): Ditto.
+	(parse_output_proc): Take advantage of new procedure interface.
+	(output_proc): Removed.
+	(struct mtf_file): Add "struct ccase *" member to allow use of new
+	procedure interface.
+	(cmd_match_files): Take advantage of new procedure interface.
+	(mtf_processing_finish): Removed.
+	(mtf_read_nonactive_records): Renamed mtf_read_records.  Now reads
+	from every file, without any exception for the active file.
+	(mtf_compare_BY_values): Simplify for new interface.
+	(mtf_processing): Simplify for new interface.
+
+	* inpt-pgm.c (is_valid_state): New function.
+	(input_program_source_read): Conform with new case_source_class
+	interface.
+	(input_program_source_destroy): Ditto.
+	(end_case_trns_proc): Now just needs to return TRNS_END_CASE.
+
 Sat Dec  9 18:43:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* list.q (cmd_list): Use new var_create, var_destroy functions.
