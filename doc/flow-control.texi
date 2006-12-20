@@ -145,16 +145,19 @@ cause the loop to be executed only if the condition is true.  If the
 condition is false or missing before the loop contents are executed the
 first time, the loop contents are not executed at all.
 
-If index and condition clauses are both present on @cmd{LOOP}, the index
-clause is always evaluated first.
+If index and condition clauses are both present on @cmd{LOOP}, the
+index variable is always set before the condition is evaluated.  Thus,
+a condition that makes use of the index variable will always see the
+index value to be used in the next execution of the body.
 
 Specify a boolean expression for the condition on @cmd{END LOOP} to cause
-the loop to terminate if the condition is not true after the enclosed
+the loop to terminate if the condition is true after the enclosed
 code block is executed.  The condition is evaluated at the end of the
-loop, not at the beginning.
+loop, not at the beginning, so that the body of a loop with only a
+condition on @cmd{END LOOP} will always execute at least once.
 
-If the index clause and both condition clauses are not present, then the
-loop is executed MXLOOPS (@pxref{SET}) times.
+If neither the index clause nor either condition clause is
+present, then the loop is executed MXLOOPS (@pxref{SET}) times.
 
 @cmd{BREAK} also terminates @cmd{LOOP} execution (@pxref{BREAK}).
 

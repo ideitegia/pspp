@@ -1,3 +1,7 @@
+Tue Dec 19 08:17:28 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command/loop.sh: Test all the possible combinations of clauses.
+
 Sat Dec 16 14:00:48 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command/rank.sh: Fix test to allow string grouping variables.

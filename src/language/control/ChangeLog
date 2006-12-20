@@ -1,3 +1,20 @@
+Tue Dec 19 08:12:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	Fix LOOP.  Thanks to Daniel Williams
+	<Daniel.E.Williams@state.or.us> for reporting one of the bugs
+	fixed here.
+	
+	* loop.c (cmd_loop): Keep track of whether we created the index
+	variable and delete it if parsing fails, instead of creating it
+	after parsing the IF clause.  This allows the index variable to be
+	used in the IF clause.  This incidentally fixes a segfault when no
+	index variable was used.  Also, return CMD_CASCADING_FAILURE if we
+	fail.
+	(parse_if_clause): Don't allow more than one IF clause.
+	(parse_index_clause): Don't allow more than one index clause.
+	Create the index variable if it doesn't exist.
+	(end_loop_trns_proc): Invert the sense of END LOOP's IF clause.
+
 Sat Dec  9 20:12:34 2006  Ben Pfaff  <blp@gnu.org>
 
 	* repeat.c (parse_lines): Issue an error when attempting to nest

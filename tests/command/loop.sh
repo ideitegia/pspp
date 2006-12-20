@@ -57,17 +57,71 @@ cd $TEMPDIR
 
 activity="create prog"
 cat > $TEMPDIR/loop.stat <<EOF
-data list /X 1 Y 2 ZOOLOGICAL 3.
+data list notable /x 1 y 2 z 3.
 begin data.
-125
-256
-397
-401
+121
+252
+393
+404
 end data.
-loop iterative_Variable=y to zoological by abs(zoological-y)/(zoological-y).
-print /x iterative_Variable.
-break.		/* Generates warning.
+
+echo 'Loop with index'.
+loop #i=x to y by z.
+print /#i.
 end loop.
+print/'--------'.
+execute.
+
+echo 'Loop with IF condition'.
+compute #j=x.
+loop if #j <= y.
+print /#j.
+compute #j = #j + z.
+end loop.
+print/'--------'.
+execute.
+
+echo 'Loop with END IF condition'.
+compute #k=x.
+loop.
+print /#k.
+compute #k = #k + z.
+end loop if #k > y.
+print/'--------'.
+execute.
+
+echo 'Loop with index and IF condition based on index'.
+loop #m=x to y by z if #m < 4.
+print /#m.
+end loop.
+print/'--------'.
+execute.
+
+echo 'Loop with index and END IF condition based on index'.
+loop #n=x to y by z.
+print /#n.
+end loop if #n >= 4.
+print/'--------'.
+execute.
+
+echo 'Loop with index and IF and END IF condition based on index'.
+loop #o=x to y by z if mod(#o,2) = 0.
+print /#o.
+end loop if #o >= 4.
+print/'--------'.
+execute.
+
+echo 'Loop with no conditions'.
+set mxloops = 2.
+compute #p = x.
+loop.
+print /#p.
+compute #p = #p + z.
+do if #p >= y.
+break.
+end if.
+end loop.
+print/'--------'.
 execute.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
@@ -85,18 +139,81 @@ if [ $? -ne 0 ] ; then fail ; fi
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff  -b $TEMPDIR/pspp.list  - <<EOF
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+----------+------+-------+------+
-| Variable |Record|Columns|Format|
-#==========#======#=======#======#
-|X         |     1|  1-  1|F1.0  |
-|Y         |     1|  2-  2|F1.0  |
-|ZOOLOGICAL|     1|  3-  3|F1.0  |
-+----------+------+-------+------+
-1     2.00 
-2     5.00 
-3     9.00 
-4      .00 
+Loop with index
+    1.00 
+    2.00 
+--------
+    2.00 
+    4.00 
+--------
+    3.00 
+    6.00 
+    9.00 
+--------
+--------
+Loop with IF condition
+    1.00 
+    2.00 
+--------
+    2.00 
+    4.00 
+--------
+    3.00 
+    6.00 
+    9.00 
+--------
+--------
+Loop with END IF condition
+    1.00 
+    2.00 
+--------
+    2.00 
+    4.00 
+--------
+    3.00 
+    6.00 
+    9.00 
+--------
+    4.00 
+--------
+Loop with index and IF condition based on index
+    1.00 
+    2.00 
+--------
+    2.00 
+--------
+    3.00 
+--------
+--------
+Loop with index and END IF condition based on index
+    1.00 
+    2.00 
+--------
+    2.00 
+    4.00 
+--------
+    3.00 
+    6.00 
+--------
+--------
+Loop with index and IF and END IF condition based on index
+--------
+    2.00 
+    4.00 
+--------
+--------
+--------
+Loop with no conditions
+    1.00 
+--------
+    2.00 
+    4.00 
+--------
+    3.00 
+    6.00 
+--------
+    4.00 
+--------
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

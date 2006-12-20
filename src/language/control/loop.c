@@ -86,8 +86,10 @@ static trns_proc_func loop_trns_proc, end_loop_trns_proc, break_trns_proc;
 static trns_free_func loop_trns_free;
 
 static struct loop_trns *create_loop_trns (struct dataset *);
-static bool parse_if_clause (struct lexer *, struct loop_trns *, struct expression **);
-static bool parse_index_clause (struct lexer *, struct loop_trns *, char index_var_name[]);
+static bool parse_if_clause (struct lexer *,
+                             struct loop_trns *, struct expression **);
+static bool parse_index_clause (struct dataset *, struct lexer *,
+                                struct loop_trns *, bool *created_index_var);
 static void close_loop (void *);
 
 /* LOOP. */
@@ -97,7 +99,7 @@ int
 cmd_loop (struct lexer *lexer, struct dataset *ds)
 {
   struct loop_trns *loop;
-  char index_var_name[LONG_NAME_LEN + 1];
+  bool created_index_var = false;
   bool ok = true;
 
   loop = create_loop_trns (ds);
@@ -106,21 +108,21 @@ cmd_loop (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "IF")) 
         ok = parse_if_clause (lexer, loop, &loop->loop_condition);
       else
-        ok = parse_index_clause (lexer, loop, index_var_name);
+        ok = parse_index_clause (ds, lexer, loop, &created_index_var);
     }
 
-  /* Find index variable and create if necessary. */
-  if (ok && index_var_name[0] != '\0')
+  /* Clean up if necessary. */
+  if (!ok) 
     {
-      loop->index_var = dict_lookup_var (dataset_dict (ds), index_var_name);
-      if (loop->index_var == NULL)
-        loop->index_var = dict_create_var (dataset_dict (ds), 
-					   index_var_name, 0);
+      loop->max_pass_count = 0; 
+      if (loop->index_var != NULL && created_index_var)
+        {
+          dict_delete_var (dataset_dict (ds), loop->index_var);
+          loop->index_var = NULL;
+        }
     }
-  
-  if (!ok)
-    loop->max_pass_count = 0;
-  return ok ? CMD_SUCCESS : CMD_FAILURE;
+
+  return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
 
 /* Parses END LOOP. */
@@ -189,22 +191,45 @@ static bool
 parse_if_clause (struct lexer *lexer, 
 		 struct loop_trns *loop, struct expression **condition) 
 {
+  if (*condition != NULL) 
+    {
+      lex_sbc_only_once ("IF");
+      return false;
+    }
+  
   *condition = expr_parse_pool (lexer, loop->pool, loop->ds, EXPR_BOOLEAN);
   return *condition != NULL;
 }
 
 /* Parses an indexing clause into LOOP.
-   Stores the index variable's name in INDEX_VAR_NAME[].
+   Stores true in *CREATED_INDEX_VAR if the index clause created
+   a new variable, false otherwise.
    Returns true if successful, false on failure. */
 static bool
-parse_index_clause (struct lexer *lexer, struct loop_trns *loop, char index_var_name[]) 
+parse_index_clause (struct dataset *ds, struct lexer *lexer,
+                    struct loop_trns *loop, bool *created_index_var) 
 {
+  if (loop->index_var != NULL) 
+    {
+      msg (SE, _("Only one index clause may be specified."));
+      return false;
+    }
+
   if (lex_token (lexer) != T_ID) 
     {
       lex_error (lexer, NULL);
       return false;
     }
-  strcpy (index_var_name, lex_tokid (lexer));
+
+  loop->index_var = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
+  if (loop->index_var != NULL)
+    *created_index_var = false;
+  else
+    {
+      loop->index_var = dict_create_var_assert (dataset_dict (ds), 
+                                                lex_tokid (lexer), 0);
+      *created_index_var = true; 
+    }
   lex_get (lexer);
 
   if (!lex_force_match (lexer, '='))
@@ -336,7 +361,7 @@ end_loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num UNUSED)
   struct loop_trns *loop = loop_;
 
   if (loop->end_loop_condition != NULL
-      && expr_evaluate_num (loop->end_loop_condition, c, case_num) != 1.0)
+      && expr_evaluate_num (loop->end_loop_condition, c, case_num) != 0.0)
     goto break_out;
 
   /* MXLOOPS limiter. */
