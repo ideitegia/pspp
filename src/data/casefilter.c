@@ -97,7 +97,7 @@ casefilter_create (bool excl, struct variable **vars, int n_vars)
    filter considers. N_VARS is the size of VARS */
 void
 casefilter_add_variables (struct casefilter *filter,
-			   struct variable **vars, int n_vars)
+			  struct variable *const *vars, int n_vars)
 {
   int i;
 
@@ -117,5 +117,3 @@ casefilter_destroy (struct casefilter *filter)
   free (filter->vars);
   free (filter);
 }
-
-

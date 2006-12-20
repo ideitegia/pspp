@@ -1,0 +1,171 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 2006 Free Software Foundation, Inc.
+   Written by John Darrington <john@darrington.wattle.id.au>
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA. */
+
+#include <config.h>
+#include <output/table.h>
+#include <libpspp/hash.h>
+#include <data/variable.h>
+#include "npar-summary.h"
+#include <math/moments.h>
+#include <data/casefile.h>
+#include <data/casefilter.h>
+#include <data/case.h>
+#include <data/dictionary.h>
+#include <math.h>
+#include <minmax.h>
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
+
+void
+npar_summary_calc_descriptives (struct descriptives *desc,
+				const struct casefile *cf,
+				struct casefilter *filter, 
+				const struct dictionary *dict,
+				const struct variable *const *vv, 
+				int n_vars UNUSED)
+{
+  int i = 0;
+  while (*vv)
+    {
+      bool warn = true;
+      double minimum = DBL_MAX;
+      double maximum = -DBL_MAX;
+      double var;
+      struct moments1 *moments = moments1_create (MOMENT_VARIANCE);
+      struct casereader *r = casefile_get_reader (cf, filter);
+      struct ccase c;
+      const struct variable *v = *vv++;
+
+      while (casereader_read(r, &c))
+	{
+	  const union value *val = case_data (&c, v);
+	  double w = dict_get_case_weight (dict, &c, &warn);
+
+	  if ( ! casefilter_variable_missing (filter, &c, v ))
+	    {
+	      minimum = MIN (minimum, val->f);
+	      maximum = MAX (maximum, val->f);
+	      moments1_add (moments, val->f, w); 
+	    }
+	  case_destroy (&c);
+	}
+      casereader_destroy (r);
+
+      moments1_calculate (moments, 
+			  &desc[i].n, 
+			  &desc[i].mean, 
+			  &var,
+			  NULL, NULL);
+
+      desc[i].std_dev = sqrt (var);
+
+      moments1_destroy (moments);
+      
+      desc[i].min = minimum;
+      desc[i].max = maximum;
+      
+      i++;
+    }
+}
+
+
+
+void
+do_summary_box (const struct descriptives *desc, 
+		const struct variable *const *vv,
+		int n_vars)
+{
+  int v;
+  bool quartiles = false;
+
+  int col;
+  int columns = 1 ;
+  struct tab_table *table ;
+
+
+  if ( desc ) columns += 5;
+  if ( quartiles ) columns += 3;
+
+  table = tab_create (columns, 2 + n_vars, 0);
+
+  tab_dim (table, tab_natural_dimensions);
+
+  tab_title (table, _("Descriptive Statistics"));
+	
+  tab_headers (table, 1, 0, 1, 0);
+
+  tab_box (table, TAL_1, TAL_1, -1, TAL_1, 
+	   0, 0, table->nc - 1, tab_nr(table) - 1 );
+
+  tab_hline (table, TAL_2, 0, tab_nc (table) -1, 2);
+  tab_vline (table, TAL_2, 1, 0, tab_nr (table) - 1);
+
+  col = 1;
+  if ( desc ) 
+    {
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+		      _("N"));
+      col++;
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+		      _("Mean"));
+      col++;
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+		      _("Std. Deviation"));
+      col++;
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+		      _("Minimum"));
+      col++;
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+		      _("Maximum"));
+      col++;
+    }
+
+  if ( quartiles ) 
+    {
+      tab_joint_text (table, col, 0, col + 2, 0, TAT_TITLE | TAB_CENTER,
+		      _("Percentiles"));
+      tab_hline (table, TAL_1, col, col + 2, 1);
+
+      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER, 
+		_("25th"));
+      col++;
+      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER, 
+		_("50th (Median)"));
+      col++;
+      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER, 
+		_("75th"));
+      col++;
+    }
+
+  for ( v = 0 ; v < n_vars ; ++v ) 
+    {
+      tab_text (table, 0, 2 + v, TAT_NONE, var_to_string (vv[v]));
+
+      tab_float (table, 1, 2 + v, TAT_NONE, desc[v].n, 8, 0);
+      tab_float (table, 2, 2 + v, TAT_NONE, desc[v].mean, 8, 3);
+      tab_float (table, 3, 2 + v, TAT_NONE, desc[v].std_dev, 8, 3);
+      tab_float (table, 4, 2 + v, TAT_NONE, desc[v].min, 8, 3);
+      tab_float (table, 5, 2 + v, TAT_NONE, desc[v].max, 8, 3);
+    }
+
+
+  tab_submit (table);
+}

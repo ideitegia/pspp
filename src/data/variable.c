@@ -64,10 +64,9 @@ struct variable
     struct vardict_info vardict;    
 
     /* Short name, used only for system and portable file input
-       and output.  Upper case only.  There is no index for short
-       names.  Short names are not necessarily unique.  Any
-       variable may have no short name, indicated by an empty
-       string. */
+       and output.  Upper case only. Short names are not necessarily
+       unique.  Any variable may have no short name, indicated by an
+       empty string. */
     char short_name[SHORT_NAME_LEN + 1];
 
     /* Each command may use these fields as needed. */

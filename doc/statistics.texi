@@ -9,6 +9,7 @@ far.
 * FREQUENCIES::                 Frequency tables.
 * EXAMINE::                     Testing data for normality.
 * CROSSTABS::                   Crosstabulation tables.
+* NPAR TESTS::                  Nonparametric tests.
 * T-TEST::                      Test hypotheses about means.
 * ONEWAY::                      One way analysis of variance.
 * RANK::                        Compute rank scores.
@@ -304,7 +305,7 @@ there are many distinct values, then @cmd{EXAMINE} will produce a very
 large quantity of output.
 
 
-@node CROSSTABS, T-TEST, EXAMINE, Statistics
+@node CROSSTABS, NPAR TESTS, EXAMINE, Statistics
 @section CROSSTABS
 
 @vindex CROSSTABS
@@ -493,11 +494,122 @@ Approximate T of uncertainty coefficient is wrong.
 
 Fixes for any of these deficiencies would be welcomed.
 
-@node T-TEST, ONEWAY, CROSSTABS, Statistics
+@node NPAR TESTS, T-TEST, CROSSTABS, Statistics
+@section NPAR TESTS
+
+@vindex NPAR TESTS
+@cindex nonparametric tests
+
+@display 
+NPAR TESTS
+     
+     nonparametric test subcommands
+     .
+     .
+     .
+     
+     [ /STATISTICS=@{DESCRIPTIVES@} ]
+
+     [ /MISSING=@{ANALYSIS, LISTWISE@} @{INCLUDE, EXCLUDE@} ]
+@end display
+
+NPAR TESTS performs nonparametric tests. 
+Non parametric tests make very few assumptions about the distribution of the 
+data.
+One or more tests may be specified by using the corresponding subcommand.
+If the /STATISTICS subcommand is also specified, then summary statistics are 
+produces for each variable that is the subject of any test.
+
+
+@menu
+* BINOMIAL::                Binomial Test
+* CHISQUARE::               Chisquare Test
+@end menu
+
+
+@node    BINOMIAL,  CHISQUARE, NPAR TESTS, NPAR TESTS
+@subsection Binomial test
+@vindex BINOMIAL
+@cindex binomial test
+
+@display 
+     [ /BINOMIAL[(p)]=var_list[(value1[, value2)] ] ]
+@end display 
+
+The binomial test compares the observed distribution of a dichotomous 
+variable with that of a binomial distribution.
+The variable @var{p} specifies the test proportion of the binomial 
+distribution.  
+The default value of 0.5 is assumed if @var{p} is omitted.
+
+If a single value appears after the variable list, then that value is
+used as the threshold to partition the observed values. Values less
+than or equal to the threshold value form the first category.  Values
+greater than the threshold form the second category. 
+
+If two values appear after the variable list, then they will be used
+as the values which a variable must take to be in the respective
+category. 
+Cases for which a variable takes a value equal to neither of the specified  
+values, take no part in the test for that variable.
+
+If no values appear, then the the variable must assume dichotomous
+values.
+If more than two distinct, non-missing values for a variable
+under test are encountered then an error occurs.
+
+If the test proportion is equal to 0.5, then a one tailed test is
+reported.   For any other test proportion, a one tailed test is
+reported.   
+For one tailed tests, if the test proportion is less than
+or equal to the observed proportion, then the significance of
+observing the observed proportion or more is reported.
+If the test proportion is more than the observed proportion, then the
+significance of observing the observed proportion or less is reported.
+That is to say, the test is always performed in the observed
+direction. 
+
+PSPP uses a very precise approximation to the gamma function to
+compute the binomial significance.  Thus, exact results are reported
+even for very large sample sizes.
+
+
+
+@node    CHISQUARE, , BINOMIAL, NPAR TESTS
+@subsection Chisquare test
+@vindex CHISQUARE
+@cindex chisquare test
+
+
+@display
+     [ /CHISQUARE=var_list[(lo,hi)] [/EXPECTED=@{EQUAL|f1, f2 @dots{} fn@}] ]
+@end display 
+
+
+The chisquare test produces a chi-square statistic for the differences 
+between the expected and observed frequencies of the categories of a variable. 
+Optionally, a range of values may appear after the variable list.  
+If a range is given, then non integer values are truncated, and values
+outside the  specified range are excluded from the analysis.
+
+The /EXPECTED subcommand specifies the expected values of each
+category.  
+There must be exactly one non-zero expected value, for each observed
+category, or the EQUAL keywork must be specified.
+You may use the notation @var{n}*@var{f} to specify @var{n}
+consecutive expected categories all taking a frequency of @var{f}.
+The frequencies given are proportions, not absolute frequencies.  The
+sum of the frequencies need not be 1.
+If no /EXPECTED subcommand is given, then then equal frequencies 
+are expected.
+
+
+@node T-TEST, ONEWAY, NPAR TESTS, Statistics
 @comment  node-name,  next,  previous,  up
 @section T-TEST
 
 @vindex T-TEST
+
 @display
 T-TEST
         /MISSING=@{ANALYSIS,LISTWISE@} @{EXCLUDE,INCLUDE@}

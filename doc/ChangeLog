@@ -1,3 +1,7 @@
+Wed Dec 20 18:45:31 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* statistics.texi: Added documentation for the NPAR TESTS command.
+
 Thu Nov 30 22:20:10 2006  Ben Pfaff  <blp@gnu.org>
 
 	* statistics.texi: Document charts supported by FREQUENCIES.

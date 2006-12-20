@@ -35,7 +35,8 @@ struct casefilter * casefilter_create (bool, struct variable **, int);
 
 /* Add the variables in VARS to the list of variables for which the
    filter considers. N_VARS is the size of VARS */
-void casefilter_add_variables (struct casefilter *, struct variable **, int);
+void casefilter_add_variables (struct casefilter *, 
+			       struct variable *const*, int);
 
 /* Destroy the filter FILTER */
 void casefilter_destroy (struct casefilter *); 
@@ -43,7 +44,10 @@ void casefilter_destroy (struct casefilter *);
 /* Returns true iff the entire case should be skipped */
 bool casefilter_skip_case (const struct casefilter *, const struct ccase *);
 
-/* Returns true iff the variable V in case C is missing */
+/* Returns true iff the variable V in case C is missing.
+   Note that this function's behaviour is independent of the set of 
+   variables  contained by the filter.
+ */
 bool casefilter_variable_missing (const struct casefilter *f, 
 				   const struct ccase *c, 
 				   const struct variable *v);
