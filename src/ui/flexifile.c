@@ -60,7 +60,7 @@ struct flexifile
   unsigned long capacity;       /* size of array in cases */
 };
 
-struct class_flexifilereader 
+struct class_flexifilereader
 {
   struct class_casereader parent ;
 };
@@ -80,25 +80,25 @@ struct flexifilereader
 
 #define CHUNK_SIZE 10
 
-static bool 
-impl_get_case(const struct flexifile *ff, unsigned long casenum, 
+static bool
+impl_get_case(const struct flexifile *ff, unsigned long casenum,
 	      struct ccase *);
 static bool
 impl_insert_case (struct flexifile *ff, struct ccase *c, int posn);
 
-static bool 
+static bool
 impl_delete_cases (struct flexifile *ff, int n_cases, int first);
 
-static bool 
+static bool
 impl_resize (struct flexifile *ff, int n_values, int posn);
 
 
 /* Gets a case, for which writing may not be safe */
-bool 
-flexifile_get_case(const struct flexifile *ff, unsigned long casenum, 
+bool
+flexifile_get_case(const struct flexifile *ff, unsigned long casenum,
 		   struct ccase *c)
 {
-  const struct class_flexifile *class = 
+  const struct class_flexifile *class =
     CONST_CLASS_FLEXIFILE (CONST_CASEFILE(ff)->class) ;
 
   return class->get_case(ff, casenum, c);
@@ -111,7 +111,7 @@ flexifile_get_case(const struct flexifile *ff, unsigned long casenum,
 bool
 flexifile_resize (struct flexifile *ff, int n_values, int posn)
 {
-  const struct class_flexifile *class = 
+  const struct class_flexifile *class =
     CONST_CLASS_FLEXIFILE (CONST_CASEFILE(ff)->class) ;
 
   return class->resize(ff, n_values, posn);
@@ -122,7 +122,7 @@ flexifile_resize (struct flexifile *ff, int n_values, int posn)
 bool
 flexifile_insert_case (struct flexifile *ff, struct ccase *c, int posn)
 {
-  const struct class_flexifile *class = 
+  const struct class_flexifile *class =
     CONST_CLASS_FLEXIFILE (CONST_CASEFILE(ff)->class) ;
 
   return class->insert_case(ff, c, posn);
@@ -132,14 +132,14 @@ flexifile_insert_case (struct flexifile *ff, struct ccase *c, int posn)
 bool
 flexifile_delete_cases (struct flexifile *ff, int n_cases, int first)
 {
-  const struct class_flexifile *class = 
+  const struct class_flexifile *class =
     CONST_CLASS_FLEXIFILE (CONST_CASEFILE(ff)->class) ;
 
   return class->delete_cases (ff, n_cases, first);
 }
 
 
-static unsigned long 
+static unsigned long
 flexifile_get_case_cnt (const struct casefile *cf)
 {
   return FLEXIFILE(cf)->case_cnt;
@@ -155,15 +155,15 @@ flexifile_get_value_cnt (const struct casefile *cf)
 static void
 flexifile_destroy (struct casefile *cf)
 {
-  int i ; 
-  for ( i = 0 ; i < FLEXIFILE(cf)->case_cnt; ++i ) 
+  int i ;
+  for ( i = 0 ; i < FLEXIFILE(cf)->case_cnt; ++i )
     case_destroy( &FLEXIFILE(cf)->cases[i]);
 
   free(FLEXIFILE(cf)->cases);
 }
 
 static void
-grow(struct flexifile *ff) 
+grow(struct flexifile *ff)
 {
   ff->capacity += CHUNK_SIZE;
   ff->cases = xrealloc(ff->cases, ff->capacity * sizeof ( *ff->cases) );
@@ -182,6 +182,13 @@ flexifile_append (struct casefile *cf, const struct ccase *c)
   return true;
 }
 
+static unsigned long
+flexifilereader_cnum (const struct casereader *cr)
+{
+  struct flexifilereader *ffr = FLEXIFILEREADER(cr);
+
+  return ffr->case_idx;
+}
 
 static struct ccase *
 flexifilereader_get_next_case (struct casereader *cr)
@@ -189,7 +196,7 @@ flexifilereader_get_next_case (struct casereader *cr)
   struct flexifilereader *ffr = FLEXIFILEREADER(cr);
   struct flexifile *ff = FLEXIFILE(casereader_get_casefile(cr));
 
-  if ( ffr->case_idx >= ff->case_cnt) 
+  if ( ffr->case_idx >= ff->case_cnt)
     return NULL;
 
   return &ff->cases[ffr->case_idx++];
@@ -201,7 +208,7 @@ flexifilereader_destroy(struct casereader *r)
   free(r);
 }
 
-static struct casereader * 
+static struct casereader *
 flexifile_get_reader (const struct casefile *cf_)
 {
   struct casefile *cf = (struct casefile *) cf_;
@@ -254,10 +261,10 @@ flexifile_create (size_t value_cnt)
   casefile_register (cf, (struct class_casefile *) &class);
 
   ff->value_cnt = value_cnt;
- 
+
   ff->cases = xzalloc(sizeof (struct ccase *) * CHUNK_SIZE);
   ff->capacity = CHUNK_SIZE;
- 
+
   return cf;
 }
 
@@ -282,11 +289,11 @@ static const struct class_flexifile class = {
 };
 
 
-static const struct class_flexifilereader class_reader = 
+static const struct class_flexifilereader class_reader =
   {
     {
       flexifilereader_get_next_case,
-      0,  /* cnum */
+      flexifilereader_cnum,
       flexifilereader_destroy,
       flexifilereader_clone
     }
@@ -295,15 +302,15 @@ static const struct class_flexifilereader class_reader =
 
 /* Implementations of class methods */
 
-static bool 
-impl_get_case(const struct flexifile *ff, unsigned long casenum, 
+static bool
+impl_get_case(const struct flexifile *ff, unsigned long casenum,
 	      struct ccase *c)
 {
-  if ( casenum >= ff->case_cnt) 
+  if ( casenum >= ff->case_cnt)
     return false;
 
   case_clone (c, &ff->cases[casenum]);
-  
+
   return true;
 }
 
@@ -312,26 +319,26 @@ static void
 dumpcasedata(struct ccase *c)
 {
   int i;
-  for ( i = 0 ; i < c->case_data->value_cnt * MAX_SHORT_STRING; ++i ) 
+  for ( i = 0 ; i < c->case_data->value_cnt * MAX_SHORT_STRING; ++i )
     putchar(c->case_data->values->s[i]);
   putchar('\n');
 }
 #endif
 
-static bool 
+static bool
 impl_resize (struct flexifile *ff, int n_values, int posn)
 {
   int i;
 
-  for( i = 0 ; i < ff->case_cnt ; ++i ) 
+  for( i = 0 ; i < ff->case_cnt ; ++i )
     {
       struct ccase c;
       case_create (&c, ff->value_cnt + n_values);
 
       case_copy (&c, 0, &ff->cases[i], 0, posn);
-      if ( n_values > 0 ) 
+      if ( n_values > 0 )
 	memset (case_data_rw_idx(&c, posn), ' ', n_values * MAX_SHORT_STRING) ;
-      case_copy (&c, posn + n_values, 
+      case_copy (&c, posn + n_values,
 		 &ff->cases[i], posn, ff->value_cnt - posn);
 
       case_destroy (&ff->cases[i]);
@@ -348,13 +355,13 @@ impl_insert_case (struct flexifile *ff, struct ccase *c, int posn)
 {
   int i;
   struct ccase blank;
-  
+
   assert (ff);
 
   if ( posn > ff->case_cnt )
     return false;
 
-  if ( posn >= ff->capacity ) 
+  if ( posn >= ff->capacity )
     grow(ff);
 
   case_create(&blank, ff->value_cnt);
@@ -373,25 +380,25 @@ impl_insert_case (struct flexifile *ff, struct ccase *c, int posn)
 }
 
 
-static bool 
+static bool
 impl_delete_cases (struct flexifile *ff, int n_cases, int first)
 {
   int i;
 
-  if ( ff->case_cnt < first + n_cases ) 
+  if ( ff->case_cnt < first + n_cases )
     return false;
 
-  for ( i = first ; i < first + n_cases; ++i ) 
+  for ( i = first ; i < first + n_cases; ++i )
     case_destroy (&ff->cases[i]);
-  
+
   /* Shift the cases up by N_CASES */
-  for ( i = first; i < ff->case_cnt - n_cases; ++i ) 
+  for ( i = first; i < ff->case_cnt - n_cases; ++i )
     {
       case_move (&ff->cases[i], &ff->cases[i+ n_cases]);
     }
 
   ff->case_cnt -= n_cases;
-  
+
   return true;
 }
 
