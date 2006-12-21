@@ -429,6 +429,8 @@ ll_prev_permutation (struct ll *r0, struct ll *r1,
    In use, keep in mind that R0 may move during the sort, so that
    afterward R0...R1 may denote a different range.
    (On the other hand, R1 is fixed in place.)
+   The sort is stable; that is, it will not change the relative
+   order of nodes that compare equal.
    Runs in O(n lg n) time in the number of nodes in the range. */
 void
 ll_sort (struct ll *r0, struct ll *r1, ll_compare_func *compare, void *aux) 
