@@ -1,3 +1,7 @@
+Wed Dec 13 21:02:51 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command.def: Add DELETE VARS.
+
 Sat Dec 16 22:15:55 2006  Ben Pfaff  <blp@gnu.org>
 
 	Make it possible to pull cases from the active file with a

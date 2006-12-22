@@ -2,6 +2,7 @@
 
 language_dictionary_sources = \
  src/language/dictionary/apply-dictionary.c \
+ src/language/dictionary/delete-variables.c \
  src/language/dictionary/formats.c \
  src/language/dictionary/missing-values.c \
  src/language/dictionary/modify-variables.c \

@@ -106,8 +106,12 @@ parse_variables (struct lexer *lexer, const struct dictionary *d,
 
   vs = var_set_create_from_dict (d);
   success = parse_var_set_vars (lexer, vs, var, cnt, opts);
-  if ( success == 0 )
-     free ( *var ) ;
+  if ( success == 0 ) 
+    {
+      free ( *var ) ;
+      *var = NULL;
+      *cnt = 0;
+    }
   var_set_destroy (vs);
   return success;
 }

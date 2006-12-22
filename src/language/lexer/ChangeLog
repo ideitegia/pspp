@@ -1,3 +1,8 @@
+Wed Dec 13 21:00:24 2006  Ben Pfaff  <blp@gnu.org>
+
+	* variable-parser.c (parse_variables): If not successful, set
+	output pointer to NULL and output count to 0.
+
 Sat Dec  9 18:46:11 2006  Ben Pfaff  <blp@gnu.org>
 
 	* variable-parser.h: New PV_SAME_WIDTH variable parsing option.

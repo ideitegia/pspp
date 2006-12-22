@@ -1,3 +1,8 @@
+Wed Dec 13 21:00:46 2006  Ben Pfaff  <blp@gnu.org>
+
+	* command/rank.sh (activity): Use DELETE VAR (which is new)
+	instead of MODIFY VARS.
+
 Tue Dec 19 08:17:28 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command/loop.sh: Test all the possible combinations of clauses.

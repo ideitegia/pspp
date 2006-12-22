@@ -6,6 +6,7 @@ several utility functions for examining and adjusting them.
 
 @menu
 * ADD VALUE LABELS::            Add value labels to variables.
+* DELETE VARIABLES::            Delete variables.
 * DISPLAY::                     Display variable names & descriptions.
 * DISPLAY VECTORS::             Display a list of vectors.
 * FORMATS::                     Set print and write formats.
@@ -25,7 +26,7 @@ several utility functions for examining and adjusting them.
 * WRITE FORMATS::               Set variable write formats.
 @end menu
 
-@node ADD VALUE LABELS, DISPLAY, Variable Attributes, Variable Attributes
+@node ADD VALUE LABELS, DELETE VARIABLES, Variable Attributes, Variable Attributes
 @section ADD VALUE LABELS
 @vindex ADD VALUE LABELS
 
@@ -38,7 +39,24 @@ ADD VALUE LABELS
 LABELS} (@pxref{VALUE LABELS}), but it does not clear value
 labels from the variables before adding the ones specified.
 
-@node DISPLAY, DISPLAY VECTORS, ADD VALUE LABELS, Variable Attributes
+@node DELETE VARIABLES, DISPLAY, ADD VALUE LABELS, Variable Attributes
+@section DELETE VARIABLES
+@vindex DELETE VARIABLES
+
+@display
+DELETE VARIABLES var_list.
+@end display
+
+@cmd{DELETE VARIABLES} deletes the specified variables from the
+dictionary.  It may not be used to delete all variables from the
+dictionary; use @cmd{NEW FILE} to do that (@pxref{NEW FILE}).
+
+@cmd{DELETE VARIABLES} should not used after defining transformations
+and before executing a procedure.  If it is used in such a context, it
+causes the data to be read.  If it is used while @cmd{TEMPORARY} is in
+effect, it causes the temporary transformations to become permanent.
+
+@node DISPLAY, DISPLAY VECTORS, DELETE VARIABLES, Variable Attributes
 @section DISPLAY
 @vindex DISPLAY
 

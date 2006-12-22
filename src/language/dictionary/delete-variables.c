@@ -1,0 +1,64 @@
+/* PSPP - computes sample statistics.
+   Copyright (C) 2006 Free Software Foundation, Inc.
+   Written by Ben Pfaff <blp@gnu.org>.
+
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+   02110-1301, USA. */
+
+#include <config.h>
+
+#include <stdlib.h>
+
+#include <data/dictionary.h>
+#include <data/procedure.h>
+#include <language/command.h>
+#include <language/lexer/variable-parser.h>
+#include <libpspp/message.h>
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
+/* Performs DELETE VARIABLES command. */
+int
+cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
+{
+  struct variable **vars;
+  size_t var_cnt;
+
+  if (proc_make_temporary_transformations_permanent (ds))
+    msg (SE, _("DELETE VARIABLES may not be used after TEMPORARY.  "
+               "Temporary transformations will be made permanent."));
+
+  if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt, PV_NONE))
+    goto error;
+  if (var_cnt == dict_get_var_cnt (dataset_dict (ds)))
+    {
+      msg (SE, _("DELETE VARIABLES may not be used to delete all variables "
+                 "from the active file dictionary.  Use NEW FILE instead."));
+      goto error;
+    }
+
+  if (!procedure (ds, NULL, NULL))
+    goto error;
+  
+  dict_delete_vars (dataset_dict (ds), vars, var_cnt);
+  free (vars);
+  
+  return CMD_SUCCESS;
+
+ error:
+  free (vars);
+  return CMD_CASCADING_FAILURE;
+}

@@ -520,7 +520,7 @@ END DATA.
 
 RANK x.
 
-MODIFY VARS /drop ran001 TO ran999.
+DELETE VAR ran001 TO ran999.
 
 LIST.
 

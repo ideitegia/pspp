@@ -1,3 +1,10 @@
+Wed Dec 13 20:59:54 2006  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add delete-variables.c
+
+	* delete-variables.c (cmd_delete_variables): New function, in new
+	file.
+	
 Sun Dec 10 13:55:58 2006  Ben Pfaff  <blp@gnu.org>
 
 	* sys-file-info.c (cmd_sysfile_info): Report floating-point format
