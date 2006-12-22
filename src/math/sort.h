@@ -25,6 +25,7 @@
 struct casereader;
 struct dictionary;
 struct variable;
+struct casefile_factory;
 
 extern int min_buffers ;
 extern int max_buffers ;
@@ -57,7 +58,9 @@ struct sort_criteria
 void sort_destroy_criteria (struct sort_criteria *);
 
 struct casefile *sort_execute (struct casereader *,
-                               const struct sort_criteria *);
+                               const struct sort_criteria *,
+			       struct casefile_factory *
+			       );
 
 struct dataset ;
 bool sort_active_file_in_place (struct dataset *ds, 

@@ -48,7 +48,8 @@ typedef struct _PsppireCaseFile	   PsppireCaseFile;
 typedef struct _PsppireCaseFileClass PsppireCaseFileClass;
 
 struct ccase;
-struct casefilefile;
+struct flexifile;
+struct casefile;
 
 struct _PsppireCaseFile
 {
@@ -68,9 +69,8 @@ struct _PsppireCaseFileClass
 GType          psppire_case_file_get_type (void);
 
 PsppireCaseFile *psppire_case_file_new (gint var_cnt);
+PsppireCaseFile* psppire_case_file_new_from_flexifile (struct flexifile *ff);
 
-gboolean psppire_case_file_append_case(PsppireCaseFile *cf, 
-					     struct ccase *c);
 
 gboolean psppire_case_file_insert_case(PsppireCaseFile *cf, struct ccase *c, gint row);
 

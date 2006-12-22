@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <libintl.h>
 
+
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
 #include <data/file-handle-def.h>
@@ -44,6 +45,7 @@
 #include "data-sheet.h"
 #include "var-sheet.h"
 #include "message-dialog.h"
+#include "flexifile-factory.h"
 
 GladeXML *xml;
 
@@ -88,6 +90,7 @@ struct dataset * the_dataset = NULL;
 int 
 main(int argc, char *argv[]) 
 {
+  struct casefile_factory *factory;
 
   GtkWidget *data_editor ;
   GtkSheet *var_sheet ; 
@@ -125,13 +128,14 @@ main(int argc, char *argv[])
   fmt_init();
   settings_init();
   fh_init ();
+  factory = flexifile_factory_create ();
   the_source_stream = create_source_stream (
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
 
   the_lexer = lex_create (the_source_stream);
 
-  the_dataset = create_dataset ();
+  the_dataset = create_dataset (factory);
 
   message_dialog_init (the_source_stream);
 

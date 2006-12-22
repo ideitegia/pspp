@@ -1,3 +1,10 @@
+Fri Dec 22 20:08:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* casefile-factory.h fastfile-factory.c fastfile-factory.h: New files.
+
+	* case-sink.c case-sink.h procedure.c procedure.h 
+          storage-stream.c: Now uses the factory.
+	
 Sat Dec 16 22:05:18 2006  Ben Pfaff  <blp@gnu.org>
 
 	Make it possible to pull cases from the active file with a

@@ -39,6 +39,10 @@
 #include <libpspp/str.h>
 
 struct dataset {
+
+  /* An abstract factory which creates casefiles */
+  struct casefile_factory *cf_factory;
+
   /* Cases are read from proc_source,
      pass through permanent_trns_chain (which transforms them into
      the format described by permanent_dict),
@@ -182,7 +186,10 @@ multipass_procedure (struct dataset *ds, casefile_func *proc_func,  void *aux)
   struct multipass_aux_data aux_data;
   bool ok;
 
-  aux_data.casefile = fastfile_create (dict_get_next_value_idx (ds->dict));
+  aux_data.casefile =
+    ds->cf_factory->create_casefile (ds->cf_factory,
+				     dict_get_next_value_idx (ds->dict));
+
   aux_data.proc_func = proc_func;
   aux_data.aux = aux;
 
@@ -322,7 +329,6 @@ proc_close (struct dataset *ds)
       if (!proc_read (ds, &c))
         break; 
     }
-  
   ds->ok = free_case_source (ds->proc_source) && ds->ok;
   ds->proc_source = NULL;
 
@@ -388,7 +394,10 @@ open_active_file (struct dataset *ds)
 
   /* Prepare sink. */
   if (ds->proc_sink == NULL)
-    ds->proc_sink = create_case_sink (&storage_sink_class, ds->permanent_dict, NULL);
+    ds->proc_sink = create_case_sink (&storage_sink_class,
+				      ds->permanent_dict,
+				      ds->cf_factory,
+				      NULL);
   if (ds->proc_sink->class->open != NULL)
     ds->proc_sink->class->open (ds->proc_sink);
 
@@ -662,7 +671,8 @@ multipass_split_case_func (const struct ccase *c, void *aux_, const struct datas
 
       /* Start a new casefile. */
       aux->casefile = 
-	fastfile_create (dict_get_next_value_idx (ds->dict));
+	ds->cf_factory->create_casefile (ds->cf_factory,
+					 dict_get_next_value_idx (ds->dict));
     }
 
   return casefile_append (aux->casefile, c) && ok;
@@ -834,10 +844,11 @@ proc_cancel_all_transformations (struct dataset *ds)
 
 /* Initializes procedure handling. */
 struct dataset *
-create_dataset (void)
+create_dataset (struct casefile_factory *fact)
 {
   struct dataset *ds = xzalloc (sizeof(*ds));
   ds->dict = dict_create ();
+  ds->cf_factory = fact;
   proc_cancel_all_transformations (ds);
   return ds;
 }
@@ -997,4 +1008,10 @@ dataset_set_n_lag (struct dataset *ds, int n_lag)
   ds->n_lag = n_lag;
 }
 
+
+struct casefile_factory *
+dataset_get_casefile_factory (const struct dataset *ds)
+{
+  return ds->cf_factory;
+}
 

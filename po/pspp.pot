@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-12-20 18:53+0900\n"
+"POT-Creation-Date: 2006-12-21 09:13+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -933,6 +933,10 @@ msgstr ""
 msgid "This command may not follow ELSE in DO IF...END IF."
 msgstr ""
 
+#: src/language/control/loop.c:214
+msgid "Only one index clause may be specified."
+msgstr ""
+
 #: src/language/control/repeat.c:170
 #, c-format
 msgid "Dummy variable name \"%s\" hides dictionary variable \"%s\"."
@@ -1241,7 +1245,7 @@ msgstr ""
 msgid "IN variable name %s duplicates an existing variable name."
 msgstr ""
 
-#: src/language/data-io/get.c:1479
+#: src/language/data-io/get.c:1484
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
@@ -1398,7 +1402,7 @@ msgid "`)' expected after output format."
 msgstr ""
 
 #: src/language/dictionary/missing-values.c:58
-#: src/language/stats/aggregate.c:479
+#: src/language/stats/aggregate.c:484
 msgid "expecting `('"
 msgstr ""
 
@@ -1880,7 +1884,7 @@ msgstr ""
 msgid "Unknown identifier %s."
 msgstr ""
 
-#: src/language/expressions/parse.c:886 src/language/stats/aggregate.c:537
+#: src/language/expressions/parse.c:886 src/language/stats/aggregate.c:542
 msgid "expecting `)'"
 msgstr ""
 
@@ -2166,40 +2170,40 @@ msgid ""
 "has no effect.  Output data will be sorted the same way as the input data."
 msgstr ""
 
-#: src/language/stats/aggregate.c:444
+#: src/language/stats/aggregate.c:449
 msgid "expecting aggregation function"
 msgstr ""
 
-#: src/language/stats/aggregate.c:462
+#: src/language/stats/aggregate.c:467
 #, c-format
 msgid "Unknown aggregation function %s."
 msgstr ""
 
-#: src/language/stats/aggregate.c:518
+#: src/language/stats/aggregate.c:523
 #, c-format
 msgid "Missing argument %d to %s."
 msgstr ""
 
-#: src/language/stats/aggregate.c:527
+#: src/language/stats/aggregate.c:532
 #, c-format
 msgid "Arguments to %s must be of same type as source variables."
 msgstr ""
 
-#: src/language/stats/aggregate.c:549
+#: src/language/stats/aggregate.c:554
 #, c-format
 msgid ""
 "Number of source variables (%u) does not match number of target variables (%"
 "u)."
 msgstr ""
 
-#: src/language/stats/aggregate.c:565
+#: src/language/stats/aggregate.c:570
 #, c-format
 msgid ""
 "The value arguments passed to the %s function are out-of-order.  They will "
 "be treated as if they had been specified in the correct order."
 msgstr ""
 
-#: src/language/stats/aggregate.c:635
+#: src/language/stats/aggregate.c:640
 #, c-format
 msgid ""
 "Variable name %s is not unique within the aggregate file dictionary, which "
@@ -2221,25 +2225,25 @@ msgstr ""
 msgid "Duplicate variable name %s among target variables."
 msgstr ""
 
-#: src/language/stats/binomial.c:139
+#: src/language/stats/binomial.c:138
 #, c-format
 msgid "Variable %s is not dichotomous"
 msgstr ""
 
-#: src/language/stats/binomial.c:185
+#: src/language/stats/binomial.c:184
 msgid "Binomial Test"
 msgstr ""
 
-#: src/language/stats/binomial.c:203
+#: src/language/stats/binomial.c:202
 msgid "Group1"
 msgstr ""
 
-#: src/language/stats/binomial.c:206
+#: src/language/stats/binomial.c:205
 msgid "Group2"
 msgstr ""
 
-#: src/language/stats/binomial.c:209 src/language/stats/chisquare.c:237
-#: src/language/stats/chisquare.c:297 src/language/stats/crosstabs.q:821
+#: src/language/stats/binomial.c:208 src/language/stats/chisquare.c:236
+#: src/language/stats/chisquare.c:296 src/language/stats/crosstabs.q:821
 #: src/language/stats/crosstabs.q:1021 src/language/stats/crosstabs.q:1744
 #: src/language/stats/examine.q:912 src/language/stats/frequencies.q:1220
 #: src/language/stats/oneway.q:306 src/language/stats/oneway.q:470
@@ -2247,72 +2251,72 @@ msgstr ""
 msgid "Total"
 msgstr ""
 
-#: src/language/stats/binomial.c:254 src/language/stats/chisquare.c:260
+#: src/language/stats/binomial.c:253 src/language/stats/chisquare.c:259
 #: src/language/stats/crosstabs.q:1139 src/language/stats/crosstabs.q:1180
 msgid "Category"
 msgstr ""
 
-#: src/language/stats/binomial.c:255 src/language/stats/crosstabs.q:831
+#: src/language/stats/binomial.c:254 src/language/stats/crosstabs.q:831
 #: src/language/stats/examine.q:988 src/language/stats/frequencies.q:1516
-#: src/language/stats/npar-summary.c:125 src/language/stats/oneway.q:391
+#: src/language/stats/npar-summary.c:124 src/language/stats/oneway.q:391
 #: src/language/stats/t-test.q:681 src/language/stats/t-test.q:704
 #: src/language/stats/t-test.q:830 src/language/stats/t-test.q:1367
 msgid "N"
 msgstr ""
 
-#: src/language/stats/binomial.c:256
+#: src/language/stats/binomial.c:255
 msgid "Observed Prop."
 msgstr ""
 
-#: src/language/stats/binomial.c:257
+#: src/language/stats/binomial.c:256
 msgid "Test Prop."
 msgstr ""
 
-#: src/language/stats/binomial.c:260
+#: src/language/stats/binomial.c:259
 #, c-format
 msgid "Exact Sig. (%d-tailed)"
 msgstr ""
 
-#: src/language/stats/chisquare.c:209
+#: src/language/stats/chisquare.c:208
 #, c-format
 msgid ""
 "CHISQUARE test specified %d expected values, but %d distinct values were "
 "encountered in variable %s."
 msgstr ""
 
-#: src/language/stats/chisquare.c:221 src/language/stats/chisquare.c:261
+#: src/language/stats/chisquare.c:220 src/language/stats/chisquare.c:260
 msgid "Observed N"
 msgstr ""
 
-#: src/language/stats/chisquare.c:222 src/language/stats/chisquare.c:262
+#: src/language/stats/chisquare.c:221 src/language/stats/chisquare.c:261
 msgid "Expected N"
 msgstr ""
 
-#: src/language/stats/chisquare.c:223 src/language/stats/chisquare.c:263
+#: src/language/stats/chisquare.c:222 src/language/stats/chisquare.c:262
 #: src/language/stats/regression.q:313
 msgid "Residual"
 msgstr ""
 
-#: src/language/stats/chisquare.c:256
+#: src/language/stats/chisquare.c:255
 msgid "Frequencies"
 msgstr ""
 
-#: src/language/stats/chisquare.c:310
+#: src/language/stats/chisquare.c:309
 msgid "Test Statistics"
 msgstr ""
 
-#: src/language/stats/chisquare.c:324
+#: src/language/stats/chisquare.c:323
 msgid "Chi-Square"
 msgstr ""
 
-#: src/language/stats/chisquare.c:325 src/language/stats/crosstabs.q:1115
+#: src/language/stats/chisquare.c:324 src/language/stats/crosstabs.q:1115
 #: src/language/stats/oneway.q:279 src/language/stats/oneway.q:680
 #: src/language/stats/regression.q:307 src/language/stats/t-test.q:981
 #: src/language/stats/t-test.q:1173 src/language/stats/t-test.q:1266
 msgid "df"
 msgstr ""
 
-#: src/language/stats/chisquare.c:326
+#: src/language/stats/chisquare.c:325
 msgid "Asymp. Sig."
 msgstr ""
 
@@ -2595,7 +2599,7 @@ msgid "%s Dependent"
 msgstr ""
 
 #: src/language/stats/descriptives.c:106 src/language/stats/examine.q:1528
-#: src/language/stats/frequencies.q:125 src/language/stats/npar-summary.c:128
+#: src/language/stats/frequencies.q:125 src/language/stats/npar-summary.c:127
 #: src/language/stats/oneway.q:392 src/language/stats/t-test.q:682
 #: src/language/stats/t-test.q:705 src/language/stats/t-test.q:829
 #: src/language/stats/t-test.q:1167
@@ -2639,13 +2643,13 @@ msgid "Range"
 msgstr ""
 
 #: src/language/stats/descriptives.c:115 src/language/stats/examine.q:1633
-#: src/language/stats/frequencies.q:136 src/language/stats/npar-summary.c:134
+#: src/language/stats/frequencies.q:136 src/language/stats/npar-summary.c:133
 #: src/language/stats/oneway.q:404
 msgid "Minimum"
 msgstr ""
 
 #: src/language/stats/descriptives.c:116 src/language/stats/examine.q:1644
-#: src/language/stats/frequencies.q:137 src/language/stats/npar-summary.c:137
+#: src/language/stats/frequencies.q:137 src/language/stats/npar-summary.c:136
 #: src/language/stats/oneway.q:405
 msgid "Maximum"
 msgstr ""
@@ -2760,7 +2764,7 @@ msgstr ""
 msgid "Median"
 msgstr ""
 
-#: src/language/stats/examine.q:1620 src/language/stats/npar-summary.c:131
+#: src/language/stats/examine.q:1620 src/language/stats/npar-summary.c:130
 #: src/language/stats/oneway.q:393 src/language/stats/t-test.q:683
 #: src/language/stats/t-test.q:706 src/language/stats/t-test.q:831
 #: src/language/stats/t-test.q:1168
@@ -2803,7 +2807,7 @@ msgid "Dev from Normal"
 msgstr ""
 
 #: src/language/stats/examine.q:2014 src/language/stats/examine.q:2036
-#: src/language/stats/frequencies.q:1528 src/language/stats/npar-summary.c:144
+#: src/language/stats/frequencies.q:1528 src/language/stats/npar-summary.c:143
 msgid "Percentiles"
 msgstr ""
 
@@ -2829,51 +2833,51 @@ msgstr ""
 msgid "Could not create temporary file for FLIP."
 msgstr ""
 
-#: src/language/stats/flip.c:313 src/language/stats/flip.c:382
+#: src/language/stats/flip.c:313 src/language/stats/flip.c:385
 #, c-format
 msgid "Error writing FLIP file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:429
+#: src/language/stats/flip.c:432
 #, c-format
 msgid "Error rewinding FLIP file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:436
+#: src/language/stats/flip.c:439
 msgid "Error creating FLIP source file."
 msgstr ""
 
-#: src/language/stats/flip.c:448
+#: src/language/stats/flip.c:451
 #, c-format
 msgid "Error reading FLIP file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:472
+#: src/language/stats/flip.c:475
 #, c-format
 msgid "Error seeking FLIP source file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:480
+#: src/language/stats/flip.c:483
 #, c-format
 msgid "Error writing FLIP source file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:491
+#: src/language/stats/flip.c:494
 #, c-format
 msgid "Error closing FLIP source file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:499
+#: src/language/stats/flip.c:502
 #, c-format
 msgid "Error rewinding FLIP source file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:545
+#: src/language/stats/flip.c:548
 #, c-format
 msgid "Error reading FLIP temporary file: %s."
 msgstr ""
 
-#: src/language/stats/flip.c:548
+#: src/language/stats/flip.c:551
 msgid "Unexpected end of file reading FLIP temporary file."
 msgstr ""
 
@@ -2994,19 +2998,19 @@ msgid ""
 "match the number following (%d)."
 msgstr ""
 
-#: src/language/stats/npar-summary.c:111
+#: src/language/stats/npar-summary.c:110
 msgid "Descriptive Statistics"
 msgstr ""
 
-#: src/language/stats/npar-summary.c:148
+#: src/language/stats/npar-summary.c:147
 msgid "25th"
 msgstr ""
 
-#: src/language/stats/npar-summary.c:151
+#: src/language/stats/npar-summary.c:150
 msgid "50th (Median)"
 msgstr ""
 
-#: src/language/stats/npar-summary.c:154
+#: src/language/stats/npar-summary.c:153
 msgid "75th"
 msgstr ""
 
@@ -3672,7 +3676,7 @@ msgstr ""
 msgid "Empirical with averaging"
 msgstr ""
 
-#: src/math/sort.c:438
+#: src/math/sort.c:467
 #, c-format
 msgid ""
 "Out of memory.  Could not allocate room for minimum of %d cases of %d bytes "
@@ -4140,15 +4144,15 @@ msgstr ""
 msgid "Incorrect range specification"
 msgstr ""
 
-#: src/ui/gui/psppire.c:74
+#: src/ui/gui/psppire.c:76
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:724
+#: src/ui/gui/psppire-data-store.c:721
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:805 src/ui/gui/psppire-var-store.c:551
+#: src/ui/gui/psppire-data-store.c:802 src/ui/gui/psppire-var-store.c:551
 #: src/ui/gui/psppire-var-store.c:561 src/ui/gui/psppire-var-store.c:571
 #: src/ui/gui/psppire-var-store.c:769
 #, c-format
@@ -4601,7 +4605,7 @@ msgid ""
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/ui/terminal/main.c:125
+#: src/ui/terminal/main.c:129
 msgid ""
 "Stopping syntax file processing here to avoid a cascade of dependent command "
 "failures."

@@ -278,11 +278,15 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
             goto error;
         }
 
-      agr.sink = create_case_sink (&storage_sink_class, agr.dict, NULL);
+      agr.sink = create_case_sink (&storage_sink_class, agr.dict,
+				   dataset_get_casefile_factory (ds),
+				   NULL);
       if (agr.sink->class->open != NULL)
         agr.sink->class->open (agr.sink);
       proc_set_sink (ds, 
-		     create_case_sink (&null_sink_class, dict, NULL));
+		     create_case_sink (&null_sink_class, dict,
+				       dataset_get_casefile_factory (ds),
+				       NULL));
       proc_open (ds);
       while (proc_read (ds, &c))
         if (aggregate_single_case (&agr, c, &agr.agr_case)) 
@@ -293,6 +297,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
             }
       if (!proc_close (ds))
         goto error;
+
       if (agr.case_cnt > 0) 
         {
           dump_aggregate_info (&agr, &agr.agr_case);

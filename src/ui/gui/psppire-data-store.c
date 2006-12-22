@@ -366,9 +366,6 @@ void
 psppire_data_store_set_dictionary(PsppireDataStore *data_store, PsppireDict *dict)
 {
   gint var_cnt = psppire_dict_get_next_value_idx(dict);
-#if 0
-  if ( data_store->dict ) g_object_unref(data_store->dict);
-#endif
 
   data_store->dict = dict;
 

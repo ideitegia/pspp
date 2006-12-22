@@ -28,6 +28,7 @@
 
 #include <data/case.h>
 #include <ui/flexifile.h>
+#include "flexifile-factory.h"
 #include <data/casefile.h>
 #include <data/data-in.h>
 #include <math/sort.h>
@@ -144,6 +145,7 @@ psppire_case_file_init (PsppireCaseFile *cf)
   cf->flexifile = 0;
 }
 
+
 /**
  * psppire_case_file_new:
  * @returns: a new #PsppireCaseFile object
@@ -156,6 +158,23 @@ psppire_case_file_new (gint val_cnt)
   PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
 
   cf->flexifile = flexifile_create (val_cnt);
+
+  return cf;
+}
+
+
+/**
+ * psppire_case_file_new_from_flexifile:
+ * @returns: a new #PsppireCaseFile object
+ *
+ * Creates a new #PsppireCaseFile from an existing flexifile
+ */
+PsppireCaseFile*
+psppire_case_file_new_from_flexifile (struct flexifile *ff)
+{
+  PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
+
+  cf->flexifile = (struct casefile *) ff;
 
   return cf;
 }
@@ -247,7 +266,6 @@ psppire_case_file_get_value(const PsppireCaseFile *cf, gint casenum, gint idx)
   flexifile_get_case(FLEXIFILE(cf->flexifile), casenum, &c);
 
   v = case_data_idx(&c, idx);
-
   case_destroy(&c);
 
   return v;
@@ -321,28 +339,25 @@ psppire_case_file_data_in(PsppireCaseFile *cf, gint casenum, gint idx,
 void
 psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *sc)
 {
-  struct ccase cc;
   gint c;
-  struct casefile *cfile;
-  struct casereader *reader = casefile_get_reader (cf->flexifile, NULL);
-  const int value_cnt = casefile_get_value_cnt(cf->flexifile);
 
-  cfile = sort_execute(reader, sc);
+  struct casereader *reader = casefile_get_reader (cf->flexifile, NULL);
+  struct casefile *cfile;
+
+  struct casefile_factory *factory  = flexifile_factory_create ();
+
+  cfile = sort_execute(reader, sc, factory);
 
   casefile_destroy(cf->flexifile);
-
-  /* Copy casefile into flexifile */
-
-  reader = casefile_get_destructive_reader(cfile);
-  cf->flexifile = flexifile_create(value_cnt);
-  while(casereader_read(reader, &cc))
-      casefile_append(cf->flexifile, &cc);
   
+  cf->flexifile = cfile;
 
   /* FIXME: Need to have a signal to change a range of cases, instead of
      calling a signal many times */
   for ( c = 0 ; c < casefile_get_case_cnt(cf->flexifile) ; ++c ) 
     g_signal_emit(cf, signal[CASE_CHANGED], 0, c);
+
+  flexifile_factory_destroy (factory);
 }
 
 
@@ -357,6 +372,7 @@ psppire_case_file_insert_values (PsppireCaseFile *cf,
   if ( ! cf->flexifile ) 
     {
       cf->flexifile = flexifile_create(n_values);
+
       return TRUE;
     }
 

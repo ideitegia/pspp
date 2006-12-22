@@ -23,6 +23,7 @@
 #include <stdbool.h>
 
 #include <data/transformations.h>
+#include <data/casefile-factory.h>
 #include <libpspp/compiler.h>
 
 struct ccase;
@@ -57,8 +58,10 @@ bool proc_cancel_temporary_transformations (struct dataset *ds);
 
 /* Procedures. */
 
-struct dataset * create_dataset (void);
+struct dataset * create_dataset (struct casefile_factory *);
 void destroy_dataset (struct dataset *);
+
+struct casefile_factory *dataset_get_casefile_factory (const struct dataset *);
 
 void proc_set_source (struct dataset *ds, struct case_source *);
 bool proc_has_source (const struct dataset *ds);

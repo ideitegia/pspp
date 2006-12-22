@@ -30,6 +30,8 @@ struct case_sink
   {
     const struct case_sink_class *class;        /* Class. */
     void *aux;          /* Auxiliary data. */
+    struct casefile_factory *factory ;    /* Factory used to create 
+                                             the destination */
     size_t value_cnt;   /* Number of `union value's in case. */
   };
 
@@ -56,8 +58,10 @@ struct case_sink_class
 
 extern const struct case_sink_class null_sink_class;
 
+struct casefile_factory ;
 struct case_sink *create_case_sink (const struct case_sink_class *,
                                     const struct dictionary *,
+				    struct casefile_factory *,
                                     void *);
 void free_case_sink (struct case_sink *);
 

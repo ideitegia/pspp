@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -30,6 +30,8 @@
 #include <data/case.h>
 #include <data/casefile.h>
 #include <data/fastfile.h>
+#include <data/casefile-factory.h>
+#include <data/fastfile-factory.h>
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>
@@ -55,9 +57,13 @@ bool allow_internal_sort = true;
 static int compare_record (const struct ccase *, const struct ccase *,
                            const struct sort_criteria *);
 static struct casefile *do_internal_sort (struct casereader *,
-                                          const struct sort_criteria *);
+                                          const struct sort_criteria *,
+					  struct casefile_factory *
+					  );
 static struct casefile *do_external_sort (struct casereader *,
-                                          const struct sort_criteria *);
+                                          const struct sort_criteria *,
+					  struct casefile_factory *
+					  );
 
 
 /* Sorts the active file in-place according to CRITERIA.
@@ -73,7 +79,8 @@ sort_active_file_in_place (struct dataset *ds,
     return false;
   
   in = proc_capture_output (ds);
-  out = sort_execute (casefile_get_destructive_reader (in), criteria);
+  out = sort_execute (casefile_get_destructive_reader (in), criteria, 
+		      dataset_get_casefile_factory (ds));
   if (out == NULL) 
     return false;
 
@@ -86,6 +93,7 @@ struct sort_to_casefile_cb_data
   {
     const struct sort_criteria *criteria;
     struct casefile *output;
+    struct casefile_factory *factory ;
   };
 
 /* Sorts casefile CF according to the criteria in CB_DATA. */
@@ -93,7 +101,10 @@ static bool
 sort_to_casefile_callback (const struct casefile *cf, void *cb_data_) 
 {
   struct sort_to_casefile_cb_data *cb_data = cb_data_;
-  cb_data->output = sort_execute (casefile_get_reader (cf, NULL), cb_data->criteria);
+  cb_data->output = sort_execute (casefile_get_reader (cf, NULL), 
+				  cb_data->criteria,
+				  cb_data->factory
+				  );
   return cb_data->output != NULL;
 }
 
@@ -110,6 +121,7 @@ sort_active_file_to_casefile (struct dataset *ds,
 
   cb_data.criteria = criteria;
   cb_data.output = NULL;
+  cb_data.factory = dataset_get_casefile_factory (ds);
   if (!multipass_procedure (ds, sort_to_casefile_callback, &cb_data)) 
     {
       casefile_destroy (cb_data.output);
@@ -121,14 +133,27 @@ sort_active_file_to_casefile (struct dataset *ds,
 
 /* Reads all the cases from READER, which is destroyed.  Sorts
    the cases according to CRITERIA.  Returns the sorted cases in
-   a newly created casefile. */
+   a newly created casefile, which will be created by FACTORY.
+   If FACTORY is NULL, then a local fastfile_factory will be used.
+*/
 struct casefile *
-sort_execute (struct casereader *reader, const struct sort_criteria *criteria)
+sort_execute (struct casereader *reader,
+	      const struct sort_criteria *criteria,
+	      struct casefile_factory *factory
+	      )
 {
-  struct casefile *output = do_internal_sort (reader, criteria);
+  struct casefile_factory *local_factory = NULL;
+  struct casefile *output ;
+  if ( factory == NULL )
+    factory = local_factory = fastfile_factory_create ();
+
+  output = do_internal_sort (reader, criteria, factory);
   if (output == NULL)
-    output = do_external_sort (reader, criteria);
+    output = do_external_sort (reader, criteria, factory);
   casereader_destroy (reader);
+
+  fastfile_factory_destroy (local_factory);
+
   return output;
 }
 
@@ -145,7 +170,8 @@ static int compare_indexed_cases (const void *, const void *, const void *);
    casefile for the data.  Otherwise, return a null pointer. */
 static struct casefile *
 do_internal_sort (struct casereader *reader,
-                  const struct sort_criteria *criteria)
+                  const struct sort_criteria *criteria, 
+		  struct casefile_factory *factory)
 {
   const struct casefile *src;
   struct casefile *dst;
@@ -159,7 +185,7 @@ do_internal_sort (struct casereader *reader,
     return NULL;
       
   case_cnt = casefile_get_case_cnt (src);
-  dst = fastfile_create (casefile_get_value_cnt (src));
+  dst = factory->create_casefile (factory, casefile_get_value_cnt (src));
   if (case_cnt != 0) 
     {
       struct indexed_case *cases = nmalloc (sizeof *cases, case_cnt);
@@ -225,6 +251,7 @@ struct external_sort
     size_t value_cnt;                 /* Size of data in `union value's. */
     struct casefile **runs;           /* Array of initial runs. */
     size_t run_cnt, run_cap;          /* Number of runs, allocated capacity. */
+    struct casefile_factory *factory; /* Factory used to  create the result */
   };
 
 /* Prototypes for helper functions. */
@@ -238,7 +265,9 @@ static void destroy_external_sort (struct external_sort *);
    pattern that assures stability. */
 static struct casefile *
 do_external_sort (struct casereader *reader,
-                  const struct sort_criteria *criteria)
+                  const struct sort_criteria *criteria,
+		  struct casefile_factory *factory
+		  )
 {
   struct external_sort *xsrt;
 
@@ -251,6 +280,7 @@ do_external_sort (struct casereader *reader,
   xsrt->run_cap = 512;
   xsrt->run_cnt = 0;
   xsrt->runs = xnmalloc (xsrt->run_cap, sizeof *xsrt->runs);
+  xsrt->factory = factory;
   if (write_runs (xsrt, reader))
     {
       struct casefile *output = merge (xsrt);
@@ -508,6 +538,9 @@ start_run (struct initial_run_state *irs)
 {
   irs->run++;
   irs->case_cnt = 0;
+
+  /* This casefile is internal to the sort, so don't use the factory
+     to create it. */
   irs->casefile = fastfile_create (irs->xsrt->value_cnt);
   casefile_to_disk (irs->casefile);
   case_nullify (&irs->last_output); 
@@ -673,7 +706,7 @@ merge_once (struct external_sort *xsrt,
     }
 
   /* Create output file. */
-  output = fastfile_create (xsrt->value_cnt);
+  output = xsrt->factory->create_casefile (xsrt->factory, xsrt->value_cnt);
   casefile_to_disk (output);
 
   /* Merge. */

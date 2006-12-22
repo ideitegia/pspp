@@ -275,7 +275,7 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
       reader = casefile_get_destructive_reader (cf) ;
       criteria.crits[criteria.crit_cnt - 1] = sc->crits[i];
       assert ( sc->crits[i].fv == var_get_case_index (src_vars[i]) );
-      sorted_cf = sort_execute (reader, &criteria);
+      sorted_cf = sort_execute (reader, &criteria, NULL);
       casefile_destroy (cf);
 
       out = rank_sorted_casefile (sorted_cf, &criteria,

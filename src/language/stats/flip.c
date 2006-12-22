@@ -83,7 +83,7 @@ struct flip_pgm
   };
 
 static void destroy_flip_pgm (struct flip_pgm *);
-static struct case_sink *flip_sink_create (struct dictionary *d, struct flip_pgm *);
+static struct case_sink *flip_sink_create (struct dataset *ds, struct flip_pgm *);
 static struct case_source *flip_source_create (struct flip_pgm *);
 static bool flip_file (struct flip_pgm *);
 static int build_dictionary (struct dictionary *, struct flip_pgm *);
@@ -158,7 +158,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   /* Read the active file into a flip_sink. */
   flip->case_cnt = 0;
   proc_make_temporary_transformations_permanent (ds);
-  sink = flip_sink_create (dict, flip);
+  sink = flip_sink_create (ds, flip);
   if (sink == NULL)
     goto error;
   proc_set_sink (ds, sink);
@@ -289,7 +289,7 @@ build_dictionary (struct dictionary *dict, struct flip_pgm *flip)
      
 /* Creates a flip sink based on FLIP. */
 static struct case_sink *
-flip_sink_create (struct dictionary *dict, struct flip_pgm *flip) 
+flip_sink_create (struct dataset *ds, struct flip_pgm *flip) 
 {
   size_t i;
 
@@ -316,7 +316,10 @@ flip_sink_create (struct dictionary *dict, struct flip_pgm *flip)
 
   flip->case_cnt = 1;
 
-  return create_case_sink (&flip_sink_class, dict, flip);
+  return create_case_sink (&flip_sink_class,
+			   dataset_dict (ds),
+			   dataset_get_casefile_factory (ds),
+			   flip);
 }
 
 /* Writes case C to the FLIP sink.

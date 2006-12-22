@@ -20,6 +20,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/casefile-private.h \
 	src/data/fastfile.c \
 	src/data/fastfile.h \
+	src/data/fastfile-factory.h \
+	src/data/fastfile-factory.c \
 	src/data/case.h \
 	src/data/category.c \
 	src/data/category.h \

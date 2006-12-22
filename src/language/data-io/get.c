@@ -1111,14 +1111,19 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
   if (used_active_file) 
     {
       proc_set_sink (ds, create_case_sink (&null_sink_class, 
-                                           dataset_dict (ds), NULL));
+                                           dataset_dict (ds),
+					   dataset_get_casefile_factory (ds),
+					   NULL));
       proc_open (ds); 
     }
   else
     discard_variables (ds);
 
   dict_compact_values (mtf.dict);
-  mtf.output = fastfile_create (dict_get_next_value_idx (mtf.dict));
+  mtf.output = dataset_get_casefile_factory (ds)->create_casefile
+    (dataset_get_casefile_factory (ds),
+     dict_get_next_value_idx (mtf.dict));
+
   mtf.seq_nums = xcalloc (dict_get_var_cnt (mtf.dict), sizeof *mtf.seq_nums);
   case_create (&mtf.mtf_case, dict_get_next_value_idx (mtf.dict));
 

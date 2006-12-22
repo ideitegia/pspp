@@ -27,7 +27,7 @@
 #include <data/case-source.h>
 #include <data/case.h>
 #include <data/casefile.h> 
-#include <data/fastfile.h> 
+#include <data/casefile-factory.h>
 
 #include "xalloc.h"
 
@@ -53,7 +53,8 @@ storage_sink_open (struct case_sink *sink)
   struct storage_sink_info *info;
 
   sink->aux = info = xmalloc (sizeof *info);
-  info->casefile = fastfile_create (sink->value_cnt);
+  info->casefile = sink->factory->create_casefile (sink->factory,
+						   sink->value_cnt);
 }
 
 /* Writes case C to the storage sink SINK.

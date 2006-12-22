@@ -30,13 +30,14 @@
    class CLASS and auxiliary data AUX. */
 struct case_sink *
 create_case_sink (const struct case_sink_class *class,
-                  const struct dictionary *dict,
+                  const struct dictionary *dict, struct casefile_factory *f,
                   void *aux) 
 {
   struct case_sink *sink = xmalloc (sizeof *sink);
   sink->class = class;
   sink->value_cnt = dict_get_compacted_value_cnt (dict);
   sink->aux = aux;
+  sink->factory = f;
   return sink;
 }
 
