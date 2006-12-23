@@ -39,10 +39,6 @@
 
 #include "helper.h"
 
-extern GladeXML *xml;
-
-
-
 static void enqueue_msg (const struct msg *m);
 
 
@@ -137,9 +133,7 @@ popup_message(const struct msg *m)
       break;
     };
 
-  parent = GTK_WINDOW(get_widget_assert(xml, "data_editor"));
-
-  dialog = gtk_message_dialog_new(parent,
+  dialog = gtk_message_dialog_new ( NULL,
 				  GTK_DIALOG_MODAL,
 				  message_type,
 				  GTK_BUTTONS_CLOSE,
@@ -151,7 +145,7 @@ popup_message(const struct msg *m)
 					   m->where.line_number,
 					   m->text);
 
-  gtk_window_set_transient_for(GTK_WINDOW(dialog), parent);
+  gtk_window_set_keep_above (GTK_WINDOW(dialog), TRUE);
 
   gtk_dialog_run(GTK_DIALOG(dialog));
 

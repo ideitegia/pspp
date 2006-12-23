@@ -28,8 +28,10 @@
 #include <libpspp/message.h>
 #include <libpspp/getl.h>
 #include "helper.h"
+#include "data-editor.h"
+#include "about.h"
 
-
+#include "window-manager.h"
 
 #include <language/command.h>
 #include <data/procedure.h>
@@ -39,8 +41,6 @@
 extern struct source_stream *the_source_stream ;
 extern struct lexer *the_lexer;
 extern struct dataset *the_dataset;
-
-extern GladeXML *xml;
 
 static gboolean save_editor_to_file (struct syntax_editor *se,
 				     const gchar *filename,
@@ -52,16 +52,17 @@ static gboolean save_editor_to_file (struct syntax_editor *se,
 static void
 save_if_modified (struct syntax_editor *se)
 {
+  struct editor_window *e = (struct editor_window *) se;
   if ( TRUE == gtk_text_buffer_get_modified (se->buffer))
     {
       gint response;
       GtkWidget *dialog =
-	gtk_message_dialog_new (GTK_WINDOW(se->window),
+	gtk_message_dialog_new (GTK_WINDOW(e->window),
 				GTK_DIALOG_MODAL,
 				GTK_MESSAGE_QUESTION,
 				GTK_BUTTONS_NONE,
 				_("Save contents of syntax editor to %s?"),
-				se->name ? se->name : _("Untitled")
+				e->name ? e->name : _("Untitled")
 				);
 
       gtk_dialog_add_button  (GTK_DIALOG(dialog),
@@ -83,7 +84,7 @@ save_if_modified (struct syntax_editor *se)
 	{
 	  GError *err = NULL;
 
-	  if ( ! save_editor_to_file (se, se->name ? se->name : _("Untitled"),
+	  if ( ! save_editor_to_file (se, e->name ? e->name : _("Untitled"),
 				      &err) )
 	    {
 	      msg (ME, err->message);
@@ -95,7 +96,7 @@ save_if_modified (struct syntax_editor *se)
 	return ;
     }
 
-  gtk_widget_destroy (se->window);
+  gtk_widget_destroy (e->window);
 }
 
 /* Callback for the File->SaveAs menuitem */
@@ -106,10 +107,11 @@ on_syntax_save_as   (GtkMenuItem     *menuitem,
   GtkFileFilter *filter;
   gint response;
   struct syntax_editor *se = user_data;
+  struct editor_window *e = user_data;
 
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Save Syntax"),
-				 GTK_WINDOW(se->window),
+				 GTK_WINDOW(e->window),
 				 GTK_FILE_CHOOSER_ACTION_SAVE,
 				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				 GTK_STOCK_SAVE,   GTK_RESPONSE_ACCEPT,
@@ -138,8 +140,8 @@ on_syntax_save_as   (GtkMenuItem     *menuitem,
 
       if ( save_editor_to_file (se, filename, &err) )
 	{
-	  g_free (se->name);
-	  se->name = g_strdup (filename);
+	  g_free (e->name);
+	  e->name = g_strdup (filename);
 	}
       else
 	{
@@ -159,13 +161,14 @@ on_syntax_save   (GtkMenuItem     *menuitem,
 		  gpointer         user_data)
 {
   struct syntax_editor *se = user_data;
+  struct editor_window *e = user_data;
 
-  if ( se->name == NULL )
+  if ( e->name == NULL )
     on_syntax_save_as (menuitem, user_data);
   else
     {
       GError *err;
-      save_editor_to_file (se, se->name, &err);
+      save_editor_to_file (se, e->name, &err);
       msg (ME, err->message);
       g_error_free (err);
     }
@@ -215,73 +218,86 @@ on_run_all (GtkMenuItem *menuitem, gpointer user_data)
 }
 
 
-void
-new_syntax_window (GtkMenuItem     *menuitem,
-		   gpointer         user_data);
-
-
-
-static void open_syntax_window (GtkMenuItem *menuitem,
-				gpointer user_data);
 
 
 /*
   Create a new syntax editor with NAME.
   If NAME is NULL, a name will be automatically assigned
 */
-static struct syntax_editor *
-new_syntax_editor (const gchar *name)
+struct syntax_editor *
+new_syntax_editor (void)
 {
-  GladeXML *new_xml ;
+  GladeXML *xml =
+    glade_xml_new (PKGDATADIR "/syntax-editor.glade", NULL, NULL);
+
   GtkWidget *text_view;
   struct syntax_editor *se ;
-
-  new_xml = glade_xml_new  (xml->filename, "syntax_editor", NULL);
+  struct editor_window *e;
 
   se = g_malloc (sizeof (*se));
 
-  se->window = get_widget_assert (new_xml, "syntax_editor");
-  text_view = get_widget_assert (new_xml, "syntax_text_view");
-  se->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(text_view));
-  if ( name )
-    se->name = g_strdup (name);
-  else
-    se->name = NULL;
+  e = (struct editor_window *)se;
 
-  g_signal_connect (get_widget_assert (new_xml,"file_new_syntax"),
+  e->window = get_widget_assert (xml, "syntax_editor");
+  text_view = get_widget_assert (xml, "syntax_text_view");
+  se->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(text_view));
+
+  g_signal_connect (get_widget_assert (xml,"file_new_syntax"),
 		    "activate",
 		    G_CALLBACK(new_syntax_window),
-		    se->window);
+		    e->window);
 
-  g_signal_connect (get_widget_assert (new_xml,"file_open_syntax"),
+  g_signal_connect (get_widget_assert (xml,"file_open_syntax"),
 		    "activate",
 		    G_CALLBACK(open_syntax_window),
-		    se->window);
+		    e->window);
 
-  g_signal_connect (get_widget_assert (new_xml,"file_quit"),
+  g_signal_connect (get_widget_assert (xml,"file_new_data"),
+		    "activate",
+		    G_CALLBACK(new_data_window),
+		    e->window);
+
+  g_signal_connect (get_widget_assert (xml,"file_open_data"),
+		    "activate",
+		    G_CALLBACK(open_data_window),
+		    e->window);
+
+
+  g_signal_connect (get_widget_assert (xml,"help_about"),
+		    "activate",
+		    G_CALLBACK(about_new),
+		    e->window);
+
+
+#if 0
+
+  g_signal_connect (get_widget_assert (xml,"file_quit"),
 		    "activate",
 		    G_CALLBACK(on_quit),
 		    se);
 
-  g_signal_connect (get_widget_assert (new_xml,"file_save"),
+  g_signal_connect (get_widget_assert (xml,"file_save"),
 		    "activate",
 		    G_CALLBACK(on_syntax_save),
 		    se);
 
-  g_signal_connect (get_widget_assert (new_xml,"file_save_as"),
+  g_signal_connect (get_widget_assert (xml,"file_save_as"),
 		    "activate",
 		    G_CALLBACK(on_syntax_save_as),
 		    se);
 
+#endif
 
-  g_signal_connect (get_widget_assert (new_xml,"run_all"),
+  g_signal_connect (get_widget_assert (xml,"run_all"),
 		    "activate",
 		    G_CALLBACK(on_run_all),
 		    se);
 
-  g_object_unref (new_xml);
 
-  g_signal_connect (se->window, "delete-event",
+
+  g_object_unref (xml);
+
+  g_signal_connect (e->window, "delete-event",
 		    G_CALLBACK(on_delete), se);
 
   return se;
@@ -294,25 +310,7 @@ void
 new_syntax_window (GtkMenuItem     *menuitem,
 		   gpointer         user_data)
 {
-  struct syntax_editor *se =   new_syntax_editor (NULL);
-  gtk_widget_show (se->window);
-}
-
-
-static void
-set_window_title_from_filename (struct syntax_editor *se,
-				const gchar *filename)
-{
-  gchar *title;
-  gchar *basename ;
-  g_free (se->name);
-  se->name = strdup (filename);
-  basename = g_path_get_basename (filename);
-  title =
-    g_strdup_printf (_("%s --- PSPP Syntax Editor"), basename);
-  g_free (basename);
-  gtk_window_set_title (GTK_WINDOW(se->window), title);
-  g_free (title);
+  window_create (WINDOW_SYNTAX, NULL);
 }
 
 
@@ -347,7 +345,7 @@ save_editor_to_file (struct syntax_editor *se,
 
   if ( result )
     {
-      set_window_title_from_filename (se, filename);
+      window_set_name_from_filename ((struct editor_window *) se, filename);
       gtk_text_buffer_set_modified (buffer, FALSE);
     }
 
@@ -384,7 +382,7 @@ load_editor_from_file (struct syntax_editor *se,
 
   gtk_text_buffer_insert (buffer, &iter, text, -1);
 
-  set_window_title_from_filename (se, filename);
+  window_set_name_from_filename ((struct editor_window *)se, filename);
   gtk_text_buffer_set_modified (buffer, FALSE);
 
   return TRUE;
@@ -392,7 +390,7 @@ load_editor_from_file (struct syntax_editor *se,
 
 
 /* Callback for the File->Open->Syntax menuitem */
-static void
+void
 open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 {
   GtkFileFilter *filter;
@@ -424,43 +422,15 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
       const char *file_name = gtk_file_chooser_get_filename
 	(GTK_FILE_CHOOSER (dialog));
 
-      struct syntax_editor *se = new_syntax_editor (file_name);
+      struct syntax_editor *se = (struct syntax_editor *)
+	window_create (WINDOW_SYNTAX, file_name);
 
       load_editor_from_file (se, file_name, NULL);
-
-      gtk_widget_show (se->window);
     }
 
   gtk_widget_destroy (dialog);
 }
 
-
-#if 1
-/* FIXME: get rid of these functions */
-void
-on_syntax4_activate   (GtkMenuItem     *menuitem,
-		       gpointer         user_data)
-{
-  g_print ("%s\n", __FUNCTION__);
-}
-
-
-
-void
-on_syntax2_activate   (GtkMenuItem     *menuitem,
-		       gpointer         user_data)
-{
-  g_print ("%s\n", __FUNCTION__);
-}
-
-void
-on_syntax1_activate   (GtkMenuItem     *menuitem,
-		       gpointer         user_data)
-{
-  g_print ("%s\n", __FUNCTION__);
-  new_syntax_window (menuitem, user_data);
-}
-#endif
 
 
 

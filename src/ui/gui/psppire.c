@@ -23,6 +23,7 @@
 #include <libintl.h>
 
 
+#include "data-editor.h"
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
 #include <data/file-handle-def.h>
@@ -37,7 +38,6 @@
 #include <gtk/gtk.h>
 #include <gtk/gtk.h>
 #include <glade/glade.h>
-#include "menu-actions.h"
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
@@ -47,12 +47,7 @@
 #include "message-dialog.h"
 #include "flexifile-factory.h"
 
-GladeXML *xml;
-
-
-PsppireDict *the_dictionary = 0;
-
-PsppireDataStore *data_store = 0;
+PsppireDataStore *the_data_store = 0;
 
 
 static bool parse_command_line (int *argc, char ***argv, 
@@ -78,7 +73,7 @@ give_help(void)
   popup_message(&m);
 }
 
-PsppireVarStore *var_store = 0;
+PsppireVarStore *the_var_store = 0;
 
 void create_icon_factory (void);
 
@@ -91,6 +86,8 @@ int
 main(int argc, char *argv[]) 
 {
   struct casefile_factory *factory;
+  PsppireDict *dictionary = 0;
+
 
   GtkWidget *data_editor ;
   GtkSheet *var_sheet ; 
@@ -139,7 +136,7 @@ main(int argc, char *argv[])
 
   message_dialog_init (the_source_stream);
 
-  the_dictionary =
+  dictionary =
     psppire_dict_new_from_dict (
 				dataset_dict (the_dataset)
 				);
@@ -147,46 +144,44 @@ main(int argc, char *argv[])
   bind_textdomain_codeset(PACKAGE, "UTF-8");
 
   /* Create the model for the var_sheet */
-  var_store = psppire_var_store_new(the_dictionary);
+  the_var_store = psppire_var_store_new(dictionary);
 
-  data_store = psppire_data_store_new(the_dictionary);
+
+  the_data_store = psppire_data_store_new (dictionary);
 
   create_icon_factory();
 
+#if 0
   /* load the interface */
-  xml = glade_xml_new(PKGDATADIR "/psppire.glade", NULL, NULL);
+  data_editor_xml = glade_xml_new(PKGDATADIR "/data-editor.glade", NULL, NULL);
 
-  if ( !xml ) return 1;
+  if ( !data_editor_xml ) return 1;
 
-  data_editor = get_widget_assert(xml, "data_editor");
-  gtk_window_set_icon_from_file(GTK_WINDOW(data_editor),
-				PKGDATADIR "/psppicon.png",0);
+  data_editor = get_widget_assert(data_editor_xml, "data_editor");
 
   /* connect the signals in the interface */
-  glade_xml_signal_autoconnect(xml);
+  glade_xml_signal_autoconnect(data_editor_xml);
 
-  var_sheet  = GTK_SHEET(get_widget_assert(xml, "variable_sheet"));
-  data_sheet = GTK_SHEET(get_widget_assert(xml, "data_sheet"));
+  var_sheet  = GTK_SHEET(get_widget_assert(data_editor_xml, "variable_sheet"));
+  data_sheet = GTK_SHEET(get_widget_assert(data_editor_xml, "data_sheet"));
 
-  gtk_sheet_set_model(var_sheet, G_SHEET_MODEL(var_store));
+  gtk_sheet_set_model(var_sheet, G_SHEET_MODEL(the_var_store));
 
-  gtk_sheet_set_model(data_sheet, G_SHEET_MODEL(data_store));
-
-  if (filename)
-    gtk_init_add((GtkFunction)load_system_file, filename);
-  else
-    gtk_init_add((GtkFunction)clear_file, 0);
+  gtk_sheet_set_model(data_sheet, G_SHEET_MODEL(the_data_store));
 
   var_data_selection_init();
 
   {
-  GList *helps = glade_xml_get_widget_prefix(xml, "help_button_");
+  GList *helps = glade_xml_get_widget_prefix(data_editor_xml, "help_button_");
 
   GList *i;
   for ( i = g_list_first(helps); i ; i = g_list_next(i))
       g_signal_connect(GTK_WIDGET(i->data), "clicked", give_help, 0);
   }
 
+#endif
+
+  new_data_window (NULL, NULL);
 
   /* start the event loop */
   gtk_main();

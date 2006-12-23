@@ -43,7 +43,6 @@
 
 #include "psppire-var-store.h"
 #include "helper.h"
-#include "menu-actions.h"
 #include "psppire-dict.h"
 #include "var-type-dialog.h"
 #include "var-sheet.h"
@@ -57,7 +56,6 @@
 static const gint n_initial_rows = 40;
 
 
-extern GladeXML *xml;
 
 struct column_parameters
 {
@@ -79,32 +77,15 @@ static const struct column_parameters column_def[] = {
 };
 
 
-static gboolean
-click2row(GtkWidget *w, gint row, gpointer data)
-{
-  gint current_row, current_column;
-  GtkWidget *data_sheet  = get_widget_assert(xml, "data_sheet");
 
-  select_sheet(PAGE_DATA_SHEET);
-
-  gtk_sheet_get_active_cell(GTK_SHEET(data_sheet), 
-			    &current_row, &current_column);
-
-  gtk_sheet_set_active_cell(GTK_SHEET(data_sheet), current_row, row);
-
-  return FALSE;
-}
-
-
-
-const gchar *alignments[n_ALIGNMENTS + 1]={
+const gchar *const alignments[n_ALIGNMENTS + 1]={
   N_("Left"),
   N_("Right"),
   N_("Centre"),
   0
 };
 
-const gchar *measures[n_MEASURES + 1]={
+const gchar *const measures[n_MEASURES + 1]={
   N_("Nominal"),
   N_("Ordinal"),
   N_("Scale"),
@@ -204,30 +185,44 @@ traverse_cell_callback (GtkSheet * sheet,
 }
 
 
-/* Callback whenever the cell on the var sheet is entered or left.
-   It sets the entry box type appropriately.
+
+
+/*
+   Callback whenever the cell on the var sheet is left
 */
-static gboolean 
-var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column, 
-			     gpointer leaving)
+static gboolean
+var_sheet_cell_entry_leave (GtkSheet * sheet, gint row, gint column,
+			    gpointer data)
+{
+  gtk_sheet_change_entry(sheet, GTK_TYPE_ENTRY);
+  return TRUE;
+}
+
+
+
+/*
+   Callback whenever the cell on the var sheet is entered.
+*/
+static gboolean
+var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
+			    gpointer data)
 {
   GtkSheetCellAttr attributes;
   PsppireVarStore *var_store ;
   struct variable *pv ;
 
+  GladeXML *xml;
+
   g_return_val_if_fail(sheet != NULL, FALSE);
 
-  var_store = PSPPIRE_VAR_STORE(gtk_sheet_get_model(sheet));
+  var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model(sheet));
+
+  g_assert (var_store);
 
   if ( row >= psppire_var_store_get_var_cnt(var_store))
     return TRUE;
 
-  if ( leaving ) 
-    {
-      gtk_sheet_change_entry(sheet, GTK_TYPE_ENTRY);
-      return TRUE;
-    }
-
+  xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
 
   gtk_sheet_get_attributes(sheet, row, column, &attributes);
 
@@ -357,46 +352,44 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
 
 	    const gchar *s = gtk_sheet_cell_get_text(sheet, row, column);
 
-	    if (!s) 
-	      return FALSE;
+	    if (s) 
+	      {
+		GtkSpinButton *spinButton ;
+		const gint current_value  = atoi(s);
+		GtkObject *adj ;
 
-	    {
-	      GtkSpinButton *spinButton ;
-	      const gint current_value  = atoi(s);
-	      GtkObject *adj ;
+		const struct fmt_spec *fmt = var_get_write_format (pv);
+		switch (column) 
+		  {
+		  case COL_WIDTH:
+		    r_min = MAX (fmt->d + 1, fmt_min_output_width (fmt->type));
+		    r_max = fmt_max_output_width (fmt->type);
+		    break;
+		  case COL_DECIMALS:
+		    r_min = 0 ; 
+		    r_max = fmt_max_output_decimals (fmt->type, fmt->w);
+		    break;
+		  case COL_COLUMNS:
+		    r_min = 1;
+		    r_max = 255 ; /* Is this a sensible value ? */
+		    break;
+		  default:
+		    g_assert_not_reached();
+		  }
 
-	      const struct fmt_spec *fmt = var_get_write_format (pv);
-	      switch (column) 
-		{
-		case COL_WIDTH:
-		  r_min = MAX (fmt->d + 1, fmt_min_output_width (fmt->type));
-		  r_max = fmt_max_output_width (fmt->type);
-		  break;
-		case COL_DECIMALS:
-		  r_min = 0 ; 
-		  r_max = fmt_max_output_decimals (fmt->type, fmt->w);
-		  break;
-		case COL_COLUMNS:
-		  r_min = 1;
-		  r_max = 255 ; /* Is this a sensible value ? */
-		  break;
-		default:
-		  g_assert_not_reached();
-		}
+		adj = gtk_adjustment_new(current_value,
+					 r_min, r_max,
+					 1.0, 1.0, 1.0 /* steps */
+					 );
 
-	      adj = gtk_adjustment_new(current_value,
-				       r_min, r_max,
-				       1.0, 1.0, 1.0 /* steps */
-				       );
+		gtk_sheet_change_entry(sheet, GTK_TYPE_SPIN_BUTTON);
 
-	      gtk_sheet_change_entry(sheet, GTK_TYPE_SPIN_BUTTON);
+		spinButton = 
+		  GTK_SPIN_BUTTON(gtk_sheet_get_entry(sheet));
 
-	      spinButton = 
-		GTK_SPIN_BUTTON(gtk_sheet_get_entry(sheet));
-
-	      gtk_spin_button_set_adjustment(spinButton, GTK_ADJUSTMENT(adj));
-	      gtk_spin_button_set_digits(spinButton, 0);
-	    }
+		gtk_spin_button_set_adjustment(spinButton, GTK_ADJUSTMENT(adj));
+		gtk_spin_button_set_digits(spinButton, 0);
+	      }
 	  }
       }
       break; 
@@ -406,11 +399,14 @@ var_sheet_cell_change_entry (GtkSheet * sheet, gint row, gint column,
       break;
     }
 
+
+  g_object_unref (xml);
+
   return TRUE;
 }
 
 
-extern PsppireVarStore *var_store;
+extern PsppireVarStore *the_var_store;
 
 
 /* Create the var sheet */
@@ -426,25 +422,27 @@ psppire_variable_sheet_create (gchar *widget_name,
 
   GObject *geo = g_sheet_hetero_column_new(75, n_COLS);
 
-  sheet = gtk_sheet_new(G_SHEET_ROW(var_store),
+  g_assert (the_var_store);
+
+  sheet = gtk_sheet_new(G_SHEET_ROW(the_var_store),
 			G_SHEET_COLUMN(geo), 
 			"variable sheet", 0); 
 
+
   g_signal_connect (GTK_OBJECT (sheet), "activate",
-		    GTK_SIGNAL_FUNC (var_sheet_cell_change_entry),
+		    GTK_SIGNAL_FUNC (var_sheet_cell_entry_enter),
 		    0);
 
   g_signal_connect (GTK_OBJECT (sheet), "deactivate",
-		    GTK_SIGNAL_FUNC (var_sheet_cell_change_entry),
-		    (void *) 1);
+		    GTK_SIGNAL_FUNC (var_sheet_cell_entry_leave),
+		    0);
 
   g_signal_connect (GTK_OBJECT (sheet), "traverse",
 		    GTK_SIGNAL_FUNC (traverse_cell_callback), 0);
 
 
-  g_signal_connect (GTK_OBJECT (sheet), "double-click-row",
-		    GTK_SIGNAL_FUNC (click2row),
-		    sheet);
+  gtk_sheet_set_model(sheet, G_SHEET_MODEL(the_var_store));
+
 
   /* Since this happens inside glade_xml_new, we must prevent strings from 
    * being re-encoded twice */

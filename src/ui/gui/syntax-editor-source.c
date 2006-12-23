@@ -52,7 +52,7 @@ name (const struct getl_interface *i)
   const struct syntax_editor_source *ses =
     (const struct syntax_editor_source *) i;
 
-  return ses->se->name;
+  return window_name ((struct window_editor *) ses->se);
 }
 
 

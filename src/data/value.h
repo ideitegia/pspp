@@ -22,6 +22,7 @@
 #include <float.h>
 #include <libpspp/misc.h>
 #include "minmax.h"
+#include <config.h>
 
 /* Values. */
 

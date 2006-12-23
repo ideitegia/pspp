@@ -18,25 +18,27 @@
     02110-1301, USA. */
 
 
-#ifndef SYNTAX_EDITOR_H
-#define SYNTAX_EDITOR_H
+#ifndef DATA_EDITOR_H
+#define DATA_EDITOR_H
 
+#include <glade/glade.h>
 #include <gtk/gtk.h>
-
 #include "window-manager.h"
 
-struct syntax_editor
+struct data_editor
 {
   struct editor_window parent;
-  GtkTextBuffer *buffer;  /* The buffer which contains the text */
+  GladeXML *xml;
 };
 
 
-struct syntax_editor * new_syntax_editor (void);
+struct data_editor * new_data_editor (void);
 
-void new_syntax_window (GtkMenuItem *, gpointer);
+void new_data_window (GtkMenuItem *, gpointer);
 
-void open_syntax_window (GtkMenuItem *, gpointer);
+void open_data_window (GtkMenuItem *, gpointer);
+
+void data_editor_select_sheet(struct data_editor *de, gint page);
 
 
 #endif

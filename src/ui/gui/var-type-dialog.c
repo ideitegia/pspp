@@ -325,7 +325,7 @@ set_format_type_from_treeview(GtkTreeView *treeview, gpointer data)
 
 /* Create the structure from the XML definitions */
 struct var_type_dialog *
-var_type_dialog_create(GladeXML *xml)
+var_type_dialog_create (GladeXML *xml)
 {
   gint i;
   struct var_type_dialog *dialog = g_malloc(sizeof(struct var_type_dialog));

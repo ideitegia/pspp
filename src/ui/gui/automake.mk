@@ -28,6 +28,8 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
+	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
+	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
@@ -40,17 +42,19 @@ dist_src_ui_gui_psppire_DATA = \
 
 
 src_ui_gui_psppire_SOURCES = \
+	src/ui/gui/about.c \
+	src/ui/gui/about.h \
 	src/ui/gui/customentry.c \
 	src/ui/gui/customentry.h \
 	src/ui/gui/data-sheet.c \
 	src/ui/gui/data-sheet.h \
+	src/ui/gui/data-editor.c \
+	src/ui/gui/data-editor.h \
 	src/ui/gui/flexifile-factory.h \
 	src/ui/gui/flexifile-factory.c \
 	src/ui/gui/message-dialog.c \
 	src/ui/gui/message-dialog.h \
 	src/ui/gui/psppire.c \
-	src/ui/gui/menu-actions.c \
-	src/ui/gui/menu-actions.h \
 	src/ui/gui/helper.c \
 	src/ui/gui/helper.h \
 	src/ui/gui/missing-val-dialog.c \
@@ -76,4 +80,5 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/var-sheet.c \
 	src/ui/gui/var-sheet.h \
 	src/ui/gui/var-type-dialog.c \
-	src/ui/gui/var-type-dialog.h
+	src/ui/gui/var-type-dialog.h \
+	src/ui/gui/window-manager.c

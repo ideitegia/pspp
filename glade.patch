@@ -1,0 +1,62 @@
+This patch mitigates a bug in glade-2, which silently deletes stock_ids, which it
+thinks are not valid.   You may have to apply this patch after editing data-editor.glade
+with glade-2
+==============
+--- src/ui/gui/data-editor.glade,old	2006-12-23 17:30:32.000000000 +0900
++++ src/ui/gui/data-editor.glade	2006-12-23 17:30:36.000000000 +0900
+@@ -619,6 +619,7 @@
+ 		  <property name="visible">True</property>
+ 		  <property name="sensitive">False</property>
+ 		  <property name="tooltip" translatable="yes">Variables</property>
++                  <property name="stock_id">pspp-goto-variable</property>
+ 		  <property name="label" translatable="yes"></property>
+ 		  <property name="use_underline">True</property>
+ 		  <property name="visible_horizontal">True</property>
+@@ -678,6 +679,7 @@
+ 		  <property name="visible">True</property>
+ 		  <property name="sensitive">False</property>
+ 		  <property name="tooltip" translatable="yes">Insert Case</property>
++                  <property name="stock_id">pspp-insert-case</property>
+ 		  <property name="label" translatable="yes"></property>
+ 		  <property name="use_underline">True</property>
+ 		  <property name="visible_horizontal">True</property>
+@@ -696,6 +698,7 @@
+ 		  <property name="visible">True</property>
+ 		  <property name="sensitive">False</property>
+ 		  <property name="tooltip" translatable="yes">Insert Variable</property>
++                  <property name="stock_id">pspp-insert-variable</property>
+ 		  <property name="label" translatable="yes"></property>
+ 		  <property name="use_underline">True</property>
+ 		  <property name="visible_horizontal">True</property>
+@@ -726,6 +729,7 @@
+ 		  <property name="visible">True</property>
+ 		  <property name="sensitive">False</property>
+ 		  <property name="tooltip" translatable="yes">Split File</property>
++                  <property name="stock_id">pspp-split-file</property>
+ 		  <property name="label" translatable="yes"></property>
+ 		  <property name="use_underline">True</property>
+ 		  <property name="visible_horizontal">True</property>
+@@ -743,6 +747,7 @@
+ 		  <property name="visible">True</property>
+ 		  <property name="sensitive">False</property>
+ 		  <property name="tooltip" translatable="yes">Weight Cases</property>
++                  <property name="stock_id">pspp-weight-cases</property>
+ 		  <property name="label" translatable="yes"></property>
+ 		  <property name="use_underline">True</property>
+ 		  <property name="visible_horizontal">True</property>
+@@ -760,6 +765,7 @@
+ 		  <property name="visible">True</property>
+ 		  <property name="sensitive">False</property>
+ 		  <property name="tooltip" translatable="yes">Select Cases</property>
++                  <property name="stock_id">pspp-select-cases</property>
+ 		  <property name="label" translatable="yes"></property>
+ 		  <property name="use_underline">True</property>
+ 		  <property name="visible_horizontal">True</property>
+@@ -789,6 +795,7 @@
+ 		<widget class="GtkToggleToolButton" id="togglebutton-value-labels">
+ 		  <property name="visible">True</property>
+ 		  <property name="tooltip" translatable="yes">Value Labels</property>
++                  <property name="stock_id">pspp-value-labels</property>
+ 		  <property name="label" translatable="yes"></property>
+ 		  <property name="use_underline">True</property>
+ 		  <property name="visible_horizontal">True</property>

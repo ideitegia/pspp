@@ -44,4 +44,7 @@ extern const char include_path[];
 /* Locale directory. */
 extern const char locale_dir[];
 
+/* From the AUTHORS file */
+extern const char *const authors[];
+
 #endif /* !version_h */
