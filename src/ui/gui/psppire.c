@@ -78,7 +78,6 @@ PsppireVarStore *the_var_store = 0;
 void create_icon_factory (void);
 
 struct source_stream *the_source_stream ;
-struct lexer *the_lexer;
 struct dataset * the_dataset = NULL;
 
 
@@ -129,8 +128,6 @@ main(int argc, char *argv[])
   the_source_stream = create_source_stream (
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
-
-  the_lexer = lex_create (the_source_stream);
 
   the_dataset = create_dataset (factory);
 

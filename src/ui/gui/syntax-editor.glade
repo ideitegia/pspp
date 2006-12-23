@@ -201,7 +201,6 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="run_selection">
 		      <property name="visible">True</property>
-		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Selection</property>
 		      <property name="use_underline">True</property>
 		    </widget>
@@ -210,7 +209,6 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="run_current_line">
 		      <property name="visible">True</property>
-		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Current Line</property>
 		      <property name="use_underline">True</property>
 		    </widget>
@@ -219,7 +217,6 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="run_to_end">
 		      <property name="visible">True</property>
-		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">To End</property>
 		      <property name="use_underline">True</property>
 		    </widget>

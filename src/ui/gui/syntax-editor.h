@@ -25,10 +25,13 @@
 
 #include "window-manager.h"
 
+struct lexer;
+
 struct syntax_editor
 {
   struct editor_window parent;
   GtkTextBuffer *buffer;  /* The buffer which contains the text */
+  struct lexer *lexer;    /* Lexer to parse syntax */
 };
 
 

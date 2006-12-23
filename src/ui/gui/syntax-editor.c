@@ -33,13 +33,13 @@
 
 #include "window-manager.h"
 
+#include <language/lexer/lexer.h>
 #include <language/command.h>
 #include <data/procedure.h>
 #include "syntax-editor.h"
 #include "syntax-editor-source.h"
 
 extern struct source_stream *the_source_stream ;
-extern struct lexer *the_lexer;
 extern struct dataset *the_dataset;
 
 static gboolean save_editor_to_file (struct syntax_editor *se,
@@ -196,6 +196,24 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 }
 
 static void
+execute_syntax (const struct syntax_editor *se, GtkTextIter start,
+		GtkTextIter stop)
+{
+  getl_append_source (the_source_stream,
+		      create_syntax_editor_source (se, start, stop));
+  for (;;)
+    {
+      int result = cmd_parse (se->lexer, the_dataset,
+			      proc_has_source (the_dataset)
+			      ? CMD_STATE_DATA : CMD_STATE_INITIAL);
+
+      if (result == CMD_EOF || result == CMD_FINISH)
+	break;
+    }
+}
+
+/* Parse and execute all the text in the buffer */
+static void
 on_run_all (GtkMenuItem *menuitem, gpointer user_data)
 {
   GtkTextIter begin, end;
@@ -204,17 +222,75 @@ on_run_all (GtkMenuItem *menuitem, gpointer user_data)
   gtk_text_buffer_get_iter_at_line (se->buffer, &begin, 0);
   gtk_text_buffer_get_iter_at_line (se->buffer, &end, -1);
 
-  getl_append_source (the_source_stream,
-		      create_syntax_editor_source (se, begin, end));
-  for (;;)
-    {
-      int result = cmd_parse (the_lexer, the_dataset,
-			      proc_has_source (the_dataset)
-			      ? CMD_STATE_DATA : CMD_STATE_INITIAL);
 
-      if (result == CMD_EOF || result == CMD_FINISH)
-	break;
-    }
+  execute_syntax (se, begin, end);
+}
+
+/* Parse and execute the currently selected text */
+static void
+on_run_selection (GtkMenuItem *menuitem, gpointer user_data)
+{
+  GtkTextIter begin, end;
+  struct syntax_editor *se = user_data;
+
+  if ( gtk_text_buffer_get_selection_bounds (se->buffer, &begin, &end) )
+    execute_syntax (se, begin, end);
+}
+
+
+/* Parse and execute the current line */
+static void
+on_run_current_line (GtkMenuItem *menuitem, gpointer user_data)
+{
+  GtkTextIter begin, end;
+  GtkTextIter here;
+  gint line;
+
+  struct syntax_editor *se = user_data;
+
+  /* Get the current line */
+  gtk_text_buffer_get_iter_at_mark (se->buffer,
+				    &here,
+				    gtk_text_buffer_get_insert (se->buffer)
+				    );
+
+  line = gtk_text_iter_get_line (&here) ;
+
+  /* Now set begin and end to the start of this line, and start of
+     following line respectively */
+  gtk_text_buffer_get_iter_at_line (se->buffer, &begin, line);
+  gtk_text_buffer_get_iter_at_line (se->buffer, &end, line + 1);
+
+  execute_syntax (se, begin, end);
+}
+
+
+
+/* Parse and execute the from the current line, to the end of the
+   buffer */
+static void
+on_run_to_end (GtkMenuItem *menuitem, gpointer user_data)
+{
+  GtkTextIter begin, end;
+  GtkTextIter here;
+  gint line;
+
+  struct syntax_editor *se = user_data;
+
+  /* Get the current line */
+  gtk_text_buffer_get_iter_at_mark (se->buffer,
+				    &here,
+				    gtk_text_buffer_get_insert (se->buffer)
+				    );
+
+  line = gtk_text_iter_get_line (&here) ;
+
+  /* Now set begin and end to the start of this line, and end of buffer
+     respectively */
+  gtk_text_buffer_get_iter_at_line (se->buffer, &begin, line);
+  gtk_text_buffer_get_iter_at_line (se->buffer, &end, -1);
+
+  execute_syntax (se, begin, end);
 }
 
 
@@ -241,64 +317,84 @@ new_syntax_editor (void)
   e->window = get_widget_assert (xml, "syntax_editor");
   text_view = get_widget_assert (xml, "syntax_text_view");
   se->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(text_view));
+  se->lexer = lex_create (the_source_stream);
 
   g_signal_connect (get_widget_assert (xml,"file_new_syntax"),
 		    "activate",
-		    G_CALLBACK(new_syntax_window),
+		    G_CALLBACK (new_syntax_window),
 		    e->window);
 
   g_signal_connect (get_widget_assert (xml,"file_open_syntax"),
 		    "activate",
-		    G_CALLBACK(open_syntax_window),
+		    G_CALLBACK (open_syntax_window),
 		    e->window);
 
   g_signal_connect (get_widget_assert (xml,"file_new_data"),
 		    "activate",
-		    G_CALLBACK(new_data_window),
+		    G_CALLBACK (new_data_window),
 		    e->window);
 
   g_signal_connect (get_widget_assert (xml,"file_open_data"),
 		    "activate",
-		    G_CALLBACK(open_data_window),
+		    G_CALLBACK (open_data_window),
 		    e->window);
 
 
   g_signal_connect (get_widget_assert (xml,"help_about"),
 		    "activate",
-		    G_CALLBACK(about_new),
+		    G_CALLBACK (about_new),
 		    e->window);
 
 
 #if 0
 
-  g_signal_connect (get_widget_assert (xml,"file_quit"),
-		    "activate",
-		    G_CALLBACK(on_quit),
-		    se);
-
   g_signal_connect (get_widget_assert (xml,"file_save"),
 		    "activate",
-		    G_CALLBACK(on_syntax_save),
+		    G_CALLBACK (on_syntax_save),
 		    se);
 
   g_signal_connect (get_widget_assert (xml,"file_save_as"),
 		    "activate",
-		    G_CALLBACK(on_syntax_save_as),
+		    G_CALLBACK (on_syntax_save_as),
 		    se);
 
 #endif
 
-  g_signal_connect (get_widget_assert (xml,"run_all"),
+  g_signal_connect (get_widget_assert (xml,"file_quit"),
 		    "activate",
-		    G_CALLBACK(on_run_all),
+		    G_CALLBACK (on_quit),
 		    se);
 
+
+  g_signal_connect (get_widget_assert (xml,"run_all"),
+		    "activate",
+		    G_CALLBACK (on_run_all),
+		    se);
+
+
+  g_signal_connect (get_widget_assert (xml,"run_selection"),
+		    "activate",
+		    G_CALLBACK (on_run_selection),
+		    se);
+
+  g_signal_connect (get_widget_assert (xml,"run_current_line"),
+		    "activate",
+		    G_CALLBACK (on_run_current_line),
+		    se);
+
+
+  g_signal_connect (get_widget_assert (xml,"run_to_end"),
+		    "activate",
+		    G_CALLBACK (on_run_to_end),
+		    se);
 
 
   g_object_unref (xml);
 
   g_signal_connect (e->window, "delete-event",
-		    G_CALLBACK(on_delete), se);
+		    G_CALLBACK (on_delete), se);
+
+
 
   return se;
 }
@@ -430,9 +526,4 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 
   gtk_widget_destroy (dialog);
 }
-
-
-
-
-
 
