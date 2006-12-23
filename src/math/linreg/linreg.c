@@ -18,6 +18,7 @@
   Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
 #include <gsl/gsl_fit.h>
 #include <gsl/gsl_multifit.h>
 

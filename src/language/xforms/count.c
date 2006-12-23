@@ -61,7 +61,7 @@ struct criteria
     struct variable **vars;
     size_t var_cnt;
 
-    /* Count special values?. */
+    /* Count special values? */
     bool count_system_missing;  /* Count system missing? */
     bool count_user_missing;    /* Count user missing? */
 
@@ -277,11 +277,13 @@ count_numeric (struct criteria *crit, struct ccase *c)
   for (i = 0; i < crit->var_cnt; i++)
     {
       double x = case_num (c, crit->vars[i]);
-      if (x == SYSMIS)
-        counter += crit->count_system_missing;
-      else if (crit->count_user_missing
-               && var_is_num_user_missing (crit->vars[i], x))
-        counter++;
+      if (var_is_num_missing (crit->vars[i], x, MV_ANY))
+        {
+          if (x == SYSMIS
+              ? crit->count_system_missing
+              : crit->count_user_missing)
+            counter++; 
+        }
       else 
         {
           struct num_value *v;

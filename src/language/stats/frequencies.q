@@ -700,7 +700,7 @@ not_missing (const void *f_, const void *v_)
   const struct freq *f = f_;
   const struct variable *v = v_;
 
-  return !var_is_value_missing (v, f->value);
+  return !var_is_value_missing (v, f->value, MV_ANY);
 }
 
 /* Summarizes the frequency table data for variable V. */
@@ -1564,7 +1564,7 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
   /* Find out the extremes of the x value */
   for ( frq = hsh_first(fh, &hi); frq != 0; frq = hsh_next(fh, &hi) ) 
     {
-      if ( var_is_value_missing(var, frq->value))
+      if (var_is_value_missing(var, frq->value, MV_ANY))
 	continue;
 
       if ( frq->value[0].f < x_min ) x_min = frq->value[0].f ;

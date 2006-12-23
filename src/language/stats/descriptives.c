@@ -77,7 +77,7 @@ struct dsc_trns
     struct variable **vars;     /* Variables for listwise missing checks. */
     size_t var_cnt;             /* Number of variables. */
     enum dsc_missing_type missing_type; /* Treatment of missing values. */
-    int include_user_missing;   /* Nonzero to include user-missing values. */
+    enum mv_class exclude;      /* Classes of missing values to exclude. */
   };
 
 /* Statistics.  Used as bit indexes, so must be 32 or fewer. */
@@ -150,7 +150,7 @@ struct dsc_proc
 
     /* User options. */
     enum dsc_missing_type missing_type; /* Treatment of missing values. */
-    int include_user_missing;   /* Nonzero to include user-missing values. */
+    enum mv_class exclude;      /* Classes of missing values to exclude. */
     int show_var_labels;        /* Nonzero to show variable labels. */
     int show_index;             /* Nonzero to show variable index. */
     enum dsc_format format;     /* Output format. */
@@ -205,7 +205,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
   dsc->vars = NULL;
   dsc->var_cnt = 0;
   dsc->missing_type = DSC_VARIABLE;
-  dsc->include_user_missing = 0;
+  dsc->exclude = MV_ANY;
   dsc->show_var_labels = 1;
   dsc->show_index = 0;
   dsc->format = DSC_LINE;
@@ -229,7 +229,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
               else if (lex_match_id (lexer, "LISTWISE"))
                 dsc->missing_type = DSC_LISTWISE;
               else if (lex_match_id (lexer, "INCLUDE"))
-                dsc->include_user_missing = 1;
+                dsc->exclude = MV_SYSTEM;
               else
                 {
                   lex_error (lexer, NULL);
@@ -595,9 +595,7 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
       for (vars = t->vars; vars < t->vars + t->var_cnt; vars++)
 	{
 	  double score = case_num (c, *vars);
-	  if ( score == SYSMIS
-               || (!t->include_user_missing 
-                   && var_is_num_user_missing (*vars, score)))
+	  if (var_is_num_missing (*vars, score, t->exclude))
 	    {
 	      all_sysmis = 1;
 	      break;
@@ -610,10 +608,8 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
       double input = case_num (c, z->src_var);
       double *output = &case_data_rw (c, z->z_var)->f;
 
-      if (z->mean == SYSMIS || z->std_dev == SYSMIS 
-	  || all_sysmis || input == SYSMIS 
-	  || (!t->include_user_missing
-              && var_is_num_user_missing (z->src_var, input)))
+      if (z->mean == SYSMIS || z->std_dev == SYSMIS || all_sysmis
+          || var_is_num_missing (z->src_var, input, t->exclude))
 	*output = SYSMIS;
       else
 	*output = (input - z->mean) / z->std_dev;
@@ -648,7 +644,7 @@ setup_z_trns (struct dsc_proc *dsc, struct dataset *ds)
   t->z_scores = xnmalloc (cnt, sizeof *t->z_scores);
   t->z_score_cnt = cnt;
   t->missing_type = dsc->missing_type;
-  t->include_user_missing = dsc->include_user_missing;
+  t->exclude = dsc->exclude;
   if ( t->missing_type == DSC_LISTWISE )
     {
       t->var_cnt = dsc->var_cnt;
@@ -741,9 +737,7 @@ calc_descriptives (const struct ccase *first,
           double x = case_num (&c, dv->v);
           
           if (dsc->missing_type != DSC_LISTWISE
-              && (x == SYSMIS
-                  || (!dsc->include_user_missing
-                      && var_is_num_user_missing (dv->v, x))))
+              && var_is_num_missing (dv->v, x, dsc->exclude))
             {
               dv->missing += weight;
               continue;
@@ -773,8 +767,7 @@ calc_descriptives (const struct ccase *first,
             continue;
       
           /* Check for missing values. */
-          if (listwise_missing (dsc, &c) 
-              && dsc->missing_type == DSC_LISTWISE)
+          if (dsc->missing_type == DSC_LISTWISE && listwise_missing (dsc, &c))
             continue; 
 
           for (i = 0; i < dsc->var_cnt; i++) 
@@ -783,9 +776,7 @@ calc_descriptives (const struct ccase *first,
               double x = case_num (&c, dv->v);
           
               if (dsc->missing_type != DSC_LISTWISE
-                  && (x == SYSMIS
-                      || (!dsc->include_user_missing
-                          && var_is_num_user_missing (dv->v, x))))
+                  && var_is_num_missing (dv->v, x, dsc->exclude))
                 continue;
 
               if (dv->moments != NULL)
@@ -849,9 +840,7 @@ listwise_missing (struct dsc_proc *dsc, const struct ccase *c)
       struct dsc_var *dv = &dsc->vars[i];
       double x = case_num (c, dv->v);
 
-      if (x == SYSMIS
-          || (!dsc->include_user_missing
-              && var_is_num_user_missing (dv->v, x)))
+      if (var_is_num_missing (dv->v, x, dsc->exclude))
         return true;
     }
   return false;

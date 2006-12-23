@@ -1,3 +1,48 @@
+Fri Dec 22 13:56:08 2006  Ben Pfaff  <blp@gnu.org>
+
+	Simplify missing value handling.
+
+	* missing-values.h (enum mv_class): New type.
+	(enum mv_type): Moved definition into missing-values.c and renamed
+	each MV_* to MVT_*, to distinguish them from the exposed mv_class
+	enums.  Updated all uses.
+	(struct missing_values): Changed type of `type' from `enum
+	mv_type' to `int' because the definition is no longer exposed.
+	
+	* missing-values.c (mv_is_value_missing): Add new enum mv_class
+	parameter.  Update all callers.
+	(mv_is_num_missing): Ditto.
+	(mv_is_str_missing): Ditto.
+	(mv_is_value_user_missing): Removed.  Changed callers to use
+	mv_is_value_missing.
+	(mv_is_num_user_missing): Removed.  Changed callers to use
+	mv_is_num_missing.
+	(mv_is_str_user_missing): Removed.  Changed callers to use
+	mv_is_str_missing.
+	(mv_is_value_system_missing): Removed.  Changed callers to use
+	mv_is_value_missing.
+	(mv_set_type): Removed.  Changed callers to use mv_clear.
+	(mv_clear): New function.
+	
+	* variable.c (var_is_value_missing): Add new enum mv_class
+	parameter.  Update all callers.
+	(var_is_num_missing): Ditto.
+	(var_is_str_missing): Ditto.
+	(var_is_value_user_missing): Removed.  Changed callers to use
+	var_is_value_missing.
+	(var_is_num_user_missing): Removed.  Changed callers to use
+	var_is_num_missing.
+	(var_is_str_user_missing): Removed.  Changed callers to use
+	var_is_str_missing.
+	(var_is_value_system_missing): Removed.  Changed callers to use
+	var_is_value_missing.
+	
+	* casefilter.c (struct casefilter): Use enum mv_class in place of
+	bool.
+	(casefilter_variable_missing): Adapt to new member.
+	(casefilter_create): Change signature to take enum mv_class,
+	update callers.
+
 Fri Dec 22 20:08:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* casefile-factory.h fastfile-factory.c fastfile-factory.h: New files.

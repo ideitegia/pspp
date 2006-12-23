@@ -698,7 +698,7 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
   else 
     {
       double w = case_num (c, d->weight);
-      if (w < 0.0 || var_is_num_missing (d->weight, w))
+      if (w < 0.0 || var_is_num_missing (d->weight, w, MV_ANY))
         w = 0.0;
       if ( w == 0.0 && *warn_on_invalid ) {
 	  *warn_on_invalid = false;

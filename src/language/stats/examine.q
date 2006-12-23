@@ -178,9 +178,8 @@ const char *factor_to_string_concise (const struct factor *fctr,
 
 
 
-/* Function to use for testing for missing values */
-static var_is_missing_func *value_is_missing;
-
+/* Categories of missing values to exclude. */
+static enum mv_class exclude_values;
 
 /* PERCENTILES */
 
@@ -206,10 +205,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
     }
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
-  if (cmd.incl == XMN_INCLUDE )
-    value_is_missing = var_is_value_system_missing;
-  else
-    value_is_missing = var_is_value_missing;
+  exclude_values = cmd.incl == XMN_INCLUDE ? MV_SYSTEM : MV_ANY;
 
   if ( cmd.st_n == SYSMIS )
     cmd.st_n = 5;
@@ -695,7 +691,7 @@ factor_calc (const struct ccase *c, int case_no, double weight,
 					var_get_width (var)
 					);
 
-	  if ( value_is_missing (var, val) || case_missing )
+	  if (case_missing || var_is_value_missing (var, val, exclude_values))
 	    {
 	      free (val);
 	      continue;
@@ -762,7 +758,7 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 						  var_get_width (var)
 						  );
 
-	      if ( value_is_missing (var, val))
+	      if ( var_is_value_missing (var, val, exclude_values))
 		case_missing = 1;
 
 	      free (val);
@@ -777,7 +773,8 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 					var_get_width (var)
 					);
 
-	  if ( value_is_missing (var, val) || case_missing )
+	  if ( var_is_value_missing (var, val, exclude_values)
+               || case_missing )
 	    {
 	      free (val) ;
 	      continue ;

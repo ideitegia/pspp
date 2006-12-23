@@ -29,7 +29,7 @@
 
 struct casefilter
  {
-   bool exclude_user_missing;
+   enum mv_class class;
 
    const struct variable **vars;
    int n_vars;
@@ -58,30 +58,21 @@ casefilter_variable_missing (const struct casefilter *filter,
 			     const struct variable *var)
 {
   const union value *val = case_data (c, var) ;
-
-  if ( var_is_numeric (var) && val->f == SYSMIS )
-    return true;
-
-  if ( filter->exclude_user_missing &&
-       var_is_value_user_missing (var, val) )
-    return true;
-
-  return false;
+  return var_is_value_missing (var, val, filter->class);
 }
 
-/* Create a new casefilter.
-   If EXCL is true, then the filter  user missing values to be missing,
-   otherwise they are considered at their face value.
+/* Create a new casefilter that drops cases in which any of the
+   N_VARS variables in VARS are in the given CLASS of missing values.
    VARS is an array of variables which if *any* of them are missing.
    N_VARS is the size of VARS.
  */
 struct casefilter *
-casefilter_create (bool excl, struct variable **vars, int n_vars)
+casefilter_create (enum mv_class class, struct variable **vars, int n_vars)
 {
   int i;
   struct casefilter * filter = xmalloc (sizeof (*filter)) ;
 
-  filter->exclude_user_missing = excl ;
+  filter->class = class;
   filter->vars = xnmalloc (n_vars, sizeof (*filter->vars) );
 
   for ( i = 0 ; i < n_vars ; ++i )

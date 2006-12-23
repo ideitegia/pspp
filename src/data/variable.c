@@ -466,64 +466,32 @@ var_has_missing_values (const struct variable *v)
   return !mv_is_empty (&v->miss);
 }
 
-/* Returns true if VALUE is system missing or user-missing value
-   for V, false otherwise. */
+/* Returns true if VALUE is in the given CLASS of missing values
+   in V, false otherwise. */
 bool
-var_is_value_missing (const struct variable *v, const union value *value) 
+var_is_value_missing (const struct variable *v, const union value *value,
+                      enum mv_class class) 
 {
-  return mv_is_value_missing (&v->miss, value);
+  return mv_is_value_missing (&v->miss, value, class);
 }
 
-/* Returns true if D is system missing or a missing value in V,
-   false otherwise.
+/* Returns true if D is in the given CLASS of missing values in
+   V, false otherwise.
    V must be a numeric variable. */
 bool
-var_is_num_missing (const struct variable *v, double d) 
+var_is_num_missing (const struct variable *v, double d, enum mv_class class) 
 {
-  return mv_is_num_missing (&v->miss, d);
+  return mv_is_num_missing (&v->miss, d, class);
 }
 
 /* Returns true if S[] is a missing value for V, false otherwise.
    S[] must contain exactly as many characters as V's width.
    V must be a string variable. */
 bool
-var_is_str_missing (const struct variable *v, const char s[]) 
+var_is_str_missing (const struct variable *v, const char s[],
+                    enum mv_class class) 
 {
-  return mv_is_str_missing (&v->miss, s);
-}
-
-/* Returns true if VALUE is a missing value for V, false
-   otherwise. */
-bool
-var_is_value_user_missing (const struct variable *v, const union value *value) 
-{
-  return mv_is_value_user_missing (&v->miss, value);
-}
-
-/* Returns true if D is a user-missing value for V, false
-   otherwise.  V must be a numeric variable. */
-bool
-var_is_num_user_missing (const struct variable *v, double d) 
-{
-  return mv_is_num_user_missing (&v->miss, d);
-}
-
-/* Returns true if S[] is a missing value for V, false otherwise.
-   V must be a string variable. 
-   S[] must contain exactly as many characters as V's width. */
-bool
-var_is_str_user_missing (const struct variable *v, const char s[]) 
-{
-  return mv_is_str_user_missing (&v->miss, s);
-}
-
-/* Returns true if V is a numeric variable and VALUE is the
-   system missing value. */
-bool
-var_is_value_system_missing (const struct variable *v,
-                             const union value *value) 
-{
-  return mv_is_value_system_missing (&v->miss, value);
+  return mv_is_str_missing (&v->miss, s, class);
 }
 
 /* Returns variable V's value labels,

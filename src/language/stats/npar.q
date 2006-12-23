@@ -180,7 +180,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
     }
 
   npar_specs.filter = 
-    casefilter_create (cmd.incl == NPAR_EXCLUDE, 0, 0);
+    casefilter_create (cmd.incl == NPAR_EXCLUDE ? MV_ANY : MV_SYSTEM, 0, 0);
 
   if ( cmd.miss == NPAR_LISTWISE ) 
     casefilter_add_variables (npar_specs.filter, 

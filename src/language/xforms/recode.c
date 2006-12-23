@@ -554,7 +554,7 @@ find_src_numeric (struct recode_trns *trns, double value, struct variable *v)
           match = value == in->x.f;
           break;
         case MAP_MISSING:
-          match = var_is_num_user_missing (v, value);
+          match = var_is_num_missing (v, value, MV_USER);
           break;
         case MAP_RANGE:
           match = value >= in->x.f && value <= in->y.f;

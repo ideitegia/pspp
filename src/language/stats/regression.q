@@ -978,7 +978,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
 
       val = case_data (&c, v);
       cat_value_update (v, val);
-      if (var_is_value_missing (v, val))
+      if (var_is_value_missing (v, val, MV_ANY))
 	{
 	  if (!is_missing_case[row])
 	    {

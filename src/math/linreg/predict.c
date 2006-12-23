@@ -18,6 +18,7 @@
    Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
  */
 
+#include <config.h>
 #include <math/linreg/linreg.h>
 #include <math/coefficient.h>
 #include <gl/xalloc.h>

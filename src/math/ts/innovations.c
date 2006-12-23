@@ -28,6 +28,7 @@
   0-387-97429-6. Sections 5.2, 8.3 and 8.4.
  */
 
+#include <config.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_math.h>

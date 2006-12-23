@@ -67,14 +67,14 @@ struct agr_var
     struct variable *src;	/* Source variable. */
     struct variable *dest;	/* Target variable. */
     int function;		/* Function. */
-    int include_missing;	/* 1=Include user-missing values. */
+    enum mv_class exclude;      /* Classes of missing values to exclude. */
     union agr_argument arg[2];	/* Arguments. */
 
     /* Accumulated during AGGREGATE execution. */
     double dbl[3];
     int int1, int2;
     char *string;
-    int missing;
+    bool saw_missing;
     struct moments1 *moments;
   };
 
@@ -391,7 +391,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
       size_t n_dest;
       struct string function_name;
 
-      int include_missing;
+      enum mv_class exclude;
       const struct agr_func *function;
       int func_index;
 
@@ -450,14 +450,14 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	  goto error;
 	}
 
-      include_missing = 0;
+      exclude = MV_ANY;
 
       ds_init_string (&function_name, lex_tokstr (lexer));
 
       ds_chomp (&function_name, '.');
 
       if (lex_tokid(lexer)[strlen (lex_tokid (lexer)) - 1] == '.')
-	  include_missing = 1;
+        exclude = MV_SYSTEM;
 
       for (function = agr_func_tab; function->name; function++)
 	if (!strcasecmp (function->name, ds_cstr (&function_name)))
@@ -652,7 +652,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	    v->dest = destvar;
 	  }
 	  
-	  v->include_missing = include_missing;
+	  v->exclude = exclude;
 
 	  if (v->src != NULL)
 	    {
@@ -793,9 +793,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 	const union value *v = case_data (input, iter->src);
         int src_width = var_get_width (iter->src);
 
-	if (iter->include_missing
-            ? var_is_numeric (iter->src) && v->f == SYSMIS
-            : var_is_value_missing (iter->src, v))
+        if (var_is_value_missing (iter->src, v, iter->exclude))
 	  {
 	    switch (iter->function)
 	      {
@@ -808,7 +806,7 @@ accumulate_aggregate_info (struct agr_proc *agr,
 		iter->int1++;
 		break;
 	      }
-	    iter->missing = 1;
+	    iter->saw_missing = true;
 	    continue;
 	  }
 	
@@ -977,7 +975,7 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
       {
 	union value *v = case_data_rw (output, i->dest);
 
-	if (agr->missing == COLUMNWISE && i->missing != 0
+	if (agr->missing == COLUMNWISE && i->saw_missing
 	    && (i->function & FUNC) != N && (i->function & FUNC) != NU
 	    && (i->function & FUNC) != NMISS && (i->function & FUNC) != NUMISS)
 	  {
@@ -1091,7 +1089,7 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 
   for (iter = agr->agr_vars; iter; iter = iter->next)
     {
-      iter->missing = 0;
+      iter->saw_missing = false;
       iter->dbl[0] = iter->dbl[1] = iter->dbl[2] = 0.0;
       iter->int1 = iter->int2 = 0;
       switch (iter->function)

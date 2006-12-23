@@ -24,6 +24,17 @@
 #include "variable.h"
 #include <libpspp/str.h>
 
+/* Types of user-missing values.
+   Invisible--use access functions defined below instead. */
+enum mv_type
+  {
+    MVT_NONE = 0,                /* No user-missing values. */
+    MVT_1 = 1,                   /* One user-missing value. */
+    MVT_2 = 2,                   /* Two user-missing values. */
+    MVT_3 = 3,                   /* Three user-missing values. */
+    MVT_RANGE = 4,               /* A range of user-missing values. */
+    MVT_RANGE_1 = 5              /* A range plus an individual value. */
+  };
 
 /* Initializes MV as a set of missing values for a variable of
    the given WIDTH.  Although only numeric variables and short
@@ -33,16 +44,16 @@ void
 mv_init (struct missing_values *mv, int width) 
 {
   assert (width >= 0 && width <= MAX_STRING);
-  mv->type = MV_NONE;
+  mv->type = MVT_NONE;
   mv->width = width;
 }
 
+/* Removes any missing values from MV. */
 void 
-mv_set_type(struct missing_values *mv, enum mv_type type)
+mv_clear (struct missing_values *mv)
 {
-  mv->type = type;
+  mv->type = MVT_NONE;
 }
-
 
 /* Copies SRC to MV. */
 void
@@ -57,7 +68,7 @@ mv_copy (struct missing_values *mv, const struct missing_values *src)
 bool
 mv_is_empty (const struct missing_values *mv) 
 {
-  return mv->type == MV_NONE;
+  return mv->type == MVT_NONE;
 }
 
 /* Returns the width of the missing values that MV may
@@ -79,16 +90,16 @@ mv_add_value (struct missing_values *mv, const union value *v)
     return false;
   switch (mv->type) 
     {
-    case MV_NONE:
-    case MV_1:
-    case MV_2:
-    case MV_RANGE:
+    case MVT_NONE:
+    case MVT_1:
+    case MVT_2:
+    case MVT_RANGE:
       mv->values[mv->type & 3] = *v;
       mv->type++;
       return true;
 
-    case MV_3:
-    case MV_RANGE_1:
+    case MVT_3:
+    case MVT_RANGE_1:
       return false;
     }
   NOT_REACHED ();
@@ -127,17 +138,17 @@ mv_add_num_range (struct missing_values *mv, double low, double high)
     return false;
   switch (mv->type) 
     {
-    case MV_NONE:
-    case MV_1:
+    case MVT_NONE:
+    case MVT_1:
       mv->values[1].f = low;
       mv->values[2].f = high;
       mv->type |= 4;
       return true;
 
-    case MV_2:
-    case MV_3:
-    case MV_RANGE:
-    case MV_RANGE_1:
+    case MVT_2:
+    case MVT_3:
+    case MVT_RANGE:
+    case MVT_RANGE_1:
       return false;
     }
   NOT_REACHED ();
@@ -150,14 +161,14 @@ mv_has_value (const struct missing_values *mv)
 {
   switch (mv->type) 
     {
-    case MV_1:
-    case MV_2:
-    case MV_3:
-    case MV_RANGE_1:
+    case MVT_1:
+    case MVT_2:
+    case MVT_3:
+    case MVT_RANGE_1:
       return true;
       
-    case MV_NONE:
-    case MV_RANGE:
+    case MVT_NONE:
+    case MVT_RANGE:
       return false;
     }
   NOT_REACHED ();
@@ -215,14 +226,14 @@ mv_has_range (const struct missing_values *mv)
 {
   switch (mv->type) 
     {
-    case MV_RANGE:
-    case MV_RANGE_1:
+    case MVT_RANGE:
+    case MVT_RANGE_1:
       return true;
       
-    case MV_NONE:
-    case MV_1:
-    case MV_2:
-    case MV_3:
+    case MVT_NONE:
+    case MVT_1:
+    case MVT_2:
+    case MVT_3:
       return false;
     }
   NOT_REACHED ();
@@ -263,17 +274,17 @@ using_element (unsigned type, int idx)
   
   switch (type) 
     {
-    case MV_NONE:
+    case MVT_NONE:
       return false;
-    case MV_1:
+    case MVT_1:
       return idx < 1;
-    case MV_2:
+    case MVT_2:
       return idx < 2;
-    case MV_3:
+    case MVT_3:
       return true;
-    case MV_RANGE:
+    case MVT_RANGE:
       return idx > 0;
-    case MV_RANGE_1:
+    case MVT_RANGE_1:
       return true;
     }
   NOT_REACHED ();
@@ -308,7 +319,7 @@ mv_is_resizable (const struct missing_values *mv, int width)
   if ( var_type_from_width (width) != var_type_from_width (mv->width) )
     return false;
 
-  if (width > MAX_SHORT_STRING && mv->type != MV_NONE)
+  if (width > MAX_SHORT_STRING && mv->type != MVT_NONE)
     return false;
 
   if (width >= mv->width)
@@ -331,7 +342,7 @@ void
 mv_resize (struct missing_values *mv, int width) 
 {
   assert (mv_is_resizable (mv, width));
-  if (width > mv->width && mv->type != MV_NONE) 
+  if (width > mv->width && mv->type != MVT_NONE) 
     {
       int i;
       
@@ -341,65 +352,26 @@ mv_resize (struct missing_values *mv, int width)
   mv->width = width;
 }
 
-/* Returns true if V is system missing or a missing value in MV,
-   false otherwise. */
-bool
-mv_is_value_missing (const struct missing_values *mv, const union value *v)
-{
-  return (mv->width == 0
-          ? mv_is_num_missing (mv, v->f)
-          : mv_is_str_missing (mv, v->s));
-}
-
-/* Returns true if D is system missing or a missing value in MV,
-   false otherwise.
-   MV must be a set of numeric missing values. */
-bool
-mv_is_num_missing (const struct missing_values *mv, double d)
-{
-  assert (mv->width == 0);
-  return d == SYSMIS || mv_is_num_user_missing (mv, d);
-}
-
-/* Returns true if S[] is a missing value in MV, false otherwise.
-   MV must be a set of string missing values. 
-   S[] must contain exactly as many characters as MV's width. */
-bool
-mv_is_str_missing (const struct missing_values *mv, const char s[])
-{
-  return mv_is_str_user_missing (mv, s);
-}
-
-/* Returns true if V is a missing value in MV, false otherwise. */
-bool
-mv_is_value_user_missing (const struct missing_values *mv,
-                          const union value *v)
-{
-  return (mv->width == 0
-          ? mv_is_num_user_missing (mv, v->f)
-          : mv_is_str_user_missing (mv, v->s));
-}
-
 /* Returns true if D is a missing value in MV, false otherwise.
    MV must be a set of numeric missing values. */
-bool
-mv_is_num_user_missing (const struct missing_values *mv, double d)
+static bool
+is_num_user_missing (const struct missing_values *mv, double d)
 {
   const union value *v = mv->values;
   assert (mv->width == 0);
   switch (mv->type) 
     {
-    case MV_NONE:
+    case MVT_NONE:
       return false;
-    case MV_1:
+    case MVT_1:
       return v[0].f == d;
-    case MV_2:
+    case MVT_2:
       return v[0].f == d || v[1].f == d;
-    case MV_3:
+    case MVT_3:
       return v[0].f == d || v[1].f == d || v[2].f == d;
-    case MV_RANGE:
+    case MVT_RANGE:
       return v[1].f <= d && d <= v[2].f;
-    case MV_RANGE_1:
+    case MVT_RANGE_1:
       return v[0].f == d || (v[1].f <= d && d <= v[2].f);
     }
   NOT_REACHED ();
@@ -408,37 +380,63 @@ mv_is_num_user_missing (const struct missing_values *mv, double d)
 /* Returns true if S[] is a missing value in MV, false otherwise.
    MV must be a set of string missing values. 
    S[] must contain exactly as many characters as MV's width. */
-bool
-mv_is_str_user_missing (const struct missing_values *mv,
+static bool
+is_str_user_missing (const struct missing_values *mv,
                         const char s[])
 {
   const union value *v = mv->values;
   assert (mv->width > 0);
   switch (mv->type) 
     {
-    case MV_NONE:
+    case MVT_NONE:
       return false;
-    case MV_1:
+    case MVT_1:
       return !memcmp (v[0].s, s, mv->width);
-    case MV_2:
+    case MVT_2:
       return (!memcmp (v[0].s, s, mv->width)
               || !memcmp (v[1].s, s, mv->width));
-    case MV_3:
+    case MVT_3:
       return (!memcmp (v[0].s, s, mv->width)
               || !memcmp (v[1].s, s, mv->width)
               || !memcmp (v[2].s, s, mv->width));
-    case MV_RANGE:
-    case MV_RANGE_1:
+    case MVT_RANGE:
+    case MVT_RANGE_1:
       NOT_REACHED ();
     }
   NOT_REACHED ();
 }
 
-/* Returns true if MV is a set of numeric missing values and V is
-   the system missing value. */
+/* Returns true if V is a missing value in the given CLASS in MV,
+   false otherwise. */
 bool
-mv_is_value_system_missing (const struct missing_values *mv,
-                            const union value *v)
+mv_is_value_missing (const struct missing_values *mv, const union value *v,
+                     enum mv_class class)
 {
-  return mv->width == 0 && v->f == SYSMIS;
+  return (mv->width == 0
+          ? mv_is_num_missing (mv, v->f, class)
+          : mv_is_str_missing (mv, v->s, class));
+}
+
+/* Returns true if D is a missing value in the given CLASS in MV,
+   false otherwise.
+   MV must be a set of numeric missing values. */
+bool
+mv_is_num_missing (const struct missing_values *mv, double d,
+                   enum mv_class class)
+{
+  assert (mv->width == 0);
+  return ((class & MV_SYSTEM && d == SYSMIS)
+          || (class & MV_USER && is_num_user_missing (mv, d)));
+}
+
+/* Returns true if S[] is a missing value in the given CLASS in
+   MV, false otherwise.
+   MV must be a set of string missing values. 
+   S[] must contain exactly as many characters as MV's width. */
+bool
+mv_is_str_missing (const struct missing_values *mv, const char s[],
+                   enum mv_class class)
+{
+  assert (mv->width > 0);
+  return class & MV_USER && is_str_user_missing (mv, s);
 }

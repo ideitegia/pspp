@@ -21,6 +21,7 @@
 /*
   Accessor functions for matching coefficients and variables.
  */
+#include <config.h>
 #include <math/coefficient.h>
 #include <math/linreg/linreg.h>
 #include "src/math/design-matrix.h"

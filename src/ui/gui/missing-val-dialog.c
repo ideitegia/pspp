@@ -90,7 +90,7 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
       gint nvals = 0;
       gint badvals = 0;
       gint i;
-      mv_set_type(&dialog->mvl, MV_NONE);
+      mv_clear(&dialog->mvl);
       for(i = 0 ; i < 3 ; ++i ) 
 	{
 	  gchar *text = 
@@ -150,7 +150,7 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
       discrete_text = 
 	g_strdup(gtk_entry_get_text(GTK_ENTRY(dialog->discrete)));
 
-      mv_set_type(&dialog->mvl, MV_NONE);
+      mv_clear(&dialog->mvl);
       mv_add_num_range(&dialog->mvl, low_val.f, high_val.f);
       
       if ( discrete_text && strlen(g_strstrip(discrete_text)) > 0 )
@@ -171,7 +171,7 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
 
   
   if (gtk_toggle_button_get_active(dialog->button_none))
-    mv_set_type(&dialog->mvl, MV_NONE);
+    mv_clear(&dialog->mvl);
 
   var_set_missing_values (dialog->pv, &dialog->mvl);
 

@@ -1,3 +1,20 @@
+Fri Dec 22 14:04:09 2006  Ben Pfaff  <blp@gnu.org>
+
+	Simplify missing value handling.
+	
+	* aggregate.c (struct agr_var): Remove `bool include_missing', add
+	`enum mv_class exclude'.  Remove `int missing', add `bool
+	saw_missing'.  Update users.
+
+	* descriptives.c (struct dsc_trns): Removed `int
+	include_user_missing', add `enum mv_class exclude'.  Update users.
+	(struct dsc_proc): Ditto.
+
+	* examine.q: (static var value_is_missing): Rename
+	`exclude_values', change type to `enum mv_class'.  Update users.
+
+	* rank.q: Ditto.
+
 Fri Dec 22 19:22:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* frequencies.q : Fixed bug #17420, where the table bounds were overun

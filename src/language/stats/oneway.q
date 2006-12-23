@@ -900,7 +900,8 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
 
   precalc(cmd);
 
-  filter = casefilter_create ( (cmd->incl != ONEWAY_INCLUDE), 
+  filter = casefilter_create ( (cmd->incl != ONEWAY_INCLUDE
+                                ? MV_ANY : MV_SYSTEM), 
 			       vars, n_vars );
 
   for(r = casefile_get_reader (cf, filter);

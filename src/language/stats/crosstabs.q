@@ -569,6 +569,11 @@ calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 {
   bool bad_warn = true;
 
+  /* Missing values to exclude. */
+  enum mv_class exclude = (cmd.miss == CRS_TABLE ? MV_ANY
+                           : cmd.miss == CRS_INCLUDE ? MV_SYSTEM
+                           : MV_NEVER);
+
   /* Case weight. */
   double weight = dict_get_case_weight (dataset_dict (ds), c, &bad_warn);
 
@@ -591,9 +596,7 @@ calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	for (j = 0; j < x->nvar; j++)
 	  {
             const union value *v = case_data (c, x->vars[j]);
-	    if ((cmd.miss == CRS_TABLE && var_is_value_missing (x->vars[j], v))
-		|| (cmd.miss == CRS_INCLUDE
-		    && var_is_value_system_missing (x->vars[j], v)))
+            if (var_is_value_missing (x->vars[j], v, exclude))
 	      {
 		x->missing += weight;
 		goto next_crosstab;
@@ -663,7 +666,8 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	  
 	  /* Note that the first test also rules out SYSMIS. */
 	  if ((value < vr->min || value >= vr->max)
-	      || (cmd.miss == CRS_TABLE && var_is_num_user_missing (v, value)))
+	      || (cmd.miss == CRS_TABLE
+                  && var_is_num_missing (v, value, MV_USER)))
 	    {
 	      x->missing += weight;
 	      goto next_crosstab;
@@ -1421,7 +1425,7 @@ delete_missing (void)
     int r;
 
     for (r = 0; r < n_rows; r++)
-      if (var_is_num_user_missing (x->vars[ROW_VAR], rows[r].f))
+      if (var_is_num_missing (x->vars[ROW_VAR], rows[r].f, MV_USER))
 	{
 	  int c;
 
@@ -1435,7 +1439,7 @@ delete_missing (void)
     int c;
 
     for (c = 0; c < n_cols; c++)
-      if (var_is_num_user_missing (x->vars[COL_VAR], cols[c].f))
+      if (var_is_num_missing (x->vars[COL_VAR], cols[c].f, MV_USER))
 	{
 	  int r;
 
@@ -1675,7 +1679,7 @@ table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
   s.string = tab_alloc (table, print->w);
   format_short (s.string, print, v);
   s.length = strlen (s.string);
-  if (cmd.miss == CRS_REPORT && var_is_num_user_missing (var, v->f))
+  if (cmd.miss == CRS_REPORT && var_is_num_missing (var, v->f, MV_USER))
     s.string[s.length++] = 'M';
   while (s.length && *s.string == ' ')
     {
@@ -1758,8 +1762,9 @@ display_crosstabulation (void)
             bool mark_missing = false;
             double expected_value = row_tot[r] * col_tot[c] / W;
             if (cmd.miss == CRS_REPORT
-                && (var_is_num_user_missing (x->vars[COL_VAR], cols[c].f)
-                    || var_is_num_user_missing (x->vars[ROW_VAR], rows[r].f)))
+                && (var_is_num_missing (x->vars[COL_VAR], cols[c].f, MV_USER)
+                    || var_is_num_missing (x->vars[ROW_VAR], rows[r].f,
+                                           MV_USER)))
               mark_missing = true;
 	    for (i = 0; i < num_cells; i++)
 	      {
@@ -1823,7 +1828,7 @@ display_crosstabulation (void)
         bool mark_missing = false;
 
         if (cmd.miss == CRS_REPORT
-            && var_is_num_user_missing (x->vars[ROW_VAR], rows[r].f))
+            && var_is_num_missing (x->vars[ROW_VAR], rows[r].f, MV_USER))
           mark_missing = true;
 
         for (i = 0; i < num_cells; i++)
@@ -1878,7 +1883,7 @@ display_crosstabulation (void)
         int i;
 	    
         if (cmd.miss == CRS_REPORT && c < n_cols 
-            && var_is_num_user_missing (x->vars[COL_VAR], cols[c].f))
+            && var_is_num_missing (x->vars[COL_VAR], cols[c].f, MV_USER))
           mark_missing = true;
 
         for (i = 0; i < num_cells; i++)

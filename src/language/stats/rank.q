@@ -148,8 +148,8 @@ struct rank_spec
 };
 
 
-/* Function to use for testing for missing values */
-static mv_is_missing_func *value_is_missing;
+/* Categories of missing values to exclude. */
+static enum mv_class exclude_values;
 
 static struct rank_spec *rank_specs;
 static size_t n_rank_specs;
@@ -547,7 +547,7 @@ rank_cases (struct casereader *cr,
       casereader_destroy (lookahead);
 
       cc_1 = cc;
-      if ( !value_is_missing (mv, this_value) )
+      if ( !mv_is_value_missing (mv, this_value, exclude_values) )
 	cc += c;
 
       do
@@ -556,7 +556,7 @@ rank_cases (struct casereader *cr,
             {
               const struct variable *dst_var = rs[i].destvars[dest_var_index];
 
-	      if  ( value_is_missing (mv, this_value) )
+	      if  ( mv_is_value_missing (mv, this_value, exclude_values) )
 		case_data_rw (&this_case, dst_var)->f = SYSMIS;
 	      else
 		case_data_rw (&this_case, dst_var)->f = 
@@ -566,7 +566,7 @@ rank_cases (struct casereader *cr,
         }
       while (n-- > 0 && casereader_read_xfer (cr, &this_case));
 
-      if ( !value_is_missing (mv, this_value) )
+      if ( !mv_is_value_missing (mv, this_value, exclude_values) )
 	iter++;
     }
 
@@ -615,7 +615,7 @@ rank_sorted_casefile (struct casefile *cf,
       double w = 0.0;
       this_value = case_data_idx( &group_case, ultimate_crit->fv);
 
-      if ( !value_is_missing(mv, this_value) )
+      if ( !mv_is_value_missing (mv, this_value, exclude_values) )
 	w = dict_get_case_weight (dict, &group_case, &warn);
 
       while (casereader_read (lookahead, &this_case)) 
@@ -636,7 +636,7 @@ rank_sorted_casefile (struct casefile *cf,
               case_destroy (&group_case);
               case_move (&group_case, &this_case);
             }
-	  if ( !value_is_missing (mv, this_value) )
+	  if ( !mv_is_value_missing (mv, this_value, exclude_values) )
 	    w += c;
           case_destroy (&this_case);
         }
@@ -773,11 +773,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
     }
 
   /* If /MISSING=INCLUDE is set, then user missing values are ignored */
-  if (cmd.miss == RANK_INCLUDE ) 
-    value_is_missing = mv_is_value_system_missing;
-  else
-    value_is_missing = mv_is_value_missing;
-
+  exclude_values = cmd.miss == RANK_INCLUDE ? MV_SYSTEM : MV_ANY;
 
   /* Default to /RANK if no function subcommands are given */
   if ( !( cmd.sbc_normal  || cmd.sbc_ntiles || cmd.sbc_proportion || 

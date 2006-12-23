@@ -20,18 +20,19 @@
 #define casefilter_h 1
 
 #include <stdbool.h>
+#include <data/missing-values.h>
 
 struct ccase;
 struct casefilter;
 struct variable ;
 
-/* Create a new casefilter.
-   If EXCL is true, then the filter  user missing values to be missing, 
-   otherwise they are considered at their face value.
+/* Create a new casefilter that drops cases in which any of the
+   N_VARS variables in VARS are missing in the given CLASS.
    VARS is an array of variables which if *any* of them are missing.
    N_VARS is the size of VARS.
  */
-struct casefilter * casefilter_create (bool, struct variable **, int);
+struct casefilter * casefilter_create (enum mv_class class,
+                                       struct variable **, int);
 
 /* Add the variables in VARS to the list of variables for which the
    filter considers. N_VARS is the size of VARS */

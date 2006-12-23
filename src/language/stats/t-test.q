@@ -1785,7 +1785,8 @@ calculate(const struct ccase *first, const struct casefile *cf,
 
   struct cmd_t_test *cmd = (struct cmd_t_test *) cmd_;
 
-  struct casefilter *filter = casefilter_create (cmd->miss != TTS_INCLUDE, 
+  struct casefilter *filter = casefilter_create ((cmd->miss != TTS_INCLUDE
+                                                  ? MV_ANY : MV_SYSTEM), 
 						 NULL, 0);
 
   if ( cmd->miss == TTS_LISTWISE ) 

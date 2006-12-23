@@ -20,8 +20,8 @@
 #define variable_h 1
 
 #include <stddef.h>
-#include "config.h"
 #include <stdbool.h>
+#include <data/missing-values.h>
 
 union value;
 
@@ -73,17 +73,10 @@ void var_set_missing_values (struct variable *, const struct missing_values *);
 void var_clear_missing_values (struct variable *);
 bool var_has_missing_values (const struct variable *);
 
-typedef bool var_is_missing_func (const struct variable *,
-                                  const union value *);
-bool var_is_value_missing (const struct variable *, const union value *);
-bool var_is_num_missing (const struct variable *, double);
-bool var_is_str_missing (const struct variable *, const char[]);
-bool var_is_value_user_missing (const struct variable *,
-                                const union value *);
-bool var_is_num_user_missing (const struct variable *, double);
-bool var_is_str_user_missing (const struct variable *, const char[]);
-bool var_is_value_system_missing (const struct variable *,
-                                  const union value *);
+bool var_is_value_missing (const struct variable *, const union value *,
+                           enum mv_class);
+bool var_is_num_missing (const struct variable *, double, enum mv_class);
+bool var_is_str_missing (const struct variable *, const char[], enum mv_class);
 
 /* Value labels. */
 const struct val_labs *var_get_value_labels (const struct variable *);

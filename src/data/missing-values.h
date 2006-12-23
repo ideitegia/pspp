@@ -22,30 +22,26 @@
 #include <stdbool.h>
 #include "value.h"
 
-/* Types of user-missing values.
-   Invisible--use access functions defined below instead. */
-enum mv_type
-  {
-    MV_NONE = 0,                /* No user-missing values. */
-    MV_1 = 1,                   /* One user-missing value. */
-    MV_2 = 2,                   /* Two user-missing values. */
-    MV_3 = 3,                   /* Three user-missing values. */
-    MV_RANGE = 4,               /* A range of user-missing values. */
-    MV_RANGE_1 = 5              /* A range plus an individual value. */
-  };
-
 /* Missing values.
    Opaque--use access functions defined below. */
 struct missing_values
   {
-    enum mv_type type;          /* Number and type of missing values. */
+    int type;                   /* Types of missing values, one of MVT_*. */
     int width;                  /* 0=numeric, otherwise string width. */
     union value values[3];      /* Missing values.  [y,z] are the range. */
   };
 
+/* Classes of missing values. */
+enum mv_class 
+  {
+    MV_NEVER = 0,               /* Never considered missing. */
+    MV_USER = 1,                /* Missing if value is user-missing. */
+    MV_SYSTEM = 2,              /* Missing if value is system-missing. */
+    MV_ANY = MV_USER | MV_SYSTEM /* Missing if it is user or system-missing. */
+  };
 
 void mv_init (struct missing_values *, int width);
-void mv_set_type(struct missing_values *mv, enum mv_type type);
+void mv_clear (struct missing_values *);
 
 void mv_copy (struct missing_values *, const struct missing_values *);
 bool mv_is_empty (const struct missing_values *);
@@ -74,19 +70,11 @@ void mv_resize (struct missing_values *, int width);
 typedef bool mv_is_missing_func (const struct missing_values *,
                                  const union value *);
 
-/* Is a value system or user missing? */
-bool mv_is_value_missing (const struct missing_values *, const union value *);
-bool mv_is_num_missing (const struct missing_values *, double);
-bool mv_is_str_missing (const struct missing_values *, const char[]);
-
-/* Is a value user missing? */
-bool mv_is_value_user_missing (const struct missing_values *,
-                               const union value *);
-bool mv_is_num_user_missing (const struct missing_values *, double);
-bool mv_is_str_user_missing (const struct missing_values *, const char[]);
-
-/* Is a value system missing? */
-bool mv_is_value_system_missing (const struct missing_values *,
-                                 const union value *);
+/* Is a value missing? */
+bool mv_is_value_missing (const struct missing_values *, const union value *,
+                          enum mv_class);
+bool mv_is_num_missing (const struct missing_values *, double, enum mv_class);
+bool mv_is_str_missing (const struct missing_values *, const char[],
+                        enum mv_class);
 
 #endif /* missing-values.h */
