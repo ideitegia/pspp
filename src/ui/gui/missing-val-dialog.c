@@ -46,11 +46,11 @@ err_dialog(const gchar *msg, GtkWindow *window)
   GtkWidget *hbox ;
   GtkWidget *label = gtk_label_new (msg);
 
-  GtkWidget *dialog = 
+  GtkWidget *dialog =
     gtk_dialog_new_with_buttons ("PSPP",
 				 window,
-				 GTK_DIALOG_MODAL | 
-				 GTK_DIALOG_DESTROY_WITH_PARENT | 
+				 GTK_DIALOG_MODAL |
+				 GTK_DIALOG_DESTROY_WITH_PARENT |
 				 GTK_DIALOG_NO_SEPARATOR,
 				 GTK_STOCK_OK,
 				 GTK_RESPONSE_ACCEPT,
@@ -59,9 +59,9 @@ err_dialog(const gchar *msg, GtkWindow *window)
 
   GtkWidget *icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_ERROR,
 					     GTK_ICON_SIZE_DIALOG);
-   
+
   g_signal_connect_swapped (dialog,
-			    "response", 
+			    "response",
 			    G_CALLBACK (gtk_widget_destroy),
 			    dialog);
 
@@ -78,22 +78,22 @@ err_dialog(const gchar *msg, GtkWindow *window)
 
 
 /* Callback which occurs when the OK button is clicked */
-static void 
+static void
 missing_val_dialog_accept(GtkWidget *w, gpointer data)
 {
   struct missing_val_dialog *dialog = data;
 
   const struct fmt_spec *write_spec = var_get_write_format (dialog->pv);
-  
+
   if ( gtk_toggle_button_get_active(dialog->button_discrete))
     {
       gint nvals = 0;
       gint badvals = 0;
       gint i;
       mv_clear(&dialog->mvl);
-      for(i = 0 ; i < 3 ; ++i ) 
+      for(i = 0 ; i < 3 ; ++i )
 	{
-	  gchar *text = 
+	  gchar *text =
 	    g_strdup(gtk_entry_get_text(GTK_ENTRY(dialog->mv[i])));
 
 	  union value v;
@@ -108,32 +108,32 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
 	      nvals++;
 	      mv_add_value (&dialog->mvl, &v);
 	    }
-	  else 
+	  else
 	      badvals++;
 	  g_free(text);
 	}
-      if ( nvals == 0 || badvals > 0 ) 
+      if ( nvals == 0 || badvals > 0 )
 	{
-	  err_dialog(_("Incorrect value for variable type"), 
+	  err_dialog(_("Incorrect value for variable type"),
 		     GTK_WINDOW(dialog->window));
 	  return ;
 	}
     }
-  
+
   if (gtk_toggle_button_get_active(dialog->button_range))
     {
       gchar *discrete_text ;
-      
-      union value low_val ; 
+
+      union value low_val ;
       union value high_val;
       const gchar *low_text = gtk_entry_get_text(GTK_ENTRY(dialog->low));
       const gchar *high_text = gtk_entry_get_text(GTK_ENTRY(dialog->high));
 
       if ( text_to_value(low_text, &low_val, *write_spec)
-	   && 
-	   text_to_value(high_text, &high_val, *write_spec) ) 
+	   &&
+	   text_to_value(high_text, &high_val, *write_spec) )
 	{
-	  if ( low_val.f > high_val.f ) 
+	  if ( low_val.f > high_val.f )
 	    {
 	      err_dialog(_("Incorrect range specification"),
 			  GTK_WINDOW(dialog->window));
@@ -147,16 +147,16 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
 	  return;
 	}
 
-      discrete_text = 
+      discrete_text =
 	g_strdup(gtk_entry_get_text(GTK_ENTRY(dialog->discrete)));
 
       mv_clear(&dialog->mvl);
       mv_add_num_range(&dialog->mvl, low_val.f, high_val.f);
-      
+
       if ( discrete_text && strlen(g_strstrip(discrete_text)) > 0 )
 	{
 	  union value discrete_val;
-	  if ( !text_to_value(discrete_text, &discrete_val, 
+	  if ( !text_to_value(discrete_text, &discrete_val,
 			      *write_spec))
 	    {
 	      err_dialog(_("Incorrect value for variable type"),
@@ -169,7 +169,7 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
       g_free(discrete_text);
     }
 
-  
+
   if (gtk_toggle_button_get_active(dialog->button_none))
     mv_clear(&dialog->mvl);
 
@@ -180,35 +180,35 @@ missing_val_dialog_accept(GtkWidget *w, gpointer data)
 
 
 /* Callback which occurs when the 'discrete' radiobutton is toggled */
-static void 
+static void
 discrete(GtkToggleButton *button, gpointer data)
 {
   gint i;
   struct missing_val_dialog *dialog = data;
 
-  for(i = 0 ; i < 3 ; ++i ) 
+  for(i = 0 ; i < 3 ; ++i )
     {
-      gtk_widget_set_sensitive(dialog->mv[i], 
+      gtk_widget_set_sensitive(dialog->mv[i],
 			       gtk_toggle_button_get_active(button));
     }
 }
 
 /* Callback which occurs when the 'range' radiobutton is toggled */
-static void 
+static void
 range(GtkToggleButton *button, gpointer data)
 {
   struct missing_val_dialog *dialog = data;
-  
+
   const gboolean active = gtk_toggle_button_get_active (button);
 
-  gtk_widget_set_sensitive(dialog->low, active);      
-  gtk_widget_set_sensitive(dialog->high, active);      
-  gtk_widget_set_sensitive(dialog->discrete, active);   
+  gtk_widget_set_sensitive(dialog->low, active);
+  gtk_widget_set_sensitive(dialog->high, active);
+  gtk_widget_set_sensitive(dialog->discrete, active);
 }
 
 
 /* Creates the dialog structure from the xml */
-struct missing_val_dialog * 
+struct missing_val_dialog *
 missing_val_dialog_create(GladeXML *xml)
 {
   struct missing_val_dialog *dialog = g_malloc(sizeof(*dialog));
@@ -216,7 +216,7 @@ missing_val_dialog_create(GladeXML *xml)
   dialog->window = get_widget_assert(xml, "missing_values_dialog");
 
   gtk_window_set_transient_for
-    (GTK_WINDOW(dialog->window), 
+    (GTK_WINDOW(dialog->window),
      GTK_WINDOW(get_widget_assert(xml, "data_editor")));
 
 
@@ -234,29 +234,29 @@ missing_val_dialog_create(GladeXML *xml)
   dialog->low = get_widget_assert(xml, "mv-low");
   dialog->high = get_widget_assert(xml, "mv-high");
   dialog->discrete = get_widget_assert(xml, "mv-discrete");
-  
 
-  dialog->button_none     =  
+
+  dialog->button_none     =
     GTK_TOGGLE_BUTTON(get_widget_assert(xml, "no_missing"));
 
-  dialog->button_discrete =  
+  dialog->button_discrete =
     GTK_TOGGLE_BUTTON(get_widget_assert(xml, "discrete_missing"));
 
-  dialog->button_range    =  
+  dialog->button_range    =
     GTK_TOGGLE_BUTTON(get_widget_assert(xml, "range_missing"));
 
 
-  g_signal_connect(G_OBJECT(dialog->button_discrete), "toggled", 
+  g_signal_connect(G_OBJECT(dialog->button_discrete), "toggled",
 		   G_CALLBACK(discrete), dialog);
 
-  g_signal_connect(G_OBJECT(dialog->button_range), "toggled", 
+  g_signal_connect(G_OBJECT(dialog->button_range), "toggled",
 		   G_CALLBACK(range), dialog);
 
   return dialog;
 }
 
 /* Shows the dialog box and sets default values */
-void 
+void
 missing_val_dialog_show(struct missing_val_dialog *dialog)
 {
   const struct fmt_spec *write_spec ;
@@ -272,10 +272,10 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
   /* Blank all entry boxes and make them insensitive */
   gtk_entry_set_text(GTK_ENTRY(dialog->low), "");
   gtk_entry_set_text(GTK_ENTRY(dialog->high), "");
-  gtk_entry_set_text(GTK_ENTRY(dialog->discrete), "");   
-  gtk_widget_set_sensitive(dialog->low, FALSE);      
-  gtk_widget_set_sensitive(dialog->high, FALSE);      
-  gtk_widget_set_sensitive(dialog->discrete, FALSE);   
+  gtk_entry_set_text(GTK_ENTRY(dialog->discrete), "");
+  gtk_widget_set_sensitive(dialog->low, FALSE);
+  gtk_widget_set_sensitive(dialog->high, FALSE);
+  gtk_widget_set_sensitive(dialog->discrete, FALSE);
 
   gtk_widget_set_sensitive(GTK_WIDGET(dialog->button_range),
 			   var_is_numeric (dialog->pv));
@@ -283,7 +283,7 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
 
   for(i = 0 ; i < 3 ; ++i )
     {
-      gtk_entry_set_text(GTK_ENTRY(dialog->mv[i]), "");	  
+      gtk_entry_set_text(GTK_ENTRY(dialog->mv[i]), "");
       gtk_widget_set_sensitive(dialog->mv[i], FALSE);
     }
 
@@ -296,7 +296,7 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
 
       low_text = value_to_text(low, *write_spec);
       high_text = value_to_text(high, *write_spec);
-      
+
       gtk_entry_set_text(GTK_ENTRY(dialog->low), low_text);
       gtk_entry_set_text(GTK_ENTRY(dialog->high), high_text);
       g_free(low_text);
@@ -311,18 +311,18 @@ missing_val_dialog_show(struct missing_val_dialog *dialog)
 	  gtk_entry_set_text(GTK_ENTRY(dialog->discrete), text);
 	  g_free(text);
 	}
-      
+
       gtk_toggle_button_set_active(dialog->button_range, TRUE);
-      gtk_widget_set_sensitive(dialog->low, TRUE);      
-      gtk_widget_set_sensitive(dialog->high, TRUE);      
-      gtk_widget_set_sensitive(dialog->discrete, TRUE);   
+      gtk_widget_set_sensitive(dialog->low, TRUE);
+      gtk_widget_set_sensitive(dialog->high, TRUE);
+      gtk_widget_set_sensitive(dialog->discrete, TRUE);
 
     }
   else if ( mv_has_value (&dialog->mvl))
     {
       const int n = mv_n_values (&dialog->mvl);
 
-      for(i = 0 ; i < 3 ; ++i ) 
+      for(i = 0 ; i < 3 ; ++i )
 	{
 	  if ( i < n)
 	    {

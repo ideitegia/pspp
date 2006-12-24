@@ -1,4 +1,4 @@
-/* 
+/*
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2004,2005  Free Software Foundation
 
@@ -15,7 +15,7 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA. 
+   02110-1301, USA.
 */
 
 
@@ -46,7 +46,7 @@ static GQueue *message_queue;
 
 
 void
-message_dialog_init (struct source_stream *ss) 
+message_dialog_init (struct source_stream *ss)
 {
   message_queue = g_queue_new();
   msg_init (ss, enqueue_msg);
@@ -59,27 +59,27 @@ message_dialog_done (void)
   g_queue_free(message_queue);
 }
 
-static gboolean 
+static gboolean
 dequeue_message(gpointer data)
 {
   struct msg * m ;
 
   /* If a pointer grab is in effect, then the combination of that, and
-     a modal dialog box, will cause an impossible situation. 
+     a modal dialog box, will cause an impossible situation.
      So don't pop it up just yet.
-  */ 
+  */
   if ( gdk_pointer_is_grabbed())
     return TRUE;
 
   m = g_queue_pop_tail(message_queue);
 
-  if ( m ) 
+  if ( m )
     {
       popup_message(m);
       msg_destroy(m);
       return TRUE;
     }
-  
+
   return FALSE;
 }
 
@@ -94,7 +94,7 @@ enqueue_msg(const struct msg *msg)
 }
 
 
-void 
+void
 popup_message(const struct msg *m)
 {
   GtkWindow *parent;
@@ -116,8 +116,8 @@ popup_message(const struct msg *m)
       message_type = GTK_MESSAGE_INFO;
       break;
     };
-  
-  switch (m->category) 
+
+  switch (m->category)
     {
     case MSG_SYNTAX:
       msg = _("Script Error");

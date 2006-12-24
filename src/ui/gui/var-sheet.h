@@ -1,4 +1,4 @@
-/* 
+/*
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2004, 2005, 2006  Free Software Foundation
 
@@ -25,27 +25,27 @@
 
 #include "psppire-dict.h"
 
-enum {COL_NAME, 
-      COL_TYPE, 
-      COL_WIDTH, 
-      COL_DECIMALS, 
-      COL_LABEL, 
-      COL_VALUES, 
-      COL_MISSING, 
-      COL_COLUMNS, 
-      COL_ALIGN, 
-      COL_MEASURE, 
+enum {COL_NAME,
+      COL_TYPE,
+      COL_WIDTH,
+      COL_DECIMALS,
+      COL_LABEL,
+      COL_VALUES,
+      COL_MISSING,
+      COL_COLUMNS,
+      COL_ALIGN,
+      COL_MEASURE,
       n_COLS};
 
 
-void var_sheet_range_set_editable(GtkSheet *sheet, 
-				  const GtkSheetRange *urange, 
+void var_sheet_range_set_editable(GtkSheet *sheet,
+				  const GtkSheetRange *urange,
 				  gboolean editable);
 
 
 /* Create the var sheet */
-GtkWidget* psppire_variable_sheet_create (gchar *widget_name, 
-					  gchar *string1, 
+GtkWidget* psppire_variable_sheet_create (gchar *widget_name,
+					  gchar *string1,
 					  gchar *string2,
 					  gint int1, gint int2);
 

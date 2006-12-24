@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2006  Free Software Foundation
 
@@ -77,7 +77,7 @@ gboolean psppire_case_file_insert_case(PsppireCaseFile *cf, struct ccase *c, gin
 gint psppire_case_file_get_case_count(const PsppireCaseFile *cf);
 
 
-const union value * psppire_case_file_get_value(const PsppireCaseFile *cf, 
+const union value * psppire_case_file_get_value(const PsppireCaseFile *cf,
 					      gint c, gint idx);
 
 struct fmt_spec;
@@ -86,13 +86,13 @@ gboolean psppire_case_file_data_in(PsppireCaseFile *cf, gint c, gint idx,
                                    struct substring input,
                                    const struct fmt_spec *);
 
-gboolean psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum, 
+gboolean psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum,
 				     gint idx, union value *v, gint width);
 
 void psppire_case_file_clear(PsppireCaseFile *cf);
 
 
-gboolean psppire_case_file_delete_cases(PsppireCaseFile *cf, gint n_rows, 
+gboolean psppire_case_file_delete_cases(PsppireCaseFile *cf, gint n_rows,
 					gint first);
 
 gboolean psppire_case_file_insert_values(PsppireCaseFile *cf, gint n_values, gint before);
@@ -100,7 +100,7 @@ gboolean psppire_case_file_insert_values(PsppireCaseFile *cf, gint n_values, gin
 struct sort_criteria;
 void psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *);
 
-gboolean psppire_case_file_get_case(const PsppireCaseFile *cf, gint casenum, 
+gboolean psppire_case_file_get_case(const PsppireCaseFile *cf, gint casenum,
 				    struct ccase *c);
 
 

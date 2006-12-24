@@ -1,5 +1,5 @@
 /* psppire-var-store.h
- 
+
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2006  Free Software Foundation
 

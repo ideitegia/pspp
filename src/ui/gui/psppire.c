@@ -1,4 +1,4 @@
-/* 
+/*
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2004, 2005, 2006  Free Software Foundation
 
@@ -50,7 +50,7 @@
 PsppireDataStore *the_data_store = 0;
 
 
-static bool parse_command_line (int *argc, char ***argv, 
+static bool parse_command_line (int *argc, char ***argv,
 				gchar **filename, GError **err);
 
 
@@ -61,13 +61,13 @@ static void
 give_help(void)
 {
   static struct msg m = {
-    MSG_GENERAL, 
+    MSG_GENERAL,
     MSG_NOTE,
     {0, -1},
-    0, 
+    0,
   };
 
-  if (! m.text) 
+  if (! m.text)
     m.text=g_strdup(_("Sorry. The help system hasn't yet been implemented."));
 
   popup_message(&m);
@@ -81,15 +81,15 @@ struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
 
 
-int 
-main(int argc, char *argv[]) 
+int
+main(int argc, char *argv[])
 {
   struct casefile_factory *factory;
   PsppireDict *dictionary = 0;
 
 
   GtkWidget *data_editor ;
-  GtkSheet *var_sheet ; 
+  GtkSheet *var_sheet ;
   GtkSheet *data_sheet ;
 
   gchar *filename=0;
@@ -97,15 +97,15 @@ main(int argc, char *argv[])
   gchar *vers;
 
   gtk_init(&argc, &argv);
-  if ( (vers = gtk_check_version(GTK_MAJOR_VERSION, 
-				 GTK_MINOR_VERSION, 
+  if ( (vers = gtk_check_version(GTK_MAJOR_VERSION,
+				 GTK_MINOR_VERSION,
 				 GTK_MICRO_VERSION)) )
     {
       g_critical(vers);
     }
-	
 
-  /* gtk_init messes with the locale. 
+
+  /* gtk_init messes with the locale.
      So unset the bits we want to control ourselves */
   setlocale (LC_NUMERIC, "C");
 
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 
   textdomain (PACKAGE);
 
-  if ( ! parse_command_line(&argc, &argv, &filename, &err) ) 
+  if ( ! parse_command_line(&argc, &argv, &filename, &err) )
     {
       g_clear_error(&err);
       return 0;
@@ -228,7 +228,7 @@ parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
 	}
     }
 
-  if ( optind < *argc) 
+  if ( optind < *argc)
     {
       *filename = (*argv)[optind];
     }
@@ -238,13 +238,13 @@ parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
 
 
 
-void 
+void
 create_icon_factory (void)
 {
   GtkIconFactory *factory = gtk_icon_factory_new();
 
   GtkIconSet *icon_set;
-  
+
   GdkPixbuf *pixbuf;
 
   pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/value-labels.png", 0);

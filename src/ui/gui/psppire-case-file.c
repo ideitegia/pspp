@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2006  Free Software Foundation
 
@@ -43,7 +43,7 @@ static void psppire_case_file_finalize	(GObject		*object);
 /* --- variables --- */
 static GObjectClass     *parent_class = NULL;
 
-enum  {CASE_CHANGED, 
+enum  {CASE_CHANGED,
        CASE_INSERTED,
        CASES_DELETED,
        n_SIGNALS};
@@ -99,7 +99,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 		  0,
 		  NULL, NULL,
 		  g_cclosure_marshal_VOID__INT,
-		  G_TYPE_NONE, 
+		  G_TYPE_NONE,
 		  1,
 		  G_TYPE_INT);
 
@@ -111,7 +111,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 		  0,
 		  NULL, NULL,
 		  g_cclosure_marshal_VOID__INT,
-		  G_TYPE_NONE, 
+		  G_TYPE_NONE,
 		  1,
 		  G_TYPE_INT);
 
@@ -123,7 +123,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 		  0,
 		  NULL, NULL,
 		  gtkextra_VOID__INT_INT,
-		  G_TYPE_NONE, 
+		  G_TYPE_NONE,
 		  2,
 		  G_TYPE_INT, G_TYPE_INT);
 }
@@ -132,8 +132,8 @@ static void
 psppire_case_file_finalize (GObject *object)
 {
   PsppireCaseFile *cf = PSPPIRE_CASE_FILE (object);
-  
-  if ( cf->flexifile) 
+
+  if ( cf->flexifile)
     casefile_destroy(cf->flexifile);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
@@ -149,8 +149,8 @@ psppire_case_file_init (PsppireCaseFile *cf)
 /**
  * psppire_case_file_new:
  * @returns: a new #PsppireCaseFile object
- * 
- * Creates a new #PsppireCaseFile. 
+ *
+ * Creates a new #PsppireCaseFile.
  */
 PsppireCaseFile*
 psppire_case_file_new (gint val_cnt)
@@ -197,7 +197,7 @@ psppire_case_file_delete_cases(PsppireCaseFile *cf, gint n_cases, gint first)
 
 /* Insert case CC into the case file before POSN */
 gboolean
-psppire_case_file_insert_case(PsppireCaseFile *cf, 
+psppire_case_file_insert_case(PsppireCaseFile *cf,
 			      struct ccase *cc,
 			      gint posn)
 {
@@ -207,19 +207,19 @@ psppire_case_file_insert_case(PsppireCaseFile *cf,
   g_return_val_if_fail(cf->flexifile, FALSE);
 
   result = flexifile_insert_case(FLEXIFILE(cf->flexifile), cc, posn);
-  
-  if ( result ) 
+
+  if ( result )
     g_signal_emit(cf, signal[CASE_INSERTED], 0, posn);
   else
     g_warning("Cannot insert case at position %d\n", posn);
-		
+
   return result;
 }
 
 
 /* Append a case to the case file */
 gboolean
-psppire_case_file_append_case(PsppireCaseFile *cf, 
+psppire_case_file_append_case(PsppireCaseFile *cf,
 			      struct ccase *c)
 {
   bool result ;
@@ -231,9 +231,9 @@ psppire_case_file_append_case(PsppireCaseFile *cf,
   posn = casefile_get_case_cnt(cf->flexifile);
 
   result = casefile_append(cf->flexifile, c);
-  
+
   g_signal_emit(cf, signal[CASE_INSERTED], 0, posn);
-		
+
   return result;
 }
 
@@ -242,8 +242,8 @@ inline gint
 psppire_case_file_get_case_count(const PsppireCaseFile *cf)
 {
   g_return_val_if_fail(cf, FALSE);
-  
-  if ( ! cf->flexifile) 
+
+  if ( ! cf->flexifile)
     return 0;
 
   return casefile_get_case_cnt(cf->flexifile);
@@ -255,7 +255,7 @@ psppire_case_file_get_case_count(const PsppireCaseFile *cf)
 const union value *
 psppire_case_file_get_value(const PsppireCaseFile *cf, gint casenum, gint idx)
 {
-  const union value *v; 
+  const union value *v;
   struct ccase c;
 
   g_return_val_if_fail(cf, NULL);
@@ -295,7 +295,7 @@ psppire_case_file_set_value(PsppireCaseFile *cf, gint casenum, gint idx,
   if ( ! flexifile_get_case(FLEXIFILE(cf->flexifile), casenum, &cc) )
     return FALSE;
 
-  if ( width == 0 ) 
+  if ( width == 0 )
     bytes = MAX_SHORT_STRING;
   else
     bytes = DIV_RND_UP(width, MAX_SHORT_STRING) * MAX_SHORT_STRING ;
@@ -349,27 +349,27 @@ psppire_case_file_sort(PsppireCaseFile *cf, const struct sort_criteria *sc)
   cfile = sort_execute(reader, sc, factory);
 
   casefile_destroy(cf->flexifile);
-  
+
   cf->flexifile = cfile;
 
   /* FIXME: Need to have a signal to change a range of cases, instead of
      calling a signal many times */
-  for ( c = 0 ; c < casefile_get_case_cnt(cf->flexifile) ; ++c ) 
+  for ( c = 0 ; c < casefile_get_case_cnt(cf->flexifile) ; ++c )
     g_signal_emit(cf, signal[CASE_CHANGED], 0, c);
 
   flexifile_factory_destroy (factory);
 }
 
 
-/* Resize the cases in the casefile, by inserting N_VALUES into every 
+/* Resize the cases in the casefile, by inserting N_VALUES into every
    one of them. */
-gboolean 
-psppire_case_file_insert_values (PsppireCaseFile *cf, 
+gboolean
+psppire_case_file_insert_values (PsppireCaseFile *cf,
 				 gint n_values, gint before)
 {
   g_return_val_if_fail(cf, FALSE);
 
-  if ( ! cf->flexifile ) 
+  if ( ! cf->flexifile )
     {
       cf->flexifile = flexifile_create(n_values);
 
@@ -383,7 +383,7 @@ psppire_case_file_insert_values (PsppireCaseFile *cf,
    Returns true on success, false otherwise.
  */
 gboolean
-psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum, 
+psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
 			   struct ccase *c)
 {
   g_return_val_if_fail (cf, FALSE);

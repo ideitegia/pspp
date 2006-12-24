@@ -1,4 +1,4 @@
-/* 
+/*
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2005  Free Software Foundation
 
@@ -15,11 +15,11 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA. 
+   02110-1301, USA.
 */
 
-/* 
-   This widget is a subclass of GtkEntry.  It's an entry widget with a 
+/*
+   This widget is a subclass of GtkEntry.  It's an entry widget with a
    button on the right hand side.
 
    This code is heavily based upon the GtkSpinButton widget.  Therefore
@@ -54,7 +54,7 @@
  * Modified by the GTK+ Team and others 1997-2000.  See the AUTHORS
  * file for a list of people on the GTK+ Team.  See the ChangeLog
  * files for a list of changes.  These files are distributed with
- * GTK+ at ftp://ftp.gtk.org/pub/gtk/. 
+ * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
 #include <config.h>
@@ -103,7 +103,7 @@ psppire_custom_entry_get_type (void)
 	  (GInstanceInitFunc) psppire_custom_entry_init,
 	};
 
-      ce_type = g_type_register_static (GTK_TYPE_ENTRY, "PsppireCustomEntry", 
+      ce_type = g_type_register_static (GTK_TYPE_ENTRY, "PsppireCustomEntry",
 					&ce_info, 0);
     }
 
@@ -153,14 +153,14 @@ psppire_custom_entry_realize (GtkWidget *widget)
   GTK_WIDGET_CLASS (parent_class)->realize (widget);
 
   widget->allocation.width = real_width;
-  
+
   attributes.window_type = GDK_WINDOW_CHILD;
   attributes.wclass = GDK_INPUT_OUTPUT;
   attributes.visual = gtk_widget_get_visual (widget);
   attributes.colormap = gtk_widget_get_colormap (widget);
   attributes.event_mask = gtk_widget_get_events (widget);
-  attributes.event_mask |= GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK 
-    | GDK_BUTTON_RELEASE_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_ENTER_NOTIFY_MASK 
+  attributes.event_mask |= GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK
+    | GDK_BUTTON_RELEASE_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_ENTER_NOTIFY_MASK
     | GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK;
 
   attributes_mask = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP;
@@ -172,8 +172,8 @@ psppire_custom_entry_realize (GtkWidget *widget)
 					 widget->requisition.height) / 2;
   attributes.width = button_size + 2 * widget->style->xthickness;
   attributes.height = widget->requisition.height;
-  
-  custom_entry->panel = gdk_window_new (gtk_widget_get_parent_window (widget), 
+
+  custom_entry->panel = gdk_window_new (gtk_widget_get_parent_window (widget),
 					&attributes, attributes_mask);
   gdk_window_set_user_data (custom_entry->panel, widget);
 
@@ -189,7 +189,7 @@ psppire_custom_entry_realize (GtkWidget *widget)
 static gint
 psppire_custom_entry_get_button_width (PsppireCustomEntry *custom_entry)
 {
-  const gint size = pango_font_description_get_size 
+  const gint size = pango_font_description_get_size
     (GTK_WIDGET (custom_entry)->style->font_desc);
 
   gint button_width = MAX (PANGO_PIXELS (size), MIN_BUTTON_WIDTH);
@@ -200,10 +200,10 @@ psppire_custom_entry_get_button_width (PsppireCustomEntry *custom_entry)
 /**
  * custom_entry_get_shadow_type:
  * @custom_entry: a #PsppireCustomEntry
- * 
+ *
  * Convenience function to Get the shadow type from the underlying widget's
  * style.
- * 
+ *
  * Return value: the #GtkShadowType
  **/
 static gint
@@ -249,7 +249,7 @@ psppire_custom_entry_redraw (PsppireCustomEntry *custom_entry)
        */
       gdk_window_invalidate_rect (custom_entry->panel, NULL, TRUE);
     }
-}        
+}
 
 
 static gint
@@ -274,11 +274,11 @@ psppire_custom_entry_expose (GtkWidget      *widget,
 
       gdk_drawable_get_size (ce->panel, &rect.width, &rect.height);
 
-      gdk_window_begin_paint_rect (ce->panel, &rect);      
+      gdk_window_begin_paint_rect (ce->panel, &rect);
 
 
       shadow_type = psppire_custom_entry_get_shadow_type (ce);
-      
+
       if (shadow_type != GTK_SHADOW_NONE)
 	{
 	  gtk_paint_box (widget->style, ce->panel,
@@ -330,24 +330,24 @@ psppire_custom_entry_class_init (PsppireCustomEntryClass *klass)
   widget_class->size_allocate = psppire_custom_entry_size_allocate;
 
 
-  gtk_widget_class_install_style_property_parser 
+  gtk_widget_class_install_style_property_parser
     (widget_class,
-     g_param_spec_enum ("shadow_type", 
-			"Shadow Type", 
+     g_param_spec_enum ("shadow_type",
+			"Shadow Type",
 			_("Style of bevel around the custom entry button"),
 			GTK_TYPE_SHADOW_TYPE,
 			GTK_SHADOW_ETCHED_IN,
 			G_PARAM_READABLE),
      gtk_rc_property_parse_enum);
 
-  custom_entry_signals[CLICKED] = 
+  custom_entry_signals[CLICKED] =
     g_signal_new ("clicked",
 		  G_TYPE_FROM_CLASS(gobject_class),
 		  G_SIGNAL_RUN_LAST,
 		  0,
 		  NULL, NULL,
 		  g_cclosure_marshal_VOID__VOID,
-		  G_TYPE_NONE, 
+		  G_TYPE_NONE,
 		  0);
 
 
@@ -405,9 +405,9 @@ psppire_custom_entry_size_allocate (GtkWidget     *widget,
   ce = PSPPIRE_CUSTOM_ENTRY (widget);
   button_width = psppire_custom_entry_get_button_width(ce);
   panel_width = button_width + 2 * widget->style->xthickness;
-  
+
   widget->allocation = *allocation;
-  
+
   entry_allocation = *allocation;
   entry_allocation.width -= panel_width;
 
@@ -431,11 +431,11 @@ psppire_custom_entry_size_allocate (GtkWidget     *widget,
 
   if (GTK_WIDGET_REALIZED (widget))
     {
-      gdk_window_move_resize (PSPPIRE_CUSTOM_ENTRY (widget)->panel, 
+      gdk_window_move_resize (PSPPIRE_CUSTOM_ENTRY (widget)->panel,
 			      panel_allocation.x,
 			      panel_allocation.y,
 			      panel_allocation.width,
-			      panel_allocation.height); 
+			      panel_allocation.height);
     }
 
   psppire_custom_entry_redraw (ce);

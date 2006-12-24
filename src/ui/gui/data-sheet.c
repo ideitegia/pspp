@@ -80,7 +80,7 @@ traverse_callback (GtkSheet * sheet,
 gint
 update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
 {
- 
+
   GladeXML *data_editor_xml = NULL; /* FIXME !!!! */
 
 
@@ -101,7 +101,7 @@ update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
 
       text = g_strdup_printf("%d: %s", row,
 			     pv ? var_get_name (pv) : "");
- 
+
       cell_ref_entry = GTK_ENTRY(get_widget_assert (data_editor_xml,
 						   "cell_ref_entry"));
 
@@ -134,7 +134,7 @@ calc_m_width(GtkWidget *widget, const PangoFontDescription *font_desc)
   g_assert (layout);
 
   pango_layout_set_text (layout, "M", 1);
- 
+
   pango_layout_set_font_description (layout, font_desc);
 
   pango_layout_get_extents (layout, NULL, &rect);

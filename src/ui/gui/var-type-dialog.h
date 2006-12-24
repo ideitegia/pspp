@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2005  Free Software Foundation
 
@@ -27,7 +27,7 @@
 
 #include <data/format.h>
 
-enum 
+enum
   {
     BUTTON_NUMERIC,
     BUTTON_COMMA,
@@ -91,7 +91,7 @@ struct var_type_dialog
 struct var_type_dialog * var_type_dialog_create(GladeXML *xml);
 
 
-void var_type_dialog_set_variable(struct var_type_dialog *dialog, 
+void var_type_dialog_set_variable(struct var_type_dialog *dialog,
 				  variable_changed_func set_variable_changed,
 				  struct variable *var);
 

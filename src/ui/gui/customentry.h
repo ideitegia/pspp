@@ -1,4 +1,4 @@
-/* 
+/*
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2005  Free Software Foundation
 
@@ -15,11 +15,11 @@
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA. 
+   02110-1301, USA.
 */
 
-/* 
-   This widget is a subclass of GtkEntry.  It's an entry widget with a 
+/*
+   This widget is a subclass of GtkEntry.  It's an entry widget with a
    button on the right hand side.
 
    This code is heavily based upon the GtkSpinButton widget.  Therefore
@@ -54,7 +54,7 @@
  * Modified by the GTK+ Team and others 1997-2000.  See the AUTHORS
  * file for a list of people on the GTK+ Team.  See the ChangeLog
  * files for a list of changes.  These files are distributed with
- * GTK+ at ftp://ftp.gtk.org/pub/gtk/. 
+ * GTK+ at ftp://ftp.gtk.org/pub/gtk/.
  */
 
 

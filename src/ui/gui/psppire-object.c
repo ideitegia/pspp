@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2004  Free Software Foundation
 
@@ -65,7 +65,7 @@ psppire_object_get_type (void)
   return object_type;
 }
 
-static guint signal_changed = 0 ; 
+static guint signal_changed = 0 ;
 
 static void
 psppire_object_class_init (PsppireObjectClass *class)
@@ -102,8 +102,8 @@ psppire_object_init (PsppireObject *psppire_object)
 /**
  * psppire_object_new:
  * @returns: a new #PsppireObject object
- * 
- * Creates a new #PsppireObject. 
+ *
+ * Creates a new #PsppireObject.
  */
 PsppireObject*
 psppire_object_new (void)

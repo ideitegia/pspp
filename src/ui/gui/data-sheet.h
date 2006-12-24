@@ -1,4 +1,4 @@
-/* 
+/*
    PSPPIRE --- A Graphical User Interface for PSPP
    Copyright (C) 2004  Free Software Foundation
 
@@ -30,13 +30,13 @@ void psppire_data_sheet_clear(GtkSheet *sheet);
 void psppire_data_sheet_set_dictionary(GtkSheet *sheet, PsppireDict *d);
 #endif
 
-GtkWidget* psppire_data_sheet_create (gchar *widget_name, 
-				      gchar *string1, 
-				      gchar *string2, 
+GtkWidget* psppire_data_sheet_create (gchar *widget_name,
+				      gchar *string1,
+				      gchar *string2,
 				      gint int1, gint int2);
 
 
-void data_sheet_set_cell_value(GtkSheet *sheet, gint row, gint col, 
+void data_sheet_set_cell_value(GtkSheet *sheet, gint row, gint col,
 			       const GValue *value);
 
 

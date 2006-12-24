@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2006  Free Software Foundation
 
@@ -68,12 +68,12 @@ dictionary_selection_changed (GtkTreeSelection *selection,
   GtkTreeSelection *otherselection ;
   struct sort_cases_dialog *dialog = (struct sort_cases_dialog*) data;
 
-  if ( 0 == gtk_tree_selection_count_selected_rows(selection) ) 
+  if ( 0 == gtk_tree_selection_count_selected_rows(selection) )
     return ;
 
   gtk_arrow_set(dialog->arrow, GTK_ARROW_RIGHT, GTK_SHADOW_OUT);
   dialog->button_state = VAR_SELECT;
-  
+
   otherselection = gtk_tree_view_get_selection(dialog->criteria_view);
 
   gtk_tree_selection_unselect_all(otherselection);
@@ -88,7 +88,7 @@ criteria_selection_changed (GtkTreeSelection *selection,
   GtkTreeSelection *otherselection ;
   struct sort_cases_dialog *dialog = (struct sort_cases_dialog*) data;
 
-  if ( 0 == gtk_tree_selection_count_selected_rows(selection) ) 
+  if ( 0 == gtk_tree_selection_count_selected_rows(selection) )
     return ;
 
   otherselection = gtk_tree_view_get_selection(dialog->dict_view);
@@ -104,7 +104,7 @@ criteria_selection_changed (GtkTreeSelection *selection,
 static gint
 delete_event_callback(GtkWidget *widget,
 		      GdkEvent  *event,
-		      gpointer   data)      
+		      gpointer   data)
 {
   struct sort_cases_dialog *dialog = (struct sort_cases_dialog*) data;
 
@@ -135,7 +135,7 @@ static void
 sort_cases_reset_callback(GObject *obj, gpointer data)
 {
   struct sort_cases_dialog *dialog = (struct sort_cases_dialog*) data;
-  
+
   gtk_arrow_set(dialog->arrow, GTK_ARROW_RIGHT, GTK_SHADOW_OUT);
   dialog->button_state = VAR_SELECT;
 
@@ -156,20 +156,20 @@ select_criteria(GtkTreeModel *model, GtkTreePath *path,
   struct sort_cases_dialog *dialog = (struct sort_cases_dialog*) data;
 
   /* Get the variable from the dictionary */
-  gtk_tree_model_get (model, iter, 
+  gtk_tree_model_get (model, iter,
 		      DICT_TVM_COL_VAR, &variable,
 		      -1);
-	
+
   index = var_get_dict_index (variable);
 
-  dir = gtk_toggle_button_get_active (dialog->ascending_button) ? 
+  dir = gtk_toggle_button_get_active (dialog->ascending_button) ?
     SRT_ASCEND:SRT_DESCEND;
 
   /* Append to the list of criteria */
   gtk_list_store_append(dialog->criteria_list, &new_iter);
-  gtk_list_store_set(dialog->criteria_list, 
+  gtk_list_store_set(dialog->criteria_list,
 		     &new_iter, CRIT_TVM_IDX, index, -1);
-  gtk_list_store_set(dialog->criteria_list, 
+  gtk_list_store_set(dialog->criteria_list,
 		     &new_iter, CRIT_TVM_DIR, dir, -1);
 }
 
@@ -188,7 +188,7 @@ path_to_row_ref(GtkTreeModel *model, GtkTreePath *path,
 
 /* Remove a row from the list of criteria */
 static void
-deselect_criteria(gpointer data, 
+deselect_criteria(gpointer data,
 		  gpointer user_data)
 {
   GtkTreeIter iter;
@@ -216,7 +216,7 @@ sort_cases_button_callback(GObject *obj, gpointer data)
 
   if ( dialog->button_state == VAR_SELECT) /* Right facing arrow */
     {
-      GtkTreeSelection *selection = 
+      GtkTreeSelection *selection =
 	gtk_tree_view_get_selection(dialog->dict_view);
 
       gtk_tree_selection_selected_foreach(selection, select_criteria, dialog);
@@ -224,11 +224,11 @@ sort_cases_button_callback(GObject *obj, gpointer data)
   else   /* Left facing arrow */
     {
       GList *selectedRows = NULL;
-      GtkTreeSelection *selection = 
+      GtkTreeSelection *selection =
 	gtk_tree_view_get_selection(dialog->criteria_view);
 
       /* Make a list of rows to be deleted */
-      gtk_tree_selection_selected_foreach(selection, path_to_row_ref, 
+      gtk_tree_selection_selected_foreach(selection, path_to_row_ref,
 					  &selectedRows);
 
       /* ... and delete them */
@@ -266,8 +266,8 @@ criteria_render_func(GtkTreeViewColumn *column, GtkCellRenderer *renderer,
   gchar *varname;
   PsppireDict *dict  = data;
 
-  gtk_tree_model_get(model, iter, 
-		     CRIT_TVM_IDX, &var_index, 
+  gtk_tree_model_get(model, iter,
+		     CRIT_TVM_IDX, &var_index,
 		     CRIT_TVM_DIR, &direction, -1);
 
   variable = psppire_dict_get_variable(dict, var_index);
@@ -275,11 +275,11 @@ criteria_render_func(GtkTreeViewColumn *column, GtkCellRenderer *renderer,
   varname = pspp_locale_to_utf8 (var_get_name(variable),
 				-1, 0);
 
-  if ( direction == SRT_ASCEND) 
+  if ( direction == SRT_ASCEND)
       buf = g_strdup_printf("%s: %s", varname, _("Ascending"));
   else
       buf = g_strdup_printf("%s: %s", varname, _("Descending"));
-  
+
   g_free(varname);
 
   g_object_set(renderer, "text", buf, NULL);
@@ -289,7 +289,7 @@ criteria_render_func(GtkTreeViewColumn *column, GtkCellRenderer *renderer,
 
 
 /* Create the dialog */
-struct sort_cases_dialog * 
+struct sort_cases_dialog *
 sort_cases_dialog_create(GladeXML *xml)
 {
   struct sort_cases_dialog *dialog = g_malloc(sizeof(*dialog));
@@ -305,8 +305,8 @@ sort_cases_dialog_create(GladeXML *xml)
 
   dialog->arrow = GTK_ARROW(get_widget_assert(xml, "sort-cases-arrow"));
   dialog->button = GTK_BUTTON(get_widget_assert(xml, "sort-cases-button"));
-  
-  dialog->ascending_button = 
+
+  dialog->ascending_button =
     GTK_TOGGLE_BUTTON(get_widget_assert(xml, "sort-cases-button-ascending"));
 
   g_signal_connect(dialog->window, "delete-event",
@@ -331,7 +331,7 @@ sort_cases_dialog_create(GladeXML *xml)
   /* Set up the dictionary treeview */
     GtkTreeViewColumn *col;
 
-    GtkTreeSelection *selection = 
+    GtkTreeSelection *selection =
       gtk_tree_view_get_selection(dialog->dict_view);
 
     GtkCellRenderer *renderer = gtk_cell_renderer_text_new();
@@ -351,13 +351,13 @@ sort_cases_dialog_create(GladeXML *xml)
 
     gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
 
-    g_signal_connect(selection, "changed", 
+    g_signal_connect(selection, "changed",
 		     G_CALLBACK(dictionary_selection_changed), dialog);
   }
 
   {
     /* Set up the variable list treeview */
-    GtkTreeSelection *selection = 
+    GtkTreeSelection *selection =
       gtk_tree_view_get_selection(dialog->criteria_view);
 
     gtk_tree_selection_set_mode(selection, GTK_SELECTION_MULTIPLE);
@@ -372,21 +372,21 @@ sort_cases_dialog_create(GladeXML *xml)
 
     gtk_tree_view_column_set_sizing (dialog->crit_col, GTK_TREE_VIEW_COLUMN_FIXED);
 
-    gtk_tree_view_append_column(GTK_TREE_VIEW(dialog->criteria_view), 
+    gtk_tree_view_append_column(GTK_TREE_VIEW(dialog->criteria_view),
 				dialog->crit_col);
 
-    g_signal_connect(selection, "changed", 
+    g_signal_connect(selection, "changed",
 		     G_CALLBACK(criteria_selection_changed), dialog);
   }
 
   {
     /* Create the list of criteria */
-    dialog->criteria_list = gtk_list_store_new(2, 
+    dialog->criteria_list = gtk_list_store_new(2,
 			    G_TYPE_INT, /* index of the variable */
 			    G_TYPE_INT  /* Ascending/Descending */
 			    );
 
-    gtk_tree_view_set_model(dialog->criteria_view, 
+    gtk_tree_view_set_model(dialog->criteria_view,
 			    GTK_TREE_MODEL(dialog->criteria_list));
   }
 
@@ -407,19 +407,19 @@ convert_list_store_to_criteria(GtkListStore *list,
    with a valid sort criteria which can be used to sort the data.
    This structure and its contents must be freed by the caller. */
 gint
-sort_cases_dialog_run(struct sort_cases_dialog *dialog, 
+sort_cases_dialog_run(struct sort_cases_dialog *dialog,
 		      PsppireDict *dict,
 		      struct sort_criteria *criteria
 		      )
 {
   g_assert(! g_main_loop_is_running(dialog->loop));
 
-  gtk_tree_view_set_model(GTK_TREE_VIEW(dialog->dict_view), 
+  gtk_tree_view_set_model(GTK_TREE_VIEW(dialog->dict_view),
 			  GTK_TREE_MODEL(dict));
 
-  
-  gtk_tree_view_column_set_cell_data_func(dialog->crit_col, 
-					  dialog->crit_renderer, 
+
+  gtk_tree_view_column_set_cell_data_func(dialog->crit_col,
+					  dialog->crit_renderer,
 					  criteria_render_func, dict, 0);
 
   gtk_list_store_clear(dialog->criteria_list);
@@ -431,8 +431,8 @@ sort_cases_dialog_run(struct sort_cases_dialog *dialog,
 
   g_main_loop_run(dialog->loop);
 
-  if ( GTK_RESPONSE_OK == dialog->response) 
-    convert_list_store_to_criteria(dialog->criteria_list, 
+  if ( GTK_RESPONSE_OK == dialog->response)
+    convert_list_store_to_criteria(dialog->criteria_list,
 				   dict, criteria);
 
   return dialog->response;
@@ -451,10 +451,10 @@ convert_list_store_to_criteria(GtkListStore *list,
   gint n = 0;
 
   GtkTreeModel *model = GTK_TREE_MODEL(list);
-  
+
   criteria->crit_cnt = gtk_tree_model_iter_n_children (model, NULL);
 
-  criteria->crits = g_malloc(sizeof(struct sort_criterion) * 
+  criteria->crits = g_malloc(sizeof(struct sort_criterion) *
 			     criteria->crit_cnt);
 
   for(valid = gtk_tree_model_get_iter_first(model, &iter);
@@ -466,9 +466,9 @@ convert_list_store_to_criteria(GtkListStore *list,
       struct sort_criterion *scn = &criteria->crits[n];
       g_assert ( n < criteria->crit_cnt);
       n++;
-      
-      gtk_tree_model_get(model, &iter, 
-			 CRIT_TVM_IDX, &index, 
+
+      gtk_tree_model_get(model, &iter,
+			 CRIT_TVM_IDX, &index,
 			 CRIT_TVM_DIR, &scn->dir,
 			 -1);
 

@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2004  Free Software Foundation
 
@@ -27,12 +27,12 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
-/* Formats a value according to FORMAT 
+/* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
 gchar * value_to_text(union value v, struct fmt_spec format);
 
 
-gboolean text_to_value(const gchar *text, union value *v, 
+gboolean text_to_value(const gchar *text, union value *v,
 		       struct fmt_spec format);
 
 GtkWidget * get_widget_assert(GladeXML *xml, const gchar *name);

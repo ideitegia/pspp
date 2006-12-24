@@ -11,7 +11,7 @@
 #include <string.h>
 #include <data/settings.h>
 
-/* Formats a value according to FORMAT 
+/* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
 gchar *
 value_to_text(union value v, struct fmt_spec format)
@@ -28,25 +28,25 @@ value_to_text(union value v, struct fmt_spec format)
 
 
 
-gboolean 
-text_to_value(const gchar *text, union value *v, 
+gboolean
+text_to_value(const gchar *text, union value *v,
 	      struct fmt_spec format)
 {
   bool ok;
 
-  if ( format.type != FMT_A) 
+  if ( format.type != FMT_A)
     {
       if ( ! text ) return FALSE;
 
       {
 	const gchar *s = text;
-	while(*s) 
+	while(*s)
 	  {
 	    if ( !isspace(*s))
 	      break;
 	    s++;
 	  }
- 
+
 	if ( !*s) return FALSE;
       }
     }
@@ -66,10 +66,10 @@ get_widget_assert(GladeXML *xml, const gchar *name)
   GtkWidget *w;
   g_assert(xml);
   g_assert(name);
-  
+
   w = glade_xml_get_widget(xml, name);
 
-  if ( !w ) 
+  if ( !w )
     g_warning("Widget \"%s\" could not be found\n", name);
 
   return w;

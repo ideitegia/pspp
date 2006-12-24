@@ -1,4 +1,4 @@
-/* 
+/*
     PSPPIRE --- A Graphical User Interface for PSPP
     Copyright (C) 2004  Free Software Foundation
 
@@ -95,11 +95,11 @@ void psppire_dict_delete_variables(PsppireDict *d, gint first, gint n);
 /* Insert a new variable at posn IDX */
 void psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name);
 
-void psppire_dict_resize_variable(PsppireDict *, 
+void psppire_dict_resize_variable(PsppireDict *,
 				  const struct variable *,
 				  gint, gint );
 
-gboolean psppire_dict_check_name(const PsppireDict *dict, 
+gboolean psppire_dict_check_name(const PsppireDict *dict,
 			      const gchar *name, gboolean report);
 
 gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
