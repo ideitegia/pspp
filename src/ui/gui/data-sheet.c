@@ -181,7 +181,7 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
   gtk_sheet_set_active_cell (GTK_SHEET(sheet), -1, -1);
 
 
-  gtk_sheet_set_model (sheet, G_SHEET_MODEL(the_data_store));
+  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL(the_data_store));
 
   gtk_widget_show (sheet);
 

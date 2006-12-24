@@ -22,7 +22,8 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
 				 PKGDATADIR "/psppicon.png", 0);
 
 
-  gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (about), authors);
+  gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (about),
+				(const gchar **) authors);
 
   gtk_window_set_transient_for (GTK_WINDOW(about), parent);
 

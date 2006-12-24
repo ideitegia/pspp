@@ -93,7 +93,7 @@ const gchar *const measures[n_MEASURES + 1]={
 };
 
 static GtkListStore *
-create_label_list (const gchar **labels)
+create_label_list (const gchar *const *labels)
 {
   const gchar *s;
   gint i = 0;
@@ -441,7 +441,7 @@ psppire_variable_sheet_create (gchar *widget_name,
 		    GTK_SIGNAL_FUNC (traverse_cell_callback), 0);
 
 
-  gtk_sheet_set_model (sheet, G_SHEET_MODEL(the_var_store));
+  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL(the_var_store));
 
 
   /* Since this happens inside glade_xml_new, we must prevent strings from

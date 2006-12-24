@@ -88,10 +88,6 @@ main (int argc, char *argv[])
   PsppireDict *dictionary = 0;
 
 
-  GtkWidget *data_editor ;
-  GtkSheet *var_sheet ;
-  GtkSheet *data_sheet ;
-
   gchar *filename=0;
   GError *err = 0;
   gchar *vers;

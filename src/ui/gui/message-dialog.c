@@ -97,7 +97,6 @@ enqueue_msg (const struct msg *msg)
 void
 popup_message (const struct msg *m)
 {
-  GtkWindow *parent;
   GtkWidget *dialog;
 
   gint message_type;
