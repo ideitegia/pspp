@@ -84,16 +84,16 @@ struct _PsppireDataStoreClass
 inline GType psppire_data_store_get_type (void) G_GNUC_CONST;
 PsppireDataStore *psppire_data_store_new     (PsppireDict *dict);
 
-void psppire_data_store_set_dictionary(PsppireDataStore *data_store,
+void psppire_data_store_set_dictionary (PsppireDataStore *data_store,
 				       PsppireDict *dict);
 
-void psppire_data_store_set_font(PsppireDataStore *store,
+void psppire_data_store_set_font (PsppireDataStore *store,
 				 const PangoFontDescription *fd);
 
-void psppire_data_store_show_labels(PsppireDataStore *store,
+void psppire_data_store_show_labels (PsppireDataStore *store,
 				    gboolean show_labels);
 
-void psppire_data_store_clear(PsppireDataStore *data_store);
+void psppire_data_store_clear (PsppireDataStore *data_store);
 
 struct file_handle;
 

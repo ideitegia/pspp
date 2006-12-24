@@ -31,7 +31,7 @@ struct flexifile_factory
 
 
 static struct casefile *
-produce_flexifile(struct casefile_factory *this UNUSED, size_t value_cnt)
+produce_flexifile (struct casefile_factory *this UNUSED, size_t value_cnt)
 {
   struct casefile *ff =  flexifile_create (value_cnt);
 

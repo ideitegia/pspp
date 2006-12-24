@@ -14,14 +14,14 @@
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
 gchar *
-value_to_text(union value v, struct fmt_spec format)
+value_to_text (union value v, struct fmt_spec format)
 {
   gchar *s = 0;
 
-  s = g_new(gchar, format.w + 1);
-  data_out(&v, &format, s);
+  s = g_new (gchar, format.w + 1);
+  data_out (&v, &format, s);
   s[format.w]='\0';
-  g_strchug(s);
+  g_strchug (s);
 
   return s;
 }
@@ -29,7 +29,7 @@ value_to_text(union value v, struct fmt_spec format)
 
 
 gboolean
-text_to_value(const gchar *text, union value *v,
+text_to_value (const gchar *text, union value *v,
 	      struct fmt_spec format)
 {
   bool ok;
@@ -40,9 +40,9 @@ text_to_value(const gchar *text, union value *v,
 
       {
 	const gchar *s = text;
-	while(*s)
+	while (*s)
 	  {
-	    if ( !isspace(*s))
+	    if ( !isspace (*s))
 	      break;
 	    s++;
 	  }
@@ -61,24 +61,24 @@ text_to_value(const gchar *text, union value *v,
 
 
 GtkWidget *
-get_widget_assert(GladeXML *xml, const gchar *name)
+get_widget_assert (GladeXML *xml, const gchar *name)
 {
   GtkWidget *w;
-  g_assert(xml);
-  g_assert(name);
+  g_assert (xml);
+  g_assert (name);
 
-  w = glade_xml_get_widget(xml, name);
+  w = glade_xml_get_widget (xml, name);
 
   if ( !w )
-    g_warning("Widget \"%s\" could not be found\n", name);
+    g_warning ("Widget \"%s\" could not be found\n", name);
 
   return w;
 }
 
 /* Converts a string in the pspp locale to utf-8 */
 char *
-pspp_locale_to_utf8(const gchar *text, gssize len, GError **err)
+pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err)
 {
-  return recode_string(CONV_PSPP_TO_UTF8, text, len);
+  return recode_string (CONV_PSPP_TO_UTF8, text, len);
 }
 

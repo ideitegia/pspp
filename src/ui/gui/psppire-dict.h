@@ -71,7 +71,7 @@ void           psppire_dict_set_name (PsppireDict* s, gint idx, const gchar *nam
 void           psppire_dict_delete_var (PsppireDict *s, gint idx);
 
 /* Return the number of variables in the dictionary */
-gint psppire_dict_get_var_cnt(const PsppireDict *d);
+gint psppire_dict_get_var_cnt (const PsppireDict *d);
 
 /* Return a variable by name.
    Return NULL if it doesn't exist
@@ -79,27 +79,27 @@ gint psppire_dict_get_var_cnt(const PsppireDict *d);
 struct variable * psppire_dict_lookup_var (const PsppireDict *d, const gchar *name);
 
 /* Tell the dictionary that one of its variable has changed */
-void psppire_dict_var_changed(PsppireDict *d, gint idx);
+void psppire_dict_var_changed (PsppireDict *d, gint idx);
 
 
 /* Clears the contents of D */
-void psppire_dict_clear(PsppireDict *d);
+void psppire_dict_clear (PsppireDict *d);
 
 /* Return the IDXth variable */
 
 struct variable * psppire_dict_get_variable (PsppireDict *d, gint idx);
 
 /* Delete N variables beginning at FIRST */
-void psppire_dict_delete_variables(PsppireDict *d, gint first, gint n);
+void psppire_dict_delete_variables (PsppireDict *d, gint first, gint n);
 
 /* Insert a new variable at posn IDX */
-void psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name);
+void psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name);
 
-void psppire_dict_resize_variable(PsppireDict *,
+void psppire_dict_resize_variable (PsppireDict *,
 				  const struct variable *,
 				  gint, gint );
 
-gboolean psppire_dict_check_name(const PsppireDict *dict,
+gboolean psppire_dict_check_name (const PsppireDict *dict,
 			      const gchar *name, gboolean report);
 
 gint psppire_dict_get_next_value_idx (const PsppireDict *dict);

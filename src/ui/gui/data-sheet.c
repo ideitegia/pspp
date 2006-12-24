@@ -49,17 +49,17 @@ traverse_callback (GtkSheet * sheet,
   gint n_vars;
 
   PsppireDataStore *data_store =
-    PSPPIRE_DATA_STORE(gtk_sheet_get_model(sheet));
+    PSPPIRE_DATA_STORE(gtk_sheet_get_model (sheet));
 
 
   g_assert (data_store);
 
-  n_vars = psppire_dict_get_var_cnt(data_store->dict);
+  n_vars = psppire_dict_get_var_cnt (data_store->dict);
 
   if ( *new_column >= n_vars )
     return FALSE;
 
-  case_count = psppire_case_file_get_case_count(data_store->case_file);
+  case_count = psppire_case_file_get_case_count (data_store->case_file);
 
   if ( *new_row >= case_count )
     {
@@ -78,7 +78,7 @@ traverse_callback (GtkSheet * sheet,
 
 /* Update the data_ref_entry with the reference of the active cell */
 gint
-update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
+update_data_ref_entry (const GtkSheet *sheet, gint row, gint col)
 {
 
   GladeXML *data_editor_xml = NULL; /* FIXME !!!! */
@@ -87,11 +87,11 @@ update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
   /* The entry where the reference to the current cell is displayed */
   GtkEntry *cell_ref_entry;
 
-  PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model(sheet));
+  PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model (sheet));
   if (data_store)
     {
       const struct variable *pv =
-	psppire_dict_get_variable(data_store->dict, col);
+	psppire_dict_get_variable (data_store->dict, col);
 
       gchar *text ;
       gchar *s ;
@@ -99,19 +99,19 @@ update_data_ref_entry(const GtkSheet *sheet, gint row, gint col)
       if ( !data_editor_xml)
 	return FALSE;
 
-      text = g_strdup_printf("%d: %s", row,
+      text = g_strdup_printf ("%d: %s", row,
 			     pv ? var_get_name (pv) : "");
 
       cell_ref_entry = GTK_ENTRY(get_widget_assert (data_editor_xml,
 						   "cell_ref_entry"));
 
-      s = pspp_locale_to_utf8(text, -1, 0);
+      s = pspp_locale_to_utf8 (text, -1, 0);
 
-      g_free(text);
+      g_free (text);
 
-      gtk_entry_set_text(cell_ref_entry, s);
+      gtk_entry_set_text (cell_ref_entry, s);
 
-      g_free(s);
+      g_free (s);
     }
 
   return FALSE;
@@ -122,7 +122,7 @@ extern PsppireDataStore *the_data_store ;
 
 /* Return the width that an  'M' character would occupy when typeset in WIDGET */
 static guint
-calc_m_width(GtkWidget *widget, const PangoFontDescription *font_desc)
+calc_m_width (GtkWidget *widget, const PangoFontDescription *font_desc)
 {
   PangoRectangle rect;
   PangoLayout *layout ;
@@ -139,8 +139,8 @@ calc_m_width(GtkWidget *widget, const PangoFontDescription *font_desc)
 
   pango_layout_get_extents (layout, NULL, &rect);
 
-  g_object_unref(G_OBJECT(layout));
-  g_object_unref(G_OBJECT(context));
+  g_object_unref (G_OBJECT(layout));
+  g_object_unref (G_OBJECT(context));
 
   return PANGO_PIXELS(rect.width);
 }
@@ -148,12 +148,12 @@ calc_m_width(GtkWidget *widget, const PangoFontDescription *font_desc)
 
 
 void
-font_change_callback(GObject *obj, gpointer data)
+font_change_callback (GObject *obj, gpointer data)
 {
   GtkWidget *sheet  = data;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE(obj);
 
-  ds->width_of_m = calc_m_width(sheet, ds->font_desc);
+  ds->width_of_m = calc_m_width (sheet, ds->font_desc);
 }
 
 GtkWidget*
@@ -162,10 +162,10 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 {
   GtkWidget *sheet;
 
-  sheet = gtk_sheet_new(G_SHEET_ROW(the_data_store),
+  sheet = gtk_sheet_new (G_SHEET_ROW(the_data_store),
 			G_SHEET_COLUMN(the_data_store), "data sheet", 0);
 
-  the_data_store->width_of_m = calc_m_width(sheet, the_data_store->font_desc);
+  the_data_store->width_of_m = calc_m_width (sheet, the_data_store->font_desc);
 
   g_signal_connect (G_OBJECT (sheet), "activate",
 		    G_CALLBACK (update_data_ref_entry),
@@ -178,12 +178,12 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
   g_signal_connect (G_OBJECT (the_data_store), "font-changed",
 		    G_CALLBACK (font_change_callback), sheet);
 
-  gtk_sheet_set_active_cell(GTK_SHEET(sheet), -1, -1);
+  gtk_sheet_set_active_cell (GTK_SHEET(sheet), -1, -1);
 
 
-  gtk_sheet_set_model(sheet, G_SHEET_MODEL(the_data_store));
+  gtk_sheet_set_model (sheet, G_SHEET_MODEL(the_data_store));
 
-  gtk_widget_show(sheet);
+  gtk_widget_show (sheet);
 
   return sheet;
 }

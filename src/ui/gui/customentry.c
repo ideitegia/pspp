@@ -403,7 +403,7 @@ psppire_custom_entry_size_allocate (GtkWidget     *widget,
   g_return_if_fail (allocation != NULL);
 
   ce = PSPPIRE_CUSTOM_ENTRY (widget);
-  button_width = psppire_custom_entry_get_button_width(ce);
+  button_width = psppire_custom_entry_get_button_width (ce);
   panel_width = button_width + 2 * widget->style->xthickness;
 
   widget->allocation = *allocation;

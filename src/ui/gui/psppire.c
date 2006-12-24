@@ -58,7 +58,7 @@ static bool parse_command_line (int *argc, char ***argv,
 #define N_(msgid) msgid
 
 static void
-give_help(void)
+give_help (void)
 {
   static struct msg m = {
     MSG_GENERAL,
@@ -68,9 +68,9 @@ give_help(void)
   };
 
   if (! m.text)
-    m.text=g_strdup(_("Sorry. The help system hasn't yet been implemented."));
+    m.text=g_strdup (_("Sorry. The help system hasn't yet been implemented."));
 
-  popup_message(&m);
+  popup_message (&m);
 }
 
 PsppireVarStore *the_var_store = 0;
@@ -82,7 +82,7 @@ struct dataset * the_dataset = NULL;
 
 
 int
-main(int argc, char *argv[])
+main (int argc, char *argv[])
 {
   struct casefile_factory *factory;
   PsppireDict *dictionary = 0;
@@ -96,12 +96,12 @@ main(int argc, char *argv[])
   GError *err = 0;
   gchar *vers;
 
-  gtk_init(&argc, &argv);
-  if ( (vers = gtk_check_version(GTK_MAJOR_VERSION,
+  gtk_init (&argc, &argv);
+  if ( (vers = gtk_check_version (GTK_MAJOR_VERSION,
 				 GTK_MINOR_VERSION,
 				 GTK_MICRO_VERSION)) )
     {
-      g_critical(vers);
+      g_critical (vers);
     }
 
 
@@ -113,16 +113,16 @@ main(int argc, char *argv[])
 
   textdomain (PACKAGE);
 
-  if ( ! parse_command_line(&argc, &argv, &filename, &err) )
+  if ( ! parse_command_line (&argc, &argv, &filename, &err) )
     {
-      g_clear_error(&err);
+      g_clear_error (&err);
       return 0;
     }
 
-  glade_init();
+  glade_init ();
 
-  fmt_init();
-  settings_init();
+  fmt_init ();
+  settings_init ();
   fh_init ();
   factory = flexifile_factory_create ();
   the_source_stream = create_source_stream (
@@ -138,42 +138,42 @@ main(int argc, char *argv[])
 				dataset_dict (the_dataset)
 				);
 
-  bind_textdomain_codeset(PACKAGE, "UTF-8");
+  bind_textdomain_codeset (PACKAGE, "UTF-8");
 
   /* Create the model for the var_sheet */
-  the_var_store = psppire_var_store_new(dictionary);
+  the_var_store = psppire_var_store_new (dictionary);
 
 
   the_data_store = psppire_data_store_new (dictionary);
 
-  create_icon_factory();
+  create_icon_factory ();
 
 #if 0
   /* load the interface */
-  data_editor_xml = glade_xml_new(PKGDATADIR "/data-editor.glade", NULL, NULL);
+  data_editor_xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
 
   if ( !data_editor_xml ) return 1;
 
-  data_editor = get_widget_assert(data_editor_xml, "data_editor");
+  data_editor = get_widget_assert (data_editor_xml, "data_editor");
 
   /* connect the signals in the interface */
-  glade_xml_signal_autoconnect(data_editor_xml);
+  glade_xml_signal_autoconnect (data_editor_xml);
 
-  var_sheet  = GTK_SHEET(get_widget_assert(data_editor_xml, "variable_sheet"));
-  data_sheet = GTK_SHEET(get_widget_assert(data_editor_xml, "data_sheet"));
+  var_sheet  = GTK_SHEET(get_widget_assert (data_editor_xml, "variable_sheet"));
+  data_sheet = GTK_SHEET(get_widget_assert (data_editor_xml, "data_sheet"));
 
-  gtk_sheet_set_model(var_sheet, G_SHEET_MODEL(the_var_store));
+  gtk_sheet_set_model (var_sheet, G_SHEET_MODEL(the_var_store));
 
-  gtk_sheet_set_model(data_sheet, G_SHEET_MODEL(the_data_store));
+  gtk_sheet_set_model (data_sheet, G_SHEET_MODEL(the_data_store));
 
-  var_data_selection_init();
+  var_data_selection_init ();
 
   {
-  GList *helps = glade_xml_get_widget_prefix(data_editor_xml, "help_button_");
+  GList *helps = glade_xml_get_widget_prefix (data_editor_xml, "help_button_");
 
   GList *i;
-  for ( i = g_list_first(helps); i ; i = g_list_next(i))
-      g_signal_connect(GTK_WIDGET(i->data), "clicked", give_help, 0);
+  for ( i = g_list_first (helps); i ; i = g_list_next (i))
+      g_signal_connect (GTK_WIDGET(i->data), "clicked", give_help, 0);
   }
 
 #endif
@@ -181,19 +181,19 @@ main(int argc, char *argv[])
   new_data_window (NULL, NULL);
 
   /* start the event loop */
-  gtk_main();
+  gtk_main ();
 
   destroy_source_stream (the_source_stream);
-  message_dialog_done();
+  message_dialog_done ();
 
-  settings_done();
+  settings_done ();
 
   return 0;
 }
 
 
 /* Parses the command line specified by ARGC and ARGV as received by
-   main().  Returns true if normal execution should proceed,
+   main ().  Returns true if normal execution should proceed,
    false if the command-line indicates that PSPP should exit. */
 static bool
 parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
@@ -241,7 +241,7 @@ parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
 void
 create_icon_factory (void)
 {
-  GtkIconFactory *factory = gtk_icon_factory_new();
+  GtkIconFactory *factory = gtk_icon_factory_new ();
 
   GtkIconSet *icon_set;
 

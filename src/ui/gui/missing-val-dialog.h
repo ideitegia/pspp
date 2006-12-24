@@ -51,8 +51,8 @@ struct missing_val_dialog
   GtkWidget *discrete;
 };
 
-struct missing_val_dialog * missing_val_dialog_create(GladeXML *xml);
+struct missing_val_dialog * missing_val_dialog_create (GladeXML *xml);
 
-void missing_val_dialog_show(struct missing_val_dialog *dialog);
+void missing_val_dialog_show (struct missing_val_dialog *dialog);
 
 #endif

@@ -55,8 +55,8 @@ struct _PsppireObjectClass
 
 
 /* -- PsppireObject --- */
-GType          psppire_object_get_type(void);
-PsppireObject*      psppire_object_new(void);
+GType          psppire_object_get_type (void);
+PsppireObject*      psppire_object_new (void);
 
 G_END_DECLS
 

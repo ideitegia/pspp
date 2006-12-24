@@ -54,10 +54,10 @@ struct sort_cases_dialog
   gint response;
 };
 
-struct sort_cases_dialog * sort_cases_dialog_create(GladeXML *xml);
+struct sort_cases_dialog * sort_cases_dialog_create (GladeXML *xml);
 
 
-gint sort_cases_dialog_run(struct sort_cases_dialog *dialog,
+gint sort_cases_dialog_run (struct sort_cases_dialog *dialog,
 			   PsppireDict *dict,
 			   struct sort_criteria *criteria
 			   );

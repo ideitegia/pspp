@@ -27,6 +27,6 @@ struct source_stream ;
 
 void message_dialog_init (struct source_stream *);
 void message_dialog_done (void);
-void popup_message(const struct msg *m);
+void popup_message (const struct msg *m);
 
 #endif

@@ -93,7 +93,7 @@ const gchar *const measures[n_MEASURES + 1]={
 };
 
 static GtkListStore *
-create_label_list(const gchar **labels)
+create_label_list (const gchar **labels)
 {
   const gchar *s;
   gint i = 0;
@@ -107,7 +107,7 @@ create_label_list(const gchar **labels)
     {
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
-			  0, gettext(s),
+			  0, gettext (s),
 			  -1);
     }
 
@@ -117,11 +117,11 @@ create_label_list(const gchar **labels)
 /* Callback for when the alignment combo box
    item is selected */
 static void
-change_alignment(GtkComboBox *cb,
+change_alignment (GtkComboBox *cb,
     gpointer user_data)
 {
   struct variable *pv = user_data;
-  gint active_item = gtk_combo_box_get_active(cb);
+  gint active_item = gtk_combo_box_get_active (cb);
 
   if ( active_item < 0 ) return ;
 
@@ -133,11 +133,11 @@ change_alignment(GtkComboBox *cb,
 /* Callback for when the measure combo box
    item is selected */
 static void
-change_measure(GtkComboBox *cb,
+change_measure (GtkComboBox *cb,
     gpointer user_data)
 {
   struct variable *pv = user_data;
-  gint active_item = gtk_combo_box_get_active(cb);
+  gint active_item = gtk_combo_box_get_active (cb);
 
   if ( active_item < 0 ) return ;
 
@@ -152,20 +152,20 @@ traverse_cell_callback (GtkSheet * sheet,
 			gint *new_row, gint *new_column
 			)
 {
-  PsppireVarStore *var_store = PSPPIRE_VAR_STORE(gtk_sheet_get_model(sheet));
+  PsppireVarStore *var_store = PSPPIRE_VAR_STORE(gtk_sheet_get_model (sheet));
 
-  gint n_vars = psppire_var_store_get_var_cnt(var_store);
+  gint n_vars = psppire_var_store_get_var_cnt (var_store);
 
   if ( row == n_vars && *new_row >= n_vars)
     {
-      GtkEntry *entry = GTK_ENTRY(gtk_sheet_get_entry(sheet));
+      GtkEntry *entry = GTK_ENTRY(gtk_sheet_get_entry (sheet));
 
-      const gchar *name = gtk_entry_get_text(entry);
+      const gchar *name = gtk_entry_get_text (entry);
 
-      if (! psppire_dict_check_name(var_store->dict, name, TRUE))
+      if (! psppire_dict_check_name (var_store->dict, name, TRUE))
 	return FALSE;
 
-      psppire_dict_insert_variable(var_store->dict, row, name);
+      psppire_dict_insert_variable (var_store->dict, row, name);
 
       return TRUE;
     }
@@ -178,7 +178,7 @@ traverse_cell_callback (GtkSheet * sheet,
     {
       gint i;
       for ( i = n_vars ; i <= *new_row; ++i )
-	psppire_dict_insert_variable(var_store->dict, i, NULL);
+	psppire_dict_insert_variable (var_store->dict, i, NULL);
     }
 
   return TRUE;
@@ -194,7 +194,7 @@ static gboolean
 var_sheet_cell_entry_leave (GtkSheet * sheet, gint row, gint column,
 			    gpointer data)
 {
-  gtk_sheet_change_entry(sheet, GTK_TYPE_ENTRY);
+  gtk_sheet_change_entry (sheet, GTK_TYPE_ENTRY);
   return TRUE;
 }
 
@@ -213,18 +213,18 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
   GladeXML *xml;
 
-  g_return_val_if_fail(sheet != NULL, FALSE);
+  g_return_val_if_fail (sheet != NULL, FALSE);
 
-  var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model(sheet));
+  var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
 
   g_assert (var_store);
 
-  if ( row >= psppire_var_store_get_var_cnt(var_store))
+  if ( row >= psppire_var_store_get_var_cnt (var_store))
     return TRUE;
 
   xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
 
-  gtk_sheet_get_attributes(sheet, row, column, &attributes);
+  gtk_sheet_get_attributes (sheet, row, column, &attributes);
 
   pv = psppire_var_store_get_var (var_store, row);
 
@@ -234,20 +234,20 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
       {
 	static GtkListStore *list_store = 0;
 	GtkComboBoxEntry *cbe;
-	gtk_sheet_change_entry(sheet, GTK_TYPE_COMBO_BOX_ENTRY);
+	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
 	cbe =
-	  GTK_COMBO_BOX_ENTRY(gtk_sheet_get_entry(sheet)->parent);
+	  GTK_COMBO_BOX_ENTRY(gtk_sheet_get_entry (sheet)->parent);
 
 
-	if ( ! list_store) list_store = create_label_list(alignments);
+	if ( ! list_store) list_store = create_label_list (alignments);
 
-	gtk_combo_box_set_model(GTK_COMBO_BOX(cbe),
+	gtk_combo_box_set_model (GTK_COMBO_BOX(cbe),
 				GTK_TREE_MODEL(list_store));
 
 	gtk_combo_box_entry_set_text_column (cbe, 0);
 
 
-	g_signal_connect(G_OBJECT(cbe),"changed",
+	g_signal_connect (G_OBJECT(cbe),"changed",
 			 G_CALLBACK(change_alignment), pv);
       }
       break;
@@ -255,14 +255,14 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
       {
 	static GtkListStore *list_store = 0;
 	GtkComboBoxEntry *cbe;
-	gtk_sheet_change_entry(sheet, GTK_TYPE_COMBO_BOX_ENTRY);
+	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
 	cbe =
-	  GTK_COMBO_BOX_ENTRY(gtk_sheet_get_entry(sheet)->parent);
+	  GTK_COMBO_BOX_ENTRY(gtk_sheet_get_entry (sheet)->parent);
 
 
 	if ( ! list_store) list_store = create_label_list (measures);
 
-	gtk_combo_box_set_model(GTK_COMBO_BOX(cbe),
+	gtk_combo_box_set_model (GTK_COMBO_BOX(cbe),
 				GTK_TREE_MODEL(list_store));
 
 	gtk_combo_box_entry_set_text_column (cbe, 0);
@@ -278,18 +278,18 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
 	PsppireCustomEntry *customEntry;
 
-	gtk_sheet_change_entry(sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
+	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry(sheet));
+	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry (sheet));
 
 
 	if (!val_labs_dialog )
-	    val_labs_dialog = val_labs_dialog_create(xml);
+	    val_labs_dialog = val_labs_dialog_create (xml);
 
 	val_labs_dialog->pv = pv;
 
-	g_signal_connect_swapped(GTK_OBJECT(customEntry),
+	g_signal_connect_swapped (GTK_OBJECT(customEntry),
 				 "clicked",
 				 GTK_SIGNAL_FUNC(val_labs_dialog_show),
 				 val_labs_dialog);
@@ -300,17 +300,17 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	static struct missing_val_dialog *missing_val_dialog = 0;
 	PsppireCustomEntry *customEntry;
 
-	gtk_sheet_change_entry(sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
+	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry(sheet));
+	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry (sheet));
 
 	if (!missing_val_dialog )
-	    missing_val_dialog = missing_val_dialog_create(xml);
+	    missing_val_dialog = missing_val_dialog_create (xml);
 
 	missing_val_dialog->pv = psppire_var_store_get_var (var_store, row);
 
-	g_signal_connect_swapped(GTK_OBJECT(customEntry),
+	g_signal_connect_swapped (GTK_OBJECT(customEntry),
 				 "clicked",
 				 GTK_SIGNAL_FUNC(missing_val_dialog_show),
 				 missing_val_dialog);
@@ -323,20 +323,20 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
 	PsppireCustomEntry *customEntry;
 
-	gtk_sheet_change_entry(sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
+	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry(sheet));
+	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry (sheet));
 
 
 	/* Popup the Variable Type dialog box */
 	if (!var_type_dialog )
-	    var_type_dialog = var_type_dialog_create(xml);
+	    var_type_dialog = var_type_dialog_create (xml);
 
 
 	var_type_dialog->pv = pv;
 
-	g_signal_connect_swapped(GTK_OBJECT(customEntry),
+	g_signal_connect_swapped (GTK_OBJECT(customEntry),
 				 "clicked",
 				 GTK_SIGNAL_FUNC(var_type_dialog_show),
 				 var_type_dialog);
@@ -350,12 +350,12 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	  {
 	    gint r_min, r_max;
 
-	    const gchar *s = gtk_sheet_cell_get_text(sheet, row, column);
+	    const gchar *s = gtk_sheet_cell_get_text (sheet, row, column);
 
 	    if (s)
 	      {
 		GtkSpinButton *spinButton ;
-		const gint current_value  = atoi(s);
+		const gint current_value  = atoi (s);
 		GtkObject *adj ;
 
 		const struct fmt_spec *fmt = var_get_write_format (pv);
@@ -374,28 +374,28 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 		    r_max = 255 ; /* Is this a sensible value ? */
 		    break;
 		  default:
-		    g_assert_not_reached();
+		    g_assert_not_reached ();
 		  }
 
-		adj = gtk_adjustment_new(current_value,
+		adj = gtk_adjustment_new (current_value,
 					 r_min, r_max,
 					 1.0, 1.0, 1.0 /* steps */
 					 );
 
-		gtk_sheet_change_entry(sheet, GTK_TYPE_SPIN_BUTTON);
+		gtk_sheet_change_entry (sheet, GTK_TYPE_SPIN_BUTTON);
 
 		spinButton =
-		  GTK_SPIN_BUTTON(gtk_sheet_get_entry(sheet));
+		  GTK_SPIN_BUTTON(gtk_sheet_get_entry (sheet));
 
-		gtk_spin_button_set_adjustment(spinButton, GTK_ADJUSTMENT(adj));
-		gtk_spin_button_set_digits(spinButton, 0);
+		gtk_spin_button_set_adjustment (spinButton, GTK_ADJUSTMENT(adj));
+		gtk_spin_button_set_digits (spinButton, 0);
 	      }
 	  }
       }
       break;
 
     default:
-      gtk_sheet_change_entry(sheet, GTK_TYPE_ENTRY);
+      gtk_sheet_change_entry (sheet, GTK_TYPE_ENTRY);
       break;
     }
 
@@ -420,11 +420,11 @@ psppire_variable_sheet_create (gchar *widget_name,
   gint i;
   GtkWidget *sheet;
 
-  GObject *geo = g_sheet_hetero_column_new(75, n_COLS);
+  GObject *geo = g_sheet_hetero_column_new (75, n_COLS);
 
   g_assert (the_var_store);
 
-  sheet = gtk_sheet_new(G_SHEET_ROW(the_var_store),
+  sheet = gtk_sheet_new (G_SHEET_ROW(the_var_store),
 			G_SHEET_COLUMN(geo),
 			"variable sheet", 0);
 
@@ -441,24 +441,24 @@ psppire_variable_sheet_create (gchar *widget_name,
 		    GTK_SIGNAL_FUNC (traverse_cell_callback), 0);
 
 
-  gtk_sheet_set_model(sheet, G_SHEET_MODEL(the_var_store));
+  gtk_sheet_set_model (sheet, G_SHEET_MODEL(the_var_store));
 
 
   /* Since this happens inside glade_xml_new, we must prevent strings from
    * being re-encoded twice */
-  codeset = bind_textdomain_codeset(PACKAGE, 0);
-  bind_textdomain_codeset(PACKAGE, nl_langinfo(CODESET));
+  codeset = bind_textdomain_codeset (PACKAGE, 0);
+  bind_textdomain_codeset (PACKAGE, nl_langinfo (CODESET));
   for (i = 0 ; i < n_COLS ; ++i )
     {
-      g_sheet_hetero_column_set_button_label(G_SHEET_HETERO_COLUMN(geo), i,
-		      	gettext(column_def[i].label));
+      g_sheet_hetero_column_set_button_label (G_SHEET_HETERO_COLUMN(geo), i,
+		      	gettext (column_def[i].label));
 
-      g_sheet_hetero_column_set_width(G_SHEET_HETERO_COLUMN(geo), i,
+      g_sheet_hetero_column_set_width (G_SHEET_HETERO_COLUMN(geo), i,
 					       column_def[i].width);
     }
-  bind_textdomain_codeset(PACKAGE, codeset);
+  bind_textdomain_codeset (PACKAGE, codeset);
 
-  gtk_widget_show(sheet);
+  gtk_widget_show (sheet);
 
   return sheet;
 }

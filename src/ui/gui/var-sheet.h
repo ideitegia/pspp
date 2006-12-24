@@ -38,7 +38,7 @@ enum {COL_NAME,
       n_COLS};
 
 
-void var_sheet_range_set_editable(GtkSheet *sheet,
+void var_sheet_range_set_editable (GtkSheet *sheet,
 				  const GtkSheetRange *urange,
 				  gboolean editable);
 

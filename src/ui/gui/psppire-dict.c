@@ -39,7 +39,7 @@ static void psppire_dict_class_init	(PsppireDictClass	*class);
 static void psppire_dict_init	(PsppireDict		*dict);
 static void psppire_dict_finalize	(GObject		*object);
 
-static void dictionary_tree_model_init(GtkTreeModelIface *iface);
+static void dictionary_tree_model_init (GtkTreeModelIface *iface);
 
 
 /* --- variables --- */
@@ -89,7 +89,7 @@ psppire_dict_get_type (void)
 					    "PsppireDict",
 					    &object_info, 0);
 
-      g_type_add_interface_static(object_type, GTK_TYPE_TREE_MODEL,
+      g_type_add_interface_static (object_type, GTK_TYPE_TREE_MODEL,
 				  &tree_model_info);
 
 
@@ -165,7 +165,7 @@ psppire_dict_finalize (GObject *object)
 {
   PsppireDict *d = PSPPIRE_DICT (object);
 
-  dict_destroy(d->dict);
+  dict_destroy (d->dict);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -175,19 +175,19 @@ psppire_dict_finalize (GObject *object)
 static void
 addcb (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit(pd, signal[VARIABLE_INSERTED], 0, idx);
+  g_signal_emit (pd, signal[VARIABLE_INSERTED], 0, idx);
 }
 
 static void
 delcb (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit(pd, signal[VARIABLES_DELETED], 0, idx, 1);
+  g_signal_emit (pd, signal[VARIABLES_DELETED], 0, idx, 1);
 }
 
 static void
 mutcb (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit(pd, signal[VARIABLE_CHANGED], 0, idx);
+  g_signal_emit (pd, signal[VARIABLE_CHANGED], 0, idx);
 }
 
 static const struct dict_callbacks gui_callbacks =
@@ -200,7 +200,7 @@ static const struct dict_callbacks gui_callbacks =
 static void
 psppire_dict_init (PsppireDict *psppire_dict)
 {
-  psppire_dict->stamp = g_random_int();
+  psppire_dict->stamp = g_random_int ();
 }
 
 /**
@@ -229,8 +229,8 @@ auto_generate_var_name (PsppireDict *dict)
   gint d = 0;
   static gchar name[10];
 
-  while (g_snprintf(name, 10, "VAR%05d",d++),
-	 psppire_dict_lookup_var(dict, name))
+  while (g_snprintf (name, 10, "VAR%05d",d++),
+	 psppire_dict_lookup_var (dict, name))
     ;
 
   return name;
@@ -240,31 +240,31 @@ auto_generate_var_name (PsppireDict *dict)
    If NAME is null, then a name will be automatically assigned.
  */
 void
-psppire_dict_insert_variable(PsppireDict *d, gint idx, const gchar *name)
+psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
 {
   struct variable *var ;
-  g_return_if_fail(d);
-  g_return_if_fail(G_IS_PSPPIRE_DICT(d));
+  g_return_if_fail (d);
+  g_return_if_fail (G_IS_PSPPIRE_DICT(d));
 
 
   if ( ! name )
-    name = auto_generate_var_name(d);
+    name = auto_generate_var_name (d);
 
-  var = dict_create_var(d->dict, name, 0);
+  var = dict_create_var (d->dict, name, 0);
 
-  dict_reorder_var(d->dict, var, idx);
+  dict_reorder_var (d->dict, var, idx);
 
-  g_signal_emit(d, signal[VARIABLE_INSERTED], 0, idx );
+  g_signal_emit (d, signal[VARIABLE_INSERTED], 0, idx );
 }
 
 /* Delete N variables beginning at FIRST */
 void
-psppire_dict_delete_variables(PsppireDict *d, gint first, gint n)
+psppire_dict_delete_variables (PsppireDict *d, gint first, gint n)
 {
   gint idx;
-  g_return_if_fail(d);
-  g_return_if_fail(d->dict);
-  g_return_if_fail(G_IS_PSPPIRE_DICT(d));
+  g_return_if_fail (d);
+  g_return_if_fail (d->dict);
+  g_return_if_fail (G_IS_PSPPIRE_DICT(d));
 
   for (idx = 0 ; idx < n ; ++idx )
     {
@@ -274,35 +274,35 @@ psppire_dict_delete_variables(PsppireDict *d, gint first, gint n)
       if ( first >= dict_get_var_cnt (d->dict))
 	break;
 
-      var = dict_get_var(d->dict, first);
+      var = dict_get_var (d->dict, first);
       dict_delete_var (d->dict, var);
     }
-  dict_compact_values(d->dict);
+  dict_compact_values (d->dict);
 
-  g_signal_emit(d, signal[VARIABLES_DELETED], 0, first, idx );
+  g_signal_emit (d, signal[VARIABLES_DELETED], 0, first, idx );
 }
 
 
 void
-psppire_dict_set_name(PsppireDict* d, gint idx, const gchar *name)
+psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
 {
   struct variable *var;
-  g_assert(d);
-  g_assert(G_IS_PSPPIRE_DICT(d));
+  g_assert (d);
+  g_assert (G_IS_PSPPIRE_DICT(d));
 
 
-  if ( idx < dict_get_var_cnt(d->dict))
+  if ( idx < dict_get_var_cnt (d->dict))
     {
       /* This is an existing variable? */
-      var = dict_get_var(d->dict, idx);
-      dict_rename_var(d->dict, var, name);
-      g_signal_emit(d, signal[VARIABLE_CHANGED], 0, idx);
+      var = dict_get_var (d->dict, idx);
+      dict_rename_var (d->dict, var, name);
+      g_signal_emit (d, signal[VARIABLE_CHANGED], 0, idx);
     }
   else
     {
       /* new variable */
-      dict_create_var(d->dict, name, 0);
-      g_signal_emit(d, signal[VARIABLE_INSERTED], 0, idx);
+      dict_create_var (d->dict, name, 0);
+      g_signal_emit (d, signal[VARIABLE_INSERTED], 0, idx);
     }
 }
 
@@ -310,10 +310,10 @@ psppire_dict_set_name(PsppireDict* d, gint idx, const gchar *name)
 
 /* Return the IDXth variable */
 struct variable *
-psppire_dict_get_variable(PsppireDict *d, gint idx)
+psppire_dict_get_variable (PsppireDict *d, gint idx)
 {
-  g_return_val_if_fail(d, NULL);
-  g_return_val_if_fail(d->dict, NULL);
+  g_return_val_if_fail (d, NULL);
+  g_return_val_if_fail (d->dict, NULL);
 
   if ( dict_get_var_cnt (d->dict) <= idx )
     return NULL;
@@ -349,25 +349,25 @@ psppire_dict_lookup_var (const PsppireDict *d, const gchar *name)
 void
 psppire_dict_var_changed (PsppireDict *d, gint idx)
 {
-  g_return_if_fail(d);
+  g_return_if_fail (d);
 
-  g_signal_emit(d, signal[VARIABLE_CHANGED], 0, idx);
+  g_signal_emit (d, signal[VARIABLE_CHANGED], 0, idx);
 }
 
 
 /* Clears the contents of D */
 void
-psppire_dict_clear(PsppireDict *d)
+psppire_dict_clear (PsppireDict *d)
 {
-  g_return_if_fail(d);
-  g_return_if_fail(d->dict);
+  g_return_if_fail (d);
+  g_return_if_fail (d->dict);
 
   {
-    const gint n_vars = dict_get_var_cnt(d->dict);
+    const gint n_vars = dict_get_var_cnt (d->dict);
 
-    dict_clear(d->dict);
+    dict_clear (d->dict);
 
-    g_signal_emit(d, signal[VARIABLES_DELETED], 0, 0, n_vars );
+    g_signal_emit (d, signal[VARIABLES_DELETED], 0, 0, n_vars );
   }
 }
 
@@ -378,16 +378,16 @@ psppire_dict_clear(PsppireDict *d)
    If REPORT is true, then invalid names will be reported as such as errors
 */
 gboolean
-psppire_dict_check_name(const PsppireDict *dict,
+psppire_dict_check_name (const PsppireDict *dict,
 		     const gchar *name, gboolean report)
 {
-  if ( ! var_is_valid_name(name, report ) )
+  if ( ! var_is_valid_name (name, report ) )
       return FALSE;
 
-  if (psppire_dict_lookup_var(dict, name))
+  if (psppire_dict_lookup_var (dict, name))
     {
       if ( report )
-	msg(ME,"Duplicate variable name.");
+	msg (ME,"Duplicate variable name.");
       return FALSE;
     }
 
@@ -398,7 +398,7 @@ psppire_dict_check_name(const PsppireDict *dict,
 inline gint
 psppire_dict_get_next_value_idx (const PsppireDict *dict)
 {
-  return dict_get_next_value_idx(dict->dict);
+  return dict_get_next_value_idx (dict->dict);
 }
 
 
@@ -417,7 +417,7 @@ psppire_dict_resize_variable (PsppireDict *d, const struct variable *pv,
 
   fv = var_get_case_index (pv);
 
-  g_signal_emit(d, signal[VARIABLE_RESIZED], 0,
+  g_signal_emit (d, signal[VARIABLE_RESIZED], 0,
 		fv + old_size,
 		new_size - old_size );
 }
@@ -484,7 +484,7 @@ tree_model_column_type (GtkTreeModel *model, gint index)
 {
   g_return_val_if_fail (G_IS_PSPPIRE_DICT(model), (GType) 0);
 
-  switch(index)
+  switch (index)
     {
     case DICT_TVM_COL_NAME:
       return G_TYPE_STRING;
@@ -493,16 +493,16 @@ tree_model_column_type (GtkTreeModel *model, gint index)
       return G_TYPE_POINTER;
       break;
     default:
-      g_return_val_if_reached((GType)0);
+      g_return_val_if_reached ((GType)0);
       break;
     }
 
-  g_assert_not_reached();
+  g_assert_not_reached ();
   return ((GType)0);
 }
 
 static gboolean
-tree_model_get_iter(GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
+tree_model_get_iter (GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
 {
   gint *indices, depth;
   gint n;
@@ -515,7 +515,7 @@ tree_model_get_iter(GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
   indices = gtk_tree_path_get_indices (path);
   depth = gtk_tree_path_get_depth (path);
 
-  g_return_val_if_fail(depth == 1, FALSE);
+  g_return_val_if_fail (depth == 1, FALSE);
 
   n = indices[0];
 
@@ -534,13 +534,13 @@ tree_model_get_iter(GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
 
 
 static gboolean
-tree_model_iter_next(GtkTreeModel *model, GtkTreeIter *iter)
+tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
 {
   PsppireDict *dict = PSPPIRE_DICT (model);
   struct variable *variable;
   gint idx;
 
-  g_return_val_if_fail(iter->stamp == dict->stamp, FALSE);
+  g_return_val_if_fail (iter->stamp == dict->stamp, FALSE);
 
   if ( iter == NULL || iter->user_data == NULL)
     return FALSE;
@@ -549,7 +549,7 @@ tree_model_iter_next(GtkTreeModel *model, GtkTreeIter *iter)
 
   idx = var_get_dict_index (variable);
 
-  if ( idx + 1 >= psppire_dict_get_var_cnt(dict))
+  if ( idx + 1 >= psppire_dict_get_var_cnt (dict))
     return FALSE;
 
   variable = psppire_dict_get_variable (dict, idx + 1);
@@ -562,68 +562,68 @@ tree_model_iter_next(GtkTreeModel *model, GtkTreeIter *iter)
 }
 
 static GtkTreePath *
-tree_model_get_path(GtkTreeModel *model, GtkTreeIter *iter)
+tree_model_get_path (GtkTreeModel *model, GtkTreeIter *iter)
 {
   GtkTreePath *path;
   struct variable *variable;
   PsppireDict *dict = PSPPIRE_DICT (model);
 
-  g_return_val_if_fail(iter->stamp == dict->stamp, FALSE);
+  g_return_val_if_fail (iter->stamp == dict->stamp, FALSE);
 
   variable = (struct variable *) iter->user_data;
 
-  path = gtk_tree_path_new();
-  gtk_tree_path_append_index(path, var_get_dict_index (variable));
+  path = gtk_tree_path_new ();
+  gtk_tree_path_append_index (path, var_get_dict_index (variable));
 
   return path;
 }
 
 
 static void
-tree_model_get_value(GtkTreeModel *model, GtkTreeIter *iter,
+tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
 		     gint column, GValue *value)
 {
   struct variable *variable;
   PsppireDict *dict = PSPPIRE_DICT (model);
 
-  g_return_if_fail(iter->stamp == dict->stamp);
+  g_return_if_fail (iter->stamp == dict->stamp);
 
   variable = (struct variable *) iter->user_data;
 
-  switch(column)
+  switch (column)
     {
     case DICT_TVM_COL_NAME:
-      g_value_init(value, G_TYPE_STRING);
-      g_value_set_string(value, var_get_name(variable));
+      g_value_init (value, G_TYPE_STRING);
+      g_value_set_string (value, var_get_name (variable));
       break;
     case DICT_TVM_COL_VAR:
-      g_value_init(value, G_TYPE_POINTER);
-      g_value_set_pointer(value, variable);
+      g_value_init (value, G_TYPE_POINTER);
+      g_value_set_pointer (value, variable);
       break;
     default:
-      g_return_if_reached();
+      g_return_if_reached ();
       break;
     }
 }
 
 
 static gboolean
-tree_model_nth_child(GtkTreeModel *model, GtkTreeIter *iter,
+tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
 		     GtkTreeIter *parent, gint n)
 {
   PsppireDict *dict;
-  g_return_val_if_fail(G_IS_PSPPIRE_DICT(model), FALSE);
+  g_return_val_if_fail (G_IS_PSPPIRE_DICT(model), FALSE);
 
   dict = PSPPIRE_DICT(model);
 
   if ( parent )
     return FALSE;
 
-  if ( n >= psppire_dict_get_var_cnt(dict) )
+  if ( n >= psppire_dict_get_var_cnt (dict) )
     return FALSE;
 
   iter->stamp = dict->stamp;
-  iter->user_data = psppire_dict_get_variable(dict, n);
+  iter->user_data = psppire_dict_get_variable (dict, n);
 
   if ( !iter->user_data)
     return FALSE;

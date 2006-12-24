@@ -48,19 +48,19 @@ static GQueue *message_queue;
 void
 message_dialog_init (struct source_stream *ss)
 {
-  message_queue = g_queue_new();
+  message_queue = g_queue_new ();
   msg_init (ss, enqueue_msg);
 }
 
 void
 message_dialog_done (void)
 {
-  msg_done();
-  g_queue_free(message_queue);
+  msg_done ();
+  g_queue_free (message_queue);
 }
 
 static gboolean
-dequeue_message(gpointer data)
+dequeue_message (gpointer data)
 {
   struct msg * m ;
 
@@ -68,15 +68,15 @@ dequeue_message(gpointer data)
      a modal dialog box, will cause an impossible situation.
      So don't pop it up just yet.
   */
-  if ( gdk_pointer_is_grabbed())
+  if ( gdk_pointer_is_grabbed ())
     return TRUE;
 
-  m = g_queue_pop_tail(message_queue);
+  m = g_queue_pop_tail (message_queue);
 
   if ( m )
     {
-      popup_message(m);
-      msg_destroy(m);
+      popup_message (m);
+      msg_destroy (m);
       return TRUE;
     }
 
@@ -84,18 +84,18 @@ dequeue_message(gpointer data)
 }
 
 static void
-enqueue_msg(const struct msg *msg)
+enqueue_msg (const struct msg *msg)
 {
-  struct msg *m = msg_dup(msg);
+  struct msg *m = msg_dup (msg);
 
-  g_queue_push_head(message_queue, m);
+  g_queue_push_head (message_queue, m);
 
-  g_idle_add(dequeue_message, 0);
+  g_idle_add (dequeue_message, 0);
 }
 
 
 void
-popup_message(const struct msg *m)
+popup_message (const struct msg *m)
 {
   GtkWindow *parent;
   GtkWidget *dialog;
@@ -139,7 +139,7 @@ popup_message(const struct msg *m)
 				  GTK_BUTTONS_CLOSE,
 				  msg);
 
-  gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+  gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG(dialog),
                                            _("%s (line %d) %s"),
 					   m->where.file_name,
 					   m->where.line_number,
@@ -147,7 +147,7 @@ popup_message(const struct msg *m)
 
   gtk_window_set_keep_above (GTK_WINDOW(dialog), TRUE);
 
-  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_dialog_run (GTK_DIALOG(dialog));
 
   gtk_widget_destroy (dialog);
 }

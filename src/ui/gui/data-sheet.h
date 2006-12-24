@@ -24,10 +24,10 @@
 #include <gtksheet/gtksheet.h>
 #include "psppire-dict.h"
 
-void psppire_data_sheet_clear(GtkSheet *sheet);
+void psppire_data_sheet_clear (GtkSheet *sheet);
 
 #if 0
-void psppire_data_sheet_set_dictionary(GtkSheet *sheet, PsppireDict *d);
+void psppire_data_sheet_set_dictionary (GtkSheet *sheet, PsppireDict *d);
 #endif
 
 GtkWidget* psppire_data_sheet_create (gchar *widget_name,
@@ -36,16 +36,16 @@ GtkWidget* psppire_data_sheet_create (gchar *widget_name,
 				      gint int1, gint int2);
 
 
-void data_sheet_set_cell_value(GtkSheet *sheet, gint row, gint col,
+void data_sheet_set_cell_value (GtkSheet *sheet, gint row, gint col,
 			       const GValue *value);
 
 
-void psppire_data_sheet_set_show_labels(GtkSheet *sheet, gboolean show_labels);
+void psppire_data_sheet_set_show_labels (GtkSheet *sheet, gboolean show_labels);
 
 /* Repair any damage that may have been done to the data sheet */
-void psppire_data_sheet_redisplay(GtkSheet *sheet);
+void psppire_data_sheet_redisplay (GtkSheet *sheet);
 
-guint columnWidthToPixels(GtkSheet *sheet, gint column, guint width);
+guint columnWidthToPixels (GtkSheet *sheet, gint column, guint width);
 
 
 #endif

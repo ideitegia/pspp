@@ -38,7 +38,7 @@ void new_data_window (GtkMenuItem *, gpointer);
 
 void open_data_window (GtkMenuItem *, gpointer);
 
-void data_editor_select_sheet(struct data_editor *de, gint page);
+void data_editor_select_sheet (struct data_editor *de, gint page);
 
 
 #endif

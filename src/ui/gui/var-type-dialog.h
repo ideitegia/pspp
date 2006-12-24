@@ -88,13 +88,13 @@ struct var_type_dialog
 };
 
 
-struct var_type_dialog * var_type_dialog_create(GladeXML *xml);
+struct var_type_dialog * var_type_dialog_create (GladeXML *xml);
 
 
-void var_type_dialog_set_variable(struct var_type_dialog *dialog,
+void var_type_dialog_set_variable (struct var_type_dialog *dialog,
 				  variable_changed_func set_variable_changed,
 				  struct variable *var);
 
-void var_type_dialog_show(struct var_type_dialog *dialog);
+void var_type_dialog_show (struct var_type_dialog *dialog);
 
 #endif

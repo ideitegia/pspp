@@ -64,9 +64,9 @@ struct val_labs_dialog
 
 
 
-struct val_labs_dialog * val_labs_dialog_create(GladeXML *xml);
+struct val_labs_dialog * val_labs_dialog_create (GladeXML *xml);
 
-void val_labs_dialog_show(struct val_labs_dialog *dialog);
+void val_labs_dialog_show (struct val_labs_dialog *dialog);
 
 
 #endif

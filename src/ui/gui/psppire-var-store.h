@@ -83,7 +83,7 @@ void psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *
 /* Return the number of variables */
 gint psppire_var_store_get_var_cnt (PsppireVarStore      *var_store);
 
-void psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *fd);
+void psppire_var_store_set_font (PsppireVarStore *store, const PangoFontDescription *fd);
 
 
 #ifdef __cplusplus

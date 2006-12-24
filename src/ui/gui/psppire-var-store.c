@@ -51,17 +51,17 @@ static void         psppire_var_store_class_init      (PsppireVarStoreClass *cla
 static void         psppire_var_store_sheet_model_init (GSheetModelIface *iface);
 static void         psppire_var_store_finalize        (GObject           *object);
 
-static gchar *psppire_var_store_get_string(const GSheetModel *sheet_model, gint row, gint column);
+static gchar *psppire_var_store_get_string (const GSheetModel *sheet_model, gint row, gint column);
 
-static gboolean  psppire_var_store_clear(GSheetModel *model,  gint row, gint col);
+static gboolean  psppire_var_store_clear (GSheetModel *model,  gint row, gint col);
 
 
-static gboolean psppire_var_store_set_string(GSheetModel *model,
+static gboolean psppire_var_store_set_string (GSheetModel *model,
 					  const gchar *text, gint row, gint column);
 
-static gint psppire_var_store_get_row_count(const GSheetModel * model);
+static gint psppire_var_store_get_row_count (const GSheetModel * model);
 
-static gchar *text_for_column(const struct variable *pv, gint c, GError **err);
+static gchar *text_for_column (const struct variable *pv, gint c, GError **err);
 
 
 static void psppire_var_store_sheet_row_init (GSheetRowIface *iface);
@@ -135,9 +135,9 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
 static void
 psppire_var_store_init (PsppireVarStore *var_store)
 {
-  GdkColormap *colormap = gdk_colormap_get_system();
+  GdkColormap *colormap = gdk_colormap_get_system ();
 
-  g_assert(gdk_color_parse("gray", &var_store->disabled));
+  g_assert (gdk_color_parse ("gray", &var_store->disabled));
 
   gdk_colormap_alloc_color (colormap, &var_store->disabled, FALSE, TRUE);
 
@@ -145,7 +145,7 @@ psppire_var_store_init (PsppireVarStore *var_store)
 }
 
 static gboolean
-psppire_var_store_item_editable(PsppireVarStore *var_store, gint row, gint column)
+psppire_var_store_item_editable (PsppireVarStore *var_store, gint row, gint column)
 {
   const struct fmt_spec *write_spec ;
 
@@ -192,19 +192,19 @@ psppire_var_store_get_var (PsppireVarStore *store, gint row)
 }
 
 static gboolean
-psppire_var_store_is_editable(const GSheetModel *model, gint row, gint column)
+psppire_var_store_is_editable (const GSheetModel *model, gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
-  return psppire_var_store_item_editable(store, row, column);
+  return psppire_var_store_item_editable (store, row, column);
 }
 
 
 static const GdkColor *
-psppire_var_store_get_foreground(const GSheetModel *model, gint row, gint column)
+psppire_var_store_get_foreground (const GSheetModel *model, gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
 
-  if ( ! psppire_var_store_item_editable(store, row, column) )
+  if ( ! psppire_var_store_item_editable (store, row, column) )
     return &store->disabled;
 
   return NULL;
@@ -212,7 +212,7 @@ psppire_var_store_get_foreground(const GSheetModel *model, gint row, gint column
 
 
 const PangoFontDescription *
-psppire_var_store_get_font_desc(const GSheetModel *model,
+psppire_var_store_get_font_desc (const GSheetModel *model,
 			      gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
@@ -254,13 +254,13 @@ psppire_var_store_new (PsppireDict *dict)
 
   retval = g_object_new (GTK_TYPE_VAR_STORE, NULL);
 
-  psppire_var_store_set_dictionary(retval, dict);
+  psppire_var_store_set_dictionary (retval, dict);
 
   return retval;
 }
 
 static void
-var_change_callback(GtkWidget *w, gint n, gpointer data)
+var_change_callback (GtkWidget *w, gint n, gpointer data)
 {
   GSheetModel *model = G_SHEET_MODEL(data);
   g_sheet_model_range_changed (model,
@@ -269,7 +269,7 @@ var_change_callback(GtkWidget *w, gint n, gpointer data)
 
 
 static void
-var_delete_callback(GtkWidget *w, gint first, gint n, gpointer data)
+var_delete_callback (GtkWidget *w, gint first, gint n, gpointer data)
 {
   GSheetModel *model = G_SHEET_MODEL(data);
 
@@ -279,7 +279,7 @@ var_delete_callback(GtkWidget *w, gint first, gint n, gpointer data)
 
 
 static void
-var_insert_callback(GtkWidget *w, gint row, gpointer data)
+var_insert_callback (GtkWidget *w, gint row, gpointer data)
 {
   GSheetModel *model = G_SHEET_MODEL(data);
 
@@ -297,19 +297,19 @@ var_insert_callback(GtkWidget *w, gint row, gpointer data)
  * destroyed.
  **/
 void
-psppire_var_store_set_dictionary(PsppireVarStore *var_store, PsppireDict *dict)
+psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict)
 {
-  if ( var_store->dict ) g_object_unref(var_store->dict);
+  if ( var_store->dict ) g_object_unref (var_store->dict);
 
   var_store->dict = dict;
 
-  g_signal_connect(dict, "variable-changed", G_CALLBACK(var_change_callback),
+  g_signal_connect (dict, "variable-changed", G_CALLBACK(var_change_callback),
 		   var_store);
 
-  g_signal_connect(dict, "variables-deleted", G_CALLBACK(var_delete_callback),
+  g_signal_connect (dict, "variables-deleted", G_CALLBACK(var_delete_callback),
 		   var_store);
 
-  g_signal_connect(dict, "variable-inserted", G_CALLBACK(var_insert_callback),
+  g_signal_connect (dict, "variable-inserted", G_CALLBACK(var_insert_callback),
 		   var_store);
 
 
@@ -325,13 +325,13 @@ psppire_var_store_finalize (GObject *object)
 }
 
 static gchar *
-psppire_var_store_get_string(const GSheetModel *model, gint row, gint column)
+psppire_var_store_get_string (const GSheetModel *model, gint row, gint column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
 
   struct variable *pv;
 
-  if ( row >= psppire_dict_get_var_cnt(store->dict))
+  if ( row >= psppire_dict_get_var_cnt (store->dict))
     return 0;
 
   pv = psppire_dict_get_variable (store->dict, row);
@@ -345,7 +345,7 @@ psppire_var_store_get_string(const GSheetModel *model, gint row, gint column)
    Returns true if anything was updated, false otherwise.
 */
 static gboolean
-psppire_var_store_clear(GSheetModel *model,  gint row, gint col)
+psppire_var_store_clear (GSheetModel *model,  gint row, gint col)
 {
   struct variable *pv ;
 
@@ -375,14 +375,14 @@ psppire_var_store_clear(GSheetModel *model,  gint row, gint col)
    Returns true if anything was updated, false otherwise.
 */
 static gboolean
-psppire_var_store_set_string(GSheetModel *model,
+psppire_var_store_set_string (GSheetModel *model,
 			  const gchar *text, gint row, gint col)
 {
   struct variable *pv ;
 
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE(model);
 
-  if ( row >= psppire_dict_get_var_cnt(var_store->dict))
+  if ( row >= psppire_dict_get_var_cnt (var_store->dict))
       return FALSE;
 
   pv = psppire_var_store_get_var (var_store, row);
@@ -398,7 +398,7 @@ psppire_var_store_set_string(GSheetModel *model,
       break;
     case COL_COLUMNS:
       if ( ! text) return FALSE;
-      var_set_display_width (pv, atoi(text));
+      var_set_display_width (pv, atoi (text));
       return TRUE;
       break;
     case COL_WIDTH:
@@ -444,7 +444,7 @@ psppire_var_store_set_string(GSheetModel *model,
       }
       break;
     case COL_LABEL:
-      var_set_label(pv, text);
+      var_set_label (pv, text);
       return TRUE;
       break;
     case COL_TYPE:
@@ -456,7 +456,7 @@ psppire_var_store_set_string(GSheetModel *model,
       return FALSE;
       break;
     default:
-      g_assert_not_reached();
+      g_assert_not_reached ();
       return FALSE;
     }
 
@@ -465,7 +465,7 @@ psppire_var_store_set_string(GSheetModel *model,
 
 
 static  gchar *
-text_for_column(const struct variable *pv, gint c, GError **err)
+text_for_column (const struct variable *pv, gint c, GError **err)
 {
   static gchar none[] = N_("None");
 
@@ -495,16 +495,16 @@ text_for_column(const struct variable *pv, gint c, GError **err)
 	switch ( write_spec->type )
 	  {
 	  case FMT_F:
-	    return g_locale_to_utf8(gettext(type_label[VT_NUMERIC]), -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_NUMERIC]), -1, 0, 0, err);
 	    break;
 	  case FMT_COMMA:
-	    return g_locale_to_utf8(gettext(type_label[VT_COMMA]), -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_COMMA]), -1, 0, 0, err);
 	    break;
 	  case FMT_DOT:
-	    return g_locale_to_utf8(gettext(type_label[VT_DOT]), -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_DOT]), -1, 0, 0, err);
 	    break;
 	  case FMT_E:
-	    return g_locale_to_utf8(gettext(type_label[VT_SCIENTIFIC]), -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_SCIENTIFIC]), -1, 0, 0, err);
 	    break;
 	  case FMT_DATE:
 	  case FMT_EDATE:
@@ -519,26 +519,26 @@ text_for_column(const struct variable *pv, gint c, GError **err)
 	  case FMT_DTIME:
 	  case FMT_WKDAY:
 	  case FMT_MONTH:
-	    return g_locale_to_utf8(type_label[VT_DATE], -1, 0, 0, err);
+	    return g_locale_to_utf8 (type_label[VT_DATE], -1, 0, 0, err);
 	    break;
 	  case FMT_DOLLAR:
-	    return g_locale_to_utf8(type_label[VT_DOLLAR], -1, 0, 0, err);
+	    return g_locale_to_utf8 (type_label[VT_DOLLAR], -1, 0, 0, err);
 	    break;
 	  case FMT_CCA:
 	  case FMT_CCB:
 	  case FMT_CCC:
 	  case FMT_CCD:
 	  case FMT_CCE:
-	    return g_locale_to_utf8(gettext(type_label[VT_CUSTOM]), -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_CUSTOM]), -1, 0, 0, err);
 	    break;
 	  case FMT_A:
-	    return g_locale_to_utf8(gettext(type_label[VT_STRING]), -1, 0, 0, err);
+	    return g_locale_to_utf8 (gettext (type_label[VT_STRING]), -1, 0, 0, err);
 	    break;
 	  default:
             {
               char str[FMT_STRING_LEN_MAX + 1];
-              g_warning("Unknown format: \"%s\"\n",
-                        fmt_to_string(write_spec, str));
+              g_warning ("Unknown format: \"%s\"\n",
+                        fmt_to_string (write_spec, str));
             }
 	    break;
 	  }
@@ -547,30 +547,30 @@ text_for_column(const struct variable *pv, gint c, GError **err)
     case COL_WIDTH:
       {
 	gchar *s;
-	GString *gstr = g_string_sized_new(10);
-	g_string_printf(gstr, _("%d"), write_spec->w);
-	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
-	g_string_free(gstr, TRUE);
+	GString *gstr = g_string_sized_new (10);
+	g_string_printf (gstr, _("%d"), write_spec->w);
+	s = g_locale_to_utf8 (gstr->str, gstr->len, 0, 0, err);
+	g_string_free (gstr, TRUE);
 	return s;
       }
       break;
     case COL_DECIMALS:
       {
 	gchar *s;
-	GString *gstr = g_string_sized_new(10);
-	g_string_printf(gstr, _("%d"), write_spec->d);
-	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
-	g_string_free(gstr, TRUE);
+	GString *gstr = g_string_sized_new (10);
+	g_string_printf (gstr, _("%d"), write_spec->d);
+	s = g_locale_to_utf8 (gstr->str, gstr->len, 0, 0, err);
+	g_string_free (gstr, TRUE);
 	return s;
       }
       break;
     case COL_COLUMNS:
       {
 	gchar *s;
-	GString *gstr = g_string_sized_new(10);
-	g_string_printf(gstr, _("%d"), var_get_display_width (pv));
-	s = g_locale_to_utf8(gstr->str, gstr->len, 0, 0, err);
-	g_string_free(gstr, TRUE);
+	GString *gstr = g_string_sized_new (10);
+	g_string_printf (gstr, _("%d"), var_get_display_width (pv));
+	s = g_locale_to_utf8 (gstr->str, gstr->len, 0, 0, err);
+	g_string_free (gstr, TRUE);
 	return s;
       }
       break;
@@ -582,57 +582,57 @@ text_for_column(const struct variable *pv, gint c, GError **err)
       {
 	gchar *s;
 	const struct missing_values *miss = var_get_missing_values (pv);
-	if ( mv_is_empty(miss))
-	  return g_locale_to_utf8(gettext(none), -1, 0, 0, err);
+	if ( mv_is_empty (miss))
+	  return g_locale_to_utf8 (gettext (none), -1, 0, 0, err);
 	else
 	  {
 	    if ( ! mv_has_range (miss))
 	      {
-		GString *gstr = g_string_sized_new(10);
-		const int n = mv_n_values(miss);
+		GString *gstr = g_string_sized_new (10);
+		const int n = mv_n_values (miss);
 		gchar *mv[4] = {0,0,0,0};
 		gint i;
-		for(i = 0 ; i < n; ++i )
+		for (i = 0 ; i < n; ++i )
 		  {
 		    union value v;
-		    mv_peek_value(miss, &v, i);
-		    mv[i] = value_to_text(v, *write_spec);
+		    mv_peek_value (miss, &v, i);
+		    mv[i] = value_to_text (v, *write_spec);
 		    if ( i > 0 )
-		      g_string_append(gstr, ", ");
-		    g_string_append(gstr, mv[i]);
-		    g_free(mv[i]);
+		      g_string_append (gstr, ", ");
+		    g_string_append (gstr, mv[i]);
+		    g_free (mv[i]);
 		  }
-		s = pspp_locale_to_utf8(gstr->str, gstr->len, err);
-		g_string_free(gstr, TRUE);
+		s = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
+		g_string_free (gstr, TRUE);
 	      }
 	    else
 	      {
-		GString *gstr = g_string_sized_new(10);
+		GString *gstr = g_string_sized_new (10);
 		gchar *l, *h;
 		union value low, high;
-		mv_peek_range(miss, &low.f, &high.f);
+		mv_peek_range (miss, &low.f, &high.f);
 
-		l = value_to_text(low, *write_spec);
-		h = value_to_text(high, *write_spec);
+		l = value_to_text (low, *write_spec);
+		h = value_to_text (high, *write_spec);
 
-		g_string_printf(gstr, "%s - %s", l, h);
-		g_free(l);
-		g_free(h);
+		g_string_printf (gstr, "%s - %s", l, h);
+		g_free (l);
+		g_free (h);
 
-		if ( mv_has_value(miss))
+		if ( mv_has_value (miss))
 		  {
 		    gchar *ss = 0;
 		    union value v;
-		    mv_peek_value(miss, &v, 0);
+		    mv_peek_value (miss, &v, 0);
 
-		    ss = value_to_text(v, *write_spec);
+		    ss = value_to_text (v, *write_spec);
 
-		    g_string_append(gstr, ", ");
-		    g_string_append(gstr, ss);
-		    free(ss);
+		    g_string_append (gstr, ", ");
+		    g_string_append (gstr, ss);
+		    free (ss);
 		  }
-		s = pspp_locale_to_utf8(gstr->str, gstr->len, err);
-		g_string_free(gstr, TRUE);
+		s = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
+		g_string_free (gstr, TRUE);
 	      }
 
 	    return s;
@@ -670,10 +670,10 @@ text_for_column(const struct variable *pv, gint c, GError **err)
       break;
     case COL_ALIGN:
       {
-	const gint align = var_get_alignment(pv);
+	const gint align = var_get_alignment (pv);
 
 	g_assert (align < n_ALIGNMENTS);
-	return g_locale_to_utf8(gettext(alignments[align]), -1, 0, 0, err);
+	return g_locale_to_utf8 (gettext (alignments[align]), -1, 0, 0, err);
       }
       break;
     case COL_MEASURE:
@@ -693,14 +693,14 @@ text_for_column(const struct variable *pv, gint c, GError **err)
 
 /* Return the number of variables */
 gint
-psppire_var_store_get_var_cnt(PsppireVarStore  *store)
+psppire_var_store_get_var_cnt (PsppireVarStore  *store)
 {
-  return psppire_dict_get_var_cnt(store->dict);
+  return psppire_dict_get_var_cnt (store->dict);
 }
 
 
 void
-psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *fd)
+psppire_var_store_set_font (PsppireVarStore *store, const PangoFontDescription *fd)
 {
   g_return_if_fail (store);
   g_return_if_fail (PSPPIRE_IS_VAR_STORE (store));
@@ -712,13 +712,13 @@ psppire_var_store_set_font(PsppireVarStore *store, const PangoFontDescription *f
 
 
 static gint
-psppire_var_store_get_row_count(const GSheetModel * model)
+psppire_var_store_get_row_count (const GSheetModel * model)
 {
   gint rows = 0;
   PsppireVarStore *vs = PSPPIRE_VAR_STORE(model);
 
   if (vs->dict)
-    rows =  psppire_dict_get_var_cnt(vs->dict);
+    rows =  psppire_dict_get_var_cnt (vs->dict);
 
   return rows ;
 }
@@ -726,47 +726,47 @@ psppire_var_store_get_row_count(const GSheetModel * model)
 /* Row related funcs */
 
 static gint
-geometry_get_row_count(const GSheetRow *geom, gpointer data)
+geometry_get_row_count (const GSheetRow *geom, gpointer data)
 {
   gint rows = 0;
   PsppireVarStore *vs = PSPPIRE_VAR_STORE(geom);
 
   if (vs->dict)
-    rows =  psppire_dict_get_var_cnt(vs->dict);
+    rows =  psppire_dict_get_var_cnt (vs->dict);
 
   return rows + TRAILING_ROWS;
 }
 
 
 static gint
-geometry_get_height(const GSheetRow *geom, gint row, gpointer data)
+geometry_get_height (const GSheetRow *geom, gint row, gpointer data)
 {
   return 25;
 }
 
 
 static gboolean
-geometry_is_sensitive(const GSheetRow *geom, gint row, gpointer data)
+geometry_is_sensitive (const GSheetRow *geom, gint row, gpointer data)
 {
   PsppireVarStore *vs = PSPPIRE_VAR_STORE(geom);
 
   if ( ! vs->dict)
     return FALSE;
 
-  return  row < psppire_dict_get_var_cnt(vs->dict);
+  return  row < psppire_dict_get_var_cnt (vs->dict);
 }
 
 static
-gboolean always_true()
+gboolean always_true ()
 {
   return TRUE;
 }
 
 
 static gchar *
-geometry_get_button_label(const GSheetRow *geom, gint unit, gpointer data)
+geometry_get_button_label (const GSheetRow *geom, gint unit, gpointer data)
 {
-  gchar *label = g_strdup_printf(_("%d"), unit);
+  gchar *label = g_strdup_printf (_("%d"), unit);
 
   return label;
 }

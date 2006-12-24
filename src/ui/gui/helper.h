@@ -29,16 +29,16 @@
 
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
-gchar * value_to_text(union value v, struct fmt_spec format);
+gchar * value_to_text (union value v, struct fmt_spec format);
 
 
-gboolean text_to_value(const gchar *text, union value *v,
+gboolean text_to_value (const gchar *text, union value *v,
 		       struct fmt_spec format);
 
-GtkWidget * get_widget_assert(GladeXML *xml, const gchar *name);
+GtkWidget * get_widget_assert (GladeXML *xml, const gchar *name);
 
 /* Converts a string in the pspp locale to utf-8 */
-char * pspp_locale_to_utf8(const gchar *text, gssize len, GError **err);
+char * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
 
 
 #endif
