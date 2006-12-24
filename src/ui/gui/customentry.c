@@ -256,7 +256,7 @@ static gint
 psppire_custom_entry_expose (GtkWidget      *widget,
 		     GdkEventExpose *event)
 {
-  PsppireCustomEntry *ce = PSPPIRE_CUSTOM_ENTRY(widget);
+  PsppireCustomEntry *ce = PSPPIRE_CUSTOM_ENTRY (widget);
 
   g_return_val_if_fail (PSPPIRE_IS_CUSTOM_ENTRY (widget), FALSE);
   g_return_val_if_fail (event != NULL, FALSE);
@@ -342,7 +342,7 @@ psppire_custom_entry_class_init (PsppireCustomEntryClass *klass)
 
   custom_entry_signals[CLICKED] =
     g_signal_new ("clicked",
-		  G_TYPE_FROM_CLASS(gobject_class),
+		  G_TYPE_FROM_CLASS (gobject_class),
 		  G_SIGNAL_RUN_LAST,
 		  0,
 		  NULL, NULL,

@@ -138,15 +138,15 @@ popup_message (const struct msg *m)
 				  GTK_BUTTONS_CLOSE,
 				  msg);
 
-  gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG(dialog),
+  gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
                                            _("%s (line %d) %s"),
 					   m->where.file_name,
 					   m->where.line_number,
 					   m->text);
 
-  gtk_window_set_keep_above (GTK_WINDOW(dialog), TRUE);
+  gtk_window_set_keep_above (GTK_WINDOW (dialog), TRUE);
 
-  gtk_dialog_run (GTK_DIALOG(dialog));
+  gtk_dialog_run (GTK_DIALOG (dialog));
 
   gtk_widget_destroy (dialog);
 }

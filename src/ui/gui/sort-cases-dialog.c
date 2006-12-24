@@ -198,7 +198,7 @@ deselect_criteria (gpointer data,
 
   path = gtk_tree_row_reference_get_path (row_ref);
 
-  gtk_tree_model_get_iter (GTK_TREE_MODEL(dialog->criteria_list), &iter, path);
+  gtk_tree_model_get_iter (GTK_TREE_MODEL (dialog->criteria_list), &iter, path);
 
   gtk_list_store_remove (dialog->criteria_list, &iter);
 
@@ -298,33 +298,33 @@ sort_cases_dialog_create (GladeXML *xml)
 
   dialog->window = get_widget_assert (xml, "sort-cases-dialog");
 
-  dialog->dict_view = GTK_TREE_VIEW(get_widget_assert
+  dialog->dict_view = GTK_TREE_VIEW (get_widget_assert
 				    (xml, "sort-cases-treeview-dict"));
-  dialog->criteria_view = GTK_TREE_VIEW(get_widget_assert
+  dialog->criteria_view = GTK_TREE_VIEW (get_widget_assert
 				  (xml, "sort-cases-treeview-criteria"));
 
-  dialog->arrow = GTK_ARROW(get_widget_assert (xml, "sort-cases-arrow"));
-  dialog->button = GTK_BUTTON(get_widget_assert (xml, "sort-cases-button"));
+  dialog->arrow = GTK_ARROW (get_widget_assert (xml, "sort-cases-arrow"));
+  dialog->button = GTK_BUTTON (get_widget_assert (xml, "sort-cases-button"));
 
   dialog->ascending_button =
-    GTK_TOGGLE_BUTTON(get_widget_assert (xml, "sort-cases-button-ascending"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "sort-cases-button-ascending"));
 
   g_signal_connect (dialog->window, "delete-event",
-		   G_CALLBACK(delete_event_callback), dialog);
+		   G_CALLBACK (delete_event_callback), dialog);
 
   g_signal_connect (get_widget_assert (xml, "sort-cases-cancel"),
-		   "clicked", G_CALLBACK(sort_cases_cancel_callback), dialog);
+		   "clicked", G_CALLBACK (sort_cases_cancel_callback), dialog);
 
   g_signal_connect (get_widget_assert (xml, "sort-cases-ok"),
-		   "clicked", G_CALLBACK(sort_cases_ok_callback), dialog);
+		   "clicked", G_CALLBACK (sort_cases_ok_callback), dialog);
 
 
   g_signal_connect (get_widget_assert (xml, "sort-cases-reset"),
-		   "clicked", G_CALLBACK(sort_cases_reset_callback), dialog);
+		   "clicked", G_CALLBACK (sort_cases_reset_callback), dialog);
 
 
   g_signal_connect (get_widget_assert (xml, "sort-cases-button"),
-		   "clicked", G_CALLBACK(sort_cases_button_callback), dialog);
+		   "clicked", G_CALLBACK (sort_cases_button_callback), dialog);
 
 
   {
@@ -352,7 +352,7 @@ sort_cases_dialog_create (GladeXML *xml)
     gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
 
     g_signal_connect (selection, "changed",
-		     G_CALLBACK(dictionary_selection_changed), dialog);
+		     G_CALLBACK (dictionary_selection_changed), dialog);
   }
 
   {
@@ -372,11 +372,11 @@ sort_cases_dialog_create (GladeXML *xml)
 
     gtk_tree_view_column_set_sizing (dialog->crit_col, GTK_TREE_VIEW_COLUMN_FIXED);
 
-    gtk_tree_view_append_column (GTK_TREE_VIEW(dialog->criteria_view),
+    gtk_tree_view_append_column (GTK_TREE_VIEW (dialog->criteria_view),
 				dialog->crit_col);
 
     g_signal_connect (selection, "changed",
-		     G_CALLBACK(criteria_selection_changed), dialog);
+		     G_CALLBACK (criteria_selection_changed), dialog);
   }
 
   {
@@ -387,7 +387,7 @@ sort_cases_dialog_create (GladeXML *xml)
 			    );
 
     gtk_tree_view_set_model (dialog->criteria_view,
-			    GTK_TREE_MODEL(dialog->criteria_list));
+			    GTK_TREE_MODEL (dialog->criteria_list));
   }
 
   dialog->response = GTK_RESPONSE_NONE;
@@ -414,8 +414,8 @@ sort_cases_dialog_run (struct sort_cases_dialog *dialog,
 {
   g_assert (! g_main_loop_is_running (dialog->loop));
 
-  gtk_tree_view_set_model (GTK_TREE_VIEW(dialog->dict_view),
-			  GTK_TREE_MODEL(dict));
+  gtk_tree_view_set_model (GTK_TREE_VIEW (dialog->dict_view),
+			  GTK_TREE_MODEL (dict));
 
 
   gtk_tree_view_column_set_cell_data_func (dialog->crit_col,
@@ -450,7 +450,7 @@ convert_list_store_to_criteria (GtkListStore *list,
   gboolean valid;
   gint n = 0;
 
-  GtkTreeModel *model = GTK_TREE_MODEL(list);
+  GtkTreeModel *model = GTK_TREE_MODEL (list);
 
   criteria->crit_cnt = gtk_tree_model_iter_n_children (model, NULL);
 

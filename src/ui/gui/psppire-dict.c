@@ -110,7 +110,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   signal[VARIABLE_CHANGED] =
     g_signal_new ("variable_changed",
-		  G_TYPE_FROM_CLASS(class),
+		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
@@ -123,7 +123,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   signal[VARIABLE_INSERTED] =
     g_signal_new ("variable_inserted",
-		  G_TYPE_FROM_CLASS(class),
+		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
@@ -135,7 +135,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   signal[VARIABLES_DELETED] =
     g_signal_new ("variables_deleted",
-		  G_TYPE_FROM_CLASS(class),
+		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
@@ -148,7 +148,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   signal[VARIABLE_RESIZED] =
     g_signal_new ("dict-size-changed",
-		  G_TYPE_FROM_CLASS(class),
+		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
@@ -244,7 +244,7 @@ psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
 {
   struct variable *var ;
   g_return_if_fail (d);
-  g_return_if_fail (G_IS_PSPPIRE_DICT(d));
+  g_return_if_fail (G_IS_PSPPIRE_DICT (d));
 
 
   if ( ! name )
@@ -264,7 +264,7 @@ psppire_dict_delete_variables (PsppireDict *d, gint first, gint n)
   gint idx;
   g_return_if_fail (d);
   g_return_if_fail (d->dict);
-  g_return_if_fail (G_IS_PSPPIRE_DICT(d));
+  g_return_if_fail (G_IS_PSPPIRE_DICT (d));
 
   for (idx = 0 ; idx < n ; ++idx )
     {
@@ -288,7 +288,7 @@ psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
 {
   struct variable *var;
   g_assert (d);
-  g_assert (G_IS_PSPPIRE_DICT(d));
+  g_assert (G_IS_PSPPIRE_DICT (d));
 
 
   if ( idx < dict_get_var_cnt (d->dict))
@@ -467,7 +467,7 @@ dictionary_tree_model_init (GtkTreeModelIface *iface)
 static GtkTreeModelFlags
 tree_model_get_flags (GtkTreeModel *model)
 {
-  g_return_val_if_fail (G_IS_PSPPIRE_DICT(model), (GtkTreeModelFlags) 0);
+  g_return_val_if_fail (G_IS_PSPPIRE_DICT (model), (GtkTreeModelFlags) 0);
 
   return GTK_TREE_MODEL_LIST_ONLY;
 }
@@ -482,7 +482,7 @@ tree_model_n_columns (GtkTreeModel *model)
 static GType
 tree_model_column_type (GtkTreeModel *model, gint index)
 {
-  g_return_val_if_fail (G_IS_PSPPIRE_DICT(model), (GType) 0);
+  g_return_val_if_fail (G_IS_PSPPIRE_DICT (model), (GType) 0);
 
   switch (index)
     {
@@ -612,9 +612,9 @@ tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
 		     GtkTreeIter *parent, gint n)
 {
   PsppireDict *dict;
-  g_return_val_if_fail (G_IS_PSPPIRE_DICT(model), FALSE);
+  g_return_val_if_fail (G_IS_PSPPIRE_DICT (model), FALSE);
 
-  dict = PSPPIRE_DICT(model);
+  dict = PSPPIRE_DICT (model);
 
   if ( parent )
     return FALSE;

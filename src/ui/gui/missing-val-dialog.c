@@ -67,11 +67,11 @@ err_dialog (const gchar *msg, GtkWindow *window)
 
   hbox = gtk_hbox_new (FALSE, 10);
 
-  gtk_container_add (GTK_CONTAINER (GTK_DIALOG(dialog)->vbox),
+  gtk_container_add (GTK_CONTAINER (GTK_DIALOG (dialog)->vbox),
 		     hbox);
 
-  gtk_box_pack_start (GTK_BOX(hbox), icon, TRUE, FALSE, 10);
-  gtk_box_pack_start (GTK_BOX(hbox), label, TRUE, TRUE, 10);
+  gtk_box_pack_start (GTK_BOX (hbox), icon, TRUE, FALSE, 10);
+  gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 10);
 
   gtk_widget_show_all (dialog);
 }
@@ -94,7 +94,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       for (i = 0 ; i < 3 ; ++i )
 	{
 	  gchar *text =
-	    g_strdup (gtk_entry_get_text (GTK_ENTRY(dialog->mv[i])));
+	    g_strdup (gtk_entry_get_text (GTK_ENTRY (dialog->mv[i])));
 
 	  union value v;
 	  if ( !text || strlen (g_strstrip (text)) == 0 )
@@ -115,7 +115,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       if ( nvals == 0 || badvals > 0 )
 	{
 	  err_dialog (_("Incorrect value for variable type"),
-		     GTK_WINDOW(dialog->window));
+		     GTK_WINDOW (dialog->window));
 	  return ;
 	}
     }
@@ -126,8 +126,8 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 
       union value low_val ;
       union value high_val;
-      const gchar *low_text = gtk_entry_get_text (GTK_ENTRY(dialog->low));
-      const gchar *high_text = gtk_entry_get_text (GTK_ENTRY(dialog->high));
+      const gchar *low_text = gtk_entry_get_text (GTK_ENTRY (dialog->low));
+      const gchar *high_text = gtk_entry_get_text (GTK_ENTRY (dialog->high));
 
       if ( text_to_value (low_text, &low_val, *write_spec)
 	   &&
@@ -136,19 +136,19 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	  if ( low_val.f > high_val.f )
 	    {
 	      err_dialog (_("Incorrect range specification"),
-			  GTK_WINDOW(dialog->window));
+			  GTK_WINDOW (dialog->window));
 	      return ;
 	    }
 	}
       else
 	{
 	  err_dialog (_("Incorrect range specification"),
-		      GTK_WINDOW(dialog->window));
+		      GTK_WINDOW (dialog->window));
 	  return;
 	}
 
       discrete_text =
-	g_strdup (gtk_entry_get_text (GTK_ENTRY(dialog->discrete)));
+	g_strdup (gtk_entry_get_text (GTK_ENTRY (dialog->discrete)));
 
       mv_clear (&dialog->mvl);
       mv_add_num_range (&dialog->mvl, low_val.f, high_val.f);
@@ -160,7 +160,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 			      *write_spec))
 	    {
 	      err_dialog (_("Incorrect value for variable type"),
-			 GTK_WINDOW(dialog->window) );
+			 GTK_WINDOW (dialog->window) );
 	      g_free (discrete_text);
 	      return;
 	    }
@@ -216,15 +216,15 @@ missing_val_dialog_create (GladeXML *xml)
   dialog->window = get_widget_assert (xml, "missing_values_dialog");
 
   gtk_window_set_transient_for
-    (GTK_WINDOW(dialog->window),
-     GTK_WINDOW(get_widget_assert (xml, "data_editor")));
+    (GTK_WINDOW (dialog->window),
+     GTK_WINDOW (get_widget_assert (xml, "data_editor")));
 
 
   g_signal_connect_swapped (get_widget_assert (xml, "missing_val_cancel"),
-		   "clicked", G_CALLBACK(gtk_widget_hide), dialog->window);
+		   "clicked", G_CALLBACK (gtk_widget_hide), dialog->window);
 
   g_signal_connect (get_widget_assert (xml, "missing_val_ok"),
-		   "clicked", G_CALLBACK(missing_val_dialog_accept), dialog);
+		   "clicked", G_CALLBACK (missing_val_dialog_accept), dialog);
 
 
   dialog->mv[0] = get_widget_assert (xml, "mv0");
@@ -237,20 +237,20 @@ missing_val_dialog_create (GladeXML *xml)
 
 
   dialog->button_none     =
-    GTK_TOGGLE_BUTTON(get_widget_assert (xml, "no_missing"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "no_missing"));
 
   dialog->button_discrete =
-    GTK_TOGGLE_BUTTON(get_widget_assert (xml, "discrete_missing"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "discrete_missing"));
 
   dialog->button_range    =
-    GTK_TOGGLE_BUTTON(get_widget_assert (xml, "range_missing"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "range_missing"));
 
 
-  g_signal_connect (G_OBJECT(dialog->button_discrete), "toggled",
-		   G_CALLBACK(discrete), dialog);
+  g_signal_connect (G_OBJECT (dialog->button_discrete), "toggled",
+		   G_CALLBACK (discrete), dialog);
 
-  g_signal_connect (G_OBJECT(dialog->button_range), "toggled",
-		   G_CALLBACK(range), dialog);
+  g_signal_connect (G_OBJECT (dialog->button_range), "toggled",
+		   G_CALLBACK (range), dialog);
 
   return dialog;
 }
@@ -270,20 +270,20 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
   write_spec = var_get_write_format (dialog->pv);
 
   /* Blank all entry boxes and make them insensitive */
-  gtk_entry_set_text (GTK_ENTRY(dialog->low), "");
-  gtk_entry_set_text (GTK_ENTRY(dialog->high), "");
-  gtk_entry_set_text (GTK_ENTRY(dialog->discrete), "");
+  gtk_entry_set_text (GTK_ENTRY (dialog->low), "");
+  gtk_entry_set_text (GTK_ENTRY (dialog->high), "");
+  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), "");
   gtk_widget_set_sensitive (dialog->low, FALSE);
   gtk_widget_set_sensitive (dialog->high, FALSE);
   gtk_widget_set_sensitive (dialog->discrete, FALSE);
 
-  gtk_widget_set_sensitive (GTK_WIDGET(dialog->button_range),
+  gtk_widget_set_sensitive (GTK_WIDGET (dialog->button_range),
 			   var_is_numeric (dialog->pv));
 
 
   for (i = 0 ; i < 3 ; ++i )
     {
-      gtk_entry_set_text (GTK_ENTRY(dialog->mv[i]), "");
+      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), "");
       gtk_widget_set_sensitive (dialog->mv[i], FALSE);
     }
 
@@ -297,8 +297,8 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       low_text = value_to_text (low, *write_spec);
       high_text = value_to_text (high, *write_spec);
 
-      gtk_entry_set_text (GTK_ENTRY(dialog->low), low_text);
-      gtk_entry_set_text (GTK_ENTRY(dialog->high), high_text);
+      gtk_entry_set_text (GTK_ENTRY (dialog->low), low_text);
+      gtk_entry_set_text (GTK_ENTRY (dialog->high), high_text);
       g_free (low_text);
       g_free (high_text);
 
@@ -308,7 +308,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	  union value value;
 	  mv_peek_value (&dialog->mvl, &value, 0);
 	  text = value_to_text (value, *write_spec);
-	  gtk_entry_set_text (GTK_ENTRY(dialog->discrete), text);
+	  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), text);
 	  g_free (text);
 	}
 
@@ -331,7 +331,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 
 	      mv_peek_value (&dialog->mvl, &value, i);
 	      text = value_to_text (value, *write_spec);
-	      gtk_entry_set_text (GTK_ENTRY(dialog->mv[i]), text);
+	      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), text);
 	      g_free (text);
 	    }
 	  gtk_widget_set_sensitive (dialog->mv[i], TRUE);

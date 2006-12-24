@@ -49,7 +49,7 @@ traverse_callback (GtkSheet * sheet,
   gint n_vars;
 
   PsppireDataStore *data_store =
-    PSPPIRE_DATA_STORE(gtk_sheet_get_model (sheet));
+    PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
 
 
   g_assert (data_store);
@@ -87,7 +87,7 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col)
   /* The entry where the reference to the current cell is displayed */
   GtkEntry *cell_ref_entry;
 
-  PsppireDataStore *data_store = PSPPIRE_DATA_STORE(gtk_sheet_get_model (sheet));
+  PsppireDataStore *data_store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
   if (data_store)
     {
       const struct variable *pv =
@@ -102,7 +102,7 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col)
       text = g_strdup_printf ("%d: %s", row,
 			     pv ? var_get_name (pv) : "");
 
-      cell_ref_entry = GTK_ENTRY(get_widget_assert (data_editor_xml,
+      cell_ref_entry = GTK_ENTRY (get_widget_assert (data_editor_xml,
 						   "cell_ref_entry"));
 
       s = pspp_locale_to_utf8 (text, -1, 0);
@@ -139,10 +139,10 @@ calc_m_width (GtkWidget *widget, const PangoFontDescription *font_desc)
 
   pango_layout_get_extents (layout, NULL, &rect);
 
-  g_object_unref (G_OBJECT(layout));
-  g_object_unref (G_OBJECT(context));
+  g_object_unref (G_OBJECT (layout));
+  g_object_unref (G_OBJECT (context));
 
-  return PANGO_PIXELS(rect.width);
+  return PANGO_PIXELS (rect.width);
 }
 
 
@@ -151,7 +151,7 @@ void
 font_change_callback (GObject *obj, gpointer data)
 {
   GtkWidget *sheet  = data;
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE(obj);
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (obj);
 
   ds->width_of_m = calc_m_width (sheet, ds->font_desc);
 }
@@ -162,8 +162,8 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 {
   GtkWidget *sheet;
 
-  sheet = gtk_sheet_new (G_SHEET_ROW(the_data_store),
-			G_SHEET_COLUMN(the_data_store), "data sheet", 0);
+  sheet = gtk_sheet_new (G_SHEET_ROW (the_data_store),
+			G_SHEET_COLUMN (the_data_store), "data sheet", 0);
 
   the_data_store->width_of_m = calc_m_width (sheet, the_data_store->font_desc);
 
@@ -178,10 +178,10 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
   g_signal_connect (G_OBJECT (the_data_store), "font-changed",
 		    G_CALLBACK (font_change_callback), sheet);
 
-  gtk_sheet_set_active_cell (GTK_SHEET(sheet), -1, -1);
+  gtk_sheet_set_active_cell (GTK_SHEET (sheet), -1, -1);
 
 
-  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL(the_data_store));
+  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL (the_data_store));
 
   gtk_widget_show (sheet);
 

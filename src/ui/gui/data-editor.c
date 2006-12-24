@@ -195,10 +195,10 @@ click2row (GtkWidget *w, gint row, gpointer data)
 
   data_editor_select_sheet (de, PAGE_DATA_SHEET);
 
-  gtk_sheet_get_active_cell (GTK_SHEET(data_sheet),
+  gtk_sheet_get_active_cell (GTK_SHEET (data_sheet),
 			     &current_row, &current_column);
 
-  gtk_sheet_set_active_cell (GTK_SHEET(data_sheet), current_row, row);
+  gtk_sheet_set_active_cell (GTK_SHEET (data_sheet), current_row, row);
 
   return FALSE;
 }
@@ -217,10 +217,10 @@ click2column (GtkWidget *w, gint col, gpointer data)
 
   data_editor_select_sheet (de, PAGE_VAR_SHEET);
 
-  gtk_sheet_get_active_cell (GTK_SHEET(var_sheet),
+  gtk_sheet_get_active_cell (GTK_SHEET (var_sheet),
 			     &current_row, &current_column);
 
-  gtk_sheet_set_active_cell (GTK_SHEET(var_sheet), col, current_column);
+  gtk_sheet_set_active_cell (GTK_SHEET (var_sheet), col, current_column);
 
   return FALSE;
 }
@@ -309,18 +309,18 @@ open_data_window (GtkMenuItem *menuitem, gpointer parent)
   gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
   gtk_file_filter_add_pattern (filter, "*.sav");
   gtk_file_filter_add_pattern (filter, "*.SAV");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER(dialog), filter);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
   gtk_file_filter_add_pattern (filter, "*.por");
   gtk_file_filter_add_pattern (filter, "*.POR");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER(dialog), filter);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("All Files"));
   gtk_file_filter_add_pattern (filter, "*");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER(dialog), filter);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   do {
 
@@ -404,10 +404,10 @@ fonts_activate (GtkMenuItem *menuitem, gpointer data)
   if ( GTK_RESPONSE_OK == gtk_dialog_run (GTK_DIALOG (dialog)) )
     {
       GtkSheet *data_sheet =
-	GTK_SHEET(get_widget_assert (de->xml, "data_sheet"));
+	GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
 
       GtkSheet *var_sheet =
-	GTK_SHEET(get_widget_assert (de->xml, "variable_sheet"));
+	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
       PsppireDataStore *ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
       PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));

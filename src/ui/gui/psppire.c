@@ -155,12 +155,12 @@ main (int argc, char *argv[])
   /* connect the signals in the interface */
   glade_xml_signal_autoconnect (data_editor_xml);
 
-  var_sheet  = GTK_SHEET(get_widget_assert (data_editor_xml, "variable_sheet"));
-  data_sheet = GTK_SHEET(get_widget_assert (data_editor_xml, "data_sheet"));
+  var_sheet  = GTK_SHEET (get_widget_assert (data_editor_xml, "variable_sheet"));
+  data_sheet = GTK_SHEET (get_widget_assert (data_editor_xml, "data_sheet"));
 
-  gtk_sheet_set_model (var_sheet, G_SHEET_MODEL(the_var_store));
+  gtk_sheet_set_model (var_sheet, G_SHEET_MODEL (the_var_store));
 
-  gtk_sheet_set_model (data_sheet, G_SHEET_MODEL(the_data_store));
+  gtk_sheet_set_model (data_sheet, G_SHEET_MODEL (the_data_store));
 
   var_data_selection_init ();
 
@@ -169,7 +169,7 @@ main (int argc, char *argv[])
 
   GList *i;
   for ( i = g_list_first (helps); i ; i = g_list_next (i))
-      g_signal_connect (GTK_WIDGET(i->data), "clicked", give_help, 0);
+      g_signal_connect (GTK_WIDGET (i->data), "clicked", give_help, 0);
   }
 
 #endif

@@ -226,11 +226,11 @@ update_width_decimals (const struct var_type_dialog *dialog)
   g_assert (dialog);
 
   text = g_strdup_printf ("%d", dialog->fmt_l.w);
-  gtk_entry_set_text (GTK_ENTRY(dialog->entry_width), text);
+  gtk_entry_set_text (GTK_ENTRY (dialog->entry_width), text);
   g_free (text);
 
   text = g_strdup_printf ("%d", dialog->fmt_l.d);
-  gtk_entry_set_text (GTK_ENTRY(dialog->entry_decimals), text);
+  gtk_entry_set_text (GTK_ENTRY (dialog->entry_decimals), text);
   g_free (text);
 }
 
@@ -246,17 +246,17 @@ preview_custom (GtkWidget *w, gpointer data)
   if ( dialog->active_button != BUTTON_CUSTOM )
     return;
 
-  text = gtk_entry_get_text (GTK_ENTRY(dialog->entry_decimals));
+  text = gtk_entry_get_text (GTK_ENTRY (dialog->entry_decimals));
   dialog->fmt_l.d = atoi (text);
 
-  text = gtk_entry_get_text (GTK_ENTRY(dialog->entry_width));
+  text = gtk_entry_get_text (GTK_ENTRY (dialog->entry_width));
   dialog->fmt_l.w = atoi (text);
 
   msg_disable ();
   if ( ! fmt_check_output (&dialog->fmt_l))
     {
-      gtk_label_set_text (GTK_LABEL(dialog->label_psample), "---");
-      gtk_label_set_text (GTK_LABEL(dialog->label_nsample), "---");
+      gtk_label_set_text (GTK_LABEL (dialog->label_psample), "---");
+      gtk_label_set_text (GTK_LABEL (dialog->label_nsample), "---");
     }
   else
     {
@@ -265,12 +265,12 @@ preview_custom (GtkWidget *w, gpointer data)
       v.f = 1234.56;
 
       sample_text = value_to_text (v, dialog->fmt_l);
-      gtk_label_set_text (GTK_LABEL(dialog->label_psample), sample_text);
+      gtk_label_set_text (GTK_LABEL (dialog->label_psample), sample_text);
       g_free (sample_text);
 
       v.f = -v.f;
       sample_text = value_to_text (v, dialog->fmt_l);
-      gtk_label_set_text (GTK_LABEL(dialog->label_nsample), sample_text);
+      gtk_label_set_text (GTK_LABEL (dialog->label_nsample), sample_text);
       g_free (sample_text);
     }
   msg_enable ();
@@ -334,8 +334,8 @@ var_type_dialog_create (GladeXML *xml)
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
 
-  gtk_window_set_transient_for (GTK_WINDOW(dialog->window),
-			       GTK_WINDOW(get_widget_assert (xml, "data_editor")));
+  gtk_window_set_transient_for (GTK_WINDOW (dialog->window),
+			       GTK_WINDOW (get_widget_assert (xml, "data_editor")));
 
   dialog->radioButton[BUTTON_NUMERIC] =
     get_widget_assert (xml,"radiobutton1");
@@ -371,10 +371,10 @@ var_type_dialog_create (GladeXML *xml)
 
   dialog->dollar_window = get_widget_assert (xml, "dollar_window");
   dialog->dollar_treeview =
-    GTK_TREE_VIEW(get_widget_assert (xml, "dollar_treeview"));
+    GTK_TREE_VIEW (get_widget_assert (xml, "dollar_treeview"));
 
   dialog->custom_treeview =
-    GTK_TREE_VIEW(get_widget_assert (xml, "custom_treeview"));
+    GTK_TREE_VIEW (get_widget_assert (xml, "custom_treeview"));
 
 
   dialog->ok = get_widget_assert (xml,"var_type_ok");
@@ -394,7 +394,7 @@ var_type_dialog_create (GladeXML *xml)
      upleasant resizing effects */
   GtkSizeGroup *sizeGroup = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
-  gtk_container_foreach (GTK_CONTAINER(get_widget_assert (xml, "middle_box")),
+  gtk_container_foreach (GTK_CONTAINER (get_widget_assert (xml, "middle_box")),
 			add_to_group, sizeGroup);
 
 
@@ -403,14 +403,14 @@ var_type_dialog_create (GladeXML *xml)
       tgs[i].dialog = dialog;
       tgs[i].button = i;
       g_signal_connect (dialog->radioButton[i], "toggled",
-		       G_CALLBACK(on_toggle_1), &tgs[i]);
+		       G_CALLBACK (on_toggle_1), &tgs[i]);
 
       g_signal_connect (dialog->radioButton[i], "toggled",
-		       G_CALLBACK(on_toggle_2), dialog);
+		       G_CALLBACK (on_toggle_2), dialog);
     }
 
   /* Populate the date format tree view */
-  dialog->date_format_treeview = GTK_TREE_VIEW(get_widget_assert (xml,
+  dialog->date_format_treeview = GTK_TREE_VIEW (get_widget_assert (xml,
 					      "date_format_list_view"));
 
   renderer = gtk_cell_renderer_text_new ();
@@ -436,13 +436,13 @@ var_type_dialog_create (GladeXML *xml)
 			  -1);
     }
 
-  gtk_tree_view_set_model (GTK_TREE_VIEW(dialog->date_format_treeview),
-			  GTK_TREE_MODEL(list_store));
+  gtk_tree_view_set_model (GTK_TREE_VIEW (dialog->date_format_treeview),
+			  GTK_TREE_MODEL (list_store));
 
   g_object_unref (list_store);
 
-  g_signal_connect (GTK_OBJECT(dialog->date_format_treeview), "cursor-changed",
-		   GTK_SIGNAL_FUNC(set_format_from_treeview), dialog);
+  g_signal_connect (GTK_OBJECT (dialog->date_format_treeview), "cursor-changed",
+		   GTK_SIGNAL_FUNC (set_format_from_treeview), dialog);
 
 
   /* populate the dollar treeview */
@@ -473,18 +473,18 @@ var_type_dialog_create (GladeXML *xml)
       free (template);
     }
 
-  gtk_tree_view_set_model (GTK_TREE_VIEW(dialog->dollar_treeview),
-			  GTK_TREE_MODEL(list_store));
+  gtk_tree_view_set_model (GTK_TREE_VIEW (dialog->dollar_treeview),
+			  GTK_TREE_MODEL (list_store));
 
   g_object_unref (list_store);
 
-  g_signal_connect (GTK_OBJECT(dialog->dollar_treeview),
+  g_signal_connect (GTK_OBJECT (dialog->dollar_treeview),
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC(set_format_from_treeview), dialog);
+		   GTK_SIGNAL_FUNC (set_format_from_treeview), dialog);
 
-  g_signal_connect_swapped (GTK_OBJECT(dialog->dollar_treeview),
+  g_signal_connect_swapped (GTK_OBJECT (dialog->dollar_treeview),
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC(update_width_decimals), dialog);
+		   GTK_SIGNAL_FUNC (update_width_decimals), dialog);
 
 
   /* populate the custom treeview */
@@ -516,34 +516,34 @@ var_type_dialog_create (GladeXML *xml)
 			  -1);
     }
 
-  gtk_tree_view_set_model (GTK_TREE_VIEW(dialog->custom_treeview),
-			  GTK_TREE_MODEL(list_store));
+  gtk_tree_view_set_model (GTK_TREE_VIEW (dialog->custom_treeview),
+			  GTK_TREE_MODEL (list_store));
 
   g_object_unref (list_store);
 
 
-  g_signal_connect (GTK_OBJECT(dialog->custom_treeview),
+  g_signal_connect (GTK_OBJECT (dialog->custom_treeview),
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC(set_format_type_from_treeview), dialog);
+		   GTK_SIGNAL_FUNC (set_format_type_from_treeview), dialog);
 
 
-  g_signal_connect (GTK_OBJECT(dialog->custom_treeview),
+  g_signal_connect (GTK_OBJECT (dialog->custom_treeview),
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC(preview_custom), dialog);
+		   GTK_SIGNAL_FUNC (preview_custom), dialog);
 
 
-  g_signal_connect (GTK_OBJECT(dialog->entry_width),
+  g_signal_connect (GTK_OBJECT (dialog->entry_width),
 		   "changed",
-		   GTK_SIGNAL_FUNC(preview_custom), dialog);
+		   GTK_SIGNAL_FUNC (preview_custom), dialog);
 
 
-  g_signal_connect (GTK_OBJECT(dialog->entry_decimals),
+  g_signal_connect (GTK_OBJECT (dialog->entry_decimals),
 		   "changed",
-		   GTK_SIGNAL_FUNC(preview_custom), dialog);
+		   GTK_SIGNAL_FUNC (preview_custom), dialog);
 
 
   /* Connect the OK button */
-  g_signal_connect (dialog->ok, "clicked", G_CALLBACK(on_var_type_ok_clicked),
+  g_signal_connect (dialog->ok, "clicked", G_CALLBACK (on_var_type_ok_clicked),
 		   dialog);
 
 
@@ -557,7 +557,7 @@ var_type_dialog_create (GladeXML *xml)
 void
 var_type_dialog_set_active_button (struct var_type_dialog *dialog, gint b)
 {
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(dialog->radioButton[b]),
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (dialog->radioButton[b]),
 			       TRUE);
   dialog->active_button = b;
 }
@@ -667,12 +667,12 @@ var_type_dialog_set_state (struct var_type_dialog *dialog)
 
   g_string_printf (str, "%d", write_spec->d);
 
-  gtk_entry_set_text (GTK_ENTRY(dialog->entry_decimals),
+  gtk_entry_set_text (GTK_ENTRY (dialog->entry_decimals),
 		     str->str);
 
   g_string_printf (str, "%d", write_spec->w);
 
-  gtk_entry_set_text (GTK_ENTRY(dialog->entry_width),
+  gtk_entry_set_text (GTK_ENTRY (dialog->entry_width),
 		     str->str);
 
   g_string_free (str, TRUE);
@@ -776,10 +776,10 @@ on_var_type_ok_clicked (GtkWidget *w, gpointer data)
 
   {
     gint width = atoi (gtk_entry_get_text
-		      (GTK_ENTRY(dialog->entry_width)));
+		      (GTK_ENTRY (dialog->entry_width)));
 
     gint decimals = atoi (gtk_entry_get_text
-			 (GTK_ENTRY(dialog->entry_decimals)));
+			 (GTK_ENTRY (dialog->entry_decimals)));
 
     gint new_type = VAR_NUMERIC;
     gint new_width = 0;

@@ -152,13 +152,13 @@ traverse_cell_callback (GtkSheet * sheet,
 			gint *new_row, gint *new_column
 			)
 {
-  PsppireVarStore *var_store = PSPPIRE_VAR_STORE(gtk_sheet_get_model (sheet));
+  PsppireVarStore *var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
 
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
 
   if ( row == n_vars && *new_row >= n_vars)
     {
-      GtkEntry *entry = GTK_ENTRY(gtk_sheet_get_entry (sheet));
+      GtkEntry *entry = GTK_ENTRY (gtk_sheet_get_entry (sheet));
 
       const gchar *name = gtk_entry_get_text (entry);
 
@@ -236,19 +236,19 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	GtkComboBoxEntry *cbe;
 	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
 	cbe =
-	  GTK_COMBO_BOX_ENTRY(gtk_sheet_get_entry (sheet)->parent);
+	  GTK_COMBO_BOX_ENTRY (gtk_sheet_get_entry (sheet)->parent);
 
 
 	if ( ! list_store) list_store = create_label_list (alignments);
 
-	gtk_combo_box_set_model (GTK_COMBO_BOX(cbe),
-				GTK_TREE_MODEL(list_store));
+	gtk_combo_box_set_model (GTK_COMBO_BOX (cbe),
+				GTK_TREE_MODEL (list_store));
 
 	gtk_combo_box_entry_set_text_column (cbe, 0);
 
 
-	g_signal_connect (G_OBJECT(cbe),"changed",
-			 G_CALLBACK(change_alignment), pv);
+	g_signal_connect (G_OBJECT (cbe),"changed",
+			 G_CALLBACK (change_alignment), pv);
       }
       break;
     case COL_MEASURE:
@@ -257,17 +257,17 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	GtkComboBoxEntry *cbe;
 	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
 	cbe =
-	  GTK_COMBO_BOX_ENTRY(gtk_sheet_get_entry (sheet)->parent);
+	  GTK_COMBO_BOX_ENTRY (gtk_sheet_get_entry (sheet)->parent);
 
 
 	if ( ! list_store) list_store = create_label_list (measures);
 
-	gtk_combo_box_set_model (GTK_COMBO_BOX(cbe),
-				GTK_TREE_MODEL(list_store));
+	gtk_combo_box_set_model (GTK_COMBO_BOX (cbe),
+				GTK_TREE_MODEL (list_store));
 
 	gtk_combo_box_entry_set_text_column (cbe, 0);
 
-	g_signal_connect (G_OBJECT(cbe),"changed",
+	g_signal_connect (G_OBJECT (cbe),"changed",
 			  G_CALLBACK (change_measure), pv);
       }
       break;
@@ -281,7 +281,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry (sheet));
+	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
 
 
 	if (!val_labs_dialog )
@@ -289,9 +289,9 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
 	val_labs_dialog->pv = pv;
 
-	g_signal_connect_swapped (GTK_OBJECT(customEntry),
+	g_signal_connect_swapped (GTK_OBJECT (customEntry),
 				 "clicked",
-				 GTK_SIGNAL_FUNC(val_labs_dialog_show),
+				 GTK_SIGNAL_FUNC (val_labs_dialog_show),
 				 val_labs_dialog);
       }
       break;
@@ -303,16 +303,16 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry (sheet));
+	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
 
 	if (!missing_val_dialog )
 	    missing_val_dialog = missing_val_dialog_create (xml);
 
 	missing_val_dialog->pv = psppire_var_store_get_var (var_store, row);
 
-	g_signal_connect_swapped (GTK_OBJECT(customEntry),
+	g_signal_connect_swapped (GTK_OBJECT (customEntry),
 				 "clicked",
-				 GTK_SIGNAL_FUNC(missing_val_dialog_show),
+				 GTK_SIGNAL_FUNC (missing_val_dialog_show),
 				 missing_val_dialog);
       }
       break;
@@ -326,7 +326,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY(gtk_sheet_get_entry (sheet));
+	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
 
 
 	/* Popup the Variable Type dialog box */
@@ -336,9 +336,9 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
 	var_type_dialog->pv = pv;
 
-	g_signal_connect_swapped (GTK_OBJECT(customEntry),
+	g_signal_connect_swapped (GTK_OBJECT (customEntry),
 				 "clicked",
-				 GTK_SIGNAL_FUNC(var_type_dialog_show),
+				 GTK_SIGNAL_FUNC (var_type_dialog_show),
 				 var_type_dialog);
       }
       break;
@@ -385,9 +385,9 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 		gtk_sheet_change_entry (sheet, GTK_TYPE_SPIN_BUTTON);
 
 		spinButton =
-		  GTK_SPIN_BUTTON(gtk_sheet_get_entry (sheet));
+		  GTK_SPIN_BUTTON (gtk_sheet_get_entry (sheet));
 
-		gtk_spin_button_set_adjustment (spinButton, GTK_ADJUSTMENT(adj));
+		gtk_spin_button_set_adjustment (spinButton, GTK_ADJUSTMENT (adj));
 		gtk_spin_button_set_digits (spinButton, 0);
 	      }
 	  }
@@ -424,8 +424,8 @@ psppire_variable_sheet_create (gchar *widget_name,
 
   g_assert (the_var_store);
 
-  sheet = gtk_sheet_new (G_SHEET_ROW(the_var_store),
-			G_SHEET_COLUMN(geo),
+  sheet = gtk_sheet_new (G_SHEET_ROW (the_var_store),
+			G_SHEET_COLUMN (geo),
 			"variable sheet", 0);
 
 
@@ -441,7 +441,7 @@ psppire_variable_sheet_create (gchar *widget_name,
 		    GTK_SIGNAL_FUNC (traverse_cell_callback), 0);
 
 
-  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL(the_var_store));
+  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL (the_var_store));
 
 
   /* Since this happens inside glade_xml_new, we must prevent strings from
@@ -450,10 +450,10 @@ psppire_variable_sheet_create (gchar *widget_name,
   bind_textdomain_codeset (PACKAGE, nl_langinfo (CODESET));
   for (i = 0 ; i < n_COLS ; ++i )
     {
-      g_sheet_hetero_column_set_button_label (G_SHEET_HETERO_COLUMN(geo), i,
+      g_sheet_hetero_column_set_button_label (G_SHEET_HETERO_COLUMN (geo), i,
 		      	gettext (column_def[i].label));
 
-      g_sheet_hetero_column_set_width (G_SHEET_HETERO_COLUMN(geo), i,
+      g_sheet_hetero_column_set_width (G_SHEET_HETERO_COLUMN (geo), i,
 					       column_def[i].width);
     }
   bind_textdomain_codeset (PACKAGE, codeset);

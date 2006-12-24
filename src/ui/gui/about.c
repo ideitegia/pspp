@@ -15,17 +15,17 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   GdkPixbuf *pb =
     gdk_pixbuf_new_from_file_at_size (PKGDATADIR "/pspplogo.png", 64, 64, 0);
 
-  gtk_about_dialog_set_logo (GTK_ABOUT_DIALOG(about), pb);
+  gtk_about_dialog_set_logo (GTK_ABOUT_DIALOG (about), pb);
 
 
-  gtk_window_set_icon_from_file (GTK_WINDOW(about),
+  gtk_window_set_icon_from_file (GTK_WINDOW (about),
 				 PKGDATADIR "/psppicon.png", 0);
 
 
   gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (about),
 				(const gchar **) authors);
 
-  gtk_window_set_transient_for (GTK_WINDOW(about), parent);
+  gtk_window_set_transient_for (GTK_WINDOW (about), parent);
 
   gtk_window_set_modal (GTK_WINDOW (about), TRUE);
 

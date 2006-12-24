@@ -194,7 +194,7 @@ psppire_var_store_get_var (PsppireVarStore *store, gint row)
 static gboolean
 psppire_var_store_is_editable (const GSheetModel *model, gint row, gint column)
 {
-  PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
+  PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
   return psppire_var_store_item_editable (store, row, column);
 }
 
@@ -202,7 +202,7 @@ psppire_var_store_is_editable (const GSheetModel *model, gint row, gint column)
 static const GdkColor *
 psppire_var_store_get_foreground (const GSheetModel *model, gint row, gint column)
 {
-  PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
+  PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
   if ( ! psppire_var_store_item_editable (store, row, column) )
     return &store->disabled;
@@ -215,7 +215,7 @@ const PangoFontDescription *
 psppire_var_store_get_font_desc (const GSheetModel *model,
 			      gint row, gint column)
 {
-  PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
+  PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
   return store->font_desc;
 }
@@ -262,7 +262,7 @@ psppire_var_store_new (PsppireDict *dict)
 static void
 var_change_callback (GtkWidget *w, gint n, gpointer data)
 {
-  GSheetModel *model = G_SHEET_MODEL(data);
+  GSheetModel *model = G_SHEET_MODEL (data);
   g_sheet_model_range_changed (model,
 				 n, 0, n, n_COLS);
 }
@@ -271,7 +271,7 @@ var_change_callback (GtkWidget *w, gint n, gpointer data)
 static void
 var_delete_callback (GtkWidget *w, gint first, gint n, gpointer data)
 {
-  GSheetModel *model = G_SHEET_MODEL(data);
+  GSheetModel *model = G_SHEET_MODEL (data);
 
   g_sheet_model_rows_deleted (model, first, n);
 }
@@ -281,7 +281,7 @@ var_delete_callback (GtkWidget *w, gint first, gint n, gpointer data)
 static void
 var_insert_callback (GtkWidget *w, gint row, gpointer data)
 {
-  GSheetModel *model = G_SHEET_MODEL(data);
+  GSheetModel *model = G_SHEET_MODEL (data);
 
   g_sheet_model_rows_inserted (model, row, 1);
 }
@@ -303,18 +303,18 @@ psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict)
 
   var_store->dict = dict;
 
-  g_signal_connect (dict, "variable-changed", G_CALLBACK(var_change_callback),
+  g_signal_connect (dict, "variable-changed", G_CALLBACK (var_change_callback),
 		   var_store);
 
-  g_signal_connect (dict, "variables-deleted", G_CALLBACK(var_delete_callback),
+  g_signal_connect (dict, "variables-deleted", G_CALLBACK (var_delete_callback),
 		   var_store);
 
-  g_signal_connect (dict, "variable-inserted", G_CALLBACK(var_insert_callback),
+  g_signal_connect (dict, "variable-inserted", G_CALLBACK (var_insert_callback),
 		   var_store);
 
 
   /* The entire model has changed */
-  g_sheet_model_range_changed (G_SHEET_MODEL(var_store), -1, -1, -1, -1);
+  g_sheet_model_range_changed (G_SHEET_MODEL (var_store), -1, -1, -1, -1);
 }
 
 static void
@@ -327,7 +327,7 @@ psppire_var_store_finalize (GObject *object)
 static gchar *
 psppire_var_store_get_string (const GSheetModel *model, gint row, gint column)
 {
-  PsppireVarStore *store = PSPPIRE_VAR_STORE(model);
+  PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
   struct variable *pv;
 
@@ -349,7 +349,7 @@ psppire_var_store_clear (GSheetModel *model,  gint row, gint col)
 {
   struct variable *pv ;
 
-  PsppireVarStore *var_store = PSPPIRE_VAR_STORE(model);
+  PsppireVarStore *var_store = PSPPIRE_VAR_STORE (model);
 
   if ( row >= psppire_dict_get_var_cnt (var_store->dict))
       return FALSE;
@@ -380,7 +380,7 @@ psppire_var_store_set_string (GSheetModel *model,
 {
   struct variable *pv ;
 
-  PsppireVarStore *var_store = PSPPIRE_VAR_STORE(model);
+  PsppireVarStore *var_store = PSPPIRE_VAR_STORE (model);
 
   if ( row >= psppire_dict_get_var_cnt (var_store->dict))
       return FALSE;
@@ -707,7 +707,7 @@ psppire_var_store_set_font (PsppireVarStore *store, const PangoFontDescription *
 
   store->font_desc = fd;
 
-  g_sheet_model_range_changed (G_SHEET_MODEL(store), -1, -1, -1, -1);
+  g_sheet_model_range_changed (G_SHEET_MODEL (store), -1, -1, -1, -1);
 }
 
 
@@ -715,7 +715,7 @@ static gint
 psppire_var_store_get_row_count (const GSheetModel * model)
 {
   gint rows = 0;
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE(model);
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE (model);
 
   if (vs->dict)
     rows =  psppire_dict_get_var_cnt (vs->dict);
@@ -729,7 +729,7 @@ static gint
 geometry_get_row_count (const GSheetRow *geom, gpointer data)
 {
   gint rows = 0;
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE(geom);
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE (geom);
 
   if (vs->dict)
     rows =  psppire_dict_get_var_cnt (vs->dict);
@@ -748,7 +748,7 @@ geometry_get_height (const GSheetRow *geom, gint row, gpointer data)
 static gboolean
 geometry_is_sensitive (const GSheetRow *geom, gint row, gpointer data)
 {
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE(geom);
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE (geom);
 
   if ( ! vs->dict)
     return FALSE;

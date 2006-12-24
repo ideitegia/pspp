@@ -57,7 +57,7 @@ save_if_modified (struct syntax_editor *se)
     {
       gint response;
       GtkWidget *dialog =
-	gtk_message_dialog_new (GTK_WINDOW(e->window),
+	gtk_message_dialog_new (GTK_WINDOW (e->window),
 				GTK_DIALOG_MODAL,
 				GTK_MESSAGE_QUESTION,
 				GTK_BUTTONS_NONE,
@@ -65,18 +65,18 @@ save_if_modified (struct syntax_editor *se)
 				e->name ? e->name : _("Untitled")
 				);
 
-      gtk_dialog_add_button  (GTK_DIALOG(dialog),
+      gtk_dialog_add_button  (GTK_DIALOG (dialog),
 			      GTK_STOCK_YES,
 			      GTK_RESPONSE_ACCEPT);
-      gtk_dialog_add_button  (GTK_DIALOG(dialog),
+      gtk_dialog_add_button  (GTK_DIALOG (dialog),
 			      GTK_STOCK_NO,
 			      GTK_RESPONSE_REJECT);
-      gtk_dialog_add_button  (GTK_DIALOG(dialog),
+      gtk_dialog_add_button  (GTK_DIALOG (dialog),
 			      GTK_STOCK_CANCEL,
 			      GTK_RESPONSE_CANCEL);
 
 
-      response = gtk_dialog_run (GTK_DIALOG(dialog));
+      response = gtk_dialog_run (GTK_DIALOG (dialog));
 
       gtk_widget_destroy (dialog);
 
@@ -111,7 +111,7 @@ on_syntax_save_as   (GtkMenuItem     *menuitem,
 
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Save Syntax"),
-				 GTK_WINDOW(e->window),
+				 GTK_WINDOW (e->window),
 				 GTK_FILE_CHOOSER_ACTION_SAVE,
 				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				 GTK_STOCK_SAVE,   GTK_RESPONSE_ACCEPT,
@@ -121,14 +121,14 @@ on_syntax_save_as   (GtkMenuItem     *menuitem,
   gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
   gtk_file_filter_add_pattern (filter, "*.sps");
   gtk_file_filter_add_pattern (filter, "*.SPS");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER(dialog), filter);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("All Files"));
   gtk_file_filter_add_pattern (filter, "*");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
-  gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER(dialog),
+  gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog),
 						  TRUE);
   response = gtk_dialog_run (GTK_DIALOG (dialog));
 
@@ -316,7 +316,7 @@ new_syntax_editor (void)
 
   e->window = get_widget_assert (xml, "syntax_editor");
   text_view = get_widget_assert (xml, "syntax_text_view");
-  se->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(text_view));
+  se->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
   se->lexer = lex_create (the_source_stream);
 
   g_signal_connect (get_widget_assert (xml,"file_new_syntax"),
@@ -494,7 +494,7 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Open Syntax"),
-				 GTK_WINDOW(parent),
+				 GTK_WINDOW (parent),
 				 GTK_FILE_CHOOSER_ACTION_OPEN,
 				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				 GTK_STOCK_OPEN,   GTK_RESPONSE_ACCEPT,
@@ -504,7 +504,7 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
   gtk_file_filter_set_name (filter, _("Syntax Files (*.sps) "));
   gtk_file_filter_add_pattern (filter, "*.sps");
   gtk_file_filter_add_pattern (filter, "*.SPS");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER(dialog), filter);
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
   filter = gtk_file_filter_new ();
   gtk_file_filter_set_name (filter, _("All Files"));

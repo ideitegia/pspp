@@ -45,7 +45,7 @@ window_create (enum window_type type, const gchar *name)
   set_window_name (e, name);
 
 
-  gtk_window_set_icon_from_file (GTK_WINDOW(e->window),
+  gtk_window_set_icon_from_file (GTK_WINDOW (e->window),
 				 PKGDATADIR "/psppicon.png", 0);
 
   g_signal_connect (e->window, "destroy", G_CALLBACK (deregister), NULL);
@@ -86,7 +86,7 @@ set_window_name (struct editor_window *e,
       g_assert_not_reached ();
     }
 
-  gtk_window_set_title (GTK_WINDOW(e->window), title);
+  gtk_window_set_title (GTK_WINDOW (e->window), title);
 
   g_free (title);
 }
@@ -114,7 +114,7 @@ window_set_name_from_filename (struct editor_window *e,
     }
   g_free (basename);
 
-  gtk_window_set_title (GTK_WINDOW(e->window), title);
+  gtk_window_set_title (GTK_WINDOW (e->window), title);
 
   g_free (title);
 }
@@ -123,7 +123,7 @@ window_set_name_from_filename (struct editor_window *e,
 GtkWindow *
 window_toplevel (const struct editor_window *e)
 {
-  return GTK_WINDOW(e->window);
+  return GTK_WINDOW (e->window);
 }
 
 const gchar *

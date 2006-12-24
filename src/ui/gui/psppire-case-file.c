@@ -94,7 +94,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 
   signal[CASE_CHANGED] =
     g_signal_new ("case_changed",
-		  G_TYPE_FROM_CLASS(class),
+		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
@@ -106,7 +106,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 
   signal[CASE_INSERTED] =
     g_signal_new ("case_inserted",
-		  G_TYPE_FROM_CLASS(class),
+		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
@@ -118,7 +118,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 
   signal[CASES_DELETED] =
     g_signal_new ("cases_deleted",
-		  G_TYPE_FROM_CLASS(class),
+		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
@@ -188,7 +188,7 @@ psppire_case_file_delete_cases (PsppireCaseFile *cf, gint n_cases, gint first)
   g_return_val_if_fail (cf, FALSE);
   g_return_val_if_fail (cf->flexifile, FALSE);
 
-  result =  flexifile_delete_cases (FLEXIFILE(cf->flexifile), n_cases,  first);
+  result =  flexifile_delete_cases (FLEXIFILE (cf->flexifile), n_cases,  first);
 
   g_signal_emit (cf, signal[CASES_DELETED], 0, n_cases, first);
 
@@ -206,7 +206,7 @@ psppire_case_file_insert_case (PsppireCaseFile *cf,
   g_return_val_if_fail (cf, FALSE);
   g_return_val_if_fail (cf->flexifile, FALSE);
 
-  result = flexifile_insert_case (FLEXIFILE(cf->flexifile), cc, posn);
+  result = flexifile_insert_case (FLEXIFILE (cf->flexifile), cc, posn);
 
   if ( result )
     g_signal_emit (cf, signal[CASE_INSERTED], 0, posn);
@@ -263,7 +263,7 @@ psppire_case_file_get_value (const PsppireCaseFile *cf, gint casenum, gint idx)
 
   g_return_val_if_fail (idx < casefile_get_value_cnt (cf->flexifile), NULL);
 
-  flexifile_get_case (FLEXIFILE(cf->flexifile), casenum, &c);
+  flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, &c);
 
   v = case_data_idx (&c, idx);
   case_destroy (&c);
@@ -292,13 +292,13 @@ psppire_case_file_set_value (PsppireCaseFile *cf, gint casenum, gint idx,
 
   g_return_val_if_fail (idx < casefile_get_value_cnt (cf->flexifile), FALSE);
 
-  if ( ! flexifile_get_case (FLEXIFILE(cf->flexifile), casenum, &cc) )
+  if ( ! flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, &cc) )
     return FALSE;
 
   if ( width == 0 )
     bytes = MAX_SHORT_STRING;
   else
-    bytes = DIV_RND_UP(width, MAX_SHORT_STRING) * MAX_SHORT_STRING ;
+    bytes = DIV_RND_UP (width, MAX_SHORT_STRING) * MAX_SHORT_STRING ;
 
   /* Cast away const in flagrant abuse of the casefile */
   memcpy ((union value *)case_data_idx (&cc, idx), v, bytes);
@@ -322,7 +322,7 @@ psppire_case_file_data_in (PsppireCaseFile *cf, gint casenum, gint idx,
 
   g_return_val_if_fail (idx < casefile_get_value_cnt (cf->flexifile), FALSE);
 
-  if ( ! flexifile_get_case (FLEXIFILE(cf->flexifile), casenum, &cc) )
+  if ( ! flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, &cc) )
     return FALSE;
 
   /* Cast away const in flagrant abuse of the casefile */
@@ -376,7 +376,7 @@ psppire_case_file_insert_values (PsppireCaseFile *cf,
       return TRUE;
     }
 
-  return flexifile_resize (FLEXIFILE(cf->flexifile), n_values, before);
+  return flexifile_resize (FLEXIFILE (cf->flexifile), n_values, before);
 }
 
 /* Fills C with the CASENUMth case.
@@ -389,5 +389,5 @@ psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
   g_return_val_if_fail (cf, FALSE);
   g_return_val_if_fail (cf->flexifile, FALSE);
 
-  return flexifile_get_case (FLEXIFILE(cf->flexifile), casenum, c);
+  return flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, c);
 }
