@@ -1,0 +1,10 @@
+correlations.c
+crosstabs.c
+examine.c
+frequencies.c
+means.c
+npar.c
+oneway.c
+rank.c
+regression.c
+t-test.c

@@ -60,6 +60,7 @@ GNULIB_MODULES = \
 
 all: po/POTFILES.in
 	test -d m4 || mkdir m4
+	echo '*' > m4/.cvsignore
 	touch m4/Makefile.am
 	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
 		--source-base=gl --lib=libgl --tests-base=tests \
