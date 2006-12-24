@@ -29,6 +29,34 @@
 #include "val-labs-dialog.h"
 #include <data/value-labels.h>
 
+
+struct val_labs_dialog
+{
+  GtkWidget *window;
+
+  /* The variable to be updated */
+  struct variable *pv;
+
+  /* Local copy of labels */
+  struct val_labs *labs;
+
+  /* Actions */
+  GtkWidget *add_button;
+  GtkWidget *remove_button;
+  GtkWidget *change_button;
+
+  /* Entry Boxes */
+  GtkWidget *value_entry;
+  GtkWidget *label_entry;
+
+  /* Signal handler ids */
+  gint change_handler_id;
+  gint value_handler_id;
+
+  GtkWidget *treeview;
+};
+
+
 /* This callback occurs when the text in the label entry box
    is changed */
 static void
@@ -152,20 +180,47 @@ val_labs_ok (GtkWidget *w, gpointer data)
 
   dialog->labs = 0;
 
+  gtk_widget_hide (dialog->window);
+
   return FALSE;
 }
 
 /* Callback for when the Value Labels dialog is closed using
    the Cancel button.*/
+static void
+val_labs_cancel (struct val_labs_dialog *dialog)
+{
+  val_labs_destroy (dialog->labs);
+
+  dialog->labs = 0;
+
+  gtk_widget_hide (dialog->window);
+}
+
+
+/* Callback for when the Value Labels dialog is closed using
+   the Cancel button.*/
 static gint
-val_labs_cancel (GtkWidget *w, gpointer data)
+on_cancel (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
 
-  val_labs_destroy (dialog->labs);
-  dialog->labs = 0;
+  val_labs_cancel (dialog);
 
   return FALSE;
+}
+
+
+/* Callback for when the Value Labels dialog is closed using
+   the window delete button.*/
+static gint
+on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
+{
+  struct val_labs_dialog *dialog = data;
+
+  val_labs_cancel (dialog);
+
+  return TRUE;
 }
 
 
@@ -324,7 +379,6 @@ val_labs_dialog_create (GladeXML *xml)
     (GTK_WINDOW (dialog->window),
      GTK_WINDOW (get_widget_assert (xml, "data_editor")));
 
-  dialog->ok = get_widget_assert (xml, "val_labs_ok");
   dialog->add_button = get_widget_assert (xml, "val_labs_add");
   dialog->remove_button = get_widget_assert (xml, "val_labs_remove");
   dialog->change_button = get_widget_assert (xml, "val_labs_change");
@@ -345,7 +399,14 @@ val_labs_dialog_create (GladeXML *xml)
 
   g_signal_connect (GTK_OBJECT (get_widget_assert (xml, "val_labs_cancel")),
 		   "clicked",
-		   GTK_SIGNAL_FUNC (val_labs_cancel), dialog);
+		   GTK_SIGNAL_FUNC (on_cancel), dialog);
+
+  g_signal_connect (GTK_OBJECT (dialog->window), "delete-event",
+		    GTK_SIGNAL_FUNC (on_delete), dialog);
+
+  g_signal_connect (GTK_OBJECT (get_widget_assert (xml, "val_labs_ok")),
+		   "clicked",
+		   GTK_SIGNAL_FUNC (val_labs_ok), dialog);
 
   dialog->change_handler_id =
     g_signal_connect (GTK_OBJECT (dialog->label_entry),
@@ -362,18 +423,11 @@ val_labs_dialog_create (GladeXML *xml)
 		   GTK_SIGNAL_FUNC (on_change), dialog);
 
 
-  g_signal_connect (GTK_OBJECT (get_widget_assert (xml, "val_labs_ok")),
-		   "clicked",
-		   GTK_SIGNAL_FUNC (val_labs_ok), dialog);
-
-
   g_signal_connect (GTK_OBJECT (dialog->treeview), "cursor-changed",
 		   GTK_SIGNAL_FUNC (on_select_row), dialog);
 
-
   g_signal_connect (GTK_OBJECT (dialog->remove_button), "clicked",
 		   GTK_SIGNAL_FUNC (on_remove), dialog);
-
 
   g_signal_connect (GTK_OBJECT (dialog->add_button), "clicked",
 		   GTK_SIGNAL_FUNC (on_add), dialog);
@@ -382,6 +436,15 @@ val_labs_dialog_create (GladeXML *xml)
 
   return dialog;
 }
+
+
+void
+val_labs_dialog_set_target_variable (struct val_labs_dialog *dialog,
+				     struct variable *var)
+{
+  dialog->pv = var;
+}
+
 
 
 /* Populate the components of the dialog box, from the 'labs' member

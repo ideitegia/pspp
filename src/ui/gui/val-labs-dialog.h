@@ -33,40 +33,12 @@
 
 struct val_labs;
 
-struct val_labs_dialog
-{
-  GtkWidget *window;
 
+struct val_labs_dialog * val_labs_dialog_create (GladeXML *);
 
-  /* The variable to be updated */
-  struct variable *pv;
+void val_labs_dialog_show (struct val_labs_dialog *);
 
-  /* Local copy of labels */
-  struct val_labs *labs;
-
-  /* Actions */
-  GtkWidget *ok;
-  GtkWidget *add_button;
-  GtkWidget *remove_button;
-  GtkWidget *change_button;
-
-  /* Entry Boxes */
-  GtkWidget *value_entry;
-  GtkWidget *label_entry;
-
-  /* Signal handler ids */
-  gint change_handler_id;
-  gint value_handler_id;
-
-  GtkWidget *treeview;
-};
-
-
-
-
-struct val_labs_dialog * val_labs_dialog_create (GladeXML *xml);
-
-void val_labs_dialog_show (struct val_labs_dialog *dialog);
-
+void val_labs_dialog_set_target_variable (struct val_labs_dialog *,
+					  struct variable *);
 
 #endif

@@ -1,3 +1,8 @@
+Mon Dec 25 08:49:57 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* var-sheet.c val-labs-dialog.c val-labs-dialog.h: Fixed bug in value
+	labels dialog box.
+
 Sun Dec 17 08:26:10 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* syntax-editor-source.c syntax-editor-source.h syntax-editor.h: 

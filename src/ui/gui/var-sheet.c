@@ -287,7 +287,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	if (!val_labs_dialog )
 	    val_labs_dialog = val_labs_dialog_create (xml);
 
-	val_labs_dialog->pv = pv;
+	val_labs_dialog_set_target_variable (val_labs_dialog, pv);
 
 	g_signal_connect_swapped (GTK_OBJECT (customEntry),
 				 "clicked",
