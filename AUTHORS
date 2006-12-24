@@ -1,10 +1,21 @@
-* Ben Pfaff wrote most of the program and the manual.
+We wish to thank current active contributors to PSPP:
 
-* John Darrington wrote the graphical user interface, and the 
-T-TEST, ONEWAY, EXAMINE, RANK and  NPAR TESTS commands, implemented
-support for long variable names and made numerous revisions to other 
-modules.
+* Ben Pfaff wrote the initial program and manual, which comprises the
+majority of the current code.  Ben is the current maintainer and
+continues to contribute. 
 
-* Jason Stover contributed statistical and numerical
-functionality, including lib/gslextras.  (Jason is also an
-important contributor to libgsl used by PSPP.)
+* John Darrington wrote the graphical user interface, and the T-TEST,
+ONEWAY, EXAMINE, RANK and  NPAR TESTS commands, implemented support
+for long variable names and made numerous revisions to other  modules.  
+
+* Jason Stover contributed statistical and numerical functionality,
+including lib/gslextras. Jason is also an important contributor to
+GSL, used by PSPP. 
+
+We also thank past contributors:
+
+* John Williams wrote an initial draft of the T-TEST procedure.
+
+* Michael Kiefte contributed bug fixes and other enhancements.
+
+* Patrick Kobly contributed bug fixes and other enhancements.
