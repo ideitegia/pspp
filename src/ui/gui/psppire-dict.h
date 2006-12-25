@@ -78,15 +78,10 @@ gint psppire_dict_get_var_cnt (const PsppireDict *d);
 */
 struct variable * psppire_dict_lookup_var (const PsppireDict *d, const gchar *name);
 
-/* Tell the dictionary that one of its variable has changed */
-void psppire_dict_var_changed (PsppireDict *d, gint idx);
-
-
 /* Clears the contents of D */
 void psppire_dict_clear (PsppireDict *d);
 
 /* Return the IDXth variable */
-
 struct variable * psppire_dict_get_variable (PsppireDict *d, gint idx);
 
 /* Delete N variables beginning at FIRST */

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-12-25 07:26+0900\n"
+"POT-Creation-Date: 2006-12-25 11:19+0900\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -4388,19 +4388,19 @@ msgstr ""
 msgid "Sort by:"
 msgstr ""
 
-#: src/ui/gui/message-dialog.c:123
+#: src/ui/gui/message-dialog.c:122
 msgid "Script Error"
 msgstr "Skript Fehler"
 
-#: src/ui/gui/message-dialog.c:127
+#: src/ui/gui/message-dialog.c:126
 msgid "Data File Error"
 msgstr "Datei Fehler"
 
-#: src/ui/gui/message-dialog.c:132
+#: src/ui/gui/message-dialog.c:131
 msgid "PSPP Error"
 msgstr "PSPP Fehler"
 
-#: src/ui/gui/message-dialog.c:143
+#: src/ui/gui/message-dialog.c:142
 #, c-format
 msgid "%s (line %d) %s"
 msgstr ""

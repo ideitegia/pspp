@@ -253,8 +253,6 @@ psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
   var = dict_create_var (d->dict, name, 0);
 
   dict_reorder_var (d->dict, var, idx);
-
-  g_signal_emit (d, signal[VARIABLE_INSERTED], 0, idx );
 }
 
 /* Delete N variables beginning at FIRST */
@@ -278,8 +276,6 @@ psppire_dict_delete_variables (PsppireDict *d, gint first, gint n)
       dict_delete_var (d->dict, var);
     }
   dict_compact_values (d->dict);
-
-  g_signal_emit (d, signal[VARIABLES_DELETED], 0, first, idx );
 }
 
 
@@ -296,13 +292,11 @@ psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
       /* This is an existing variable? */
       var = dict_get_var (d->dict, idx);
       dict_rename_var (d->dict, var, name);
-      g_signal_emit (d, signal[VARIABLE_CHANGED], 0, idx);
     }
   else
     {
       /* new variable */
       dict_create_var (d->dict, name, 0);
-      g_signal_emit (d, signal[VARIABLE_INSERTED], 0, idx);
     }
 }
 
@@ -346,15 +340,6 @@ psppire_dict_lookup_var (const PsppireDict *d, const gchar *name)
 }
 
 
-void
-psppire_dict_var_changed (PsppireDict *d, gint idx)
-{
-  g_return_if_fail (d);
-
-  g_signal_emit (d, signal[VARIABLE_CHANGED], 0, idx);
-}
-
-
 /* Clears the contents of D */
 void
 psppire_dict_clear (PsppireDict *d)
@@ -366,8 +351,6 @@ psppire_dict_clear (PsppireDict *d)
     const gint n_vars = dict_get_var_cnt (d->dict);
 
     dict_clear (d->dict);
-
-    g_signal_emit (d, signal[VARIABLES_DELETED], 0, 0, n_vars );
   }
 }
 

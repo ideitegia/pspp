@@ -1,3 +1,8 @@
+Mon Dec 25 11:28:29 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-dict.c psppire-dict.h: Removed explicit signal emit calls.
+	These are not required, now that src/data/dictionary.c has callbacks
+
 Mon Dec 25 08:49:57 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* var-sheet.c val-labs-dialog.c val-labs-dialog.h: Fixed bug in value
