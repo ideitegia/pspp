@@ -1,3 +1,8 @@
+Mon Dec 25 12:38:24 WST 2006 John Darrington <john@darrington.wattle.id.au>
+
+	* data-editor.c data-editor.glade: Enabled deleting of variables from
+	the variable sheet.
+
 Mon Dec 25 11:28:29 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-dict.c psppire-dict.h: Removed explicit signal emit calls.

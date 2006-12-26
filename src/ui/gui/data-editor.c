@@ -40,6 +40,7 @@
 #include "psppire-data-store.h"
 #include "psppire-var-store.h"
 
+
 /* Switch between the VAR SHEET and the DATA SHEET */
 enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
 
@@ -71,6 +72,31 @@ static void value_labels_toggled (GtkToggleToolButton *, gpointer);
 
 
 static void file_quit (GtkCheckMenuItem *, gpointer );
+
+static void on_clear_activate (GtkMenuItem *, gpointer);
+
+static void
+enable_edit_clear (GtkWidget *w, gint row, gpointer data)
+{
+  struct data_editor *de = data;
+
+  GtkWidget *menuitem = get_widget_assert (de->xml, "edit_clear");
+
+  gtk_widget_set_sensitive (menuitem, TRUE);
+}
+
+static gboolean
+disable_edit_clear (GtkWidget *w, gint x, gint y, gpointer data)
+{
+  struct data_editor *de = data;
+
+  GtkWidget *menuitem = get_widget_assert (de->xml, "edit_clear");
+
+  gtk_widget_set_sensitive (menuitem, FALSE);
+
+  return FALSE;
+}
+
 
 
 /*
@@ -110,6 +136,14 @@ new_data_editor (void)
 		    G_CALLBACK (open_syntax_window),
 		    e->window);
 
+
+  g_signal_connect (get_widget_assert (de->xml,"edit_clear"),
+		    "activate",
+		    G_CALLBACK (on_clear_activate),
+		    de);
+
+
+
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
 		    "activate",
 		    G_CALLBACK (about_new),
@@ -125,6 +159,17 @@ new_data_editor (void)
   g_signal_connect (get_widget_assert (de->xml, "variable_sheet"),
 		    "double-click-row",
 		    GTK_SIGNAL_FUNC (click2row),
+		    de);
+
+
+  g_signal_connect (get_widget_assert (de->xml, "variable_sheet"),
+		    "select-row",
+		    GTK_SIGNAL_FUNC (enable_edit_clear),
+		    de);
+
+  g_signal_connect (get_widget_assert (de->xml, "variable_sheet"),
+		    "activate",
+		    GTK_SIGNAL_FUNC (disable_edit_clear),
 		    de);
 
 
@@ -480,4 +525,43 @@ file_quit (GtkCheckMenuItem *menuitem, gpointer data)
      Give the user the opportunity to save any unsaved data.
   */
   gtk_main_quit ();
+}
+
+
+
+/* Callback for when the Clear item in the edit menu is activated */
+static void
+on_clear_activate (GtkMenuItem *menuitem, gpointer data)
+{
+  struct data_editor *de = data;
+
+  GtkNotebook *notebook = GTK_NOTEBOOK (get_widget_assert (de->xml,
+							   "notebook"));
+
+  switch ( gtk_notebook_get_current_page (notebook) )
+    {
+    case PAGE_VAR_SHEET:
+      {
+	GtkSheet *var_sheet =
+	  GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+	PsppireVarStore *vs = PSPPIRE_VAR_STORE
+	  (gtk_sheet_get_model (var_sheet) );
+
+	/* This shouldn't be able to happen, because the menuitem
+	   should be disabled */
+	g_return_if_fail (var_sheet->state  ==  GTK_SHEET_ROW_SELECTED );
+
+	psppire_dict_delete_variables (vs->dict,
+				       var_sheet->range.row0,
+				       1 +
+				       var_sheet->range.rowi -
+				       var_sheet->range.row0 );
+      }
+      break;
+      case PAGE_DATA_SHEET:
+	break;
+      default:
+	g_assert_not_reached ();
+    }
 }

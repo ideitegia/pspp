@@ -139,9 +139,9 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="menuitem2">
+	    <widget class="GtkMenuItem" id="edit">
 	      <property name="visible">True</property>
-	      <property name="sensitive">False</property>
+	      <property name="sensitive">True</property>
 	      <property name="label" translatable="yes">_Edit</property>
 	      <property name="use_underline">True</property>
 
@@ -185,11 +185,11 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkMenuItem" id="clear1">
+		    <widget class="GtkMenuItem" id="edit_clear">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Cl_ear</property>
 		      <property name="use_underline">True</property>
-		      <signal name="activate" handler="on_clear_activate" last_modification_time="Sun, 02 Jul 2006 07:00:12 GMT"/>
 		      <accelerator key="Delete" modifiers="0" signal="activate"/>
 		    </widget>
 		  </child>
