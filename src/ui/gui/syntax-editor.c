@@ -46,6 +46,21 @@ static gboolean save_editor_to_file (struct syntax_editor *se,
 				     const gchar *filename,
 				     GError **err);
 
+/* Append ".sps" to FILENAME if necessary.
+   The returned result must be freed when no longer required.
+ */
+static gchar *
+append_suffix (const gchar *filename)
+{
+  if ( ! g_str_has_suffix (filename, ".sps" ) &&
+       ! g_str_has_suffix (filename, ".SPS" ) )
+    {
+      return g_strdup_printf ("%s.sps", filename);
+    }
+
+  return strdup (filename);
+}
+
 /* If the buffer's modified flag is set, then save it, and close the window.
    Otherwise just close the window.
 */
@@ -62,7 +77,7 @@ save_if_modified (struct syntax_editor *se)
 				GTK_MESSAGE_QUESTION,
 				GTK_BUTTONS_NONE,
 				_("Save contents of syntax editor to %s?"),
-				e->name ? e->name : _("Untitled")
+				e->name 
 				);
 
       gtk_dialog_add_button  (GTK_DIALOG (dialog),
@@ -84,8 +99,7 @@ save_if_modified (struct syntax_editor *se)
 	{
 	  GError *err = NULL;
 
-	  if ( ! save_editor_to_file (se, e->name ? e->name : _("Untitled"),
-				      &err) )
+	  if ( ! save_editor_to_file (se, e->name, &err) )
 	    {
 	      msg (ME, err->message);
 	      g_error_free (err);
@@ -101,8 +115,7 @@ save_if_modified (struct syntax_editor *se)
 
 /* Callback for the File->SaveAs menuitem */
 static void
-on_syntax_save_as   (GtkMenuItem     *menuitem,
-		  gpointer         user_data)
+on_syntax_save_as (GtkMenuItem *menuitem, gpointer user_data)
 {
   GtkFileFilter *filter;
   gint response;
@@ -156,9 +169,8 @@ on_syntax_save_as   (GtkMenuItem     *menuitem,
 }
 
 /* Callback for the File->Save menuitem */
-void
-on_syntax_save   (GtkMenuItem     *menuitem,
-		  gpointer         user_data)
+static void
+on_syntax_save (GtkMenuItem *menuitem, gpointer user_data)
 {
   struct syntax_editor *se = user_data;
   struct editor_window *e = user_data;
@@ -167,10 +179,13 @@ on_syntax_save   (GtkMenuItem     *menuitem,
     on_syntax_save_as (menuitem, user_data);
   else
     {
-      GError *err;
+      GError *err = NULL;
       save_editor_to_file (se, e->name, &err);
-      msg (ME, err->message);
-      g_error_free (err);
+      if ( err )
+	{
+	  msg (ME, err->message);
+	  g_error_free (err);
+	}
     }
 }
 
@@ -346,19 +361,16 @@ new_syntax_editor (void)
 		    e->window);
 
 
-#if 0
-
-  g_signal_connect (get_widget_assert (xml,"file_save"),
+  g_signal_connect (get_widget_assert (xml, "file_save"),
 		    "activate",
 		    G_CALLBACK (on_syntax_save),
 		    se);
 
-  g_signal_connect (get_widget_assert (xml,"file_save_as"),
+  g_signal_connect (get_widget_assert (xml, "file_save_as"),
 		    "activate",
 		    G_CALLBACK (on_syntax_save_as),
 		    se);
 
-#endif
 
   g_signal_connect (get_widget_assert (xml,"file_quit"),
 		    "activate",
@@ -424,10 +436,15 @@ save_editor_to_file (struct syntax_editor *se,
   GtkTextIter start, stop;
   gchar *text;
 
+  gchar *suffixedname;
   gchar *glibfilename;
   g_assert (filename);
 
-  glibfilename = g_filename_from_utf8 (filename, -1, 0, 0, err);
+  suffixedname = append_suffix (filename);
+
+  glibfilename = g_filename_from_utf8 (suffixedname, -1, 0, 0, err);
+
+  g_free ( suffixedname);
 
   if ( ! glibfilename )
     return FALSE;
