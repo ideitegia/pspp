@@ -98,6 +98,7 @@ void
 popup_message (const struct msg *m)
 {
   GtkWidget *dialog;
+  gchar *location = NULL;
 
   gint message_type;
   const char *msg;
@@ -137,12 +138,22 @@ popup_message (const struct msg *m)
 				  message_type,
 				  GTK_BUTTONS_CLOSE,
 				  msg);
+  if ( m->where.line_number != -1)
+    {
+      location = g_strdup_printf (_("%s (line %d)"),
+				  m->where.file_name ? m->where.file_name : "",
+				  m->where.line_number);
+    }
+  else
+    {
+      location = g_strdup_printf (_("%s"),
+				  m->where.file_name ? m->where.file_name : "");    }
 
   gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
-                                           _("%s (line %d) %s"),
-					   m->where.file_name,
-					   m->where.line_number,
-					   m->text);
+					    _("%s %s"),
+					    location,
+					    m->text);
+  free (location);
 
   gtk_window_set_keep_above (GTK_WINDOW (dialog), TRUE);
 

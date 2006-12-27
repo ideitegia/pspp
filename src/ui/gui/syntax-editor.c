@@ -325,6 +325,8 @@ new_syntax_editor (void)
   struct syntax_editor *se ;
   struct editor_window *e;
 
+  connect_help (xml);
+
   se = g_malloc (sizeof (*se));
 
   e = (struct editor_window *)se;

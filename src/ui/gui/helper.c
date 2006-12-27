@@ -82,3 +82,34 @@ pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err)
   return recode_string (CONV_PSPP_TO_UTF8, text, len);
 }
 
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+
+static void
+give_help (void)
+{
+  static struct msg m = {
+    MSG_GENERAL,
+    MSG_NOTE,
+    {0, -1},
+    0,
+  };
+
+  if (! m.text)
+    m.text=g_strdup (_("Sorry. The help system hasn't yet been implemented."));
+
+  popup_message (&m);
+}
+
+void
+connect_help (GladeXML *xml)
+{
+  GList *helps = glade_xml_get_widget_prefix (xml, "help_button_");
+
+  GList *i;
+  for ( i = g_list_first (helps); i ; i = g_list_next (i))
+    g_signal_connect (GTK_WIDGET (i->data), "clicked", give_help, 0);
+}
+
+

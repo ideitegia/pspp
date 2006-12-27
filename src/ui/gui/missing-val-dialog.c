@@ -213,6 +213,8 @@ missing_val_dialog_create (GladeXML *xml)
 {
   struct missing_val_dialog *dialog = g_malloc (sizeof (*dialog));
 
+  connect_help (xml);
+
   dialog->window = get_widget_assert (xml, "missing_values_dialog");
 
   gtk_window_set_transient_for

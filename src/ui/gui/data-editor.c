@@ -114,6 +114,8 @@ new_data_editor (void)
 
   de->xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
 
+  connect_help (de->xml);
+
   e->window = get_widget_assert (de->xml, "data_editor");
 
   g_signal_connect (get_widget_assert (de->xml,"file_new_data"),

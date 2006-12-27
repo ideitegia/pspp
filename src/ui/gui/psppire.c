@@ -54,25 +54,6 @@ static bool parse_command_line (int *argc, char ***argv,
 				gchar **filename, GError **err);
 
 
-#define _(msgid) gettext (msgid)
-#define N_(msgid) msgid
-
-static void
-give_help (void)
-{
-  static struct msg m = {
-    MSG_GENERAL,
-    MSG_NOTE,
-    {0, -1},
-    0,
-  };
-
-  if (! m.text)
-    m.text=g_strdup (_("Sorry. The help system hasn't yet been implemented."));
-
-  popup_message (&m);
-}
-
 PsppireVarStore *the_var_store = 0;
 
 void create_icon_factory (void);
@@ -143,36 +124,6 @@ main (int argc, char *argv[])
   the_data_store = psppire_data_store_new (dictionary);
 
   create_icon_factory ();
-
-#if 0
-  /* load the interface */
-  data_editor_xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
-
-  if ( !data_editor_xml ) return 1;
-
-  data_editor = get_widget_assert (data_editor_xml, "data_editor");
-
-  /* connect the signals in the interface */
-  glade_xml_signal_autoconnect (data_editor_xml);
-
-  var_sheet  = GTK_SHEET (get_widget_assert (data_editor_xml, "variable_sheet"));
-  data_sheet = GTK_SHEET (get_widget_assert (data_editor_xml, "data_sheet"));
-
-  gtk_sheet_set_model (var_sheet, G_SHEET_MODEL (the_var_store));
-
-  gtk_sheet_set_model (data_sheet, G_SHEET_MODEL (the_data_store));
-
-  var_data_selection_init ();
-
-  {
-  GList *helps = glade_xml_get_widget_prefix (data_editor_xml, "help_button_");
-
-  GList *i;
-  for ( i = g_list_first (helps); i ; i = g_list_next (i))
-      g_signal_connect (GTK_WIDGET (i->data), "clicked", give_help, 0);
-  }
-
-#endif
 
   new_data_window (NULL, NULL);
 
@@ -280,3 +231,6 @@ create_icon_factory (void)
 
   gtk_icon_factory_add_default (factory);
 }
+
+
+

@@ -41,4 +41,6 @@ GtkWidget * get_widget_assert (GladeXML *xml, const gchar *name);
 char * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
 
 
+void connect_help (GladeXML *xml);
+
 #endif
