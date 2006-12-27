@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-12-25 11:19+0900\n"
+"POT-Creation-Date: 2006-12-28 06:56+0900\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -4102,24 +4102,24 @@ msgstr ""
 msgid "Style of bevel around the custom entry button"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:301 src/ui/gui/data-editor.glade:497
+#: src/ui/gui/data-editor.c:348 src/ui/gui/data-editor.glade:504
 msgid "Open"
 msgstr "Öffen"
 
-#: src/ui/gui/data-editor.c:309
+#: src/ui/gui/data-editor.c:356
 msgid "System Files (*.sav)"
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/data-editor.c:315
+#: src/ui/gui/data-editor.c:362
 msgid "Portable Files (*.por) "
 msgstr "Tragbardatein (*.por)"
 
-#: src/ui/gui/data-editor.c:321 src/ui/gui/syntax-editor.c:127
-#: src/ui/gui/syntax-editor.c:510
+#: src/ui/gui/data-editor.c:368 src/ui/gui/syntax-editor.c:140
+#: src/ui/gui/syntax-editor.c:529
 msgid "All Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.c:399
+#: src/ui/gui/data-editor.c:446
 msgid "Font Selection"
 msgstr "Schriftwahlung"
 
@@ -4133,17 +4133,17 @@ msgid "_Syntax"
 msgstr ""
 
 #: src/ui/gui/data-editor.glade:64 src/ui/gui/data-editor.glade:93
-#: src/ui/gui/data-editor.glade:315 src/ui/gui/syntax-editor.glade:65
+#: src/ui/gui/data-editor.glade:314 src/ui/gui/syntax-editor.glade:65
 #: src/ui/gui/syntax-editor.glade:95
 #, fuzzy
 msgid "_Data"
 msgstr "Daten"
 
-#: src/ui/gui/data-editor.glade:145 src/ui/gui/syntax-editor.glade:142
+#: src/ui/gui/data-editor.glade:144 src/ui/gui/syntax-editor.glade:142
 msgid "_Edit"
 msgstr "_Bearbeiten"
 
-#: src/ui/gui/data-editor.glade:182
+#: src/ui/gui/data-editor.glade:181
 #, fuzzy
 msgid "Paste _Variables"
 msgstr "Variableansicht"
@@ -4152,122 +4152,126 @@ msgstr "Variableansicht"
 msgid "Cl_ear"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:207
+#: src/ui/gui/data-editor.glade:206
 #, fuzzy
 msgid "_Find"
 msgstr "_Datei"
 
-#: src/ui/gui/data-editor.glade:231
+#: src/ui/gui/data-editor.glade:230
 msgid "_View"
 msgstr "_Ansicht"
 
-#: src/ui/gui/data-editor.glade:240
+#: src/ui/gui/data-editor.glade:239
 msgid "Status Bar"
 msgstr "Statusleiste"
 
-#: src/ui/gui/data-editor.glade:248
+#: src/ui/gui/data-editor.glade:247
 msgid "Toolbars"
 msgstr "Werkzeugregal"
 
-#: src/ui/gui/data-editor.glade:262
+#: src/ui/gui/data-editor.glade:261
 msgid "Fonts"
 msgstr "Schrift"
 
-#: src/ui/gui/data-editor.glade:270
+#: src/ui/gui/data-editor.glade:269
 msgid "Grid Lines"
 msgstr "Glitten"
 
-#: src/ui/gui/data-editor.glade:279 src/ui/gui/data-editor.glade:797
+#: src/ui/gui/data-editor.glade:278 src/ui/gui/data-editor.glade:798
 #: src/ui/gui/data-editor.glade:1648 src/ui/gui/data-editor.glade:1925
 msgid "Value Labels"
 msgstr "Werten"
 
-#: src/ui/gui/data-editor.glade:294
+#: src/ui/gui/data-editor.glade:293
 msgid "Data"
 msgstr "Daten"
 
-#: src/ui/gui/data-editor.glade:302 src/ui/gui/data-editor.glade:621
+#: src/ui/gui/data-editor.glade:301 src/ui/gui/data-editor.glade:628
 msgid "Variables"
 msgstr "Variableansicht"
 
-#: src/ui/gui/data-editor.glade:325 src/ui/gui/data-editor.glade:700
+#: src/ui/gui/data-editor.glade:324 src/ui/gui/data-editor.glade:705
 #, fuzzy
 msgid "Insert Variable"
 msgstr "Variableansicht"
 
-#: src/ui/gui/data-editor.glade:334
+#: src/ui/gui/data-editor.glade:333
 #, fuzzy
 msgid "Insert Cases"
 msgstr "_Stecken"
 
-#: src/ui/gui/data-editor.glade:343 src/ui/gui/data-editor.glade:604
+#: src/ui/gui/data-editor.glade:342 src/ui/gui/data-editor.glade:611
 #: src/ui/gui/data-editor.glade:2490
 msgid "Go To Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:370 src/ui/gui/data-editor.glade:2601
+#: src/ui/gui/data-editor.glade:369 src/ui/gui/data-editor.glade:2601
 msgid "Sort Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:380
+#: src/ui/gui/data-editor.glade:379
 msgid "Transpose"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:389
+#: src/ui/gui/data-editor.glade:388
 msgid "Restructure"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:398
+#: src/ui/gui/data-editor.glade:397
 #, fuzzy
 msgid "Merge Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.glade:407
+#: src/ui/gui/data-editor.glade:406
 msgid "Aggregate"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:422 src/ui/gui/data-editor.glade:731
+#: src/ui/gui/data-editor.glade:421 src/ui/gui/data-editor.glade:735
 #, fuzzy
 msgid "Split File"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.glade:431 src/ui/gui/data-editor.glade:767
+#: src/ui/gui/data-editor.glade:430 src/ui/gui/data-editor.glade:769
 msgid "Select Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:440 src/ui/gui/data-editor.glade:749
+#: src/ui/gui/data-editor.glade:439 src/ui/gui/data-editor.glade:752
 msgid "Weight Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:452 src/ui/gui/syntax-editor.glade:232
+#: src/ui/gui/data-editor.glade:451 src/ui/gui/syntax-editor.glade:232
 msgid "_Help"
 msgstr "_Hilfe"
 
-#: src/ui/gui/data-editor.glade:461 src/ui/gui/syntax-editor.glade:241
+#: src/ui/gui/data-editor.glade:460
+msgid "_Reference Manual"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:468 src/ui/gui/syntax-editor.glade:241
 msgid "_About"
 msgstr "_Info"
 
-#: src/ui/gui/data-editor.glade:513
+#: src/ui/gui/data-editor.glade:520
 msgid "Save"
 msgstr "Speichen"
 
-#: src/ui/gui/data-editor.glade:530
+#: src/ui/gui/data-editor.glade:537
 msgid "Print"
 msgstr "Drucken"
 
-#: src/ui/gui/data-editor.glade:559
+#: src/ui/gui/data-editor.glade:566
 msgid "Undo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:575
+#: src/ui/gui/data-editor.glade:582
 msgid "Redo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:652
+#: src/ui/gui/data-editor.glade:658
 msgid "Find"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:681
+#: src/ui/gui/data-editor.glade:687
 #, fuzzy
 msgid "Insert Case"
 msgstr "_Stecken"
@@ -4388,21 +4392,35 @@ msgstr ""
 msgid "Sort by:"
 msgstr ""
 
-#: src/ui/gui/message-dialog.c:122
+#: src/ui/gui/helper.c:100
+msgid "Sorry. The help system hasn't yet been implemented."
+msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
+
+#: src/ui/gui/message-dialog.c:123
 msgid "Script Error"
 msgstr "Skript Fehler"
 
-#: src/ui/gui/message-dialog.c:126
+#: src/ui/gui/message-dialog.c:127
 msgid "Data File Error"
 msgstr "Datei Fehler"
 
-#: src/ui/gui/message-dialog.c:131
+#: src/ui/gui/message-dialog.c:132
 msgid "PSPP Error"
 msgstr "PSPP Fehler"
 
-#: src/ui/gui/message-dialog.c:142
+#: src/ui/gui/message-dialog.c:143
 #, c-format
-msgid "%s (line %d) %s"
+msgid "%s (line %d)"
+msgstr ""
+
+#: src/ui/gui/message-dialog.c:149
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: src/ui/gui/message-dialog.c:153
+#, c-format
+msgid "%s %s"
 msgstr ""
 
 #: src/ui/gui/missing-val-dialog.c:117 src/ui/gui/missing-val-dialog.c:162
@@ -4412,10 +4430,6 @@ msgstr "Unpassend Wert für Variable"
 #: src/ui/gui/missing-val-dialog.c:138 src/ui/gui/missing-val-dialog.c:145
 msgid "Incorrect range specification"
 msgstr "Falshe Spannweitebeschreibung"
-
-#: src/ui/gui/psppire.c:71
-msgid "Sorry. The help system hasn't yet been implemented."
-msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
 
 #: src/ui/gui/psppire-data-store.c:721
 msgid "var"
@@ -4470,26 +4484,22 @@ msgstr ""
 msgid "Criteria"
 msgstr ""
 
-#: src/ui/gui/syntax-editor.c:64
+#: src/ui/gui/syntax-editor.c:79
 #, c-format
 msgid "Save contents of syntax editor to %s?"
 msgstr ""
 
-#: src/ui/gui/syntax-editor.c:65 src/ui/gui/syntax-editor.c:87
-msgid "Untitled"
-msgstr "Unbetitelt"
-
-#: src/ui/gui/syntax-editor.c:113
+#: src/ui/gui/syntax-editor.c:126
 #, fuzzy
 msgid "Save Syntax"
 msgstr "Speichern unter"
 
-#: src/ui/gui/syntax-editor.c:121 src/ui/gui/syntax-editor.c:504
+#: src/ui/gui/syntax-editor.c:134 src/ui/gui/syntax-editor.c:523
 #, fuzzy
 msgid "Syntax Files (*.sps) "
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/syntax-editor.c:496
+#: src/ui/gui/syntax-editor.c:515
 msgid "Open Syntax"
 msgstr ""
 
@@ -4671,6 +4681,9 @@ msgstr "Fehler"
 #: src/ui/terminal/msg-ui.c:147
 msgid "warning"
 msgstr "Warnung"
+
+#~ msgid "Untitled"
+#~ msgstr "Unbetitelt"
 
 #~ msgid "PSPP Data Editor"
 #~ msgstr "PSPP Dateiaufbereiter"

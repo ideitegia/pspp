@@ -152,6 +152,13 @@ new_data_editor (void)
 		    e->window);
 
 
+  g_signal_connect (get_widget_assert (de->xml,"help_reference"),
+		    "activate",
+		    G_CALLBACK (reference_manual),
+		    e->window);
+
+
+
   g_signal_connect (get_widget_assert (de->xml,"data_sheet"),
 		    "double-click-column",
 		    G_CALLBACK (click2column),

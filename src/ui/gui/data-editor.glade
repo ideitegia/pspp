@@ -141,12 +141,11 @@
 	  <child>
 	    <widget class="GtkMenuItem" id="edit">
 	      <property name="visible">True</property>
-	      <property name="sensitive">True</property>
 	      <property name="label" translatable="yes">_Edit</property>
 	      <property name="use_underline">True</property>
 
 	      <child>
-		<widget class="GtkMenu" id="menuitem2_menu">
+		<widget class="GtkMenu" id="edit_menu">
 
 		  <child>
 		    <widget class="GtkImageMenuItem" id="cut1">
@@ -208,7 +207,7 @@
 		      <property name="use_underline">True</property>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image39">
+			<widget class="GtkImage" id="image41">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-find</property>
 			  <property name="icon_size">1</property>
@@ -345,7 +344,7 @@
 		      <signal name="activate" handler="on_go_to_case_activate" last_modification_time="Mon, 19 Jun 2006 10:29:37 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image40">
+			<widget class="GtkImage" id="image42">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-jump-to</property>
 			  <property name="icon_size">1</property>
@@ -454,6 +453,14 @@
 
 	      <child>
 		<widget class="GtkMenu" id="menuitem5_menu">
+
+		  <child>
+		    <widget class="GtkMenuItem" id="help_reference">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Reference Manual</property>
+		      <property name="use_underline">True</property>
+		    </widget>
+		  </child>
 
 		  <child>
 		    <widget class="GtkMenuItem" id="help_about">

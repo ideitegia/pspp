@@ -1,6 +1,8 @@
 #include <config.h>
 
+#include <glib.h>
 #include "helper.h"
+#include "message-dialog.h"
 #include <data/data-in.h>
 #include <data/data-out.h>
 #include <libpspp/message.h>
@@ -10,6 +12,9 @@
 #include <ctype.h>
 #include <string.h>
 #include <data/settings.h>
+
+
+#include <gettext.h>
 
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
@@ -113,3 +118,14 @@ connect_help (GladeXML *xml)
 }
 
 
+
+void
+reference_manual (GtkMenuItem *menu, gpointer data)
+{
+  GError *err = NULL;
+  if ( ! g_spawn_command_line_async ("yelp info:pspp", &err) )
+    {
+      msg (ME, _("Cannot open reference manual: %s"), err->message);
+    }
+  g_clear_error (&err);
+}

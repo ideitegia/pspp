@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2006-12-25 11:19+0900\n"
+"POT-Creation-Date: 2006-12-28 06:56+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4097,24 +4097,24 @@ msgstr ""
 msgid "Style of bevel around the custom entry button"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:301 src/ui/gui/data-editor.glade:497
+#: src/ui/gui/data-editor.c:348 src/ui/gui/data-editor.glade:504
 msgid "Open"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:309
+#: src/ui/gui/data-editor.c:356
 msgid "System Files (*.sav)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:315
+#: src/ui/gui/data-editor.c:362
 msgid "Portable Files (*.por) "
 msgstr ""
 
-#: src/ui/gui/data-editor.c:321 src/ui/gui/syntax-editor.c:127
-#: src/ui/gui/syntax-editor.c:510
+#: src/ui/gui/data-editor.c:368 src/ui/gui/syntax-editor.c:140
+#: src/ui/gui/syntax-editor.c:529
 msgid "All Files"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:399
+#: src/ui/gui/data-editor.c:446
 msgid "Font Selection"
 msgstr ""
 
@@ -4128,16 +4128,16 @@ msgid "_Syntax"
 msgstr ""
 
 #: src/ui/gui/data-editor.glade:64 src/ui/gui/data-editor.glade:93
-#: src/ui/gui/data-editor.glade:315 src/ui/gui/syntax-editor.glade:65
+#: src/ui/gui/data-editor.glade:314 src/ui/gui/syntax-editor.glade:65
 #: src/ui/gui/syntax-editor.glade:95
 msgid "_Data"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:145 src/ui/gui/syntax-editor.glade:142
+#: src/ui/gui/data-editor.glade:144 src/ui/gui/syntax-editor.glade:142
 msgid "_Edit"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:182
+#: src/ui/gui/data-editor.glade:181
 msgid "Paste _Variables"
 msgstr ""
 
@@ -4145,117 +4145,121 @@ msgstr ""
 msgid "Cl_ear"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:207
+#: src/ui/gui/data-editor.glade:206
 msgid "_Find"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:231
+#: src/ui/gui/data-editor.glade:230
 msgid "_View"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:240
+#: src/ui/gui/data-editor.glade:239
 msgid "Status Bar"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:248
+#: src/ui/gui/data-editor.glade:247
 msgid "Toolbars"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:262
+#: src/ui/gui/data-editor.glade:261
 msgid "Fonts"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:270
+#: src/ui/gui/data-editor.glade:269
 msgid "Grid Lines"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:279 src/ui/gui/data-editor.glade:797
+#: src/ui/gui/data-editor.glade:278 src/ui/gui/data-editor.glade:798
 #: src/ui/gui/data-editor.glade:1648 src/ui/gui/data-editor.glade:1925
 msgid "Value Labels"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:294
+#: src/ui/gui/data-editor.glade:293
 msgid "Data"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:302 src/ui/gui/data-editor.glade:621
+#: src/ui/gui/data-editor.glade:301 src/ui/gui/data-editor.glade:628
 msgid "Variables"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:325 src/ui/gui/data-editor.glade:700
+#: src/ui/gui/data-editor.glade:324 src/ui/gui/data-editor.glade:705
 msgid "Insert Variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:334
+#: src/ui/gui/data-editor.glade:333
 msgid "Insert Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:343 src/ui/gui/data-editor.glade:604
+#: src/ui/gui/data-editor.glade:342 src/ui/gui/data-editor.glade:611
 #: src/ui/gui/data-editor.glade:2490
 msgid "Go To Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:370 src/ui/gui/data-editor.glade:2601
+#: src/ui/gui/data-editor.glade:369 src/ui/gui/data-editor.glade:2601
 msgid "Sort Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:380
+#: src/ui/gui/data-editor.glade:379
 msgid "Transpose"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:389
+#: src/ui/gui/data-editor.glade:388
 msgid "Restructure"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:398
+#: src/ui/gui/data-editor.glade:397
 msgid "Merge Files"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:407
+#: src/ui/gui/data-editor.glade:406
 msgid "Aggregate"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:422 src/ui/gui/data-editor.glade:731
+#: src/ui/gui/data-editor.glade:421 src/ui/gui/data-editor.glade:735
 msgid "Split File"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:431 src/ui/gui/data-editor.glade:767
+#: src/ui/gui/data-editor.glade:430 src/ui/gui/data-editor.glade:769
 msgid "Select Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:440 src/ui/gui/data-editor.glade:749
+#: src/ui/gui/data-editor.glade:439 src/ui/gui/data-editor.glade:752
 msgid "Weight Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:452 src/ui/gui/syntax-editor.glade:232
+#: src/ui/gui/data-editor.glade:451 src/ui/gui/syntax-editor.glade:232
 msgid "_Help"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:461 src/ui/gui/syntax-editor.glade:241
+#: src/ui/gui/data-editor.glade:460
+msgid "_Reference Manual"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:468 src/ui/gui/syntax-editor.glade:241
 msgid "_About"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:513
+#: src/ui/gui/data-editor.glade:520
 msgid "Save"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:530
+#: src/ui/gui/data-editor.glade:537
 msgid "Print"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:559
+#: src/ui/gui/data-editor.glade:566
 msgid "Undo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:575
+#: src/ui/gui/data-editor.glade:582
 msgid "Redo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:652
+#: src/ui/gui/data-editor.glade:658
 msgid "Find"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:681
+#: src/ui/gui/data-editor.glade:687
 msgid "Insert Case"
 msgstr ""
 
@@ -4375,21 +4379,35 @@ msgstr ""
 msgid "Sort by:"
 msgstr ""
 
-#: src/ui/gui/message-dialog.c:122
+#: src/ui/gui/helper.c:100
+msgid "Sorry. The help system hasn't yet been implemented."
+msgstr ""
+
+#: src/ui/gui/message-dialog.c:123
 msgid "Script Error"
 msgstr ""
 
-#: src/ui/gui/message-dialog.c:126
+#: src/ui/gui/message-dialog.c:127
 msgid "Data File Error"
 msgstr ""
 
-#: src/ui/gui/message-dialog.c:131
+#: src/ui/gui/message-dialog.c:132
 msgid "PSPP Error"
 msgstr ""
 
-#: src/ui/gui/message-dialog.c:142
+#: src/ui/gui/message-dialog.c:143
 #, c-format
-msgid "%s (line %d) %s"
+msgid "%s (line %d)"
+msgstr ""
+
+#: src/ui/gui/message-dialog.c:149
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: src/ui/gui/message-dialog.c:153
+#, c-format
+msgid "%s %s"
 msgstr ""
 
 #: src/ui/gui/missing-val-dialog.c:117 src/ui/gui/missing-val-dialog.c:162
@@ -4398,10 +4416,6 @@ msgstr ""
 
 #: src/ui/gui/missing-val-dialog.c:138 src/ui/gui/missing-val-dialog.c:145
 msgid "Incorrect range specification"
-msgstr ""
-
-#: src/ui/gui/psppire.c:71
-msgid "Sorry. The help system hasn't yet been implemented."
 msgstr ""
 
 #: src/ui/gui/psppire-data-store.c:721
@@ -4457,24 +4471,20 @@ msgstr ""
 msgid "Criteria"
 msgstr ""
 
-#: src/ui/gui/syntax-editor.c:64
+#: src/ui/gui/syntax-editor.c:79
 #, c-format
 msgid "Save contents of syntax editor to %s?"
 msgstr ""
 
-#: src/ui/gui/syntax-editor.c:65 src/ui/gui/syntax-editor.c:87
-msgid "Untitled"
-msgstr ""
-
-#: src/ui/gui/syntax-editor.c:113
+#: src/ui/gui/syntax-editor.c:126
 msgid "Save Syntax"
 msgstr ""
 
-#: src/ui/gui/syntax-editor.c:121 src/ui/gui/syntax-editor.c:504
+#: src/ui/gui/syntax-editor.c:134 src/ui/gui/syntax-editor.c:523
 msgid "Syntax Files (*.sps) "
 msgstr ""
 
-#: src/ui/gui/syntax-editor.c:496
+#: src/ui/gui/syntax-editor.c:515
 msgid "Open Syntax"
 msgstr ""
 

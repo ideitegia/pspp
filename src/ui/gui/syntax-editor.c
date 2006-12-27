@@ -362,6 +362,11 @@ new_syntax_editor (void)
 		    G_CALLBACK (about_new),
 		    e->window);
 
+  g_signal_connect (get_widget_assert (xml,"help_reference"),
+		    "activate",
+		    G_CALLBACK (reference_manual),
+		    NULL);
+
 
   g_signal_connect (get_widget_assert (xml, "file_save"),
 		    "activate",

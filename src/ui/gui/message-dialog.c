@@ -153,7 +153,7 @@ popup_message (const struct msg *m)
 					    _("%s %s"),
 					    location,
 					    m->text);
-  free (location);
+  g_free (location);
 
   gtk_window_set_keep_above (GTK_WINDOW (dialog), TRUE);
 
