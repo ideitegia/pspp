@@ -243,9 +243,9 @@ void
 psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
 {
   struct variable *var ;
+  g_return_if_fail (idx >= 0);
   g_return_if_fail (d);
   g_return_if_fail (G_IS_PSPPIRE_DICT (d));
-
 
   if ( ! name )
     name = auto_generate_var_name (d);

@@ -263,6 +263,7 @@ static void
 var_change_callback (GtkWidget *w, gint n, gpointer data)
 {
   GSheetModel *model = G_SHEET_MODEL (data);
+
   g_sheet_model_range_changed (model,
 				 n, 0, n, n_COLS);
 }

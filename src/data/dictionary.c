@@ -400,8 +400,12 @@ static void
 set_var_dict_index (struct variable *v, int dict_index)
 {
   struct vardict_info vdi = *var_get_vardict (v);
+  struct dictionary *d = vdi.dict;
   vdi.dict_index = dict_index;
   var_set_vardict (v, &vdi);
+
+  if ( d->callbacks && d->callbacks->var_changed )
+    d->callbacks->var_changed (d, dict_index, d->cb_data);
 }
 
 /* Sets the case_index in V's vardict to DICT_INDEX. */
@@ -537,20 +541,20 @@ dict_reorder_var (struct dictionary *d, struct variable *v, size_t new_index)
    listed in ORDER in that order at the beginning of D.  The
    other variables in D, if any, retain their relative
    positions. */
-void 
+void
 dict_reorder_vars (struct dictionary *d,
-                   struct variable *const *order, size_t count) 
+                   struct variable *const *order, size_t count)
 {
   struct variable **new_var;
   size_t i;
-  
+
   assert (d != NULL);
   assert (count == 0 || order != NULL);
   assert (count <= d->var_cnt);
 
   new_var = xnmalloc (d->var_cnt, sizeof *new_var);
   memcpy (new_var, order, count * sizeof *new_var);
-  for (i = 0; i < count; i++) 
+  for (i = 0; i < count; i++)
     {
       size_t index = var_get_dict_index (order[i]);
       assert (d->var[index] == order[i]);

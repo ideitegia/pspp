@@ -286,6 +286,25 @@ delete_variables_callback (GObject *obj, gint var_num, gint n_vars, gpointer dat
 				   var_num, -1);
 }
 
+
+static void
+variable_changed_callback (GObject *obj, gint var_num, gpointer data)
+{
+  PsppireDataStore *store;
+
+  g_return_if_fail (data);
+
+  store  = PSPPIRE_DATA_STORE (data);
+
+  g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
+				  var_num, 1);
+
+
+  g_sheet_model_range_changed (G_SHEET_MODEL (store),
+			       -1, var_num,
+			       -1, var_num);
+}
+
 static void
 insert_variable_callback (GObject *obj, gint var_num, gpointer data)
 {
@@ -397,6 +416,11 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
   g_signal_connect (dict, "variables-deleted",
 		   G_CALLBACK (delete_variables_callback),
 		   data_store);
+
+  g_signal_connect (dict, "variable-changed",
+		   G_CALLBACK (variable_changed_callback),
+		   data_store);
+
 
   g_signal_connect (dict, "dict-size-changed",
 		    G_CALLBACK (dict_size_change_callback),

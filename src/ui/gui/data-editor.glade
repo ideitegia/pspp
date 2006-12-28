@@ -207,7 +207,7 @@
 		      <property name="use_underline">True</property>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image44">
+			<widget class="GtkImage" id="image47">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-find</property>
 			  <property name="icon_size">1</property>
@@ -308,17 +308,16 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="menuitem4">
+	    <widget class="GtkMenuItem" id="data">
 	      <property name="visible">True</property>
-	      <property name="sensitive">False</property>
 	      <property name="label" translatable="yes">_Data</property>
 	      <property name="use_underline">True</property>
 
 	      <child>
-		<widget class="GtkMenu" id="menuitem4_menu">
+		<widget class="GtkMenu" id="data_menu">
 
 		  <child>
-		    <widget class="GtkMenuItem" id="insert-variable">
+		    <widget class="GtkMenuItem" id="data_insert-variable">
 		      <property name="visible">True</property>
 		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Insert Variable</property>
@@ -330,6 +329,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="insert-cases">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Insert Cases</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_insert_cases" last_modification_time="Sat, 01 Jul 2006 08:40:06 GMT"/>
@@ -339,12 +339,13 @@
 		  <child>
 		    <widget class="GtkImageMenuItem" id="go_to_case">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Go To Case</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_go_to_case_activate" last_modification_time="Mon, 19 Jun 2006 10:29:37 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image45">
+			<widget class="GtkImage" id="image48">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-jump-to</property>
 			  <property name="icon_size">1</property>
@@ -360,12 +361,14 @@
 		  <child>
 		    <widget class="GtkSeparatorMenuItem" id="separator4">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		    </widget>
 		  </child>
 
 		  <child>
 		    <widget class="GtkMenuItem" id="sort_cases">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Sort Cases</property>
 		      <property name="use_underline">True</property>
 		      <signal name="activate" handler="on_sort_cases_activate" last_modification_time="Tue, 20 Jun 2006 10:27:11 GMT"/>
@@ -411,6 +414,7 @@
 		  <child>
 		    <widget class="GtkSeparatorMenuItem" id="separator5">
 		      <property name="visible">True</property>
+		      <property name="sensitive">False</property>
 		    </widget>
 		  </child>
 

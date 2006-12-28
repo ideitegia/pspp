@@ -156,6 +156,8 @@ font_change_callback (GObject *obj, gpointer data)
   ds->width_of_m = calc_m_width (sheet, ds->font_desc);
 }
 
+
+
 GtkWidget*
 psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 			   gint int1, gint int2)
@@ -179,7 +181,6 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 		    G_CALLBACK (font_change_callback), sheet);
 
   gtk_sheet_set_active_cell (GTK_SHEET (sheet), -1, -1);
-
 
   gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL (the_data_store));
 

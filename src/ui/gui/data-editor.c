@@ -41,6 +41,9 @@
 #include "psppire-var-store.h"
 
 
+static void insert_variable (GtkCheckMenuItem *m, gpointer data);
+
+
 /* Switch between the VAR SHEET and the DATA SHEET */
 enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
 
@@ -144,6 +147,11 @@ new_data_editor (void)
 		    G_CALLBACK (on_clear_activate),
 		    de);
 
+
+  g_signal_connect (get_widget_assert (de->xml,"data_insert-variable"),
+		    "activate",
+		    G_CALLBACK (insert_variable),
+		    de);
 
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
@@ -297,7 +305,7 @@ new_data_window (GtkMenuItem *menuitem, gpointer parent)
 static void
 select_sheet (struct data_editor *de, guint page_num)
 {
-  GtkWidget *insert_variable = get_widget_assert (de->xml, "insert-variable");
+  GtkWidget *insert_variable = get_widget_assert (de->xml, "data_insert-variable");
   GtkWidget *insert_cases = get_widget_assert (de->xml, "insert-cases");
 
   GtkWidget *view_data = get_widget_assert (de->xml, "view_data");
@@ -314,8 +322,9 @@ select_sheet (struct data_editor *de, guint page_num)
     case PAGE_DATA_SHEET:
       gtk_widget_show (view_variables);
       gtk_widget_hide (view_data);
-      gtk_widget_set_sensitive (insert_variable, FALSE);
+#if 0
       gtk_widget_set_sensitive (insert_cases, TRUE);
+#endif
       break;
     default:
       g_assert_not_reached ();
@@ -579,3 +588,49 @@ on_clear_activate (GtkMenuItem *menuitem, gpointer data)
 	g_assert_not_reached ();
     }
 }
+
+
+/* Insert a new variable before the current row in the variable sheet,
+   or before the current column in the data sheet, whichever is selected */
+static void
+insert_variable (GtkCheckMenuItem *m, gpointer data)
+{
+  struct data_editor *de = data;
+  gint posn;
+
+  GtkWidget *notebook = get_widget_assert (de->xml, "notebook");
+
+  GtkSheet *var_sheet =
+    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+
+
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE
+    (gtk_sheet_get_model (var_sheet) );
+
+
+  switch ( gtk_notebook_get_current_page ( GTK_NOTEBOOK (notebook)) )
+    {
+    case PAGE_VAR_SHEET:
+      posn = var_sheet->active_cell.row;
+      break;
+    case PAGE_DATA_SHEET:
+      {
+	GtkSheet *data_sheet =
+	  GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+
+	if ( data_sheet->state == GTK_SHEET_COLUMN_SELECTED )
+	  posn = data_sheet->range.col0;
+	else
+	  posn = data_sheet->active_cell.col;
+      }
+      break;
+    default:
+      g_assert_not_reached ();
+    }
+
+  psppire_dict_insert_variable (vs->dict, posn, NULL);
+
+}
+
+
