@@ -110,7 +110,7 @@ save_if_modified (struct syntax_editor *se)
 	return ;
     }
 
-  gtk_widget_destroy (e->window);
+  gtk_widget_destroy (GTK_WIDGET (e->window));
 }
 
 /* Callback for the File->SaveAs menuitem */
@@ -331,7 +331,7 @@ new_syntax_editor (void)
 
   e = (struct editor_window *)se;
 
-  e->window = get_widget_assert (xml, "syntax_editor");
+  e->window = GTK_WINDOW (get_widget_assert (xml, "syntax_editor"));
   text_view = get_widget_assert (xml, "syntax_text_view");
   se->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
   se->lexer = lex_create (the_source_stream);
@@ -406,6 +406,13 @@ new_syntax_editor (void)
 		    "activate",
 		    G_CALLBACK (on_run_to_end),
 		    se);
+
+
+  g_signal_connect (get_widget_assert (xml,"windows_minimise_all"),
+		    "activate",
+		    G_CALLBACK (minimise_all_windows),
+		    NULL);
+
 
 
   g_object_unref (xml);

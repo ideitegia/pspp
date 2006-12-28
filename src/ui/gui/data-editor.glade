@@ -207,7 +207,7 @@
 		      <property name="use_underline">True</property>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image41">
+			<widget class="GtkImage" id="image44">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-find</property>
 			  <property name="icon_size">1</property>
@@ -344,7 +344,7 @@
 		      <signal name="activate" handler="on_go_to_case_activate" last_modification_time="Mon, 19 Jun 2006 10:29:37 GMT"/>
 
 		      <child internal-child="image">
-			<widget class="GtkImage" id="image42">
+			<widget class="GtkImage" id="image45">
 			  <property name="visible">True</property>
 			  <property name="stock">gtk-jump-to</property>
 			  <property name="icon_size">1</property>
@@ -438,6 +438,29 @@
 		      <property name="sensitive">False</property>
 		      <property name="label" translatable="yes">Weight Cases</property>
 		      <property name="use_underline">True</property>
+		    </widget>
+		  </child>
+		</widget>
+	      </child>
+	    </widget>
+	  </child>
+
+	  <child>
+	    <widget class="GtkMenuItem" id="Windows">
+	      <property name="visible">True</property>
+	      <property name="label" translatable="yes">_Windows</property>
+	      <property name="use_underline">True</property>
+	      <signal name="activate" handler="on_Windows_activate" last_modification_time="Wed, 27 Dec 2006 23:16:44 GMT"/>
+
+	      <child>
+		<widget class="GtkMenu" id="Windows_menu">
+
+		  <child>
+		    <widget class="GtkMenuItem" id="windows_minimise_all">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">_Minimise All Windows</property>
+		      <property name="use_underline">True</property>
+		      <signal name="activate" handler="on_minimiseall_activate" last_modification_time="Wed, 27 Dec 2006 23:17:26 GMT"/>
 		    </widget>
 		  </child>
 		</widget>

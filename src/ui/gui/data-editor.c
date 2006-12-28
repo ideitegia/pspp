@@ -24,7 +24,7 @@
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 
-
+#include "window-manager.h"
 #include <gtksheet/gtksheet.h>
 
 #include "helper.h"
@@ -116,7 +116,7 @@ new_data_editor (void)
 
   connect_help (de->xml);
 
-  e->window = get_widget_assert (de->xml, "data_editor");
+  e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
   g_signal_connect (get_widget_assert (de->xml,"file_new_data"),
 		    "activate",
@@ -228,6 +228,11 @@ new_data_editor (void)
   g_signal_connect (get_widget_assert (de->xml, "file_quit"),
 		    "activate",
 		    G_CALLBACK (file_quit), de);
+
+
+  g_signal_connect (get_widget_assert (de->xml, "windows_minimise_all"),
+		    "activate",
+		    G_CALLBACK (minimise_all_windows), NULL);
 
 
   select_sheet (de, PAGE_DATA_SHEET);

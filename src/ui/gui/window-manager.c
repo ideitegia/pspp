@@ -1,3 +1,4 @@
+#include <glib.h>
 #include "syntax-editor.h"
 #include "data-editor.h"
 
@@ -9,16 +10,47 @@
 #include "window-manager.h"
 
 
-static int window_count = 0;
+
+/* A list of struct editor_windows */
+static GSList *window_list = NULL;
+
 
 static void
-deregister (GtkObject *o, gpointer data)
+deregister_window (GtkWindow *w, gpointer data)
 {
-  window_count --;
+  struct editor_window *e = data;
 
-  if ( 0 == window_count )
+  window_list = g_slist_remove (window_list, e);
+
+  if ( g_slist_length (window_list) == 0 )
     gtk_main_quit ();
 };
+
+
+static void
+register_window (struct editor_window *e)
+{
+  window_list = g_slist_prepend (window_list, e);
+}
+
+
+static gint
+next_window_id (void)
+{
+  return g_slist_length (window_list);
+}
+
+void
+minimise_all_windows (void)
+{
+  const GSList *i = NULL;
+
+  for (i = window_list; i != NULL ; i = i->next)
+    {
+      struct editor_window *e = i->data;
+      gtk_window_iconify (e->window);
+    }
+}
 
 static void set_window_name (struct editor_window *e, const gchar *name );
 
@@ -48,11 +80,12 @@ window_create (enum window_type type, const gchar *name)
   gtk_window_set_icon_from_file (GTK_WINDOW (e->window),
 				 PKGDATADIR "/psppicon.png", 0);
 
-  g_signal_connect (e->window, "destroy", G_CALLBACK (deregister), NULL);
+  g_signal_connect (e->window, "destroy",
+		    G_CALLBACK (deregister_window), e);
+
+  register_window (e);
 
   gtk_widget_show (e->window);
-
-  window_count ++;
 
   return e;
 }
@@ -75,11 +108,11 @@ set_window_name (struct editor_window *e,
   switch (e->type )
     {
     case WINDOW_SYNTAX:
-      e->name = g_strdup_printf (_("Syntax%d"), window_count);
+      e->name = g_strdup_printf (_("Syntax%d"), next_window_id () );
       title = g_strdup_printf (_("%s --- PSPP Syntax Editor"), e->name);
       break;
     case WINDOW_DATA:
-      e->name = g_strdup_printf (_("Untitled%d"), window_count);
+      e->name = g_strdup_printf (_("Untitled%d"), next_window_id () );
       title = g_strdup_printf (_("%s --- PSPP Data Editor"), e->name);
       break;
     default:
@@ -117,13 +150,6 @@ window_set_name_from_filename (struct editor_window *e,
   gtk_window_set_title (GTK_WINDOW (e->window), title);
 
   g_free (title);
-}
-
-
-GtkWindow *
-window_toplevel (const struct editor_window *e)
-{
-  return GTK_WINDOW (e->window);
 }
 
 const gchar *
