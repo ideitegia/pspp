@@ -242,7 +242,6 @@ new_data_editor (void)
 		    "activate",
 		    G_CALLBACK (minimise_all_windows), NULL);
 
-
   select_sheet (de, PAGE_DATA_SHEET);
 
   return de;
@@ -414,7 +413,7 @@ static void
 status_bar_activate (GtkCheckMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
-  GtkWidget *statusbar = get_widget_assert (de->xml, "statusbar");
+  GtkWidget *statusbar = get_widget_assert (de->xml, "status-bar");
 
   if ( gtk_check_menu_item_get_active (menuitem) )
     gtk_widget_show (statusbar);
