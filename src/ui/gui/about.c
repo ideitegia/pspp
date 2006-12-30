@@ -21,6 +21,11 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_window_set_icon_from_file (GTK_WINDOW (about),
 				 PKGDATADIR "/psppicon.png", 0);
 
+  gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (about),
+				"http://www.gnu.org/software/pspp");
+
+  gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (about),
+				bare_version);
 
   gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (about),
 				(const gchar **) authors);
@@ -32,6 +37,8 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_window_set_keep_above (GTK_WINDOW (about), TRUE);
 
 
-  gtk_widget_show (about);
+  gtk_dialog_run (about);
+
+  gtk_widget_hide (about);
 }
 
