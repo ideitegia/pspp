@@ -27,13 +27,13 @@
       <property name="spacing">0</property>
 
       <child>
-	<widget class="GtkMenuBar" id="menubar1">
+	<widget class="GtkMenuBar" id="menubar">
 	  <property name="visible">True</property>
 	  <property name="pack_direction">GTK_PACK_DIRECTION_LTR</property>
 	  <property name="child_pack_direction">GTK_PACK_DIRECTION_LTR</property>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="menuitem1">
+	    <widget class="GtkMenuItem" id="file">
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes">_File</property>
 	      <property name="use_underline">True</property>
@@ -225,7 +225,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="menuitem3">
+	    <widget class="GtkMenuItem" id="view">
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes">_View</property>
 	      <property name="use_underline">True</property>
@@ -450,7 +450,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="Windows">
+	    <widget class="GtkMenuItem" id="windows">
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes">_Windows</property>
 	      <property name="use_underline">True</property>
@@ -473,7 +473,7 @@
 	  </child>
 
 	  <child>
-	    <widget class="GtkMenuItem" id="menuitem5">
+	    <widget class="GtkMenuItem" id="help">
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes">_Help</property>
 	      <property name="use_underline">True</property>
@@ -1100,10 +1100,6 @@
 		    </widget>
 		  </child>
 		</widget>
-	      </child>
-
-	      <child>
-		<placeholder/>
 	      </child>
 	    </widget>
 	    <packing>
