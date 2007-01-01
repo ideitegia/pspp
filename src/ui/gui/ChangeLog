@@ -1,3 +1,19 @@
+Mon Jan  1 10:37:07 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-case-file.c psppire-case-file.h: Changed the backend 
+	semantics. An object is now created without any backend.  A new function        ( psppire_case_file_replace_flexifile ) sets the backend to use.
+
+	* psppire-data-store.c : Updated callers accordingly.
+
+	* psppire-dict.c psppire-dict.h : New function 
+	(psppire_dict_replace_dictionary) .
+
+	* psppire.c : Updated to use new dataset replace_{source, dictionary} 
+	callbacks.
+
+	* syntax-editor.c : parses in state CMD_STATE_DATA unless there are 
+	no variables in the dictionary.
+
 Mon Dec 25 12:38:24 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* data-editor.c data-editor.glade: Enabled deleting of variables from

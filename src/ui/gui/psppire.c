@@ -28,11 +28,13 @@
 #include <libpspp/copyleft.h>
 #include <data/file-handle-def.h>
 #include <data/format.h>
+#include <data/storage-stream.h>
 #include <data/settings.h>
 #include <data/file-name.h>
 #include <data/procedure.h>
 #include <libpspp/getl.h>
 #include <language/lexer/lexer.h>
+#include <ui/flexifile.h>
 
 #include <getopt.h>
 #include <gtk/gtk.h>
@@ -60,6 +62,26 @@ void create_icon_factory (void);
 
 struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
+
+static void
+replace_dictionary (struct dictionary *d)
+{
+  psppire_dict_replace_dictionary (the_data_store->dict,
+				   d);
+}
+
+
+static void
+replace_flexifile (struct case_source *s)
+{
+  if ( NULL == s )
+    psppire_case_file_replace_flexifile (the_data_store->case_file,
+					 (struct flexifile *) flexifile_create (0));
+  else
+    psppire_case_file_replace_flexifile (the_data_store->case_file,
+					 (struct flexifile *)
+					 storage_source_get_casefile (s));
+}
 
 
 int
@@ -106,14 +128,15 @@ main (int argc, char *argv[])
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
 
-  the_dataset = create_dataset (factory);
+  the_dataset = create_dataset (factory,
+				replace_flexifile,
+				replace_dictionary);
 
   message_dialog_init (the_source_stream);
 
-  dictionary =
-    psppire_dict_new_from_dict (
-				dataset_dict (the_dataset)
-				);
+  dictionary = psppire_dict_new_from_dict (
+					   dataset_dict (the_dataset)
+					   );
 
   bind_textdomain_codeset (PACKAGE, "UTF-8");
 
@@ -122,6 +145,10 @@ main (int argc, char *argv[])
 
 
   the_data_store = psppire_data_store_new (dictionary);
+
+  proc_set_source (the_dataset,
+		   storage_source_create (the_data_store->case_file->flexifile)
+		   );
 
   create_icon_factory ();
 

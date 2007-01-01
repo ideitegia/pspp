@@ -102,6 +102,8 @@ gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
 void psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 			      const gchar *text);
 
+void psppire_dict_replace_dictionary (PsppireDict *, struct dictionary *);
+
 
 G_END_DECLS
 

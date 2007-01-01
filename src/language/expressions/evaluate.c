@@ -158,7 +158,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
 	  if  ( ds == NULL )
 	    {
-	      ds = create_dataset (NULL);
+	      ds = create_dataset (NULL, NULL, NULL);
 	      d = dataset_dict (ds);
 	    }
 

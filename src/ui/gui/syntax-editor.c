@@ -33,6 +33,7 @@
 
 #include "window-manager.h"
 
+#include <data/dictionary.h>
 #include <language/lexer/lexer.h>
 #include <language/command.h>
 #include <data/procedure.h>
@@ -214,14 +215,16 @@ static void
 execute_syntax (const struct syntax_editor *se, GtkTextIter start,
 		GtkTextIter stop)
 {
+  g_return_if_fail (proc_has_source (the_dataset));
+
   getl_append_source (the_source_stream,
 		      create_syntax_editor_source (se, start, stop));
   for (;;)
     {
+      const struct dictionary *dict = dataset_dict (the_dataset);
       int result = cmd_parse (se->lexer, the_dataset,
-			      proc_has_source (the_dataset)
-			      ? CMD_STATE_DATA : CMD_STATE_INITIAL);
-
+			      dict_get_var_cnt (dict) > 0 ?
+			      CMD_STATE_DATA : CMD_STATE_INITIAL);
       if (result == CMD_EOF || result == CMD_FINISH)
 	break;
     }

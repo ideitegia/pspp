@@ -39,6 +39,8 @@ struct dictionary *dict_create (void);
 struct dictionary *dict_clone (const struct dictionary *);
 void dict_set_callbacks (struct dictionary *, const struct dict_callbacks *,
 			 void *);
+void dict_copy_callbacks (struct dictionary *, const struct dictionary *);
+
 
 void dict_clear (struct dictionary *);
 void dict_clear_aux (struct dictionary *);

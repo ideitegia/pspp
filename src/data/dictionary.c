@@ -82,6 +82,15 @@ dict_set_callbacks (struct dictionary *dict,
 }
 
 
+/* Shallow copy the callbacks from SRC to DEST */
+void
+dict_copy_callbacks (struct dictionary *dest,
+		     const struct dictionary *src)
+{
+  dest->callbacks = src->callbacks;
+  dest->cb_data = src->cb_data;
+}
+
 /* Creates and returns a new dictionary. */
 struct dictionary *
 dict_create (void)
@@ -166,6 +175,9 @@ dict_clear (struct dictionary *d)
 
   for (i = 0; i < d->var_cnt; i++)
     {
+      if (d->callbacks && d->callbacks->var_deleted )
+	d->callbacks->var_deleted (d, i, d->cb_data);
+
       var_clear_vardict (d->var[i]);
       var_destroy (d->var[i]);
     }

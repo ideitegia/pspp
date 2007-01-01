@@ -384,8 +384,6 @@ psppire_data_store_new (PsppireDict *dict)
 void
 psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *dict)
 {
-  gint var_cnt = psppire_dict_get_next_value_idx (dict);
-
   data_store->dict = dict;
 
   if ( data_store->case_file)
@@ -394,7 +392,7 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
       data_store->case_file = 0;
     }
 
-  data_store->case_file = psppire_case_file_new (var_cnt);
+  data_store->case_file = psppire_case_file_new ();
 
   g_signal_connect (data_store->case_file, "cases-deleted",
 		   G_CALLBACK (delete_cases_callback),
@@ -845,3 +843,4 @@ psppire_data_store_sheet_row_init (GSheetRowIface *iface)
 
   iface->get_button_label = geometry_get_row_button_label;
 }
+

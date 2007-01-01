@@ -108,7 +108,7 @@ main (int argc, char **argv)
 
   factory = fastfile_factory_create ();
 
-  the_dataset = create_dataset (factory);
+  the_dataset = create_dataset (factory, NULL, NULL);
 
   if (parse_command_line (argc, argv, the_source_stream))
     {

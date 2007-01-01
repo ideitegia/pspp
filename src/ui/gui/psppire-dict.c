@@ -221,6 +221,13 @@ psppire_dict_new_from_dict (struct dictionary *d)
 }
 
 
+void
+psppire_dict_replace_dictionary (PsppireDict *dict, struct dictionary *d)
+{
+  dict->dict = d;
+}
+
+
 /* Returns a valid name for a new variable in DICT.
    The return value is statically allocated */
 static gchar *
@@ -339,7 +346,6 @@ psppire_dict_lookup_var (const PsppireDict *d, const gchar *name)
   return dict_lookup_var (d->dict, name);
 }
 
-
 /* Clears the contents of D */
 void
 psppire_dict_clear (PsppireDict *d)
@@ -348,12 +354,9 @@ psppire_dict_clear (PsppireDict *d)
   g_return_if_fail (d->dict);
 
   {
-    const gint n_vars = dict_get_var_cnt (d->dict);
-
     dict_clear (d->dict);
   }
 }
-
 
 
 /* Return true is NAME would be a valid name of a variable to add to the

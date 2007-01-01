@@ -58,7 +58,16 @@ bool proc_cancel_temporary_transformations (struct dataset *ds);
 
 /* Procedures. */
 
-struct dataset * create_dataset (struct casefile_factory *);
+struct dictionary ;
+typedef void  replace_source_callback (struct case_source *);
+typedef void  replace_dictionary_callback (struct dictionary *);
+
+
+struct dataset * create_dataset (struct casefile_factory *fact,
+				 replace_source_callback *,
+				 replace_dictionary_callback *
+				 );
+
 void destroy_dataset (struct dataset *);
 
 struct casefile_factory *dataset_get_casefile_factory (const struct dataset *);

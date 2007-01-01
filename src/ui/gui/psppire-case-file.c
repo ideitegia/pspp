@@ -153,31 +153,20 @@ psppire_case_file_init (PsppireCaseFile *cf)
  * Creates a new #PsppireCaseFile.
  */
 PsppireCaseFile*
-psppire_case_file_new (gint val_cnt)
+psppire_case_file_new (void)
 {
   PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
-
-  cf->flexifile = flexifile_create (val_cnt);
 
   return cf;
 }
 
 
-/**
- * psppire_case_file_new_from_flexifile:
- * @returns: a new #PsppireCaseFile object
- *
- * Creates a new #PsppireCaseFile from an existing flexifile
- */
-PsppireCaseFile*
-psppire_case_file_new_from_flexifile (struct flexifile *ff)
+void
+psppire_case_file_replace_flexifile (PsppireCaseFile *cf, struct flexifile *ff)
 {
-  PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
-
   cf->flexifile = (struct casefile *) ff;
-
-  return cf;
 }
+
 
 
 gboolean

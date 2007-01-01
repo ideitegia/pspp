@@ -68,9 +68,7 @@ struct _PsppireCaseFileClass
 /* -- PsppireCaseFile --- */
 GType          psppire_case_file_get_type (void);
 
-PsppireCaseFile *psppire_case_file_new (gint var_cnt);
-PsppireCaseFile* psppire_case_file_new_from_flexifile (struct flexifile *ff);
-
+PsppireCaseFile *psppire_case_file_new (void);
 
 gboolean psppire_case_file_insert_case (PsppireCaseFile *cf, struct ccase *c, gint row);
 
@@ -102,6 +100,10 @@ void psppire_case_file_sort (PsppireCaseFile *cf, const struct sort_criteria *);
 
 gboolean psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
 				    struct ccase *c);
+
+void psppire_case_file_replace_flexifile (PsppireCaseFile *,
+					  struct flexifile *);
+
 
 
 G_END_DECLS
