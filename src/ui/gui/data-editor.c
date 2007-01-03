@@ -101,6 +101,37 @@ disable_edit_clear (GtkWidget *w, gint x, gint y, gpointer data)
 }
 
 
+/* Callback for when the dictionary changes its weights */
+static void
+on_weight_change (GObject *o, gint weight_index, gpointer data)
+{
+  struct data_editor *de = data;
+  GtkWidget *weight_status_area =
+    get_widget_assert (de->xml, "weight-status-area");
+
+  if ( weight_index == -1 )
+    {
+      gtk_label_set_text (GTK_LABEL (weight_status_area), _("Weights off"));
+    }
+  else
+    {
+      GtkSheet *var_sheet =
+	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+      PsppireVarStore *vs = PSPPIRE_VAR_STORE
+	(gtk_sheet_get_model (var_sheet) );
+
+      struct variable *var = psppire_dict_get_variable (vs->dict,
+							weight_index);
+
+      gchar *text = g_strdup_printf (_("Weight by %s"), var_get_name (var));
+
+      gtk_label_set_text (GTK_LABEL (weight_status_area), text);
+
+      g_free (text);
+    }
+}
+
 
 /*
   Create a new data editor.
@@ -110,12 +141,23 @@ new_data_editor (void)
 {
   struct data_editor *de ;
   struct editor_window *e;
+  GtkSheet *var_sheet ;
+  PsppireVarStore *vs;
 
   de = g_malloc (sizeof (*de));
 
   e = (struct editor_window *) de;
 
   de->xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
+
+
+  var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+
+  g_signal_connect (vs->dict, "weight-changed",
+		    G_CALLBACK (on_weight_change),
+		    de);
 
   connect_help (de->xml);
 
@@ -241,6 +283,8 @@ new_data_editor (void)
   g_signal_connect (get_widget_assert (de->xml, "windows_minimise_all"),
 		    "activate",
 		    G_CALLBACK (minimise_all_windows), NULL);
+
+
 
   select_sheet (de, PAGE_DATA_SHEET);
 
@@ -420,8 +464,6 @@ status_bar_activate (GtkCheckMenuItem *menuitem, gpointer data)
   else
     gtk_widget_hide (statusbar);
 }
-
-
 
 
 static void

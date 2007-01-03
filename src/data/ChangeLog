@@ -1,3 +1,8 @@
+Wed Jan  3 11:02:11 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* dictionary.c dictionary.h : Added callback for when the weight variable
+	of a dictionary changes.
+
 Mon Jan  1 10:36:26 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* dictionary.c dictionary.h : Added replace_source and replace_dict

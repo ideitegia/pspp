@@ -729,13 +729,18 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
 /* Sets the weighting variable of D to V, or turning off
    weighting if V is a null pointer. */
 void
-dict_set_weight (struct dictionary *d, struct variable *v) 
+dict_set_weight (struct dictionary *d, struct variable *v)
 {
   assert (d != NULL);
   assert (v == NULL || dict_contains_var (d, v));
   assert (v == NULL || var_is_numeric (v));
 
   d->weight = v;
+
+  if ( d->callbacks && d->callbacks->weight_changed )
+    d->callbacks->weight_changed (d,
+				  v ? var_get_dict_index (v) : -1,
+				  d->cb_data);
 }
 
 /* Returns the filter variable in dictionary D (see cmd_filter())

@@ -49,6 +49,7 @@ enum  {VARIABLE_CHANGED,
        VARIABLE_RESIZED,
        VARIABLE_INSERTED,
        VARIABLES_DELETED,
+       WEIGHT_CHANGED,
        n_SIGNALS};
 
 static guint signal[n_SIGNALS];
@@ -158,6 +159,17 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT,
 		  G_TYPE_INT);
 
+
+  signal [WEIGHT_CHANGED] =
+    g_signal_new ("weight-changed",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__INT,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_INT);
 }
 
 static void
@@ -190,11 +202,19 @@ mutcb (struct dictionary *d, int idx, void *pd)
   g_signal_emit (pd, signal[VARIABLE_CHANGED], 0, idx);
 }
 
+static void
+weight_changed_callback (struct dictionary *d, int idx, void *pd)
+{
+  g_signal_emit (pd, signal [WEIGHT_CHANGED], 0, idx);
+}
+
+
 static const struct dict_callbacks gui_callbacks =
   {
     addcb,
     delcb,
-    mutcb
+    mutcb,
+    weight_changed_callback
   };
 
 static void

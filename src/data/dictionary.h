@@ -32,6 +32,7 @@ struct dict_callbacks
   void (*var_added) (struct dictionary *, int, void *);
   void (*var_deleted) (struct dictionary *, int, void *);
   void (*var_changed) (struct dictionary *, int, void *);
+  void (*weight_changed) (struct dictionary *, int, void *);
  };
 
 
