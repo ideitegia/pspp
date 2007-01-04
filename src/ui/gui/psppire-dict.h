@@ -82,7 +82,7 @@ struct variable * psppire_dict_lookup_var (const PsppireDict *d, const gchar *na
 void psppire_dict_clear (PsppireDict *d);
 
 /* Return the IDXth variable */
-struct variable * psppire_dict_get_variable (PsppireDict *d, gint idx);
+struct variable * psppire_dict_get_variable (const PsppireDict *d, gint idx);
 
 /* Delete N variables beginning at FIRST */
 void psppire_dict_delete_variables (PsppireDict *d, gint first, gint n);
@@ -103,6 +103,9 @@ void psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 			      const gchar *text);
 
 void psppire_dict_replace_dictionary (PsppireDict *, struct dictionary *);
+
+void psppire_dict_set_weight_variable (PsppireDict *, struct variable *);
+struct variable * psppire_dict_get_weight_variable (const PsppireDict *);
 
 
 G_END_DECLS

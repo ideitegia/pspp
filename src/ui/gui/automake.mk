@@ -1,13 +1,25 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-bin_PROGRAMS += src/ui/gui/psppire
+
+
+bin_PROGRAMS += src/ui/gui/psppire 
+
 
 src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall
 
 src_ui_gui_psppire_LDFLAGS = \
-	-export-dynamic 
+	-export-dynamic \
+	-rpath $(pkglibdir)
+
+pkglib_LTLIBRARIES = src/ui/gui/libpsppire.la
+
+src_ui_gui_libpsppire_la_CFLAGS = $(GLADE_CFLAGS) 
+
+src_ui_gui_libpsppire_la_SOURCES = \
+	src/ui/gui/glade-register.c
 
 src_ui_gui_psppire_LDADD = \
+	-dlopen src/ui/gui/libpsppire.la \
 	lib/gtksheet/libgtksheet.a \
 	src/language/liblanguage.a \
 	src/ui/libuicommon.a \
@@ -21,7 +33,7 @@ src_ui_gui_psppire_LDADD = \
 	src/libpspp/libpspp.a \
 	$(GTK_LIBS) \
 	$(GLADE_LIBS) \
-	$(top_builddir)/gl/libgl.a \
+	gl/libgl.la \
 	@LIBINTL@ @LIBREADLINE@
 
 src_ui_gui_psppiredir = $(pkgdatadir)
@@ -65,10 +77,16 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-data-store.h \
 	src/ui/gui/psppire-dict.c \
 	src/ui/gui/psppire-dict.h \
+	src/ui/gui/psppire-dialog.c \
+	src/ui/gui/psppire-dialog.h \
+	src/ui/gui/psppire-buttonbox.c \
+	src/ui/gui/psppire-buttonbox.h \
 	src/ui/gui/psppire-object.c \
 	src/ui/gui/psppire-object.h \
 	src/ui/gui/psppire-var-store.c \
 	src/ui/gui/psppire-var-store.h \
+	src/ui/gui/psppire-var-select.h \
+	src/ui/gui/psppire-var-select.c \
 	src/ui/gui/sort-cases-dialog.c \
 	src/ui/gui/sort-cases-dialog.h \
 	src/ui/gui/syntax-editor.c \
@@ -81,4 +99,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/var-sheet.h \
 	src/ui/gui/var-type-dialog.c \
 	src/ui/gui/var-type-dialog.h \
-	src/ui/gui/window-manager.c
+	src/ui/gui/weight-cases-dialog.c \
+	src/ui/gui/weight-cases-dialog.h \
+	src/ui/gui/window-manager.c \
+	src/ui/gui/window-manager.h
+

@@ -14,6 +14,7 @@ src_ui_terminal_libui_a_SOURCES = \
 
 bin_PROGRAMS += src/ui/terminal/pspp
 
+
 src_ui_terminal_pspp_SOURCES =
 
 src_ui_terminal_pspp_LDADD =					\
@@ -28,7 +29,7 @@ src_ui_terminal_pspp_LDADD =					\
 	lib/gsl-extras/libgsl-extras.a	\
 	src/data/libdata.a \
 	src/libpspp/libpspp.a \
-	gl/libgl.a	\
 	$(LIBICONV) \
+	gl/libgl.la \
 	@LIBINTL@ @LIBREADLINE@
 

@@ -8,10 +8,11 @@ AM_INIT_AUTOMAKE(1.9)
 
 dnl Checks for programs.
 AC_GNU_SOURCE
+gl_EARLY
 AC_PROG_CC
 AM_PROG_CC_C_O
-AC_PROG_RANLIB
-gl_EARLY
+AC_LIBTOOL_DLOPEN
+AC_PROG_LIBTOOL
 
 PSPP_ENABLE_WARNING(-Wdeclaration-after-statement)
 
@@ -39,6 +40,12 @@ if test x"$with_gui" != x"no" ; then
 	PKG_CHECK_MODULES(GLADE, libglade-2.0)
 fi
 AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
+
+AC_ARG_WITH(gui_tools, [  --with-gui-tools          build the gui developer tools])
+if test x"$with_gui_tools" == x"yes" ; then 
+	PKG_CHECK_MODULES(GLADE_UI, libgladeui-1.0)
+fi
+AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" == x"yes")
 
 PSPP_OFF_T
 

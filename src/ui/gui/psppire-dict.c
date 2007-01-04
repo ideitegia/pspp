@@ -331,7 +331,7 @@ psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
 
 /* Return the IDXth variable */
 struct variable *
-psppire_dict_get_variable (PsppireDict *d, gint idx)
+psppire_dict_get_variable (const PsppireDict *d, gint idx)
 {
   g_return_val_if_fail (d, NULL);
   g_return_val_if_fail (d->dict, NULL);
@@ -644,4 +644,19 @@ psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 			 const gchar *text)
 {
   dict_rename_var (dict->dict, v, text);
+}
+
+
+void
+psppire_dict_set_weight_variable (PsppireDict *dict, struct variable *v)
+{
+  g_return_if_fail (v == NULL || var_is_numeric (v));
+  dict_set_weight (dict->dict, v);
+}
+
+
+struct variable *
+psppire_dict_get_weight_variable (const PsppireDict *dict)
+{
+  return dict_get_weight (dict->dict);
 }

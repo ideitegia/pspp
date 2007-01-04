@@ -1,0 +1,54 @@
+<glade-catalog name="psppire" library="glade-psppire">
+
+  <init-function>my_catalog_init</init-function>
+
+  <glade-widget-classes>
+
+    <glade-widget-class toplevel="True" name="PsppireDialog" generic-name="psppire-dialog" title="Psppire Dialog Box">
+      <post-create-function>glade_psppire_dialog_post_create</post-create-function>
+      <get-internal-child-function>glade_psppire_dialog_get_internal_child</get-internal-child-function>
+
+      <get-children-function>glade_psppire_dialog_get_children</get-children-function>
+
+
+      <set-property-function>glade_psppire_dialog_set_property</set-property-function>
+
+      <properties>
+	<property optional-default="False" optional="True" id="default-width" 
+	default="0"/>
+	<property optional-default="False" optional="True" id="default-height" 
+	default="0"/>
+	<property id="has-separator" default="False"/>
+      </properties>
+
+    </glade-widget-class>
+
+
+    <glade-widget-class name="PsppireButtonBox" generic-name="psppire-buttonbox" title="Psppire Button Box">
+
+          <post-create-function>glade_psppire_button_box_post_create</post-create-function>
+          <get-children-function>glade_psppire_button_box_get_children</get-children-function>
+
+      <get-internal-child-function>glade_psppire_button_box_get_internal_child</get-internal-child-function>
+
+      <set-property-function>glade_psppire_button_box_set_property</set-property-function>
+
+
+          <packing-defaults>
+	    <parent-class name="GtkHBox">
+             <child-property id="expand" default="False"/>
+             <child-property id="fill" default="False"/>
+             <child-property id="pack-type" default="GTK_PACK_END"/>
+	    </parent-class>
+          </packing-defaults>
+    </glade-widget-class>
+
+  </glade-widget-classes>
+
+  <glade-widget-group name="psppire-widgets" title="PSPPIRE Specific Widgets">
+    <glade-widget-class-ref name="PsppireDialog"/>
+    <glade-widget-class-ref name="PsppireButtonBox"/>
+  </glade-widget-group>
+
+</glade-catalog>
+

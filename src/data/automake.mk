@@ -17,6 +17,7 @@ src_data_libdata_a_SOURCES = \
 	src/data/casefilter.h \
 	src/data/casefile.h \
 	src/data/casefile.c \
+	src/data/casefile-factory.h \
 	src/data/casefile-private.h \
 	src/data/fastfile.c \
 	src/data/fastfile.h \

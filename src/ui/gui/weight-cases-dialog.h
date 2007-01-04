@@ -1,6 +1,6 @@
 /*
     PSPPIRE --- A Graphical User Interface for PSPP
-    Copyright (C) 2006, 2007  Free Software Foundation
+    Copyright (C) 2007  Free Software Foundation
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,28 +18,11 @@
     02110-1301, USA. */
 
 
-#ifndef DATA_EDITOR_H
-#define DATA_EDITOR_H
+#ifndef WEIGHT_CASES_DIALOG_H
+#define WEIGHT_CASES_DIALOG_H
 
-#include <glade/glade.h>
-#include <gtk/gtk.h>
-#include "window-manager.h"
+#include "psppire-dialog.h"
 
-struct data_editor
-{
-  struct editor_window parent;
-  GtkAction *invoke_weight_cases_dialog;
-  GladeXML *xml;
-};
-
-
-struct data_editor * new_data_editor (void);
-
-void new_data_window (GtkMenuItem *, gpointer);
-
-void open_data_window (GtkMenuItem *, gpointer);
-
-void data_editor_select_sheet (struct data_editor *de, gint page);
-
+PsppireDialog * create_weight_dialog (PsppireVarSelect *, GladeXML *);
 
 #endif

@@ -69,6 +69,7 @@ all: po/POTFILES.in
 	echo '*' > gl/m4/.cvsignore
 	test -d intl || mkdir intl
 	echo '*' > intl/.cvsignore
+	libtoolize --force --automake
 	autopoint --force
 	aclocal -I m4 -I gl/m4
 	autoconf
@@ -123,5 +124,6 @@ clean:
 	rm -f config.h.in~
 	find . -name Makefile.in -exec rm -f {} \; 
 	rm -f compile
+	rm -f ltmain.sh
 
 .PHONY: all gettextize potfiles clean

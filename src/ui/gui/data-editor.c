@@ -1,6 +1,6 @@
 /*
     PSPPIRE --- A Graphical User Interface for PSPP
-    Copyright (C) 2006  Free Software Foundation
+    Copyright (C) 2006, 2007  Free Software Foundation
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 
 #include "helper.h"
 #include "about.h"
+#include "psppire-dialog.h"
+#include "psppire-var-select.h"
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -39,6 +41,8 @@
 
 #include "psppire-data-store.h"
 #include "psppire-var-store.h"
+
+#include "weight-cases-dialog.h"
 
 
 static void insert_variable (GtkCheckMenuItem *m, gpointer data);
@@ -54,6 +58,9 @@ static gboolean click2row (GtkWidget *w, gint row, gpointer data);
 
 static void select_sheet (struct data_editor *de, guint page_num);
 
+
+/* Callback for when the dictionary changes its weights */
+static void on_weight_change (GObject *, gint, gpointer);
 
 static void data_var_select (GtkNotebook *notebook,
 			    GtkNotebookPage *page,
@@ -100,37 +107,7 @@ disable_edit_clear (GtkWidget *w, gint x, gint y, gpointer data)
   return FALSE;
 }
 
-
-/* Callback for when the dictionary changes its weights */
-static void
-on_weight_change (GObject *o, gint weight_index, gpointer data)
-{
-  struct data_editor *de = data;
-  GtkWidget *weight_status_area =
-    get_widget_assert (de->xml, "weight-status-area");
-
-  if ( weight_index == -1 )
-    {
-      gtk_label_set_text (GTK_LABEL (weight_status_area), _("Weights off"));
-    }
-  else
-    {
-      GtkSheet *var_sheet =
-	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-      PsppireVarStore *vs = PSPPIRE_VAR_STORE
-	(gtk_sheet_get_model (var_sheet) );
-
-      struct variable *var = psppire_dict_get_variable (vs->dict,
-							weight_index);
-
-      gchar *text = g_strdup_printf (_("Weight by %s"), var_get_name (var));
-
-      gtk_label_set_text (GTK_LABEL (weight_status_area), text);
-
-      g_free (text);
-    }
-}
+static void weight_cases_dialog (GObject *o, gpointer data);
 
 
 /*
@@ -160,6 +137,16 @@ new_data_editor (void)
 		    de);
 
   connect_help (de->xml);
+
+  de->invoke_weight_cases_dialog =
+    gtk_action_new ("weight-cases-dialog",
+		    _("Weights"),
+		    _("Weight cases by variable"),
+		    "pspp-weight-cases");
+
+
+  g_signal_connect (de->invoke_weight_cases_dialog, "activate",
+		    G_CALLBACK (weight_cases_dialog), de);
 
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
@@ -194,6 +181,17 @@ new_data_editor (void)
 		    "activate",
 		    G_CALLBACK (insert_variable),
 		    de);
+
+  gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
+			    get_widget_assert (de->xml, "data_weight-cases")
+			    );
+
+  /* 
+  g_signal_connect (get_widget_assert (de->xml,"data_weight-cases"),
+		    "activate",
+		    G_CALLBACK (weight_cases_dialog),
+		    de);
+  */
 
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
@@ -274,6 +272,10 @@ new_data_editor (void)
 		    "toggled",
 		    G_CALLBACK (value_labels_toggled), de);
 
+
+  gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
+			    get_widget_assert (de->xml, "button-weight-cases")
+			    );
 
   g_signal_connect (get_widget_assert (de->xml, "file_quit"),
 		    "activate",
@@ -644,11 +646,8 @@ insert_variable (GtkCheckMenuItem *m, gpointer data)
   GtkSheet *var_sheet =
     GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
-
-
   PsppireVarStore *vs = PSPPIRE_VAR_STORE
     (gtk_sheet_get_model (var_sheet) );
-
 
   switch ( gtk_notebook_get_current_page ( GTK_NOTEBOOK (notebook)) )
     {
@@ -671,7 +670,85 @@ insert_variable (GtkCheckMenuItem *m, gpointer data)
     }
 
   psppire_dict_insert_variable (vs->dict, posn, NULL);
+}
 
+
+/* Callback for when the dictionary changes its weights */
+static void
+on_weight_change (GObject *o, gint weight_index, gpointer data)
+{
+  struct data_editor *de = data;
+  GtkWidget *weight_status_area =
+    get_widget_assert (de->xml, "weight-status-area");
+
+  if ( weight_index == -1 )
+    {
+      gtk_label_set_text (GTK_LABEL (weight_status_area), _("Weights off"));
+    }
+  else
+    {
+      GtkSheet *var_sheet =
+	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+      PsppireVarStore *vs = PSPPIRE_VAR_STORE
+	(gtk_sheet_get_model (var_sheet) );
+
+      struct variable *var = psppire_dict_get_variable (vs->dict,
+							weight_index);
+
+      gchar *text = g_strdup_printf (_("Weight by %s"), var_get_name (var));
+
+      gtk_label_set_text (GTK_LABEL (weight_status_area), text);
+
+      g_free (text);
+    }
+}
+
+
+static void
+weight_cases_dialog (GObject *o, gpointer data)
+{
+  gint response;
+  struct data_editor *de = data;
+  GtkSheet *var_sheet =
+    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+
+  GladeXML *xml = glade_xml_new (PKGDATADIR "/psppire.glade",
+				 "weight-cases-dialog", NULL);
+
+
+  GtkWidget *treeview =  get_widget_assert (xml, "treeview");
+  GtkWidget *entry =  get_widget_assert (xml, "entry1");
+
+
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+
+  PsppireVarSelect *select = psppire_var_select_new (treeview,
+						     entry, vs->dict);
+
+
+  PsppireDialog *dialog = create_weight_dialog (select, xml);
+
+  response = psppire_dialog_run (dialog);
+
+  g_object_unref (xml);
+
+  if (response == GTK_RESPONSE_OK)
+    {
+      const GList *list = psppire_var_select_get_variables (select);
+
+      g_assert ( g_list_length (list) <= 1 );
+
+      if ( list == NULL)
+	psppire_dict_set_weight_variable (select->dict, NULL);
+      else
+	{
+	  struct variable *var = list->data;
+
+	  psppire_dict_set_weight_variable (select->dict, var);
+	}
+    }
 }
 
 
