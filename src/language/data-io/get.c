@@ -137,7 +137,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
     goto error;
 
   case_create (&pgm->bounce, dict_get_next_value_idx (dict));
-  
+
   start_case_map (dict);
 
   while (lex_token (lexer) != '.')
@@ -148,11 +148,10 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
     }
 
   pgm->map = finish_case_map (dict);
-  
-  dict_destroy (dataset_dict (ds));
+
   dataset_set_dict (ds, dict);
 
-  proc_set_source (ds, 
+  proc_set_source (ds,
 		   create_case_source (&case_reader_source_class, pgm));
 
   return CMD_SUCCESS;
@@ -1137,14 +1136,13 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 
   discard_variables (ds);
 
-  dict_destroy (dataset_dict (ds));
   dataset_set_dict (ds, mtf.dict);
   mtf.dict = NULL;
   proc_set_source (ds, storage_source_create (mtf.output));
   mtf.output = NULL;
-  
+
   return mtf_free (&mtf) ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
-  
+
  error:
   proc_close (ds);
   mtf_free (&mtf);

@@ -95,12 +95,12 @@ cmd_filter (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   if (lex_match_id (lexer, "OFF"))
-    dict_set_filter (dataset_dict (ds), NULL);
-  else if (lex_token (lexer) == '.') 
+    dict_set_filter (dict, NULL);
+  else if (lex_token (lexer) == '.')
     {
       msg (SW, _("Syntax error expecting OFF or BY.  "
                  "Turning off case filtering."));
-      dict_set_filter (dataset_dict (ds), NULL);
+      dict_set_filter (dict, NULL);
     }
   else
     {

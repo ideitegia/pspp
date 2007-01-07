@@ -59,8 +59,10 @@ static gboolean click2row (GtkWidget *w, gint row, gpointer data);
 static void select_sheet (struct data_editor *de, guint page_num);
 
 
-/* Callback for when the dictionary changes its weights */
+/* Callback for when the dictionary changes properties*/
 static void on_weight_change (GObject *, gint, gpointer);
+static void on_filter_change (GObject *, gint, gpointer);
+static void on_split_change (PsppireDict *, gpointer);
 
 static void data_var_select (GtkNotebook *notebook,
 			    GtkNotebookPage *page,
@@ -134,6 +136,14 @@ new_data_editor (void)
 
   g_signal_connect (vs->dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
+		    de);
+
+  g_signal_connect (vs->dict, "filter-changed",
+		    G_CALLBACK (on_filter_change),
+		    de);
+
+  g_signal_connect (vs->dict, "split-changed",
+		    G_CALLBACK (on_split_change),
 		    de);
 
   connect_help (de->xml);
@@ -672,6 +682,78 @@ insert_variable (GtkCheckMenuItem *m, gpointer data)
   psppire_dict_insert_variable (vs->dict, posn, NULL);
 }
 
+/* Callback for when the dictionary changes its split variables */
+static void
+on_split_change (PsppireDict *dict, gpointer data)
+{
+  struct data_editor *de = data;
+
+  size_t n_split_vars = dict_get_split_cnt (dict->dict);
+
+  GtkWidget *split_status_area =
+    get_widget_assert (de->xml, "split-file-status-area");
+
+  if ( n_split_vars == 0 )
+    {
+      gtk_label_set_text (GTK_LABEL (split_status_area), _("No Split"));
+    }
+  else
+    {
+      gint i;
+      GString *text;
+      GtkSheet *var_sheet =
+	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+      PsppireVarStore *vs = PSPPIRE_VAR_STORE
+	(gtk_sheet_get_model (var_sheet) );
+
+      struct variable *const * split_vars = dict_get_split_vars (dict->dict);
+
+      text = g_string_new (_("Split by "));
+
+      for (i = 0 ; i < n_split_vars - 1; ++i )
+	{
+	  g_string_append_printf (text, "%s, ", var_get_name (split_vars[i]));
+	}
+      g_string_append (text, var_get_name (split_vars[i]));
+
+      gtk_label_set_text (GTK_LABEL (split_status_area), text->str);
+
+      g_string_free (text, TRUE);
+    }
+}
+
+
+/* Callback for when the dictionary changes its filter variable */
+static void
+on_filter_change (GObject *o, gint filter_index, gpointer data)
+{
+  struct data_editor *de = data;
+  GtkWidget *filter_status_area =
+    get_widget_assert (de->xml, "filter-use-status-area");
+
+  if ( filter_index == -1 )
+    {
+      gtk_label_set_text (GTK_LABEL (filter_status_area), _("Filter off"));
+    }
+  else
+    {
+      GtkSheet *var_sheet =
+	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+
+      PsppireVarStore *vs = PSPPIRE_VAR_STORE
+	(gtk_sheet_get_model (var_sheet) );
+
+      struct variable *var = psppire_dict_get_variable (vs->dict,
+							filter_index);
+
+      gchar *text = g_strdup_printf (_("Filter by %s"), var_get_name (var));
+
+      gtk_label_set_text (GTK_LABEL (filter_status_area), text);
+
+      g_free (text);
+    }
+}
 
 /* Callback for when the dictionary changes its weights */
 static void

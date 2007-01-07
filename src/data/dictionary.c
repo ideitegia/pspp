@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -81,7 +81,6 @@ dict_set_callbacks (struct dictionary *dict,
   dict->cb_data = callback_data;
 }
 
-
 /* Shallow copy the callbacks from SRC to DEST */
 void
 dict_copy_callbacks (struct dictionary *dest,
@@ -97,21 +96,8 @@ dict_create (void)
 {
   struct dictionary *d = xzalloc (sizeof *d);
 
-  d->var = NULL;
-  d->var_cnt = d->var_cap = 0;
   d->name_tab = hsh_create (8, compare_vars_by_name, hash_var_by_name,
                             NULL, NULL);
-  d->next_value_idx = 0;
-  d->split = NULL;
-  d->split_cnt = 0;
-  d->weight = NULL;
-  d->filter = NULL;
-  d->case_limit = 0;
-  d->label = NULL;
-  d->documents = NULL;
-  d->vector = NULL;
-  d->vector_cnt = 0;
-
   return d;
 }
 
@@ -145,10 +131,10 @@ dict_clone (const struct dictionary *s)
     }
 
   if (s->weight != NULL)
-    d->weight = dict_lookup_var_assert (d, var_get_name (s->weight));
+    dict_set_weight (d, dict_lookup_var_assert (d, var_get_name (s->weight)));
 
   if (s->filter != NULL)
-    d->filter = dict_lookup_var_assert (d, var_get_name (s->filter));
+    dict_set_filter (d, dict_lookup_var_assert (d, var_get_name (s->filter)));
 
   d->case_limit = s->case_limit;
   dict_set_label (d, dict_get_label (s));
@@ -175,7 +161,7 @@ dict_clear (struct dictionary *d)
 
   for (i = 0; i < d->var_cnt; i++)
     {
-      if (d->callbacks && d->callbacks->var_deleted )
+      if (d->callbacks &&  d->callbacks->var_deleted )
 	d->callbacks->var_deleted (d, i, d->cb_data);
 
       var_clear_vardict (d->var[i]);
@@ -186,11 +172,9 @@ dict_clear (struct dictionary *d)
   d->var_cnt = d->var_cap = 0;
   hsh_clear (d->name_tab);
   d->next_value_idx = 0;
-  free (d->split);
-  d->split = NULL;
-  d->split_cnt = 0;
-  d->weight = NULL;
-  d->filter = NULL;
+  dict_set_split_vars (d, NULL, 0);
+  dict_set_weight (d, NULL);
+  dict_set_filter (d, NULL);
   d->case_limit = 0;
   free (d->label);
   d->label = NULL;
@@ -218,6 +202,10 @@ dict_destroy (struct dictionary *d)
 {
   if (d != NULL)
     {
+      /* In general, we don't want callbacks occuring, if the dictionary
+	 is being destroyed */
+      d->callbacks  = NULL ;
+
       dict_clear (d);
       hsh_destroy (d->name_tab);
       free (d);
@@ -302,7 +290,7 @@ add_var (struct dictionary *d, struct variable *v)
   d->var[d->var_cnt++] = v;
   hsh_force_insert (d->name_tab, v);
 
-  if ( d->callbacks && d->callbacks->var_added )
+  if ( d->callbacks &&  d->callbacks->var_added )
     d->callbacks->var_added (d, d->next_value_idx, d->cb_data);
 
   d->next_value_idx += var_get_value_cnt (v);
@@ -399,7 +387,7 @@ dict_contains_var (const struct dictionary *d, const struct variable *v)
 /* Compares two double pointers to variables, which should point
    to elements of a struct dictionary's `var' member array. */
 static int
-compare_var_ptrs (const void *a_, const void *b_, const void *aux UNUSED) 
+compare_var_ptrs (const void *a_, const void *b_, const void *aux UNUSED)
 {
   struct variable *const *a = a_;
   struct variable *const *b = b_;
@@ -416,7 +404,7 @@ set_var_dict_index (struct variable *v, int dict_index)
   vdi.dict_index = dict_index;
   var_set_vardict (v, &vdi);
 
-  if ( d->callbacks && d->callbacks->var_changed )
+  if ( d->callbacks &&  d->callbacks->var_changed )
     d->callbacks->var_changed (d, dict_index, d->cb_data);
 }
 
@@ -443,7 +431,7 @@ reindex_vars (struct dictionary *d, size_t from, size_t to)
 /* Deletes variable V from dictionary D and frees V.
 
    This is a very bad idea if there might be any pointers to V
-   from outside D.  In general, no variable in should be deleted when 
+   from outside D.  In general, no variable in should be deleted when
    any transformations are active on the dictionary's dataset, because
    those transformations might reference the deleted variable.
    The safest time to delete a variable is just after a procedure
@@ -453,7 +441,7 @@ reindex_vars (struct dictionary *d, size_t from, size_t to)
    dict_delete_var() knows to remove V from split variables,
    weights, filters, etc. */
 void
-dict_delete_var (struct dictionary *d, struct variable *v) 
+dict_delete_var (struct dictionary *d, struct variable *v)
 {
   int dict_index = var_get_dict_index (v);
 
@@ -462,13 +450,14 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   /* Delete aux data. */
   var_clear_aux (v);
 
-  /* Remove V from splits, weight, filter variables. */
-  d->split_cnt = remove_equal (d->split, d->split_cnt, sizeof *d->split,
-                               &v, compare_var_ptrs, NULL);
+  dict_unset_split_var (d, v);
+
   if (d->weight == v)
-    d->weight = NULL;
+    dict_set_weight (d, NULL);
+
   if (d->filter == v)
-    d->filter = NULL;
+    dict_set_filter (d, NULL);
+
   dict_clear_vectors (d);
 
   /* Remove V from var array. */
@@ -486,15 +475,15 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   var_clear_vardict (v);
   var_destroy (v);
 
-  if (d->callbacks && d->callbacks->var_deleted )
+  if (d->callbacks &&  d->callbacks->var_deleted )
     d->callbacks->var_deleted (d, dict_index, d->cb_data);
 }
 
 /* Deletes the COUNT variables listed in VARS from D.  This is
    unsafe; see the comment on dict_delete_var() for details. */
-void 
+void
 dict_delete_vars (struct dictionary *d,
-                  struct variable *const *vars, size_t count) 
+                  struct variable *const *vars, size_t count)
 {
   /* FIXME: this can be done in O(count) time, but this algorithm
      is O(count**2). */
@@ -509,12 +498,12 @@ dict_delete_vars (struct dictionary *d,
    is unsafe; see the comment on dict_delete_var() for
    details. */
 void
-dict_delete_consecutive_vars (struct dictionary *d, size_t idx, size_t count) 
+dict_delete_consecutive_vars (struct dictionary *d, size_t idx, size_t count)
 {
   /* FIXME: this can be done in O(count) time, but this algorithm
      is O(count**2). */
   assert (idx + count <= d->var_cnt);
-  
+
   while (count-- > 0)
     dict_delete_var (d, d->var[idx]);
 }
@@ -540,7 +529,7 @@ dict_delete_scratch_vars (struct dictionary *d)
    if any, retain their relative positions.  Runs in time linear
    in the distance moved. */
 void
-dict_reorder_var (struct dictionary *d, struct variable *v, size_t new_index) 
+dict_reorder_var (struct dictionary *d, struct variable *v, size_t new_index)
 {
   size_t old_index = var_get_dict_index (v);
 
@@ -587,7 +576,7 @@ dict_reorder_vars (struct dictionary *d,
 
 /* Changes the name of variable V in dictionary D to NEW_NAME. */
 static void
-rename_var (struct dictionary *d, struct variable *v, const char *new_name) 
+rename_var (struct dictionary *d, struct variable *v, const char *new_name)
 {
   struct vardict_info vdi;
 
@@ -616,7 +605,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   if (get_algorithm () == ENHANCED)
     var_clear_short_name (v);
 
-  if ( d->callbacks && d->callbacks->var_changed )
+  if ( d->callbacks &&  d->callbacks->var_changed )
     d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
 }
 
@@ -629,7 +618,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
 bool
 dict_rename_vars (struct dictionary *d,
                   struct variable **vars, char **new_names, size_t count,
-                  char **err_name) 
+                  char **err_name)
 {
   struct pool *pool;
   char **old_names;
@@ -641,12 +630,12 @@ dict_rename_vars (struct dictionary *d,
   /* Save the names of the variables to be renamed. */
   pool = pool_create ();
   old_names = pool_nalloc (pool, count, sizeof *old_names);
-  for (i = 0; i < count; i++) 
+  for (i = 0; i < count; i++)
     old_names[i] = pool_strdup (pool, var_get_name (vars[i]));
-  
+
   /* Remove the variables to be renamed from the name hash,
      and rename them. */
-  for (i = 0; i < count; i++) 
+  for (i = 0; i < count; i++)
     {
       hsh_force_delete (d->name_tab, vars[i]);
       rename_var (d, vars[i], new_names[i]);
@@ -661,12 +650,12 @@ dict_rename_vars (struct dictionary *d,
            Back out all the name changes that have already
            taken place, and indicate failure. */
         size_t fail_idx = i;
-        if (err_name != NULL) 
+        if (err_name != NULL)
           *err_name = new_names[i];
 
         for (i = 0; i < fail_idx; i++)
           hsh_force_delete (d->name_tab, vars[i]);
-          
+
         for (i = 0; i < count; i++)
           {
             rename_var (d, vars[i], old_names[i]);
@@ -689,11 +678,11 @@ dict_rename_vars (struct dictionary *d,
 /* Returns the weighting variable in dictionary D, or a null
    pointer if the dictionary is unweighted. */
 struct variable *
-dict_get_weight (const struct dictionary *d) 
+dict_get_weight (const struct dictionary *d)
 {
   assert (d != NULL);
   assert (d->weight == NULL || dict_contains_var (d, d->weight));
-  
+
   return d->weight;
 }
 
@@ -703,7 +692,7 @@ dict_get_weight (const struct dictionary *d)
    warn_on_invalid is true. The function will set warn_on_invalid to false
    if an invalid weight is found. */
 double
-dict_get_case_weight (const struct dictionary *d, const struct ccase *c, 
+dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
 		      bool *warn_on_invalid)
 {
   assert (d != NULL);
@@ -711,7 +700,7 @@ dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
 
   if (d->weight == NULL)
     return 1.0;
-  else 
+  else
     {
       double w = case_num (c, d->weight);
       if (w < 0.0 || var_is_num_missing (d->weight, w, MV_ANY))
@@ -737,7 +726,7 @@ dict_set_weight (struct dictionary *d, struct variable *v)
 
   d->weight = v;
 
-  if ( d->callbacks && d->callbacks->weight_changed )
+  if ( d->callbacks &&  d->callbacks->weight_changed )
     d->callbacks->weight_changed (d,
 				  v ? var_get_dict_index (v) : -1,
 				  d->cb_data);
@@ -746,11 +735,11 @@ dict_set_weight (struct dictionary *d, struct variable *v)
 /* Returns the filter variable in dictionary D (see cmd_filter())
    or a null pointer if the dictionary is unfiltered. */
 struct variable *
-dict_get_filter (const struct dictionary *d) 
+dict_get_filter (const struct dictionary *d)
 {
   assert (d != NULL);
   assert (d->filter == NULL || dict_contains_var (d, d->filter));
-  
+
   return d->filter;
 }
 
@@ -763,12 +752,17 @@ dict_set_filter (struct dictionary *d, struct variable *v)
   assert (v == NULL || dict_contains_var (d, v));
 
   d->filter = v;
+
+  if ( d->callbacks && d->callbacks->filter_changed )
+    d->callbacks->filter_changed (d,
+				  v ? var_get_dict_index (v) : -1,
+				  d->cb_data);
 }
 
 /* Returns the case limit for dictionary D, or zero if the number
    of cases is unlimited. */
 size_t
-dict_get_case_limit (const struct dictionary *d) 
+dict_get_case_limit (const struct dictionary *d)
 {
   assert (d != NULL);
 
@@ -778,7 +772,7 @@ dict_get_case_limit (const struct dictionary *d)
 /* Sets CASE_LIMIT as the case limit for dictionary D.  Use
    0 for CASE_LIMIT to indicate no limit. */
 void
-dict_set_case_limit (struct dictionary *d, size_t case_limit) 
+dict_set_case_limit (struct dictionary *d, size_t case_limit)
 {
   assert (d != NULL);
 
@@ -789,7 +783,7 @@ dict_set_case_limit (struct dictionary *d, size_t case_limit)
    This value is the number of `union value's that need to be
    allocated to store a case for dictionary D. */
 int
-dict_get_next_value_idx (const struct dictionary *d) 
+dict_get_next_value_idx (const struct dictionary *d)
 {
   assert (d != NULL);
 
@@ -799,7 +793,7 @@ dict_get_next_value_idx (const struct dictionary *d)
 /* Returns the number of bytes needed to store a case for
    dictionary D. */
 size_t
-dict_get_case_size (const struct dictionary *d) 
+dict_get_case_size (const struct dictionary *d)
 {
   assert (d != NULL);
 
@@ -809,7 +803,7 @@ dict_get_case_size (const struct dictionary *d)
 /* Deletes scratch variables in dictionary D and reassigns values
    so that fragmentation is eliminated. */
 void
-dict_compact_values (struct dictionary *d) 
+dict_compact_values (struct dictionary *d)
 {
   size_t i;
 
@@ -818,7 +812,7 @@ dict_compact_values (struct dictionary *d)
     {
       struct variable *v = d->var[i];
 
-      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH) 
+      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH)
         {
           set_var_case_index (v, d->next_value_idx);
           d->next_value_idx += var_get_value_cnt (v);
@@ -832,14 +826,14 @@ dict_compact_values (struct dictionary *d)
 /* Returns the number of values that would be used by a case if
    dict_compact_values() were called. */
 size_t
-dict_get_compacted_value_cnt (const struct dictionary *d) 
+dict_get_compacted_value_cnt (const struct dictionary *d)
 {
   size_t i;
   size_t cnt;
 
   cnt = 0;
   for (i = 0; i < d->var_cnt; i++)
-    if (dict_class_from_id (var_get_name (d->var[i])) != DC_SCRATCH) 
+    if (dict_class_from_id (var_get_name (d->var[i])) != DC_SCRATCH)
       cnt += var_get_value_cnt (d->var[i]);
   return cnt;
 }
@@ -850,24 +844,24 @@ dict_get_compacted_value_cnt (const struct dictionary *d)
    receive -1 for case index because dict_compact_values() will
    delete them. */
 int *
-dict_get_compacted_dict_index_to_case_index (const struct dictionary *d) 
+dict_get_compacted_dict_index_to_case_index (const struct dictionary *d)
 {
   size_t i;
   size_t next_value_idx;
   int *map;
-  
+
   map = xnmalloc (d->var_cnt, sizeof *map);
   next_value_idx = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
 
-      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH) 
+      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH)
         {
           map[i] = next_value_idx;
           next_value_idx += var_get_value_cnt (v);
         }
-      else 
+      else
         map[i] = -1;
     }
   return map;
@@ -883,7 +877,7 @@ dict_get_compacted_dict_index_to_case_index (const struct dictionary *d)
    rearrange values even if it didn't reduce space
    requirements. */
 bool
-dict_compacting_would_shrink (const struct dictionary *d) 
+dict_compacting_would_shrink (const struct dictionary *d)
 {
   return dict_get_compacted_value_cnt (d) < dict_get_next_value_idx (d);
 }
@@ -897,13 +891,13 @@ dict_compacting_would_shrink (const struct dictionary *d)
    from dictionary D would *shrink* the case: compacting could
    rearrange values without reducing space requirements. */
 bool
-dict_compacting_would_change (const struct dictionary *d) 
+dict_compacting_would_change (const struct dictionary *d)
 {
   size_t case_idx;
   size_t i;
 
   case_idx = 0;
-  for (i = 0; i < dict_get_var_cnt (d); i++) 
+  for (i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *v = dict_get_var (d, i);
       if (var_get_case_index (v) != case_idx)
@@ -922,7 +916,7 @@ struct copy_map
   };
 
 /* How to compact a case. */
-struct dict_compactor 
+struct dict_compactor
   {
     struct copy_map *maps;      /* Array of mappings. */
     size_t map_cnt;             /* Number of mappings. */
@@ -950,15 +944,15 @@ dict_make_compactor (const struct dictionary *d)
 
   value_idx = 0;
   map = NULL;
-  for (i = 0; i < d->var_cnt; i++) 
+  for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
 
       if (dict_class_from_id (var_get_name (v)) == DC_SCRATCH)
         continue;
-      if (map != NULL && map->src_idx + map->cnt == var_get_case_index (v)) 
+      if (map != NULL && map->src_idx + map->cnt == var_get_case_index (v))
         map->cnt += var_get_value_cnt (v);
-      else 
+      else
         {
           if (compactor->map_cnt == map_allocated)
             compactor->maps = x2nrealloc (compactor->maps, &map_allocated,
@@ -982,11 +976,11 @@ dict_make_compactor (const struct dictionary *d)
    by scratch variables). */
 void
 dict_compactor_compact (const struct dict_compactor *compactor,
-                        struct ccase *dst, const struct ccase *src) 
+                        struct ccase *dst, const struct ccase *src)
 {
   size_t i;
 
-  for (i = 0; i < compactor->map_cnt; i++) 
+  for (i = 0; i < compactor->map_cnt; i++)
     {
       const struct copy_map *map = &compactor->maps[i];
       case_copy (dst, map->dst_idx, src, map->src_idx, map->cnt);
@@ -995,9 +989,9 @@ dict_compactor_compact (const struct dict_compactor *compactor,
 
 /* Destroys COMPACTOR. */
 void
-dict_compactor_destroy (struct dict_compactor *compactor) 
+dict_compactor_destroy (struct dict_compactor *compactor)
 {
-  if (compactor != NULL) 
+  if (compactor != NULL)
     {
       free (compactor->maps);
       free (compactor);
@@ -1009,20 +1003,36 @@ dict_compactor_destroy (struct dict_compactor *compactor)
    there are.  Returns a null pointer if and only if there are no
    SPLIT FILE vars. */
 struct variable *const *
-dict_get_split_vars (const struct dictionary *d) 
+dict_get_split_vars (const struct dictionary *d)
 {
   assert (d != NULL);
-  
+
   return d->split;
 }
 
 /* Returns the number of SPLIT FILE vars. */
 size_t
-dict_get_split_cnt (const struct dictionary *d) 
+dict_get_split_cnt (const struct dictionary *d)
 {
   assert (d != NULL);
 
   return d->split_cnt;
+}
+
+/* Removes variable V from the set of split variables in dictionary D */
+void
+dict_unset_split_var (struct dictionary *d,
+		      struct variable *v)
+{
+  const int count = d->split_cnt;
+  d->split_cnt = remove_equal (d->split, d->split_cnt, sizeof *d->split,
+                               &v, compare_var_ptrs, NULL);
+
+  if ( count == d->split_cnt)
+    return;
+
+  if ( d->callbacks &&  d->callbacks->split_changed )
+    d->callbacks->split_changed (d, d->cb_data);
 }
 
 /* Sets CNT split vars SPLIT in dictionary D. */
@@ -1036,12 +1046,15 @@ dict_set_split_vars (struct dictionary *d,
   d->split_cnt = cnt;
   d->split = xnrealloc (d->split, cnt, sizeof *d->split);
   memcpy (d->split, split, cnt * sizeof *d->split);
+
+  if ( d->callbacks &&  d->callbacks->split_changed )
+    d->callbacks->split_changed (d, d->cb_data);
 }
 
 /* Returns the file label for D, or a null pointer if D is
    unlabeled (see cmd_file_label()). */
 const char *
-dict_get_label (const struct dictionary *d) 
+dict_get_label (const struct dictionary *d)
 {
   assert (d != NULL);
 
@@ -1051,7 +1064,7 @@ dict_get_label (const struct dictionary *d)
 /* Sets D's file label to LABEL, truncating it to a maximum of 60
    characters. */
 void
-dict_set_label (struct dictionary *d, const char *label) 
+dict_set_label (struct dictionary *d, const char *label)
 {
   assert (d != NULL);
 
@@ -1060,7 +1073,7 @@ dict_set_label (struct dictionary *d, const char *label)
     d->label = NULL;
   else if (strlen (label) < 60)
     d->label = xstrdup (label);
-  else 
+  else
     {
       d->label = xmalloc (61);
       memcpy (d->label, label, 60);
@@ -1071,7 +1084,7 @@ dict_set_label (struct dictionary *d, const char *label)
 /* Returns the documents for D, or a null pointer if D has no
    documents (see cmd_document()).. */
 const char *
-dict_get_documents (const struct dictionary *d) 
+dict_get_documents (const struct dictionary *d)
 {
   assert (d != NULL);
 
@@ -1098,7 +1111,7 @@ dict_set_documents (struct dictionary *d, const char *documents)
 bool
 dict_create_vector (struct dictionary *d,
                     const char *name,
-                    struct variable **var, size_t cnt) 
+                    struct variable **var, size_t cnt)
 {
   size_t i;
 
@@ -1106,12 +1119,12 @@ dict_create_vector (struct dictionary *d,
   assert (cnt > 0);
   for (i = 0; i < cnt; i++)
     assert (dict_contains_var (d, var[i]));
-  
+
   if (dict_lookup_vector (d, name) == NULL)
     {
       d->vector = xnrealloc (d->vector, d->vector_cnt + 1, sizeof *d->vector);
       d->vector[d->vector_cnt++] = vector_create (name, var, cnt);
-      return true; 
+      return true;
     }
   else
     return false;
@@ -1120,7 +1133,7 @@ dict_create_vector (struct dictionary *d,
 /* Returns the vector in D with index IDX, which must be less
    than dict_get_vector_cnt (D). */
 const struct vector *
-dict_get_vector (const struct dictionary *d, size_t idx) 
+dict_get_vector (const struct dictionary *d, size_t idx)
 {
   assert (d != NULL);
   assert (idx < d->vector_cnt);
@@ -1130,7 +1143,7 @@ dict_get_vector (const struct dictionary *d, size_t idx)
 
 /* Returns the number of vectors in D. */
 size_t
-dict_get_vector_cnt (const struct dictionary *d) 
+dict_get_vector_cnt (const struct dictionary *d)
 {
   assert (d != NULL);
 
@@ -1140,7 +1153,7 @@ dict_get_vector_cnt (const struct dictionary *d)
 /* Looks up and returns the vector within D with the given
    NAME. */
 const struct vector *
-dict_lookup_vector (const struct dictionary *d, const char *name) 
+dict_lookup_vector (const struct dictionary *d, const char *name)
 {
   size_t i;
   for (i = 0; i < d->vector_cnt; i++)
@@ -1151,10 +1164,10 @@ dict_lookup_vector (const struct dictionary *d, const char *name)
 
 /* Deletes all vectors from D. */
 void
-dict_clear_vectors (struct dictionary *d) 
+dict_clear_vectors (struct dictionary *d)
 {
   size_t i;
-  
+
   for (i = 0; i < d->vector_cnt; i++)
     vector_destroy (d->vector[i]);
   free (d->vector);
@@ -1165,14 +1178,14 @@ dict_clear_vectors (struct dictionary *d)
 
 /* Compares two strings. */
 static int
-compare_strings (const void *a, const void *b, const void *aux UNUSED) 
+compare_strings (const void *a, const void *b, const void *aux UNUSED)
 {
   return strcmp (a, b);
 }
 
 /* Hashes a string. */
 static unsigned
-hash_string (const void *s, const void *aux UNUSED) 
+hash_string (const void *s, const void *aux UNUSED)
 {
   return hsh_hash_string (s);
 }
@@ -1199,7 +1212,7 @@ set_var_short_name_suffix (struct variable *v, const char *base,
   /* Compose suffix. */
   start = end = suffix + sizeof suffix - 1;
   *end = '\0';
-  do 
+  do
     {
       *--start = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[suffix_number % 26];
       if (start <= suffix + 1)
@@ -1231,7 +1244,7 @@ set_var_short_name_suffix (struct variable *v, const char *base,
    truncated to form short names.  If that causes conflicts,
    variables are renamed as PREFIX_A, PREFIX_B, and so on. */
 void
-dict_assign_short_names (struct dictionary *d) 
+dict_assign_short_names (struct dictionary *d)
 {
   struct hsh_table *short_names;
   size_t i;
@@ -1260,13 +1273,13 @@ dict_assign_short_names (struct dictionary *d)
       if (name != NULL && hsh_insert (short_names, (char *) name) != NULL)
         var_clear_short_name (v);
     }
-  
+
   /* Now assign short names to remaining variables. */
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
       const char *name = var_get_short_name (v);
-      if (name == NULL) 
+      if (name == NULL)
         {
           /* Form initial short_name from the variable name, then
              try _A, _B, ... _AA, _AB, etc., if needed.*/
@@ -1282,7 +1295,7 @@ dict_assign_short_names (struct dictionary *d)
             }
           while (hsh_insert (short_names, (char *) var_get_short_name (v))
                  != NULL);
-        } 
+        }
     }
 
   /* Get rid of hash table. */
@@ -1290,7 +1303,7 @@ dict_assign_short_names (struct dictionary *d)
 }
 
 
-/* Called from variable.c to notify the dictionary that some property of 
+/* Called from variable.c to notify the dictionary that some property of
    the variable has changed */
 void
 dict_var_changed (const struct variable *v)

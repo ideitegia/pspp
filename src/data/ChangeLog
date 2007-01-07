@@ -1,7 +1,17 @@
+Sun Jan  7 08:33:04 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* dictionary.c dictionary.h : Added callbacks for change of filter and 
+	split variables.  Refactored some code to ensure that callbacks get
+	invoked when appropriate.
+
+	* procedure.c (proc_cancel_temporary_transformations): Make sure that 
+	replace_dict callback occurs when permanent_dict replaces the current
+	dictionary.
+
 Wed Jan  3 11:02:11 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
-	* dictionary.c dictionary.h : Added callback for when the weight variable
-	of a dictionary changes.
+	* dictionary.c dictionary.h : Added callback for when the weight 
+	variable of a dictionary changes.
 
 Mon Jan  1 10:36:26 WST 2007 John Darrington <john@darrington.wattle.id.au>
 

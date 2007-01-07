@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -108,7 +108,7 @@ static bool close_active_file (struct dataset *ds);
 
 /* Returns the last time the data was read. */
 time_t
-time_of_last_procedure (struct dataset *ds) 
+time_of_last_procedure (struct dataset *ds)
 {
   if (ds->last_proc_invocation == 0)
     update_last_proc_invocation (ds);
@@ -127,10 +127,10 @@ time_of_last_procedure (struct dataset *ds)
       start the next case from step 1.
 
    2. Write case to replacement active file.
-  
+
    3. Execute temporary transformations.  If these drop the case,
       start the next case from step 1.
-     
+
    4. Pass case to PROC_FUNC, passing AUX as auxiliary data.
 
    Returns true if successful, false if an I/O error occurred. */
@@ -162,7 +162,7 @@ procedure (struct dataset *ds, case_func *cf, void *aux)
 struct multipass_aux_data
   {
     struct casefile *casefile;
-   
+
     bool (*proc_func) (const struct casefile *, void *aux);
     void *aux;
   };
@@ -295,7 +295,7 @@ proc_read (struct dataset *ds, struct ccase **c)
                                    &ds->trns_case, &case_nr);
       if (retval != TRNS_CONTINUE)
         continue;
- 
+
       /* Write case to LAG queue. */
       if (ds->n_lag)
         lag_case (ds, &ds->trns_case);
@@ -313,7 +313,7 @@ proc_read (struct dataset *ds, struct ccase **c)
           else
             ds->proc_sink->class->write (ds->proc_sink, &ds->trns_case);
         }
- 
+
       /* Execute temporary transformations. */
       if (ds->temporary_trns_chain != NULL)
         {
@@ -422,7 +422,7 @@ open_active_file (struct dataset *ds)
   if (ds->n_lag > 0)
     {
       int i;
- 
+
       ds->lag_count = 0;
       ds->lag_head = 0;
       ds->lag_queue = xnmalloc (ds->n_lag, sizeof *ds->lag_queue);
@@ -450,7 +450,7 @@ clear_case (const struct dataset *ds, struct ccase *c)
 {
   size_t var_cnt = dict_get_var_cnt (ds->dict);
   size_t i;
- 
+
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (ds->dict, i);
@@ -472,13 +472,13 @@ close_active_file (struct dataset *ds)
   if (ds->n_lag > 0)
     {
       int i;
-     
+
       for (i = 0; i < ds->n_lag; i++)
 	case_destroy (&ds->lag_queue[i]);
       free (ds->lag_queue);
       ds->n_lag = 0;
     }
- 
+
   /* Dictionary from before TEMPORARY becomes permanent. */
   proc_cancel_temporary_transformations (ds);
 
@@ -489,7 +489,7 @@ close_active_file (struct dataset *ds)
       dict_compact_values (ds->dict);
       ds->compactor = NULL;
     }
-   
+
   /* Old data sink becomes new data source. */
   if (ds->proc_sink->class->make_source != NULL)
     ds->proc_source = ds->proc_sink->class->make_source (ds->proc_sink);
@@ -554,7 +554,7 @@ static bool split_procedure_end_func (void *, const struct dataset *);
    If SPLIT FILE is not in effect, then there is one break group
    (if the active file is nonempty), and BEGIN_FUNC and END_FUNC
    will be called once.
-  
+
    Returns true if successful, false if an I/O error occurred. */
 bool
 procedure_with_splits (struct dataset *ds,
@@ -707,7 +707,7 @@ static bool
 multipass_split_output (struct multipass_split_aux_data *aux, const struct dataset *ds)
 {
   bool ok;
- 
+
   assert (aux->casefile != NULL);
   ok = aux->split (&aux->prev_case, aux->casefile, aux->func_aux, ds);
   casefile_destroy (aux->casefile);
@@ -725,7 +725,7 @@ discard_variables (struct dataset *ds)
   fh_set_default_handle (NULL);
 
   ds->n_lag = 0;
- 
+
   free_case_source (ds->proc_source);
   ds->proc_source = NULL;
   if ( ds->replace_source )
@@ -742,7 +742,7 @@ struct trns_chain *
 proc_capture_transformations (struct dataset *ds)
 {
   struct trns_chain *chain;
- 
+
   assert (ds->temporary_trns_chain == NULL);
   chain = ds->permanent_trns_chain;
   ds->cur_trns_chain = ds->permanent_trns_chain = trns_chain_create ();
@@ -801,6 +801,7 @@ proc_start_temporary_transformations (struct dataset *ds)
       add_case_limit_trns (ds);
 
       ds->permanent_dict = dict_clone (ds->dict);
+
       trns_chain_finalize (ds->permanent_trns_chain);
       ds->temporary_trns_chain = ds->cur_trns_chain = trns_chain_create ();
     }
@@ -836,8 +837,7 @@ proc_cancel_temporary_transformations (struct dataset *ds)
 {
   if (proc_in_temporary_transformations (ds))
     {
-      dict_destroy (ds->dict);
-      ds->dict = ds->permanent_dict;
+      dataset_set_dict (ds, ds->permanent_dict);
       ds->permanent_dict = NULL;
 
       trns_chain_destroy (ds->temporary_trns_chain);
@@ -1015,14 +1015,20 @@ dataset_dict (const struct dataset *ds)
 }
 
 
+/* Set or replace dataset DS's dictionary with DICT.
+   The old dictionary is destroyed */
 void
 dataset_set_dict (struct dataset *ds, struct dictionary *dict)
 {
+  struct dictionary *old_dict = ds->dict;
+
   dict_copy_callbacks (dict, ds->dict);
   ds->dict = dict;
 
   if ( ds->replace_dict )
     ds->replace_dict (dict);
+
+  dict_destroy (old_dict);
 }
 
 int

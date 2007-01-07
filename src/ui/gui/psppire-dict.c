@@ -1,6 +1,6 @@
 /*
     PSPPIRE --- A Graphical User Interface for PSPP
-    Copyright (C) 2004, 2006  Free Software Foundation
+    Copyright (C) 2004, 2006, 2007  Free Software Foundation
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,11 +50,11 @@ enum  {VARIABLE_CHANGED,
        VARIABLE_INSERTED,
        VARIABLES_DELETED,
        WEIGHT_CHANGED,
+       FILTER_CHANGED,
+       SPLIT_CHANGED,
        n_SIGNALS};
 
 static guint signal[n_SIGNALS];
-
-#define CACHE_CHUNK 5
 
 /* --- functions --- */
 /**
@@ -170,6 +170,29 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_NONE,
 		  1,
 		  G_TYPE_INT);
+
+
+  signal [FILTER_CHANGED] =
+    g_signal_new ("filter-changed",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__INT,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_INT);
+
+
+  signal [SPLIT_CHANGED] =
+    g_signal_new ("split-changed",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__VOID,
+		  G_TYPE_NONE,
+		  0);
 }
 
 static void
@@ -208,13 +231,27 @@ weight_changed_callback (struct dictionary *d, int idx, void *pd)
   g_signal_emit (pd, signal [WEIGHT_CHANGED], 0, idx);
 }
 
+static void
+filter_changed_callback (struct dictionary *d, int idx, void *pd)
+{
+  g_signal_emit (pd, signal [FILTER_CHANGED], 0, idx);
+}
+
+static void
+split_changed_callback (struct dictionary *d, void *pd)
+{
+  g_signal_emit (pd, signal [SPLIT_CHANGED], 0);
+}
+
 
 static const struct dict_callbacks gui_callbacks =
   {
     addcb,
     delcb,
     mutcb,
-    weight_changed_callback
+    weight_changed_callback,
+    filter_changed_callback,
+    split_changed_callback
   };
 
 static void

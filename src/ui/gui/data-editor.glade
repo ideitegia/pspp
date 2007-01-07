@@ -880,6 +880,7 @@
                     <child>
                       <widget class="GtkLabel" id="filter-use-status-area">
                         <property name="visible">True</property>
+                        <property name="ellipsize">PANGO_ELLIPSIZE_START</property>
                         <property name="width_chars">10</property>
                         <property name="single_line_mode">True</property>
                       </widget>
@@ -931,6 +932,7 @@
                     <child>
                       <widget class="GtkLabel" id="split-file-status-area">
                         <property name="visible">True</property>
+                        <property name="ellipsize">PANGO_ELLIPSIZE_START</property>
                         <property name="width_chars">10</property>
                         <property name="single_line_mode">True</property>
                       </widget>

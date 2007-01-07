@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -33,6 +33,8 @@ struct dict_callbacks
   void (*var_deleted) (struct dictionary *, int, void *);
   void (*var_changed) (struct dictionary *, int, void *);
   void (*weight_changed) (struct dictionary *, int, void *);
+  void (*filter_changed) (struct dictionary *, int, void *);
+  void (*split_changed) (struct dictionary *, void *);
  };
 
 
@@ -112,6 +114,8 @@ struct variable *const *dict_get_split_vars (const struct dictionary *);
 size_t dict_get_split_cnt (const struct dictionary *);
 void dict_set_split_vars (struct dictionary *,
                           struct variable *const *, size_t cnt);
+void dict_unset_split_var (struct dictionary *d,
+			   struct variable *v);
 
 const char *dict_get_label (const struct dictionary *);
 void dict_set_label (struct dictionary *, const char *);
@@ -133,6 +137,5 @@ void dict_assign_short_names (struct dictionary *);
 
 /* Called only from variable.c */
 void dict_var_changed (const struct variable *v);
-
 
 #endif /* dictionary.h */

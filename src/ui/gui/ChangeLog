@@ -1,3 +1,11 @@
+Sun Jan  7 08:38:29 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-dict.c: Add FILTER_CHANGED and SPLIT_CHANGED signals 
+	corresponding to the callbacks in src/data/dictionary.c
+
+	* data-editor.c : Connect functions to the FILTER_CHANGED and 
+	SPLIT_CHANGED signals to update the status bar accordingly.
+
 Mon Jan  1 10:37:07 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-case-file.c psppire-case-file.h: Changed the backend 

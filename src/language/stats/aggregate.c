@@ -305,7 +305,6 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
             goto error;
         }
       discard_variables (ds);
-      dict_destroy (dict);
       dataset_set_dict (ds, agr.dict);
       agr.dict = NULL;
       proc_set_source (ds, agr.sink->class->make_source (agr.sink));
