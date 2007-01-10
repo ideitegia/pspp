@@ -1,3 +1,10 @@
+Tue Jan  9 19:16:11 2007  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #18739.
+	
+	* aggregate.c (parse_aggregate_functions) Initialize
+	function_name.
+
 Fri Dec 22 14:04:09 2006  Ben Pfaff  <blp@gnu.org>
 
 	Simplify missing value handling.

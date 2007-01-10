@@ -409,6 +409,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
       n_src = 0;
       arg[0].c = NULL;
       arg[1].c = NULL;
+      ds_init_empty (&function_name);
 
       /* Parse the list of target variables. */
       while (!lex_match (lexer, '='))
@@ -451,7 +452,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 
       exclude = MV_ANY;
 
-      ds_init_string (&function_name, lex_tokstr (lexer));
+      ds_assign_string (&function_name, lex_tokstr (lexer));
 
       ds_chomp (&function_name, '.');
 
