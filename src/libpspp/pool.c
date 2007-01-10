@@ -100,8 +100,8 @@ union align
 
 /* DISCRETE_BLOCKS may be declared as nonzero to prevent
    suballocation of blocks.  This is useful under memory
-   debuggers like Checker or valgrind because it allows the
-   source location of bugs to be more accurately pinpointed.
+   debuggers like valgrind because it allows the source location
+   of bugs to be more accurately pinpointed.
 
    On the other hand, if we're testing the library, then we want to
    test the library's real functionality, not its crippled, slow,
