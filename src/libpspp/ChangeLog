@@ -1,3 +1,11 @@
+Wed Jan 10 06:49:38 2007  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add heap.c, heap.h to sources.
+
+	* heap.c: New file.
+
+	* heap.h: New file.
+
 Sun Dec 10 13:54:03 2006  Ben Pfaff  <blp@gnu.org>
 
 	* str.c (ss_tokenize): Skip the first delimiter character

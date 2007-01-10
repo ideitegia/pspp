@@ -23,6 +23,8 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/getl.c \
 	src/libpspp/hash.c \
 	src/libpspp/hash.h \
+	src/libpspp/heap.c \
+	src/libpspp/heap.h \
 	src/libpspp/i18n.c \
 	src/libpspp/i18n.h \
 	src/libpspp/integer-format.c \

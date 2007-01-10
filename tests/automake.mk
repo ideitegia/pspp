@@ -131,10 +131,14 @@ TESTS = \
 	tests/expressions/variables.sh \
 	tests/expressions/vectors.sh \
 	tests/libpspp/ll-test \
-	tests/libpspp/llx-test
+	tests/libpspp/llx-test \
+	tests/libpspp/heap-test
 
-check_PROGRAMS += tests/libpspp/ll-test tests/libpspp/llx-test \
-	tests/formats/inexactify
+check_PROGRAMS += \
+	tests/libpspp/ll-test \
+	tests/libpspp/llx-test \
+	tests/formats/inexactify \
+	tests/libpspp/heap-test
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -147,6 +151,15 @@ tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/llx.c \
 	src/libpspp/llx.h \
 	tests/libpspp/llx-test.c
+
+tests_libpspp_heap_test_SOURCES = \
+	src/libpspp/heap.c \
+	src/libpspp/heap.h \
+	src/libpspp/pool.c \
+	src/libpspp/pool.h \
+	tests/libpspp/heap-test.c
+tests_libpspp_heap_test_LDADD = gl/libgl.la
+tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 

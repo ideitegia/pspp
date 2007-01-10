@@ -1,3 +1,9 @@
+Wed Jan 10 06:50:01 2007  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add tests/libpspp/heap-test.
+
+	* test/libpspp/heap-test.c: New test.
+
 Wed Dec 13 21:00:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command/rank.sh (activity): Use DELETE VAR (which is new)
