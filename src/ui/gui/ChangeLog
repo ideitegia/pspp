@@ -1,3 +1,14 @@
+Wed Jan 10 07:20:39 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-case-file.c : Make sure there is always a valid flexifile
+
+	* psppire-data-store.c : assertions.
+
+	* psppire.c: Ignore replace source callbacks if the new source is 
+	  not of storiage_source_class
+
+	* syntax-editor.c: Close/Abort source after parsing is complete.
+
 Sun Jan  7 08:38:29 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-dict.c: Add FILTER_CHANGED and SPLIT_CHANGED signals 

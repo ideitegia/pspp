@@ -317,8 +317,10 @@ insert_variable_callback (GObject *obj, gint var_num, gpointer data)
 
   if ( var_num > 0 )
     {
-      struct variable *variable;
-      variable = psppire_dict_get_variable (store->dict, var_num);
+      struct variable *variable =
+	psppire_dict_get_variable (store->dict, var_num);
+
+      g_assert (variable != NULL);
 
       posn = var_get_case_index (variable);
     }
@@ -367,7 +369,6 @@ psppire_data_store_new (PsppireDict *dict)
 
   psppire_data_store_set_dictionary (retval, dict);
 
-
   return retval;
 }
 
@@ -393,6 +394,8 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
     }
 
   data_store->case_file = psppire_case_file_new ();
+
+
 
   g_signal_connect (data_store->case_file, "cases-deleted",
 		   G_CALLBACK (delete_cases_callback),
@@ -496,7 +499,11 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 
   pv = psppire_dict_get_variable (store->dict, column);
 
+  g_assert (pv);
+
   idx = var_get_case_index (pv);
+
+  g_assert (idx >= 0);
 
   v = psppire_case_file_get_value (store->case_file, row, idx);
 

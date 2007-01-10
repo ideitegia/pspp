@@ -29,6 +29,7 @@
 #include <data/file-handle-def.h>
 #include <data/format.h>
 #include <data/storage-stream.h>
+#include <data/case-source.h>
 #include <data/settings.h>
 #include <data/file-name.h>
 #include <data/procedure.h>
@@ -78,9 +79,14 @@ replace_flexifile (struct case_source *s)
     psppire_case_file_replace_flexifile (the_data_store->case_file,
 					 (struct flexifile *) flexifile_create (0));
   else
-    psppire_case_file_replace_flexifile (the_data_store->case_file,
-					 (struct flexifile *)
-					 storage_source_get_casefile (s));
+    {
+      if ( ! case_source_is_class (s, &storage_source_class))
+	return ;
+
+      psppire_case_file_replace_flexifile (the_data_store->case_file,
+					   (struct flexifile *)
+					   storage_source_get_casefile (s));
+    }
 }
 
 

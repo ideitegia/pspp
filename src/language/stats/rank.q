@@ -1,7 +1,5 @@
 /* PSPP - RANK. -*-c-*-
-
-Copyright (C) 2005, 2006 Free Software Foundation, Inc.
-        Ben Pfaff <blp@gnu.org>.
+Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -66,31 +64,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* (declarations) */
 /* (functions) */
 
-typedef double (*rank_function_t) (double c, double cc, double cc_1, 
+typedef double (*rank_function_t) (double c, double cc, double cc_1,
 				 int i, double w);
 
-static double rank_proportion (double c, double cc, double cc_1, 
+static double rank_proportion (double c, double cc, double cc_1,
 			       int i, double w);
 
-static double rank_normal (double c, double cc, double cc_1, 
+static double rank_normal (double c, double cc, double cc_1,
 			   int i, double w);
 
-static double rank_percent (double c, double cc, double cc_1, 
+static double rank_percent (double c, double cc, double cc_1,
 			    int i, double w);
 
-static double rank_rfraction (double c, double cc, double cc_1, 
+static double rank_rfraction (double c, double cc, double cc_1,
 			      int i, double w);
 
-static double rank_rank (double c, double cc, double cc_1, 
+static double rank_rank (double c, double cc, double cc_1,
 			 int i, double w);
 
-static double rank_n (double c, double cc, double cc_1, 
+static double rank_n (double c, double cc, double cc_1,
 		      int i, double w);
 
-static double rank_savage (double c, double cc, double cc_1, 
+static double rank_savage (double c, double cc, double cc_1,
 		      int i, double w);
 
-static double rank_ntiles (double c, double cc, double cc_1, 
+static double rank_ntiles (double c, double cc, double cc_1,
 		      int i, double w);
 
 
@@ -137,7 +135,7 @@ static const rank_function_t rank_func[n_RANK_FUNCS] = {
   rank_proportion,
   rank_n,
   rank_ntiles,
-  rank_savage 
+  rank_savage
   };
 
 
@@ -167,10 +165,10 @@ static int k_ntiles;
 
 static struct cmd_rank cmd;
 
-static struct casefile *rank_sorted_casefile (struct casefile *cf, 
-					      const struct sort_criteria *, 
+static struct casefile *rank_sorted_casefile (struct casefile *cf,
+					      const struct sort_criteria *,
 					      const struct dictionary *,
-					      const struct rank_spec *rs, 
+					      const struct rank_spec *rs,
 					      int n_rank_specs,
 					      int idx,
 					      const struct missing_values *miss
@@ -179,7 +177,7 @@ static const char *
 fraction_name(void)
 {
   static char name[10];
-  switch ( cmd.fraction ) 
+  switch ( cmd.fraction )
     {
     case RANK_BLOM:
       strcpy (name, "BLOM");
@@ -201,32 +199,32 @@ fraction_name(void)
 
 /* Create a label on DEST_VAR, describing its derivation from SRC_VAR and F */
 static void
-create_var_label (struct variable *dest_var, 
+create_var_label (struct variable *dest_var,
 		  const struct variable *src_var, enum RANK_FUNC f)
 {
   struct string label;
   ds_init_empty (&label);
 
-  if ( n_group_vars > 0 ) 
+  if ( n_group_vars > 0 )
     {
       struct string group_var_str;
       int g;
 
       ds_init_empty (&group_var_str);
 
-      for (g = 0 ; g < n_group_vars ; ++g ) 
+      for (g = 0 ; g < n_group_vars ; ++g )
 	{
 	  if ( g > 0 ) ds_put_cstr (&group_var_str, " ");
 	  ds_put_cstr (&group_var_str, var_get_name (group_vars[g]));
 	}
 
-      ds_put_format (&label, _("%s of %s by %s"), function_name[f], 
+      ds_put_format (&label, _("%s of %s by %s"), function_name[f],
 		     var_get_name (src_var), ds_cstr (&group_var_str));
       ds_destroy (&group_var_str);
     }
   else
     ds_put_format (&label, _("%s of %s"),
-                   function_name[f], var_get_name (src_var));  
+                   function_name[f], var_get_name (src_var));
 
   var_set_label (dest_var, ds_cstr (&label));
 
@@ -234,8 +232,8 @@ create_var_label (struct variable *dest_var,
 }
 
 
-static bool 
-rank_cmd (struct dataset *ds, const struct sort_criteria *sc, 
+static bool
+rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
 	  const struct rank_spec *rank_specs, int n_rank_specs)
 {
   struct sort_criteria criteria;
@@ -245,14 +243,14 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
 
   criteria.crit_cnt = n_splits + n_group_vars + 1;
   criteria.crits = xnmalloc (criteria.crit_cnt, sizeof *criteria.crits);
-  for (i = 0; i < n_splits ; i++) 
+  for (i = 0; i < n_splits ; i++)
     {
       struct variable *v = dict_get_split_vars (dataset_dict (ds))[i];
       criteria.crits[i].fv = var_get_case_index (v);
       criteria.crits[i].width = var_get_width (v);
       criteria.crits[i].dir = SRT_ASCEND;
     }
-  for (i = 0; i < n_group_vars; i++) 
+  for (i = 0; i < n_group_vars; i++)
     {
       criteria.crits[i + n_splits].fv = var_get_case_index (group_vars[i]);
       criteria.crits[i + n_splits].width = var_get_width (group_vars[i]);
@@ -261,7 +259,7 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
   for (i = 0 ; i < sc->crit_cnt ; ++i )
     {
       struct casefile *out ;
-      struct casefile *cf ; 
+      struct casefile *cf ;
       struct casereader *reader ;
       struct casefile *sorted_cf ;
 
@@ -280,19 +278,19 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
 
       out = rank_sorted_casefile (sorted_cf, &criteria,
 				  dataset_dict (ds),
-                                  rank_specs, n_rank_specs, 
+                                  rank_specs, n_rank_specs,
 				  i, var_get_missing_values (src_vars[i]));
-      if ( NULL == out ) 
+      if ( NULL == out )
 	{
 	  result = false ;
 	  continue ;
 	}
-      
+
       proc_set_source (ds, storage_source_create (out));
     }
 
   free (criteria.crits);
-  return result ; 
+  return result ;
 
 error:
   free (criteria.crits);
@@ -300,20 +298,20 @@ error:
 }
 
 /* Hardly a rank function !! */
-static double 
-rank_n (double c UNUSED, double cc UNUSED, double cc_1 UNUSED, 
+static double
+rank_n (double c UNUSED, double cc UNUSED, double cc_1 UNUSED,
 	  int i UNUSED, double w)
 {
   return w;
 }
 
 
-static double 
-rank_rank (double c, double cc, double cc_1, 
+static double
+rank_rank (double c, double cc, double cc_1,
 	  int i, double w UNUSED)
 {
   double rank;
-  if ( c >= 1.0 ) 
+  if ( c >= 1.0 )
     {
       switch (cmd.ties)
 	{
@@ -358,31 +356,31 @@ rank_rank (double c, double cc, double cc_1,
 }
 
 
-static double 
-rank_rfraction (double c, double cc, double cc_1, 
+static double
+rank_rfraction (double c, double cc, double cc_1,
 		int i, double w)
 {
   return rank_rank (c, cc, cc_1, i, w) / w ;
 }
 
 
-static double 
-rank_percent (double c, double cc, double cc_1, 
+static double
+rank_percent (double c, double cc, double cc_1,
 		int i, double w)
 {
   return rank_rank (c, cc, cc_1, i, w) * 100.0 / w ;
 }
 
 
-static double 
-rank_proportion (double c, double cc, double cc_1, 
+static double
+rank_proportion (double c, double cc, double cc_1,
 		 int i, double w)
 {
   const double r =  rank_rank (c, cc, cc_1, i, w) ;
 
   double f;
-  
-  switch ( cmd.fraction ) 
+
+  switch ( cmd.fraction )
     {
     case RANK_BLOM:
       f =  (r - 3.0/8.0) / (w + 0.25);
@@ -404,20 +402,20 @@ rank_proportion (double c, double cc, double cc_1,
   return (f > 0) ? f : SYSMIS;
 }
 
-static double 
-rank_normal (double c, double cc, double cc_1, 
+static double
+rank_normal (double c, double cc, double cc_1,
 	     int i, double w)
 {
   double f = rank_proportion (c, cc, cc_1, i, w);
-  
+
   return gsl_cdf_ugaussian_Pinv (f);
 }
 
-static double 
-rank_ntiles (double c, double cc, double cc_1, 
+static double
+rank_ntiles (double c, double cc, double cc_1,
 		int i, double w)
 {
-  double r = rank_rank (c, cc, cc_1, i, w);  
+  double r = rank_rank (c, cc, cc_1, i, w);
 
 
   return ( floor (( r * k_ntiles) / ( w + 1) ) + 1);
@@ -429,16 +427,16 @@ ee (int j, double w_star)
 {
   int k;
   double sum = 0.0;
-  
-  for (k = 1 ; k <= j; k++) 
+
+  for (k = 1 ; k <= j; k++)
     sum += 1.0 / ( w_star + 1 - k );
 
   return sum;
 }
 
 
-static double 
-rank_savage (double c, double cc, double cc_1, 
+static double
+rank_savage (double c, double cc, double cc_1,
 		int i UNUSED, double w)
 {
   double int_part;
@@ -454,14 +452,14 @@ rank_savage (double c, double cc, double cc_1,
      Therefore, evaluate the second, only when the first is non-zero */
   const double expr1 =  (1 - g_1) ? (1 - g_1) * ee(i_1+1, w_star) : ( 1 - g_1);
   const double expr2 =  g_2 ? g_2 * ee (i_2+1, w_star) : g_2 ;
-  
-  if ( i_1 == i_2 ) 
+
+  if ( i_1 == i_2 )
     return ee (i_1 + 1, w_star) - 1;
-  
+
   if ( i_1 + 1 == i_2 )
     return ( ( expr1 + expr2 )/c ) - 1;
 
-  if ( i_1 + 2 <= i_2 ) 
+  if ( i_1 + 2 <= i_2 )
     {
       int j;
       double sigma = 0.0;
@@ -481,11 +479,11 @@ rank_savage (double c, double cc, double cc_1,
    use. N_RANK_SPECS is the number of elements of RS.
 
 
-   DEST_VAR_INDEX is the index into the rank_spec destvar element 
+   DEST_VAR_INDEX is the index into the rank_spec destvar element
    to be used for this ranking.
 
    Prerequisites: 1. The casefile must be sorted according to CRITERION.
-                  2. W is the sum of the non-missing caseweights for this 
+                  2. W is the sum of the non-missing caseweights for this
 		  range of the casefile.
 */
 static void
@@ -495,8 +493,8 @@ rank_cases (struct casereader *cr,
 	    const struct sort_criterion *criterion,
 	    const struct missing_values *mv,
 	    double w,
-	    const struct rank_spec *rs, 
-	    int n_rank_specs, 
+	    const struct rank_spec *rs,
+	    int n_rank_specs,
 	    int dest_var_index,
 	    struct casefile *dest)
 {
@@ -519,10 +517,10 @@ rank_cases (struct casereader *cr,
 
       if (!casereader_read_xfer (cr, &this_case))
         break;
-      
+
       this_value = case_data_idx (&this_case, fv);
       c = dict_get_case_weight (dict, &this_case, &warn);
-              
+
       lookahead = casereader_clone (cr);
       n = 0;
       while (casereader_cnum (lookahead) < end
@@ -531,13 +529,13 @@ rank_cases (struct casereader *cr,
           const union value *lookahead_value = case_data_idx (&lookahead_case, fv);
           int diff = compare_values (this_value, lookahead_value, width);
 
-          if (diff != 0) 
+          if (diff != 0)
             {
 	      /* Make sure the casefile was sorted */
 	      assert ( diff == ((criterion->dir == SRT_ASCEND) ? -1 :1));
 
               case_destroy (&lookahead_case);
-              break; 
+              break;
             }
 
           c += dict_get_case_weight (dict, &lookahead_case, &warn);
@@ -552,17 +550,17 @@ rank_cases (struct casereader *cr,
 
       do
         {
-          for (i = 0; i < n_rank_specs; ++i) 
+          for (i = 0; i < n_rank_specs; ++i)
             {
               const struct variable *dst_var = rs[i].destvars[dest_var_index];
 
 	      if  ( mv_is_value_missing (mv, this_value, exclude_values) )
 		case_data_rw (&this_case, dst_var)->f = SYSMIS;
 	      else
-		case_data_rw (&this_case, dst_var)->f = 
+		case_data_rw (&this_case, dst_var)->f =
 		  rank_func[rs[i].rfunc](c, cc, cc_1, iter, w);
             }
-          casefile_append_xfer (dest, &this_case); 
+          casefile_append_xfer (dest, &this_case);
         }
       while (n-- > 0 && casereader_read_xfer (cr, &this_case));
 
@@ -592,12 +590,12 @@ same_group (const struct ccase *a, const struct ccase *b,
 }
 
 static struct casefile *
-rank_sorted_casefile (struct casefile *cf, 
-		      const struct sort_criteria *crit, 
+rank_sorted_casefile (struct casefile *cf,
+		      const struct sort_criteria *crit,
 		      const struct dictionary *dict,
-		      const struct rank_spec *rs, 
-		      int n_rank_specs, 
-		      int dest_idx, 
+		      const struct rank_spec *rs,
+		      int n_rank_specs,
+		      int dest_idx,
 		      const struct missing_values *mv)
 {
   struct casefile *dest = fastfile_create (casefile_get_value_cnt (cf));
@@ -608,7 +606,7 @@ rank_sorted_casefile (struct casefile *cf,
 
   struct sort_criterion *ultimate_crit = &crit->crits[crit->crit_cnt - 1];
 
-  if (casereader_read (lookahead, &group_case)) 
+  if (casereader_read (lookahead, &group_case))
     {
       struct ccase this_case;
       const union value *this_value ;
@@ -618,18 +616,18 @@ rank_sorted_casefile (struct casefile *cf,
       if ( !mv_is_value_missing (mv, this_value, exclude_values) )
 	w = dict_get_case_weight (dict, &group_case, &warn);
 
-      while (casereader_read (lookahead, &this_case)) 
+      while (casereader_read (lookahead, &this_case))
         {
-	  const union value *this_value = 
+	  const union value *this_value =
 	    case_data_idx(&this_case, ultimate_crit->fv);
           double c = dict_get_case_weight (dict, &this_case, &warn);
-          if (!same_group (&group_case, &this_case, crit)) 
+          if (!same_group (&group_case, &this_case, crit))
             {
               rank_cases (pos, casereader_cnum (lookahead) - 1,
 			  dict,
-			  ultimate_crit, 
-			  mv, w, 
-			  rs, n_rank_specs, 
+			  ultimate_crit,
+			  mv, w,
+			  rs, n_rank_specs,
 			  dest_idx, dest);
 
               w = 0.0;
@@ -650,20 +648,20 @@ rank_sorted_casefile (struct casefile *cf,
       casefile_destroy (dest);
       dest = NULL;
     }
-  
+
   casefile_destroy (cf);
   return dest;
 }
 
 
 /* Transformation function to enumerate all the cases */
-static int 
+static int
 create_resort_key (void *key_var_, struct ccase *cc, casenumber case_num)
 {
   struct variable *key_var = key_var_;
 
   case_data_rw(cc, key_var)->f = case_num;
-  
+
   return TRNS_CONTINUE;
 }
 
@@ -674,22 +672,22 @@ create_resort_key (void *key_var_, struct ccase *cc, casenumber case_num)
    If VNAME is NULL, then a name will be automatically chosen.
  */
 static struct variable *
-create_rank_variable (struct dictionary *dict, enum RANK_FUNC f, 
-		      const struct variable *src_var, 
+create_rank_variable (struct dictionary *dict, enum RANK_FUNC f,
+		      const struct variable *src_var,
 		      const char *vname)
 {
   int i;
-  struct variable *var = NULL; 
+  struct variable *var = NULL;
   char name[SHORT_NAME_LEN + 1];
 
-  if ( vname ) 
+  if ( vname )
     var = dict_create_var(dict, vname, 0);
 
   if ( NULL == var )
     {
-      snprintf (name, SHORT_NAME_LEN + 1, "%c%s", 
+      snprintf (name, SHORT_NAME_LEN + 1, "%c%s",
                 function_name[f][0], var_get_name (src_var));
-  
+
       var = dict_create_var(dict, name, 0);
     }
 
@@ -698,11 +696,11 @@ create_rank_variable (struct dictionary *dict, enum RANK_FUNC f,
     {
       char func_abb[4];
       snprintf(func_abb, 4, "%s", function_name[f]);
-      snprintf(name, SHORT_NAME_LEN + 1, "%s%03d", func_abb, 
+      snprintf(name, SHORT_NAME_LEN + 1, "%s%03d", func_abb,
 	       i);
 
       var = dict_create_var(dict, name, 0);
-      if (i++ >= 999) 
+      if (i++ >= 999)
 	break;
     }
 
@@ -712,21 +710,21 @@ create_rank_variable (struct dictionary *dict, enum RANK_FUNC f,
       char func_abb[3];
       snprintf(func_abb, 3, "%s", function_name[f]);
 
-      snprintf(name, SHORT_NAME_LEN + 1, 
+      snprintf(name, SHORT_NAME_LEN + 1,
 	       "RNK%s%02d", func_abb, i);
 
       var = dict_create_var(dict, name, 0);
-      if ( i++ >= 99 ) 
+      if ( i++ >= 99 )
 	break;
     }
-  
-  if ( NULL == var ) 
+
+  if ( NULL == var )
     {
       msg(ME, _("Cannot create new rank variable.  All candidates in use."));
       return NULL;
     }
 
-  var_set_both_formats (var, &dest_format[f]); 
+  var_set_both_formats (var, &dest_format[f]);
 
   return var;
 }
@@ -740,12 +738,10 @@ rank_cleanup(void)
   free (group_vars);
   group_vars = NULL;
   n_group_vars = 0;
-  
+
   for (i = 0 ; i <  n_rank_specs ; ++i )
-    {
       free (rank_specs[i].destvars);
-    }
-      
+
   free (rank_specs);
   rank_specs = NULL;
   n_rank_specs = 0;
@@ -776,15 +772,15 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   exclude_values = cmd.miss == RANK_INCLUDE ? MV_SYSTEM : MV_ANY;
 
   /* Default to /RANK if no function subcommands are given */
-  if ( !( cmd.sbc_normal  || cmd.sbc_ntiles || cmd.sbc_proportion || 
-	  cmd.sbc_rfraction || cmd.sbc_savage || cmd.sbc_n || 
+  if ( !( cmd.sbc_normal  || cmd.sbc_ntiles || cmd.sbc_proportion ||
+	  cmd.sbc_rfraction || cmd.sbc_savage || cmd.sbc_n ||
 	  cmd.sbc_percent || cmd.sbc_rank ) )
     {
       assert ( n_rank_specs == 0 );
-      
+
       rank_specs = xmalloc (sizeof (*rank_specs));
       rank_specs[0].rfunc = RANK;
-      rank_specs[0].destvars = 
+      rank_specs[0].destvars =
 	xcalloc (sc->crit_cnt, sizeof (struct variable *));
 
       n_rank_specs = 1;
@@ -799,30 +795,30 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   for (i = 0 ; i <  n_rank_specs ; ++i )
     {
       int v;
-      for ( v = 0 ; v < n_src_vars ;  v ++ ) 
+      for ( v = 0 ; v < n_src_vars ;  v ++ )
 	{
-	  if ( rank_specs[i].destvars[v] == NULL ) 
+	  if ( rank_specs[i].destvars[v] == NULL )
 	    {
-	      rank_specs[i].destvars[v] = 
+	      rank_specs[i].destvars[v] =
 		create_rank_variable (dataset_dict(ds), rank_specs[i].rfunc, src_vars[v], NULL);
 	    }
-      
+
 	  create_var_label ( rank_specs[i].destvars[v],
 			     src_vars[v],
 			     rank_specs[i].rfunc);
 	}
     }
 
-  if ( cmd.print == RANK_YES ) 
+  if ( cmd.print == RANK_YES )
     {
       int v;
 
       tab_output_text (0, _("Variables Created By RANK"));
       tab_output_text (0, "\n");
-  
+
       for (i = 0 ; i <  n_rank_specs ; ++i )
 	{
-	  for ( v = 0 ; v < n_src_vars ;  v ++ ) 
+	  for ( v = 0 ; v < n_src_vars ;  v ++ )
 	    {
 	      if ( n_group_vars > 0 )
 		{
@@ -830,7 +826,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		  int g;
 
 		  ds_init_empty (&varlist);
-		  for ( g = 0 ; g < n_group_vars ; ++g ) 
+		  for ( g = 0 ; g < n_group_vars ; ++g )
 		    {
 		      ds_put_cstr (&varlist, var_get_name (group_vars[g]));
 
@@ -838,10 +834,10 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 			ds_put_cstr (&varlist, " ");
 		    }
 
-		  if ( rank_specs[i].rfunc == NORMAL || 
-		       rank_specs[i].rfunc == PROPORTION ) 
+		  if ( rank_specs[i].rfunc == NORMAL ||
+		       rank_specs[i].rfunc == PROPORTION )
 		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s using %s BY %s)"), 
+				     _("%s into %s(%s of %s using %s BY %s)"),
 				     var_get_name (src_vars[v]),
 				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
@@ -849,10 +845,10 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 				     fraction_name(),
 				     ds_cstr (&varlist)
 				     );
-		    
+
 		  else
 		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s BY %s)"), 
+				     _("%s into %s(%s of %s BY %s)"),
 				     var_get_name (src_vars[v]),
 				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
@@ -863,20 +859,20 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 		}
 	      else
 		{
-		  if ( rank_specs[i].rfunc == NORMAL || 
-		       rank_specs[i].rfunc == PROPORTION ) 
+		  if ( rank_specs[i].rfunc == NORMAL ||
+		       rank_specs[i].rfunc == PROPORTION )
 		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s using %s)"), 
+				     _("%s into %s(%s of %s using %s)"),
 				     var_get_name (src_vars[v]),
 				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
 				     var_get_name (src_vars[v]),
 				     fraction_name()
 				     );
-		    
+
 		  else
 		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s)"), 
+				     _("%s into %s(%s of %s)"),
 				     var_get_name (src_vars[v]),
 				     var_get_name (rank_specs[i].destvars[v]),
 				     function_name[rank_specs[i].rfunc],
@@ -887,7 +883,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  if ( cmd.sbc_fraction && 
+  if ( cmd.sbc_fraction &&
        ( ! cmd.sbc_normal && ! cmd.sbc_proportion) )
     msg(MW, _("FRACTION has been specified, but NORMAL and PROPORTION rank functions have not been requested.  The FRACTION subcommand will be ignored.") );
 
@@ -910,20 +906,21 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 
     criteria.crits = &restore_criterion;
     criteria.crit_cnt = 1;
-    
+
     sort_active_file_in_place (ds, &criteria);
-}
+  }
 
   /* ... and we don't need our sort key anymore. So delete it */
   dict_delete_var (dataset_dict (ds), order);
 
   rank_cleanup();
 
+
   return (result ? CMD_SUCCESS : CMD_CASCADING_FAILURE);
 }
 
 
-/* Parser for the variables sub command  
+/* Parser for the variables sub command
    Returns 1 on success */
 static int
 rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd UNUSED, void *aux UNUSED)
@@ -936,7 +933,7 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
       && lex_token (lexer) != T_ALL)
       return 2;
 
-  sc = sort_parse_criteria (lexer, dataset_dict (ds), 
+  sc = sort_parse_criteria (lexer, dataset_dict (ds),
 			    &src_vars, &n_src_vars, 0, terminators);
 
   if ( lex_match (lexer, T_BY)  )
@@ -946,7 +943,7 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
 	  return 2;
 	}
 
-      if (!parse_variables (lexer, dataset_dict (ds), 
+      if (!parse_variables (lexer, dataset_dict (ds),
 			    &group_vars, &n_group_vars,
 			    PV_NO_DUPLICATE | PV_NO_SCRATCH) )
 	{
@@ -964,20 +961,20 @@ static int
 parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_rank *cmd UNUSED, enum RANK_FUNC f)
 {
   int var_count = 0;
-  
+
   n_rank_specs++;
   rank_specs = xnrealloc(rank_specs, n_rank_specs, sizeof *rank_specs);
   rank_specs[n_rank_specs - 1].rfunc = f;
   rank_specs[n_rank_specs - 1].destvars = NULL;
 
-  rank_specs[n_rank_specs - 1].destvars = 
+  rank_specs[n_rank_specs - 1].destvars =
 	    xcalloc (sc->crit_cnt, sizeof (struct variable *));
-	  
+
   if (lex_match_id (lexer, "INTO"))
     {
       struct variable *destvar;
 
-      while( lex_token (lexer) == T_ID ) 
+      while( lex_token (lexer) == T_ID )
 	{
 
 	  if ( dict_lookup_var (dict, lex_tokid (lexer)) != NULL )
@@ -985,7 +982,7 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
 	      msg(SE, _("Variable %s already exists."), lex_tokid (lexer));
 	      return 0;
 	    }
-	  if ( var_count >= sc->crit_cnt ) 
+	  if ( var_count >= sc->crit_cnt )
 	    {
 	      msg(SE, _("Too many variables in INTO clause."));
 	      return 0;
@@ -1065,9 +1062,9 @@ rank_custom_ntiles (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cm
 {
   struct dictionary *dict = dataset_dict (ds);
 
-  if ( lex_force_match (lexer, '(') ) 
+  if ( lex_force_match (lexer, '(') )
     {
-      if ( lex_force_int (lexer) ) 
+      if ( lex_force_int (lexer) )
 	{
 	  k_ntiles = lex_integer (lexer);
 	  lex_get (lexer);

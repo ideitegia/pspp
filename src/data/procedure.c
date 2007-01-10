@@ -233,8 +233,6 @@ internal_procedure (struct dataset *ds, case_func *proc,
 
   if ( proc_close (ds) && ok )
     {
-      if ( ds->replace_source )
-	ds->replace_source (ds->proc_source);
 
       return true;
     }
@@ -347,7 +345,7 @@ proc_close (struct dataset *ds)
         break;
     }
   ds->ok = free_case_source (ds->proc_source) && ds->ok;
-  ds->proc_source = NULL;
+  proc_set_source (ds, NULL);
 
   case_destroy (&ds->sink_case);
   case_destroy (&ds->trns_case);
@@ -492,7 +490,7 @@ close_active_file (struct dataset *ds)
 
   /* Old data sink becomes new data source. */
   if (ds->proc_sink->class->make_source != NULL)
-    ds->proc_source = ds->proc_sink->class->make_source (ds->proc_sink);
+    proc_set_source (ds, ds->proc_sink->class->make_source (ds->proc_sink) );
   free_case_sink (ds->proc_sink);
   ds->proc_sink = NULL;
 
@@ -727,10 +725,7 @@ discard_variables (struct dataset *ds)
   ds->n_lag = 0;
 
   free_case_source (ds->proc_source);
-  ds->proc_source = NULL;
-  if ( ds->replace_source )
-    ds->replace_source (ds->proc_source);
-
+  proc_set_source (ds, NULL);
 
   proc_cancel_all_transformations (ds);
 }
@@ -902,8 +897,10 @@ proc_set_sink (struct dataset *ds, struct case_sink *sink)
 void
 proc_set_source (struct dataset *ds, struct case_source *source)
 {
-  assert (ds->proc_source == NULL);
   ds->proc_source = source;
+
+  if ( ds->replace_source )
+    ds->replace_source (ds->proc_source);
 }
 
 /* Returns true if a source for the next procedure has been
@@ -931,7 +928,7 @@ proc_capture_output (struct dataset *ds)
   assert (!proc_in_temporary_transformations (ds));
 
   casefile = storage_source_decapsulate (ds->proc_source);
-  ds->proc_source = NULL;
+  proc_set_source (ds, NULL);
 
   return casefile;
 }

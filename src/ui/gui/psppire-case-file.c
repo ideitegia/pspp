@@ -157,6 +157,8 @@ psppire_case_file_new (void)
 {
   PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
 
+  cf->flexifile = flexifile_create (0);
+
   return cf;
 }
 

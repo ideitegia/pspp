@@ -228,6 +228,8 @@ execute_syntax (const struct syntax_editor *se, GtkTextIter start,
       if (result == CMD_EOF || result == CMD_FINISH)
 	break;
     }
+
+  getl_abort_noninteractive (the_source_stream);
 }
 
 /* Parse and execute all the text in the buffer */

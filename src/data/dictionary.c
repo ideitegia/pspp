@@ -155,17 +155,17 @@ dict_clear (struct dictionary *d)
 {
   /* FIXME?  Should we really clear case_limit, label, documents?
      Others are necessarily cleared by deleting all the variables.*/
-  int i;
-
   assert (d != NULL);
 
-  for (i = 0; i < d->var_cnt; i++)
+  while (d->var_cnt > 0 )
     {
-      if (d->callbacks &&  d->callbacks->var_deleted )
-	d->callbacks->var_deleted (d, i, d->cb_data);
+      var_clear_vardict (d->var[d->var_cnt - 1]);
+      var_destroy (d->var[d->var_cnt -1]);
 
-      var_clear_vardict (d->var[i]);
-      var_destroy (d->var[i]);
+      d->var_cnt--;
+
+      if (d->callbacks &&  d->callbacks->var_deleted )
+	d->callbacks->var_deleted (d, d->var_cnt, d->cb_data);
     }
   free (d->var);
   d->var = NULL;
@@ -291,7 +291,7 @@ add_var (struct dictionary *d, struct variable *v)
   hsh_force_insert (d->name_tab, v);
 
   if ( d->callbacks &&  d->callbacks->var_added )
-    d->callbacks->var_added (d, d->next_value_idx, d->cb_data);
+    d->callbacks->var_added (d, var_get_dict_index (v), d->cb_data);
 
   d->next_value_idx += var_get_value_cnt (v);
 
