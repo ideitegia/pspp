@@ -48,7 +48,7 @@ enum  {CASE_CHANGED,
        CASES_DELETED,
        n_SIGNALS};
 
-static guint signal[n_SIGNALS];
+static guint signals [n_SIGNALS];
 
 
 /* --- functions --- */
@@ -92,7 +92,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 
   object_class->finalize = psppire_case_file_finalize;
 
-  signal[CASE_CHANGED] =
+  signals [CASE_CHANGED] =
     g_signal_new ("case_changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -104,7 +104,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 		  G_TYPE_INT);
 
 
-  signal[CASE_INSERTED] =
+  signals [CASE_INSERTED] =
     g_signal_new ("case_inserted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -116,7 +116,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 		  G_TYPE_INT);
 
 
-  signal[CASES_DELETED] =
+  signals [CASES_DELETED] =
     g_signal_new ("cases_deleted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -181,7 +181,7 @@ psppire_case_file_delete_cases (PsppireCaseFile *cf, gint n_cases, gint first)
 
   result =  flexifile_delete_cases (FLEXIFILE (cf->flexifile), n_cases,  first);
 
-  g_signal_emit (cf, signal[CASES_DELETED], 0, n_cases, first);
+  g_signal_emit (cf, signals [CASES_DELETED], 0, n_cases, first);
 
   return result;
 }
@@ -200,7 +200,7 @@ psppire_case_file_insert_case (PsppireCaseFile *cf,
   result = flexifile_insert_case (FLEXIFILE (cf->flexifile), cc, posn);
 
   if ( result )
-    g_signal_emit (cf, signal[CASE_INSERTED], 0, posn);
+    g_signal_emit (cf, signals [CASE_INSERTED], 0, posn);
   else
     g_warning ("Cannot insert case at position %d\n", posn);
 
@@ -223,7 +223,7 @@ psppire_case_file_append_case (PsppireCaseFile *cf,
 
   result = casefile_append (cf->flexifile, c);
 
-  g_signal_emit (cf, signal[CASE_INSERTED], 0, posn);
+  g_signal_emit (cf, signals [CASE_INSERTED], 0, posn);
 
   return result;
 }
@@ -267,7 +267,7 @@ psppire_case_file_clear (PsppireCaseFile *cf)
 {
   casefile_destroy (cf->flexifile);
   cf->flexifile = 0;
-  g_signal_emit (cf, signal[CASES_DELETED], 0, 0, -1);
+  g_signal_emit (cf, signals [CASES_DELETED], 0, 0, -1);
 }
 
 /* Set the IDXth value of case C to SYSMIS/EMPTY */
@@ -294,7 +294,7 @@ psppire_case_file_set_value (PsppireCaseFile *cf, gint casenum, gint idx,
   /* Cast away const in flagrant abuse of the casefile */
   memcpy ((union value *)case_data_idx (&cc, idx), v, bytes);
 
-  g_signal_emit (cf, signal[CASE_CHANGED], 0, casenum);
+  g_signal_emit (cf, signals [CASE_CHANGED], 0, casenum);
 
   return TRUE;
 }
@@ -321,7 +321,7 @@ psppire_case_file_data_in (PsppireCaseFile *cf, gint casenum, gint idx,
                 (union value *) case_data_idx (&cc, idx), fmt_var_width (fmt)))
     g_warning ("Cant set value\n");
 
-  g_signal_emit (cf, signal[CASE_CHANGED], 0, casenum);
+  g_signal_emit (cf, signals [CASE_CHANGED], 0, casenum);
 
   return TRUE;
 }
@@ -346,7 +346,7 @@ psppire_case_file_sort (PsppireCaseFile *cf, const struct sort_criteria *sc)
   /* FIXME: Need to have a signal to change a range of cases, instead of
      calling a signal many times */
   for ( c = 0 ; c < casefile_get_case_cnt (cf->flexifile) ; ++c )
-    g_signal_emit (cf, signal[CASE_CHANGED], 0, c);
+    g_signal_emit (cf, signals [CASE_CHANGED], 0, c);
 
   flexifile_factory_destroy (factory);
 }

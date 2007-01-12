@@ -29,7 +29,7 @@ static void psppire_dialog_init                (PsppireDialog      *);
 enum  {DIALOG_REFRESH,
        n_SIGNALS};
 
-static guint signal [n_SIGNALS];
+static guint signals [n_SIGNALS];
 
 
 GType
@@ -84,7 +84,7 @@ psppire_dialog_class_init (PsppireDialogClass *class)
 {
   GObjectClass *object_class = (GObjectClass *) class;
 
-  signal [DIALOG_REFRESH] =
+  signals [DIALOG_REFRESH] =
     g_signal_new ("refresh",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -167,5 +167,5 @@ psppire_dialog_run (PsppireDialog *dialog)
 void
 psppire_dialog_reload (PsppireDialog *dialog, gpointer data)
 {
-  g_signal_emit (dialog, signal [DIALOG_REFRESH], 0, data);
+  g_signal_emit (dialog, signals [DIALOG_REFRESH], 0, data);
 }

@@ -54,7 +54,7 @@ enum  {VARIABLE_CHANGED,
        SPLIT_CHANGED,
        n_SIGNALS};
 
-static guint signal[n_SIGNALS];
+static guint signals [n_SIGNALS];
 
 /* --- functions --- */
 /**
@@ -109,7 +109,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
   object_class->finalize = psppire_dict_finalize;
 
-  signal[VARIABLE_CHANGED] =
+  signals [VARIABLE_CHANGED] =
     g_signal_new ("variable_changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -122,7 +122,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 
 
 
-  signal[VARIABLE_INSERTED] =
+  signals [VARIABLE_INSERTED] =
     g_signal_new ("variable_inserted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -134,7 +134,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT);
 
 
-  signal[VARIABLES_DELETED] =
+  signals [VARIABLES_DELETED] =
     g_signal_new ("variables_deleted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -147,7 +147,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT);
 
 
-  signal[VARIABLE_RESIZED] =
+  signals [VARIABLE_RESIZED] =
     g_signal_new ("dict-size-changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -160,7 +160,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT);
 
 
-  signal [WEIGHT_CHANGED] =
+  signals [WEIGHT_CHANGED] =
     g_signal_new ("weight-changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -172,7 +172,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT);
 
 
-  signal [FILTER_CHANGED] =
+  signals [FILTER_CHANGED] =
     g_signal_new ("filter-changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -184,7 +184,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT);
 
 
-  signal [SPLIT_CHANGED] =
+  signals [SPLIT_CHANGED] =
     g_signal_new ("split-changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -210,37 +210,37 @@ psppire_dict_finalize (GObject *object)
 static void
 addcb (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit (pd, signal[VARIABLE_INSERTED], 0, idx);
+  g_signal_emit (pd, signals [VARIABLE_INSERTED], 0, idx);
 }
 
 static void
 delcb (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit (pd, signal[VARIABLES_DELETED], 0, idx, 1);
+  g_signal_emit (pd, signals [VARIABLES_DELETED], 0, idx, 1);
 }
 
 static void
 mutcb (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit (pd, signal[VARIABLE_CHANGED], 0, idx);
+  g_signal_emit (pd, signals [VARIABLE_CHANGED], 0, idx);
 }
 
 static void
 weight_changed_callback (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit (pd, signal [WEIGHT_CHANGED], 0, idx);
+  g_signal_emit (pd, signals [WEIGHT_CHANGED], 0, idx);
 }
 
 static void
 filter_changed_callback (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit (pd, signal [FILTER_CHANGED], 0, idx);
+  g_signal_emit (pd, signals [FILTER_CHANGED], 0, idx);
 }
 
 static void
 split_changed_callback (struct dictionary *d, void *pd)
 {
-  g_signal_emit (pd, signal [SPLIT_CHANGED], 0);
+  g_signal_emit (pd, signals [SPLIT_CHANGED], 0);
 }
 
 
@@ -460,7 +460,7 @@ psppire_dict_resize_variable (PsppireDict *d, const struct variable *pv,
 
   fv = var_get_case_index (pv);
 
-  g_signal_emit (d, signal[VARIABLE_RESIZED], 0,
+  g_signal_emit (d, signals [VARIABLE_RESIZED], 0,
 		fv + old_size,
 		new_size - old_size );
 }

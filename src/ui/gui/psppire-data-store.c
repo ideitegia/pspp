@@ -77,7 +77,7 @@ static GObjectClass *parent_class = NULL;
 enum  {FONT_CHANGED,
        n_SIGNALS};
 
-static guint signal[n_SIGNALS];
+static guint signals [n_SIGNALS];
 
 
 inline GType
@@ -152,7 +152,7 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
 
   object_class->finalize = psppire_data_store_finalize;
 
-  signal[FONT_CHANGED] =
+  signals [FONT_CHANGED] =
     g_signal_new ("font_changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -614,7 +614,7 @@ psppire_data_store_set_font (PsppireDataStore *store,
 #if 0
   store->width_of_m = calc_m_width (fd);
 #endif
-  g_signal_emit (store, signal[FONT_CHANGED], 0);
+  g_signal_emit (store, signals [FONT_CHANGED], 0);
 
 
   g_sheet_model_range_changed (G_SHEET_MODEL (store),

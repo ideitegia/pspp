@@ -1,3 +1,11 @@
+Sat Jan 13 07:47:26 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-case-file.c psppire-data-store.c psppire-dialog.c
+	psppire-dict.c psppire-var-select.c : Replaced identifier 'signal' 
+	with 'signals' to avoid conflict with sysv based systems which use
+	this identifer for something else.  
+	Thanks to Daniel E WILLIAMS for reporting this problem.
+
 Wed Jan 10 07:20:39 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-case-file.c : Make sure there is always a valid flexifile

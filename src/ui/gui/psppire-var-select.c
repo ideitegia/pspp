@@ -56,7 +56,7 @@ enum  {VARIABLE_SELECTED,
        DESELECT_ALL,
        n_SIGNALS};
 
-static guint signal[n_SIGNALS];
+static guint signals [n_SIGNALS];
 
 
 /* --- variables --- */
@@ -103,7 +103,7 @@ psppire_var_select_class_init (PsppireVarSelectClass *class)
   parent_class = g_type_class_peek_parent (class);
 
 
-  signal [VARIABLE_SELECTED] =
+  signals [VARIABLE_SELECTED] =
     g_signal_new ("variable_selected",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -115,7 +115,7 @@ psppire_var_select_class_init (PsppireVarSelectClass *class)
 		  G_TYPE_INT);
 
 
-  signal [DESELECT_ALL] =
+  signals [DESELECT_ALL] =
     g_signal_new ("deselect_all",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
@@ -165,7 +165,7 @@ add_variable_to_selection (PsppireVarSelect *vs, struct variable *var)
     }
   vs->list = g_list_append (vs->list, var);
 
-  g_signal_emit (vs, signal [VARIABLE_SELECTED], 0, var_get_dict_index (var));
+  g_signal_emit (vs, signals [VARIABLE_SELECTED], 0, var_get_dict_index (var));
 }
 
 
@@ -249,7 +249,7 @@ psppire_var_select_deselect_all (PsppireVarSelect *vs)
 
   gtk_entry_set_text ( GTK_ENTRY(vs->dest), "");
 
-  g_signal_emit (vs, signal [DESELECT_ALL], 0);
+  g_signal_emit (vs, signals [DESELECT_ALL], 0);
 }
 
 
