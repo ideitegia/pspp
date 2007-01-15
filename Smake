@@ -101,6 +101,10 @@ _build: all
 	test -d _build || mkdir _build
 	cd _build && ../configure $(CONFIGUREFLAGS)
 
+_debug: all
+	test -d _debug || mkdir _debug
+	cd _debug && ../configure $(CONFIGUREFLAGS) --enable-debug
+
 PO_FILES = po/ChangeLog po/Makefile po/Makefile.in po/Makefile.in.in	\
 po/POTFILES po/POTFILES.in po/Rules-quot po/boldquot.sed		\
 po/cat-id-tbl.c po/en@boldquot.header po/en@quot.header			\
