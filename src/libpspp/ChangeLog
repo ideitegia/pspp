@@ -1,3 +1,9 @@
+Sun Jan 14 21:44:18 2007  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add deque.h to sources.
+	
+	* deque.h: New file.
+
 Wed Jan 10 06:49:38 2007  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add heap.c, heap.h to sources.

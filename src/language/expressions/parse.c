@@ -1278,18 +1278,14 @@ parse_function (struct lexer *lexer, struct expression *e)
   n->composite.min_valid = min_valid != -1 ? min_valid : f->array_min_elems; 
 
   if (n->type == OP_LAG_Vn || n->type == OP_LAG_Vs) 
-    {
-      if (dataset_n_lag (e->ds) < 1)
-        dataset_set_n_lag (e->ds, 1);
-    }
+    dataset_need_lag (e->ds, 1);
   else if (n->type == OP_LAG_Vnn || n->type == OP_LAG_Vsn)
     {
       int n_before;
       assert (n->composite.arg_cnt == 2);
       assert (n->composite.args[1]->type == OP_pos_int);
       n_before = n->composite.args[1]->integer.i;
-      if ( dataset_n_lag (e->ds) < n_before)
-        dataset_set_n_lag (e->ds, n_before);
+      dataset_need_lag (e->ds, n_before);
     }
   
   free (args);

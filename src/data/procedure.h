@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -116,8 +116,6 @@ struct ccase *lagged_case (const struct dataset *ds, int n_before);
 inline struct dictionary *dataset_dict (const struct dataset *ds);
 inline void dataset_set_dict ( struct dataset *ds, struct dictionary *dict);
 
-inline int dataset_n_lag (const struct dataset *ds);
-inline void dataset_set_n_lag (struct dataset *ds, int n_lag);
-
+void dataset_need_lag (struct dataset *ds, int n_before);
 
 #endif /* procedure.h */

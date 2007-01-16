@@ -1,3 +1,22 @@
+Sun Jan 14 21:41:12 2007  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add casedeque.h to sources.
+	
+	* casedeque.h: New file.
+
+	* procedure.c: (struct dataset) Change lag_count, lag_head,
+	lag_queue member into single struct casedeque member.  Update all
+	users to use the casedeque instead.
+	(lag_case) Removed.
+
+Sun Jan 14 21:43:12 2007  Ben Pfaff  <blp@gnu.org>
+
+	* procedure.c: Simplify lagged cases interface.  Updated all
+	clients--well, the only client--to use the simplified interface.
+	(dataset_n_lag) Removed.
+	(dataset_set_n_lag) Removed.
+	(dataset_need_lag) New function.
+
 Tue Jan  9 07:20:05 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* dictionary.c procedure.c: More changes to ensure that callbacks occur
