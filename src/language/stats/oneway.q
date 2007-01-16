@@ -1,6 +1,6 @@
 /* PSPP - One way ANOVA. -*-c-*-
 
-Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -879,6 +879,12 @@ precalc ( struct cmd_oneway *cmd UNUSED )
     }
 }
 
+static void
+free_value (void *value_, const void *aux UNUSED) 
+{
+  union value *value = value_;
+  free (value);
+}
 
 static bool
 run_oneway(const struct ccase *first, const struct casefile *cf, 
@@ -895,7 +901,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
   global_group_hash = hsh_create(4, 
 				 (hsh_compare_func *) compare_values,
 				 (hsh_hash_func *) hash_value,
-				 0,
+				 free_value,
 				 (void *) var_get_width (indep_var) );
 
   precalc(cmd);
@@ -912,13 +918,17 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
 
       const double weight = 
 	dict_get_case_weight (dataset_dict (ds), &c, &bad_weight_warn);
-      
-      const union value *indep_val;
 
+      const union value *indep_val;
+      void **p;
+      
       if ( casefilter_variable_missing (filter, &c, indep_var))
 	continue;
 
       indep_val = case_data (&c, indep_var);
+      p = hsh_probe (global_group_hash, indep_val);
+      if (*p == NULL)
+        *p = value_dup (indep_val, var_get_width (indep_var));
 	  
       hsh_insert ( global_group_hash, (void *) indep_val );
 

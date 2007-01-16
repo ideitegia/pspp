@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -176,7 +176,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
               case_create (c, dict_get_next_value_idx (d));
             }
           else
-            case_resize (c, old_value_cnt, dict_get_next_value_idx (d));
+            case_resize (c, dict_get_next_value_idx (d));
 
           if (lex_is_number (lexer))
             case_data_rw (c, v)->f = lex_tokval (lexer);

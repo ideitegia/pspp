@@ -1,3 +1,59 @@
+Mon Jan 15 16:18:10 2007  Ben Pfaff  <blp@gnu.org>
+
+	* case.c (case_is_null): Change return type to bool.
+
+Mon Jan 15 10:57:28 2007  Ben Pfaff  <blp@gnu.org>
+
+	Add debugging code.
+	
+	* case.c (case_clone) [DEBUGGING]: When debugging, don't use
+	reference counting to share data.  This makes it easy for
+	valgrind, etc. to find accesses to cases that have been destroyed
+	but have been kept around by another user's ref-count.  This often
+	happens when the data set is small enough to find in memory; if a
+	bigger data set that would overflow to disk were used, then data
+	corruption would occur.
+
+Mon Jan 15 10:55:18 2007  Ben Pfaff  <blp@gnu.org>
+
+	Simplify code.
+
+	* case.c (case_unshare): Make it check internally whether the
+	ref_cnt is greater than 1, so that the callers don't have to.
+	Update callers not to check.
+
+Mon Jan 15 10:53:01 2007  Ben Pfaff  <blp@gnu.org>
+
+	Before, I was thinking that I might want to get rid of reference
+	counting at some point.  Now, I'm pretty sure that it's here to
+	stay.  Thus, because we have to store the value_cnt anyway for
+	reference-counted cases, we might as well expose it to users.
+
+	* case.c (case_get_value_cnt): New function.
+	(case_resize): Drop OLD_CNT argument.  Update all callers.  Only
+	resize case if its size actually changed.
+
+	* casefile.c (casefile_append_xfer): Use case_get_value_cnt
+	instead of peeking inside struct case directly.
+	(casefile_append): Ditto.
+
+Mon Jan 15 10:50:22 2007  Ben Pfaff  <blp@gnu.org>
+
+	Get rid of the inlines for the case functions, which made the
+	header file hard to read.  (Also, in testing with "-O2 -DNDEBUG",
+	the inlines didn't speed up "make check" at all, which is not a
+	perfect benchmark but seems indicative.)
+	
+	* case.c: Remove #ifdef DEBUGGING...#endif around many function
+	definitions.  Remove some assertions on nonnull pointers that were
+	redundant with a pointer dereference soon after in the function.
+	Also:
+	(struct case_data): Move definition here from case.h.
+	(case_data): Ditto.
+	(case_num): Ditto.
+	(case_str): Ditto.
+	(case_data_wr): Ditto.
+	
 Sun Jan 14 21:41:12 2007  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add casedeque.h to sources.

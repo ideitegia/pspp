@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -17,68 +17,64 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include "case.h"
+
+#include <data/case.h>
+
+#include <assert.h>
 #include <limits.h>
 #include <stdlib.h>
-#include "value.h"
+
+#include <data/value.h>
+#include <data/variable.h>
 #include <libpspp/alloc.h>
 #include <libpspp/str.h>
-#include "variable.h"
 
-#ifdef DEBUGGING
-#undef NDEBUG
-#else
-#ifndef NDEBUG
-#define NDEBUG
-#endif
-#endif
-#include <assert.h>
+#include "minmax.h"
 
-/* Changes C not to share data with any other case.
-   C must be a case with a reference count greater than 1.
-   There should be no reason for external code to call this
-   function explicitly.  It will be called automatically when
-   needed. */
-void
+/* Reference-counted case implementation. */
+struct case_data
+  {
+    size_t value_cnt;                   /* Number of values. */
+    unsigned ref_cnt;                   /* Reference count. */
+    union value values[1];              /* Values. */
+  };
+
+/* Ensures that C does not share data with any other case. */
+static void
 case_unshare (struct ccase *c) 
 {
-  struct case_data *cd;
-  
-  assert (c->case_data->ref_cnt > 1);
-
-  cd = c->case_data;
-  cd->ref_cnt--;
-  case_create (c, c->case_data->value_cnt);
-  memcpy (c->case_data->values, cd->values,
-          sizeof *cd->values * cd->value_cnt); 
+  if (c->case_data->ref_cnt > 1)
+    {
+      struct case_data *cd = c->case_data;
+      cd->ref_cnt--;
+      case_create (c, cd->value_cnt);
+      memcpy (c->case_data->values, cd->values,
+              sizeof *cd->values * cd->value_cnt); 
+    }
 }
 
 /* Returns the number of bytes needed by a case with VALUE_CNT
    values. */
-static inline size_t
+static size_t
 case_size (size_t value_cnt) 
 {
   return (offsetof (struct case_data, values)
           + value_cnt * sizeof (union value));
 }
 
-#ifdef DEBUGGING
 /* Initializes C as a null case. */
 void
 case_nullify (struct ccase *c) 
 {
   c->case_data = NULL;
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
 /* Returns true iff C is a null case. */
-int
+bool
 case_is_null (const struct ccase *c) 
 {
   return c->case_data == NULL;
 }
-#endif /* DEBUGGING */
 
 /* Initializes C as a new case that can store VALUE_CNT values.
    The values have indeterminate contents until explicitly
@@ -90,7 +86,6 @@ case_create (struct ccase *c, size_t value_cnt)
     xalloc_die ();
 }
 
-#ifdef DEBUGGING
 /* Initializes CLONE as a copy of ORIG. */
 void
 case_clone (struct ccase *clone, const struct ccase *orig)
@@ -100,10 +95,11 @@ case_clone (struct ccase *clone, const struct ccase *orig)
   if (clone != orig) 
     *clone = *orig;
   orig->case_data->ref_cnt++;
-}
-#endif /* DEBUGGING */
-
 #ifdef DEBUGGING
+  case_unshare (clone);
+#endif
+}
+
 /* Replaces DST by SRC and nullifies SRC.
    DST and SRC must be initialized cases at entry. */
 void
@@ -117,17 +113,13 @@ case_move (struct ccase *dst, struct ccase *src)
       case_nullify (src); 
     }
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
 /* Destroys case C. */
 void
 case_destroy (struct ccase *c) 
 {
   struct case_data *cd;
   
-  assert (c != NULL);
-
   cd = c->case_data;
   if (cd != NULL && --cd->ref_cnt == 0) 
     {
@@ -136,18 +128,28 @@ case_destroy (struct ccase *c)
       free (cd); 
     }
 }
-#endif /* DEBUGGING */
 
-/* Resizes case C from OLD_CNT to NEW_CNT values. */
-void
-case_resize (struct ccase *c, size_t old_cnt, size_t new_cnt) 
+/* Returns the number of union values in C. */
+size_t
+case_get_value_cnt (const struct ccase *c) 
 {
-  struct ccase new;
+  return c->case_data->value_cnt;
+}
 
-  case_create (&new, new_cnt);
-  case_copy (&new, 0, c, 0, old_cnt < new_cnt ? old_cnt : new_cnt);
-  case_swap (&new, c);
-  case_destroy (&new);
+/* Resizes case C to NEW_CNT union values. */
+void
+case_resize (struct ccase *c, size_t new_cnt) 
+{
+  size_t old_cnt = case_get_value_cnt (c);
+  if (old_cnt != new_cnt)
+    {
+      struct ccase new;
+
+      case_create (&new, new_cnt);
+      case_copy (&new, 0, c, 0, MIN (old_cnt, new_cnt));
+      case_swap (&new, c);
+      case_destroy (&new);
+    }
 }
 
 /* Swaps cases A and B. */
@@ -186,7 +188,6 @@ case_try_clone (struct ccase *clone, const struct ccase *orig)
   return true;
 }
 
-#ifdef DEBUGGING
 /* Copies VALUE_CNT values from SRC (starting at SRC_IDX) to DST
    (starting at DST_IDX). */
 void
@@ -202,16 +203,13 @@ case_copy (struct ccase *dst, size_t dst_idx,
 
   if (dst->case_data != src->case_data || dst_idx != src_idx) 
     {
-      if (dst->case_data->ref_cnt > 1)
-        case_unshare (dst);
+      case_unshare (dst);
       memmove (dst->case_data->values + dst_idx,
                src->case_data->values + src_idx,
                sizeof *dst->case_data->values * value_cnt); 
     }
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
 /* Copies case C to OUTPUT.
    OUTPUT_SIZE is the number of `union values' in OUTPUT,
    which must match the number of `union values' in C. */
@@ -226,9 +224,7 @@ case_to_values (const struct ccase *c, union value *output,
   memcpy (output, c->case_data->values,
           c->case_data->value_cnt * sizeof *output);
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
 /* Copies INPUT into case C.
    INPUT_SIZE is the number of `union values' in INPUT,
    which must match the number of `union values' in C. */
@@ -236,51 +232,78 @@ void
 case_from_values (struct ccase *c, const union value *input,
                   size_t input_size UNUSED) 
 {
-  assert (c != NULL);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (input_size == c->case_data->value_cnt);
   assert (input != NULL || input_size == 0);
 
-  if (c->case_data->ref_cnt > 1)
-    case_unshare (c);
+  case_unshare (c);
   memcpy (c->case_data->values, input,
           c->case_data->value_cnt * sizeof *input);
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
+/* Returns a pointer to the `union value' used for the
+   element of C for variable V.
+   Case C must be drawn from V's dictionary.
+   The caller must not modify the returned data. */
+const union value *
+case_data (const struct ccase *c, const struct variable *v)
+{
+  return case_data_idx (c, var_get_case_index (v));
+}
+
+/* Returns the numeric value of the `union value' in C for
+   variable V.
+   Case C must be drawn from V's dictionary. */
+double
+case_num (const struct ccase *c, const struct variable *v) 
+{
+  return case_num_idx (c, var_get_case_index (v));
+}
+
+/* Returns the string value of the `union value' in C for
+   variable V.
+   Case C must be drawn from V's dictionary.
+   (Note that the value is not null-terminated.)
+   The caller must not modify the return value. */
+const char *
+case_str (const struct ccase *c, const struct variable *v) 
+{
+  return case_str_idx (c, var_get_case_index (v));
+}
+
+/* Returns a pointer to the `union value' used for the
+   element of C for variable V.
+   Case C must be drawn from V's dictionary.   
+   The caller is allowed to modify the returned data. */
+union value *
+case_data_rw (struct ccase *c, const struct variable *v) 
+{
+  return case_data_rw_idx (c, var_get_case_index (v));
+}
+
 /* Returns a pointer to the `union value' used for the
    element of C numbered IDX.
    The caller must not modify the returned data. */
 const union value *
 case_data_idx (const struct ccase *c, size_t idx) 
 {
-  assert (c != NULL);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
 
   return &c->case_data->values[idx];
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
 /* Returns the numeric value of the `union value' in C numbered
    IDX. */
 double
 case_num_idx (const struct ccase *c, size_t idx) 
 {
-  assert (c != NULL);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
 
   return c->case_data->values[idx].f;
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
 /* Returns the string value of the `union value' in C numbered
    IDX.
    (Note that the value is not null-terminated.)
@@ -288,32 +311,24 @@ case_num_idx (const struct ccase *c, size_t idx)
 const char *
 case_str_idx (const struct ccase *c, size_t idx) 
 {
-  assert (c != NULL);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
 
   return c->case_data->values[idx].s;
 }
-#endif /* DEBUGGING */
 
-#ifdef DEBUGGING
 /* Returns a pointer to the `union value' used for the
    element of C numbered IDX.
    The caller is allowed to modify the returned data. */
 union value *
 case_data_rw_idx (struct ccase *c, size_t idx) 
 {
-  assert (c != NULL);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
   assert (idx < c->case_data->value_cnt);
 
-  if (c->case_data->ref_cnt > 1)
-    case_unshare (c);
+  case_unshare (c);
   return &c->case_data->values[idx];
 }
-#endif /* DEBUGGING */
 
 /* Compares the values of the VAR_CNT variables in VP
    in cases A and B and returns a strcmp()-type result. */
@@ -368,8 +383,6 @@ case_compare_2dict (const struct ccase *ca, const struct ccase *cb,
 const union value *
 case_data_all (const struct ccase *c) 
 {
-  assert (c != NULL);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
 
   return c->case_data->values;
@@ -383,11 +396,8 @@ case_data_all (const struct ccase *c)
 union value *
 case_data_all_rw (struct ccase *c) 
 {
-  assert (c != NULL);
-  assert (c->case_data != NULL);
   assert (c->case_data->ref_cnt > 0);
 
-  if (c->case_data->ref_cnt > 1)
-    case_unshare (c);
+  case_unshare (c);
   return c->case_data->values;
 }

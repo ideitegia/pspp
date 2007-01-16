@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -17,9 +17,11 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "casefile.h"
 #include "casefile-private.h"
 #include "fastfile.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -27,16 +29,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <data/case.h>
+#include <data/make-file.h>
+#include <data/settings.h>
+#include <data/variable.h>
 #include <libpspp/alloc.h>
-#include "case.h"
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <libpspp/str.h>
+
 #include "full-read.h"
 #include "full-write.h"
-#include <libpspp/misc.h>
-#include "make-file.h"
-#include "settings.h"
-#include "variable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -510,6 +510,7 @@ rank_cases (struct casereader *cr,
     {
       struct casereader *lookahead;
       const union value *this_value;
+      bool this_value_is_missing;
       struct ccase this_case, lookahead_case;
       double c;
       int i;
@@ -519,6 +520,8 @@ rank_cases (struct casereader *cr,
         break;
 
       this_value = case_data_idx (&this_case, fv);
+      this_value_is_missing = mv_is_value_missing (mv, this_value,
+                                                   exclude_values);
       c = dict_get_case_weight (dict, &this_case, &warn);
 
       lookahead = casereader_clone (cr);
@@ -545,7 +548,7 @@ rank_cases (struct casereader *cr,
       casereader_destroy (lookahead);
 
       cc_1 = cc;
-      if ( !mv_is_value_missing (mv, this_value, exclude_values) )
+      if ( !this_value_is_missing )
 	cc += c;
 
       do
@@ -554,7 +557,7 @@ rank_cases (struct casereader *cr,
             {
               const struct variable *dst_var = rs[i].destvars[dest_var_index];
 
-	      if  ( mv_is_value_missing (mv, this_value, exclude_values) )
+	      if  (this_value_is_missing)
 		case_data_rw (&this_case, dst_var)->f = SYSMIS;
 	      else
 		case_data_rw (&this_case, dst_var)->f =
@@ -564,7 +567,7 @@ rank_cases (struct casereader *cr,
         }
       while (n-- > 0 && casereader_read_xfer (cr, &this_case));
 
-      if ( !mv_is_value_missing (mv, this_value, exclude_values) )
+      if ( !this_value_is_missing )
 	iter++;
     }
 

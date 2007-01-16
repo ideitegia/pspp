@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -147,7 +147,7 @@ create_freq_hash (const struct dictionary *dict,
 
   struct hsh_table *freq_hash = 
     hsh_create (4, compare_freq, hash_freq, 
-		free_freq_hash,
+		free_freq_mutable_hash,
 		(void *) var);
 
   while (casereader_read(r, &c))
@@ -172,7 +172,8 @@ create_freq_hash (const struct dictionary *dict,
 	}
       else
 	{
-	  *existing_fr = fr;
+          *existing_fr = fr;
+          fr->value = value_dup (fr->value, var_get_width (var));
 	}
 
       case_destroy (&c);

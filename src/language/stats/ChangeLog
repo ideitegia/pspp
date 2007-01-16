@@ -1,3 +1,20 @@
+Mon Jan 15 11:03:20 2007  Ben Pfaff  <blp@gnu.org>
+
+	Fix bugs found by valgrind when --enable-debug is used with the
+	new case code.  These bugs are hidden when the data set is small
+	enough to find in memory; if a bigger data set that would overflow
+	to disk were used, then data corruption would occur.
+
+	* chisquare.c (create_freq_hash): Pass free_freq_mutable_hash to
+	hsh_create as free function.  Make copy of data put into hash.
+
+	* oneway.q (free_value): New function.
+	(run_oneway): Use free_value as arg to hsh_create.  Make copy of
+	data put into hash.
+
+	* rank.q (rank_cases): Don't access data in case after we've given
+	away the case.
+
 Tue Jan  9 19:16:11 2007  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #18739.

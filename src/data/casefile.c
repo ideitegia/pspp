@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -274,7 +274,7 @@ casefile_get_destructive_reader (struct casefile *cf)
 bool 
 casefile_append (struct casefile *cf, const struct ccase *c)
 {
-  assert (c->case_data->value_cnt >= casefile_get_value_cnt (cf));
+  assert (case_get_value_cnt (c) >= casefile_get_value_cnt (cf));
 
   return cf->class->append(cf, c);
 }
@@ -285,7 +285,7 @@ casefile_append (struct casefile *cf, const struct ccase *c)
 bool 
 casefile_append_xfer (struct casefile *cf, struct ccase *c)
 {
-  assert (c->case_data->value_cnt >= casefile_get_value_cnt (cf));
+  assert (case_get_value_cnt (c) >= casefile_get_value_cnt (cf));
 
   cf->class->append (cf, c);
   case_destroy (c);

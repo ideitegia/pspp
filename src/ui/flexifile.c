@@ -1,6 +1,6 @@
 /* PSPP - computes sample statistics.
 
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -315,12 +315,15 @@ impl_get_case(const struct flexifile *ff, unsigned long casenum,
 }
 
 #if DEBUGGING
-static void
+#include <stdio.h>
+
+static void 
 dumpcasedata(struct ccase *c)
 {
+  size_t value_cnt = case_get_value_cnt (c);
   int i;
-  for ( i = 0 ; i < c->case_data->value_cnt * MAX_SHORT_STRING; ++i )
-    putchar(c->case_data->values->s[i]);
+  for ( i = 0 ; i < value_cnt * MAX_SHORT_STRING; ++i )
+    putchar (case_str (c, 0)[i]);
   putchar('\n');
 }
 #endif
