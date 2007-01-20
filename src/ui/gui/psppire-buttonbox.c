@@ -24,6 +24,12 @@
 #include "psppire-buttonbox.h"
 #include "psppire-dialog.h"
 
+#include <gettext.h>
+
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+
 static void psppire_buttonbox_class_init          (PsppireButtonBoxClass *);
 static void psppire_buttonbox_init                (PsppireButtonBox      *);
 
@@ -54,9 +60,6 @@ psppire_button_box_get_type (void)
 
   return buttonbox_type;
 }
-
-static GObjectClass     *parent_class = NULL;
-
 
 static void
 psppire_buttonbox_class_init (PsppireButtonBoxClass *class)
@@ -89,6 +92,19 @@ ok_button_clicked (GtkWidget *w, gpointer data)
 
 
 static void
+paste_button_clicked (GtkWidget *w, gpointer data)
+{
+  PsppireDialog *dialog;
+
+  dialog = PSPPIRE_DIALOG (gtk_widget_get_toplevel (w));
+
+  dialog->response = PSPPIRE_RESPONSE_PASTE;
+
+  psppire_dialog_close (dialog);
+}
+
+
+static void
 refresh_clicked (GtkWidget *w, gpointer data)
 {
   PsppireDialog *dialog;
@@ -109,6 +125,12 @@ psppire_buttonbox_init (PsppireButtonBox *buttonbox)
   g_signal_connect (button, "clicked", G_CALLBACK (ok_button_clicked), NULL);
   gtk_widget_show (button);
 
+  button = gtk_button_new_with_mnemonic (_("_Paste"));
+  g_signal_connect (button, "clicked", G_CALLBACK (paste_button_clicked),
+		    NULL);
+  gtk_box_pack_start_defaults (GTK_BOX (buttonbox), button);
+  gtk_widget_show (button);
+
   button = gtk_button_new_from_stock (GTK_STOCK_CANCEL);
   g_signal_connect (button, "clicked", G_CALLBACK (close_dialog), NULL);
   gtk_box_pack_start_defaults (GTK_BOX (buttonbox), button);
@@ -123,7 +145,7 @@ psppire_buttonbox_init (PsppireButtonBox *buttonbox)
   gtk_box_pack_start_defaults (GTK_BOX (buttonbox), button);
   gtk_widget_show (button);
 
-  gtk_widget_show (buttonbox);
+  gtk_widget_show (GTK_WIDGET (buttonbox));
 }
 
 

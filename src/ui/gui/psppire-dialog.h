@@ -6,6 +6,8 @@
 #include <glib-object.h>
 #include <gtk/gtkwindow.h>
 
+#define PSPPIRE_RESPONSE_PASTE 1
+
 
 G_BEGIN_DECLS
 

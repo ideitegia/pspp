@@ -15,6 +15,8 @@ noinst_LIBRARIES += src/language/liblanguage.a
 src_language_liblanguage_a_SOURCES = \
 	src/language/syntax-file.c \
 	src/language/syntax-file.h \
+	src/language/syntax-string-source.c \
+	src/language/syntax-string-source.h \
 	src/language/prompt.c \
 	src/language/prompt.h \
 	src/language/command.c \

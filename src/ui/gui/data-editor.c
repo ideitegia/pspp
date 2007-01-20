@@ -37,6 +37,7 @@
 
 #include "data-editor.h"
 #include "syntax-editor.h"
+#include <language/syntax-string-source.h>
 #include "window-manager.h"
 
 #include "psppire-data-store.h"
@@ -346,8 +347,6 @@ click2column (GtkWidget *w, gint col, gpointer data)
 
   return FALSE;
 }
-
-
 
 
 void
@@ -701,12 +700,6 @@ on_split_change (PsppireDict *dict, gpointer data)
     {
       gint i;
       GString *text;
-      GtkSheet *var_sheet =
-	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-      PsppireVarStore *vs = PSPPIRE_VAR_STORE
-	(gtk_sheet_get_model (var_sheet) );
-
       struct variable *const * split_vars = dict_get_split_vars (dict->dict);
 
       text = g_string_new (_("Split by "));
@@ -786,7 +779,6 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
     }
 }
 
-
 static void
 weight_cases_dialog (GObject *o, gpointer data)
 {
@@ -816,20 +808,58 @@ weight_cases_dialog (GObject *o, gpointer data)
 
   g_object_unref (xml);
 
-  if (response == GTK_RESPONSE_OK)
+  switch (response)
     {
+    case GTK_RESPONSE_OK:
+    {
+      struct getl_interface *sss ;
       const GList *list = psppire_var_select_get_variables (select);
 
-      g_assert ( g_list_length (list) <= 1 );
+      g_assert ( g_list_length ((GList *)list) <= 1 );
 
       if ( list == NULL)
-	psppire_dict_set_weight_variable (select->dict, NULL);
+	  {
+	    sss = create_syntax_string_source ("WEIGHT OFF.");
+	  }
       else
 	{
 	  struct variable *var = list->data;
 
-	  psppire_dict_set_weight_variable (select->dict, var);
+	    sss = create_syntax_string_source ("WEIGHT BY %s.\n",
+					       var_get_name (var));
+	  }
+
+	execute_syntax (sss);
 	}
+      break;
+    case PSPPIRE_RESPONSE_PASTE:
+      {
+	struct syntax_editor *se =  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
+
+	const GList *list = psppire_var_select_get_variables (select);
+
+	g_assert ( g_list_length ((GList *)list) <= 1 );
+
+	if ( list == NULL)
+	  {
+	    gtk_text_buffer_insert_at_cursor (se->buffer, "WEIGHT OFF.", -1);
+	  }
+	else
+	  {
+	    struct variable *var = list->data;
+
+	    gchar *text = g_strdup_printf ("WEIGHT BY %s.",
+					   var_get_name (var));
+
+	    gtk_text_buffer_insert_at_cursor (se->buffer,
+					      text, -1);
+
+	    g_free (text);
+	  }
+      }
+      break;
+    default:
+      break;
     }
 }
 

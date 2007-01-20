@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-01-03 18:41+0900\n"
+"POT-Creation-Date: 2007-01-20 08:53+0900\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -176,42 +176,42 @@ msgstr ""
 msgid "Month number %f is not between 1 and 12."
 msgstr ""
 
-#: src/data/dictionary.c:721
+#: src/data/dictionary.c:710
 msgid ""
 "At least one case in the data file had a weight value that was user-missing, "
 "system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
-#: src/data/dictionary.c:1206
+#: src/data/dictionary.c:1219
 msgid "Variable suffix too large."
 msgstr ""
 
-#: src/data/fastfile.c:535
+#: src/data/fastfile.c:540
 #, c-format
 msgid "%s: Removing temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:659
+#: src/data/fastfile.c:664
 #, c-format
 msgid "Error writing temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:687
+#: src/data/fastfile.c:692
 #, c-format
 msgid "%s: Opening temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:731
+#: src/data/fastfile.c:736
 #, c-format
 msgid "%s: Seeking temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:753
+#: src/data/fastfile.c:758
 #, c-format
 msgid "%s: Reading temporary file: %s."
 msgstr ""
 
-#: src/data/fastfile.c:756
+#: src/data/fastfile.c:761
 #, c-format
 msgid "%s: Temporary file ended unexpectedly."
 msgstr ""
@@ -309,13 +309,13 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:310 src/data/por-file-reader.c:489
-#: src/data/sys-file-reader.c:602 src/ui/gui/data-editor.glade:1084
+#: src/data/sys-file-reader.c:602 src/ui/gui/data-editor.glade:1086
 #: src/ui/gui/psppire-var-store.c:482
 msgid "String"
 msgstr "Zeichenkette"
 
 #: src/data/format.c:310 src/data/por-file-reader.c:489
-#: src/data/sys-file-reader.c:602 src/ui/gui/data-editor.glade:980
+#: src/data/sys-file-reader.c:602 src/ui/gui/data-editor.glade:982
 #: src/ui/gui/psppire-var-store.c:475
 msgid "Numeric"
 msgstr "Nummer"
@@ -1164,17 +1164,17 @@ msgstr ""
 msgid "expecting COMM or TAPE"
 msgstr ""
 
-#: src/language/data-io/get.c:349 src/language/data-io/get.c:363
-#: src/language/data-io/get.c:388
+#: src/language/data-io/get.c:348 src/language/data-io/get.c:362
+#: src/language/data-io/get.c:387
 #, c-format
 msgid "expecting %s or %s"
 msgstr ""
 
-#: src/language/data-io/get.c:593 src/language/data-io/print.c:177
+#: src/language/data-io/get.c:592 src/language/data-io/print.c:177
 msgid "expecting a valid subcommand"
 msgstr ""
 
-#: src/language/data-io/get.c:626
+#: src/language/data-io/get.c:625
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1182,75 +1182,75 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/language/data-io/get.c:652
+#: src/language/data-io/get.c:651
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/language/data-io/get.c:659
+#: src/language/data-io/get.c:658
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%d) does not match number of "
 "variables on right side (%d), in parenthesized group %d of RENAME subcommand."
 msgstr ""
 
-#: src/language/data-io/get.c:672
+#: src/language/data-io/get.c:671
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/language/data-io/get.c:702
+#: src/language/data-io/get.c:701
 msgid "Cannot DROP all variables from dictionary."
 msgstr ""
 
-#: src/language/data-io/get.c:879
+#: src/language/data-io/get.c:878
 msgid "The active file may not be specified more than once."
 msgstr ""
 
-#: src/language/data-io/get.c:887
+#: src/language/data-io/get.c:886
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/language/data-io/get.c:894
+#: src/language/data-io/get.c:893
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/language/data-io/get.c:931
+#: src/language/data-io/get.c:930
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/language/data-io/get.c:951
+#: src/language/data-io/get.c:950
 msgid "BY may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:972
+#: src/language/data-io/get.c:971
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/language/data-io/get.c:986
+#: src/language/data-io/get.c:985
 msgid "FIRST may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:1000
+#: src/language/data-io/get.c:999
 msgid "LAST may appear at most once."
 msgstr ""
 
-#: src/language/data-io/get.c:1041
+#: src/language/data-io/get.c:1040
 msgid "BY is required when TABLE is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1046
+#: src/language/data-io/get.c:1045
 msgid "BY is required when IN is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1075
+#: src/language/data-io/get.c:1074
 #, c-format
 msgid "IN variable name %s duplicates an existing variable name."
 msgstr ""
 
-#: src/language/data-io/get.c:1484
+#: src/language/data-io/get.c:1482
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
@@ -2259,8 +2259,8 @@ msgstr ""
 msgid "Group2"
 msgstr ""
 
-#: src/language/stats/binomial.c:208 src/language/stats/chisquare.c:236
-#: src/language/stats/chisquare.c:296 src/language/stats/crosstabs.q:825
+#: src/language/stats/binomial.c:208 src/language/stats/chisquare.c:237
+#: src/language/stats/chisquare.c:297 src/language/stats/crosstabs.q:825
 #: src/language/stats/crosstabs.q:1025 src/language/stats/crosstabs.q:1748
 #: src/language/stats/examine.q:909 src/language/stats/frequencies.q:1222
 #: src/language/stats/oneway.q:306 src/language/stats/oneway.q:470
@@ -2268,7 +2268,7 @@ msgstr ""
 msgid "Total"
 msgstr ""
 
-#: src/language/stats/binomial.c:253 src/language/stats/chisquare.c:259
+#: src/language/stats/binomial.c:253 src/language/stats/chisquare.c:260
 #: src/language/stats/crosstabs.q:1143 src/language/stats/crosstabs.q:1184
 msgid "Category"
 msgstr ""
@@ -2294,46 +2294,46 @@ msgstr ""
 msgid "Exact Sig. (%d-tailed)"
 msgstr ""
 
-#: src/language/stats/chisquare.c:208
+#: src/language/stats/chisquare.c:209
 #, c-format
 msgid ""
 "CHISQUARE test specified %d expected values, but %d distinct values were "
 "encountered in variable %s."
 msgstr ""
 
-#: src/language/stats/chisquare.c:220 src/language/stats/chisquare.c:260
+#: src/language/stats/chisquare.c:221 src/language/stats/chisquare.c:261
 msgid "Observed N"
 msgstr ""
 
-#: src/language/stats/chisquare.c:221 src/language/stats/chisquare.c:261
+#: src/language/stats/chisquare.c:222 src/language/stats/chisquare.c:262
 msgid "Expected N"
 msgstr ""
 
-#: src/language/stats/chisquare.c:222 src/language/stats/chisquare.c:262
+#: src/language/stats/chisquare.c:223 src/language/stats/chisquare.c:263
 #: src/language/stats/regression.q:313
 msgid "Residual"
 msgstr ""
 
-#: src/language/stats/chisquare.c:255
+#: src/language/stats/chisquare.c:256
 msgid "Frequencies"
 msgstr ""
 
-#: src/language/stats/chisquare.c:309
+#: src/language/stats/chisquare.c:310
 msgid "Test Statistics"
 msgstr ""
 
-#: src/language/stats/chisquare.c:323
+#: src/language/stats/chisquare.c:324
 msgid "Chi-Square"
 msgstr ""
 
-#: src/language/stats/chisquare.c:324 src/language/stats/crosstabs.q:1119
+#: src/language/stats/chisquare.c:325 src/language/stats/crosstabs.q:1119
 #: src/language/stats/oneway.q:279 src/language/stats/oneway.q:680
 #: src/language/stats/regression.q:307 src/language/stats/t-test.q:981
 #: src/language/stats/t-test.q:1173 src/language/stats/t-test.q:1266
 msgid "df"
 msgstr ""
 
-#: src/language/stats/chisquare.c:325
+#: src/language/stats/chisquare.c:326
 msgid "Asymp. Sig."
 msgstr ""
 
@@ -3126,45 +3126,45 @@ msgstr ""
 msgid "Does not assume equal"
 msgstr ""
 
-#: src/language/stats/rank.q:223
+#: src/language/stats/rank.q:221
 #, c-format
 msgid "%s of %s by %s"
 msgstr ""
 
-#: src/language/stats/rank.q:228
+#: src/language/stats/rank.q:226
 #, c-format
 msgid "%s of %s"
 msgstr ""
 
-#: src/language/stats/rank.q:725
+#: src/language/stats/rank.q:726
 msgid "Cannot create new rank variable.  All candidates in use."
 msgstr ""
 
-#: src/language/stats/rank.q:820
+#: src/language/stats/rank.q:819
 msgid "Variables Created By RANK"
 msgstr ""
 
-#: src/language/stats/rank.q:844
+#: src/language/stats/rank.q:843
 #, c-format
 msgid "%s into %s(%s of %s using %s BY %s)"
 msgstr ""
 
-#: src/language/stats/rank.q:855
+#: src/language/stats/rank.q:854
 #, c-format
 msgid "%s into %s(%s of %s BY %s)"
 msgstr ""
 
-#: src/language/stats/rank.q:869
+#: src/language/stats/rank.q:868
 #, c-format
 msgid "%s into %s(%s of %s using %s)"
 msgstr ""
 
-#: src/language/stats/rank.q:879
+#: src/language/stats/rank.q:878
 #, c-format
 msgid "%s into %s(%s of %s)"
 msgstr ""
 
-#: src/language/stats/rank.q:892
+#: src/language/stats/rank.q:891
 msgid ""
 "FRACTION has been specified, but NORMAL and PROPORTION rank functions have "
 "not been requested.  The FRACTION subcommand will be ignored."
@@ -4102,32 +4102,59 @@ msgstr ""
 msgid "Style of bevel around the custom entry button"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:391 src/ui/gui/data-editor.glade:428
+#: src/ui/gui/data-editor.c:154
+#, fuzzy
+msgid "Weights"
+msgstr "Rechts"
+
+#: src/ui/gui/data-editor.c:155
+msgid "Weight cases by variable"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:423 src/ui/gui/data-editor.glade:428
 msgid "Open"
 msgstr "Öffen"
 
-#: src/ui/gui/data-editor.c:399
+#: src/ui/gui/data-editor.c:431
 msgid "System Files (*.sav)"
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/data-editor.c:405
+#: src/ui/gui/data-editor.c:437
 msgid "Portable Files (*.por) "
 msgstr "Tragbardatein (*.por)"
 
-#: src/ui/gui/data-editor.c:411 src/ui/gui/syntax-editor.c:141
-#: src/ui/gui/syntax-editor.c:544
+#: src/ui/gui/data-editor.c:443 src/ui/gui/syntax-editor.c:141
+#: src/ui/gui/syntax-editor.c:531
 msgid "All Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.c:487
+#: src/ui/gui/data-editor.c:519
 msgid "Font Selection"
 msgstr "Schriftwahlung"
 
-#: src/ui/gui/data-editor.c:663
+#: src/ui/gui/data-editor.c:697
+msgid "No Split"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:705
+#, fuzzy
+msgid "Split by "
+msgstr "Alle Datei"
+
+#: src/ui/gui/data-editor.c:730
+msgid "Filter off"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:743
+#, c-format
+msgid "Filter by %s"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:761
 msgid "Weights off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:676
+#: src/ui/gui/data-editor.c:774
 #, c-format
 msgid "Weight by %s"
 msgstr ""
@@ -4187,7 +4214,7 @@ msgid "Grid Lines"
 msgstr "Glitten"
 
 #: src/ui/gui/data-editor.glade:223 src/ui/gui/data-editor.glade:633
-#: src/ui/gui/data-editor.glade:1343 src/ui/gui/data-editor.glade:1521
+#: src/ui/gui/data-editor.glade:1345 src/ui/gui/data-editor.glade:1523
 msgid "Value Labels"
 msgstr "Werten"
 
@@ -4210,11 +4237,11 @@ msgid "Insert Cases"
 msgstr "_Stecken"
 
 #: src/ui/gui/data-editor.glade:279 src/ui/gui/data-editor.glade:502
-#: src/ui/gui/data-editor.glade:1891
+#: src/ui/gui/data-editor.glade:1893
 msgid "Go To Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:294 src/ui/gui/data-editor.glade:1956
+#: src/ui/gui/data-editor.glade:294 src/ui/gui/data-editor.glade:1958
 msgid "Sort Cases"
 msgstr ""
 
@@ -4326,124 +4353,124 @@ msgstr ""
 msgid "Filter Use Status Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:904
+#: src/ui/gui/data-editor.glade:905
 msgid "Weight Status Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:930
+#: src/ui/gui/data-editor.glade:931
 #, fuzzy
 msgid "Split File Status Area"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.glade:959
+#: src/ui/gui/data-editor.glade:961
 msgid "Variable Type"
 msgstr "Variableansicht"
 
-#: src/ui/gui/data-editor.glade:994 src/ui/gui/psppire-var-store.c:476
+#: src/ui/gui/data-editor.glade:996 src/ui/gui/psppire-var-store.c:476
 msgid "Comma"
 msgstr "Komma"
 
-#: src/ui/gui/data-editor.glade:1009 src/ui/gui/psppire-var-store.c:477
+#: src/ui/gui/data-editor.glade:1011 src/ui/gui/psppire-var-store.c:477
 msgid "Dot"
 msgstr "Punkt"
 
-#: src/ui/gui/data-editor.glade:1024
+#: src/ui/gui/data-editor.glade:1026
 msgid "Scientific notation"
 msgstr "Wissenschaftlichnotation"
 
-#: src/ui/gui/data-editor.glade:1039 src/ui/gui/psppire-var-store.c:479
+#: src/ui/gui/data-editor.glade:1041 src/ui/gui/psppire-var-store.c:479
 msgid "Date"
 msgstr "Datum"
 
-#: src/ui/gui/data-editor.glade:1054 src/ui/gui/psppire-var-store.c:480
+#: src/ui/gui/data-editor.glade:1056 src/ui/gui/psppire-var-store.c:480
 msgid "Dollar"
 msgstr "Euro"
 
-#: src/ui/gui/data-editor.glade:1069
+#: src/ui/gui/data-editor.glade:1071
 msgid "Custom currency"
 msgstr "Spezialwährung"
 
-#: src/ui/gui/data-editor.glade:1161
+#: src/ui/gui/data-editor.glade:1163
 msgid "positive"
 msgstr "positiv"
 
-#: src/ui/gui/data-editor.glade:1167
+#: src/ui/gui/data-editor.glade:1169
 msgid "negative"
 msgstr "negativ"
 
-#: src/ui/gui/data-editor.glade:1180
+#: src/ui/gui/data-editor.glade:1182
 msgid "Sample"
 msgstr "Muster"
 
-#: src/ui/gui/data-editor.glade:1230
+#: src/ui/gui/data-editor.glade:1232
 msgid "Width:"
 msgstr "Große:"
 
-#: src/ui/gui/data-editor.glade:1274
+#: src/ui/gui/data-editor.glade:1276
 msgid "Decimal Places:"
 msgstr "Dezimalstellen:"
 
-#: src/ui/gui/data-editor.glade:1441
+#: src/ui/gui/data-editor.glade:1443
 msgid "Value Label:"
 msgstr "Kennsatz:"
 
-#: src/ui/gui/data-editor.glade:1454
+#: src/ui/gui/data-editor.glade:1456
 msgid "Value:"
 msgstr "Werte:"
 
-#: src/ui/gui/data-editor.glade:1587
+#: src/ui/gui/data-editor.glade:1589
 msgid "Missing Values"
 msgstr "Lösewerten"
 
-#: src/ui/gui/data-editor.glade:1605
+#: src/ui/gui/data-editor.glade:1607
 msgid "_Range plus one optional discrete missing value"
 msgstr "Wertebereich und ein optional Lösewert"
 
-#: src/ui/gui/data-editor.glade:1629
+#: src/ui/gui/data-editor.glade:1631
 msgid "_Low:"
 msgstr "_Tief:"
 
-#: src/ui/gui/data-editor.glade:1658
+#: src/ui/gui/data-editor.glade:1660
 msgid "_High:"
 msgstr "_Hoch:"
 
-#: src/ui/gui/data-editor.glade:1699
+#: src/ui/gui/data-editor.glade:1701
 msgid "Di_screte value:"
 msgstr "Di_skretwerte"
 
-#: src/ui/gui/data-editor.glade:1746
+#: src/ui/gui/data-editor.glade:1748
 msgid "_No missing values"
 msgstr "_Kein Lösewerten"
 
-#: src/ui/gui/data-editor.glade:1763
+#: src/ui/gui/data-editor.glade:1765
 msgid "_Discrete missing values"
 msgstr "_Diskret Lösewerten"
 
-#: src/ui/gui/data-editor.glade:1908
+#: src/ui/gui/data-editor.glade:1910
 msgid "Case Number:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2017
+#: src/ui/gui/data-editor.glade:2019
 msgid "Sort by:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2066 src/ui/gui/sort-cases-dialog.c:279
+#: src/ui/gui/data-editor.glade:2068 src/ui/gui/sort-cases-dialog.c:279
 msgid "Ascending"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2079 src/ui/gui/sort-cases-dialog.c:281
+#: src/ui/gui/data-editor.glade:2081 src/ui/gui/sort-cases-dialog.c:281
 msgid "Descending"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2095
+#: src/ui/gui/data-editor.glade:2097
 msgid "Sort Order"
 msgstr ""
 
-#: src/ui/gui/helper.c:105
+#: src/ui/gui/helper.c:113
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr "Es gibt noch nicht kein Helpsysteme. Schade!"
 
-#: src/ui/gui/helper.c:128
+#: src/ui/gui/helper.c:136
 #, c-format
 msgid "Cannot open reference manual: %s"
 msgstr ""
@@ -4483,11 +4510,16 @@ msgstr "Unpassend Wert für Variable"
 msgid "Incorrect range specification"
 msgstr "Falshe Spannweitebeschreibung"
 
-#: src/ui/gui/psppire-data-store.c:743
+#: src/ui/gui/psppire-buttonbox.c:128
+#, fuzzy
+msgid "_Paste"
+msgstr "Datum"
+
+#: src/ui/gui/psppire-data-store.c:750
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:824 src/ui/gui/psppire-var-store.c:552
+#: src/ui/gui/psppire-data-store.c:831 src/ui/gui/psppire-var-store.c:552
 #: src/ui/gui/psppire-var-store.c:562 src/ui/gui/psppire-var-store.c:572
 #: src/ui/gui/psppire-var-store.c:770
 #, c-format
@@ -4517,25 +4549,25 @@ msgid ""
 "    02110-1301, USA.\n"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:87 src/ui/gui/psppire.glade:170
-#: src/ui/gui/weight-cases-dialog.c:87
+#: src/ui/gui/psppire.glade:89 src/ui/gui/psppire.glade:191
+#: src/ui/gui/weight-cases-dialog.c:99
 msgid "Do not weight cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:96
+#: src/ui/gui/psppire.glade:98
 msgid "Weight cases by"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:125
+#: src/ui/gui/psppire.glade:144
 #, fuzzy
 msgid "Frequency Variable"
 msgstr "Variableansicht"
 
-#: src/ui/gui/psppire.glade:163
+#: src/ui/gui/psppire.glade:184
 msgid "Current Status: "
 msgstr ""
 
-#: src/ui/gui/psppire-var-select.c:260 src/ui/gui/sort-cases-dialog.c:339
+#: src/ui/gui/psppire-var-select.c:271 src/ui/gui/sort-cases-dialog.c:339
 msgid "Var"
 msgstr ""
 
@@ -4565,12 +4597,12 @@ msgstr ""
 msgid "Save Syntax"
 msgstr "Speichern unter"
 
-#: src/ui/gui/syntax-editor.c:135 src/ui/gui/syntax-editor.c:538
+#: src/ui/gui/syntax-editor.c:135 src/ui/gui/syntax-editor.c:525
 #, fuzzy
 msgid "Syntax Files (*.sps) "
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/syntax-editor.c:530
+#: src/ui/gui/syntax-editor.c:517
 msgid "Open Syntax"
 msgstr ""
 
@@ -4647,22 +4679,22 @@ msgstr "Ordinalwert"
 msgid "Scale"
 msgstr "Skalwert"
 
-#: src/ui/gui/window-manager.c:111
+#: src/ui/gui/window-manager.c:131
 #, fuzzy, c-format
 msgid "Syntax%d"
 msgstr "Speichern unter"
 
-#: src/ui/gui/window-manager.c:112 src/ui/gui/window-manager.c:140
+#: src/ui/gui/window-manager.c:132 src/ui/gui/window-manager.c:160
 #, fuzzy, c-format
 msgid "%s --- PSPP Syntax Editor"
 msgstr "PSPP Dateiaufbereiter"
 
-#: src/ui/gui/window-manager.c:115
+#: src/ui/gui/window-manager.c:135
 #, fuzzy, c-format
 msgid "Untitled%d"
 msgstr "Unbetitelt"
 
-#: src/ui/gui/window-manager.c:116 src/ui/gui/window-manager.c:143
+#: src/ui/gui/window-manager.c:136 src/ui/gui/window-manager.c:163
 #, fuzzy, c-format
 msgid "%s --- PSPP Data Editor"
 msgstr "PSPP Dateiaufbereiter"

@@ -1,3 +1,6 @@
+/* This file is a rubbish bin where stuff gets put when it doesn't seem to
+   belong anywhere else.
+*/
 #include <config.h>
 
 #include <glib.h>
@@ -5,6 +8,7 @@
 #include "message-dialog.h"
 #include <data/data-in.h>
 #include <data/data-out.h>
+#include <data/dictionary.h>
 #include <libpspp/message.h>
 
 #include <libpspp/i18n.h>
@@ -12,6 +16,10 @@
 #include <ctype.h>
 #include <string.h>
 #include <data/settings.h>
+
+#include <language/command.h>
+#include <data/procedure.h>
+#include <language/lexer/lexer.h>
 
 
 #include <gettext.h>
@@ -129,3 +137,36 @@ reference_manual (GtkMenuItem *menu, gpointer data)
     }
   g_clear_error (&err);
 }
+
+
+extern struct dataset *the_dataset;
+extern struct source_stream *the_source_stream;
+
+void
+execute_syntax (struct getl_interface *sss)
+{
+  struct lexer *lexer;
+  g_return_if_fail (proc_has_source (the_dataset));
+
+  lexer = lex_create (the_source_stream);
+
+  getl_append_source (the_source_stream, sss);
+
+  for (;;)
+    {
+      const struct dictionary *dict = dataset_dict (the_dataset);
+
+      int result = cmd_parse (lexer, the_dataset,
+			      dict_get_var_cnt (dict) > 0 ?
+			      CMD_STATE_DATA : CMD_STATE_INITIAL);
+
+      if (result == CMD_EOF || result == CMD_FINISH)
+	break;
+    }
+
+  getl_abort_noninteractive (the_source_stream);
+
+  lex_destroy (lexer);
+}
+
+

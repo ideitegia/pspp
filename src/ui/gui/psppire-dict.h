@@ -104,7 +104,6 @@ void psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 
 void psppire_dict_replace_dictionary (PsppireDict *, struct dictionary *);
 
-void psppire_dict_set_weight_variable (PsppireDict *, struct variable *);
 struct variable * psppire_dict_get_weight_variable (const PsppireDict *);
 
 

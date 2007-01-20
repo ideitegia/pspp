@@ -79,10 +79,8 @@ read_line_from_buffer (struct getl_interface *i,
   if ( gtk_text_iter_compare (&ses->i, &ses->end) >= 0)
     return false;
 
-  gtk_text_buffer_get_iter_at_line ( ses->se->buffer,
-				     &next_line,
-				     1 + gtk_text_iter_get_line (&ses->i)
-				     );
+  next_line = ses->i;
+  gtk_text_iter_forward_line (&next_line);
 
   text = gtk_text_buffer_get_text (ses->se->buffer,
 				   &ses->i, &next_line,

@@ -6,7 +6,6 @@
 #include <glib-object.h>
 #include <gtk/gtkvbbox.h>
 
-
 G_BEGIN_DECLS
 
 #define PSPPIRE_BUTTONBOX_TYPE            (psppire_button_box_get_type ())

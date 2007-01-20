@@ -212,24 +212,10 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 }
 
 static void
-execute_syntax (const struct syntax_editor *se, GtkTextIter start,
+editor_execute_syntax (const struct syntax_editor *se, GtkTextIter start,
 		GtkTextIter stop)
 {
-  g_return_if_fail (proc_has_source (the_dataset));
-
-  getl_append_source (the_source_stream,
-		      create_syntax_editor_source (se, start, stop));
-  for (;;)
-    {
-      const struct dictionary *dict = dataset_dict (the_dataset);
-      int result = cmd_parse (se->lexer, the_dataset,
-			      dict_get_var_cnt (dict) > 0 ?
-			      CMD_STATE_DATA : CMD_STATE_INITIAL);
-      if (result == CMD_EOF || result == CMD_FINISH)
-	break;
-    }
-
-  getl_abort_noninteractive (the_source_stream);
+  execute_syntax (create_syntax_editor_source (se, start, stop));
 }
 
 /* Parse and execute all the text in the buffer */
@@ -239,11 +225,10 @@ on_run_all (GtkMenuItem *menuitem, gpointer user_data)
   GtkTextIter begin, end;
   struct syntax_editor *se = user_data;
 
-  gtk_text_buffer_get_iter_at_line (se->buffer, &begin, 0);
-  gtk_text_buffer_get_iter_at_line (se->buffer, &end, -1);
+  gtk_text_buffer_get_iter_at_offset (se->buffer, &begin, 0);
+  gtk_text_buffer_get_iter_at_offset (se->buffer, &end, -1);
 
-
-  execute_syntax (se, begin, end);
+  editor_execute_syntax (se, begin, end);
 }
 
 /* Parse and execute the currently selected text */
@@ -254,7 +239,7 @@ on_run_selection (GtkMenuItem *menuitem, gpointer user_data)
   struct syntax_editor *se = user_data;
 
   if ( gtk_text_buffer_get_selection_bounds (se->buffer, &begin, &end) )
-    execute_syntax (se, begin, end);
+    editor_execute_syntax (se, begin, end);
 }
 
 
@@ -281,7 +266,7 @@ on_run_current_line (GtkMenuItem *menuitem, gpointer user_data)
   gtk_text_buffer_get_iter_at_line (se->buffer, &begin, line);
   gtk_text_buffer_get_iter_at_line (se->buffer, &end, line + 1);
 
-  execute_syntax (se, begin, end);
+  editor_execute_syntax (se, begin, end);
 }
 
 
@@ -310,7 +295,7 @@ on_run_to_end (GtkMenuItem *menuitem, gpointer user_data)
   gtk_text_buffer_get_iter_at_line (se->buffer, &begin, line);
   gtk_text_buffer_get_iter_at_line (se->buffer, &end, -1);
 
-  execute_syntax (se, begin, end);
+  editor_execute_syntax (se, begin, end);
 }
 
 

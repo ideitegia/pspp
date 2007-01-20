@@ -265,5 +265,3 @@ create_icon_factory (void)
   gtk_icon_factory_add_default (factory);
 }
 
-
-

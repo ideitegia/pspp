@@ -105,7 +105,7 @@ window_create (enum window_type type, const gchar *name)
 
   register_window (e);
 
-  gtk_widget_show (e->window);
+  gtk_widget_show (GTK_WIDGET (e->window));
 
   return e;
 }

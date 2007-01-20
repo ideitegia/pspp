@@ -684,14 +684,6 @@ psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 }
 
 
-void
-psppire_dict_set_weight_variable (PsppireDict *dict, struct variable *v)
-{
-  g_return_if_fail (v == NULL || var_is_numeric (v));
-  dict_set_weight (dict->dict, v);
-}
-
-
 struct variable *
 psppire_dict_get_weight_variable (const PsppireDict *dict)
 {
