@@ -110,6 +110,11 @@ window_create (enum window_type type, const gchar *name)
   return e;
 }
 
+void
+default_window_name (struct editor_window *w)
+{
+  set_window_name (w, NULL);
+}
 
 static void
 set_window_name (struct editor_window *e,

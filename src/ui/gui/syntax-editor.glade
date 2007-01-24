@@ -62,6 +62,7 @@
 			  <child>
 			    <widget class="GtkMenuItem" id="file_new_data">
 			      <property name="visible">True</property>
+			      <property name="sensitive">False</property>
 			      <property name="label" translatable="yes">_Data</property>
 			      <property name="use_underline">True</property>
 			    </widget>
@@ -92,6 +93,7 @@
 			  <child>
 			    <widget class="GtkMenuItem" id="file_open_data">
 			      <property name="visible">True</property>
+			      <property name="sensitive">False</property>
 			      <property name="label" translatable="yes">_Data</property>
 			      <property name="use_underline">True</property>
 			    </widget>

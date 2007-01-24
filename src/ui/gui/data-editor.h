@@ -28,16 +28,24 @@
 struct data_editor
 {
   struct editor_window parent;
+
+  GtkAction *action_data_new;
+  GtkAction *action_data_open;
+  GtkAction *action_data_save_as;
+  GtkAction *action_data_save;
+
   GtkAction *invoke_weight_cases_dialog;
+
   GladeXML *xml;
+
+  gboolean save_as_portable;
+  gchar *file_name;
 };
 
 
 struct data_editor * new_data_editor (void);
 
 void new_data_window (GtkMenuItem *, gpointer);
-
-void open_data_window (GtkMenuItem *, gpointer);
 
 void data_editor_select_sheet (struct data_editor *de, gint page);
 

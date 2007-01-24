@@ -123,3 +123,11 @@ create_syntax_string_source (const char *format, ...)
 
   return (struct getl_interface *) sss;
 }
+
+/* Return the syntax currently contained in S.
+   Primarily usefull for debugging */
+const char *
+syntax_string_source_get_syntax (const struct syntax_string_source *s)
+{
+  return ds_cstr (&s->buffer);
+}

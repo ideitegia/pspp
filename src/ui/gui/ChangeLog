@@ -1,3 +1,16 @@
+Tue Jan 23 21:10:01 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* helper.c helper.h: New function execute_syntax.
+
+	* syntax-editor.c syntax-editor.glade: Disabled data open/save menu 
+	items.
+
+	* data-editor.c data-editor.glade data-editor.h: Enabled data 
+	open/save/save_as  menu-items.
+	
+	* window-manager.h window-manager.c (default_window_name) : New 
+	function.
+
 Sat Jan 13 07:47:26 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-case-file.c psppire-data-store.c psppire-dialog.c

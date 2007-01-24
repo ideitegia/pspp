@@ -45,6 +45,7 @@
 
 #include "weight-cases-dialog.h"
 
+static void register_data_editor_actions (struct data_editor *de);
 
 static void insert_variable (GtkCheckMenuItem *m, gpointer data);
 
@@ -124,7 +125,7 @@ new_data_editor (void)
   GtkSheet *var_sheet ;
   PsppireVarStore *vs;
 
-  de = g_malloc (sizeof (*de));
+  de = g_malloc0 (sizeof (*de));
 
   e = (struct editor_window *) de;
 
@@ -149,6 +150,9 @@ new_data_editor (void)
 
   connect_help (de->xml);
 
+
+  register_data_editor_actions (de);
+
   de->invoke_weight_cases_dialog =
     gtk_action_new ("weight-cases-dialog",
 		    _("Weights"),
@@ -161,15 +165,15 @@ new_data_editor (void)
 
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
-  g_signal_connect (get_widget_assert (de->xml,"file_new_data"),
-		    "activate",
-		    G_CALLBACK (new_data_window),
-		    e->window);
+  g_signal_connect_swapped (get_widget_assert (de->xml,"file_new_data"),
+			    "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->action_data_new);
 
-  g_signal_connect (get_widget_assert (de->xml,"file_open_data"),
-		    "activate",
-		    G_CALLBACK (open_data_window),
-		    e->window);
+  g_signal_connect_swapped (get_widget_assert (de->xml,"file_open_data"),
+			    "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->action_data_open);
 
   g_signal_connect (get_widget_assert (de->xml,"file_new_syntax"),
 		    "activate",
@@ -180,6 +184,16 @@ new_data_editor (void)
 		    "activate",
 		    G_CALLBACK (open_syntax_window),
 		    e->window);
+
+  g_signal_connect_swapped (get_widget_assert (de->xml,"file_save"),
+			    "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->action_data_save);
+
+  g_signal_connect_swapped (get_widget_assert (de->xml,"file_save_as"),
+			    "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->action_data_save_as);
 
 
   g_signal_connect (get_widget_assert (de->xml,"edit_clear"),
@@ -196,13 +210,6 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
 			    get_widget_assert (de->xml, "data_weight-cases")
 			    );
-
-  /* 
-  g_signal_connect (get_widget_assert (de->xml,"data_weight-cases"),
-		    "activate",
-		    G_CALLBACK (weight_cases_dialog),
-		    de);
-  */
 
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
@@ -283,6 +290,13 @@ new_data_editor (void)
 		    "toggled",
 		    G_CALLBACK (value_labels_toggled), de);
 
+  gtk_action_connect_proxy (de->action_data_open,
+			    get_widget_assert (de->xml, "button-open")
+			    );
+
+  gtk_action_connect_proxy (de->action_data_save,
+			    get_widget_assert (de->xml, "button-save")
+			    );
 
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
 			    get_widget_assert (de->xml, "button-weight-cases")
@@ -296,7 +310,6 @@ new_data_editor (void)
   g_signal_connect (get_widget_assert (de->xml, "windows_minimise_all"),
 		    "activate",
 		    G_CALLBACK (minimise_all_windows), NULL);
-
 
 
   select_sheet (de, PAGE_DATA_SHEET);
@@ -409,59 +422,6 @@ data_editor_select_sheet (struct data_editor *de, gint page)
     GTK_NOTEBOOK (get_widget_assert (de->xml,"notebook")), page
     );
 }
-
-
-void
-open_data_window (GtkMenuItem *menuitem, gpointer parent)
-{
-  bool finished = FALSE;
-
-  GtkWidget *dialog;
-
-  GtkFileFilter *filter ;
-
-  dialog = gtk_file_chooser_dialog_new (_("Open"),
-					GTK_WINDOW (parent),
-					GTK_FILE_CHOOSER_ACTION_OPEN,
-					GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-					GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
-					NULL);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
-  gtk_file_filter_add_pattern (filter, "*.sav");
-  gtk_file_filter_add_pattern (filter, "*.SAV");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
-  gtk_file_filter_add_pattern (filter, "*.por");
-  gtk_file_filter_add_pattern (filter, "*.POR");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_set_name (filter, _("All Files"));
-  gtk_file_filter_add_pattern (filter, "*");
-  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
-
-  do {
-
-    if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
-      {
-	gchar *file_name =
-	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-
-	g_free (file_name);
-      }
-    else
-      finished = TRUE;
-
-  } while ( ! finished ) ;
-
-  gtk_widget_destroy (dialog);
-}
-
-
 
 
 static void
@@ -862,5 +822,268 @@ weight_cases_dialog (GObject *o, gpointer data)
       break;
     }
 }
+
+
+
+
+static void data_save_as_dialog (GtkAction *, struct data_editor *de);
+static void new_file (GtkAction *, struct editor_window *de);
+static void open_data_dialog (GtkAction *, struct editor_window *de);
+static void data_save (GtkAction *action, struct data_editor *e);
+
+
+/* Create the GtkActions and connect to their signals */
+static void
+register_data_editor_actions (struct data_editor *de)
+{
+  de->action_data_open =
+    gtk_action_new ("data-open-dialog",
+		    _("Open"),
+		    _("Open a data file"),
+		    "gtk-open");
+
+  g_signal_connect (de->action_data_open, "activate",
+		    G_CALLBACK (open_data_dialog), de);
+
+
+  de->action_data_save = gtk_action_new ("data-save",
+					    _("Save"),
+					    _("Save data to file"),
+					    "gtk-save");
+
+  g_signal_connect (de->action_data_save, "activate",
+		    G_CALLBACK (data_save), de);
+
+
+
+  de->action_data_save_as = gtk_action_new ("data-save-as-dialog",
+					    _("Save As"),
+					    _("Save data to file"),
+					    "gtk-save");
+
+  g_signal_connect (de->action_data_save_as, "activate",
+		    G_CALLBACK (data_save_as_dialog), de);
+
+  de->action_data_new =
+    gtk_action_new ("data-new",
+		    _("New"),
+		    _("New data file"),
+		    NULL);
+
+  g_signal_connect (de->action_data_new, "activate",
+		    G_CALLBACK (new_file), de);
+}
+
+/* Returns true if NAME has a suffix which might denote a PSPP file */
+static gboolean
+name_has_suffix (const gchar *name)
+{
+  if ( g_str_has_suffix (name, ".sav"))
+    return TRUE;
+  if ( g_str_has_suffix (name, ".SAV"))
+    return TRUE;
+  if ( g_str_has_suffix (name, ".por"))
+    return TRUE;
+  if ( g_str_has_suffix (name, ".POR"))
+    return TRUE;
+
+  return FALSE;
+}
+
+/* Append SUFFIX to the filename of DE */
+static void
+append_filename_suffix (struct data_editor *de, const gchar *suffix)
+{
+  if ( ! name_has_suffix (de->file_name))
+    {
+      gchar *s = de->file_name;
+      de->file_name = g_strconcat (de->file_name, suffix, NULL);
+      g_free (s);
+    }
+}
+
+/* Save DE to file */
+static void
+save_file (struct data_editor *de)
+{
+  struct getl_interface *sss;
+
+  g_assert (de->file_name);
+
+  if ( de->save_as_portable )
+    {
+      append_filename_suffix (de, ".por");
+      sss = create_syntax_string_source ("EXPORT OUTFILE='%s'.",
+					 de->file_name);
+    }
+  else
+    {
+      append_filename_suffix (de, ".sav");
+      sss = create_syntax_string_source ("SAVE OUTFILE='%s'.",
+					 de->file_name);
+    }
+
+  execute_syntax (sss);
+}
+
+
+/* Callback for data_save action.
+   If there's an existing file name, then just save,
+   otherwise prompt for a file name, then save */
+static void
+data_save (GtkAction *action, struct data_editor *de)
+{
+  if ( de->file_name)
+    save_file (de);
+  else
+    data_save_as_dialog (action, de);
+}
+
+
+/* Callback for data_save_as action. Prompt for a filename and save */
+static void
+data_save_as_dialog (GtkAction *action, struct data_editor *de)
+{
+  struct editor_window *e = (struct editor_window *) de;
+
+  GtkWidget *button_sys;
+  GtkWidget *dialog =
+    gtk_file_chooser_dialog_new (_("Save"),
+				 GTK_WINDOW (e->window),
+				 GTK_FILE_CHOOSER_ACTION_SAVE,
+				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				 GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
+				 NULL);
+
+  GtkFileFilter *filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
+  gtk_file_filter_add_pattern (filter, "*.sav");
+  gtk_file_filter_add_pattern (filter, "*.SAV");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
+  gtk_file_filter_add_pattern (filter, "*.por");
+  gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("All Files"));
+  gtk_file_filter_add_pattern (filter, "*");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  {
+    GtkWidget *button_por;
+    GtkWidget *vbox = gtk_vbox_new (TRUE, 5);
+    button_sys =
+      gtk_radio_button_new_with_label (NULL, _("System File"));
+
+    button_por =
+      gtk_radio_button_new_with_label
+      (gtk_radio_button_get_group (GTK_RADIO_BUTTON(button_sys)),
+       _("Portable File"));
+
+    gtk_box_pack_start_defaults (GTK_BOX (vbox), button_sys);
+    gtk_box_pack_start_defaults (GTK_BOX (vbox), button_por);
+
+    gtk_widget_show_all (vbox);
+
+    gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER(dialog), vbox);
+  }
+
+  switch (gtk_dialog_run (GTK_DIALOG (dialog)))
+    {
+    case GTK_RESPONSE_ACCEPT:
+      {
+	g_free (de->file_name);
+
+	de->file_name =
+	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+	de->save_as_portable =
+	  ! gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_sys));
+
+	save_file (de);
+
+	window_set_name_from_filename (e, de->file_name);
+      }
+      break;
+    default:
+      break;
+    }
+
+  gtk_widget_destroy (dialog);
+}
+
+
+/* Callback for data_new action.
+   Performs the NEW FILE command */
+static void
+new_file (GtkAction *action, struct editor_window *de)
+{
+  struct getl_interface *sss =
+    create_syntax_string_source ("NEW FILE.");
+
+  execute_syntax (sss);
+
+  default_window_name (de);
+}
+
+
+/* Callback for the data_open action.
+   Prompts for a filename and opens it */
+static void
+open_data_dialog (GtkAction *action, struct editor_window *de)
+{
+  GtkWidget *dialog =
+    gtk_file_chooser_dialog_new (_("Open"),
+				 GTK_WINDOW (de->window),
+				 GTK_FILE_CHOOSER_ACTION_OPEN,
+				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+				 NULL);
+
+  GtkFileFilter *filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("System Files (*.sav)"));
+  gtk_file_filter_add_pattern (filter, "*.sav");
+  gtk_file_filter_add_pattern (filter, "*.SAV");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("Portable Files (*.por) "));
+  gtk_file_filter_add_pattern (filter, "*.por");
+  gtk_file_filter_add_pattern (filter, "*.POR");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_set_name (filter, _("All Files"));
+  gtk_file_filter_add_pattern (filter, "*");
+  gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
+
+  switch (gtk_dialog_run (GTK_DIALOG (dialog)))
+    {
+    case GTK_RESPONSE_ACCEPT:
+      {
+	struct getl_interface *sss;
+	gchar *file_name =
+	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+	sss = create_syntax_string_source ("GET FILE='%s'.", file_name);
+
+	execute_syntax (sss);
+
+	window_set_name_from_filename (de, file_name);
+
+	g_free (file_name);
+      }
+      break;
+    default:
+      break;
+    }
+
+  gtk_widget_destroy (dialog);
+}
+
+
 
 

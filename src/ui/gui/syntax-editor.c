@@ -341,12 +341,6 @@ new_syntax_editor (void)
 		    G_CALLBACK (new_data_window),
 		    e->window);
 
-  g_signal_connect (get_widget_assert (xml,"file_open_data"),
-		    "activate",
-		    G_CALLBACK (open_data_window),
-		    e->window);
-
-
   g_signal_connect (get_widget_assert (xml,"help_about"),
 		    "activate",
 		    G_CALLBACK (about_new),

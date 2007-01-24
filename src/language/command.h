@@ -32,8 +32,8 @@ enum cmd_result
     /* Range of successful return values available for use
        by agreement between a command and the caller of
        cmd_parse(). */
-    CMD_PRIVATE_FIRST = 4,      
-    CMD_PRIVATE_LAST = 127,      
+    CMD_PRIVATE_FIRST = 4,
+    CMD_PRIVATE_LAST = 127,
 
     /* Various kinds of failures. */
     CMD_FAILURE = -1,           /* Not executed at all. */
@@ -54,9 +54,12 @@ enum cmd_state
   };
 
 struct dataset;
-struct lexer; 
+struct lexer;
 
-enum cmd_result cmd_parse (struct lexer *lexer, struct dataset *ds, enum cmd_state);
+enum cmd_result cmd_parse_in_state (struct lexer *lexer, struct dataset *ds,
+				    enum cmd_state);
+
+enum cmd_result cmd_parse (struct lexer *lexer, struct dataset *ds);
 
 struct command;
 const char *cmd_complete (const char *, const struct command **);

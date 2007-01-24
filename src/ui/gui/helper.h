@@ -46,7 +46,7 @@ void connect_help (GladeXML *);
 void reference_manual (GtkMenuItem *, gpointer);
 
 struct getl_interface;
-void execute_syntax (struct getl_interface *sss);
+gboolean execute_syntax (struct getl_interface *sss);
 
 
 #endif

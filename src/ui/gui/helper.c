@@ -9,6 +9,7 @@
 #include <data/data-in.h>
 #include <data/data-out.h>
 #include <data/dictionary.h>
+#include <data/storage-stream.h>
 #include <libpspp/message.h>
 
 #include <libpspp/i18n.h>
@@ -20,6 +21,7 @@
 #include <language/command.h>
 #include <data/procedure.h>
 #include <language/lexer/lexer.h>
+#include "psppire-data-store.h"
 
 
 #include <gettext.h>
@@ -141,12 +143,14 @@ reference_manual (GtkMenuItem *menu, gpointer data)
 
 extern struct dataset *the_dataset;
 extern struct source_stream *the_source_stream;
+extern PsppireDataStore *the_data_store;
 
-void
+gboolean
 execute_syntax (struct getl_interface *sss)
 {
   struct lexer *lexer;
-  g_return_if_fail (proc_has_source (the_dataset));
+
+  g_return_val_if_fail (proc_has_source (the_dataset), FALSE);
 
   lexer = lex_create (the_source_stream);
 
@@ -154,11 +158,7 @@ execute_syntax (struct getl_interface *sss)
 
   for (;;)
     {
-      const struct dictionary *dict = dataset_dict (the_dataset);
-
-      int result = cmd_parse (lexer, the_dataset,
-			      dict_get_var_cnt (dict) > 0 ?
-			      CMD_STATE_DATA : CMD_STATE_INITIAL);
+      int result = cmd_parse (lexer, the_dataset);
 
       if (result == CMD_EOF || result == CMD_FINISH)
 	break;
@@ -167,6 +167,19 @@ execute_syntax (struct getl_interface *sss)
   getl_abort_noninteractive (the_source_stream);
 
   lex_destroy (lexer);
+
+  /* The GUI must *always* have a data source, even if it's an empty one.
+     Therefore, we find that there is none, (for example NEW FILE was the last
+     item in the syntax) then we create a new one. */
+  if ( ! proc_has_source (the_dataset))
+    proc_set_source (the_dataset,
+		     storage_source_create (the_data_store->case_file->flexifile)
+		     );
+
+  /* GUI syntax needs this implicit EXECUTE command at the end of
+     every script.  Otherwise commands like GET could leave the GUI without
+     a casefile. */
+  return procedure (the_dataset, NULL, NULL);
 }
 
 

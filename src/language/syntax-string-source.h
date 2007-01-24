@@ -22,8 +22,11 @@
 
 struct getl_interface;
 
-struct getl_interface *
-create_syntax_string_source (const char *fmt, ...);
+struct syntax_string_source;
+
+struct getl_interface * create_syntax_string_source (const char *fmt, ...);
+
+const char * syntax_string_source_get_syntax (const struct syntax_string_source *s);
 
 
 #endif

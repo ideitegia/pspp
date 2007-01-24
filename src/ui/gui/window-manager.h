@@ -25,6 +25,8 @@ const gchar * window_name (const struct editor_window *);
 void window_set_name_from_filename (struct editor_window *e,
 				    const gchar *filename);
 
+void default_window_name (struct editor_window *w);
+
 void minimise_all_windows (void);
 
 

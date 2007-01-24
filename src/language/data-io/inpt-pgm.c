@@ -119,7 +119,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inside_input_program = true;
   for (;;) 
     {
-      enum cmd_result result = cmd_parse (lexer, ds, CMD_STATE_INPUT_PROGRAM);
+      enum cmd_result result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
       if (result == CMD_END_INPUT_PROGRAM)
         break;
       else if (result == CMD_END_CASE) 

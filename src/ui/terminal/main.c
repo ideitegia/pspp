@@ -118,9 +118,8 @@ main (int argc, char **argv)
 
       for (;;)
         {
-          int result = cmd_parse (the_lexer, the_dataset,
-				  proc_has_source (the_dataset)
-                                 ? CMD_STATE_DATA : CMD_STATE_INITIAL);
+          int result = cmd_parse (the_lexer, the_dataset);
+
           if (result == CMD_EOF || result == CMD_FINISH)
             break;
           if (result == CMD_CASCADING_FAILURE &&

@@ -1,3 +1,8 @@
+Sun Jan 21 15:31:52 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* command.c command.h: Renamed cmd_parse to cmd_parse_in_state.
+	New function cmd_parse.
+
 Wed Dec 13 21:02:51 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command.def: Add DELETE VARS.

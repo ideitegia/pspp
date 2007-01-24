@@ -72,23 +72,21 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="save1">
+                      <widget class="GtkImageMenuItem" id="file_save">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
+                        <property name="sensitive">True</property>
                         <property name="label">gtk-save</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_save1_activate"/>
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="save_as1">
+                      <widget class="GtkImageMenuItem" id="file_save_as">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
+                        <property name="sensitive">True</property>
                         <property name="label">gtk-save-as</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_save_as1_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -424,7 +422,7 @@
                 <child>
                   <widget class="GtkToolButton" id="button-open">
                     <property name="visible">True</property>
-                    <property name="sensitive">False</property>
+                    <property name="sensitive">True</property>
                     <property name="tooltip" translatable="yes">Open</property>
                     <property name="stock_id">gtk-open</property>
                   </widget>
@@ -435,7 +433,7 @@
                 <child>
                   <widget class="GtkToolButton" id="button-save">
                     <property name="visible">True</property>
-                    <property name="sensitive">False</property>
+                    <property name="sensitive">True</property>
                     <property name="tooltip" translatable="yes">Save</property>
                     <property name="stock_id">gtk-save</property>
                     <signal name="clicked" handler="on_save1_activate"/>

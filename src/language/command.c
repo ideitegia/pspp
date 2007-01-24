@@ -136,14 +136,15 @@ static enum cmd_result do_parse_command (struct lexer *, struct dataset *, enum 
    dot.  On failure, skips to the terminating dot.
    Returns the command's success or failure result. */
 enum cmd_result
-cmd_parse (struct lexer *lexer, struct dataset *ds, enum cmd_state state) 
+cmd_parse_in_state (struct lexer *lexer, struct dataset *ds,
+		    enum cmd_state state)
 {
   int result;
-  
+
   som_new_series ();
 
   result = do_parse_command (lexer, ds, state);
-  if (cmd_result_is_failure (result)) 
+  if (cmd_result_is_failure (result))
     lex_discard_rest_of_command (lexer);
 
   unset_cmd_algorithm ();
@@ -151,6 +152,17 @@ cmd_parse (struct lexer *lexer, struct dataset *ds, enum cmd_state state)
 
   return result;
 }
+
+enum cmd_result
+cmd_parse (struct lexer *lexer, struct dataset *ds)
+{
+  const struct dictionary *dict = dataset_dict (ds);
+  return cmd_parse_in_state (lexer, ds,
+			     proc_has_source (ds) &&
+			     dict_get_var_cnt (dict) > 0 ?
+			     CMD_STATE_DATA : CMD_STATE_INITIAL);
+}
+
 
 /* Parses an entire command, from command name to terminating
    dot. */
