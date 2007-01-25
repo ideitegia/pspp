@@ -123,11 +123,12 @@ set_window_name (struct editor_window *e,
   gchar *title ;
   g_free (e->name);
 
+  e->name = NULL;
 
   if ( name )
     {
-      e->name = g_strdup (name);
-      return ;
+      e->name =  g_strdup (name);
+      return;
     }
 
   switch (e->type )
@@ -150,6 +151,8 @@ set_window_name (struct editor_window *e,
 }
 
 
+/* Set the name of this window based on FILENAME.
+   FILENAME is in "filename encoding" */
 void
 window_set_name_from_filename (struct editor_window *e,
 			       const gchar *filename)

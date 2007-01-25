@@ -39,6 +39,10 @@ struct data_editor
   GladeXML *xml;
 
   gboolean save_as_portable;
+
+  /* Name of the file this data is associated with (ie, was loaded from or
+     has been  saved to), in "filename encoding",  or NULL, if it's not
+     associated with any file */
   gchar *file_name;
 };
 

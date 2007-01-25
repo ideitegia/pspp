@@ -828,7 +828,7 @@ weight_cases_dialog (GObject *o, gpointer data)
 
 static void data_save_as_dialog (GtkAction *, struct data_editor *de);
 static void new_file (GtkAction *, struct editor_window *de);
-static void open_data_dialog (GtkAction *, struct editor_window *de);
+static void open_data_dialog (GtkAction *, struct data_editor *de);
 static void data_save (GtkAction *action, struct data_editor *e);
 
 
@@ -1033,11 +1033,13 @@ new_file (GtkAction *action, struct editor_window *de)
 /* Callback for the data_open action.
    Prompts for a filename and opens it */
 static void
-open_data_dialog (GtkAction *action, struct editor_window *de)
+open_data_dialog (GtkAction *action, struct data_editor *de)
 {
+  struct editor_window *e = (struct editor_window *) de;
+
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Open"),
-				 GTK_WINDOW (de->window),
+				 GTK_WINDOW (e->window),
 				 GTK_FILE_CHOOSER_ACTION_OPEN,
 				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
@@ -1065,16 +1067,15 @@ open_data_dialog (GtkAction *action, struct editor_window *de)
     case GTK_RESPONSE_ACCEPT:
       {
 	struct getl_interface *sss;
-	gchar *file_name =
+	g_free (de->file_name);
+	de->file_name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	sss = create_syntax_string_source ("GET FILE='%s'.", file_name);
+	sss = create_syntax_string_source ("GET FILE='%s'.", de->file_name);
 
 	execute_syntax (sss);
 
-	window_set_name_from_filename (de, file_name);
-
-	g_free (file_name);
+	window_set_name_from_filename (e, de->file_name);
       }
       break;
     default:
