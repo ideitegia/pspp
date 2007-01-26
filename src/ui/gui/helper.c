@@ -90,8 +90,9 @@ get_widget_assert (GladeXML *xml, const gchar *name)
   return w;
 }
 
-/* Converts a string in the pspp locale to utf-8 */
-char *
+/* Converts a string in the pspp locale to utf-8.
+   The return value must be freed when no longer required*/
+gchar *
 pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err)
 {
   return recode_string (CONV_PSPP_TO_UTF8, text, len);

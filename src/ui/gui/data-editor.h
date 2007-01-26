@@ -35,6 +35,7 @@ struct data_editor
   GtkAction *action_data_save;
 
   GtkAction *invoke_weight_cases_dialog;
+  GtkAction *invoke_transpose_dialog;
 
   GladeXML *xml;
 

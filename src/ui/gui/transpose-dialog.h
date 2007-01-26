@@ -18,14 +18,13 @@
     02110-1301, USA. */
 
 
-#ifndef WEIGHT_CASES_DIALOG_H
-#define WEIGHT_CASES_DIALOG_H
+#ifndef TRANSPOSE_DIALOG_H
+#define TRANSPOSE_DIALOG_H
 
 #include <glib.h>
 #include <glib-object.h>
 
-/* Pops up the Weight Cases dialog box */
-void weight_cases_dialog (GObject *o, gpointer data);
+void transpose_dialog (GObject *o, gpointer data);
 
 
 #endif

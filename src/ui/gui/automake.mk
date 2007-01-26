@@ -62,6 +62,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/data-sheet.h \
 	src/ui/gui/data-editor.c \
 	src/ui/gui/data-editor.h \
+	src/ui/gui/dict-display.c \
+	src/ui/gui/dict-display.h \
 	src/ui/gui/flexifile-factory.h \
 	src/ui/gui/flexifile-factory.c \
 	src/ui/gui/message-dialog.c \
@@ -81,18 +83,18 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-dialog.h \
 	src/ui/gui/psppire-buttonbox.c \
 	src/ui/gui/psppire-buttonbox.h \
-	src/ui/gui/psppire-object.c \
-	src/ui/gui/psppire-object.h \
+	src/ui/gui/psppire-selector.c \
+	src/ui/gui/psppire-selector.h \
 	src/ui/gui/psppire-var-store.c \
 	src/ui/gui/psppire-var-store.h \
-	src/ui/gui/psppire-var-select.h \
-	src/ui/gui/psppire-var-select.c \
 	src/ui/gui/sort-cases-dialog.c \
 	src/ui/gui/sort-cases-dialog.h \
 	src/ui/gui/syntax-editor.c \
 	src/ui/gui/syntax-editor.h \
 	src/ui/gui/syntax-editor-source.c \
 	src/ui/gui/syntax-editor-source.h \
+	src/ui/gui/transpose-dialog.c \
+	src/ui/gui/transpose-dialog.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-sheet.c \

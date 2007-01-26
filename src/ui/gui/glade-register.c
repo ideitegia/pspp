@@ -1,6 +1,7 @@
 #include <glade/glade-build.h>
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
+#include "psppire-selector.h"
 
 GLADE_MODULE_CHECK_INIT
 
@@ -26,6 +27,10 @@ glade_module_register_widgets (void)
 
 
   glade_register_widget (PSPPIRE_BUTTONBOX_TYPE, NULL,
+			 glade_standard_build_children,
+			 NULL);
+
+  glade_register_widget (PSPPIRE_SELECTOR_TYPE, NULL,
 			 glade_standard_build_children,
 			 NULL);
 }

@@ -19,6 +19,7 @@
 	<property optional-default="False" optional="True" id="default-height" 
 	default="0"/>
 	<property id="has-separator" default="False"/>
+
       </properties>
 
     </glade-widget-class>
@@ -43,11 +44,25 @@
           </packing-defaults>
     </glade-widget-class>
 
+
+    <glade-widget-class name="PsppireSelector" generic-name="psppire-selector" title="Psppire Selector Button">
+
+          <post-create-function>glade_psppire_selector_post_create</post-create-function>
+          <get-children-function>glade_psppire_selector_get_children</get-children-function>
+
+      <get-internal-child-function>glade_psppire_selector_get_internal_child</get-internal-child-function>
+
+      <set-property-function>glade_psppire_selector_set_property</set-property-function>
+
+    </glade-widget-class>
+
+
   </glade-widget-classes>
 
   <glade-widget-group name="psppire-widgets" title="PSPPIRE Specific Widgets">
     <glade-widget-class-ref name="PsppireDialog"/>
     <glade-widget-class-ref name="PsppireButtonBox"/>
+    <glade-widget-class-ref name="PsppireSelector"/>
   </glade-widget-group>
 
 </glade-catalog>

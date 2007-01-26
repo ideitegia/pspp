@@ -74,7 +74,6 @@
                     <child>
                       <widget class="GtkImageMenuItem" id="file_save">
                         <property name="visible">True</property>
-                        <property name="sensitive">True</property>
                         <property name="label">gtk-save</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
@@ -83,7 +82,6 @@
                     <child>
                       <widget class="GtkImageMenuItem" id="file_save_as">
                         <property name="visible">True</property>
-                        <property name="sensitive">True</property>
                         <property name="label">gtk-save-as</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
@@ -295,7 +293,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="transpose1">
+                      <widget class="GtkMenuItem" id="data_transpose">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Transpose</property>
@@ -351,7 +349,6 @@
                     <child>
                       <widget class="GtkMenuItem" id="data_weight-cases">
                         <property name="visible">True</property>
-                        <property name="sensitive">True</property>
                         <property name="label" translatable="yes">Weight Cases</property>
                         <property name="use_underline">True</property>
                       </widget>
@@ -422,7 +419,6 @@
                 <child>
                   <widget class="GtkToolButton" id="button-open">
                     <property name="visible">True</property>
-                    <property name="sensitive">True</property>
                     <property name="tooltip" translatable="yes">Open</property>
                     <property name="stock_id">gtk-open</property>
                   </widget>
@@ -433,7 +429,6 @@
                 <child>
                   <widget class="GtkToolButton" id="button-save">
                     <property name="visible">True</property>
-                    <property name="sensitive">True</property>
                     <property name="tooltip" translatable="yes">Save</property>
                     <property name="stock_id">gtk-save</property>
                     <signal name="clicked" handler="on_save1_activate"/>
@@ -595,7 +590,6 @@
                 <child>
                   <widget class="GtkToolButton" id="button-weight-cases">
                     <property name="visible">True</property>
-                    <property name="sensitive">True</property>
                     <property name="tooltip" translatable="yes">Weight Cases</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">pspp-weight-cases</property>

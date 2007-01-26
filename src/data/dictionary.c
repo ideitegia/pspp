@@ -352,9 +352,16 @@ dict_clone_var_assert (struct dictionary *d, const struct variable *old_var,
 struct variable *
 dict_lookup_var (const struct dictionary *d, const char *name)
 {
-  struct variable *target = var_create (name, 0);
-  struct variable *result = hsh_find (d->name_tab, target);
+  struct variable *target ;
+  struct variable *result ;
+
+  if ( ! var_is_valid_name (name, false))
+    return NULL;
+
+  target = var_create (name, 0);
+  result = hsh_find (d->name_tab, target);
   var_destroy (target);
+
   return result;
 }
 

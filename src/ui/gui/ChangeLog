@@ -1,3 +1,21 @@
+Fri Jan 26 15:51:34 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-var-select.c psppire-var-select.h : Deleted.
+
+	* psppire-selector.c psppire-selector.h : New files.
+
+	* transpose-dialog.c transpose-dialog.h : New files.
+
+	* psppire-dict.c psppire-dict.h : Added missing GtkTreeModel 
+	interface functions.
+
+	* weight-cases-dialog.c weight-cases-dialog.h : Re-implemented, 
+	using new PsppireSelector widget.
+
+	* dict-display.c dict-display.h : New files.
+
+	* psppire-object.c psppire-object.h : Deleted.  Seemed like a good idea at the time.
+
 Tue Jan 23 21:10:01 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* helper.c helper.h: New function execute_syntax.

@@ -61,6 +61,9 @@ unsigned hash_var_ptr_by_name (const void *, const void *);
 enum var_type var_get_type (const struct variable *);
 int var_get_width (const struct variable *);
 void var_set_width (struct variable *, int width);
+
+typedef bool var_predicate_func (const struct variable *);
+
 bool var_is_numeric (const struct variable *);
 bool var_is_alpha (const struct variable *);
 bool var_is_short_string (const struct variable *);

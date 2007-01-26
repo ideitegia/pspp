@@ -21,7 +21,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "psppire-object.h"
 #include "psppire-case-file.h"
 
 #include <gtksheet/gtkextra-marshal.h>
@@ -75,7 +74,7 @@ psppire_case_file_get_type (void)
 	(GInstanceInitFunc) psppire_case_file_init,
       };
 
-      object_type = g_type_register_static (G_TYPE_PSPPIRE_OBJECT, "PsppireCaseFile",
+      object_type = g_type_register_static (G_TYPE_OBJECT, "PsppireCaseFile",
 					    &object_info, 0);
     }
 

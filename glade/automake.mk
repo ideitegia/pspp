@@ -8,8 +8,10 @@ catalogdir = `pkg-config --variable=catalogdir libgladeui-1.0`
 libglade_psppire_la_SOURCES = \
 	glade/dialog.c \
 	glade/bbox.c \
+	glade/selector.c \
 	src/ui/gui/psppire-dialog.c \
-	src/ui/gui/psppire-buttonbox.c
+	src/ui/gui/psppire-buttonbox.c \
+	src/ui/gui/psppire-selector.c
 
 nodist_catalog_DATA = \
 	glade/psppire.xml

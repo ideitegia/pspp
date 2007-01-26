@@ -30,7 +30,10 @@
 #include "helper.h"
 #include "about.h"
 #include "psppire-dialog.h"
-#include "psppire-var-select.h"
+#include "psppire-selector.h"
+#include "weight-cases-dialog.h"
+#include "transpose-dialog.h"
+#include "dict-display.h"
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -42,8 +45,6 @@
 
 #include "psppire-data-store.h"
 #include "psppire-var-store.h"
-
-#include "weight-cases-dialog.h"
 
 static void register_data_editor_actions (struct data_editor *de);
 
@@ -111,8 +112,6 @@ disable_edit_clear (GtkWidget *w, gint x, gint y, gpointer data)
   return FALSE;
 }
 
-static void weight_cases_dialog (GObject *o, gpointer data);
-
 
 /*
   Create a new data editor.
@@ -159,9 +158,20 @@ new_data_editor (void)
 		    _("Weight cases by variable"),
 		    "pspp-weight-cases");
 
-
   g_signal_connect (de->invoke_weight_cases_dialog, "activate",
 		    G_CALLBACK (weight_cases_dialog), de);
+
+
+  de->invoke_transpose_dialog =
+    gtk_action_new ("transpose-dialog",
+		    _("Transpose"),
+		    _("Transpose the cases with the variables"),
+		    NULL);
+
+
+  g_signal_connect (de->invoke_transpose_dialog, "activate",
+		    G_CALLBACK (transpose_dialog), de);
+
 
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
@@ -211,6 +221,9 @@ new_data_editor (void)
 			    get_widget_assert (de->xml, "data_weight-cases")
 			    );
 
+  gtk_action_connect_proxy (de->invoke_transpose_dialog,
+			    get_widget_assert (de->xml, "data_transpose")
+			    );
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
 		    "activate",
@@ -736,90 +749,6 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
       gtk_label_set_text (GTK_LABEL (weight_status_area), text);
 
       g_free (text);
-    }
-}
-
-static void
-weight_cases_dialog (GObject *o, gpointer data)
-{
-  gint response;
-  struct data_editor *de = data;
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-
-  GladeXML *xml = glade_xml_new (PKGDATADIR "/psppire.glade",
-				 "weight-cases-dialog", NULL);
-
-
-  GtkWidget *treeview =  get_widget_assert (xml, "treeview");
-  GtkWidget *entry =  get_widget_assert (xml, "entry1");
-
-
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
-
-  PsppireVarSelect *select = psppire_var_select_new (treeview,
-						     entry, vs->dict);
-
-
-  PsppireDialog *dialog = create_weight_dialog (select, xml);
-
-  response = psppire_dialog_run (dialog);
-
-  g_object_unref (xml);
-
-  switch (response)
-    {
-    case GTK_RESPONSE_OK:
-    {
-      struct getl_interface *sss ;
-      const GList *list = psppire_var_select_get_variables (select);
-
-      g_assert ( g_list_length ((GList *)list) <= 1 );
-
-      if ( list == NULL)
-	  {
-	    sss = create_syntax_string_source ("WEIGHT OFF.");
-	  }
-      else
-	{
-	  struct variable *var = list->data;
-
-	    sss = create_syntax_string_source ("WEIGHT BY %s.\n",
-					       var_get_name (var));
-	  }
-
-	execute_syntax (sss);
-	}
-      break;
-    case PSPPIRE_RESPONSE_PASTE:
-      {
-	struct syntax_editor *se =  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	const GList *list = psppire_var_select_get_variables (select);
-
-	g_assert ( g_list_length ((GList *)list) <= 1 );
-
-	if ( list == NULL)
-	  {
-	    gtk_text_buffer_insert_at_cursor (se->buffer, "WEIGHT OFF.", -1);
-	  }
-	else
-	  {
-	    struct variable *var = list->data;
-
-	    gchar *text = g_strdup_printf ("WEIGHT BY %s.",
-					   var_get_name (var));
-
-	    gtk_text_buffer_insert_at_cursor (se->buffer,
-					      text, -1);
-
-	    g_free (text);
-	  }
-      }
-      break;
-    default:
-      break;
     }
 }
 

@@ -1,21 +1,21 @@
 /*
-    PSPPIRE --- A Graphical User Interface for PSPP
-    Copyright (C) 2004, 2006, 2007  Free Software Foundation
+  PSPPIRE --- A Graphical User Interface for PSPP
+  Copyright (C) 2004, 2006, 2007  Free Software Foundation
 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-    02110-1301, USA. */
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+  02110-1301, USA. */
 
 #include <config.h>
 #include <string.h>
@@ -24,7 +24,6 @@
 #include <gtk/gtk.h>
 #include <gtksheet/gtkextra-marshal.h>
 
-#include "psppire-object.h"
 #include "psppire-dict.h"
 #include <data/format.h>
 #include <data/dictionary.h>
@@ -32,6 +31,7 @@
 #include <data/value-labels.h>
 #include <data/variable.h>
 
+#include "helper.h"
 #include "message-dialog.h"
 
 /* --- prototypes --- */
@@ -86,12 +86,12 @@ psppire_dict_get_type (void)
 	NULL
       };
 
-      object_type = g_type_register_static (G_TYPE_PSPPIRE_OBJECT,
+      object_type = g_type_register_static (G_TYPE_OBJECT,
 					    "PsppireDict",
 					    &object_info, 0);
 
       g_type_add_interface_static (object_type, GTK_TYPE_TREE_MODEL,
-				  &tree_model_info);
+				   &tree_model_info);
 
 
     }
@@ -302,14 +302,14 @@ auto_generate_var_name (PsppireDict *dict)
 
 /* Insert a new variable at posn IDX, with the name NAME.
    If NAME is null, then a name will be automatically assigned.
- */
+*/
 void
 psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
 {
   struct variable *var ;
   g_return_if_fail (idx >= 0);
   g_return_if_fail (d);
-  g_return_if_fail (G_IS_PSPPIRE_DICT (d));
+  g_return_if_fail (PSPPIRE_IS_DICT (d));
 
   if ( ! name )
     name = auto_generate_var_name (d);
@@ -326,7 +326,7 @@ psppire_dict_delete_variables (PsppireDict *d, gint first, gint n)
   gint idx;
   g_return_if_fail (d);
   g_return_if_fail (d->dict);
-  g_return_if_fail (G_IS_PSPPIRE_DICT (d));
+  g_return_if_fail (PSPPIRE_IS_DICT (d));
 
   for (idx = 0 ; idx < n ; ++idx )
     {
@@ -348,7 +348,7 @@ psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
 {
   struct variable *var;
   g_assert (d);
-  g_assert (G_IS_PSPPIRE_DICT (d));
+  g_assert (PSPPIRE_IS_DICT (d));
 
 
   if ( idx < dict_get_var_cnt (d->dict))
@@ -422,10 +422,10 @@ psppire_dict_clear (PsppireDict *d)
 */
 gboolean
 psppire_dict_check_name (const PsppireDict *dict,
-		     const gchar *name, gboolean report)
+			 const gchar *name, gboolean report)
 {
   if ( ! var_is_valid_name (name, report ) )
-      return FALSE;
+    return FALSE;
 
   if (psppire_dict_lookup_var (dict, name))
     {
@@ -461,8 +461,8 @@ psppire_dict_resize_variable (PsppireDict *d, const struct variable *pv,
   fv = var_get_case_index (pv);
 
   g_signal_emit (d, signals [VARIABLE_RESIZED], 0,
-		fv + old_size,
-		new_size - old_size );
+		 fv + old_size,
+		 new_size - old_size );
 }
 
 
@@ -488,6 +488,19 @@ static void tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
 static gboolean tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
 				      GtkTreeIter *parent, gint n);
 
+static gint tree_model_n_children (GtkTreeModel *tree_model,
+				   GtkTreeIter  *iter);
+
+static gboolean tree_model_iter_children (GtkTreeModel *,
+					  GtkTreeIter *,
+					  GtkTreeIter *);
+
+static gboolean tree_model_iter_parent (GtkTreeModel *tree_model,
+					GtkTreeIter *iter,
+					GtkTreeIter *child);
+
+static gboolean tree_model_iter_has_child  (GtkTreeModel *tree_model,
+					    GtkTreeIter  *iter);
 
 static void
 dictionary_tree_model_init (GtkTreeModelIface *iface)
@@ -500,17 +513,32 @@ dictionary_tree_model_init (GtkTreeModelIface *iface)
   iface->get_path = tree_model_get_path;
   iface->get_value = tree_model_get_value;
 
-  iface->iter_children = 0;
-  iface->iter_has_child =0;
-  iface->iter_n_children =0;
+  iface->iter_children = tree_model_iter_children ;
+  iface->iter_has_child = tree_model_iter_has_child ;
+  iface->iter_n_children = tree_model_n_children ;
   iface->iter_nth_child = tree_model_nth_child ;
-  iface->iter_parent =0;
+  iface->iter_parent = tree_model_iter_parent ;
+}
+
+static gboolean
+tree_model_iter_has_child  (GtkTreeModel *tree_model,
+			    GtkTreeIter  *iter)
+{
+  return FALSE;
+}
+
+static gboolean
+tree_model_iter_parent (GtkTreeModel *tree_model,
+		        GtkTreeIter *iter,
+		        GtkTreeIter *child)
+{
+  return TRUE;
 }
 
 static GtkTreeModelFlags
 tree_model_get_flags (GtkTreeModel *model)
 {
-  g_return_val_if_fail (G_IS_PSPPIRE_DICT (model), (GtkTreeModelFlags) 0);
+  g_return_val_if_fail (PSPPIRE_IS_DICT (model), (GtkTreeModelFlags) 0);
 
   return GTK_TREE_MODEL_LIST_ONLY;
 }
@@ -525,7 +553,7 @@ tree_model_n_columns (GtkTreeModel *model)
 static GType
 tree_model_column_type (GtkTreeModel *model, gint index)
 {
-  g_return_val_if_fail (G_IS_PSPPIRE_DICT (model), (GType) 0);
+  g_return_val_if_fail (PSPPIRE_IS_DICT (model), (GType) 0);
 
   switch (index)
     {
@@ -549,7 +577,7 @@ tree_model_get_iter (GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
 {
   gint *indices, depth;
   gint n;
-  struct variable *variable;
+  struct variable *var;
 
   PsppireDict *dict = PSPPIRE_DICT (model);
 
@@ -560,17 +588,21 @@ tree_model_get_iter (GtkTreeModel *model, GtkTreeIter *iter, GtkTreePath *path)
 
   g_return_val_if_fail (depth == 1, FALSE);
 
-  n = indices[0];
+  n = indices [0];
 
   if ( n < 0 || n >= psppire_dict_get_var_cnt (dict))
-    return FALSE;
+    {
+      iter->stamp = 0;
+      iter->user_data = NULL;
+      return FALSE;
+    }
 
-  variable = dict_get_var (dict->dict, n);
+  var = psppire_dict_get_variable (dict, n);
 
-  g_assert (var_get_dict_index (variable) == n);
+  g_assert (var_get_dict_index (var) == n);
 
   iter->stamp = dict->stamp;
-  iter->user_data = variable;
+  iter->user_data = var;
 
   return TRUE;
 }
@@ -580,7 +612,7 @@ static gboolean
 tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
 {
   PsppireDict *dict = PSPPIRE_DICT (model);
-  struct variable *variable;
+  struct variable *var;
   gint idx;
 
   g_return_val_if_fail (iter->stamp == dict->stamp, FALSE);
@@ -588,18 +620,22 @@ tree_model_iter_next (GtkTreeModel *model, GtkTreeIter *iter)
   if ( iter == NULL || iter->user_data == NULL)
     return FALSE;
 
-  variable = (struct variable *) iter->user_data;
+  var = iter->user_data;
 
-  idx = var_get_dict_index (variable);
+  idx = var_get_dict_index (var);
 
   if ( idx + 1 >= psppire_dict_get_var_cnt (dict))
-    return FALSE;
+    {
+      iter->user_data = NULL;
+      iter->stamp = 0;
+      return FALSE;
+    }
 
-  variable = psppire_dict_get_variable (dict, idx + 1);
+  var = psppire_dict_get_variable (dict, idx + 1);
 
-  g_assert (var_get_dict_index (variable) == idx + 1);
+  g_assert (var_get_dict_index (var) == idx + 1);
 
-  iter->user_data = variable;
+  iter->user_data = var;
 
   return TRUE;
 }
@@ -608,15 +644,15 @@ static GtkTreePath *
 tree_model_get_path (GtkTreeModel *model, GtkTreeIter *iter)
 {
   GtkTreePath *path;
-  struct variable *variable;
+  struct variable *var;
   PsppireDict *dict = PSPPIRE_DICT (model);
 
   g_return_val_if_fail (iter->stamp == dict->stamp, FALSE);
 
-  variable = (struct variable *) iter->user_data;
+  var = iter->user_data;
 
   path = gtk_tree_path_new ();
-  gtk_tree_path_append_index (path, var_get_dict_index (variable));
+  gtk_tree_path_append_index (path, var_get_dict_index (var));
 
   return path;
 }
@@ -624,24 +660,28 @@ tree_model_get_path (GtkTreeModel *model, GtkTreeIter *iter)
 
 static void
 tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
-		     gint column, GValue *value)
+		      gint column, GValue *value)
 {
-  struct variable *variable;
+  struct variable *var;
   PsppireDict *dict = PSPPIRE_DICT (model);
 
   g_return_if_fail (iter->stamp == dict->stamp);
 
-  variable = (struct variable *) iter->user_data;
+  var =  iter->user_data;
 
   switch (column)
     {
     case DICT_TVM_COL_NAME:
+      {
+      gchar *name = pspp_locale_to_utf8(var_get_name (var), -1, NULL);
       g_value_init (value, G_TYPE_STRING);
-      g_value_set_string (value, var_get_name (variable));
+      g_value_set_string (value, name);
+      g_free (name);
+      }
       break;
     case DICT_TVM_COL_VAR:
       g_value_init (value, G_TYPE_POINTER);
-      g_value_set_pointer (value, variable);
+      g_value_set_pointer (value, var);
       break;
     default:
       g_return_if_reached ();
@@ -649,13 +689,33 @@ tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
     }
 }
 
+static gboolean
+tree_model_iter_children (GtkTreeModel *tree_model,
+			  GtkTreeIter *iter,
+			  GtkTreeIter *parent)
+{
+  return FALSE;
+}
+
+static gint
+tree_model_n_children (GtkTreeModel *model,
+		       GtkTreeIter  *iter)
+{
+  PsppireDict *dict = PSPPIRE_DICT (model);
+
+  if ( iter == NULL )
+    return psppire_dict_get_var_cnt (dict);
+
+  return 0;
+}
 
 static gboolean
 tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
-		     GtkTreeIter *parent, gint n)
+		      GtkTreeIter *parent, gint n)
 {
   PsppireDict *dict;
-  g_return_val_if_fail (G_IS_PSPPIRE_DICT (model), FALSE);
+
+  g_return_val_if_fail (PSPPIRE_IS_DICT (model), FALSE);
 
   dict = PSPPIRE_DICT (model);
 
@@ -670,7 +730,6 @@ tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
 
   if ( !iter->user_data)
     return FALSE;
-
 
   return TRUE;
 }
