@@ -126,10 +126,13 @@ swap (int *a, int *b)
 
 /* Reverses the order of the CNT integers starting at VALUES. */
 static void
-reverse (int *values, size_t cnt) 
+reverse (int *values, size_t cnt)
 {
-  for (; cnt > 1; cnt -= 2, values++)
-    swap (values, &values[cnt - 1]);
+  size_t i = 0;
+  size_t j = cnt;
+
+  while (j > i)
+    swap (&values[i++], &values[--j]);
 }
 
 /* Arranges the CNT elements in VALUES into the lexicographically
@@ -166,10 +169,10 @@ next_permutation (int *values, size_t cnt)
 }
 
 /* Returns N!. */
-static unsigned
-factorial (unsigned n) 
+static unsigned int
+factorial (unsigned int n) 
 {
-  unsigned value = 1;
+  unsigned int value = 1;
   while (n > 1)
     value *= n--;
   return value;
@@ -178,11 +181,11 @@ factorial (unsigned n)
 /* Returns the number of permutations of the CNT values in
    VALUES.  If VALUES contains duplicates, they must be
    adjacent. */
-static unsigned
+static unsigned int
 expected_perms (int *values, size_t cnt) 
 {
   size_t i, j;
-  unsigned perm_cnt;
+  unsigned int perm_cnt;
   
   perm_cnt = factorial (cnt);
   for (i = 0; i < cnt; i = j) 

@@ -212,7 +212,7 @@ static bool
 pattern_pred (const struct ll *element_, void *pattern_) 
 {
   const struct element *element = ll_to_element (element_);
-  unsigned *pattern = pattern_;
+  unsigned int *pattern = pattern_;
 
   return (*pattern & (1u << element->x)) != 0;
 }
@@ -1018,10 +1018,10 @@ test_count_if (void)
 }
 
 /* Returns N!. */
-static unsigned
-factorial (unsigned n) 
+static unsigned int
+factorial (unsigned int n) 
 {
-  unsigned value = 1;
+  unsigned int value = 1;
   while (n > 1)
     value *= n--;
   return value;
@@ -1030,11 +1030,11 @@ factorial (unsigned n)
 /* Returns the number of permutations of the CNT values in
    VALUES.  If VALUES contains duplicates, they must be
    adjacent. */
-static unsigned
+static unsigned int
 expected_perms (int *values, size_t cnt) 
 {
   size_t i, j;
-  unsigned perm_cnt;
+  unsigned int perm_cnt;
   
   perm_cnt = factorial (cnt);
   for (i = 0; i < cnt; i = j) 
@@ -1338,7 +1338,7 @@ test_permutations_with_dups (void)
         int *old_values = xnmalloc (max_elems, sizeof *values);
         int *new_values = xnmalloc (max_elems, sizeof *values);
 
-        unsigned permutation_cnt;
+        unsigned int permutation_cnt;
         int left = cnt;
         int value = 0;
       
@@ -1895,7 +1895,7 @@ test_partition (void)
   const int max_elems = 10;
   
   int cnt;
-  unsigned pbase;
+  unsigned int pbase;
   int r0, r1;
 
   for (cnt = 0; cnt < max_elems; cnt++)
@@ -1908,7 +1908,7 @@ test_partition (void)
             struct ll **elemp;
             int *values;
 
-            unsigned pattern = pbase << r0;
+            unsigned int pattern = pbase << r0;
             int i, j;
             int first_false;
             struct ll *part_ll;

@@ -4,6 +4,8 @@
 noinst_LIBRARIES += src/libpspp/libpspp.a
 
 src_libpspp_libpspp_a_SOURCES = \
+	src/libpspp/abt.c \
+	src/libpspp/abt.h \
 	src/libpspp/array.c \
 	src/libpspp/array.h \
 	src/libpspp/assertion.h \

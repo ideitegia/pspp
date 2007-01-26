@@ -1,9 +1,0 @@
-Sun Oct 29 14:03:37 2006  Ben Pfaff  <blp@gnu.org>
-
-	* ll-test.c, llx-test.c: Reduce verbosity of output.
-
-----------------------------------------------------------------------
-Local Variables:
-mode: change-log
-version-control: never
-End:

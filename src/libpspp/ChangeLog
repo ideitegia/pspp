@@ -1,3 +1,11 @@
+Wed Jan 24 21:13:32 2007  Ben Pfaff  <blp@gnu.org>
+
+	* abt.c: New file.
+
+	* abt.h: New file.
+
+	* automake.mk: Add abt.c, abt.h to sources.
+
 Sun Jan 14 21:44:18 2007  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add deque.h to sources.

@@ -1,8 +1,17 @@
+Wed Jan 24 21:13:53 2007  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add tests/libpspp/abt-test.
+
+	* libpspp/abt-test.c: New test.
+
+	* libpspp/heap-test.c, libpspp/ll-test.c, libpspp/llx-test.c:
+	Style fixes.
+
 Wed Jan 10 06:50:01 2007  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add tests/libpspp/heap-test.
 
-	* test/libpspp/heap-test.c: New test.
+	* libpspp/heap-test.c: New test.
 
 Wed Dec 13 21:00:46 2006  Ben Pfaff  <blp@gnu.org>
 
@@ -111,6 +120,10 @@ Sat Nov  4 16:08:58 2006  Ben Pfaff  <blp@gnu.org>
 	* formats/time-out.sh: New test.
 
 	* formats/wkday-out.sh: New test.
+
+Sun Oct 29 14:03:37 2006  Ben Pfaff  <blp@gnu.org>
+
+	* ll-test.c, llx-test.c: Reduce verbosity of output.
 
 Thu Oct 26 20:20:39 2006  Ben Pfaff  <blp@gnu.org>
 

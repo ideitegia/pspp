@@ -132,13 +132,15 @@ TESTS = \
 	tests/expressions/vectors.sh \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
-	tests/libpspp/heap-test
+	tests/libpspp/heap-test \
+	tests/libpspp/abt-test
 
 check_PROGRAMS += \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
 	tests/formats/inexactify \
-	tests/libpspp/heap-test
+	tests/libpspp/heap-test \
+	tests/libpspp/abt-test
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -160,6 +162,13 @@ tests_libpspp_heap_test_SOURCES = \
 	tests/libpspp/heap-test.c
 tests_libpspp_heap_test_LDADD = gl/libgl.la @LIBINTL@
 tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_abt_test_SOURCES = \
+	src/libpspp/abt.c \
+	src/libpspp/abt.h \
+	tests/libpspp/abt-test.c
+tests_libpspp_abt_test_LDADD = gl/libgl.la
+tests_libpspp_abt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 
