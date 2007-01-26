@@ -394,8 +394,7 @@ psppire_var_store_set_string (GSheetModel *model,
   switch (col)
     {
     case COL_NAME:
-      psppire_dict_rename_var (var_store->dict, pv, text);
-      return TRUE;
+      return psppire_dict_rename_var (var_store->dict, pv, text);
       break;
     case COL_COLUMNS:
       if ( ! text) return FALSE;

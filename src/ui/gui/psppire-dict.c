@@ -343,13 +343,15 @@ psppire_dict_delete_variables (PsppireDict *d, gint first, gint n)
 }
 
 
-void
+gboolean
 psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
 {
   struct variable *var;
   g_assert (d);
   g_assert (PSPPIRE_IS_DICT (d));
 
+  if ( ! var_is_valid_name (name, false))
+    return FALSE;
 
   if ( idx < dict_get_var_cnt (d->dict))
     {
@@ -362,6 +364,8 @@ psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
       /* new variable */
       dict_create_var (d->dict, name, 0);
     }
+
+  return TRUE;
 }
 
 
@@ -735,11 +739,16 @@ tree_model_nth_child (GtkTreeModel *model, GtkTreeIter *iter,
 }
 
 
-void
+gboolean
 psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
-			 const gchar *text)
+			 const gchar *name)
 {
-  dict_rename_var (dict->dict, v, text);
+  if ( ! var_is_valid_name (name, false))
+    return FALSE;
+  
+  dict_rename_var (dict->dict, v, name);
+
+  return TRUE;
 }
 
 

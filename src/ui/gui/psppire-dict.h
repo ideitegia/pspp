@@ -66,8 +66,8 @@ struct _PsppireDictClass
 
 /* -- PsppireDict --- */
 GType          psppire_dict_get_type (void);
-PsppireDict*     psppire_dict_new_from_dict (struct dictionary *d);
-void           psppire_dict_set_name (PsppireDict* s, gint idx, const gchar *name);
+PsppireDict*   psppire_dict_new_from_dict (struct dictionary *d);
+gboolean       psppire_dict_set_name (PsppireDict* s, gint idx, const gchar *name);
 void           psppire_dict_delete_var (PsppireDict *s, gint idx);
 
 /* Return the number of variables in the dictionary */
@@ -99,7 +99,7 @@ gboolean psppire_dict_check_name (const PsppireDict *dict,
 
 gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
 
-void psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
+gboolean psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 			      const gchar *text);
 
 void psppire_dict_replace_dictionary (PsppireDict *, struct dictionary *);
