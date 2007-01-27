@@ -1,3 +1,8 @@
+Sat Jan 27 09:48:21 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* var-type-dialog.c: Fixed bugs closing window, apparent when compiled
+	against gtk.2.10
+
 Fri Jan 26 15:51:34 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-var-select.c psppire-var-select.h : Deleted.

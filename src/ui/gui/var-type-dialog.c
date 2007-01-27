@@ -207,8 +207,8 @@ on_toggle_2 (GtkToggleButton *togglebutton, gpointer user_data)
 
 
 static gint on_var_type_ok_clicked (GtkWidget *w, gpointer data);
+static gint hide_dialog (GtkWidget *w,  gpointer data);
 
-#define LEN 20
 
 static void
 add_to_group (GtkWidget *w, gpointer data)
@@ -333,6 +333,10 @@ var_type_dialog_create (GladeXML *xml)
   g_assert (xml);
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
+
+
+  g_signal_connect (dialog->window, "delete-event",
+		    G_CALLBACK (gtk_widget_hide_on_delete), NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog->window),
 			       GTK_WINDOW (get_widget_assert (xml, "data_editor")));
@@ -542,9 +546,15 @@ var_type_dialog_create (GladeXML *xml)
 		   GTK_SIGNAL_FUNC (preview_custom), dialog);
 
 
-  /* Connect the OK button */
+  /* Connect to the OK button */
   g_signal_connect (dialog->ok, "clicked", G_CALLBACK (on_var_type_ok_clicked),
 		   dialog);
+
+
+  /* And the cancel button */
+  g_signal_connect (get_widget_assert (xml, "var_type_cancel") , "clicked",
+		    G_CALLBACK (hide_dialog),
+		    dialog);
 
 
   }
@@ -832,10 +842,12 @@ on_var_type_ok_clicked (GtkWidget *w, gpointer data)
 
 
 
-gint
-on_var_type_cancel_clicked (GtkWidget *w,  gpointer data)
+static gint
+hide_dialog (GtkWidget *w,  gpointer data)
 {
-  gtk_widget_hide (w);
+  struct var_type_dialog *dialog = data;
+
+  gtk_widget_hide (dialog->window);
 
   return FALSE;
 }
