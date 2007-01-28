@@ -27,13 +27,6 @@
 
 #include "compiler.h"
 #include "memcasecmp.h"
-#include "memmem.h"
-#include "snprintf.h"
-#include "stpcpy.h"
-#include "strcase.h"
-#include "strftime.h"
-#include "strstr.h"
-#include "strtok_r.h"
 #include "vsnprintf.h"
 #include "xvasprintf.h"
 

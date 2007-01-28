@@ -62,6 +62,7 @@
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbutton.h>
+#include <gtk/gtkentry.h>
 
 #include "psppire-selector.h"
 

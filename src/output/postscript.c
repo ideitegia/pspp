@@ -46,7 +46,6 @@
 #include "minmax.h"
 #include "output.h"
 #include "size_max.h"
-#include "strsep.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
