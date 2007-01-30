@@ -281,7 +281,15 @@ psppire_dict_new_from_dict (struct dictionary *d)
 void
 psppire_dict_replace_dictionary (PsppireDict *dict, struct dictionary *d)
 {
+  struct variable *var =  dict_get_weight (d);
   dict->dict = d;
+
+  weight_changed_callback (d, var ? var_get_dict_index (var) : -1, dict);
+
+  var = dict_get_filter (d);
+  filter_changed_callback (d, var ? var_get_dict_index (var) : -1, dict);
+
+  split_changed_callback (d, dict);
 }
 
 
@@ -745,7 +753,7 @@ psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 {
   if ( ! var_is_valid_name (name, false))
     return FALSE;
-  
+
   dict_rename_var (dict->dict, v, name);
 
   return TRUE;

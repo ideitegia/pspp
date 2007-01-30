@@ -1,3 +1,9 @@
+Tue Jan 30 20:13:46 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-dict.c: Call all the callbacks when a new dictionary becomes current.
+
+	* data-editor.c: Clear existing file name on FILE NEW.
+
 Sat Jan 27 09:48:21 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* var-type-dialog.c: Fixed bugs closing window, apparent when compiled

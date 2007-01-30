@@ -948,14 +948,19 @@ data_save_as_dialog (GtkAction *action, struct data_editor *de)
 /* Callback for data_new action.
    Performs the NEW FILE command */
 static void
-new_file (GtkAction *action, struct editor_window *de)
+new_file (GtkAction *action, struct editor_window *e)
 {
+  struct data_editor *de = (struct data_editor *) e;
+
   struct getl_interface *sss =
     create_syntax_string_source ("NEW FILE.");
 
   execute_syntax (sss);
 
-  default_window_name (de);
+  g_free (de->file_name);
+  de->file_name = NULL;
+
+  default_window_name (e);
 }
 
 

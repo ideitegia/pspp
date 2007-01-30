@@ -49,8 +49,6 @@ extern "C" {
 typedef struct _PsppireVarStore       PsppireVarStore;
 typedef struct _PsppireVarStoreClass  PsppireVarStoreClass;
 
-struct dictionary;
-
 struct _PsppireVarStore
 {
   GObject parent;
