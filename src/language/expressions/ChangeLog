@@ -1,3 +1,9 @@
+Thu Feb  1 06:59:27 2007  Ben Pfaff  <blp@gnu.org>
+
+	* parse.c (parse_function): Accept TO in any case for use with
+	n-ary functions.  Fixes bug #18923.  Thanks to John Darrington for
+	reporting this bug.
+
 Sat Dec 16 12:20:14 2006  Ben Pfaff  <blp@gnu.org>
 
 	* operations.def: Reverse order of arguments to DATEDIFF, for

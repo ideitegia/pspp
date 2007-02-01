@@ -1216,7 +1216,8 @@ parse_function (struct lexer *lexer, struct expression *e)
   if (lex_token (lexer) != ')')
     for (;;)
       {
-        if (lex_token (lexer) == T_ID && lex_look_ahead (lexer) == 'T')
+        if (lex_token (lexer) == T_ID
+            && toupper (lex_look_ahead (lexer)) == 'T')
           {
             struct variable **vars;
             size_t var_cnt;
