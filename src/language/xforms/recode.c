@@ -559,6 +559,9 @@ find_src_numeric (struct recode_trns *trns, double value, struct variable *v)
         case MAP_RANGE:
           match = value >= in->x.f && value <= in->y.f;
           break;
+        case MAP_SYSMIS:
+          match = value == SYSMIS;
+          break;
         case MAP_ELSE:
           match = true;
           break;

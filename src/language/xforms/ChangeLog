@@ -1,3 +1,9 @@
+Thu Feb  1 16:51:16 2007  Ben Pfaff  <blp@gnu.org>
+
+	* recode.c (find_src_numeric): Handle MAP_SYSMIS case, which was
+	carelessly overlooked until now.  Fixes bug #18917.  Thanks to
+	John Darrington for bug report and review.
+
 Sat Dec  9 18:48:20 2006  Ben Pfaff  <blp@gnu.org>
 
 	* compute.c (struct compute_trns): Remove `fv' member, which was
