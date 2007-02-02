@@ -1,3 +1,25 @@
+Thu Feb  1 16:53:37 2007  Ben Pfaff  <blp@gnu.org>
+
+	We are using a single member in struct file_handle, the "name"
+	field, for more than one purpose.  When it begins with '"', it's a
+	file name; otherwise, it's a token that can be used to identify
+	it.  When that assertion fires, it's because we searched for the
+	name case-sensitively as a file name (so that there was no match),
+	and then we try to insert it case-insensitively as a token, which
+	fails because duplicates aren't allowed.
+
+	Solution: break the two purposes into two separate fields.  This
+	fixes the problem and likely makes the code easier to read too.
+
+	Fixes bug #18922.  Thanks to John Darrington for bug report and
+	review.
+
+	* file-handle-def.c (struct file_handle): New `id' member.
+	(fh_from_name): Rename fh_from_id.  Update all callers.
+	(create_handle): New `id' parameter.  Update all callers.
+	(fh_create_file): Ditto.
+	(fh_get_id): New function.
+
 Mon Jan 15 16:18:10 2007  Ben Pfaff  <blp@gnu.org>
 
 	* case.c (case_is_null): Change return type to bool.

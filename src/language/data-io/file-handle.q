@@ -61,7 +61,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
     return CMD_CASCADING_FAILURE;
   str_copy_trunc (handle_name, sizeof handle_name, lex_tokid (lexer));
 
-  handle = fh_from_name (handle_name);
+  handle = fh_from_id (handle_name);
   if (handle != NULL)
     {
       msg (SE, _("File handle %s is already defined.  "
@@ -131,7 +131,7 @@ cmd_close_file_handle (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if (!lex_force_id (lexer))
     return CMD_CASCADING_FAILURE;
-  handle = fh_from_name (lex_tokid (lexer));
+  handle = fh_from_id (lex_tokid (lexer));
   if (handle == NULL)
     return CMD_CASCADING_FAILURE;
 
@@ -178,19 +178,14 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
 
       handle = NULL;
       if (lex_token (lexer) == T_ID) 
-        handle = fh_from_name (lex_tokid (lexer));
+        handle = fh_from_id (lex_tokid (lexer));
       if (handle == NULL) 
         handle = fh_from_file_name (ds_cstr (lex_tokstr (lexer))); 
       if (handle == NULL)
         {
           if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || get_syntax () != ENHANCED) 
-            {
-              char *file_name = ds_cstr (lex_tokstr (lexer));
-              char *handle_name = xasprintf ("\"%s\"", file_name);
-              handle = fh_create_file (handle_name, file_name,
-                                       fh_default_properties ());
-              free (handle_name);
-            }
+            handle = fh_create_file (NULL, ds_cstr (lex_tokstr (lexer)),
+                                     fh_default_properties ());
           else
             handle = fh_create_scratch (lex_tokid (lexer));
         }

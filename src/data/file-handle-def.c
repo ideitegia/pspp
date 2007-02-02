@@ -29,9 +29,10 @@
 #include <libpspp/compiler.h>
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
-#include "file-name.h"
-#include "variable.h"
-#include "scratch-handle.h"
+#include <libpspp/str.h>
+#include <data/file-name.h>
+#include <data/variable.h>
+#include <data/scratch-handle.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -45,7 +46,8 @@ struct file_handle
     int open_cnt;               /* 0=not open, otherwise # of openers. */
     bool deleted;               /* Destroy handle when open_cnt goes to 0? */
 
-    char *name;                 /* File handle identifier. */
+    char id[LONG_NAME_LEN + 1]; /* Identifier token; empty string if none. */
+    char *name;                 /* User-friendly identifying name. */
     const char *type;           /* If open, type of file. */
     char open_mode[3];          /* "[rw][se]". */
     void *aux;                  /* Aux data pointer for owner if any. */
@@ -74,13 +76,14 @@ static struct file_handle *default_handle;
 /* The "file" that reads from BEGIN DATA...END DATA. */
 static struct file_handle *inline_file;
 
-static struct file_handle *create_handle (const char *name, enum fh_referent);
+static struct file_handle *create_handle (const char *id,
+                                          const char *name, enum fh_referent);
 
 /* File handle initialization routine. */
 void 
 fh_init (void)
 {
-  inline_file = create_handle ("INLINE", FH_REF_INLINE);
+  inline_file = create_handle ("INLINE", "INLINE", FH_REF_INLINE);
   inline_file->record_width = 80;
   inline_file->tab_width = 8;
 }
@@ -116,15 +119,15 @@ fh_done (void)
     free_handle (file_handles);
 }
 
-/* Returns the handle named HANDLE_NAME, or a null pointer if
+/* Returns the handle with the given ID, or a null pointer if
    there is none. */
 struct file_handle *
-fh_from_name (const char *handle_name) 
+fh_from_id (const char *id) 
 {
   struct file_handle *iter;
 
   for (iter = file_handles; iter != NULL; iter = iter->next)
-    if (!iter->deleted && !strcasecmp (handle_name, iter->name))
+    if (!iter->deleted && !strcasecmp (id, iter->id))
       return iter;
   return NULL;
 }
@@ -164,19 +167,22 @@ fh_from_file_name (const char *file_name)
   return NULL;
 }
 
-/* Creates a new handle with name HANDLE_NAME that refers to
-   REFERENT.  Links the new handle into the global list.  Returns
-   the new handle.
+/* Creates a new handle with identifier ID (which may be null)
+   and name HANDLE_NAME that refers to REFERENT.  Links the new
+   handle into the global list.  Returns the new handle.
 
    The new handle is not fully initialized.  The caller is
    responsible for completing its initialization. */
 static struct file_handle *
-create_handle (const char *handle_name, enum fh_referent referent) 
+create_handle (const char *id, const char *handle_name,
+               enum fh_referent referent) 
 {
   struct file_handle *handle = xzalloc (sizeof *handle);
+  assert (id == NULL || fh_from_id (id) == NULL);
   handle->next = file_handles;
   handle->open_cnt = 0;
   handle->deleted = false;
+  str_copy_trunc (handle->id, sizeof handle->id, id != NULL ? id : "");
   handle->name = xstrdup (handle_name);
   handle->type = NULL;
   handle->aux = NULL;
@@ -194,16 +200,21 @@ fh_inline_file (void)
   return inline_file;
 }
 
-/* Creates a new file handle named HANDLE_NAME, which must not be
-   the name of an existing file handle.  The new handle is
-   associated with file FILE_NAME and the given PROPERTIES. */
+/* Creates a new file handle with the given ID, which may be
+   null.  If it is non-null, it must be unique among existing
+   file identifiers.  The new handle is associated with file
+   FILE_NAME and the given PROPERTIES. */
 struct file_handle *
-fh_create_file (const char *handle_name, const char *file_name,
+fh_create_file (const char *id, const char *file_name,
                 const struct fh_properties *properties)
 {
+  char *handle_name;
   struct file_handle *handle;
-  assert (fh_from_name (handle_name) == NULL);
-  handle = create_handle (handle_name, FH_REF_FILE);
+
+  handle_name = id != NULL ? (char *) id : xasprintf ("\"%s\"", file_name);
+  handle = create_handle (id, handle_name, FH_REF_FILE);
+  if (id == NULL)
+    free (handle_name);
   handle->file_name = xstrdup (file_name);
   handle->identity = fn_get_identity (file_name);
   handle->mode = properties->mode;
@@ -212,13 +223,15 @@ fh_create_file (const char *handle_name, const char *file_name,
   return handle;
 }
 
-/* Creates a new file handle named HANDLE_NAME, which must not be
-   the name of an existing file handle.  The new handle is
+/* Creates a new file handle with the given ID, which must be
+   unique among existing file identifiers.  The new handle is
    associated with a scratch file (initially empty). */
 struct file_handle *
-fh_create_scratch (const char *handle_name) 
+fh_create_scratch (const char *id) 
 {
-  struct file_handle *handle = create_handle (handle_name, FH_REF_SCRATCH);
+  struct file_handle *handle;
+  assert (id != NULL);
+  handle = create_handle (id, id, FH_REF_SCRATCH);
   handle->sh = NULL;
   return handle;
 }
@@ -368,10 +381,21 @@ fh_is_open (const struct file_handle *handle)
   return handle->open_cnt > 0;
 }
 
-/* Returns the identifier of file HANDLE.  If HANDLE was created
-   by referring to a file name instead of a handle name, returns
-   the file name, enclosed in double quotes.  Return value is
-   owned by the file handle. 
+/* Returns the identifier that may be used in syntax to name the
+   given HANDLE, which takes the form of a PSPP identifier.  If
+   HANDLE has no identifier, returns a null pointer.
+
+   Return value is owned by the file handle.*/
+const char *
+fh_get_id (const struct file_handle *handle) 
+{
+  return handle->id[0] != '\0' ? handle->id : NULL;
+}
+
+/* Returns a user-friendly string to identify the given HANDLE.
+   If HANDLE was created by referring to a file name, returns the
+   file name, enclosed in double quotes.  Return value is owned
+   by the file handle.
 
    Useful for printing error messages about use of file handles.  */
 const char *

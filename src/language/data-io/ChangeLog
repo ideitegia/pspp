@@ -1,3 +1,8 @@
+Thu Feb  1 16:56:02 2007  Ben Pfaff  <blp@gnu.org>
+
+	* file-handle.q (fh_parse): Update to new fh_create_file
+	prototype.
+
 Sat Dec 16 22:16:18 2006  Ben Pfaff  <blp@gnu.org>
 
 	Make it possible to pull cases from the active file with a
