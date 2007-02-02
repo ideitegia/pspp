@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -55,7 +55,7 @@ struct repeat_line
   };
 
 /* The type of substitution made for a DO REPEAT macro. */
-enum repeat_macro_type 
+enum repeat_macro_type
   {
     VAR_NAMES,
     OTHER
@@ -71,7 +71,7 @@ struct repeat_macro
   };
 
 /* A DO REPEAT...END REPEAT block. */
-struct repeat_block 
+struct repeat_block
   {
     struct getl_interface parent;
 
@@ -95,13 +95,13 @@ static void create_vars (struct repeat_block *);
 static struct repeat_macro *find_macro (struct repeat_block *,
                                         struct substring name);
 
-static int parse_ids (struct lexer *, const struct dictionary *dict, 
+static int parse_ids (struct lexer *, const struct dictionary *dict,
 		      struct repeat_macro *, struct pool *);
 
-static int parse_numbers (struct lexer *, struct repeat_macro *, 
+static int parse_numbers (struct lexer *, struct repeat_macro *,
 			  struct pool *);
 
-static int parse_strings (struct lexer *, struct repeat_macro *, 
+static int parse_strings (struct lexer *, struct repeat_macro *,
 			  struct pool *);
 
 static void do_repeat_filter (struct getl_interface *,
@@ -127,7 +127,7 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
 
   if (!parse_specification (lexer, block) || !parse_lines (lexer, block))
     goto error;
-  
+
   create_vars (block);
 
   block->parent.read = do_repeat_read;
@@ -152,7 +152,7 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
 /* Parses the whole DO REPEAT command specification.
    Returns success. */
 static bool
-parse_specification (struct lexer *lexer, struct repeat_block *block) 
+parse_specification (struct lexer *lexer, struct repeat_block *block)
 {
   struct substring first_name;
 
@@ -172,7 +172,7 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
              lex_tokid (lexer), lex_tokid (lexer));
       if (find_macro (block, ss_cstr (lex_tokid (lexer))))
 	  {
-	    msg (SE, _("Dummy variable name \"%s\" is given twice."), 
+	    msg (SE, _("Dummy variable name \"%s\" is given twice."),
 		 lex_tokid (lexer));
 	    return false;
 	  }
@@ -202,7 +202,7 @@ parse_specification (struct lexer *lexer, struct repeat_block *block)
 	}
       if (count == 0)
 	return false;
-      if (lex_token (lexer) != '/' && lex_token (lexer) != '.') 
+      if (lex_token (lexer) != '/' && lex_token (lexer) != '.')
         {
           lex_error (lexer, NULL);
           return false;
@@ -241,7 +241,7 @@ static struct repeat_macro *
 find_macro (struct repeat_block *block, struct substring name)
 {
   struct repeat_macro *macro;
-  
+
   ll_for_each (macro, struct repeat_macro, ll, &block->macros)
     if (ss_equals (macro->name, name))
       return macro;
@@ -281,13 +281,13 @@ recognize_end_repeat (struct substring line, bool *print)
     return false;
 
   *print = recognize_keyword (&line, "print");
-  return true; 
+  return true;
 }
 
 /* Read all the lines we are going to substitute, inside the DO
    REPEAT...END REPEAT block. */
 static bool
-parse_lines (struct lexer *lexer, struct repeat_block *block) 
+parse_lines (struct lexer *lexer, struct repeat_block *block)
 {
   char *previous_file_name;
   int nesting_level;
@@ -327,12 +327,12 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
       lex_preprocess_line (&text, syntax,
                            &command_ends_before_line,
                            &command_ends_after_line);
-      if (recognize_do_repeat (ds_ss (&text))) 
+      if (recognize_do_repeat (ds_ss (&text)))
         {
           if (get_syntax () == COMPATIBLE)
             msg (SE, _("DO REPEAT may not nest in compatibility mode."));
           else
-            nesting_level++; 
+            nesting_level++;
         }
       else if (recognize_end_repeat (ds_ss (&text), &block->print)
                && nesting_level-- == 0)
@@ -372,12 +372,12 @@ create_vars (struct repeat_block *block)
 
 /* Parses a set of ids for DO REPEAT. */
 static int
-parse_ids (struct lexer *lexer, const struct dictionary *dict, 
+parse_ids (struct lexer *lexer, const struct dictionary *dict,
 	   struct repeat_macro *macro, struct pool *pool)
 {
   char **replacements;
   size_t n, i;
-  
+
   macro->type = VAR_NAMES;
   if (!parse_mixed_vars_pool (lexer, dict, pool, &replacements, &n, PV_NONE))
     return 0;
@@ -394,7 +394,7 @@ parse_ids (struct lexer *lexer, const struct dictionary *dict,
 static void
 add_replacement (struct substring replacement,
                  struct repeat_macro *macro, struct pool *pool,
-                 size_t *used, size_t *allocated) 
+                 size_t *used, size_t *allocated)
 {
   if (*used == *allocated)
     macro->replacements = pool_2nrealloc (pool, macro->replacements, allocated,
@@ -402,35 +402,46 @@ add_replacement (struct substring replacement,
   macro->replacements[(*used)++] = replacement;
 }
 
-/* Parses a list of numbers for DO REPEAT. */
+/* Parses a list or range of numbers for DO REPEAT. */
 static int
-parse_numbers (struct lexer *lexer, struct repeat_macro *macro, struct pool *pool)
+parse_numbers (struct lexer *lexer, struct repeat_macro *macro,
+	       struct pool *pool)
 {
   size_t used = 0;
   size_t allocated = 0;
-  
+
   macro->type = OTHER;
   macro->replacements = NULL;
 
   do
     {
-      long a, b, i;
+      bool integer_value_seen;
+      double a, b, i;
 
       /* Parse A TO B into a, b. */
-      if (!lex_force_int (lexer))
+      if (!lex_force_num (lexer))
 	return 0;
-      a = lex_integer (lexer);
+
+      if ( (integer_value_seen = lex_is_integer (lexer) ) )
+	a = lex_integer (lexer);
+      else
+	a = lex_number (lexer);
 
       lex_get (lexer);
       if (lex_token (lexer) == T_TO)
 	{
+	  if ( !integer_value_seen )
+	    {
+	      msg (SE, _("Ranges may only have integer bounds"));
+	      return 0;
+	    }
 	  lex_get (lexer);
 	  if (!lex_force_int (lexer))
 	    return 0;
 	  b = lex_integer (lexer);
-          if (b < a) 
+          if (b < a)
             {
-              msg (SE, _("%ld TO %ld is an invalid range."), a, b);
+              msg (SE, _("%g TO %g is an invalid range."), a, b);
               return 0;
             }
 	  lex_get (lexer);
@@ -439,7 +450,7 @@ parse_numbers (struct lexer *lexer, struct repeat_macro *macro, struct pool *poo
         b = a;
 
       for (i = a; i <= b; i++)
-        add_replacement (ss_cstr (pool_asprintf (pool, "%ld", i)),
+        add_replacement (ss_cstr (pool_asprintf (pool, "%g", i)),
                          macro, pool, &used, &allocated);
 
       lex_match (lexer, ',');
@@ -455,14 +466,14 @@ parse_strings (struct lexer *lexer, struct repeat_macro *macro, struct pool *poo
 {
   size_t used = 0;
   size_t allocated = 0;
-  
+
   macro->type = OTHER;
   macro->replacements = NULL;
 
   do
     {
       char *string;
-      
+
       if (lex_token (lexer) != T_STRING)
 	{
 	  msg (SE, _("String expected."));
@@ -497,7 +508,7 @@ find_substitution (struct repeat_block *block, struct substring name)
   return macro ? macro->replacements[block->loop_idx] : name;
 }
 
-/* Makes appropriate DO REPEAT macro substitutions within the 
+/* Makes appropriate DO REPEAT macro substitutions within the
    repeated lines. */
 static void
 do_repeat_filter (struct getl_interface *block_,
@@ -523,13 +534,13 @@ do_repeat_filter (struct getl_interface *block_,
 	in_apos = !in_apos;
       else if (c == '"' && !in_apos)
 	in_quote = !in_quote;
-      
-      if (in_quote || in_apos || !lex_is_id1 (c)) 
+
+      if (in_quote || in_apos || !lex_is_id1 (c))
         {
           ds_put_char (&output, c);
-          ss_advance (&input, 1); 
+          ss_advance (&input, 1);
         }
-      else 
+      else
         {
           struct substring id;
           ss_get_chars (&input, lex_id_get_length (input), &id);
@@ -544,7 +555,7 @@ do_repeat_filter (struct getl_interface *block_,
 }
 
 static struct repeat_line *
-current_line (const struct getl_interface *interface) 
+current_line (const struct getl_interface *interface)
 {
   struct repeat_block *block = (struct repeat_block *) interface;
   return (block->cur_line != ll_null (&block->lines)
@@ -555,7 +566,7 @@ current_line (const struct getl_interface *interface)
 /* Function called by getl to read a line.  Puts the line in
    OUTPUT and its syntax mode in *SYNTAX.  Returns true if a line
    was obtained, false if the source is exhausted. */
-static bool  
+static bool
 do_repeat_read  (struct getl_interface *interface,
                  struct string *output, enum getl_syntax *syntax)
 {
@@ -563,7 +574,7 @@ do_repeat_read  (struct getl_interface *interface,
   struct repeat_line *line;
 
   block->cur_line = ll_next (block->cur_line);
-  if (block->cur_line == ll_null (&block->lines)) 
+  if (block->cur_line == ll_null (&block->lines))
     {
       block->loop_idx++;
       if (block->loop_idx >= block->loop_cnt)
@@ -588,7 +599,7 @@ do_repeat_close (struct getl_interface *block_)
 }
 
 
-static bool 
+static bool
 always_false (const struct getl_interface *i UNUSED)
 {
   return false;
@@ -597,7 +608,7 @@ always_false (const struct getl_interface *i UNUSED)
 /* Returns the name of the source file from which the previous
    line was originally obtained, or a null pointer if none. */
 static const char *
-do_repeat_name (const struct getl_interface *interface) 
+do_repeat_name (const struct getl_interface *interface)
 {
   struct repeat_line *line = current_line (interface);
   return line ? line->file_name : NULL;
@@ -606,7 +617,7 @@ do_repeat_name (const struct getl_interface *interface)
 /* Returns the line number in the source file from which the
    previous line was originally obtained, or -1 if none. */
 static int
-do_repeat_location (const struct getl_interface *interface) 
+do_repeat_location (const struct getl_interface *interface)
 {
   struct repeat_line *line = current_line (interface);
   return line ? line->line_number : -1;

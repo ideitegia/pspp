@@ -1,3 +1,8 @@
+Fri Feb  2 22:41:43 WST 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* repeat.c (parse_numbers): Fixed bug parseing ranges vs. lists.
+	Ensured that floats are accepted in lists, but not in ranges.
+
 Tue Dec 19 08:12:46 2006  Ben Pfaff  <blp@gnu.org>
 
 	Fix LOOP.  Thanks to Daniel Williams

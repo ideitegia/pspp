@@ -60,7 +60,7 @@ BEGIN DATA.
 0
 END DATA.
 
-DO REPEAT h = h0 TO h3 / x = 0 TO 3 / y = 8, 7, 6, 5.
+DO REPEAT h = h0 TO h3 / x = 0 TO 3 / y = 8, 7.5, 6, 5.
 	COMPUTE h = x + y.
 END REPEAT.
 
@@ -88,7 +88,7 @@ perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - <<EOF
 a       h0       h1       h2       h3       v1       v2       v3       v4       v5       v6
 - -------- -------- -------- -------- -------- -------- -------- -------- -------- --------
-0     8.00     8.00     8.00     8.00     4.00     5.00     6.00     5.00     6.00     7.00 
+0     8.00     8.50     8.00     8.00     4.00     5.00     6.00     5.00     6.00     7.00 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
