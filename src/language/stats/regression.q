@@ -269,7 +269,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
       /*
          P values for the test statistic above.
        */
-      pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
+      pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), (double) (c->n_obs - c->n_coeffs));
       tab_float (t, 6, j + 1, 0, pval, 10, 2);
     }
   tab_title (t, _("Coefficients"));

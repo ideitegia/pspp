@@ -1,3 +1,8 @@
+2007-02-04  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q: Fixed p-value computation in the test for
+	individual regression coefficients.
+
 Mon Jan 15 11:03:20 2007  Ben Pfaff  <blp@gnu.org>
 
 	Fix bugs found by valgrind when --enable-debug is used with the
