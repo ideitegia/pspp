@@ -1,3 +1,7 @@
+Mon Feb  5 15:42:14 2007  Ben Pfaff  <blp@gnu.org>
+
+	* moments.c (moments_pass_two): Reduce number of multiplications.
+
 Thu Dec  7 15:27:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* factor-stats.c factor-stats.h: Changed independent values to 

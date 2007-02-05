@@ -151,8 +151,6 @@ moments_pass_one (struct moments *m, double value, double weight)
 void
 moments_pass_two (struct moments *m, double value, double weight) 
 {
-  double d, d_power;
-
   assert (m != NULL);
 
   if (m->pass == 1) 
@@ -164,28 +162,25 @@ moments_pass_two (struct moments *m, double value, double weight)
 
   if (value != SYSMIS && weight >= 0.) 
     {
-      m->w2 += weight;
-
-      d = d_power = value - m->mean;
-      m->d1 += d_power * weight;
-
+      double d = value - m->mean;
+      double d1_delta = d * weight;
+      m->d1 += d1_delta;
       if (m->max_moment >= MOMENT_VARIANCE) 
         {
-          d_power *= d;
-          m->d2 += d_power * weight;
-
+          double d2_delta = d1_delta * d;
+          m->d2 += d2_delta;
           if (m->max_moment >= MOMENT_SKEWNESS)
             {
-              d_power *= d;
-              m->d3 += d_power * weight;
-
+              double d3_delta = d2_delta * d;
+              m->d3 += d3_delta;
               if (m->max_moment >= MOMENT_KURTOSIS)
                 {
-                  d_power *= d;
-                  m->d4 += d_power * weight;
+                  double d4_delta = d3_delta * d;
+                  m->d4 += d4_delta;
                 }
             }
         }
+      m->w2 += weight;
     }
 }
 
