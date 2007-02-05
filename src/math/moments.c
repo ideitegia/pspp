@@ -43,11 +43,7 @@ calc_moments (enum moment max_moment,
 
   if (max_moment >= MOMENT_VARIANCE && w > 1.) 
     {
-      double s2;
-
-      /* From _Numerical Recipes in C_, 2nd ed., 0-521-43108-5,
-         section 14.1. */
-      s2 = (d2 - pow2 (d1) / w) / (w - 1.);
+      double s2 = (d2 - pow2 (d1) / w) / (w - 1.);
       if (variance != NULL)
         *variance = s2;
 
