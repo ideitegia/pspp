@@ -1,3 +1,11 @@
+Tue Feb  6 20:00:13 2007  Ben Pfaff  <blp@gnu.org>
+
+	* misc.h [!HAVE_ISINF] (isinf): Define only if isinf is not
+	defined as a macro, because mingw seems to have the macro without
+	the function.
+	[!HAVE_ISNAN] (isnan): Ditto, for symmetry only.
+	[!AHVE_FINITE] (finite): Ditto, for symmetry only.
+
 Tue Feb  6 19:58:46 2007  Ben Pfaff  <blp@gnu.org>
 
 	* compiler.h (PRINTF_FORMAT): Use __printf__ instead of printf to

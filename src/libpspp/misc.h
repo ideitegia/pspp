@@ -26,17 +26,17 @@
 
 /* HUGE_VAL is traditionally defined as positive infinity, or
    alternatively, DBL_MAX. */
-#if !HAVE_ISINF
+#if !HAVE_ISINF && !defined (isinf)
 #define isinf(X) (fabs (X) == HUGE_VAL)
 #endif
 
 /* A Not a Number is not equal to itself. */
-#if !HAVE_ISNAN
+#if !HAVE_ISNAN && !defined (isnan)
 #define isnan(X) ((X) != (X))
 #endif
 
 /* Finite numbers are not infinities or NaNs. */
-#if !HAVE_FINITE
+#if !HAVE_FINITE && !defined (finite)
 #define finite(X) (!isinf (X) && !isnan (X))
 #elif HAVE_IEEEFP_H
 #include <ieeefp.h>		/* Declares finite() under Solaris. */
