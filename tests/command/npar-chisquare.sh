@@ -95,6 +95,7 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff $TEMPDIR/pspp.list - << EOF
 1.1 NPAR TESTS.  x
 +--------#----------+----------+--------+
@@ -108,7 +109,6 @@ diff $TEMPDIR/pspp.list - << EOF
 |    5.00#         1|      2.33|   -1.33|
 |Total   #        14|          |        |
 +--------#----------+----------+--------+
-
 1.2 NPAR TESTS.  y
 +--------#----------+----------+--------+
 |        #Observed N|Expected N|Residual|
@@ -119,7 +119,6 @@ diff $TEMPDIR/pspp.list - << EOF
 |    4.00#         2|      3.50|   -1.50|
 |Total   #        14|          |        |
 +--------#----------+----------+--------+
-
 1.3 NPAR TESTS.  Test Statistics
 +-----------#-----+-----+
 |           #  x  |  y  |
@@ -128,7 +127,6 @@ diff $TEMPDIR/pspp.list - << EOF
 |df         #    5|    3|
 |Asymp. Sig.# .678| .112|
 +-----------#-----+-----+
-
 2.1 NPAR TESTS.  y
 +--------#----------+----------+--------+
 |        #Observed N|Expected N|Residual|
@@ -139,7 +137,6 @@ diff $TEMPDIR/pspp.list - << EOF
 |    4.00#         2|      3.50|   -1.50|
 |Total   #        14|          |        |
 +--------#----------+----------+--------+
-
 2.2 NPAR TESTS.  Test Statistics
 +-----------#------+
 |           #   y  |
@@ -148,7 +145,6 @@ diff $TEMPDIR/pspp.list - << EOF
 |df         #     3|
 |Asymp. Sig.#  .014|
 +-----------#------+
-
 3.1 NPAR TESTS.  Frequencies
 +-----#---------------------------------------#---------------------------------------+
 |     #                   x                   #                   y                   |
@@ -160,7 +156,6 @@ diff $TEMPDIR/pspp.list - << EOF
 |3    #    4.00|         2|      1.58|     .42#    4.00|         2|      1.11|     .89|
 |Total#        |        10|          |        #        |         7|          |        |
 +-----#--------+----------+----------+--------#--------+----------+----------+--------+
-
 3.2 NPAR TESTS.  Test Statistics
 +-----------#----+-----+
 |           #  x |  y  |
@@ -169,7 +164,6 @@ diff $TEMPDIR/pspp.list - << EOF
 |df         #   2|    2|
 |Asymp. Sig.#.936| .127|
 +-----------#----+-----+
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
@@ -202,6 +196,7 @@ $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE  > $TEMPDIR/output
 if [ $? -eq 0 ] ; then no_result ; fi
 
 activity="compare errors 2"
+perl -pi -e 's/^\s*$//g' $TEMPDIR/output
 diff  $TEMPDIR/output - << EOF
 error: CHISQUARE test specified 6 expected values, but 4 distinct values were encountered in variable y.
 EOF
@@ -241,6 +236,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output 3"
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff $TEMPDIR/pspp.list - <<EOF
 1.1 NPAR TESTS.  Frequencies
 +-----#---------------------------------------#---------------------------------------+
@@ -258,7 +254,6 @@ diff $TEMPDIR/pspp.list - <<EOF
 |8    #    5.00|         1|      1.50|    -.50#    5.00|         1|      1.88|    -.88|
 |Total#        |        12|          |        #        |        15|          |        |
 +-----#--------+----------+----------+--------#--------+----------+----------+--------+
-
 1.2 NPAR TESTS.  Test Statistics
 +-----------#------+------+
 |           #   x  |   y  |
@@ -267,7 +262,6 @@ diff $TEMPDIR/pspp.list - <<EOF
 |df         #     7|     7|
 |Asymp. Sig.#  .015|  .002|
 +-----------#------+------+
-
 1.3 NPAR TESTS.  Descriptive Statistics
 +-#--+-----+-----+-----+-----+
 | # N| Mean| Std.|Minim|Maxim|
@@ -276,7 +270,6 @@ diff $TEMPDIR/pspp.list - <<EOF
 |x#12|2.467|1.193|1.000|5.000|
 |y#15|2.067|1.335|1.000|5.000|
 +-#--+-----+-----+-----+-----+
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
@@ -314,6 +307,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output 4"
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff $TEMPDIR/pspp.list - <<EOF
 1.1 NPAR TESTS.  Frequencies
 +-----#---------------------------------------#---------------------------------------+
@@ -331,7 +325,6 @@ diff $TEMPDIR/pspp.list - <<EOF
 |8    #    5.00|         1|      1.75|    -.75#    5.00|         0|      1.75|   -1.75|
 |Total#        |        14|          |        #        |        14|          |        |
 +-----#--------+----------+----------+--------#--------+----------+----------+--------+
-
 1.2 NPAR TESTS.  Test Statistics
 +-----------#------+------+
 |           #   x  |   y  |
@@ -340,7 +333,6 @@ diff $TEMPDIR/pspp.list - <<EOF
 |df         #     7|     7|
 |Asymp. Sig.#  .062|  .001|
 +-----------#------+------+
-
 1.3 NPAR TESTS.  Descriptive Statistics
 +-#--+-----+-----+-----+-----+
 | # N| Mean| Std.|Minim|Maxim|
@@ -349,7 +341,6 @@ diff $TEMPDIR/pspp.list - <<EOF
 |x#14|2.686|1.231|1.000|5.000|
 |y#14|1.857|1.099|1.000|4.000|
 +-#--+-----+-----+-----+-----+
-
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

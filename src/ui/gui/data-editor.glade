@@ -98,7 +98,6 @@
                         <property name="label">gtk-quit</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_quit1_activate"/>
                       </widget>
                     </child>
                   </widget>
@@ -256,7 +255,6 @@
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Insert Variable</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_insert_variable"/>
                       </widget>
                     </child>
                     <child>
@@ -265,7 +263,6 @@
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Insert Cases</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_insert_cases"/>
                       </widget>
                     </child>
                     <child>
@@ -274,7 +271,6 @@
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Go To Case</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_go_to_case_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -289,7 +285,6 @@
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Sort Cases</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_sort_cases_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -362,7 +357,6 @@
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_Windows</property>
                 <property name="use_underline">True</property>
-                <signal name="activate" handler="on_Windows_activate"/>
                 <child>
                   <widget class="GtkMenu" id="Windows_menu">
                     <child>
@@ -370,7 +364,6 @@
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">_Minimise All Windows</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_minimiseall_activate"/>
                       </widget>
                     </child>
                   </widget>
@@ -396,7 +389,6 @@
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">_About</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_about1_activate"/>
                       </widget>
                     </child>
                   </widget>
@@ -431,7 +423,6 @@
                     <property name="visible">True</property>
                     <property name="tooltip" translatable="yes">Save</property>
                     <property name="stock_id">gtk-save</property>
-                    <signal name="clicked" handler="on_save1_activate"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -494,7 +485,6 @@
                     <property name="sensitive">False</property>
                     <property name="tooltip" translatable="yes">Go To Case</property>
                     <property name="stock_id">gtk-jump-to</property>
-                    <signal name="clicked" handler="on_go_to_case_activate"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -548,7 +538,6 @@
                     <property name="tooltip" translatable="yes">Insert Case</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">pspp-insert-case</property>
-                    <signal name="clicked" handler="on_insert_case_clicked"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -625,7 +614,6 @@
                     <property name="tooltip" translatable="yes">Value Labels</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">pspp-value-labels</property>
-                    <signal name="toggled" handler="on_togglebutton_value_labels_toggled"/>
                   </widget>
                   <packing>
                     <property name="expand">False</property>
@@ -1307,7 +1295,6 @@
                 <property name="can_default">True</property>
                 <property name="label">gtk-cancel</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_var_type_cancel_clicked" object="var_type_dialog"/>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -1537,7 +1524,6 @@
                 <property name="can_default">True</property>
                 <property name="label">gtk-ok</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="gtk_widget_hide" object="val_labs_dialog"/>
               </widget>
             </child>
             <child>
@@ -1547,7 +1533,6 @@
                 <property name="can_default">True</property>
                 <property name="label">gtk-cancel</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="gtk_widget_hide" object="val_labs_dialog"/>
               </widget>
               <packing>
                 <property name="position">1</property>
@@ -1844,7 +1829,6 @@
                 <property name="can_default">True</property>
                 <property name="label">gtk-ok</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="gtk_widget_hide" object="val_labs_dialog"/>
                       </widget>
                     </child>
                     <child>
@@ -1854,7 +1838,6 @@
                 <property name="can_default">True</property>
                 <property name="label">gtk-cancel</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="gtk_widget_hide" object="val_labs_dialog"/>
                   </widget>
                   <packing>
                     <property name="position">1</property>

@@ -135,6 +135,8 @@ new_data_editor (void)
 
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
+  g_assert(vs); /* Traps a possible bug in win32 build */
+
   g_signal_connect (vs->dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
 		    de);

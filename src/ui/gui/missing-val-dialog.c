@@ -207,6 +207,20 @@ range (GtkToggleButton *button, gpointer data)
 }
 
 
+
+/* Callback for when the Missing Value dialog is closed using
+   the window delete button.*/
+static gint
+on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
+{
+  struct missing_val_dialog *dialog = data;
+
+  gtk_widget_hide (dialog->window);
+
+  return TRUE;
+}
+
+
 /* Creates the dialog structure from the xml */
 struct missing_val_dialog *
 missing_val_dialog_create (GladeXML *xml)
@@ -228,6 +242,8 @@ missing_val_dialog_create (GladeXML *xml)
   g_signal_connect (get_widget_assert (xml, "missing_val_ok"),
 		   "clicked", G_CALLBACK (missing_val_dialog_accept), dialog);
 
+  g_signal_connect (GTK_OBJECT (dialog->window), "delete-event",
+		    G_CALLBACK (on_delete), dialog);
 
   dialog->mv[0] = get_widget_assert (xml, "mv0");
   dialog->mv[1] = get_widget_assert (xml, "mv1");

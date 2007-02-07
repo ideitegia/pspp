@@ -410,7 +410,7 @@ extern PsppireVarStore *the_var_store;
 
 
 /* Create the var sheet */
-GtkWidget*
+G_MODULE_EXPORT GtkWidget*
 psppire_variable_sheet_create (gchar *widget_name,
 			       gchar *string1,
 			       gchar *string2,

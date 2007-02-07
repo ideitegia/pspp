@@ -158,7 +158,7 @@ font_change_callback (GObject *obj, gpointer data)
 
 
 
-GtkWidget*
+G_MODULE_EXPORT GtkWidget*
 psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 			   gint int1, gint int2)
 {
