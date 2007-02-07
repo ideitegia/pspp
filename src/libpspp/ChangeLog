@@ -1,3 +1,10 @@
+Tue Feb  6 19:58:46 2007  Ben Pfaff  <blp@gnu.org>
+
+	* compiler.h (PRINTF_FORMAT): Use __printf__ instead of printf to
+	avoid problem with "#define printf libintl_printf" that libintl is
+	fond of doing.
+	(SCANF_FORMAT): Ditto, for symmetry only.
+
 Tue Feb  6 19:47:10 2007  Ben Pfaff  <blp@gnu.org>
 
 	* float-format.h: [FPREP_IEEE754] [WORDS_BIGENDIAN] Add missing

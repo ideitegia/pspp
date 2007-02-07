@@ -40,8 +40,8 @@
 /* Mark a function as taking a printf- or scanf-like format
    string as its FMT'th argument and that the FIRST'th argument
    is the first one to be checked against the format string. */
-#define PRINTF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (printf, FMT, FIRST)))
-#define SCANF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (scanf, FMT, FIRST)))
+#define PRINTF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (__printf__, FMT, FIRST)))
+#define SCANF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (__scanf__, FMT, FIRST)))
 
 /* Tells the compiler that a function may be treated as if any
    non-`NULL' pointer it returns cannot alias any other pointer
