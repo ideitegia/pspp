@@ -448,7 +448,10 @@ flip_file (struct flip_pgm *flip)
 
       if (read_cases != fread (input_buf, case_bytes, read_cases, input_file)) 
         {
-          msg (SE, _("Error reading FLIP file: %s."), strerror (errno));
+          if (ferror (input_file))
+            msg (SE, _("Error reading FLIP file: %s."), strerror (errno));
+          else
+            msg (SE, _("Unexpected end of file reading FLIP file.")); 
           return false;
         }
 
