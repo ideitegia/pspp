@@ -1,3 +1,8 @@
+Thu Feb  8 06:34:52 2007  Ben Pfaff  <blp@gnu.org>
+
+	* [!(HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H)] (connect_debugger) In
+	this case, we don't know how to connect to GDB, so just return.
+
 Mon Jan 15 11:06:31 2007  Ben Pfaff  <blp@gnu.org>
 
 	* flexifile.c [DEBUGGING] (dump_case_data): Use case accessor

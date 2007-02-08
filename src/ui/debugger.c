@@ -18,6 +18,9 @@
 
 #include <config.h>
 
+#include "debugger.h"
+
+#if HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -25,14 +28,10 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 
-
-#include "debugger.h"
-
 /* Fork, start gdb and connect to the parent process. 
    If that happens successfully, then this function does not return,
    but exits with EXIT_FAILURE. Otherwise it returns.
  */
-   
 void
 connect_debugger (void)
 {
@@ -64,3 +63,12 @@ connect_debugger (void)
   exit (EXIT_FAILURE);
 }
 
+#else /* !(HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H) */
+/* Don't know how to connect to gdb.
+   Just return.
+ */
+void 
+connect_debugger (void) 
+{
+}
+#endif /* !(HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H) */
