@@ -1,3 +1,8 @@
+Wed Feb  7 21:38:12 2007  Ben Pfaff  <blp@gnu.org>
+
+	* afm.c: Add #include <limits.h>.  Thanks to John McCabe-Dansted
+	<gmatht@gmail.com> for pointing out the need.
+
 Sun Oct  8 07:09:34 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* table.c (tab_destroy): Freed title, since this is not allocated
