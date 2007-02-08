@@ -1,3 +1,9 @@
+Wed Feb  7 21:25:15 2007  Ben Pfaff  <blp@gnu.org>
+
+	* file-name.c (fn_normalize): Correct name of function
+	fn_is_special.  Thanks to John McCabe-Dansted <gmatht@gmail.com>
+	for pointing this out.
+
 Thu Feb  1 16:53:37 2007  Ben Pfaff  <blp@gnu.org>
 
 	We are using a single member in struct file_handle, the "name"

@@ -353,7 +353,7 @@ fn_normalize (const char *fn1)
   char *fn2;
 
   /* Don't change special file names. */
-  if (is_special_file_name (file_name))
+  if (fn_is_special (file_name))
     return xstrdup (file_name);
 
   /* First find the required buffer length. */
