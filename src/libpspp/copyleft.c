@@ -1,3 +1,5 @@
+#include <config.h>
+
 const char legal[]=""
 "Copyright (C) 1997-9, 2000, 2005 Free Software Foundation, Inc.\n"
 "GNU PSPP comes with NO WARRANTY,\n"

@@ -18,6 +18,8 @@
   02110-1301, USA. */
 
 
+#include <config.h>
+
 #include <libpspp/getl.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>

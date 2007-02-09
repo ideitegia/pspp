@@ -17,6 +17,8 @@
    02110-1301, USA. */
 
 
+#include <config.h>
+
 #include <math.h>
 #include <assert.h>
 #include <libpspp/misc.h>

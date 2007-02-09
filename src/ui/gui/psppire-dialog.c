@@ -18,6 +18,8 @@
     02110-1301, USA. */
 
 
+#include <config.h>
+
 #include <gtk/gtk.h>
 #include <gtk/gtksignal.h>
 #include "psppire-dialog.h"
