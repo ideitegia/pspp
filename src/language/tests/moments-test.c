@@ -125,7 +125,7 @@ cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
   fprintf (stderr, "W=%.3f", weight);
   for (i = 0; i < 4; i++) 
     {
-      fprintf (stderr, " M%d=", i + 1);
+      fprintf (stderr, " M%d=", (int) i + 1);
       if (M[i] == SYSMIS)
         fprintf (stderr, "sysmis");
       else if (fabs (M[i]) <= 0.0005)

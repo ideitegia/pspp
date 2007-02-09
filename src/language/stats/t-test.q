@@ -485,7 +485,7 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
 	  msg (SE, _("PAIRED was specified but the number of variables "
 		     "preceding WITH (%d) did not match the number "
 		     "following (%d)."),
-	       n_before_WITH, n_after_WITH );
+	       (int) n_before_WITH, (int) n_after_WITH );
 	  return 0;
 	}
       n_pairs_local = n_before_WITH;

@@ -520,8 +520,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 		  }
                 else
                   {
-		    msg (SE, _("Missing argument %d to %s."), i + 1,
-                         function->name);
+		    msg (SE, _("Missing argument %d to %s."),
+                         (int) i + 1, function->name);
 		    goto error;
 		  }
 	    

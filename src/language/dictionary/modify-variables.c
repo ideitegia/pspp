@@ -210,7 +210,8 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		{
 		  msg (SE, _("Differing number of variables in old name list "
 		       "(%d) and in new name list (%d)."),
-		       vm.rename_cnt - prev_nv_2, prev_nv_1 - prev_nv_2);
+		       (int) (vm.rename_cnt - prev_nv_2),
+                       (int) (prev_nv_1 - prev_nv_2));
 		  for (i = 0; i < prev_nv_1; i++)
 		    free (vm.new_names[i]);
 		  free (vm.new_names);

@@ -117,8 +117,8 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
   if ((lc - fc + 1) % var_cnt)
     {
       msg (SE, _("The %d columns %d-%d "
-		 "can't be evenly divided into %d fields."),
-	   lc - fc + 1, fc, lc, var_cnt);
+		 "can't be evenly divided into %u fields."),
+	   lc - fc + 1, fc, lc, (unsigned int) var_cnt);
       return false;
     }
 

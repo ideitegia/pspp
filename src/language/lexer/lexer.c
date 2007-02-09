@@ -1047,7 +1047,7 @@ convert_numeric_string_to_char_string (struct lexer *lexer,
   if (ds_length (&lexer->tokstr) % chars_per_byte)
     msg (SE, _("String of %s digits has %d characters, which is not a "
 	       "multiple of %d."),
-	 base_name, ds_length (&lexer->tokstr), chars_per_byte);
+	 base_name, (int) ds_length (&lexer->tokstr), chars_per_byte);
 
   p = ds_cstr (&lexer->tokstr);
   for (i = 0; i < byte_cnt; i++)
@@ -1184,7 +1184,7 @@ finish:
   if (ds_length (&lexer->tokstr) > 255)
     {
       msg (SE, _("String exceeds 255 characters in length (%d characters)."),
-	   ds_length (&lexer->tokstr));
+	   (int) ds_length (&lexer->tokstr));
       ds_truncate (&lexer->tokstr, 255);
     }
       

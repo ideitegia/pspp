@@ -375,7 +375,7 @@ html_initialise_chart (struct outp_driver *this, struct chart *ch)
   number_pos = strchr (x->chart_file_name, '#') - x->chart_file_name;
   ch->file_name = xasprintf ("%.*s%d%s",
                              number_pos, x->chart_file_name,
-                             x->chart_cnt,
+                             (int) x->chart_cnt,
                              x->chart_file_name + number_pos + 1);
   fp = fopen (ch->file_name, "wb");
   if (fp == NULL) 

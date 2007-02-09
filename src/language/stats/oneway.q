@@ -175,7 +175,8 @@ output_oneway(void)
 	sum += subc_list_double_at(&cmd.dl_contrast[i],j);
 
       if ( sum != 0.0 ) 
-	msg(SW,_("Coefficients for contrast %d do not total zero"),i + 1);
+	msg(SW,_("Coefficients for contrast %d do not total zero"),
+            (int) i + 1);
     }
 
   if ( stat_tables & STAT_DESC ) 

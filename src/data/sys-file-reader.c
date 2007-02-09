@@ -472,8 +472,8 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
 
       len = read_int32 (r);
       if (len >= sizeof label)
-        sys_error (r, _("Variable %s has label of invalid length %d."),
-                   name, len);
+        sys_error (r, _("Variable %s has label of invalid length %u."),
+                   name, (unsigned int) len);
       read_string (r, label, len + 1);
       var_set_label (var, label);
       
@@ -736,9 +736,9 @@ read_machine_int32_info (struct sfm_reader *r, size_t size, size_t count)
   int expected_integer_format;
 
   if (size != 4 || count != 8)
-    sys_error (r, _("Bad size (%d) or count (%d) field on record type 7, "
+    sys_error (r, _("Bad size (%u) or count (%u) field on record type 7, "
                     "subtype 3."),
-               size, count);
+               (unsigned int) size, (unsigned int) count);
 
   /* Check floating point format. */
   if (r->float_format == FLOAT_IEEE_DOUBLE_BE
@@ -781,8 +781,8 @@ read_machine_flt64_info (struct sfm_reader *r, size_t size, size_t count)
   double lowest = read_flt64 (r);
 
   if (size != 8 || count != 3)
-    sys_error (r, _("Bad size (%d) or count (%d) on extension 4."),
-               size, count);
+    sys_error (r, _("Bad size (%u) or count (%u) on extension 4."),
+               (unsigned int) size, (unsigned int) count);
 
   if (sysmis != SYSMIS)
     sys_warn (r, _("File specifies unexpected value %g as SYSMIS."), sysmis);
@@ -803,8 +803,8 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
   int i;
 
   if (count % 3 || n_vars != dict_get_var_cnt (dict)) 
-    sys_error (r, _("Bad size (%d) or count (%d) on extension 11."),
-               size, count);
+    sys_error (r, _("Bad size (%u) or count (%u) on extension 11."),
+               (unsigned int) size, (unsigned int) count);
 
   for (i = 0; i < n_vars; ++i) 
     {
@@ -1003,8 +1003,8 @@ read_value_labels (struct sfm_reader *r,
   var_cnt = read_int32 (r);
   if (var_cnt < 1 || var_cnt > dict_get_var_cnt (dict))
     sys_error (r, _("Number of variables associated with a value label (%d) "
-                    "is not between 1 and the number of variables (%d)."),
-               var_cnt, dict_get_var_cnt (dict));
+                    "is not between 1 and the number of variables (%u)."),
+               var_cnt, (unsigned int) dict_get_var_cnt (dict));
 
   /* Read the list of variables. */
   var = pool_nalloc (subpool, var_cnt, sizeof *var);

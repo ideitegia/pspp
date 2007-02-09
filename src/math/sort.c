@@ -467,8 +467,9 @@ allocate_cases (struct initial_run_state *irs)
     {
       msg (SE, _("Out of memory.  Could not allocate room for minimum of %d "
 		 "cases of %d bytes each.  (PSPP workspace is currently "
-		 "restricted to a maximum of %d KB.)"),
-	   min_buffers, approx_case_cost, get_workspace() / 1024);
+		 "restricted to a maximum of %lu KB.)"),
+	   min_buffers, approx_case_cost,
+           (unsigned long int) (get_workspace() / 1024));
       return 0;
     }
   return 1;

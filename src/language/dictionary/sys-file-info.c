@@ -132,8 +132,8 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
             : info.float_format == FLOAT_Z_LONG ? _("IBM 390 Hex Long.")
             : _("Unknown."));
   tab_text (t, 0, 5, TAB_LEFT, _("Variables:"));
-  tab_text (t, 1, 5, TAB_LEFT | TAT_PRINTF, "%d",
-		dict_get_var_cnt (d));
+  tab_text (t, 1, 5, TAB_LEFT | TAT_PRINTF, "%u",
+            (unsigned int) dict_get_var_cnt (d));
   tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
   tab_text (t, 1, 6, TAB_LEFT | TAT_PRINTF,
 		info.case_cnt == -1 ? _("Unknown") : "%d", info.case_cnt);

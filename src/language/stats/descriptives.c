@@ -175,7 +175,7 @@ static bool try_name (const struct dictionary *dict,
 		      struct dsc_proc *dsc, const char *name);
 static bool generate_z_varname (const struct dictionary *dict, 
 				struct dsc_proc *dsc, char *z_name,
-				const char *name, size_t *z_cnt);
+				const char *name, int *z_cnt);
 static void dump_z_table (struct dsc_proc *);
 static void setup_z_trns (struct dsc_proc *, struct dataset *);
 
@@ -196,7 +196,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
   struct variable **vars = NULL;
   size_t var_cnt = 0;
   int save_z_scores = 0;
-  size_t z_cnt = 0;
+  int z_cnt = 0;
   size_t i;
   bool ok;
 
@@ -370,7 +370,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
     {
       if (save_z_scores) 
         {
-          size_t gen_cnt = 0;
+          int gen_cnt = 0;
 
           for (i = 0; i < dsc->var_cnt; i++)
             if (dsc->vars[i].z_name[0] == 0) 
@@ -491,7 +491,7 @@ try_name (const struct dictionary *dict, struct dsc_proc *dsc,
    copies the new name into Z_NAME.  On failure, returns false. */
 static bool
 generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z_name,
-                    const char *var_name, size_t *z_cnt)
+                    const char *var_name, int *z_cnt)
 {
   char name[LONG_NAME_LEN + 1];
 

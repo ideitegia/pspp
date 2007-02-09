@@ -765,8 +765,8 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 
   for (i = 0; i < n_vars; i++)
     {
-      size_t n_categories = cat_get_n_categories (varlist[i]);
-      size_t j;
+      int n_categories = cat_get_n_categories (varlist[i]);
+      int j;
       
       fprintf (fp, "%s.name = \"%s\";\n\t",
                var_get_name (varlist[i]),
