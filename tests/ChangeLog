@@ -1,3 +1,9 @@
+Sat Feb  3 21:57:34 2007  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add tests/command/vector.sh.
+
+	* tests/command/vector.sh: New test.
+
 Wed Jan 24 21:13:53 2007  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add tests/libpspp/abt-test.

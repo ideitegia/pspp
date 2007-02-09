@@ -1,3 +1,8 @@
+Sat Feb  3 21:56:46 2007  Ben Pfaff  <blp@gnu.org>
+
+	* table.c (tab_hline): Allow t->nr as y argument, so that we can
+	draw a line below the bottom row of the table.
+
 Wed Feb  7 21:38:12 2007  Ben Pfaff  <blp@gnu.org>
 
 	* afm.c: Add #include <limits.h>.  Thanks to John McCabe-Dansted

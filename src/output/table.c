@@ -274,7 +274,7 @@ tab_hline (struct tab_table * t, int style, int x1, int x2, int y)
   y += t->row_ofs;
 
   assert (y >= 0);
-  assert (y < t->nr);
+  assert (y <= t->nr);
   assert (x2 >= x1 );
   assert (x1 >= 0 );
   assert (x2 < t->nc);

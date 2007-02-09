@@ -1,3 +1,13 @@
+Sat Feb  3 21:52:35 2007  Ben Pfaff  <blp@gnu.org>
+
+	* vector.c (cmd_vector): Add support for specifying an output
+	format in the short form of the command, fixing bug #18706.
+	Rewrite to get rid of weird data structure and simplify.
+
+	* sys-file-info.c (display_vectors): For DISPLAY VECTORS, display,
+	in addition to the names of vectors, the names, positions, and
+	print formats of the variables contained in the vectors.
+
 Wed Dec 13 20:59:54 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add delete-variables.c

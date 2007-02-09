@@ -57,6 +57,7 @@ TESTS = \
 	tests/command/trimmed-mean.sh \
 	tests/command/tabs.sh \
 	tests/command/use.sh \
+	tests/command/vector.sh \
 	tests/command/very-long-strings.sh \
 	tests/command/weight.sh \
 	tests/formats/bcd-in.sh \

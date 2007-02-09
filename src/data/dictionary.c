@@ -1137,6 +1137,18 @@ dict_create_vector (struct dictionary *d,
     return false;
 }
 
+/* Creates in D a vector named NAME that contains the CNT
+   variables in VAR.  A vector named NAME must not already exist
+   in D. */
+void
+dict_create_vector_assert (struct dictionary *d,
+                           const char *name,
+                           struct variable **var, size_t cnt)
+{
+  assert (dict_lookup_vector (d, name) == NULL);
+  dict_create_vector (d, name, var, cnt);
+}
+
 /* Returns the vector in D with index IDX, which must be less
    than dict_get_vector_cnt (D). */
 const struct vector *

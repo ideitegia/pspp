@@ -588,6 +588,8 @@ display_vectors (const struct dictionary *dict, int sorted)
   int i;
   struct tab_table *t;
   size_t nvec;
+  size_t nrow;
+  size_t row;
   
   nvec = dict_get_vector_cnt (dict);
   if (nvec == 0)
@@ -597,32 +599,52 @@ display_vectors (const struct dictionary *dict, int sorted)
     }
 
   vl = xnmalloc (nvec, sizeof *vl);
-  for (i = 0; i < nvec; i++)
-    vl[i] = dict_get_vector (dict, i);
+  nrow = 0;
+  for (i = 0; i < nvec; i++) 
+    {
+      vl[i] = dict_get_vector (dict, i);
+      nrow += vector_get_var_cnt (vl[i]); 
+    }
   if (sorted)
     qsort (vl, nvec, sizeof *vl, compare_vector_ptrs_by_name);
 
-  t = tab_create (1, nvec + 1, 0);
+  t = tab_create (4, nrow + 1, 0);
   tab_headers (t, 0, 0, 1, 0);
   tab_columns (t, TAB_COL_DOWN, 1);
   tab_dim (t, tab_natural_dimensions);
-  tab_hline (t, TAL_1, 0, 0, 1);
+  tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 3, nrow);
+  tab_box (t, -1, -1, -1, TAL_1, 0, 0, 3, nrow);
+  tab_hline (t, TAL_2, 0, 3, 1);
   tab_text (t, 0, 0, TAT_TITLE | TAB_LEFT, _("Vector"));
+  tab_text (t, 1, 0, TAT_TITLE | TAB_LEFT, _("Position"));
+  tab_text (t, 2, 0, TAT_TITLE | TAB_LEFT, _("Variable"));
+  tab_text (t, 3, 0, TAT_TITLE | TAB_LEFT, _("Print Format"));
   tab_flags (t, SOMF_NO_TITLE);
-  for (i = 0; i < nvec; i++)
-    tab_text (t, 0, i + 1, TAB_LEFT, vector_get_name (vl[i]));
+
+  row = 1;
+  for (i = 0; i < nvec; i++) 
+    {
+      const struct vector *vec = vl[i];
+      size_t j;
+      
+      tab_joint_text (t, 0, row, 0, row + vector_get_var_cnt (vec) - 1,
+                      TAB_LEFT, vector_get_name (vl[i]));
+
+      for (j = 0; j < vector_get_var_cnt (vec); j++)
+        {
+          struct variable *var = vector_get_var (vec, j);
+          char fmt_string[FMT_STRING_LEN_MAX + 1];
+          fmt_to_string (var_get_print_format (var), fmt_string);
+          
+          tab_text (t, 1, row, TAB_RIGHT | TAT_PRINTF, "%d", (int) j + 1);
+          tab_text (t, 2, row, TAB_LEFT, var_get_name (var));
+          tab_text (t, 3, row, TAB_LEFT, fmt_string);
+          row++;
+        }
+      tab_hline (t, TAL_1, 0, 3, row);
+    }
+
   tab_submit (t);
 
   free (vl);
 }
-
-
-
-
-
-
-
-
-
-
-

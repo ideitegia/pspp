@@ -20,17 +20,22 @@
 
 #include <stdlib.h>
 
+#include <data/format.h>
 #include <data/procedure.h>
 #include <data/dictionary.h>
 #include <data/variable.h>
 #include <language/command.h>
+#include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
+#include <libpspp/pool.h>
 #include <libpspp/str.h>
+
+#include "intprops.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -38,55 +43,47 @@
 int
 cmd_vector (struct lexer *lexer, struct dataset *ds)
 {
-  /* Just to be different, points to a set of null terminated strings
-     containing the names of the vectors to be created.  The list
-     itself is terminated by a empty string.  So a list of three
-     elements, A B C, would look like this: "A\0B\0C\0\0". */
-  char *vecnames;
-
-  /* vecnames iterators. */
-  char *cp, *cp2;
-
-  /* Maximum allocated position for vecnames, plus one position. */
-  char *endp = NULL;
-
   struct dictionary *dict = dataset_dict (ds);
+  struct pool *pool = pool_create ();
 
-  cp = vecnames = xmalloc (256);
-  endp = &vecnames[256];
   do
     {
+      char **vectors;
+      size_t vector_cnt, vector_cap;
+
       /* Get the name(s) of the new vector(s). */
       if (!lex_force_id (lexer))
 	return CMD_CASCADING_FAILURE;
+
+      vectors = NULL;
+      vector_cnt = vector_cap = 0;
       while (lex_token (lexer) == T_ID)
 	{
-	  if (cp + 16 > endp)
-	    {
-	      char *old_vecnames = vecnames;
-	      vecnames = xrealloc (vecnames, endp - vecnames + 256);
-	      cp = (cp - old_vecnames) + vecnames;
-	      endp = (endp - old_vecnames) + vecnames + 256;
-	    }
-
-	  for (cp2 = cp; cp2 < cp; cp2 += strlen (cp))
-	    if (!strcasecmp (cp2, lex_tokid (lexer)))
-	      {
-		msg (SE, _("Vector name %s is given twice."), lex_tokid (lexer));
-		goto fail;
-	      }
-
+          size_t i;
+          
 	  if (dict_lookup_vector (dict, lex_tokid (lexer)))
 	    {
-	      msg (SE, _("There is already a vector with name %s."), lex_tokid (lexer));
+	      msg (SE, _("A vector named %s already exists."),
+                   lex_tokid (lexer));
 	      goto fail;
 	    }
 
-	  cp = stpcpy (cp, lex_tokid (lexer)) + 1;
+          for (i = 0; i < vector_cnt; i++)
+            if (!strcasecmp (vectors[i], lex_tokid (lexer)))
+	      {
+		msg (SE, _("Vector name %s is given twice."),
+                     lex_tokid (lexer));
+		goto fail;
+	      }
+
+          if (vector_cnt == vector_cap)
+            vectors = pool_2nrealloc (pool,
+                                       vectors, &vector_cap, sizeof *vectors);
+          vectors[vector_cnt++] = xstrdup (lex_tokid (lexer));
+
 	  lex_get (lexer);
 	  lex_match (lexer, ',');
 	}
-      *cp++ = 0;
 
       /* Now that we have the names it's time to check for the short
          or long forms. */
@@ -96,115 +93,116 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
           struct variable **v;
           size_t nv;
 
-	  if (strchr (vecnames, '\0')[1])
+	  if (vector_cnt > 1)
 	    {
-	      /* There's more than one vector name. */
-	      msg (SE, _("A slash must be used to separate each vector "
-                         "specification when using the long form.  Commands "
-                         "such as VECTOR A,B=Q1 TO Q20 are not supported."));
+	      msg (SE, _("A slash must separate each vector "
+                         "specification in VECTOR's long form."));
 	      goto fail;
 	    }
 
-	  if (!parse_variables (lexer, dict, &v, &nv,
-                                PV_SAME_WIDTH | PV_DUPLICATE))
+	  if (!parse_variables_pool (lexer, pool, dict, &v, &nv,
+                                     PV_SAME_WIDTH | PV_DUPLICATE))
 	    goto fail;
 
-          dict_create_vector (dict, vecnames, v, nv);
-          free (v);
+          dict_create_vector (dict, vectors[0], v, nv);
 	}
       else if (lex_match (lexer, '('))
 	{
-	  int i;
+          /* Short form. */
+          struct fmt_spec format;
+          bool seen_format = false;
+          
+          struct variable **vars;
+          int var_cnt;
 
-	  /* Maximum number of digits in a number to add to the base
-	     vecname. */
-	  int ndig;
+          size_t i;
 
-	  /* Name of an individual variable to be created. */
-	  char name[SHORT_NAME_LEN + 1];
+          var_cnt = 0;
+          format = fmt_for_output (FMT_F, 8, 2);
+          seen_format = false;
+          while (!lex_match (lexer, ')')) 
+            {
+              if (lex_is_integer (lexer) && var_cnt == 0) 
+                {
+                  var_cnt = lex_integer (lexer);
+                  lex_get (lexer);
+                  if (var_cnt <= 0)
+                    {
+                      msg (SE, _("Vectors must have at least one element."));
+                      goto fail;
+                    }
+                }
+              else if (lex_token (lexer) == T_ID && !seen_format) 
+                {
+                  seen_format = true;
+                  if (!parse_format_specifier (lexer, &format)
+                      || !fmt_check_output (&format)
+                      || !fmt_check_type_compat (&format, VAR_NUMERIC))
+                    goto fail;
+                }
+              else 
+                {
+                  lex_error (lexer, NULL);
+                  goto fail;
+                }
+              lex_match (lexer, ',');
+            }
+          if (var_cnt == 0) 
+            {
+              lex_error (lexer, _("expecting vector length"));
+              goto fail;
+            }
 
-          /* Vector variables. */
-          struct variable **v;
-          int nv;
-
-	  if (!lex_force_int (lexer))
-	    return CMD_CASCADING_FAILURE;
-	  nv = lex_integer (lexer);
-	  lex_get (lexer);
-	  if (nv <= 0)
+	  /* Check that none of the variables exist and that
+             their names are no more than LONG_NAME_LEN bytes
+             long. */
+          for (i = 0; i < vector_cnt; i++)
 	    {
-	      msg (SE, _("Vectors must have at least one element."));
-	      goto fail;
-	    }
-	  if (!lex_force_match (lexer, ')'))
-	    goto fail;
-
-	  /* First check that all the generated variable names
-	     are LONG_NAME_LEN characters or shorter. */
-	  ndig = intlog10 (nv);
-	  for (cp = vecnames; *cp;)
-	    {
-	      int len = strlen (cp);
-	      if (len + ndig > LONG_NAME_LEN)
+              int j;
+	      for (j = 0; j < var_cnt; j++)
 		{
-		  msg (SE, _("%s%d is too long for a variable name."), cp, nv);
-		  goto fail;
-		}
-	      cp += len + 1;
-	    }
-
-	  /* Next check that none of the variables exist. */
-	  for (cp = vecnames; *cp;)
-	    {
-	      for (i = 0; i < nv; i++)
-		{
-		  sprintf (name, "%s%d", cp, i + 1);
-		  if (dict_lookup_var (dict, name))
+                  char name[LONG_NAME_LEN + INT_STRLEN_BOUND (int) + 1];
+		  sprintf (name, "%s%d", vectors[i], j + 1);
+                  if (strlen (name) > LONG_NAME_LEN)
+                    {
+                      msg (SE, _("%s is too long for a variable name."), name);
+                      goto fail;
+                    }
+                  if (dict_lookup_var (dict, name))
 		    {
-		      msg (SE, _("There is already a variable named %s."),
-                           name);
+		      msg (SE, _("%s is an existing variable name."), name);
 		      goto fail;
 		    }
 		}
-	      cp += strlen (cp) + 1;
 	    }
 
 	  /* Finally create the variables and vectors. */
-          v = xmalloc (nv * sizeof *v);
-	  for (cp = vecnames; *cp;)
+          vars = pool_nmalloc (pool, var_cnt, sizeof *vars);
+          for (i = 0; i < vector_cnt; i++)
 	    {
-	      for (i = 0; i < nv; i++)
+              int j;
+	      for (j = 0; j < var_cnt; j++)
 		{
-		  sprintf (name, "%s%d", cp, i + 1);
-		  v[i] = dict_create_var_assert (dict, name, 0);
+                  char name[LONG_NAME_LEN + 1];
+		  sprintf (name, "%s%d", vectors[i], j + 1);
+		  vars[j] = dict_create_var_assert (dict, name, 0);
+                  var_set_both_formats (vars[j], &format);
 		}
-              if (!dict_create_vector (dict, cp, v, nv))
-                NOT_REACHED ();
-	      cp += strlen (cp) + 1;
+              dict_create_vector_assert (dict, vectors[i], vars, var_cnt);
 	    }
-          free (v);
 	}
       else
 	{
-	  msg (SE, _("The syntax for this command does not match "
-	       "the expected syntax for either the long form "
-	       "or the short form of VECTOR."));
+          lex_error (lexer, NULL);
 	  goto fail;
 	}
-
-      free (vecnames);
-      vecnames = NULL;
     }
   while (lex_match (lexer, '/'));
 
-  if (lex_token (lexer) != '.')
-    {
-      lex_error (lexer, _("expecting end of command"));
-      goto fail;
-    }
-  return CMD_SUCCESS;
+  pool_destroy (pool);
+  return lex_end_of_command (lexer);
 
 fail:
-  free (vecnames);
+  pool_destroy (pool);
   return CMD_FAILURE;
 }

@@ -1,3 +1,7 @@
+Sat Feb  3 21:52:17 2007  Ben Pfaff  <blp@gnu.org>
+
+	* dictionary.c (dict_create_vector_assert): New function.
+
 Wed Feb  7 21:25:15 2007  Ben Pfaff  <blp@gnu.org>
 
 	* file-name.c (fn_normalize): Correct name of function

@@ -126,6 +126,9 @@ void dict_set_documents (struct dictionary *, const char *);
 bool dict_create_vector (struct dictionary *,
                          const char *name,
                          struct variable **, size_t cnt);
+void dict_create_vector_assert (struct dictionary *,
+                                const char *name,
+                                struct variable **, size_t cnt);
 const struct vector *dict_get_vector (const struct dictionary *,
                                       size_t idx);
 size_t dict_get_vector_cnt (const struct dictionary *);
