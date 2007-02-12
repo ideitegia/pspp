@@ -22,11 +22,13 @@
 
 #include "config.h"
 #include <output/chart.h>
+#include <output/charts/box-whisker.h>
+#include <output/charts/piechart.h>
 #include <output/charts/plot-chart.h>
+#include <output/charts/plot-hist.h>
 #include <output/charts/cartesian.h>
 #include <gsl/gsl_histogram.h>
 #include <libpspp/compiler.h>
-
 
 #ifndef NO_CHARTS
 #error This file should be used only when compiling without charts.
@@ -40,78 +42,86 @@ chart_create(void)
 
 
 void  
-chart_write_title(struct chart *chart, const char *title, ...)
+chart_write_title(struct chart *chart UNUSED, const char *title UNUSED, ...)
 {
 }
 
 
 void
-chart_submit(struct chart *chart)
+chart_submit(struct chart *chart UNUSED)
 {
 }
 
 
 void 
-chart_write_xscale(struct chart *ch, double min, double max, int ticks)
+chart_write_xscale(struct chart *ch UNUSED,
+                   double min UNUSED, double max UNUSED, int ticks UNUSED)
 {
 }
 
 
 void 
-chart_write_yscale(struct chart *ch, double smin, double smax, int ticks)
+chart_write_yscale(struct chart *ch UNUSED UNUSED,
+                   double smin UNUSED, double smax UNUSED, int ticks UNUSED)
 {
 }
 
 
 void 
-chart_write_xlabel(struct chart *ch, const char *label)
+chart_write_xlabel(struct chart *ch UNUSED, const char *label UNUSED)
 {
 }
 
 void 
-chart_write_ylabel(struct chart *ch, const char *label)
+chart_write_ylabel(struct chart *ch UNUSED, const char *label UNUSED)
 {
 }
 
 
 void
-chart_line(struct chart *ch, double slope, double intercept, 
-	   double limit1, double limit2, enum CHART_DIM lim_dim)
+chart_line(struct chart *ch UNUSED,
+           double slope UNUSED, double intercept UNUSED, 
+	   double limit1 UNUSED, double limit2 UNUSED,
+           enum CHART_DIM lim_dim UNUSED)
 {
 }
 
 
 void
-chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
+chart_datum(struct chart *ch UNUSED, int dataset UNUSED UNUSED,
+            double x UNUSED, double y UNUSED)
 {
 }
 
 struct normal_curve;
 
 void
-histogram_plot(const gsl_histogram *hist,
-	       const char *factorname,
-	       const struct normal_curve *norm, short show_normal)
+histogram_plot(const gsl_histogram *hist UNUSED,
+	       const char *factorname UNUSED,
+	       const struct normal_curve *norm UNUSED,
+               short show_normal UNUSED)
 {
 }
 
 void
-boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
+boxplot_draw_yscale(struct chart *ch UNUSED,
+                    double y_max UNUSED, double y_min UNUSED)
 {
 }
 
 void 
-boxplot_draw_boxplot(struct chart *ch,
-		     double box_centre, 
-		     double box_width,
-		     struct metrics *m,
-		     const char *name)
+boxplot_draw_boxplot(struct chart *ch UNUSED,
+		     double box_centre UNUSED, 
+		     double box_width UNUSED,
+		     struct metrics *m UNUSED,
+		     const char *name UNUSED)
 {
 }
 
 
 
 void
-piechart_plot(const char *title, const struct slice *slices, int n_slices)
+piechart_plot(const char *title UNUSED,
+              const struct slice *slices UNUSED, int n_slices UNUSED)
 {
 }

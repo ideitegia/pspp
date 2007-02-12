@@ -1,3 +1,8 @@
+Sun Feb 11 19:43:39 2007  Ben Pfaff  <blp@gnu.org>
+
+	* dummy-chart.c: Apply UNUSED and include additional headers to
+	avoid complaints from GCC.  Patch #5739.
+
 Sat Mar  4 13:24:39 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Move definition of NO_CHARTS here from pref.h.orig.
