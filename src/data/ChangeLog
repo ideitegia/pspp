@@ -1,3 +1,8 @@
+Sun Feb 11 20:44:13 2007  Ben Pfaff  <blp@gnu.org>
+
+	* make-file.c: Include "mkstemp.h", without which linking on
+	mingw32 fails.
+
 Thu Feb  8 14:59:05 2007  Ben Pfaff  <blp@gnu.org>
  
  	Reduce platform dependence.
