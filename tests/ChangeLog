@@ -1,3 +1,7 @@
+Mon Feb 12 06:29:30 2007  Ben Pfaff  <blp@gnu.org>
+
+	* libpspp/ll-test.c, libpspp/llx-test.c: Include <config.h>.
+
 Sat Feb  3 21:57:34 2007  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add tests/command/vector.sh.

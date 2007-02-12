@@ -28,6 +28,10 @@
    See llx-test.c for a similar program for the llx_*
    routines. */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <libpspp/ll.h>
 #include <assert.h>
 #include <stdio.h>
