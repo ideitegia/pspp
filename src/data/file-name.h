@@ -21,29 +21,23 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <libpspp/str.h>
 
 /* Search path for configuration files. */
 extern const char *config_path;
 
 void fn_init (void);
 
-struct string;
-struct substring;
 void fn_interp_vars (struct substring src, 
                      const char *(*getenv) (const char *),
                      struct string *dst);
-char *fn_tilde_expand (const char *fn);
 char *fn_search_path (const char *base_name, const char *path);
-char *fn_normalize (const char *fn);
 char *fn_dir_name (const char *fn);
 char *fn_extension (const char *fn);
-
-char *fn_get_cwd (void);
 
 bool fn_is_absolute (const char *fn);
 bool fn_is_special (const char *fn);
 bool fn_exists (const char *fn);
-char *fn_readlink (const char *fn);
 
 const char *fn_getenv (const char *variable);
 const char *fn_getenv_default (const char *variable, const char *def);

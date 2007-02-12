@@ -1,3 +1,11 @@
+Thu Feb  8 15:07:04 2007  Ben Pfaff  <blp@gnu.org>
+
+	* read-line.c (readln_initialize): Instead of only supporting
+	history in unix, always support history, and only support a
+	history file when $HOME is defined.
+	(readln_uninitialize): Ditto.
+	(welcome) Call readln_initialize instead of duplicating code.
+
 Sun Dec 10 11:13:53 2006  Ben Pfaff  <blp@gnu.org>
 
 	* command-line.c (pre_syntax_message): Use term "syntax" instead

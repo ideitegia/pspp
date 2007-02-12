@@ -718,9 +718,9 @@ cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
   return CMD_SUCCESS;
 }
 
-#ifdef unix
-/* Spawn a shell process. */
-static int
+#if HAVE_FORK && HAVE_EXECL
+/* Spawn an interactive shell process. */
+static bool
 shell (void)
 {
   int pid;
@@ -761,69 +761,48 @@ shell (void)
 
     case -1:
       msg (SE, _("Couldn't fork: %s."), strerror (errno));
-      return 0;
+      return false;
 
     default:
       assert (pid > 0);
       while (wait (NULL) != pid)
 	;
-      return 1;
+      return true;
     }
 }
-#endif /* unix */
-
-/* Parses the HOST command argument and executes the specified
-   command.  Returns a suitable command return code. */
-static int
-run_command (struct lexer *lexer)
+#else /* !(HAVE_FORK && HAVE_EXECL) */
+/* Don't know how to spawn an interactive shell. */
+static bool
+shell (void)
 {
-  const char *cmd;
-  int string;
+  msg (SE, _("Interactive shell not supported on this platform."));
+  return false;
+}
+#endif
 
-  /* Handle either a string argument or a full-line argument. */
-  {
-    int c = lex_look_ahead (lexer);
-
-    if (c == '\'' || c == '"')
-      {
-	lex_get (lexer);
-	if (!lex_force_string (lexer))
-	  return CMD_FAILURE;
-	cmd = ds_cstr (lex_tokstr (lexer));
-	string = 1;
-      }
-    else
-      {
-	cmd = lex_rest_of_line (lexer, NULL);
-        lex_discard_line (lexer);
-	string = 0;
-      }
-  }
-
-  /* Execute the command. */
-  if (system (cmd) == -1)
-    msg (SE, _("Error executing command: %s."), strerror (errno));
-
-  /* Finish parsing. */
-  if (string)
+/* Executes the specified COMMAND in a subshell.  Returns true if
+   successful, false otherwise. */
+static bool
+run_command (const char *command)
+{
+  if (system (NULL) == 0) 
     {
-      lex_get (lexer);
-
-      if (lex_token (lexer) != '.')
-	{
-	  lex_error (lexer, _("expecting end of command"));
-	  return CMD_FAILURE;
-	}
+      msg (SE, _("Command shell not supported on this platform."));
+      return false;
     }
 
-  return CMD_SUCCESS;
+  /* Execute the command. */
+  if (system (command) == -1)
+    msg (SE, _("Error executing command: %s."), strerror (errno));
+
+  return true;
 }
 
 /* Parses, performs the HOST command. */
 int
 cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  int code;
+  int look_ahead;
 
   if (get_safer_mode ()) 
     { 
@@ -831,29 +810,30 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
       return CMD_FAILURE; 
     } 
 
-#ifdef unix
-  /* Figure out whether to invoke an interactive shell or to execute a
-     single shell command. */
-  if (lex_look_ahead (lexer) == '.')
+  look_ahead = lex_look_ahead (lexer);
+  if (look_ahead == '.') 
     {
       lex_get (lexer);
-      code = shell () ? CMD_FAILURE : CMD_SUCCESS;
+      return shell () ? CMD_SUCCESS : CMD_FAILURE;
     }
-  else
-    code = run_command (lexer);
-#else /* !unix */
-  /* Make sure that the system has a command interpreter, then run a
-     command. */
-  if (system (NULL) != 0)
-    code = run_command (lexer);
-  else
+  else if (look_ahead == '\'' || look_ahead == '"')
     {
-      msg (SE, _("No operating system support for this command."));
-      code = CMD_FAILURE;
-    }
-#endif /* !unix */
+      bool ok;
+      
+      lex_get (lexer);
+      if (!lex_force_string (lexer))
+        NOT_REACHED ();
+      ok = run_command (ds_cstr (lex_tokstr (lexer)));
 
-  return code;
+      lex_get (lexer);
+      return ok ? lex_end_of_command (lexer) : CMD_FAILURE;
+    }
+  else 
+    {
+      bool ok = run_command (lex_rest_of_line (lexer, NULL));
+      lex_discard_line (lexer);
+      return ok ? CMD_SUCCESS : CMD_FAILURE;
+    }
 }
 
 /* Parses, performs the NEW FILE command. */

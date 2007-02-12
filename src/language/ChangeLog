@@ -1,3 +1,13 @@
+Thu Feb  8 15:04:42 2007  Ben Pfaff  <blp@gnu.org>
+
+	Reduce platform dependence.
+
+	* command.c (shell): Always define this function, instead of only
+	in unix, but make it a stub when fork or execl is not available.
+	(run_command): Move parsing code into cmd_host.
+	(cmd_host): Drop unix dependence now that the shell function is
+	always defined.	
+
 Sun Jan 21 15:31:52 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* command.c command.h: Renamed cmd_parse to cmd_parse_in_state.

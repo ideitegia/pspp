@@ -42,10 +42,10 @@ fi
 AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
 AC_ARG_WITH(gui_tools, [  --with-gui-tools          build the gui developer tools])
-if test x"$with_gui_tools" == x"yes" ; then 
+if test x"$with_gui_tools" = x"yes" ; then 
 	PKG_CHECK_MODULES(GLADE_UI, libgladeui-1.0)
 fi
-AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" == x"yes")
+AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 
 PSPP_OFF_T
 
@@ -80,13 +80,9 @@ AC_DEFINE(FPREP_IEEE754, 1,
 AC_C_BIGENDIAN
 
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([__setfpucw isinf isnan finite getpid feholdexcept round trunc])
+AC_CHECK_FUNCS([__setfpucw execl fork isinf isnan finite getpid feholdexcept popen round trunc])
 
 AC_PROG_LN_S
-
-
-AM_CONDITIONAL(unix, test x"$host_os" != x"msdos" )
-AM_CONDITIONAL(msdos, test x"$host_os" = x"msdos" )
 
 dnl This is needed otherwise --with-included-gettext fails
 AH_BOTTOM([#include <locale.h>])

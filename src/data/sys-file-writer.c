@@ -46,7 +46,6 @@
 #include "value-labels.h"
 #include "variable.h"
 
-#include "stat-macros.h"
 #include "minmax.h"
 
 #include "gettext.h"

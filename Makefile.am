@@ -6,21 +6,14 @@ SUBDIRS = intl gl po
 DISTCLEANFILES = ./intl/plural.c ./po/stamp-po
 BUILT_SOURCES =
 
-AM_CPPFLAGS=-I$(top_srcdir)/intl -I$(top_srcdir)/gl -I$(top_builddir)/gl
+AM_CPPFLAGS=-I$(top_srcdir)/intl -I$(top_builddir)/intl \
+	-I$(top_srcdir)/gl -I$(top_builddir)/gl
 
 AM_CFLAGS=
 
 if cc_is_gcc
 AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
 -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes
-endif
-
-if unix
-AM_CFLAGS+=-Dunix
-endif
-
-if msdos
-AM_CFLAGS+=-D__MSDOS__
 endif
 
 .q.c:

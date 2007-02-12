@@ -360,7 +360,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 }
 
 static void
-html_initialise_chart (struct outp_driver *this, struct chart *ch)
+html_initialise_chart (struct outp_driver *this UNUSED, struct chart *ch)
 {
 #ifdef NO_CHARTS
   ch->lp = NULL;

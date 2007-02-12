@@ -70,15 +70,17 @@ readln_initialize (void)
 
 #if HAVE_READLINE
   rl_basic_word_break_characters = "\n";
-#ifdef unix
+  using_history ();
+  stifle_history (500);
   if (history_file == NULL)
     {
-      history_file = tilde_expand ("~/.pspp_history");
-      using_history ();
-      read_history (history_file);
-      stifle_history (500);
+      const char *home_dir = getenv ("HOME");
+      if (home_dir != NULL) 
+        {
+          history_file = xasprintf ("%s/.pspp_history", home_dir);
+          read_history (history_file); 
+        }
     }
-#endif
 #endif
 }
 
@@ -88,7 +90,7 @@ readln_uninitialize (void)
 {
   initialised = false;
 
-#if HAVE_READLINE && unix
+#if HAVE_READLINE
   if (history_file != NULL && false == get_testing_mode() )
     write_history (history_file);
   clear_history ();
@@ -127,22 +129,8 @@ welcome (void)
 	 "conditions.\nThere is ABSOLUTELY NO WARRANTY for PSPP; type \"show "
 	 "warranty.\" for details.\n", stdout);
   puts (stat_version);
-
-#if HAVE_READLINE && unix
-  if (history_file == NULL)
-    {
-      history_file = tilde_expand ("~/.pspp_history");
-      using_history ();
-      read_history (history_file);
-      stifle_history (500);
-    }
-#endif
+  readln_initialize ();
 }
-
-
-
-
-
 
 /* Gets a line from the user and stores it into LINE.
    Prompts the user with PROMPT.

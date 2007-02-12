@@ -22,7 +22,7 @@ This chapter describe how to configure PSPP for your system.
 
 PSPP searches each directory in the configuration file path for most
 configuration files.  The default configuration file path searches first
-@file{~/.pspp}, then the package system configuration directory (usually
+@file{$HOME/.pspp}, then the package system configuration directory (usually
 @file{/usr/local/etc/pspp} or @file{/etc/pspp}).  The value of
 environment variable @env{PSPP_CONFIG_PATH}, if defined, overrides this
 default path.  Finally, @samp{-B @var{path}} or
@@ -836,7 +836,7 @@ across operating systems:
 @file{.}
 
 @item
-@file{~/.pspp/include}
+@file{$HOME/.pspp/include}
 
 @item
 @file{/usr/local/lib/pspp/include}

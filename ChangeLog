@@ -1,3 +1,22 @@
+Thu Feb  8 14:56:18 2007  Ben Pfaff  <blp@gnu.org>
+
+	Reduce platform dependence.
+
+	* Makefile.am: Don't add -Dunix or -D__MSDOS__ to compiler command
+	line.  Add $(top_builddir)/intl to include path to fix building
+	with the included libintl.
+
+	* Smake (GNULIB_MODULES): Add `canonicalize', `sys_stat',
+	`mkstemp' modules.  Remove `stat-macros' module, which is no
+	longer what we want, because what we want is provided by sys_stat
+	now, and remove its inclusions.  Remove `strstr' module, which is
+	no longer in gnulib.  Remove `readlink', `xreadlink', because we
+	no longer use either function.
+
+	* configure.ac: Move gl_EARLY before AC_PROG_CC, where the gnulib
+	manual says it should be.  Check for presence of execl, fork,
+	and popen.  Drop check for unix versus msdos as host OS.
+
 Sat Nov  4 15:59:31 2006  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: Check for the "round" function added in C99.

@@ -1,3 +1,8 @@
+Sun Feb 11 17:59:30 2007  Ben Pfaff  <blp@gnu.org>
+
+	* html.c (html_initialise_chart): Mark `this' parameter UNUSED to
+	account for NO_CHARTS case.
+
 Sat Feb  3 21:56:46 2007  Ben Pfaff  <blp@gnu.org>
 
 	* table.c (tab_hline): Allow t->nr as y argument, so that we can

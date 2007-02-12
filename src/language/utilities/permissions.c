@@ -28,7 +28,6 @@
 #include <libpspp/message.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/misc.h>
-#include "stat-macros.h"
 #include <libpspp/str.h>
 
 #include "gettext.h"

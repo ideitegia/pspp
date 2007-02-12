@@ -35,7 +35,6 @@
 #include "file-handle-def.h"
 #include "format.h"
 #include "missing-values.h"
-#include "stat-macros.h"
 #include "value-labels.h"
 #include "variable.h"
 

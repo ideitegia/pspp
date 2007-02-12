@@ -9,6 +9,7 @@ GNULIB_MODULES = \
 	alloca-opt \
 	assert \
 	byteswap \
+	canonicalize \
 	c-ctype \
 	c-strtod \
 	exit \
@@ -30,10 +31,9 @@ GNULIB_MODULES = \
 	memmove \
 	mempcpy \
 	memset \
+	mkstemp \
 	progname \
-	readlink \
 	snprintf \
-	stat-macros \
 	stdarg \
 	stdbool \
 	stdint \
@@ -43,17 +43,16 @@ GNULIB_MODULES = \
 	strerror \
 	strftime \
 	strsep \
-	strstr \
 	strtod \
 	strtok_r \
 	strtol \
 	strtoul \
+	sys_stat \
 	unistd \
 	unlocked-io \
 	vsnprintf \
 	xalloc \
 	xalloc-die \
-	xreadlink \
 	xsize \
 	xstrndup \
 	xvasprintf

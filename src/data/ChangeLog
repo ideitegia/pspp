@@ -1,3 +1,22 @@
+Thu Feb  8 14:59:05 2007  Ben Pfaff  <blp@gnu.org>
+ 
+ 	Reduce platform dependence.
+ 
+ 	* file-name.c (fn_tilde_expand): Removed, and removed calls to it.
+ 	Everywhere we using this, we really should have just depended on
+ 	the shell to expand tildes.
+ 	(fn_search_path): Simplify, given that we don't do tilde expansion
+ 	any longer.
+ 	(fn_normalize): Removed.  Caller changed to use the canonicalize
+ 	module from gnulib.
+ 	(fn_get_cwd): Removed.  Only user was fn_normalize.
+ 	(fn_is_absolute): Really only test for absolute names.
+ 	(fn_is_special): Use pipe files if HAVE_POPEN, not if we're in
+ 	unix.
+	(fn_readlink): Removed, as it was only used fn_normalize.
+ 	(fn_exists): Assume the stat function is available; gnulib does.
+ 	(fn_open): Use pipe files if HAVE_POPEN, not if we're in unix.
+ 
 Sat Feb  3 21:52:17 2007  Ben Pfaff  <blp@gnu.org>
 
 	* dictionary.c (dict_create_vector_assert): New function.

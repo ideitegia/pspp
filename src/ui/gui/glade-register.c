@@ -1,5 +1,7 @@
 #include <config.h>
 
+#include <string.h>
+
 #include <glade/glade-build.h>
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
