@@ -1,3 +1,12 @@
+Sun Feb 11 20:31:51 2007  Ben Pfaff  <blp@gnu.org>
+
+	* q2c.c: Make q2c link under mingw32, by eliminating the
+	dependency on localtime.  Gnulib replaces localtime by a fixed
+	version, but we don't link q2c against gnulib.  q2c only uses
+	localtime to put the time of processing into the output file,
+	which I've never in practice found to be useful, so the patch just
+	drops this feature.
+
 Wed Dec 13 21:00:24 2006  Ben Pfaff  <blp@gnu.org>
 
 	* variable-parser.c (parse_variables): If not successful, set
