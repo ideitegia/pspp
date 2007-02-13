@@ -92,6 +92,11 @@ if test x"$enable_debug" = x"yes"  ; then
   AC_DEFINE(DEBUGGING, 1, [Define to 1 if debugging is enabled.])
 fi
 
+# iconv is required
+if test "$am_cv_func_iconv" != "yes"; then
+   PSPP_REQUIRED_PREREQ([iconv (see http://www.gnu.org/software/libiconv/)])
+fi
+
 PSPP_CHECK_PREREQS
 
 AC_CONFIG_FILES([Makefile gl/Makefile intl/Makefile po/Makefile.in])
