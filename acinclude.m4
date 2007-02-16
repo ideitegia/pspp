@@ -150,4 +150,39 @@ AC_DEFUN([PSPP_READLINE],
   AC_SUBST(LTLIBREADLINE)
 ])
 
+dnl Check for build tools.  Adapted from bfd library.
+
+AC_DEFUN([PSPP_CC_FOR_BUILD],
+[# Put a plausible default for CC_FOR_BUILD in Makefile.
+if test -z "$CC_FOR_BUILD"; then
+  if test "x$cross_compiling" = "xno"; then
+    CC_FOR_BUILD='$(CC)'
+  else
+    CC_FOR_BUILD=cc
+  fi
+fi
+AC_SUBST(CC_FOR_BUILD)
+# Also set EXEEXT_FOR_BUILD.
+if test "x$cross_compiling" = "xno"; then
+  EXEEXT_FOR_BUILD='$(EXEEXT)'
+else
+  AC_CACHE_CHECK([for build system executable suffix], pspp_cv_build_exeext,
+    [rm -f conftest*
+     echo 'int main () { return 0; }' > conftest.c
+     pspp_cv_build_exeext=
+     ${CC_FOR_BUILD} -o conftest conftest.c 1>&5 2>&5
+     for file in conftest.*; do
+       case $file in # (
+       *.c | *.o | *.obj | *.ilk | *.pdb) ;; # (
+       *) pspp_cv_build_exeext=`echo $file | sed -e s/conftest//` ;;
+       esac
+     done
+     rm -f conftest*
+     test x"${pspp_cv_build_exeext}" = x && pspp_cv_build_exeext=no])
+  EXEEXT_FOR_BUILD=""
+  test x"${pspp_cv_build_exeext}" != xno && EXEEXT_FOR_BUILD=${pspp_cv_build_exeex
+t}
+fi
+AC_SUBST(EXEEXT_FOR_BUILD)])
+
 dnl aclocal.m4 ends here

@@ -18,7 +18,7 @@ PSPP_ENABLE_WARNING(-Wdeclaration-after-statement)
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 
-
+PSPP_CC_FOR_BUILD
 PSPP_PERL
 
 dnl Internationalization macros.

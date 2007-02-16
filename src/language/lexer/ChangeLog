@@ -1,3 +1,14 @@
+Fri Feb 16 11:14:42 2007  Ben Pfaff  <blp@gnu.org>
+
+	Better support cross-compiling by using CC_FOR_BUILD and
+	EXEEXT_FOR_BUILD for q2c.
+	
+	* automake.mk: Use EXEEXT_FOR_BUILD and CC_FOR_BUILD to build and
+	clean q2c.
+
+	* q2c.c: Avoid external dependencies, besides the standard C
+	library.
+
 Sun Feb 11 20:31:51 2007  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: Make q2c link under mingw32, by eliminating the

@@ -16,11 +16,13 @@ AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
 -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes
 endif
 
+CC_FOR_BUILD = @CC_FOR_BUILD@
+EXEEXT_FOR_BUILD = @EXEEXT_FOR_BUILD@
 .q.c:
 	@$(top_srcdir)/mkinstalldirs  `dirname $@`
-	./src/language/lexer/q2c $< $@
+	./src/language/lexer/q2c$(EXEEXT_FOR_BUILD) $< $@
 
-$(all_q_sources:.q=.c): src/language/lexer/q2c$(EXEEXT)
+$(all_q_sources:.q=.c): src/language/lexer/q2c$(EXEEXT_FOR_BUILD)
 all_q_sources =
 
 pkgsysconfdir = $(sysconfdir)/@PACKAGE@

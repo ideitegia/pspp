@@ -15,9 +15,9 @@ language_lexer_sources = \
 EXTRA_DIST += src/language/lexer/q2c.c
 
 
-src/language/lexer/q2c$(EXEEXT): $(top_srcdir)/src/language/lexer/q2c.c 
+src/language/lexer/q2c$(EXEEXT_FOR_BUILD): $(top_srcdir)/src/language/lexer/q2c.c 
 	@$(top_srcdir)/mkinstalldirs `dirname $@`
-	$(CC) $(DEFAULT_INCLUDES) $(AM_CPPFLAGS) $(top_srcdir)/src/language/lexer/q2c.c -o $@
+	$(CC_FOR_BUILD) $(top_srcdir)/src/language/lexer/q2c.c -o $(top_builddir)/src/language/lexer/q2c
 
 
-CLEANFILES += src/language/lexer/q2c$(EXEEXT)
+CLEANFILES += src/language/lexer/q2c$(EXEEXT_FOR_BUILD)

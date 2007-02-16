@@ -1,3 +1,15 @@
+Fri Feb 16 10:50:38 2007  Ben Pfaff  <blp@gnu.org>
+
+	Better support cross-compiling by using CC_FOR_BUILD and
+	EXEEXT_FOR_BUILD for q2c.
+	
+	* Makefile.am: Add CC_FOR_BUILD, EXEEXT_FOR_BUILD variables.  Use
+	in .q.c rule.
+
+	* acinclude.m4: Add PSPP_CC_FOR_BUILD macro.
+
+	* configure.ac: Call PSPP_CC_FOR_BUILD.
+
 Mon Feb 12 16:39:18 2007  Ben Pfaff  <blp@gnu.org>
 
 	* README: Note that iconv is required.

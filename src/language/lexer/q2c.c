@@ -16,8 +16,6 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#include <config.h>
-
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -28,11 +26,26 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include <libpspp/assertion.h>
-#include <libpspp/compiler.h>
+/* GNU C allows the programmer to declare that certain functions take
+   printf-like arguments, never return, etc.  Conditionalize these
+   declarations on whether gcc is in use. */
+#if __GNUC__ > 1
+#define ATTRIBUTE(X) __attribute__ (X)
+#else
+#define ATTRIBUTE(X)
+#endif
 
-#include "exit.h"
-     
+/* Marks a function argument as possibly not used. */
+#define UNUSED ATTRIBUTE ((unused))
+
+/* Marks a function that will never return. */
+#define NO_RETURN ATTRIBUTE ((noreturn))
+
+/* Mark a function as taking a printf- or scanf-like format
+   string as its FMT'th argument and that the FIRST'th argument
+   is the first one to be checked against the format string. */
+#define PRINTF_FORMAT(FMT, FIRST) ATTRIBUTE ((format (__printf__, FMT, FIRST)))
+
 /* Max length of an input line. */
 #define MAX_LINE_LEN 1024
 
@@ -1322,7 +1335,7 @@ dump_vars_init (int persistent)
 		break;
 
 	      default:
-		NOT_REACHED ();
+		abort ();
 	      }
 	  }
       }
