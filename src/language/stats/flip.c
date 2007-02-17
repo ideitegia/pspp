@@ -299,7 +299,8 @@ flip_sink_create (struct dataset *ds, struct flip_pgm *flip)
   flip->file = pool_tmpfile (flip->pool);
   if (flip->file == NULL)
     {
-      msg (SE, _("Could not create temporary file for FLIP."));
+      msg (SE, _("Could not create temporary file for FLIP: %s."),
+           strerror (errno));
       return NULL;
     }
 

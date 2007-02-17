@@ -1,3 +1,8 @@
+Sat Feb 17 08:16:00 2007  Ben Pfaff  <blp@gnu.org>
+
+	* flip.c (flip_sink_create): Improve error message when temporary
+	file cannot be created.
+
 Tue Feb  6 19:58:03 2007  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c (flip_file): Give better error message on end-of-file.
