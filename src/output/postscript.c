@@ -1420,7 +1420,8 @@ reencode_font (struct outp_driver *this, struct font *font)
   fputs ("] RF\n", x->file);
 
   if (freaderror (file) != 0)
-    error (errno, 0, "closing Postscript encoding \"%s\"", font->encoding_fn);
+    error (errno, 0, _("closing Postscript encoding \"%s\""),
+           font->encoding_fn);
 }
 
 /* PostScript driver class. */

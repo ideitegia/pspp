@@ -282,7 +282,7 @@ read_float (struct pfm_reader *r)
 
   /* Check that we had some digits. */
   if (!got_digit)
-    error (r, "Number expected.");
+    error (r, _("Number expected."));
 
   /* Get exponent if any. */
   if (r->cc == '+' || r->cc == '-')
@@ -421,7 +421,7 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
 
   /* Read file. */
   if (!match (r, 'A'))
-    error (r, "Unrecognized version code `%c'.", r->cc);
+    error (r, _("Unrecognized version code `%c'."), r->cc);
   date = read_pool_string (r);
   time = read_pool_string (r);
   product = match (r, '1') ? read_pool_string (r) : empty_string;
@@ -548,7 +548,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       str_uppercase (name);
 
       if (width < 0 || width > 255)
-	error (r, "Bad width %d for variable %s.", width, name);
+	error (r, _("Bad width %d for variable %s."), width, name);
 
       v = dict_create_var (dict, name, width);
       if (v == NULL)

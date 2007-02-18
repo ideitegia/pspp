@@ -1,3 +1,7 @@
+Sun Feb 18 11:20:24 2007  Ben Pfaff  <blp@gnu.org>
+
+	* por-file-reader.c: Add missing _() around messages.
+
 Sun Feb 11 20:44:13 2007  Ben Pfaff  <blp@gnu.org>
 
 	* make-file.c: Include "mkstemp.h", without which linking on
