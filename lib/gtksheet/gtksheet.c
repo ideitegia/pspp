@@ -37,6 +37,8 @@
  * The testgtksheet program shows how easy is to create a spreadsheet-like GUI
  * using this widget.
  */
+#include <config.h>
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

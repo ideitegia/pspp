@@ -1,3 +1,10 @@
+Sat Feb 17 17:36:56 2007  Ben Pfaff  <blp@gnu.org>
+
+	* gsheet-column-iface.c gsheet-hetero-column.c gsheet-row-iface.c
+	gsheet-uniform-column.c gsheet-uniform-row.c gsheetmodel.c
+	gtkextra-marshal.c gtkextra.c gtkiconlist.c gtkitementry.c
+	gtksheet.c: Add "#include <config.h>".
+
 Mon Jun 19 18:03:21 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* gsheet-column-iface.c gsheet-column-iface.h
