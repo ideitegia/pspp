@@ -1,3 +1,9 @@
+Sun Feb 18 11:21:41 2007  Ben Pfaff  <blp@gnu.org>
+
+	* alloc.h: Remove useless parentheses in #if "defined" operator.
+
+	* misc.h: Ditto.
+
 Tue Feb  6 20:00:13 2007  Ben Pfaff  <blp@gnu.org>
 
 	* misc.h [!HAVE_ISINF] (isinf): Define only if isinf is not

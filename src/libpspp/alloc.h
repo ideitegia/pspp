@@ -27,7 +27,7 @@
 void *nmalloc (size_t n, size_t s);
 
 /* alloca() wrapper functions. */
-#if defined (HAVE_ALLOCA) || defined (C_ALLOCA)
+#if defined HAVE_ALLOCA || defined C_ALLOCA
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
