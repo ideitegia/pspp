@@ -193,7 +193,7 @@ briefly in the table below:
 Define a driver in terms of other drivers.
 
 @item macro definitions
-Define environment variables local to the the output driver
+Define environment variables local to the output driver
 configuration file.
 
 @item device definitions

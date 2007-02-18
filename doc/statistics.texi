@@ -553,7 +553,7 @@ category.
 Cases for which a variable takes a value equal to neither of the specified  
 values, take no part in the test for that variable.
 
-If no values appear, then the the variable must assume dichotomous
+If no values appear, then the variable must assume dichotomous
 values.
 If more than two distinct, non-missing values for a variable
 under test are encountered then an error occurs.
@@ -716,7 +716,7 @@ of whether @cmd{/MISSING=LISTWISE} was specified.
 The @cmd{PAIRS} subcommand introduces Paired Samples mode.
 Use this mode when repeated measures have been taken from the same
 samples.
-If the the @code{WITH} keyword is omitted, then tables for all
+If the @code{WITH} keyword is omitted, then tables for all
 combinations of variables given in the @cmd{PAIRS} subcommand are
 generated. 
 If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword

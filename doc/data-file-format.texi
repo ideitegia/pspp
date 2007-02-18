@@ -135,7 +135,7 @@ format and using 24-hour time.  If the time is not available then this
 field is arbitrarily set to @samp{00:00:00}.
 
 @item char file_label[64];
-Set the the file label declared by the user, if any (@pxref{FILE LABEL}).
+Set the file label declared by the user, if any (@pxref{FILE LABEL}).
 Padded on the right with spaces.
 
 @item char padding[3];
