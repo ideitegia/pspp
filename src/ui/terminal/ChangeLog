@@ -1,3 +1,9 @@
+Sun Feb 18 13:28:26 2007  Ben Pfaff  <blp@gnu.org>
+
+	* msg-ui.c: Don't include exit.h, because gnulib fixes up stdlib.h
+	as necessary.  Do include stdlib.h, because exit.h did so for us
+	and we need it.
+
 Thu Feb  8 15:07:04 2007  Ben Pfaff  <blp@gnu.org>
 
 	* read-line.c (readln_initialize): Instead of only supporting

@@ -1,3 +1,8 @@
+Sun Feb 18 13:28:02 2007  Ben Pfaff  <blp@gnu.org>
+
+	* make-file.c: Don't include mkstemp.h, because gnulib now causes
+	<stdlib.h> to have the same effect.
+
 Sun Feb 18 11:20:24 2007  Ben Pfaff  <blp@gnu.org>
 
 	* por-file-reader.c: Add missing _() around messages.

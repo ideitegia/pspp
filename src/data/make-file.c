@@ -27,8 +27,6 @@
 #include <libpspp/message.h>
 #include <libpspp/alloc.h>
 
-#include "mkstemp.h"
-
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 

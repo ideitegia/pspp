@@ -20,7 +20,6 @@
 
 #include "msg-ui.h"
 
-#include "exit.h"
 #include "linebreak.h"
 
 #include <libpspp/msg-locator.h>
@@ -30,7 +29,7 @@
 #include <libpspp/str.h>
 #include <errno.h>
 #include <stdio.h>
-
+#include <stdlib.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
