@@ -9,9 +9,9 @@ GNULIB_MODULES = \
 	alloca-opt \
 	assert \
 	byteswap \
-	canonicalize \
 	c-ctype \
 	c-strtod \
+	dirname \
 	exit \
 	full-read \
 	full-write \

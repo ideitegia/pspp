@@ -1,3 +1,8 @@
+Mon Feb 19 10:52:21 2007  Ben Pfaff  <blp@gnu.org>
+
+	* Smake (GNULIB_MODULES): Add dirname module, remove canonicalize
+	module.  Corresponds to changes in src/data/file-name.c.
+
 Sat Feb 17 09:22:32 2007  Ben Pfaff  <blp@gnu.org>
 
 	* Smake (GNULIB_MODULES): Add tmpfile module, which fixes the use

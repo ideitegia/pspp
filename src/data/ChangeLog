@@ -1,3 +1,19 @@
+Mon Feb 19 10:53:21 2007  John McCabe-Dansted <gmatht@gmail.com>
+			  Ben Pfaff <blp@gnu.org>
+
+	* file-name.c: Mingw compatibility fixes.
+	(fn_search_path): Use ISSLASH instead of comparing against '/'
+	directly.
+	(fn_dir_name): Use dir_name from gnulib.
+	(fn_is_absolute): Use IS_ABSOLUTE_FILE_NAME from gnulib.
+	(fn_get_identity): Use GetFullPathName instead of canonicalize
+	from gnulib, because the latter does not fully support
+	Windows-style path names.  Use this implementation based on the
+	detected presence of Windows instead of the absence of Unix, since
+	the new implementation is Windows-specific.
+	(fn_compare_file_identities): In Windows implementation, compare
+	names case-insensitively.
+
 Sun Feb 18 13:28:02 2007  Ben Pfaff  <blp@gnu.org>
 
 	* make-file.c: Don't include mkstemp.h, because gnulib now causes

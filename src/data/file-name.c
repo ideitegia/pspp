@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -18,21 +18,20 @@
 
 #include <config.h>
 
-#include "file-name.h"
+#include <data/file-name.h>
 
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "canonicalize.h"
 #include "intprops.h"
 #include "minmax.h"
-#include "settings.h"
+#include "dirname.h"
 
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
+#include <data/settings.h>
 #include <libpspp/str.h>
 #include <libpspp/verbose-msg.h>
 #include <libpspp/version.h>
@@ -42,6 +41,11 @@
 
 #include <unistd.h>
 #include <sys/stat.h>
+
+#if defined _WIN32 || defined __WIN32__
+#define WIN32_LEAN_AND_MEAN  /* avoid including junk */
+#include <windows.h>
+#endif
 
 /* Initialization. */
 
@@ -128,7 +132,7 @@ fn_search_path (const char *base_name, const char *path_)
       /* Construct file name. */
       ds_clear (&file);
       ds_put_substring (&file, dir);
-      if (!ds_is_empty (&file) && ds_last (&file) != '/')
+      if (!ds_is_empty (&file) && !ISSLASH (ds_last (&file)))
 	ds_put_char (&file, '/');
       ds_put_cstr (&file, base_name);
 
@@ -153,25 +157,7 @@ fn_search_path (const char *base_name, const char *path_)
 char *
 fn_dir_name (const char *file_name)
 {
-  const char *p;
-  char *s;
-  size_t len;
-
-  len = strlen (file_name);
-  if (len == 1 && file_name[0] == '/')
-    p = file_name + 1;
-  else if (len && file_name[len - 1] == '/')
-    p = buf_find_reverse (file_name, len - 1, file_name + len - 1, 1);
-  else
-    p = strrchr (file_name, '/');
-  if (p == NULL)
-    p = file_name;
-
-  s = xmalloc (p - file_name + 1);
-  memcpy (s, file_name, p - file_name);
-  s[p - file_name] = 0;
-
-  return s;
+  return dir_name (file_name);
 }
 
 /* Returns the extension part of FILE_NAME as a malloc()'d string.
@@ -192,7 +178,7 @@ fn_extension (const char *file_name)
 bool
 fn_is_absolute (const char *name)
 {
-  return name[0] == '/';
+  return IS_ABSOLUTE_FILE_NAME (name);
 }
 
 /* Returns true if FILE_NAME is a virtual file that doesn't
@@ -334,7 +320,7 @@ fn_close (const char *fn, FILE *f)
     return fclose (f);
 }
 
-#ifdef unix
+#if !(defined _WIN32 || defined __WIN32__)
 /* A file's identity. */
 struct file_identity 
 {
@@ -383,7 +369,7 @@ fn_compare_file_identities (const struct file_identity *a,
   else
     return a->inode < b->inode ? -1 : a->inode > b->inode;
 }
-#else /* not unix */
+#else /* Windows */
 /* A file's identity. */
 struct file_identity 
 {
@@ -400,10 +386,13 @@ struct file_identity *
 fn_get_identity (const char *file_name) 
 {
   struct file_identity *identity = xmalloc (sizeof *identity);
-  char *cname = canonicalize_filename_mode (file_name, CAN_MISSING);
-  if (cname == NULL)
-    cname = xstrdup (file_name);
-  identity->normalized_file_name = cname;
+  char cname[PATH_MAX];
+
+  if (GetFullPathName (file_name, sizeof cname, cname, NULL))
+    identity->normalized_file_name = xstrdup (cname);
+  else
+    identity->normalized_file_name = xstrdup (file_name);
+
   return identity;
 }
 
@@ -423,6 +412,6 @@ int
 fn_compare_file_identities (const struct file_identity *a,
                             const struct file_identity *b) 
 {
-  return strcmp (a->normalized_file_name, b->normalized_file_name);
+  return strcasecmp (a->normalized_file_name, b->normalized_file_name);
 }
-#endif /* not unix */
+#endif /* Windows */
