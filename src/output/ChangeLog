@@ -1,3 +1,8 @@
+Tue Feb 20 07:03:48 2007  Ben Pfaff  <blp@gnu.org>
+
+	* html.c: Don't need to include "getlogin_r.h" anymore, because
+	gnulib merged it into <unistd.h>.
+
 Sun Feb 18 11:20:35 2007  Ben Pfaff  <blp@gnu.org>
 
 	* postscript.c: Add missing _() around message.

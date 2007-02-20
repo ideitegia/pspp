@@ -31,7 +31,6 @@
 #include <data/file-name.h>
 #include "error.h"
 #include "getline.h"
-#include "getlogin_r.h"
 #include "output.h"
 #include "manager.h"
 #include "table.h"
