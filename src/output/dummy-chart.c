@@ -17,8 +17,9 @@
    02110-1301, USA. */
 
 #include <config.h>
-
 #include <stdio.h>
+#include <libpspp/compiler.h>
+#include "chart.h"
 
 
 struct chart *
@@ -28,7 +29,7 @@ chart_create(void)
 }
 
 void
-chart_submit(struct chart *chart)
+chart_submit(struct chart *chart UNUSED)
 {
 }
 

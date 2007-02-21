@@ -33,7 +33,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#if HAVE_LANGINFO_H
 #include <langinfo.h>
+#endif
 
 #include <data/value.h>
 
@@ -444,10 +446,12 @@ psppire_variable_sheet_create (gchar *widget_name,
   gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL (the_var_store));
 
 
+#if HAVE_LANGINFO_H
   /* Since this happens inside glade_xml_new, we must prevent strings from
    * being re-encoded twice */
   codeset = bind_textdomain_codeset (PACKAGE, 0);
   bind_textdomain_codeset (PACKAGE, nl_langinfo (CODESET));
+#endif
   for (i = 0 ; i < n_COLS ; ++i )
     {
       g_sheet_hetero_column_set_button_label (G_SHEET_HETERO_COLUMN (geo), i,
@@ -456,7 +460,9 @@ psppire_variable_sheet_create (gchar *widget_name,
       g_sheet_hetero_column_set_width (G_SHEET_HETERO_COLUMN (geo), i,
 					       column_def[i].width);
     }
+#if HAVE_LANGINFO_H
   bind_textdomain_codeset (PACKAGE, codeset);
+#endif
 
   gtk_widget_show (sheet);
 

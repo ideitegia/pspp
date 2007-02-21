@@ -67,7 +67,6 @@ recode_string(enum conv_id how,  const char *text, int length)
   char *outbuf = 0;
   size_t outbufferlength;
   size_t result;
-  char *ip ;
   char *op ;
   size_t inbytes = 0;
   size_t outbytes ;
@@ -92,13 +91,12 @@ recode_string(enum conv_id how,  const char *text, int length)
 
   outbuf = xmalloc(outbufferlength);
   op = outbuf;
-  ip = (char *) text;
 
   outbytes = outbufferlength;
   inbytes = length;
   
   do {
-    result = iconv(convertor[how], &ip, &inbytes, 
+    result = iconv(convertor[how], &text, &inbytes, 
 		   &op, &outbytes);
 
     if ( -1 == result ) 
@@ -113,7 +111,7 @@ recode_string(enum conv_id how,  const char *text, int length)
 	      {
 		*op++ = fallbackchar;
 		outbytes--;
-		ip++;
+		text++;
 		inbytes--;
 		break;
 	      }
@@ -123,7 +121,6 @@ recode_string(enum conv_id how,  const char *text, int length)
 	    outbufferlength <<= 1;
 	    outbuf = xmalloc(outbufferlength);
 	    op = outbuf;
-	    ip = (char *) text;
 	    outbytes = outbufferlength;
 	    inbytes = length;
 	    break;
