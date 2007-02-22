@@ -1,3 +1,7 @@
+Thu Feb 22 12:25:52 CET 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* syntax-gen.h syntax-gen.c: New files.
+
 Sun Feb 18 11:21:41 2007  Ben Pfaff  <blp@gnu.org>
 
 	* alloc.h: Remove useless parentheses in #if "defined" operator.

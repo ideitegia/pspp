@@ -1,3 +1,11 @@
+Thu Feb 22 12:27:41 CET 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* data-editor.c : called new gen_quoted_string function to properly 
+          quote filenames in generated syntax.
+
+	* window-manager.c : Converted name from filename encoding to UTF8 
+          before displaying in title bar.
+
 Tue Jan 30 20:13:46 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-dict.c: Call all the callbacks when a new dictionary becomes current.

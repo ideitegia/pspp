@@ -41,6 +41,7 @@
 #include "data-editor.h"
 #include "syntax-editor.h"
 #include <language/syntax-string-source.h>
+#include <libpspp/syntax-gen.h>
 #include "window-manager.h"
 
 #include "psppire-data-store.h"
@@ -838,21 +839,27 @@ static void
 save_file (struct data_editor *de)
 {
   struct getl_interface *sss;
+  struct string file_name ;
 
   g_assert (de->file_name);
+
+  ds_init_cstr (&file_name, de->file_name);
+  gen_quoted_string (&file_name);
 
   if ( de->save_as_portable )
     {
       append_filename_suffix (de, ".por");
-      sss = create_syntax_string_source ("EXPORT OUTFILE='%s'.",
-					 de->file_name);
+      sss = create_syntax_string_source ("EXPORT OUTFILE=%s.",
+					 ds_cstr (&file_name));
     }
   else
     {
       append_filename_suffix (de, ".sav");
-      sss = create_syntax_string_source ("SAVE OUTFILE='%s'.",
-					 de->file_name);
+      sss = create_syntax_string_source ("SAVE OUTFILE=%s.",
+					 ds_cstr (&file_name));
     }
+
+  ds_destroy (&file_name);
 
   execute_syntax (sss);
 }
@@ -1003,13 +1010,20 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
     case GTK_RESPONSE_ACCEPT:
       {
 	struct getl_interface *sss;
+	struct string filename;
 	g_free (de->file_name);
 	de->file_name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	sss = create_syntax_string_source ("GET FILE='%s'.", de->file_name);
+	ds_init_cstr (&filename, de->file_name);
+
+	gen_quoted_string (&filename);
+
+	sss = create_syntax_string_source ("GET FILE=%s.", 
+					   ds_cstr (&filename));
 
 	execute_syntax (sss);
+	ds_destroy (&filename);
 
 	window_set_name_from_filename (e, de->file_name);
       }

@@ -157,14 +157,15 @@ set_window_name (struct editor_window *e,
    FILENAME is in "filename encoding" */
 void
 window_set_name_from_filename (struct editor_window *e,
-			       const gchar *filename)
+			       const gchar *fn)
 {
   gchar *title;
+  gchar *filename = g_filename_to_utf8 (fn, -1, NULL, NULL, NULL);
   gchar *basename = g_path_get_basename (filename);
 
   set_window_name (e, filename);
 
-  switch (e->type )
+  switch (e->type)
     {
     case WINDOW_SYNTAX:
       title = g_strdup_printf (_("%s --- PSPP Syntax Editor"), basename);
@@ -180,6 +181,7 @@ window_set_name_from_filename (struct editor_window *e,
   gtk_window_set_title (GTK_WINDOW (e->window), title);
 
   g_free (title);
+  g_free (filename);
 }
 
 const gchar *
