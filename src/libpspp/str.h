@@ -27,7 +27,6 @@
 
 #include "compiler.h"
 #include "memcasecmp.h"
-#include "vsnprintf.h"
 #include "xvasprintf.h"
 
 /* Miscellaneous. */
