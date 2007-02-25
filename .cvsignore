@@ -1,6 +1,8 @@
 ABOUT-NLS
 Makefile
 Makefile.in
+_build
+_check
 aclocal.m4
 autom4te.cache
 compile
@@ -16,6 +18,7 @@ depcomp
 gl
 install-sh
 intl
+link-warning.h
 m4
 mdate-sh
 missing
@@ -24,5 +27,3 @@ potfiles.tmp
 pref.h
 stamp-h1
 texinfo.tex
-_build
-_check
