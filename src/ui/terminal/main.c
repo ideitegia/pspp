@@ -58,6 +58,10 @@
 #include <fenv.h>
 #endif
 
+#if HAVE_IEEEFP_H
+#include <ieeefp.h>
+#endif
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -158,6 +162,8 @@ fpu_init (void)
   feholdexcept (&foo);
 #elif HAVE___SETFPUCW && defined(_FPU_IEEE)
   __setfpucw (_FPU_IEEE);
+#elif HAVE_FPSETMASK
+  fpsetmask (0);
 #endif
 }
 

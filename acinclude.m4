@@ -63,10 +63,10 @@ AC_DEFUN([PSPP_OFF_T],
   `--disable-largefile' or `CFLAGS=-ansi'.])])
 ])
 
-dnl Check whether a warning flag is accepted.
+dnl Check whether a C compiler option is accepted.
 dnl If so, add it to CFLAGS.
-dnl Example: PSPP_ENABLE_WARNING(-Wdeclaration-after-statement)
-AC_DEFUN([PSPP_ENABLE_WARNING],
+dnl Example: PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
+AC_DEFUN([PSPP_ENABLE_OPTION],
 [
   m4_define([pspp_cv_name], [pspp_cv_[]m4_translit([$1], [-], [_])])dnl
   AC_CACHE_CHECK([whether $CC accepts $1], [pspp_cv_name], 

@@ -14,7 +14,8 @@ AM_PROG_CC_C_O
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
-PSPP_ENABLE_WARNING(-Wdeclaration-after-statement)
+PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
+PSPP_ENABLE_OPTION(-mieee)
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 
@@ -80,7 +81,7 @@ AC_DEFINE(FPREP_IEEE754, 1,
 AC_C_BIGENDIAN
 
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([__setfpucw execl fork isinf isnan finite getpid feholdexcept popen round trunc])
+AC_CHECK_FUNCS([__setfpucw execl fork isinf isnan finite getpid feholdexcept fpsetmask popen round trunc])
 
 AC_PROG_LN_S
 

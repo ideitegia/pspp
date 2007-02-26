@@ -1,3 +1,15 @@
+2007-02-25  Ben Pfaff  <blp@gnu.org>
+
+	Thanks to Jason Stover for verifying that this patch helps under
+	NetBSD.
+
+	* acinclude.m4: Rename PSPP_ENABLE_WARNING to PSPP_ENABLE_OPTION,
+	because it's useful for more than warnings.
+
+	* configure.ac: Add PSPP_ENABLE_OPTION(-mieee) to improve IEEE
+	floating-point conformance on Alpha and SH architectures.  Also,
+	check for fpsetmask function (available on BSDs).
+
 Mon Feb 19 10:52:21 2007  Ben Pfaff  <blp@gnu.org>
 
 	* Smake (GNULIB_MODULES): Add dirname module, remove canonicalize
