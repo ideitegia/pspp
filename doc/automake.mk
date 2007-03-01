@@ -19,6 +19,7 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/invoking.texi \
 	doc/language.texi \
 	doc/license.texi \
+	doc/ni.texi \
 	doc/not-implemented.texi \
 	doc/portable-file-format.texi \
 	doc/q2c.texi \
@@ -29,22 +30,10 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/variables.texi \
 	doc/fdl.texi 
 
-nodist_doc_pspp_TEXINFOS = doc/ni.texi
-
-
 EXTRA_DIST += doc/pspp.man \
 	doc/get-commands.pl \
 	$(doc_pspp_TEXINFOS)
 
-# Kludge to get around automake deficiency.
-am__TEXINFO_TEX_DIR=./doc
-
 doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(top_srcdir)/mkinstalldirs  doc
 	@PERL@ $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
-
-
-$(INFO_DEPS): doc/ni.texi
-$(HTML_DEPS): doc/ni.texi
-
-CLEANFILES += doc/ni.texi

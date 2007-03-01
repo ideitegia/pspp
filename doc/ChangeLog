@@ -1,3 +1,14 @@
+2007-03-01  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Fix "make distcheck" by distributing doc/ni.texi,
+	even though it's generated.  Reviewed by John Darrington.
+	(doc_pspp_TEXINFOS): Add doc/ni.texi.
+	(nodist_doc_pspp_TEXINFOS): Remove.
+	(am__TEXINFO_TEX_DIR) Removed (was just a kluge anyhow).
+	($(INFO_DEPS)): Removed.
+	($(HTML_DEPS)): Removed.
+	(CLEANFILES): Removed.
+	
 Wed Dec 20 18:45:31 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* statistics.texi: Added documentation for the NPAR TESTS command.
