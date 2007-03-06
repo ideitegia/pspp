@@ -62,7 +62,7 @@ create_iconv (const char* tocode, const char* fromcode)
    The returned string must be freed when no longer required.
 */
 char *
-recode_string(enum conv_id how,  const char *text, int length)
+recode_string (enum conv_id how,  const char *text, int length)
 {
   char *outbuf = 0;
   size_t outbufferlength;
@@ -80,7 +80,7 @@ recode_string(enum conv_id how,  const char *text, int length)
   if ( length == -1 ) 
      length = strlen(text);
 
-  assert(how < n_CONV);
+  assert (how < n_CONV);
 
   if (convertor[how] == (iconv_t) -1) 
     return xstrndup (text, length);
@@ -96,14 +96,14 @@ recode_string(enum conv_id how,  const char *text, int length)
   inbytes = length;
   
   do {
-    result = iconv(convertor[how], &text, &inbytes, 
+    result = iconv (convertor[how], (ICONV_CONST char **) &text, &inbytes, 
 		   &op, &outbytes);
 
     if ( -1 == result ) 
       {
 	int the_error = errno;
 
-	switch ( the_error)
+	switch (the_error)
 	  {
 	  case EILSEQ:
 	  case EINVAL:
@@ -117,9 +117,9 @@ recode_string(enum conv_id how,  const char *text, int length)
 	      }
 	    /* Fall through */
 	  case E2BIG:
-	    free(outbuf);
+	    free (outbuf);
 	    outbufferlength <<= 1;
-	    outbuf = xmalloc(outbufferlength);
+	    outbuf = xmalloc (outbufferlength);
 	    op = outbuf;
 	    outbytes = outbufferlength;
 	    inbytes = length;
@@ -128,14 +128,13 @@ recode_string(enum conv_id how,  const char *text, int length)
 	    /* should never happen */
 	    break;
 	  }
-
       }
   } while ( -1 == result );
 
   if (outbytes == 0 ) 
     {
       char *const oldaddr = outbuf;
-      outbuf = xrealloc(outbuf, outbufferlength + 1);
+      outbuf = xrealloc (outbuf, outbufferlength + 1);
       
       op += (outbuf - oldaddr) ;
     }
@@ -148,15 +147,15 @@ recode_string(enum conv_id how,  const char *text, int length)
 
 /* Returns the current PSPP locale */
 const char *
-get_pspp_locale(void)
+get_pspp_locale (void)
 {
-  assert ( locale);
+  assert (locale);
   return locale;
 }
 
 /* Set the PSPP locale */
 void 
-set_pspp_locale(const char *l)
+set_pspp_locale (const char *l)
 {
   char *current_locale;
   const char *current_charset;
@@ -164,28 +163,28 @@ set_pspp_locale(const char *l)
   free(locale);
   locale = strdup(l);
 
-  current_locale = setlocale(LC_CTYPE, 0);
-  current_charset = locale_charset();
-  setlocale(LC_CTYPE, locale);
+  current_locale = setlocale (LC_CTYPE, 0);
+  current_charset = locale_charset ();
+  setlocale (LC_CTYPE, locale);
   
-  charset = locale_charset();
-  setlocale(LC_CTYPE, current_locale);
+  charset = locale_charset ();
+  setlocale (LC_CTYPE, current_locale);
 
-  iconv_close(convertor[CONV_PSPP_TO_UTF8]);
+  iconv_close (convertor[CONV_PSPP_TO_UTF8]);
   convertor[CONV_PSPP_TO_UTF8] = create_iconv ("UTF-8", charset);
 
-  iconv_close(convertor[CONV_SYSTEM_TO_PSPP]);
+  iconv_close (convertor[CONV_SYSTEM_TO_PSPP]);
   convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, current_charset);
 }
 
 void
-i18n_init(void)
+i18n_init (void)
 {
-  assert ( ! locale) ;
-  locale = strdup(setlocale(LC_CTYPE, NULL));
+  assert (!locale) ;
+  locale = strdup (setlocale (LC_CTYPE, NULL));
 
-  setlocale(LC_CTYPE, locale);
-  charset = locale_charset();
+  setlocale (LC_CTYPE, locale);
+  charset = locale_charset ();
 
   convertor[CONV_PSPP_TO_UTF8] = create_iconv ("UTF-8", charset);
   convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, charset);
@@ -193,17 +192,17 @@ i18n_init(void)
 
 
 void 
-i18n_done(void)
+i18n_done (void)
 {
   int i;
-  free(locale);
+  free (locale);
   locale = 0;
 
   for(i = 0 ; i < n_CONV; ++i ) 
     {
       if ( (iconv_t) -1 == convertor[i] ) 
 	continue;
-      iconv_close(convertor[i]);
+      iconv_close (convertor[i]);
     }
 }
 
