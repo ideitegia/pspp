@@ -32,6 +32,7 @@ GNULIB_MODULES = \
 	memmove \
 	mempcpy \
 	memset \
+	minmax \
 	mkstemp \
 	progname \
 	snprintf \
