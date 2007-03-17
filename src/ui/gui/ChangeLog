@@ -1,3 +1,7 @@
+Tue Mar 13 17:20:05 CET 2007 John Darrington <john@darrington.wattle.id.au>
+	* psppire.c:  Changed gtk_init to gtk_parse_args, followed by a delayed 	call to gdk_init, so that psppire --version will succeed, even if it 
+	cannot connect to a display .
+	
 Wed Mar  7 19:05:12 CET 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* var-sheet.c: Replaced call to nl_langinfo with locale_charset 

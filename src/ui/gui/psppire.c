@@ -96,12 +96,16 @@ main (int argc, char *argv[])
   struct casefile_factory *factory;
   PsppireDict *dictionary = 0;
 
-
   gchar *filename=0;
   GError *err = 0;
   gchar *vers;
 
-  gtk_init (&argc, &argv);
+  if ( ! gtk_parse_args (&argc, &argv) ) 
+    {
+      perror ("Error parsing arguments");
+      exit (1);
+    }
+
   if ( (vers = gtk_check_version (GTK_MAJOR_VERSION,
 				 GTK_MINOR_VERSION,
 				 GTK_MICRO_VERSION)) )
@@ -145,6 +149,8 @@ main (int argc, char *argv[])
 					   );
 
   bind_textdomain_codeset (PACKAGE, "UTF-8");
+
+  gdk_init (&argc, &argv);
 
   /* Create the model for the var_sheet */
   the_var_store = psppire_var_store_new (dictionary);

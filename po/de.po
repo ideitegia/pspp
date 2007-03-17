@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-03-07 16:39+0100\n"
+"POT-Creation-Date: 2007-03-17 21:13+0900\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -1367,20 +1367,6 @@ msgid ""
 "Data fields must be listed in order of increasing record number."
 msgstr ""
 
-#: src/language/data-io/print-space.c:75 src/language/lexer/lexer.c:465
-#: src/language/stats/autorecode.c:153 src/language/xforms/select-if.c:61
-msgid "expecting end of command"
-msgstr ""
-
-#: src/language/data-io/print-space.c:116
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr ""
-
-#: src/language/data-io/print-space.c:119
-#, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr ""
-
 #: src/language/data-io/print.c:260
 #, c-format
 msgid "Output calls for %d records but %u specified on RECORDS subcommand."
@@ -1399,6 +1385,20 @@ msgid "Writing %d record."
 msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/language/data-io/print-space.c:75 src/language/lexer/lexer.c:465
+#: src/language/stats/autorecode.c:153 src/language/xforms/select-if.c:61
+msgid "expecting end of command"
+msgstr ""
+
+#: src/language/data-io/print-space.c:116
+msgid "The expression on PRINT SPACE evaluated to the system-missing value."
+msgstr ""
+
+#: src/language/data-io/print-space.c:119
+#, c-format
+msgid "The expression on PRINT SPACE evaluated to %g."
+msgstr ""
 
 #: src/language/dictionary/apply-dictionary.c:74
 #, c-format
@@ -2285,7 +2285,7 @@ msgstr ""
 #: src/language/stats/crosstabs.q:1025 src/language/stats/crosstabs.q:1748
 #: src/language/stats/examine.q:909 src/language/stats/frequencies.q:1222
 #: src/language/stats/oneway.q:307 src/language/stats/oneway.q:471
-#: src/language/stats/regression.q:314
+#: src/language/stats/regression.q:324
 msgid "Total"
 msgstr ""
 
@@ -2331,7 +2331,7 @@ msgid "Expected N"
 msgstr ""
 
 #: src/language/stats/chisquare.c:223 src/language/stats/chisquare.c:263
-#: src/language/stats/regression.q:313
+#: src/language/stats/regression.q:323
 msgid "Residual"
 msgstr ""
 
@@ -2349,7 +2349,7 @@ msgstr ""
 
 #: src/language/stats/chisquare.c:325 src/language/stats/crosstabs.q:1119
 #: src/language/stats/oneway.q:280 src/language/stats/oneway.q:681
-#: src/language/stats/regression.q:307 src/language/stats/t-test.q:981
+#: src/language/stats/regression.q:317 src/language/stats/t-test.q:981
 #: src/language/stats/t-test.q:1173 src/language/stats/t-test.q:1266
 msgid "df"
 msgstr ""
@@ -2772,7 +2772,7 @@ msgid "Lowest"
 msgstr ""
 
 #: src/language/stats/examine.q:1421 src/language/stats/oneway.q:395
-#: src/language/stats/oneway.q:679 src/language/stats/regression.q:211
+#: src/language/stats/oneway.q:679 src/language/stats/regression.q:221
 msgid "Std. Error"
 msgstr ""
 
@@ -3018,22 +3018,6 @@ msgstr ""
 msgid "TABLES subcommand may not appear more than once."
 msgstr ""
 
-#: src/language/stats/npar-summary.c:110
-msgid "Descriptive Statistics"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:147
-msgid "25th"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:150
-msgid "50th (Median)"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:153
-msgid "75th"
-msgstr ""
-
 #: src/language/stats/npar.q:101
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
@@ -3058,6 +3042,22 @@ msgid ""
 "match the number following (%d)."
 msgstr ""
 
+#: src/language/stats/npar-summary.c:110
+msgid "Descriptive Statistics"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:147
+msgid "25th"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:150
+msgid "50th (Median)"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:153
+msgid "75th"
+msgstr ""
+
 #: src/language/stats/oneway.q:169
 msgid "Number of contrast coefficients must equal the number of groups"
 msgstr ""
@@ -3072,21 +3072,21 @@ msgstr ""
 msgid "`%s' is not a variable name"
 msgstr ""
 
-#: src/language/stats/oneway.q:279 src/language/stats/regression.q:306
+#: src/language/stats/oneway.q:279 src/language/stats/regression.q:316
 msgid "Sum of Squares"
 msgstr ""
 
-#: src/language/stats/oneway.q:281 src/language/stats/regression.q:308
+#: src/language/stats/oneway.q:281 src/language/stats/regression.q:318
 msgid "Mean Square"
 msgstr ""
 
-#: src/language/stats/oneway.q:282 src/language/stats/regression.q:309
+#: src/language/stats/oneway.q:282 src/language/stats/regression.q:319
 #: src/language/stats/t-test.q:978
 msgid "F"
 msgstr ""
 
 #: src/language/stats/oneway.q:283 src/language/stats/oneway.q:537
-#: src/language/stats/regression.q:214 src/language/stats/regression.q:310
+#: src/language/stats/regression.q:224 src/language/stats/regression.q:320
 msgid "Significance"
 msgstr ""
 
@@ -3098,7 +3098,7 @@ msgstr ""
 msgid "Within Groups"
 msgstr ""
 
-#: src/language/stats/oneway.q:353 src/language/stats/regression.q:336
+#: src/language/stats/oneway.q:353 src/language/stats/regression.q:346
 msgid "ANOVA"
 msgstr ""
 
@@ -3134,7 +3134,7 @@ msgstr ""
 msgid "Value of Contrast"
 msgstr ""
 
-#: src/language/stats/oneway.q:680 src/language/stats/regression.q:213
+#: src/language/stats/oneway.q:680 src/language/stats/regression.q:223
 #: src/language/stats/t-test.q:980 src/language/stats/t-test.q:1172
 #: src/language/stats/t-test.q:1265
 msgid "t"
@@ -3206,59 +3206,59 @@ msgstr ""
 msgid "Too many variables in INTO clause."
 msgstr ""
 
-#: src/language/stats/regression.q:165
+#: src/language/stats/regression.q:175
 msgid "R"
 msgstr ""
 
-#: src/language/stats/regression.q:166
+#: src/language/stats/regression.q:176
 msgid "R Square"
 msgstr ""
 
-#: src/language/stats/regression.q:167
+#: src/language/stats/regression.q:177
 msgid "Adjusted R Square"
 msgstr ""
 
-#: src/language/stats/regression.q:168
+#: src/language/stats/regression.q:178
 msgid "Std. Error of the Estimate"
 msgstr ""
 
-#: src/language/stats/regression.q:173
+#: src/language/stats/regression.q:183
 msgid "Model Summary"
 msgstr ""
 
-#: src/language/stats/regression.q:210
+#: src/language/stats/regression.q:220
 msgid "B"
 msgstr ""
 
-#: src/language/stats/regression.q:212
+#: src/language/stats/regression.q:222
 msgid "Beta"
 msgstr ""
 
-#: src/language/stats/regression.q:215
+#: src/language/stats/regression.q:225
 msgid "(Constant)"
 msgstr ""
 
-#: src/language/stats/regression.q:275
+#: src/language/stats/regression.q:285
 msgid "Coefficients"
 msgstr ""
 
-#: src/language/stats/regression.q:312
+#: src/language/stats/regression.q:322
 msgid "Regression"
 msgstr ""
 
-#: src/language/stats/regression.q:391
+#: src/language/stats/regression.q:401
 msgid "Model"
 msgstr ""
 
-#: src/language/stats/regression.q:392
+#: src/language/stats/regression.q:402
 msgid "Covariances"
 msgstr ""
 
-#: src/language/stats/regression.q:407
+#: src/language/stats/regression.q:417
 msgid "Coefficient Correlations"
 msgstr ""
 
-#: src/language/stats/regression.q:1131
+#: src/language/stats/regression.q:1147
 msgid "Dependent variable must be numeric."
 msgstr ""
 
@@ -4601,18 +4601,6 @@ msgstr ""
 msgid "%d"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:470
-msgid "None"
-msgstr "Keine"
-
-#: src/ui/gui/psppire-var-store.c:477
-msgid "Scientific"
-msgstr "Wissenschäflich"
-
-#: src/ui/gui/psppire-var-store.c:480
-msgid "Custom"
-msgstr "Spezial"
-
 #: src/ui/gui/psppire.glade:9
 #, fuzzy
 msgid "This is pre-alpha software.  Use at your own risk."
@@ -4662,6 +4650,18 @@ msgstr "Variableansicht"
 #, fuzzy
 msgid "Variable(s):"
 msgstr "Variableansicht"
+
+#: src/ui/gui/psppire-var-store.c:470
+msgid "None"
+msgstr "Keine"
+
+#: src/ui/gui/psppire-var-store.c:477
+msgid "Scientific"
+msgstr "Wissenschäflich"
+
+#: src/ui/gui/psppire-var-store.c:480
+msgid "Custom"
+msgstr "Spezial"
 
 #: src/ui/gui/sort-cases-dialog.c:367
 msgid "Criteria"
