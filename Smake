@@ -24,7 +24,6 @@ GNULIB_MODULES = \
 	inttostr \
 	linebreak \
 	localcharset \
-	minmax \
         mbchar \
 	memcasecmp \
 	memchr \
