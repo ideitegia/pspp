@@ -1,3 +1,7 @@
+2007-03-16  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (run_regression): Added support for moments.
+
 Sat Feb 17 08:16:00 2007  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c (flip_sink_create): Improve error message when temporary

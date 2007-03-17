@@ -45,6 +45,7 @@
 #include <math/design-matrix.h>
 #include <math/coefficient.h>
 #include <math/linreg/linreg.h>
+#include <math/moments.h>
 #include <output/table.h>
 
 #include "gettext.h"
@@ -81,6 +82,15 @@
 /* (declarations) */
 /* (functions) */
 static struct cmd_regression cmd;
+
+/*
+  Moments for each of the variables used.
+ */
+struct moments_var
+{
+  struct moments *m;
+  struct variable *v;
+};
 
 /* Linear regression models. */
 static pspp_linreg_cache **models = NULL;
@@ -961,10 +971,11 @@ is_depvar (size_t k, const struct variable *v)
 
 /*
   Mark missing cases. Return the number of non-missing cases.
+  Compute the first two moments.
  */
 static size_t
 mark_missing_cases (const struct casefile *cf, struct variable *v,
-		    int *is_missing_case, double n_data)
+		    int *is_missing_case, double n_data, struct moments_var *mom)
 {
   struct casereader *r;
   struct ccase c;
@@ -977,6 +988,10 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
       row = casereader_cnum (r) - 1;
 
       val = case_data (&c, v);
+      if (mom != NULL)
+	{
+	  moments_pass_one (mom->m, val->f, 1.0);
+	}
       cat_value_update (v, val);
       if (var_is_value_missing (v, val, MV_ANY))
 	{
@@ -1049,7 +1064,7 @@ get_n_indep (const struct variable *v)
 static int
 prepare_data (int n_data, int is_missing_case[],
 	      struct variable **indep_vars,
-	      struct variable *depvar, const struct casefile *cf)
+	      struct variable *depvar, const struct casefile *cf, struct moments_var *mom)
 {
   int i;
   int j;
@@ -1069,13 +1084,13 @@ prepare_data (int n_data, int is_missing_case[],
 	      cat_stored_values_create (v_variables[i]);
 	    }
 	  n_data =
-	    mark_missing_cases (cf, v_variables[i], is_missing_case, n_data);
+	    mark_missing_cases (cf, v_variables[i], is_missing_case, n_data, mom + i);
 	}
     }
   /*
      Mark missing cases for the dependent variable.
    */
-  n_data = mark_missing_cases (cf, depvar, is_missing_case, n_data);
+  n_data = mark_missing_cases (cf, depvar, is_missing_case, n_data, NULL);
 
   return n_data;
 }
@@ -1108,6 +1123,7 @@ run_regression (const struct ccase *first,
   struct ccase c;
   struct variable **indep_vars;
   struct design_matrix *X;
+  struct moments_var *mom;
   gsl_vector *Y;
 
   pspp_linreg_opts lopts;
@@ -1135,7 +1151,12 @@ run_regression (const struct ccase *first,
     }
 
   is_missing_case = xnmalloc (n_cases, sizeof (*is_missing_case));
-
+  mom = xnmalloc (n_variables, sizeof (*mom));
+  for (i = 0; i < n_variables; i++)
+    {
+      (mom + i)->m = moments_create (MOMENT_VARIANCE);
+      (mom + i)->v = v_variables[i];
+    }
   lopts.get_depvar_mean_std = 1;
 
   for (k = 0; k < cmd.n_dependent; k++)
@@ -1151,7 +1172,7 @@ run_regression (const struct ccase *first,
 	}
       n_data = prepare_data (n_cases, is_missing_case, indep_vars,
 			     cmd.v_dependent[k],
-			     (const struct casefile *) cf);
+			     (const struct casefile *) cf, mom);
       Y = gsl_vector_alloc (n_data);
 
       X =
@@ -1237,7 +1258,11 @@ run_regression (const struct ccase *first,
       free (lopts.get_indep_mean_std);
       casereader_destroy (r);
     }
-
+  for (i = 0; i < n_variables; i++)
+    {
+      moments_destroy ((mom + i)->m);
+    }
+  free (mom);
   free (is_missing_case);
 
   return true;
