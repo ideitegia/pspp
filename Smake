@@ -24,6 +24,7 @@ GNULIB_MODULES = \
 	inttostr \
 	linebreak \
 	localcharset \
+	minmax \
         mbchar \
 	memcasecmp \
 	memchr \
@@ -128,6 +129,7 @@ clean:
 	rm -f mdate-sh texinfo.tex
 	rm -f doc/stamp-vti
 	rm -f config.h.in~
+	rm -f config.h.in
 	find . -name Makefile.in -exec rm -f {} \; 
 	rm -f compile
 	rm -f ltmain.sh
