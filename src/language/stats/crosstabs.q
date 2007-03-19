@@ -167,7 +167,7 @@ static int num_cells;		/* Number of cells requested. */
 static int cells[8];		/* Cells requested. */
 
 /* WRITE. */
-static int write;		/* One of WR_* that specifies the WRITE style. */
+static int write_style;		/* One of WR_* that specifies the WRITE style. */
 
 /* Command parsing info. */
 static struct cmd_crosstabs cmd;
@@ -288,11 +288,11 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 	  + cmd.a_write[CRS_WR_CELLS] == 0))
     cmd.a_write[CRS_WR_CELLS] = 1;
   if (cmd.a_write[CRS_WR_CELLS])
-    write = CRS_WR_CELLS;
+    write_style = CRS_WR_CELLS;
   else if (cmd.a_write[CRS_WR_ALL])
-    write = CRS_WR_ALL;
+    write_style = CRS_WR_ALL;
   else
-    write = CRS_WR_NONE;
+    write_style = CRS_WR_NONE;
 
   ok = procedure_with_splits (ds, precalc,
                               mode == GENERAL ? calc_general : calc_integer,

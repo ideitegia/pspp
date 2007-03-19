@@ -1,3 +1,8 @@
+2007-03-18  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.q (static var write): Rename write_style to avoid
+	conflict with POSIX function of same name.
+
 2007-03-16  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (run_regression): Added support for moments.
