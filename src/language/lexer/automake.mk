@@ -16,7 +16,7 @@ EXTRA_DIST += src/language/lexer/q2c.c
 
 
 src/language/lexer/q2c$(EXEEXT_FOR_BUILD): $(top_srcdir)/src/language/lexer/q2c.c 
-	@$(top_srcdir)/mkinstalldirs `dirname $@`
+	@$(MKDIR_P) `dirname $@`
 	$(CC_FOR_BUILD) $(top_srcdir)/src/language/lexer/q2c.c -o $(top_builddir)/src/language/lexer/q2c
 
 

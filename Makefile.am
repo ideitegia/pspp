@@ -1,13 +1,12 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-AUTOMAKE_OPTIONS = gnits 1.7 subdir-objects
+AUTOMAKE_OPTIONS = gnits 1.10 subdir-objects
 
-SUBDIRS = intl gl po
-DISTCLEANFILES = ./intl/plural.c ./po/stamp-po
+SUBDIRS = gl po
+DISTCLEANFILES = ./po/stamp-po
 BUILT_SOURCES =
 
-AM_CPPFLAGS=-I$(top_srcdir)/intl -I$(top_builddir)/intl \
-	-I$(top_srcdir)/gl -I$(top_builddir)/gl
+AM_CPPFLAGS = -I$(top_srcdir)/gl -I$(top_builddir)/gl
 
 AM_CFLAGS=
 
@@ -19,7 +18,7 @@ endif
 CC_FOR_BUILD = @CC_FOR_BUILD@
 EXEEXT_FOR_BUILD = @EXEEXT_FOR_BUILD@
 .q.c:
-	@$(top_srcdir)/mkinstalldirs  `dirname $@`
+	@$(MKDIR_P) `dirname $@`
 	./src/language/lexer/q2c$(EXEEXT_FOR_BUILD) $< $@
 
 $(all_q_sources:.q=.c): src/language/lexer/q2c$(EXEEXT_FOR_BUILD)

@@ -19,7 +19,7 @@ GNULIB_MODULES = \
 	getline \
 	getlogin_r \
 	getopt \
-	gettext \
+	gettext-h \
 	intprops \
 	inttostr \
 	linebreak \
@@ -69,8 +69,6 @@ all: po/POTFILES.in
 		--doc-base=gl/doc --import $(GNULIB_MODULES)
 	echo '*' > gl/.cvsignore
 	echo '*' > gl/m4/.cvsignore
-	test -d intl || mkdir intl
-	echo '*' > intl/.cvsignore
 	libtoolize --force --automake
 	autopoint --force
 	aclocal -I m4 -I gl/m4
@@ -81,7 +79,7 @@ all: po/POTFILES.in
 gettextize:
 	test -d m4 || mkdir m4
 	touch m4/Makefile.am
-	gettextize -f -c --intl --no-changelog
+	gettextize --force --no-changelog
 
 po/POTFILES.in:
 	for f in `find src \( -name \*.[qc] -o -name \*.glade \) ! -name .\* -print` ; do \

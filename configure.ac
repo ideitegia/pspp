@@ -1,10 +1,10 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
-AX_PREREQ(2.57)
+AX_PREREQ(2.60)
 AC_INIT(pspp, 0.4.2,bug-gnu-pspp@gnu.org)
 AC_CONFIG_HEADERS([config.h])
-AM_INIT_AUTOMAKE(1.9)
+AM_INIT_AUTOMAKE
 
 dnl Checks for programs.
 AC_GNU_SOURCE
@@ -23,8 +23,8 @@ PSPP_CC_FOR_BUILD
 PSPP_PERL
 
 dnl Internationalization macros.
-AM_GNU_GETTEXT
-AM_GNU_GETTEXT_VERSION([0.14.5])
+AM_GNU_GETTEXT([external], [need-ngettext])
+AM_GNU_GETTEXT_VERSION([0.16.1])
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
@@ -100,7 +100,7 @@ fi
 
 PSPP_CHECK_PREREQS
 
-AC_CONFIG_FILES([Makefile gl/Makefile intl/Makefile po/Makefile.in])
+AC_CONFIG_FILES([Makefile gl/Makefile po/Makefile.in])
 
 AC_OUTPUT
 

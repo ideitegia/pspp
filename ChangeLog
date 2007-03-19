@@ -1,3 +1,27 @@
+2007-03-19  Ben Pfaff  <blp@gnu.org>
+
+	Work toward modernizing the build system by updating our Automake
+	and Autoconf dependencies and requiring libintl to be available
+	externally (if desired) instead of including a copy in the
+	distribution.
+
+	* Makefile.am (AUTOMAKE_OPTIONS): Require Automake 1.10 (or
+	later), which works better with systems that have a non-empty
+	$(EXEEXT).
+	(SUBDIRS): Drop intl.
+	(DISTCLEANFILES): Drop intl/plural.c.
+
+	* Throughout Makefile.am and the automake.mk files: Change
+	mkinstalldirs to $(MKDIR_P), to support the corresponding Automake
+	change.
+
+	* Smake (GNULIB_MODULES): Use gettext-h instead of gettext module.
+	(all): Don't create intl directory.
+	(gettextize): Don't use --intl flag.
+
+	* configure.ac: Require Autoconf 2.60 or later.  Use external
+	gettext.  Drop intl/Makefile from config files.
+
 2007-02-25  Ben Pfaff  <blp@gnu.org>
 
 	Thanks to Jason Stover for verifying that this patch helps under

@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2007-03-01 17:11:36 blp>
+Time-stamp: <2007-03-01 17:13:42 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -16,6 +16,9 @@ Changes since 0.4.2:
   The PROCESS IF command, which was deprecated, has been removed.  You
   may replace any usage of it by SELECT IF following TEMPORARY, which
   has the same effect.
+
+  For developers, the build system now requires Autoconf 2.60 and
+  Automake 1.10.
 
 Changes since 0.4.0 to 0.4.1:
 

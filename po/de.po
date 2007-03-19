@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-03-17 21:13+0900\n"
+"POT-Creation-Date: 2007-03-19 13:38-0700\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -1367,6 +1367,20 @@ msgid ""
 "Data fields must be listed in order of increasing record number."
 msgstr ""
 
+#: src/language/data-io/print-space.c:75 src/language/lexer/lexer.c:465
+#: src/language/stats/autorecode.c:153 src/language/xforms/select-if.c:61
+msgid "expecting end of command"
+msgstr ""
+
+#: src/language/data-io/print-space.c:116
+msgid "The expression on PRINT SPACE evaluated to the system-missing value."
+msgstr ""
+
+#: src/language/data-io/print-space.c:119
+#, c-format
+msgid "The expression on PRINT SPACE evaluated to %g."
+msgstr ""
+
 #: src/language/data-io/print.c:260
 #, c-format
 msgid "Output calls for %d records but %u specified on RECORDS subcommand."
@@ -1385,20 +1399,6 @@ msgid "Writing %d record."
 msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
-
-#: src/language/data-io/print-space.c:75 src/language/lexer/lexer.c:465
-#: src/language/stats/autorecode.c:153 src/language/xforms/select-if.c:61
-msgid "expecting end of command"
-msgstr ""
-
-#: src/language/data-io/print-space.c:116
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr ""
-
-#: src/language/data-io/print-space.c:119
-#, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr ""
 
 #: src/language/dictionary/apply-dictionary.c:74
 #, c-format
@@ -3018,6 +3018,22 @@ msgstr ""
 msgid "TABLES subcommand may not appear more than once."
 msgstr ""
 
+#: src/language/stats/npar-summary.c:110
+msgid "Descriptive Statistics"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:147
+msgid "25th"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:150
+msgid "50th (Median)"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:153
+msgid "75th"
+msgstr ""
+
 #: src/language/stats/npar.q:101
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
@@ -3040,22 +3056,6 @@ msgstr ""
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
-msgstr ""
-
-#: src/language/stats/npar-summary.c:110
-msgid "Descriptive Statistics"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:147
-msgid "25th"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:150
-msgid "50th (Median)"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:153
-msgid "75th"
 msgstr ""
 
 #: src/language/stats/oneway.q:169
@@ -4601,6 +4601,18 @@ msgstr ""
 msgid "%d"
 msgstr ""
 
+#: src/ui/gui/psppire-var-store.c:470
+msgid "None"
+msgstr "Keine"
+
+#: src/ui/gui/psppire-var-store.c:477
+msgid "Scientific"
+msgstr "Wissenschäflich"
+
+#: src/ui/gui/psppire-var-store.c:480
+msgid "Custom"
+msgstr "Spezial"
+
 #: src/ui/gui/psppire.glade:9
 #, fuzzy
 msgid "This is pre-alpha software.  Use at your own risk."
@@ -4650,18 +4662,6 @@ msgstr "Variableansicht"
 #, fuzzy
 msgid "Variable(s):"
 msgstr "Variableansicht"
-
-#: src/ui/gui/psppire-var-store.c:470
-msgid "None"
-msgstr "Keine"
-
-#: src/ui/gui/psppire-var-store.c:477
-msgid "Scientific"
-msgstr "Wissenschäflich"
-
-#: src/ui/gui/psppire-var-store.c:480
-msgid "Custom"
-msgstr "Spezial"
 
 #: src/ui/gui/sort-cases-dialog.c:367
 msgid "Criteria"
