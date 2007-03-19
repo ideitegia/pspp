@@ -1,3 +1,8 @@
+2007-03-18  Ben Pfaff  <blp@gnu.org>
+
+	* syntax-editor-source.c (close): Rename do_close to avoid naming
+	conflict with POSIX function of same name.
+
 Tue Mar 13 17:20:05 CET 2007 John Darrington <john@darrington.wattle.id.au>
 	* psppire.c:  Changed gtk_init to gtk_parse_args, followed by a delayed 	call to gdk_init, so that psppire --version will succeed, even if it 
 	cannot connect to a display .

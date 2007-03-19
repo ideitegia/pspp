@@ -100,7 +100,7 @@ read_line_from_buffer (struct getl_interface *i,
 
 
 static void
-close (struct getl_interface *i )
+do_close (struct getl_interface *i )
 {
   free (i);
 }
@@ -120,7 +120,7 @@ create_syntax_editor_source (const struct syntax_editor *se,
 
   ses->parent.interactive = always_false;
   ses->parent.read = read_line_from_buffer;
-  ses->parent.close = close;
+  ses->parent.close = do_close;
 
   ses->parent.name = name;
   ses->parent.location = location;
