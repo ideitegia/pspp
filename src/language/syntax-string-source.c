@@ -60,7 +60,7 @@ location (const struct getl_interface *i UNUSED)
 
 
 static void
-close (struct getl_interface *i )
+do_close (struct getl_interface *i )
 {
   struct syntax_string_source *sss = (struct syntax_string_source *) i;
 
@@ -116,7 +116,7 @@ create_syntax_string_source (const char *format, ...)
   va_end (args);
 
   sss->parent.interactive = always_false;
-  sss->parent.close = close;
+  sss->parent.close = do_close;
   sss->parent.read = read_single_line;
 
   sss->parent.name = name;
