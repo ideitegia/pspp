@@ -1,3 +1,9 @@
+2007-03-18  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Don't try to distribute tests that are compiled
+	from C source.  This fixes "make dist" when "make all" has not yet
+	been run.
+
 Mon Feb 12 06:29:30 2007  Ben Pfaff  <blp@gnu.org>
 
 	* libpspp/ll-test.c, libpspp/llx-test.c: Include <config.h>.

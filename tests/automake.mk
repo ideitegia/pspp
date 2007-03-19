@@ -2,7 +2,7 @@
 
 TESTS_ENVIRONMENT = top_srcdir='$(top_srcdir)' top_builddir='$(top_builddir)'
 TESTS_ENVIRONMENT += PERL='@PERL@'
-TESTS = \
+dist_TESTS = \
 	tests/command/aggregate.sh \
 	tests/command/autorecod.sh \
 	tests/command/beg-data.sh \
@@ -130,11 +130,15 @@ TESTS = \
 	tests/expressions/randist.sh \
 	tests/expressions/valuelabel.sh \
 	tests/expressions/variables.sh \
-	tests/expressions/vectors.sh \
+	tests/expressions/vectors.sh
+
+nodist_TESTS = \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
 	tests/libpspp/heap-test \
 	tests/libpspp/abt-test
+
+TESTS = $(dist_TESTS) $(nodist_TESTS)
 
 check_PROGRAMS += \
 	tests/libpspp/ll-test \
@@ -173,7 +177,9 @@ tests_libpspp_abt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 
-EXTRA_DIST += $(TESTS) tests/weighting.data tests/data-list.data tests/list.data \
+EXTRA_DIST += \
+	$(dist_TESTS) \
+	tests/weighting.data tests/data-list.data tests/list.data \
 	tests/no_case_size.sav \
 	tests/coverage.sh tests/test_template \
 	tests/v13.sav tests/v14.sav \
