@@ -136,16 +136,14 @@ nodist_TESTS = \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
 	tests/libpspp/heap-test \
-	tests/libpspp/abt-test
+	tests/libpspp/abt-test \
+	tests/libpspp/sparse-array-test
 
 TESTS = $(dist_TESTS) $(nodist_TESTS)
 
 check_PROGRAMS += \
-	tests/libpspp/ll-test \
-	tests/libpspp/llx-test \
-	tests/formats/inexactify \
-	tests/libpspp/heap-test \
-	tests/libpspp/abt-test
+	$(nodist_TESTS) \
+	tests/formats/inexactify
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -174,6 +172,15 @@ tests_libpspp_abt_test_SOURCES = \
 	tests/libpspp/abt-test.c
 tests_libpspp_abt_test_LDADD = gl/libgl.la
 tests_libpspp_abt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_sparse_array_test_SOURCES = \
+	src/libpspp/sparse-array.c \
+	src/libpspp/sparse-array.h \
+	src/libpspp/pool.c \
+	src/libpspp/pool.h \
+	tests/libpspp/sparse-array-test.c
+tests_libpspp_sparse_array_test_LDADD = gl/libgl.la
+tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 

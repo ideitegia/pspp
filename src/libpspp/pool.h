@@ -72,6 +72,8 @@ char *pool_asprintf (struct pool *, const char *, ...)
 /* Standard allocation routines. */
 void *pool_malloc (struct pool *, size_t) MALLOC_LIKE;
 void *pool_nmalloc (struct pool *, size_t n, size_t s) MALLOC_LIKE;
+void *pool_zalloc (struct pool *, size_t) MALLOC_LIKE;
+void *pool_calloc (struct pool *, size_t n, size_t s) MALLOC_LIKE;
 void *pool_realloc (struct pool *, void *, size_t);
 void *pool_nrealloc (struct pool *, void *, size_t n, size_t s);
 void *pool_2nrealloc (struct pool *, void *, size_t *pn, size_t s);

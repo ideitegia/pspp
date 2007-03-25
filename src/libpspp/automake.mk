@@ -44,6 +44,8 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/misc.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
+	src/libpspp/sparse-array.c \
+	src/libpspp/sparse-array.h \
 	src/libpspp/syntax-gen.c \
 	src/libpspp/syntax-gen.h \
 	src/libpspp/message.c \

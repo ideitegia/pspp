@@ -1,3 +1,15 @@
+2007-03-25  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk (src_libpspp_libpspp_a_SOURCES): Add
+	sparse-array.[ch].
+
+	* pool.c (pool_zalloc): New function.
+	(pool_calloc): New function.
+
+	* sparse-array.c: New file.
+
+	* sparse-array.h: New file.
+
 Mon Mar  5 20:55:49 CET 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* i18n.c: Cast second argument of iconv using ICONV_CONST

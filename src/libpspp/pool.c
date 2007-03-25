@@ -472,6 +472,34 @@ pool_nmalloc (struct pool *pool, size_t n, size_t s)
   return pool_malloc (pool, n * s);
 }
 
+/* Allocates AMT bytes using malloc(), to be managed by POOL,
+   zeros the block, and returns a pointer to the beginning of the
+   block.
+   If POOL is a null pointer, then allocates a normal memory block
+   with xmalloc().  */
+void *
+pool_zalloc (struct pool *pool, size_t amt)
+{
+  void *p = pool_malloc (pool, amt);
+  memset (p, 0, amt);
+  return p;
+}
+
+/* Allocates and returns N elements of S bytes each, to be
+   managed by POOL, and zeros the block.
+   If POOL is a null pointer, then allocates a normal memory block
+   with malloc().
+   N must be nonnegative, S must be positive.
+   Terminates the program if the memory cannot be obtained,
+   including the case where N * S overflows the range of size_t. */
+void *
+pool_calloc (struct pool *pool, size_t n, size_t s) 
+{
+  void *p = pool_nmalloc (pool, n, s);
+  memset (p, 0, n * s);
+  return p;
+}
+
 /* Changes the allocation size of the specified memory block P managed
    by POOL to AMT bytes and returns a pointer to the beginning of the
    block.
