@@ -129,8 +129,7 @@ new_data_editor (void)
 
   e = (struct editor_window *) de;
 
-  de->xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
-
+  de->xml = XML_NEW ("data-editor.glade");
 
   var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 

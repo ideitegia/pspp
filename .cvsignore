@@ -27,3 +27,6 @@ potfiles.tmp
 pref.h
 stamp-h1
 texinfo.tex
+config.libpath
+install-reloc
+reloc-ldflags

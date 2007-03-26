@@ -92,7 +92,8 @@ main (int argc, char **argv)
   signal (SIGFPE, bug_handler);
   signal (SIGINT, interrupt_handler);
 
-  set_program_name ("pspp");
+  set_program_name (argv[0]);
+
   i18n_init ();
   fpu_init ();
   gsl_set_error_handler_off ();

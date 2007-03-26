@@ -11,13 +11,14 @@ src_ui_terminal_libui_a_SOURCES = \
 	src/ui/terminal/msg-ui.c \
 	src/ui/terminal/msg-ui.h
 
+src_ui_terminal_libui_a_CFLAGS = -DINSTALLDIR=\"$(bindir)\"
 
 bin_PROGRAMS += src/ui/terminal/pspp
 
 
 src_ui_terminal_pspp_SOURCES =
 
-src_ui_terminal_pspp_LDADD =					\
+src_ui_terminal_pspp_LDFLAGS = \
 	src/ui/terminal/libui.a \
 	src/language/liblanguage.a \
 	src/output/charts/libcharts.a \
@@ -33,3 +34,9 @@ src_ui_terminal_pspp_LDADD =					\
 	gl/libgl.la \
 	@LIBINTL@ @LIBREADLINE@
 
+
+
+
+if RELOCATABLE_VIA_LD
+src_ui_terminal_pspp_LDFLAGS += `$(RELOCATABLE_LDFLAGS) $(bindir)`
+endif

@@ -20,6 +20,8 @@
 
 #include <config.h>
 
+#include "relocatable.h"
+
 #include <glib.h>
 #include "syntax-editor.h"
 #include "data-editor.h"
@@ -100,7 +102,7 @@ window_create (enum window_type type, const gchar *name)
 
 
   gtk_window_set_icon_from_file (GTK_WINDOW (e->window),
-				 PKGDATADIR "/psppicon.png", 0);
+				 relocate (PKGDATADIR "/psppicon.png"), 0);
 
   g_signal_connect (e->window, "destroy",
 		    G_CALLBACK (deregister_window), e);

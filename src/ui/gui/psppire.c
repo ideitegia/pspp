@@ -22,8 +22,11 @@
 #include <assert.h>
 #include <libintl.h>
 
+#include "progname.h"
+#include "relocatable.h"
 
 #include "data-editor.h"
+
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
 #include <data/file-handle-def.h>
@@ -100,7 +103,9 @@ main (int argc, char *argv[])
   GError *err = 0;
   gchar *vers;
 
-  if ( ! gtk_parse_args (&argc, &argv) ) 
+  set_program_name (argv[0]);
+
+  if ( ! gtk_parse_args (&argc, &argv) )
     {
       perror ("Error parsing arguments");
       exit (1);
@@ -222,6 +227,8 @@ parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
   return true;
 }
 
+#define PIXBUF_NEW_FROM_FILE(FILE) \
+  gdk_pixbuf_new_from_file (relocate (PKGDATADIR "/" FILE), 0)
 
 
 void
@@ -233,37 +240,37 @@ create_icon_factory (void)
 
   GdkPixbuf *pixbuf;
 
-  pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/value-labels.png", 0);
+  pixbuf = PIXBUF_NEW_FROM_FILE ("value-labels.png");
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-value-labels", icon_set);
 
-  pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/weight-cases.png", 0);
+  pixbuf = PIXBUF_NEW_FROM_FILE ("weight-cases.png");
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-weight-cases", icon_set);
 
-  pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/goto-variable.png", 0);
+  pixbuf = PIXBUF_NEW_FROM_FILE ("goto-variable.png");
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-goto-variable", icon_set);
 
-  pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/insert-variable.png", 0);
+  pixbuf = PIXBUF_NEW_FROM_FILE ("insert-variable.png");
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-insert-variable", icon_set);
 
-  pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/insert-case.png", 0);
+  pixbuf = PIXBUF_NEW_FROM_FILE ("insert-case.png");
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-insert-case", icon_set);
 
-  pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/split-file.png", 0);
+  pixbuf = PIXBUF_NEW_FROM_FILE ("split-file.png");
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-split-file", icon_set);
 
-  pixbuf = gdk_pixbuf_new_from_file (PKGDATADIR "/select-cases.png", 0);
+  pixbuf = PIXBUF_NEW_FROM_FILE ("select-cases.png");
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-select-cases", icon_set);

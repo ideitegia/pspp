@@ -96,8 +96,7 @@ transpose_dialog (GObject *o, gpointer data)
   gint response ;
   struct data_editor *de = data;
 
-  GladeXML *xml = glade_xml_new (PKGDATADIR "/psppire.glade",
-				 "transpose-dialog", NULL);
+  GladeXML *xml = XML_NEW ("psppire.glade");
 
   GtkSheet *var_sheet =
     GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));

@@ -222,7 +222,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
   if ( row >= psppire_var_store_get_var_cnt (var_store))
     return TRUE;
 
-  xml = glade_xml_new (PKGDATADIR "/data-editor.glade", NULL, NULL);
+  xml = XML_NEW ("data-editor.glade");
 
   gtk_sheet_get_attributes (sheet, row, column, &attributes);
 

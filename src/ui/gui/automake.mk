@@ -4,12 +4,20 @@
 
 bin_PROGRAMS += src/ui/gui/psppire 
 
+src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall \
+	-DINSTALLDIR=\"$(bindir)\"
 
-src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall
 
 src_ui_gui_psppire_LDFLAGS = \
-	-export-dynamic \
-	-rpath $(pkglibdir)
+	-export-dynamic 
+
+
+if RELOCATABLE_VIA_LD
+src_ui_gui_psppire_LDFLAGS += `$(RELOCATABLE_LDFLAGS) $(bindir)`
+else
+src_ui_gui_psppire_LDFLAGS += -rpath $(pkglibdir)
+endif
+
 
 pkglib_LTLIBRARIES = src/ui/gui/libpsppire.la
 
@@ -105,4 +113,5 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/weight-cases-dialog.h \
 	src/ui/gui/window-manager.c \
 	src/ui/gui/window-manager.h
+
 

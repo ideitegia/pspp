@@ -75,8 +75,7 @@ weight_cases_dialog (GObject *o, gpointer data)
   PsppireDict *dict;
   struct variable *var;
 
-  GladeXML *xml = glade_xml_new (PKGDATADIR "/psppire.glade",
-				 "weight-cases-dialog", NULL);
+  GladeXML *xml = XML_NEW ("psppire.glade");
 
   GtkWidget *dialog = get_widget_assert (xml, "weight-cases-dialog");
   GtkWidget *source = get_widget_assert (xml, "weight-cases-treeview");

@@ -30,18 +30,19 @@
 void
 about_new (GtkMenuItem *m, GtkWindow *parent)
 {
-  GladeXML *xml = glade_xml_new (PKGDATADIR "/psppire.glade", NULL, NULL);
+  GladeXML *xml = XML_NEW ("psppire.glade");
 
   GtkWidget *about =  get_widget_assert (xml, "aboutdialog1");
 
   GdkPixbuf *pb =
-    gdk_pixbuf_new_from_file_at_size (PKGDATADIR "/pspplogo.png", 64, 64, 0);
+    gdk_pixbuf_new_from_file_at_size (relocate (PKGDATADIR "/pspplogo.png"),
+				      64, 64, 0);
 
   gtk_about_dialog_set_logo (GTK_ABOUT_DIALOG (about), pb);
 
 
   gtk_window_set_icon_from_file (GTK_WINDOW (about),
-				 PKGDATADIR "/psppicon.png", 0);
+				 relocate (PKGDATADIR "/psppicon.png"), 0);
 
   gtk_about_dialog_set_website (GTK_ABOUT_DIALOG (about),
 				"http://www.gnu.org/software/pspp");

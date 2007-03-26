@@ -21,6 +21,8 @@
 #ifndef __MISC_H__
 #define __MISC_H__
 
+#include "relocatable.h"
+
 #include <data/value.h>
 #include <data/format.h>
 
@@ -47,6 +49,11 @@ void reference_manual (GtkMenuItem *, gpointer);
 
 struct getl_interface;
 gboolean execute_syntax (struct getl_interface *sss);
+
+
+#define XML_NEW(FILE) \
+   glade_xml_new (relocate(PKGDATADIR "/" FILE), NULL, NULL)
+
 
 
 #endif

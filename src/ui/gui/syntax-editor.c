@@ -308,8 +308,7 @@ on_run_to_end (GtkMenuItem *menuitem, gpointer user_data)
 struct syntax_editor *
 new_syntax_editor (void)
 {
-  GladeXML *xml =
-    glade_xml_new (PKGDATADIR "/syntax-editor.glade", NULL, NULL);
+  GladeXML *xml = XML_NEW ("syntax-editor.glade");
 
   GtkWidget *text_view;
   struct syntax_editor *se ;

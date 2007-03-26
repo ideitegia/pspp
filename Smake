@@ -35,6 +35,7 @@ GNULIB_MODULES = \
 	minmax \
 	mkstemp \
 	progname \
+	relocatable-prog \
 	snprintf \
 	stdarg \
 	stdbool \
