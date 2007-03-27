@@ -18,7 +18,7 @@ bin_PROGRAMS += src/ui/terminal/pspp
 
 src_ui_terminal_pspp_SOURCES =
 
-src_ui_terminal_pspp_LDFLAGS = \
+src_ui_terminal_pspp_LDADD = \
 	src/ui/terminal/libui.a \
 	src/language/liblanguage.a \
 	src/output/charts/libcharts.a \
@@ -38,5 +38,5 @@ src_ui_terminal_pspp_LDFLAGS = \
 
 
 if RELOCATABLE_VIA_LD
-src_ui_terminal_pspp_LDFLAGS += `$(RELOCATABLE_LDFLAGS) $(bindir)`
+src_ui_terminal_pspp_LDFLAGS = `$(RELOCATABLE_LDFLAGS) $(bindir)`
 endif
