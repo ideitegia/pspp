@@ -88,7 +88,7 @@ static struct cmd_regression cmd;
  */
 struct moments_var
 {
-  struct moments *m;
+  struct moments1 *m;
   struct variable *v;
 };
 
@@ -981,6 +981,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
   struct ccase c;
   size_t row;
   const union value *val;
+  double w = 1.0;
 
   for (r = casefile_get_reader (cf, NULL);
        casereader_read (r, &c); case_destroy (&c))
@@ -990,7 +991,7 @@ mark_missing_cases (const struct casefile *cf, struct variable *v,
       val = case_data (&c, v);
       if (mom != NULL)
 	{
-	  moments_pass_one (mom->m, val->f, 1.0);
+	  moments1_add (mom->m, val->f, w);
 	}
       cat_value_update (v, val);
       if (var_is_value_missing (v, val, MV_ANY))
@@ -1103,6 +1104,37 @@ coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
   pspp_coeff_init (c->coeff + 1, dm);
 }
 
+/*
+  Put the moments in the linreg cache.
+ */
+static void
+compute_moments (pspp_linreg_cache *c, struct moments_var *mom, struct design_matrix *dm, size_t n)
+{
+  size_t i;
+  size_t j;
+  double weight;
+  double mean;
+  double variance;
+  double skewness;
+  double kurtosis;
+  /*
+    Scan the variable names in the columns of the design matrix.
+    When we find the variable we need, insert its mean in the cache.
+   */
+  for (i = 0; i < dm->m->size2; i++)
+    {
+      for (j = 0; j < n; j++)
+	{
+	  if (design_matrix_col_to_var (dm, i) == (mom + j)->v)
+	    {
+	      moments1_calculate ((mom + j)->m, &weight, &mean, &variance,
+				  &skewness, &kurtosis);
+	      gsl_vector_set (c->indep_means, i, mean);
+	      gsl_vector_set (c->indep_std, i, sqrt (variance));
+	    }
+	}
+    }
+}
 static bool
 run_regression (const struct ccase *first,
 		const struct casefile *cf, void *cmd_ UNUSED, const struct dataset *ds)
@@ -1154,7 +1186,7 @@ run_regression (const struct ccase *first,
   mom = xnmalloc (n_variables, sizeof (*mom));
   for (i = 0; i < n_variables; i++)
     {
-      (mom + i)->m = moments_create (MOMENT_VARIANCE);
+      (mom + i)->m = moments1_create (MOMENT_VARIANCE);
       (mom + i)->v = v_variables[i];
     }
   lopts.get_depvar_mean_std = 1;
@@ -1249,6 +1281,7 @@ run_regression (const struct ccase *first,
          Find the least-squares estimates and other statistics.
        */
       pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, models[k]);
+      compute_moments (models[k], mom, X, n_variables);
       subcommand_statistics (cmd.a_statistics, models[k]);
       subcommand_export (cmd.sbc_export, models[k]);
 
@@ -1260,7 +1293,7 @@ run_regression (const struct ccase *first,
     }
   for (i = 0; i < n_variables; i++)
     {
-      moments_destroy ((mom + i)->m);
+      moments1_destroy ((mom + i)->m);
     }
   free (mom);
   free (is_missing_case);
