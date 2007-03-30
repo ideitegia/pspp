@@ -179,7 +179,7 @@ tests_libpspp_sparse_array_test_SOURCES = \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
 	tests/libpspp/sparse-array-test.c
-tests_libpspp_sparse_array_test_LDADD = gl/libgl.la
+tests_libpspp_sparse_array_test_LDADD = gl/libgl.la @LIBINTL@
 tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
