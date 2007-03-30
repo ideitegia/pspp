@@ -75,6 +75,10 @@ static void psppire_selector_base_init     (PsppireSelectorClass *class);
 static void psppire_selector_class_init    (PsppireSelectorClass *class);
 static void psppire_selector_init          (PsppireSelector      *selector);
 
+
+static void set_direction (PsppireSelector *, enum psppire_selector_dir);
+
+
 enum  {SELECTED,    /* Emitted when an item is inserted into dest */
        DE_SELECTED, /* Emitted when an item is removed from dest */
        n_SIGNALS};
@@ -116,11 +120,76 @@ psppire_selector_finalize (GObject *object)
 {
 }
 
+/* Properties */
+enum
+{
+  PROP_0,
+  PROP_ORIENTATION
+};
+
+
+static void
+psppire_selector_set_property (GObject         *object,
+			       guint            prop_id,
+			       const GValue    *value,
+			       GParamSpec      *pspec)
+{
+  PsppireSelector *selector = PSPPIRE_SELECTOR (object);
+
+  switch (prop_id)
+    {
+    case PROP_ORIENTATION:
+      selector->orientation = g_value_get_enum (value);
+      set_direction (selector, selector->direction);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
+
+static void
+psppire_selector_get_property (GObject         *object,
+			       guint            prop_id,
+			       GValue          *value,
+			       GParamSpec      *pspec)
+{
+  PsppireSelector *selector = PSPPIRE_SELECTOR (object);
+
+  switch (prop_id)
+    {
+    case PROP_ORIENTATION:
+      g_value_set_enum (value, selector->orientation);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
 
 
 static void
 psppire_selector_class_init (PsppireSelectorClass *class)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+  GParamSpec *orientation_spec =
+    g_param_spec_enum ("orientation",
+		       "Orientation",
+		       "Where the selector is relative to its subjects",
+		       G_TYPE_PSPPIRE_SELECTOR_ORIENTATION,
+		       PSPPIRE_SELECT_SOURCE_BEFORE_DEST /* default value */,
+		       G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
+
+
+  object_class->set_property = psppire_selector_set_property;
+  object_class->get_property = psppire_selector_get_property;
+
+  g_object_class_install_property (object_class,
+                                   PROP_ORIENTATION,
+                                   orientation_spec);
+
   signals [SELECTED] =
     g_signal_new ("selected",
 		  G_TYPE_FROM_CLASS (class),
@@ -140,8 +209,6 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 		  g_cclosure_marshal_VOID__VOID,
 		  G_TYPE_NONE,
 		  0);
-
-
 }
 
 
@@ -196,9 +263,48 @@ set_direction (PsppireSelector *selector, enum psppire_selector_dir d)
   /* FIXME: Need to reverse the arrow direction if an RTL locale is in
      effect */
   if ( d == PSPPIRE_SELECTOR_SOURCE_TO_DEST )
-    g_object_set (selector->arrow, "arrow-type", GTK_ARROW_RIGHT, NULL);
+    {
+      switch (selector->orientation)
+	{
+	case   PSPPIRE_SELECT_SOURCE_BEFORE_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_RIGHT, NULL);
+	  break;
+	case   PSPPIRE_SELECT_SOURCE_AFTER_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_LEFT, NULL);
+	  break;
+	case   PSPPIRE_SELECT_SOURCE_ABOVE_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_DOWN, NULL);
+	  break;
+	case   PSPPIRE_SELECT_SOURCE_BELOW_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_UP, NULL);
+	  break;
+	default:
+	  g_assert_not_reached ();
+	  break;
+	};
+    }
   else
-    g_object_set (selector->arrow, "arrow-type", GTK_ARROW_LEFT, NULL);
+    {
+      switch (selector->orientation)
+	{
+	case   PSPPIRE_SELECT_SOURCE_BEFORE_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_LEFT, NULL);
+	  break;
+	case   PSPPIRE_SELECT_SOURCE_AFTER_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_RIGHT, NULL);
+	  break;
+	case   PSPPIRE_SELECT_SOURCE_ABOVE_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_UP, NULL);
+	  break;
+	case   PSPPIRE_SELECT_SOURCE_BELOW_DEST:
+	  g_object_set (selector->arrow, "arrow-type", GTK_ARROW_DOWN, NULL);
+	  break;
+	default:
+	  g_assert_not_reached ();
+	  break;
+	};
+
+    }
 }
 
 /* Callback for when the source selection changes */
@@ -596,4 +702,23 @@ psppire_selector_set_subjects (PsppireSelector *selector,
     g_error ("Unsupported destination widget: %s", G_OBJECT_TYPE_NAME (dest));
 
   selector->select_items = select_func;
+}
+
+
+
+GType
+psppire_selector_orientation_get_type (void)
+{
+  static GType etype = 0;
+  if (etype == 0) {
+    static const GEnumValue values[] = {
+      { PSPPIRE_SELECT_SOURCE_BEFORE_DEST, "PSPPIRE_SELECT_SOURCE_BEFORE_DEST", "source before destination" },
+      { PSPPIRE_SELECT_SOURCE_AFTER_DEST, "PSPPIRE_SELECT_SOURCE_AFTER_DEST", "source after destination" },
+      { PSPPIRE_SELECT_SOURCE_ABOVE_DEST, "PSPPIRE_SELECT_SOURCE_ABOVE_DEST", "source above destination" },
+      { PSPPIRE_SELECT_SOURCE_BELOW_DEST, "PSPPIRE_SELECT_SOURCE_BELOW_DEST", "source below destination" },
+      { 0, NULL, NULL }
+    };
+    etype = g_enum_register_static (g_intern_static_string ("PsppireSelectorOrientation"), values);
+  }
+  return etype;
 }

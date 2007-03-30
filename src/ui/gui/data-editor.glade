@@ -326,9 +326,8 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="split_file1">
+                      <widget class="GtkMenuItem" id="data_split-file">
                         <property name="visible">True</property>
-                        <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Split File</property>
                         <property name="use_underline">True</property>
                       </widget>
@@ -567,7 +566,6 @@
                 <child>
                   <widget class="GtkToolButton" id="button-split-file">
                     <property name="visible">True</property>
-                    <property name="sensitive">False</property>
                     <property name="tooltip" translatable="yes">Split File</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">pspp-split-file</property>

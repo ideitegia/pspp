@@ -70,6 +70,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/data-sheet.h \
 	src/ui/gui/data-editor.c \
 	src/ui/gui/data-editor.h \
+	src/ui/gui/dialog-common.c \
+	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.c \
 	src/ui/gui/dict-display.h \
 	src/ui/gui/flexifile-factory.h \
@@ -81,22 +83,26 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/helper.h \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
+	src/ui/gui/psppire-buttonbox.c \
+	src/ui/gui/psppire-buttonbox.h \
 	src/ui/gui/psppire-case-file.c \
 	src/ui/gui/psppire-case-file.h \
 	src/ui/gui/psppire-data-store.c \
 	src/ui/gui/psppire-data-store.h \
-	src/ui/gui/psppire-dict.c \
-	src/ui/gui/psppire-dict.h \
 	src/ui/gui/psppire-dialog.c \
 	src/ui/gui/psppire-dialog.h \
-	src/ui/gui/psppire-buttonbox.c \
-	src/ui/gui/psppire-buttonbox.h \
+	src/ui/gui/psppire-dict.c \
+	src/ui/gui/psppire-dict.h \
+	src/ui/gui/psppire-keypad.c \
+	src/ui/gui/psppire-keypad.h \
 	src/ui/gui/psppire-selector.c \
 	src/ui/gui/psppire-selector.h \
 	src/ui/gui/psppire-var-store.c \
 	src/ui/gui/psppire-var-store.h \
 	src/ui/gui/sort-cases-dialog.c \
 	src/ui/gui/sort-cases-dialog.h \
+	src/ui/gui/split-file-dialog.c \
+	src/ui/gui/split-file-dialog.h \
 	src/ui/gui/syntax-editor.c \
 	src/ui/gui/syntax-editor.h \
 	src/ui/gui/syntax-editor-source.c \

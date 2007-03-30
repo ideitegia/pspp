@@ -28,6 +28,8 @@
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"
 
+#include "dialog-common.h"
+
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
@@ -41,52 +43,6 @@
 #include <gtksheet/gtksheet.h>
 #include "psppire-var-store.h"
 
-
-
-static struct variable *
-get_selected_variable (GtkTreeModel *treemodel,
-		       GtkTreeIter *iter,
-		       PsppireDict *dict)
-{
-  struct variable *var;
-  GValue value = {0};
-
-  GtkTreePath *path = gtk_tree_model_get_path (treemodel, iter);
-
-  gtk_tree_model_get_value (treemodel, iter, 0, &value);
-
-  gtk_tree_path_free (path);
-
-  var =  psppire_dict_get_variable (dict, g_value_get_int (&value));
-
-  g_value_unset (&value);
-
-  return var;
-}
-
-
-/* A (*GtkTreeCellDataFunc) function.
-   This function expects TREEMODEL to hold G_TYPE_INT.  The ints it holds
-   are the indices of the variables in the dictionary, which DATA points to.
-   It renders the name of the variable into CELL.
-*/
-static void
-cell_var_name (GtkTreeViewColumn *tree_column,
-	       GtkCellRenderer *cell,
-	       GtkTreeModel *tree_model,
-	       GtkTreeIter *iter,
-	       gpointer data)
-{
-  PsppireDict *dict = data;
-  struct variable *var;
-  gchar *name;
-
-  var = get_selected_variable (tree_model, iter, dict);
-
-  name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
-  g_object_set (cell, "text", name, NULL);
-  g_free (name);
-}
 
 static gchar * generate_syntax (PsppireDict *dict, GladeXML *xml);
 
@@ -113,31 +69,8 @@ transpose_dialog (GObject *o, gpointer data)
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,
 				 GTK_SELECTION_MULTIPLE, NULL);
-  {
-    GtkTreeViewColumn *col;
-    GtkListStore *dest_list = gtk_list_store_new (1, G_TYPE_INT);
-    GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
 
-    gtk_tree_view_set_model (GTK_TREE_VIEW (dest), GTK_TREE_MODEL (dest_list));
-
-    col = gtk_tree_view_column_new_with_attributes (_("Var"),
-						    renderer,
-						    "text",
-						    0,
-						    NULL);
-
-    gtk_tree_view_column_set_cell_data_func (col, renderer,
-					     cell_var_name,
-					     vs->dict, 0);
-
-    /* FIXME: make this a value in terms of character widths */
-    g_object_set (col, "min-width",  100, NULL);
-
-    gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
-
-    gtk_tree_view_append_column (GTK_TREE_VIEW(dest), col);
-  }
-
+  set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
 				 source, dest,
@@ -190,7 +123,6 @@ transpose_dialog (GObject *o, gpointer data)
 static gchar *
 generate_syntax (PsppireDict *dict, GladeXML *xml)
 {
-  GtkTreeIter iter;
   const gchar *text;
   GString *string = g_string_new ("FLIP");
   gchar *syntax ;
@@ -198,29 +130,9 @@ generate_syntax (PsppireDict *dict, GladeXML *xml)
   GtkWidget *dest = get_widget_assert (xml, "variables-treeview");
   GtkWidget *entry = get_widget_assert (xml, "new-name-entry");
 
-  GtkTreeModel *list_store = gtk_tree_view_get_model (GTK_TREE_VIEW (dest));
+  g_string_append (string, " /VARIABLES = ");
 
-  if ( gtk_tree_model_get_iter_first (list_store, &iter) )
-    {
-      g_string_append (string, " /VARIABLES =");
-      do
-	{
-	  GValue value = {0};
-	  struct variable *var;
-	  GtkTreePath *path = gtk_tree_model_get_path (list_store, &iter);
-
-	  gtk_tree_model_get_value (list_store, &iter, 0, &value);
-
-	  var = psppire_dict_get_variable (dict, g_value_get_int (&value));
-	  g_value_unset (&value);
-
-	  g_string_append (string, " ");
-	  g_string_append (string, var_get_name (var));
-
-	  gtk_tree_path_free (path);
-	}
-      while (gtk_tree_model_iter_next (list_store, &iter));
-    }
+  append_variable_names (string, dict, GTK_TREE_VIEW (dest));
 
   text = gtk_entry_get_text (GTK_ENTRY (entry));
 

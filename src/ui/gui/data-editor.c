@@ -32,6 +32,7 @@
 #include "psppire-dialog.h"
 #include "psppire-selector.h"
 #include "weight-cases-dialog.h"
+#include "split-file-dialog.h"
 #include "transpose-dialog.h"
 #include "dict-display.h"
 
@@ -175,6 +176,18 @@ new_data_editor (void)
 		    G_CALLBACK (transpose_dialog), de);
 
 
+
+  de->invoke_split_file_dialog =
+    gtk_action_new ("split-file-dialog",
+		    _("Split"),
+		    _("Split the active file"),
+		    "pspp-split-file");
+
+
+  g_signal_connect (de->invoke_split_file_dialog, "activate",
+		    G_CALLBACK (split_file_dialog), de);
+
+
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
   g_signal_connect_swapped (get_widget_assert (de->xml,"file_new_data"),
@@ -226,6 +239,11 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->invoke_transpose_dialog,
 			    get_widget_assert (de->xml, "data_transpose")
 			    );
+
+  gtk_action_connect_proxy (de->invoke_split_file_dialog,
+			    get_widget_assert (de->xml, "data_split-file")
+			    );
+
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
 		    "activate",
@@ -315,6 +333,10 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
 			    get_widget_assert (de->xml, "button-weight-cases")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_split_file_dialog,
+			    get_widget_assert (de->xml, "button-split-file")
 			    );
 
   g_signal_connect (get_widget_assert (de->xml, "file_quit"),

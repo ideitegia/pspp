@@ -4,6 +4,7 @@
 #include "psppire-dialog.h"
 
 #include <glade-gtk.h>
+#include <assert.h>
 
 
 void GLADEGTK_API
@@ -26,7 +27,7 @@ glade_psppire_dialog_post_create (GladeWidgetAdaptor *adaptor,
 
   if (reason == GLADE_CREATE_USER)
     {
-      /* HIG complient border-width defaults on dialogs */
+      /* HIG compliant border-width defaults on dialogs */
       glade_widget_property_set (widget, "border-width", 5);
     }
 
@@ -44,17 +45,12 @@ glade_psppire_dialog_post_create (GladeWidgetAdaptor *adaptor,
   if (reason == GLADE_CREATE_USER)
     {
 
-      /* HIG complient spacing defaults on dialogs */
+      /* HIG compliant spacing defaults on dialogs */
       glade_widget_property_set (box_widget, "spacing", 2);
 
       glade_widget_property_set (box_widget, "size", 2);
 
     }
-
-
-  /* set a reasonable default size for a dialog */
-  gtk_window_set_default_size (GTK_WINDOW (dialog), 320, 260);
-
 }
 
 
@@ -85,6 +81,8 @@ glade_psppire_dialog_set_property (GladeWidgetAdaptor *adaptor,
 	   G_OBJECT_TYPE_NAME( object ),
 	   id);
 #endif
+
+  assert (  GWA_GET_CLASS (GTK_TYPE_WINDOW)->set_property );
 
   GWA_GET_CLASS (GTK_TYPE_WINDOW)->set_property (adaptor, object,
 						 id, value);

@@ -1,3 +1,20 @@
+2007-03-31   John Darrington <john@darrington.wattle.id.au>
+	
+	* data-editor.c: Added hooks for the split-file-dialog
+
+	* psppire.glade: Added the split file dialog box.
+	
+	* split-file-dialog.c split-file-dialog.h: New files.
+	
+	* dialog-common.c dialog-common.h: New files containing functions 
+	which seem to be used a lot in dialog box implementations. 
+
+	* psppire-keypad.c psppire-keypad.h: New files.  Implements keypad
+	thingumy widget.  
+
+	* psppire-selector.c: Made the orientation of the arrow a property
+	of the widget, so that it can be selected from glade.
+
 2007-03-18  Ben Pfaff  <blp@gnu.org>
 
 	* syntax-editor-source.c (close): Rename do_close to avoid naming

@@ -80,6 +80,8 @@ struct _PsppireSelector
   GtkWidget *dest;
 
 
+  gint orientation;
+
   GtkTreeModelFilter *filtered_source;
 
   SelectItemsFunc *select_items;
@@ -102,6 +104,22 @@ void       psppire_selector_set_subjects    (PsppireSelector *,
 					     GtkWidget *,
 					     SelectItemsFunc *,
 					     FilterItemsFunc * );
+
+GType psppire_selector_orientation_get_type (void) G_GNUC_CONST;
+
+
+typedef enum {
+  PSPPIRE_SELECT_SOURCE_BEFORE_DEST,
+  PSPPIRE_SELECT_SOURCE_AFTER_DEST,
+  PSPPIRE_SELECT_SOURCE_ABOVE_DEST,
+  PSPPIRE_SELECT_SOURCE_BELOW_DEST
+} PsppireSelectorOrientation;
+
+#define G_TYPE_PSPPIRE_SELECTOR_ORIENTATION \
+  (psppire_selector_orientation_get_type())
+
+
+
 G_END_DECLS
 
 #endif /* __PSPPIRE_SELECTOR_H__ */

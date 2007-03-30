@@ -1,0 +1,6 @@
+Sat Mar 31 07:09:33 WST 2007 John Darrington <john@darrington.wattle.id.au>
+	
+  * Added icons directory and its contents.
+
+  * Re-wrote psppire.xml to work with glade 3.2.0, and to know about the
+    keypad widget. 

@@ -1,69 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <glade-catalog name="psppire" library="glade-psppire">
-
-  <init-function>my_catalog_init</init-function>
 
   <glade-widget-classes>
 
-    <glade-widget-class toplevel="True" name="PsppireDialog" generic-name="psppire-dialog" title="Psppire Dialog Box">
-      <post-create-function>glade_psppire_dialog_post_create</post-create-function>
-      <get-internal-child-function>glade_psppire_dialog_get_internal_child</get-internal-child-function>
+    <glade-widget-class name="PsppireDialog" 
+			generic-name="psppire-dialog" 
+			toplevel="True" 
+			default-width="320"
+			default-height="260"
+			title="Dialog Box">
 
-      <get-children-function>glade_psppire_dialog_get_children</get-children-function>
+     <post-create-function>glade_psppire_dialog_post_create</post-create-function>
+     <get-internal-child-function>glade_psppire_dialog_get_internal_child</get-internal-child-function>
+
+     <get-children-function>glade_psppire_dialog_get_children</get-children-function>
 
 
-      <set-property-function>glade_psppire_dialog_set_property</set-property-function>
+     <properties>
+        <property id="accept-focus"         disabled="True" />
+        <property id="allow-grow"           disabled="True" />
+        <property id="allow-shrink"         disabled="True" />
+        <property id="decorated"            disabled="True" />
+	<property id="default-height"       disabled="True" />
+	<property id="default-width"        disabled="True" />
+	<property id="deletable"            disabled="True" />
+	<property id="destroy-with-parent"  disabled="True" />
+	<property id="focus-on-map"         disabled="True" />
+	<property id="gravity"              disabled="True" />
+	<property id="has-toplevel-focus"   disabled="True" />
+	<property id="icon"                 disabled="True" />
+	<property id="icon-name"            disabled="True" />
+	<property id="is-active"            disabled="True" />
 
-      <properties>
-	<property optional-default="False" optional="True" id="default-width" 
-	default="0"/>
-	<property optional-default="False" optional="True" id="default-height" 
-	default="0"/>
-	<property id="has-separator" default="False"/>
+	<property id="resizable"            disabled="True" />
+	<property id="role"                 disabled="True" />
+	<property id="screen"               disabled="True" />
+	<property id="skip-pager-hint"      disabled="True" />
+	<property id="skip-taskbar-hint"    disabled="True" />
+	<property id="transient-for"        disabled="True" />
+	<property id="type"                 disabled="True" />
+	<property id="type-hint"            disabled="True" />
+	<property id="urgency-hint"         disabled="True" />
+	<property id="window-position"      disabled="True" />
 
-      </properties>
+	<property id="child"                disabled="True" />
+        <property id="resize-mode"          disabled="True" />
+	<property id="border-width"         disabled="True" />
+
+
+	<property id="modal" ignore="True" default="True" />
+	
+    </properties>
 
     </glade-widget-class>
 
 
     <glade-widget-class name="PsppireButtonBox" generic-name="psppire-buttonbox" title="Psppire Button Box">
 
-          <post-create-function>glade_psppire_button_box_post_create</post-create-function>
-          <get-children-function>glade_psppire_button_box_get_children</get-children-function>
+      <post-create-function>glade_psppire_button_box_post_create</post-create-function>
+      <get-children-function>glade_psppire_button_box_get_children</get-children-function>
 
       <get-internal-child-function>glade_psppire_button_box_get_internal_child</get-internal-child-function>
 
-      <set-property-function>glade_psppire_button_box_set_property</set-property-function>
+    <properties>
+      <property id="child"                disabled="True" />
+    </properties>
 
+    <packing-defaults>
+      <parent-class name="GtkHBox">
+       <child-property id="expand" default="False"/>
+       <child-property id="fill" default="False"/>
+       <child-property id="pack-type" default="GTK_PACK_END"/>
+      </parent-class>
+    </packing-defaults>
 
-          <packing-defaults>
-	    <parent-class name="GtkHBox">
-             <child-property id="expand" default="False"/>
-             <child-property id="fill" default="False"/>
-             <child-property id="pack-type" default="GTK_PACK_END"/>
-	    </parent-class>
-          </packing-defaults>
     </glade-widget-class>
 
 
-    <glade-widget-class name="PsppireSelector" generic-name="psppire-selector" title="Psppire Selector Button">
 
-          <post-create-function>glade_psppire_selector_post_create</post-create-function>
-          <get-children-function>glade_psppire_selector_get_children</get-children-function>
+    <glade-widget-class name="PsppireKeypad" 
+                        get-type-function="psppire_keypad_get_type" 
+			generic-name="psppire-keypad" 
+			fixed="True"
+			title="Keypad">
+
+
+    <properties>
+    	<property id="child"       disabled="True"/>
+	<property id="homogeneous" disabled="True"/>
+	<property id="n-columns"   disabled="True"/>
+	<property id="n-rows"      disabled="True"/>
+     </properties>
+  
+    </glade-widget-class>
+
+
+    <glade-widget-class name="PsppireSelector" generic-name="psppire-selector" title="Selector Button">
+
+      <post-create-function>glade_psppire_selector_post_create</post-create-function>
+      <get-children-function>glade_psppire_selector_get_children</get-children-function>
 
       <get-internal-child-function>glade_psppire_selector_get_internal_child</get-internal-child-function>
 
-      <set-property-function>glade_psppire_selector_set_property</set-property-function>
+
+     <properties>
+    	<property id="child"           disabled="True"/>
+	<property id="label"           disabled="True"/>
+        <property id="focus-on-click"  disabled="True"/>
+        <property id="image"           disabled="True"/>
+        <property id="image-position"  disabled="True"/>
+        <property id="label"           disabled="True"/>
+        <property id="relief"          disabled="True"/>
+        <property id="use-stock"       disabled="True"/>
+        <property id="use-underline"   disabled="True"/>
+        <property id="xalign"          disabled="True"/>
+        <property id="yalign"          disabled="True"/>
+        <property id="resize-mode"     disabled="True"/>
+
+	<property id="orientation">
+	  <displayable-values>
+	    <value id="PSPPIRE_SOURCE_BEFORE_DEST" 
+	       name="Source Before Destination"></value>
+	    <value id="PSPPIRE_AFTER_BEFORE_DEST"  
+	       name="Source After Destination"></value>
+	    <value id="PSPPIRE_ABOVE_BEFORE_DEST"  
+	       name="Source Above Destination"></value>
+	    <value id="PSPPIRE_BELOW_BEFORE_DEST"  
+	       name="Source Below Destination"></value>
+	  </displayable-values>
+	</property>
+
+     </properties>
 
     </glade-widget-class>
 
 
-  </glade-widget-classes>
 
-  <glade-widget-group name="psppire-widgets" title="PSPPIRE Specific Widgets">
-    <glade-widget-class-ref name="PsppireDialog"/>
-    <glade-widget-class-ref name="PsppireButtonBox"/>
-    <glade-widget-class-ref name="PsppireSelector"/>
-  </glade-widget-group>
+  </glade-widget-classes>
+ 
+
+ <glade-widget-group name="psppire" title="Psppire">
+  <glade-widget-class-ref name="PsppireDialog"/>
+  <glade-widget-class-ref name="PsppireButtonBox"/>
+  <glade-widget-class-ref name="PsppireKeypad"/>
+  <glade-widget-class-ref name="PsppireSelector"/>
+ </glade-widget-group>
+
 
 </glade-catalog>
-

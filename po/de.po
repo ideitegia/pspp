@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-03-25 18:00+0800\n"
+"POT-Creation-Date: 2007-03-26 18:17+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -4134,105 +4134,105 @@ msgstr ""
 msgid "Style of bevel around the custom entry button"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:160
+#: src/ui/gui/data-editor.c:159
 #, fuzzy
 msgid "Weights"
 msgstr "Rechts"
 
-#: src/ui/gui/data-editor.c:161
+#: src/ui/gui/data-editor.c:160
 msgid "Weight cases by variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:170 src/ui/gui/data-editor.glade:294
+#: src/ui/gui/data-editor.c:169 src/ui/gui/data-editor.glade:294
 msgid "Transpose"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:171
+#: src/ui/gui/data-editor.c:170
 msgid "Transpose the cases with the variables"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:495
+#: src/ui/gui/data-editor.c:494
 msgid "Font Selection"
 msgstr "Schriftwahlung"
 
-#: src/ui/gui/data-editor.c:673
+#: src/ui/gui/data-editor.c:672
 msgid "No Split"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:681
+#: src/ui/gui/data-editor.c:680
 #, fuzzy
 msgid "Split by "
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.c:706
+#: src/ui/gui/data-editor.c:705
 msgid "Filter off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:719
+#: src/ui/gui/data-editor.c:718
 #, c-format
 msgid "Filter by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:737
+#: src/ui/gui/data-editor.c:736
 msgid "Weights off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:750
+#: src/ui/gui/data-editor.c:749
 #, c-format
 msgid "Weight by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:773 src/ui/gui/data-editor.c:984
+#: src/ui/gui/data-editor.c:772 src/ui/gui/data-editor.c:983
 #: src/ui/gui/data-editor.glade:414
 msgid "Open"
 msgstr "Öffen"
 
-#: src/ui/gui/data-editor.c:774
+#: src/ui/gui/data-editor.c:773
 msgid "Open a data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:782 src/ui/gui/data-editor.c:889
+#: src/ui/gui/data-editor.c:781 src/ui/gui/data-editor.c:888
 #: src/ui/gui/data-editor.glade:424
 msgid "Save"
 msgstr "Speichen"
 
-#: src/ui/gui/data-editor.c:783 src/ui/gui/data-editor.c:793
+#: src/ui/gui/data-editor.c:782 src/ui/gui/data-editor.c:792
 #, fuzzy
 msgid "Save data to file"
 msgstr "Speichern unter"
 
-#: src/ui/gui/data-editor.c:792
+#: src/ui/gui/data-editor.c:791
 #, fuzzy
 msgid "Save As"
 msgstr "Speichern unter"
 
-#: src/ui/gui/data-editor.c:801
+#: src/ui/gui/data-editor.c:800
 msgid "New"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:802
+#: src/ui/gui/data-editor.c:801
 msgid "New data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:897 src/ui/gui/data-editor.c:992
+#: src/ui/gui/data-editor.c:896 src/ui/gui/data-editor.c:991
 msgid "System Files (*.sav)"
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/data-editor.c:903 src/ui/gui/data-editor.c:998
+#: src/ui/gui/data-editor.c:902 src/ui/gui/data-editor.c:997
 msgid "Portable Files (*.por) "
 msgstr "Tragbardatein (*.por)"
 
-#: src/ui/gui/data-editor.c:909 src/ui/gui/data-editor.c:1004
-#: src/ui/gui/syntax-editor.c:141 src/ui/gui/syntax-editor.c:525
+#: src/ui/gui/data-editor.c:908 src/ui/gui/data-editor.c:1003
+#: src/ui/gui/syntax-editor.c:141 src/ui/gui/syntax-editor.c:524
 msgid "All Files"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.c:917
+#: src/ui/gui/data-editor.c:916
 #, fuzzy
 msgid "System File"
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/data-editor.c:922
+#: src/ui/gui/data-editor.c:921
 #, fuzzy
 msgid "Portable File"
 msgstr "Tragbardatein (*.por)"
@@ -4537,7 +4537,7 @@ msgid "Sort Order"
 msgstr ""
 
 #: src/ui/gui/dict-display.c:92 src/ui/gui/sort-cases-dialog.c:339
-#: src/ui/gui/transpose-dialog.c:124
+#: src/ui/gui/transpose-dialog.c:123
 msgid "Var"
 msgstr ""
 
@@ -4677,12 +4677,12 @@ msgstr ""
 msgid "Save Syntax"
 msgstr "Speichern unter"
 
-#: src/ui/gui/syntax-editor.c:135 src/ui/gui/syntax-editor.c:519
+#: src/ui/gui/syntax-editor.c:135 src/ui/gui/syntax-editor.c:518
 #, fuzzy
 msgid "Syntax Files (*.sps) "
 msgstr "Systemedatein (*.sav)"
 
-#: src/ui/gui/syntax-editor.c:511
+#: src/ui/gui/syntax-editor.c:510
 msgid "Open Syntax"
 msgstr ""
 
@@ -4759,22 +4759,22 @@ msgstr "Ordinalwert"
 msgid "Scale"
 msgstr "Skalwert"
 
-#: src/ui/gui/window-manager.c:139
+#: src/ui/gui/window-manager.c:141
 #, fuzzy, c-format
 msgid "Syntax%d"
 msgstr "Speichern unter"
 
-#: src/ui/gui/window-manager.c:140 src/ui/gui/window-manager.c:171
+#: src/ui/gui/window-manager.c:142 src/ui/gui/window-manager.c:173
 #, fuzzy, c-format
 msgid "%s --- PSPP Syntax Editor"
 msgstr "PSPP Dateiaufbereiter"
 
-#: src/ui/gui/window-manager.c:143
+#: src/ui/gui/window-manager.c:145
 #, fuzzy, c-format
 msgid "Untitled%d"
 msgstr "Unbetitelt"
 
-#: src/ui/gui/window-manager.c:144 src/ui/gui/window-manager.c:174
+#: src/ui/gui/window-manager.c:146 src/ui/gui/window-manager.c:176
 #, fuzzy, c-format
 msgid "%s --- PSPP Data Editor"
 msgstr "PSPP Dateiaufbereiter"
