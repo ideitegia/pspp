@@ -16,155 +16,165 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
+/* Deque data structure.
+
+   This code slightly simplifies the implementation of a deque as
+   a circular queue.  To use it, declare a "struct deque" and a
+   pointer to the element type.  For example, for a deque of
+   "int"s:
+
+        struct deque deque;
+        int *data;
+
+   To initialize the deque with a initial capacity of 0:
+
+        deque_init_null (&deque);
+        data = NULL;
+
+   Alternatively, to initialize the deque with an initial minimum
+   capacity of, e.g., 4:
+
+        data = deque_init (&deque, 4, sizeof *data);
+
+   Functions that access elements in the deque return array
+   indexes.  This is fairly convenient:
+
+        // Push X at the back of the deque.
+        data[deque_push_back (&deque)] = x;
+
+        // Pop off the front of the deque into X.
+        x = data[deque_pop_front (&deque)];
+
+        // Obtain the element just past the back of the deque as X.
+        x = data[deque_back (&deque, 1)];
+
+   The push functions will not expand the deque on their own.
+   Use the deque_expand function if necessary, as in:
+
+        // Push X at the back of the deque, first expanding the
+        // deque if necessary.
+        if (deque_is_full (&deque))
+          data = deque_expand (&deque, data, sizeof *data);
+        data[deque_push_back (&deque)] = x;
+        
+   Expanding a deque will copy its elements from one memory
+   region to another using memcpy.  Thus, your deque elements
+   must tolerate copying if their deque is to be expanded. */
+
 #ifndef LIBPSPP_DEQUE_H
 #define LIBPSPP_DEQUE_H 1
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
 
-#include <libpspp/compiler.h>
+#include <libpspp/assertion.h>
 
-#include "xalloc.h"
+/* A deque implemented as a circular buffer. */
+struct deque
+  {
+    size_t capacity;    /* Capacity, which must be a power of 2. */
+    size_t front;       /* One past the front of the queue. */
+    size_t back;        /* The back of the queue. */
+  };
 
-/* Declares data and functions for a deque whose elements have
-   the given ELEMENT_TYPE.  Instances of the deque are declared
-   as "struct NAME", and each function that operates on the deque
-   has NAME_ as a prefix. */
-#define DEQUE_DECLARE(NAME, ELEMENT_TYPE)                                   \
-/* An instance of the deque. */                                             \
-struct NAME                                                                 \
-  {                                                                         \
-    size_t capacity;    /* Capacity, which must be a power of 2. */         \
-    size_t front;       /* One past the front of the queue. */              \
-    size_t back;        /* The back of the queue. */                        \
-    ELEMENT_TYPE *data; /* Pointer to CAPACITY elements. */                 \
-  };                                                                        \
-                                                                            \
-/* Initializes DEQUE as an empty deque that can store at least              \
-   CAPACITY elements.  (The actual capacity may be larger and is            \
-   always a power of 2.) */                                                 \
-static inline void                                                          \
-NAME##_init (struct NAME *deque, size_t capacity)                           \
-{                                                                           \
-  deque->capacity = 1;                                                      \
-  while (deque->capacity < capacity)                                        \
-    deque->capacity <<= 1;                                                  \
-  deque->front = deque->back = 0;                                           \
-  deque->data = xnmalloc (deque->capacity, sizeof *deque->data);            \
-}                                                                           \
-                                                                            \
-/* Destroys DEQUE, which must be empty. */                                  \
-static inline void                                                          \
-NAME##_destroy (struct NAME *deque)                                         \
-{                                                                           \
-  free (deque->data);                                                       \
-}                                                                           \
-                                                                            \
-/* Returns the number of elements currently in DEQUE. */                    \
-static inline size_t                                                        \
-NAME##_count (const struct NAME *deque)                                     \
-{                                                                           \
-  return deque->front - deque->back;                                        \
-}                                                                           \
-                                                                            \
-/* Returns the maximum number of elements that DEQUE can hold at            \
-   any time. */                                                             \
-static inline size_t                                                        \
-NAME##_capacity (const struct NAME *deque)                                  \
-{                                                                           \
-  return deque->capacity;                                                   \
-}                                                                           \
-                                                                            \
-/* Returns true if DEQUE is currently empty (contains no                    \
-   elements), false otherwise. */                                           \
-static inline bool                                                          \
-NAME##_is_empty (const struct NAME *deque)                                  \
-{                                                                           \
-  return NAME##_count (deque) == 0;                                         \
-}                                                                           \
-                                                                            \
-/* Returns true if DEQUE is currently full (cannot take any more            \
-   elements), false otherwise. */                                           \
-static inline bool                                                          \
-NAME##_is_full (const struct NAME *deque)                                   \
-{                                                                           \
-  return NAME##_count (deque) >= NAME##_capacity (deque);                   \
-}                                                                           \
-                                                                            \
-/* Returns the element in DEQUE that is OFFSET elements from its            \
-   front.  A value 0 for OFFSET requests the element at the                 \
-   front, a value of 1 the element just behind the front, and so            \
-   on.  OFFSET must be less than the current number of elements             \
-   in DEQUE. */                                                             \
-static inline ELEMENT_TYPE *                                                \
-NAME##_front (const struct NAME *deque, size_t offset)                      \
-{                                                                           \
-  assert (NAME##_count (deque) > offset);                                   \
-  return &deque->data[(deque->front - offset - 1) & (deque->capacity - 1)]; \
-}                                                                           \
-                                                                            \
-/* Returns the element in DEQUE that is OFFSET elements from its            \
-   back.  A value 0 for OFFSET requests the element at the back,            \
-   a value of 1 the element just ahead of the back, and so on.              \
-   OFFSET must be less than the current number of elements in               \
-   DEQUE. */                                                                \
-static inline ELEMENT_TYPE *                                                \
-NAME##_back (const struct NAME *deque, size_t offset)                       \
-{                                                                           \
-  assert (NAME##_count (deque) > offset);                                   \
-  return &deque->data[(deque->back + offset) & (deque->capacity - 1)];      \
-}                                                                           \
-                                                                            \
-/* Adds and returns the address of a new element at the front of            \
-   DEQUE, which must not be full.  The caller is responsible for            \
-   assigning a value to the returned element. */                            \
-static inline ELEMENT_TYPE *                                                \
-NAME##_push_front (struct NAME *deque)                                      \
-{                                                                           \
-  assert (!NAME##_is_full (deque));                                         \
-  return &deque->data[deque->front++ & (deque->capacity - 1)];              \
-}                                                                           \
-                                                                            \
-/* Adds and returns the address of a new element at the back of             \
-   DEQUE, which must not be full.  The caller is responsible for            \
-   assigning a value to the returned element. */                            \
-static inline ELEMENT_TYPE *                                                \
-NAME##_push_back (struct NAME *deque)                                       \
-{                                                                           \
-  assert (!NAME##_is_full (deque));                                         \
-  return &deque->data[--deque->back & (deque->capacity - 1)];               \
-}                                                                           \
-                                                                            \
-/* Pops the front element off DEQUE (which must not be empty) and           \
-   returns its address.  The element may be reused the next time            \
-   an element is pushed into DEQUE or when DEQUE is expanded. */            \
-static inline ELEMENT_TYPE *                                                \
-NAME##_pop_front (struct NAME *deque)                                       \
-{                                                                           \
-  assert (!NAME##_is_empty (deque));                                        \
-  return &deque->data[--deque->front & (deque->capacity - 1)];              \
-}                                                                           \
-                                                                            \
-/* Pops the back element off DEQUE (which must not be empty) and            \
-   returns its address.  The element may be reused the next time            \
-   an element is pushed into DEQUE or when DEQUE is expanded. */            \
-static inline ELEMENT_TYPE *                                                \
-NAME##_pop_back (struct NAME *deque)                                        \
-{                                                                           \
-  assert (!NAME##_is_empty (deque));                                        \
-  return &deque->data[deque->back++ & (deque->capacity - 1)];               \
-}                                                                           \
-                                                                            \
-/* Expands DEQUE, doubling its capacity. */                                 \
-static inline void                                                          \
-NAME##_expand (struct NAME *deque)                                          \
-{                                                                           \
-  struct NAME old_deque = *deque;                                           \
-  NAME##_init (deque, deque->capacity * 2);                                 \
-  while (!NAME##_is_empty (&old_deque))                                     \
-    *NAME##_push_front (deque) = *NAME##_pop_back (&old_deque);             \
-  free (old_deque.data);                                                    \
+void deque_init_null (struct deque *);
+void *deque_init (struct deque *, size_t capacity, size_t elem_size);
+void *deque_expand (struct deque *, void *, size_t elem_size);
+
+/* Returns the number of elements currently in DEQUE. */
+static inline size_t
+deque_count (const struct deque *deque)
+{
+  return deque->front - deque->back;
+}
+
+/* Returns the maximum number of elements that DEQUE can hold at
+   any time.  (Use deque_expand to increase a deque's
+   capacity.) */
+static inline size_t
+deque_capacity (const struct deque *deque)
+{
+  return deque->capacity;
+}
+
+/* Returns true if DEQUE is currently empty (contains no
+   elements), false otherwise. */
+static inline bool
+deque_is_empty (const struct deque *deque)
+{
+  return deque_count (deque) == 0;
+}
+
+/* Returns true if DEQUE is currently full (cannot take any more
+   elements), false otherwise. */
+static inline bool
+deque_is_full (const struct deque *deque)
+{
+  return deque_count (deque) >= deque_capacity (deque);
+}
+
+/* Returns the index of the element in DEQUE that is OFFSET
+   elements from its front.  A value 0 for OFFSET requests the
+   element at the front, a value of 1 the element just behind the
+   front, and so on.  OFFSET must be less than the current number
+   of elements in DEQUE. */
+static inline size_t
+deque_front (const struct deque *deque, size_t offset)
+{
+  assert (deque_count (deque) > offset);
+  return (deque->front - offset - 1) & (deque->capacity - 1);
+}
+
+/* Returns the index of the element in DEQUE that is OFFSET
+   elements from its back.  A value 0 for OFFSET requests the
+   element at the back, a value of 1 the element just ahead of
+   the back, and so on.  OFFSET must be less than the current
+   number of elements in DEQUE. */
+static inline size_t
+deque_back (const struct deque *deque, size_t offset)
+{
+  assert (deque_count (deque) > offset);
+  return (deque->back + offset) & (deque->capacity - 1);
+}
+
+/* Adds a new element at the front of DEQUE, which must not be
+   full, and returns the index of the new element.  The caller is
+   responsible for assigning a value to the returned element. */
+static inline size_t
+deque_push_front (struct deque *deque)
+{
+  assert (!deque_is_full (deque));
+  return deque->front++ & (deque->capacity - 1);
+}
+
+/* Adds a new element at the back of DEQUE, which must not be
+   full, and returns the index of the new element.  The caller is
+   responsible for assigning a value to the returned element. */
+static inline size_t
+deque_push_back (struct deque *deque)
+{
+  assert (!deque_is_full (deque));
+  return --deque->back & (deque->capacity - 1);
+}
+
+/* Pops the front element off DEQUE (which must not be empty) and
+   returns its index.  The element may be reused the next time an
+   element is pushed into DEQUE or when DEQUE is expanded. */
+static inline size_t
+deque_pop_front (struct deque *deque)
+{
+  assert (!deque_is_empty (deque));
+  return --deque->front & (deque->capacity - 1);
+}
+
+/* Pops the back element off DEQUE (which must not be empty) and
+   returns its index.  The element may be reused the next time
+   an element is pushed into DEQUE or when DEQUE is expanded. */
+static inline size_t
+deque_pop_back (struct deque *deque)
+{
+  assert (!deque_is_empty (deque));
+  return deque->back++ & (deque->capacity - 1);
 }
 
 #endif /* libpspp/deque.h */

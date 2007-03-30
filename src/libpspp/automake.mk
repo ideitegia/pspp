@@ -17,6 +17,7 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/copyleft.c \
 	src/libpspp/copyleft.h \
 	src/libpspp/compiler.h \
+	src/libpspp/deque.c \
 	src/libpspp/deque.h \
 	src/libpspp/float-format.c \
 	src/libpspp/float-format.h \

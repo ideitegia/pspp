@@ -1,3 +1,7 @@
+2007-03-30  Ben Pfaff  <blp@gnu.org>
+
+	* procedure.c: Adapt to new deque data structure.
+
 Mon Feb 19 10:53:21 2007  John McCabe-Dansted <gmatht@gmail.com>
 			  Ben Pfaff <blp@gnu.org>
 

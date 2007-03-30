@@ -1,3 +1,13 @@
+2007-03-30  Ben Pfaff  <blp@gnu.org>
+
+	Patch #5829.
+
+	* automake.mk (src_libpspp_libpspp_a_SOURCES): Add deque.c.
+
+	* deque.h: Completely rewrote.  Adapted client to new interface.
+
+	* deque.c: New file.
+
 2007-03-25  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk (src_libpspp_libpspp_a_SOURCES): Add

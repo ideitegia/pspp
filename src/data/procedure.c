@@ -26,7 +26,6 @@
 #include <data/case-source.h>
 #include <data/case-sink.h>
 #include <data/case.h>
-#include <data/casedeque.h>
 #include <data/casefile.h>
 #include <data/fastfile.h>
 #include <data/dictionary.h>
@@ -36,6 +35,7 @@
 #include <data/transformations.h>
 #include <data/variable.h>
 #include <libpspp/alloc.h>
+#include <libpspp/deque.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 
@@ -78,7 +78,8 @@ struct dataset {
 
   /* Cases just before ("lagging") the current one. */
   int n_lag;			/* Number of cases to lag. */
-  struct casedeque lagged_cases; /* Lagged cases. */
+  struct deque lag;             /* Deque of lagged cases. */
+  struct ccase *lag_cases;      /* Lagged cases managed by deque. */
 
   /* Procedure data. */
   bool is_open;               /* Procedure open? */
@@ -295,9 +296,9 @@ proc_read (struct dataset *ds, struct ccase **c)
       /* Write case to collection of lagged cases. */
       if (ds->n_lag > 0) 
         {
-          while (casedeque_count (&ds->lagged_cases) >= ds->n_lag)
-            case_destroy (casedeque_pop_back (&ds->lagged_cases));
-          case_clone (casedeque_push_front (&ds->lagged_cases),
+          while (deque_count (&ds->lag) >= ds->n_lag)
+            case_destroy (&ds->lag_cases[deque_pop_back (&ds->lag)]);
+          case_clone (&ds->lag_cases[deque_push_front (&ds->lag)],
                       &ds->trns_case);
         }
 
@@ -420,7 +421,7 @@ open_active_file (struct dataset *ds)
     ds->proc_sink->class->open (ds->proc_sink);
 
   /* Allocate memory for lagged cases. */
-  casedeque_init (&ds->lagged_cases, ds->n_lag);
+  ds->lag_cases = deque_init (&ds->lag, ds->n_lag, sizeof *ds->lag_cases);
 }
 
 /* Clears the variables in C that need to be cleared between
@@ -449,9 +450,9 @@ static bool
 close_active_file (struct dataset *ds)
 {
   /* Free memory for lagged cases. */
-  while (!casedeque_is_empty (&ds->lagged_cases))
-    case_destroy (casedeque_pop_back (&ds->lagged_cases));
-  casedeque_destroy (&ds->lagged_cases);
+  while (!deque_is_empty (&ds->lag))
+    case_destroy (&ds->lag_cases[deque_pop_back (&ds->lag)]);
+  free (ds->lag_cases);
 
   /* Dictionary from before TEMPORARY becomes permanent. */
   proc_cancel_temporary_transformations (ds);
@@ -483,8 +484,8 @@ lagged_case (const struct dataset *ds, int n_before)
   assert (n_before >= 1);
   assert (n_before <= ds->n_lag);
 
-  if (n_before <= casedeque_count (&ds->lagged_cases))
-    return casedeque_front (&ds->lagged_cases, n_before - 1);
+  if (n_before <= deque_count (&ds->lag))
+    return &ds->lag_cases[deque_front (&ds->lag, n_before - 1)];
   else
     return NULL;
 }
