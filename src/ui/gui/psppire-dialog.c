@@ -160,6 +160,8 @@ psppire_dialog_run (PsppireDialog *dialog)
 
   gtk_widget_show (GTK_WIDGET (dialog));
 
+  g_signal_emit (dialog, signals [DIALOG_REFRESH], 0);
+
   g_main_loop_run (dialog->loop);
 
   return dialog->response;
@@ -167,7 +169,7 @@ psppire_dialog_run (PsppireDialog *dialog)
 
 
 void
-psppire_dialog_reload (PsppireDialog *dialog, gpointer data)
+psppire_dialog_reload (PsppireDialog *dialog)
 {
-  g_signal_emit (dialog, signals [DIALOG_REFRESH], 0, data);
+  g_signal_emit (dialog, signals [DIALOG_REFRESH], 0);
 }

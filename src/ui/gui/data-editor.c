@@ -34,6 +34,7 @@
 #include "weight-cases-dialog.h"
 #include "split-file-dialog.h"
 #include "transpose-dialog.h"
+#include "sort-cases-dialog.h"
 #include "dict-display.h"
 
 #define _(msgid) gettext (msgid)
@@ -183,9 +184,19 @@ new_data_editor (void)
 		    _("Split the active file"),
 		    "pspp-split-file");
 
-
   g_signal_connect (de->invoke_split_file_dialog, "activate",
 		    G_CALLBACK (split_file_dialog), de);
+
+
+
+  de->invoke_sort_cases_dialog =
+    gtk_action_new ("sort-cases-dialog",
+		    _("Sort"),
+		    _("Sort cases in the active file"),
+		    "pspp-sort-cases");
+
+  g_signal_connect (de->invoke_sort_cases_dialog, "activate",
+		    G_CALLBACK (sort_cases_dialog), de);
 
 
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
@@ -242,6 +253,10 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->invoke_split_file_dialog,
 			    get_widget_assert (de->xml, "data_split-file")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_sort_cases_dialog,
+			    get_widget_assert (de->xml, "data_sort-cases")
 			    );
 
 
@@ -1040,7 +1055,7 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
 
 	gen_quoted_string (&filename);
 
-	sss = create_syntax_string_source ("GET FILE=%s.", 
+	sss = create_syntax_string_source ("GET FILE=%s.",
 					   ds_cstr (&filename));
 
 	execute_syntax (sss);

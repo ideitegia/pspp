@@ -275,6 +275,13 @@ create_icon_factory (void)
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-select-cases", icon_set);
 
+  pixbuf = PIXBUF_NEW_FROM_FILE ("recent-dialogs.png");
+  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+  gtk_icon_factory_add ( factory, "pspp-recent-dialogs", icon_set);
+
+
+
   gtk_icon_factory_add_default (factory);
 }
 

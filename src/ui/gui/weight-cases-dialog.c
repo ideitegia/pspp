@@ -31,6 +31,11 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+
 /* FIXME: These shouldn't be here */
 #include <gtksheet/gtksheet.h>
 #include "psppire-var-store.h"
@@ -60,10 +65,43 @@ on_toggle (GtkToggleButton *button, gpointer data)
     gtk_entry_set_text (entry, "");
 }
 
+struct weight_cases_dialog
+{
+  PsppireDict *dict;
+  GtkEntry *entry;
+  GtkLabel *status;
+  GtkToggleButton *off;
+  GtkToggleButton *on;
+};
+
+static void
+refresh (PsppireDialog *dialog, const struct weight_cases_dialog *wcd)
+{
+  const struct variable *var = dict_get_weight (wcd->dict->dict);
+
+  if ( ! var )
+    {
+      gtk_entry_set_text (wcd->entry, "");
+      gtk_label_set_text (wcd->status, _("Do not weight cases"));
+      gtk_toggle_button_set_active (wcd->off, TRUE);
+    }
+  else
+    {
+      gchar *text =
+	g_strdup_printf (_("Weight cases by %s"), var_get_name (var));
+
+      gtk_entry_set_text (wcd->entry, var_get_name (var));
+      gtk_label_set_text (wcd->status, text);
+
+      g_free (text);
+      gtk_toggle_button_set_active (wcd->on, TRUE);
+    }
+
+  g_signal_emit_by_name (wcd->entry, "activate");
+}
 
 
-
-static gchar * generate_syntax (PsppireDict *, GtkEntry *);
+static gchar * generate_syntax (const struct weight_cases_dialog *wcd);
 
 
 /* Pops up the Weight Cases dialog box */
@@ -72,8 +110,7 @@ weight_cases_dialog (GObject *o, gpointer data)
 {
   gint response;
   struct data_editor *de = data;
-  PsppireDict *dict;
-  struct variable *var;
+  struct weight_cases_dialog wcd;
 
   GladeXML *xml = XML_NEW ("psppire.glade");
 
@@ -84,13 +121,14 @@ weight_cases_dialog (GObject *o, gpointer data)
   GtkWidget *radiobutton1 = get_widget_assert (xml,
 					       "weight-cases-radiobutton1");
   GtkWidget *radiobutton2 = get_widget_assert (xml, "radiobutton2");
+  GtkWidget *status  = get_widget_assert (xml, "weight-status-label");
 
   GtkSheet *var_sheet =
     GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
-  dict = vs->dict;
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
 
   g_signal_connect (radiobutton1, "toggled", G_CALLBACK (on_toggle), entry);
   g_signal_connect (selector, "selected", G_CALLBACK (on_select),
@@ -100,7 +138,7 @@ weight_cases_dialog (GObject *o, gpointer data)
 		    radiobutton1);
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
-				 dict,
+				 vs->dict,
 				 GTK_SELECTION_SINGLE,
 				 var_is_numeric
 				 );
@@ -112,13 +150,14 @@ weight_cases_dialog (GObject *o, gpointer data)
 				 is_currently_in_entry
 				 );
 
-  var = dict_get_weight (dict->dict);
-  if ( ! var )
-    gtk_entry_set_text (GTK_ENTRY (entry), "");
-  else
-    gtk_entry_set_text (GTK_ENTRY (entry), var_get_name (var));
 
-  g_signal_emit_by_name (entry, "activate");
+  wcd.dict = vs->dict;
+  wcd.entry = GTK_ENTRY (entry);
+  wcd.status = GTK_LABEL (status);
+  wcd.off = GTK_TOGGLE_BUTTON (radiobutton1);
+  wcd.on = GTK_TOGGLE_BUTTON (radiobutton2);
+
+  g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &wcd);
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
@@ -128,7 +167,7 @@ weight_cases_dialog (GObject *o, gpointer data)
     {
     case GTK_RESPONSE_OK:
       {
-	gchar *syntax = generate_syntax (dict, GTK_ENTRY (entry));
+	gchar *syntax = generate_syntax (&wcd);
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -137,7 +176,7 @@ weight_cases_dialog (GObject *o, gpointer data)
       break;
     case PSPPIRE_RESPONSE_PASTE:
       {
-	gchar *syntax = generate_syntax (dict, GTK_ENTRY (entry));
+	gchar *syntax = generate_syntax (&wcd);
 
 	struct syntax_editor *se =
 	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
@@ -154,13 +193,13 @@ weight_cases_dialog (GObject *o, gpointer data)
 
 
 static gchar *
-generate_syntax (PsppireDict *dict, GtkEntry *entry)
+generate_syntax (const struct weight_cases_dialog *wcd)
 {
   gchar *syntax;
 
-  const gchar *text  = gtk_entry_get_text (entry);
+  const gchar *text  = gtk_entry_get_text (wcd->entry);
 
-  struct variable *var = psppire_dict_lookup_var (dict, text);
+  struct variable *var = psppire_dict_lookup_var (wcd->dict, text);
 
   if ( var == NULL)
     syntax = g_strdup ("WEIGHT OFF.");

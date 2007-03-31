@@ -38,6 +38,8 @@ struct data_editor
   GtkAction *invoke_transpose_dialog;
   GtkAction *invoke_split_file_dialog;
 
+  GtkAction *invoke_sort_cases_dialog;
+
   GladeXML *xml;
 
   gboolean save_as_portable;

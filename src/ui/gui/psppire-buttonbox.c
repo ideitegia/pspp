@@ -113,7 +113,7 @@ refresh_clicked (GtkWidget *w, gpointer data)
 
   dialog = PSPPIRE_DIALOG (gtk_widget_get_toplevel (w));
 
-  psppire_dialog_reload (dialog, data);
+  psppire_dialog_reload (dialog);
 }
 
 

@@ -38,8 +38,8 @@ struct _PsppireDialogClass
 
 GType          psppire_dialog_get_type        (void);
 GtkWidget*     psppire_dialog_new             (void);
+void           psppire_dialog_reload          (PsppireDialog *);
 void           psppire_dialog_close           (PsppireDialog *);
-void           psppire_dialog_reload          (PsppireDialog *, gpointer data);
 gint           psppire_dialog_run             (PsppireDialog *);
 
 

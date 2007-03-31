@@ -56,6 +56,7 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\
 	$(top_srcdir)/src/ui/gui/icons/insert-case.png \
 	$(top_srcdir)/src/ui/gui/icons/insert-variable.png \
+	$(top_srcdir)/src/ui/gui/icons/recent-dialogs.png \
 	$(top_srcdir)/src/ui/gui/icons/split-file.png \
 	$(top_srcdir)/src/ui/gui/icons/select-cases.png \
 	$(top_srcdir)/src/ui/gui/icons/weight-cases.png

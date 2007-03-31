@@ -1,3 +1,7 @@
+2007-03-31 John Darrington <john@darrington.wattle.id.au>
+	
+	* transformation.texi: SORT CASES: elaborated on the (D) (A) flags.
+	
 2007-03-01  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Fix "make distcheck" by distributing doc/ni.texi,

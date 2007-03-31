@@ -21,6 +21,13 @@
 #include <config.h>
 #include "dialog-common.h"
 
+#include "helper.h"
+
+
+/* Append the names of selected variables to STRING.
+   TREEVIEW is the treeview containing the variables.
+   DICT is the dictionary for those variables.
+*/
 gint
 append_variable_names (GString *string,
 		       PsppireDict *dict, GtkTreeView *treeview)

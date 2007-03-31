@@ -49,6 +49,7 @@
 
 
 	<property id="modal" ignore="True" default="True" />
+	<property id="visible" ignore="True" default="False" />
 	
     </properties>
 
@@ -85,11 +86,16 @@
 			title="Keypad">
 
 
-    <properties>
+     <properties>
     	<property id="child"       disabled="True"/>
 	<property id="homogeneous" disabled="True"/>
 	<property id="n-columns"   disabled="True"/>
 	<property id="n-rows"      disabled="True"/>
+
+	<property id="above-child"    disabled="True"/>
+	<property id="visible-window" disabled="True"/>
+	<property id="resize-mode"    disabled="True"/>
+	<property id="border-width"   disabled="True"/>
      </properties>
   
     </glade-widget-class>

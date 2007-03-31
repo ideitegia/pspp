@@ -525,7 +525,7 @@ separate them from the previous recodings.
 @vindex SORT CASES
 
 @display
-SORT CASES BY var_list.
+SORT CASES BY var_list[(@{D|A@}] [ var_list[(@{D|A@}] ] ...
 @end display
 
 @cmd{SORT CASES} sorts the active file by the values of one or more
@@ -534,8 +534,8 @@ variables.
 Specify BY and a list of variables to sort by.  By default, variables
 are sorted in ascending order.  To override sort order, specify (D) or
 (DOWN) after a list of variables to get descending order, or (A) or (UP)
-for ascending order.  These apply to the entire list of variables
-preceding them.
+for ascending order.  These apply to all the listed variables
+up until the preceding (A), (D), (UP) or (DOWN).
 
 The sort algorithms used by @cmd{SORT CASES} are stable.  That is,
 records that have equal values of the sort variables will have the

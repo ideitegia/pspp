@@ -79,6 +79,11 @@ struct _PsppireSelector
   GtkWidget *source;
   GtkWidget *dest;
 
+  /* A flag indicating that the object is in the process of
+     updating its subjects.
+     (not thread safe if two threads access the same object)
+  */
+  gboolean selecting;
 
   gint orientation;
 

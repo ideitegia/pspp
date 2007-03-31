@@ -39,25 +39,41 @@
 #include "psppire-var-store.h"
 
 
+struct split_file_dialog
+{
+  /* The XML that created the dialog */
+  GladeXML *xml;
+
+  /* The dictionary to which this dialog pertains */
+  PsppireDict *dict;
+
+  /* The treeview widget containing the list of variables
+     upon which the file should be split */
+  GtkTreeView *tv;
+
+
+  PsppireSelector *selector;
+};
+
 
 static gchar *
-generate_syntax (GladeXML *xml, PsppireDict *dict)
+generate_syntax (const struct split_file_dialog *sfd)
 {
   gchar *text;
-  GtkWidget *off = get_widget_assert (xml, "split-radiobutton0");
+  GtkWidget *off = get_widget_assert (sfd->xml, "split-radiobutton0");
 
   GtkWidget *vars =
-    get_widget_assert (xml, "split-file-grouping-vars");
+    get_widget_assert (sfd->xml, "split-file-grouping-vars");
 
   GString *string = g_string_new ("SPLIT FILE OFF.");
 
   if ( ! gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (off)))
     {
       GString * varlist = g_string_sized_new (80);
-      GtkWidget *sort = get_widget_assert (xml, "split-radiobutton3");
-      GtkWidget *layered = get_widget_assert (xml, "split-radiobutton1");
+      GtkWidget *sort = get_widget_assert (sfd->xml, "split-radiobutton3");
+      GtkWidget *layered = get_widget_assert (sfd->xml, "split-radiobutton1");
       gint n_vars = append_variable_names (varlist,
-					   dict, GTK_TREE_VIEW (vars));
+					   sfd->dict, GTK_TREE_VIEW (vars));
 
       if ( n_vars > 0 )
 	{
@@ -113,47 +129,81 @@ on_off_toggled (GtkToggleButton *togglebutton,
 }
 
 static void
-refresh (GladeXML *xml)
+refresh (PsppireDialog *dialog, struct split_file_dialog *d)
 {
-  GtkWidget *off = get_widget_assert (xml, "split-radiobutton0");
+  GtkWidget *off = get_widget_assert (d->xml, "split-radiobutton0");
+  GtkWidget *on = get_widget_assert (d->xml, "split-radiobutton1");
 
-  g_print ("%s\n", __FUNCTION__);
+  GtkTreeModel *liststore = gtk_tree_view_get_model (d->tv);
 
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(off), TRUE);
+  gint n_vars = dict_get_split_cnt (d->dict->dict);
+
+
+  gtk_list_store_clear (GTK_LIST_STORE (liststore));
+
+  if ( n_vars == 0 )
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(off), TRUE);
+  else
+    {
+      GtkTreeIter iter;
+      gint i;
+      struct variable *const *vars = dict_get_split_vars (d->dict->dict);
+
+      for (i = 0 ; i < n_vars; ++i )
+	{
+	  gint idx = var_get_dict_index (vars[i]);
+
+	  gtk_list_store_append (GTK_LIST_STORE (liststore), &iter);
+	  gtk_list_store_set (GTK_LIST_STORE (liststore), &iter, 0, idx, -1);
+	}
+
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(on), TRUE);
+    }
+
   gtk_toggle_button_toggled (GTK_TOGGLE_BUTTON(off));
 }
 
 
 
-/* Pops up the Weight Cases dialog box */
+/* Pops up the Split File dialog box */
 void
 split_file_dialog (GObject *o, gpointer data)
 {
   gint response;
   struct data_editor *de = data;
-  PsppireDict *dict;
+  struct split_file_dialog sfd;
 
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkWidget *dialog   ;
+  GtkWidget *source   ;
+  GtkWidget *dest     ;
+  GtkWidget *selector ;
+  GtkWidget *on_off   ;
 
-  GtkWidget *dialog = get_widget_assert   (xml, "split-file-dialog");
-  GtkWidget *source = get_widget_assert   (xml, "split-file-dict-treeview");
-  GtkWidget *dest =   get_widget_assert   (xml, "split-file-grouping-vars");
-  GtkWidget *selector = get_widget_assert (xml, "split-file-selector");
-  GtkWidget *on_off = get_widget_assert   (xml, "split-radiobutton0");
+  GtkSheet *var_sheet ;
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  sfd.xml = XML_NEW ("psppire.glade");
+
+  dialog = get_widget_assert   (sfd.xml, "split-file-dialog");
+  source = get_widget_assert   (sfd.xml, "split-file-dict-treeview");
+  dest =   get_widget_assert   (sfd.xml, "split-file-grouping-vars");
+  selector = get_widget_assert (sfd.xml, "split-file-selector");
+  on_off = get_widget_assert   (sfd.xml, "split-radiobutton0");
+
+  var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
-  dict = vs->dict;
+  sfd.dict = vs->dict;
+  sfd.tv = GTK_TREE_VIEW (dest);
+  sfd.selector  = PSPPIRE_SELECTOR (
+				    get_widget_assert   (sfd.xml, "split-file-selector"));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,
 				 GTK_SELECTION_MULTIPLE, NULL);
 
 
-  g_signal_connect (on_off, "toggled", G_CALLBACK(on_off_toggled),  xml);
+  g_signal_connect (on_off, "toggled", G_CALLBACK(on_off_toggled),  sfd.xml);
 
 
   set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
@@ -164,7 +214,7 @@ split_file_dialog (GObject *o, gpointer data)
 				 insert_source_row_into_tree_view,
 				 NULL);
 
-  refresh (xml);
+  g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &sfd);
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
@@ -173,7 +223,7 @@ split_file_dialog (GObject *o, gpointer data)
     {
     case GTK_RESPONSE_OK:
       {
-	gchar *syntax = generate_syntax (xml, dict);
+	gchar *syntax = generate_syntax (&sfd);
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -182,7 +232,7 @@ split_file_dialog (GObject *o, gpointer data)
       break;
     case PSPPIRE_RESPONSE_PASTE:
       {
-	gchar *syntax = generate_syntax (xml, dict);
+	gchar *syntax = generate_syntax (&sfd);
 
 	struct syntax_editor *se =
 	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
@@ -196,6 +246,6 @@ split_file_dialog (GObject *o, gpointer data)
       break;
     }
 
-  g_object_unref (xml);
+  g_object_unref (sfd.xml);
 }
 

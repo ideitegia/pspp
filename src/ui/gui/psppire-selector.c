@@ -242,9 +242,7 @@ psppire_selector_init (PsppireSelector *selector)
 
   gtk_widget_show (selector->arrow);
 
-  /* FIXME: This shouldn't be necessary, but Glade interfaces seem to
-     need it. */
-  gtk_widget_show (GTK_WIDGET (selector));
+  selector->selecting = FALSE;
 }
 
 
@@ -397,6 +395,8 @@ de_select_selection_tree_view (PsppireSelector *selector)
 static void
 de_select_selection (PsppireSelector *selector)
 {
+  selector->selecting = TRUE;
+
   if ( GTK_IS_TREE_VIEW (selector->dest ) )
     de_select_selection_tree_view (selector);
 
@@ -405,6 +405,8 @@ de_select_selection (PsppireSelector *selector)
 
   else
     g_assert_not_reached ();
+
+  selector->selecting = FALSE;
 
   gtk_tree_model_filter_refilter (selector->filtered_source);
 
@@ -428,6 +430,7 @@ select_selection (PsppireSelector *selector)
 
   g_return_if_fail (selector->select_items);
 
+  selector->selecting = TRUE;
 
   for (item = g_list_first (selected_rows);
        item != NULL;
@@ -456,9 +459,11 @@ select_selection (PsppireSelector *selector)
   gtk_tree_model_filter_refilter (selector->filtered_source);
 
   g_signal_emit (selector, signals [SELECTED], 0);
+
+  selector->selecting = FALSE;
 }
 
-/* Callback fro then the source treeview is activated (double clicked) */
+/* Callback for when the source treeview is activated (double clicked) */
 static void
 on_row_activate (GtkTreeView       *tree_view,
 		 GtkTreePath       *path,
@@ -617,17 +622,57 @@ set_tree_view_source (PsppireSelector *selector,
 }
 
 
+/*
+   Callback for when the destination treeview's data changes
+ */
+static void
+on_dest_data_change (GtkTreeModel *tree_model,
+		     GtkTreePath  *path,
+		     GtkTreeIter  *iter,
+		     gpointer      user_data)
+{
+  PsppireSelector *selector = user_data;
+
+  if ( selector->selecting) return;
+
+  gtk_tree_model_filter_refilter (selector->filtered_source);
+}
+
+
+static void
+on_dest_data_delete (GtkTreeModel *tree_model,
+		     GtkTreePath  *path,
+		     gpointer      user_data)
+{
+  PsppireSelector *selector = user_data;
+
+  if ( selector->selecting ) return;
+
+  gtk_tree_model_filter_refilter (selector->filtered_source);
+}
+
+
+
+
 /* Set the destination widget to DEST */
 static void
 set_tree_view_dest (PsppireSelector *selector,
 		    GtkTreeView *dest)
 {
   GtkTreeSelection* selection = gtk_tree_view_get_selection (dest);
+  GtkTreeModel *model = gtk_tree_view_get_model (dest);
 
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
 
   g_signal_connect (selection, "changed", G_CALLBACK (on_dest_treeview_select),
 		    selector);
+
+  g_signal_connect (model, "row-changed", G_CALLBACK (on_dest_data_change),
+		      selector);
+
+  g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
+		      selector);
+
 }
 
 /* Callback for when the DEST GtkEntry is activated (Enter is pressed) */

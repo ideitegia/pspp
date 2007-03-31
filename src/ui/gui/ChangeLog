@@ -1,4 +1,13 @@
 2007-03-31   John Darrington <john@darrington.wattle.id.au>
+        
+	* data-editor.c data-editor.glade data-editor.h dialog-common.c
+	psppire-buttonbox.c psppire-dialog.c psppire-dialog.h
+	psppire-selector.c psppire-selector.h psppire.c psppire.glade
+	sort-cases-dialog.c sort-cases-dialog.h split-file-dialog.c
+	transpose-dialog.c weight-cases-dialog.c : Fixed the Refresh
+	button on all the dialogs. 
+	
+2007-03-31   John Darrington <john@darrington.wattle.id.au>
 	
 	* data-editor.c: Added hooks for the split-file-dialog
 

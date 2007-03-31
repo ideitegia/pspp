@@ -23,43 +23,8 @@
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
-#include "psppire-dict.h"
-
-struct sort_criteria;
-
-struct sort_cases_dialog
-{
-  GtkWidget *window;
-  GMainLoop *loop;
-
-  GtkTreeView *dict_view;
 
 
-  GtkTreeView *criteria_view;
-  GtkTreeViewColumn *crit_col;
-  GtkCellRenderer *crit_renderer;
-
-  GtkListStore *criteria_list;
-
-  struct sort_criteria *sc;
-
-  GtkArrow *arrow;
-  GtkButton *button;
-
-  GtkToggleButton *ascending_button;
-
-  /* FIXME: Could this be done better with a GtkToggleAction ?? */
-  enum {VAR_SELECT, VAR_DESELECT} button_state;
-
-  gint response;
-};
-
-struct sort_cases_dialog * sort_cases_dialog_create (GladeXML *xml);
-
-
-gint sort_cases_dialog_run (struct sort_cases_dialog *dialog,
-			   PsppireDict *dict,
-			   struct sort_criteria *criteria
-			   );
+void sort_cases_dialog (GObject *o, gpointer data);
 
 #endif

@@ -46,6 +46,18 @@
 
 static gchar * generate_syntax (PsppireDict *dict, GladeXML *xml);
 
+static void
+refresh (PsppireDialog *dialog, gpointer data)
+{
+  GladeXML *xml = data;
+  GtkWidget *dest = get_widget_assert (xml, "variables-treeview");
+  GtkWidget *entry = get_widget_assert (xml, "new-name-entry");
+  GtkTreeModel *dmodel = gtk_tree_view_get_model (dest);
+
+  gtk_list_store_clear (GTK_LIST_STORE (dmodel));
+  gtk_entry_set_text (GTK_ENTRY (entry), "");
+}
+
 void
 transpose_dialog (GObject *o, gpointer data)
 {
@@ -83,6 +95,8 @@ transpose_dialog (GObject *o, gpointer data)
 				 insert_source_row_into_entry,
 				 is_currently_in_entry);
 
+
+  g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  xml);
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
