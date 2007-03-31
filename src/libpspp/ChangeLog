@@ -1,3 +1,13 @@
+2007-03-31  Ben Pfaff  <blp@gnu.org>
+
+	Patch #5827.
+
+	* automake.mk (src_libpspp_libpspp_a_SOURCES): Add bt.c.
+
+	* bt.h: New file.
+
+	* bt.c: New file.
+
 2007-03-30  Ben Pfaff  <blp@gnu.org>
 
 	Patch #5829.

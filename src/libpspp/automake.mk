@@ -12,6 +12,8 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/alloc.c \
 	src/libpspp/alloc.h \
 	src/libpspp/bit-vector.h \
+	src/libpspp/bt.c \
+	src/libpspp/bt.h \
 	src/libpspp/legacy-encoding.c \
 	src/libpspp/legacy-encoding.h \
 	src/libpspp/copyleft.c \

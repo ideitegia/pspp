@@ -133,10 +133,11 @@ dist_TESTS = \
 	tests/expressions/vectors.sh
 
 nodist_TESTS = \
+	tests/libpspp/abt-test \
+	tests/libpspp/bt-test \
+	tests/libpspp/heap-test \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
-	tests/libpspp/heap-test \
-	tests/libpspp/abt-test \
 	tests/libpspp/sparse-array-test
 
 TESTS = $(dist_TESTS) $(nodist_TESTS)
@@ -172,6 +173,13 @@ tests_libpspp_abt_test_SOURCES = \
 	tests/libpspp/abt-test.c
 tests_libpspp_abt_test_LDADD = gl/libgl.la
 tests_libpspp_abt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_bt_test_SOURCES = \
+	src/libpspp/bt.c \
+	src/libpspp/bt.h \
+	tests/libpspp/bt-test.c
+tests_libpspp_bt_test_LDADD = gl/libgl.la
+tests_libpspp_bt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_sparse_array_test_SOURCES = \
 	src/libpspp/sparse-array.c \

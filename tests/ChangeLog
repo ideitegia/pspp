@@ -1,3 +1,9 @@
+2007-03-31  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk (tests_libpspp_bt_test_LDADD): Add tests/libpspp/bt.
+
+	* libpspp/bt-test.c: New test.
+
 2007-03-25  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add tests/libpspp/sparse-array-test.
