@@ -2,9 +2,9 @@ To build this project from the sources direct from the cvs archive,
 you must install the prerequisites listed in README, plus the
 following:
 
-	* Autoconf 2.58 (or later).
+	* Autoconf 2.60 (or later).
 
-	* Automake 1.9.x (or later).
+	* Automake 1.10 (or later).
 
 	* Gettext 0.14.5 (or later).
 
@@ -15,6 +15,8 @@ following:
 	* Gnulib, from CVS (see http://savannah.gnu.org/cvs/?group=gnulib).
 	  Note that Gnulib does not require any form of installation:
 	  simply checking it out into a directory is sufficient.
+
+	* libtool 1.5.22 (or later).
 
 	* Texinfo 4.7 or later, to build the documentation.
 
