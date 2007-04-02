@@ -61,7 +61,7 @@ static struct expression *finish_expression (union any_node *,
 static bool type_check (struct expression *, union any_node **,
                         enum expr_type expected_type);
 static union any_node *allocate_unary_variable (struct expression *,
-                                                struct variable *); 
+                                                const struct variable *); 
 
 /* Public functions. */
 
@@ -1219,11 +1219,11 @@ parse_function (struct lexer *lexer, struct expression *e)
         if (lex_token (lexer) == T_ID
             && toupper (lex_look_ahead (lexer)) == 'T')
           {
-            struct variable **vars;
+            const struct variable **vars;
             size_t var_cnt;
             size_t i;
 
-            if (!parse_variables (lexer, dataset_dict (e->ds), &vars, &var_cnt, PV_SINGLE))
+            if (!parse_variables_const (lexer, dataset_dict (e->ds), &vars, &var_cnt, PV_SINGLE))
               goto fail;
             for (i = 0; i < var_cnt; i++)
               add_arg (&args, &arg_cnt, &arg_cap,
@@ -1481,7 +1481,7 @@ expr_allocate_string (struct expression *e, struct substring s)
 }
 
 union any_node *
-expr_allocate_variable (struct expression *e, struct variable *v)
+expr_allocate_variable (struct expression *e, const struct variable *v)
 {
   union any_node *n = pool_alloc (e->expr_pool, sizeof n->variable);
   n->type = var_is_numeric (v) ? OP_num_var : OP_str_var;
@@ -1501,7 +1501,7 @@ expr_allocate_format (struct expression *e, const struct fmt_spec *format)
 /* Allocates a unary composite node that represents the value of
    variable V in expression E. */
 static union any_node *
-allocate_unary_variable (struct expression *e, struct variable *v) 
+allocate_unary_variable (struct expression *e, const struct variable *v) 
 {
   assert (v != NULL);
   return expr_allocate_unary (e, var_is_numeric (v) ? OP_NUM_VAR : OP_STR_VAR,

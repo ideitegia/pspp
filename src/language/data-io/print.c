@@ -62,7 +62,7 @@ struct prt_out_spec
     int first_column;		/* 0-based first column. */
 
     /* PRT_VAR only. */
-    struct variable *var;	/* Associated variable. */
+    const struct variable *var;	/* Associated variable. */
     struct fmt_spec format;	/* Output spec. */
     bool add_space;             /* Add trailing space? */
     bool sysmis_as_spaces;      /* Output SYSMIS as spaces? */
@@ -305,13 +305,13 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
                          int *record, int *column,
                          enum which_formats which_formats)
 {
-  struct variable **vars;
+  const struct variable **vars;
   size_t var_cnt, var_idx;
   struct fmt_spec *formats, *f;
   size_t format_cnt;
   bool add_space;
   
-  if (!parse_variables_pool (lexer, tmp_pool, dict, 
+  if (!parse_variables_const_pool (lexer, tmp_pool, dict, 
 			     &vars, &var_cnt, PV_DUPLICATE))
     return false;
 
@@ -332,7 +332,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
       format_cnt = var_cnt;
       for (i = 0; i < var_cnt; i++) 
         {
-          struct variable *v = vars[i];
+          const struct variable *v = vars[i];
           formats[i] = (which_formats == PRINT
                         ? *var_get_print_format (v)
                         : *var_get_write_format (v));
@@ -344,7 +344,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
   for (f = formats; f < &formats[format_cnt]; f++)
     if (!execute_placement_format (f, record, column))
       {
-        struct variable *var;
+        const struct variable *var;
         struct prt_out_spec *spec;
 
         var = vars[var_idx++];

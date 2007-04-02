@@ -52,7 +52,7 @@ struct dictionary
     size_t var_cnt, var_cap;    /* Number of variables, capacity. */
     struct hsh_table *name_tab;	/* Variable index by name. */
     int next_value_idx;         /* Index of next `union value' to allocate. */
-    struct variable **split;    /* SPLIT FILE vars. */
+    const struct variable **split;    /* SPLIT FILE vars. */
     size_t split_cnt;           /* SPLIT FILE count. */
     struct variable *weight;    /* WEIGHT variable. */
     struct variable *filter;    /* FILTER variable. */
@@ -233,13 +233,20 @@ dict_get_var (const struct dictionary *d, size_t idx)
   return d->var[idx];
 }
 
+inline void
+dict_get_vars (const struct dictionary *d, const struct variable ***vars,
+               size_t *cnt, unsigned exclude_classes)
+{
+  dict_get_vars_mutable (d, (struct variable ***) vars, cnt, exclude_classes);
+}
+
 /* Sets *VARS to an array of pointers to variables in D and *CNT
    to the number of variables in *D.  All variables are returned
    if EXCLUDE_CLASSES is 0, or it may contain one or more of (1u
    << DC_ORDINARY), (1u << DC_SYSTEM), or (1u << DC_SCRATCH) to
    exclude the corresponding type of variable. */
 void
-dict_get_vars (const struct dictionary *d, struct variable ***vars,
+dict_get_vars_mutable (const struct dictionary *d, struct variable ***vars,
                size_t *cnt, unsigned exclude_classes)
 {
   size_t count;
@@ -1009,7 +1016,7 @@ dict_compactor_destroy (struct dict_compactor *compactor)
    dict_get_split_cnt() to determine how many SPLIT FILE vars
    there are.  Returns a null pointer if and only if there are no
    SPLIT FILE vars. */
-struct variable *const *
+const struct variable *const *
 dict_get_split_vars (const struct dictionary *d)
 {
   assert (d != NULL);

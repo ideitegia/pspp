@@ -59,7 +59,7 @@ free_group(struct group_statistics *v, void *aux UNUSED)
 
 
 struct group_proc *
-group_proc_get (struct variable *v)
+group_proc_get (const struct variable *v)
 {
   /* This is not ideal, obviously. */
   struct group_proc *group = var_get_aux (v);

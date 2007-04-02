@@ -1134,12 +1134,12 @@ dump_declarations (void)
 	  case SBC_VARLIST:
 	    dump (0, "size_t %sn_%s;", st_lower (sbc->prefix),
 		  st_lower (sbc->name));
-	    dump (0, "struct variable **%sv_%s;", st_lower (sbc->prefix),
+	    dump (0, "const struct variable **%sv_%s;", st_lower (sbc->prefix),
 		  st_lower (sbc->name));
 	    break;
 
 	  case SBC_VAR:
-	    dump (0, "struct variable *%sv_%s;", st_lower (sbc->prefix),
+	    dump (0, "const struct variable *%sv_%s;", st_lower (sbc->prefix),
 		  st_lower (sbc->name));
 	    break;
 
@@ -1597,7 +1597,7 @@ dump_subcommand (const subcommand *sbc)
     }
   else if (sbc->type == SBC_VARLIST)
     {
-      dump (1, "if (!parse_variables (lexer, dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables_const (lexer, dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND%s%s))",
 	    st_lower (sbc->prefix), st_lower (sbc->name),
 	    st_lower (sbc->prefix), st_lower (sbc->name),
@@ -1765,7 +1765,7 @@ dump_parser (int persistent)
 	}
       dump (1, "{");
       dump (0, "p->sbc_%s++;", st_lower (def->name));
-      dump (1, "if (!parse_variables (lexer, dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
+      dump (1, "if (!parse_variables_const (lexer, dataset_dict (ds), &p->%sv_%s, &p->%sn_%s, "
 	    "PV_APPEND))",
 	    st_lower (def->prefix), st_lower (def->name),
 	    st_lower (def->prefix), st_lower (def->name));

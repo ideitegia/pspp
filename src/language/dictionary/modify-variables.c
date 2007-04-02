@@ -141,7 +141,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 			   "of variables."));
 		      goto done;
 		    }
-		  dict_get_vars (dataset_dict (ds), &v, &nv, 1u << DC_SYSTEM);
+		  dict_get_vars_mutable (dataset_dict (ds), &v, &nv, 1u << DC_SYSTEM);
 		}
 	      else
 		{
@@ -250,7 +250,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	  sort (keep_vars, keep_cnt, sizeof *keep_vars,
                 compare_variables_given_ordering, &forward_positional_ordering);
 
-          dict_get_vars (dataset_dict (ds), &all_vars, &all_cnt, 0);
+          dict_get_vars_mutable (dataset_dict (ds), &all_vars, &all_cnt, 0);
           assert (all_cnt >= keep_cnt);
 
           drop_cnt = all_cnt - keep_cnt;
@@ -408,7 +408,7 @@ validate_var_modification (const struct dictionary *d,
   size_t i;
 
   /* All variables, in index order. */
-  dict_get_vars (d, &all_vars, &all_cnt, 0);
+  dict_get_vars_mutable (d, &all_vars, &all_cnt, 0);
 
   /* Drop variables, in index order. */
   drop_cnt = vm->drop_cnt;

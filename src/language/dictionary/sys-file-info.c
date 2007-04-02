@@ -62,7 +62,7 @@ enum
     AS_VECTOR
   };
 
-static int describe_variable (struct variable *v, struct tab_table *t, int r, int as);
+static int describe_variable (const struct variable *v, struct tab_table *t, int r, int as);
      
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
@@ -193,7 +193,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 
 static void display_macros (void);
 static void display_documents (const struct dictionary *dict);
-static void display_variables (struct variable **, size_t, int);
+static void display_variables (const struct variable **, size_t, int);
 static void display_vectors (const struct dictionary *dict, int sorted);
 
 int
@@ -204,7 +204,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 
   /* Variables to display. */
   size_t n;
-  struct variable **vl;
+  const struct variable **vl;
 
   if (lex_match_id (lexer, "MACROS"))
     display_macros ();
@@ -258,7 +258,7 @@ cmd_display (struct lexer *lexer, struct dataset *ds)
 
       if (lex_token (lexer) != '.')
 	{
-	  if (!parse_variables (lexer, dataset_dict (ds), &vl, &n, PV_NONE))
+	  if (!parse_variables_const (lexer, dataset_dict (ds), &vl, &n, PV_NONE))
 	    {
 	      free (vl);
 	      return CMD_FAILURE;
@@ -364,9 +364,9 @@ variables_dim (struct tab_table *t, struct outp_driver *d)
 }
   
 static void
-display_variables (struct variable **vl, size_t n, int as)
+display_variables (const struct variable **vl, size_t n, int as)
 {
-  struct variable **vp = vl;		/* Variable pointer. */
+  const struct variable **vp = vl;	/* Variable pointer. */
   struct tab_table *t;
   int nc;			/* Number of columns. */
   int nr;			/* Number of rows. */
@@ -404,7 +404,7 @@ display_variables (struct variable **vl, size_t n, int as)
     
   for (i = r = 1; i <= n; i++)
     {
-      struct variable *v;
+      const struct variable *v;
 
       while (*vp == NULL)
 	vp++;
@@ -458,7 +458,7 @@ display_variables (struct variable **vl, size_t n, int as)
    The variable will be described in the format AS.  Returns the next
    row available for use in the table. */
 static int 
-describe_variable (struct variable *v, struct tab_table *t, int r, int as)
+describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
 {
   const struct fmt_spec *print = var_get_print_format (v);
   const struct fmt_spec *write = var_get_write_format (v);

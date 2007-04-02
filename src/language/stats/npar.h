@@ -19,10 +19,11 @@
 #if !npar_h
 #define npar_h 1
 
-typedef struct variable *var_ptr;
+typedef const struct variable *var_ptr;
 typedef var_ptr variable_pair[2];
 
 struct hsh_table;
+struct const_hsh_table;
 struct casefilter ;
 
 struct npar_test
@@ -34,13 +35,13 @@ struct npar_test
 		   );
 
   void (*insert_variables) (const struct npar_test *, 
-			    struct hsh_table *);
+			    struct const_hsh_table *);
 };
 
 struct one_sample_test
 {
   struct npar_test parent;
-  struct variable **vars;
+  const struct variable **vars;
   size_t n_vars;
 };
 

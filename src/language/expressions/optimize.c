@@ -247,7 +247,7 @@ emit_format (struct expression *e, const struct fmt_spec *f)
 }
 
 static void
-emit_variable (struct expression *e, struct variable *v) 
+emit_variable (struct expression *e, const struct variable *v) 
 {
   allocate_aux (e, OP_variable)->variable = v;
 }

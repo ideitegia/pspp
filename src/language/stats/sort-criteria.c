@@ -50,13 +50,13 @@ static bool  is_terminator(int tok, const int *terminators);
 */
 struct sort_criteria *
 sort_parse_criteria (struct lexer *lexer, const struct dictionary *dict,
-                     struct variable ***vars, size_t *var_cnt,
+                     const struct variable ***vars, size_t *var_cnt,
                      bool *saw_direction,
 		     const int *terminators
 		     )
 {
   struct sort_criteria *criteria;
-  struct variable **local_vars = NULL;
+  const struct variable **local_vars = NULL;
   size_t local_var_cnt;
 
   assert ((vars == NULL) == (var_cnt == NULL));
@@ -81,7 +81,7 @@ sort_parse_criteria (struct lexer *lexer, const struct dictionary *dict,
       enum sort_direction direction;
 
       /* Variables. */
-      if (!parse_variables (lexer, dict, vars, var_cnt,
+      if (!parse_variables_const (lexer, dict, vars, var_cnt,
 			    PV_NO_DUPLICATE | PV_APPEND | PV_NO_SCRATCH))
         goto error;
 

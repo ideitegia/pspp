@@ -32,12 +32,12 @@ struct variable ;
    N_VARS is the size of VARS.
  */
 struct casefilter * casefilter_create (enum mv_class class,
-                                       struct variable **, int);
+                                       const struct variable **, int);
 
 /* Add the variables in VARS to the list of variables for which the
    filter considers. N_VARS is the size of VARS */
 void casefilter_add_variables (struct casefilter *, 
-			       struct variable *const*, int);
+			       const struct variable *const*, int);
 
 /* Destroy the filter FILTER */
 void casefilter_destroy (struct casefilter *); 

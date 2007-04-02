@@ -110,7 +110,7 @@ static int n_pairs = 0 ;
 struct pair 
 {
   /* The variables comprising the pair */
-  struct variable *v[2];
+  const struct variable *v[2];
 
   /* The number of valid variable pairs */
   double n;
@@ -304,30 +304,29 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 
 	  int i;
 	  struct hsh_iterator hi;
-	  struct hsh_table *hash;
-	  struct variable *v;
+	  struct const_hsh_table *hash;
+	  const struct variable *v;
 
-	  hash = hsh_create (n_pairs, compare_vars_by_name, hash_var_by_name,
+	  hash = const_hsh_create (n_pairs, compare_vars_by_name, hash_var_by_name,
           0, 0);
 
 	  for (i=0; i < n_pairs; ++i)
 	    {
-	      hsh_insert(hash,pairs[i].v[0]);
-	      hsh_insert(hash,pairs[i].v[1]);
+	      const_hsh_insert (hash, pairs[i].v[0]);
+	      const_hsh_insert (hash, pairs[i].v[1]);
 	    }
 
 	  assert(cmd.n_variables == 0);
-	  cmd.n_variables = hsh_count(hash);
+	  cmd.n_variables = const_hsh_count (hash);
 
 	  cmd.v_variables = xnrealloc (cmd.v_variables, cmd.n_variables,
                                        sizeof *cmd.v_variables);
 	  /* Iterate through the hash */
-	  for (i=0,v = (struct variable *) hsh_first(hash,&hi);
+	  for (i=0,v = const_hsh_first (hash, &hi);
 	       v != 0;
-	       v=hsh_next(hash,&hi) ) 
+	       v = const_hsh_next (hash, &hi) ) 
 	    cmd.v_variables[i++]=v;
-
-	  hsh_destroy(hash);
+	  const_hsh_destroy(hash);
 	}
     }
   else if ( !cmd.sbc_variables) 
@@ -441,7 +440,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
 static int
 tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
 {
-  struct variable **vars;
+  const struct variable **vars;
   size_t n_vars;
   size_t n_pairs_local;
 
@@ -452,7 +451,7 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
   lex_match (lexer, '=');
 
   n_vars=0;
-  if (!parse_variables (lexer, dataset_dict (ds), &vars, &n_vars,
+  if (!parse_variables_const (lexer, dataset_dict (ds), &vars, &n_vars,
 			PV_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH))
     {
       free (vars);
@@ -464,7 +463,7 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
   if (lex_match (lexer, T_WITH))
     {
       n_before_WITH = n_vars;
-      if (!parse_variables (lexer, dataset_dict (ds), &vars, &n_vars,
+      if (!parse_variables_const (lexer, dataset_dict (ds), &vars, &n_vars,
 			    PV_DUPLICATE | PV_APPEND
 			    | PV_NUMERIC | PV_NO_SCRATCH))
 	{
@@ -749,7 +748,7 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 
   for (i=0; i < cmd->n_variables; ++i)
     {
-      struct variable *var = cmd->v_variables[i];
+      const struct variable *var = cmd->v_variables[i];
       struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       int count=0;
 
@@ -1012,7 +1011,7 @@ trbox_independent_samples_populate(struct trbox *self,
       double std_err_diff;
       double mean_diff;
 
-      struct variable *var = cmd->v_variables[i];
+      const struct variable *var = cmd->v_variables[i];
       struct group_proc *grp_data = group_proc_get (var);
 
       struct hsh_table *grp_hash = grp_data->group_hash;
@@ -1429,7 +1428,7 @@ common_calc (const struct dictionary *dict,
 
   for(i = 0; i < cmd->n_variables ; ++i) 
     {
-      struct variable *v = cmd->v_variables[i];
+      const struct variable *v = cmd->v_variables[i];
 
       if (! casefilter_variable_missing (filter, c, v) )
 	{
@@ -1505,7 +1504,7 @@ one_sample_calc (const struct dictionary *dict,
   for(i=0; i< cmd->n_variables ; ++i) 
     {
       struct group_statistics *gs;
-      struct variable *v = cmd->v_variables[i];
+      const struct variable *v = cmd->v_variables[i];
       const union value *val = case_data (c, v);
 
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
@@ -1578,8 +1577,8 @@ paired_calc (const struct dictionary *dict, const struct ccase *c,
 
   for(i=0; i < n_pairs ; ++i )
     {
-      struct variable *v0 = pairs[i].v[0];
-      struct variable *v1 = pairs[i].v[1];
+      const struct variable *v0 = pairs[i].v[0];
+      const struct variable *v1 = pairs[i].v[1];
 
       const union value *val0 = case_data (c, v0);
       const union value *val1 = case_data (c, v1);
@@ -1711,7 +1710,7 @@ group_calc (const struct dictionary *dict,
 
   for(i=0; i< cmd->n_variables ; ++i) 
     {
-      struct variable *var = cmd->v_variables[i];
+      const struct variable *var = cmd->v_variables[i];
       const union value *val = case_data (c, var);
       struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       struct group_statistics *gs;
@@ -1742,7 +1741,7 @@ group_postcalc ( struct cmd_t_test *cmd )
 
   for (i = 0; i < cmd->n_variables ; ++i) 
     {
-      struct variable *var = cmd->v_variables[i];
+      const struct variable *var = cmd->v_variables[i];
       struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
       struct hsh_iterator g;
       struct group_statistics *gs;

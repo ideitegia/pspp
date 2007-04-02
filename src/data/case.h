@@ -69,9 +69,10 @@ const char *case_str_idx (const struct ccase *, size_t idx);
 union value *case_data_rw_idx (struct ccase *, size_t idx);
 
 int case_compare (const struct ccase *, const struct ccase *,
-                  struct variable *const *, size_t var_cnt);
+                  const struct variable *const *, size_t var_cnt);
 int case_compare_2dict (const struct ccase *, const struct ccase *,
-                        struct variable *const *, struct variable *const *,
+                        const struct variable *const *, 
+			const struct variable *const *,
                         size_t var_cnt);
 
 const union value *case_data_all (const struct ccase *);

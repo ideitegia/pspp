@@ -82,7 +82,7 @@ struct npar_specs
 };
 
 void one_sample_insert_variables (const struct npar_test *test,
-				  struct hsh_table *variables);
+				  struct const_hsh_table *variables);
 
 static bool 
 npar_execute(const struct ccase *first UNUSED,
@@ -130,10 +130,10 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   bool ok;
   int i;
   struct npar_specs npar_specs = {0, 0, 0, 0, 0, 0, 0, 0};
-  struct hsh_table *var_hash;
+  struct const_hsh_table *var_hash;
   npar_specs.pool = pool_create ();
 
-  var_hash = hsh_create_pool (npar_specs.pool, 0, 
+  var_hash = const_hsh_create_pool (npar_specs.pool, 0, 
 			      compare_vars_by_name, hash_var_by_name, 
 			      NULL, NULL);
 
@@ -143,24 +143,24 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
       return CMD_FAILURE;
     }
 
-  for (i = 0; i < npar_specs.n_tests; ++i ) 
+  for (i = 0; i < npar_specs.n_tests; ++i )
     {
       const struct npar_test *test = npar_specs.test[i];
       test->insert_variables (test, var_hash);
     }
 
-  npar_specs.vv =  (const struct variable *const *) hsh_data (var_hash);
-  npar_specs.n_vars = hsh_count (var_hash);
-  
-  if ( cmd.sbc_statistics ) 
+  npar_specs.vv =  (const struct variable *const *) const_hsh_data (var_hash);
+  npar_specs.n_vars = const_hsh_count (var_hash);
+
+  if ( cmd.sbc_statistics )
     {
       int i;
 
-      for ( i = 0 ; i < NPAR_ST_count; ++i ) 
+      for ( i = 0 ; i < NPAR_ST_count; ++i )
 	{
-	  if ( cmd.a_statistics[i] ) 
+	  if ( cmd.a_statistics[i] )
 	    {
-	      switch ( i ) 
+	      switch ( i )
 		{
 		case NPAR_ST_DESCRIPTIVES:
 		  npar_specs.descriptives = true;
@@ -191,7 +191,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 
   casefilter_destroy (npar_specs.filter);
 
-  hsh_destroy (var_hash);
+  const_hsh_destroy (var_hash);
 
   pool_destroy (npar_specs.pool);
 
@@ -209,7 +209,7 @@ npar_custom_chisquare(struct lexer *lexer, struct dataset *ds, struct cmd_npar_t
   ((struct npar_test *)tp)->execute = chisquare_execute;
   ((struct npar_test *)tp)->insert_variables = one_sample_insert_variables;
 
-  if (!parse_variables_pool (lexer, specs->pool, dataset_dict (ds), 
+  if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds), 
 			     &tp->vars, &tp->n_vars,
 			     PV_NO_SCRATCH | PV_NO_DUPLICATE))
     {
@@ -329,7 +329,7 @@ npar_custom_binomial(struct lexer *lexer, struct dataset *ds, struct cmd_npar_te
 
   if ( lex_match (lexer, '=') ) 
     {
-      if (parse_variables_pool (lexer, specs->pool, dataset_dict (ds), 
+      if (parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds), 
 				&tp->vars, &tp->n_vars,
 				PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	{
@@ -389,13 +389,13 @@ parse_two_sample_related_test (struct lexer *lexer,
   int n = 0;
   bool paired = false;
   bool with = false;
-  struct variable **vlist1;
+  const struct variable **vlist1;
   size_t n_vlist1;
 
-  struct variable **vlist2;
+  const struct variable **vlist2;
   size_t n_vlist2;
 
-  if (!parse_variables_pool (lexer, pool, 
+  if (!parse_variables_const_pool (lexer, pool, 
 			     dict, 
 			     &vlist1, &n_vlist1,
 			     PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
@@ -404,7 +404,7 @@ parse_two_sample_related_test (struct lexer *lexer,
   if ( lex_match(lexer, T_WITH))
     {
       with = true;
-      if ( !parse_variables_pool (lexer, pool, dict,
+      if ( !parse_variables_const_pool (lexer, pool, dict,
 				  &vlist2, &n_vlist2,
 				  PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	return false;
@@ -558,12 +558,12 @@ npar_custom_sign (struct lexer *lexer, struct dataset *ds,
 /* Insert the variables for TEST into VAR_HASH */
 void
 one_sample_insert_variables (const struct npar_test *test,
-			    struct hsh_table *var_hash)
+			    struct const_hsh_table *var_hash)
 {
   int i;
   struct one_sample_test *ost = (struct one_sample_test *) test;
 
-  for ( i = 0 ; i < ost->n_vars ; ++i ) 
-    hsh_insert (var_hash, ost->vars[i]);
+  for ( i = 0 ; i < ost->n_vars ; ++i )
+    const_hsh_insert (var_hash, ost->vars[i]);
 }
 

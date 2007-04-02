@@ -97,8 +97,8 @@ struct recode_trns
     enum var_type dst_type;     /* dst_vars[*]->type. */
 
     /* Variables. */
-    struct variable **src_vars;	/* Source variables. */
-    struct variable **dst_vars;	/* Destination variables. */
+    const struct variable **src_vars;	/* Source variables. */
+    const struct variable **dst_vars;	/* Destination variables. */
     char **dst_names;		/* Name of dest variables, if they're new. */
     size_t var_cnt;             /* Number of variables. */
 
@@ -181,7 +181,7 @@ static bool
 parse_src_vars (struct lexer *lexer, 
 		struct recode_trns *trns, const struct dictionary *dict) 
 {
-  if (!parse_variables (lexer, dict, &trns->src_vars, &trns->var_cnt,
+  if (!parse_variables_const (lexer, dict, &trns->src_vars, &trns->var_cnt,
                         PV_SAME_TYPE))
     return false;
   pool_register (trns->pool, free, trns->src_vars);
@@ -443,7 +443,7 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
                                     trns->var_cnt, sizeof *trns->dst_vars);
       for (i = 0; i < trns->var_cnt; i++)
         {
-          struct variable *v;
+          const struct variable *v;
           v = trns->dst_vars[i] = dict_lookup_var (dict, trns->dst_names[i]);
           if (v == NULL && trns->dst_type == VAR_STRING) 
             {
@@ -472,7 +472,7 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
 
   for (i = 0; i < trns->var_cnt; i++)
     {
-      struct variable *v = trns->dst_vars[i];
+      const struct variable *v = trns->dst_vars[i];
       if (v != NULL && var_get_type (v) != trns->dst_type)
         {
           msg (SE, _("Type mismatch.  Cannot store %s data in "
@@ -498,7 +498,7 @@ enlarge_dst_widths (struct recode_trns *trns)
   max_dst_width = 0;
   for (i = 0; i < trns->var_cnt; i++)
     {
-      struct variable *v = trns->dst_vars[i];
+      const struct variable *v = trns->dst_vars[i];
       if (var_get_width (v) > max_dst_width)
         max_dst_width = var_get_width (v);
     }
@@ -523,7 +523,7 @@ create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
 
   for (i = 0; i < trns->var_cnt; i++) 
     {
-      struct variable **var = &trns->dst_vars[i];
+      const struct variable **var = &trns->dst_vars[i];
       const char *name = trns->dst_names[i];
           
       *var = dict_lookup_var (dict, name);
@@ -538,7 +538,7 @@ create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
 /* Returns the output mapping in TRNS for an input of VALUE on
    variable V, or a null pointer if there is no mapping. */
 static const struct map_out *
-find_src_numeric (struct recode_trns *trns, double value, struct variable *v)
+find_src_numeric (struct recode_trns *trns, double value, const struct variable *v)
 {
   struct mapping *m;
 
@@ -627,8 +627,8 @@ recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
 
   for (i = 0; i < trns->var_cnt; i++) 
     {
-      struct variable *src_var = trns->src_vars[i];
-      struct variable *dst_var = trns->dst_vars[i];
+      const struct variable *src_var = trns->src_vars[i];
+      const struct variable *dst_var = trns->dst_vars[i];
 
       const union value *src_data = case_data (c, src_var);
       union value *dst_data = case_data_rw (c, dst_var);

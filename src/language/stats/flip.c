@@ -64,7 +64,7 @@ struct varname
 struct flip_pgm 
   {
     struct pool *pool;          /* Pool containing FLIP data. */
-    struct variable **var;      /* Variables to transpose. */
+    const struct variable **var;      /* Variables to transpose. */
     int *idx_to_fv;             /* var[]->index to compacted sink case fv. */
     size_t var_cnt;             /* Number of elements in `var'. */
     int case_cnt;               /* Pre-flip case count. */
@@ -122,7 +122,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   if (lex_match_id (lexer, "VARIABLES"))
     {
       lex_match (lexer, '=');
-      if (!parse_variables (lexer, dict, &flip->var, &flip->var_cnt,
+      if (!parse_variables_const (lexer, dict, &flip->var, &flip->var_cnt,
                             PV_NO_DUPLICATE))
 	goto error;
       lex_match (lexer, '/');

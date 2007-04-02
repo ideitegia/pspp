@@ -69,7 +69,7 @@ void
 output_split_file_values (const struct dataset *ds, const struct ccase *c)
 {
   const struct dictionary *dict = dataset_dict (ds);
-  struct variable *const *split;
+  const struct variable *const *split;
   struct tab_table *t;
   size_t split_cnt;
   int i;
@@ -88,7 +88,7 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
   split = dict_get_split_vars (dict);
   for (i = 0; i < split_cnt; i++)
     {
-      struct variable *v = split[i];
+      const struct variable *v = split[i];
       char temp_buf[80];
       const char *val_lab;
       const struct fmt_spec *print = var_get_print_format (v);

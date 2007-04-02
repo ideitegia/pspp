@@ -57,7 +57,7 @@ struct arc_item
 /* Explains how to recode an AUTORECODE variable. */
 struct arc_spec
   {
-    struct variable *src;	/* Source variable. */
+    const struct variable *src;	/* Source variable. */
     struct variable *dest;	/* Target variable. */
     struct hsh_table *items;	/* Hash table of `freq's. */
   };
@@ -80,7 +80,7 @@ enum direction
 /* AUTORECODE data. */
 struct autorecode_pgm 
   {
-    struct variable **src_vars;    /* Source variables. */
+    const struct variable **src_vars;    /* Source variables. */
     char **dst_names;              /* Target variable names. */
     struct variable **dst_vars;    /* Target variables. */
     struct hsh_table **src_values; /* `union arc_value's of source vars. */
@@ -120,7 +120,8 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 
   lex_match_id (lexer, "VARIABLES");
   lex_match (lexer, '=');
-  if (!parse_variables (lexer, dataset_dict (ds), &arc.src_vars, &arc.var_cnt,
+  if (!parse_variables_const (lexer, dataset_dict (ds), &arc.src_vars, 
+			      &arc.var_cnt,
                         PV_NO_DUPLICATE))
     goto lossage;
   if (!lex_force_match_id (lexer, "INTO"))
@@ -177,12 +178,15 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
   arc.dst_vars = xnmalloc (arc.var_cnt, sizeof *arc.dst_vars);
   arc.src_values = xnmalloc (arc.var_cnt, sizeof *arc.src_values);
   for (i = 0; i < dst_cnt; i++)
+    {
+	/* FIXME: consolodate this hsh_create */
     if (var_is_alpha (arc.src_vars[i]))
       arc.src_values[i] = hsh_create (10, compare_alpha_value,
                                       hash_alpha_value, NULL, arc.src_vars[i]);
     else
       arc.src_values[i] = hsh_create (10, compare_numeric_value,
                                       hash_numeric_value, NULL, NULL);
+   }
 
   proc_open (ds);
   while (proc_read (ds, &c))

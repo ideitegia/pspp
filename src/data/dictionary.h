@@ -51,7 +51,10 @@ void dict_destroy (struct dictionary *);
 
 size_t dict_get_var_cnt (const struct dictionary *);
 struct variable *dict_get_var (const struct dictionary *, size_t idx);
-void dict_get_vars (const struct dictionary *,
+inline void dict_get_vars (const struct dictionary *,
+                    const struct variable ***vars, size_t *cnt,
+                    unsigned exclude_classes);
+void dict_get_vars_mutable (const struct dictionary *,
                     struct variable ***vars, size_t *cnt,
                     unsigned exclude_classes);
 
@@ -110,7 +113,7 @@ void dict_compactor_compact (const struct dict_compactor *,
                              struct ccase *, const struct ccase *);
 void dict_compactor_destroy (struct dict_compactor *);
 
-struct variable *const *dict_get_split_vars (const struct dictionary *);
+const struct variable *const *dict_get_split_vars (const struct dictionary *);
 size_t dict_get_split_cnt (const struct dictionary *);
 void dict_set_split_vars (struct dictionary *,
                           struct variable *const *, size_t cnt);

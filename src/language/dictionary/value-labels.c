@@ -38,7 +38,7 @@
 /* Declarations. */
 
 static int do_value_labels (struct lexer *, 
-			    const struct dictionary *dict, int);
+			    const struct dictionary *dict, bool);
 static int verify_val_labs (struct variable **vars, size_t var_cnt);
 static void erase_labels (struct variable **vars, size_t var_cnt);
 static int get_label (struct lexer *, struct variable **vars, size_t var_cnt);
@@ -48,19 +48,19 @@ static int get_label (struct lexer *, struct variable **vars, size_t var_cnt);
 int
 cmd_value_labels (struct lexer *lexer, struct dataset *ds)
 {
-  return do_value_labels (lexer, dataset_dict (ds), 1);
+  return do_value_labels (lexer, dataset_dict (ds), true);
 }
 
 int
 cmd_add_value_labels (struct lexer *lexer, struct dataset *ds)
 {
-  return do_value_labels (lexer, dataset_dict (ds), 0);
+  return do_value_labels (lexer, dataset_dict (ds), false);
 }
 
 /* Do it. */
 
 static int
-do_value_labels (struct lexer *lexer, const struct dictionary *dict, int erase)
+do_value_labels (struct lexer *lexer, const struct dictionary *dict, bool erase)
 {
   struct variable **vars; /* Variable list. */
   size_t var_cnt;         /* Number of variables. */
@@ -115,7 +115,7 @@ verify_val_labs (struct variable **vars, size_t var_cnt)
 
   for (i = 0; i < var_cnt; i++)
     {
-      struct variable *vp = vars[i];
+      const struct variable *vp = vars[i];
 
       if (var_is_long_string (vp))
 	{

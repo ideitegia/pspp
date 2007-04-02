@@ -48,7 +48,7 @@
 #define N_INITIAL_CATEGORIES 1
 
 void
-cat_stored_values_create (struct variable *v)
+cat_stored_values_create (const struct variable *v)
 {
   if (!var_has_obs_vals (v))
     {
@@ -97,7 +97,7 @@ cat_value_find (const struct variable *v, const union value *val)
    Add the new value unless it is already present.
  */
 void
-cat_value_update (struct variable *v, const union value *val)
+cat_value_update (const struct variable *v, const union value *val)
 {
   if (var_is_alpha (v))
     {

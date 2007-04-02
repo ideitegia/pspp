@@ -197,7 +197,7 @@ static int normal;		/* FIXME */
 
 /* Variables for which to calculate statistics. */
 static size_t n_variables;
-static struct variable **v_variables;
+static const struct variable **v_variables;
 
 /* Arenas used to store semi-permanent storage. */
 static struct pool *int_pool;	/* Integer mode. */
@@ -269,17 +269,17 @@ get_var_freqs (const struct variable *v)
 
 static void determine_charts (void);
 
-static void calc_stats (struct variable *v, double d[frq_n_stats]);
+static void calc_stats (const struct variable *v, double d[frq_n_stats]);
 
 static void precalc (const struct ccase *, void *, const struct dataset *);
 static bool calc (const struct ccase *, void *, const struct dataset *);
 static bool postcalc (void *, const struct dataset *);
 
-static void postprocess_freq_tab (struct variable *);
-static void dump_full (struct variable *);
-static void dump_condensed (struct variable *);
-static void dump_statistics (struct variable *, int show_varname);
-static void cleanup_freq_tab (struct variable *);
+static void postprocess_freq_tab (const struct variable *);
+static void dump_full (const struct variable *);
+static void dump_condensed (const struct variable *);
+static void dump_statistics (const struct variable *, int show_varname);
+static void cleanup_freq_tab (const struct variable *);
 
 static hsh_compare_func compare_value_numeric_a, compare_value_alpha_a;
 static hsh_compare_func compare_value_numeric_d, compare_value_alpha_d;
@@ -569,7 +569,7 @@ precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
   
   for (i = 0; i < n_variables; i++)
     {
-      struct variable *v = v_variables[i];
+      const struct variable *v = v_variables[i];
       struct freq_tab *ft = &get_var_freqs (v)->tab;
 
       if (ft->mode == FRQM_GENERAL)
@@ -597,7 +597,7 @@ postcalc (void *aux UNUSED, const struct dataset *ds  UNUSED)
 
   for (i = 0; i < n_variables; i++)
     {
-      struct variable *v = v_variables[i];
+      const struct variable *v = v_variables[i];
       struct var_freqs *vf = get_var_freqs (v);
       struct freq_tab *ft = &vf->tab;
       int n_categories;
@@ -705,7 +705,7 @@ not_missing (const void *f_, const void *v_)
 
 /* Summarizes the frequency table data for variable V. */
 static void
-postprocess_freq_tab (struct variable *v)
+postprocess_freq_tab (const struct variable *v)
 {
   hsh_compare_func *compare;
   struct freq_tab *ft;
@@ -760,7 +760,7 @@ postprocess_freq_tab (struct variable *v)
 
 /* Frees the frequency table for variable V. */
 static void
-cleanup_freq_tab (struct variable *v)
+cleanup_freq_tab (const struct variable *v)
 {
   struct freq_tab *ft = &get_var_freqs (v)->tab;
   assert (ft->mode == FRQM_GENERAL);
@@ -784,7 +784,7 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
                          || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL))
     return 2;
 
-  if (!parse_variables (lexer, dataset_dict (ds), &v_variables, &n_variables,
+  if (!parse_variables_const (lexer, dataset_dict (ds), &v_variables, &n_variables,
 			PV_APPEND | PV_NO_SCRATCH))
     return 0;
 
@@ -815,7 +815,7 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
 
   for (i = old_n_variables; i < n_variables; i++)
     {
-      struct variable *v = v_variables[i];
+      const struct variable *v = v_variables[i];
       struct var_freqs *vf;
 
       if (var_get_aux (v) != NULL)
@@ -875,9 +875,9 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 
 	/* Variable list. */
 	size_t n;
-	struct variable **v;
+	const struct variable **v;
 
-	if (!parse_variables (lexer, dataset_dict (ds), &v, &n,
+	if (!parse_variables_const (lexer, dataset_dict (ds), &v, &n,
                               PV_NO_DUPLICATE | PV_NUMERIC))
 	  return 0;
 	if (lex_match (lexer, '('))
@@ -1119,7 +1119,7 @@ full_dim (struct tab_table *t, struct outp_driver *d)
 
 /* Displays a full frequency table for variable V. */
 static void
-dump_full (struct variable *v)
+dump_full (const struct variable *v)
 {
   int n_categories;
   struct var_freqs *vf;
@@ -1250,7 +1250,7 @@ condensed_dim (struct tab_table *t, struct outp_driver *d)
 
 /* Display condensed frequency table for variable V. */
 static void
-dump_condensed (struct variable *v)
+dump_condensed (const struct variable *v)
 {
   int n_categories;
   struct var_freqs *vf;
@@ -1310,7 +1310,7 @@ dump_condensed (struct variable *v)
 /* Calculates all the pertinent statistics for variable V, putting
    them in array D[].  FIXME: This could be made much more optimal. */
 static void
-calc_stats (struct variable *v, double d[frq_n_stats])
+calc_stats (const struct variable *v, double d[frq_n_stats])
 {
   struct freq_tab *ft = &get_var_freqs (v)->tab;
   double W = ft->valid_cases;
@@ -1472,7 +1472,7 @@ calc_stats (struct variable *v, double d[frq_n_stats])
 
 /* Displays a table of all the statistics requested for variable V. */
 static void
-dump_statistics (struct variable *v, int show_varname)
+dump_statistics (const struct variable *v, int show_varname)
 {
   struct freq_tab *ft;
   double stat_value[frq_n_stats];

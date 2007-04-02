@@ -712,7 +712,7 @@ on_split_change (PsppireDict *dict, gpointer data)
     {
       gint i;
       GString *text;
-      struct variable *const * split_vars = dict_get_split_vars (dict->dict);
+      const struct variable *const * split_vars = dict_get_split_vars (dict->dict);
 
       text = g_string_new (_("Split by "));
 

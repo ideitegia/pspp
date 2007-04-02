@@ -154,10 +154,10 @@ static size_t n_rank_specs;
 
 static struct sort_criteria *sc;
 
-static struct variable **group_vars;
+static const struct variable **group_vars;
 static size_t n_group_vars;
 
-static struct variable **src_vars;
+static const struct variable **src_vars;
 static size_t n_src_vars;
 
 
@@ -245,7 +245,7 @@ rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
   criteria.crits = xnmalloc (criteria.crit_cnt, sizeof *criteria.crits);
   for (i = 0; i < n_splits ; i++)
     {
-      struct variable *v = dict_get_split_vars (dataset_dict (ds))[i];
+      const struct variable *v = dict_get_split_vars (dataset_dict (ds))[i];
       criteria.crits[i].fv = var_get_case_index (v);
       criteria.crits[i].width = var_get_width (v);
       criteria.crits[i].dir = SRT_ASCEND;
@@ -946,7 +946,7 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
 	  return 2;
 	}
 
-      if (!parse_variables (lexer, dataset_dict (ds),
+      if (!parse_variables_const (lexer, dataset_dict (ds),
 			    &group_vars, &n_group_vars,
 			    PV_NO_DUPLICATE | PV_NO_SCRATCH) )
 	{

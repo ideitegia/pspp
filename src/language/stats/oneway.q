@@ -71,13 +71,13 @@ static bool bad_weight_warn = true;
 static struct cmd_oneway cmd;
 
 /* The independent variable */
-static struct variable *indep_var;
+static const struct variable *indep_var;
 
 /* Number of dependent variables */
 static size_t n_vars;
 
 /* The dependent variables */
-static struct variable **vars;
+static const struct variable **vars;
 
 
 /* A  hash table containing all the distinct values of the independent
@@ -225,7 +225,7 @@ oneway_custom_variables (struct lexer *lexer,
       && lex_token (lexer) != T_ALL)
     return 2;
 
-  if (!parse_variables (lexer, dict, &vars, &n_vars,
+  if (!parse_variables_const (lexer, dict, &vars, &n_vars,
 			PV_DUPLICATE 
 			| PV_NUMERIC | PV_NO_SCRATCH) )
     {

@@ -65,13 +65,13 @@ struct levene_info
   struct t_test_proc **group_stats;
 
   /* The independent variable */
-  struct variable *v_indep; 
+  const struct variable *v_indep; 
 
   /* Number of dependent variables */
   size_t n_dep;
 
   /* The dependent variables */
-  struct variable  **v_dep;
+  const struct variable  **v_dep;
 
   /* Filter for missing values */
   struct casefilter *filter;
@@ -94,7 +94,8 @@ static void levene2_postcalc (void *);
 void  
 levene(const struct dictionary *dict, 
        const struct casefile *cf,
-       struct variable *v_indep, size_t n_dep, struct variable **v_dep,
+       const struct variable *v_indep, size_t n_dep, 
+       const struct variable **v_dep,
        struct casefilter *filter)
 {
   struct casereader *r;
@@ -159,7 +160,7 @@ levene_precalc (const struct levene_info *l)
 
   for(i = 0; i < l->n_dep ; ++i ) 
     {
-      struct variable *var = l->v_dep[i];
+      const struct variable *var = l->v_dep[i];
       struct group_proc *gp = group_proc_get (var);
       struct group_statistics *gs;
       struct hsh_iterator hi;
@@ -194,7 +195,7 @@ levene_calc (const struct dictionary *dict, const struct ccase *c,
 
   for (i = 0; i < l->n_dep; ++i) 
     {
-      struct variable *var = l->v_dep[i];
+      const struct variable *var = l->v_dep[i];
       struct group_proc *gp = group_proc_get (var);
       double levene_z;
       const union value *v = case_data (c, var);
@@ -254,7 +255,7 @@ levene2_precalc (struct levene_info *l)
       struct hsh_iterator hi;
       struct group_statistics *g;
 
-      struct variable *var = l->v_dep[v] ;
+      const struct variable *var = l->v_dep[v] ;
       struct hsh_table *hash = group_proc_get (var)->group_hash;
 
 
@@ -285,7 +286,7 @@ levene2_calc (const struct dictionary *dict, const struct ccase *c,
   for (i = 0; i < l->n_dep; ++i) 
     {
       double levene_z;
-      struct variable *var = l->v_dep[i] ;
+      const struct variable *var = l->v_dep[i] ;
       const union value *v = case_data (c, var);
       struct group_statistics *gs;
 
@@ -319,7 +320,7 @@ levene2_postcalc (void *_l)
       struct hsh_iterator hi;
       struct group_statistics *g;
 
-      struct variable *var = l->v_dep[v] ;
+      const struct variable *var = l->v_dep[v] ;
       struct group_proc *gp = group_proc_get (var);
       struct hsh_table *hash = gp->group_hash;
 

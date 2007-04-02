@@ -100,7 +100,7 @@ struct string_node
 struct variable_node
   {
     operation_type type;   /* OP_variable. */
-    struct variable *v;
+    const struct variable *v;
   };
 
 struct integer_node
@@ -148,7 +148,7 @@ union operation_data
     operation_type operation;
     double number;
     struct substring string;
-    struct variable *variable;
+    const struct variable *variable;
     const struct vector *vector;
     struct fmt_spec *format;
     int integer;
@@ -194,7 +194,7 @@ union any_node *expr_allocate_string_buffer (struct expression *e,
 union any_node *expr_allocate_string (struct expression *e,
                                       struct substring);
 union any_node *expr_allocate_variable (struct expression *e,
-                                        struct variable *);
+                                        const struct variable *);
 union any_node *expr_allocate_format (struct expression *e,
                                  const struct fmt_spec *);
 union any_node *expr_allocate_vector (struct expression *e,

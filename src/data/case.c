@@ -334,7 +334,7 @@ case_data_rw_idx (struct ccase *c, size_t idx)
    in cases A and B and returns a strcmp()-type result. */
 int
 case_compare (const struct ccase *a, const struct ccase *b,
-              struct variable *const *vp, size_t var_cnt)
+              const struct variable *const *vp, size_t var_cnt)
 {
   return case_compare_2dict (a, b, vp, vp, var_cnt);
 }
@@ -344,7 +344,8 @@ case_compare (const struct ccase *a, const struct ccase *b,
    and returns a strcmp()-type result. */
 int
 case_compare_2dict (const struct ccase *ca, const struct ccase *cb,
-                    struct variable *const *vap, struct variable *const *vbp,
+                    const struct variable *const *vap, 
+		const struct variable *const *vbp,
                     size_t var_cnt) 
 {
   for (; var_cnt-- > 0; vap++, vbp++) 

@@ -45,6 +45,6 @@ struct group_proc
 };
 
 struct variable;
-struct group_proc *group_proc_get (struct variable *);
+struct group_proc *group_proc_get (const struct variable *);
 
 #endif

@@ -155,7 +155,7 @@ size_t var_get_case_index (const struct variable *);
 
 /* Variable auxiliary data. */
 void *var_get_aux (const struct variable *);
-void *var_attach_aux (struct variable *,
+void *var_attach_aux (const struct variable *,
                       void *aux, void (*aux_dtor) (struct variable *));
 void var_clear_aux (struct variable *);
 void *var_detach_aux (struct variable *);
@@ -163,7 +163,7 @@ void var_dtor_free (struct variable *);
 
 /* Observed categorical values. */
 struct cat_vals *var_get_obs_vals (const struct variable *);
-void var_set_obs_vals (struct variable *, struct cat_vals *);
+void var_set_obs_vals (const struct variable *, struct cat_vals *);
 bool var_has_obs_vals (const struct variable *);
 
 /* Classes of variables. */

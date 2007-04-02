@@ -52,7 +52,7 @@ refresh (PsppireDialog *dialog, gpointer data)
   GladeXML *xml = data;
   GtkWidget *dest = get_widget_assert (xml, "variables-treeview");
   GtkWidget *entry = get_widget_assert (xml, "new-name-entry");
-  GtkTreeModel *dmodel = gtk_tree_view_get_model (dest);
+  GtkTreeModel *dmodel = gtk_tree_view_get_model (GTK_TREE_VIEW (dest));
 
   gtk_list_store_clear (GTK_LIST_STORE (dmodel));
   gtk_entry_set_text (GTK_ENTRY (entry), "");

@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -25,6 +25,7 @@
 struct pool;
 struct dictionary;
 struct var_set;
+struct const_var_set;
 struct variable;
 struct lexer ;
 
@@ -33,12 +34,9 @@ struct var_set *var_set_create_from_array (struct variable *const *var,
                                            size_t);
 
 size_t var_set_get_cnt (const struct var_set *vs);
-struct variable *var_set_get_var (const struct var_set *vs, size_t idx);
-struct variable *var_set_lookup_var (const struct var_set *vs,
-                                     const char *name);
-bool var_set_lookup_var_idx (const struct var_set *vs, const char *name,
-                             size_t *idx);
+
 void var_set_destroy (struct var_set *vs);
+
 
 /* Variable parsers. */
 
@@ -71,5 +69,61 @@ bool parse_mixed_vars (struct lexer *, const struct dictionary *dict,
 bool parse_mixed_vars_pool (struct lexer *, const struct dictionary *dict, 
 			    struct pool *,
                            char ***names, size_t *cnt, int opts);
+
+
+/* Const wrappers */
+
+static inline const struct variable *
+parse_variable_const (struct lexer *l, const struct dictionary *d)
+{
+  return parse_variable (l, d);
+}
+
+static inline bool
+parse_variables_const (struct lexer *l, const struct dictionary *d,
+		       const struct variable ***v, size_t *s,
+		       int opts)
+{
+  return parse_variables (l, d, (struct variable ***) v, s, opts);
+}
+
+static inline bool
+parse_variables_const_pool (struct lexer *l, struct pool *p,
+			    const struct dictionary *d,
+			    const struct variable ***v, size_t *s, int opts)
+{
+  return parse_variables_pool (l, p, d, (struct variable ***) v, s, opts);
+}
+
+
+
+static inline struct const_var_set *
+const_var_set_create_from_dict (const struct dictionary *d)
+{
+  return (struct const_var_set *) var_set_create_from_dict (d);
+}
+
+static inline struct const_var_set *
+const_var_set_create_from_array (const struct variable *const *var,
+				 size_t s)
+{
+  return (struct const_var_set *) var_set_create_from_array ((struct variable *const *) var, s);
+}
+
+
+static inline bool
+parse_const_var_set_vars (struct lexer *l, const struct const_var_set *vs,
+			  const struct variable ***v, size_t *s, int opts)
+{
+  return parse_var_set_vars (l, (const struct var_set *) vs,
+			     (struct variable ***) v, s, opts);
+}
+
+static inline void
+const_var_set_destroy (struct const_var_set *vs)
+{
+  var_set_destroy ( (struct var_set *) vs);
+}
+
 
 #endif /* variable-parser.h */

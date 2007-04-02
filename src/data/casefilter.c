@@ -67,7 +67,7 @@ casefilter_variable_missing (const struct casefilter *filter,
    N_VARS is the size of VARS.
  */
 struct casefilter *
-casefilter_create (enum mv_class class, struct variable **vars, int n_vars)
+casefilter_create (enum mv_class class, const struct variable **vars, int n_vars)
 {
   int i;
   struct casefilter * filter = xmalloc (sizeof (*filter)) ;
@@ -88,7 +88,7 @@ casefilter_create (enum mv_class class, struct variable **vars, int n_vars)
    filter considers. N_VARS is the size of VARS */
 void
 casefilter_add_variables (struct casefilter *filter,
-			  struct variable *const *vars, int n_vars)
+			  const struct variable *const *vars, int n_vars)
 {
   int i;
 

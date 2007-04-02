@@ -311,7 +311,7 @@ write_header (struct outp_driver *d)
       /* Put in vertical names. */
       for (i = x = 0; i < prc->n_vertical; i++)
 	{
-	  struct variable *v = cmd.v_variables[i];
+	  const struct variable *v = cmd.v_variables[i];
           const char *name = var_get_name (v);
           size_t name_len = strlen (name);
           const struct fmt_spec *print = var_get_print_format (v);
@@ -327,7 +327,7 @@ write_header (struct outp_driver *d)
       /* Put in horizontal names. */
       for (; i < cmd.n_variables; i++)
 	{
-	  struct variable *v = cmd.v_variables[i];
+	  const struct variable *v = cmd.v_variables[i];
           const char *name = var_get_name (v);
           size_t name_len = strlen (name);
           const struct fmt_spec *print = var_get_print_format (v);
@@ -550,7 +550,7 @@ determine_layout (void)
       /* Try layout #1. */
       for (width = cmd.n_variables - 1, column = 0; column < cmd.n_variables; column++)
 	{
-	  struct variable *v = cmd.v_variables[column];
+	  const struct variable *v = cmd.v_variables[column];
           int fmt_width = var_get_print_format (v)->w;
           int name_len = strlen (var_get_name (v));
 	  width += MAX (fmt_width, name_len);
@@ -566,7 +566,7 @@ determine_layout (void)
 	   column < cmd.n_variables && width <= max_width;
 	   column++) 
         {
-          struct variable *v = cmd.v_variables[column];
+          const struct variable *v = cmd.v_variables[column];
           int fmt_width = var_get_print_format (v)->w;
           size_t name_len = strlen (var_get_name (v));
           width += fmt_width;
@@ -583,7 +583,7 @@ determine_layout (void)
 #endif
 	  for (column = cmd.n_variables; column-- != 0; )
 	    {
-	      struct variable *v = cmd.v_variables[column];
+	      const struct variable *v = cmd.v_variables[column];
               int name_len = strlen (var_get_name (v));
               int fmt_width = var_get_print_format (v)->w;
 	      int trial_width = width - fmt_width + MAX (fmt_width, name_len);
@@ -602,7 +602,7 @@ determine_layout (void)
 	       column < prc->n_vertical;
 	       column++) 
             {
-              struct variable *var = cmd.v_variables[column];
+              const struct variable *var = cmd.v_variables[column];
               size_t name_len = strlen (var_get_name (var));
               prc->header_rows = MAX (prc->header_rows, name_len); 
             }
@@ -649,7 +649,7 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
       
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
-	    struct variable *v = cmd.v_variables[column];
+	    const struct variable *v = cmd.v_variables[column];
             const struct fmt_spec *print = var_get_print_format (v);
 	    int width;
 
@@ -715,7 +715,7 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
-	    struct variable *v = cmd.v_variables[column];
+	    const struct variable *v = cmd.v_variables[column];
             const struct fmt_spec *print = var_get_print_format (v);
 	    char buf[256];
 	    

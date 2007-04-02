@@ -53,7 +53,7 @@
 /* TABLES: Variable lists for each dimension. */
 static int n_dim;		/* Number of dimensions. */
 static size_t *nv_dim;		/* Number of variables in each dimension. */
-static struct variable ***v_dim;	/* Variables in each dimension.  */
+static const struct variable ***v_dim;	/* Variables in each dimension.  */
 
 /* VARIABLES: List of variables. */
 static struct variable **v_var;
@@ -123,7 +123,7 @@ free:
 static int
 mns_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_means *cmd, void *aux UNUSED)
 {
-  struct var_set *var_set;
+  struct const_var_set *var_set;
   
   if (!lex_match_id (lexer, "TABLES")
       && (lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
@@ -138,15 +138,15 @@ mns_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_means *cm
       return 0;
     }
 
-  var_set = var_set_create_from_dict (dataset_dict (ds));
+  var_set = const_var_set_create_from_dict (dataset_dict (ds));
   assert (var_set != NULL);
 
   do
     {
       size_t nvl;
-      struct variable **vl;
+      const struct variable **vl;
 
-      if (!parse_var_set_vars (lexer, var_set, &vl, &nvl,
+      if (!parse_const_var_set_vars (lexer, var_set, &vl, &nvl,
                                PV_NO_DUPLICATE | PV_NO_SCRATCH)) 
         goto lossage;
       
@@ -159,11 +159,11 @@ mns_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_means *cm
     }
   while (lex_match (lexer, T_BY));
 
-  var_set_destroy (var_set);
+  const_var_set_destroy (var_set);
   return 1;
 
  lossage:
-  var_set_destroy (var_set);
+  const_var_set_destroy (var_set);
   return 0;
 }
 

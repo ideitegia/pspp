@@ -28,7 +28,7 @@ struct dictionary;
 struct lexer ;
 
 struct sort_criteria *sort_parse_criteria (struct lexer *, const struct dictionary *,
-                                           struct variable ***, size_t *,
+                                           const struct variable ***, size_t *,
                                            bool *saw_direction,
 					   const int *terminators
 					   );

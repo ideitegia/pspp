@@ -63,7 +63,7 @@ enum dsc_missing_type
    calculating a Z-score. */
 struct dsc_z_score
   {
-    struct variable *src_var;   /* Variable on which z-score is based. */
+    const struct variable *src_var;   /* Variable on which z-score is based. */
     struct variable *z_var;     /* New z-score variable. */
     double mean;		/* Distribution mean. */
     double std_dev;		/* Distribution standard deviation. */
@@ -74,7 +74,7 @@ struct dsc_trns
   {
     struct dsc_z_score *z_scores; /* Array of Z-scores. */
     int z_score_cnt;            /* Number of Z-scores. */
-    struct variable **vars;     /* Variables for listwise missing checks. */
+    const struct variable **vars;     /* Variables for listwise missing checks. */
     size_t var_cnt;             /* Number of variables. */
     enum dsc_missing_type missing_type; /* Treatment of missing values. */
     enum mv_class exclude;      /* Classes of missing values to exclude. */
@@ -126,7 +126,7 @@ static const struct dsc_statistic_info dsc_info[DSC_N_STATS] =
 /* A variable specified on DESCRIPTIVES. */
 struct dsc_var
   {
-    struct variable *v;         /* Variable to calculate on. */
+    const struct variable *v;         /* Variable to calculate on. */
     char z_name[LONG_NAME_LEN + 1]; /* Name for z-score variable. */
     double valid, missing;	/* Valid, missing counts. */
     struct moments *moments;    /* Moments. */
@@ -193,7 +193,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct dsc_proc *dsc;
-  struct variable **vars = NULL;
+  const struct variable **vars = NULL;
   size_t var_cnt = 0;
   int save_z_scores = 0;
   int z_cnt = 0;
@@ -316,11 +316,12 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
             {
               int i;
               
-              if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt,
+              if (!parse_variables_const (lexer, dataset_dict (ds), 
+					  &vars, &var_cnt,
                                     PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
 		goto error;
 
-              dsc->vars = xnrealloc (dsc->vars, var_cnt, sizeof *dsc->vars);
+              dsc->vars = xnrealloc ((void *)dsc->vars, var_cnt, sizeof *dsc->vars);
               for (i = dsc->var_cnt; i < var_cnt; i++)
                 {
                   struct dsc_var *dv = &dsc->vars[i];
@@ -586,7 +587,7 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
 {
   struct dsc_trns *t = trns_;
   struct dsc_z_score *z;
-  struct variable **vars;
+  const struct variable **vars;
   int all_sysmis = 0;
 
   if (t->missing_type == DSC_LISTWISE)

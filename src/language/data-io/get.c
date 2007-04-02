@@ -746,7 +746,7 @@ struct mtf_file
     struct mtf_file *next_min;	/* Next in the chain of minimums. */
     
     int type;			/* One of MTF_*. */
-    struct variable **by;	/* List of BY variables for this file. */
+    const struct variable **by;	/* List of BY variables for this file. */
     struct file_handle *handle; /* File handle. */
     struct any_reader *reader;  /* File reader. */
     struct dictionary *dict;	/* Dictionary from system file. */
@@ -943,7 +943,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
     {
       if (lex_match (lexer, T_BY))
 	{
-          struct variable **by;
+          const struct variable **by;
           
 	  if (mtf.by_cnt)
 	    {
@@ -952,7 +952,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 	    }
 	      
 	  lex_match (lexer, '=');
-	  if (!parse_variables (lexer, mtf.dict, &by, &mtf.by_cnt,
+	  if (!parse_variables_const (lexer, mtf.dict, &by, &mtf.by_cnt,
 				PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	    goto error;
 

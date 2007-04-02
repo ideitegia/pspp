@@ -58,7 +58,7 @@ struct criteria
     struct criteria *next;
 
     /* Variables to count. */
-    struct variable **vars;
+    const struct variable **vars;
     size_t var_cnt;
 
     /* Count special values? */
@@ -136,10 +136,11 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
       for (;;)
 	{
           bool ok;
-          
+
 	  crit->next = NULL;
 	  crit->vars = NULL;
-	  if (!parse_variables (lexer, dataset_dict (ds), &crit->vars, &crit->var_cnt,
+	  if (!parse_variables_const (lexer, dataset_dict (ds), &crit->vars, 
+				      &crit->var_cnt,
                                 PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
           pool_register (trns->pool, free, crit->vars);

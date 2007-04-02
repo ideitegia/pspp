@@ -40,26 +40,36 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+static struct variable * var_set_get_var (const struct var_set *, size_t );
+
+static struct variable *var_set_lookup_var (const struct var_set *,
+					    const char *);
+
+static bool var_set_lookup_var_idx (const struct var_set *, const char *,
+				    size_t *);
+
+
+
 /* Parses a name as a variable within VS.  Sets *IDX to the
    variable's index and returns true if successful.  On failure
    emits an error message and returns false. */
 static bool
-parse_vs_variable_idx (struct lexer *lexer, const struct var_set *vs, 
+parse_vs_variable_idx (struct lexer *lexer, const struct var_set *vs,
 		size_t *idx)
 {
   assert (idx != NULL);
-  
+
   if (lex_token (lexer) != T_ID)
     {
       lex_error (lexer, _("expecting variable name"));
       return false;
     }
-  else if (var_set_lookup_var_idx (vs, lex_tokid (lexer), idx)) 
+  else if (var_set_lookup_var_idx (vs, lex_tokid (lexer), idx))
     {
       lex_get (lexer);
       return true;
     }
-  else 
+  else
     {
       msg (SE, _("%s is not a variable name."), lex_tokid (lexer));
       return false;
@@ -80,7 +90,7 @@ parse_vs_variable (struct lexer *lexer, const struct var_set *vs)
    variable if successful.  On failure emits an error message and
    returns a null pointer. */
 struct variable *
-parse_variable (struct lexer *lexer, const struct dictionary *d) 
+parse_variable (struct lexer *lexer, const struct dictionary *d)
 {
   struct var_set *vs = var_set_create_from_dict (d);
   struct variable *var = parse_vs_variable (lexer, vs);
@@ -93,9 +103,9 @@ parse_variable (struct lexer *lexer, const struct dictionary *d)
    number of variables into *CNT.  Returns true only if
    successful. */
 bool
-parse_variables (struct lexer *lexer, const struct dictionary *d, 
+parse_variables (struct lexer *lexer, const struct dictionary *d,
 			struct variable ***var,
-			size_t *cnt, int opts) 
+			size_t *cnt, int opts)
 {
   struct var_set *vs;
   int success;
@@ -106,7 +116,7 @@ parse_variables (struct lexer *lexer, const struct dictionary *d,
 
   vs = var_set_create_from_dict (d);
   success = parse_var_set_vars (lexer, vs, var, cnt, opts);
-  if ( success == 0 ) 
+  if ( success == 0 )
     {
       free ( *var ) ;
       *var = NULL;
@@ -122,9 +132,9 @@ parse_variables (struct lexer *lexer, const struct dictionary *d,
    successful.  Same behavior as parse_variables, except that all
    allocations are taken from the given POOL. */
 bool
-parse_variables_pool (struct lexer *lexer, struct pool *pool, 
+parse_variables_pool (struct lexer *lexer, struct pool *pool,
 		const struct dictionary *dict,
-		struct variable ***vars, size_t *var_cnt, int opts) 
+		struct variable ***vars, size_t *var_cnt, int opts)
 {
   int retval;
 
@@ -133,7 +143,7 @@ parse_variables_pool (struct lexer *lexer, struct pool *pool,
      already in the pool, which would attempt to re-free it
      later. */
   assert (!(opts & PV_APPEND));
-  
+
   retval = parse_variables (lexer, dict, vars, var_cnt, opts);
   if (retval)
     pool_register (pool, free, *vars);
@@ -145,7 +155,7 @@ parse_variables_pool (struct lexer *lexer, struct pool *pool,
    dictionary class, and returns true.  Returns false on
    failure. */
 static bool
-parse_var_idx_class (struct lexer *lexer, const struct var_set *vs, 
+parse_var_idx_class (struct lexer *lexer, const struct var_set *vs,
 			size_t *idx,
 			enum dict_class *class)
 {
@@ -169,10 +179,10 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
   struct variable *add = var_set_get_var (vs, idx);
   const char *add_name = var_get_name (add);
 
-  if ((pv_opts & PV_NUMERIC) && !var_is_numeric (add)) 
+  if ((pv_opts & PV_NUMERIC) && !var_is_numeric (add))
     msg (SW, _("%s is not a numeric variable.  It will not be "
                "included in the variable list."), add_name);
-  else if ((pv_opts & PV_STRING) && !var_is_alpha (add)) 
+  else if ((pv_opts & PV_STRING) && !var_is_alpha (add))
     msg (SE, _("%s is not a string variable.  It will not be "
                "included in the variable list."), add_name);
   else if ((pv_opts & PV_NO_SCRATCH)
@@ -180,7 +190,7 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
     msg (SE, _("Scratch variables (such as %s) are not allowed "
                "here."), add_name);
   else if ((pv_opts & (PV_SAME_TYPE | PV_SAME_WIDTH)) && *nv
-           && var_get_type (add) != var_get_type ((*v)[0])) 
+           && var_get_type (add) != var_get_type ((*v)[0]))
     msg (SE, _("%s and %s are not the same type.  All variables in "
                "this variable list must be of the same type.  %s "
                "will be omitted from the list."),
@@ -191,7 +201,7 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
                "All variables in this variable list must have the "
                "same width.  %s will be omttied from the list."),
          var_get_name ((*v)[0]), add_name, add_name);
-  else if ((pv_opts & PV_NO_DUPLICATE) && included[idx]) 
+  else if ((pv_opts & PV_NO_DUPLICATE) && included[idx])
     msg (SE, _("Variable %s appears twice in variable list."), add_name);
   else if ((pv_opts & PV_DUPLICATE) || !included[idx])
     {
@@ -215,10 +225,10 @@ static void
 add_variables (struct variable ***v, size_t *nv, size_t *mv, char *included,
                int pv_opts,
                const struct var_set *vs, int first_idx, int last_idx,
-               enum dict_class class) 
+               enum dict_class class)
 {
   size_t i;
-  
+
   for (i = first_idx; i <= last_idx; i++)
     if (dict_class_from_id (var_get_name (var_set_get_var (vs, i))) == class)
       add_variable (v, nv, mv, included, pv_opts, vs, i);
@@ -228,7 +238,7 @@ add_variables (struct variable ***v, size_t *nv, size_t *mv, char *included,
    Conversely, if parse_variables() returns true, then *nv is
    nonzero and *v is non-NULL. */
 bool
-parse_var_set_vars (struct lexer *lexer, const struct var_set *vs, 
+parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
                     struct variable ***v, size_t *nv,
                     int pv_opts)
 {
@@ -261,14 +271,14 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
   if (!(pv_opts & PV_DUPLICATE))
     {
       size_t i;
-      
+
       included = xcalloc (var_set_get_cnt (vs), sizeof *included);
-      for (i = 0; i < *nv; i++) 
+      for (i = 0; i < *nv; i++)
         {
           size_t index;
           if (!var_set_lookup_var_idx (vs, var_get_name ((*v)[i]), &index))
             NOT_REACHED ();
-          included[index] = 1; 
+          included[index] = 1;
         }
     }
   else
@@ -279,7 +289,7 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
       if (lex_match (lexer, T_ALL))
         add_variables (v, nv, &mv, included, pv_opts,
                        vs, 0, var_set_get_cnt (vs) - 1, DC_ORDINARY);
-      else 
+      else
         {
           enum dict_class class;
           size_t first_idx;
@@ -289,7 +299,7 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
 
           if (!lex_match (lexer, T_TO))
             add_variable (v, nv, &mv, included, pv_opts, vs, first_idx);
-          else 
+          else
             {
               size_t last_idx;
               enum dict_class last_class;
@@ -326,7 +336,7 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
 
               add_variables (v, nv, &mv, included, pv_opts,
                              vs, first_idx, last_idx, class);
-            } 
+            }
         }
 
       if (pv_opts & PV_SINGLE)
@@ -335,7 +345,7 @@ parse_var_set_vars (struct lexer *lexer, const struct var_set *vs,
     }
   while (lex_token (lexer) == T_ALL
          || (lex_token (lexer) == T_ID && var_set_lookup_var (vs, lex_tokid (lexer)) != NULL));
-  
+
   if (*nv == 0)
     goto fail;
 
@@ -536,7 +546,7 @@ parse_DATA_LIST_vars_pool (struct lexer *lexer, struct pool *pool,
      presumably already in the pool, which would attempt to
      re-free it later. */
   assert (!(pv_opts & PV_APPEND));
-  
+
   retval = parse_DATA_LIST_vars (lexer, names, nnames, pv_opts);
   if (retval)
     register_vars_pool (pool, *names, *nnames);
@@ -547,7 +557,7 @@ parse_DATA_LIST_vars_pool (struct lexer *lexer, struct pool *pool,
    existing and the rest are to be created.  Same args as
    parse_DATA_LIST_vars(). */
 bool
-parse_mixed_vars (struct lexer *lexer, const struct dictionary *dict, 
+parse_mixed_vars (struct lexer *lexer, const struct dictionary *dict,
 		  char ***names, size_t *nnames, int pv_opts)
 {
   size_t i;
@@ -613,7 +623,7 @@ parse_mixed_vars_pool (struct lexer *lexer, const struct dictionary *dict, struc
 }
 
 /* A set of variables. */
-struct var_set 
+struct var_set
   {
     size_t (*get_cnt) (const struct var_set *);
     struct variable *(*get_var) (const struct var_set *, size_t idx);
@@ -624,7 +634,7 @@ struct var_set
 
 /* Returns the number of variables in VS. */
 size_t
-var_set_get_cnt (const struct var_set *vs) 
+var_set_get_cnt (const struct var_set *vs)
 {
   assert (vs != NULL);
 
@@ -633,8 +643,8 @@ var_set_get_cnt (const struct var_set *vs)
 
 /* Return variable with index IDX in VS.
    IDX must be less than the number of variables in VS. */
-struct variable *
-var_set_get_var (const struct var_set *vs, size_t idx) 
+static struct variable *
+var_set_get_var (const struct var_set *vs, size_t idx)
 {
   assert (vs != NULL);
   assert (idx < var_set_get_cnt (vs));
@@ -645,7 +655,7 @@ var_set_get_var (const struct var_set *vs, size_t idx)
 /* Returns the variable in VS named NAME, or a null pointer if VS
    contains no variable with that name. */
 struct variable *
-var_set_lookup_var (const struct var_set *vs, const char *name) 
+var_set_lookup_var (const struct var_set *vs, const char *name)
 {
   size_t idx;
   return (var_set_lookup_var_idx (vs, name, &idx)
@@ -668,7 +678,7 @@ var_set_lookup_var_idx (const struct var_set *vs, const char *name,
 
 /* Destroys VS. */
 void
-var_set_destroy (struct var_set *vs) 
+var_set_destroy (struct var_set *vs)
 {
   if (vs != NULL)
     vs->destroy (vs);
@@ -676,7 +686,7 @@ var_set_destroy (struct var_set *vs)
 
 /* Returns the number of variables in VS. */
 static size_t
-dict_var_set_get_cnt (const struct var_set *vs) 
+dict_var_set_get_cnt (const struct var_set *vs)
 {
   struct dictionary *d = vs->aux;
 
@@ -686,7 +696,7 @@ dict_var_set_get_cnt (const struct var_set *vs)
 /* Return variable with index IDX in VS.
    IDX must be less than the number of variables in VS. */
 static struct variable *
-dict_var_set_get_var (const struct var_set *vs, size_t idx) 
+dict_var_set_get_var (const struct var_set *vs, size_t idx)
 {
   struct dictionary *d = vs->aux;
 
@@ -697,11 +707,11 @@ dict_var_set_get_var (const struct var_set *vs, size_t idx)
    and returns true.  Otherwise, returns false. */
 static bool
 dict_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
-                             size_t *idx) 
+                             size_t *idx)
 {
   struct dictionary *d = vs->aux;
   struct variable *v = dict_lookup_var (d, name);
-  if (v != NULL) 
+  if (v != NULL)
     {
       *idx = var_get_dict_index (v);
       return true;
@@ -712,14 +722,14 @@ dict_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
 
 /* Destroys VS. */
 static void
-dict_var_set_destroy (struct var_set *vs) 
+dict_var_set_destroy (struct var_set *vs)
 {
   free (vs);
 }
 
 /* Returns a variable set based on D. */
 struct var_set *
-var_set_create_from_dict (const struct dictionary *d) 
+var_set_create_from_dict (const struct dictionary *d)
 {
   struct var_set *vs = xmalloc (sizeof *vs);
   vs->get_cnt = dict_var_set_get_cnt;
@@ -731,7 +741,7 @@ var_set_create_from_dict (const struct dictionary *d)
 }
 
 /* A variable set based on an array. */
-struct array_var_set 
+struct array_var_set
   {
     struct variable *const *var;/* Array of variables. */
     size_t var_cnt;             /* Number of elements in var. */
@@ -740,7 +750,7 @@ struct array_var_set
 
 /* Returns the number of variables in VS. */
 static size_t
-array_var_set_get_cnt (const struct var_set *vs) 
+array_var_set_get_cnt (const struct var_set *vs)
 {
   struct array_var_set *avs = vs->aux;
 
@@ -750,7 +760,7 @@ array_var_set_get_cnt (const struct var_set *vs)
 /* Return variable with index IDX in VS.
    IDX must be less than the number of variables in VS. */
 static struct variable *
-array_var_set_get_var (const struct var_set *vs, size_t idx) 
+array_var_set_get_var (const struct var_set *vs, size_t idx)
 {
   struct array_var_set *avs = vs->aux;
 
@@ -761,7 +771,7 @@ array_var_set_get_var (const struct var_set *vs, size_t idx)
    and returns true.  Otherwise, returns false. */
 static bool
 array_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
-                              size_t *idx) 
+                              size_t *idx)
 {
   struct array_var_set *avs = vs->aux;
   struct variable *v, *const *vpp;
@@ -769,8 +779,8 @@ array_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
   v = var_create (name, 0);
   vpp = hsh_find (avs->name_tab, &v);
   var_destroy (v);
-  
-  if (vpp != NULL) 
+
+  if (vpp != NULL)
     {
       *idx = vpp - avs->var;
       return true;
@@ -781,7 +791,7 @@ array_var_set_lookup_var_idx (const struct var_set *vs, const char *name,
 
 /* Destroys VS. */
 static void
-array_var_set_destroy (struct var_set *vs) 
+array_var_set_destroy (struct var_set *vs)
 {
   struct array_var_set *avs = vs->aux;
 
@@ -793,7 +803,7 @@ array_var_set_destroy (struct var_set *vs)
 /* Returns a variable set based on the VAR_CNT variables in
    VAR. */
 struct var_set *
-var_set_create_from_array (struct variable *const *var, size_t var_cnt) 
+var_set_create_from_array (struct variable *const *var, size_t var_cnt)
 {
   struct var_set *vs;
   struct array_var_set *avs;
@@ -811,11 +821,12 @@ var_set_create_from_array (struct variable *const *var, size_t var_cnt)
                               compare_var_ptrs_by_name, hash_var_ptr_by_name,
                               NULL, NULL);
   for (i = 0; i < var_cnt; i++)
-    if (hsh_insert (avs->name_tab, (void *) &var[i]) != NULL) 
+    if (hsh_insert (avs->name_tab, (void *) &var[i]) != NULL)
       {
         var_set_destroy (vs);
         return NULL;
       }
-  
+
   return vs;
 }
+

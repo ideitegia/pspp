@@ -84,7 +84,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 static struct cmd_examine cmd;
 
-static struct variable **dependent_vars;
+static const struct variable **dependent_vars;
 
 static size_t n_dependent_vars;
 
@@ -116,19 +116,19 @@ static int examine_parse_independent_vars (struct lexer *lexer, const struct dic
 
 
 /* Output functions */
-static void show_summary (struct variable **dependent_var, int n_dep_var,
+static void show_summary (const struct variable **dependent_var, int n_dep_var,
 			 const struct factor *f);
 
-static void show_extremes (struct variable **dependent_var,
+static void show_extremes (const struct variable **dependent_var,
 			  int n_dep_var,
 			  const struct factor *factor,
 			  int n_extremities);
 
-static void show_descriptives (struct variable **dependent_var,
+static void show_descriptives (const struct variable **dependent_var,
 			      int n_dep_var,
 			      struct factor *factor);
 
-static void show_percentiles (struct variable **dependent_var,
+static void show_percentiles (const struct variable **dependent_var,
 			     int n_dep_var,
 			     struct factor *factor);
 
@@ -525,7 +525,7 @@ xmn_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_examin
       return 2;
     }
 
-  if (!parse_variables (lexer, dict, &dependent_vars, &n_dependent_vars,
+  if (!parse_variables_const (lexer, dict, &dependent_vars, &n_dependent_vars,
 			PV_NO_DUPLICATE | PV_NUMERIC | PV_NO_SCRATCH) )
     {
       free (dependent_vars);
@@ -899,7 +899,7 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 
 
 static void
-show_summary (struct variable **dependent_var, int n_dep_var,
+show_summary (const struct variable **dependent_var, int n_dep_var,
 	     const struct factor *fctr)
 {
   static const char *subtitle[]=
@@ -1124,7 +1124,7 @@ populate_summary (struct tab_table *t, int col, int row,
 
 
 static void
-show_extremes (struct variable **dependent_var, int n_dep_var,
+show_extremes (const struct variable **dependent_var, int n_dep_var,
 	      const struct factor *fctr, int n_extremities)
 {
   int i;
@@ -1361,7 +1361,7 @@ populate_extremes (struct tab_table *t,
 
 /* Show the descriptives table */
 void
-show_descriptives (struct variable **dependent_var,
+show_descriptives (const struct variable **dependent_var,
 		  int n_dep_var,
 		  struct factor *fctr)
 {
@@ -1947,7 +1947,7 @@ np_plot (const struct metrics *m, const char *factorname)
 
 /* Show the percentiles */
 void
-show_percentiles (struct variable **dependent_var,
+show_percentiles (const struct variable **dependent_var,
 		 int n_dep_var,
 		 struct factor *fctr)
 {

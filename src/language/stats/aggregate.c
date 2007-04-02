@@ -64,7 +64,7 @@ struct agr_var
     struct agr_var *next;		/* Next in list. */
 
     /* Collected during parsing. */
-    struct variable *src;	/* Source variable. */
+    const struct variable *src;	/* Source variable. */
     struct variable *dest;	/* Target variable. */
     int function;		/* Function. */
     enum mv_class exclude;      /* Classes of missing values to exclude. */
@@ -141,7 +141,7 @@ struct agr_proc
 
     /* Break variables. */
     struct sort_criteria *sort;         /* Sort criteria. */
-    struct variable **break_vars;       /* Break variables. */
+    const struct variable **break_vars;       /* Break variables. */
     size_t break_var_cnt;               /* Number of break variables. */
     struct ccase break_case;            /* Last values of break variables. */
 
@@ -396,7 +396,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 
       union agr_argument arg[2];
 
-      struct variable **src;
+      const struct variable **src;
       size_t n_src;
 
       size_t i;
@@ -496,7 +496,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	    else if (function->n_args)
 	      pv_opts |= PV_SAME_TYPE;
 
-	    if (!parse_variables (lexer, dict, &src, &n_src, pv_opts))
+	    if (!parse_variables_const (lexer, dict, &src, &n_src, pv_opts))
 	      goto error;
 	  }
 
@@ -959,7 +959,7 @@ dump_aggregate_info (struct agr_proc *agr, struct ccase *output)
 
     for (i = 0; i < agr->break_var_cnt; i++) 
       {
-        struct variable *v = agr->break_vars[i];
+        const struct variable *v = agr->break_vars[i];
         size_t value_cnt = var_get_value_cnt (v);
         memcpy (case_data_rw_idx (output, value_idx),
                 case_data (&agr->break_case, v),

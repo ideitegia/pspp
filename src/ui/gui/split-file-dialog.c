@@ -27,6 +27,7 @@
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"
+#include <data/dictionary.h>
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -147,7 +148,7 @@ refresh (PsppireDialog *dialog, struct split_file_dialog *d)
     {
       GtkTreeIter iter;
       gint i;
-      struct variable *const *vars = dict_get_split_vars (d->dict->dict);
+      const struct variable *const *vars = dict_get_split_vars (d->dict->dict);
 
       for (i = 0 ; i < n_vars; ++i )
 	{
@@ -172,6 +173,7 @@ split_file_dialog (GObject *o, gpointer data)
   gint response;
   struct data_editor *de = data;
   struct split_file_dialog sfd;
+  PsppireVarStore *vs ;
 
   GtkWidget *dialog   ;
   GtkWidget *source   ;
@@ -191,7 +193,7 @@ split_file_dialog (GObject *o, gpointer data)
 
   var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
   sfd.dict = vs->dict;
   sfd.tv = GTK_TREE_VIEW (dest);

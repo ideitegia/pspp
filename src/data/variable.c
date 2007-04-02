@@ -867,9 +867,10 @@ var_get_aux (const struct variable *v)
    cleared, AUX_DTOR(V) will be called.  (var_dtor_free, below,
    may be appropriate for use as AUX_DTOR.) */
 void *
-var_attach_aux (struct variable *v,
+var_attach_aux (const struct variable *v_,
                 void *aux, void (*aux_dtor) (struct variable *)) 
 {
+  struct variable *v = (struct variable *) v_ ; /* cast away const  */
   assert (v->aux == NULL);
   assert (aux != NULL);
   v->aux = aux;
@@ -924,8 +925,9 @@ var_get_obs_vals (const struct variable *v)
 
 /* Sets V's observed categorical values to CAT_VALS. */
 void
-var_set_obs_vals (struct variable *v, struct cat_vals *cat_vals) 
+var_set_obs_vals (const struct variable *v_, struct cat_vals *cat_vals) 
 {
+  struct variable *v = (struct variable *) v_ ; /* cast away const */ 
   cat_stored_values_destroy (v->obs_vals);
   v->obs_vals = cat_vals;
 }

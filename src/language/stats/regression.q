@@ -89,7 +89,7 @@ static struct cmd_regression cmd;
 struct moments_var
 {
   struct moments1 *m;
-  struct variable *v;
+  const struct variable *v;
 };
 
 /* Linear regression models. */
@@ -108,7 +108,7 @@ struct reg_trns
 /*
   Variables used (both explanatory and response).
  */
-static struct variable **v_variables;
+static const struct variable **v_variables;
 
 /*
   Number of variables.
@@ -974,8 +974,9 @@ is_depvar (size_t k, const struct variable *v)
   Compute the first two moments.
  */
 static size_t
-mark_missing_cases (const struct casefile *cf, struct variable *v,
-		    int *is_missing_case, double n_data, struct moments_var *mom)
+mark_missing_cases (const struct casefile *cf, const struct variable *v,
+		    int *is_missing_case, double n_data,
+                    struct moments_var *mom)
 {
   struct casereader *r;
   struct ccase c;
@@ -1024,7 +1025,7 @@ regression_custom_variables (struct lexer *lexer, struct dataset *ds,
     return 2;
 
 
-  if (!parse_variables (lexer, dict, &v_variables, &n_variables, PV_NONE))
+  if (!parse_variables_const (lexer, dict, &v_variables, &n_variables, PV_NONE))
     {
       free (v_variables);
       return 0;
@@ -1064,8 +1065,9 @@ get_n_indep (const struct variable *v)
 */
 static int
 prepare_data (int n_data, int is_missing_case[],
-	      struct variable **indep_vars,
-	      struct variable *depvar, const struct casefile *cf, struct moments_var *mom)
+	      const struct variable **indep_vars,
+	      const struct variable *depvar, const struct casefile *cf,
+              struct moments_var *mom)
 {
   int i;
   int j;
@@ -1153,7 +1155,7 @@ run_regression (const struct ccase *first,
   const union value *val;
   struct casereader *r;
   struct ccase c;
-  struct variable **indep_vars;
+  const struct variable **indep_vars;
   struct design_matrix *X;
   struct moments_var *mom;
   gsl_vector *Y;

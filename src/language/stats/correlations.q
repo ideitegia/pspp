@@ -36,7 +36,7 @@
 struct cor_set
   {
     struct cor_set *next;
-    struct variable **v1, **v2;
+    const struct variable **v1, **v2;
     size_t nv1, nv2;
   };
 
@@ -88,7 +88,7 @@ internal_cmd_correlations (struct lexer *lexer, struct dataset *ds)
 static int
 cor_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_correlations *cmd UNUSED, void *aux UNUSED)
 {
-  struct variable **v1, **v2;
+  const struct variable **v1, **v2;
   size_t nv1, nv2;
   struct cor_set *cor;
 
@@ -99,13 +99,13 @@ cor_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_correl
     return 2;
   lex_match (lexer, '=');
 
-  if (!parse_variables (lexer, dataset_dict (ds), &v1, &nv1,
+  if (!parse_variables_const (lexer, dataset_dict (ds), &v1, &nv1,
 			PV_NO_DUPLICATE | PV_NUMERIC))
     return 0;
   
   if (lex_match (lexer, T_WITH))
     {
-      if (!parse_variables (lexer, dataset_dict (ds), &v2, &nv2,
+      if (!parse_variables_const (lexer, dataset_dict (ds), &v2, &nv2,
 			    PV_NO_DUPLICATE | PV_NUMERIC))
 	{
 	  free (v1);

@@ -116,7 +116,7 @@ struct crosstab
     int nvar;			/* Number of variables. */
     double missing;		/* Missing cases count. */
     int ofs;			/* Integer mode: Offset into sorted_tab[]. */
-    struct variable *vars[2];	/* At least two variables; sorted by
+    const struct variable *vars[2];	/* At least two variables; sorted by
 				   larger indices first. */
   };
 
@@ -129,7 +129,7 @@ struct var_range
   };
 
 static inline struct var_range *
-get_var_range (struct variable *v) 
+get_var_range (const struct variable *v) 
 {
   return var_get_aux (v);
 }
@@ -147,7 +147,7 @@ static int n_sorted_tab;		/* Number of entries in sorted_tab. */
 static struct table_entry **sorted_tab;	/* Sorted table. */
 
 /* Variables specifies on VARIABLES. */
-static struct variable **variables;
+static const struct variable **variables;
 static size_t variables_cnt;
 
 /* TABLES. */
@@ -305,31 +305,32 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 static int
 crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs *cmd UNUSED, void *aux UNUSED)
 {
-  struct var_set *var_set;
+  struct const_var_set *var_set;
   int n_by;
-  struct variable ***by = NULL;
+  const struct variable ***by = NULL;
   size_t *by_nvar = NULL;
   size_t nx = 1;
   int success = 0;
 
   /* Ensure that this is a TABLES subcommand. */
   if (!lex_match_id (lexer, "TABLES")
-      && (lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
+      && (lex_token (lexer) != T_ID || 
+	  dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
   lex_match (lexer, '=');
 
   if (variables != NULL)
-    var_set = var_set_create_from_array (variables, variables_cnt);
+    var_set = const_var_set_create_from_array (variables, variables_cnt);
   else
-    var_set = var_set_create_from_dict (dataset_dict (ds));
+    var_set = const_var_set_create_from_dict (dataset_dict (ds));
   assert (var_set != NULL);
   
   for (n_by = 0; ;)
     {
       by = xnrealloc (by, n_by + 1, sizeof *by);
       by_nvar = xnrealloc (by_nvar, n_by + 1, sizeof *by_nvar);
-      if (!parse_var_set_vars (lexer, var_set, &by[n_by], &by_nvar[n_by],
+      if (!parse_const_var_set_vars (lexer, var_set, &by[n_by], &by_nvar[n_by],
                                PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	goto done;
       if (xalloc_oversized (nx, by_nvar[n_by])) 
@@ -400,7 +401,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs
     free (by_nvar);
   }
 
-  var_set_destroy (var_set);
+  const_var_set_destroy (var_set);
 
   return success;
 }
@@ -424,7 +425,7 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_crosst
 
       long min, max;
       
-      if (!parse_variables (lexer, dataset_dict (ds), 
+      if (!parse_variables_const (lexer, dataset_dict (ds), 
 			    &variables, &variables_cnt,
 			    (PV_APPEND | PV_NUMERIC
 			     | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
@@ -660,7 +661,7 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
       ofs = x->ofs;
       for (i = 0; i < x->nvar; i++)
 	{
-	  struct variable *const v = x->vars[i];
+	  const struct variable *const v = x->vars[i];
           struct var_range *vr = get_var_range (v);
 	  double value = case_num (c, v);
 	  
@@ -681,10 +682,10 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	}
       
       {
-        struct variable *row_var = x->vars[ROW_VAR];
+        const struct variable *row_var = x->vars[ROW_VAR];
 	const int row = case_num (c, row_var) - get_var_range (row_var)->min;
 
-        struct variable *col_var = x->vars[COL_VAR];
+        const struct variable *col_var = x->vars[COL_VAR];
 	const int col = case_num (c, col_var) - get_var_range (col_var)->min;
 
 	const int col_dim = get_var_range (col_var)->count;
@@ -1633,7 +1634,7 @@ static void
 enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
                  union value **values, int *value_cnt)
 {
-  struct variable *v = xtab[(*entries)->table]->vars[var_idx];
+  const struct variable *v = xtab[(*entries)->table]->vars[var_idx];
 
   if (mode == GENERAL)
     {

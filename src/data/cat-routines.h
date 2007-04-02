@@ -43,11 +43,11 @@ size_t cat_value_find (const struct variable *, const union value *);
 
 union value *cat_subscript_to_value (const size_t, struct variable *);
 
-void cat_stored_values_create (struct variable *);
+void cat_stored_values_create (const struct variable *);
 
-void cat_value_update (struct variable *, const union value *);
+void cat_value_update (const struct variable *, const union value *);
 
-void cat_create_value_matrix (struct variable *);
+void cat_create_value_matrix (const struct variable *);
 
 void cat_stored_values_destroy (struct cat_vals *);
 #endif

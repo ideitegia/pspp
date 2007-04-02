@@ -40,7 +40,8 @@ struct dictionary ;
 struct casefilter ;
 
 void  levene(const struct dictionary *dict, const struct casefile *cf, 
-	     struct variable *v_indep, size_t n_dep, struct variable **v_dep,
+	     const struct variable *v_indep, size_t n_dep, 
+	     const struct variable **v_dep,
 	     struct casefilter *filter);
 
 
