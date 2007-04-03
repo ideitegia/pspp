@@ -1,3 +1,23 @@
+2007-04-03  Ben Pfaff  <blp@gnu.org>
+
+	Apply patches #5828, #5837, #5841, #5843.
+
+	* abt.c (insert_relative): New function.
+	(abt_insert_after): New function.
+	(abt_insert_before): New function.
+
+	* range-map.c: New file.
+
+	* range-map.h: New file.
+
+	* range-set.c: New file.
+
+	* range-set.h: New file.
+
+	* tower.c: New file.
+
+	* tower.h: New file.
+
 2007-04-01  Ben Pfaff  <blp@gnu.org>
 
 	* bt.c: Need #include <limits.h>.  Thanks to "John McCabe-Dansted"

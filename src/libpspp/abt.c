@@ -32,18 +32,31 @@
 
 #include <libpspp/abt.h>
 
+#include <stdbool.h>
+
+#include <libpspp/assertion.h>
+
 static struct abt_node **down_link (struct abt *, struct abt_node *);
 static struct abt_node *skew (struct abt *, struct abt_node *);
 static struct abt_node *split (struct abt *, struct abt_node *);
 
 /* Initializes ABT as an empty ABT that uses COMPARE and
-   REAUGMENT functions, passing in AUX as auxiliary data. */
+   REAUGMENT functions, passing in AUX as auxiliary data.
+
+   The comparison function is optional.  If it is null, this
+   indicates that the tree is being used for its augmentations
+   only.  ABT functions that compare nodes may not be used with
+   trees that lack comparison functions; contrariwise, other
+   functions that could disrupt the ordering of a tree may not be
+   used if a comparison function is specified.  Refer to
+   individual function descriptions for details. */
 void
 abt_init (struct abt *abt,
           abt_compare_func *compare,
           abt_reaugment_func *reaugment,
           const void *aux) 
 {
+  assert (reaugment != NULL);
   abt->root = NULL;
   abt->compare = compare;
   abt->reaugment = reaugment;
@@ -53,7 +66,9 @@ abt_init (struct abt *abt,
 /* Inserts the given NODE into ABT.
    Returns a null pointer if successful.
    Returns the existing node already in ABT equal to NODE, on
-   failure. */
+   failure.
+   This function may be used only if ABT has a comparison
+   function. */
 struct abt_node *
 abt_insert (struct abt *abt, struct abt_node *node) 
 {
@@ -97,6 +112,77 @@ abt_insert (struct abt *abt, struct abt_node *node)
     }
 
   return NULL;
+}
+
+/* Inserts NODE before or after node P in ABT, depending on the
+   value of AFTER.
+   If P is null, then the node is inserted as the first node in
+   the tree, if AFTER is true, or the last node, if AFTER is
+   false. */
+static inline void
+insert_relative (struct abt *abt, struct abt_node *p, bool after,
+                 struct abt_node *node)
+{
+  node->down[0] = NULL;
+  node->down[1] = NULL;
+  node->level = 1;
+
+  if (abt->root == NULL) 
+    {
+      assert (p == NULL);
+      abt->root = node;
+      node->up = NULL;
+      abt_reaugmented (abt, node);
+    }
+  else 
+    {
+      int dir = after;
+      if (p == NULL) 
+        {
+          p = abt->root;
+          dir = !after;
+        }
+      while (p->down[dir] != NULL) 
+        {
+          p = p->down[dir];
+          dir = !after; 
+        }
+      p->down[dir] = node;
+      node->up = p;
+      abt_reaugmented (abt, node);
+    }
+
+  while ((node = node->up) != NULL) 
+    {
+      node = skew (abt, node);
+      node = split (abt, node);
+    }
+}
+
+/* Inserts NODE after node P in ABT.
+   If P is null, then the node is inserted as the first node in
+   the tree.
+   This function may be used only if ABT lacks a comparison
+   function. */
+void
+abt_insert_after (struct abt *abt,
+                  const struct abt_node *p, struct abt_node *node) 
+{
+  assert (abt->compare == NULL);
+  insert_relative (abt, (struct abt_node *) p, true, node);
+}
+
+/* Inserts NODE before node P in ABT.
+   If P is null, then the node is inserted as the last node in
+   the tree.
+   This function may be used only if ABT lacks a comparison
+   function. */
+void
+abt_insert_before (struct abt *abt,
+                   const struct abt_node *p, struct abt_node *node) 
+{
+  assert (abt->compare == NULL);
+  insert_relative (abt, (struct abt_node *) p, false, node);
 }
 
 /* Deletes P from ABT. */
@@ -183,7 +269,9 @@ abt_last (const struct abt *abt)
 }
 
 /* Searches ABT for a node equal to TARGET.
-   Returns the node if found, or a null pointer otherwise. */
+   Returns the node if found, or a null pointer otherwise.
+   This function may be used only if ABT has a comparison
+   function. */
 struct abt_node *
 abt_find (const struct abt *abt, const struct abt_node *target)
 {
@@ -282,7 +370,11 @@ abt_reaugmented (const struct abt *abt, struct abt_node *p)
    call this function for each node.  Instead, update a single
    node's key, call this function, update another node's key, and
    so on.  Alternatively, remove all affected nodes from the
-   tree, update their keys, then re-insert all of them. */
+   tree, update their keys, then re-insert all of them.
+
+   This function may be used only if ABT has a comparison
+   function.  If it doesn't, then you probably just want
+   abt_reaugmented. */
 struct abt_node *
 abt_changed (struct abt *abt, struct abt_node *p) 
 {
@@ -312,7 +404,10 @@ abt_changed (struct abt *abt, struct abt_node *p)
    function for each node.  Instead, move a single node, call
    this function, move another node, and so on.  Alternatively,
    remove all affected nodes from the tree, move them, then
-   re-insert all of them. */
+   re-insert all of them.
+
+   This function may be used only if ABT has a comparison
+   function. */
 void
 abt_moved (struct abt *abt, struct abt_node *p) 
 {

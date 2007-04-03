@@ -1,3 +1,16 @@
+2007-04-03  Ben Pfaff  <blp@gnu.org>
+
+	Apply patches #5828, #5837, #5841, #5843.
+
+	* automake.mk (tests_libpspp_bt_test_LDADD): Add range-map-test,
+	range-set-test, tower-test.
+
+	* libpspp/range-map-test.c: New test.
+
+	* libpspp/range-set-test.c: New test.
+
+	* libpspp/tower-test.c: New test.
+
 2007-03-31  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk (tests_libpspp_bt_test_LDADD): Add tests/libpspp/bt.

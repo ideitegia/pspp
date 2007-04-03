@@ -138,7 +138,10 @@ nodist_TESTS = \
 	tests/libpspp/heap-test \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
-	tests/libpspp/sparse-array-test
+	tests/libpspp/range-map-test \
+	tests/libpspp/range-set-test \
+	tests/libpspp/sparse-array-test \
+	tests/libpspp/tower-test
 
 TESTS = $(dist_TESTS) $(nodist_TESTS)
 
@@ -171,7 +174,7 @@ tests_libpspp_abt_test_SOURCES = \
 	src/libpspp/abt.c \
 	src/libpspp/abt.h \
 	tests/libpspp/abt-test.c
-tests_libpspp_abt_test_LDADD = gl/libgl.la
+tests_libpspp_abt_test_LDADD = gl/libgl.la @LIBINTL@
 tests_libpspp_abt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_bt_test_SOURCES = \
@@ -180,6 +183,37 @@ tests_libpspp_bt_test_SOURCES = \
 	tests/libpspp/bt-test.c
 tests_libpspp_bt_test_LDADD = gl/libgl.la
 tests_libpspp_bt_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_range_map_test_SOURCES = \
+	src/libpspp/bt.c \
+	src/libpspp/bt.h \
+	src/libpspp/range-map.c \
+	src/libpspp/range-map.h \
+	tests/libpspp/range-map-test.c
+tests_libpspp_range_map_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_range_map_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_range_set_test_SOURCES = \
+	src/libpspp/bt.c \
+	src/libpspp/bt.h \
+	src/libpspp/pool.c \
+	src/libpspp/pool.h \
+	src/libpspp/range-set.c \
+	src/libpspp/range-set.h \
+	tests/libpspp/range-set-test.c
+tests_libpspp_range_set_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_tower_test_SOURCES = \
+	src/libpspp/abt.c \
+	src/libpspp/abt.h \
+	src/libpspp/pool.c \
+	src/libpspp/pool.h \
+	src/libpspp/tower.c \
+	src/libpspp/tower.h \
+	tests/libpspp/tower-test.c
+tests_libpspp_tower_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_tower_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_sparse_array_test_SOURCES = \
 	src/libpspp/sparse-array.c \

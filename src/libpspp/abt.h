@@ -61,7 +61,7 @@
    larger tree is rearranged, e.g. via a series of rotations,
    then the implementation will not call the reaugmentation
    function outside of the subtree, because the overall
-   augmentation data for the subtree is assumed not to changed.
+   augmentation data for the subtree is assumed not to change.
    This optimization is valid for the forms of augmentation
    described in CLR and Knuth (see below), and it is possible
    that it is valid for every efficient binary search tree
@@ -193,6 +193,10 @@ void abt_init (struct abt *, abt_compare_func *, abt_reaugment_func *,
                const void *aux);
 
 struct abt_node *abt_insert (struct abt *, struct abt_node *);
+void abt_insert_after (struct abt *,
+                       const struct abt_node *, struct abt_node *);
+void abt_insert_before (struct abt *,
+                        const struct abt_node *, struct abt_node *);
 void abt_delete (struct abt *, struct abt_node *);
 
 struct abt_node *abt_first (const struct abt *);

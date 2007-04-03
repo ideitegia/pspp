@@ -47,6 +47,10 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/misc.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
+	src/libpspp/range-map.c \
+	src/libpspp/range-map.h \
+	src/libpspp/range-set.c \
+	src/libpspp/range-set.h \
 	src/libpspp/sparse-array.c \
 	src/libpspp/sparse-array.h \
 	src/libpspp/syntax-gen.c \
@@ -57,6 +61,8 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/start-date.h \
 	src/libpspp/str.c \
 	src/libpspp/str.h \
+	src/libpspp/tower.c \
+	src/libpspp/tower.h \
 	src/libpspp/verbose-msg.c \
 	src/libpspp/verbose-msg.h \
 	src/libpspp/version.h 

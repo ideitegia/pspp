@@ -336,22 +336,25 @@ check_abt (struct abt *abt, const int data[], size_t cnt)
   order = xmemdup (data, cnt * sizeof *data);
   qsort (order, cnt, sizeof *order, compare_ints_noaux);
 
-  for (i = 0; i < cnt; i++)
+  if (abt->compare != NULL) 
     {
-      struct abt_node *p;
+      for (i = 0; i < cnt; i++)
+        {
+          struct abt_node *p;
       
-      e.data = data[i];
-      if (rand () % 2)
-        p = abt_find (abt, &e.node);
-      else
-        p = abt_insert (abt, &e.node);
-      check (p != NULL);
-      check (p != &e.node);
-      check (abt_node_to_element (p)->data == data[i]);
-    }
+          e.data = data[i];
+          if (rand () % 2)
+            p = abt_find (abt, &e.node);
+          else
+            p = abt_insert (abt, &e.node);
+          check (p != NULL);
+          check (p != &e.node);
+          check (abt_node_to_element (p)->data == data[i]);
+        }
 
-  e.data = -1;
-  check (abt_find (abt, &e.node) == NULL);
+      e.data = -1;
+      check (abt_find (abt, &e.node) == NULL);
+    }
 
   check_levels (abt->root);
   check_augmentations (abt->root);
@@ -381,14 +384,59 @@ check_abt (struct abt *abt, const int data[], size_t cnt)
   free (order);
 }
 
-/* Inserts the CNT values from 0 to CNT - 1 (inclusive) into an
-   ABT in the order specified by INSERTIONS, then deletes them in
-   the order specified by DELETIONS, checking the ABT's contents
-   for correctness after each operation. */
+/* Ways that nodes can be inserted. */
+enum insertion_method 
+  {
+    INSERT,             /* With abt_insert. */
+    INSERT_AFTER,       /* With abt_insert_after. */
+    INSERT_BEFORE       /* With abt_insert_before. */
+  };
+
+/* Inserts INSERT into ABT with the given METHOD. */
 static void
-test_insert_delete (const int insertions[],
-                    const int deletions[],
-                    size_t cnt) 
+insert_node (struct abt *abt, struct element *insert,
+             enum insertion_method method) 
+{
+  if (method == INSERT) 
+    check (abt_insert (abt, &insert->node) == NULL);
+  else 
+    {
+      struct abt_node *p = abt->root;
+      int dir = 0;
+      if (p != NULL)
+        for (;;) 
+          {
+            dir = insert->data > abt_node_to_element (p)->data;
+            if (p->down[dir] == NULL)
+              break;
+            p = p->down[dir];
+          }
+      if (method == INSERT_AFTER) 
+        {
+          if (p != NULL && (dir != 1 || p->down[1] != NULL))
+            p = abt_prev (abt, p);
+          abt_insert_after (abt, p, &insert->node); 
+        }
+      else
+        {
+          if (p != NULL && (dir != 0 || p->down[0] != NULL))
+            p = abt_next (abt, p);
+          abt_insert_before (abt, p, &insert->node); 
+        }
+    }
+}
+
+
+/* Inserts the CNT values from 0 to CNT - 1 (inclusive) into an
+   ABT in the order specified by INSERTIONS using the given
+   METHOD, then deletes them in the order specified by DELETIONS,
+   checking the ABT's contents for correctness after each
+   operation. */
+static void
+do_test_insert_delete (enum insertion_method method,
+                       const int insertions[],
+                       const int deletions[],
+                       size_t cnt) 
 {
   struct element *elements;
   struct abt abt;
@@ -398,11 +446,12 @@ test_insert_delete (const int insertions[],
   for (i = 0; i < cnt; i++)
     elements[i].data = i;
 
-  abt_init (&abt, compare_elements, reaugment_elements, &aux_data);
+  abt_init (&abt, method == INSERT ? compare_elements : NULL,
+            reaugment_elements, &aux_data);
   check_abt (&abt, NULL, 0);
   for (i = 0; i < cnt; i++)
     {
-      check (abt_insert (&abt, &elements[insertions[i]].node) == NULL);
+      insert_node (&abt, &elements[insertions[i]], method);
       check_abt (&abt, insertions, i + 1);
     }
   for (i = 0; i < cnt; i++)
@@ -412,6 +461,20 @@ test_insert_delete (const int insertions[],
     }
 
   free (elements);
+}
+
+/* Inserts the CNT values from 0 to CNT - 1 (inclusive) into an
+   ABT in the order specified by INSERTIONS, then deletes them in
+   the order specified by DELETIONS, checking the ABT's contents
+   for correctness after each operation. */
+static void
+test_insert_delete (const int insertions[],
+                    const int deletions[],
+                    size_t cnt) 
+{
+  do_test_insert_delete (INSERT, insertions, deletions, cnt);
+  do_test_insert_delete (INSERT_AFTER, insertions, deletions, cnt);
+  do_test_insert_delete (INSERT_BEFORE, insertions, deletions, cnt);
 }
 
 /* Inserts values into an ABT in each possible order, then
