@@ -29,6 +29,15 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
+
+/*
+   GtkRecentChooserMenu was added in 2.10.0
+   but it didn't support GtkRecentFilters until
+   2.10.2
+*/
+#define RECENT_LISTS_AVAILABLE GTK_CHECK_VERSION (2, 10, 2)
+
+
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
 gchar * value_to_text (union value v, struct fmt_spec format);

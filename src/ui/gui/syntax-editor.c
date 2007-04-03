@@ -466,7 +466,7 @@ save_editor_to_file (struct syntax_editor *se,
 /*
   Loads the buffer from the file called FILENAME
 */
-static gboolean
+gboolean
 load_editor_from_file (struct syntax_editor *se,
 		       const gchar *filename,
 		       GError **err)
@@ -491,6 +491,9 @@ load_editor_from_file (struct syntax_editor *se,
   gtk_text_buffer_get_iter_at_line (buffer, &iter, 0);
 
   gtk_text_buffer_insert (buffer, &iter, text, -1);
+
+
+
 
   window_set_name_from_filename ((struct editor_window *)se, filename);
   gtk_text_buffer_set_modified (buffer, FALSE);
@@ -536,6 +539,19 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 	window_create (WINDOW_SYNTAX, file_name);
 
       load_editor_from_file (se, file_name, NULL);
+
+#if RECENT_LISTS_AVAILABLE
+      {
+	GtkRecentManager *manager = gtk_recent_manager_get_default();
+	gchar *uri = g_filename_to_uri (file_name, NULL, NULL);
+
+	if ( ! gtk_recent_manager_add_item (manager, uri))
+	  g_warning ("Could not add item %s to recent list\n",uri);
+
+	g_free (uri);
+      }
+#endif
+
     }
 
   gtk_widget_destroy (dialog);

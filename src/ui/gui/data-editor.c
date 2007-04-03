@@ -54,6 +54,7 @@ static void register_data_editor_actions (struct data_editor *de);
 static void insert_variable (GtkCheckMenuItem *m, gpointer data);
 
 
+
 /* Switch between the VAR SHEET and the DATA SHEET */
 enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
 
@@ -114,6 +115,56 @@ disable_edit_clear (GtkWidget *w, gint x, gint y, gpointer data)
 
   return FALSE;
 }
+
+static void open_data_file (const gchar *, struct data_editor *);
+
+
+
+#if RECENT_LISTS_AVAILABLE
+
+static void
+on_recent_data_select (GtkMenuShell *menushell,   gpointer user_data)
+{
+  gchar *file;
+
+  struct data_editor *de = user_data;
+
+  gchar *uri =
+    gtk_recent_chooser_get_current_uri (GTK_RECENT_CHOOSER (menushell));
+
+  file = g_filename_from_uri (uri, NULL, NULL);
+
+  g_free (uri);
+
+  open_data_file (file, de);
+
+  g_free (file);
+}
+
+static void
+on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
+{
+  gchar *file;
+
+  struct syntax_editor *se ;
+
+  gchar *uri =
+    gtk_recent_chooser_get_current_uri (GTK_RECENT_CHOOSER (menushell));
+
+  file = g_filename_from_uri (uri, NULL, NULL);
+
+  g_free (uri);
+
+  se = (struct syntax_editor *)
+    window_create (WINDOW_SYNTAX, file);
+
+  load_editor_from_file (se, file, NULL);
+
+  g_free (file);
+}
+
+#endif
+
 
 
 /*
@@ -210,6 +261,45 @@ new_data_editor (void)
 			    "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->action_data_open);
+
+
+#if RECENT_LISTS_AVAILABLE
+  {
+    GtkRecentManager *rm = gtk_recent_manager_get_default ();
+    GtkWidget *recent_data = get_widget_assert (de->xml, "file_recent-data");
+    GtkWidget *recent_files = get_widget_assert (de->xml, "file_recent-files");
+
+    GtkWidget *menu = gtk_recent_chooser_menu_new_for_manager (rm);
+
+    GtkRecentFilter *filter = gtk_recent_filter_new ();
+
+    gtk_recent_filter_add_pattern (filter, "*.sav");
+    gtk_recent_filter_add_pattern (filter, "*.SAV");
+
+    gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu), filter);
+
+    gtk_widget_set_sensitive (recent_data, TRUE);
+    g_signal_connect (menu, "selection-done",
+		      G_CALLBACK (on_recent_data_select), de);
+
+    gtk_menu_item_set_submenu (GTK_MENU_ITEM (recent_data), menu);
+
+
+    filter = gtk_recent_filter_new ();
+    menu = gtk_recent_chooser_menu_new_for_manager (rm);
+
+    gtk_recent_filter_add_pattern (filter, "*.sps");
+    gtk_recent_filter_add_pattern (filter, "*.SPS");
+
+    gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu), filter);
+
+    gtk_widget_set_sensitive (recent_files, TRUE);
+    g_signal_connect (menu, "selection-done",
+		      G_CALLBACK (on_recent_files_select), de);
+
+    gtk_menu_item_set_submenu (GTK_MENU_ITEM (recent_files), menu);
+  }
+#endif
 
   g_signal_connect (get_widget_assert (de->xml,"file_new_syntax"),
 		    "activate",
@@ -1009,6 +1099,26 @@ new_file (GtkAction *action, struct editor_window *e)
 }
 
 
+static void
+open_data_file (const gchar *file_name, struct data_editor *de)
+{
+  struct getl_interface *sss;
+  struct string filename;
+
+  ds_init_cstr (&filename, file_name);
+
+  gen_quoted_string (&filename);
+
+  sss = create_syntax_string_source ("GET FILE=%s.",
+				     ds_cstr (&filename));
+
+  execute_syntax (sss);
+  ds_destroy (&filename);
+
+  window_set_name_from_filename ((struct editor_window *) de, file_name);
+}
+
+
 /* Callback for the data_open action.
    Prompts for a filename and opens it */
 static void
@@ -1045,23 +1155,24 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
     {
     case GTK_RESPONSE_ACCEPT:
       {
-	struct getl_interface *sss;
-	struct string filename;
 	g_free (de->file_name);
 	de->file_name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	ds_init_cstr (&filename, de->file_name);
+	open_data_file (de->file_name, de);
 
-	gen_quoted_string (&filename);
+#if RECENT_LISTS_AVAILABLE
+	{
+	  GtkRecentManager *manager = gtk_recent_manager_get_default();
+	  gchar *uri = g_filename_to_uri (de->file_name, NULL, NULL);
 
-	sss = create_syntax_string_source ("GET FILE=%s.",
-					   ds_cstr (&filename));
+	  if ( ! gtk_recent_manager_add_item (manager, uri))
+	    g_warning ("Could not add item %s to recent list\n",uri);
 
-	execute_syntax (sss);
-	ds_destroy (&filename);
+	  g_free (uri);
+	}
+#endif
 
-	window_set_name_from_filename (e, de->file_name);
       }
       break;
     default:
@@ -1070,7 +1181,3 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
 
   gtk_widget_destroy (dialog);
 }
-
-
-
-

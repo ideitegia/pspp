@@ -1,3 +1,9 @@
+2007-04-03   John Darrington <john@darrington.wattle.id.au>
+	
+	* data-editor.c data-editor.glade helper.h syntax-editor.c
+	syntax-editor.h : Implemented the File->Recently_Used_ menus.
+
+
 2007-03-31   John Darrington <john@darrington.wattle.id.au>
         
 	* data-editor.c data-editor.glade data-editor.h dialog-common.c

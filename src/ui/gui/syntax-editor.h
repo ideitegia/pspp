@@ -41,5 +41,7 @@ void new_syntax_window (GtkMenuItem *, gpointer);
 
 void open_syntax_window (GtkMenuItem *, gpointer);
 
-
+gboolean load_editor_from_file (struct syntax_editor *se,
+				const gchar *filename,
+				GError **err);
 #endif
