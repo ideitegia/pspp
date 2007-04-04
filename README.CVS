@@ -12,9 +12,13 @@ following:
 
 	* pkg-config 0.21 (or later).
 
+        * gperf 3.0.1 (or later).
+
 	* Gnulib, from CVS (see http://savannah.gnu.org/cvs/?group=gnulib).
 	  Note that Gnulib does not require any form of installation:
-	  simply checking it out into a directory is sufficient.
+	  simply checking it out into a directory is sufficient.  We
+	  recommend checking out gnulib into a directory named `gnulib'
+          at the same level as PSPP.
 
 	* libtool 1.5.22 (or later).
 
