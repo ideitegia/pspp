@@ -1,3 +1,9 @@
+2007-04-03  Ben Pfaff  <blp@gnu.org>
+	    John McCabe-Dansted <gmatht@gmail.com>
+
+	* psppire-selector.c (psppire_selector_set_subjects): Add an
+	assert that may or may not trap some Windows-related bugs.
+
 2007-04-03   John Darrington <john@darrington.wattle.id.au>
 	
 	* data-editor.c data-editor.glade helper.h syntax-editor.c

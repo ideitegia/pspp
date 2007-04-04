@@ -717,6 +717,8 @@ psppire_selector_set_subjects (PsppireSelector *selector,
 			       SelectItemsFunc *select_func,
 			       FilterItemsFunc *filter_func )
 {
+  g_assert(selector);
+
   selector->filter = filter_func ;
 
   selector->source = source;
