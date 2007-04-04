@@ -96,7 +96,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff $TEMPDIR/pspp.list - << EOF
+diff -b $TEMPDIR/pspp.list - << EOF
 1.1 NPAR TESTS.  x
 +--------#----------+----------+--------+
 |        #Observed N|Expected N|Residual|
@@ -197,7 +197,7 @@ if [ $? -eq 0 ] ; then no_result ; fi
 
 activity="compare errors 2"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/output
-diff  $TEMPDIR/output - << EOF
+diff -b  $TEMPDIR/output - << EOF
 error: CHISQUARE test specified 6 expected values, but 4 distinct values were encountered in variable y.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
@@ -237,7 +237,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 3"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff $TEMPDIR/pspp.list - <<EOF
+diff -b $TEMPDIR/pspp.list - <<EOF
 1.1 NPAR TESTS.  Frequencies
 +-----#---------------------------------------#---------------------------------------+
 |     #                   x                   #                   y                   |
@@ -308,7 +308,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 4"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff $TEMPDIR/pspp.list - <<EOF
+diff -b $TEMPDIR/pspp.list - <<EOF
 1.1 NPAR TESTS.  Frequencies
 +-----#---------------------------------------#---------------------------------------+
 |     #                   x                   #                   y                   |

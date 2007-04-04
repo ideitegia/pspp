@@ -217,7 +217,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff $TEMPDIR/pspp.list - << EOF
+diff -b $TEMPDIR/pspp.list - << EOF
 P < 0.5; N1/N2 < 1
 1.1 NPAR TESTS.  Binomial Test
 +-+------#--------+--+--------------+----------+---------------------+

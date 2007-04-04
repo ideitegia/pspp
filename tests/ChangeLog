@@ -1,4 +1,13 @@
 2007-04-03  Ben Pfaff  <blp@gnu.org>
+	    John McCabe-Dansted <gmatht@gmail.com>
+	
+	* npar-binomial.sh: Be less picky about whitespace in PSPP output.
+
+	* npar-chisquare.sh: Ditto.
+
+	* very-long-strings.sh: Ditto.
+
+2007-04-03  Ben Pfaff  <blp@gnu.org>
 
 	Apply patches #5828, #5837, #5841, #5843.
 
