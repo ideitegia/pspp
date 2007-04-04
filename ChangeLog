@@ -1,5 +1,11 @@
 2007-04-03  Ben Pfaff  <blp@gnu.org>
 
+	* configure.ac: Increment version to 0.4.3 due to snapshot posted
+	to alpha.gnu.org.
+	Suggested by John Darrington.
+
+2007-04-03  Ben Pfaff  <blp@gnu.org>
+
 	Use Gnulib's fpieee module instead of specifying -mieee by hand.
 
 	* Smake: Use fpieee module from Gnulib.
