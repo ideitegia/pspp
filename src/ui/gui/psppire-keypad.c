@@ -25,6 +25,7 @@
 
 enum {
   INSERT_SYNTAX,
+  ERASE,
   n_SIGNALS
 };
 
@@ -106,6 +107,16 @@ psppire_keypad_class_init (PsppireKeypadClass *klass)
 					 g_cclosure_marshal_VOID__STRING,
                                          G_TYPE_NONE, 1,
 					 G_TYPE_STRING);
+
+  keypad_signals[ERASE] = g_signal_new ("erase",
+					 G_TYPE_FROM_CLASS (klass),
+	                                 G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+	                                 G_STRUCT_OFFSET (PsppireKeypadClass,
+							  keypad),
+                                         NULL,
+                                         NULL,
+					 g_cclosure_marshal_VOID__VOID,
+                                         G_TYPE_NONE, 0);
 }
 
 
@@ -118,7 +129,7 @@ psppire_keypad_class_init (PsppireKeypadClass *klass)
 static const char *keypad_insert_text[] = {
   "0",  "1",  "2", "3", "4", "5", "6", "7", "8", "9",
   ".", "+", "-", "*", "**", "/", "=", "<>", "<", "<=",
-  ">", ">=", "&", "|", "~", "(", ")"
+  ">", ">=", "&", "|", "~", "()", NULL
 };
 
 
@@ -131,7 +142,11 @@ button_click (GtkButton *b, PsppireKeypad *kp)
 {
   const gchar *s = g_hash_table_lookup (kp->frag_table, b);
 
-  g_signal_emit (kp, keypad_signals [INSERT_SYNTAX], 0, s);
+
+  if ( s )
+    g_signal_emit (kp, keypad_signals [INSERT_SYNTAX], 0, s);
+  else
+    g_signal_emit (kp, keypad_signals [ERASE], 0);
 }
 
 static const gint cols = 6;
@@ -369,11 +384,14 @@ psppire_keypad_init (PsppireKeypad *kp)
       g_markup_printf_escaped ("<span style=\"italic\">x<sup>y</sup></span>");
 
     label = gtk_label_new ("**");
+
     gtk_label_set_markup (GTK_LABEL (label), markup);
     g_free (markup);
 
     kp->star_star = gtk_button_new ();
     gtk_container_add (GTK_CONTAINER (kp->star_star), label);
+
+    gtk_widget_show (label);
 
     add_button (kp, &kp->star_star,
 		0, 1,

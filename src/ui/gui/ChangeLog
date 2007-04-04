@@ -1,3 +1,21 @@
+2007-04-04   John Darrington <john@darrington.wattle.id.au>
+
+	* compute-dialog.c compute-dialog.h: New files
+
+	* data-editor.c data-editor.h data-editor.glade : Added Transform 
+	menu, and support for Compute dialog
+
+	* glade-register.c psppire-buttonbox.c psppire-buttonbox.h 
+	  psppire-vbottonbox.c psppire-vbuttonbox.h psppire-hbuttonbox.c 
+	  psppire-vbuttonbox.h : Made buttonbox an abstract base class 
+         and separated it into vbuttonbox and hbuttonbox.
+
+	* psppire-selector.c : Allowed GtkTextView to be the destination 
+	widget.
+
+	* psppire-keypad.c: Added an "erase" signal.  Fixed other 
+        minor problems.
+
 2007-04-03  Ben Pfaff  <blp@gnu.org>
 	    John McCabe-Dansted <gmatht@gmail.com>
 

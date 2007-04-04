@@ -50,13 +50,34 @@
 
 	<property id="modal" ignore="True" default="True" />
 	<property id="visible" ignore="True" default="False" />
-	
     </properties>
 
     </glade-widget-class>
 
 
-    <glade-widget-class name="PsppireButtonBox" generic-name="psppire-buttonbox" title="Psppire Button Box">
+    <glade-widget-class name="PsppireVButtonBox" generic-name="psppire-vbuttonbox" title="Vertical Button Box">
+
+      <post-create-function>glade_psppire_button_box_post_create</post-create-function>
+      <get-children-function>glade_psppire_button_box_get_children</get-children-function>
+
+      <get-internal-child-function>glade_psppire_button_box_get_internal_child</get-internal-child-function>
+
+    <properties>
+      <property id="child"  disabled="True" />
+      <property id="visible" ignore="True" default="True" />
+    </properties>
+
+    <packing-defaults>
+      <parent-class name="GtkHBox">
+       <child-property id="expand" default="False"/>
+       <child-property id="fill" default="False"/>
+       <child-property id="pack-type" default="GTK_PACK_END"/>
+      </parent-class>
+    </packing-defaults>
+
+    </glade-widget-class>
+
+    <glade-widget-class name="PsppireHButtonBox" generic-name="psppire-hbuttonbox" title="Horizontal Button Box">
 
       <post-create-function>glade_psppire_button_box_post_create</post-create-function>
       <get-children-function>glade_psppire_button_box_get_children</get-children-function>
@@ -65,10 +86,13 @@
 
     <properties>
       <property id="child"                disabled="True" />
+
+      <property id="visible" ignore="True" default="True" />
     </properties>
 
+
     <packing-defaults>
-      <parent-class name="GtkHBox">
+      <parent-class name="GtkVBox">
        <child-property id="expand" default="False"/>
        <child-property id="fill" default="False"/>
        <child-property id="pack-type" default="GTK_PACK_END"/>
@@ -96,6 +120,8 @@
 	<property id="visible-window" disabled="True"/>
 	<property id="resize-mode"    disabled="True"/>
 	<property id="border-width"   disabled="True"/>
+
+	<property id="visible" ignore="True" default="True" />
      </properties>
   
     </glade-widget-class>
@@ -136,6 +162,8 @@
 	  </displayable-values>
 	</property>
 
+
+	<property id="visible" ignore="True" default="True" />
      </properties>
 
     </glade-widget-class>
@@ -147,7 +175,8 @@
 
  <glade-widget-group name="psppire" title="Psppire">
   <glade-widget-class-ref name="PsppireDialog"/>
-  <glade-widget-class-ref name="PsppireButtonBox"/>
+  <glade-widget-class-ref name="PsppireHButtonBox"/>
+  <glade-widget-class-ref name="PsppireVButtonBox"/>
   <glade-widget-class-ref name="PsppireKeypad"/>
   <glade-widget-class-ref name="PsppireSelector"/>
  </glade-widget-group>

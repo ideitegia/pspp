@@ -17,7 +17,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
     02110-1301, USA. */
 
+#ifndef __COMPUTE_DIALOG_H
+#define __COMPUTE_DIALOG_H
 
 
+#include <gtk/gtk.h>
+#include <glade/glade.h>
 
-void about_new (GtkMenuItem *m, GtkWindow *parent);
+
+void compute_dialog (GObject *o, gpointer data);
+
+#endif

@@ -68,6 +68,7 @@
 
 #include <gtk/gtktreeview.h>
 #include <gtk/gtktreeselection.h>
+#include <gtk/gtktextview.h>
 #include <gtk/gtkwidget.h>
 
 static void psppire_selector_base_finalize (PsppireSelectorClass *, gpointer);
@@ -561,8 +562,8 @@ is_source_item_visible (GtkTreeModel *childmodel,
     {
       PsppireSelector *selector = list->data;
 
-      if ( selector->filter (childmodel, iter, selector))
-	  return FALSE;
+      if ( selector->filter && selector->filter (childmodel, iter, selector))
+	return FALSE;
 
       list = list->next;
     }
@@ -744,6 +745,11 @@ psppire_selector_set_subjects (PsppireSelector *selector,
 
   else if ( GTK_IS_ENTRY (dest))
     set_entry_dest (selector, GTK_ENTRY (dest));
+
+  else if (GTK_IS_TEXT_VIEW (dest))
+    {
+      /* Nothing to be done */
+    }
 
   else
     g_error ("Unsupported destination widget: %s", G_OBJECT_TYPE_NAME (dest));

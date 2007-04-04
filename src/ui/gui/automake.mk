@@ -65,6 +65,8 @@ dist_src_ui_gui_psppire_DATA = \
 src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/about.c \
 	src/ui/gui/about.h \
+	src/ui/gui/compute-dialog.c \
+	src/ui/gui/compute-dialog.h \
 	src/ui/gui/customentry.c \
 	src/ui/gui/customentry.h \
 	src/ui/gui/data-sheet.c \
@@ -86,6 +88,10 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/missing-val-dialog.h \
 	src/ui/gui/psppire-buttonbox.c \
 	src/ui/gui/psppire-buttonbox.h \
+	src/ui/gui/psppire-hbuttonbox.c \
+	src/ui/gui/psppire-hbuttonbox.h \
+	src/ui/gui/psppire-vbuttonbox.c \
+	src/ui/gui/psppire-vbuttonbox.h \
 	src/ui/gui/psppire-case-file.c \
 	src/ui/gui/psppire-case-file.h \
 	src/ui/gui/psppire-data-store.c \

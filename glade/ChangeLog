@@ -1,3 +1,7 @@
+4/4/2007 John Darrington <john@darrington.wattle.id.au>
+
+  * Seperated psppire-buttonbox into psppire-vbuttonbox and psppire-buttonbox
+
 Sat Mar 31 07:09:33 WST 2007 John Darrington <john@darrington.wattle.id.au>
 	
   * Added icons directory and its contents.

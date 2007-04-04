@@ -35,6 +35,7 @@
 #include "split-file-dialog.h"
 #include "transpose-dialog.h"
 #include "sort-cases-dialog.h"
+#include "compute-dialog.h"
 #include "dict-display.h"
 
 #define _(msgid) gettext (msgid)
@@ -250,6 +251,16 @@ new_data_editor (void)
 		    G_CALLBACK (sort_cases_dialog), de);
 
 
+  de->invoke_compute_dialog =
+    gtk_action_new ("compute-dialog",
+		    _("Compute"),
+		    _("Compute new values for a variable"),
+		    "pspp-compute");
+
+  g_signal_connect (de->invoke_compute_dialog, "activate",
+		    G_CALLBACK (compute_dialog), de);
+
+
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
   g_signal_connect_swapped (get_widget_assert (de->xml,"file_new_data"),
@@ -347,6 +358,10 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->invoke_sort_cases_dialog,
 			    get_widget_assert (de->xml, "data_sort-cases")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_compute_dialog,
+			    get_widget_assert (de->xml, "transform_compute")
 			    );
 
 

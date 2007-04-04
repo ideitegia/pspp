@@ -52,6 +52,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtkeventbox.h>
+#include <gtk/gtktable.h>
 
 
 G_BEGIN_DECLS
