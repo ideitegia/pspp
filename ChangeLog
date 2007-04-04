@@ -1,3 +1,11 @@
+2007-04-03  Ben Pfaff  <blp@gnu.org>
+
+	Use Gnulib's fpieee module instead of specifying -mieee by hand.
+
+	* Smake: Use fpieee module from Gnulib.
+
+	* configure.ac: Don't enable -mieee.
+
 2007-03-19  Ben Pfaff  <blp@gnu.org>
 
 	Work toward modernizing the build system by updating our Automake

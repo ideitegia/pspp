@@ -13,6 +13,7 @@ GNULIB_MODULES = \
 	c-strtod \
 	dirname \
 	exit \
+	fpieee \
 	full-read \
 	full-write \
 	gethostname \

@@ -15,7 +15,6 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
 PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
-PSPP_ENABLE_OPTION(-mieee)
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
 
