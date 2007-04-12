@@ -155,8 +155,8 @@ Case#  QUALITY        W    BRAND
 #                                                            #Statistic|Std. Error#
 #============================================================#=========#==========#
 #Breaking Strain Mean                                        #   3.54  |   .324   #
-#                95% Confidence Interval for Mean Lower Bound#  3.562  |          #
-#                                                 Upper Bound#  3.521  |          #
+#                95% Confidence Interval for Mean Lower Bound#  2.871  |          #
+#                                                 Upper Bound#  4.212  |          #
 #                5% Trimmed Mean                             #   3.50  |          #
 #                Median                                      #   4.00  |          #
 #                Variance                                    #  2.520  |          #
@@ -213,8 +213,8 @@ Case#  QUALITY        W    BRAND
 #                Manufacturer                                            #Statistic|Std. Error#
 #=========================================================================#=========#==========#
 #Breaking Strain Aspeger      Mean                                        #   2.25  |   .453   #
-#                             95% Confidence Interval for Mean Lower Bound#  2.279  |          #
-#                                                              Upper Bound#  2.221  |          #
+#                             95% Confidence Interval for Mean Lower Bound#  1.178  |          #
+#                                                              Upper Bound#  3.322  |          #
 #                             5% Trimmed Mean                             #   2.22  |          #
 #                             Median                                      #   2.00  |          #
 #                             Variance                                    #  1.643  |          #
@@ -227,8 +227,8 @@ Case#  QUALITY        W    BRAND
 #                             Kurtosis                                    #  -1.546 |   1.481  #
 #               ----------------------------------------------------------#---------+----------#
 #                Bloggs       Mean                                        #   3.50  |   .378   #
-#                             95% Confidence Interval for Mean Lower Bound#  3.525  |          #
-#                                                              Upper Bound#  3.475  |          #
+#                             95% Confidence Interval for Mean Lower Bound#  2.606  |          #
+#                                                              Upper Bound#  4.394  |          #
 #                             5% Trimmed Mean                             #   3.50  |          #
 #                             Median                                      #   4.00  |          #
 #                             Variance                                    #  1.143  |          #
@@ -241,8 +241,8 @@ Case#  QUALITY        W    BRAND
 #                             Kurtosis                                    #  -.831  |   1.481  #
 #               ----------------------------------------------------------#---------+----------#
 #                Charlies     Mean                                        #   4.88  |   .441   #
-#                             95% Confidence Interval for Mean Lower Bound#  4.904  |          #
-#                                                              Upper Bound#  4.846  |          #
+#                             95% Confidence Interval for Mean Lower Bound#  3.833  |          #
+#                                                              Upper Bound#  5.917  |          #
 #                             5% Trimmed Mean                             #   4.86  |          #
 #                             Median                                      #   5.00  |          #
 #                             Variance                                    #  1.554  |          #

@@ -106,8 +106,8 @@ diff -b  $TEMPDIR/pspp.list - << EOF
 #                                              #Statistic|Std. Error#
 #==============================================#=========#==========#
 #X Mean                                        #   2.02  |   .034   #
-#  95% Confidence Interval for Mean Lower Bound#  2.021  |          #
-#                                   Upper Bound#  2.017  |          #
+#  95% Confidence Interval for Mean Lower Bound#  1.952  |          #
+#                                   Upper Bound#  2.087  |          #
 #  5% Trimmed Mean                             #   2.00  |          #
 #  Median                                      #   2.00  |          #
 #  Variance                                    #   .058  |          #

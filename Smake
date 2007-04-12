@@ -132,5 +132,6 @@ clean:
 	find . -name Makefile.in -exec rm -f {} \; 
 	rm -f compile
 	rm -f ltmain.sh
+	rm -f reloc-ldflags install-reloc
 
 .PHONY: all gettextize potfiles clean

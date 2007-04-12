@@ -1507,17 +1507,13 @@ show_descriptives (const struct variable **dependent_var,
 }
 
 
-
-
 /* Fill in the descriptives data */
 void
 populate_descriptives (struct tab_table *tbl, int col, int row,
 		      const struct metrics *m)
 {
-
-  const double t = gsl_cdf_tdist_Qinv (1 - cmd.n_cinterval[0]/100.0/2.0, \
+  const double t = gsl_cdf_tdist_Qinv ((1 - cmd.n_cinterval[0] / 100.0)/2.0,
 				      m->n -1);
-
 
   tab_text (tbl, col,
 	    row,

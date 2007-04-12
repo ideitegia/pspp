@@ -3,7 +3,7 @@
 AUTOMAKE_OPTIONS = gnits 1.10 subdir-objects
 
 SUBDIRS = gl po
-DISTCLEANFILES = ./po/stamp-po
+DISTCLEANFILES = ./po/stamp-po xconfigure 
 BUILT_SOURCES =
 
 AM_CPPFLAGS = -I$(top_srcdir)/gl -I$(top_builddir)/gl
