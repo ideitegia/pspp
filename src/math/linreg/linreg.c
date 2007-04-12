@@ -182,15 +182,18 @@ pspp_linreg_cache_free (void *m)
   int i;
 
   pspp_linreg_cache *c = m;
-  gsl_vector_free (c->indep_means);
-  gsl_vector_free (c->indep_std);
-  gsl_vector_free (c->ss_indeps);
-  gsl_matrix_free (c->cov);
-  for (i = 0; i < c->n_coeffs; i++)
+  if (c != NULL)
     {
-      pspp_coeff_free (c->coeff[i]);
+      gsl_vector_free (c->indep_means);
+      gsl_vector_free (c->indep_std);
+      gsl_vector_free (c->ss_indeps);
+      gsl_matrix_free (c->cov);
+      for (i = 0; i < c->n_coeffs; i++)
+	{
+	  pspp_coeff_free (c->coeff[i]);
+	}
+      free (c);
     }
-  free (c);
   return true;
 }
 

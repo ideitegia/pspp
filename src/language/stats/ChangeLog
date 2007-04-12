@@ -1,3 +1,8 @@
+2007-04-12  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (run_regression): Added if (n_data >0) to fix bug
+	19581.
+
 2007-03-29  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (prepare_data): New function.

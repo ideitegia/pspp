@@ -1,3 +1,8 @@
+2007-04-12  Jason Stover  <jhs@math.gcsu.edu>
+
+	* linreg.c: (pspp_linreg_cache_free) Check for null pointer before
+	freeing.
+
 Wed Dec  6 21:16:22 2006  Ben Pfaff  <blp@gnu.org>
 
 	* linreg.c: (pspp_linreg_get_vars) Compare variable pointers
