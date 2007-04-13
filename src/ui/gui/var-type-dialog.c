@@ -46,7 +46,7 @@ struct tgs
 
 
 struct format_opt {
-  gchar desc[18];
+  gchar desc[21];
   struct fmt_spec spec;
 };
 
@@ -69,7 +69,8 @@ static const struct format_opt format_option[] =
     { "mmm yy",      {FMT_MOYR, 6, 0} },
     { "dd WK yyyy",  {FMT_WKYR, 10, 0} },
     { "dd WK yy",    {FMT_WKYR, 8, 0} },
-    { "dd-mmm-yyyy HH:MM", {FMT_DATETIME, 17, 0}}
+    { "dd-mmm-yyyy HH:MM", {FMT_DATETIME, 17, 0}},
+    { "dd-mmm-yyyy HH:MM:SS", {FMT_DATETIME, 20, 0}}
   };
 
 

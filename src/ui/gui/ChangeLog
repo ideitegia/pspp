@@ -1,3 +1,7 @@
+2007-04-13   John Darrington <john@darrington.wattle.id.au>
+	
+	* var-type-dialog.c: Added a FMT_DATETIME20 template.
+	
 2007-04-04   John Darrington <john@darrington.wattle.id.au>
 
 	* compute-dialog.c compute-dialog.h: New files
