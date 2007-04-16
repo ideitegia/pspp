@@ -313,6 +313,12 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
         return false;
       set_map_in_str (in, pool, lex_tokstr (lexer), max_src_width);
       lex_get (lexer);
+      if (lex_token (lexer) == T_ID
+          && lex_id_match (ss_cstr ("THRU"), ss_cstr (lex_tokid (lexer)))) 
+        {
+          msg (SE, _("THRU is not allowed with string variables."));
+          return false; 
+        }
     }
 
   return true;

@@ -1,3 +1,9 @@
+2007-04-16  Ben Pfaff  <blp@gnu.org>
+
+	* recode.c (parse_map_in): Improve error message when user
+	attempts to use THRU with string variables.
+	Suggested by seth@swoolley.homeip.net.
+
 2007-04-15  Ben Pfaff  <blp@gnu.org>
 
 	* recode.c (parse_mappings): Initialize "out" member of mapping
