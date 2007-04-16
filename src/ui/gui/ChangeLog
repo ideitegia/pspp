@@ -1,3 +1,8 @@
+2007-04-15  Ben Pfaff  <blp@gnu.org>
+
+	* compute-dialog.c: Make #include for parse.inc work with VPATH
+	builds.
+
 2007-04-13   John Darrington <john@darrington.wattle.id.au>
 	
 	* var-type-dialog.c: Added a FMT_DATETIME20 template.

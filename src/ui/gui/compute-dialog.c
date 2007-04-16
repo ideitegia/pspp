@@ -293,7 +293,7 @@ enum {
 
 static const struct operation fs[] =
   {
-#include <language/expressions/parse.inc>
+#include "parse.inc"
   };
 
 
