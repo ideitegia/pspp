@@ -811,7 +811,11 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
       int measure = read_int32 (r);
       int width = read_int32 (r);
       int align = read_int32 (r);
-      struct variable *v;
+      struct variable *v = dict_get_var (dict, i);
+
+      /* spss v14 sometimes seems to set string variables' measure to zero */
+      if ( 0 == measure && var_is_alpha (v) ) measure = 1;
+
 
       if (measure < 1 || measure > 3 || align < 0 || align > 2)
         {
@@ -822,7 +826,6 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
           continue;
         }
 
-      v = dict_get_var (dict, i);
       var_set_measure (v, (measure == 1 ? MEASURE_NOMINAL
                            : measure == 2 ? MEASURE_ORDINAL
                            : MEASURE_SCALE));

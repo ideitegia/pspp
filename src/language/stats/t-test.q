@@ -799,7 +799,7 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 	  gs = hsh_find(grp_hash, (void *) &search_val);
 	  assert(gs);
 
-	  tab_float(ssb->t, 2 ,i*2+count+1, TAB_RIGHT, gs->n, 2, 0);
+	  tab_float(ssb->t, 2 ,i*2+count+1, TAB_RIGHT, gs->n, 10, 0);
 	  tab_float(ssb->t, 3 ,i*2+count+1, TAB_RIGHT, gs->mean, 8, 2);
 	  tab_float(ssb->t, 4 ,i*2+count+1, TAB_RIGHT, gs->std_dev, 8, 3);
 	  tab_float(ssb->t, 5 ,i*2+count+1, TAB_RIGHT, gs->se_mean, 8, 3);
@@ -859,7 +859,7 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 
 	  /* Values */
 	  tab_float (ssb->t,2, i*2+j+1, TAB_RIGHT, pairs[i].mean[j], 8, 2);
-	  tab_float (ssb->t,3, i*2+j+1, TAB_RIGHT, pairs[i].n, 2, 0);
+	  tab_float (ssb->t,3, i*2+j+1, TAB_RIGHT, pairs[i].n, 10, 0);
 	  tab_float (ssb->t,4, i*2+j+1, TAB_RIGHT, pairs[i].std_dev[j], 8, 3);
 	  tab_float (ssb->t,5, i*2+j+1, TAB_RIGHT, pairs[i].std_dev[j]/sqrt(pairs[i].n), 8, 3);
 
@@ -880,7 +880,7 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
       struct group_statistics *gs = &group_proc_get (cmd->v_variables[i])->ugs;
 
       tab_text (ssb->t, 0, i+1, TAB_LEFT, var_get_name (cmd->v_variables[i]));
-      tab_float (ssb->t,1, i+1, TAB_RIGHT, gs->n, 2, 0);
+      tab_float (ssb->t,1, i+1, TAB_RIGHT, gs->n, 10, 0);
       tab_float (ssb->t,2, i+1, TAB_RIGHT, gs->mean, 8, 2);
       tab_float (ssb->t,3, i+1, TAB_RIGHT, gs->std_dev, 8, 2);
       tab_float (ssb->t,4, i+1, TAB_RIGHT, gs->se_mean, 8, 3);
@@ -1052,7 +1052,7 @@ trbox_independent_samples_populate(struct trbox *self,
       tab_float(self->t, 3, i*2+3, TAB_CENTER, q, 8,3 );
 
       df = gs0->n + gs1->n - 2.0 ;
-      tab_float (self->t, 5, i*2+3, TAB_RIGHT, df, 2, 0);
+      tab_float (self->t, 5, i*2+3, TAB_RIGHT, df, 10, 0);
 
       pooled_variance = ( (gs0->n )*pow2(gs0->s_std_dev)
 			  + 
@@ -1225,7 +1225,7 @@ trbox_paired_populate(struct trbox *trb,
       tab_float(trb->t, 7, i+3, TAB_RIGHT, t , 8,3 );
 
       /* Degrees of freedom */
-      tab_float(trb->t, 8, i+3, TAB_RIGHT, df , 2, 0 );
+      tab_float(trb->t, 8, i+3, TAB_RIGHT, df , 10, 0 );
 
       p = gsl_cdf_tdist_P(t,df);
       q = gsl_cdf_tdist_P(t,df);

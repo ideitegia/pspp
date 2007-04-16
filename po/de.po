@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-04-15 17:51-0700\n"
+"POT-Creation-Date: 2007-04-16 18:39+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -320,21 +320,21 @@ msgstr "Zeichenkette"
 msgid "Numeric"
 msgstr "Nummer"
 
-#: src/data/format.c:311 src/data/sys-file-reader.c:1026
-#: src/data/sys-file-reader.c:1028
+#: src/data/format.c:311 src/data/sys-file-reader.c:1029
+#: src/data/sys-file-reader.c:1031
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
-#: src/language/xforms/recode.c:467 src/language/xforms/recode.c:468
-#: src/language/xforms/recode.c:480 src/language/xforms/recode.c:481
+#: src/language/xforms/recode.c:468 src/language/xforms/recode.c:469
+#: src/language/xforms/recode.c:481 src/language/xforms/recode.c:482
 msgid "numeric"
 msgstr "numerisch"
 
-#: src/data/format.c:311 src/data/sys-file-reader.c:1026
-#: src/data/sys-file-reader.c:1028
+#: src/data/format.c:311 src/data/sys-file-reader.c:1029
+#: src/data/sys-file-reader.c:1031
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
-#: src/language/xforms/recode.c:467 src/language/xforms/recode.c:468
-#: src/language/xforms/recode.c:480 src/language/xforms/recode.c:481
+#: src/language/xforms/recode.c:468 src/language/xforms/recode.c:469
+#: src/language/xforms/recode.c:481 src/language/xforms/recode.c:482
 msgid "string"
 msgstr "kette"
 
@@ -683,104 +683,104 @@ msgstr ""
 msgid "Bad size (%u) or count (%u) on extension 11."
 msgstr ""
 
-#: src/data/sys-file-reader.c:819
+#: src/data/sys-file-reader.c:823
 msgid "Invalid variable display parameters.  Default parameters substituted."
 msgstr ""
 
-#: src/data/sys-file-reader.c:858
+#: src/data/sys-file-reader.c:861
 #, c-format
 msgid "Long variable mapping from %s to invalid variable name `%s'."
 msgstr ""
 
-#: src/data/sys-file-reader.c:868
+#: src/data/sys-file-reader.c:871
 #, c-format
 msgid "Duplicate long variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:906
+#: src/data/sys-file-reader.c:909
 #, c-format
 msgid "%s listed as string of length %s in length table."
 msgstr ""
 
-#: src/data/sys-file-reader.c:920
+#: src/data/sys-file-reader.c:923
 #, c-format
 msgid "Very long string %s overflows dictionary."
 msgstr ""
 
-#: src/data/sys-file-reader.c:967
+#: src/data/sys-file-reader.c:970
 #, c-format
 msgid "Invalid number of labels: %d.  Ignoring labels."
 msgstr ""
 
-#: src/data/sys-file-reader.c:998
+#: src/data/sys-file-reader.c:1001
 msgid ""
 "Variable index record (type 4) does not immediately follow value label "
 "record (type 3) as it should."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1005
+#: src/data/sys-file-reader.c:1008
 #, c-format
 msgid ""
 "Number of variables associated with a value label (%d) is not between 1 and "
 "the number of variables (%u)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1015
+#: src/data/sys-file-reader.c:1018
 #, c-format
 msgid "Value labels are not allowed on long string variables (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1022
+#: src/data/sys-file-reader.c:1025
 #, c-format
 msgid ""
 "Variables associated with value label are not all of identical type.  "
 "Variable %s is %s, but variable %s is %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1055
+#: src/data/sys-file-reader.c:1058
 #, c-format
 msgid "Duplicate value label for %g on %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1058
+#: src/data/sys-file-reader.c:1061
 #, c-format
 msgid "Duplicate value label for \"%.*s\" on %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1176
+#: src/data/sys-file-reader.c:1179
 msgid "File ends in partial case."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1272 src/data/sys-file-reader.c:1308
+#: src/data/sys-file-reader.c:1275 src/data/sys-file-reader.c:1311
 msgid "Compressed data is corrupt."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1381
+#: src/data/sys-file-reader.c:1384
 #, c-format
 msgid "Variable index %d not in valid range 1...%d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1386
+#: src/data/sys-file-reader.c:1389
 #, c-format
 msgid "Variable index %d refers to long string continuation."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1472
+#: src/data/sys-file-reader.c:1475
 #, c-format
 msgid "Suppressed %d additional variable map warnings."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1485
+#: src/data/sys-file-reader.c:1488
 #, c-format
 msgid "Variable map refers to unknown variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1561
+#: src/data/sys-file-reader.c:1564
 #, c-format
 msgid "System error: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1563
+#: src/data/sys-file-reader.c:1566
 #, fuzzy
 msgid "Unexpected end of file."
 msgstr "plotzlich ist der Datei beendet"
@@ -1367,20 +1367,6 @@ msgid ""
 "Data fields must be listed in order of increasing record number."
 msgstr ""
 
-#: src/language/data-io/print-space.c:75 src/language/lexer/lexer.c:465
-#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:61
-msgid "expecting end of command"
-msgstr ""
-
-#: src/language/data-io/print-space.c:116
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr ""
-
-#: src/language/data-io/print-space.c:119
-#, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr ""
-
 #: src/language/data-io/print.c:260
 #, c-format
 msgid "Output calls for %d records but %u specified on RECORDS subcommand."
@@ -1399,6 +1385,20 @@ msgid "Writing %d record."
 msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/language/data-io/print-space.c:75 src/language/lexer/lexer.c:465
+#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:61
+msgid "expecting end of command"
+msgstr ""
+
+#: src/language/data-io/print-space.c:116
+msgid "The expression on PRINT SPACE evaluated to the system-missing value."
+msgstr ""
+
+#: src/language/data-io/print-space.c:119
+#, c-format
+msgid "The expression on PRINT SPACE evaluated to %g."
+msgstr ""
 
 #: src/language/dictionary/apply-dictionary.c:74
 #, c-format
@@ -3018,22 +3018,6 @@ msgstr ""
 msgid "TABLES subcommand may not appear more than once."
 msgstr ""
 
-#: src/language/stats/npar-summary.c:110
-msgid "Descriptive Statistics"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:147
-msgid "25th"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:150
-msgid "50th (Median)"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:153
-msgid "75th"
-msgstr ""
-
 #: src/language/stats/npar.q:101
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
@@ -3056,6 +3040,22 @@ msgstr ""
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%d) did not "
 "match the number following (%d)."
+msgstr ""
+
+#: src/language/stats/npar-summary.c:110
+msgid "Descriptive Statistics"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:147
+msgid "25th"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:150
+msgid "50th (Median)"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:153
+msgid "75th"
 msgstr ""
 
 #: src/language/stats/oneway.q:169
@@ -3642,34 +3642,34 @@ msgid ""
 "all string."
 msgstr ""
 
-#: src/language/xforms/recode.c:268
+#: src/language/xforms/recode.c:269
 msgid "CONVERT requires string input values and numeric output values."
 msgstr ""
 
-#: src/language/xforms/recode.c:386
+#: src/language/xforms/recode.c:387
 msgid "expecting output value"
 msgstr ""
 
-#: src/language/xforms/recode.c:435
+#: src/language/xforms/recode.c:436
 #, c-format
 msgid ""
 "%u variable(s) cannot be recoded into %u variable(s).  Specify the same "
 "number of variables as source and target variables."
 msgstr ""
 
-#: src/language/xforms/recode.c:450
+#: src/language/xforms/recode.c:451
 #, c-format
 msgid ""
 "There is no variable named %s.  (All string variables specified on INTO must "
 "already exist.  Use the STRING command to create a string variable.)"
 msgstr ""
 
-#: src/language/xforms/recode.c:465
+#: src/language/xforms/recode.c:466
 #, c-format
 msgid "INTO is required with %s input values and %s output values."
 msgstr ""
 
-#: src/language/xforms/recode.c:478
+#: src/language/xforms/recode.c:479
 #, c-format
 msgid "Type mismatch.  Cannot store %s data in %s variable %s."
 msgstr ""
@@ -4651,18 +4651,6 @@ msgstr ""
 msgid "%d"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:470
-msgid "None"
-msgstr "Keine"
-
-#: src/ui/gui/psppire-var-store.c:477
-msgid "Scientific"
-msgstr "Wissenschäflich"
-
-#: src/ui/gui/psppire-var-store.c:480
-msgid "Custom"
-msgstr "Spezial"
-
 #: src/ui/gui/psppire.glade:11
 #, fuzzy
 msgid "This is pre-alpha software.  Use at your own risk."
@@ -4836,6 +4824,18 @@ msgstr ""
 #: src/ui/gui/psppire.glade:1487
 msgid "Functions:"
 msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:470
+msgid "None"
+msgstr "Keine"
+
+#: src/ui/gui/psppire-var-store.c:477
+msgid "Scientific"
+msgstr "Wissenschäflich"
+
+#: src/ui/gui/psppire-var-store.c:480
+msgid "Custom"
+msgstr "Spezial"
 
 #: src/ui/gui/syntax-editor.c:80
 #, c-format

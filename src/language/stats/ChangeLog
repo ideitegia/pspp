@@ -1,3 +1,10 @@
+2007-04-16 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q: Changed the output width of reported counts and 
+	degrees of freedom, to avoid truncating these values.  Thanks
+        to Seth Woolley for reporting this problem.  A proper fix involves
+        re-thinking the output driver.
+
 2007-04-12  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (run_regression): Added if (n_data >0) to fix bug

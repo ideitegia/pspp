@@ -1,3 +1,9 @@
+2007-04-16 John Darrington <john@darrington.wattle.id.au>
+
+	* sys-file-reader.c: Some versions of Other Software seem to 
+        produce system files with string  variables' measure set to 
+	zero.  We'll assume these are supposed to be nominal variables.
+
 2007-03-30  Ben Pfaff  <blp@gnu.org>
 
 	* procedure.c: Adapt to new deque data structure.
