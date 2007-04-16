@@ -582,6 +582,9 @@ Ordinal Scale
 Continuous Scale
 @end table
 
+Occasionally a value of 0 is seen here.  PSPP interprets this to mean
+a nominal scale.
+
 @item int32 width
 The width of the display column for the variable in characters.
 
