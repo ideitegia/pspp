@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-04-15 17:51-0700\n"
+"POT-Creation-Date: 2007-04-15 20:40-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -323,8 +323,8 @@ msgstr ""
 #: src/data/sys-file-reader.c:1028
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
-#: src/language/xforms/recode.c:467 src/language/xforms/recode.c:468
-#: src/language/xforms/recode.c:480 src/language/xforms/recode.c:481
+#: src/language/xforms/recode.c:468 src/language/xforms/recode.c:469
+#: src/language/xforms/recode.c:481 src/language/xforms/recode.c:482
 msgid "numeric"
 msgstr ""
 
@@ -332,8 +332,8 @@ msgstr ""
 #: src/data/sys-file-reader.c:1028
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/dictionary/apply-dictionary.c:78
-#: src/language/xforms/recode.c:467 src/language/xforms/recode.c:468
-#: src/language/xforms/recode.c:480 src/language/xforms/recode.c:481
+#: src/language/xforms/recode.c:468 src/language/xforms/recode.c:469
+#: src/language/xforms/recode.c:481 src/language/xforms/recode.c:482
 msgid "string"
 msgstr ""
 
@@ -3636,34 +3636,34 @@ msgid ""
 "all string."
 msgstr ""
 
-#: src/language/xforms/recode.c:268
+#: src/language/xforms/recode.c:269
 msgid "CONVERT requires string input values and numeric output values."
 msgstr ""
 
-#: src/language/xforms/recode.c:386
+#: src/language/xforms/recode.c:387
 msgid "expecting output value"
 msgstr ""
 
-#: src/language/xforms/recode.c:435
+#: src/language/xforms/recode.c:436
 #, c-format
 msgid ""
 "%u variable(s) cannot be recoded into %u variable(s).  Specify the same "
 "number of variables as source and target variables."
 msgstr ""
 
-#: src/language/xforms/recode.c:450
+#: src/language/xforms/recode.c:451
 #, c-format
 msgid ""
 "There is no variable named %s.  (All string variables specified on INTO must "
 "already exist.  Use the STRING command to create a string variable.)"
 msgstr ""
 
-#: src/language/xforms/recode.c:465
+#: src/language/xforms/recode.c:466
 #, c-format
 msgid "INTO is required with %s input values and %s output values."
 msgstr ""
 
-#: src/language/xforms/recode.c:478
+#: src/language/xforms/recode.c:479
 #, c-format
 msgid "Type mismatch.  Cannot store %s data in %s variable %s."
 msgstr ""

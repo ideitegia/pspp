@@ -112,15 +112,23 @@ themselves.
 The syntax of the grammar rules is as follows:
 
 @example
-grammar-rules ::= ID : subcommands .
+grammar-rules ::= command-name opt-prefix : subcommands .
+command-name ::= ID
+             ::= STRING
+opt-prefix ::=
+           ::= ( ID )
 subcommands ::= subcommand
             ::= subcommands ; subcommand
 @end example
 
-The syntax begins with an ID or STRING token that gives the name of the
-procedure to be parsed.  The rest of the syntax consists of subcommands
-separated by semicolons (@samp{;}) and terminated with a full stop
-(@samp{.}).
+The syntax begins with an ID token that gives the name of the
+procedure to be parsed.  For command names that contain multiple
+words, a STRING token may be used instead, e.g.@: @samp{"FILE
+HANDLE"}.  Optionally, an ID in parentheses specifies a prefix used
+for all file-scope identifiers declared by the emitted code.
+
+The rest of the syntax consists of subcommands separated by semicolons
+(@samp{;}) and terminated with a full stop (@samp{.}).
 
 @example
 subcommand ::= default-opt arity-opt ID sbc-defn
@@ -132,8 +140,6 @@ arity-opt ::=
 sbc-defn ::= opt-prefix = specifiers
          ::= [ ID ] = array-sbc
          ::= opt-prefix = sbc-special-form
-opt-prefix ::=
-           ::= ( ID )
 @end example
 
 A subcommand that begins with an asterisk (@samp{*}) is the default
@@ -211,14 +217,16 @@ setting-value-options ::=
                       ::= *
 setting-value-type ::= N
                    ::= D
+                   ::= S
 setting-value-restriction ::= 
                           ::= , STRING
 @end example
 
 Settings may have values.  If the value must be enclosed in parentheses,
 then enclose the value declaration in parentheses.  Declare the setting
-type as @samp{n} or @samp{d} for integer or floating point type,
-respectively.  The given @code{ID} is used to construct a variable name.
+type as @samp{n}, @samp{d}, or @samp{s} for integer, floating-point,
+or string type, respectively.  The given @code{ID} is used to
+construct a variable name.
 If option @samp{*} is given, then the value is optional; otherwise it
 must be specified whenever the corresponding setting is specified.  A
 ``restriction'' can also be specified which is a string giving a C

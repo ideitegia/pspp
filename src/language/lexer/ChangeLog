@@ -1,3 +1,9 @@
+2007-04-15  Ben Pfaff  <blp@gnu.org>
+
+	* q2c.c: Fully support lists of integer values.  Add support for
+	lists of string values.  Add some more needed declarations to
+	headers.
+
 Fri Feb 16 11:14:42 2007  Ben Pfaff  <blp@gnu.org>
 
 	Better support cross-compiling by using CC_FOR_BUILD and

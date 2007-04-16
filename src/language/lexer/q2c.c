@@ -472,7 +472,8 @@ enum
   {
     VAL_NONE,	/* No value. */
     VAL_INT,	/* Integer value. */
-    VAL_DBL	/* Floating point value. */
+    VAL_DBL,	/* Floating point value. */
+    VAL_STRING  /* String value. */
   };
 
 /* For those specifiers with values, the syntax of those values. */
@@ -642,8 +643,10 @@ parse_setting (setting *s, specifier *spec)
 	s->value = VAL_INT;
       else if (match_id ("D"))
 	s->value = VAL_DBL;
+      else if (match_id ("S"))
+        s->value = VAL_STRING;
       else
-	error ("`n' or `d' expected.");
+	error ("`n', `d', or `s' expected.");
       
       skip_token (':');
       
@@ -952,8 +955,11 @@ dump_specifier_vars (const specifier *spec, const subcommand *sbc)
 	  {
 	    const char *typename;
 
-	    assert (s->value == VAL_INT || s->value == VAL_DBL);
-	    typename = s->value == VAL_INT ? "long" : "double";
+	    assert (s->value == VAL_INT || s->value == VAL_DBL
+                    || s->value == VAL_STRING);
+	    typename = (s->value == VAL_INT ? "long"
+                        : s->value == VAL_DBL ? "double"
+                        : "char *");
 
 	    dump (0, "%s %s%s;", typename, sbc->prefix, st_lower (s->valname));
 	  }
@@ -1002,6 +1008,8 @@ static void
 dump_declarations (void)
 {
   indent = 0;
+
+  dump (0, "struct dataset;");
 
   /* Write out enums for all the identifiers in the symbol table. */
   {
@@ -1236,8 +1244,11 @@ dump_specifier_init (const specifier *spec, const subcommand *sbc)
 	  {
 	    const char *init;
 
-	    assert (s->value == VAL_INT || s->value == VAL_DBL);
-	    init = s->value == VAL_INT ? "NOT_LONG" : "SYSMIS";
+	    assert (s->value == VAL_INT || s->value == VAL_DBL
+                    || s->value == VAL_STRING);
+	    init = (s->value == VAL_INT ? "NOT_LONG"
+                    : s->value == VAL_DBL ? "SYSMIS"
+                    : "NULL");
 
 	    dump (0, "p->%s%s = %s;", sbc->prefix, st_lower (s->valname), init);
 	  }
@@ -1263,13 +1274,13 @@ dump_vars_init (int persistent)
 	    switch (sbc->type)
 	      {
 	      case SBC_INT_LIST:
-		break;
-
 	      case SBC_DBL_LIST:
 		dump (1, "{");
 		dump (0, "int i;");
 		dump (1, "for (i = 0; i < MAXLISTS; ++i)");
-		dump (0, "subc_list_double_create(&p->dl_%s[i]) ;",
+		dump (0, "subc_list_%s_create(&p->%cl_%s[i]) ;",
+                      sbc->type == SBC_INT_LIST ? "int" : "double",
+                      sbc->type == SBC_INT_LIST ? 'i' : 'd',
 		      st_lower (sbc->name)
 		      );
 		dump (-2, "}");
@@ -1457,7 +1468,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      dump (-1, "p->%s%s = lex_integer (lexer);",
 		    sbc->prefix, st_lower (s->valname));
 	    }
-	  else
+	  else if (s->value == VAL_DBL)
 	    {
 	      dump (1, "if (!lex_is_number (lexer))");
 	      dump (1, "{");
@@ -1469,6 +1480,22 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      dump (-1, "p->%s%s = lex_tokval (lexer);", sbc->prefix,
 		    st_lower (s->valname));
 	    }
+          else if (s->value == VAL_STRING) 
+            {
+              dump (1, "if (lex_token (lexer) != T_ID "
+                    "&& lex_token (lexer) != T_STRING)");
+              dump (1, "{");
+              dump (0, "msg (SE, _(\"%s specifier of %s subcommand "
+                    "requires a string argument.\"));",
+		    s->specname, sbc->name);
+	      dump (0, "goto lossage;");
+	      dump (-1, "}");
+              dump (-1, "free (p->%s%s);", sbc->prefix, st_lower (s->valname));
+              dump (0, "p->%s%s = xstrdup (ds_cstr (lex_tokstr (lexer)));",
+                    sbc->prefix, st_lower (s->valname));
+            }
+          else
+            abort ();
 	  
 	  if (s->restriction)
 	    {
@@ -1683,7 +1710,7 @@ dump_subcommand (const subcommand *sbc)
       dump (-1, "p->n_%s = lex_integer (lexer);", st_lower (sbc->name));
       dump (0, "lex_match (lexer, ')');");
     }
-  else if (sbc->type == SBC_DBL_LIST)
+  else if (sbc->type == SBC_DBL_LIST || sbc->type == SBC_INT_LIST)
     {
       dump (0, "if ( p->sbc_%s > MAXLISTS)",st_lower(sbc->name));
       dump (1, "{");
@@ -1699,9 +1726,10 @@ dump_subcommand (const subcommand *sbc)
       dump (0, "goto lossage;");
       dump (-1,"}");
 
-      dump (0, "subc_list_double_push (&p->dl_%s[p->sbc_%s-1], lex_number (lexer));", 
-	    st_lower (sbc->name), st_lower (sbc->name)
-	    );
+      dump (0, "subc_list_%s_push (&p->%cl_%s[p->sbc_%s-1], lex_number (lexer));",
+            sbc->type == SBC_INT_LIST ? "int" : "double",
+            sbc->type == SBC_INT_LIST ? 'i' : 'd',
+            st_lower (sbc->name), st_lower (sbc->name));
 
       dump (0, "lex_get (lexer);");
       dump (-1,"}");
@@ -1910,13 +1938,9 @@ dump_free (int persistent)
   if ( ! persistent ) 
     {
       for (sbc = subcommands; sbc; sbc = sbc->next)
-	{
-	if (sbc->type == SBC_STRING)
-	  used = 1;
-	if (sbc->type == SBC_DBL_LIST)
-	  used = 1;
-	}
-
+        used = (sbc->type == SBC_STRING
+                || sbc->type == SBC_DBL_LIST
+                || sbc->type == SBC_INT_LIST);
     }
 
   dump (0, "static void");
@@ -1938,13 +1962,28 @@ dump_free (int persistent)
 	      dump (0, "free (p->s_%s);", st_lower (sbc->name));
 	      break;
 	    case SBC_DBL_LIST:
+	    case SBC_INT_LIST:
               dump (0, "{");
 	      dump (1, "int i;");
 	      dump (2, "for(i = 0; i < MAXLISTS ; ++i)");
-	      dump (1, "subc_list_double_destroy(&p->dl_%s[i]);", st_lower (sbc->name));
+	      dump (1, "subc_list_%s_destroy(&p->%cl_%s[i]);",
+                    sbc->type == SBC_INT_LIST ? "int" : "double",
+                    sbc->type == SBC_INT_LIST ? 'i' : 'd',
+                    st_lower (sbc->name));
               dump (0, "}");
 	      outdent();
 	      break;
+            case SBC_PLAIN:
+              {
+                specifier *spec;
+                setting *s;
+	    
+                for (spec = sbc->spec; spec; spec = spec->next)
+                  for (s = spec->s; s; s = s->next)
+                    if (s->value == VAL_STRING)
+                      dump (0, "free (p->%s%s);",
+                            sbc->prefix, st_lower (s->valname));
+              }              
 	    default:
 	      break;
 	    }
@@ -2042,6 +2081,7 @@ main (int argc, char *argv[])
 	  dump (0, "#include <language/lexer/lexer.h>");
 	  dump (0, "#include <language/lexer/variable-parser.h>");
           dump (0, "#include <data/settings.h>");
+	  dump (0, "#include <libpspp/magic.h>");
 	  dump (0, "#include <libpspp/str.h>");
           dump (0, "#include <language/lexer/subcommand-list.h>");
 	  dump (0, "#include <data/variable.h>");
