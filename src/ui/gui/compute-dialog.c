@@ -29,12 +29,9 @@
 #include "dialog-common.h"
 #include "dict-display.h"
 
+#include <language/expressions/public.h>
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"
-
-
-#include <language/expressions/private.h>
-#include "c-ctype.h"
 
 static void function_list_populate (GtkTreeView *tv);
 
@@ -291,12 +288,6 @@ enum {
 };
 
 
-static const struct operation fs[] =
-  {
-#include "parse.inc"
-  };
-
-
 static void
 function_list_populate (GtkTreeView *tv)
 {
@@ -304,25 +295,20 @@ function_list_populate (GtkTreeView *tv)
   GtkTreeIter iter;
   gint i;
 
-  const gint n_funcs = sizeof (fs) / sizeof fs[0] ;
+  const gint n_funcs = expr_get_function_cnt ();
 
   liststore = gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT);
 
   for (i = 0 ; i < n_funcs ; ++i)
     {
-      if ( fs[i].prototype == NULL)
-	continue;
-
-      /* All the real ones seem to begin with an upper case letter */
-      if ( !c_isupper(*fs[i].prototype))
-	continue;
-
+      const struct operation *op = expr_get_function (i);
+      
       gtk_list_store_append (liststore, &iter);
 
       gtk_list_store_set (liststore, &iter,
-			  COL_NAME, fs[i].name,
-			  COL_USAGE,fs[i].prototype,
-			  COL_ARITY, fs[i].arg_cnt,
+			  COL_NAME, expr_operation_get_name (op),
+			  COL_USAGE, expr_operation_get_prototype (op),
+			  COL_ARITY, expr_operation_get_arg_cnt (op),
 			  -1);
     }
 

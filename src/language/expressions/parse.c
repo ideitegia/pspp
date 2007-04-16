@@ -1507,3 +1507,42 @@ allocate_unary_variable (struct expression *e, const struct variable *v)
   return expr_allocate_unary (e, var_is_numeric (v) ? OP_NUM_VAR : OP_STR_VAR,
                               expr_allocate_variable (e, v));
 }
+
+/* Export function details to other modules. */
+
+/* Returns the operation structure for the function with the
+   given IDX. */
+const struct operation *
+expr_get_function (size_t idx)
+{
+  assert (idx < OP_function_cnt);
+  return &operations[OP_function_first + idx];
+}
+
+/* Returns the number of expression functions. */
+size_t
+expr_get_function_cnt (void) 
+{
+  return OP_function_cnt;
+}
+
+/* Returns the name of operation OP. */
+const char *
+expr_operation_get_name (const struct operation *op) 
+{
+  return op->name;
+}
+
+/* Returns the human-readable prototype for operation OP. */
+const char *
+expr_operation_get_prototype (const struct operation *op) 
+{
+  return op->prototype;
+}
+
+/* Returns the number of arguments for operation OP. */
+int
+expr_operation_get_arg_cnt (const struct operation *op) 
+{
+  return op->arg_cnt;
+}

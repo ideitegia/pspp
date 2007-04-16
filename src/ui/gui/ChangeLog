@@ -1,5 +1,10 @@
 2007-04-15  Ben Pfaff  <blp@gnu.org>
 
+	* compute-dialog.c (function_list_populate): Use new accessor
+	functions exported by language/expressions/public.h.
+
+2007-04-15  Ben Pfaff  <blp@gnu.org>
+
 	* compute-dialog.c: Make #include for parse.inc work with VPATH
 	builds.
 

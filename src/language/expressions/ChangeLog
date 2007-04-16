@@ -1,3 +1,11 @@
+2007-04-15  Ben Pfaff  <blp@gnu.org>
+
+	* parse.c (expr_get_function): New function.
+	(expr_get_function_cnt): New function.
+	(expr_operation_get_name): New function.
+	(expr_operation_get_prototype): New function.
+	(expr_operation_get_arg_cnt): New function.
+
 Thu Feb  1 06:59:27 2007  Ben Pfaff  <blp@gnu.org>
 
 	* parse.c (parse_function): Accept TO in any case for use with

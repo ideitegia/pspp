@@ -50,4 +50,10 @@ double expr_evaluate_num (struct expression *, const struct ccase *,
 void expr_evaluate_str (struct expression *, const struct ccase *,
                         int case_idx, char *dst, size_t dst_size);
 
+const struct operation *expr_get_function (size_t idx);
+size_t expr_get_function_cnt (void);
+const char *expr_operation_get_name (const struct operation *);
+const char *expr_operation_get_prototype (const struct operation *);
+int expr_operation_get_arg_cnt (const struct operation *);
+
 #endif /* expr.h */
