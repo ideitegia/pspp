@@ -1,3 +1,9 @@
+2007-04-15  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add recode.sh to tests.
+
+	* tests/xforms/recode.sh: New test.
+
 2007-04-03  Ben Pfaff  <blp@gnu.org>
 	    John McCabe-Dansted <gmatht@gmail.com>
 	

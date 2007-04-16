@@ -509,7 +509,7 @@ enlarge_dst_widths (struct recode_trns *trns)
       if (!out->copy_input && out->width < max_dst_width) 
         {
           char *s = pool_alloc_unaligned (trns->pool, max_dst_width + 1);
-          str_copy_rpad (s, max_dst_width + 1, out->value.c);
+          buf_copy_rpad (s, max_dst_width + 1, out->value.c, out->width);
           out->value.c = s;
         }
     }
@@ -554,7 +554,7 @@ find_src_numeric (struct recode_trns *trns, double value, const struct variable 
           match = value == in->x.f;
           break;
         case MAP_MISSING:
-          match = var_is_num_missing (v, value, MV_USER);
+          match = var_is_num_missing (v, value, MV_ANY);
           break;
         case MAP_RANGE:
           match = value >= in->x.f && value <= in->y.f;
@@ -636,9 +636,9 @@ recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
       const struct map_out *out;
 
       if (trns->src_type == VAR_NUMERIC) 
-          out = find_src_numeric (trns, src_data->f, src_var);
+        out = find_src_numeric (trns, src_data->f, src_var);
       else
-          out = find_src_string (trns, src_data->s, var_get_width (src_var));
+        out = find_src_string (trns, src_data->s, var_get_width (src_var));
 
       if (trns->dst_type == VAR_NUMERIC) 
         {
