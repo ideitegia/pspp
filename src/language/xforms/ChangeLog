@@ -1,5 +1,10 @@
 2007-04-15  Ben Pfaff  <blp@gnu.org>
 
+	* recode.c (parse_mappings): Initialize "out" member of mapping
+	for CONVERT, fixing an uninitialized data bug.
+
+2007-04-15  Ben Pfaff  <blp@gnu.org>
+
 	* recode.c (enlarge_dst_widths): Source isn't null-terminated, so
 	don't pretend it is.
 	(var_is_num_missing): MISSING should include system-missing values

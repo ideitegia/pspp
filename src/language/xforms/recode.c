@@ -260,6 +260,7 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
           struct map_in in;
           set_map_in_generic (&in, MAP_CONVERT);
           add_mapping (trns, &map_allocated, &in);
+          set_map_out_num (&trns->mappings[trns->map_cnt - 1].out, 0.0);
               
           dst_type = VAR_NUMERIC;
           if (trns->src_type != VAR_STRING
