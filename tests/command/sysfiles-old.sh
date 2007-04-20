@@ -95,7 +95,7 @@ if [ $? -eq 0 ] ; then fail ; fi
 activity="compare output"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  -w $TEMPDIR/pspp.list - << EOF
-       X VARIABLE VARIAB_A VARIAB_B
+       x variable variab_a variab_b
 -------- -------- -------- --------
     1.00     1.00     1.00     2.00 
     1.00     1.00     2.00    30.00 

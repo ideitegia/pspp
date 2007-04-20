@@ -1,3 +1,9 @@
+2007-04-19 John Darrington <john@darrington.wattle.id.au>
+
+	* sys-file-reader.c: When reading a system file which has no 
+	long name table, automatically create one where the long names 
+	are the lower case versions of the short names.
+	
 2007-04-16 John Darrington <john@darrington.wattle.id.au>
 
 	* sys-file-reader.c: Some versions of Other Software seem to 

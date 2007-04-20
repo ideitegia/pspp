@@ -78,19 +78,19 @@ diff -b -w pspp.list - <<EOF
 +--------+-------------------------------------------+--------+
 |Variable|Description                                |Position|
 #========#===========================================#========#
-|CONT    |continents of the world                    |       1|
+|cont    |continents of the world                    |       1|
 |        |Format: A32                                |        |
 +--------+-------------------------------------------+--------+
-|SIZE    |sq km                                      |       2|
+|size    |sq km                                      |       2|
 |        |Format: F8.2                               |        |
 +--------+-------------------------------------------+--------+
-|POP     |population                                 |       3|
+|pop     |population                                 |       3|
 |        |Format: F8.2                               |        |
 +--------+-------------------------------------------+--------+
-|COUNT   |number of countries                        |       4|
+|count   |number of countries                        |       4|
 |        |Format: F8.2                               |        |
 +--------+-------------------------------------------+--------+
-                            CONT     SIZE      POP    COUNT
+                            cont     size      pop    count
 -------------------------------- -------- -------- --------
 Asia                             44579000 3.7E+009    44.00 
 Africa                           30065000 7.8E+008    53.00 

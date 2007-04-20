@@ -76,6 +76,7 @@ struct sfm_reader
     int value_cnt;		/* Number of 8-byte units per case. */
     struct sfm_var *vars;       /* Variables. */
     size_t var_cnt;             /* Number of variables. */
+    bool has_long_var_names;    /* File has a long variable name map */
     bool has_vls;               /* File has one or more very long strings? */
 
     /* Decompression. */
@@ -192,6 +193,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->error = false;
   r->value_cnt = 0;
   r->has_vls = false;
+  r->has_long_var_names = false;
   r->opcode_idx = sizeof r->opcodes;
 
   if (setjmp (r->bail_out)) 
@@ -248,6 +250,33 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
           sys_error (r, _("Unrecognized record type %d."), rec_type);
         }
       rec_type = read_int32 (r);
+    }
+
+
+  if ( ! r->has_long_var_names )
+    {
+      int i;
+      for (i = 0; i < dict_get_var_cnt (*dict); i++)
+	{
+	  struct variable *var = dict_get_var (*dict, i);
+	  char short_name [SHORT_NAME_LEN + 1];
+	  char long_name [SHORT_NAME_LEN + 1];
+	  char *s = short_name;
+	  char *d = long_name;
+
+	  strcpy (short_name, var_get_name (var));
+
+	  strcpy (long_name, short_name);
+	  str_lowercase (long_name);
+
+	  /* Set long name.  Renaming a variable may clear the short
+	     name, but we want to retain it, so re-set it
+	     explicitly. */
+	  dict_rename_var (*dict, var, long_name);
+	  var_set_short_name (var, short_name);
+	}
+
+      r->has_long_var_names = true;
     }
 
   /* Read record 999 data, which is just filler. */
@@ -880,6 +909,7 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
       var_set_short_name (var, short_name);
     }
   close_variable_to_value_map (r, map);
+  r->has_long_var_names = true;
 }
 
 /* Reads record type 7, subtype 14, which gives the real length

@@ -1,3 +1,9 @@
+2007-04-19 John Darrington <john@darrington.wattle.id.au>
+	
+        * tests/command/no_case_size.sh tests/command/sysfiles-old.sh :
+	Changed tests to reflect new behaviour (case changing) when
+	reading system files with no long name table.
+
 2007-04-15  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add recode.sh to tests.
