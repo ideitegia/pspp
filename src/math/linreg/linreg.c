@@ -95,7 +95,7 @@ linreg_mean_std (gsl_vector_const_view v, double *mp, double *sp, double *ssp)
   The return value is the number of distinct variables found.
  */
 int
-pspp_linreg_get_vars (const void *c_, struct variable **v)
+pspp_linreg_get_vars (const void *c_, const struct variable **v)
 {
   const pspp_linreg_cache *c = c_;
   struct pspp_coeff *coef = NULL;
@@ -114,7 +114,7 @@ pspp_linreg_get_vars (const void *c_, struct variable **v)
   /*
      Start at c->coeff[1] to avoid the intercept.
    */
-  v[result] = (struct variable *) pspp_coeff_get_var (c->coeff[1], 0);
+  v[result] =  pspp_coeff_get_var (c->coeff[1], 0);
   result = (v[result] == NULL) ? 0 : 1;
 
   for (coef = c->coeff[2]; coef < c->coeff[c->n_coeffs]; coef++)
@@ -130,7 +130,7 @@ pspp_linreg_get_vars (const void *c_, struct variable **v)
 	}
       if (i < 0 && result < c->n_coeffs)
 	{
-	  v[result] = (struct variable *) tmp;
+	  v[result] = tmp;
 	  result++;
 	}
     }

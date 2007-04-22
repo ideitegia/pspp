@@ -41,11 +41,28 @@
 
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
-#include "cat-routines.h"
+#include "category.h"
 #include "value.h"
 #include "variable.h"
 
+#define CAT_VALUE_NOT_FOUND -2
+
 #define N_INITIAL_CATEGORIES 1
+
+/*
+  This structure contains the observed values of a
+  categorical variable.
+ */
+struct cat_vals
+{
+  union value *vals;
+  size_t n_categories;
+  size_t n_allocated_categories;	/* This is used only during
+					   initialization to keep
+					   track of the number of
+					   values stored.
+					 */
+};
 
 void
 cat_stored_values_create (const struct variable *v)
@@ -53,6 +70,7 @@ cat_stored_values_create (const struct variable *v)
   if (!var_has_obs_vals (v))
     {
       struct cat_vals *obs_vals = xmalloc (sizeof *obs_vals);
+
       obs_vals->n_categories = 0;
       obs_vals->n_allocated_categories = N_INITIAL_CATEGORIES;
       obs_vals->vals = xnmalloc (N_INITIAL_CATEGORIES, sizeof *obs_vals->vals);
@@ -63,7 +81,7 @@ cat_stored_values_create (const struct variable *v)
 void
 cat_stored_values_destroy (struct cat_vals *obs_vals)
 {
-  if (obs_vals != NULL) 
+  if (obs_vals != NULL)
     {
       if (obs_vals->n_allocated_categories > 0)
         free (obs_vals->vals);
@@ -117,8 +135,8 @@ cat_value_update (const struct variable *v, const union value *val)
     }
 }
 
-union value *
-cat_subscript_to_value (const size_t s, struct variable *v)
+const union value *
+cat_subscript_to_value (const size_t s, const struct variable *v)
 {
   struct cat_vals *obs_vals = var_get_obs_vals (v);
   return s < obs_vals->n_categories ? obs_vals->vals + s : NULL;

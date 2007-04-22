@@ -24,7 +24,6 @@
 #include <ctype.h>
 
 #include "case.h"
-#include "cat-routines.h"
 #include "category.h"
 #include "settings.h"
 #include "value-labels.h"

@@ -27,7 +27,6 @@
 #include "regression-export.h"
 #include <data/case.h>
 #include <data/casefile.h>
-#include <data/cat-routines.h>
 #include <data/category.h>
 #include <data/dictionary.h>
 #include <data/missing-values.h>
@@ -565,7 +564,7 @@ regression_trns_pred_proc (void *t_, struct ccase *c,
   pspp_linreg_cache *model;
   union value *output = NULL;
   const union value **vals = NULL;
-  struct variable **vars = NULL;
+  const struct variable **vars = NULL;
 
   assert (trns != NULL);
   model = trns->c;
@@ -605,7 +604,7 @@ regression_trns_resid_proc (void *t_, struct ccase *c,
   union value *output = NULL;
   const union value **vals = NULL;
   const union value *obs = NULL;
-  struct variable **vars = NULL;
+  const struct variable **vars = NULL;
 
   assert (trns != NULL);
   model = trns->c;
@@ -790,7 +789,7 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 
       for (j = 0; j < n_categories; j++)
 	{
-	  union value *val = cat_subscript_to_value (j, varlist[i]);
+	  const union value *val = cat_subscript_to_value (j, varlist[i]);
 	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t",
 		   var_get_name (varlist[i]), j,
 		   var_get_value_name (varlist[i], val));
@@ -1094,7 +1093,7 @@ prepare_data (int n_data, int is_missing_case[],
 	  j++;
 	  if (var_is_alpha (v_variables[i]))
 	    {
-	      /* Make a place to hold the binary vectors 
+	      /* Make a place to hold the binary vectors
 	         corresponding to this variable's values. */
 	      cat_stored_values_create (v_variables[i]);
 	    }
@@ -1225,7 +1224,6 @@ run_regression (const struct ccase *first,
       if (n_data > 0)
 	{
 	  Y = gsl_vector_alloc (n_data);
-	  
 	  X =
 	    design_matrix_create (n_indep, (const struct variable **) indep_vars,
 				  n_data);

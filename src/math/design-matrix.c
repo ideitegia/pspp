@@ -42,57 +42,6 @@
 #define DM_COLUMN_NOT_FOUND -1
 #define DM_INDEX_NOT_FOUND -3
 
-/*
-  Which element of a vector is equal to the value x?
- */
-static size_t
-cat_which_element_eq (const gsl_vector * vec, double x)
-{
-  size_t i;
-
-  for (i = 0; i < vec->size; i++)
-    {
-      if (fabs (gsl_vector_get (vec, i) - x) < GSL_DBL_EPSILON)
-	{
-	  return i;
-	}
-    }
-  return CAT_VALUE_NOT_FOUND;
-}
-static int
-cat_is_zero_vector (const gsl_vector * vec)
-{
-  size_t i;
-
-  for (i = 0; i < vec->size; i++)
-    {
-      if (gsl_vector_get (vec, i) != 0.0)
-	{
-	  return 0;
-	}
-    }
-  return 1;
-}
-
-/*
-  Return the value of v corresponding to the vector vec.
- */
-union value *
-cat_vector_to_value (const gsl_vector * vec, struct variable *v)
-{
-  size_t i;
-
-  i = cat_which_element_eq (vec, 1.0);
-  if (i != CAT_VALUE_NOT_FOUND)
-    {
-      return cat_subscript_to_value (i + 1, v);
-    }
-  if (cat_is_zero_vector (vec))
-    {
-      return cat_subscript_to_value (0, v);
-    }
-  return NULL;
-}
 
 struct design_matrix *
 design_matrix_create (int n_variables,
@@ -123,10 +72,10 @@ design_matrix_create (int n_variables,
 	}
       else if (var_is_alpha (v))
 	{
-          struct cat_vals *obs_vals = var_get_obs_vals (v);
+	  size_t n_categories = cat_get_n_categories (v);
 	  (dm->vars + i)->last_column =
-	    (dm->vars + i)->first_column + obs_vals->n_categories - 2;
-	  n_cols += obs_vals->n_categories - 1;
+	    (dm->vars + i)->first_column + n_categories - 2;
+	  n_cols += n_categories - 1;
 	}
     }
   dm->m = gsl_matrix_calloc (n_data, n_cols);
@@ -147,7 +96,7 @@ design_matrix_destroy (struct design_matrix *dm)
   Return the index of the variable for the
   given column.
  */
-struct variable *
+const struct variable *
 design_matrix_col_to_var (const struct design_matrix *dm, size_t col)
 {
   size_t i;
@@ -157,7 +106,7 @@ design_matrix_col_to_var (const struct design_matrix *dm, size_t col)
     {
       v = dm->vars[i];
       if (v.first_column <= col && col <= v.last_column)
-	return (struct variable *) v.v;
+	return v.v;
     }
   return NULL;
 }
@@ -232,6 +181,7 @@ design_matrix_set_categorical (struct design_matrix *dm, size_t row,
       gsl_matrix_set (dm->m, row, col, entry);
     }
 }
+
 void
 design_matrix_set_numeric (struct design_matrix *dm, size_t row,
 			   const struct variable *var, const union value *val)

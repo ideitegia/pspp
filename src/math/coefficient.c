@@ -69,8 +69,7 @@ pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
 				 */
       c[i]->v_info = xnmalloc (c[i]->n_vars, sizeof (*c[i]->v_info));
       assert (c[i]->v_info != NULL);
-      c[i]->v_info->v =
-	(const struct variable *) design_matrix_col_to_var (X, i);
+      c[i]->v_info->v = design_matrix_col_to_var (X, i);
 
       if (var_is_alpha (c[i]->v_info->v))
 	{
@@ -79,7 +78,7 @@ pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
 	  assert (k <= i);
 	  k = i - k;
 	  c[i]->v_info->val =
-	    cat_subscript_to_value (k, (struct variable *) c[i]->v_info->v);
+	    cat_subscript_to_value (k, c[i]->v_info->v);
 	}
     }
 }

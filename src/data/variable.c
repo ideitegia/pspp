@@ -21,7 +21,8 @@
 
 #include <stdlib.h>
 
-#include "cat-routines.h"
+
+#include "category.h"
 #include "data-out.h"
 #include "format.h"
 #include "dictionary.h"

@@ -261,8 +261,6 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	  struct variable *var = dict_get_var (*dict, i);
 	  char short_name [SHORT_NAME_LEN + 1];
 	  char long_name [SHORT_NAME_LEN + 1];
-	  char *s = short_name;
-	  char *d = long_name;
 
 	  strcpy (short_name, var_get_name (var));
 

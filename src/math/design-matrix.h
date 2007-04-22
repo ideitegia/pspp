@@ -26,7 +26,7 @@
 #include <gsl/gsl_matrix.h>
 #include <stdbool.h>
 #include <data/category.h>
-#include <data/cat-routines.h>
+
 struct design_matrix_var
 {
   size_t first_column;		/* First column for this variable in
@@ -40,6 +40,7 @@ struct design_matrix_var
   size_t last_column;
   const struct variable *v;
 };
+
 struct design_matrix
 {
   gsl_matrix *m;
@@ -61,7 +62,7 @@ struct design_matrix
 					 */
   size_t n_vars;
 };
-union value *cat_vector_to_value (const gsl_vector *, struct variable *);
+
 
 struct design_matrix *design_matrix_create (int, const struct variable *[],
 					    const size_t);
@@ -73,12 +74,13 @@ void design_matrix_set_categorical (struct design_matrix *, size_t,
 				    const union value *);
 
 void design_matrix_set_numeric (struct design_matrix *, size_t,
-				const struct variable *, const union value *);
+				    const struct variable *,
+				    const union value *);
 
 size_t design_matrix_var_to_column (const struct design_matrix *,
 				    const struct variable *);
 
-struct variable *design_matrix_col_to_var (const struct design_matrix *,
+const struct variable *design_matrix_col_to_var (const struct design_matrix *,
 					   size_t);
 
 #endif
