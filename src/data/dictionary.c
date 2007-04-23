@@ -444,11 +444,12 @@ reindex_vars (struct dictionary *d, size_t from, size_t to)
 /* Deletes variable V from dictionary D and frees V.
 
    This is a very bad idea if there might be any pointers to V
-   from outside D.  In general, no variable in should be deleted when
-   any transformations are active on the dictionary's dataset, because
-   those transformations might reference the deleted variable.
-   The safest time to delete a variable is just after a procedure
-   has been executed, as done by MODIFY VARS.
+   from outside D.  In general, no variable in the active file's
+   dictionary should be deleted when any transformations are
+   active on the dictionary's dataset, because those
+   transformations might reference the deleted variable.  The
+   safest time to delete a variable is just after a procedure has
+   been executed, as done by MODIFY VARS.
 
    Pointers to V within D are not a problem, because
    dict_delete_var() knows to remove V from split variables,
@@ -1057,7 +1058,7 @@ dict_set_split_vars (struct dictionary *d,
   assert (cnt == 0 || split != NULL);
 
   d->split_cnt = cnt;
-  d->split = xnrealloc (d->split, cnt, sizeof *d->split);
+  d->split = cnt > 0 ? xnrealloc (d->split, cnt, sizeof *d->split) : NULL;
   memcpy (d->split, split, cnt * sizeof *d->split);
 
   if ( d->callbacks &&  d->callbacks->split_changed )

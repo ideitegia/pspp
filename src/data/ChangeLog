@@ -1,5 +1,11 @@
 2007-04-22  Ben Pfaff  <blp@gnu.org>
 
+	* dictionary.c (dict_set_split_vars): dict_destroy expects that
+	dict_clear will free most data related to the dictionary.
+	dict_clear does a decent job, except that dict_set_split_vars on
+	some systems won't actually free the dict's "split" member.
+	Instead, it'll allocate a 1-byte region.  Fix this.
+
 	* value.c (value_copy): New function.
 	(value_set_missing): Ditto.
 
