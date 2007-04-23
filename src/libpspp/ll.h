@@ -228,7 +228,8 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
 
 /* Iteration helper macros. */
 
-/* Sets DATA to each object in LIST in turn, assuming that each
+/* Sets DATA to each object in LIST in turn, in forward or
+   reverse order, assuming that each
    `struct ll' in LIST is embedded as the given MEMBER name in
    data type STRUCT.
 
@@ -238,11 +239,16 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
         for (DATA = ll_head__ (STRUCT, MEMBER, LIST);           \
              DATA != NULL;                                      \
              DATA = ll_next__ (DATA, STRUCT, MEMBER, LIST))
+#define ll_for_each_reverse(DATA, STRUCT, MEMBER, LIST)         \
+        for (DATA = ll_tail__ (STRUCT, MEMBER, LIST);           \
+             DATA != NULL;                                      \
+             DATA = ll_prev__ (DATA, STRUCT, MEMBER, LIST))
 
 /* Continues a iteration of LIST, starting from the object
-   currently in DATA and continuing forward through the remainder
-   of the list, assuming that each `struct ll' in LIST is
-   embedded as the given MEMBER name in data type STRUCT.
+   currently in DATA and continuing, in forward or reverse order,
+   through the remainder of the list, assuming that each `struct
+   ll' in LIST is embedded as the given MEMBER name in data type
+   STRUCT.
 
    Behavior is undefined if DATA is removed from the list between
    loop iterations. */
@@ -250,11 +256,15 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
         for (;                                                  \
              DATA != NULL;                                      \
              DATA = ll_next__ (DATA, STRUCT, MEMBER, LIST))
+#define ll_for_each_reverse_continue(DATA, STRUCT, MEMBER, LIST)        \
+        for (;                                                          \
+             DATA != NULL;                                              \
+             DATA = ll_prev__ (DATA, STRUCT, MEMBER, LIST))
 
-/* Sets DATA to each object in LIST in turn, assuming that each
-   `struct ll' in LIST is embedded as the given MEMBER name in
-   data type STRUCT.  NEXT must be another variable of the same
-   type as DATA.
+/* Sets DATA to each object in LIST in turn, in forward or
+   reverse order, assuming that each `struct ll' in LIST is
+   embedded as the given MEMBER name in data type STRUCT.  NEXT
+   (or PREV) must be another variable of the same type as DATA.
 
    Behavior is well-defined even if DATA is removed from the list
    between iterations. */
@@ -264,12 +274,19 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
               ? (NEXT = ll_next__ (DATA, STRUCT, MEMBER, LIST), 1)      \
               : 0);                                                     \
              DATA = NEXT)
+#define ll_for_each_reverse_safe(DATA, PREV, STRUCT, MEMBER, LIST)      \
+        for (DATA = ll_tail__ (STRUCT, MEMBER, LIST);                   \
+             (DATA != NULL                                              \
+              ? (PREV = ll_prev__ (DATA, STRUCT, MEMBER, LIST), 1)      \
+              : 0);                                                     \
+             DATA = PREV)
 
-/* Continues a iteration of LIST, starting from the object
-   currently in DATA and continuing forward through the remainder
-   of the list, assuming that each `struct ll' in LIST is
-   embedded as the given MEMBER name in data type STRUCT.  NEXT
-   must be another variable of the same type as DATA.
+/* Continues a iteration of LIST, in forward or reverse order,
+   starting from the object currently in DATA and continuing
+   forward through the remainder of the list, assuming that each
+   `struct ll' in LIST is embedded as the given MEMBER name in
+   data type STRUCT.  NEXT (or PREV) must be another variable of
+   the same type as DATA.
 
    Behavior is well-defined even if DATA is removed from the list
    between iterations. */
@@ -279,24 +296,38 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
               ? (NEXT = ll_next__ (DATA, STRUCT, MEMBER, LIST), 1)      \
               : 0);                                                     \
              DATA = NEXT)
+#define ll_for_each_safe_reverse_continue(DATA, PREV, STRUCT, MEMBER, LIST) \
+        for (;                                                          \
+             (DATA != NULL                                              \
+              ? (PREV = ll_prev__ (DATA, STRUCT, MEMBER, LIST), 1)      \
+              : 0);                                                     \
+             DATA = PREV)
 
-/* Sets DATA to each object in LIST in turn, assuming that each
-   `struct ll' in LIST is embedded as the given MEMBER name in
-   data type STRUCT.
+/* Sets DATA to each object in LIST in turn, in forward or
+   reverse order, assuming that each `struct ll' in LIST is
+   embedded as the given MEMBER name in data type STRUCT.
    Each object is removed from LIST before its loop iteration. */
 #define ll_for_each_preremove(DATA, STRUCT, MEMBER, LIST)                 \
         while (!ll_is_empty (LIST)                                        \
                ? (DATA = ll_data (ll_pop_head (LIST), STRUCT, MEMBER), 1) \
                : 0)
+#define ll_for_each_reverse_preremove(DATA, STRUCT, MEMBER, LIST)         \
+        while (!ll_is_empty (LIST)                                        \
+               ? (DATA = ll_data (ll_pop_tail (LIST), STRUCT, MEMBER), 1) \
+               : 0)
 
-/* Sets DATA to each object in LIST in turn, assuming that each
-   `struct ll' in LIST is embedded as the given MEMBER name in
-   data type STRUCT.
+/* Sets DATA to each object in LIST in turn, in forward or
+   reverse order, assuming that each `struct ll' in LIST is
+   embedded as the given MEMBER name in data type STRUCT.
    At the end of each loop iteration, DATA is removed from the
    list. */
 #define ll_for_each_postremove(DATA, STRUCT, MEMBER, LIST)      \
         for (;                                                  \
              (DATA = ll_head__ (STRUCT, MEMBER, LIST)) != NULL; \
+             ll_remove (&DATA->MEMBER))
+#define ll_for_each_reverse_postremove(DATA, STRUCT, MEMBER, LIST)      \
+        for (;                                                          \
+             (DATA = ll_tail__ (STRUCT, MEMBER, LIST)) != NULL;         \
              ll_remove (&DATA->MEMBER))
 
 /* Macros for internal use only. */
@@ -304,12 +335,12 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
         ((LL) != ll_null (LIST) ? ll_data (LL, STRUCT, MEMBER) : NULL)
 #define ll_head__(STRUCT, MEMBER, LIST)                         \
         ll_data__ (ll_head (LIST), STRUCT, MEMBER, LIST)
+#define ll_tail__(STRUCT, MEMBER, LIST)                         \
+        ll_data__ (ll_tail (LIST), STRUCT, MEMBER, LIST)
 #define ll_next__(DATA, STRUCT, MEMBER, LIST)                           \
         ll_data__ (ll_next (&DATA->MEMBER), STRUCT, MEMBER, LIST)
-#define ll_remove__(DATA, STRUCT, MEMBER, LIST)                         \
-        (ll_next (&DATA->MEMBER) == ll_null (LIST)                      \
-         ? ll_remove (&DATA->MEMBER), NULL                              \
-         : ll_data (ll_remove (&DATA->MEMBER), STRUCT, MEMBER))       
+#define ll_prev__(DATA, STRUCT, MEMBER, LIST)                           \
+        ll_data__ (ll_prev (&DATA->MEMBER), STRUCT, MEMBER, LIST)
 
 /* Inline functions. */
 

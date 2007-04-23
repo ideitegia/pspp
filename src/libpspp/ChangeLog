@@ -1,5 +1,19 @@
 2007-04-22  Ben Pfaff  <blp@gnu.org>
 
+	Patch #5884.
+	
+	* ll.h (ll_for_each_reverse): New macro.
+	(ll_for_each_reverse_continue): New macro.
+	(ll_for_each_reverse_safe): New macro.
+	(ll_for_each_safe_reverse_continue): New macro.
+	(ll_for_each_reverse_preremove): New macro.
+	(ll_for_each_reverse_postremove): New macro.
+	(ll_remove__): Removed (dead code).
+	(ll_tail__): New macro.
+	(ll_prev__): New macro.
+
+2007-04-22  Ben Pfaff  <blp@gnu.org>
+
 	Implement model checker for testing purposes.
 
 	Patch #5873.
