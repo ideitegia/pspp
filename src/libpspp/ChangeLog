@@ -1,3 +1,16 @@
+2007-04-22  Ben Pfaff  <blp@gnu.org>
+
+	Implement model checker for testing purposes.
+
+	Patch #5873.
+	
+	* automake.mk (src_libpspp_libpspp_a_SOURCES): Add
+	model-checker.[ch].  Alphabetize.
+
+	* model-checker.c: New file.
+
+	* model-checker.h: New file.
+
 2007-04-03  Ben Pfaff  <blp@gnu.org>
 
 	Apply patches #5828, #5837, #5841, #5843.

@@ -11,16 +11,19 @@ GNULIB_MODULES = \
 	byteswap \
 	c-ctype \
 	c-strtod \
+	crypto/md4 \
 	dirname \
 	exit \
 	fpieee \
 	full-read \
 	full-write \
+	fwriteerror \
 	gethostname \
 	getline \
 	getlogin_r \
 	getopt \
 	gettext-h \
+	gettimeofday \
 	intprops \
 	inttostr \
 	linebreak \

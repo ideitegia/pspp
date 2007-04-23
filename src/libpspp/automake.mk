@@ -6,27 +6,25 @@ noinst_LIBRARIES += src/libpspp/libpspp.a
 src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/abt.c \
 	src/libpspp/abt.h \
+	src/libpspp/alloc.c \
+	src/libpspp/alloc.h \
 	src/libpspp/array.c \
 	src/libpspp/array.h \
 	src/libpspp/assertion.h \
-	src/libpspp/alloc.c \
-	src/libpspp/alloc.h \
 	src/libpspp/bit-vector.h \
 	src/libpspp/bt.c \
 	src/libpspp/bt.h \
-	src/libpspp/legacy-encoding.c \
-	src/libpspp/legacy-encoding.h \
+	src/libpspp/compiler.h \
 	src/libpspp/copyleft.c \
 	src/libpspp/copyleft.h \
-	src/libpspp/compiler.h \
 	src/libpspp/deque.c \
 	src/libpspp/deque.h \
 	src/libpspp/float-format.c \
 	src/libpspp/float-format.h \
 	src/libpspp/freaderror.c \
 	src/libpspp/freaderror.h \
-	src/libpspp/getl.h \
 	src/libpspp/getl.c \
+	src/libpspp/getl.h \
 	src/libpspp/hash.c \
 	src/libpspp/hash.h \
 	src/libpspp/heap.c \
@@ -35,16 +33,22 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/i18n.h \
 	src/libpspp/integer-format.c \
 	src/libpspp/integer-format.h \
-	src/libpspp/msg-locator.c \
-	src/libpspp/msg-locator.h \
+	src/libpspp/legacy-encoding.c \
+	src/libpspp/legacy-encoding.h \
 	src/libpspp/ll.c \
 	src/libpspp/ll.h \
 	src/libpspp/llx.c \
 	src/libpspp/llx.h \
 	src/libpspp/magic.c \
 	src/libpspp/magic.h \
+	src/libpspp/message.c \
+	src/libpspp/message.h \
 	src/libpspp/misc.c \
 	src/libpspp/misc.h \
+	src/libpspp/model-checker.c \
+	src/libpspp/model-checker.h \
+	src/libpspp/msg-locator.c \
+	src/libpspp/msg-locator.h \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
 	src/libpspp/range-map.c \
@@ -53,14 +57,12 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/range-set.h \
 	src/libpspp/sparse-array.c \
 	src/libpspp/sparse-array.h \
-	src/libpspp/syntax-gen.c \
-	src/libpspp/syntax-gen.h \
-	src/libpspp/message.c \
-	src/libpspp/message.h \
 	src/libpspp/start-date.c \
 	src/libpspp/start-date.h \
 	src/libpspp/str.c \
 	src/libpspp/str.h \
+	src/libpspp/syntax-gen.c \
+	src/libpspp/syntax-gen.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
 	src/libpspp/verbose-msg.c \

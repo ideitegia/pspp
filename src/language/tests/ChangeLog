@@ -1,3 +1,15 @@
+2007-04-22  Ben Pfaff  <blp@gnu.org>
+
+	Implement model checker for testing purposes.
+	
+	Patch #5873.
+	
+	* automake.mk: Add check-model.[ch].
+
+	* check-model.h: New file.
+
+	* check-model.q: New file.
+
 Thu Oct 26 20:19:19 2006  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add float-format.c.

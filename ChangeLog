@@ -1,3 +1,12 @@
+2007-04-22  Ben Pfaff  <blp@gnu.org>
+
+	Implement model checker for testing purposes.
+	
+	Patch #5873.
+	
+	* Smake (GNULIB_MODULES): Add crypto/md4, fwriteerror,
+	gettimeofday.
+
 2007-04-03  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: Increment version to 0.4.3 due to snapshot posted
