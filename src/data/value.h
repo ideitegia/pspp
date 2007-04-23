@@ -50,4 +50,7 @@ union value *value_dup (const union value *, int width);
 int compare_values (const union value *, const union value *, int width);
 unsigned hash_value (const union value  *, int width);
 
+void value_copy (union value *, const union value *, int width);
+void value_set_missing (union value *, int width);
+
 #endif /* !value.h */

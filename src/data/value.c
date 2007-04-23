@@ -53,3 +53,25 @@ hash_value (const union value *v, int width)
           ? hsh_hash_double (v->f)
           : hsh_hash_bytes (v->s, MIN (MAX_SHORT_STRING, width)));
 }
+
+/* Copies SRC to DST, given that they both contain data of the
+   given WIDTH. */
+void
+value_copy (union value *dst, const union value *src, int width) 
+{
+  if (width == 0)
+    dst->f = src->f;
+  else
+    memcpy (dst->s, src->s, width);
+}
+
+/* Sets V to the system-missing value for data of the given
+   WIDTH. */
+void
+value_set_missing (union value *v, int width) 
+{
+  if (width == 0)
+    v->f = SYSMIS;
+  else
+    memset (v->s, ' ', width); 
+}

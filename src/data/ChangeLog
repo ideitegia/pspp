@@ -1,3 +1,8 @@
+2007-04-22  Ben Pfaff  <blp@gnu.org>
+
+	* value.c (value_copy): New function.
+	(value_set_missing): Ditto.
+
 2007-04-22 John Darrington <john@darrington.wattle.id.au>
 
 	* Deleted existing category.h and moved cat-routines.h into 
