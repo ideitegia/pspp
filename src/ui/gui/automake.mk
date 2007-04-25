@@ -59,7 +59,12 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/icons/recent-dialogs.png \
 	$(top_srcdir)/src/ui/gui/icons/split-file.png \
 	$(top_srcdir)/src/ui/gui/icons/select-cases.png \
-	$(top_srcdir)/src/ui/gui/icons/weight-cases.png
+	$(top_srcdir)/src/ui/gui/icons/weight-cases.png \
+	$(top_srcdir)/src/ui/gui/icons/16x16/nominal.png  \
+	$(top_srcdir)/src/ui/gui/icons/16x16/ordinal.png \
+	$(top_srcdir)/src/ui/gui/icons/16x16/scale.png \
+	$(top_srcdir)/src/ui/gui/icons/16x16/string.png \
+	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png 
 
 
 src_ui_gui_psppire_SOURCES = \

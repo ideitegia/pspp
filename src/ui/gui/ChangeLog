@@ -1,3 +1,13 @@
+2007-04-25 John Darrington <john@darrington.wattle.id.au>
+
+	* icons/scalable icons/16x16: new directories.
+	* psppire.c : Add new icons to factory.
+
+	* dict-display.c: Refactor code get model from modelfilter. 
+	Added cellrenderer to display icon indicating variables' types.
+        Displayed the label of variables, if there is one.
+
+
 2007-04-15  Ben Pfaff  <blp@gnu.org>
 
 	* compute-dialog.c (function_list_populate): Use new accessor

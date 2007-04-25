@@ -24,6 +24,7 @@
 #include <string.h>
 #include <iconv.h>
 #include <errno.h>
+#include "assertion.h"
 
 #include "i18n.h"
 
@@ -39,21 +40,21 @@ static iconv_t convertor[n_CONV];
 
 
 /* A wrapper around iconv_open */
-static iconv_t 
+static iconv_t
 create_iconv (const char* tocode, const char* fromcode)
 {
   iconv_t conv = iconv_open (tocode, fromcode);
 
   /* I don't think it's safe to translate this string or to use messaging
      as the convertors have not yet been set up */
-  if ( (iconv_t) -1 == conv) 
+  if ( (iconv_t) -1 == conv)
     {
       const int err = errno;
-      fprintf (stderr, 
+      fprintf (stderr,
 	"Warning: cannot create a convertor for \"%s\" to \"%s\": %s\n",
 	fromcode, tocode, strerror (err));
     }
-   
+
   return conv;
 }
 
@@ -74,19 +75,19 @@ recode_string (enum conv_id how,  const char *text, int length)
   /* FIXME: Need to ensure that this char is valid in the target encoding */
   const char fallbackchar = '?';
 
-  if ( text == NULL ) 
+  if ( text == NULL )
     return NULL;
 
-  if ( length == -1 ) 
+  if ( length == -1 )
      length = strlen(text);
 
   assert (how < n_CONV);
 
-  if (convertor[how] == (iconv_t) -1) 
+  if (convertor[how] == (iconv_t) -1)
     return xstrndup (text, length);
 
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
-    if ( outbufferlength > length) 
+    if ( outbufferlength > length)
       break;
 
   outbuf = xmalloc(outbufferlength);
@@ -94,12 +95,13 @@ recode_string (enum conv_id how,  const char *text, int length)
 
   outbytes = outbufferlength;
   inbytes = length;
-  
+
   do {
-    result = iconv (convertor[how], (ICONV_CONST char **) &text, &inbytes, 
+    char *ip = text;
+    result = iconv (convertor[how], (ICONV_CONST char **) &text, &inbytes,
 		   &op, &outbytes);
 
-    if ( -1 == result ) 
+    if ( -1 == result )
       {
 	int the_error = errno;
 
@@ -107,7 +109,7 @@ recode_string (enum conv_id how,  const char *text, int length)
 	  {
 	  case EILSEQ:
 	  case EINVAL:
-	    if ( outbytes > 0 ) 
+	    if ( outbytes > 0 )
 	      {
 		*op++ = fallbackchar;
 		outbytes--;
@@ -123,19 +125,21 @@ recode_string (enum conv_id how,  const char *text, int length)
 	    op = outbuf;
 	    outbytes = outbufferlength;
 	    inbytes = length;
+	    text = ip;
 	    break;
 	  default:
 	    /* should never happen */
+	    NOT_REACHED ();
 	    break;
 	  }
       }
   } while ( -1 == result );
 
-  if (outbytes == 0 ) 
+  if (outbytes == 0 )
     {
       char *const oldaddr = outbuf;
       outbuf = xrealloc (outbuf, outbufferlength + 1);
-      
+
       op += (outbuf - oldaddr) ;
     }
 
@@ -154,7 +158,7 @@ get_pspp_locale (void)
 }
 
 /* Set the PSPP locale */
-void 
+void
 set_pspp_locale (const char *l)
 {
   char *current_locale;
@@ -166,7 +170,7 @@ set_pspp_locale (const char *l)
   current_locale = setlocale (LC_CTYPE, 0);
   current_charset = locale_charset ();
   setlocale (LC_CTYPE, locale);
-  
+
   charset = locale_charset ();
   setlocale (LC_CTYPE, current_locale);
 
@@ -191,16 +195,16 @@ i18n_init (void)
 }
 
 
-void 
+void
 i18n_done (void)
 {
   int i;
   free (locale);
   locale = 0;
 
-  for(i = 0 ; i < n_CONV; ++i ) 
+  for(i = 0 ; i < n_CONV; ++i )
     {
-      if ( (iconv_t) -1 == convertor[i] ) 
+      if ( (iconv_t) -1 == convertor[i] )
 	continue;
       iconv_close (convertor[i]);
     }

@@ -51,7 +51,112 @@ filter_variables (GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
   return predicate (var);
 }
 
-/* Sets up TREEVIEW to display the variables of DICT.
+/* A GtkTreeCellDataFunc which sets the icon appropriate to the type
+   of variable */
+static void
+var_icon_cell_data_func (GtkTreeViewColumn *col,
+		       GtkCellRenderer *cell,
+		       GtkTreeModel *model,
+		       GtkTreeIter *iter,
+		       gpointer data)
+{
+  struct variable *var;
+  gtk_tree_model_get (model, iter, DICT_TVM_COL_VAR, &var, -1);
+
+  if ( var_is_alpha (var))
+    {
+      g_object_set (cell, "stock-id", "var-string", NULL);
+    }
+  else
+    {
+      const struct fmt_spec *fs = var_get_write_format (var);
+      int cat = fmt_get_category (fs->type);
+      switch ( var_get_measure (var))
+	{
+	case MEASURE_NOMINAL:
+	  g_object_set (cell, "stock-id", "var-nominal", NULL);
+	  break;
+	case MEASURE_ORDINAL:
+	  g_object_set (cell, "stock-id", "var-ordinal", NULL);
+	  break;
+	case MEASURE_SCALE:
+	  if ( ( FMT_CAT_DATE | FMT_CAT_TIME ) & cat )
+	    g_object_set (cell, "stock-id", "var-date-scale", NULL);
+	  else
+	    g_object_set (cell, "stock-id", "var-scale", NULL);
+	  break;
+	default:
+	  g_assert_not_reached ();
+	};
+    }
+}
+
+
+static void
+get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
+		GtkTreeModel **model, GtkTreeIter *iter
+		)
+{
+  *model = top_model;
+  *iter = *top_iter;
+  while (GTK_IS_TREE_MODEL_FILTER (*model))
+    {
+      GtkTreeIter parent_iter = *iter;
+      GtkTreeModelFilter *parent_model = GTK_TREE_MODEL_FILTER (*model);
+
+      *model = gtk_tree_model_filter_get_model (parent_model);
+
+      gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
+							iter,
+							&parent_iter);
+    }
+
+  g_assert (PSPPIRE_IS_DICT (*model));
+}
+
+/* A GtkTreeCellDataFunc which renders the name and/or label of the
+   variable */
+static void
+var_description_cell_data_func (GtkTreeViewColumn *col,
+				GtkCellRenderer *cell,
+				GtkTreeModel *top_model,
+				GtkTreeIter *top_iter,
+				gpointer data)
+{
+  struct variable *var;
+  GtkTreeIter iter;
+  GtkTreeModel *model;
+
+
+  get_base_model (top_model, top_iter, &model, &iter);
+
+  g_assert (PSPPIRE_IS_DICT (model));
+
+
+  gtk_tree_model_get (model,
+		      &iter, DICT_TVM_COL_VAR, &var, -1);
+
+  if ( var_has_label (var))
+    {
+      gchar *text = g_strdup_printf (
+				     "<span stretch=\"condensed\">%s</span>"
+				     " (<span weight=\"bold\">%s</span>)",
+				     var_get_label (var),
+				     var_get_name (var));
+
+      char *utf8 = pspp_locale_to_utf8 (text, -1, NULL);
+
+      g_free (text);
+      g_object_set (cell, "markup", utf8, NULL);
+      g_free (utf8);
+    }
+  else
+    {
+      g_object_set (cell, "text", var_get_name (var), NULL);
+    }
+}
+
+   /* Sets up TREEVIEW to display the variables of DICT.
    MODE is the selection mode for TREEVIEW.
    PREDICATE determines which variables should be visible, or NULL if
    all are to be visible.
@@ -67,7 +172,8 @@ attach_dictionary_to_treeview (GtkTreeView *treeview, PsppireDict *dict,
   GtkTreeSelection *selection =
     gtk_tree_view_get_selection (treeview);
 
-  GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+  GtkCellRenderer *renderer;
+
   GtkTreeModel *model ;
 
   if ( predicate )
@@ -88,17 +194,30 @@ attach_dictionary_to_treeview (GtkTreeView *treeview, PsppireDict *dict,
   gtk_tree_view_set_model (GTK_TREE_VIEW (treeview), model);
 
 
+  col = gtk_tree_view_column_new ();
+  gtk_tree_view_column_set_title (col, _("Variable"));
 
-  col = gtk_tree_view_column_new_with_attributes (_("Var"),
-						  renderer,
-						  "text",
-						  0,
-						  NULL);
+  renderer = gtk_cell_renderer_pixbuf_new ();
+  gtk_tree_view_column_pack_start (col, renderer, FALSE);
 
-  /* FIXME: make this a value in terms of character widths */
-  g_object_set (col, "min-width",  100, NULL);
+  gtk_tree_view_column_set_cell_data_func (col, renderer,
+					   var_icon_cell_data_func,
+					   NULL, NULL);
+
+
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_tree_view_column_pack_start (col, renderer, TRUE);
+  gtk_tree_view_column_set_cell_data_func (col, renderer,
+					   var_description_cell_data_func,
+					   NULL, NULL);
+
+  g_object_set (renderer, "ellipsize-set", TRUE, NULL);
+  g_object_set (renderer, "ellipsize", PANGO_ELLIPSIZE_MIDDLE, NULL);
 
   gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
+
+  /* FIXME: make this a value in terms of character widths */
+  gtk_tree_view_column_set_min_width (col, 150);
 
   gtk_tree_view_append_column (treeview, col);
 
@@ -113,7 +232,7 @@ insert_source_row_into_entry (GtkTreeIter iter,
 			      )
 {
   GtkTreePath *path;
-  PsppireDict *dict;
+  GtkTreeModel *dict;
   gint *idx;
   struct variable *var;
   GtkTreeIter dict_iter;
@@ -121,27 +240,13 @@ insert_source_row_into_entry (GtkTreeIter iter,
 
   g_return_if_fail (GTK_IS_ENTRY(dest));
 
-
-  if ( GTK_IS_TREE_MODEL_FILTER (model))
-    {
-      dict = PSPPIRE_DICT (gtk_tree_model_filter_get_model
-			   (GTK_TREE_MODEL_FILTER(model)));
-      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER
-							(model),
-							&dict_iter, &iter);
-    }
-  else
-    {
-      dict = PSPPIRE_DICT (model);
-      dict_iter = iter;
-    }
-
+  get_base_model (model, &iter, &dict, &dict_iter);
 
   path = gtk_tree_model_get_path (GTK_TREE_MODEL (dict), &dict_iter);
 
   idx = gtk_tree_path_get_indices (path);
 
-  var =  psppire_dict_get_variable (dict, *idx);
+  var =  psppire_dict_get_variable (PSPPIRE_DICT (dict), *idx);
 
   gtk_tree_path_free (path);
 
@@ -164,24 +269,12 @@ insert_source_row_into_tree_view (GtkTreeIter iter,
   gint *row ;
   GtkTreeModel *destmodel = gtk_tree_view_get_model ( GTK_TREE_VIEW (dest));
 
-  PsppireDict *dict;
-
-  if ( GTK_IS_TREE_MODEL_FILTER (model))
-    {
-      dict = PSPPIRE_DICT (gtk_tree_model_filter_get_model
-			   (GTK_TREE_MODEL_FILTER(model)));
-      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER
-							(model),
-							&dict_iter, &iter);
-    }
-  else
-    {
-      dict = PSPPIRE_DICT (model);
-      dict_iter = iter;
-    }
+  GtkTreeModel *dict;
 
 
-  path = gtk_tree_model_get_path (GTK_TREE_MODEL (dict), &dict_iter);
+  get_base_model (model, &iter, &dict, &dict_iter);
+
+  path = gtk_tree_model_get_path (dict, &dict_iter);
 
   row = gtk_tree_path_get_indices (path);
 
@@ -199,37 +292,22 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
   gboolean result;
   gchar *name;
   GtkTreeIter dict_iter;
-  PsppireDict *dict;
+  GtkTreeModel *dict;
   struct variable *var;
   gint dict_index;
   gint *indeces;
   GtkTreePath *path;
   const gchar *text =   gtk_entry_get_text (GTK_ENTRY (selector->dest));
 
+  get_base_model (model, iter, &dict, &dict_iter);
 
-  if ( GTK_IS_TREE_MODEL_FILTER (model))
-    {
-      dict = PSPPIRE_DICT (gtk_tree_model_filter_get_model
-			   (GTK_TREE_MODEL_FILTER(model)));
-      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER
-							(model),
-							&dict_iter, iter);
-    }
-  else
-    {
-      dict = PSPPIRE_DICT (model);
-      dict_iter = *iter;
-    }
-
-
-  path = gtk_tree_model_get_path (GTK_TREE_MODEL(dict),
-				  &dict_iter);
+  path = gtk_tree_model_get_path (dict, &dict_iter);
 
   indeces = gtk_tree_path_get_indices (path);
 
   dict_index = indeces [0];
 
-  var = psppire_dict_get_variable (dict, dict_index);
+  var = psppire_dict_get_variable (PSPPIRE_DICT (dict), dict_index);
 
   gtk_tree_path_free (path);
 

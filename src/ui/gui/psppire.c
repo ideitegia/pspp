@@ -280,6 +280,31 @@ create_icon_factory (void)
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "pspp-recent-dialogs", icon_set);
 
+  pixbuf = PIXBUF_NEW_FROM_FILE ("nominal.png");
+  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+  gtk_icon_factory_add ( factory, "var-nominal", icon_set);
+
+  pixbuf = PIXBUF_NEW_FROM_FILE ("ordinal.png");
+  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+  gtk_icon_factory_add ( factory, "var-ordinal", icon_set);
+
+  pixbuf = PIXBUF_NEW_FROM_FILE ("scale.png");
+  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+  gtk_icon_factory_add ( factory, "var-scale", icon_set);
+
+  pixbuf = PIXBUF_NEW_FROM_FILE ("string.png");
+  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+  gtk_icon_factory_add ( factory, "var-string", icon_set);
+
+  pixbuf = PIXBUF_NEW_FROM_FILE ("date-scale.png");
+  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+  gtk_icon_factory_add ( factory, "var-date-scale", icon_set);
+
 
 
   gtk_icon_factory_add_default (factory);

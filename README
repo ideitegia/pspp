@@ -34,10 +34,10 @@ PSPP, you will need to install certain prerequisites:
       graphing features will not work.  If you do not have it
       installed, you must run `configure' with --without-libplot.
 
-    * Optional: GTK+ version 2.6.0 or later, plus libglade 2.0 or
-      later.  Without them, the GUI will not be built.  If you do not
-      have these installed, you must run `configure' with
-      --without-gui.
+    * Optional: GTK+ version 2.6.0 or later (2.10.2 or later is 
+      recommended), plus libglade 2.0 or later.  Without them, the 
+      GUI will not be built.  If you do not have these installed, you 
+      must run `configure' with --without-gui.
 
     * Optional: Texinfo 4.7 or later, if you want to build the
       documentation in PostScript or PDF format.

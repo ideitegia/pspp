@@ -1,3 +1,7 @@
+2007-04-25 John Darrington <john@darrington.wattle.id.au>
+
+	* i18n.c: Fixed bug converting long strings
+
 2007-04-22  Ben Pfaff  <blp@gnu.org>
 
 	Patch #5884.
