@@ -1,3 +1,9 @@
+2007-04-25  Ben Pfaff  <blp@gnu.org>
+
+	* model-checker.c: Don't use type sighandler_t, which is a GNU
+	extension.  Reported by "Daniel E WILLIAMS"
+	<Daniel.E.Williams@state.or.us>.
+
 2007-04-25 John Darrington <john@darrington.wattle.id.au>
 
 	* i18n.c: Fixed bug converting long strings

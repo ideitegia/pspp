@@ -890,7 +890,7 @@ struct mc
     /* Information for handling and restoring SIGINT. */
     bool interrupted;                   /* SIGINT received? */
     bool *saved_interrupted_ptr;        /* Saved value of interrupted_ptr. */
-    sighandler_t saved_sigint;          /* Saved SIGINT handler. */
+    void (*saved_sigint) (int);         /* Saved SIGINT handler. */
   };
 
 /* A state in the queue. */
