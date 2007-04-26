@@ -1,5 +1,14 @@
 2007-04-25 John Darrington <john@darrington.wattle.id.au>
 
+	* icons/scalable/splash.c icons/splash.png : More eye candy.
+	
+	* main.c psppire.h : new files.
+
+	* psppire.c : Seperated the command line parsing and other 
+	environment startup from the core psppire code.
+
+2007-04-25 John Darrington <john@darrington.wattle.id.au>
+
 	* icons/scalable icons/16x16: new directories.
 	* psppire.c : Add new icons to factory.
 

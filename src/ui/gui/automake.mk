@@ -64,7 +64,8 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/icons/16x16/ordinal.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/scale.png \
 	$(top_srcdir)/src/ui/gui/icons/16x16/string.png \
-	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png 
+	$(top_srcdir)/src/ui/gui/icons/16x16/date-scale.png \
+	$(top_srcdir)/src/ui/gui/icons/splash.png
 
 
 src_ui_gui_psppire_SOURCES = \
@@ -84,9 +85,11 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/dict-display.h \
 	src/ui/gui/flexifile-factory.h \
 	src/ui/gui/flexifile-factory.c \
+	src/ui/gui/main.c \
 	src/ui/gui/message-dialog.c \
 	src/ui/gui/message-dialog.h \
 	src/ui/gui/psppire.c \
+	src/ui/gui/psppire.h \
 	src/ui/gui/helper.c \
 	src/ui/gui/helper.h \
 	src/ui/gui/missing-val-dialog.c \

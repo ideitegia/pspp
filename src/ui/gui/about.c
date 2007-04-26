@@ -27,6 +27,8 @@
 #include "about.h"
 #include "helper.h"
 
+const static gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
+
 void
 about_new (GtkMenuItem *m, GtkWindow *parent)
 {
@@ -52,6 +54,9 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
 
   gtk_about_dialog_set_authors (GTK_ABOUT_DIALOG (about),
 				(const gchar **) authors);
+
+  gtk_about_dialog_set_artists (GTK_ABOUT_DIALOG (about),
+				artists);
 
   gtk_window_set_transient_for (GTK_WINDOW (about), parent);
 

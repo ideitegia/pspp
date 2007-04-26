@@ -22,13 +22,13 @@
 #include <assert.h>
 #include <libintl.h>
 
-#include "progname.h"
 #include "relocatable.h"
 
 #include "data-editor.h"
 
-#include <libpspp/version.h>
-#include <libpspp/copyleft.h>
+#include "psppire.h"
+
+
 #include <data/file-handle-def.h>
 #include <data/format.h>
 #include <data/storage-stream.h>
@@ -39,9 +39,8 @@
 #include <libpspp/getl.h>
 #include <language/lexer/lexer.h>
 #include <ui/flexifile.h>
+#include <libpspp/version.h>
 
-#include <getopt.h>
-#include <gtk/gtk.h>
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include "psppire-dict.h"
@@ -57,12 +56,14 @@ PsppireDataStore *the_data_store = 0;
 
 
 static bool parse_command_line (int *argc, char ***argv,
-				gchar **filename, GError **err);
+				gchar **filename,
+				gboolean *show_splash,
+				GError **err);
 
 
 PsppireVarStore *the_var_store = 0;
 
-void create_icon_factory (void);
+static void create_icon_factory (void);
 
 struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
@@ -70,8 +71,7 @@ struct dataset * the_dataset = NULL;
 static void
 replace_dictionary (struct dictionary *d)
 {
-  psppire_dict_replace_dictionary (the_data_store->dict,
-				   d);
+  psppire_dict_replace_dictionary (the_data_store->dict, d);
 }
 
 
@@ -93,31 +93,12 @@ replace_flexifile (struct case_source *s)
 }
 
 
-int
-main (int argc, char *argv[])
+
+void
+initialize (void)
 {
   struct casefile_factory *factory;
   PsppireDict *dictionary = 0;
-
-  gchar *filename=0;
-  GError *err = 0;
-  gchar *vers;
-
-  set_program_name (argv[0]);
-
-  if ( ! gtk_parse_args (&argc, &argv) )
-    {
-      perror ("Error parsing arguments");
-      exit (1);
-    }
-
-  if ( (vers = gtk_check_version (GTK_MAJOR_VERSION,
-				 GTK_MINOR_VERSION,
-				 GTK_MICRO_VERSION)) )
-    {
-      g_critical (vers);
-    }
-
 
   /* gtk_init messes with the locale.
      So unset the bits we want to control ourselves */
@@ -127,19 +108,14 @@ main (int argc, char *argv[])
 
   textdomain (PACKAGE);
 
-  if ( ! parse_command_line (&argc, &argv, &filename, &err) )
-    {
-      g_clear_error (&err);
-      return 0;
-    }
-
   glade_init ();
 
   fmt_init ();
   settings_init ();
   fh_init ();
   factory = flexifile_factory_create ();
-  the_source_stream = create_source_stream (
+  the_source_stream =
+    create_source_stream (
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
 
@@ -155,7 +131,6 @@ main (int argc, char *argv[])
 
   bind_textdomain_codeset (PACKAGE, "UTF-8");
 
-  gdk_init (&argc, &argv);
 
   /* Create the model for the var_sheet */
   the_var_store = psppire_var_store_new (dictionary);
@@ -170,68 +145,23 @@ main (int argc, char *argv[])
   create_icon_factory ();
 
   new_data_window (NULL, NULL);
+}
 
-  /* start the event loop */
-  gtk_main ();
 
+void
+de_initialize (void)
+{
   destroy_source_stream (the_source_stream);
   message_dialog_done ();
-
   settings_done ();
-
-  return 0;
 }
 
-
-/* Parses the command line specified by ARGC and ARGV as received by
-   main ().  Returns true if normal execution should proceed,
-   false if the command-line indicates that PSPP should exit. */
-static bool
-parse_command_line (int *argc, char ***argv, gchar **filename, GError **err)
-{
-  static struct option long_options[] =
-    {
-      {"help", no_argument, NULL, 'h'},
-      {"version", no_argument, NULL, 'V'},
-      {0, 0, 0, 0},
-    };
-
-  int c;
-
-  for (;;)
-    {
-      c = getopt_long (*argc, *argv, "hV", long_options, NULL);
-      if (c == -1)
-	break;
-
-      switch (c)
-	{
-	case 'h':
-	  g_print ("Usage: psppire {|--help|--version}\n");
-          return false;
-	case 'V':
-	  g_print (version);
-	  g_print ("\n");
-	  g_print (legal);
-	  return false;
-	default:
-	  return false;
-	}
-    }
-
-  if ( optind < *argc)
-    {
-      *filename = (*argv)[optind];
-    }
-
-  return true;
-}
 
 #define PIXBUF_NEW_FROM_FILE(FILE) \
   gdk_pixbuf_new_from_file (relocate (PKGDATADIR "/" FILE), 0)
 
 
-void
+static void
 create_icon_factory (void)
 {
   GtkIconFactory *factory = gtk_icon_factory_new ();
@@ -304,7 +234,6 @@ create_icon_factory (void)
   icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
   g_object_unref (pixbuf);
   gtk_icon_factory_add ( factory, "var-date-scale", icon_set);
-
 
 
   gtk_icon_factory_add_default (factory);
