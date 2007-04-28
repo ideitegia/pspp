@@ -97,7 +97,7 @@ recode_string (enum conv_id how,  const char *text, int length)
   inbytes = length;
 
   do {
-    char *ip = text;
+    const char *ip = text;
     result = iconv (convertor[how], (ICONV_CONST char **) &text, &inbytes,
 		   &op, &outbytes);
 

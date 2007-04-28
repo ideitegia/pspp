@@ -53,14 +53,6 @@
 #include "flexifile-factory.h"
 
 PsppireDataStore *the_data_store = 0;
-
-
-static bool parse_command_line (int *argc, char ***argv,
-				gchar **filename,
-				gboolean *show_splash,
-				GError **err);
-
-
 PsppireVarStore *the_var_store = 0;
 
 static void create_icon_factory (void);

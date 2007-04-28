@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.2\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-04-25 07:29+0800\n"
+"POT-Creation-Date: 2007-04-28 11:18+0800\n"
 "PO-Revision-Date: 2006-05-26 17:49+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -3415,6 +3415,24 @@ msgstr ""
 msgid "Closing `%s': %s."
 msgstr ""
 
+#: src/language/tests/check-model.q:139
+msgid "PATH and SEARCH subcommands are mutually exclusive.  Ignoring PATH."
+msgstr ""
+
+#: src/language/tests/check-model.q:157
+msgid "At least one value must be specified on PATH."
+msgstr ""
+
+#: src/language/tests/check-model.q:168
+#, c-format
+msgid "Hash bits adjusted to %d."
+msgstr ""
+
+#: src/language/tests/check-model.q:209
+#, c-format
+msgid "error opening \"%s\" for writing"
+msgstr ""
+
 #: src/language/tests/float-format.c:126
 #, c-format
 msgid "%d-byte string needed but %d-byte string supplied."
@@ -4692,14 +4710,14 @@ msgstr "Variableansicht"
 msgid "Current Status: "
 msgstr ""
 
-#: src/ui/gui/psppire.glade:281
-#, fuzzy
-msgid "Variable(s):"
-msgstr "Variableansicht"
-
-#: src/ui/gui/psppire.glade:330
+#: src/ui/gui/psppire.glade:259
 #, fuzzy
 msgid "Name Variable:"
+msgstr "Variableansicht"
+
+#: src/ui/gui/psppire.glade:292
+#, fuzzy
+msgid "Variable(s):"
 msgstr "Variableansicht"
 
 #: src/ui/gui/psppire.glade:446

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-04-25 07:29+0800\n"
+"POT-Creation-Date: 2007-04-28 11:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3409,6 +3409,24 @@ msgstr ""
 msgid "Closing `%s': %s."
 msgstr ""
 
+#: src/language/tests/check-model.q:139
+msgid "PATH and SEARCH subcommands are mutually exclusive.  Ignoring PATH."
+msgstr ""
+
+#: src/language/tests/check-model.q:157
+msgid "At least one value must be specified on PATH."
+msgstr ""
+
+#: src/language/tests/check-model.q:168
+#, c-format
+msgid "Hash bits adjusted to %d."
+msgstr ""
+
+#: src/language/tests/check-model.q:209
+#, c-format
+msgid "error opening \"%s\" for writing"
+msgstr ""
+
 #: src/language/tests/float-format.c:126
 #, c-format
 msgid "%d-byte string needed but %d-byte string supplied."
@@ -4664,12 +4682,12 @@ msgstr ""
 msgid "Current Status: "
 msgstr ""
 
-#: src/ui/gui/psppire.glade:281
-msgid "Variable(s):"
+#: src/ui/gui/psppire.glade:259
+msgid "Name Variable:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:330
-msgid "Name Variable:"
+#: src/ui/gui/psppire.glade:292
+msgid "Variable(s):"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:446

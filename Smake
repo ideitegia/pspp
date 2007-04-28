@@ -17,6 +17,7 @@ GNULIB_MODULES = \
 	fpieee \
 	full-read \
 	full-write \
+        fseeko \
 	fwriteerror \
 	gethostname \
 	getline \
