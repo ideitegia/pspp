@@ -404,6 +404,37 @@
               </widget>
             </child>
             <child>
+              <widget class="GtkMenuItem" id="utilities">
+                <property name="visible">True</property>
+                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                <property name="label" translatable="yes">_Utilities</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="menu1">
+                    <property name="visible">True</property>
+                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <child>
+                      <widget class="GtkMenuItem" id="utilities_variables">
+                        <property name="visible">True</property>
+                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="label" translatable="yes">_Variables</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="utilities_comments">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="label" translatable="yes">Data File _Comments</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+            <child>
               <widget class="GtkMenuItem" id="windows">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_Windows</property>
@@ -555,7 +586,6 @@
                 <child>
                   <widget class="GtkToolButton" id="button-goto-variable">
                     <property name="visible">True</property>
-                    <property name="sensitive">False</property>
                     <property name="tooltip" translatable="yes">Variables</property>
                     <property name="use_underline">True</property>
                     <property name="stock_id">pspp-goto-variable</property>

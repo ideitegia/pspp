@@ -65,6 +65,17 @@
     <properties>
       <property id="child"  disabled="True" />
       <property id="visible" ignore="True" default="True" />
+
+      <property id="buttons">
+  	  <displayable-values>
+	    <value id="PSPPIRE_BUTTON_OK_MASK"     name="OK"></value>
+	    <value id="PSPPIRE_BUTTON_CANCEL_MASK" name="Cancel"></value>
+	    <value id="PSPPIRE_BUTTON_HELP_MASK"   name="Help"></value>
+	    <value id="PSPPIRE_BUTTON_RESET_MASK"  name="Reset"></value>
+	    <value id="PSPPIRE_BUTTON_PASTE_MASK"  name="Paste"></value>
+	  </displayable-values>
+      </property>
+
     </properties>
 
     <packing-defaults>

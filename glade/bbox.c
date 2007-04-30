@@ -37,7 +37,7 @@ glade_psppire_button_box_get_internal_child (GladeWidgetAdaptor  *adaptor,
   g_print ("%s\n", __FUNCTION__);
 #endif
 
-  return bbox;
+  return GTK_WIDGET (bbox);
 }
 
 

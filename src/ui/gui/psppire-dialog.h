@@ -26,8 +26,10 @@
 #include <glib-object.h>
 #include <gtk/gtkwindow.h>
 
-#define PSPPIRE_RESPONSE_PASTE 1
 
+#define PSPPIRE_RESPONSE_PASTE 1
+#define PSPPIRE_RESPONSE_GOTO 2
+#define PSPPIRE_RESPONSE_CONTINUE 3
 
 G_BEGIN_DECLS
 

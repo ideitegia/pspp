@@ -38,9 +38,24 @@ G_BEGIN_DECLS
 typedef struct _PsppireButtonBox       PsppireButtonBox;
 typedef struct _PsppireButtonBoxClass  PsppireButtonBoxClass;
 
+enum
+  {
+    PSPPIRE_BUTTON_OK = 0,
+    PSPPIRE_BUTTON_GOTO,
+    PSPPIRE_BUTTON_CONTINUE,
+    PSPPIRE_BUTTON_CANCEL,
+    PSPPIRE_BUTTON_HELP,
+    PSPPIRE_BUTTON_RESET,
+    PSPPIRE_BUTTON_PASTE,
+    n_PsppireButtonBoxButtons
+  };
+
 struct _PsppireButtonBox
 {
   GtkButtonBox parent;
+
+  /* <private> */
+  GtkWidget *button[n_PsppireButtonBoxButtons];
 };
 
 struct _PsppireButtonBoxClass
@@ -57,6 +72,10 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
 				       int       *nvis_children,
 				       int       *nvis_secondaries,
 				       int       *width,
+
+
+#define G_TYPE_PSPPIRE_BUTTON_MASK \
+  (psppire_button_flags_get_type())
 				       int       *height);
 
 G_END_DECLS

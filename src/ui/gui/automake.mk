@@ -126,10 +126,14 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/transpose-dialog.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
+	src/ui/gui/var-display.c \
+	src/ui/gui/var-display.h \
 	src/ui/gui/var-sheet.c \
 	src/ui/gui/var-sheet.h \
 	src/ui/gui/var-type-dialog.c \
 	src/ui/gui/var-type-dialog.h \
+	src/ui/gui/variable-info-dialog.c \
+	src/ui/gui/variable-info-dialog.h \
 	src/ui/gui/weight-cases-dialog.c \
 	src/ui/gui/weight-cases-dialog.h \
 	src/ui/gui/window-manager.c \

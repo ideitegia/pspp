@@ -36,6 +36,7 @@
 #include "transpose-dialog.h"
 #include "sort-cases-dialog.h"
 #include "compute-dialog.h"
+#include "variable-info-dialog.h"
 #include "dict-display.h"
 
 #define _(msgid) gettext (msgid)
@@ -57,7 +58,6 @@ static void insert_variable (GtkCheckMenuItem *m, gpointer data);
 
 
 /* Switch between the VAR SHEET and the DATA SHEET */
-enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
 
 static gboolean click2column (GtkWidget *w, gint col, gpointer data);
 
@@ -260,6 +260,14 @@ new_data_editor (void)
   g_signal_connect (de->invoke_compute_dialog, "activate",
 		    G_CALLBACK (compute_dialog), de);
 
+  de->invoke_variable_info_dialog  =
+    gtk_action_new ("variable-info-dialog",
+		    _("Variables"),
+		    _("Jump to Variable"),
+		    "pspp-goto-variable");
+
+  g_signal_connect (de->invoke_variable_info_dialog, "activate",
+		    G_CALLBACK (variable_info_dialog), de);
 
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
@@ -272,6 +280,9 @@ new_data_editor (void)
 			    "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->action_data_open);
+
+
+
 
 
 #if RECENT_LISTS_AVAILABLE
@@ -364,6 +375,10 @@ new_data_editor (void)
 			    get_widget_assert (de->xml, "transform_compute")
 			    );
 
+  gtk_action_connect_proxy (de->invoke_variable_info_dialog,
+			    get_widget_assert (de->xml, "utilities_variables")
+			    );
+
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
 		    "activate",
@@ -449,6 +464,10 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->action_data_save,
 			    get_widget_assert (de->xml, "button-save")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_variable_info_dialog,
+			    get_widget_assert (de->xml, "button-goto-variable")
 			    );
 
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,

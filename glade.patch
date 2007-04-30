@@ -1,7 +1,16 @@
---- /Scratch/john/tmp.vKHTg31290/share/pspp/data-editor.glade	2007-03-31 12:55:02.000000000 +0800
-+++ src/ui/gui/data-editor.glade	2007-03-31 13:04:27.000000000 +0800
-@@ -494,7 +494,7 @@
+--- xxx	2007-04-29 11:57:19.000000000 +0800
++++ src/ui/gui/data-editor.glade	2007-04-29 11:57:37.000000000 +0800
+@@ -526,7 +526,7 @@
+                     <property name="visible">True</property>
                      <property name="sensitive">False</property>
+                     <property name="tooltip" translatable="yes">Recall</property>
+-                    <property name="stock_id">gtk-missing-image</property>
++                    <property name="stock_id">pspp-recent-dialogs</property>
+                   </widget>
+                   <packing>
+                     <property name="expand">False</property>
+@@ -588,7 +588,7 @@
+                     <property name="visible">True</property>
                      <property name="tooltip" translatable="yes">Variables</property>
                      <property name="use_underline">True</property>
 -                    <property name="stock_id">gtk-missing-image</property>
@@ -9,7 +18,7 @@
                    </widget>
                    <packing>
                      <property name="expand">False</property>
-@@ -535,7 +535,7 @@
+@@ -629,7 +629,7 @@
                      <property name="sensitive">False</property>
                      <property name="tooltip" translatable="yes">Insert Case</property>
                      <property name="use_underline">True</property>
@@ -18,7 +27,7 @@
                    </widget>
                    <packing>
                      <property name="expand">False</property>
-@@ -547,7 +547,7 @@
+@@ -641,7 +641,7 @@
                      <property name="sensitive">False</property>
                      <property name="tooltip" translatable="yes">Insert Variable</property>
                      <property name="use_underline">True</property>
@@ -27,7 +36,7 @@
                    </widget>
                    <packing>
                      <property name="expand">False</property>
-@@ -567,7 +567,7 @@
+@@ -661,7 +661,7 @@
                      <property name="visible">True</property>
                      <property name="tooltip" translatable="yes">Split File</property>
                      <property name="use_underline">True</property>
@@ -36,7 +45,7 @@
                    </widget>
                    <packing>
                      <property name="expand">False</property>
-@@ -578,7 +578,7 @@
+@@ -672,7 +672,7 @@
                      <property name="visible">True</property>
                      <property name="tooltip" translatable="yes">Weight Cases</property>
                      <property name="use_underline">True</property>
@@ -45,7 +54,7 @@
                    </widget>
                    <packing>
                      <property name="expand">False</property>
-@@ -590,7 +590,7 @@
+@@ -684,7 +684,7 @@
                      <property name="sensitive">False</property>
                      <property name="tooltip" translatable="yes">Select Cases</property>
                      <property name="use_underline">True</property>
@@ -54,7 +63,7 @@
                    </widget>
                    <packing>
                      <property name="expand">False</property>
-@@ -610,7 +610,7 @@
+@@ -704,7 +704,7 @@
                      <property name="visible">True</property>
                      <property name="tooltip" translatable="yes">Value Labels</property>
                      <property name="use_underline">True</property>

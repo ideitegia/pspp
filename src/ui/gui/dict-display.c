@@ -92,7 +92,7 @@ var_icon_cell_data_func (GtkTreeViewColumn *col,
 }
 
 
-static void
+void
 get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
 		GtkTreeModel **model, GtkTreeIter *iter
 		)

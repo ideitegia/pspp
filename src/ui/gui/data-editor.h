@@ -40,6 +40,8 @@ struct data_editor
   GtkAction *invoke_sort_cases_dialog;
   GtkAction *invoke_compute_dialog;
 
+  GtkAction *invoke_variable_info_dialog;
+
   GladeXML *xml;
 
   gboolean save_as_portable;
@@ -56,6 +58,8 @@ struct data_editor * new_data_editor (void);
 void new_data_window (GtkMenuItem *, gpointer);
 
 void data_editor_select_sheet (struct data_editor *de, gint page);
+
+enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
 
 
 #endif

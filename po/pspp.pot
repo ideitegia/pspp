@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-04-28 11:18+0800\n"
+"POT-Creation-Date: 2007-04-29 12:09+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -308,14 +308,14 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:310 src/data/por-file-reader.c:489
-#: src/data/sys-file-reader.c:629 src/ui/gui/data-editor.glade:1127
-#: src/ui/gui/psppire-var-store.c:481
+#: src/data/sys-file-reader.c:629 src/ui/gui/data-editor.glade:1157
+#: src/ui/gui/psppire-var-store.c:486
 msgid "String"
 msgstr ""
 
 #: src/data/format.c:310 src/data/por-file-reader.c:489
-#: src/data/sys-file-reader.c:629 src/ui/gui/data-editor.glade:1023
-#: src/ui/gui/psppire-var-store.c:474
+#: src/data/sys-file-reader.c:629 src/ui/gui/data-editor.glade:1053
+#: src/ui/gui/psppire-var-store.c:479
 msgid "Numeric"
 msgstr ""
 
@@ -3409,24 +3409,6 @@ msgstr ""
 msgid "Closing `%s': %s."
 msgstr ""
 
-#: src/language/tests/check-model.q:139
-msgid "PATH and SEARCH subcommands are mutually exclusive.  Ignoring PATH."
-msgstr ""
-
-#: src/language/tests/check-model.q:157
-msgid "At least one value must be specified on PATH."
-msgstr ""
-
-#: src/language/tests/check-model.q:168
-#, c-format
-msgid "Hash bits adjusted to %d."
-msgstr ""
-
-#: src/language/tests/check-model.q:209
-#, c-format
-msgid "error opening \"%s\" for writing"
-msgstr ""
-
 #: src/language/tests/float-format.c:126
 #, c-format
 msgid "%d-byte string needed but %d-byte string supplied."
@@ -4190,84 +4172,93 @@ msgstr ""
 msgid "Compute new values for a variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:636
+#: src/ui/gui/data-editor.c:265 src/ui/gui/data-editor.glade:259
+#: src/ui/gui/data-editor.glade:589
+msgid "Variables"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:266
+msgid "Jump to Variable"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:655
 msgid "Font Selection"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:814
+#: src/ui/gui/data-editor.c:833
 msgid "No Split"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:822
+#: src/ui/gui/data-editor.c:841
 msgid "Split by "
 msgstr ""
 
-#: src/ui/gui/data-editor.c:847
+#: src/ui/gui/data-editor.c:866
 msgid "Filter off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:860
+#: src/ui/gui/data-editor.c:879
 #, c-format
 msgid "Filter by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:878
+#: src/ui/gui/data-editor.c:897
 msgid "Weights off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:891
+#: src/ui/gui/data-editor.c:910
 #, c-format
 msgid "Weight by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:914 src/ui/gui/data-editor.c:1145
-#: src/ui/gui/data-editor.glade:465
+#: src/ui/gui/data-editor.c:933 src/ui/gui/data-editor.c:1164
+#: src/ui/gui/data-editor.glade:496
 msgid "Open"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:915
+#: src/ui/gui/data-editor.c:934
 msgid "Open a data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:923 src/ui/gui/data-editor.c:1030
-#: src/ui/gui/data-editor.glade:475
+#: src/ui/gui/data-editor.c:942 src/ui/gui/data-editor.c:1049
+#: src/ui/gui/data-editor.glade:506
 msgid "Save"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:924 src/ui/gui/data-editor.c:934
+#: src/ui/gui/data-editor.c:943 src/ui/gui/data-editor.c:953
 msgid "Save data to file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:933
+#: src/ui/gui/data-editor.c:952
 msgid "Save As"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:942
+#: src/ui/gui/data-editor.c:961
 msgid "New"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:943
+#: src/ui/gui/data-editor.c:962
 msgid "New data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1038 src/ui/gui/data-editor.c:1153
+#: src/ui/gui/data-editor.c:1057 src/ui/gui/data-editor.c:1172
 msgid "System Files (*.sav)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1044 src/ui/gui/data-editor.c:1159
+#: src/ui/gui/data-editor.c:1063 src/ui/gui/data-editor.c:1178
 msgid "Portable Files (*.por) "
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1050 src/ui/gui/data-editor.c:1165
+#: src/ui/gui/data-editor.c:1069 src/ui/gui/data-editor.c:1184
 #: src/ui/gui/syntax-editor.c:141 src/ui/gui/syntax-editor.c:527
 msgid "All Files"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1058
+#: src/ui/gui/data-editor.c:1077
 msgid "System File"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1063
+#: src/ui/gui/data-editor.c:1082
 msgid "Portable File"
 msgstr ""
 
@@ -4330,8 +4321,8 @@ msgstr ""
 msgid "Grid Lines"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:240 src/ui/gui/data-editor.glade:675
-#: src/ui/gui/data-editor.glade:1385 src/ui/gui/data-editor.glade:1563
+#: src/ui/gui/data-editor.glade:240 src/ui/gui/data-editor.glade:705
+#: src/ui/gui/data-editor.glade:1415 src/ui/gui/data-editor.glade:1593
 msgid "Value Labels"
 msgstr ""
 
@@ -4339,11 +4330,7 @@ msgstr ""
 msgid "Data"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:259 src/ui/gui/data-editor.glade:559
-msgid "Variables"
-msgstr ""
-
-#: src/ui/gui/data-editor.glade:278 src/ui/gui/data-editor.glade:612
+#: src/ui/gui/data-editor.glade:278 src/ui/gui/data-editor.glade:642
 msgid "Insert Variable"
 msgstr ""
 
@@ -4351,12 +4338,12 @@ msgstr ""
 msgid "Insert Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:294 src/ui/gui/data-editor.glade:548
-#: src/ui/gui/data-editor.glade:1929
+#: src/ui/gui/data-editor.glade:294 src/ui/gui/data-editor.glade:579
+#: src/ui/gui/data-editor.glade:1959
 msgid "Go To Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:307 src/ui/gui/data-editor.glade:1994
+#: src/ui/gui/data-editor.glade:307 src/ui/gui/data-editor.glade:2024
 msgid "Sort Cases"
 msgstr ""
 
@@ -4372,15 +4359,15 @@ msgstr ""
 msgid "Aggregate"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:352 src/ui/gui/data-editor.glade:632
+#: src/ui/gui/data-editor.glade:352 src/ui/gui/data-editor.glade:662
 msgid "Split File"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:360 src/ui/gui/data-editor.glade:655
+#: src/ui/gui/data-editor.glade:360 src/ui/gui/data-editor.glade:685
 msgid "Select Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:367 src/ui/gui/data-editor.glade:643
+#: src/ui/gui/data-editor.glade:367 src/ui/gui/data-editor.glade:673
 msgid "Weight Cases"
 msgstr ""
 
@@ -4396,191 +4383,203 @@ msgstr ""
 msgid "Ran_k Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:409 src/ui/gui/syntax-editor.glade:233
+#: src/ui/gui/data-editor.glade:410
+msgid "_Utilities"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:420
+msgid "_Variables"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:429
+msgid "Data File _Comments"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:440 src/ui/gui/syntax-editor.glade:233
 msgid "_Windows"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:416 src/ui/gui/syntax-editor.glade:242
+#: src/ui/gui/data-editor.glade:447 src/ui/gui/syntax-editor.glade:242
 msgid "_Minimise All Windows"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:427 src/ui/gui/syntax-editor.glade:254
+#: src/ui/gui/data-editor.glade:458 src/ui/gui/syntax-editor.glade:254
 msgid "_Help"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:434 src/ui/gui/syntax-editor.glade:263
+#: src/ui/gui/data-editor.glade:465 src/ui/gui/syntax-editor.glade:263
 msgid "_Reference Manual"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:441 src/ui/gui/syntax-editor.glade:271
+#: src/ui/gui/data-editor.glade:472 src/ui/gui/syntax-editor.glade:271
 msgid "_About"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:486
+#: src/ui/gui/data-editor.glade:517
 msgid "Print"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:497
+#: src/ui/gui/data-editor.glade:528
 msgid "Recall"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:517
+#: src/ui/gui/data-editor.glade:548
 msgid "Undo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:528
+#: src/ui/gui/data-editor.glade:559
 msgid "Redo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:580
+#: src/ui/gui/data-editor.glade:610
 msgid "Find"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:600
+#: src/ui/gui/data-editor.glade:630
 msgid "Insert Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:687
+#: src/ui/gui/data-editor.glade:717
 msgid "Use Sets"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:769
+#: src/ui/gui/data-editor.glade:799
 msgid "Data View"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:796
+#: src/ui/gui/data-editor.glade:826
 msgid "Variable View"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:826
+#: src/ui/gui/data-editor.glade:856
 msgid "Information Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:845
+#: src/ui/gui/data-editor.glade:875
 msgid "Processor Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:870
+#: src/ui/gui/data-editor.glade:900
 msgid "OMS Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:895
+#: src/ui/gui/data-editor.glade:925
 msgid "Case Counter Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:920
+#: src/ui/gui/data-editor.glade:950
 msgid "Filter Use Status Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:946
+#: src/ui/gui/data-editor.glade:976
 msgid "Weight Status Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:972
+#: src/ui/gui/data-editor.glade:1002
 msgid "Split File Status Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1002
+#: src/ui/gui/data-editor.glade:1032
 msgid "Variable Type"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1037 src/ui/gui/psppire-var-store.c:475
+#: src/ui/gui/data-editor.glade:1067 src/ui/gui/psppire-var-store.c:480
 msgid "Comma"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1052 src/ui/gui/psppire-var-store.c:476
+#: src/ui/gui/data-editor.glade:1082 src/ui/gui/psppire-var-store.c:481
 msgid "Dot"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1067
+#: src/ui/gui/data-editor.glade:1097
 msgid "Scientific notation"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1082 src/ui/gui/psppire-var-store.c:478
+#: src/ui/gui/data-editor.glade:1112 src/ui/gui/psppire-var-store.c:483
 msgid "Date"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1097 src/ui/gui/psppire-var-store.c:479
+#: src/ui/gui/data-editor.glade:1127 src/ui/gui/psppire-var-store.c:484
 msgid "Dollar"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1112
+#: src/ui/gui/data-editor.glade:1142
 msgid "Custom currency"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1204
+#: src/ui/gui/data-editor.glade:1234
 msgid "positive"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1210
+#: src/ui/gui/data-editor.glade:1240
 msgid "negative"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1223
+#: src/ui/gui/data-editor.glade:1253
 msgid "Sample"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1271
+#: src/ui/gui/data-editor.glade:1301
 msgid "Decimal Places:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1312
+#: src/ui/gui/data-editor.glade:1342
 msgid "Width:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1469
+#: src/ui/gui/data-editor.glade:1499
 msgid "Value:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1480
+#: src/ui/gui/data-editor.glade:1510
 msgid "Value Label:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1627
+#: src/ui/gui/data-editor.glade:1657
 msgid "Missing Values"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1691
+#: src/ui/gui/data-editor.glade:1721
 msgid "_No missing values"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1708
+#: src/ui/gui/data-editor.glade:1738
 msgid "_Discrete missing values"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1792
+#: src/ui/gui/data-editor.glade:1822
 msgid "_Range plus one optional discrete missing value"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1816
+#: src/ui/gui/data-editor.glade:1846
 msgid "_Low:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1845
+#: src/ui/gui/data-editor.glade:1875
 msgid "_High:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1886
+#: src/ui/gui/data-editor.glade:1916
 msgid "Di_screte value:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1946
+#: src/ui/gui/data-editor.glade:1976
 msgid "Case Number:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2055 src/ui/gui/psppire.glade:1171
+#: src/ui/gui/data-editor.glade:2085 src/ui/gui/psppire.glade:1171
 msgid "Sort by:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2104 src/ui/gui/psppire.glade:1224
+#: src/ui/gui/data-editor.glade:2134 src/ui/gui/psppire.glade:1224
 msgid "Ascending"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2117 src/ui/gui/psppire.glade:1234
+#: src/ui/gui/data-editor.glade:2147 src/ui/gui/psppire.glade:1234
 msgid "Descending"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:2133 src/ui/gui/psppire.glade:1250
+#: src/ui/gui/data-editor.glade:2163 src/ui/gui/psppire.glade:1250
 msgid "Sort Order"
 msgstr ""
 
@@ -4628,17 +4627,53 @@ msgstr ""
 msgid "Incorrect range specification"
 msgstr ""
 
-#: src/ui/gui/psppire-buttonbox.c:130
+#: src/ui/gui/psppire-buttonbox.c:146
+msgid "Buttons"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:147
+msgid "The mask that decides what buttons appear in the button box"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:245 src/ui/gui/psppire-buttonbox.c:397
+msgid "Continue"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:255
 msgid "_Paste"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:395
+msgid "OK"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:396
+msgid "Go To"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:398
+msgid "Cancel"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:399
+msgid "Help"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:400
+msgid "Reset"
+msgstr ""
+
+#: src/ui/gui/psppire-buttonbox.c:401
+msgid "Paste"
 msgstr ""
 
 #: src/ui/gui/psppire-data-store.c:750
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:831 src/ui/gui/psppire-var-store.c:551
-#: src/ui/gui/psppire-var-store.c:561 src/ui/gui/psppire-var-store.c:571
-#: src/ui/gui/psppire-var-store.c:769
+#: src/ui/gui/psppire-data-store.c:831 src/ui/gui/psppire-var-store.c:556
+#: src/ui/gui/psppire-var-store.c:566 src/ui/gui/psppire-var-store.c:576
+#: src/ui/gui/psppire-var-store.c:714
 #, c-format
 msgid "%d"
 msgstr ""
@@ -4806,15 +4841,33 @@ msgstr ""
 msgid "Functions:"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:470
+#: src/ui/gui/psppire.glade:1643
+msgid "Variable Information:"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1669
+msgid ""
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+"\n"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:472
 msgid "None"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:477
+#: src/ui/gui/psppire-var-store.c:482
 msgid "Scientific"
 msgstr ""
 
-#: src/ui/gui/psppire-var-store.c:480
+#: src/ui/gui/psppire-var-store.c:485
 msgid "Custom"
 msgstr ""
 

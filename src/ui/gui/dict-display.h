@@ -57,3 +57,8 @@ void insert_source_row_into_entry (GtkTreeIter source_iter,
 /* A FilterItemsFunc function for GtkEntry widgets */
 gboolean is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 				PsppireSelector *selector);
+
+
+void get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
+		     GtkTreeModel **model, GtkTreeIter *iter
+		     );

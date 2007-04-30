@@ -43,6 +43,7 @@
 #include "missing-val-dialog.h"
 #include <data/value-labels.h>
 
+#include "var-display.h"
 
 #define TRAILING_ROWS 40
 
@@ -50,6 +51,10 @@ static void         psppire_var_store_init            (PsppireVarStore      *var
 static void         psppire_var_store_class_init      (PsppireVarStoreClass *class);
 static void         psppire_var_store_sheet_model_init (GSheetModelIface *iface);
 static void         psppire_var_store_finalize        (GObject           *object);
+
+
+gchar * missing_values_to_string (const struct variable *pv, GError **err);
+
 
 static gchar *psppire_var_store_get_string (const GSheetModel *sheet_model, gint row, gint column);
 
@@ -157,7 +162,7 @@ psppire_var_store_item_editable (PsppireVarStore *var_store, gint row, gint colu
   if ( VAR_STRING == var_get_type (pv) && column == COL_DECIMALS )
     return FALSE;
 
-  write_spec =var_get_write_format (pv);
+  write_spec = var_get_print_format (pv);
 
   switch ( write_spec->type )
     {
@@ -464,11 +469,11 @@ psppire_var_store_set_string (GSheetModel *model,
 }
 
 
+const static gchar none[] = N_("None");
+
 static  gchar *
 text_for_column (const struct variable *pv, gint c, GError **err)
 {
-  static gchar none[] = N_("None");
-
   static const gchar *const type_label[] =
     {
       N_("Numeric"),
@@ -580,63 +585,7 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 
     case COL_MISSING:
       {
-	gchar *s;
-	const struct missing_values *miss = var_get_missing_values (pv);
-	if ( mv_is_empty (miss))
-	  return g_locale_to_utf8 (gettext (none), -1, 0, 0, err);
-	else
-	  {
-	    if ( ! mv_has_range (miss))
-	      {
-		GString *gstr = g_string_sized_new (10);
-		const int n = mv_n_values (miss);
-		gchar *mv[4] = {0,0,0,0};
-		gint i;
-		for (i = 0 ; i < n; ++i )
-		  {
-		    union value v;
-		    mv_peek_value (miss, &v, i);
-		    mv[i] = value_to_text (v, *write_spec);
-		    if ( i > 0 )
-		      g_string_append (gstr, ", ");
-		    g_string_append (gstr, mv[i]);
-		    g_free (mv[i]);
-		  }
-		s = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
-		g_string_free (gstr, TRUE);
-	      }
-	    else
-	      {
-		GString *gstr = g_string_sized_new (10);
-		gchar *l, *h;
-		union value low, high;
-		mv_peek_range (miss, &low.f, &high.f);
-
-		l = value_to_text (low, *write_spec);
-		h = value_to_text (high, *write_spec);
-
-		g_string_printf (gstr, "%s - %s", l, h);
-		g_free (l);
-		g_free (h);
-
-		if ( mv_has_value (miss))
-		  {
-		    gchar *ss = 0;
-		    union value v;
-		    mv_peek_value (miss, &v, 0);
-
-		    ss = value_to_text (v, *write_spec);
-
-		    g_string_append (gstr, ", ");
-		    g_string_append (gstr, ss);
-		    free (ss);
-		  }
-		s = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
-		g_string_free (gstr, TRUE);
-	      }
-
-	    return s;
-	  }
+	return missing_values_to_string (pv, err);
       }
       break;
     case COL_VALUES:
@@ -678,11 +627,7 @@ text_for_column (const struct variable *pv, gint c, GError **err)
       break;
     case COL_MEASURE:
       {
-	const gint measure = var_get_measure (pv);
-
-	g_assert (measure < n_MEASURES);
-	return g_locale_to_utf8 (gettext (measures[measure]),
-				 -1, 0, 0, err);
+	return measure_to_string (pv, err);
       }
       break;
     }
@@ -783,3 +728,6 @@ psppire_var_store_sheet_row_init (GSheetRowIface *iface)
 
   iface->get_button_label = geometry_get_button_label;
 }
+
+
+

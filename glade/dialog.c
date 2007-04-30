@@ -2,7 +2,7 @@
 #include <gtk/gtk.h>
 
 #include "psppire-dialog.h"
-
+#include <string.h>
 #include <glade-gtk.h>
 #include <assert.h>
 

@@ -1,3 +1,17 @@
+2007-04-30 John Darrington <john@darrington.wattle.id.au>
+
+	* var-display.c var-display.h variable-info-dialog.c
+	variable-info-dialog.h : New files. 
+
+	* data-editor.c : 
+
+	* psppire-buttonbox.c psppire-buttonbox.h : Added the "buttons"
+	property, and optional 	GOTO and CONTINUE buttons.
+
+	* psppire-dialog.h: Added response codes for the new buttons.
+
+	* psppire-var-store.c : Moved some code to var-display.[ch]
+
 2007-04-25 John Darrington <john@darrington.wattle.id.au>
 
 	* icons/scalable/splash.c icons/splash.png : More eye candy.

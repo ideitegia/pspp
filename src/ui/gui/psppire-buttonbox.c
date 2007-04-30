@@ -31,6 +31,8 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+GType psppire_button_flags_get_type (void);
+
 
 static void psppire_button_box_class_init          (PsppireButtonBoxClass *);
 static void psppire_button_box_init                (PsppireButtonBox      *);
@@ -63,89 +65,234 @@ psppire_button_box_get_type (void)
   return button_box_type;
 }
 
+enum {
+  PROP_BUTTONS = 1
+};
+
+static void
+psppire_buttonbox_set_property (GObject         *object,
+			       guint            prop_id,
+			       const GValue    *value,
+			       GParamSpec      *pspec)
+{
+  gint i;
+  guint flags;
+  PsppireButtonBox *bb = PSPPIRE_BUTTONBOX (object);
+  if ( prop_id != PROP_BUTTONS)
+    {
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      return ;
+    }
+
+  flags = g_value_get_flags (value);
+
+  for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
+    g_object_set (bb->button[i], "visible", 0x01 & (flags >> i)  , NULL);
+}
+
+static void
+psppire_buttonbox_get_property (GObject         *object,
+			       guint            prop_id,
+			       GValue          *value,
+			       GParamSpec      *pspec)
+{
+  guint flags = 0;
+  gint i;
+
+  PsppireButtonBox *bb = PSPPIRE_BUTTONBOX (object);
+
+  if  (PROP_BUTTONS != prop_id)
+    {
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      return;
+    }
+
+  for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
+    {
+      gboolean visibility;
+      g_object_get (bb->button[i], "visible", &visibility, NULL);
+
+      if ( visibility )
+	flags |= (0x01 << i);
+    }
+
+  g_value_set_flags (value, flags);
+}
+
+
+typedef enum
+  {
+    PSPPIRE_BUTTON_OK_MASK     = (1 << PSPPIRE_BUTTON_OK),
+    PSPPIRE_BUTTON_GOTO_MASK   = (1 << PSPPIRE_BUTTON_GOTO),
+    PSPPIRE_BUTTON_CONTINUE_MASK = (1 << PSPPIRE_BUTTON_CONTINUE),
+    PSPPIRE_BUTTON_CANCEL_MASK = (1 << PSPPIRE_BUTTON_CANCEL),
+    PSPPIRE_BUTTON_HELP_MASK   = (1 << PSPPIRE_BUTTON_HELP),
+    PSPPIRE_BUTTON_RESET_MASK  = (1 << PSPPIRE_BUTTON_RESET),
+    PSPPIRE_BUTTON_PASTE_MASK  = (1 << PSPPIRE_BUTTON_PASTE)
+  } PsppireButtonMask;
+
+static GParamSpec *button_flags;
+
 static void
 psppire_button_box_class_init (PsppireButtonBoxClass *class)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+
+  object_class->set_property = psppire_buttonbox_set_property;
+  object_class->get_property = psppire_buttonbox_get_property;
+
+  button_flags =
+    g_param_spec_flags ("buttons",
+			_("Buttons"),
+			_("The mask that decides what buttons appear in the button box"),
+			G_TYPE_PSPPIRE_BUTTON_MASK,
+			PSPPIRE_BUTTON_OK_MASK |
+			PSPPIRE_BUTTON_CANCEL_MASK |
+			PSPPIRE_BUTTON_RESET_MASK |
+			PSPPIRE_BUTTON_HELP_MASK |
+			PSPPIRE_BUTTON_PASTE_MASK,
+			G_PARAM_READWRITE);
+
+
+  g_object_class_install_property (object_class,
+				   PROP_BUTTONS,
+				   button_flags);
+
 }
+
+static void
+close_and_respond (GtkWidget *w, gint response)
+{
+  PsppireDialog *dialog;
+
+  GtkWidget *toplevel = gtk_widget_get_toplevel (w);
+
+  /* If we're not in a psppire dialog (for example when in glade)
+     then do nothing */
+  if ( ! PSPPIRE_IS_DIALOG (toplevel))
+    return;
+
+  dialog = PSPPIRE_DIALOG (toplevel);
+
+  dialog->response = response;
+
+  psppire_dialog_close (dialog);
+}
+
 
 static void
 close_dialog (GtkWidget *w, gpointer data)
 {
-  PsppireDialog *dialog;
-
-  dialog = PSPPIRE_DIALOG (gtk_widget_get_toplevel (w));
-
-  dialog->response = GTK_RESPONSE_CANCEL;
-
-  psppire_dialog_close (dialog);
+  close_and_respond (w, GTK_RESPONSE_CLOSE);
 }
+
 
 static void
 ok_button_clicked (GtkWidget *w, gpointer data)
 {
-  PsppireDialog *dialog;
-
-  dialog = PSPPIRE_DIALOG (gtk_widget_get_toplevel (w));
-
-  dialog->response = GTK_RESPONSE_OK;
-
-  psppire_dialog_close (dialog);
+  close_and_respond (w, GTK_RESPONSE_OK);
 }
 
 
 static void
 paste_button_clicked (GtkWidget *w, gpointer data)
 {
-  PsppireDialog *dialog;
+  close_and_respond (w, PSPPIRE_RESPONSE_PASTE);
+}
 
-  dialog = PSPPIRE_DIALOG (gtk_widget_get_toplevel (w));
-
-  dialog->response = PSPPIRE_RESPONSE_PASTE;
-
-  psppire_dialog_close (dialog);
+static void
+goto_button_clicked (GtkWidget *w, gpointer data)
+{
+  close_and_respond (w, PSPPIRE_RESPONSE_GOTO);
 }
 
 
 static void
 refresh_clicked (GtkWidget *w, gpointer data)
 {
+  GtkWidget *toplevel = gtk_widget_get_toplevel (w);
   PsppireDialog *dialog;
 
-  dialog = PSPPIRE_DIALOG (gtk_widget_get_toplevel (w));
+  if ( ! PSPPIRE_IS_DIALOG (toplevel))
+    return;
+
+  dialog = PSPPIRE_DIALOG (toplevel);
 
   psppire_dialog_reload (dialog);
 }
 
 
 static void
-psppire_button_box_init (PsppireButtonBox *button_box)
+psppire_button_box_init (PsppireButtonBox *bb)
 {
-  GtkWidget *button ;
 
-  button = gtk_button_new_from_stock (GTK_STOCK_OK);
-  gtk_box_pack_start_defaults (GTK_BOX (button_box), button);
-  g_signal_connect (button, "clicked", G_CALLBACK (ok_button_clicked), NULL);
-  gtk_widget_show (button);
+  bb->button[PSPPIRE_BUTTON_OK] = gtk_button_new_from_stock (GTK_STOCK_OK);
+  gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_OK]);
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_OK], "clicked",
+		    G_CALLBACK (ok_button_clicked), NULL);
+  g_object_set (bb->button[PSPPIRE_BUTTON_OK], "no-show-all", TRUE, NULL);
 
-  button = gtk_button_new_with_mnemonic (_("_Paste"));
-  g_signal_connect (button, "clicked", G_CALLBACK (paste_button_clicked),
-		    NULL);
-  gtk_box_pack_start_defaults (GTK_BOX (button_box), button);
-  gtk_widget_show (button);
 
-  button = gtk_button_new_from_stock (GTK_STOCK_CANCEL);
-  g_signal_connect (button, "clicked", G_CALLBACK (close_dialog), NULL);
-  gtk_box_pack_start_defaults (GTK_BOX (button_box), button);
-  gtk_widget_show (button);
+  bb->button[PSPPIRE_BUTTON_GOTO] =
+    gtk_button_new_from_stock (GTK_STOCK_JUMP_TO);
+  gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_GOTO]);
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_GOTO], "clicked",
+		    G_CALLBACK (goto_button_clicked), NULL);
+  g_object_set (bb->button[PSPPIRE_BUTTON_GOTO], "no-show-all", TRUE, NULL);
 
-  button = gtk_button_new_from_stock (GTK_STOCK_REFRESH);
-  g_signal_connect (button, "clicked", G_CALLBACK (refresh_clicked), NULL);
-  gtk_box_pack_start_defaults (GTK_BOX (button_box), button);
-  gtk_widget_show (button);
 
-  button = gtk_button_new_from_stock (GTK_STOCK_HELP);
-  gtk_box_pack_start_defaults (GTK_BOX (button_box), button);
-  gtk_widget_show (button);
+  bb->button[PSPPIRE_BUTTON_CONTINUE] =
+    gtk_button_new_with_mnemonic (_("Continue"));
+
+  gtk_box_pack_start_defaults (GTK_BOX (bb),
+			       bb->button[PSPPIRE_BUTTON_CONTINUE]);
+
+  g_object_set (bb->button[PSPPIRE_BUTTON_CONTINUE],
+		"no-show-all", TRUE, NULL);
+
+
+
+  bb->button[PSPPIRE_BUTTON_PASTE] = gtk_button_new_with_mnemonic (_("_Paste"));
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_PASTE], "clicked",
+		    G_CALLBACK (paste_button_clicked), NULL);
+  gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_PASTE]);
+  g_object_set (bb->button[PSPPIRE_BUTTON_PASTE], "no-show-all", TRUE, NULL);
+
+  bb->button[PSPPIRE_BUTTON_CANCEL] = gtk_button_new_from_stock (GTK_STOCK_CANCEL);
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_CANCEL], "clicked",
+		    G_CALLBACK (close_dialog), NULL);
+  gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_CANCEL]);
+  g_object_set (bb->button[PSPPIRE_BUTTON_CANCEL], "no-show-all", TRUE, NULL);
+
+
+  bb->button[PSPPIRE_BUTTON_RESET] = gtk_button_new_from_stock (GTK_STOCK_REFRESH);
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_RESET], "clicked",
+		    G_CALLBACK (refresh_clicked), NULL);
+  gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_RESET]);
+  g_object_set (bb->button[PSPPIRE_BUTTON_RESET], "no-show-all", TRUE, NULL);
+
+
+  bb->button[PSPPIRE_BUTTON_HELP] = gtk_button_new_from_stock (GTK_STOCK_HELP);
+  gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_HELP]);
+  g_object_set (bb->button[PSPPIRE_BUTTON_HELP], "no-show-all", TRUE, NULL);
+
+
+  /* Set the default visibilities */
+  {
+    GValue value = { 0 };
+    guint flags;
+    gint i;
+    g_value_init (&value, button_flags->value_type);
+    g_param_value_set_default(button_flags, &value);
+
+
+    flags = g_value_get_flags (&value);
+
+    for (i = 0 ; i < n_PsppireButtonBoxButtons ; ++i )
+      g_object_set (bb->button[i], "visible", 0x01 & (flags >> i)  , NULL);
+
+    g_value_unset (&value);
+  }
 
 }
 
@@ -235,3 +382,30 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
   if (height)
     *height = needed_height;
 }
+
+
+GType
+psppire_button_flags_get_type (void)
+{
+  static GType ftype = 0;
+  if (ftype == 0)
+    {
+      static const GFlagsValue values[] =
+	{
+	  { PSPPIRE_BUTTON_OK_MASK,     "PSPPIRE_BUTTON_OK_MASK",     N_("OK") },
+	  { PSPPIRE_BUTTON_GOTO_MASK,   "PSPPIRE_BUTTON_GOTO_MASK", N_("Go To") },
+	  { PSPPIRE_BUTTON_CONTINUE_MASK,"PSPPIRE_BUTTON_CONTINUE_MASK", N_("Continue") },
+	  { PSPPIRE_BUTTON_CANCEL_MASK, "PSPPIRE_BUTTON_CANCEL_MASK", N_("Cancel") },
+	  { PSPPIRE_BUTTON_HELP_MASK,   "PSPPIRE_BUTTON_HELP_MASK",   N_("Help") },
+	  { PSPPIRE_BUTTON_RESET_MASK,  "PSPPIRE_BUTTON_RESET_MASK",  N_("Reset") },
+	  { PSPPIRE_BUTTON_PASTE_MASK,  "PSPPIRE_BUTTON_PASTE_MASK",  N_("Paste") },
+	  { 0, NULL, NULL }
+	};
+
+      ftype = g_flags_register_static
+	(g_intern_static_string ("PsppireButtonFlags"), values);
+
+    }
+  return ftype;
+}
+
