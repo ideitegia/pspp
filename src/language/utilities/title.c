@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -173,4 +173,56 @@ cmd_drop_documents (struct lexer *lexer, struct dataset *ds)
   dict_set_documents (dataset_dict (ds), NULL);
 
   return lex_end_of_command (lexer);
+}
+
+
+/* Performs the ADD DOCUMENTS command. */
+int
+cmd_add_documents (struct lexer *lexer, struct dataset *ds)
+{
+  int i;
+  int n_lines = 0;
+  char buf[256];
+  struct string *lines = NULL;
+
+  sprintf (buf, _("(Entered %s)"), get_start_date ());
+
+  if ( ! lex_force_string (lexer) )
+    return CMD_FAILURE;
+
+  while ( lex_is_string (lexer))
+    {
+      const struct string *s = lex_tokstr (lexer);
+      if ( ds_length (s) > 80)
+	{
+	  /* Note to translators: "bytes" is correct, not characters */
+	  msg (SE, _("Document lines may not be more than 80 bytes long."));
+	  goto failure;
+
+	}
+      lines = xrealloc (lines, (n_lines + 1) * sizeof (*lines));
+      ds_init_string (&lines[n_lines++], s);
+
+      lex_get (lexer);
+    }
+
+  for ( i = 0 ; i < n_lines ; ++i)
+    {
+      add_document_line (dataset_dict (ds), ds_cstr (&lines[i]), 0);
+      ds_destroy (&lines[i]);
+    }
+
+  free (lines);
+
+  add_document_line (dataset_dict (ds), buf, 3);
+
+  return lex_end_of_command (lexer) ;
+
+ failure:
+  for ( i = 0 ; i < n_lines ; ++i)
+    ds_destroy (&lines[i]);
+
+  free (lines);
+
+  return CMD_FAILURE;
 }

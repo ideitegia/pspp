@@ -478,6 +478,15 @@ lex_is_number (struct lexer *lexer)
   return lexer->token == T_POS_NUM || lexer->token == T_NEG_NUM;
 }
 
+
+/* Returns true if the current token is a string. */
+bool
+lex_is_string (struct lexer *lexer)
+{
+  return lexer->token == T_STRING;
+}
+
+
 /* Returns the value of the current token, which must be a
    floating point number. */
 double

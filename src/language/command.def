@@ -48,6 +48,7 @@ DEF_CMD (S_INITIAL | S_DATA, 0, "INPUT PROGRAM", cmd_input_program)
 /* Transformations and utilities that may appear after active
    file definition or within INPUT PROGRAM. */
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "ADD VALUE LABELS", cmd_add_value_labels)
+DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "ADD DOCUMENT", cmd_add_documents)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "APPLY DICTIONARY", cmd_apply_dictionary)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "BREAK", cmd_break)
 DEF_CMD (S_DATA | S_INPUT_PROGRAM, 0, "COMPUTE", cmd_compute)

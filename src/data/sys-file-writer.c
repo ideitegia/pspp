@@ -662,16 +662,15 @@ write_documents (struct sfm_writer *w, const struct dictionary *d)
     int32_t n_lines ;		/* Number of lines of documents. */
   } ATTRIBUTE((packed)) rec_6;
 
-  const char *documents;
-  size_t n_lines;
+  const char * documents = dict_get_documents (d);
+  size_t doc_bytes = strlen (documents);
 
-  documents = dict_get_documents (d);
-  n_lines = strlen (documents) / 80;
+  assert (doc_bytes % 80 == 0);
 
   rec_6.rec_type = 6;
-  rec_6.n_lines = n_lines;
+  rec_6.n_lines = doc_bytes / 80;
   buf_write (w, &rec_6, sizeof rec_6);
-  buf_write (w, documents, 80 * n_lines);
+  buf_write (w, documents, 80 * rec_6.n_lines);
 }
 
 /* Write the alignment, width and scale values */

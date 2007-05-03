@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-04-29 12:09+0800\n"
+"POT-Creation-Date: 2007-05-02 14:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -790,7 +790,7 @@ msgstr ""
 msgid "Error opening \"%s\" for writing as a system file: %s."
 msgstr ""
 
-#: src/data/sys-file-writer.c:1104
+#: src/data/sys-file-writer.c:1101
 #, c-format
 msgid "An I/O error occurred writing system file \"%s\"."
 msgstr ""
@@ -1758,11 +1758,11 @@ msgid ""
 "s."
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:158 src/language/lexer/lexer.c:600
+#: src/language/dictionary/value-labels.c:158 src/language/lexer/lexer.c:609
 msgid "expecting string"
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:167 src/language/lexer/lexer.c:614
+#: src/language/dictionary/value-labels.c:167 src/language/lexer/lexer.c:623
 msgid "expecting integer"
 msgstr ""
 
@@ -2039,54 +2039,54 @@ msgstr ""
 msgid "Syntax error at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:569 src/language/lexer/lexer.c:586
+#: src/language/lexer/lexer.c:578 src/language/lexer/lexer.c:595
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/language/lexer/lexer.c:627
+#: src/language/lexer/lexer.c:636
 msgid "expecting number"
 msgstr ""
 
-#: src/language/lexer/lexer.c:639
+#: src/language/lexer/lexer.c:648
 msgid "expecting identifier"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1028
+#: src/language/lexer/lexer.c:1037
 msgid "binary"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1033
+#: src/language/lexer/lexer.c:1042
 msgid "octal"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1038
+#: src/language/lexer/lexer.c:1047
 msgid "hex"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1048
+#: src/language/lexer/lexer.c:1057
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1077
+#: src/language/lexer/lexer.c:1086
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1111
+#: src/language/lexer/lexer.c:1120
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1165
+#: src/language/lexer/lexer.c:1174
 msgid "Unexpected end of file in string concatenation."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1173
+#: src/language/lexer/lexer.c:1182
 msgid "String expected following `+'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1186
+#: src/language/lexer/lexer.c:1195
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
@@ -3409,6 +3409,24 @@ msgstr ""
 msgid "Closing `%s': %s."
 msgstr ""
 
+#: src/language/tests/check-model.q:139
+msgid "PATH and SEARCH subcommands are mutually exclusive.  Ignoring PATH."
+msgstr ""
+
+#: src/language/tests/check-model.q:157
+msgid "At least one value must be specified on PATH."
+msgstr ""
+
+#: src/language/tests/check-model.q:168
+#, c-format
+msgid "Hash bits adjusted to %d."
+msgstr ""
+
+#: src/language/tests/check-model.q:209
+#, c-format
+msgid "error opening \"%s\" for writing"
+msgstr ""
+
 #: src/language/tests/float-format.c:126
 #, c-format
 msgid "%d-byte string needed but %d-byte string supplied."
@@ -3606,6 +3624,15 @@ msgstr ""
 #: src/language/utilities/title.c:138
 #, c-format
 msgid "Document entered %s by %s:"
+msgstr ""
+
+#: src/language/utilities/title.c:184
+#, c-format
+msgid "(Entered %s)"
+msgstr ""
+
+#: src/language/utilities/title.c:195
+msgid "Document lines may not be more than 80 bytes long"
 msgstr ""
 
 #: src/language/xforms/compute.c:147 src/language/xforms/compute.c:195

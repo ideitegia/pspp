@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This program tests the FILE LABEL and  DOCUMENT commands
+# This program tests the FILE LABEL and  DOCUMENT, and ADD DOCUMENT commands
 
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
@@ -77,9 +77,12 @@ document First line of a document
 This is the second very long line of a document in an attempt to overflow the input buffer with a really long line
 Note that the last line should end with a period: .
 
+
 /* Display the documents.
 display documents.
 display file label.
+
+ADD DOCUMENT 'Line one' 'Line two'.
 
 /* Save the active file then get it and display the documents again.
 save /OUTFILE='foo.save'.
@@ -117,7 +120,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 # We need to filter out the dates/times
 activity="date filter"
-grep -v 'Document entered' $TEMPDIR/pspp.list > $TEMPDIR/pspp.filtered
+grep -v '[Ee]ntered' $TEMPDIR/pspp.list > $TEMPDIR/pspp.filtered
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -141,17 +144,23 @@ Documents in the active file:
    First line of a document
    This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
+Line one
+Line two
 File label:
 This is a test file label
 Documents in the active file:
    First line of a document
    This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
+Line one
+Line two
    There should be another document now.
 Documents in the active file:
    First line of a document
    This is the second very long line of a document in an attempt to overflow the
    Note that the last line should end with a period: .
+Line one
+Line two
    There should be another document now.
 File label:
 This is a test file label

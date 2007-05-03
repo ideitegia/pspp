@@ -47,6 +47,8 @@ bool lex_is_number (struct lexer *);
 double lex_number (struct lexer *);
 bool lex_is_integer (struct lexer *);
 long lex_integer (struct lexer *);
+bool lex_is_string (struct lexer *);
+
 
 /* Token matching functions. */
 bool lex_match (struct lexer *, int);

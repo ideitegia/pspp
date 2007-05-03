@@ -9,6 +9,7 @@ they take effect only once, unconditionally, at the time that they are
 encountered in the input.
 
 @menu
+* ADD DOCUMENT::                Add documentary text to the active file.
 * COMMENT::                     Document your syntax file.
 * DOCUMENT::                    Document the active file.
 * DISPLAY DOCUMENTS::           Display active file documents.
@@ -28,7 +29,29 @@ encountered in the input.
 * TITLE::                       Provide a document title.
 @end menu
 
-@node COMMENT, DOCUMENT, Utilities, Utilities
+@node ADD DOCUMENT, COMMENT, Utilities, Utilities
+@comment  node-name,  next,  previous,  up
+@section ADD DOCUMENT
+@vindex  ADD DOCUMENT
+
+@display
+ADD DOCUMENT 
+    'line one' 'line two' @dots{} 'last line' .
+@end display
+
+
+@cmd{ADD DOCUMENT} adds one or more lines of descriptive commentary to 
+the active file.  Documents added in this way are saved to system files.
+They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
+DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
+DOCUMENTS}.
+
+Each line of documentary text must be enclosed in quotation marks, and 
+may not be more than 80 bytes long. @xref{DOCUMENT}.
+
+
+
+@node COMMENT, DOCUMENT, ADD DOCUMENT, Utilities
 @section COMMENT
 @vindex COMMENT
 @vindex *
@@ -45,12 +68,14 @@ the author and other readers of the PSPP syntax file.
 @cmd{COMMENT} can extend over any number of lines.  Don't forget to
 terminate it with a dot or a blank line.
 
+
+
 @node DOCUMENT, DISPLAY DOCUMENTS, COMMENT, Utilities
 @section DOCUMENT
 @vindex DOCUMENT
 
 @display
-DOCUMENT documentary_text.
+DOCUMENT @var{documentary_text}.
 @end display
 
 @cmd{DOCUMENT} adds one or more lines of descriptive commentary to the
@@ -59,10 +84,12 @@ They can be viewed using @cmd{SYSFILE INFO} or @cmd{DISPLAY
 DOCUMENTS}.  They can be removed from the active file with @cmd{DROP
 DOCUMENTS}.
 
-Specify the documentary text following the DOCUMENT keyword.  You can
-extend the documentary text over as many lines as necessary.  Lines are
-truncated at 80 characters width.  Don't forget to terminate
-the command with a dot or a blank line.
+Specify the @var{documentary text} following the DOCUMENT keyword.  
+It is interpreted literally --- any quotes or other punctuation marks 
+will be included in the file.
+You can extend the documentary text over as many lines as necessary.  
+Lines are truncated at 80 bytes.  Don't forget to terminate
+the command with a dot or a blank line. @xref{ADD DOCUMENT}.
 
 @node DISPLAY DOCUMENTS, DISPLAY FILE LABEL, DOCUMENT, Utilities
 @section DISPLAY DOCUMENTS

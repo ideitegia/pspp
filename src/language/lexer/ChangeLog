@@ -1,3 +1,7 @@
+2007-05-03  John Darrington <john@darrington.wattle.id.au>
+	
+	* lexer.c lexer.h: Added lex_is_string function.
+	
 2007-04-15  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: Fully support lists of integer values.  Add support for
