@@ -1,3 +1,11 @@
+2007-05-06  Ben Pfaff  <blp@gnu.org>
+
+	Abstract the documents within a dictionary a little better.
+	Thanks to John Darrington for suggestion, initial version, and
+	review.  Patch #5917.
+
+	* command/file-label.sh: Update to match new DOCUMENT behavior.
+
 2007-04-19 John Darrington <john@darrington.wattle.id.au>
 	
         * tests/command/no_case_size.sh tests/command/sysfiles-old.sh :

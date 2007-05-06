@@ -254,7 +254,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 
   /* Delete documents. */
   if (!copy_documents)
-    dict_set_documents (agr.dict, NULL);
+    dict_clear_documents (agr.dict);
 
   /* Cancel SPLIT FILE. */
   dict_set_split_vars (agr.dict, NULL, 0);

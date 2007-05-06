@@ -76,7 +76,7 @@ get_title (struct lexer *lexer, const char *cmd, char **title)
 
       if (*title)
 	free (*title);
-      *title = xstrdup (lex_rest_of_line (lexer, NULL));
+      *title = xstrdup (lex_rest_of_line (lexer));
       lex_discard_line (lexer);
       for (cp = *title; *cp; cp++)
 	*cp = toupper ((unsigned char) (*cp));
@@ -90,7 +90,7 @@ cmd_file_label (struct lexer *lexer, struct dataset *ds)
 {
   const char *label;
 
-  label = lex_rest_of_line (lexer, NULL);
+  label = lex_rest_of_line (lexer);
   lex_discard_line (lexer);
   while (isspace ((unsigned char) *label))
     label++;
@@ -100,27 +100,14 @@ cmd_file_label (struct lexer *lexer, struct dataset *ds)
   return CMD_SUCCESS;
 }
 
-/* Add LINE as a line of document information to dictionary
-   indented by INDENT spaces. */
+/* Add entry date line to DICT's documents. */
 static void
-add_document_line (struct dictionary *dict, const char *line, int indent)
+add_document_trailer (struct dictionary *dict) 
 {
-  const char *old_documents;
-  size_t old_len;
-  char *new_documents;
-
-  old_documents = dict_get_documents (dict);
-  old_len = old_documents != NULL ? strlen (old_documents) : 0;
-  new_documents = xmalloc (old_len + 81);
-
-  memcpy (new_documents, old_documents, old_len);
-  memset (new_documents + old_len, ' ', indent);
-  buf_copy_str_rpad (new_documents + old_len + indent, 80 - indent, line);
-  new_documents[old_len + 80] = '\0';
-
-  dict_set_documents (dict, new_documents);
-
-  free (new_documents);
+  char buf[64];
+  
+  sprintf (buf, _("   (Entered %s)"), get_start_date ());
+  dict_add_document_line (dict, buf);
 }
 
 /* Performs the DOCUMENT command. */
@@ -128,40 +115,23 @@ int
 cmd_document (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
-  /* Add a few header lines for reference. */
-  {
-    char buf[256];
+  struct string line = DS_EMPTY_INITIALIZER;
+  bool end_dot;
 
-    if (dict && dict_get_documents (dict))
-      add_document_line (dict, "", 0);
-
-    sprintf (buf, _("Document entered %s by %s:"), get_start_date (), version);
-    add_document_line (dict, buf, 1);
-  }
-
-  for (;;)
+  do
     {
-      int had_dot;
-      const char *orig_line;
-      char *copy_line;
+      end_dot = lex_end_dot (lexer);
+      ds_assign_string (&line, lex_entire_line_ds (lexer));
+      if (end_dot)
+        ds_put_char (&line, '.');
+      dict_add_document_line (dict, ds_cstr (&line));
 
-      orig_line = lex_rest_of_line (lexer, &had_dot);
       lex_discard_line (lexer);
-      while (isspace ((unsigned char) *orig_line))
-	orig_line++;
-
-      copy_line = xmalloc (strlen (orig_line) + 2);
-      strcpy (copy_line, orig_line);
-      if (had_dot)
-        strcat (copy_line, ".");
-
-      add_document_line (dict, copy_line, 3);
-      free (copy_line);
-
       lex_get_line (lexer);
-      if (had_dot)
-	break;
     }
+  while (!end_dot);
+
+  add_document_trailer (dict);
 
   return CMD_SUCCESS;
 }
@@ -170,7 +140,7 @@ cmd_document (struct lexer *lexer, struct dataset *ds)
 int
 cmd_drop_documents (struct lexer *lexer, struct dataset *ds)
 {
-  dict_set_documents (dataset_dict (ds), NULL);
+  dict_clear_documents (dataset_dict (ds));
 
   return lex_end_of_command (lexer);
 }
@@ -180,49 +150,18 @@ cmd_drop_documents (struct lexer *lexer, struct dataset *ds)
 int
 cmd_add_documents (struct lexer *lexer, struct dataset *ds)
 {
-  int i;
-  int n_lines = 0;
-  char buf[256];
-  struct string *lines = NULL;
-
-  sprintf (buf, _("(Entered %s)"), get_start_date ());
+  struct dictionary *dict = dataset_dict (ds);
 
   if ( ! lex_force_string (lexer) )
     return CMD_FAILURE;
 
   while ( lex_is_string (lexer))
     {
-      const struct string *s = lex_tokstr (lexer);
-      if ( ds_length (s) > 80)
-	{
-	  /* Note to translators: "bytes" is correct, not characters */
-	  msg (SE, _("Document lines may not be more than 80 bytes long."));
-	  goto failure;
-
-	}
-      lines = xrealloc (lines, (n_lines + 1) * sizeof (*lines));
-      ds_init_string (&lines[n_lines++], s);
-
+      dict_add_document_line (dict, ds_cstr (lex_tokstr (lexer)));
       lex_get (lexer);
     }
 
-  for ( i = 0 ; i < n_lines ; ++i)
-    {
-      add_document_line (dataset_dict (ds), ds_cstr (&lines[i]), 0);
-      ds_destroy (&lines[i]);
-    }
-
-  free (lines);
-
-  add_document_line (dataset_dict (ds), buf, 3);
+  add_document_trailer (dict);
 
   return lex_end_of_command (lexer) ;
-
- failure:
-  for ( i = 0 ; i < n_lines ; ++i)
-    ds_destroy (&lines[i]);
-
-  free (lines);
-
-  return CMD_FAILURE;
 }

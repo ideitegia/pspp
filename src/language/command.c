@@ -830,7 +830,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   else 
     {
-      bool ok = run_command (lex_rest_of_line (lexer, NULL));
+      bool ok = run_command (lex_rest_of_line (lexer));
       lex_discard_line (lexer);
       return ok ? CMD_SUCCESS : CMD_FAILURE;
     }

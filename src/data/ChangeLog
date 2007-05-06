@@ -1,3 +1,24 @@
+2007-05-06  Ben Pfaff  <blp@gnu.org>
+
+	Abstract the documents within a dictionary a little better.
+	Thanks to John Darrington for suggestion, initial version, and
+	review.  Patch #5917.
+
+	* dictionary.c (struct dictionary): Change `documents' member from
+	char * to struct string.
+	(dict_clear): Destroy struct string.
+	(dict_get_documents): Convert struct string to char *.
+	(dict_set_documents): Set struct string.  Pad to 80-character
+	multiple.
+	(dict_clear_documents): New function.
+	(dict_add_document_line): New function.
+	(dict_get_document_line_cnt): New function.
+	(dict_get_document_line): New function.
+
+	* dictionary.h (macro DOC_LINE_LENGTH): New macro.
+
+	* sys-file-reader.c (read_documents): Use new document functions.
+
 2007-04-19 John Darrington <john@darrington.wattle.id.au>
 
 	* sys-file-reader.c: When reading a system file which has no 

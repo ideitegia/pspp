@@ -86,7 +86,7 @@ cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
       lex_force_match (lexer, '/');
       goto done;
     }
-  fprintf (stderr, "%s => ", lex_rest_of_line (lexer, NULL));
+  fprintf (stderr, "%s => ", lex_rest_of_line (lexer));
   lex_get (lexer);
 
   if (two_pass) 

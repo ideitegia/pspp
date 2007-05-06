@@ -719,27 +719,31 @@ lex_put_back_id (struct lexer *lexer, const char *id)
 
 /* Returns the entire contents of the current line. */
 const char *
-lex_entire_line (struct lexer *lexer)
+lex_entire_line (const struct lexer *lexer)
 {
   return ds_cstr (&lexer->line_buffer);
 }
 
 const struct string *
-lex_entire_line_ds (struct lexer *lexer)
+lex_entire_line_ds (const struct lexer *lexer)
 {
   return &lexer->line_buffer;
 }
 
 /* As lex_entire_line(), but only returns the part of the current line
-   that hasn't already been tokenized.
-   If END_DOT is non-null, stores nonzero into *END_DOT if the line
-   ends with a terminal dot, or zero if it doesn't. */
+   that hasn't already been tokenized. */
 const char *
-lex_rest_of_line (struct lexer *lexer, int *end_dot)
+lex_rest_of_line (const struct lexer *lexer)
 {
-  if (end_dot)
-    *end_dot = lexer->dot;
   return lexer->prog;
+}
+
+/* Returns true if the current line ends in a terminal dot,
+   false otherwise. */
+bool
+lex_end_dot (const struct lexer *lexer) 
+{
+  return lexer->dot;
 }
 
 /* Causes the rest of the current input line to be ignored for

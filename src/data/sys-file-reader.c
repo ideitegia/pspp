@@ -671,9 +671,12 @@ read_documents (struct sfm_reader *r, struct dictionary *dict)
     sys_error (r, _("Number of document lines (%d) "
                     "must be greater than 0."), line_cnt);
 
-  documents = pool_nmalloc (r->pool, line_cnt + 1, 80);
-  read_string (r, documents, 80 * line_cnt + 1);
-  dict_set_documents (dict, documents);
+  documents = pool_nmalloc (r->pool, line_cnt + 1, DOC_LINE_LENGTH);
+  read_string (r, documents, DOC_LINE_LENGTH * line_cnt + 1);
+  if (strlen (documents) == DOC_LINE_LENGTH * line_cnt)
+    dict_set_documents (dict, documents);
+  else
+    sys_error (r, _("Document line contains null byte."));
   pool_free (r->pool, documents);
 }
 

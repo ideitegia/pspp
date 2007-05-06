@@ -26,6 +26,7 @@
 
 struct variable;
 struct dictionary;
+struct string;
 
 struct dict_callbacks
  {
@@ -123,8 +124,16 @@ void dict_unset_split_var (struct dictionary *d,
 const char *dict_get_label (const struct dictionary *);
 void dict_set_label (struct dictionary *, const char *);
 
+/* Fixed length of lines in dictionary documents. */
+#define DOC_LINE_LENGTH 80      
+
 const char *dict_get_documents (const struct dictionary *);
 void dict_set_documents (struct dictionary *, const char *);
+void dict_clear_documents (struct dictionary *);
+void dict_add_document_line (struct dictionary *, const char *);
+size_t dict_get_document_line_cnt (const struct dictionary *);
+void dict_get_document_line (const struct dictionary *,
+                             size_t, struct string *);
 
 bool dict_create_vector (struct dictionary *,
                          const char *name,

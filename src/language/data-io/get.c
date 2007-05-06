@@ -1455,13 +1455,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
         dict_set_documents (m, d_docs);
       else
         {
-          char *new_docs;
-          size_t new_len;
-
-          new_len = strlen (m_docs) + strlen (d_docs);
-          new_docs = xmalloc (new_len + 1);
-          strcpy (new_docs, m_docs);
-          strcat (new_docs, d_docs);
+          char *new_docs = xasprintf ("%s%s", m_docs, d_docs);
           dict_set_documents (m, new_docs);
           free (new_docs);
         }

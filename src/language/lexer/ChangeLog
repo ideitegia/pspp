@@ -1,3 +1,15 @@
+2007-05-06  Ben Pfaff  <blp@gnu.org>
+
+	Abstract the documents within a dictionary a little better.
+	Thanks to John Darrington for suggestion, initial version, and
+	review.  Patch #5917.
+
+	* lexer.c (lex_entire_line): Add const to parameter.
+	(lex_entire_line_ds): Ditto.
+	(lex_rest_of_line): Drop end_dot parameter.  Update all callers to
+	use lex_end_dot instead.
+	(lex_end_dot): New function.
+
 2007-05-03  John Darrington <john@darrington.wattle.id.au>
 	
 	* lexer.c lexer.h: Added lex_is_string function.

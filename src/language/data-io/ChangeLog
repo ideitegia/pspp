@@ -1,3 +1,14 @@
+2007-05-06  Ben Pfaff  <blp@gnu.org>
+
+	Abstract the documents within a dictionary a little better.
+	Thanks to John Darrington for suggestion, initial version, and
+	review.  Patch #5917.
+
+	* get.c (mtf_merge_dictionary): Simplify creating merged document.
+
+	* sys-file-info.c (display_documents): Use new
+	dict_get_document_line_cnt and dict_get_document_line functions.
+
 Thu Feb  1 16:56:02 2007  Ben Pfaff  <blp@gnu.org>
 
 	* file-handle.q (fh_parse): Update to new fh_create_file

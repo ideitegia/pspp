@@ -57,7 +57,7 @@ struct dictionary
     struct variable *filter;    /* FILTER variable. */
     size_t case_limit;          /* Current case limit (N command). */
     char *label;		/* File label. */
-    char *documents;		/* Documents, as a string. */
+    struct string documents;    /* Documents, as a string. */
     struct vector **vector;     /* Vectors of variables. */
     size_t vector_cnt;          /* Number of vectors. */
     const struct dict_callbacks *callbacks; /* Callbacks on dictionary
@@ -177,8 +177,7 @@ dict_clear (struct dictionary *d)
   d->case_limit = 0;
   free (d->label);
   d->label = NULL;
-  free (d->documents);
-  d->documents = NULL;
+  ds_destroy (&d->documents);
   dict_clear_vectors (d);
 }
 
@@ -1096,27 +1095,73 @@ dict_set_label (struct dictionary *d, const char *label)
 }
 
 /* Returns the documents for D, or a null pointer if D has no
-   documents (see cmd_document()).. */
+   documents.  If the return value is nonnull, then the string
+   will be an exact multiple of DOC_LINE_LENGTH bytes in length,
+   with each segment corresponding to one line. */
 const char *
 dict_get_documents (const struct dictionary *d)
 {
-  assert (d != NULL);
-
-  return d->documents;
+  return ds_is_empty (&d->documents) ? NULL : ds_cstr (&d->documents);
 }
 
 /* Sets the documents for D to DOCUMENTS, or removes D's
-   documents if DOCUMENT is a null pointer. */
+   documents if DOCUMENT is a null pointer.  If DOCUMENTS is
+   nonnull, then it should be an exact multiple of
+   DOC_LINE_LENGTH bytes in length, with each segment
+   corresponding to one line. */
 void
 dict_set_documents (struct dictionary *d, const char *documents)
 {
-  assert (d != NULL);
+  size_t remainder;
+  
+  ds_assign_cstr (&d->documents, documents != NULL ? documents : "");
 
-  free (d->documents);
-  if (documents == NULL)
-    d->documents = NULL;
-  else
-    d->documents = xstrdup (documents);
+  /* In case the caller didn't get it quite right, pad out the
+     final line with spaces. */
+  remainder = ds_length (&d->documents) % DOC_LINE_LENGTH;
+  if (remainder != 0)
+    ds_put_char_multiple (&d->documents, ' ', DOC_LINE_LENGTH - remainder);
+}
+
+/* Drops the documents from dictionary D. */
+void
+dict_clear_documents (struct dictionary *d) 
+{
+  ds_clear (&d->documents);
+}
+
+/* Appends LINE to the documents in D.  LINE will be truncated or
+   padded on the right with spaces to make it exactly
+   DOC_LINE_LENGTH bytes long. */
+void
+dict_add_document_line (struct dictionary *d, const char *line)
+{
+  if (strlen (line) > DOC_LINE_LENGTH) 
+    {
+      /* Note to translators: "bytes" is correct, not characters */
+      msg (SW, _("Truncating document line to %d bytes."), DOC_LINE_LENGTH); 
+    }
+  buf_copy_str_rpad (ds_put_uninit (&d->documents, DOC_LINE_LENGTH),
+                     DOC_LINE_LENGTH, line);
+}
+
+/* Returns the number of document lines in dictionary D. */
+size_t
+dict_get_document_line_cnt (const struct dictionary *d) 
+{
+  return ds_length (&d->documents) / DOC_LINE_LENGTH;
+}
+
+/* Copies document line number IDX from dictionary D into
+   LINE, trimming off any trailing white space. */
+void
+dict_get_document_line (const struct dictionary *d,
+                        size_t idx, struct string *line) 
+{
+  assert (idx < dict_get_document_line_cnt (d));
+  ds_assign_substring (line, ds_substr (&d->documents, idx * DOC_LINE_LENGTH,
+                                        DOC_LINE_LENGTH));
+  ds_rtrim (line, ss_cstr (CC_SPACES));
 }
 
 /* Creates in D a vector named NAME that contains the CNT

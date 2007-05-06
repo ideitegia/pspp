@@ -316,25 +316,18 @@ display_documents (const struct dictionary *dict)
                                  "contain any documents."));
   else
     {
-      size_t n_lines = strlen (documents) / 80;
-      char buf[81];
+      struct string line = DS_EMPTY_INITIALIZER;
       size_t i;
 
       tab_output_text (TAB_LEFT | TAT_TITLE,
 		       _("Documents in the active file:"));
       som_blank_line ();
-      buf[80] = 0;
-      for (i = 0; i < n_lines; i++)
-	{
-	  int len = 79;
-
-	  memcpy (buf, &documents[i * 80], 80);
-	  while ((isspace ((unsigned char) buf[len]) || buf[len] == 0)
-		 && len > 0)
-	    len--;
-	  buf[len + 1] = 0;
-	  tab_output_text (TAB_LEFT | TAB_FIX | TAT_NOWRAP, buf);
-	}
+      for (i = 0; i < dict_get_document_line_cnt (dict); i++) 
+        {
+          dict_get_document_line (dict, i, &line);
+          tab_output_text (TAB_LEFT | TAB_FIX | TAT_NOWRAP, ds_cstr (&line));
+        }
+      ds_destroy (&line);
     }
 }
 

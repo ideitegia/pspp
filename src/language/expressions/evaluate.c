@@ -199,7 +199,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
   if ( ds != NULL ) 
     fprintf(stderr, "; ");
-  fprintf (stderr, "%s => ", lex_rest_of_line (lexer, NULL));
+  fprintf (stderr, "%s => ", lex_rest_of_line (lexer));
   lex_get (lexer);
 
   expr = expr_parse_any (lexer, ds, optimize);

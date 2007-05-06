@@ -74,8 +74,8 @@ add value labels x 1 'first label mark two'.
 /* Add a file label and a few documents.
 file label This is a test file label.
 document First line of a document
-This is the second very long line of a document in an attempt to overflow the input buffer with a really long line
-Note that the last line should end with a period: .
+Second line of a document
+The last line should end with a period: .
 
 
 /* Display the documents.
@@ -135,33 +135,33 @@ diff -b  $TEMPDIR/pspp.filtered - <<EOF
 |Y       |     1|  2-  2|F1.0  |
 +--------+------+-------+------+
 Documents in the active file:
-   First line of a document
-   This is the second very long line of a document in an attempt to overflow the
-   Note that the last line should end with a period: .
+document First line of a document
+Second line of a document
+The last line should end with a period: .
 File label:
 This is a test file label
 Documents in the active file:
-   First line of a document
-   This is the second very long line of a document in an attempt to overflow the
-   Note that the last line should end with a period: .
+document First line of a document
+Second line of a document
+The last line should end with a period: .
 Line one
 Line two
 File label:
 This is a test file label
 Documents in the active file:
-   First line of a document
-   This is the second very long line of a document in an attempt to overflow the
-   Note that the last line should end with a period: .
+document First line of a document
+Second line of a document
+The last line should end with a period: .
 Line one
 Line two
-   There should be another document now.
+document There should be another document now.
 Documents in the active file:
-   First line of a document
-   This is the second very long line of a document in an attempt to overflow the
-   Note that the last line should end with a period: .
+document First line of a document
+Second line of a document
+The last line should end with a period: .
 Line one
 Line two
-   There should be another document now.
+document There should be another document now.
 File label:
 This is a test file label
 EOF

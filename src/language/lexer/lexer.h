@@ -69,9 +69,10 @@ void lex_put_back (struct lexer *, int);
 void lex_put_back_id (struct lexer *, const char *tokid);
 
 /* Weird line processing functions. */
-const char *lex_entire_line (struct lexer *);
-const struct string *lex_entire_line_ds (struct lexer *);
-const char *lex_rest_of_line (struct lexer *, int *end_dot);
+const char *lex_entire_line (const struct lexer *);
+const struct string *lex_entire_line_ds (const struct lexer *);
+const char *lex_rest_of_line (const struct lexer *);
+bool lex_end_dot (const struct lexer *);
 void lex_preprocess_line (struct string *, enum getl_syntax,
                           bool *line_starts_command,
                           bool *line_ends_command);
