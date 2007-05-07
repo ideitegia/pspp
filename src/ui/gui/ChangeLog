@@ -1,3 +1,11 @@
+2007-05-07 John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-dialog.c psppire-dialog.h: Added "orientation" property,
+        to allow dialogs to be either vertical or horizontal.
+
+	* comments-dialog.c comments-dialog.h: New files, invoking 
+	ADD DOCUMENT cmd.
+
 2007-04-30 John Darrington <john@darrington.wattle.id.au>
 
 	* var-display.c var-display.h variable-info-dialog.c

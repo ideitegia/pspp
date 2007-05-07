@@ -36,6 +36,7 @@
 #include "transpose-dialog.h"
 #include "sort-cases-dialog.h"
 #include "compute-dialog.h"
+#include "comments-dialog.h"
 #include "variable-info-dialog.h"
 #include "dict-display.h"
 
@@ -54,7 +55,6 @@
 static void register_data_editor_actions (struct data_editor *de);
 
 static void insert_variable (GtkCheckMenuItem *m, gpointer data);
-
 
 
 /* Switch between the VAR SHEET and the DATA SHEET */
@@ -260,6 +260,15 @@ new_data_editor (void)
   g_signal_connect (de->invoke_compute_dialog, "activate",
 		    G_CALLBACK (compute_dialog), de);
 
+  de->invoke_comments_dialog =
+    gtk_action_new ("commments-dialog",
+		    _("Data File Comments"),
+		    _("Commentary text for the data file"),
+		    NULL);
+
+  g_signal_connect (de->invoke_comments_dialog, "activate",
+		    G_CALLBACK (comments_dialog), de);
+
   de->invoke_variable_info_dialog  =
     gtk_action_new ("variable-info-dialog",
 		    _("Variables"),
@@ -375,10 +384,13 @@ new_data_editor (void)
 			    get_widget_assert (de->xml, "transform_compute")
 			    );
 
+  gtk_action_connect_proxy (de->invoke_comments_dialog,
+			    get_widget_assert (de->xml, "utilities_comments")
+			    );
+
   gtk_action_connect_proxy (de->invoke_variable_info_dialog,
 			    get_widget_assert (de->xml, "utilities_variables")
 			    );
-
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
 		    "activate",

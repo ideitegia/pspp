@@ -73,6 +73,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/about.h \
 	src/ui/gui/compute-dialog.c \
 	src/ui/gui/compute-dialog.h \
+	src/ui/gui/comments-dialog.c \
 	src/ui/gui/customentry.c \
 	src/ui/gui/customentry.h \
 	src/ui/gui/data-sheet.c \

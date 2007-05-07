@@ -5,6 +5,7 @@
 #include <string.h>
 #include <glade-gtk.h>
 #include <assert.h>
+#include <string.h>
 
 
 void GLADEGTK_API

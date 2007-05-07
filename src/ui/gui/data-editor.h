@@ -39,6 +39,7 @@ struct data_editor
   GtkAction *invoke_split_file_dialog;
   GtkAction *invoke_sort_cases_dialog;
   GtkAction *invoke_compute_dialog;
+  GtkAction *invoke_comments_dialog;
 
   GtkAction *invoke_variable_info_dialog;
 
