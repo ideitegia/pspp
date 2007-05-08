@@ -1066,7 +1066,7 @@ get_n_indep (const struct variable *v)
 	}
       i++;
     }
-  return result;
+  return (result == 0) ? 1 : result;
 }
 
 /*
@@ -1087,7 +1087,12 @@ prepare_data (int n_data, int is_missing_case[],
   j = 0;
   for (i = 0; i < n_variables; i++)
     {
-      if (!is_depvar (i, depvar))
+      /*
+	The second condition ensures the program will run even if
+	there is only one variable to act as both explanatory and
+	response.
+       */
+      if ((!is_depvar (i, depvar)) || (n_variables == 1))
 	{
 	  indep_vars[j] = v_variables[i];
 	  j++;
@@ -1221,11 +1226,12 @@ run_regression (const struct ccase *first,
       n_data = prepare_data (n_cases, is_missing_case, indep_vars,
 			     cmd.v_dependent[k],
 			     (const struct casefile *) cf, mom);
-      if (n_data > 0)
+      if ((n_data > 0) && (n_indep > 0))
 	{
 	  Y = gsl_vector_alloc (n_data);
 	  X =
-	    design_matrix_create (n_indep, (const struct variable **) indep_vars,
+	    design_matrix_create (n_indep,
+				  (const struct variable **) indep_vars,
 				  n_data);
 	  for (i = 0; i < X->m->size2; i++)
 	    {
@@ -1236,16 +1242,16 @@ run_regression (const struct ccase *first,
 	  models[k]->indep_std = gsl_vector_alloc (X->m->size2);
 	  models[k]->depvar = (const struct variable *) cmd.v_dependent[k];
 	  /*
-	    For large data sets, use QR decomposition.
-	  */
+	     For large data sets, use QR decomposition.
+	   */
 	  if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
 	    {
 	      models[k]->method = PSPP_LINREG_SVD;
 	    }
-	  
+
 	  /*
-	    The second pass fills the design matrix.
-	  */
+	     The second pass fills the design matrix.
+	   */
 	  row = 0;
 	  for (r = casefile_get_reader (cf, NULL); casereader_read (r, &c);
 	       case_destroy (&c))
@@ -1257,28 +1263,29 @@ run_regression (const struct ccase *first,
 		  for (i = 0; i < n_variables; ++i)	/* Iterate over the
 							   variables for the
 							   current case.
-							*/
+							 */
 		    {
 		      val = case_data (&c, v_variables[i]);
 		      /*
-			Independent/dependent variable separation. The
-			'variables' subcommand specifies a varlist which contains
-			both dependent and independent variables. The dependent
-			variables are specified with the 'dependent'
-			subcommand, and maybe also in the 'variables' subcommand. 
-			We need to separate the two.
-		      */
+		         Independent/dependent variable separation. The
+		         'variables' subcommand specifies a varlist which contains
+		         both dependent and independent variables. The dependent
+		         variables are specified with the 'dependent'
+		         subcommand, and maybe also in the 'variables' subcommand. 
+		         We need to separate the two.
+		       */
 		      if (!is_depvar (i, cmd.v_dependent[k]))
 			{
 			  if (var_is_alpha (v_variables[i]))
 			    {
 			      design_matrix_set_categorical (X, row,
-							     v_variables[i], val);
+							     v_variables[i],
+							     val);
 			    }
 			  else
 			    {
-			      design_matrix_set_numeric (X, row, v_variables[i],
-							 val);
+			      design_matrix_set_numeric (X, row,
+							 v_variables[i], val);
 			    }
 			}
 		    }
@@ -1288,20 +1295,20 @@ run_regression (const struct ccase *first,
 		}
 	    }
 	  /*
-	    Now that we know the number of coefficients, allocate space
-	    and store pointers to the variables that correspond to the
-	    coefficients.
-	  */
+	     Now that we know the number of coefficients, allocate space
+	     and store pointers to the variables that correspond to the
+	     coefficients.
+	   */
 	  coeff_init (models[k], X);
-	  
+
 	  /* 
 	     Find the least-squares estimates and other statistics.
-	  */
+	   */
 	  pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, models[k]);
 	  compute_moments (models[k], mom, X, n_variables);
 	  subcommand_statistics (cmd.a_statistics, models[k]);
 	  subcommand_export (cmd.sbc_export, models[k]);
-	  
+
 	  gsl_vector_free (Y);
 	  design_matrix_destroy (X);
 	  free (indep_vars);

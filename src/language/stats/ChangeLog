@@ -1,3 +1,8 @@
+2007-05-08  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q: Partial fix of bug which caused a crash if
+	dependent variable and independent variable were the same.
+
 2007-04-16 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q: Changed the output width of reported counts and 
