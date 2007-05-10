@@ -1,6 +1,5 @@
 /* PSPP - binary encodings for categorical variables.
    Copyright (C) 2005 Free Software Foundation, Inc.
-   Written by Jason H Stover <jason@sakla.net>.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
