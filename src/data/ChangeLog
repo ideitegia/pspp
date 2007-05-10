@@ -1,3 +1,7 @@
+2007-05-10  Jason Stover  <jhs@math.gcsu.edu>
+
+	* category.c: Removed redundant #include
+
 2007-05-06  Ben Pfaff  <blp@gnu.org>
 
 	Abstract the documents within a dictionary a little better.

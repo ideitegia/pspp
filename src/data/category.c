@@ -32,8 +32,6 @@
 */
 #include <config.h>
 
-#include "category.h"
-
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
