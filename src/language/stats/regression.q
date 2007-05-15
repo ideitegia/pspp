@@ -1315,6 +1315,10 @@ run_regression (const struct ccase *first,
 	  free (lopts.get_indep_mean_std);
 	  casereader_destroy (r);
 	}
+      else
+	{
+	  msg (SE, gettext ("No valid data found. This command was skipped."));
+	}
     }
   for (i = 0; i < n_variables; i++)
     {

@@ -1,3 +1,8 @@
+2007-05-15  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (run_regression): Tell the user when the data
+	contain no valid cases.
+
 2007-05-08  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q: Partial fix of bug which caused a crash if
