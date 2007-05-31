@@ -1,3 +1,8 @@
+2007-05-31  Jason Stover  <jhs@math.gcsu.edu>
+
+	* interaction.c: New file.
+	* interaction.h : New file.
+
 Mon Feb  5 15:42:14 2007  Ben Pfaff  <blp@gnu.org>
 
 	* moments.c (moments_pass_two): Reduce number of multiplications.
