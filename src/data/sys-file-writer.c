@@ -927,7 +927,7 @@ static void write_compressed_data (struct sfm_writer *w, const flt64 *elem);
 
 /* Writes case C to system file W.
    Returns 1 if successful, 0 if an I/O error occurred. */
-int
+bool
 sfm_write_case (struct sfm_writer *w, const struct ccase *c)
 {
   if (ferror (w->file))

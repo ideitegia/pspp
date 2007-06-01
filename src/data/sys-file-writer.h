@@ -24,7 +24,7 @@
 /* Writing system files. */
 
 /* Options for creating a system file. */
-struct sfm_write_options 
+struct sfm_write_options
   {
     bool create_writeable;      /* File perms: writeable or read/only? */
     bool compress;              /* Compress file? */
@@ -38,7 +38,7 @@ struct sfm_writer *sfm_open_writer (struct file_handle *, struct dictionary *,
                                     struct sfm_write_options);
 struct sfm_write_options sfm_writer_default_options (void);
 
-int sfm_write_case (struct sfm_writer *, const struct ccase *);
+bool sfm_write_case (struct sfm_writer *, const struct ccase *);
 bool sfm_write_error (const struct sfm_writer *);
 bool sfm_close_writer (struct sfm_writer *);
 
