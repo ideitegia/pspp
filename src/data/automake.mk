@@ -13,7 +13,6 @@ src_data_libdata_a_SOURCES = \
 	src/data/case-source.c \
 	src/data/case-source.h \
 	src/data/case.c \
-	src/data/casedeque.h \
 	src/data/casefilter.c \
 	src/data/casefilter.h \
 	src/data/casefile.h \

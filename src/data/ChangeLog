@@ -1,3 +1,11 @@
+2007-06-02  Ben Pfaff  <blp@gnu.org>
+
+	Clean up after a forgotten part of patch #5829.
+	
+	* casedeque.h: Remove unused file.
+
+	* automake.mk: Remove casedeque.h from sources.
+
 2007-05-10  Jason Stover  <jhs@math.gcsu.edu>
 
 	* category.c: Removed redundant #include
