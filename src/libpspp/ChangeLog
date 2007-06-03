@@ -1,3 +1,8 @@
+2007-06-03  Ben Pfaff  <blp@gnu.org>
+
+	* array.c (insert_range): New function.
+	(insert_element): New function.
+
 2007-04-25  Ben Pfaff  <blp@gnu.org>
 
 	* model-checker.c: Don't use type sighandler_t, which is a GNU

@@ -108,6 +108,20 @@ void remove_range (void *array, size_t count, size_t size,
 void remove_element (void *array, size_t count, size_t size,
                      size_t idx);
 
+/* Makes room for N elements starting at IDX in ARRAY, which
+   initially consists of COUNT elements of SIZE bytes each, by
+   shifting elements IDX...COUNT (exclusive) to the right by N
+   positions. */
+void insert_range (void *array, size_t count, size_t size,
+                   size_t idx, size_t n);
+
+/* Makes room for a new element at IDX in ARRAY, which initially
+   consists of COUNT elements of SIZE bytes each, by shifting
+   elements IDX...COUNT (exclusive) to the right by one
+   positions. */
+void insert_element (void *array, size_t count, size_t size,
+                     size_t idx);
+
 /* Moves an element in ARRAY, which consists of COUNT elements of
    SIZE bytes each, from OLD_IDX to NEW_IDX, shifting around
    other elements as needed.  Runs in O(abs(OLD_IDX - NEW_IDX))

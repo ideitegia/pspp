@@ -360,6 +360,31 @@ remove_element (void *array, size_t count, size_t size,
   remove_range (array, count, size, idx, 1);
 }
 
+/* Makes room for N elements starting at IDX in ARRAY, which
+   initially consists of COUNT elements of SIZE bytes each, by
+   shifting elements IDX...COUNT (exclusive) to the right by N
+   positions. */
+void
+insert_range (void *array_, size_t count, size_t size,
+              size_t idx, size_t n) 
+{
+  char *array = array_;
+
+  assert (idx <= count);
+  memmove (array + (idx + n) * size, array + idx * size, (count - idx) * size);
+}
+
+/* Makes room for a new element at IDX in ARRAY, which initially
+   consists of COUNT elements of SIZE bytes each, by shifting
+   elements IDX...COUNT (exclusive) to the right by one
+   positions. */
+void
+insert_element (void *array, size_t count, size_t size,
+                size_t idx) 
+{
+  insert_range (array, count, size, idx, 1);
+}
+
 /* Moves an element in ARRAY, which consists of COUNT elements of
    SIZE bytes each, from OLD_IDX to NEW_IDX, shifting around
    other elements as needed.  Runs in O(abs(OLD_IDX - NEW_IDX))
