@@ -1,3 +1,13 @@
+2007-06-03  Ben Pfaff  <blp@gnu.org>
+
+	Implement missing functions for subcommand integer lists.
+	
+	* subcommand-list.c (subc_list_int_create): New function.
+	(subc_list_int_push): New function.
+	(subc_list_int_count): New function.
+	(subc_list_int_at): New function.
+	(subc_list_int_destroy): New function.
+
 2007-05-06  Ben Pfaff  <blp@gnu.org>
 
 	Abstract the documents within a dictionary a little better.

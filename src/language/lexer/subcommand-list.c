@@ -38,9 +38,30 @@ subc_list_double_create(subc_list_double *l)
   l->n_data = 0;
 }
 
+void
+subc_list_int_create(subc_list_int *l)
+{
+  l->data = xnmalloc (CHUNKSIZE, sizeof *l->data);
+  l->sz = CHUNKSIZE;
+  l->n_data = 0;
+}
+
 /* Push a value onto the list */
 void
 subc_list_double_push(subc_list_double *l, double d)
+{
+  l->data[l->n_data++] = d;
+
+  if (l->n_data >= l->sz ) 
+    {
+      l->sz += CHUNKSIZE;
+      l->data = xnrealloc (l->data, l->sz, sizeof *l->data);
+    }
+
+}
+
+void
+subc_list_int_push(subc_list_int *l, int d)
 {
   l->data[l->n_data++] = d;
 
@@ -59,6 +80,12 @@ subc_list_double_count(const subc_list_double *l)
   return l->n_data;
 }
 
+int 
+subc_list_int_count(const subc_list_int *l)
+{
+  return l->n_data;
+}
+
 
 /* Index into the list (array) */
 double
@@ -67,9 +94,21 @@ subc_list_double_at(const subc_list_double *l, int idx)
   return l->data[idx];
 }
 
+int
+subc_list_int_at(const subc_list_int *l, int idx)
+{
+  return l->data[idx];
+}
+
 /* Free up the list */
 void
 subc_list_double_destroy(subc_list_double *l)
+{
+  free(l->data);
+}
+
+void
+subc_list_int_destroy(subc_list_int *l)
 {
   free(l->data);
 }
