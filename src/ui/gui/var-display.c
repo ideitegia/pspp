@@ -1,3 +1,4 @@
+#include <config.h>
 #include "var-display.h"
 
 #include <data/variable.h>
