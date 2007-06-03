@@ -46,7 +46,6 @@ Software Foundation raise funds for GNU development.''
 @title GNU PSPP
 @subtitle A System for Statistical Analysis
 @subtitle Edition @value{EDITION}, for PSPP version @value{VERSION}
-@author Ben Pfaff
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -128,5 +127,5 @@ Software Foundation raise funds for GNU development.''
 
 @c Local Variables:
 @c use (texinfo-multiple-files-update "pspp.texinfo")  in emacs to keep these files consistent
-@c compile-command: "makeinfo pspp.texi"
+@c compile-command: "makeinfo pspp.texinfo"
 @c End:
