@@ -159,7 +159,7 @@ psppire_var_store_item_editable (PsppireVarStore *var_store, gint row, gint colu
   if ( !pv )
     return TRUE;
 
-  if ( VAR_STRING == var_get_type (pv) && column == COL_DECIMALS )
+  if ( var_is_alpha (pv) && column == COL_DECIMALS )
     return FALSE;
 
   write_spec = var_get_print_format (pv);

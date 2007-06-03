@@ -1,3 +1,8 @@
+2007-06-03  Ben Pfaff  <blp@gnu.org>
+
+	* psppire-var-store.c (psppire_var_store_item_editable): Use
+	var_is_alpha.
+	
 2007-05-07 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-dialog.c psppire-dialog.h: Added "orientation" property,
