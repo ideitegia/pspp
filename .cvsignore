@@ -3,6 +3,8 @@ Makefile
 Makefile.in
 _build
 _check
+_ndebug
+_profile
 aclocal.m4
 autom4te.cache
 compile
