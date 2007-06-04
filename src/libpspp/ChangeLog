@@ -1,5 +1,17 @@
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
+	Add ability for reverse iteration to tower code.
+	
+	* tower.c (tower_last): New function.
+	(tower_prev): New function.
+	(abt_to_tower_node): New function.
+	(first_node): Use abt_to_tower_node.
+	(last_node): New function.
+	(next_ndoe): Use abt_to_tower_node.
+	(prev_node): New function.
+
+2007-06-03  Ben Pfaff  <blp@gnu.org>
+
 	* tower.c: Cache repeated lookups of a single tower element.  This
 	turns such lookups into O(1) operations without harming the big-O
 	of other operations.

@@ -32,6 +32,7 @@
 
 #include <assert.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -289,6 +290,15 @@ check_tower (struct tower *t,
       check (tower_node_to_block (node)->x == blocks[i].x);
     }
   check (i == block_cnt);
+
+  for (node = tower_last (t), i = block_cnt - 1;
+       node != NULL;
+       node = tower_prev (t, node), i--) 
+    {
+      check (tower_node_get_height (node) == blocks[i].height);
+      check (tower_node_to_block (node)->x == blocks[i].x);
+    }
+  check (i == SIZE_MAX);
 }
 
 /* Tests inserting all possible sets of block heights into a

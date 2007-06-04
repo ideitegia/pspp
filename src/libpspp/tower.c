@@ -27,7 +27,10 @@
 
 static struct tower_node *abt_to_tower_node (const struct abt_node *);
 static struct tower_node *first_node (const struct tower *);
+static struct tower_node *last_node (const struct tower *);
 static struct tower_node *next_node (const struct tower *,
+                                     const struct tower_node *);
+static struct tower_node *prev_node (const struct tower *,
                                      const struct tower_node *);
 static unsigned long int get_subtree_height (const struct abt_node *);
 static void reaugment_tower_node (struct abt_node *,
@@ -184,6 +187,14 @@ tower_first (const struct tower *t)
   return first_node (t);
 }
 
+/* Returns the node at the top of tower T, or a null pointer if T
+   is empty. */
+struct tower_node *
+tower_last (const struct tower *t) 
+{
+  return last_node (t);
+}
+
 /* If NODE is nonnull, returns the node just above NODE in tower
    T, or a null pointer if NODE is the topmost node in T.
    If NODE is null, acts like tower_first. */
@@ -191,6 +202,15 @@ struct tower_node *
 tower_next (const struct tower *t, const struct tower_node *node) 
 {
   return node != NULL ? next_node (t, node) : first_node (t);
+}
+
+/* If NODE is nonnull, returns the node just below NODE in tower
+   T, or a null pointer if NODE is the bottommost node in T.
+   If NODE is null, acts like tower_last. */
+struct tower_node *
+tower_prev (const struct tower *t, const struct tower_node *node) 
+{
+  return node != NULL ? prev_node (t, node) : last_node (t);
 }
 
 /* Returns the tower node corresponding to the given ABT_NODE. */
@@ -200,20 +220,39 @@ abt_to_tower_node (const struct abt_node *abt_node)
   return abt_data (abt_node, struct tower_node, abt_node);
 }
 
+/* Returns the tower node corresponding to the given ABT_NODE. */
+static struct tower_node *
+abt_to_tower_node_null (const struct abt_node *abt_node) 
+{
+  return abt_node != NULL ? abt_to_tower_node (abt_node) : NULL;
+}
+
 /* Returns the first node in TOWER. */
 static struct tower_node *
 first_node (const struct tower *t) 
 {
-  struct abt_node *abt_node = abt_first (&t->abt);
-  return abt_node != NULL ? abt_to_tower_node (abt_node) : NULL;
+  return abt_to_tower_node_null (abt_first (&t->abt));
+}
+
+/* Returns the first node in TOWER. */
+static struct tower_node *
+last_node (const struct tower *t) 
+{
+  return abt_to_tower_node_null (abt_last (&t->abt));
 }
 
 /* Returns the next node in TOWER after NODE. */
 static struct tower_node *
 next_node (const struct tower *t, const struct tower_node *node) 
 {
-  struct abt_node *abt_node = abt_next (&t->abt, &node->abt_node);
-  return abt_node != NULL ? abt_to_tower_node (abt_node) : NULL;
+  return abt_to_tower_node_null (abt_next (&t->abt, &node->abt_node));
+}
+
+/* Returns the previous node in TOWER before NODE. */
+static struct tower_node *
+prev_node (const struct tower *t, const struct tower_node *node) 
+{
+  return abt_to_tower_node_null (abt_prev (&t->abt, &node->abt_node));
 }
 
 /* Returns the total height of the nodes in the subtree rooted at

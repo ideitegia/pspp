@@ -1,5 +1,7 @@
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
+	* tests/tower-test.c: Also test tower_last, tower_prev functions.
+
 	* tests/range-set-test.c: Also test the range_set_clone function.
 
 2007-05-06  Ben Pfaff  <blp@gnu.org>

@@ -97,7 +97,10 @@ struct tower_node *tower_lookup (const struct tower *,
                                  unsigned long int level,
                                  unsigned long int *node_start);
 struct tower_node *tower_first (const struct tower *);
+struct tower_node *tower_last (const struct tower *);
 struct tower_node *tower_next (const struct tower *,
+                               const struct tower_node *);
+struct tower_node *tower_prev (const struct tower *,
                                const struct tower_node *);
 
 #endif /* libpspp/tower.h */
