@@ -51,12 +51,13 @@ bool case_try_create (struct ccase *, size_t value_cnt);
 bool case_try_clone (struct ccase *, const struct ccase *);
 
 void case_copy (struct ccase *dst, size_t dst_idx,
-                            const struct ccase *src, size_t src_idx,
-                            size_t cnt);
+                const struct ccase *src, size_t src_idx,
+                size_t cnt);
 
-void case_to_values (const struct ccase *, union value *, size_t);
-void case_from_values (struct ccase *,
-                                   const union value *, size_t);
+void case_copy_out (const struct ccase *,
+                       size_t start_idx, union value *, size_t value_cnt);
+void case_copy_in (struct ccase *,
+                       size_t start_idx, const union value *, size_t value_cnt);
 
 const union value *case_data (const struct ccase *, const struct variable *);
 double case_num (const struct ccase *, const struct variable *);

@@ -1,3 +1,13 @@
+2007-06-03  Ben Pfaff  <blp@gnu.org>
+
+	Slightly generalize case_to_values and case_from_values functions.
+
+	* case.c (case_to_values): Rename case_copy_out, change interface.
+	(case_from_values): Rename case_copy_in, change interface.
+
+	* fastfile.c (fastfilereader_get_next_case): Update caller.
+	(write_case_to_disk): Ditto.
+
 2007-06-02  Ben Pfaff  <blp@gnu.org>
 
 	Clean up after a forgotten part of patch #5829.

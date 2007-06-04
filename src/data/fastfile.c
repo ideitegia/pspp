@@ -246,8 +246,7 @@ fastfilereader_get_next_case (struct casereader *cr)
 	  ffr->buffer_pos = 0;
 	}
 
-      case_from_values (&ffr->c, ffr->buffer + ffr->buffer_pos,
-			ff->value_cnt);
+      case_copy_in (&ffr->c, 0, ffr->buffer + ffr->buffer_pos, ff->value_cnt);
       ffr->buffer_pos += ff->value_cnt;
       
       read_case = &ffr->c;
@@ -645,7 +644,7 @@ write_case_to_disk (struct fastfile *ff, const struct ccase *c)
   if (!ff->ok)
     return;
 
-  case_to_values (c, ff->buffer + ff->buffer_used, ff->value_cnt);
+  case_copy_out (c, 0, ff->buffer + ff->buffer_used, ff->value_cnt);
   ff->buffer_used += ff->value_cnt;
   if (ff->buffer_used + ff->value_cnt > ff->buffer_size)
     flush_buffer (ff);

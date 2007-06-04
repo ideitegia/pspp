@@ -210,35 +210,33 @@ case_copy (struct ccase *dst, size_t dst_idx,
     }
 }
 
-/* Copies case C to OUTPUT.
-   OUTPUT_SIZE is the number of `union values' in OUTPUT,
-   which must match the number of `union values' in C. */
+/* Copies VALUE_CNT values out of case C to VALUES, starting at
+   the given START_IDX. */
 void
-case_to_values (const struct ccase *c, union value *output,
-                size_t output_size UNUSED) 
+case_copy_out (const struct ccase *c,
+               size_t start_idx, union value *values, size_t value_cnt) 
 {
   assert (c->case_data->ref_cnt > 0);
-  assert (output_size == c->case_data->value_cnt);
-  assert (output != NULL || output_size == 0);
+  assert (value_cnt <= c->case_data->value_cnt);
+  assert (start_idx + value_cnt <= c->case_data->value_cnt);
 
-  memcpy (output, c->case_data->values,
-          c->case_data->value_cnt * sizeof *output);
+  memcpy (values, c->case_data->values + start_idx,
+          value_cnt * sizeof *values);
 }
 
-/* Copies INPUT into case C.
-   INPUT_SIZE is the number of `union values' in INPUT,
-   which must match the number of `union values' in C. */
+/* Copies VALUE_CNT values from VALUES into case C, staring at
+   the given START_IDX. */
 void
-case_from_values (struct ccase *c, const union value *input,
-                  size_t input_size UNUSED) 
+case_copy_in (struct ccase *c,
+              size_t start_idx, const union value *values, size_t value_cnt) 
 {
   assert (c->case_data->ref_cnt > 0);
-  assert (input_size == c->case_data->value_cnt);
-  assert (input != NULL || input_size == 0);
+  assert (value_cnt <= c->case_data->value_cnt);
+  assert (start_idx + value_cnt <= c->case_data->value_cnt);
 
   case_unshare (c);
-  memcpy (c->case_data->values, input,
-          c->case_data->value_cnt * sizeof *input);
+  memcpy (c->case_data->values + start_idx, values,
+          value_cnt * sizeof *values);
 }
 
 /* Returns a pointer to the `union value' used for the
