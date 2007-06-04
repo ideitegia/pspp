@@ -129,6 +129,12 @@ void insert_element (void *array, size_t count, size_t size,
 void move_element (void *array, size_t count, size_t size,
                    size_t old_idx, size_t new_idx);
 
+/* Moves N elements in ARRAY starting at OLD_IDX, which consists
+   of COUNT elements of SIZE bytes each, so that they now start
+   at NEW_IDX, shifting around other elements as needed. */
+void move_range (void *array, size_t count, size_t size,
+                 size_t old_idx, size_t new_idx, size_t n);
+
 /* Removes elements equal to ELEMENT from ARRAY, which consists
    of COUNT elements of SIZE bytes each.  Returns the number of
    remaining elements.  AUX is passed to COMPARE as auxiliary

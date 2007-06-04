@@ -2,6 +2,7 @@
 
 	* array.c (insert_range): New function.
 	(insert_element): New function.
+	(move_range): New function.
 
 2007-04-25  Ben Pfaff  <blp@gnu.org>
 

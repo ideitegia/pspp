@@ -415,6 +415,36 @@ move_element (void *array_, size_t count, size_t size,
     }
 }
 
+/* Moves N elements in ARRAY starting at OLD_IDX, which consists
+   of COUNT elements of SIZE bytes each, so that they now start
+   at NEW_IDX, shifting around other elements as needed. */
+void
+move_range (void *array_, size_t count, size_t size,
+            size_t old_idx, size_t new_idx, size_t n)
+{
+  assert (array_ != NULL || count == 0);
+  assert (n <= count);
+  assert (old_idx + n <= count);
+  assert (new_idx + n <= count);
+  
+  if (old_idx != new_idx && n > 0) 
+    {
+      char *array = array_;
+      char *range = xmalloc (size * n);
+      char *new = array + new_idx * size;
+      char *old = array + old_idx * size;
+
+      memcpy (range, old, size * n);
+      if (new < old)
+        memmove (new + size * n, new, (old_idx - new_idx) * size);
+      else
+        memmove (old, old + size * n, (new_idx - old_idx) * size);
+      memcpy (new, range, size * n);
+
+      free (range);
+    }
+}
+
 /* A predicate and its auxiliary data. */
 struct pred_aux 
   {
