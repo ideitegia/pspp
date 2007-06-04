@@ -1,5 +1,11 @@
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
+	* tower.c: Cache repeated lookups of a single tower element.  This
+	turns such lookups into O(1) operations without harming the big-O
+	of other operations.
+
+	* tower.h (struct tower): Add members for caching.
+
 	* range-set.c (range_set_clone): New function.
 
 	* array.c (insert_range): New function.

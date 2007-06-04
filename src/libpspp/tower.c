@@ -20,6 +20,8 @@
 
 #include <libpspp/tower.h>
 
+#include <limits.h>
+
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 
@@ -38,6 +40,7 @@ void
 tower_init (struct tower *t) 
 {
   abt_init (&t->abt, NULL, reaugment_tower_node, NULL);
+  t->cache_bottom = ULONG_MAX;
 }
 
 /* Returns true if T contains no nodes, false otherwise. */
@@ -64,6 +67,7 @@ tower_insert (struct tower *t, unsigned long height, struct tower_node *new,
   new->height = height;
   abt_insert_before (&t->abt, under ? &under->abt_node : NULL,
                      &new->abt_node);
+  t->cache_bottom = ULONG_MAX;
 }
 
 /* Deletes NODE from tower T. */
@@ -72,6 +76,7 @@ tower_delete (struct tower *t, struct tower_node *node)
 {
   struct tower_node *next = next_node (t, node);
   abt_delete (&t->abt, &node->abt_node);
+  t->cache_bottom = ULONG_MAX;
   return next;
 }
 
@@ -83,6 +88,7 @@ tower_resize (struct tower *t, struct tower_node *node,
   assert (new_height > 0);
   node->height = new_height;
   abt_reaugmented (&t->abt, &node->abt_node);
+  t->cache_bottom = ULONG_MAX;
 }
 
 /* Removes nodes FIRST through LAST (exclusive) from tower SRC
@@ -110,6 +116,7 @@ tower_splice (struct tower *dst, struct tower_node *under,
       abt_insert_before (&dst->abt, under ? &under->abt_node : NULL,
                          &first->abt_node);
     }
+  dst->cache_bottom = src->cache_bottom = ULONG_MAX;
 }
 
 /* Returns the node at the given HEIGHT from the bottom of tower
@@ -118,13 +125,20 @@ tower_splice (struct tower *dst, struct tower_node *under,
    of the returned node, which may be less than HEIGHT if HEIGHT
    refers to the middle of a node instead of its bottom. */
 struct tower_node *
-tower_lookup (const struct tower *t,
+tower_lookup (const struct tower *t_,
               unsigned long height,
               unsigned long *node_start) 
 {
+  struct tower *t = (struct tower *) t_;
   struct abt_node *p;
 
   assert (height < tower_height (t));
+
+  if (height >= t->cache_bottom && height - t->cache_bottom < t->cache->height)
+    {
+      *node_start = t->cache_bottom;
+      return t->cache; 
+    }
 
   *node_start = 0;
   p = t->abt.root;
@@ -147,6 +161,8 @@ tower_lookup (const struct tower *t,
           if (height < node_height) 
             {
               /* Our goal height is in P. */
+              t->cache = node;
+              t->cache_bottom = *node_start;
               return node; 
             }
           else 

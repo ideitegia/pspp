@@ -74,7 +74,9 @@ tower_node_get_height (const struct tower_node *node)
 /* A tower. */
 struct tower 
   {
-    struct abt abt;              /* Tree. */
+    struct abt abt;                   /* Tree. */
+    struct tower_node *cache;         /* Cache node. */
+    unsigned long int cache_bottom;   /* Height of cache's bottom. */
   };
 
 void tower_init (struct tower *);
