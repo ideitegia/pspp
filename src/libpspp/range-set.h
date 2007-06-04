@@ -32,6 +32,7 @@ struct pool;
 
 struct range_set *range_set_create (void);
 struct range_set *range_set_create_pool (struct pool *);
+struct range_set *range_set_clone (const struct range_set *, struct pool *);
 void range_set_destroy (struct range_set *);
 
 void range_set_insert (struct range_set *,

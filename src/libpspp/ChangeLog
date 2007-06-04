@@ -1,5 +1,7 @@
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
+	* range-set.c (range_set_clone): New function.
+
 	* array.c (insert_range): New function.
 	(insert_element): New function.
 	(move_range): New function.

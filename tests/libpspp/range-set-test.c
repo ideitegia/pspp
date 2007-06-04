@@ -202,14 +202,17 @@ test_insert (void)
     for (i = 0; i < positions + 1; i++)
       for (j = i; j <= positions + 1; j++)
         {
-          struct range_set *rs;
+          struct range_set *rs, *rs2;
           unsigned int final_pat;
 
           rs = make_pattern (init_pat);
           range_set_insert (rs, i, j - i);
           final_pat = init_pat | bit_range (i, j - i);
           check_pattern (rs, final_pat);
+          rs2 = range_set_clone (rs, NULL);
+          check_pattern (rs2, final_pat);
           range_set_destroy (rs);
+          range_set_destroy (rs2);
         }
 }
 

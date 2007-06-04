@@ -100,6 +100,20 @@ range_set_create_pool (struct pool *pool)
   return rs;
 }
 
+/* Creates and returns a clone of OLD range set in the given POOL
+   (which may be null). */
+struct range_set *
+range_set_clone (const struct range_set *old, struct pool *pool)
+{
+  struct range_set *new;
+  struct range_set_node *node;
+
+  new = range_set_create_pool (pool);
+  for (node = first_node (old); node != NULL; node = next_node (old, node)) 
+    insert_node (new, node->start, node->end);
+  return new;
+}
+
 /* Destroys range set RS. */
 void
 range_set_destroy (struct range_set *rs) 
