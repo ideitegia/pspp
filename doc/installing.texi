@@ -1,4 +1,4 @@
-@node Installation, Configuration, Concept Index, Top
+@node Installation
 @appendix Installing PSPP
 @cindex installation
 @cindex PSPP, installing

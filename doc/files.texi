@@ -1,4 +1,4 @@
-@node System and Portable Files, Variable Attributes, Data Input and Output, Top
+@node System and Portable Files
 @chapter System Files and Portable Files
 
 The commands in this chapter read, write, and examine system files and
@@ -378,7 +378,7 @@ the data is read by a procedure or procedure-like command.
 
 @xref{EXPORT}, for more information.
 
-@node XSAVE,  , XEXPORT, System and Portable Files
+@node XSAVE
 @section XSAVE
 @vindex XSAVE
 

@@ -1,4 +1,4 @@
-@node Language, Expressions, Invocation, Top
+@node Language
 @chapter The PSPP language
 @cindex language, PSPP
 @cindex PSPP, language
@@ -24,7 +24,7 @@ Later chapters will describe individual commands in detail.
 * BNF::                         How command syntax is described.
 @end menu
 
-@node Tokens, Commands, Language, Language
+@node Tokens
 @section Tokens
 @cindex language, lexical analysis
 @cindex language, tokens
@@ -159,7 +159,7 @@ doing so.  Throughout the remainder of this manual we will assume that
 the default setting is in effect.
 @end table
 
-@node Commands, Types of Commands, Tokens, Language
+@node Commands
 @section Forming commands of tokens
 
 @cindex PSPP, command structure
@@ -198,7 +198,7 @@ in a line is ignored and causes that line to begin a new command,
 which allows for visual indentation of a command without that command
 being considered part of the previous command.
 
-@node Types of Commands, Order of Commands, Commands, Language
+@node Types of Commands
 @section Types of Commands
 
 Commands in PSPP are divided roughly into six categories:
@@ -241,7 +241,7 @@ more general sense, a @dfn{procedure} is any command that causes the
 active file (the data) to be read.
 @end table
 
-@node Order of Commands, Missing Observations, Types of Commands, Language
+@node Order of Commands
 @section Order of Commands
 @cindex commands, ordering
 @cindex order of commands
@@ -339,7 +339,7 @@ Cause a transition to the procedure state.
 @end itemize
 @end table
 
-@node Missing Observations, Variables, Order of Commands, Language
+@node Missing Observations
 @section Handling missing observations
 @cindex missing values
 @cindex values, missing
@@ -369,7 +369,7 @@ For more information on missing values, see the following sections:
 documentation on individual procedures for information on how they
 handle missing values.
 
-@node Variables, Files, Missing Observations, Language
+@node Variables
 @section Variables
 @cindex variables
 @cindex dictionary
@@ -387,7 +387,7 @@ Some details of variables are described in the sections below.
 * Scratch Variables::           Variables deleted by procedures.
 @end menu
 
-@node Attributes, System Variables, Variables, Variables
+@node Attributes
 @subsection Attributes of Variables
 @cindex variables, attributes of
 @cindex attributes of variables
@@ -478,7 +478,7 @@ Similar to print format, but used by the @cmd{WRITE} command
 (@pxref{WRITE}).
 @end table
 
-@node System Variables, Sets of Variables, Attributes, Variables
+@node System Variables
 @subsection Variables Automatically Defined by PSPP
 @cindex system variables
 @cindex variables, system
@@ -522,7 +522,7 @@ was read, in format F20.
 Page width, in characters, in format F3.
 @end table
 
-@node Sets of Variables, Input and Output Formats, System Variables, Variables
+@node Sets of Variables
 @subsection Lists of variable names
 @cindex @code{TO} convention
 @cindex convention, @code{TO}
@@ -551,7 +551,7 @@ After a set of variables has been defined with @cmd{DATA LIST} or
 another command with this method, the same set can be referenced on
 later commands using the same syntax.
 
-@node Input and Output Formats, Scratch Variables, Sets of Variables, Variables
+@node Input and Output Formats
 @subsection Input and Output Formats
 
 @cindex formats
@@ -1232,7 +1232,7 @@ as hex digit pairs.  On output, hex digits are output in uppercase; on
 input, uppercase and lowercase are both accepted.  The default output
 format is A format with half the input width.
 
-@node Scratch Variables,  , Input and Output Formats, Variables
+@node Scratch Variables
 @subsection Scratch Variables
 
 @cindex scratch variables

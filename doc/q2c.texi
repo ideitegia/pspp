@@ -1,4 +1,4 @@
-@node q2c Input Format, GNU Free Documentation License, Data File Format, Top
+@node q2c Input Format
 @appendix @code{q2c} Input Format
 
 PSPP statistical procedures have a bizarre and somewhat irregular
@@ -13,7 +13,7 @@ hooks for the exceptional cases.  This parser generator is named
 * Grammar Rules::               Syntax of the grammar rules.
 @end menu
 
-@node Invoking q2c, q2c Input Structure, q2c Input Format, q2c Input Format
+@node Invoking q2c
 @section Invoking q2c
 
 @example
@@ -25,7 +25,7 @@ exactly two command-line arguments, which are the input file name and
 output file name, respectively.  @code{q2c} does not accept any
 command-line options.
 
-@node q2c Input Structure, Grammar Rules, Invoking q2c, q2c Input Format
+@node q2c Input Structure
 @section @code{q2c} Input Structure
 
 @code{q2c} input files are divided into two sections: the grammar rules
@@ -78,7 +78,7 @@ declared by the parser.  Only needs to be invoked if subcommands of type
 @code{string} are used in the grammar rules.
 @end table
 
-@node Grammar Rules,  , q2c Input Structure, q2c Input Format
+@node Grammar Rules
 @section Grammar Rules
 
 The grammar rules describe the format of the syntax that the parser

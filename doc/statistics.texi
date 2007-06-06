@@ -1,4 +1,4 @@
-@node Statistics, Utilities, Conditionals and Looping, Top
+@node Statistics
 @chapter Statistics
 
 This chapter documents the statistical procedures that PSPP supports so
@@ -16,7 +16,7 @@ far.
 * REGRESSION::                  Linear regression.
 @end menu
 
-@node DESCRIPTIVES, FREQUENCIES, Statistics, Statistics
+@node DESCRIPTIVES
 @section DESCRIPTIVES
 
 @vindex DESCRIPTIVES
@@ -106,7 +106,7 @@ in the order that they are specified on the VARIABLES subcommand.  The A
 and D settings request an ascending or descending sort order,
 respectively.
 
-@node FREQUENCIES, EXAMINE, DESCRIPTIVES, Statistics
+@node FREQUENCIES
 @section FREQUENCIES
 
 @vindex FREQUENCIES
@@ -230,7 +230,7 @@ slices.  The MINIMUM and MAXIMUM keywords can be used to limit the
 displayed slices to a given range of values.  The MISSING keyword adds
 slices for missing values.
 
-@node EXAMINE, CROSSTABS, FREQUENCIES, Statistics
+@node EXAMINE
 @comment  node-name,  next,  previous,  up
 @section EXAMINE
 @vindex EXAMINE
@@ -305,7 +305,7 @@ there are many distinct values, then @cmd{EXAMINE} will produce a very
 large quantity of output.
 
 
-@node CROSSTABS, NPAR TESTS, EXAMINE, Statistics
+@node CROSSTABS
 @section CROSSTABS
 
 @vindex CROSSTABS
@@ -494,7 +494,7 @@ Approximate T of uncertainty coefficient is wrong.
 
 Fixes for any of these deficiencies would be welcomed.
 
-@node NPAR TESTS, T-TEST, CROSSTABS, Statistics
+@node NPAR TESTS
 @section NPAR TESTS
 
 @vindex NPAR TESTS
@@ -527,7 +527,7 @@ produces for each variable that is the subject of any test.
 @end menu
 
 
-@node    BINOMIAL,  CHISQUARE, NPAR TESTS, NPAR TESTS
+@node    BINOMIAL
 @subsection Binomial test
 @vindex BINOMIAL
 @cindex binomial test
@@ -575,7 +575,7 @@ even for very large sample sizes.
 
 
 
-@node    CHISQUARE, , BINOMIAL, NPAR TESTS
+@node    CHISQUARE
 @subsection Chisquare test
 @vindex CHISQUARE
 @cindex chisquare test
@@ -604,7 +604,7 @@ If no /EXPECTED subcommand is given, then then equal frequencies
 are expected.
 
 
-@node T-TEST, ONEWAY, NPAR TESTS, Statistics
+@node T-TEST
 @comment  node-name,  next,  previous,  up
 @section T-TEST
 
@@ -670,7 +670,7 @@ which they would be needed. This is the default.
 * Paired Samples Mode::         Testing two interdependent groups for equal mean
 @end menu
 
-@node One Sample Mode, Independent Samples Mode, T-TEST, T-TEST
+@node One Sample Mode
 @subsection One Sample Mode
 
 The @cmd{TESTVAL} subcommand invokes the One Sample mode.
@@ -681,7 +681,7 @@ which you wish to test.
 In this mode, you must also use the @cmd{/VARIABLES} subcommand to
 tell PSPP which variables you wish to test.
 
-@node Independent Samples Mode, Paired Samples Mode, One Sample Mode, T-TEST
+@node Independent Samples Mode
 @comment  node-name,  next,  previous,  up
 @subsection Independent Samples Mode
 
@@ -709,7 +709,7 @@ the independent variable are excluded on a listwise basis, regardless
 of whether @cmd{/MISSING=LISTWISE} was specified.
 
 
-@node Paired Samples Mode,  , Independent Samples Mode, T-TEST
+@node Paired Samples Mode
 @comment  node-name,  next,  previous,  up
 @subsection Paired Samples Mode
 
@@ -730,7 +730,7 @@ of variable preceding @code{WITH} against variable following
 @code{WITH} are generated.
 
 
-@node ONEWAY, RANK, T-TEST, Statistics
+@node ONEWAY
 @comment  node-name,  next,  previous,  up
 @section ONEWAY
 
@@ -780,7 +780,7 @@ The @code{CONTRASTS} subcommand may be given up to 10 times in order
 to specify different contrast tests.
 @setfilename ignored
 
-@node RANK, REGRESSION, ONEWAY, Statistics
+@node RANK
 @comment  node-name,  next,  previous,  up
 @section RANK
 

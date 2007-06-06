@@ -1,4 +1,4 @@
-@node Introduction, License, Top, Top
+@node Introduction
 @chapter Introduction
 @cindex introduction
 

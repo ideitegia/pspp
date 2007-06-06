@@ -1,4 +1,4 @@
-@node Concept Index, Configuration, Command Index, Top
+@node Concept Index
 @chapter Concept Index
 @printindex cp
 @setfilename ignored

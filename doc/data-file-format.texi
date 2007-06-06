@@ -1,4 +1,4 @@
-@node Data File Format, q2c Input Format, Portable File Format, Top
+@node Data File Format
 @appendix Data File Format
 
 PSPP necessarily uses the same format for system files as do the
@@ -52,7 +52,7 @@ described below:
 * Data Record::                 
 @end menu
 
-@node File Header Record, Variable Record, Data File Format, Data File Format
+@node File Header Record
 @section File Header Record
 
 The file header is always the first record in the file.
@@ -143,7 +143,7 @@ Ignored padding bytes to make the structure a multiple of 32 bits in
 length.  Set to zeros.
 @end table
 
-@node Variable Record, Value Label Record, File Header Record, Data File Format
+@node Variable Record
 @section Variable Record
 
 Immediately following the header must come the variable records.  There
@@ -318,7 +318,7 @@ Not used.
 @code{SDATE}
 @end table
 
-@node Value Label Record, Value Label Variable Record, Variable Record, Data File Format
+@node Value Label Record
 @section Value Label Record
 
 Value label records must follow the variable records and must precede
@@ -344,7 +344,7 @@ first @code{char} is a count of the number of characters in the value
 label.  The remainder of the field is the label itself.  The field is
 padded on the right to a multiple of 64 bits in length.
 
-@node Value Label Variable Record, Document Record, Value Label Record, Data File Format
+@node Value Label Variable Record
 @section Value Label Variable Record
 
 Every value label variable record must be immediately preceded by a
@@ -374,7 +374,7 @@ the first element is numbered 1 and long string variables are considered
 to occupy multiple indexes.
 @end table
 
-@node Document Record, Machine int32 Info Record, Value Label Variable Record, Data File Format
+@node Document Record
 @section Document Record
 
 There must be no more than one document record per system file.
@@ -402,7 +402,7 @@ Document lines.  The number of elements is defined by @code{n_lines}.
 Lines shorter than 80 characters are padded on the right with spaces.
 @end table
 
-@node Machine int32 Info Record, Machine flt64 Info Record, Document Record, Data File Format
+@node Machine int32 Info Record
 @section Machine @code{int32} Info Record
 
 There must be no more than one machine @code{int32} info record per
@@ -475,7 +475,7 @@ indicates 8-bit ASCII, 4 indicates DEC Kanji.
 Windows code page numbers are also valid.
 @end table
 
-@node Machine flt64 Info Record, Auxiliary Variable Parameter Record, Machine int32 Info Record, Data File Format
+@node Machine flt64 Info Record
 @section Machine @code{flt64} Info Record
 
 There must be no more than one machine @code{flt64} info record per
@@ -521,7 +521,7 @@ The value used for HIGHEST in missing values.
 The value used for LOWEST in missing values.
 @end table
 
-@node Auxiliary Variable Parameter Record, Long Variable Names Record, Machine flt64 Info Record, Data File Format
+@node Auxiliary Variable Parameter Record
 @section Auxiliary Variable Parameter Record
 
 There must be no more than one auxiliary variable parameter record per
@@ -608,7 +608,7 @@ Centre aligned
 
 
 
-@node Long Variable Names Record, Very Long String Length Record, Auxiliary Variable Parameter Record,  Data File Format
+@node Long Variable Names Record
 @section Long Variable Names Record
 
 There must be no more than one long variable names record per
@@ -655,7 +655,7 @@ trailing separator following the last tuple.
 The total length is @code{count} bytes.
 @end table
 
-@node Very Long String Length Record, Miscellaneous Informational Records, Long Variable Names Record, Data File Format
+@node Very Long String Length Record
 @comment  node-name,  next,  previous,  up
 @section Very Long String Length Record
 
@@ -707,7 +707,7 @@ The total length is @code{count} bytes.
 
 
 
-@node Miscellaneous Informational Records, Dictionary Termination Record, Very Long String Length Record, Data File Format
+@node Miscellaneous Informational Records
 @section Miscellaneous Informational Records
 
 Miscellaneous informational records must follow the variable records and
@@ -752,7 +752,7 @@ Arbitrary data.  There must be @code{size} times @code{count} bytes of
 data.
 @end table
 
-@node Dictionary Termination Record, Data Record, Miscellaneous Informational Records, Data File Format
+@node Dictionary Termination Record
 @section Dictionary Termination Record
 
 The dictionary termination record must follow all other records, except
@@ -775,7 +775,7 @@ Record type.  Always set to 999.
 Ignored padding.  Should be set to 0.
 @end table
 
-@node Data Record,  , Dictionary Termination Record, Data File Format
+@node Data Record
 @section Data Record
 
 Data records must follow all other records in the data file.  There must

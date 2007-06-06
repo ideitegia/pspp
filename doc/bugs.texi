@@ -1,4 +1,4 @@
-@node Bugs, Function Index, Not Implemented, Top
+@node Bugs
 @chapter Bugs
 
 PSPP does have bugs.  We do our best to fix them, but our limited

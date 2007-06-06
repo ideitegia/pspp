@@ -1,4 +1,4 @@
-@node Invocation, Language, License, Top
+@node Invocation
 @chapter Invoking PSPP
 @cindex invocation
 @cindex PSPP, invoking
@@ -25,7 +25,7 @@ pspp [ -B @var{dir} | --config-dir=@var{dir} ] [ -o @var{device} | --device=@var
 * Informational options::       Helpful information about PSPP.
 @end menu
 
-@node Non-option Arguments, Configuration Options, Invocation, Invocation
+@node Non-option Arguments
 @section Non-option Arguments
 
 Syntax files and output device substitutions can be specified on
@@ -63,7 +63,7 @@ instead.)  Now you should be able to invoke the syntax file just by
 typing its name.  You can include any options on the command line as
 usual.  PSPP entirely ignores any lines beginning with @samp{#!}.
 
-@node Configuration Options, Input and output options, Non-option Arguments, Invocation
+@node Configuration Options
 @section Configuration Options
 
 Configuration options are used to change PSPP's configuration for the
@@ -94,7 +94,7 @@ given more than once, then all devices mentioned are selected.  This
 option disables all devices besides those mentioned on the command line.
 @end table
 
-@node Input and output options, Language control options, Configuration Options, Invocation
+@node Input and output options
 @section Input and output options
 
 Input and output options affect how PSPP reads input and writes
@@ -139,7 +139,7 @@ Invoke heuristics to assist with testing PSPP.  For use by @code{make
 check} and similar scripts.
 @end table
 
-@node Language control options, Informational options, Input and output options, Invocation
+@node Language control options
 @section Language control options
 
 Language control options control how PSPP syntax files are parsed and
@@ -180,7 +180,7 @@ Disables certain unsafe operations.  This includes the ERASE and
 HOST commands, as well as use of pipes as input and output files.
 @end table
 
-@node Informational options,  , Language control options, Invocation
+@node Informational options
 @section Informational options
 
 Informational options cause information about PSPP to be written to

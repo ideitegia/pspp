@@ -1,4 +1,4 @@
-@node Data Input and Output, System and Portable Files, Expressions, Top
+@node Data Input and Output
 @chapter Data Input and Output
 @cindex input
 @cindex output

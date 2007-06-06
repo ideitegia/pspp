@@ -1,4 +1,4 @@
-@node Not Implemented, Bugs, Utilities, Top
+@node Not Implemented
 @chapter Not Implemented
 
 This chapter lists parts of the PSPP language that are not yet

@@ -1,4 +1,4 @@
-@node Command Index, Concept Index, Function Index, Top
+@node Command Index
 @chapter Command Index
 @printindex vr
 @setfilename ignored

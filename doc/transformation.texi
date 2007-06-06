@@ -1,4 +1,4 @@
-@node Data Manipulation, Data Selection, Variable Attributes, Top
+@node Data Manipulation
 @chapter Data transformations
 @cindex transformations
 
@@ -17,7 +17,7 @@ as a rule.
 * SORT CASES::                  Sort the active file.
 @end menu
 
-@node AGGREGATE, AUTORECODE, Data Manipulation, Data Manipulation
+@node AGGREGATE
 @section AGGREGATE
 @vindex AGGREGATE
 
@@ -194,7 +194,7 @@ will cause the period to be interpreted as the end of the command.)
 @cmd{AGGREGATE} both ignores and cancels the current @cmd{SPLIT FILE}
 settings (@pxref{SPLIT FILE}).
 
-@node AUTORECODE, COMPUTE, AGGREGATE, Data Manipulation
+@node AUTORECODE
 @section AUTORECODE
 @vindex AUTORECODE
 
@@ -224,7 +224,7 @@ PRINT is currently ignored.
 
 @cmd{AUTORECODE} is a procedure.  It causes the data to be read.
 
-@node COMPUTE, COUNT, AUTORECODE, Data Manipulation
+@node COMPUTE
 @section COMPUTE
 @vindex COMPUTE
 
@@ -264,7 +264,7 @@ When @cmd{COMPUTE} is specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
 (@pxref{LAG}).
 
-@node COUNT, FLIP, COMPUTE, Data Manipulation
+@node COUNT
 @section COUNT
 @vindex COUNT
 
@@ -368,7 +368,7 @@ DESCRIPTIVES QVALID /STATISTICS=MEAN.
 @end example
 @end enumerate
 
-@node FLIP, IF, COUNT, Data Manipulation
+@node FLIP
 @section FLIP
 @vindex FLIP
 
@@ -414,7 +414,7 @@ FLIP honors @cmd{N OF CASES} (@pxref{N OF CASES}).  It ignores
 @cmd{TEMPORARY} (@pxref{TEMPORARY}), so that ``temporary''
 transformations become permanent.
 
-@node IF, RECODE, FLIP, Data Manipulation
+@node IF
 @section IF
 @vindex IF
 
@@ -452,7 +452,7 @@ When @cmd{IF} is specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
 (@pxref{LAG}).
 
-@node RECODE, SORT CASES, IF, Data Manipulation
+@node RECODE
 @section RECODE
 @vindex RECODE
 
@@ -520,7 +520,7 @@ Multiple recodings can be specified on a single @cmd{RECODE} invocation.
 Introduce additional recodings with a slash (@samp{/}) to
 separate them from the previous recodings.
 
-@node SORT CASES,  , RECODE, Data Manipulation
+@node SORT CASES
 @section SORT CASES
 @vindex SORT CASES
 

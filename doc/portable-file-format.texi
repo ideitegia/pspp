@@ -1,4 +1,4 @@
-@node Portable File Format, Data File Format, Configuration, Top
+@node Portable File Format
 @appendix Portable File Format
 
 These days, most computers use the same internal data formats for
@@ -25,7 +25,7 @@ may be incorrect in the general case.
 * Portable File Data::          
 @end menu
 
-@node Portable File Characters, Portable File Structure, Portable File Format, Portable File Format
+@node Portable File Characters
 @section Portable File Characters
 
 Portable files are arranged as a series of lines of exactly 80
@@ -45,7 +45,7 @@ and the trailing @samp{Z}s will be ignored, as if they did not exist,
 because they are not an important part of understanding the file
 contents.
 
-@node Portable File Structure, Portable File Header, Portable File Characters, Portable File Format
+@node Portable File Structure
 @section Portable File Structure
 
 Every portable file consists of the following records, in sequence:
@@ -127,7 +127,7 @@ may not contain a fraction.
 String fields take the form of a integer field having value @var{n},
 followed by exactly @var{n} characters, which are the string content.
 
-@node Portable File Header, Version and Date Info Record, Portable File Structure, Portable File Format
+@node Portable File Header
 @section Portable File Header
 
 Every portable file begins with a 464-byte header, consisting of a
@@ -304,7 +304,7 @@ The 8-byte tag string consists of the exact characters @code{SPSSPORT}
 in the portable file's character set, which can be used to verify that
 the file is indeed a portable file.
 
-@node Version and Date Info Record, Identification Records, Portable File Header, Portable File Format
+@node Version and Date Info Record
 @section Version and Date Info Record
 
 This record does not have a tag code.  It has the following structure:
@@ -323,7 +323,7 @@ A 6-character string field giving the file creation time in the format
 HHMMSS.
 @end itemize
 
-@node Identification Records, Variable Count Record, Version and Date Info Record, Portable File Format
+@node Identification Records
 @section Identification Records
 
 The product identification record has tag code @samp{1}.  It consists of
@@ -338,7 +338,7 @@ The subproduct identification record has tag code @samp{3}.  It is
 optional.  If present, it consists of a single string field giving
 additional information on the product that wrote the portable file.
 
-@node Variable Count Record, Case Weight Variable Record, Identification Records, Portable File Format
+@node Variable Count Record
 @section Variable Count Record
 
 The variable count record has tag code @samp{4}.  It consists of two
@@ -346,7 +346,7 @@ integer fields.  The first contains the number of variables in the file
 dictionary.  The purpose of the second is unknown; it contains the value
 161 in all portable files examined so far.
 
-@node Case Weight Variable Record, Variable Records, Variable Count Record, Portable File Format
+@node Case Weight Variable Record
 @section Case Weight Variable Record
 
 The case weight variable record is optional.  If it is present, it
@@ -354,7 +354,7 @@ indicates the variable used for weighting cases; if it is absent,
 cases are unweighted.  It has tag code @samp{6}.  It consists of a
 single string field that names the weighting variable.
 
-@node Variable Records, Value Label Records, Case Weight Variable Record, Portable File Format
+@node Variable Records
 @section Variable Records
 
 Each variable record represents a single variable.  Variable records
@@ -407,7 +407,7 @@ In addition, each variable record can optionally be followed by a
 variable label record, which has tag code @samp{C}.  A variable label
 record has one field, the variable label itself (string).
 
-@node Value Label Records, Portable File Data, Variable Records, Portable File Format
+@node Value Label Records
 @section Value Label Records
 
 Value label records have tag code @samp{D}.  They have the following
@@ -431,7 +431,7 @@ tuples.  Each tuple consists of a value, which is numeric or string as
 appropriate to the variables, followed by a label (string).
 @end itemize
 
-@node Portable File Data,  , Value Label Records, Portable File Format
+@node Portable File Data
 @section Portable File Data
 
 The data record has tag code @samp{F}.  There is only one tag for all

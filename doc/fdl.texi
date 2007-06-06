@@ -1,4 +1,4 @@
-@node GNU Free Documentation License, , q2c Input Format, Top
+@node GNU Free Documentation License
 @appendix GNU Free Documentation License
 
 @cindex FDL, GNU Free Documentation License

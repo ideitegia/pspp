@@ -1,3 +1,9 @@
+2007-06-05  Ben Pfaff  <blp@gnu.org>
+
+	* Removed next, prev, up node names from @node lines, to make
+	  structural changes to the manual easier.  (These node names are
+	  not needed by makeinfo.)
+
 2007-03-31 John Darrington <john@darrington.wattle.id.au>
 	
 	* transformation.texi: SORT CASES: elaborated on the (D) (A) flags.

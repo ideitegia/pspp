@@ -1,4 +1,4 @@
-@node Expressions, Data Input and Output, Language, Top
+@node Expressions
 @chapter Mathematical Expressions
 @cindex expressions, mathematical
 @cindex mathematical expressions

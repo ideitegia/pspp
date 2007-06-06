@@ -1,4 +1,4 @@
-@node Conditionals and Looping, Statistics, Data Selection, Top
+@node Conditionals and Looping
 @chapter Conditional and Looping Constructs
 @cindex conditionals
 @cindex loops
@@ -15,7 +15,7 @@ looping, and flow of control.
 * LOOP::                        Repeat a block of code.
 @end menu
 
-@node BREAK, DO IF, Conditionals and Looping, Conditionals and Looping
+@node BREAK
 @section BREAK
 @vindex BREAK
 
@@ -29,7 +29,7 @@ BREAK.
 @cmd{BREAK} is allowed only inside @cmd{LOOP}@dots{}@cmd{END LOOP}.
 @xref{LOOP}, for more details.
 
-@node DO IF, DO REPEAT, BREAK, Conditionals and Looping
+@node DO IF
 @section DO IF
 @vindex DO IF
 
@@ -59,7 +59,7 @@ When @cmd{DO IF} or @cmd{ELSE IF} is specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
 (@pxref{LAG}).
 
-@node DO REPEAT, LOOP, DO IF, Conditionals and Looping
+@node DO REPEAT
 @section DO REPEAT
 @vindex DO REPEAT
 
@@ -109,7 +109,7 @@ If PRINT is specified on @cmd{END REPEAT}, the commands after substitutions
 are made are printed to the listing file, prefixed by a plus sign
 (@samp{+}).
 
-@node LOOP,  , DO REPEAT, Conditionals and Looping
+@node LOOP
 @section LOOP
 @vindex LOOP
 

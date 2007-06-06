@@ -1,4 +1,4 @@
-@node Configuration, Portable File Format, Concept Index, Top
+@node Configuration
 @appendix Configuring PSPP
 @cindex configuration
 @cindex PSPP, configuring
@@ -17,7 +17,7 @@ This chapter describe how to configure PSPP for your system.
 * Miscellaneous configuring::   Even more configuration variables.
 @end menu
 
-@node File locations, Configuration techniques, Configuration, Configuration
+@node File locations
 @section Locating configuration files
 
 PSPP searches each directory in the configuration file path for most
@@ -29,7 +29,7 @@ default path.  Finally, @samp{-B @var{path}} or
 @samp{--config-dir=@var{path}} specified on the command line has highest
 priority.
 
-@node Configuration techniques, Configuration files, File locations, Configuration
+@node Configuration techniques
 @section Configuration techniques
 
 There are many ways that PSPP can be configured.  These are
@@ -59,7 +59,7 @@ Fallback defaults.
 
 Some of the above may not apply to a particular setting.
 
-@node Configuration files, Environment variables, Configuration techniques, Configuration
+@node Configuration files
 @section Configuration files
 
 Most configuration files have a common form:
@@ -113,7 +113,7 @@ Line splicing takes place before comment removal.
 Blank lines, and lines that contain only white space, are ignored.
 @end itemize
 
-@node Environment variables, Output devices, Configuration files, Configuration
+@node Environment variables
 @section Environment variables
 
 You may think the concept of environment variables is a fairly simple
@@ -126,7 +126,7 @@ in the sections below:
 * Predefined variables::        A few variables are automatically defined.
 @end menu
 
-@node Environment substitutions, Predefined variables, Environment variables, Environment variables
+@node Environment substitutions
 @subsection Environment substitutions
 
 Much of the power of environment variables lies in the way that they may
@@ -154,7 +154,7 @@ Replaced by a single dollar sign.
 
 Undefined variables expand to a empty value.
 
-@node Predefined variables,  , Environment substitutions, Environment variables
+@node Predefined variables
 @subsection Predefined environment variables
 
 There are two environment variables predefined for use in environment
@@ -175,7 +175,7 @@ somewhat dependent on the system used to compile PSPP.
 Nothing prevents these values from being overridden, although it's a
 good idea not to do so.
 
-@node Output devices, PostScript driver class, Environment variables, Configuration
+@node Output devices
 @section Output devices
 
 Configuring output devices is the most complicated aspect of configuring
@@ -213,7 +213,7 @@ The following sections further elaborate the contents of the
 * Tokenizing lines::            Dividing @file{devices} lines into tokens.
 @end menu
 
-@node Driver categories, Macro definitions, Output devices, Output devices
+@node Driver categories
 @subsection Driver categories
 
 Drivers can be divided into categories.  Drivers are specified by their
@@ -258,7 +258,7 @@ is not enabled.
 It is an error if the list is not empty when the end of @file{devices}
 is reached.
 
-@node Macro definitions, Device definitions, Driver categories, Output devices
+@node Macro definitions
 @subsection Macro definitions
 
 Macro definitions take the form @samp{define @var{macroname}
@@ -306,7 +306,7 @@ Defined as the length of the console screen, in lines of text.
 @end table
 @end itemize
 
-@node Device definitions, Dimensions, Macro definitions, Output devices
+@node Device definitions
 @subsection Driver definitions
 
 Driver definitions are the ultimate purpose of the @file{devices}
@@ -381,7 +381,7 @@ available driver classes.
 Options are dependent on the driver.  See the driver descriptions for
 details.
 
-@node Dimensions, papersize, Device definitions, Output devices
+@node Dimensions
 @subsection Dimensions
 
 Quite often in configuration it is necessary to specify a length or a
@@ -444,7 +444,7 @@ Numbers 50 or greater are assumed to be in millimeters.
 @end itemize
 @end itemize
 
-@node papersize, Distinguishing line types, Dimensions, Output devices
+@node papersize
 @subsection Paper sizes
 
 Output drivers usually deal with some sort of hardcopy media.  This
@@ -474,7 +474,7 @@ Otherwise the line must be of the form
 search becomes paper name @var{paper-2} and the search through the file
 continues.
 
-@node Distinguishing line types, Tokenizing lines, papersize, Output devices
+@node Distinguishing line types
 @subsection How lines are divided into types
 
 The lines in @file{devices} are distinguished in the following manner:
@@ -504,7 +504,7 @@ macro definition.
 Otherwise, the line is ill-formed.
 @end enumerate
 
-@node Tokenizing lines,  , Distinguishing line types, Output devices
+@node Tokenizing lines
 @subsection How lines are divided into tokens
 
 Each driver definition line is run through a simple tokenizer.  This
@@ -571,7 +571,7 @@ interpreted; only the lower 8 bits are used.
 Tokens, outside of quoted strings, are delimited by white space or equals
 signs.
 
-@node PostScript driver class, ASCII driver class, Output devices, Configuration
+@node PostScript driver class
 @section The PostScript driver class
 
 The @code{postscript} driver class is used to produce output that is
@@ -655,7 +655,7 @@ Default: @code{1pt}.
 Sets the width of the lines used in tables.  Default: @code{0.5pt}.
 @end table
 
-@node ASCII driver class, HTML driver class, PostScript driver class, Configuration
+@node ASCII driver class
 @section The ASCII driver class
 
 The ASCII driver class produces output that can be displayed on a
@@ -789,7 +789,7 @@ overstriking, which may not be supported by all the software to which
 you might pass the output.
 @end table
 
-@node HTML driver class, Miscellaneous configuring, ASCII driver class, Configuration
+@node HTML driver class
 @section The HTML driver class
 
 The @code{html} driver class is used to produce output for viewing in
@@ -812,7 +812,7 @@ format.  The name should contain a single @samp{#}, which is replaced by
 the chart number.  Default: @file{"pspp-#.png"}.
 @end table
 
-@node Miscellaneous configuring,, HTML driver class, Configuration
+@node Miscellaneous configuring
 @section Miscellaneous configuration
 
 The following environment variables can be used to further configure

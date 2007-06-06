@@ -1,4 +1,4 @@
-@node REGRESSION, ,RANK, Statistics
+@node REGRESSION
 @comment  node-name,  next,  previous,  up
 @section REGRESSION
 
@@ -38,7 +38,7 @@ linear model.
 * Examples::                    Using the REGRESSION procedure.
 @end menu
 
-@node Syntax, Examples, , REGRESSION
+@node Syntax
 @subsection Syntax
 
 @vindex REGRESSION
@@ -99,7 +99,7 @@ to a file called pspp_model_reg.h. The user can then compile the C
 program and use it as part of another program. This subcommand is a
 PSPP extension.
 
-@node Examples, , Syntax, REGRESSION
+@node Examples
 @subsection Examples
 The following PSPP syntax will generate the default output, save the
 predicted values and residuals to the active file, and save the

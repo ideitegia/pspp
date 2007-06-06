@@ -1,4 +1,4 @@
-@node Utilities, Not Implemented, Statistics, Top
+@node Utilities
 @chapter Utilities
 
 Commands that don't fit any other category are placed here.
@@ -51,7 +51,7 @@ may not be more than 80 bytes long. @xref{DOCUMENT}.
 
 
 
-@node COMMENT, DOCUMENT, ADD DOCUMENT, Utilities
+@node COMMENT
 @section COMMENT
 @vindex COMMENT
 @vindex *
@@ -70,7 +70,7 @@ terminate it with a dot or a blank line.
 
 
 
-@node DOCUMENT, DISPLAY DOCUMENTS, COMMENT, Utilities
+@node DOCUMENT
 @section DOCUMENT
 @vindex DOCUMENT
 
@@ -91,7 +91,7 @@ You can extend the documentary text over as many lines as necessary.
 Lines are truncated at 80 bytes.  Don't forget to terminate
 the command with a dot or a blank line. @xref{ADD DOCUMENT}.
 
-@node DISPLAY DOCUMENTS, DISPLAY FILE LABEL, DOCUMENT, Utilities
+@node DISPLAY DOCUMENTS
 @section DISPLAY DOCUMENTS
 @vindex DISPLAY DOCUMENTS
 
@@ -103,7 +103,7 @@ DISPLAY DOCUMENTS.
 document is preceded by a line giving the time and date that it was
 added.  @xref{DOCUMENT}.
 
-@node DISPLAY FILE LABEL, DROP DOCUMENTS, DISPLAY DOCUMENTS, Utilities
+@node DISPLAY FILE LABEL
 @section DISPLAY FILE LABEL
 @vindex DISPLAY FILE LABEL
 
@@ -117,7 +117,7 @@ if any.  @xref{FILE LABEL}.
 
 This command is a PSPP extension.
 
-@node DROP DOCUMENTS, ECHO, DISPLAY FILE LABEL, Utilities
+@node DROP DOCUMENTS
 @section DROP DOCUMENTS
 @vindex DROP DOCUMENTS
 
@@ -131,7 +131,7 @@ New documents can be added with @cmd{DOCUMENT} (@pxref{DOCUMENT}).
 @cmd{DROP DOCUMENTS} changes only the active file.  It does not modify any
 system files stored on disk.
 
-@node ECHO, ERASE, DROP DOCUMENTS, Utilities
+@node ECHO
 @section ECHO
 @vindex ECHO
 
@@ -141,7 +141,7 @@ ECHO 'arbitrary text' .
 
 Use @cmd{ECHO} to write arbitrary text to the output stream. The text should be enclosed in quotation marks following the normal rules for string tokens (@pxref{Tokens}).
 
-@node ERASE, EXECUTE, ECHO, Utilities
+@node ERASE
 @comment  node-name,  next,  previous,  up
 @section ERASE
 @vindex ERASE
@@ -155,7 +155,7 @@ file_name must be quoted.
 This command cannot be used if the SAFER setting is active.
 
 
-@node EXECUTE, FILE LABEL, ERASE, Utilities
+@node EXECUTE
 @section EXECUTE
 @vindex EXECUTE
 
@@ -166,7 +166,7 @@ EXECUTE.
 @cmd{EXECUTE} causes the active file to be read and all pending
 transformations to be executed.
 
-@node FILE LABEL, FINISH, EXECUTE, Utilities
+@node FILE LABEL
 @section FILE LABEL
 @vindex FILE LABEL
 
@@ -181,7 +181,7 @@ created during this PSPP run.
 file_label need not be quoted.  If quotes are
 included, they become part of the file label.
 
-@node FINISH, HOST, FILE LABEL, Utilities
+@node FINISH
 @section FINISH
 @vindex FINISH
 
@@ -192,7 +192,7 @@ FINISH.
 @cmd{FINISH} terminates the current PSPP session and returns
 control to the operating system.
 
-@node HOST, INCLUDE, FINISH, Utilities
+@node HOST
 @comment  node-name,  next,  previous,  up
 @section HOST
 @vindex HOST
@@ -206,7 +206,7 @@ to the operating system.
 This command cannot be used if the SAFER setting is active.
 
 
-@node INCLUDE, PERMISSIONS, HOST, Utilities
+@node INCLUDE
 @section INCLUDE
 @vindex INCLUDE
 @vindex @@
@@ -224,7 +224,7 @@ command file.
 Include files may be nested to any depth, up to the limit of available
 memory.
 
-@node PERMISSIONS, SET, INCLUDE, Utilities
+@node PERMISSIONS
 @comment  node-name,  next,  previous,  up
 @section PERMISSIONS
 @vindex PERMISSIONS
@@ -249,7 +249,7 @@ unchanged.
 This command cannot be used if the SAFER setting is active.
 
 
-@node SET, SHOW, PERMISSIONS, Utilities
+@node SET
 @section SET
 @vindex SET
 
@@ -621,7 +621,7 @@ When set, this setting cannot be reset during the same session, for
 obvious security reasons.
 @end table
 
-@node SHOW, SUBTITLE, SET, Utilities
+@node SHOW
 @comment  node-name,  next,  previous,  up
 @section SHOW
 @vindex SHOW
@@ -670,7 +670,7 @@ Display the terms of PSPP's copyright licence (@pxref{License}).
 
 Specifying @cmd{SHOW} without any subcommands is equivalent to SHOW ALL.
 
-@node SUBTITLE, TITLE, SHOW, Utilities
+@node SUBTITLE
 @section SUBTITLE
 @vindex SUBTITLE
 
@@ -688,7 +688,7 @@ Specify a subtitle as a string in quotes.  The alternate syntax that did
 not require quotes is now obsolete.  If it is used then the subtitle is
 converted to all uppercase.
 
-@node TITLE,  , SUBTITLE, Utilities
+@node TITLE
 @section TITLE
 @vindex TITLE
 
