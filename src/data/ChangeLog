@@ -1,5 +1,32 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	Add casereaders and casewriters, the basis of the new data processing
+	implementation.  A casereader is a uniform interface to reading cases
+	from a data source; a casewriter is a uniform interface to writing
+	cases to a data sink.
+
+	* automake.mk: Add new files.
+	
+	* casereader-filter.c: New file.
+	
+	* casereader-provider.h: New file.
+
+	* casereader-translator.c: New file.
+	
+	* casereader.c: New file.
+	
+	* casereader.h: New file.
+	
+	* casewriter-provider.h: New file.
+	
+	* casewriter-translator.c: New file.
+	
+	* casewriter.c: New file.
+	
+	* casewriter.h: New file.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	"casewindow" data structure that extends the deque (from libpspp)
 	of cases with the ability to dump cases to disk if we get too many
 	of them in memory.

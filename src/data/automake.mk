@@ -19,8 +19,17 @@ src_data_libdata_a_SOURCES = \
 	src/data/casefile.c \
 	src/data/casefile-factory.h \
 	src/data/casefile-private.h \
+	src/data/casereader-filter.c \
+	src/data/casereader-provider.h \
+	src/data/casereader-translator.c \
+	src/data/casereader.c \
+	src/data/casereader.h \
 	src/data/casewindow.c \
 	src/data/casewindow.h \
+	src/data/casewriter-provider.h \
+	src/data/casewriter-translator.c \
+	src/data/casewriter.c \
+	src/data/casewriter.h \
 	src/data/fastfile.c \
 	src/data/fastfile.h \
 	src/data/fastfile-factory.h \
