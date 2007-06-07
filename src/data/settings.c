@@ -425,6 +425,16 @@ get_workspace (void)
   return workspace;
 }
 
+/* Approximate maximum number of cases to allocate in-core, given
+   that each case contains VALUE_CNT values. */
+size_t
+get_workspace_cases (size_t value_cnt) 
+{
+  size_t case_size = sizeof (union value) * value_cnt + 4 * sizeof (void *);
+  size_t case_cnt = MAX (get_workspace () / case_size, 4);
+  return case_cnt;
+}
+
 /* Set approximate maximum amount of memory to use for cases, in
    bytes. */
 

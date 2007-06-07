@@ -1,5 +1,13 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	In a couple of places we calculate the maximum number of cases to
+	keep in memory based on the user-defined workspace.  Enable
+	centralizing the calculation through a new function.
+	
+	* settings.c (get_workspace_cases): New function.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	The casenumber type is defined in transformations.h, but case.h is
 	a more sensible place.  Move it.
 

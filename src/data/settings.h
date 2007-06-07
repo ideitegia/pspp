@@ -79,6 +79,7 @@ char get_endcmd (void);
 void set_endcmd (char);
 
 size_t get_workspace (void);
+size_t get_workspace_cases (size_t value_cnt);
 void set_workspace (size_t);
 
 const struct fmt_spec *get_format (void);
