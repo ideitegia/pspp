@@ -6,9 +6,10 @@ language_tests_built_sources = \
 language_tests_sources = \
 	src/language/tests/casefile-test.c \
 	src/language/tests/check-model.h \
+	src/language/tests/datasheet-test.c \
+	src/language/tests/float-format.c \
 	src/language/tests/moments-test.c \
 	src/language/tests/pool-test.c \
-	src/language/tests/float-format.c \
 	$(language_tests_built_sources)
 
 all_q_sources += $(language_tests_built_sources:.c=.q)

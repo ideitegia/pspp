@@ -1,3 +1,9 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add new file.
+
+	* datasheet-test.c: New file.
+
 2007-04-22  Ben Pfaff  <blp@gnu.org>
 
 	Implement model checker for testing purposes.

@@ -129,6 +129,7 @@ DEF_CMD (S_INPUT_PROGRAM, 0, "REREAD", cmd_reread)
 
 /* Commands for testing PSPP. */
 DEF_CMD (S_ANY, F_TESTING, "DEBUG CASEFILE", cmd_debug_casefile)
+DEF_CMD (S_ANY, F_TESTING, "DEBUG DATASHEET", cmd_debug_datasheet)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG EVALUATE", cmd_debug_evaluate)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG MOMENTS", cmd_debug_moments)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG POOL", cmd_debug_pool)

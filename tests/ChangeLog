@@ -1,3 +1,9 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add new test.
+
+	* tests/command/datasheet.sh: New test.
+
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
 	* tests/tower-test.c: Also test tower_last, tower_prev functions.

@@ -1,3 +1,7 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	* command.def: Add DEBUG DATASHEET command.
+
 2007-03-18  Ben Pfaff  <blp@gnu.org>
 
 	* syntax-string-source.c (close): Rename to do_close to avoid

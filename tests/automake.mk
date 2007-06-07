@@ -8,6 +8,7 @@ dist_TESTS = \
 	tests/command/beg-data.sh \
 	tests/command/bignum.sh \
 	tests/command/count.sh \
+	tests/command/datasheet.sh \
 	tests/command/data-list.sh \
 	tests/command/do-repeat.sh \
 	tests/command/erase.sh \

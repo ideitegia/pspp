@@ -1,5 +1,15 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	Add datasheet code.
+
+	* automake.mk: Add new files.
+
+	* datasheet.c: New file.
+
+	* datasheet.h: New file.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Until now, the procedure code has provided a case to the
 	case_source, which has filled in the data values that come from
 	the active file.  "Left" data values that don't come from the
