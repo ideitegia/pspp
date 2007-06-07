@@ -1,5 +1,15 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	Adds a low-level on-disk case array data structure.
+	
+	* automake.mk: Add new files.
+
+	* case-tmpfile.c: New file.
+
+	* case-tmpfile.h: New file.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	In a couple of places we calculate the maximum number of cases to
 	keep in memory based on the user-defined workspace.  Enable
 	centralizing the calculation through a new function.

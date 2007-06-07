@@ -24,6 +24,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/fastfile-factory.h \
 	src/data/fastfile-factory.c \
 	src/data/case.h \
+	src/data/case-tmpfile.c \
+	src/data/case-tmpfile.h \
 	src/data/category.c \
 	src/data/category.h \
 	src/data/data-in.c \
