@@ -138,7 +138,7 @@ struct element
     int y;                      /* Secondary value. */
   };
 
-int aux_data;
+static int aux_data;
 
 /* Prints the elements in LIST. */
 static void UNUSED

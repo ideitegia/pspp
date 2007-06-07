@@ -79,7 +79,7 @@ struct element
     int x;                      /* Primary value. */
   };
 
-int aux_data;
+static int aux_data;
 
 /* Returns the `struct element' that NODE is embedded within. */
 static struct element *

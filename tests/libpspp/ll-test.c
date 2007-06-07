@@ -118,7 +118,7 @@ struct element
     int y;                      /* Secondary value. */
   };
 
-int aux_data;
+static int aux_data;
 
 /* Returns the `struct element' that LL is embedded within. */
 static struct element *
