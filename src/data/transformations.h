@@ -21,8 +21,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-
-typedef unsigned long casenumber ;
+#include <data/case.h>
 
 /* trns_proc_func return values. */
 enum trns_result 

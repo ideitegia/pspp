@@ -26,6 +26,11 @@
 
 struct variable;
 
+/* A count of cases or the index of a case within a collection of
+   them. */
+#define CASENUMBER_MAX LONG_MAX
+typedef long int casenumber;
+
 /* Opaque structure that represents a case.  Use accessor
    functions instead of accessing any members directly.  Use
    case_move() or case_clone() instead of copying.  */
@@ -44,7 +49,7 @@ void case_destroy (struct ccase *);
 
 size_t case_get_value_cnt (const struct ccase *);
 
-void case_resize (struct ccase *, size_t new_value_cnt);
+void case_resize (struct ccase *, size_t new_cnt);
 void case_swap (struct ccase *, struct ccase *);
 
 bool case_try_create (struct ccase *, size_t value_cnt);
