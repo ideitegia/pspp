@@ -195,12 +195,12 @@ extension.
 @display
 MATCH FILES
         /@{FILE,TABLE@}=@{*,'file-name'@}
-        /DROP=var_list
-        /KEEP=var_list
         /RENAME=(src_names=target_names)@dots{}
         /IN=var_name
 
-        /BY var_list
+        /BY=var_list
+        /DROP=var_list
+        /KEEP=var_list
         /FIRST=var_name
         /LAST=var_name
         /MAP
@@ -208,38 +208,33 @@ MATCH FILES
 
 @cmd{MATCH FILES} merges one or more system, portable, or scratch files,
 optionally
-including the active file.  Records with the same values for BY
-variables are combined into a single record.  Records with different
+including the active file.  Cases with the same values for BY
+variables are combined into a single case.  Cases with different
 values are output in order.  Thus, multiple sorted files are
 combined into a single sorted file based on the value of the BY
 variables.  The results of the merge become the new active file.
-
-The BY subcommand specifies a list of variables that are used to match
-records from each of the files.  Variables specified must exist
-in all the files specified on FILE and TABLE.  BY should usually be
-specified.  If TABLE or IN is used then BY is required.
 
 Specify FILE with a system, portable, or scratch file as a file name
 string or file handle
 (@pxref{File Handles}), or with an asterisk (@samp{*}) to
 indicate the current active file.  The files specified on FILE are
 merged together based on the BY variables, or combined case-by-case if
-BY is not specified.  Normally at least two FILE subcommands should be
-specified.
+BY is not specified.
 
 Specify TABLE with a file to use it as a @dfn{table
-lookup file}.  Records in table lookup files are not used up after
+lookup file}.  Cases in table lookup files are not used up after
 they've been used once.  This means that data in table lookup files can
-correspond to any number of records in FILE files.  Table lookup files
+correspond to any number of cases in FILE files.  Table lookup files
 correspond to lookup tables in traditional relational database systems.
-It is incorrect to have records with duplicate BY values in table lookup
-files.
+If a table lookup file contains more than one case with a given set of
+BY variables, only the first case is used.
 
-Any number of FILE and TABLE subcommands may be specified.  Each
-instance of FILE or TABLE can be followed by any sequence of DROP,
-KEEP, or RENAME subcommands.  These have the same form and meaning as
-the corresponding subcommands of @cmd{GET} (@pxref{GET}), but apply
-only to variables in the given file.
+Any number of FILE and TABLE subcommands may be specified.
+Ordinarily, at least two FILE subcommands, or one FILE and at least
+one TABLE, should be specified.  Each instance of FILE or TABLE can be
+followed by any sequence of RENAME subcommands.  These have the same
+form and meaning as the corresponding subcommands of @cmd{GET}
+(@pxref{GET}), but apply only to variables in the given file.
 
 Each FILE or TABLE may optionally be followed by an IN subcommand,
 which creates a numeric variable with the specified name and format
@@ -247,11 +242,38 @@ F1.0.  The IN variable takes value 1 in a case if the given file
 contributed a row to the merged file, 0 otherwise.  The DROP, KEEP,
 and RENAME subcommands do not affect IN variables.
 
-Variables belonging to files that are not present for the current case
-are set to the system-missing value for numeric variables or spaces for
-string variables.
+When more than one FILE or TABLE contains a variable with a given
+name, those variables must all have the same type (numeric or string)
+and, for string variables, the same width.  This rules applies to
+variable names after renaming with RENAME; thus, RENAME can be used to
+resolve conflicts.
 
-FIRST, LAST, and MAP are currently ignored.
+FILE and TABLE must be specified at the beginning of the command, with
+any RENAME or IN specifications immediately after the corresponding
+FILE or TABLE.  These subcommands are followed by BY, DROP, KEEP,
+FIRST, LAST, and MAP.
+
+The BY subcommand specifies a list of variables that are used to match
+cases from each of the files.  When TABLE or IN is used, BY is
+required; otherwise, it is optional.  When BY is specified, all the
+files named on FILE and TABLE subcommands must be sorted in ascending
+order of the BY variables.  Variables belonging to files that are not
+present for the current case are set to the system-missing value for
+numeric variables or spaces for string variables.
+
+The DROP and KEEP subcommands allow variables to be dropped from or
+reordered within the new active file.  These subcommands have the same
+form and meaning as the corresponding subcommands of @cmd{GET}
+(@pxref{GET}).  They apply to the new active file as a whole, not to
+individual input files.  The variable names specified on DROP and KEEP
+are those after any renaming with RENAME.
+
+The optional FIRST and LAST subcommands name variables that @cmd{MATCH
+FILES} adds to the active file.  The new variables are numeric with
+print and write format F1.0.  The value of the FIRST variable is 1 in
+the first case with a given set of values for the BY variables, and 0
+in other cases.  Similarly, the LAST variable is 1 in the last case
+with a given of BY values, and 0 in other cases.
 
 @cmd{MATCH FILES} may not be specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}) if the active file is used as an input source.

@@ -1,5 +1,10 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	* get.c: Essentially rewrite MATCH FILES to support FIRST and
+	LAST.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Adapt case sources, sinks, and clients of procedure code to the
 	new infrastructure.
 	

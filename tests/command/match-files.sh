@@ -82,40 +82,40 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 cat > ff.out <<EOF
-A B C D INA INB
-- - - - --- ---
-0 a A     1   0
-1 a B N   1   1
-1 a C     1   0
-2 a D     1   0
-3 a E O   1   1
-4 a F P   1   1
-5 a G     1   0
-5 a H     1   0
-6 a I Q   1   1
-7 a J R   1   1
-7 a K     1   0
-7 a L     1   0
-8 a M     1   0
-9 b   S   0   1
+A B C D INA INB FIRST LAST
+- - - - --- --- ----- ----
+0 a A     1   0     1    1
+1 a B N   1   1     1    0
+1 a C     1   0     0    1
+2 a D     1   0     1    1
+3 a E O   1   1     1    1
+4 a F P   1   1     1    1
+5 a G     1   0     1    0
+5 a H     1   0     0    1
+6 a I Q   1   1     1    1
+7 a J R   1   1     1    0
+7 a K     1   0     0    0
+7 a L     1   0     0    1
+8 a M     1   0     1    1
+9 b   S   0   1     1    1
 EOF
 
 cat > ft.out <<EOF
-A B C D INA INB
-- - - - --- ---
-0 a A     1   0
-1 a B N   1   1
-1 a C N   1   1
-2 a D     1   0
-3 a E O   1   1
-4 a F P   1   1
-5 a G     1   0
-5 a H     1   0
-6 a I Q   1   1
-7 a J R   1   1
-7 a K R   1   1
-7 a L R   1   1
-8 a M     1   0
+A B C D INA INB FIRST LAST
+- - - - --- --- ----- ----
+0 a A     1   0     1    1
+1 a B N   1   1     1    0
+1 a C N   1   1     0    1
+2 a D     1   0     1    1
+3 a E O   1   1     1    1
+4 a F P   1   1     1    1
+5 a G     1   0     1    0
+5 a H     1   0     0    1
+6 a I Q   1   1     1    1
+7 a J R   1   1     1    0
+7 a K R   1   1     0    0
+7 a L R   1   1     0    1
+8 a M     1   0     1    1
 EOF
 
 # Test nonparallel match and table lookup.
@@ -140,21 +140,24 @@ $dla
 $sa
 $dlb
 $sb
-match files $type1='a.sys' /in=INA /$type2='b.sys' /in=INB /rename c=D /by a.
+match files $type1='a.sys' /in=INA /$type2='b.sys' /in=INB /rename c=D /by a
+            /first=FIRST /last=LAST.
 EOF
 	    elif [ $sources = sa ]; then
 		cat <<EOF
 $dla
 $sa
 $dlb
-match files $type1='a.sys' /in=INA /$type2=* /in=INB /rename c=D /by a.
+match files $type1='a.sys' /in=INA /$type2=* /in=INB /rename c=D /by a
+            /first=FIRST /last=LAST.
 EOF
 	    elif [ $sources = as ]; then
 		cat <<EOF
 $dlb
 $sb
 $dla
-match files $type1=* /in=INA /$type2='b.sys' /in=INB /rename c=D /by a.
+match files $type1=* /in=INA /$type2='b.sys' /in=INB /rename c=D /by a
+            /first=FIRST /last=LAST.
 EOF
 	    else
 		activity="internal error"
