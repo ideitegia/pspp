@@ -1,5 +1,15 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	Add interface to lexicographical ordering of cases.
+
+	* automake.mk: Add new files.
+
+	* case-ordering.c: New file.
+
+	* case-ordering.h: New file.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Add casereaders and casewriters, the basis of the new data processing
 	implementation.  A casereader is a uniform interface to reading cases
 	from a data source; a casewriter is a uniform interface to writing

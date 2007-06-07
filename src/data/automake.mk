@@ -8,6 +8,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/any-writer.h \
 	src/data/calendar.c \
 	src/data/calendar.h \
+	src/data/case-ordering.c \
+	src/data/case-ordering.h \
 	src/data/case-sink.c \
 	src/data/case-sink.h \
 	src/data/case-source.c \
