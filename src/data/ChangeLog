@@ -1,5 +1,17 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	"casewindow" data structure that extends the deque (from libpspp)
+	of cases with the ability to dump cases to disk if we get too many
+	of them in memory.
+
+	* automake.mk: Add new files.
+
+	* casewindow.c: New file.
+
+	* casewindow.h: New file.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	sparse_cases data structure that augments a sparse_array of cases
 	with the ability to dump cases to disk if we get too many cases in
 	memory.
