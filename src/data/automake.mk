@@ -23,6 +23,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/casefile-private.h \
 	src/data/casegrouper.c \
 	src/data/casegrouper.h \
+	src/data/caseinit.c \
+	src/data/caseinit.h \
 	src/data/casereader-filter.c \
 	src/data/casereader-provider.h \
 	src/data/casereader-translator.c \

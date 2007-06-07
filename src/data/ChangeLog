@@ -1,5 +1,29 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	Until now, the procedure code has provided a case to the
+	case_source, which has filled in the data values that come from
+	the active file.  "Left" data values that don't come from the
+	active file naturally stay the same from case to case, because the
+	procedure code keeps using that same case.
+
+	One of the compromises that comes with the new procedure code is
+	that the active file allocates and provides its own case, which
+	the procedure code then has to resize to provide room for any
+	other variables that should go in the case and then fill in the
+	values of "left" variables.  Then, when we're done with that case,
+	we have to save the values of "left" variables to copy into the
+	next case read from the active file.
+
+	The caseinit code helps with this.
+
+	* automake.mk: Add new files.
+
+	* caseinit.c: New file. 
+
+	* caseinit.h: New file. 
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	* value.h (value_cnt_from_width): New function.
 
 	* variable.c (var_get_value_cnt): Use new function.
