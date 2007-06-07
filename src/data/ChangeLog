@@ -1,5 +1,18 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	Add casegrouper, to allow cases read from a given casereader to be
+	broken into groups, each of which has its own casereader.
+	Generally cases are grouped based on having equal values for some
+	set of variables.
+
+	* automake.mk: Add new files.
+
+	* casegrouper.c: New file.
+
+	* casegrouper.h: New file.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Add interface to lexicographical ordering of cases.
 
 	* automake.mk: Add new files.
