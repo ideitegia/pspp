@@ -1,5 +1,11 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	* value.h (value_cnt_from_width): New function.
+
+	* variable.c (var_get_value_cnt): Use new function.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Add casegrouper, to allow cases read from a given casereader to be
 	broken into groups, each of which has its own casereader.
 	Generally cases are grouped based on having equal values for some

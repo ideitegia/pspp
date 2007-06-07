@@ -38,6 +38,14 @@
 #define LOWEST second_lowest_value
 #define HIGHEST DBL_MAX
 
+/* Number of "union value"s required for a variable of the given
+   WIDTH. */
+static inline size_t
+value_cnt_from_width (int width)
+{
+  return width == 0 ? 1 : DIV_RND_UP (width, MAX_SHORT_STRING);
+}
+
 /* A numeric or short string value.
    Multiple consecutive values represent a long string. */
 union value

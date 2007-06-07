@@ -423,7 +423,7 @@ var_is_long_string (const struct variable *v)
 size_t
 var_get_value_cnt (const struct variable *v) 
 {
-  return v->width == 0 ? 1 : DIV_RND_UP (v->width, MAX_SHORT_STRING);
+  return value_cnt_from_width (v->width);
 }
 
 /* Returns variable V's missing values. */
