@@ -36,13 +36,13 @@ struct binomial_test
 };
 
 
-struct casefile;
+struct casereader;
 struct dataset;
 
 
 void binomial_execute (const struct dataset *, 
-		       const struct casefile *, 
-		       struct casefilter *, 
+		       struct casereader *,
+                       enum mv_class,
 		       const struct npar_test *);
 
 #endif

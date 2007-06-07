@@ -23,11 +23,7 @@
 
 struct file_handle;
 struct dictionary;
-struct ccase;
-struct any_reader *any_reader_open (struct file_handle *,
+struct casereader *any_reader_open (struct file_handle *,
                                     struct dictionary **);
-bool any_reader_read (struct any_reader *, struct ccase *);
-bool any_reader_error (struct any_reader *);
-void any_reader_close (struct any_reader *);
 
 #endif /* any-reader.h */

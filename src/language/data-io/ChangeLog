@@ -1,3 +1,18 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	Adapt case sources, sinks, and clients of procedure code to the
+	new infrastructure.
+	
+	* data-list.c: Make DATA LIST into a casereader.
+
+	* get.c: Change GET, IMPORT, SAVE, EXPORT to use casereaders,
+	casewriters.
+
+	* inpt-pgm.c: Use caseinit code.  Turn INPUT PROGRAM into a
+	casereader.
+
+	* list.q: Adapt to new procedure code.
+
 2007-05-06  Ben Pfaff  <blp@gnu.org>
 
 	Abstract the documents within a dictionary a little better.

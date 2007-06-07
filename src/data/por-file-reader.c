@@ -20,29 +20,32 @@
 
 #include <config.h>
 #include "por-file-reader.h"
-#include <libpspp/message.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
 #include <setjmp.h>
-#include <libpspp/alloc.h>
+#include <stdarg.h>
 #include <stdbool.h>
-#include "case.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <data/casereader-provider.h>
+#include <data/casereader.h>
+#include <data/dictionary.h>
+#include <data/file-handle-def.h>
+#include <data/format.h>
+#include <data/missing-values.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include "dictionary.h"
-#include "file-handle-def.h"
-#include "format.h"
-#include "missing-values.h"
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
+#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
-#include "value-labels.h"
-#include "variable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -71,9 +74,11 @@ struct pfm_reader
     int var_cnt;                /* Number of variables. */
     int weight_index;		/* 0-based index of weight variable, or -1. */
     int *widths;                /* Variable widths, 0 for numeric. */
-    int value_cnt;		/* Number of `value's per case. */
+    size_t value_cnt;		/* Number of `value's per case. */
     bool ok;                    /* Set false on I/O error. */
   };
+
+static struct casereader_class por_file_casereader_class;
 
 static void
 error (struct pfm_reader *r, const char *msg,...)
@@ -110,11 +115,11 @@ error (struct pfm_reader *r, const char *msg, ...)
 }
 
 /* Closes portable file reader R, after we're done with it. */
-void
-pfm_close_reader (struct pfm_reader *r)
+static void
+por_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 {
-  if (r != NULL)
-    pool_destroy (r->pool);
+  struct pfm_reader *r = r_;
+  pool_destroy (r->pool);
 }
 
 /* Read a single character into cur_char.  */
@@ -156,7 +161,7 @@ void dump_dictionary (struct dictionary *);
 /* Reads the dictionary from file with handle H, and returns it in a
    dictionary structure.  This dictionary may be modified in order to
    rename, reorder, and delete variables, etc. */
-struct pfm_reader *
+struct casereader *
 pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                  struct pfm_read_info *info)
 {
@@ -204,10 +209,12 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   if (!match (r, 'F'))
     error (r, _("Data record expected."));
 
-  return r;
+  r->value_cnt = dict_get_next_value_idx (*dict);
+  return casereader_create_sequential (NULL, r->value_cnt, CASENUMBER_MAX,
+                                       &por_file_casereader_class, r);
 
  error:
-  pfm_close_reader (r);
+  pool_destroy (r->pool);
   dict_destroy (*dict);
   *dict = NULL;
   return NULL;
@@ -677,19 +684,28 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
 }
 
 /* Reads one case from portable file R into C. */
-bool
-pfm_read_case (struct pfm_reader *r, struct ccase *c)
+static bool
+por_file_casereader_read (struct casereader *reader, void *r_, struct ccase *c)
 {
+  struct pfm_reader *r = r_;
   size_t i;
   size_t idx;
 
+  case_create (c, casereader_get_value_cnt (reader));
   setjmp (r->bail_out);
-  if (!r->ok)
-    return false;
+  if (!r->ok) 
+    {
+      casereader_force_error (reader);
+      case_destroy (c);
+      return false; 
+    }
   
   /* Check for end of file. */
-  if (r->cc == 'Z')
-    return false;
+  if (r->cc == 'Z') 
+    {
+      case_destroy (c);
+      return false; 
+    }
 
   idx = 0;
   for (i = 0; i < r->var_cnt; i++) 
@@ -711,14 +727,6 @@ pfm_read_case (struct pfm_reader *r, struct ccase *c)
     }
   
   return true;
-}
-
-/* Returns true if an I/O error has occurred on READER, false
-   otherwise. */
-bool
-pfm_read_error (const struct pfm_reader *reader) 
-{
-  return !reader->ok;
 }
 
 /* Returns true if FILE is an SPSS portable file,
@@ -755,3 +763,11 @@ pfm_detect (FILE *file)
 
   return true;
 }
+
+static struct casereader_class por_file_casereader_class = 
+  {
+    por_file_casereader_read,
+    por_file_casereader_destroy,
+    NULL,
+    NULL,
+  };

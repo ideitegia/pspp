@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "control-stack.h"
+#include <data/case.h>
 #include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/value.h>

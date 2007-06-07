@@ -1,3 +1,12 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	Adapt case sources, sinks, and clients of procedure code to the
+	new infrastructure.
+	
+	* apply-dictionary.c: Now any_reader_open returns a casereader.
+
+	* sys-file-open.c: Now sfm_reader_open returns a casereader.
+
 Sat Feb  3 21:52:35 2007  Ben Pfaff  <blp@gnu.org>
 
 	* vector.c (cmd_vector): Add support for specifying an output

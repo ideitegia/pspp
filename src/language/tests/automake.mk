@@ -4,7 +4,6 @@ language_tests_built_sources = \
 	src/language/tests/check-model.c
 
 language_tests_sources = \
-	src/language/tests/casefile-test.c \
 	src/language/tests/check-model.h \
 	src/language/tests/datasheet-test.c \
 	src/language/tests/float-format.c \

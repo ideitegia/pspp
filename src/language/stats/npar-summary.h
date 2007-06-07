@@ -22,9 +22,8 @@
 #include <config.h>
 
 struct variable ;
-struct casefile ;
+struct casereader ;
 struct dictionary;
-struct casefilter;
 
 struct descriptives
 {
@@ -36,11 +35,11 @@ struct descriptives
 };
 
 void npar_summary_calc_descriptives (struct descriptives *desc,
-				     const struct casefile *cf,
-				     struct casefilter *filter,
+				     struct casereader *input,
 				     const struct dictionary *dict,
 				     const struct variable *const *vv, 
-				     int n_vars);
+				     int n_vars,
+                                     enum mv_class filter);
 
 
 void do_summary_box (const struct descriptives *desc, 

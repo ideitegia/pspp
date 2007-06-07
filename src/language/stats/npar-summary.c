@@ -18,12 +18,11 @@
 
 #include <config.h>
 #include <output/table.h>
+#include <data/casereader.h>
 #include <libpspp/hash.h>
 #include <data/variable.h>
 #include "npar-summary.h"
 #include <math/moments.h>
-#include <data/casefile.h>
-#include <data/casefilter.h>
 #include <data/case.h>
 #include <data/dictionary.h>
 #include <math.h>
@@ -35,38 +34,38 @@
 
 void
 npar_summary_calc_descriptives (struct descriptives *desc,
-				const struct casefile *cf,
-				struct casefilter *filter, 
+				struct casereader *input,
 				const struct dictionary *dict,
 				const struct variable *const *vv, 
-				int n_vars UNUSED)
+				int n_vars UNUSED,
+                                enum mv_class filter)
 {
   int i = 0;
   while (*vv)
     {
-      bool warn = true;
       double minimum = DBL_MAX;
       double maximum = -DBL_MAX;
       double var;
       struct moments1 *moments = moments1_create (MOMENT_VARIANCE);
-      struct casereader *r = casefile_get_reader (cf, filter);
       struct ccase c;
       const struct variable *v = *vv++;
+      struct casereader *pass;
 
-      while (casereader_read(r, &c))
+      pass = casereader_clone (input);
+      pass = casereader_create_filter_missing (pass,
+                                               (struct variable **) &v, 1,
+                                               filter, NULL);
+      pass = casereader_create_filter_weight (pass, dict, NULL, NULL);
+      while (casereader_read(pass, &c))
 	{
-	  const union value *val = case_data (&c, v);
-	  double w = dict_get_case_weight (dict, &c, &warn);
-
-	  if ( ! casefilter_variable_missing (filter, &c, v ))
-	    {
-	      minimum = MIN (minimum, val->f);
-	      maximum = MAX (maximum, val->f);
-	      moments1_add (moments, val->f, w); 
-	    }
+          double val = case_num (&c, v);
+          double w = dict_get_case_weight (dict, &c, NULL);
+          minimum = MIN (minimum, val);
+          maximum = MAX (maximum, val);
+          moments1_add (moments, val, w); 
 	  case_destroy (&c);
 	}
-      casereader_destroy (r);
+      casereader_destroy (pass);
 
       moments1_calculate (moments, 
 			  &desc[i].n, 
@@ -83,6 +82,7 @@ npar_summary_calc_descriptives (struct descriptives *desc,
       
       i++;
     }
+  casereader_destroy (input);
 }
 
 

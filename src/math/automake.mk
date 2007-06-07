@@ -19,6 +19,8 @@ src_math_libpspp_math_a_SOURCES = \
 	src/math/interaction.h \
 	src/math/levene.c \
 	src/math/levene.h \
+	src/math/merge.c \
+	src/math/merge.h \
 	src/math/moments.c  src/math/moments.h \
 	src/math/percentiles.c src/math/percentiles.h \
 	src/math/design-matrix.c src/math/design-matrix.h \

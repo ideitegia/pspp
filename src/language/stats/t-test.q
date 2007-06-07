@@ -25,13 +25,12 @@
 #include <stdlib.h>
 
 #include <data/case.h>
-#include <data/casefile.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
-#include <data/casefilter.h>
-
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
@@ -41,9 +40,9 @@
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <libpspp/taint.h>
 #include <math/group-proc.h>
 #include <math/levene.h>
 #include <output/manager.h>
@@ -215,28 +214,28 @@ enum {
 
 static int common_calc (const struct dictionary *dict, 
 			const struct ccase *, void *, 
-			const struct casefilter *filter);
+			enum mv_class);
 static void common_precalc (struct cmd_t_test *);
 static void common_postcalc (struct cmd_t_test *);
 
-static int one_sample_calc (const struct dictionary *dict, const struct ccase *, void *, const struct casefilter *);
+static int one_sample_calc (const struct dictionary *dict, const struct ccase *, void *, enum mv_class);
 static void one_sample_precalc (struct cmd_t_test *);
 static void one_sample_postcalc (struct cmd_t_test *);
 
 static int  paired_calc (const struct dictionary *dict, const struct ccase *, 
-			 struct cmd_t_test*, const struct casefilter *);
+			 struct cmd_t_test*, enum mv_class);
 static void paired_precalc (struct cmd_t_test *);
 static void paired_postcalc (struct cmd_t_test *);
 
 static void group_precalc (struct cmd_t_test *);
 static int  group_calc (const struct dictionary *dict, const struct ccase *, 
-			struct cmd_t_test *, const struct casefilter *);
+			struct cmd_t_test *, enum mv_class);
 static void group_postcalc (struct cmd_t_test *);
 
 
-static bool calculate(const struct ccase *first,
-                      const struct casefile *cf, void *_mode, 
-		      const struct dataset *ds);
+static void calculate(struct cmd_t_test *,
+                      struct casereader *,
+		      const struct dataset *);
 
 static  int mode;
 
@@ -258,6 +257,8 @@ static unsigned  hash_group_binary(const struct group_statistics *g,
 int
 cmd_t_test (struct lexer *lexer, struct dataset *ds)
 {
+  struct casegrouper *grouper;
+  struct casereader *group;
   bool ok;
   
   if ( !parse_t_test (lexer, ds, &cmd, NULL) )
@@ -338,7 +339,12 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 
   bad_weight_warn = true;
 
-  ok = multipass_procedure_with_splits (ds, calculate, &cmd);
+  /* Data pass. */
+  grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
+  while (casegrouper_get_next_group (grouper, &group)) 
+    calculate (&cmd, group, ds);
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
 
   n_pairs=0;
   free(pairs);
@@ -1411,30 +1417,30 @@ static int
 common_calc (const struct dictionary *dict, 
 	     const struct ccase *c, 
 	     void *_cmd, 
-	     const struct casefilter *filter)
+	     enum mv_class exclude)
 {
   int i;
   struct cmd_t_test *cmd = (struct cmd_t_test *)_cmd;  
 
-  double weight = dict_get_case_weight (dict, c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dict, c, NULL);
 
 
   /* Listwise has to be implicit if the independent variable is missing ?? */
   if ( cmd->sbc_groups )
     {
-      if ( casefilter_variable_missing (filter, c, indep_var) )
+      if (var_is_value_missing (indep_var, case_data (c, indep_var), exclude))
 	return 0;
     }
 
   for(i = 0; i < cmd->n_variables ; ++i) 
     {
       const struct variable *v = cmd->v_variables[i];
-
-      if (! casefilter_variable_missing (filter, c, v) )
+      const union value *val = case_data (c, v);
+      
+      if (!var_is_value_missing (v, val, exclude))
 	{
 	  struct group_statistics *gs;
-	  const union value *val = case_data (c, v);
-	  gs = &group_proc_get (cmd->v_variables[i])->ugs;
+	  gs = &group_proc_get (v)->ugs;
 
 	  gs->n += weight;
 	  gs->sum += weight * val->f;
@@ -1492,13 +1498,13 @@ common_postcalc (struct cmd_t_test *cmd)
 static int 
 one_sample_calc (const struct dictionary *dict, 
 		 const struct ccase *c, void *cmd_, 
-		 const struct casefilter *filter)
+		 enum mv_class exclude)
 {
   int i;
 
   struct cmd_t_test *cmd = (struct cmd_t_test *)cmd_;
 
-  double weight = dict_get_case_weight (dict, c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dict, c, NULL);
 
 
   for(i=0; i< cmd->n_variables ; ++i) 
@@ -1509,7 +1515,7 @@ one_sample_calc (const struct dictionary *dict,
 
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
 
-      if ( ! casefilter_variable_missing (filter, c, v))
+      if (!var_is_value_missing (v, val, exclude))
 	gs->sum_diff += weight * (val->f - cmd->n_testval[0]);
     }
 
@@ -1569,11 +1575,11 @@ paired_precalc (struct cmd_t_test *cmd UNUSED)
 
 static int  
 paired_calc (const struct dictionary *dict, const struct ccase *c, 
-	     struct cmd_t_test *cmd UNUSED, const struct casefilter *filter)
+	     struct cmd_t_test *cmd UNUSED, enum mv_class exclude)
 {
   int i;
 
-  double weight = dict_get_case_weight (dict, c, &bad_weight_warn);
+  double weight = dict_get_case_weight (dict, c, NULL);
 
   for(i=0; i < n_pairs ; ++i )
     {
@@ -1583,8 +1589,8 @@ paired_calc (const struct dictionary *dict, const struct ccase *c,
       const union value *val0 = case_data (c, v0);
       const union value *val1 = case_data (c, v1);
 
-      if (  ! casefilter_variable_missing (filter, c, v0) && 
-	    ! casefilter_variable_missing (filter, c, v1) )
+      if (!var_is_value_missing (v0, val0, exclude) &&
+          !var_is_value_missing (v1, val1, exclude))
 	{
 	  pairs[i].n += weight;
 	  pairs[i].sum[0] += weight * val0->f;
@@ -1694,16 +1700,15 @@ group_precalc (struct cmd_t_test *cmd )
 static int  
 group_calc (const struct dictionary *dict, 
 	    const struct ccase *c, struct cmd_t_test *cmd, 
-	    const struct casefilter *filter)
+	    enum mv_class exclude)
 {
   int i;
 
-  const double weight = 
-    dict_get_case_weight (dict, c, &bad_weight_warn);
+  const double weight = dict_get_case_weight (dict, c, NULL);
 
   const union value *gv;
 
-  if ( casefilter_variable_missing (filter, c, indep_var))
+  if (var_is_value_missing (indep_var, case_data (c, indep_var), exclude))
     return 0;
 
   gv = case_data (c, indep_var);
@@ -1722,7 +1727,7 @@ group_calc (const struct dictionary *dict,
       if ( ! gs ) 
       	return 0;
 
-      if ( ! casefilter_variable_missing (filter, c, var) )
+      if (!var_is_value_missing (var, val, exclude))
 	{
 	  gs->n += weight;
 	  gs->sum += weight * val->f;
@@ -1771,95 +1776,83 @@ group_postcalc ( struct cmd_t_test *cmd )
 
 
 
-static bool
-calculate(const struct ccase *first, const struct casefile *cf, 
-	  void *cmd_, const struct dataset *ds)
+static void
+calculate(struct cmd_t_test *cmd,
+          struct casereader *input, const struct dataset *ds)
 {
   const struct dictionary *dict = dataset_dict (ds);
   struct ssbox stat_summary_box;
   struct trbox test_results_box;
 
-  struct casereader *r;
+  struct casereader *pass1, *pass2, *pass3;
+  struct taint *taint;
   struct ccase c;
 
-  struct cmd_t_test *cmd = (struct cmd_t_test *) cmd_;
+  enum mv_class exclude = cmd->miss != TTS_INCLUDE ? MV_ANY : MV_SYSTEM;
 
-  struct casefilter *filter = casefilter_create ((cmd->miss != TTS_INCLUDE
-                                                  ? MV_ANY : MV_SYSTEM), 
-						 NULL, 0);
+  if (!casereader_peek (input, 0, &c))
+    return;
+  output_split_file_values (ds, &c);
+  case_destroy (&c);
 
   if ( cmd->miss == TTS_LISTWISE ) 
-    casefilter_add_variables (filter,
-			      cmd->v_variables, cmd->n_variables);
-				
-  output_split_file_values (ds, first);
-  common_precalc (cmd);
-  for(r = casefile_get_reader (cf, filter);
-      casereader_read (r, &c) ;
-      case_destroy (&c)) 
-    {
-      common_calc (dict, &c, cmd, filter);
-    }
+    input = casereader_create_filter_missing (input,
+                                              cmd->v_variables,
+                                              cmd->n_variables,
+                                              exclude, NULL);
 
-  casereader_destroy (r);
+  input = casereader_create_filter_weight (input, dict, NULL, NULL);
+
+  taint = taint_clone (casereader_get_taint (input));
+  casereader_split (input, &pass1, &pass2);
+				
+  common_precalc (cmd);
+  for (; casereader_read (pass1, &c); case_destroy (&c)) 
+    common_calc (dict, &c, cmd, exclude);
+  casereader_destroy (pass1);
   common_postcalc (cmd);
 
   switch(mode)
     {
     case T_1_SAMPLE:
       one_sample_precalc (cmd);
-      for(r = casefile_get_reader (cf, filter);
-	  casereader_read (r, &c) ;
-          case_destroy (&c)) 
-	{
-	  one_sample_calc (dict, &c, cmd, filter);
-	}
-      casereader_destroy (r);
+      for (; casereader_read (pass2, &c); case_destroy (&c)) 
+        one_sample_calc (dict, &c, cmd, exclude);
       one_sample_postcalc (cmd);
       break;
     case T_PAIRED:
       paired_precalc(cmd);
-      for(r = casefile_get_reader (cf, filter);
-	  casereader_read (r, &c) ;
-          case_destroy (&c)) 
-	{
-	  paired_calc (dict, &c, cmd, filter);
-	}
-      casereader_destroy (r);
+      for (; casereader_read (pass2, &c); case_destroy (&c)) 
+        paired_calc (dict, &c, cmd, exclude);
       paired_postcalc (cmd);
-
       break;
     case T_IND_SAMPLES:
+      pass3 = casereader_clone (pass2);
 
       group_precalc(cmd);
-      for(r = casefile_get_reader (cf, filter);
-	  casereader_read (r, &c) ;
-          case_destroy (&c)) 
-	{
-	  group_calc (dict, &c, cmd, filter);
-	}
-      casereader_destroy (r);
+      for(; casereader_read (pass2, &c); case_destroy (&c)) 
+        group_calc (dict, &c, cmd, exclude);
       group_postcalc(cmd);
 
-      levene (dict, cf, indep_var, cmd->n_variables, cmd->v_variables,
-	      filter);
+      levene (dict, pass3, indep_var, cmd->n_variables, cmd->v_variables,
+              exclude);
       break;
     }
+  casereader_destroy (pass2);
+ 
+  if (!taint_has_tainted_successor (taint)) 
+    {
+      ssbox_create(&stat_summary_box,cmd,mode);
+      ssbox_populate(&stat_summary_box,cmd);
+      ssbox_finalize(&stat_summary_box);
 
-  casefilter_destroy (filter);
-
-  ssbox_create(&stat_summary_box,cmd,mode);
-  ssbox_populate(&stat_summary_box,cmd);
-  ssbox_finalize(&stat_summary_box);
-
-  if ( mode == T_PAIRED) 
-      pscbox();
-
-  trbox_create(&test_results_box,cmd,mode);
-  trbox_populate(&test_results_box,cmd);
-  trbox_finalize(&test_results_box);
-
-  return true;
+      if ( mode == T_PAIRED ) 
+        pscbox();
+  
+      trbox_create(&test_results_box,cmd,mode);
+      trbox_populate(&test_results_box,cmd);
+      trbox_finalize(&test_results_box);
+    }
 }
 
 short which_group(const struct group_statistics *g,

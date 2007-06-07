@@ -40,7 +40,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* FIXME: should change weighting variable, etc. */
 /* These control the ordering produced by
    compare_variables_given_ordering(). */
 struct ordering
@@ -322,7 +321,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
   if (already_encountered & (1 | 4))
     {
       /* Read the data. */
-      if (!procedure (ds,NULL, NULL)) 
+      if (!proc_execute (ds)) 
         goto done; 
     }
 

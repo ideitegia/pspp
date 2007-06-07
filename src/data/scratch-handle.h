@@ -25,7 +25,7 @@
 struct scratch_handle 
   {
     struct dictionary *dictionary;      /* Dictionary. */
-    struct casefile *casefile;          /* Cases. */
+    struct casereader *casereader;      /* Cases. */
   };
 
 void scratch_handle_destroy (struct scratch_handle *);

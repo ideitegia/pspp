@@ -23,17 +23,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-struct variable;
 struct dictionary;
-struct lexer ;
+struct lexer;
 
-struct sort_criteria *sort_parse_criteria (struct lexer *, const struct dictionary *,
-                                           const struct variable ***, size_t *,
-                                           bool *saw_direction,
-					   const int *terminators
-					   );
-
-void sort_destroy_criteria (struct sort_criteria *criteria) ;
+struct case_ordering *parse_case_ordering (struct lexer *,
+                                           const struct dictionary *,
+                                           bool *saw_direction);
 
 
 #endif /* SORT_PRS_H */

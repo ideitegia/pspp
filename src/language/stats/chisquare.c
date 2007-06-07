@@ -17,38 +17,32 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <libpspp/compiler.h>
-#include <libpspp/assertion.h>
+
+#include <language/stats/chisquare.h>
 
 #include <stdlib.h>
+#include <math.h>
 
 #include <data/case.h>
-#include <data/casefile.h>
-#include <data/casefilter.h>
-#include <data/variable.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
-
-#include <libpspp/message.h>
-#include <libpspp/hash.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <language/stats/freq.h>
+#include <language/stats/npar.h>
 #include <libpspp/alloc.h>
+#include <libpspp/assertion.h>
+#include <libpspp/compiler.h>
+#include <libpspp/hash.h>
+#include <libpspp/message.h>
+#include <libpspp/taint.h>
+#include <output/table.h>
 
 #include <gsl/gsl_cdf.h>
 
-#include <output/table.h>
-#include <data/value-labels.h>
-
-#include "npar.h"
-#include "chisquare.h"
-#include "freq.h"
-
-#include <math.h>
-
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-
-
 
 /* Return a hash table containing the frequency counts of each 
    value of VAR in CF .
@@ -57,8 +51,7 @@
 */
 static struct hsh_table *
 create_freq_hash_with_range (const struct dictionary *dict, 
-			     const struct casefile *cf, 
-			     struct casefilter *filter,
+			     struct casereader *input, 
 			     const struct variable *var, 
 			     double lo, 
 			     double hi)
@@ -66,7 +59,6 @@ create_freq_hash_with_range (const struct dictionary *dict,
   bool warn = true;
   float i_d;
   struct ccase c;
-  struct casereader *r = casefile_get_reader (cf, filter);
 
   struct hsh_table *freq_hash = 
     hsh_create (4, compare_freq, hash_freq, 
@@ -87,18 +79,12 @@ create_freq_hash_with_range (const struct dictionary *dict,
       hsh_insert (freq_hash, fr);
     }
 
-  while (casereader_read(r, &c))
+  while (casereader_read (input, &c))
     {
       union value obs_value;
       struct freq **existing_fr;
       struct freq *fr = xmalloc(sizeof  (*fr));
       fr->value = case_data (&c, var);
-
-      if ( casefilter_variable_missing (filter, &c, var))
-	{
-	  free (fr);
-	  continue;
-	}
 
       fr->count = dict_get_case_weight (dict, &c, &warn);
 
@@ -124,43 +110,39 @@ create_freq_hash_with_range (const struct dictionary *dict,
 
       case_destroy (&c);
     }
-  casereader_destroy (r);
-
-  return freq_hash;
+  if (casereader_destroy (input))
+    return freq_hash;
+  else 
+    {
+      hsh_destroy (freq_hash);
+      return NULL;
+    }
 }
 
 
 /* Return a hash table containing the frequency counts of each 
-   value of VAR in CF .
+   value of VAR in INPUT .
    It is the caller's responsibility to free the hash table when 
    no longer required.
 */
 static struct hsh_table *
 create_freq_hash (const struct dictionary *dict, 
-		  const struct casefile *cf, 
-		  struct casefilter *filter, 
+		  struct casereader *input, 
 		  const struct variable *var)
 {
   bool warn = true;
   struct ccase c;
-  struct casereader *r = casefile_get_reader (cf, filter);
 
   struct hsh_table *freq_hash = 
     hsh_create (4, compare_freq, hash_freq, 
 		free_freq_mutable_hash,
 		(void *) var);
 
-  while (casereader_read(r, &c))
+  for (; casereader_read (input, &c); case_destroy (&c))
     {
       struct freq **existing_fr;
       struct freq *fr = xmalloc(sizeof  (*fr));
-      fr->value = case_data (&c, var );
-
-      if ( casefilter_variable_missing (filter, &c, var))
-	{
-	  free (fr);
-	  continue;
-	}
+      fr->value = case_data (&c, var);
 
       fr->count = dict_get_case_weight (dict, &c, &warn);
 
@@ -175,20 +157,21 @@ create_freq_hash (const struct dictionary *dict,
           *existing_fr = fr;
           fr->value = value_dup (fr->value, var_get_width (var));
 	}
-
-      case_destroy (&c);
     }
-  casereader_destroy (r);
-
-  return freq_hash;
+  if (casereader_destroy (input))
+    return freq_hash;
+  else
+    {
+      hsh_destroy (freq_hash);
+      return NULL;
+    }
 }
 
 
 
 static struct tab_table *
 create_variable_frequency_table (const struct dictionary *dict, 
-				 const struct casefile *cf, 
-				 struct casefilter *filter,
+				 struct casereader *input, 
 				 const struct chisquare_test *test, 
 				 int v, 
 				 struct hsh_table **freq_hash)
@@ -200,7 +183,9 @@ create_variable_frequency_table (const struct dictionary *dict,
   struct tab_table *table ;
   const struct variable *var =  ost->vars[v];
 
-  *freq_hash = create_freq_hash (dict, cf, filter, var);
+  *freq_hash = create_freq_hash (dict, input, var);
+  if (*freq_hash == NULL)
+    return NULL;
       
   n_cells = hsh_count (*freq_hash);
 
@@ -305,7 +290,8 @@ create_stats_table (const struct chisquare_test *test)
 {
   const struct one_sample_test *ost = (const struct one_sample_test*) test;
   
-  struct tab_table *table = tab_create (1 + ost->n_vars, 4, 0);
+  struct tab_table *table;
+  table = tab_create (1 + ost->n_vars, 4, 0);
   tab_dim (table, tab_natural_dimensions);
   tab_title (table, _("Test Statistics"));
   tab_headers (table, 1, 0, 1, 0);
@@ -331,20 +317,20 @@ create_stats_table (const struct chisquare_test *test)
 
 void 
 chisquare_execute (const struct dataset *ds,
-		   const struct casefile *cf, 
-		   struct casefilter *filter,
+		   struct casereader *input,
+                   enum mv_class exclude,
 		   const struct npar_test *test)
 {
   const struct dictionary *dict = dataset_dict (ds);
   int v, i;
   struct one_sample_test *ost = (struct one_sample_test *) test;
   struct chisquare_test *cst = (struct chisquare_test *) test;
-  struct tab_table *stats_table = create_stats_table (cst);
   int n_cells = 0;
   double total_expected = 0.0;
 
   double *df = xzalloc (sizeof (*df) * ost->n_vars);
   double *xsq = xzalloc (sizeof (*df) * ost->n_vars);
+  bool ok;
   
   for ( i = 0 ; i < cst->n_expected ; ++i ) 
     total_expected += cst->expected[i];
@@ -355,17 +341,17 @@ chisquare_execute (const struct dataset *ds,
 	{
 	  double total_obs = 0.0;
 	  struct hsh_table *freq_hash = NULL;
+          struct casereader *reader =
+            casereader_create_filter_missing (casereader_clone (input),
+                                              &ost->vars[v], 1, exclude, NULL);
 	  struct tab_table *freq_table = 
-	    create_variable_frequency_table(dict, cf, filter, cst, 
-					    v, &freq_hash);
+            create_variable_frequency_table(dict, reader, cst, v, &freq_hash);
 
-	  struct freq **ff = (struct freq **) hsh_sort (freq_hash);
+	  struct freq **ff;
 
 	  if ( NULL == freq_table ) 
-	    {
-	      hsh_destroy (freq_hash);
-	      continue;
-	    }
+            continue;
+          ff = (struct freq **) hsh_sort (freq_hash);
 
 	  n_cells = hsh_count (freq_hash);
 
@@ -420,12 +406,19 @@ chisquare_execute (const struct dataset *ds,
       for ( v = 0 ; v < ost->n_vars ; ++v ) 
 	{
 	  double total_obs = 0.0;
+          struct casereader *reader =
+            casereader_create_filter_missing (casereader_clone (input),
+                                              &ost->vars[v], 1, exclude, NULL);
 	  struct hsh_table *freq_hash = 
-	    create_freq_hash_with_range (dict, cf, filter, ost->vars[v], 
-					 cst->lo, cst->hi);
+	    create_freq_hash_with_range (dict, reader,
+                                         ost->vars[v], cst->lo, cst->hi);
 
-	  struct freq **ff = (struct freq **) hsh_sort (freq_hash);
+	  struct freq **ff;
 
+          if (freq_hash == NULL)
+            continue;
+
+          ff = (struct freq **) hsh_sort (freq_hash);
 	  assert ( n_cells == hsh_count (freq_hash));
 
 	  for ( i = 0 ; i < hsh_count (freq_hash) ; ++i ) 
@@ -473,25 +466,30 @@ chisquare_execute (const struct dataset *ds,
 
       tab_submit (freq_table);
     }
+  ok = !taint_has_tainted_successor (casereader_get_taint (input));
+  casereader_destroy (input);
 
-
-  /* Populate the summary statistics table */
-  for ( v = 0 ; v < ost->n_vars ; ++v ) 
+  if (ok) 
     {
-      const struct variable *var = ost->vars[v];
+      struct tab_table *stats_table = create_stats_table (cst);
+      
+      /* Populate the summary statistics table */
+      for ( v = 0 ; v < ost->n_vars ; ++v ) 
+        {
+          const struct variable *var = ost->vars[v];
 
-      tab_text (stats_table, 1 + v, 0, TAB_CENTER, var_get_name (var));
+          tab_text (stats_table, 1 + v, 0, TAB_CENTER, var_get_name (var));
 
-      tab_float (stats_table, 1 + v, 1, TAB_NONE, xsq[v], 8,3);
-      tab_float (stats_table, 1 + v, 2, TAB_NONE, df[v], 8,0);
+          tab_float (stats_table, 1 + v, 1, TAB_NONE, xsq[v], 8,3);
+          tab_float (stats_table, 1 + v, 2, TAB_NONE, df[v], 8,0);
 
-      tab_float (stats_table, 1 + v, 3, TAB_NONE, 
-		 gsl_cdf_chisq_Q (xsq[v], df[v]), 8,3);
+          tab_float (stats_table, 1 + v, 3, TAB_NONE, 
+                     gsl_cdf_chisq_Q (xsq[v], df[v]), 8,3);
+        }
+      tab_submit (stats_table);
     }
-
+  
   free (xsq);
   free (df);
-
-  tab_submit (stats_table);
 }
 

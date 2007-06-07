@@ -24,10 +24,7 @@
 struct dictionary;
 struct file_handle;
 struct ccase;
-struct scratch_writer *scratch_writer_open (struct file_handle *,
-                                            const struct dictionary *);
-bool scratch_writer_write_case (struct scratch_writer *, const struct ccase *);
-bool scratch_writer_error (const struct scratch_writer *);
-bool scratch_writer_close (struct scratch_writer *);
+struct casewriter *scratch_writer_open (struct file_handle *,
+                                        const struct dictionary *);
 
 #endif /* scratch-writer.h */

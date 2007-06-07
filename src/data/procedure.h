@@ -23,16 +23,11 @@
 #include <stdbool.h>
 
 #include <data/transformations.h>
-#include <data/casefile-factory.h>
 #include <libpspp/compiler.h>
 
-struct ccase;
-struct casefile;
-struct case_sink;
-struct case_source;
-
+struct casereader;
 struct dataset;
-
+struct dictionary;
 
 /* Transformations. */
 
@@ -43,10 +38,6 @@ void add_transformation_with_finalizer (struct dataset *ds,
                                         trns_proc_func *,
                                         trns_free_func *, void *);
 size_t next_transformation (const struct dataset *ds);
-
-void discard_variables (struct dataset *ds);
-
-
 
 bool proc_cancel_all_transformations (struct dataset *ds);
 struct trns_chain *proc_capture_transformations (struct dataset *ds);
@@ -59,63 +50,35 @@ bool proc_cancel_temporary_transformations (struct dataset *ds);
 /* Procedures. */
 
 struct dictionary ;
-typedef void  replace_source_callback (struct case_source *);
+typedef void  replace_source_callback (struct casereader *);
 typedef void  replace_dictionary_callback (struct dictionary *);
 
 
-struct dataset * create_dataset (struct casefile_factory *fact,
-				 replace_source_callback *,
-				 replace_dictionary_callback *
-				 );
+struct dataset * create_dataset (replace_source_callback *,
+				 replace_dictionary_callback *);
 
 void destroy_dataset (struct dataset *);
 
-struct casefile_factory *dataset_get_casefile_factory (const struct dataset *);
+void proc_discard_active_file (struct dataset *);
+void proc_set_active_file (struct dataset *,
+                           struct casereader *, struct dictionary *);
+bool proc_set_active_file_data (struct dataset *, struct casereader *);
+bool proc_has_active_file (const struct dataset *ds);
 
-void proc_set_source (struct dataset *ds, struct case_source *);
-bool proc_has_source (const struct dataset *ds);
+void proc_discard_output (struct dataset *ds);
 
-void proc_set_sink (struct dataset *ds, struct case_sink *);
-struct casefile *proc_capture_output (struct dataset *ds);
-
-typedef bool casefile_func (const struct casefile *, void *);
-typedef bool case_func (const struct ccase *, void *, const struct dataset *);
-typedef void begin_func (const struct ccase *, void *, const struct dataset*);
-
-typedef bool end_func (void *, const struct dataset *);
-
-typedef bool split_func (const struct ccase *, const struct casefile *,
-			      void *, const struct dataset *);
-
-
-
-bool procedure (struct dataset *ds, case_func *, void *aux)  WARN_UNUSED_RESULT;
-
-bool procedure_with_splits (struct dataset *ds, 
-			    begin_func *,
-                            case_func *,
-			    end_func *,
-                            void *aux)
-     WARN_UNUSED_RESULT;
-bool multipass_procedure (struct dataset *ds, casefile_func *, void  *aux)
-     WARN_UNUSED_RESULT;
-bool multipass_procedure_with_splits (struct dataset *ds,
-					   split_func *,
-					   void *aux)
-     WARN_UNUSED_RESULT;
-
+bool proc_execute (struct dataset *ds);
 time_t time_of_last_procedure (struct dataset *ds);
 
-void proc_open (struct dataset *);
-bool proc_read (struct dataset *, struct ccase **);
-bool proc_close (struct dataset *);
+struct casereader *proc_open (struct dataset *);
+bool proc_is_open (const struct dataset *);
+bool proc_commit (struct dataset *);
+
+bool dataset_end_of_command (struct dataset *);
 
+struct dictionary *dataset_dict (const struct dataset *ds);
 
 struct ccase *lagged_case (const struct dataset *ds, int n_before);
-
-inline struct dictionary *dataset_dict (const struct dataset *ds);
-inline void dataset_set_dict ( struct dataset *ds, struct dictionary *dict);
-
 void dataset_need_lag (struct dataset *ds, int n_before);
 
 #endif /* procedure.h */

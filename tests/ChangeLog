@@ -1,5 +1,11 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	* automake.mk: Remove test.
+
+	* tests/xforms/casefile.sh: Removed test.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	* automake.mk: Add new test.
 
 	* tests/command/datasheet.sh: New test.

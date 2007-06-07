@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -16,57 +16,18 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#if !sort_h
-#define sort_h 1
+#ifndef MATH_SORT_H
+#define MATH_SORT_H 1
 
 #include <stddef.h>
 #include <stdbool.h>
 
-struct casereader;
-struct dictionary;
-struct variable;
-struct casefile_factory;
+struct case_ordering;
 
 extern int min_buffers ;
 extern int max_buffers ;
-extern bool allow_internal_sort ;
 
+struct casewriter *sort_create_writer (struct case_ordering *);
+struct casereader *sort_execute (struct casereader *, struct case_ordering *);
 
-/* Sort direction. */
-enum sort_direction
-  {
-    SRT_ASCEND,			/* A, B, C, ..., X, Y, Z. */
-    SRT_DESCEND			/* Z, Y, X, ..., C, B, A. */
-  };
-
-/* A sort criterion. */
-struct sort_criterion
-  {
-    int fv;                     /* Variable data index. */
-    int width;                  /* 0=numeric, otherwise string width. */
-    enum sort_direction dir;    /* Sort direction. */
-  };
-
-/* A set of sort criteria. */
-struct sort_criteria 
-  {
-    struct sort_criterion *crits;
-    size_t crit_cnt;
-  };
-
-
-void sort_destroy_criteria (struct sort_criteria *);
-
-struct casefile *sort_execute (struct casereader *,
-                               const struct sort_criteria *,
-			       struct casefile_factory *
-			       );
-
-struct dataset ;
-bool sort_active_file_in_place (struct dataset *ds, 
-				const struct sort_criteria *);
-
-struct casefile *sort_active_file_to_casefile (struct dataset *ds, 
-					       const struct sort_criteria *);
-
-#endif /* !sort_h */
+#endif /* math/sort.h */

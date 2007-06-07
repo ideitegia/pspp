@@ -25,8 +25,8 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-#include <data/casefile.h>
-#include <data/case.h>
+#include <data/casewriter.h>
+#include <data/datasheet.h>
 #include <data/data-out.h>
 #include <data/variable.h>
 
@@ -454,7 +454,7 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn)
 
 
   /* Opportunity for optimisation exists here when creating a blank case */
-  val_cnt = casefile_get_value_cnt (ds->case_file->flexifile) ;
+  val_cnt = datasheet_get_column_cnt (ds->case_file->datasheet) ;
 
   case_create (&cc, val_cnt);
 
@@ -484,7 +484,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
   char *text;
   const struct fmt_spec *fp ;
   const struct variable *pv ;
-  const union value *v ;
+  union value *v ;
   GString *s;
   PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
 
@@ -505,19 +505,19 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 
   g_assert (idx >= 0);
 
-  v = psppire_case_file_get_value (store->case_file, row, idx);
-
+  v = psppire_case_file_get_value (store->case_file, row, idx, NULL,
+                                   var_get_width (pv));
+  
   g_return_val_if_fail (v, NULL);
 
   if ( store->show_labels)
     {
-      const struct val_labs * vl = var_get_value_labels (pv);
-
-      const gchar *label;
-      if ( (label = val_labs_find (vl, *v)) )
-	{
+      const gchar *label = var_lookup_value_label (pv, v);
+      if (label)
+        {
+          free (v);
 	  return pspp_locale_to_utf8 (label, -1, 0);
-	}
+        }
     }
 
   fp = var_get_write_format (pv);
@@ -539,6 +539,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 
   g_strchomp (text);
 
+  free (v);
   return text;
 }
 
@@ -649,7 +650,7 @@ psppire_data_store_create_system_file (PsppireDataStore *store,
     3 /* version */
   };
 
-  struct sfm_writer *writer ;
+  struct casewriter *writer;
 
   g_assert (handle);
 
@@ -664,15 +665,10 @@ psppire_data_store_create_system_file (PsppireDataStore *store,
   for (i = 0 ; i < psppire_case_file_get_case_count (store->case_file); ++i )
     {
       struct ccase c;
-
-      case_create (&c, var_cnt);
       psppire_case_file_get_case (store->case_file, i, &c);
-      sfm_write_case (writer, &c);
-
-      case_destroy (&c);
+      casewriter_write (writer, &c);
     }
-
-  sfm_close_writer (writer);
+  casewriter_destroy (writer);
 }
 
 

@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/settings.h>
@@ -147,8 +148,11 @@ cmd_parse_in_state (struct lexer *lexer, struct dataset *ds,
   if (cmd_result_is_failure (result))
     lex_discard_rest_of_command (lexer);
 
+  assert (!proc_is_open (ds));
   unset_cmd_algorithm ();
   dict_clear_aux (dataset_dict (ds));
+  if (!dataset_end_of_command (ds))
+    result = CMD_CASCADING_FAILURE;
 
   return result;
 }
@@ -158,7 +162,7 @@ cmd_parse (struct lexer *lexer, struct dataset *ds)
 {
   const struct dictionary *dict = dataset_dict (ds);
   return cmd_parse_in_state (lexer, ds,
-			     proc_has_source (ds) &&
+			     proc_has_active_file (ds) &&
 			     dict_get_var_cnt (dict) > 0 ?
 			     CMD_STATE_DATA : CMD_STATE_INITIAL);
 }
@@ -203,7 +207,7 @@ do_parse_command (struct lexer *lexer, struct dataset *ds, enum cmd_state state)
     {
       msg (SE, _("%s may be used only in enhanced syntax mode."),
            command->name);
-       return CMD_FAILURE;
+      return CMD_FAILURE;
     }
   else if (!in_correct_state (command, state)) 
     {
@@ -687,7 +691,8 @@ cmd_n_of_cases (struct lexer *lexer, struct dataset *ds)
 int
 cmd_execute (struct lexer *lexer, struct dataset *ds)
 {
-  if (!procedure (ds, NULL, NULL))
+  bool ok = casereader_destroy (proc_open (ds));
+  if (!proc_commit (ds) || !ok)
     return CMD_CASCADING_FAILURE;
   return lex_end_of_command (lexer);
 }
@@ -840,7 +845,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
 int
 cmd_new_file (struct lexer *lexer, struct dataset *ds)
 {
-  discard_variables (ds);
+  proc_discard_active_file (ds);
 
   return lex_end_of_command (lexer);
 }

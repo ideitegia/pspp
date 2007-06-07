@@ -26,12 +26,13 @@
 #include <gtksheet/gtkextra-marshal.h>
 
 #include <data/case.h>
-#include <ui/flexifile.h>
-#include "flexifile-factory.h"
-#include <data/casefile.h>
 #include <data/data-in.h>
+#include <data/datasheet.h>
 #include <math/sort.h>
 #include <libpspp/misc.h>
+
+#include "xalloc.h"
+#include "xallocsa.h"
 
 /* --- prototypes --- */
 static void psppire_case_file_class_init	(PsppireCaseFileClass	*class);
@@ -132,8 +133,7 @@ psppire_case_file_finalize (GObject *object)
 {
   PsppireCaseFile *cf = PSPPIRE_CASE_FILE (object);
 
-  if ( cf->flexifile)
-    casefile_destroy (cf->flexifile);
+  datasheet_destroy (cf->datasheet);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -141,7 +141,7 @@ psppire_case_file_finalize (GObject *object)
 static void
 psppire_case_file_init (PsppireCaseFile *cf)
 {
-  cf->flexifile = 0;
+  cf->datasheet = NULL;
 }
 
 
@@ -156,16 +156,16 @@ psppire_case_file_new (void)
 {
   PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
 
-  cf->flexifile = flexifile_create (0);
+  cf->datasheet = datasheet_create (NULL);
 
   return cf;
 }
 
 
 void
-psppire_case_file_replace_flexifile (PsppireCaseFile *cf, struct flexifile *ff)
+psppire_case_file_replace_datasheet (PsppireCaseFile *cf, struct datasheet *ds)
 {
-  cf->flexifile = (struct casefile *) ff;
+  cf->datasheet = ds;
 }
 
 
@@ -173,16 +173,14 @@ psppire_case_file_replace_flexifile (PsppireCaseFile *cf, struct flexifile *ff)
 gboolean
 psppire_case_file_delete_cases (PsppireCaseFile *cf, gint n_cases, gint first)
 {
-  int result;
-
   g_return_val_if_fail (cf, FALSE);
-  g_return_val_if_fail (cf->flexifile, FALSE);
+  g_return_val_if_fail (cf->datasheet, FALSE);
 
-  result =  flexifile_delete_cases (FLEXIFILE (cf->flexifile), n_cases,  first);
+  datasheet_delete_rows (cf->datasheet, first, n_cases);
 
   g_signal_emit (cf, signals [CASES_DELETED], 0, n_cases, first);
 
-  return result;
+  return TRUE;
 }
 
 /* Insert case CC into the case file before POSN */
@@ -191,12 +189,14 @@ psppire_case_file_insert_case (PsppireCaseFile *cf,
 			      struct ccase *cc,
 			      gint posn)
 {
+  struct ccase tmp;
   bool result ;
 
   g_return_val_if_fail (cf, FALSE);
-  g_return_val_if_fail (cf->flexifile, FALSE);
+  g_return_val_if_fail (cf->datasheet, FALSE);
 
-  result = flexifile_insert_case (FLEXIFILE (cf->flexifile), cc, posn);
+  case_clone (&tmp, cc);
+  result = datasheet_insert_rows (cf->datasheet, posn, &tmp, 1);
 
   if ( result )
     g_signal_emit (cf, signals [CASE_INSERTED], 0, posn);
@@ -212,15 +212,17 @@ gboolean
 psppire_case_file_append_case (PsppireCaseFile *cf,
 			      struct ccase *c)
 {
+  struct ccase tmp;
   bool result ;
   gint posn ;
 
   g_return_val_if_fail (cf, FALSE);
-  g_return_val_if_fail (cf->flexifile, FALSE);
+  g_return_val_if_fail (cf->datasheet, FALSE);
 
-  posn = casefile_get_case_cnt (cf->flexifile);
+  posn = datasheet_get_row_cnt (cf->datasheet);
 
-  result = casefile_append (cf->flexifile, c);
+  case_clone (&tmp, c);
+  result = datasheet_insert_rows (cf->datasheet, posn, &tmp, 1);
 
   g_signal_emit (cf, signals [CASE_INSERTED], 0, posn);
 
@@ -233,69 +235,68 @@ psppire_case_file_get_case_count (const PsppireCaseFile *cf)
 {
   g_return_val_if_fail (cf, FALSE);
 
-  if ( ! cf->flexifile)
+  if ( ! cf->datasheet)
     return 0;
 
-  return casefile_get_case_cnt (cf->flexifile);
+  return datasheet_get_row_cnt (cf->datasheet);
 }
 
-/* Return the IDXth value from case CASENUM.
-   The return value must not be freed or written to
- */
-const union value *
-psppire_case_file_get_value (const PsppireCaseFile *cf, gint casenum, gint idx)
+/* Copies the IDXth value from case CASENUM into VALUE.
+   If VALUE is null, then memory is allocated is allocated with
+   malloc.  Returns the value if successful, NULL on failure. */
+union value *
+psppire_case_file_get_value (const PsppireCaseFile *cf,
+                             casenumber casenum, size_t idx,
+                             union value *value, int width)
 {
-  const union value *v;
-  struct ccase c;
+  bool allocated;
+  
+  g_return_val_if_fail (cf, false);
+  g_return_val_if_fail (cf->datasheet, false);
 
-  g_return_val_if_fail (cf, NULL);
-  g_return_val_if_fail (cf->flexifile, NULL);
+  g_return_val_if_fail (idx < datasheet_get_column_cnt (cf->datasheet), false);
 
-  g_return_val_if_fail (idx < casefile_get_value_cnt (cf->flexifile), NULL);
-
-  flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, &c);
-
-  v = case_data_idx (&c, idx);
-  case_destroy (&c);
-
-  return v;
+  if (value == NULL) 
+    {
+      value = xnmalloc (value_cnt_from_width (width), sizeof *value);
+      allocated = true;
+    }
+  else
+    allocated = false;
+  if (!datasheet_get_value (cf->datasheet, casenum, idx, value, width))
+    {
+      if (allocated) 
+        free (value);
+      value = NULL;
+    }
+  return value;
 }
 
 void
 psppire_case_file_clear (PsppireCaseFile *cf)
 {
-  casefile_destroy (cf->flexifile);
-  cf->flexifile = 0;
+  datasheet_destroy (cf->datasheet);
+  cf->datasheet = NULL;
   g_signal_emit (cf, signals [CASES_DELETED], 0, 0, -1);
 }
 
-/* Set the IDXth value of case C to SYSMIS/EMPTY */
+/* Set the IDXth value of case C to V.
+   Returns true if successful, false on I/O error. */
 gboolean
 psppire_case_file_set_value (PsppireCaseFile *cf, gint casenum, gint idx,
 			    union value *v, gint width)
 {
-  struct ccase cc ;
-  int bytes;
+  bool ok;
 
   g_return_val_if_fail (cf, FALSE);
-  g_return_val_if_fail (cf->flexifile, FALSE);
+  g_return_val_if_fail (cf->datasheet, FALSE);
 
-  g_return_val_if_fail (idx < casefile_get_value_cnt (cf->flexifile), FALSE);
+  g_return_val_if_fail (idx < datasheet_get_column_cnt (cf->datasheet), FALSE);
 
-  if ( ! flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, &cc) )
-    return FALSE;
-
-  if ( width == 0 )
-    bytes = MAX_SHORT_STRING;
-  else
-    bytes = DIV_RND_UP (width, MAX_SHORT_STRING) * MAX_SHORT_STRING ;
-
-  /* Cast away const in flagrant abuse of the casefile */
-  memcpy ((union value *)case_data_idx (&cc, idx), v, bytes);
-
-  g_signal_emit (cf, signals [CASE_CHANGED], 0, casenum);
-
-  return TRUE;
+  ok = datasheet_put_value (cf->datasheet, casenum, idx, v, width);
+  if (ok)
+    g_signal_emit (cf, signals [CASE_CHANGED], 0, casenum);
+  return ok;
 }
 
 
@@ -305,49 +306,43 @@ gboolean
 psppire_case_file_data_in (PsppireCaseFile *cf, gint casenum, gint idx,
                           struct substring input, const struct fmt_spec *fmt)
 {
-  struct ccase cc ;
+  union value *value;
+  int width;
+  bool ok;
 
   g_return_val_if_fail (cf, FALSE);
-  g_return_val_if_fail (cf->flexifile, FALSE);
+  g_return_val_if_fail (cf->datasheet, FALSE);
 
-  g_return_val_if_fail (idx < casefile_get_value_cnt (cf->flexifile), FALSE);
+  g_return_val_if_fail (idx < datasheet_get_column_cnt (cf->datasheet), FALSE);
 
-  if ( ! flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, &cc) )
-    return FALSE;
+  width = fmt_var_width (fmt);
+  value = xallocsa (value_cnt_from_width (width) * sizeof *value);
+  ok = (datasheet_get_value (cf->datasheet, casenum, idx, value, width)
+        && data_in (input, fmt->type, 0, 0, value, width)
+        && datasheet_put_value (cf->datasheet, casenum, idx, value, width));
 
-  /* Cast away const in flagrant abuse of the casefile */
-  if (!data_in (input, fmt->type, 0, 0,
-                (union value *) case_data_idx (&cc, idx), fmt_var_width (fmt)))
-    g_warning ("Cant set value\n");
+  if (ok)
+    g_signal_emit (cf, signals [CASE_CHANGED], 0, casenum);
 
-  g_signal_emit (cf, signals [CASE_CHANGED], 0, casenum);
+  freesa (value);
 
   return TRUE;
 }
 
 
 void
-psppire_case_file_sort (PsppireCaseFile *cf, const struct sort_criteria *sc)
+psppire_case_file_sort (PsppireCaseFile *cf, struct case_ordering *ordering)
 {
+  struct casereader *sorted_data;
   gint c;
 
-  struct casereader *reader = casefile_get_reader (cf->flexifile, NULL);
-  struct casefile *cfile;
-
-  struct casefile_factory *factory  = flexifile_factory_create ();
-
-  cfile = sort_execute (reader, sc, factory);
-
-  casefile_destroy (cf->flexifile);
-
-  cf->flexifile = cfile;
+  sorted_data = sort_execute (datasheet_make_reader (cf->datasheet), ordering);
+  cf->datasheet = datasheet_create (sorted_data);
 
   /* FIXME: Need to have a signal to change a range of cases, instead of
      calling a signal many times */
-  for ( c = 0 ; c < casefile_get_case_cnt (cf->flexifile) ; ++c )
+  for ( c = 0 ; c < datasheet_get_row_cnt (cf->datasheet) ; ++c )
     g_signal_emit (cf, signals [CASE_CHANGED], 0, c);
-
-  flexifile_factory_destroy (factory);
 }
 
 
@@ -357,16 +352,17 @@ gboolean
 psppire_case_file_insert_values (PsppireCaseFile *cf,
 				 gint n_values, gint before)
 {
+  union value *values;
   g_return_val_if_fail (cf, FALSE);
 
-  if ( ! cf->flexifile )
-    {
-      cf->flexifile = flexifile_create (n_values);
+  if ( ! cf->datasheet )
+    cf->datasheet = datasheet_create (NULL);
 
-      return TRUE;
-    }
+  values = xcalloc (n_values, sizeof *values);
+  datasheet_insert_columns (cf->datasheet, values, n_values, before);
+  free (values);
 
-  return flexifile_resize (FLEXIFILE (cf->flexifile), n_values, before);
+  return TRUE;
 }
 
 /* Fills C with the CASENUMth case.
@@ -377,7 +373,7 @@ psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
 			   struct ccase *c)
 {
   g_return_val_if_fail (cf, FALSE);
-  g_return_val_if_fail (cf->flexifile, FALSE);
+  g_return_val_if_fail (cf->datasheet, FALSE);
 
-  return flexifile_get_case (FLEXIFILE (cf->flexifile), casenum, c);
+  return datasheet_get_row (cf->datasheet, casenum, c);
 }

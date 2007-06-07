@@ -1,3 +1,13 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	Adapt case sources, sinks, and clients of procedure code to the
+	new infrastructure.
+	
+	* automake.mk: Remove files.
+
+	* flexifile.c: Removed, dead code.
+	* flexifile.h: Ditto.
+
 Thu Feb  8 06:34:52 2007  Ben Pfaff  <blp@gnu.org>
 
 	* [!(HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H)] (connect_debugger) In

@@ -36,21 +36,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Type of file backing an any_reader. */
-enum any_reader_type
-  {
-    SYSTEM_FILE,                /* System file. */
-    PORTABLE_FILE,              /* Portable file. */
-    SCRATCH_FILE                /* Scratch file. */
-  };
-
-/* Reader for any type of case-structured file. */
-struct any_reader 
-  {
-    enum any_reader_type type;  /* Type of file. */
-    void *private;              /* Private data. */
-  };
-
 /* Result of type detection. */
 enum detect_result 
   {
@@ -83,27 +68,10 @@ try_detect (struct file_handle *handle, bool (*detect) (FILE *))
   return is_type ? YES : NO;
 }
 
-/* If PRIVATE is non-null, creates and returns a new any_reader,
-   initializing its fields to TYPE and PRIVATE.  If PRIVATE is a
-   null pointer, just returns a null pointer. */   
-static struct any_reader *
-make_any_reader (enum any_reader_type type, void *private) 
-{
-  if (private != NULL) 
-    {
-      struct any_reader *reader = xmalloc (sizeof *reader);
-      reader->type = type;
-      reader->private = private;
-      return reader;
-    }
-  else
-    return NULL;
-}
-
-/* Creates an any_reader for HANDLE.  On success, returns the new
-   any_reader and stores the file's dictionary into *DICT.  On
+/* Returns a casereader for HANDLE.  On success, returns the new
+   casereader and stores the file's dictionary into *DICT.  On
    failure, returns a null pointer. */
-struct any_reader *
+struct casereader *
 any_reader_open (struct file_handle *handle, struct dictionary **dict)
 {
   switch (fh_get_referent (handle)) 
@@ -116,15 +84,13 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
         if (result == IO_ERROR)
           return NULL;
         else if (result == YES)
-          return make_any_reader (SYSTEM_FILE,
-                                  sfm_open_reader (handle, dict, NULL));
+          return sfm_open_reader (handle, dict, NULL);
 
         result = try_detect (handle, pfm_detect);
         if (result == IO_ERROR)
           return NULL;
         else if (result == YES)
-          return make_any_reader (PORTABLE_FILE,
-                                  pfm_open_reader (handle, dict, NULL));
+          return pfm_open_reader (handle, dict, NULL);
 
         msg (SE, _("\"%s\" is not a system or portable file."),
              fh_get_file_name (handle));
@@ -136,74 +102,7 @@ any_reader_open (struct file_handle *handle, struct dictionary **dict)
       return NULL;
 
     case FH_REF_SCRATCH:
-      return make_any_reader (SCRATCH_FILE,
-                              scratch_reader_open (handle, dict));
+      return scratch_reader_open (handle, dict);
     }
   NOT_REACHED ();
-}
-
-/* Reads a single case from READER into C.
-   Returns true if successful, false at end of file or on error. */
-bool
-any_reader_read (struct any_reader *reader, struct ccase *c) 
-{
-  switch (reader->type) 
-    {
-    case SYSTEM_FILE:
-      return sfm_read_case (reader->private, c);
-
-    case PORTABLE_FILE:
-      return pfm_read_case (reader->private, c);
-
-    case SCRATCH_FILE:
-      return scratch_reader_read_case (reader->private, c);
-    }
-  NOT_REACHED ();
-}
-
-/* Returns true if an I/O error has occurred on READER, false
-   otherwise. */
-bool
-any_reader_error (struct any_reader *reader) 
-{
-  switch (reader->type) 
-    {
-    case SYSTEM_FILE:
-      return sfm_read_error (reader->private);
-
-    case PORTABLE_FILE:
-      return pfm_read_error (reader->private);
-
-    case SCRATCH_FILE:
-      return scratch_reader_error (reader->private);
-    }
-  NOT_REACHED ();
-}
-
-/* Closes READER. */
-void
-any_reader_close (struct any_reader *reader) 
-{
-  if (reader == NULL)
-    return;
-
-  switch (reader->type) 
-    {
-    case SYSTEM_FILE:
-      sfm_close_reader (reader->private);
-      break;
-
-    case PORTABLE_FILE:
-      pfm_close_reader (reader->private);
-      break;
-
-    case SCRATCH_FILE:
-      scratch_reader_close (reader->private);
-      break;
-
-    default:
-      NOT_REACHED ();
-    }
-
-  free (reader);
 }

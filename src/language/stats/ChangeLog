@@ -1,3 +1,32 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	Adapt case sources, sinks, and clients of procedure code to the
+	new infrastructure.
+	
+	* aggregate.c: Simplify greatly since everything is more uniform
+	now.
+
+	* autorecode.c: Adapt to new procedure code.
+	* binomial.c: Ditto.
+	* chisquare.c: Ditto.
+	* crosstabs.q: Ditto.
+	* descriptives.c: Ditto.
+	* examine.q: Ditto.
+	* npar-summary.c: Ditto.
+	* frequencies.q: Ditto.
+	* npar.q: Ditto.
+	* oneway.q: Ditto.
+	* regression.q: Ditto.
+	* sort-cases.c: Ditto.
+	* t-test.c: Ditto.
+
+	* sort-criteria.c: Rewrite to output a struct case_ordering.
+	
+	* flip.c: Rewrite to be a casereader.
+
+	* rank.q: Simplify greatly since casereaders are much more
+	flexible than what we had before.
+	
 2007-05-15  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (run_regression): Tell the user when the data

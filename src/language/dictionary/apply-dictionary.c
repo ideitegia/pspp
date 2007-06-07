@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <data/any-reader.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/missing-values.h>
@@ -42,7 +43,7 @@ int
 cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 {
   struct file_handle *handle;
-  struct any_reader *reader;
+  struct casereader *reader;
   struct dictionary *dict;
 
   int n_matched = 0;
@@ -58,7 +59,7 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
   reader = any_reader_open (handle, &dict);
   if (dict == NULL)
     return CMD_FAILURE;
-  any_reader_close (reader);
+  casereader_destroy (reader);
 
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
@@ -136,7 +137,5 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
         dict_set_weight (dataset_dict (ds), new_weight);
     }
   
-  any_reader_close (reader);
-
   return lex_end_of_command (lexer);
 }

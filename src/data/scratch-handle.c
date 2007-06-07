@@ -18,9 +18,9 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include "scratch-handle.h"
-#include "casefile.h"
-#include "dictionary.h"
+#include <data/casereader.h>
+#include <data/scratch-handle.h>
+#include <data/dictionary.h>
 
 /* Destroys HANDLE. */
 void
@@ -29,7 +29,7 @@ scratch_handle_destroy (struct scratch_handle *handle)
   if (handle != NULL) 
     {
       dict_destroy (handle->dictionary);
-      casefile_destroy (handle->casefile);
+      casereader_destroy (handle->casereader);
       free (handle);
     }
 }

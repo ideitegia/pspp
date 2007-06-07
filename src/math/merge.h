@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2007 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -16,17 +16,17 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#ifndef STORAGE_STREAM_H
-#define STORAGE_STREAM_H 1
+#ifndef MATH_MERGE_H
+#define MATH_MERGE_H 1
 
-struct case_source;
-struct casefile;
+#include <stdbool.h>
 
-extern const struct case_sink_class storage_sink_class;
-extern const struct case_source_class storage_source_class;
+struct case_ordering;
+struct casereader;
 
-struct casefile *storage_source_get_casefile (struct case_source *);
-struct casefile *storage_source_decapsulate (struct case_source *);
-struct case_source *storage_source_create (struct casefile *);
+struct merge *merge_create (const struct case_ordering *);
+void merge_destroy (struct merge *);
+void merge_append (struct merge *, struct casereader *);
+struct casereader *merge_make_reader (struct merge *);
 
-#endif /* storage-stream.h */
+#endif /* math/merge.h */

@@ -41,12 +41,8 @@ struct pfm_write_options
 struct file_handle;
 struct dictionary;
 struct ccase;
-struct pfm_writer *pfm_open_writer (struct file_handle *, struct dictionary *,
+struct casewriter *pfm_open_writer (struct file_handle *, struct dictionary *,
                                     struct pfm_write_options);
 struct pfm_write_options pfm_writer_default_options (void);
-
-int pfm_write_case (struct pfm_writer *, const struct ccase *);
-bool pfm_write_error (const struct pfm_writer *);
-bool pfm_close_writer (struct pfm_writer *);
 
 #endif /* por-file-writer.h */

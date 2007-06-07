@@ -1,5 +1,46 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	Actually implement the new procedure code and adapt all of its
+	clients to match.  Also adapt all of the other case sources and
+	sinks in the tree and their clients to use the
+	casereader/casewriter infrastructure.
+
+	* automake.mk: Add and remove files.
+
+	* any-reader.c: Change into a casereader.
+	* por-file-reader.c: Ditto.
+	* scratch-reader.c: Ditto.
+	* sys-file-reader.c: Ditto.
+
+	* any-writer.c: Change into a casewriter.
+	* por-file-writer.c: Ditto.
+	* scratch-writer.c: Ditto.
+	* sys-file-writer.c: Ditto.
+
+	* procedure.c: Change to use casereader, casewriter, caseinit, and
+	other new infrastructure.
+
+	* scratch-handle.c: Adapt to new infrastructure.
+
+	* case-sink.c: Removed, now dead code.
+	* case-sink.h: Ditto.
+	* case-source.c: Ditto.
+	* case-source.h: Ditto.
+	* casefile-factory.c: Ditto.
+	* casefile-private.h: Ditto.
+	* casefile.c: Ditto.
+	* casefile.h: Ditto.
+	* casefilter.c: Ditto.
+	* casefilter.h: Ditto.
+	* fastfile.c: Ditto.
+	* fastfile.h: Ditto.
+	* fastfile-factory.c: Ditto.
+	* fastfile-factory.h: Ditto.
+	* storage-stream.c: Ditto.
+	* storage-stream.h: Ditto.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Add datasheet code.
 
 	* automake.mk: Add new files.

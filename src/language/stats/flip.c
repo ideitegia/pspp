@@ -27,9 +27,9 @@
 #include <sys/types.h>
 #endif
 
-#include <data/case-sink.h>
-#include <data/case-source.h>
 #include <data/case.h>
+#include <data/casereader.h>
+#include <data/casereader-provider.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/settings.h>
@@ -41,7 +41,6 @@
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
-#include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -70,8 +69,6 @@ struct flip_pgm
     int case_cnt;               /* Pre-flip case count. */
     size_t case_size;           /* Post-flip bytes per case. */
 
-    union value *output_buf;            /* Case output buffer. */
-
     struct variable *new_names; /* Variable containing new variable names. */
     struct varname *new_names_head; /* First new variable. */
     struct varname *new_names_tail; /* Last new variable. */
@@ -82,22 +79,23 @@ struct flip_pgm
     bool error;                 /* Error reading temporary file? */
   };
 
-static void destroy_flip_pgm (struct flip_pgm *);
-static struct case_sink *flip_sink_create (struct dataset *ds, struct flip_pgm *);
-static struct case_source *flip_source_create (struct flip_pgm *);
-static bool flip_file (struct flip_pgm *);
-static int build_dictionary (struct dictionary *, struct flip_pgm *);
+static const struct casereader_class flip_casereader_class;
 
-static const struct case_source_class flip_source_class;
-static const struct case_sink_class flip_sink_class;
+static void destroy_flip_pgm (struct flip_pgm *);
+static bool flip_file (struct flip_pgm *);
+static bool build_dictionary (struct dictionary *, struct flip_pgm *);
+static bool write_flip_case (struct flip_pgm *, const struct ccase *);
 
 /* Parses and executes FLIP. */
 int
 cmd_flip (struct lexer *lexer, struct dataset *ds)
 {
-  struct flip_pgm *flip;
-  struct case_sink *sink;
   struct dictionary *dict = dataset_dict (ds);
+  struct flip_pgm *flip;
+  struct casereader *input, *reader;
+  union value *output_buf;
+  struct ccase c;
+  size_t i;
   bool ok;
 
   if (proc_make_temporary_transformations_permanent (ds))
@@ -144,8 +142,6 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
 
   if (flip->new_names)
     {
-      size_t i;
-      
       for (i = 0; i < flip->var_cnt; i++)
 	if (flip->var[i] == flip->new_names)
 	  {
@@ -155,20 +151,46 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
 	  }
     }
 
+  output_buf = pool_nalloc (flip->pool,
+                                  flip->var_cnt, sizeof *output_buf);
+
+  flip->file = pool_tmpfile (flip->pool);
+  if (flip->file == NULL)
+    {
+      msg (SE, _("Could not create temporary file for FLIP."));
+      goto error;
+    }
+
+  /* Write variable names as first case. */
+  for (i = 0; i < flip->var_cnt; i++) 
+    buf_copy_str_rpad (output_buf[i].s, MAX_SHORT_STRING,
+                       var_get_name (flip->var[i]));
+  if (fwrite (output_buf, sizeof *output_buf,
+              flip->var_cnt, flip->file) != (size_t) flip->var_cnt) 
+    {
+      msg (SE, _("Error writing FLIP file: %s."), strerror (errno));
+      goto error;
+    }
+
+  flip->case_cnt = 1;
+
   /* Read the active file into a flip_sink. */
-  flip->case_cnt = 0;
   proc_make_temporary_transformations_permanent (ds);
-  sink = flip_sink_create (ds, flip);
-  if (sink == NULL)
-    goto error;
-  proc_set_sink (ds, sink);
-  flip->new_names_tail = NULL;
-  ok = procedure (ds,NULL, NULL);
+  proc_discard_output (ds);
+
+  input = proc_open (ds);
+  while (casereader_read (input, &c)) 
+    {
+      write_flip_case (flip, &c);
+      case_destroy (&c);
+    }
+  ok = casereader_destroy (input);
+  ok = proc_commit (ds) && ok;
 
   /* Flip the data we read. */
-  if (!flip_file (flip)) 
+  if (!ok || !flip_file (flip)) 
     {
-      discard_variables (ds);
+      proc_discard_active_file (ds);
       goto error;
     }
 
@@ -176,15 +198,17 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   dict_clear (dict);
   if (!build_dictionary (dict, flip))
     {
-      discard_variables (ds);
+      proc_discard_active_file (ds);
       goto error;
     }
   flip->case_size = dict_get_case_size (dict);
 
   /* Set up flipped data for reading. */
-  proc_set_source (ds, flip_source_create (flip));
-
-  return ok ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
+  reader = casereader_create_sequential (NULL, dict_get_next_value_idx (dict),
+                                         flip->case_cnt,
+                                         &flip_casereader_class, flip);
+  proc_set_active_file_data (ds, reader);
+  return lex_end_of_command (lexer);
 
  error:
   destroy_flip_pgm (flip);
@@ -251,7 +275,7 @@ make_new_var (struct dictionary *dict, char name[])
 }
 
 /* Make a new dictionary for all the new variable names. */
-static int
+static bool
 build_dictionary (struct dictionary *dict, struct flip_pgm *flip)
 {
   dict_create_var_assert (dict, "CASE_LBL", 8);
@@ -263,7 +287,7 @@ build_dictionary (struct dictionary *dict, struct flip_pgm *flip)
       if (flip->case_cnt > 99999)
 	{
 	  msg (SE, _("Cannot create more than 99999 variable names."));
-	  return 0;
+	  return false;
 	}
       
       for (i = 0; i < flip->case_cnt; i++)
@@ -281,54 +305,17 @@ build_dictionary (struct dictionary *dict, struct flip_pgm *flip)
 
       for (v = flip->new_names_head; v; v = v->next)
         if (!make_new_var (dict, v->name))
-          return 0;
+          return false;
     }
   
-  return 1;
+  return true;
 }
      
-/* Creates a flip sink based on FLIP. */
-static struct case_sink *
-flip_sink_create (struct dataset *ds, struct flip_pgm *flip) 
-{
-  size_t i;
-
-  flip->output_buf = pool_nalloc (flip->pool,
-                                  flip->var_cnt, sizeof *flip->output_buf);
-
-  flip->file = pool_tmpfile (flip->pool);
-  if (flip->file == NULL)
-    {
-      msg (SE, _("Could not create temporary file for FLIP: %s."),
-           strerror (errno));
-      return NULL;
-    }
-
-  /* Write variable names as first case. */
-  for (i = 0; i < flip->var_cnt; i++) 
-    buf_copy_str_rpad (flip->output_buf[i].s, MAX_SHORT_STRING,
-                       var_get_name (flip->var[i]));
-  if (fwrite (flip->output_buf, sizeof *flip->output_buf,
-              flip->var_cnt, flip->file) != (size_t) flip->var_cnt) 
-    {
-      msg (SE, _("Error writing FLIP file: %s."), strerror (errno));
-      return NULL;
-    }
-
-  flip->case_cnt = 1;
-
-  return create_case_sink (&flip_sink_class,
-			   dataset_dict (ds),
-			   dataset_get_casefile_factory (ds),
-			   flip);
-}
-
 /* Writes case C to the FLIP sink.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-flip_sink_write (struct case_sink *sink, const struct ccase *c)
+write_flip_case (struct flip_pgm *flip, const struct ccase *c)
 {
-  struct flip_pgm *flip = sink->aux;
   size_t i;
   
   flip->case_cnt++;
@@ -377,14 +364,7 @@ flip_sink_write (struct case_sink *sink, const struct ccase *c)
         }
       else
         out = SYSMIS;
-      flip->output_buf[i].f = out;
-    }
-	  
-  if (fwrite (flip->output_buf, sizeof *flip->output_buf,
-              flip->var_cnt, flip->file) != (size_t) flip->var_cnt) 
-    {
-      msg (SE, _("Error writing FLIP file: %s."), strerror (errno));
-      return false; 
+      fwrite (&out, sizeof out, 1, flip->file);
     }
   return true;
 }
@@ -511,57 +491,39 @@ flip_file (struct flip_pgm *flip)
   return true;
 }
 
-/* FLIP sink class. */
-static const struct case_sink_class flip_sink_class = 
-  {
-    "FLIP",
-    NULL,
-    flip_sink_write,
-    NULL,
-    NULL,
-  };
-
-/* Creates and returns a FLIP source based on PGM,
-   which should have already been used as a sink. */
-static struct case_source *
-flip_source_create (struct flip_pgm *pgm)
-{
-  return create_case_source (&flip_source_class, pgm);
-}
-
 /* Reads one case into C.
    Returns true if successful, false at end of file or if an
    I/O error occurred. */
 static bool
-flip_source_read (struct case_source *source, struct ccase *c)
+flip_casereader_read (struct casereader *reader UNUSED, void *flip_,
+                      struct ccase *c)
 {
-  struct flip_pgm *flip = source->aux;
+  struct flip_pgm *flip = flip_;
   size_t i;
 
   if (flip->error || flip->cases_read >= flip->var_cnt)
     return false;
-  
-  if (flip->input_buf == NULL)
-    flip->input_buf = pool_nmalloc (flip->pool,
-                                    flip->case_cnt, sizeof *flip->input_buf);
 
-  if (fread (flip->input_buf, sizeof *flip->input_buf, flip->case_cnt,
-             flip->file) != flip->case_cnt) 
+  case_create (c, flip->case_cnt);
+  for (i = 0; i < flip->case_cnt; i++) 
     {
-      if (ferror (flip->file))
-        msg (SE, _("Error reading FLIP temporary file: %s."),
-             strerror (errno));
-      else if (feof (flip->file))
-        msg (SE, _("Unexpected end of file reading FLIP temporary file."));
-      else
-        NOT_REACHED ();
-      flip->error = true;
-      return false;
+      double in;
+      if (fread (&in, sizeof in, 1, flip->file) != 1)
+        {
+          case_destroy (c);
+          if (ferror (flip->file))
+            msg (SE, _("Error reading FLIP temporary file: %s."),
+                 strerror (errno));
+          else if (feof (flip->file))
+            msg (SE, _("Unexpected end of file reading FLIP temporary file."));
+          else
+            NOT_REACHED ();
+          flip->error = true;
+          return false;
+        }
+      case_data_rw_idx (c, i)->f = in;
     }
-
-  for (i = 0; i < flip->case_cnt; i++)
-    case_data_rw_idx (c, i)->f = flip->input_buf[i].f;
-
+  
   flip->cases_read++;
 
   return true;
@@ -570,19 +532,19 @@ flip_source_read (struct case_source *source, struct ccase *c)
 /* Destroys the source.
    Returns true if successful read, false if an I/O occurred
    during destruction or previously. */
-static bool
-flip_source_destroy (struct case_source *source)
+static void
+flip_casereader_destroy (struct casereader *reader UNUSED, void *flip_)
 {
-  struct flip_pgm *flip = source->aux;
-  bool ok = !flip->error;
+  struct flip_pgm *flip = flip_;
+  if (flip->error)
+    casereader_force_error (reader);
   destroy_flip_pgm (flip);
-  return ok;
 }
 
-static const struct case_source_class flip_source_class = 
+static const struct casereader_class flip_casereader_class = 
   {
-    "FLIP",
+    flip_casereader_read,
+    flip_casereader_destroy,
     NULL,
-    flip_source_read,
-    flip_source_destroy
+    NULL,
   };

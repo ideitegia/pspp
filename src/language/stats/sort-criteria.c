@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -17,72 +17,46 @@
    02110-1301, USA. */
 
 #include <config.h>
-#include <sys/types.h>
-#include <assert.h>
+
+#include <language/stats/sort-criteria.h>
+
 #include <stdlib.h>
-#include <limits.h>
-#include <libpspp/alloc.h>
-#include <language/command.h>
-#include <libpspp/message.h>
+
+#include <data/case-ordering.h>
+#include <data/dictionary.h>
+#include <data/variable.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <data/settings.h>
-#include <data/variable.h>
-#include "sort-criteria.h"
-#include <math/sort.h>
+#include <libpspp/message.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-static bool  is_terminator(int tok, const int *terminators);
-
 
 /* Parses a list of sort keys and returns a struct sort_criteria
    based on it.  Returns a null pointer on error.
    If SAW_DIRECTION is nonnull, sets *SAW_DIRECTION to true if at
    least one parenthesized sort direction was specified, false
-   otherwise. 
-   If TERMINATORS is non-null, then it must be a pointer to a 
-   null terminated list of tokens, in addition to the defaults,
-   which are to be considered terminators of the clause being parsed.
-   The default terminators are '/' and '.'
-   
-*/
-struct sort_criteria *
-sort_parse_criteria (struct lexer *lexer, const struct dictionary *dict,
-                     const struct variable ***vars, size_t *var_cnt,
-                     bool *saw_direction,
-		     const int *terminators
-		     )
+   otherwise. */
+struct case_ordering *
+parse_case_ordering (struct lexer *lexer, const struct dictionary *dict,
+                     bool *saw_direction)
 {
-  struct sort_criteria *criteria;
-  const struct variable **local_vars = NULL;
-  size_t local_var_cnt;
-
-  assert ((vars == NULL) == (var_cnt == NULL));
-  if (vars == NULL) 
-    {
-      vars = &local_vars;
-      var_cnt = &local_var_cnt;
-    }
-
-  criteria = xmalloc (sizeof *criteria);
-  criteria->crits = NULL;
-  criteria->crit_cnt = 0;
-
-  *vars = NULL;
-  *var_cnt = 0;
-  if (saw_direction != NULL)
+  struct case_ordering *ordering = case_ordering_create (dict);
+  struct variable **vars = NULL;
+  size_t var_cnt = 0;
+  
+ if (saw_direction != NULL)
     *saw_direction = false;
 
   do
     {
-      size_t prev_var_cnt = *var_cnt;
       enum sort_direction direction;
+      size_t i;
 
       /* Variables. */
-      if (!parse_variables_const (lexer, dict, vars, var_cnt,
-			    PV_NO_DUPLICATE | PV_APPEND | PV_NO_SCRATCH))
+      free (vars);
+      vars = NULL;
+      if (!parse_variables_const (lexer, dict, &vars, &var_cnt, PV_NO_SCRATCH))
         goto error;
 
       /* Sort direction. */
@@ -108,57 +82,19 @@ sort_parse_criteria (struct lexer *lexer, const struct dictionary *dict,
       else
         direction = SRT_ASCEND;
 
-      criteria->crits = xnrealloc (criteria->crits,
-                                   *var_cnt, sizeof *criteria->crits);
-      criteria->crit_cnt = *var_cnt;
-      for (; prev_var_cnt < criteria->crit_cnt; prev_var_cnt++) 
-        {
-          struct sort_criterion *c = &criteria->crits[prev_var_cnt];
-          c->fv = var_get_case_index ((*vars)[prev_var_cnt]);
-          c->width = var_get_width ((*vars)[prev_var_cnt]);
-          c->dir = direction;
-        }
+      for (i = 0; i < var_cnt; i++)
+        if (!case_ordering_add_var (ordering, vars[i], direction))
+          msg (SW, _("Variable %s specified twice in sort criteria."),
+               var_get_name (vars[i]));
     }
-  while (lex_token (lexer) != '.' && lex_token (lexer) != '/' && !is_terminator(lex_token (lexer), terminators));
+  while (lex_token (lexer) == T_ID
+         && dict_lookup_var (dict, lex_tokid (lexer)) != NULL);
 
-  free (local_vars);
-  return criteria;
+  free (vars);
+  return ordering;
 
  error:
-  free (local_vars);
-  sort_destroy_criteria (criteria);
+  free (vars);
+  case_ordering_destroy (ordering);
   return NULL;
 }
-
-/* Return TRUE if TOK is a member of the list of TERMINATORS.
-   FALSE otherwise */
-static bool 
-is_terminator(int tok, const int *terminators)
-{
-  if (terminators == NULL ) 
-    return false;
-
-  while ( *terminators) 
-    {
-      if (tok == *terminators++)
-	return true;
-    }
-
-  return false;
-}
-
-
-
-/* Destroys a SORT CASES program. */
-void
-sort_destroy_criteria (struct sort_criteria *criteria) 
-{
-  if (criteria != NULL) 
-    {
-      free (criteria->crits);
-      free (criteria);
-    }
-}
-
-
-

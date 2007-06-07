@@ -26,6 +26,7 @@
 #include <glib.h>
 
 #include <libpspp/str.h>
+#include <data/case.h>
 
 
 
@@ -55,7 +56,7 @@ struct _PsppireCaseFile
 {
   GObject             parent;
 
-  struct casefile *flexifile;
+  struct datasheet *datasheet;
 };
 
 
@@ -75,8 +76,9 @@ gboolean psppire_case_file_insert_case (PsppireCaseFile *cf, struct ccase *c, gi
 gint psppire_case_file_get_case_count (const PsppireCaseFile *cf);
 
 
-const union value * psppire_case_file_get_value (const PsppireCaseFile *cf,
-					      gint c, gint idx);
+union value * psppire_case_file_get_value (const PsppireCaseFile *cf,
+                                           casenumber, size_t idx,
+                                           union value *, int width);
 
 struct fmt_spec;
 
@@ -95,14 +97,14 @@ gboolean psppire_case_file_delete_cases (PsppireCaseFile *cf, gint n_rows,
 
 gboolean psppire_case_file_insert_values (PsppireCaseFile *cf, gint n_values, gint before);
 
-struct sort_criteria;
-void psppire_case_file_sort (PsppireCaseFile *cf, const struct sort_criteria *);
+struct case_ordering;
+void psppire_case_file_sort (PsppireCaseFile *cf, struct case_ordering *);
 
 gboolean psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
 				    struct ccase *c);
 
-void psppire_case_file_replace_flexifile (PsppireCaseFile *,
-					  struct flexifile *);
+void psppire_case_file_replace_datasheet (PsppireCaseFile *,
+                                          struct datasheet *);
 
 
 

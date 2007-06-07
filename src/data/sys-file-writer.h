@@ -34,12 +34,8 @@ struct sfm_write_options
 struct file_handle;
 struct dictionary;
 struct ccase;
-struct sfm_writer *sfm_open_writer (struct file_handle *, struct dictionary *,
+struct casewriter *sfm_open_writer (struct file_handle *, struct dictionary *,
                                     struct sfm_write_options);
 struct sfm_write_options sfm_writer_default_options (void);
-
-bool sfm_write_case (struct sfm_writer *, const struct ccase *);
-bool sfm_write_error (const struct sfm_writer *);
-bool sfm_close_writer (struct sfm_writer *);
 
 #endif /* sys-file-writer.h */

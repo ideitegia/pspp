@@ -23,9 +23,9 @@
 #include <float.h>
 #include <stdlib.h>
 
-#include <data/case-source.h>
 #include <data/case.h>
-#include <data/case-source.h>
+#include <data/caseinit.h>
+#include <data/casereader-provider.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/transformations.h>
@@ -68,12 +68,10 @@ struct input_program_pgm
     struct trns_chain *trns_chain;
     enum trns_result restart;
 
-    bool inited_case;           /* Did one-time case initialization? */
     size_t case_nr;             /* Incremented by END CASE transformation. */
 
-    enum value_init_type *init; /* How to initialize each `union value'. */
-    size_t init_cnt;            /* Number of elements in inp_init. */
-    size_t case_size;           /* Size of case in bytes. */
+    struct caseinit *init;
+    size_t value_cnt;
   };
 
 static void destroy_input_program (struct input_program_pgm *);
@@ -82,7 +80,7 @@ static trns_proc_func reread_trns_proc;
 static trns_proc_func end_file_trns_proc;
 static trns_free_func reread_trns_free;
 
-static const struct case_source_class input_program_source_class;
+static const struct casereader_class input_program_casereader_class;
 
 static bool inside_input_program;
 
@@ -105,10 +103,9 @@ int
 cmd_input_program (struct lexer *lexer, struct dataset *ds)
 {
   struct input_program_pgm *inp;
-  size_t i;
   bool saw_END_CASE = false;
 
-  discard_variables (ds);
+  proc_discard_active_file (ds);
   if (lex_token (lexer) != '.')
     return lex_end_of_command (lexer);
 
@@ -132,7 +129,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
           if (result == CMD_EOF)
             msg (SE, _("Unexpected end-of-file within INPUT PROGRAM."));
           inside_input_program = false;
-          discard_variables (ds);
+          proc_discard_active_file (ds);
           destroy_input_program (inp);
           return result;
         }
@@ -144,7 +141,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   if (dict_get_next_value_idx (dataset_dict (ds)) == 0) 
     {
       msg (SE, _("Input program did not create any variables."));
-      discard_variables (ds);
+      proc_discard_active_file (ds);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
@@ -153,33 +150,15 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   trns_chain_finalize (inp->trns_chain);
 
   inp->restart = TRNS_CONTINUE;
-  inp->inited_case = false;
-  inp->case_nr = 1;
 
   /* Figure out how to initialize each input case. */
-  inp->init_cnt = dict_get_next_value_idx (dataset_dict (ds));
-  inp->init = xnmalloc (inp->init_cnt, sizeof *inp->init);
-  for (i = 0; i < inp->init_cnt; i++)
-    inp->init[i] = -1;
-  for (i = 0; i < dict_get_var_cnt (dataset_dict (ds)); i++)
-    {
-      struct variable *var = dict_get_var (dataset_dict (ds), i);
-      size_t value_cnt = var_get_value_cnt (var);
-      enum value_init_type value_init;
-      size_t j;
-      
-      value_init = var_is_numeric (var) ? INP_NUMERIC : INP_STRING;
-      value_init |= var_get_leave (var) ? INP_INIT_ONCE : INP_REINIT;
-
-      for (j = 0; j < value_cnt; j++)
-        inp->init[j + var_get_case_index (var)] = value_init;
-    }
-  for (i = 0; i < inp->init_cnt; i++)
-    assert (inp->init[i] != -1);
-  inp->case_size = dict_get_case_size (dataset_dict (ds));
-
-  proc_set_source (ds, 
-                   create_case_source (&input_program_source_class, inp));
+  inp->init = caseinit_create ();
+  caseinit_mark_for_init (inp->init, dataset_dict (ds));
+  inp->value_cnt = dict_get_next_value_idx (dataset_dict (ds));
+  
+  proc_set_active_file_data (
+    ds, casereader_create_sequential (NULL, inp->value_cnt, CASENUMBER_MAX,
+                                      &input_program_casereader_class, inp));
 
   return CMD_SUCCESS;
 }
@@ -189,56 +168,6 @@ cmd_end_input_program (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
   return CMD_END_INPUT_PROGRAM; 
-}
-
-/* Initializes case C.  Called before the first case is read. */
-static void
-init_case (const struct input_program_pgm *inp, struct ccase *c)
-{
-  size_t i;
-
-  for (i = 0; i < inp->init_cnt; i++)
-    switch (inp->init[i]) 
-      {
-      case INP_NUMERIC | INP_INIT_ONCE:
-        case_data_rw_idx (c, i)->f = 0.0;
-        break;
-      case INP_NUMERIC | INP_REINIT:
-        case_data_rw_idx (c, i)->f = SYSMIS;
-        break;
-      case INP_STRING | INP_INIT_ONCE:
-      case INP_STRING | INP_REINIT:
-        memset (case_data_rw_idx (c, i)->s, ' ',
-                sizeof case_data_rw_idx (c, i)->s);
-        break;
-      default:
-        NOT_REACHED ();
-      }
-}
-
-/* Clears case C.  Called between reading successive records. */
-static void
-clear_case (const struct input_program_pgm *inp, struct ccase *c)
-{
-  size_t i;
-
-  for (i = 0; i < inp->init_cnt; i++)
-    switch (inp->init[i]) 
-      {
-      case INP_NUMERIC | INP_INIT_ONCE:
-        break;
-      case INP_NUMERIC | INP_REINIT:
-        case_data_rw_idx (c, i)->f = SYSMIS;
-        break;
-      case INP_STRING | INP_INIT_ONCE:
-        break;
-      case INP_STRING | INP_REINIT:
-        memset (case_data_rw_idx (c, i)->s, ' ',
-                sizeof case_data_rw_idx (c, i)->s);
-        break;
-      default:
-        NOT_REACHED ();
-      }
 }
 
 /* Returns true if STATE is valid given the transformations that
@@ -256,26 +185,28 @@ is_valid_state (enum trns_result state)
    Returns true if successful, false at end of file or if an
    I/O error occurred. */
 static bool
-input_program_source_read (struct case_source *source, struct ccase *c)
+input_program_casereader_read (struct casereader *reader UNUSED, void *inp_,
+                               struct ccase *c)
 {
-  struct input_program_pgm *inp = source->aux;
+  struct input_program_pgm *inp = inp_;
 
-  if (!inp->inited_case)
-    {
-      init_case (inp, c);
-      inp->inited_case = true;
-    }
+  case_create (c, inp->value_cnt);
 
   do
     {
       assert (is_valid_state (inp->restart));
-      if (inp->restart == TRNS_ERROR || inp->restart == TRNS_END_FILE)
-        return false;
+      if (inp->restart == TRNS_ERROR || inp->restart == TRNS_END_FILE) 
+        {
+          case_destroy (c);
+          return false; 
+        }
 
-      clear_case (inp, c);
+      caseinit_init_reinit_vars (inp->init, c);
+      caseinit_init_left_vars (inp->init, c);
       inp->restart = trns_chain_execute (inp->trns_chain, inp->restart,
                                          c, &inp->case_nr);
       assert (is_valid_state (inp->restart));
+      caseinit_update_left_vars (inp->init, c);
     }
   while (inp->restart < 0);
 
@@ -288,29 +219,27 @@ destroy_input_program (struct input_program_pgm *pgm)
   if (pgm != NULL) 
     {
       trns_chain_destroy (pgm->trns_chain);
-      free (pgm->init);
+      caseinit_destroy (pgm->init);
       free (pgm);
     }
 }
 
-/* Destroys the source.
-   Returns true if successful read, false if an I/O occurred
-   during destruction or previously. */
-static bool
-input_program_source_destroy (struct case_source *source)
+/* Destroys the casereader. */
+static void
+input_program_casereader_destroy (struct casereader *reader UNUSED, void *inp_)
 {
-  struct input_program_pgm *inp = source->aux;
-  bool ok = inp->restart != TRNS_ERROR;
+  struct input_program_pgm *inp = inp_;
+  if (inp->restart == TRNS_ERROR)
+    casereader_force_error (reader);
   destroy_input_program (inp);
-  return ok;
 }
 
-static const struct case_source_class input_program_source_class =
+static const struct casereader_class input_program_casereader_class =
   {
-    "INPUT PROGRAM",
+    input_program_casereader_read,
+    input_program_casereader_destroy,
     NULL,
-    input_program_source_read,
-    input_program_source_destroy,
+    NULL,
   };
 
 int
@@ -322,7 +251,7 @@ cmd_end_case (struct lexer *lexer, struct dataset *ds UNUSED)
   return lex_end_of_command (lexer);
 }
 
-/* Sends the current case as the source's output. */
+/* Outputs the current case */
 int
 end_case_trns_proc (void *inp_, struct ccase *c UNUSED,
                     casenumber case_nr UNUSED)

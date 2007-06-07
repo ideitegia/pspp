@@ -29,16 +29,15 @@
 #include "psppire.h"
 
 
+#include <data/casereader.h>
+#include <data/datasheet.h>
 #include <data/file-handle-def.h>
 #include <data/format.h>
-#include <data/storage-stream.h>
-#include <data/case-source.h>
 #include <data/settings.h>
 #include <data/file-name.h>
 #include <data/procedure.h>
 #include <libpspp/getl.h>
 #include <language/lexer/lexer.h>
-#include <ui/flexifile.h>
 #include <libpspp/version.h>
 
 #include <gtk/gtk.h>
@@ -50,7 +49,6 @@
 #include "data-sheet.h"
 #include "var-sheet.h"
 #include "message-dialog.h"
-#include "flexifile-factory.h"
 
 PsppireDataStore *the_data_store = 0;
 PsppireVarStore *the_var_store = 0;
@@ -68,28 +66,17 @@ replace_dictionary (struct dictionary *d)
 
 
 static void
-replace_flexifile (struct case_source *s)
+replace_casereader (struct casereader *s)
 {
-  if ( NULL == s )
-    psppire_case_file_replace_flexifile (the_data_store->case_file,
-					 (struct flexifile *) flexifile_create (0));
-  else
-    {
-      if ( ! case_source_is_class (s, &storage_source_class))
-	return ;
+  struct datasheet *datasheet = datasheet_create (s);
 
-      psppire_case_file_replace_flexifile (the_data_store->case_file,
-					   (struct flexifile *)
-					   storage_source_get_casefile (s));
-    }
+  psppire_case_file_replace_datasheet (the_data_store->case_file,
+                                       datasheet);
 }
-
-
 
 void
 initialize (void)
 {
-  struct casefile_factory *factory;
   PsppireDict *dictionary = 0;
 
   /* gtk_init messes with the locale.
@@ -105,14 +92,12 @@ initialize (void)
   fmt_init ();
   settings_init ();
   fh_init ();
-  factory = flexifile_factory_create ();
   the_source_stream =
     create_source_stream (
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
 
-  the_dataset = create_dataset (factory,
-				replace_flexifile,
+  the_dataset = create_dataset (replace_casereader,
 				replace_dictionary);
 
   message_dialog_init (the_source_stream);
@@ -127,12 +112,12 @@ initialize (void)
   /* Create the model for the var_sheet */
   the_var_store = psppire_var_store_new (dictionary);
 
-
   the_data_store = psppire_data_store_new (dictionary);
 
-  proc_set_source (the_dataset,
-		   storage_source_create (the_data_store->case_file->flexifile)
-		   );
+
+  proc_set_active_file_data (the_dataset,
+			     datasheet_make_reader (the_data_store->case_file->datasheet));
+
 
   create_icon_factory ();
 

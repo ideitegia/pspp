@@ -20,23 +20,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <config.h>
 
-#include <language/lexer/lexer.h>
-#include <language/lexer/variable-parser.h>
-#include <language/command.h>
-#include <data/procedure.h>
-#include <libpspp/pool.h>
-#include <libpspp/hash.h>
+#include <language/stats/npar.h>
 
-#include <data/casefilter.h>
-#include <data/case.h>
-#include <data/casefile.h>
-#include <math/moments.h>
-#include <data/dictionary.h>
-#include <language/stats/chisquare.h>
-#include <language/stats/binomial.h>
 #include <math.h>
 
-#include "npar.h"
+#include <data/case.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
+#include <data/dictionary.h>
+#include <data/procedure.h>
+#include <language/command.h>
+#include <language/lexer/lexer.h>
+#include <language/lexer/variable-parser.h>
+#include <language/stats/binomial.h>
+#include <language/stats/chisquare.h>
+#include <libpspp/hash.h>
+#include <libpspp/pool.h>
+#include <libpspp/taint.h>
+#include <math/moments.h>
+
 #include "npar-summary.h"
 
 #include "gettext.h"
@@ -75,7 +77,7 @@ struct npar_specs
 				       (those mentioned on ANY subcommand */
   int n_vars; /* Number of variables in vv */
 
-  struct casefilter *filter; /* The missing value filter */
+  enum mv_class filter;    /* Missing values to filter. */
 
   bool descriptives;       /* Descriptive statistics should be calculated */
   bool quartiles;          /* Quartiles should be calculated */
@@ -84,13 +86,12 @@ struct npar_specs
 void one_sample_insert_variables (const struct npar_test *test,
 				  struct const_hsh_table *variables);
 
-static bool 
-npar_execute(const struct ccase *first UNUSED,
-	     const struct casefile *cf, void *aux, 
+static void
+npar_execute(struct casereader *input,
+             const struct npar_specs *specs,
 	     const struct dataset *ds)
 {
   int t;
-  const struct npar_specs *specs = aux;
   struct descriptives *summary_descriptives = NULL;
 
   for ( t = 0 ; t < specs->n_tests; ++t ) 
@@ -101,7 +102,7 @@ npar_execute(const struct ccase *first UNUSED,
 	  msg (SW, _("NPAR subcommand not currently implemented."));
 	  continue;
 	}
-      test->execute (ds, cf, specs->filter, test);
+      test->execute (ds, casereader_clone (input), specs->filter, test);
     }
 
   if ( specs->descriptives )
@@ -109,20 +110,20 @@ npar_execute(const struct ccase *first UNUSED,
       summary_descriptives = xnmalloc (sizeof (*summary_descriptives), 
 				       specs->n_vars);
 
-      npar_summary_calc_descriptives (summary_descriptives, cf, 
-				      specs->filter,
+      npar_summary_calc_descriptives (summary_descriptives,
+                                      casereader_clone (input), 
 				      dataset_dict (ds),
-				      specs->vv, specs->n_vars);
+				      specs->vv, specs->n_vars,
+                                      specs->filter);
     }
 
-  if ( specs->descriptives || specs->quartiles ) 
+  if ( (specs->descriptives || specs->quartiles)
+       && !taint_has_tainted_successor (casereader_get_taint (input)) ) 
     do_summary_box (summary_descriptives, specs->vv, specs->n_vars );
 
   free (summary_descriptives);
-  
-  return true;
+  casereader_destroy (input);
 }
-
 
 int
 cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
@@ -131,6 +132,9 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   int i;
   struct npar_specs npar_specs = {0, 0, 0, 0, 0, 0, 0, 0};
   struct const_hsh_table *var_hash;
+  struct casegrouper *grouper;
+  struct casereader *input, *group;
+  
   npar_specs.pool = pool_create ();
 
   var_hash = const_hsh_create_pool (npar_specs.pool, 0, 
@@ -179,17 +183,20 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  npar_specs.filter = 
-    casefilter_create (cmd.incl == NPAR_EXCLUDE ? MV_ANY : MV_SYSTEM, 0, 0);
+  npar_specs.filter = cmd.incl == NPAR_EXCLUDE ? MV_ANY : MV_SYSTEM;
 
-  if ( cmd.miss == NPAR_LISTWISE ) 
-    casefilter_add_variables (npar_specs.filter, 
-			      npar_specs.vv, 
-			      npar_specs.n_vars);
+  input = proc_open (ds);
+  if ( cmd.miss == NPAR_LISTWISE )
+    input = casereader_create_filter_missing (input,
+                                              (struct variable **) npar_specs.vv,
+                                              npar_specs.n_vars,
+                                              npar_specs.filter, NULL);
 
-  ok = multipass_procedure_with_splits (ds, npar_execute, &npar_specs);
-
-  casefilter_destroy (npar_specs.filter);
+  grouper = casegrouper_create_splits (input, dataset_dict (ds));
+  while (casegrouper_get_next_group (grouper, &group))
+    npar_execute (group, &npar_specs, ds);
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
 
   const_hsh_destroy (var_hash);
 

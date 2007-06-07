@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include <data/case.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/transformations.h>
@@ -103,7 +104,8 @@ int
 cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 {
   struct autorecode_pgm arc;
-  struct ccase *c;
+  struct casereader *input;
+  struct ccase c;
   size_t dst_cnt;
   size_t i;
   bool ok;
@@ -188,16 +190,16 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
                                       hash_numeric_value, NULL, NULL);
    }
 
-  proc_open (ds);
-  while (proc_read (ds, &c))
+  input = proc_open (ds);
+  for (; casereader_read (input, &c); case_destroy (&c))
     for (i = 0; i < arc.var_cnt; i++)
       {
         union arc_value v, *vp, **vpp;
 
         if (var_is_numeric (arc.src_vars[i]))
-          v.f = case_num (c, arc.src_vars[i]);
+          v.f = case_num (&c, arc.src_vars[i]);
         else
-          v.c = (char *) case_str (c, arc.src_vars[i]);
+          v.c = (char *) case_str (&c, arc.src_vars[i]);
 
         vpp = (union arc_value **) hsh_probe (arc.src_values[i], &v);
         if (*vpp == NULL)
@@ -211,7 +213,8 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
             *vpp = vp;
           }
       }
-  ok = proc_close (ds);
+  ok = casereader_destroy (input);
+  ok = proc_commit (ds) && ok;
 
   for (i = 0; i < arc.var_cnt; i++)
     arc.dst_vars[i] = dict_create_var_assert (dataset_dict (ds),

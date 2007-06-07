@@ -25,12 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 
 #include <data/case.h>
-#include <data/casefile.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
-#include <data/casefilter.h>
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
@@ -39,9 +39,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <libpspp/taint.h>
 #include <math/group-proc.h>
 #include <math/group.h>
 #include <math/levene.h>
@@ -65,9 +65,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 /* (declarations) */
 /* (functions) */
 
-static bool bad_weight_warn = true;
-
-
 static struct cmd_oneway cmd;
 
 /* The independent variable */
@@ -89,9 +86,8 @@ static struct hsh_table *global_group_hash ;
 static int ostensible_number_of_groups = -1;
 
 
-static bool run_oneway(const struct ccase *first,
-                       const struct casefile *cf, 
-		       void *_mode, const struct dataset *);
+static void run_oneway (struct cmd_oneway *, struct casereader *, 
+                        const struct dataset *);
 
 
 /* Routines to show the output tables */
@@ -113,6 +109,8 @@ void output_oneway(void);
 int
 cmd_oneway (struct lexer *lexer, struct dataset *ds)
 {
+  struct casegrouper *grouper;
+  struct casereader *group;
   int i;
   bool ok;
 
@@ -138,7 +136,12 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  ok = multipass_procedure_with_splits (ds, run_oneway, &cmd);
+  /* Data pass.  FIXME: error handling. */
+  grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
+  while (casegrouper_get_next_group (grouper, &group)) 
+    run_oneway (&cmd, group, ds);
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
 
   free (vars);
   free_oneway (&cmd);
@@ -887,17 +890,23 @@ free_value (void *value_, const void *aux UNUSED)
   free (value);
 }
 
-static bool
-run_oneway(const struct ccase *first, const struct casefile *cf, 
-	   void *cmd_, const struct dataset *ds)
+static void
+run_oneway (struct cmd_oneway *cmd,
+            struct casereader *input, 
+            const struct dataset *ds)
 {
-  struct casereader *r;
+  struct taint *taint;
+  struct dictionary *dict = dataset_dict (ds);
+  enum mv_class exclude;
+  struct casereader *reader;
   struct ccase c;
-  struct casefilter *filter = NULL;
 
-  struct cmd_oneway *cmd = (struct cmd_oneway *) cmd_;
+  if (!casereader_peek (input, 0, &c))
+    return;
+  output_split_file_values (ds, &c);
+  case_destroy (&c);
 
-  output_split_file_values (ds, first);
+  taint = taint_clone (casereader_get_taint (input));
 
   global_group_hash = hsh_create(4, 
 				 (hsh_compare_func *) compare_values,
@@ -907,31 +916,25 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
 
   precalc(cmd);
 
-  filter = casefilter_create ( (cmd->incl != ONEWAY_INCLUDE
-                                ? MV_ANY : MV_SYSTEM), 
-			       vars, n_vars );
+  exclude = cmd->incl != ONEWAY_INCLUDE ? MV_ANY : MV_SYSTEM;
+  input = casereader_create_filter_missing (input, &indep_var, 1,
+                                            exclude, NULL);
+  if (cmd->miss == ONEWAY_LISTWISE)
+    input = casereader_create_filter_missing (input, vars, n_vars,
+                                              exclude, NULL);
+  input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
-  for(r = casefile_get_reader (cf, filter);
-      casereader_read (r, &c) ;
-      case_destroy (&c)) 
+  reader = casereader_clone (input);
+  for (; casereader_read (reader, &c); case_destroy (&c)) 
     {
       size_t i;
 
-      const double weight = 
-	dict_get_case_weight (dataset_dict (ds), &c, &bad_weight_warn);
-
-      const union value *indep_val;
-      void **p;
+      const double weight = dict_get_case_weight (dict, &c, NULL);
       
-      if ( casefilter_variable_missing (filter, &c, indep_var))
-	continue;
-
-      indep_val = case_data (&c, indep_var);
-      p = hsh_probe (global_group_hash, indep_val);
+      const union value *indep_val = case_data (&c, indep_var);
+      void **p = hsh_probe (global_group_hash, indep_val);
       if (*p == NULL)
         *p = value_dup (indep_val, var_get_width (indep_var));
-	  
-      hsh_insert ( global_group_hash, (void *) indep_val );
 
       for ( i = 0 ; i < n_vars ; ++i ) 
 	{
@@ -960,7 +963,7 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
 	      hsh_insert ( group_hash, (void *) gs );
 	    }
 
-	  if (! casefilter_variable_missing (filter, &c, v))
+	  if (!var_is_value_missing (v, val, exclude))
 	    {
 	      struct group_statistics *totals = &gp->ugs;
 
@@ -989,24 +992,21 @@ run_oneway(const struct ccase *first, const struct casefile *cf,
 	}
   
     }
-
-  casereader_destroy (r);
+  casereader_destroy (reader);
 
   postcalc(cmd);
 
   
   if ( stat_tables & STAT_HOMO ) 
-    levene (dataset_dict (ds), cf, indep_var, n_vars, vars, 
-	    filter);
+    levene (dict, casereader_clone (input), indep_var, n_vars, vars, exclude);
 
-  casefilter_destroy (filter);
+  casereader_destroy (input);
 
   ostensible_number_of_groups = hsh_count (global_group_hash);
 
-
-  output_oneway();
-
-  return true;
+  if (!taint_has_tainted_successor (taint))
+    output_oneway();
+  taint_destroy (taint);
 }
 
 

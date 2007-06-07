@@ -30,13 +30,15 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "case.h"
-#include "dictionary.h"
-#include "file-handle-def.h"
-#include "format.h"
-#include "missing-values.h"
-#include "value-labels.h"
-#include "variable.h"
+#include <data/case.h>
+#include <data/casewriter-provider.h>
+#include <data/casewriter.h>
+#include <data/dictionary.h>
+#include <data/file-handle-def.h>
+#include <data/format.h>
+#include <data/missing-values.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
 
 #include <libpspp/alloc.h>
 #include <libpspp/hash.h>
@@ -70,6 +72,9 @@ struct pfm_var
     int fv;                     /* Starting case index. */
   };
 
+static struct casewriter_class por_file_casewriter_class;
+
+static bool close_writer (struct pfm_writer *);
 static void buf_write (struct pfm_writer *, const void *, size_t);
 static void write_header (struct pfm_writer *);
 static void write_version_data (struct pfm_writer *);
@@ -94,7 +99,7 @@ pfm_writer_default_options (void)
 /* Writes the dictionary DICT to portable file HANDLE according
    to the given OPTS.  Returns nonzero only if successful.  DICT
    will not be modified, except to assign short names. */
-struct pfm_writer *
+struct casewriter *
 pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
                  struct pfm_write_options opts)
 {
@@ -153,12 +158,12 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   write_variables (w, dict);
   write_value_labels (w, dict);
   buf_write (w, "F", 1);
-  if (pfm_write_error (w))
+  if (ferror (w->file))
     goto error;
-  return w;
+  return casewriter_create (&por_file_casewriter_class, w);
 
  error:
-  pfm_close_writer (w);
+  close_writer (w);
   return NULL;
 
  open_error:
@@ -356,6 +361,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
           write_value (w, &value, v);
         }
 
+      /* Write variable label. */
       if (var_get_label (v) != NULL)
         { 
           buf_write (w, "C", 1);
@@ -394,41 +400,47 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
     }
 }
 
-/* Writes case ELEM to the portable file represented by H. */
-int 
-pfm_write_case (struct pfm_writer *w, const struct ccase *c)
+/* Writes case C to the portable file represented by H. */
+static void 
+por_file_casewriter_write (struct casewriter *writer, void *w_,
+                           struct ccase *c)
 {
+  struct pfm_writer *w = w_;
   int i;
 
-  if (ferror (w->file))
-    return 0;
-  
-  for (i = 0; i < w->var_cnt; i++)
+  if (!ferror (w->file)) 
     {
-      struct pfm_var *v = &w->vars[i];
+      for (i = 0; i < w->var_cnt; i++)
+        {
+          struct pfm_var *v = &w->vars[i];
       
-      if (v->width == 0)
-        write_float (w, case_num_idx (c, v->fv));
-      else
-	{
-	  write_int (w, v->width);
-          buf_write (w, case_str_idx (c, v->fv), v->width);
-	}
+          if (v->width == 0)
+            write_float (w, case_num_idx (c, v->fv));
+          else
+            {
+              write_int (w, v->width);
+              buf_write (w, case_str_idx (c, v->fv), v->width);
+            }
+        } 
     }
-
-  return !pfm_write_error (w);
+  else
+    casewriter_force_error (writer);
+  
+  case_destroy (c);
 }
 
-bool
-pfm_write_error (const struct pfm_writer *w) 
+static void
+por_file_casewriter_destroy (struct casewriter *writer, void *w_) 
 {
-  return ferror (w->file);
+  struct pfm_writer *w = w_;
+  if (!close_writer (w))
+    casewriter_force_error (writer);
 }
 
 /* Closes a portable file after we're done with it.
    Returns true if successful, false if an I/O error occurred. */
-bool
-pfm_close_writer (struct pfm_writer *w)
+static bool
+close_writer (struct pfm_writer *w)
 {
   bool ok;
 
@@ -442,7 +454,7 @@ pfm_close_writer (struct pfm_writer *w)
       memset (buf, 'Z', sizeof buf);
       buf_write (w, buf, w->lc >= 80 ? 80 : 80 - w->lc);
 
-      ok = !pfm_write_error (w);
+      ok = !ferror (w->file);
       if (fclose (w->file) == EOF) 
         ok = false; 
 
@@ -844,3 +856,10 @@ format_trig_double (long double value, int base_10_precision, char output[])
   strcpy (output, "*.");
   return;
 }
+
+static struct casewriter_class por_file_casewriter_class = 
+  {
+    por_file_casewriter_write,
+    por_file_casewriter_destroy,
+    NULL,
+  };

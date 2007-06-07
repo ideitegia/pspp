@@ -42,12 +42,9 @@ struct sfm_read_info
 struct dictionary;
 struct file_handle;
 struct ccase;
-struct sfm_reader *sfm_open_reader (struct file_handle *,
+struct casereader *sfm_open_reader (struct file_handle *,
                                     struct dictionary **,
                                     struct sfm_read_info *);
-int sfm_read_case (struct sfm_reader *, struct ccase *);
-bool sfm_read_error (const struct sfm_reader *);
-void sfm_close_reader (struct sfm_reader *);
 bool sfm_detect (FILE *);
 
 #endif /* sys-file-reader.h */

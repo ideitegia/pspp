@@ -21,6 +21,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/format.h>
@@ -87,7 +88,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   struct file_handle *h;
   struct dictionary *d;
   struct tab_table *t;
-  struct sfm_reader *reader;
+  struct casereader *reader;
   struct sfm_read_info info;
   int r, nr;
   int i;
@@ -102,7 +103,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   reader = sfm_open_reader (h, &d, &info);
   if (!reader)
     return CMD_FAILURE;
-  sfm_close_reader (reader);
+  casereader_destroy (reader);
 
   t = tab_create (2, 10, 0);
   tab_vline (t, TAL_GAP, 1, 0, 8);

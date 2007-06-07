@@ -29,6 +29,8 @@
 #include <gsl/gsl_histogram.h>
 
 #include <data/case.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/format.h>
 #include <data/procedure.h>
@@ -44,7 +46,6 @@
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/magic.h>
-#include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -271,9 +272,9 @@ static void determine_charts (void);
 
 static void calc_stats (const struct variable *v, double d[frq_n_stats]);
 
-static void precalc (const struct ccase *, void *, const struct dataset *);
-static bool calc (const struct ccase *, void *, const struct dataset *);
-static bool postcalc (void *, const struct dataset *);
+static void precalc (struct casereader *, struct dataset *);
+static void calc (const struct ccase *, const struct dataset *);
+static void postcalc (void);
 
 static void postprocess_freq_tab (const struct variable *);
 static void dump_full (const struct variable *);
@@ -318,8 +319,10 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 static int
 internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 {
-  int i;
+  struct casegrouper *grouper;
+  struct casereader *input, *group;
   bool ok;
+  int i;
 
   n_percentiles = 0;
   percentiles = NULL;
@@ -383,7 +386,21 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   
 
   /* Do it! */
-  ok = procedure_with_splits (ds, precalc, calc, postcalc, NULL);
+  input = casereader_create_filter_weight (proc_open (ds), dataset_dict (ds),
+                                           NULL, NULL);
+  grouper = casegrouper_create_splits (input, dataset_dict (ds));
+  for (; casegrouper_get_next_group (grouper, &group);
+       casereader_destroy (group)) 
+    {
+      struct ccase c;
+      
+      precalc (group, ds);
+      for (; casereader_read (group, &c); case_destroy (&c)) 
+        calc (&c, ds);
+      postcalc ();
+    }
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
 
   free_frequencies(&cmd);
 
@@ -496,14 +513,11 @@ determine_charts (void)
 }
 
 /* Add data from case C to the frequency table. */
-static bool
-calc (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
+static void
+calc (const struct ccase *c, const struct dataset *ds)
 {
-  double weight;
+  double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
   size_t i;
-  bool bad_warn = true;
-
-  weight = dict_get_case_weight (dataset_dict (ds), c, &bad_warn);
 
   for (i = 0; i < n_variables; i++)
     {
@@ -530,7 +544,8 @@ calc (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 		  struct freq *fp = pool_alloc (gen_pool, sizeof *fp);
                   fp->count = weight;
                   fp->value = pool_clone (gen_pool,
-                                      val, MAX (MAX_SHORT_STRING, vf->width));
+                                          val,
+                                          MAX (MAX_SHORT_STRING, vf->width));
                   *fpp = fp;
 		}
 	    }
@@ -552,17 +567,20 @@ calc (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
           NOT_REACHED ();
 	}
     }
-  return true;
 }
 
 /* Prepares each variable that is the target of FREQUENCIES by setting
    up its hash table. */
 static void
-precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
+precalc (struct casereader *input, struct dataset *ds)
 {
+  struct ccase c;
   size_t i;
 
-  output_split_file_values (ds, first);
+  if (!casereader_peek (input, 0, &c))
+    return;
+  output_split_file_values (ds, &c);
+  case_destroy (&c);
 
   pool_destroy (gen_pool);
   gen_pool = pool_create ();
@@ -590,8 +608,8 @@ precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
 
 /* Finishes up with the variables after frequencies have been
    calculated.  Displays statistics, percentiles, ... */
-static bool
-postcalc (void *aux UNUSED, const struct dataset *ds  UNUSED)
+static void
+postcalc (void)
 {
   size_t i;
 
@@ -666,8 +684,6 @@ postcalc (void *aux UNUSED, const struct dataset *ds  UNUSED)
       cleanup_freq_tab (v);
 
     }
-
-  return true;
 }
 
 /* Returns the comparison function that should be used for

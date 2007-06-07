@@ -23,18 +23,7 @@
 
 struct file_handle;
 struct dictionary;
-struct ccase;
-struct sfm_writer;
-struct pfm_writer;
-struct scratch_writer;
 
-struct any_writer *any_writer_open (struct file_handle *, struct dictionary *);
-struct any_writer *any_writer_from_sfm_writer (struct sfm_writer *);
-struct any_writer *any_writer_from_pfm_writer (struct pfm_writer *);
-struct any_writer *any_writer_from_scratch_writer (struct scratch_writer *);
-
-bool any_writer_write (struct any_writer *, const struct ccase *);
-bool any_writer_error (const struct any_writer *);
-bool any_writer_close (struct any_writer *);
+struct casewriter *any_writer_open (struct file_handle *, struct dictionary *);
 
 #endif /* any-writer.h */

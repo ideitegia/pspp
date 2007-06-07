@@ -29,7 +29,6 @@
 #include <data/data-in.h>
 #include <data/data-out.h>
 #include <data/dictionary.h>
-#include <data/storage-stream.h>
 #include <libpspp/message.h>
 
 #include <libpspp/i18n.h>
@@ -171,7 +170,7 @@ execute_syntax (struct getl_interface *sss)
 {
   struct lexer *lexer;
 
-  g_return_val_if_fail (proc_has_source (the_dataset), FALSE);
+  g_return_val_if_fail (proc_has_active_file (the_dataset), FALSE);
 
   lexer = lex_create (the_source_stream);
 
@@ -189,18 +188,10 @@ execute_syntax (struct getl_interface *sss)
 
   lex_destroy (lexer);
 
-  /* The GUI must *always* have a data source, even if it's an empty one.
-     Therefore, we find that there is none, (for example NEW FILE was the last
-     item in the syntax) then we create a new one. */
-  if ( ! proc_has_source (the_dataset))
-    proc_set_source (the_dataset,
-		     storage_source_create (the_data_store->case_file->flexifile)
-		     );
-
   /* GUI syntax needs this implicit EXECUTE command at the end of
      every script.  Otherwise commands like GET could leave the GUI without
      a casefile. */
-  return procedure (the_dataset, NULL, NULL);
+  return proc_execute (the_dataset);
 }
 
 

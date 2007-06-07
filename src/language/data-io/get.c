@@ -22,17 +22,14 @@
 
 #include <data/any-reader.h>
 #include <data/any-writer.h>
-#include <data/case-sink.h>
-#include <data/case-source.h>
 #include <data/case.h>
-#include <data/casefile.h>
-#include <data/fastfile.h>
+#include <data/casereader.h>
+#include <data/casewriter.h>
 #include <data/format.h>
 #include <data/dictionary.h>
 #include <data/por-file-writer.h>
 #include <data/procedure.h>
 #include <data/settings.h>
-#include <data/storage-stream.h>
 #include <data/sys-file-writer.h>
 #include <data/transformations.h>
 #include <data/value-labels.h>
@@ -46,9 +43,9 @@
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
-#include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <libpspp/taint.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -71,25 +68,18 @@ enum reader_command
     IMPORT_CMD
   };
 
-/* Case reader input program. */
-struct case_reader_pgm 
-  {
-    struct any_reader *reader;  /* File reader. */
-    struct case_map *map;       /* Map from file dict to active file dict. */
-    struct ccase bounce;        /* Bounce buffer. */
-  };
-
-static const struct case_source_class case_reader_source_class;
-
-static void case_reader_pgm_free (struct case_reader_pgm *);
+static void get_translate_case (const struct ccase *, struct ccase *,
+                                void *map_);
+static bool get_destroy_case_map (void *map_);
 
 /* Parses a GET or IMPORT command. */
 static int
 parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command type)
 {
-  struct case_reader_pgm *pgm = NULL;
+  struct casereader *reader = NULL;
   struct file_handle *fh = NULL;
   struct dictionary *dict = NULL;
+  struct case_map *map = NULL;
 
   for (;;)
     {
@@ -127,16 +117,9 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
       goto error;
     }
               
-  discard_variables (ds);
-
-  pgm = xmalloc (sizeof *pgm);
-  pgm->reader = any_reader_open (fh, &dict);
-  pgm->map = NULL;
-  case_nullify (&pgm->bounce);
-  if (pgm->reader == NULL)
+  reader = any_reader_open (fh, &dict);
+  if (reader == NULL)
     goto error;
-
-  case_create (&pgm->bounce, dict_get_next_value_idx (dict));
 
   start_case_map (dict);
 
@@ -147,71 +130,40 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
         goto error;
     }
 
-  pgm->map = finish_case_map (dict);
-
-  dataset_set_dict (ds, dict);
-
-  proc_set_source (ds,
-		   create_case_source (&case_reader_source_class, pgm));
+  map = finish_case_map (dict);
+  if (map != NULL)
+    reader = casereader_create_translator (reader,
+                                           dict_get_next_value_idx (dict),
+                                           get_translate_case,
+                                           get_destroy_case_map,
+                                           map);
+  
+  proc_set_active_file (ds, reader, dict);
 
   return CMD_SUCCESS;
 
  error:
-  case_reader_pgm_free (pgm);
+  casereader_destroy (reader);
   if (dict != NULL)
     dict_destroy (dict);
   return CMD_CASCADING_FAILURE;
 }
 
-/* Frees a struct case_reader_pgm. */
 static void
-case_reader_pgm_free (struct case_reader_pgm *pgm) 
+get_translate_case (const struct ccase *input, struct ccase *output,
+                    void *map_) 
 {
-  if (pgm != NULL) 
-    {
-      any_reader_close (pgm->reader);
-      destroy_case_map (pgm->map);
-      case_destroy (&pgm->bounce);
-      free (pgm);
-    }
+  struct case_map *map = map_;
+  map_case (map, input, output);
 }
 
-/* Reads one case into C.
-   Returns true if successful, false at end of file or if an
-   I/O error occurred. */
 static bool
-case_reader_source_read (struct case_source *source, struct ccase *c)
+get_destroy_case_map (void *map_) 
 {
-  struct case_reader_pgm *pgm = source->aux;
-  if (any_reader_read (pgm->reader, pgm->map == NULL ? c : &pgm->bounce)) 
-    {
-      if (pgm->map != NULL)
-        map_case (pgm->map, &pgm->bounce, c);
-      return true;
-    }
-  else  
-    return false;
+  struct case_map *map = map_;
+  destroy_case_map (map);
+  return true;
 }
-
-/* Destroys the source.
-   Returns true if successful read, false if an I/O occurred
-   during destruction or previously. */
-static bool
-case_reader_source_destroy (struct case_source *source)
-{
-  struct case_reader_pgm *pgm = source->aux;
-  bool ok = !any_reader_error (pgm->reader); 
-  case_reader_pgm_free (pgm);
-  return ok;
-}
-
-static const struct case_source_class case_reader_source_class =
-  {
-    "case reader",
-    NULL,
-    case_reader_source_read,
-    case_reader_source_destroy,
-  };
 
 /* GET. */
 int
@@ -243,30 +195,6 @@ enum command_type
     PROC_CMD            /* Procedure. */
   };
 
-/* File writer plus a case map. */
-struct case_writer
-  {
-    struct any_writer *writer;  /* File writer. */
-    struct case_map *map;       /* Map to output file dictionary
-                                   (null pointer for identity mapping). */
-    struct ccase bounce;        /* Bounce buffer for mapping (if needed). */
-  };
-
-/* Destroys AW. */
-static bool
-case_writer_destroy (struct case_writer *aw)
-{
-  bool ok = true;
-  if (aw != NULL) 
-    {
-      ok = any_writer_close (aw->writer);
-      destroy_case_map (aw->map);
-      case_destroy (&aw->bounce);
-      free (aw);
-    }
-  return ok;
-}
-
 /* Parses SAVE or XSAVE or EXPORT or XEXPORT command.
    WRITER_TYPE identifies the type of file to write,
    and COMMAND_TYPE identifies the type of command.
@@ -277,7 +205,7 @@ case_writer_destroy (struct case_writer *aw)
    included.
 
    On failure, returns a null pointer. */
-static struct case_writer *
+static struct casewriter *
 parse_write_command (struct lexer *lexer, struct dataset *ds, 
 		     enum writer_type writer_type,
                      enum command_type command_type,
@@ -286,7 +214,8 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   /* Common data. */
   struct file_handle *handle; /* Output file. */
   struct dictionary *dict;    /* Dictionary for output file. */
-  struct case_writer *aw;      /* Writer. */  
+  struct casewriter *writer;  /* Writer. */
+  struct case_map *map;       /* Map from input data to data for writer. */
 
   /* Common options. */
   bool print_map;             /* Print map?  TODO. */
@@ -303,10 +232,8 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
 
   handle = NULL;
   dict = dict_clone (dataset_dict (ds));
-  aw = xmalloc (sizeof *aw);
-  aw->writer = NULL;
-  aw->map = NULL;
-  case_nullify (&aw->bounce);
+  writer = NULL;
+  map = NULL;
   print_map = false;
   print_short_names = false;
   sysfile_opts = sfm_writer_default_options ();
@@ -412,48 +339,39 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
     }
 
   dict_compact_values (dict);
-  aw->map = finish_case_map (dict);
-  if (aw->map != NULL)
-    case_create (&aw->bounce, dict_get_next_value_idx (dict));
 
   if (fh_get_referent (handle) == FH_REF_FILE) 
     {
       switch (writer_type) 
         {
         case SYSFILE_WRITER:
-          aw->writer = any_writer_from_sfm_writer (
-            sfm_open_writer (handle, dict, sysfile_opts));
+          writer = sfm_open_writer (handle, dict, sysfile_opts);
           break;
         case PORFILE_WRITER:
-          aw->writer = any_writer_from_pfm_writer (
-            pfm_open_writer (handle, dict, porfile_opts));
+          writer = pfm_open_writer (handle, dict, porfile_opts);
           break;
         }
     }
   else
-    aw->writer = any_writer_open (handle, dict);
-  if (aw->writer == NULL)
+    writer = any_writer_open (handle, dict);
+  if (writer == NULL)
     goto error;
+
+  map = finish_case_map (dict);
+  if (map != NULL)
+    writer = casewriter_create_translator (writer,
+                                           get_translate_case,
+                                           get_destroy_case_map,
+                                           map);
   dict_destroy (dict);
   
-  return aw;
+  return writer;
 
  error:
-  case_writer_destroy (aw);
+  casewriter_destroy (writer);
   dict_destroy (dict);
+  destroy_case_map (map);
   return NULL;
-}
-
-/* Writes case C to writer AW. */
-static bool
-case_writer_write_case (struct case_writer *aw, const struct ccase *c) 
-{
-  if (aw->map != NULL) 
-    {
-      map_case (aw->map, c, &aw->bounce);
-      c = &aw->bounce; 
-    }
-  return any_writer_write (aw->writer, c);
 }
 
 /* SAVE and EXPORT. */
@@ -464,26 +382,24 @@ parse_output_proc (struct lexer *lexer, struct dataset *ds, enum writer_type wri
 {
   bool retain_unselected;
   struct variable *saved_filter_variable;
-  struct case_writer *aw;
-  struct ccase *c;
-  bool ok = true;
+  struct casewriter *output;
+  bool ok;
 
-  aw = parse_write_command (lexer, ds, writer_type, PROC_CMD, &retain_unselected);
-  if (aw == NULL) 
+  output = parse_write_command (lexer, ds, writer_type, PROC_CMD,
+                                &retain_unselected);
+  if (output == NULL) 
     return CMD_CASCADING_FAILURE;
 
   saved_filter_variable = dict_get_filter (dataset_dict (ds));
   if (retain_unselected) 
     dict_set_filter (dataset_dict (ds), NULL);
 
-  proc_open (ds);
-  while (ok && proc_read (ds, &c))
-    ok = case_writer_write_case (aw, c);
-  ok = proc_close (ds) && ok;
+  casereader_transfer (proc_open (ds), output);
+  ok = casewriter_destroy (output);
+  ok = proc_commit (ds) && ok;
 
   dict_set_filter (dataset_dict (ds), saved_filter_variable);
 
-  case_writer_destroy (aw);
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
 
@@ -504,7 +420,7 @@ cmd_export (struct lexer *lexer, struct dataset *ds)
 /* Transformation. */
 struct output_trns 
   {
-    struct case_writer *aw;      /* Writer. */
+    struct casewriter *writer;          /* Writer. */
   };
 
 static trns_proc_func output_trns_proc;
@@ -515,8 +431,8 @@ static int
 parse_output_trns (struct lexer *lexer, struct dataset *ds, enum writer_type writer_type) 
 {
   struct output_trns *t = xmalloc (sizeof *t);
-  t->aw = parse_write_command (lexer, ds, writer_type, XFORM_CMD, NULL);
-  if (t->aw == NULL) 
+  t->writer = parse_write_command (lexer, ds, writer_type, XFORM_CMD, NULL);
+  if (t->writer == NULL) 
     {
       free (t);
       return CMD_CASCADING_FAILURE;
@@ -531,7 +447,9 @@ static int
 output_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct output_trns *t = trns_;
-  case_writer_write_case (t->aw, c);
+  struct ccase tmp;
+  case_clone (&tmp, c);
+  casewriter_write (t->writer, &tmp);
   return TRNS_CONTINUE;
 }
 
@@ -541,13 +459,8 @@ static bool
 output_trns_free (void *trns_)
 {
   struct output_trns *t = trns_;
-  bool ok = true;
-
-  if (t != NULL)
-    {
-      ok = case_writer_destroy (t->aw);
-      free (t);
-    }
+  bool ok = casewriter_destroy (t->writer);
+  free (t);
   return ok;
 }
 
@@ -748,15 +661,15 @@ struct mtf_file
     int type;			/* One of MTF_*. */
     const struct variable **by;	/* List of BY variables for this file. */
     struct file_handle *handle; /* File handle. */
-    struct any_reader *reader;  /* File reader. */
+    struct casereader *reader;  /* File reader. */
     struct dictionary *dict;	/* Dictionary from system file. */
+    bool active_file;           /* Active file? */
 
     /* IN subcommand. */
     char *in_name;              /* Variable name. */
     struct variable *in_var;    /* Variable (in master dictionary). */
 
-    struct ccase input_storage; /* Input record storage. */
-    struct ccase *input;        /* Input record. */
+    struct ccase input;         /* Input record. */
   };
 
 /* MATCH FILES procedure. */
@@ -773,7 +686,7 @@ struct mtf_proc
     char first[LONG_NAME_LEN + 1], last[LONG_NAME_LEN + 1];
     
     struct dictionary *dict;    /* Dictionary of output file. */
-    struct casefile *output;    /* MATCH FILES output. */
+    struct casewriter *output;  /* MATCH FILES output. */
     struct ccase mtf_case;      /* Case used for output. */
 
     unsigned seq_num;           /* Have we initialized this variable? */
@@ -782,11 +695,12 @@ struct mtf_proc
 
 static bool mtf_free (struct mtf_proc *);
 static bool mtf_close_file (struct mtf_file *);
+static bool mtf_close_all_files (struct mtf_proc *);
 static int mtf_merge_dictionary (struct dictionary *const, struct mtf_file *);
-static bool mtf_read_records (struct mtf_proc *, struct dataset *);
+static bool mtf_read_records (struct mtf_proc *);
 static bool mtf_delete_file_in_place (struct mtf_proc *, struct mtf_file **);
 
-static bool mtf_processing (struct mtf_proc *, struct dataset *);
+static bool mtf_processing (struct mtf_proc *);
 
 static char *var_type_description (struct variable *);
 
@@ -804,6 +718,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
   bool used_active_file = false;
   bool saw_table = false;
   bool saw_in = false;
+  bool open_active_file = false;
 
   mtf.head = mtf.tail = NULL;
   mtf.by_cnt = 0;
@@ -840,8 +755,8 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
       file->dict = NULL;
       file->in_name = NULL;
       file->in_var = NULL;
-      case_nullify (&file->input_storage);
-      file->input = &file->input_storage;
+      file->active_file = false;
+      case_nullify (&file->input);
 
       /* FILEs go first, then TABLEs. */
       if (file->type == MTF_TABLE || first_table == NULL)
@@ -881,7 +796,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
             }
           used_active_file = true;
 
-          if (!proc_has_source (ds))
+          if (!proc_has_active_file (ds))
             {
               msg (SE, _("Cannot specify the active file since no active "
                          "file has been defined."));
@@ -895,6 +810,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
                    "Temporary transformations will be made permanent."));
 
           file->dict = dataset_dict (ds);
+          file->active_file = true;
         }
       else
         {
@@ -905,9 +821,6 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
           file->reader = any_reader_open (file->handle, &file->dict);
           if (file->reader == NULL)
             goto error;
-
-          case_create (&file->input_storage,
-                       dict_get_next_value_idx (file->dict));
         }
 
       while (lex_match (lexer, '/'))
@@ -1109,63 +1022,50 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 
   if (used_active_file) 
     {
-      proc_set_sink (ds, create_case_sink (&null_sink_class, 
-                                           dataset_dict (ds),
-					   dataset_get_casefile_factory (ds),
-					   NULL));
-      proc_open (ds); 
+      proc_discard_output (ds);
+      for (iter = mtf.head; iter != NULL; iter = iter->next)
+        if (iter->reader == NULL) 
+          iter->reader = proc_open (ds);
+      open_active_file = true;
     }
-  else
-    discard_variables (ds);
 
   dict_compact_values (mtf.dict);
-  mtf.output = dataset_get_casefile_factory (ds)->create_casefile
-    (dataset_get_casefile_factory (ds),
-     dict_get_next_value_idx (mtf.dict));
-
+  mtf.output = autopaging_writer_create (dict_get_next_value_idx (mtf.dict));
   mtf.seq_nums = xcalloc (dict_get_var_cnt (mtf.dict), sizeof *mtf.seq_nums);
   case_create (&mtf.mtf_case, dict_get_next_value_idx (mtf.dict));
 
-  if (!mtf_read_records (&mtf, ds))
-    goto error;
+  if (!mtf_read_records (&mtf)) 
+    goto error; 
   while (mtf.head && mtf.head->type == MTF_FILE)
-    if (!mtf_processing (&mtf, ds))
-      goto error;
-  if (!proc_close (ds))
+    if (!mtf_processing (&mtf))
+      goto error; 
+  if (!mtf_close_all_files (&mtf))
     goto error;
+  if (open_active_file)
+    proc_commit (ds);
 
-  discard_variables (ds);
-
-  dataset_set_dict (ds, mtf.dict);
+  proc_set_active_file (ds, casewriter_make_reader (mtf.output), mtf.dict);
   mtf.dict = NULL;
-  proc_set_source (ds, storage_source_create (mtf.output));
   mtf.output = NULL;
 
   return mtf_free (&mtf) ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 
  error:
-  proc_close (ds);
+  if (open_active_file)
+    proc_commit (ds);
   mtf_free (&mtf);
   return CMD_CASCADING_FAILURE;
 }
 
-/* Return a string in a static buffer describing V's variable type and
-   width. */
+/* Return a string in an allocated buffer describing V's variable
+   type and width. */
 static char *
 var_type_description (struct variable *v)
 {
-  static char buf[2][32];
-  static int x = 0;
-  char *s;
-
-  x ^= 1;
-  s = buf[x];
-
   if (var_is_numeric (v))
-    strcpy (s, "numeric");
+    return xstrdup ("numeric");
   else
-    sprintf (s, "string with width %d", var_get_width (v));
-  return s;
+    return xasprintf ("string with width %d", var_get_width (v));
 }
 
 /* Closes FILE and frees its associated data.
@@ -1174,22 +1074,18 @@ var_type_description (struct variable *v)
 static bool
 mtf_close_file (struct mtf_file *file)
 {
-  bool ok = file->reader == NULL || !any_reader_error (file->reader);
+  bool ok = casereader_destroy (file->reader);
   free (file->by);
-  any_reader_close (file->reader);
-  if (file->handle != NULL)
+  if (!file->active_file)
     dict_destroy (file->dict);
-  case_destroy (&file->input_storage);
   free (file->in_name);
+  case_destroy (&file->input);
   free (file);
   return ok;
 }
 
-/* Free all the data for the MATCH FILES procedure.
-   Returns true if successful, false if an I/O error
-   occurred. */
 static bool
-mtf_free (struct mtf_proc *mtf)
+mtf_close_all_files (struct mtf_proc *mtf) 
 {
   struct mtf_file *iter, *next;
   bool ok = true;
@@ -1201,9 +1097,22 @@ mtf_free (struct mtf_proc *mtf)
       if (!mtf_close_file (iter))
         ok = false;
     }
-  
-  if (mtf->dict)
-    dict_destroy (mtf->dict);
+  mtf->head = NULL;
+  return ok;
+}
+
+/* Free all the data for the MATCH FILES procedure.
+   Returns true if successful, false if an I/O error
+   occurred. */
+static bool
+mtf_free (struct mtf_proc *mtf)
+{
+  bool ok;
+
+  ok = mtf_close_all_files (mtf);
+
+  casewriter_destroy (mtf->output);
+  dict_destroy (mtf->dict);
   case_destroy (&mtf->mtf_case);
   free (mtf->seq_nums);
 
@@ -1252,7 +1161,7 @@ mtf_delete_file_in_place (struct mtf_proc *mtf, struct mtf_file **file)
 /* Read a record from every input file.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-mtf_read_records (struct mtf_proc *mtf, struct dataset *ds)
+mtf_read_records (struct mtf_proc *mtf)
 {
   struct mtf_file *iter, *next;
   bool ok = true;
@@ -1260,9 +1169,7 @@ mtf_read_records (struct mtf_proc *mtf, struct dataset *ds)
   for (iter = mtf->head; ok && iter != NULL; iter = next)
     {
       next = iter->next;
-      if (iter->handle
-          ? !any_reader_read (iter->reader, iter->input)
-          : !proc_read (ds, &iter->input)) 
+      if (!casereader_read (iter->reader, &iter->input))
         {
           if (!mtf_delete_file_in_place (mtf, &iter))
             ok = false; 
@@ -1277,17 +1184,18 @@ static inline int
 mtf_compare_BY_values (struct mtf_proc *mtf,
                        struct mtf_file *a, struct mtf_file *b)
 {
-  return case_compare_2dict (a->input, b->input, a->by, b->by, mtf->by_cnt);
+  return case_compare_2dict (&a->input, &b->input, a->by, b->by, mtf->by_cnt);
 }
 
 /* Perform one iteration of steps 3...7 above.
    Returns true if successful, false if an I/O error occurred. */
 static bool
-mtf_processing (struct mtf_proc *mtf, struct dataset *ds)
+mtf_processing (struct mtf_proc *mtf)
 {
   struct mtf_file *min_head, *min_tail; /* Files with minimum BY values. */
   struct mtf_file *max_head, *max_tail; /* Files with non-minimum BYs. */
   struct mtf_file *iter, *next;
+  struct ccase out_case;
 
   /* 3. Find the FILE input record(s) that have minimum BY
      values.  Store all the values from these input records into
@@ -1346,9 +1254,8 @@ mtf_processing (struct mtf_proc *mtf, struct dataset *ds)
             min_tail = min_tail->next_min = iter;
           else /* cmp > 0 */
             {
-              if (iter->handle
-                  ? any_reader_read (iter->reader, iter->input)
-                  : proc_read (ds, &iter->input))
+              case_destroy (&iter->input);
+              if (casereader_read (iter->reader, &iter->input))
                 continue;
               if (!mtf_delete_file_in_place (mtf, &iter))
                 return false;
@@ -1375,14 +1282,13 @@ mtf_processing (struct mtf_proc *mtf, struct dataset *ds)
 	  
           if (mv != NULL && mtf->seq_nums[mv_index] != mtf->seq_num) 
             {
-              const struct ccase *record = iter->input;
               union value *out = case_data_rw (&mtf->mtf_case, mv);
 
               mtf->seq_nums[mv_index] = mtf->seq_num;
               if (var_is_numeric (v))
-                out->f = case_num (record, v);
+                out->f = case_num (&iter->input, v);
               else
-                memcpy (out->s, case_str (record, v), var_get_width (v));
+                memcpy (out->s, case_str (&iter->input, v), var_get_width (v));
             } 
         }
       if (iter->in_var != NULL)
@@ -1418,7 +1324,8 @@ mtf_processing (struct mtf_proc *mtf, struct dataset *ds)
     }
 
   /* 5. Write the output record. */
-  casefile_append (mtf->output, &mtf->mtf_case);
+  case_clone (&out_case, &mtf->mtf_case);
+  casewriter_write (mtf->output, &out_case);
 
   /* 6. Read another record from each input file FILE and TABLE
      that we stored values from above.  If we come to the end of
@@ -1427,9 +1334,8 @@ mtf_processing (struct mtf_proc *mtf, struct dataset *ds)
   for (iter = min_head; iter && iter->type == MTF_FILE; iter = next)
     {
       next = iter->next_min;
-      if (iter->reader != NULL
-          ? !any_reader_read (iter->reader, iter->input)
-          : !proc_read (ds, &iter->input))
+      case_destroy (&iter->input);
+      if (!casereader_read (iter->reader, &iter->input))
         if (!mtf_delete_file_in_place (mtf, &iter))
           return false;
     }
@@ -1613,11 +1519,6 @@ map_case (const struct case_map *map,
           const struct ccase *src, struct ccase *dst) 
 {
   size_t dst_idx;
-
-  assert (map != NULL);
-  assert (src != NULL);
-  assert (dst != NULL);
-  assert (src != dst);
 
   for (dst_idx = 0; dst_idx < map->value_cnt; dst_idx++)
     {

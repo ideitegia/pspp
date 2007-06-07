@@ -16,16 +16,14 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-/* FIXME: Many possible optimizations. */
-
 #include <config.h>
 
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include <data/case.h>
-#include <data/casefile.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/transformations.h>
@@ -180,9 +178,8 @@ static void dump_z_table (struct dsc_proc *);
 static void setup_z_trns (struct dsc_proc *, struct dataset *);
 
 /* Procedure execution functions. */
-static bool calc_descriptives (const struct ccase *first,
-                               const struct casefile *, void *dsc_, 
-			       const struct dataset *);
+static void calc_descriptives (struct dsc_proc *, struct casereader *,
+                               struct dataset *);
 static void display (struct dsc_proc *dsc);
 
 /* Parser and outline. */
@@ -199,6 +196,9 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
   int z_cnt = 0;
   size_t i;
   bool ok;
+
+  struct casegrouper *grouper;
+  struct casereader *group;
 
   /* Create and initialize dsc. */
   dsc = xmalloc (sizeof *dsc);
@@ -316,8 +316,7 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
             {
               int i;
               
-              if (!parse_variables_const (lexer, dataset_dict (ds), 
-					  &vars, &var_cnt,
+              if (!parse_variables_const (lexer, dict, &vars, &var_cnt,
                                     PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
 		goto error;
 
@@ -413,8 +412,12 @@ cmd_descriptives (struct lexer *lexer, struct dataset *ds)
     for (i = 0; i < dsc->var_cnt; i++)
       dsc->vars[i].moments = moments_create (dsc->max_moment);
 
-  /* Data pass. */
-  ok = multipass_procedure_with_splits (ds, calc_descriptives, dsc);
+  /* Data pass.  FIXME: error handling. */
+  grouper = casegrouper_create_splits (proc_open (ds), dict);
+  while (casegrouper_get_next_group (grouper, &group)) 
+    calc_descriptives (dsc, group, ds);
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
 
   /* Z-scoring! */
   if (ok && z_cnt)
@@ -689,17 +692,25 @@ static bool listwise_missing (struct dsc_proc *dsc, const struct ccase *c);
 
 /* Calculates and displays descriptive statistics for the cases
    in CF. */
-static bool
-calc_descriptives (const struct ccase *first,
-                   const struct casefile *cf, void *dsc_, 
-		   const struct dataset *ds) 
+static void
+calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
+                   struct dataset *ds) 
 {
-  struct dsc_proc *dsc = dsc_;
-  struct casereader *reader;
+  struct casereader *pass1, *pass2;
   struct ccase c;
   size_t i;
 
-  output_split_file_values (ds, first);
+  if (!casereader_peek (group, 0, &c))
+    return;
+  output_split_file_values (ds, &c);
+  case_destroy (&c);
+
+  group = casereader_create_filter_weight (group, dataset_dict (ds),
+                                           NULL, NULL);
+
+  casereader_split (group, &pass1, &pass2);
+  if (dsc->max_moment <= MOMENT_MEAN)
+    casereader_destroy (pass2);
 
   for (i = 0; i < dsc->var_cnt; i++)
     {
@@ -715,13 +726,9 @@ calc_descriptives (const struct ccase *first,
   dsc->valid = 0.;
 
   /* First pass to handle most of the work. */
-  for (reader = casefile_get_reader (cf, NULL);
-       casereader_read (reader, &c);
-       case_destroy (&c))
+  for (; casereader_read (pass1, &c); case_destroy (&c))
     {
-      double weight = dict_get_case_weight (dataset_dict (ds), &c, &dsc->bad_warn);
-      if (weight <= 0.0) 
-        continue;
+      double weight = dict_get_case_weight (dataset_dict (ds), &c, NULL);
        
       /* Check for missing values. */
       if (listwise_missing (dsc, &c)) 
@@ -737,8 +744,7 @@ calc_descriptives (const struct ccase *first,
           struct dsc_var *dv = &dsc->vars[i];
           double x = case_num (&c, dv->v);
           
-          if (dsc->missing_type != DSC_LISTWISE
-              && var_is_num_missing (dv->v, x, dsc->exclude))
+          if (var_is_num_missing (dv->v, x, dsc->exclude))
             {
               dv->missing += weight;
               continue;
@@ -753,19 +759,15 @@ calc_descriptives (const struct ccase *first,
             dv->max = x;
         }
     }
-  casereader_destroy (reader);
+  if (!casereader_destroy (pass1))
+    return;
 
   /* Second pass for higher-order moments. */
   if (dsc->max_moment > MOMENT_MEAN) 
     {
-      for (reader = casefile_get_reader (cf, NULL);
-           casereader_read (reader, &c);
-           case_destroy (&c))
+      for (; casereader_read (pass2, &c); case_destroy (&c))
         {
-          double weight = dict_get_case_weight (dataset_dict (ds), &c, 
-						&dsc->bad_warn);
-          if (weight <= 0.0)
-            continue;
+          double weight = dict_get_case_weight (dataset_dict (ds), &c, NULL);
       
           /* Check for missing values. */
           if (dsc->missing_type == DSC_LISTWISE && listwise_missing (dsc, &c))
@@ -776,17 +778,17 @@ calc_descriptives (const struct ccase *first,
               struct dsc_var *dv = &dsc->vars[i];
               double x = case_num (&c, dv->v);
           
-              if (dsc->missing_type != DSC_LISTWISE
-                  && var_is_num_missing (dv->v, x, dsc->exclude))
+              if (var_is_num_missing (dv->v, x, dsc->exclude))
                 continue;
 
               if (dv->moments != NULL)
                 moments_pass_two (dv->moments, x, weight);
             }
         }
-      casereader_destroy (reader);
+      if (!casereader_destroy (pass2))
+        return;
     }
-  
+
   /* Calculate results. */
   for (i = 0; i < dsc->var_cnt; i++)
     {
@@ -825,8 +827,6 @@ calc_descriptives (const struct ccase *first,
 
   /* Output results. */
   display (dsc);
-
-  return true;
 }
 
 /* Returns true if any of the descriptives variables in DSC's

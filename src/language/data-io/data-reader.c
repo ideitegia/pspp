@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <data/casereader.h>
 #include <data/file-handle-def.h>
 #include <data/file-name.h>
 #include <data/procedure.h>
@@ -444,8 +445,8 @@ cmd_begin_data (struct lexer *lexer, struct dataset *ds)
 
   /* Input procedure reads from inline file. */
   prompt_set_style (PROMPT_DATA);
-  ok = procedure (ds, NULL, NULL);
-
+  casereader_destroy (proc_open (ds));
+  ok = proc_commit (ds);
   dfm_close_reader (r);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;

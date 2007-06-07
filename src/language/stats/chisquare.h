@@ -19,11 +19,10 @@
 #if !chisquare_h
 #define chisquare_h 1
 
-#include <config.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <language/stats/npar.h>
 
-#include "npar.h"
 struct chisquare_test
 {
   struct one_sample_test parent;  
@@ -37,17 +36,18 @@ struct chisquare_test
   int n_expected;
 };
 
-struct casefile;
-struct dictionary ;
+struct casereader;
+struct dictionary;
 struct hsh_table;
+struct dataset;
 
 void chisquare_insert_variables (const struct npar_test *test,
 				 struct hsh_table *variables);
 
 
 void chisquare_execute (const struct dataset *ds, 
-			const struct casefile *cf, 
-			struct casefilter *filter,
+			struct casereader *input,
+                        enum mv_class exclude,
 			const struct npar_test *test);
 
 

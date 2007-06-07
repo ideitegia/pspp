@@ -18,8 +18,8 @@
 
 #include <config.h>
 
-#include "sys-file-reader.h"
-#include "sys-file-private.h"
+#include <data/sys-file-reader.h>
+#include <data/sys-file-private.h>
 
 #include <errno.h>
 #include <float.h>
@@ -38,15 +38,17 @@
 #include <libpspp/hash.h>
 #include <libpspp/array.h>
 
-#include "case.h"
-#include "dictionary.h"
-#include "file-handle-def.h"
-#include "file-name.h"
-#include "format.h"
-#include "missing-values.h"
-#include "value-labels.h"
-#include "variable.h"
-#include "value.h"
+#include <data/case.h>
+#include <data/casereader-provider.h>
+#include <data/casereader.h>
+#include <data/dictionary.h>
+#include <data/file-handle-def.h>
+#include <data/file-name.h>
+#include <data/format.h>
+#include <data/missing-values.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
+#include <data/value.h>
 
 #include "c-ctype.h"
 #include "inttostr.h"
@@ -69,11 +71,12 @@ struct sfm_reader
     struct file_handle *fh;     /* File handle. */
     FILE *file;                 /* File stream. */
     bool error;                 /* I/O or corruption error? */
+    size_t value_cnt;           /* Number of "union value"s in struct case. */
 
     /* File format. */
     enum integer_format integer_format; /* On-disk integer format. */
     enum float_format float_format; /* On-disk floating point format. */
-    int value_cnt;		/* Number of 8-byte units per case. */
+    int flt64_cnt;		/* Number of 8-byte units per case. */
     struct sfm_var *vars;       /* Variables. */
     size_t var_cnt;             /* Number of variables. */
     bool has_long_var_names;    /* File has a long variable name map */
@@ -92,6 +95,10 @@ struct sfm_var
     int width;                  /* 0=numeric, otherwise string width. */
     int case_index;             /* Index into case. */
   };
+
+static struct casereader_class sys_file_casereader_class;
+
+static bool close_reader (struct sfm_reader *);
 
 static struct variable **make_var_by_value_idx (struct sfm_reader *,
                                                 struct dictionary *);
@@ -125,6 +132,8 @@ static bool read_variable_to_value_map (struct sfm_reader *,
                                         struct variable_to_value_map *,
                                         struct variable **var, char **value,
                                         int *warning_cnt);
+
+static bool close_reader (struct sfm_reader *r);
 
 /* Dictionary reader. */
 
@@ -135,7 +144,7 @@ enum which_format
   };
 
 static void read_header (struct sfm_reader *, struct dictionary *,
-                         int *weight_idx, int *claimed_value_cnt,
+                         int *weight_idx, int *claimed_flt64_cnt,
                          struct sfm_read_info *);
 static void read_variable_record (struct sfm_reader *, struct dictionary *,
                                   int *format_warning_cnt);
@@ -169,7 +178,7 @@ static void read_long_string_map (struct sfm_reader *,
    reading.  Reads the system file's dictionary into *DICT.
    If INFO is non-null, then it receives additional info about the
    system file. */
-struct sfm_reader *
+struct casereader *
 sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                  struct sfm_read_info *info)
 {
@@ -177,7 +186,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   struct variable **var_by_value_idx;
   int format_warning_cnt = 0;
   int weight_idx;
-  int claimed_value_cnt;
+  int claimed_flt64_cnt;
   int rec_type;
   size_t i;
 
@@ -191,14 +200,14 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->fh = fh;
   r->file = fn_open (fh_get_file_name (fh), "rb");
   r->error = false;
-  r->value_cnt = 0;
+  r->flt64_cnt = 0;
   r->has_vls = false;
   r->has_long_var_names = false;
   r->opcode_idx = sizeof r->opcodes;
 
   if (setjmp (r->bail_out)) 
     {
-      sfm_close_reader (r);
+      close_reader (r);
       dict_destroy (*dict);
       *dict = NULL;
       return NULL;
@@ -212,7 +221,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
     }
 
   /* Read header. */
-  read_header (r, *dict, &weight_idx, &claimed_value_cnt, info);
+  read_header (r, *dict, &weight_idx, &claimed_flt64_cnt, info);
 
   /* Read all the variable definition records. */
   rec_type = read_int32 (r);
@@ -280,10 +289,10 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   /* Read record 999 data, which is just filler. */
   read_int32 (r);
 
-  if (claimed_value_cnt != -1 && claimed_value_cnt != r->value_cnt)
+  if (claimed_flt64_cnt != -1 && claimed_flt64_cnt != r->flt64_cnt)
     sys_warn (r, _("File header claims %d variable positions but "
                    "%d were read from file."),
-              claimed_value_cnt, r->value_cnt);
+              claimed_flt64_cnt, r->flt64_cnt);
 
   /* Create an index of dictionary variable widths for
      sfm_read_case to use.  We cannot use the `struct variable's
@@ -300,36 +309,48 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
     }
 
   pool_free (r->pool, var_by_value_idx);
-  return r;
+  r->value_cnt = dict_get_next_value_idx (*dict);
+  return casereader_create_sequential (NULL, r->value_cnt, CASENUMBER_MAX,
+                                       &sys_file_casereader_class, r);
 }
 
-/* Closes a system file after we're done with it. */
-void
-sfm_close_reader (struct sfm_reader *r)
+/* Closes a system file after we're done with it.
+   Returns true if an I/O error has occurred on READER, false
+   otherwise. */
+static bool
+close_reader (struct sfm_reader *r)
 {
+  bool error;
+
   if (r == NULL)
-    return;
+    return true;
 
   if (r->file)
     {
-      if (fn_close (fh_get_file_name (r->fh), r->file) == EOF)
-        msg (ME, _("Error closing system file \"%s\": %s."),
-             fh_get_file_name (r->fh), strerror (errno));
+      if (fn_close (fh_get_file_name (r->fh), r->file) == EOF) 
+        {
+          msg (ME, _("Error closing system file \"%s\": %s."),
+               fh_get_file_name (r->fh), strerror (errno));
+          r->error = true;
+        }
       r->file = NULL;
     }
 
   if (r->fh != NULL)
     fh_close (r->fh, "system file", "rs");
 
+  error = r->error;
   pool_destroy (r->pool);
+
+  return !error;
 }
 
-/* Returns true if an I/O error has occurred on READER, false
-   otherwise. */
-bool
-sfm_read_error (const struct sfm_reader *reader) 
+/* Destroys READER. */
+static void
+sys_file_casereader_destroy (struct casereader *reader UNUSED, void *r_) 
 {
-  return reader->error;
+  struct sfm_reader *r = r_;
+  close_reader (r);
 }
 
 /* Returns true if FILE is an SPSS system file,
@@ -350,13 +371,13 @@ sfm_detect (FILE *file)
    Sets DICT's file label to the system file's label.
    Sets *WEIGHT_IDX to 0 if the system file is unweighted,
    or to the value index of the weight variable otherwise.
-   Sets *CLAIMED_VALUE_CNT to the number of values that the file
+   Sets *CLAIMED_FLT64_CNT to the number of values that the file
    claims to have (although it is not always correct).
    If INFO is non-null, initializes *INFO with header
    information. */   
 static void
 read_header (struct sfm_reader *r, struct dictionary *dict,
-             int *weight_idx, int *claimed_value_cnt,
+             int *weight_idx, int *claimed_flt64_cnt,
              struct sfm_read_info *info)
 {
   char rec_type[5];
@@ -385,9 +406,9 @@ read_header (struct sfm_reader *r, struct dictionary *dict,
           && r->integer_format != INTEGER_LSB_FIRST))
     sys_error (r, _("This is not an SPSS system file."));
 
-  *claimed_value_cnt = read_int32 (r);
-  if (*claimed_value_cnt < 0 || *claimed_value_cnt > INT_MAX / 16)
-    *claimed_value_cnt = -1;
+  *claimed_flt64_cnt = read_int32 (r);
+  if (*claimed_flt64_cnt < 0 || *claimed_flt64_cnt > INT_MAX / 16)
+    *claimed_flt64_cnt = -1;
 
   r->compressed = read_int32 (r) != 0;
 
@@ -564,7 +585,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
   /* Account for values.
      Skip long string continuation records, if any. */
   nv = width == 0 ? 1 : DIV_RND_UP (width, 8);
-  r->value_cnt += nv;
+  r->flt64_cnt += nv;
   if (width > 8)
     {
       int i;
@@ -1110,29 +1131,39 @@ static bool read_compressed_number (struct sfm_reader *, double *);
 static bool read_compressed_string (struct sfm_reader *, char *);
 static bool read_whole_strings (struct sfm_reader *, char *, size_t);
 
-/* Reads one case from READER's file into C.  Returns nonzero
-   only if successful. */
-int
-sfm_read_case (struct sfm_reader *r, struct ccase *c)
+/* Reads one case from READER's file into C.  Returns true only
+   if successful. */
+static bool
+sys_file_casereader_read (struct casereader *reader, void *r_,
+                          struct ccase *c)
 {
+  struct sfm_reader *r = r_;
   if (r->error)
-    return 0;
+    return false;
 
-  if (setjmp (r->bail_out))
-    return 0;
+  case_create (c, r->value_cnt);
+  if (setjmp (r->bail_out)) 
+    {
+      casereader_force_error (reader);
+      case_destroy (c);
+      return false; 
+    }
 
   if (!r->compressed && sizeof (double) == 8 && !r->has_vls) 
     {
       /* Fast path.  Read the whole case directly. */
       if (!try_read_bytes (r, case_data_all_rw (c),
-                         sizeof (union value) * r->value_cnt))
-        return 0;
+                           sizeof (union value) * r->flt64_cnt)) 
+        {
+          case_destroy (c);
+          return false; 
+        }
 
       /* Convert floating point numbers to native format if needed. */
       if (r->float_format != FLOAT_NATIVE_DOUBLE) 
         {
           int i;
-          
+
           for (i = 0; i < r->var_cnt; i++) 
             if (r->vars[i].width == 0) 
               {
@@ -1140,7 +1171,7 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
                 float_convert (r->float_format, d, FLOAT_NATIVE_DOUBLE, d); 
               }
         }
-      return 1;
+      return true;
     }
   else 
     {
@@ -1194,12 +1225,13 @@ sfm_read_case (struct sfm_reader *r, struct ccase *c)
                 }
             }
         }
-      return 1; 
+      return true; 
 
     eof:
+      case_destroy (c);
       if (i != 0)
         partial_record (r);
-      return 0;
+      return false;
     }
 }
 
@@ -1386,7 +1418,7 @@ make_var_by_value_idx (struct sfm_reader *r, struct dictionary *dict)
   int i;
 
   var_by_value_idx = pool_nmalloc (r->pool,
-                                   r->value_cnt, sizeof *var_by_value_idx);
+                                   r->flt64_cnt, sizeof *var_by_value_idx);
   for (i = 0; i < dict_get_var_cnt (dict); i++) 
     {
       struct variable *v = dict_get_var (dict, i);
@@ -1397,7 +1429,7 @@ make_var_by_value_idx (struct sfm_reader *r, struct dictionary *dict)
       for (j = 1; j < nv; j++)
         var_by_value_idx[value_idx++] = NULL;
     }
-  assert (value_idx == r->value_cnt);
+  assert (value_idx == r->flt64_cnt);
 
   return var_by_value_idx;
 }
@@ -1411,9 +1443,9 @@ lookup_var_by_value_idx (struct sfm_reader *r,
 {
   struct variable *var;
   
-  if (value_idx < 1 || value_idx > r->value_cnt)
+  if (value_idx < 1 || value_idx > r->flt64_cnt)
     sys_error (r, _("Variable index %d not in valid range 1...%d."),
-               value_idx, r->value_cnt);
+               value_idx, r->flt64_cnt);
 
   var = var_by_value_idx[value_idx - 1];
   if (var == NULL)
@@ -1686,4 +1718,11 @@ flt64_to_double (const struct sfm_reader *r, const uint8_t flt64[8])
     float_convert (r->float_format, flt64, FLOAT_NATIVE_DOUBLE, &x);
   return x;
 }
-
+
+static struct casereader_class sys_file_casereader_class = 
+  {
+    sys_file_casereader_read,
+    sys_file_casereader_destroy,
+    NULL,
+    NULL,
+  };

@@ -19,18 +19,25 @@
 #if !npar_h
 #define npar_h 1
 
-typedef const struct variable *var_ptr;
-typedef var_ptr variable_pair[2];
+#include <stddef.h>
+#include <data/missing-values.h>
+
+#include <stddef.h>
+#include <data/missing-values.h>
+ 
+typedef struct variable *variable_pair[2];
 
 struct hsh_table;
 struct const_hsh_table;
-struct casefilter ;
+struct casefilter;
+struct casereader;
+struct dataset;
 
 struct npar_test
 {
   void (*execute) (const struct dataset *, 
-		   const struct casefile *, 
-		   struct casefilter *,
+		   struct casereader *,
+                   enum mv_class exclude,
 		   const struct npar_test *
 		   );
 

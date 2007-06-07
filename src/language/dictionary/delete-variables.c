@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
    Written by Ben Pfaff <blp@gnu.org>.
 
    This program is free software; you can redistribute it and/or
@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <language/command.h>
@@ -36,6 +37,7 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
 {
   struct variable **vars;
   size_t var_cnt;
+  bool ok;
 
   if (proc_make_temporary_transformations_permanent (ds))
     msg (SE, _("DELETE VARIABLES may not be used after TEMPORARY.  "
@@ -50,11 +52,13 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
                  "from the active file dictionary.  Use NEW FILE instead."));
       goto error;
     }
-
-  if (!procedure (ds, NULL, NULL))
+ 
+  ok = casereader_destroy (proc_open (ds));
+  ok = proc_commit (ds) && ok;
+  if (!ok)
     goto error;
-  
   dict_delete_vars (dataset_dict (ds), vars, var_cnt);
+  
   free (vars);
   
   return CMD_SUCCESS;

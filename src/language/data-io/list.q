@@ -23,7 +23,8 @@
 
 #include "intprops.h"
 #include "size_max.h"
-#include <data/case.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/data-out.h>
 #include <data/format.h>
@@ -73,9 +74,6 @@ struct list_ext
 /* Parsed command. */
 static struct cmd_list cmd;
 
-/* Current case number. */
-static int case_idx;
-
 /* Line buffer. */
 static struct string line_buffer;
 
@@ -85,11 +83,12 @@ static unsigned n_chars_width (struct outp_driver *d);
 static void write_line (struct outp_driver *d, const char *s);
 
 /* Other functions. */
-static bool list_cases (const struct ccase *, void *, const struct dataset *);
+static void list_case (struct ccase *, casenumber case_idx,
+                       const struct dataset *);
 static void determine_layout (void);
 static void clean_up (void);
 static void write_header (struct outp_driver *);
-static void write_all_headers (const struct ccase *, void *, const struct dataset*);
+static void write_all_headers (struct casereader *, const struct dataset*);
 
 /* Returns the number of text lines that can fit on the remainder of
    the page. */
@@ -133,7 +132,11 @@ write_line (struct outp_driver *d, const char *s)
 int
 cmd_list (struct lexer *lexer, struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct variable *casenum_var = NULL;
+  struct casegrouper *grouper;
+  struct casereader *group;
+  casenumber case_idx;
   bool ok;
 
   if (!parse_list (lexer, ds, &cmd, NULL))
@@ -147,7 +150,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
   if (cmd.last == NOT_LONG)
     cmd.last = LONG_MAX;
   if (!cmd.sbc_variables)
-    dict_get_vars (dataset_dict (ds), &cmd.v_variables, &cmd.n_variables,
+    dict_get_vars (dict, &cmd.v_variables, &cmd.n_variables,
 		   (1u << DC_SYSTEM) | (1u << DC_SCRATCH));
   if (cmd.n_variables == 0)
     {
@@ -187,12 +190,12 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
   /* Weighting variable. */
   if (cmd.weight == LST_WEIGHT)
     {
-      if (dict_get_weight (dataset_dict (ds)) != NULL)
+      if (dict_get_weight (dict) != NULL)
 	{
 	  size_t i;
 
 	  for (i = 0; i < cmd.n_variables; i++)
-	    if (cmd.v_variables[i] == dict_get_weight (dataset_dict (ds)))
+	    if (cmd.v_variables[i] == dict_get_weight (dict))
 	      break;
 	  if (i >= cmd.n_variables)
 	    {
@@ -201,7 +204,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
 	      cmd.v_variables = xnrealloc (cmd.v_variables, cmd.n_variables,
                                            sizeof *cmd.v_variables);
 	      cmd.v_variables[cmd.n_variables - 1]
-                = dict_get_weight (dataset_dict (ds));
+                = dict_get_weight (dict);
 	    }
 	}
       else
@@ -229,7 +232,24 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
   determine_layout ();
 
   case_idx = 0;
-  ok = procedure_with_splits (ds, write_all_headers, list_cases, NULL, NULL);
+  for (grouper = casegrouper_create_splits (proc_open (ds), dict);
+       casegrouper_get_next_group (grouper, &group);
+       casereader_destroy (group)) 
+    {
+      struct ccase c;
+      
+      write_all_headers (group, ds);
+      for (; casereader_read (group, &c); case_destroy (&c)) 
+        {
+          case_idx++;
+          if (case_idx >= cmd.first && case_idx <= cmd.last
+              && (case_idx - cmd.first) % cmd.step == 0)
+            list_case (&c, case_idx, ds); 
+        }
+    }
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
+
   ds_destroy(&line_buffer);
 
   clean_up ();
@@ -242,11 +262,16 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
 /* Writes headers to all devices.  This is done at the beginning of
    each SPLIT FILE group. */
 static void
-write_all_headers (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
+write_all_headers (struct casereader *input, const struct dataset *ds)
 {
   struct outp_driver *d;
+  struct ccase c;
 
-  output_split_file_values (ds, c);
+  if (!casereader_peek (input, 0, &c))
+    return;
+  output_split_file_values (ds, &c);
+  case_destroy (&c);
+
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     {
       if (!d->class->special)
@@ -623,16 +648,12 @@ determine_layout (void)
 }
 
 /* Writes case C to output. */
-static bool
-list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
+static void
+list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
 {
+  struct dictionary *dict = dataset_dict (ds);
   struct outp_driver *d;
   
-  case_idx++;
-  if (case_idx < cmd.first || case_idx > cmd.last
-      || (cmd.step != 1 && (case_idx - cmd.first) % cmd.step))
-    return true;
-
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     if (d->class->special == 0)
       {
@@ -681,7 +702,7 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
               ds_put_char_multiple(&line_buffer, ' ', width - print->w);
 
             if (fmt_is_string (print->type)
-                || dict_contains_var (dataset_dict (ds), v))
+                || dict_contains_var (dict, v))
 	      {
                 data_out (case_data (c, v), print,
                           ds_put_uninit (&line_buffer, print->w));
@@ -720,7 +741,7 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
 	    char buf[256];
 	    
             if (fmt_is_string (print->type)
-                || dict_contains_var (dataset_dict (ds), v))
+                || dict_contains_var (dict, v))
 	      data_out (case_data (c, v), print, buf);
             else 
               {
@@ -738,8 +759,6 @@ list_cases (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
       }
     else
       NOT_REACHED ();
-
-  return true;
 }
 
 /* 

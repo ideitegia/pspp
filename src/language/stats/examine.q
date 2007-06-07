@@ -26,7 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #include <stdlib.h>
 
 #include <data/case.h>
-#include <data/casefile.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/value-labels.h>
@@ -152,8 +153,8 @@ void box_plot_variables (const struct factor *fctr,
 
 
 /* Per Split function */
-static bool run_examine (const struct ccase *,
-                        const struct casefile *cf, void *cmd_, const struct dataset *);
+static void run_examine (struct cmd_examine *, struct casereader *,
+                         struct dataset *);
 
 static void output_examine (void);
 
@@ -193,6 +194,8 @@ static short sbc_percentile;
 int
 cmd_examine (struct lexer *lexer, struct dataset *ds)
 {
+  struct casegrouper *grouper;
+  struct casereader *group;
   bool ok;
 
   subc_list_double_create (&percentile_list);
@@ -222,7 +225,11 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
       subc_list_double_push (&percentile_list, 75);
     }
 
-  ok = multipass_procedure_with_splits (ds, run_examine, &cmd);
+  grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
+  while (casegrouper_get_next_group (grouper, &group)) 
+    run_examine (&cmd, group, ds);
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
 
   if ( totals )
     {
@@ -627,9 +634,6 @@ void populate_summary (struct tab_table *t, int col, int row,
 
 
 
-static bool bad_weight_warn = true;
-
-
 /* Perform calculations for the sub factors */
 void
 factor_calc (const struct ccase *c, int case_no, double weight,
@@ -706,23 +710,28 @@ factor_calc (const struct ccase *c, int case_no, double weight,
     }
 }
 
-static bool
-run_examine (const struct ccase *first, const struct casefile *cf,
-	    void *cmd_, const struct dataset *ds)
+static void
+run_examine (struct cmd_examine *cmd, struct casereader *input,
+             struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
-  struct casereader *r;
+  casenumber case_no;
   struct ccase c;
   int v;
-
-  const struct cmd_examine *cmd = (struct cmd_examine *) cmd_;
+  bool ok;
 
   struct factor *fctr;
 
-  output_split_file_values (ds, first);
+  if (!casereader_peek (input, 0, &c))
+    return;
+  output_split_file_values (ds, &c);
+  case_destroy (&c);
+
+  input = casereader_create_filter_weight (input, dict, NULL, NULL);
+  input = casereader_create_counter (input, &case_no, 0);
 
   /* Make sure we haven't got rubbish left over from a
-     previous split */
+     previous split. */
   fctr = factors;
   while (fctr)
     {
@@ -738,15 +747,10 @@ run_examine (const struct ccase *first, const struct casefile *cf,
   for ( v = 0 ; v < n_dependent_vars ; ++v )
     metrics_precalc (&totals[v]);
 
-  for (r = casefile_get_reader (cf, NULL);
-      casereader_read (r, &c) ;
-      case_destroy (&c) )
+  for (; casereader_read (input, &c); case_destroy (&c))
     {
-      int case_missing=0;
-      const int case_no = casereader_cnum (r);
-
-      const double weight =
-	dict_get_case_weight (dict, &c, &bad_weight_warn);
+      int case_missing = 0;
+      const double weight = dict_get_case_weight (dict, &c, NULL);
 
       if ( cmd->miss == XMN_LISTWISE )
 	{
@@ -787,6 +791,7 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 
       factor_calc (&c, case_no, weight, case_missing);
     }
+  ok = casereader_destroy (input);
 
   for ( v = 0 ; v < n_dependent_vars ; ++v)
     {
@@ -882,7 +887,8 @@ run_examine (const struct ccase *first, const struct casefile *cf,
       fctr = fctr->next;
     }
 
-  output_examine ();
+  if (ok)
+    output_examine ();
 
 
   if ( totals )
@@ -893,8 +899,6 @@ run_examine (const struct ccase *first, const struct casefile *cf,
 	  metrics_destroy (&totals[i]);
 	}
     }
-
-  return true;
 }
 
 

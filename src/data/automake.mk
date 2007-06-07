@@ -10,17 +10,7 @@ src_data_libdata_a_SOURCES = \
 	src/data/calendar.h \
 	src/data/case-ordering.c \
 	src/data/case-ordering.h \
-	src/data/case-sink.c \
-	src/data/case-sink.h \
-	src/data/case-source.c \
-	src/data/case-source.h \
 	src/data/case.c \
-	src/data/casefilter.c \
-	src/data/casefilter.h \
-	src/data/casefile.h \
-	src/data/casefile.c \
-	src/data/casefile-factory.h \
-	src/data/casefile-private.h \
 	src/data/casegrouper.c \
 	src/data/casegrouper.h \
 	src/data/caseinit.c \
@@ -36,10 +26,6 @@ src_data_libdata_a_SOURCES = \
 	src/data/casewriter-translator.c \
 	src/data/casewriter.c \
 	src/data/casewriter.h \
-	src/data/fastfile.c \
-	src/data/fastfile.h \
-	src/data/fastfile-factory.h \
-	src/data/fastfile-factory.c \
 	src/data/case.h \
 	src/data/case-tmpfile.c \
 	src/data/case-tmpfile.h \
@@ -82,8 +68,6 @@ src_data_libdata_a_SOURCES = \
 	src/data/settings.h \
 	src/data/sparse-cases.c \
 	src/data/sparse-cases.h \
-	src/data/storage-stream.c \
-	src/data/storage-stream.h \
 	src/data/sys-file-private.c \
 	src/data/sys-file-private.h \
 	src/data/sys-file-reader.c \

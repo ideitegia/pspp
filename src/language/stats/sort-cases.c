@@ -30,6 +30,7 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/message.h>
+#include <data/case-ordering.h>
 #include <math/sort.h>
 #include <sys/types.h>
 
@@ -41,13 +42,15 @@
 int
 cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
 {
-  struct sort_criteria *criteria;
-  bool success = false;
+  struct case_ordering *ordering;
+  struct casereader *output;
+  bool ok = false;
 
   lex_match (lexer, T_BY);
 
-  criteria = sort_parse_criteria (lexer, dataset_dict (ds), NULL, NULL, NULL, NULL);
-  if (criteria == NULL)
+  proc_cancel_temporary_transformations (ds);
+  ordering = parse_case_ordering (lexer, dataset_dict (ds), NULL);
+  if (ordering == NULL)
     return CMD_CASCADING_FAILURE;
 
   if (get_testing_mode () && lex_match (lexer, '/')) 
@@ -57,7 +60,6 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
         goto done;
 
       min_buffers = max_buffers = lex_integer (lexer);
-      allow_internal_sort = false;
       if (max_buffers < 2) 
         {
           msg (SE, _("Buffer limit must be at least 2."));
@@ -67,14 +69,17 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
       lex_get (lexer);
     }
 
-  success = sort_active_file_in_place (ds, criteria);
+  proc_discard_output (ds);
+  output = sort_execute (proc_open (ds), ordering);
+  ordering = NULL;
+  ok = proc_commit (ds);
+  ok = proc_set_active_file_data (ds, output) && ok;
 
  done:
   min_buffers = 64;
   max_buffers = INT_MAX;
-  allow_internal_sort = true;
   
-  sort_destroy_criteria (criteria);
-  return success ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
+  case_ordering_destroy (ordering);
+  return ok ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
 }
 

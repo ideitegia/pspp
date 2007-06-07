@@ -37,14 +37,16 @@
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 
-#include "case.h"
-#include "dictionary.h"
-#include "file-handle-def.h"
-#include "format.h"
-#include "missing-values.h"
-#include "settings.h"
-#include "value-labels.h"
-#include "variable.h"
+#include <data/case.h>
+#include <data/casewriter-provider.h>
+#include <data/casewriter.h>
+#include <data/dictionary.h>
+#include <data/file-handle-def.h>
+#include <data/format.h>
+#include <data/missing-values.h>
+#include <data/settings.h>
+#include <data/value-labels.h>
+#include <data/variable.h>
 
 #include "minmax.h"
 
@@ -144,6 +146,8 @@ struct sfm_var
     size_t flt64_cnt;           /* Number of flt64 elements. */
   };
 
+static struct casewriter_class sys_file_casewriter_class;
+
 static char *append_string_max (char *, const char *, const char *);
 static void write_header (struct sfm_writer *, const struct dictionary *);
 static void buf_write (struct sfm_writer *, const void *, size_t);
@@ -163,6 +167,9 @@ static void write_variable_display_parameters (struct sfm_writer *w,
                                                const struct dictionary *dict);
 
 static void write_documents (struct sfm_writer *, const struct dictionary *);
+
+bool write_error (const struct sfm_writer *);
+bool close_writer (struct sfm_writer *);
 
 static inline int
 var_flt64_cnt (const struct variable *v) 
@@ -219,7 +226,7 @@ cont_var_name(const char *sn, int idx)
    No reference to D is retained, so it may be modified or
    destroyed at will after this function returns.  D is not
    modified by this function, except to assign short names. */
-struct sfm_writer *
+struct casewriter *
 sfm_open_writer (struct file_handle *fh, struct dictionary *d,
                  struct sfm_write_options opts)
 {
@@ -374,13 +381,13 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       w->y = (unsigned char *) w->ptr;
     }
 
-  if (sfm_write_error (w))
+  if (write_error (w))
     goto error;
   
-  return w;
+  return casewriter_create (&sys_file_casewriter_class, w);
 
  error:
-  sfm_close_writer (w);
+  close_writer (w);
   return NULL;
 
  open_error:
@@ -925,13 +932,18 @@ ensure_buf_space (struct sfm_writer *w)
 
 static void write_compressed_data (struct sfm_writer *w, const flt64 *elem);
 
-/* Writes case C to system file W.
-   Returns 1 if successful, 0 if an I/O error occurred. */
-bool
-sfm_write_case (struct sfm_writer *w, const struct ccase *c)
+/* Writes case C to system file W. */
+static void
+sys_file_casewriter_write (struct casewriter *writer, void *w_,
+                           struct ccase *c)
 {
-  if (ferror (w->file))
-    return 0;
+  struct sfm_writer *w = w_;
+  if (ferror (w->file)) 
+    {
+      casewriter_force_error (writer);
+      case_destroy (c);
+      return; 
+    }
   
   w->case_cnt++;
 
@@ -990,8 +1002,16 @@ sfm_write_case (struct sfm_writer *w, const struct ccase *c)
 
       local_free (bounce); 
     }
-  
-  return !sfm_write_error (w);
+
+  case_destroy (c);
+}
+
+static void
+sys_file_casewriter_destroy (struct casewriter *writer, void *w_) 
+{
+  struct sfm_writer *w = w_;
+  if (!close_writer (w))
+    casewriter_force_error (writer);
 }
 
 static void
@@ -1057,7 +1077,7 @@ write_compressed_data (struct sfm_writer *w, const flt64 *elem)
 
 /* Returns true if an I/O error has occurred on WRITER, false otherwise. */
 bool
-sfm_write_error (const struct sfm_writer *writer)
+write_error (const struct sfm_writer *writer)
 {
   return ferror (writer->file);
 }
@@ -1065,7 +1085,7 @@ sfm_write_error (const struct sfm_writer *writer)
 /* Closes a system file after we're done with it.
    Returns true if successful, false if an I/O error occurred. */
 bool
-sfm_close_writer (struct sfm_writer *w)
+close_writer (struct sfm_writer *w)
 {
   bool ok;
   
@@ -1083,7 +1103,7 @@ sfm_close_writer (struct sfm_writer *w)
         }
       fflush (w->file);
 
-      ok = !sfm_write_error (w);
+      ok = !write_error (w);
 
       /* Seek back to the beginning and update the number of cases.
          This is just a courtesy to later readers, so there's no need
@@ -1112,3 +1132,10 @@ sfm_close_writer (struct sfm_writer *w)
 
   return ok;
 }
+
+static struct casewriter_class sys_file_casewriter_class = 
+  {
+    sys_file_casewriter_write,
+    sys_file_casewriter_destroy,
+    NULL,
+  };

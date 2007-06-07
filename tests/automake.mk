@@ -118,7 +118,6 @@ dist_TESTS = \
 	tests/bugs/temp-freq.sh \
 	tests/bugs/print-crash.sh \
 	tests/bugs/keep-all.sh \
-	tests/xforms/casefile.sh \
 	tests/xforms/recode.sh \
 	tests/stats/descript-basic.sh \
 	tests/stats/descript-missing.sh \

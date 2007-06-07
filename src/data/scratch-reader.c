@@ -22,11 +22,11 @@
 
 #include <stdlib.h>
 
-#include "casefile.h"
 #include "dictionary.h"
 #include "file-handle-def.h"
 #include "scratch-handle.h"
 #include <data/case.h>
+#include <data/casereader.h>
 #include <libpspp/message.h>
 
 #include "xalloc.h"
@@ -34,31 +34,20 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* A reader for a scratch file. */
-struct scratch_reader 
-  {
-    struct file_handle *fh;             /* Underlying file handle. */
-    struct casereader *casereader;      /* Case reader. */
-  };
-
 /* Opens FH, which must have referent type FH_REF_SCRATCH, and
    returns a scratch_reader for it, or a null pointer on
    failure.  Stores the dictionary for the scratch file into
-   *DICT.
-
-   If you use an any_reader instead, then your code can be more
-   flexible without being any harder to write. */
-struct scratch_reader *
+   *DICT. */
+struct casereader *
 scratch_reader_open (struct file_handle *fh, struct dictionary **dict)
 {
   struct scratch_handle *sh;
-  struct scratch_reader *reader;
   
   if (!fh_open (fh, FH_REF_SCRATCH, "scratch file", "rs"))
     return NULL;
   
   sh = fh_get_scratch_handle (fh);
-  if (sh == NULL) 
+  if (sh == NULL || sh->casereader == NULL) 
     {
       msg (SE, _("Scratch file handle %s has not yet been written, "
                  "using SAVE or another procedure, so it cannot yet "
@@ -68,42 +57,5 @@ scratch_reader_open (struct file_handle *fh, struct dictionary **dict)
     }
 
   *dict = dict_clone (sh->dictionary);
-  reader = xmalloc (sizeof *reader);
-  reader->fh = fh;
-  reader->casereader = casefile_get_reader (sh->casefile, NULL);
-  return reader;
-}
-
-/* Reads a case from READER and copies it into C.
-   Returns true if successful, false on error or at end of file. */
-bool
-scratch_reader_read_case (struct scratch_reader *reader, struct ccase *c)
-{
-  struct ccase tmp;
-  if (casereader_read (reader->casereader, &tmp)) 
-    {
-      case_copy (c, 0, &tmp, 0,
-                 casefile_get_value_cnt (
-                   casereader_get_casefile (reader->casereader)));
-      case_destroy (&tmp);
-      return true;
-    }
-  else
-    return false;
-}
-
-/* Returns true if an I/O error occurred on READER, false otherwise. */
-bool
-scratch_reader_error (const struct scratch_reader *reader) 
-{
-  return casefile_error (casereader_get_casefile (reader->casereader));
-}
-
-/* Closes READER. */
-void
-scratch_reader_close (struct scratch_reader *reader) 
-{
-  fh_close (reader->fh, "scratch file", "rs");
-  casereader_destroy (reader->casereader);
-  free (reader);
+  return casereader_clone (sh->casereader);
 }

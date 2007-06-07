@@ -27,7 +27,6 @@
 #include "progname.h"
 #include "read-line.h"
 
-#include <data/fastfile-factory.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <libpspp/getl.h>
@@ -86,7 +85,6 @@ static struct source_stream *the_source_stream ;
 int
 main (int argc, char **argv)
 {
-  struct casefile_factory *factory;
   signal (SIGABRT, bug_handler);
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
@@ -111,9 +109,7 @@ main (int argc, char **argv)
   settings_init ();
   random_init ();
 
-  factory = fastfile_factory_create ();
-
-  the_dataset = create_dataset (factory, NULL, NULL);
+  the_dataset = create_dataset (NULL, NULL);
 
   if (parse_command_line (argc, argv, the_source_stream))
     {

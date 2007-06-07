@@ -24,10 +24,7 @@
 struct dictionary;
 struct file_handle;
 struct ccase;
-struct scratch_reader *scratch_reader_open (struct file_handle *,
-                                            struct dictionary **);
-bool scratch_reader_read_case (struct scratch_reader *, struct ccase *);
-bool scratch_reader_error (const struct scratch_reader *);
-void scratch_reader_close (struct scratch_reader *);
+struct casereader *scratch_reader_open (struct file_handle *,
+                                        struct dictionary **);
 
 #endif /* scratch-reader.h */

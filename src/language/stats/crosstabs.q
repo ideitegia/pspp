@@ -36,6 +36,8 @@
 #include <stdio.h>
 
 #include <data/case.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
 #include <data/data-out.h>
 #include <data/dictionary.h>
 #include <data/format.h>
@@ -177,10 +179,10 @@ static struct pool *pl_tc;	/* For table cells. */
 static struct pool *pl_col;	/* For column data. */
 
 static int internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds);
-static void precalc (const struct ccase *, void *, const struct dataset *);
-static bool calc_general (const struct ccase *, void *, const struct dataset *);
-static bool calc_integer (const struct ccase *, void *, const struct dataset *);
-static bool postcalc (void *, const struct dataset *);
+static void precalc (struct casereader *, const struct dataset *);
+static void calc_general (struct ccase *, const struct dataset *);
+static void calc_integer (struct ccase *, const struct dataset *);
+static void postcalc (void);
 static void submit (struct tab_table *);
 
 static void format_short (char *s, const struct fmt_spec *fp,
@@ -203,8 +205,10 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 static int
 internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 {
-  int i;
+  struct casegrouper *grouper;
+  struct casereader *input, *group;
   bool ok;
+  int i;
 
   variables = NULL;
   variables_cnt = 0;
@@ -294,9 +298,28 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   else
     write_style = CRS_WR_NONE;
 
-  ok = procedure_with_splits (ds, precalc,
-                              mode == GENERAL ? calc_general : calc_integer,
-                              postcalc, NULL);
+  input = casereader_create_filter_weight (proc_open (ds), dataset_dict (ds),
+                                           NULL, NULL);
+  grouper = casegrouper_create_splits (input, dataset_dict (ds));
+  while (casegrouper_get_next_group (grouper, &group)) 
+    {
+      struct ccase c;
+      
+      precalc (group, ds);
+      
+      for (; casereader_read (group, &c); case_destroy (&c)) 
+        {
+          if (mode == GENERAL)
+            calc_general (&c, ds);
+          else
+            calc_integer (&c, ds); 
+        }
+      casereader_destroy (group);
+
+      postcalc ();
+    }
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
@@ -490,10 +513,16 @@ static int compare_table_entry (const void *, const void *, const void *);
 static unsigned hash_table_entry (const void *, const void *);
 
 /* Set up the crosstabulation tables for processing. */
-static  void
-precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
+static void
+precalc (struct casereader *input, const struct dataset *ds)
 {
-  output_split_file_values (ds, first);
+  struct ccase c;
+
+  if (!casereader_peek (input, 0, &c))
+    return;
+  output_split_file_values (ds, &c);
+  case_destroy (&c);
+
   if (mode == GENERAL)
     {
       gen_tab = hsh_create (512, compare_table_entry, hash_table_entry,
@@ -565,18 +594,16 @@ precalc (const struct ccase *first, void *aux UNUSED, const struct dataset *ds)
 }
 
 /* Form crosstabulations for general mode. */
-static bool
-calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
+static void
+calc_general (struct ccase *c, const struct dataset *ds)
 {
-  bool bad_warn = true;
-
   /* Missing values to exclude. */
   enum mv_class exclude = (cmd.miss == CRS_TABLE ? MV_ANY
                            : cmd.miss == CRS_INCLUDE ? MV_SYSTEM
                            : MV_NEVER);
 
   /* Case weight. */
-  double weight = dict_get_case_weight (dataset_dict (ds), c, &bad_warn);
+  double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
 
   /* Flattened current table index. */
   int t;
@@ -637,12 +664,10 @@ calc_general (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
     next_crosstab:
       local_free (te);
     }
-  
-  return true;
 }
 
-static bool
-calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
+static void
+calc_integer (struct ccase *c, const struct dataset *ds)
 {
   bool bad_warn = true;
 
@@ -695,8 +720,6 @@ calc_integer (const struct ccase *c, void *aux UNUSED, const struct dataset *ds)
       
     next_crosstab: ;
     }
-  
-  return true;
 }
 
 /* Compare the table_entry's at A and B and return a strcmp()-type
@@ -764,8 +787,8 @@ static void output_pivot_table (struct table_entry **, struct table_entry **,
 				int *, int *, int *);
 static void make_summary_table (void);
 
-static bool
-postcalc (void *aux UNUSED, const struct dataset *ds UNUSED)
+static void
+postcalc (void)
 {
   if (mode == GENERAL)
     {
@@ -801,8 +824,6 @@ postcalc (void *aux UNUSED, const struct dataset *ds UNUSED)
   }
   
   hsh_destroy (gen_tab);
-
-  return true;
 }
 
 static void insert_summary (struct tab_table *, int tab_index, double valid);

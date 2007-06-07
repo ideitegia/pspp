@@ -23,10 +23,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <data/case-source.h>
 #include <data/case.h>
-#include <data/case-source.h>
 #include <data/data-in.h>
+#include <data/casereader.h>
+#include <data/casereader-provider.h>
 #include <data/dictionary.h>
 #include <data/format.h>
 #include <data/procedure.h>
@@ -99,9 +99,10 @@ struct data_list_pgm
     int record_cnt;             /* Number of records. */
     struct string delims;       /* Field delimiters. */
     int skip_records;           /* Records to skip before first case. */
+    size_t value_cnt;           /* Number of `union value's in case. */
   };
 
-static const struct case_source_class data_list_source_class;
+static const struct casereader_class data_list_casereader_class;
 
 static bool parse_fixed (struct lexer *, struct dictionary *dict, 
 			 struct pool *tmp_pool, struct data_list_pgm *);
@@ -118,15 +119,14 @@ static trns_proc_func data_list_trns_proc;
 int
 cmd_data_list (struct lexer *lexer, struct dataset *ds)
 {
-  struct dictionary *dict = dataset_dict (ds);
+  struct dictionary *dict;
   struct data_list_pgm *dls;
   int table = -1;                /* Print table if nonzero, -1=undecided. */
   struct file_handle *fh = fh_inline_file ();
   struct pool *tmp_pool;
   bool ok;
 
-  if (!in_input_program ())
-    discard_variables (ds);
+  dict = in_input_program () ? dataset_dict (ds) : dict_create ();
 
   dls = pool_create_container (struct data_list_pgm, pool);
   ll_init (&dls->specs);
@@ -178,9 +178,9 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	  lex_match (lexer, '=');
 	  if (!lex_force_id (lexer))
 	    goto error;
-	  dls->end = dict_lookup_var (dataset_dict (ds), lex_tokid (lexer));
+	  dls->end = dict_lookup_var (dict, lex_tokid (lexer));
 	  if (!dls->end) 
-            dls->end = dict_create_var_assert (dataset_dict (ds), lex_tokid (lexer), 0);
+            dls->end = dict_create_var_assert (dict, lex_tokid (lexer), 0);
 	  lex_get (lexer);
 	}
       else if (lex_token (lexer) == T_ID)
@@ -273,10 +273,19 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   if (dls->reader == NULL)
     goto error;
 
+  dls->value_cnt = dict_get_next_value_idx (dict);
+
   if (in_input_program ())
     add_transformation (ds, data_list_trns_proc, data_list_trns_free, dls);
   else 
-    proc_set_source (ds, create_case_source (&data_list_source_class, dls));
+    {
+      struct casereader *reader;
+      reader = casereader_create_sequential (NULL,
+                                             dict_get_next_value_idx (dict),
+                                             -1, &data_list_casereader_class,
+                                             dls);
+      proc_set_active_file (ds, reader, dict); 
+    }
 
   pool_destroy (tmp_pool);
 
@@ -810,10 +819,12 @@ data_list_trns_proc (void *dls_, struct ccase *c, casenumber case_num UNUSED)
    Returns true if successful, false at end of file or if an
    I/O error occurred. */
 static bool
-data_list_source_read (struct case_source *source, struct ccase *c)
+data_list_casereader_read (struct casereader *reader UNUSED, void *dls_,
+                           struct ccase *c)
 {
-  struct data_list_pgm *dls = source->aux;
-
+  struct data_list_pgm *dls = dls_;
+  bool ok;
+  
   /* Skip the requested number of records before reading the
      first case. */
   while (dls->skip_records > 0) 
@@ -823,26 +834,28 @@ data_list_source_read (struct case_source *source, struct ccase *c)
       dfm_forward_record (dls->reader);
       dls->skip_records--;
     }
-  
-  return read_from_data_list (dls, c);
-}
 
-/* Destroys the source.
-   Returns true if successful read, false if an I/O occurred
-   during destruction or previously. */
-static bool
-data_list_source_destroy (struct case_source *source)
-{
-  struct data_list_pgm *dls = source->aux;
-  bool ok = !dfm_reader_error (dls->reader);
-  data_list_trns_free (dls);
+  case_create (c, dls->value_cnt);
+  ok = read_from_data_list (dls, c);
+  if (!ok)
+    case_destroy (c);
   return ok;
 }
 
-static const struct case_source_class data_list_source_class = 
+/* Destroys the casereader. */
+static void
+data_list_casereader_destroy (struct casereader *reader UNUSED, void *dls_)
+{
+  struct data_list_pgm *dls = dls_;
+  if (dfm_reader_error (dls->reader))
+    casereader_force_error (reader);
+  data_list_trns_free (dls);
+}
+
+static const struct casereader_class data_list_casereader_class =
   {
-    "DATA LIST",
+    data_list_casereader_read,
+    data_list_casereader_destroy,
     NULL,
-    data_list_source_read,
-    data_list_source_destroy,
+    NULL,
   };

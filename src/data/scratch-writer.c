@@ -17,14 +17,21 @@
    02110-1301, USA. */
 
 #include <config.h>
+
 #include "scratch-writer.h"
+
 #include <stdlib.h>
-#include "case.h"
-#include "casefile.h"
-#include "fastfile.h"
-#include "dictionary.h"
-#include "file-handle-def.h"
-#include "scratch-handle.h"
+
+#include <data/case.h>
+#include <data/casereader.h>
+#include <data/casewriter-provider.h>
+#include <data/casewriter.h>
+#include <data/dictionary.h>
+#include <data/file-handle-def.h>
+#include <data/scratch-handle.h>
+#include <libpspp/compiler.h>
+#include <libpspp/taint.h>
+
 #include "xalloc.h"
 
 /* A scratch file writer. */
@@ -33,16 +40,16 @@ struct scratch_writer
     struct scratch_handle *handle;      /* Underlying scratch handle. */
     struct file_handle *fh;             /* Underlying file handle. */
     struct dict_compactor *compactor;   /* Compacts into handle->dictionary. */
+    struct casewriter *subwriter;       /* Data output. */
   };
+
+static struct casewriter_class scratch_writer_casewriter_class;
 
 /* Opens FH, which must have referent type FH_REF_SCRATCH, and
    returns a scratch_writer for it, or a null pointer on
    failure.  Cases stored in the scratch_writer will be expected
-   to be drawn from DICTIONARY.
-
-   If you use an any_writer instead, then your code can be more
-   flexible without being any harder to write. */
-struct scratch_writer *
+   to be drawn from DICTIONARY. */
+struct casewriter *
 scratch_writer_open (struct file_handle *fh,
                      const struct dictionary *dictionary) 
 {
@@ -50,6 +57,7 @@ scratch_writer_open (struct file_handle *fh,
   struct scratch_writer *writer;
   struct dictionary *scratch_dict;
   struct dict_compactor *compactor;
+  struct casewriter *casewriter;
 
   if (!fh_open (fh, FH_REF_SCRATCH, "scratch file", "we"))
     return NULL;
@@ -72,50 +80,57 @@ scratch_writer_open (struct file_handle *fh,
   /* Create new contents. */
   sh = xmalloc (sizeof *sh);
   sh->dictionary = scratch_dict;
-  sh->casefile = fastfile_create (dict_get_next_value_idx (sh->dictionary));
+  sh->casereader = NULL;
 
   /* Create writer. */
   writer = xmalloc (sizeof *writer);
   writer->handle = sh;
   writer->fh = fh;
   writer->compactor = compactor;
+  writer->subwriter = autopaging_writer_create (dict_get_next_value_idx (
+                                               scratch_dict));
 
   fh_set_scratch_handle (fh, sh);
-  return writer;
+  casewriter = casewriter_create (&scratch_writer_casewriter_class, writer);
+  taint_propagate (casewriter_get_taint (writer->subwriter),
+                   casewriter_get_taint (casewriter));
+  return casewriter;
 }
 
 /* Writes case C to WRITER. */
-bool
-scratch_writer_write_case (struct scratch_writer *writer,
-                           const struct ccase *c) 
+static void
+scratch_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
+                                 struct ccase *c) 
 {
+  struct scratch_writer *writer = writer_;
   struct scratch_handle *handle = writer->handle;
+  struct ccase tmp;
   if (writer->compactor) 
     {
-      struct ccase tmp_case;
-      case_create (&tmp_case, dict_get_next_value_idx (handle->dictionary));
-      dict_compactor_compact (writer->compactor, &tmp_case, c);
-      return casefile_append_xfer (handle->casefile, &tmp_case);
+      case_create (&tmp, dict_get_next_value_idx (handle->dictionary));
+      dict_compactor_compact (writer->compactor, &tmp, c);
+      case_destroy (c);
     }
-  else 
-    return casefile_append (handle->casefile, c);
+  else
+    case_move (&tmp, c);
+  casewriter_write (writer->subwriter, &tmp);
 }
 
-/* Returns true if an I/O error occurred on WRITER, false otherwise. */
-bool
-scratch_writer_error (const struct scratch_writer *writer) 
+/* Closes WRITER. */
+static void
+scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_) 
 {
-  return casefile_error (writer->handle->casefile);
-}
-
-/* Closes WRITER.
-   Returns true if successful, false if an I/O error occurred on WRITER. */
-bool
-scratch_writer_close (struct scratch_writer *writer) 
-{
-  struct casefile *cf = writer->handle->casefile;
-  bool ok = casefile_error (cf);
+  struct scratch_writer *writer = writer_;
+  struct casereader *reader = casewriter_make_reader (writer->subwriter);
+  if (!casereader_error (reader))
+    writer->handle->casereader = reader;
   fh_close (writer->fh, "scratch file", "we");
   free (writer);
-  return ok;
 }
+
+static struct casewriter_class scratch_writer_casewriter_class = 
+  {
+    scratch_writer_casewriter_write,
+    scratch_writer_casewriter_destroy,
+    NULL,
+  };

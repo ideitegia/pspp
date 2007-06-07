@@ -1,6 +1,7 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
-	* command.def: Add DEBUG DATASHEET command.
+	* command.def: Add DEBUG DATASHEET command.  Remove DEBUG CASEFILE
+	command.
 
 2007-03-18  Ben Pfaff  <blp@gnu.org>
 

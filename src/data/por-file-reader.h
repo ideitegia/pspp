@@ -37,12 +37,9 @@ struct pfm_read_info
 struct dictionary;
 struct file_handle;
 struct ccase;
-struct pfm_reader *pfm_open_reader (struct file_handle *,
+struct casereader *pfm_open_reader (struct file_handle *,
                                     struct dictionary **,
                                     struct pfm_read_info *);
-bool pfm_read_case (struct pfm_reader *, struct ccase *);
-bool pfm_read_error (const struct pfm_reader *);
-void pfm_close_reader (struct pfm_reader *);
 bool pfm_detect (FILE *);
 
 #endif /* por-file-reader.h */

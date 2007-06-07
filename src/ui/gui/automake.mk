@@ -84,8 +84,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.c \
 	src/ui/gui/dict-display.h \
-	src/ui/gui/flexifile-factory.h \
-	src/ui/gui/flexifile-factory.c \
 	src/ui/gui/main.c \
 	src/ui/gui/message-dialog.c \
 	src/ui/gui/message-dialog.h \

@@ -18,27 +18,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include <config.h>
 
-#include "sort-criteria.h"
+#include <limits.h>
+#include <math.h>
 
 #include <data/dictionary.h>
 #include <data/format.h>
 #include <data/missing-values.h>
 #include <data/procedure.h>
 #include <data/variable.h>
+#include <data/case-ordering.h>
 #include <data/case.h>
-#include <data/casefile.h>
-#include <data/fastfile.h>
-#include <data/storage-stream.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
+#include <data/casewriter.h>
 #include <language/command.h>
 #include <language/stats/sort-criteria.h>
-#include <limits.h>
 #include <libpspp/compiler.h>
+#include <libpspp/taint.h>
 #include <math/sort.h>
 #include <output/table.h>
 #include <output/manager.h>
 
 #include <gsl/gsl_cdf.h>
-#include <math.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -152,7 +153,7 @@ static enum mv_class exclude_values;
 static struct rank_spec *rank_specs;
 static size_t n_rank_specs;
 
-static struct sort_criteria *sc;
+static struct case_ordering *sc;
 
 static const struct variable **group_vars;
 static size_t n_group_vars;
@@ -165,14 +166,14 @@ static int k_ntiles;
 
 static struct cmd_rank cmd;
 
-static struct casefile *rank_sorted_casefile (struct casefile *cf,
-					      const struct sort_criteria *,
-					      const struct dictionary *,
-					      const struct rank_spec *rs,
-					      int n_rank_specs,
-					      int idx,
-					      const struct missing_values *miss
-					      );
+static void rank_sorted_file (struct casereader *, 
+                              struct casewriter *,
+                              const struct dictionary *,
+                              const struct rank_spec *rs, 
+                              int n_rank_specs,
+                              int idx,
+                              struct variable *rank_var);
+
 static const char *
 fraction_name(void)
 {
@@ -232,69 +233,56 @@ create_var_label (struct variable *dest_var,
 }
 
 
-static bool
-rank_cmd (struct dataset *ds, const struct sort_criteria *sc,
+static bool 
+rank_cmd (struct dataset *ds, const struct case_ordering *sc, 
 	  const struct rank_spec *rank_specs, int n_rank_specs)
 {
-  struct sort_criteria criteria;
-  bool result = true;
+  struct case_ordering *base_ordering;
+  bool ok = true;
   int i;
   const int n_splits = dict_get_split_cnt (dataset_dict (ds));
 
-  criteria.crit_cnt = n_splits + n_group_vars + 1;
-  criteria.crits = xnmalloc (criteria.crit_cnt, sizeof *criteria.crits);
+  base_ordering = case_ordering_create (dataset_dict (ds));
   for (i = 0; i < n_splits ; i++)
-    {
-      const struct variable *v = dict_get_split_vars (dataset_dict (ds))[i];
-      criteria.crits[i].fv = var_get_case_index (v);
-      criteria.crits[i].width = var_get_width (v);
-      criteria.crits[i].dir = SRT_ASCEND;
-    }
+    case_ordering_add_var (base_ordering,
+                           dict_get_split_vars (dataset_dict (ds))[i],
+                           SRT_ASCEND);
+
   for (i = 0; i < n_group_vars; i++)
+    case_ordering_add_var (base_ordering, group_vars[i], SRT_ASCEND);
+  for (i = 0 ; i < case_ordering_get_var_cnt (sc) ; ++i )
     {
-      criteria.crits[i + n_splits].fv = var_get_case_index (group_vars[i]);
-      criteria.crits[i + n_splits].width = var_get_width (group_vars[i]);
-      criteria.crits[i + n_splits].dir = SRT_ASCEND;
+      struct case_ordering *ordering;
+      struct casegrouper *grouper;
+      struct casereader *group;
+      struct casewriter *output;
+      struct casereader *ranked_file;
+
+      ordering = case_ordering_clone (base_ordering);
+      case_ordering_add_var (ordering,
+                             case_ordering_get_var (sc, i),
+                             case_ordering_get_direction (sc, i));
+
+      proc_discard_output (ds);
+      grouper = casegrouper_create_case_ordering (sort_execute (proc_open (ds),
+                                                                ordering),
+                                                  base_ordering);
+      output = autopaging_writer_create (dict_get_next_value_idx (
+                                           dataset_dict (ds)));
+      while (casegrouper_get_next_group (grouper, &group)) 
+        rank_sorted_file (group, output, dataset_dict (ds),
+                          rank_specs, n_rank_specs,
+                          i, src_vars[i]); 
+      ok = casegrouper_destroy (grouper);
+      ok = proc_commit (ds) && ok;
+      ranked_file = casewriter_make_reader (output);
+      ok = proc_set_active_file_data (ds, ranked_file) && ok;
+      if (!ok)
+        break;
     }
-  for (i = 0 ; i < sc->crit_cnt ; ++i )
-    {
-      struct casefile *out ;
-      struct casefile *cf ;
-      struct casereader *reader ;
-      struct casefile *sorted_cf ;
+  case_ordering_destroy (base_ordering);
 
-      /* Obtain active file in CF. */
-      if (!procedure (ds, NULL, NULL))
-	goto error;
-
-      cf = proc_capture_output (ds);
-
-      /* Sort CF into SORTED_CF. */
-      reader = casefile_get_destructive_reader (cf) ;
-      criteria.crits[criteria.crit_cnt - 1] = sc->crits[i];
-      assert ( sc->crits[i].fv == var_get_case_index (src_vars[i]) );
-      sorted_cf = sort_execute (reader, &criteria, NULL);
-      casefile_destroy (cf);
-
-      out = rank_sorted_casefile (sorted_cf, &criteria,
-				  dataset_dict (ds),
-                                  rank_specs, n_rank_specs,
-				  i, var_get_missing_values (src_vars[i]));
-      if ( NULL == out )
-	{
-	  result = false ;
-	  continue ;
-	}
-
-      proc_set_source (ds, storage_source_create (out));
-    }
-
-  free (criteria.crits);
-  return result ;
-
-error:
-  free (criteria.crits);
-  return false ;
+  return ok; 
 }
 
 /* Hardly a rank function !! */
@@ -311,7 +299,8 @@ rank_rank (double c, double cc, double cc_1,
 	  int i, double w UNUSED)
 {
   double rank;
-  if ( c >= 1.0 )
+
+  if ( c >= 1.0 ) 
     {
       switch (cmd.ties)
 	{
@@ -471,191 +460,70 @@ rank_savage (double c, double cc, double cc_1,
   NOT_REACHED();
 }
 
-
-/* Rank the casefile belonging to CR, starting from the current
-   postition of CR continuing up to and including the ENDth case.
-
-   RS points to an array containing  the rank specifications to
-   use. N_RANK_SPECS is the number of elements of RS.
-
-
-   DEST_VAR_INDEX is the index into the rank_spec destvar element
-   to be used for this ranking.
-
-   Prerequisites: 1. The casefile must be sorted according to CRITERION.
-                  2. W is the sum of the non-missing caseweights for this
-		  range of the casefile.
-*/
 static void
-rank_cases (struct casereader *cr,
-	    unsigned long end,
-	    const struct dictionary *dict,
-	    const struct sort_criterion *criterion,
-	    const struct missing_values *mv,
-	    double w,
-	    const struct rank_spec *rs,
-	    int n_rank_specs,
-	    int dest_var_index,
-	    struct casefile *dest)
+rank_sorted_file (struct casereader *input, 
+                  struct casewriter *output,
+                  const struct dictionary *dict,
+                  const struct rank_spec *rs, 
+                  int n_rank_specs, 
+                  int dest_idx, 
+                  struct variable *rank_var)
 {
-  bool warn = true;
+  struct casereader *pass1, *pass2, *pass2_1;
+  struct casegrouper *tie_grouper;
+  struct ccase c;
+  double w = 0.0;
   double cc = 0.0;
-  double cc_1;
-  int iter = 1;
+  int tie_group = 1;
 
-  const int fv = criterion->fv;
-  const int width = criterion->width;
 
-  while (casereader_cnum (cr) < end)
+  input = casereader_create_filter_missing (input, &rank_var, 1,
+                                            exclude_values, output);
+  input = casereader_create_filter_weight (input, dict, NULL, output);
+
+  casereader_split (input, &pass1, &pass2);
+
+  /* Pass 1: Get total group weight. */
+  for (; casereader_read (pass1, &c); case_destroy (&c)) 
+    w += dict_get_case_weight (dict, &c, NULL);
+  casereader_destroy (pass1);
+
+  /* Pass 2: Do ranking. */
+  tie_grouper = casegrouper_create_vars (pass2, &rank_var, 1);
+  while (casegrouper_get_next_group (tie_grouper, &pass2_1)) 
     {
-      struct casereader *lookahead;
-      const union value *this_value;
-      bool this_value_is_missing;
-      struct ccase this_case, lookahead_case;
-      double c;
+      struct casereader *pass2_2;
+      double cc_1 = cc;
+      double tw = 0.0;
       int i;
-      size_t n = 0;
 
-      if (!casereader_read_xfer (cr, &this_case))
-        break;
+      pass2_2 = casereader_clone (pass2_1);
+      taint_propagate (casereader_get_taint (pass2_2),
+                       casewriter_get_taint (output));
 
-      this_value = case_data_idx (&this_case, fv);
-      this_value_is_missing = mv_is_value_missing (mv, this_value,
-                                                   exclude_values);
-      c = dict_get_case_weight (dict, &this_case, &warn);
+      /* Pass 2.1: Sum up weight for tied cases. */
+      for (; casereader_read (pass2_1, &c); case_destroy (&c)) 
+        tw += dict_get_case_weight (dict, &c, NULL);
+      cc += tw;
+      casereader_destroy (pass2_1);
 
-      lookahead = casereader_clone (cr);
-      n = 0;
-      while (casereader_cnum (lookahead) < end
-             && casereader_read_xfer (lookahead, &lookahead_case))
-        {
-          const union value *lookahead_value = case_data_idx (&lookahead_case, fv);
-          int diff = compare_values (this_value, lookahead_value, width);
-
-          if (diff != 0)
-            {
-	      /* Make sure the casefile was sorted */
-	      assert ( diff == ((criterion->dir == SRT_ASCEND) ? -1 :1));
-
-              case_destroy (&lookahead_case);
-              break;
-            }
-
-          c += dict_get_case_weight (dict, &lookahead_case, &warn);
-          case_destroy (&lookahead_case);
-          n++;
-        }
-      casereader_destroy (lookahead);
-
-      cc_1 = cc;
-      if ( !this_value_is_missing )
-	cc += c;
-
-      do
+      /* Pass 2.2: Rank tied cases. */
+      while (casereader_read (pass2_2, &c)) 
         {
           for (i = 0; i < n_rank_specs; ++i)
             {
-              const struct variable *dst_var = rs[i].destvars[dest_var_index];
-
-	      if  (this_value_is_missing)
-		case_data_rw (&this_case, dst_var)->f = SYSMIS;
-	      else
-		case_data_rw (&this_case, dst_var)->f =
-		  rank_func[rs[i].rfunc](c, cc, cc_1, iter, w);
+              const struct variable *dst_var = rs[i].destvars[dest_idx];
+              double *dst_value = &case_data_rw (&c, dst_var)->f;
+              *dst_value = rank_func[rs[i].rfunc] (tw, cc, cc_1, tie_group, w);
             }
-          casefile_append_xfer (dest, &this_case);
+          casewriter_write (output, &c);
         }
-      while (n-- > 0 && casereader_read_xfer (cr, &this_case));
-
-      if ( !this_value_is_missing )
-	iter++;
+      casereader_destroy (pass2_2);
+          
+      tie_group++;
     }
-
-  /* If this isn't true, then all the results will be wrong */
-  assert ( w == cc );
+  casegrouper_destroy (tie_grouper);
 }
-
-static bool
-same_group (const struct ccase *a, const struct ccase *b,
-            const struct sort_criteria *crit)
-{
-  size_t i;
-
-  for (i = 0; i < crit->crit_cnt - 1; i++)
-    {
-      struct sort_criterion *c = &crit->crits[i];
-      if (compare_values (case_data_idx (a, c->fv),
-                          case_data_idx (b, c->fv), c->width) != 0)
-        return false;
-    }
-
-  return true;
-}
-
-static struct casefile *
-rank_sorted_casefile (struct casefile *cf,
-		      const struct sort_criteria *crit,
-		      const struct dictionary *dict,
-		      const struct rank_spec *rs,
-		      int n_rank_specs,
-		      int dest_idx,
-		      const struct missing_values *mv)
-{
-  struct casefile *dest = fastfile_create (casefile_get_value_cnt (cf));
-  struct casereader *lookahead = casefile_get_reader (cf, NULL);
-  struct casereader *pos = casereader_clone (lookahead);
-  struct ccase group_case;
-  bool warn = true;
-
-  struct sort_criterion *ultimate_crit = &crit->crits[crit->crit_cnt - 1];
-
-  if (casereader_read (lookahead, &group_case))
-    {
-      struct ccase this_case;
-      const union value *this_value ;
-      double w = 0.0;
-      this_value = case_data_idx( &group_case, ultimate_crit->fv);
-
-      if ( !mv_is_value_missing (mv, this_value, exclude_values) )
-	w = dict_get_case_weight (dict, &group_case, &warn);
-
-      while (casereader_read (lookahead, &this_case))
-        {
-	  const union value *this_value =
-	    case_data_idx(&this_case, ultimate_crit->fv);
-          double c = dict_get_case_weight (dict, &this_case, &warn);
-          if (!same_group (&group_case, &this_case, crit))
-            {
-              rank_cases (pos, casereader_cnum (lookahead) - 1,
-			  dict,
-			  ultimate_crit,
-			  mv, w,
-			  rs, n_rank_specs,
-			  dest_idx, dest);
-
-              w = 0.0;
-              case_destroy (&group_case);
-              case_move (&group_case, &this_case);
-            }
-	  if ( !mv_is_value_missing (mv, this_value, exclude_values) )
-	    w += c;
-          case_destroy (&this_case);
-        }
-      case_destroy (&group_case);
-      rank_cases (pos, ULONG_MAX, dict, ultimate_crit, mv, w,
-		  rs, n_rank_specs, dest_idx, dest);
-    }
-
-  if (casefile_error (dest))
-    {
-      casefile_destroy (dest);
-      dest = NULL;
-    }
-
-  casefile_destroy (cf);
-  return dest;
-}
-
 
 /* Transformation function to enumerate all the cases */
 static int
@@ -749,7 +617,7 @@ rank_cleanup(void)
   rank_specs = NULL;
   n_rank_specs = 0;
 
-  sort_destroy_criteria (sc);
+  case_ordering_destroy (sc);
   sc = NULL;
 
   free (src_vars);
@@ -783,13 +651,13 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 
       rank_specs = xmalloc (sizeof (*rank_specs));
       rank_specs[0].rfunc = RANK;
-      rank_specs[0].destvars =
-	xcalloc (sc->crit_cnt, sizeof (struct variable *));
+      rank_specs[0].destvars = 
+	xcalloc (case_ordering_get_var_cnt (sc), sizeof (struct variable *));
 
       n_rank_specs = 1;
     }
 
-  assert ( sc->crit_cnt == n_src_vars);
+  assert ( case_ordering_get_var_cnt (sc) == n_src_vars);
 
   /* Create variables for all rank destinations which haven't
      already been created with INTO.
@@ -891,30 +759,28 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
     msg(MW, _("FRACTION has been specified, but NORMAL and PROPORTION rank functions have not been requested.  The FRACTION subcommand will be ignored.") );
 
   /* Add a variable which we can sort by to get back the original
-     order */
-  order = dict_create_var_assert (dataset_dict (ds), "$ORDER_", 0);
+     order */ 
+  order = dict_create_var_assert (dataset_dict (ds), "$ORDER_", 0); 
 
   add_transformation (ds, create_resort_key, 0, order);
 
   /* Do the ranking */
   result = rank_cmd (ds, sc, rank_specs, n_rank_specs);
 
-  /* Put the active file back in its original order */
+  /* Put the active file back in its original order.  Delete
+     our sort key, which we don't need anymore.  */
   {
-    struct sort_criteria criteria;
-    struct sort_criterion restore_criterion ;
-    restore_criterion.fv = var_get_case_index (order);
-    restore_criterion.width = 0;
-    restore_criterion.dir = SRT_ASCEND;
+    struct case_ordering *ordering = case_ordering_create (dataset_dict (ds));
+    struct casereader *sorted;
+    case_ordering_add_var (ordering, order, SRT_ASCEND);
+    /* FIXME: loses error conditions. */
+    proc_discard_output (ds);
+    sorted = sort_execute (proc_open (ds), ordering);
+    result = proc_commit (ds) && result;
 
-    criteria.crits = &restore_criterion;
-    criteria.crit_cnt = 1;
-
-    sort_active_file_in_place (ds, &criteria);
+    dict_delete_var (dataset_dict (ds), order);
+    result = proc_set_active_file_data (ds, sorted) && result;
   }
-
-  /* ... and we don't need our sort key anymore. So delete it */
-  dict_delete_var (dataset_dict (ds), order);
 
   rank_cleanup();
 
@@ -928,16 +794,16 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 static int
 rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank *cmd UNUSED, void *aux UNUSED)
 {
-  static const int terminators[2] = {T_BY, 0};
-
   lex_match (lexer, '=');
 
   if ((lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
       return 2;
 
-  sc = sort_parse_criteria (lexer, dataset_dict (ds),
-			    &src_vars, &n_src_vars, 0, terminators);
+  sc = parse_case_ordering (lexer, dataset_dict (ds), NULL);
+  if (sc == NULL)
+    return 0;
+  case_ordering_get_vars (sc, &src_vars, &n_src_vars);
 
   if ( lex_match (lexer, T_BY)  )
     {
@@ -970,9 +836,10 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
   rank_specs[n_rank_specs - 1].rfunc = f;
   rank_specs[n_rank_specs - 1].destvars = NULL;
 
-  rank_specs[n_rank_specs - 1].destvars =
-	    xcalloc (sc->crit_cnt, sizeof (struct variable *));
-
+  rank_specs[n_rank_specs - 1].destvars = 
+	    xcalloc (case_ordering_get_var_cnt (sc),
+                     sizeof (struct variable *));
+	  
   if (lex_match_id (lexer, "INTO"))
     {
       struct variable *destvar;
@@ -985,7 +852,7 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
 	      msg(SE, _("Variable %s already exists."), lex_tokid (lexer));
 	      return 0;
 	    }
-	  if ( var_count >= sc->crit_cnt )
+	  if ( var_count >= case_ordering_get_var_cnt (sc) ) 
 	    {
 	      msg(SE, _("Too many variables in INTO clause."));
 	      return 0;

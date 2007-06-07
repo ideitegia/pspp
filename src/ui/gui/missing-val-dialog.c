@@ -90,8 +90,8 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       gint nvals = 0;
       gint badvals = 0;
       gint i;
-      mv_clear (&dialog->mvl);
-      for (i = 0 ; i < 3 ; ++i )
+      mv_clear(&dialog->mvl);
+      for(i = 0 ; i < 3 ; ++i ) 
 	{
 	  gchar *text =
 	    g_strdup (gtk_entry_get_text (GTK_ENTRY (dialog->mv[i])));
