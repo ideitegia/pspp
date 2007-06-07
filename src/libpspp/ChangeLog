@@ -1,3 +1,13 @@
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
+	Add error propagation layer.  Patch #5916, slightly revised.
+
+	* automake.mk: Add new files.
+	
+	* taint.c: New file.
+
+	* taint.h: New file.
+
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
 	Add ability for reverse iteration to tower code.

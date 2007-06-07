@@ -63,6 +63,8 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/str.h \
 	src/libpspp/syntax-gen.c \
 	src/libpspp/syntax-gen.h \
+	src/libpspp/taint.c \
+	src/libpspp/taint.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
 	src/libpspp/verbose-msg.c \
