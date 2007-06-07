@@ -1,5 +1,17 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	sparse_cases data structure that augments a sparse_array of cases
+	with the ability to dump cases to disk if we get too many cases in
+	memory.
+
+	* automake.mk: Add new files.
+
+	* sparse-cases.c: New file.
+
+	* sparse-cases.h: New file.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Adds a low-level on-disk case array data structure.
 	
 	* automake.mk: Add new files.
