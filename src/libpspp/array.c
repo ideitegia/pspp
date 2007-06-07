@@ -531,7 +531,7 @@ binary_search (const void *array, size_t count, size_t size,
                void *value,
                algo_compare_func *compare, const void *aux) 
 {
-  assert (array != NULL);
+  assert (array != NULL || count == 0);
   assert (count <= INT_MAX);
   assert (compare != NULL);
 

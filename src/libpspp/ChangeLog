@@ -1,5 +1,9 @@
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
+	* array.c (binary_search): Fix assertion.
+
+2007-06-06  Ben Pfaff  <blp@gnu.org>
+
 	Add error propagation layer.  Patch #5916, slightly revised.
 
 	* automake.mk: Add new files.
