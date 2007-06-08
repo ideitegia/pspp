@@ -35,6 +35,7 @@
 #include <gsl/gsl_vector.h>
 #include <data/category.h>
 #include <data/variable.h>
+#include "interaction.h"
 
 /*
   Convert a list of values to a binary vector. The order of VALS must
