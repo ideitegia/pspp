@@ -660,7 +660,7 @@ struct mtf_file
     enum mtf_type type;
     int sequence;
 
-    struct variable **by;       /* List of BY variables for this file. */
+    const struct variable **by; /* List of BY variables for this file. */
     struct mtf_variable *vars;  /* Variables to copy to output. */
     size_t var_cnt;             /* Number of other variables. */
 
@@ -701,7 +701,7 @@ struct mtf_proc
     struct ccase buffered_case; /* Case ready for output except that we don't
                                    know the value for the LAST variable yet. */
     struct ccase prev_BY_case;  /* Case with values of last set of BY vars. */
-    struct variable **prev_BY;  /* Last set of BY variables. */
+    const struct variable **prev_BY;  /* Last set of BY variables. */
   };
 
 static void mtf_free (struct mtf_proc *);

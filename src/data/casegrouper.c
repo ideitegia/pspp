@@ -129,7 +129,7 @@ casegrouper_destroy (struct casegrouper *grouper)
 
 struct casegrouper_vars 
   {
-    struct variable **vars;
+    const struct variable **vars;
     size_t var_cnt;
   };
 
@@ -151,7 +151,7 @@ casegrouper_vars_destroy (void *cv_)
 
 struct casegrouper *
 casegrouper_create_vars (struct casereader *reader,
-                         struct variable *const *vars,
+                         const struct variable *const *vars,
                          size_t var_cnt) 
 {
   if (var_cnt > 0) 
@@ -181,7 +181,7 @@ struct casegrouper *
 casegrouper_create_case_ordering (struct casereader *reader,
                                   const struct case_ordering *co) 
 {
-  struct variable **vars;
+  const struct variable **vars;
   size_t var_cnt;
   struct casegrouper *grouper;
 

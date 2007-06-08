@@ -172,7 +172,7 @@ static void rank_sorted_file (struct casereader *,
                               const struct rank_spec *rs, 
                               int n_rank_specs,
                               int idx,
-                              struct variable *rank_var);
+                              const struct variable *rank_var);
 
 static const char *
 fraction_name(void)
@@ -467,7 +467,7 @@ rank_sorted_file (struct casereader *input,
                   const struct rank_spec *rs, 
                   int n_rank_specs, 
                   int dest_idx, 
-                  struct variable *rank_var)
+                  const struct variable *rank_var)
 {
   struct casereader *pass1, *pass2, *pass2_1;
   struct casegrouper *tie_grouper;

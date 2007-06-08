@@ -205,7 +205,7 @@ casereader_filter_missing_destroy (void *cfm_)
 
 struct casereader *
 casereader_create_filter_missing (struct casereader *reader,
-                                  struct variable **vars, size_t var_cnt,
+                                  const struct variable **vars, size_t var_cnt,
                                   enum mv_class class,
                                   struct casewriter *exclude) 
 {

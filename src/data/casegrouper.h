@@ -36,7 +36,7 @@ casegrouper_create_func (struct casereader *,
                          void (*destroy) (void *aux),
                          void *aux);
 struct casegrouper *casegrouper_create_vars (struct casereader *,
-                                             struct variable *const *vars,
+                                             const struct variable *const *vars,
                                              size_t var_cnt);
 struct casegrouper *casegrouper_create_splits (struct casereader *,
                                                const struct dictionary *);

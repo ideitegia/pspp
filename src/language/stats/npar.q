@@ -73,7 +73,7 @@ struct npar_specs
   struct npar_test **test;
   size_t n_tests;
 
-  const struct variable *const* vv; /* Compendium of all variables 
+  const struct variable ** vv; /* Compendium of all variables 
 				       (those mentioned on ANY subcommand */
   int n_vars; /* Number of variables in vv */
 
@@ -153,7 +153,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
       test->insert_variables (test, var_hash);
     }
 
-  npar_specs.vv =  (const struct variable *const *) const_hsh_data (var_hash);
+  npar_specs.vv = (const struct variable **) const_hsh_data (var_hash);
   npar_specs.n_vars = const_hsh_count (var_hash);
 
   if ( cmd.sbc_statistics )
@@ -188,7 +188,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   input = proc_open (ds);
   if ( cmd.miss == NPAR_LISTWISE )
     input = casereader_create_filter_missing (input,
-                                              (struct variable **) npar_specs.vv,
+                                              npar_specs.vv,
                                               npar_specs.n_vars,
                                               npar_specs.filter, NULL);
 

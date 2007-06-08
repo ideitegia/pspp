@@ -32,7 +32,7 @@
 /* One key used for sorting. */
 struct sort_key
   {
-    struct variable *var;       /* Variable. */
+    const struct variable *var;       /* Variable. */
     enum sort_direction dir;    /* Sort direction. */
   };
 
@@ -118,7 +118,7 @@ case_ordering_compare_cases (const struct ccase *a, const struct ccase *b,
 
 bool
 case_ordering_add_var (struct case_ordering *co,
-                       struct variable *var, enum sort_direction dir) 
+                       const struct variable *var, enum sort_direction dir) 
 {
   struct sort_key *key;
   size_t i;
@@ -140,7 +140,7 @@ case_ordering_get_var_cnt (const struct case_ordering *co)
   return co->key_cnt;
 }
 
-struct variable *
+const struct variable *
 case_ordering_get_var (const struct case_ordering *co, size_t idx) 
 {
   assert (idx < co->key_cnt);
@@ -156,7 +156,7 @@ case_ordering_get_direction (const struct case_ordering *co, size_t idx)
 
 void
 case_ordering_get_vars (const struct case_ordering *co,
-                        struct variable ***vars, size_t *var_cnt) 
+                        const struct variable ***vars, size_t *var_cnt) 
 {
   size_t i;
   

@@ -1014,7 +1014,7 @@ regression_custom_variables (struct lexer *lexer, struct dataset *ds,
 /* Identify the explanatory variables in v_variables.  Returns
    the number of independent variables. */
 static int
-identify_indep_vars (struct variable **indep_vars, struct variable *depvar)
+identify_indep_vars (const struct variable **indep_vars, const struct variable *depvar)
 {
   int n_indep_vars = 0;
   int i;
@@ -1030,7 +1030,7 @@ identify_indep_vars (struct variable **indep_vars, struct variable *depvar)
    Returns number of valid cases. */
 static int
 prepare_categories (struct casereader *input,
-                    struct variable **vars, size_t n_vars,
+                    const struct variable **vars, size_t n_vars,
                     struct moments_var *mom)
 {
   int n_data;
@@ -1156,7 +1156,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 
   for (k = 0; k < cmd->n_dependent; k++)
     {
-      struct variable *dep_var;
+      const struct variable *dep_var;
       struct casereader *reader;
       casenumber row;
       struct ccase c;
@@ -1204,7 +1204,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
             {
               for (i = 0; i < n_indep; ++i)
                 {
-                  struct variable *v = indep_vars[i];
+                  const struct variable *v = indep_vars[i];
                   const union value *val = case_data (&c, v);
                   if (var_is_alpha (v))
                     design_matrix_set_categorical (X, row, v, val);

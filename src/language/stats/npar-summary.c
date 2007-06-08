@@ -53,7 +53,7 @@ npar_summary_calc_descriptives (struct descriptives *desc,
 
       pass = casereader_clone (input);
       pass = casereader_create_filter_missing (pass,
-                                               (struct variable **) &v, 1,
+                                               &v, 1,
                                                filter, NULL);
       pass = casereader_create_filter_weight (pass, dict, NULL, NULL);
       while (casereader_read(pass, &c))

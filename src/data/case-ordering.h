@@ -40,12 +40,12 @@ int case_ordering_compare_cases (const struct ccase *, const struct ccase *,
                                  const struct case_ordering *);
 
 bool case_ordering_add_var (struct case_ordering *,
-                            struct variable *, enum sort_direction);
+                            const struct variable *, enum sort_direction);
 size_t case_ordering_get_var_cnt (const struct case_ordering *);
-struct variable *case_ordering_get_var (const struct case_ordering *, size_t);
+const struct variable *case_ordering_get_var (const struct case_ordering *, size_t);
 enum sort_direction case_ordering_get_direction (const struct case_ordering *,
                                                  size_t);
 void case_ordering_get_vars (const struct case_ordering *,
-                             struct variable ***, size_t *);
+                             const struct variable ***, size_t *);
 
 #endif /* data/case-ordering.h */

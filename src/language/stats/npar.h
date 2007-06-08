@@ -25,7 +25,7 @@
 #include <stddef.h>
 #include <data/missing-values.h>
  
-typedef struct variable *variable_pair[2];
+typedef const struct variable *variable_pair[2];
 
 struct hsh_table;
 struct const_hsh_table;

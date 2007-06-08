@@ -97,7 +97,7 @@ casereader_create_filter_weight (struct casereader *,
                                  struct casewriter *exclude);
 struct casereader *
 casereader_create_filter_missing (struct casereader *,
-                                  struct variable **vars, size_t var_cnt,
+                                  const struct variable **vars, size_t var_cnt,
                                   enum mv_class,
                                   struct casewriter *exclude);
 
