@@ -20,7 +20,7 @@
 
    Implements a dictionary that associates a "unsigned long int"
    key with fixed-size values (elements).
-   
+
    The implementation allocates elements in groups of moderate
    size, so it achieves maximum space efficiency when elements
    are clustered into groups of consecutive keys.  For the same

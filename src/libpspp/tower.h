@@ -57,7 +57,7 @@
         ((STRUCT *) ((char *) (NODE) - offsetof (STRUCT, MEMBER)))
 
 /* A node within a tower. */
-struct tower_node 
+struct tower_node
   {
     struct abt_node abt_node;         /* ABT node. */
     unsigned long int subtree_height; /* Node's plus descendants' heights. */
@@ -66,13 +66,13 @@ struct tower_node
 
 /* Returns the height of a tower node. */
 static inline unsigned long
-tower_node_get_height (const struct tower_node *node) 
+tower_node_get_height (const struct tower_node *node)
 {
   return node->height;
 }
 
 /* A tower. */
-struct tower 
+struct tower
   {
     struct abt abt;                   /* Tree. */
     struct tower_node *cache;         /* Cache node. */

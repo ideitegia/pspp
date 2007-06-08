@@ -53,27 +53,27 @@ const char *const ptile_alg_desc[] = {
 /* Individual Percentile algorithms */
 
 /* Closest observation to tc1 */
-double ptile_round(const struct weighted_value **wv, 
+double ptile_round(const struct weighted_value **wv,
 		   const struct ptile_params *par);
 
 
 /* Weighted average at y_tc2 */
-double ptile_haverage(const struct weighted_value **wv, 
+double ptile_haverage(const struct weighted_value **wv,
 		   const struct ptile_params *par);
 
 
 /* Weighted average at y_tc1 */
-double ptile_waverage(const struct weighted_value **wv, 
+double ptile_waverage(const struct weighted_value **wv,
 		   const struct ptile_params *par);
 
 
 /* Empirical distribution function */
-double ptile_empirical(const struct weighted_value **wv, 
+double ptile_empirical(const struct weighted_value **wv,
 		   const struct ptile_params *par);
 
 
 /* Empirical distribution function with averaging*/
-double ptile_aempirical(const struct weighted_value **wv, 
+double ptile_aempirical(const struct weighted_value **wv,
 		   const struct ptile_params *par);
 
 
@@ -81,25 +81,25 @@ double ptile_aempirical(const struct weighted_value **wv,
 
 /* Closest observation to tc1 */
 double
-ptile_round(const struct weighted_value **wv, 
+ptile_round(const struct weighted_value **wv,
 	    const struct ptile_params *par)
 {
   double x;
   double a=0;
 
-  if ( par->k1 >= 0 ) 
+  if ( par->k1 >= 0 )
     a = wv[par->k1]->v.f;
 
   if ( wv[par->k1 + 1]->w >= 1 )
     {
-      if ( par->g1_star < 0.5 ) 
+      if ( par->g1_star < 0.5 )
 	x = a;
       else
 	x = wv[par->k1 + 1]->v.f;
     }
   else
     {
-      if ( par->g1 < 0.5 ) 
+      if ( par->g1 < 0.5 )
 	x = a;
       else
 	x = wv[par->k1 + 1]->v.f;
@@ -111,35 +111,35 @@ ptile_round(const struct weighted_value **wv,
 
 /* Weighted average at y_tc2 */
 double
-ptile_haverage(const struct weighted_value **wv, 
+ptile_haverage(const struct weighted_value **wv,
 	       const struct ptile_params *par)
 {
 
   double a=0;
 
-  if ( par->g2_star >= 1.0 ) 
+  if ( par->g2_star >= 1.0 )
       return wv[par->k2 + 1]->v.f ;
 
-  /* Special case  for k2 + 1 >= n_data 
+  /* Special case  for k2 + 1 >= n_data
      (actually it's not a special case, but just avoids indexing errors )
    */
-  if ( par->g2_star == 0 ) 
+  if ( par->g2_star == 0 )
     {
       assert(par->g2 == 0 );
       return wv[par->k2]->v.f;
     }
 
   /* Ditto for k2 < 0 */
-  if ( par->k2 >= 0 ) 
+  if ( par->k2 >= 0 )
     {
       a = wv[par->k2]->v.f;
     }
 
-  if ( wv[par->k2 + 1]->w >= 1.0 ) 
-    return ( (1 - par->g2_star) *  a   + 
+  if ( wv[par->k2 + 1]->w >= 1.0 )
+    return ( (1 - par->g2_star) *  a   +
 	     par->g2_star * wv[par->k2 + 1]->v.f);
   else
-    return ( (1 - par->g2) * a + 
+    return ( (1 - par->g2) * a +
 	     par->g2 * wv[par->k2 + 1]->v.f);
 
 }
@@ -147,35 +147,35 @@ ptile_haverage(const struct weighted_value **wv,
 
 
 /* Weighted average at y_tc1 */
-double 
-ptile_waverage(const struct weighted_value **wv, 
+double
+ptile_waverage(const struct weighted_value **wv,
 	       const struct ptile_params *par)
 {
   double a=0;
 
-  if ( par->g1_star >= 1.0 ) 
+  if ( par->g1_star >= 1.0 )
       return wv[par->k1 + 1]->v.f ;
 
-  if ( par->k1 >= 0 ) 
+  if ( par->k1 >= 0 )
     {
       a = wv[par->k1]->v.f;
     }
 
-  if ( wv[par->k1 + 1]->w >= 1.0 ) 
-    return ( (1 - par->g1_star) * a + 
+  if ( wv[par->k1 + 1]->w >= 1.0 )
+    return ( (1 - par->g1_star) * a +
 	     par->g1_star * wv[par->k1 + 1]->v.f);
   else
-    return ( (1 - par->g1) * a + 
+    return ( (1 - par->g1) * a +
 	     par->g1 * wv[par->k1 + 1]->v.f);
 }
 
 
 /* Empirical distribution function */
-double 
-ptile_empirical(const struct weighted_value **wv, 
+double
+ptile_empirical(const struct weighted_value **wv,
 	       const struct ptile_params *par)
 {
-  if ( par->g1_star > 0 ) 
+  if ( par->g1_star > 0 )
     return wv[par->k1 + 1]->v.f;
   else
     return wv[par->k1]->v.f;
@@ -184,11 +184,11 @@ ptile_empirical(const struct weighted_value **wv,
 
 
 /* Empirical distribution function with averageing */
-double 
-ptile_aempirical(const struct weighted_value **wv, 
+double
+ptile_aempirical(const struct weighted_value **wv,
 	       const struct ptile_params *par)
 {
-  if ( par->g1_star > 0 ) 
+  if ( par->g1_star > 0 )
     return wv[par->k1 + 1]->v.f;
   else
     return (wv[par->k1]->v.f + wv[par->k1 + 1]->v.f ) / 2.0 ;
@@ -197,7 +197,7 @@ ptile_aempirical(const struct weighted_value **wv,
 
 
 /* Compute the percentile p */
-double ptile(double p, 
+double ptile(double p,
 	     const struct weighted_value **wv,
 	     int n_data,
 	     double w,
@@ -205,8 +205,8 @@ double ptile(double p,
 
 
 
-double 
-ptile(double p, 
+double
+ptile(double p,
       const struct weighted_value **wv,
       int n_data,
       double w,
@@ -226,21 +226,21 @@ ptile(double p,
   pp.k1 = -1;
   pp.k2 = -1;
 
-  for ( i = 0 ; i < n_data ; ++i ) 
+  for ( i = 0 ; i < n_data ; ++i )
     {
-      if ( wv[i]->cc <= tc1 ) 
+      if ( wv[i]->cc <= tc1 )
 	pp.k1 = i;
 
-      if ( wv[i]->cc <= tc2 ) 
+      if ( wv[i]->cc <= tc2 )
 	pp.k2 = i;
-      
+
     }
 
 
-  if ( pp.k1 >= 0 ) 
+  if ( pp.k1 >= 0 )
     {
       pp.g1 = ( tc1 - wv[pp.k1]->cc ) / wv[pp.k1 + 1]->w;
-      pp.g1_star = tc1 -  wv[pp.k1]->cc ; 
+      pp.g1_star = tc1 -  wv[pp.k1]->cc ;
     }
   else
     {
@@ -249,17 +249,17 @@ ptile(double p,
     }
 
 
-  if ( pp.k2  + 1 >= n_data ) 
+  if ( pp.k2  + 1 >= n_data )
     {
       pp.g2 = 0 ;
       pp.g2_star = 0;
     }
-  else 
+  else
     {
-      if ( pp.k2 >= 0 ) 
+      if ( pp.k2 >= 0 )
 	{
 	  pp.g2 = ( tc2 - wv[pp.k2]->cc ) / wv[pp.k2 + 1]->w;
-	  pp.g2_star = tc2 -  wv[pp.k2]->cc ; 
+	  pp.g2_star = tc2 -  wv[pp.k2]->cc ;
 	}
       else
 	{
@@ -268,7 +268,7 @@ ptile(double p,
 	}
     }
 
-  switch ( algorithm ) 
+  switch ( algorithm )
     {
     case PC_HAVERAGE:
       result = ptile_haverage(wv, &pp);
@@ -293,11 +293,11 @@ ptile(double p,
 }
 
 
-/* 
+/*
    Calculate the values of the percentiles in pc_hash.
    wv is  a sorted array of weighted values of the data set.
 */
-void 
+void
 ptiles(struct hsh_table *pc_hash,
        const struct weighted_value **wv,
        int n_data,
@@ -307,7 +307,7 @@ ptiles(struct hsh_table *pc_hash,
   struct hsh_iterator hi;
   struct percentile *p;
 
-  if ( !pc_hash ) 
+  if ( !pc_hash )
     return ;
   for ( p = hsh_first(pc_hash, &hi);
 	p != 0 ;
@@ -315,14 +315,14 @@ ptiles(struct hsh_table *pc_hash,
     {
       p->v = ptile(p->p/100.0 , wv, n_data, w, algorithm);
     }
-  
+
 }
 
 
 /* Calculate Tukey's Hinges */
 void
 tukey_hinges(const struct weighted_value **wv,
-	     int n_data, 
+	     int n_data,
 	     double w,
 	     double hinge[3]
 	     )
@@ -333,8 +333,8 @@ tukey_hinges(const struct weighted_value **wv,
   double l[3];
   int h[3];
   double a, a_star;
-  
-  for ( i = 0 ; i < n_data ; ++i ) 
+
+  for ( i = 0 ; i < n_data ; ++i )
     {
       c_star = MIN(c_star, wv[i]->w);
     }
@@ -351,7 +351,7 @@ tukey_hinges(const struct weighted_value **wv,
   h[1]=-1;
   h[2]=-1;
 
-  for ( i = 0 ; i < n_data ; ++i ) 
+  for ( i = 0 ; i < n_data ; ++i )
     {
       if ( l[0] >= wv[i]->cc ) h[0] = i ;
       if ( l[1] >= wv[i]->cc ) h[1] = i ;
@@ -361,7 +361,7 @@ tukey_hinges(const struct weighted_value **wv,
   for ( i = 0 ; i < 3 ; i++ )
     {
 
-      if ( h[i] >= 0 ) 
+      if ( h[i] >= 0 )
 	a_star = l[i] - wv[h[i]]->cc ;
       else
 	a_star = l[i];
@@ -372,12 +372,12 @@ tukey_hinges(const struct weighted_value **wv,
 	      hinge[i] = (1 - a_star) * wv[h[i]]->v.f;
 	      continue;
       }
-      else 
+      else
       {
-	      a = a_star / ( wv[h[i] + 1]->cc ) ; 
+	      a = a_star / ( wv[h[i] + 1]->cc ) ;
       }
 
-      if ( a_star >= 1.0 ) 
+      if ( a_star >= 1.0 )
 	{
 	  hinge[i] = wv[h[i] + 1]->v.f ;
 	  continue;
@@ -392,7 +392,7 @@ tukey_hinges(const struct weighted_value **wv,
 	}
 
       hinge[i] = (1 - a) * wv[h[i]]->v.f + a * wv[h[i] + 1]->v.f;
-      
+
     }
 
   assert(hinge[0] <= hinge[1]);
@@ -402,18 +402,18 @@ tukey_hinges(const struct weighted_value **wv,
 
 
 int
-ptile_compare(const struct percentile *p1, 
-		   const struct percentile *p2, 
+ptile_compare(const struct percentile *p1,
+		   const struct percentile *p2,
 		   void *aux UNUSED)
 {
 
   int cmp;
-  
-  if ( p1->p == p2->p) 
+
+  if ( p1->p == p2->p)
     cmp = 0 ;
   else if (p1->p < p2->p)
-    cmp = -1 ; 
-  else 
+    cmp = -1 ;
+  else
     cmp = +1;
 
   return cmp;

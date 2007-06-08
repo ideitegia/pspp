@@ -45,7 +45,7 @@ struct hsh_table *hsh_create (int m, hsh_compare_func *,
 			      const void *aux);
 
 struct pool;
-struct hsh_table *hsh_create_pool (struct pool *pool, int m, 
+struct hsh_table *hsh_create_pool (struct pool *pool, int m,
 				   hsh_compare_func *,
 				   hsh_hash_func *, hsh_free_func *,
 				   const void *aux);

@@ -102,10 +102,10 @@ cmd_file_label (struct lexer *lexer, struct dataset *ds)
 
 /* Add entry date line to DICT's documents. */
 static void
-add_document_trailer (struct dictionary *dict) 
+add_document_trailer (struct dictionary *dict)
 {
   char buf[64];
-  
+
   sprintf (buf, _("   (Entered %s)"), get_start_date ());
   dict_add_document_line (dict, buf);
 }

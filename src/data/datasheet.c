@@ -75,10 +75,10 @@ static void source_destroy (struct source *);
 static casenumber source_get_backing_row_cnt (const struct source *);
 static size_t source_get_column_cnt (const struct source *);
 
-static bool source_read (const struct source *, 
+static bool source_read (const struct source *,
                          casenumber row, size_t column,
                          union value[], size_t value_cnt);
-static bool source_write (struct source *, 
+static bool source_write (struct source *,
                           casenumber row, size_t column,
                           const union value[], size_t value_cnt);
 static bool source_write_columns (struct source *, size_t start_column,
@@ -127,14 +127,14 @@ struct datasheet
   };
 
 /* Maps from a range of physical columns to a source. */
-struct source_info 
+struct source_info
   {
     struct range_map_node column_range;
     struct source *source;
   };
 
 /* Is this operation a read or a write? */
-enum rw_op 
+enum rw_op
   {
     OP_READ,
     OP_WRITE
@@ -152,7 +152,7 @@ static bool rw_case (struct datasheet *ds, enum rw_op op,
    If READER is nonnull, then the datasheet initially contains
    the contents of READER. */
 struct datasheet *
-datasheet_create (struct casereader *reader) 
+datasheet_create (struct casereader *reader)
 {
   /* Create datasheet. */
   struct datasheet *ds = xmalloc (sizeof *ds);
@@ -163,7 +163,7 @@ datasheet_create (struct casereader *reader)
   ds->taint = taint_create ();
 
   /* Add backing. */
-  if (reader != NULL) 
+  if (reader != NULL)
     {
       size_t column_cnt;
       casenumber row_cnt;
@@ -197,14 +197,14 @@ datasheet_create (struct casereader *reader)
 
 /* Destroys datasheet DS. */
 void
-datasheet_destroy (struct datasheet *ds) 
+datasheet_destroy (struct datasheet *ds)
 {
   if (ds == NULL)
     return;
 
   axis_destroy (ds->columns);
   axis_destroy (ds->rows);
-  while (!range_map_is_empty (&ds->sources)) 
+  while (!range_map_is_empty (&ds->sources))
     {
       struct range_map_node *r = range_map_first (&ds->sources);
       struct source_info *si = source_info_from_range_map (r);
@@ -222,7 +222,7 @@ datasheet_destroy (struct datasheet *ds)
    datasheet have been dropped, especially in conjunction with
    tools like Valgrind. */
 struct datasheet *
-datasheet_rename (struct datasheet *ds) 
+datasheet_rename (struct datasheet *ds)
 {
   struct datasheet *new = xmemdup (ds, sizeof *ds);
   free (ds);
@@ -232,33 +232,33 @@ datasheet_rename (struct datasheet *ds)
 /* Returns true if a I/O error has occurred while processing a
    datasheet operation. */
 bool
-datasheet_error (const struct datasheet *ds) 
+datasheet_error (const struct datasheet *ds)
 {
   return taint_is_tainted (ds->taint);
 }
 
 void
-datasheet_force_error (struct datasheet *ds) 
+datasheet_force_error (struct datasheet *ds)
 {
   taint_set_taint (ds->taint);
 }
 
 const struct taint *
-datasheet_get_taint (const struct datasheet *ds) 
+datasheet_get_taint (const struct datasheet *ds)
 {
   return ds->taint;
 }
 
 /* Returns the number of rows in DS. */
 casenumber
-datasheet_get_row_cnt (const struct datasheet *ds) 
+datasheet_get_row_cnt (const struct datasheet *ds)
 {
   return axis_get_size (ds->rows);
 }
 
 /* Returns the number of columns in DS. */
 size_t
-datasheet_get_column_cnt (const struct datasheet *ds) 
+datasheet_get_column_cnt (const struct datasheet *ds)
 {
   return axis_get_size (ds->columns);
 }
@@ -272,10 +272,10 @@ datasheet_get_column_cnt (const struct datasheet *ds)
 bool
 datasheet_insert_columns (struct datasheet *ds,
                           const union value init_values[], size_t cnt,
-                          size_t before) 
+                          size_t before)
 {
   size_t added = 0;
-  while (cnt > 0) 
+  while (cnt > 0)
     {
       unsigned long first_phy; /* First allocated physical column. */
       unsigned long phy_cnt;   /* Number of allocated physical columns. */
@@ -296,11 +296,11 @@ datasheet_insert_columns (struct datasheet *ds,
           si->source = source_create_empty (phy_cnt);
           range_map_insert (&ds->sources, first_phy, phy_cnt,
                             &si->column_range);
-          if (phy_cnt > cnt) 
+          if (phy_cnt > cnt)
             {
               axis_make_available (ds->columns, first_phy + cnt,
                                    phy_cnt - cnt);
-              phy_cnt = cnt; 
+              phy_cnt = cnt;
             }
         }
 
@@ -326,7 +326,7 @@ datasheet_insert_columns (struct datasheet *ds,
              source. */
           if (!source_write_columns (s->source,
                                      first_phy - range_map_node_get_start (r),
-                                     init_values, source_cnt)) 
+                                     init_values, source_cnt))
             {
               datasheet_delete_columns (ds, before - added,
                                         source_cnt + added);
@@ -349,7 +349,7 @@ datasheet_insert_columns (struct datasheet *ds,
 
 /* Deletes the CNT columns in DS starting from column START. */
 void
-datasheet_delete_columns (struct datasheet *ds, size_t start, size_t cnt) 
+datasheet_delete_columns (struct datasheet *ds, size_t start, size_t cnt)
 {
   size_t lcol;
 
@@ -366,7 +366,7 @@ datasheet_delete_columns (struct datasheet *ds, size_t start, size_t cnt)
           if (!source_in_use (si->source))
             free_source_info (ds, si);
         }
-      else 
+      else
         axis_make_available (ds->columns, pcol, 1);
     }
 
@@ -381,7 +381,7 @@ datasheet_delete_columns (struct datasheet *ds, size_t start, size_t cnt)
 void
 datasheet_move_columns (struct datasheet *ds,
                         size_t old_start, size_t new_start,
-                        size_t cnt) 
+                        size_t cnt)
 {
   axis_move (ds->columns, old_start, new_start, cnt);
 }
@@ -397,13 +397,13 @@ datasheet_get_row (const struct datasheet *ds, casenumber row, struct ccase *c)
   if (rw_case ((struct datasheet *) ds, OP_READ,
                row, 0, column_cnt, case_data_all_rw (c)))
     return true;
-  else 
+  else
     {
       case_destroy (c);
       return false;
     }
 }
-     
+
 /* Stores the contents of case C, which is destroyed, into the
    given ROW in DS.  Returns true on success, false on I/O error.
    On failure, the given ROW might be partially modified or
@@ -423,7 +423,7 @@ datasheet_put_row (struct datasheet *ds, casenumber row, struct ccase *c)
    successful, false on I/O error. */
 bool
 datasheet_get_value (const struct datasheet *ds, casenumber row, size_t column,
-                     union value *value, int width) 
+                     union value *value, int width)
 {
   return rw_case ((struct datasheet *) ds,
                   OP_READ, row, column, value_cnt_from_width (width), value);
@@ -448,10 +448,10 @@ datasheet_put_value (struct datasheet *ds, casenumber row, size_t column,
 bool
 datasheet_insert_rows (struct datasheet *ds,
                        casenumber before, struct ccase c[],
-                       casenumber cnt) 
+                       casenumber cnt)
 {
   casenumber added = 0;
-  while (cnt > 0) 
+  while (cnt > 0)
     {
       unsigned long first_phy;
       unsigned long phy_cnt;
@@ -459,12 +459,12 @@ datasheet_insert_rows (struct datasheet *ds,
 
       /* Allocate physical rows from the pool of available
          rows. */
-      if (!axis_allocate (ds->rows, cnt, &first_phy, &phy_cnt)) 
+      if (!axis_allocate (ds->rows, cnt, &first_phy, &phy_cnt))
         {
           /* No rows were available.  Extend the row axis to make
              some new ones available. */
           phy_cnt = cnt;
-          first_phy = axis_extend (ds->rows, cnt); 
+          first_phy = axis_extend (ds->rows, cnt);
         }
 
       /* Insert the new rows into the row mapping. */
@@ -492,7 +492,7 @@ datasheet_insert_rows (struct datasheet *ds,
 /* Deletes the CNT rows in DS starting from row FIRST. */
 void
 datasheet_delete_rows (struct datasheet *ds,
-                       casenumber first, casenumber cnt) 
+                       casenumber first, casenumber cnt)
 {
   size_t lrow;
 
@@ -512,7 +512,7 @@ datasheet_delete_rows (struct datasheet *ds,
 void
 datasheet_move_rows (struct datasheet *ds,
                      size_t old_start, size_t new_start,
-                     size_t cnt) 
+                     size_t cnt)
 {
   axis_move (ds->rows, old_start, new_start, cnt);
 }
@@ -524,7 +524,7 @@ static const struct casereader_random_class datasheet_reader_class;
    effectively destroyed by this operation, such that the caller
    must not reference it again. */
 struct casereader *
-datasheet_make_reader (struct datasheet *ds) 
+datasheet_make_reader (struct datasheet *ds)
 {
   struct casereader *reader;
   ds = datasheet_rename (ds);
@@ -537,14 +537,14 @@ datasheet_make_reader (struct datasheet *ds)
 
 static bool
 datasheet_reader_read (struct casereader *reader UNUSED, void *ds_,
-                       casenumber case_idx, struct ccase *c) 
+                       casenumber case_idx, struct ccase *c)
 {
   struct datasheet *ds = ds_;
   if (case_idx >= datasheet_get_row_cnt (ds))
     return false;
   else if (datasheet_get_row (ds, case_idx, c))
     return true;
-  else 
+  else
     {
       taint_set_taint (ds->taint);
       return false;
@@ -560,13 +560,13 @@ datasheet_reader_destroy (struct casereader *reader UNUSED, void *ds_)
 
 static void
 datasheet_reader_advance (struct casereader *reader UNUSED, void *ds_,
-                          casenumber case_cnt) 
+                          casenumber case_cnt)
 {
   struct datasheet *ds = ds_;
   datasheet_delete_rows (ds, 0, case_cnt);
 }
 
-static const struct casereader_random_class datasheet_reader_class = 
+static const struct casereader_random_class datasheet_reader_class =
   {
     datasheet_reader_read,
     datasheet_reader_destroy,
@@ -576,7 +576,7 @@ static const struct casereader_random_class datasheet_reader_class =
 /* Removes SI from DS's set of sources and destroys its
    source. */
 static void
-free_source_info (struct datasheet *ds, struct source_info *si) 
+free_source_info (struct datasheet *ds, struct source_info *si)
 {
   range_map_delete (&ds->sources, &si->column_range);
   source_destroy (si->source);
@@ -584,7 +584,7 @@ free_source_info (struct datasheet *ds, struct source_info *si)
 }
 
 static struct source_info *
-source_info_from_range_map (struct range_map_node *node) 
+source_info_from_range_map (struct range_map_node *node)
 {
   return range_map_data (node, struct source_info, column_range);
 }
@@ -595,7 +595,7 @@ source_info_from_range_map (struct range_map_node *node)
 static bool
 rw_case (struct datasheet *ds, enum rw_op op,
          casenumber lrow, size_t start_column, size_t column_cnt,
-         union value data[]) 
+         union value data[])
 {
   casenumber prow;
   size_t lcol;
@@ -613,10 +613,10 @@ rw_case (struct datasheet *ds, enum rw_op op,
       size_t pcol_ofs = pcol - range_map_node_get_start (r);
       if (!(op == OP_READ
             ? source_read (s->source, prow, pcol_ofs, data, 1)
-            : source_write (s->source, prow, pcol_ofs, data, 1))) 
+            : source_write (s->source, prow, pcol_ofs, data, 1)))
         {
           taint_set_taint (ds->taint);
-          return false; 
+          return false;
         }
     }
   return true;
@@ -643,7 +643,7 @@ struct axis
   };
 
 /* A mapping from logical to physical ordinates. */
-struct axis_group 
+struct axis_group
   {
     struct tower_node logical;  /* Range of logical ordinates. */
     unsigned long phy_start;    /* First corresponding physical ordinate. */
@@ -658,7 +658,7 @@ static void check_axis_merged (const struct axis *axis UNUSED);
 
 /* Creates and returns a new, initially empty axis. */
 static struct axis *
-axis_create (void) 
+axis_create (void)
 {
   struct axis *axis = xmalloc (sizeof *axis);
   tower_init (&axis->log_to_phy);
@@ -672,7 +672,7 @@ axis_create (void)
    Currently this is used only by the datasheet model checker
    driver, but it could be otherwise useful. */
 static struct axis *
-axis_clone (const struct axis *old) 
+axis_clone (const struct axis *old)
 {
   const struct tower_node *node;
   struct axis *new;
@@ -683,7 +683,7 @@ axis_clone (const struct axis *old)
   new->phy_size = old->phy_size;
 
   for (node = tower_first (&old->log_to_phy); node != NULL;
-       node = tower_next (&old->log_to_phy, node)) 
+       node = tower_next (&old->log_to_phy, node))
     {
       unsigned long int size = tower_node_get_height (node);
       struct axis_group *group = tower_data (node, struct axis_group, logical);
@@ -699,13 +699,13 @@ axis_clone (const struct axis *old)
    This is only used by the datasheet model checker driver.  It
    is unlikely to be otherwise useful. */
 static void
-axis_hash (const struct axis *axis, struct md4_ctx *ctx) 
+axis_hash (const struct axis *axis, struct md4_ctx *ctx)
 {
   const struct tower_node *tn;
   const struct range_set_node *rsn;
 
   for (tn = tower_first (&axis->log_to_phy); tn != NULL;
-       tn = tower_next (&axis->log_to_phy, tn)) 
+       tn = tower_next (&axis->log_to_phy, tn))
     {
       struct axis_group *group = tower_data (tn, struct axis_group, logical);
       unsigned long int phy_start = group->phy_start;
@@ -714,13 +714,13 @@ axis_hash (const struct axis *axis, struct md4_ctx *ctx)
       md4_process_bytes (&phy_start, sizeof phy_start, ctx);
       md4_process_bytes (&size, sizeof size, ctx);
     }
-  
+
   for (rsn = range_set_first (axis->available); rsn != NULL;
-       rsn = range_set_next (axis->available, rsn)) 
+       rsn = range_set_next (axis->available, rsn))
     {
       unsigned long int start = range_set_node_get_start (rsn);
       unsigned long int end = range_set_node_get_end (rsn);
-      
+
       md4_process_bytes (&start, sizeof start, ctx);
       md4_process_bytes (&end, sizeof end, ctx);
     }
@@ -730,12 +730,12 @@ axis_hash (const struct axis *axis, struct md4_ctx *ctx)
 
 /* Destroys AXIS. */
 static void
-axis_destroy (struct axis *axis) 
+axis_destroy (struct axis *axis)
 {
   if (axis == NULL)
     return;
 
-  while (!tower_is_empty (&axis->log_to_phy)) 
+  while (!tower_is_empty (&axis->log_to_phy))
     {
       struct tower_node *node = tower_first (&axis->log_to_phy);
       struct axis_group *group = tower_data (node, struct axis_group,
@@ -756,7 +756,7 @@ axis_destroy (struct axis *axis)
    available ordinates, returns false without modifying AXIS. */
 static bool
 axis_allocate (struct axis *axis, unsigned long int request,
-               unsigned long int *start, unsigned long int *width) 
+               unsigned long int *start, unsigned long int *width)
 {
   return range_set_allocate (axis->available, request, start, width);
 }
@@ -765,7 +765,7 @@ axis_allocate (struct axis *axis, unsigned long int request,
    START, as unused and available. */
 static void
 axis_make_available (struct axis *axis,
-                     unsigned long int start, unsigned long int width) 
+                     unsigned long int start, unsigned long int width)
 {
   range_set_insert (axis->available, start, width);
 }
@@ -773,7 +773,7 @@ axis_make_available (struct axis *axis,
 /* Extends the total physical length of AXIS by WIDTH and returns
    the first ordinate in the new physical region. */
 static unsigned long int
-axis_extend (struct axis *axis, unsigned long int width) 
+axis_extend (struct axis *axis, unsigned long int width)
 {
   unsigned long int start = axis->phy_size;
   axis->phy_size += width;
@@ -784,7 +784,7 @@ axis_extend (struct axis *axis, unsigned long int width)
    ordinate LOG_POS.  LOG_POS must be less than the logical
    length of AXIS. */
 static unsigned long int
-axis_map (const struct axis *axis, unsigned long log_pos) 
+axis_map (const struct axis *axis, unsigned long log_pos)
 {
   struct tower_node *node;
   struct axis_group *group;
@@ -797,7 +797,7 @@ axis_map (const struct axis *axis, unsigned long log_pos)
 
 /* Returns the logical length of AXIS. */
 static unsigned long
-axis_get_size (const struct axis *axis) 
+axis_get_size (const struct axis *axis)
 {
   return tower_height (&axis->log_to_phy);
 }
@@ -808,7 +808,7 @@ axis_get_size (const struct axis *axis)
 static void
 axis_insert (struct axis *axis,
              unsigned long int log_start, unsigned long int phy_start,
-             unsigned long int cnt) 
+             unsigned long int cnt)
 {
   struct tower_node *before = split_axis (axis, log_start);
   struct tower_node *new = make_axis_group (phy_start);
@@ -821,16 +821,16 @@ axis_insert (struct axis *axis,
    starting at logical position START. */
 static void
 axis_remove (struct axis *axis,
-             unsigned long int start, unsigned long int cnt) 
+             unsigned long int start, unsigned long int cnt)
 {
-  if (cnt > 0) 
+  if (cnt > 0)
     {
       struct tower_node *last = split_axis (axis, start + cnt);
       struct tower_node *cur, *next;
-      for (cur = split_axis (axis, start); cur != last; cur = next) 
+      for (cur = split_axis (axis, start); cur != last; cur = next)
         {
           next = tower_delete (&axis->log_to_phy, cur);
-          free (axis_group_from_tower_node (cur)); 
+          free (axis_group_from_tower_node (cur));
         }
       merge_axis_nodes (axis, last, NULL);
       check_axis_merged (axis);
@@ -843,9 +843,9 @@ axis_remove (struct axis *axis,
 static void
 axis_move (struct axis *axis,
            unsigned long int old_start, unsigned long int new_start,
-           unsigned long int cnt) 
+           unsigned long int cnt)
 {
-  if (cnt > 0 && old_start != new_start) 
+  if (cnt > 0 && old_start != new_start)
     {
       struct tower_node *old_first, *old_last, *new_first;
       struct tower_node *merge1, *merge2;
@@ -876,7 +876,7 @@ axis_move (struct axis *axis,
 
 /* Returns the axis_group in which NODE is embedded. */
 static struct axis_group *
-axis_group_from_tower_node (struct tower_node *node) 
+axis_group_from_tower_node (struct tower_node *node)
 {
   return tower_data (node, struct axis_group, logical);
 }
@@ -884,7 +884,7 @@ axis_group_from_tower_node (struct tower_node *node)
 /* Creates and returns a new axis_group at physical position
    PHY_START. */
 static struct tower_node *
-make_axis_group (unsigned long phy_start) 
+make_axis_group (unsigned long phy_start)
 {
   struct axis_group *group = xmalloc (sizeof *group);
   group->phy_start = phy_start;
@@ -898,7 +898,7 @@ make_axis_group (unsigned long phy_start)
    separate ones, unless WHERE is equal to the tower height, in
    which case it simply returns a null pointer. */
 static struct tower_node *
-split_axis (struct axis *axis, unsigned long int where) 
+split_axis (struct axis *axis, unsigned long int where)
 {
   unsigned long int group_start;
   struct tower_node *group_node;
@@ -910,7 +910,7 @@ split_axis (struct axis *axis, unsigned long int where)
 
   group_node = tower_lookup (&axis->log_to_phy, where, &group_start);
   group = axis_group_from_tower_node (group_node);
-  if (where > group_start) 
+  if (where > group_start)
     {
       unsigned long int size_1 = where - group_start;
       unsigned long int size_2 = tower_node_get_height (group_node) - size_1;
@@ -927,7 +927,7 @@ split_axis (struct axis *axis, unsigned long int where)
 /* Within AXIS, attempts to merge NODE (or the last node in AXIS,
    if NODE is null) with its neighbor nodes.  This is possible
    when logically adjacent nodes are also adjacent physically (in
-   the same order).  
+   the same order).
 
    When a merge occurs, and OTHER_NODE is non-null and points to
    the node to be deleted, this function also updates
@@ -942,7 +942,7 @@ merge_axis_nodes (struct axis *axis, struct tower_node *node,
   struct tower_node *next, *prev;
 
   /* Find node to potentially merge with neighbors. */
-  if (node == NULL) 
+  if (node == NULL)
     node = tower_last (t);
   if (node == NULL)
     return;
@@ -950,11 +950,11 @@ merge_axis_nodes (struct axis *axis, struct tower_node *node,
 
   /* Try to merge NODE with successor. */
   next = tower_next (t, node);
-  if (next != NULL) 
+  if (next != NULL)
     {
       struct axis_group *next_group = axis_group_from_tower_node (next);
       unsigned long this_height = tower_node_get_height (node);
-      
+
       if (group->phy_start + this_height == next_group->phy_start)
         {
           unsigned long next_height = tower_node_get_height (next);
@@ -968,11 +968,11 @@ merge_axis_nodes (struct axis *axis, struct tower_node *node,
 
   /* Try to merge NODE with predecessor. */
   prev = tower_prev (t, node);
-  if (prev != NULL) 
+  if (prev != NULL)
     {
       struct axis_group *prev_group = axis_group_from_tower_node (prev);
       unsigned long prev_height = tower_node_get_height (prev);
-      
+
       if (prev_group->phy_start + prev_height == group->phy_start)
         {
           unsigned long this_height = tower_node_get_height (node);
@@ -989,14 +989,14 @@ merge_axis_nodes (struct axis *axis, struct tower_node *node,
 /* Verify that all potentially merge-able nodes in AXIS are
    actually merged. */
 static void
-check_axis_merged (const struct axis *axis UNUSED) 
+check_axis_merged (const struct axis *axis UNUSED)
 {
 #if ASSERT_LEVEL >= 10
   struct tower_node *prev, *node;
-  
+
   for (prev = NULL, node = tower_first (&axis->log_to_phy); node != NULL;
        prev = node, node = tower_next (&axis->log_to_phy, node))
-    if (prev != NULL) 
+    if (prev != NULL)
       {
         struct axis_group *prev_group = axis_group_from_tower_node (prev);
         unsigned long prev_height = tower_node_get_height (prev);
@@ -1018,7 +1018,7 @@ struct source
 /* Creates and returns an empty, unbacked source with COLUMN_CNT
    columns and an initial "columns_used" of 0. */
 static struct source *
-source_create_empty (size_t column_cnt) 
+source_create_empty (size_t column_cnt)
 {
   struct source *source = xmalloc (sizeof *source);
   source->columns_used = 0;
@@ -1031,7 +1031,7 @@ source_create_empty (size_t column_cnt)
 /* Creates and returns a new source backed by READER and with the
    same initial dimensions and content. */
 static struct source *
-source_create_casereader (struct casereader *reader) 
+source_create_casereader (struct casereader *reader)
 {
   struct source *source
     = source_create_empty (casereader_get_value_cnt (reader));
@@ -1046,7 +1046,7 @@ source_create_casereader (struct casereader *reader)
    Currently this is used only by the datasheet model checker
    driver, but it could be otherwise useful. */
 static struct source *
-source_clone (const struct source *old) 
+source_clone (const struct source *old)
 {
   struct source *new = xmalloc (sizeof *new);
   new->columns_used = old->columns_used;
@@ -1064,7 +1064,7 @@ source_clone (const struct source *old)
 /* Increases the columns_used count of SOURCE by DELTA.
    The new value must not exceed SOURCE's number of columns. */
 static void
-source_increase_use (struct source *source, size_t delta) 
+source_increase_use (struct source *source, size_t delta)
 {
   source->columns_used += delta;
   assert (source->columns_used <= sparse_cases_get_value_cnt (source->data));
@@ -1074,7 +1074,7 @@ source_increase_use (struct source *source, size_t delta)
    This must not attempt to decrease the columns_used count below
    zero. */
 static void
-source_decrease_use (struct source *source, size_t delta) 
+source_decrease_use (struct source *source, size_t delta)
 {
   assert (delta <= source->columns_used);
   source->columns_used -= delta;
@@ -1083,16 +1083,16 @@ source_decrease_use (struct source *source, size_t delta)
 /* Returns true if SOURCE has any columns in use,
    false otherwise. */
 static bool
-source_in_use (const struct source *source) 
+source_in_use (const struct source *source)
 {
   return source->columns_used > 0;
 }
 
 /* Destroys SOURCE and its data and backing, if any. */
 static void
-source_destroy (struct source *source) 
+source_destroy (struct source *source)
 {
-  if (source != NULL) 
+  if (source != NULL)
     {
       sparse_cases_destroy (source->data);
       casereader_destroy (source->backing);
@@ -1103,7 +1103,7 @@ source_destroy (struct source *source)
 /* Returns the number of rows in SOURCE's backing casereader
    (SOURCE must have a backing casereader). */
 static casenumber
-source_get_backing_row_cnt (const struct source *source) 
+source_get_backing_row_cnt (const struct source *source)
 {
   assert (source_has_backing (source));
   return source->backing_rows;
@@ -1111,7 +1111,7 @@ source_get_backing_row_cnt (const struct source *source)
 
 /* Returns the number of columns in SOURCE. */
 static size_t
-source_get_column_cnt (const struct source *source) 
+source_get_column_cnt (const struct source *source)
 {
   return sparse_cases_get_value_cnt (source->data);
 }
@@ -1120,9 +1120,9 @@ source_get_column_cnt (const struct source *source)
    from COLUMN, into VALUES.  Returns true if successful, false
    on I/O error. */
 static bool
-source_read (const struct source *source, 
+source_read (const struct source *source,
              casenumber row, size_t column,
-             union value values[], size_t value_cnt) 
+             union value values[], size_t value_cnt)
 {
   if (source->backing == NULL || sparse_cases_contains_row (source->data, row))
     return sparse_cases_read (source->data, row, column, values, value_cnt);
@@ -1130,10 +1130,10 @@ source_read (const struct source *source,
     {
       struct ccase c;
       bool ok;
-      
+
       assert (source->backing != NULL);
       ok = casereader_peek (source->backing, row, &c);
-      if (ok) 
+      if (ok)
         {
           case_copy_out (&c, column, values, value_cnt);
           case_destroy (&c);
@@ -1148,16 +1148,16 @@ source_read (const struct source *source,
    partially corrupted, both inside and outside the region to be
    written.  */
 static bool
-source_write (struct source *source, 
+source_write (struct source *source,
               casenumber row, size_t column,
-              const union value values[], size_t value_cnt) 
+              const union value values[], size_t value_cnt)
 {
   size_t column_cnt = sparse_cases_get_value_cnt (source->data);
   bool ok;
 
   if (source->backing == NULL
       || (column == 0 && value_cnt == column_cnt)
-      || sparse_cases_contains_row (source->data, row)) 
+      || sparse_cases_contains_row (source->data, row))
     ok = sparse_cases_write (source->data, row, column, values, value_cnt);
   else
     {
@@ -1177,11 +1177,11 @@ source_write (struct source *source,
           case_create (&c, column_cnt);
           ok = true;
         }
-      if (ok) 
+      if (ok)
         {
           case_copy_in (&c, column, values, value_cnt);
           ok = sparse_cases_write (source->data, row, 0,
-                                   case_data_all (&c), column_cnt); 
+                                   case_data_all (&c), column_cnt);
           case_destroy (&c);
         }
     }
@@ -1200,10 +1200,10 @@ source_write (struct source *source,
    sources that are backed by casereaders. */
 static bool
 source_write_columns (struct source *source, size_t start_column,
-                      const union value values[], size_t value_cnt) 
+                      const union value values[], size_t value_cnt)
 {
   assert (source->backing == NULL);
-  
+
   return sparse_cases_write_columns (source->data, start_column,
                                      values, value_cnt);
 }
@@ -1211,7 +1211,7 @@ source_write_columns (struct source *source, size_t start_column,
 /* Returns true if SOURCE has a backing casereader, false
    otherwise. */
 static bool
-source_has_backing (const struct source *source) 
+source_has_backing (const struct source *source)
 {
   return source->backing != NULL;
 }
@@ -1227,7 +1227,7 @@ source_has_backing (const struct source *source)
    We use MD4 because it is much faster than MD5 or SHA-1 but its
    collision resistance is just as good. */
 static unsigned int
-hash_datasheet (const struct datasheet *ds) 
+hash_datasheet (const struct datasheet *ds)
 {
   unsigned int hash[DIV_RND_UP (20, sizeof (unsigned int))];
   struct md4_ctx ctx;
@@ -1237,7 +1237,7 @@ hash_datasheet (const struct datasheet *ds)
   axis_hash (ds->columns, &ctx);
   axis_hash (ds->rows, &ctx);
   for (r = range_map_first (&ds->sources); r != NULL;
-       r = range_map_next (&ds->sources, r)) 
+       r = range_map_next (&ds->sources, r))
     {
       unsigned long int start = range_map_node_get_start (r);
       unsigned long int end = range_map_node_get_end (r);
@@ -1256,7 +1256,7 @@ hash_datasheet (const struct datasheet *ds)
 static void
 check_datasheet (struct mc *mc, struct datasheet *ds,
                  double array[MAX_ROWS][MAX_COLS],
-                 size_t row_cnt, size_t column_cnt) 
+                 size_t row_cnt, size_t column_cnt)
 {
   assert (row_cnt < MAX_ROWS);
   assert (column_cnt < MAX_COLS);
@@ -1275,12 +1275,12 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
   else if (column_cnt != datasheet_get_column_cnt (ds))
     mc_error (mc, "column count (%lu) does not match expected (%zu)",
               (unsigned long int) datasheet_get_column_cnt (ds), column_cnt);
-  else 
+  else
     {
       size_t row, col;
 
       for (row = 0; row < row_cnt; row++)
-        for (col = 0; col < column_cnt; col++) 
+        for (col = 0; col < column_cnt; col++)
           {
             union value v;
             if (!datasheet_get_value (ds, row, col, &v, 1))
@@ -1305,7 +1305,7 @@ extract_data (const struct datasheet *ds, double data[MAX_ROWS][MAX_COLS])
   assert (row_cnt < MAX_ROWS);
   assert (column_cnt < MAX_COLS);
   for (row = 0; row < row_cnt; row++)
-    for (col = 0; col < column_cnt; col++) 
+    for (col = 0; col < column_cnt; col++)
       {
         union value v;
         if (!datasheet_get_value (ds, row, col, &v, 1))
@@ -1318,7 +1318,7 @@ extract_data (const struct datasheet *ds, double data[MAX_ROWS][MAX_COLS])
    and the contents of ODATA into DATA. */
 static void
 clone_model (const struct datasheet *ods, double odata[MAX_ROWS][MAX_COLS],
-             struct datasheet **ds_, double data[MAX_ROWS][MAX_COLS]) 
+             struct datasheet **ds_, double data[MAX_ROWS][MAX_COLS])
 {
   struct datasheet *ds;
   struct range_map_node *r;
@@ -1329,7 +1329,7 @@ clone_model (const struct datasheet *ods, double odata[MAX_ROWS][MAX_COLS],
   ds->rows = axis_clone (ods->rows);
   range_map_init (&ds->sources);
   for (r = range_map_first (&ods->sources); r != NULL;
-       r = range_map_next (&ods->sources, r)) 
+       r = range_map_next (&ods->sources, r))
     {
       const struct source_info *osi = source_info_from_range_map (r);
       struct source_info *si = xmalloc (sizeof *si);
@@ -1346,19 +1346,19 @@ clone_model (const struct datasheet *ods, double odata[MAX_ROWS][MAX_COLS],
 
 /* "init" function for struct mc_class. */
 static void
-datasheet_mc_init (struct mc *mc) 
+datasheet_mc_init (struct mc *mc)
 {
   struct datasheet_test_params *params = mc_get_aux (mc);
   struct datasheet *ds;
 
-  if (params->backing_rows == 0 && params->backing_cols == 0) 
+  if (params->backing_rows == 0 && params->backing_cols == 0)
     {
       /* Create unbacked datasheet. */
       ds = datasheet_create (NULL);
       mc_name_operation (mc, "empty datasheet");
       check_datasheet (mc, ds, NULL, 0, 0);
     }
-  else 
+  else
     {
       /* Create datasheet with backing. */
       struct casewriter *writer;
@@ -1386,7 +1386,7 @@ datasheet_mc_init (struct mc *mc)
         }
       reader = casewriter_make_reader (writer);
       assert (reader != NULL);
-      
+
       ds = datasheet_create (reader);
       mc_name_operation (mc, "datasheet with (%d,%d) backing",
                          params->backing_rows, params->backing_cols);
@@ -1397,7 +1397,7 @@ datasheet_mc_init (struct mc *mc)
 
 /* "mutate" function for struct mc_class. */
 static void
-datasheet_mc_mutate (struct mc *mc, const void *ods_) 
+datasheet_mc_mutate (struct mc *mc, const void *ods_)
 {
   struct datasheet_test_params *params = mc_get_aux (mc);
 
@@ -1423,13 +1423,13 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
           mc_name_operation (mc, "insert %zu columns at %zu", cnt, pos);
           clone_model (ods, odata, &ds, data);
 
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             new[i].f = params->next_value++;
 
           if (!datasheet_insert_columns (ds, new, cnt, pos))
             mc_error (mc, "datasheet_insert_columns failed");
-        
-          for (i = 0; i < row_cnt; i++) 
+
+          for (i = 0; i < row_cnt; i++)
             {
               insert_range (&data[i][0], column_cnt, sizeof data[i][0],
                             pos, cnt);
@@ -1443,7 +1443,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Delete all possible numbers of columns from all possible
      positions. */
   for (pos = 0; pos < column_cnt; pos++)
-    for (cnt = 0; cnt < column_cnt - pos; cnt++) 
+    for (cnt = 0; cnt < column_cnt - pos; cnt++)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
@@ -1453,7 +1453,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
           clone_model (ods, odata, &ds, data);
 
           datasheet_delete_columns (ds, pos, cnt);
-        
+
           for (i = 0; i < row_cnt; i++)
             remove_range (&data[i], column_cnt, sizeof *data[i], pos, cnt);
 
@@ -1475,18 +1475,18 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
                                cnt, pos, new_pos);
 
             datasheet_move_columns (ds, pos, new_pos, cnt);
-        
+
             for (i = 0; i < row_cnt; i++)
               move_range (&data[i], column_cnt, sizeof data[i][0],
                           pos, new_pos, cnt);
 
             check_datasheet (mc, ds, data, row_cnt, column_cnt);
-          }      
+          }
 
   /* Insert all possible numbers of rows in all possible
      positions. */
   for (pos = 0; pos <= row_cnt; pos++)
-    for (cnt = 0; cnt <= params->max_rows - row_cnt; cnt++) 
+    for (cnt = 0; cnt <= params->max_rows - row_cnt; cnt++)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
@@ -1496,7 +1496,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
           clone_model (ods, odata, &ds, data);
           mc_name_operation (mc, "insert %zu rows at %zu", cnt, pos);
 
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             {
               case_create (&c[i], column_cnt);
               for (j = 0; j < column_cnt; j++)
@@ -1504,7 +1504,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
             }
 
           insert_range (data, row_cnt, sizeof data[pos], pos, cnt);
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             for (j = 0; j < column_cnt; j++)
               data[i + pos][j] = case_num_idx (&c[i], j);
 
@@ -1517,7 +1517,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Delete all possible numbers of rows from all possible
      positions. */
   for (pos = 0; pos < row_cnt; pos++)
-    for (cnt = 0; cnt < row_cnt - pos; cnt++) 
+    for (cnt = 0; cnt < row_cnt - pos; cnt++)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
@@ -1546,17 +1546,17 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
                                cnt, pos, new_pos);
 
             datasheet_move_rows (ds, pos, new_pos, cnt);
-        
+
             move_range (&data[0], row_cnt, sizeof data[0],
                         pos, new_pos, cnt);
 
             check_datasheet (mc, ds, data, row_cnt, column_cnt);
-          }      
+          }
 }
 
 /* "destroy" function for struct mc_class. */
 static void
-datasheet_mc_destroy (const struct mc *mc UNUSED, void *ds_) 
+datasheet_mc_destroy (const struct mc *mc UNUSED, void *ds_)
 {
   struct datasheet *ds = ds_;
   datasheet_destroy (ds);
@@ -1570,7 +1570,7 @@ datasheet_mc_destroy (const struct mc *mc UNUSED, void *ds_)
 
    Returns the results of the model checking run. */
 struct mc_results *
-datasheet_test (struct mc_options *options, void *params_) 
+datasheet_test (struct mc_options *options, void *params_)
 {
   struct datasheet_test_params *params = params_;
   static const struct mc_class datasheet_mc_class =

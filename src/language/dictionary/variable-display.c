@@ -48,7 +48,7 @@ cmd_variable_alignment (struct lexer *lexer, struct dataset *ds)
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if ( lex_force_match (lexer, '(') ) 
+      if ( lex_force_match (lexer, '(') )
 	{
 	  if ( lex_match_id (lexer, "LEFT"))
 	    align = ALIGN_LEFT;
@@ -56,18 +56,18 @@ cmd_variable_alignment (struct lexer *lexer, struct dataset *ds)
 	    align = ALIGN_RIGHT;
 	  else if ( lex_match_id (lexer, "CENTER"))
 	    align = ALIGN_CENTRE;
-	  else 
+	  else
             {
               free (v);
-              return CMD_FAILURE; 
+              return CMD_FAILURE;
             }
 
 	  lex_force_match (lexer, ')');
 	}
-      else 
+      else
         {
           free (v);
-          return CMD_FAILURE; 
+          return CMD_FAILURE;
         }
 
       for( i = 0 ; i < nv ; ++i )
@@ -98,16 +98,16 @@ cmd_variable_width (struct lexer *lexer, struct dataset *ds)
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if ( lex_force_match (lexer, '(') ) 
+      if ( lex_force_match (lexer, '(') )
 	{
-	  if ( lex_force_int (lexer)) 
+	  if ( lex_force_int (lexer))
 	    lex_get (lexer);
 	  else
 	    return CMD_FAILURE;
 	  lex_force_match (lexer, ')');
 	}
 
-      for( i = 0 ; i < nv ; ++i ) 
+      for( i = 0 ; i < nv ; ++i )
         var_set_display_width (v[i], lex_integer (lexer));
 
       while (lex_token (lexer) == '/')
@@ -133,7 +133,7 @@ cmd_variable_level (struct lexer *lexer, struct dataset *ds)
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if ( lex_force_match (lexer, '(') ) 
+      if ( lex_force_match (lexer, '(') )
 	{
 	  if ( lex_match_id (lexer, "SCALE"))
 	    level = MEASURE_SCALE;
@@ -141,10 +141,10 @@ cmd_variable_level (struct lexer *lexer, struct dataset *ds)
 	    level = MEASURE_ORDINAL;
 	  else if ( lex_match_id (lexer, "NOMINAL"))
 	    level = MEASURE_NOMINAL;
-	  else 
+	  else
             {
               free (v);
-              return CMD_FAILURE; 
+              return CMD_FAILURE;
             }
 
 	  lex_force_match (lexer, ')');
@@ -152,10 +152,10 @@ cmd_variable_level (struct lexer *lexer, struct dataset *ds)
       else
         {
           free (v);
-          return CMD_FAILURE; 
+          return CMD_FAILURE;
         }
-      
-      for( i = 0 ; i < nv ; ++i ) 
+
+      for( i = 0 ; i < nv ; ++i )
 	var_set_measure (v[i], level);
 
 

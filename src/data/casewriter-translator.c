@@ -45,7 +45,7 @@ casewriter_create_translator (struct casewriter *subwriter,
                                                  struct ccase *output,
                                                  void *aux),
                               bool (*destroy) (void *aux),
-                              void *aux) 
+                              void *aux)
 {
   struct casewriter_translator *ct = xmalloc (sizeof *ct);
   struct casewriter *writer;
@@ -61,7 +61,7 @@ casewriter_create_translator (struct casewriter *subwriter,
 
 static void
 casewriter_translator_write (struct casewriter *writer UNUSED,
-                             void *ct_, struct ccase *c) 
+                             void *ct_, struct ccase *c)
 {
   struct casewriter_translator *ct = ct_;
   struct ccase tmp;
@@ -71,7 +71,7 @@ casewriter_translator_write (struct casewriter *writer UNUSED,
 }
 
 static void
-casewriter_translator_destroy (struct casewriter *writer UNUSED, void *ct_) 
+casewriter_translator_destroy (struct casewriter *writer UNUSED, void *ct_)
 {
   struct casewriter_translator *ct = ct_;
   casewriter_destroy (ct->subwriter);
@@ -90,7 +90,7 @@ casewriter_translator_convert_to_reader (struct casewriter *writer UNUSED,
   return reader;
 }
 
-static struct casewriter_class casewriter_translator_class = 
+static struct casewriter_class casewriter_translator_class =
   {
     casewriter_translator_write,
     casewriter_translator_destroy,

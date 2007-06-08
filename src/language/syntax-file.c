@@ -48,7 +48,7 @@
 #include <libpspp/getl.h>
 
 
-struct syntax_file_source 
+struct syntax_file_source
   {
     struct getl_interface parent ;
 
@@ -97,7 +97,7 @@ read_syntax_file (struct getl_interface *s,
 
   /* Read line from file and remove new-line.
      Skip initial "#! /usr/bin/pspp" line. */
-  do 
+  do
     {
       sfs->ln++;
       if (!ds_read_line (line, sfs->syntax_file))
@@ -138,7 +138,7 @@ always_false (const struct getl_interface *s UNUSED)
 
 /* Creates a syntax file source with file name FN. */
 struct getl_interface *
-create_syntax_file_source (const char *fn) 
+create_syntax_file_source (const char *fn)
 {
   struct syntax_file_source *ss = xzalloc (sizeof (*ss));
 

@@ -24,14 +24,14 @@
 static gsl_rng *rng;
 
 void
-random_init (void) 
+random_init (void)
 {
 }
 
 void
-random_done (void) 
+random_done (void)
 {
-  if (rng != NULL) 
+  if (rng != NULL)
     gsl_rng_free (rng);
 }
 
@@ -47,7 +47,7 @@ get_rng (void)
 /* Initializes or reinitializes the random number generator with
    the given SEED. */
 void
-set_rng (unsigned long seed) 
+set_rng (unsigned long seed)
 {
   rng = gsl_rng_alloc (gsl_rng_mt19937);
   if (rng == NULL)

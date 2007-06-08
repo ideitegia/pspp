@@ -65,7 +65,7 @@ static void print_results (const struct mc_results *, FILE *);
    true if the model checker run found no errors, false
    otherwise. */
 bool
-check_model (struct lexer *lexer, 
+check_model (struct lexer *lexer,
              struct mc_results *(*checker) (struct mc_options *, void *aux),
              void *aux)
 {
@@ -83,13 +83,13 @@ check_model (struct lexer *lexer,
 
   print_results (results, output_file);
 
-  if (output_file != stdout && output_file != stderr) 
+  if (output_file != stdout && output_file != stderr)
     {
-      if (fwriteerror (output_file) < 0) 
+      if (fwriteerror (output_file) < 0)
         {
           /* We've already discarded the name of the output file.
              Oh well. */
-          error (0, errno, "error closing output file"); 
+          error (0, errno, "error closing output file");
         }
     }
 
@@ -101,7 +101,7 @@ check_model (struct lexer *lexer,
 
 /* Fancy progress function for mc_options_set_progress_func. */
 static bool
-fancy_progress (struct mc *mc) 
+fancy_progress (struct mc *mc)
 {
   const struct mc_results *results = mc_get_results (mc);
   if (mc_results_get_stop_reason (results) == MC_CONTINUING)
@@ -118,7 +118,7 @@ fancy_progress (struct mc *mc)
 /* Parses options from LEXER and returns a corresponding
    mc_options, or a null pointer if parsing fails. */
 static struct mc_options *
-parse_options (struct lexer *lexer) 
+parse_options (struct lexer *lexer)
 {
   struct cmd_check_model cmd;
   struct mc_options *options;
@@ -138,7 +138,7 @@ parse_options (struct lexer *lexer)
       if (cmd.sbc_search > 0)
         msg (SW, _("PATH and SEARCH subcommands are mutually exclusive.  "
                    "Ignoring PATH."));
-      else 
+      else
         {
           struct subc_list_int *list = &cmd.il_path[0];
           int count = subc_list_int_count (list);
@@ -146,7 +146,7 @@ parse_options (struct lexer *lexer)
             {
               struct mc_path path;
               int i;
-          
+
               mc_path_init (&path);
               for (i = 0; i < count; i++)
                 mc_path_push (&path, subc_list_int_at (list, i));
@@ -159,17 +159,17 @@ parse_options (struct lexer *lexer)
     }
   if (cmd.max_depth != NOT_LONG)
     mc_options_set_max_depth (options, cmd.max_depth);
-  if (cmd.hash_bits != NOT_LONG) 
+  if (cmd.hash_bits != NOT_LONG)
     {
       int hash_bits;
       mc_options_set_hash_bits (options, cmd.hash_bits);
       hash_bits = mc_options_get_hash_bits (options);
       if (hash_bits != cmd.hash_bits)
-        msg (SW, _("Hash bits adjusted to %d."), hash_bits); 
+        msg (SW, _("Hash bits adjusted to %d."), hash_bits);
     }
   if (cmd.queue_limit != NOT_LONG)
     mc_options_set_queue_limit (options, cmd.queue_limit);
-  if (cmd.drop != -1) 
+  if (cmd.drop != -1)
     {
       enum mc_queue_limit_strategy drop
         = (cmd.drop == CHM_NEWEST ? MC_DROP_NEWEST
@@ -190,7 +190,7 @@ parse_options (struct lexer *lexer)
     mc_options_set_verbosity (options, cmd.verbosity);
   if (cmd.err_verbosity != NOT_LONG)
     mc_options_set_failure_verbosity (options, cmd.err_verbosity);
-  if (cmd.progress != -1) 
+  if (cmd.progress != -1)
     {
       if (cmd.progress == CHM_NONE)
         mc_options_set_progress_usec (options, 0);
@@ -204,7 +204,7 @@ parse_options (struct lexer *lexer)
   if (cmd.output_file != NULL)
     {
       FILE *output_file = fopen (cmd.output_file, "w");
-      if (output_file == NULL) 
+      if (output_file == NULL)
         {
           error (0, errno, _("error opening \"%s\" for writing"),
                  cmd.output_file);
@@ -220,7 +220,7 @@ parse_options (struct lexer *lexer)
 
 /* Prints a description of RESULTS to stream F. */
 static void
-print_results (const struct mc_results *results, FILE *f) 
+print_results (const struct mc_results *results, FILE *f)
 {
   enum mc_stop_reason reason = mc_results_get_stop_reason (results);
 

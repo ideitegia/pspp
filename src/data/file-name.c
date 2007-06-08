@@ -64,7 +64,7 @@ fn_init (void)
    properly handling the case where SRC is a substring of DST.
    Variables are as defined by GETENV. Supports $var and ${var}
    syntaxes; $$ substitutes as $. */
-void 
+void
 fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
                 struct string *dst_)
 {
@@ -72,7 +72,7 @@ fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
   int c;
 
   while ((c = ss_get_char (&src)) != EOF)
-    if (c != '$') 
+    if (c != '$')
       ds_put_char (&dst, c);
     else
       {
@@ -98,7 +98,7 @@ fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
             ds_truncate (&dst, start);
 
             ds_put_cstr (&dst, value);
-          } 
+          }
       }
 
   ds_swap (&dst, dst_);
@@ -164,7 +164,7 @@ fn_dir_name (const char *file_name)
    If FILE_NAME does not have an extension, returns an empty
    string. */
 char *
-fn_extension (const char *file_name) 
+fn_extension (const char *file_name)
 {
   const char *extension = strrchr (file_name, '.');
   if (extension == NULL)
@@ -256,13 +256,13 @@ fn_open (const char *fn, const char *mode)
 {
   assert (mode[0] == 'r' || mode[0] == 'w');
 
-  if (mode[0] == 'r' && (!strcmp (fn, "stdin") || !strcmp (fn, "-"))) 
+  if (mode[0] == 'r' && (!strcmp (fn, "stdin") || !strcmp (fn, "-")))
     return stdin;
   else if (mode[0] == 'w' && (!strcmp (fn, "stdout") || !strcmp (fn, "-")))
     return stdout;
   else if (mode[0] == 'w' && !strcmp (fn, "stderr"))
     return stderr;
-  
+
 #if HAVE_POPEN
   if (fn[0] == '|')
     {
@@ -278,11 +278,11 @@ fn_open (const char *fn, const char *mode)
 
       if (get_safer_mode ())
 	return safety_violation (fn);
-      
+
       s = local_alloc (strlen (fn));
       memcpy (s, fn, strlen (fn) - 1);
       s[strlen (fn) - 1] = 0;
-      
+
       f = popen (s, mode);
 
       local_free (s);
@@ -322,7 +322,7 @@ fn_close (const char *fn, FILE *f)
 
 #if !(defined _WIN32 || defined __WIN32__)
 /* A file's identity. */
-struct file_identity 
+struct file_identity
 {
   dev_t device;               /* Device number. */
   ino_t inode;                /* Inode number. */
@@ -333,13 +333,13 @@ struct file_identity
    same file.  Returns a null pointer if no information about the
    file is available, perhaps because it does not exist.  The
    caller is responsible for freeing the structure with
-   fn_free_identity() when finished. */  
+   fn_free_identity() when finished. */
 struct file_identity *
-fn_get_identity (const char *file_name) 
+fn_get_identity (const char *file_name)
 {
   struct stat s;
 
-  if (stat (file_name, &s) == 0) 
+  if (stat (file_name, &s) == 0)
     {
       struct file_identity *identity = xmalloc (sizeof *identity);
       identity->device = s.st_dev;
@@ -352,7 +352,7 @@ fn_get_identity (const char *file_name)
 
 /* Frees IDENTITY obtained from fn_get_identity(). */
 void
-fn_free_identity (struct file_identity *identity) 
+fn_free_identity (struct file_identity *identity)
 {
   free (identity);
 }
@@ -360,7 +360,7 @@ fn_free_identity (struct file_identity *identity)
 /* Compares A and B, returning a strcmp()-type result. */
 int
 fn_compare_file_identities (const struct file_identity *a,
-                            const struct file_identity *b) 
+                            const struct file_identity *b)
 {
   assert (a != NULL);
   assert (b != NULL);
@@ -371,7 +371,7 @@ fn_compare_file_identities (const struct file_identity *a,
 }
 #else /* Windows */
 /* A file's identity. */
-struct file_identity 
+struct file_identity
 {
   char *normalized_file_name;  /* File's normalized name. */
 };
@@ -381,9 +381,9 @@ struct file_identity
    same file.  Returns a null pointer if no information about the
    file is available, perhaps because it does not exist.  The
    caller is responsible for freeing the structure with
-   fn_free_identity() when finished. */  
+   fn_free_identity() when finished. */
 struct file_identity *
-fn_get_identity (const char *file_name) 
+fn_get_identity (const char *file_name)
 {
   struct file_identity *identity = xmalloc (sizeof *identity);
   char cname[PATH_MAX];
@@ -398,9 +398,9 @@ fn_get_identity (const char *file_name)
 
 /* Frees IDENTITY obtained from fn_get_identity(). */
 void
-fn_free_identity (struct file_identity *identity) 
+fn_free_identity (struct file_identity *identity)
 {
-  if (identity != NULL) 
+  if (identity != NULL)
     {
       free (identity->normalized_file_name);
       free (identity);
@@ -410,7 +410,7 @@ fn_free_identity (struct file_identity *identity)
 /* Compares A and B, returning a strcmp()-type result. */
 int
 fn_compare_file_identities (const struct file_identity *a,
-                            const struct file_identity *b) 
+                            const struct file_identity *b)
 {
   return strcasecmp (a->normalized_file_name, b->normalized_file_name);
 }

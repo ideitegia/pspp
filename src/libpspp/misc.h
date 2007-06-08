@@ -59,21 +59,21 @@ int intlog10 (unsigned);
 
 /* Returns the square of X. */
 static inline double
-pow2 (double x) 
+pow2 (double x)
 {
   return x * x;
 }
 
 /* Returns the cube of X. */
 static inline double
-pow3 (double x) 
+pow3 (double x)
 {
   return x * x * x;
 }
 
 /* Returns the fourth power of X. */
 static inline double
-pow4 (double x) 
+pow4 (double x)
 {
   double y = x * x;
   y *= y;

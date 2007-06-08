@@ -115,7 +115,7 @@ static void
 write_line (struct outp_driver *d, const char *s)
 {
   struct outp_text text;
-  
+
   assert (d->cp_y + d->font_height <= d->length);
   text.font = OUTP_FIXED;
   text.justification = OUTP_LEFT;
@@ -127,7 +127,7 @@ write_line (struct outp_driver *d, const char *s)
   d->cp_x = 0;
   d->cp_y += d->font_height;
 }
-    
+
 /* Parses and executes the LIST procedure. */
 int
 cmd_list (struct lexer *lexer, struct dataset *ds)
@@ -141,7 +141,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
 
   if (!parse_list (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
-  
+
   /* Fill in defaults. */
   if (cmd.step == NOT_LONG)
     cmd.step = 1;
@@ -234,17 +234,17 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
   case_idx = 0;
   for (grouper = casegrouper_create_splits (proc_open (ds), dict);
        casegrouper_get_next_group (grouper, &group);
-       casereader_destroy (group)) 
+       casereader_destroy (group))
     {
       struct ccase c;
-      
+
       write_all_headers (group, ds);
-      for (; casereader_read (group, &c); case_destroy (&c)) 
+      for (; casereader_read (group, &c); case_destroy (&c))
         {
           case_idx++;
           if (case_idx >= cmd.first && case_idx <= cmd.last
               && (case_idx - cmd.first) % cmd.step == 0)
-            list_case (&c, case_idx, ds); 
+            list_case (&c, case_idx, ds);
         }
     }
   ok = casegrouper_destroy (grouper);
@@ -254,7 +254,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
 
   clean_up ();
 
-  var_destroy (casenum_var);    
+  var_destroy (casenum_var);
 
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
@@ -282,9 +282,9 @@ write_all_headers (struct casereader *input, const struct dataset *ds)
       else if (d->class == &html_class)
 	{
 	  struct html_driver_ext *x = d->ext;
-  
+
 	  fputs ("<TABLE BORDER=1>\n  <TR>\n", x->file);
-	  
+
 	  {
 	    size_t i;
 
@@ -309,7 +309,7 @@ write_header (struct outp_driver *d)
 
   if (!prc->header_rows)
     return;
-  
+
   if (n_lines_remaining (d) < prc->header_rows + 1)
     {
       outp_eject_page (d);
@@ -321,7 +321,7 @@ write_header (struct outp_driver *d)
     {
       size_t i;
       size_t x;
-      
+
       /* Allocate, initialize header. */
       prc->header = xnmalloc (prc->header_rows, sizeof *prc->header);
       {
@@ -356,7 +356,7 @@ write_header (struct outp_driver *d)
           const char *name = var_get_name (v);
           size_t name_len = strlen (name);
           const struct fmt_spec *print = var_get_print_format (v);
-	  
+
 	  memset (&prc->header[prc->header_rows - 1][x], '-',
 		  MAX (print->w, (int) name_len));
 	  if ((int) name_len < print->w)
@@ -379,23 +379,23 @@ write_header (struct outp_driver *d)
     }
 
   /* Write out the header, in back-to-front order except for the last line. */
-  if (prc->header_rows >= 2) 
+  if (prc->header_rows >= 2)
     {
       size_t i;
-        
+
       for (i = prc->header_rows - 1; i-- != 0; )
-        write_line (d, prc->header[i]); 
+        write_line (d, prc->header[i]);
     }
   write_line (d, prc->header[prc->header_rows - 1]);
 }
-      
-  
+
+
 /* Frees up all the memory we've allocated. */
 static void
 clean_up (void)
 {
   struct outp_driver *d;
-  
+
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     if (d->class->special == 0)
       {
@@ -421,7 +421,7 @@ clean_up (void)
       }
     else
       NOT_REACHED ();
-  
+
   free (cmd.v_variables);
 }
 
@@ -433,7 +433,7 @@ write_varname (struct outp_driver *d, char *string, int indent)
 {
   struct outp_text text;
   int width;
-  
+
   if (d->cp_x + outp_string_width (d, string, OUTP_FIXED) > d->width)
     {
       d->cp_y += d->font_height;
@@ -459,7 +459,7 @@ static void
 write_fallback_headers (struct outp_driver *d)
 {
   const int max_width = n_chars_width(d) - 10;
-  
+
   int index = 0;
   int width = 0;
   int line_number = 0;
@@ -467,7 +467,7 @@ write_fallback_headers (struct outp_driver *d)
   const char *Line = _("Line");
   char *leader = local_alloc (strlen (Line)
                               + INT_STRLEN_BOUND (line_number) + 1 + 1);
-      
+
   while (index < cmd.n_variables)
     {
       struct outp_text text;
@@ -476,7 +476,7 @@ write_fallback_headers (struct outp_driver *d)
       /* Ensure that there is enough room for a line of text. */
       if (d->cp_y + d->font_height > d->length)
 	outp_eject_page (d);
-      
+
       /* The leader is a string like `Line 1: '.  Write the leader. */
       sprintf (leader, "%s %d:", Line, ++line_number);
       text.font = OUTP_FIXED;
@@ -506,7 +506,7 @@ write_fallback_headers (struct outp_driver *d)
 	      }
 	    width += var_width;
 	  }
-	  
+
 	  {
 	    char varname[LONG_NAME_LEN + 2];
 	    snprintf (varname, sizeof varname,
@@ -519,7 +519,7 @@ write_fallback_headers (struct outp_driver *d)
     }
   d->cp_x = 0;
   d->cp_y += d->font_height;
-  
+
   local_free (leader);
 }
 
@@ -543,11 +543,11 @@ static void
 determine_layout (void)
 {
   struct outp_driver *d;
-  
+
   /* This is the largest page width of any driver, so we can tell what
      size buffer to allocate. */
   int largest_page_width = 0;
-  
+
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     {
       size_t column;	/* Current column. */
@@ -559,11 +559,11 @@ determine_layout (void)
 
       if (d->class == &html_class)
 	continue;
-      
+
       assert (d->class->special == 0);
 
       outp_open_page (d);
-      
+
       max_width = n_chars_width (d);
       largest_page_width = MAX (largest_page_width, max_width);
 
@@ -589,7 +589,7 @@ determine_layout (void)
       /* Try layout #2. */
       for (width = cmd.n_variables - 1, height = 0, column = 0;
 	   column < cmd.n_variables && width <= max_width;
-	   column++) 
+	   column++)
         {
           const struct variable *v = cmd.v_variables[column];
           int fmt_width = var_get_print_format (v)->w;
@@ -598,7 +598,7 @@ determine_layout (void)
           if (name_len > height)
             height = name_len;
         }
-      
+
       /* If it fit then we need to determine how many labels can be
          written horizontally. */
       if (width <= max_width && height <= SHORT_NAME_LEN)
@@ -625,11 +625,11 @@ determine_layout (void)
 	  /* Finally determine the length of the headers. */
 	  for (prc->header_rows = 0, column = 0;
 	       column < prc->n_vertical;
-	       column++) 
+	       column++)
             {
               const struct variable *var = cmd.v_variables[column];
               size_t name_len = strlen (var_get_name (var));
-              prc->header_rows = MAX (prc->header_rows, name_len); 
+              prc->header_rows = MAX (prc->header_rows, name_len);
             }
 	  prc->header_rows++;
 	  continue;
@@ -653,7 +653,7 @@ list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct outp_driver *d;
-  
+
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     if (d->class->special == 0)
       {
@@ -666,23 +666,23 @@ list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
 	    ds_put_format(&line_buffer, "%8s: ",
                           var_get_name (cmd.v_variables[0]));
 	  }
-	
-      
+
+
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
 	    const struct variable *v = cmd.v_variables[column];
             const struct fmt_spec *print = var_get_print_format (v);
 	    int width;
 
-	    if (prc->type == 0 && column >= prc->n_vertical) 
+	    if (prc->type == 0 && column >= prc->n_vertical)
               {
                 int name_len = strlen (var_get_name (v));
-                width = MAX (name_len, print->w); 
+                width = MAX (name_len, print->w);
               }
 	    else
 	      width = print->w;
 
-	    if (width + ds_length(&line_buffer) > max_width && 
+	    if (width + ds_length(&line_buffer) > max_width &&
 		ds_length(&line_buffer) != 0)
 	      {
 		if (!n_lines_remaining (d))
@@ -690,7 +690,7 @@ list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
 		    outp_eject_page (d);
 		    write_header (d);
 		  }
-	      
+
 		write_line (d, ds_cstr (&line_buffer));
 		ds_clear(&line_buffer);
 
@@ -707,23 +707,23 @@ list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
                 data_out (case_data (c, v), print,
                           ds_put_uninit (&line_buffer, print->w));
 	      }
-            else 
+            else
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
                 data_out (&case_idx_value, print,
-                          ds_put_uninit (&line_buffer,print->w)); 
+                          ds_put_uninit (&line_buffer,print->w));
               }
 
 	    ds_put_char(&line_buffer, ' ');
 	  }
-      
+
 	if (!n_lines_remaining (d))
 	  {
 	    outp_eject_page (d);
 	    write_header (d);
 	  }
-	      
+
 	write_line (d, ds_cstr (&line_buffer));
 	ds_clear(&line_buffer);
       }
@@ -733,17 +733,17 @@ list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
 	int column;
 
 	fputs ("  <TR>\n", x->file);
-	
+
 	for (column = 0; column < cmd.n_variables; column++)
 	  {
 	    const struct variable *v = cmd.v_variables[column];
             const struct fmt_spec *print = var_get_print_format (v);
 	    char buf[256];
-	    
+
             if (fmt_is_string (print->type)
                 || dict_contains_var (dict, v))
 	      data_out (case_data (c, v), print, buf);
-            else 
+            else
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
@@ -754,14 +754,14 @@ list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
             html_put_cell_contents (d, TAB_FIX, ss_buffer (buf, print->w));
             fputs ("</TD>\n", x->file);
 	  }
-	  
+
 	fputs ("  </TR>\n", x->file);
       }
     else
       NOT_REACHED ();
 }
 
-/* 
+/*
    Local Variables:
    mode: c
    End:

@@ -1,8 +1,8 @@
 /* gsheet-uniform-column.c
- * 
+ *
  * PSPPIRE --- A Graphical User Interface for PSPP
  * Copyright (C) 2006  Free Software Foundation
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -12,7 +12,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -60,7 +60,7 @@ g_sheet_uniform_column_get_type (void)
 	NULL
       };
 
-      uniform_column_type = 
+      uniform_column_type =
 	g_type_register_static (G_TYPE_OBJECT, "g_sheet_uniform_column",
 				&uniform_column_info, 0);
 
@@ -96,28 +96,28 @@ g_sheet_uniform_column_new (gint width, gint n_columns)
   return retval;
 }
 
-static gint 
+static gint
 g_sheet_uniform_column_get_width(const GSheetColumn *geom, gint u)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
-  
+
   return ug->width;
 }
 
-static gint 
+static gint
 g_sheet_uniform_column_get_sensitivity(const GSheetColumn *geom, gint u)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
-  
+
   return ug->is_sensitive;
 }
 
 
-static gint 
+static gint
 g_sheet_uniform_column_get_visibility(const GSheetColumn *geom, gint u)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
-  
+
   return ug->is_visible;
 }
 
@@ -139,7 +139,7 @@ g_sheet_uniform_column_get_justification(const GSheetColumn *geom, gint u)
 
 
 
-static gint 
+static gint
 g_sheet_uniform_column_get_column_count(const GSheetColumn *geom)
 {
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
@@ -165,7 +165,7 @@ g_sheet_uniform_column_init (GSheetUniformColumn *o)
 {
 }
 
-static void         
+static void
 g_sheet_uniform_column_finalize (GObject           *object)
 {
 }

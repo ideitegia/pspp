@@ -27,7 +27,7 @@
 #include "xalloc.h"
 
 /* A heap. */
-struct heap 
+struct heap
   {
     /* Comparison function and auxiliary data. */
     heap_compare_func *compare;
@@ -51,7 +51,7 @@ static inline bool propagate_up (struct heap *, size_t idx);
    To obtain a max-heap, negate the return value of the
    comparison function. */
 struct heap *
-heap_create (heap_compare_func *compare, const void *aux) 
+heap_create (heap_compare_func *compare, const void *aux)
 {
   struct heap *h = xmalloc (sizeof *h);
   h->compare = compare;
@@ -64,7 +64,7 @@ heap_create (heap_compare_func *compare, const void *aux)
 
 /* Destroys H (callback for pool). */
 static void
-destroy_callback (void *h) 
+destroy_callback (void *h)
 {
   heap_destroy (h);
 }
@@ -77,7 +77,7 @@ destroy_callback (void *h)
    comparison function. */
 struct heap *
 heap_create_pool (struct pool *pool,
-                  heap_compare_func *compare, const void *aux) 
+                  heap_compare_func *compare, const void *aux)
 {
   struct heap *h = heap_create (compare, aux);
   pool_register (pool, destroy_callback, h);
@@ -86,9 +86,9 @@ heap_create_pool (struct pool *pool,
 
 /* Destroys heap H. */
 void
-heap_destroy (struct heap *h) 
+heap_destroy (struct heap *h)
 {
-  if (h != NULL) 
+  if (h != NULL)
     {
       free (h->nodes);
       free (h);
@@ -98,14 +98,14 @@ heap_destroy (struct heap *h)
 /* Returns true if H is empty, false if it contains at least one
    element. */
 bool
-heap_is_empty (const struct heap *h) 
+heap_is_empty (const struct heap *h)
 {
   return h->cnt == 0;
 }
 
 /* Returns the number of elements in H. */
 size_t
-heap_count (const struct heap *h) 
+heap_count (const struct heap *h)
 {
   return h->cnt;
 }
@@ -116,7 +116,7 @@ heap_count (const struct heap *h)
    NODE that was moved and its heap H before attempting any other
    operation on H. */
 void
-heap_moved (struct heap *h, struct heap_node *node) 
+heap_moved (struct heap *h, struct heap_node *node)
 {
   assert (node->idx <= h->cnt);
   h->nodes[node->idx] = node;
@@ -125,7 +125,7 @@ heap_moved (struct heap *h, struct heap_node *node)
 /* Returns the node with the minimum value in H, which must not
    be empty. */
 struct heap_node *
-heap_minimum (const struct heap *h) 
+heap_minimum (const struct heap *h)
 {
   assert (!heap_is_empty (h));
   return h->nodes[1];
@@ -135,7 +135,7 @@ heap_minimum (const struct heap *h)
 void
 heap_insert (struct heap *h, struct heap_node *node)
 {
-  if (h->cnt >= h->cap) 
+  if (h->cnt >= h->cap)
     {
       h->cap = 2 * (h->cap + 8);
       h->nodes = xnrealloc (h->nodes, h->cap + 1, sizeof *h->nodes);
@@ -155,12 +155,12 @@ heap_delete (struct heap *h, struct heap_node *node)
   assert (node->idx <= h->cnt);
   assert (h->nodes[node->idx] == node);
 
-  if (node->idx < h->cnt) 
+  if (node->idx < h->cnt)
     {
       set_node (h, node->idx, h->nodes[h->cnt--]);
       heap_changed (h, h->nodes[node->idx]);
     }
-  else 
+  else
     h->cnt--;
 }
 
@@ -176,7 +176,7 @@ heap_delete (struct heap *h, struct heap_node *node)
    the nodes from the heap, update their values, then re-insert
    all of them. */
 void
-heap_changed (struct heap *h, struct heap_node *node) 
+heap_changed (struct heap *h, struct heap_node *node)
 {
   assert (node->idx <= h->cnt);
   assert (h->nodes[node->idx] == node);
@@ -193,7 +193,7 @@ static inline void swap_nodes (struct heap *, size_t a, size_t b);
 /* Sets h->nodes[IDX] and updates NODE's 'idx' field
    accordingly. */
 static void
-set_node (struct heap *h, size_t idx, struct heap_node *node) 
+set_node (struct heap *h, size_t idx, struct heap_node *node)
 {
   h->nodes[idx] = node;
   h->nodes[idx]->idx = idx;
@@ -202,9 +202,9 @@ set_node (struct heap *h, size_t idx, struct heap_node *node)
 /* Moves the node with the given IDX down the heap as necessary
    to restore the heap property. */
 static void
-propagate_down (struct heap *h, size_t idx) 
+propagate_down (struct heap *h, size_t idx)
 {
-  for (;;) 
+  for (;;)
     {
       size_t least;
       least = lesser_node (h, idx, 2 * idx);
@@ -221,13 +221,13 @@ propagate_down (struct heap *h, size_t idx)
    to restore the heap property.  Returns true if the node was
    moved, false otherwise.*/
 static bool
-propagate_up (struct heap *h, size_t idx) 
+propagate_up (struct heap *h, size_t idx)
 {
   bool moved = false;
-  for (; idx > 1 && less (h, idx, idx / 2); idx /= 2) 
+  for (; idx > 1 && less (h, idx, idx / 2); idx /= 2)
     {
       swap_nodes (h, idx, idx / 2);
-      moved = true; 
+      moved = true;
     }
   return moved;
 }
@@ -235,7 +235,7 @@ propagate_up (struct heap *h, size_t idx)
 /* Returns true if, in H, the node with index A has value less
    than the node with index B.  */
 static bool
-less (const struct heap *h, size_t a, size_t b) 
+less (const struct heap *h, size_t a, size_t b)
 {
   return h->compare (h->nodes[a], h->nodes[b], h->aux) < 0;
 }
@@ -244,7 +244,7 @@ less (const struct heap *h, size_t a, size_t b)
    with the lesser value.  B is allowed to be out of the range of
    valid node indexes, in which case A is returned. */
 static size_t
-lesser_node (const struct heap *h, size_t a, size_t b) 
+lesser_node (const struct heap *h, size_t a, size_t b)
 {
   assert (a <= h->cnt);
   return b > h->cnt || less (h, a, b) ? a : b;
@@ -252,10 +252,10 @@ lesser_node (const struct heap *h, size_t a, size_t b)
 
 /* Swaps, in H, the nodes with indexes A and B. */
 static void
-swap_nodes (struct heap *h, size_t a, size_t b) 
+swap_nodes (struct heap *h, size_t a, size_t b)
 {
   struct heap_node *t;
-  
+
   assert (a <= h->cnt);
   assert (b <= h->cnt);
 
@@ -267,12 +267,12 @@ swap_nodes (struct heap *h, size_t a, size_t b)
 /* Returns true if H is a valid heap,
    false otherwise. */
 static bool UNUSED
-is_heap (const struct heap *h) 
+is_heap (const struct heap *h)
 {
   size_t i;
-  
-  for (i = 2; i <= h->cnt; i++) 
-    if (less (h, i, i / 2)) 
+
+  for (i = 2; i <= h->cnt; i++)
+    if (less (h, i, i / 2))
       return false;
 
   for (i = 1; i <= h->cnt; i++)

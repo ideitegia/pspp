@@ -32,7 +32,7 @@
 #include "xalloc.h"
 
 /* A sparse array of cases. */
-struct sparse_cases 
+struct sparse_cases
   {
     size_t column_cnt;                  /* Number of values per case. */
     union value *default_columns;       /* Defaults for unwritten cases. */
@@ -45,7 +45,7 @@ struct sparse_cases
 /* Creates and returns a new sparse array of cases with
    COLUMN_CNT values per case. */
 struct sparse_cases *
-sparse_cases_create (size_t column_cnt) 
+sparse_cases_create (size_t column_cnt)
 {
   struct sparse_cases *sc = xmalloc (sizeof *sc);
   sc->column_cnt = column_cnt;
@@ -60,7 +60,7 @@ sparse_cases_create (size_t column_cnt)
 /* Creates and returns a new sparse array of cases that contains
    the same data as OLD. */
 struct sparse_cases *
-sparse_cases_clone (const struct sparse_cases *old) 
+sparse_cases_clone (const struct sparse_cases *old)
 {
   struct sparse_cases *new = xmalloc (sizeof *new);
 
@@ -75,34 +75,34 @@ sparse_cases_clone (const struct sparse_cases *old)
 
   new->max_memory_cases = old->max_memory_cases;
 
-  if (old->memory != NULL) 
+  if (old->memory != NULL)
     {
       unsigned long int idx;
       struct ccase *c;
 
       new->memory = sparse_array_create (sizeof (struct ccase));
       for (c = sparse_array_scan (old->memory, NULL, &idx); c != NULL;
-           c = sparse_array_scan (old->memory, &idx, &idx)) 
+           c = sparse_array_scan (old->memory, &idx, &idx))
         case_clone (sparse_array_insert (new->memory, idx), c);
     }
   else
     new->memory = NULL;
 
-  if (old->disk != NULL) 
+  if (old->disk != NULL)
     {
       const struct range_set_node *node;
-      
+
       new->disk = case_tmpfile_create (old->column_cnt);
       new->disk_cases = range_set_create ();
       for (node = range_set_first (old->disk_cases); node != NULL;
-           node = range_set_next (old->disk_cases, node)) 
+           node = range_set_next (old->disk_cases, node))
         {
           unsigned long int start = range_set_node_get_start (node);
           unsigned long int end = range_set_node_get_end (node);
           unsigned long int idx;
           struct ccase c;
 
-          for (idx = start; idx < end; idx++) 
+          for (idx = start; idx < end; idx++)
             if (!case_tmpfile_get_case (old->disk, idx, &c)
                 || !case_tmpfile_put_case (new->disk, idx, &c))
               {
@@ -111,27 +111,27 @@ sparse_cases_clone (const struct sparse_cases *old)
               }
         }
     }
-  else 
+  else
     {
       new->disk = NULL;
       new->disk_cases = NULL;
     }
-  
+
   return new;
 }
 
 /* Destroys sparse array of cases SC. */
 void
-sparse_cases_destroy (struct sparse_cases *sc) 
+sparse_cases_destroy (struct sparse_cases *sc)
 {
-  if (sc != NULL) 
+  if (sc != NULL)
     {
-      if (sc->memory != NULL) 
+      if (sc->memory != NULL)
         {
           unsigned long int idx;
           struct ccase *c;
           for (c = sparse_array_scan (sc->memory, NULL, &idx); c != NULL;
-               c = sparse_array_scan (sc->memory, &idx, &idx)) 
+               c = sparse_array_scan (sc->memory, &idx, &idx))
             case_destroy (c);
           sparse_array_destroy (sc->memory);
         }
@@ -144,16 +144,16 @@ sparse_cases_destroy (struct sparse_cases *sc)
 
 /* Returns the number of `union value's in each case in SC. */
 size_t
-sparse_cases_get_value_cnt (const struct sparse_cases *sc) 
+sparse_cases_get_value_cnt (const struct sparse_cases *sc)
 {
   return sc->column_cnt;
 }
 
 /* Dumps the cases in SC, which must currently be stored in
    memory, to disk.  Returns true if successful, false on I/O
-   error. */ 
+   error. */
 static bool
-dump_sparse_cases_to_disk (struct sparse_cases *sc) 
+dump_sparse_cases_to_disk (struct sparse_cases *sc)
 {
   unsigned long int idx;
   struct ccase *c;
@@ -165,17 +165,17 @@ dump_sparse_cases_to_disk (struct sparse_cases *sc)
   sc->disk_cases = range_set_create ();
 
   for (c = sparse_array_scan (sc->memory, NULL, &idx); c != NULL;
-       c = sparse_array_scan (sc->memory, &idx, &idx)) 
+       c = sparse_array_scan (sc->memory, &idx, &idx))
     {
       if (!case_tmpfile_put_case (sc->disk, idx, c))
-        { 
+        {
           case_tmpfile_destroy (sc->disk);
           sc->disk = NULL;
           range_set_destroy (sc->disk_cases);
           sc->disk_cases = NULL;
           return false;
         }
-      range_set_insert (sc->disk_cases, idx, 1); 
+      range_set_insert (sc->disk_cases, idx, 1);
     }
   sparse_array_destroy (sc->memory);
   sc->memory = NULL;
@@ -185,7 +185,7 @@ dump_sparse_cases_to_disk (struct sparse_cases *sc)
 /* Returns true if any data has ever been written to ROW in SC,
    false otherwise. */
 bool
-sparse_cases_contains_row (const struct sparse_cases *sc, casenumber row) 
+sparse_cases_contains_row (const struct sparse_cases *sc, casenumber row)
 {
   return (sc->memory != NULL
           ? sparse_array_get (sc->memory, row) != NULL
@@ -197,22 +197,22 @@ sparse_cases_contains_row (const struct sparse_cases *sc, casenumber row)
    Returns true if successful, false on I/O error. */
 bool
 sparse_cases_read (struct sparse_cases *sc, casenumber row, size_t column,
-                   union value values[], size_t value_cnt) 
+                   union value values[], size_t value_cnt)
 {
   assert (value_cnt <= sc->column_cnt);
   assert (column + value_cnt <= sc->column_cnt);
 
-  if (sparse_cases_contains_row (sc, row)) 
+  if (sparse_cases_contains_row (sc, row))
     {
       struct ccase c;
-      if (sc->memory != NULL) 
+      if (sc->memory != NULL)
         case_clone (&c, sparse_array_get (sc->memory, row));
       else if (!case_tmpfile_get_case (sc->disk, row, &c))
         return false;
       case_copy_out (&c, column, values, value_cnt);
       case_destroy (&c);
     }
-  else 
+  else
     {
       assert (sc->default_columns != NULL);
       memcpy (values, sc->default_columns + column,
@@ -231,19 +231,19 @@ write_disk_case (struct sparse_cases *sc, casenumber row, size_t column,
   bool ok;
 
   /* Get current case data. */
-  if (column == 0 && value_cnt == sc->column_cnt) 
-    case_create (&c, sc->column_cnt); 
+  if (column == 0 && value_cnt == sc->column_cnt)
+    case_create (&c, sc->column_cnt);
   else if (!case_tmpfile_get_case (sc->disk, row, &c))
-    return false; 
+    return false;
 
   /* Copy in new data. */
   case_copy_in (&c, column, values, value_cnt);
 
   /* Write new case. */
-  ok = case_tmpfile_put_case (sc->disk, row, &c); 
+  ok = case_tmpfile_put_case (sc->disk, row, &c);
   if (ok)
     range_set_insert (sc->disk_cases, row, 1);
-  
+
   return ok;
 }
 
@@ -253,20 +253,20 @@ write_disk_case (struct sparse_cases *sc, casenumber row, size_t column,
    Returns true if successful, false on I/O error. */
 bool
 sparse_cases_write (struct sparse_cases *sc, casenumber row, size_t column,
-                    const union value values[], size_t value_cnt) 
+                    const union value values[], size_t value_cnt)
 {
   if (sc->memory != NULL)
     {
       struct ccase *c = sparse_array_get (sc->memory, row);
-      if (c == NULL) 
+      if (c == NULL)
         {
-          if (sparse_array_count (sc->memory) >= sc->max_memory_cases) 
+          if (sparse_array_count (sc->memory) >= sc->max_memory_cases)
             {
               if (!dump_sparse_cases_to_disk (sc))
                 return false;
               return write_disk_case (sc, row, column, values, value_cnt);
             }
-          
+
           c = sparse_array_insert (sc->memory, row);
           case_create (c, sc->column_cnt);
           if (sc->default_columns != NULL
@@ -282,7 +282,7 @@ sparse_cases_write (struct sparse_cases *sc, casenumber row, size_t column,
 
 /* Writes the VALUE_CNT values in VALUES to columns
    START_COLUMN...(START_COLUMN + VALUE_CNT), exclusive, in every
-   row in SC, even those rows that have not yet been written.  
+   row in SC, even those rows that have not yet been written.
    Returns true if successful, false on I/O error.
 
    The runtime of this function is linear in the number of rows
@@ -302,31 +302,31 @@ sparse_cases_write_columns (struct sparse_cases *sc, size_t start_column,
           value_cnt * sizeof *sc->default_columns);
 
   /* Set individual rows. */
-  if (sc->memory != NULL) 
+  if (sc->memory != NULL)
     {
       struct ccase *c;
       unsigned long int idx;
-      
+
       for (c = sparse_array_scan (sc->memory, NULL, &idx); c != NULL;
-           c = sparse_array_scan (sc->memory, &idx, &idx)) 
+           c = sparse_array_scan (sc->memory, &idx, &idx))
         case_copy_in (c, start_column, values, value_cnt);
     }
-  else 
+  else
     {
       const struct range_set_node *node;
 
       for (node = range_set_first (sc->disk_cases); node != NULL;
-           node = range_set_next (sc->disk_cases, node)) 
+           node = range_set_next (sc->disk_cases, node))
         {
           unsigned long int start = range_set_node_get_start (node);
           unsigned long int end = range_set_node_get_end (node);
           unsigned long int row;
 
-          for (row = start; row < end; row++) 
+          for (row = start; row < end; row++)
             case_tmpfile_put_values (sc->disk, row,
                                      start_column, values, value_cnt);
         }
-              
+
       if (case_tmpfile_error (sc->disk))
         return false;
     }

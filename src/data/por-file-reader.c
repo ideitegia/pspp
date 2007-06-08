@@ -106,7 +106,7 @@ error (struct pfm_reader *r, const char *msg, ...)
   m.where.file_name = NULL;
   m.where.line_number = 0;
   m.text = ds_cstr (&text);
-  
+
   msg_emit (&m);
 
   r->ok = false;
@@ -131,10 +131,10 @@ advance (struct pfm_reader *r)
   while ((c = getc (r->file)) == '\r' || c == '\n')
     continue;
   if (c == EOF)
-    error (r, _("unexpected end of file")); 
+    error (r, _("unexpected end of file"));
 
   if (r->trans != NULL)
-    c = r->trans[c]; 
+    c = r->trans[c];
   r->cc = c;
 }
 
@@ -195,7 +195,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
            fh_get_file_name (r->fh), strerror (errno));
       goto error;
     }
-  
+
   /* Read header, version, date info, product id, variables. */
   read_header (r);
   read_version_data (r, info);
@@ -223,7 +223,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 /* Returns the value of base-30 digit C,
    or -1 if C is not a base-30 digit. */
 static int
-base_30_value (unsigned char c) 
+base_30_value (unsigned char c)
 {
   static const char base_30_digits[] = "0123456789ABCDEFGHIJKLMNOPQRST";
   const char *p = strchr (base_30_digits, c);
@@ -333,7 +333,7 @@ read_float (struct pfm_reader *r)
 
   return negative ? -num : num;
 }
-  
+
 /* Read an integer and return its value. */
 static int
 read_int (struct pfm_reader *r)
@@ -352,7 +352,7 @@ read_string (struct pfm_reader *r, char *buf)
   int n = read_int (r);
   if (n < 0 || n > 255)
     error (r, _("Bad string length %d."), n);
-  
+
   while (n-- > 0)
     {
       *buf++ = r->cc;
@@ -364,7 +364,7 @@ read_string (struct pfm_reader *r, char *buf)
 /* Reads a string and returns a copy of it allocated from R's
    pool. */
 static char *
-read_pool_string (struct pfm_reader *r) 
+read_pool_string (struct pfm_reader *r)
 {
   char string[256];
   read_string (r, string);
@@ -381,7 +381,7 @@ read_header (struct pfm_reader *r)
   /* Read and ignore vanity splash strings. */
   for (i = 0; i < 200; i++)
     advance (r);
-  
+
   /* Skip the first 64 characters of the translation table.
      We don't care about these.  They are probably all set to
      '0', marking them as untranslatable, and that would screw
@@ -392,7 +392,7 @@ read_header (struct pfm_reader *r)
   /* Read the rest of the translation table. */
   trans = pool_malloc (r->pool, 256);
   memset (trans, 0, 256);
-  for (; i < 256; i++) 
+  for (; i < 256; i++)
     {
       unsigned char c;
 
@@ -406,11 +406,11 @@ read_header (struct pfm_reader *r)
   /* Set up the translation table, then read the first
      translated character. */
   r->trans = trans;
-  advance (r); 
+  advance (r);
 
   /* Skip and verify signature. */
-  for (i = 0; i < 8; i++) 
-    if (!match (r, "SPSSPORT"[i])) 
+  for (i = 0; i < 8; i++)
+    if (!match (r, "SPSSPORT"[i]))
       {
         msg (SE, _("%s: Not a portable file."), fh_get_file_name (r->fh));
         longjmp (r->bail_out, 1);
@@ -442,13 +442,13 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
     error (r, _("Bad time string length %d."), (int) strlen (time));
 
   /* Save file info. */
-  if (info != NULL) 
+  if (info != NULL)
     {
       /* Date. */
-      for (i = 0; i < 8; i++) 
+      for (i = 0; i < 8; i++)
         {
           static const int map[] = {6, 7, 8, 9, 3, 4, 0, 1};
-          info->creation_date[map[i]] = date[i]; 
+          info->creation_date[map[i]] = date[i];
         }
       info->creation_date[2] = info->creation_date[5] = ' ';
       info->creation_date[10] = 0;
@@ -509,10 +509,10 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
 {
   char *weight_name = NULL;
   int i;
-  
+
   if (!match (r, '4'))
     error (r, _("Expected variable count record."));
-  
+
   r->var_cnt = read_int (r);
   if (r->var_cnt <= 0 || r->var_cnt == NOT_INT)
     error (r, _("Invalid number of variables %d."), r->var_cnt);
@@ -524,10 +524,10 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
   if (match (r, '6'))
     {
       weight_name = read_pool_string (r);
-      if (strlen (weight_name) > SHORT_NAME_LEN) 
+      if (strlen (weight_name) > SHORT_NAME_LEN)
         error (r, _("Weight variable name (%s) truncated."), weight_name);
     }
-  
+
   for (i = 0; i < r->var_cnt; i++)
     {
       int width;
@@ -568,7 +568,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
 
       /* Range missing values. */
       mv_init (&miss, var_get_width (v));
-      if (match (r, 'B')) 
+      if (match (r, 'B'))
         {
           double x = read_float (r);
           double y = read_float (r);
@@ -580,15 +580,15 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         mv_add_num_range (&miss, LOWEST, read_float (r));
 
       /* Single missing values. */
-      while (match (r, '8')) 
+      while (match (r, '8'))
         {
           union value value = parse_value (r, v);
-          mv_add_value (&miss, &value); 
+          mv_add_value (&miss, &value);
         }
 
       var_set_missing_values (v, &miss);
 
-      if (match (r, 'C')) 
+      if (match (r, 'C'))
         {
           char label[256];
           read_string (r, label);
@@ -596,7 +596,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         }
     }
 
-  if (weight_name != NULL) 
+  if (weight_name != NULL)
     {
       struct variable *weight_var = dict_lookup_var (dict, weight_name);
       if (weight_var == NULL)
@@ -612,12 +612,12 @@ static union value
 parse_value (struct pfm_reader *r, struct variable *vv)
 {
   union value v;
-  
-  if (var_is_alpha (vv)) 
+
+  if (var_is_alpha (vv))
     {
       char string[256];
       read_string (r, string);
-      buf_copy_str_rpad (v.s, 8, string); 
+      buf_copy_str_rpad (v.s, 8, string);
     }
   else
     v.f = read_float (r);
@@ -693,25 +693,25 @@ por_file_casereader_read (struct casereader *reader, void *r_, struct ccase *c)
 
   case_create (c, casereader_get_value_cnt (reader));
   setjmp (r->bail_out);
-  if (!r->ok) 
+  if (!r->ok)
     {
       casereader_force_error (reader);
       case_destroy (c);
-      return false; 
+      return false;
     }
-  
+
   /* Check for end of file. */
-  if (r->cc == 'Z') 
+  if (r->cc == 'Z')
     {
       case_destroy (c);
-      return false; 
+      return false;
     }
 
   idx = 0;
-  for (i = 0; i < r->var_cnt; i++) 
+  for (i = 0; i < r->var_cnt; i++)
     {
       int width = r->widths[i];
-      
+
       if (width == 0)
         {
           case_data_rw_idx (c, idx)->f = read_float (r);
@@ -725,14 +725,14 @@ por_file_casereader_read (struct casereader *reader, void *r_, struct ccase *c)
           idx += DIV_RND_UP (width, MAX_SHORT_STRING);
         }
     }
-  
+
   return true;
 }
 
 /* Returns true if FILE is an SPSS portable file,
    false otherwise. */
 bool
-pfm_detect (FILE *file) 
+pfm_detect (FILE *file)
 {
   unsigned char header[464];
   char trans[256];
@@ -745,26 +745,26 @@ pfm_detect (FILE *file)
       int c = getc (file);
       if (c == EOF || raw_cnt++ > 512)
         return false;
-      else if (c != '\n' && c != '\r') 
+      else if (c != '\n' && c != '\r')
         header[cooked_cnt++] = c;
     }
 
   memset (trans, 0, 256);
-  for (i = 64; i < 256; i++) 
+  for (i = 64; i < 256; i++)
     {
       unsigned char c = header[i + 200];
       if (trans[c] == 0)
         trans[c] = portable_to_local[i];
     }
 
-  for (i = 0; i < 8; i++) 
-    if (trans[header[i + 456]] != "SPSSPORT"[i]) 
-      return false; 
+  for (i = 0; i < 8; i++)
+    if (trans[header[i + 456]] != "SPSSPORT"[i])
+      return false;
 
   return true;
 }
 
-static struct casereader_class por_file_casereader_class = 
+static struct casereader_class por_file_casereader_class =
   {
     por_file_casereader_read,
     por_file_casereader_destroy,

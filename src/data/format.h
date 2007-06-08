@@ -27,7 +27,7 @@
 #include <libpspp/str.h>
 
 /* Format type categories. */
-enum fmt_category 
+enum fmt_category
   {
     /* Numeric formats. */
     FMT_CAT_BASIC          = 0x001,     /* Basic numeric formats. */

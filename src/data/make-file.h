@@ -23,7 +23,7 @@
 /* Creates a temporary file and stores its name in *FILE_NAME and
    a file descriptor for it in *FD.  Returns success.  Caller is
    responsible for freeing *FILE_NAME. */
-int make_temp_file (int *fd, char **file_name); 
+int make_temp_file (int *fd, char **file_name);
 
 
 /* Creates a temporary file and stores its name in *FILE_NAME and

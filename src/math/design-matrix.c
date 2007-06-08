@@ -153,7 +153,7 @@ dm_var_to_last_column (const struct design_matrix *dm,
 }
 
 /*
-  Set the appropriate value in the design matrix, 
+  Set the appropriate value in the design matrix,
   whether that value is from a categorical or numeric
   variable. For a categorical variable, only the usual
   binary encoding is allowed.

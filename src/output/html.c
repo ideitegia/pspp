@@ -68,7 +68,7 @@ html_open_driver (struct outp_driver *this, struct substring options)
       error (0, errno, _("opening HTML output file: %s"), x->file_name);
       goto error;
     }
- 
+
   fputs ("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\n"
          "   \"http://www.w3.org/TR/html4/loose.dtd\">\n", x->file);
   fputs ("<HTML>\n", x->file);
@@ -85,12 +85,12 @@ html_open_driver (struct outp_driver *this, struct substring options)
   fputs (" LINK=\"#1f00ff\" ALINK=\"#ff0000\" VLINK=\"#9900dd\">\n", x->file);
   print_title_tag (x->file, "H1", outp_title);
   print_title_tag (x->file, "H2", outp_subtitle);
-  free (x->chart_file_name); 
+  free (x->chart_file_name);
 
   return true;
 
  error:
-  free (x->chart_file_name); 
+  free (x->chart_file_name);
   this->class->close_driver (this);
   return false;
 }
@@ -98,9 +98,9 @@ html_open_driver (struct outp_driver *this, struct substring options)
 /* Emits <NAME>CONTENT</NAME> to the output, escaping CONTENT as
    necessary for HTML. */
 static void
-print_title_tag (FILE *file, const char *name, const char *content) 
+print_title_tag (FILE *file, const char *name, const char *content)
 {
-  if (content != NULL) 
+  if (content != NULL)
     {
       fprintf (file, "<%s>", name);
       escape_string (file, content, strlen (content), " ");
@@ -113,25 +113,25 @@ html_close_driver (struct outp_driver *this)
 {
   struct html_driver_ext *x = this->ext;
   bool ok;
- 
-  if (x->file != NULL) 
+
+  if (x->file != NULL)
     {
       fprintf (x->file,
                "</BODY>\n"
                "</HTML>\n"
                "<!-- end of file -->\n");
       ok = fn_close (x->file_name, x->file) == 0;
-      x->file = NULL; 
+      x->file = NULL;
     }
   else
     ok = true;
   free (x->file_name);
   free (x);
-   
+
   return ok;
 }
 
-/* Link the image contained in FILE_NAME to the 
+/* Link the image contained in FILE_NAME to the
    HTML stream in FILE. */
 static void
 link_image (FILE *file, char *file_name)
@@ -169,14 +169,14 @@ handle_option (struct outp_driver *this,
              key);
       break;
     case string_arg:
-      switch (subcat) 
+      switch (subcat)
         {
         case 0:
           free (x->file_name);
           x->file_name = ds_xstrdup (val);
           break;
         case 1:
-          if (ds_find_char (val, '#') != SIZE_MAX) 
+          if (ds_find_char (val, '#') != SIZE_MAX)
             {
               free (x->chart_file_name);
               x->chart_file_name = ds_xstrdup (val);
@@ -190,7 +190,7 @@ handle_option (struct outp_driver *this,
     default:
       NOT_REACHED ();
     }
-  
+
   return true;
 }
 
@@ -201,10 +201,10 @@ html_submit (struct outp_driver *this, struct som_entity *s)
 {
   extern struct som_table_class tab_table_class;
   struct html_driver_ext *x = this->ext;
-  
+
   assert (s->class == &tab_table_class ) ;
 
-  switch (s->type) 
+  switch (s->type)
     {
     case SOM_TABLE:
       output_tab_table ( this, (struct tab_table *) s->ext);
@@ -248,7 +248,7 @@ escape_string (FILE *file,
         }
     }
 }
-  
+
 /* Outputs content for a cell with options OPTS and contents
    TEXT. */
 void
@@ -257,23 +257,23 @@ html_put_cell_contents (struct outp_driver *this,
 {
   struct html_driver_ext *x = this->ext;
 
-  if (!(opts & TAB_EMPTY)) 
+  if (!(opts & TAB_EMPTY))
     {
       if (opts & TAB_EMPH)
         fputs ("<EM>", x->file);
-      if (opts & TAB_FIX) 
+      if (opts & TAB_FIX)
         {
           fputs ("<TT>", x->file);
           escape_string (x->file, ss_data (text), ss_length (text), "&nbsp;");
           fputs ("</TT>", x->file);
         }
-      else 
+      else
         {
           size_t initial_spaces = ss_span (text, ss_cstr (CC_SPACES));
           escape_string (x->file,
                          ss_data (text) + initial_spaces,
                          ss_length (text) - initial_spaces,
-                         " "); 
+                         " ");
         }
       if (opts & TAB_EMPH)
         fputs ("</EM>", x->file);
@@ -285,25 +285,25 @@ static void
 output_tab_table (struct outp_driver *this, struct tab_table *t)
 {
   struct html_driver_ext *x = this->ext;
-  
+
   if (t->nr == 1 && t->nc == 1)
     {
       fputs ("<P>", x->file);
       html_put_cell_contents (this, t->ct[0], *t->cc);
       fputs ("</P>\n", x->file);
-      
+
       return;
     }
 
   fputs ("<TABLE BORDER=1>\n", x->file);
-  
+
   if (t->title != NULL)
     {
       fprintf (x->file, "  <CAPTION>");
       escape_string (x->file, t->title, strlen (t->title), " ");
       fputs ("</CAPTION>\n", x->file);
     }
-  
+
   {
     int r;
     unsigned char *ct = t->ct;
@@ -311,7 +311,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
     for (r = 0; r < t->nr; r++)
       {
 	int c;
-	
+
 	fputs ("  <TR>\n", x->file);
 	for (c = 0; c < t->nc; c++, ct++)
 	  {
@@ -325,7 +325,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
                 j = (struct tab_joined_cell *) ss_data (*cc);
                 cc = &j->contents;
                 if (j->x1 != c || j->y1 != r)
-                  continue; 
+                  continue;
               }
 
             /* Output <TD> or <TH> tag. */
@@ -354,7 +354,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 	fputs ("  </TR>\n", x->file);
       }
   }
-	      
+
   fputs ("</TABLE>\n\n", x->file);
 }
 
@@ -365,19 +365,19 @@ html_initialise_chart (struct outp_driver *this UNUSED, struct chart *ch)
   ch->lp = NULL;
 #else
   struct html_driver_ext *x = this->ext;
-  
+
   FILE *fp;
   int number_pos;
 
   x->chart_cnt++;
-  
+
   number_pos = strchr (x->chart_file_name, '#') - x->chart_file_name;
   ch->file_name = xasprintf ("%.*s%d%s",
                              number_pos, x->chart_file_name,
                              (int) x->chart_cnt,
                              x->chart_file_name + number_pos + 1);
   fp = fopen (ch->file_name, "wb");
-  if (fp == NULL) 
+  if (fp == NULL)
     {
       error (0, errno, _("creating \"%s\""), ch->file_name);
       free (ch->file_name);
@@ -390,7 +390,7 @@ html_initialise_chart (struct outp_driver *this UNUSED, struct chart *ch)
 #endif
 }
 
-static void 
+static void
 html_finalise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 {
   free(ch->file_name);

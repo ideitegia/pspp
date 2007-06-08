@@ -49,7 +49,7 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
   int n_matched = 0;
 
   int i;
-  
+
   lex_match_id (lexer, "FROM");
   lex_match (lexer, '=');
   handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
@@ -86,7 +86,7 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
           if (strcspn (label, " ") != strlen (label))
             var_set_label (t, label);
         }
-      
+
       if (var_has_value_labels (s))
         {
           if (!var_is_long_string (t))
@@ -100,13 +100,13 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
                        "long string variable %s."),
                  var_get_name (s));
         }
-      
+
       if (var_has_missing_values (s))
         {
           if (!var_is_long_string (t))
             {
               const struct missing_values *miss = var_get_missing_values (s);
-              if (mv_is_resizable (miss, var_get_width (t))) 
+              if (mv_is_resizable (miss, var_get_width (t)))
                 var_set_missing_values (t, miss);
             }
           else
@@ -125,9 +125,9 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
   if (!n_matched)
     msg (SW, _("No matching variables found between the source "
 	       "and target files."));
-      
+
   /* Weighting. */
-  if (dict_get_weight (dict) != NULL) 
+  if (dict_get_weight (dict) != NULL)
     {
       struct variable *new_weight
         = dict_lookup_var (dataset_dict (ds),
@@ -136,6 +136,6 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
       if (new_weight != NULL)
         dict_set_weight (dataset_dict (ds), new_weight);
     }
-  
+
   return lex_end_of_command (lexer);
 }

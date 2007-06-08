@@ -230,7 +230,7 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
 /* Returns the integer_format value corresponding to STC,
    which should be the value of cmd.rib or cmd.wib. */
 static enum integer_format
-stc_to_integer_format (int stc) 
+stc_to_integer_format (int stc)
 {
   return (stc == STC_MSBFIRST ? INTEGER_MSB_FIRST
           : stc == STC_LSBFIRST ? INTEGER_LSB_FIRST
@@ -241,9 +241,9 @@ stc_to_integer_format (int stc)
 /* Returns the float_format value corresponding to STC,
    which should be the value of cmd.rrb or cmd.wrb. */
 static enum float_format
-stc_to_float_format (int stc) 
+stc_to_float_format (int stc)
 {
-  switch (stc) 
+  switch (stc)
     {
     case STC_NATIVE:
       return FLOAT_NATIVE_DOUBLE;
@@ -281,7 +281,7 @@ find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
 {
   const char *sp;
   int comma_cnt, dot_cnt;
-  
+
   /* Count commas and periods.  There must be exactly three of
      one or the other, except that an apostrophe escapes a
      following comma or period. */
@@ -293,7 +293,7 @@ find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
       dot_cnt++;
     else if (*sp == '\'' && (sp[1] == '.' || sp[1] == ',' || sp[1] == '\''))
       sp++;
-  
+
   if ((comma_cnt == 3) == (dot_cnt == 3))
     return false;
 
@@ -315,15 +315,15 @@ find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
    FMT_STYLE_AFFIX_MAX characters.  Returns the first character
    following the token. */
 static const char *
-extract_cc_token (const char *in, int grouping, struct substring *affix) 
+extract_cc_token (const char *in, int grouping, struct substring *affix)
 {
   size_t ofs = 0;
   ss_alloc_uninit (affix, FMT_STYLE_AFFIX_MAX);
-  for (; *in != '\0' && *in != grouping; in++) 
+  for (; *in != '\0' && *in != grouping; in++)
     {
       if (*in == '\'' && in[1] == grouping)
         in++;
-      if (ofs < FMT_STYLE_AFFIX_MAX) 
+      if (ofs < FMT_STYLE_AFFIX_MAX)
         ss_data (*affix)[ofs++] = *in;
     }
   affix->length = ofs;
@@ -339,9 +339,9 @@ static bool
 do_cc (const char *cc_string, enum fmt_type type)
 {
   struct fmt_number_style *cc = fmt_number_style_create ();
-  
+
   /* Determine separators. */
-  if (!find_cc_separators (cc_string, cc)) 
+  if (!find_cc_separators (cc_string, cc))
     {
       fmt_number_style_destroy (cc);
       msg (SE, _("%s: Custom currency string `%s' does not contain "
@@ -349,14 +349,14 @@ do_cc (const char *cc_string, enum fmt_type type)
            fmt_name (type), cc_string);
       return false;
     }
-  
+
   cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_prefix);
   cc_string = extract_cc_token (cc_string, cc->grouping, &cc->prefix);
   cc_string = extract_cc_token (cc_string, cc->grouping, &cc->suffix);
   cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_suffix);
 
   fmt_set_style (type, cc);
-  
+
   return true;
 }
 
@@ -364,8 +364,8 @@ do_cc (const char *cc_string, enum fmt_type type)
    completely blank fields in numeric data imply.  X, Wnd: Syntax is
    SYSMIS or a numeric value. */
 static int
-stc_custom_blanks (struct lexer *lexer, 
-		   struct dataset *ds UNUSED, 
+stc_custom_blanks (struct lexer *lexer,
+		   struct dataset *ds UNUSED,
 		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match (lexer, '=');
@@ -387,25 +387,25 @@ stc_custom_blanks (struct lexer *lexer,
 /* Parses the EPOCH subcommand, which controls the epoch used for
    parsing 2-digit years. */
 static int
-stc_custom_epoch (struct lexer *lexer, 
-		  struct dataset *ds UNUSED, 
-		  struct cmd_set *cmd UNUSED, void *aux UNUSED) 
+stc_custom_epoch (struct lexer *lexer,
+		  struct dataset *ds UNUSED,
+		  struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match (lexer, '=');
   if (lex_match_id (lexer, "AUTOMATIC"))
     set_epoch (-1);
-  else if (lex_is_integer (lexer)) 
+  else if (lex_is_integer (lexer))
     {
       int new_epoch = lex_integer (lexer);
       lex_get (lexer);
-      if (new_epoch < 1500) 
+      if (new_epoch < 1500)
         {
           msg (SE, _("EPOCH must be 1500 or later."));
           return 0;
         }
       set_epoch (new_epoch);
     }
-  else 
+  else
     {
       lex_error (lexer, _("expecting AUTOMATIC or year"));
       return 0;
@@ -435,7 +435,7 @@ stc_custom_length (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
       lex_get (lexer);
     }
 
-  if (page_length != -1) 
+  if (page_length != -1)
     set_viewlength (page_length);
 
   return 1;
@@ -509,7 +509,7 @@ static int
 stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match (lexer, '=');
-  if (!lex_match_id (lexer, "ON") && !lex_match_id (lexer, "OFF")) 
+  if (!lex_match_id (lexer, "ON") && !lex_match_id (lexer, "OFF"))
     {
       if (lex_token (lexer) == T_STRING)
         lex_get (lexer);
@@ -549,7 +549,7 @@ stc_custom_disk (struct lexer *lexer, struct dataset *ds, struct cmd_set *cmd UN
 }
 
 static void
-show_blanks (const struct dataset *ds UNUSED) 
+show_blanks (const struct dataset *ds UNUSED)
 {
   if (get_blanks () == SYSMIS)
     msg (SN, _("BLANKS is SYSMIS."));
@@ -559,9 +559,9 @@ show_blanks (const struct dataset *ds UNUSED)
 }
 
 static char *
-format_cc (struct substring in, char grouping, char *out) 
+format_cc (struct substring in, char grouping, char *out)
 {
-  while (!ss_is_empty (in)) 
+  while (!ss_is_empty (in))
     {
       char c = ss_get_char (&in);
       if (c == grouping || c == '\'')
@@ -574,7 +574,7 @@ format_cc (struct substring in, char grouping, char *out)
 }
 
 static void
-show_cc (enum fmt_type type) 
+show_cc (enum fmt_type type)
 {
   const struct fmt_number_style *cc = fmt_get_style (type);
   char cc_string[FMT_STYLE_AFFIX_MAX * 4 * 2 + 3 + 1];
@@ -588,54 +588,54 @@ show_cc (enum fmt_type type)
   *out++ = cc->grouping;
   out = format_cc (cc->neg_suffix, cc->grouping, out);
   *out = '\0';
-  
+
   msg (SN, _("%s is \"%s\"."), fmt_name (type), cc_string);
 }
 
 static void
-show_cca (const struct dataset *ds UNUSED) 
+show_cca (const struct dataset *ds UNUSED)
 {
   show_cc (FMT_CCA);
 }
 
 static void
-show_ccb (const struct dataset *ds UNUSED) 
+show_ccb (const struct dataset *ds UNUSED)
 {
   show_cc (FMT_CCB);
 }
 
 static void
-show_ccc (const struct dataset *ds UNUSED) 
+show_ccc (const struct dataset *ds UNUSED)
 {
   show_cc (FMT_CCC);
 }
 
 static void
-show_ccd (const struct dataset *ds UNUSED) 
+show_ccd (const struct dataset *ds UNUSED)
 {
   show_cc (FMT_CCD);
 }
 
 static void
-show_cce (const struct dataset *ds UNUSED) 
+show_cce (const struct dataset *ds UNUSED)
 {
   show_cc (FMT_CCE);
 }
 
 static void
-show_decimals (const struct dataset *ds UNUSED) 
+show_decimals (const struct dataset *ds UNUSED)
 {
   msg (SN, _("DECIMAL is \"%c\"."), fmt_decimal_char (FMT_F));
 }
 
 static void
-show_endcmd (const struct dataset *ds UNUSED) 
+show_endcmd (const struct dataset *ds UNUSED)
 {
   msg (SN, _("ENDCMD is \"%c\"."), get_endcmd ());
 }
 
 static void
-show_errors (const struct dataset *ds UNUSED) 
+show_errors (const struct dataset *ds UNUSED)
 {
   bool terminal = get_error_routing_to_terminal ();
   bool listing = get_error_routing_to_listing ();
@@ -647,39 +647,39 @@ show_errors (const struct dataset *ds UNUSED)
 }
 
 static void
-show_format (const struct dataset *ds UNUSED) 
+show_format (const struct dataset *ds UNUSED)
 {
   char str[FMT_STRING_LEN_MAX + 1];
   msg (SN, _("FORMAT is %s."), fmt_to_string (get_format (), str));
 }
 
 static void
-show_length (const struct dataset *ds UNUSED) 
+show_length (const struct dataset *ds UNUSED)
 {
   msg (SN, _("LENGTH is %d."), get_viewlength ());
 }
 
 static void
-show_mxerrs (const struct dataset *ds UNUSED) 
+show_mxerrs (const struct dataset *ds UNUSED)
 {
   msg (SN, _("MXERRS is %d."), get_mxerrs ());
 }
 
 static void
-show_mxloops (const struct dataset *ds UNUSED) 
+show_mxloops (const struct dataset *ds UNUSED)
 {
   msg (SN, _("MXLOOPS is %d."), get_mxloops ());
 }
 
 static void
-show_mxwarns (const struct dataset *ds UNUSED) 
+show_mxwarns (const struct dataset *ds UNUSED)
 {
   msg (SN, _("MXWARNS is %d."), get_mxwarns ());
 }
 
 /* Outputs that SETTING has the given INTEGER_FORMAT value. */
 static void
-show_integer_format (const char *setting, enum integer_format integer_format) 
+show_integer_format (const char *setting, enum integer_format integer_format)
 {
   msg (SN, _("%s is %s (%s)."),
        setting,
@@ -691,10 +691,10 @@ show_integer_format (const char *setting, enum integer_format integer_format)
 
 /* Outputs that SETTING has the given FLOAT_FORMAT value. */
 static void
-show_float_format (const char *setting, enum float_format float_format) 
+show_float_format (const char *setting, enum float_format float_format)
 {
   const char *format_name = "";
-  
+
   switch (float_format)
     {
     case FLOAT_IEEE_SINGLE_LE:
@@ -738,19 +738,19 @@ show_float_format (const char *setting, enum float_format float_format)
 }
 
 static void
-show_rib (const struct dataset *ds UNUSED) 
+show_rib (const struct dataset *ds UNUSED)
 {
   show_integer_format ("RIB", data_in_get_integer_format ());
 }
 
 static void
-show_rrb (const struct dataset *ds UNUSED) 
+show_rrb (const struct dataset *ds UNUSED)
 {
   show_float_format ("RRB", data_in_get_float_format ());
 }
 
 static void
-show_scompression (const struct dataset *ds UNUSED) 
+show_scompression (const struct dataset *ds UNUSED)
 {
   if (get_scompression ())
     msg (SN, _("SCOMPRESSION is ON."));
@@ -759,7 +759,7 @@ show_scompression (const struct dataset *ds UNUSED)
 }
 
 static void
-show_undefined (const struct dataset *ds UNUSED) 
+show_undefined (const struct dataset *ds UNUSED)
 {
   if (get_undefined ())
     msg (SN, _("UNDEFINED is WARN."));
@@ -768,7 +768,7 @@ show_undefined (const struct dataset *ds UNUSED)
 }
 
 static void
-show_weight (const struct dataset *ds) 
+show_weight (const struct dataset *ds)
 {
   struct variable *var = dict_get_weight (dataset_dict (ds));
   if (var == NULL)
@@ -778,30 +778,30 @@ show_weight (const struct dataset *ds)
 }
 
 static void
-show_wib (const struct dataset *ds UNUSED) 
+show_wib (const struct dataset *ds UNUSED)
 {
   show_integer_format ("WIB", data_out_get_integer_format ());
 }
 
 static void
-show_wrb (const struct dataset *ds UNUSED) 
+show_wrb (const struct dataset *ds UNUSED)
 {
   show_float_format ("WRB", data_out_get_float_format ());
 }
 
 static void
-show_width (const struct dataset *ds UNUSED) 
+show_width (const struct dataset *ds UNUSED)
 {
   msg (SN, _("WIDTH is %d."), get_viewwidth ());
 }
 
-struct show_sbc 
+struct show_sbc
   {
     const char *name;
     void (*function) (const struct dataset *);
   };
 
-const struct show_sbc show_table[] = 
+const struct show_sbc show_table[] =
   {
     {"BLANKS", show_blanks},
     {"CCA", show_cca},
@@ -811,7 +811,7 @@ const struct show_sbc show_table[] =
     {"CCE", show_cce},
     {"DECIMALS", show_decimals},
     {"ENDCMD", show_endcmd},
-    {"ERRORS", show_errors},      
+    {"ERRORS", show_errors},
     {"FORMAT", show_format},
     {"LENGTH", show_length},
     {"MXERRS", show_mxerrs},
@@ -828,16 +828,16 @@ const struct show_sbc show_table[] =
   };
 
 static void
-show_all (const struct dataset *ds) 
+show_all (const struct dataset *ds)
 {
   size_t i;
-  
+
   for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
     show_table[i].function (ds);
 }
 
 static void
-show_all_cc (void) 
+show_all_cc (void)
 {
   int i;
 
@@ -846,31 +846,31 @@ show_all_cc (void)
 }
 
 static void
-show_warranty (const struct dataset *ds UNUSED) 
+show_warranty (const struct dataset *ds UNUSED)
 {
   msg (MN, lack_of_warranty);
 }
 
 static void
-show_copying (const struct dataset *ds UNUSED) 
+show_copying (const struct dataset *ds UNUSED)
 {
   msg (MN, copyleft);
 }
 
 int
-cmd_show (struct lexer *lexer, struct dataset *ds) 
+cmd_show (struct lexer *lexer, struct dataset *ds)
 {
-  if (lex_token (lexer) == '.') 
+  if (lex_token (lexer) == '.')
     {
       show_all (ds);
       return CMD_SUCCESS;
     }
 
-  do 
+  do
     {
       if (lex_match (lexer, T_ALL))
         show_all (ds);
-      else if (lex_match_id (lexer, "CC")) 
+      else if (lex_match_id (lexer, "CC"))
         show_all_cc ();
       else if (lex_match_id (lexer, "WARRANTY"))
         show_warranty (ds);
@@ -881,7 +881,7 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
           int i;
 
           for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
-            if (lex_match_id (lexer, show_table[i].name)) 
+            if (lex_match_id (lexer, show_table[i].name))
               {
                 show_table[i].function (ds);
                 goto found;
@@ -891,7 +891,7 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
 
         found: ;
         }
-      else 
+      else
         {
           lex_error (lexer, NULL);
           return CMD_FAILURE;

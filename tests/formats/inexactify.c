@@ -32,21 +32,21 @@ main (void)
   bool in_quotes = false;
   bool in_exponent = false;
   int digits = 0;
-  
-  for (;;) 
+
+  for (;;)
     {
       int c = getchar ();
       if (c == EOF)
         break;
-      else if (c == '\n') 
+      else if (c == '\n')
         in_quotes = false;
-      else if (c == '"') 
+      else if (c == '"')
         {
           in_quotes = !in_quotes;
           in_exponent = false;
           digits = 0;
         }
-      else if (in_quotes && !in_exponent) 
+      else if (in_quotes && !in_exponent)
         {
           if (strchr ("+dDeE", c) != NULL || (c == '-' && digits))
             in_exponent = true;

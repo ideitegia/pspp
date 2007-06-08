@@ -72,13 +72,13 @@ msg_init (struct source_stream *ss,  void (*handler) (const struct msg *) )
 }
 
 void
-msg_done (void) 
+msg_done (void)
 {
 }
 
 
 /* Duplicate a message */
-struct msg * 
+struct msg *
 msg_dup(const struct msg *m)
 {
   struct msg *new_msg = xmalloc (sizeof *m);
@@ -99,7 +99,7 @@ msg_destroy(struct msg *m)
 /* Emits M as an error message.
    Frees allocated data in M. */
 void
-msg_emit (struct msg *m) 
+msg_emit (struct msg *m)
 {
   get_msg_location (s_stream, &m->where);
   if (!messages_disabled)
@@ -112,14 +112,14 @@ msg_emit (struct msg *m)
    called an equal number of times before messages are actually
    re-enabled. */
 void
-msg_disable (void) 
+msg_disable (void)
 {
   messages_disabled++;
 }
 
 /* Enables message output that was disabled by msg_disable. */
 void
-msg_enable (void) 
+msg_enable (void)
 {
   assert (messages_disabled > 0);
   messages_disabled--;
@@ -130,7 +130,7 @@ msg_enable (void)
 /* Sets COMMAND_NAME as the command name included in some kinds
    of error messages. */
 void
-msg_set_command_name (const char *command_name_) 
+msg_set_command_name (const char *command_name_)
 {
   free (command_name);
   command_name = command_name_ ? xstrdup (command_name_) : NULL;
@@ -138,12 +138,12 @@ msg_set_command_name (const char *command_name_)
 
 /* Returns the current command name, or NULL if none. */
 const char *
-msg_get_command_name (void) 
+msg_get_command_name (void)
 {
   return command_name;
 }
 
-void 
+void
 request_bug_report_and_abort (const char *msg)
 {
   fprintf (stderr, "******************************************************\n");
@@ -166,7 +166,7 @@ request_bug_report_and_abort (const char *msg)
 #else
            "Unknown"
 #endif
-           );     
+           );
   fprintf (stderr, "******************************************************\n");
 
   _exit (EXIT_FAILURE);

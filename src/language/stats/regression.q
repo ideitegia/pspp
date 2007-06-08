@@ -119,14 +119,14 @@ static size_t n_variables;
 
 /*
   File where the model will be saved if the EXPORT subcommand
-  is given. 
+  is given.
  */
 static struct file_handle *model_file;
 
 static bool run_regression (struct casereader *, struct cmd_regression *,
                             struct dataset *);
 
-/* 
+/*
    STATISTICS subcommand output functions.
  */
 static void reg_stats_r (pspp_linreg_cache *);
@@ -454,8 +454,8 @@ statistics_keyword_output (void (*function) (pspp_linreg_cache *),
 static void
 subcommand_statistics (int *keywords, pspp_linreg_cache * c)
 {
-  /* 
-     The order here must match the order in which the STATISTICS 
+  /*
+     The order here must match the order in which the STATISTICS
      keywords appear in the specification section above.
    */
   enum
@@ -628,7 +628,7 @@ regression_trns_resid_proc (void *t_, struct ccase *c,
   return TRNS_CONTINUE;
 }
 
-/* 
+/*
    Returns false if NAME is a duplicate of any existing variable name.
 */
 static bool
@@ -1042,7 +1042,7 @@ prepare_categories (struct casereader *input,
       cat_stored_values_create (vars[i]);
 
   n_data = 0;
-  for (; casereader_read (input, &c); case_destroy (&c)) 
+  for (; casereader_read (input, &c); case_destroy (&c))
     {
       /*
 	The second condition ensures the program will run even if
@@ -1052,12 +1052,12 @@ prepare_categories (struct casereader *input,
       for (i = 0; i < n_vars; i++)
         {
           const union value *val = case_data (&c, vars[i]);
-          if (var_is_alpha (vars[i])) 
-            cat_value_update (vars[i], val); 
+          if (var_is_alpha (vars[i]))
+            cat_value_update (vars[i], val);
           else
             moments1_add (mom[i].m, val->f, 1.0);
         }
-      n_data++; 
+      n_data++;
    }
   casereader_destroy (input);
 
@@ -1161,7 +1161,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
       casenumber row;
       struct ccase c;
       size_t n_data;		/* Number of valid cases. */
-      
+
       dep_var = cmd->v_dependent[k];
       n_indep = identify_indep_vars (indep_vars, dep_var);
 
@@ -1221,7 +1221,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	   */
 	  coeff_init (models[k], X);
 
-	  /* 
+	  /*
 	     Find the least-squares estimates and other statistics.
 	   */
 	  pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, models[k]);
@@ -1230,7 +1230,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
           if (!taint_has_tainted_successor (casereader_get_taint (input)))
             {
               subcommand_statistics (cmd->a_statistics, models[k]);
-              subcommand_export (cmd->sbc_export, models[k]); 
+              subcommand_export (cmd->sbc_export, models[k]);
             }
 
 	  gsl_vector_free (Y);
@@ -1249,7 +1249,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 }
 
 /*
-  Local Variables:   
+  Local Variables:
   mode: c
   End:
 */

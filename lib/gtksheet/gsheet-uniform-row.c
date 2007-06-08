@@ -1,8 +1,8 @@
 /* gsheet-uniform-row.c
- * 
+ *
  *  PSPPIRE --- A Graphical User Interface for PSPP
  * Copyright (C) 2006  Free Software Foundation
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -12,7 +12,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -60,7 +60,7 @@ g_sheet_uniform_row_get_type (void)
 	NULL
       };
 
-      uniform_row_type = 
+      uniform_row_type =
 	g_type_register_static (G_TYPE_OBJECT, "g_sheet_uniform_row",
 				&uniform_row_info, 0);
 
@@ -95,11 +95,11 @@ g_sheet_uniform_row_new (gint height, gint n_rows)
   return retval;
 }
 
-static gint 
+static gint
 g_sheet_uniform_row_get_height(const GSheetRow *geom, gint u, gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
-  
+
   return ug->height;
 }
 
@@ -107,7 +107,7 @@ static gboolean
 g_sheet_uniform_row_get_sensitivity(const GSheetRow *geom, gint u, gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
-  
+
   return (u < ug->n_rows);
 }
 
@@ -116,7 +116,7 @@ static gboolean
 g_sheet_uniform_row_get_visibility(const GSheetRow *geom, gint u, gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
-  
+
   return ug->is_visible;
 }
 
@@ -131,7 +131,7 @@ g_sheet_uniform_row_get_button_label(const GSheetRow *geom, gint u, gpointer dat
 
 
 
-static gint 
+static gint
 g_sheet_uniform_row_get_row_count(const GSheetRow *geom, gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
@@ -158,7 +158,7 @@ g_sheet_uniform_row_init (GSheetUniformRow *o)
 {
 }
 
-static void         
+static void
 g_sheet_uniform_row_finalize (GObject           *object)
 {
 }
@@ -173,7 +173,7 @@ g_sheet_uniform_row_top_ypixel(const GSheetRow *geo, gint row, gpointer data)
 }
 
 static gint
-g_sheet_uniform_row_pixel_to_row(const GSheetRow *geo, guint pixel, 
+g_sheet_uniform_row_pixel_to_row(const GSheetRow *geo, guint pixel,
 				 gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geo);

@@ -15,11 +15,11 @@ double gslextras_cdf_binomial_P(const long k, const long n, const double p);
 double gslextras_cdf_binomial_Q(const long k, const long n, const double q);
 double gslextras_cdf_geometric_P (const long n, const double p);
 double gslextras_cdf_geometric_Q ( const long n, const double p);
-double gslextras_cdf_hypergeometric_P (const unsigned int k, 
+double gslextras_cdf_hypergeometric_P (const unsigned int k,
                                        const unsigned int n0,
                                        const unsigned int n1,
                                        const unsigned int t);
-double gslextras_cdf_hypergeometric_Q (const unsigned int k, 
+double gslextras_cdf_hypergeometric_Q (const unsigned int k,
                                        const unsigned int n0,
                                        const unsigned int n1,
                                        const unsigned int t);

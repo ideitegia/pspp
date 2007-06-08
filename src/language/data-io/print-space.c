@@ -82,15 +82,15 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
   if (handle != NULL)
     {
       writer = dfm_open_writer (handle);
-      if (writer == NULL) 
+      if (writer == NULL)
         {
           expr_free (expr);
           return CMD_FAILURE;
-        } 
+        }
     }
   else
     writer = NULL;
-  
+
   trns = xmalloc (sizeof *trns);
   trns->writer = writer;
   trns->expr = expr;
@@ -112,7 +112,7 @@ print_space_trns_proc (void *t_, struct ccase *c,
   if (trns->expr)
     {
       double f = expr_evaluate_num (trns->expr, c, case_num);
-      if (f == SYSMIS) 
+      if (f == SYSMIS)
         msg (SW, _("The expression on PRINT SPACE evaluated to the "
                    "system-missing value."));
       else if (f < 0 || f > INT_MAX)

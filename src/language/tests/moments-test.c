@@ -30,7 +30,7 @@
 #define _(msgid) gettext (msgid)
 
 static bool
-read_values (struct lexer *lexer, double **values, double **weights, size_t *cnt) 
+read_values (struct lexer *lexer, double **values, double **weights, size_t *cnt)
 {
   size_t cap = 0;
 
@@ -53,7 +53,7 @@ read_values (struct lexer *lexer, double **values, double **weights, size_t *cnt
           lex_get (lexer);
         }
 
-      if (*cnt >= cap) 
+      if (*cnt >= cap)
         {
           cap = 2 * (cap + 8);
           *values = xnrealloc (*values, cap, sizeof **values);
@@ -69,7 +69,7 @@ read_values (struct lexer *lexer, double **values, double **weights, size_t *cnt
 }
 
 int
-cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED) 
+cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   int retval = CMD_FAILURE;
   double *values = NULL;
@@ -81,7 +81,7 @@ cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if (lex_match_id (lexer, "ONEPASS"))
     two_pass = 0;
-  if (lex_token (lexer) != '/') 
+  if (lex_token (lexer) != '/')
     {
       lex_force_match (lexer, '/');
       goto done;
@@ -89,41 +89,41 @@ cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
   fprintf (stderr, "%s => ", lex_rest_of_line (lexer));
   lex_get (lexer);
 
-  if (two_pass) 
+  if (two_pass)
     {
       struct moments *m = NULL;
-  
+
       m = moments_create (MOMENT_KURTOSIS);
-      if (!read_values (lexer, &values, &weights, &cnt)) 
+      if (!read_values (lexer, &values, &weights, &cnt))
         {
           moments_destroy (m);
-          goto done; 
+          goto done;
         }
       for (i = 0; i < cnt; i++)
-        moments_pass_one (m, values[i], weights[i]); 
+        moments_pass_one (m, values[i], weights[i]);
       for (i = 0; i < cnt; i++)
         moments_pass_two (m, values[i], weights[i]);
       moments_calculate (m, &weight, &M[0], &M[1], &M[2], &M[3]);
       moments_destroy (m);
     }
-  else 
+  else
     {
       struct moments1 *m = NULL;
-  
+
       m = moments1_create (MOMENT_KURTOSIS);
-      if (!read_values (lexer, &values, &weights, &cnt)) 
+      if (!read_values (lexer, &values, &weights, &cnt))
         {
           moments1_destroy (m);
-          goto done; 
+          goto done;
         }
       for (i = 0; i < cnt; i++)
         moments1_add (m, values[i], weights[i]);
       moments1_calculate (m, &weight, &M[0], &M[1], &M[2], &M[3]);
       moments1_destroy (m);
     }
-  
+
   fprintf (stderr, "W=%.3f", weight);
-  for (i = 0; i < 4; i++) 
+  for (i = 0; i < 4; i++)
     {
       fprintf (stderr, " M%d=", (int) i + 1);
       if (M[i] == SYSMIS)
@@ -136,7 +136,7 @@ cmd_debug_moments (struct lexer *lexer, struct dataset *ds UNUSED)
   fprintf (stderr, "\n");
 
   retval = lex_end_of_command (lexer);
-  
+
  done:
   free (values);
   free (weights);

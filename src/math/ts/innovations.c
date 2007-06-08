@@ -1,18 +1,18 @@
 /*
   src/math/ts/innovations.c
-  
+
   Copyright (C) 2006 Free Software Foundation, Inc. Written by Jason H. Stover.
-  
+
   This program is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free
   Software Foundation; either version 2 of the License, or (at your option)
   any later version.
-  
+
   This program is distributed in the hope that it will be useful, but WITHOUT
   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
   more details.
-  
+
   You should have received a copy of the GNU General Public License along with
   this program; if not, write to the Free Software Foundation, Inc., 51
   Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
@@ -41,7 +41,7 @@
 static void
 get_mean (const gsl_matrix *data,
 	  struct innovations_estimate **est)
-		   
+
 {
   size_t n;
   size_t i;
@@ -67,7 +67,7 @@ get_mean (const gsl_matrix *data,
 	}
     }
 }
-static void 
+static void
 update_cov (struct innovations_estimate **est, gsl_vector_const_view x,
 	    gsl_vector_const_view y, size_t lag)
 {
@@ -91,7 +91,7 @@ update_cov (struct innovations_estimate **est, gsl_vector_const_view x,
     }
 }
 static int
-get_covariance (const gsl_matrix *data, 
+get_covariance (const gsl_matrix *data,
 		struct innovations_estimate **est, size_t max_lag)
 {
   size_t lag;
@@ -117,7 +117,7 @@ get_covariance (const gsl_matrix *data,
     {
       for (lag = 0; lag <= max_lag && lag < data->size1 - i; lag++)
 	{
-	  update_cov (est, gsl_matrix_const_row (data, i), 
+	  update_cov (est, gsl_matrix_const_row (data, i),
 		      gsl_matrix_const_row (data, i + lag), lag);
 	}
     }
@@ -196,12 +196,12 @@ innovations_update_coeff (double **theta, struct innovations_estimate *est,
       for (j = 1; j <= i; j++)
 	{
 	  k = i - j;
-	  theta[i][k] = (est->cov[k+1] - 
+	  theta[i][k] = (est->cov[k+1] -
 			 innovations_convolve (theta[i] + k + 1, theta[j - 1], est, j))
 	    / est->scale[j];
 	}
       innovations_update_scale (est, theta[i], i + 1);
-    }  
+    }
 }
 static void
 get_coef (const gsl_matrix *data,
@@ -232,7 +232,7 @@ get_coef (const gsl_matrix *data,
 	    Let X[m], X[m-1],... denote the original series.
 	    Let X_hat[0] denote the best predicted value of X[0],
 	    X_hat[1] denote the projection of X[1] onto the subspace
-	    spanned by {X[0] - X_hat[0]}. Let X_hat[m] denote the 
+	    spanned by {X[0] - X_hat[0]}. Let X_hat[m] denote the
 	    projection of X[m] onto the subspace spanned by {X[m-1] - X_hat[m-1],
 	    X[m-2] - X_hat[m-2],...,X[0] - X_hat[0]}.
 
@@ -253,8 +253,8 @@ get_coef (const gsl_matrix *data,
 }
 
 static void
-innovations_struct_init (struct innovations_estimate *est, 
-			 const struct design_matrix *dm, 
+innovations_struct_init (struct innovations_estimate *est,
+			 const struct design_matrix *dm,
 			 size_t lag)
 {
   size_t j;
@@ -287,7 +287,7 @@ innovations_struct_init (struct innovations_estimate *est,
  */
 static void
 subtract_mean (gsl_matrix *m, struct innovations_estimate **est)
-{      
+{
   size_t i;
   size_t j;
   double tmp;
@@ -301,7 +301,7 @@ subtract_mean (gsl_matrix *m, struct innovations_estimate **est)
 	}
     }
 }
-struct innovations_estimate ** 
+struct innovations_estimate **
 pspp_innovations (const struct design_matrix *dm, size_t lag)
 {
   struct innovations_estimate **est;
@@ -319,11 +319,11 @@ pspp_innovations (const struct design_matrix *dm, size_t lag)
   subtract_mean (dm->m, est);
   get_covariance (dm->m, est, lag);
   get_coef (dm->m, est, lag);
-  
+
   return est;
 }
 
-static void 
+static void
 pspp_innovations_free_one (struct innovations_estimate *est)
 {
   size_t i;

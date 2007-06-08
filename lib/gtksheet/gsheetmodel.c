@@ -135,7 +135,7 @@ g_sheet_model_base_init (gpointer g_class)
 		      G_TYPE_INT,
 		      G_TYPE_INT);
 
-		    
+
       initialized = TRUE;
     }
 }
@@ -144,11 +144,11 @@ g_sheet_model_base_init (gpointer g_class)
 /**
  * g_sheet_model_free_strings
  * @sheet_model: A #GSheetModel
- * 
- * Returns: True if strings obtained with get_string should be freed by the 
+ *
+ * Returns: True if strings obtained with get_string should be freed by the
  * sheet when no longer required.
  **/
-inline  gboolean 
+inline  gboolean
 g_sheet_model_free_strings (const GSheetModel *sheet_model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), FALSE);
@@ -162,18 +162,18 @@ g_sheet_model_free_strings (const GSheetModel *sheet_model)
  * @sheet_model: A #GSheetModel
  * @row: The row of the cell to be retrieved.
  * @column: The column of the cell to be retrieved.
- * 
+ *
  * Retrieves the datum at location ROW, COLUMN in the form of a string.
  * Returns: The string representation of the datum, or NULL on error.
  **/
 inline gchar *
-g_sheet_model_get_string (const GSheetModel *sheet_model, 
+g_sheet_model_get_string (const GSheetModel *sheet_model,
 			  gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), 0);
 
   g_assert (G_SHEET_MODEL_GET_IFACE (sheet_model)->get_string);
-  
+
   return (G_SHEET_MODEL_GET_IFACE (sheet_model)->get_string) (sheet_model, row, column);
 }
 
@@ -183,20 +183,20 @@ g_sheet_model_get_string (const GSheetModel *sheet_model,
  * @text: The text describing the datum to be set.
  * @row: The row of the cell to be cleared.
  * @column: The column of the cell to be cleared.
- * 
+ *
  * Sets the datum at a location from a string.
  * Returns: TRUE if the datum was changed, FALSE otherwise.
  **/
 gboolean
-g_sheet_model_set_string      (GSheetModel *sheet_model, 
-				 const gchar *text, 
+g_sheet_model_set_string      (GSheetModel *sheet_model,
+				 const gchar *text,
 				 gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), FALSE);
 
   g_assert (G_SHEET_MODEL_GET_IFACE (sheet_model)->set_string);
 
-  return G_SHEET_MODEL_GET_IFACE (sheet_model)->set_string (sheet_model, 
+  return G_SHEET_MODEL_GET_IFACE (sheet_model)->set_string (sheet_model,
 							    text, row, column);
 }
 
@@ -207,19 +207,19 @@ g_sheet_model_set_string      (GSheetModel *sheet_model,
  * @sheet_model: A #GSheetModel
  * @row: The row of the cell to be cleared.
  * @column: The column of the cell to be cleared.
- * 
+ *
  * Called when the datum at a location is to be cleared.
  * Returns: TRUE if the datum was cleared, FALSE otherwise.
  **/
 gboolean
-g_sheet_model_datum_clear    (GSheetModel *sheet_model, 
+g_sheet_model_datum_clear    (GSheetModel *sheet_model,
 				gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), FALSE);
 
   g_assert (G_SHEET_MODEL_GET_IFACE (sheet_model)->clear_datum);
 
-  return G_SHEET_MODEL_GET_IFACE (sheet_model)->clear_datum (sheet_model, 
+  return G_SHEET_MODEL_GET_IFACE (sheet_model)->clear_datum (sheet_model,
 								row, column);
 }
 
@@ -228,7 +228,7 @@ g_sheet_model_datum_clear    (GSheetModel *sheet_model,
  * g_sheet_model_range_changed:
  * @sheet_model: A #GSheetModel
  * @range: The #GSheetRange range of cells which have changed.
- * 
+ *
  * Emits the "range_changed" signal on @sheet_model.
  **/
 void
@@ -238,7 +238,7 @@ g_sheet_model_range_changed (GSheetModel *sheet_model,
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
-  g_signal_emit (sheet_model, sheet_model_signals[RANGE_CHANGED], 0, 
+  g_signal_emit (sheet_model, sheet_model_signals[RANGE_CHANGED], 0,
 		 row0, col0, rowi, coli);
 }
 
@@ -250,7 +250,7 @@ g_sheet_model_range_changed (GSheetModel *sheet_model,
  * @sheet_model: A #GSheetModel
  * @row: The row before which the new rows should be inserted.
  * @n_rows: The number of rows to insert.
- * 
+ *
  * Emits the "rows_inserted" signal on @sheet_model.
  **/
 void
@@ -259,7 +259,7 @@ g_sheet_model_rows_inserted (GSheetModel *sheet_model,
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
-  g_signal_emit (sheet_model, sheet_model_signals[ROWS_INSERTED], 0, 
+  g_signal_emit (sheet_model, sheet_model_signals[ROWS_INSERTED], 0,
 		 row, n_rows);
 }
 
@@ -269,7 +269,7 @@ g_sheet_model_rows_inserted (GSheetModel *sheet_model,
  * @sheet_model: A #GSheetModel
  * @column: The column before which the new columns should be inserted.
  * @n_columns: The number of columns to insert.
- * 
+ *
  * Emits the "columns_inserted" signal on @sheet_model.
  **/
 void
@@ -278,7 +278,7 @@ g_sheet_model_columns_inserted (GSheetModel *sheet_model,
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
-  g_signal_emit (sheet_model, sheet_model_signals[COLUMNS_INSERTED], 0, 
+  g_signal_emit (sheet_model, sheet_model_signals[COLUMNS_INSERTED], 0,
 		 column, n_columns);
 }
 
@@ -290,7 +290,7 @@ g_sheet_model_columns_inserted (GSheetModel *sheet_model,
  * @sheet_model: A #GSheetModel
  * @row: The first row to be deleted.
  * @n_rows: The number of rows to delete.
- * 
+ *
  * Emits the "rows_deleted" signal on @sheet_model.
  **/
 void
@@ -299,7 +299,7 @@ g_sheet_model_rows_deleted (GSheetModel *sheet_model,
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
-  g_signal_emit (sheet_model, sheet_model_signals[ROWS_DELETED], 0, 
+  g_signal_emit (sheet_model, sheet_model_signals[ROWS_DELETED], 0,
 		 row, n_rows);
 }
 
@@ -310,7 +310,7 @@ g_sheet_model_rows_deleted (GSheetModel *sheet_model,
  * @sheet_model: A #GSheetModel
  * @column: The first column to be deleted.
  * @n_columns: The number of columns to delete.
- * 
+ *
  * Emits the "columns_deleted" signal on @sheet_model.
  **/
 void
@@ -319,7 +319,7 @@ g_sheet_model_columns_deleted (GSheetModel *sheet_model,
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
-  g_signal_emit (sheet_model, sheet_model_signals[COLUMNS_DELETED], 0, 
+  g_signal_emit (sheet_model, sheet_model_signals[COLUMNS_DELETED], 0,
 		 column, n_columns);
 }
 
@@ -330,13 +330,13 @@ g_sheet_model_columns_deleted (GSheetModel *sheet_model,
 /**
  * g_sheet_model_is_editable:
  * @sheet_model: A #GSheetModel
- * @row: The row 
+ * @row: The row
  * @column: The column
- * 
+ *
  * Returns: TRUE if the cell is editable, FALSE otherwise
  **/
-inline gboolean 
-g_sheet_model_is_editable (const GSheetModel *model, 
+inline gboolean
+g_sheet_model_is_editable (const GSheetModel *model,
 			     gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), TRUE);
@@ -344,20 +344,20 @@ g_sheet_model_is_editable (const GSheetModel *model,
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->is_editable )
     return TRUE;
 
-  return G_SHEET_MODEL_GET_IFACE (model)->is_editable (model, 
+  return G_SHEET_MODEL_GET_IFACE (model)->is_editable (model,
 							  row, column);
 }
 
 /**
  * g_sheet_model_is_visible:
  * @sheet_model: A #GSheetModel
- * @row: The row 
+ * @row: The row
  * @column: The column
- * 
+ *
  * Returns: TRUE if the cell is visible, FALSE otherwise
  **/
-inline gboolean 
-g_sheet_model_is_visible (const GSheetModel *model, 
+inline gboolean
+g_sheet_model_is_visible (const GSheetModel *model,
 			  gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), TRUE);
@@ -365,7 +365,7 @@ g_sheet_model_is_visible (const GSheetModel *model,
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->is_visible )
     return TRUE;
 
-  return G_SHEET_MODEL_GET_IFACE (model)->is_visible (model, 
+  return G_SHEET_MODEL_GET_IFACE (model)->is_visible (model,
 							row, column);
 }
 
@@ -373,14 +373,14 @@ g_sheet_model_is_visible (const GSheetModel *model,
 /**
  * g_sheet_model_get_foreground:
  * @sheet_model: A #GSheetModel
- * @row: The row 
+ * @row: The row
  * @column: The column
  *
  * Returns the foreground colour of the cell at @row, @column
  * Returns: the foreground colour, or NULL on error.
  **/
 inline const GdkColor *
-g_sheet_model_get_foreground (const GSheetModel *model, 
+g_sheet_model_get_foreground (const GSheetModel *model,
 				gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
@@ -388,21 +388,21 @@ g_sheet_model_get_foreground (const GSheetModel *model,
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_foreground )
     return NULL;
 
-  return G_SHEET_MODEL_GET_IFACE (model)->get_foreground (model, 
+  return G_SHEET_MODEL_GET_IFACE (model)->get_foreground (model,
 							    row, column);
 }
 
 /**
  * g_sheet_model_get_background:
  * @sheet_model: A #GSheetModel
- * @row: The row 
+ * @row: The row
  * @column: The column
  *
  * Returns the background colour of the cell at @row, @column
  * Returns: the background colour, or NULL on error.
  **/
 inline const GdkColor *
-g_sheet_model_get_background (const GSheetModel *model, 
+g_sheet_model_get_background (const GSheetModel *model,
 				gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
@@ -410,21 +410,21 @@ g_sheet_model_get_background (const GSheetModel *model,
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_background )
     return NULL;
 
-  return G_SHEET_MODEL_GET_IFACE (model)->get_background (model, 
+  return G_SHEET_MODEL_GET_IFACE (model)->get_background (model,
 							    row, column);
 }
 
 /**
  * g_sheet_model_get_justification:
  * @sheet_model: A #GSheetModel
- * @row: The row 
+ * @row: The row
  * @column: The column
  *
  * Returns the justification of the cell at @row, @column
  * Returns: the justification, or NULL on error.
  **/
 inline const GtkJustification *
-g_sheet_model_get_justification (const GSheetModel *model, 
+g_sheet_model_get_justification (const GSheetModel *model,
 				   gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
@@ -432,14 +432,14 @@ g_sheet_model_get_justification (const GSheetModel *model,
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_justification)
     return NULL;
 
-  return G_SHEET_MODEL_GET_IFACE (model)->get_justification (model, 
+  return G_SHEET_MODEL_GET_IFACE (model)->get_justification (model,
 							       row, column);
 }
 
 /**
  * g_sheet_model_get_font_desc:
  * @sheet_model: A #GSheetModel
- * @row: The row 
+ * @row: The row
  * @column: The column
  *
  * Returns the font description of the cell at @row, @column
@@ -453,28 +453,28 @@ g_sheet_model_get_font_desc(const GSheetModel *model,
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_font_desc)
     return NULL;
 
-  return G_SHEET_MODEL_GET_IFACE (model)->get_font_desc (model, 
+  return G_SHEET_MODEL_GET_IFACE (model)->get_font_desc (model,
 							   row, column);
 }
 
 /**
  * g_sheet_model_get_cell_border:
  * @sheet_model: A #GSheetModel
- * @row: The row 
+ * @row: The row
  * @column: The column
  *
  * Returns the cell border of the cell at @row, @column
  * Returns: the cell border, or NULL on error.
  **/
-inline const GtkSheetCellBorder * 
-g_sheet_model_get_cell_border (const GSheetModel *model, 
+inline const GtkSheetCellBorder *
+g_sheet_model_get_cell_border (const GSheetModel *model,
 				 gint row, gint column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_cell_border)
     return NULL;
 
-  return G_SHEET_MODEL_GET_IFACE (model)->get_cell_border (model, 
+  return G_SHEET_MODEL_GET_IFACE (model)->get_cell_border (model,
 							   row, column);
 }
 
@@ -486,7 +486,7 @@ g_sheet_model_get_cell_border (const GSheetModel *model,
  *
  * Returns the total number of columns represented by the model
  **/
-inline gint 
+inline gint
 g_sheet_model_get_column_count(const GSheetModel *model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);
@@ -500,7 +500,7 @@ g_sheet_model_get_column_count(const GSheetModel *model)
  *
  * Returns the total number of rows represented by the model
  **/
-inline gint 
+inline gint
 g_sheet_model_get_row_count(const GSheetModel *model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);

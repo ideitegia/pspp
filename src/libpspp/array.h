@@ -223,8 +223,8 @@ void sort_heap (void *array, size_t count, size_t size,
                 algo_compare_func *compare, const void *aux);
 
 /* ARRAY contains COUNT elements of SIZE bytes each.  This
-   function tests whether ARRAY is a heap and returns true if so, 
-   false otherwise.  Uses COMPARE to compare elements, passing 
+   function tests whether ARRAY is a heap and returns true if so,
+   false otherwise.  Uses COMPARE to compare elements, passing
    AUX as auxiliary data. */
 bool is_heap (const void *array, size_t count, size_t size,
              algo_compare_func *compare, const void *aux);

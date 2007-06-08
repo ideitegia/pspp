@@ -3,7 +3,7 @@
  * Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
  *
  * GtkItemEntry widget by Adrian E. Feiguin
- * Based on GtkEntry widget 
+ * Based on GtkEntry widget
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -55,7 +55,7 @@ struct _GtkItemEntryClass
 GtkType    gtk_item_entry_get_type       (void);
 GtkWidget* gtk_item_entry_new            (void);
 GtkWidget* gtk_item_entry_new_with_max_length (gint   max);
-void       gtk_item_entry_set_text            (GtkItemEntry *item_entry, 
+void       gtk_item_entry_set_text            (GtkItemEntry *item_entry,
                                                const gchar *text,
                                                GtkJustification justification);
 

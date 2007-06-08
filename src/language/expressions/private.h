@@ -16,7 +16,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#ifndef EXPRESSIONS_PRIVATE_H 
+#ifndef EXPRESSIONS_PRIVATE_H
 #define EXPRESSIONS_PRIVATE_H
 
 #include <assert.h>
@@ -27,7 +27,7 @@
 #include "public.h"
 #include "operations.h"
 
-enum operation_flags 
+enum operation_flags
   {
     /* Most operations produce a missing output value if any
        input value is missing.  Setting this bit indicates that
@@ -46,7 +46,7 @@ enum operation_flags
        to be non-missing.  The operation must have an array
        operand and the array must contain `double's.  Both
        OPF_ABSORB_MISS and OPF_ARRAY_OPERAND must also be set. */
-    OPF_MIN_VALID = 002,     
+    OPF_MIN_VALID = 002,
 
     /* If set, operation is non-optimizable in general.  Unless
        combined with OPF_ABSORB_MISS, missing input values are
@@ -82,10 +82,10 @@ struct operation
 
 extern const struct operation operations[];
 
-/* Tree structured expressions. */ 
+/* Tree structured expressions. */
 
 /* Atoms. */
-struct number_node 
+struct number_node
   {
     operation_type type;   /* OP_number. */
     double n;
@@ -143,7 +143,7 @@ union any_node
     struct composite_node composite;
   };
 
-union operation_data 
+union operation_data
   {
     operation_type operation;
     double number;

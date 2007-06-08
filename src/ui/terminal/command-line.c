@@ -111,7 +111,7 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
 	    }
 	  break;
 
-	case 'x':	  
+	case 'x':
 	  if ( 0 == strcmp(optarg,"compatible") )
 	    set_syntax(COMPATIBLE);
 	  else if ( 0 == strcmp(optarg,"enhanced"))
@@ -193,18 +193,18 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
   if (process_statrc)
     {
       char *pspprc_fn = fn_search_path ("rc", config_path);
-      if (pspprc_fn != NULL) 
+      if (pspprc_fn != NULL)
         {
 	  getl_append_source (ss, create_syntax_file_source (pspprc_fn));
 
-          free (pspprc_fn); 
+          free (pspprc_fn);
         }
     }
 
   for (i = optind; i < argc; i++)
     if (strchr (argv[i], '='))
       outp_configure_macro (argv[i]);
-    else 
+    else
       {
 	getl_append_source (ss, create_syntax_file_source (argv[i]));
         syntax_files++;

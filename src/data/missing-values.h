@@ -32,7 +32,7 @@ struct missing_values
   };
 
 /* Classes of missing values. */
-enum mv_class 
+enum mv_class
   {
     MV_NEVER = 0,               /* Never considered missing. */
     MV_USER = 1,                /* Missing if value is user-missing. */

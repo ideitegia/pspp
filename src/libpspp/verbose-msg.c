@@ -31,7 +31,7 @@ static int verbosity;
 
 /* Increases the verbosity level. */
 void
-verbose_increment_level (void) 
+verbose_increment_level (void)
 {
   verbosity++;
 }
@@ -44,7 +44,7 @@ verbose_msg (int level, const char *format, ...)
   if (level <= verbosity)
     {
       va_list args;
-  
+
       va_start (args, format);
       fprintf (stderr, "%s: ", program_name);
       vfprintf (stderr, format, args);

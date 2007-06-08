@@ -37,11 +37,11 @@
 static void
 calc_moments (enum moment max_moment,
               double w, double d1, double d2, double d3, double d4,
-              double *variance, double *skewness, double *kurtosis) 
+              double *variance, double *skewness, double *kurtosis)
 {
   assert (w > 0.);
 
-  if (max_moment >= MOMENT_VARIANCE && w > 1.) 
+  if (max_moment >= MOMENT_VARIANCE && w > 1.)
     {
       double s2 = (d2 - pow2 (d1) / w) / (w - 1.);
       if (variance != NULL)
@@ -49,14 +49,14 @@ calc_moments (enum moment max_moment,
 
       /* From _SPSS Statistical Algorithms, 2nd ed.,
          0-918469-89-9, section "DESCRIPTIVES". */
-      if (fabs (*variance) >= 1e-20) 
+      if (fabs (*variance) >= 1e-20)
         {
           if (max_moment >= MOMENT_SKEWNESS && skewness != NULL && w > 2.)
             {
               double s3 = s2 * sqrt (s2);
               double g1 = (w * d3) / ((w - 1.0) * (w - 2.0) * s3);
               if (finite (g1))
-                *skewness = g1; 
+                *skewness = g1;
             }
           if (max_moment >= MOMENT_KURTOSIS && kurtosis != NULL && w > 3.)
             {
@@ -64,16 +64,16 @@ calc_moments (enum moment max_moment,
               double g2 = (w * (w + 1) * d4 / (w - 1.) / den
                            - 3. * pow2 (d2) / den);
               if (finite (g2))
-                *kurtosis = g2; 
+                *kurtosis = g2;
             }
-        } 
+        }
     }
 }
 
 /* Two-pass moments. */
 
 /* A set of two-pass moments. */
-struct moments 
+struct moments
   {
     enum moment max_moment;     /* Highest-order moment we're computing. */
     int pass;                   /* Current pass (1 or 2). */
@@ -106,7 +106,7 @@ init_moments (struct moments *m, enum moment max_moment)
 /* Clears out a set of moments so that it can be reused for a new
    set of values.  The moments to be calculated are not changed. */
 void
-moments_clear (struct moments *m) 
+moments_clear (struct moments *m)
 {
   m->pass = 1;
   m->w1 = m->w2 = 0.;
@@ -134,12 +134,12 @@ moments_create (enum moment max_moment)
 /* Adds VALUE with the given WEIGHT to the calculation of
    moments for the first pass. */
 void
-moments_pass_one (struct moments *m, double value, double weight) 
+moments_pass_one (struct moments *m, double value, double weight)
 {
   assert (m != NULL);
   assert (m->pass == 1);
 
-  if (value != SYSMIS && weight > 0.) 
+  if (value != SYSMIS && weight > 0.)
     {
       m->sum += value * weight;
       m->w1 += weight;
@@ -149,23 +149,23 @@ moments_pass_one (struct moments *m, double value, double weight)
 /* Adds VALUE with the given WEIGHT to the calculation of
    moments for the second pass. */
 void
-moments_pass_two (struct moments *m, double value, double weight) 
+moments_pass_two (struct moments *m, double value, double weight)
 {
   assert (m != NULL);
 
-  if (m->pass == 1) 
+  if (m->pass == 1)
     {
       m->pass = 2;
       m->mean = m->w1 != 0. ? m->sum / m->w1 : 0.;
       m->d1 = m->d2 = m->d3 = m->d4 = 0.;
     }
 
-  if (value != SYSMIS && weight >= 0.) 
+  if (value != SYSMIS && weight >= 0.)
     {
       double d = value - m->mean;
       double d1_delta = d * weight;
       m->d1 += d1_delta;
-      if (m->max_moment >= MOMENT_VARIANCE) 
+      if (m->max_moment >= MOMENT_VARIANCE)
         {
           double d2_delta = d1_delta * d;
           m->d2 += d2_delta;
@@ -197,7 +197,7 @@ void
 moments_calculate (const struct moments *m,
                    double *weight,
                    double *mean, double *variance,
-                   double *skewness, double *kurtosis) 
+                   double *skewness, double *kurtosis)
 {
   assert (m != NULL);
 
@@ -214,13 +214,13 @@ moments_calculate (const struct moments *m,
     *weight = m->w1;
 
   /* How many passes so far? */
-  if (m->pass == 1) 
+  if (m->pass == 1)
     {
       /* In the first pass we can only calculate the mean. */
       if (mean != NULL && m->w1 > 0.)
         *mean = m->sum / m->w1;
     }
-  else 
+  else
     {
       /* After the second pass we can calculate any stat.  We
          don't support "online" computation during the second
@@ -229,20 +229,20 @@ moments_calculate (const struct moments *m,
       assert (m->pass == 2);
       assert (m->w1 == m->w2);
 
-      if (m->w2 > 0.) 
+      if (m->w2 > 0.)
         {
           if (mean != NULL)
             *mean = m->mean;
           calc_moments (m->max_moment,
                         m->w2, m->d1, m->d2, m->d3, m->d4,
-                        variance, skewness, kurtosis); 
+                        variance, skewness, kurtosis);
         }
     }
 }
 
 /* Destroys a set of moments. */
 void
-moments_destroy (struct moments *m) 
+moments_destroy (struct moments *m)
 {
   free (m);
 }
@@ -257,7 +257,7 @@ void
 moments_of_doubles (const double *array, size_t cnt,
                     double *weight,
                     double *mean, double *variance,
-                    double *skewness, double *kurtosis) 
+                    double *skewness, double *kurtosis)
 {
   enum moment max_moment;
   struct moments m;
@@ -290,7 +290,7 @@ void
 moments_of_values (const union value *array, size_t cnt,
                    double *weight,
                    double *mean, double *variance,
-                   double *skewness, double *kurtosis) 
+                   double *skewness, double *kurtosis)
 {
   enum moment max_moment;
   struct moments m;
@@ -316,7 +316,7 @@ moments_of_values (const union value *array, size_t cnt,
 /* One-pass moments. */
 
 /* A set of one-pass moments. */
-struct moments1 
+struct moments1
   {
     enum moment max_moment;     /* Highest-order moment we're computing. */
     double w;                   /* Total weight so far. */
@@ -342,7 +342,7 @@ init_moments1 (struct moments1 *m, enum moment max_moment)
    for a new set of values.  The moments to be calculated are not
    changed. */
 void
-moments1_clear (struct moments1 *m) 
+moments1_clear (struct moments1 *m)
 {
   m->w = 0.;
   m->d1 = m->d2 = m->d3 = m->d4 = 0.;
@@ -353,12 +353,12 @@ moments1_clear (struct moments1 *m)
    pass.  The user should call moments1_add() for each value in
    the series.  The user may call moments1_calculate() to obtain
    the current moments at any time.  Call moments1_destroy() when
-   the moments are no longer needed. 
+   the moments are no longer needed.
 
    One-pass moments should only be used when two passes over the
    data are impractical. */
 struct moments1 *
-moments1_create (enum moment max_moment) 
+moments1_create (enum moment max_moment)
 {
   struct moments1 *m = xmalloc (sizeof *m);
   init_moments1 (m, max_moment);
@@ -368,11 +368,11 @@ moments1_create (enum moment max_moment)
 /* Adds VALUE with the given WEIGHT to the calculation of
    one-pass moments. */
 void
-moments1_add (struct moments1 *m, double value, double weight) 
+moments1_add (struct moments1 *m, double value, double weight)
 {
   assert (m != NULL);
 
-  if (value != SYSMIS && weight > 0.) 
+  if (value != SYSMIS && weight > 0.)
     {
       double prev_w, v1;
 
@@ -381,14 +381,14 @@ moments1_add (struct moments1 *m, double value, double weight)
       v1 = (weight / m->w) * (value - m->d1);
       m->d1 += v1;
 
-      if (m->max_moment >= MOMENT_VARIANCE) 
+      if (m->max_moment >= MOMENT_VARIANCE)
         {
           double v2 = v1 * v1;
           double w_prev_w = m->w * prev_w;
           double prev_m2 = m->d2;
-          
+
           m->d2 += w_prev_w / weight * v2;
-          if (m->max_moment >= MOMENT_SKEWNESS) 
+          if (m->max_moment >= MOMENT_SKEWNESS)
             {
               double w2 = weight * weight;
               double v3 = v2 * v1;
@@ -396,7 +396,7 @@ moments1_add (struct moments1 *m, double value, double weight)
 
               m->d3 += (-3. * v1 * prev_m2
                          + w_prev_w / w2 * (m->w - 2. * weight) * v3);
-              if (m->max_moment >= MOMENT_KURTOSIS) 
+              if (m->max_moment >= MOMENT_KURTOSIS)
                 {
                   double w3 = w2 * weight;
                   double v4 = v2 * v2;
@@ -424,7 +424,7 @@ void
 moments1_calculate (const struct moments1 *m,
                     double *weight,
                     double *mean, double *variance,
-                    double *skewness, double *kurtosis) 
+                    double *skewness, double *kurtosis)
 {
   assert (m != NULL);
 
@@ -440,7 +440,7 @@ moments1_calculate (const struct moments1 *m,
   if (weight != NULL)
     *weight = m->w;
 
-  if (m->w > 0.) 
+  if (m->w > 0.)
     {
       if (mean != NULL)
         *mean = m->d1;
@@ -453,7 +453,7 @@ moments1_calculate (const struct moments1 *m,
 
 /* Destroy one-pass moments M. */
 void
-moments1_destroy (struct moments1 *m) 
+moments1_destroy (struct moments1 *m)
 {
   free (m);
 }

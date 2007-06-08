@@ -58,9 +58,9 @@ const char *const data_colour[] = {
    If label is non zero, then print it at the tick mark
 */
 void
-draw_tick(struct chart *chart, 
-	  enum tick_orientation orientation, 
-	  double position, 
+draw_tick(struct chart *chart,
+	  enum tick_orientation orientation,
+	  double position,
 	  const char *label, ...)
 {
   const int tickSize = 10;
@@ -71,9 +71,9 @@ draw_tick(struct chart *chart,
 
   pl_move_r(chart->lp, chart->data_left, chart->data_bottom);
 
-  if ( orientation == TICK_ABSCISSA ) 
+  if ( orientation == TICK_ABSCISSA )
     pl_flinerel_r(chart->lp, position, 0, position, -tickSize);
-  else if (orientation == TICK_ORDINATE ) 
+  else if (orientation == TICK_ORDINATE )
       pl_flinerel_r(chart->lp, 0, position, -tickSize, position);
   else
     NOT_REACHED ();
@@ -84,9 +84,9 @@ draw_tick(struct chart *chart,
     va_start(ap,label);
     vsnprintf(buf,10,label,ap);
 
-    if ( orientation == TICK_ABSCISSA ) 
+    if ( orientation == TICK_ABSCISSA )
       pl_alabel_r(chart->lp, 'c','t', buf);
-    else if (orientation == TICK_ORDINATE ) 
+    else if (orientation == TICK_ORDINATE )
       {
 	if ( fabs(position) < DBL_EPSILON )
 	    pl_moverel_r(chart->lp, 0, 10);
@@ -96,19 +96,19 @@ draw_tick(struct chart *chart,
 
     va_end(ap);
   }
-    
+
   pl_restorestate_r(chart->lp);
 }
 
 
 /* Write the title on a chart*/
-void  
+void
 chart_write_title(struct chart *chart, const char *title, ...)
 {
   va_list ap;
   char buf[100];
 
-  if ( ! chart ) 
+  if ( ! chart )
 	  return ;
 
   pl_savestate_r(chart->lp);
@@ -125,27 +125,27 @@ chart_write_title(struct chart *chart, const char *title, ...)
 
 
 /* Set the scale for the abscissa */
-void 
+void
 chart_write_xscale(struct chart *ch, double min, double max, int ticks)
 {
   double x;
 
-  const double tick_interval = 
+  const double tick_interval =
     chart_rounded_tick( (max - min) / (double) ticks);
 
   assert ( ch );
 
 
-  ch->x_max = ceil( max / tick_interval ) * tick_interval ; 
+  ch->x_max = ceil( max / tick_interval ) * tick_interval ;
   ch->x_min = floor ( min / tick_interval ) * tick_interval ;
 
 
-  ch->abscissa_scale = fabs(ch->data_right - ch->data_left) / 
+  ch->abscissa_scale = fabs(ch->data_right - ch->data_left) /
     fabs(ch->x_max - ch->x_min);
 
   for(x = ch->x_min ; x <= ch->x_max; x += tick_interval )
     {
-      draw_tick (ch, TICK_ABSCISSA, 
+      draw_tick (ch, TICK_ABSCISSA,
 		 (x - ch->x_min) * ch->abscissa_scale, "%g", x);
     }
 
@@ -153,36 +153,36 @@ chart_write_xscale(struct chart *ch, double min, double max, int ticks)
 
 
 /* Set the scale for the ordinate */
-void 
+void
 chart_write_yscale(struct chart *ch, double smin, double smax, int ticks)
 {
   double y;
 
-  const double tick_interval = 
+  const double tick_interval =
     chart_rounded_tick( (smax - smin) / (double) ticks);
 
-  if ( !ch ) 
+  if ( !ch )
 	  return;
 
-  ch->y_max = ceil  ( smax / tick_interval ) * tick_interval ; 
+  ch->y_max = ceil  ( smax / tick_interval ) * tick_interval ;
   ch->y_min = floor ( smin / tick_interval ) * tick_interval ;
 
-  ch->ordinate_scale = 
+  ch->ordinate_scale =
     fabs(ch->data_top -  ch->data_bottom) / fabs(ch->y_max - ch->y_min) ;
 
   for(y = ch->y_min ; y <= ch->y_max; y += tick_interval )
     {
-    draw_tick (ch, TICK_ORDINATE, 
+    draw_tick (ch, TICK_ORDINATE,
 	       (y - ch->y_min) * ch->ordinate_scale, "%g", y);
     }
 }
 
 
 /* Write the abscissa label */
-void 
+void
 chart_write_xlabel(struct chart *ch, const char *label)
 {
-  if ( ! ch ) 
+  if ( ! ch )
     return ;
 
   pl_savestate_r(ch->lp);
@@ -197,10 +197,10 @@ chart_write_xlabel(struct chart *ch, const char *label)
 
 
 /* Write the ordinate label */
-void 
+void
 chart_write_ylabel(struct chart *ch, const char *label)
 {
-  if ( ! ch ) 
+  if ( ! ch )
     return ;
 
   pl_savestate_r(ch->lp);

@@ -42,7 +42,7 @@ struct casewriter *tmpfile_writer_create (size_t value_cnt);
 struct casewriter *autopaging_writer_create (size_t value_cnt);
 
 struct casewriter *
-casewriter_create_translator (struct casewriter *, 
+casewriter_create_translator (struct casewriter *,
                               void (*translate) (const struct ccase *input,
                                                  struct ccase *output,
                                                  void *aux),

@@ -31,7 +31,7 @@ enum pfm_type
   };
 
 /* Portable file writing options. */
-struct pfm_write_options 
+struct pfm_write_options
   {
     bool create_writeable;      /* File perms: writeable or read/only? */
     enum pfm_type type;         /* Type of portable file (TODO). */

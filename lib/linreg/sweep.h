@@ -26,7 +26,7 @@
 
   Y = Xb + Z
 
-  where Y is an n-by-1 column vector, X is an n-by-p matrix of 
+  where Y is an n-by-1 column vector, X is an n-by-p matrix of
   independent variables, b is a p-by-1 vector of regression coefficients,
   and Z is an n-by-1 normally-distributed random vector with independent
   identically distributed components with mean 0.
@@ -59,7 +59,7 @@
    --        --
 
    X refers to the design matrix and Y to the vector of dependent
-   observations. reg_sweep sweeps on the diagonal elements of 
+   observations. reg_sweep sweeps on the diagonal elements of
    X'X.
 
    The matrix A is assumed to be symmetric, so the sweep operation is

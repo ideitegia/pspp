@@ -1,4 +1,4 @@
-/* GSheetRow --- an abstract model of the row geometry of a 
+/* GSheetRow --- an abstract model of the row geometry of a
  * GSheet widget.
  * Copyright (C) 2006 Free Software Foundation
  *
@@ -103,54 +103,54 @@ g_sheet_row_base_init (gpointer g_class)
     }
 }
 
-void  
+void
 g_sheet_row_set_height (GSheetRow *row_geo,
 				gint row, gint size, gpointer data)
 {
   g_return_if_fail (G_IS_SHEET_ROW (row_geo));
 
-  if ((G_SHEET_ROW_GET_IFACE (row_geo)->set_height) ) 
-    (G_SHEET_ROW_GET_IFACE (row_geo)->set_height) (row_geo, row, 
+  if ((G_SHEET_ROW_GET_IFACE (row_geo)->set_height) )
+    (G_SHEET_ROW_GET_IFACE (row_geo)->set_height) (row_geo, row,
 							size, data);
 }
 
 
-gint 
-g_sheet_row_get_height     (const GSheetRow *row_geo, 
+gint
+g_sheet_row_get_height     (const GSheetRow *row_geo,
 				    gint row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), -1);
 
   g_assert (G_SHEET_ROW_GET_IFACE (row_geo)->get_height);
-  
-  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_height) (row_geo, row, 
+
+  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_height) (row_geo, row,
 							     data);
 }
 
 
 
-gboolean  
+gboolean
 g_sheet_row_get_visibility(const GSheetRow *row_geo,
 					    gint row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
   g_assert (G_SHEET_ROW_GET_IFACE (row_geo)->get_visibility);
-  
-  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_visibility) (row_geo, 
+
+  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_visibility) (row_geo,
 								  row, data);
 
 }
 
-gboolean  
+gboolean
 g_sheet_row_get_sensitivity(const GSheetRow *row_geo,
 					     gint row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
   g_assert (G_SHEET_ROW_GET_IFACE (row_geo)->get_sensitivity);
-  
-  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_sensitivity) (row_geo, 
+
+  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_sensitivity) (row_geo,
 								   row, data);
 
 }
@@ -173,7 +173,7 @@ g_sheet_row_get_button(const GSheetRow *row_geo,
 }
 
 
-gint  
+gint
 g_sheet_row_get_row_count(const GSheetRow *geo, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
@@ -187,7 +187,7 @@ g_sheet_row_get_row_count(const GSheetRow *geo, gpointer data)
  * g_sheet_row_start_pixel:
  * @geo: the row model
  * @row: the row number
- * @sheet: pointer to the sheet 
+ * @sheet: pointer to the sheet
  *
  * Returns the top y pixel for ROW.
  * Instances may override this method in order to achieve time and/or memory
@@ -196,7 +196,7 @@ g_sheet_row_get_row_count(const GSheetRow *geo, gpointer data)
  * Returns: the y coordinate of the top of the row.
  */
 
-gint  
+gint
 g_sheet_row_start_pixel(const GSheetRow *geo, gint row, gpointer data)
 {
   gint i;
@@ -204,38 +204,38 @@ g_sheet_row_start_pixel(const GSheetRow *geo, gint row, gpointer data)
 
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
   g_return_val_if_fail (row >= 0, -1);
-  g_return_val_if_fail (row < 
+  g_return_val_if_fail (row <
 			g_sheet_row_get_row_count(geo, data),-1);
 
-  if ( G_SHEET_ROW_GET_IFACE(geo)->top_ypixel) 
+  if ( G_SHEET_ROW_GET_IFACE(geo)->top_ypixel)
     return (G_SHEET_ROW_GET_IFACE(geo)->top_ypixel)(geo, row, data);
 
-  for ( i = 0 ; i < row ; ++i ) 
+  for ( i = 0 ; i < row ; ++i )
     {
       if ( g_sheet_row_get_visibility(geo, i, data))
 	start_pixel += g_sheet_row_get_height(geo, i, data);
     }
-  
+
   return start_pixel;
 }
 
 
-gint  
-g_sheet_row_pixel_to_row(const GSheetRow *geo, gint pixel, 
+gint
+g_sheet_row_pixel_to_row(const GSheetRow *geo, gint pixel,
 			 gpointer data)
 {
   gint i, cy;
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
   g_return_val_if_fail (pixel >= 0, -1) ;
 
-  if ( G_SHEET_ROW_GET_IFACE(geo)->pixel_to_row) 
+  if ( G_SHEET_ROW_GET_IFACE(geo)->pixel_to_row)
     return (G_SHEET_ROW_GET_IFACE(geo)->pixel_to_row)(geo, pixel, data);
 
   cy = 0;
-  for (i = 0; i < g_sheet_row_get_row_count(geo, data); ++i ) 
+  for (i = 0; i < g_sheet_row_get_row_count(geo, data); ++i )
     {
-      if (pixel >= cy  && 
-	  pixel <= (cy + g_sheet_row_get_height(geo, i, data)) && 
+      if (pixel >= cy  &&
+	  pixel <= (cy + g_sheet_row_get_height(geo, i, data)) &&
 	  g_sheet_row_get_visibility(geo, i, data))
 	return i;
 
@@ -250,11 +250,11 @@ g_sheet_row_pixel_to_row(const GSheetRow *geo, gint pixel,
 
 
 void
-g_sheet_row_rows_deleted(GSheetRow *geo, 
+g_sheet_row_rows_deleted(GSheetRow *geo,
 				 gint first, gint n_rows)
 {
   g_return_if_fail (G_IS_SHEET_ROW (geo));
 
-  g_signal_emit (geo, sheet_row_signals[ROWS_CHANGED], 0, 
+  g_signal_emit (geo, sheet_row_signals[ROWS_CHANGED], 0,
 		 first, n_rows);
 }

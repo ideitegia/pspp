@@ -75,7 +75,7 @@ struct dls_var_spec
   };
 
 static struct dls_var_spec *
-ll_to_dls_var_spec (struct ll *ll) 
+ll_to_dls_var_spec (struct ll *ll)
 {
   return ll_data (ll, struct dls_var_spec, ll);
 }
@@ -104,9 +104,9 @@ struct data_list_pgm
 
 static const struct casereader_class data_list_casereader_class;
 
-static bool parse_fixed (struct lexer *, struct dictionary *dict, 
+static bool parse_fixed (struct lexer *, struct dictionary *dict,
 			 struct pool *tmp_pool, struct data_list_pgm *);
-static bool parse_free (struct lexer *, struct dictionary *dict, 
+static bool parse_free (struct lexer *, struct dictionary *dict,
 			struct pool *tmp_pool, struct data_list_pgm *);
 static void dump_fixed_table (const struct ll_list *,
                               const struct file_handle *, int record_cnt);
@@ -174,12 +174,12 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	      msg (SE, _("The END subcommand may only be specified once."));
 	      goto error;
 	    }
-	  
+
 	  lex_match (lexer, '=');
 	  if (!lex_force_id (lexer))
 	    goto error;
 	  dls->end = dict_lookup_var (dict, lex_tokid (lexer));
-	  if (!dls->end) 
+	  if (!dls->end)
             dls->end = dict_create_var_assert (dict, lex_tokid (lexer), 0);
 	  lex_get (lexer);
 	}
@@ -189,7 +189,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
             table = 0;
           else if (lex_match_id (lexer, "TABLE"))
             table = 1;
-          else 
+          else
             {
               int type;
               if (lex_match_id (lexer, "FIXED"))
@@ -198,7 +198,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
                 type = DLS_FREE;
               else if (lex_match_id (lexer, "LIST"))
                 type = DLS_LIST;
-              else 
+              else
                 {
                   lex_error (lexer, NULL);
                   goto error;
@@ -213,7 +213,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	      dls->type = type;
 
               if ((dls->type == DLS_FREE || dls->type == DLS_LIST)
-                  && lex_match (lexer, '(')) 
+                  && lex_match (lexer, '('))
                 {
                   while (!lex_match (lexer, ')'))
                     {
@@ -226,7 +226,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 			  delim = ds_first (lex_tokstr (lexer));
 			  lex_get (lexer);
 			}
-                      else 
+                      else
                         {
                           lex_error (lexer, NULL);
                           goto error;
@@ -277,14 +277,14 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 
   if (in_input_program ())
     add_transformation (ds, data_list_trns_proc, data_list_trns_free, dls);
-  else 
+  else
     {
       struct casereader *reader;
       reader = casereader_create_sequential (NULL,
                                              dict_get_next_value_idx (dict),
                                              -1, &data_list_casereader_class,
                                              dls);
-      proc_set_active_file (ds, reader, dict); 
+      proc_set_active_file (ds, reader, dict);
     }
 
   pool_destroy (tmp_pool);
@@ -303,7 +303,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
    needed once parsing is complete.  Returns true only if
    successful. */
 static bool
-parse_fixed (struct lexer *lexer, struct dictionary *dict, 
+parse_fixed (struct lexer *lexer, struct dictionary *dict,
 	     struct pool *tmp_pool, struct data_list_pgm *dls)
 {
   int last_nonempty_record;
@@ -319,7 +319,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
 
       /* Parse everything. */
       if (!parse_record_placement (lexer, &record, &column)
-          || !parse_DATA_LIST_vars_pool (lexer, tmp_pool, 
+          || !parse_DATA_LIST_vars_pool (lexer, tmp_pool,
 					 &names, &name_cnt, PV_NONE)
           || !parse_var_placements (lexer, tmp_pool, name_cnt, true,
                                     &formats, &format_cnt))
@@ -334,7 +334,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
             int width;
             struct variable *v;
             struct dls_var_spec *spec;
-              
+
             name = names[name_idx++];
 
             /* Create variable. */
@@ -352,7 +352,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
                    This can be acceptable if we're in INPUT
                    PROGRAM, but only if the existing variable has
                    the same width as the one we would have
-                   created. */ 
+                   created. */
                 if (!in_input_program ())
                   {
                     msg (SE, _("%s is a duplicate variable name."), name);
@@ -388,7 +388,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
           }
       assert (name_idx == name_cnt);
     }
-  if (ll_is_empty (&dls->specs)) 
+  if (ll_is_empty (&dls->specs))
     {
       msg (SE, _("At least one variable must be specified."));
       return false;
@@ -401,7 +401,7 @@ parse_fixed (struct lexer *lexer, struct dictionary *dict,
 		 "should not exist according to RECORDS subcommand."));
       return false;
     }
-  else if (!dls->record_cnt) 
+  else if (!dls->record_cnt)
     dls->record_cnt = last_nonempty_record;
 
   return true;
@@ -455,7 +455,7 @@ dump_fixed_table (const struct ll_list *specs,
    them to DLS.  Uses TMP_POOL for data that is not needed once
    parsing is complete.  Returns true only if successful. */
 static bool
-parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool, 
+parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool,
 		struct data_list_pgm *dls)
 {
   lex_get (lexer);
@@ -466,7 +466,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool,
       size_t name_cnt;
       size_t i;
 
-      if (!parse_DATA_LIST_vars_pool (lexer, tmp_pool, 
+      if (!parse_DATA_LIST_vars_pool (lexer, tmp_pool,
 				      &name, &name_cnt, PV_NONE))
 	return 0;
 
@@ -474,14 +474,14 @@ parse_free (struct lexer *lexer, struct dictionary *dict, struct pool *tmp_pool,
 	{
 	  if (!parse_format_specifier (lexer, &input)
               || !fmt_check_input (&input)
-              || !lex_force_match (lexer, ')')) 
+              || !lex_force_match (lexer, ')'))
             return NULL;
 
           /* As a special case, N format is treated as F format
              for free-field input. */
           if (input.type == FMT_N)
             input.type = FMT_F;
-          
+
 	  output = fmt_for_output_from_input (&input);
 	}
       else
@@ -527,7 +527,7 @@ dump_free_table (const struct data_list_pgm *dls,
   int row;
 
   spec_cnt = ll_count (&dls->specs);
-  
+
   t = tab_create (2, spec_cnt + 1, 0);
   tab_columns (t, TAB_COL_DOWN, 1);
   tab_headers (t, 0, 0, 1, 0);
@@ -547,11 +547,11 @@ dump_free_table (const struct data_list_pgm *dls,
     }
 
   tab_title (t, _("Reading free-form data from %s."), fh_get_name (fh));
-  
+
   tab_submit (t);
 }
 
-/* Input procedure. */ 
+/* Input procedure. */
 
 /* Extracts a field from the current position in the current
    record.  Fields can be unquoted or quoted with single- or
@@ -559,7 +559,7 @@ dump_free_table (const struct data_list_pgm *dls,
 
    *FIELD is set to the field content.  The caller must not
    or destroy this constant string.
-   
+
    After parsing the field, sets the current position in the
    record to just past the field and any trailing delimiter.
    Returns 0 on failure or a 1-based column number indicating the
@@ -575,15 +575,15 @@ cut_field (const struct data_list_pgm *dls, struct substring *field)
     dfm_expand_tabs (dls->reader);
   line = p = dfm_get_record (dls->reader);
 
-  if (ds_is_empty (&dls->delims)) 
+  if (ds_is_empty (&dls->delims))
     {
       bool missing_quote = false;
-      
+
       /* Skip leading whitespace. */
       ss_ltrim (&p, ss_cstr (CC_SPACES));
       if (ss_is_empty (p))
         return false;
-      
+
       /* Handle actual data, whether quoted or unquoted. */
       if (ss_match_char (&p, '\''))
         missing_quote = !ss_get_until (&p, '\'', field);
@@ -600,7 +600,7 @@ cut_field (const struct data_list_pgm *dls, struct substring *field)
 
       dfm_forward_columns (dls->reader, ss_length (line) - ss_length (p));
     }
-  else 
+  else
     {
       if (!ss_is_empty (p))
         ss_get_chars (&p, ss_cspan (p, ds_ss (&dls->delims)), field);
@@ -610,11 +610,11 @@ cut_field (const struct data_list_pgm *dls, struct substring *field)
              trailing blank field. */
           *field = p;
         }
-      else 
+      else
         return false;
 
       /* Advance past the field.
-         
+
          Also advance past a trailing delimiter, regardless of
          whether one actually existed.  If we "skip" a delimiter
          that was not actually there, then we will return
@@ -634,7 +634,7 @@ static bool read_from_data_list_list (const struct data_list_pgm *,
 /* Reads a case from DLS into C.
    Returns true if successful, false at end of file or on I/O error. */
 static bool
-read_from_data_list (const struct data_list_pgm *dls, struct ccase *c) 
+read_from_data_list (const struct data_list_pgm *dls, struct ccase *c)
 {
   bool retval;
 
@@ -659,7 +659,7 @@ read_from_data_list (const struct data_list_pgm *dls, struct ccase *c)
 }
 
 /* Reads a case from the data file into C, parsing it according
-   to fixed-format syntax rules in DLS.  
+   to fixed-format syntax rules in DLS.
    Returns true if successful, false at end of file or on I/O error. */
 static bool
 read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
@@ -667,8 +667,8 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
   struct dls_var_spec *spec;
   int row;
 
-  if (dfm_eof (dls->reader)) 
-    return false; 
+  if (dfm_eof (dls->reader))
+    return false;
 
   spec = ll_to_dls_var_spec (ll_head (&dls->specs));
   for (row = 1; row <= dls->record_cnt; row++)
@@ -680,11 +680,11 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
           msg (SW, _("Partial case of %d of %d records discarded."),
                row - 1, dls->record_cnt);
           return false;
-        } 
+        }
       dfm_expand_tabs (dls->reader);
       line = dfm_get_record (dls->reader);
 
-      ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs) 
+      ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs)
         data_in (ss_substr (line, spec->first_column - 1, spec->input.w),
                  spec->input.type, spec->input.d, spec->first_column,
                  case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
@@ -696,7 +696,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
 }
 
 /* Reads a case from the data file into C, parsing it according
-   to free-format syntax rules in DLS.  
+   to free-format syntax rules in DLS.
    Returns true if successful, false at end of file or on I/O error. */
 static bool
 read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
@@ -706,11 +706,11 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
   ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
     {
       struct substring field;
-      
+
       /* Cut out a field and read in a new record if necessary. */
       while (!cut_field (dls, &field))
 	{
-	  if (!dfm_eof (dls->reader)) 
+	  if (!dfm_eof (dls->reader))
             dfm_forward_record (dls->reader);
 	  if (dfm_eof (dls->reader))
 	    {
@@ -720,7 +720,7 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 	      return false;
 	    }
 	}
-      
+
       data_in (field, spec->input.type, 0,
                dfm_get_column (dls->reader, ss_data (field)),
                case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
@@ -729,7 +729,7 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 }
 
 /* Reads a case from the data file and parses it according to
-   list-format syntax rules.  
+   list-format syntax rules.
    Returns true if successful, false at end of file or on I/O error. */
 static bool
 read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
@@ -756,11 +756,11 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
               if (width == 0)
                 case_data_rw_idx (c, spec->fv)->f = SYSMIS;
               else
-                memset (case_data_rw_idx (c, spec->fv)->s, ' ', width); 
+                memset (case_data_rw_idx (c, spec->fv)->s, ' ', width);
             }
 	  break;
 	}
-      
+
       data_in (field, spec->input.type, 0,
                dfm_get_column (dls->reader, ss_data (field)),
                case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
@@ -790,7 +790,7 @@ data_list_trns_proc (void *dls_, struct ccase *c, casenumber case_num UNUSED)
 
   if (read_from_data_list (dls, c))
     retval = TRNS_CONTINUE;
-  else if (dfm_reader_error (dls->reader) || dfm_eof (dls->reader) > 1) 
+  else if (dfm_reader_error (dls->reader) || dfm_eof (dls->reader) > 1)
     {
       /* An I/O error, or encountering end of file for a second
          time, should be escalated into a more serious error. */
@@ -798,9 +798,9 @@ data_list_trns_proc (void *dls_, struct ccase *c, casenumber case_num UNUSED)
     }
   else
     retval = TRNS_END_FILE;
-  
+
   /* If there was an END subcommand handle it. */
-  if (dls->end != NULL) 
+  if (dls->end != NULL)
     {
       double *end = &case_data_rw (c, dls->end)->f;
       if (retval == TRNS_DROP_CASE)
@@ -824,10 +824,10 @@ data_list_casereader_read (struct casereader *reader UNUSED, void *dls_,
 {
   struct data_list_pgm *dls = dls_;
   bool ok;
-  
+
   /* Skip the requested number of records before reading the
      first case. */
-  while (dls->skip_records > 0) 
+  while (dls->skip_records > 0)
     {
       if (dfm_eof (dls->reader))
         return false;

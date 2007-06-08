@@ -38,7 +38,7 @@ struct dataset ;
 struct lexer ;
 
 struct expression *expr_parse (struct lexer *lexer, struct dataset *, enum expr_type);
-struct expression *expr_parse_pool (struct lexer *, 
+struct expression *expr_parse_pool (struct lexer *,
 				    struct pool *,
 				    struct dataset *,
                                     enum expr_type);

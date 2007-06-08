@@ -68,8 +68,8 @@ struct compute_trns
     struct expression *rvalue;	 /* Rvalue expression. */
   };
 
-static struct expression *parse_rvalue (struct lexer *lexer, 
-					const struct lvalue *, 
+static struct expression *parse_rvalue (struct lexer *lexer,
+					const struct lvalue *,
 					struct dataset *);
 
 static struct compute_trns *compute_trns_create (void);
@@ -118,10 +118,10 @@ compute_num (void *compute_, struct ccase *c, casenumber case_num)
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
     case_data_rw (c, compute->variable)->f
-      = expr_evaluate_num (compute->rvalue, c, case_num); 
-  
+      = expr_evaluate_num (compute->rvalue, c, case_num);
+
   return TRNS_CONTINUE;
 }
 
@@ -133,7 +133,7 @@ compute_num_vec (void *compute_, struct ccase *c, casenumber case_num)
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
     {
       double index;     /* Index into the vector. */
       int rindx;        /* Rounded index value. */
@@ -156,7 +156,7 @@ compute_num_vec (void *compute_, struct ccase *c, casenumber case_num)
       case_data_rw (c, vector_get_var (compute->vector, rindx - 1))->f
         = expr_evaluate_num (compute->rvalue, c, case_num);
     }
-  
+
   return TRNS_CONTINUE;
 }
 
@@ -167,10 +167,10 @@ compute_str (void *compute_, struct ccase *c, casenumber case_num)
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
     expr_evaluate_str (compute->rvalue, c, case_num,
                        case_data_rw (c, compute->variable)->s, compute->width);
-  
+
   return TRNS_CONTINUE;
 }
 
@@ -182,7 +182,7 @@ compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0) 
+      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
     {
       double index;             /* Index into the vector. */
       int rindx;                /* Rounded index value. */
@@ -190,12 +190,12 @@ compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
 
       index = expr_evaluate_num (compute->element, c, case_num);
       rindx = floor (index + EPSILON);
-      if (index == SYSMIS) 
+      if (index == SYSMIS)
         {
           msg (SW, _("When executing COMPUTE: SYSMIS is not a valid "
                      "value as an index into vector %s."),
                vector_get_name (compute->vector));
-          return TRNS_CONTINUE; 
+          return TRNS_CONTINUE;
         }
       else if (rindx < 1 || rindx > vector_get_var_cnt (compute->vector))
         {
@@ -210,7 +210,7 @@ compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
                          case_data_rw (c, vr)->s,
                          var_get_width (vr));
     }
-  
+
   return TRNS_CONTINUE;
 }
 
@@ -257,7 +257,7 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
 /* Code common to COMPUTE and IF. */
 
 static trns_proc_func *
-get_proc_func (const struct lvalue *lvalue) 
+get_proc_func (const struct lvalue *lvalue)
 {
   bool is_numeric = lvalue_get_type (lvalue) == VAR_NUMERIC;
   bool is_vector = lvalue_is_vector (lvalue);
@@ -270,7 +270,7 @@ get_proc_func (const struct lvalue *lvalue)
 /* Parses and returns an rvalue expression of the same type as
    LVALUE, or a null pointer on failure. */
 static struct expression *
-parse_rvalue (struct lexer *lexer, 
+parse_rvalue (struct lexer *lexer,
 	      const struct lvalue *lvalue, struct dataset *ds)
 {
   bool is_numeric = lvalue_get_type (lvalue) == VAR_NUMERIC;
@@ -297,7 +297,7 @@ compute_trns_free (void *compute_)
 {
   struct compute_trns *compute = compute_;
 
-  if (compute != NULL) 
+  if (compute != NULL)
     {
       expr_free (compute->test);
       expr_free (compute->element);
@@ -322,7 +322,7 @@ struct lvalue
 /* Parses the target variable or vector element into a new
    `struct lvalue', which is returned. */
 static struct lvalue *
-lvalue_parse (struct lexer *lexer, struct dataset *ds) 
+lvalue_parse (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct lvalue *lvalue;
@@ -335,7 +335,7 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
 
   if (!lex_force_id (lexer))
     goto lossage;
-  
+
   if (lex_look_ahead (lexer) == '(')
     {
       /* Vector. */
@@ -361,10 +361,10 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
       /* Variable name. */
       const char *var_name = lex_tokid (lexer);
       lvalue->variable = dict_lookup_var (dict, var_name);
-      if (lvalue->variable == NULL) 
+      if (lvalue->variable == NULL)
         {
 	  lvalue->variable = dict_create_var_assert (dict, var_name, 0);
-          lvalue->is_new_variable = true; 
+          lvalue->is_new_variable = true;
         }
       lex_get (lexer);
     }
@@ -378,7 +378,7 @@ lvalue_parse (struct lexer *lexer, struct dataset *ds)
 /* Returns the type (NUMERIC or ALPHA) of the target variable or
    vector in LVALUE. */
 static int
-lvalue_get_type (const struct lvalue *lvalue) 
+lvalue_get_type (const struct lvalue *lvalue)
 {
   return (lvalue->variable != NULL
           ? var_get_type (lvalue->variable)
@@ -387,7 +387,7 @@ lvalue_get_type (const struct lvalue *lvalue)
 
 /* Returns true if LVALUE has a vector as its target. */
 static bool
-lvalue_is_vector (const struct lvalue *lvalue) 
+lvalue_is_vector (const struct lvalue *lvalue)
 {
   return lvalue->vector != NULL;
 }
@@ -395,9 +395,9 @@ lvalue_is_vector (const struct lvalue *lvalue)
 /* Finalizes making LVALUE the target of COMPUTE, by creating the
    target variable if necessary and setting fields in COMPUTE. */
 static void
-lvalue_finalize (struct lvalue *lvalue, 
-		 struct compute_trns *compute, 
-		 struct dictionary *dict) 
+lvalue_finalize (struct lvalue *lvalue,
+		 struct compute_trns *compute,
+		 struct dictionary *dict)
 {
   if (lvalue->vector == NULL)
     {
@@ -411,7 +411,7 @@ lvalue_finalize (struct lvalue *lvalue,
       /* Prevent lvalue_destroy from deleting variable. */
       lvalue->is_new_variable = false;
     }
-  else 
+  else
     {
       compute->vector = lvalue->vector;
       compute->element = lvalue->element;
@@ -422,10 +422,10 @@ lvalue_finalize (struct lvalue *lvalue,
 }
 
 /* Destroys LVALUE. */
-static void 
-lvalue_destroy (struct lvalue *lvalue, struct dictionary *dict) 
+static void
+lvalue_destroy (struct lvalue *lvalue, struct dictionary *dict)
 {
-  if (lvalue == NULL) 
+  if (lvalue == NULL)
      return;
 
   if (lvalue->is_new_variable)

@@ -62,7 +62,7 @@ cmd_debug_pool (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 
       printf ("    Marking pool state...\n");
       pool_mark (pool, &m2);
-      
+
       printf ("       Populating pool with random-sized small "
 	      "and large objects...\n");
       for (i = 0; i < N_ITERATIONS; i++)
@@ -96,14 +96,14 @@ cmd_debug_pool (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 	    }
 	  else if (type == 1)
 	    pool_create_subpool (pool);
-	  else 
+	  else
 	    {
 	      size_t size = rand () % (2 * MAX_SUBALLOC);
 	      void *p = pool_alloc (pool, size);
 	      memset (p, 0, size);
 	    }
 	}
-      
+
       printf ("Releasing pool state...\n");
       pool_release (pool, &m1);
 

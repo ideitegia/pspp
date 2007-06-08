@@ -20,7 +20,7 @@
 #define DEBUGGER_H
 
 
-/* Fork, start gdb and connect to the parent process. 
+/* Fork, start gdb and connect to the parent process.
    Exit with EXIT_FAILURE.
  */
 void connect_debugger (void) ;

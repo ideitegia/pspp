@@ -81,7 +81,7 @@ struct sysfile_header
     char rec_type[4] ;		/* 00: Record-type code, "$FL2". */
     char prod_name[60] ;	/* 04: Product identification. */
     int32_t layout_code ;	/* 40: 2. */
-    int32_t nominal_case_size ;	/* 44: Number of `value's per case. 
+    int32_t nominal_case_size ;	/* 44: Number of `value's per case.
 				   Note: some systems set this to -1 */
     int32_t compress ;		/* 48: 1=compressed, 0=not compressed. */
     int32_t weight_idx ;         /* 4c: 1-based index of weighting var, or 0. */
@@ -134,12 +134,12 @@ struct sfm_writer
     /* Variables. */
     struct sfm_var *vars;       /* Variables. */
     size_t var_cnt;             /* Number of variables. */
-    size_t var_cnt_vls;         /* Number of variables including 
+    size_t var_cnt_vls;         /* Number of variables including
 				   very long string components. */
   };
 
 /* A variable in a system file. */
-struct sfm_var 
+struct sfm_var
   {
     int width;                  /* 0=numeric, otherwise string width. */
     int fv;                     /* Index into case. */
@@ -156,14 +156,14 @@ static void write_value_labels (struct sfm_writer *,
                                 struct variable *, int idx);
 static void write_rec_7_34 (struct sfm_writer *);
 
-static void write_longvar_table (struct sfm_writer *w, 
+static void write_longvar_table (struct sfm_writer *w,
                                  const struct dictionary *dict);
 
-static void write_vls_length_table (struct sfm_writer *w, 
+static void write_vls_length_table (struct sfm_writer *w,
 			      const struct dictionary *dict);
 
 
-static void write_variable_display_parameters (struct sfm_writer *w, 
+static void write_variable_display_parameters (struct sfm_writer *w,
                                                const struct dictionary *dict);
 
 static void write_documents (struct sfm_writer *, const struct dictionary *);
@@ -172,14 +172,14 @@ bool write_error (const struct sfm_writer *);
 bool close_writer (struct sfm_writer *);
 
 static inline int
-var_flt64_cnt (const struct variable *v) 
+var_flt64_cnt (const struct variable *v)
 {
   assert(sizeof(flt64) == MAX_SHORT_STRING);
   return sfm_width_to_bytes(var_get_width (v)) / MAX_SHORT_STRING ;
 }
 
 static inline int
-var_flt64_cnt_nom (const struct variable *v) 
+var_flt64_cnt_nom (const struct variable *v)
 {
   return (var_is_numeric (v)
           ? 1 : DIV_RND_UP (var_get_width (v), sizeof (flt64)));
@@ -188,7 +188,7 @@ var_flt64_cnt_nom (const struct variable *v)
 
 /* Returns default options for writing a system file. */
 struct sfm_write_options
-sfm_writer_default_options (void) 
+sfm_writer_default_options (void)
 {
   struct sfm_write_options opts;
   opts.create_writeable = true;
@@ -209,7 +209,7 @@ cont_var_name(const char *sn, int idx)
 {
   static char s[SHORT_NAME_LEN + 1];
 
-  char abb[SHORT_NAME_LEN + 1 - 3]= {0}; 
+  char abb[SHORT_NAME_LEN + 1 - 3]= {0};
 
   strncpy(abb, sn, SHORT_NAME_LEN - 3);
 
@@ -237,7 +237,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   int i;
 
   /* Check version. */
-  if (opts.version != 2 && opts.version != 3) 
+  if (opts.version != 2 && opts.version != 3)
     {
       msg (ME, _("Unknown system file version %d. Treating as version %d."),
            opts.version, 3);
@@ -249,7 +249,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   if (opts.create_writeable)
     mode |= S_IWUSR | S_IWGRP | S_IWOTH;
   fd = open (fh_get_file_name (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
-  if (fd < 0) 
+  if (fd < 0)
     goto open_error;
 
   /* Open file handle. */
@@ -273,13 +273,13 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   w->var_cnt = dict_get_var_cnt (d);
   w->var_cnt_vls = w->var_cnt;
   w->vars = xnmalloc (w->var_cnt, sizeof *w->vars);
-  for (i = 0; i < w->var_cnt; i++) 
+  for (i = 0; i < w->var_cnt; i++)
     {
       const struct variable *dv = dict_get_var (d, i);
       struct sfm_var *sv = &w->vars[i];
       sv->width = var_get_width (dv);
       /* spss compatibility nonsense */
-      if ( var_get_width (dv) >= MIN_VERY_LONG_STRING ) 
+      if ( var_get_width (dv) >= MIN_VERY_LONG_STRING )
 	  w->has_vls = true;
 
       sv->fv = var_get_case_index (dv);
@@ -287,7 +287,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     }
 
   /* Check that file create succeeded. */
-  if (w->file == NULL) 
+  if (w->file == NULL)
     {
       close (fd);
       goto open_error;
@@ -307,9 +307,9 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       do {
 	struct variable *var_cont = var_clone (v);
         var_set_short_name (var_cont, var_get_short_name (v));
-	if ( var_is_alpha (v)) 
+	if ( var_is_alpha (v))
 	  {
-	    if ( 0 != count ) 
+	    if ( 0 != count )
 	      {
 		var_clear_missing_values (var_cont);
                 var_set_short_name (var_cont,
@@ -319,7 +319,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 		w->var_cnt_vls++;
 	      }
 	    count++;
-	    if ( wcount >= MIN_VERY_LONG_STRING ) 
+	    if ( wcount >= MIN_VERY_LONG_STRING )
 	      {
                 var_set_width (var_cont, MIN_VERY_LONG_STRING - 1);
 		wcount -= EFFECTIVE_LONG_STRING_LENGTH;
@@ -352,7 +352,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
   write_variable_display_parameters (w, d);
 
-  if (opts.version >= 3) 
+  if (opts.version >= 3)
     write_longvar_table (w, d);
 
   write_vls_length_table(w, d);
@@ -372,7 +372,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     buf_write (w, &rec_999, sizeof rec_999);
   }
 
-  if (w->compress) 
+  if (w->compress)
     {
       w->buf = xnmalloc (128, sizeof *w->buf);
       w->ptr = w->buf;
@@ -383,7 +383,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
   if (write_error (w))
     goto error;
-  
+
   return casewriter_create (&sys_file_casewriter_class, w);
 
  error:
@@ -443,7 +443,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
       int i;
 
       weight_var = dict_get_weight (d);
-      for (i = 0; ; i++) 
+      for (i = 0; ; i++)
         {
 	  struct variable *v = dict_get_var (d, i);
           if (v == weight_var)
@@ -484,15 +484,15 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
       sprintf (buf, "%02d:%02d:%02d", hour - 1, min - 1, sec - 1);
       memcpy (hdr.creation_time, buf, sizeof hdr.creation_time);
     }
-  
+
   {
     const char *label = dict_get_label (d);
     if (label == NULL)
       label = "";
 
-    buf_copy_str_rpad (hdr.file_label, sizeof hdr.file_label, label); 
+    buf_copy_str_rpad (hdr.file_label, sizeof hdr.file_label, label);
   }
-  
+
   memset (hdr.padding, 0, sizeof hdr.padding);
 
   buf_write (w, &hdr, sizeof hdr);
@@ -526,7 +526,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
   mv_copy (&mv, var_get_missing_values (v));
   nm = 0;
-  if (mv_has_range (&mv)) 
+  if (mv_has_range (&mv))
     {
       double x, y;
       mv_pop_range (&mv, &x, &y);
@@ -649,7 +649,7 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 	      REM_RND_UP (len + 1, sizeof (flt64)));
       loc += DIV_RND_UP (len + 1, sizeof (flt64));
     }
-  
+
   buf_write (w, vlr, vlr_size);
   free (vlr);
 
@@ -682,7 +682,7 @@ write_documents (struct sfm_writer *w, const struct dictionary *d)
 
 /* Write the alignment, width and scale values */
 static void
-write_variable_display_parameters (struct sfm_writer *w, 
+write_variable_display_parameters (struct sfm_writer *w,
 				   const struct dictionary *dict)
 {
   int i;
@@ -702,7 +702,7 @@ write_variable_display_parameters (struct sfm_writer *w,
 
   buf_write (w, &vdp_hdr, sizeof vdp_hdr);
 
-  for ( i = 0 ; i < w->var_cnt ; ++i ) 
+  for ( i = 0 ; i < w->var_cnt ; ++i )
     {
       struct variable *v;
       struct
@@ -721,28 +721,28 @@ write_variable_display_parameters (struct sfm_writer *w,
       params.align = (var_get_alignment (v) == ALIGN_LEFT ? 0
                       : var_get_alignment (v) == ALIGN_RIGHT ? 1
                       : 2);
-      
+
       buf_write (w, &params, sizeof(params));
 
       if (var_is_long_string (v))
 	{
 	  int wcount = var_get_width (v) - EFFECTIVE_LONG_STRING_LENGTH ;
 
-	  while (wcount > 0) 
+	  while (wcount > 0)
 	    {
 	      params.width = wcount >= MIN_VERY_LONG_STRING ? 32 : wcount;
-	    
+
 	      buf_write (w, &params, sizeof(params));
 
 	      wcount -= EFFECTIVE_LONG_STRING_LENGTH ;
-	    } 
+	    }
 	}
     }
 }
 
 /* Writes the table of lengths for Very Long String Variables */
-static void 
-write_vls_length_table (struct sfm_writer *w, 
+static void
+write_vls_length_table (struct sfm_writer *w,
 			const struct dictionary *dict)
 {
   int i;
@@ -766,8 +766,8 @@ write_vls_length_table (struct sfm_writer *w,
   for (i = 0; i < dict_get_var_cnt (dict); ++i)
     {
       const struct variable *v = dict_get_var (dict, i);
-      
-      if ( var_get_width (v) < MIN_VERY_LONG_STRING ) 
+
+      if ( var_get_width (v) < MIN_VERY_LONG_STRING )
 	continue;
 
       ds_put_format (&vls_length_map, "%s=%05d",
@@ -778,7 +778,7 @@ write_vls_length_table (struct sfm_writer *w,
 
   vls_hdr.n_elem = ds_length (&vls_length_map);
 
-  if ( vls_hdr.n_elem > 0 ) 
+  if ( vls_hdr.n_elem > 0 )
     {
       buf_write (w, &vls_hdr, sizeof vls_hdr);
       buf_write (w, ds_data (&vls_length_map), ds_length (&vls_length_map));
@@ -806,7 +806,7 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *v = dict_get_var (dict, i);
-      
+
       if (i)
         ds_put_char (&long_name_map, '\t');
       ds_put_format (&long_name_map, "%s=%s",
@@ -844,7 +844,7 @@ write_rec_7_34 (struct sfm_writer *w)
 
   /* Components of the version number, from major to minor. */
   int version_component[3];
-  
+
   /* Used to step through the version string. */
   char *p;
 
@@ -857,7 +857,7 @@ write_rec_7_34 (struct sfm_writer *w)
   version_component[1] = strtol (bare_version, &p, 10);
   version_component[2] = (isalpha ((unsigned char) *p)
 			  ? tolower ((unsigned char) *p) - 'a' : 0);
-    
+
   rec_7.rec_type_3 = 7;
   rec_7.subtype_3 = 3;
   rec_7.data_type_3 = sizeof (int32_t);
@@ -938,13 +938,13 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
                            struct ccase *c)
 {
   struct sfm_writer *w = w_;
-  if (ferror (w->file)) 
+  if (ferror (w->file))
     {
       casewriter_force_error (writer);
       case_destroy (c);
-      return; 
+      return;
     }
-  
+
   w->case_cnt++;
 
   if (!w->needs_translation && !w->compress
@@ -955,7 +955,7 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
          directly to file. */
       buf_write (w, case_data_all (c), sizeof (union value) * w->flt64_cnt);
     }
-  else 
+  else
     {
       /* Slow path: internal and external representations differ.
          Write into a bounce buffer, then write to W. */
@@ -969,18 +969,18 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
       bounce = bounce_cur = local_alloc (bounce_size);
       bounce_end = bounce + bounce_size;
 
-      for (i = 0; i < w->var_cnt; i++) 
+      for (i = 0; i < w->var_cnt; i++)
         {
           struct sfm_var *v = &w->vars[i];
 
 	  memset(bounce_cur, ' ', v->flt64_cnt * sizeof (flt64));
 
-          if (v->width == 0) 
+          if (v->width == 0)
 	    {
 	      *bounce_cur = case_num_idx (c, v->fv);
 	      bounce_cur += v->flt64_cnt;
 	    }
-          else 
+          else
 	    { int ofs = 0;
 	    while (ofs < v->width)
 	      {
@@ -1000,14 +1000,14 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
       else
         write_compressed_data (w, bounce);
 
-      local_free (bounce); 
+      local_free (bounce);
     }
 
   case_destroy (c);
 }
 
 static void
-sys_file_casewriter_destroy (struct casewriter *writer, void *w_) 
+sys_file_casewriter_destroy (struct casewriter *writer, void *w_)
 {
   struct sfm_writer *w = w_;
   if (!close_writer (w))
@@ -1015,7 +1015,7 @@ sys_file_casewriter_destroy (struct casewriter *writer, void *w_)
 }
 
 static void
-put_instruction (struct sfm_writer *w, unsigned char instruction) 
+put_instruction (struct sfm_writer *w, unsigned char instruction)
 {
   if (w->x >= w->y)
     {
@@ -1027,14 +1027,14 @@ put_instruction (struct sfm_writer *w, unsigned char instruction)
 }
 
 static void
-put_element (struct sfm_writer *w, const flt64 *elem) 
+put_element (struct sfm_writer *w, const flt64 *elem)
 {
   ensure_buf_space (w);
   memcpy (w->ptr++, elem, sizeof *elem);
 }
 
 static void
-write_compressed_data (struct sfm_writer *w, const flt64 *elem) 
+write_compressed_data (struct sfm_writer *w, const flt64 *elem)
 {
   size_t i;
 
@@ -1042,13 +1042,13 @@ write_compressed_data (struct sfm_writer *w, const flt64 *elem)
     {
       struct sfm_var *v = &w->vars[i];
 
-      if (v->width == 0) 
+      if (v->width == 0)
         {
           if (*elem == -FLT64_MAX)
             put_instruction (w, 255);
           else if (*elem >= 1 - COMPRESSION_BIAS
                    && *elem <= 251 - COMPRESSION_BIAS
-                   && *elem == (int) *elem) 
+                   && *elem == (int) *elem)
             put_instruction (w, (int) *elem + COMPRESSION_BIAS);
           else
             {
@@ -1057,15 +1057,15 @@ write_compressed_data (struct sfm_writer *w, const flt64 *elem)
             }
           elem++;
         }
-      else 
+      else
         {
           size_t j;
-          
-          for (j = 0; j < v->flt64_cnt; j++, elem++) 
+
+          for (j = 0; j < v->flt64_cnt; j++, elem++)
             {
               if (!memcmp (elem, "        ", sizeof (flt64)))
                 put_instruction (w, 254);
-              else 
+              else
                 {
                   put_instruction (w, 253);
                   put_element (w, elem);
@@ -1088,12 +1088,12 @@ bool
 close_writer (struct sfm_writer *w)
 {
   bool ok;
-  
+
   if (w == NULL)
     return true;
 
   ok = true;
-  if (w->file != NULL) 
+  if (w->file != NULL)
     {
       /* Flush buffer. */
       if (w->buf != NULL && w->ptr > w->buf)
@@ -1125,7 +1125,7 @@ close_writer (struct sfm_writer *w)
     }
 
   fh_close (w->fh, "system file", "we");
-  
+
   free (w->buf);
   free (w->vars);
   free (w);
@@ -1133,7 +1133,7 @@ close_writer (struct sfm_writer *w)
   return ok;
 }
 
-static struct casewriter_class sys_file_casewriter_class = 
+static struct casewriter_class sys_file_casewriter_class =
   {
     sys_file_casewriter_write,
     sys_file_casewriter_destroy,

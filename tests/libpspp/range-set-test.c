@@ -48,17 +48,17 @@ static const char *test_name;
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
-check_die (void) 
+check_die (void)
 {
-  exit (EXIT_FAILURE);   
+  exit (EXIT_FAILURE);
 }
 
 /* If OK is not true, prints a message about failure on the
    current source file and the given LINE and terminates. */
 static void
-check_func (bool ok, int line) 
+check_func (bool ok, int line)
 {
-  if (!ok) 
+  if (!ok)
     {
       printf ("Check failed in %s test at %s, line %d\n",
               test_name, __FILE__, line);
@@ -72,7 +72,7 @@ check_func (bool ok, int line)
 #define check(EXPR) check_func ((EXPR), __LINE__)
 
 /* A contiguous region. */
-struct region 
+struct region
   {
     unsigned long int start;    /* Start of region. */
     unsigned long int end;      /* One past the end. */
@@ -86,10 +86,10 @@ struct region
    This implementation is designed to be obviously correct, not
    to be efficient. */
 static int
-count_one_bits (unsigned long int x) 
+count_one_bits (unsigned long int x)
 {
   int count = 0;
-  while (x & 1) 
+  while (x & 1)
     {
       count++;
       x >>= 1;
@@ -106,13 +106,13 @@ count_one_bits (unsigned long int x)
    to be efficient. */
 static bool
 next_region (unsigned int pattern, unsigned int offset,
-             unsigned long int *start, unsigned long int *width) 
+             unsigned long int *start, unsigned long int *width)
 {
   unsigned int i;
 
   assert (offset <= UINT_BIT);
   for (i = offset; i < UINT_BIT; i++)
-    if (pattern & (1u << i)) 
+    if (pattern & (1u << i))
       {
         *start = i;
         *width = count_one_bits (pattern >> i);
@@ -129,7 +129,7 @@ print_regions (const struct range_set *rs)
 
   printf ("result:");
   for (node = range_set_first (rs); node != NULL;
-       node = range_set_next (rs, node)) 
+       node = range_set_next (rs, node))
     printf (" (%lu,%lu)",
             range_set_node_get_start (node), range_set_node_get_end (node));
   printf ("\n");
@@ -137,16 +137,16 @@ print_regions (const struct range_set *rs)
 
 /* Checks that the regions in RS match the bits in PATTERN. */
 static void
-check_pattern (const struct range_set *rs, unsigned int pattern) 
+check_pattern (const struct range_set *rs, unsigned int pattern)
 {
   const struct range_set_node *node;
   unsigned long int start, width;
   int i;
-  
+
   for (node = rand () % 2 ? range_set_first (rs) : range_set_next (rs, NULL),
          start = width = 0;
        next_region (pattern, start + width, &start, &width);
-       node = range_set_next (rs, node)) 
+       node = range_set_next (rs, node))
     {
       check (node != NULL);
       check (range_set_node_get_start (node) == start);
@@ -166,7 +166,7 @@ check_pattern (const struct range_set *rs, unsigned int pattern)
 /* Creates and returns a range set that contains regions for the
    bits set in PATTERN. */
 static struct range_set *
-make_pattern (unsigned int pattern) 
+make_pattern (unsigned int pattern)
 {
   unsigned long int start = 0;
   unsigned long int width = 0;
@@ -180,7 +180,7 @@ make_pattern (unsigned int pattern)
 /* Returns an unsigned int with bits OFS...OFS+CNT (exclusive)
    set to 1, other bits set to 0. */
 static unsigned int
-bit_range (unsigned int ofs, unsigned int cnt) 
+bit_range (unsigned int ofs, unsigned int cnt)
 {
   assert (ofs < UINT_BIT);
   assert (cnt <= UINT_BIT);
@@ -192,13 +192,13 @@ bit_range (unsigned int ofs, unsigned int cnt)
 /* Tests inserting all possible patterns into all possible range
    sets (up to a small maximum number of bits). */
 static void
-test_insert (void) 
+test_insert (void)
 {
   const int positions = 9;
   unsigned int init_pat;
   int i, j;
-  
-  for (init_pat = 0; init_pat < (1u << positions); init_pat++) 
+
+  for (init_pat = 0; init_pat < (1u << positions); init_pat++)
     for (i = 0; i < positions + 1; i++)
       for (j = i; j <= positions + 1; j++)
         {
@@ -219,13 +219,13 @@ test_insert (void)
 /* Tests deleting all possible patterns from all possible range
    sets (up to a small maximum number of bits). */
 static void
-test_delete (void) 
+test_delete (void)
 {
   const int positions = 9;
   unsigned int init_pat;
   int i, j;
-  
-  for (init_pat = 0; init_pat < (1u << positions); init_pat++) 
+
+  for (init_pat = 0; init_pat < (1u << positions); init_pat++)
     for (i = 0; i < positions + 1; i++)
       for (j = i; j <= positions + 1; j++)
         {
@@ -248,8 +248,8 @@ test_allocate (void)
   const int positions = 9;
   unsigned int init_pat;
   int request;
-  
-  for (init_pat = 0; init_pat < (1u << positions); init_pat++) 
+
+  for (init_pat = 0; init_pat < (1u << positions); init_pat++)
     for (request = 1; request <= positions + 1; request++)
       {
         struct range_set *rs;
@@ -282,7 +282,7 @@ test_allocate (void)
 
         /* Check results. */
         check (success == expect_success);
-        if (expect_success) 
+        if (expect_success)
           {
             check (start == expect_start);
             check (width == expect_width);
@@ -292,7 +292,7 @@ test_allocate (void)
 
 /* Tests freeing a range set through a pool. */
 static void
-test_pool (void) 
+test_pool (void)
 {
   struct pool *pool;
   struct range_set *rs;
@@ -304,7 +304,7 @@ test_pool (void)
   range_set_insert (rs, 1, 10);
   range_set_destroy (rs);
   pool_destroy (pool);
-  
+
   /* Just destroy the pool.
      Makes sure that this doesn't cause a leak. */
   pool = pool_create ();
@@ -317,7 +317,7 @@ test_pool (void)
 
 /* Runs TEST_FUNCTION and prints a message about NAME. */
 static void
-run_test (void (*test_function) (void), const char *name) 
+run_test (void (*test_function) (void), const char *name)
 {
   test_name = name;
   putchar ('.');
@@ -326,7 +326,7 @@ run_test (void (*test_function) (void), const char *name)
 }
 
 int
-main (void) 
+main (void)
 {
   run_test (test_insert, "insert");
   run_test (test_delete, "delete");

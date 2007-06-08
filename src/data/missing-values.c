@@ -41,7 +41,7 @@ enum mv_type
    string variables may have missing values, WIDTH may be any
    valid variable width. */
 void
-mv_init (struct missing_values *mv, int width) 
+mv_init (struct missing_values *mv, int width)
 {
   assert (width >= 0 && width <= MAX_STRING);
   mv->type = MVT_NONE;
@@ -49,7 +49,7 @@ mv_init (struct missing_values *mv, int width)
 }
 
 /* Removes any missing values from MV. */
-void 
+void
 mv_clear (struct missing_values *mv)
 {
   mv->type = MVT_NONE;
@@ -57,7 +57,7 @@ mv_clear (struct missing_values *mv)
 
 /* Copies SRC to MV. */
 void
-mv_copy (struct missing_values *mv, const struct missing_values *src) 
+mv_copy (struct missing_values *mv, const struct missing_values *src)
 {
   assert(src);
 
@@ -66,7 +66,7 @@ mv_copy (struct missing_values *mv, const struct missing_values *src)
 
 /* Returns true if MV is an empty set of missing values. */
 bool
-mv_is_empty (const struct missing_values *mv) 
+mv_is_empty (const struct missing_values *mv)
 {
   return mv->type == MVT_NONE;
 }
@@ -88,7 +88,7 @@ mv_add_value (struct missing_values *mv, const union value *v)
 {
   if (mv->width > MAX_SHORT_STRING)
     return false;
-  switch (mv->type) 
+  switch (mv->type)
     {
     case MVT_NONE:
     case MVT_1:
@@ -111,7 +111,7 @@ mv_add_value (struct missing_values *mv, const union value *v)
    missing values.  (Long string variables never accept missing
    values.) */
 bool
-mv_add_str (struct missing_values *mv, const char s[]) 
+mv_add_str (struct missing_values *mv, const char s[])
 {
   assert (mv->width > 0);
   return mv_add_value (mv, (union value *) s);
@@ -121,7 +121,7 @@ mv_add_str (struct missing_values *mv, const char s[])
    Returns true if successful, false if MV has no more room for
    missing values.  */
 bool
-mv_add_num (struct missing_values *mv, double d) 
+mv_add_num (struct missing_values *mv, double d)
 {
   assert (mv->width == 0);
   return mv_add_value (mv, (union value *) &d);
@@ -131,12 +131,12 @@ mv_add_num (struct missing_values *mv, double d)
    missing values MV.  Returns true if successful, false if MV
    has no room for a range, or if LOW > HIGH. */
 bool
-mv_add_num_range (struct missing_values *mv, double low, double high) 
+mv_add_num_range (struct missing_values *mv, double low, double high)
 {
   assert (mv->width == 0);
   if (low > high)
     return false;
-  switch (mv->type) 
+  switch (mv->type)
     {
     case MVT_NONE:
     case MVT_1:
@@ -159,14 +159,14 @@ mv_add_num_range (struct missing_values *mv, double low, double high)
 bool
 mv_has_value (const struct missing_values *mv)
 {
-  switch (mv->type) 
+  switch (mv->type)
     {
     case MVT_1:
     case MVT_2:
     case MVT_3:
     case MVT_RANGE_1:
       return true;
-      
+
     case MVT_NONE:
     case MVT_RANGE:
       return false;
@@ -178,7 +178,7 @@ mv_has_value (const struct missing_values *mv)
    MV must contain an individual value (as determined by
    mv_has_value()). */
 void
-mv_pop_value (struct missing_values *mv, union value *v) 
+mv_pop_value (struct missing_values *mv, union value *v)
 {
   assert (mv_has_value (mv));
   mv->type--;
@@ -187,11 +187,11 @@ mv_pop_value (struct missing_values *mv, union value *v)
 
 /* Stores  a value  in *V.
    MV must contain an individual value (as determined by
-   mv_has_value()). 
+   mv_has_value()).
    IDX is the zero based index of the value to get
 */
 void
-mv_peek_value (const struct missing_values *mv, union value *v, int idx) 
+mv_peek_value (const struct missing_values *mv, union value *v, int idx)
 {
   assert (idx >= 0 ) ;
   assert (idx < 3);
@@ -200,7 +200,7 @@ mv_peek_value (const struct missing_values *mv, union value *v, int idx)
   *v = mv->values[idx];
 }
 
-void 
+void
 mv_replace_value (struct missing_values *mv, const union value *v, int idx)
 {
   assert (idx >= 0) ;
@@ -211,7 +211,7 @@ mv_replace_value (struct missing_values *mv, const union value *v, int idx)
 
 
 
-int  
+int
 mv_n_values (const struct missing_values *mv)
 {
   assert(mv_has_value(mv));
@@ -222,14 +222,14 @@ mv_n_values (const struct missing_values *mv)
 /* Returns true if MV contains a numeric range,
    false if MV is empty (or contains only individual values). */
 bool
-mv_has_range (const struct missing_values *mv) 
+mv_has_range (const struct missing_values *mv)
 {
-  switch (mv->type) 
+  switch (mv->type)
     {
     case MVT_RANGE:
     case MVT_RANGE_1:
       return true;
-      
+
     case MVT_NONE:
     case MVT_1:
     case MVT_2:
@@ -243,7 +243,7 @@ mv_has_range (const struct missing_values *mv)
    *HIGH.  MV must contain a individual range (as determined by
    mv_has_range()). */
 void
-mv_pop_range (struct missing_values *mv, double *low, double *high) 
+mv_pop_range (struct missing_values *mv, double *low, double *high)
 {
   assert (mv_has_range (mv));
   *low = mv->values[1].f;
@@ -256,7 +256,7 @@ mv_pop_range (struct missing_values *mv, double *low, double *high)
    *HIGH.  MV must contain a individual range (as determined by
    mv_has_range()). */
 void
-mv_peek_range (const struct missing_values *mv, double *low, double *high) 
+mv_peek_range (const struct missing_values *mv, double *low, double *high)
 {
   assert (mv_has_range (mv));
   *low = mv->values[1].f;
@@ -268,11 +268,11 @@ mv_peek_range (const struct missing_values *mv, double *low, double *high)
    is set to TYPE (in struct missing_values),
    false otherwise. */
 static bool
-using_element (unsigned type, int idx) 
+using_element (unsigned type, int idx)
 {
   assert (idx >= 0 && idx < 3);
-  
-  switch (type) 
+
+  switch (type)
     {
     case MVT_NONE:
       return false;
@@ -294,7 +294,7 @@ using_element (unsigned type, int idx)
    NEW_WIDTH (inclusive) and OLD_WIDTH (exclusive),
    false otherwise. */
 static bool
-can_resize_string (const char *s, int old_width, int new_width) 
+can_resize_string (const char *s, int old_width, int new_width)
 {
   int i;
 
@@ -339,13 +339,13 @@ mv_is_resizable (const struct missing_values *mv, int width)
 /* Resizes MV to the given WIDTH.  WIDTH must fit the constraints
    explained for mv_is_resizable(). */
 void
-mv_resize (struct missing_values *mv, int width) 
+mv_resize (struct missing_values *mv, int width)
 {
   assert (mv_is_resizable (mv, width));
-  if (width > mv->width && mv->type != MVT_NONE) 
+  if (width > mv->width && mv->type != MVT_NONE)
     {
       int i;
-      
+
       for (i = 0; i < 3; i++)
         memset (mv->values[i].s + mv->width, ' ', width - mv->width);
     }
@@ -359,7 +359,7 @@ is_num_user_missing (const struct missing_values *mv, double d)
 {
   const union value *v = mv->values;
   assert (mv->width == 0);
-  switch (mv->type) 
+  switch (mv->type)
     {
     case MVT_NONE:
       return false;
@@ -378,7 +378,7 @@ is_num_user_missing (const struct missing_values *mv, double d)
 }
 
 /* Returns true if S[] is a missing value in MV, false otherwise.
-   MV must be a set of string missing values. 
+   MV must be a set of string missing values.
    S[] must contain exactly as many characters as MV's width. */
 static bool
 is_str_user_missing (const struct missing_values *mv,
@@ -386,7 +386,7 @@ is_str_user_missing (const struct missing_values *mv,
 {
   const union value *v = mv->values;
   assert (mv->width > 0);
-  switch (mv->type) 
+  switch (mv->type)
     {
     case MVT_NONE:
       return false;
@@ -431,7 +431,7 @@ mv_is_num_missing (const struct missing_values *mv, double d,
 
 /* Returns true if S[] is a missing value in the given CLASS in
    MV, false otherwise.
-   MV must be a set of string missing values. 
+   MV must be a set of string missing values.
    S[] must contain exactly as many characters as MV's width. */
 bool
 mv_is_str_missing (const struct missing_values *mv, const char s[],

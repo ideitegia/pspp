@@ -59,7 +59,7 @@
    heap and delete it:
 
      struct heap *h = ...;
-     if (!heap_is_empty (h)) 
+     if (!heap_is_empty (h))
        {
          struct foo *foo = heap_data (heap_minimum (h), struct foo, node);
          printf ("Minimum is %d.\n", foo->x);

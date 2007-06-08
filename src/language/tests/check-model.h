@@ -32,7 +32,7 @@ struct lexer;
 struct mc_options;
 struct mc_results;
 
-bool check_model (struct lexer *lexer, 
+bool check_model (struct lexer *lexer,
                   struct mc_results *(*checker) (struct mc_options *, void *),
                   void *aux);
 

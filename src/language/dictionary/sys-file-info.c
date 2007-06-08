@@ -64,7 +64,7 @@ enum
   };
 
 static int describe_variable (const struct variable *v, struct tab_table *t, int r, int as);
-     
+
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
@@ -145,7 +145,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
     struct variable *weight_var = dict_get_weight (d);
     tab_text (t, 1, 8, TAB_LEFT,
               (weight_var != NULL
-               ? var_get_name (weight_var) : _("Not weighted."))); 
+               ? var_get_name (weight_var) : _("Not weighted.")));
   }
   tab_text (t, 0, 9, TAB_LEFT, _("Mode:"));
   tab_text (t, 1, 9, TAB_LEFT | TAT_PRINTF,
@@ -166,7 +166,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
     {
       struct variable *v = dict_get_var (d, i);
       const int nvl = val_labs_count (var_get_value_labels (v));
-      
+
       if (r + 10 + nvl > nr)
 	{
 	  nr = MAX (nr * dict_get_var_cnt (d) / (i + 1), nr);
@@ -186,7 +186,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   tab_submit (t);
 
   dict_destroy (d);
-  
+
   return lex_end_of_command (lexer);
 }
 
@@ -323,7 +323,7 @@ display_documents (const struct dictionary *dict)
       tab_output_text (TAB_LEFT | TAT_TITLE,
 		       _("Documents in the active file:"));
       som_blank_line ();
-      for (i = 0; i < dict_get_document_line_cnt (dict); i++) 
+      for (i = 0; i < dict_get_document_line_cnt (dict); i++)
         {
           dict_get_document_line (dict, i, &line);
           tab_output_text (TAB_LEFT | TAB_FIX | TAT_NOWRAP, ds_cstr (&line));
@@ -341,7 +341,7 @@ variables_dim (struct tab_table *t, struct outp_driver *d)
 {
   int pc;
   int i;
-  
+
   t->w[0] = tab_natural_width (t, d, 0);
   if (_as == AS_DICTIONARY || _as == AS_VARIABLES || _as == AS_LABELS)
     {
@@ -356,7 +356,7 @@ variables_dim (struct tab_table *t, struct outp_driver *d)
   for (i = 0; i < t->nr; i++)
     t->h[i] = tab_natural_height (t, d, i);
 }
-  
+
 static void
 display_variables (const struct variable **vl, size_t n, int as)
 {
@@ -395,7 +395,7 @@ display_variables (const struct variable **vl, size_t n, int as)
   else if (as == AS_LABELS)
     tab_joint_text (t, 1, 0, 2, 0, TAB_LEFT | TAT_TITLE, _("Label"));
   tab_dim (t, variables_dim);
-    
+
   for (i = r = 1; i <= n; i++)
     {
       const struct variable *v;
@@ -407,7 +407,7 @@ display_variables (const struct variable **vl, size_t n, int as)
       if (as == AS_DICTIONARY || as == AS_VARIABLES)
 	{
 	  int nvl = val_labs_count (var_get_value_labels (v));
-      
+
 	  if (r + 10 + nvl > nr)
 	    {
 	      nr = MAX (nr * n / (i + 1), nr);
@@ -418,11 +418,11 @@ display_variables (const struct variable **vl, size_t n, int as)
 	  r = describe_variable (v, t, r, as);
 	} else {
 	  tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
-	  if (as == AS_LABELS) 
+	  if (as == AS_LABELS)
             {
               const char *label = var_get_label (v);
               tab_joint_text (t, 1, r, 2, r, TAB_LEFT,
-                              label != NULL ? "(no label)" : label); 
+                              label != NULL ? "(no label)" : label);
             }
 	  if (as != AS_NAMES)
 	    {
@@ -451,7 +451,7 @@ display_variables (const struct variable **vl, size_t n, int as)
 /* Puts a description of variable V into table T starting at row R.
    The variable will be described in the format AS.  Returns the next
    row available for use in the table. */
-static int 
+static int
 describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
 {
   const struct fmt_spec *print = var_get_print_format (v);
@@ -461,12 +461,12 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
   tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
   tab_text (t, 3, r, TAT_PRINTF, "%d", (int) var_get_dict_index (v) + 1);
 
-  if (as == AS_DICTIONARY && var_has_label (v)) 
+  if (as == AS_DICTIONARY && var_has_label (v))
     {
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT, var_get_label (v));
       r++;
     }
-  
+
   /* Print/write format, or print and write formats. */
   if (fmt_equal (print, write))
     {
@@ -493,11 +493,11 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
       char *cp;
       struct missing_values mv;
       int cnt = 0;
-      
+
       cp = stpcpy (buf, _("Missing Values: "));
-      
+
       mv_copy (&mv, var_get_missing_values (v));
-      if (mv_has_range (&mv)) 
+      if (mv_has_range (&mv))
         {
           double x, y;
           mv_pop_range (&mv, &x, &y);
@@ -509,7 +509,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
             cp += sprintf (cp, "%g THRU %g", x, y);
           cnt++;
         }
-      while (mv_has_value (&mv)) 
+      while (mv_has_value (&mv))
         {
           union value value;
           mv_pop_value (&mv, &value);
@@ -517,7 +517,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
             cp += sprintf (cp, "; ");
           if (var_is_numeric (v))
             cp += sprintf (cp, "%g", value.f);
-          else 
+          else
             {
               *cp++ = '"';
 	      memcpy (cp, value.s, var_get_width (v));
@@ -584,7 +584,7 @@ display_vectors (const struct dictionary *dict, int sorted)
   size_t nvec;
   size_t nrow;
   size_t row;
-  
+
   nvec = dict_get_vector_cnt (dict);
   if (nvec == 0)
     {
@@ -594,10 +594,10 @@ display_vectors (const struct dictionary *dict, int sorted)
 
   vl = xnmalloc (nvec, sizeof *vl);
   nrow = 0;
-  for (i = 0; i < nvec; i++) 
+  for (i = 0; i < nvec; i++)
     {
       vl[i] = dict_get_vector (dict, i);
-      nrow += vector_get_var_cnt (vl[i]); 
+      nrow += vector_get_var_cnt (vl[i]);
     }
   if (sorted)
     qsort (vl, nvec, sizeof *vl, compare_vector_ptrs_by_name);
@@ -616,11 +616,11 @@ display_vectors (const struct dictionary *dict, int sorted)
   tab_flags (t, SOMF_NO_TITLE);
 
   row = 1;
-  for (i = 0; i < nvec; i++) 
+  for (i = 0; i < nvec; i++)
     {
       const struct vector *vec = vl[i];
       size_t j;
-      
+
       tab_joint_text (t, 0, row, 0, row + vector_get_var_cnt (vec) - 1,
                       TAB_LEFT, vector_get_name (vl[i]));
 
@@ -629,7 +629,7 @@ display_vectors (const struct dictionary *dict, int sorted)
           struct variable *var = vector_get_var (vec, j);
           char fmt_string[FMT_STRING_LEN_MAX + 1];
           fmt_to_string (var_get_print_format (var), fmt_string);
-          
+
           tab_text (t, 1, row, TAB_RIGHT | TAT_PRINTF, "%d", (int) j + 1);
           tab_text (t, 2, row, TAB_LEFT, var_get_name (var));
           tab_text (t, 3, row, TAB_LEFT, fmt_string);

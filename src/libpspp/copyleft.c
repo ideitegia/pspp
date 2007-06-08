@@ -373,4 +373,4 @@ const char copyleft[]=""
 "consider it more useful to permit linking proprietary applications with the "
 "library.  If this is what you want to do, use the GNU Library General "
 "Public License instead of this License. "
-""; 
+"";

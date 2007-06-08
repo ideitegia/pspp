@@ -19,9 +19,9 @@ struct ctl_struct
 static struct ctl_struct *ctl_stack;
 
 void
-ctl_stack_clear (void) 
+ctl_stack_clear (void)
 {
-  while (ctl_stack != NULL) 
+  while (ctl_stack != NULL)
     {
       struct ctl_struct *top = ctl_stack;
       msg (SE, _("%s without %s."),
@@ -31,7 +31,7 @@ ctl_stack_clear (void)
 }
 
 void
-ctl_stack_push (const struct ctl_class *class, void *private) 
+ctl_stack_push (const struct ctl_class *class, void *private)
 {
   struct ctl_struct *ctl;
 
@@ -44,27 +44,27 @@ ctl_stack_push (const struct ctl_class *class, void *private)
 }
 
 void *
-ctl_stack_top (const struct ctl_class *class) 
+ctl_stack_top (const struct ctl_class *class)
 {
   struct ctl_struct *top = ctl_stack;
   if (top != NULL && top->class == class)
     return top->private;
-  else 
+  else
     {
       if (ctl_stack_search (class) != NULL)
         msg (SE, _("This command must appear inside %s...%s, "
                    "without intermediate %s...%s."),
              class->start_name, class->end_name,
              top->class->start_name, top->class->end_name);
-      return NULL; 
+      return NULL;
     }
 }
 
 void *
-ctl_stack_search (const struct ctl_class *class) 
+ctl_stack_search (const struct ctl_class *class)
 {
   struct ctl_struct *ctl;
-  
+
   for (ctl = ctl_stack; ctl != NULL; ctl = ctl->down)
     if (ctl->class == class)
       return ctl->private;
@@ -75,10 +75,10 @@ ctl_stack_search (const struct ctl_class *class)
 }
 
 void
-ctl_stack_pop (void *private) 
+ctl_stack_pop (void *private)
 {
   struct ctl_struct *top = ctl_stack;
-  
+
   assert (top != NULL);
   assert (top->private == private);
 
@@ -88,7 +88,7 @@ ctl_stack_pop (void *private)
 }
 
 bool
-ctl_stack_is_empty (void) 
+ctl_stack_is_empty (void)
 {
   return ctl_stack == NULL;
 }

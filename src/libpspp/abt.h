@@ -27,7 +27,7 @@
    part of its data as a function of its immediate children's
    data.  Furthermore, augmented data defined in this way can be
    efficiently maintained as the tree changes over time.
-   
+
    For example, suppose we define the "size" of a node as the sum
    of the "size" of its immediate children, plus 1.  In such an
    annotated BST with height H, we can find the node that would
@@ -83,7 +83,7 @@
          struct abt_node node;       // Embedded binary tree element.
          int data;                   // Primary value.
          int count;                  // Number of nodes in subtree,
-                                     // including this node. 
+                                     // including this node.
        };
 
      // Returns the `struct element' that NODE is embedded within.
@@ -97,7 +97,7 @@
      // strcmp-type return value.
      static int
      compare_elements (const struct abt_node *a_, const struct abt_node *b_,
-                       const void *aux) 
+                       const void *aux)
      {
        const struct element *a = node_to_element (a_);
        const struct element *b = node_to_element (b_);
@@ -111,7 +111,7 @@
      reaugment_elements (struct abt_node *node_,
                          const struct abt_node *left,
                          const struct abt_node *right,
-                         const void *aux) 
+                         const void *aux)
      {
        struct element *node = node_to_element (node_);
        node->count = 1;
@@ -124,16 +124,16 @@
      // Finds and returns the element in ABT that is in the given
      // 0-based POSITION in in-order.
      static struct element *
-     find_by_position (struct abt *abt, int position) 
+     find_by_position (struct abt *abt, int position)
      {
        struct abt_node *p;
-       for (p = abt->root; p != NULL; ) 
+       for (p = abt->root; p != NULL; )
          {
            int p_pos = p->down[0] ? node_to_element (p->down[0])->count : 0;
            if (position == p_pos)
              return node_to_element (p);
            else if (position < p_pos)
-             p = p->down[0]; 
+             p = p->down[0];
            else
              {
                p = p->down[1];
@@ -160,7 +160,7 @@
         ((STRUCT *) ((char *) (NODE) - offsetof (STRUCT, MEMBER)))
 
 /* Node in an augmented binary tree. */
-struct abt_node 
+struct abt_node
   {
     struct abt_node *up;        /* Parent (NULL for root). */
     struct abt_node *down[2];   /* Left child, right child. */
@@ -181,7 +181,7 @@ typedef void abt_reaugment_func (struct abt_node *node,
                                  const void *aux);
 
 /* An augmented binary tree. */
-struct abt 
+struct abt
   {
     struct abt_node *root;         /* Tree's root, NULL if empty. */
     abt_compare_func *compare;     /* To compare nodes. */

@@ -21,7 +21,7 @@
 
 #include <data/casewriter.h>
 
-struct casewriter_class 
+struct casewriter_class
   {
     /* Mandatory.
 

@@ -72,7 +72,7 @@
    is robust against loops, so that if A propagates to B and vice
    versa, whether directly or indirectly, then tainting either A
    or B will cause the other to be tainted, without producing an
-   infinite loop.  
+   infinite loop.
 
    The implementation is robust against destruction of taints in
    propagation relationships.  When this happens, taint

@@ -1,4 +1,4 @@
-/* This file is part of GNU PSPP 
+/* This file is part of GNU PSPP
    Computes Levene test  statistic.
 
    Copyright (C) 2004 Free Software Foundation, Inc.
@@ -64,7 +64,7 @@ struct levene_info
   struct t_test_proc **group_stats;
 
   /* The independent variable */
-  const struct variable *v_indep; 
+  const struct variable *v_indep;
 
   /* Number of dependent variables */
   size_t n_dep;
@@ -93,7 +93,7 @@ struct lz_stats
   double grand_mean;
 
   /* The total number of cases */
-  double total_n ; 
+  double total_n ;
 
   /* Number of groups */
   int n_groups;
@@ -101,22 +101,22 @@ struct lz_stats
 
 /* First pass */
 static void  levene_precalc (const struct levene_info *l);
-static int levene_calc (const struct dictionary *dict, const struct ccase *, 
+static int levene_calc (const struct dictionary *dict, const struct ccase *,
 			const struct levene_info *l);
 static void levene_postcalc (struct levene_info *);
 
 
 /* Second pass */
 static void levene2_precalc (struct levene_info *l);
-static int levene2_calc (const struct dictionary *, const struct ccase *, 
+static int levene2_calc (const struct dictionary *, const struct ccase *,
 			 struct levene_info *l);
 static void levene2_postcalc (struct levene_info *);
 
 
 void
-levene(const struct dictionary *dict, 
+levene(const struct dictionary *dict,
        struct casereader *reader,
-       const struct variable *v_indep, size_t n_dep, 
+       const struct variable *v_indep, size_t n_dep,
        const struct variable **v_dep,
        enum mv_class exclude)
 {
@@ -134,13 +134,13 @@ levene(const struct dictionary *dict,
   casereader_split (reader, &pass1, &pass2);
 
   levene_precalc (&l);
-  for (; casereader_read (pass1, &c); case_destroy (&c)) 
+  for (; casereader_read (pass1, &c); case_destroy (&c))
     levene_calc (dict, &c, &l);
   casereader_destroy (pass1);
   levene_postcalc (&l);
 
   levene2_precalc(&l);
-  for (; casereader_read (pass2, &c); case_destroy (&c)) 
+  for (; casereader_read (pass2, &c); case_destroy (&c))
     levene2_calc (dict, &c, &l);
   casereader_destroy (pass2);
   levene2_postcalc (&l);
@@ -149,12 +149,12 @@ levene(const struct dictionary *dict,
   free (l.lz);
 }
 
-static void 
+static void
 levene_precalc (const struct levene_info *l)
 {
   size_t i;
 
-  for(i = 0; i < l->n_dep ; ++i ) 
+  for(i = 0; i < l->n_dep ; ++i )
     {
       const struct variable *var = l->v_dep[i];
       struct group_proc *gp = group_proc_get (var);
@@ -163,33 +163,33 @@ levene_precalc (const struct levene_info *l)
 
       l->lz[i].grand_total = 0;
       l->lz[i].total_n = 0;
-      l->lz[i].n_groups = gp->n_groups ; 
+      l->lz[i].n_groups = gp->n_groups ;
 
-      
+
       for ( gs = hsh_first(gp->group_hash, &hi);
 	    gs != 0;
 	    gs = hsh_next(gp->group_hash, &hi))
 	{
 	  gs->lz_total = 0;
 	}
-	    
+
     }
 
 }
 
-static int 
-levene_calc (const struct dictionary *dict, const struct ccase *c, 
+static int
+levene_calc (const struct dictionary *dict, const struct ccase *c,
 	     const struct levene_info *l)
 {
   size_t i;
   bool warn = false;
   const union value *gv = case_data (c, l->v_indep);
   struct group_statistics key;
-  double weight = dict_get_case_weight (dict, c, &warn); 
+  double weight = dict_get_case_weight (dict, c, &warn);
 
   key.id = *gv;
 
-  for (i = 0; i < l->n_dep; ++i) 
+  for (i = 0; i < l->n_dep; ++i)
     {
       const struct variable *var = l->v_dep[i];
       struct group_proc *gp = group_proc_get (var);
@@ -199,14 +199,14 @@ levene_calc (const struct dictionary *dict, const struct ccase *c,
 
       gs = hsh_find(gp->group_hash,(void *) &key );
 
-      if ( 0 == gs ) 
+      if ( 0 == gs )
 	continue ;
 
       if ( !var_is_value_missing (var, v, l->exclude))
 	{
 	  levene_z= fabs(v->f - gs->mean);
 	  l->lz[i].grand_total += levene_z * weight;
-	  l->lz[i].total_n += weight; 
+	  l->lz[i].total_n += weight;
 
 	  gs->lz_total += levene_z * weight;
 	}
@@ -215,32 +215,32 @@ levene_calc (const struct dictionary *dict, const struct ccase *c,
 }
 
 
-static void 
+static void
 levene_postcalc (struct levene_info *l)
 {
   size_t v;
 
-  for (v = 0; v < l->n_dep; ++v) 
+  for (v = 0; v < l->n_dep; ++v)
     {
       /* This is Z_LL */
       l->lz[v].grand_mean = l->lz[v].grand_total / l->lz[v].total_n ;
     }
 
-  
+
 }
 
 
 
-static void 
+static void
 levene2_precalc (struct levene_info *l)
 {
   size_t v;
 
 
   /* This stuff could go in the first post calc . . . */
-  for (v = 0; 
-       v < l->n_dep; 
-       ++v) 
+  for (v = 0;
+       v < l->n_dep;
+       ++v)
     {
       struct hsh_iterator hi;
       struct group_statistics *g;
@@ -259,21 +259,21 @@ levene2_precalc (struct levene_info *l)
   }
 }
 
-static int 
-levene2_calc (const struct dictionary *dict, const struct ccase *c, 
+static int
+levene2_calc (const struct dictionary *dict, const struct ccase *c,
 	      struct levene_info *l)
 {
   size_t i;
   bool warn = false;
 
-  double weight = dict_get_case_weight (dict, c, &warn); 
+  double weight = dict_get_case_weight (dict, c, &warn);
 
   const union value *gv = case_data (c, l->v_indep);
   struct group_statistics key;
 
   key.id = *gv;
 
-  for (i = 0; i < l->n_dep; ++i) 
+  for (i = 0; i < l->n_dep; ++i)
     {
       double levene_z;
       const struct variable *var = l->v_dep[i] ;
@@ -282,12 +282,12 @@ levene2_calc (const struct dictionary *dict, const struct ccase *c,
 
       gs = hsh_find(group_proc_get (var)->group_hash,(void *) &key );
 
-      if ( 0 == gs ) 
+      if ( 0 == gs )
 	continue;
 
       if ( !var_is_value_missing (var, v, l->exclude))
 	{
-	  levene_z = fabs(v->f - gs->mean); 
+	  levene_z = fabs(v->f - gs->mean);
 	  l->lz_denominator[i] += weight * pow2 (levene_z - gs->lz_mean);
 	}
     }
@@ -296,12 +296,12 @@ levene2_calc (const struct dictionary *dict, const struct ccase *c,
 }
 
 
-static void 
+static void
 levene2_postcalc (struct levene_info *l)
 {
   size_t v;
 
-  for (v = 0; v < l->n_dep; ++v) 
+  for (v = 0; v < l->n_dep; ++v)
     {
       double lz_numerator = 0;
       struct hsh_iterator hi;

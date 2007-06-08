@@ -33,7 +33,7 @@
 static const    double x_min = 0;
 static const    double x_max = 15.0;
 
-static const char *cat_labels[] = 
+static const char *cat_labels[] =
   {
     "Age",
     "Intelligence",
@@ -59,7 +59,7 @@ static const double data1[] =
   29,13,
    9,4,
    3,3,
-   2,0, 
+   2,0,
    1,0,
    0,
    1,1
@@ -71,7 +71,7 @@ static const double data2[] =
   45,13,
    9,4,
    3,43,
-   2,0, 
+   2,0,
    1,20,
    0,0,
   1,1,
@@ -93,11 +93,11 @@ struct subcat {
   const char *label;
 };
 
-static const struct subcat sub_catagory[SUB_CATAGORIES] = 
+static const struct subcat sub_catagory[SUB_CATAGORIES] =
   {
     {data1, "male"},
     {data2, "female"},
-    {data3, "47xxy"} 
+    {data3, "47xxy"}
   };
 
 
@@ -112,20 +112,20 @@ static void write_legend(struct chart *chart) ;
 
 
 void
-draw_barchart(struct chart *ch, const char *title, 
+draw_barchart(struct chart *ch, const char *title,
 	      const char *xlabel, const char *ylabel, enum bar_opts opt)
 {
   double d;
   int i;
 
   double interval_size = fabs(ch->data_right - ch->data_left) / ( CATAGORIES );
-  
+
   double bar_width = interval_size / 1.1 ;
 
   double ordinate_scale = fabs(ch->data_top -  ch->data_bottom) /
-    fabs(y_max - y_min) ; 
+    fabs(y_max - y_min) ;
 
-  if ( opt != BAR_STACKED ) 
+  if ( opt != BAR_STACKED )
       bar_width /= SUB_CATAGORIES;
 
   /* Move to data bottom-left */
@@ -135,7 +135,7 @@ draw_barchart(struct chart *ch, const char *title,
   pl_filltype_r(ch->lp,1);
 
   /* Draw the data */
-  for (i = 0 ; i < CATAGORIES ; ++i ) 
+  for (i = 0 ; i < CATAGORIES ; ++i )
     {
       int sc;
       double ystart=0.0;
@@ -143,33 +143,33 @@ draw_barchart(struct chart *ch, const char *title,
 
       pl_savestate_r(ch->lp);
 
-      draw_tick (ch, TICK_ABSCISSA, x + (interval_size/2 ), 
+      draw_tick (ch, TICK_ABSCISSA, x + (interval_size/2 ),
 		 cat_labels[i]);
 
-      for(sc = 0 ; sc < SUB_CATAGORIES ; ++sc ) 
+      for(sc = 0 ; sc < SUB_CATAGORIES ; ++sc )
 	{
-	  
+
 	  pl_savestate_r(ch->lp);
 	  pl_fillcolorname_r(ch->lp,data_colour[sc]);
-	  
+
 	  switch ( opt )
 	    {
 	    case BAR_GROUPED:
-	      pl_fboxrel_r(ch->lp, 
+	      pl_fboxrel_r(ch->lp,
 			   x + (sc * bar_width ), 0,
-			   x + (sc + 1) * bar_width, 
+			   x + (sc + 1) * bar_width,
 			     sub_catagory[sc].data[i] * ordinate_scale );
 	      break;
-	      
+
 
 	    case BAR_STACKED:
 
-	      pl_fboxrel_r(ch->lp, 
-			   x, ystart, 
-			   x + bar_width, 
+	      pl_fboxrel_r(ch->lp,
+			   x, ystart,
+			   x + bar_width,
 			   ystart + sub_catagory[sc].data[i] * ordinate_scale );
 
-	      ystart +=    sub_catagory[sc].data[i] * ordinate_scale ; 
+	      ystart +=    sub_catagory[sc].data[i] * ordinate_scale ;
 
 	      break;
 
@@ -188,14 +188,14 @@ draw_barchart(struct chart *ch, const char *title,
 
       draw_tick (ch, TICK_ORDINATE,
 		 (d - y_min ) * ordinate_scale, "%g", d);
-      
+
     }
 
   /* Write the abscissa label */
   pl_move_r(ch->lp,ch->data_left, ch->abscissa_top);
   pl_alabel_r(ch->lp,0,'t',xlabel);
 
- 
+
   /* Write the ordinate label */
   pl_savestate_r(ch->lp);
   pl_move_r(ch->lp,ch->data_bottom, ch->ordinate_right);
@@ -207,7 +207,7 @@ draw_barchart(struct chart *ch, const char *title,
   chart_write_title(ch, title);
 
   write_legend(ch);
-  
+
 
 }
 
@@ -224,23 +224,23 @@ write_legend(struct chart *chart)
 
   pl_filltype_r(chart->lp,1);
 
-  pl_move_r(chart->lp, chart->legend_left, 
+  pl_move_r(chart->lp, chart->legend_left,
 	    chart->data_bottom + chart->font_size * SUB_CATAGORIES * 1.5);
 
   pl_alabel_r(chart->lp,0,'b',subcat_name);
 
-  for (sc = 0 ; sc < SUB_CATAGORIES ; ++sc ) 
+  for (sc = 0 ; sc < SUB_CATAGORIES ; ++sc )
     {
       pl_fmove_r(chart->lp,
 		 chart->legend_left,
 		 chart->data_bottom + chart->font_size * sc  * 1.5);
 
-      pl_savestate_r(chart->lp);    
+      pl_savestate_r(chart->lp);
       pl_fillcolorname_r(chart->lp,data_colour[sc]);
       pl_fboxrel_r (chart->lp,
 		    0,0,
 		    chart->font_size, chart->font_size);
-      pl_restorestate_r(chart->lp);    
+      pl_restorestate_r(chart->lp);
 
       pl_fmove_r(chart->lp,
 		 chart->legend_left + chart->font_size * 1.5,
@@ -250,5 +250,5 @@ write_legend(struct chart *chart)
     }
 
 
-  pl_restorestate_r(chart->lp);    
+  pl_restorestate_r(chart->lp);
 }

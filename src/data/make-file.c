@@ -76,9 +76,9 @@ make_unique_file_stream (FILE **fp, char **file_name)
   const char *parent_dir;
 
 
-  /* FIXME: 
+  /* FIXME:
      Need to check for pre-existing file name.
-     Need also to pass in the directory instead of using /tmp 
+     Need also to pass in the directory instead of using /tmp
   */
 
   assert (file_name != NULL);

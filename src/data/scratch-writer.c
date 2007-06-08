@@ -35,7 +35,7 @@
 #include "xalloc.h"
 
 /* A scratch file writer. */
-struct scratch_writer 
+struct scratch_writer
   {
     struct scratch_handle *handle;      /* Underlying scratch handle. */
     struct file_handle *fh;             /* Underlying file handle. */
@@ -51,7 +51,7 @@ static struct casewriter_class scratch_writer_casewriter_class;
    to be drawn from DICTIONARY. */
 struct casewriter *
 scratch_writer_open (struct file_handle *fh,
-                     const struct dictionary *dictionary) 
+                     const struct dictionary *dictionary)
 {
   struct scratch_handle *sh;
   struct scratch_writer *writer;
@@ -64,12 +64,12 @@ scratch_writer_open (struct file_handle *fh,
 
   /* Destroy previous contents of handle. */
   sh = fh_get_scratch_handle (fh);
-  if (sh != NULL) 
+  if (sh != NULL)
     scratch_handle_destroy (sh);
 
   /* Copy the dictionary and compact if needed. */
   scratch_dict = dict_clone (dictionary);
-  if (dict_compacting_would_shrink (scratch_dict)) 
+  if (dict_compacting_would_shrink (scratch_dict))
     {
       compactor = dict_make_compactor (scratch_dict);
       dict_compact_values (scratch_dict);
@@ -100,12 +100,12 @@ scratch_writer_open (struct file_handle *fh,
 /* Writes case C to WRITER. */
 static void
 scratch_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
-                                 struct ccase *c) 
+                                 struct ccase *c)
 {
   struct scratch_writer *writer = writer_;
   struct scratch_handle *handle = writer->handle;
   struct ccase tmp;
-  if (writer->compactor) 
+  if (writer->compactor)
     {
       case_create (&tmp, dict_get_next_value_idx (handle->dictionary));
       dict_compactor_compact (writer->compactor, &tmp, c);
@@ -118,7 +118,7 @@ scratch_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
 
 /* Closes WRITER. */
 static void
-scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_) 
+scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_)
 {
   struct scratch_writer *writer = writer_;
   struct casereader *reader = casewriter_make_reader (writer->subwriter);
@@ -128,7 +128,7 @@ scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_)
   free (writer);
 }
 
-static struct casewriter_class scratch_writer_casewriter_class = 
+static struct casewriter_class scratch_writer_casewriter_class =
   {
     scratch_writer_casewriter_write,
     scratch_writer_casewriter_destroy,

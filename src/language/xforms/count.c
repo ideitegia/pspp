@@ -65,7 +65,7 @@ struct criteria
     bool count_system_missing;  /* Count system missing? */
     bool count_user_missing;    /* Count user missing? */
 
-    /* Criterion values. */    
+    /* Criterion values. */
     size_t value_cnt;
     union
       {
@@ -139,7 +139,7 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
 
 	  crit->next = NULL;
 	  crit->vars = NULL;
-	  if (!parse_variables_const (lexer, dataset_dict (ds), &crit->vars, 
+	  if (!parse_variables_const (lexer, dataset_dict (ds), &crit->vars,
 				      &crit->var_cnt,
                                 PV_DUPLICATE | PV_SAME_TYPE))
 	    goto fail;
@@ -178,7 +178,7 @@ cmd_count (struct lexer *lexer, struct dataset *ds)
 	   the same dest var more than once. */
 	dv->var = dict_lookup_var (dataset_dict (ds), dv->name);
 
-	if (dv->var == NULL) 
+	if (dv->var == NULL)
           dv->var = dict_create_var_assert (dataset_dict (ds), dv->name, 0);
       }
 
@@ -202,12 +202,12 @@ parse_numeric_criteria (struct lexer *lexer, struct pool *pool, struct criteria 
   for (;;)
     {
       double low, high;
-      
+
       if (lex_match_id (lexer, "SYSMIS"))
         crit->count_system_missing = true;
       else if (lex_match_id (lexer, "MISSING"))
 	crit->count_user_missing = true;
-      else if (parse_num_range (lexer, &low, &high, NULL)) 
+      else if (parse_num_range (lexer, &low, &high, NULL))
         {
           struct num_value *cur;
 
@@ -283,22 +283,22 @@ count_numeric (struct criteria *crit, struct ccase *c)
           if (x == SYSMIS
               ? crit->count_system_missing
               : crit->count_user_missing)
-            counter++; 
+            counter++;
         }
-      else 
+      else
         {
           struct num_value *v;
-          
+
           for (v = crit->values.num; v < crit->values.num + crit->value_cnt;
-               v++) 
-            if (v->type == CNT_SINGLE ? x == v->a : x >= v->a && x <= v->b) 
+               v++)
+            if (v->type == CNT_SINGLE ? x == v->a : x >= v->a && x <= v->b)
               {
                 counter++;
                 break;
-              } 
+              }
         }
     }
-  
+
   return counter;
 }
 

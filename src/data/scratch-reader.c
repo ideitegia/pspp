@@ -42,12 +42,12 @@ struct casereader *
 scratch_reader_open (struct file_handle *fh, struct dictionary **dict)
 {
   struct scratch_handle *sh;
-  
+
   if (!fh_open (fh, FH_REF_SCRATCH, "scratch file", "rs"))
     return NULL;
-  
+
   sh = fh_get_scratch_handle (fh);
-  if (sh == NULL || sh->casereader == NULL) 
+  if (sh == NULL || sh->casereader == NULL)
     {
       msg (SE, _("Scratch file handle %s has not yet been written, "
                  "using SAVE or another procedure, so it cannot yet "

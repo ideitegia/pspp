@@ -27,8 +27,8 @@
  *
  * where Y is a beta random variable with parameters k+1 and n-k.
  *
- * Reference: 
- * 
+ * Reference:
+ *
  * W. Feller, "An Introduction to Probability and Its
  * Applications," volume 1. Wiley, 1968. Exercise 45, page 173,
  * chapter 6.
@@ -64,7 +64,7 @@ gslextras_cdf_binomial_P(const long k, const long n, const double p)
       b = (double) n - k;
       P = gsl_cdf_beta_Q( p, a, b);
     }
-  
+
   return P;
 }
 double

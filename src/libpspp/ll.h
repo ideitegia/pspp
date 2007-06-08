@@ -104,7 +104,7 @@
      ll_for_each (foo, struct foo, ll, &list)
        {
          ...do something with foo->x...
-       }      
+       }
 */
 
 /* Returns the data structure corresponding to the given node LL,
@@ -346,7 +346,7 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
 
 /* Initializes LIST as an empty list. */
 static inline void
-ll_init (struct ll_list *list) 
+ll_init (struct ll_list *list)
 {
   list->null.next = list->null.prev = &list->null;
 }
@@ -355,7 +355,7 @@ ll_init (struct ll_list *list)
    false if LIST is not empty (has at least one other node).
    Executes in O(1) time. */
 static inline bool
-ll_is_empty (const struct ll_list *list) 
+ll_is_empty (const struct ll_list *list)
 {
   return ll_head (list) == ll_null (list);
 }
@@ -371,14 +371,14 @@ ll_head (const struct ll_list *list)
 /* Returns the last node in LIST,
    or the null node if LIST is empty. */
 static inline struct ll *
-ll_tail (const struct ll_list *list) 
+ll_tail (const struct ll_list *list)
 {
   return ll_prev (ll_null (list));
 }
 
 /* Returns LIST's null node. */
 static inline struct ll *
-ll_null (const struct ll_list *list) 
+ll_null (const struct ll_list *list)
 {
   return (struct ll *) &list->null;
 }
@@ -387,7 +387,7 @@ ll_null (const struct ll_list *list)
    or the null node if LL is at the end of its list.
    (In an empty list, the null node follows itself.) */
 static inline struct ll *
-ll_next (const struct ll *ll) 
+ll_next (const struct ll *ll)
 {
   return ll->next;
 }
@@ -403,14 +403,14 @@ ll_prev (const struct ll *ll)
 
 /* Inserts LL at the head of LIST. */
 static inline void
-ll_push_head (struct ll_list *list, struct ll *ll) 
+ll_push_head (struct ll_list *list, struct ll *ll)
 {
   ll_insert (ll_head (list), ll);
 }
 
 /* Inserts LL at the tail of LIST. */
 static inline void
-ll_push_tail (struct ll_list *list, struct ll *ll) 
+ll_push_tail (struct ll_list *list, struct ll *ll)
 {
   ll_insert (ll_null (list), ll);
 }
@@ -430,7 +430,7 @@ ll_pop_head (struct ll_list *list)
 /* Removes and returns the last node in LIST,
    which must not be empty. */
 static inline struct ll *
-ll_pop_tail (struct ll_list *list) 
+ll_pop_tail (struct ll_list *list)
 {
   struct ll *tail;
   assert (!ll_is_empty (list));
@@ -442,7 +442,7 @@ ll_pop_tail (struct ll_list *list)
 /* Inserts NEW_ELEM just before BEFORE.
    (NEW_ELEM must not already be in a list.) */
 static inline void
-ll_insert (struct ll *before, struct ll *new_elem) 
+ll_insert (struct ll *before, struct ll *new_elem)
 {
   struct ll *before_prev = ll_prev (before);
   new_elem->next = before;
@@ -463,9 +463,9 @@ ll_remove (struct ll *ll)
 
 /* Removes R0...R1 from their list. */
 static inline void
-ll_remove_range (struct ll *r0, struct ll *r1) 
+ll_remove_range (struct ll *r0, struct ll *r1)
 {
-  if (r0 != r1) 
+  if (r0 != r1)
     {
       r1 = r1->prev;
       r0->prev->next = r1->next;
@@ -479,7 +479,7 @@ ll_remove_range (struct ll *r0, struct ll *r1)
    before moving LL, then ll_insert() afterward, but more
    efficient. */
 static inline void
-ll_moved (struct ll *ll) 
+ll_moved (struct ll *ll)
 {
   ll->prev->next = ll->next->prev = ll;
 }

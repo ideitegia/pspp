@@ -25,7 +25,7 @@
 
 #include "freq.h"
 
-int 
+int
 compare_freq ( const void *_f1, const void *_f2, const void *_var)
 {
   const struct freq *f1 = _f1;
@@ -45,7 +45,7 @@ hash_freq (const void *_f, const void *_var)
 }
 
 /* Free function to be used on FR whose value parameter has been copied */
-void 
+void
 free_freq_mutable_hash (void *fr, const void *var UNUSED)
 {
   struct freq_mutable *freq = fr;
@@ -53,7 +53,7 @@ free_freq_mutable_hash (void *fr, const void *var UNUSED)
   free (freq);
 }
 
-void 
+void
 free_freq_hash (void *fr, const void *var UNUSED)
 {
   free (fr);

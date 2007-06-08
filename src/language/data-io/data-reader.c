@@ -48,7 +48,7 @@
 enum dfm_reader_flags
   {
     DFM_ADVANCE = 002,          /* Read next line on dfm_get_record() call? */
-    DFM_SAW_BEGIN_DATA = 004,   /* For inline_file only, whether we've 
+    DFM_SAW_BEGIN_DATA = 004,   /* For inline_file only, whether we've
                                    already read a BEGIN DATA line. */
     DFM_TABS_EXPANDED = 010,    /* Tabs have been expanded. */
   };
@@ -81,10 +81,10 @@ dfm_close_reader (struct dfm_reader *r)
   is_inline = r->fh == fh_inline_file ();
   file_name = is_inline ? NULL : xstrdup (fh_get_file_name (r->fh));
   still_open = fh_close (r->fh, "data file", "rs");
-  if (still_open) 
+  if (still_open)
     {
       free (file_name);
-      return; 
+      return;
     }
 
   if (!is_inline)
@@ -92,11 +92,11 @@ dfm_close_reader (struct dfm_reader *r)
   else
     {
       /* Skip any remaining data on the inline file. */
-      if (r->flags & DFM_SAW_BEGIN_DATA) 
+      if (r->flags & DFM_SAW_BEGIN_DATA)
         {
           dfm_reread_record (r, 0);
           while (!dfm_eof (r))
-            dfm_forward_record (r); 
+            dfm_forward_record (r);
         }
     }
 
@@ -121,8 +121,8 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
   if (rp == NULL)
     return NULL;
   if (*rp != NULL)
-    return *rp; 
-  
+    return *rp;
+
   r = xmalloc (sizeof *r);
   r->fh = fh;
   r->lexer = lexer ;
@@ -130,10 +130,10 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
   ds_init_empty (&r->scratch);
   r->flags = DFM_ADVANCE;
   r->eof_cnt = 0;
-  if (fh != fh_inline_file ()) 
+  if (fh != fh_inline_file ())
     {
       r->where.file_name = fh_get_file_name (fh);
-      r->where.line_number = 0; 
+      r->where.line_number = 0;
       r->file = fn_open (fh_get_file_name (fh), "rb");
       if (r->file == NULL)
         {
@@ -151,7 +151,7 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
 
 /* Returns true if an I/O error occurred on READER, false otherwise. */
 bool
-dfm_reader_error (const struct dfm_reader *r) 
+dfm_reader_error (const struct dfm_reader *r)
 {
   return fh_get_referent (r->fh) == FH_REF_FILE && ferror (r->file);
 }
@@ -171,7 +171,7 @@ read_inline_record (struct dfm_reader *r)
         return false;
       prompt_set_style (PROMPT_DATA);
     }
-      
+
   if (!lex_get_line_raw (r->lexer, NULL))
     {
       msg (SE, _("Unexpected end-of-file while reading data in BEGIN "
@@ -203,7 +203,7 @@ read_file_record (struct dfm_reader *r)
   ds_clear (&r->line);
   if (fh_get_mode (r->fh) == FH_MODE_TEXT)
     {
-      if (!ds_read_line (&r->line, r->file)) 
+      if (!ds_read_line (&r->line, r->file))
         {
           if (ferror (r->file))
             msg (ME, _("Error reading file %s: %s."),
@@ -257,16 +257,16 @@ read_record (struct dfm_reader *r)
    an error message is issued, and the caller should more
    forcibly abort to avoid an infinite loop. */
 unsigned
-dfm_eof (struct dfm_reader *r) 
+dfm_eof (struct dfm_reader *r)
 {
   if (r->flags & DFM_ADVANCE)
     {
       r->flags &= ~DFM_ADVANCE;
 
-      if (r->eof_cnt == 0 && read_record (r) ) 
+      if (r->eof_cnt == 0 && read_record (r) )
         {
           r->pos = 0;
-          return 0; 
+          return 0;
         }
 
       r->eof_cnt++;
@@ -300,7 +300,7 @@ dfm_get_record (struct dfm_reader *r)
    reading from the file is necessary or at end of file, so call
    dfm_eof() first.*/
 void
-dfm_expand_tabs (struct dfm_reader *r) 
+dfm_expand_tabs (struct dfm_reader *r)
 {
   size_t ofs, new_pos, tab_width;
 
@@ -325,21 +325,21 @@ dfm_expand_tabs (struct dfm_reader *r)
   for (ofs = 0; ofs < ds_length (&r->line); ofs++)
     {
       unsigned char c;
-      
+
       if (ofs == r->pos)
         new_pos = ds_length (&r->scratch);
 
       c = ds_data (&r->line)[ofs];
       if (c != '\t')
         ds_put_char (&r->scratch, c);
-      else 
+      else
         {
           do
             ds_put_char (&r->scratch, ' ');
           while (ds_length (&r->scratch) % tab_width != 0);
         }
     }
-  if (new_pos == SIZE_MAX) 
+  if (new_pos == SIZE_MAX)
     {
       /* Maintain the same relationship between position and line
          length that we had before.  DATA LIST uses a
@@ -394,7 +394,7 @@ dfm_column_start (const struct dfm_reader *r)
    of the line.  At or before end-of-line, this is 0; one column
    after end-of-line, this is 1; and so on. */
 size_t
-dfm_columns_past_end (const struct dfm_reader *r) 
+dfm_columns_past_end (const struct dfm_reader *r)
 {
   return r->pos < ds_length (&r->line) ? 0 : ds_length (&r->line) - r->pos;
 }
@@ -402,7 +402,7 @@ dfm_columns_past_end (const struct dfm_reader *r)
 /* Returns the 1-based column within the current line that P
    designates. */
 size_t
-dfm_get_column (const struct dfm_reader *r, const char *p) 
+dfm_get_column (const struct dfm_reader *r, const char *p)
 {
   return ds_pointer_to_position (&r->line, p) + 1;
 }

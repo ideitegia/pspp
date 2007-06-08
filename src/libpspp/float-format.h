@@ -24,7 +24,7 @@
 #include <libpspp/compiler.h>
 
 /* A floating-point format. */
-enum float_format 
+enum float_format
   {
     /* IEEE 754 formats. */
     FLOAT_IEEE_SINGLE_LE,          /* 32 bit, little endian. */

@@ -43,7 +43,7 @@
         ((STRUCT *) ((char *) (NODE) - offsetof (STRUCT, MEMBER)))
 
 /* A range map node, to be embedded in the data value. */
-struct range_map_node 
+struct range_map_node
   {
     struct bt_node bt_node;     /* Balanced tree node. */
     unsigned long int start;    /* Start of range. */
@@ -52,27 +52,27 @@ struct range_map_node
 
 /* Returns the start of the range in the given NODE. */
 static inline unsigned long int
-range_map_node_get_start (const struct range_map_node *node) 
+range_map_node_get_start (const struct range_map_node *node)
 {
   return node->start;
 }
 
 /* Returns the end of the range in the given NODE, plus one. */
 static inline unsigned long int
-range_map_node_get_end (const struct range_map_node *node) 
+range_map_node_get_end (const struct range_map_node *node)
 {
   return node->end;
 }
 
 /* Returns the width of the range in the given NODE. */
 static inline unsigned long int
-range_map_node_get_width (const struct range_map_node *node) 
+range_map_node_get_width (const struct range_map_node *node)
 {
   return node->end - node->start;
 }
 
 /* Range map. */
-struct range_map 
+struct range_map
   {
     struct bt bt;
   };

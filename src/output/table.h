@@ -75,7 +75,7 @@ typedef void tab_dim_func (struct tab_table *, struct outp_driver *);
 struct tab_table
   {
     struct pool *container;
-    
+
     /* Contents. */
     int col_style;		/* Columns: One of TAB_COL_*. */
     int col_group;		/* Number of rows per column group. */

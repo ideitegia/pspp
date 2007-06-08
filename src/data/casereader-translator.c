@@ -46,7 +46,7 @@ casereader_create_translator (struct casereader *subreader,
                                                  struct ccase *output,
                                                  void *aux),
                               bool (*destroy) (void *aux),
-                              void *aux) 
+                              void *aux)
 {
   struct casereader_translator *ct = xmalloc (sizeof *ct);
   struct casereader *reader;
@@ -64,22 +64,22 @@ casereader_create_translator (struct casereader *subreader,
 
 static bool
 casereader_translator_read (struct casereader *reader UNUSED,
-                            void *ct_, struct ccase *c) 
+                            void *ct_, struct ccase *c)
 {
   struct casereader_translator *ct = ct_;
   struct ccase tmp;
 
-  if (casereader_read (ct->subreader, &tmp)) 
+  if (casereader_read (ct->subreader, &tmp))
     {
       ct->translate (&tmp, c, ct->aux);
-      return true; 
+      return true;
     }
   else
     return false;
 }
 
 static void
-casereader_translator_destroy (struct casereader *reader UNUSED, void *ct_) 
+casereader_translator_destroy (struct casereader *reader UNUSED, void *ct_)
 {
   struct casereader_translator *ct = ct_;
   casereader_destroy (ct->subreader);
@@ -87,7 +87,7 @@ casereader_translator_destroy (struct casereader *reader UNUSED, void *ct_)
   free (ct);
 }
 
-static struct casereader_class casereader_translator_class = 
+static struct casereader_class casereader_translator_class =
   {
     casereader_translator_read,
     casereader_translator_destroy,

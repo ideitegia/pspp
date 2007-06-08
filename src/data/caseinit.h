@@ -17,7 +17,7 @@
    02110-1301, USA. */
 
 /* Case initializer.
-   
+
    The procedure code has to resize cases provided by the active
    file data source, to provide room for any other variables that
    should go in the case, fill in the values of "left" variables,

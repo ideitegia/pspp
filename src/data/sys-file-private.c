@@ -22,23 +22,23 @@
 #include <data/value.h>
 #include <libpspp/assertion.h>
 
-/* Return the number of bytes used when writing case_data for a variable 
+/* Return the number of bytes used when writing case_data for a variable
    of WIDTH */
 int
 sfm_width_to_bytes (int width)
 {
   assert (width >= 0);
 
-  if (width == 0) 
+  if (width == 0)
     return MAX_SHORT_STRING;
-  else if (width < MIN_VERY_LONG_STRING) 
+  else if (width < MIN_VERY_LONG_STRING)
     return ROUND_UP (width, MAX_SHORT_STRING);
-  else 
+  else
     {
       int chunks = width / EFFECTIVE_LONG_STRING_LENGTH ;
       int remainder = width % EFFECTIVE_LONG_STRING_LENGTH ;
       int bytes = remainder + (chunks * MIN_VERY_LONG_STRING);
-      return ROUND_UP (bytes, MAX_SHORT_STRING); 
+      return ROUND_UP (bytes, MAX_SHORT_STRING);
     }
 }
 

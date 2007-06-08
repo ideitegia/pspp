@@ -25,7 +25,7 @@
 
 #define NOT_REACHED() do { assert (0); abort (); } while (0)
 
-#endif 
+#endif
 
 #include <assert.h>
 

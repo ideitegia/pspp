@@ -35,7 +35,7 @@ struct afm_character
        position, other characters in the second position. */
     struct afm_kern_pair *kern_pairs;
     size_t kern_pair_cnt;
-    
+
     /* Ligature data for this character in the first position,
        other characters in the second position. */
     struct afm_ligature *ligatures;

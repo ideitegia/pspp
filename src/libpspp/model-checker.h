@@ -117,7 +117,7 @@
 
         Here's an outline for writing the init function:
 
-          void 
+          void
           init_foo (struct mc *mc)
           {
             struct foo *foo;
@@ -144,7 +144,7 @@
           {
             struct foo *state = state_;
 
-            for (...each operation...) 
+            for (...each operation...)
               if (mc_include_state (mc))
                 {
                   struct foo *clone;
@@ -224,7 +224,7 @@
             make it possible to reliably reproduce errors.
 
      3. void destroy (struct mc *mc, void *data);
-   
+
         This function is called to discard the client-specified
         DATA associated with a state.
 
@@ -342,7 +342,7 @@ void *mc_get_aux (const struct mc *);
 
 /* A path of operations through a model to arrive at some
    particular state. */
-struct mc_path 
+struct mc_path
   {
     int *ops;           /* Sequence of operations. */
     size_t length;      /* Number of operations. */
@@ -367,7 +367,7 @@ struct mc_options *mc_options_clone (const struct mc_options *);
 void mc_options_destroy (struct mc_options *);
 
 /* Search strategy. */
-enum mc_strategy 
+enum mc_strategy
   {
     MC_BROAD,           /* Breadth-first search. */
     MC_DEEP,            /* Depth-first search. */
@@ -389,7 +389,7 @@ void mc_options_set_follow_path (struct mc_options *, const struct mc_path *);
 
 /* Strategy for dropped states from the queue when it
    overflows. */
-enum mc_queue_limit_strategy 
+enum mc_queue_limit_strategy
   {
     MC_DROP_NEWEST,     /* Don't enqueue the new state at all. */
     MC_DROP_OLDEST,     /* Drop the oldest state in the queue. */
@@ -429,7 +429,7 @@ void *mc_options_get_aux (const struct mc_options *);
 void mc_options_set_aux (struct mc_options *, void *aux);
 
 /* Reason that a model checking run terminated. */
-enum mc_stop_reason 
+enum mc_stop_reason
   {
     MC_CONTINUING,              /* Run has not yet terminated. */
     MC_SUCCESS,                 /* Queue emptied (ran out of states). */

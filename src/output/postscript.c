@@ -163,7 +163,7 @@ ps_open_driver (struct outp_driver *this, struct substring options)
       goto error;
     }
 
-  if (x->portrait) 
+  if (x->portrait)
     {
       this->width = x->paper_width;
       this->length = x->paper_length;
@@ -172,7 +172,7 @@ ps_open_driver (struct outp_driver *this, struct substring options)
     {
       this->width = x->paper_length;
       this->length = x->paper_width;
-    }    
+    }
   this->width -= x->left_margin + x->right_margin;
   this->length -= x->top_margin + x->bottom_margin;
   if (x->draw_headers)
@@ -796,7 +796,7 @@ draw_text (struct outp_driver *this,
 static void
 draw_header_line (struct outp_driver *this,
                   const char *left, const char *right,
-                  int x0, int x1, int y) 
+                  int x0, int x1, int y)
 {
   int right_width = 0;
   if (right != NULL)
@@ -827,12 +827,12 @@ draw_headers (struct outp_driver *this)
 
   r1 = xasprintf (_("%s - Page %d"), get_start_date (), ext->page_number);
   r2 = xasprintf ("%s - %s", version, host_system);
- 
+
   draw_header_line (this, outp_title, r1, x0, x1, y);
   y += this->font_height;
-  
+
   draw_header_line (this, outp_subtitle, r2, x0, x1, y);
- 
+
   free (r1);
   free (r2);
 }
@@ -847,7 +847,7 @@ draw_headers (struct outp_driver *this)
 static void
 write_text (struct outp_driver *this,
             int x0, int y0,
-            enum outp_font font, 
+            enum outp_font font,
             enum outp_justification justification,
             const struct afm_character **chars, int *kerns, size_t char_cnt,
             int width_left)
@@ -1014,7 +1014,7 @@ text (struct outp_driver *this, const struct outp_text *text, bool draw,
       char_width = cur->width * this->font_height / 1000;
 
       /* Get kern adjustment. */
-      if (s.glyph_cnt > 0) 
+      if (s.glyph_cnt > 0)
         kern_adjust = (afm_get_kern_adjustment (s.glyphs[s.glyph_cnt - 1], cur)
                        * this->font_height / 1000);
       else

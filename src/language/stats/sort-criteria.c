@@ -44,7 +44,7 @@ parse_case_ordering (struct lexer *lexer, const struct dictionary *dict,
   struct case_ordering *ordering = case_ordering_create (dict);
   const struct variable **vars = NULL;
   size_t var_cnt = 0;
-  
+
  if (saw_direction != NULL)
     *saw_direction = false;
 

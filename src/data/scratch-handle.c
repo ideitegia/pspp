@@ -24,9 +24,9 @@
 
 /* Destroys HANDLE. */
 void
-scratch_handle_destroy (struct scratch_handle *handle) 
+scratch_handle_destroy (struct scratch_handle *handle)
 {
-  if (handle != NULL) 
+  if (handle != NULL)
     {
       dict_destroy (handle->dictionary);
       casereader_destroy (handle->casereader);

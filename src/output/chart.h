@@ -49,10 +49,10 @@ struct chart {
   char *file_name;
   FILE *file;
 
-  /* The geometry of the chart 
+  /* The geometry of the chart
      See diagram at the foot of this file.
    */
-  
+
   int data_top   ;
   int data_right ;
   int data_bottom;
@@ -67,9 +67,9 @@ struct chart {
   int legend_left ;
   int legend_right ;
 
-  
+
   /* Default font size for the plot (if zero, then use plotter default) */
-  int font_size; 
+  int font_size;
 
   char fill_colour[10];
 

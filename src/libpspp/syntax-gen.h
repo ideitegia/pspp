@@ -23,4 +23,4 @@ struct string;
 
 void gen_quoted_string (struct string *);
 
-#endif 
+#endif

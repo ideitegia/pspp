@@ -38,15 +38,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 /* Pie charts of course need to know Pi :) */
 #ifndef M_PI
-#define M_PI ( 22.0 / 7.0 ) 
+#define M_PI ( 22.0 / 7.0 )
 #endif
 
 
 
 /* Draw a single slice of the pie */
 static void
-draw_segment(struct chart *ch, 
-	     double centre_x, double centre_y, 
+draw_segment(struct chart *ch,
+	     double centre_x, double centre_y,
 	     double radius,
 	     double start_angle, double segment_angle,
 	     const char *colour) ;
@@ -62,16 +62,16 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 
   struct chart *ch = chart_create();
 
-  const double left_label = ch->data_left + 
+  const double left_label = ch->data_left +
     (ch->data_right - ch->data_left)/10.0;
 
-  const double right_label = ch->data_right - 
+  const double right_label = ch->data_right -
     (ch->data_right - ch->data_left)/10.0;
 
   const double centre_x = (ch->data_right + ch->data_left ) / 2.0 ;
   const double centre_y = (ch->data_top + ch->data_bottom ) / 2.0 ;
 
-  const double radius = MIN( 
+  const double radius = MIN(
 			    5.0 / 12.0 * (ch->data_top - ch->data_bottom),
 			    1.0 / 4.0 * (ch->data_right - ch->data_left)
 			    );
@@ -79,30 +79,30 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 
   chart_write_title(ch, title);
 
-  for (i = 0 ; i < n_slices ; ++i ) 
+  for (i = 0 ; i < n_slices ; ++i )
     total_magnetude += slices[i].magnetude;
 
-  for (i = 0 ; i < n_slices ; ++i ) 
+  for (i = 0 ; i < n_slices ; ++i )
     {
       static double angle=0.0;
 
-      const double segment_angle = 
+      const double segment_angle =
 	slices[i].magnetude / total_magnetude * 2 * M_PI ;
 
-      const double label_x = centre_x - 
+      const double label_x = centre_x -
 	radius * sin(angle + segment_angle/2.0);
 
-      const double label_y = centre_y + 
+      const double label_y = centre_y +
 	radius * cos(angle + segment_angle/2.0);
 
       /* Fill the segment */
       draw_segment(ch,
-		   centre_x, centre_y, radius, 
+		   centre_x, centre_y, radius,
 		   angle, segment_angle,
 		   data_colour[i]);
-	
+
       /* Now add the labels */
-      if ( label_x < centre_x ) 
+      if ( label_x < centre_x )
 	{
 	  pl_line_r(ch->lp, label_x, label_y,
 		    left_label, label_y );
@@ -111,7 +111,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 	}
       else
 	{
-	  pl_line_r(ch->lp, 
+	  pl_line_r(ch->lp,
 		    label_x, label_y,
 		    right_label, label_y
 		    );
@@ -131,16 +131,16 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 }
 
 static void
-fill_segment(struct chart *ch, 
-	     double x0, double y0, 
+fill_segment(struct chart *ch,
+	     double x0, double y0,
 	     double radius,
 	     double start_angle, double segment_angle) ;
 
 
 /* Fill a segment with the current fill colour */
 static void
-fill_segment(struct chart *ch, 
-	     double x0, double y0, 
+fill_segment(struct chart *ch,
+	     double x0, double y0,
 	     double radius,
 	     double start_angle, double segment_angle)
 {
@@ -148,16 +148,16 @@ fill_segment(struct chart *ch,
   const double start_x  = x0 - radius * sin(start_angle);
   const double start_y  = y0 + radius * cos(start_angle);
 
-  const double stop_x   = 
-    x0 - radius * sin(start_angle + segment_angle); 
+  const double stop_x   =
+    x0 - radius * sin(start_angle + segment_angle);
 
-  const double stop_y   = 
+  const double stop_y   =
     y0 + radius * cos(start_angle + segment_angle);
 
   assert(segment_angle <= 2 * M_PI);
   assert(segment_angle >= 0);
 
-  if ( segment_angle > M_PI ) 
+  if ( segment_angle > M_PI )
     {
       /* Then we must draw it in two halves */
       fill_segment(ch, x0, y0, radius, start_angle, segment_angle / 2.0 );
@@ -185,10 +185,10 @@ fill_segment(struct chart *ch,
 
 /* Draw a single slice of the pie */
 static void
-draw_segment(struct chart *ch, 
-	     double x0, double y0, 
+draw_segment(struct chart *ch,
+	     double x0, double y0,
 	     double radius,
-	     double start_angle, double segment_angle, 
+	     double start_angle, double segment_angle,
 	     const char *colour)
 {
   const double start_x  = x0 - radius * sin(start_angle);
@@ -198,7 +198,7 @@ draw_segment(struct chart *ch,
 
   pl_savestate_r(ch->lp);
   pl_colorname_r(ch->lp, colour);
-  
+
   pl_pentype_r(ch->lp,1);
   pl_filltype_r(ch->lp,1);
 
@@ -208,7 +208,7 @@ draw_segment(struct chart *ch,
   /* Draw line dividing segments */
   pl_pentype_r(ch->lp, 1);
   pl_fline_r(ch->lp, x0, y0, start_x, start_y);
-	
+
 
   pl_restorestate_r(ch->lp);
 }

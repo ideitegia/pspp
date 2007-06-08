@@ -102,7 +102,7 @@ void
 data_out (const union value *input, const struct fmt_spec *format,
           char *output)
 {
-  static data_out_converter_func *const converters[FMT_NUMBER_OF_FORMATS] = 
+  static data_out_converter_func *const converters[FMT_NUMBER_OF_FORMATS] =
     {
 #define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY) output_##METHOD,
 #include "format.def"
@@ -115,28 +115,28 @@ data_out (const union value *input, const struct fmt_spec *format,
 
 /* Returns the current output integer format. */
 enum integer_format
-data_out_get_integer_format (void) 
+data_out_get_integer_format (void)
 {
   return output_integer_format;
 }
 
 /* Sets the output integer format to INTEGER_FORMAT. */
 void
-data_out_set_integer_format (enum integer_format integer_format) 
+data_out_set_integer_format (enum integer_format integer_format)
 {
   output_integer_format = integer_format;
 }
 
 /* Returns the current output float format. */
 enum float_format
-data_out_get_float_format (void) 
+data_out_get_float_format (void)
 {
   return output_float_format;
 }
 
 /* Sets the output float format to FLOAT_FORMAT. */
 void
-data_out_set_float_format (enum float_format float_format) 
+data_out_set_float_format (enum float_format float_format)
 {
   output_float_format = float_format;
 }
@@ -155,9 +155,9 @@ output_number (const union value *input, const struct fmt_spec *format,
     output_missing (format, output);
   else if (!gsl_finite (number))
     output_infinite (number, format, output);
-  else 
+  else
     {
-      if (format->type != FMT_E && fabs (number) < 1.5 * power10 (format->w)) 
+      if (format->type != FMT_E && fabs (number) < 1.5 * power10 (format->w))
         {
           struct rounder r;
           rounder_init (&r, number, format->d);
@@ -208,12 +208,12 @@ output_Z (const union value *input, const struct fmt_spec *format,
     output_overflow (format, output);
   else
     {
-      if (number < 0 && strspn (buf, "0") < format->w) 
+      if (number < 0 && strspn (buf, "0") < format->w)
         {
           char *p = &buf[format->w - 1];
           *p = "}JKLMNOPQR"[*p - '0'];
         }
-      memcpy (output, buf, format->w); 
+      memcpy (output, buf, format->w);
     }
 }
 
@@ -327,7 +327,7 @@ output_date (const union value *input, const struct fmt_spec *format,
   if (number == SYSMIS)
     goto missing;
 
-  if (fmt_get_category (format->type) == FMT_CAT_DATE) 
+  if (fmt_get_category (format->type) == FMT_CAT_DATE)
     {
       if (number <= 0)
         goto missing;
@@ -342,10 +342,10 @@ output_date (const union value *input, const struct fmt_spec *format,
     {
       int ch = *template;
       int count = 1;
-      while (template[count] == ch) 
+      while (template[count] == ch)
         count++;
       template += count;
-      
+
       switch (ch)
         {
         case 'd':
@@ -364,25 +364,25 @@ output_date (const union value *input, const struct fmt_spec *format,
                   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
                 };
-              p = stpcpy (p, months[month - 1]); 
+              p = stpcpy (p, months[month - 1]);
             }
           break;
         case 'y':
-          if (count >= 4 || excess_width >= 2) 
+          if (count >= 4 || excess_width >= 2)
             {
               if (year <= 9999)
                 p += sprintf (p, "%04d", year);
               else if (format->type == FMT_DATETIME)
                 p = stpcpy (p, "****");
               else
-                goto overflow; 
+                goto overflow;
             }
-          else 
+          else
             {
               int offset = year - get_epoch ();
               if (offset < 0 || offset > 99)
                 goto overflow;
-              p += sprintf (p, "%02d", abs (year) % 100); 
+              p += sprintf (p, "%02d", abs (year) % 100);
             }
           break;
         case 'q':
@@ -392,16 +392,16 @@ output_date (const union value *input, const struct fmt_spec *format,
           p += sprintf (p, "%2d", (yday - 1) / 7 + 1);
           break;
         case 'D':
-          if (number < 0) 
+          if (number < 0)
             *p++ = '-';
-          number = fabs (number); 
+          number = fabs (number);
           p += sprintf (p, "%*.0f", count, floor (number / 60. / 60. / 24.));
           number = fmod (number, 60. * 60. * 24.);
           break;
         case 'H':
           if (number < 0)
             *p++ = '-';
-          number = fabs (number); 
+          number = fabs (number);
           p += sprintf (p, "%0*.0f", count, floor (number / 60. / 60.));
           number = fmod (number, 60. * 60.);
           break;
@@ -409,7 +409,7 @@ output_date (const union value *input, const struct fmt_spec *format,
           p += sprintf (p, "%02d", (int) floor (number / 60.));
           number = fmod (number, 60.);
           excess_width = format->w - (p - tmp);
-          if (excess_width < 0) 
+          if (excess_width < 0)
             goto overflow;
           if (excess_width == 3 || excess_width == 4
               || (excess_width >= 5 && format->d == 0))
@@ -419,7 +419,7 @@ output_date (const union value *input, const struct fmt_spec *format,
               int d = MIN (format->d, excess_width - 4);
               int w = d + 3;
               sprintf (p, ":%0*.*f", w, d, number);
-              if (fmt_decimal_char (FMT_F) != '.') 
+              if (fmt_decimal_char (FMT_F) != '.')
                 {
                   char *cp = strchr (p, '.');
                   if (cp != NULL)
@@ -434,7 +434,7 @@ output_date (const union value *input, const struct fmt_spec *format,
         default:
           assert (count == 1);
           *p++ = ch;
-          break; 
+          break;
         }
     }
 
@@ -517,7 +517,7 @@ static bool
 allocate_space (int request, int max_width, int *width)
 {
   assert (*width <= max_width);
-  if (request + *width <= max_width) 
+  if (request + *width <= max_width)
     {
       *width += request;
       return true;
@@ -539,7 +539,7 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
   const struct fmt_number_style *style = fmt_get_style (format->type);
   int decimals;
 
-  for (decimals = format->d; decimals >= 0; decimals--) 
+  for (decimals = format->d; decimals >= 0; decimals--)
     {
       /* Formatted version of magnitude of NUMBER. */
       char magnitude[64];
@@ -578,7 +578,7 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
                                     format->w, &width);
       if (!add_affixes && require_affixes)
         continue;
-      
+
       /* Check whether we should include grouping characters.
          We need room for a complete set or we don't insert any at all.
          We don't include grouping characters if decimal places were
@@ -591,7 +591,7 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
 
       /* Format the number's magnitude. */
       rounder_format (r, decimals, magnitude);
-  
+
       /* Assemble number. */
       p = output;
       if (format->w > width)
@@ -611,7 +611,7 @@ output_decimal (const struct rounder *r, const struct fmt_spec *format,
               if (i > 0 && (integer_digits - i) % 3 == 0)
                 *p++ = style->grouping;
               *p++ = magnitude[i];
-            } 
+            }
         }
       if (decimals > 0)
         {
@@ -662,7 +662,7 @@ output_scientific (double number, const struct fmt_spec *format,
      # flag does in the call to sprintf, below.) */
   fraction_width = MIN (MIN (format->d + 1, format->w - width), 16);
   if (format->type != FMT_E && fraction_width == 1)
-    fraction_width = 0; 
+    fraction_width = 0;
   width += fraction_width;
 
   /* Format (except suffix). */
@@ -692,7 +692,7 @@ output_scientific (double number, const struct fmt_spec *format,
   {
     char *cp = strchr (p, 'E') + 1;
     long int exponent = strtol (cp, NULL, 10);
-    if (abs (exponent) > 999) 
+    if (abs (exponent) > 999)
       return false;
     sprintf (cp, "%+04ld", exponent);
   }
@@ -717,7 +717,7 @@ output_scientific (double number, const struct fmt_spec *format,
 /* Return X rounded to the nearest integer,
    rounding ties away from zero. */
 static double
-round (double x) 
+round (double x)
 {
   return x >= 0.0 ? floor (x + .5) : ceil (x - .5);
 }
@@ -727,7 +727,7 @@ round (double x)
    rounded up when chopped off at DECIMALS decimal places, false
    if it should be rounded down. */
 static bool
-should_round_up (const struct rounder *r, int decimals) 
+should_round_up (const struct rounder *r, int decimals)
 {
   int digit = r->string[r->integer_digits + decimals + 1];
   assert (digit >= '0' && digit <= '9');
@@ -741,7 +741,7 @@ rounder_init (struct rounder *r, double number, int max_decimals)
 {
   assert (fabs (number) < 1e41);
   assert (max_decimals >= 0 && max_decimals <= 16);
-  if (max_decimals == 0) 
+  if (max_decimals == 0)
     {
       /* Fast path.  No rounding needed.
 
@@ -749,10 +749,10 @@ rounder_init (struct rounder *r, double number, int max_decimals)
          round_up assumes that fractional digits are present.  */
       sprintf (r->string, "%.0f.00", fabs (round (number)));
     }
-  else 
+  else
     {
       /* Slow path.
-         
+
          This is more difficult than it really should be because
          we have to make sure that numbers that are exactly
          halfway between two representations are always rounded
@@ -760,13 +760,13 @@ rounder_init (struct rounder *r, double number, int max_decimals)
          (usually it rounds to even), so we have to fake it as
          best we can, by formatting with extra precision and then
          doing the rounding ourselves.
-     
+
          We take up to two rounds to format numbers.  In the
          first round, we obtain 2 digits of precision beyond
          those requested by the user.  If those digits are
          exactly "50", then in a second round we format with as
          many digits as are significant in a "double".
-     
+
          It might be better to directly implement our own
          floating-point formatting routine instead of relying on
          the system's sprintf implementation.  But the classic
@@ -785,8 +785,8 @@ rounder_init (struct rounder *r, double number, int max_decimals)
             sprintf (r->string, "%.*f", format_decimals, fabs (number));
         }
     }
-  
-  if (r->string[0] == '0') 
+
+  if (r->string[0] == '0')
     memmove (r->string, &r->string[1], strlen (r->string));
 
   r->leading_zeros = strspn (r->string, "0.");
@@ -809,7 +809,7 @@ rounder_init (struct rounder *r, double number, int max_decimals)
    *NEGATIVE is set to true; otherwise, it is set to false. */
 static int
 rounder_width (const struct rounder *r, int decimals,
-               int *integer_digits, bool *negative) 
+               int *integer_digits, bool *negative)
 {
   /* Calculate base measures. */
   int width = r->integer_digits;
@@ -822,28 +822,28 @@ rounder_width (const struct rounder *r, int decimals,
   if (should_round_up (r, decimals))
     {
       /* Rounding up leading 9s adds a new digit (a 1). */
-      if (r->leading_nines >= width) 
+      if (r->leading_nines >= width)
         {
           width++;
-          ++*integer_digits; 
+          ++*integer_digits;
         }
     }
   else
     {
       /* Rounding down. */
-      if (r->leading_zeros >= width) 
+      if (r->leading_zeros >= width)
         {
           /* All digits that remain after rounding are zeros.
              Therefore we drop the negative sign. */
           *negative = false;
-          if (r->integer_digits == 0 && decimals == 0) 
+          if (r->integer_digits == 0 && decimals == 0)
             {
               /* No digits at all are left.  We need to display
                  at least a single digit (a zero). */
               assert (width == 0);
               width++;
               *integer_digits = 1;
-            } 
+            }
         }
     }
   return width;
@@ -854,23 +854,23 @@ rounder_width (const struct rounder *r, int decimals,
    indicated by rounder_width are written.  No terminating null
    is appended. */
 static void
-rounder_format (const struct rounder *r, int decimals, char *output) 
+rounder_format (const struct rounder *r, int decimals, char *output)
 {
   int base_width = r->integer_digits + (decimals > 0 ? decimals + 1 : 0);
-  if (should_round_up (r, decimals)) 
+  if (should_round_up (r, decimals))
     {
-      if (r->leading_nines < base_width) 
+      if (r->leading_nines < base_width)
         {
           /* Rounding up.  This is the common case where rounding
              up doesn't add an extra digit. */
           char *p;
           memcpy (output, r->string, base_width);
-          for (p = output + base_width - 1; ; p--) 
+          for (p = output + base_width - 1; ; p--)
             {
               assert (p >= output);
               if (*p == '9')
                 *p = '0';
-              else if (*p >= '0' && *p <= '8') 
+              else if (*p >= '0' && *p <= '8')
                 {
                   (*p)++;
                   break;
@@ -879,14 +879,14 @@ rounder_format (const struct rounder *r, int decimals, char *output)
                 assert (*p == '.');
             }
         }
-      else 
+      else
         {
           /* Rounding up leading 9s causes the result to be a 1
              followed by a number of 0s, plus a decimal point. */
           char *p = output;
           *p++ = '1';
           p = mempset (p, '0', r->integer_digits);
-          if (decimals > 0) 
+          if (decimals > 0)
             {
               *p++ = '.';
               p = mempset (p, '0', decimals);
@@ -894,18 +894,18 @@ rounder_format (const struct rounder *r, int decimals, char *output)
           assert (p == output + base_width + 1);
         }
     }
-  else 
+  else
     {
       /* Rounding down. */
-      if (r->integer_digits != 0 || decimals != 0) 
+      if (r->integer_digits != 0 || decimals != 0)
         {
           /* Common case: just copy the digits. */
-          memcpy (output, r->string, base_width); 
+          memcpy (output, r->string, base_width);
         }
-      else 
+      else
         {
           /* No digits remain.  The output is just a zero. */
-          output[0] = '0'; 
+          output[0] = '0';
         }
     }
 }
@@ -914,7 +914,7 @@ rounder_format (const struct rounder *r, int decimals, char *output)
 
 /* Returns 10**X. */
 static double PURE_FUNCTION
-power10 (int x) 
+power10 (int x)
 {
   static const double p[] =
     {
@@ -929,9 +929,9 @@ power10 (int x)
 
 /* Returns 256**X. */
 static double PURE_FUNCTION
-power256 (int x) 
+power256 (int x)
 {
-  static const double p[] = 
+  static const double p[] =
     {
       1.0,
       256.0,
@@ -952,7 +952,7 @@ static void
 output_infinite (double number, const struct fmt_spec *format, char *output)
 {
   assert (!gsl_finite (number));
-  
+
   if (format->w >= 3)
     {
       const char *s;
@@ -966,7 +966,7 @@ output_infinite (double number, const struct fmt_spec *format, char *output)
 
       buf_copy_str_lpad (output, format->w, s);
     }
-  else 
+  else
     output_overflow (format, output);
 }
 
@@ -976,12 +976,12 @@ output_missing (const struct fmt_spec *format, char *output)
 {
   memset (output, ' ', format->w);
 
-  if (format->type != FMT_N) 
+  if (format->type != FMT_N)
     {
       int dot_ofs = (format->type == FMT_PCT ? 2
                      : format->type == FMT_E ? 5
                      : 1);
-      output[MAX (0, format->w - format->d - dot_ofs)] = '.'; 
+      output[MAX (0, format->w - format->d - dot_ofs)] = '.';
     }
   else
     output[format->w - 1] = '.';
@@ -989,7 +989,7 @@ output_missing (const struct fmt_spec *format, char *output)
 
 /* Formats OUTPUT for overflow given FORMAT. */
 static void
-output_overflow (const struct fmt_spec *format, char *output) 
+output_overflow (const struct fmt_spec *format, char *output)
 {
   memset (output, '*', format->w);
 }
@@ -1001,7 +1001,7 @@ output_overflow (const struct fmt_spec *format, char *output)
    representable.  On failure, OUTPUT is cleared to all zero
    bytes. */
 static bool
-output_bcd_integer (double number, int digits, char *output) 
+output_bcd_integer (double number, int digits, char *output)
 {
   char decimal[64];
 
@@ -1014,21 +1014,21 @@ output_bcd_integer (double number, int digits, char *output)
       const char *src = decimal;
       int i;
 
-      for (i = 0; i < digits / 2; i++) 
+      for (i = 0; i < digits / 2; i++)
         {
           int d0 = *src++ - '0';
           int d1 = *src++ - '0';
-          *output++ = (d0 << 4) + d1; 
+          *output++ = (d0 << 4) + d1;
         }
       if (digits % 2)
         *output = (*src - '0') << 4;
-      
+
       return true;
     }
-  else 
+  else
     {
       memset (output, 0, DIV_RND_UP (digits, 2));
-      return false; 
+      return false;
     }
 }
 
@@ -1036,7 +1036,7 @@ output_bcd_integer (double number, int digits, char *output)
    given INTEGER_FORMAT. */
 static void
 output_binary_integer (uint64_t value, int bytes,
-                       enum integer_format integer_format, char *output) 
+                       enum integer_format integer_format, char *output)
 {
   integer_put (value, integer_format, output, bytes);
 }
@@ -1044,7 +1044,7 @@ output_binary_integer (uint64_t value, int bytes,
 /* Converts the BYTES bytes in DATA to twice as many hexadecimal
    digits in OUTPUT. */
 static void
-output_hex (const void *data_, size_t bytes, char *output) 
+output_hex (const void *data_, size_t bytes, char *output)
 {
   const uint8_t *data = data_;
   size_t i;

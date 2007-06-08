@@ -64,7 +64,7 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 {
   struct cmd_means cmd;
   int success = CMD_FAILURE;
-  
+
   n_dim = 0;
   nv_dim = NULL;
   v_dim = NULL;
@@ -108,14 +108,14 @@ cmd_means (struct lexer *lexer, struct dataset *ds)
 free:
   {
     int i;
-    
+
     for (i = 0; i < n_dim; i++)
       free (v_dim[i]);
     free (nv_dim);
     free (v_dim);
     free (v_var);
   }
-  
+
   return success;
 }
 
@@ -124,7 +124,7 @@ static int
 mns_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_means *cmd, void *aux UNUSED)
 {
   struct const_var_set *var_set;
-  
+
   if (!lex_match_id (lexer, "TABLES")
       && (lex_token (lexer) != T_ID || dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
@@ -147,9 +147,9 @@ mns_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_means *cm
       const struct variable **vl;
 
       if (!parse_const_var_set_vars (lexer, var_set, &vl, &nvl,
-                               PV_NO_DUPLICATE | PV_NO_SCRATCH)) 
+                               PV_NO_DUPLICATE | PV_NO_SCRATCH))
         goto lossage;
-      
+
       n_dim++;
       nv_dim = xnrealloc (nv_dim, n_dim, sizeof *nv_dim);
       v_dim = xnrealloc (v_dim, n_dim, sizeof *v_dim);
@@ -167,7 +167,7 @@ mns_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_means *cm
   return 0;
 }
 
-/* 
+/*
    Local Variables:
    mode: c
    End:

@@ -64,9 +64,9 @@ bool parse_var_set_vars (struct lexer *, const struct var_set *, struct variable
 bool parse_DATA_LIST_vars (struct lexer *, char ***names, size_t *cnt, int opts);
 bool parse_DATA_LIST_vars_pool (struct lexer *, struct pool *,
                                char ***names, size_t *cnt, int opts);
-bool parse_mixed_vars (struct lexer *, const struct dictionary *dict, 
+bool parse_mixed_vars (struct lexer *, const struct dictionary *dict,
 		       char ***names, size_t *cnt, int opts);
-bool parse_mixed_vars_pool (struct lexer *, const struct dictionary *dict, 
+bool parse_mixed_vars_pool (struct lexer *, const struct dictionary *dict,
 			    struct pool *,
                            char ***names, size_t *cnt, int opts);
 

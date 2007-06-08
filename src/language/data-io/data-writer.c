@@ -49,7 +49,7 @@ dfm_open_writer (struct file_handle *fh)
 {
   struct dfm_writer *w;
   void **aux;
-  
+
   aux = fh_open (fh, FH_REF_FILE, "data file", "ws");
   if (aux == NULL)
     return NULL;
@@ -77,7 +77,7 @@ dfm_open_writer (struct file_handle *fh)
 
 /* Returns false if an I/O error occurred on WRITER, true otherwise. */
 bool
-dfm_write_error (const struct dfm_writer *writer) 
+dfm_write_error (const struct dfm_writer *writer)
 {
   return ferror (writer->file);
 }
@@ -94,7 +94,7 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
   if (dfm_write_error (w))
     return false;
 
-  switch (fh_get_mode (w->fh)) 
+  switch (fh_get_mode (w->fh))
     {
     case FH_MODE_TEXT:
       fwrite (rec, len, 1, w->file);
@@ -107,7 +107,7 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
         size_t write_bytes = MIN (len, record_width);
         size_t pad_bytes = record_width - write_bytes;
         fwrite (rec, write_bytes, 1, w->file);
-        while (pad_bytes > 0) 
+        while (pad_bytes > 0)
           {
             static const char spaces[32] = "                                ";
             size_t chunk = MIN (pad_bytes, sizeof spaces);
@@ -137,7 +137,7 @@ dfm_close_writer (struct dfm_writer *w)
   if (fh_close (w->fh, "data file", "ws"))
     {
       free (file_name);
-      return true; 
+      return true;
     }
 
   ok = true;

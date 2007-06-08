@@ -47,7 +47,7 @@
    missing, *WIDTH or *DECIMALS or both will be set to 0. */
 bool
 parse_abstract_format_specifier (struct lexer *lexer, char type[FMT_TYPE_LEN_MAX + 1],
-                                 int *width, int *decimals) 
+                                 int *width, int *decimals)
 {
   struct substring s;
   struct substring type_ss, width_ss, decimals_ss;
@@ -60,7 +60,7 @@ parse_abstract_format_specifier (struct lexer *lexer, char type[FMT_TYPE_LEN_MAX
   s = ds_ss (lex_tokstr (lexer));
   ss_get_chars (&s, ss_span (s, ss_cstr (CC_LETTERS)), &type_ss);
   ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &width_ss);
-  if (ss_match_char (&s, '.')) 
+  if (ss_match_char (&s, '.'))
     {
       has_decimals = true;
       ss_get_chars (&s, ss_span (s, ss_cstr (CC_DIGITS)), &decimals_ss);
@@ -110,16 +110,16 @@ parse_format_specifier (struct lexer *lexer, struct fmt_spec *format)
       msg (SE, _("Unknown format type \"%s\"."), type);
       return false;
     }
-  
+
   return true;
 }
 
 /* Parses a token containing just the name of a format type and
    returns true if successful. */
 bool
-parse_format_specifier_name (struct lexer *lexer, enum fmt_type *type) 
+parse_format_specifier_name (struct lexer *lexer, enum fmt_type *type)
 {
-  if (lex_token (lexer) != T_ID) 
+  if (lex_token (lexer) != T_ID)
     {
       lex_error (lexer, _("expecting format type"));
       return false;

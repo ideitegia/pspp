@@ -37,7 +37,7 @@
 #define _(msgid) gettext (msgid)
 
 /* Result of type detection. */
-enum detect_result 
+enum detect_result
   {
     YES,                        /* It is this type. */
     NO,                         /* It is not this type. */
@@ -60,9 +60,9 @@ try_detect (struct file_handle *handle, bool (*detect) (FILE *))
            fh_get_file_name (handle), strerror (errno));
       return IO_ERROR;
     }
-    
+
   is_type = detect (file);
-  
+
   fn_close (fh_get_file_name (handle), file);
 
   return is_type ? YES : NO;
@@ -74,7 +74,7 @@ try_detect (struct file_handle *handle, bool (*detect) (FILE *))
 struct casereader *
 any_reader_open (struct file_handle *handle, struct dictionary **dict)
 {
-  switch (fh_get_referent (handle)) 
+  switch (fh_get_referent (handle))
     {
     case FH_REF_FILE:
       {

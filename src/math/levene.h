@@ -1,4 +1,4 @@
-/* This file is part of GNU PSPP 
+/* This file is part of GNU PSPP
    Computes Levene test  statistic.
 
    Copyright (C) 2004 Free Software Foundation, Inc.
@@ -25,9 +25,9 @@
 #include <data/missing-values.h>
 #include <data/variable.h>
 
-/* Calculate the Levene statistic 
+/* Calculate the Levene statistic
 
-The independent variable :   v_indep; 
+The independent variable :   v_indep;
 
 Number of dependent variables :   n_dep;
 
@@ -40,7 +40,7 @@ struct dictionary ;
 struct casefilter ;
 
 void  levene(const struct dictionary *dict, struct casereader *,
-	     const struct variable *v_indep, size_t n_dep, 
+	     const struct variable *v_indep, size_t n_dep,
 	     const struct variable **v_dep,
 	     enum mv_class exclude);
 

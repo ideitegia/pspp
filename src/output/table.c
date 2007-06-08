@@ -48,7 +48,7 @@ static char *command_name;
 
 /* Returns the font to use for a cell with the given OPTIONS. */
 static enum outp_font
-options_to_font (unsigned options) 
+options_to_font (unsigned options)
 {
   return (options & TAB_FIX ? OUTP_FIXED
           : options & TAB_EMPH ? OUTP_EMPHASIS
@@ -125,7 +125,7 @@ void
 tab_realloc (struct tab_table *t, int nc, int nr)
 {
   int ro, co;
-  
+
   assert (t != NULL);
   ro = t->row_ofs;
   co = t->col_ofs;
@@ -136,14 +136,14 @@ tab_realloc (struct tab_table *t, int nc, int nr)
     nc = t->nc;
   if (nr == -1)
     nr = t->nr;
-  
+
   assert (nc == t->nc);
-  
+
   if (nc > t->cf)
     {
       int mr1 = MIN (nr, t->nr);
       int mc1 = MIN (nc, t->nc);
-      
+
       struct substring *new_cc;
       unsigned char *new_ct;
       int r;
@@ -169,7 +169,7 @@ tab_realloc (struct tab_table *t, int nc, int nr)
 
       t->rh = pool_nrealloc (t->container, t->rh, nc, nr + 1);
       t->rv = pool_nrealloc (t->container, t->rv, nr, nc + 1);
-      
+
       if (nr > t->nr)
 	{
 	  memset (&t->rh[nc * (t->nr + 1)], TAL_0, (nr - t->nr) * nc);
@@ -179,7 +179,7 @@ tab_realloc (struct tab_table *t, int nc, int nr)
     }
 
   memset (&t->ct[nc * t->nr], TAB_EMPTY, nc * (nr - t->nr));
-  
+
   t->nr = nr;
   t->nc = nc;
 
@@ -300,9 +300,9 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
   assert (t != NULL);
 
 #if DEBUGGING
-  if (x1 + t->col_ofs < 0 || x1 + t->col_ofs >= t->nc 
+  if (x1 + t->col_ofs < 0 || x1 + t->col_ofs >= t->nc
       || x2 + t->col_ofs < 0 || x2 + t->col_ofs >= t->nc
-      || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= t->nr 
+      || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= t->nr
       || y2 + t->row_ofs < 0 || y2 + t->row_ofs >= t->nr)
     {
       printf (_("bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) "
@@ -350,7 +350,7 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
   if (i_h != -1)
     {
       int y;
-      
+
       for (y = y1 + 1; y <= y2; y++)
 	{
 	  int x;
@@ -362,11 +362,11 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
   if (i_v != -1)
     {
       int x;
-      
+
       for (x = x1 + 1; x <= x2; x++)
 	{
 	  int y;
-	  
+
           for (y = y1; y <= y2; y++)
             t->rv[x + (t->cf + 1) * y] = i_v;
 	}
@@ -424,7 +424,7 @@ tab_natural_width (struct tab_table *t, struct outp_driver *d, int c)
 	struct outp_text text;
 	unsigned char opt = t->ct[c + r * t->cf];
         int w;
-		
+
 	if (opt & (TAB_JOIN | TAB_EMPTY))
 	  continue;
 
@@ -444,12 +444,12 @@ tab_natural_width (struct tab_table *t, struct outp_driver *d, int c)
       /* FIXME: This is an ugly kluge to compensate for the fact
          that we don't let joined cells contribute to column
          widths. */
-      width = d->prop_em_width * 8; 
+      width = d->prop_em_width * 8;
     }
-  
+
   {
     const int clamp = d->width - t->wrv[0] - t->wrv[t->nc];
-    
+
     if (width > clamp)
       width = clamp;
   }
@@ -466,10 +466,10 @@ tab_natural_height (struct tab_table *t, struct outp_driver *d, int r)
   int height;
 
   assert (t != NULL && r >= 0 && r < t->nr);
-  
+
   {
     int c;
-    
+
     for (height = d->font_height, c = 0; c < t->nc; c++)
       {
 	struct outp_text text;
@@ -503,10 +503,10 @@ tab_natural_dimensions (struct tab_table *t, struct outp_driver *d)
   int i;
 
   assert (t != NULL);
-  
+
   for (i = 0; i < t->nc; i++)
     t->w[i] = tab_natural_width (t, d, i);
-  
+
   for (i = 0; i < t->nr; i++)
     t->h[i] = tab_natural_height (t, d, i);
 }
@@ -540,7 +540,7 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
   contents = pool_alloc (table->container, f->w);
   table->cc[c + r * table->cf] = ss_buffer (contents, f->w);
   table->ct[c + r * table->cf] = opt;
-  
+
   data_out (v, f, contents);
 }
 
@@ -552,19 +552,19 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
 {
   char *contents;
   char buf[40], *cp;
-  
+
   struct fmt_spec f;
   union value double_value;
 
   assert (table != NULL && w <= 40);
-  
+
   assert (c >= 0);
   assert (c < table->nc);
   assert (r >= 0);
   assert (r < table->nr);
 
   f = fmt_for_output (FMT_F, w, d);
-  
+
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
       || c + table->col_ofs >= table->nc
@@ -606,7 +606,7 @@ tab_text (struct tab_table *table, int c, int r, unsigned opt, const char *text,
   assert (r >= 0 );
   assert (c < table->nc);
   assert (r < table->nr);
-  
+
 
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
@@ -663,41 +663,41 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 #endif
 
   tab_box (table, -1, -1, TAL_0, TAL_0, x1, y1, x2, y2);
-  
+
   j = pool_alloc (table->container, sizeof *j);
   j->hit = 0;
   j->x1 = x1 + table->col_ofs;
   j->y1 = y1 + table->row_ofs;
   j->x2 = ++x2 + table->col_ofs;
   j->y2 = ++y2 + table->row_ofs;
-  
+
   {
     va_list args;
-    
+
     va_start (args, text);
     j->contents = text_format (table, opt, text, args);
     va_end (args);
   }
-  
+
   opt |= TAB_JOIN;
-  
+
   {
     struct substring *cc = &table->cc[x1 + y1 * table->cf];
     unsigned char *ct = &table->ct[x1 + y1 * table->cf];
     const int ofs = table->cf - (x2 - x1);
 
     int y;
-    
+
     for (y = y1; y < y2; y++)
       {
 	int x;
-	
+
 	for (x = x1; x < x2; x++)
 	  {
 	    *cc++ = ss_buffer ((char *) j, 0);
 	    *ct++ = opt;
 	  }
-	
+
 	cc += ofs;
 	ct += ofs;
       }
@@ -710,7 +710,7 @@ tab_raw (struct tab_table *table, int c, int r, unsigned opt,
 	 struct substring *string)
 {
   assert (table != NULL && string != NULL);
-  
+
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
       || c + table->col_ofs >= table->nc
@@ -761,17 +761,17 @@ tab_output_text (int options, const char *buf, ...)
   if (options & TAT_PRINTF)
     {
       va_list args;
-      
+
       va_start (args, buf);
       buf = tmp_buf = xvasprintf (buf, args);
       va_end (args);
     }
-  
+
   tab_text (t, 0, 0, options & ~TAT_PRINTF, buf);
   tab_flags (t, SOMF_NO_TITLE | SOMF_NO_SPACING);
   tab_dim (t, options & TAT_NOWRAP ? nowrap_dim : wrap_dim);
   tab_submit (t);
-  
+
   free (tmp_buf);
 }
 
@@ -854,7 +854,7 @@ tabi_table (struct som_entity *table)
 
   t = table->ext;
   tab_offset (t, 0, 0);
-  
+
   assert (t->w == NULL && t->h == NULL);
   t->w = pool_nalloc (t->container, t->nc, sizeof *t->w);
   t->h = pool_nalloc (t->container, t->nr, sizeof *t->h);
@@ -865,9 +865,9 @@ tabi_table (struct som_entity *table)
 /* Returns the line style to use for spacing purposes for a rule
    of the given TYPE. */
 static enum outp_line_style
-rule_to_spacing_type (unsigned char type) 
+rule_to_spacing_type (unsigned char type)
 {
-  switch (type) 
+  switch (type)
     {
     case TAL_0:
       return OUTP_L_NONE;
@@ -887,28 +887,28 @@ tabi_driver (struct outp_driver *driver)
 {
   int c, r;
   int i;
-  
+
   assert (driver != NULL);
   d = driver;
-  
+
   /* Figure out sizes of rules. */
-  for (r = 0; r <= t->nr; r++) 
+  for (r = 0; r <= t->nr; r++)
     {
       int width = 0;
-      for (c = 0; c < t->nc; c++) 
+      for (c = 0; c < t->nc; c++)
         {
           unsigned char rh = t->rh[c + r * t->cf];
           int w = driver->horiz_line_width[rule_to_spacing_type (rh)];
           if (w > width)
-            width = w; 
+            width = w;
         }
-      t->hrh[r] = width; 
+      t->hrh[r] = width;
     }
 
-  for (c = 0; c <= t->nc; c++) 
+  for (c = 0; c <= t->nc; c++)
     {
       int width = 0;
-      for (r = 0; r < t->nr; r++) 
+      for (r = 0; r < t->nr; r++)
         {
           unsigned char *rv = &t->rv[c + r * (t->cf + 1)];
           int w;
@@ -918,7 +918,7 @@ tabi_driver (struct outp_driver *driver)
           if (w > width)
             width = w;
         }
-      t->wrv[c] = width; 
+      t->wrv[c] = width;
     }
 
 #if DEBUGGING
@@ -944,7 +944,7 @@ tabi_driver (struct outp_driver *driver)
 	  }
 	assert (t->h[i] > 0);
       }
-    
+
     for (i = 0; i < t->nc; i++)
       {
 	if (t->w[i] == -1)
@@ -956,7 +956,7 @@ tabi_driver (struct outp_driver *driver)
       }
   }
 #endif
-    
+
   /* Add up header sizes. */
   for (i = 0, t->wl = t->wrv[0]; i < t->l; i++)
     t->wl += t->w[i] + t->wrv[i + 1];
@@ -966,7 +966,7 @@ tabi_driver (struct outp_driver *driver)
     t->wr += t->w[i] + t->wrv[i + 1];
   for (i = t->nr - t->b, t->hb = t->hrh[i]; i < t->nr; i++)
     t->hb += t->h[i] + t->hrh[i + 1];
-  
+
   /* Title. */
   if (!(t->flags & SOMF_NO_TITLE))
     t->ht += d->font_height;
@@ -991,16 +991,16 @@ static void
 tabi_area (int *horiz, int *vert)
 {
   assert (horiz != NULL && vert != NULL);
-  
+
   {
     int w, c;
-    
+
     for (c = t->l + 1, w = t->wl + t->wr + t->w[t->l];
 	 c < t->nc - t->r; c++)
       w += t->w[c] + t->wrv[c];
     *horiz = w;
   }
-  
+
   {
     int h, r;
     for (r = t->t + 1, h = t->ht + t->hb + t->h[t->t];
@@ -1044,7 +1044,7 @@ tabi_cumulate (int cumtype, int start, int *end, int max, int *actual)
   int *d;
   int *r;
   int total;
-  
+
   assert (end != NULL && (cumtype == SOM_ROWS || cumtype == SOM_COLUMNS));
   if (cumtype == SOM_ROWS)
     {
@@ -1062,7 +1062,7 @@ tabi_cumulate (int cumtype, int start, int *end, int max, int *actual)
       r = &t->wrv[start + 1];
       total = t->wl + t->wr;
     }
-  
+
   total += *d++;
   if (total > max)
     {
@@ -1072,14 +1072,14 @@ tabi_cumulate (int cumtype, int start, int *end, int max, int *actual)
 	*actual = 0;
       return;
     }
-    
+
   {
     int x;
-      
+
     for (x = start + 1; x < n; x++)
       {
 	int amt = *d++ + *r++;
-	
+
 	total += amt;
 	if (total > max)
 	  {
@@ -1090,7 +1090,7 @@ tabi_cumulate (int cumtype, int start, int *end, int max, int *actual)
 
     if (end)
       *end = x;
-    
+
     if (actual)
       *actual = total;
   }
@@ -1107,7 +1107,7 @@ tabi_flags (unsigned *flags)
 /* Returns true if the table will fit in the given page WIDTH,
    false otherwise. */
 static bool
-tabi_fits_width (int width) 
+tabi_fits_width (int width)
 {
   int i;
 
@@ -1121,7 +1121,7 @@ tabi_fits_width (int width)
 /* Returns true if the table will fit in the given page LENGTH,
    false otherwise. */
 static bool
-tabi_fits_length (int length) 
+tabi_fits_length (int length)
 {
   int i;
 
@@ -1154,7 +1154,7 @@ tabi_title (int x, int y)
 
   if (t->flags & SOMF_NO_TITLE)
     return;
-  
+
   cp = spprintf (buf, "%d.%d", table_num, subtable_num);
   if (x && y)
     cp = spprintf (cp, "(%d:%d)", x, y);
@@ -1170,7 +1170,7 @@ tabi_title (int x, int y)
       cp += length;
     }
   *cp = 0;
-  
+
   {
     struct outp_text text;
 
@@ -1196,13 +1196,13 @@ static int
 render_rows (int y, int c0, int c1, int r0, int r1)
 {
   int r;
-  for (r = r0; r < r1; r++) 
+  for (r = r0; r < r1; r++)
     {
       int x = d->cp_x;
       x = render_strip (x, y, r, 0, t->l * 2 + 1, r0, r1);
       x = render_strip (x, y, r, c0 * 2 + 1, c1 * 2, r0, r1);
       x = render_strip (x, y, r, (t->nc - t->r) * 2, t->nc * 2 + 1, r0, r1);
-      y += (r & 1) ? t->h[r / 2] : t->hrh[r / 2]; 
+      y += (r & 1) ? t->h[r / 2] : t->hrh[r / 2];
     }
   return y;
 }
@@ -1213,7 +1213,7 @@ static void
 tabi_render (int c0, int r0, int c1, int r1)
 {
   int y;
-  
+
   tab_hit++;
 
   y = d->cp_y;
@@ -1229,7 +1229,7 @@ const struct som_table_class tab_table_class =
   {
     tabi_table,
     tabi_driver,
-    
+
     tabi_count,
     tabi_area,
     NULL,
@@ -1242,7 +1242,7 @@ const struct som_table_class tab_table_class =
     tabi_flags,
     tabi_fits_width,
     tabi_fits_length,
-    
+
     NULL,
     NULL,
     tabi_set_headers,
@@ -1254,7 +1254,7 @@ const struct som_table_class tab_table_class =
 static enum outp_justification
 translate_justification (unsigned int opt)
 {
-  switch (opt & TAB_ALIGN_MASK) 
+  switch (opt & TAB_ALIGN_MASK)
     {
     case TAB_RIGHT:
       return OUTP_RIGHT;
@@ -1270,9 +1270,9 @@ translate_justification (unsigned int opt)
 /* Returns the line style to use for drawing a rule of the given
    TYPE. */
 static enum outp_line_style
-rule_to_draw_type (unsigned char type) 
+rule_to_draw_type (unsigned char type)
 {
-  switch (type) 
+  switch (type)
     {
     case TAL_0:
     case TAL_GAP:
@@ -1288,14 +1288,14 @@ rule_to_draw_type (unsigned char type)
 
 /* Returns the horizontal rule at the given column and row. */
 static int
-get_hrule (int c, int r) 
+get_hrule (int c, int r)
 {
   return t->rh[c + r * t->cf];
 }
 
 /* Returns the vertical rule at the given column and row. */
 static int
-get_vrule (int c, int r) 
+get_vrule (int c, int r)
 {
   return t->rv[c + r * (t->cf + 1)];
 }
@@ -1358,7 +1358,7 @@ strip_width (int c1, int c2)
   int width = 0;
   int c;
 
-  for (c = c1; c < c2; c++) 
+  for (c = c1; c < c2; c++)
     width += t->w[c] + t->wrv[c + 1];
   if (c1 < c2)
     width -= t->wrv[c2];
@@ -1373,7 +1373,7 @@ strip_height (int r1, int r2)
   int height = 0;
   int r;
 
-  for (r = r1; r < r2; r++) 
+  for (r = r1; r < r2; r++)
     height += t->h[r] + t->hrh[r + 1];
   if (r1 < r2)
     height -= t->hrh[r2];
@@ -1389,7 +1389,7 @@ render_cell (int x, int y, int c, int r, int c1, int r1)
   const int index = c + (r * t->cf);
   unsigned char type = t->ct[index];
   struct substring *content = &t->cc[index];
-  
+
   if (!(type & TAB_JOIN))
     {
       if (!(type & TAB_EMPTY))
@@ -1442,7 +1442,7 @@ render_strip (int x, int y, int r, int c0, int c1, int r0 UNUSED, int r1)
   int c;
 
   for (c = c0; c < c1; c++)
-    if (c & 1) 
+    if (c & 1)
       {
         if (r & 1)
           render_cell (x, y, c / 2, r / 2, c1 / 2, r1);
@@ -1458,14 +1458,14 @@ render_strip (int x, int y, int r, int c0, int c1, int r0 UNUSED, int r1)
           render_rule_intersection (x, y, c / 2, r / 2);
         x += t->wrv[c / 2];
       }
-  
+
   return x;
 }
 
 /* Sets COMMAND_NAME as the name of the current command,
    for embedding in output. */
 void
-tab_set_command_name (const char *command_name_) 
+tab_set_command_name (const char *command_name_)
 {
   free (command_name);
   command_name = command_name_ ? xstrdup (command_name_) : NULL;

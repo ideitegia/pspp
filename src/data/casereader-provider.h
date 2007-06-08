@@ -41,7 +41,7 @@
 #include <data/casereader.h>
 
 /* Casereader class for sequential data sources. */
-struct casereader_class 
+struct casereader_class
   {
     /* Mandatory.
 
@@ -144,7 +144,7 @@ struct casereader_random_class
     void (*destroy) (struct casereader *reader, void *aux);
 
     /* Mandatory.
-       
+
        A call to this function tells the callee that the CNT
        cases at the beginning of READER will never be read again.
        The casereader implementation should free any resources

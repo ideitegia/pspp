@@ -58,7 +58,7 @@ histogram_write_legend(struct chart *ch, const struct normal_curve *norm)
   pl_fmove_r(ch->lp,ch->legend_left,ch->data_bottom + ch->font_size * 1.5 * 2);
   pl_alabel_r(ch->lp,0,'b',buf);
 
-  pl_restorestate_r(ch->lp);    
+  pl_restorestate_r(ch->lp);
 }
 
 static void hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar);
@@ -67,7 +67,7 @@ static void hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar);
 static void
 hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar)
 {
-  if ( !ch ) 
+  if ( !ch )
     return ;
 
 
@@ -85,12 +85,12 @@ hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar)
 
     assert( upper >= lower);
 
-    height = gsl_histogram_get(hist, bar) * 
+    height = gsl_histogram_get(hist, bar) *
       (ch->data_top - ch->data_bottom) / gsl_histogram_max_val(hist);
 
     pl_savestate_r(ch->lp);
     pl_move_r(ch->lp,ch->data_left, ch->data_bottom);
-    pl_fillcolorname_r(ch->lp, ch->fill_colour); 
+    pl_fillcolorname_r(ch->lp, ch->fill_colour);
     pl_filltype_r(ch->lp,1);
 
 
@@ -119,7 +119,7 @@ histogram_plot(const gsl_histogram *hist,
 {
   int i;
   int bins;
-  
+
   struct chart *ch;
 
   ch = chart_create();
@@ -140,14 +140,14 @@ histogram_plot(const gsl_histogram *hist,
 
   chart_write_yscale(ch, 0, gsl_histogram_max_val(hist), 5);
 
-  for ( i = 0 ; i < bins ; ++i ) 
+  for ( i = 0 ; i < bins ; ++i )
       hist_draw_bar(ch, hist, i);
 
   histogram_write_legend(ch, norm);
 
   if ( show_normal  )
   {
-    /* Draw the normal curve */    
+    /* Draw the normal curve */
 
     double d ;
     double x_min, x_max, not_used ;
@@ -161,16 +161,16 @@ histogram_plot(const gsl_histogram *hist,
     assert(range == x_max - not_used);
 
     abscissa_scale = (ch->data_right - ch->data_left) / (x_max - x_min);
-    ordinate_scale = (ch->data_top - ch->data_bottom) / 
+    ordinate_scale = (ch->data_top - ch->data_bottom) /
       gsl_histogram_max_val(hist) ;
 
-    pl_move_r(ch->lp, ch->data_left, ch->data_bottom);    
-    for( d = ch->data_left; 
-	 d <= ch->data_right ; 
+    pl_move_r(ch->lp, ch->data_left, ch->data_bottom);
+    for( d = ch->data_left;
+	 d <= ch->data_right ;
 	 d += (ch->data_right - ch->data_left) / 100.0)
-      {    
-	const double x = (d - ch->data_left) / abscissa_scale + x_min ; 
-	const double y = norm->N * range * 
+      {
+	const double x = (d - ch->data_left) / abscissa_scale + x_min ;
+	const double y = norm->N * range *
 	  gsl_ran_gaussian_pdf(x - norm->mean, norm->stddev);
 
 	pl_fcont_r(ch->lp,  d,  ch->data_bottom  + y * ordinate_scale);

@@ -17,7 +17,7 @@
    02110-1301, USA. */
 
 /* Copyright (C) 2001 Free Software Foundation, Inc.
-  
+
    This file is part of the GNU ISO C++ Library.  This library is free
    software; you can redistribute it and/or modify it under the
    terms of the GNU General Public License as published by the
@@ -108,11 +108,11 @@
 void *
 find (const void *array, size_t count, size_t size,
       const void *target,
-      algo_compare_func *compare, const void *aux) 
+      algo_compare_func *compare, const void *aux)
 {
   const char *element = array;
 
-  while (count-- > 0) 
+  while (count-- > 0)
     {
       if (compare (target, element, aux) == 0)
         return (void *) element;
@@ -135,11 +135,11 @@ count_equal (const void *array, size_t count, size_t size,
   const char *first = array;
   size_t equal_cnt = 0;
 
-  while (count-- > 0) 
+  while (count-- > 0)
     {
       if (compare (element, first, aux) == 0)
         equal_cnt++;
-      
+
       first += size;
     }
 
@@ -152,16 +152,16 @@ count_equal (const void *array, size_t count, size_t size,
    PREDICATE. */
 size_t
 count_if (const void *array, size_t count, size_t size,
-          algo_predicate_func *predicate, const void *aux) 
+          algo_predicate_func *predicate, const void *aux)
 {
   const char *first = array;
   size_t true_cnt = 0;
 
-  while (count-- > 0) 
+  while (count-- > 0)
     {
       if (predicate (first, aux) != 0)
         true_cnt++;
-      
+
       first += size;
     }
 
@@ -187,29 +187,29 @@ count_if (const void *array, size_t count, size_t size,
    arrays only.  Arguments same as for sort() above. */
 size_t
 unique (void *array, size_t count, size_t size,
-        algo_compare_func *compare, const void *aux) 
+        algo_compare_func *compare, const void *aux)
 {
   char *first = array;
   char *last = first + size * count;
   char *result = array;
 
-  for (;;) 
+  for (;;)
     {
       first += size;
-      if (first >= last) 
+      if (first >= last)
         {
           assert (adjacent_find_equal (array, count,
                                        size, compare, aux) == NULL);
-          return count; 
+          return count;
         }
 
-      if (compare (result, first, aux)) 
+      if (compare (result, first, aux))
         {
           result += size;
           if (result != first)
             memcpy (result, first, size);
         }
-      else 
+      else
         count--;
     }
 }
@@ -217,7 +217,7 @@ unique (void *array, size_t count, size_t size,
 /* Helper function that calls sort(), then unique(). */
 size_t
 sort_unique (void *array, size_t count, size_t size,
-             algo_compare_func *compare, const void *aux) 
+             algo_compare_func *compare, const void *aux)
 {
   sort (array, count, size, compare, aux);
   return unique (array, count, size, compare, aux);
@@ -229,9 +229,9 @@ sort_unique (void *array, size_t count, size_t size,
    passed to each predicate as auxiliary data.  Returns the
    number of elements for which PREDICATE returns true.  Not
    stable. */
-size_t 
+size_t
 partition (void *array, size_t count, size_t size,
-           algo_predicate_func *predicate, const void *aux) 
+           algo_predicate_func *predicate, const void *aux)
 {
   size_t true_cnt = count;
   char *first = array;
@@ -241,31 +241,31 @@ partition (void *array, size_t count, size_t size,
     {
       /* Move FIRST forward to point to first element that fails
          PREDICATE. */
-      for (;;) 
+      for (;;)
         {
           if (first == last)
             goto done;
-          else if (!predicate (first, aux)) 
+          else if (!predicate (first, aux))
             break;
 
-          first += size; 
+          first += size;
         }
       true_cnt--;
 
       /* Move LAST backward to point to last element that passes
          PREDICATE. */
-      for (;;) 
+      for (;;)
         {
           last -= size;
 
           if (first == last)
             goto done;
-          else if (predicate (last, aux)) 
+          else if (predicate (last, aux))
             break;
           else
             true_cnt--;
         }
-      
+
       /* By swapping FIRST and LAST we extend the starting and
          ending sequences that pass and fail, respectively,
          PREDICATE. */
@@ -275,7 +275,7 @@ partition (void *array, size_t count, size_t size,
 
  done:
   assert (is_partitioned (array, count, size, true_cnt, predicate, aux));
-  return true_cnt; 
+  return true_cnt;
 }
 
 /* Checks whether ARRAY, which contains COUNT elements of SIZE
@@ -285,7 +285,7 @@ partition (void *array, size_t count, size_t size,
 bool
 is_partitioned (const void *array, size_t count, size_t size,
                 size_t true_cnt,
-                algo_predicate_func *predicate, const void *aux) 
+                algo_predicate_func *predicate, const void *aux)
 {
   const char *first = array;
   size_t idx;
@@ -304,19 +304,19 @@ is_partitioned (const void *array, size_t count, size_t size,
    RESULT, except that elements for which PREDICATE is false are
    not copied.  Returns the number of elements copied.  AUX is
    passed to PREDICATE as auxiliary data.  */
-size_t 
+size_t
 copy_if (const void *array, size_t count, size_t size,
          void *result,
-         algo_predicate_func *predicate, const void *aux) 
+         algo_predicate_func *predicate, const void *aux)
 {
   const char *input = array;
   const char *last = input + size * count;
   char *output = result;
   size_t nonzero_cnt = 0;
-  
+
   while (input < last)
     {
-      if (predicate (input, aux)) 
+      if (predicate (input, aux))
         {
           memcpy (output, input, size);
           output += size;
@@ -337,10 +337,10 @@ copy_if (const void *array, size_t count, size_t size,
    following them, if any, into its position. */
 void
 remove_range (void *array_, size_t count, size_t size,
-              size_t idx, size_t n) 
+              size_t idx, size_t n)
 {
   char *array = array_;
-  
+
   assert (array != NULL);
   assert (idx <= count);
   assert (idx + n <= count);
@@ -355,7 +355,7 @@ remove_range (void *array_, size_t count, size_t size,
    following it, if any, into its position. */
 void
 remove_element (void *array, size_t count, size_t size,
-                size_t idx) 
+                size_t idx)
 {
   remove_range (array, count, size, idx, 1);
 }
@@ -366,7 +366,7 @@ remove_element (void *array, size_t count, size_t size,
    positions. */
 void
 insert_range (void *array_, size_t count, size_t size,
-              size_t idx, size_t n) 
+              size_t idx, size_t n)
 {
   char *array = array_;
 
@@ -380,7 +380,7 @@ insert_range (void *array_, size_t count, size_t size,
    positions. */
 void
 insert_element (void *array, size_t count, size_t size,
-                size_t idx) 
+                size_t idx)
 {
   insert_range (array, count, size, idx, 1);
 }
@@ -391,13 +391,13 @@ insert_element (void *array, size_t count, size_t size,
    time. */
 void
 move_element (void *array_, size_t count, size_t size,
-              size_t old_idx, size_t new_idx) 
+              size_t old_idx, size_t new_idx)
 {
   assert (array_ != NULL || count == 0);
   assert (old_idx < count);
   assert (new_idx < count);
-  
-  if (old_idx != new_idx) 
+
+  if (old_idx != new_idx)
     {
       char *array = array_;
       char *element = xmalloc (size);
@@ -426,8 +426,8 @@ move_range (void *array_, size_t count, size_t size,
   assert (n <= count);
   assert (old_idx + n <= count);
   assert (new_idx + n <= count);
-  
-  if (old_idx != new_idx && n > 0) 
+
+  if (old_idx != new_idx && n > 0)
     {
       char *array = array_;
       char *range = xmalloc (size * n);
@@ -446,14 +446,14 @@ move_range (void *array_, size_t count, size_t size,
 }
 
 /* A predicate and its auxiliary data. */
-struct pred_aux 
+struct pred_aux
   {
     algo_predicate_func *predicate;
     const void *aux;
   };
 
 static bool
-not (const void *data, const void *pred_aux_) 
+not (const void *data, const void *pred_aux_)
 {
   const struct pred_aux *pred_aux = pred_aux_;
 
@@ -467,7 +467,7 @@ not (const void *data, const void *pred_aux_)
 size_t
 remove_equal (void *array, size_t count, size_t size,
               void *element,
-              algo_compare_func *compare, const void *aux) 
+              algo_compare_func *compare, const void *aux)
 {
   char *first = array;
   char *last = first + count * size;
@@ -485,18 +485,18 @@ remove_equal (void *array, size_t count, size_t size,
 
   result = first;
   count--;
-  for (;;) 
+  for (;;)
     {
       first += size;
       if (first >= last)
         goto done;
 
-      if (compare (first, element, aux) == 0) 
+      if (compare (first, element, aux) == 0)
         {
-          count--; 
+          count--;
           continue;
         }
-      
+
       memcpy (result, first, size);
       result += size;
     }
@@ -510,10 +510,10 @@ remove_equal (void *array, size_t count, size_t size,
    RESULT, except that elements for which PREDICATE is true are
    not copied.  Returns the number of elements copied.  AUX is
    passed to PREDICATE as auxiliary data.  */
-size_t 
+size_t
 remove_copy_if (const void *array, size_t count, size_t size,
                 void *result,
-                algo_predicate_func *predicate, const void *aux) 
+                algo_predicate_func *predicate, const void *aux)
 {
   struct pred_aux pred_aux;
   pred_aux.predicate = predicate;
@@ -529,25 +529,25 @@ remove_copy_if (const void *array, size_t count, size_t size,
 void *
 binary_search (const void *array, size_t count, size_t size,
                void *value,
-               algo_compare_func *compare, const void *aux) 
+               algo_compare_func *compare, const void *aux)
 {
   assert (array != NULL || count == 0);
   assert (count <= INT_MAX);
   assert (compare != NULL);
 
-  if (count != 0) 
+  if (count != 0)
     {
       const char *first = array;
       int low = 0;
       int high = count - 1;
 
-      while (low <= high) 
+      while (low <= high)
         {
           int middle = (low + high) / 2;
           const char *element = first + middle * size;
           int cmp = compare (value, element, aux);
 
-          if (cmp > 0) 
+          if (cmp > 0)
             low = middle + 1;
           else if (cmp < 0)
             high = middle - 1;
@@ -569,7 +569,7 @@ int
 lexicographical_compare_3way (const void *array1, size_t count1,
                               const void *array2, size_t count2,
                               size_t size,
-                              algo_compare_func *compare, const void *aux) 
+                              algo_compare_func *compare, const void *aux)
 {
   const char *first1 = array1;
   const char *first2 = array2;
@@ -808,15 +808,15 @@ sort (void *array, size_t count, size_t size,
    passed to COMPARE as auxiliary data. */
 bool
 is_sorted (const void *array, size_t count, size_t size,
-           algo_compare_func *compare, const void *aux) 
+           algo_compare_func *compare, const void *aux)
 {
   const char *first = array;
   size_t idx;
-      
+
   for (idx = 0; idx + 1 < count; idx++)
     if (compare (first + idx * size, first + (idx + 1) * size, aux) > 0)
-      return false; 
-  
+      return false;
+
   return true;
 }
 
@@ -832,7 +832,7 @@ size_t set_difference (const void *array1, size_t count1,
                        const void *array2, size_t count2,
                        size_t size,
                        void *result_,
-                       algo_compare_func *compare, const void *aux) 
+                       algo_compare_func *compare, const void *aux)
 {
   const char *first1 = array1;
   const char *last1 = first1 + count1 * size;
@@ -840,8 +840,8 @@ size_t set_difference (const void *array1, size_t count1,
   const char *last2 = first2 + count2 * size;
   char *result = result_;
   size_t result_count = 0;
-  
-  while (first1 != last1 && first2 != last2) 
+
+  while (first1 != last1 && first2 != last2)
     {
       int cmp = compare (first1, first2, aux);
       if (cmp < 0)
@@ -860,7 +860,7 @@ size_t set_difference (const void *array1, size_t count1,
         }
     }
 
-  while (first1 != last1) 
+  while (first1 != last1)
     {
       memcpy (result, first1, size);
       first1 += size;
@@ -879,12 +879,12 @@ size_t set_difference (const void *array1, size_t count1,
    data. */
 void *
 adjacent_find_equal (const void *array, size_t count, size_t size,
-                     algo_compare_func *compare, const void *aux) 
+                     algo_compare_func *compare, const void *aux)
 {
   const char *first = array;
   const char *last = first + count * size;
 
-  while (first < last && first + size < last) 
+  while (first < last && first + size < last)
     {
       if (compare (first, first + size, aux) == 0)
         return (void *) first;
@@ -902,21 +902,21 @@ adjacent_find_equal (const void *array, size_t count, size_t size,
    data. */
 void
 push_heap (void *array, size_t count, size_t size,
-           algo_compare_func *compare, const void *aux) 
+           algo_compare_func *compare, const void *aux)
 {
   char *first = array;
   size_t i;
-  
+
   expensive_assert (count < 1 || is_heap (array, count - 1,
                                           size, compare, aux));
-  for (i = count; i > 1; i /= 2) 
+  for (i = count; i > 1; i /= 2)
     {
       char *parent = first + (i / 2 - 1) * size;
       char *element = first + (i - 1) * size;
       if (compare (parent, element, aux) < 0)
         SWAP (parent, element, size);
       else
-        break; 
+        break;
     }
   expensive_assert (is_heap (array, count, size, compare, aux));
 }
@@ -929,11 +929,11 @@ push_heap (void *array, size_t count, size_t size,
 static void
 heapify (void *array, size_t count, size_t size,
          size_t idx,
-         algo_compare_func *compare, const void *aux) 
+         algo_compare_func *compare, const void *aux)
 {
   char *first = array;
-  
-  for (;;) 
+
+  for (;;)
     {
       size_t left = 2 * idx;
       size_t right = left + 1;
@@ -965,7 +965,7 @@ heapify (void *array, size_t count, size_t size,
    AUX as auxiliary data. */
 void
 pop_heap (void *array, size_t count, size_t size,
-          algo_compare_func *compare, const void *aux) 
+          algo_compare_func *compare, const void *aux)
 {
   char *first = array;
 
@@ -981,10 +981,10 @@ pop_heap (void *array, size_t count, size_t size,
    auxiliary data. */
 void
 make_heap (void *array, size_t count, size_t size,
-           algo_compare_func *compare, const void *aux) 
+           algo_compare_func *compare, const void *aux)
 {
   size_t idx;
-  
+
   for (idx = count / 2; idx >= 1; idx--)
     heapify (array, count, size, idx, compare, aux);
   expensive_assert (count < 1 || is_heap (array, count, size, compare, aux));
@@ -996,7 +996,7 @@ make_heap (void *array, size_t count, size_t size,
    passing AUX as auxiliary data. */
 void
 sort_heap (void *array, size_t count, size_t size,
-           algo_compare_func *compare, const void *aux) 
+           algo_compare_func *compare, const void *aux)
 {
   char *first = array;
   size_t idx;
@@ -1011,16 +1011,16 @@ sort_heap (void *array, size_t count, size_t size,
 }
 
 /* ARRAY contains COUNT elements of SIZE bytes each.  This
-   function tests whether ARRAY is a heap and returns true if so, 
-   false otherwise.  Uses COMPARE to compare elements, passing 
+   function tests whether ARRAY is a heap and returns true if so,
+   false otherwise.  Uses COMPARE to compare elements, passing
    AUX as auxiliary data. */
 bool
 is_heap (const void *array, size_t count, size_t size,
-         algo_compare_func *compare, const void *aux) 
+         algo_compare_func *compare, const void *aux)
 {
   const char *first = array;
   size_t child;
-  
+
   for (child = 2; child <= count; child++)
     {
       size_t parent = child / 2;

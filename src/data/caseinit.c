@@ -40,40 +40,40 @@ struct init_value
     size_t case_index;
   };
 
-struct init_list 
+struct init_list
   {
     struct init_value *values;
     size_t cnt;
   };
 
-enum leave_class 
+enum leave_class
   {
     LEAVE_REINIT = 0x001,
     LEAVE_LEFT = 0x002
   };
 
 static void
-init_list_create (struct init_list *list) 
+init_list_create (struct init_list *list)
 {
   list->values = NULL;
   list->cnt = 0;
 }
 
 static void
-init_list_clear (struct init_list *list) 
+init_list_clear (struct init_list *list)
 {
   free (list->values);
   init_list_create (list);
 }
 
 static void
-init_list_destroy (struct init_list *list) 
+init_list_destroy (struct init_list *list)
 {
   init_list_clear (list);
 }
 
 static int
-compare_init_values (const void *a_, const void *b_, const void *aux UNUSED) 
+compare_init_values (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct init_value *a = a_;
   const struct init_value *b = b_;
@@ -82,7 +82,7 @@ compare_init_values (const void *a_, const void *b_, const void *aux UNUSED)
 }
 
 static bool
-init_list_includes (const struct init_list *list, size_t case_index) 
+init_list_includes (const struct init_list *list, size_t case_index)
 {
   struct init_value value;
   value.case_index = case_index;
@@ -92,7 +92,7 @@ init_list_includes (const struct init_list *list, size_t case_index)
 
 static void
 init_list_mark (struct init_list *list, const struct init_list *exclude,
-                enum leave_class include, const struct dictionary *d) 
+                enum leave_class include, const struct dictionary *d)
 {
   size_t var_cnt = dict_get_var_cnt (d);
   size_t i;
@@ -101,7 +101,7 @@ init_list_mark (struct init_list *list, const struct init_list *exclude,
   list->values = xnrealloc (list->values,
                             list->cnt + dict_get_next_value_idx (d),
                             sizeof *list->values);
-  for (i = 0; i < var_cnt; i++) 
+  for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
       size_t case_index = var_get_case_index (v);
@@ -112,11 +112,11 @@ init_list_mark (struct init_list *list, const struct init_list *exclude,
         continue;
 
       /* Don't include those to be excluded. */
-      if (exclude != NULL && init_list_includes (exclude, case_index)) 
-        continue; 
+      if (exclude != NULL && init_list_includes (exclude, case_index))
+        continue;
 
       offset = 0;
-      do 
+      do
         {
           struct init_value *iv = &list->values[list->cnt++];
           iv->case_index = case_index++;
@@ -137,11 +137,11 @@ init_list_mark (struct init_list *list, const struct init_list *exclude,
 }
 
 static void
-init_list_init (const struct init_list *list, struct ccase *c) 
+init_list_init (const struct init_list *list, struct ccase *c)
 {
   size_t i;
 
-  for (i = 0; i < list->cnt; i++) 
+  for (i = 0; i < list->cnt; i++)
     {
       const struct init_value *value = &list->values[i];
       *case_data_rw_idx (c, value->case_index) = value->value;
@@ -149,18 +149,18 @@ init_list_init (const struct init_list *list, struct ccase *c)
 }
 
 static void
-init_list_update (const struct init_list *list, const struct ccase *c) 
+init_list_update (const struct init_list *list, const struct ccase *c)
 {
   size_t i;
-  
-  for (i = 0; i < list->cnt; i++) 
+
+  for (i = 0; i < list->cnt; i++)
     {
       struct init_value *value = &list->values[i];
       value->value = *case_data_idx (c, value->case_index);
     }
 }
 
-struct caseinit 
+struct caseinit
   {
     struct init_list preinited_values;
     struct init_list reinit_values;
@@ -168,7 +168,7 @@ struct caseinit
   };
 
 struct caseinit *
-caseinit_create (void) 
+caseinit_create (void)
 {
   struct caseinit *ci = xmalloc (sizeof *ci);
   init_list_create (&ci->preinited_values);
@@ -178,7 +178,7 @@ caseinit_create (void)
 }
 
 void
-caseinit_clear (struct caseinit *ci) 
+caseinit_clear (struct caseinit *ci)
 {
   init_list_clear (&ci->preinited_values);
   init_list_clear (&ci->reinit_values);
@@ -186,9 +186,9 @@ caseinit_clear (struct caseinit *ci)
 }
 
 void
-caseinit_destroy (struct caseinit *ci) 
+caseinit_destroy (struct caseinit *ci)
 {
-  if (ci != NULL) 
+  if (ci != NULL)
     {
       init_list_destroy (&ci->preinited_values);
       init_list_destroy (&ci->reinit_values);
@@ -198,31 +198,31 @@ caseinit_destroy (struct caseinit *ci)
 }
 
 void
-caseinit_mark_as_preinited (struct caseinit *ci, const struct dictionary *d) 
+caseinit_mark_as_preinited (struct caseinit *ci, const struct dictionary *d)
 {
   init_list_mark (&ci->preinited_values, NULL, LEAVE_REINIT | LEAVE_LEFT, d);
 }
 
 void
-caseinit_mark_for_init (struct caseinit *ci, const struct dictionary *d) 
+caseinit_mark_for_init (struct caseinit *ci, const struct dictionary *d)
 {
   init_list_mark (&ci->reinit_values, &ci->preinited_values, LEAVE_REINIT, d);
   init_list_mark (&ci->left_values, &ci->preinited_values, LEAVE_LEFT, d);
 }
 
 void
-caseinit_init_reinit_vars (const struct caseinit *ci, struct ccase *c) 
+caseinit_init_reinit_vars (const struct caseinit *ci, struct ccase *c)
 {
   init_list_init (&ci->reinit_values, c);
 }
 
-void caseinit_init_left_vars (const struct caseinit *ci, struct ccase *c) 
+void caseinit_init_left_vars (const struct caseinit *ci, struct ccase *c)
 {
   init_list_init (&ci->left_values, c);
 }
 
 void
-caseinit_update_left_vars (struct caseinit *ci, const struct ccase *c) 
+caseinit_update_left_vars (struct caseinit *ci, const struct ccase *c)
 {
   init_list_update (&ci->left_values, c);
 }

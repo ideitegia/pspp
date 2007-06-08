@@ -58,14 +58,14 @@
 /* Pointer to an internal node or a leaf node.
    Pointers in internal nodes at level 1 point to leaf nodes;
    other pointers point to internal nodes. */
-union pointer 
+union pointer
   {
     struct internal_node *internal;
     struct leaf_node *leaf;
   };
 
 /* A sparse array. */
-struct sparse_array 
+struct sparse_array
   {
     struct pool *pool;          /* Pool used for allocations. */
     size_t elem_size;           /* Element size, rounded for alignment. */
@@ -123,7 +123,7 @@ static inline size_t leaf_size (const struct sparse_array *);
 static struct leaf_node *find_leaf_node (const struct sparse_array *,
                                          unsigned long int);
 static void decrease_height (struct sparse_array *);
-static void *scan_leaf (struct sparse_array *, struct leaf_node *, 
+static void *scan_leaf (struct sparse_array *, struct leaf_node *,
                         unsigned long int, unsigned long int *);
 static void *do_scan (struct sparse_array *, union pointer *, int,
                       unsigned long int, unsigned long int *);
@@ -131,7 +131,7 @@ static void *do_scan (struct sparse_array *, union pointer *, int,
 /* Creates and returns a new sparse array that will contain
    elements that are ELEM_SIZE bytes in size. */
 struct sparse_array *
-sparse_array_create (size_t elem_size) 
+sparse_array_create (size_t elem_size)
 {
   return sparse_array_create_pool (NULL, elem_size);
 }
@@ -140,7 +140,7 @@ sparse_array_create (size_t elem_size)
    elements that are ELEM_SIZE bytes in size.  Data in the sparse
    array will be allocated from POOL, which may be null. */
 struct sparse_array *
-sparse_array_create_pool (struct pool *pool, size_t elem_size) 
+sparse_array_create_pool (struct pool *pool, size_t elem_size)
 {
   struct sparse_array *spar = pool_malloc (pool, sizeof *spar);
   spar->pool = pool;
@@ -154,22 +154,22 @@ sparse_array_create_pool (struct pool *pool, size_t elem_size)
 
 /* Destroys SPAR node pointed to by P at the given LEVEL. */
 static void
-do_destroy (struct sparse_array *spar, union pointer *p, int level) 
+do_destroy (struct sparse_array *spar, union pointer *p, int level)
 {
-  if (level > 0) 
+  if (level > 0)
     {
       struct internal_node *node = p->internal;
       int count = node->count;
       int i;
 
-      for (i = 0; ; i++) 
+      for (i = 0; ; i++)
         {
           union pointer *q = &p->internal->down[i];
-          if (level > 1 ? q->internal != NULL : q->leaf != NULL) 
+          if (level > 1 ? q->internal != NULL : q->leaf != NULL)
             {
               do_destroy (spar, q, level - 1);
               if (--count == 0)
-                break; 
+                break;
             }
         }
       pool_free (spar->pool, p->internal);
@@ -183,7 +183,7 @@ do_destroy (struct sparse_array *spar, union pointer *p, int level)
    destruction is necessary, it should be done before destroying
    the sparse array. */
 void
-sparse_array_destroy (struct sparse_array *spar) 
+sparse_array_destroy (struct sparse_array *spar)
 {
   do_destroy (spar, &spar->root, spar->height - 1);
   pool_free (spar->pool, spar);
@@ -191,7 +191,7 @@ sparse_array_destroy (struct sparse_array *spar)
 
 /* Returns the number of elements in SPAR. */
 unsigned long int
-sparse_array_count (const struct sparse_array *spar) 
+sparse_array_count (const struct sparse_array *spar)
 {
   return spar->count;
 }
@@ -199,13 +199,13 @@ sparse_array_count (const struct sparse_array *spar)
 /* Increases SPAR's height by 1, allowing it to hold
    PTRS_PER_LEVEL times more elements. */
 static void
-increase_height (struct sparse_array *spar) 
+increase_height (struct sparse_array *spar)
 {
   assert (spar->height < MAX_HEIGHT);
   spar->height++;
-  if (spar->height == 1) 
+  if (spar->height == 1)
     spar->root.leaf = pool_zalloc (spar->pool, leaf_size (spar));
-  else 
+  else
     {
       struct internal_node *new_root;
       new_root = pool_zalloc (spar->pool, sizeof *new_root);
@@ -235,10 +235,10 @@ create_leaf_node (struct sparse_array *spar, unsigned long int key)
   p = &spar->root;
   for (level = spar->height - 1; level > 0; level--)
     {
-      if (p->internal == NULL) 
+      if (p->internal == NULL)
         {
           p->internal = pool_zalloc (spar->pool, sizeof *p->internal);
-          ++*count; 
+          ++*count;
         }
 
       count = &p->internal->count;
@@ -246,7 +246,7 @@ create_leaf_node (struct sparse_array *spar, unsigned long int key)
     }
 
   /* Create leaf if necessary. */
-  if (p->leaf == NULL) 
+  if (p->leaf == NULL)
     {
       p->leaf = pool_zalloc (spar->pool, leaf_size (spar));
       ++*count;
@@ -261,12 +261,12 @@ create_leaf_node (struct sparse_array *spar, unsigned long int key)
 
 /* Inserts into SPAR an element with the given KEY, which must not
    already exist in SPAR.
-   Returns the new element for the caller to initialize. */   
+   Returns the new element for the caller to initialize. */
 void *
-sparse_array_insert (struct sparse_array *spar, unsigned long int key) 
+sparse_array_insert (struct sparse_array *spar, unsigned long int key)
 {
   struct leaf_node *leaf;
-  
+
   while (!index_in_range (spar, key))
     increase_height (spar);
 
@@ -281,9 +281,9 @@ sparse_array_insert (struct sparse_array *spar, unsigned long int key)
 /* Finds and returns the element in SPAR with the given KEY.
    Returns a null pointer if KEY does not exist in SPAR. */
 void *
-sparse_array_get (const struct sparse_array *spar, unsigned long int key) 
+sparse_array_get (const struct sparse_array *spar, unsigned long int key)
 {
-  if (index_in_range (spar, key)) 
+  if (index_in_range (spar, key))
     {
       struct leaf_node *leaf = find_leaf_node (spar, key);
       if (leaf != NULL && is_in_use (leaf, key))
@@ -301,13 +301,13 @@ sparse_array_get (const struct sparse_array *spar, unsigned long int key)
    element's content must be considered freed and of
    indeterminate value after it is removed. */
 bool
-sparse_array_remove (struct sparse_array *spar, unsigned long int key) 
+sparse_array_remove (struct sparse_array *spar, unsigned long int key)
 {
   union pointer *path[MAX_HEIGHT], **last;
   struct leaf_node *leaf;
   union pointer *p;
   int level;
-  
+
   if (!index_in_range (spar, key))
     return false;
 
@@ -365,7 +365,7 @@ sparse_array_remove (struct sparse_array *spar, unsigned long int key)
    not modify *FOUND. */
 void *
 sparse_array_scan (const struct sparse_array *spar_, unsigned long int *skip,
-                   unsigned long int *found) 
+                   unsigned long int *found)
 {
   struct sparse_array *spar = (struct sparse_array *) spar_;
   unsigned long int start;
@@ -381,7 +381,7 @@ sparse_array_scan (const struct sparse_array *spar_, unsigned long int *skip,
     start = 0;
 
   /* Check the cache. */
-  if (start >> BITS_PER_LEVEL == spar->cache_ofs) 
+  if (start >> BITS_PER_LEVEL == spar->cache_ofs)
     {
       void *p = scan_leaf (spar, spar->cache, start, found);
       if (p)
@@ -401,7 +401,7 @@ sparse_array_scan (const struct sparse_array *spar_, unsigned long int *skip,
 /* Returns true iff KEY is in the range of keys currently
    represented by SPAR. */
 static inline bool
-index_in_range (const struct sparse_array *spar, unsigned long int key) 
+index_in_range (const struct sparse_array *spar, unsigned long int key)
 {
   return (spar->height == 0 ? false
           : spar->height >= MAX_HEIGHT ? true
@@ -411,15 +411,15 @@ index_in_range (const struct sparse_array *spar, unsigned long int key)
 /* Returns true iff LEAF contains an in-use element with the
    given KEY. */
 static inline bool
-is_in_use (const struct leaf_node *leaf, unsigned int key) 
+is_in_use (const struct leaf_node *leaf, unsigned int key)
 {
   key &= LEVEL_MASK;
   return (leaf->in_use[key / LONG_BITS] & (1ul << (key % LONG_BITS))) != 0;
 }
 
-/* Returns true iff LEAF contains any in-use elements. */ 
+/* Returns true iff LEAF contains any in-use elements. */
 static inline bool
-any_in_use (const struct leaf_node *leaf) 
+any_in_use (const struct leaf_node *leaf)
 {
   size_t i;
   for (i = 0; i < sizeof leaf->in_use / sizeof *leaf->in_use; i++)
@@ -430,7 +430,7 @@ any_in_use (const struct leaf_node *leaf)
 
 /* Marks element KEY in LEAF as in-use. */
 static inline void
-set_in_use (struct leaf_node *leaf, unsigned int key) 
+set_in_use (struct leaf_node *leaf, unsigned int key)
 {
   key &= LEVEL_MASK;
   leaf->in_use[key / LONG_BITS] |= 1ul << (key % LONG_BITS);
@@ -438,7 +438,7 @@ set_in_use (struct leaf_node *leaf, unsigned int key)
 
 /* Marks element KEY in LEAF as not in-use. */
 static inline void
-unset_in_use (struct leaf_node *leaf, unsigned int key) 
+unset_in_use (struct leaf_node *leaf, unsigned int key)
 {
   key &= LEVEL_MASK;
   leaf->in_use[key / LONG_BITS] &= ~(1ul << (key % LONG_BITS));
@@ -447,7 +447,7 @@ unset_in_use (struct leaf_node *leaf, unsigned int key)
 /* Returns the number of trailing 0-bits in X.
    Undefined if X is zero. */
 static inline int
-count_trailing_zeros (unsigned long int x) 
+count_trailing_zeros (unsigned long int x)
 {
   /* This algorithm is from _Hacker's Delight_ section 5.4. */
   int n = 1;
@@ -478,7 +478,7 @@ count_trailing_zeros (unsigned long int x)
 static inline int
 scan_in_use (struct leaf_node *leaf, unsigned int idx)
 {
-  for (; idx < PTRS_PER_LEVEL; idx = (idx & ~(LONG_BITS - 1)) + LONG_BITS) 
+  for (; idx < PTRS_PER_LEVEL; idx = (idx & ~(LONG_BITS - 1)) + LONG_BITS)
     {
       int ofs = idx % LONG_BITS;
       unsigned long int in_use = leaf->in_use[idx / LONG_BITS] >> ofs;
@@ -493,7 +493,7 @@ scan_in_use (struct leaf_node *leaf, unsigned int idx)
    which is a node in SPAR. */
 static inline void *
 leaf_element (const struct sparse_array *spar, struct leaf_node *leaf,
-              unsigned int key) 
+              unsigned int key)
 {
   key &= LEVEL_MASK;
   return (char *) leaf + SIZEOF_ALIGNED (*leaf) + (spar->elem_size * key);
@@ -501,7 +501,7 @@ leaf_element (const struct sparse_array *spar, struct leaf_node *leaf,
 
 /* Returns the size of a leaf node in SPAR. */
 static inline size_t
-leaf_size (const struct sparse_array *spar) 
+leaf_size (const struct sparse_array *spar)
 {
   return SIZEOF_ALIGNED (struct leaf_node) + spar->elem_size * PTRS_PER_LEVEL;
 }
@@ -534,7 +534,7 @@ find_leaf_node (const struct sparse_array *spar_, unsigned long int key)
   /* Update cache. */
   spar->cache = p->leaf;
   spar->cache_ofs = key >> BITS_PER_LEVEL;
-  
+
   return p->leaf;
 }
 
@@ -542,11 +542,11 @@ find_leaf_node (const struct sparse_array *spar_, unsigned long int key)
    eliminating levels that contain only a single entry for all
    0-bits. */
 static void
-decrease_height (struct sparse_array *spar) 
+decrease_height (struct sparse_array *spar)
 {
   while (spar->height > 1
          && spar->root.internal->count == 1
-         && spar->root.internal->down[0].internal) 
+         && spar->root.internal->down[0].internal)
     {
       struct internal_node *p = spar->root.internal;
       spar->height--;
@@ -561,7 +561,7 @@ decrease_height (struct sparse_array *spar)
    in *FOUND; otherwise, returns a null pointer and does not
    modify *FOUND. */
 static void *
-scan_leaf (struct sparse_array *spar, struct leaf_node *leaf, 
+scan_leaf (struct sparse_array *spar, struct leaf_node *leaf,
            unsigned long int start, unsigned long int *found)
 {
   int idx = scan_in_use (leaf, start & LEVEL_MASK);
@@ -572,7 +572,7 @@ scan_leaf (struct sparse_array *spar, struct leaf_node *leaf,
       spar->cache_ofs = *found >> BITS_PER_LEVEL;
       return leaf_element (spar, leaf, idx);
     }
-      
+
   return NULL;
 }
 
@@ -584,13 +584,13 @@ scan_leaf (struct sparse_array *spar, struct leaf_node *leaf,
 static inline void *
 scan_internal_node (struct sparse_array *spar, struct internal_node *node,
                     int level, unsigned long int start,
-                    unsigned long int *found) 
+                    unsigned long int *found)
 {
   int shift = level * BITS_PER_LEVEL;
   int count = node->count;
   int i;
 
-  for (i = (start >> shift) & LEVEL_MASK; i < PTRS_PER_LEVEL; i++) 
+  for (i = (start >> shift) & LEVEL_MASK; i < PTRS_PER_LEVEL; i++)
     {
       union pointer *q = &node->down[i];
       if (level > 1 ? q->internal != NULL : q->leaf != NULL)
@@ -600,7 +600,7 @@ scan_internal_node (struct sparse_array *spar, struct internal_node *node,
             return element;
           if (--count == 0)
             return NULL;
-        }          
+        }
 
       start &= ~((1ul << shift) - 1);
       start += 1ul << shift;

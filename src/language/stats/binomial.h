@@ -40,7 +40,7 @@ struct casereader;
 struct dataset;
 
 
-void binomial_execute (const struct dataset *, 
+void binomial_execute (const struct dataset *,
 		       struct casereader *,
                        enum mv_class,
 		       const struct npar_test *);

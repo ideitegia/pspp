@@ -72,7 +72,7 @@ struct prt_out_spec
   };
 
 static inline struct prt_out_spec *
-ll_to_prt_out_spec (struct ll *ll) 
+ll_to_prt_out_spec (struct ll *ll)
 {
   return ll_data (ll, struct prt_out_spec, ll);
 }
@@ -91,11 +91,11 @@ struct print_trns
 
 enum which_formats
   {
-    PRINT, 
+    PRINT,
     WRITE
   };
 
-static int internal_cmd_print (struct lexer *, struct dataset *ds, 
+static int internal_cmd_print (struct lexer *, struct dataset *ds,
 			       enum which_formats, bool eject);
 static trns_proc_func print_trns_proc;
 static trns_free_func print_trns_free;
@@ -128,7 +128,7 @@ cmd_write (struct lexer *lexer, struct dataset *ds)
 
 /* Parses the output commands. */
 static int
-internal_cmd_print (struct lexer *lexer, struct dataset *ds, 
+internal_cmd_print (struct lexer *lexer, struct dataset *ds,
 		    enum which_formats which_formats, bool eject)
 {
   bool print_table = 0;
@@ -215,7 +215,7 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
 
 static bool parse_string_argument (struct lexer *, struct print_trns *,
                                    int record, int *column);
-static bool parse_variable_argument (struct lexer *, const struct dictionary *, 
+static bool parse_variable_argument (struct lexer *, const struct dictionary *,
 				     struct print_trns *,
                                      struct pool *tmp_pool,
                                      int *record, int *column,
@@ -226,13 +226,13 @@ static bool parse_variable_argument (struct lexer *, const struct dictionary *,
    Returns success. */
 static bool
 parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns,
-	     struct dictionary *dict, 
+	     struct dictionary *dict,
              enum which_formats which_formats)
 {
   int record = 0;
   int column = 1;
 
-  if (lex_token (lexer) == '.') 
+  if (lex_token (lexer) == '.')
     {
       trns->record_cnt = 1;
       return true;
@@ -283,8 +283,8 @@ parse_string_argument (struct lexer *lexer, struct print_trns *trns, int record,
       int first_column, last_column;
       bool range_specified;
 
-      if (!parse_column_range (lexer, &first_column, &last_column, &range_specified)) 
-        return false; 
+      if (!parse_column_range (lexer, &first_column, &last_column, &range_specified))
+        return false;
 
       spec->first_column = first_column;
       if (range_specified)
@@ -310,8 +310,8 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
   struct fmt_spec *formats, *f;
   size_t format_cnt;
   bool add_space;
-  
-  if (!parse_variables_const_pool (lexer, tmp_pool, dict, 
+
+  if (!parse_variables_const_pool (lexer, tmp_pool, dict,
 			     &vars, &var_cnt, PV_DUPLICATE))
     return false;
 
@@ -327,10 +327,10 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
       size_t i;
 
       lex_match (lexer, '*');
-      
+
       formats = pool_nmalloc (tmp_pool, var_cnt, sizeof *formats);
       format_cnt = var_cnt;
-      for (i = 0; i < var_cnt; i++) 
+      for (i = 0; i < var_cnt; i++)
         {
           const struct variable *v = vars[i];
           formats[i] = (which_formats == PRINT
@@ -362,7 +362,7 @@ parse_variable_argument (struct lexer *lexer, const struct dictionary *dict,
         /* This is a completely bizarre twist for compatibility:
            WRITE outputs the system-missing value as a field
            filled with spaces, instead of using the normal format
-           that usually contains a period. */ 
+           that usually contains a period. */
         spec->sysmis_as_spaces = (which_formats == WRITE
                                   && var_is_numeric (var)
                                   && (fmt_get_category (spec->format.type)
@@ -399,7 +399,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Format"));
   tab_dim (t, tab_natural_dimensions);
   row = 1;
-  ll_for_each (spec, struct prt_out_spec, ll, &trns->specs) 
+  ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
     {
       char fmt_string[FMT_STRING_LEN_MAX + 1];
       int width;
@@ -452,10 +452,10 @@ print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
 
   ds_clear (&trns->line);
   ds_put_char (&trns->line, ' ');
-  ll_for_each (spec, struct prt_out_spec, ll, &trns->specs) 
+  ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
     {
       flush_records (trns, spec->record, &eject, &record);
- 
+
       ds_set_length (&trns->line, spec->first_column, ' ');
       if (spec->type == PRT_VAR)
         {
@@ -468,11 +468,11 @@ print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
           if (spec->add_space)
             ds_put_char (&trns->line, ' ');
         }
-      else 
+      else
         ds_put_substring (&trns->line, ds_ss (&spec->string));
     }
   flush_records (trns, trns->record_cnt + 1, &eject, &record);
-  
+
   if (trns->writer != NULL && dfm_write_error (trns->writer))
     return TRNS_ERROR;
   return TRNS_CONTINUE;
@@ -486,13 +486,13 @@ static void
 flush_records (struct print_trns *trns, int target_record,
                bool *eject, int *record)
 {
-  for (; target_record > *record; (*record)++) 
+  for (; target_record > *record; (*record)++)
     {
       char *line = ds_cstr (&trns->line);
       size_t length = ds_length (&trns->line);
       char leader = ' ';
-      
-      if (*eject) 
+
+      if (*eject)
         {
           *eject = false;
           if (trns->writer == NULL)
@@ -501,19 +501,19 @@ flush_records (struct print_trns *trns, int target_record,
             leader = '1';
         }
       line[0] = leader;
-      
+
       if (trns->writer == NULL)
         tab_output_text (TAB_FIX | TAT_NOWRAP, &line[1]);
       else
         {
-          if (!trns->include_prefix) 
+          if (!trns->include_prefix)
             {
               line++;
-              length--; 
+              length--;
             }
           dfm_put_record (trns->writer, line, length);
         }
-      
+
       ds_truncate (&trns->line, 1);
     }
 }

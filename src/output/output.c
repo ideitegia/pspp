@@ -252,7 +252,7 @@ delete_macros (void)
 }
 
 static void
-init_default_drivers (void) 
+init_default_drivers (void)
 {
   error (0, 0, _("using default output driver configuration"));
   configure_driver (ss_cstr ("list"),
@@ -278,7 +278,7 @@ outp_read_devices (void)
 					       "devices"),
 			    fn_getenv_default ("STAT_OUTPUT_INIT_PATH",
 					       config_path));
-  
+
   ds_init_empty (&line);
 
   if (init_fn == NULL)
@@ -339,10 +339,10 @@ exit:
   ds_destroy (&line);
   delete_macros ();
 
-  if (result) 
+  if (result)
     {
-      if (outp_driver_list == NULL) 
-        error (0, 0, _("no active output drivers")); 
+      if (outp_driver_list == NULL)
+        error (0, 0, _("no active output drivers"));
     }
   else
     error (0, 0, _("error reading device definition file"));
@@ -402,7 +402,7 @@ outp_configure_macro (char *bp)
       free (d);
       return;
     }
-  
+
   if (*ep == '=')
     ep++;
   while (isspace ((unsigned char) *ep))
@@ -437,10 +437,10 @@ destroy_list (struct outp_driver ** dl)
 void
 outp_done (void)
 {
-  struct outp_driver_class_list *n = outp_class_list ; 
+  struct outp_driver_class_list *n = outp_class_list ;
   destroy_list (&outp_driver_list);
 
-  while (n) 
+  while (n)
     {
       struct outp_driver_class_list *next = n->next;
       free(n);
@@ -450,7 +450,7 @@ outp_done (void)
 
   free (outp_title);
   outp_title = NULL;
-  
+
   free (outp_subtitle);
   outp_subtitle = NULL;
 }
@@ -489,7 +489,7 @@ get_option_token (struct substring *s, const char *driver_name,
                   struct string *token)
 {
   int c;
-  
+
   ds_clear (token);
   c = ss_get_char (s);
   if (c == EOF)
@@ -507,7 +507,7 @@ get_option_token (struct substring *s, const char *driver_name,
           c = ss_get_char (s);
           if (c == quote)
             break;
-          else if (c == EOF) 
+          else if (c == EOF)
             {
               error (0, 0,
                      _("reached end of options inside quoted string "
@@ -589,7 +589,7 @@ get_option_token (struct substring *s, const char *driver_name,
             }
         }
     }
-  else 
+  else
     {
       for (;;)
         {
@@ -601,7 +601,7 @@ get_option_token (struct substring *s, const char *driver_name,
           ss_advance (s, 1);
         }
     }
-  
+
   return 1;
 }
 
@@ -621,7 +621,7 @@ outp_parse_options (struct substring options,
       ss_ltrim (&left, ss_cstr (CC_SPACES));
       if (ss_is_empty (left))
         break;
-      
+
       if (!get_option_token (&left, driver->name, &key))
         break;
 
@@ -641,7 +641,7 @@ outp_parse_options (struct substring options,
       ok = callback (driver, ds_cstr (&key), &value);
     }
   while (ok);
-  
+
   ds_destroy (&key);
   ds_destroy (&value);
 
@@ -683,7 +683,7 @@ configure_driver (struct substring driver_name, struct substring class_name,
              (int) ss_length (class_name), ss_data (class_name));
       return;
     }
-  
+
   /* Parse device type. */
   device = 0;
   while (ss_tokenize (device_type, ss_cstr (CC_SPACES), &save_idx, &token))
@@ -746,7 +746,7 @@ configure_driver_line (struct substring line_)
   fn_interp_vars (line_, find_defn_value, &line);
 
   save_idx = 0;
-  for (i = 0; i < 4; i++) 
+  for (i = 0; i < 4; i++)
     {
       struct substring *token = &tokens[i];
       ds_separate (&line, ss_cstr (i < 3 ? ":" : ""), &save_idx, token);
@@ -957,7 +957,7 @@ internal_get_paper_size (char *size, int *h, int *v)
       error (0, 0, _("trailing garbage `%s' on paper size `%s'"), tail, size);
       return false;
     }
-  
+
   return true;
 }
 
@@ -1001,7 +1001,7 @@ outp_get_paper_size (char *size, int *h, int *v)
       error (0, 0, _("paper size name cannot be empty"));
       return 0;
     }
-  
+
   ep++;
   if (*ep)
     *ep = 0;
@@ -1010,7 +1010,7 @@ outp_get_paper_size (char *size, int *h, int *v)
 						"papersize"),
 			     fn_getenv_default ("STAT_OUTPUT_INIT_PATH",
 						config_path));
-  
+
   ds_init_empty (&line);
 
   if (pprsz_fn == NULL)
@@ -1072,7 +1072,7 @@ exit:
 
   if (!result)
     error (0, 0, _("error reading paper size definition file"));
-  
+
   return result;
 }
 
@@ -1111,9 +1111,9 @@ outp_enable_device (int enable, int device)
 
 /* Opens a page on driver D (if one is not open). */
 void
-outp_open_page (struct outp_driver *d) 
+outp_open_page (struct outp_driver *d)
 {
-  if (!d->page_open) 
+  if (!d->page_open)
     {
       d->cp_x = d->cp_y = 0;
 
@@ -1125,9 +1125,9 @@ outp_open_page (struct outp_driver *d)
 
 /* Closes the page on driver D (if one is open). */
 void
-outp_close_page (struct outp_driver *d) 
+outp_close_page (struct outp_driver *d)
 {
-  if (d->page_open) 
+  if (d->page_open)
     {
       if (d->class->close_page != NULL)
         d->class->close_page (d);
@@ -1152,7 +1152,7 @@ outp_string_width (struct outp_driver *d, const char *s, enum outp_font font)
 {
   struct outp_text text;
   int width;
-  
+
   text.font = font;
   text.justification = OUTP_LEFT;
   text.string = ss_cstr (s);

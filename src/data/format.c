@@ -366,7 +366,7 @@ fmt_to_string (const struct fmt_spec *f, char buffer[FMT_STRING_LEN_MAX + 1])
 /* Returns true if A and B are identical formats,
    false otherwise. */
 bool
-fmt_equal (const struct fmt_spec *a, const struct fmt_spec *b) 
+fmt_equal (const struct fmt_spec *a, const struct fmt_spec *b)
 {
   return a->type == b->type && a->w == b->w && a->d == b->d;
 }
@@ -494,7 +494,7 @@ fmt_is_numeric (enum fmt_type type)
    category.  Thus, the return value may be tested for equality
    or compared bitwise against a mask of FMT_CAT_* values. */
 enum fmt_category
-fmt_get_category (enum fmt_type type) 
+fmt_get_category (enum fmt_type type)
 {
   return get_fmt_desc (type)->category;
 }
@@ -504,7 +504,7 @@ fmt_get_category (enum fmt_type type)
 enum fmt_type
 fmt_input_to_output (enum fmt_type type)
 {
-  switch (fmt_get_category (type)) 
+  switch (fmt_get_category (type))
     {
     case FMT_CAT_STRING:
       return FMT_A;
@@ -602,13 +602,13 @@ fmt_dollar_template (const struct fmt_spec *fmt)
   for (c = MAX (fmt->w - fmt->d - 1, 0); c > 0; )
     {
       ds_put_char (&s, '#');
-      if (--c % 4 == 0 && c > 0) 
+      if (--c % 4 == 0 && c > 0)
         {
           ds_put_char (&s, fmt_grouping_char (fmt->type));
           --c;
         }
     }
-  if (fmt->d > 0) 
+  if (fmt->d > 0)
     {
       ds_put_char (&s, fmt_decimal_char (fmt->type));
       ds_put_char_multiple (&s, '#', fmt->d);

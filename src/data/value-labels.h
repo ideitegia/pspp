@@ -27,7 +27,7 @@
 struct val_labs;
 struct variable;
 
-struct val_lab 
+struct val_lab
   {
     union value value;
     const char *label;

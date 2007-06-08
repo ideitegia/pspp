@@ -42,16 +42,16 @@
  * If EXTREME is non zero, then consider it to be an extreme
  * value
  */
-void 
-draw_outlier(struct chart *ch, double centreline, 
-	     struct weighted_value **wvp, 
+void
+draw_outlier(struct chart *ch, double centreline,
+	     struct weighted_value **wvp,
 	     int idx,
 	     short extreme);
 
 
-void 
-draw_outlier(struct chart *ch, double centreline, 
-	     struct weighted_value **wvp, 
+void
+draw_outlier(struct chart *ch, double centreline,
+	     struct weighted_value **wvp,
 	     int idx,
 	     short extreme
 	     )
@@ -63,7 +63,7 @@ draw_outlier(struct chart *ch, double centreline,
 
   pl_fmarker_r(ch->lp,
 	       centreline,
-	       ch->data_bottom + 
+	       ch->data_bottom +
 	       (wvp[idx]->v.f - ch->y_min ) * ch->ordinate_scale,
 	       extreme?MARKER_STAR:MARKER_CIRCLE,
 	       20);
@@ -71,15 +71,15 @@ draw_outlier(struct chart *ch, double centreline,
   pl_moverel_r(ch->lp, 10,0);
 
   snprintf(label, 10, "%d", wvp[idx]->case_nos->num);
-  
+
   pl_alabel_r(ch->lp, 'l', 'c', label);
 
 }
 
 
-void 
+void
 boxplot_draw_boxplot(struct chart *ch,
-		     double box_centre, 
+		     double box_centre,
 		     double box_width,
 		     struct metrics *m,
 		     const char *name)
@@ -99,40 +99,40 @@ boxplot_draw_boxplot(struct chart *ch,
   const double box_right = box_centre + box_width / 2.0;
 
 
-  const double box_bottom = 
+  const double box_bottom =
     ch->data_bottom + ( hinge[0] - ch->y_min ) * ch->ordinate_scale;
 
 
-  const double box_top = 
+  const double box_top =
     ch->data_bottom + ( hinge[2] - ch->y_min ) * ch->ordinate_scale;
 
   assert(m);
 
   /* Can't really draw a boxplot if there's no data */
-  if ( n_data == 0 ) 
+  if ( n_data == 0 )
 	  return ;
 
   whisker[1] = hinge[2];
   whisker[0] = wvp[0]->v.f;
 
-  for ( i = 0 ; i < n_data ; ++i ) 
+  for ( i = 0 ; i < n_data ; ++i )
     {
-      if ( hinge[2] + step >  wvp[i]->v.f) 
+      if ( hinge[2] + step >  wvp[i]->v.f)
 	whisker[1] = wvp[i]->v.f;
 
-      if ( hinge[0] - step >  wvp[i]->v.f) 
+      if ( hinge[0] - step >  wvp[i]->v.f)
 	whisker[0] = wvp[i]->v.f;
-    
+
     }
-    
+
   {
-  const double bottom_whisker = 
+  const double bottom_whisker =
     ch->data_bottom + ( whisker[0] - ch->y_min ) * ch->ordinate_scale;
 
-  const double top_whisker = 
+  const double top_whisker =
     ch->data_bottom + ( whisker[1] - ch->y_min ) * ch->ordinate_scale;
 
-	
+
   pl_savestate_r(ch->lp);
 
 
@@ -140,7 +140,7 @@ boxplot_draw_boxplot(struct chart *ch,
   pl_savestate_r(ch->lp);
   pl_fillcolorname_r(ch->lp,ch->fill_colour);
   pl_filltype_r(ch->lp,1);
-  pl_fbox_r(ch->lp, 
+  pl_fbox_r(ch->lp,
 	    box_left,
 	    box_bottom,
 	    box_right,
@@ -149,56 +149,56 @@ boxplot_draw_boxplot(struct chart *ch,
   pl_restorestate_r(ch->lp);
 
 
-  
+
   /* Draw the median */
   pl_savestate_r(ch->lp);
   pl_linewidth_r(ch->lp,5);
-  pl_fline_r(ch->lp, 
-	     box_left, 
+  pl_fline_r(ch->lp,
+	     box_left,
 	     ch->data_bottom + ( hinge[1] - ch->y_min ) * ch->ordinate_scale,
-	     box_right,   
+	     box_right,
 	     ch->data_bottom + ( hinge[1] - ch->y_min ) * ch->ordinate_scale);
   pl_restorestate_r(ch->lp);
 
 
   /* Draw the bottom whisker */
-  pl_fline_r(ch->lp, 
-	     box_left, 
+  pl_fline_r(ch->lp,
+	     box_left,
 	     bottom_whisker,
-	     box_right,   
+	     box_right,
 	     bottom_whisker);
 
   /* Draw top whisker */
-  pl_fline_r(ch->lp, 
-	     box_left, 
+  pl_fline_r(ch->lp,
+	     box_left,
 	     top_whisker,
-	     box_right,   
+	     box_right,
 	     top_whisker);
 
 
 
   /* Draw centre line.
      (bottom half) */
-  pl_fline_r(ch->lp, 
+  pl_fline_r(ch->lp,
 	     box_centre, bottom_whisker,
 	     box_centre, box_bottom);
 
   /* (top half) */
-  pl_fline_r(ch->lp, 
+  pl_fline_r(ch->lp,
 	     box_centre, top_whisker,
 	     box_centre, box_top);
   }
 
   /* Draw outliers */
-  for ( i = 0 ; i < n_data ; ++i ) 
+  for ( i = 0 ; i < n_data ; ++i )
     {
-      if ( wvp[i]->v.f >= hinge[2] + step ) 
-	draw_outlier(ch, box_centre, wvp, i, 
-		     ( wvp[i]->v.f > hinge[2] + 2 * step ) 
+      if ( wvp[i]->v.f >= hinge[2] + step )
+	draw_outlier(ch, box_centre, wvp, i,
+		     ( wvp[i]->v.f > hinge[2] + 2 * step )
 		     );
 
-      if ( wvp[i]->v.f <= hinge[0] - step ) 
-	draw_outlier(ch, box_centre, wvp, i, 
+      if ( wvp[i]->v.f <= hinge[0] - step )
+	draw_outlier(ch, box_centre, wvp, i,
 		     ( wvp[i]->v.f < hinge[0] - 2 * step )
 		     );
     }
@@ -219,7 +219,7 @@ boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
   double y_tick;
   double d;
 
-  if ( !ch ) 
+  if ( !ch )
      return ;
 
   ch->y_max  = y_max;
@@ -228,15 +228,15 @@ boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
   y_tick = chart_rounded_tick(fabs(ch->y_max - ch->y_min) / 5.0);
 
   ch->y_min = (ceil( ch->y_min  / y_tick ) - 1.0  ) * y_tick;
-      
+
   ch->y_max = ( floor( ch->y_max  / y_tick ) + 1.0  ) * y_tick;
 
-  ch->ordinate_scale = fabs(ch->data_top - ch->data_bottom) 
+  ch->ordinate_scale = fabs(ch->data_top - ch->data_bottom)
     / fabs(ch->y_max - ch->y_min) ;
 
 
   /* Move to data bottom-left */
-  pl_move_r(ch->lp, 
+  pl_move_r(ch->lp,
 	    ch->data_left, ch->data_bottom);
 
   for ( d = ch->y_min; d <= ch->y_max ; d += y_tick )

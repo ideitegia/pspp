@@ -40,7 +40,7 @@
 int min_buffers = 64;
 int max_buffers = INT_MAX;
 
-struct sort_writer 
+struct sort_writer
   {
     struct case_ordering *ordering;
     struct merge *merge;
@@ -63,7 +63,7 @@ static void pqueue_pop (struct pqueue *, struct ccase *, casenumber *);
 static void output_record (struct sort_writer *);
 
 struct casewriter *
-sort_create_writer (struct case_ordering *ordering) 
+sort_create_writer (struct case_ordering *ordering)
 {
   struct sort_writer *sort;
 
@@ -87,8 +87,8 @@ sort_casewriter_write (struct casewriter *writer UNUSED, void *sort_,
   struct sort_writer *sort = sort_;
   bool next_run;
 
-  if (pqueue_is_full (sort->pqueue)) 
-    output_record (sort); 
+  if (pqueue_is_full (sort->pqueue))
+    output_record (sort);
 
   next_run = (case_is_null (&sort->run_end)
               || case_ordering_compare_cases (c, &sort->run_end,
@@ -97,10 +97,10 @@ sort_casewriter_write (struct casewriter *writer UNUSED, void *sort_,
 }
 
 static void
-sort_casewriter_destroy (struct casewriter *writer UNUSED, void *sort_) 
+sort_casewriter_destroy (struct casewriter *writer UNUSED, void *sort_)
 {
   struct sort_writer *sort = sort_;
-  
+
   case_ordering_destroy (sort->ordering);
   merge_destroy (sort->merge);
   pqueue_destroy (sort->pqueue);
@@ -115,12 +115,12 @@ sort_casewriter_convert_to_reader (struct casewriter *writer, void *sort_)
   struct sort_writer *sort = sort_;
   struct casereader *output;
 
-  if (sort->run == NULL && sort->run_id == 0) 
+  if (sort->run == NULL && sort->run_id == 0)
     {
       /* In-core sort. */
       sort->run = mem_writer_create (case_ordering_get_value_cnt (
                                        sort->ordering));
-      sort->run_id = 1; 
+      sort->run_id = 1;
     }
   while (!pqueue_is_empty (sort->pqueue))
     output_record (sort);
@@ -144,12 +144,12 @@ output_record (struct sort_writer *sort)
   printf ("\toutput: %f to run %d\n", case_num_idx (&min_case, 0), min_run_id);
 #endif
 
-  if (sort->run_id != min_run_id && sort->run != NULL) 
+  if (sort->run_id != min_run_id && sort->run != NULL)
     {
       merge_append (sort->merge, casewriter_make_reader (sort->run));
-      sort->run = NULL; 
+      sort->run = NULL;
     }
-  if (sort->run == NULL) 
+  if (sort->run == NULL)
     {
       sort->run = tmpfile_writer_create (case_ordering_get_value_cnt (
                                            sort->ordering));
@@ -158,11 +158,11 @@ output_record (struct sort_writer *sort)
 
   case_destroy (&sort->run_end);
   case_clone (&sort->run_end, &min_case);
-  
+
   casewriter_write (sort->run, &min_case);
 }
 
-static struct casewriter_class sort_casewriter_class = 
+static struct casewriter_class sort_casewriter_class =
   {
     sort_casewriter_write,
     sort_casewriter_destroy,
@@ -181,7 +181,7 @@ sort_execute (struct casereader *input, struct case_ordering *ordering)
   return casewriter_make_reader (output);
 }
 
-struct pqueue 
+struct pqueue
   {
     struct case_ordering *ordering;
     struct pqueue_record *records;
@@ -201,7 +201,7 @@ static int compare_pqueue_records_minheap (const void *a, const void *b,
                                            const void *pq_);
 
 static struct pqueue *
-pqueue_create (const struct case_ordering *ordering) 
+pqueue_create (const struct case_ordering *ordering)
 {
   struct pqueue *pq;
 
@@ -217,15 +217,15 @@ pqueue_create (const struct case_ordering *ordering)
   pq->records = xnmalloc (pq->record_cap, sizeof *pq->records);
   pq->idx = 0;
 
-  return pq; 
+  return pq;
 }
 
 static void
-pqueue_destroy (struct pqueue *pq) 
+pqueue_destroy (struct pqueue *pq)
 {
-  if (pq != NULL) 
+  if (pq != NULL)
     {
-      while (!pqueue_is_empty (pq)) 
+      while (!pqueue_is_empty (pq))
         {
           struct ccase c;
           casenumber id;
@@ -239,22 +239,22 @@ pqueue_destroy (struct pqueue *pq)
 }
 
 static bool
-pqueue_is_full (const struct pqueue *pq) 
+pqueue_is_full (const struct pqueue *pq)
 {
   return pq->record_cnt >= pq->record_cap;
 }
 
 static bool
-pqueue_is_empty (const struct pqueue *pq) 
+pqueue_is_empty (const struct pqueue *pq)
 {
   return pq->record_cnt == 0;
 }
 
 static void
-pqueue_push (struct pqueue *pq, struct ccase *c, casenumber id) 
+pqueue_push (struct pqueue *pq, struct ccase *c, casenumber id)
 {
   struct pqueue_record *r;
-  
+
   assert (!pqueue_is_full (pq));
 
   r = &pq->records[pq->record_cnt++];
@@ -267,7 +267,7 @@ pqueue_push (struct pqueue *pq, struct ccase *c, casenumber id)
 }
 
 static void
-pqueue_pop (struct pqueue *pq, struct ccase *c, casenumber *id) 
+pqueue_pop (struct pqueue *pq, struct ccase *c, casenumber *id)
 {
   struct pqueue_record *r;
 
@@ -285,7 +285,7 @@ pqueue_pop (struct pqueue *pq, struct ccase *c, casenumber *id)
    then on insertion order, in descending order. */
 static int
 compare_pqueue_records_minheap (const void *a_, const void *b_,
-                                const void *pq_) 
+                                const void *pq_)
 {
   const struct pqueue_record *a = a_;
   const struct pqueue_record *b = b_;

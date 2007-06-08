@@ -47,17 +47,17 @@ static const char *test_name;
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
-check_die (void) 
+check_die (void)
 {
-  exit (EXIT_FAILURE);   
+  exit (EXIT_FAILURE);
 }
 
 /* If OK is not true, prints a message about failure on the
    current source file and the given LINE and terminates. */
 static void
-check_func (bool ok, int line) 
+check_func (bool ok, int line)
 {
-  if (!ok) 
+  if (!ok)
     {
       printf ("Check failed in %s test at %s, line %d\n",
               test_name, __FILE__, line);
@@ -72,7 +72,7 @@ check_func (bool ok, int line)
 
 /* Swaps *A and *B. */
 static void
-swap (int *a, int *b) 
+swap (int *a, int *b)
 {
   int t = *a;
   *a = *b;
@@ -103,7 +103,7 @@ next_permutation (int *values, size_t cnt)
   if (cnt > 0)
     {
       size_t i = cnt - 1;
-      while (i != 0) 
+      while (i != 0)
         {
           i--;
           if (values[i] < values[i + 1])
@@ -114,18 +114,18 @@ next_permutation (int *values, size_t cnt)
               swap (values + i, values + j);
               reverse (values + (i + 1), cnt - (i + 1));
               return true;
-            } 
+            }
         }
-      
+
       reverse (values, cnt);
     }
-  
+
   return false;
 }
 
 /* Returns N!. */
 static unsigned int
-factorial (unsigned int n) 
+factorial (unsigned int n)
 {
   unsigned int value = 1;
   /* Disallow N values that overflow on 32-bit machines. */
@@ -138,7 +138,7 @@ factorial (unsigned int n)
 /* Tests whether PARTS is a K-part integer composition of N.
    Returns true if so, false otherwise. */
 static bool UNUSED
-is_k_composition (int n, int k, const int parts[]) 
+is_k_composition (int n, int k, const int parts[])
 {
   int sum;
   int i;
@@ -159,7 +159,7 @@ is_k_composition (int n, int k, const int parts[])
    already the greatest K-part composition of N (in which case
    PARTS is unaltered). */
 static bool
-next_k_composition (int n UNUSED, int k, int parts[]) 
+next_k_composition (int n UNUSED, int k, int parts[])
 {
   int x, i;
 
@@ -185,7 +185,7 @@ next_k_composition (int n UNUSED, int k, int parts[])
 /* Sets the K integers in PARTS to the lexicographically first
    K-part composition of N. */
 static void
-first_k_composition (int n, int k, int parts[]) 
+first_k_composition (int n, int k, int parts[])
 {
   int i;
 
@@ -206,7 +206,7 @@ first_k_composition (int n, int k, int parts[])
    Returns true if successful, false if the set of compositions
    has been exhausted. */
 static bool
-next_composition (int n, int *k, int parts[]) 
+next_composition (int n, int *k, int parts[])
 {
   if (*k >= 1 && next_k_composition (n, *k, parts))
     return true;
@@ -227,13 +227,13 @@ struct element
   };
 
 static struct element *
-range_map_node_to_element (struct range_map_node *node) 
+range_map_node_to_element (struct range_map_node *node)
 {
   return range_map_data (node, struct element, node);
 }
 
 /* Element we expect to find. */
-struct expected_element 
+struct expected_element
   {
     int x;                      /* Primary value. */
     unsigned long int start;    /* Start of region. */
@@ -243,7 +243,7 @@ struct expected_element
 /* Compares expected_element A and B and returns a strcmp()-type
    result. */
 static int
-compare_expected_element (const void *a_, const void *b_) 
+compare_expected_element (const void *a_, const void *b_)
 {
   const struct expected_element *a = (const struct expected_element *) a_;
   const struct expected_element *b = (const struct expected_element *) b_;
@@ -254,7 +254,7 @@ compare_expected_element (const void *a_, const void *b_)
    ELEMENTS[]. */
 static void
 check_range_map (struct range_map *rm,
-                 struct expected_element elements[], size_t elem_cnt) 
+                 struct expected_element elements[], size_t elem_cnt)
 {
   struct expected_element *sorted;
   struct range_map_node *node;
@@ -263,17 +263,17 @@ check_range_map (struct range_map *rm,
   sorted = xnmalloc (elem_cnt, sizeof *sorted);
   memcpy (sorted, elements, elem_cnt * sizeof *elements);
   qsort (sorted, elem_cnt, sizeof *sorted, compare_expected_element);
-  
+
   check (range_map_is_empty (rm) == (elem_cnt == 0));
 
-  for (i = 0; i < elem_cnt; i++) 
+  for (i = 0; i < elem_cnt; i++)
     {
       struct expected_element *e = &sorted[i];
       unsigned long int position;
 
       /* Check that range_map_lookup finds all the positions
          within the element. */
-      for (position = e->start; position < e->end; position++) 
+      for (position = e->start; position < e->end; position++)
         {
           struct range_map_node *found = range_map_lookup (rm, position);
           check (found != NULL);
@@ -295,7 +295,7 @@ check_range_map (struct range_map *rm,
   for (node = (rand () % 2 ? range_map_first (rm) : range_map_next (rm, NULL)),
          i = 0;
        node != NULL;
-       node = range_map_next (rm, node), i++) 
+       node = range_map_next (rm, node), i++)
     {
       struct expected_element *e = &sorted[i];
       check (range_map_node_to_element (node)->x == e->x);
@@ -309,12 +309,12 @@ check_range_map (struct range_map *rm,
    in all possible orders, up to a specified maximum overall
    range. */
 static void
-test_insert (void) 
+test_insert (void)
 {
   const int max_range = 7;
   int cnt;
 
-  for (cnt = 1; cnt <= max_range; cnt++) 
+  for (cnt = 1; cnt <= max_range; cnt++)
     {
       unsigned int composition_cnt;
       struct expected_element *expected;
@@ -322,7 +322,7 @@ test_insert (void)
       int elem_cnt;
       int *order;
       struct element *elements;
-      
+
       expected = xnmalloc (cnt, sizeof *expected);
       widths = xnmalloc (cnt, sizeof *widths);
       order = xnmalloc (cnt, sizeof *order);
@@ -330,23 +330,23 @@ test_insert (void)
 
       elem_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &elem_cnt, widths)) 
+      while (next_composition (cnt, &elem_cnt, widths))
         {
           int i, j;
           unsigned int permutation_cnt;
 
-          for (i = 0; i < elem_cnt; i++) 
+          for (i = 0; i < elem_cnt; i++)
             order[i] = i;
 
           permutation_cnt = 0;
-          while (permutation_cnt == 0 || next_permutation (order, elem_cnt)) 
+          while (permutation_cnt == 0 || next_permutation (order, elem_cnt))
             {
               struct range_map rm;
 
               /* Inserts the elem_cnt elements with the given
                  widths[] into T in the order given by order[]. */
               range_map_init (&rm);
-              for (i = 0; i < elem_cnt; i++) 
+              for (i = 0; i < elem_cnt; i++)
                 {
                   unsigned long int start, end;
                   int idx;
@@ -373,7 +373,7 @@ test_insert (void)
               permutation_cnt++;
             }
           check (permutation_cnt == factorial (elem_cnt));
-          
+
           composition_cnt++;
         }
       check (composition_cnt == 1 << (cnt - 1));
@@ -388,12 +388,12 @@ test_insert (void)
 /* Tests deleting ranges from a range map in all possible orders,
    up to a specified maximum overall range. */
 static void
-test_delete (int gap) 
+test_delete (int gap)
 {
   const int max_range = 7;
   int cnt;
 
-  for (cnt = 1; cnt <= max_range; cnt++) 
+  for (cnt = 1; cnt <= max_range; cnt++)
     {
       unsigned int composition_cnt;
       struct expected_element *expected;
@@ -401,7 +401,7 @@ test_delete (int gap)
       int elem_cnt;
       int *order;
       struct element *elements;
-      
+
       expected = xnmalloc (cnt, sizeof *expected);
       widths = xnmalloc (cnt, sizeof *widths);
       order = xnmalloc (cnt, sizeof *order);
@@ -409,16 +409,16 @@ test_delete (int gap)
 
       elem_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &elem_cnt, widths)) 
+      while (next_composition (cnt, &elem_cnt, widths))
         {
           int i, j;
           unsigned int permutation_cnt;
 
-          for (i = 0; i < elem_cnt; i++) 
+          for (i = 0; i < elem_cnt; i++)
             order[i] = i;
 
           permutation_cnt = 0;
-          while (permutation_cnt == 0 || next_permutation (order, elem_cnt)) 
+          while (permutation_cnt == 0 || next_permutation (order, elem_cnt))
             {
               struct range_map rm;
               unsigned long int start;
@@ -426,7 +426,7 @@ test_delete (int gap)
               /* Insert all the elements. */
               range_map_init (&rm);
               start = 0;
-              for (i = 0; i < elem_cnt; i++) 
+              for (i = 0; i < elem_cnt; i++)
                 {
                   int width = widths[i] > gap ? widths[i] - gap : widths[i];
                   unsigned long int end = start + width;
@@ -435,10 +435,10 @@ test_delete (int gap)
                   range_map_insert (&rm, start, end - start,
                                     &elements[i].node);
 
-                  for (j = 0; ; j++) 
+                  for (j = 0; ; j++)
                     {
                       assert (j < elem_cnt);
-                      if (order[j] == i) 
+                      if (order[j] == i)
                         {
                           expected[j].x = i;
                           expected[j].start = start;
@@ -446,13 +446,13 @@ test_delete (int gap)
                           break;
                         }
                     }
-                  
+
                   start += widths[i];
                 }
               check_range_map (&rm, expected, elem_cnt);
 
               /* Delete the elements in the specified order. */
-              for (i = 0; i < elem_cnt; i++) 
+              for (i = 0; i < elem_cnt; i++)
                 {
                   range_map_delete (&rm, &elements[order[i]].node);
                   check_range_map (&rm, expected + i + 1, elem_cnt - i - 1);
@@ -461,7 +461,7 @@ test_delete (int gap)
               permutation_cnt++;
             }
           check (permutation_cnt == factorial (elem_cnt));
-          
+
           composition_cnt++;
         }
       check (composition_cnt == 1 << (cnt - 1));
@@ -477,7 +477,7 @@ test_delete (int gap)
    ranges in all possible orders, up to a specified maximum
    overall range. */
 static void
-test_delete_contiguous (void) 
+test_delete_contiguous (void)
 {
   test_delete (0);
 }
@@ -486,7 +486,7 @@ test_delete_contiguous (void)
    sometimes separated by gaps in all possible orders, up to a
    specified maximum overall range. */
 static void
-test_delete_gaps (void) 
+test_delete_gaps (void)
 {
   test_delete (1);
 }
@@ -495,7 +495,7 @@ test_delete_gaps (void)
 
 /* Runs TEST_FUNCTION and prints a message about NAME. */
 static void
-run_test (void (*test_function) (void), const char *name) 
+run_test (void (*test_function) (void), const char *name)
 {
   test_name = name;
   putchar ('.');
@@ -504,7 +504,7 @@ run_test (void (*test_function) (void), const char *name)
 }
 
 int
-main (void) 
+main (void)
 {
   run_test (test_insert, "insert");
   run_test (test_delete_contiguous, "delete from contiguous ranges");

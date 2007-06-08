@@ -47,7 +47,7 @@
 #define _(msgid) gettext (msgid)
 
 /* Private result codes for use within INPUT PROGRAM. */
-enum cmd_result_extensions 
+enum cmd_result_extensions
   {
     CMD_END_INPUT_PROGRAM = CMD_PRIVATE_FIRST,
     CMD_END_CASE
@@ -58,12 +58,12 @@ enum value_init_type
   {
     INP_NUMERIC = 01,		/* Numeric. */
     INP_STRING = 0,		/* String. */
-    
+
     INP_INIT_ONCE = 02,		/* Initialize only once. */
     INP_REINIT = 0,		/* Reinitialize for each iteration. */
   };
 
-struct input_program_pgm 
+struct input_program_pgm
   {
     struct trns_chain *trns_chain;
     enum trns_result restart;
@@ -87,14 +87,14 @@ static bool inside_input_program;
 /* Returns true if we're parsing the inside of a INPUT
    PROGRAM...END INPUT PROGRAM construct, false otherwise. */
 bool
-in_input_program (void) 
+in_input_program (void)
 {
   return inside_input_program;
 }
 
 /* Emits an END CASE transformation for INP. */
 static void
-emit_END_CASE (struct dataset *ds, struct input_program_pgm *inp) 
+emit_END_CASE (struct dataset *ds, struct input_program_pgm *inp)
 {
   add_transformation (ds, end_case_trns_proc, NULL, inp);
 }
@@ -112,17 +112,17 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inp = xmalloc (sizeof *inp);
   inp->trns_chain = NULL;
   inp->init = NULL;
-  
+
   inside_input_program = true;
-  for (;;) 
+  for (;;)
     {
       enum cmd_result result = cmd_parse_in_state (lexer, ds, CMD_STATE_INPUT_PROGRAM);
       if (result == CMD_END_INPUT_PROGRAM)
         break;
-      else if (result == CMD_END_CASE) 
+      else if (result == CMD_END_CASE)
         {
           emit_END_CASE (ds, inp);
-          saw_END_CASE = true; 
+          saw_END_CASE = true;
         }
       else if (cmd_result_is_failure (result) && result != CMD_FAILURE)
         {
@@ -138,14 +138,14 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
     emit_END_CASE (ds, inp);
   inside_input_program = false;
 
-  if (dict_get_next_value_idx (dataset_dict (ds)) == 0) 
+  if (dict_get_next_value_idx (dataset_dict (ds)) == 0)
     {
       msg (SE, _("Input program did not create any variables."));
       proc_discard_active_file (ds);
       destroy_input_program (inp);
       return CMD_FAILURE;
     }
-  
+
   inp->trns_chain = proc_capture_transformations (ds);
   trns_chain_finalize (inp->trns_chain);
 
@@ -155,7 +155,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inp->init = caseinit_create ();
   caseinit_mark_for_init (inp->init, dataset_dict (ds));
   inp->value_cnt = dict_get_next_value_idx (dataset_dict (ds));
-  
+
   proc_set_active_file_data (
     ds, casereader_create_sequential (NULL, inp->value_cnt, CASENUMBER_MAX,
                                       &input_program_casereader_class, inp));
@@ -167,13 +167,13 @@ int
 cmd_end_input_program (struct lexer *lexer UNUSED, struct dataset *ds UNUSED)
 {
   assert (in_input_program ());
-  return CMD_END_INPUT_PROGRAM; 
+  return CMD_END_INPUT_PROGRAM;
 }
 
 /* Returns true if STATE is valid given the transformations that
    are allowed within INPUT PROGRAM. */
 static bool
-is_valid_state (enum trns_result state) 
+is_valid_state (enum trns_result state)
 {
   return (state == TRNS_CONTINUE
           || state == TRNS_ERROR
@@ -195,10 +195,10 @@ input_program_casereader_read (struct casereader *reader UNUSED, void *inp_,
   do
     {
       assert (is_valid_state (inp->restart));
-      if (inp->restart == TRNS_ERROR || inp->restart == TRNS_END_FILE) 
+      if (inp->restart == TRNS_ERROR || inp->restart == TRNS_END_FILE)
         {
           case_destroy (c);
-          return false; 
+          return false;
         }
 
       caseinit_init_reinit_vars (inp->init, c);
@@ -214,9 +214,9 @@ input_program_casereader_read (struct casereader *reader UNUSED, void *inp_,
 }
 
 static void
-destroy_input_program (struct input_program_pgm *pgm) 
+destroy_input_program (struct input_program_pgm *pgm)
 {
-  if (pgm != NULL) 
+  if (pgm != NULL)
     {
       trns_chain_destroy (pgm->trns_chain);
       caseinit_destroy (pgm->init);
@@ -283,14 +283,14 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "COLUMN"))
 	{
 	  lex_match (lexer, '=');
-	  
+
 	  if (e)
 	    {
 	      msg (SE, _("COLUMN subcommand multiply specified."));
 	      expr_free (e);
 	      return CMD_CASCADING_FAILURE;
 	    }
-	  
+
 	  e = expr_parse (lexer, ds, EXPR_NUMBER);
 	  if (!e)
 	    return CMD_CASCADING_FAILURE;

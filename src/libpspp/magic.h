@@ -30,7 +30,7 @@
 #error Only IEEE-754 floating point currently supported.
 #endif
 
-/* Allows us to specify individual bytes of a double. */     
+/* Allows us to specify individual bytes of a double. */
 union cvt_dbl {
   unsigned char cvt_dbl_i[8];
   double cvt_dbl_d;

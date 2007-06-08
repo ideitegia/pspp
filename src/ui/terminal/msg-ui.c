@@ -44,25 +44,25 @@ static void handle_msg (const struct msg *);
 
 static FILE *msg_file ;
 
-void 
+void
 msg_ui_set_error_file (const char *filename)
 {
   error_file = filename;
 }
 
 void
-msg_ui_init (struct source_stream *ss) 
+msg_ui_init (struct source_stream *ss)
 {
   msg_file = stdout;
 
-  if ( error_file ) 
+  if ( error_file )
     {
       msg_file = fopen (error_file, "a");
-      if ( NULL == msg_file ) 
+      if ( NULL == msg_file )
 	{
 	  int err = errno;
 	  printf ( _("Cannot open %s (%s). "
-		     "Writing errors to stdout instead.\n"), 
+		     "Writing errors to stdout instead.\n"),
 		   error_file, strerror(err) );
 	  msg_file = stdout;
 	}
@@ -71,11 +71,11 @@ msg_ui_init (struct source_stream *ss)
 }
 
 void
-msg_ui_done (void) 
+msg_ui_done (void)
 {
   msg_done ();
   msg_locator_done ();
-  
+
   if ( msg_file ) /* FIXME: do we really want to close stdout ?? */
     fclose (msg_file);
 }
@@ -85,7 +85,7 @@ msg_ui_done (void)
 void
 check_msg_count (struct source_stream *ss)
 {
-  if (!getl_is_interactive (ss)) 
+  if (!getl_is_interactive (ss))
     {
       if (get_errorbreak () && error_count)
         msg (MN, _("Terminating execution of syntax file due to error."));
@@ -98,18 +98,18 @@ check_msg_count (struct source_stream *ss)
       else
         return;
 
-      getl_abort_noninteractive (ss); 
+      getl_abort_noninteractive (ss);
     }
 }
 
 void
-reset_msg_count (void) 
+reset_msg_count (void)
 {
   error_count = warning_count = 0;
 }
 
 bool
-any_errors (void) 
+any_errors (void)
 {
   return error_count > 0;
 }
@@ -121,26 +121,26 @@ static void dump_line (int line_indent, const char *line, size_t length,
 static void
 handle_msg (const struct msg *m)
 {
-  struct category 
+  struct category
     {
       bool show_command_name;   /* Show command name with error? */
       bool show_file_location;  /* Show syntax file location? */
     };
 
-  static const struct category categories[] = 
+  static const struct category categories[] =
     {
       {false, false},           /* MSG_GENERAL. */
       {true, true},             /* MSG_SYNTAX. */
       {false, true},            /* MSG_DATA. */
     };
 
-  struct severity 
+  struct severity
     {
       const char *name;         /* How to identify this severity. */
       int *count;               /* Number of msgs with this severity so far. */
     };
-  
-  static struct severity severities[] = 
+
+  static struct severity severities[] =
     {
       {N_("error"), &error_count},          /* MSG_ERROR. */
       {N_("warning"), &warning_count},      /* MSG_WARNING. */
@@ -161,10 +161,10 @@ handle_msg (const struct msg *m)
 
   if (severity->name != NULL)
     ds_put_format (&string, "%s: ", gettext (severity->name));
-  
+
   if (severity->count != NULL)
     ++*severity->count;
-  
+
   if (category->show_command_name && msg_get_command_name () != NULL)
     ds_put_format (&string, "%s: ", msg_get_command_name ());
 
@@ -212,7 +212,7 @@ dump_message (char *msg, unsigned width, unsigned indent, FILE *stream)
   line_start = 0;
   line_indent = 0;
   for (i = 0; i < length; i++)
-    switch (breaks[i]) 
+    switch (breaks[i])
       {
       case UC_BREAK_POSSIBLE:
         /* Break before this character,

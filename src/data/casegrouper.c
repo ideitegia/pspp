@@ -30,11 +30,11 @@
 
 #include "xalloc.h"
 
-struct casegrouper 
+struct casegrouper
   {
     struct casereader *reader;
     struct taint *taint;
-    
+
     bool (*same_group) (const struct ccase *, const struct ccase *, void *aux);
     void (*destroy) (void *aux);
     void *aux;
@@ -46,7 +46,7 @@ casegrouper_create_func (struct casereader *reader,
                                              const struct ccase *,
                                              void *aux),
                          void (*destroy) (void *aux),
-                         void *aux) 
+                         void *aux)
 {
   struct casegrouper *grouper = xmalloc (sizeof *grouper);
   grouper->reader = casereader_rename (reader);
@@ -64,15 +64,15 @@ bool
 casegrouper_get_next_group (struct casegrouper *grouper,
                             struct casereader **reader)
 {
-  if (grouper->same_group != NULL) 
+  if (grouper->same_group != NULL)
     {
       struct casewriter *writer;
       struct ccase group_case, tmp;
 
-      if (!casereader_read (grouper->reader, &group_case)) 
+      if (!casereader_read (grouper->reader, &group_case))
         {
           *reader = NULL;
-          return false; 
+          return false;
         }
 
       writer = autopaging_writer_create (casereader_get_value_cnt (grouper->reader));
@@ -85,7 +85,7 @@ casegrouper_get_next_group (struct casegrouper *grouper,
           struct ccase discard;
           casereader_read (grouper->reader, &discard);
           case_destroy (&discard);
-          casewriter_write (writer, &tmp); 
+          casewriter_write (writer, &tmp);
         }
       case_destroy (&tmp);
       case_destroy (&group_case);
@@ -93,9 +93,9 @@ casegrouper_get_next_group (struct casegrouper *grouper,
       *reader = casewriter_make_reader (writer);
       return true;
     }
-  else 
+  else
     {
-      if (grouper->reader != NULL) 
+      if (grouper->reader != NULL)
         {
           *reader = grouper->reader;
           grouper->reader = NULL;
@@ -103,13 +103,13 @@ casegrouper_get_next_group (struct casegrouper *grouper,
         }
       else
         return false;
-    } 
+    }
 }
 
 bool
-casegrouper_destroy (struct casegrouper *grouper) 
+casegrouper_destroy (struct casegrouper *grouper)
 {
-  if (grouper != NULL) 
+  if (grouper != NULL)
     {
       struct taint *taint = grouper->taint;
       bool ok;
@@ -127,7 +127,7 @@ casegrouper_destroy (struct casegrouper *grouper)
     return true;
 }
 
-struct casegrouper_vars 
+struct casegrouper_vars
   {
     const struct variable **vars;
     size_t var_cnt;
@@ -135,14 +135,14 @@ struct casegrouper_vars
 
 static bool
 casegrouper_vars_same_group (const struct ccase *a, const struct ccase *b,
-                             void *cv_) 
+                             void *cv_)
 {
   struct casegrouper_vars *cv = cv_;
   return case_compare (a, b, cv->vars, cv->var_cnt) == 0;
 }
 
 static void
-casegrouper_vars_destroy (void *cv_) 
+casegrouper_vars_destroy (void *cv_)
 {
   struct casegrouper_vars *cv = cv_;
   free (cv->vars);
@@ -152,9 +152,9 @@ casegrouper_vars_destroy (void *cv_)
 struct casegrouper *
 casegrouper_create_vars (struct casereader *reader,
                          const struct variable *const *vars,
-                         size_t var_cnt) 
+                         size_t var_cnt)
 {
-  if (var_cnt > 0) 
+  if (var_cnt > 0)
     {
       struct casegrouper_vars *cv = xmalloc (sizeof *cv);
       cv->vars = xmemdup (vars, sizeof *vars * var_cnt);
@@ -170,7 +170,7 @@ casegrouper_create_vars (struct casereader *reader,
 
 struct casegrouper *
 casegrouper_create_splits (struct casereader *reader,
-                           const struct dictionary *dict) 
+                           const struct dictionary *dict)
 {
   return casegrouper_create_vars (reader,
                                   dict_get_split_vars (dict),
@@ -179,7 +179,7 @@ casegrouper_create_splits (struct casereader *reader,
 
 struct casegrouper *
 casegrouper_create_case_ordering (struct casereader *reader,
-                                  const struct case_ordering *co) 
+                                  const struct case_ordering *co)
 {
   const struct variable **vars;
   size_t var_cnt;

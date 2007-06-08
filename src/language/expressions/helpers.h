@@ -1,4 +1,4 @@
-#ifndef EXPRESSIONS_HELPERS_H 
+#ifndef EXPRESSIONS_HELPERS_H
 #define EXPRESSIONS_HELPERS_H
 
 #include <ctype.h>
@@ -32,7 +32,7 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static inline double check_errno (double x) 
+static inline double check_errno (double x)
 {
   return errno == 0 ? x : SYSMIS;
 }
@@ -66,7 +66,7 @@ struct substring copy_string (struct expression *,
                               const char *, size_t length);
 
 static inline bool
-is_valid (double d) 
+is_valid (double d)
 {
   return finite (d) && d != SYSMIS;
 }

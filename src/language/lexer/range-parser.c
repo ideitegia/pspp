@@ -42,21 +42,21 @@ static bool parse_number (struct lexer *, double *, const enum fmt_type *);
    values using *FORMAT. */
 bool
 parse_num_range (struct lexer *lexer,
-                 double *x, double *y, const enum fmt_type *format) 
+                 double *x, double *y, const enum fmt_type *format)
 {
   if (lex_match_id (lexer, "LO") || lex_match_id (lexer, "LOWEST"))
     *x = LOWEST;
   else if (!parse_number (lexer, x, format))
     return false;
 
-  if (lex_match_id (lexer, "THRU")) 
+  if (lex_match_id (lexer, "THRU"))
     {
       if (lex_match_id (lexer, "HI") || lex_match_id (lexer, "HIGHEST"))
         *y = HIGHEST;
       else if (!parse_number (lexer, y, format))
         return false;
 
-      if (*y < *x) 
+      if (*y < *x)
         {
           double t;
           msg (SW, _("Low end of range (%g) is below high end (%g).  "
@@ -66,21 +66,21 @@ parse_num_range (struct lexer *lexer,
           *x = *y;
           *y = t;
         }
-      else if (*x == *y) 
+      else if (*x == *y)
         msg (SW, _("Ends of range are equal (%g)."), *x);
 
       return true;
     }
   else
     {
-      if (*x == LOWEST) 
+      if (*x == LOWEST)
         {
           msg (SE, _("LO or LOWEST must be part of a range."));
           return false;
         }
       *y = *x;
     }
-  
+
   return true;
 }
 
@@ -92,13 +92,13 @@ parse_num_range (struct lexer *lexer,
 static bool
 parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
 {
-  if (lex_is_number (lexer)) 
+  if (lex_is_number (lexer))
     {
       *x = lex_number (lexer);
       lex_get (lexer);
       return true;
     }
-  else if (lex_token (lexer) == T_STRING && format != NULL) 
+  else if (lex_token (lexer) == T_STRING && format != NULL)
     {
       union value v;
       data_in (ds_ss (lex_tokstr (lexer)), *format, 0, 0, &v, 0);
@@ -111,12 +111,12 @@ parse_number (struct lexer *lexer, double *x, const enum fmt_type *format)
         }
       return true;
     }
-  else 
+  else
     {
       if (format != NULL)
         lex_error (lexer, _("expecting number or data string"));
       else
         lex_force_num (lexer);
-      return false; 
+      return false;
     }
 }

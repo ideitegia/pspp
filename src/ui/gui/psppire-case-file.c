@@ -250,13 +250,13 @@ psppire_case_file_get_value (const PsppireCaseFile *cf,
                              union value *value, int width)
 {
   bool allocated;
-  
+
   g_return_val_if_fail (cf, false);
   g_return_val_if_fail (cf->datasheet, false);
 
   g_return_val_if_fail (idx < datasheet_get_column_cnt (cf->datasheet), false);
 
-  if (value == NULL) 
+  if (value == NULL)
     {
       value = xnmalloc (value_cnt_from_width (width), sizeof *value);
       allocated = true;
@@ -265,7 +265,7 @@ psppire_case_file_get_value (const PsppireCaseFile *cf,
     allocated = false;
   if (!datasheet_get_value (cf->datasheet, casenum, idx, value, width))
     {
-      if (allocated) 
+      if (allocated)
         free (value);
       value = NULL;
     }

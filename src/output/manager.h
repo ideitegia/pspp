@@ -47,7 +47,7 @@ enum som_type
 struct som_entity
   {
     const struct som_table_class *class;	/* Table class. */
-    enum som_type type;                 /* Table or Chart */ 
+    enum som_type type;                 /* Table or Chart */
     void *ext;				/* Owned by */
   };
 

@@ -103,18 +103,18 @@ cmd_loop (struct lexer *lexer, struct dataset *ds)
   bool ok = true;
 
   loop = create_loop_trns (ds);
-  while (lex_token (lexer) != '.' && ok) 
+  while (lex_token (lexer) != '.' && ok)
     {
-      if (lex_match_id (lexer, "IF")) 
+      if (lex_match_id (lexer, "IF"))
         ok = parse_if_clause (lexer, loop, &loop->loop_condition);
       else
         ok = parse_index_clause (ds, lexer, loop, &created_index_var);
     }
 
   /* Clean up if necessary. */
-  if (!ok) 
+  if (!ok)
     {
-      loop->max_pass_count = 0; 
+      loop->max_pass_count = 0;
       if (loop->index_var != NULL && created_index_var)
         {
           dict_delete_var (dataset_dict (ds), loop->index_var);
@@ -137,7 +137,7 @@ cmd_end_loop (struct lexer *lexer, struct dataset *ds)
     return CMD_CASCADING_FAILURE;
 
   assert (loop->ds == ds);
-  
+
   /* Parse syntax. */
   if (lex_match_id (lexer, "IF"))
     ok = parse_if_clause (lexer, loop, &loop->end_loop_condition);
@@ -148,7 +148,7 @@ cmd_end_loop (struct lexer *lexer, struct dataset *ds)
     loop->max_pass_count = 0;
 
   ctl_stack_pop (loop);
-  
+
   return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
 
@@ -171,7 +171,7 @@ static void
 close_loop (void *loop_)
 {
   struct loop_trns *loop = loop_;
-  
+
   add_transformation (loop->ds, end_loop_trns_proc, NULL, loop);
   loop->past_END_LOOP_index = next_transformation (loop->ds);
 
@@ -188,15 +188,15 @@ close_loop (void *loop_)
    resulting expression to *CONDITION.
    Returns true if successful, false on failure. */
 static bool
-parse_if_clause (struct lexer *lexer, 
-		 struct loop_trns *loop, struct expression **condition) 
+parse_if_clause (struct lexer *lexer,
+		 struct loop_trns *loop, struct expression **condition)
 {
-  if (*condition != NULL) 
+  if (*condition != NULL)
     {
       lex_sbc_only_once ("IF");
       return false;
     }
-  
+
   *condition = expr_parse_pool (lexer, loop->pool, loop->ds, EXPR_BOOLEAN);
   return *condition != NULL;
 }
@@ -207,15 +207,15 @@ parse_if_clause (struct lexer *lexer,
    Returns true if successful, false on failure. */
 static bool
 parse_index_clause (struct dataset *ds, struct lexer *lexer,
-                    struct loop_trns *loop, bool *created_index_var) 
+                    struct loop_trns *loop, bool *created_index_var)
 {
-  if (loop->index_var != NULL) 
+  if (loop->index_var != NULL)
     {
       msg (SE, _("Only one index clause may be specified."));
       return false;
     }
 
-  if (lex_token (lexer) != T_ID) 
+  if (lex_token (lexer) != T_ID)
     {
       lex_error (lexer, NULL);
       return false;
@@ -226,16 +226,16 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
     *created_index_var = false;
   else
     {
-      loop->index_var = dict_create_var_assert (dataset_dict (ds), 
+      loop->index_var = dict_create_var_assert (dataset_dict (ds),
                                                 lex_tokid (lexer), 0);
-      *created_index_var = true; 
+      *created_index_var = true;
     }
   lex_get (lexer);
 
   if (!lex_force_match (lexer, '='))
     return false;
 
-  loop->first_expr = expr_parse_pool (lexer, loop->pool, 
+  loop->first_expr = expr_parse_pool (lexer, loop->pool,
 				      loop->ds, EXPR_NUMBER);
   if (loop->first_expr == NULL)
     return false;
@@ -243,14 +243,14 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
   for (;;)
     {
       struct expression **e;
-      if (lex_match (lexer, T_TO)) 
+      if (lex_match (lexer, T_TO))
         e = &loop->last_expr;
-      else if (lex_match (lexer, T_BY)) 
+      else if (lex_match (lexer, T_BY))
         e = &loop->by_expr;
       else
         break;
 
-      if (*e != NULL) 
+      if (*e != NULL)
         {
           lex_sbc_only_once (e == &loop->last_expr ? "TO" : "BY");
           return false;
@@ -259,7 +259,7 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
       if (*e == NULL)
         return false;
     }
-  if (loop->last_expr == NULL) 
+  if (loop->last_expr == NULL)
     {
       lex_sbc_missing (lexer, "TO");
       return false;
@@ -272,7 +272,7 @@ parse_index_clause (struct dataset *ds, struct lexer *lexer,
 
 /* Creates, initializes, and returns a new loop_trns. */
 static struct loop_trns *
-create_loop_trns (struct dataset *ds) 
+create_loop_trns (struct dataset *ds)
 {
   struct loop_trns *loop = pool_create_container (struct loop_trns, pool);
   loop->max_pass_count = -1;
@@ -292,9 +292,9 @@ create_loop_trns (struct dataset *ds)
 }
 
 /* Finalizes LOOP by clearing the control stack, thus ensuring
-   that all open LOOPs are closed. */ 
+   that all open LOOPs are closed. */
 static void
-loop_trns_finalize (void *do_if_ UNUSED) 
+loop_trns_finalize (void *do_if_ UNUSED)
 {
   /* This will be called multiple times if multiple LOOPs were
      executed, which is slightly unclean, but at least it's
@@ -373,7 +373,7 @@ end_loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num UNUSED)
     }
 
   /* Indexing clause limiter: counting downward. */
-  if (loop->index_var != NULL) 
+  if (loop->index_var != NULL)
     {
       loop->cur += loop->by;
       if ((loop->by > 0.0 && loop->cur > loop->last)

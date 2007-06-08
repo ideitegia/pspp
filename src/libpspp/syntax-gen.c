@@ -40,15 +40,15 @@ has_double_quote (const struct string *str)
   return (SIZE_MAX != ds_find_char (str, '"'));
 }
 
-/* 
+/*
    Quotes the string STR. If STR contains no '\'' character, then
    the returned value will be enclosed in single quotes.  Else, if STR
    contains no '"' character, then it will be enclosed in double
    quotes. Otherwise, it will be enclosed in single quotes, and each
-   '\'' will be padded with another '\''.  
+   '\'' will be padded with another '\''.
 
    STR must be encoded in UTF-8, and the quoted result will also be
-   encoded in UTF-8.  
+   encoded in UTF-8.
 */
 void
 gen_quoted_string (struct string *str)

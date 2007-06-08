@@ -54,7 +54,7 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 
 
   lex_match (lexer, '/');
-  
+
   if ( ! lex_match_id (lexer, "PERMISSIONS"))
     goto error;
 
@@ -62,12 +62,12 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 
   if ( lex_match_id (lexer, "READONLY"))
     {
-      if ( ! change_permissions(fn, PER_RO ) ) 
+      if ( ! change_permissions(fn, PER_RO ) )
 	goto error;
     }
   else if ( lex_match_id (lexer, "WRITEABLE"))
     {
-      if ( ! change_permissions(fn, PER_RW ) ) 
+      if ( ! change_permissions(fn, PER_RW ) )
 	goto error;
     }
   else
@@ -102,7 +102,7 @@ change_permissions(const char *file_name, enum PER per)
     }
 
 
-  if ( -1 == stat(file_name, &buf) ) 
+  if ( -1 == stat(file_name, &buf) )
     {
       const int errnum = errno;
       msg (SE, _("Cannot stat %s: %s"), file_name, strerror(errnum));

@@ -60,7 +60,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
       while (lex_token (lexer) == T_ID)
 	{
           size_t i;
-          
+
 	  if (dict_lookup_vector (dict, lex_tokid (lexer)))
 	    {
 	      msg (SE, _("A vector named %s already exists."),
@@ -111,7 +111,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
           /* Short form. */
           struct fmt_spec format;
           bool seen_format = false;
-          
+
           struct variable **vars;
           int var_cnt;
 
@@ -120,9 +120,9 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
           var_cnt = 0;
           format = fmt_for_output (FMT_F, 8, 2);
           seen_format = false;
-          while (!lex_match (lexer, ')')) 
+          while (!lex_match (lexer, ')'))
             {
-              if (lex_is_integer (lexer) && var_cnt == 0) 
+              if (lex_is_integer (lexer) && var_cnt == 0)
                 {
                   var_cnt = lex_integer (lexer);
                   lex_get (lexer);
@@ -132,7 +132,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
                       goto fail;
                     }
                 }
-              else if (lex_token (lexer) == T_ID && !seen_format) 
+              else if (lex_token (lexer) == T_ID && !seen_format)
                 {
                   seen_format = true;
                   if (!parse_format_specifier (lexer, &format)
@@ -140,14 +140,14 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
                       || !fmt_check_type_compat (&format, VAR_NUMERIC))
                     goto fail;
                 }
-              else 
+              else
                 {
                   lex_error (lexer, NULL);
                   goto fail;
                 }
               lex_match (lexer, ',');
             }
-          if (var_cnt == 0) 
+          if (var_cnt == 0)
             {
               lex_error (lexer, _("expecting vector length"));
               goto fail;

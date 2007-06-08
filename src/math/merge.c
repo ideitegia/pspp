@@ -35,13 +35,13 @@
 
 #define MAX_MERGE_ORDER 7
 
-struct merge_input 
+struct merge_input
   {
     struct casereader *reader;
     struct ccase c;
   };
 
-struct merge 
+struct merge
   {
     struct case_ordering *ordering;
     struct merge_input inputs[MAX_MERGE_ORDER];
@@ -51,7 +51,7 @@ struct merge
 static void do_merge (struct merge *m);
 
 struct merge *
-merge_create (const struct case_ordering *ordering) 
+merge_create (const struct case_ordering *ordering)
 {
   struct merge *m = xmalloc (sizeof *m);
   m->ordering = case_ordering_clone (ordering);
@@ -60,12 +60,12 @@ merge_create (const struct case_ordering *ordering)
 }
 
 void
-merge_destroy (struct merge *m) 
+merge_destroy (struct merge *m)
 {
-  if (m != NULL) 
+  if (m != NULL)
     {
       size_t i;
-      
+
       case_ordering_destroy (m->ordering);
       for (i = 0; i < m->input_cnt; i++)
         casereader_destroy (m->inputs[i].reader);
@@ -74,7 +74,7 @@ merge_destroy (struct merge *m)
 }
 
 void
-merge_append (struct merge *m, struct casereader *r) 
+merge_append (struct merge *m, struct casereader *r)
 {
   r = casereader_rename (r);
   m->inputs[m->input_cnt++].reader = r;
@@ -83,10 +83,10 @@ merge_append (struct merge *m, struct casereader *r)
 }
 
 struct casereader *
-merge_make_reader (struct merge *m) 
+merge_make_reader (struct merge *m)
 {
   struct casereader *r;
-  
+
   if (m->input_cnt > 1)
     do_merge (m);
 
@@ -108,7 +108,7 @@ merge_make_reader (struct merge *m)
 }
 
 static bool
-read_input_case (struct merge *m, size_t idx) 
+read_input_case (struct merge *m, size_t idx)
 {
   struct merge_input *i = &m->inputs[idx];
 
@@ -120,26 +120,26 @@ read_input_case (struct merge *m, size_t idx)
       remove_element (m->inputs, m->input_cnt, sizeof *m->inputs, idx);
       m->input_cnt--;
       return false;
-    }  
+    }
 }
 
 static void
-do_merge (struct merge *m) 
+do_merge (struct merge *m)
 {
   struct casewriter *w;
   size_t i;
-  
+
   assert (m->input_cnt > 1);
 
   w = tmpfile_writer_create (case_ordering_get_value_cnt (m->ordering));
-  for (i = 0; i < m->input_cnt; i++) 
+  for (i = 0; i < m->input_cnt; i++)
     taint_propagate (casereader_get_taint (m->inputs[i].reader),
                      casewriter_get_taint (w));
-  
-  for (i = 0; i < m->input_cnt; ) 
+
+  for (i = 0; i < m->input_cnt; )
     if (read_input_case (m, i))
       i++;
-  while (m->input_cnt > 0) 
+  while (m->input_cnt > 0)
     {
       size_t min;
 

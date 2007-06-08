@@ -42,12 +42,12 @@ deque_init (struct deque *deque, size_t capacity, size_t elem_size)
 {
   void *data = NULL;
   deque_init_null (deque);
-  if (capacity > 0) 
+  if (capacity > 0)
     {
       deque->capacity = 1;
       while (deque->capacity < capacity)
         deque->capacity <<= 1;
-      data = xnmalloc (deque->capacity, elem_size); 
+      data = xnmalloc (deque->capacity, elem_size);
     }
   return data;
 }

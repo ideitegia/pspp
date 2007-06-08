@@ -54,7 +54,7 @@ void
 som_blank_line (void)
 {
   struct outp_driver *d;
-  
+
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     if (d->page_open && d->cp_y != 0)
       d->cp_y += d->font_height;
@@ -93,11 +93,11 @@ som_submit (struct som_entity *t)
 {
 #if DEBUGGING
   static int entry;
-  
+
   assert (entry++ == 0);
 #endif
 
-  if ( t->type == SOM_TABLE) 
+  if ( t->type == SOM_TABLE)
     {
       t->class->table (t);
       t->class->flags (&flags);
@@ -122,17 +122,17 @@ som_submit (struct som_entity *t)
 
       if (!(flags & SOMF_NO_TITLE))
 	subtable_num++;
-  
+
     }
-  
+
   {
     struct outp_driver *d;
-    
+
     for (d = outp_drivers (NULL); d; d = outp_drivers (d))
 	output_entity (d, t);
 
   }
-  
+
 #if DEBUGGING
   assert (--entry == 0);
 #endif
@@ -153,12 +153,12 @@ output_entity (struct outp_driver *driver, struct som_entity *entity)
     }
 
   t = entity;
-  
+
   t->class->driver (d);
   t->class->area (&tw, &th);
   fits_width = t->class->fits_width (d->width);
   fits_length = t->class->fits_length (d->length);
-  if (!fits_width || !fits_length) 
+  if (!fits_width || !fits_length)
     {
       int tl, tr, tt, tb;
       tl = fits_width ? hl : 0;
@@ -169,17 +169,17 @@ output_entity (struct outp_driver *driver, struct som_entity *entity)
       t->class->driver (d);
       t->class->area (&tw, &th);
     }
-  
+
   if (!(flags & SOMF_NO_SPACING) && d->cp_y != 0)
     d->cp_y += d->font_height;
-	
+
   if (cs != SOM_COL_NONE
       && 2 * (tw + d->prop_em_width) <= d->width
       && nr - (ht + hb) > 5)
     render_columns ();
   else if (tw < d->width && th + d->cp_y < d->length)
     render_simple ();
-  else 
+  else
     render_segments ();
 
   t->class->set_headers (hl, hr, ht, hb);
@@ -192,14 +192,14 @@ render_columns (void)
   int y0, y1;
   int max_len = 0;
   int index = 0;
-  
+
   assert (cs == SOM_COL_DOWN);
   assert (d->cp_x == 0);
 
   for (y0 = ht; y0 < nr - hb; y0 = y1)
     {
       int len;
-      
+
       t->class->cumulate (SOM_ROWS, y0, &y1, d->length - d->cp_y, &len);
 
       if (y0 == y1)
@@ -214,7 +214,7 @@ render_columns (void)
 
 	  t->class->title (index++, 0);
 	  t->class->render (0, y0, nc, y1);
-	  
+
 	  d->cp_x += tw + 2 * d->prop_em_width;
 	  if (d->cp_x + tw > d->width)
 	    {
@@ -224,7 +224,7 @@ render_columns (void)
 	    }
 	}
     }
-  
+
   if (d->cp_x > 0)
     {
       d->cp_x = 0;
@@ -249,17 +249,17 @@ static void
 render_segments (void)
 {
   int count = 0;
-  
+
   int x_index;
   int x0, x1;
-  
+
   assert (d->cp_x == 0);
 
   for (x_index = 0, x0 = hl; x0 < nc - hr; x0 = x1, x_index++)
     {
       int y_index;
       int y0, y1;
-      
+
       t->class->cumulate (SOM_COLUMNS, x0, &x1, d->width, NULL);
       if (x_index == 0 && x1 != nc - hr)
 	x_index++;
@@ -267,10 +267,10 @@ render_segments (void)
       for (y_index = 0, y0 = ht; y0 < nr - hb; y0 = y1, y_index++)
 	{
 	  int len;
-      
+
 	  if (count++ != 0 && d->cp_y != 0)
 	    d->cp_y += d->font_height;
-	      
+
 	  t->class->cumulate (SOM_ROWS, y0, &y1, d->length - d->cp_y, &len);
 	  if (y_index == 0 && y1 != nr - hb)
 	    y_index++;
@@ -285,7 +285,7 @@ render_segments (void)
 	      t->class->title (x_index ? x_index : y_index,
 			       x_index ? y_index : 0);
 	      t->class->render (x0, y0, x1, y1);
-	  
+
 	      d->cp_y += len;
 	    }
 	}

@@ -128,7 +128,7 @@ main (int argc, char **argv)
             {
               msg (SE, _("Stopping syntax file processing here to avoid "
                          "a cascade of dependent command failures."));
-              getl_abort_noninteractive (the_source_stream); 
+              getl_abort_noninteractive (the_source_stream);
             }
           else
             check_msg_count (the_source_stream);
@@ -139,7 +139,7 @@ main (int argc, char **argv)
 }
 
 static void
-i18n_init (void) 
+i18n_init (void)
 {
 #if ENABLE_NLS
 #if HAVE_LC_MESSAGES
@@ -152,7 +152,7 @@ i18n_init (void)
 }
 
 static void
-fpu_init (void) 
+fpu_init (void)
 {
 #if HAVE_FEHOLDEXCEPT
   fenv_t foo;
@@ -165,13 +165,13 @@ fpu_init (void)
 }
 
 /* If a segfault happens, issue a message to that effect and halt */
-void 
+void
 bug_handler(int sig)
 {
 #if DEBUGGING
   connect_debugger ();
 #endif
-  switch (sig) 
+  switch (sig)
     {
     case SIGABRT:
       request_bug_report_and_abort("Assertion Failure/Abort");
@@ -184,7 +184,7 @@ bug_handler(int sig)
     }
 }
 
-void 
+void
 interrupt_handler(int sig UNUSED)
 {
   terminate (false);
@@ -197,7 +197,7 @@ static void
 terminate (bool success)
 {
   static bool terminating = false;
-  if (!terminating) 
+  if (!terminating)
     {
       terminating = true;
 

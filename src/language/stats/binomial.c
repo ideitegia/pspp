@@ -77,7 +77,7 @@ calculate_binomial (double n1, double n2, double p)
 static double
 calculate_binomial_internal (double n1, double n2, double p)
 {
-  /* SPSS Statistical Algorithms has completely different and WRONG 
+  /* SPSS Statistical Algorithms has completely different and WRONG
      advice here. */
 
   double sig1tailed = gslextras_cdf_binomial_P (n1, n1 + n2, p);
@@ -170,7 +170,7 @@ binomial_execute (const struct dataset *ds,
       cat2->value = value_dup (&v, 0);
     }
 
-  if (do_binomial (dataset_dict(ds), input, bst, cat1, cat2, exclude)) 
+  if (do_binomial (dataset_dict(ds), input, bst, cat1, cat2, exclude))
     {
       struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1, 0);
 
@@ -236,12 +236,12 @@ binomial_execute (const struct dataset *ds,
       tab_vline (table, TAL_2, 2, 0, tab_nr (table) -1);
       tab_submit (table);
     }
-  
-  for (v = 0; v < ost->n_vars; v++) 
+
+  for (v = 0; v < ost->n_vars; v++)
     {
       free (cat1[v].value);
-      free (cat2[v].value); 
+      free (cat2[v].value);
     }
   free (cat1);
-  free (cat2); 
+  free (cat2);
 }

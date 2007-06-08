@@ -53,14 +53,14 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
   if (ordering == NULL)
     return CMD_CASCADING_FAILURE;
 
-  if (get_testing_mode () && lex_match (lexer, '/')) 
+  if (get_testing_mode () && lex_match (lexer, '/'))
     {
       if (!lex_force_match_id (lexer, "BUFFERS") || !lex_match (lexer, '=')
           || !lex_force_int (lexer))
         goto done;
 
       min_buffers = max_buffers = lex_integer (lexer);
-      if (max_buffers < 2) 
+      if (max_buffers < 2)
         {
           msg (SE, _("Buffer limit must be at least 2."));
           goto done;
@@ -78,7 +78,7 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
  done:
   min_buffers = 64;
   max_buffers = INT_MAX;
-  
+
   case_ordering_destroy (ordering);
   return ok ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
 }

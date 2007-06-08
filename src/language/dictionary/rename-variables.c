@@ -94,7 +94,7 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
 
   if (!dict_rename_vars (dataset_dict (ds),
                          rename_vars, rename_new_names, rename_cnt,
-                         &err_name)) 
+                         &err_name))
     {
       msg (SE, _("Renaming would duplicate variable name %s."), err_name);
       goto lossage;
@@ -104,12 +104,12 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
 
  lossage:
   free (rename_vars);
-  if (rename_new_names != NULL) 
+  if (rename_new_names != NULL)
     {
       size_t i;
       for (i = 0; i < rename_cnt; i++)
         free (rename_new_names[i]);
-      free (rename_new_names); 
+      free (rename_new_names);
     }
   return status;
 }

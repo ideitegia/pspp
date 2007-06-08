@@ -57,7 +57,7 @@ casewriter_write (struct casewriter *writer, struct ccase *c)
    encountered on WRITER or on some object on which WRITER has a
    dependency. */
 bool
-casewriter_destroy (struct casewriter *writer) 
+casewriter_destroy (struct casewriter *writer)
 {
   bool ok = true;
   if (writer != NULL)
@@ -107,7 +107,7 @@ casewriter_rename (struct casewriter *writer)
    occurred on WRITER, a clone of WRITER, or on some object on
    which WRITER's data has a dependency, false otherwise. */
 bool
-casewriter_error (const struct casewriter *writer) 
+casewriter_error (const struct casewriter *writer)
 {
   return taint_is_tainted (writer->taint);
 }
@@ -121,7 +121,7 @@ casewriter_error (const struct casewriter *writer)
    taint_propagate to propagate to the casewriter's taint
    structure, which may be obtained via casewriter_get_taint. */
 void
-casewriter_force_error (struct casewriter *writer) 
+casewriter_force_error (struct casewriter *writer)
 {
   taint_set_taint (writer->taint);
 }
@@ -129,7 +129,7 @@ casewriter_force_error (struct casewriter *writer)
 /* Returns WRITER's associate taint object, for use with
    taint_propagate and other taint functions. */
 const struct taint *
-casewriter_get_taint (const struct casewriter *writer) 
+casewriter_get_taint (const struct casewriter *writer)
 {
   return writer->taint;
 }
@@ -137,7 +137,7 @@ casewriter_get_taint (const struct casewriter *writer)
 /* Creates and returns a new casewriter with the given CLASS and
    auxiliary data AUX. */
 struct casewriter *
-casewriter_create (const struct casewriter_class *class, void *aux) 
+casewriter_create (const struct casewriter_class *class, void *aux)
 {
   struct casewriter *writer = xmalloc (sizeof *writer);
   writer->taint = taint_create ();
@@ -153,11 +153,11 @@ casewriter_create (const struct casewriter_class *class, void *aux)
    which case they will be written to disk.
 
    A casewriter created with this function may be passed to
-   casewriter_make_reader. 
+   casewriter_make_reader.
 
    This is usually the right kind of casewriter to use. */
 struct casewriter *
-autopaging_writer_create (size_t value_cnt) 
+autopaging_writer_create (size_t value_cnt)
 {
   return create_casewriter_window (value_cnt, get_workspace_cases (value_cnt));
 }
@@ -169,7 +169,7 @@ autopaging_writer_create (size_t value_cnt)
    A casewriter created with this function may be passed to
    casewriter_make_reader. */
 struct casewriter *
-mem_writer_create (size_t value_cnt) 
+mem_writer_create (size_t value_cnt)
 {
   return create_casewriter_window (value_cnt, CASENUMBER_MAX);
 }
@@ -181,7 +181,7 @@ mem_writer_create (size_t value_cnt)
    A casewriter created with this function may be passed to
    casewriter_make_reader. */
 struct casewriter *
-tmpfile_writer_create (size_t value_cnt) 
+tmpfile_writer_create (size_t value_cnt)
 {
   return create_casewriter_window (value_cnt, 0);
 }
@@ -195,7 +195,7 @@ static const struct casereader_random_class casereader_window_class;
    memory until MAX_IN_CORE_CASES have been written, at which
    point they will be written to disk. */
 static struct casewriter *
-create_casewriter_window (size_t value_cnt, casenumber max_in_core_cases) 
+create_casewriter_window (size_t value_cnt, casenumber max_in_core_cases)
 {
   struct casewindow *window = casewindow_create (value_cnt, max_in_core_cases);
   struct casewriter *writer = casewriter_create (&casewriter_window_class,
@@ -208,7 +208,7 @@ create_casewriter_window (size_t value_cnt, casenumber max_in_core_cases)
 /* Writes case C to casewindow writer WINDOW. */
 static void
 casewriter_window_write (struct casewriter *writer UNUSED, void *window_,
-                         struct ccase *c) 
+                         struct ccase *c)
 {
   struct casewindow *window = window_;
   casewindow_push_head (window, c);
@@ -226,7 +226,7 @@ casewriter_window_destroy (struct casewriter *writer UNUSED, void *window_)
    the casereader. */
 static struct casereader *
 casewriter_window_convert_to_reader (struct casewriter *writer UNUSED,
-                                     void *window_) 
+                                     void *window_)
 {
   struct casewindow *window = window_;
   struct casereader *reader;
@@ -243,7 +243,7 @@ casewriter_window_convert_to_reader (struct casewriter *writer UNUSED,
    OFFSET is beyond the end of file or upon I/O error. */
 static bool
 casereader_window_read (struct casereader *reader UNUSED, void *window_,
-                        casenumber offset, struct ccase *c) 
+                        casenumber offset, struct ccase *c)
 {
   struct casewindow *window = window_;
   if (offset >= casewindow_get_case_cnt (window))
@@ -263,14 +263,14 @@ casereader_window_destroy (struct casereader *reader UNUSED, void *window_)
 /* Discards CASE_CNT cases from the front of WINDOW. */
 static void
 casereader_window_advance (struct casereader *reader UNUSED, void *window_,
-                           casenumber case_cnt) 
+                           casenumber case_cnt)
 {
   struct casewindow *window = window_;
   casewindow_pop_tail (window, case_cnt);
 }
 
 /* Class for casewindow writer. */
-static const struct casewriter_class casewriter_window_class = 
+static const struct casewriter_class casewriter_window_class =
   {
     casewriter_window_write,
     casewriter_window_destroy,
@@ -278,7 +278,7 @@ static const struct casewriter_class casewriter_window_class =
   };
 
 /* Class for casewindow reader. */
-static const struct casereader_random_class casereader_window_class = 
+static const struct casereader_random_class casereader_window_class =
   {
     casereader_window_read,
     casereader_window_destroy,

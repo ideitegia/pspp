@@ -24,7 +24,7 @@
 
 #include <stddef.h>
 #include <data/missing-values.h>
- 
+
 typedef const struct variable *variable_pair[2];
 
 struct hsh_table;
@@ -35,13 +35,13 @@ struct dataset;
 
 struct npar_test
 {
-  void (*execute) (const struct dataset *, 
+  void (*execute) (const struct dataset *,
 		   struct casereader *,
                    enum mv_class exclude,
 		   const struct npar_test *
 		   );
 
-  void (*insert_variables) (const struct npar_test *, 
+  void (*insert_variables) (const struct npar_test *,
 			    struct const_hsh_table *);
 };
 

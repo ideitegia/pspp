@@ -44,7 +44,7 @@
    output-file="pspp.list"
    paginate=on|off              Formfeeds are desired?
    tab-width=8                  Width of a tab; 0 to not use tabs.
-   
+
    headers=on|off               Put headers at top of page?
    emphasis=bold|underline|none Style to use for emphasis.
    length=66
@@ -76,7 +76,7 @@ enum
 #define ATTR_BOX        0x200   /* Line drawing character. */
 
 /* A line of text. */
-struct line 
+struct line
   {
     unsigned short *chars;      /* Characters and attributes. */
     int char_cnt;               /* Length. */
@@ -84,7 +84,7 @@ struct line
   };
 
 /* How to emphasize text. */
-enum emphasis_style 
+enum emphasis_style
   {
     EMPH_BOLD,                  /* Overstrike for bold. */
     EMPH_UNDERLINE,             /* Overstrike for underlining. */
@@ -164,7 +164,7 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
   this->length = x->page_length - x->top_margin - x->bottom_margin - 1;
   if (x->headers)
     this->length -= 3;
-  
+
   if (this->width < 59 || this->length < 15)
     {
       error (0, 0,
@@ -176,14 +176,14 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
     }
 
   for (i = 0; i < LNS_COUNT; i++)
-    if (x->box[i] == NULL) 
+    if (x->box[i] == NULL)
       {
         char s[2];
         s[0] = get_default_box_char (i);
         s[1] = '\0';
         x->box[i] = pool_strdup (x->pool, s);
       }
-  
+
   return true;
 
  error:
@@ -227,12 +227,12 @@ static bool
 ascii_close_driver (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
-  
+
   if (fn_close (x->file_name, x->file) != 0)
     error (0, errno, _("ascii: closing output file \"%s\""), x->file_name);
   pool_detach_file (x->pool, x->file);
   pool_destroy (x->pool);
-  
+
   return true;
 }
 
@@ -334,7 +334,7 @@ handle_option (struct outp_driver *this, const char *key,
         x->emphasis = EMPH_UNDERLINE;
       else if (!strcmp (value, "none"))
         x->emphasis = EMPH_NONE;
-      else 
+      else
         error (0, 0,
                _("ascii: `emphasis' value must be `bold', "
                  "`underline', or `none'"));
@@ -418,7 +418,7 @@ ascii_open_page (struct outp_driver *this)
     {
       x->lines = pool_nrealloc (x->pool,
                                 x->lines, this->length, sizeof *x->lines);
-      for (i = x->line_cap; i < this->length; i++) 
+      for (i = x->line_cap; i < this->length; i++)
         {
           struct line *line = &x->lines[i];
           line->chars = NULL;
@@ -438,24 +438,24 @@ expand_line (struct outp_driver *this, int y, int length)
 {
   struct ascii_driver_ext *ext = this->ext;
   struct line *line = &ext->lines[y];
-  if (line->char_cnt < length) 
+  if (line->char_cnt < length)
     {
       int x;
-      if (line->char_cap < length) 
+      if (line->char_cap < length)
         {
           line->char_cap = MIN (length * 2, this->width);
           line->chars = pool_nrealloc (ext->pool,
                                        line->chars,
-                                       line->char_cap, sizeof *line->chars); 
+                                       line->char_cap, sizeof *line->chars);
         }
       for (x = line->char_cnt; x < length; x++)
         line->chars[x] = ' ';
-      line->char_cnt = length; 
+      line->char_cnt = length;
     }
 }
 
 static void
-ascii_line (struct outp_driver *this, 
+ascii_line (struct outp_driver *this,
             int x0, int y0, int x1, int y1,
             enum outp_line_style top, enum outp_line_style left,
             enum outp_line_style bottom, enum outp_line_style right)
@@ -478,13 +478,13 @@ ascii_line (struct outp_driver *this,
 
   value = ((left << LNS_LEFT) | (right << LNS_RIGHT)
            | (top << LNS_TOP) | (bottom << LNS_BOTTOM) | ATTR_BOX);
-  for (y = y0; y < y1; y++) 
+  for (y = y0; y < y1; y++)
     {
       int x;
 
       expand_line (this, y, x1);
       for (x = x0; x < x1; x++)
-        ext->lines[y].chars[x] = value; 
+        ext->lines[y].chars[x] = value;
     }
 }
 
@@ -560,7 +560,7 @@ delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
         line_len = end - cp;
 
       /* Don't cut off words if it can be avoided. */
-      if (cp + line_len < ss_end (text->string)) 
+      if (cp + line_len < ss_end (text->string))
         {
           size_t space_len = line_len;
           while (space_len > 0 && !isspace ((unsigned char) cp[space_len]))
@@ -568,7 +568,7 @@ delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
           if (space_len > 0)
             line_len = space_len;
         }
-      
+
       /* Draw text. */
       if (draw)
         text_draw (this,
@@ -625,15 +625,15 @@ output_line (struct outp_driver *this, const struct line *line,
       ds_put_cstr (out, ext->box[*s & 0xff]);
     else
       {
-        if (*s & ATTR_EMPHASIS) 
+        if (*s & ATTR_EMPHASIS)
           {
             if (ext->emphasis == EMPH_BOLD)
               {
                 ds_put_char (out, *s);
-                ds_put_char (out, '\b'); 
+                ds_put_char (out, '\b');
               }
             else if (ext->emphasis == EMPH_UNDERLINE)
-              ds_put_cstr (out, "_\b"); 
+              ds_put_cstr (out, "_\b");
           }
         ds_put_char (out, *s);
       }
@@ -644,10 +644,10 @@ append_lr_justified (struct string *out, int width,
                      const char *left, const char *right)
 {
   ds_put_char_multiple (out, ' ', width);
-  if (left != NULL) 
+  if (left != NULL)
     {
       size_t length = MIN (strlen (left), width);
-      memcpy (ds_end (out) - width, left, length); 
+      memcpy (ds_end (out) - width, left, length);
     }
   if (right != NULL)
     {
@@ -658,7 +658,7 @@ append_lr_justified (struct string *out, int width,
 }
 
 static void
-dump_output (struct outp_driver *this, struct string *out) 
+dump_output (struct outp_driver *this, struct string *out)
 {
   struct ascii_driver_ext *x = this->ext;
   fwrite (ds_data (out), ds_length (out), 1, x->file);
@@ -671,49 +671,49 @@ ascii_close_page (struct outp_driver *this)
   struct ascii_driver_ext *x = this->ext;
   struct string out;
   int line_num;
- 
+
   ds_init_empty (&out);
- 
+
   ds_put_char_multiple (&out, '\n', x->top_margin);
   if (x->headers)
     {
       char *r1, *r2;
- 
+
       r1 = xasprintf (_("%s - Page %d"), get_start_date (), x->page_number);
       r2 = xasprintf ("%s - %s" , version, host_system);
- 
+
       append_lr_justified (&out, this->width, outp_title, r1);
       append_lr_justified (&out, this->width, outp_subtitle, r2);
       ds_put_char (&out, '\n');
- 
+
       free (r1);
       free (r2);
     }
   dump_output (this, &out);
- 
+
   for (line_num = 0; line_num < this->length; line_num++)
     {
- 
+
       /* Squeeze multiple blank lines into a single blank line if
          requested. */
-      if (x->squeeze_blank_lines) 
+      if (x->squeeze_blank_lines)
         {
           if (line_num >= x->line_cap)
             break;
           if (line_num > 0
               && x->lines[line_num].char_cnt == 0
               && x->lines[line_num - 1].char_cnt == 0)
-            continue; 
+            continue;
         }
- 
-      if (line_num < x->line_cap) 
-        output_line (this, &x->lines[line_num], &out); 
+
+      if (line_num < x->line_cap)
+        output_line (this, &x->lines[line_num], &out);
       ds_put_char (&out, '\n');
       dump_output (this, &out);
     }
- 
+
   ds_put_char_multiple (&out, '\n', x->bottom_margin);
-  if (x->paginate) 
+  if (x->paginate)
     ds_put_char (&out, '\f');
 
   dump_output (this, &out);
@@ -727,10 +727,10 @@ ascii_chart_initialise (struct outp_driver *d UNUSED, struct chart *ch)
   ch->lp = 0;
 }
 
-static void 
+static void
 ascii_chart_finalise (struct outp_driver *d UNUSED, struct chart *ch UNUSED)
 {
-  
+
 }
 
 const struct outp_class ascii_class =

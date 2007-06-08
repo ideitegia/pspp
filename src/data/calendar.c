@@ -13,7 +13,7 @@
 
 /* Calculates and returns floor(a/b) for integer b > 0. */
 static int
-floor_div (int a, int b) 
+floor_div (int a, int b)
 {
   assert (b > 0);
   return (a >= 0 ? a : a - b + 1) / b;
@@ -22,7 +22,7 @@ floor_div (int a, int b)
 /* Calculates floor(a/b) and the corresponding remainder and
    stores them into *Q and *R. */
 static void
-floor_divmod (int a, int b, int *q, int *r) 
+floor_divmod (int a, int b, int *q, int *r)
 {
   *q = floor_div (a, b);
   *r = a - b * *q;
@@ -30,13 +30,13 @@ floor_divmod (int a, int b, int *q, int *r)
 
 /* Returns true if Y is a leap year, false otherwise. */
 static bool
-is_leap_year (int y) 
+is_leap_year (int y)
 {
   return y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
 }
 
 static int
-raw_gregorian_to_offset (int y, int m, int d) 
+raw_gregorian_to_offset (int y, int m, int d)
 {
   return (EPOCH - 1
           + 365 * (y - 1)
@@ -56,7 +56,7 @@ calendar_gregorian_to_offset (int y, int m, int d,
                               calendar_error_func *error, void *aux)
 {
   /* Normalize year. */
-  if (y >= 0 && y < 100) 
+  if (y >= 0 && y < 100)
     {
       int epoch = get_epoch ();
       int century = epoch / 100 + (y < epoch % 100);
@@ -64,14 +64,14 @@ calendar_gregorian_to_offset (int y, int m, int d,
     }
 
   /* Normalize month. */
-  if (m < 1 || m > 12) 
+  if (m < 1 || m > 12)
     {
-      if (m == 0) 
+      if (m == 0)
         {
           y--;
           m = 12;
         }
-      else if (m == 13) 
+      else if (m == 13)
         {
           y++;
           m = 1;
@@ -84,14 +84,14 @@ calendar_gregorian_to_offset (int y, int m, int d,
     }
 
   /* Normalize day. */
-  if (d < 0 || d > 31) 
+  if (d < 0 || d > 31)
     {
       error (aux, _("Day %d is not in acceptable range of 0 to 31."), d);
       return SYSMIS;
     }
 
   /* Validate date. */
-  if (y < 1582 || (y == 1582 && (m < 10 || (m == 10 && d < 15)))) 
+  if (y < 1582 || (y == 1582 && (m < 10 || (m == 10 && d < 15))))
     {
       error (aux, _("Date %04d-%d-%d is before the earliest acceptable "
                     "date of 1582-10-15."), y, m, d);
@@ -105,9 +105,9 @@ calendar_gregorian_to_offset (int y, int m, int d,
 /* Returns the number of days in the given YEAR from January 1 up
    to (but not including) the first day of MONTH. */
 static int
-cum_month_days (int year, int month) 
+cum_month_days (int year, int month)
 {
-  static const int cum_month_days[12] = 
+  static const int cum_month_days[12] =
     {
       0,
       31, /* Jan */
@@ -131,7 +131,7 @@ cum_month_days (int year, int month)
    Gregorian calendar year it is in.  Dates both before and after
    the epoch are supported. */
 int
-calendar_offset_to_year (int ofs) 
+calendar_offset_to_year (int ofs)
 {
   int d0;
   int n400, d1;
@@ -194,7 +194,7 @@ calendar_offset_to_wday (int ofs)
 /* Takes a count of days from 14 Oct 1582 and returns the month
    it is in. */
 int
-calendar_offset_to_month (int ofs) 
+calendar_offset_to_month (int ofs)
 {
   int y, m, d, yd;
   calendar_offset_to_gregorian (ofs, &y, &m, &d, &yd);
@@ -204,7 +204,7 @@ calendar_offset_to_month (int ofs)
 /* Takes a count of days from 14 Oct 1582 and returns the
    corresponding day of the month. */
 int
-calendar_offset_to_mday (int ofs) 
+calendar_offset_to_mday (int ofs)
 {
   int y, m, d, yd;
   calendar_offset_to_gregorian (ofs, &y, &m, &d, &yd);
@@ -213,7 +213,7 @@ calendar_offset_to_mday (int ofs)
 
 /* Returns the number of days in the specified month. */
 int
-calendar_days_in_month (int y, int m) 
+calendar_days_in_month (int y, int m)
 {
   static const int days_per_month[12]
     = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};

@@ -47,17 +47,17 @@ static const char *test_name;
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
-check_die (void) 
+check_die (void)
 {
-  exit (EXIT_FAILURE);   
+  exit (EXIT_FAILURE);
 }
 
 /* If OK is not true, prints a message about failure on the
    current source file and the given LINE and terminates. */
 static void
-check_func (bool ok, int line) 
+check_func (bool ok, int line)
 {
-  if (!ok) 
+  if (!ok)
     {
       printf ("%s:%d: Check failed in %s test\n",
               __FILE__, line, test_name);
@@ -81,9 +81,9 @@ xalloc_die (void)
 
 /* Allocates and returns N bytes of memory. */
 static void *
-xmalloc (size_t n) 
+xmalloc (size_t n)
 {
-  if (n != 0) 
+  if (n != 0)
     {
       void *p = malloc (n);
       if (p == NULL)
@@ -98,7 +98,7 @@ xmalloc (size_t n)
 /* Returns a malloc()'d duplicate of the N bytes starting at
    P. */
 static void *
-xmemdup (const void *p, size_t n) 
+xmemdup (const void *p, size_t n)
 {
   void *q = xmalloc (n);
   memcpy (q, p, n);
@@ -107,7 +107,7 @@ xmemdup (const void *p, size_t n)
 
 /* Allocates and returns N * M bytes of memory. */
 static void *
-xnmalloc (size_t n, size_t m) 
+xnmalloc (size_t n, size_t m)
 {
   if ((size_t) -1 / m <= n)
     xalloc_die ();
@@ -116,7 +116,7 @@ xnmalloc (size_t n, size_t m)
 
 /* Compares A and B and returns a strcmp-type return value. */
 static int
-compare_unsigned_longs_noaux (const void *a_, const void *b_) 
+compare_unsigned_longs_noaux (const void *a_, const void *b_)
 {
   const unsigned long *a = a_;
   const unsigned long *b = b_;
@@ -129,7 +129,7 @@ compare_unsigned_longs_noaux (const void *a_, const void *b_)
    produce the expected results. */
 static void
 check_sparse_array (struct sparse_array *spar,
-                    const unsigned long data[], size_t cnt) 
+                    const unsigned long data[], size_t cnt)
 {
   unsigned long idx;
   unsigned long *order;
@@ -137,8 +137,8 @@ check_sparse_array (struct sparse_array *spar,
   size_t i;
 
   check (sparse_array_count (spar) == cnt);
-  
-  for (i = 0; i < cnt; i++) 
+
+  for (i = 0; i < cnt; i++)
     {
       p = sparse_array_get (spar, data[i]);
       check (p != NULL);
@@ -148,33 +148,33 @@ check_sparse_array (struct sparse_array *spar,
   order = xmemdup (data, cnt * sizeof *data);
   qsort (order, cnt, sizeof *order, compare_unsigned_longs_noaux);
 
-  for (i = 0; i < cnt; i++) 
+  for (i = 0; i < cnt; i++)
     {
       p = sparse_array_get (spar, order[i]);
       check (p != NULL);
       check (*p == order[i]);
     }
 
-  if (cnt > 0 && order[0] - 1 != order[cnt - 1]) 
+  if (cnt > 0 && order[0] - 1 != order[cnt - 1])
     {
       check (sparse_array_get (spar, order[0] - 1) == NULL);
       check (!sparse_array_remove (spar, order[0] - 1));
     }
-  if (cnt > 0 && order[0] != order[cnt - 1] + 1) 
+  if (cnt > 0 && order[0] != order[cnt - 1] + 1)
     {
       check (sparse_array_get (spar, order[cnt - 1] + 1) == NULL);
       check (!sparse_array_remove (spar, order[cnt - 1] + 1));
     }
 
   for (i = 0, p = sparse_array_scan (spar, NULL, &idx); i < cnt;
-       i++, p = sparse_array_scan (spar, &idx, &idx)) 
+       i++, p = sparse_array_scan (spar, &idx, &idx))
     {
       check (p != NULL);
       check (idx == order[i]);
       check (*p == order[i]);
     }
   check (p == NULL);
-  
+
   free (order);
 }
 
@@ -191,13 +191,13 @@ test_insert_delete (const unsigned long insertions[],
   size_t i;
 
   spar = sparse_array_create (sizeof *insertions);
-  for (i = 0; i < cnt; i++) 
+  for (i = 0; i < cnt; i++)
     {
       unsigned long *p = sparse_array_insert (spar, insertions[i]);
       *p = insertions[i];
       check_sparse_array (spar, insertions, i + 1);
     }
-  for (i = 0; i < cnt; i++) 
+  for (i = 0; i < cnt; i++)
     {
       bool deleted = sparse_array_remove (spar, deletions[i]);
       check (deleted);
@@ -218,7 +218,7 @@ test_destroy (const unsigned long insertions[], size_t cnt)
   size_t i;
 
   spar = sparse_array_create (sizeof *insertions);
-  for (i = 0; i < cnt; i++) 
+  for (i = 0; i < cnt; i++)
     {
       unsigned long *p = sparse_array_insert (spar, insertions[i]);
       *p = insertions[i];
@@ -236,10 +236,10 @@ random_shuffle (void *array_, size_t cnt, size_t size)
   char *tmp = xmalloc (size);
   size_t i;
 
-  for (i = 0; i < cnt; i++) 
+  for (i = 0; i < cnt; i++)
     {
       size_t j = rand () % (cnt - i) + i;
-      if (i != j) 
+      if (i != j)
         {
           memcpy (tmp, array + j * size, size);
           memcpy (array + j * size, array + i * size, size);
@@ -254,7 +254,7 @@ random_shuffle (void *array_, size_t cnt, size_t size)
    determined by starting from various offsets and skipping
    across various strides, and doing so in various orders. */
 static void
-test_insert_delete_strides (void) 
+test_insert_delete_strides (void)
 {
   static const unsigned long strides[] =
     {
@@ -263,7 +263,7 @@ test_insert_delete_strides (void)
     };
   const size_t stride_cnt = sizeof strides / sizeof *strides;
 
-  static const unsigned long offsets[] = 
+  static const unsigned long offsets[] =
     {
       0,
       1024ul * 1024 + 1,
@@ -278,13 +278,13 @@ test_insert_delete_strides (void)
 
   insertions = xnmalloc (cnt, sizeof *insertions);
   deletions = xnmalloc (cnt, sizeof *deletions);
-  for (stride = strides; stride < strides + stride_cnt; stride++) 
+  for (stride = strides; stride < strides + stride_cnt; stride++)
     {
       for (offset = offsets; offset < offsets + offset_cnt; offset++)
         {
           int k;
 
-          for (k = 0; k < cnt; k++) 
+          for (k = 0; k < cnt; k++)
             insertions[k] = *stride * k + *offset;
 
           test_insert_delete (insertions, insertions, cnt);
@@ -299,7 +299,7 @@ test_insert_delete_strides (void)
           test_insert_delete (insertions, deletions, cnt);
         }
       putchar ('.');
-      fflush (stdout); 
+      fflush (stdout);
     }
   free (insertions);
   free (deletions);
@@ -308,7 +308,7 @@ test_insert_delete_strides (void)
 /* Returns the index in ARRAY of the (CNT+1)th element that has
    the TARGET value. */
 static int
-scan_bools (bool target, bool array[], size_t cnt) 
+scan_bools (bool target, bool array[], size_t cnt)
 {
   size_t i;
 
@@ -320,9 +320,9 @@ scan_bools (bool target, bool array[], size_t cnt)
 /* Performs a random sequence of insertions and deletions in a
    sparse array. */
 static void
-test_random_insert_delete (void) 
+test_random_insert_delete (void)
 {
-  unsigned long int values[] = 
+  unsigned long int values[] =
     {
       0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096,
       8192, 16384, 32768, 65536, 131072, 262144, 4194304, 8388608,
@@ -335,7 +335,7 @@ test_random_insert_delete (void)
       1073741823, 2147483647, 4294967295,
     };
   const int max_values = sizeof values / sizeof *values;
-  
+
   const int num_actions = 250000;
   struct sparse_array *spar;
   bool *has_values;
@@ -345,33 +345,33 @@ test_random_insert_delete (void)
 
   has_values = xnmalloc (max_values, sizeof *has_values);
   memset (has_values, 0, max_values * sizeof *has_values);
-  
+
   cnt = 0;
   insert_chance = 5;
 
   spar = sparse_array_create (sizeof *values);
-  for (i = 0; i < num_actions; i++) 
+  for (i = 0; i < num_actions; i++)
     {
       enum { INSERT, DELETE } action;
       unsigned long *p;
       int j;
 
-      if (cnt == 0) 
+      if (cnt == 0)
         {
           action = INSERT;
           if (insert_chance < 9)
-            insert_chance++; 
+            insert_chance++;
         }
-      else if (cnt == max_values) 
+      else if (cnt == max_values)
         {
           action = DELETE;
           if (insert_chance > 0)
-            insert_chance--; 
+            insert_chance--;
         }
       else
         action = rand () % 10 < insert_chance ? INSERT : DELETE;
 
-      if (action == INSERT) 
+      if (action == INSERT)
         {
           int ins_index;
 
@@ -401,19 +401,19 @@ test_random_insert_delete (void)
         abort ();
 
       check (sparse_array_count (spar) == cnt);
-      for (j = 0; j < max_values; j++) 
+      for (j = 0; j < max_values; j++)
         {
           p = sparse_array_get (spar, values[j]);
-          if (has_values[j]) 
+          if (has_values[j])
             {
               check (p != NULL);
-              check (*p == values[j]); 
+              check (*p == values[j]);
             }
           else
             {
               check (p == NULL);
               if (rand () % 10 == 0)
-                sparse_array_remove (spar, values[j]); 
+                sparse_array_remove (spar, values[j]);
             }
         }
     }
@@ -425,7 +425,7 @@ test_random_insert_delete (void)
 
 /* Runs TEST_FUNCTION and prints a message about NAME. */
 static void
-run_test (void (*test_function) (void), const char *name) 
+run_test (void (*test_function) (void), const char *name)
 {
   test_name = name;
   putchar ('.');
@@ -434,7 +434,7 @@ run_test (void (*test_function) (void), const char *name)
 }
 
 int
-main (void) 
+main (void)
 {
   run_test (test_random_insert_delete,
             "random insertions and deletions");

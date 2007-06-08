@@ -42,7 +42,7 @@
 /* FIXME: Implement PRINT subcommand. */
 
 /* An AUTORECODE variable's original value. */
-union arc_value 
+union arc_value
   {
     double f;                   /* Numeric. */
     char *c;                    /* Short or long string. */
@@ -72,14 +72,14 @@ struct autorecode_trns
   };
 
 /* Descending or ascending sort order. */
-enum direction 
+enum direction
   {
     ASCENDING,
     DESCENDING
   };
 
 /* AUTORECODE data. */
-struct autorecode_pgm 
+struct autorecode_pgm
   {
     const struct variable **src_vars;    /* Source variables. */
     char **dst_names;              /* Target variable names. */
@@ -122,7 +122,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 
   lex_match_id (lexer, "VARIABLES");
   lex_match (lexer, '=');
-  if (!parse_variables_const (lexer, dataset_dict (ds), &arc.src_vars, 
+  if (!parse_variables_const (lexer, dataset_dict (ds), &arc.src_vars,
 			      &arc.var_cnt,
                         PV_NO_DUPLICATE))
     goto lossage;
@@ -230,19 +230,19 @@ lossage:
 }
 
 static void
-arc_free (struct autorecode_pgm *arc) 
+arc_free (struct autorecode_pgm *arc)
 {
   free (arc->src_vars);
-  if (arc->dst_names != NULL) 
+  if (arc->dst_names != NULL)
     {
       size_t i;
-      
+
       for (i = 0; i < arc->var_cnt; i++)
         free (arc->dst_names[i]);
       free (arc->dst_names);
     }
   free (arc->dst_vars);
-  if (arc->src_values != NULL) 
+  if (arc->src_values != NULL)
     {
       size_t i;
 
@@ -286,7 +286,7 @@ recode (struct dataset *ds, const struct autorecode_pgm *arc)
 	{
 	  struct arc_item *item = pool_alloc (trns->pool, sizeof *item);
           union arc_value *vp = *p;
-          
+
 	  if (var_is_numeric (arc->src_vars[i]))
             item->from.f = vp->f;
           else
@@ -296,7 +296,7 @@ recode (struct dataset *ds, const struct autorecode_pgm *arc)
 	  hsh_force_insert (spec->items, item);
 	}
     }
-  add_transformation (ds, 
+  add_transformation (ds,
 		      autorecode_trns_proc, autorecode_trns_free, trns);
 }
 
@@ -354,7 +354,7 @@ hash_alpha_value (const void *a_, const void *v_)
 {
   const union arc_value *a = a_;
   const struct variable *v = v_;
-  
+
   return hsh_hash_bytes (a->c, var_get_width (v));
 }
 

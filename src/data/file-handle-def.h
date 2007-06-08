@@ -40,7 +40,7 @@ enum fh_mode
   };
 
 /* Properties of a file handle. */
-struct fh_properties 
+struct fh_properties
   {
     enum fh_mode mode;          /* File mode. */
     size_t record_width;        /* Length of fixed-format records. */

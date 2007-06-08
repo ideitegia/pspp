@@ -36,12 +36,12 @@ histogram_create(double bins, double x_min, double x_max)
 
   bin_width = chart_rounded_tick((x_max - x_min)/ bins);
   bin_width_2 = bin_width / 2.0;
-    
-  n =  ceil( x_max / (bin_width_2) ) ; 
+
+  n =  ceil( x_max / (bin_width_2) ) ;
   if ( ! (n % 2 ) ) n++;
   upper_limit = n * bin_width_2;
 
-  n =  floor( x_min / (bin_width_2) ) ; 
+  n =  floor( x_min / (bin_width_2) ) ;
   if ( ! (n % 2 ) ) n--;
   lower_limit = n * bin_width_2;
 

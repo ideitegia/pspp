@@ -507,7 +507,7 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
 
   v = psppire_case_file_get_value (store->case_file, row, idx, NULL,
                                    var_get_width (pv));
-  
+
   g_return_val_if_fail (v, NULL);
 
   if ( store->show_labels)

@@ -26,8 +26,8 @@
  *
  * where Y is a gamma random variable with parameters k+1 and 1.
  *
- * Reference: 
- * 
+ * Reference:
+ *
  * W. Feller, "An Introduction to Probability and Its
  * Applications," volume 1. Wiley, 1968. Exercise 46, page 173,
  * chapter 6.
@@ -46,7 +46,7 @@ gslextras_cdf_poisson_P (const long k, const double lambda)
 {
   double P;
   double a;
-  
+
   if ( lambda <= 0.0 )
     {
       GSLEXTRAS_CDF_ERROR ("lambda <= 0", GSL_EDOM);
@@ -71,7 +71,7 @@ gslextras_cdf_poisson_Q (const long k, const double lambda)
 {
   double P;
   double a;
-  
+
   if ( lambda <= 0.0 )
     {
       GSLEXTRAS_CDF_ERROR ("lambda <= 0", GSL_EDOM);

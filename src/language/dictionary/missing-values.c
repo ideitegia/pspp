@@ -50,7 +50,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
     {
       size_t i;
 
-      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE)) 
+      if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         goto done;
 
       if (!lex_match (lexer, '('))
@@ -62,7 +62,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
       for (i = 0; i < nv; i++)
         var_clear_missing_values (v[i]);
 
-      if (!lex_match (lexer, ')')) 
+      if (!lex_match (lexer, ')'))
         {
           struct missing_values mv;
 
@@ -77,7 +77,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                 goto done;
               }
 
-          if (var_is_numeric (v[0])) 
+          if (var_is_numeric (v[0]))
             {
               mv_init (&mv, 0);
               while (!lex_match (lexer, ')'))
@@ -88,7 +88,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
 
                   if (!parse_num_range (lexer, &x, &y, &type))
                     goto done;
-                  
+
                   ok = (x == y
                         ? mv_add_num (&mv, x)
                         : mv_add_num_range (&mv, x, y));
@@ -98,22 +98,22 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                   lex_match (lexer, ',');
                 }
             }
-          else 
+          else
             {
 	      struct string value;
 
               mv_init (&mv, MAX_SHORT_STRING);
-              while (!lex_match (lexer, ')')) 
+              while (!lex_match (lexer, ')'))
                 {
                   if (!lex_force_string (lexer))
                     {
                       deferred_errors = true;
                       break;
                     }
-		  
+
 		  ds_init_string (&value, lex_tokstr (lexer));
 
-                  if (ds_length (&value) > MAX_SHORT_STRING) 
+                  if (ds_length (&value) > MAX_SHORT_STRING)
                     {
                       ds_truncate (&value, MAX_SHORT_STRING);
                       msg (SE, _("Truncating missing value to short string "
@@ -131,12 +131,12 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                   lex_match (lexer, ',');
                 }
             }
-          
-          for (i = 0; i < nv; i++) 
+
+          for (i = 0; i < nv; i++)
             {
-              if (mv_is_resizable (&mv, var_get_width (v[i]))) 
+              if (mv_is_resizable (&mv, var_get_width (v[i])))
                 var_set_missing_values (v[i], &mv);
-              else 
+              else
                 {
                   msg (SE, _("Missing values provided are too long to assign "
                              "to variable of width %d."),
@@ -151,7 +151,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
       v = NULL;
     }
   retval = lex_end_of_command (lexer);
-  
+
  done:
   free (v);
   if (deferred_errors)

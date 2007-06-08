@@ -37,7 +37,7 @@
 
 /* Declarations. */
 
-static int do_value_labels (struct lexer *, 
+static int do_value_labels (struct lexer *,
 			    const struct dictionary *dict, bool);
 static int verify_val_labs (struct variable **vars, size_t var_cnt);
 static void erase_labels (struct variable **vars, size_t var_cnt);
@@ -67,10 +67,10 @@ do_value_labels (struct lexer *lexer, const struct dictionary *dict, bool erase)
   int parse_err=0;        /* true if error parsing variables */
 
   lex_match (lexer, '/');
-  
+
   while (lex_token (lexer) != '.')
     {
-      parse_err = !parse_variables (lexer, dict, &vars, &var_cnt, 
+      parse_err = !parse_variables (lexer, dict, &vars, &var_cnt,
 				    PV_SAME_TYPE) ;
       if (var_cnt < 1)
 	{
@@ -129,7 +129,7 @@ verify_val_labs (struct variable **vars, size_t var_cnt)
 
 /* Erases all the labels for the VAR_CNT variables in VARS. */
 static void
-erase_labels (struct variable **vars, size_t var_cnt) 
+erase_labels (struct variable **vars, size_t var_cnt)
 {
   size_t i;
 
@@ -177,7 +177,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
       /* Set label. */
       if (!lex_force_string (lexer))
 	return 0;
-      
+
       ds_init_string (&label, lex_tokstr (lexer));
 
       if (ds_length (&label) > 60)

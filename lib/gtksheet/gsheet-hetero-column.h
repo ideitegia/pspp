@@ -50,7 +50,7 @@ extern "C" {
 
     gint n_columns;
     gint default_width;
-    
+
     struct GSheetHeteroColumnUnit *col;
 
   };
@@ -62,7 +62,7 @@ extern "C" {
 
 
 
-  
+
   /* create a new column */
   GObject * g_sheet_hetero_column_new (gint default_width, gint n_columns);
 

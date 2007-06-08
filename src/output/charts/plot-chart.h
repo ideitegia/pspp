@@ -38,7 +38,7 @@
 #ifndef PLOT_CHART_H
 #define PLOT_CHART_H
 
-							     
+
 extern const char *const data_colour[];
 
 enum tick_orientation {
@@ -50,9 +50,9 @@ enum tick_orientation {
 /* Draw a tick mark at position
    If label is non zero, then print it at the tick mark
 */
-void draw_tick(struct chart *chart, 
-	  enum tick_orientation orientation, 
-	  double position, 
+void draw_tick(struct chart *chart,
+	  enum tick_orientation orientation,
+	  double position,
 	       const char *label, ...);
 
 

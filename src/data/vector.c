@@ -37,11 +37,11 @@ struct vector
 /* Checks that all the variables in VECTOR have consistent
    width. */
 static void
-check_widths (const struct vector *vector) 
+check_widths (const struct vector *vector)
 {
   int width = var_get_width (vector->vars[0]);
   size_t i;
-  
+
   for (i = 1; i < vector->var_cnt; i++)
     assert (width == var_get_width (vector->vars[i]));
 }
@@ -51,7 +51,7 @@ check_widths (const struct vector *vector)
    All variables in VARS must have the same type and width. */
 struct vector *
 vector_create (const char *name,
-               struct variable **vars, size_t var_cnt) 
+               struct variable **vars, size_t var_cnt)
 {
   struct vector *vector = xmalloc (sizeof *vector);
 
@@ -68,35 +68,35 @@ vector_create (const char *name,
 
 /* Creates and returns a new vector as a clone of OLD, but that
    contains variables from NEW_DICT that are in the same position
-   as those in OLD are in OLD_DICT. 
+   as those in OLD are in OLD_DICT.
    All variables in the new vector must have the same type and
    width. */
 struct vector *
 vector_clone (const struct vector *old,
               const struct dictionary *old_dict,
-              const struct dictionary *new_dict) 
+              const struct dictionary *new_dict)
 {
   struct vector *new = xmalloc (sizeof *new);
   size_t i;
-  
+
   strcpy (new->name, old->name);
 
   new->vars = xnmalloc (old->var_cnt, sizeof *new->vars);
   new->var_cnt = old->var_cnt;
-  for (i = 0; i < new->var_cnt; i++) 
+  for (i = 0; i < new->var_cnt; i++)
     {
       assert (dict_contains_var (old_dict, old->vars[i]));
       new->vars[i] = dict_get_var (new_dict,
                                    var_get_dict_index (old->vars[i]));
     }
   check_widths (new);
-  
+
   return new;
 }
 
 /* Destroys VECTOR. */
 void
-vector_destroy (struct vector *vector) 
+vector_destroy (struct vector *vector)
 {
   free (vector->vars);
   free (vector);
@@ -104,20 +104,20 @@ vector_destroy (struct vector *vector)
 
 /* Returns VECTOR's name. */
 const char *
-vector_get_name (const struct vector *vector) 
+vector_get_name (const struct vector *vector)
 {
   return vector->name;
 }
 
 /* Returns the type of the variables in VECTOR. */
-enum var_type vector_get_type (const struct vector *vector) 
+enum var_type vector_get_type (const struct vector *vector)
 {
   return var_get_type (vector->vars[0]);
 }
 
 /* Returns the variable in VECTOR with the given INDEX. */
 struct variable *
-vector_get_var (const struct vector *vector, size_t index) 
+vector_get_var (const struct vector *vector, size_t index)
 {
   assert (index < vector->var_cnt);
   return vector->vars[index];
@@ -125,7 +125,7 @@ vector_get_var (const struct vector *vector, size_t index)
 
 /* Returns the number of variables in VECTOR. */
 size_t
-vector_get_var_cnt (const struct vector *vector) 
+vector_get_var_cnt (const struct vector *vector)
 {
   return vector->var_cnt;
 }
@@ -139,7 +139,7 @@ compare_vector_ptrs_by_name (const void *a_, const void *b_)
   struct vector *const *pb = b_;
   struct vector *a = *pa;
   struct vector *b = *pb;
-  
+
   return strcasecmp (a->name, b->name);
 }
 

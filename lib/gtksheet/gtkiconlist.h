@@ -53,7 +53,7 @@ struct _GtkIconListItem
 
   gchar *entry_label;
   gchar *label;
- 
+
   GtkWidget *pixmap;
   GtkWidget *entry;
 
@@ -72,10 +72,10 @@ struct _GtkIconList
   guint icon_width;
 
   guint text_space;   /* entry width */
-  guint row_spacing;  /* space between rows */ 
+  guint row_spacing;  /* space between rows */
   guint col_spacing;  /* space between columns */
   guint icon_border;  /* space between icon and entry */
-  
+
   gboolean is_editable;
 
   GtkIconListItem *active_icon;
@@ -183,13 +183,13 @@ void		gtk_icon_list_set_pixmap	(GtkIconListItem *item,
 						 GdkPixmap *pixmap,
 						 GdkBitmap *bitmap);
 void 		gtk_icon_list_set_label		(GtkIconList *iconlist,
-                                                 GtkIconListItem *item, 
+                                                 GtkIconListItem *item,
 						 const gchar *label);
-void 		gtk_icon_list_set_selection_mode(GtkIconList *iconlist, 
+void 		gtk_icon_list_set_selection_mode(GtkIconList *iconlist,
 						 gint mode);
-void		gtk_icon_list_select_icon	(GtkIconList *iconlist, 
+void		gtk_icon_list_select_icon	(GtkIconList *iconlist,
 						 GtkIconListItem *item);
-void		gtk_icon_list_unselect_icon	(GtkIconList *iconlist, 
+void		gtk_icon_list_unselect_icon	(GtkIconList *iconlist,
 						 GtkIconListItem *item);
 void		gtk_icon_list_unselect_all	(GtkIconList *iconlist);
 

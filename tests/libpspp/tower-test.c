@@ -47,17 +47,17 @@ static const char *test_name;
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
-check_die (void) 
+check_die (void)
 {
-  exit (EXIT_FAILURE);   
+  exit (EXIT_FAILURE);
 }
 
 /* If OK is not true, prints a message about failure on the
    current source file and the given LINE and terminates. */
 static void
-check_func (bool ok, int line) 
+check_func (bool ok, int line)
 {
-  if (!ok) 
+  if (!ok)
     {
       printf ("Check failed in %s test at %s, line %d\n",
               test_name, __FILE__, line);
@@ -88,7 +88,7 @@ tower_node_to_block (const struct tower_node *node)
 
 /* Swaps *A and *B. */
 static void
-swap (int *a, int *b) 
+swap (int *a, int *b)
 {
   int t = *a;
   *a = *b;
@@ -119,7 +119,7 @@ next_permutation (int *values, size_t cnt)
   if (cnt > 0)
     {
       size_t i = cnt - 1;
-      while (i != 0) 
+      while (i != 0)
         {
           i--;
           if (values[i] < values[i + 1])
@@ -130,18 +130,18 @@ next_permutation (int *values, size_t cnt)
               swap (values + i, values + j);
               reverse (values + (i + 1), cnt - (i + 1));
               return true;
-            } 
+            }
         }
-      
+
       reverse (values, cnt);
     }
-  
+
   return false;
 }
 
 /* Returns N!. */
 static unsigned int
-factorial (unsigned int n) 
+factorial (unsigned int n)
 {
   unsigned int value = 1;
   /* Disallow N values that overflow on 32-bit machines. */
@@ -154,7 +154,7 @@ factorial (unsigned int n)
 /* Returns C(n, k), the number of ways that K choices can be made
    from N items when order is unimportant. */
 static unsigned int
-binomial_cofficient (unsigned int n, unsigned int k) 
+binomial_cofficient (unsigned int n, unsigned int k)
 {
   assert (n >= k);
   return factorial (n) / factorial (k) / factorial (n - k);
@@ -163,7 +163,7 @@ binomial_cofficient (unsigned int n, unsigned int k)
 /* Tests whether PARTS is a K-part integer composition of N.
    Returns true if so, false otherwise. */
 static bool UNUSED
-is_k_composition (int n, int k, const int parts[]) 
+is_k_composition (int n, int k, const int parts[])
 {
   int sum;
   int i;
@@ -184,7 +184,7 @@ is_k_composition (int n, int k, const int parts[])
    already the greatest K-part composition of N (in which case
    PARTS is unaltered). */
 static bool
-next_k_composition (int n UNUSED, int k, int parts[]) 
+next_k_composition (int n UNUSED, int k, int parts[])
 {
   int x, i;
 
@@ -210,7 +210,7 @@ next_k_composition (int n UNUSED, int k, int parts[])
 /* Sets the K integers in PARTS to the lexicographically first
    K-part composition of N. */
 static void
-first_k_composition (int n, int k, int parts[]) 
+first_k_composition (int n, int k, int parts[])
 {
   int i;
 
@@ -231,7 +231,7 @@ first_k_composition (int n, int k, int parts[])
    Returns true if successful, false if the set of compositions
    has been exhausted. */
 static bool
-next_composition (int n, int *k, int parts[]) 
+next_composition (int n, int *k, int parts[])
 {
   if (*k >= 1 && next_k_composition (n, *k, parts))
     return true;
@@ -245,7 +245,7 @@ next_composition (int n, int *k, int parts[])
 }
 
 /* A block expected to be found in a tower. */
-struct expected_block 
+struct expected_block
   {
     int height;         /* Expected height of bottom of block. */
     int x;              /* Expected value for `x' member. */
@@ -255,21 +255,21 @@ struct expected_block
    BLOCKS[]. */
 static void
 check_tower (struct tower *t,
-             struct expected_block blocks[], size_t block_cnt) 
+             struct expected_block blocks[], size_t block_cnt)
 {
   int total_height;
   struct tower_node *node;
   size_t i;
-  
+
   check (tower_is_empty (t) == (block_cnt == 0));
 
   total_height = 0;
-  for (i = 0; i < block_cnt; i++) 
+  for (i = 0; i < block_cnt; i++)
     {
       unsigned long int level;
       for (level = total_height;
            level < total_height + blocks[i].height;
-           level++) 
+           level++)
         {
           struct tower_node *found;
           unsigned long int block_start;
@@ -278,13 +278,13 @@ check_tower (struct tower *t,
           check (tower_node_to_block (found)->x == blocks[i].x);
           check (block_start == total_height);
         }
-      total_height += blocks[i].height; 
+      total_height += blocks[i].height;
     }
   check (tower_height (t) == total_height);
 
   for (node = tower_first (t), i = 0;
        node != NULL;
-       node = tower_next (t, node), i++) 
+       node = tower_next (t, node), i++)
     {
       check (tower_node_get_height (node) == blocks[i].height);
       check (tower_node_to_block (node)->x == blocks[i].x);
@@ -293,7 +293,7 @@ check_tower (struct tower *t,
 
   for (node = tower_last (t), i = block_cnt - 1;
        node != NULL;
-       node = tower_prev (t, node), i--) 
+       node = tower_prev (t, node), i--)
     {
       check (tower_node_get_height (node) == blocks[i].height);
       check (tower_node_to_block (node)->x == blocks[i].x);
@@ -305,12 +305,12 @@ check_tower (struct tower *t,
    tower in all possible orders, up to a specified maximum tower
    height. */
 static void
-test_insert (void) 
+test_insert (void)
 {
   const int max_height = 7;
   int cnt;
 
-  for (cnt = 1; cnt <= max_height; cnt++) 
+  for (cnt = 1; cnt <= max_height; cnt++)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
@@ -318,7 +318,7 @@ test_insert (void)
       int block_cnt;
       int *order;
       struct block *blocks;
-      
+
       expected = xnmalloc (cnt, sizeof *expected);
       heights = xnmalloc (cnt, sizeof *heights);
       order = xnmalloc (cnt, sizeof *order);
@@ -326,23 +326,23 @@ test_insert (void)
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights)) 
+      while (next_composition (cnt, &block_cnt, heights))
         {
           int i, j;
           unsigned int permutation_cnt;
 
-          for (i = 0; i < block_cnt; i++) 
+          for (i = 0; i < block_cnt; i++)
             order[i] = i;
 
           permutation_cnt = 0;
-          while (permutation_cnt == 0 || next_permutation (order, block_cnt)) 
+          while (permutation_cnt == 0 || next_permutation (order, block_cnt))
             {
               struct tower t;
 
               /* Inserts the block_cnt blocks with the given
                  heights[] into T in the order given by order[]. */
               tower_init (&t);
-              for (i = 0; i < block_cnt; i++) 
+              for (i = 0; i < block_cnt; i++)
                 {
                   struct block *under;
                   int idx;
@@ -371,7 +371,7 @@ test_insert (void)
               permutation_cnt++;
             }
           check (permutation_cnt == factorial (block_cnt));
-          
+
           composition_cnt++;
         }
       check (composition_cnt == 1 << (cnt - 1));
@@ -387,12 +387,12 @@ test_insert (void)
    possible sets of block heights into a tower in all possible
    orders, up to a specified maximum tower height. */
 static void
-test_delete (void) 
+test_delete (void)
 {
   const int max_height = 7;
   int cnt;
 
-  for (cnt = 1; cnt <= max_height; cnt++) 
+  for (cnt = 1; cnt <= max_height; cnt++)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
@@ -400,7 +400,7 @@ test_delete (void)
       int block_cnt;
       int *order;
       struct block *blocks;
-      
+
       expected = xnmalloc (cnt, sizeof *expected);
       heights = xnmalloc (cnt, sizeof *heights);
       order = xnmalloc (cnt, sizeof *order);
@@ -408,22 +408,22 @@ test_delete (void)
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights)) 
+      while (next_composition (cnt, &block_cnt, heights))
         {
           int i;
           unsigned int permutation_cnt;
 
-          for (i = 0; i < block_cnt; i++) 
+          for (i = 0; i < block_cnt; i++)
             order[i] = i;
 
           permutation_cnt = 0;
-          while (permutation_cnt == 0 || next_permutation (order, block_cnt)) 
+          while (permutation_cnt == 0 || next_permutation (order, block_cnt))
             {
               struct tower t;
 
               /* Insert blocks into tower in ascending order. */
               tower_init (&t);
-              for (i = 0; i < block_cnt; i++) 
+              for (i = 0; i < block_cnt; i++)
                 {
                   blocks[i].x = i;
                   tower_insert (&t, heights[i], &blocks[i].node, NULL);
@@ -431,7 +431,7 @@ test_delete (void)
                   expected[i].height = heights[i];
                 }
               check_tower (&t, expected, block_cnt);
-              
+
               /* Delete blocks from tower in the order of
                  order[]. */
               for (i = 0; i < block_cnt; i++)
@@ -439,7 +439,7 @@ test_delete (void)
                   int idx = order[i];
                   int j;
                   tower_delete (&t, &blocks[idx].node);
-                  for (j = 0; ; j++) 
+                  for (j = 0; ; j++)
                     {
                       assert (j < block_cnt - i);
                       if (expected[j].x == idx)
@@ -455,7 +455,7 @@ test_delete (void)
               permutation_cnt++;
             }
           check (permutation_cnt == factorial (block_cnt));
-          
+
           composition_cnt++;
         }
       check (composition_cnt == 1 << (cnt - 1));
@@ -471,12 +471,12 @@ test_delete (void)
    the blocks to all possible heights that conserve the total
    tower height, up to a maximum total tower height. */
 static void
-test_resize (void) 
+test_resize (void)
 {
   const int max_height = 9;
   int cnt;
 
-  for (cnt = 1; cnt <= max_height; cnt++) 
+  for (cnt = 1; cnt <= max_height; cnt++)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
@@ -484,7 +484,7 @@ test_resize (void)
       int block_cnt;
       int *order;
       struct block *blocks;
-      
+
       expected = xnmalloc (cnt, sizeof *expected);
       heights = xnmalloc (cnt, sizeof *heights);
       new_heights = xnmalloc (cnt, sizeof *new_heights);
@@ -493,7 +493,7 @@ test_resize (void)
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights)) 
+      while (next_composition (cnt, &block_cnt, heights))
         {
           int i;
           unsigned int resizes = 0;
@@ -507,7 +507,7 @@ test_resize (void)
 
               /* Insert blocks into tower in ascending order. */
               tower_init (&t);
-              for (i = 0; i < block_cnt; i++) 
+              for (i = 0; i < block_cnt; i++)
                 {
                   blocks[i].x = i;
                   tower_insert (&t, heights[i], &blocks[i].node, NULL);
@@ -517,7 +517,7 @@ test_resize (void)
               check_tower (&t, expected, block_cnt);
 
               /* Resize all the blocks. */
-              for (i = 0; i < block_cnt; i++) 
+              for (i = 0; i < block_cnt; i++)
                 {
                   if (expected[i].height != new_heights[i] || rand () % 2)
                     tower_resize (&t, &blocks[i].node, new_heights[i]);
@@ -526,7 +526,7 @@ test_resize (void)
               check_tower (&t, expected, block_cnt);
             }
           check (resizes == binomial_cofficient (cnt - 1, block_cnt - 1));
-          
+
           composition_cnt++;
         }
       check (composition_cnt == 1 << (cnt - 1));
@@ -542,12 +542,12 @@ test_resize (void)
 /* Tests splicing all possible contiguous sets of blocks out of one
    tower into a second, initially empty tower. */
 static void
-test_splice_out (void) 
+test_splice_out (void)
 {
   const int max_height = 9;
   int cnt;
 
-  for (cnt = 1; cnt <= max_height; cnt++) 
+  for (cnt = 1; cnt <= max_height; cnt++)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
@@ -555,7 +555,7 @@ test_splice_out (void)
       int block_cnt;
       int *order;
       struct block *blocks;
-      
+
       expected = xnmalloc (cnt, sizeof *expected);
       heights = xnmalloc (cnt, sizeof *heights);
       new_heights = xnmalloc (cnt, sizeof *new_heights);
@@ -564,7 +564,7 @@ test_splice_out (void)
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights)) 
+      while (next_composition (cnt, &block_cnt, heights))
         {
           int i, j;
 
@@ -578,7 +578,7 @@ test_splice_out (void)
                 tower_init (&dst);
 
                 /* Insert blocks into SRC and DST in ascending order. */
-                for (k = 0; k < block_cnt; k++) 
+                for (k = 0; k < block_cnt; k++)
                   {
                     blocks[k].x = k;
                     tower_insert (&src, heights[k], &blocks[k].node, NULL);
@@ -610,12 +610,12 @@ test_splice_out (void)
 /* Tests splicing all of the contents of a tower into all
    possible positions in a second tower. */
 static void
-test_splice_in (void) 
+test_splice_in (void)
 {
   const int max_height = 9;
   int cnt;
 
-  for (cnt = 1; cnt <= max_height; cnt++) 
+  for (cnt = 1; cnt <= max_height; cnt++)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
@@ -623,7 +623,7 @@ test_splice_in (void)
       int block_cnt;
       int *order;
       struct block *blocks;
-      
+
       expected = xnmalloc (cnt, sizeof *expected);
       heights = xnmalloc (cnt, sizeof *heights);
       new_heights = xnmalloc (cnt, sizeof *new_heights);
@@ -632,7 +632,7 @@ test_splice_in (void)
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights)) 
+      while (next_composition (cnt, &block_cnt, heights))
         {
           int i, j;
 
@@ -646,10 +646,10 @@ test_splice_in (void)
                 tower_init (&dst);
 
                 /* Insert blocks into SRC and DST in ascending order. */
-                for (k = 0; k < block_cnt; k++) 
+                for (k = 0; k < block_cnt; k++)
                   {
                     blocks[k].x = k;
-                    tower_insert (k >= i && k < j ? &src : &dst, 
+                    tower_insert (k >= i && k < j ? &src : &dst,
                                   heights[k], &blocks[k].node, NULL);
                     expected[k].x = k;
                     expected[k].height = heights[k];
@@ -677,7 +677,7 @@ test_splice_in (void)
 
 /* Runs TEST_FUNCTION and prints a message about NAME. */
 static void
-run_test (void (*test_function) (void), const char *name) 
+run_test (void (*test_function) (void), const char *name)
 {
   test_name = name;
   putchar ('.');
@@ -686,7 +686,7 @@ run_test (void (*test_function) (void), const char *name)
 }
 
 int
-main (void) 
+main (void)
 {
   run_test (test_insert, "insert");
   run_test (test_delete, "delete");

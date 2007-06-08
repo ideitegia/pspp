@@ -192,7 +192,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		  msg (SE, _("`(' expected on RENAME subcommand."));
 		  goto done;
 		}
-	      if (!parse_variables (lexer, dataset_dict (ds), 
+	      if (!parse_variables (lexer, dataset_dict (ds),
 				    &vm.rename_vars, &vm.rename_cnt,
 				    PV_APPEND | PV_NO_DUPLICATE))
 		goto done;
@@ -202,7 +202,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		       "names on RENAME subcommand."));
 		  goto done;
 		}
-	      if (!parse_DATA_LIST_vars (lexer, &vm.new_names, 
+	      if (!parse_DATA_LIST_vars (lexer, &vm.new_names,
 					 &prev_nv_1, PV_APPEND))
 		goto done;
 	      if (prev_nv_1 != vm.rename_cnt)
@@ -293,9 +293,9 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	{
           struct dictionary *temp = dict_clone (dataset_dict (ds));
           int success = rearrange_dict (temp, &vm);
-          if (success) 
+          if (success)
             {
-              /* FIXME: display new dictionary. */ 
+              /* FIXME: display new dictionary. */
             }
           dict_destroy (temp);
 	}
@@ -321,12 +321,12 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
   if (already_encountered & (1 | 4))
     {
       /* Read the data. */
-      if (!proc_execute (ds)) 
-        goto done; 
+      if (!proc_execute (ds))
+        goto done;
     }
 
   if (!rearrange_dict (dataset_dict (ds), &vm))
-    goto done; 
+    goto done;
 
   ret_code = CMD_SUCCESS;
 
@@ -353,11 +353,11 @@ compare_variables_given_ordering (const void *a_, const void *b_,
   const struct ordering *ordering = ordering_;
 
   int result;
-  if (ordering->positional) 
+  if (ordering->positional)
     {
       size_t a_index = var_get_dict_index (a);
       size_t b_index = var_get_dict_index (b);
-      result = a_index < b_index ? -1 : a_index > b_index; 
+      result = a_index < b_index ? -1 : a_index > b_index;
     }
   else
     result = strcasecmp (var_get_name (a), var_get_name (b));
@@ -377,7 +377,7 @@ struct var_renaming
    var_renaming structures A and B. */
 static int
 compare_var_renaming_by_new_name (const void *a_, const void *b_,
-                                  const void *aux UNUSED) 
+                                  const void *aux UNUSED)
 {
   const struct var_renaming *a = a_;
   const struct var_renaming *b = b_;
@@ -390,7 +390,7 @@ compare_var_renaming_by_new_name (const void *a_, const void *b_,
    otherwise, and issues an error message. */
 static int
 validate_var_modification (const struct dictionary *d,
-                           const struct var_modification *vm) 
+                           const struct var_modification *vm)
 {
   /* Variable reordering can't be a problem, so we don't simulate
      it.  Variable renaming can cause duplicate names, but
@@ -430,14 +430,14 @@ validate_var_modification (const struct dictionary *d,
 
   /* Copy variables into var_renaming array. */
   var_renaming = xnmalloc (keep_cnt, sizeof *var_renaming);
-  for (i = 0; i < keep_cnt; i++) 
+  for (i = 0; i < keep_cnt; i++)
     {
       var_renaming[i].var = keep_vars[i];
       strcpy (var_renaming[i].new_name, var_get_name (keep_vars[i]));
     }
-  
+
   /* Rename variables in var_renaming array. */
-  for (i = 0; i < vm->rename_cnt; i++) 
+  for (i = 0; i < vm->rename_cnt; i++)
     {
       struct variable *const *kv;
       struct var_renaming *vr;
@@ -511,7 +511,7 @@ rearrange_dict (struct dictionary *d, const struct var_modification *vm)
       struct variable *var = dict_lookup_var (d, rename_old_names[i]);
       if (var == NULL)
         continue;
-      
+
       rename_vars[rename_cnt] = var;
       rename_new_names[rename_cnt] = vm->new_names[i];
       rename_cnt++;

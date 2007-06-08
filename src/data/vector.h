@@ -16,7 +16,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
-#ifndef DATA_VECTOR_H 
+#ifndef DATA_VECTOR_H
 #define DATA_VECTOR_H 1
 
 #include <stddef.h>

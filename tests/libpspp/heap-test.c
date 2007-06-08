@@ -47,17 +47,17 @@ static const char *test_name;
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
-check_die (void) 
+check_die (void)
 {
-  exit (EXIT_FAILURE);   
+  exit (EXIT_FAILURE);
 }
 
 /* If OK is not true, prints a message about failure on the
    current source file and the given LINE and terminates. */
 static void
-check_func (bool ok, int line) 
+check_func (bool ok, int line)
 {
-  if (!ok) 
+  if (!ok)
     {
       printf ("Check failed in %s test at %s, line %d\n",
               test_name, __FILE__, line);
@@ -92,7 +92,7 @@ heap_node_to_element (const struct heap_node *node)
    return value.  Verifies that AUX points to aux_data. */
 static int
 compare_elements (const struct heap_node *a_, const struct heap_node *b_,
-                  const void *aux) 
+                  const void *aux)
 {
   const struct element *a = heap_node_to_element (a_);
   const struct element *b = heap_node_to_element (b_);
@@ -103,7 +103,7 @@ compare_elements (const struct heap_node *a_, const struct heap_node *b_,
 
 /* Returns the smallest of the N integers in ARRAY. */
 static int
-min_int (int *array, size_t n) 
+min_int (int *array, size_t n)
 {
   int min;
   size_t i;
@@ -117,7 +117,7 @@ min_int (int *array, size_t n)
 
 /* Swaps *A and *B. */
 static void
-swap (int *a, int *b) 
+swap (int *a, int *b)
 {
   int t = *a;
   *a = *b;
@@ -148,7 +148,7 @@ next_permutation (int *values, size_t cnt)
   if (cnt > 0)
     {
       size_t i = cnt - 1;
-      while (i != 0) 
+      while (i != 0)
         {
           i--;
           if (values[i] < values[i + 1])
@@ -159,18 +159,18 @@ next_permutation (int *values, size_t cnt)
               swap (values + i, values + j);
               reverse (values + (i + 1), cnt - (i + 1));
               return true;
-            } 
+            }
         }
-      
+
       reverse (values, cnt);
     }
-  
+
   return false;
 }
 
 /* Returns N!. */
 static unsigned int
-factorial (unsigned int n) 
+factorial (unsigned int n)
 {
   unsigned int value = 1;
   while (n > 1)
@@ -182,13 +182,13 @@ factorial (unsigned int n)
    VALUES.  If VALUES contains duplicates, they must be
    adjacent. */
 static unsigned int
-expected_perms (int *values, size_t cnt) 
+expected_perms (int *values, size_t cnt)
 {
   size_t i, j;
   unsigned int perm_cnt;
-  
+
   perm_cnt = factorial (cnt);
-  for (i = 0; i < cnt; i = j) 
+  for (i = 0; i < cnt; i = j)
     {
       for (j = i + 1; j < cnt; j++)
         if (values[i] != values[j])
@@ -201,7 +201,7 @@ expected_perms (int *values, size_t cnt)
 /* Tests whether PARTS is a K-part integer composition of N.
    Returns true if so, false otherwise. */
 static bool UNUSED
-is_k_composition (int n, int k, const int parts[]) 
+is_k_composition (int n, int k, const int parts[])
 {
   int sum;
   int i;
@@ -222,7 +222,7 @@ is_k_composition (int n, int k, const int parts[])
    already the greatest K-part composition of N (in which case
    PARTS is unaltered). */
 static bool
-next_k_composition (int n UNUSED, int k, int parts[]) 
+next_k_composition (int n UNUSED, int k, int parts[])
 {
   int x, i;
 
@@ -255,7 +255,7 @@ next_k_composition (int n UNUSED, int k, int parts[])
    Returns true if successful, false if the set of compositions
    has been exhausted. */
 static bool
-next_composition (int n, int *k, int parts[]) 
+next_composition (int n, int *k, int parts[])
 {
   if (*k >= 1 && next_k_composition (n, *k, parts))
     return true;
@@ -277,12 +277,12 @@ next_composition (int n, int *k, int parts[])
    order as we delete them.  Exhaustively tests every input
    permutation up to 'max_elems' elements. */
 static void
-test_insert_no_dups_delete_min (void) 
+test_insert_no_dups_delete_min (void)
 {
   const int max_elems = 8;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       struct heap *h;
       struct element *elements;
@@ -292,20 +292,20 @@ test_insert_no_dups_delete_min (void)
 
       values = xnmalloc (cnt, sizeof *values);
       elements = xnmalloc (cnt, sizeof *elements);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         values[i] = i;
 
       h = heap_create (compare_elements, &aux_data);
       permutation_cnt = 0;
-      while (permutation_cnt == 0 || next_permutation (values, cnt)) 
+      while (permutation_cnt == 0 || next_permutation (values, cnt))
         {
           int i;
 
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             elements[i].x = values[i];
 
           check (heap_is_empty (h));
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             {
               heap_insert (h, &elements[i].node);
               check (heap_node_to_element (heap_minimum (h))->x
@@ -336,12 +336,12 @@ test_insert_no_dups_delete_min (void)
    See Usenet article <87mz4utika.fsf@blp.benpfaff.org> for
    details of the algorithm used here. */
 static void
-test_insert_with_dups_delete_min (void) 
+test_insert_with_dups_delete_min (void)
 {
   const int max_elems = 7;
   int cnt;
 
-  for (cnt = 1; cnt <= max_elems; cnt++) 
+  for (cnt = 1; cnt <= max_elems; cnt++)
     {
       unsigned int composition_cnt;
       int *dups;
@@ -350,7 +350,7 @@ test_insert_with_dups_delete_min (void)
       int *sorted_values;
       struct element *elements;
       int n = 0;
-      
+
       dups = xnmalloc (cnt, sizeof *dups);
       values = xnmalloc (cnt, sizeof *values);
       sorted_values = xnmalloc (cnt, sizeof *sorted_values);
@@ -358,14 +358,14 @@ test_insert_with_dups_delete_min (void)
 
       unique_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &unique_cnt, dups)) 
+      while (next_composition (cnt, &unique_cnt, dups))
         {
           struct heap *h;
           int i, j, k;
           unsigned int permutation_cnt;
 
           k = 0;
-          for (i = 0; i < unique_cnt; i++) 
+          for (i = 0; i < unique_cnt; i++)
             for (j = 0; j < dups[i]; j++)
               {
                 values[k] = i;
@@ -376,7 +376,7 @@ test_insert_with_dups_delete_min (void)
 
           h = heap_create (compare_elements, &aux_data);
           permutation_cnt = 0;
-          while (permutation_cnt == 0 || next_permutation (values, cnt)) 
+          while (permutation_cnt == 0 || next_permutation (values, cnt))
             {
               int min = INT_MAX;
 
@@ -385,7 +385,7 @@ test_insert_with_dups_delete_min (void)
               n++;
 
               check (heap_is_empty (h));
-              for (i = 0; i < cnt; i++) 
+              for (i = 0; i < cnt; i++)
                 {
                   heap_insert (h, &elements[i].node);
                   if (values[i] < min)
@@ -405,7 +405,7 @@ test_insert_with_dups_delete_min (void)
             }
           check (permutation_cnt == expected_perms (values, cnt));
           heap_destroy (h);
-          
+
           composition_cnt++;
         }
       check (composition_cnt == 1 << (cnt - 1));
@@ -420,12 +420,12 @@ test_insert_with_dups_delete_min (void)
 /* Inserts a sequence without duplicates into a heap, then
    deletes them in a different order. */
 static void
-test_insert_no_dups_delete_random (void) 
+test_insert_no_dups_delete_random (void)
 {
   const int max_elems = 5;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       struct heap *h;
       struct element *elements;
@@ -436,7 +436,7 @@ test_insert_no_dups_delete_random (void)
       insert = xnmalloc (cnt, sizeof *insert);
       delete = xnmalloc (cnt, sizeof *delete);
       elements = xnmalloc (cnt, sizeof *elements);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         {
           insert[i] = i;
           delete[i] = i;
@@ -445,18 +445,18 @@ test_insert_no_dups_delete_random (void)
 
       h = heap_create (compare_elements, &aux_data);
       insert_perm_cnt = 0;
-      while (insert_perm_cnt == 0 || next_permutation (insert, cnt)) 
+      while (insert_perm_cnt == 0 || next_permutation (insert, cnt))
         {
           unsigned int delete_perm_cnt = 0;
 
-          while (delete_perm_cnt == 0 || next_permutation (delete, cnt)) 
+          while (delete_perm_cnt == 0 || next_permutation (delete, cnt))
             {
               int min;
               int i;
 
               check (heap_is_empty (h));
               min = INT_MAX;
-              for (i = 0; i < cnt; i++) 
+              for (i = 0; i < cnt; i++)
                 {
                   heap_insert (h, &elements[insert[i]].node);
                   if (insert[i] < min)
@@ -477,7 +477,7 @@ test_insert_no_dups_delete_random (void)
               delete_perm_cnt++;
             }
           check (delete_perm_cnt == factorial (cnt));
-          insert_perm_cnt++; 
+          insert_perm_cnt++;
         }
       check (insert_perm_cnt == factorial (cnt));
       heap_destroy (h);
@@ -487,16 +487,16 @@ test_insert_no_dups_delete_random (void)
     }
 }
 
-/* Inserts a set of values into a heap, then changes them to a 
+/* Inserts a set of values into a heap, then changes them to a
    different random set of values, then removes them in sorted
    order. */
 static void
-test_inc_dec (void) 
+test_inc_dec (void)
 {
   const int max_elems = 8;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       struct heap *h;
       struct element *elements;
@@ -507,18 +507,18 @@ test_inc_dec (void)
       insert = xnmalloc (cnt, sizeof *insert);
       delete = xnmalloc (cnt, sizeof *delete);
       elements = xnmalloc (cnt, sizeof *elements);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         insert[i] = i;
 
       h = heap_create (compare_elements, &aux_data);
       insert_perm_cnt = 0;
-      while (insert_perm_cnt == 0 || next_permutation (insert, cnt)) 
+      while (insert_perm_cnt == 0 || next_permutation (insert, cnt))
         {
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             elements[i].x = insert[i];
 
           check (heap_is_empty (h));
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             {
               int new_min = min_int (insert, i + 1);
               heap_insert (h, &elements[i].node);
@@ -528,7 +528,7 @@ test_inc_dec (void)
 
           for (i = 0; i < cnt; i++)
             delete[i] = insert[i];
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             {
               int old_value, old_min, new_min;
               old_min = min_int (delete, cnt);
@@ -549,7 +549,7 @@ test_inc_dec (void)
                 check (heap_node_to_element (heap_minimum (h))->x == new_min);
             }
           check (heap_is_empty (h));
-          insert_perm_cnt++; 
+          insert_perm_cnt++;
         }
       check (insert_perm_cnt == factorial (cnt));
       heap_destroy (h);
@@ -562,7 +562,7 @@ test_inc_dec (void)
 /* Performs a random sequence of insertions and deletions in a
    heap. */
 static void
-test_random_insert_delete (void) 
+test_random_insert_delete (void)
 {
   const int max_elems = 64;
   const int num_actions = 250000;
@@ -579,26 +579,26 @@ test_random_insert_delete (void)
   insert_chance = 5;
 
   h = heap_create (compare_elements, &aux_data);
-  for (i = 0; i < num_actions; i++) 
+  for (i = 0; i < num_actions; i++)
     {
       enum { INSERT, DELETE } action;
 
-      if (cnt == 0) 
+      if (cnt == 0)
         {
           action = INSERT;
           if (insert_chance < 9)
-            insert_chance++; 
+            insert_chance++;
         }
-      else if (cnt == max_elems) 
+      else if (cnt == max_elems)
         {
           action = DELETE;
           if (insert_chance > 0)
-            insert_chance--; 
+            insert_chance--;
         }
       else
         action = rand () % 10 < insert_chance ? INSERT : DELETE;
 
-      if (action == INSERT) 
+      if (action == INSERT)
         {
           int new_value;
           int old_min;
@@ -626,7 +626,7 @@ test_random_insert_delete (void)
           heap_delete (h, &elements[del_idx].node);
 
           cnt--;
-          if (del_idx != cnt) 
+          if (del_idx != cnt)
             {
               values[del_idx] = values[cnt];
               elements[del_idx] = elements[cnt];
@@ -653,7 +653,7 @@ test_random_insert_delete (void)
 
 /* Runs TEST_FUNCTION and prints a message about NAME. */
 static void
-run_test (void (*test_function) (void), const char *name) 
+run_test (void (*test_function) (void), const char *name)
 {
   test_name = name;
   putchar ('.');
@@ -662,7 +662,7 @@ run_test (void (*test_function) (void), const char *name)
 }
 
 int
-main (void) 
+main (void)
 {
   run_test (test_insert_no_dups_delete_min,
             "insert (no dups), delete minimum values");

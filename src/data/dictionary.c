@@ -1113,7 +1113,7 @@ void
 dict_set_documents (struct dictionary *d, const char *documents)
 {
   size_t remainder;
-  
+
   ds_assign_cstr (&d->documents, documents != NULL ? documents : "");
 
   /* In case the caller didn't get it quite right, pad out the
@@ -1125,7 +1125,7 @@ dict_set_documents (struct dictionary *d, const char *documents)
 
 /* Drops the documents from dictionary D. */
 void
-dict_clear_documents (struct dictionary *d) 
+dict_clear_documents (struct dictionary *d)
 {
   ds_clear (&d->documents);
 }
@@ -1136,10 +1136,10 @@ dict_clear_documents (struct dictionary *d)
 void
 dict_add_document_line (struct dictionary *d, const char *line)
 {
-  if (strlen (line) > DOC_LINE_LENGTH) 
+  if (strlen (line) > DOC_LINE_LENGTH)
     {
       /* Note to translators: "bytes" is correct, not characters */
-      msg (SW, _("Truncating document line to %d bytes."), DOC_LINE_LENGTH); 
+      msg (SW, _("Truncating document line to %d bytes."), DOC_LINE_LENGTH);
     }
   buf_copy_str_rpad (ds_put_uninit (&d->documents, DOC_LINE_LENGTH),
                      DOC_LINE_LENGTH, line);
@@ -1147,7 +1147,7 @@ dict_add_document_line (struct dictionary *d, const char *line)
 
 /* Returns the number of document lines in dictionary D. */
 size_t
-dict_get_document_line_cnt (const struct dictionary *d) 
+dict_get_document_line_cnt (const struct dictionary *d)
 {
   return ds_length (&d->documents) / DOC_LINE_LENGTH;
 }
@@ -1156,7 +1156,7 @@ dict_get_document_line_cnt (const struct dictionary *d)
    LINE, trimming off any trailing white space. */
 void
 dict_get_document_line (const struct dictionary *d,
-                        size_t idx, struct string *line) 
+                        size_t idx, struct string *line)
 {
   assert (idx < dict_get_document_line_cnt (d));
   ds_assign_substring (line, ds_substr (&d->documents, idx * DOC_LINE_LENGTH,

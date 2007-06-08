@@ -42,14 +42,14 @@ struct fp
   };
 
 /* Associates a format name with its identifier. */
-struct assoc 
+struct assoc
   {
     char name[4];
     enum float_format format;
   };
 
 /* List of floating-point formats. */
-static const struct assoc fp_formats[] = 
+static const struct assoc fp_formats[] =
   {
     {"ISL", FLOAT_IEEE_SINGLE_LE},
     {"ISB", FLOAT_IEEE_SINGLE_BE},
@@ -68,12 +68,12 @@ static const size_t format_cnt = sizeof fp_formats / sizeof *fp_formats;
 /* Parses a floating-point format name into *FORMAT,
    and returns success. */
 static bool
-parse_float_format (struct lexer *lexer, enum float_format *format) 
+parse_float_format (struct lexer *lexer, enum float_format *format)
 {
   size_t i;
 
   for (i = 0; i < format_cnt; i++)
-    if (lex_match_id (lexer, fp_formats[i].name)) 
+    if (lex_match_id (lexer, fp_formats[i].name))
       {
         *format = fp_formats[i].format;
         return true;
@@ -84,12 +84,12 @@ parse_float_format (struct lexer *lexer, enum float_format *format)
 
 /* Returns the name for the given FORMAT. */
 static const char *
-get_float_format_name (enum float_format format) 
+get_float_format_name (enum float_format format)
 {
   size_t i;
 
   for (i = 0; i < format_cnt; i++)
-    if (fp_formats[i].format == format) 
+    if (fp_formats[i].format == format)
       return fp_formats[i].name;
 
   NOT_REACHED ();
@@ -100,9 +100,9 @@ get_float_format_name (enum float_format format)
    representation.  Also supports ordinary floating-point numbers
    written in decimal notation.  Returns success. */
 static bool
-parse_fp (struct lexer *lexer, struct fp *fp) 
+parse_fp (struct lexer *lexer, struct fp *fp)
 {
-  if (lex_is_number (lexer)) 
+  if (lex_is_number (lexer))
     {
       double number = lex_number (lexer);
       fp->format = FLOAT_NATIVE_DOUBLE;
@@ -112,27 +112,27 @@ parse_fp (struct lexer *lexer, struct fp *fp)
   else if (lex_token (lexer) == T_ID)
     {
       size_t length;
-      
+
       if (!parse_float_format (lexer, &fp->format)
           || !lex_force_match (lexer, '(')
           || !lex_force_string (lexer))
         return false;
 
       length = ds_length (lex_tokstr (lexer));
-      if (fp->format != FLOAT_HEX) 
+      if (fp->format != FLOAT_HEX)
         {
-          if (length != float_get_size (fp->format)) 
+          if (length != float_get_size (fp->format))
             {
               msg (SE, _("%d-byte string needed but %d-byte string supplied."),
                    (int) float_get_size (fp->format), (int) length);
               return false;
             }
           assert (length <= sizeof fp->data);
-          memcpy (fp->data, ds_data (lex_tokstr (lexer)), length); 
+          memcpy (fp->data, ds_data (lex_tokstr (lexer)), length);
         }
-      else 
+      else
         {
-          if (length >= sizeof fp->data) 
+          if (length >= sizeof fp->data)
             {
               msg (SE, _("Hexadecimal floating constant too long."));
               return false;
@@ -158,20 +158,20 @@ parse_fp (struct lexer *lexer, struct fp *fp)
    must be be large enough to hold the output. */
 static void
 make_printable (enum float_format format, const void *src_, size_t src_size,
-                char *dst, size_t dst_size) 
+                char *dst, size_t dst_size)
 {
   assert (dst_size >= 2 * src_size + 1);
-  if (format != FLOAT_HEX) 
+  if (format != FLOAT_HEX)
     {
       const uint8_t *src = src_;
-      while (src_size-- > 0) 
+      while (src_size-- > 0)
         {
           sprintf (dst, "%02x", *src++);
           dst += 2;
         }
-      *dst = '\0'; 
+      *dst = '\0';
     }
-  else 
+  else
     strncpy (dst, src_, src_size + 1);
 }
 
@@ -182,7 +182,7 @@ make_printable (enum float_format format, const void *src_, size_t src_size,
    returns true. */
 static bool
 mismatch (const struct fp *from, const struct fp *to, char *result,
-          const char *conversion_type) 
+          const char *conversion_type)
 {
   size_t to_size = float_get_size (to->format);
   if (!memcmp (to->data, result, to_size))
@@ -212,15 +212,15 @@ mismatch (const struct fp *from, const struct fp *to, char *result,
 /* Checks that converting FROM into the format of TO yields
    exactly the data in TO. */
 static bool
-verify_conversion (const struct fp *from, const struct fp *to) 
+verify_conversion (const struct fp *from, const struct fp *to)
 {
   char tmp1[FP_MAX_SIZE], tmp2[FP_MAX_SIZE];
-  
+
   /* First try converting directly. */
   float_convert (from->format, from->data, to->format, tmp1);
   if (mismatch (from, to, tmp1, "Direct"))
     return false;
-  
+
   /* Then convert via FLOAT_FP to prevent short-circuiting that
      float_convert() does for some conversions (e.g. little<->big
      endian for IEEE formats). */
@@ -228,13 +228,13 @@ verify_conversion (const struct fp *from, const struct fp *to)
   float_convert (FLOAT_FP, tmp1, to->format, tmp2);
   if (mismatch (from, to, tmp2, "Indirect"))
     return false;
-  
+
   return true;
 }
 
 /* Executes the DEBUG FLOAT FORMAT command. */
 int
-cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED) 
+cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   struct fp fp[16];
   size_t fp_cnt = 0;
@@ -243,7 +243,7 @@ cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED)
 
   for (;;)
     {
-      if (fp_cnt >= sizeof fp / sizeof *fp) 
+      if (fp_cnt >= sizeof fp / sizeof *fp)
         {
           msg (SE, _("Too many values in single command."));
           return CMD_FAILURE;
@@ -255,20 +255,20 @@ cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED)
         break;
       else if (!lex_force_match (lexer, '='))
         return CMD_FAILURE;
-      
-      if (fp_cnt == 1) 
+
+      if (fp_cnt == 1)
         {
           if (lex_match (lexer, '='))
             bijective = true;
           else if (lex_match (lexer, T_GT))
             bijective = false;
-          else 
+          else
             {
               lex_error (lexer, NULL);
               return CMD_FAILURE;
             }
         }
-      else 
+      else
         {
           if ((bijective && !lex_force_match (lexer, '='))
               || (!bijective && !lex_force_match (lexer, T_GT)))
@@ -277,16 +277,16 @@ cmd_debug_float_format (struct lexer *lexer, struct dataset *ds UNUSED)
     }
 
   ok = true;
-  if (bijective) 
+  if (bijective)
     {
       size_t i, j;
 
       for (i = 0; i < fp_cnt; i++)
         for (j = 0; j < fp_cnt; j++)
-          if (!verify_conversion (&fp[i], &fp[j])) 
+          if (!verify_conversion (&fp[i], &fp[j]))
             ok = false;
     }
-  else 
+  else
     {
       size_t i;
 

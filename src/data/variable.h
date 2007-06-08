@@ -126,7 +126,7 @@ int var_get_display_width (const struct variable *);
 void var_set_display_width (struct variable *, int display_width);
 
 /* Alignment of data for display. */
-enum alignment 
+enum alignment
   {
     ALIGN_LEFT = 0,
     ALIGN_RIGHT = 1,
@@ -167,7 +167,7 @@ void var_set_obs_vals (const struct variable *, struct cat_vals *);
 bool var_has_obs_vals (const struct variable *);
 
 /* Classes of variables. */
-enum dict_class 
+enum dict_class
   {
     DC_ORDINARY,                /* Ordinary identifier. */
     DC_SYSTEM,                  /* System variable. */

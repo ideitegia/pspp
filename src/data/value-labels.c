@@ -42,7 +42,7 @@ static void atom_destroy (struct atom *);
 static char *atom_to_string (const struct atom *);
 
 /* A set of value labels. */
-struct val_labs 
+struct val_labs
   {
     int width;                  /* 0=numeric, otherwise string width. */
     struct hsh_table *labels;   /* Hash table of `struct int_val_lab's. */
@@ -52,7 +52,7 @@ struct val_labs
    given WIDTH.  To actually add any value labels, WIDTH must be
    a numeric or short string width. */
 struct val_labs *
-val_labs_create (int width) 
+val_labs_create (int width)
 {
   struct val_labs *vls;
 
@@ -67,7 +67,7 @@ val_labs_create (int width)
 /* Creates and returns a new set of value labels identical to
    VLS. */
 struct val_labs *
-val_labs_copy (const struct val_labs *vls) 
+val_labs_copy (const struct val_labs *vls)
 {
   struct val_labs *copy;
   struct val_labs_iterator *i;
@@ -78,7 +78,7 @@ val_labs_copy (const struct val_labs *vls)
 
   copy = val_labs_create (vls->width);
   for (vl = val_labs_first (vls, &i); vl != NULL;
-       vl = val_labs_next (vls, &i)) 
+       vl = val_labs_next (vls, &i))
     val_labs_add (copy, vl->value, vl->label);
   return copy;
 }
@@ -88,7 +88,7 @@ val_labs_copy (const struct val_labs *vls)
    Strings can be widened.  They can be shortened only if the
    characters that will be truncated are spaces. */
 bool
-val_labs_can_set_width (const struct val_labs *vls, int new_width) 
+val_labs_can_set_width (const struct val_labs *vls, int new_width)
 {
   if ( var_type_from_width (new_width) != var_type_from_width (vls->width ))
     return false;
@@ -108,7 +108,7 @@ val_labs_can_set_width (const struct val_labs *vls, int new_width)
           /* We can shorten the value labels only if all the
              truncated characters are blanks. */
           for (j = vls->width; j < new_width; j++)
-            if (lab->value.s[j] != ' ') 
+            if (lab->value.s[j] != ' ')
               {
                 val_labs_done (&i);
                 return false;
@@ -124,7 +124,7 @@ val_labs_can_set_width (const struct val_labs *vls, int new_width)
    NEW_WIDTH must be 0, otherwise it must be within the range
    1...MAX_SHORT_STRING inclusive. */
 void
-val_labs_set_width (struct val_labs *vls, int new_width) 
+val_labs_set_width (struct val_labs *vls, int new_width)
 {
   assert (val_labs_can_set_width (vls, new_width));
 
@@ -135,9 +135,9 @@ val_labs_set_width (struct val_labs *vls, int new_width)
 
 /* Destroys VLS. */
 void
-val_labs_destroy (struct val_labs *vls) 
+val_labs_destroy (struct val_labs *vls)
 {
-  if (vls != NULL) 
+  if (vls != NULL)
     {
       hsh_destroy (vls->labels);
       free (vls);
@@ -146,7 +146,7 @@ val_labs_destroy (struct val_labs *vls)
 
 /* Removes all the value labels from VLS. */
 void
-val_labs_clear (struct val_labs *vls) 
+val_labs_clear (struct val_labs *vls)
 {
   assert (vls != NULL);
 
@@ -156,7 +156,7 @@ val_labs_clear (struct val_labs *vls)
 
 /* Returns the number of value labels in VLS. */
 size_t
-val_labs_count (const struct val_labs *vls) 
+val_labs_count (const struct val_labs *vls)
 {
   return vls == NULL || vls->labels == NULL ? 0 : hsh_count (vls->labels);
 }
@@ -171,13 +171,13 @@ struct int_val_lab
 /* Creates and returns an int_val_lab based on VALUE and
    LABEL. */
 static struct int_val_lab *
-create_int_val_lab (struct val_labs *vls, union value value, const char *label) 
+create_int_val_lab (struct val_labs *vls, union value value, const char *label)
 {
   struct int_val_lab *ivl;
 
   assert (label != NULL);
   assert (vls->width <= MAX_SHORT_STRING);
-  
+
   ivl = xmalloc (sizeof *ivl);
   ivl->value = value;
   if (vls->width > 0)
@@ -192,7 +192,7 @@ create_int_val_lab (struct val_labs *vls, union value value, const char *label)
    Behavior is undefined if VLS's width is greater than
    MAX_SHORT_STRING. */
 bool
-val_labs_add (struct val_labs *vls, union value value, const char *label) 
+val_labs_add (struct val_labs *vls, union value value, const char *label)
 {
   struct int_val_lab *ivl;
   void **vlpp;
@@ -201,16 +201,16 @@ val_labs_add (struct val_labs *vls, union value value, const char *label)
   assert (vls->width <= MAX_SHORT_STRING);
   assert (label != NULL);
 
-  if (vls->labels == NULL) 
+  if (vls->labels == NULL)
     vls->labels = hsh_create (8, compare_int_val_lab, hash_int_val_lab,
                               free_int_val_lab, vls);
 
   ivl = create_int_val_lab (vls, value, label);
   vlpp = hsh_probe (vls->labels, ivl);
-  if (*vlpp == NULL) 
+  if (*vlpp == NULL)
     {
       *vlpp = ivl;
-      return true; 
+      return true;
     }
   free_int_val_lab (ivl, vls);
   return false;
@@ -221,30 +221,30 @@ val_labs_add (struct val_labs *vls, union value value, const char *label)
    there was.  Behavior is undefined if VLS's width is greater
    than MAX_SHORT_STRING. */
 void
-val_labs_replace (struct val_labs *vls, union value value, const char *label) 
+val_labs_replace (struct val_labs *vls, union value value, const char *label)
 {
   assert (vls->width <= MAX_SHORT_STRING);
   if (vls->labels != NULL)
     {
       struct int_val_lab *new = create_int_val_lab (vls, value, label);
       struct int_val_lab *old = hsh_replace (vls->labels, new);
-      if (old != NULL) 
-        free_int_val_lab (old, vls); 
+      if (old != NULL)
+        free_int_val_lab (old, vls);
     }
-  else 
-    val_labs_add (vls, value, label);  
+  else
+    val_labs_add (vls, value, label);
 }
 
 /* Removes any value label for VALUE within VLS.  Returns true
    if a value label was removed. Behavior is undefined if VLS's
    width is greater than MAX_SHORT_STRING. */
 bool
-val_labs_remove (struct val_labs *vls, union value value) 
+val_labs_remove (struct val_labs *vls, union value value)
 {
   assert (vls != NULL);
   assert (vls->width <= MAX_SHORT_STRING);
 
-  if (vls->labels != NULL) 
+  if (vls->labels != NULL)
     {
       struct int_val_lab *ivl = create_int_val_lab (vls, value, "");
       int deleted = hsh_delete (vls->labels, ivl);
@@ -260,7 +260,7 @@ val_labs_remove (struct val_labs *vls, union value value)
    VLS's width is greater than MAX_SHORT_STRING, always returns a
    null pointer. */
 char *
-val_labs_find (const struct val_labs *vls, union value value) 
+val_labs_find (const struct val_labs *vls, union value value)
 {
   if (vls != NULL
       && vls->width <= MAX_SHORT_STRING
@@ -277,7 +277,7 @@ val_labs_find (const struct val_labs *vls, union value value)
 }
 
 /* A value labels iterator. */
-struct val_labs_iterator 
+struct val_labs_iterator
   {
     void **labels;              /* The labels, in order. */
     void **lp;                  /* Current label. */
@@ -291,7 +291,7 @@ struct val_labs_iterator
    val_labs_done() to free up the iterator.  Otherwise, neither
    function may be called for *IP. */
 struct val_lab *
-val_labs_first (const struct val_labs *vls, struct val_labs_iterator **ip) 
+val_labs_first (const struct val_labs *vls, struct val_labs_iterator **ip)
 {
   struct val_labs_iterator *i;
 
@@ -340,7 +340,7 @@ val_labs_next (const struct val_labs *vls, struct val_labs_iterator **ip)
 {
   struct val_labs_iterator *i;
   struct int_val_lab *ivl;
-  
+
   assert (vls != NULL);
   assert (vls->width <= MAX_SHORT_STRING);
   assert (ip != NULL);
@@ -348,13 +348,13 @@ val_labs_next (const struct val_labs *vls, struct val_labs_iterator **ip)
 
   i = *ip;
   ivl = *i->lp++;
-  if (ivl != NULL) 
+  if (ivl != NULL)
     {
       i->vl.value = ivl->value;
       i->vl.label = atom_to_string (ivl->label);
       return &i->vl;
     }
-  else 
+  else
     {
       free (i->labels);
       free (i);
@@ -365,14 +365,14 @@ val_labs_next (const struct val_labs *vls, struct val_labs_iterator **ip)
 
 /* Discards the state for an incomplete iteration begun by
    val_labs_first() or val_labs_first_sorted(). */
-void 
-val_labs_done (struct val_labs_iterator **ip) 
+void
+val_labs_done (struct val_labs_iterator **ip)
 {
   struct val_labs_iterator *i;
 
   assert (ip != NULL);
   assert (*ip != NULL);
-  
+
   i = *ip;
   free (i->labels);
   free (i);
@@ -387,7 +387,7 @@ compare_int_val_lab (const void *a_, const void *b_, const void *vls_)
   const struct int_val_lab *b = b_;
   const struct val_labs *vls = vls_;
 
-  if (vls->width == 0) 
+  if (vls->width == 0)
     return a->value.f < b->value.f ? -1 : a->value.f > b->value.f;
   else
     return memcmp (a->value.s, b->value.s, vls->width);
@@ -408,7 +408,7 @@ hash_int_val_lab (const void *vl_, const void *vls_)
 
 /* Free a value label. */
 void
-free_int_val_lab (void *vl_, const void *vls_ UNUSED) 
+free_int_val_lab (void *vl_, const void *vls_ UNUSED)
 {
   struct int_val_lab *vl = vl_;
 
@@ -419,7 +419,7 @@ free_int_val_lab (void *vl_, const void *vls_ UNUSED)
 /* Atoms. */
 
 /* An atom. */
-struct atom 
+struct atom
   {
     char *string;               /* String value. */
     unsigned ref_count;         /* Number of references. */
@@ -440,14 +440,14 @@ destroy_atoms (void)
 
 /* Creates and returns an atom for STRING. */
 static struct atom *
-atom_create (const char *string) 
+atom_create (const char *string)
 {
   struct atom a;
   void **app;
-  
+
   assert (string != NULL);
-          
-  if (atoms == NULL) 
+
+  if (atoms == NULL)
     {
       atoms = hsh_create (8, compare_atoms, hash_atom, free_atom, NULL);
       atexit (destroy_atoms);
@@ -455,7 +455,7 @@ atom_create (const char *string)
 
   a.string = (char *) string;
   app = hsh_probe (atoms, &a);
-  if (*app != NULL) 
+  if (*app != NULL)
     {
       struct atom *ap = *app;
       ap->ref_count++;
@@ -472,30 +472,30 @@ atom_create (const char *string)
 }
 
 /* Destroys ATOM. */
-static void 
+static void
 atom_destroy (struct atom *atom)
 {
-  if (atom != NULL) 
+  if (atom != NULL)
     {
       assert (atom->ref_count > 0);
       atom->ref_count--;
-      if (atom->ref_count == 0) 
+      if (atom->ref_count == 0)
         hsh_force_delete (atoms, atom);
     }
 }
 
 /* Returns the string associated with ATOM. */
 static  char *
-atom_to_string (const struct atom *atom) 
+atom_to_string (const struct atom *atom)
 {
   assert (atom != NULL);
-  
+
   return atom->string;
 }
 
 /* A hsh_compare_func that compares A and B. */
 static int
-compare_atoms (const void *a_, const void *b_, const void *aux UNUSED) 
+compare_atoms (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct atom *a = a_;
   const struct atom *b = b_;
@@ -505,7 +505,7 @@ compare_atoms (const void *a_, const void *b_, const void *aux UNUSED)
 
 /* A hsh_hash_func that hashes ATOM. */
 static unsigned
-hash_atom (const void *atom_, const void *aux UNUSED) 
+hash_atom (const void *atom_, const void *aux UNUSED)
 {
   const struct atom *atom = atom_;
 
@@ -514,7 +514,7 @@ hash_atom (const void *atom_, const void *aux UNUSED)
 
 /* A hsh_free_func that destroys ATOM. */
 static void
-free_atom (void *atom_, const void *aux UNUSED) 
+free_atom (void *atom_, const void *aux UNUSED)
 {
   struct atom *atom = atom_;
 

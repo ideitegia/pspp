@@ -9,7 +9,7 @@
 const struct substring empty_string = {NULL, 0};
 
 static void
-expr_error (void *aux UNUSED, const char *format, ...) 
+expr_error (void *aux UNUSED, const char *format, ...)
 {
   struct msg m;
   va_list args;
@@ -30,8 +30,8 @@ expr_ymd_to_ofs (double year, double month, double day)
   int m = month;
   int d = day;
 
-  if (y != year || m != month || d != day) 
-    { 
+  if (y != year || m != month || d != day)
+    {
       msg (SE, _("One of the arguments to a DATE function is not an integer.  "
                  "The result will be system-missing."));
       return SYSMIS;
@@ -48,24 +48,24 @@ expr_ymd_to_date (double year, double month, double day)
 }
 
 double
-expr_wkyr_to_date (double week, double year) 
+expr_wkyr_to_date (double week, double year)
 {
   int w = week;
 
-  if (w != week) 
+  if (w != week)
     {
       msg (SE, _("The week argument to DATE.WKYR is not an integer.  "
                  "The result will be system-missing."));
       return SYSMIS;
     }
-  else if (w < 1 || w > 53) 
+  else if (w < 1 || w > 53)
     {
       msg (SE, _("The week argument to DATE.WKYR is outside the acceptable "
                  "range of 1 to 53.  "
                  "The result will be system-missing."));
       return SYSMIS;
     }
-  else 
+  else
     {
       double yr_1_1 = expr_ymd_to_ofs (year, 1, 1);
       if (yr_1_1 != SYSMIS)
@@ -76,24 +76,24 @@ expr_wkyr_to_date (double week, double year)
 }
 
 double
-expr_yrday_to_date (double year, double yday) 
+expr_yrday_to_date (double year, double yday)
 {
   int yd = yday;
 
-  if (yd != yday) 
+  if (yd != yday)
     {
       msg (SE, _("The day argument to DATE.YRDAY is not an integer.  "
                  "The result will be system-missing."));
       return SYSMIS;
     }
-  else if (yd < 1 || yd > 366) 
+  else if (yd < 1 || yd > 366)
     {
       msg (SE, _("The day argument to DATE.YRDAY is outside the acceptable "
                  "range of 1 to 366.  "
                  "The result will be system-missing."));
       return SYSMIS;
     }
-  else 
+  else
     {
       double yr_1_1 = expr_ymd_to_ofs (year, 1, 1);
       if (yr_1_1 != SYSMIS)
@@ -105,10 +105,10 @@ expr_yrday_to_date (double year, double yday)
 
 double
 expr_yrmoda (double year, double month, double day)
-{ 
+{
   if (year >= 0 && year <= 99)
     year += 1900;
-  else if (year != (int) year && year > 47516) 
+  else if (year != (int) year && year > 47516)
     {
       msg (SE, _("The year argument to YRMODA is greater than 47516.  "
                  "The result will be system-missing."));
@@ -119,7 +119,7 @@ expr_yrmoda (double year, double month, double day)
 }
 
 /* A date unit. */
-enum date_unit 
+enum date_unit
   {
     DATE_YEARS,
     DATE_QUARTERS,
@@ -134,7 +134,7 @@ enum date_unit
 #ifndef HAVE_TRUNC
 /* Return X rounded toward zero. */
 static double
-trunc (double x) 
+trunc (double x)
 {
   return x >= 0.0 ? floor (x) : ceil (x);
 }
@@ -143,14 +143,14 @@ trunc (double x)
 /* Stores in *UNIT the unit whose name is NAME.
    Return success. */
 static enum date_unit
-recognize_unit (struct substring name, enum date_unit *unit) 
+recognize_unit (struct substring name, enum date_unit *unit)
 {
   struct unit_name
     {
       enum date_unit unit;
       const struct substring name;
     };
-  static const struct unit_name unit_names[] = 
+  static const struct unit_name unit_names[] =
     {
       { DATE_YEARS, SS_LITERAL_INITIALIZER ("years") },
       { DATE_QUARTERS, SS_LITERAL_INITIALIZER ("quarters") },
@@ -166,7 +166,7 @@ recognize_unit (struct substring name, enum date_unit *unit)
   const struct unit_name *un;
 
   for (un = unit_names; un < &unit_names[unit_name_cnt]; un++)
-    if (ss_equals_case (un->name, name)) 
+    if (ss_equals_case (un->name, name))
       {
         *unit = un->unit;
         return true;
@@ -183,7 +183,7 @@ recognize_unit (struct substring name, enum date_unit *unit)
    where a year is defined as the same or later month, day, and
    time of day. */
 static int
-year_diff (double date1, double date2) 
+year_diff (double date1, double date2)
 {
   int y1, m1, d1, yd1;
   int y2, m2, d2, yd2;
@@ -194,7 +194,7 @@ year_diff (double date1, double date2)
   calendar_offset_to_gregorian (date2 / DAY_S, &y2, &m2, &d2, &yd2);
 
   diff = y2 - y1;
-  if (diff > 0) 
+  if (diff > 0)
     {
       int yd1 = 32 * m1 + d1;
       int yd2 = 32 * m2 + d2;
@@ -209,7 +209,7 @@ year_diff (double date1, double date2)
    where a month is defined as the same or later day and time of
    day. */
 static int
-month_diff (double date1, double date2) 
+month_diff (double date1, double date2)
 {
   int y1, m1, d1, yd1;
   int y2, m2, d2, yd2;
@@ -237,9 +237,9 @@ quarter_diff (double date1, double date2)
 
 /* Returns the number of seconds in the given UNIT. */
 static int
-date_unit_duration (enum date_unit unit) 
+date_unit_duration (enum date_unit unit)
 {
-  switch (unit) 
+  switch (unit)
     {
     case DATE_WEEKS:
       return WEEK_S;
@@ -263,14 +263,14 @@ date_unit_duration (enum date_unit unit)
 
 /* Returns the span from DATE1 to DATE2 in terms of UNIT_NAME. */
 double
-expr_date_difference (double date1, double date2, struct substring unit_name) 
+expr_date_difference (double date1, double date2, struct substring unit_name)
 {
   enum date_unit unit;
-  
+
   if (!recognize_unit (unit_name, &unit))
     return SYSMIS;
-  
-  switch (unit) 
+
+  switch (unit)
     {
     case DATE_YEARS:
       return (date2 >= date1
@@ -281,7 +281,7 @@ expr_date_difference (double date1, double date2, struct substring unit_name)
       return (date2 >= date1
               ? quarter_diff (date1, date2)
               : -quarter_diff (date2, date1));
-      
+
     case DATE_MONTHS:
       return (date2 >= date1
               ? month_diff (date1, date2)
@@ -299,7 +299,7 @@ expr_date_difference (double date1, double date2, struct substring unit_name)
 }
 
 /* How to deal with days out of range for a given month. */
-enum date_sum_method 
+enum date_sum_method
   {
     SUM_ROLLOVER,       /* Roll them over to the next month. */
     SUM_CLOSEST         /* Use the last day of the month. */
@@ -308,19 +308,19 @@ enum date_sum_method
 /* Stores in *METHOD the method whose name is NAME.
    Return success. */
 static bool
-recognize_method (struct substring method_name, enum date_sum_method *method) 
+recognize_method (struct substring method_name, enum date_sum_method *method)
 {
-  if (ss_equals_case (method_name, ss_cstr ("closest"))) 
+  if (ss_equals_case (method_name, ss_cstr ("closest")))
     {
       *method = SUM_CLOSEST;
-      return true; 
+      return true;
     }
-  else if (ss_equals_case (method_name, ss_cstr ("rollover"))) 
+  else if (ss_equals_case (method_name, ss_cstr ("rollover")))
     {
       *method = SUM_ROLLOVER;
-      return true; 
+      return true;
     }
-  else 
+  else
     {
       msg (SE, _("Invalid DATESUM method.  "
                  "Valid choices are \"closest\" and \"rollover\"."));
@@ -331,7 +331,7 @@ recognize_method (struct substring method_name, enum date_sum_method *method)
 /* Returns DATE advanced by the given number of MONTHS, with
    day-of-month overflow resolved using METHOD. */
 static double
-add_months (double date, int months, enum date_sum_method method) 
+add_months (double date, int months, enum date_sum_method method)
 {
   int y, m, d, yd;
   double output;
@@ -339,19 +339,19 @@ add_months (double date, int months, enum date_sum_method method)
   calendar_offset_to_gregorian (date / DAY_S, &y, &m, &d, &yd);
   y += months / 12;
   m += months % 12;
-  if (m < 1) 
+  if (m < 1)
     {
       m += 12;
       y--;
     }
-  else if (m > 12) 
+  else if (m > 12)
     {
       m -= 12;
       y++;
     }
   assert (m >= 1 && m <= 12);
 
-  if (method == SUM_CLOSEST && d > calendar_days_in_month (y, m)) 
+  if (method == SUM_CLOSEST && d > calendar_days_in_month (y, m))
     d = calendar_days_in_month (y, m);
 
   output = calendar_gregorian_to_offset (y, m, d, expr_error, NULL);
@@ -365,7 +365,7 @@ add_months (double date, int months, enum date_sum_method method)
    METHOD_NAME. */
 double
 expr_date_sum (double date, double quantity, struct substring unit_name,
-               struct substring method_name) 
+               struct substring method_name)
 {
   enum date_unit unit;
   enum date_sum_method method;
@@ -373,8 +373,8 @@ expr_date_sum (double date, double quantity, struct substring unit_name,
   if (!recognize_unit (unit_name, &unit)
       || !recognize_method (method_name, &method))
     return SYSMIS;
-  
-  switch (unit) 
+
+  switch (unit)
     {
     case DATE_YEARS:
       return add_months (date, trunc (quantity) * 12, method);
@@ -397,12 +397,12 @@ expr_date_sum (double date, double quantity, struct substring unit_name,
 }
 
 int
-compare_string (const struct substring *a, const struct substring *b) 
+compare_string (const struct substring *a, const struct substring *b)
 {
   size_t i;
 
   for (i = 0; i < a->length && i < b->length; i++)
-    if (a->string[i] != b->string[i]) 
+    if (a->string[i] != b->string[i])
       return a->string[i] < b->string[i] ? -1 : 1;
   for (; i < a->length; i++)
     if (a->string[i] != ' ')
@@ -414,7 +414,7 @@ compare_string (const struct substring *a, const struct substring *b)
 }
 
 size_t
-count_valid (double *d, size_t d_cnt) 
+count_valid (double *d, size_t d_cnt)
 {
   size_t valid_cnt;
   size_t i;
@@ -426,7 +426,7 @@ count_valid (double *d, size_t d_cnt)
 }
 
 struct substring
-alloc_string (struct expression *e, size_t length) 
+alloc_string (struct expression *e, size_t length)
 {
   struct substring s;
   s.length = length;
@@ -435,7 +435,7 @@ alloc_string (struct expression *e, size_t length)
 }
 
 struct substring
-copy_string (struct expression *e, const char *old, size_t length) 
+copy_string (struct expression *e, const char *old, size_t length)
 {
   struct substring s = alloc_string (e, length);
   memcpy (s.string, old, length);
@@ -449,10 +449,10 @@ copy_string (struct expression *e, const char *old, size_t length)
    satisfactory.  We only match the example values given in AS
    310 to the first 5 significant digits. */
 double
-ncdf_beta (double x, double a, double b, double lambda) 
+ncdf_beta (double x, double a, double b, double lambda)
 {
   double c;
-  
+
   if (x <= 0. || x >= 1. || a <= 0. || b <= 0. || lambda <= 0.)
     return SYSMIS;
 
@@ -484,7 +484,7 @@ ncdf_beta (double x, double a, double b, double lambda)
       sum = ax;
 
       iter = 0;
-      do 
+      do
         {
           iter++;
           temp -= gx;
@@ -497,10 +497,10 @@ ncdf_beta (double x, double a, double b, double lambda)
           err_bound = (temp - gx) * sumq;
         }
       while (iter < iter_max && err_bound > err_max);
-      
+
       return sum;
     }
-  else 
+  else
     {
       /* Algorithm AS 310. */
       double m, m_sqrt;
@@ -508,14 +508,14 @@ ncdf_beta (double x, double a, double b, double lambda)
       double t, q, r, psum, beta, s1, gx, fx, temp, ftemp, t0, s0, sum, s;
       double err_bound;
       double err_max = 2 * DBL_EPSILON;
-      
+
       iter = 0;
-      
+
       m = floor (c + .5);
       m_sqrt = sqrt (m);
       iter_lower = m - 5. * m_sqrt;
       iter_upper = m + 5. * m_sqrt;
-      
+
       t = -c + m * log (c) - gsl_sf_lngamma (m + 1.);
       q = exp (t);
       r = q;
@@ -530,7 +530,7 @@ ncdf_beta (double x, double a, double b, double lambda)
       sum = q * temp;
       iter1 = m;
 
-      while (iter1 >= iter_lower && q >= err_max) 
+      while (iter1 >= iter_lower && q >= err_max)
         {
           q = q * iter1 / c;
           iter++;
@@ -547,7 +547,7 @@ ncdf_beta (double x, double a, double b, double lambda)
       s0 = a * log (x) + b * log (1. - x);
 
       s = 0.;
-      for (j = 0; j < iter1; j++) 
+      for (j = 0; j < iter1; j++)
         {
           double t1;
           s += exp (t0 + s0 + j * log (x));
@@ -560,7 +560,7 @@ ncdf_beta (double x, double a, double b, double lambda)
       temp = ftemp;
       gx = fx;
       iter2 = m;
-      for (;;) 
+      for (;;)
         {
           double ebd = err_bound + (1. - psum) * temp;
           if (ebd < err_max || iter >= iter_upper)
@@ -580,14 +580,14 @@ ncdf_beta (double x, double a, double b, double lambda)
 }
 
 double
-cdf_bvnor (double x0, double x1, double r) 
+cdf_bvnor (double x0, double x1, double r)
 {
   double z = x0 * x0 - 2. * r * x0 * x1 + x1 * x1;
   return exp (-z / (2. * (1 - r * r))) * (2. * M_PI * sqrt (1 - r * r));
 }
 
 double
-idf_fdist (double P, double df1, double df2) 
+idf_fdist (double P, double df1, double df2)
 {
   double temp = gslextras_cdf_beta_Pinv (P, df1 / 2, df2 / 2);
   return temp * df2 / ((1. - temp) * df1);
@@ -623,13 +623,13 @@ idf_fdist (double P, double df1, double df2)
 /* Returns the density of the noncentral beta distribution with
    noncentrality parameter LAMBDA. */
 double
-npdf_beta (double x, double a, double b, double lambda) 
+npdf_beta (double x, double a, double b, double lambda)
 {
   if (lambda < 0. || a <= 0. || b <= 0.)
     return SYSMIS;
   else if (lambda == 0.)
     return gsl_ran_beta_pdf (x, a, b);
-  else 
+  else
     {
       double max_error = 2 * DBL_EPSILON;
       int max_iter = 200;
@@ -639,13 +639,13 @@ npdf_beta (double x, double a, double b, double lambda)
       double sum = weight * term;
       double psum = weight;
       int k;
-      for (k = 1; k <= max_iter && 1 - psum < max_error; k++) { 
+      for (k = 1; k <= max_iter && 1 - psum < max_error; k++) {
         weight *= lambda2 / k;
         term *= x * (a + b) / a;
         sum += weight * term;
         psum += weight;
         a += 1;
-      } 
+      }
       return sum;
     }
 }

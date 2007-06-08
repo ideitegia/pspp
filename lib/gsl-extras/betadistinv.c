@@ -19,16 +19,16 @@
  */
 
 /*
- * Invert the Beta distribution. 
- * 
+ * Invert the Beta distribution.
+ *
  * References:
  *
- * Roger W. Abernathy and Robert P. Smith. "Applying Series Expansion 
+ * Roger W. Abernathy and Robert P. Smith. "Applying Series Expansion
  * to the Inverse Beta Distribution to Find Percentiles of the F-Distribution,"
  * ACM Transactions on Mathematical Software, volume 19, number 4, December 1993,
  * pages 474-480.
  *
- * G.W. Hill and A.W. Davis. "Generalized asymptotic expansions of a 
+ * G.W. Hill and A.W. Davis. "Generalized asymptotic expansions of a
  * Cornish-Fisher type," Annals of Mathematical Statistics, volume 39, number 8,
  * August 1968, pages 1264-1273.
  */
@@ -45,20 +45,20 @@
 #define BETADISTINV_N_TERMS 3
 #define BETADISTINV_MAXITER 20
 
-static double 
+static double
 s_bisect (double x, double y)
 {
   double result = GSL_MIN(x,y) + fabs(x - y) / 2.0;
   return result;
 }
 static double
-new_guess_P ( double old_guess, double x, double y, 
+new_guess_P ( double old_guess, double x, double y,
 	      double prob, double a, double b)
 {
   double result;
   double p_hat;
   double end_point;
-  
+
   p_hat = gsl_cdf_beta_P(old_guess, a, b);
   if (p_hat < prob)
     {
@@ -73,18 +73,18 @@ new_guess_P ( double old_guess, double x, double y,
       end_point = old_guess;
     }
   result = s_bisect(old_guess, end_point);
-  
+
   return result;
 }
 
 static double
-new_guess_Q ( double old_guess, double x, double y, 
+new_guess_Q ( double old_guess, double x, double y,
 	      double prob, double a, double b)
 {
   double result;
   double q_hat;
   double end_point;
-  
+
   q_hat = gsl_cdf_beta_Q(old_guess, a, b);
   if (q_hat >= prob)
     {
@@ -99,7 +99,7 @@ new_guess_Q ( double old_guess, double x, double y,
       end_point = old_guess;
     }
   result = s_bisect(old_guess, end_point);
-  
+
   return result;
 }
 
@@ -108,18 +108,18 @@ new_guess_Q ( double old_guess, double x, double y,
  * three terms of the Cornish-Fisher expansion
  * without recursion. The recursive functions
  * make the code more legible when higher order coefficients
- * are used, but terms beyond the cubic do not 
+ * are used, but terms beyond the cubic do not
  * improve accuracy.
  */
   /*
-   * Linear coefficient for the 
+   * Linear coefficient for the
    * Cornish-Fisher expansion.
    */
-static double 
+static double
 get_corn_fish_lin (const double x, const double a, const double b)
 {
   double result;
-  
+
   result = gsl_ran_beta_pdf (x, a, b);
   if(result > 0)
     {
@@ -133,7 +133,7 @@ get_corn_fish_lin (const double x, const double a, const double b)
   return result;
 }
   /*
-   * Quadratic coefficient for the 
+   * Quadratic coefficient for the
    * Cornish-Fisher expansion.
    */
 static double
@@ -145,7 +145,7 @@ get_corn_fish_quad (const double x, const double a, const double b)
   double gam_b;
   double num;
   double den;
-  
+
   gam_ab =  gsl_sf_lngamma(a + b);
   gam_a = gsl_sf_lngamma (a);
   gam_b = gsl_sf_lngamma (b);
@@ -164,13 +164,13 @@ get_corn_fish_quad (const double x, const double a, const double b)
 }
 /*
  * The cubic term for the Cornish-Fisher expansion.
- * Theoretically, use of this term should give a better approximation, 
- * but in practice inclusion of the cubic term worsens the 
+ * Theoretically, use of this term should give a better approximation,
+ * but in practice inclusion of the cubic term worsens the
  * iterative procedure in gsl_cdf_beta_Pinv and gsl_cdf_beta_Qinv
  * for extreme values of p, a or b.
- */				    
+ */
 #if 0
-static double 
+static double
 get_corn_fish_cube (const double x, const double a, const double b)
 {
   double result;
@@ -206,9 +206,9 @@ get_corn_fish_cube (const double x, const double a, const double b)
  * starting with the nth derivative of s_psi = -f'(x)/f(x),
  * where f is the beta density.
  *
- * The section below was commented out since 
+ * The section below was commented out since
  * the recursive generation of the coeficients did
- * not improve the accuracy of the directly coded 
+ * not improve the accuracy of the directly coded
  * the first three coefficients.
  */
 #if 0
@@ -222,7 +222,7 @@ s_d_psi (double x, double a, double b, int n)
   double bm1 = b - 1.0;
   double am1 = a - 1.0;
   double mx = 1.0 - x;
-  
+
   asgn = (n % 2) ? 1.0:-1.0;
   bsgn = (n % 2) ? -1.0:1.0;
   result = gsl_sf_gamma(np1) * ((bsgn * bm1 / (pow(mx, np1)))
@@ -230,11 +230,11 @@ s_d_psi (double x, double a, double b, int n)
   return result;
 }
 /*
- * nth derivative of a coefficient with respect 
+ * nth derivative of a coefficient with respect
  * to x.
  */
-static double 
-get_d_coeff ( double x, double a, 
+static double
+get_d_coeff ( double x, double a,
 	      double b, double n, double k)
 {
   double result;
@@ -243,7 +243,7 @@ get_d_coeff ( double x, double a,
   double i_fac;
   double kmi_fac;
   double i;
-  
+
   if (n == 2)
     {
       result = s_d_psi(x, a, b, k);
@@ -256,9 +256,9 @@ get_d_coeff ( double x, double a,
 	  k_fac = gsl_sf_lngamma(k+1.0);
 	  i_fac = gsl_sf_lngamma(i+1.0);
 	  kmi_fac = gsl_sf_lngamma(k-i+1.0);
-	  
+
 	  result += exp(k_fac - i_fac - kmi_fac)
-	    * get_d_coeff( x, a, b, 2.0, i) 
+	    * get_d_coeff( x, a, b, 2.0, i)
 	    * get_d_coeff( x, a, b, (n - 1.0), (k - i));
 	}
       result += get_d_coeff ( x, a, b, (n-1.0), (k+1.0));
@@ -270,13 +270,13 @@ get_d_coeff ( double x, double a,
  * Cornish-Fisher coefficient.
  */
 static double
-get_corn_fish (double c, double x, 
+get_corn_fish (double c, double x,
 	       double a, double b, double n)
 {
   double result;
   double dc;
   double c_prev;
-  
+
   if(n == 1.0)
     {
       result = 1;
@@ -295,7 +295,7 @@ get_corn_fish (double c, double x,
 }
 #endif
 
-double 
+double
 gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
 {
   double result;
@@ -361,8 +361,8 @@ gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
     {
       /*
        * Start at a small value and rise until
-       * we are above the correct result. This 
-       * avoids overflow. When p is very close to 
+       * we are above the correct result. This
+       * avoids overflow. When p is very close to
        * 0, an initial state value of a/(a+b) will
        * cause the interpolating polynomial
        * to overflow.
@@ -392,7 +392,7 @@ gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
   relerr = abserr / p;
   while ( relerr > BETAINV_INIT_ERR)
     {
-      tmp = new_guess_P ( state, lower, upper, 
+      tmp = new_guess_P ( state, lower, upper,
 			  p, a, b);
       lower = ( tmp < state ) ? lower:state;
       upper = ( tmp < state ) ? state:upper;
@@ -435,7 +435,7 @@ gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
 	{
 	  /*
 	   * Lagrange polynomial failed to reduce the error.
-	   * This will happen with a very skewed beta density. 
+	   * This will happen with a very skewed beta density.
 	   * Undo previous steps.
 	   */
 	  state = result;
@@ -461,8 +461,8 @@ gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
       /*
        * The cubic term does not help, and can can
        * harm the approximation for extreme values of
-       * p, a, or b.       
-       */      
+       * p, a, or b.
+       */
 #if 0
       c3 = get_corn_fish_cube (state, a, b);
       state += err * (c1 + (err / 2.0 ) * (c2 + c3 * err / 3.0));
@@ -470,20 +470,20 @@ gslextras_cdf_beta_Pinv ( const double p, const double a, const double b)
       state += err * (c1 + (c2 * err / 2.0 ));
       /*
        * The section below which is commented out uses
-       * a recursive function to get the coefficients. 
+       * a recursive function to get the coefficients.
        * The recursion makes coding higher-order terms
        * easier, but did not improve the result beyond
        * the use of three terms. Since explicitly coding
        * those three terms in the get_corn_fish_* functions
        * was not difficult, the recursion was abandoned.
        */
-#if 0 
+#if 0
       coeff = 1.0;
       for(i = 1.0; i < BETADISTINV_N_TERMS; i += 1.0)
 	{
 	  i_fac *= i;
 	  coeff = get_corn_fish (coeff, prior_state, a, b, i);
-	  state += coeff * pow(err, i) / 
+	  state += coeff * pow(err, i) /
 	    (i_fac * pow (gsl_ran_beta_pdf(prior_state,a,b), i));
 	}
 #endif
@@ -559,7 +559,7 @@ gslextras_cdf_beta_Qinv (double q, double a, double b)
        * When q is close to 0, the bisection
        * and interpolation done in the rest of
        * this routine will not give the correct
-       * value within double precision, so 
+       * value within double precision, so
        * gsl_cdf_beta_Qinv is called instead.
        */
       state = gslextras_cdf_beta_Pinv ( q, a, b);
@@ -597,7 +597,7 @@ gslextras_cdf_beta_Qinv (double q, double a, double b)
   while ( relerr > BETAINV_INIT_ERR)
     {
       n_iter++;
-      tmp = new_guess_Q ( state, lower, upper, 
+      tmp = new_guess_Q ( state, lower, upper,
 			  q, a, b);
       lower = ( tmp < state ) ? lower:state;
       upper = ( tmp < state ) ? state:upper;
@@ -639,7 +639,7 @@ gslextras_cdf_beta_Qinv (double q, double a, double b)
 	{
 	  /*
 	   * Lagrange polynomial failed to reduce the error.
-	   * This will happen with a very skewed beta density. 
+	   * This will happen with a very skewed beta density.
 	   * Undo previous steps.
 	   */
 	  state = result;

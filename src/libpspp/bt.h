@@ -34,7 +34,7 @@
         ((STRUCT *) ((char *) (NODE) - offsetof (STRUCT, MEMBER)))
 
 /* Node in a balanced binary tree. */
-struct bt_node 
+struct bt_node
   {
     struct bt_node *up;        /* Parent (NULL for root). */
     struct bt_node *down[2];   /* Left child, right child. */
@@ -47,7 +47,7 @@ typedef int bt_compare_func (const struct bt_node *a,
                              const void *aux);
 
 /* A balanced binary tree. */
-struct bt 
+struct bt
   {
     struct bt_node *root;       /* Tree's root, NULL if empty. */
     bt_compare_func *compare;   /* To compare nodes. */
@@ -75,7 +75,7 @@ struct bt_node *bt_changed (struct bt *, struct bt_node *);
 void bt_moved (struct bt *, struct bt_node *);
 
 /* Returns the number of nodes currently in BT. */
-static inline size_t bt_count (const struct bt *bt) 
+static inline size_t bt_count (const struct bt *bt)
 {
   return bt->size;
 }

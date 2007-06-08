@@ -1,18 +1,18 @@
 /*
   lib/linreg/linreg.c
-  
+
   Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H. Stover.
-  
+
   This program is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free
   Software Foundation; either version 2 of the License, or (at your option)
   any later version.
-  
+
   This program is distributed in the hope that it will be useful, but WITHOUT
   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
   more details.
-  
+
   You should have received a copy of the GNU General Public License along with
   this program; if not, write to the Free Software Foundation, Inc., 51
   Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
@@ -152,10 +152,10 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
   c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the
-					   independent variables. 
+					   independent variables.
 					 */
   c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the
-					   model parameters. 
+					   model parameters.
 					 */
   c->cov = gsl_matrix_alloc (p + 1, p + 1);	/* Covariance matrix. */
   c->n_obs = n;
@@ -249,7 +249,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
   cache->dfm = cache->n_indeps;
   cache->dfe = cache->dft - cache->dfm;
   cache->n_coeffs = X->size2 + 1;	/* Adjust this later to allow for
-					   regression through the origin. 
+					   regression through the origin.
 					 */
   if (cache->method == PSPP_LINREG_SWEEP)
     {

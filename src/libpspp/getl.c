@@ -30,13 +30,13 @@ struct getl_source
   {
     struct getl_source *included_from;	/* File that this is nested inside. */
     struct getl_source *includes;	/* File nested inside this file. */
-    
+
     struct ll  ll;   /* Element in the sources list */
 
     struct getl_interface *interface;
   };
 
-struct source_stream 
+struct source_stream
   {
     struct ll_list sources ;  /* List of source files. */
 
@@ -90,7 +90,7 @@ getl_add_include_dir (struct source_stream *ss, const char *path)
 
 /* Appends source S to the list of source files. */
 void
-getl_append_source (struct source_stream *ss, struct getl_interface *i) 
+getl_append_source (struct source_stream *ss, struct getl_interface *i)
 {
   struct getl_source *s = xzalloc (sizeof ( struct getl_source ));
 
@@ -101,7 +101,7 @@ getl_append_source (struct source_stream *ss, struct getl_interface *i)
 
 /* Nests source S within the current source file. */
 void
-getl_include_source (struct source_stream *ss, struct getl_interface *i) 
+getl_include_source (struct source_stream *ss, struct getl_interface *i)
 {
   struct getl_source *current = current_source (ss);
   struct getl_source *s = xzalloc (sizeof ( struct getl_source ));
@@ -115,14 +115,14 @@ getl_include_source (struct source_stream *ss, struct getl_interface *i)
   ll_push_head (&ss->sources, &s->ll);
 }
 
-/* Closes the current source, and move  the current source to the 
+/* Closes the current source, and move  the current source to the
    next file in the chain. */
 static void
 close_source (struct source_stream *ss)
 {
   struct getl_source *s = current_source (ss);
 
-  if ( s->interface->close ) 
+  if ( s->interface->close )
     s->interface->close (s->interface);
 
   ll_pop_head (&ss->sources);
@@ -136,13 +136,13 @@ close_source (struct source_stream *ss)
 /* Closes all sources until an interactive source is
    encountered. */
 void
-getl_abort_noninteractive (struct source_stream *ss) 
+getl_abort_noninteractive (struct source_stream *ss)
 {
   while ( ! ll_is_empty (&ss->sources))
     {
       const struct getl_source *s = current_source (ss);
-      
-      if ( !s->interface->interactive (s->interface) ) 
+
+      if ( !s->interface->interactive (s->interface) )
 	close_source (ss);
     }
 }
@@ -150,17 +150,17 @@ getl_abort_noninteractive (struct source_stream *ss)
 /* Returns true if the current source is interactive,
    false otherwise. */
 bool
-getl_is_interactive (const struct source_stream *ss) 
+getl_is_interactive (const struct source_stream *ss)
 {
   const struct getl_source *s = current_source (ss);
 
-  if (ll_is_empty (&ss->sources) ) 
+  if (ll_is_empty (&ss->sources) )
     return false;
 
   return s->interface->interactive (s->interface);
 }
 
-/* Returns the name of the current source, or NULL if there is no 
+/* Returns the name of the current source, or NULL if there is no
    current source */
 const char *
 getl_source_name (const struct source_stream *ss)
@@ -170,7 +170,7 @@ getl_source_name (const struct source_stream *ss)
   if ( ll_is_empty (&ss->sources) )
     return NULL;
 
-  if ( ! s->interface->name ) 
+  if ( ! s->interface->name )
     return NULL;
 
   return s->interface->name (s->interface);

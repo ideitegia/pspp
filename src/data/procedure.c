@@ -84,11 +84,11 @@ struct dataset {
   struct ccase *lag_cases;      /* Lagged cases managed by deque. */
 
   /* Procedure data. */
-  enum 
+  enum
     {
       PROC_COMMITTED,
       PROC_OPEN,
-      PROC_CLOSED 
+      PROC_CLOSED
     }
   proc_state;
   size_t cases_written;       /* Cases output so far. */
@@ -163,15 +163,15 @@ proc_open (struct dataset *ds)
     ds->permanent_dict = ds->dict;
 
   /* Prepare sink. */
-  if (!ds->discard_output) 
+  if (!ds->discard_output)
     {
       ds->compactor = (dict_compacting_would_shrink (ds->permanent_dict)
                        ? dict_make_compactor (ds->permanent_dict)
                        : NULL);
       ds->sink = autopaging_writer_create (dict_get_compacted_value_cnt (
-                                             ds->permanent_dict)); 
+                                             ds->permanent_dict));
     }
-  else 
+  else
     {
       ds->compactor = NULL;
       ds->sink = NULL;
@@ -194,7 +194,7 @@ proc_open (struct dataset *ds)
 }
 
 bool
-proc_is_open (const struct dataset *ds) 
+proc_is_open (const struct dataset *ds)
 {
   return ds->proc_state != PROC_COMMITTED;
 }
@@ -207,13 +207,13 @@ proc_is_open (const struct dataset *ds)
    this case a null pointer is stored in *C. */
 static bool
 proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
-                      struct ccase *c) 
+                      struct ccase *c)
 {
   struct dataset *ds = ds_;
   enum trns_result retval = TRNS_DROP_CASE;
 
   assert (ds->proc_state == PROC_OPEN);
-  for (;;) 
+  for (;;)
     {
       size_t case_nr;
 
@@ -235,14 +235,14 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
       retval = trns_chain_execute (ds->permanent_trns_chain, TRNS_CONTINUE,
                                    c, &case_nr);
       caseinit_update_left_vars (ds->caseinit, c);
-      if (retval != TRNS_CONTINUE) 
+      if (retval != TRNS_CONTINUE)
         {
           case_destroy (c);
-          continue; 
+          continue;
         }
-  
+
       /* Write case to collection of lagged cases. */
-      if (ds->n_lag > 0) 
+      if (ds->n_lag > 0)
         {
           while (deque_count (&ds->lag) >= ds->n_lag)
             case_destroy (&ds->lag_cases[deque_pop_back (&ds->lag)]);
@@ -251,10 +251,10 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
 
       /* Write case to replacement active file. */
       ds->cases_written++;
-      if (ds->sink != NULL) 
+      if (ds->sink != NULL)
         {
           struct ccase tmp;
-          if (ds->compactor != NULL) 
+          if (ds->compactor != NULL)
             {
               case_create (&tmp, dict_get_compacted_value_cnt (ds->dict));
               dict_compactor_compact (ds->compactor, &tmp, c);
@@ -309,7 +309,7 @@ proc_casereader_destroy (struct casereader *reader, void *ds_)
    false, but the replacement active file may still be
    untainted.) */
 bool
-proc_commit (struct dataset *ds) 
+proc_commit (struct dataset *ds)
 {
   assert (ds->proc_state == PROC_CLOSED);
   ds->proc_state = PROC_COMMITTED;
@@ -322,24 +322,24 @@ proc_commit (struct dataset *ds)
   /* Dictionary from before TEMPORARY becomes permanent. */
   proc_cancel_temporary_transformations (ds);
 
-  if (!ds->discard_output) 
+  if (!ds->discard_output)
     {
       /* Finish compacting. */
-      if (ds->compactor != NULL) 
+      if (ds->compactor != NULL)
         {
           dict_compactor_destroy (ds->compactor);
           dict_compact_values (ds->dict);
           ds->compactor = NULL;
         }
-    
+
       /* Old data sink becomes new data source. */
-      if (ds->sink != NULL) 
+      if (ds->sink != NULL)
         ds->source = casewriter_make_reader (ds->sink);
     }
-  else 
+  else
     {
       ds->source = NULL;
-      ds->discard_output = false; 
+      ds->discard_output = false;
     }
   ds->sink = NULL;
   if ( ds->replace_source) ds->replace_source (ds->source);
@@ -352,7 +352,7 @@ proc_commit (struct dataset *ds)
   return proc_cancel_all_transformations (ds) && ds->ok;
 }
 
-static struct casereader_class proc_casereader_class = 
+static struct casereader_class proc_casereader_class =
   {
     proc_casereader_read,
     proc_casereader_destroy,
@@ -539,7 +539,7 @@ destroy_dataset (struct dataset *ds)
 /* Causes output from the next procedure to be discarded, instead
    of being preserved for use as input for the next procedure. */
 void
-proc_discard_output (struct dataset *ds) 
+proc_discard_output (struct dataset *ds)
 {
   ds->discard_output = true;
 }
@@ -555,7 +555,7 @@ proc_discard_active_file (struct dataset *ds)
   fh_set_default_handle (NULL);
 
   ds->n_lag = 0;
-  
+
   casereader_destroy (ds->source);
   ds->source = NULL;
   if ( ds->replace_source) ds->replace_source (NULL);
@@ -568,7 +568,7 @@ proc_discard_active_file (struct dataset *ds)
 void
 proc_set_active_file (struct dataset *ds,
                       struct casereader *source,
-                      struct dictionary *dict) 
+                      struct dictionary *dict)
 {
   assert (ds->proc_state == PROC_COMMITTED);
   assert (ds->dict != dict);
@@ -585,7 +585,7 @@ proc_set_active_file (struct dataset *ds,
 /* Replaces the active file's data by READER without replacing
    the associated dictionary. */
 bool
-proc_set_active_file_data (struct dataset *ds, struct casereader *reader) 
+proc_set_active_file_data (struct dataset *ds, struct casereader *reader)
 {
   casereader_destroy (ds->source);
   ds->source = reader;
@@ -600,7 +600,7 @@ proc_set_active_file_data (struct dataset *ds, struct casereader *reader)
 /* Returns true if an active file data source is available, false
    otherwise. */
 bool
-proc_has_active_file (const struct dataset *ds) 
+proc_has_active_file (const struct dataset *ds)
 {
   return ds->source != NULL;
 }
@@ -609,23 +609,23 @@ proc_has_active_file (const struct dataset *ds)
    discards it and returns false.  If not, returns true without
    doing anything. */
 bool
-dataset_end_of_command (struct dataset *ds) 
+dataset_end_of_command (struct dataset *ds)
 {
-  if (ds->source != NULL) 
+  if (ds->source != NULL)
     {
-      if (casereader_error (ds->source)) 
+      if (casereader_error (ds->source))
         {
           proc_discard_active_file (ds);
           return false;
         }
-      else 
+      else
         {
           const struct taint *taint = casereader_get_taint (ds->source);
           taint_reset_successor_taint ((struct taint *) taint);
           assert (!taint_has_tainted_successor (taint));
         }
     }
-  return true; 
+  return true;
 }
 
 static trns_proc_func case_limit_trns_proc;
@@ -706,7 +706,7 @@ dataset_dict (const struct dataset *ds)
   return ds->dict;
 }
 
-void 
+void
 dataset_need_lag (struct dataset *ds, int n_before)
 {
   ds->n_lag = MAX (ds->n_lag, n_before);

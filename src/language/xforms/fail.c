@@ -32,8 +32,8 @@ static int trns_fail (void *x, struct ccase *c, casenumber n);
 
 /* A transformation which is guaranteed to fail. */
 
-static int 
-trns_fail (void *x UNUSED, struct ccase *c UNUSED, 
+static int
+trns_fail (void *x UNUSED, struct ccase *c UNUSED,
 	   casenumber n UNUSED)
 {
   return TRNS_ERROR;

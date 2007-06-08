@@ -28,11 +28,11 @@
 #include <libpspp/misc.h>
 
 
-/* Return -1 if the id of a is less than b; +1 if greater than and 
+/* Return -1 if the id of a is less than b; +1 if greater than and
    0 if equal */
-int 
-compare_group(const struct group_statistics *a, 
-		 const struct group_statistics *b, 
+int
+compare_group(const struct group_statistics *a,
+		 const struct group_statistics *b,
 		 int width)
 {
   return compare_values(&a->id, &b->id, width);
@@ -40,7 +40,7 @@ compare_group(const struct group_statistics *a,
 
 
 
-unsigned 
+unsigned
 hash_group(const struct group_statistics *g, int width)
 {
   unsigned id_hash;
@@ -51,7 +51,7 @@ hash_group(const struct group_statistics *g, int width)
 }
 
 
-void  
+void
 free_group(struct group_statistics *v, void *aux UNUSED)
 {
   free(v);
@@ -63,10 +63,10 @@ group_proc_get (const struct variable *v)
 {
   /* This is not ideal, obviously. */
   struct group_proc *group = var_get_aux (v);
-  if (group == NULL) 
+  if (group == NULL)
     {
       group = xmalloc (sizeof (struct group_proc));
-      var_attach_aux (v, group, var_dtor_free); 
+      var_attach_aux (v, group, var_dtor_free);
     }
   return group;
 }

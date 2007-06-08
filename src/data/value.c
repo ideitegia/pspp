@@ -37,7 +37,7 @@ value_dup (const union value *val, int width)
    Only the short string portion of longer strings are
    compared. */
 int
-compare_values (const union value *a, const union value *b, int width) 
+compare_values (const union value *a, const union value *b, int width)
 {
   return (width == 0
           ? (a->f < b->f ? -1 : a->f > b->f)
@@ -46,7 +46,7 @@ compare_values (const union value *a, const union value *b, int width)
 
 /* Create a hash of V, which has the given WIDTH.
    Only the short string portion of a longer string is hashed. */
-unsigned 
+unsigned
 hash_value (const union value *v, int width)
 {
   return (width == 0
@@ -57,7 +57,7 @@ hash_value (const union value *v, int width)
 /* Copies SRC to DST, given that they both contain data of the
    given WIDTH. */
 void
-value_copy (union value *dst, const union value *src, int width) 
+value_copy (union value *dst, const union value *src, int width)
 {
   if (width == 0)
     dst->f = src->f;
@@ -68,10 +68,10 @@ value_copy (union value *dst, const union value *src, int width)
 /* Sets V to the system-missing value for data of the given
    WIDTH. */
 void
-value_set_missing (union value *v, int width) 
+value_set_missing (union value *v, int width)
 {
   if (width == 0)
     v->f = SYSMIS;
   else
-    memset (v->s, ' ', width); 
+    memset (v->s, ' ', width);
 }

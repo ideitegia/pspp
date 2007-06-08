@@ -62,7 +62,7 @@ bool lex_force_int (struct lexer *);
 bool lex_force_num (struct lexer *);
 bool lex_force_id (struct lexer *);
 bool lex_force_string (struct lexer *);
-	
+
 /* Weird token functions. */
 int lex_look_ahead (struct lexer *);
 void lex_put_back (struct lexer *, int);

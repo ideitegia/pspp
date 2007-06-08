@@ -35,12 +35,12 @@ struct group_proc
   /* The levene statistic */
   double levene ;
 
-  /* A hash of group statistics keyed by the value of the 
+  /* A hash of group statistics keyed by the value of the
      independent variable */
   struct hsh_table *group_hash;
 
   /* Mean square error */
-  double mse ; 
+  double mse ;
 
 };
 

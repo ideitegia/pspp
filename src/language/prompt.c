@@ -46,7 +46,7 @@ static enum prompt_style current_style;
 
 /* Initializes prompts. */
 void
-prompt_init (void) 
+prompt_init (void)
 {
   prompts[PROMPT_FIRST] = xstrdup ("PSPP> ");
   prompts[PROMPT_LATER] = xstrdup ("    > ");
@@ -56,11 +56,11 @@ prompt_init (void)
 
 /* Frees prompts. */
 void
-prompt_done (void) 
+prompt_done (void)
 {
   int i;
 
-  for (i = 0; i < PROMPT_CNT; i++) 
+  for (i = 0; i < PROMPT_CNT; i++)
     {
       free (prompts[i]);
       prompts[i] = NULL;
@@ -68,7 +68,7 @@ prompt_done (void)
 }
 
 /* Gets the command prompt for the given STYLE. */
-const char * 
+const char *
 prompt_get (enum prompt_style style)
 {
   assert (style < PROMPT_CNT);
@@ -86,7 +86,7 @@ prompt_set (enum prompt_style style, const char *string)
 
 /* Sets STYLE as the current prompt style. */
 void
-prompt_set_style (enum prompt_style style) 
+prompt_set_style (enum prompt_style style)
 {
   assert (style < PROMPT_CNT);
   current_style = style;
@@ -94,7 +94,7 @@ prompt_set_style (enum prompt_style style)
 
 /* Returns the current prompt. */
 enum prompt_style
-prompt_get_style (void) 
+prompt_get_style (void)
 {
   return current_style;
 }

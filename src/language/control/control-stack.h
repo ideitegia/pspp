@@ -21,7 +21,7 @@
 
 #include <stdbool.h>
 
-struct ctl_class 
+struct ctl_class
   {
     const char *start_name;     /* e.g. LOOP. */
     const char *end_name;       /* e.g. END LOOP. */

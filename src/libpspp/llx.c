@@ -41,23 +41,23 @@
    that node is destroyed. */
 void
 llx_destroy (struct llx_list *list, llx_action_func *destructor, void *aux,
-             const struct llx_manager *manager) 
+             const struct llx_manager *manager)
 {
   struct llx *llx, *next;
 
-  for (llx = llx_head (list); llx != llx_null (list); llx = next) 
+  for (llx = llx_head (list); llx != llx_null (list); llx = next)
     {
       next = llx_next (llx);
       if (destructor != NULL)
         destructor (llx_data (llx), aux);
       manager->release (llx, manager->aux);
-    } 
+    }
 }
 
 /* Returns the number of nodes in LIST (not counting the null
    node).  Executes in O(n) time in the length of the list. */
 size_t
-llx_count (const struct llx_list *list) 
+llx_count (const struct llx_list *list)
 {
   return llx_count_range (llx_head (list), llx_null (list));
 }
@@ -67,7 +67,7 @@ llx_count (const struct llx_list *list)
    pointer if memory allocation failed. */
 struct llx *
 llx_push_head (struct llx_list *list, void *data,
-               const struct llx_manager *manager) 
+               const struct llx_manager *manager)
 {
   return llx_insert (llx_head (list), data, manager);
 }
@@ -77,7 +77,7 @@ llx_push_head (struct llx_list *list, void *data,
    pointer if memory allocation failed. */
 struct llx *
 llx_push_tail (struct llx_list *list, void *data,
-               const struct llx_manager *manager) 
+               const struct llx_manager *manager)
 {
   return llx_insert (llx_null (list), data, manager);
 }
@@ -86,7 +86,7 @@ llx_push_tail (struct llx_list *list, void *data,
    and returns the data that the node contained.
    Frees the node removed with MANAGER. */
 void *
-llx_pop_head (struct llx_list *list, const struct llx_manager *manager) 
+llx_pop_head (struct llx_list *list, const struct llx_manager *manager)
 {
   struct llx *llx = llx_from_ll (ll_head (&list->ll_list));
   void *data = llx_data (llx);
@@ -113,10 +113,10 @@ struct llx *
 llx_insert (struct llx *before, void *data, const struct llx_manager *manager)
 {
   struct llx *llx = manager->allocate (manager->aux);
-  if (llx != NULL) 
+  if (llx != NULL)
     {
       llx->data = data;
-      ll_insert (&before->ll, &llx->ll); 
+      ll_insert (&before->ll, &llx->ll);
     }
   return llx;
 }
@@ -124,7 +124,7 @@ llx_insert (struct llx *before, void *data, const struct llx_manager *manager)
 /* Removes R0...R1 from their current list
    and inserts them just before BEFORE. */
 void
-llx_splice (struct llx *before, struct llx *r0, struct llx *r1) 
+llx_splice (struct llx *before, struct llx *r0, struct llx *r1)
 {
   ll_splice (&before->ll, &r0->ll, &r1->ll);
 }
@@ -132,7 +132,7 @@ llx_splice (struct llx *before, struct llx *r0, struct llx *r1)
 /* Exchanges the positions of A and B,
    which may be in the same list or different lists. */
 void
-llx_swap (struct llx *a, struct llx *b) 
+llx_swap (struct llx *a, struct llx *b)
 {
   ll_swap (&a->ll, &b->ll);
 }
@@ -142,7 +142,7 @@ llx_swap (struct llx *a, struct llx *b)
    overlap. */
 void
 llx_swap_range (struct llx *a0, struct llx *a1,
-                struct llx *b0, struct llx *b1) 
+                struct llx *b0, struct llx *b1)
 {
   ll_swap_range (&a0->ll, &a1->ll, &b0->ll, &b1->ll);
 }
@@ -151,7 +151,7 @@ llx_swap_range (struct llx *a0, struct llx *a1,
    and returns the node that formerly followed it.
    Frees the node removed with MANAGER. */
 struct llx *
-llx_remove (struct llx *llx, const struct llx_manager *manager) 
+llx_remove (struct llx *llx, const struct llx_manager *manager)
 {
   struct llx *next = llx_next (llx);
   ll_remove (&llx->ll);
@@ -163,7 +163,7 @@ llx_remove (struct llx *llx, const struct llx_manager *manager)
    Frees the removed nodes with MANAGER. */
 void
 llx_remove_range (struct llx *r0, struct llx *r1,
-                  const struct llx_manager *manager) 
+                  const struct llx_manager *manager)
 {
   struct llx *llx;
 
@@ -173,19 +173,19 @@ llx_remove_range (struct llx *r0, struct llx *r1,
 
 /* Removes from R0...R1 all the nodes that equal TARGET
    according to COMPARE given auxiliary data AUX.
-   Frees the removed nodes with MANAGER. 
+   Frees the removed nodes with MANAGER.
    Returns the number of nodes removed. */
 size_t
 llx_remove_equal (struct llx *r0, struct llx *r1, const void *target,
                   llx_compare_func *compare, void *aux,
-                  const struct llx_manager *manager) 
+                  const struct llx_manager *manager)
 {
   struct llx *x;
   size_t count;
 
   count = 0;
   for (x = r0; x != r1; )
-    if (compare (llx_data (x), target, aux) == 0) 
+    if (compare (llx_data (x), target, aux) == 0)
       {
         x = llx_remove (x, manager);
         count++;
@@ -210,7 +210,7 @@ llx_remove_if (struct llx *r0, struct llx *r1,
 
   count = 0;
   for (x = r0; x != r1; )
-    if (predicate (llx_data (x), aux)) 
+    if (predicate (llx_data (x), aux))
       {
         x = llx_remove (x, manager);
         count++;
@@ -227,10 +227,10 @@ llx_remove_if (struct llx *r0, struct llx *r1,
 struct llx *
 llx_find_equal (const struct llx *r0, const struct llx *r1,
                 const void *target,
-                llx_compare_func *compare, void *aux) 
+                llx_compare_func *compare, void *aux)
 {
   const struct llx *x;
-  
+
   for (x = r0; x != r1; x = llx_next (x))
     if (compare (llx_data (x), target, aux) == 0)
       break;
@@ -243,10 +243,10 @@ llx_find_equal (const struct llx *r0, const struct llx *r1,
    R0...R1 . */
 struct llx *
 llx_find_if (const struct llx *r0, const struct llx *r1,
-             llx_predicate_func *predicate, void *aux) 
+             llx_predicate_func *predicate, void *aux)
 {
   const struct llx *x;
-  
+
   for (x = r0; x != r1; x = llx_next (x))
     if (predicate (llx_data (x), aux))
       break;
@@ -266,7 +266,7 @@ llx_find_adjacent_equal (const struct llx *r0, const struct llx *r1,
     {
       const struct llx *x, *y;
 
-      for (x = r0, y = llx_next (x); y != r1; x = y, y = llx_next (y)) 
+      for (x = r0, y = llx_next (x); y != r1; x = y, y = llx_next (y))
         if (compare (llx_data (x), llx_data (y), aux) == 0)
           return (struct llx *) x;
     }
@@ -323,10 +323,10 @@ llx_max (const struct llx *r0, const struct llx *r1,
          llx_compare_func *compare, void *aux)
 {
   const struct llx *max = r0;
-  if (r0 != r1) 
+  if (r0 != r1)
     {
       struct llx *x;
-      
+
       for (x = llx_next (r0); x != r1; x = llx_next (x))
         if (compare (llx_data (x), llx_data (max), aux) > 0)
           max = x;
@@ -342,10 +342,10 @@ llx_min (const struct llx *r0, const struct llx *r1,
          llx_compare_func *compare, void *aux)
 {
   const struct llx *min = r0;
-  if (r0 != r1) 
+  if (r0 != r1)
     {
       struct llx *x;
-      
+
       for (x = llx_next (r0); x != r1; x = llx_next (x))
         if (compare (llx_data (x), llx_data (min), aux) < 0)
           min = x;
@@ -359,16 +359,16 @@ llx_min (const struct llx *r0, const struct llx *r1,
    positive if A0...A1 > B0...B1
    according to COMPARE given auxiliary data AUX. */
 int
-llx_lexicographical_compare_3way (const struct llx *a0, const struct llx *a1, 
-                                  const struct llx *b0, const struct llx *b1, 
+llx_lexicographical_compare_3way (const struct llx *a0, const struct llx *a1,
+                                  const struct llx *b0, const struct llx *b1,
                                   llx_compare_func *compare, void *aux)
 {
-  for (;;) 
+  for (;;)
     if (b0 == b1)
       return a0 != a1;
     else if (a0 == a1)
       return -1;
-    else 
+    else
       {
         int cmp = compare (llx_data (a0), llx_data (b0), aux);
         if (cmp != 0)
@@ -413,7 +413,7 @@ llx_next_permutation (struct llx *r0, struct llx *r1,
   if (r0 != r1)
     {
       struct llx *i = llx_prev (r1);
-      while (i != r0) 
+      while (i != r0)
         {
           i = llx_prev (i);
           if (compare (llx_data (i), llx_data (llx_next (i)), aux) < 0)
@@ -426,12 +426,12 @@ llx_next_permutation (struct llx *r0, struct llx *r1,
               llx_swap (i, j);
               llx_reverse (llx_next (j), r1);
               return true;
-            } 
+            }
         }
-      
+
       llx_reverse (r0, r1);
     }
-  
+
   return false;
 }
 
@@ -450,7 +450,7 @@ llx_prev_permutation (struct llx *r0, struct llx *r1,
   if (r0 != r1)
     {
       struct llx *i = llx_prev (r1);
-      while (i != r0) 
+      while (i != r0)
         {
           i = llx_prev (i);
           if (compare (llx_data (i), llx_data (llx_next (i)), aux) > 0)
@@ -463,12 +463,12 @@ llx_prev_permutation (struct llx *r0, struct llx *r1,
               llx_swap (i, j);
               llx_reverse (llx_next (j), r1);
               return true;
-            } 
+            }
         }
-      
+
       llx_reverse (r0, r1);
     }
-  
+
   return false;
 }
 
@@ -511,18 +511,18 @@ llx_sort (struct llx *r0, struct llx *r1, llx_compare_func *compare, void *aux)
    order. */
 struct llx *
 llx_find_run (const struct llx *r0, const struct llx *r1,
-              llx_compare_func *compare, void *aux) 
+              llx_compare_func *compare, void *aux)
 {
-  if (r0 != r1) 
+  if (r0 != r1)
     {
-      do 
+      do
         {
           r0 = llx_next (r0);
         }
       while (r0 != r1 && compare (llx_data (llx_prev (r0)),
                                   llx_data (r0), aux) <= 0);
     }
-  
+
   return (struct llx *) r0;
 }
 
@@ -535,14 +535,14 @@ llx_find_run (const struct llx *r0, const struct llx *r1,
    Runs in O(n) time in the total number of nodes in the ranges. */
 struct llx *
 llx_merge (struct llx *a0, struct llx *a1, struct llx *b0, struct llx *b1,
-           llx_compare_func *compare, void *aux) 
+           llx_compare_func *compare, void *aux)
 {
-  if (a0 != a1 && b0 != b1) 
+  if (a0 != a1 && b0 != b1)
     {
       a1 = llx_prev (a1);
       b1 = llx_prev (b1);
-      for (;;) 
-        if (compare (llx_data (a0), llx_data (b0), aux) <= 0) 
+      for (;;)
+        if (compare (llx_data (a0), llx_data (b0), aux) <= 0)
           {
             if (a0 == a1)
               {
@@ -553,20 +553,20 @@ llx_merge (struct llx *a0, struct llx *a1, struct llx *b0, struct llx *b1,
           }
         else
           {
-            if (b0 != b1) 
+            if (b0 != b1)
               {
                 struct llx *x = b0;
                 b0 = llx_next (b0);
-                llx_splice (a0, x, b0); 
+                llx_splice (a0, x, b0);
               }
-            else 
+            else
               {
                 llx_splice (a0, b0, llx_next (b0));
                 return llx_next (a1);
               }
-          } 
+          }
     }
-  else 
+  else
     {
       llx_splice (a0, b0, b1);
       return b1;
@@ -578,7 +578,7 @@ llx_merge (struct llx *a0, struct llx *a1, struct llx *b0, struct llx *b1,
    false otherwise. */
 bool
 llx_is_sorted (const struct llx *r0, const struct llx *r1,
-               llx_compare_func *compare, void *aux) 
+               llx_compare_func *compare, void *aux)
 {
   return llx_find_run (r0, r1, compare, aux) == r1;
 }
@@ -594,7 +594,7 @@ llx_is_sorted (const struct llx *r0, const struct llx *r1,
 size_t
 llx_unique (struct llx *r0, struct llx *r1, struct llx *dups,
             llx_compare_func *compare, void *aux,
-            const struct llx_manager *manager) 
+            const struct llx_manager *manager)
 {
   size_t count = 0;
 
@@ -604,23 +604,23 @@ llx_unique (struct llx *r0, struct llx *r1, struct llx *dups,
       for (;;)
         {
           struct llx *y = llx_next (x);
-          if (y == r1) 
+          if (y == r1)
             {
               count++;
-              break; 
+              break;
             }
 
-          if (compare (llx_data (x), llx_data (y), aux) == 0) 
+          if (compare (llx_data (x), llx_data (y), aux) == 0)
             {
-              if (dups != NULL) 
+              if (dups != NULL)
                 llx_splice (dups, y, llx_next (y));
               else
                 llx_remove (y, manager);
             }
-          else 
+          else
             {
               x = y;
-              count++; 
+              count++;
             }
         }
     }
@@ -639,11 +639,11 @@ llx_unique (struct llx *r0, struct llx *r1, struct llx *dups,
 void
 llx_sort_unique (struct llx *r0, struct llx *r1, struct llx *dups,
                  llx_compare_func *compare, void *aux,
-                 const struct llx_manager *manager) 
+                 const struct llx_manager *manager)
 {
   struct llx *pre_r0 = llx_prev (r0);
   llx_sort (r0, r1, compare, aux);
-  llx_unique (llx_next (pre_r0), r1, dups, compare, aux, manager); 
+  llx_unique (llx_next (pre_r0), r1, dups, compare, aux, manager);
 }
 
 /* Inserts DATA in the proper position in R0...R1, which must
@@ -656,7 +656,7 @@ llx_sort_unique (struct llx *r0, struct llx *r1, struct llx *dups,
 struct llx *
 llx_insert_ordered (struct llx *r0, struct llx *r1, void *data,
                     llx_compare_func *compare, void *aux,
-                    const struct llx_manager *manager) 
+                    const struct llx_manager *manager)
 {
   struct llx *x;
 
@@ -680,7 +680,7 @@ llx_partition (struct llx *r0, struct llx *r1,
 {
   struct llx *t0, *t1;
 
-  for (;;) 
+  for (;;)
     {
       if (r0 == r1)
         return r0;
@@ -690,7 +690,7 @@ llx_partition (struct llx *r0, struct llx *r1,
       r0 = llx_next (r0);
     }
 
-  for (t0 = r0;; t0 = t1) 
+  for (t0 = r0;; t0 = t1)
     {
       do
         {
@@ -699,12 +699,12 @@ llx_partition (struct llx *r0, struct llx *r1,
             return r0;
         }
       while (!predicate (llx_data (t0), aux));
-      
+
       t1 = t0;
       do
         {
           t1 = llx_next (t1);
-          if (t1 == r1) 
+          if (t1 == r1)
             {
               llx_splice (r0, t0, t1);
               return r0;
@@ -724,10 +724,10 @@ llx_partition (struct llx *r0, struct llx *r1,
    if PREDICATE is true for every node in R0...R1. */
 struct llx *
 llx_find_partition (const struct llx *r0, const struct llx *r1,
-                    llx_predicate_func *predicate, void *aux) 
+                    llx_predicate_func *predicate, void *aux)
 {
   const struct llx *partition, *x;
-  
+
   for (partition = r0; partition != r1; partition = llx_next (partition))
     if (!predicate (llx_data (partition), aux))
       break;
@@ -748,13 +748,13 @@ malloc_allocate_node (void *aux UNUSED)
 
 /* Releases node LLX with free. */
 static void
-malloc_release_node (struct llx *llx, void *aux UNUSED) 
+malloc_release_node (struct llx *llx, void *aux UNUSED)
 {
   free (llx);
 }
 
 /* Manager that uses the standard malloc and free routines. */
-const struct llx_manager llx_malloc_mgr = 
+const struct llx_manager llx_malloc_mgr =
   {
     malloc_allocate_node,
     malloc_release_node,

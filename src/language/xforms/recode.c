@@ -58,7 +58,7 @@ enum map_in_type
   };
 
 /* A value involved in a RECODE mapping. */
-union recode_value 
+union recode_value
   {
     double f;                   /* Numeric. */
     char *c;                    /* Short or long string. */
@@ -72,16 +72,16 @@ struct map_in
   };
 
 /* Describes the value used as output from a mapping. */
-struct map_out 
+struct map_out
   {
     bool copy_input;            /* If true, copy input to output. */
     union recode_value value;   /* If copy_input false, recoded value. */
-    int width;                  /* If copy_input false, output value width. */ 
+    int width;                  /* If copy_input false, output value width. */
   };
 
 /* Describes how to recode a single value or range of values into a
    single value.  */
-struct mapping 
+struct mapping
   {
     struct map_in in;           /* Input values. */
     struct map_out out;         /* Output value. */
@@ -166,11 +166,11 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
         create_dst_vars (trns, dataset_dict (ds));
 
       /* Done. */
-      add_transformation (ds, 
+      add_transformation (ds,
 			  recode_trns_proc, recode_trns_free, trns);
     }
   while (lex_match (lexer, '/'));
-  
+
   return lex_end_of_command (lexer);
 }
 
@@ -178,8 +178,8 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
    TRNS->var_cnt.  Sets TRNS->src_type.  Returns true if
    successful, false on parse error. */
 static bool
-parse_src_vars (struct lexer *lexer, 
-		struct recode_trns *trns, const struct dictionary *dict) 
+parse_src_vars (struct lexer *lexer,
+		struct recode_trns *trns, const struct dictionary *dict)
 {
   if (!parse_variables_const (lexer, dict, &trns->src_vars, &trns->var_cnt,
                         PV_SAME_TYPE))
@@ -193,22 +193,22 @@ parse_src_vars (struct lexer *lexer,
    into TRNS->mappings and TRNS->map_cnt.  Sets TRNS->dst_type.
    Returns true if successful, false on parse error. */
 static bool
-parse_mappings (struct lexer *lexer, struct recode_trns *trns) 
+parse_mappings (struct lexer *lexer, struct recode_trns *trns)
 {
   size_t max_src_width;
   size_t map_allocated;
   bool have_dst_type;
   size_t i;
-  
+
   /* Find length of longest source variable. */
   max_src_width = var_get_width (trns->src_vars[0]);
-  for (i = 1; i < trns->var_cnt; i++) 
+  for (i = 1; i < trns->var_cnt; i++)
     {
       size_t var_width = var_get_width (trns->src_vars[i]);
       if (var_width > max_src_width)
         max_src_width = var_width;
     }
-      
+
   /* Parse the mappings in parentheses. */
   trns->mappings = NULL;
   trns->map_cnt = 0;
@@ -220,7 +220,7 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
     {
       enum var_type dst_type;
 
-      if (!lex_match_id (lexer, "CONVERT")) 
+      if (!lex_match_id (lexer, "CONVERT"))
         {
           struct map_out out;
           size_t first_map_idx;
@@ -250,21 +250,21 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
                          "must be all numeric or all string."));
               return false;
             }
-              
+
           for (i = first_map_idx; i < trns->map_cnt; i++)
             trns->mappings[i].out = out;
         }
-      else 
+      else
         {
           /* Parse CONVERT as a special case. */
           struct map_in in;
           set_map_in_generic (&in, MAP_CONVERT);
           add_mapping (trns, &map_allocated, &in);
           set_map_out_num (&trns->mappings[trns->map_cnt - 1].out, 0.0);
-              
+
           dst_type = VAR_NUMERIC;
           if (trns->src_type != VAR_STRING
-              || (have_dst_type && trns->dst_type != VAR_NUMERIC)) 
+              || (have_dst_type && trns->dst_type != VAR_NUMERIC))
             {
               msg (SE, _("CONVERT requires string input values and "
                          "numeric output values."));
@@ -275,7 +275,7 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
       have_dst_type = true;
 
       if (!lex_force_match (lexer, ')'))
-        return false; 
+        return false;
     }
   while (lex_match (lexer, '('));
 
@@ -299,7 +299,7 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
         set_map_in_generic (in, MAP_MISSING);
       else if (lex_match_id (lexer, "SYSMIS"))
         set_map_in_generic (in, MAP_SYSMIS);
-      else 
+      else
         {
           double x, y;
           if (!parse_num_range (lexer, &x, &y, NULL))
@@ -314,10 +314,10 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
       set_map_in_str (in, pool, lex_tokstr (lexer), max_src_width);
       lex_get (lexer);
       if (lex_token (lexer) == T_ID
-          && lex_id_match (ss_cstr ("THRU"), ss_cstr (lex_tokid (lexer)))) 
+          && lex_id_match (ss_cstr ("THRU"), ss_cstr (lex_tokid (lexer))))
         {
           msg (SE, _("THRU is not allowed with string variables."));
-          return false; 
+          return false;
         }
     }
 
@@ -342,7 +342,7 @@ add_mapping (struct recode_trns *trns,
 
 /* Sets IN as a mapping of the given TYPE. */
 static void
-set_map_in_generic (struct map_in *in, enum map_in_type type) 
+set_map_in_generic (struct map_in *in, enum map_in_type type)
 {
   in->type = type;
 }
@@ -350,7 +350,7 @@ set_map_in_generic (struct map_in *in, enum map_in_type type)
 /* Sets IN as a numeric mapping of the given TYPE,
    with X and Y as the two numeric values. */
 static void
-set_map_in_num (struct map_in *in, enum map_in_type type, double x, double y) 
+set_map_in_num (struct map_in *in, enum map_in_type type, double x, double y)
 {
   in->type = type;
   in->x.f = x;
@@ -362,7 +362,7 @@ set_map_in_num (struct map_in *in, enum map_in_type type, double x, double y)
    right to WIDTH characters long. */
 static void
 set_map_in_str (struct map_in *in, struct pool *pool,
-                const struct string *string, size_t width) 
+                const struct string *string, size_t width)
 {
   in->type = MAP_SINGLE;
   in->x.c = pool_alloc_unaligned (pool, width);
@@ -388,17 +388,17 @@ parse_map_out (struct lexer *lexer, struct pool *pool, struct map_out *out)
     }
   else if (lex_match_id (lexer, "COPY"))
     out->copy_input = true;
-  else 
+  else
     {
       lex_error (lexer, _("expecting output value"));
       return false;
     }
-  return true; 
+  return true;
 }
 
 /* Sets OUT as a numeric mapping output with the given VALUE. */
 static void
-set_map_out_num (struct map_out *out, double value) 
+set_map_out_num (struct map_out *out, double value)
 {
   out->copy_input = false;
   out->value.f = value;
@@ -422,17 +422,17 @@ set_map_out_str (struct map_out *out, struct pool *pool,
 /* Parses a set of target variables into TRNS->dst_vars and
    TRNS->dst_names. */
 static bool
-parse_dst_vars (struct lexer *lexer, struct recode_trns *trns, 
-		const struct dictionary *dict) 
+parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
+		const struct dictionary *dict)
 {
   size_t i;
-  
+
   if (lex_match_id (lexer, "INTO"))
     {
       size_t name_cnt;
       size_t i;
 
-      if (!parse_mixed_vars_pool (lexer, dict, trns->pool, 
+      if (!parse_mixed_vars_pool (lexer, dict, trns->pool,
 				  &trns->dst_names, &name_cnt,
                                   PV_NONE))
         return false;
@@ -452,7 +452,7 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
         {
           const struct variable *v;
           v = trns->dst_vars[i] = dict_lookup_var (dict, trns->dst_names[i]);
-          if (v == NULL && trns->dst_type == VAR_STRING) 
+          if (v == NULL && trns->dst_type == VAR_STRING)
             {
               msg (SE, _("There is no variable named "
                          "%s.  (All string variables specified "
@@ -464,7 +464,7 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
             }
         }
     }
-  else 
+  else
     {
       trns->dst_vars = trns->src_vars;
       if (trns->src_type != trns->dst_type)
@@ -497,7 +497,7 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
 /* Ensures that all the output values in TRNS are as wide as the
    widest destination variable. */
 static void
-enlarge_dst_widths (struct recode_trns *trns) 
+enlarge_dst_widths (struct recode_trns *trns)
 {
   size_t max_dst_width;
   size_t i;
@@ -513,7 +513,7 @@ enlarge_dst_widths (struct recode_trns *trns)
   for (i = 0; i < trns->map_cnt; i++)
     {
       struct map_out *out = &trns->mappings[i].out;
-      if (!out->copy_input && out->width < max_dst_width) 
+      if (!out->copy_input && out->width < max_dst_width)
         {
           char *s = pool_alloc_unaligned (trns->pool, max_dst_width + 1);
           buf_copy_rpad (s, max_dst_width + 1, out->value.c, out->width);
@@ -528,11 +528,11 @@ create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
 {
   size_t i;
 
-  for (i = 0; i < trns->var_cnt; i++) 
+  for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable **var = &trns->dst_vars[i];
       const char *name = trns->dst_names[i];
-          
+
       *var = dict_lookup_var (dict, name);
       if (*var == NULL)
         *var = dict_create_var_assert (dict, name, 0);
@@ -554,7 +554,7 @@ find_src_numeric (struct recode_trns *trns, double value, const struct variable 
       const struct map_in *in = &m->in;
       const struct map_out *out = &m->out;
       bool match;
-      
+
       switch (in->type)
         {
         case MAP_SINGLE:
@@ -595,7 +595,7 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
       const struct map_in *in = &m->in;
       struct map_out *out = &m->out;
       bool match;
-      
+
       switch (in->type)
         {
         case MAP_SINGLE:
@@ -632,7 +632,7 @@ recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
   struct recode_trns *trns = trns_;
   size_t i;
 
-  for (i = 0; i < trns->var_cnt; i++) 
+  for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable *src_var = trns->src_vars[i];
       const struct variable *dst_var = trns->dst_vars[i];
@@ -642,27 +642,27 @@ recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
 
       const struct map_out *out;
 
-      if (trns->src_type == VAR_NUMERIC) 
+      if (trns->src_type == VAR_NUMERIC)
         out = find_src_numeric (trns, src_data->f, src_var);
       else
         out = find_src_string (trns, src_data->s, var_get_width (src_var));
 
-      if (trns->dst_type == VAR_NUMERIC) 
+      if (trns->dst_type == VAR_NUMERIC)
         {
           if (out != NULL)
-            dst_data->f = !out->copy_input ? out->value.f : src_data->f; 
+            dst_data->f = !out->copy_input ? out->value.f : src_data->f;
           else if (trns->src_vars != trns->dst_vars)
             dst_data->f = SYSMIS;
         }
-      else 
+      else
         {
           if (out != NULL)
             {
-              if (!out->copy_input) 
-                memcpy (dst_data->s, out->value.c, var_get_width (dst_var)); 
+              if (!out->copy_input)
+                memcpy (dst_data->s, out->value.c, var_get_width (dst_var));
               else if (trns->src_vars != trns->dst_vars)
                 buf_copy_rpad (dst_data->s, var_get_width (dst_var),
-                               src_data->s, var_get_width (src_var)); 
+                               src_data->s, var_get_width (src_var));
             }
           else if (trns->src_vars != trns->dst_vars)
             memset (dst_data->s, ' ', var_get_width (dst_var));

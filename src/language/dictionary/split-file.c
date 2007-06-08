@@ -52,7 +52,7 @@ cmd_split_file (struct lexer *lexer, struct dataset *ds)
 
       /* For now, ignore SEPARATE and LAYERED. */
       (void) ( lex_match_id (lexer, "SEPARATE") || lex_match_id (lexer, "LAYERED") );
-      
+
       lex_match (lexer, T_BY);
       if (!parse_variables (lexer, dataset_dict (ds), &v, &n, PV_NO_DUPLICATE))
 	return CMD_CASCADING_FAILURE;
@@ -94,7 +94,7 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
       const struct fmt_spec *print = var_get_print_format (v);
 
       tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", var_get_name (v));
-      
+
       data_out (case_data (c, v), print, temp_buf);
       temp_buf[print->w] = 0;
 

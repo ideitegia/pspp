@@ -35,7 +35,7 @@ static struct range_map_node *prev_node (const struct range_map *,
 
 /* Initializes RM as an empty range map. */
 void
-range_map_init (struct range_map *rm) 
+range_map_init (struct range_map *rm)
 {
   bt_init (&rm->bt, compare_range_map_nodes, NULL);
 }
@@ -43,7 +43,7 @@ range_map_init (struct range_map *rm)
 /* Returns true if RM contains no mappings,
    false if it contains at least one. */
 bool
-range_map_is_empty (const struct range_map *rm) 
+range_map_is_empty (const struct range_map *rm)
 {
   return bt_count (&rm->bt) == 0;
 }
@@ -62,7 +62,7 @@ range_map_insert (struct range_map *rm,
 
   assert (width > 0);
   assert (end - 1 >= start);
-  
+
   new->start = start;
   new->end = end;
   dup = bt_to_range_map_node (bt_insert (&rm->bt, &new->bt_node));
@@ -75,7 +75,7 @@ range_map_insert (struct range_map *rm,
 
 /* Deletes NODE from RM. */
 void
-range_map_delete (struct range_map *rm, struct range_map_node *node) 
+range_map_delete (struct range_map *rm, struct range_map_node *node)
 {
   bt_delete (&rm->bt, &node->bt_node);
 }
@@ -84,7 +84,7 @@ range_map_delete (struct range_map *rm, struct range_map_node *node)
    null pointer if no node contains POSITION. */
 struct range_map_node *
 range_map_lookup (const struct range_map *rm,
-                  unsigned long int position) 
+                  unsigned long int position)
 {
   struct range_map_node tmp, *node;
 
@@ -96,7 +96,7 @@ range_map_lookup (const struct range_map *rm,
 /* Returns the first node in RM, or a null pointer if RM is
    empty. */
 struct range_map_node *
-range_map_first (const struct range_map *rm) 
+range_map_first (const struct range_map *rm)
 {
   return first_node (rm);
 }
@@ -106,14 +106,14 @@ range_map_first (const struct range_map *rm)
    If NODE is null, behaves like range_map_first. */
 struct range_map_node *
 range_map_next (const struct range_map *rm,
-                const struct range_map_node *node) 
+                const struct range_map_node *node)
 {
   return node != NULL ? next_node (rm, node) : first_node (rm);
 }
 
 /* Returns the range_map_node containing BT_NODE. */
 static struct range_map_node *
-bt_to_range_map_node (const struct bt_node *bt_node) 
+bt_to_range_map_node (const struct bt_node *bt_node)
 {
   return (bt_node != NULL
           ? bt_data (bt_node, struct range_map_node, bt_node)
@@ -125,7 +125,7 @@ bt_to_range_map_node (const struct bt_node *bt_node)
 static int
 compare_range_map_nodes (const struct bt_node *a_,
                          const struct bt_node *b_,
-                         const void *aux UNUSED) 
+                         const void *aux UNUSED)
 {
   const struct range_map_node *a = bt_to_range_map_node (a_);
   const struct range_map_node *b = bt_to_range_map_node (b_);
@@ -135,7 +135,7 @@ compare_range_map_nodes (const struct bt_node *a_,
 /* Returns the first range map node in RM, or a null pointer if
    RM is empty. */
 static struct range_map_node *
-first_node (const struct range_map *rm) 
+first_node (const struct range_map *rm)
 {
   return bt_to_range_map_node (bt_first (&rm->bt));
 }
@@ -143,7 +143,7 @@ first_node (const struct range_map *rm)
 /* Returns the next range map node in RM following NODE, or a
    null pointer if NODE is the last node in RM. */
 static struct range_map_node *
-next_node (const struct range_map *rm, const struct range_map_node *node) 
+next_node (const struct range_map *rm, const struct range_map_node *node)
 {
   return bt_to_range_map_node (bt_next (&rm->bt, &node->bt_node));
 }
@@ -151,7 +151,7 @@ next_node (const struct range_map *rm, const struct range_map_node *node)
 /* Returns the previous range map node in RM preceding NODE, or a
    null pointer if NODE is the first node in RM. */
 static struct range_map_node *
-prev_node (const struct range_map *rm, const struct range_map_node *node) 
+prev_node (const struct range_map *rm, const struct range_map_node *node)
 {
   return bt_to_range_map_node (bt_prev (&rm->bt, &node->bt_node));
 }

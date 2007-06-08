@@ -25,7 +25,7 @@
    Returns a null pointer if the memory cannot be obtained,
    including the case where N * S overflows the range of size_t. */
 void *
-nmalloc (size_t n, size_t s) 
+nmalloc (size_t n, size_t s)
 {
   return !xalloc_oversized (n, s) ? malloc (n * s) : NULL;
 }

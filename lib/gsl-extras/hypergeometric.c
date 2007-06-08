@@ -29,7 +29,7 @@
  *
  * References:
  *
- * T. Wu. An accurate computation of the hypergeometric distribution 
+ * T. Wu. An accurate computation of the hypergeometric distribution
  * function. ACM Transactions on Mathematical Software. Volume 19, number 1,
  * March 1993.
  *  This algorithm is not used, since it requires factoring the
@@ -38,7 +38,7 @@
  *  time than the algorithm used here.
  *
  * W. Feller. An Introduction to Probability Theory and Its Applications,
- * third edition. 1968. Chapter 2, section 6. 
+ * third edition. 1968. Chapter 2, section 6.
  */
 #include <math.h>
 #include <gsl/gsl_math.h>
@@ -51,7 +51,7 @@
  * Pr (X <= k)
  */
 double
-gslextras_cdf_hypergeometric_P (const unsigned int k, 
+gslextras_cdf_hypergeometric_P (const unsigned int k,
                                 const unsigned int n0,
                                 const unsigned int n1,
                                 const unsigned int t)
@@ -125,7 +125,7 @@ gslextras_cdf_hypergeometric_P (const unsigned int k,
  * Pr (X > k)
  */
 double
-gslextras_cdf_hypergeometric_Q (const unsigned int k, 
+gslextras_cdf_hypergeometric_Q (const unsigned int k,
                                 const unsigned int n0,
                                 const unsigned int n1,
                                 const unsigned int t)
@@ -153,7 +153,7 @@ gslextras_cdf_hypergeometric_Q (const unsigned int k,
       P = 0.0;
       mode = (int) t*n0 / (n0+n1);
       relerr = 1.0;
-      
+
       if(k < mode)
 	{
 	  i = mode;

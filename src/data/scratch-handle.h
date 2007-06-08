@@ -22,7 +22,7 @@
 #include <stdbool.h>
 
 /* A scratch file. */
-struct scratch_handle 
+struct scratch_handle
   {
     struct dictionary *dictionary;      /* Dictionary. */
     struct casereader *casereader;      /* Cases. */

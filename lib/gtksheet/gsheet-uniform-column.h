@@ -49,7 +49,7 @@ extern "C" {
   {
     GObjectClass parent_class;
   };
-  
+
   /* create a new column */
   GObject * g_sheet_uniform_column_new (gint width, gint n_columns);
 

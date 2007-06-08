@@ -73,7 +73,7 @@
    FREQUENCIES (frq_):
      *+variables=custom;
      +format=cond:condense/onepage(*n:onepage_limit,"%s>=0")/!standard,
-	     table:limit(n:limit,"%s>0")/notable/!table, 
+	     table:limit(n:limit,"%s>0")/notable/!table,
 	     labels:!labels/nolabels,
 	     sort:!avalue/dvalue/afreq/dfreq,
 	     spaces:!single/double,
@@ -148,7 +148,7 @@ struct percentile
   double value;    /* the %ile's value */
   double x1;       /* The datum value <= the percentile */
   double x2;       /* The datum value >= the percentile */
-  int flag;        
+  int flag;
   int flag2;       /* Set to 1 if this percentile value has been found */
 };
 
@@ -158,7 +158,7 @@ static void add_percentile (double x) ;
 static struct percentile *percentiles;
 static int n_percentiles;
 
-static int implicit_50th ; 
+static int implicit_50th ;
 
 /* Groups of statistics. */
 #define BI          BIT_INDEX
@@ -291,7 +291,7 @@ static hsh_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
 static void do_piechart(const struct variable *var,
 			const struct freq_tab *frq_tab);
 
-gsl_histogram * 
+gsl_histogram *
 freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var);
 
 
@@ -364,9 +364,9 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
     cmd.sort = FRQ_AVALUE;
 
   /* Work out what percentiles need to be calculated */
-  if ( cmd.sbc_percentiles ) 
+  if ( cmd.sbc_percentiles )
     {
-      for ( i = 0 ; i < MAXLISTS ; ++i ) 
+      for ( i = 0 ; i < MAXLISTS ; ++i )
 	{
 	  int pl;
 	  subc_list_double *ptl_list = &cmd.dl_percentiles[i];
@@ -374,28 +374,28 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 	      add_percentile (subc_list_double_at(ptl_list, pl) / 100.0 );
 	}
     }
-  if ( cmd.sbc_ntiles ) 
+  if ( cmd.sbc_ntiles )
     {
-      for ( i = 0 ; i < cmd.sbc_ntiles ; ++i ) 
+      for ( i = 0 ; i < cmd.sbc_ntiles ; ++i )
 	{
 	  int j;
-	  for (j = 0; j <= cmd.n_ntiles[i]; ++j ) 
+	  for (j = 0; j <= cmd.n_ntiles[i]; ++j )
 	      add_percentile (j / (double) cmd.n_ntiles[i]);
 	}
     }
-  
+
 
   /* Do it! */
   input = casereader_create_filter_weight (proc_open (ds), dataset_dict (ds),
                                            NULL, NULL);
   grouper = casegrouper_create_splits (input, dataset_dict (ds));
   for (; casegrouper_get_next_group (grouper, &group);
-       casereader_destroy (group)) 
+       casereader_destroy (group))
     {
       struct ccase c;
-      
+
       precalc (group, ds);
-      for (; casereader_read (group, &c); case_destroy (&c)) 
+      for (; casereader_read (group, &c); case_destroy (&c))
         calc (&c, ds);
       postcalc ();
     }
@@ -411,7 +411,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 static void
 determine_charts (void)
 {
-  int count = (!!cmd.sbc_histogram) + (!!cmd.sbc_barchart) + 
+  int count = (!!cmd.sbc_histogram) + (!!cmd.sbc_barchart) +
     (!!cmd.sbc_hbar) + (!!cmd.sbc_piechart);
 
   if (!count)
@@ -584,7 +584,7 @@ precalc (struct casereader *input, struct dataset *ds)
 
   pool_destroy (gen_pool);
   gen_pool = pool_create ();
-  
+
   for (i = 0; i < n_variables; i++)
     {
       const struct variable *v = v_variables[i];
@@ -653,7 +653,7 @@ postcalc (void)
 
 
 
-      if ( chart == GFT_HIST) 
+      if ( chart == GFT_HIST)
 	{
 	  double d[frq_n_stats];
 	  struct normal_curve norm;
@@ -674,7 +674,7 @@ postcalc (void)
 	}
 
 
-      if ( chart == GFT_PIE) 
+      if ( chart == GFT_PIE)
 	{
 	  do_piechart(v_variables[i], ft);
 	}
@@ -690,7 +690,7 @@ postcalc (void)
    sorting a frequency table by FRQ_SORT using VAR_TYPE
    variables. */
 static hsh_compare_func *
-get_freq_comparator (int frq_sort, enum var_type var_type) 
+get_freq_comparator (int frq_sort, enum var_type var_type)
 {
   bool is_numeric = var_type == VAR_NUMERIC;
   switch (frq_sort)
@@ -711,7 +711,7 @@ get_freq_comparator (int frq_sort, enum var_type var_type)
 /* Returns true iff the value in struct freq F is non-missing
    for variable V. */
 static bool
-not_missing (const void *f_, const void *v_) 
+not_missing (const void *f_, const void *v_)
 {
   const struct freq *f = f_;
   const struct variable *v = v_;
@@ -740,10 +740,10 @@ postprocess_freq_tab (const struct variable *v)
 
   /* Copy dereferenced data into freqs. */
   freqs = xnmalloc (count, sizeof *freqs);
-  for (i = 0; i < count; i++) 
+  for (i = 0; i < count; i++)
     {
       struct freq *f = data[i];
-      freqs[i] = *f; 
+      freqs[i] = *f;
     }
 
   /* Put data into ft. */
@@ -758,15 +758,15 @@ postprocess_freq_tab (const struct variable *v)
 
   /* Summary statistics. */
   ft->valid_cases = 0.0;
-  for(i = 0 ;  i < ft->n_valid ; ++i ) 
+  for(i = 0 ;  i < ft->n_valid ; ++i )
     {
       f = &ft->valid[i];
       ft->valid_cases += f->count;
 
     }
 
-  ft->total_cases = ft->valid_cases ; 
-  for(i = 0 ;  i < ft->n_missing ; ++i ) 
+  ft->total_cases = ft->valid_cases ;
+  for(i = 0 ;  i < ft->n_missing ; ++i )
     {
       f = &ft->missing[i];
       ft->total_cases += f->count;
@@ -857,13 +857,13 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
 	  vf->tab.vector = pool_nalloc (int_pool,
                                         max - min + 1, sizeof *vf->tab.vector);
 	}
-      else 
+      else
         vf->tab.vector = NULL;
       vf->n_groups = 0;
       vf->groups = NULL;
       vf->width = var_get_width (v);
       vf->print = *var_get_print_format (v);
-      if (vf->width > MAX_SHORT_STRING && get_algorithm () == COMPATIBLE) 
+      if (vf->width > MAX_SHORT_STRING && get_algorithm () == COMPATIBLE)
         {
           enum fmt_type type = var_get_print_format (v)->type;
           vf->width = MAX_SHORT_STRING;
@@ -920,7 +920,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 		return 0;
 	      }
 	  }
-	else 
+	else
           {
             nl = 0;
             dl = NULL;
@@ -930,10 +930,10 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
           if (var_get_aux (v[i]) == NULL)
             msg (SE, _("Variables %s specified on GROUPED but not on "
                        "VARIABLES."), var_get_name (v[i]));
-          else 
+          else
             {
               struct var_freqs *vf = get_var_freqs (v[i]);
-                
+
               if (vf->groups != NULL)
                 msg (SE, _("Variables %s specified multiple times on GROUPED "
                            "subcommand."), var_get_name (v[i]));
@@ -967,7 +967,7 @@ add_percentile (double x)
   for (i = 0; i < n_percentiles; i++)
     {
       /* Do nothing if it's already in the list */
-      if ( fabs(x - percentiles[i].p) < DBL_EPSILON ) 
+      if ( fabs(x - percentiles[i].p) < DBL_EPSILON )
 	return;
 
       if (x < percentiles[i].p)
@@ -1331,7 +1331,7 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   struct freq_tab *ft = &get_var_freqs (v)->tab;
   double W = ft->valid_cases;
   struct moments *m;
-  struct freq *f=0; 
+  struct freq *f=0;
   int most_often;
   double X_mode;
 
@@ -1342,10 +1342,10 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 
   /* Calculate percentiles. */
 
-  /* If the 50th percentile was not explicitly requested then we must 
+  /* If the 50th percentile was not explicitly requested then we must
      calculate it anyway --- it's the median */
   median_value = 0 ;
-  for (i = 0; i < n_percentiles; i++) 
+  for (i = 0; i < n_percentiles; i++)
     {
       if (percentiles[i].p == 0.5)
 	{
@@ -1354,13 +1354,13 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 	}
     }
 
-  if ( 0 == median_value )  
+  if ( 0 == median_value )
     {
       add_percentile (0.5);
       implicit_50th = 1;
     }
 
-  for (i = 0; i < n_percentiles; i++) 
+  for (i = 0; i < n_percentiles; i++)
     {
       percentiles[i].flag = 0;
       percentiles[i].flag2 = 0;
@@ -1370,21 +1370,21 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   for (idx = 0; idx < ft->n_valid; ++idx)
     {
       static double prev_value = SYSMIS;
-      f = &ft->valid[idx]; 
+      f = &ft->valid[idx];
       rank += f->count ;
-      for (i = 0; i < n_percentiles; i++) 
+      for (i = 0; i < n_percentiles; i++)
         {
 	  double tp;
-	  if ( percentiles[i].flag2  ) continue ; 
+	  if ( percentiles[i].flag2  ) continue ;
 
-	  if ( get_algorithm() != COMPATIBLE ) 
-	    tp = 
+	  if ( get_algorithm() != COMPATIBLE )
+	    tp =
 	      (ft->valid_cases - 1) *  percentiles[i].p;
 	  else
-	    tp = 
+	    tp =
 	      (ft->valid_cases + 1) *  percentiles[i].p - 1;
 
-	  if ( percentiles[i].flag ) 
+	  if ( percentiles[i].flag )
 	    {
 	      percentiles[i].x2 = f->value[0].f;
 	      percentiles[i].x1 = prev_value;
@@ -1392,9 +1392,9 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 	      continue;
 	    }
 
-          if (rank >  tp ) 
+          if (rank >  tp )
 	  {
-	    if ( f->count > 1 && rank - (f->count - 1) > tp ) 
+	    if ( f->count > 1 && rank - (f->count - 1) > tp )
 	      {
 		percentiles[i].x2 = percentiles[i].x1 = f->value[0].f;
 		percentiles[i].flag2 = 1;
@@ -1410,10 +1410,10 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
       prev_value = f->value[0].f;
     }
 
-  for (i = 0; i < n_percentiles; i++) 
+  for (i = 0; i < n_percentiles; i++)
     {
       /* Catches the case when p == 100% */
-      if ( ! percentiles[i].flag2 ) 
+      if ( ! percentiles[i].flag2 )
 	percentiles[i].x1 = percentiles[i].x2 = f->value[0].f;
 
       /*
@@ -1422,13 +1422,13 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
       */
     }
 
-  for (i = 0; i < n_percentiles; i++) 
+  for (i = 0; i < n_percentiles; i++)
     {
       struct freq_tab *ft = &get_var_freqs (v)->tab;
       double s;
 
       double dummy;
-      if ( get_algorithm() != COMPATIBLE ) 
+      if ( get_algorithm() != COMPATIBLE )
 	{
 	  s = modf((ft->valid_cases - 1) * percentiles[i].p , &dummy);
 	}
@@ -1437,11 +1437,11 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 	  s = modf((ft->valid_cases + 1) * percentiles[i].p -1, &dummy);
 	}
 
-      percentiles[i].value = percentiles[i].x1 + 
-	( percentiles[i].x2 - percentiles[i].x1) * s ; 
+      percentiles[i].value = percentiles[i].x1 +
+	( percentiles[i].x2 - percentiles[i].x1) * s ;
 
-      if ( percentiles[i].p == 0.50) 
-	median_value = &percentiles[i].value; 
+      if ( percentiles[i].p == 0.50)
+	median_value = &percentiles[i].value;
     }
 
 
@@ -1450,12 +1450,12 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   X_mode = SYSMIS;
   for (f = ft->valid; f < ft->missing; f++)
     {
-      if (most_often < f->count) 
+      if (most_often < f->count)
         {
           most_often = f->count;
           X_mode = f->value[0].f;
         }
-      else if (most_often == f->count) 
+      else if (most_often == f->count)
         {
           /* A duplicate mode is undefined.
              FIXME: keep track of *all* the modes. */
@@ -1472,7 +1472,7 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   moments_calculate (m, NULL, &d[frq_mean], &d[frq_variance],
                      &d[frq_skew], &d[frq_kurt]);
   moments_destroy (m);
-                     
+
   /* Formulas below are taken from _SPSS Statistical Algorithms_. */
   d[frq_min] = ft->valid[0].value[0].f;
   d[frq_max] = ft->valid[ft->n_valid - 1].value[0].f;
@@ -1497,7 +1497,7 @@ dump_statistics (const struct variable *v, int show_varname)
 
   int n_explicit_percentiles = n_percentiles;
 
-  if ( implicit_50th && n_percentiles > 0 ) 
+  if ( implicit_50th && n_percentiles > 0 )
     --n_percentiles;
 
   if (var_is_alpha (v))
@@ -1519,7 +1519,7 @@ dump_statistics (const struct variable *v, int show_varname)
 
   tab_vline (t, TAL_1 , 2, 0, tab_nr(t) - 1);
   tab_vline (t, TAL_GAP , 1, 0, tab_nr(t) - 1 ) ;
-  
+
   r=2; /* N missing and N valid are always dumped */
 
   for (i = 0; i < frq_n_stats; i++)
@@ -1539,10 +1539,10 @@ dump_statistics (const struct variable *v, int show_varname)
   tab_float(t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, 11, 0);
 
 
-  for (i = 0; i < n_explicit_percentiles; i++, r++) 
+  for (i = 0; i < n_explicit_percentiles; i++, r++)
     {
-      if ( i == 0 ) 
-	{ 
+      if ( i == 0 )
+	{
 	  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Percentiles"));
 	}
 
@@ -1578,7 +1578,7 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
   struct freq *frq;
 
   /* Find out the extremes of the x value */
-  for ( frq = hsh_first(fh, &hi); frq != 0; frq = hsh_next(fh, &hi) ) 
+  for ( frq = hsh_first(fh, &hi); frq != 0; frq = hsh_next(fh, &hi) )
     {
       if (var_is_value_missing(var, frq->value, MV_ANY))
 	continue;
@@ -1589,7 +1589,7 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
 
   hist = histogram_create(bins, x_min, x_max);
 
-  for( i = 0 ; i < ft->n_valid ; ++i ) 
+  for( i = 0 ; i < ft->n_valid ; ++i )
     {
       frq = &ft->valid[i];
       gsl_histogram_accumulate(hist, frq->value[0].f, frq->count);
@@ -1600,7 +1600,7 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
 
 
 static struct slice *
-freq_tab_to_slice_array(const struct freq_tab *frq_tab, 
+freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 			const struct variable *var,
 			int *n_slices);
 
@@ -1610,7 +1610,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
    The caller is responsible for freeing slices
 */
 static struct slice *
-freq_tab_to_slice_array(const struct freq_tab *frq_tab, 
+freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 			const struct variable *var,
 			int *n_slices)
 {
@@ -1618,10 +1618,10 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
   struct slice *slices;
 
   *n_slices = frq_tab->n_valid;
-  
+
   slices = xnmalloc (*n_slices, sizeof *slices);
 
-  for (i = 0 ; i < *n_slices ; ++i ) 
+  for (i = 0 ; i < *n_slices ; ++i )
     {
       const struct freq *frq = &frq_tab->valid[i];
 
@@ -1649,7 +1649,7 @@ do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
 }
 
 
-/* 
+/*
    Local Variables:
    mode: c
    End:

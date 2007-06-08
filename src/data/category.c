@@ -142,7 +142,7 @@ cat_subscript_to_value (const size_t s, const struct variable *v)
 /*
   Return the number of categories of a categorical variable.
  */
-size_t 
+size_t
 cat_get_n_categories (const struct variable *v)
 {
   return var_get_obs_vals (v)->n_categories;

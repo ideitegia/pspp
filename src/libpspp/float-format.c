@@ -32,14 +32,14 @@
 #include <byteswap.h>
 
 /* Neutral intermediate representation for binary floating-point numbers. */
-struct fp 
+struct fp
   {
-    enum 
+    enum
       {
         FINITE,         /* Finite number (normalized or denormalized). */
         INFINITE,       /* Positive or negative infinity. */
         NAN,            /* Not a number. */
-        
+
         ZERO,           /* Positive or negative zero. */
         MISSING,        /* System missing. */
         LOWEST,         /* LOWEST on e.g. missing values. */
@@ -47,9 +47,9 @@ struct fp
         RESERVED        /* Special Vax representation. */
       }
     class;
-    
+
     enum
-      { 
+      {
         POSITIVE,
         NEGATIVE
       }
@@ -63,7 +63,7 @@ struct fp
        leftmost bit in bit 63, so that signaling and quiet NaN
        values can be preserved.
 
-       Unused for other classes. */       
+       Unused for other classes. */
     uint64_t fraction;
     int exponent;
   };
@@ -83,10 +83,10 @@ static inline void put_uint64 (uint64_t, void *);
    converted value into DST.
    SRC and DST are permitted to arbitrarily overlap. */
 void
-float_convert (enum float_format from, const void *src, 
-               enum float_format to, void *dst) 
+float_convert (enum float_format from, const void *src,
+               enum float_format to, void *dst)
 {
-  if (from != to) 
+  if (from != to)
     {
       if ((from == FLOAT_IEEE_SINGLE_LE || from == FLOAT_IEEE_SINGLE_BE)
           && (to == FLOAT_IEEE_SINGLE_LE || to == FLOAT_IEEE_SINGLE_BE))
@@ -94,14 +94,14 @@ float_convert (enum float_format from, const void *src,
       else if ((from == FLOAT_IEEE_DOUBLE_LE || from == FLOAT_IEEE_DOUBLE_BE)
                && (to == FLOAT_IEEE_DOUBLE_LE || to == FLOAT_IEEE_DOUBLE_BE))
         put_uint64 (bswap_64 (get_uint64 (src)), dst);
-      else 
+      else
         {
           struct fp fp;
           extract_number (from, src, &fp);
           assemble_number (to, &fp, dst);
-        } 
+        }
     }
-  else 
+  else
     {
       if (src != dst)
         memmove (dst, src, float_get_size (from));
@@ -111,26 +111,26 @@ float_convert (enum float_format from, const void *src,
 /* Returns the number of bytes in a number in the given
    FORMAT. */
 size_t
-float_get_size (enum float_format format) 
+float_get_size (enum float_format format)
 {
-  switch (format) 
+  switch (format)
     {
     case FLOAT_IEEE_SINGLE_LE:
     case FLOAT_IEEE_SINGLE_BE:
     case FLOAT_VAX_F:
     case FLOAT_Z_SHORT:
       return 4;
-      
+
     case FLOAT_IEEE_DOUBLE_LE:
     case FLOAT_IEEE_DOUBLE_BE:
     case FLOAT_VAX_D:
     case FLOAT_VAX_G:
     case FLOAT_Z_LONG:
       return 8;
-      
+
     case FLOAT_FP:
       return sizeof (struct fp);
-      
+
     case FLOAT_HEX:
       return 32;
     }
@@ -146,11 +146,11 @@ float_get_size (enum float_format format)
    are in practice) is stored in *BEST_GUESS. */
 int
 float_identify (double expected_value, const void *number, size_t length,
-                enum float_format *best_guess) 
+                enum float_format *best_guess)
 {
   /* Candidates for identification in order of decreasing
      preference. */
-  enum float_format candidates[] = 
+  enum float_format candidates[] =
     {
       FLOAT_IEEE_SINGLE_LE,
       FLOAT_IEEE_SINGLE_BE,
@@ -182,7 +182,7 @@ float_identify (double expected_value, const void *number, size_t length,
 
 /* Returns CNT bits in X starting from the given bit OFS. */
 static inline uint64_t
-get_bits (uint64_t x, int ofs, int cnt) 
+get_bits (uint64_t x, int ofs, int cnt)
 {
   assert (ofs >= 0 && ofs < 64);
   assert (cnt > 0 && cnt < 64);
@@ -193,7 +193,7 @@ get_bits (uint64_t x, int ofs, int cnt)
 /* Returns the 16-bit unsigned integer at P,
    which need not be aligned. */
 static inline uint16_t
-get_uint16 (const void *p) 
+get_uint16 (const void *p)
 {
   uint16_t x;
   memcpy (&x, p, sizeof x);
@@ -203,7 +203,7 @@ get_uint16 (const void *p)
 /* Returns the 32-bit unsigned integer at P,
    which need not be aligned. */
 static inline uint32_t
-get_uint32 (const void *p) 
+get_uint32 (const void *p)
 {
   uint32_t x;
   memcpy (&x, p, sizeof x);
@@ -213,7 +213,7 @@ get_uint32 (const void *p)
 /* Returns the 64-bit unsigned integer at P,
    which need not be aligned. */
 static inline uint64_t
-get_uint64 (const void *p) 
+get_uint64 (const void *p)
 {
   uint64_t x;
   memcpy (&x, p, sizeof x);
@@ -223,7 +223,7 @@ get_uint64 (const void *p)
 /* Stores 16-bit unsigned integer X at P,
    which need not be aligned. */
 static inline void
-put_uint16 (uint16_t x, void *p) 
+put_uint16 (uint16_t x, void *p)
 {
   memcpy (p, &x, sizeof x);
 }
@@ -231,7 +231,7 @@ put_uint16 (uint16_t x, void *p)
 /* Stores 32-bit unsigned integer X at P,
    which need not be aligned. */
 static inline void
-put_uint32 (uint32_t x, void *p) 
+put_uint32 (uint32_t x, void *p)
 {
   memcpy (p, &x, sizeof x);
 }
@@ -239,7 +239,7 @@ put_uint32 (uint32_t x, void *p)
 /* Stores 64-bit unsigned integer X at P,
    which need not be aligned. */
 static inline void
-put_uint64 (uint64_t x, void *p) 
+put_uint64 (uint64_t x, void *p)
 {
   memcpy (p, &x, sizeof x);
 }
@@ -247,7 +247,7 @@ put_uint64 (uint64_t x, void *p)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in little-endian byte order. */
 static inline uint16_t
-native_to_le16 (uint16_t native) 
+native_to_le16 (uint16_t native)
 {
   return INTEGER_NATIVE == INTEGER_LSB_FIRST ? native : bswap_16 (native);
 }
@@ -255,7 +255,7 @@ native_to_le16 (uint16_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in big-endian byte order. */
 static inline uint16_t
-native_to_be16 (uint16_t native) 
+native_to_be16 (uint16_t native)
 {
   return INTEGER_NATIVE == INTEGER_MSB_FIRST ? native : bswap_16 (native);
 }
@@ -263,7 +263,7 @@ native_to_be16 (uint16_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in VAX-endian byte order. */
 static inline uint16_t
-native_to_vax16 (uint16_t native) 
+native_to_vax16 (uint16_t native)
 {
   return native_to_le16 (native);
 }
@@ -271,7 +271,7 @@ native_to_vax16 (uint16_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in little-endian byte order. */
 static inline uint32_t
-native_to_le32 (uint32_t native) 
+native_to_le32 (uint32_t native)
 {
   return INTEGER_NATIVE == INTEGER_LSB_FIRST ? native : bswap_32 (native);
 }
@@ -279,7 +279,7 @@ native_to_le32 (uint32_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in big-endian byte order. */
 static inline uint32_t
-native_to_be32 (uint32_t native) 
+native_to_be32 (uint32_t native)
 {
   return INTEGER_NATIVE == INTEGER_MSB_FIRST ? native : bswap_32 (native);
 }
@@ -287,7 +287,7 @@ native_to_be32 (uint32_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in VAX-endian byte order. */
 static inline uint32_t
-native_to_vax32 (uint32_t native) 
+native_to_vax32 (uint32_t native)
 {
   return native_to_be32 (((native & 0xff00ff00) >> 8) |
                          ((native & 0x00ff00ff) << 8));
@@ -296,7 +296,7 @@ native_to_vax32 (uint32_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in little-endian byte order. */
 static inline uint64_t
-native_to_le64 (uint64_t native) 
+native_to_le64 (uint64_t native)
 {
   return INTEGER_NATIVE == INTEGER_LSB_FIRST ? native : bswap_64 (native);
 }
@@ -304,7 +304,7 @@ native_to_le64 (uint64_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in big-endian byte order. */
 static inline uint64_t
-native_to_be64 (uint64_t native) 
+native_to_be64 (uint64_t native)
 {
   return INTEGER_NATIVE == INTEGER_MSB_FIRST ? native : bswap_64 (native);
 }
@@ -312,7 +312,7 @@ native_to_be64 (uint64_t native)
 /* Returns NATIVE converted to a form that, when stored in
    memory, will be in VAX-endian byte order. */
 static inline uint64_t
-native_to_vax64 (uint64_t native) 
+native_to_vax64 (uint64_t native)
 {
   return native_to_be64 (((native & UINT64_C(0xff00ff0000000000)) >> 40) |
                          ((native & UINT64_C(0x00ff00ff00000000)) >> 24) |
@@ -323,7 +323,7 @@ native_to_vax64 (uint64_t native)
 /* Given LE, obtained from memory in little-endian format,
    returns its value. */
 static inline uint16_t
-le_to_native16 (uint16_t le) 
+le_to_native16 (uint16_t le)
 {
   return INTEGER_NATIVE == INTEGER_LSB_FIRST ? le : bswap_16 (le);
 }
@@ -331,7 +331,7 @@ le_to_native16 (uint16_t le)
 /* Given BE, obtained from memory in big-endian format, returns
    its value. */
 static inline uint16_t
-be_to_native16 (uint16_t be) 
+be_to_native16 (uint16_t be)
 {
   return INTEGER_NATIVE == INTEGER_MSB_FIRST ? be : bswap_16 (be);
 }
@@ -339,7 +339,7 @@ be_to_native16 (uint16_t be)
 /* Given VAX, obtained from memory in VAX-endian format, returns
    its value. */
 static inline uint16_t
-vax_to_native16 (uint16_t vax) 
+vax_to_native16 (uint16_t vax)
 {
   return le_to_native16 (vax);
 }
@@ -347,7 +347,7 @@ vax_to_native16 (uint16_t vax)
 /* Given LE, obtained from memory in little-endian format,
    returns its value. */
 static inline uint32_t
-le_to_native32 (uint32_t le) 
+le_to_native32 (uint32_t le)
 {
   return INTEGER_NATIVE == INTEGER_LSB_FIRST ? le : bswap_32 (le);
 }
@@ -355,7 +355,7 @@ le_to_native32 (uint32_t le)
 /* Given BE, obtained from memory in big-endian format, returns
    its value. */
 static inline uint32_t
-be_to_native32 (uint32_t be) 
+be_to_native32 (uint32_t be)
 {
   return INTEGER_NATIVE == INTEGER_MSB_FIRST ? be : bswap_32 (be);
 }
@@ -363,7 +363,7 @@ be_to_native32 (uint32_t be)
 /* Given VAX, obtained from memory in VAX-endian format, returns
    its value. */
 static inline uint32_t
-vax_to_native32 (uint32_t vax) 
+vax_to_native32 (uint32_t vax)
 {
   uint32_t be = be_to_native32 (vax);
   return ((be & 0xff00ff00) >> 8) | ((be & 0x00ff00ff) << 8);
@@ -372,7 +372,7 @@ vax_to_native32 (uint32_t vax)
 /* Given LE, obtained from memory in little-endian format,
    returns its value. */
 static inline uint64_t
-le_to_native64 (uint64_t le) 
+le_to_native64 (uint64_t le)
 {
   return INTEGER_NATIVE == INTEGER_LSB_FIRST ? le : bswap_64 (le);
 }
@@ -380,7 +380,7 @@ le_to_native64 (uint64_t le)
 /* Given BE, obtained from memory in big-endian format, returns
    its value. */
 static inline uint64_t
-be_to_native64 (uint64_t be) 
+be_to_native64 (uint64_t be)
 {
   return INTEGER_NATIVE == INTEGER_MSB_FIRST ? be : bswap_64 (be);
 }
@@ -388,7 +388,7 @@ be_to_native64 (uint64_t be)
 /* Given VAX, obtained from memory in VAX-endian format, returns
    its value. */
 static inline uint64_t
-vax_to_native64 (uint64_t vax) 
+vax_to_native64 (uint64_t vax)
 {
   uint64_t be = be_to_native64 (vax);
   return (((be & UINT64_C(0xff00ff0000000000)) >> 40) |
@@ -405,9 +405,9 @@ static void extract_hex (const char *, struct fp *);
 /* Converts the number at BITS from format TYPE into neutral
    format at FP. */
 static void
-extract_number (enum float_format type, const void *bits, struct fp *fp) 
+extract_number (enum float_format type, const void *bits, struct fp *fp)
 {
-  switch (type) 
+  switch (type)
     {
     case FLOAT_IEEE_SINGLE_LE:
       extract_ieee (le_to_native32 (get_uint32 (bits)), 8, 23, fp);
@@ -454,7 +454,7 @@ extract_number (enum float_format type, const void *bits, struct fp *fp)
    exponent and FRAC_BITS of fraction, into neutral format at
    FP. */
 static void
-extract_ieee (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp) 
+extract_ieee (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
 {
   const int bias = (1 << (exp_bits - 1)) - 1;
   const uint64_t max_raw_frac = (UINT64_C(1) << frac_bits) - 1;
@@ -468,28 +468,28 @@ extract_ieee (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
     fp->class = LOWEST;
   else if (raw_exp == max_raw_exp - 1 && raw_frac == max_raw_frac)
     fp->class = raw_sign ? MISSING : HIGHEST;
-  else if (raw_exp == max_raw_exp) 
+  else if (raw_exp == max_raw_exp)
     {
       if (raw_frac == 0)
         fp->class = INFINITE;
-      else 
+      else
         {
           fp->class = NAN;
           fp->fraction = raw_frac << (64 - frac_bits);
         }
     }
-  else if (raw_exp == 0) 
+  else if (raw_exp == 0)
     {
-      if (raw_frac != 0) 
+      if (raw_frac != 0)
         {
           fp->class = FINITE;
           fp->exponent = 1 - bias;
           fp->fraction = raw_frac << (64 - frac_bits);
         }
-      else 
+      else
         fp->class = ZERO;
     }
-  else 
+  else
     {
       fp->class = FINITE;
       fp->exponent = raw_exp - bias + 1;
@@ -503,7 +503,7 @@ extract_ieee (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
    exponent and FRAC_BITS of fraction, into neutral format at
    FP. */
 static void
-extract_vax (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp) 
+extract_vax (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
 {
   const int bias = 1 << (exp_bits - 1);
   const uint64_t max_raw_frac = (UINT64_C(1) << frac_bits) - 1;
@@ -517,7 +517,7 @@ extract_vax (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
     fp->class = LOWEST;
   else if (raw_exp == max_raw_exp && raw_frac == max_raw_frac)
     fp->class = raw_sign ? MISSING : HIGHEST;
-  else if (raw_exp == 0) 
+  else if (raw_exp == 0)
     fp->class = raw_sign == 0 ? ZERO : RESERVED;
   else
     {
@@ -533,7 +533,7 @@ extract_vax (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
    EXP_BITS of exponent and FRAC_BITS of fraction, into neutral
    format at FP. */
 static void
-extract_z (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp) 
+extract_z (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
 {
   const int bias = 1 << (exp_bits - 1);
   const uint64_t max_raw_frac = (UINT64_C(1) << frac_bits) - 1;
@@ -548,13 +548,13 @@ extract_z (uint64_t bits, int exp_bits, int frac_bits, struct fp *fp)
     fp->class = raw_sign ? MISSING : HIGHEST;
   else if (raw_sign && raw_exp == max_raw_exp && raw_frac == max_raw_frac - 1)
     fp->class = LOWEST;
-  else if (raw_frac != 0) 
+  else if (raw_frac != 0)
     {
       fp->class = FINITE;
       fp->fraction = raw_frac << (64 - frac_bits);
-      fp->exponent = (raw_exp - bias) * 4; 
+      fp->exponent = (raw_exp - bias) * 4;
     }
-  else 
+  else
     fp->class = ZERO;
 }
 
@@ -572,36 +572,36 @@ hexit_value (int c)
 /* Parses a hexadecimal floating point number string at S (useful
    for testing) into neutral format at FP. */
 static void
-extract_hex (const char *s, struct fp *fp) 
+extract_hex (const char *s, struct fp *fp)
 {
-  if (*s == '-') 
+  if (*s == '-')
     {
       fp->sign = NEGATIVE;
       s++;
     }
   else
     fp->sign = POSITIVE;
-  
-  if (!strcmp (s, "Infinity")) 
+
+  if (!strcmp (s, "Infinity"))
     fp->class = INFINITE;
-  else if (!strcmp (s, "Missing")) 
+  else if (!strcmp (s, "Missing"))
     fp->class = MISSING;
-  else if (!strcmp (s, "Lowest")) 
+  else if (!strcmp (s, "Lowest"))
     fp->class = LOWEST;
-  else if (!strcmp (s, "Highest")) 
+  else if (!strcmp (s, "Highest"))
     fp->class = HIGHEST;
-  else if (!strcmp (s, "Reserved")) 
+  else if (!strcmp (s, "Reserved"))
     fp->class = RESERVED;
-  else 
+  else
     {
       int offset;
-      
-      if (!memcmp (s, "NaN:", 4)) 
+
+      if (!memcmp (s, "NaN:", 4))
         {
           fp->class = NAN;
           s += 4;
         }
-      else 
+      else
         fp->class = FINITE;
 
       if (*s == '.')
@@ -611,23 +611,23 @@ extract_hex (const char *s, struct fp *fp)
       fp->fraction = 0;
       offset = 60;
       for (; isxdigit ((unsigned char) *s); s++)
-        if (offset >= 0) 
+        if (offset >= 0)
           {
             uint64_t digit = hexit_value (*s);
             fp->fraction += digit << offset;
-            offset -= 4; 
+            offset -= 4;
           }
 
-      if (fp->class == FINITE) 
+      if (fp->class == FINITE)
         {
-          if (fp->fraction == 0) 
+          if (fp->fraction == 0)
             fp->class = ZERO;
-          else if (*s == 'p') 
+          else if (*s == 'p')
             {
               char *tail;
               fp->exponent += strtol (s + 1, &tail, 10);
               s = tail;
-            } 
+            }
         }
     }
 }
@@ -641,9 +641,9 @@ static void assemble_hex (struct fp *, void *);
    format TYPE at NUMBER.  May modify FP as part of the
    process. */
 static void
-assemble_number (enum float_format type, struct fp *fp, void *number) 
+assemble_number (enum float_format type, struct fp *fp, void *number)
 {
-  switch (type) 
+  switch (type)
     {
     case FLOAT_IEEE_SINGLE_LE:
       put_uint32 (native_to_le32 (assemble_ieee (fp, 8, 23)), number);
@@ -687,19 +687,19 @@ assemble_number (enum float_format type, struct fp *fp, void *number)
 /* Rounds off FP's fraction to FRAC_BITS bits of precision.
    Halfway values are rounded to even. */
 static void
-normalize_and_round_fp (struct fp *fp, int frac_bits) 
+normalize_and_round_fp (struct fp *fp, int frac_bits)
 {
   assert (fp->class == FINITE);
   assert (fp->fraction != 0);
 
   /* Make sure that the leading fraction bit is 1. */
-  while (!(fp->fraction & (UINT64_C(1) << 63))) 
+  while (!(fp->fraction & (UINT64_C(1) << 63)))
     {
       fp->fraction <<= 1;
       fp->exponent--;
     }
 
-  if (frac_bits < 64) 
+  if (frac_bits < 64)
     {
       uint64_t last_frac_bit = UINT64_C(1) << (64 - frac_bits);
       uint64_t decision_bit = last_frac_bit >> 1;
@@ -708,7 +708,7 @@ normalize_and_round_fp (struct fp *fp, int frac_bits)
               || fp->fraction & last_frac_bit))
         {
           fp->fraction += last_frac_bit;
-          if ((fp->fraction >> 63) == 0) 
+          if ((fp->fraction >> 63) == 0)
             {
               fp->fraction = UINT64_C(1) << 63;
               fp->exponent++;
@@ -726,7 +726,7 @@ normalize_and_round_fp (struct fp *fp, int frac_bits)
    IEEE format with EXP_BITS exponent bits and FRAC_BITS fraction
    bits, and returns the value. */
 static uint64_t
-assemble_ieee (struct fp *fp, int exp_bits, int frac_bits) 
+assemble_ieee (struct fp *fp, int exp_bits, int frac_bits)
 {
   const uint64_t max_raw_frac = (UINT64_C(1) << frac_bits) - 1;
 
@@ -742,9 +742,9 @@ assemble_ieee (struct fp *fp, int exp_bits, int frac_bits)
 
   raw_sign = fp->sign != POSITIVE;
 
-  switch (fp->class) 
+  switch (fp->class)
     {
-    case FINITE: 
+    case FINITE:
       normalize_and_round_fp (fp, frac_bits + 1);
       if (fp->exponent - 1 > max_norm_exp)
         {
@@ -752,7 +752,7 @@ assemble_ieee (struct fp *fp, int exp_bits, int frac_bits)
           raw_exp = max_raw_exp;
           raw_frac = 0;
         }
-      else if (fp->exponent - 1 >= min_norm_exp) 
+      else if (fp->exponent - 1 >= min_norm_exp)
         {
           /* Normal. */
           raw_frac = (fp->fraction << 1) >> (64 - frac_bits);
@@ -765,7 +765,7 @@ assemble_ieee (struct fp *fp, int exp_bits, int frac_bits)
           raw_frac = (fp->fraction >> (64 - frac_bits)) >> denorm_shift;
           raw_exp = 0;
         }
-      else 
+      else
         {
           /* Underflow to zero. */
           raw_frac = 0;
@@ -827,7 +827,7 @@ assemble_ieee (struct fp *fp, int exp_bits, int frac_bits)
    VAX format with EXP_BITS exponent bits and FRAC_BITS fraction
    bits, and returns the value. */
 static uint64_t
-assemble_vax (struct fp *fp, int exp_bits, int frac_bits) 
+assemble_vax (struct fp *fp, int exp_bits, int frac_bits)
 {
   const int max_raw_exp = (1 << exp_bits) - 1;
   const int bias = 1 << (exp_bits - 1);
@@ -840,10 +840,10 @@ assemble_vax (struct fp *fp, int exp_bits, int frac_bits)
   bool raw_sign;
 
   raw_sign = fp->sign != POSITIVE;
-  
-  switch (fp->class) 
+
+  switch (fp->class)
     {
-    case FINITE: 
+    case FINITE:
       normalize_and_round_fp (fp, frac_bits + 1);
       if (fp->exponent > max_finite_exp)
         {
@@ -852,13 +852,13 @@ assemble_vax (struct fp *fp, int exp_bits, int frac_bits)
           raw_exp = 0;
           raw_frac = 0;
         }
-      else if (fp->exponent >= min_finite_exp) 
+      else if (fp->exponent >= min_finite_exp)
         {
           /* Finite. */
           raw_frac = (fp->fraction << 1) >> (64 - frac_bits);
           raw_exp = fp->exponent + bias;
         }
-      else 
+      else
         {
           /* Underflow to zero. */
           raw_sign = 0;
@@ -913,9 +913,9 @@ assemble_vax (struct fp *fp, int exp_bits, int frac_bits)
    has more than 53 bits of precision.  That is, we never shift a
    1-bit off the right end of the fraction.  */
 static void
-normalize_hex_fp (struct fp *fp) 
+normalize_hex_fp (struct fp *fp)
 {
-  while (fp->exponent % 4) 
+  while (fp->exponent % 4)
     {
       fp->fraction >>= 1;
       fp->exponent++;
@@ -926,7 +926,7 @@ normalize_hex_fp (struct fp *fp)
    architecture format with EXP_BITS exponent bits and FRAC_BITS
    fraction bits, and returns the value. */
 static uint64_t
-assemble_z (struct fp *fp, int exp_bits, int frac_bits) 
+assemble_z (struct fp *fp, int exp_bits, int frac_bits)
 {
   const int max_raw_exp = (1 << exp_bits) - 1;
   const int bias = 1 << (exp_bits - 1);
@@ -935,16 +935,16 @@ assemble_z (struct fp *fp, int exp_bits, int frac_bits)
   const int min_denorm_exp = min_norm_exp - (frac_bits - 1);
 
   const uint64_t max_raw_frac = (UINT64_C(1) << frac_bits) - 1;
-  
+
   uint64_t raw_frac;
   int raw_exp;
   int raw_sign;
-  
+
   raw_sign = fp->sign != POSITIVE;
-  
-  switch (fp->class) 
+
+  switch (fp->class)
     {
-    case FINITE: 
+    case FINITE:
       normalize_and_round_fp (fp, frac_bits);
       normalize_hex_fp (fp);
       if (fp->exponent > max_norm_exp)
@@ -953,13 +953,13 @@ assemble_z (struct fp *fp, int exp_bits, int frac_bits)
           raw_exp = max_raw_exp;
           raw_frac = max_raw_frac;
         }
-      else if (fp->exponent >= min_norm_exp) 
+      else if (fp->exponent >= min_norm_exp)
         {
           /* Normal. */
           raw_frac = fp->fraction >> (64 - frac_bits);
           raw_exp = (fp->exponent / 4) + bias;
         }
-      else if (fp->exponent >= min_denorm_exp) 
+      else if (fp->exponent >= min_denorm_exp)
         {
           /* Denormal. */
           const int denorm_shift = min_norm_exp - fp->exponent;
@@ -979,7 +979,7 @@ assemble_z (struct fp *fp, int exp_bits, int frac_bits)
       raw_exp = max_raw_exp;
       raw_frac = max_raw_frac;
       break;
-      
+
     case NAN:
     case RESERVED:
     case ZERO:
@@ -1026,16 +1026,16 @@ assemble_hex (struct fp *fp, void *output)
 
   if (fp->sign == NEGATIVE)
     *s++ = '-';
-  
-  switch (fp->class) 
+
+  switch (fp->class)
     {
     case FINITE:
       normalize_and_round_fp (fp, 64);
       normalize_hex_fp (fp);
       assert (fp->fraction != 0);
-      
+
       *s++ = '.';
-      while (fp->fraction != 0) 
+      while (fp->fraction != 0)
         {
           *s++ = (fp->fraction >> 60)["0123456789abcdef"];
           fp->fraction <<= 4;

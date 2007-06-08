@@ -19,7 +19,7 @@
 /*
   Functions and data structures to recode categorical variables into
   vectors and sub-rows of matrices.
-  
+
   To fit many types of statistical models, it is necessary
   to change each value of a categorical variable to a vector with binary
   entries. These vectors are then stored as sub-rows within a matrix
@@ -38,7 +38,7 @@
 #include <stddef.h>
 
 struct cat_vals;
-struct variable ; 
+struct variable ;
 union value;
 
 void cat_stored_values_create (const struct variable *);

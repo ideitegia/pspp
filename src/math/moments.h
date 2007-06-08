@@ -24,7 +24,7 @@
 
 /* Moments of the mean.
    Higher-order moments have higher values. */
-enum moment 
+enum moment
   {
     MOMENT_NONE,                /* No moments. */
     MOMENT_MEAN,                /* First-order moment. */

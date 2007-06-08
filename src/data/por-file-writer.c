@@ -66,7 +66,7 @@ struct pfm_writer
   };
 
 /* A variable to write to the portable file. */
-struct pfm_var 
+struct pfm_var
   {
     int width;                  /* 0=numeric, otherwise string var width. */
     int fv;                     /* Starting case index. */
@@ -87,7 +87,7 @@ static char *format_trig_int (int, bool force_sign, char[]);
 
 /* Returns default options for writing a portable file. */
 struct pfm_write_options
-pfm_writer_default_options (void) 
+pfm_writer_default_options (void)
 {
   struct pfm_write_options opts;
   opts.create_writeable = true;
@@ -113,7 +113,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   if (opts.create_writeable)
     mode |= S_IWUSR | S_IWGRP | S_IWOTH;
   fd = open (fh_get_file_name (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
-  if (fd < 0) 
+  if (fd < 0)
     goto open_error;
 
   /* Open file handle. */
@@ -124,19 +124,19 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   w = xmalloc (sizeof *w);
   w->fh = fh;
   w->file = fdopen (fd, "w");
-  if (w->file == NULL) 
+  if (w->file == NULL)
     {
       close (fd);
       goto open_error;
     }
-  
+
   w->lc = 0;
   w->var_cnt = 0;
   w->vars = NULL;
-  
+
   w->var_cnt = dict_get_var_cnt (dict);
   w->vars = xnmalloc (w->var_cnt, sizeof *w->vars);
-  for (i = 0; i < w->var_cnt; i++) 
+  for (i = 0; i < w->var_cnt; i++)
     {
       const struct variable *dv = dict_get_var (dict, i);
       struct pfm_var *pv = &w->vars[i];
@@ -145,7 +145,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     }
 
   w->digits = opts.digits;
-  if (w->digits < 1) 
+  if (w->digits < 1)
     {
       msg (ME, _("Invalid decimal digits count %d.  Treating as %d."),
            w->digits, DBL_DIG);
@@ -172,7 +172,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
        fh_get_file_name (fh), strerror (errno));
   goto error;
 }
-  
+
 /* Write NBYTES starting at BUF to the portable file represented by
    H.  Break lines properly every 80 characters.  */
 static void
@@ -187,7 +187,7 @@ buf_write (struct pfm_writer *w, const void *buf_, size_t nbytes)
   while (nbytes + w->lc >= 80)
     {
       size_t n = 80 - w->lc;
-      
+
       if (n)
         fwrite (buf, n, 1, w->file);
       fwrite ("\r\n", 2, 1, w->file);
@@ -245,7 +245,7 @@ write_header (struct pfm_writer *w)
 
   for (i = 0; i < 5; i++)
     buf_write (w, "ASCII SPSS PORT FILE                    ", 40);
-  
+
   buf_write (w, spss2ascii, 256);
   buf_write (w, "SPSSPORT", 8);
 }
@@ -266,9 +266,9 @@ write_version_data (struct pfm_writer *w)
       tm.tm_mday = 1;
       tmp = &tm;
     }
-  else 
+  else
     tmp = localtime (&t);
-    
+
   sprintf (date_str, "%04d%02d%02d",
            tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday);
   sprintf (time_str, "%02d%02d%02d", tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
@@ -300,10 +300,10 @@ write_value (struct pfm_writer *w, union value *v, struct variable *vv)
 {
   if (var_is_numeric (vv))
     write_float (w, v->f);
-  else 
+  else
     {
       write_int (w, var_get_width (vv));
-      buf_write (w, v->s, var_get_width (vv)); 
+      buf_write (w, v->s, var_get_width (vv));
     }
 }
 
@@ -314,7 +314,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
   int i;
 
   dict_assign_short_names (dict);
-  
+
   buf_write (w, "4", 1);
   write_int (w, dict_get_var_cnt (dict));
   write_int (w, 161);
@@ -323,7 +323,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
     {
       struct variable *v = dict_get_var (dict, i);
       struct missing_values mv;
-      
+
       buf_write (w, "7", 1);
       write_int (w, var_get_width (v));
       write_string (w, var_get_short_name (v));
@@ -353,7 +353,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
               write_float (w, y);
             }
         }
-      while (mv_has_value (&mv)) 
+      while (mv_has_value (&mv))
         {
           union value value;
           mv_pop_value (&mv, &value);
@@ -363,7 +363,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
 
       /* Write variable label. */
       if (var_get_label (v) != NULL)
-        { 
+        {
           buf_write (w, "C", 1);
           write_string (w, var_get_label (v));
         }
@@ -392,7 +392,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
       write_int (w, val_labs_count (val_labs));
 
       for (vl = val_labs_first_sorted (val_labs, &j); vl != NULL;
-           vl = val_labs_next (val_labs, &j)) 
+           vl = val_labs_next (val_labs, &j))
         {
           write_value (w, &vl->value, v);
           write_string (w, vl->label);
@@ -401,19 +401,19 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 }
 
 /* Writes case C to the portable file represented by H. */
-static void 
+static void
 por_file_casewriter_write (struct casewriter *writer, void *w_,
                            struct ccase *c)
 {
   struct pfm_writer *w = w_;
   int i;
 
-  if (!ferror (w->file)) 
+  if (!ferror (w->file))
     {
       for (i = 0; i < w->var_cnt; i++)
         {
           struct pfm_var *v = &w->vars[i];
-      
+
           if (v->width == 0)
             write_float (w, case_num_idx (c, v->fv));
           else
@@ -421,16 +421,16 @@ por_file_casewriter_write (struct casewriter *writer, void *w_,
               write_int (w, v->width);
               buf_write (w, case_str_idx (c, v->fv), v->width);
             }
-        } 
+        }
     }
   else
     casewriter_force_error (writer);
-  
+
   case_destroy (c);
 }
 
 static void
-por_file_casewriter_destroy (struct casewriter *writer, void *w_) 
+por_file_casewriter_destroy (struct casewriter *writer, void *w_)
 {
   struct pfm_writer *w = w_;
   if (!close_writer (w))
@@ -455,16 +455,16 @@ close_writer (struct pfm_writer *w)
       buf_write (w, buf, w->lc >= 80 ? 80 : 80 - w->lc);
 
       ok = !ferror (w->file);
-      if (fclose (w->file) == EOF) 
-        ok = false; 
+      if (fclose (w->file) == EOF)
+        ok = false;
 
-      if (!ok) 
+      if (!ok)
         msg (ME, _("An I/O error occurred writing portable file \"%s\"."),
              fh_get_file_name (w->fh));
     }
 
   fh_close (w->fh, "portable file", "we");
-  
+
   free (w->vars);
   free (w);
 
@@ -487,14 +487,14 @@ close_writer (struct pfm_writer *w)
 
 /* This is floor(log30(2**31)), the minimum number of trigesimal
    digits that a `long int' can hold. */
-#define CHUNK_SIZE 6                    
+#define CHUNK_SIZE 6
 
 /* pow_tab[i] = pow (30, pow (2, i)) */
 static long double pow_tab[16];
 
 /* Initializes pow_tab[]. */
 static void
-init_pow_tab (void) 
+init_pow_tab (void)
 {
   static bool did_init = false;
   long double power;
@@ -857,7 +857,7 @@ format_trig_double (long double value, int base_10_precision, char output[])
   return;
 }
 
-static struct casewriter_class por_file_casewriter_class = 
+static struct casewriter_class por_file_casewriter_class =
   {
     por_file_casewriter_write,
     por_file_casewriter_destroy,

@@ -41,7 +41,7 @@ enum outp_justification
     OUTP_CENTER,                /* Center justification. */
   };
 
-enum outp_font 
+enum outp_font
   {
     OUTP_FIXED,                 /* Fixed-width font. */
     OUTP_PROPORTIONAL,          /* Proportional font. */
@@ -77,7 +77,7 @@ struct outp_class
 
     /* special != 0 only. */
     void (*submit) (struct outp_driver *, struct som_entity *);
-    
+
     /* special == 0 only.  */
     void (*line) (struct outp_driver *, int x0, int y0, int x1, int y1,
                   enum outp_line_style top, enum outp_line_style left,

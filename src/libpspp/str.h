@@ -60,7 +60,7 @@ void *mempset (void *, int, size_t);
 #define CC_ALNUM CC_LETTERS CC_DIGITS
 
 /* Substrings. */
-struct substring 
+struct substring
   {
     char *string;
     size_t length;

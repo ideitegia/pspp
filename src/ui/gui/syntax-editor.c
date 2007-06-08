@@ -78,7 +78,7 @@ save_if_modified (struct syntax_editor *se)
 				GTK_MESSAGE_QUESTION,
 				GTK_BUTTONS_NONE,
 				_("Save contents of syntax editor to %s?"),
-				e->name 
+				e->name
 				);
 
       gtk_dialog_add_button  (GTK_DIALOG (dialog),

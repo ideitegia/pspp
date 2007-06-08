@@ -166,10 +166,10 @@ static int k_ntiles;
 
 static struct cmd_rank cmd;
 
-static void rank_sorted_file (struct casereader *, 
+static void rank_sorted_file (struct casereader *,
                               struct casewriter *,
                               const struct dictionary *,
-                              const struct rank_spec *rs, 
+                              const struct rank_spec *rs,
                               int n_rank_specs,
                               int idx,
                               const struct variable *rank_var);
@@ -233,8 +233,8 @@ create_var_label (struct variable *dest_var,
 }
 
 
-static bool 
-rank_cmd (struct dataset *ds, const struct case_ordering *sc, 
+static bool
+rank_cmd (struct dataset *ds, const struct case_ordering *sc,
 	  const struct rank_spec *rank_specs, int n_rank_specs)
 {
   struct case_ordering *base_ordering;
@@ -269,10 +269,10 @@ rank_cmd (struct dataset *ds, const struct case_ordering *sc,
                                                   base_ordering);
       output = autopaging_writer_create (dict_get_next_value_idx (
                                            dataset_dict (ds)));
-      while (casegrouper_get_next_group (grouper, &group)) 
+      while (casegrouper_get_next_group (grouper, &group))
         rank_sorted_file (group, output, dataset_dict (ds),
                           rank_specs, n_rank_specs,
-                          i, src_vars[i]); 
+                          i, src_vars[i]);
       ok = casegrouper_destroy (grouper);
       ok = proc_commit (ds) && ok;
       ranked_file = casewriter_make_reader (output);
@@ -282,7 +282,7 @@ rank_cmd (struct dataset *ds, const struct case_ordering *sc,
     }
   case_ordering_destroy (base_ordering);
 
-  return ok; 
+  return ok;
 }
 
 /* Hardly a rank function !! */
@@ -300,7 +300,7 @@ rank_rank (double c, double cc, double cc_1,
 {
   double rank;
 
-  if ( c >= 1.0 ) 
+  if ( c >= 1.0 )
     {
       switch (cmd.ties)
 	{
@@ -461,12 +461,12 @@ rank_savage (double c, double cc, double cc_1,
 }
 
 static void
-rank_sorted_file (struct casereader *input, 
+rank_sorted_file (struct casereader *input,
                   struct casewriter *output,
                   const struct dictionary *dict,
-                  const struct rank_spec *rs, 
-                  int n_rank_specs, 
-                  int dest_idx, 
+                  const struct rank_spec *rs,
+                  int n_rank_specs,
+                  int dest_idx,
                   const struct variable *rank_var)
 {
   struct casereader *pass1, *pass2, *pass2_1;
@@ -484,13 +484,13 @@ rank_sorted_file (struct casereader *input,
   casereader_split (input, &pass1, &pass2);
 
   /* Pass 1: Get total group weight. */
-  for (; casereader_read (pass1, &c); case_destroy (&c)) 
+  for (; casereader_read (pass1, &c); case_destroy (&c))
     w += dict_get_case_weight (dict, &c, NULL);
   casereader_destroy (pass1);
 
   /* Pass 2: Do ranking. */
   tie_grouper = casegrouper_create_vars (pass2, &rank_var, 1);
-  while (casegrouper_get_next_group (tie_grouper, &pass2_1)) 
+  while (casegrouper_get_next_group (tie_grouper, &pass2_1))
     {
       struct casereader *pass2_2;
       double cc_1 = cc;
@@ -502,13 +502,13 @@ rank_sorted_file (struct casereader *input,
                        casewriter_get_taint (output));
 
       /* Pass 2.1: Sum up weight for tied cases. */
-      for (; casereader_read (pass2_1, &c); case_destroy (&c)) 
+      for (; casereader_read (pass2_1, &c); case_destroy (&c))
         tw += dict_get_case_weight (dict, &c, NULL);
       cc += tw;
       casereader_destroy (pass2_1);
 
       /* Pass 2.2: Rank tied cases. */
-      while (casereader_read (pass2_2, &c)) 
+      while (casereader_read (pass2_2, &c))
         {
           for (i = 0; i < n_rank_specs; ++i)
             {
@@ -519,7 +519,7 @@ rank_sorted_file (struct casereader *input,
           casewriter_write (output, &c);
         }
       casereader_destroy (pass2_2);
-          
+
       tie_group++;
     }
   casegrouper_destroy (tie_grouper);
@@ -651,7 +651,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 
       rank_specs = xmalloc (sizeof (*rank_specs));
       rank_specs[0].rfunc = RANK;
-      rank_specs[0].destvars = 
+      rank_specs[0].destvars =
 	xcalloc (case_ordering_get_var_cnt (sc), sizeof (struct variable *));
 
       n_rank_specs = 1;
@@ -759,8 +759,8 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
     msg(MW, _("FRACTION has been specified, but NORMAL and PROPORTION rank functions have not been requested.  The FRACTION subcommand will be ignored.") );
 
   /* Add a variable which we can sort by to get back the original
-     order */ 
-  order = dict_create_var_assert (dataset_dict (ds), "$ORDER_", 0); 
+     order */
+  order = dict_create_var_assert (dataset_dict (ds), "$ORDER_", 0);
 
   add_transformation (ds, create_resort_key, 0, order);
 
@@ -836,10 +836,10 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
   rank_specs[n_rank_specs - 1].rfunc = f;
   rank_specs[n_rank_specs - 1].destvars = NULL;
 
-  rank_specs[n_rank_specs - 1].destvars = 
+  rank_specs[n_rank_specs - 1].destvars =
 	    xcalloc (case_ordering_get_var_cnt (sc),
                      sizeof (struct variable *));
-	  
+
   if (lex_match_id (lexer, "INTO"))
     {
       struct variable *destvar;
@@ -852,7 +852,7 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
 	      msg(SE, _("Variable %s already exists."), lex_tokid (lexer));
 	      return 0;
 	    }
-	  if ( var_count >= case_ordering_get_var_cnt (sc) ) 
+	  if ( var_count >= case_ordering_get_var_cnt (sc) )
 	    {
 	      msg(SE, _("Too many variables in INTO clause."));
 	      return 0;

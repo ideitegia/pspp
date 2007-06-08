@@ -27,7 +27,7 @@ enum  bar_opts {
   BAR_RANGE
 };
 
-void draw_barchart(struct chart *ch, const char *title, 
+void draw_barchart(struct chart *ch, const char *title,
 	      const char *xlabel, const char *ylabel, enum bar_opts opt);
 
 #endif

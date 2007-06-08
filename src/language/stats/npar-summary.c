@@ -36,7 +36,7 @@ void
 npar_summary_calc_descriptives (struct descriptives *desc,
 				struct casereader *input,
 				const struct dictionary *dict,
-				const struct variable *const *vv, 
+				const struct variable *const *vv,
 				int n_vars UNUSED,
                                 enum mv_class filter)
 {
@@ -62,24 +62,24 @@ npar_summary_calc_descriptives (struct descriptives *desc,
           double w = dict_get_case_weight (dict, &c, NULL);
           minimum = MIN (minimum, val);
           maximum = MAX (maximum, val);
-          moments1_add (moments, val, w); 
+          moments1_add (moments, val, w);
 	  case_destroy (&c);
 	}
       casereader_destroy (pass);
 
-      moments1_calculate (moments, 
-			  &desc[i].n, 
-			  &desc[i].mean, 
+      moments1_calculate (moments,
+			  &desc[i].n,
+			  &desc[i].mean,
 			  &var,
 			  NULL, NULL);
 
       desc[i].std_dev = sqrt (var);
 
       moments1_destroy (moments);
-      
+
       desc[i].min = minimum;
       desc[i].max = maximum;
-      
+
       i++;
     }
   casereader_destroy (input);
@@ -88,7 +88,7 @@ npar_summary_calc_descriptives (struct descriptives *desc,
 
 
 void
-do_summary_box (const struct descriptives *desc, 
+do_summary_box (const struct descriptives *desc,
 		const struct variable *const *vv,
 		int n_vars)
 {
@@ -108,53 +108,53 @@ do_summary_box (const struct descriptives *desc,
   tab_dim (table, tab_natural_dimensions);
 
   tab_title (table, _("Descriptive Statistics"));
-	
+
   tab_headers (table, 1, 0, 1, 0);
 
-  tab_box (table, TAL_1, TAL_1, -1, TAL_1, 
+  tab_box (table, TAL_1, TAL_1, -1, TAL_1,
 	   0, 0, table->nc - 1, tab_nr(table) - 1 );
 
   tab_hline (table, TAL_2, 0, tab_nc (table) -1, 2);
   tab_vline (table, TAL_2, 1, 0, tab_nr (table) - 1);
 
   col = 1;
-  if ( desc ) 
+  if ( desc )
     {
-      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER,
 		      _("N"));
       col++;
-      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER,
 		      _("Mean"));
       col++;
-      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER,
 		      _("Std. Deviation"));
       col++;
-      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER,
 		      _("Minimum"));
       col++;
-      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_joint_text (table, col, 0, col, 1, TAT_TITLE | TAB_CENTER,
 		      _("Maximum"));
       col++;
     }
 
-  if ( quartiles ) 
+  if ( quartiles )
     {
       tab_joint_text (table, col, 0, col + 2, 0, TAT_TITLE | TAB_CENTER,
 		      _("Percentiles"));
       tab_hline (table, TAL_1, col, col + 2, 1);
 
-      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER,
 		_("25th"));
       col++;
-      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER,
 		_("50th (Median)"));
       col++;
-      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER, 
+      tab_text (table, col, 1, TAT_TITLE | TAB_CENTER,
 		_("75th"));
       col++;
     }
 
-  for ( v = 0 ; v < n_vars ; ++v ) 
+  for ( v = 0 ; v < n_vars ; ++v )
     {
       tab_text (table, 0, 2 + v, TAT_NONE, var_to_string (vv[v]));
 

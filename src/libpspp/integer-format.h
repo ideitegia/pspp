@@ -40,7 +40,7 @@ enum integer_format
 #endif
   };
 
-void integer_convert (enum integer_format, const void *, 
+void integer_convert (enum integer_format, const void *,
                       enum integer_format, void *,
                       size_t);
 uint64_t integer_get (enum integer_format, const void *, size_t);

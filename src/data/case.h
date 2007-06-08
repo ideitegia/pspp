@@ -34,7 +34,7 @@ typedef long int casenumber;
 /* Opaque structure that represents a case.  Use accessor
    functions instead of accessing any members directly.  Use
    case_move() or case_clone() instead of copying.  */
-struct ccase 
+struct ccase
   {
     struct case_data *case_data;        /* Actual data. */
   };
@@ -77,7 +77,7 @@ union value *case_data_rw_idx (struct ccase *, size_t idx);
 int case_compare (const struct ccase *, const struct ccase *,
                   const struct variable *const *, size_t var_cnt);
 int case_compare_2dict (const struct ccase *, const struct ccase *,
-                        const struct variable *const *, 
+                        const struct variable *const *,
 			const struct variable *const *,
                         size_t var_cnt);
 

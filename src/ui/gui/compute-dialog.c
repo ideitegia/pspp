@@ -302,7 +302,7 @@ function_list_populate (GtkTreeView *tv)
   for (i = 0 ; i < n_funcs ; ++i)
     {
       const struct operation *op = expr_get_function (i);
-      
+
       gtk_list_store_append (liststore, &iter);
 
       gtk_list_store_set (liststore, &iter,

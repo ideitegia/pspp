@@ -90,7 +90,7 @@ bool dict_rename_vars (struct dictionary *,
 
 struct ccase;
 struct variable *dict_get_weight (const struct dictionary *);
-double dict_get_case_weight (const struct dictionary *, 
+double dict_get_case_weight (const struct dictionary *,
 			     const struct ccase *, bool *);
 void dict_set_weight (struct dictionary *, struct variable *);
 
@@ -125,7 +125,7 @@ const char *dict_get_label (const struct dictionary *);
 void dict_set_label (struct dictionary *, const char *);
 
 /* Fixed length of lines in dictionary documents. */
-#define DOC_LINE_LENGTH 80      
+#define DOC_LINE_LENGTH 80
 
 const char *dict_get_documents (const struct dictionary *);
 void dict_set_documents (struct dictionary *, const char *);

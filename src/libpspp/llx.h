@@ -82,7 +82,7 @@
    Here's an example of iteration from head to tail:
 
      struct llx *llx;
-     for (llx = llx_head (&list); llx != llx_null (&list); 
+     for (llx = llx_head (&list); llx != llx_null (&list);
           llx = llx_next (llx))
        {
          struct foo *foo = llx_data (llx);
@@ -113,7 +113,7 @@ struct llx_list
   };
 
 /* Memory manager. */
-struct llx_manager 
+struct llx_manager
   {
     /* Allocates and returns memory for a new struct llx.
        If space is unavailable, returns a null pointer. */
@@ -201,9 +201,9 @@ struct llx *llx_max (const struct llx *r0, const struct llx *r1,
 struct llx *llx_min (const struct llx *r0, const struct llx *r1,
                      llx_compare_func *, void *aux);
 int llx_lexicographical_compare_3way (const struct llx *a0,
-                                      const struct llx *a1, 
+                                      const struct llx *a1,
                                       const struct llx *b0,
-                                      const struct llx *b1, 
+                                      const struct llx *b1,
                                       llx_compare_func *, void *aux);
 
 /* Mutating algorithms. */
@@ -239,14 +239,14 @@ struct llx *llx_find_partition (const struct llx *r0, const struct llx *r1,
 
 /* Returns the llx within which LL is embedded. */
 static struct llx *
-llx_from_ll (struct ll *ll) 
+llx_from_ll (struct ll *ll)
 {
   return ll_data (ll, struct llx, ll);
 }
 
 /* Initializes LIST as an empty list. */
 static inline void
-llx_init (struct llx_list *list) 
+llx_init (struct llx_list *list)
 {
   ll_init (&list->ll_list);
 }
@@ -255,7 +255,7 @@ llx_init (struct llx_list *list)
    false if LIST is not empty (has at least one other node).
    Executes in O(1) time. */
 static inline bool
-llx_is_empty (const struct llx_list *list) 
+llx_is_empty (const struct llx_list *list)
 {
   return ll_is_empty (&list->ll_list);
 }
@@ -263,7 +263,7 @@ llx_is_empty (const struct llx_list *list)
 /* Returns the first node in LIST,
    or the null node if LIST is empty. */
 static inline struct llx *
-llx_head (const struct llx_list *list) 
+llx_head (const struct llx_list *list)
 {
   return llx_from_ll (ll_head (&list->ll_list));
 }
@@ -271,14 +271,14 @@ llx_head (const struct llx_list *list)
 /* Returns the last node in LIST,
    or the null node if LIST is empty. */
 static inline struct llx *
-llx_tail (const struct llx_list *list) 
+llx_tail (const struct llx_list *list)
 {
   return llx_from_ll (ll_tail (&list->ll_list));
 }
 
 /* Returns LIST's null node. */
 static inline struct llx *
-llx_null (const struct llx_list *list) 
+llx_null (const struct llx_list *list)
 {
   return llx_from_ll (ll_null (&list->ll_list));
 }
@@ -287,7 +287,7 @@ llx_null (const struct llx_list *list)
    or the null node if LLX is at the end of its list.
    (In an empty list, the null node follows itself.) */
 static inline struct llx *
-llx_next (const struct llx *llx) 
+llx_next (const struct llx *llx)
 {
   return llx_from_ll (ll_next (&llx->ll));
 }
@@ -303,7 +303,7 @@ llx_prev (const struct llx *llx)
 
 /* Returns the data in node LLX. */
 static inline void *
-llx_data (const struct llx *llx) 
+llx_data (const struct llx *llx)
 {
   return llx->data;
 }

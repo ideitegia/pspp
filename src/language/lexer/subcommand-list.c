@@ -52,7 +52,7 @@ subc_list_double_push(subc_list_double *l, double d)
 {
   l->data[l->n_data++] = d;
 
-  if (l->n_data >= l->sz ) 
+  if (l->n_data >= l->sz )
     {
       l->sz += CHUNKSIZE;
       l->data = xnrealloc (l->data, l->sz, sizeof *l->data);
@@ -65,7 +65,7 @@ subc_list_int_push(subc_list_int *l, int d)
 {
   l->data[l->n_data++] = d;
 
-  if (l->n_data >= l->sz ) 
+  if (l->n_data >= l->sz )
     {
       l->sz += CHUNKSIZE;
       l->data = xnrealloc (l->data, l->sz, sizeof *l->data);
@@ -74,13 +74,13 @@ subc_list_int_push(subc_list_int *l, int d)
 }
 
 /* Return the number of items in the list */
-int 
+int
 subc_list_double_count(const subc_list_double *l)
 {
   return l->n_data;
 }
 
-int 
+int
 subc_list_int_count(const subc_list_int *l)
 {
   return l->n_data;

@@ -1,18 +1,18 @@
 /*
   src/math/coefficient.c
-  
+
   Copyright (C) 2005 Free Software Foundation, Inc. Written by Jason H Stover.
-  
+
   This program is free software; you can redistribute it and/or modify it under
   the terms of the GNU General Public License as published by the Free
   Software Foundation; either version 2 of the License, or (at your option)
   any later version.
-  
+
   This program is distributed in the hope that it will be useful, but WITHOUT
   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
   FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
   more details.
-  
+
   You should have received a copy of the GNU General Public License along with
   this program; if not, write to the Free Software Foundation, Inc., 51
   Franklin Street, Fifth Floor, Boston, MA 02111-1307, USA.
@@ -65,7 +65,7 @@ pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
       c[i]->n_vars = n_vals;	/* Currently, no procedures allow
 				   interactions.  This line will have to
 				   change when procedures that allow
-				   interaction terms are written. 
+				   interaction terms are written.
 				 */
       c[i]->v_info = xnmalloc (c[i]->n_vars, sizeof (*c[i]->v_info));
       assert (c[i]->v_info != NULL);

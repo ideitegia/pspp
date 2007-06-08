@@ -226,7 +226,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
     }
 
   grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
-  while (casegrouper_get_next_group (grouper, &group)) 
+  while (casegrouper_get_next_group (grouper, &group))
     run_examine (&cmd, group, ds);
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;

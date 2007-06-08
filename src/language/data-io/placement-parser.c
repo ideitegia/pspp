@@ -36,7 +36,7 @@
 
 /* Extensions to the format specifiers used only for
    placement. */
-enum 
+enum
   {
     PRS_TYPE_T = SCHAR_MAX - 3, /* Tab to absolute column. */
     PRS_TYPE_X,                 /* Skip columns. */
@@ -65,18 +65,18 @@ static bool fixed_parse_fortran (struct lexer *l, struct pool *, bool for_input,
    interpreting *FORMATS, POOL may be destroyed. */
 bool
 parse_var_placements (struct lexer *lexer, struct pool *pool, size_t var_cnt, bool for_input,
-                      struct fmt_spec **formats, size_t *format_cnt) 
+                      struct fmt_spec **formats, size_t *format_cnt)
 {
   assert (var_cnt > 0);
   if (lex_is_number (lexer))
     return fixed_parse_columns (lexer, pool, var_cnt, for_input, formats, format_cnt);
-  else if (lex_match (lexer, '(')) 
+  else if (lex_match (lexer, '('))
     {
       size_t assignment_cnt;
       size_t i;
 
       if (!fixed_parse_fortran (lexer, pool, for_input, formats, format_cnt))
-        return false; 
+        return false;
 
       assignment_cnt = 0;
       for (i = 0; i < *format_cnt; i++)
@@ -112,7 +112,7 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
   if ( !parse_column_range (lexer, &fc, &lc, NULL) )
     return false;
 
-  /* Divide columns evenly. */    
+  /* Divide columns evenly. */
   format.w = (lc - fc + 1) / var_cnt;
   if ((lc - fc + 1) % var_cnt)
     {
@@ -180,7 +180,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
       size_t new_format_cnt;
       size_t count;
       size_t formats_needed;
-      
+
       /* Parse count. */
       if (lex_is_integer (lexer))
 	{
@@ -207,21 +207,21 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
           else
             {
               char type[FMT_TYPE_LEN_MAX + 1];
-              
+
               if (!parse_abstract_format_specifier (lexer, type, &f.w, &f.d))
                 return false;
 
-              if (!strcasecmp (type, "T")) 
+              if (!strcasecmp (type, "T"))
                 f.type = PRS_TYPE_T;
-              else if (!strcasecmp (type, "X")) 
+              else if (!strcasecmp (type, "X"))
                 {
                   f.type = PRS_TYPE_X;
                   f.w = count;
                   count = 1;
                 }
-              else 
+              else
                 {
-                  if (!fmt_from_name (type, &f.type)) 
+                  if (!fmt_from_name (type, &f.type))
                     {
                       msg (SE, _("Unknown format type \"%s\"."), type);
                       return false;
@@ -229,7 +229,7 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
                   if (!fmt_check (&f, for_input))
                     return false;
                 }
-            } 
+            }
         }
 
       /* Add COUNT copies of the NEW_FORMAT_CNT formats in
@@ -240,13 +240,13 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
                                       sizeof *formats)))
         xalloc_die ();
       formats_needed = count * new_format_cnt;
-      if (formats_used + formats_needed > formats_allocated) 
+      if (formats_used + formats_needed > formats_allocated)
         {
           formats_allocated = formats_used + formats_needed;
           *formats = pool_2nrealloc (pool, *formats, &formats_allocated,
                                      sizeof **formats);
         }
-      for (; count > 0; count--) 
+      for (; count > 0; count--)
         {
           memcpy (&(*formats)[formats_used], new_formats,
                   sizeof **formats * new_format_cnt);
@@ -266,18 +266,18 @@ fixed_parse_fortran (struct lexer *lexer, struct pool *pool, bool for_input,
    without any side effects. */
 bool
 execute_placement_format (const struct fmt_spec *format,
-                          int *record, int *column) 
+                          int *record, int *column)
 {
-  switch (format->type) 
+  switch (format->type)
     {
     case PRS_TYPE_X:
       *column += format->w;
       return true;
-      
+
     case PRS_TYPE_T:
       *column = format->w;
       return true;
-      
+
     case PRS_TYPE_NEW_REC:
       (*record)++;
       *column = 1;
@@ -299,7 +299,7 @@ execute_placement_format (const struct fmt_spec *format,
    specified did not make sense. */
 bool
 parse_column_range (struct lexer *lexer, int *first_column, int *last_column,
-                    bool *range_specified) 
+                    bool *range_specified)
 {
   /* First column. */
   if (!lex_force_int (lexer))
@@ -335,7 +335,7 @@ parse_column_range (struct lexer *lexer, int *first_column, int *last_column,
         *range_specified = true;
       lex_get (lexer);
     }
-  else 
+  else
     {
       *last_column = *first_column;
       if (range_specified)
@@ -353,7 +353,7 @@ parse_column_range (struct lexer *lexer, int *first_column, int *last_column,
 
    Returns true if successful, false on syntax error. */
 bool
-parse_record_placement (struct lexer *lexer, int *record, int *column) 
+parse_record_placement (struct lexer *lexer, int *record, int *column)
 {
   while (lex_match (lexer, '/'))
     {
@@ -376,6 +376,6 @@ parse_record_placement (struct lexer *lexer, int *record, int *column)
       *column = 1;
     }
   assert (*record >= 1);
-  
+
   return true;
 }

@@ -152,14 +152,14 @@ static void *
 xmalloc (size_t size)
 {
   void *vp;
-  
+
   if (size == 0)
     return NULL;
-  
+
   vp = malloc (size);
   if (!vp)
     fail ("xmalloc(%lu): %s", (unsigned long) size, VME);
-  
+
   return vp;
 }
 
@@ -173,11 +173,11 @@ xstrdup (const char *s)
 
   assert (s != NULL);
   size = strlen (s) + 1;
-  
+
   t = malloc (size);
   if (!t)
     fail ("xstrdup(%lu): %s", (unsigned long) strlen (s), VME);
-    
+
   memcpy (t, s, size);
   return t;
 }
@@ -192,22 +192,22 @@ get_buffer (void)
 
   if (++cb >= 8)
     cb = 0;
-  
+
   return b[cb];
 }
-   
+
 /* Copies a string to a static buffer, converting it to lowercase in
    the process, and returns a pointer to the static buffer. */
 static char *
 st_lower (const char *s)
 {
   char *p, *cp;
-  
+
   p = cp = get_buffer ();
   while (*s)
     *cp++ = tolower ((unsigned char) (*s++));
   *cp++ = '\0';
-  
+
   return p;
 }
 
@@ -222,7 +222,7 @@ st_upper (const char *s)
   while (*s)
     *cp++ = toupper ((unsigned char) (*s++));
   *cp++ = '\0';
-  
+
   return p;
 }
 
@@ -339,7 +339,7 @@ find_symbol (int x)
   return iter;
 }
 
-#if DUMP_TOKENS 
+#if DUMP_TOKENS
 /* Writes a printable representation of the current token to
    stdout. */
 static void
@@ -369,11 +369,11 @@ lex_get (void)
       cp = skip_ws (cp);
       if (*cp != '\0')
 	break;
-      
+
       if (!get_line ())
 	fail ("%s: Unexpected end of file.", ifn);
     }
-  
+
   if (*cp == '"')
     {
       char *dest = tokstr;
@@ -406,11 +406,11 @@ lex_get (void)
     }
   else
     token = *cp++;
-  
+
 #if DUMP_TOKENS
   dump_token ();
 #endif
-  
+
   return token;
 }
 
@@ -512,7 +512,7 @@ struct specifier
 
     setting *def;	/* Default setting. */
     setting *omit_kw;	/* Setting for which the keyword can be omitted. */
-    
+
     int index;		/* Next array index. */
   };
 
@@ -551,7 +551,7 @@ struct subcommand
     int narray;			/* Index of next array element. */
     const char *prefix;		/* Prefix for variable and constant names. */
     specifier *spec;		/* Array of specifiers. */
-    
+
     /* SBC_STRING and SBC_INT only. */
     char *restriction;		/* Expression restricting string length. */
     char *message;		/* Error message. */
@@ -602,7 +602,7 @@ static void
 parse_setting (setting *s, specifier *spec)
 {
   s->parent = spec;
-  
+
   if (match_token ('*'))
     {
       if (spec->omit_kw)
@@ -610,7 +610,7 @@ parse_setting (setting *s, specifier *spec)
       else
 	spec->omit_kw = s;
     }
-  
+
   if (match_token ('!'))
     {
       if (spec->def)
@@ -618,7 +618,7 @@ parse_setting (setting *s, specifier *spec)
       else
 	spec->def = s;
     }
-  
+
   force_id ();
   s->specname = xstrdup (tokstr);
   s->con = add_symbol (s->specname, 0, 0);
@@ -638,7 +638,7 @@ parse_setting (setting *s, specifier *spec)
 	s->valtype = VT_PLAIN;
 
       s->optvalue = match_token ('*');
-      
+
       if (match_id ("N"))
 	s->value = VAL_INT;
       else if (match_id ("D"))
@@ -647,13 +647,13 @@ parse_setting (setting *s, specifier *spec)
         s->value = VAL_STRING;
       else
 	error ("`n', `d', or `s' expected.");
-      
+
       skip_token (':');
-      
+
       force_id ();
       s->valname = xstrdup (tokstr);
       lex_get ();
-      
+
       if (token == ',')
 	{
 	  lex_get ();
@@ -663,7 +663,7 @@ parse_setting (setting *s, specifier *spec)
 	}
       else
 	s->restriction = NULL;
-      
+
       if (s->valtype == VT_PAREN)
 	skip_token (')');
     }
@@ -685,7 +685,7 @@ parse_specifier (specifier *spec, subcommand *sbc)
       spec->varname = xstrdup (st_lower (tokstr));
       lex_get ();
     }
-  
+
   /* Handle array elements. */
   if (token != ':')
     {
@@ -701,20 +701,20 @@ parse_specifier (specifier *spec, subcommand *sbc)
       return;
     }
   skip_token (':');
-  
-  if ( sbc->type == SBC_ARRAY && token == T_ID ) 
+
+  if ( sbc->type == SBC_ARRAY && token == T_ID )
     {
 	spec->varname = xstrdup (st_lower (tokstr));
 	spec->index = sbc->narray;
 	sbc->narray++;
     }
-    
-  
-  
+
+
+
   /* Parse all the settings. */
   {
     setting **s = &spec->s;
-    
+
     for (;;)
       {
 	*s = xmalloc (sizeof **s);
@@ -739,7 +739,7 @@ parse_specifiers (subcommand *sbc)
       *spec = NULL;
       return;
     }
-  
+
   for (;;)
     {
       *spec = xmalloc (sizeof **spec);
@@ -773,7 +773,7 @@ parse_subcommand (subcommand *sbc)
   force_id ();
   sbc->name = xstrdup (tokstr);
   lex_get ();
-  
+
   sbc->narray = 0;
   sbc->type = SBC_PLAIN;
   sbc->spec = NULL;
@@ -784,10 +784,10 @@ parse_subcommand (subcommand *sbc)
       force_id ();
       sbc->prefix = xstrdup (st_lower (tokstr));
       lex_get ();
-      
+
       skip_token (']');
       skip_token ('=');
-      
+
       sbc->type = SBC_ARRAY;
       parse_specifiers (sbc);
 
@@ -799,12 +799,12 @@ parse_subcommand (subcommand *sbc)
 	  force_id ();
 	  sbc->prefix = xstrdup (st_lower (tokstr));
 	  lex_get ();
-	  
+
 	  skip_token (')');
 	}
       else
 	sbc->prefix = "";
-      
+
       skip_token ('=');
 
       if (match_id ("VAR"))
@@ -816,7 +816,7 @@ parse_subcommand (subcommand *sbc)
 	      force_string ();
 	      sbc->message = xstrdup (tokstr);
 	      lex_get();
-	      
+
 	      skip_token (')');
 	    }
 	  else sbc->message = NULL;
@@ -826,7 +826,7 @@ parse_subcommand (subcommand *sbc)
       else if (match_id ("INTEGER"))
        {
 	sbc->type = match_id ("LIST") ? SBC_INT_LIST : SBC_INT;
-        if ( token == T_STRING) 
+        if ( token == T_STRING)
          {
 	      sbc->restriction = xstrdup (tokstr);
 	      lex_get ();
@@ -882,7 +882,7 @@ void
 parse_subcommands (void)
 {
   subcommand **sbc = &subcommands;
-  
+
   for (;;)
     {
       *sbc = xmalloc (sizeof **sbc);
@@ -925,7 +925,7 @@ dump (int indention, const char *format, ...)
 
   if (indention < 0)
     indent += BASE_INDENT * indention;
-  
+
   oln++;
   va_start (args, format);
   for (i = 0; i < indent; i++)
@@ -945,7 +945,7 @@ dump_specifier_vars (const specifier *spec, const subcommand *sbc)
 {
   if (spec->varname)
     dump (0, "long %s%s;", sbc->prefix, spec->varname);
-  
+
   {
     setting *s;
 
@@ -999,7 +999,7 @@ make_identifier (const char *name)
     else
       *cp++ = '_';
   *cp = '\0';
-  
+
   return p;
 }
 
@@ -1034,7 +1034,7 @@ dump_declarations (void)
 	    buf = xmalloc (1024);
 	  else
 	    dump (0, buf);
-	  
+
 	  if (k)
 	    sprintf (buf, "%s%s,", st_upper (prefix), sym->name);
 	  else
@@ -1071,7 +1071,7 @@ dump_declarations (void)
       if (sbc->type == SBC_ARRAY && sbc->narray)
 	{
 	  dump (0, "/* Array indices for %s subcommand. */", sbc->name);
-	  
+
 	  dump (1, "enum");
 	  dump (1, "{");
 
@@ -1104,7 +1104,7 @@ dump_declarations (void)
 
 	if (sbc != subcommands)
 	  dump (0, nullstr);
-	
+
 	dump (0, "/* %s subcommand. */", sbc->name);
 	dump (0, "int sbc_%s;", st_lower (sbc->name));
 
@@ -1114,7 +1114,7 @@ dump_declarations (void)
 	  case SBC_PLAIN:
 	    {
 	      specifier *spec;
-	    
+
 	      for (spec = sbc->spec; spec; spec = spec->next)
 		{
 		  if (spec->s == 0)
@@ -1124,8 +1124,8 @@ dump_declarations (void)
 			      spec->varname);
 		      else if (f == 0)
 			{
-			  dump (0, "int a_%s[%s%scount];", 
-				st_lower (sbc->name), 
+			  dump (0, "int a_%s[%s%scount];",
+				st_lower (sbc->name),
 				st_upper (prefix),
 				st_upper (sbc->prefix)
 				);
@@ -1234,7 +1234,7 @@ dump_specifier_init (const specifier *spec, const subcommand *sbc)
 	strcpy (s, "-1");
       dump (0, "p->%s%s = %s;", sbc->prefix, spec->varname, s);
     }
-  
+
   {
     setting *s;
 
@@ -1263,13 +1263,13 @@ dump_vars_init (int persistent)
   /* Loop through all the subcommands. */
   {
     subcommand *sbc;
-    
+
     for (sbc = subcommands; sbc; sbc = sbc->next)
       {
 	int f = 0;
-	
+
 	dump (0, "p->sbc_%s = 0;", st_lower (sbc->name));
-	if ( ! persistent ) 
+	if ( ! persistent )
 	  {
 	    switch (sbc->type)
 	      {
@@ -1297,12 +1297,12 @@ dump_vars_init (int persistent)
 	      case SBC_CUSTOM:
 		/* nothing */
 		break;
-	    
+
 	      case SBC_PLAIN:
 	      case SBC_ARRAY:
 		{
 		  specifier *spec;
-	    
+
 		  for (spec = sbc->spec; spec; spec = spec->next)
 		    if (spec->s == NULL)
 		      {
@@ -1326,7 +1326,7 @@ dump_vars_init (int persistent)
 		dump (0, "p->%sv_%s = NULL;",
 		      st_lower (sbc->prefix), st_lower (sbc->name));
 		break;
-	    
+
 	      case SBC_VAR:
 		dump (0, "p->%sv_%s = NULL;",
 		      st_lower (sbc->prefix), st_lower (sbc->name));
@@ -1364,7 +1364,7 @@ make_match (const char *t)
 
   while (*t == '_')
     t++;
-      
+
   if (is_keyword (t))
     sprintf (s, "lex_match (lexer, T_%s)", t);
   else if (!strcmp (t, "ON") || !strcmp (t, "YES"))
@@ -1377,7 +1377,7 @@ make_match (const char *t)
     sprintf (s, "lex_match_int (lexer, %s)", t);
   else
     sprintf (s, "lex_match_id (lexer, \"%s\")", t);
-  
+
   return s;
 }
 
@@ -1394,7 +1394,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
   if (spec->omit_kw && spec->omit_kw->parent->next)
     error ("Default specifier is not in last specifier in `%s' "
 	   "subcommand.", sbc->name);
-  
+
   for (s = spec->s; s; s = s->next)
     {
       int first = spec == sbc->spec && s == spec->s;
@@ -1422,13 +1422,13 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	{
 	  if (spec->omit_kw != s)
 	    dump (1, "{");
-	  
+
 	  if (spec->varname)
 	    {
 	      dump (0, "p->%s%s = %s%s;", sbc->prefix, spec->varname,
 		    st_upper (prefix), find_symbol (s->con)->name);
 
-	      if ( sbc->type == SBC_ARRAY ) 
+	      if ( sbc->type == SBC_ARRAY )
 		dump (0, "p->a_%s[%s%s%s] = 1;",
 		      st_lower (sbc->name),
 		      st_upper (prefix), st_upper (sbc->prefix),
@@ -1480,7 +1480,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      dump (-1, "p->%s%s = lex_tokval (lexer);", sbc->prefix,
 		    st_lower (s->valname));
 	    }
-          else if (s->value == VAL_STRING) 
+          else if (s->value == VAL_STRING)
             {
               dump (1, "if (lex_token (lexer) != T_ID "
                     "&& lex_token (lexer) != T_STRING)");
@@ -1496,7 +1496,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
             }
           else
             abort ();
-	  
+
 	  if (s->restriction)
 	    {
 	      {
@@ -1510,7 +1510,7 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 		free (str);
 		free (str2);
 	      }
-	      
+
 	      dump (1, "{");
 	      dump (0, "msg (SE, _(\"Bad argument for %s "
 		    "specifier of %s subcommand.\"));",
@@ -1519,9 +1519,9 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 	      dump (-1, "}");
 	      outdent ();
 	    }
-	  
+
 	  dump (0, "lex_get (lexer);");
-	  
+
 	  if (s->valtype == VT_PAREN)
 	    {
 	      dump (1, "if (!lex_match (lexer, ')'))");
@@ -1538,11 +1538,11 @@ dump_specifier_parse (const specifier *spec, const subcommand *sbc)
 		  outdent ();
 		}
 	    }
-	  
+
 	  if (s != spec->omit_kw)
 	    dump (-1, "}");
 	}
-      
+
       if (s == spec->omit_kw)
 	{
 	  dump (-1, "}");
@@ -1562,7 +1562,7 @@ dump_subcommand (const subcommand *sbc)
 
       dump (1, "while (lex_token (lexer) != '/' && lex_token (lexer) != '.')");
       dump (1, "{");
-      
+
       {
 	specifier *spec;
 
@@ -1587,7 +1587,7 @@ dump_subcommand (const subcommand *sbc)
 	      }
 	  }
       }
-      
+
       {
 	specifier *spec;
 	setting *s;
@@ -1674,7 +1674,7 @@ dump_subcommand (const subcommand *sbc)
     {
       dump (1, "if (!lex_force_num (lexer))");
       dump (0, "goto lossage;");
-      dump (-1, "p->n_%s[p->sbc_%s - 1] = lex_number (lexer);", 
+      dump (-1, "p->n_%s[p->sbc_%s - 1] = lex_number (lexer);",
 	    st_lower (sbc->name), st_lower (sbc->name) );
       dump (0, "lex_get(lexer);");
     }
@@ -1690,9 +1690,9 @@ dump_subcommand (const subcommand *sbc)
        {
 	  char buf[1024];
 	  dump (1, "if (!(%s))", sbc->restriction);
-	  dump (1, "{"); 
+	  dump (1, "{");
           sprintf(buf,sbc->message,sbc->name);
-	  if ( sbc->translatable ) 
+	  if ( sbc->translatable )
 		  dump (0, "msg (SE, gettext(\"%s\"));",buf);
 	  else
 		  dump (0, "msg (SE, \"%s\");",buf);
@@ -1822,7 +1822,7 @@ dump_parser (int persistent)
       dump (-1, "}");
       outdent ();
     }
-  
+
   {
     subcommand *sbc;
 
@@ -1867,7 +1867,7 @@ dump_parser (int persistent)
   outdent ();
 
 
-  
+
   dump (1, "if (!lex_match (lexer, '/'))");
   dump (0, "break;");
   dump (-2, "}");
@@ -1889,7 +1889,7 @@ dump_parser (int persistent)
     for (sbc = subcommands; sbc; sbc = sbc->next)
       {
 
-	if ( sbc->arity == ARITY_ONCE_EXACTLY ) 
+	if ( sbc->arity == ARITY_ONCE_EXACTLY )
 	  {
 	    dump (0, "if ( 0 == p->sbc_%s)", st_lower (sbc->name));
 	    dump (1, "{");
@@ -1935,7 +1935,7 @@ dump_free (int persistent)
   indent = 0;
 
   used = 0;
-  if ( ! persistent ) 
+  if ( ! persistent )
     {
       for (sbc = subcommands; sbc; sbc = sbc->next)
         used = (sbc->type == SBC_STRING
@@ -1948,12 +1948,12 @@ dump_free (int persistent)
 	make_identifier (cmdname), used ? "" : " UNUSED");
   dump (1, "{");
 
-  if ( ! persistent ) 
+  if ( ! persistent )
     {
 
       for (sbc = subcommands; sbc; sbc = sbc->next)
 	{
-	  switch (sbc->type) 
+	  switch (sbc->type)
 	    {
             case SBC_VARLIST:
 	      dump (0, "free (p->v_%s);", st_lower (sbc->name));
@@ -1977,13 +1977,13 @@ dump_free (int persistent)
               {
                 specifier *spec;
                 setting *s;
-	    
+
                 for (spec = sbc->spec; spec; spec = spec->next)
                   for (s = spec->s; s; s = s->next)
                     if (s->value == VAL_STRING)
                       dump (0, "free (p->%s%s);",
                             sbc->prefix, st_lower (s->valname));
-              }              
+              }
 	    default:
 	      break;
 	    }
@@ -2003,7 +2003,7 @@ recognize_directive (void)
 {
   static char directive[16];
   char *sp, *ep;
-  
+
   sp = skip_ws (buf);
   if (strncmp (sp, "/*", 2))
     return NULL;
@@ -2022,7 +2022,7 @@ recognize_directive (void)
   directive[ep - sp] = '\0';
   return directive;
 }
-  
+
 int
 main (int argc, char *argv[])
 {
@@ -2057,7 +2057,7 @@ main (int argc, char *argv[])
 	  dump (0, "%s", buf);
 	  continue;
 	}
-      
+
       dump (0, "#line %d \"%s\"", oln + 1, ofn);
       if (!strcmp (directive, "specification"))
 	{
@@ -2096,12 +2096,12 @@ main (int argc, char *argv[])
       else if (!strcmp (directive, "functions"))
 	{
 	  dump_parser (0);
-	  dump_free (0); 
+	  dump_free (0);
 	}
       else if (!strcmp (directive, "_functions"))
 	{
 	  dump_parser (1);
-	  dump_free (1); 
+	  dump_free (1);
 	}
       else
 	error ("unknown directive `%s'", directive);

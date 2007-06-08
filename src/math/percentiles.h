@@ -27,11 +27,11 @@ struct weighted_value ;
 
 /* The algorithm used to calculate percentiles */
 enum pc_alg {
-  PC_NONE=0, 
-  PC_HAVERAGE, 
-  PC_WAVERAGE, 
-  PC_ROUND, 
-  PC_EMPIRICAL, 
+  PC_NONE=0,
+  PC_HAVERAGE,
+  PC_WAVERAGE,
+  PC_ROUND,
+  PC_EMPIRICAL,
   PC_AEMPIRICAL
 } ;
 
@@ -65,15 +65,15 @@ void ptiles(struct hsh_table *pc_hash,
 
 /* Calculate Tukey's Hinges and the Whiskers for the box plot*/
 void tukey_hinges(const struct weighted_value **wv,
-		  int n_data, 
+		  int n_data,
 		  double w,
 		  double hinges[3]);
 
 
 
 /* Hash utility functions */
-int ptile_compare(const struct percentile *p1, 
-		   const struct percentile *p2, 
+int ptile_compare(const struct percentile *p1,
+		   const struct percentile *p2,
 		   void *aux);
 
 unsigned ptile_hash(const struct percentile *p, void *aux);

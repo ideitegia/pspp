@@ -31,14 +31,14 @@ struct metrics;
  * If EXTREME is non zero, then consider it to be an extreme
  * value
  */
-void  draw_outlier(struct chart *ch, double centreline, 
-	     struct weighted_value **wvp, 
+void  draw_outlier(struct chart *ch, double centreline,
+	     struct weighted_value **wvp,
 	     int idx,
 	     short extreme);
 
 
 void boxplot_draw_boxplot(struct chart *ch,
-		     double box_centre, 
+		     double box_centre,
 		     double box_width,
 		     struct metrics *m,
 		     const char *name);

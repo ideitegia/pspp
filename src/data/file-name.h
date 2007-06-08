@@ -28,7 +28,7 @@ extern const char *config_path;
 
 void fn_init (void);
 
-void fn_interp_vars (struct substring src, 
+void fn_interp_vars (struct substring src,
                      const char *(*getenv) (const char *),
                      struct string *dst);
 char *fn_search_path (const char *base_name, const char *path);

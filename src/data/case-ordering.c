@@ -37,7 +37,7 @@ struct sort_key
   };
 
 /* A set of criteria for ordering cases. */
-struct case_ordering 
+struct case_ordering
   {
     size_t value_cnt;           /* Number of `union value's per case. */
 
@@ -47,7 +47,7 @@ struct case_ordering
   };
 
 struct case_ordering *
-case_ordering_create (const struct dictionary *dict) 
+case_ordering_create (const struct dictionary *dict)
 {
   struct case_ordering *co = xmalloc (sizeof *co);
   co->value_cnt = dict_get_next_value_idx (dict);
@@ -57,7 +57,7 @@ case_ordering_create (const struct dictionary *dict)
 }
 
 struct case_ordering *
-case_ordering_clone (const struct case_ordering *orig) 
+case_ordering_clone (const struct case_ordering *orig)
 {
   struct case_ordering *co = xmalloc (sizeof *co);
   co->value_cnt = orig->value_cnt;
@@ -67,9 +67,9 @@ case_ordering_clone (const struct case_ordering *orig)
 }
 
 void
-case_ordering_destroy (struct case_ordering *co) 
+case_ordering_destroy (struct case_ordering *co)
 {
-  if (co != NULL) 
+  if (co != NULL)
     {
       free (co->keys);
       free (co);
@@ -77,24 +77,24 @@ case_ordering_destroy (struct case_ordering *co)
 }
 
 size_t
-case_ordering_get_value_cnt (const struct case_ordering *co) 
+case_ordering_get_value_cnt (const struct case_ordering *co)
 {
   return co->value_cnt;
 }
 
 int
 case_ordering_compare_cases (const struct ccase *a, const struct ccase *b,
-                             const struct case_ordering *co) 
+                             const struct case_ordering *co)
 {
   size_t i;
-  
-  for (i = 0; i < co->key_cnt; i++) 
+
+  for (i = 0; i < co->key_cnt; i++)
     {
       const struct sort_key *key = &co->keys[i];
       int width = var_get_width (key->var);
       int cmp;
-      
-      if (width == 0) 
+
+      if (width == 0)
         {
           double af = case_num (a, key->var);
           double bf = case_num (b, key->var);
@@ -102,7 +102,7 @@ case_ordering_compare_cases (const struct ccase *a, const struct ccase *b,
             continue;
           cmp = af > bf ? 1 : -1;
         }
-      else 
+      else
         {
           const char *as = case_str (a, key->var);
           const char *bs = case_str (b, key->var);
@@ -118,7 +118,7 @@ case_ordering_compare_cases (const struct ccase *a, const struct ccase *b,
 
 bool
 case_ordering_add_var (struct case_ordering *co,
-                       const struct variable *var, enum sort_direction dir) 
+                       const struct variable *var, enum sort_direction dir)
 {
   struct sort_key *key;
   size_t i;
@@ -135,20 +135,20 @@ case_ordering_add_var (struct case_ordering *co,
 }
 
 size_t
-case_ordering_get_var_cnt (const struct case_ordering *co) 
+case_ordering_get_var_cnt (const struct case_ordering *co)
 {
   return co->key_cnt;
 }
 
 const struct variable *
-case_ordering_get_var (const struct case_ordering *co, size_t idx) 
+case_ordering_get_var (const struct case_ordering *co, size_t idx)
 {
   assert (idx < co->key_cnt);
   return co->keys[idx].var;
 }
 
 enum sort_direction
-case_ordering_get_direction (const struct case_ordering *co, size_t idx) 
+case_ordering_get_direction (const struct case_ordering *co, size_t idx)
 {
   assert (idx < co->key_cnt);
   return co->keys[idx].dir;
@@ -156,10 +156,10 @@ case_ordering_get_direction (const struct case_ordering *co, size_t idx)
 
 void
 case_ordering_get_vars (const struct case_ordering *co,
-                        const struct variable ***vars, size_t *var_cnt) 
+                        const struct variable ***vars, size_t *var_cnt)
 {
   size_t i;
-  
+
   *var_cnt = co->key_cnt;
   *vars = xnmalloc (*var_cnt, sizeof **vars);
   for (i = 0; i < co->key_cnt; i++)

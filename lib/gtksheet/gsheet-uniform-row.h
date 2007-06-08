@@ -47,7 +47,7 @@ extern "C" {
   {
     GObjectClass parent_class;
   };
-  
+
   /* create a new row */
   GObject * g_sheet_uniform_row_new (gint height, gint n_rows);
 

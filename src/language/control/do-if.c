@@ -45,7 +45,7 @@
 
    So, the following code:
 
-       DO IF a.             
+       DO IF a.
        ...block 1...
        ELSE IF b.
        ...block 2...
@@ -66,7 +66,7 @@
 */
 
 /* A conditional clause. */
-struct clause 
+struct clause
   {
     struct expression *condition; /* Test expression; NULL for ELSE clause. */
     int target_index;           /* Transformation to jump to if true. */
@@ -155,8 +155,8 @@ static void
 close_do_if (void *do_if_)
 {
   struct do_if_trns *do_if = do_if_;
-  
-  if (!has_else (do_if)) 
+
+  if (!has_else (do_if))
     add_else (do_if);
   do_if->past_END_IF_index = next_transformation (do_if->ds);
 }
@@ -164,7 +164,7 @@ close_do_if (void *do_if_)
 /* Adds an ELSE clause to DO_IF pointing to the next
    transformation. */
 static void
-add_else (struct do_if_trns *do_if) 
+add_else (struct do_if_trns *do_if)
 {
   assert (!has_else (do_if));
   add_clause (do_if, NULL, next_transformation (do_if->ds));
@@ -173,7 +173,7 @@ add_else (struct do_if_trns *do_if)
 /* Returns true if DO_IF does not yet have an ELSE clause.
    Reports an error and returns false if it does already. */
 static bool
-must_not_have_else (struct do_if_trns *do_if) 
+must_not_have_else (struct do_if_trns *do_if)
 {
   if (has_else (do_if))
     {
@@ -187,7 +187,7 @@ must_not_have_else (struct do_if_trns *do_if)
 /* Returns true if DO_IF already has an ELSE clause,
    false otherwise. */
 static bool
-has_else (struct do_if_trns *do_if) 
+has_else (struct do_if_trns *do_if)
 {
   return (do_if->clause_cnt != 0
           && do_if->clauses[do_if->clause_cnt - 1].condition == NULL);
@@ -214,7 +214,7 @@ parse_clause (struct lexer *lexer, struct do_if_trns *do_if, struct dataset *ds)
    if true, jumps to TARGET_INDEX. */
 static void
 add_clause (struct do_if_trns *do_if,
-            struct expression *condition, int target_index) 
+            struct expression *condition, int target_index)
 {
   struct clause *clause;
 
@@ -229,9 +229,9 @@ add_clause (struct do_if_trns *do_if,
 }
 
 /* Finalizes DO IF by clearing the control stack, thus ensuring
-   that all open DO IFs are closed. */ 
+   that all open DO IFs are closed. */
 static void
-do_if_finalize_func (void *do_if_ UNUSED) 
+do_if_finalize_func (void *do_if_ UNUSED)
 {
   /* This will be called multiple times if multiple DO IFs were
      executed, which is slightly unclean, but at least it's
@@ -242,14 +242,14 @@ do_if_finalize_func (void *do_if_ UNUSED)
 /* DO IF transformation procedure.
    Checks each clause and jumps to the appropriate
    transformation. */
-static int 
+static int
 do_if_trns_proc (void *do_if_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
   struct clause *clause;
 
   for (clause = do_if->clauses; clause < do_if->clauses + do_if->clause_cnt;
-       clause++) 
+       clause++)
     {
       if (clause->condition != NULL)
         {
@@ -259,7 +259,7 @@ do_if_trns_proc (void *do_if_, struct ccase *c, casenumber case_num UNUSED)
           else if (boolean == SYSMIS)
             return do_if->past_END_IF_index;
         }
-      else 
+      else
         return clause->target_index;
     }
   return do_if->past_END_IF_index;
@@ -281,7 +281,7 @@ do_if_trns_free (void *do_if_)
 }
 
 /* Breaks out of a DO IF construct. */
-static int 
+static int
 break_trns_proc (void *do_if_, struct ccase *c UNUSED, casenumber case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
@@ -290,7 +290,7 @@ break_trns_proc (void *do_if_, struct ccase *c UNUSED, casenumber case_num UNUSE
 }
 
 /* DO IF control structure class definition. */
-static const struct ctl_class do_if_class = 
+static const struct ctl_class do_if_class =
   {
     "DO IF",
     "END IF",

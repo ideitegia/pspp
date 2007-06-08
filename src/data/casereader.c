@@ -33,7 +33,7 @@
 #include "xalloc.h"
 
 /* A casereader. */
-struct casereader 
+struct casereader
   {
     struct taint *taint;                  /* Corrupted? */
     size_t value_cnt;                     /* Values per case. */
@@ -56,20 +56,20 @@ static void insert_shim (struct casereader *);
    may be cloned in advance with casereader_clone, or
    casereader_peek may be used instead. */
 bool
-casereader_read (struct casereader *reader, struct ccase *c) 
+casereader_read (struct casereader *reader, struct ccase *c)
 {
-  if (reader->case_cnt != 0 && reader->class->read (reader, reader->aux, c)) 
+  if (reader->case_cnt != 0 && reader->class->read (reader, reader->aux, c))
     {
       assert (case_get_value_cnt (c) == reader->value_cnt);
       if (reader->case_cnt != CASENUMBER_MAX)
         reader->case_cnt--;
-      return true; 
+      return true;
     }
-  else 
+  else
     {
       reader->case_cnt = 0;
       case_nullify (c);
-      return false; 
+      return false;
     }
 }
 
@@ -77,10 +77,10 @@ casereader_read (struct casereader *reader, struct ccase *c)
    Returns false if an I/O error was detected on READER, true
    otherwise. */
 bool
-casereader_destroy (struct casereader *reader) 
+casereader_destroy (struct casereader *reader)
 {
   bool ok = true;
-  if (reader != NULL) 
+  if (reader != NULL)
     {
       reader->class->destroy (reader, reader->aux);
       ok = taint_destroy (reader->taint);
@@ -93,7 +93,7 @@ casereader_destroy (struct casereader *reader)
    to read the same sequence of cases in the same order, barring
    I/O errors. */
 struct casereader *
-casereader_clone (const struct casereader *reader_) 
+casereader_clone (const struct casereader *reader_)
 {
   struct casereader *reader = (struct casereader *) reader_;
   struct casereader *clone;
@@ -110,9 +110,9 @@ casereader_clone (const struct casereader *reader_)
    *NEW2 (if NEW2 is non-null), then destroys ORIGINAL. */
 void
 casereader_split (struct casereader *original,
-                  struct casereader **new1, struct casereader **new2) 
+                  struct casereader **new1, struct casereader **new2)
 {
-  if (new1 != NULL && new2 != NULL) 
+  if (new1 != NULL && new2 != NULL)
     {
       *new1 = casereader_rename (original);
       *new2 = casereader_clone (*new1);
@@ -130,7 +130,7 @@ casereader_split (struct casereader *original,
    preventing the original owner from accessing the casereader
    again. */
 struct casereader *
-casereader_rename (struct casereader *reader) 
+casereader_rename (struct casereader *reader)
 {
   struct casereader *new = xmemdup (reader, sizeof *reader);
   free (reader);
@@ -139,9 +139,9 @@ casereader_rename (struct casereader *reader)
 
 /* Exchanges the casereaders referred to by A and B. */
 void
-casereader_swap (struct casereader *a, struct casereader *b) 
+casereader_swap (struct casereader *a, struct casereader *b)
 {
-  if (a != b) 
+  if (a != b)
     {
       struct casereader tmp = *a;
       *a = *b;
@@ -163,7 +163,7 @@ casereader_peek (struct casereader *reader, casenumber idx, struct ccase *c)
         insert_shim (reader);
       if (reader->class->peek (reader, reader->aux, idx, c))
         return true;
-      else if (casereader_error (reader)) 
+      else if (casereader_error (reader))
         reader->case_cnt = 0;
     }
   if (reader->case_cnt > idx)
@@ -176,7 +176,7 @@ casereader_peek (struct casereader *reader, casenumber idx, struct ccase *c)
    occurred on READER, a clone of READER, or on some object on
    which READER's data has a dependency, false otherwise. */
 bool
-casereader_error (const struct casereader *reader) 
+casereader_error (const struct casereader *reader)
 {
   return taint_is_tainted (reader->taint);
 }
@@ -190,7 +190,7 @@ casereader_error (const struct casereader *reader)
    taint_propagate to propagate to the casereader's taint
    structure, which may be obtained via casereader_get_taint. */
 void
-casereader_force_error (struct casereader *reader) 
+casereader_force_error (struct casereader *reader)
 {
   taint_set_taint (reader->taint);
 }
@@ -198,7 +198,7 @@ casereader_force_error (struct casereader *reader)
 /* Returns READER's associate taint object, for use with
    taint_propagate and other taint functions. */
 const struct taint *
-casereader_get_taint (const struct casereader *reader) 
+casereader_get_taint (const struct casereader *reader)
 {
   return reader->taint;
 }
@@ -214,7 +214,7 @@ casereader_get_taint (const struct casereader *reader)
    actual number of cases in such a casereader, use
    casereader_count_cases. */
 casenumber
-casereader_get_case_cnt (struct casereader *reader) 
+casereader_get_case_cnt (struct casereader *reader)
 {
   return reader->case_cnt;
 }
@@ -250,7 +250,7 @@ casereader_count_cases (struct casereader *reader)
 
 /* Returns the number of struct values in each case in READER. */
 size_t
-casereader_get_value_cnt (struct casereader *reader) 
+casereader_get_value_cnt (struct casereader *reader)
 {
   return reader->value_cnt;
 }
@@ -301,7 +301,7 @@ casereader_transfer (struct casereader *reader, struct casewriter *writer)
 struct casereader *
 casereader_create_sequential (const struct taint *taint,
                               size_t value_cnt, casenumber case_cnt,
-                              const struct casereader_class *class, void *aux) 
+                              const struct casereader_class *class, void *aux)
 {
   struct casereader *reader = xmalloc (sizeof *reader);
   reader->taint = taint != NULL ? taint_clone (taint) : taint_create ();
@@ -330,13 +330,13 @@ struct random_reader
 /* Returns the random_reader in which the given heap_node is
    embedded. */
 static struct random_reader *
-random_reader_from_heap_node (const struct heap_node *node) 
+random_reader_from_heap_node (const struct heap_node *node)
 {
   return heap_data (node, struct random_reader, heap_node);
 }
 
 /* Data shared among clones of a random reader. */
-struct random_reader_shared 
+struct random_reader_shared
   {
     struct heap *readers;       /* Heap of struct random_readers. */
     casenumber min_offset;      /* Smallest offset of any random_reader. */
@@ -364,7 +364,7 @@ make_random_reader (struct random_reader_shared *shared, casenumber offset)
 static int
 compare_random_readers_by_offset (const struct heap_node *a_,
                                   const struct heap_node *b_,
-                                  const void *aux UNUSED) 
+                                  const void *aux UNUSED)
 {
   const struct random_reader *a = random_reader_from_heap_node (a_);
   const struct random_reader *b = random_reader_from_heap_node (b_);
@@ -395,7 +395,7 @@ compare_random_readers_by_offset (const struct heap_node *a_,
 struct casereader *
 casereader_create_random (size_t value_cnt, casenumber case_cnt,
                           const struct casereader_random_class *class,
-                          void *aux) 
+                          void *aux)
 {
   struct random_reader_shared *shared = xmalloc (sizeof *shared);
   shared->readers = heap_create (compare_random_readers_by_offset, NULL);
@@ -411,7 +411,7 @@ casereader_create_random (size_t value_cnt, casenumber case_cnt,
    offset in the heap.   */
 static void
 advance_random_reader (struct casereader *reader,
-                       struct random_reader_shared *shared) 
+                       struct random_reader_shared *shared)
 {
   casenumber old, new;
 
@@ -433,27 +433,27 @@ random_reader_read (struct casereader *reader, void *br_, struct ccase *c)
   struct random_reader_shared *shared = br->shared;
 
   if (shared->class->read (reader, shared->aux,
-                           br->offset - shared->min_offset, c)) 
+                           br->offset - shared->min_offset, c))
     {
       br->offset++;
       heap_changed (shared->readers, &br->heap_node);
-      advance_random_reader (reader, shared); 
+      advance_random_reader (reader, shared);
       return true;
     }
   else
-    return false; 
+    return false;
 }
 
 /* struct casereader_class "destroy" function for random
    reader. */
 static void
-random_reader_destroy (struct casereader *reader, void *br_) 
+random_reader_destroy (struct casereader *reader, void *br_)
 {
   struct random_reader *br = br_;
   struct random_reader_shared *shared = br->shared;
 
   heap_delete (shared->readers, &br->heap_node);
-  if (heap_is_empty (shared->readers)) 
+  if (heap_is_empty (shared->readers))
     {
       heap_destroy (shared->readers);
       shared->class->destroy (reader, shared->aux);
@@ -467,7 +467,7 @@ random_reader_destroy (struct casereader *reader, void *br_)
 
 /* struct casereader_class "clone" function for random reader. */
 static struct casereader *
-random_reader_clone (struct casereader *reader, void *br_) 
+random_reader_clone (struct casereader *reader, void *br_)
 {
   struct random_reader *br = br_;
   struct random_reader_shared *shared = br->shared;
@@ -482,7 +482,7 @@ random_reader_clone (struct casereader *reader, void *br_)
 /* struct casereader_class "peek" function for random reader. */
 static bool
 random_reader_peek (struct casereader *reader, void *br_,
-                    casenumber idx, struct ccase *c) 
+                    casenumber idx, struct ccase *c)
 {
   struct random_reader *br = br_;
   struct random_reader_shared *shared = br->shared;
@@ -492,7 +492,7 @@ random_reader_peek (struct casereader *reader, void *br_,
 }
 
 /* Casereader class for random reader. */
-static struct casereader_class random_reader_casereader_class = 
+static struct casereader_class random_reader_casereader_class =
   {
     random_reader_read,
     random_reader_destroy,
@@ -510,7 +510,7 @@ static struct casereader_class random_reader_casereader_class =
    window of cases that spans the positions of the original
    casereader and all of its clones (the "clone set"), from the
    position of the casereader that has read the fewest cases to
-   the position of the casereader that has read the most.  
+   the position of the casereader that has read the most.
 
    Thus, if all of the casereaders in the clone set are at
    approximately the same position, only a few cases are buffered
@@ -525,7 +525,7 @@ static struct casereader_class random_reader_casereader_class =
 
 /* A buffering shim for a non-clonable or non-peekable
    casereader. */
-struct shim 
+struct shim
   {
     struct casewindow *window;          /* Window of buffered cases. */
     struct casereader *subreader;       /* Subordinate casereader. */
@@ -535,7 +535,7 @@ static struct casereader_random_class shim_class;
 
 /* Interposes a buffering shim atop READER. */
 static void
-insert_shim (struct casereader *reader) 
+insert_shim (struct casereader *reader)
 {
   size_t value_cnt = casereader_get_value_cnt (reader);
   casenumber case_cnt = casereader_get_case_cnt (reader);
@@ -554,9 +554,9 @@ insert_shim (struct casereader *reader)
    Return true if successful, false upon reaching the end of B's
    subreader or an I/O error. */
 static bool
-prime_buffer (struct shim *b, casenumber case_cnt) 
+prime_buffer (struct shim *b, casenumber case_cnt)
 {
-  while (casewindow_get_case_cnt (b->window) < case_cnt) 
+  while (casewindow_get_case_cnt (b->window) < case_cnt)
     {
       struct ccase tmp;
       if (!casereader_read (b->subreader, &tmp))
@@ -571,7 +571,7 @@ prime_buffer (struct shim *b, casenumber case_cnt)
    OFFSET is beyond the end of file or upon I/O error. */
 static bool
 shim_read (struct casereader *reader UNUSED, void *b_,
-           casenumber offset, struct ccase *c) 
+           casenumber offset, struct ccase *c)
 {
   struct shim *b = b_;
   return (prime_buffer (b, offset + 1)
@@ -580,7 +580,7 @@ shim_read (struct casereader *reader UNUSED, void *b_,
 
 /* Destroys B. */
 static void
-shim_destroy (struct casereader *reader UNUSED, void *b_) 
+shim_destroy (struct casereader *reader UNUSED, void *b_)
 {
   struct shim *b = b_;
   casewindow_destroy (b->window);
@@ -597,7 +597,7 @@ shim_advance (struct casereader *reader UNUSED, void *b_, casenumber case_cnt)
 }
 
 /* Class for the buffered reader. */
-static struct casereader_random_class shim_class = 
+static struct casereader_random_class shim_class =
   {
     shim_read,
     shim_destroy,

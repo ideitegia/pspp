@@ -43,17 +43,17 @@ static const char *test_name;
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
-check_die (void) 
+check_die (void)
 {
-  exit (EXIT_FAILURE);   
+  exit (EXIT_FAILURE);
 }
 
 /* If OK is not true, prints a message about failure on the
    current source file and the given LINE and terminates. */
 static void
-check_func (bool ok, int line) 
+check_func (bool ok, int line)
 {
-  if (!ok) 
+  if (!ok)
     {
       printf ("Check failed in %s test at %s, line %d\n",
               test_name, __FILE__, line);
@@ -77,9 +77,9 @@ xalloc_die (void)
 
 /* Allocates and returns N bytes of memory. */
 static void *
-xmalloc (size_t n) 
+xmalloc (size_t n)
 {
-  if (n != 0) 
+  if (n != 0)
     {
       void *p = malloc (n);
       if (p == NULL)
@@ -92,7 +92,7 @@ xmalloc (size_t n)
 }
 
 static void *
-xmemdup (const void *p, size_t n) 
+xmemdup (const void *p, size_t n)
 {
   void *q = xmalloc (n);
   memcpy (q, p, n);
@@ -101,7 +101,7 @@ xmemdup (const void *p, size_t n)
 
 /* Allocates and returns N * M bytes of memory. */
 static void *
-xnmalloc (size_t n, size_t m) 
+xnmalloc (size_t n, size_t m)
 {
   if ((size_t) -1 / m <= n)
     xalloc_die ();
@@ -132,7 +132,7 @@ abt_node_to_element (const struct abt_node *node)
    return value.  Verifies that AUX points to aux_data. */
 static int
 compare_elements (const struct abt_node *a_, const struct abt_node *b_,
-                  const void *aux) 
+                  const void *aux)
 {
   const struct element *a = abt_node_to_element (a_);
   const struct element *b = abt_node_to_element (b_);
@@ -147,7 +147,7 @@ static void
 reaugment_elements (struct abt_node *node_,
                     const struct abt_node *left,
                     const struct abt_node *right,
-                    const void *aux) 
+                    const void *aux)
 {
   struct element *node = abt_node_to_element (node_);
 
@@ -162,7 +162,7 @@ reaugment_elements (struct abt_node *node_,
 
 /* Compares A and B and returns a strcmp-type return value. */
 static int
-compare_ints_noaux (const void *a_, const void *b_) 
+compare_ints_noaux (const void *a_, const void *b_)
 {
   const int *a = a_;
   const int *b = b_;
@@ -172,7 +172,7 @@ compare_ints_noaux (const void *a_, const void *b_)
 
 /* Swaps *A and *B. */
 static void
-swap (int *a, int *b) 
+swap (int *a, int *b)
 {
   int t = *a;
   *a = *b;
@@ -203,7 +203,7 @@ next_permutation (int *values, size_t cnt)
   if (cnt > 0)
     {
       size_t i = cnt - 1;
-      while (i != 0) 
+      while (i != 0)
         {
           i--;
           if (values[i] < values[i + 1])
@@ -214,18 +214,18 @@ next_permutation (int *values, size_t cnt)
               swap (values + i, values + j);
               reverse (values + (i + 1), cnt - (i + 1));
               return true;
-            } 
+            }
         }
-      
+
       reverse (values, cnt);
     }
-  
+
   return false;
 }
 
 /* Returns N!. */
 static unsigned int
-factorial (unsigned int n) 
+factorial (unsigned int n)
 {
   unsigned int value = 1;
   while (n > 1)
@@ -242,10 +242,10 @@ random_shuffle (void *array_, size_t cnt, size_t size)
   char *tmp = xmalloc (size);
   size_t i;
 
-  for (i = 0; i < cnt; i++) 
+  for (i = 0; i < cnt; i++)
     {
       size_t j = rand () % (cnt - i) + i;
-      if (i != j) 
+      if (i != j)
         {
           memcpy (tmp, array + j * size, size);
           memcpy (array + j * size, array + i * size, size);
@@ -259,16 +259,16 @@ random_shuffle (void *array_, size_t cnt, size_t size)
 /* Finds and returns the element in ABT that is in the given
    0-based POSITION in in-order. */
 static struct element *
-find_by_position (struct abt *abt, int position) 
+find_by_position (struct abt *abt, int position)
 {
   struct abt_node *p;
-  for (p = abt->root; p != NULL; ) 
+  for (p = abt->root; p != NULL; )
     {
       int p_pos = p->down[0] ? abt_node_to_element (p->down[0])->count : 0;
       if (position == p_pos)
         return abt_node_to_element (p);
       else if (position < p_pos)
-        p = p->down[0]; 
+        p = p->down[0];
       else
         {
           p = p->down[1];
@@ -281,11 +281,11 @@ find_by_position (struct abt *abt, int position)
 /* Checks that all the augmentations are correct in the subtree
    rooted at P.  Returns the number of nodes in the subtree. */
 static int
-check_augmentations (struct abt_node *p_) 
+check_augmentations (struct abt_node *p_)
 {
   if (p_ == NULL)
     return 0;
-  else 
+  else
     {
       struct element *p = abt_node_to_element (p_);
       int left_count = check_augmentations (p->node.down[0]);
@@ -298,9 +298,9 @@ check_augmentations (struct abt_node *p_)
 
 /* Check that the levels are correct in the subtree rooted at P. */
 static void
-check_levels (struct abt_node *p) 
+check_levels (struct abt_node *p)
 {
-  if (p != NULL) 
+  if (p != NULL)
     {
       int i, j;
 
@@ -308,11 +308,11 @@ check_levels (struct abt_node *p)
       check_levels (p->down[1]);
 
       check (p->level >= 1);
-      if (p->level > 1) 
+      if (p->level > 1)
         {
           struct abt_node *q = p->down[1];
           check (q != NULL);
-          check (q->level == p->level || q->level == p->level - 1); 
+          check (q->level == p->level || q->level == p->level - 1);
         }
 
       for (i = 0; i < 2; i++)
@@ -327,7 +327,7 @@ check_levels (struct abt_node *p)
    structure is correct, and that certain operations on ABT
    produce the expected results. */
 static void
-check_abt (struct abt *abt, const int data[], size_t cnt) 
+check_abt (struct abt *abt, const int data[], size_t cnt)
 {
   struct element e;
   size_t i;
@@ -336,12 +336,12 @@ check_abt (struct abt *abt, const int data[], size_t cnt)
   order = xmemdup (data, cnt * sizeof *data);
   qsort (order, cnt, sizeof *order, compare_ints_noaux);
 
-  if (abt->compare != NULL) 
+  if (abt->compare != NULL)
     {
       for (i = 0; i < cnt; i++)
         {
           struct abt_node *p;
-      
+
           e.data = data[i];
           if (rand () % 2)
             p = abt_find (abt, &e.node);
@@ -361,17 +361,17 @@ check_abt (struct abt *abt, const int data[], size_t cnt)
   for (i = 0; i < cnt; i++)
     check (find_by_position (abt, i)->data == order[i]);
 
-  if (cnt == 0) 
+  if (cnt == 0)
     {
       check (abt_first (abt) == NULL);
       check (abt_last (abt) == NULL);
       check (abt_next (abt, NULL) == NULL);
       check (abt_prev (abt, NULL) == NULL);
     }
-  else 
+  else
     {
       struct abt_node *p;
-  
+
       for (p = abt_first (abt), i = 0; i < cnt; p = abt_next (abt, p), i++)
         check (abt_node_to_element (p)->data == order[i]);
       check (p == NULL);
@@ -385,7 +385,7 @@ check_abt (struct abt *abt, const int data[], size_t cnt)
 }
 
 /* Ways that nodes can be inserted. */
-enum insertion_method 
+enum insertion_method
   {
     INSERT,             /* With abt_insert. */
     INSERT_AFTER,       /* With abt_insert_after. */
@@ -395,33 +395,33 @@ enum insertion_method
 /* Inserts INSERT into ABT with the given METHOD. */
 static void
 insert_node (struct abt *abt, struct element *insert,
-             enum insertion_method method) 
+             enum insertion_method method)
 {
-  if (method == INSERT) 
+  if (method == INSERT)
     check (abt_insert (abt, &insert->node) == NULL);
-  else 
+  else
     {
       struct abt_node *p = abt->root;
       int dir = 0;
       if (p != NULL)
-        for (;;) 
+        for (;;)
           {
             dir = insert->data > abt_node_to_element (p)->data;
             if (p->down[dir] == NULL)
               break;
             p = p->down[dir];
           }
-      if (method == INSERT_AFTER) 
+      if (method == INSERT_AFTER)
         {
           if (p != NULL && (dir != 1 || p->down[1] != NULL))
             p = abt_prev (abt, p);
-          abt_insert_after (abt, p, &insert->node); 
+          abt_insert_after (abt, p, &insert->node);
         }
       else
         {
           if (p != NULL && (dir != 0 || p->down[0] != NULL))
             p = abt_next (abt, p);
-          abt_insert_before (abt, p, &insert->node); 
+          abt_insert_before (abt, p, &insert->node);
         }
     }
 }
@@ -436,12 +436,12 @@ static void
 do_test_insert_delete (enum insertion_method method,
                        const int insertions[],
                        const int deletions[],
-                       size_t cnt) 
+                       size_t cnt)
 {
   struct element *elements;
   struct abt abt;
   size_t i;
-  
+
   elements = xnmalloc (cnt, sizeof *elements);
   for (i = 0; i < cnt; i++)
     elements[i].data = i;
@@ -470,7 +470,7 @@ do_test_insert_delete (enum insertion_method method,
 static void
 test_insert_delete (const int insertions[],
                     const int deletions[],
-                    size_t cnt) 
+                    size_t cnt)
 {
   do_test_insert_delete (INSERT, insertions, deletions, cnt);
   do_test_insert_delete (INSERT_AFTER, insertions, deletions, cnt);
@@ -481,12 +481,12 @@ test_insert_delete (const int insertions[],
    removes them in each possible order, up to a specified maximum
    size. */
 static void
-test_insert_any_remove_any (void) 
+test_insert_any_remove_any (void)
 {
   const int max_elems = 5;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *insertions, *deletions;
       unsigned int ins_perm_cnt;
@@ -494,22 +494,22 @@ test_insert_any_remove_any (void)
 
       insertions = xnmalloc (cnt, sizeof *insertions);
       deletions = xnmalloc (cnt, sizeof *deletions);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         insertions[i] = i;
 
       for (ins_perm_cnt = 0;
            ins_perm_cnt == 0 || next_permutation (insertions, cnt);
-           ins_perm_cnt++) 
+           ins_perm_cnt++)
         {
           unsigned int del_perm_cnt;
           int i;
 
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             deletions[i] = i;
 
           for (del_perm_cnt = 0;
                del_perm_cnt == 0 || next_permutation (deletions, cnt);
-               del_perm_cnt++) 
+               del_perm_cnt++)
             test_insert_delete (insertions, deletions, cnt);
 
           check (del_perm_cnt == factorial (cnt));
@@ -525,19 +525,19 @@ test_insert_any_remove_any (void)
    removes them in the same order, up to a specified maximum
    size. */
 static void
-test_insert_any_remove_same (void) 
+test_insert_any_remove_same (void)
 {
   const int max_elems = 7;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *values;
       unsigned int permutation_cnt;
       int i;
 
       values = xnmalloc (cnt, sizeof *values);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         values[i] = i;
 
       for (permutation_cnt = 0;
@@ -554,12 +554,12 @@ test_insert_any_remove_same (void)
    removes them in reverse order, up to a specified maximum
    size. */
 static void
-test_insert_any_remove_reverse (void) 
+test_insert_any_remove_reverse (void)
 {
   const int max_elems = 7;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *insertions, *deletions;
       unsigned int permutation_cnt;
@@ -567,17 +567,17 @@ test_insert_any_remove_reverse (void)
 
       insertions = xnmalloc (cnt, sizeof *insertions);
       deletions = xnmalloc (cnt, sizeof *deletions);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         insertions[i] = i;
 
       for (permutation_cnt = 0;
            permutation_cnt == 0 || next_permutation (insertions, cnt);
-           permutation_cnt++) 
+           permutation_cnt++)
         {
           memcpy (deletions, insertions, sizeof *insertions * cnt);
           reverse (deletions, cnt);
-          
-          test_insert_delete (insertions, deletions, cnt); 
+
+          test_insert_delete (insertions, deletions, cnt);
         }
       check (permutation_cnt == factorial (cnt));
 
@@ -588,13 +588,13 @@ test_insert_any_remove_reverse (void)
 
 /* Inserts and removes values in an ABT in random orders. */
 static void
-test_random_sequence (void) 
+test_random_sequence (void)
 {
   const int max_elems = 128;
   const int max_trials = 8;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt += 2) 
+  for (cnt = 0; cnt <= max_elems; cnt += 2)
     {
       int *insertions, *deletions;
       int trial;
@@ -602,17 +602,17 @@ test_random_sequence (void)
 
       insertions = xnmalloc (cnt, sizeof *insertions);
       deletions = xnmalloc (cnt, sizeof *deletions);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         insertions[i] = i;
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         deletions[i] = i;
 
-      for (trial = 0; trial < max_trials; trial++) 
+      for (trial = 0; trial < max_trials; trial++)
         {
           random_shuffle (insertions, cnt, sizeof *insertions);
           random_shuffle (deletions, cnt, sizeof *deletions);
-      
-          test_insert_delete (insertions, deletions, cnt); 
+
+          test_insert_delete (insertions, deletions, cnt);
         }
 
       free (insertions);
@@ -622,7 +622,7 @@ test_random_sequence (void)
 
 /* Inserts elements into an ABT in ascending order. */
 static void
-test_insert_ordered (void) 
+test_insert_ordered (void)
 {
   const int max_elems = 1024;
   struct element *elements;
@@ -633,7 +633,7 @@ test_insert_ordered (void)
   abt_init (&abt, compare_elements, reaugment_elements, &aux_data);
   elements = xnmalloc (max_elems, sizeof *elements);
   values = xnmalloc (max_elems, sizeof *values);
-  for (i = 0; i < max_elems; i++) 
+  for (i = 0; i < max_elems; i++)
     {
       values[i] = elements[i].data = i;
       check (abt_insert (&abt, &elements[i].node) == NULL);
@@ -646,7 +646,7 @@ test_insert_ordered (void)
 /* Inserts elements into an ABT, then moves the nodes around in
    memory. */
 static void
-test_moved (void) 
+test_moved (void)
 {
   const int max_elems = 128;
   struct element *e[2];
@@ -660,13 +660,13 @@ test_moved (void)
   e[1] = xnmalloc (max_elems, sizeof *e[1]);
   values = xnmalloc (max_elems, sizeof *values);
   cur = 0;
-  for (i = 0; i < max_elems; i++) 
+  for (i = 0; i < max_elems; i++)
     {
       values[i] = e[cur][i].data = i;
       check (abt_insert (&abt, &e[cur][i].node) == NULL);
       check_abt (&abt, values, i + 1);
 
-      for (j = 0; j <= i; j++) 
+      for (j = 0; j <= i; j++)
         {
           e[!cur][j] = e[cur][j];
           abt_moved (&abt, &e[!cur][j].node);
@@ -686,7 +686,7 @@ test_changed (void)
   const int max_elems = 6;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *values, *changed_values;
       struct element *elements;
@@ -696,17 +696,17 @@ test_changed (void)
       values = xnmalloc (cnt, sizeof *values);
       changed_values = xnmalloc (cnt, sizeof *changed_values);
       elements = xnmalloc (cnt, sizeof *elements);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         values[i] = i;
 
       for (permutation_cnt = 0;
            permutation_cnt == 0 || next_permutation (values, cnt);
-           permutation_cnt++) 
+           permutation_cnt++)
         {
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             {
               int j, k;
-              for (j = 0; j <= cnt; j++) 
+              for (j = 0; j <= cnt; j++)
                 {
                   struct abt abt;
                   struct abt_node *changed_retval;
@@ -715,11 +715,11 @@ test_changed (void)
                             &aux_data);
 
                   /* Add to ABT in order. */
-                  for (k = 0; k < cnt; k++) 
+                  for (k = 0; k < cnt; k++)
                     {
                       int n = values[k];
                       elements[n].data = n;
-                      check (abt_insert (&abt, &elements[n].node) == NULL); 
+                      check (abt_insert (&abt, &elements[n].node) == NULL);
                     }
                   check_abt (&abt, values, cnt);
 
@@ -743,7 +743,7 @@ test_changed (void)
                       check_abt (&abt, changed_values, cnt);
                     }
                 }
-            } 
+            }
         }
       check (permutation_cnt == factorial (cnt));
 
@@ -757,7 +757,7 @@ test_changed (void)
 
 /* Runs TEST_FUNCTION and prints a message about NAME. */
 static void
-run_test (void (*test_function) (void), const char *name) 
+run_test (void (*test_function) (void), const char *name)
 {
   test_name = name;
   putchar ('.');
@@ -766,7 +766,7 @@ run_test (void (*test_function) (void), const char *name)
 }
 
 int
-main (void) 
+main (void)
 {
   run_test (test_insert_any_remove_any,
             "insert any order, delete any order");

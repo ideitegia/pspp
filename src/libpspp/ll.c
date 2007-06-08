@@ -36,7 +36,7 @@
 /* Returns the number of nodes in LIST (not counting the null
    node).  Executes in O(n) time in the length of the list. */
 size_t
-ll_count (const struct ll_list *list) 
+ll_count (const struct ll_list *list)
 {
   return ll_count_range (ll_head (list), ll_null (list));
 }
@@ -44,9 +44,9 @@ ll_count (const struct ll_list *list)
 /* Removes R0...R1 from their current list
    and inserts them just before BEFORE. */
 void
-ll_splice (struct ll *before, struct ll *r0, struct ll *r1) 
+ll_splice (struct ll *before, struct ll *r0, struct ll *r1)
 {
-  if (before != r0 && r0 != r1) 
+  if (before != r0 && r0 != r1)
     {
       /* Change exclusive range to inclusive. */
       r1 = ll_prev (r1);
@@ -66,9 +66,9 @@ ll_splice (struct ll *before, struct ll *r0, struct ll *r1)
 /* Exchanges the positions of A and B,
    which may be in the same list or different lists. */
 void
-ll_swap (struct ll *a, struct ll *b) 
+ll_swap (struct ll *a, struct ll *b)
 {
-  if (a != b) 
+  if (a != b)
     {
       if (ll_next (a) != b)
         {
@@ -77,10 +77,10 @@ ll_swap (struct ll *a, struct ll *b)
           ll_insert (b_next, a);
           ll_insert (a_next, b);
         }
-      else 
+      else
         {
           ll_remove (b);
-          ll_insert (a, b); 
+          ll_insert (a, b);
         }
     }
 }
@@ -89,9 +89,9 @@ ll_swap (struct ll *a, struct ll *b)
    which may be in the same list or different lists but must not
    overlap. */
 void
-ll_swap_range (struct ll *a0, struct ll *a1, struct ll *b0, struct ll *b1) 
+ll_swap_range (struct ll *a0, struct ll *a1, struct ll *b0, struct ll *b1)
 {
-  if (a0 == a1 || a1 == b0) 
+  if (a0 == a1 || a1 == b0)
     ll_splice (a0, b0, b1);
   else if (b0 == b1 || b1 == a0)
     ll_splice (b0, a0, a1);
@@ -117,14 +117,14 @@ ll_swap_range (struct ll *a0, struct ll *a1, struct ll *b0, struct ll *b1)
    Returns the number of nodes removed. */
 size_t
 ll_remove_equal (struct ll *r0, struct ll *r1, struct ll *target,
-                 ll_compare_func *compare, void *aux) 
+                 ll_compare_func *compare, void *aux)
 {
   struct ll *x;
   size_t count;
 
   count = 0;
   for (x = r0; x != r1; )
-    if (compare (x, target, aux) == 0) 
+    if (compare (x, target, aux) == 0)
       {
         x = ll_remove (x);
         count++;
@@ -140,14 +140,14 @@ ll_remove_equal (struct ll *r0, struct ll *r1, struct ll *target,
    Returns the number of nodes removed. */
 size_t
 ll_remove_if (struct ll *r0, struct ll *r1,
-              ll_predicate_func *predicate, void *aux) 
+              ll_predicate_func *predicate, void *aux)
 {
   struct ll *x;
   size_t count;
 
   count = 0;
   for (x = r0; x != r1; )
-    if (predicate (x, aux)) 
+    if (predicate (x, aux))
       {
         x = ll_remove (x);
         count++;
@@ -164,10 +164,10 @@ ll_remove_if (struct ll *r0, struct ll *r1,
 struct ll *
 ll_find_equal (const struct ll *r0, const struct ll *r1,
                const struct ll *target,
-               ll_compare_func *compare, void *aux) 
+               ll_compare_func *compare, void *aux)
 {
   const struct ll *x;
-  
+
   for (x = r0; x != r1; x = ll_next (x))
     if (compare (x, target, aux) == 0)
       break;
@@ -180,10 +180,10 @@ ll_find_equal (const struct ll *r0, const struct ll *r1,
    R0...R1. */
 struct ll *
 ll_find_if (const struct ll *r0, const struct ll *r1,
-            ll_predicate_func *predicate, void *aux) 
+            ll_predicate_func *predicate, void *aux)
 {
   const struct ll *x;
-  
+
   for (x = r0; x != r1; x = ll_next (x))
     if (predicate (x, aux))
       break;
@@ -197,13 +197,13 @@ ll_find_if (const struct ll *r0, const struct ll *r1,
    Returns R1 if no pair compares equal. */
 struct ll *
 ll_find_adjacent_equal (const struct ll *r0, const struct ll *r1,
-                        ll_compare_func *compare, void *aux) 
+                        ll_compare_func *compare, void *aux)
 {
   if (r0 != r1)
     {
       const struct ll *x, *y;
 
-      for (x = r0, y = ll_next (x); y != r1; x = y, y = ll_next (y)) 
+      for (x = r0, y = ll_next (x); y != r1; x = y, y = ll_next (y))
         if (compare (x, y, aux) == 0)
           return (struct ll *) x;
     }
@@ -214,13 +214,13 @@ ll_find_adjacent_equal (const struct ll *r0, const struct ll *r1,
 /* Returns the number of nodes in R0...R1.
    Executes in O(n) time in the return value. */
 size_t
-ll_count_range (const struct ll *r0, const struct ll *r1) 
+ll_count_range (const struct ll *r0, const struct ll *r1)
 {
   const struct ll *x;
   size_t count;
 
   count = 0;
-  for (x = r0; x != r1; x = ll_next (x)) 
+  for (x = r0; x != r1; x = ll_next (x))
     count++;
   return count;
 }
@@ -230,7 +230,7 @@ ll_count_range (const struct ll *r0, const struct ll *r1)
 size_t
 ll_count_equal (const struct ll *r0, const struct ll *r1,
                 const struct ll *target,
-                ll_compare_func *compare, void *aux) 
+                ll_compare_func *compare, void *aux)
 {
   const struct ll *x;
   size_t count;
@@ -263,13 +263,13 @@ ll_count_if (const struct ll *r0, const struct ll *r1,
    Returns the first of multiple, equal maxima. */
 struct ll *
 ll_max (const struct ll *r0, const struct ll *r1,
-        ll_compare_func *compare, void *aux) 
+        ll_compare_func *compare, void *aux)
 {
   const struct ll *max = r0;
-  if (r0 != r1) 
+  if (r0 != r1)
     {
       const struct ll *x;
-      
+
       for (x = ll_next (r0); x != r1; x = ll_next (x))
         if (compare (x, max, aux) > 0)
           max = x;
@@ -285,10 +285,10 @@ ll_min (const struct ll *r0, const struct ll *r1,
         ll_compare_func *compare, void *aux)
 {
   const struct ll *min = r0;
-  if (r0 != r1) 
+  if (r0 != r1)
     {
       const struct ll *x;
-      
+
       for (x = ll_next (r0); x != r1; x = ll_next (x))
         if (compare (x, min, aux) < 0)
           min = x;
@@ -302,16 +302,16 @@ ll_min (const struct ll *r0, const struct ll *r1,
    positive if A0...A1 > B0...B1
    according to COMPARE given auxiliary data AUX. */
 int
-ll_lexicographical_compare_3way (const struct ll *a0, const struct ll *a1, 
-                                 const struct ll *b0, const struct ll *b1, 
-                                 ll_compare_func *compare, void *aux) 
+ll_lexicographical_compare_3way (const struct ll *a0, const struct ll *a1,
+                                 const struct ll *b0, const struct ll *b1,
+                                 ll_compare_func *compare, void *aux)
 {
-  for (;;) 
+  for (;;)
     if (b0 == b1)
       return a0 != a1;
     else if (a0 == a1)
       return -1;
-    else 
+    else
       {
         int cmp = compare (a0, b0, aux);
         if (cmp != 0)
@@ -325,7 +325,7 @@ ll_lexicographical_compare_3way (const struct ll *a0, const struct ll *a1,
 /* Calls ACTION with auxiliary data AUX
    for every node in R0...R1 in order. */
 void
-ll_apply (struct ll *r0, struct ll *r1, ll_action_func *action, void *aux) 
+ll_apply (struct ll *r0, struct ll *r1, ll_action_func *action, void *aux)
 {
   struct ll *ll;
 
@@ -335,13 +335,13 @@ ll_apply (struct ll *r0, struct ll *r1, ll_action_func *action, void *aux)
 
 /* Reverses the order of nodes R0...R1. */
 void
-ll_reverse (struct ll *r0, struct ll *r1) 
+ll_reverse (struct ll *r0, struct ll *r1)
 {
-  if (r0 != r1 && ll_next (r0) != r1) 
+  if (r0 != r1 && ll_next (r0) != r1)
     {
       struct ll *ll;
 
-      for (ll = r0; ll != r1; ll = ll->prev) 
+      for (ll = r0; ll != r1; ll = ll->prev)
         {
           struct ll *tmp = ll->next;
           ll->next = ll->prev;
@@ -364,15 +364,15 @@ ll_reverse (struct ll *r0, struct ll *r1)
    COMPARE with auxiliary data AUX is used to compare nodes. */
 bool
 ll_next_permutation (struct ll *r0, struct ll *r1,
-                     ll_compare_func *compare, void *aux) 
+                     ll_compare_func *compare, void *aux)
 {
   if (r0 != r1)
     {
       struct ll *i = ll_prev (r1);
-      while (i != r0) 
+      while (i != r0)
         {
           i = ll_prev (i);
-          if (compare (i, ll_next (i), aux) < 0) 
+          if (compare (i, ll_next (i), aux) < 0)
             {
               struct ll *j;
               for (j = ll_prev (r1); compare (i, j, aux) >= 0; j = ll_prev (j))
@@ -380,12 +380,12 @@ ll_next_permutation (struct ll *r0, struct ll *r1,
               ll_swap (i, j);
               ll_reverse (ll_next (j), r1);
               return true;
-            } 
+            }
         }
-      
+
       ll_reverse (r0, r1);
     }
-  
+
   return false;
 }
 
@@ -399,15 +399,15 @@ ll_next_permutation (struct ll *r0, struct ll *r1,
    COMPARE with auxiliary data AUX is used to compare nodes. */
 bool
 ll_prev_permutation (struct ll *r0, struct ll *r1,
-                     ll_compare_func *compare, void *aux) 
+                     ll_compare_func *compare, void *aux)
 {
   if (r0 != r1)
     {
       struct ll *i = ll_prev (r1);
-      while (i != r0) 
+      while (i != r0)
         {
           i = ll_prev (i);
-          if (compare (i, ll_next (i), aux) > 0) 
+          if (compare (i, ll_next (i), aux) > 0)
             {
               struct ll *j;
               for (j = ll_prev (r1); compare (i, j, aux) <= 0; j = ll_prev (j))
@@ -415,12 +415,12 @@ ll_prev_permutation (struct ll *r0, struct ll *r1,
               ll_swap (i, j);
               ll_reverse (ll_next (j), r1);
               return true;
-            } 
+            }
         }
-      
+
       ll_reverse (r0, r1);
     }
-  
+
   return false;
 }
 
@@ -433,7 +433,7 @@ ll_prev_permutation (struct ll *r0, struct ll *r1,
    order of nodes that compare equal.
    Runs in O(n lg n) time in the number of nodes in the range. */
 void
-ll_sort (struct ll *r0, struct ll *r1, ll_compare_func *compare, void *aux) 
+ll_sort (struct ll *r0, struct ll *r1, ll_compare_func *compare, void *aux)
 {
   struct ll *pre_r0;
   size_t output_run_cnt;
@@ -465,17 +465,17 @@ ll_sort (struct ll *r0, struct ll *r1, ll_compare_func *compare, void *aux)
    order. */
 struct ll *
 ll_find_run (const struct ll *r0, const struct ll *r1,
-             ll_compare_func *compare, void *aux) 
+             ll_compare_func *compare, void *aux)
 {
-  if (r0 != r1) 
+  if (r0 != r1)
     {
-      do 
+      do
         {
           r0 = ll_next (r0);
         }
       while (r0 != r1 && compare (ll_prev (r0), r0, aux) <= 0);
     }
-  
+
   return (struct ll *) r0;
 }
 
@@ -489,14 +489,14 @@ ll_find_run (const struct ll *r0, const struct ll *r1,
    Runs in O(n) time in the total number of nodes in the ranges. */
 struct ll *
 ll_merge (struct ll *a0, struct ll *a1, struct ll *b0, struct ll *b1,
-          ll_compare_func *compare, void *aux) 
+          ll_compare_func *compare, void *aux)
 {
-  if (a0 != a1 && b0 != b1) 
+  if (a0 != a1 && b0 != b1)
     {
       a1 = ll_prev (a1);
       b1 = ll_prev (b1);
-      for (;;) 
-        if (compare (a0, b0, aux) <= 0) 
+      for (;;)
+        if (compare (a0, b0, aux) <= 0)
           {
             if (a0 == a1)
               {
@@ -507,20 +507,20 @@ ll_merge (struct ll *a0, struct ll *a1, struct ll *b0, struct ll *b1,
           }
         else
           {
-            if (b0 != b1) 
+            if (b0 != b1)
               {
                 struct ll *x = b0;
                 b0 = ll_remove (b0);
-                ll_insert (a0, x); 
+                ll_insert (a0, x);
               }
-            else 
+            else
               {
                 ll_splice (a0, b0, ll_next (b0));
                 return ll_next (a1);
               }
-          } 
+          }
     }
-  else 
+  else
     {
       ll_splice (a0, b0, b1);
       return b1;
@@ -531,7 +531,7 @@ ll_merge (struct ll *a0, struct ll *a1, struct ll *b0, struct ll *b1,
    to COMPARE given auxiliary data AUX, false otherwise. */
 bool
 ll_is_sorted (const struct ll *r0, const struct ll *r1,
-              ll_compare_func *compare, void *aux) 
+              ll_compare_func *compare, void *aux)
 {
   return ll_find_run (r0, r1, compare, aux) == r1;
 }
@@ -546,7 +546,7 @@ ll_is_sorted (const struct ll *r0, const struct ll *r1,
    at once. */
 size_t
 ll_unique (struct ll *r0, struct ll *r1, struct ll *dups,
-           ll_compare_func *compare, void *aux) 
+           ll_compare_func *compare, void *aux)
 {
   size_t count = 0;
 
@@ -556,22 +556,22 @@ ll_unique (struct ll *r0, struct ll *r1, struct ll *dups,
       for (;;)
         {
           struct ll *y = ll_next (x);
-          if (y == r1) 
+          if (y == r1)
             {
               count++;
-              break; 
+              break;
             }
 
-          if (compare (x, y, aux) == 0) 
+          if (compare (x, y, aux) == 0)
             {
               ll_remove (y);
-              if (dups != NULL) 
+              if (dups != NULL)
                 ll_insert (dups, y);
             }
-          else 
+          else
             {
               x = y;
-              count++; 
+              count++;
             }
         }
     }
@@ -589,11 +589,11 @@ ll_unique (struct ll *r0, struct ll *r1, struct ll *dups,
    Runs in O(n lg n) time in the number of nodes in the range. */
 void
 ll_sort_unique (struct ll *r0, struct ll *r1, struct ll *dups,
-                ll_compare_func *compare, void *aux) 
+                ll_compare_func *compare, void *aux)
 {
   struct ll *pre_r0 = ll_prev (r0);
   ll_sort (r0, r1, compare, aux);
-  ll_unique (ll_next (pre_r0), r1, dups, compare, aux); 
+  ll_unique (ll_next (pre_r0), r1, dups, compare, aux);
 }
 
 /* Inserts NEW_ELEM in the proper position in R0...R1, which must
@@ -603,7 +603,7 @@ ll_sort_unique (struct ll *r0, struct ll *r1, struct ll *dups,
    Runs in O(n) time in the number of nodes in the range. */
 void
 ll_insert_ordered (struct ll *r0, struct ll *r1, struct ll *new_elem,
-                   ll_compare_func *compare, void *aux) 
+                   ll_compare_func *compare, void *aux)
 {
   struct ll *x;
 
@@ -627,7 +627,7 @@ ll_partition (struct ll *r0, struct ll *r1,
 {
   struct ll *t0, *t1;
 
-  for (;;) 
+  for (;;)
     {
       if (r0 == r1)
         return r0;
@@ -637,7 +637,7 @@ ll_partition (struct ll *r0, struct ll *r1,
       r0 = ll_next (r0);
     }
 
-  for (t0 = r0;; t0 = t1) 
+  for (t0 = r0;; t0 = t1)
     {
       do
         {
@@ -646,12 +646,12 @@ ll_partition (struct ll *r0, struct ll *r1,
             return r0;
         }
       while (!predicate (t0, aux));
-      
+
       t1 = t0;
       do
         {
           t1 = ll_next (t1);
-          if (t1 == r1) 
+          if (t1 == r1)
             {
               ll_splice (r0, t0, t1);
               return r0;
@@ -671,10 +671,10 @@ ll_partition (struct ll *r0, struct ll *r1,
    if PREDICATE is true for every node in R0...R1. */
 struct ll *
 ll_find_partition (const struct ll *r0, const struct ll *r1,
-                   ll_predicate_func *predicate, void *aux) 
+                   ll_predicate_func *predicate, void *aux)
 {
   const struct ll *partition, *x;
-  
+
   for (partition = r0; partition != r1; partition = ll_next (partition))
     if (!predicate (partition, aux))
       break;

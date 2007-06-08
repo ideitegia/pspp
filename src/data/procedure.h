@@ -31,9 +31,9 @@ struct dictionary;
 
 /* Transformations. */
 
-void add_transformation (struct dataset *ds, 
+void add_transformation (struct dataset *ds,
 			 trns_proc_func *, trns_free_func *, void *);
-void add_transformation_with_finalizer (struct dataset *ds, 
+void add_transformation_with_finalizer (struct dataset *ds,
 					trns_finalize_func *,
                                         trns_proc_func *,
                                         trns_free_func *, void *);

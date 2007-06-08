@@ -37,7 +37,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
   double *ns = e->number_stack;
   struct substring *ss = e->string_stack;
 
-  /* Without a dictionary/dataset, the expression can't refer to variables, 
+  /* Without a dictionary/dataset, the expression can't refer to variables,
      and you don't need to specify a case when you evaluate the
      expression.  With a dictionary/dataset, the expression can refer
      to variables, so you must specify a case when you evaluate the
@@ -72,7 +72,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
           return;
 
 #include "evaluate.inc"
-          
+
 	default:
 	  NOT_REACHED ();
 	}
@@ -91,14 +91,14 @@ expr_evaluate_num (struct expression *e, const struct ccase *c, int case_idx)
 
 void
 expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
-                   char *dst, size_t dst_size) 
+                   char *dst, size_t dst_size)
 {
   struct substring s;
 
   assert (e->type == OP_string);
   assert ((dst == NULL) == (dst_size == 0));
   expr_evaluate (e, c, case_idx, &s);
-  
+
   buf_copy_rpad (dst, dst_size, s.string, s.length);
 }
 
@@ -118,7 +118,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
   struct expression *expr;
 
-  for (;;) 
+  for (;;)
     {
       struct dictionary *d = NULL;
       if (lex_match_id (lexer, "NOOPTIMIZE"))
@@ -143,12 +143,12 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           if (lex_is_number (lexer))
             {
               width = 0;
-              fprintf (stderr, "(%s = %.2f)", name, lex_tokval (lexer)); 
+              fprintf (stderr, "(%s = %.2f)", name, lex_tokval (lexer));
             }
-          else if (lex_token (lexer) == T_STRING) 
+          else if (lex_token (lexer) == T_STRING)
             {
               width = ds_length (lex_tokstr (lexer));
-              fprintf (stderr, "(%s = \"%.2s\")", name, ds_cstr (lex_tokstr (lexer))); 
+              fprintf (stderr, "(%s = \"%.2s\")", name, ds_cstr (lex_tokstr (lexer)));
             }
           else
             {
@@ -170,7 +170,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
               goto done;
             }
 
-          if (c == NULL) 
+          if (c == NULL)
             {
               c = xmalloc (sizeof *c);
               case_create (c, dict_get_next_value_idx (d));
@@ -188,16 +188,16 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           if (!lex_force_match (lexer, ')'))
             goto done;
         }
-      else 
+      else
         break;
     }
-  if (lex_token (lexer) != '/') 
+  if (lex_token (lexer) != '/')
     {
       lex_force_match (lexer, '/');
       goto done;
     }
 
-  if ( ds != NULL ) 
+  if ( ds != NULL )
     fprintf(stderr, "; ");
   fprintf (stderr, "%s => ", lex_rest_of_line (lexer));
   lex_get (lexer);
@@ -211,30 +211,30 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
       goto done;
     }
 
-  if (dump_postfix) 
+  if (dump_postfix)
     expr_debug_print_postfix (expr);
-  else 
-    switch (expr->type) 
+  else
+    switch (expr->type)
       {
-      case OP_number: 
+      case OP_number:
         {
           double d = expr_evaluate_num (expr, c, 0);
           if (d == SYSMIS)
             fprintf (stderr, "sysmis\n");
           else
-            fprintf (stderr, "%.2f\n", d); 
-        }
-        break;
-      
-      case OP_boolean: 
-        {
-          double b = expr_evaluate_num (expr, c, 0);
-          fprintf (stderr, "%s\n",
-                   b == SYSMIS ? "sysmis" : b == 0.0 ? "false" : "true"); 
+            fprintf (stderr, "%.2f\n", d);
         }
         break;
 
-      case OP_string: 
+      case OP_boolean:
+        {
+          double b = expr_evaluate_num (expr, c, 0);
+          fprintf (stderr, "%s\n",
+                   b == SYSMIS ? "sysmis" : b == 0.0 ? "false" : "true");
+        }
+        break;
+
+      case OP_string:
         {
           struct substring s;
           expr_evaluate (expr, c, 0, &s);
@@ -242,7 +242,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           fputc ('"', stderr);
           fwrite (s.string, s.length, 1, stderr);
           fputs ("\"\n", stderr);
-          break; 
+          break;
         }
 
       default:
@@ -256,35 +256,35 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
   if (ds)
     destroy_dataset (ds);
 
-  if (c != NULL) 
+  if (c != NULL)
     {
       case_destroy (c);
-      free (c); 
+      free (c);
     }
 
   return retval;
 }
 
 void
-expr_debug_print_postfix (const struct expression *e) 
+expr_debug_print_postfix (const struct expression *e)
 {
   size_t i;
 
-  for (i = 0; i < e->op_cnt; i++) 
+  for (i = 0; i < e->op_cnt; i++)
     {
       union operation_data *op = &e->ops[i];
       if (i > 0)
         putc (' ', stderr);
-      switch (e->op_types[i]) 
+      switch (e->op_types[i])
         {
         case OP_operation:
           if (op->operation == OP_return_number)
             fprintf (stderr, "return_number");
           else if (op->operation == OP_return_string)
             fprintf (stderr, "return_string");
-          else if (is_function (op->operation)) 
+          else if (is_function (op->operation))
             fprintf (stderr, "%s", operations[op->operation].prototype);
-          else if (is_composite (op->operation)) 
+          else if (is_composite (op->operation))
             fprintf (stderr, "%s", operations[op->operation].name);
           else
             fprintf (stderr, "%s:", operations[op->operation].name);
@@ -304,7 +304,7 @@ expr_debug_print_postfix (const struct expression *e)
           {
             char str[FMT_STRING_LEN_MAX + 1];
             fmt_to_string (op->format, str);
-            fprintf (stderr, "f<%s>", str); 
+            fprintf (stderr, "f<%s>", str);
           }
           break;
         case OP_variable:
@@ -318,7 +318,7 @@ expr_debug_print_postfix (const struct expression *e)
           break;
         default:
           NOT_REACHED ();
-        } 
+        }
     }
   fprintf (stderr, "\n");
 }

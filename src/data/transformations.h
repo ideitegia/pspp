@@ -24,7 +24,7 @@
 #include <data/case.h>
 
 /* trns_proc_func return values. */
-enum trns_result 
+enum trns_result
   {
     TRNS_CONTINUE = -1,         /* Continue to next transformation. */
     TRNS_DROP_CASE = -2,        /* Drop this case. */

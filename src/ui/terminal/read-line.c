@@ -51,7 +51,7 @@ static char **dont_complete (const char *, int, int);
 #endif /* HAVE_READLINE */
 
 
-struct readln_source 
+struct readln_source
 {
   struct getl_interface parent ;
 
@@ -75,10 +75,10 @@ readln_initialize (void)
   if (history_file == NULL)
     {
       const char *home_dir = getenv ("HOME");
-      if (home_dir != NULL) 
+      if (home_dir != NULL)
         {
           history_file = xasprintf ("%s/.pspp_history", home_dir);
-          read_history (history_file); 
+          read_history (history_file);
         }
     }
 #endif
@@ -143,7 +143,7 @@ readln_read (struct string *line, enum prompt_style style)
 #if HAVE_READLINE
   char *string;
 #endif
-  
+
   assert (initialised);
 
   reset_msg_count ();
@@ -157,18 +157,18 @@ readln_read (struct string *line, enum prompt_style style)
   string = readline (prompt);
   if (string == NULL)
     return false;
-  else 
+  else
     {
       if (string[0])
         add_history (string);
       ds_assign_cstr (line, string);
       free (string);
-      return true; 
+      return true;
     }
 #else
   fputs (prompt, stdout);
   fflush (stdout);
-  if (ds_read_line (line, stdin)) 
+  if (ds_read_line (line, stdin))
     {
       ds_chomp (line, '\n');
       return true;
@@ -210,16 +210,16 @@ static char *command_generator (const char *text, int state);
 static char **
 complete_command_name (const char *text, int start, int end UNUSED)
 {
-  if (start == 0) 
+  if (start == 0)
     {
       /* Complete command name at start of line. */
-      return rl_completion_matches (text, command_generator); 
+      return rl_completion_matches (text, command_generator);
     }
-  else 
+  else
     {
       /* Otherwise don't do any completion. */
       rl_attempted_completion_over = 1;
-      return NULL; 
+      return NULL;
     }
 }
 
@@ -228,15 +228,15 @@ static char **
 dont_complete (const char *text UNUSED, int start UNUSED, int end UNUSED)
 {
   rl_attempted_completion_over = 1;
-  return NULL; 
+  return NULL;
 }
 
 /* If STATE is 0, returns the first command name matching TEXT.
    Otherwise, returns the next command name matching TEXT.
    Returns a null pointer when no matches are left. */
 static char *
-command_generator (const char *text, int state) 
-{ 
+command_generator (const char *text, int state)
+{
   static const struct command *cmd;
   const char *name;
 

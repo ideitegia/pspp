@@ -85,13 +85,13 @@ struct group_properties
   enum comparison criterion;
 
   /* The width of the independent variable */
-  int indep_width ;  
+  int indep_width ;
 
   union {
-    /* The value of the independent variable at which groups are determined to 
+    /* The value of the independent variable at which groups are determined to
        belong to one group or the other */
     double critical_value;
-    
+
 
     /* The values of the independent variable for each group */
     union value g_value[2];
@@ -106,7 +106,7 @@ static struct group_properties gp ;
 
 /* PAIRS: Number of pairs to be compared ; each pair. */
 static int n_pairs = 0 ;
-struct pair 
+struct pair
 {
   /* The variables comprising the pair */
   const struct variable *v[2];
@@ -177,7 +177,7 @@ void ssbox_populate(struct ssbox *ssb, struct cmd_t_test *cmd);
 /* Submit and destroy a ssbox */
 void ssbox_finalize(struct ssbox *ssb);
 
-/* A function to create, populate and submit the Paired Samples Correlation 
+/* A function to create, populate and submit the Paired Samples Correlation
    box */
 void pscbox(void);
 
@@ -207,13 +207,13 @@ void trbox_finalize(struct trbox *trb);
 /* Which mode was T-TEST invoked */
 enum {
   T_1_SAMPLE = 0 ,
-  T_IND_SAMPLES, 
+  T_IND_SAMPLES,
   T_PAIRED
 };
 
 
-static int common_calc (const struct dictionary *dict, 
-			const struct ccase *, void *, 
+static int common_calc (const struct dictionary *dict,
+			const struct ccase *, void *,
 			enum mv_class);
 static void common_precalc (struct cmd_t_test *);
 static void common_postcalc (struct cmd_t_test *);
@@ -222,13 +222,13 @@ static int one_sample_calc (const struct dictionary *dict, const struct ccase *,
 static void one_sample_precalc (struct cmd_t_test *);
 static void one_sample_postcalc (struct cmd_t_test *);
 
-static int  paired_calc (const struct dictionary *dict, const struct ccase *, 
+static int  paired_calc (const struct dictionary *dict, const struct ccase *,
 			 struct cmd_t_test*, enum mv_class);
 static void paired_precalc (struct cmd_t_test *);
 static void paired_postcalc (struct cmd_t_test *);
 
 static void group_precalc (struct cmd_t_test *);
-static int  group_calc (const struct dictionary *dict, const struct ccase *, 
+static int  group_calc (const struct dictionary *dict, const struct ccase *,
 			struct cmd_t_test *, enum mv_class);
 static void group_postcalc (struct cmd_t_test *);
 
@@ -244,12 +244,12 @@ static struct cmd_t_test cmd;
 static bool bad_weight_warn = false;
 
 
-static int compare_group_binary(const struct group_statistics *a, 
-				const struct group_statistics *b, 
+static int compare_group_binary(const struct group_statistics *a,
+				const struct group_statistics *b,
 				const struct group_properties *p);
 
 
-static unsigned  hash_group_binary(const struct group_statistics *g, 
+static unsigned  hash_group_binary(const struct group_statistics *g,
 				   const struct group_properties *p);
 
 
@@ -260,7 +260,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
   struct casegrouper *grouper;
   struct casereader *group;
   bool ok;
-  
+
   if ( !parse_t_test (lexer, ds, &cmd, NULL) )
     return CMD_FAILURE;
 
@@ -275,7 +275,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 
     if ( m != 1)
       {
-	msg(SE, 
+	msg(SE,
 	    _("TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive.")
 	    );
         free_t_test(&cmd);
@@ -283,16 +283,16 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
       }
   }
 
-  if (cmd.sbc_testval) 
+  if (cmd.sbc_testval)
     mode=T_1_SAMPLE;
   else if (cmd.sbc_groups)
     mode=T_IND_SAMPLES;
   else
     mode=T_PAIRED;
 
-  if ( mode == T_PAIRED) 
+  if ( mode == T_PAIRED)
     {
-      if (cmd.sbc_variables) 
+      if (cmd.sbc_variables)
 	{
 	  msg(SE, _("VARIABLES subcommand is not appropriate with PAIRS"));
           free_t_test(&cmd);
@@ -300,7 +300,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 	}
       else
 	{
-	  /* Iterate through the pairs and put each variable that is a 
+	  /* Iterate through the pairs and put each variable that is a
 	     member of a pair into cmd.v_variables */
 
 	  int i;
@@ -325,12 +325,12 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 	  /* Iterate through the hash */
 	  for (i=0,v = const_hsh_first (hash, &hi);
 	       v != 0;
-	       v = const_hsh_next (hash, &hi) ) 
+	       v = const_hsh_next (hash, &hi) )
 	    cmd.v_variables[i++]=v;
 	  const_hsh_destroy(hash);
 	}
     }
-  else if ( !cmd.sbc_variables) 
+  else if ( !cmd.sbc_variables)
     {
       msg(SE, _("One or more VARIABLES must be specified."));
       free_t_test(&cmd);
@@ -341,7 +341,7 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 
   /* Data pass. */
   grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
-  while (casegrouper_get_next_group (grouper, &group)) 
+  while (casegrouper_get_next_group (grouper, &group))
     calculate (&cmd, group, ds);
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
@@ -350,17 +350,17 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
   free(pairs);
   pairs=0;
 
-  if ( mode == T_IND_SAMPLES) 
+  if ( mode == T_IND_SAMPLES)
     {
       int v;
       /* Destroy any group statistics we created */
-      for (v = 0 ; v < cmd.n_variables ; ++v ) 
+      for (v = 0 ; v < cmd.n_variables ; ++v )
 	{
 	  struct group_proc *grpp = group_proc_get (cmd.v_variables[v]);
 	  hsh_destroy (grpp->group_hash);
 	}
     }
-    
+
   free_t_test(&cmd);
   return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
 }
@@ -394,7 +394,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
 	  gp.v.g_value[1].f = 2;
 
 	  gp.criterion = CMP_EQ;
-	  
+
 	  n_group_values = 2;
 
 	  return 1;
@@ -433,7 +433,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
   if (!lex_force_match (lexer, ')'))
     return 0;
 
-  if ( n_group_values == 2 ) 
+  if ( n_group_values == 2 )
     gp.criterion = CMP_EQ ;
   else
     gp.criterion = CMP_LE ;
@@ -518,7 +518,7 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
   pairs = xnrealloc (pairs, n_pairs + n_pairs_local, sizeof *pairs);
 
   /* Populate the pairs with the appropriate variables */
-  if ( paired ) 
+  if ( paired )
     {
       int i;
 
@@ -534,7 +534,7 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
       int i,j;
       size_t p = n_pairs;
 
-      for(i=0 ; i < n_before_WITH ; ++i ) 
+      for(i=0 ; i < n_before_WITH ; ++i )
 	{
 	  for(j=0 ; j < n_after_WITH ; ++j)
 	    {
@@ -548,8 +548,8 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
     {
       size_t i,j;
       size_t p=n_pairs;
-      
-      for(i=0 ; i < n_vars ; ++i ) 
+
+      for(i=0 ; i < n_vars ; ++i )
 	{
 	  for(j=i+1 ; j < n_vars ; ++j)
 	    {
@@ -596,7 +596,7 @@ void ssbox_base_init(struct ssbox *this, int cols,int rows);
 
 void ssbox_base_finalize(struct ssbox *ssb);
 
-void ssbox_one_sample_init(struct ssbox *this, 
+void ssbox_one_sample_init(struct ssbox *this,
 			   struct cmd_t_test *cmd );
 
 void ssbox_independent_samples_init(struct ssbox *this,
@@ -607,10 +607,10 @@ void ssbox_paired_init(struct ssbox *this,
 
 
 /* Factory to create an ssbox */
-void 
+void
 ssbox_create(struct ssbox *ssb, struct cmd_t_test *cmd, int mode)
 {
-    switch (mode) 
+    switch (mode)
       {
       case T_1_SAMPLE:
 	ssbox_one_sample_init(ssb,cmd);
@@ -645,7 +645,7 @@ ssbox_finalize(struct ssbox *ssb)
 
 
 /* Submit the box and clear up */
-void 
+void
 ssbox_base_finalize(struct ssbox *ssb)
 {
   tab_submit(ssb->t);
@@ -654,14 +654,14 @@ ssbox_base_finalize(struct ssbox *ssb)
 
 
 /* Initialize a ssbox struct */
-void 
+void
 ssbox_base_init(struct ssbox *this, int cols,int rows)
 {
   this->finalize = ssbox_base_finalize;
   this->t = tab_create (cols, rows, 0);
 
   tab_columns (this->t, SOM_COL_DOWN, 1);
-  tab_headers (this->t,0,0,1,0); 
+  tab_headers (this->t,0,0,1,0);
   tab_box (this->t, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols -1, rows -1 );
   tab_hline(this->t, TAL_2,0,cols-1,1);
   tab_dim (this->t, tab_natural_dimensions);
@@ -671,8 +671,8 @@ void  ssbox_one_sample_populate(struct ssbox *ssb,
 			      struct cmd_t_test *cmd);
 
 /* Initialize the one_sample ssbox */
-void 
-ssbox_one_sample_init(struct ssbox *this, 
+void
+ssbox_one_sample_init(struct ssbox *this,
 			   struct cmd_t_test *cmd )
 {
   const int hsize=5;
@@ -693,8 +693,8 @@ void ssbox_independent_samples_populate(struct ssbox *ssb,
 					struct cmd_t_test *cmd);
 
 /* Initialize the independent samples ssbox */
-void 
-ssbox_independent_samples_init(struct ssbox *this, 
+void
+ssbox_independent_samples_init(struct ssbox *this,
 	struct cmd_t_test *cmd)
 {
   int hsize=6;
@@ -714,7 +714,7 @@ ssbox_independent_samples_init(struct ssbox *this,
 
 
 /* Populate the ssbox for independent samples */
-void 
+void
 ssbox_independent_samples_populate(struct ssbox *ssb,
 			      struct cmd_t_test *cmd)
 {
@@ -726,9 +726,9 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 
   char prefix[2][3]={"",""};
 
-  if ( var_is_numeric (indep_var) ) 
+  if ( var_is_numeric (indep_var) )
     {
-      val_lab0 = var_lookup_value_label (indep_var, &gp.v.g_value[0]); 
+      val_lab0 = var_lookup_value_label (indep_var, &gp.v.g_value[0]);
       val_lab1 = var_lookup_value_label (indep_var, &gp.v.g_value[1]);
     }
   else
@@ -737,7 +737,7 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
       val_lab1 = gp.v.g_value[1].s;
     }
 
-  if (gp.criterion == CMP_LE ) 
+  if (gp.criterion == CMP_LE )
     {
       strcpy(prefix[0],"< ");
       strcpy(prefix[1],">=");
@@ -762,31 +762,31 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
                 var_get_name (cmd->v_variables[i]));
 
       if (val_lab0)
-	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
+	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF,
 		  "%s%s", prefix[0], val_lab0);
       else
-	  tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF, 
+	  tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF,
 		    "%s%g", prefix[0], indep_value[0]);
 
 
       if (val_lab1)
-	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF, 
+	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF,
 		  "%s%s", prefix[1], val_lab1);
       else
-	  tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF, 
+	  tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF,
 		    "%s%g", prefix[1], indep_value[1]);
 
 
       /* Fill in the group statistics */
-      for ( count = 0 ; count < 2 ; ++count ) 
+      for ( count = 0 ; count < 2 ; ++count )
 	{
 	  union value search_val;
 
 	  struct group_statistics *gs;
 
-	  if ( gp.criterion == CMP_LE ) 
+	  if ( gp.criterion == CMP_LE )
 	    {
-	      if ( count == 0 ) 
+	      if ( count == 0 )
 		{
 		  /*  less than ( < )  case */
 		  search_val.f = gp.v.critical_value - 1.0;
@@ -818,7 +818,7 @@ void ssbox_paired_populate(struct ssbox *ssb,
 			   struct cmd_t_test *cmd);
 
 /* Initialize the paired values ssbox */
-void 
+void
 ssbox_paired_init(struct ssbox *this, struct cmd_t_test *cmd UNUSED)
 {
   int hsize=6;
@@ -839,7 +839,7 @@ ssbox_paired_init(struct ssbox *this, struct cmd_t_test *cmd UNUSED)
 
 
 /* Populate the ssbox for paired values */
-void 
+void
 ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 {
   int i;
@@ -852,7 +852,7 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 
       tab_text (ssb->t, 0, i*2+1, TAB_LEFT | TAT_PRINTF , _("Pair %d"),i);
 
-      for (j=0 ; j < 2 ; ++j) 
+      for (j=0 ; j < 2 ; ++j)
 	{
 	  struct group_statistics *gs;
 
@@ -874,7 +874,7 @@ ssbox_paired_populate(struct ssbox *ssb,struct cmd_t_test *cmd UNUSED)
 }
 
 /* Populate the one sample ssbox */
-void 
+void
 ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
 {
   int i;
@@ -891,7 +891,7 @@ ssbox_one_sample_populate(struct ssbox *ssb, struct cmd_t_test *cmd)
       tab_float (ssb->t,3, i+1, TAB_RIGHT, gs->std_dev, 8, 2);
       tab_float (ssb->t,4, i+1, TAB_RIGHT, gs->se_mean, 8, 3);
     }
-  
+
 }
 
 
@@ -922,11 +922,11 @@ void trbox_paired_populate(struct trbox *trb,
 
 
 /* Create a trbox according to mode*/
-void 
-trbox_create(struct trbox *trb,   
+void
+trbox_create(struct trbox *trb,
 	     struct cmd_t_test *cmd, int mode)
 {
-    switch (mode) 
+    switch (mode)
       {
       case T_1_SAMPLE:
 	trbox_one_sample_init(trb,cmd);
@@ -943,21 +943,21 @@ trbox_create(struct trbox *trb,
 }
 
 /* Populate a trbox according to cmd */
-void 
+void
 trbox_populate(struct trbox *trb, struct cmd_t_test *cmd)
 {
   trb->populate(trb,cmd);
 }
 
 /* Submit and destroy a trbox */
-void 
+void
 trbox_finalize(struct trbox *trb)
 {
   trb->finalize(trb);
 }
 
 /* Initialize the independent samples trbox */
-void 
+void
 trbox_independent_samples_init(struct trbox *self,
 			   struct cmd_t_test *cmd UNUSED)
 {
@@ -975,7 +975,7 @@ trbox_independent_samples_init(struct trbox *self,
   tab_box(self->t,-1,-1,-1,TAL_1, 2,1,hsize-2,vsize-1);
   tab_hline(self->t,TAL_1, hsize-2,hsize-1,2);
   tab_box(self->t,-1,-1,-1,TAL_1, hsize-2,2,hsize-1,vsize-1);
-  tab_joint_text(self->t, 2, 0, 3, 0, 
+  tab_joint_text(self->t, 2, 0, 3, 0,
 		 TAB_CENTER,_("Levene's Test for Equality of Variances"));
   tab_joint_text(self->t, 4,0,hsize-1,0,
 		 TAB_CENTER,_("t-test for Equality of Means"));
@@ -990,14 +990,14 @@ trbox_independent_samples_init(struct trbox *self,
   tab_text(self->t,9,2, TAB_CENTER | TAT_TITLE,_("Lower"));
   tab_text(self->t,10,2, TAB_CENTER | TAT_TITLE,_("Upper"));
 
-  tab_joint_text(self->t, 9, 1, 10, 1, TAB_CENTER | TAT_PRINTF, 
+  tab_joint_text(self->t, 9, 1, 10, 1, TAB_CENTER | TAT_PRINTF,
 		 _("%g%% Confidence Interval of the Difference"),
 		 cmd->criteria*100.0);
 
 }
 
 /* Populate the independent samples trbox */
-void 
+void
 trbox_independent_samples_populate(struct trbox *self,
 				   struct cmd_t_test *cmd )
 {
@@ -1024,10 +1024,10 @@ trbox_independent_samples_populate(struct trbox *self,
 
       struct group_statistics *gs0 ;
       struct group_statistics *gs1 ;
-	  
+
       union value search_val;
-	  
-      if ( gp.criterion == CMP_LE ) 
+
+      if ( gp.criterion == CMP_LE )
 	search_val.f = gp.v.critical_value - 1.0;
       else
 	search_val = gp.v.g_value[0];
@@ -1035,7 +1035,7 @@ trbox_independent_samples_populate(struct trbox *self,
       gs0 = hsh_find(grp_hash, (void *) &search_val);
       assert(gs0);
 
-      if ( gp.criterion == CMP_LE ) 
+      if ( gp.criterion == CMP_LE )
 	search_val.f = gp.v.critical_value + 1.0;
       else
 	search_val = gp.v.g_value[1];
@@ -1043,7 +1043,7 @@ trbox_independent_samples_populate(struct trbox *self,
       gs1 = hsh_find(grp_hash, (void *) &search_val);
       assert(gs1);
 
-	  
+
       tab_text (self->t, 0, i*2+3, TAB_LEFT, var_get_name (cmd->v_variables[i]));
 
       tab_text (self->t, 1, i*2+3, TAB_LEFT, _("Equal variances assumed"));
@@ -1061,12 +1061,12 @@ trbox_independent_samples_populate(struct trbox *self,
       tab_float (self->t, 5, i*2+3, TAB_RIGHT, df, 10, 0);
 
       pooled_variance = ( (gs0->n )*pow2(gs0->s_std_dev)
-			  + 
-			  (gs1->n )*pow2(gs1->s_std_dev) 
+			  +
+			  (gs1->n )*pow2(gs1->s_std_dev)
 			) / df  ;
 
       t = (gs0->mean - gs1->mean) / sqrt(pooled_variance) ;
-      t /= sqrt((gs0->n + gs1->n)/(gs0->n*gs1->n)); 
+      t /= sqrt((gs0->n + gs1->n)/(gs0->n*gs1->n));
 
       tab_float (self->t, 4, i*2+3, TAB_RIGHT, t, 8, 3);
 
@@ -1087,17 +1087,17 @@ trbox_independent_samples_populate(struct trbox *self,
       q = (1 - cmd->criteria)/2.0;  /* 2-tailed test */
 
       t = gsl_cdf_tdist_Qinv(q,df);
-      tab_float(self->t, 9, i*2+3, TAB_RIGHT, 
-		mean_diff - t * std_err_diff, 8, 3); 
+      tab_float(self->t, 9, i*2+3, TAB_RIGHT,
+		mean_diff - t * std_err_diff, 8, 3);
 
-      tab_float(self->t, 10, i*2+3, TAB_RIGHT, 
-		mean_diff + t * std_err_diff, 8, 3); 
+      tab_float(self->t, 10, i*2+3, TAB_RIGHT,
+		mean_diff + t * std_err_diff, 8, 3);
 
 
       {
 	double se2;
       /* Now for the \sigma_1 != \sigma_2 case */
-      tab_text (self->t, 1, i*2+3+1, 
+      tab_text (self->t, 1, i*2+3+1,
 		TAB_LEFT, _("Equal variances not assumed"));
 
 
@@ -1106,12 +1106,12 @@ trbox_independent_samples_populate(struct trbox *self,
 
       t = mean_diff / sqrt(se2) ;
       tab_float (self->t, 4, i*2+3+1, TAB_RIGHT, t, 8, 3);
-		
-      df = pow2(se2) / ( 
-		       (pow2(pow2(gs0->s_std_dev)/(gs0->n - 1 )) 
+
+      df = pow2(se2) / (
+		       (pow2(pow2(gs0->s_std_dev)/(gs0->n - 1 ))
 			/(gs0->n -1 )
 			)
-		       + 
+		       +
 		       (pow2(pow2(gs1->s_std_dev)/(gs1->n - 1 ))
 			/(gs1->n -1 )
 			)
@@ -1134,18 +1134,18 @@ trbox_independent_samples_populate(struct trbox *self,
       tab_float(self->t, 8, i*2+3+1, TAB_RIGHT, std_err_diff, 8, 3);
 
 
-      tab_float(self->t, 9, i*2+3+1, TAB_RIGHT, 
-		mean_diff - t * std_err_diff, 8, 3); 
+      tab_float(self->t, 9, i*2+3+1, TAB_RIGHT,
+		mean_diff - t * std_err_diff, 8, 3);
 
-      tab_float(self->t, 10, i*2+3+1, TAB_RIGHT, 
-		mean_diff + t * std_err_diff, 8, 3); 
+      tab_float(self->t, 10, i*2+3+1, TAB_RIGHT,
+		mean_diff + t * std_err_diff, 8, 3);
 
       }
     }
 }
 
 /* Initialize the paired samples trbox */
-void 
+void
 trbox_paired_init(struct trbox *self,
 			   struct cmd_t_test *cmd UNUSED)
 {
@@ -1165,7 +1165,7 @@ trbox_paired_init(struct trbox *self,
   tab_hline(self->t,TAL_1,5,6, 2);
   tab_vline(self->t,TAL_GAP,6,0,1);
 
-  tab_joint_text(self->t, 5, 1, 6, 1, TAB_CENTER | TAT_PRINTF, 
+  tab_joint_text(self->t, 5, 1, 6, 1, TAB_CENTER | TAT_PRINTF,
 		 _("%g%% Confidence Interval of the Difference"),
 		 cmd->criteria*100.0);
 
@@ -1180,7 +1180,7 @@ trbox_paired_init(struct trbox *self,
 }
 
 /* Populate the paired samples trbox */
-void 
+void
 trbox_paired_populate(struct trbox *trb,
 			      struct cmd_t_test *cmd UNUSED)
 {
@@ -1194,8 +1194,8 @@ trbox_paired_populate(struct trbox *trb,
       double n = pairs[i].n;
       double t;
       double df = n - 1;
-      
-      tab_text (trb->t, 0, i+3, TAB_LEFT | TAT_PRINTF, _("Pair %d"),i); 
+
+      tab_text (trb->t, 0, i+3, TAB_LEFT | TAT_PRINTF, _("Pair %d"),i);
 
       tab_text (trb->t, 1, i+3, TAB_LEFT | TAT_PRINTF, "%s - %s",
 		var_get_name (pairs[i].v[0]),
@@ -1214,16 +1214,16 @@ trbox_paired_populate(struct trbox *trb,
 
       t = gsl_cdf_tdist_Qinv(q, df);
 
-      tab_float(trb->t, 5, i+3, TAB_RIGHT, 
-		pairs[i].mean_diff - t * se_mean , 8, 4); 
+      tab_float(trb->t, 5, i+3, TAB_RIGHT,
+		pairs[i].mean_diff - t * se_mean , 8, 4);
 
-      tab_float(trb->t, 6, i+3, TAB_RIGHT, 
-		pairs[i].mean_diff + t * se_mean , 8, 4); 
+      tab_float(trb->t, 6, i+3, TAB_RIGHT,
+		pairs[i].mean_diff + t * se_mean , 8, 4);
 
       t = (pairs[i].mean[0] - pairs[i].mean[1])
 	/ sqrt (
 		( pow2 (pairs[i].s_std_dev[0]) + pow2 (pairs[i].s_std_dev[1]) -
-		  2 * pairs[i].correlation * 
+		  2 * pairs[i].correlation *
 		  pairs[i].s_std_dev[0] * pairs[i].s_std_dev[1] )
 		/ (n - 1)
 		);
@@ -1242,7 +1242,7 @@ trbox_paired_populate(struct trbox *trb,
 }
 
 /* Initialize the one sample trbox */
-void 
+void
 trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
 {
   const int hsize=7;
@@ -1255,13 +1255,13 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
   tab_hline(self->t, TAL_1, 1, hsize - 1, 1);
   tab_vline(self->t, TAL_2, 1, 0, vsize - 1);
 
-  tab_joint_text(self->t, 1, 0, hsize-1,0, TAB_CENTER | TAT_PRINTF, 
+  tab_joint_text(self->t, 1, 0, hsize-1,0, TAB_CENTER | TAT_PRINTF,
 		 _("Test Value = %f"), cmd->n_testval[0]);
 
   tab_box(self->t, -1, -1, -1, TAL_1, 1,1,hsize-1,vsize-1);
 
 
-  tab_joint_text(self->t,5,1,6,1,TAB_CENTER  | TAT_PRINTF, 
+  tab_joint_text(self->t,5,1,6,1,TAB_CENTER  | TAT_PRINTF,
 		 _("%g%% Confidence Interval of the Difference"),
 		 cmd->criteria*100.0);
 
@@ -1278,7 +1278,7 @@ trbox_one_sample_init(struct trbox *self, struct cmd_t_test *cmd )
 
 
 /* Populate the one sample trbox */
-void 
+void
 trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 {
   int i;
@@ -1307,7 +1307,7 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
       p = gsl_cdf_tdist_P(t, df);
       q = gsl_cdf_tdist_Q(t, df);
 
-      /* Multiply by 2 to get 2-tailed significance, makeing sure we've got 
+      /* Multiply by 2 to get 2-tailed significance, makeing sure we've got
 	 the correct tail*/
       tab_float (trb->t, 3, i+3, TAB_RIGHT, 2.0*(t>0?q:p), 8,3);
 
@@ -1326,14 +1326,14 @@ trbox_one_sample_populate(struct trbox *trb, struct cmd_t_test *cmd)
 }
 
 /* Base initializer for the generalized trbox */
-void 
+void
 trbox_base_init(struct trbox *self, size_t data_rows, int cols)
 {
   const size_t rows = 3 + data_rows;
 
   self->finalize = trbox_base_finalize;
   self->t = tab_create (cols, rows, 0);
-  tab_headers (self->t,0,0,3,0); 
+  tab_headers (self->t,0,0,3,0);
   tab_box (self->t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols -1, rows -1);
   tab_hline(self->t, TAL_2,0,cols-1,3);
   tab_dim (self->t, tab_natural_dimensions);
@@ -1341,7 +1341,7 @@ trbox_base_init(struct trbox *self, size_t data_rows, int cols)
 
 
 /* Base finalizer for the trbox */
-void 
+void
 trbox_base_finalize(struct trbox *trb)
 {
   tab_submit(trb->t);
@@ -1355,13 +1355,13 @@ pscbox(void)
   const int rows=1+n_pairs;
   const int cols=5;
   int i;
-  
+
   struct tab_table *table;
-  
+
   table = tab_create (cols,rows,0);
 
   tab_columns (table, SOM_COL_DOWN, 1);
-  tab_headers (table,0,0,1,0); 
+  tab_headers (table,0,0,1,0);
   tab_box (table, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols -1, rows -1 );
   tab_hline(table, TAL_2, 0, cols - 1, 1);
   tab_vline(table, TAL_2, 2, 0, rows - 1);
@@ -1379,16 +1379,16 @@ pscbox(void)
 
       double df = pairs[i].n -2;
 
-      double correlation_t = 
+      double correlation_t =
 	pairs[i].correlation * sqrt(df) /
 	sqrt(1 - pow2(pairs[i].correlation));
 
 
       /* row headings */
-      tab_text(table, 0,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF, 
+      tab_text(table, 0,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF,
 	       _("Pair %d"), i);
-      
-      tab_text(table, 1,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF, 
+
+      tab_text(table, 1,i+1, TAB_LEFT | TAT_TITLE | TAT_PRINTF,
 	       _("%s & %s"),
                var_get_name (pairs[i].v[0]),
                var_get_name (pairs[i].v[1]));
@@ -1413,14 +1413,14 @@ pscbox(void)
 /* Calculation Implementation */
 
 /* Per case calculations common to all variants of the T test */
-static int 
-common_calc (const struct dictionary *dict, 
-	     const struct ccase *c, 
-	     void *_cmd, 
+static int
+common_calc (const struct dictionary *dict,
+	     const struct ccase *c,
+	     void *_cmd,
 	     enum mv_class exclude)
 {
   int i;
-  struct cmd_t_test *cmd = (struct cmd_t_test *)_cmd;  
+  struct cmd_t_test *cmd = (struct cmd_t_test *)_cmd;
 
   double weight = dict_get_case_weight (dict, c, NULL);
 
@@ -1432,11 +1432,11 @@ common_calc (const struct dictionary *dict,
 	return 0;
     }
 
-  for(i = 0; i < cmd->n_variables ; ++i) 
+  for(i = 0; i < cmd->n_variables ; ++i)
     {
       const struct variable *v = cmd->v_variables[i];
       const union value *val = case_data (c, v);
-      
+
       if (!var_is_value_missing (v, val, exclude))
 	{
 	  struct group_statistics *gs;
@@ -1451,16 +1451,16 @@ common_calc (const struct dictionary *dict,
 }
 
 /* Pre calculations common to all variants of the T test */
-static void 
+static void
 common_precalc ( struct cmd_t_test *cmd )
 {
   int i=0;
 
-  for(i=0; i< cmd->n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i)
     {
       struct group_statistics *gs;
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
-      
+
       gs->sum=0;
       gs->n=0;
       gs->ssq=0;
@@ -1469,16 +1469,16 @@ common_precalc ( struct cmd_t_test *cmd )
 }
 
 /* Post calculations common to all variants of the T test */
-void 
+void
 common_postcalc (struct cmd_t_test *cmd)
 {
   int i=0;
 
-  for(i=0; i< cmd->n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i)
     {
       struct group_statistics *gs;
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
-      
+
       gs->mean=gs->sum / gs->n;
       gs->s_std_dev= sqrt(
 			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
@@ -1495,9 +1495,9 @@ common_postcalc (struct cmd_t_test *cmd)
 }
 
 /* Per case calculations for one sample t test  */
-static int 
-one_sample_calc (const struct dictionary *dict, 
-		 const struct ccase *c, void *cmd_, 
+static int
+one_sample_calc (const struct dictionary *dict,
+		 const struct ccase *c, void *cmd_,
 		 enum mv_class exclude)
 {
   int i;
@@ -1507,7 +1507,7 @@ one_sample_calc (const struct dictionary *dict,
   double weight = dict_get_case_weight (dict, c, NULL);
 
 
-  for(i=0; i< cmd->n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i)
     {
       struct group_statistics *gs;
       const struct variable *v = cmd->v_variables[i];
@@ -1523,27 +1523,27 @@ one_sample_calc (const struct dictionary *dict,
 }
 
 /* Pre calculations for one sample t test */
-static void 
+static void
 one_sample_precalc ( struct cmd_t_test *cmd )
 {
-  int i=0; 
- 
-  for(i=0; i< cmd->n_variables ; ++i) 
+  int i=0;
+
+  for(i=0; i< cmd->n_variables ; ++i)
     {
       struct group_statistics *gs;
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
-      
+
       gs->sum_diff=0;
     }
 }
 
 /* Post calculations for one sample t test */
-static void 
+static void
 one_sample_postcalc (struct cmd_t_test *cmd)
 {
   int i=0;
-  
-  for(i=0; i< cmd->n_variables ; ++i) 
+
+  for(i=0; i< cmd->n_variables ; ++i)
     {
       struct group_statistics *gs;
       gs= &group_proc_get (cmd->v_variables[i])->ugs;
@@ -1554,7 +1554,7 @@ one_sample_postcalc (struct cmd_t_test *cmd)
 
 
 
-static void 
+static void
 paired_precalc (struct cmd_t_test *cmd UNUSED)
 {
   int i;
@@ -1573,8 +1573,8 @@ paired_precalc (struct cmd_t_test *cmd UNUSED)
 }
 
 
-static int  
-paired_calc (const struct dictionary *dict, const struct ccase *c, 
+static int
+paired_calc (const struct dictionary *dict, const struct ccase *c,
 	     struct cmd_t_test *cmd UNUSED, enum mv_class exclude)
 {
   int i;
@@ -1609,7 +1609,7 @@ paired_calc (const struct dictionary *dict, const struct ccase *c,
   return 0;
 }
 
-static void 
+static void
 paired_postcalc (struct cmd_t_test *cmd UNUSED)
 {
   int i;
@@ -1619,42 +1619,42 @@ paired_postcalc (struct cmd_t_test *cmd UNUSED)
       int j;
       const double n = pairs[i].n;
 
-      for (j=0; j < 2 ; ++j) 
+      for (j=0; j < 2 ; ++j)
 	{
 	  pairs[i].mean[j] = pairs[i].sum[j] / n ;
-	  pairs[i].s_std_dev[j] = sqrt((pairs[i].ssq[j] / n - 
+	  pairs[i].s_std_dev[j] = sqrt((pairs[i].ssq[j] / n -
 					      pow2(pairs[i].mean[j]))
 				     );
 
-	  pairs[i].std_dev[j] = sqrt(n/(n-1)*(pairs[i].ssq[j] / n - 
+	  pairs[i].std_dev[j] = sqrt(n/(n-1)*(pairs[i].ssq[j] / n -
 					      pow2(pairs[i].mean[j]))
 				     );
 	}
-      
-      pairs[i].correlation = pairs[i].sum_of_prod / pairs[i].n - 
+
+      pairs[i].correlation = pairs[i].sum_of_prod / pairs[i].n -
 	pairs[i].mean[0] * pairs[i].mean[1] ;
       /* correlation now actually contains the covariance */
-      
+
       pairs[i].correlation /= pairs[i].std_dev[0] * pairs[i].std_dev[1];
       pairs[i].correlation *= pairs[i].n / ( pairs[i].n - 1 );
-      
+
       pairs[i].mean_diff = pairs[i].sum_of_diffs / n ;
 
       pairs[i].std_dev_diff = sqrt (  n / (n - 1) * (
 				    ( pairs[i].ssq_diffs / n )
-				    - 
+				    -
 				    pow2(pairs[i].mean_diff )
 				    ) );
     }
 }
 
-static void 
+static void
 group_precalc (struct cmd_t_test *cmd )
 {
   int i;
   int j;
 
-  for(i=0; i< cmd->n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i)
     {
       struct group_proc *ttpr = group_proc_get (cmd->v_variables[i]);
 
@@ -1662,8 +1662,8 @@ group_precalc (struct cmd_t_test *cmd )
       ttpr->n_groups = 2;
 
       gp.indep_width = var_get_width (indep_var);
-      
-      ttpr->group_hash = hsh_create(2, 
+
+      ttpr->group_hash = hsh_create(2,
 				    (hsh_compare_func *) compare_group_binary,
 				    (hsh_hash_func *) hash_group_binary,
 				    (hsh_free_func *) free_group,
@@ -1677,19 +1677,19 @@ group_precalc (struct cmd_t_test *cmd )
 	  gs->sum = 0;
 	  gs->n = 0;
 	  gs->ssq = 0;
-	
-	  if ( gp.criterion == CMP_EQ ) 
+
+	  if ( gp.criterion == CMP_EQ )
 	    {
 	      gs->id = gp.v.g_value[j];
 	    }
 	  else
 	    {
-	      if ( j == 0 ) 
+	      if ( j == 0 )
 		gs->id.f = gp.v.critical_value - 1.0 ;
 	      else
 		gs->id.f = gp.v.critical_value + 1.0 ;
 	    }
-	  
+
 	  hsh_insert ( ttpr->group_hash, (void *) gs );
 
 	}
@@ -1697,9 +1697,9 @@ group_precalc (struct cmd_t_test *cmd )
 
 }
 
-static int  
-group_calc (const struct dictionary *dict, 
-	    const struct ccase *c, struct cmd_t_test *cmd, 
+static int
+group_calc (const struct dictionary *dict,
+	    const struct ccase *c, struct cmd_t_test *cmd,
 	    enum mv_class exclude)
 {
   int i;
@@ -1713,7 +1713,7 @@ group_calc (const struct dictionary *dict,
 
   gv = case_data (c, indep_var);
 
-  for(i=0; i< cmd->n_variables ; ++i) 
+  for(i=0; i< cmd->n_variables ; ++i)
     {
       const struct variable *var = cmd->v_variables[i];
       const union value *val = case_data (c, var);
@@ -1722,9 +1722,9 @@ group_calc (const struct dictionary *dict,
 
       gs = hsh_find(grp_hash, (void *) gv);
 
-      /* If the independent variable doesn't match either of the values 
+      /* If the independent variable doesn't match either of the values
          for this case then move on to the next case */
-      if ( ! gs ) 
+      if ( ! gs )
       	return 0;
 
       if (!var_is_value_missing (var, val, exclude))
@@ -1739,12 +1739,12 @@ group_calc (const struct dictionary *dict,
 }
 
 
-static void 
+static void
 group_postcalc ( struct cmd_t_test *cmd )
 {
   int i;
 
-  for (i = 0; i < cmd->n_variables ; ++i) 
+  for (i = 0; i < cmd->n_variables ; ++i)
     {
       const struct variable *var = cmd->v_variables[i];
       struct hsh_table *grp_hash = group_proc_get (var)->group_hash;
@@ -1752,12 +1752,12 @@ group_postcalc ( struct cmd_t_test *cmd )
       struct group_statistics *gs;
       int count=0;
 
-      for (gs =  hsh_first (grp_hash,&g); 
-	   gs != 0; 
+      for (gs =  hsh_first (grp_hash,&g);
+	   gs != 0;
 	   gs = hsh_next(grp_hash,&g))
 	{
 	  gs->mean = gs->sum / gs->n;
-	  
+
 	  gs->s_std_dev= sqrt(
 			      ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
 			      ) ;
@@ -1766,7 +1766,7 @@ group_postcalc ( struct cmd_t_test *cmd )
 			    gs->n/(gs->n-1) *
 			    ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
 			    ) ;
-	  
+
 	  gs->se_mean = gs->std_dev / sqrt(gs->n);
 	  count ++;
 	}
@@ -1795,7 +1795,7 @@ calculate(struct cmd_t_test *cmd,
   output_split_file_values (ds, &c);
   case_destroy (&c);
 
-  if ( cmd->miss == TTS_LISTWISE ) 
+  if ( cmd->miss == TTS_LISTWISE )
     input = casereader_create_filter_missing (input,
                                               cmd->v_variables,
                                               cmd->n_variables,
@@ -1805,9 +1805,9 @@ calculate(struct cmd_t_test *cmd,
 
   taint = taint_clone (casereader_get_taint (input));
   casereader_split (input, &pass1, &pass2);
-				
+
   common_precalc (cmd);
-  for (; casereader_read (pass1, &c); case_destroy (&c)) 
+  for (; casereader_read (pass1, &c); case_destroy (&c))
     common_calc (dict, &c, cmd, exclude);
   casereader_destroy (pass1);
   common_postcalc (cmd);
@@ -1816,13 +1816,13 @@ calculate(struct cmd_t_test *cmd,
     {
     case T_1_SAMPLE:
       one_sample_precalc (cmd);
-      for (; casereader_read (pass2, &c); case_destroy (&c)) 
+      for (; casereader_read (pass2, &c); case_destroy (&c))
         one_sample_calc (dict, &c, cmd, exclude);
       one_sample_postcalc (cmd);
       break;
     case T_PAIRED:
       paired_precalc(cmd);
-      for (; casereader_read (pass2, &c); case_destroy (&c)) 
+      for (; casereader_read (pass2, &c); case_destroy (&c))
         paired_calc (dict, &c, cmd, exclude);
       paired_postcalc (cmd);
       break;
@@ -1830,7 +1830,7 @@ calculate(struct cmd_t_test *cmd,
       pass3 = casereader_clone (pass2);
 
       group_precalc(cmd);
-      for(; casereader_read (pass2, &c); case_destroy (&c)) 
+      for(; casereader_read (pass2, &c); case_destroy (&c))
         group_calc (dict, &c, cmd, exclude);
       group_postcalc(cmd);
 
@@ -1839,16 +1839,16 @@ calculate(struct cmd_t_test *cmd,
       break;
     }
   casereader_destroy (pass2);
- 
-  if (!taint_has_tainted_successor (taint)) 
+
+  if (!taint_has_tainted_successor (taint))
     {
       ssbox_create(&stat_summary_box,cmd,mode);
       ssbox_populate(&stat_summary_box,cmd);
       ssbox_finalize(&stat_summary_box);
 
-      if ( mode == T_PAIRED ) 
+      if ( mode == T_PAIRED )
         pscbox();
-  
+
       trbox_create(&test_results_box,cmd,mode);
       trbox_populate(&test_results_box,cmd);
       trbox_finalize(&test_results_box);
@@ -1858,22 +1858,22 @@ calculate(struct cmd_t_test *cmd,
 short which_group(const struct group_statistics *g,
 		  const struct group_properties *p);
 
-/* Return -1 if the id of a is less than b; +1 if greater than and 
+/* Return -1 if the id of a is less than b; +1 if greater than and
    0 if equal */
-static int 
-compare_group_binary(const struct group_statistics *a, 
-		     const struct group_statistics *b, 
+static int
+compare_group_binary(const struct group_statistics *a,
+		     const struct group_statistics *b,
 		     const struct group_properties *p)
 {
   short flag_a;
   short flag_b;
-  
-  if ( p->criterion == CMP_LE ) 
+
+  if ( p->criterion == CMP_LE )
     {
       /* less-than-or-equal comparision is not meaningfull for
 	 alpha variables, so we shouldn't ever arrive here */
       assert(p->indep_width == 0 ) ;
-      
+
       flag_a = ( a->id.f < p->v.critical_value ) ;
       flag_b = ( b->id.f < p->v.critical_value ) ;
     }
@@ -1883,7 +1883,7 @@ compare_group_binary(const struct group_statistics *a,
       flag_b = which_group(b, p);
     }
 
-  if (flag_a < flag_b ) 
+  if (flag_a < flag_b )
     return -1;
 
   return (flag_a > flag_b);
@@ -1892,19 +1892,19 @@ compare_group_binary(const struct group_statistics *a,
 /* This is a degenerate case of a hash, since it can only return three possible
    values.  It's really a comparison, being used as a hash function */
 
-static unsigned 
-hash_group_binary(const struct group_statistics *g, 
+static unsigned
+hash_group_binary(const struct group_statistics *g,
 		  const struct group_properties *p)
 {
   short flag = -1;
 
-  if ( p->criterion == CMP_LE ) 
+  if ( p->criterion == CMP_LE )
     {
       /* Not meaningfull to do a less than compare for alpha values ? */
       assert(p->indep_width == 0 ) ;
-      flag = ( g->id.f < p->v.critical_value ) ; 
+      flag = ( g->id.f < p->v.critical_value ) ;
     }
-  else if ( p->criterion == CMP_EQ) 
+  else if ( p->criterion == CMP_EQ)
     {
       flag = which_group(g,p);
     }
@@ -1914,14 +1914,14 @@ hash_group_binary(const struct group_statistics *g,
   return flag;
 }
 
-/* return 0 if G belongs to group 0, 
+/* return 0 if G belongs to group 0,
           1 if it belongs to group 1,
 	  2 if it belongs to neither group */
 short
 which_group(const struct group_statistics *g,
 	    const struct group_properties *p)
 {
- 
+
   if ( 0 == compare_values (&g->id, &p->v.g_value[0], p->indep_width))
     return 0;
 
@@ -1930,4 +1930,4 @@ which_group(const struct group_statistics *g,
 
   return 2;
 }
-	    
+

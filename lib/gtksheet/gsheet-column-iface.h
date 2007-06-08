@@ -1,4 +1,4 @@
-/* GSheetColumn --- an abstract model of the column geometry of a 
+/* GSheetColumn --- an abstract model of the column geometry of a
  * GSheet widget.
  * Copyright (C) 2006 Free Software Foundation
  *
@@ -35,7 +35,7 @@ G_BEGIN_DECLS
 #define G_SHEET_COLUMN_GET_IFACE(obj)  (G_TYPE_INSTANCE_GET_INTERFACE ((obj), G_TYPE_SHEET_COLUMN, GSheetColumnIface))
 
 
-typedef struct _GSheetColumn        GSheetColumn; 
+typedef struct _GSheetColumn        GSheetColumn;
 typedef struct _GSheetColumnIface   GSheetColumnIface;
 struct _GSheetColumnIface
 {
@@ -72,11 +72,11 @@ struct _GSheetColumnIface
 
   GtkStateType  (*get_button_state)(const GSheetColumn *geo, gint col);
   gchar * (*get_button_label)(const GSheetColumn *geo, gint col);
-  gboolean      (*get_button_visibility)(const GSheetColumn *geo, 
+  gboolean      (*get_button_visibility)(const GSheetColumn *geo,
 					gint col);
-  const GtkSheetChild * (*get_button_child)(const GSheetColumn *geo, 
+  const GtkSheetChild * (*get_button_child)(const GSheetColumn *geo,
 					   gint col);
-  GtkJustification * (*get_button_justification)(const GSheetColumn *geo, 
+  GtkJustification * (*get_button_justification)(const GSheetColumn *geo,
 						gint col);
 };
 
@@ -123,7 +123,7 @@ inline gint  g_sheet_column_get_column_count(const GSheetColumn *geo);
 
 inline gint  g_sheet_column_start_pixel(const GSheetColumn *geo, gint col);
 
-inline void g_sheet_column_columns_changed(GSheetColumn *geo, 
+inline void g_sheet_column_columns_changed(GSheetColumn *geo,
 					   gint first, gint n_columns);
 
 G_END_DECLS

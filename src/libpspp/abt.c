@@ -54,7 +54,7 @@ void
 abt_init (struct abt *abt,
           abt_compare_func *compare,
           abt_reaugment_func *reaugment,
-          const void *aux) 
+          const void *aux)
 {
   assert (reaugment != NULL);
   abt->root = NULL;
@@ -70,22 +70,22 @@ abt_init (struct abt *abt,
    This function may be used only if ABT has a comparison
    function. */
 struct abt_node *
-abt_insert (struct abt *abt, struct abt_node *node) 
+abt_insert (struct abt *abt, struct abt_node *node)
 {
   node->down[0] = NULL;
   node->down[1] = NULL;
   node->level = 1;
 
-  if (abt->root == NULL) 
+  if (abt->root == NULL)
     {
       abt->root = node;
       node->up = NULL;
       abt_reaugmented (abt, node);
     }
-  else 
+  else
     {
       struct abt_node *p = abt->root;
-      for (;;) 
+      for (;;)
         {
           int cmp, dir;
 
@@ -102,10 +102,10 @@ abt_insert (struct abt *abt, struct abt_node *node)
               break;
             }
           p = p->down[dir];
-        } 
+        }
     }
 
-  while ((node = node->up) != NULL) 
+  while ((node = node->up) != NULL)
     {
       node = skew (abt, node);
       node = split (abt, node);
@@ -127,32 +127,32 @@ insert_relative (struct abt *abt, struct abt_node *p, bool after,
   node->down[1] = NULL;
   node->level = 1;
 
-  if (abt->root == NULL) 
+  if (abt->root == NULL)
     {
       assert (p == NULL);
       abt->root = node;
       node->up = NULL;
       abt_reaugmented (abt, node);
     }
-  else 
+  else
     {
       int dir = after;
-      if (p == NULL) 
+      if (p == NULL)
         {
           p = abt->root;
           dir = !after;
         }
-      while (p->down[dir] != NULL) 
+      while (p->down[dir] != NULL)
         {
           p = p->down[dir];
-          dir = !after; 
+          dir = !after;
         }
       p->down[dir] = node;
       node->up = p;
       abt_reaugmented (abt, node);
     }
 
-  while ((node = node->up) != NULL) 
+  while ((node = node->up) != NULL)
     {
       node = skew (abt, node);
       node = split (abt, node);
@@ -166,7 +166,7 @@ insert_relative (struct abt *abt, struct abt_node *p, bool after,
    function. */
 void
 abt_insert_after (struct abt *abt,
-                  const struct abt_node *p, struct abt_node *node) 
+                  const struct abt_node *p, struct abt_node *node)
 {
   assert (abt->compare == NULL);
   insert_relative (abt, (struct abt_node *) p, true, node);
@@ -179,7 +179,7 @@ abt_insert_after (struct abt *abt,
    function. */
 void
 abt_insert_before (struct abt *abt,
-                   const struct abt_node *p, struct abt_node *node) 
+                   const struct abt_node *p, struct abt_node *node)
 {
   assert (abt->compare == NULL);
   insert_relative (abt, (struct abt_node *) p, false, node);
@@ -245,24 +245,24 @@ abt_delete (struct abt *abt, struct abt_node *p)
 }
 
 /* Returns the node with minimum value in ABT, or a null pointer
-   if ABT is empty. */ 
+   if ABT is empty. */
 struct abt_node *
-abt_first (const struct abt *abt) 
+abt_first (const struct abt *abt)
 {
   struct abt_node *p = abt->root;
-  if (p != NULL) 
+  if (p != NULL)
     while (p->down[0] != NULL)
       p = p->down[0];
   return p;
 }
 
 /* Returns the node with maximum value in ABT, or a null pointer
-   if ABT is empty. */ 
+   if ABT is empty. */
 struct abt_node *
-abt_last (const struct abt *abt) 
+abt_last (const struct abt *abt)
 {
   struct abt_node *p = abt->root;
-  if (p != NULL) 
+  if (p != NULL)
     while (p->down[1] != NULL)
       p = p->down[1];
   return p;
@@ -277,14 +277,14 @@ abt_find (const struct abt *abt, const struct abt_node *target)
 {
   const struct abt_node *p;
   int cmp;
-  
+
   for (p = abt->root; p != NULL; p = p->down[cmp > 0])
     {
       cmp = abt->compare (target, p, abt->aux);
       if (cmp == 0)
         return (struct abt_node *) p;
     }
-  
+
   return NULL;
 }
 
@@ -293,9 +293,9 @@ abt_find (const struct abt *abt, const struct abt_node *target)
    Returns a null pointer if P is the maximum node in ABT or if P
    is null and ABT is empty. */
 struct abt_node *
-abt_next (const struct abt *abt, const struct abt_node *p) 
+abt_next (const struct abt *abt, const struct abt_node *p)
 {
-  if (p == NULL) 
+  if (p == NULL)
     return abt_first (abt);
   else if (p->down[1] == NULL)
     {
@@ -318,9 +318,9 @@ abt_next (const struct abt *abt, const struct abt_node *p)
    Returns a null pointer if P is the minimum node in ABT or if P
    is null and ABT is empty. */
 struct abt_node *
-abt_prev (const struct abt *abt, const struct abt_node *p) 
+abt_prev (const struct abt *abt, const struct abt_node *p)
 {
-  if (p == NULL) 
+  if (p == NULL)
     return abt_last (abt);
   else if (p->down[0] == NULL)
     {
@@ -349,7 +349,7 @@ abt_prev (const struct abt *abt, const struct abt_node *p)
    affected nodes from the tree, update their values, then
    re-insert all of them. */
 void
-abt_reaugmented (const struct abt *abt, struct abt_node *p) 
+abt_reaugmented (const struct abt *abt, struct abt_node *p)
 {
   for (; p != NULL; p = p->up)
     abt->reaugment (p, p->down[0], p->down[1], abt->aux);
@@ -364,7 +364,7 @@ abt_reaugmented (const struct abt *abt, struct abt_node *p)
    can actually retain its relative position in ABT, e.g. its key
    has only been adjusted slightly.  Otherwise, it is more
    efficient to simply remove P from ABT, change its key, and
-   re-insert P.  
+   re-insert P.
 
    It is not safe to update more than one node's key, then to
    call this function for each node.  Instead, update a single
@@ -376,21 +376,21 @@ abt_reaugmented (const struct abt *abt, struct abt_node *p)
    function.  If it doesn't, then you probably just want
    abt_reaugmented. */
 struct abt_node *
-abt_changed (struct abt *abt, struct abt_node *p) 
+abt_changed (struct abt *abt, struct abt_node *p)
 {
   struct abt_node *prev = abt_prev (abt, p);
   struct abt_node *next = abt_next (abt, p);
 
   if ((prev != NULL && abt->compare (prev, p, abt->aux) >= 0)
-      || (next != NULL && abt->compare (p, next, abt->aux) >= 0)) 
+      || (next != NULL && abt->compare (p, next, abt->aux) >= 0))
     {
       abt_delete (abt, p);
       return abt_insert (abt, p);
     }
-  else 
+  else
     {
       abt_reaugmented (abt, p);
-      return NULL; 
+      return NULL;
     }
 }
 
@@ -409,12 +409,12 @@ abt_changed (struct abt *abt, struct abt_node *p)
    This function may be used only if ABT has a comparison
    function. */
 void
-abt_moved (struct abt *abt, struct abt_node *p) 
+abt_moved (struct abt *abt, struct abt_node *p)
 {
-  if (p->up != NULL) 
+  if (p->up != NULL)
     {
       int d = p->up->down[0] == NULL || abt->compare (p, p->up, abt->aux) > 0;
-      p->up->down[d] = p; 
+      p->up->down[d] = p;
     }
   else
     abt->root = p;
@@ -427,7 +427,7 @@ abt_moved (struct abt *abt, struct abt_node *p)
 /* Returns the address of the pointer that points down to P
    within ABT. */
 static struct abt_node **
-down_link (struct abt *abt, struct abt_node *p) 
+down_link (struct abt *abt, struct abt_node *p)
 {
   return (p->up != NULL
           ? &p->up->down[p->up->down[0] != p]

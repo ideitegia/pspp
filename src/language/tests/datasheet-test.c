@@ -41,7 +41,7 @@ static bool parse_coordinates (struct lexer *, int *rows, int *cols);
    optionally followed by any of the common model checker option
    specifications (see check-model.q). */
 int
-cmd_debug_datasheet (struct lexer *lexer, struct dataset *dataset UNUSED) 
+cmd_debug_datasheet (struct lexer *lexer, struct dataset *dataset UNUSED)
 {
   struct datasheet_test_params params;
   bool ok;
@@ -51,7 +51,7 @@ cmd_debug_datasheet (struct lexer *lexer, struct dataset *dataset UNUSED)
   params.backing_rows = 0;
   params.backing_cols = 0;
 
-  for (;;) 
+  for (;;)
     {
       if (lex_match_id (lexer, "MAX"))
         {
@@ -68,7 +68,7 @@ cmd_debug_datasheet (struct lexer *lexer, struct dataset *dataset UNUSED)
         break;
       lex_match (lexer, '/');
     }
-  
+
   ok = check_model (lexer, datasheet_test, &params);
   printf ("Datasheet test max(%d,%d) backing(%d,%d) %s.\n",
           params.max_rows, params.max_cols,
@@ -81,7 +81,7 @@ cmd_debug_datasheet (struct lexer *lexer, struct dataset *dataset UNUSED)
    where all of the delimiters are optional, into *ROWS and
    *COLS.  Returns true if successful, false on parse failure. */
 static bool
-parse_coordinates (struct lexer *lexer, int *rows, int *cols) 
+parse_coordinates (struct lexer *lexer, int *rows, int *cols)
 {
   lex_match (lexer, '=');
   lex_match (lexer, '(');
@@ -97,7 +97,7 @@ parse_coordinates (struct lexer *lexer, int *rows, int *cols)
     return false;
   *cols = lex_integer (lexer);
   lex_get (lexer);
-  
+
   lex_match (lexer, ')');
   return true;
 }

@@ -125,7 +125,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 }
 
 int
-cmd_close_file_handle (struct lexer *lexer, struct dataset *ds UNUSED) 
+cmd_close_file_handle (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   struct file_handle *handle;
 
@@ -142,9 +142,9 @@ cmd_close_file_handle (struct lexer *lexer, struct dataset *ds UNUSED)
 
 /* Returns the name for REFERENT. */
 static const char *
-referent_name (enum fh_referent referent) 
+referent_name (enum fh_referent referent)
 {
-  switch (referent) 
+  switch (referent)
     {
     case FH_REF_FILE:
       return _("file");
@@ -166,9 +166,9 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
 {
   struct file_handle *handle;
 
-  if (lex_match_id (lexer, "INLINE")) 
+  if (lex_match_id (lexer, "INLINE"))
     handle = fh_inline_file ();
-  else 
+  else
     {
       if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING)
         {
@@ -177,13 +177,13 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
         }
 
       handle = NULL;
-      if (lex_token (lexer) == T_ID) 
+      if (lex_token (lexer) == T_ID)
         handle = fh_from_id (lex_tokid (lexer));
-      if (handle == NULL) 
-        handle = fh_from_file_name (ds_cstr (lex_tokstr (lexer))); 
+      if (handle == NULL)
+        handle = fh_from_file_name (ds_cstr (lex_tokstr (lexer)));
       if (handle == NULL)
         {
-          if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || get_syntax () != ENHANCED) 
+          if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || get_syntax () != ENHANCED)
             handle = fh_create_file (NULL, ds_cstr (lex_tokstr (lexer)),
                                      fh_default_properties ());
           else
@@ -192,7 +192,7 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
       lex_get (lexer);
     }
 
-  if (!(fh_get_referent (handle) & referent_mask)) 
+  if (!(fh_get_referent (handle) & referent_mask))
     {
       msg (SE, _("Handle for %s not allowed here."),
            referent_name (fh_get_referent (handle)));

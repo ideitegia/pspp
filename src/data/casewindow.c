@@ -35,7 +35,7 @@
 #include "xalloc.h"
 
 /* A queue of cases. */
-struct casewindow 
+struct casewindow
   {
     /* Common data. */
     size_t value_cnt;             /* Number of values per case. */
@@ -43,12 +43,12 @@ struct casewindow
     struct taint *taint;          /* Taint status. */
 
     /* Implementation data. */
-    const struct casewindow_class *class; 
+    const struct casewindow_class *class;
     void *aux;
   };
 
 /* Implementation of a casewindow. */
-struct casewindow_class 
+struct casewindow_class
   {
     void *(*create) (struct taint *, size_t value_cnt);
     void (*destroy) (void *aux);
@@ -66,7 +66,7 @@ static const struct casewindow_class casewindow_file_class;
    parameters. */
 static struct casewindow *
 do_casewindow_create (struct taint *taint,
-                      size_t value_cnt, casenumber max_in_core_cases) 
+                      size_t value_cnt, casenumber max_in_core_cases)
 {
   struct casewindow *cw = xmalloc (sizeof *cw);
   cw->class = (max_in_core_cases
@@ -82,9 +82,9 @@ do_casewindow_create (struct taint *taint,
 /* Creates and returns a new casewindow for cases with VALUE_CNT
    values each.  If the casewindow holds more than
    MAX_IN_CORE_CASES cases at any time, its cases will be dumped
-   to disk; otherwise, its cases will be held in memory. */   
+   to disk; otherwise, its cases will be held in memory. */
 struct casewindow *
-casewindow_create (size_t value_cnt, casenumber max_in_core_cases) 
+casewindow_create (size_t value_cnt, casenumber max_in_core_cases)
 {
   return do_casewindow_create (taint_create (), value_cnt, max_in_core_cases);
 }
@@ -93,10 +93,10 @@ casewindow_create (size_t value_cnt, casenumber max_in_core_cases)
    Returns true if CW was tainted, which is caused by an I/O
    error or by taint propagation to the casewindow. */
 bool
-casewindow_destroy (struct casewindow *cw) 
+casewindow_destroy (struct casewindow *cw)
 {
   bool ok = true;
-  if (cw != NULL) 
+  if (cw != NULL)
     {
       cw->class->destroy (cw->aux);
       ok = taint_destroy (cw->taint);
@@ -107,7 +107,7 @@ casewindow_destroy (struct casewindow *cw)
 
 /* Swaps the contents of casewindows A and B. */
 static void
-casewindow_swap (struct casewindow *a, struct casewindow *b) 
+casewindow_swap (struct casewindow *a, struct casewindow *b)
 {
   struct casewindow tmp = *a;
   *a = *b;
@@ -116,7 +116,7 @@ casewindow_swap (struct casewindow *a, struct casewindow *b)
 
 /* Dumps the contents of casewindow OLD to disk. */
 static void
-casewindow_to_disk (struct casewindow *old) 
+casewindow_to_disk (struct casewindow *old)
 {
   struct casewindow *new;
   new = do_casewindow_create (taint_clone (old->taint), old->value_cnt, 0);
@@ -135,7 +135,7 @@ casewindow_to_disk (struct casewindow *old)
 /* Pushes case C at the head of casewindow CW.
    Case C becomes owned by the casewindow. */
 void
-casewindow_push_head (struct casewindow *cw, struct ccase *c) 
+casewindow_push_head (struct casewindow *cw, struct ccase *c)
 {
   if (!casewindow_error (cw))
     {
@@ -145,7 +145,7 @@ casewindow_push_head (struct casewindow *cw, struct ccase *c)
           casenumber case_cnt = cw->class->get_case_cnt (cw->aux);
           if (case_cnt > cw->max_in_core_cases
               && cw->class == &casewindow_memory_class)
-            casewindow_to_disk (cw); 
+            casewindow_to_disk (cw);
         }
     }
   else
@@ -154,9 +154,9 @@ casewindow_push_head (struct casewindow *cw, struct ccase *c)
 
 /* Deletes CASE_CNT cases at the tail of casewindow CW. */
 void
-casewindow_pop_tail (struct casewindow *cw, casenumber case_cnt) 
+casewindow_pop_tail (struct casewindow *cw, casenumber case_cnt)
 {
-  if (!casewindow_error (cw)) 
+  if (!casewindow_error (cw))
     cw->class->pop_tail (cw->aux, case_cnt);
 }
 
@@ -165,14 +165,14 @@ casewindow_pop_tail (struct casewindow *cw, casenumber case_cnt)
    if CW is otherwise tainted.  On failure, nullifies case C. */
 bool
 casewindow_get_case (const struct casewindow *cw_, casenumber case_idx,
-                     struct ccase *c) 
+                     struct ccase *c)
 {
   struct casewindow *cw = (struct casewindow *) cw_;
 
   assert (case_idx >= 0 && case_idx < casewindow_get_case_cnt (cw));
   if (!casewindow_error (cw))
     return cw->class->get_case (cw->aux, case_idx, c);
-  else 
+  else
     {
       case_nullify (c);
       return false;
@@ -181,14 +181,14 @@ casewindow_get_case (const struct casewindow *cw_, casenumber case_idx,
 
 /* Returns the number of cases in casewindow CW. */
 casenumber
-casewindow_get_case_cnt (const struct casewindow *cw) 
+casewindow_get_case_cnt (const struct casewindow *cw)
 {
   return cw->class->get_case_cnt (cw->aux);
 }
 
 /* Returns the number of values per case in casewindow CW. */
 size_t
-casewindow_get_value_cnt (const struct casewindow *cw) 
+casewindow_get_value_cnt (const struct casewindow *cw)
 {
   return cw->value_cnt;
 }
@@ -197,34 +197,34 @@ casewindow_get_value_cnt (const struct casewindow *cw)
    A casewindow is tainted by an I/O error or by taint
    propagation to the casewindow. */
 bool
-casewindow_error (const struct casewindow *cw) 
+casewindow_error (const struct casewindow *cw)
 {
   return taint_is_tainted (cw->taint);
 }
 
 /* Marks casewindow CW tainted. */
 void
-casewindow_force_error (struct casewindow *cw) 
+casewindow_force_error (struct casewindow *cw)
 {
   taint_set_taint (cw->taint);
 }
 
 /* Returns casewindow CW's taint object. */
 const struct taint *
-casewindow_get_taint (const struct casewindow *cw) 
+casewindow_get_taint (const struct casewindow *cw)
 {
   return cw->taint;
 }
 
 /* In-memory casewindow data. */
-struct casewindow_memory 
+struct casewindow_memory
   {
     struct deque deque;
     struct ccase *cases;
   };
 
 static void *
-casewindow_memory_create (struct taint *taint UNUSED, size_t value_cnt UNUSED) 
+casewindow_memory_create (struct taint *taint UNUSED, size_t value_cnt UNUSED)
 {
   struct casewindow_memory *cwm = xmalloc (sizeof *cwm);
   cwm->cases = deque_init (&cwm->deque, 4, sizeof *cwm->cases);
@@ -232,10 +232,10 @@ casewindow_memory_create (struct taint *taint UNUSED, size_t value_cnt UNUSED)
 }
 
 static void
-casewindow_memory_destroy (void *cwm_) 
+casewindow_memory_destroy (void *cwm_)
 {
   struct casewindow_memory *cwm = cwm_;
-  while (!deque_is_empty (&cwm->deque)) 
+  while (!deque_is_empty (&cwm->deque))
     case_destroy (&cwm->cases[deque_pop_front (&cwm->deque)]);
   free (cwm->cases);
   free (cwm);
@@ -255,12 +255,12 @@ casewindow_memory_pop_tail (void *cwm_, casenumber case_cnt)
 {
   struct casewindow_memory *cwm = cwm_;
   assert (deque_count (&cwm->deque) >= case_cnt);
-  while (case_cnt-- > 0) 
+  while (case_cnt-- > 0)
     case_destroy (&cwm->cases[deque_pop_front (&cwm->deque)]);
 }
 
 static bool
-casewindow_memory_get_case (void *cwm_, casenumber ofs, struct ccase *c) 
+casewindow_memory_get_case (void *cwm_, casenumber ofs, struct ccase *c)
 {
   struct casewindow_memory *cwm = cwm_;
   case_clone (c, &cwm->cases[deque_front (&cwm->deque, ofs)]);
@@ -268,13 +268,13 @@ casewindow_memory_get_case (void *cwm_, casenumber ofs, struct ccase *c)
 }
 
 static casenumber
-casewindow_memory_get_case_cnt (const void *cwm_) 
+casewindow_memory_get_case_cnt (const void *cwm_)
 {
   const struct casewindow_memory *cwm = cwm_;
   return deque_count (&cwm->deque);
 }
 
-static const struct casewindow_class casewindow_memory_class = 
+static const struct casewindow_class casewindow_memory_class =
   {
     casewindow_memory_create,
     casewindow_memory_destroy,
@@ -285,14 +285,14 @@ static const struct casewindow_class casewindow_memory_class =
   };
 
 /* On-disk casewindow data. */
-struct casewindow_file 
+struct casewindow_file
   {
     struct case_tmpfile *file;
     casenumber head, tail;
   };
 
 static void *
-casewindow_file_create (struct taint *taint, size_t value_cnt) 
+casewindow_file_create (struct taint *taint, size_t value_cnt)
 {
   struct casewindow_file *cwf = xmalloc (sizeof *cwf);
   cwf->file = case_tmpfile_create (value_cnt);
@@ -302,7 +302,7 @@ casewindow_file_create (struct taint *taint, size_t value_cnt)
 }
 
 static void
-casewindow_file_destroy (void *cwf_) 
+casewindow_file_destroy (void *cwf_)
 {
   struct casewindow_file *cwf = cwf_;
   case_tmpfile_destroy (cwf->file);
@@ -310,15 +310,15 @@ casewindow_file_destroy (void *cwf_)
 }
 
 static void
-casewindow_file_push_head (void *cwf_, struct ccase *c) 
+casewindow_file_push_head (void *cwf_, struct ccase *c)
 {
   struct casewindow_file *cwf = cwf_;
-  if (case_tmpfile_put_case (cwf->file, cwf->head, c)) 
+  if (case_tmpfile_put_case (cwf->file, cwf->head, c))
     cwf->head++;
 }
 
 static void
-casewindow_file_pop_tail (void *cwf_, casenumber cnt) 
+casewindow_file_pop_tail (void *cwf_, casenumber cnt)
 {
   struct casewindow_file *cwf = cwf_;
   assert (cnt <= cwf->head - cwf->tail);
@@ -328,20 +328,20 @@ casewindow_file_pop_tail (void *cwf_, casenumber cnt)
 }
 
 static bool
-casewindow_file_get_case (void *cwf_, casenumber ofs, struct ccase *c) 
+casewindow_file_get_case (void *cwf_, casenumber ofs, struct ccase *c)
 {
   struct casewindow_file *cwf = cwf_;
   return case_tmpfile_get_case (cwf->file, cwf->tail + ofs, c);
 }
 
 static casenumber
-casewindow_file_get_case_cnt (const void *cwf_) 
+casewindow_file_get_case_cnt (const void *cwf_)
 {
   const struct casewindow_file *cwf = cwf_;
   return cwf->head - cwf->tail;
 }
 
-static const struct casewindow_class casewindow_file_class = 
+static const struct casewindow_class casewindow_file_class =
   {
     casewindow_file_create,
     casewindow_file_destroy,

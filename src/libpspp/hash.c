@@ -54,11 +54,11 @@
 
 /* Returns smallest power of 2 greater than X. */
 static size_t
-next_power_of_2 (size_t x) 
+next_power_of_2 (size_t x)
 {
   assert (x != 0);
 
-  for (;;) 
+  for (;;)
     {
       /* Turn off rightmost 1-bit in x. */
       size_t y = x & (x - 1);
@@ -90,11 +90,11 @@ hsh_hash_bytes (const void *buf_, size_t size)
     hash = (hash * FNV_32_PRIME) ^ *buf++;
 
   return hash;
-} 
+}
 
 /* Fowler-Noll-Vo 32-bit hash, for strings. */
 unsigned
-hsh_hash_string (const char *s_) 
+hsh_hash_string (const char *s_)
 {
   const unsigned char *s = (const unsigned char *) s_;
   unsigned hash;
@@ -110,7 +110,7 @@ hsh_hash_string (const char *s_)
 
 /* Fowler-Noll-Vo 32-bit hash, for case-insensitive strings. */
 unsigned
-hsh_hash_case_string (const char *s_) 
+hsh_hash_case_string (const char *s_)
 {
   const unsigned char *s = (const unsigned char *) s_;
   unsigned hash;
@@ -126,14 +126,14 @@ hsh_hash_case_string (const char *s_)
 
 /* Hash for ints. */
 unsigned
-hsh_hash_int (int i) 
+hsh_hash_int (int i)
 {
   return hsh_hash_bytes (&i, sizeof i);
 }
 
 /* Hash for double. */
 unsigned
-hsh_hash_double (double d) 
+hsh_hash_double (double d)
 {
   if (!isnan (d))
     return hsh_hash_bytes (&d, sizeof d);
@@ -154,7 +154,7 @@ struct hsh_table
     hsh_compare_func *compare;
     hsh_hash_func *hash;
     hsh_free_func *free;
-    
+
 #ifndef NDEBUG
     /* Set to false if hsh_data() or hsh_sort() has been called,
        so that most hsh_*() functions may no longer be called. */
@@ -178,7 +178,7 @@ hsh_create (int size, hsh_compare_func *compare, hsh_hash_func *hash,
    identical, nonzero otherwise; HASH returns a nonnegative hash value
    for an entry; FREE destroys an entry. */
 struct hsh_table *
-hsh_create_pool (struct pool *pool, int size, 
+hsh_create_pool (struct pool *pool, int size,
 		 hsh_compare_func *compare, hsh_hash_func *hash,
 		 hsh_free_func *free, const void *aux)
 {
@@ -187,7 +187,7 @@ hsh_create_pool (struct pool *pool, int size,
 
   assert (compare != NULL);
   assert (hash != NULL);
-  
+
   h = pool_malloc (pool, sizeof *h);
   h->pool = pool;
   h->used = 0;
@@ -235,7 +235,7 @@ hsh_destroy (struct hsh_table *h)
 {
   int i;
 
-  if (h != NULL) 
+  if (h != NULL)
     {
       if (h->free)
         for (i = 0; i < h->size; i++)
@@ -250,7 +250,7 @@ hsh_destroy (struct hsh_table *h)
    entry, if found, or the index of an empty entry that indicates
    where TARGET should go, otherwise. */
 static inline unsigned
-locate_matching_entry (struct hsh_table *h, const void *target) 
+locate_matching_entry (struct hsh_table *h, const void *target)
 {
   unsigned i = h->hash (target, h->aux);
 
@@ -270,7 +270,7 @@ locate_matching_entry (struct hsh_table *h, const void *target)
    where TARGET should go, assuming that TARGET is not equal to
    any item already in the hash table. */
 static inline unsigned
-locate_empty_entry (struct hsh_table *h, const void *target) 
+locate_empty_entry (struct hsh_table *h, const void *target)
 {
   unsigned i = h->hash (target, h->aux);
 
@@ -306,7 +306,7 @@ rehash (struct hsh_table *h, size_t new_size)
   h->entries = pool_nmalloc (h->pool, h->size, sizeof *h->entries);
   for (i = 0; i < h->size; i++)
     h->entries[i] = NULL;
-  for (table_p = begin; table_p < end; table_p++) 
+  for (table_p = begin; table_p < end; table_p++)
     {
       void *entry = *table_p;
       if (entry != NULL)
@@ -322,7 +322,7 @@ rehash (struct hsh_table *h, size_t new_size)
 /* A "algo_predicate_func" that returns true if DATA points
    to a non-null void. */
 static bool
-not_null (const void *data_, const void *aux UNUSED) 
+not_null (const void *data_, const void *aux UNUSED)
 {
   void *const *data = data_;
 
@@ -348,7 +348,7 @@ not_null (const void *data_, const void *aux UNUSED)
    sorted order.  Use hsh_data_copy() or hsh_sort_copy() instead,
    if the second phase still needs to search the hash table. */
 void *const *
-hsh_data (struct hsh_table *h) 
+hsh_data (struct hsh_table *h)
 {
   size_t n;
 
@@ -364,7 +364,7 @@ hsh_data (struct hsh_table *h)
 /* Dereferences void ** pointers and passes them to the hash
    comparison function. */
 static int
-comparison_helper (const void *a_, const void *b_, const void *h_) 
+comparison_helper (const void *a_, const void *b_, const void *h_)
 {
   void *const *a = a_;
   void *const *b = b_;
@@ -415,7 +415,7 @@ hsh_sort (struct hsh_table *h)
    If you don't need to search or modify the hash table, then
    hsh_data() is a more efficient choice. */
 void **
-hsh_data_copy (struct hsh_table *h) 
+hsh_data_copy (struct hsh_table *h)
 {
   void **copy;
 
@@ -435,7 +435,7 @@ hsh_data_copy (struct hsh_table *h)
    If you don't need to search or modify the hash table, then
    hsh_sort() is a more efficient choice. */
 void **
-hsh_sort_copy (struct hsh_table *h) 
+hsh_sort_copy (struct hsh_table *h)
 {
   void **copy;
 
@@ -455,7 +455,7 @@ inline void **
 hsh_probe (struct hsh_table *h, const void *target)
 {
   unsigned i;
-  
+
   assert (h != NULL);
   assert (target != NULL);
   assert (h->hash_ordered);
@@ -472,7 +472,7 @@ hsh_probe (struct hsh_table *h, const void *target)
    TARGET and returns a null pointer.  If found, returns the
    match, without replacing it in the table. */
 void *
-hsh_insert (struct hsh_table *h, void *target) 
+hsh_insert (struct hsh_table *h, void *target)
 {
   void **entry;
 
@@ -480,7 +480,7 @@ hsh_insert (struct hsh_table *h, void *target)
   assert (target != NULL);
 
   entry = hsh_probe (h, target);
-  if (*entry == NULL) 
+  if (*entry == NULL)
     {
       *entry = target;
       return NULL;
@@ -493,7 +493,7 @@ hsh_insert (struct hsh_table *h, void *target)
    TARGET and returns a null pointer.  If found, returns the
    match, after replacing it in the table by TARGET. */
 void *
-hsh_replace (struct hsh_table *h, void *target) 
+hsh_replace (struct hsh_table *h, void *target)
 {
   void **entry = hsh_probe (h, target);
   void *old = *entry;
@@ -517,32 +517,32 @@ hsh_find (struct hsh_table *h, const void *target)
    moves that this algorithm makes should be at most 2 - ln 2 ~=
    1.65. */
 bool
-hsh_delete (struct hsh_table *h, const void *target) 
+hsh_delete (struct hsh_table *h, const void *target)
 {
   unsigned i = locate_matching_entry (h, target);
-  if (h->entries[i] != NULL) 
+  if (h->entries[i] != NULL)
     {
       h->used--;
       if (h->free != NULL)
         h->free (h->entries[i], h->aux);
 
-      for (;;) 
+      for (;;)
         {
           unsigned r;
           ptrdiff_t j;
 
           h->entries[i] = NULL;
           j = i;
-          do 
+          do
             {
               i = (i - 1) & (h->size - 1);
               if (h->entries[i] == NULL)
                 return true;
-              
+
               r = h->hash (h->entries[i], h->aux) & (h->size - 1);
             }
           while ((i <= r && r < j) || (r < j && j < i) || (j < i && i <= r));
-          h->entries[j] = h->entries[i]; 
+          h->entries[j] = h->entries[i];
         }
     }
   else
@@ -555,7 +555,7 @@ hsh_delete (struct hsh_table *h, const void *target)
    use with hsh_next().  If TABLE is empty, returns a null
    pointer. */
 void *
-hsh_first (struct hsh_table *h, struct hsh_iterator *iter) 
+hsh_first (struct hsh_table *h, struct hsh_iterator *iter)
 {
   assert (h != NULL);
   assert (iter != NULL);
@@ -591,11 +591,11 @@ hsh_next (struct hsh_table *h, struct hsh_iterator *iter)
 }
 
 /* Returns the number of items in H. */
-size_t 
-hsh_count (struct hsh_table *h) 
+size_t
+hsh_count (struct hsh_table *h)
 {
   assert (h != NULL);
-  
+
   return h->used;
 }
 

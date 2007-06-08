@@ -1,5 +1,5 @@
 /* PSPP - Creates data structures to store interactions for
-   statistical routines.  
+   statistical routines.
 
    Copyright (C) 2007 Free Software Foundation, Inc.
 

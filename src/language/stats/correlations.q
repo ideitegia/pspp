@@ -102,7 +102,7 @@ cor_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_correl
   if (!parse_variables_const (lexer, dataset_dict (ds), &v1, &nv1,
 			PV_NO_DUPLICATE | PV_NUMERIC))
     return 0;
-  
+
   if (lex_match (lexer, T_WITH))
     {
       if (!parse_variables_const (lexer, dataset_dict (ds), &v2, &nv2,
@@ -128,7 +128,7 @@ cor_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_correl
     cor_last = cor_last->next = cor;
   else
     cor_list = cor_last = cor;
-  
+
   return 1;
 }
 
@@ -137,14 +137,14 @@ cor_custom_matrix (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_co
 {
   if (!lex_force_match (lexer, '('))
     return 0;
-  
+
   if (lex_match (lexer, '*'))
     matrix_file = NULL;
-  else 
+  else
     {
       matrix_file = fh_parse (lexer, FH_REF_FILE);
       if (matrix_file == NULL)
-        return 0; 
+        return 0;
     }
 
   if (!lex_force_match (lexer, ')'))

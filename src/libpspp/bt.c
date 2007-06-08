@@ -100,7 +100,7 @@ struct bt_node *
 bt_insert (struct bt *bt, struct bt_node *node)
 {
   int depth = 0;
-  
+
   node->down[0] = NULL;
   node->down[1] = NULL;
 
@@ -149,20 +149,20 @@ bt_insert (struct bt *bt, struct bt_node *node)
           {
             size += 1 + count_nodes_in_subtree (sibling (s));
             s = s->up;
-            if (i > calculate_h_alpha (size)) 
+            if (i > calculate_h_alpha (size))
               {
                 rebalance_subtree (bt, s, size);
                 break;
               }
           }
-        else 
+        else
           {
             rebalance_subtree (bt, bt->root, bt->size);
             bt->max_size = bt->size;
             break;
           }
     }
-  
+
   return NULL;
 }
 
@@ -172,7 +172,7 @@ bt_delete (struct bt *bt, struct bt_node *p)
 {
   struct bt_node **q = down_link (bt, p);
   struct bt_node *r = p->down[1];
-  if (r == NULL) 
+  if (r == NULL)
     {
       *q = p->down[0];
       if (*q)
@@ -209,7 +209,7 @@ bt_delete (struct bt *bt, struct bt_node *p)
      will cause us to do a little more rebalancing than strictly
      necessary to maintain the scapegoat tree's height
      invariant. */
-  if (bt->size < bt->max_size * 3 / 4 && bt->size > 0) 
+  if (bt->size < bt->max_size * 3 / 4 && bt->size > 0)
     {
       rebalance_subtree (bt, bt->root, bt->size);
       bt->max_size = bt->size;
@@ -271,12 +271,12 @@ bt_find_ge (const struct bt *bt, const struct bt_node *target)
 {
   const struct bt_node *p = bt->root;
   const struct bt_node *q = NULL;
-  while (p != NULL) 
+  while (p != NULL)
     {
       int cmp = bt->compare (target, p, bt->aux);
       if (cmp > 0)
         p = p->down[1];
-      else 
+      else
         {
           q = p;
           if (cmp < 0)
@@ -302,12 +302,12 @@ bt_find_le (const struct bt *bt, const struct bt_node *target)
 {
   const struct bt_node *p = bt->root;
   const struct bt_node *q = NULL;
-  while (p != NULL) 
+  while (p != NULL)
     {
       int cmp = bt->compare (target, p, bt->aux);
       if (cmp < 0)
         p = p->down[0];
-      else 
+      else
         {
           q = p;
           if (cmp > 0)
@@ -507,7 +507,7 @@ vine_to_tree (struct bt_node **q, size_t count)
       vine_nodes /= 2;
       compress (q, vine_nodes);
     }
-  while ((*q)->down[0] != NULL) 
+  while ((*q)->down[0] != NULL)
     {
       (*q)->down[0]->up = *q;
       q = &(*q)->down[0];
@@ -528,7 +528,7 @@ down_link (struct bt *bt, struct bt_node *p)
 /* Returns node P's sibling; that is, the other child of its
    parent.  P must not be the root. */
 static inline struct bt_node *
-sibling (struct bt_node *p) 
+sibling (struct bt_node *p)
 {
   struct bt_node *q = p->up;
   return q->down[q->down[0] == p];
@@ -536,28 +536,28 @@ sibling (struct bt_node *p)
 
 /* Returns the number of nodes in the given SUBTREE. */
 static size_t
-count_nodes_in_subtree (const struct bt_node *subtree) 
+count_nodes_in_subtree (const struct bt_node *subtree)
 {
   /* This is an in-order traversal modified to iterate only the
      nodes in SUBTREE. */
   size_t count = 0;
-  if (subtree != NULL) 
+  if (subtree != NULL)
     {
       const struct bt_node *p = subtree;
       while (p->down[0] != NULL)
         p = p->down[0];
-      for (;;) 
+      for (;;)
         {
           count++;
-          if (p->down[1] != NULL) 
+          if (p->down[1] != NULL)
             {
               p = p->down[1];
               while (p->down[0] != NULL)
                 p = p->down[0];
             }
-          else 
+          else
             {
-              for (;;) 
+              for (;;)
                 {
                   const struct bt_node *q;
                   if (p == subtree)
@@ -566,7 +566,7 @@ count_nodes_in_subtree (const struct bt_node *subtree)
                   p = p->up;
                   if (p->down[0] == q)
                     break;
-                } 
+                }
             }
         }
     }
@@ -579,7 +579,7 @@ count_nodes_in_subtree (const struct bt_node *subtree)
 /* Returns the number of high-order 0-bits in X.
    Undefined if X is zero. */
 static inline int
-count_leading_zeros (size_t x) 
+count_leading_zeros (size_t x)
 {
 #if __GNUC__ >= 4
 #if SIZE_MAX > ULONG_MAX
@@ -621,7 +621,7 @@ count_leading_zeros (size_t x)
 /* Returns floor(log2(x)).
    Undefined if X is zero. */
 static inline int
-floor_log2 (size_t x) 
+floor_log2 (size_t x)
 {
   return sizeof (size_t) * CHAR_BIT - 1 - count_leading_zeros (x);
 }
@@ -630,7 +630,7 @@ floor_log2 (size_t x)
    Defined for X from 0 up to the number of bits in size_t minus
    1. */
 static inline size_t
-pow_sqrt2 (int x) 
+pow_sqrt2 (int x)
 {
   /* These constants are sqrt(2) multiplied by 2**63 or 2**31,
      respectively, and then rounded to nearest. */
@@ -644,12 +644,12 @@ pow_sqrt2 (int x)
 /* Returns floor(log(n)/log(sqrt(2))).
    Undefined if N is 0. */
 static inline int
-calculate_h_alpha (size_t n) 
+calculate_h_alpha (size_t n)
 {
   int log2 = floor_log2 (n);
 
   /* The correct answer is either 2 * log2 or one more.  So we
-     see if n >= pow(sqrt(2), 2 * log2 + 1) and if so, add 1. */     
+     see if n >= pow(sqrt(2), 2 * log2 + 1) and if so, add 1. */
   return (2 * log2) + (n >= pow_sqrt2 (log2));
 }
 

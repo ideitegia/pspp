@@ -62,7 +62,7 @@ static bool parse_dict_trim (struct lexer *, struct dictionary *);
 /* Reading system and portable files. */
 
 /* Type of command. */
-enum reader_command 
+enum reader_command
   {
     GET_CMD,
     IMPORT_CMD
@@ -108,15 +108,15 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 	    }
 	}
       else
-        break; 
+        break;
     }
-  
-  if (fh == NULL) 
+
+  if (fh == NULL)
     {
       lex_sbc_missing (lexer, "FILE");
       goto error;
     }
-              
+
   reader = any_reader_open (fh, &dict);
   if (reader == NULL)
     goto error;
@@ -137,7 +137,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
                                            get_translate_case,
                                            get_destroy_case_map,
                                            map);
-  
+
   proc_set_active_file (ds, reader, dict);
 
   return CMD_SUCCESS;
@@ -151,14 +151,14 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 
 static void
 get_translate_case (const struct ccase *input, struct ccase *output,
-                    void *map_) 
+                    void *map_)
 {
   struct case_map *map = map_;
   map_case (map, input, output);
 }
 
 static bool
-get_destroy_case_map (void *map_) 
+get_destroy_case_map (void *map_)
 {
   struct case_map *map = map_;
   destroy_case_map (map);
@@ -167,19 +167,19 @@ get_destroy_case_map (void *map_)
 
 /* GET. */
 int
-cmd_get (struct lexer *lexer, struct dataset *ds) 
+cmd_get (struct lexer *lexer, struct dataset *ds)
 {
   return parse_read_command (lexer, ds, GET_CMD);
 }
 
 /* IMPORT. */
 int
-cmd_import (struct lexer *lexer, struct dataset *ds) 
+cmd_import (struct lexer *lexer, struct dataset *ds)
 {
   return parse_read_command (lexer, ds, IMPORT_CMD);
 }
 
-/* Writing system and portable files. */ 
+/* Writing system and portable files. */
 
 /* Type of output file. */
 enum writer_type
@@ -189,7 +189,7 @@ enum writer_type
   };
 
 /* Type of a command. */
-enum command_type 
+enum command_type
   {
     XFORM_CMD,          /* Transformation. */
     PROC_CMD            /* Procedure. */
@@ -206,7 +206,7 @@ enum command_type
 
    On failure, returns a null pointer. */
 static struct casewriter *
-parse_write_command (struct lexer *lexer, struct dataset *ds, 
+parse_write_command (struct lexer *lexer, struct dataset *ds,
 		     enum writer_type writer_type,
                      enum command_type command_type,
                      bool *retain_unselected)
@@ -247,24 +247,24 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
     {
       if (lex_match_id (lexer, "OUTFILE"))
 	{
-          if (handle != NULL) 
+          if (handle != NULL)
             {
               lex_sbc_only_once ("OUTFILE");
-              goto error; 
+              goto error;
             }
-          
+
 	  lex_match (lexer, '=');
-      
+
 	  handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
 	  if (handle == NULL)
 	    goto error;
 	}
       else if (lex_match_id (lexer, "NAMES"))
         print_short_names = true;
-      else if (lex_match_id (lexer, "PERMISSIONS")) 
+      else if (lex_match_id (lexer, "PERMISSIONS"))
         {
           bool cw;
-          
+
           lex_match (lexer, '=');
           if (lex_match_id (lexer, "READONLY"))
             cw = false;
@@ -277,7 +277,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
             }
           sysfile_opts.create_writeable = porfile_opts.create_writeable = cw;
         }
-      else if (command_type == PROC_CMD && lex_match_id (lexer, "UNSELECTED")) 
+      else if (command_type == PROC_CMD && lex_match_id (lexer, "UNSELECTED"))
         {
           lex_match (lexer, '=');
           if (lex_match_id (lexer, "RETAIN"))
@@ -302,7 +302,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
           sysfile_opts.version = lex_integer (lexer);
           lex_get (lexer);
 	}
-      else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "TYPE")) 
+      else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "TYPE"))
         {
           lex_match (lexer, '=');
           if (lex_match_id (lexer, "COMMUNICATIONS"))
@@ -315,7 +315,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
               goto error;
             }
         }
-      else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "DIGITS")) 
+      else if (writer_type == PORFILE_WRITER && lex_match_id (lexer, "DIGITS"))
         {
           lex_match (lexer, '=');
           if (!lex_force_int (lexer))
@@ -325,14 +325,14 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
         }
       else if (!parse_dict_trim (lexer, dict))
         goto error;
-      
+
       if (!lex_match (lexer, '/'))
 	break;
     }
   if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto error;
 
-  if (handle == NULL) 
+  if (handle == NULL)
     {
       lex_sbc_missing (lexer, "OUTFILE");
       goto error;
@@ -340,9 +340,9 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
 
   dict_compact_values (dict);
 
-  if (fh_get_referent (handle) == FH_REF_FILE) 
+  if (fh_get_referent (handle) == FH_REF_FILE)
     {
-      switch (writer_type) 
+      switch (writer_type)
         {
         case SYSFILE_WRITER:
           writer = sfm_open_writer (handle, dict, sysfile_opts);
@@ -364,7 +364,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
                                            get_destroy_case_map,
                                            map);
   dict_destroy (dict);
-  
+
   return writer;
 
  error:
@@ -387,11 +387,11 @@ parse_output_proc (struct lexer *lexer, struct dataset *ds, enum writer_type wri
 
   output = parse_write_command (lexer, ds, writer_type, PROC_CMD,
                                 &retain_unselected);
-  if (output == NULL) 
+  if (output == NULL)
     return CMD_CASCADING_FAILURE;
 
   saved_filter_variable = dict_get_filter (dataset_dict (ds));
-  if (retain_unselected) 
+  if (retain_unselected)
     dict_set_filter (dataset_dict (ds), NULL);
 
   casereader_transfer (proc_open (ds), output);
@@ -404,13 +404,13 @@ parse_output_proc (struct lexer *lexer, struct dataset *ds, enum writer_type wri
 }
 
 int
-cmd_save (struct lexer *lexer, struct dataset *ds) 
+cmd_save (struct lexer *lexer, struct dataset *ds)
 {
   return parse_output_proc (lexer, ds, SYSFILE_WRITER);
 }
 
 int
-cmd_export (struct lexer *lexer, struct dataset *ds) 
+cmd_export (struct lexer *lexer, struct dataset *ds)
 {
   return parse_output_proc (lexer, ds, PORFILE_WRITER);
 }
@@ -418,7 +418,7 @@ cmd_export (struct lexer *lexer, struct dataset *ds)
 /* XSAVE and XEXPORT. */
 
 /* Transformation. */
-struct output_trns 
+struct output_trns
   {
     struct casewriter *writer;          /* Writer. */
   };
@@ -428,11 +428,11 @@ static trns_free_func output_trns_free;
 
 /* Parses the XSAVE or XEXPORT transformation command. */
 static int
-parse_output_trns (struct lexer *lexer, struct dataset *ds, enum writer_type writer_type) 
+parse_output_trns (struct lexer *lexer, struct dataset *ds, enum writer_type writer_type)
 {
   struct output_trns *t = xmalloc (sizeof *t);
   t->writer = parse_write_command (lexer, ds, writer_type, XFORM_CMD, NULL);
-  if (t->writer == NULL) 
+  if (t->writer == NULL)
     {
       free (t);
       return CMD_CASCADING_FAILURE;
@@ -466,14 +466,14 @@ output_trns_free (void *trns_)
 
 /* XSAVE command. */
 int
-cmd_xsave (struct lexer *lexer, struct dataset *ds) 
+cmd_xsave (struct lexer *lexer, struct dataset *ds)
 {
   return parse_output_trns (lexer, ds, SYSFILE_WRITER);
 }
 
 /* XEXPORT command. */
 int
-cmd_xexport (struct lexer *lexer, struct dataset *ds) 
+cmd_xexport (struct lexer *lexer, struct dataset *ds)
 {
   return parse_output_trns (lexer, ds, PORFILE_WRITER);
 }
@@ -489,7 +489,7 @@ static bool keep_variables (struct lexer *, struct dictionary *dict);
 static bool
 parse_dict_trim (struct lexer *lexer, struct dictionary *dict)
 {
-  if (lex_match_id (lexer, "MAP")) 
+  if (lex_match_id (lexer, "MAP"))
     {
       /* FIXME. */
       return true;
@@ -543,7 +543,7 @@ rename_variables (struct lexer *lexer, struct dictionary *dict)
                var_get_name (v), lex_tokid (lexer), lex_tokid (lexer));
 	  return 0;
 	}
-      
+
       dict_rename_var (dict, v, lex_tokid (lexer));
       lex_get (lexer);
       return 1;
@@ -579,7 +579,7 @@ rename_variables (struct lexer *lexer, struct dictionary *dict)
       group++;
     }
 
-  if (!dict_rename_vars (dict, v, new_names, nv, &err_name)) 
+  if (!dict_rename_vars (dict, v, new_names, nv, &err_name))
     {
       msg (SE, _("Requested renaming duplicates variable name %s."), err_name);
       goto done;
@@ -632,7 +632,7 @@ keep_variables (struct lexer *lexer, struct dictionary *dict)
 
   /* Move the specified variables to the beginning. */
   dict_reorder_vars (dict, v, nv);
-          
+
   /* Delete the remaining variables. */
   v = xnrealloc (v, dict_get_var_cnt (dict) - nv, sizeof *v);
   for (i = nv; i < dict_get_var_cnt (dict); i++)
@@ -674,14 +674,14 @@ struct mtf_file
     struct variable *in_var;    /* Variable (in master dictionary). */
   };
 
-struct mtf_variable 
+struct mtf_variable
   {
     struct variable *in_var;
     struct variable *out_var;
   };
 
 /* MATCH FILES procedure. */
-struct mtf_proc 
+struct mtf_proc
   {
     struct ll_list files;       /* List of "struct mtf_file"s. */
     int nonempty_files;         /* FILEs that are not at end-of-file. */
@@ -723,7 +723,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
   struct mtf_proc mtf;
   struct ll *first_table;
   struct mtf_file *file, *next;
-  
+
   bool saw_in = false;
   struct casereader *active_file = NULL;
 
@@ -763,18 +763,18 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
       file->vars = NULL;
       case_nullify (&file->input);
 
-      if (lex_match_id (lexer, "FILE")) 
+      if (lex_match_id (lexer, "FILE"))
         {
           file->type = MTF_FILE;
           ll_insert (first_table, &file->ll);
           mtf.nonempty_files++;
         }
-      else if (lex_match_id (lexer, "TABLE")) 
+      else if (lex_match_id (lexer, "TABLE"))
         {
           file->type = MTF_TABLE;
           ll_push_tail (&mtf.files, &file->ll);
           if (first_table == ll_null (&mtf.files))
-            first_table = &file->ll; 
+            first_table = &file->ll;
         }
       else
         NOT_REACHED ();
@@ -809,10 +809,10 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
         }
 
       while (lex_match (lexer, '/'))
-        if (lex_match_id (lexer, "RENAME")) 
+        if (lex_match_id (lexer, "RENAME"))
           {
             if (!rename_variables (lexer, file->dict))
-              goto error; 
+              goto error;
           }
         else if (lex_match_id (lexer, "IN"))
           {
@@ -836,7 +836,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 
       mtf_merge_dictionary (mtf.dict, file);
     }
-  
+
   while (lex_token (lexer) != '.')
     {
       if (lex_match (lexer, T_BY))
@@ -844,13 +844,13 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
           struct mtf_file *file;
           struct variable **by;
           bool ok;
-          
+
 	  if (mtf.by_cnt)
 	    {
               lex_sbc_only_once ("BY");
 	      goto error;
 	    }
-	      
+
 	  lex_match (lexer, '=');
 	  if (!parse_variables (lexer, mtf.dict, &by, &mtf.by_cnt,
 				PV_NO_DUPLICATE | PV_NO_SCRATCH))
@@ -860,7 +860,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
           ll_for_each (file, struct mtf_file, ll, &mtf.files)
             {
               size_t i;
-	  
+
               file->by = xnmalloc (mtf.by_cnt, sizeof *file->by);
               for (i = 0; i < mtf.by_cnt; i++)
                 {
@@ -883,28 +883,28 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
           if (!ok)
             goto error;
 	}
-      else if (lex_match_id (lexer, "FIRST")) 
+      else if (lex_match_id (lexer, "FIRST"))
         {
           if (first_name[0] != '\0')
             {
               lex_sbc_only_once ("FIRST");
               goto error;
             }
-	      
+
 	  lex_match (lexer, '=');
           if (!lex_force_id (lexer))
             goto error;
           strcpy (first_name, lex_tokid (lexer));
           lex_get (lexer);
         }
-      else if (lex_match_id (lexer, "LAST")) 
+      else if (lex_match_id (lexer, "LAST"))
         {
           if (last_name[0] != '\0')
             {
               lex_sbc_only_once ("LAST");
               goto error;
             }
-	      
+
 	  lex_match (lexer, '=');
           if (!lex_force_id (lexer))
             goto error;
@@ -915,12 +915,12 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 	{
 	  /* FIXME. */
 	}
-      else if (lex_match_id (lexer, "DROP")) 
+      else if (lex_match_id (lexer, "DROP"))
         {
           if (!drop_variables (lexer, mtf.dict))
             goto error;
         }
-      else if (lex_match_id (lexer, "KEEP")) 
+      else if (lex_match_id (lexer, "KEEP"))
         {
           if (!keep_variables (lexer, mtf.dict))
             goto error;
@@ -931,7 +931,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 	  goto error;
 	}
 
-      if (!lex_match (lexer, '/') && lex_token (lexer) != '.') 
+      if (!lex_match (lexer, '/') && lex_token (lexer) != '.')
         {
           lex_end_of_command (lexer);
           goto error;
@@ -954,24 +954,24 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
 
   /* Set up mapping from each file's variables to master
      variables. */
-  ll_for_each (file, struct mtf_file, ll, &mtf.files) 
+  ll_for_each (file, struct mtf_file, ll, &mtf.files)
     {
       size_t in_var_cnt = dict_get_var_cnt (file->dict);
 
       file->vars = xnmalloc (in_var_cnt, sizeof *file->vars);
       file->var_cnt = 0;
-      for (i = 0; i < in_var_cnt; i++) 
+      for (i = 0; i < in_var_cnt; i++)
         {
           struct variable *in_var = dict_get_var (file->dict, i);
           struct variable *out_var = dict_lookup_var (mtf.dict,
                                                       var_get_name (in_var));
 
-          if (out_var != NULL) 
+          if (out_var != NULL)
             {
               struct mtf_variable *mv = &file->vars[file->var_cnt++];
               mv->in_var = in_var;
               mv->out_var = out_var;
-            } 
+            }
         }
     }
 
@@ -987,11 +987,11 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
   mtf.output = autopaging_writer_create (dict_get_next_value_idx (mtf.dict));
   taint = taint_clone (casewriter_get_taint (mtf.output));
 
-  ll_for_each (file, struct mtf_file, ll, &mtf.files) 
+  ll_for_each (file, struct mtf_file, ll, &mtf.files)
     {
-      if (file->reader == NULL) 
+      if (file->reader == NULL)
         {
-          if (active_file == NULL) 
+          if (active_file == NULL)
             {
               proc_discard_output (ds);
               file->reader = active_file = proc_open (ds);
@@ -1001,12 +1001,12 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
         }
       taint_propagate (casereader_get_taint (file->reader), taint);
     }
-  
+
   ll_for_each_safe (file, next, struct mtf_file, ll, &mtf.files)
     mtf_read_record (&mtf, file);
   while (mtf.nonempty_files > 0)
     mtf_process_case (&mtf);
-  if ((mtf.first != NULL || mtf.last != NULL) && mtf.prev_BY != NULL) 
+  if ((mtf.first != NULL || mtf.last != NULL) && mtf.prev_BY != NULL)
     {
       if (mtf.last != NULL)
         case_data_rw (&mtf.buffered_case, mtf.last)->f = 1.0;
@@ -1045,7 +1045,7 @@ static bool
 create_flag_var (const char *subcommand, const char *var_name,
                  struct dictionary *dict, struct variable **var)
 {
-  if (var_name != NULL && var_name[0] != '\0') 
+  if (var_name != NULL && var_name[0] != '\0')
     {
       struct fmt_spec format = fmt_for_output (FMT_F, 1, 0);
       *var = dict_create_var (dict, var_name, 0);
@@ -1058,7 +1058,7 @@ create_flag_var (const char *subcommand, const char *var_name,
         }
       var_set_both_formats (*var, &format);
     }
-  else 
+  else
     *var = NULL;
   return true;
 }
@@ -1078,7 +1078,7 @@ var_type_description (struct variable *v)
    Returns true if successful, false if an I/O error occurred on
    any of the files. */
 static bool
-mtf_close_all_files (struct mtf_proc *mtf) 
+mtf_close_all_files (struct mtf_proc *mtf)
 {
   struct mtf_file *file;
   bool ok = true;
@@ -1157,12 +1157,12 @@ mtf_process_case (struct mtf_proc *mtf)
   ll_for_each (file, struct mtf_file, ll, &mtf->files)
     if (case_is_null (&file->input))
       file->sequence = -1;
-    else if (file->type == MTF_FILE) 
+    else if (file->type == MTF_FILE)
       {
         int cmp = min != NULL ? mtf_compare_BY_values (mtf, min, file) : 1;
         if (cmp <= 0)
           file->sequence = cmp < 0 ? -1 : min_sequence;
-        else 
+        else
           {
             file->sequence = ++min_sequence;
             min = file;
@@ -1178,37 +1178,37 @@ mtf_process_case (struct mtf_proc *mtf)
           }
         while (cmp > 0 && mtf_read_record (mtf, file));
         file->sequence = cmp == 0 ? min_sequence : -1;
-      }      
+      }
 
   /* Form the output case from the input cases. */
   case_create (&c, dict_get_next_value_idx (mtf->dict));
-  for (i = 0; i < dict_get_var_cnt (mtf->dict); i++) 
+  for (i = 0; i < dict_get_var_cnt (mtf->dict); i++)
     {
       struct variable *v = dict_get_var (mtf->dict, i);
-      value_set_missing (case_data_rw (&c, v), var_get_width (v)); 
+      value_set_missing (case_data_rw (&c, v), var_get_width (v));
     }
   ll_for_each_reverse (file, struct mtf_file, ll, &mtf->files)
     {
       bool include_file = file->sequence == min_sequence;
-      if (include_file) 
+      if (include_file)
         for (i = 0; i < file->var_cnt; i++)
           {
             const struct mtf_variable *mv = &file->vars[i];
             const union value *in = case_data (&file->input, mv->in_var);
             union value *out = case_data_rw (&c, mv->out_var);
-            value_copy (out, in, var_get_width (mv->in_var)); 
+            value_copy (out, in, var_get_width (mv->in_var));
           }
-      if (file->in_var != NULL) 
+      if (file->in_var != NULL)
         case_data_rw (&c, file->in_var)->f = include_file;
     }
-  
+
   /* Write the output case. */
-  if (mtf->first == NULL && mtf->last == NULL) 
+  if (mtf->first == NULL && mtf->last == NULL)
     {
       /* With no FIRST or LAST variables, it's trivial. */
       casewriter_write (mtf->output, &c);
     }
-  else 
+  else
     {
       /* It's harder with LAST, because we can't know whether
          this case is the last in a group until we've prepared
@@ -1222,7 +1222,7 @@ mtf_process_case (struct mtf_proc *mtf)
          might not be in the output (the user is allowed to drop
          them). */
       bool new_BY;
-      if (mtf->prev_BY != NULL) 
+      if (mtf->prev_BY != NULL)
         {
           new_BY = case_compare_2dict (&min->input, &mtf->prev_BY_case,
                                        min->by, mtf->prev_BY,
@@ -1231,28 +1231,28 @@ mtf_process_case (struct mtf_proc *mtf)
             case_data_rw (&mtf->buffered_case, mtf->last)->f = new_BY;
           casewriter_write (mtf->output, &mtf->buffered_case);
         }
-      else 
+      else
         new_BY = true;
 
       case_move (&mtf->buffered_case, &c);
       if (mtf->first != NULL)
         case_data_rw (&mtf->buffered_case, mtf->first)->f = new_BY;
 
-      if (new_BY) 
+      if (new_BY)
         {
           mtf->prev_BY = min->by;
           case_destroy (&mtf->prev_BY_case);
-          case_clone (&mtf->prev_BY_case, &min->input); 
+          case_clone (&mtf->prev_BY_case, &min->input);
         }
     }
 
   /* Read another record from each input file FILE with minimum
      values. */
   ll_for_each (file, struct mtf_file, ll, &mtf->files)
-    if (file->type == MTF_FILE) 
+    if (file->type == MTF_FILE)
       {
         if (file->sequence == min_sequence)
-          mtf_read_record (mtf, file); 
+          mtf_read_record (mtf, file);
       }
     else
       break;
@@ -1271,7 +1271,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 
   d_docs = dict_get_documents (d);
   m_docs = dict_get_documents (m);
-  if (d_docs != NULL) 
+  if (d_docs != NULL)
     {
       if (m_docs == NULL)
         dict_set_documents (m, d_docs);
@@ -1282,7 +1282,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
           free (new_docs);
         }
     }
-  
+
   for (i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *dv = dict_get_var (d, i);
@@ -1293,7 +1293,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
 
       if (mv != NULL)
         {
-          if (var_get_width (mv) != var_get_width (dv)) 
+          if (var_get_width (mv) != var_get_width (dv))
             {
               char *dv_description = var_type_description (dv);
               char *mv_description = var_type_description (mv);
@@ -1306,7 +1306,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
               free (mv_description);
               return false;
             }
-        
+
           if (var_get_width (dv) == var_get_width (mv))
             {
               if (var_has_value_labels (dv) && !var_has_value_labels (mv))
@@ -1318,7 +1318,7 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
           if (var_get_label (dv) && !var_get_label (mv))
             var_set_label (mv, var_get_label (dv));
         }
-      else 
+      else
         mv = dict_clone_var_assert (m, dv, var_get_name (dv));
     }
 
@@ -1348,11 +1348,11 @@ struct case_map
 
    Uses D's aux members, which must otherwise not be in use. */
 static void
-start_case_map (struct dictionary *d) 
+start_case_map (struct dictionary *d)
 {
   size_t var_cnt = dict_get_var_cnt (d);
   size_t i;
-  
+
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
@@ -1371,7 +1371,7 @@ start_case_map (struct dictionary *d)
    Returns the new case map, or a null pointer if no mapping is
    required (that is, no data has changed position). */
 static struct case_map *
-finish_case_map (struct dictionary *d) 
+finish_case_map (struct dictionary *d)
 {
   struct case_map *map;
   size_t var_cnt = dict_get_var_cnt (d);
@@ -1385,7 +1385,7 @@ finish_case_map (struct dictionary *d)
     map->map[i] = -1;
 
   identity_map = 1;
-  for (i = 0; i < var_cnt; i++) 
+  for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
       size_t value_cnt = var_get_value_cnt (v);
@@ -1394,19 +1394,19 @@ finish_case_map (struct dictionary *d)
 
       if (var_get_case_index (v) != *src_fv)
         identity_map = 0;
-      
+
       for (idx = 0; idx < value_cnt; idx++)
         {
           int src_idx = *src_fv + idx;
           int dst_idx = var_get_case_index (v) + idx;
-          
+
           assert (map->map[dst_idx] == -1);
           map->map[dst_idx] = src_idx;
         }
       free (src_fv);
     }
 
-  if (identity_map) 
+  if (identity_map)
     {
       destroy_case_map (map);
       return NULL;
@@ -1421,7 +1421,7 @@ finish_case_map (struct dictionary *d)
 /* Maps from SRC to DST, applying case map MAP. */
 static void
 map_case (const struct case_map *map,
-          const struct ccase *src, struct ccase *dst) 
+          const struct ccase *src, struct ccase *dst)
 {
   size_t dst_idx;
 
@@ -1435,9 +1435,9 @@ map_case (const struct case_map *map,
 
 /* Destroys case map MAP. */
 static void
-destroy_case_map (struct case_map *map) 
+destroy_case_map (struct case_map *map)
 {
-  if (map != NULL) 
+  if (map != NULL)
     {
       free (map->map);
       free (map);

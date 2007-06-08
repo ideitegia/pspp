@@ -78,7 +78,7 @@ cmd_sample (struct lexer *lexer, struct dataset *ds)
 		     "exclusive."));
 	  return CMD_FAILURE;
 	}
-	  
+
       frac = lex_tokval (lexer) * (max - min) + min;
       a = b = 0;
     }
@@ -99,7 +99,7 @@ cmd_sample (struct lexer *lexer, struct dataset *ds)
 	       a, b);
 	  return CMD_FAILURE;
 	}
-      
+
       frac = 0;
     }
   lex_get (lexer);
@@ -123,7 +123,7 @@ sample_trns_proc (void *t_, struct ccase *c UNUSED,
   struct sample_trns *t = t_;
   double U;
 
-  if (t->type == TYPE_FRACTION) 
+  if (t->type == TYPE_FRACTION)
     {
       if (gsl_rng_get (get_rng ()) <= t->frac)
         return TRNS_CONTINUE;
@@ -149,7 +149,7 @@ sample_trns_proc (void *t_, struct ccase *c UNUSED,
 }
 
 static bool
-sample_trns_free (void *t_) 
+sample_trns_free (void *t_)
 {
   struct sample_trns *t = t_;
   free (t);

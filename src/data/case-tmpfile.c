@@ -34,7 +34,7 @@
 #define _(msgid) gettext (msgid)
 
 /* A temporary file that stores an array of cases. */
-struct case_tmpfile 
+struct case_tmpfile
   {
     struct taint *taint;        /* Taint. */
     FILE *file;                 /* Underlying file. */
@@ -49,12 +49,12 @@ struct case_tmpfile
 
 /* Creates and returns a new case_tmpfile. */
 struct case_tmpfile *
-case_tmpfile_create (size_t value_cnt) 
+case_tmpfile_create (size_t value_cnt)
 {
   struct case_tmpfile *ctf = xmalloc (sizeof *ctf);
   ctf->taint = taint_create ();
   ctf->file = tmpfile ();
-  if (ctf->file == NULL) 
+  if (ctf->file == NULL)
     {
       error (0, errno, _("failed to create temporary file"));
       taint_set_taint (ctf->taint);
@@ -69,10 +69,10 @@ case_tmpfile_create (size_t value_cnt)
    error on case_tmpfile access or by taint propagation to the
    case_tmpfile. */
 bool
-case_tmpfile_destroy (struct case_tmpfile *ctf) 
+case_tmpfile_destroy (struct case_tmpfile *ctf)
 {
   bool ok = true;
-  if (ctf != NULL) 
+  if (ctf != NULL)
     {
       struct taint *taint = ctf->taint;
       if (ctf->file != NULL)
@@ -87,21 +87,21 @@ case_tmpfile_destroy (struct case_tmpfile *ctf)
    error on case_tmpfile access or by taint propagation to the
    case_tmpfile. */
 bool
-case_tmpfile_error (const struct case_tmpfile *ctf) 
+case_tmpfile_error (const struct case_tmpfile *ctf)
 {
   return taint_is_tainted (ctf->taint);
 }
 
 /* Marks CTF as tainted. */
 void
-case_tmpfile_force_error (struct case_tmpfile *ctf) 
+case_tmpfile_force_error (struct case_tmpfile *ctf)
 {
   taint_set_taint (ctf->taint);
 }
 
 /* Returns CTF's taint object. */
 const struct taint *
-case_tmpfile_get_taint (const struct case_tmpfile *ctf) 
+case_tmpfile_get_taint (const struct case_tmpfile *ctf)
 {
   return ctf->taint;
 }
@@ -112,11 +112,11 @@ case_tmpfile_get_taint (const struct case_tmpfile *ctf)
    otherwise tainted, false otherwise. */
 static bool
 do_seek (const struct case_tmpfile *ctf_,
-         casenumber case_idx, size_t value_idx) 
+         casenumber case_idx, size_t value_idx)
 {
   struct case_tmpfile *ctf = (struct case_tmpfile *) ctf_;
 
-  if (!case_tmpfile_error (ctf)) 
+  if (!case_tmpfile_error (ctf))
     {
       off_t value_ofs = value_idx + (off_t) ctf->value_cnt * case_idx;
       off_t byte_ofs = sizeof (union value) * value_ofs;
@@ -168,12 +168,12 @@ do_read (const struct case_tmpfile *ctf_, size_t bytes, void *buffer)
    Returns true if successful, false upon an I/O error (in which
    case CTF is marked tainted). */
 static bool
-do_write (struct case_tmpfile *ctf, size_t bytes, const void *buffer) 
+do_write (struct case_tmpfile *ctf, size_t bytes, const void *buffer)
 {
   assert (!case_tmpfile_error (ctf));
   if (fwrite (buffer, bytes, 1, ctf->file) != 1)
     {
-      case_tmpfile_force_error (ctf); 
+      case_tmpfile_force_error (ctf);
       error (0, errno, _("writing to temporary file"));
       return false;
     }
@@ -191,7 +191,7 @@ do_write (struct case_tmpfile *ctf, size_t bytes, const void *buffer)
 bool
 case_tmpfile_get_values (const struct case_tmpfile *ctf,
                          casenumber case_idx, size_t start_value,
-                         union value values[], size_t value_cnt) 
+                         union value values[], size_t value_cnt)
 {
   assert (value_cnt <= ctf->value_cnt);
   assert (value_cnt + start_value <= ctf->value_cnt);
@@ -208,7 +208,7 @@ case_tmpfile_get_values (const struct case_tmpfile *ctf,
    from CTF had not previously been written. */
 bool
 case_tmpfile_get_case (const struct case_tmpfile *ctf, casenumber case_idx,
-                       struct ccase *c) 
+                       struct ccase *c)
 {
   case_create (c, ctf->value_cnt);
   if (case_tmpfile_get_values (ctf, case_idx, 0,
@@ -219,7 +219,7 @@ case_tmpfile_get_case (const struct case_tmpfile *ctf, casenumber case_idx,
       case_destroy (c);
       case_nullify (c);
       return false;
-    } 
+    }
 }
 
 /* Writes VALUE_CNT values from VALUES, into the case numbered
@@ -237,14 +237,14 @@ case_tmpfile_put_values (struct case_tmpfile *ctf,
 
   return (do_seek (ctf, case_idx, start_value)
           && do_write (ctf, sizeof *values * value_cnt, values));
-}                         
+}
 
 /* Writes C to CTF as the case numbered CASE_IDX.
    Returns true if successful, false if CTF is tainted or an I/O
    error occurs during the operation. */
 bool
 case_tmpfile_put_case (struct case_tmpfile *ctf, casenumber case_idx,
-                       struct ccase *c) 
+                       struct ccase *c)
 {
   bool ok = case_tmpfile_put_values (ctf, case_idx, 0,
                                      case_data_all (c), ctf->value_cnt);

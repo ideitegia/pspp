@@ -62,7 +62,7 @@ struct variable
     bool leave;                 /* Leave value from case to case? */
 
     /* Data for use by containing dictionary. */
-    struct vardict_info vardict;    
+    struct vardict_info vardict;
 
     /* Short name, used only for system and portable file input
        and output.  Upper case only. Short names are not necessarily
@@ -82,14 +82,14 @@ struct variable
 
 /* Returns true if VAR_TYPE is a valid variable type. */
 bool
-var_type_is_valid (enum var_type var_type) 
+var_type_is_valid (enum var_type var_type)
 {
   return var_type == VAR_NUMERIC || var_type == VAR_STRING;
 }
 
 /* Returns the variable type for the given width. */
 enum var_type
-var_type_from_width (int width) 
+var_type_from_width (int width)
 {
   return width != 0 ? VAR_STRING : VAR_NUMERIC;
 }
@@ -99,10 +99,10 @@ var_type_from_width (int width)
    variable is not added to a dictionary; for that, use
    dict_create_var instead. */
 struct variable *
-var_create (const char *name, int width) 
+var_create (const char *name, int width)
 {
   struct variable *v;
-  
+
   assert (width >= 0 && width <= MAX_STRING);
 
   v = xmalloc (sizeof *v);
@@ -170,16 +170,16 @@ var_clone (const struct variable *old_var)
    V must not belong to a dictionary.  If it does, use
    dict_delete_var instead. */
 void
-var_destroy (struct variable *v) 
+var_destroy (struct variable *v)
 {
-  if (v != NULL) 
+  if (v != NULL)
     {
       assert (!var_has_vardict (v));
       cat_stored_values_destroy (v->obs_vals);
       var_clear_aux (v);
       val_labs_destroy (v->val_labs);
       var_clear_label (v);
-      free (v); 
+      free (v);
     }
 }
 
@@ -187,7 +187,7 @@ var_destroy (struct variable *v)
 
 /* Return variable V's name. */
 const char *
-var_get_name (const struct variable *v) 
+var_get_name (const struct variable *v)
 {
   return v->name;
 }
@@ -196,7 +196,7 @@ var_get_name (const struct variable *v)
    Do not use this function for a variable in a dictionary.  Use
    dict_rename_var instead. */
 void
-var_set_name (struct variable *v, const char *name) 
+var_set_name (struct variable *v, const char *name)
 {
   assert (v->vardict.dict_index == -1);
   assert (var_is_plausible_name (name, false));
@@ -209,20 +209,20 @@ var_set_name (struct variable *v, const char *name)
    false otherwise.  If ISSUE_ERROR is true, issues an
    explanatory error message on failure. */
 bool
-var_is_valid_name (const char *name, bool issue_error) 
+var_is_valid_name (const char *name, bool issue_error)
 {
   bool plausible;
   size_t length, i;
-  
+
   assert (name != NULL);
 
-  /* Note that strlen returns number of BYTES, not the number of 
+  /* Note that strlen returns number of BYTES, not the number of
      CHARACTERS */
   length = strlen (name);
 
   plausible = var_is_plausible_name(name, issue_error);
 
-  if ( ! plausible ) 
+  if ( ! plausible )
     return false;
 
 
@@ -238,7 +238,7 @@ var_is_valid_name (const char *name, bool issue_error)
 
   for (i = 0; i < length; i++)
     {
-    if (!lex_is_idn (name[i])) 
+    if (!lex_is_idn (name[i]))
       {
         if (issue_error)
           msg (SE, _("Character `%c' (in %s) may not appear in "
@@ -253,26 +253,26 @@ var_is_valid_name (const char *name, bool issue_error)
 
 /* Returns true if NAME is an plausible name for a variable,
    false otherwise.  If ISSUE_ERROR is true, issues an
-   explanatory error message on failure. 
+   explanatory error message on failure.
    This function makes no use of LC_CTYPE.
 */
 bool
-var_is_plausible_name (const char *name, bool issue_error) 
+var_is_plausible_name (const char *name, bool issue_error)
 {
   size_t length;
-  
+
   assert (name != NULL);
 
-  /* Note that strlen returns number of BYTES, not the number of 
+  /* Note that strlen returns number of BYTES, not the number of
      CHARACTERS */
   length = strlen (name);
-  if (length < 1) 
+  if (length < 1)
     {
       if (issue_error)
         msg (SE, _("Variable name cannot be empty string."));
       return false;
     }
-  else if (length > LONG_NAME_LEN) 
+  else if (length > LONG_NAME_LEN)
     {
       if (issue_error)
         msg (SE, _("Variable name %s exceeds %d-character limit."),
@@ -280,7 +280,7 @@ var_is_plausible_name (const char *name, bool issue_error)
       return false;
     }
 
-  if (lex_id_to_token (ss_cstr (name)) != T_ID) 
+  if (lex_id_to_token (ss_cstr (name)) != T_ID)
     {
       if (issue_error)
         msg (SE, _("`%s' may not be used as a variable name because it "
@@ -294,7 +294,7 @@ var_is_plausible_name (const char *name, bool issue_error)
 /* A hsh_compare_func that orders variables A and B by their
    names. */
 int
-compare_vars_by_name (const void *a_, const void *b_, const void *aux UNUSED) 
+compare_vars_by_name (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct variable *a = a_;
   const struct variable *b = b_;
@@ -304,7 +304,7 @@ compare_vars_by_name (const void *a_, const void *b_, const void *aux UNUSED)
 
 /* A hsh_hash_func that hashes variable V based on its name. */
 unsigned
-hash_var_by_name (const void *v_, const void *aux UNUSED) 
+hash_var_by_name (const void *v_, const void *aux UNUSED)
 {
   const struct variable *v = v_;
 
@@ -315,7 +315,7 @@ hash_var_by_name (const void *v_, const void *aux UNUSED)
    by their names. */
 int
 compare_var_ptrs_by_name (const void *a_, const void *b_,
-                          const void *aux UNUSED) 
+                          const void *aux UNUSED)
 {
   struct variable *const *a = a_;
   struct variable *const *b = b_;
@@ -326,7 +326,7 @@ compare_var_ptrs_by_name (const void *a_, const void *b_,
 /* A hsh_hash_func that hashes pointer to variable V based on its
    name. */
 unsigned
-hash_var_ptr_by_name (const void *v_, const void *aux UNUSED) 
+hash_var_ptr_by_name (const void *v_, const void *aux UNUSED)
 {
   struct variable *const *v = v_;
 
@@ -335,14 +335,14 @@ hash_var_ptr_by_name (const void *v_, const void *aux UNUSED)
 
 /* Returns the type of variable V. */
 enum var_type
-var_get_type (const struct variable *v) 
+var_get_type (const struct variable *v)
 {
   return var_type_from_width (v->width);
 }
 
 /* Returns the width of variable V. */
 int
-var_get_width (const struct variable *v) 
+var_get_width (const struct variable *v)
 {
   return v->width;
 }
@@ -376,7 +376,7 @@ var_set_width (struct variable *v, int new_width)
                   : fmt_for_output (FMT_A, new_width, 0));
       v->write = v->print;
     }
-  else if (new_type == VAR_STRING) 
+  else if (new_type == VAR_STRING)
     {
       v->print.w = v->print.type == FMT_AHEX ? new_width * 2 : new_width;
       v->write.w = v->write.type == FMT_AHEX ? new_width * 2 : new_width;
@@ -389,7 +389,7 @@ var_set_width (struct variable *v, int new_width)
 
 /* Returns true if variable V is numeric, false otherwise. */
 bool
-var_is_numeric (const struct variable *v) 
+var_is_numeric (const struct variable *v)
 {
   return var_get_type (v) == VAR_NUMERIC;
 }
@@ -397,7 +397,7 @@ var_is_numeric (const struct variable *v)
 /* Returns true if variable V is a string variable, false
    otherwise. */
 bool
-var_is_alpha (const struct variable *v) 
+var_is_alpha (const struct variable *v)
 {
   return var_get_type (v) == VAR_STRING;
 }
@@ -405,7 +405,7 @@ var_is_alpha (const struct variable *v)
 /* Returns true if variable V is a short string variable, false
    otherwise. */
 bool
-var_is_short_string (const struct variable *v) 
+var_is_short_string (const struct variable *v)
 {
   return v->width > 0 && v->width <= MAX_SHORT_STRING;
 }
@@ -413,7 +413,7 @@ var_is_short_string (const struct variable *v)
 /* Returns true if variable V is a long string variable, false
    otherwise. */
 bool
-var_is_long_string (const struct variable *v) 
+var_is_long_string (const struct variable *v)
 {
   return v->width > MAX_SHORT_STRING;
 }
@@ -421,14 +421,14 @@ var_is_long_string (const struct variable *v)
 /* Returns the number of "union value"s need to store a value of
    variable V. */
 size_t
-var_get_value_cnt (const struct variable *v) 
+var_get_value_cnt (const struct variable *v)
 {
   return value_cnt_from_width (v->width);
 }
 
 /* Returns variable V's missing values. */
 const struct missing_values *
-var_get_missing_values (const struct variable *v) 
+var_get_missing_values (const struct variable *v)
 {
   return &v->miss;
 }
@@ -440,7 +440,7 @@ var_get_missing_values (const struct variable *v)
 void
 var_set_missing_values (struct variable *v, const struct missing_values *miss)
 {
-  if (miss != NULL) 
+  if (miss != NULL)
     {
       assert (mv_is_resizable (miss, v->width));
       mv_copy (&v->miss, miss);
@@ -454,7 +454,7 @@ var_set_missing_values (struct variable *v, const struct missing_values *miss)
 
 /* Sets variable V to have no user-missing values. */
 void
-var_clear_missing_values (struct variable *v) 
+var_clear_missing_values (struct variable *v)
 {
   var_set_missing_values (v, NULL);
 }
@@ -462,7 +462,7 @@ var_clear_missing_values (struct variable *v)
 /* Returns true if V has any user-missing values,
    false otherwise. */
 bool
-var_has_missing_values (const struct variable *v) 
+var_has_missing_values (const struct variable *v)
 {
   return !mv_is_empty (&v->miss);
 }
@@ -471,7 +471,7 @@ var_has_missing_values (const struct variable *v)
    in V, false otherwise. */
 bool
 var_is_value_missing (const struct variable *v, const union value *value,
-                      enum mv_class class) 
+                      enum mv_class class)
 {
   return mv_is_value_missing (&v->miss, value, class);
 }
@@ -480,7 +480,7 @@ var_is_value_missing (const struct variable *v, const union value *value,
    V, false otherwise.
    V must be a numeric variable. */
 bool
-var_is_num_missing (const struct variable *v, double d, enum mv_class class) 
+var_is_num_missing (const struct variable *v, double d, enum mv_class class)
 {
   return mv_is_num_missing (&v->miss, d, class);
 }
@@ -490,7 +490,7 @@ var_is_num_missing (const struct variable *v, double d, enum mv_class class)
    V must be a string variable. */
 bool
 var_is_str_missing (const struct variable *v, const char s[],
-                    enum mv_class class) 
+                    enum mv_class class)
 {
   return mv_is_str_missing (&v->miss, s, class);
 }
@@ -498,14 +498,14 @@ var_is_str_missing (const struct variable *v, const char s[],
 /* Returns variable V's value labels,
    possibly a null pointer if it has none. */
 const struct val_labs *
-var_get_value_labels (const struct variable *v) 
+var_get_value_labels (const struct variable *v)
 {
   return v->val_labs;
 }
 
 /* Returns true if variable V has at least one value label. */
 bool
-var_has_value_labels (const struct variable *v) 
+var_has_value_labels (const struct variable *v)
 {
   return val_labs_count (v->val_labs) > 0;
 }
@@ -515,7 +515,7 @@ var_has_value_labels (const struct variable *v)
    changed to V's width.
    If VLS is null, then V's value labels, if any, are removed. */
 void
-var_set_value_labels (struct variable *v, const struct val_labs *vls) 
+var_set_value_labels (struct variable *v, const struct val_labs *vls)
 {
   val_labs_destroy (v->val_labs);
   v->val_labs = NULL;
@@ -532,7 +532,7 @@ var_set_value_labels (struct variable *v, const struct val_labs *vls)
 /* Makes sure that V has a set of value labels,
    by assigning one to it if necessary. */
 static void
-alloc_value_labels (struct variable *v) 
+alloc_value_labels (struct variable *v)
 {
   assert (!var_is_long_string (v));
   if (v->val_labs == NULL)
@@ -545,7 +545,7 @@ alloc_value_labels (struct variable *v)
    V must not be a long string variable. */
 bool
 var_add_value_label (struct variable *v,
-                     const union value *value, const char *label) 
+                     const union value *value, const char *label)
 {
   alloc_value_labels (v);
   return val_labs_add (v->val_labs, *value, label);
@@ -564,7 +564,7 @@ var_replace_value_label (struct variable *v,
 
 /* Removes V's value labels, if any. */
 void
-var_clear_value_labels (struct variable *v) 
+var_clear_value_labels (struct variable *v)
 {
   var_set_value_labels (v, NULL);
 }
@@ -572,7 +572,7 @@ var_clear_value_labels (struct variable *v)
 /* Returns the label associated with VALUE for variable V,
    or a null pointer if none. */
 const char *
-var_lookup_value_label (const struct variable *v, const union value *value) 
+var_lookup_value_label (const struct variable *v, const union value *value)
 {
   return val_labs_find (v->val_labs, *value);
 }
@@ -584,7 +584,7 @@ const char *
 var_get_value_name (const struct variable *v, const union value *value)
 {
   const char *name = var_lookup_value_label (v, value);
-  if (name == NULL) 
+  if (name == NULL)
     {
       static char buf[MAX_STRING + 1];
       data_out (value, &v->print, buf);
@@ -598,7 +598,7 @@ var_get_value_name (const struct variable *v, const union value *value)
 
 /* Returns V's print format specification. */
 const struct fmt_spec *
-var_get_print_format (const struct variable *v) 
+var_get_print_format (const struct variable *v)
 {
   return &v->print;
 }
@@ -607,7 +607,7 @@ var_get_print_format (const struct variable *v)
    valid format specification for outputting a variable of V's
    width. */
 void
-var_set_print_format (struct variable *v, const struct fmt_spec *print) 
+var_set_print_format (struct variable *v, const struct fmt_spec *print)
 {
   assert (fmt_check_width_compat (print, v->width));
   v->print = *print;
@@ -616,7 +616,7 @@ var_set_print_format (struct variable *v, const struct fmt_spec *print)
 
 /* Returns V's write format specification. */
 const struct fmt_spec *
-var_get_write_format (const struct variable *v) 
+var_get_write_format (const struct variable *v)
 {
   return &v->write;
 }
@@ -625,7 +625,7 @@ var_get_write_format (const struct variable *v)
    valid format specification for outputting a variable of V's
    width. */
 void
-var_set_write_format (struct variable *v, const struct fmt_spec *write) 
+var_set_write_format (struct variable *v, const struct fmt_spec *write)
 {
   assert (fmt_check_width_compat (write, v->width));
   v->write = *write;
@@ -636,7 +636,7 @@ var_set_write_format (struct variable *v, const struct fmt_spec *write)
    which must be a valid format specification for outputting a
    variable of V's width. */
 void
-var_set_both_formats (struct variable *v, const struct fmt_spec *format) 
+var_set_both_formats (struct variable *v, const struct fmt_spec *format)
 {
   var_set_print_format (v, format);
   var_set_write_format (v, format);
@@ -653,7 +653,7 @@ var_to_string (const struct variable *v)
 
 /* Returns V's variable label, or a null pointer if it has none. */
 const char *
-var_get_label (const struct variable *v) 
+var_get_label (const struct variable *v)
 {
   return v->label;
 }
@@ -664,17 +664,17 @@ var_get_label (const struct variable *v)
    (after stripping white space), then V's variable label (if
    any) is removed. */
 void
-var_set_label (struct variable *v, const char *label) 
+var_set_label (struct variable *v, const char *label)
 {
   free (v->label);
   v->label = NULL;
 
-  if (label != NULL) 
+  if (label != NULL)
     {
       struct substring s = ss_cstr (label);
       ss_trim (&s, ss_cstr (CC_SPACES));
       ss_truncate (&s, 255);
-      if (!ss_is_empty (s)) 
+      if (!ss_is_empty (s))
         v->label = ss_xstrdup (s);
       dict_var_changed (v);
     }
@@ -682,7 +682,7 @@ var_set_label (struct variable *v, const char *label)
 
 /* Removes any variable label from V. */
 void
-var_clear_label (struct variable *v) 
+var_clear_label (struct variable *v)
 {
   var_set_label (v, NULL);
 }
@@ -690,7 +690,7 @@ var_clear_label (struct variable *v)
 /* Returns true if V has a variable V,
    false otherwise. */
 bool
-var_has_label (const struct variable *v) 
+var_has_label (const struct variable *v)
 {
   return v->label != NULL;
 }
@@ -705,14 +705,14 @@ measure_is_valid (enum measure m)
 
 /* Returns V's measurement level. */
 enum measure
-var_get_measure (const struct variable *v) 
+var_get_measure (const struct variable *v)
 {
   return v->measure;
 }
 
 /* Sets V's measurement level to MEASURE. */
 void
-var_set_measure (struct variable *v, enum measure measure) 
+var_set_measure (struct variable *v, enum measure measure)
 {
   assert (measure_is_valid (measure));
   v->measure = measure;
@@ -721,7 +721,7 @@ var_set_measure (struct variable *v, enum measure measure)
 
 /* Returns V's display width, which applies only to GUIs. */
 int
-var_get_display_width (const struct variable *v) 
+var_get_display_width (const struct variable *v)
 {
   return v->display_width;
 }
@@ -731,7 +731,7 @@ var_get_display_width (const struct variable *v)
 
 /* Sets V's display width to DISPLAY_WIDTH. */
 void
-var_set_display_width (struct variable *v, int display_width) 
+var_set_display_width (struct variable *v, int display_width)
 {
   v->display_width = display_width;
   dict_var_changed (v);
@@ -747,14 +747,14 @@ alignment_is_valid (enum alignment a)
 
 /* Returns V's display alignment, which applies only to GUIs. */
 enum alignment
-var_get_alignment (const struct variable *v) 
+var_get_alignment (const struct variable *v)
 {
   return v->alignment;
 }
 
 /* Sets V's display alignment to ALIGNMENT. */
 void
-var_set_alignment (struct variable *v, enum alignment alignment) 
+var_set_alignment (struct variable *v, enum alignment alignment)
 {
   assert (alignment_is_valid (alignment));
   v->alignment = alignment;
@@ -767,14 +767,14 @@ var_set_alignment (struct variable *v, enum alignment alignment)
 /* Returns true if variable V's value should be left from case to
    case, instead of being reset to 0, system-missing, or blanks. */
 bool
-var_get_leave (const struct variable *v) 
+var_get_leave (const struct variable *v)
 {
   return v->leave;
 }
 
 /* Sets V's leave setting to LEAVE. */
 void
-var_set_leave (struct variable *v, bool leave) 
+var_set_leave (struct variable *v, bool leave)
 {
   assert (leave || !var_must_leave (v));
   v->leave = leave;
@@ -784,7 +784,7 @@ var_set_leave (struct variable *v, bool leave)
 /* Returns true if V must be left from case to case,
    false if it can be set either way. */
 bool
-var_must_leave (const struct variable *v) 
+var_must_leave (const struct variable *v)
 {
   return dict_class_from_id (v->name) == DC_SCRATCH;
 }
@@ -798,7 +798,7 @@ var_must_leave (const struct variable *v)
    terminator).  Any variable may have no short name, indicated
    by returning a null pointer. */
 const char *
-var_get_short_name (const struct variable *v) 
+var_get_short_name (const struct variable *v)
 {
   return v->short_name[0] != '\0' ? v->short_name : NULL;
 }
@@ -808,15 +808,15 @@ var_get_short_name (const struct variable *v)
    the process.  Specifying a null pointer for SHORT_NAME clears
    the variable's short name. */
 void
-var_set_short_name (struct variable *v, const char *short_name) 
+var_set_short_name (struct variable *v, const char *short_name)
 {
   assert (v != NULL);
   assert (short_name == NULL || var_is_plausible_name (short_name, false));
 
-  if (short_name != NULL) 
+  if (short_name != NULL)
     {
       str_copy_trunc (v->short_name, sizeof v->short_name, short_name);
-      str_uppercase (v->short_name); 
+      str_uppercase (v->short_name);
     }
   else
     v->short_name[0] = '\0';
@@ -825,7 +825,7 @@ var_set_short_name (struct variable *v, const char *short_name)
 
 /* Clears V's short name. */
 void
-var_clear_short_name (struct variable *v) 
+var_clear_short_name (struct variable *v)
 {
   assert (v != NULL);
 
@@ -838,7 +838,7 @@ var_clear_short_name (struct variable *v)
    for which "dict_get_var (dict, index)" will return V.
    V must be in a dictionary. */
 size_t
-var_get_dict_index (const struct variable *v) 
+var_get_dict_index (const struct variable *v)
 {
   assert (v->vardict.dict_index != -1);
   return v->vardict.dict_index;
@@ -849,7 +849,7 @@ var_get_dict_index (const struct variable *v)
    index)" will return the data for V in that case.
    V must be in a dictionary. */
 size_t
-var_get_case_index (const struct variable *v) 
+var_get_case_index (const struct variable *v)
 {
   assert (v->vardict.case_index != -1);
   return v->vardict.case_index;
@@ -858,7 +858,7 @@ var_get_case_index (const struct variable *v)
 /* Returns V's auxiliary data, or a null pointer if none has been
    attached. */
 void *
-var_get_aux (const struct variable *v) 
+var_get_aux (const struct variable *v)
 {
   return v->aux;
 }
@@ -869,7 +869,7 @@ var_get_aux (const struct variable *v)
    may be appropriate for use as AUX_DTOR.) */
 void *
 var_attach_aux (const struct variable *v_,
-                void *aux, void (*aux_dtor) (struct variable *)) 
+                void *aux, void (*aux_dtor) (struct variable *))
 {
   struct variable *v = (struct variable *) v_ ; /* cast away const  */
   assert (v->aux == NULL);
@@ -882,7 +882,7 @@ var_attach_aux (const struct variable *v_,
 /* Remove auxiliary data, if any, from V, and return it, without
    calling any associated destructor. */
 void *
-var_detach_aux (struct variable *v) 
+var_detach_aux (struct variable *v)
 {
   void *aux = v->aux;
   assert (aux != NULL);
@@ -893,10 +893,10 @@ var_detach_aux (struct variable *v)
 /* Clears auxiliary data, if any, from V, and calls any
    associated destructor. */
 void
-var_clear_aux (struct variable *v) 
+var_clear_aux (struct variable *v)
 {
   assert (v != NULL);
-  if (v->aux != NULL) 
+  if (v->aux != NULL)
     {
       if (v->aux_dtor != NULL)
         v->aux_dtor (v);
@@ -908,7 +908,7 @@ var_clear_aux (struct variable *v)
    destructor (passed as AUX_DTOR to var_attach_aux()) for the
    case where the auxiliary data should be passed to free(). */
 void
-var_dtor_free (struct variable *v) 
+var_dtor_free (struct variable *v)
 {
   free (v->aux);
 }
@@ -918,7 +918,7 @@ var_dtor_free (struct variable *v)
 /* Returns V's observed categorical values,
    which V must have. */
 struct cat_vals *
-var_get_obs_vals (const struct variable *v) 
+var_get_obs_vals (const struct variable *v)
 {
   assert (v->obs_vals != NULL);
   return v->obs_vals;
@@ -926,9 +926,9 @@ var_get_obs_vals (const struct variable *v)
 
 /* Sets V's observed categorical values to CAT_VALS. */
 void
-var_set_obs_vals (const struct variable *v_, struct cat_vals *cat_vals) 
+var_set_obs_vals (const struct variable *v_, struct cat_vals *cat_vals)
 {
-  struct variable *v = (struct variable *) v_ ; /* cast away const */ 
+  struct variable *v = (struct variable *) v_ ; /* cast away const */
   cat_stored_values_destroy (v->obs_vals);
   v->obs_vals = cat_vals;
 }
@@ -936,7 +936,7 @@ var_set_obs_vals (const struct variable *v_, struct cat_vals *cat_vals)
 /* Returns true if V has observed categorical values,
    false otherwise. */
 bool
-var_has_obs_vals (const struct variable *v) 
+var_has_obs_vals (const struct variable *v)
 {
   return v->obs_vals != NULL;
 }
@@ -944,9 +944,9 @@ var_has_obs_vals (const struct variable *v)
 /* Returns the dictionary class corresponding to a variable named
    NAME. */
 enum dict_class
-dict_class_from_id (const char *name) 
+dict_class_from_id (const char *name)
 {
-  switch (name[0]) 
+  switch (name[0])
     {
     default:
       return DC_ORDINARY;
@@ -959,9 +959,9 @@ dict_class_from_id (const char *name)
 
 /* Returns the name of dictionary class DICT_CLASS. */
 const char *
-dict_class_to_name (enum dict_class dict_class) 
+dict_class_to_name (enum dict_class dict_class)
 {
-  switch (dict_class) 
+  switch (dict_class)
     {
     case DC_ORDINARY:
       return _("ordinary");
@@ -976,7 +976,7 @@ dict_class_to_name (enum dict_class dict_class)
 
 /* Returns V's vardict structure. */
 const struct vardict_info *
-var_get_vardict (const struct variable *v) 
+var_get_vardict (const struct variable *v)
 {
   assert (var_has_vardict (v));
   return &v->vardict;
@@ -984,7 +984,7 @@ var_get_vardict (const struct variable *v)
 
 /* Sets V's vardict data to VARDICT. */
 void
-var_set_vardict (struct variable *v, const struct vardict_info *vardict) 
+var_set_vardict (struct variable *v, const struct vardict_info *vardict)
 {
   assert (vardict->dict_index >= 0);
   assert (vardict->case_index >= 0);
@@ -993,14 +993,14 @@ var_set_vardict (struct variable *v, const struct vardict_info *vardict)
 
 /* Returns true if V has vardict data. */
 bool
-var_has_vardict (const struct variable *v) 
+var_has_vardict (const struct variable *v)
 {
   return v->vardict.dict_index != -1;
 }
 
 /* Clears V's vardict data. */
 void
-var_clear_vardict (struct variable *v) 
+var_clear_vardict (struct variable *v)
 {
   v->vardict.dict_index = v->vardict.case_index = -1;
 }

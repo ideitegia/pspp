@@ -24,7 +24,7 @@
 
 /* Returns true if FORMAT is a valid integer format. */
 static inline bool
-is_integer_format (enum integer_format format) 
+is_integer_format (enum integer_format format)
 {
   return (format == INTEGER_MSB_FIRST
           || format == INTEGER_LSB_FIRST
@@ -34,11 +34,11 @@ is_integer_format (enum integer_format format)
 /* Converts the CNT bytes in INTEGER from SRC integer_format to DST
    integer_format. */
 void
-integer_convert (enum integer_format src, const void *from, 
+integer_convert (enum integer_format src, const void *from,
                  enum integer_format dst, void *to,
                  size_t cnt)
 {
-  if (src != dst) 
+  if (src != dst)
     integer_put (integer_get (src, from, cnt), dst, to, cnt);
   else if (from != to)
     memcpy (to, from, cnt);
@@ -52,11 +52,11 @@ integer_get (enum integer_format format, const void *from_, size_t cnt)
   const uint8_t *from = from_;
   uint64_t value = 0;
   size_t i;
-  
+
   assert (is_integer_format (format));
   assert (cnt < 8);
 
-  switch (format) 
+  switch (format)
     {
     case INTEGER_MSB_FIRST:
       for (i = 0; i < cnt; i++)
@@ -89,14 +89,14 @@ integer_put (uint64_t value, enum integer_format format, void *to_, size_t cnt)
   assert (cnt < 8);
 
   value <<= 8 * (8 - cnt);
-  
-  switch (format) 
+
+  switch (format)
     {
     case INTEGER_MSB_FIRST:
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         {
           to[i] = value >> 56;
-          value <<= 8; 
+          value <<= 8;
         }
       break;
     case INTEGER_LSB_FIRST:
@@ -107,10 +107,10 @@ integer_put (uint64_t value, enum integer_format format, void *to_, size_t cnt)
         }
       break;
     case INTEGER_VAX:
-      for (i = 0; i < (cnt & ~1); i++) 
+      for (i = 0; i < (cnt & ~1); i++)
         {
           to[i ^ 1] = value >> 56;
-          value <<= 8; 
+          value <<= 8;
         }
       if (cnt & 1)
         to[cnt - 1] = value >> 56;
@@ -121,7 +121,7 @@ integer_put (uint64_t value, enum integer_format format, void *to_, size_t cnt)
 /* Returns true if bytes with index IDX1 and IDX2 in VALUE differ
    in value. */
 static inline bool
-bytes_differ (uint64_t value, unsigned int idx1, unsigned int idx2) 
+bytes_differ (uint64_t value, unsigned int idx1, unsigned int idx2)
 {
   uint8_t byte1 = value >> (idx1 * 8);
   uint8_t byte2 = value >> (idx2 * 8);
@@ -138,7 +138,7 @@ integer_identify (uint64_t expected_value, const void *integer, size_t length,
 {
   /* Odd-length integers are confusing. */
   assert (length % 2 == 0);
-  
+
   /* LENGTH must be greater than 2 because VAX format is
      equivalent to little-endian for 2-byte integers. */
   assert (length > 2);

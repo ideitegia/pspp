@@ -24,7 +24,7 @@
 #include <libpspp/compiler.h>
 
 /* What kind of message is this? */
-enum msg_category 
+enum msg_category
   {
     MSG_GENERAL,        /* General info. */
     MSG_SYNTAX,         /* Messages that relate to syntax files. */
@@ -32,7 +32,7 @@ enum msg_category
   };
 
 /* How important a condition is it? */
-enum msg_severity 
+enum msg_severity
   {
     MSG_ERROR,
     MSG_WARNING,
@@ -50,20 +50,20 @@ enum msg_class
 
 
 static inline enum msg_category
-msg_class_to_category (enum msg_class class) 
+msg_class_to_category (enum msg_class class)
 {
   return class / 3;
 }
 
 static inline enum msg_severity
-msg_class_to_severity (enum msg_class class) 
+msg_class_to_severity (enum msg_class class)
 {
   return class % 3;
 }
 
 static inline enum msg_class
 msg_class_from_category_and_severity (enum msg_category category,
-                                      enum msg_severity severity) 
+                                      enum msg_severity severity)
 {
   return category * 3 + severity;
 }

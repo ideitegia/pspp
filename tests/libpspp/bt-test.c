@@ -44,17 +44,17 @@ static const char *test_name;
 /* Exit with a failure code.
    (Place a breakpoint on this function while debugging.) */
 static void
-check_die (void) 
+check_die (void)
 {
-  exit (EXIT_FAILURE);   
+  exit (EXIT_FAILURE);
 }
 
 /* If OK is not true, prints a message about failure on the
    current source file and the given LINE and terminates. */
 static void
-check_func (bool ok, int line) 
+check_func (bool ok, int line)
 {
-  if (!ok) 
+  if (!ok)
     {
       printf ("Check failed in %s test at %s, line %d\n",
               test_name, __FILE__, line);
@@ -78,9 +78,9 @@ xalloc_die (void)
 
 /* Allocates and returns N bytes of memory. */
 static void *
-xmalloc (size_t n) 
+xmalloc (size_t n)
 {
-  if (n != 0) 
+  if (n != 0)
     {
       void *p = malloc (n);
       if (p == NULL)
@@ -93,7 +93,7 @@ xmalloc (size_t n)
 }
 
 static void *
-xmemdup (const void *p, size_t n) 
+xmemdup (const void *p, size_t n)
 {
   void *q = xmalloc (n);
   memcpy (q, p, n);
@@ -102,7 +102,7 @@ xmemdup (const void *p, size_t n)
 
 /* Allocates and returns N * M bytes of memory. */
 static void *
-xnmalloc (size_t n, size_t m) 
+xnmalloc (size_t n, size_t m)
 {
   if ((size_t) -1 / m <= n)
     xalloc_die ();
@@ -131,7 +131,7 @@ bt_node_to_element (const struct bt_node *node)
    return value.  Verifies that AUX points to aux_data. */
 static int
 compare_elements (const struct bt_node *a_, const struct bt_node *b_,
-                  const void *aux) 
+                  const void *aux)
 {
   const struct element *a = bt_node_to_element (a_);
   const struct element *b = bt_node_to_element (b_);
@@ -142,7 +142,7 @@ compare_elements (const struct bt_node *a_, const struct bt_node *b_,
 
 /* Compares A and B and returns a strcmp-type return value. */
 static int
-compare_ints_noaux (const void *a_, const void *b_) 
+compare_ints_noaux (const void *a_, const void *b_)
 {
   const int *a = a_;
   const int *b = b_;
@@ -152,7 +152,7 @@ compare_ints_noaux (const void *a_, const void *b_)
 
 /* Swaps *A and *B. */
 static void
-swap (int *a, int *b) 
+swap (int *a, int *b)
 {
   int t = *a;
   *a = *b;
@@ -183,7 +183,7 @@ next_permutation (int *values, size_t cnt)
   if (cnt > 0)
     {
       size_t i = cnt - 1;
-      while (i != 0) 
+      while (i != 0)
         {
           i--;
           if (values[i] < values[i + 1])
@@ -194,18 +194,18 @@ next_permutation (int *values, size_t cnt)
               swap (values + i, values + j);
               reverse (values + (i + 1), cnt - (i + 1));
               return true;
-            } 
+            }
         }
-      
+
       reverse (values, cnt);
     }
-  
+
   return false;
 }
 
 /* Returns N!. */
 static unsigned int
-factorial (unsigned int n) 
+factorial (unsigned int n)
 {
   unsigned int value = 1;
   while (n > 1)
@@ -222,10 +222,10 @@ random_shuffle (void *array_, size_t cnt, size_t size)
   char *tmp = xmalloc (size);
   size_t i;
 
-  for (i = 0; i < cnt; i++) 
+  for (i = 0; i < cnt; i++)
     {
       size_t j = rand () % (cnt - i) + i;
-      if (i != j) 
+      if (i != j)
         {
           memcpy (tmp, array + j * size, size);
           memcpy (array + j * size, array + i * size, size);
@@ -238,9 +238,9 @@ random_shuffle (void *array_, size_t cnt, size_t size)
 
 /* Calculates floor(log(n)/log(sqrt(2))). */
 static int
-calculate_h_alpha (size_t n) 
+calculate_h_alpha (size_t n)
 {
-  size_t thresholds[] = 
+  size_t thresholds[] =
     {
       0, 2, 2, 3, 4, 6, 8, 12, 16, 23, 32, 46, 64, 91, 128, 182, 256, 363,
       512, 725, 1024, 1449, 2048, 2897, 4096, 5793, 8192, 11586, 16384,
@@ -261,11 +261,11 @@ calculate_h_alpha (size_t n)
 
 /* Returns the height of the tree rooted at NODE. */
 static int
-get_height (struct bt_node *node) 
+get_height (struct bt_node *node)
 {
   if (node == NULL)
     return 0;
-  else 
+  else
     {
       int left = get_height (node->down[0]);
       int right = get_height (node->down[1]);
@@ -277,7 +277,7 @@ get_height (struct bt_node *node)
    its height is no more than h_alpha(count) + 1, where
    h_alpha(n) = floor(log(n)/log(1/alpha)). */
 static void
-check_balance (struct bt *bt) 
+check_balance (struct bt *bt)
 {
   /* In the notation of the Galperin and Rivest paper (and of
      CLR), the height of a tree is the number of edges in the
@@ -292,7 +292,7 @@ check_balance (struct bt *bt)
    structure is correct, and that certain operations on BT
    produce the expected results. */
 static void
-check_bt (struct bt *bt, const int data[], size_t cnt) 
+check_bt (struct bt *bt, const int data[], size_t cnt)
 {
   struct element e;
   size_t i;
@@ -320,17 +320,17 @@ check_bt (struct bt *bt, const int data[], size_t cnt)
 
   check_balance (bt);
 
-  if (cnt == 0) 
+  if (cnt == 0)
     {
       check (bt_first (bt) == NULL);
       check (bt_last (bt) == NULL);
       check (bt_next (bt, NULL) == NULL);
       check (bt_prev (bt, NULL) == NULL);
     }
-  else 
+  else
     {
       struct bt_node *p;
-  
+
       for (p = bt_first (bt), i = 0; i < cnt; p = bt_next (bt, p), i++)
         check (bt_node_to_element (p)->data == order[i]);
       check (p == NULL);
@@ -350,12 +350,12 @@ check_bt (struct bt *bt, const int data[], size_t cnt)
 static void
 test_insert_delete (const int insertions[],
                     const int deletions[],
-                    size_t cnt) 
+                    size_t cnt)
 {
   struct element *elements;
   struct bt bt;
   size_t i;
-  
+
   elements = xnmalloc (cnt, sizeof *elements);
   for (i = 0; i < cnt; i++)
     elements[i].data = i;
@@ -380,12 +380,12 @@ test_insert_delete (const int insertions[],
    removes them in each possible order, up to a specified maximum
    size. */
 static void
-test_insert_any_remove_any (void) 
+test_insert_any_remove_any (void)
 {
   const int max_elems = 5;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *insertions, *deletions;
       unsigned int ins_perm_cnt;
@@ -393,22 +393,22 @@ test_insert_any_remove_any (void)
 
       insertions = xnmalloc (cnt, sizeof *insertions);
       deletions = xnmalloc (cnt, sizeof *deletions);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         insertions[i] = i;
 
       for (ins_perm_cnt = 0;
            ins_perm_cnt == 0 || next_permutation (insertions, cnt);
-           ins_perm_cnt++) 
+           ins_perm_cnt++)
         {
           unsigned int del_perm_cnt;
           int i;
 
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             deletions[i] = i;
 
           for (del_perm_cnt = 0;
                del_perm_cnt == 0 || next_permutation (deletions, cnt);
-               del_perm_cnt++) 
+               del_perm_cnt++)
             test_insert_delete (insertions, deletions, cnt);
 
           check (del_perm_cnt == factorial (cnt));
@@ -424,19 +424,19 @@ test_insert_any_remove_any (void)
    removes them in the same order, up to a specified maximum
    size. */
 static void
-test_insert_any_remove_same (void) 
+test_insert_any_remove_same (void)
 {
   const int max_elems = 7;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *values;
       unsigned int permutation_cnt;
       int i;
 
       values = xnmalloc (cnt, sizeof *values);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         values[i] = i;
 
       for (permutation_cnt = 0;
@@ -453,12 +453,12 @@ test_insert_any_remove_same (void)
    removes them in reverse order, up to a specified maximum
    size. */
 static void
-test_insert_any_remove_reverse (void) 
+test_insert_any_remove_reverse (void)
 {
   const int max_elems = 7;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *insertions, *deletions;
       unsigned int permutation_cnt;
@@ -466,17 +466,17 @@ test_insert_any_remove_reverse (void)
 
       insertions = xnmalloc (cnt, sizeof *insertions);
       deletions = xnmalloc (cnt, sizeof *deletions);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         insertions[i] = i;
 
       for (permutation_cnt = 0;
            permutation_cnt == 0 || next_permutation (insertions, cnt);
-           permutation_cnt++) 
+           permutation_cnt++)
         {
           memcpy (deletions, insertions, sizeof *insertions * cnt);
           reverse (deletions, cnt);
-          
-          test_insert_delete (insertions, deletions, cnt); 
+
+          test_insert_delete (insertions, deletions, cnt);
         }
       check (permutation_cnt == factorial (cnt));
 
@@ -487,13 +487,13 @@ test_insert_any_remove_reverse (void)
 
 /* Inserts and removes values in an BT in random orders. */
 static void
-test_random_sequence (void) 
+test_random_sequence (void)
 {
   const int max_elems = 128;
   const int max_trials = 8;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt += 2) 
+  for (cnt = 0; cnt <= max_elems; cnt += 2)
     {
       int *insertions, *deletions;
       int trial;
@@ -501,17 +501,17 @@ test_random_sequence (void)
 
       insertions = xnmalloc (cnt, sizeof *insertions);
       deletions = xnmalloc (cnt, sizeof *deletions);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         insertions[i] = i;
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         deletions[i] = i;
 
-      for (trial = 0; trial < max_trials; trial++) 
+      for (trial = 0; trial < max_trials; trial++)
         {
           random_shuffle (insertions, cnt, sizeof *insertions);
           random_shuffle (deletions, cnt, sizeof *deletions);
-      
-          test_insert_delete (insertions, deletions, cnt); 
+
+          test_insert_delete (insertions, deletions, cnt);
         }
 
       free (insertions);
@@ -521,7 +521,7 @@ test_random_sequence (void)
 
 /* Inserts elements into an BT in ascending order. */
 static void
-test_insert_ordered (void) 
+test_insert_ordered (void)
 {
   const int max_elems = 1024;
   struct element *elements;
@@ -532,7 +532,7 @@ test_insert_ordered (void)
   bt_init (&bt, compare_elements, &aux_data);
   elements = xnmalloc (max_elems, sizeof *elements);
   values = xnmalloc (max_elems, sizeof *values);
-  for (i = 0; i < max_elems; i++) 
+  for (i = 0; i < max_elems; i++)
     {
       values[i] = elements[i].data = i;
       check (bt_insert (&bt, &elements[i].node) == NULL);
@@ -544,7 +544,7 @@ test_insert_ordered (void)
 
 /* Tests bt_find_ge and bt_find_le. */
 static void
-test_find_ge_le (void) 
+test_find_ge_le (void)
 {
   const int max_elems = 10;
   struct element *elements;
@@ -553,7 +553,7 @@ test_find_ge_le (void)
 
   elements = xnmalloc (max_elems, sizeof *elements);
   values = xnmalloc (max_elems, sizeof *values);
-  for (inc_pat = 0; inc_pat < (1u << max_elems); inc_pat++) 
+  for (inc_pat = 0; inc_pat < (1u << max_elems); inc_pat++)
     {
       struct bt bt;
       int elem_cnt = 0;
@@ -562,7 +562,7 @@ test_find_ge_le (void)
       /* Insert the values in the pattern into BT. */
       bt_init (&bt, compare_elements, &aux_data);
       for (i = 0; i < max_elems; i++)
-        if (inc_pat & (1u << i)) 
+        if (inc_pat & (1u << i))
           {
             values[elem_cnt] = elements[elem_cnt].data = i;
             check (bt_insert (&bt, &elements[elem_cnt].node) == NULL);
@@ -571,14 +571,14 @@ test_find_ge_le (void)
       check_bt (&bt, values, elem_cnt);
 
       /* Try find_ge and find_le for each possible element value. */
-      for (i = -1; i <= max_elems; i++) 
+      for (i = -1; i <= max_elems; i++)
         {
           struct element tmp;
           struct bt_node *ge, *le;
           int j;
-          
+
           ge = le = NULL;
-          for (j = 0; j < elem_cnt; j++) 
+          for (j = 0; j < elem_cnt; j++)
             {
               if (ge == NULL && values[j] >= i)
                 ge = &elements[j].node;
@@ -598,7 +598,7 @@ test_find_ge_le (void)
 /* Inserts elements into an BT, then moves the nodes around in
    memory. */
 static void
-test_moved (void) 
+test_moved (void)
 {
   const int max_elems = 128;
   struct element *e[2];
@@ -612,13 +612,13 @@ test_moved (void)
   e[1] = xnmalloc (max_elems, sizeof *e[1]);
   values = xnmalloc (max_elems, sizeof *values);
   cur = 0;
-  for (i = 0; i < max_elems; i++) 
+  for (i = 0; i < max_elems; i++)
     {
       values[i] = e[cur][i].data = i;
       check (bt_insert (&bt, &e[cur][i].node) == NULL);
       check_bt (&bt, values, i + 1);
 
-      for (j = 0; j <= i; j++) 
+      for (j = 0; j <= i; j++)
         {
           e[!cur][j] = e[cur][j];
           bt_moved (&bt, &e[!cur][j].node);
@@ -638,7 +638,7 @@ test_changed (void)
   const int max_elems = 6;
   int cnt;
 
-  for (cnt = 0; cnt <= max_elems; cnt++) 
+  for (cnt = 0; cnt <= max_elems; cnt++)
     {
       int *values, *changed_values;
       struct element *elements;
@@ -648,17 +648,17 @@ test_changed (void)
       values = xnmalloc (cnt, sizeof *values);
       changed_values = xnmalloc (cnt, sizeof *changed_values);
       elements = xnmalloc (cnt, sizeof *elements);
-      for (i = 0; i < cnt; i++) 
+      for (i = 0; i < cnt; i++)
         values[i] = i;
 
       for (permutation_cnt = 0;
            permutation_cnt == 0 || next_permutation (values, cnt);
-           permutation_cnt++) 
+           permutation_cnt++)
         {
-          for (i = 0; i < cnt; i++) 
+          for (i = 0; i < cnt; i++)
             {
               int j, k;
-              for (j = 0; j <= cnt; j++) 
+              for (j = 0; j <= cnt; j++)
                 {
                   struct bt bt;
                   struct bt_node *changed_retval;
@@ -666,11 +666,11 @@ test_changed (void)
                   bt_init (&bt, compare_elements, &aux_data);
 
                   /* Add to BT in order. */
-                  for (k = 0; k < cnt; k++) 
+                  for (k = 0; k < cnt; k++)
                     {
                       int n = values[k];
                       elements[n].data = n;
-                      check (bt_insert (&bt, &elements[n].node) == NULL); 
+                      check (bt_insert (&bt, &elements[n].node) == NULL);
                     }
                   check_bt (&bt, values, cnt);
 
@@ -694,7 +694,7 @@ test_changed (void)
                       check_bt (&bt, changed_values, cnt);
                     }
                 }
-            } 
+            }
         }
       check (permutation_cnt == factorial (cnt));
 
@@ -708,7 +708,7 @@ test_changed (void)
 
 /* Runs TEST_FUNCTION and prints a message about NAME. */
 static void
-run_test (void (*test_function) (void), const char *name) 
+run_test (void (*test_function) (void), const char *name)
 {
   test_name = name;
   putchar ('.');
@@ -717,7 +717,7 @@ run_test (void (*test_function) (void), const char *name)
 }
 
 int
-main (void) 
+main (void)
 {
   run_test (test_insert_any_remove_any,
             "insert any order, delete any order");

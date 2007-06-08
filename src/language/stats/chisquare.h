@@ -25,14 +25,14 @@
 
 struct chisquare_test
 {
-  struct one_sample_test parent;  
+  struct one_sample_test parent;
 
   bool ranged ;     /* True if this test has a range specified */
 
   int lo;           /* Lower bound of range (undefined if RANGED is false) */
   int hi;           /* Upper bound of range (undefined if RANGED is false) */
 
-  double *expected; 
+  double *expected;
   int n_expected;
 };
 
@@ -45,7 +45,7 @@ void chisquare_insert_variables (const struct npar_test *test,
 				 struct hsh_table *variables);
 
 
-void chisquare_execute (const struct dataset *ds, 
+void chisquare_execute (const struct dataset *ds,
 			struct casereader *input,
                         enum mv_class exclude,
 			const struct npar_test *test);

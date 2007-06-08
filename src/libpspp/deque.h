@@ -56,7 +56,7 @@
         if (deque_is_full (&deque))
           data = deque_expand (&deque, data, sizeof *data);
         data[deque_push_back (&deque)] = x;
-        
+
    Expanding a deque will copy its elements from one memory
    region to another using memcpy.  Thus, your deque elements
    must tolerate copying if their deque is to be expanded. */

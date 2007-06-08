@@ -40,7 +40,7 @@
 /* (headers) */
 
 /* File handle. */
-struct file_handle 
+struct file_handle
   {
     struct file_handle *next;   /* Next in global list. */
     int open_cnt;               /* 0=not open, otherwise # of openers. */
@@ -80,7 +80,7 @@ static struct file_handle *create_handle (const char *id,
                                           const char *name, enum fh_referent);
 
 /* File handle initialization routine. */
-void 
+void
 fh_init (void)
 {
   inline_file = create_handle ("INLINE", "INLINE", FH_REF_INLINE);
@@ -90,12 +90,12 @@ fh_init (void)
 
 /* Free HANDLE and remove it from the global list. */
 static void
-free_handle (struct file_handle *handle) 
+free_handle (struct file_handle *handle)
 {
   /* Remove handle from global list. */
   if (file_handles == handle)
     file_handles = handle->next;
-  else 
+  else
     {
       struct file_handle *iter = file_handles;
       while (iter->next != handle)
@@ -112,17 +112,17 @@ free_handle (struct file_handle *handle)
 }
 
 /* Frees all the file handles. */
-void 
+void
 fh_done (void)
 {
-  while (file_handles != NULL) 
+  while (file_handles != NULL)
     free_handle (file_handles);
 }
 
 /* Returns the handle with the given ID, or a null pointer if
    there is none. */
 struct file_handle *
-fh_from_id (const char *id) 
+fh_from_id (const char *id)
 {
   struct file_handle *iter;
 
@@ -141,10 +141,10 @@ fh_from_file_name (const char *file_name)
 {
   struct file_identity *identity;
   struct file_handle *iter;
-      
+
   /* First check for a file with the same identity. */
   identity = fn_get_identity (file_name);
-  if (identity != NULL) 
+  if (identity != NULL)
     {
       for (iter = file_handles; iter != NULL; iter = iter->next)
         if (!iter->deleted
@@ -153,7 +153,7 @@ fh_from_file_name (const char *file_name)
             && !fn_compare_file_identities (identity, iter->identity))
           {
             fn_free_identity (identity);
-            return iter; 
+            return iter;
           }
       fn_free_identity (identity);
     }
@@ -162,7 +162,7 @@ fh_from_file_name (const char *file_name)
   for (iter = file_handles; iter != NULL; iter = iter->next)
     if (!iter->deleted
         && iter->referent == FH_REF_FILE && !strcmp (file_name, iter->file_name))
-      return iter; 
+      return iter;
 
   return NULL;
 }
@@ -175,7 +175,7 @@ fh_from_file_name (const char *file_name)
    responsible for completing its initialization. */
 static struct file_handle *
 create_handle (const char *id, const char *handle_name,
-               enum fh_referent referent) 
+               enum fh_referent referent)
 {
   struct file_handle *handle = xzalloc (sizeof *handle);
   assert (id == NULL || fh_from_id (id) == NULL);
@@ -195,7 +195,7 @@ create_handle (const char *id, const char *handle_name,
    which refers to the "inline file" that represents character
    data in the command file between BEGIN DATA and END DATA. */
 struct file_handle *
-fh_inline_file (void) 
+fh_inline_file (void)
 {
   return inline_file;
 }
@@ -227,7 +227,7 @@ fh_create_file (const char *id, const char *file_name,
    unique among existing file identifiers.  The new handle is
    associated with a scratch file (initially empty). */
 struct file_handle *
-fh_create_scratch (const char *id) 
+fh_create_scratch (const char *id)
 {
   struct file_handle *handle;
   assert (id != NULL);
@@ -251,7 +251,7 @@ fh_default_properties (void)
    destroyed later when it is closed.
    Normally needed only if a file_handle needs to be re-assigned.
    Otherwise, just let fh_done() destroy the handle. */
-void 
+void
 fh_free (struct file_handle *handle)
 {
   if (handle == fh_inline_file () || handle == NULL || handle->deleted)
@@ -268,7 +268,7 @@ fh_free (struct file_handle *handle)
 /* Returns an English description of MODE,
    which is in the format of the MODE argument to fh_open(). */
 static const char *
-mode_name (const char *mode) 
+mode_name (const char *mode)
 {
   assert (mode != NULL);
   assert (mode[0] == 'r' || mode[0] == 'w');
@@ -299,7 +299,7 @@ mode_name (const char *mode)
    sharers are active. */
 void **
 fh_open (struct file_handle *h, enum fh_referent mask UNUSED,
-         const char *type, const char *mode) 
+         const char *type, const char *mode)
 {
   assert (h != NULL);
   assert ((fh_get_referent (h) & mask) != 0);
@@ -309,16 +309,16 @@ fh_open (struct file_handle *h, enum fh_referent mask UNUSED,
   assert (mode[1] == 's' || mode[1] == 'e');
   assert (mode[2] == '\0');
 
-  if (h->open_cnt != 0) 
+  if (h->open_cnt != 0)
     {
-      if (strcmp (h->type, type)) 
+      if (strcmp (h->type, type))
         {
           msg (SE, _("Can't open %s as a %s because it is "
                      "already open as a %s."),
                fh_get_name (h), type, h->type);
-          return NULL; 
+          return NULL;
         }
-      else if (strcmp (h->open_mode, mode)) 
+      else if (strcmp (h->open_mode, mode))
         {
           msg (SE, _("Can't open %s as a %s for %s because it is "
                      "already open for %s."),
@@ -333,7 +333,7 @@ fh_open (struct file_handle *h, enum fh_referent mask UNUSED,
           return NULL;
         }
     }
-  else 
+  else
     {
       h->type = type;
       strcpy (h->open_mode, mode);
@@ -362,7 +362,7 @@ fh_close (struct file_handle *h, const char *type, const char *mode)
   assert (mode != NULL);
   assert (!strcmp (mode, h->open_mode));
 
-  if (--h->open_cnt == 0) 
+  if (--h->open_cnt == 0)
     {
       h->type = NULL;
       h->aux = NULL;
@@ -376,7 +376,7 @@ fh_close (struct file_handle *h, const char *type, const char *mode)
 /* Is the file open?  BEGIN DATA...END DATA uses this to detect
    whether the inline file is actually in use. */
 bool
-fh_is_open (const struct file_handle *handle) 
+fh_is_open (const struct file_handle *handle)
 {
   return handle->open_cnt > 0;
 }
@@ -387,7 +387,7 @@ fh_is_open (const struct file_handle *handle)
 
    Return value is owned by the file handle.*/
 const char *
-fh_get_id (const struct file_handle *handle) 
+fh_get_id (const struct file_handle *handle)
 {
   return handle->id[0] != '\0' ? handle->id : NULL;
 }
@@ -406,14 +406,14 @@ fh_get_name (const struct file_handle *handle)
 
 /* Returns the type of object that HANDLE refers to. */
 enum fh_referent
-fh_get_referent (const struct file_handle *handle) 
+fh_get_referent (const struct file_handle *handle)
 {
   return handle->referent;
 }
 
 /* Returns the name of the file associated with HANDLE. */
 const char *
-fh_get_file_name (const struct file_handle *handle) 
+fh_get_file_name (const struct file_handle *handle)
 {
   assert (handle->referent == FH_REF_FILE);
   return handle->file_name;
@@ -421,7 +421,7 @@ fh_get_file_name (const struct file_handle *handle)
 
 /* Returns the mode of HANDLE. */
 enum fh_mode
-fh_get_mode (const struct file_handle *handle) 
+fh_get_mode (const struct file_handle *handle)
 {
   assert (handle->referent == FH_REF_FILE);
   return handle->mode;
@@ -439,7 +439,7 @@ fh_get_record_width (const struct file_handle *handle)
    zero if tabs are not to be expanded.  Applicable only to
    FH_MODE_TEXT files. */
 size_t
-fh_get_tab_width (const struct file_handle *handle) 
+fh_get_tab_width (const struct file_handle *handle)
 {
   assert (handle->referent & (FH_REF_FILE | FH_REF_INLINE));
   return handle->tab_width;
@@ -448,7 +448,7 @@ fh_get_tab_width (const struct file_handle *handle)
 /* Returns the scratch file handle associated with HANDLE.
    Applicable to only FH_REF_SCRATCH files. */
 struct scratch_handle *
-fh_get_scratch_handle (struct file_handle *handle) 
+fh_get_scratch_handle (struct file_handle *handle)
 {
   assert (handle->referent == FH_REF_SCRATCH);
   return handle->sh;
@@ -465,14 +465,14 @@ fh_set_scratch_handle (struct file_handle *handle, struct scratch_handle *sh)
 
 /* Returns the current default handle. */
 struct file_handle *
-fh_get_default_handle (void) 
+fh_get_default_handle (void)
 {
   return default_handle ? default_handle : fh_inline_file ();
 }
 
 /* Sets NEW_DEFAULT_HANDLE as the default handle. */
 void
-fh_set_default_handle (struct file_handle *new_default_handle) 
+fh_set_default_handle (struct file_handle *new_default_handle)
 {
   assert (new_default_handle == NULL
           || (new_default_handle->referent & (FH_REF_INLINE | FH_REF_FILE)));

@@ -26,7 +26,7 @@ struct slice {
 };
 
 /* Draw a piechart */
-void piechart_plot(const char *title, 
+void piechart_plot(const char *title,
 		   const struct slice *slices, int n_slices);
 
 #endif

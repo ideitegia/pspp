@@ -40,7 +40,7 @@
 
 /* Initializes PATH as an empty path. */
 void
-mc_path_init (struct mc_path *path) 
+mc_path_init (struct mc_path *path)
 {
   path->ops = NULL;
   path->length = 0;
@@ -49,9 +49,9 @@ mc_path_init (struct mc_path *path)
 
 /* Copies the contents of OLD into NEW. */
 void
-mc_path_copy (struct mc_path *new, const struct mc_path *old) 
+mc_path_copy (struct mc_path *new, const struct mc_path *old)
 {
-  if (old->length > new->capacity) 
+  if (old->length > new->capacity)
     {
       new->capacity = old->length;
       free (new->ops);
@@ -63,16 +63,16 @@ mc_path_copy (struct mc_path *new, const struct mc_path *old)
 
 /* Adds OP to the end of PATH. */
 void
-mc_path_push (struct mc_path *path, int op) 
+mc_path_push (struct mc_path *path, int op)
 {
-  if (path->length >= path->capacity) 
+  if (path->length >= path->capacity)
     path->ops = xnrealloc (path->ops, ++path->capacity, sizeof *path->ops);
   path->ops[path->length++] = op;
 }
 
 /* Removes and returns the operation at the end of PATH. */
 int
-mc_path_pop (struct mc_path *path) 
+mc_path_pop (struct mc_path *path)
 {
   int back = mc_path_back (path);
   path->length--;
@@ -81,7 +81,7 @@ mc_path_pop (struct mc_path *path)
 
 /* Returns the operation at the end of PATH. */
 int
-mc_path_back (const struct mc_path *path) 
+mc_path_back (const struct mc_path *path)
 {
   assert (path->length > 0);
   return path->ops[path->length - 1];
@@ -89,7 +89,7 @@ mc_path_back (const struct mc_path *path)
 
 /* Destroys PATH. */
 void
-mc_path_destroy (struct mc_path *path) 
+mc_path_destroy (struct mc_path *path)
 {
   free (path->ops);
   path->ops = NULL;
@@ -98,7 +98,7 @@ mc_path_destroy (struct mc_path *path)
 /* Returns the operation in position INDEX in PATH.
    INDEX must be less than the length of PATH. */
 int
-mc_path_get_operation (const struct mc_path *path, size_t index) 
+mc_path_get_operation (const struct mc_path *path, size_t index)
 {
   assert (index < path->length);
   return path->ops[index];
@@ -106,7 +106,7 @@ mc_path_get_operation (const struct mc_path *path, size_t index)
 
 /* Returns the number of operations in PATH. */
 size_t
-mc_path_get_length (const struct mc_path *path) 
+mc_path_get_length (const struct mc_path *path)
 {
   return path->length;
 }
@@ -114,20 +114,20 @@ mc_path_get_length (const struct mc_path *path)
 /* Appends the operations in PATH to STRING, separating each one
    with a single space. */
 void
-mc_path_to_string (const struct mc_path *path, struct string *string) 
+mc_path_to_string (const struct mc_path *path, struct string *string)
 {
   size_t i;
 
-  for (i = 0; i < mc_path_get_length (path); i++) 
+  for (i = 0; i < mc_path_get_length (path); i++)
     {
       if (i > 0)
         ds_put_char (string, ' ');
-      ds_put_format (string, "%d", mc_path_get_operation (path, i)); 
+      ds_put_format (string, "%d", mc_path_get_operation (path, i));
     }
 }
 
 /* Search options. */
-struct mc_options 
+struct mc_options
   {
     /* Search strategy. */
     enum mc_strategy strategy;          /* Type of strategy. */
@@ -140,7 +140,7 @@ struct mc_options
     /* Queue configuration. */
     int queue_limit;                    /* Maximum length of queue. */
     enum mc_queue_limit_strategy queue_limit_strategy;
-                                        /* How to choose state to drop 
+                                        /* How to choose state to drop
                                            from queue. */
 
     /* Stop conditions. */
@@ -164,7 +164,7 @@ struct mc_options
 
 /* Default progress function. */
 static bool
-default_progress (struct mc *mc) 
+default_progress (struct mc *mc)
 {
   if (mc_results_get_stop_reason (mc_get_results (mc)) == MC_CONTINUING)
     putc ('.', stderr);
@@ -175,7 +175,7 @@ default_progress (struct mc *mc)
 
 /* Do-nothing progress function. */
 static bool
-null_progress (struct mc *mc UNUSED) 
+null_progress (struct mc *mc UNUSED)
 {
   return true;
 }
@@ -183,7 +183,7 @@ null_progress (struct mc *mc UNUSED)
 /* Creates and returns a set of options initialized to the
    defaults. */
 struct mc_options *
-mc_options_create (void) 
+mc_options_create (void)
 {
   struct mc_options *options = xmalloc (sizeof *options);
 
@@ -192,7 +192,7 @@ mc_options_create (void)
   options->hash_bits = 20;
   options->seed = 0;
   mc_path_init (&options->follow_path);
-  
+
   options->queue_limit = 10000;
   options->queue_limit_strategy = MC_DROP_RANDOM;
 
@@ -213,14 +213,14 @@ mc_options_create (void)
 
 /* Returns a copy of the given OPTIONS. */
 struct mc_options *
-mc_options_clone (const struct mc_options *options) 
+mc_options_clone (const struct mc_options *options)
 {
   return xmemdup (options, sizeof *options);
 }
 
 /* Destroys OPTIONS. */
 void
-mc_options_destroy (struct mc_options *options) 
+mc_options_destroy (struct mc_options *options)
 {
   mc_path_destroy (&options->follow_path);
   free (options);
@@ -248,7 +248,7 @@ mc_options_destroy (struct mc_options *options)
    - MC_PATH: Explicit path.  Applies an explicitly specified
      sequence of operations. */
 enum mc_strategy
-mc_options_get_strategy (const struct mc_options *options) 
+mc_options_get_strategy (const struct mc_options *options)
 {
   return options->strategy;
 }
@@ -269,7 +269,7 @@ mc_options_set_strategy (struct mc_options *options, enum mc_strategy strategy)
 /* Returns OPTION's random seed used by MC_RANDOM and
    MC_DROP_RANDOM. */
 unsigned int
-mc_options_get_seed (const struct mc_options *options) 
+mc_options_get_seed (const struct mc_options *options)
 {
   return options->seed;
 }
@@ -277,7 +277,7 @@ mc_options_get_seed (const struct mc_options *options)
 /* Set OPTION's random seed used by MC_RANDOM and MC_DROP_RANDOM
    to SEED. */
 void
-mc_options_set_seed (struct mc_options *options, unsigned int seed) 
+mc_options_set_seed (struct mc_options *options, unsigned int seed)
 {
   options->seed = seed;
 }
@@ -286,7 +286,7 @@ mc_options_set_seed (struct mc_options *options, unsigned int seed)
    descend.  The initial states are at depth 1, states produced
    as their mutations are at depth 2, and so on. */
 int
-mc_options_get_max_depth (const struct mc_options *options) 
+mc_options_get_max_depth (const struct mc_options *options)
 {
   return options->max_depth;
 }
@@ -295,7 +295,7 @@ mc_options_get_max_depth (const struct mc_options *options)
    to MAX_DEPTH.  The initial states are at depth 1, states
    produced as their mutations are at depth 2, and so on. */
 void
-mc_options_set_max_depth (struct mc_options *options, int max_depth) 
+mc_options_set_max_depth (struct mc_options *options, int max_depth)
 {
   options->max_depth = max_depth;
 }
@@ -320,7 +320,7 @@ mc_options_set_max_depth (struct mc_options *options, int max_depth)
    table of 2**(N+1) bits to have a 50% chance of seeing a hash
    collision, 2**(N+2) bits to have a 25% chance, and so on. */
 int
-mc_options_get_hash_bits (const struct mc_options *options) 
+mc_options_get_hash_bits (const struct mc_options *options)
 {
   return options->hash_bits;
 }
@@ -331,7 +331,7 @@ mc_options_get_hash_bits (const struct mc_options *options)
    hashes.  (This causes the model checker to never terminate in
    many cases.) */
 void
-mc_options_set_hash_bits (struct mc_options *options, int hash_bits) 
+mc_options_set_hash_bits (struct mc_options *options, int hash_bits)
 {
   assert (hash_bits >= 0);
   options->hash_bits = MIN (hash_bits, CHAR_BIT * sizeof (unsigned int) - 1);
@@ -340,7 +340,7 @@ mc_options_set_hash_bits (struct mc_options *options, int hash_bits)
 /* Returns the path set in OPTIONS by mc_options_set_follow_path.
    May be used only if the search strategy is MC_PATH. */
 const struct mc_path *
-mc_options_get_follow_path (const struct mc_options *options) 
+mc_options_get_follow_path (const struct mc_options *options)
 {
   assert (options->strategy == MC_PATH);
   return &options->follow_path;
@@ -350,7 +350,7 @@ mc_options_get_follow_path (const struct mc_options *options)
    to be the explicit path specified in FOLLOW_PATH. */
 void
 mc_options_set_follow_path (struct mc_options *options,
-                            const struct mc_path *follow_path) 
+                            const struct mc_path *follow_path)
 {
   assert (mc_path_get_length (follow_path) > 0);
   options->strategy = MC_PATH;
@@ -368,7 +368,7 @@ mc_options_set_follow_path (struct mc_options *options,
    the maximum queue length during the run by calling
    mc_results_get_max_queue_length. */
 int
-mc_options_get_queue_limit (const struct mc_options *options) 
+mc_options_get_queue_limit (const struct mc_options *options)
 {
   return options->queue_limit;
 }
@@ -376,7 +376,7 @@ mc_options_get_queue_limit (const struct mc_options *options)
 /* Sets the maximum number of queued states in OPTIONS to
    QUEUE_LIMIT.  */
 void
-mc_options_set_queue_limit (struct mc_options *options, int queue_limit) 
+mc_options_set_queue_limit (struct mc_options *options, int queue_limit)
 {
   assert (queue_limit > 0);
   options->queue_limit = queue_limit;
@@ -397,7 +397,7 @@ mc_options_set_queue_limit (struct mc_options *options, int queue_limit)
      selects the state to drop; you can control the seed passed
      to srand using mc_options_set_seed. */
 enum mc_queue_limit_strategy
-mc_options_get_queue_limit_strategy (const struct mc_options *options) 
+mc_options_get_queue_limit_strategy (const struct mc_options *options)
 {
   return options->queue_limit_strategy;
 }
@@ -409,7 +409,7 @@ mc_options_get_queue_limit_strategy (const struct mc_options *options)
    mc_options_get_queue_limit). */
 void
 mc_options_set_queue_limit_strategy (struct mc_options *options,
-                                     enum mc_queue_limit_strategy strategy) 
+                                     enum mc_queue_limit_strategy strategy)
 {
   assert (strategy == MC_DROP_NEWEST
           || strategy == MC_DROP_OLDEST
@@ -421,7 +421,7 @@ mc_options_set_queue_limit_strategy (struct mc_options *options,
    model checker will examine before terminating.  The default is
    INT_MAX. */
 int
-mc_options_get_max_unique_states (const struct mc_options *options) 
+mc_options_get_max_unique_states (const struct mc_options *options)
 {
   return options->max_unique_states;
 }
@@ -431,7 +431,7 @@ mc_options_get_max_unique_states (const struct mc_options *options)
    MAX_UNIQUE_STATE. */
 void
 mc_options_set_max_unique_states (struct mc_options *options,
-                                  int max_unique_states) 
+                                  int max_unique_states)
 {
   options->max_unique_states = max_unique_states;
 }
@@ -440,7 +440,7 @@ mc_options_set_max_unique_states (struct mc_options *options,
    the model checker to encounter before terminating.  The
    default is 1. */
 int
-mc_options_get_max_errors (const struct mc_options *options) 
+mc_options_get_max_errors (const struct mc_options *options)
 {
   return options->max_errors;
 }
@@ -449,7 +449,7 @@ mc_options_get_max_errors (const struct mc_options *options)
    model checker to encounter before terminating to
    MAX_ERRORS. */
 void
-mc_options_set_max_errors (struct mc_options *options, int max_errors) 
+mc_options_set_max_errors (struct mc_options *options, int max_errors)
 {
   options->max_errors = max_errors;
 }
@@ -458,7 +458,7 @@ mc_options_set_max_errors (struct mc_options *options, int max_errors)
    model checker to consume before terminating.  The
    default of 0.0 means that time consumption is unlimited. */
 double
-mc_options_get_time_limit (const struct mc_options *options) 
+mc_options_get_time_limit (const struct mc_options *options)
 {
   return options->time_limit;
 }
@@ -468,7 +468,7 @@ mc_options_get_time_limit (const struct mc_options *options)
    TIME_LIMIT.  A value of 0.0 means that time consumption is
    unlimited; otherwise, the return value will be positive. */
 void
-mc_options_set_time_limit (struct mc_options *options, double time_limit) 
+mc_options_set_time_limit (struct mc_options *options, double time_limit)
 {
   assert (time_limit >= 0.0);
   options->time_limit = time_limit;
@@ -485,7 +485,7 @@ mc_options_set_time_limit (struct mc_options *options, double time_limit)
    levels less than 0 or greater than 3 are allowed but currently
    have no additional effect. */
 int
-mc_options_get_verbosity (const struct mc_options *options) 
+mc_options_get_verbosity (const struct mc_options *options)
 {
   return options->verbosity;
 }
@@ -493,7 +493,7 @@ mc_options_get_verbosity (const struct mc_options *options)
 /* Sets the level of verbosity for output messages specified
    by OPTIONS to VERBOSITY. */
 void
-mc_options_set_verbosity (struct mc_options *options, int verbosity) 
+mc_options_set_verbosity (struct mc_options *options, int verbosity)
 {
   options->verbosity = verbosity;
 }
@@ -509,7 +509,7 @@ mc_options_set_verbosity (struct mc_options *options, int verbosity)
    an explicit, human-readable description of the sequence of
    operations that caused the error. */
 int
-mc_options_get_failure_verbosity (const struct mc_options *options) 
+mc_options_get_failure_verbosity (const struct mc_options *options)
 {
   return options->failure_verbosity;
 }
@@ -518,7 +518,7 @@ mc_options_get_failure_verbosity (const struct mc_options *options)
    to FAILURE_VERBOSITY. */
 void
 mc_options_set_failure_verbosity (struct mc_options *options,
-                                  int failure_verbosity) 
+                                  int failure_verbosity)
 {
   options->failure_verbosity = failure_verbosity;
 }
@@ -526,7 +526,7 @@ mc_options_set_failure_verbosity (struct mc_options *options,
 /* Returns the output file used for messages printed by the model
    checker specified by OPTIONS.  The default is stdout. */
 FILE *
-mc_options_get_output_file (const struct mc_options *options) 
+mc_options_get_output_file (const struct mc_options *options)
 {
   return options->output_file;
 }
@@ -539,7 +539,7 @@ mc_options_get_output_file (const struct mc_options *options)
    must do so. */
 void
 mc_options_set_output_file (struct mc_options *options,
-                            FILE *output_file) 
+                            FILE *output_file)
 {
   options->output_file = output_file;
 }
@@ -549,7 +549,7 @@ mc_options_set_output_file (struct mc_options *options,
    250,000 (1/4 second).  A value of 0 disables progress
    reporting. */
 int
-mc_options_get_progress_usec (const struct mc_options *options) 
+mc_options_get_progress_usec (const struct mc_options *options)
 {
   return options->progress_usec;
 }
@@ -558,7 +558,7 @@ mc_options_get_progress_usec (const struct mc_options *options)
    function specified by OPTIONS to PROGRESS_USEC.  A value of 0
    disables progress reporting. */
 void
-mc_options_set_progress_usec (struct mc_options *options, int progress_usec) 
+mc_options_set_progress_usec (struct mc_options *options, int progress_usec)
 {
   assert (progress_usec >= 0);
   options->progress_usec = progress_usec;
@@ -586,7 +586,7 @@ mc_options_get_progress_func (const struct mc_options *options)
    mc_results_get_stop_reason will return a different value. */
 void
 mc_options_set_progress_func (struct mc_options *options,
-                              mc_progress_func *progress_func) 
+                              mc_progress_func *progress_func)
 {
   assert (options->progress_func != NULL);
   options->progress_func = progress_func;
@@ -599,20 +599,20 @@ mc_options_set_progress_func (struct mc_options *options,
    client-specified functions in struct mc_class during a model
    checking run using mc_get_aux. */
 void *
-mc_options_get_aux (const struct mc_options *options) 
+mc_options_get_aux (const struct mc_options *options)
 {
   return options->aux;
 }
 
 /* Sets the auxiliary data in OPTIONS to AUX. */
 void
-mc_options_set_aux (struct mc_options *options, void *aux) 
+mc_options_set_aux (struct mc_options *options, void *aux)
 {
   options->aux = aux;
 }
 
 /* Results of a model checking run. */
-struct mc_results 
+struct mc_results
   {
     /* Overall results. */
     enum mc_stop_reason stop_reason;    /* Why the run ended. */
@@ -643,7 +643,7 @@ struct mc_results
 
 /* Creates, initializes, and returns a new set of results. */
 static struct mc_results *
-mc_results_create (void) 
+mc_results_create (void)
 {
   struct mc_results *results = xcalloc (1, sizeof (struct mc_results));
   results->stop_reason = MC_CONTINUING;
@@ -654,9 +654,9 @@ mc_results_create (void)
 
 /* Destroys RESULTS. */
 void
-mc_results_destroy (struct mc_results *results) 
+mc_results_destroy (struct mc_results *results)
 {
-  if (results != NULL) 
+  if (results != NULL)
     {
       moments1_destroy (results->depth_moments);
       mc_path_destroy (&results->error_path);
@@ -693,7 +693,7 @@ mc_results_destroy (struct mc_results *results)
    - MC_INTERRUPTED: The run completed because SIGINT was caught
      (typically, due to the user typing Ctrl+C). */
 enum mc_stop_reason
-mc_results_get_stop_reason (const struct mc_results *results) 
+mc_results_get_stop_reason (const struct mc_results *results)
 {
   return results->stop_reason;
 }
@@ -701,14 +701,14 @@ mc_results_get_stop_reason (const struct mc_results *results)
 /* Returns the number of unique states checked specified by
    RESULTS. */
 int
-mc_results_get_unique_state_count (const struct mc_results *results) 
+mc_results_get_unique_state_count (const struct mc_results *results)
 {
   return results->unique_state_count;
 }
 
 /* Returns the number of errors found specified by RESULTS. */
 int
-mc_results_get_error_count (const struct mc_results *results) 
+mc_results_get_error_count (const struct mc_results *results)
 {
   return results->error_count;
 }
@@ -717,7 +717,7 @@ mc_results_get_error_count (const struct mc_results *results)
    represented by RESULTS.  The initial states are at depth 1,
    their child states at depth 2, and so on. */
 int
-mc_results_get_max_depth_reached (const struct mc_results *results) 
+mc_results_get_max_depth_reached (const struct mc_results *results)
 {
   return results->max_depth_reached;
 }
@@ -725,7 +725,7 @@ mc_results_get_max_depth_reached (const struct mc_results *results)
 /* Returns the mean depth reached during the model checker run
    represented by RESULTS. */
 double
-mc_results_get_mean_depth_reached (const struct mc_results *results) 
+mc_results_get_mean_depth_reached (const struct mc_results *results)
 {
   double mean;
   moments1_calculate (results->depth_moments, NULL, &mean, NULL, NULL, NULL);
@@ -737,7 +737,7 @@ mc_results_get_mean_depth_reached (const struct mc_results *results)
    RESULTS.  Returns a null pointer if the run did not report any
    errors. */
 const struct mc_path *
-mc_results_get_error_path (const struct mc_results *results) 
+mc_results_get_error_path (const struct mc_results *results)
 {
   return results->error_count > 0 ? &results->error_path : NULL;
 }
@@ -746,7 +746,7 @@ mc_results_get_error_path (const struct mc_results *results)
    hash value) during the model checker run represented by
    RESULTS. */
 int
-mc_results_get_duplicate_dropped_states (const struct mc_results *results) 
+mc_results_get_duplicate_dropped_states (const struct mc_results *results)
 {
   return results->duplicate_dropped_states;
 }
@@ -757,7 +757,7 @@ mc_results_get_duplicate_dropped_states (const struct mc_results *results)
    indicates a missing call to mc_include_state in the
    client-supplied mutation function. */
 int
-mc_results_get_off_path_dropped_states (const struct mc_results *results) 
+mc_results_get_off_path_dropped_states (const struct mc_results *results)
 {
   return results->off_path_dropped_states;
 }
@@ -766,7 +766,7 @@ mc_results_get_off_path_dropped_states (const struct mc_results *results)
    exceeded the maximum specified with mc_options_set_max_depth
    during the model checker run represented by RESULTS. */
 int
-mc_results_get_depth_dropped_states (const struct mc_results *results) 
+mc_results_get_depth_dropped_states (const struct mc_results *results)
 {
   return results->depth_dropped_states;
 }
@@ -775,7 +775,7 @@ mc_results_get_depth_dropped_states (const struct mc_results *results)
    queue overflow during the model checker run represented by
    RESULTS. */
 int
-mc_results_get_queue_dropped_states (const struct mc_results *results) 
+mc_results_get_queue_dropped_states (const struct mc_results *results)
 {
   return results->queue_dropped_states;
 }
@@ -787,7 +787,7 @@ mc_results_get_queue_dropped_states (const struct mc_results *results)
    states in the queue at the time that the checking run
    stopped. */
 int
-mc_results_get_queued_unprocessed_states (const struct mc_results *results) 
+mc_results_get_queued_unprocessed_states (const struct mc_results *results)
 {
   return results->queued_unprocessed_states;
 }
@@ -797,7 +797,7 @@ mc_results_get_queued_unprocessed_states (const struct mc_results *results)
    maximum queue length, then the queue (probably) overflowed
    during the run; otherwise, it did not overflow. */
 int
-mc_results_get_max_queue_length (const struct mc_results *results) 
+mc_results_get_max_queue_length (const struct mc_results *results)
 {
   return results->max_queue_length;
 }
@@ -805,7 +805,7 @@ mc_results_get_max_queue_length (const struct mc_results *results)
 /* Returns the time at which the model checker run represented by
    RESULTS started. */
 struct timeval
-mc_results_get_start (const struct mc_results *results) 
+mc_results_get_start (const struct mc_results *results)
 {
   return results->start;
 }
@@ -814,7 +814,7 @@ mc_results_get_start (const struct mc_results *results)
    RESULTS ended.  (This function may not be called while the run
    is still ongoing.) */
 struct timeval
-mc_results_get_end (const struct mc_results *results) 
+mc_results_get_end (const struct mc_results *results)
 {
   assert (results->stop_reason != MC_CONTINUING);
   return results->end;
@@ -823,11 +823,11 @@ mc_results_get_end (const struct mc_results *results)
 /* Returns the number of seconds obtained by subtracting time Y
    from time X. */
 static double
-timeval_subtract (struct timeval x, struct timeval y) 
+timeval_subtract (struct timeval x, struct timeval y)
 {
   /* From libc.info. */
   double difference;
-  
+
   /* Perform the carry for the later subtraction by updating Y. */
   if (x.tv_usec < y.tv_usec) {
     int nsec = (y.tv_usec - x.tv_usec) / 1000000 + 1;
@@ -853,7 +853,7 @@ timeval_subtract (struct timeval x, struct timeval y)
    represented by RESULTS.  (This function may not be called
    while the run is still ongoing.) */
 double
-mc_results_get_duration (const struct mc_results *results) 
+mc_results_get_duration (const struct mc_results *results)
 {
   assert (results->stop_reason != MC_CONTINUING);
   return timeval_subtract (results->end, results->start);
@@ -929,7 +929,7 @@ static void finish_mc (struct mc *);
    mc_options_set_aux on OPTIONS, which may be retrieved from the
    CLASS functions using mc_get_aux. */
 struct mc_results *
-mc_run (const struct mc_class *class, struct mc_options *options) 
+mc_run (const struct mc_class *class, struct mc_options *options)
 {
   struct mc mc;
 
@@ -960,14 +960,14 @@ mc_run (const struct mc_class *class, struct mc_options *options)
    "mutate" function, according to the pattern explained in the
    big comment at the top of model-checker.h. */
 bool
-mc_include_state (struct mc *mc) 
+mc_include_state (struct mc *mc)
 {
   if (mc->results->stop_reason != MC_CONTINUING)
     return false;
   else if (is_off_path (mc))
     {
       next_operation (mc);
-      return false; 
+      return false;
     }
   else
     return true;
@@ -983,12 +983,12 @@ mc_include_state (struct mc *mc)
    "mutate" function, according to the pattern explained in the
    big comment at the top of model-checker.h. */
 bool
-mc_discard_dup_state (struct mc *mc, unsigned int hash) 
+mc_discard_dup_state (struct mc *mc, unsigned int hash)
 {
   if (mc->options->hash_bits > 0)
     {
       hash &= (1u << mc->options->hash_bits) - 1;
-      if (TEST_BIT (mc->hash, hash)) 
+      if (TEST_BIT (mc->hash, hash))
         {
           if (mc->options->verbosity > 2)
             fprintf (mc->options->output_file,
@@ -999,7 +999,7 @@ mc_discard_dup_state (struct mc *mc, unsigned int hash)
         }
       SET_BIT (mc->hash, hash);
     }
-  return false; 
+  return false;
 }
 
 /* Names the current state NAME, which may contain
@@ -1010,10 +1010,10 @@ mc_discard_dup_state (struct mc *mc, unsigned int hash)
    "mutate" function, according to the pattern explained in the
    big comment at the top of model-checker.h. */
 void
-mc_name_operation (struct mc *mc, const char *name, ...) 
+mc_name_operation (struct mc *mc, const char *name, ...)
 {
   va_list args;
-  
+
   va_start (args, name);
   mc_vname_operation (mc, name, args);
   va_end (args);
@@ -1028,15 +1028,15 @@ mc_name_operation (struct mc *mc, const char *name, ...)
    "mutate" function, according to the pattern explained in the
    big comment at the top of model-checker.h. */
 void
-mc_vname_operation (struct mc *mc, const char *name, va_list args) 
+mc_vname_operation (struct mc *mc, const char *name, va_list args)
 {
-  if (mc->state_named && mc->options->verbosity > 0) 
+  if (mc->state_named && mc->options->verbosity > 0)
     fprintf (mc->options->output_file, "  [%s] warning: duplicate call "
              "to mc_name_operation (missing call to mc_add_state?)\n",
              path_string (mc));
   mc->state_named = true;
 
-  if (mc->options->verbosity > 1) 
+  if (mc->options->verbosity > 1)
     {
       fprintf (mc->options->output_file, "  [%s] ", path_string (mc));
       vfprintf (mc->options->output_file, name, args);
@@ -1056,7 +1056,7 @@ mc_vname_operation (struct mc *mc, const char *name, va_list args)
    "mutate" function, according to the pattern explained in the
    big comment at the top of model-checker.h. */
 void
-mc_error (struct mc *mc, const char *message, ...) 
+mc_error (struct mc *mc, const char *message, ...)
 {
   va_list args;
 
@@ -1084,7 +1084,7 @@ mc_error (struct mc *mc, const char *message, ...)
    "mutate" function, according to the pattern explained in the
    big comment at the top of model-checker.h. */
 void
-mc_add_state (struct mc *mc, void *data) 
+mc_add_state (struct mc *mc, void *data)
 {
   if (!mc->state_named && mc->options->verbosity > 0)
     fprintf (mc->options->output_file, "  [%s] warning: unnamed state\n",
@@ -1094,13 +1094,13 @@ mc_add_state (struct mc *mc, void *data)
     {
       /* Nothing to do. */
     }
-  else if (mc->state_error) 
+  else if (mc->state_error)
     do_error_state (mc);
   else if (is_off_path (mc))
     mc->results->off_path_dropped_states++;
   else if (mc->path.length + 1 > mc->options->max_depth)
     mc->results->depth_dropped_states++;
-  else 
+  else
     {
       /* This is the common case. */
       mc->results->unique_state_count++;
@@ -1118,7 +1118,7 @@ mc_add_state (struct mc *mc, void *data)
 /* Returns the options that were passed to mc_run for model
    checker MC. */
 const struct mc_options *
-mc_get_options (const struct mc *mc) 
+mc_get_options (const struct mc *mc)
 {
   return mc->options;
 }
@@ -1130,7 +1130,7 @@ mc_get_options (const struct mc *mc)
    Not all of the results are meaningful before model checking
    completes. */
 const struct mc_results *
-mc_get_results (const struct mc *mc) 
+mc_get_results (const struct mc *mc)
 {
   return mc->results;
 }
@@ -1138,14 +1138,14 @@ mc_get_results (const struct mc *mc)
 /* Returns the auxiliary data set on the options passed to mc_run
    with mc_options_set_aux. */
 void *
-mc_get_aux (const struct mc *mc) 
+mc_get_aux (const struct mc *mc)
 {
   return mc_options_get_aux (mc_get_options (mc));
 }
 
 /* Expresses MC->path as a string and returns the string. */
 static const char *
-path_string (struct mc *mc) 
+path_string (struct mc *mc)
 {
   ds_clear (&mc->path_string);
   mc_path_to_string (&mc->path, &mc->path_string);
@@ -1154,7 +1154,7 @@ path_string (struct mc *mc)
 
 /* Frees STATE, including client data. */
 static void
-free_state (const struct mc *mc, struct mc_state *state) 
+free_state (const struct mc *mc, struct mc_state *state)
 {
   mc->class->destroy (mc, state->data);
   mc_path_destroy (&state->path);
@@ -1164,7 +1164,7 @@ free_state (const struct mc *mc, struct mc_state *state)
 /* Sets STOP_REASON as the reason that MC's processing stopped,
    unless MC is already stopped. */
 static void
-stop (struct mc *mc, enum mc_stop_reason stop_reason) 
+stop (struct mc *mc, enum mc_stop_reason stop_reason)
 {
   if (mc->results->stop_reason == MC_CONTINUING)
     mc->results->stop_reason = stop_reason;
@@ -1173,7 +1173,7 @@ stop (struct mc *mc, enum mc_stop_reason stop_reason)
 /* Creates and returns a new state whose path is copied from
    MC->path and whose data is specified by DATA. */
 static struct mc_state *
-make_state (const struct mc *mc, void *data) 
+make_state (const struct mc *mc, void *data)
 {
   struct mc_state *new = xmalloc (sizeof *new);
   mc_path_init (&new->path);
@@ -1185,7 +1185,7 @@ make_state (const struct mc *mc, void *data)
 /* Returns the index in MC->queue of a random element in the
    queue. */
 static size_t
-random_queue_index (struct mc *mc) 
+random_queue_index (struct mc *mc)
 {
   assert (!deque_is_empty (&mc->queue_deque));
   return deque_front (&mc->queue_deque,
@@ -1195,7 +1195,7 @@ random_queue_index (struct mc *mc)
 /* Adds NEW to MC's state queue, dropping a state if necessary
    due to overflow. */
 static void
-enqueue_state (struct mc *mc, struct mc_state *new) 
+enqueue_state (struct mc *mc, struct mc_state *new)
 {
   size_t idx;
 
@@ -1203,13 +1203,13 @@ enqueue_state (struct mc *mc, struct mc_state *new)
     mc->results->max_depth_reached = new->path.length;
   moments1_add (mc->results->depth_moments, new->path.length, 1.0);
 
-  if (deque_count (&mc->queue_deque) < mc->options->queue_limit) 
+  if (deque_count (&mc->queue_deque) < mc->options->queue_limit)
     {
       /* Add new state to queue. */
       if (deque_is_full (&mc->queue_deque))
         mc->queue = deque_expand (&mc->queue_deque,
                                    mc->queue, sizeof *mc->queue);
-      switch (mc->options->strategy) 
+      switch (mc->options->strategy)
         {
         case MC_BROAD:
           idx = deque_push_back (&mc->queue_deque);
@@ -1241,20 +1241,20 @@ enqueue_state (struct mc *mc, struct mc_state *new)
       if (deque_count (&mc->queue_deque) > mc->results->max_queue_length)
         mc->results->max_queue_length = deque_count (&mc->queue_deque);
     }
-  else 
+  else
     {
       /* Queue has reached limit, so replace an existing
          state. */
       assert (mc->options->strategy != MC_PATH);
       assert (!deque_is_empty (&mc->queue_deque));
       mc->results->queue_dropped_states++;
-      switch (mc->options->queue_limit_strategy) 
+      switch (mc->options->queue_limit_strategy)
         {
         case MC_DROP_NEWEST:
           free_state (mc, new);
           return;
         case MC_DROP_OLDEST:
-          switch (mc->options->strategy) 
+          switch (mc->options->strategy)
             {
             case MC_BROAD:
               idx = deque_front (&mc->queue_deque, 0);
@@ -1288,7 +1288,7 @@ do_error_state (struct mc *mc)
     stop (mc, MC_MAX_ERROR_COUNT);
 
   mc_path_copy (&mc->results->error_path, &mc->path);
-      
+
   if (mc->options->failure_verbosity > mc->options->verbosity)
     {
       struct mc_options *path_options;
@@ -1309,20 +1309,20 @@ do_error_state (struct mc *mc)
 /* Advances MC to start processing the operation following the
    current one. */
 static void
-next_operation (struct mc *mc) 
+next_operation (struct mc *mc)
 {
   mc_path_push (&mc->path, mc_path_pop (&mc->path) + 1);
   mc->state_error = false;
   mc->state_named = false;
 
-  if (++mc->progress >= mc->next_progress) 
+  if (++mc->progress >= mc->next_progress)
     {
       struct timeval now;
       double elapsed, delta;
 
       if (mc->results->stop_reason == MC_CONTINUING
           && !mc->options->progress_func (mc))
-        stop (mc, MC_INTERRUPTED); 
+        stop (mc, MC_INTERRUPTED);
 
       gettimeofday (&now, NULL);
 
@@ -1340,12 +1340,12 @@ next_operation (struct mc *mc)
           double progress_sec = mc->options->progress_usec / 1000000.0;
           delta = progress / elapsed * progress_sec;
         }
-      else 
+      else
         {
           /* No measurable time at all elapsed during that amount
              of progress.  Try doubling the amount of progress
              required. */
-          delta = (mc->progress - mc->prev_progress) * 2; 
+          delta = (mc->progress - mc->prev_progress) * 2;
         }
 
       if (delta > 0.0 && delta + mc->progress + 1.0 < UINT_MAX)
@@ -1361,7 +1361,7 @@ next_operation (struct mc *mc)
 /* Returns true if we're tracing an explicit path but the current
    operation produces a state off that path, false otherwise. */
 static bool
-is_off_path (const struct mc *mc) 
+is_off_path (const struct mc *mc)
 {
   return (mc->options->strategy == MC_PATH
           && (mc_path_back (&mc->path)
@@ -1371,7 +1371,7 @@ is_off_path (const struct mc *mc)
 
 /* Handler for SIGINT. */
 static void
-sigint_handler (int signum UNUSED) 
+sigint_handler (int signum UNUSED)
 {
   /* Just mark the model checker as interrupted. */
   *interrupted_ptr = true;
@@ -1381,22 +1381,22 @@ sigint_handler (int signum UNUSED)
    OPTIONS.  OPTIONS may be null to use the default options. */
 static void
 init_mc (struct mc *mc, const struct mc_class *class,
-         struct mc_options *options) 
+         struct mc_options *options)
 {
   /* Validate and adjust OPTIONS. */
   if (options == NULL)
     options = mc_options_create ();
   assert (options->queue_limit_strategy != MC_DROP_OLDEST
           || options->strategy != MC_RANDOM);
-  if (options->strategy == MC_PATH) 
+  if (options->strategy == MC_PATH)
     {
       options->max_depth = INT_MAX;
       options->hash_bits = 0;
     }
-  if (options->progress_usec == 0) 
+  if (options->progress_usec == 0)
     {
       options->progress_func = null_progress;
-      if (options->time_limit > 0.0) 
+      if (options->time_limit > 0.0)
         options->progress_usec = 250000;
     }
 
@@ -1437,7 +1437,7 @@ init_mc (struct mc *mc, const struct mc_class *class,
 
 /* Complete the model checker run for MC. */
 static void
-finish_mc (struct mc *mc) 
+finish_mc (struct mc *mc)
 {
   /* Restore signal handlers. */
   signal (SIGINT, mc->saved_sigint);

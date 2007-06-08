@@ -40,7 +40,7 @@
 struct casewriter *
 any_writer_open (struct file_handle *handle, struct dictionary *dict)
 {
-  switch (fh_get_referent (handle)) 
+  switch (fh_get_referent (handle))
     {
     case FH_REF_FILE:
       {

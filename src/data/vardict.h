@@ -26,7 +26,7 @@
 struct dictionary ;
 
 /* Dictionary data stored in variable. */
-struct vardict_info 
+struct vardict_info
   {
     int dict_index;     /* Dictionary index containing the variable. */
     int case_index;     /* Index into case of variable data. */

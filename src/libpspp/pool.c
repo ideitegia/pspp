@@ -34,7 +34,7 @@ struct pool
   };
 
 /* Pool block. */
-struct pool_block 
+struct pool_block
   {
     struct pool_block *prev;
     struct pool_block *next;
@@ -51,7 +51,7 @@ enum
   };
 
 /* Pool routines can maintain objects (`gizmos') as well as doing
-   suballocation.  
+   suballocation.
    This structure is used to keep track of them. */
 struct pool_gizmo
   {
@@ -147,7 +147,7 @@ pool_create (void)
   block = xmalloc (BLOCK_SIZE);
   block->prev = block->next = block;
   block->ofs = POOL_BLOCK_SIZE + POOL_SIZE;
-  
+
   pool = (struct pool *) (((char *) block) + POOL_BLOCK_SIZE);
   pool->parent = NULL;
   pool->blocks = block;
@@ -163,7 +163,7 @@ pool_create (void)
 
    Meant for use indirectly via pool_create_container(). */
 void *
-pool_create_at_offset (size_t struct_size, size_t pool_member_offset) 
+pool_create_at_offset (size_t struct_size, size_t pool_member_offset)
 {
   struct pool *pool;
   char *struct_;
@@ -185,9 +185,9 @@ pool_destroy (struct pool *pool)
     return;
 
   /* Remove this pool from its parent's list of gizmos. */
-  if (pool->parent) 
+  if (pool->parent)
     delete_gizmo (pool->parent, (void *) (((char *) pool) + POOL_SIZE));
-  
+
   free_all_gizmos (pool);
 
   /* Free all the memory. */
@@ -205,25 +205,25 @@ pool_destroy (struct pool *pool)
 
 /* Release all the memory and gizmos in POOL.
    Blocks are not given back with free() but kept for later
-   allocations.  To give back memory, use a subpool instead. */ 
+   allocations.  To give back memory, use a subpool instead. */
 void
-pool_clear (struct pool *pool) 
+pool_clear (struct pool *pool)
 {
   free_all_gizmos (pool);
 
   /* Zero out block sizes. */
   {
     struct pool_block *cur;
-    
+
     cur = pool->blocks;
     do
       {
         cur->ofs = POOL_BLOCK_SIZE;
-        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool) 
+        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool)
           {
             cur->ofs += POOL_SIZE;
             if (pool->parent != NULL)
-              cur->ofs += POOL_GIZMO_SIZE; 
+              cur->ofs += POOL_GIZMO_SIZE;
           }
         cur = cur->next;
       }
@@ -243,7 +243,7 @@ pool_alloc (struct pool *pool, size_t amt)
 
   if (amt == 0)
     return NULL;
-  
+
 #ifndef DISCRETE_BLOCKS
   if (amt <= MAX_SUBALLOC)
     {
@@ -259,7 +259,7 @@ pool_alloc (struct pool *pool, size_t amt)
 
       /* No space in this block, so we must make other
          arrangements. */
-      if (b->next->ofs == 0) 
+      if (b->next->ofs == 0)
         {
           /* The next block is empty.  Use it. */
           b = b->next;
@@ -267,7 +267,7 @@ pool_alloc (struct pool *pool, size_t amt)
           if ((char *) b + POOL_BLOCK_SIZE == (char *) pool)
             b->ofs += POOL_SIZE;
         }
-      else 
+      else
         {
           /* Create a new block at the start of the list. */
           b = xmalloc (BLOCK_SIZE);
@@ -301,7 +301,7 @@ pool_alloc_unaligned (struct pool *pool, size_t amt)
   /* Strings need not be aligned on any boundary, but some
      operations may be more efficient when they are.  However,
      that's only going to help with reasonably long strings. */
-  if (amt < ALIGN_SIZE) 
+  if (amt < ALIGN_SIZE)
     {
       if (amt == 0)
         return NULL;
@@ -328,7 +328,7 @@ pool_alloc_unaligned (struct pool *pool, size_t amt)
    Terminates the program if the memory cannot be obtained,
    including the case where N * S overflows the range of size_t. */
 void *
-pool_nalloc (struct pool *pool, size_t n, size_t s) 
+pool_nalloc (struct pool *pool, size_t n, size_t s)
 {
   if (xalloc_oversized (n, s))
     xalloc_die ();
@@ -360,7 +360,7 @@ pool_clone_unaligned (struct pool *pool, const void *buffer, size_t size)
    the returned pointere may not be aligned properly for other
    types. */
 char *
-pool_strdup (struct pool *pool, const char *string) 
+pool_strdup (struct pool *pool, const char *string)
 {
   return pool_clone_unaligned (pool, string, strlen (string) + 1);
 }
@@ -382,9 +382,9 @@ pool_vasprintf (struct pool *pool, const char *format, va_list args_)
   needed = vsnprintf (s, avail, format, args);
   va_end (args);
 
-  if (needed >= 0) 
+  if (needed >= 0)
     {
-      if (needed < avail) 
+      if (needed < avail)
         {
           /* Success.  Reserve the space that was actually used. */
           b->ofs += needed + 1;
@@ -400,7 +400,7 @@ pool_vasprintf (struct pool *pool, const char *format, va_list args_)
           va_end (args);
         }
     }
-  else 
+  else
     {
       /* Some old libc's returned -1 when the destination string
          was too short.  This should be uncommon these days and
@@ -423,7 +423,7 @@ pool_asprintf (struct pool *pool, const char *format, ...)
 {
   va_list args;
   char *string;
-  
+
   va_start (args, format);
   string = pool_vasprintf (pool, format, args);
   va_end (args);
@@ -465,7 +465,7 @@ pool_malloc (struct pool *pool, size_t amt)
    Terminates the program if the memory cannot be obtained,
    including the case where N * S overflows the range of size_t. */
 void *
-pool_nmalloc (struct pool *pool, size_t n, size_t s) 
+pool_nmalloc (struct pool *pool, size_t n, size_t s)
 {
   if (xalloc_oversized (n, s))
     xalloc_die ();
@@ -493,7 +493,7 @@ pool_zalloc (struct pool *pool, size_t amt)
    Terminates the program if the memory cannot be obtained,
    including the case where N * S overflows the range of size_t. */
 void *
-pool_calloc (struct pool *pool, size_t n, size_t s) 
+pool_calloc (struct pool *pool, size_t n, size_t s)
 {
   void *p = pool_nmalloc (pool, n, s);
   memset (p, 0, n * s);
@@ -685,7 +685,7 @@ pool_create_subpool (struct pool *pool)
 
   g = (void *) (((char *) subpool->blocks) + subpool->blocks->ofs);
   subpool->blocks->ofs += POOL_GIZMO_SIZE;
-  
+
   g->type = POOL_GIZMO_SUBPOOL;
   g->p.subpool = subpool;
 
@@ -699,14 +699,14 @@ pool_create_subpool (struct pool *pool)
    The subpool will be destroyed automatically when POOL is destroyed.
    It may also be destroyed explicitly in advance. */
 void
-pool_add_subpool (struct pool *pool, struct pool *subpool) 
+pool_add_subpool (struct pool *pool, struct pool *subpool)
 {
   struct pool_gizmo *g;
 
   assert (pool != NULL);
   assert (subpool != NULL);
   assert (subpool->parent == NULL);
-  
+
   g = pool_alloc (subpool, sizeof *g);
   g->type = POOL_GIZMO_SUBPOOL;
   g->p.subpool = subpool;
@@ -749,7 +749,7 @@ pool_fclose (struct pool *pool, FILE *file)
    may be closed explicitly in advance using pool_fclose(), or
    detached from the pool with pool_detach_file(). */
 FILE *
-pool_tmpfile (struct pool *pool) 
+pool_tmpfile (struct pool *pool)
 {
   FILE *file = tmpfile ();
   if (file != NULL)
@@ -809,7 +809,7 @@ bool
 pool_unregister (struct pool *pool, void *p)
 {
   assert (pool && p);
-  
+
   {
     struct pool_gizmo *g;
 
@@ -820,7 +820,7 @@ pool_unregister (struct pool *pool, void *p)
 	  return true;
 	}
   }
-  
+
   return false;
 }
 
@@ -842,12 +842,12 @@ pool_mark (struct pool *pool, struct pool_mark *mark)
 /* Restores to POOL the state recorded in MARK.
    Emptied blocks are not given back with free() but kept for
    later allocations.  To get that behavior, use a subpool
-   instead. */ 
+   instead. */
 void
 pool_release (struct pool *pool, const struct pool_mark *mark)
 {
   assert (pool && mark);
-  
+
   {
     struct pool_gizmo *cur, *next;
 
@@ -865,18 +865,18 @@ pool_release (struct pool *pool, const struct pool_mark *mark)
     else
       pool->gizmos = NULL;
   }
-  
+
   {
     struct pool_block *cur;
 
-    for (cur = pool->blocks; cur != mark->block; cur = cur->next) 
+    for (cur = pool->blocks; cur != mark->block; cur = cur->next)
       {
         cur->ofs = POOL_BLOCK_SIZE;
-        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool) 
+        if ((char *) cur + POOL_BLOCK_SIZE == (char *) pool)
           {
             cur->ofs += POOL_SIZE;
             if (pool->parent != NULL)
-              cur->ofs += POOL_GIZMO_SIZE; 
+              cur->ofs += POOL_GIZMO_SIZE;
           }
       }
     pool->blocks = mark->block;
@@ -903,7 +903,7 @@ add_gizmo (struct pool *pool, struct pool_gizmo *gizmo)
 
   check_gizmo (pool, gizmo);
 }
- 
+
 /* Removes GIZMO from POOL's gizmo list. */
 static void
 delete_gizmo (struct pool *pool, struct pool_gizmo *gizmo)
@@ -949,7 +949,7 @@ free_gizmo (struct pool_gizmo *gizmo)
 
 /* Free all the gizmos in POOL. */
 static void
-free_all_gizmos (struct pool *pool) 
+free_all_gizmos (struct pool *pool)
 {
   struct pool_gizmo *cur, *next;
 
@@ -962,7 +962,7 @@ free_all_gizmos (struct pool *pool)
 }
 
 static void
-check_gizmo (struct pool *p, struct pool_gizmo *g) 
+check_gizmo (struct pool *p, struct pool_gizmo *g)
 {
   assert (g->pool == p);
   assert (g->next == NULL || g->next->prev == g);

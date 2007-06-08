@@ -43,7 +43,7 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
     msg (SE, _("DELETE VARIABLES may not be used after TEMPORARY.  "
                "Temporary transformations will be made permanent."));
 
-  if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt, 
+  if (!parse_variables (lexer, dataset_dict (ds), &vars, &var_cnt,
 			      PV_NONE))
     goto error;
   if (var_cnt == dict_get_var_cnt (dataset_dict (ds)))
@@ -52,15 +52,15 @@ cmd_delete_variables (struct lexer *lexer, struct dataset *ds)
                  "from the active file dictionary.  Use NEW FILE instead."));
       goto error;
     }
- 
+
   ok = casereader_destroy (proc_open (ds));
   ok = proc_commit (ds) && ok;
   if (!ok)
     goto error;
   dict_delete_vars (dataset_dict (ds), vars, var_cnt);
-  
+
   free (vars);
-  
+
   return CMD_SUCCESS;
 
  error:

@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 
-/* Fork, start gdb and connect to the parent process. 
+/* Fork, start gdb and connect to the parent process.
    If that happens successfully, then this function does not return,
    but exits with EXIT_FAILURE. Otherwise it returns.
  */
@@ -40,12 +40,12 @@ connect_debugger (void)
 
   snprintf (pidstr, 20, "%d", getpid ());
   pid = fork ();
-  if ( pid  == -1 ) 
+  if ( pid  == -1 )
     {
       perror ("Cannot fork");
       return ;
     }
-  if ( pid == 0 ) 
+  if ( pid == 0 )
     {
       /* child */
       execlp ("gdb", "gdb", "-p", pidstr, NULL);
@@ -56,10 +56,10 @@ connect_debugger (void)
     {
       int status;
       wait (&status);
-      if ( EXIT_SUCCESS != WEXITSTATUS (status) ) 
+      if ( EXIT_SUCCESS != WEXITSTATUS (status) )
 	return ;
     }
-  
+
   exit (EXIT_FAILURE);
 }
 
@@ -67,8 +67,8 @@ connect_debugger (void)
 /* Don't know how to connect to gdb.
    Just return.
  */
-void 
-connect_debugger (void) 
+void
+connect_debugger (void)
 {
 }
 #endif /* !(HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H) */

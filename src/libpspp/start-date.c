@@ -28,10 +28,10 @@ static void
 get_cur_date (char cur_date[12])
 {
   time_t now = time (NULL);
-  if (now != (time_t) -1) 
+  if (now != (time_t) -1)
     {
       struct tm *tm = localtime (&now);
-      if (tm != NULL) 
+      if (tm != NULL)
         {
           strftime (cur_date, 12, "%d %b %Y", tm);
           return;
@@ -48,5 +48,5 @@ get_start_date (void)
   static char start_date[12];
   if (start_date[0] == '\0')
     get_cur_date (start_date);
-  return start_date; 
+  return start_date;
 }

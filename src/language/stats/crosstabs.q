@@ -131,7 +131,7 @@ struct var_range
   };
 
 static inline struct var_range *
-get_var_range (const struct variable *v) 
+get_var_range (const struct variable *v)
 {
   return var_get_aux (v);
 }
@@ -197,7 +197,7 @@ cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   free (variables);
   pool_destroy (pl_tc);
   pool_destroy (pl_col);
-  
+
   return result;
 }
 
@@ -227,7 +227,7 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
     {
       cmd.a_cells[CRS_CL_COUNT] = 1;
     }
-  else 
+  else
     {
       int count = 0;
 
@@ -268,7 +268,7 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 	for (i = 0; i < CRS_ST_count; i++)
 	  cmd.a_statistics[i] = 1;
     }
-  
+
   /* MISSING. */
   if (cmd.miss == CRS_REPORT && mode == GENERAL)
     {
@@ -301,18 +301,18 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   input = casereader_create_filter_weight (proc_open (ds), dataset_dict (ds),
                                            NULL, NULL);
   grouper = casegrouper_create_splits (input, dataset_dict (ds));
-  while (casegrouper_get_next_group (grouper, &group)) 
+  while (casegrouper_get_next_group (grouper, &group))
     {
       struct ccase c;
-      
+
       precalc (group, ds);
-      
-      for (; casereader_read (group, &c); case_destroy (&c)) 
+
+      for (; casereader_read (group, &c); case_destroy (&c))
         {
           if (mode == GENERAL)
             calc_general (&c, ds);
           else
-            calc_integer (&c, ds); 
+            calc_integer (&c, ds);
         }
       casereader_destroy (group);
 
@@ -337,7 +337,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs
 
   /* Ensure that this is a TABLES subcommand. */
   if (!lex_match_id (lexer, "TABLES")
-      && (lex_token (lexer) != T_ID || 
+      && (lex_token (lexer) != T_ID ||
 	  dict_lookup_var (dataset_dict (ds), lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
@@ -348,7 +348,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs
   else
     var_set = const_var_set_create_from_dict (dataset_dict (ds));
   assert (var_set != NULL);
-  
+
   for (n_by = 0; ;)
     {
       by = xnrealloc (by, n_by + 1, sizeof *by);
@@ -356,7 +356,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs
       if (!parse_const_var_set_vars (lexer, var_set, &by[n_by], &by_nvar[n_by],
                                PV_NO_DUPLICATE | PV_NO_SCRATCH))
 	goto done;
-      if (xalloc_oversized (nx, by_nvar[n_by])) 
+      if (xalloc_oversized (nx, by_nvar[n_by]))
         {
           msg (SE, _("Too many crosstabulation variables or dimensions."));
           goto done;
@@ -371,11 +371,11 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs
 	      lex_error (lexer, _("expecting BY"));
 	      goto done;
 	    }
-	  else 
+	  else
 	    break;
 	}
     }
-  
+
   {
     int *by_iter = xcalloc (n_by, sizeof *by_iter);
     int i;
@@ -395,7 +395,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs
           for (i = 0; i < n_by; i++)
             x->vars[i] = by[i][by_iter[i]];
 	}
-	
+
 	{
 	  int i;
 
@@ -440,15 +440,15 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_crosst
     }
 
   lex_match (lexer, '=');
-  
+
   for (;;)
     {
       size_t orig_nv = variables_cnt;
       size_t i;
 
       long min, max;
-      
-      if (!parse_variables_const (lexer, dataset_dict (ds), 
+
+      if (!parse_variables_const (lexer, dataset_dict (ds),
 			    &variables, &variables_cnt,
 			    (PV_APPEND | PV_NUMERIC
 			     | PV_NO_DUPLICATE | PV_NO_SCRATCH)))
@@ -485,8 +485,8 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_crosst
 	  goto lossage;
 	}
       lex_get (lexer);
-      
-      for (i = orig_nv; i < variables_cnt; i++) 
+
+      for (i = orig_nv; i < variables_cnt; i++)
         {
           struct var_range *vr = xmalloc (sizeof *vr);
           vr->min = min;
@@ -494,11 +494,11 @@ crs_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_crosst
 	  vr->count = max - min + 1;
           var_attach_aux (variables[i], vr, var_dtor_free);
 	}
-      
+
       if (lex_token (lexer) == '/')
 	break;
     }
-  
+
   return 1;
 
  lossage:
@@ -528,7 +528,7 @@ precalc (struct casereader *input, const struct dataset *ds)
       gen_tab = hsh_create (512, compare_table_entry, hash_table_entry,
 			    NULL, NULL);
     }
-  else 
+  else
     {
       int i;
 
@@ -544,14 +544,14 @@ precalc (struct casereader *input, const struct dataset *ds)
 
 	  x->ofs = n_sorted_tab;
 
-	  for (j = 2; j < x->nvar; j++) 
+	  for (j = 2; j < x->nvar; j++)
             count *= get_var_range (x->vars[j - 2])->count;
-          
+
 	  sorted_tab = xnrealloc (sorted_tab,
                                   n_sorted_tab + count, sizeof *sorted_tab);
 	  v = local_alloc (sizeof *v * x->nvar);
-	  for (j = 2; j < x->nvar; j++) 
-            v[j] = get_var_range (x->vars[j])->min; 
+	  for (j = 2; j < x->nvar; j++)
+            v[j] = get_var_range (x->vars[j])->min;
 	  for (j = 0; j < count; j++)
 	    {
 	      struct table_entry *te;
@@ -560,27 +560,27 @@ precalc (struct casereader *input, const struct dataset *ds)
 	      te = sorted_tab[n_sorted_tab++]
 		= xmalloc (sizeof *te + sizeof (union value) * (x->nvar - 1));
 	      te->table = i;
-	      
+
 	      {
                 int row_cnt = get_var_range (x->vars[0])->count;
                 int col_cnt = get_var_range (x->vars[1])->count;
 		const int mat_size = row_cnt * col_cnt;
 		int m;
-		
+
 		te->u.data = xnmalloc (mat_size, sizeof *te->u.data);
 		for (m = 0; m < mat_size; m++)
 		  te->u.data[m] = 0.;
 	      }
-	      
+
 	      for (k = 2; k < x->nvar; k++)
 		te->values[k].f = v[k];
-	      for (k = 2; k < x->nvar; k++) 
+	      for (k = 2; k < x->nvar; k++)
                 {
                   struct var_range *vr = get_var_range (x->vars[k]);
                   if (++v[k] >= vr->max)
                     v[k] = vr->min;
                   else
-                    break; 
+                    break;
                 }
 	    }
 	  local_free (v);
@@ -629,14 +629,14 @@ calc_general (struct ccase *c, const struct dataset *ds)
 		x->missing += weight;
 		goto next_crosstab;
 	      }
-	      
+
 	    if (var_is_numeric (x->vars[j]))
 	      te->values[j].f = case_num (c, x->vars[j]);
 	    else
 	      {
 		memcpy (te->values[j].s, case_str (c, x->vars[j]),
                         var_get_width (x->vars[j]));
-	      
+
 		/* Necessary in order to simplify comparisons. */
 		memset (&te->values[j].s[var_get_width (x->vars[j])], 0,
 			sizeof (union value) - var_get_width (x->vars[j]));
@@ -651,10 +651,10 @@ calc_general (struct ccase *c, const struct dataset *ds)
 	if (*tepp == NULL)
 	  {
 	    struct table_entry *tep = pool_alloc (pl_tc, entry_size);
-	    
+
 	    te->u.freq = weight;
 	    memcpy (tep, te, entry_size);
-	    
+
 	    *tepp = tep;
 	  }
 	else
@@ -673,15 +673,15 @@ calc_integer (struct ccase *c, const struct dataset *ds)
 
   /* Case weight. */
   double weight = dict_get_case_weight (dataset_dict (ds), c, &bad_warn);
-  
+
   /* Flattened current table index. */
   int t;
-  
+
   for (t = 0; t < nxtab; t++)
     {
       struct crosstab *x = xtab[t];
       int i, fact, ofs;
-      
+
       fact = i = 1;
       ofs = x->ofs;
       for (i = 0; i < x->nvar; i++)
@@ -689,7 +689,7 @@ calc_integer (struct ccase *c, const struct dataset *ds)
 	  const struct variable *const v = x->vars[i];
           struct var_range *vr = get_var_range (v);
 	  double value = case_num (c, v);
-	  
+
 	  /* Note that the first test also rules out SYSMIS. */
 	  if ((value < vr->min || value >= vr->max)
 	      || (cmd.miss == CRS_TABLE
@@ -698,14 +698,14 @@ calc_integer (struct ccase *c, const struct dataset *ds)
 	      x->missing += weight;
 	      goto next_crosstab;
 	    }
-	  
+
 	  if (i > 1)
 	    {
 	      ofs += fact * ((int) value - vr->min);
 	      fact *= vr->count;
 	    }
 	}
-      
+
       {
         const struct variable *row_var = x->vars[ROW_VAR];
 	const int row = case_num (c, row_var) - get_var_range (row_var)->min;
@@ -717,14 +717,14 @@ calc_integer (struct ccase *c, const struct dataset *ds)
 
 	sorted_tab[ofs]->u.data[col + row * col_dim] += weight;
       }
-      
+
     next_crosstab: ;
     }
 }
 
 /* Compare the table_entry's at A and B and return a strcmp()-type
    result. */
-static int 
+static int
 compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
 {
   const struct table_entry *a = a_;
@@ -734,7 +734,7 @@ compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
     return 1;
   else if (a->table < b->table)
     return -1;
-  
+
   {
     const struct crosstab *x = xtab[a->table];
     int i;
@@ -748,7 +748,7 @@ compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
 	  else if (diffnum > 0)
 	    return 1;
 	}
-      else 
+      else
         {
           const int diffstr = strncmp (a->values[i].s, b->values[i].s,
                                        var_get_width (x->vars[i]));
@@ -756,7 +756,7 @@ compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
             return diffstr;
         }
   }
-  
+
   return 0;
 }
 
@@ -771,7 +771,7 @@ hash_table_entry (const void *a_, const void *aux UNUSED)
   hash = a->table;
   for (i = 0; i < xtab[a->table]->nvar; i++)
     hash ^= hsh_hash_bytes (&a->values[i], sizeof a->values[i]);
-  
+
   return hash;
 }
 
@@ -795,9 +795,9 @@ postcalc (void)
       n_sorted_tab = hsh_count (gen_tab);
       sorted_tab = (struct table_entry **) hsh_sort (gen_tab);
     }
-  
+
   make_summary_table ();
-  
+
   /* Identify all the individual crosstabulation tables, and deal with
      them. */
   {
@@ -812,17 +812,17 @@ postcalc (void)
 	pe = find_pivot_extent (pb, &pc, cmd.pivot == CRS_PIVOT);
 	if (pe == NULL)
 	  break;
-	
+
 	output_pivot_table (pb, pe, &mat, &row_tot, &col_tot,
 			    &maxrows, &maxcols, &maxcells);
-	  
+
 	pb = pe;
       }
     free (mat);
     free (row_tot);
     free (col_tot);
   }
-  
+
   hsh_destroy (gen_tab);
 }
 
@@ -833,7 +833,7 @@ static void
 make_summary_table (void)
 {
   struct tab_table *summary;
-  
+
   struct table_entry **pb = sorted_tab, **pe;
   int pc = n_sorted_tab;
   int cur_tab = 0;
@@ -859,11 +859,11 @@ make_summary_table (void)
       }
   }
   tab_offset (summary, 0, 3);
-		  
+
   for (;;)
     {
       double valid;
-      
+
       pe = find_pivot_extent (pb, &pc, cmd.pivot == CRS_PIVOT);
       if (pe == NULL)
 	break;
@@ -880,12 +880,12 @@ make_summary_table (void)
 	  const int n_cols = get_var_range (x->vars[COL_VAR])->count;
 	  const int n_rows = get_var_range (x->vars[ROW_VAR])->count;
 	  const int count = n_cols * n_rows;
-	    
+
 	  for (valid = 0.; pb < pe; pb++)
 	    {
 	      const double *data = (*pb)->u.data;
 	      int i;
-		
+
 	      for (i = 0; i < count; i++)
 		valid += *data++;
 	    }
@@ -894,7 +894,7 @@ make_summary_table (void)
 
       pb = pe;
     }
-  
+
   while (cur_tab < nxtab)
     insert_summary (summary, cur_tab++, 0.);
 
@@ -909,7 +909,7 @@ insert_summary (struct tab_table *t, int tab_index, double valid)
   struct crosstab *x = xtab[tab_index];
 
   tab_hline (t, TAL_1, 0, 6, 0);
-  
+
   /* Crosstabulation name. */
   {
     char *buf = local_alloc (128 * x->nvar);
@@ -927,7 +927,7 @@ insert_summary (struct tab_table *t, int tab_index, double valid)
 
     local_free (buf);
   }
-    
+
   /* Counts and percentages. */
   {
     double n[3];
@@ -945,7 +945,7 @@ insert_summary (struct tab_table *t, int tab_index, double valid)
 		  n[i] / n[2] * 100.);
       }
   }
-  
+
   tab_next_row (t);
 }
 
@@ -968,7 +968,7 @@ static int n_cols;
 /* Row values, number of rows. */
 static union value *rows;
 static int n_rows;
-	      
+
 /* Number of statistically interesting columns/rows (columns/rows with
    data in them). */
 static int ns_cols, ns_rows;
@@ -1029,9 +1029,9 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
       /* First header line. */
       tab_joint_text (table, nvar - 1, 0, (nvar - 1) + (n_cols - 1), 0,
 		      TAB_CENTER | TAT_TITLE, var_get_name (x->vars[COL_VAR]));
-  
+
       tab_hline (table, TAL_1, nvar - 1, nvar + n_cols - 2, 1);
-	     
+
       /* Second header line. */
       {
 	int i;
@@ -1055,7 +1055,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	char *title = local_alloc (x->nvar * 64 + 128);
 	char *cp = title;
 	int i;
-    
+
 	if (cmd.pivot == CRS_PIVOT)
 	  for (i = 0; i < nvar; i++)
 	    {
@@ -1093,8 +1093,8 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 		int value;
 		const char *name;
 	      };
-	
-	    static const struct tuple cell_names[] = 
+
+	    static const struct tuple cell_names[] =
 	      {
 		{CRS_CL_COUNT, N_("count")},
 		{CRS_CL_ROW, N_("row %")},
@@ -1120,12 +1120,12 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	tab_title (table, "%s", title);
 	local_free (title);
       }
-      
+
       tab_offset (table, 0, 2);
     }
   else
     table = NULL;
-  
+
   /* Chi-square table initialization. */
   if (cmd.a_statistics[CRS_ST_CHISQ])
     {
@@ -1134,7 +1134,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
       tab_headers (chisq, 1 + (nvar - 2), 0, 1, 0);
 
       tab_title (chisq, _("Chi-square tests."));
-      
+
       tab_offset (chisq, nvar - 2, 0);
       tab_text (chisq, 0, 0, TAB_LEFT | TAT_TITLE, _("Statistic"));
       tab_text (chisq, 1, 0, TAB_RIGHT | TAT_TITLE, _("Value"));
@@ -1150,7 +1150,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
     }
   else
     chisq = NULL;
-  
+
   /* Symmetric measures. */
   if (cmd.a_statistics[CRS_ST_PHI] || cmd.a_statistics[CRS_ST_CC]
       || cmd.a_statistics[CRS_ST_BTAU] || cmd.a_statistics[CRS_ST_CTAU]
@@ -1238,7 +1238,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	  col_tot = *col_totp;
 	  *maxcols = n_cols;
 	}
-      
+
       /* Allocate table space for the matrix. */
       if (table && tab_row (table) + (n_rows + 1) * num_cells > tab_nr (table))
 	tab_realloc (table, -1,
@@ -1253,7 +1253,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	      *matp = xnrealloc (*matp, n_cols * n_rows, sizeof **matp);
 	      *maxcells = n_cols * n_rows;
 	    }
-	  
+
 	  mat = *matp;
 
 	  /* Build the matrix and calculate column totals. */
@@ -1320,7 +1320,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	{
 	  int r, c;
 	  double *tp = col_tot;
-	  
+
 	  assert (mode == INTEGER);
 	  mat = (*tb)->u.data;
 	  ns_cols = n_cols;
@@ -1330,16 +1330,16 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	    {
 	      double cum = 0.;
 	      double *cp = &mat[c];
-	      
+
 	      for (r = 0; r < n_rows; r++)
 		cum += cp[r * n_cols];
 	      *tp++ = cum;
 	    }
 	}
-      
+
       {
 	double *cp;
-	
+
 	for (ns_cols = 0, cp = col_tot; cp < &col_tot[n_cols]; cp++)
 	  ns_cols += *cp != 0.;
       }
@@ -1349,7 +1349,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	double *mp = mat;
 	double *rp = row_tot;
 	int r, c;
-		
+
 	for (ns_rows = 0, r = n_rows; r--; )
 	  {
 	    double cum = 0.;
@@ -1375,13 +1375,13 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	  cum += *tp++;
 	W = cum;
       }
-      
+
       /* Find the first variable that differs from the last subtable,
 	 then display the values of the dimensioning variables for
 	 each table that needs it. */
       {
 	int first_difference = nvar - 1;
-	
+
 	if (tb != pb)
 	  for (; ; first_difference--)
 	    {
@@ -1392,7 +1392,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 		break;
 	    }
 	cmp = *tb;
-	    
+
 	if (table)
 	  display_dimensions (table, first_difference, *tb);
 	if (chisq)
@@ -1417,13 +1417,13 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	display_risk ();
       if (direct)
 	display_directional ();
-		
+
       tb = te;
       free (rows);
     }
 
   submit (table);
-  
+
   if (chisq)
     {
       if (!chisq_fisher)
@@ -1456,7 +1456,7 @@ delete_missing (void)
 	  ns_rows--;
 	}
   }
-  
+
   {
     int c;
 
@@ -1477,10 +1477,10 @@ static void
 submit (struct tab_table *t)
 {
   int i;
-  
+
   if (t == NULL)
     return;
-  
+
   tab_resize (t, -1, 0);
   if (tab_nr (t) == tab_t (t))
     {
@@ -1508,7 +1508,7 @@ static void
 crosstabs_dim (struct tab_table *t, struct outp_driver *d)
 {
   int i;
-  
+
   /* Width of a numerical column. */
   int c = outp_string_width (d, "0.000000", OUTP_PROPORTIONAL);
   if (cmd.miss == CRS_REPORT)
@@ -1524,7 +1524,7 @@ crosstabs_dim (struct tab_table *t, struct outp_driver *d)
       for (i = 0; i <= t->nc; i++)
         w -= t->wrv[i];
       w /= t->l;
-      
+
       if (w < d->prop_em_width * 8)
 	w = d->prop_em_width * 8;
 
@@ -1619,7 +1619,7 @@ find_pivot_extent_integer (struct table_entry **tp, int *cnt, int pivot)
 	break;
       if (pivot)
 	continue;
-      
+
       if (memcmp (&(*tp)->values[2], &fp->values[2],
                   sizeof (union value) * (x->nvar - 2)))
 	break;
@@ -1651,7 +1651,7 @@ compare_value (const void *a_, const void *b_, const void *width_)
    malloc()'darray stored in *VALUES, with the number of values
    stored in *VALUE_CNT.
    */
-static void 
+static void
 enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
                  union value **values, int *value_cnt)
 {
@@ -1672,7 +1672,7 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
     {
       struct var_range *vr = get_var_range (v);
       int i;
-      
+
       assert (mode == INTEGER);
       *values = xnmalloc (vr->count, sizeof **values);
       for (i = 0; i < vr->count; i++)
@@ -1692,7 +1692,7 @@ table_value_missing (struct tab_table *table, int c, int r, unsigned char opt,
   const struct fmt_spec *print = var_get_print_format (var);
 
   const char *label = var_lookup_value_label (var, v);
-  if (label) 
+  if (label)
     {
       tab_text (table, c, r, TAB_LEFT, label);
       return;
@@ -1737,7 +1737,7 @@ format_cell_entry (struct tab_table *table, int c, int r, double value,
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
   struct substring s;
-  
+
   s.length = 10;
   s.string = tab_alloc (table, 16);
   v.f = value;
@@ -1761,14 +1761,14 @@ display_crosstabulation (void)
 {
   {
     int r;
-	
+
     for (r = 0; r < n_rows; r++)
       table_value_missing (table, nvar - 2, r * num_cells,
 			   TAB_RIGHT, &rows[r], x->vars[ROW_VAR]);
   }
   tab_text (table, nvar - 2, n_rows * num_cells,
 	    TAB_LEFT, _("Total"));
-      
+
   /* Put in the actual cells. */
   {
     double *mp = mat;
@@ -1844,7 +1844,7 @@ display_crosstabulation (void)
     int r, i;
 
     tab_offset (table, -1, tab_row (table) - num_cells * n_rows);
-    for (r = 0; r < n_rows; r++) 
+    for (r = 0; r < n_rows; r++)
       {
         char suffix = 0;
         bool mark_missing = false;
@@ -1886,7 +1886,7 @@ display_crosstabulation (void)
 
             format_cell_entry (table, n_cols, 0, v, suffix, mark_missing);
             tab_next_row (table);
-          } 
+          }
       }
   }
 
@@ -1903,8 +1903,8 @@ display_crosstabulation (void)
         bool mark_missing = false;
         char suffix = 0;
         int i;
-	    
-        if (cmd.miss == CRS_REPORT && c < n_cols 
+
+        if (cmd.miss == CRS_REPORT && c < n_cols
             && var_is_num_missing (x->vars[COL_VAR], cols[c].f, MV_USER))
           mark_missing = true;
 
@@ -1946,7 +1946,7 @@ display_crosstabulation (void)
 
     tab_offset (table, -1, tab_row (table) + last_row);
   }
-  
+
   tab_offset (table, 0, -1);
 }
 
@@ -1957,7 +1957,7 @@ static void calc_chisq (double[N_CHISQ], int[N_CHISQ], double *, double *);
 static void
 display_chisq (void)
 {
-  static const char *chisq_stats[N_CHISQ] = 
+  static const char *chisq_stats[N_CHISQ] =
     {
       N_("Pearson Chi-Square"),
       N_("Likelihood Ratio"),
@@ -1971,18 +1971,18 @@ display_chisq (void)
   int s = 0;
 
   int i;
-	      
+
   calc_chisq (chisq_v, df, &fisher1, &fisher2);
 
   tab_offset (chisq, nvar - 2, -1);
-  
+
   for (i = 0; i < N_CHISQ; i++)
     {
       if ((i != 2 && chisq_v[i] == SYSMIS)
 	  || (i == 2 && fisher1 == SYSMIS))
 	continue;
       s = 1;
-      
+
       tab_text (chisq, 0, 0, TAB_LEFT, gettext (chisq_stats[i]));
       if (i != 2)
 	{
@@ -2003,7 +2003,7 @@ display_chisq (void)
   tab_text (chisq, 0, 0, TAB_LEFT, _("N of Valid Cases"));
   tab_float (chisq, 1, 0, TAB_RIGHT, W, 8, 0);
   tab_next_row (chisq);
-    
+
   tab_offset (chisq, 0, -1);
 }
 
@@ -2014,7 +2014,7 @@ static int calc_symmetric (double[N_SYMMETRIC], double[N_SYMMETRIC],
 static void
 display_symmetric (void)
 {
-  static const char *categories[] = 
+  static const char *categories[] =
     {
       N_("Nominal by Nominal"),
       N_("Ordinal by Ordinal"),
@@ -2048,7 +2048,7 @@ display_symmetric (void)
     return;
 
   tab_offset (sym, nvar - 2, -1);
-  
+
   for (i = 0; i < N_SYMMETRIC; i++)
     {
       if (sym_v[i] == SYSMIS)
@@ -2059,7 +2059,7 @@ display_symmetric (void)
 	  last_cat = stats_categories[i];
 	  tab_text (sym, 0, 0, TAB_LEFT, gettext (categories[last_cat]));
 	}
-      
+
       tab_text (sym, 1, 0, TAB_LEFT, gettext (stats[i]));
       tab_float (sym, 2, 0, TAB_RIGHT, sym_v[i], 8, 3);
       if (sym_ase[i] != SYSMIS)
@@ -2073,7 +2073,7 @@ display_symmetric (void)
   tab_text (sym, 0, 0, TAB_LEFT, _("N of Valid Cases"));
   tab_float (sym, 2, 0, TAB_RIGHT, W, 8, 0);
   tab_next_row (sym);
-    
+
   tab_offset (sym, 0, -1);
 }
 
@@ -2087,12 +2087,12 @@ display_risk (void)
   double risk_v[3], lower[3], upper[3];
   union value c[2];
   int i;
-  
+
   if (!calc_risk (risk_v, upper, lower, c))
     return;
-  
+
   tab_offset (risk, nvar - 2, -1);
-  
+
   for (i = 0; i < 3; i++)
     {
       if (risk_v[i] == SYSMIS)
@@ -2121,7 +2121,7 @@ display_risk (void)
 		     var_get_width (x->vars[ROW_VAR]), rows[i - 1].s);
 	  break;
 	}
-		   
+
       tab_text (risk, 0, 0, TAB_LEFT, buf);
       tab_float (risk, 1, 0, TAB_RIGHT, risk_v[i], 8, 3);
       tab_float (risk, 2, 0, TAB_RIGHT, lower[i], 8, 3);
@@ -2132,7 +2132,7 @@ display_risk (void)
   tab_text (risk, 0, 0, TAB_LEFT, _("N of Valid Cases"));
   tab_float (risk, 1, 0, TAB_RIGHT, W, 8, 0);
   tab_next_row (risk);
-    
+
   tab_offset (risk, 0, -1);
 }
 
@@ -2143,7 +2143,7 @@ static int calc_directional (double[N_DIRECTIONAL], double[N_DIRECTIONAL],
 static void
 display_directional (void)
 {
-  static const char *categories[] = 
+  static const char *categories[] =
     {
       N_("Nominal by Nominal"),
       N_("Ordinal by Ordinal"),
@@ -2159,7 +2159,7 @@ display_directional (void)
       N_("Eta"),
     };
 
-  static const char *types[] = 
+  static const char *types[] =
     {
       N_("Symmetric"),
       N_("%s Dependent"),
@@ -2170,18 +2170,18 @@ display_directional (void)
     {
       0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2,
     };
-  
-  static const int stats_stats[N_DIRECTIONAL] = 
+
+  static const int stats_stats[N_DIRECTIONAL] =
     {
       0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4,
     };
 
-  static const int stats_types[N_DIRECTIONAL] = 
+  static const int stats_types[N_DIRECTIONAL] =
     {
       0, 1, 2, 1, 2, 0, 1, 2, 0, 1, 2, 1, 2,
     };
 
-  static const int *stats_lookup[] = 
+  static const int *stats_lookup[] =
     {
       stats_categories,
       stats_stats,
@@ -2199,23 +2199,23 @@ display_directional (void)
     {
       -1, -1, -1,
     };
-    
+
   double direct_v[N_DIRECTIONAL];
   double direct_ase[N_DIRECTIONAL];
   double direct_t[N_DIRECTIONAL];
-  
+
   int i;
 
   if (!calc_directional (direct_v, direct_ase, direct_t))
     return;
 
   tab_offset (direct, nvar - 2, -1);
-  
+
   for (i = 0; i < N_DIRECTIONAL; i++)
     {
       if (direct_v[i] == SYSMIS)
 	continue;
-      
+
       {
 	int j;
 
@@ -2224,7 +2224,7 @@ display_directional (void)
 	    {
 	      if (j < 2)
 		tab_hline (direct, TAL_1, j, 6, 0);
-	      
+
 	      for (; j < 3; j++)
 		{
 		  const char *string;
@@ -2236,13 +2236,13 @@ display_directional (void)
 		    string = var_get_name (x->vars[0]);
 		  else
 		    string = var_get_name (x->vars[1]);
-		  
+
 		  tab_text (direct, j, 0, TAB_LEFT | TAT_PRINTF,
 			    gettext (stats_names[j][k]), string);
 		}
 	    }
       }
-      
+
       tab_float (direct, 3, 0, TAB_RIGHT, direct_v[i], 8, 3);
       if (direct_ase[i] != SYSMIS)
 	tab_float (direct, 4, 0, TAB_RIGHT, direct_ase[i], 8, 3);
@@ -2264,7 +2264,7 @@ gamma_int (double x)
 {
   double r = 1;
   int i;
-  
+
   for (i = 2; i < x; i++)
     r *= i;
   return r;
@@ -2297,7 +2297,7 @@ static void
 calc_fisher (int a, int b, int c, int d, double *fisher1, double *fisher2)
 {
   int x;
-  
+
   if (MIN (c, d) < MIN (a, b))
     swap (&a, &c), swap (&b, &d);
   if (MIN (b, d) < MIN (a, c))
@@ -2346,7 +2346,7 @@ calc_chisq (double chisq[N_CHISQ], int df[N_CHISQ],
 	const double expected = row_tot[r] * col_tot[c] / W;
 	const double freq = mat[n_cols * r + c];
 	const double residual = freq - expected;
-    
+
         chisq[0] += residual * residual / expected;
 	if (freq)
 	  chisq[1] += freq * log (expected / freq);
@@ -2364,7 +2364,7 @@ calc_chisq (double chisq[N_CHISQ], int df[N_CHISQ],
   if (ns_cols == 2 && ns_rows == 2)
     {
       double f11, f12, f21, f22;
-      
+
       {
 	int nz_cols[2];
 	int i, j;
@@ -2409,7 +2409,7 @@ calc_chisq (double chisq[N_CHISQ], int df[N_CHISQ],
     {
       double r, ase_0, ase_1;
       calc_r ((double *) rows, (double *) cols, &r, &ase_0, &ase_1);
-    
+
       chisq[4] = (W - 1.) * r * r;
       df[4] = 1;
     }
@@ -2458,10 +2458,10 @@ calc_r (double *X, double *Y, double *r, double *ase_0, double *ase_1)
   T = sqrt (SX * SY);
   *r = S / T;
   *ase_0 = sqrt ((sum_X2Y2f - (sum_XYf * sum_XYf) / W) / (sum_X2r * sum_Y2c));
-  
+
   {
     double s, c, y, t;
-    
+
     for (s = c = 0., i = 0; i < n_rows; i++)
       for (j = 0; j < n_cols; j++)
 	{
@@ -2493,14 +2493,14 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 		double t[N_SYMMETRIC])
 {
   int q = MIN (ns_rows, ns_cols);
-  
+
   if (q <= 1)
     return 0;
-  
+
   {
     int i;
 
-    if (v) 
+    if (v)
       for (i = 0; i < N_SYMMETRIC; i++)
 	v[i] = ase[i] = t[i] = SYSMIS;
   }
@@ -2512,14 +2512,14 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 
       {
 	int r, c;
-    
+
 	for (r = 0; r < n_rows; r++)
 	  for (c = 0; c < n_cols; c++)
 	    {
 	      const double expected = row_tot[r] * col_tot[c] / W;
 	      const double freq = mat[n_cols * r + c];
 	      const double residual = freq - expected;
-    
+
               Xp += residual * residual / expected;
 	    }
       }
@@ -2532,7 +2532,7 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
       if (cmd.a_statistics[CRS_ST_CC])
 	v[2] = sqrt (Xp / (Xp + W));
     }
-  
+
   if (cmd.a_statistics[CRS_ST_BTAU] || cmd.a_statistics[CRS_ST_CTAU]
       || cmd.a_statistics[CRS_ST_GAMMA] || cmd.a_statistics[CRS_ST_D])
     {
@@ -2541,17 +2541,17 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
       double P, Q;
       double btau_cum, ctau_cum, gamma_cum, d_yx_cum, d_xy_cum;
       double btau_var;
-      
+
       {
 	int r, c;
-	
+
 	Dr = Dc = W * W;
 	for (r = 0; r < n_rows; r++)
 	  Dr -= row_tot[r] * row_tot[r];
 	for (c = 0; c < n_cols; c++)
 	  Dc -= col_tot[c] * col_tot[c];
       }
-      
+
       {
 	int r, c;
 
@@ -2559,12 +2559,12 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 	for (c = 0; c < n_cols; c++)
 	  {
 	    double ct = 0.;
-	    
+
 	    for (r = 0; r < n_rows; r++)
 	      cum[c + r * n_cols] = ct += mat[c + r * n_cols];
 	  }
       }
-      
+
       /* P and Q. */
       {
 	int i, j;
@@ -2587,14 +2587,14 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 		double fij = mat[j + i * n_cols];
 		P += fij * Cij;
 		Q += fij * Dij;
-		
+
 		if (++j == n_cols)
 		  break;
 		assert (j < n_cols);
 
 		Cij -= col_tot[j] - cum[j + i * n_cols];
 		Dij += col_tot[j - 1] - cum[j - 1 + i * n_cols];
-		
+
 		if (i > 0)
 		  {
 		    Cij += cum[j - 1 + (i - 1) * n_cols];
@@ -2640,7 +2640,7 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 						   + col_tot[j] * Dr));
 		    btau_cum += fij * temp * temp;
 		  }
-		
+
 		{
 		  const double temp = Cij - Dij;
 		  ctau_cum += fij * temp * temp;
@@ -2659,14 +2659,14 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 		    d_xy_cum += fij * pow2 (Dc * (Dij - Cij)
                                             - (Q - P) * (W - col_tot[j]));
 		  }
-		
+
 		if (++j == n_cols)
 		  break;
 		assert (j < n_cols);
 
 		Cij -= col_tot[j] - cum[j + i * n_cols];
 		Dij += col_tot[j - 1] - cum[j - 1 + i * n_cols];
-		
+
 		if (i > 0)
 		  {
 		    Cij += cum[j - 1 + (i - 1) * n_cols];
@@ -2724,11 +2724,11 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
     {
       double *R = local_alloc (sizeof *R * n_rows);
       double *C = local_alloc (sizeof *C * n_cols);
-      
+
       {
 	double y, t, c = 0., s = 0.;
 	int i = 0;
-	
+
 	for (;;)
 	  {
 	    R[i] = s + (row_tot[i] + 1.) / 2.;
@@ -2741,11 +2741,11 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 	    assert (i < n_rows);
 	  }
       }
-      
+
       {
 	double y, t, c = 0., s = 0.;
 	int j = 0;
-	
+
 	for (;;)
 	  {
 	    C[j] = s + (col_tot[j] + 1.) / 2;
@@ -2758,7 +2758,7 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 	    assert (j < n_cols);
 	  }
       }
-      
+
       calc_r (R, C, &v[6], &t[6], &ase[6]);
       t[6] = v[6] / t[6];
 
@@ -2774,18 +2774,18 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
     {
       double sum_fii, sum_rici, sum_fiiri_ci, sum_fijri_ci2, sum_riciri_ci;
       int i, j;
-      
+
       for (sum_fii = sum_rici = sum_fiiri_ci = sum_riciri_ci = 0., i = j = 0;
 	   i < ns_rows; i++, j++)
 	{
 	  double prod, sum;
-	  
+
 	  while (col_tot[j] == 0.)
 	    j++;
-	  
+
 	  prod = row_tot[i] * col_tot[j];
 	  sum = row_tot[i] + col_tot[j];
-	  
+
 	  sum_fii += mat[j + i * n_cols];
 	  sum_rici += prod;
 	  sum_fiiri_ci += mat[j + i * n_cols] * sum;
@@ -2797,7 +2797,7 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 	    double sum = row_tot[i] + col_tot[j];
 	    sum_fijri_ci2 += mat[j + i * n_cols] * sum * sum;
 	  }
-      
+
       v[8] = (W * sum_fii - sum_rici) / (W * W - sum_rici);
 
       ase[8] = sqrt ((W * W * sum_rici
@@ -2832,14 +2832,14 @@ calc_risk (double *value, double *upper, double *lower, union value *c)
 
   {
     int i;
-      
+
     for (i = 0; i < 3; i++)
       value[i] = upper[i] = lower[i] = SYSMIS;
   }
-    
+
   if (ns_rows != 2 || ns_cols != 2)
     return 0;
-  
+
   {
     int nz_cols[2];
     int i, j;
@@ -2873,7 +2873,7 @@ calc_risk (double *value, double *upper, double *lower, union value *c)
 	    + (f22 / (f21 * (f21 + f22))));
   lower[1] = value[1] * exp (-1.960 * v);
   upper[1] = value[1] * exp (1.960 * v);
-    
+
   value[2] = (f12 * (f21 + f22)) / (f22 * (f11 + f12));
   v = sqrt ((f11 / (f12 * (f11 + f12)))
 	    + (f21 / (f22 * (f21 + f22))));
@@ -2919,7 +2919,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 		max = mat[j + i * n_cols];
 		index = j;
 	      }
-	
+
 	  sum_fim += fim[i] = max;
 	  fim_index[i] = index;
 	}
@@ -2936,7 +2936,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 		max = mat[j + i * n_cols];
 		index = i;
 	      }
-	
+
 	  sum_fmj += fmj[j] = max;
 	  fmj_index[j] = index;
 	}
@@ -2978,14 +2978,14 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 			       - deltaj
 			       + v[0] * deltaj));
 	    }
-      
+
 	ase[2] = sqrt (accum - W * v[0]) / (W - cm);
       }
 
       /* ASE0 for Y given X. */
       {
 	double accum;
-      
+
 	for (accum = 0., i = 0; i < n_rows; i++)
 	  if (cm_index != fim_index[i])
 	    accum += (mat[i * n_cols + fim_index[i]]
@@ -3006,14 +3006,14 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 			       - deltaj
 			       + v[0] * deltaj));
 	    }
-      
+
 	ase[1] = sqrt (accum - W * v[0]) / (W - rm);
       }
 
       /* ASE0 for X given Y. */
       {
 	double accum;
-      
+
 	for (accum = 0., j = 0; j < n_cols; j++)
 	  if (rm_index != fmj_index[j])
 	    accum += (mat[j + n_cols * fmj_index[j]]
@@ -3044,7 +3044,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
       free (fim_index);
       free (fmj);
       free (fmj_index);
-      
+
       {
 	double sum_fij2_ri, sum_fij2_ci;
 	double sum_ri2, sum_cj2;
@@ -3077,7 +3077,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
       for (UX = 0., i = 0; i < n_rows; i++)
 	if (row_tot[i] > 0.)
 	  UX -= row_tot[i] / W * log (row_tot[i] / W);
-      
+
       for (UY = 0., j = 0; j < n_cols; j++)
 	if (col_tot[j] > 0.)
 	  UY -= col_tot[j] / W * log (col_tot[j] / W);
@@ -3089,7 +3089,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 
 	    if (entry <= 0.)
 	      continue;
-	    
+
 	    P += entry * pow2 (log (col_tot[j] * row_tot[i] / (W * entry)));
 	    UXY -= entry / W * log (entry / W);
 	  }
@@ -3101,7 +3101,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 
 	    if (entry <= 0.)
 	      continue;
-	    
+
 	    ase1_yx += entry * pow2 (UY * log (entry / row_tot[i])
 				    + (UX - UXY) * log (col_tot[j] / W));
 	    ase1_xy += entry * pow2 (UX * log (entry / col_tot[j])
@@ -3110,16 +3110,16 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 				      * log (row_tot[i] * col_tot[j] / (W * W)))
 				     - (UX + UY) * log (entry / W));
 	  }
-      
+
       v[5] = 2. * ((UX + UY - UXY) / (UX + UY));
       ase[5] = (2. / (W * pow2 (UX + UY))) * sqrt (ase1_sym);
       t[5] = v[5] / ((2. / (W * (UX + UY)))
 		     * sqrt (P - pow2 (UX + UY - UXY) / W));
-		    
+
       v[6] = (UX + UY - UXY) / UX;
       ase[6] = sqrt (ase1_xy) / (W * UX * UX);
       t[6] = v[6] / (sqrt (P - W * pow2 (UX + UY - UXY)) / (W * UX));
-      
+
       v[7] = (UX + UY - UXY) / UY;
       ase[7] = sqrt (ase1_yx) / (W * UY * UY);
       t[7] = v[7] / (sqrt (P - W * pow2 (UX + UY - UXY)) / (W * UY));
@@ -3129,7 +3129,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
   if (cmd.a_statistics[CRS_ST_D])
     {
       int i;
-      
+
       if (!sym)
 	calc_symmetric (NULL, NULL, NULL);
       for (i = 0; i < 3; i++)
@@ -3147,14 +3147,14 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	double sum_Xr, sum_X2r;
 	double SX, SXW;
 	int i, j;
-      
+
 	for (sum_Xr = sum_X2r = 0., i = 0; i < n_rows; i++)
 	  {
 	    sum_Xr += rows[i].f * row_tot[i];
 	    sum_X2r += rows[i].f * rows[i].f * row_tot[i];
 	  }
 	SX = sum_X2r - sum_Xr * sum_Xr / W;
-      
+
 	for (SXW = 0., j = 0; j < n_cols; j++)
 	  {
 	    double cum;
@@ -3191,7 +3191,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 		SYW += cols[j].f * cols[j].f * mat[j + i * n_cols];
 		cum += cols[j].f * mat[j + i * n_cols];
 	      }
-	  
+
 	    SYW -= cum * cum / row_tot[i];
 	  }
 	v[12] = sqrt (1. - SYW / SY);
@@ -3209,7 +3209,7 @@ format_short (char *s, const struct fmt_spec *fp, const union value *v)
   struct fmt_spec fmt_subst;
 
   /* Limit to short string width. */
-  if (fmt_is_string (fp->type)) 
+  if (fmt_is_string (fp->type))
     {
       fmt_subst = *fp;
 
@@ -3224,12 +3224,12 @@ format_short (char *s, const struct fmt_spec *fp, const union value *v)
 
   /* Format. */
   data_out (v, fp, s);
-    
+
   /* Null terminate. */
   s[fp->w] = '\0';
 }
 
-/* 
+/*
    Local Variables:
    mode: c
    End:

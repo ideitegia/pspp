@@ -44,9 +44,9 @@ cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
     lex_match (lexer, '=');
 
   /* File name can be identifier or string. */
-  if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING) 
+  if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING)
     {
-      lex_error (lexer, _("expecting file name")); 
+      lex_error (lexer, _("expecting file name"));
       return CMD_CASCADING_FAILURE;
     }
 
@@ -55,13 +55,13 @@ cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
   ss = lex_get_source_stream (lexer);
   found_fn = fn_search_path (target_fn, getl_include_path ( ss ));
 
-  if (found_fn != NULL) 
+  if (found_fn != NULL)
     {
       getl_include_source (ss, create_syntax_file_source (found_fn));
-      free (found_fn); 
+      free (found_fn);
     }
   else
-    msg (SE, _("Can't find `%s' in include file search path."), 
+    msg (SE, _("Can't find `%s' in include file search path."),
 	 target_fn);
 
   lex_get (lexer);
