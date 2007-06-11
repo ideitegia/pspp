@@ -30,16 +30,27 @@
 
 #include "xalloc.h"
 
+/* A casegrouper. */
 struct casegrouper
   {
-    struct casereader *reader;
-    struct taint *taint;
+    struct casereader *reader;  /* Source of input cases. */
+    struct taint *taint;        /* Error status for casegrouper. */
 
+    /* Functions for grouping cases. */
     bool (*same_group) (const struct ccase *, const struct ccase *, void *aux);
     void (*destroy) (void *aux);
     void *aux;
   };
 
+/* Creates and returns a new casegrouper that takes its input
+   from READER.  SAME_GROUP is used to decide which cases are in
+   a group: it returns true if the pair of cases provided are in
+   the same group, false otherwise.  DESTROY will be called when
+   the casegrouper is destroyed and should free any storage
+   needed by SAME_GROUP.
+
+   SAME_GROUP may be a null pointer.  If so, READER's entire
+   contents is considered to be a single group. */
 struct casegrouper *
 casegrouper_create_func (struct casereader *reader,
                          bool (*same_group) (const struct ccase *,
@@ -57,13 +68,17 @@ casegrouper_create_func (struct casereader *reader,
   return grouper;
 }
 
-/* FIXME: we really shouldn't need a temporary casewriter for the
-   common case where we read an entire group's data before going
-   on to the next. */
+/* Obtains the next group of cases from GROUPER.  Returns true if
+   successful, false if no groups remain.  If successful, *READER
+   is set to the casereader for the new group; otherwise, it is
+   set to NULL. */
 bool
 casegrouper_get_next_group (struct casegrouper *grouper,
                             struct casereader **reader)
 {
+  /* FIXME: we really shouldn't need a temporary casewriter for
+     the common case where we read an entire group's data before
+     going on to the next. */
   if (grouper->same_group != NULL)
     {
       struct casewriter *writer;
@@ -102,10 +117,17 @@ casegrouper_get_next_group (struct casegrouper *grouper,
           return true;
         }
       else
-        return false;
+        {
+          *reader = NULL;
+          return false;
+        }
     }
 }
 
+/* Destroys GROUPER.  Returns false if GROUPER's input casereader
+   or any state derived from it had become tainted, which means
+   that an I/O error or other serious error occurred in
+   processing data derived from GROUPER; otherwise, return true. */
 bool
 casegrouper_destroy (struct casegrouper *grouper)
 {
@@ -126,29 +148,26 @@ casegrouper_destroy (struct casegrouper *grouper)
   else
     return true;
 }
+
+/* Casegrouper based on equal values of variables from case to
+   case. */
 
+/* Casegrouper based on equal variables. */
 struct casegrouper_vars
   {
-    const struct variable **vars;
-    size_t var_cnt;
+    const struct variable **vars; /* Variables to compare. */
+    size_t var_cnt;               /* Number of variables. */
   };
 
-static bool
-casegrouper_vars_same_group (const struct ccase *a, const struct ccase *b,
-                             void *cv_)
-{
-  struct casegrouper_vars *cv = cv_;
-  return case_compare (a, b, cv->vars, cv->var_cnt) == 0;
-}
+static bool casegrouper_vars_same_group (const struct ccase *,
+                                         const struct ccase *,
+                                         void *);
+static void casegrouper_vars_destroy (void *);
 
-static void
-casegrouper_vars_destroy (void *cv_)
-{
-  struct casegrouper_vars *cv = cv_;
-  free (cv->vars);
-  free (cv);
-}
-
+/* Creates and returns a casegrouper that reads data from READER
+   and breaks it into contiguous groups of cases that have equal
+   values for the VAR_CNT variables in VARS.  If VAR_CNT is 0,
+   then all the cases will be put in a single group. */
 struct casegrouper *
 casegrouper_create_vars (struct casereader *reader,
                          const struct variable *const *vars,
@@ -168,6 +187,11 @@ casegrouper_create_vars (struct casereader *reader,
     return casegrouper_create_func (reader, NULL, NULL, NULL);
 }
 
+/* Creates and returns a casegrouper that reads data from READER
+   and breaks it into contiguous groups of cases that have equal
+   values for the SPLIT FILE variables in DICT.  If DICT has no
+   SPLIT FILE variables, then all the cases will be put into a
+   single group. */
 struct casegrouper *
 casegrouper_create_splits (struct casereader *reader,
                            const struct dictionary *dict)
@@ -177,6 +201,11 @@ casegrouper_create_splits (struct casereader *reader,
                                   dict_get_split_cnt (dict));
 }
 
+/* Creates and returns a casegrouper that reads data from READER
+   and breaks it into contiguous groups of cases that have equal
+   values for the variables used for sorting in CO.  If CO is
+   empty (contains no sort keys), then all the cases will be put
+   into a single group. */
 struct casegrouper *
 casegrouper_create_case_ordering (struct casereader *reader,
                                   const struct case_ordering *co)
@@ -191,3 +220,22 @@ casegrouper_create_case_ordering (struct casereader *reader,
 
   return grouper;
 }
+
+/* "same_group" function for an equal-variables casegrouper. */
+static bool
+casegrouper_vars_same_group (const struct ccase *a, const struct ccase *b,
+                             void *cv_)
+{
+  struct casegrouper_vars *cv = cv_;
+  return case_compare (a, b, cv->vars, cv->var_cnt) == 0;
+}
+
+/* "destroy" for an equal-variables casegrouper. */
+static void
+casegrouper_vars_destroy (void *cv_)
+{
+  struct casegrouper_vars *cv = cv_;
+  free (cv->vars);
+  free (cv);
+}
+

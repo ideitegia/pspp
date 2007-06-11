@@ -86,9 +86,10 @@ struct dataset {
   /* Procedure data. */
   enum
     {
-      PROC_COMMITTED,
-      PROC_OPEN,
-      PROC_CLOSED
+      PROC_COMMITTED,           /* No procedure in progress. */
+      PROC_OPEN,                /* proc_open called, casereader still open. */
+      PROC_CLOSED               /* casereader from proc_open destroyed,
+                                   but proc_commit not yet called. */
     }
   proc_state;
   size_t cases_written;       /* Cases output so far. */
@@ -193,18 +194,15 @@ proc_open (struct dataset *ds)
                                        &proc_casereader_class, ds);
 }
 
+/* Returns true if a procedure is in progress, that is, if
+   proc_open has been called but proc_commit has not. */
 bool
 proc_is_open (const struct dataset *ds)
 {
   return ds->proc_state != PROC_COMMITTED;
 }
 
-/* Reads the next case from dataset DS, which must have been
-   opened for reading with proc_open.
-   Returns true if successful, in which case a pointer to the
-   case is stored in *C.
-   Return false at end of file or if a read error occurs.  In
-   this case a null pointer is stored in *C. */
+/* "read" function for procedure casereader. */
 static bool
 proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
                       struct ccase *c)
@@ -227,8 +225,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
       if (!casereader_read (ds->source, c))
         return false;
       case_resize (c, dict_get_next_value_idx (ds->dict));
-      caseinit_init_reinit_vars (ds->caseinit, c);
-      caseinit_init_left_vars (ds->caseinit, c);
+      caseinit_init_vars (ds->caseinit, c);
 
       /* Execute permanent transformations.  */
       case_nr = ds->cases_written + 1;
@@ -280,11 +277,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
     }
 }
 
-/* Closes dataset DS for reading.
-   Returns true if successful, false if an I/O error occurred
-   while reading or closing the data set.
-   If DS has not been opened, returns true without doing
-   anything else. */
+/* "destroy" function for procedure casereader. */
 static void
 proc_casereader_destroy (struct casereader *reader, void *ds_)
 {
@@ -352,6 +345,7 @@ proc_commit (struct dataset *ds)
   return proc_cancel_all_transformations (ds) && ds->ok;
 }
 
+/* Casereader class for procedure execution. */
 static struct casereader_class proc_casereader_class =
   {
     proc_casereader_read,

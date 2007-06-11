@@ -229,20 +229,23 @@ datasheet_rename (struct datasheet *ds)
   return new;
 }
 
-/* Returns true if a I/O error has occurred while processing a
-   datasheet operation. */
+/* Returns true if datasheet DS is tainted.
+   A datasheet is tainted by an I/O error or by taint
+   propagation to the datasheet. */
 bool
 datasheet_error (const struct datasheet *ds)
 {
   return taint_is_tainted (ds->taint);
 }
 
+/* Marks datasheet DS tainted. */
 void
 datasheet_force_error (struct datasheet *ds)
 {
   taint_set_taint (ds->taint);
 }
 
+/* Returns datasheet DS's taint object. */
 const struct taint *
 datasheet_get_taint (const struct datasheet *ds)
 {
@@ -535,6 +538,7 @@ datasheet_make_reader (struct datasheet *ds)
   return reader;
 }
 
+/* "read" function for the datasheet random casereader. */
 static bool
 datasheet_reader_read (struct casereader *reader UNUSED, void *ds_,
                        casenumber case_idx, struct ccase *c)
@@ -551,6 +555,7 @@ datasheet_reader_read (struct casereader *reader UNUSED, void *ds_,
     }
 }
 
+/* "destroy" function for the datasheet random casereader. */
 static void
 datasheet_reader_destroy (struct casereader *reader UNUSED, void *ds_)
 {
@@ -558,6 +563,7 @@ datasheet_reader_destroy (struct casereader *reader UNUSED, void *ds_)
   datasheet_destroy (ds);
 }
 
+/* "advance" function for the datasheet random casereader. */
 static void
 datasheet_reader_advance (struct casereader *reader UNUSED, void *ds_,
                           casenumber case_cnt)
@@ -566,6 +572,7 @@ datasheet_reader_advance (struct casereader *reader UNUSED, void *ds_,
   datasheet_delete_rows (ds, 0, case_cnt);
 }
 
+/* Random casereader class for a datasheet. */
 static const struct casereader_random_class datasheet_reader_class =
   {
     datasheet_reader_read,

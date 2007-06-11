@@ -26,7 +26,9 @@
    save the values of "left" variables to copy into the next case
    read from the active file.
 
-   The caseinit code helps with this. */
+   The caseinit data structure provides a little help for
+   tracking what data to initialize or to copy from case to
+   case. */
 
 #ifndef DATA_CASEINIT_H
 #define DATA_CASEINIT_H 1
@@ -34,15 +36,17 @@
 struct dictionary;
 struct ccase;
 
+/* Creation and destruction. */
 struct caseinit *caseinit_create (void);
 void caseinit_clear (struct caseinit *);
 void caseinit_destroy (struct caseinit *);
 
+/* Track data to be initialized. */
 void caseinit_mark_as_preinited (struct caseinit *, const struct dictionary *);
 void caseinit_mark_for_init (struct caseinit *, const struct dictionary *);
 
-void caseinit_init_reinit_vars (const struct caseinit *, struct ccase *);
-void caseinit_init_left_vars (const struct caseinit *, struct ccase *);
+/* Initialize data and copy data from case to case. */
+void caseinit_init_vars (const struct caseinit *, struct ccase *);
 void caseinit_update_left_vars (struct caseinit *, const struct ccase *);
 
 #endif /* data/caseinit.h */

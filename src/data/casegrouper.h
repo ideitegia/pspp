@@ -16,6 +16,13 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
    02110-1301, USA. */
 
+/* Casegrouper.
+
+   Breaks up the cases from a casereader into sets of contiguous
+   cases based on some criteria, e.g. sets of cases that all have
+   the same values for some subset of variables.  Each set of
+   cases is made available to the client as a casereader. */
+
 #ifndef DATA_CASEGROUPER_H
 #define DATA_CASEGROUPER_H 1
 

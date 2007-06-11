@@ -27,9 +27,13 @@
 
 #include "xalloc.h"
 
+/* Casereader that applies a user-supplied function to translate
+   each case into another in an arbitrary fashion. */
+
+/* A translating casereader. */
 struct casereader_translator
   {
-    struct casereader *subreader;
+    struct casereader *subreader; /* Source of input cases. */
 
     void (*translate) (const struct ccase *input, struct ccase *output,
                        void *aux);
@@ -39,6 +43,18 @@ struct casereader_translator
 
 static struct casereader_class casereader_translator_class;
 
+/* Creates and returns a new casereader whose cases are produced
+   by reading from SUBREADER and passing through TRANSLATE, which
+   must create case OUTPUT, with OUTPUT_VALUE_CNT values, and
+   populate it based on INPUT and auxiliary data AUX.  TRANSLATE
+   must also destroy INPUT.
+
+   When the translating casereader is destroyed, DESTROY will be
+   called to allow any state maintained by TRANSLATE to be freed.
+
+   After this function is called, SUBREADER must not ever again
+   be referenced directly.  It will be destroyed automatically
+   when the translating casereader is destroyed. */
 struct casereader *
 casereader_create_translator (struct casereader *subreader,
                               size_t output_value_cnt,
@@ -62,6 +78,7 @@ casereader_create_translator (struct casereader *subreader,
   return reader;
 }
 
+/* Internal read function for translating casereader. */
 static bool
 casereader_translator_read (struct casereader *reader UNUSED,
                             void *ct_, struct ccase *c)
@@ -78,6 +95,7 @@ casereader_translator_read (struct casereader *reader UNUSED,
     return false;
 }
 
+/* Internal destroy function for translating casereader. */
 static void
 casereader_translator_destroy (struct casereader *reader UNUSED, void *ct_)
 {
@@ -87,6 +105,7 @@ casereader_translator_destroy (struct casereader *reader UNUSED, void *ct_)
   free (ct);
 }
 
+/* Casereader class for translating casereader. */
 static struct casereader_class casereader_translator_class =
   {
     casereader_translator_read,

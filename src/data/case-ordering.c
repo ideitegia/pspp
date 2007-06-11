@@ -46,6 +46,10 @@ struct case_ordering
     size_t key_cnt;
   };
 
+/* Creates and returns a new case ordering for comparing cases
+   that represent dictionary DICT.  The case ordering initially
+   contains no variables, so that all cases will compare as
+   equal. */
 struct case_ordering *
 case_ordering_create (const struct dictionary *dict)
 {
@@ -56,6 +60,7 @@ case_ordering_create (const struct dictionary *dict)
   return co;
 }
 
+/* Creates and returns a clone of case ordering ORIG. */
 struct case_ordering *
 case_ordering_clone (const struct case_ordering *orig)
 {
@@ -66,6 +71,7 @@ case_ordering_clone (const struct case_ordering *orig)
   return co;
 }
 
+/* Destroys case ordering CO. */
 void
 case_ordering_destroy (struct case_ordering *co)
 {
@@ -76,12 +82,17 @@ case_ordering_destroy (struct case_ordering *co)
     }
 }
 
+/* Returns the number of `union value's in the cases that case
+   ordering CO compares (taken from the dictionary used to
+   construct it). */
 size_t
 case_ordering_get_value_cnt (const struct case_ordering *co)
 {
   return co->value_cnt;
 }
 
+/* Compares cases A and B given case ordering CO and returns a
+   strcmp()-type result. */
 int
 case_ordering_compare_cases (const struct ccase *a, const struct ccase *b,
                              const struct case_ordering *co)
@@ -116,6 +127,9 @@ case_ordering_compare_cases (const struct ccase *a, const struct ccase *b,
   return 0;
 }
 
+/* Adds VAR to case ordering CO as an additional sort key in sort
+   direction DIR.  Returns true if successful, false if VAR was
+   already part of the ordering for CO. */
 bool
 case_ordering_add_var (struct case_ordering *co,
                        const struct variable *var, enum sort_direction dir)
@@ -134,12 +148,18 @@ case_ordering_add_var (struct case_ordering *co,
   return true;
 }
 
+/* Returns the number of variables used for ordering within
+   CO. */
 size_t
 case_ordering_get_var_cnt (const struct case_ordering *co)
 {
   return co->key_cnt;
 }
 
+/* Returns sort variable IDX within CO.  An IDX of 0 returns the
+   primary sort key (the one added first), an IDX of 1 returns
+   the secondary sort key, and so on.  IDX must be less than the
+   number of sort variables. */
 const struct variable *
 case_ordering_get_var (const struct case_ordering *co, size_t idx)
 {
@@ -147,6 +167,7 @@ case_ordering_get_var (const struct case_ordering *co, size_t idx)
   return co->keys[idx].var;
 }
 
+/* Returns the sort direction for sort variable IDX within CO. */
 enum sort_direction
 case_ordering_get_direction (const struct case_ordering *co, size_t idx)
 {
@@ -154,6 +175,10 @@ case_ordering_get_direction (const struct case_ordering *co, size_t idx)
   return co->keys[idx].dir;
 }
 
+/* Stores an array listing all of the variables used for sorting
+   within CO into *VARS and the number of variables into
+   *VAR_CNT.  The caller is responsible for freeing *VARS when it
+   is no longer needed. */
 void
 case_ordering_get_vars (const struct case_ordering *co,
                         const struct variable ***vars, size_t *var_cnt)

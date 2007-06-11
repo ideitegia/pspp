@@ -1,3 +1,14 @@
+2007-06-10  Ben Pfaff  <blp@gnu.org>
+
+	* casereader-filter.c (casereader_filter_destroy): Make sure to
+	write all the remaining excluded cases to the casewriter, if any.
+
+	* caseinit.c (init_list_destroy): Rewrite.
+	(init_list_clear): Ditto.
+
+	* casegrouper.c (casegrouper_get_next_group): Always set *reader
+	to null when returning false.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	Actually implement the new procedure code and adapt all of its

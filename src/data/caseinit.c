@@ -33,25 +33,32 @@
 #include <libpspp/compiler.h>
 
 #include "xalloc.h"
+
+/* Initializer list: a set of values to write to locations within
+   a case. */
 
+/* Binds a value with a place to put it. */
 struct init_value
   {
     union value value;
     size_t case_index;
   };
 
+/* A set of values to initialize in a case. */
 struct init_list
   {
     struct init_value *values;
     size_t cnt;
   };
 
+/* A bitmap of the "left" status of variables. */
 enum leave_class
   {
-    LEAVE_REINIT = 0x001,
-    LEAVE_LEFT = 0x002
+    LEAVE_REINIT = 0x001,       /* Reinitalize for every case. */
+    LEAVE_LEFT = 0x002          /* Keep the value from one case to the next. */
   };
 
+/* Initializes LIST as an empty initializer list. */
 static void
 init_list_create (struct init_list *list)
 {
@@ -59,19 +66,23 @@ init_list_create (struct init_list *list)
   list->cnt = 0;
 }
 
-static void
-init_list_clear (struct init_list *list)
-{
-  free (list->values);
-  init_list_create (list);
-}
-
+/* Frees the storage associated with LIST. */
 static void
 init_list_destroy (struct init_list *list)
 {
-  init_list_clear (list);
+  free (list->values);
 }
 
+/* Clears LIST, making it an empty list. */
+static void
+init_list_clear (struct init_list *list)
+{
+  init_list_destroy (list);
+  init_list_create (list);
+}
+
+/* Compares `struct init_value's A and B by case_index and
+   returns a strcmp()-type result. */
 static int
 compare_init_values (const void *a_, const void *b_, const void *aux UNUSED)
 {
@@ -81,6 +92,7 @@ compare_init_values (const void *a_, const void *b_, const void *aux UNUSED)
   return a->case_index < b->case_index ? -1 : a->case_index > b->case_index;
 }
 
+/* Returns true if LIST includes CASE_INDEX, false otherwise. */
 static bool
 init_list_includes (const struct init_list *list, size_t case_index)
 {
@@ -90,6 +102,9 @@ init_list_includes (const struct init_list *list, size_t case_index)
                         &value, compare_init_values, NULL) != NULL;
 }
 
+/* Marks LIST to initialize the `union value's for the variables
+   in dictionary D that both (1) fall in the leave class or
+   classes designated by INCLUDE and (2) are not in EXCLUDE. */
 static void
 init_list_mark (struct init_list *list, const struct init_list *exclude,
                 enum leave_class include, const struct dictionary *d)
@@ -133,9 +148,10 @@ init_list_mark (struct init_list *list, const struct init_list *exclude,
   /* Drop duplicates. */
   list->cnt = sort_unique (list->values, list->cnt, sizeof *list->values,
                            compare_init_values, NULL);
-
 }
 
+/* Initializes data in case C to the values in the initializer
+   LIST. */
 static void
 init_list_init (const struct init_list *list, struct ccase *c)
 {
@@ -148,6 +164,8 @@ init_list_init (const struct init_list *list, struct ccase *c)
     }
 }
 
+/* Updates the values in the initializer LIST from the data in
+   case C. */
 static void
 init_list_update (const struct init_list *list, const struct ccase *c)
 {
@@ -159,14 +177,26 @@ init_list_update (const struct init_list *list, const struct ccase *c)
       value->value = *case_data_idx (c, value->case_index);
     }
 }
-
+
+/* A case initializer. */
 struct caseinit
   {
+    /* Values that do not need to be initialized by the
+       procedure, because they are initialized by the data
+       source. */
     struct init_list preinited_values;
+
+    /* Values that need to be initialized to SYSMIS or spaces in
+       each case. */
     struct init_list reinit_values;
+
+    /* Values that need to be initialized to 0 or spaces in the
+       first case and thereafter retain their values from case to
+       case. */
     struct init_list left_values;
   };
 
+/* Creates and returns a new case initializer. */
 struct caseinit *
 caseinit_create (void)
 {
@@ -177,6 +207,7 @@ caseinit_create (void)
   return ci;
 }
 
+/* Clears the contents of case initializer CI. */
 void
 caseinit_clear (struct caseinit *ci)
 {
@@ -185,6 +216,7 @@ caseinit_clear (struct caseinit *ci)
   init_list_clear (&ci->left_values);
 }
 
+/* Destroys case initializer CI. */
 void
 caseinit_destroy (struct caseinit *ci)
 {
@@ -197,12 +229,19 @@ caseinit_destroy (struct caseinit *ci)
     }
 }
 
+/* Marks the variables from dictionary D in CI as being
+   initialized by the data source, so that the case initializer
+   need not initialize them itself. */
 void
 caseinit_mark_as_preinited (struct caseinit *ci, const struct dictionary *d)
 {
   init_list_mark (&ci->preinited_values, NULL, LEAVE_REINIT | LEAVE_LEFT, d);
 }
 
+/* Marks in CI the variables from dictionary D, except for any
+   variables that were already marked with
+   caseinit_mark_as_preinited, as needing initialization
+   according to their leave status. */
 void
 caseinit_mark_for_init (struct caseinit *ci, const struct dictionary *d)
 {
@@ -210,17 +249,17 @@ caseinit_mark_for_init (struct caseinit *ci, const struct dictionary *d)
   init_list_mark (&ci->left_values, &ci->preinited_values, LEAVE_LEFT, d);
 }
 
+/* Initializes variables in C as described by CI. */
 void
-caseinit_init_reinit_vars (const struct caseinit *ci, struct ccase *c)
+caseinit_init_vars (const struct caseinit *ci, struct ccase *c)
 {
   init_list_init (&ci->reinit_values, c);
-}
-
-void caseinit_init_left_vars (const struct caseinit *ci, struct ccase *c)
-{
   init_list_init (&ci->left_values, c);
 }
 
+/* Updates the left vars in CI from the data in C, so that the
+   next call to caseinit_init_vars will store those values in the
+   next case. */
 void
 caseinit_update_left_vars (struct caseinit *ci, const struct ccase *c)
 {
