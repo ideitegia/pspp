@@ -201,8 +201,7 @@ input_program_casereader_read (struct casereader *reader UNUSED, void *inp_,
           return false;
         }
 
-      caseinit_init_reinit_vars (inp->init, c);
-      caseinit_init_left_vars (inp->init, c);
+      caseinit_init_vars (inp->init, c);
       inp->restart = trns_chain_execute (inp->trns_chain, inp->restart,
                                          c, &inp->case_nr);
       assert (is_valid_state (inp->restart));
