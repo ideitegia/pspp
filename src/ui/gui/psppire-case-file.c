@@ -133,7 +133,8 @@ psppire_case_file_finalize (GObject *object)
 {
   PsppireCaseFile *cf = PSPPIRE_CASE_FILE (object);
 
-  datasheet_destroy (cf->datasheet);
+  if ( cf->accessible)
+    datasheet_destroy (cf->datasheet);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -142,6 +143,7 @@ static void
 psppire_case_file_init (PsppireCaseFile *cf)
 {
   cf->datasheet = NULL;
+  cf->accessible = FALSE;
 }
 
 
@@ -152,22 +154,15 @@ psppire_case_file_init (PsppireCaseFile *cf)
  * Creates a new #PsppireCaseFile.
  */
 PsppireCaseFile*
-psppire_case_file_new (void)
+psppire_case_file_new (struct casereader *reader)
 {
   PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
 
-  cf->datasheet = datasheet_create (NULL);
+  cf->datasheet = datasheet_create (reader);
+  cf->accessible = TRUE;
 
   return cf;
 }
-
-
-void
-psppire_case_file_replace_datasheet (PsppireCaseFile *cf, struct datasheet *ds)
-{
-  cf->datasheet = ds;
-}
-
 
 
 gboolean
@@ -234,6 +229,7 @@ inline gint
 psppire_case_file_get_case_count (const PsppireCaseFile *cf)
 {
   g_return_val_if_fail (cf, FALSE);
+  g_return_val_if_fail (cf->accessible, FALSE);
 
   if ( ! cf->datasheet)
     return 0;
@@ -354,6 +350,7 @@ psppire_case_file_insert_values (PsppireCaseFile *cf,
 {
   union value *values;
   g_return_val_if_fail (cf, FALSE);
+  g_return_val_if_fail (cf->accessible, FALSE);
 
   if ( ! cf->datasheet )
     cf->datasheet = datasheet_create (NULL);
@@ -377,3 +374,14 @@ psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
 
   return datasheet_get_row (cf->datasheet, casenum, c);
 }
+
+
+
+struct casereader *
+psppire_case_file_make_reader (PsppireCaseFile *cf)
+{
+  struct casereader *r = datasheet_make_reader (cf->datasheet);
+  cf->accessible = FALSE;
+  return r;
+}
+

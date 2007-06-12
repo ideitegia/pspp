@@ -84,8 +84,11 @@ struct _PsppireDataStoreClass
 inline GType psppire_data_store_get_type (void) G_GNUC_CONST;
 PsppireDataStore *psppire_data_store_new     (PsppireDict *dict);
 
+void psppire_data_store_set_case_file (PsppireDataStore *data_store,
+				       PsppireCaseFile *cf);
+
 void psppire_data_store_set_dictionary (PsppireDataStore *data_store,
-				       PsppireDict *dict);
+					PsppireDict *dict);
 
 void psppire_data_store_set_font (PsppireDataStore *store,
 				 const PangoFontDescription *fd);

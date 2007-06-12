@@ -68,10 +68,9 @@ replace_dictionary (struct dictionary *d)
 static void
 replace_casereader (struct casereader *s)
 {
-  struct datasheet *datasheet = datasheet_create (s);
+  PsppireCaseFile *pcf = psppire_case_file_new (s);
 
-  psppire_case_file_replace_datasheet (the_data_store->case_file,
-                                       datasheet);
+  psppire_data_store_set_case_file (the_data_store, pcf);
 }
 
 void
@@ -100,11 +99,12 @@ initialize (void)
   the_dataset = create_dataset (replace_casereader,
 				replace_dictionary);
 
+
+
   message_dialog_init (the_source_stream);
 
-  dictionary = psppire_dict_new_from_dict (
-					   dataset_dict (the_dataset)
-					   );
+  dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));
+
 
   bind_textdomain_codeset (PACKAGE, "UTF-8");
 
@@ -113,10 +113,7 @@ initialize (void)
   the_var_store = psppire_var_store_new (dictionary);
 
   the_data_store = psppire_data_store_new (dictionary);
-
-
-  proc_set_active_file_data (the_dataset,
-			     datasheet_make_reader (the_data_store->case_file->datasheet));
+  replace_casereader (NULL);
 
 
   create_icon_factory ();

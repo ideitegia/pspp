@@ -373,29 +373,16 @@ psppire_data_store_new (PsppireDict *dict)
 }
 
 
-
-/**
- * psppire_data_store_replace_set_dictionary:
- * @data_store: The variable store
- * @dict: The dictionary to set
- *
- * If a dictionary is already associated with the data-store, then it will be
- * destroyed.
- **/
 void
-psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *dict)
+psppire_data_store_set_case_file (PsppireDataStore *data_store,
+				  PsppireCaseFile *cf)
 {
-  data_store->dict = dict;
-
   if ( data_store->case_file)
     {
       g_object_unref (data_store->case_file);
-      data_store->case_file = 0;
     }
 
-  data_store->case_file = psppire_case_file_new ();
-
-
+  data_store->case_file = cf;
 
   g_signal_connect (data_store->case_file, "cases-deleted",
 		   G_CALLBACK (delete_cases_callback),
@@ -409,6 +396,22 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
   g_signal_connect (data_store->case_file, "case-changed",
 		   G_CALLBACK (changed_case_callback),
 		   data_store);
+}
+
+
+
+/**
+ * psppire_data_store_replace_set_dictionary:
+ * @data_store: The variable store
+ * @dict: The dictionary to set
+ *
+ * If a dictionary is already associated with the data-store, then it will be
+ * destroyed.
+ **/
+void
+psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *dict)
+{
+  data_store->dict = dict;
 
   g_signal_connect (dict, "variable-inserted",
 		   G_CALLBACK (insert_variable_callback),
