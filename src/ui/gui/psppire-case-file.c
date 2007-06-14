@@ -32,7 +32,7 @@
 #include <libpspp/misc.h>
 
 #include "xalloc.h"
-#include "xallocsa.h"
+#include "xmalloca.h"
 
 /* --- prototypes --- */
 static void psppire_case_file_class_init	(PsppireCaseFileClass	*class);
@@ -312,7 +312,7 @@ psppire_case_file_data_in (PsppireCaseFile *cf, gint casenum, gint idx,
   g_return_val_if_fail (idx < datasheet_get_column_cnt (cf->datasheet), FALSE);
 
   width = fmt_var_width (fmt);
-  value = xallocsa (value_cnt_from_width (width) * sizeof *value);
+  value = xmalloca (value_cnt_from_width (width) * sizeof *value);
   ok = (datasheet_get_value (cf->datasheet, casenum, idx, value, width)
         && data_in (input, fmt->type, 0, 0, value, width)
         && datasheet_put_value (cf->datasheet, casenum, idx, value, width));
