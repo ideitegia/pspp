@@ -686,6 +686,18 @@ psppire_data_store_clear (PsppireDataStore *data_store)
 
 
 
+/* Return a casereader made from this datastore */
+struct casereader *
+psppire_data_store_get_reader (PsppireDataStore *ds)
+{
+  struct casereader *reader ;
+
+  reader = psppire_case_file_make_reader (ds->case_file);
+
+  return reader;
+}
+
+
 
 /* Column related funcs */
 
@@ -849,4 +861,6 @@ psppire_data_store_sheet_row_init (GSheetRowIface *iface)
 
   iface->get_button_label = geometry_get_row_button_label;
 }
+
+
 

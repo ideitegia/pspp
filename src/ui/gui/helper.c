@@ -168,7 +168,12 @@ extern PsppireDataStore *the_data_store;
 gboolean
 execute_syntax (struct getl_interface *sss)
 {
+  gboolean status;
   struct lexer *lexer;
+
+  struct casereader *reader = psppire_data_store_get_reader (the_data_store);
+
+  proc_set_active_file_data (the_dataset, reader);
 
   g_return_val_if_fail (proc_has_active_file (the_dataset), FALSE);
 
@@ -189,9 +194,20 @@ execute_syntax (struct getl_interface *sss)
   lex_destroy (lexer);
 
   /* GUI syntax needs this implicit EXECUTE command at the end of
-     every script.  Otherwise commands like GET could leave the GUI without
-     a casefile. */
-  return proc_execute (the_dataset);
+     every script.  Otherwise commands like GET could leave the GUI
+     without a datasheet. */
+  status = proc_execute (the_dataset);
+
+  psppire_dict_replace_dictionary (the_data_store->dict,
+				   dataset_dict (the_dataset));
+
+  {
+    PsppireCaseFile *pcf = psppire_case_file_new (dataset_source (the_dataset));
+
+    psppire_data_store_set_case_file (the_data_store, pcf);
+  }
+
+  return status;
 }
 
 

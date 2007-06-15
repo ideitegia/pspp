@@ -290,6 +290,8 @@ psppire_dict_replace_dictionary (PsppireDict *dict, struct dictionary *d)
   filter_changed_callback (d, var ? var_get_dict_index (var) : -1, dict);
 
   split_changed_callback (d, dict);
+
+  dict_set_callbacks (dict->dict, &gui_callbacks, dict);
 }
 
 

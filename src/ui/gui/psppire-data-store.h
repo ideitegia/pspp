@@ -106,6 +106,9 @@ void psppire_data_store_create_system_file (PsppireDataStore *store,
 gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn);
 
 
+struct casereader * psppire_data_store_get_reader (PsppireDataStore *ds);
+
+
 
 #ifdef __cplusplus
 }

@@ -700,6 +700,12 @@ dataset_dict (const struct dataset *ds)
   return ds->dict;
 }
 
+const struct casereader *
+dataset_source (const struct dataset *ds)
+{
+  return ds->source;
+}
+
 void
 dataset_need_lag (struct dataset *ds, int n_before)
 {

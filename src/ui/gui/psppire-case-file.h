@@ -70,7 +70,7 @@ struct _PsppireCaseFileClass
 /* -- PsppireCaseFile --- */
 GType          psppire_case_file_get_type (void);
 
-PsppireCaseFile *psppire_case_file_new (struct casereader *);
+PsppireCaseFile *psppire_case_file_new (const struct casereader *);
 
 gboolean psppire_case_file_insert_case (PsppireCaseFile *cf, struct ccase *c, gint row);
 
@@ -104,6 +104,10 @@ void psppire_case_file_sort (PsppireCaseFile *cf, struct case_ordering *);
 
 gboolean psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
 				    struct ccase *c);
+
+
+struct casereader * psppire_case_file_make_reader (PsppireCaseFile *cf);
+
 
 G_END_DECLS
 

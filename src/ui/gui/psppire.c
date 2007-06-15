@@ -58,12 +58,6 @@ static void create_icon_factory (void);
 struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
 
-static void
-replace_dictionary (struct dictionary *d)
-{
-  psppire_dict_replace_dictionary (the_data_store->dict, d);
-}
-
 
 static void
 replace_casereader (struct casereader *s)
@@ -96,9 +90,7 @@ initialize (void)
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
 
-  the_dataset = create_dataset (replace_casereader,
-				replace_dictionary);
-
+  the_dataset = create_dataset (NULL, NULL);
 
 
   message_dialog_init (the_source_stream);

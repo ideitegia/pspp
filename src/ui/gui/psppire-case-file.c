@@ -28,6 +28,7 @@
 #include <data/case.h>
 #include <data/data-in.h>
 #include <data/datasheet.h>
+#include <data/casereader.h>
 #include <math/sort.h>
 #include <libpspp/misc.h>
 
@@ -93,7 +94,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
   object_class->finalize = psppire_case_file_finalize;
 
   signals [CASE_CHANGED] =
-    g_signal_new ("case_changed",
+    g_signal_new ("case-changed",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
@@ -105,7 +106,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 
 
   signals [CASE_INSERTED] =
-    g_signal_new ("case_inserted",
+    g_signal_new ("case-inserted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
@@ -117,7 +118,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 
 
   signals [CASES_DELETED] =
-    g_signal_new ("cases_deleted",
+    g_signal_new ("cases-deleted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
@@ -154,11 +155,11 @@ psppire_case_file_init (PsppireCaseFile *cf)
  * Creates a new #PsppireCaseFile.
  */
 PsppireCaseFile*
-psppire_case_file_new (struct casereader *reader)
+psppire_case_file_new (const struct casereader *reader)
 {
   PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
 
-  cf->datasheet = datasheet_create (reader);
+  cf->datasheet = datasheet_create (casereader_clone (reader));
   cf->accessible = TRUE;
 
   return cf;
@@ -320,7 +321,7 @@ psppire_case_file_data_in (PsppireCaseFile *cf, gint casenum, gint idx,
   if (ok)
     g_signal_emit (cf, signals [CASE_CHANGED], 0, casenum);
 
-  freesa (value);
+  freea (value);
 
   return TRUE;
 }
