@@ -150,7 +150,8 @@ static bool rw_case (struct datasheet *ds, enum rw_op op,
 /* Creates and returns a new datasheet.
 
    If READER is nonnull, then the datasheet initially contains
-   the contents of READER. */
+   the contents of READER.  READER become owned by the datasheet
+   and the caller must not directly reference it again. */
 struct datasheet *
 datasheet_create (struct casereader *reader)
 {
