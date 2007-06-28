@@ -71,14 +71,14 @@ enum
 
 /* Public flags, for compatibility */
 
-#define GTK_SHEET_ROW_FROZEN(sheet)      !gtk_sheet_rows_resizable(sheet)
-#define GTK_SHEET_COLUMN_FROZEN(sheet)   !gtk_sheet_columns_resizable(sheet)
-#define GTK_SHEET_AUTORESIZE(sheet)      gtk_sheet_autoresize(sheet)
-#define GTK_SHEET_CLIP_TEXT(sheet)       gtk_sheet_clip_text(sheet)
-#define GTK_SHEET_ROW_TITLES_VISIBLE(sheet)   gtk_sheet_row_titles_visible(sheet)
-#define GTK_SHEET_COL_TITLES_VISIBLE(sheet)   gtk_sheet_column_titles_visible(sheet)
-#define GTK_SHEET_AUTO_SCROLL(sheet)     gtk_sheet_autoscroll(sheet)
-#define GTK_SHEET_JUSTIFY_ENTRY(sheet)   gtk_sheet_justify_entry(sheet)
+#define GTK_SHEET_ROW_FROZEN(sheet)      !gtk_sheet_rows_resizable (sheet)
+#define GTK_SHEET_COLUMN_FROZEN(sheet)   !gtk_sheet_columns_resizable (sheet)
+#define GTK_SHEET_AUTORESIZE(sheet)      gtk_sheet_autoresize (sheet)
+#define GTK_SHEET_CLIP_TEXT(sheet)       gtk_sheet_clip_text (sheet)
+#define GTK_SHEET_ROW_TITLES_VISIBLE(sheet)   gtk_sheet_row_titles_visible (sheet)
+#define GTK_SHEET_COL_TITLES_VISIBLE(sheet)   gtk_sheet_column_titles_visible (sheet)
+#define GTK_SHEET_AUTO_SCROLL(sheet)     gtk_sheet_autoscroll (sheet)
+#define GTK_SHEET_JUSTIFY_ENTRY(sheet)   gtk_sheet_justify_entry (sheet)
 
 
 typedef struct _GtkSheetClass GtkSheetClass;
@@ -702,10 +702,10 @@ gtk_sheet_button_attach			(GtkSheet *sheet,
 
 
 
-void           gtk_sheet_set_model(GtkSheet *sheet,
+void           gtk_sheet_set_model (GtkSheet *sheet,
 				   GSheetModel *model);
 
-GSheetModel * gtk_sheet_get_model(const GtkSheet *sheet);
+GSheetModel * gtk_sheet_get_model (const GtkSheet *sheet);
 
 
 #ifdef __cplusplus
