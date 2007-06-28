@@ -1,3 +1,8 @@
+	28 June 2007 John Darrington <john@darrington.wattle.id.au>
+
+        * gtksheet.c: Removed some features that we dont use, to get better 
+	speed.
+
 Sat Feb 17 17:36:56 2007  Ben Pfaff  <blp@gnu.org>
 
 	* gsheet-column-iface.c gsheet-hetero-column.c gsheet-row-iface.c
