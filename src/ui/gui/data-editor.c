@@ -52,6 +52,11 @@
 #include "psppire-data-store.h"
 #include "psppire-var-store.h"
 
+
+/* Update the data_ref_entry with the reference of the active cell */
+static gint update_data_ref_entry (const GtkSheet *sheet,
+				   gint row, gint col, gpointer data);
+
 static void register_data_editor_actions (struct data_editor *de);
 
 static void insert_variable (GtkCheckMenuItem *m, gpointer data);
@@ -177,6 +182,7 @@ new_data_editor (void)
   struct data_editor *de ;
   struct editor_window *e;
   GtkSheet *var_sheet ;
+  GtkSheet *data_sheet ;
   PsppireVarStore *vs;
 
   de = g_malloc0 (sizeof (*de));
@@ -186,10 +192,15 @@ new_data_editor (void)
   de->xml = XML_NEW ("data-editor.glade");
 
   var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
 
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
   g_assert(vs); /* Traps a possible bug in win32 build */
+
+  g_signal_connect (G_OBJECT (data_sheet), "activate",
+		    G_CALLBACK (update_data_ref_entry),
+		    de->xml);
 
   g_signal_connect (vs->dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
@@ -1226,4 +1237,45 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
     }
 
   gtk_widget_destroy (dialog);
+}
+
+
+
+/* Update the data_ref_entry with the reference of the active cell */
+static gint
+update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
+{
+  GladeXML *data_editor_xml = data;
+
+  /* The entry where the reference to the current cell is displayed */
+  GtkEntry *cell_ref_entry;
+
+  PsppireDataStore *data_store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
+
+  g_return_val_if_fail (data_editor_xml, FALSE);
+
+  if (data_store)
+    {
+      const struct variable *pv =
+	psppire_dict_get_variable (data_store->dict, col);
+
+      gchar *text ;
+      gchar *s ;
+
+      text = g_strdup_printf ("%d: %s", row,
+			     pv ? var_get_name (pv) : "");
+
+      cell_ref_entry = GTK_ENTRY (get_widget_assert (data_editor_xml,
+						   "cell_ref_entry"));
+
+      s = pspp_locale_to_utf8 (text, -1, 0);
+
+      g_free (text);
+
+      gtk_entry_set_text (cell_ref_entry, s);
+
+      g_free (s);
+    }
+
+  return FALSE;
 }

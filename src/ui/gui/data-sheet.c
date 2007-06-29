@@ -74,49 +74,6 @@ traverse_callback (GtkSheet * sheet,
   return TRUE;
 }
 
-
-
-/* Update the data_ref_entry with the reference of the active cell */
-gint
-update_data_ref_entry (const GtkSheet *sheet, gint row, gint col)
-{
-
-  GladeXML *data_editor_xml = NULL; /* FIXME !!!! */
-
-
-  /* The entry where the reference to the current cell is displayed */
-  GtkEntry *cell_ref_entry;
-
-  PsppireDataStore *data_store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
-  if (data_store)
-    {
-      const struct variable *pv =
-	psppire_dict_get_variable (data_store->dict, col);
-
-      gchar *text ;
-      gchar *s ;
-
-      if ( !data_editor_xml)
-	return FALSE;
-
-      text = g_strdup_printf ("%d: %s", row,
-			     pv ? var_get_name (pv) : "");
-
-      cell_ref_entry = GTK_ENTRY (get_widget_assert (data_editor_xml,
-						   "cell_ref_entry"));
-
-      s = pspp_locale_to_utf8 (text, -1, 0);
-
-      g_free (text);
-
-      gtk_entry_set_text (cell_ref_entry, s);
-
-      g_free (s);
-    }
-
-  return FALSE;
-}
-
 extern PsppireDataStore *the_data_store ;
 
 
@@ -168,10 +125,6 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 			G_SHEET_COLUMN (the_data_store), "data sheet", 0);
 
   the_data_store->width_of_m = calc_m_width (sheet, the_data_store->font_desc);
-
-  g_signal_connect (G_OBJECT (sheet), "activate",
-		    G_CALLBACK (update_data_ref_entry),
-		    0);
 
   g_signal_connect (G_OBJECT (sheet), "traverse",
 		    G_CALLBACK (traverse_callback), 0);
