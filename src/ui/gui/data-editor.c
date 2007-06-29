@@ -171,7 +171,22 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
 #endif
 
+static void
+datum_entry_activate (GtkEntry *entry, gpointer data)
+{
+  gint row, column;
+  GtkSheet *data_sheet = GTK_SHEET (data);
+  PsppireDataStore *store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
 
+  const char *text = gtk_entry_get_text (entry);
+
+  gtk_sheet_get_active_cell (data_sheet, &row, &column);
+
+  if ( row == -1 || column == -1)
+    return;
+
+  psppire_data_store_set_string (store, text, row, column);
+}
 
 /*
   Create a new data editor.
@@ -184,6 +199,7 @@ new_data_editor (void)
   GtkSheet *var_sheet ;
   GtkSheet *data_sheet ;
   PsppireVarStore *vs;
+  GtkWidget *datum_entry;
 
   de = g_malloc0 (sizeof (*de));
 
@@ -201,6 +217,12 @@ new_data_editor (void)
   g_signal_connect (G_OBJECT (data_sheet), "activate",
 		    G_CALLBACK (update_data_ref_entry),
 		    de->xml);
+
+  datum_entry = get_widget_assert (de->xml, "datum_entry");
+
+  g_signal_connect (G_OBJECT (datum_entry), "activate",
+		    G_CALLBACK (datum_entry_activate),
+		    data_sheet);
 
   g_signal_connect (vs->dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
@@ -300,9 +322,6 @@ new_data_editor (void)
 			    "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->action_data_open);
-
-
-
 
 
 #if RECENT_LISTS_AVAILABLE
@@ -1247,34 +1266,47 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
 {
   GladeXML *data_editor_xml = data;
 
-  /* The entry where the reference to the current cell is displayed */
-  GtkEntry *cell_ref_entry;
-
   PsppireDataStore *data_store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
 
   g_return_val_if_fail (data_editor_xml, FALSE);
 
   if (data_store)
     {
-      const struct variable *pv =
+      const struct variable *var =
 	psppire_dict_get_variable (data_store->dict, col);
 
-      gchar *text ;
-      gchar *s ;
+      {
+	/* The entry where the reference to the current cell is displayed */
+	GtkEntry *cell_ref_entry =
+	  GTK_ENTRY (get_widget_assert (data_editor_xml,
+					"cell_ref_entry"));
 
-      text = g_strdup_printf ("%d: %s", row,
-			     pv ? var_get_name (pv) : "");
+	gchar *text = g_strdup_printf ("%d: %s", row,
+				       var ? var_get_name (var) : "");
 
-      cell_ref_entry = GTK_ENTRY (get_widget_assert (data_editor_xml,
-						   "cell_ref_entry"));
+	gchar *s = pspp_locale_to_utf8 (text, -1, 0);
 
-      s = pspp_locale_to_utf8 (text, -1, 0);
+	g_free (text);
 
-      g_free (text);
+	gtk_entry_set_text (cell_ref_entry, s);
 
-      gtk_entry_set_text (cell_ref_entry, s);
+	g_free (s);
+      }
 
-      g_free (s);
+      {
+	GtkEntry *datum_entry =
+	  GTK_ENTRY (get_widget_assert (data_editor_xml,
+					"datum_entry"));
+
+	gchar *text =
+	  psppire_data_store_get_string (data_store, row,
+					 var_get_dict_index(var));
+	g_strchug (text);
+
+	gtk_entry_set_text (datum_entry, text);
+
+	free (text);
+      }
     }
 
   return FALSE;

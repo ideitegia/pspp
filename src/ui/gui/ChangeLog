@@ -1,5 +1,11 @@
 2007-06-29  John Darrington <john@darrington.wattle.id.au>
 
+	* data-editor.c data-editor.glade psppire-data-store.c 
+	psppire-data-store.h: Enabled cell reference entry and datum 
+	entry widgets.
+
+2007-06-29  John Darrington <john@darrington.wattle.id.au>
+
 	* data-editor.c data-sheet.c: Moved update_cell_ref_entry from 
 	data-sheet.c to data-editor.c and made it work again.
 

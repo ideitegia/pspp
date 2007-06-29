@@ -58,11 +58,6 @@ static void psppire_data_store_sheet_row_init (GSheetRowIface *iface);
 
 static void psppire_data_store_finalize        (GObject           *object);
 
-static gchar *psppire_data_store_get_string (const GSheetModel *sheet_model, gint row, gint column);
-
-static gboolean psppire_data_store_set_string (GSheetModel *model,
-					  const gchar *text, gint row, gint column);
-
 static gboolean psppire_data_store_clear_datum (GSheetModel *model,
 					  gint row, gint column);
 
@@ -199,13 +194,32 @@ psppire_data_store_get_font_desc (const GSheetModel *model,
   return store->font_desc;
 }
 
+static inline gchar *
+psppire_data_store_get_string_wrapper (const GSheetModel *model, gint row,
+				       gint column)
+{
+  return psppire_data_store_get_string (PSPPIRE_DATA_STORE (model), row, column);
+}
+
+
+static inline gboolean
+psppire_data_store_set_string_wrapper (GSheetModel *model,
+				       const gchar *text,
+				       gint row, gint column)
+{
+  return psppire_data_store_set_string (PSPPIRE_DATA_STORE (model), text,
+					row, column);
+}
+
+
+
 
 static void
 psppire_data_store_sheet_model_init (GSheetModelIface *iface)
 {
   iface->free_strings = TRUE;
-  iface->get_string = psppire_data_store_get_string;
-  iface->set_string = psppire_data_store_set_string;
+  iface->get_string = psppire_data_store_get_string_wrapper;
+  iface->set_string = psppire_data_store_set_string_wrapper;
   iface->clear_datum = psppire_data_store_clear_datum;
   iface->is_editable = NULL;
   iface->is_visible = NULL;
@@ -480,8 +494,8 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn)
 }
 
 
-static gchar *
-psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
+gchar *
+psppire_data_store_get_string (PsppireDataStore *store, gint row, gint column)
 {
   gint idx;
   char *text;
@@ -489,7 +503,6 @@ psppire_data_store_get_string (const GSheetModel *model, gint row, gint column)
   const struct variable *pv ;
   union value *v ;
   GString *s;
-  PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
 
   g_return_val_if_fail (store->dict, NULL);
   g_return_val_if_fail (store->case_file, NULL);
@@ -575,12 +588,10 @@ psppire_data_store_clear_datum (GSheetModel *model,
    to ROW, COL with  the value TEXT.
    Returns true if anything was updated, false otherwise.
 */
-static gboolean
-psppire_data_store_set_string (GSheetModel *model,
-			  const gchar *text, gint row, gint col)
+gboolean
+psppire_data_store_set_string (PsppireDataStore *store,
+			       const gchar *text, gint row, gint col)
 {
-  PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
-
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
   g_return_val_if_fail (pv, FALSE);
 

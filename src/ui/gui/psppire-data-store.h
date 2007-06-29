@@ -108,7 +108,12 @@ gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn);
 
 struct casereader * psppire_data_store_get_reader (PsppireDataStore *ds);
 
+gchar * psppire_data_store_get_string (PsppireDataStore *ds,
+				       gint row, gint column);
 
+gboolean psppire_data_store_set_string (PsppireDataStore *ds,
+					const gchar *text,
+					gint row, gint column);
 
 #ifdef __cplusplus
 }
