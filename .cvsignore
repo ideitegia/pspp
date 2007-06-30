@@ -1,3 +1,4 @@
+.pc
 ABOUT-NLS
 Makefile
 Makefile.in
@@ -11,6 +12,7 @@ compile
 config.guess
 config.h
 config.h.in
+config.libpath
 config.log
 config.rpath
 config.status
@@ -18,17 +20,18 @@ config.sub
 configure
 depcomp
 gl
+install-reloc
 install-sh
 intl
 link-warning.h
+ltmain.sh
 m4
 mdate-sh
 missing
 mkinstalldirs
+patches
 potfiles.tmp
 pref.h
+reloc-ldflags
 stamp-h1
 texinfo.tex
-config.libpath
-install-reloc
-reloc-ldflags
