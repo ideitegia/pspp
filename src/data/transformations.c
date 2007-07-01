@@ -181,15 +181,13 @@ trns_chain_next (struct trns_chain *chain)
 }
 
 /* Executes the given CHAIN of transformations on C,
-   passing *CASE_NR as the case number.
-   If a transformation modifies *CASE_NR, it will affect the case
-   number passed to following transformations.
+   passing CASE_NR as the case number.
    Returns the result code that caused the transformations to
    terminate, or TRNS_CONTINUE if the transformations finished
    due to "falling off the end" of the set of transformations. */
 enum trns_result
-trns_chain_execute (struct trns_chain *chain, enum trns_result start,
-                    struct ccase *c, const size_t *case_nr)
+trns_chain_execute (const struct trns_chain *chain, enum trns_result start,
+                    struct ccase *c, casenumber case_nr)
 {
   size_t i;
 
@@ -197,7 +195,7 @@ trns_chain_execute (struct trns_chain *chain, enum trns_result start,
   for (i = start < 0 ? 0 : start; i < chain->trns_cnt; )
     {
       struct transformation *trns = &chain->trns[i];
-      int retval = trns->execute (trns->aux, c, *case_nr);
+      int retval = trns->execute (trns->aux, c, case_nr);
       if (retval == TRNS_CONTINUE)
         i++;
       else if (retval >= 0)

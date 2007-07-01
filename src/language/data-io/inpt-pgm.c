@@ -68,7 +68,7 @@ struct input_program_pgm
     struct trns_chain *trns_chain;
     enum trns_result restart;
 
-    size_t case_nr;             /* Incremented by END CASE transformation. */
+    casenumber case_nr;             /* Incremented by END CASE transformation. */
 
     struct caseinit *init;
     size_t value_cnt;
@@ -203,7 +203,7 @@ input_program_casereader_read (struct casereader *reader UNUSED, void *inp_,
 
       caseinit_init_vars (inp->init, c);
       inp->restart = trns_chain_execute (inp->trns_chain, inp->restart,
-                                         c, &inp->case_nr);
+                                         c, inp->case_nr);
       assert (is_valid_state (inp->restart));
       caseinit_update_left_vars (inp->init, c);
     }

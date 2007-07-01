@@ -92,7 +92,7 @@ struct dataset {
                                    but proc_commit not yet called. */
     }
   proc_state;
-  size_t cases_written;       /* Cases output so far. */
+  casenumber cases_written;       /* Cases output so far. */
   bool ok;                    /* Error status. */
 }; /* struct dataset */
 
@@ -213,7 +213,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
   assert (ds->proc_state == PROC_OPEN);
   for (;;)
     {
-      size_t case_nr;
+      casenumber case_nr;
 
       assert (retval == TRNS_DROP_CASE || retval == TRNS_ERROR);
       if (retval == TRNS_ERROR)
@@ -230,7 +230,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
       /* Execute permanent transformations.  */
       case_nr = ds->cases_written + 1;
       retval = trns_chain_execute (ds->permanent_trns_chain, TRNS_CONTINUE,
-                                   c, &case_nr);
+                                   c, case_nr);
       caseinit_update_left_vars (ds->caseinit, c);
       if (retval != TRNS_CONTINUE)
         {
@@ -265,7 +265,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
       if (ds->temporary_trns_chain != NULL)
         {
           retval = trns_chain_execute (ds->temporary_trns_chain, TRNS_CONTINUE,
-                                       c, &ds->cases_written);
+                                       c, ds->cases_written);
           if (retval != TRNS_CONTINUE)
             {
               case_destroy (c);

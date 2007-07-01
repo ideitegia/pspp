@@ -49,8 +49,8 @@ bool trns_chain_is_empty (const struct trns_chain *);
 void trns_chain_append (struct trns_chain *, trns_finalize_func *,
                         trns_proc_func *, trns_free_func *, void *);
 size_t trns_chain_next (struct trns_chain *);
-enum trns_result trns_chain_execute (struct trns_chain *, enum trns_result,
-                                     struct ccase *, const size_t *case_nr);
+enum trns_result trns_chain_execute (const struct trns_chain *, enum trns_result,
+                                     struct ccase *, casenumber case_nr);
 
 void trns_chain_splice (struct trns_chain *, struct trns_chain *);
 
