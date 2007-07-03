@@ -154,8 +154,6 @@ struct _GtkSheet{
   /* expanding selection */
   GtkSheetCell selection_cell;
 
-  /* timer for automatic scroll during selection */
-  gint32 timer;
   /* timer for flashing clipped range */
   gint32 clip_timer;
   gint interval;
@@ -441,7 +439,7 @@ gtk_sheet_row_button_justify		(GtkSheet *sheet,
  * 1.0 being bottom or right; if row or column is negative then there
  * is no change */
 void
-gtk_sheet_moveto (GtkSheet * sheet,
+gtk_sheet_moveto (GtkSheet *sheet,
 		  gint row,
 		  gint column,
 	          gfloat row_align,

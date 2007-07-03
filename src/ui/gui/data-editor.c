@@ -433,19 +433,15 @@ new_data_editor (void)
 		    G_CALLBACK (reference_manual),
 		    e->window);
 
-
-
   g_signal_connect (get_widget_assert (de->xml,"data_sheet"),
 		    "double-click-column",
 		    G_CALLBACK (click2column),
 		    de);
 
-
   g_signal_connect (get_widget_assert (de->xml, "variable_sheet"),
 		    "double-click-row",
 		    GTK_SIGNAL_FUNC (click2row),
 		    de);
-
 
   g_signal_connect (get_widget_assert (de->xml, "variable_sheet"),
 		    "select-row",
@@ -542,6 +538,7 @@ static gboolean
 click2row (GtkWidget *w, gint row, gpointer data)
 {
   struct data_editor *de = data;
+  GtkSheetRange visible_range;
 
   gint current_row, current_column;
 
@@ -553,6 +550,14 @@ click2row (GtkWidget *w, gint row, gpointer data)
 			     &current_row, &current_column);
 
   gtk_sheet_set_active_cell (GTK_SHEET (data_sheet), current_row, row);
+
+  gtk_sheet_get_visible_range (GTK_SHEET (data_sheet), &visible_range);
+
+  if ( row < visible_range.col0 || row > visible_range.coli)
+    {
+      gtk_sheet_moveto (GTK_SHEET (data_sheet),
+			current_row, row, 0, 0);
+    }
 
   return FALSE;
 }

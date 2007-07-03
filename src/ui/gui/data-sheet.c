@@ -137,6 +137,8 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 
   gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL (the_data_store));
 
+  gtk_sheet_set_autoscroll (GTK_SHEET (sheet), FALSE);
+
   gtk_widget_show (sheet);
 
   return sheet;

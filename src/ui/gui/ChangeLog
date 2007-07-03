@@ -1,3 +1,8 @@
+2007-07-03  John Darrington <john@darrington.wattle.id.au>
+	
+	* data-editor.c data-sheet.c: Turned off autoscrolling, and 
+	manually move to cell on column click instead.
+
 2007-06-29  John Darrington <john@darrington.wattle.id.au>
 
 	* data-editor.c data-editor.glade psppire-data-store.c 

@@ -95,7 +95,6 @@ enum
 
 #define CELL_SPACING 1
 #define DRAG_WIDTH 6
-#define TIMEOUT_SCROLL 20
 #define TIMEOUT_FLASH 200
 #define TIME_INTERVAL 8
 #define COLUMN_MIN_WIDTH 10
@@ -644,7 +643,6 @@ static gint gtk_sheet_cell_isvisible 		 (GtkSheet * sheet,
 						  gint row, gint column);
 /* Clipped Range */
 
-static gint gtk_sheet_scroll			 (gpointer data);
 static gint gtk_sheet_flash			 (gpointer data);
 
 /* Drawing Routines */
@@ -667,7 +665,7 @@ static void gtk_sheet_range_draw_selection	 (GtkSheet *sheet,
 
 /* Selection */
 
-static gint gtk_sheet_move_query		 (GtkSheet *sheet,
+static gboolean gtk_sheet_move_query   		 (GtkSheet *sheet,
 						  gint row, gint column);
 static void gtk_sheet_real_select_range 	 (GtkSheet * sheet,
 						  const GtkSheetRange * range);
@@ -2010,7 +2008,7 @@ gtk_sheet_row_titles_visible (GtkSheet *sheet)
 }
 
 void
-gtk_sheet_moveto (GtkSheet * sheet,
+gtk_sheet_moveto (GtkSheet *sheet,
 		  gint row,
 		  gint column,
 		  gfloat row_align,
@@ -2248,6 +2246,7 @@ gtk_sheet_unclip_range (GtkSheet *sheet)
   if (!GTK_SHEET_IN_CLIP (sheet)) return;
 
   GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_CLIP);
+
   gtk_timeout_remove (sheet->clip_timer);
   gtk_sheet_range_draw (sheet, &sheet->clip_range);
 
@@ -2443,7 +2442,6 @@ gtk_sheet_cell_isvisible (GtkSheet * sheet,
 void
 gtk_sheet_get_visible_range (GtkSheet *sheet, GtkSheetRange *range)
 {
-
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet)) ;
   g_return_if_fail (range != NULL);
@@ -2452,7 +2450,6 @@ gtk_sheet_get_visible_range (GtkSheet *sheet, GtkSheetRange *range)
   range->col0 = MIN_VISIBLE_COLUMN (sheet);
   range->rowi = MAX_VISIBLE_ROW (sheet);
   range->coli = MAX_VISIBLE_COLUMN (sheet);
-
 }
 
 GtkAdjustment *
@@ -2624,12 +2621,6 @@ gtk_sheet_destroy (GtkObject * object)
     {
       gtk_widget_destroy (sheet->button);
       sheet->button = NULL;
-    }
-
-  if (sheet->timer)
-    {
-      gtk_timeout_remove (sheet->timer);
-      sheet->timer = 0;
     }
 
   if (sheet->clip_timer)
@@ -3813,13 +3804,14 @@ gtk_sheet_cell_get_state (GtkSheet *sheet, gint row, gint col)
 }
 
 gboolean
-gtk_sheet_get_pixel_info (GtkSheet * sheet,
+gtk_sheet_get_pixel_info (GtkSheet *sheet,
 			  gint x,
 			  gint y,
-			  gint * row,
-			  gint * column)
+			  gint *row,
+			  gint *column)
 {
-  gint trow, tcol;
+  gint trow = -1;
+  gint tcol = -1;
 
   g_return_val_if_fail (sheet != NULL, 0);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), 0);
@@ -4837,7 +4829,7 @@ gtk_sheet_expose (GtkWidget * widget,
 }
 
 
-static gint
+static gboolean
 gtk_sheet_button_press (GtkWidget * widget,
 			GdkEventButton * event)
 {
@@ -4936,7 +4928,11 @@ gtk_sheet_button_press (GtkWidget * widget,
 			GDK_BUTTON_RELEASE_MASK,
 			NULL, NULL, event->time);
       gtk_grab_add (GTK_WIDGET (sheet));
-      sheet->timer = gtk_timeout_add (TIMEOUT_SCROLL, gtk_sheet_scroll, sheet);
+
+      /* This seems to be a kludge to work around a problem where the sheet
+	 scrolls to another position.  The timeout scrolls it back to its
+	 original posn. 	 JMD 3 July 2007
+      */
       gtk_widget_grab_focus (GTK_WIDGET (sheet));
 
       if (sheet->selection_mode != GTK_SELECTION_SINGLE &&
@@ -5007,11 +5003,11 @@ gtk_sheet_button_press (GtkWidget * widget,
     {
       gtk_widget_get_pointer (widget, &x, &y);
       column = COLUMN_FROM_XPIXEL (sheet, x);
+
       if (xxx_column_is_sensitive (sheet, column))
 	{
 	  gtk_sheet_click_cell (sheet, - 1, column, &veto);
 	  gtk_grab_add (GTK_WIDGET (sheet));
-	  sheet->timer = gtk_timeout_add (TIMEOUT_SCROLL, gtk_sheet_scroll, sheet);
 	  gtk_widget_grab_focus (GTK_WIDGET (sheet));
 	  GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 	}
@@ -5025,7 +5021,6 @@ gtk_sheet_button_press (GtkWidget * widget,
 	{
 	  gtk_sheet_click_cell (sheet, row, - 1, &veto);
 	  gtk_grab_add (GTK_WIDGET (sheet));
-	  sheet->timer = gtk_timeout_add (TIMEOUT_SCROLL, gtk_sheet_scroll, sheet);
 	  gtk_widget_grab_focus (GTK_WIDGET (sheet));
 	  GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 	}
@@ -5034,6 +5029,7 @@ gtk_sheet_button_press (GtkWidget * widget,
   return TRUE;
 }
 
+#if 0
 static gint
 gtk_sheet_scroll (gpointer data)
 {
@@ -5062,8 +5058,8 @@ gtk_sheet_scroll (gpointer data)
   GDK_THREADS_LEAVE ();
 
   return TRUE;
-
 }
+#endif
 
 static void
 gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column, gboolean *veto)
@@ -5268,8 +5264,6 @@ gtk_sheet_button_release (GtkWidget * widget,
 
   if (GTK_SHEET_IN_SELECTION)
     gdk_pointer_ungrab (event->time);
-  if (sheet->timer)
-    gtk_timeout_remove (sheet->timer);
   gtk_grab_remove (GTK_WIDGET (sheet));
 
   GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
@@ -5545,7 +5539,7 @@ gtk_sheet_motion (GtkWidget * widget,
   return TRUE;
 }
 
-static gint
+static gboolean
 gtk_sheet_move_query (GtkSheet *sheet, gint row, gint column)
 {
   gint row_move, column_move;

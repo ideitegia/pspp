@@ -1,4 +1,9 @@
-	28 June 2007 John Darrington <john@darrington.wattle.id.au>
+03 July 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* gtksheet.c gtksheet.h: Removed the autoscroll-on-select feature 
+	that was causing us grief.
+
+28 June 2007 John Darrington <john@darrington.wattle.id.au>
 
         * gtksheet.c: Removed some features that we dont use, to get better 
 	speed.
