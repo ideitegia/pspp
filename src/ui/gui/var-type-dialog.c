@@ -176,6 +176,7 @@ on_toggle_2 (GtkToggleButton *togglebutton, gpointer user_data)
   switch (dialog->active_button)
     {
     case BUTTON_STRING:
+      gtk_widget_show (dialog->entry_width);
       gtk_widget_show (dialog->width_decimals);
       gtk_widget_hide (dialog->label_decimals);
       gtk_widget_hide (dialog->entry_decimals);
