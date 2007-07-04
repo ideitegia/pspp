@@ -1287,7 +1287,8 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
 {
   GladeXML *data_editor_xml = data;
 
-  PsppireDataStore *data_store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
+  PsppireDataStore *data_store =
+    PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
 
   g_return_val_if_fail (data_editor_xml, FALSE);
 
@@ -1296,38 +1297,44 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
       const struct variable *var =
 	psppire_dict_get_variable (data_store->dict, col);
 
-      {
-	/* The entry where the reference to the current cell is displayed */
-	GtkEntry *cell_ref_entry =
-	  GTK_ENTRY (get_widget_assert (data_editor_xml,
-					"cell_ref_entry"));
+      /* The entry where the reference to the current cell is displayed */
+      GtkEntry *cell_ref_entry =
+	GTK_ENTRY (get_widget_assert (data_editor_xml,
+				      "cell_ref_entry"));
+      GtkEntry *datum_entry =
+	GTK_ENTRY (get_widget_assert (data_editor_xml,
+				      "datum_entry"));
 
-	gchar *text = g_strdup_printf ("%d: %s", row,
-				       var ? var_get_name (var) : "");
+      if ( var )
+	{
+	  gchar *text = g_strdup_printf ("%d: %s", row,
+					 var_get_name (var));
 
-	gchar *s = pspp_locale_to_utf8 (text, -1, 0);
+	  gchar *s = pspp_locale_to_utf8 (text, -1, 0);
 
-	g_free (text);
+	  g_free (text);
 
-	gtk_entry_set_text (cell_ref_entry, s);
+	  gtk_entry_set_text (cell_ref_entry, s);
 
-	g_free (s);
-      }
+	  g_free (s);
+	}
+      else
+	gtk_entry_set_text (cell_ref_entry, "");
 
-      {
-	GtkEntry *datum_entry =
-	  GTK_ENTRY (get_widget_assert (data_editor_xml,
-					"datum_entry"));
 
-	gchar *text =
-	  psppire_data_store_get_string (data_store, row,
-					 var_get_dict_index(var));
-	g_strchug (text);
+      if ( var )
+	{
+	  gchar *text =
+	    psppire_data_store_get_string (data_store, row,
+					   var_get_dict_index(var));
+	  g_strchug (text);
 
-	gtk_entry_set_text (datum_entry, text);
+	  gtk_entry_set_text (datum_entry, text);
 
-	free (text);
-      }
+	  free (text);
+	}
+      else
+	gtk_entry_set_text (datum_entry, "");
     }
 
   return FALSE;
