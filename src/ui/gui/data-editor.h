@@ -43,6 +43,9 @@ struct data_editor
 
   GtkAction *invoke_variable_info_dialog;
 
+
+  GtkAction *insert_variable;
+
   GladeXML *xml;
 
   gboolean save_as_portable;

@@ -59,7 +59,7 @@ static gint update_data_ref_entry (const GtkSheet *sheet,
 
 static void register_data_editor_actions (struct data_editor *de);
 
-static void insert_variable (GtkCheckMenuItem *m, gpointer data);
+static void insert_variable (GtkAction *, gpointer data);
 
 
 /* Switch between the VAR SHEET and the DATA SHEET */
@@ -241,6 +241,24 @@ new_data_editor (void)
 
   register_data_editor_actions (de);
 
+  de->insert_variable =
+    gtk_action_new ("insert-variable",
+		    _("Insert Variable"),
+		    _("Create a new variable at the current position"),
+		    "pspp-insert-variable");
+
+  g_signal_connect (de->insert_variable, "activate",
+		    G_CALLBACK (insert_variable), de);
+
+
+  gtk_action_connect_proxy (de->insert_variable,
+			    get_widget_assert (de->xml, "button-insert-variable")
+			    );
+
+  gtk_action_connect_proxy (de->insert_variable,
+			    get_widget_assert (de->xml, "data_insert-variable")
+			    );
+
   de->invoke_weight_cases_dialog =
     gtk_action_new ("weight-cases-dialog",
 		    _("Weights"),
@@ -389,10 +407,6 @@ new_data_editor (void)
 		    de);
 
 
-  g_signal_connect (get_widget_assert (de->xml,"data_insert-variable"),
-		    "activate",
-		    G_CALLBACK (insert_variable),
-		    de);
 
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
 			    get_widget_assert (de->xml, "data_weight-cases")
@@ -828,10 +842,10 @@ on_clear_activate (GtkMenuItem *menuitem, gpointer data)
 /* Insert a new variable before the current row in the variable sheet,
    or before the current column in the data sheet, whichever is selected */
 static void
-insert_variable (GtkCheckMenuItem *m, gpointer data)
+insert_variable (GtkAction *action, gpointer data)
 {
   struct data_editor *de = data;
-  gint posn;
+  gint posn = -1;
 
   GtkWidget *notebook = get_widget_assert (de->xml, "notebook");
 
@@ -860,6 +874,8 @@ insert_variable (GtkCheckMenuItem *m, gpointer data)
     default:
       g_assert_not_reached ();
     }
+
+  if ( posn == -1 ) posn = 0;
 
   psppire_dict_insert_variable (vs->dict, posn, NULL);
 }
