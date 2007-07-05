@@ -25,7 +25,6 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-#include <data/casewriter.h>
 #include <data/datasheet.h>
 #include <data/data-out.h>
 #include <data/variable.h>
@@ -44,10 +43,6 @@
 #include <data/missing-values.h>
 #include <data/value-labels.h>
 #include <data/data-in.h>
-
-#include <data/file-handle-def.h>
-#include <data/sys-file-writer.h>
-
 
 
 static void psppire_data_store_init            (PsppireDataStore      *data_store);
@@ -648,43 +643,6 @@ psppire_data_store_show_labels (PsppireDataStore *store, gboolean show_labels)
   g_sheet_model_range_changed (G_SHEET_MODEL (store),
 				 -1, -1, -1, -1);
 }
-
-
-
-/* FIXME: There's no reason to actually have this function.
-   It should be done by a procedure */
-void
-psppire_data_store_create_system_file (PsppireDataStore *store,
-			      struct file_handle *handle)
-{
-  gint i, var_cnt;
-  const struct sfm_write_options wo = {
-    true, /* writeable */
-    false, /* dont compress */
-    3 /* version */
-  };
-
-  struct casewriter *writer;
-
-  g_assert (handle);
-
-  writer = sfm_open_writer (handle, store->dict->dict, wo);
-
-  if ( ! writer)
-    return;
-
-
-  var_cnt = psppire_data_store_get_var_count (G_SHEET_MODEL (store));
-
-  for (i = 0 ; i < psppire_case_file_get_case_count (store->case_file); ++i )
-    {
-      struct ccase c;
-      psppire_case_file_get_case (store->case_file, i, &c);
-      casewriter_write (writer, &c);
-    }
-  casewriter_destroy (writer);
-}
-
 
 
 void

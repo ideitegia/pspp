@@ -98,13 +98,7 @@ void psppire_data_store_show_labels (PsppireDataStore *store,
 
 void psppire_data_store_clear (PsppireDataStore *data_store);
 
-struct file_handle;
-
-void psppire_data_store_create_system_file (PsppireDataStore *store,
-					    struct file_handle *handle);
-
 gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn);
-
 
 struct casereader * psppire_data_store_get_reader (PsppireDataStore *ds);
 
