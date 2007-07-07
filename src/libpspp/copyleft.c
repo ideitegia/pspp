@@ -2,12 +2,9 @@
 
 const char legal[]=""
 "Copyright (C) 1997-9, 2000, 2005, 2006, 2007 Free Software Foundation, Inc.\n"
-"GNU PSPP comes with NO WARRANTY,\n"
-"to the extent permitted by law.\n"
-"You may redistribute copies of GNU PSPP\n"
-"under the terms of the GNU General Public License.\n"
-"For more information about these matters,\n"
-"see the file named COPYING.\n";
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n";
 
 const char lack_of_warranty[]=""
 "\n"
