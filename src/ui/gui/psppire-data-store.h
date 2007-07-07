@@ -25,6 +25,9 @@
 #include "psppire-dict.h"
 #include "psppire-case-file.h"
 
+#define FIRST_CASE_NUMBER 1
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

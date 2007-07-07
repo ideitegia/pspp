@@ -830,7 +830,7 @@ geometry_get_row_button_label (const GSheetRow *geom, gint unit, gpointer data)
        TRAILING_ROWS + psppire_case_file_get_case_count (ds->case_file))
     return 0;
 
-  s = g_strdup_printf (_("%d"), unit);
+  s = g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
 
   text =  pspp_locale_to_utf8 (s, -1, 0);
 

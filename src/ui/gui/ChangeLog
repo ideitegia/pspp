@@ -1,4 +1,7 @@
 2007-07-07  John Darrington <john@darrington.wattle.id.au>
+	
+	* psppire-data-store.c psppire-data-store.h: Made cases number from 
+	1 instead of 0. 
 
 	* psppire-data-store.c: Added a tooltip like feature to display
 	the label of variables. 
