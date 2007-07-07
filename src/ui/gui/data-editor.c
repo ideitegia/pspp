@@ -1304,7 +1304,7 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
 
       if ( var )
 	{
-	  gchar *text = g_strdup_printf ("%d: %s", row,
+	  gchar *text = g_strdup_printf ("%d: %s", row + FIRST_CASE_NUMBER,
 					 var_get_name (var));
 
 	  gchar *s = pspp_locale_to_utf8 (text, -1, 0);
