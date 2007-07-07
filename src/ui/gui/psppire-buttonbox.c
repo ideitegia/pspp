@@ -183,6 +183,12 @@ close_dialog (GtkWidget *w, gpointer data)
   close_and_respond (w, GTK_RESPONSE_CLOSE);
 }
 
+static void
+continue_button_clicked (GtkWidget *w, gpointer data)
+{
+  close_and_respond (w, PSPPIRE_RESPONSE_CONTINUE);
+}
+
 
 static void
 ok_button_clicked (GtkWidget *w, gpointer data)
@@ -243,6 +249,8 @@ psppire_button_box_init (PsppireButtonBox *bb)
 
   gtk_box_pack_start_defaults (GTK_BOX (bb),
 			       bb->button[PSPPIRE_BUTTON_CONTINUE]);
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_CONTINUE], "clicked",
+		    G_CALLBACK (continue_button_clicked), NULL);
 
   g_object_set (bb->button[PSPPIRE_BUTTON_CONTINUE],
 		"no-show-all", TRUE, NULL);

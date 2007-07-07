@@ -51,7 +51,7 @@ struct compute_dialog
 
 
 static void
-on_target_change (GObject *obj, const struct compute_dialog *cd)
+on_target_change (GObject *obj, struct compute_dialog *cd)
 {
   GtkWidget *target = get_widget_assert (cd->xml, "compute-entry1");
   GtkWidget *type_and_label = get_widget_assert (cd->xml, "compute-button1");
@@ -151,9 +151,19 @@ generate_syntax (const struct compute_dialog *cd)
 {
   gchar *text;
   GString *string ;
+  const gchar *target_name ;
+  const gchar *expression;
+  const gchar *label;
   GtkTextIter start, end;
-  GtkWidget *target =    get_widget_assert   (cd->xml, "compute-entry1");
+  GtkWidget *target = get_widget_assert   (cd->xml, "compute-entry1");
   GtkWidget *syntax_area = get_widget_assert (cd->xml, "compute-textview1");
+  GtkWidget *string_toggle = get_widget_assert (cd->xml, "radio-button-string");
+  GtkWidget *user_label_toggle =
+    get_widget_assert (cd->xml, "radio-button-user-label");
+  GtkWidget *width_entry = get_widget_assert (cd->xml, "type-and-label-width");
+  GtkWidget *label_entry = get_widget_assert (cd->xml,
+					      "type-and-label-label-entry");
+
 
   GtkTextBuffer *buffer =
     gtk_text_view_get_buffer (GTK_TEXT_VIEW (syntax_area));
@@ -161,23 +171,54 @@ generate_syntax (const struct compute_dialog *cd)
   gtk_text_buffer_get_start_iter (buffer, &start);
   gtk_text_buffer_get_end_iter (buffer, &end);
 
+  target_name = gtk_entry_get_text (GTK_ENTRY (target));
 
-  string = g_string_new ("COMPUTE ");
+  expression = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
 
-  g_string_append (string, gtk_entry_get_text (GTK_ENTRY (target)));
+  string = g_string_sized_new (64);
 
-  g_string_append (string, " = ");
+  if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (string_toggle)))
+    {
+      const char *w = gtk_entry_get_text (GTK_ENTRY(width_entry));
+      g_string_append_printf (string, "STRING %s (a%s).\n", target_name, w);
+    }
+  else
+    g_string_append_printf (string, "NUMERIC %s.\n", target_name);
 
-  g_string_append (string,
-		   gtk_text_buffer_get_text (buffer, &start, &end, FALSE));
+  if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (user_label_toggle)))
+    label = gtk_entry_get_text (GTK_ENTRY (label_entry));
+  else
+    label = expression;
 
-  g_string_append (string, ".");
+  if ( strlen (label) > 0 )
+    g_string_append_printf (string, "VARIABLE LABEL %s '%s'.\n",
+			    target_name,
+			    label);
+
+  g_string_append_printf (string, "COMPUTE %s = %s.",
+			  target_name,
+			  expression
+			  );
 
   text = string->str;
 
   g_string_free (string, FALSE);
 
   return text;
+}
+
+static void
+run_type_label_dialog (GtkButton *b, gpointer data)
+{
+  struct compute_dialog *cd = data;
+  gint response;
+
+  GtkWidget *subdialog = get_widget_assert (cd->xml, "type-and-label-dialog");
+  GtkWidget *dialog = get_widget_assert (cd->xml, "compute-variable-dialog");
+
+  gtk_window_set_transient_for (GTK_WINDOW (subdialog), GTK_WINDOW (dialog));
+
+  response = psppire_dialog_run (PSPPIRE_DIALOG (subdialog));
 }
 
 
@@ -202,6 +243,7 @@ compute_dialog (GObject *o, gpointer data)
   GtkWidget *syntax_area = get_widget_assert (xml, "compute-textview1");
   GtkWidget *var_selector = get_widget_assert (xml, "compute-selector1");
   GtkWidget *func_selector = get_widget_assert (xml, "compute-selector2");
+  GtkWidget *type_and_label = get_widget_assert (xml, "compute-button1");
 
   GtkSheet *var_sheet =
     GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
@@ -242,6 +284,11 @@ compute_dialog (GObject *o, gpointer data)
 
   g_signal_connect (keypad, "erase",
 		    G_CALLBACK (erase),  xml);
+
+
+  g_signal_connect (type_and_label, "clicked",
+		    G_CALLBACK (run_type_label_dialog),  &scd);
+
 
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
