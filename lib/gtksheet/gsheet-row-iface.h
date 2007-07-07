@@ -72,6 +72,8 @@ struct _GSheetRowIface
   gchar * (*get_button_label)(const GSheetRow *geo, gint row,
 			      gpointer);
 
+  gchar * (*get_subtitle) (const GSheetRow *geo, gint row);
+
   gboolean      (*get_button_visibility)(const GSheetRow *geo,
 					gint row, gpointer);
 
@@ -118,6 +120,9 @@ gint  g_sheet_row_pixel_to_row(const GSheetRow *geo, gint pixel,
 
 void g_sheet_row_rows_deleted(GSheetRow *geo,
 				      gint first, gint n_rows);
+
+
+gchar *g_sheet_row_get_subtitle (const GSheetRow *row_geo, gint row);
 
 
 G_END_DECLS

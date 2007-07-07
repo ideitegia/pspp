@@ -1,3 +1,8 @@
+2007-07-07  John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-data-store.c: Added a tooltip like feature to display
+	the label of variables. 
+	
 2007-07-03  John Darrington <john@darrington.wattle.id.au>
 	
 	* data-editor.c data-sheet.c: Turned off autoscrolling, and 

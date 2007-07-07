@@ -96,6 +96,7 @@ enum
 #define CELL_SPACING 1
 #define DRAG_WIDTH 6
 #define TIMEOUT_FLASH 200
+#define TIMEOUT_HOVER 300
 #define TIME_INTERVAL 8
 #define COLUMN_MIN_WIDTH 10
 #define MINROWS 1
@@ -1167,6 +1168,8 @@ gtk_sheet_init (GtkSheet *sheet)
   gdk_color_parse ("gray", &sheet->grid_color);
   gdk_color_alloc (gdk_colormap_get_system (), &sheet->grid_color);
   sheet->show_grid = TRUE;
+
+  sheet->motion_events = 0;
 }
 
 
@@ -3803,6 +3806,10 @@ gtk_sheet_cell_get_state (GtkSheet *sheet, gint row, gint col)
   return GTK_STATE_NORMAL;
 }
 
+/* Convert X, Y (in pixels) to *ROW, *COLUMN (in cell coords)
+   -1 indicates the title buttons.
+   If the function returns FALSE, then the results will be unreliable.
+*/
 gboolean
 gtk_sheet_get_pixel_info (GtkSheet *sheet,
 			  gint x,
@@ -3810,25 +3817,43 @@ gtk_sheet_get_pixel_info (GtkSheet *sheet,
 			  gint *row,
 			  gint *column)
 {
-  gint trow = -1;
-  gint tcol = -1;
+  gint trow, tcol;
+  *row = -G_MAXINT;
+  *column = -G_MAXINT;
 
   g_return_val_if_fail (sheet != NULL, 0);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), 0);
 
   /* bounds checking, return false if the user clicked
      on a blank area */
-  trow = ROW_FROM_YPIXEL (sheet, y);
-  if (trow >= yyy_row_count (sheet))
+  if (y < 0)
     return FALSE;
 
-  *row = trow;
-
-  tcol = COLUMN_FROM_XPIXEL (sheet, x);
-  if (tcol >= xxx_column_count (sheet))
+  if (x < 0)
     return FALSE;
 
-  *column = tcol;
+  if ( y < sheet->column_title_area.height + sheet->column_title_area.y)
+    *row = -1;
+
+  else
+    {
+      trow = ROW_FROM_YPIXEL (sheet, y);
+      if (trow > yyy_row_count (sheet))
+	return FALSE;
+
+      *row = trow;
+    }
+
+  if ( x < sheet->row_title_area.width + sheet->row_title_area.x)
+    *column = -1;
+  else
+    {
+      tcol = COLUMN_FROM_XPIXEL (sheet, x);
+      if (tcol > xxx_column_count (sheet))
+	return FALSE;
+
+      *column = tcol;
+    }
 
   return TRUE;
 }
@@ -5271,6 +5296,159 @@ gtk_sheet_button_release (GtkWidget * widget,
   return TRUE;
 }
 
+/* Shamelessly lifted from gtktooltips */
+static gboolean
+gtk_sheet_subtitle_paint_window (GtkWidget *tip_window)
+{
+  GtkRequisition req;
+
+  gtk_widget_size_request (tip_window, &req);
+  gtk_paint_flat_box (tip_window->style, tip_window->window,
+		      GTK_STATE_NORMAL, GTK_SHADOW_OUT,
+		      NULL, GTK_WIDGET(tip_window), "tooltip",
+		      0, 0, req.width, req.height);
+
+  return FALSE;
+}
+
+static GtkSheetHoverTitle *
+create_hover_window (void)
+{
+  GtkSheetHoverTitle *hw = malloc (sizeof (*hw));
+
+  hw->window = gtk_window_new (GTK_WINDOW_POPUP);
+
+  gtk_window_set_type_hint (GTK_WINDOW (hw->window),
+			    GDK_WINDOW_TYPE_HINT_TOOLTIP);
+
+  gtk_widget_set_app_paintable (hw->window, TRUE);
+  gtk_window_set_resizable (GTK_WINDOW (hw->window), FALSE);
+  gtk_widget_set_name (hw->window, "gtk-tooltips");
+  gtk_container_set_border_width (GTK_CONTAINER (hw->window), 4);
+
+  g_signal_connect (hw->window,
+		    "expose_event",
+		    G_CALLBACK (gtk_sheet_subtitle_paint_window),
+		    NULL);
+
+  hw->label = gtk_label_new (NULL);
+
+
+  gtk_label_set_line_wrap (GTK_LABEL (hw->label), TRUE);
+  gtk_misc_set_alignment (GTK_MISC (hw->label), 0.5, 0.5);
+
+  gtk_container_add (GTK_CONTAINER (hw->window), hw->label);
+
+  gtk_widget_show (hw->label);
+
+  g_signal_connect (hw->window,
+		    "destroy",
+		    G_CALLBACK (gtk_widget_destroyed),
+		    &hw->window);
+
+  return hw;
+}
+
+#define HOVER_WINDOW_Y_OFFSET 2
+
+static void
+show_subtitle (GtkSheet *sheet, gint row, gint column, const gchar *subtitle)
+{
+  gint x, y;
+  gint px, py;
+  gint width;
+
+  if ( ! subtitle )
+    return;
+
+  if ( ! sheet->hover_window)
+    {
+      sheet->hover_window = create_hover_window ();
+      gtk_widget_add_events (GTK_WIDGET (sheet), GDK_LEAVE_NOTIFY_MASK);
+
+      g_signal_connect_swapped (sheet, "leave-notify-event",
+				G_CALLBACK (gtk_widget_hide),
+				sheet->hover_window->window);
+    }
+
+  gtk_label_set_text (GTK_LABEL (sheet->hover_window->label),
+		      subtitle);
+
+
+  sheet->hover_window->row = row;
+  sheet->hover_window->column = column;
+
+  gdk_window_get_origin (GTK_WIDGET (sheet)->window, &x, &y);
+
+  gtk_widget_get_pointer (GTK_WIDGET (sheet), &px, &py);
+
+  gtk_widget_show (sheet->hover_window->window);
+
+  width = GTK_WIDGET (sheet->hover_window->label)->allocation.width;
+
+  if (row == -1 )
+    {
+      x += px;
+      x -= width / 2;
+      y += sheet->column_title_area.y;
+      y += sheet->column_title_area.height;
+      y += HOVER_WINDOW_Y_OFFSET;
+    }
+
+  if ( column == -1 )
+    {
+      y += py;
+      x += sheet->row_title_area.x;
+      x += sheet->row_title_area.width * 2 / 3.0;
+    }
+
+  gtk_window_move (GTK_WINDOW (sheet->hover_window->window),
+		   x, y);
+}
+
+static gboolean
+motion_timeout_callback (gpointer data)
+{
+  GtkSheet *sheet = GTK_SHEET (data);
+  if ( --sheet->motion_events == 0 )
+    {
+      gint x, y;
+      gint row, column;
+      gtk_widget_get_pointer (GTK_WIDGET (sheet), &x, &y);
+
+      if ( gtk_sheet_get_pixel_info (sheet, x, y, &row, &column) )
+	{
+	  if ( column == -1 && row == -1 )
+	    return FALSE;
+
+	  if ( column == -1)
+	    {
+	      GSheetRow *row_geo = sheet->row_geometry;
+	      gchar *text;
+
+	      text = g_sheet_row_get_subtitle (row_geo, row);
+
+	      show_subtitle (sheet, row, column, text);
+	      g_free (text);
+	    }
+
+	  if ( row == -1)
+	    {
+	      GSheetColumn *col_geo = sheet->column_geometry;
+	      gchar *text;
+
+	      text = g_sheet_column_get_subtitle (col_geo, column);
+
+	      show_subtitle (sheet, row, column, text );
+
+	      g_free (text);
+	    }
+	}
+    }
+
+  return FALSE;
+}
+
 static gint
 gtk_sheet_motion (GtkWidget * widget,
 		  GdkEventMotion * event)
@@ -5290,6 +5468,26 @@ gtk_sheet_motion (GtkWidget * widget,
   /* selections on the sheet */
   x = event->x;
   y = event->y;
+
+  if (!sheet->hover_window || ! GTK_WIDGET_VISIBLE (sheet->hover_window->window))
+    {
+      sheet->motion_events++;
+      g_timeout_add (TIMEOUT_HOVER, motion_timeout_callback, sheet);
+    }
+  else
+    {
+      gint row, column;
+      gint wx, wy;
+      gtk_widget_get_pointer (widget, &wx, &wy);
+
+      if ( gtk_sheet_get_pixel_info (sheet, wx, wy, &row, &column) )
+	{
+	  if ( row != sheet->hover_window->row || column != sheet->hover_window->column)
+	    {
+	      gtk_widget_hide (sheet->hover_window->window);
+	    }
+	}
+    }
 
   if (event->window == sheet->column_title_window &&
       gtk_sheet_columns_resizable (sheet))
@@ -5467,7 +5665,8 @@ gtk_sheet_motion (GtkWidget * widget,
 
       /*use half of column width resp. row height as threshold to
 	expand selection*/
-      col_threshold = COLUMN_LEFT_XPIXEL (sheet,current_col)+xxx_column_width (sheet,current_col)/2;
+      col_threshold = COLUMN_LEFT_XPIXEL (sheet,current_col) +
+	xxx_column_width (sheet,current_col) / 2;
       if (column > 0)
 	{
 	  if (x < col_threshold)
@@ -5505,7 +5704,6 @@ gtk_sheet_motion (GtkWidget * widget,
       if (aux.row0 + row >= 0 && aux.rowi + row < yyy_row_count (sheet) &&
 	  aux.col0 + column >= 0 && aux.coli + column < xxx_column_count (sheet))
 	{
-
 	  aux = sheet->drag_range;
 	  sheet->drag_range = sheet->range;
 
@@ -5525,8 +5723,6 @@ gtk_sheet_motion (GtkWidget * widget,
 	}
       return TRUE;
     }
-
-
 
   gtk_sheet_get_pixel_info (sheet, x, y, &row, &column);
 

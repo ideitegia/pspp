@@ -176,6 +176,16 @@ g_sheet_column_get_justification(const GSheetColumn *column,
   return (G_SHEET_COLUMN_GET_IFACE (column)->get_justification) (column, col);
 }
 
+inline gchar *
+g_sheet_column_get_subtitle (const GSheetColumn *column, gint col)
+{
+  g_return_val_if_fail (G_IS_SHEET_COLUMN (column), NULL);
+
+  if  ( ! G_SHEET_COLUMN_GET_IFACE (column)->get_subtitle)
+    return NULL;
+
+  return (G_SHEET_COLUMN_GET_IFACE (column)->get_subtitle) (column, col);
+}
 
 
 

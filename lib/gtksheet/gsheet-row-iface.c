@@ -172,6 +172,19 @@ g_sheet_row_get_button(const GSheetRow *row_geo,
   return button;
 }
 
+inline gchar *
+g_sheet_row_get_subtitle (const GSheetRow *row_geo, gint row)
+{
+  g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), NULL);
+
+  if ( ! G_SHEET_ROW_GET_IFACE (row_geo)->get_subtitle )
+    return NULL;
+
+  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_subtitle) (row_geo, row);
+}
+
+
+
 
 gint
 g_sheet_row_get_row_count(const GSheetRow *geo, gpointer data)

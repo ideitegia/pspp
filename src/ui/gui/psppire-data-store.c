@@ -747,6 +747,27 @@ geometry_get_column_button_label (const GSheetColumn *geom, gint unit)
 }
 
 
+static gchar *
+geometry_get_column_subtitle (const GSheetColumn *geom, gint unit)
+{
+  gchar *text;
+  const struct variable *v ;
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
+
+  if ( unit >= psppire_dict_get_var_cnt (ds->dict) )
+    return NULL;
+
+  v = psppire_dict_get_variable (ds->dict, unit);
+
+  if ( ! var_has_label (v))
+    return NULL;
+
+  text =  pspp_locale_to_utf8 (var_get_label (v), -1, 0);
+
+  return text;
+}
+
+
 static gboolean
 geometry_get_sensitivity (const GSheetColumn *geom, gint unit)
 {
@@ -766,6 +787,7 @@ psppire_data_store_sheet_column_init (GSheetColumnIface *iface)
   iface->get_sensitivity = geometry_get_sensitivity;
   iface->get_justification = geometry_get_justification;
   iface->get_button_label = geometry_get_column_button_label;
+  iface->get_subtitle = geometry_get_column_subtitle;
 }
 
 

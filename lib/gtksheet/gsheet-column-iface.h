@@ -72,6 +72,8 @@ struct _GSheetColumnIface
 
   GtkStateType  (*get_button_state)(const GSheetColumn *geo, gint col);
   gchar * (*get_button_label)(const GSheetColumn *geo, gint col);
+  gchar * (*get_subtitle)(const GSheetColumn *geo, gint col);
+
   gboolean      (*get_button_visibility)(const GSheetColumn *geo,
 					gint col);
   const GtkSheetChild * (*get_button_child)(const GSheetColumn *geo,
@@ -101,6 +103,8 @@ inline gboolean  g_sheet_column_get_sensitivity(const GSheetColumn *gcolumn,
 
 inline GtkSheetButton *g_sheet_column_get_button(const GSheetColumn *gcolumn,
 					     gint col);
+
+gchar *g_sheet_column_get_subtitle (const GSheetColumn *, gint);
 
 inline GtkJustification g_sheet_column_get_justification(const GSheetColumn *gcolumn, gint col);
 

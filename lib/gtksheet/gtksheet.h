@@ -84,6 +84,7 @@ enum
 typedef struct _GtkSheetClass GtkSheetClass;
 typedef struct _GtkSheetCellAttr     GtkSheetCellAttr;
 typedef struct _GtkSheetCell GtkSheetCell;
+typedef struct _GtkSheetHoverTitle GtkSheetHoverTitle;
 
 
 struct _GtkSheetCellAttr
@@ -103,6 +104,12 @@ struct _GtkSheetCell
   gint col;
 };
 
+struct _GtkSheetHoverTitle
+{
+  GtkWidget *window;
+  GtkWidget *label;
+  gint row, column;
+};
 
 struct _GtkSheet{
   GtkContainer container;
@@ -222,6 +229,10 @@ struct _GtkSheet{
 
   /* clipped range */
   GtkSheetRange clip_range;
+
+  /* Used for the subtitle (popups) */
+  gint motion_events;
+  GtkSheetHoverTitle *hover_window;
 };
 
 struct _GtkSheetClass

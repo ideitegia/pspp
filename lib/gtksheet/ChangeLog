@@ -1,3 +1,9 @@
+07 July 2007 John Darrington <john@darrington.wattle.id.au>
+	 
+	* gsheet-column-iface.c gsheet-column-iface.h gsheet-row-iface.c
+	gsheet-row-iface.h gtksheet.c gtksheet.h: Added a "subtitle"
+	feature on row/column titles, which shows tooltip-like popups.  
+
 03 July 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* gtksheet.c gtksheet.h: Removed the autoscroll-on-select feature 
