@@ -41,6 +41,9 @@ create_splash_window (void)
   gtk_window_set_position (GTK_WINDOW (splash),
 			   GTK_WIN_POS_CENTER_ALWAYS);
 
+  gtk_window_set_type_hint (GTK_WINDOW (splash),
+			    GDK_WINDOW_TYPE_HINT_SPLASHSCREEN);
+
   image = gtk_image_new_from_file (PKGDATADIR "/splash.png");
 
   gtk_container_add (GTK_CONTAINER (splash), image);
