@@ -1,10 +1,9 @@
-/*
-   PSPPIRE --- A Graphical User Interface for PSPP
+/* PSPPIRE - a graphical user interface for PSPP.
    Copyright (C) 2005  Free Software Foundation
 
-   This program is free software; you can redistribute it and/or modify
+   This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
+   the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
 
    This program is distributed in the hope that it will be useful,
@@ -13,10 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
-*/
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 /*
    This widget is a subclass of GtkEntry.  It's an entry widget with a
@@ -45,9 +41,8 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
- * Boston, MA 02111-1307, USA.
+ * License along with this library.  If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 
 /*

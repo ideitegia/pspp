@@ -378,7 +378,7 @@ statistical procedures.
 To assign a variable label to a group of variables, specify a 
 list of variable names and the variable label as a string.
 To assign different labels to different variables in the same command, 
-precede the subsequent variable list with a slash (@samp{/}).
+preceed the subsequent variable list with a slash (@samp{/}).
 
 
 @node VARIABLE ALIGNMENT
