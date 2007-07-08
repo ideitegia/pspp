@@ -1,3 +1,11 @@
+2007-07-08  John Darrington <john@darrington.wattle.id.au>
+
+	* goto-case-dialog.c goto-case-dialog.h (new files)
+	* automake.mk data-editor.c data-editor.glade data-editor.h 
+	psppire-case-file.c psppire-case-file.h psppire-data-store.c 
+	psppire-data-store.h psppire.glade :  Implemented the goto-case dialog
+	
+
 2007-07-07  John Darrington <john@darrington.wattle.id.au>
 	
 	* psppire-data-store.c psppire-data-store.h: Made cases number from 

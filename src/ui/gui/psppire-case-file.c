@@ -223,7 +223,7 @@ psppire_case_file_append_case (PsppireCaseFile *cf,
 }
 
 
-inline gint
+inline casenumber
 psppire_case_file_get_case_count (const PsppireCaseFile *cf)
 {
   g_return_val_if_fail (cf, FALSE);

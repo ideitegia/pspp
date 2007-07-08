@@ -33,6 +33,7 @@
 #include "transpose-dialog.h"
 #include "sort-cases-dialog.h"
 #include "compute-dialog.h"
+#include "goto-case-dialog.h"
 #include "comments-dialog.h"
 #include "variable-info-dialog.h"
 #include "dict-display.h"
@@ -248,6 +249,13 @@ new_data_editor (void)
 		    G_CALLBACK (insert_variable), de);
 
 
+
+  g_signal_connect (de->insert_variable, "activate",
+		    G_CALLBACK (insert_variable), de);
+
+
+
+
   gtk_action_connect_proxy (de->insert_variable,
 			    get_widget_assert (de->xml, "button-insert-variable")
 			    );
@@ -255,6 +263,26 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->insert_variable,
 			    get_widget_assert (de->xml, "data_insert-variable")
 			    );
+
+  de->invoke_goto_dialog =
+    gtk_action_new ("goto-case-dialog",
+		    _("Goto Case"),
+		    _("Jump to a Case in the Data Sheet"),
+		    "gtk-jump-to");
+
+
+  gtk_action_connect_proxy (de->invoke_goto_dialog,
+			    get_widget_assert (de->xml, "button-goto-case")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_goto_dialog,
+			    get_widget_assert (de->xml, "data_goto-case")
+			    );
+
+
+  g_signal_connect (de->invoke_goto_dialog, "activate",
+		    G_CALLBACK (goto_case_dialog), de);
+
 
   de->invoke_weight_cases_dialog =
     gtk_action_new ("weight-cases-dialog",
@@ -619,13 +647,12 @@ select_sheet (struct data_editor *de, guint page_num)
       gtk_widget_show (view_data);
       gtk_widget_set_sensitive (insert_variable, TRUE);
       gtk_widget_set_sensitive (insert_cases, FALSE);
+      gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
       break;
     case PAGE_DATA_SHEET:
       gtk_widget_show (view_variables);
       gtk_widget_hide (view_data);
-#if 0
-      gtk_widget_set_sensitive (insert_cases, TRUE);
-#endif
+      gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
       break;
     default:
       g_assert_not_reached ();

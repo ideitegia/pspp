@@ -288,7 +288,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="go_to_case">
+                      <widget class="GtkImageMenuItem" id="data_goto-case">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Go To Case</property>

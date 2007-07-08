@@ -108,6 +108,9 @@ gboolean psppire_data_store_set_string (PsppireDataStore *ds,
 					const gchar *text,
 					gint row, gint column);
 
+casenumber psppire_data_store_get_case_count (PsppireDataStore *store);
+
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
