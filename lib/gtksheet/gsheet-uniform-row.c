@@ -96,7 +96,7 @@ g_sheet_uniform_row_new (gint height, gint n_rows)
 }
 
 static gint
-g_sheet_uniform_row_get_height(const GSheetRow *geom, gint u, gpointer data)
+g_sheet_uniform_row_get_height (const GSheetRow *geom, glong u, gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
 
@@ -104,7 +104,8 @@ g_sheet_uniform_row_get_height(const GSheetRow *geom, gint u, gpointer data)
 }
 
 static gboolean
-g_sheet_uniform_row_get_sensitivity(const GSheetRow *geom, gint u, gpointer data)
+g_sheet_uniform_row_get_sensitivity (const GSheetRow *geom, glong u,
+				     gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
 
@@ -113,26 +114,27 @@ g_sheet_uniform_row_get_sensitivity(const GSheetRow *geom, gint u, gpointer data
 
 
 static gboolean
-g_sheet_uniform_row_get_visibility(const GSheetRow *geom, gint u, gpointer data)
+g_sheet_uniform_row_get_visibility (const GSheetRow *geom, glong u,
+				    gpointer data)
 {
-  GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
+  GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW (geom);
 
   return ug->is_visible;
 }
 
 
 static gchar *
-g_sheet_uniform_row_get_button_label(const GSheetRow *geom, gint u, gpointer data)
+g_sheet_uniform_row_get_button_label(const GSheetRow *geom, glong u, gpointer data)
 {
-  gchar *label = g_strdup_printf("%d", u);
+  gchar *label = g_strdup_printf("%ld", u);
 
   return label;
 }
 
 
 
-static gint
-g_sheet_uniform_row_get_row_count(const GSheetRow *geom, gpointer data)
+static glong
+g_sheet_uniform_row_get_row_count (const GSheetRow *geom, gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
 
@@ -159,21 +161,21 @@ g_sheet_uniform_row_init (GSheetUniformRow *o)
 }
 
 static void
-g_sheet_uniform_row_finalize (GObject           *object)
+g_sheet_uniform_row_finalize (GObject *object)
 {
 }
 
 
 static guint
-g_sheet_uniform_row_top_ypixel(const GSheetRow *geo, gint row, gpointer data)
+g_sheet_uniform_row_top_ypixel (const GSheetRow *geo, glong row, gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geo);
 
   return row * ug->height;
 }
 
-static gint
-g_sheet_uniform_row_pixel_to_row(const GSheetRow *geo, guint pixel,
+static glong
+g_sheet_uniform_row_pixel_to_row (const GSheetRow *geo, guint pixel,
 				 gpointer data)
 {
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geo);

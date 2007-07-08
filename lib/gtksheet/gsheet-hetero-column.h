@@ -73,11 +73,11 @@ extern "C" {
   typedef struct _GSheetHeteroColumnClass GSheetHeteroColumnClass;
 
 
-  void g_sheet_hetero_column_set_button_label(GSheetHeteroColumn *geo,
-						gint i, const gchar *label);
+  void g_sheet_hetero_column_set_button_label (GSheetHeteroColumn *geo,
+						glong i, const gchar *label);
 
-  void g_sheet_hetero_column_set_width(GSheetHeteroColumn *geo,
-					     gint i, gint size);
+  void g_sheet_hetero_column_set_width (GSheetHeteroColumn *geo,
+					     glong i, gint size);
 
 #ifdef __cplusplus
 }

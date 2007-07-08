@@ -52,15 +52,15 @@ static void         psppire_var_store_finalize        (GObject           *object
 gchar * missing_values_to_string (const struct variable *pv, GError **err);
 
 
-static gchar *psppire_var_store_get_string (const GSheetModel *sheet_model, gint row, gint column);
+static gchar *psppire_var_store_get_string (const GSheetModel *sheet_model, glong row, glong column);
 
-static gboolean  psppire_var_store_clear (GSheetModel *model,  gint row, gint col);
+static gboolean  psppire_var_store_clear (GSheetModel *model,  glong row, glong col);
 
 
 static gboolean psppire_var_store_set_string (GSheetModel *model,
-					  const gchar *text, gint row, gint column);
+					  const gchar *text, glong row, glong column);
 
-static gint psppire_var_store_get_row_count (const GSheetModel * model);
+static glong psppire_var_store_get_row_count (const GSheetModel * model);
 
 static gchar *text_for_column (const struct variable *pv, gint c, GError **err);
 
@@ -146,7 +146,7 @@ psppire_var_store_init (PsppireVarStore *var_store)
 }
 
 static gboolean
-psppire_var_store_item_editable (PsppireVarStore *var_store, gint row, gint column)
+psppire_var_store_item_editable (PsppireVarStore *var_store, glong row, glong column)
 {
   const struct fmt_spec *write_spec ;
 
@@ -187,13 +187,13 @@ psppire_var_store_item_editable (PsppireVarStore *var_store, gint row, gint colu
 
 
 struct variable *
-psppire_var_store_get_var (PsppireVarStore *store, gint row)
+psppire_var_store_get_var (PsppireVarStore *store, glong row)
 {
   return psppire_dict_get_variable (store->dict, row);
 }
 
 static gboolean
-psppire_var_store_is_editable (const GSheetModel *model, gint row, gint column)
+psppire_var_store_is_editable (const GSheetModel *model, glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
   return psppire_var_store_item_editable (store, row, column);
@@ -201,7 +201,7 @@ psppire_var_store_is_editable (const GSheetModel *model, gint row, gint column)
 
 
 static const GdkColor *
-psppire_var_store_get_foreground (const GSheetModel *model, gint row, gint column)
+psppire_var_store_get_foreground (const GSheetModel *model, glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
@@ -214,7 +214,7 @@ psppire_var_store_get_foreground (const GSheetModel *model, gint row, gint colum
 
 const PangoFontDescription *
 psppire_var_store_get_font_desc (const GSheetModel *model,
-			      gint row, gint column)
+			      glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
@@ -281,7 +281,7 @@ var_delete_callback (GtkWidget *w, gint first, gint n, gpointer data)
 
 
 static void
-var_insert_callback (GtkWidget *w, gint row, gpointer data)
+var_insert_callback (GtkWidget *w, glong row, gpointer data)
 {
   GSheetModel *model = G_SHEET_MODEL (data);
 
@@ -327,7 +327,7 @@ psppire_var_store_finalize (GObject *object)
 }
 
 static gchar *
-psppire_var_store_get_string (const GSheetModel *model, gint row, gint column)
+psppire_var_store_get_string (const GSheetModel *model, glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
@@ -347,7 +347,7 @@ psppire_var_store_get_string (const GSheetModel *model, gint row, gint column)
    Returns true if anything was updated, false otherwise.
 */
 static gboolean
-psppire_var_store_clear (GSheetModel *model,  gint row, gint col)
+psppire_var_store_clear (GSheetModel *model,  glong row, glong col)
 {
   struct variable *pv ;
 
@@ -378,7 +378,7 @@ psppire_var_store_clear (GSheetModel *model,  gint row, gint col)
 */
 static gboolean
 psppire_var_store_set_string (GSheetModel *model,
-			  const gchar *text, gint row, gint col)
+			  const gchar *text, glong row, glong col)
 {
   struct variable *pv ;
 
@@ -652,7 +652,7 @@ psppire_var_store_set_font (PsppireVarStore *store, const PangoFontDescription *
 }
 
 
-static gint
+static glong
 psppire_var_store_get_row_count (const GSheetModel * model)
 {
   gint rows = 0;
@@ -666,7 +666,7 @@ psppire_var_store_get_row_count (const GSheetModel * model)
 
 /* Row related funcs */
 
-static gint
+static glong
 geometry_get_row_count (const GSheetRow *geom, gpointer data)
 {
   gint rows = 0;
@@ -680,14 +680,14 @@ geometry_get_row_count (const GSheetRow *geom, gpointer data)
 
 
 static gint
-geometry_get_height (const GSheetRow *geom, gint row, gpointer data)
+geometry_get_height (const GSheetRow *geom, glong row, gpointer data)
 {
   return 25;
 }
 
 
 static gboolean
-geometry_is_sensitive (const GSheetRow *geom, gint row, gpointer data)
+geometry_is_sensitive (const GSheetRow *geom, glong row, gpointer data)
 {
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (geom);
 
@@ -705,13 +705,12 @@ gboolean always_true ()
 
 
 static gchar *
-geometry_get_button_label (const GSheetRow *geom, gint unit, gpointer data)
+geometry_get_button_label (const GSheetRow *geom, glong unit, gpointer data)
 {
-  gchar *label = g_strdup_printf (_("%d"), unit);
+  gchar *label = g_strdup_printf (_("%ld"), unit);
 
   return label;
 }
-
 
 static void
 psppire_var_store_sheet_row_init (GSheetRowIface *iface)

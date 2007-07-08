@@ -101,7 +101,7 @@ g_sheet_column_base_init (gpointer g_class)
 
 
 inline void
-g_sheet_column_set_width (GSheetColumn *column, gint col, gint size)
+g_sheet_column_set_width (GSheetColumn *column, glong col, gint size)
 {
   g_return_if_fail (G_IS_SHEET_COLUMN (column));
 
@@ -111,7 +111,7 @@ g_sheet_column_set_width (GSheetColumn *column, gint col, gint size)
 
 
 inline gint
-g_sheet_column_get_width (const GSheetColumn *column, gint col)
+g_sheet_column_get_width (const GSheetColumn *column, glong col)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), -1);
 
@@ -124,7 +124,7 @@ g_sheet_column_get_width (const GSheetColumn *column, gint col)
 
 inline gboolean
 g_sheet_column_get_visibility(const GSheetColumn *column,
-					    gint col)
+					    glong col)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), FALSE);
 
@@ -137,7 +137,7 @@ g_sheet_column_get_visibility(const GSheetColumn *column,
 
 inline gboolean
 g_sheet_column_get_sensitivity(const GSheetColumn *column,
-					     gint col)
+					     glong col)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), FALSE);
 
@@ -151,7 +151,7 @@ g_sheet_column_get_sensitivity(const GSheetColumn *column,
 
 inline GtkSheetButton *
 g_sheet_column_get_button(const GSheetColumn *column,
-			      gint col)
+			      glong col)
 {
   GtkSheetButton *button = gtk_sheet_button_new();
 
@@ -167,7 +167,7 @@ g_sheet_column_get_button(const GSheetColumn *column,
 
 inline GtkJustification
 g_sheet_column_get_justification(const GSheetColumn *column,
-				     gint col)
+				     glong col)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), FALSE);
 
@@ -177,7 +177,7 @@ g_sheet_column_get_justification(const GSheetColumn *column,
 }
 
 inline gchar *
-g_sheet_column_get_subtitle (const GSheetColumn *column, gint col)
+g_sheet_column_get_subtitle (const GSheetColumn *column, glong col)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), NULL);
 
@@ -191,7 +191,7 @@ g_sheet_column_get_subtitle (const GSheetColumn *column, gint col)
 
 inline gint
 g_sheet_column_get_left_text_column (const GSheetColumn *column,
-					 gint col)
+					 glong col)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), -1);
 
@@ -204,7 +204,7 @@ g_sheet_column_get_left_text_column (const GSheetColumn *column,
 
 inline gint
 g_sheet_column_get_right_text_column (const GSheetColumn *column,
-					  gint col)
+					  glong col)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (column), -1);
 
@@ -217,7 +217,7 @@ g_sheet_column_get_right_text_column (const GSheetColumn *column,
 
 inline void
 g_sheet_column_set_left_text_column (const GSheetColumn *column,
-					 gint col, gint i)
+					 glong col, gint i)
 {
   g_return_if_fail (G_IS_SHEET_COLUMN (column));
 
@@ -229,7 +229,7 @@ g_sheet_column_set_left_text_column (const GSheetColumn *column,
 
 inline void
 g_sheet_column_set_right_text_column (const GSheetColumn *column,
-					  gint col, gint i)
+					  glong col, gint i)
 {
   g_return_if_fail (G_IS_SHEET_COLUMN (column));
 
@@ -237,7 +237,7 @@ g_sheet_column_set_right_text_column (const GSheetColumn *column,
     (G_SHEET_COLUMN_GET_IFACE (column)->set_right_text_column) (column, col, i);
 }
 
-inline gint
+inline glong
 g_sheet_column_get_column_count(const GSheetColumn *geo)
 {
   g_return_val_if_fail (G_IS_SHEET_COLUMN (geo), -1);
@@ -248,7 +248,7 @@ g_sheet_column_get_column_count(const GSheetColumn *geo)
 }
 
 inline gint
-g_sheet_column_start_pixel(const GSheetColumn *geo, gint col)
+g_sheet_column_start_pixel(const GSheetColumn *geo, glong col)
 {
   gint i;
   gint start_pixel = 0;
@@ -271,7 +271,7 @@ g_sheet_column_start_pixel(const GSheetColumn *geo, gint col)
 
 inline void
 g_sheet_column_columns_changed(GSheetColumn *geo,
-				 gint first, gint n_columns)
+				 glong first, glong n_columns)
 {
   g_return_if_fail (G_IS_SHEET_COLUMN (geo));
 

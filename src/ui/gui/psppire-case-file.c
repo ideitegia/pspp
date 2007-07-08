@@ -164,7 +164,7 @@ psppire_case_file_new (const struct casereader *reader)
 
 
 gboolean
-psppire_case_file_delete_cases (PsppireCaseFile *cf, gint n_cases, gint first)
+psppire_case_file_delete_cases (PsppireCaseFile *cf, casenumber n_cases, casenumber first)
 {
   g_return_val_if_fail (cf, FALSE);
   g_return_val_if_fail (cf->datasheet, FALSE);
@@ -179,8 +179,8 @@ psppire_case_file_delete_cases (PsppireCaseFile *cf, gint n_cases, gint first)
 /* Insert case CC into the case file before POSN */
 gboolean
 psppire_case_file_insert_case (PsppireCaseFile *cf,
-			      struct ccase *cc,
-			      gint posn)
+			       struct ccase *cc,
+			       casenumber posn)
 {
   struct ccase tmp;
   bool result ;
@@ -194,7 +194,7 @@ psppire_case_file_insert_case (PsppireCaseFile *cf,
   if ( result )
     g_signal_emit (cf, signals [CASE_INSERTED], 0, posn);
   else
-    g_warning ("Cannot insert case at position %d\n", posn);
+    g_warning ("Cannot insert case at position %ld\n", posn);
 
   return result;
 }
@@ -277,7 +277,7 @@ psppire_case_file_clear (PsppireCaseFile *cf)
 /* Set the IDXth value of case C to V.
    Returns true if successful, false on I/O error. */
 gboolean
-psppire_case_file_set_value (PsppireCaseFile *cf, gint casenum, gint idx,
+psppire_case_file_set_value (PsppireCaseFile *cf, casenumber casenum, gint idx,
 			    union value *v, gint width)
 {
   bool ok;
@@ -297,7 +297,7 @@ psppire_case_file_set_value (PsppireCaseFile *cf, gint casenum, gint idx,
 
 /* Set the IDXth value of case C using D_IN */
 gboolean
-psppire_case_file_data_in (PsppireCaseFile *cf, gint casenum, gint idx,
+psppire_case_file_data_in (PsppireCaseFile *cf, casenumber casenum, gint idx,
                           struct substring input, const struct fmt_spec *fmt)
 {
   union value *value;
@@ -364,7 +364,7 @@ psppire_case_file_insert_values (PsppireCaseFile *cf,
    Returns true on success, false otherwise.
  */
 gboolean
-psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
+psppire_case_file_get_case (const PsppireCaseFile *cf, casenumber casenum,
 			   struct ccase *c)
 {
   g_return_val_if_fail (cf, FALSE);

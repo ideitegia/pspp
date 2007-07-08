@@ -69,7 +69,7 @@ struct _PsppireVarStoreClass
 
 GType         psppire_var_store_get_type         (void) G_GNUC_CONST;
 PsppireVarStore *psppire_var_store_new              (PsppireDict *dict);
-struct variable * psppire_var_store_get_var (PsppireVarStore *store, gint row);
+struct variable * psppire_var_store_get_var (PsppireVarStore *store, glong row);
 
 void psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict);
 

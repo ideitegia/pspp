@@ -69,7 +69,7 @@ GType          psppire_case_file_get_type (void);
 
 PsppireCaseFile *psppire_case_file_new (const struct casereader *);
 
-gboolean psppire_case_file_insert_case (PsppireCaseFile *cf, struct ccase *c, gint row);
+gboolean psppire_case_file_insert_case (PsppireCaseFile *cf, struct ccase *c, casenumber row);
 
 casenumber psppire_case_file_get_case_count (const PsppireCaseFile *cf);
 
@@ -80,18 +80,18 @@ union value * psppire_case_file_get_value (const PsppireCaseFile *cf,
 
 struct fmt_spec;
 
-gboolean psppire_case_file_data_in (PsppireCaseFile *cf, gint c, gint idx,
+gboolean psppire_case_file_data_in (PsppireCaseFile *cf, casenumber c, gint idx,
                                    struct substring input,
                                    const struct fmt_spec *);
 
-gboolean psppire_case_file_set_value (PsppireCaseFile *cf, gint casenum,
+gboolean psppire_case_file_set_value (PsppireCaseFile *cf, casenumber casenum,
 				     gint idx, union value *v, gint width);
 
 void psppire_case_file_clear (PsppireCaseFile *cf);
 
 
-gboolean psppire_case_file_delete_cases (PsppireCaseFile *cf, gint n_rows,
-					gint first);
+gboolean psppire_case_file_delete_cases (PsppireCaseFile *cf, casenumber n_rows,
+					casenumber first);
 
 gboolean psppire_case_file_insert_values (PsppireCaseFile *cf, gint n_values, gint before);
 
@@ -99,8 +99,9 @@ struct case_ordering;
 
 void psppire_case_file_sort (PsppireCaseFile *cf, struct case_ordering *);
 
-gboolean psppire_case_file_get_case (const PsppireCaseFile *cf, gint casenum,
-				    struct ccase *c);
+gboolean psppire_case_file_get_case (const PsppireCaseFile *cf, 
+					casenumber casenum,
+					struct ccase *c);
 
 
 struct casereader * psppire_case_file_make_reader (PsppireCaseFile *cf);

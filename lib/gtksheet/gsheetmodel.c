@@ -168,7 +168,7 @@ g_sheet_model_free_strings (const GSheetModel *sheet_model)
  **/
 inline gchar *
 g_sheet_model_get_string (const GSheetModel *sheet_model,
-			  gint row, gint column)
+			  glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), 0);
 
@@ -190,7 +190,7 @@ g_sheet_model_get_string (const GSheetModel *sheet_model,
 gboolean
 g_sheet_model_set_string      (GSheetModel *sheet_model,
 				 const gchar *text,
-				 gint row, gint column)
+				 glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), FALSE);
 
@@ -213,7 +213,7 @@ g_sheet_model_set_string      (GSheetModel *sheet_model,
  **/
 gboolean
 g_sheet_model_datum_clear    (GSheetModel *sheet_model,
-				gint row, gint column)
+				glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), FALSE);
 
@@ -233,8 +233,8 @@ g_sheet_model_datum_clear    (GSheetModel *sheet_model,
  **/
 void
 g_sheet_model_range_changed (GSheetModel *sheet_model,
-			       gint row0, gint col0,
-			       gint rowi, gint coli)
+			       glong row0, glong col0,
+			       glong rowi, glong coli)
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
@@ -255,7 +255,7 @@ g_sheet_model_range_changed (GSheetModel *sheet_model,
  **/
 void
 g_sheet_model_rows_inserted (GSheetModel *sheet_model,
-			       gint row, gint n_rows)
+			       glong row, glong n_rows)
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
@@ -274,7 +274,7 @@ g_sheet_model_rows_inserted (GSheetModel *sheet_model,
  **/
 void
 g_sheet_model_columns_inserted (GSheetModel *sheet_model,
-			       gint column, gint n_columns)
+			       glong column, glong n_columns)
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
@@ -295,7 +295,7 @@ g_sheet_model_columns_inserted (GSheetModel *sheet_model,
  **/
 void
 g_sheet_model_rows_deleted (GSheetModel *sheet_model,
-			       gint row, gint n_rows)
+			       glong row, glong n_rows)
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
@@ -315,7 +315,7 @@ g_sheet_model_rows_deleted (GSheetModel *sheet_model,
  **/
 void
 g_sheet_model_columns_deleted (GSheetModel *sheet_model,
-			       gint column, gint n_columns)
+			       glong column, glong n_columns)
 {
   g_return_if_fail (G_IS_SHEET_MODEL (sheet_model));
 
@@ -337,7 +337,7 @@ g_sheet_model_columns_deleted (GSheetModel *sheet_model,
  **/
 inline gboolean
 g_sheet_model_is_editable (const GSheetModel *model,
-			     gint row, gint column)
+			     glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), TRUE);
 
@@ -358,7 +358,7 @@ g_sheet_model_is_editable (const GSheetModel *model,
  **/
 inline gboolean
 g_sheet_model_is_visible (const GSheetModel *model,
-			  gint row, gint column)
+			  glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), TRUE);
 
@@ -381,7 +381,7 @@ g_sheet_model_is_visible (const GSheetModel *model,
  **/
 inline const GdkColor *
 g_sheet_model_get_foreground (const GSheetModel *model,
-				gint row, gint column)
+				glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
 
@@ -403,7 +403,7 @@ g_sheet_model_get_foreground (const GSheetModel *model,
  **/
 inline const GdkColor *
 g_sheet_model_get_background (const GSheetModel *model,
-				gint row, gint column)
+				glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
 
@@ -425,7 +425,7 @@ g_sheet_model_get_background (const GSheetModel *model,
  **/
 inline const GtkJustification *
 g_sheet_model_get_justification (const GSheetModel *model,
-				   gint row, gint column)
+				   glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
 
@@ -447,7 +447,7 @@ g_sheet_model_get_justification (const GSheetModel *model,
  **/
 inline const PangoFontDescription *
 g_sheet_model_get_font_desc(const GSheetModel *model,
-			      gint row, gint column)
+			      glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_font_desc)
@@ -468,7 +468,7 @@ g_sheet_model_get_font_desc(const GSheetModel *model,
  **/
 inline const GtkSheetCellBorder *
 g_sheet_model_get_cell_border (const GSheetModel *model,
-				 gint row, gint column)
+				 glong row, glong column)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
   if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_cell_border)
@@ -486,8 +486,8 @@ g_sheet_model_get_cell_border (const GSheetModel *model,
  *
  * Returns the total number of columns represented by the model
  **/
-inline gint
-g_sheet_model_get_column_count(const GSheetModel *model)
+inline glong
+g_sheet_model_get_column_count (const GSheetModel *model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);
 

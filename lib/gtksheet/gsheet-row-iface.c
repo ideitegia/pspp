@@ -105,7 +105,7 @@ g_sheet_row_base_init (gpointer g_class)
 
 void
 g_sheet_row_set_height (GSheetRow *row_geo,
-				gint row, gint size, gpointer data)
+				glong row, gint size, gpointer data)
 {
   g_return_if_fail (G_IS_SHEET_ROW (row_geo));
 
@@ -117,7 +117,7 @@ g_sheet_row_set_height (GSheetRow *row_geo,
 
 gint
 g_sheet_row_get_height     (const GSheetRow *row_geo,
-				    gint row, gpointer data)
+				    glong row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), -1);
 
@@ -131,7 +131,7 @@ g_sheet_row_get_height     (const GSheetRow *row_geo,
 
 gboolean
 g_sheet_row_get_visibility(const GSheetRow *row_geo,
-					    gint row, gpointer data)
+					    glong row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
@@ -144,7 +144,7 @@ g_sheet_row_get_visibility(const GSheetRow *row_geo,
 
 gboolean
 g_sheet_row_get_sensitivity(const GSheetRow *row_geo,
-					     gint row, gpointer data)
+					     glong row, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
 
@@ -158,7 +158,7 @@ g_sheet_row_get_sensitivity(const GSheetRow *row_geo,
 
 GtkSheetButton *
 g_sheet_row_get_button(const GSheetRow *row_geo,
-			      gint row, gpointer data)
+			      glong row, gpointer data)
 {
   GtkSheetButton *button  = gtk_sheet_button_new();
 
@@ -173,7 +173,7 @@ g_sheet_row_get_button(const GSheetRow *row_geo,
 }
 
 inline gchar *
-g_sheet_row_get_subtitle (const GSheetRow *row_geo, gint row)
+g_sheet_row_get_subtitle (const GSheetRow *row_geo, glong row)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), NULL);
 
@@ -186,8 +186,8 @@ g_sheet_row_get_subtitle (const GSheetRow *row_geo, gint row)
 
 
 
-gint
-g_sheet_row_get_row_count(const GSheetRow *geo, gpointer data)
+glong
+g_sheet_row_get_row_count (const GSheetRow *geo, gpointer data)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
 
@@ -210,7 +210,7 @@ g_sheet_row_get_row_count(const GSheetRow *geo, gpointer data)
  */
 
 gint
-g_sheet_row_start_pixel(const GSheetRow *geo, gint row, gpointer data)
+g_sheet_row_start_pixel(const GSheetRow *geo, glong row, gpointer data)
 {
   gint i;
   gint start_pixel = 0;
@@ -233,8 +233,8 @@ g_sheet_row_start_pixel(const GSheetRow *geo, gint row, gpointer data)
 }
 
 
-gint
-g_sheet_row_pixel_to_row(const GSheetRow *geo, gint pixel,
+glong
+g_sheet_row_pixel_to_row (const GSheetRow *geo, gint pixel,
 			 gpointer data)
 {
   gint i, cy;
@@ -263,8 +263,8 @@ g_sheet_row_pixel_to_row(const GSheetRow *geo, gint pixel,
 
 
 void
-g_sheet_row_rows_deleted(GSheetRow *geo,
-				 gint first, gint n_rows)
+g_sheet_row_rows_deleted (GSheetRow *geo,
+				 glong first, glong n_rows)
 {
   g_return_if_fail (G_IS_SHEET_ROW (geo));
 

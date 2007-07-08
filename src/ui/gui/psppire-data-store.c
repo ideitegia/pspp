@@ -50,7 +50,7 @@ static void psppire_data_store_sheet_row_init (GSheetRowIface *iface);
 static void psppire_data_store_finalize        (GObject           *object);
 
 static gboolean psppire_data_store_clear_datum (GSheetModel *model,
-					  gint row, gint column);
+					  glong row, glong column);
 
 
 #define MIN_COLUMNS 10
@@ -151,7 +151,7 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
 
 
 
-static gint
+static glong
 psppire_data_store_get_var_count (const GSheetModel *model)
 {
   const PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
@@ -165,16 +165,13 @@ psppire_data_store_get_case_count (PsppireDataStore *store)
   return psppire_case_file_get_case_count (store->case_file);
 }
 
-static gint
+static glong
 psppire_data_store_get_case_count_from_model (const GSheetModel *model)
 {
   const PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
 
   return psppire_case_file_get_case_count (store->case_file);
 }
-
-
-
 
 static void
 psppire_data_store_init (PsppireDataStore *data_store)
@@ -186,7 +183,7 @@ psppire_data_store_init (PsppireDataStore *data_store)
 
 const PangoFontDescription *
 psppire_data_store_get_font_desc (const GSheetModel *model,
-			      gint row, gint column)
+			      glong row, glong column)
 {
   PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
 
@@ -194,8 +191,8 @@ psppire_data_store_get_font_desc (const GSheetModel *model,
 }
 
 static inline gchar *
-psppire_data_store_get_string_wrapper (const GSheetModel *model, gint row,
-				       gint column)
+psppire_data_store_get_string_wrapper (const GSheetModel *model, glong row,
+				       glong column)
 {
   return psppire_data_store_get_string (PSPPIRE_DATA_STORE (model), row, column);
 }
@@ -204,7 +201,7 @@ psppire_data_store_get_string_wrapper (const GSheetModel *model, gint row,
 static inline gboolean
 psppire_data_store_set_string_wrapper (GSheetModel *model,
 				       const gchar *text,
-				       gint row, gint column)
+				       glong row, glong column)
 {
   return psppire_data_store_set_string (PSPPIRE_DATA_STORE (model), text,
 					row, column);
@@ -238,7 +235,8 @@ gboolean always_true ()
 
 
 static void
-delete_cases_callback (GtkWidget *w, gint first, gint n_cases, gpointer data)
+delete_cases_callback (GtkWidget *w,
+	 casenumber first, casenumber n_cases, gpointer data)
 {
   PsppireDataStore *store  ;
 
@@ -253,7 +251,7 @@ delete_cases_callback (GtkWidget *w, gint first, gint n_cases, gpointer data)
 
 
 static void
-insert_case_callback (GtkWidget *w, gint casenum, gpointer data)
+insert_case_callback (GtkWidget *w, casenumber casenum, gpointer data)
 {
   PsppireDataStore *store  ;
 
@@ -461,7 +459,7 @@ psppire_data_store_finalize (GObject *object)
 
 /* Insert a blank case before POSN */
 gboolean
-psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn)
+psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
 {
   gboolean result;
   gint val_cnt, v;
@@ -494,7 +492,7 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn)
 
 
 gchar *
-psppire_data_store_get_string (PsppireDataStore *store, gint row, gint column)
+psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
 {
   gint idx;
   char *text;
@@ -561,8 +559,7 @@ psppire_data_store_get_string (PsppireDataStore *store, gint row, gint column)
 
 static gboolean
 psppire_data_store_clear_datum (GSheetModel *model,
-					  gint row, gint col)
-
+					  glong row, glong col)
 {
   PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
 
@@ -589,7 +586,7 @@ psppire_data_store_clear_datum (GSheetModel *model,
 */
 gboolean
 psppire_data_store_set_string (PsppireDataStore *store,
-			       const gchar *text, gint row, gint col)
+			       const gchar *text, glong row, glong col)
 {
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
   g_return_val_if_fail (pv, FALSE);
@@ -674,7 +671,7 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
 
 /* Column related funcs */
 
-static gint
+static glong
 geometry_get_column_count (const GSheetColumn *geom)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
@@ -685,7 +682,7 @@ geometry_get_column_count (const GSheetColumn *geom)
 
 
 static gint
-geometry_get_width (const GSheetColumn *geom, gint unit)
+geometry_get_width (const GSheetColumn *geom, glong unit)
 {
   const struct variable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
@@ -702,7 +699,7 @@ geometry_get_width (const GSheetColumn *geom, gint unit)
 }
 
 static void
-geometry_set_width (GSheetColumn *geom, gint unit, gint width)
+geometry_set_width (GSheetColumn *geom, glong unit, gint width)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
 
@@ -714,7 +711,7 @@ geometry_set_width (GSheetColumn *geom, gint unit, gint width)
 
 
 static GtkJustification
-geometry_get_justification (const GSheetColumn *geom, gint unit)
+geometry_get_justification (const GSheetColumn *geom, glong unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
   const struct variable *pv ;
@@ -734,7 +731,7 @@ geometry_get_justification (const GSheetColumn *geom, gint unit)
 static const gchar null_var_name[]=N_("var");
 
 static gchar *
-geometry_get_column_button_label (const GSheetColumn *geom, gint unit)
+geometry_get_column_button_label (const GSheetColumn *geom, glong unit)
 {
   gchar *text;
   struct variable *pv ;
@@ -752,7 +749,7 @@ geometry_get_column_button_label (const GSheetColumn *geom, gint unit)
 
 
 static gchar *
-geometry_get_column_subtitle (const GSheetColumn *geom, gint unit)
+geometry_get_column_subtitle (const GSheetColumn *geom, glong unit)
 {
   gchar *text;
   const struct variable *v ;
@@ -773,7 +770,7 @@ geometry_get_column_subtitle (const GSheetColumn *geom, gint unit)
 
 
 static gboolean
-geometry_get_sensitivity (const GSheetColumn *geom, gint unit)
+geometry_get_sensitivity (const GSheetColumn *geom, glong unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
 
@@ -797,7 +794,7 @@ psppire_data_store_sheet_column_init (GSheetColumnIface *iface)
 
 /* Row related funcs */
 
-static gint
+static glong
 geometry_get_row_count (const GSheetRow *geom, gpointer data)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
@@ -807,14 +804,14 @@ geometry_get_row_count (const GSheetRow *geom, gpointer data)
 
 
 static gint
-geometry_get_height (const GSheetRow *geom, gint unit, gpointer data)
+geometry_get_height (const GSheetRow *geom, glong unit, gpointer data)
 {
   return 25;
 }
 
 
 static gboolean
-geometry_get_row_sensitivity (const GSheetRow *geom, gint unit, gpointer data)
+geometry_get_row_sensitivity (const GSheetRow *geom, glong unit, gpointer data)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
 
@@ -824,7 +821,7 @@ geometry_get_row_sensitivity (const GSheetRow *geom, gint unit, gpointer data)
 
 
 static gchar *
-geometry_get_row_button_label (const GSheetRow *geom, gint unit, gpointer data)
+geometry_get_row_button_label (const GSheetRow *geom, glong unit, gpointer data)
 {
   gchar *text;
   gchar *s;
@@ -834,7 +831,7 @@ geometry_get_row_button_label (const GSheetRow *geom, gint unit, gpointer data)
        TRAILING_ROWS + psppire_case_file_get_case_count (ds->case_file))
     return 0;
 
-  s = g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
+  s = g_strdup_printf (_("%ld"), unit + FIRST_CASE_NUMBER);
 
   text =  pspp_locale_to_utf8 (s, -1, 0);
 
@@ -856,6 +853,3 @@ psppire_data_store_sheet_row_init (GSheetRowIface *iface)
 
   iface->get_button_label = geometry_get_row_button_label;
 }
-
-
-

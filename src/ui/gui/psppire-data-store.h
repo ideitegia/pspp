@@ -97,16 +97,16 @@ void psppire_data_store_show_labels (PsppireDataStore *store,
 
 void psppire_data_store_clear (PsppireDataStore *data_store);
 
-gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, gint posn);
+gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn);
 
 struct casereader * psppire_data_store_get_reader (PsppireDataStore *ds);
 
 gchar * psppire_data_store_get_string (PsppireDataStore *ds,
-				       gint row, gint column);
+				       casenumber row, glong column);
 
 gboolean psppire_data_store_set_string (PsppireDataStore *ds,
 					const gchar *text,
-					gint row, gint column);
+					glong row, glong column);
 
 casenumber psppire_data_store_get_case_count (PsppireDataStore *store);
 

@@ -97,52 +97,52 @@ g_sheet_uniform_column_new (gint width, gint n_columns)
 }
 
 static gint
-g_sheet_uniform_column_get_width(const GSheetColumn *geom, gint u)
+g_sheet_uniform_column_get_width (const GSheetColumn *geom, glong u)
 {
-  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
+  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN (geom);
 
   return ug->width;
 }
 
-static gint
-g_sheet_uniform_column_get_sensitivity(const GSheetColumn *geom, gint u)
+static gboolean
+g_sheet_uniform_column_get_sensitivity (const GSheetColumn *geom, glong u)
 {
-  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
+  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN (geom);
 
   return ug->is_sensitive;
 }
 
 
-static gint
-g_sheet_uniform_column_get_visibility(const GSheetColumn *geom, gint u)
+static gboolean
+g_sheet_uniform_column_get_visibility (const GSheetColumn *geom, glong u)
 {
-  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
+  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN (geom);
 
   return ug->is_visible;
 }
 
 
 static gchar *
-g_sheet_uniform_column_get_button_label(const GSheetColumn *geom, gint u)
+g_sheet_uniform_column_get_button_label (const GSheetColumn *geom, glong u)
 {
-  gchar *label = g_strdup_printf("%d", u);
+  gchar *label = g_strdup_printf ("%ld", u);
 
   return label;
 }
 
 
 static GtkJustification
-g_sheet_uniform_column_get_justification(const GSheetColumn *geom, gint u)
+g_sheet_uniform_column_get_justification (const GSheetColumn *geom, glong u)
 {
   return GTK_JUSTIFY_FILL;
 }
 
 
 
-static gint
-g_sheet_uniform_column_get_column_count(const GSheetColumn *geom)
+static glong
+g_sheet_uniform_column_get_column_count (const GSheetColumn *geom)
 {
-  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN(geom);
+  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN (geom);
 
   return ug->n_columns;
 }
@@ -166,7 +166,7 @@ g_sheet_uniform_column_init (GSheetUniformColumn *o)
 }
 
 static void
-g_sheet_uniform_column_finalize (GObject           *object)
+g_sheet_uniform_column_finalize (GObject *object)
 {
 }
 
