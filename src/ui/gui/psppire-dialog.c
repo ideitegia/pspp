@@ -231,6 +231,9 @@ psppire_dialog_init (PsppireDialog *dialog)
   g_value_init (&value, orientation_spec->value_type);
   g_param_value_set_default (orientation_spec, &value);
 
+  gtk_window_set_type_hint (GTK_WINDOW (dialog),
+	GDK_WINDOW_TYPE_HINT_DIALOG);
+
   dialog_set_orientation (dialog, &value);
 
   g_value_unset (&value);

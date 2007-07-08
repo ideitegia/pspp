@@ -5318,8 +5318,10 @@ create_hover_window (void)
 
   hw->window = gtk_window_new (GTK_WINDOW_POPUP);
 
+#if GTK_CHECK_VERSION (2, 9, 0)
   gtk_window_set_type_hint (GTK_WINDOW (hw->window),
 			    GDK_WINDOW_TYPE_HINT_TOOLTIP);
+#endif
 
   gtk_widget_set_app_paintable (hw->window, TRUE);
   gtk_window_set_resizable (GTK_WINDOW (hw->window), FALSE);
