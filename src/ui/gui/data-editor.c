@@ -130,7 +130,6 @@ static void
 on_recent_data_select (GtkMenuShell *menushell,   gpointer user_data)
 {
   gchar *file;
-
   struct data_editor *de = user_data;
 
   gchar *uri =
@@ -254,8 +253,6 @@ new_data_editor (void)
 		    G_CALLBACK (insert_variable), de);
 
 
-
-
   gtk_action_connect_proxy (de->insert_variable,
 			    get_widget_assert (de->xml, "button-insert-variable")
 			    );
@@ -372,10 +369,15 @@ new_data_editor (void)
     GtkRecentManager *rm = gtk_recent_manager_get_default ();
     GtkWidget *recent_data = get_widget_assert (de->xml, "file_recent-data");
     GtkWidget *recent_files = get_widget_assert (de->xml, "file_recent-files");
+    GtkWidget *recent_separator = get_widget_assert (de->xml, "file_separator1");
 
     GtkWidget *menu = gtk_recent_chooser_menu_new_for_manager (rm);
 
     GtkRecentFilter *filter = gtk_recent_filter_new ();
+
+    gtk_widget_show (recent_data);
+    gtk_widget_show (recent_files);
+    gtk_widget_show (recent_separator);
 
     gtk_recent_filter_add_pattern (filter, "*.sav");
     gtk_recent_filter_add_pattern (filter, "*.SAV");
