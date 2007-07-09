@@ -3925,8 +3925,8 @@ gtk_sheet_get_active_cell (GtkSheet *sheet, gint *row, gint *column)
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
-  *row = sheet->active_cell.row;
-  *column = sheet->active_cell.col;
+  if ( row ) *row = sheet->active_cell.row;
+  if (column) *column = sheet->active_cell.col;
 }
 
 static void

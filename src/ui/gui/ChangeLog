@@ -1,5 +1,10 @@
 2007-07-08  John Darrington <john@darrington.wattle.id.au>
 
+	* data-editor.c data-editor.glade data-editor.h: Implemented 
+	the "Insert Case" button/dialog.
+
+2007-07-08  John Darrington <john@darrington.wattle.id.au>
+
 	* goto-case-dialog.c goto-case-dialog.h (new files)
 	* automake.mk data-editor.c data-editor.glade data-editor.h 
 	psppire-case-file.c psppire-case-file.h psppire-data-store.c 

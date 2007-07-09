@@ -41,6 +41,7 @@ struct data_editor
   GtkAction *invoke_variable_info_dialog;
 
   GtkAction *insert_variable;
+  GtkAction *insert_case;
 
   GladeXML *xml;
 

@@ -280,7 +280,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="insert-cases">
+                      <widget class="GtkMenuItem" id="data_insert-case">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Insert Cases</property>

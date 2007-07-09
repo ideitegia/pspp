@@ -1,3 +1,8 @@
+09 July 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* gtksheet.c gtksheet.h (gtk_sheet_get_active_cell): Allowed row,
+	column 	to be NULL.
+
 07 July 2007 John Darrington <john@darrington.wattle.id.au>
 	 
 	* gsheet-column-iface.c gsheet-column-iface.h gsheet-row-iface.c

@@ -59,6 +59,9 @@ static void register_data_editor_actions (struct data_editor *de);
 
 static void insert_variable (GtkAction *, gpointer data);
 
+static void insert_case (GtkAction *a, gpointer data);
+
+
 
 /* Switch between the VAR SHEET and the DATA SHEET */
 
@@ -248,11 +251,6 @@ new_data_editor (void)
 		    G_CALLBACK (insert_variable), de);
 
 
-
-  g_signal_connect (de->insert_variable, "activate",
-		    G_CALLBACK (insert_variable), de);
-
-
   gtk_action_connect_proxy (de->insert_variable,
 			    get_widget_assert (de->xml, "button-insert-variable")
 			    );
@@ -260,6 +258,28 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->insert_variable,
 			    get_widget_assert (de->xml, "data_insert-variable")
 			    );
+
+
+  de->insert_case =
+    gtk_action_new ("insert-case",
+		    _("Insert Case"),
+		    _("Create a new case at the current position"),
+		    "pspp-insert-case");
+
+  g_signal_connect (de->insert_case, "activate",
+		    G_CALLBACK (insert_case), de);
+
+
+  gtk_action_connect_proxy (de->insert_case,
+			    get_widget_assert (de->xml, "button-insert-case")
+			    );
+
+
+  gtk_action_connect_proxy (de->insert_case,
+			    get_widget_assert (de->xml, "data_insert-case")
+			    );
+
+
 
   de->invoke_goto_dialog =
     gtk_action_new ("goto-case-dialog",
@@ -636,9 +656,6 @@ new_data_window (GtkMenuItem *menuitem, gpointer parent)
 static void
 select_sheet (struct data_editor *de, guint page_num)
 {
-  GtkWidget *insert_variable = get_widget_assert (de->xml, "data_insert-variable");
-  GtkWidget *insert_cases = get_widget_assert (de->xml, "insert-cases");
-
   GtkWidget *view_data = get_widget_assert (de->xml, "view_data");
   GtkWidget *view_variables = get_widget_assert (de->xml, "view_variables");
 
@@ -647,14 +664,15 @@ select_sheet (struct data_editor *de, guint page_num)
     case PAGE_VAR_SHEET:
       gtk_widget_hide (view_variables);
       gtk_widget_show (view_data);
-      gtk_widget_set_sensitive (insert_variable, TRUE);
-      gtk_widget_set_sensitive (insert_cases, FALSE);
+      gtk_action_set_sensitive (de->insert_variable, TRUE);
+      gtk_action_set_sensitive (de->insert_case, FALSE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
       break;
     case PAGE_DATA_SHEET:
       gtk_widget_show (view_variables);
       gtk_widget_hide (view_data);
       gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
+      gtk_action_set_sensitive (de->insert_case, TRUE);
       break;
     default:
       g_assert_not_reached ();
@@ -864,6 +882,25 @@ on_clear_activate (GtkMenuItem *menuitem, gpointer data)
     }
 }
 
+static void
+insert_case (GtkAction *action, gpointer data)
+{
+  gint current_row ;
+  struct data_editor *de = data;
+
+  GtkSheet *data_sheet =
+    GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE
+    (gtk_sheet_get_model (data_sheet) );
+
+
+  gtk_sheet_get_active_cell (data_sheet, &current_row, NULL);
+
+  if (current_row < 0) current_row = 0;
+
+  psppire_data_store_insert_new_case (ds, current_row);
+}
 
 /* Insert a new variable before the current row in the variable sheet,
    or before the current column in the data sheet, whichever is selected */

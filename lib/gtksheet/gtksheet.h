@@ -532,6 +532,10 @@ void gtk_sheet_unselect_range		(GtkSheet *sheet);
 gboolean
 gtk_sheet_set_active_cell 		(GtkSheet *sheet,
 					gint row, gint column);
+
+/* Sets *ROW and *COLUMN to be the coordinates of the active cell.
+   ROW and/or COLUMN may be null if the caller is not interested in their
+   values */
 void
 gtk_sheet_get_active_cell 		(GtkSheet *sheet,
 					gint *row, gint *column);
