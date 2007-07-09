@@ -466,9 +466,9 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
   struct ccase cc;
   g_return_val_if_fail (ds, FALSE);
 
-
-  /* Opportunity for optimisation exists here when creating a blank case */
   val_cnt = datasheet_get_column_cnt (ds->case_file->datasheet) ;
+
+  g_return_val_if_fail (val_cnt > 0, FALSE);
 
   case_create (&cc, val_cnt);
 
