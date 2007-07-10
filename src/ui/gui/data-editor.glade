@@ -317,14 +317,6 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="restructure1">
-                        <property name="visible">True</property>
-                        <property name="sensitive">False</property>
-                        <property name="label" translatable="yes">Restructure</property>
-                        <property name="use_underline">True</property>
-                      </widget>
-                    </child>
-                    <child>
                       <widget class="GtkMenuItem" id="merge_files1">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
