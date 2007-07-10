@@ -1,3 +1,7 @@
+2007-07-10  Jason Stover  <jhs@math.gcsu.edu>
+
+	* glm.q: Initial version of the GLM procedure.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	Adapt case sources, sinks, and clients of procedure code to the
