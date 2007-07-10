@@ -99,6 +99,10 @@ void psppire_data_store_clear (PsppireDataStore *data_store);
 
 gboolean psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn);
 
+
+gboolean psppire_data_store_delete_cases (PsppireDataStore *ds, casenumber first, casenumber count);
+
+
 struct casereader * psppire_data_store_get_reader (PsppireDataStore *ds);
 
 gchar * psppire_data_store_get_string (PsppireDataStore *ds,

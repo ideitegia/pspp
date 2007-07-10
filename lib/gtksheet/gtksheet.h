@@ -353,6 +353,11 @@ gtk_sheet_get_rows_count 		(GtkSheet *sheet);
 void
 gtk_sheet_get_visible_range		(GtkSheet *sheet,
 					 GtkSheetRange *range);
+
+void
+gtk_sheet_get_selected_range		(GtkSheet *sheet,
+					 GtkSheetRange *range);
+
 void
 gtk_sheet_set_selection_mode		(GtkSheet *sheet, gint mode);
 

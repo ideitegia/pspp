@@ -494,17 +494,27 @@ new_data_editor (void)
 		    G_CALLBACK (reference_manual),
 		    e->window);
 
-  g_signal_connect (get_widget_assert (de->xml,"data_sheet"),
+  g_signal_connect (data_sheet,
 		    "double-click-column",
 		    G_CALLBACK (click2column),
 		    de);
 
-  g_signal_connect (get_widget_assert (de->xml, "variable_sheet"),
+  g_signal_connect (data_sheet,
+		    "select-row",
+		    GTK_SIGNAL_FUNC (enable_edit_clear),
+		    de);
+
+  g_signal_connect (data_sheet,
+		    "activate",
+		    GTK_SIGNAL_FUNC (disable_edit_clear),
+		    de);
+
+  g_signal_connect (var_sheet,
 		    "double-click-row",
 		    GTK_SIGNAL_FUNC (click2row),
 		    de);
 
-  g_signal_connect (get_widget_assert (de->xml, "variable_sheet"),
+  g_signal_connect (var_sheet,
 		    "select-row",
 		    GTK_SIGNAL_FUNC (enable_edit_clear),
 		    de);
@@ -844,42 +854,67 @@ file_quit (GtkCheckMenuItem *menuitem, gpointer data)
 }
 
 
-
 /* Callback for when the Clear item in the edit menu is activated */
 static void
 on_clear_activate (GtkMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
 
+  GtkSheet *sheet  = NULL;
+  GtkSheetRange range ;
+
   GtkNotebook *notebook = GTK_NOTEBOOK (get_widget_assert (de->xml,
 							   "notebook"));
 
-  switch ( gtk_notebook_get_current_page (notebook) )
+  const gint page = gtk_notebook_get_current_page (notebook);
+
+  sheet = GTK_SHEET
+    (get_widget_assert (de->xml,
+			(page == PAGE_VAR_SHEET) ? "variable_sheet" : "data_sheet"));
+
+  /* This shouldn't be able to happen, because the menuitem
+     should be disabled */
+  g_return_if_fail (gtk_sheet_get_state (sheet) == GTK_SHEET_ROW_SELECTED );
+
+
+  gtk_sheet_get_selected_range (sheet, &range);
+
+  switch ( page )
     {
     case PAGE_VAR_SHEET:
       {
-	GtkSheet *var_sheet =
-	  GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
 	PsppireVarStore *vs = PSPPIRE_VAR_STORE
-	  (gtk_sheet_get_model (var_sheet) );
+	  (gtk_sheet_get_model (sheet) );
+
+
+	psppire_dict_delete_variables (vs->dict,
+				       range.row0,
+				       1 +
+				       range.rowi -
+				       range.row0 );
+      }
+      break;
+    case PAGE_DATA_SHEET:
+      {
+	PsppireDataStore *data_store = PSPPIRE_DATA_STORE
+	  (gtk_sheet_get_model (sheet) );
+
 
 	/* This shouldn't be able to happen, because the menuitem
 	   should be disabled */
-	g_return_if_fail (var_sheet->state  ==  GTK_SHEET_ROW_SELECTED );
+	g_return_if_fail (gtk_sheet_get_state (sheet)
+			  ==  GTK_SHEET_ROW_SELECTED );
 
-	psppire_dict_delete_variables (vs->dict,
-				       var_sheet->range.row0,
-				       1 +
-				       var_sheet->range.rowi -
-				       var_sheet->range.row0 );
+
+	psppire_data_store_delete_cases (data_store, range.row0,
+					 1 + range.rowi - range.row0);
       }
       break;
-      case PAGE_DATA_SHEET:
-	break;
-      default:
-	g_assert_not_reached ();
+    default:
+      g_assert_not_reached ();
     }
+
+  gtk_sheet_unselect_range (sheet);
 }
 
 static void

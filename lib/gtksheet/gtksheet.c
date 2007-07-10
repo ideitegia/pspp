@@ -2215,6 +2215,8 @@ gtk_sheet_select_column (GtkSheet * sheet, gint column)
   gtk_sheet_real_select_range (sheet, NULL);
 }
 
+
+
 void
 gtk_sheet_clip_range (GtkSheet *sheet, const GtkSheetRange *range)
 {
@@ -4706,6 +4708,16 @@ gtk_sheet_real_select_range (GtkSheet * sheet,
 
   gtk_signal_emit (GTK_OBJECT (sheet), sheet_signals[SELECT_RANGE], &sheet->range);
 }
+
+
+void
+gtk_sheet_get_selected_range		(GtkSheet *sheet,
+					 GtkSheetRange *range)
+{
+  g_return_if_fail (sheet != NULL);
+  *range = sheet->range;
+}
+
 
 void
 gtk_sheet_select_range (GtkSheet * sheet, const GtkSheetRange *range)

@@ -455,6 +455,15 @@ psppire_data_store_finalize (GObject *object)
   (* parent_class->finalize) (object);
 }
 
+gboolean
+psppire_data_store_delete_cases (PsppireDataStore *ds,
+				 casenumber first, casenumber count)
+{
+  g_return_val_if_fail (ds, FALSE);
+
+  return psppire_case_file_delete_cases (ds->case_file, count, first);
+}
+
 
 
 /* Insert a blank case before POSN */
