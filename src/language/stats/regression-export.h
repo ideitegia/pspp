@@ -58,7 +58,7 @@ const char reg_getvar[] = "{\n\t\tj = pspp_reg_getvar (var_names[i]);\n"
 "const char *var_names[])\n{\n\t";
 
 const char reg_export_t_quantiles_1[] = "/*\n    Quantiles for the T distribution.\n*/\n"
-"static int\npspp_reg_t_quantile "
+"static double\npspp_reg_t_quantile "
 "(double prob)\n{\n\n\tint i;\n\tdouble quantiles[] = {\n\t\t";
 
 const char reg_export_t_quantiles_2[] = "i = (int) 100.0 * prob;\n\treturn quantiles[i];\n}\n";
