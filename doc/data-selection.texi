@@ -51,51 +51,31 @@ the next procedure or procedure-like command.
 N [OF CASES] num_of_cases [ESTIMATED].
 @end display
 
-Sometimes you may want to disregard cases of your input.  @cmd{N} can
-do this.  @code{N 100} tells PSPP to disregard all cases after the
-first 100.
+@cmd{N OF CASES} limits the number of cases processed by any
+procedures that follow it in the command stream.  @code{N OF CASES
+100}, for example, tells PSPP to disregard all cases after the first
+100.
 
-If the value specified for @cmd{N} is greater than the number of cases
-read in, the value is ignored.
+When @cmd{N OF CASES} is specified after @cmd{TEMPORARY}, it affects
+only the next procedure (@pxref{TEMPORARY}).  Otherwise, cases beyond
+the limit specified are not processed by any later procedure.
 
-@cmd{N} does not discard cases or prevent them from being read.  It
-just causes cases beyond the last one specified to be ignored by data
-analysis commands.
+If the limit specified on @cmd{N OF CASES} is greater than the number
+of cases in the active file, it has no effect.
 
-A later @cmd{N} command can increase or decrease the number of cases
-selected.  (To select all the cases without knowing how many there are,
-specify a very high number: 100000 or whatever you think is large enough.)
+When @cmd{N OF CASES} is used along with @cmd{SAMPLE} or @cmd{SELECT
+IF}, the case limit is applied to the cases obtained after sampling or
+case selection, regardless of how @cmd{N OF CASES} is placed relative
+to @cmd{SAMPLE} or @cmd{SELECT IF} in the command file.  Thus, the
+commands @code{N OF CASES 100} and @code{SAMPLE .5} will both randomly
+sample approximately half of the active file's cases, then select the
+first 100 of those sampled, regardless of their order in the command
+file.
 
-Transformation procedures performed after @cmd{N} is executed
-@emph{do} cause cases to be discarded.
-
-@cmd{SAMPLE} and @cmd{SELECT IF} have
-precedence over @cmd{N}---the same results are obtained by both of the
-following fragments, given the same random number seeds:
-
-@example
-@i{@dots{}set up, read in data@dots{}}
-N 100.
-SAMPLE .5.
-@i{@dots{}analyze data@dots{}}
-
-@i{@dots{}set up, read in data@dots{}}  
-SAMPLE .5.
-N 100.
-@i{@dots{}analyze data@dots{}}
-@end example
-
-Both fragments above first randomly sample approximately half of the
-cases, then select the first 100 of those sampled.
-
-@cmd{N} with the @code{ESTIMATED} keyword gives an
-estimated number of cases before @cmd{DATA LIST} or another command to
-read in data.  @code{ESTIMATED} never limits the number of cases
-processed by procedures.  PSPP currently does not make use of
-case count estimates.
-
-When @cmd{N} is specified after @cmd{TEMPORARY}, it affects only
-the next procedure (@pxref{TEMPORARY}).
+@cmd{N OF CASES} with the @code{ESTIMATED} keyword gives an estimated
+number of cases before @cmd{DATA LIST} or another command to read in
+data.  @code{ESTIMATED} never limits the number of cases processed by
+procedures.  PSPP currently does not make use of case count estimates.
 
 @node SAMPLE
 @section SAMPLE
