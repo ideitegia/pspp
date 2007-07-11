@@ -47,6 +47,7 @@ static void insert_source_row_into_text_view (GtkTreeIter iter,
 struct compute_dialog
 {
   GladeXML *xml;  /* The xml that generated the widgets */
+  PsppireDict *dict;
 };
 
 
@@ -177,13 +178,17 @@ generate_syntax (const struct compute_dialog *cd)
 
   string = g_string_sized_new (64);
 
-  if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (string_toggle)))
+  if ( NULL == psppire_dict_lookup_var (cd->dict, target_name ))
     {
-      const char *w = gtk_entry_get_text (GTK_ENTRY(width_entry));
-      g_string_append_printf (string, "STRING %s (a%s).\n", target_name, w);
+      if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (string_toggle)))
+	{
+	  const char *w = gtk_entry_get_text (GTK_ENTRY(width_entry));
+	  g_string_append_printf (string,
+				  "STRING %s (a%s).\n", target_name, w);
+	}
+      else
+	g_string_append_printf (string, "NUMERIC %s.\n", target_name);
     }
-  else
-    g_string_append_printf (string, "NUMERIC %s.\n", target_name);
 
   if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (user_label_toggle)))
     label = gtk_entry_get_text (GTK_ENTRY (label_entry));
@@ -208,6 +213,74 @@ generate_syntax (const struct compute_dialog *cd)
 }
 
 static void
+reset_type_label_dialog (struct compute_dialog *cd)
+{
+  const gchar *target_name;
+  struct variable *target_var;
+
+  GtkWidget *width_entry =
+    get_widget_assert (cd->xml, "type-and-label-width");
+
+  GtkWidget *label_entry =
+    get_widget_assert (cd->xml, "type-and-label-label-entry");
+
+  GtkWidget *numeric_target =
+    get_widget_assert (cd->xml, "radio-button-numeric");
+
+  GtkWidget *string_target =
+    get_widget_assert (cd->xml, "radio-button-string");
+
+
+  target_name = gtk_entry_get_text
+    (GTK_ENTRY (get_widget_assert (cd->xml, "compute-entry1")));
+
+
+  if ( (target_var = psppire_dict_lookup_var (cd->dict, target_name)) )
+    {
+      /* Existing Variable */
+      const gchar *label ;
+      GtkWidget *user_label =
+	get_widget_assert (cd->xml, "radio-button-user-label");
+
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (user_label), TRUE);
+
+      label = var_get_label (target_var);
+
+      if ( label )
+	{
+	  gtk_entry_set_text (GTK_ENTRY (label_entry), label);
+	}
+
+      gtk_widget_set_sensitive (width_entry, FALSE);
+
+      if ( var_is_numeric (target_var))
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (numeric_target),
+				      TRUE);
+      else
+	gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (string_target),
+				      TRUE);
+
+      gtk_widget_set_sensitive (numeric_target, FALSE);
+      gtk_widget_set_sensitive (string_target, FALSE);
+    }
+  else
+    {
+      GtkWidget *expression =
+	get_widget_assert (cd->xml, "radio-button-expression-label");
+
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (expression), TRUE);
+
+      gtk_widget_set_sensitive (width_entry, TRUE);
+      gtk_widget_set_sensitive (numeric_target, TRUE);
+      gtk_widget_set_sensitive (string_target, TRUE);
+
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (numeric_target),
+				    TRUE);
+    }
+
+}
+
+static void
 run_type_label_dialog (GtkButton *b, gpointer data)
 {
   struct compute_dialog *cd = data;
@@ -218,9 +291,40 @@ run_type_label_dialog (GtkButton *b, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (subdialog), GTK_WINDOW (dialog));
 
+  reset_type_label_dialog (cd);
   response = psppire_dialog_run (PSPPIRE_DIALOG (subdialog));
 }
 
+
+static void
+on_expression_toggle (GtkToggleButton *button, gpointer data)
+{
+  struct compute_dialog *cd = data;
+
+  GtkWidget *entry =
+    get_widget_assert (cd->xml, "type-and-label-label-entry");
+
+  if ( gtk_toggle_button_get_active (button))
+    {
+      gtk_entry_set_text (GTK_ENTRY (entry), "");
+      gtk_widget_set_sensitive (entry, FALSE);
+    }
+  else
+    {
+      const char *label;
+      struct variable *target_var;
+      const gchar *target_name = gtk_entry_get_text
+	(GTK_ENTRY (get_widget_assert (cd->xml, "compute-entry1")));
+
+      target_var = psppire_dict_lookup_var (cd->dict, target_name);
+      label = var_get_label (target_var);
+
+      if ( label )
+	gtk_entry_set_text (GTK_ENTRY (entry), label);
+
+      gtk_widget_set_sensitive (entry, TRUE);
+    }
+}
 
 /* Pops up the Compute dialog box */
 void
@@ -236,20 +340,28 @@ compute_dialog (GObject *o, gpointer data)
 
   GtkWidget *dialog = get_widget_assert   (xml, "compute-variable-dialog");
 
-  GtkWidget *dict_view = get_widget_assert   (xml, "compute-treeview1");
-  GtkWidget *functions = get_widget_assert   (xml, "compute-treeview2");
-  GtkWidget *keypad =    get_widget_assert   (xml, "psppire-keypad1");
-  GtkWidget *target =    get_widget_assert   (xml, "compute-entry1");
+  GtkWidget *dict_view = get_widget_assert (xml, "compute-treeview1");
+  GtkWidget *functions = get_widget_assert (xml, "compute-treeview2");
+  GtkWidget *keypad    = get_widget_assert (xml, "psppire-keypad1");
+  GtkWidget *target    = get_widget_assert (xml, "compute-entry1");
   GtkWidget *syntax_area = get_widget_assert (xml, "compute-textview1");
   GtkWidget *var_selector = get_widget_assert (xml, "compute-selector1");
   GtkWidget *func_selector = get_widget_assert (xml, "compute-selector2");
   GtkWidget *type_and_label = get_widget_assert (xml, "compute-button1");
+
+  GtkWidget *expression =
+	get_widget_assert (xml, "radio-button-expression-label");
+
 
   GtkSheet *var_sheet =
     GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
+  scd.dict = vs->dict;
+
+  g_signal_connect (expression, "toggled",
+		    G_CALLBACK(on_expression_toggle), &scd);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
 
@@ -291,6 +403,7 @@ compute_dialog (GObject *o, gpointer data)
 
 
 
+  
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
 
