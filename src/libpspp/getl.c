@@ -210,6 +210,7 @@ bool
 getl_read_line (struct source_stream *ss, struct string *line,
 		enum getl_syntax *syntax)
 {
+  assert (ss != NULL);
   while (!ll_is_empty (&ss->sources))
     {
       struct getl_source *s = current_source (ss);

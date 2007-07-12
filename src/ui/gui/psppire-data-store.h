@@ -30,18 +30,24 @@ extern "C" {
 
 #define GTK_TYPE_DATA_STORE	       (psppire_data_store_get_type ())
 
-#define PSPPIRE_DATA_STORE(obj)	       (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
+#define PSPPIRE_DATA_STORE(obj)	\
+                     (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
 								    GTK_TYPE_DATA_STORE, PsppireDataStore))
 
-#define PSPPIRE_DATA_STORE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), \
+#define PSPPIRE_DATA_STORE_CLASS(klass) \
+                     (G_TYPE_CHECK_CLASS_CAST ((klass), \
 								 GTK_TYPE_DATA_STORE, \
                                                                  PsppireDataStoreClass))
 
-#define PSPPIRE_IS_DATA_STORE(obj)	       (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_DATA_STORE))
 
-#define PSPPIRE_IS_DATA_STORE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_DATA_STORE))
+#define PSPPIRE_IS_DATA_STORE(obj) \
+	             (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_DATA_STORE))
 
-#define PSPPIRE_DATA_STORE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), \
+#define PSPPIRE_IS_DATA_STORE_CLASS(klass) \
+                     (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_DATA_STORE))
+
+#define PSPPIRE_DATA_STORE_GET_CLASS(obj) \
+                     (G_TYPE_INSTANCE_GET_CLASS ((obj), \
 								   GTK_TYPE_DATA_STORE, \
 								   PsppireDataStoreClass))
 

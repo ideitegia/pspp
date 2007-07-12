@@ -1,3 +1,10 @@
+2007-07-12  John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-data-store.c: Added call to g_sheet_model_range_changed to 
+	ensure that datasheet displays the current store.
+
+	* psppire-data-store.h: Formatting tidy up.
+
 2007-07-11  John Darrington <john@darrington.wattle.id.au>
 
 	* compute-dialog.c : Set type-and-label dialog to sensible state, 		and made syntax generation depend upon existence of target variable.

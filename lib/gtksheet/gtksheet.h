@@ -149,9 +149,6 @@ struct _GtkSheet{
   gboolean rows_resizable;
   gboolean columns_resizable;
 
-  /* Displayed range */
-  GtkSheetRange view;
-
   /* active cell */
   GtkSheetCell active_cell;
   GtkWidget *sheet_entry;

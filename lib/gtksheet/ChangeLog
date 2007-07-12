@@ -1,3 +1,10 @@
+12 July 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* gtksheet.c gtksheet.h: Removed view member and replaced with 
+        function call.  Removed hadjustment_changed and vadjustment_changed 
+        functions which did nothing.  Added some whitespace arount != 
+        operators.
+
 09 July 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* gtksheet.c gtksheet.h (gtk_sheet_get_active_cell): Allowed row,

@@ -395,6 +395,10 @@ psppire_data_store_set_case_file (PsppireDataStore *data_store,
 
   data_store->case_file = cf;
 
+  g_sheet_model_range_changed (G_SHEET_MODEL (data_store),
+			       -1, -1, -1, -1);
+
+
   g_signal_connect (data_store->case_file, "cases-deleted",
 		   G_CALLBACK (delete_cases_callback),
 		   data_store);
