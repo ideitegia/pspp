@@ -1,3 +1,8 @@
+2007-07-11  Ben Pfaff  <blp@gnu.org>
+
+	* tests/xforms/expressions.sh: Remove unused file.  Fixes bug
+	#18140.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
  	* commands/match-files.sh: Test the new support for FIRST and LAST
