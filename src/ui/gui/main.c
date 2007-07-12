@@ -124,7 +124,7 @@ main (int argc, char *argv[])
   if ( show_splash )
     gtk_widget_show (splash_window);
 
-  gtk_idle_add (quit_one_loop, 0);
+  g_idle_add (quit_one_loop, 0);
 
   gtk_quit_add (0, run_inner_loop, splash_window);
   gtk_main ();
