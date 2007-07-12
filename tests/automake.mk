@@ -81,6 +81,7 @@ dist_TESTS = \
 	tests/bugs/alpha-freq.sh \
 	tests/bugs/big-input.sh \
 	tests/bugs/big-input-2.sh \
+	tests/bugs/case-map.sh \
 	tests/bugs/comment-at-eof.sh \
 	tests/bugs/compute-fmt.sh \
 	tests/bugs/compression.sh \

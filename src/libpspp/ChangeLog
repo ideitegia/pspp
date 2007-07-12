@@ -1,3 +1,8 @@
+2007-07-06  Ben Pfaff  <blp@gnu.org>
+
+	* copyleft.c (legal): Update startup notice to use format
+	recommended by latest GNU coding standards.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	* array.c (binary_search): Fix assertion.

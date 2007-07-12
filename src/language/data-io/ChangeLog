@@ -1,3 +1,9 @@
+2007-07-11  Ben Pfaff  <blp@gnu.org>
+
+	* get.c (map_case): Create destination case instead of leaving it
+	undefined.  Fixes bug #20285.
+	Reviewed by John Darrington.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	* get.c: Essentially rewrite MATCH FILES to support FIRST and

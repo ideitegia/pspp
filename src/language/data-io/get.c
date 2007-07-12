@@ -1423,6 +1423,7 @@ map_case (const struct case_map *map,
 {
   size_t dst_idx;
 
+  case_create (dst, map->value_cnt);
   for (dst_idx = 0; dst_idx < map->value_cnt; dst_idx++)
     {
       int src_idx = map->map[dst_idx];
