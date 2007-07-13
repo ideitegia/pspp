@@ -815,11 +815,29 @@ geometry_get_row_count (const GSheetRow *geom, gpointer data)
   return TRAILING_ROWS + psppire_case_file_get_case_count (ds->case_file);
 }
 
+#define ROW_HEIGHT 25
 
 static gint
 geometry_get_height (const GSheetRow *geom, glong unit, gpointer data)
 {
-  return 25;
+  return ROW_HEIGHT;
+}
+
+static guint
+geometry_get_top_ypixel (const GSheetRow *geo, glong row, gpointer data)
+{
+  return row * ROW_HEIGHT;
+}
+
+static glong
+geometry_pixel_to_row (const GSheetRow *geo, guint pixel, gpointer data)
+{
+  glong row  = pixel / ROW_HEIGHT;
+
+  if (row >= geometry_get_row_count (geo, data))
+    row = geometry_get_row_count (geo, data) -1;
+
+  return row;
 }
 
 
@@ -853,7 +871,6 @@ geometry_get_row_button_label (const GSheetRow *geom, glong unit, gpointer data)
   return text;
 }
 
-
 static void
 psppire_data_store_sheet_row_init (GSheetRowIface *iface)
 {
@@ -863,6 +880,7 @@ psppire_data_store_sheet_row_init (GSheetRowIface *iface)
   iface->set_height = 0;
   iface->get_visibility = always_true;
   iface->get_sensitivity = geometry_get_row_sensitivity;
-
+  iface->top_ypixel = geometry_get_top_ypixel;
+  iface->pixel_to_row = geometry_pixel_to_row;
   iface->get_button_label = geometry_get_row_button_label;
 }
