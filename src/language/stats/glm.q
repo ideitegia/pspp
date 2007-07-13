@@ -81,10 +81,14 @@ static const struct variable **v_dependent;
  */
 static size_t n_dependent;
 
+#if 0
 /*
   Return value for the procedure.
  */
 static int pspp_glm_rc = CMD_SUCCESS;
+#else
+int cmd_glm (struct lexer *lexer, struct dataset *ds);
+#endif
 
 static bool run_glm (struct casereader*,
 		     struct cmd_glm *,
