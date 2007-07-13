@@ -23,9 +23,7 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/gtkextra-marshal.c \
 	lib/gtksheet/gtkextra-marshal.h \
 	lib/gtksheet/gtkextra-sheet.h \
-	lib/gtksheet/gtkiconlist.c \
-	lib/gtksheet/gtkiconlist.h \
-	lib/gtksheet/gtkitementry.c \
 	lib/gtksheet/gtkitementry.h \
+	lib/gtksheet/gtkitementry.c \
 	lib/gtksheet/gtksheet.c \
 	lib/gtksheet/gtksheet.h 
