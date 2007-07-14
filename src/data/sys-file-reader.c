@@ -1161,7 +1161,8 @@ sys_file_casereader_read (struct casereader *reader, void *r_,
                            sizeof (union value) * r->flt64_cnt))
         {
           case_destroy (c);
-	  read_error (reader, r);
+	  if ( r->case_cnt != -1 )
+	    read_error (reader, r);
           return false;
         }
 
@@ -1237,7 +1238,8 @@ sys_file_casereader_read (struct casereader *reader, void *r_,
       case_destroy (c);
       if (i != 0)
         partial_record (r);
-      read_error (reader, r);
+      if ( r->case_cnt != -1 )
+	read_error (reader, r);
       return false;
     }
 }
