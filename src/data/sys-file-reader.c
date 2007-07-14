@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -77,6 +77,7 @@ struct sfm_reader
     int flt64_cnt;		/* Number of 8-byte units per case. */
     struct sfm_var *vars;       /* Variables. */
     size_t var_cnt;             /* Number of variables. */
+    int32_t case_cnt;           /* Number of cases */
     bool has_long_var_names;    /* File has a long variable name map */
     bool has_vls;               /* File has one or more very long strings? */
 
@@ -308,7 +309,9 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
   pool_free (r->pool, var_by_value_idx);
   r->value_cnt = dict_get_next_value_idx (*dict);
-  return casereader_create_sequential (NULL, r->value_cnt, CASENUMBER_MAX,
+  return casereader_create_sequential
+    (NULL, r->value_cnt,
+     r->case_cnt == -1 ? CASENUMBER_MAX: r->case_cnt,
                                        &sys_file_casereader_class, r);
 }
 
@@ -381,7 +384,6 @@ read_header (struct sfm_reader *r, struct dictionary *dict,
   char rec_type[5];
   char eye_catcher[61];
   uint8_t raw_layout_code[4];
-  int case_cnt;
   uint8_t raw_bias[8];
   char creation_date[10];
   char creation_time[9];
@@ -412,9 +414,10 @@ read_header (struct sfm_reader *r, struct dictionary *dict,
 
   *weight_idx = read_int32 (r);
 
-  case_cnt = read_int32 (r);
-  if (case_cnt < -1 || case_cnt > INT_MAX / 2)
-    case_cnt = -1;
+  r->case_cnt = read_int32 (r);
+  if ( r->case_cnt > INT_MAX / 2)
+    r->case_cnt = -1;
+
 
   /* Identify floating-point format and obtain compression bias. */
   read_bytes (r, raw_bias, sizeof raw_bias);
@@ -453,7 +456,7 @@ read_header (struct sfm_reader *r, struct dictionary *dict,
       info->integer_format = r->integer_format;
       info->float_format = r->float_format;
       info->compressed = r->compressed;
-      info->case_cnt = case_cnt;
+      info->case_cnt = r->case_cnt;
 
       product = ss_cstr (eye_catcher);
       ss_match_string (&product, ss_cstr ("@(#) SPSS DATA FILE"));
@@ -1122,6 +1125,10 @@ read_value_labels (struct sfm_reader *r,
 
 static void partial_record (struct sfm_reader *r)
      NO_RETURN;
+
+static void read_error (struct casereader *, const struct sfm_reader *);
+
+
 static bool read_case_number (struct sfm_reader *, double *);
 static bool read_case_string (struct sfm_reader *, char *, size_t);
 static int read_opcode (struct sfm_reader *);
@@ -1154,6 +1161,7 @@ sys_file_casereader_read (struct casereader *reader, void *r_,
                            sizeof (union value) * r->flt64_cnt))
         {
           case_destroy (c);
+	  read_error (reader, r);
           return false;
         }
 
@@ -1229,6 +1237,7 @@ sys_file_casereader_read (struct casereader *reader, void *r_,
       case_destroy (c);
       if (i != 0)
         partial_record (r);
+      read_error (reader, r);
       return false;
     }
 }
@@ -1238,6 +1247,13 @@ static void
 partial_record (struct sfm_reader *r)
 {
   sys_error (r, _("File ends in partial case."));
+}
+
+static void
+read_error (struct casereader *r, const struct sfm_reader *sfm)
+{
+  msg (ME, _("Error reading case from file %s"), fh_get_name (sfm->fh));
+  casereader_force_error (r);
 }
 
 /* Reads a number from R and stores its value in *D.

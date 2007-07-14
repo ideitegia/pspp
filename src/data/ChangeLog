@@ -1,3 +1,7 @@
+2007-07-14 John Darrington <john@darrington.wattle.id.au>
+
+	* sfm-reader.c: Respect case_cnt field in file header.
+
 2007-07-01 John Darrington <john@darrington.wattle.id.au>
 
 	* transformation.c transformation.h (trns_chain_execute): Changed the 
