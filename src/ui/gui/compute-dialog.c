@@ -48,6 +48,7 @@ struct compute_dialog
 {
   GladeXML *xml;  /* The xml that generated the widgets */
   PsppireDict *dict;
+  gboolean use_type;
 };
 
 
@@ -77,17 +78,14 @@ refresh (GObject *obj, const struct compute_dialog *cd)
 
   GtkTreeSelection *selection;
 
-
   /* Clear the target variable entry box */
   gtk_entry_set_text (GTK_ENTRY (target), "");
   g_signal_emit_by_name (target, "changed");
-
 
   /* Clear the syntax area textbuffer */
   gtk_text_buffer_get_start_iter (buffer, &start);
   gtk_text_buffer_get_end_iter (buffer, &end);
   gtk_text_buffer_delete (buffer, &start, &end);
-
 
   /* Unselect all items in the treeview */
   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (varlist));
@@ -178,7 +176,8 @@ generate_syntax (const struct compute_dialog *cd)
 
   string = g_string_sized_new (64);
 
-  if ( NULL == psppire_dict_lookup_var (cd->dict, target_name ))
+  if ( cd-> use_type && 
+       NULL == psppire_dict_lookup_var (cd->dict, target_name ))
     {
       if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (string_toggle)))
 	{
@@ -293,6 +292,8 @@ run_type_label_dialog (GtkButton *b, gpointer data)
 
   reset_type_label_dialog (cd);
   response = psppire_dialog_run (PSPPIRE_DIALOG (subdialog));
+  if ( response == PSPPIRE_RESPONSE_CONTINUE)
+    cd->use_type = TRUE;
 }
 
 
@@ -359,6 +360,7 @@ compute_dialog (GObject *o, gpointer data)
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
   scd.dict = vs->dict;
+  scd.use_type = FALSE;
 
   g_signal_connect (expression, "toggled",
 		    G_CALLBACK(on_expression_toggle), &scd);

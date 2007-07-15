@@ -1,3 +1,8 @@
+2007-07-15  John Darrington <john@darrington.wattle.id.au>
+
+	* compute-dialog.c: Only generate NUMERIC/STRING command if the 
+	type-and-label dialog was used.
+
 2007-07-12  John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-data-store.c: Added call to g_sheet_model_range_changed to 
