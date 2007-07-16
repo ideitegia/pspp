@@ -1,3 +1,8 @@
+2007-07-16  John Darrington <john@darrington.wattle.id.au>
+
+	* data-editor.c: File Open dialog remembers directory.  Thanks to 
+	Ben Pfaff for this suggestion.
+	
 2007-07-15  John Darrington <john@darrington.wattle.id.au>
 
 	* compute-dialog.c: Only generate NUMERIC/STRING command if the 

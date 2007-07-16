@@ -1346,6 +1346,15 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
   gtk_file_filter_add_pattern (filter, "*");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
+
+  if ( de->file_name)
+    {
+      gchar *dir_name = g_path_get_dirname (de->file_name);
+      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
+					   dir_name);
+      free (dir_name);
+    }
+
   switch (gtk_dialog_run (GTK_DIALOG (dialog)))
     {
     case GTK_RESPONSE_ACCEPT:
