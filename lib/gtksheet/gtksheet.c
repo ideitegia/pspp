@@ -761,12 +761,11 @@ static void init_attributes			 (const GtkSheet *sheet, gint col,
 
 /* Memory allocation routines */
 static void gtk_sheet_real_range_clear 		 (GtkSheet *sheet,
-						  const GtkSheetRange *range,
-						  gboolean delete);
+						  const GtkSheetRange *range);
+
 static void gtk_sheet_real_cell_clear 		 (GtkSheet *sheet,
 						  gint row,
-						  gint column,
-						  gboolean delete);
+						  gint column);
 
 
 /* Container Functions */
@@ -2612,10 +2611,6 @@ gtk_sheet_finalize (GObject * object)
 
   sheet = GTK_SHEET (object);
 
-  /* get rid of all the cells */
-  gtk_sheet_range_clear (sheet, NULL);
-  gtk_sheet_range_delete (sheet, NULL);
-
   if (sheet->name)
     {
       g_free (sheet->name);
@@ -3671,30 +3666,7 @@ gtk_sheet_cell_clear (GtkSheet *sheet, gint row, gint column)
   range.col0 = MIN_VISIBLE_COLUMN (sheet);
   range.coli = MAX_VISIBLE_COLUMN (sheet);
 
-  gtk_sheet_real_cell_clear (sheet, row, column, FALSE);
-
-  if (!GTK_SHEET_IS_FROZEN (sheet))
-    {
-      gtk_sheet_range_draw (sheet, &range);
-    }
-}
-
-void
-gtk_sheet_cell_delete (GtkSheet *sheet, gint row, gint column)
-{
-  GtkSheetRange range;
-
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-  if (column >= xxx_column_count (sheet) || row >= yyy_row_count (sheet)) return;
-  if (column < 0 || row < 0) return;
-
-  range.row0 = row;
-  range.rowi = row;
-  range.col0 = MIN_VISIBLE_COLUMN (sheet);
-  range.coli = MAX_VISIBLE_COLUMN (sheet);
-
-  gtk_sheet_real_cell_clear (sheet, row, column, TRUE);
+  gtk_sheet_real_cell_clear (sheet, row, column);
 
   if (!GTK_SHEET_IS_FROZEN (sheet))
     {
@@ -3703,7 +3675,7 @@ gtk_sheet_cell_delete (GtkSheet *sheet, gint row, gint column)
 }
 
 static void
-gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column, gboolean delete)
+gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column)
 {
   GSheetModel *model = gtk_sheet_get_model (sheet);
 
@@ -3727,22 +3699,11 @@ gtk_sheet_range_clear (GtkSheet *sheet, const GtkSheetRange *range)
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
-  gtk_sheet_real_range_clear (sheet, range, FALSE);
+  gtk_sheet_real_range_clear (sheet, range);
 }
-
-void
-gtk_sheet_range_delete (GtkSheet *sheet, const GtkSheetRange *range)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  gtk_sheet_real_range_clear (sheet, range, TRUE);
-}
-
 
 static void
-gtk_sheet_real_range_clear (GtkSheet *sheet, const GtkSheetRange *range,
-			    gboolean delete)
+gtk_sheet_real_range_clear (GtkSheet *sheet, const GtkSheetRange *range)
 {
   gint i, j;
   GtkSheetRange clear;
@@ -3765,7 +3726,7 @@ gtk_sheet_real_range_clear (GtkSheet *sheet, const GtkSheetRange *range,
   for (i = clear.row0; i <= clear.rowi; i++)
     for (j = clear.col0; j <= clear.coli; j++)
       {
-	gtk_sheet_real_cell_clear (sheet, i, j, delete);
+	gtk_sheet_real_cell_clear (sheet, i, j);
       }
 
   gtk_sheet_range_draw (sheet, NULL);

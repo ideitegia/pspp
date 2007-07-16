@@ -559,17 +559,10 @@ gtk_sheet_cell_get_text 		(const GtkSheet *sheet, gint row, gint col);
 /* clear cell contents */
 void
 gtk_sheet_cell_clear			(GtkSheet *sheet, gint row, gint col);
-/* clear cell contents and remove links */
-void
-gtk_sheet_cell_delete			(GtkSheet *sheet, gint row, gint col);
 
 /* clear range contents. If range==NULL the whole sheet will be cleared */
 void
 gtk_sheet_range_clear			(GtkSheet *sheet,
-					 const GtkSheetRange *range);
-/* clear range contents and remove links */
-void
-gtk_sheet_range_delete			(GtkSheet *sheet,
 					 const GtkSheetRange *range);
 
 /* get cell state: GTK_STATE_NORMAL, GTK_STATE_SELECTED */
