@@ -1,3 +1,20 @@
+2007-07-17  Ben Pfaff  <blp@gnu.org>
+
+	Patch #19335.  Reviewed by John Darrington.
+
+	* evaluate.h.pl: Use strict and all warnings.  Fix warnings that
+	this triggers.
+
+	* evaluate.inc.pl: Ditto.
+
+	* generate.pl: Ditto.
+
+	* operations.h.pl: Ditto.
+
+	* optimize.inc.pl: Ditto.
+
+	* parse.inc.pl: Ditto.
+
 2007-04-15  Ben Pfaff  <blp@gnu.org>
 
 	* parse.c (expr_get_function): New function.

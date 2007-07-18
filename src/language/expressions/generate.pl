@@ -16,7 +16,7 @@ init_all_types ();
 
 # Parse input file.
 our (%ops);
-our (@funcs, @opers);
+our (@funcs, @opers, @order);
 parse_input ();
 
 # Produce output.
@@ -380,7 +380,7 @@ sub parse_input {
 		       $ops{$a}->{OPNAME} cmp $ops{$b}->{OPNAME}}
       @funcs;
     @opers = sort {$ops{$a}->{NAME} cmp $ops{$b}->{NAME}} @opers;
-    our (@order) = (@funcs, @opers);
+    @order = (@funcs, @opers);
 }
 
 # Reads the next token into $token, $toktype.

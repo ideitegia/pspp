@@ -1,4 +1,8 @@
+use strict;
+use warnings 'all';
+
 do 'generate.pl';
+our (@order, %ops);
 
 sub generate_output {
     for my $opname (@order) {

@@ -1,4 +1,8 @@
+use strict;
+use warnings 'all';
+
 do 'generate.pl';
+our (@types, @funcs, @opers);
 
 sub generate_output {
     print "#include <stdlib.h>\n";

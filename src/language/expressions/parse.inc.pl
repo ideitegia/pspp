@@ -1,4 +1,8 @@
+use strict;
+use warnings 'all';
+
 do 'generate.pl';
+our (@types, @order, %ops);
 
 sub generate_output {
     my (@members) = ("\"\"", "\"\"", 0, 0, 0, "{}", 0, 0);
@@ -7,7 +11,10 @@ sub generate_output {
     for my $type (@types) {
 	next if $type->{ROLE} eq 'fixed';
 
-	my (@members) = ("\"$type->{NAME}\"", "\"$type->{HUMAN_NAME}\"",
+	my ($human_name) = $type->{HUMAN_NAME};
+	$human_name = "" if !defined $human_name;
+	
+	my (@members) = ("\"$type->{NAME}\"", "\"\"",
 			 0, "OP_$type->{NAME}", 0, "{}", 0, 0);
 	print "{", join (', ', @members), "},\n";
     }

@@ -1,5 +1,10 @@
+use strict;
+use warnings 'all';
+
 do 'generate.pl';
 
+our (%ops);
+our (@order);
 sub generate_output {
     print "#include \"helpers.h\"\n\n";
 
