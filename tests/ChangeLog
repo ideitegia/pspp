@@ -4,10 +4,11 @@
 	"-0" from a syntax file.  Also make float-format.sh error messages
 	easier to read, by changing the sed command so that error line
 	numbers are easier to match to the test input.
+	Reviewed by John Darrington as patch #6091.
 
 2007-07-11  Ben Pfaff  <blp@gnu.org>
 
-	* tests/xforms/expressions.sh: Remove unused file.  Fixes bug
+	* xforms/expressions.sh: Remove unused file.  Fixes bug
 	#18140.
 
 2007-06-06  Ben Pfaff  <blp@gnu.org>
@@ -19,19 +20,19 @@
 
 	* automake.mk: Remove test.
 
-	* tests/xforms/casefile.sh: Removed test.
+	* xforms/casefile.sh: Removed test.
 
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new test.
 
-	* tests/command/datasheet.sh: New test.
+	* command/datasheet.sh: New test.
 
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
-	* tests/tower-test.c: Also test tower_last, tower_prev functions.
+	* libpspp/tower-test.c: Also test tower_last, tower_prev functions.
 
-	* tests/range-set-test.c: Also test the range_set_clone function.
+	* libpspp/range-set-test.c: Also test the range_set_clone function.
 
 2007-05-06  Ben Pfaff  <blp@gnu.org>
 
@@ -43,7 +44,7 @@
 
 2007-04-19 John Darrington <john@darrington.wattle.id.au>
 	
-        * tests/command/no_case_size.sh tests/command/sysfiles-old.sh :
+        * command/no_case_size.sh command/sysfiles-old.sh:
 	Changed tests to reflect new behaviour (case changing) when
 	reading system files with no long name table.
 
@@ -51,7 +52,7 @@
 
 	* automake.mk: Add recode.sh to tests.
 
-	* tests/xforms/recode.sh: New test.
+	* xforms/recode.sh: New test.
 
 2007-04-03  Ben Pfaff  <blp@gnu.org>
 	    John McCabe-Dansted <gmatht@gmail.com>
@@ -101,7 +102,7 @@ Sat Feb  3 21:57:34 2007  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add tests/command/vector.sh.
 
-	* tests/command/vector.sh: New test.
+	* command/vector.sh: New test.
 
 Wed Jan 24 21:13:53 2007  Ben Pfaff  <blp@gnu.org>
 
@@ -353,9 +354,8 @@ Mon Aug  1 21:48:54 2005  Ben Pfaff  <blp@gnu.org>
 Sat Jul 30 21:54:23 2005  Ben Pfaff  <blp@gnu.org>
 
 	* command/sys-info.sh: Removed.  (This was not actually in TESTS
-	in Makefile.am, so it was never called.
-	tests/command/sysfile-info.sh does what it was trying to do, but
-	better.)
+	in Makefile.am, so it was never called.  command/sysfile-info.sh
+	does what it was trying to do, but better.)
 	
 Sat Jul 30 21:50:33 2005  Ben Pfaff  <blp@gnu.org>
 
