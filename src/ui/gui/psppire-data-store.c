@@ -482,6 +482,8 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
 
   g_return_val_if_fail (val_cnt > 0, FALSE);
 
+  g_return_val_if_fail (posn <= psppire_data_store_get_case_count (ds), FALSE);
+
   case_create (&cc, val_cnt);
 
   memset ( case_data_rw_idx (&cc, 0), 0, val_cnt * MAX_SHORT_STRING);

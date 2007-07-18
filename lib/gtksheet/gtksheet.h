@@ -228,7 +228,7 @@ struct _GtkSheet{
   GtkSheetRange clip_range;
 
   /* Used for the subtitle (popups) */
-  gint motion_events;
+  gint motion_timer;
   GtkSheetHoverTitle *hover_window;
 };
 

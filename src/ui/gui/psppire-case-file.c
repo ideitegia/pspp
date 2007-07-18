@@ -169,6 +169,9 @@ psppire_case_file_delete_cases (PsppireCaseFile *cf, casenumber n_cases, casenum
   g_return_val_if_fail (cf, FALSE);
   g_return_val_if_fail (cf->datasheet, FALSE);
 
+  g_return_val_if_fail (first + n_cases <=
+			psppire_case_file_get_case_count (cf), FALSE);
+
   datasheet_delete_rows (cf->datasheet, first, n_cases);
 
   g_signal_emit (cf, signals [CASES_DELETED], 0, first, n_cases);

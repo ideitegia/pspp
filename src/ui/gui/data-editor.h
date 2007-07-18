@@ -31,6 +31,7 @@ struct data_editor
   GtkAction *action_data_save_as;
   GtkAction *action_data_save;
 
+  /* Actions which invoke dialog boxes */
   GtkAction *invoke_weight_cases_dialog;
   GtkAction *invoke_transpose_dialog;
   GtkAction *invoke_split_file_dialog;
@@ -40,13 +41,17 @@ struct data_editor
   GtkAction *invoke_goto_dialog;
   GtkAction *invoke_variable_info_dialog;
 
+  /* Actions which do things */
   GtkAction *insert_variable;
   GtkAction *insert_case;
-
   GtkAction *delete_variables;
   GtkAction *delete_cases;
 
   GladeXML *xml;
+
+  GtkMenu *data_sheet_variable_popup_menu;
+  GtkMenu *data_sheet_cases_popup_menu;
+
 
   gboolean save_as_portable;
 

@@ -71,7 +71,7 @@ PsppireCaseFile *psppire_case_file_new (const struct casereader *);
 
 gboolean psppire_case_file_insert_case (PsppireCaseFile *cf, struct ccase *c, casenumber row);
 
-casenumber psppire_case_file_get_case_count (const PsppireCaseFile *cf);
+inline casenumber psppire_case_file_get_case_count (const PsppireCaseFile *cf);
 
 
 union value * psppire_case_file_get_value (const PsppireCaseFile *cf,

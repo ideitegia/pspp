@@ -797,6 +797,8 @@ enum
     SELECT_COLUMN,
     DOUBLE_CLICK_ROW,
     DOUBLE_CLICK_COLUMN,
+    BUTTON_EVENT_ROW,
+    BUTTON_EVENT_COLUMN,
     SELECT_RANGE,
     CLIP_RANGE,
     RESIZE_RANGE,
@@ -934,7 +936,7 @@ gtk_sheet_class_init (GtkSheetClass * klass)
 
 
   /**
-   * GtkSheet::double - click - row
+   * GtkSheet::double-click-row
    * @sheet: the sheet widget that emitted the signal
    * @row: the row that was double clicked.
    *
@@ -953,7 +955,7 @@ gtk_sheet_class_init (GtkSheetClass * klass)
 
 
   /**
-   * GtkSheet::double - click - column
+   * GtkSheet::double-click-column
    * @sheet: the sheet widget that emitted the signal
    * @column: the column that was double clicked.
    *
@@ -969,6 +971,48 @@ gtk_sheet_class_init (GtkSheetClass * klass)
 		  G_TYPE_NONE,
 		  1,
 		  G_TYPE_INT);
+
+
+  /**
+   * GtkSheet::button-event-column
+   * @sheet: the sheet widget that emitted the signal
+   * @column: the column on which the event occured.
+   *
+   * A button event occured on a column title button
+   */
+  sheet_signals[BUTTON_EVENT_COLUMN] =
+    g_signal_new ("button-event-column",
+		  G_TYPE_FROM_CLASS (object_class),
+		  G_SIGNAL_RUN_LAST,
+		  0,
+		  NULL, NULL,
+		  gtkextra_VOID__INT_POINTER,
+		  G_TYPE_NONE,
+		  2,
+		  G_TYPE_INT,
+		  G_TYPE_POINTER
+		  );
+
+
+  /**
+   * GtkSheet::button-event-row
+   * @sheet: the sheet widget that emitted the signal
+   * @column: the column on which the event occured.
+   *
+   * A button event occured on a row title button
+   */
+  sheet_signals[BUTTON_EVENT_ROW] =
+    g_signal_new ("button-event-row",
+		  G_TYPE_FROM_CLASS (object_class),
+		  G_SIGNAL_RUN_LAST,
+		  0,
+		  NULL, NULL,
+		  gtkextra_VOID__INT_POINTER,
+		  G_TYPE_NONE,
+		  2,
+		  G_TYPE_INT,
+		  G_TYPE_POINTER
+		  );
 
 
   sheet_signals[SELECT_RANGE] =
@@ -1209,7 +1253,7 @@ gtk_sheet_init (GtkSheet *sheet)
   gdk_color_alloc (gdk_colormap_get_system (), &sheet->grid_color);
   sheet->show_grid = TRUE;
 
-  sheet->motion_events = 0;
+  sheet->motion_timer = 0;
 }
 
 
@@ -4879,21 +4923,37 @@ gtk_sheet_button_press (GtkWidget * widget,
 
   sheet = GTK_SHEET (widget);
 
-  if ( event->type == GDK_2BUTTON_PRESS)
+  /* Cancel any pending tooltips */
+  if (sheet->motion_timer)
     {
-      gtk_widget_get_pointer (widget, &x, &y);
-      gtk_sheet_get_pixel_info (sheet, x, y, &row, &column);
+      g_source_remove (sheet->motion_timer);
+      sheet->motion_timer = 0;
+    }
 
-      if (event->window == sheet->column_title_window)
-	{
-	  g_signal_emit (G_OBJECT (sheet),
-			 sheet_signals[DOUBLE_CLICK_COLUMN], 0, column);
-	}
-      else if (event->window == sheet->row_title_window)
-	{
-	  g_signal_emit (G_OBJECT (sheet),
-			 sheet_signals[DOUBLE_CLICK_ROW], 0, row);
-	}
+  gtk_widget_get_pointer (widget, &x, &y);
+  gtk_sheet_get_pixel_info (sheet, x, y, &row, &column);
+
+
+  if (event->window == sheet->column_title_window)
+    {
+      g_signal_emit (G_OBJECT (sheet),
+		     sheet_signals[BUTTON_EVENT_COLUMN], 0,
+		     column, event);
+
+      if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
+	g_signal_emit (G_OBJECT (sheet),
+		       sheet_signals[DOUBLE_CLICK_COLUMN], 0, column);
+
+    }
+  else if (event->window == sheet->row_title_window)
+    {
+      g_signal_emit (G_OBJECT (sheet),
+		     sheet_signals[BUTTON_EVENT_ROW], 0,
+		     row, event);
+
+      if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
+	g_signal_emit (G_OBJECT (sheet),
+		       sheet_signals[DOUBLE_CLICK_ROW], 0, row);
     }
 
 
@@ -5422,39 +5482,36 @@ static gboolean
 motion_timeout_callback (gpointer data)
 {
   GtkSheet *sheet = GTK_SHEET (data);
-  if ( --sheet->motion_events == 0 )
+  gint x, y;
+  gint row, column;
+  gtk_widget_get_pointer (GTK_WIDGET (sheet), &x, &y);
+
+  if ( gtk_sheet_get_pixel_info (sheet, x, y, &row, &column) )
     {
-      gint x, y;
-      gint row, column;
-      gtk_widget_get_pointer (GTK_WIDGET (sheet), &x, &y);
+      if ( column == -1 && row == -1 )
+	return FALSE;
 
-      if ( gtk_sheet_get_pixel_info (sheet, x, y, &row, &column) )
+      if ( column == -1)
 	{
-	  if ( column == -1 && row == -1 )
-	    return FALSE;
+	  GSheetRow *row_geo = sheet->row_geometry;
+	  gchar *text;
 
-	  if ( column == -1)
-	    {
-	      GSheetRow *row_geo = sheet->row_geometry;
-	      gchar *text;
+	  text = g_sheet_row_get_subtitle (row_geo, row);
 
-	      text = g_sheet_row_get_subtitle (row_geo, row);
+	  show_subtitle (sheet, row, column, text);
+	  g_free (text);
+	}
 
-	      show_subtitle (sheet, row, column, text);
-	      g_free (text);
-	    }
+      if ( row == -1)
+	{
+	  GSheetColumn *col_geo = sheet->column_geometry;
+	  gchar *text;
 
-	  if ( row == -1)
-	    {
-	      GSheetColumn *col_geo = sheet->column_geometry;
-	      gchar *text;
+	  text = g_sheet_column_get_subtitle (col_geo, column);
 
-	      text = g_sheet_column_get_subtitle (col_geo, column);
+	  show_subtitle (sheet, row, column, text );
 
-	      show_subtitle (sheet, row, column, text );
-
-	      g_free (text);
-	    }
+	  g_free (text);
 	}
     }
 
@@ -5483,8 +5540,9 @@ gtk_sheet_motion (GtkWidget * widget,
 
   if (!sheet->hover_window || ! GTK_WIDGET_VISIBLE (sheet->hover_window->window))
     {
-      sheet->motion_events++;
-      g_timeout_add (TIMEOUT_HOVER, motion_timeout_callback, sheet);
+      if ( sheet->motion_timer > 0 )
+	g_source_remove (sheet->motion_timer);
+      sheet->motion_timer = g_timeout_add (TIMEOUT_HOVER, motion_timeout_callback, sheet);
     }
   else
     {

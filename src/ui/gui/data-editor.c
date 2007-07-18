@@ -51,6 +51,15 @@
 #include "psppire-var-store.h"
 
 
+static void create_data_sheet_variable_popup_menu (struct data_editor *);
+static void create_data_sheet_cases_popup_menu (struct data_editor *);
+
+static void popup_variable_menu (GtkSheet *, gint,
+				 GdkEventButton *, gpointer data);
+
+static void popup_cases_menu (GtkSheet *, gint,
+				 GdkEventButton *, gpointer data);
+
 /* Update the data_ref_entry with the reference of the active cell */
 static gint update_data_ref_entry (const GtkSheet *sheet,
 				   gint row, gint col, gpointer data);
@@ -609,6 +618,16 @@ new_data_editor (void)
 		    G_CALLBACK (minimise_all_windows), NULL);
 
 
+  create_data_sheet_variable_popup_menu (de);
+  create_data_sheet_cases_popup_menu (de);
+
+  g_signal_connect (G_OBJECT (data_sheet), "button-event-column",
+		    G_CALLBACK (popup_variable_menu), de);
+
+  g_signal_connect (G_OBJECT (data_sheet), "button-event-row",
+		    G_CALLBACK (popup_cases_menu), de);
+
+
   select_sheet (de, PAGE_DATA_SHEET);
 
   return de;
@@ -1022,7 +1041,8 @@ on_split_change (PsppireDict *dict, gpointer data)
     {
       gint i;
       GString *text;
-      const struct variable *const * split_vars = dict_get_split_vars (dict->dict);
+      const struct variable *const * split_vars =
+	dict_get_split_vars (dict->dict);
 
       text = g_string_new (_("Split by "));
 
@@ -1470,4 +1490,197 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
     }
 
   return FALSE;
+}
+
+
+
+
+
+static void
+do_sort (PsppireDataStore *ds, int var, gboolean descend)
+{
+  GString *string = g_string_new ("SORT CASES BY ");
+
+  const struct variable *v =
+    psppire_dict_get_variable (ds->dict, var);
+
+  g_string_append_printf (string, "%s", var_get_name (v));
+
+  if ( descend )
+    g_string_append (string, " (D)");
+
+  g_string_append (string, ".");
+
+  execute_syntax (create_syntax_string_source (string->str));
+
+  g_string_free (string, TRUE);
+}
+
+
+static void
+sort_up (GtkMenuItem *item, gpointer data)
+{
+  GtkSheet *sheet  = data;
+  GtkSheetRange range;
+  gtk_sheet_get_selected_range (sheet, &range);
+
+  do_sort (PSPPIRE_DATA_STORE (gtk_sheet_get_model(sheet)),
+	   range.col0, FALSE);
+
+}
+
+static void
+sort_down (GtkMenuItem *item, gpointer data)
+{
+  GtkSheet *sheet  = data;
+  GtkSheetRange range;
+  gtk_sheet_get_selected_range (sheet, &range);
+
+  do_sort (PSPPIRE_DATA_STORE (gtk_sheet_get_model(sheet)),
+	   range.col0, TRUE);
+}
+
+
+
+
+static void
+create_data_sheet_variable_popup_menu (struct data_editor *de)
+{
+  GtkSheet *sheet  = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+  GtkWidget *menu = gtk_menu_new ();
+
+  GtkWidget *sort_ascending =
+    gtk_menu_item_new_with_label (_("Sort Ascending"));
+
+  GtkWidget *sort_descending =
+    gtk_menu_item_new_with_label (_("Sort Descending"));
+
+
+  GtkWidget *insert_variable =
+    gtk_menu_item_new_with_label (_("Insert Variable"));
+
+  GtkWidget *clear_variable =
+    gtk_menu_item_new_with_label (_("Clear"));
+
+
+  gtk_action_connect_proxy (de->insert_variable,
+			    insert_variable );
+
+
+  gtk_action_connect_proxy (de->delete_variables,
+			    clear_variable );
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_variable);
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
+			 gtk_separator_menu_item_new ());
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), clear_variable);
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
+			 gtk_separator_menu_item_new ());
+
+
+  g_signal_connect (G_OBJECT (sort_ascending), "activate",
+		    G_CALLBACK (sort_up), sheet);
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_ascending);
+
+
+  g_signal_connect (G_OBJECT (sort_descending), "activate",
+		    G_CALLBACK (sort_down), sheet);
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_descending);
+
+  gtk_widget_show_all (menu);
+
+
+  de->data_sheet_variable_popup_menu = GTK_MENU(menu);
+}
+
+
+static void
+create_data_sheet_cases_popup_menu (struct data_editor *de)
+{
+  GtkWidget *menu = gtk_menu_new ();
+
+  GtkWidget *insert_case =
+    gtk_menu_item_new_with_label (_("Insert Case"));
+
+  GtkWidget *delete_case =
+    gtk_menu_item_new_with_label (_("Clear"));
+
+
+  gtk_action_connect_proxy (de->insert_case,
+			    insert_case);
+
+
+  gtk_action_connect_proxy (de->delete_cases,
+			    delete_case);
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_case);
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
+			 gtk_separator_menu_item_new ());
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), delete_case);
+
+
+  gtk_widget_show_all (menu);
+
+
+  de->data_sheet_cases_popup_menu = GTK_MENU (menu);
+}
+
+
+static void
+popup_variable_menu (GtkSheet *sheet, gint column,
+		     GdkEventButton *event, gpointer data)
+{
+  struct data_editor *de = data;
+
+  PsppireDataStore *data_store =
+    PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
+
+  const struct variable *v =
+    psppire_dict_get_variable (data_store->dict, column);
+
+  if ( v && event->button == 3)
+    {
+
+      gtk_sheet_select_column (sheet, column);
+
+      gtk_menu_popup (GTK_MENU (de->data_sheet_variable_popup_menu),
+		      NULL, NULL, NULL, NULL,
+		      event->button, event->time);
+    }
+}
+
+
+static void
+popup_cases_menu (GtkSheet *sheet, gint row,
+		  GdkEventButton *event, gpointer data)
+{
+  struct data_editor *de = data;
+
+  PsppireDataStore *data_store =
+    PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
+
+  if ( row <= psppire_data_store_get_case_count (data_store) &&
+       event->button == 3)
+    {
+      gtk_sheet_select_row (sheet, row);
+
+      gtk_menu_popup (GTK_MENU (de->data_sheet_cases_popup_menu),
+		      NULL, NULL, NULL, NULL,
+		      event->button, event->time);
+    }
 }
