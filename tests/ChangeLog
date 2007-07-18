@@ -1,5 +1,21 @@
 2007-07-17  Ben Pfaff  <blp@gnu.org>
 
+	Patch #19335.  Reviewed by John Darrington.
+
+	* expressions/randist/compare.pl: Use strict and all warnings.
+
+	* expressions/randist/randist.pl: Ditto.
+
+	* formats/num-out-cmp.pl: Ditto.
+
+	* formats/num-out-compare.pl: Ditto.
+
+	* formats/num-out-decmp.pl: Ditto.
+
+	* formats/num-out.pl: Ditto.
+
+2007-07-17  Ben Pfaff  <blp@gnu.org>
+
 	* formats/float-format.h: Drop the tests that depend on parsing
 	"-0" from a syntax file.  Also make float-format.sh error messages
 	easier to read, by changing the sed command so that error line

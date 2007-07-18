@@ -1,6 +1,7 @@
 #! /usr/bin/perl -w
 
 use strict;
+use warnings 'all';
 use Getopt::Long;
 
 my $exact = 0;

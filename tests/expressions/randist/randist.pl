@@ -1,4 +1,5 @@
-use warnings;
+use strict;
+use warnings 'all';
 
 our (@funcs);
 our (@vars);

@@ -1,5 +1,5 @@
-use warnings;
 use strict;
+use warnings 'all';
 
 my (@prev) = ();
 our ($n) = 0;
