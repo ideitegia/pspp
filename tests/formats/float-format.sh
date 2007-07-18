@@ -51,12 +51,10 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 activity="create test program"
-sed -n \
-    -e 's/#.*//' \
+sed -e 's/#.*//' \
     -e 's/^[ 	]*//' \
     -e 's/[ 	]*$//' \
-    -e '/^$/d' \
-    -e 's/^\(.*\)$/DEBUG FLOAT FORMAT \1./p' \
+    -e 's/^\(..*\)$/DEBUG FLOAT FORMAT \1./' \
     > $TEMPDIR/float-format.pspp <<'EOF'
 # Each of the tests below checks that conversion between
 # floating-point formats works correctly.  Comparisons that use ==
@@ -78,7 +76,6 @@ sed -n \
 
 # IEEE special values.
  0 == isb(x'00000000')
--0 == isb(x'80000000')
 x('Infinity') == isb(x'7f800000')
 x('-Infinity') == isb(x'ff800000')
 x('NaN:') => isb(x'7f800001')		# NaN requires nonzero fraction.
@@ -122,7 +119,7 @@ x('.446c3b15f9926688p168') => idb(x'4a511b0ec57e649a')
 	      0.5 == zs(x'40800000') == isb(x'3f000000')
        x('.4p-4') == zs(x'3f400000') == isb(x'3c800000')
 		0 == zs(x'00000000') == isb(x'00000000')
-	       -0 == zs(x'80000000') == isb(x'80000000')
+	             zs(x'80000000') == isb(x'80000000')
 	      -15 == zs(x'c1f00000') == isb(x'c1700000')
 # x('.ffffffp252') == zs(x'7fffffff')
       x('.3b4p8') == zs(x'423b4000')

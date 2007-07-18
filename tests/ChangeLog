@@ -1,3 +1,10 @@
+2007-07-17  Ben Pfaff  <blp@gnu.org>
+
+	* formats/float-format.h: Drop the tests that depend on parsing
+	"-0" from a syntax file.  Also make float-format.sh error messages
+	easier to read, by changing the sed command so that error line
+	numbers are easier to match to the test input.
+
 2007-07-11  Ben Pfaff  <blp@gnu.org>
 
 	* tests/xforms/expressions.sh: Remove unused file.  Fixes bug
