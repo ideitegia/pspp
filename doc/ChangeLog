@@ -1,3 +1,9 @@
+2007-07-17  Ben Pfaff  <blp@gnu.org>
+
+	* get-commands.pl: Use strict and all warnings.  Simplify
+	parsing.  Add "@c End:" line to output to suppress Emacs warning.
+	From bug #19335.  Reviewed by John Darrington.
+
 2007-06-05  Ben Pfaff  <blp@gnu.org>
 
 	* Removed next, prev, up node names from @node lines, to make
