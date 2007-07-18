@@ -341,24 +341,32 @@ psppire_case_file_sort (PsppireCaseFile *cf, struct case_ordering *ordering)
 
 
 /* Resize the cases in the casefile, by inserting N_VALUES into every
-   one of them. */
+   one of them at the position immediately preceeding WHERE.
+*/
 gboolean
 psppire_case_file_insert_values (PsppireCaseFile *cf,
-				 gint n_values, gint before)
+				 gint n_values, gint where)
 {
-  union value *values;
   g_return_val_if_fail (cf, FALSE);
   g_return_val_if_fail (cf->accessible, FALSE);
+
+  if ( n_values == 0 )
+    return FALSE;
+
+  g_assert (n_values > 0);
 
   if ( ! cf->datasheet )
     cf->datasheet = datasheet_create (NULL);
 
-  values = xcalloc (n_values, sizeof *values);
-  datasheet_insert_columns (cf->datasheet, values, n_values, before);
+  {
+    union value *values = xcalloc (n_values, sizeof *values);
+    datasheet_insert_columns (cf->datasheet, values, n_values, where);
   free (values);
+  }
 
   return TRUE;
 }
+
 
 /* Fills C with the CASENUMth case.
    Returns true on success, false otherwise.

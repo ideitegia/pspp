@@ -282,30 +282,27 @@ changed_case_callback (GtkWidget *w, gint casenum, gpointer data)
 }
 
 
+/*
+   A callback which occurs after a variable has been deleted.
+ */
 static void
-delete_variables_callback (GObject *obj, gint var_num, gint n_vars, gpointer data)
+delete_variable_callback (GObject *obj, gint dict_index,
+			  gint case_index, gint val_cnt,
+			  gpointer data)
 {
-  PsppireDataStore *store ;
+  PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
-  g_return_if_fail (data);
-
-  store  = PSPPIRE_DATA_STORE (data);
-
-  g_sheet_model_columns_deleted (G_SHEET_MODEL (store), var_num, n_vars);
+  g_sheet_model_columns_deleted (G_SHEET_MODEL (store), dict_index, 1);
 
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
-				   var_num, -1);
+				   dict_index, -1);
 }
 
 
 static void
 variable_changed_callback (GObject *obj, gint var_num, gpointer data)
 {
-  PsppireDataStore *store;
-
-  g_return_if_fail (data);
-
-  store  = PSPPIRE_DATA_STORE (data);
+  PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
 				  var_num, 1);
@@ -353,13 +350,16 @@ static void
 dict_size_change_callback (GObject *obj,
 			  gint posn, gint adjustment, gpointer data)
 {
-  PsppireDataStore *store ;
+  PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
-  g_return_if_fail (data);
+  const struct variable *v = psppire_dict_get_variable (store->dict, posn);
 
-  store  = PSPPIRE_DATA_STORE (data);
+  const gint new_val_width = value_cnt_from_width (var_get_width (v));
 
-  psppire_case_file_insert_values (store->case_file, adjustment, posn);
+  if ( adjustment > 0 )
+    psppire_case_file_insert_values (store->case_file, adjustment,
+				     new_val_width - adjustment +
+				     var_get_case_index(v));
 }
 
 
@@ -432,14 +432,13 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
 		   G_CALLBACK (insert_variable_callback),
 		   data_store);
 
-  g_signal_connect (dict, "variables-deleted",
-		   G_CALLBACK (delete_variables_callback),
+  g_signal_connect (dict, "variable-deleted",
+		   G_CALLBACK (delete_variable_callback),
 		   data_store);
 
   g_signal_connect (dict, "variable-changed",
 		   G_CALLBACK (variable_changed_callback),
 		   data_store);
-
 
   g_signal_connect (dict, "dict-size-changed",
 		    G_CALLBACK (dict_size_change_callback),

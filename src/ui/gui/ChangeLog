@@ -1,3 +1,13 @@
+2007-07-18  John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-case-file.c psppire-case-file.h psppire-data-store.c 
+	psppire-dict.c psppire-dict.h psppire-var-store.c : Added the
+	ability to resize string variables.  Fixed associated problems
+	inserting/deleting variables.   
+	
+	* helper.c helper.h (marshaller_VOID__INT_INT_INT): New marshaller
+	function.
+	
 2007-07-16  John Darrington <john@darrington.wattle.id.au>
 
 	* data-editor.c: File Open dialog remembers directory.  Thanks to 

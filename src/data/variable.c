@@ -29,6 +29,7 @@
 #include "value-labels.h"
 #include "vardict.h"
 
+#include <libpspp/misc.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
@@ -349,6 +350,7 @@ var_get_width (const struct variable *v)
 void
 var_set_width (struct variable *v, int new_width)
 {
+  const int old_width = v->width;
   enum var_type new_type = var_type_from_width (new_width);
 
   if (mv_is_resizable (&v->miss, new_width))
@@ -381,6 +383,14 @@ var_set_width (struct variable *v, int new_width)
     }
 
   v->width = new_width;
+
+  {
+    const int old_val_count = value_cnt_from_width (old_width);
+    const int new_val_count = value_cnt_from_width (new_width);
+
+    if ( old_val_count != new_val_count)
+	 dict_var_resized (v, new_val_count - old_val_count);
+  }
 
   dict_var_changed (v);
 }

@@ -36,4 +36,9 @@ void var_set_vardict (struct variable *, const struct vardict_info *);
 bool var_has_vardict (const struct variable *);
 void var_clear_vardict (struct variable *);
 
+
+/* Called only from variable.c, but defined in dictionary.c */
+void dict_var_changed (const struct variable *v);
+void dict_var_resized (const struct variable *v, int delta);
+
 #endif /* data/vardict.h */

@@ -57,7 +57,6 @@ struct _PsppireDict
 struct _PsppireDictClass
 {
   GObjectClass parent_class;
-
 };
 
 
@@ -103,6 +102,9 @@ void psppire_dict_replace_dictionary (PsppireDict *, struct dictionary *);
 
 struct variable * psppire_dict_get_weight_variable (const PsppireDict *);
 
+#if DEBUGGING
+void psppire_dict_dump (const PsppireDict *);
+#endif
 
 G_END_DECLS
 

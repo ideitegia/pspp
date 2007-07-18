@@ -271,11 +271,11 @@ var_change_callback (GtkWidget *w, gint n, gpointer data)
 
 
 static void
-var_delete_callback (GtkWidget *w, gint first, gint n, gpointer data)
+var_delete_callback (GtkWidget *w, gint dict_idx, gint case_idx, gint val_cnt, gpointer data)
 {
   GSheetModel *model = G_SHEET_MODEL (data);
 
-  g_sheet_model_rows_deleted (model, first, n);
+  g_sheet_model_rows_deleted (model, dict_idx, 1);
 }
 
 
@@ -308,7 +308,7 @@ psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict)
   g_signal_connect (dict, "variable-changed", G_CALLBACK (var_change_callback),
 		   var_store);
 
-  g_signal_connect (dict, "variables-deleted", G_CALLBACK (var_delete_callback),
+  g_signal_connect (dict, "variable-deleted", G_CALLBACK (var_delete_callback),
 		   var_store);
 
   g_signal_connect (dict, "variable-inserted", G_CALLBACK (var_insert_callback),

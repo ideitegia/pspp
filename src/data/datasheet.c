@@ -354,6 +354,8 @@ datasheet_delete_columns (struct datasheet *ds, size_t start, size_t cnt)
 {
   size_t lcol;
 
+  assert ( start + cnt <= axis_get_size (ds->columns) );
+
   /* Free up columns for reuse. */
   for (lcol = start; lcol < start + cnt; lcol++)
     {

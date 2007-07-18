@@ -156,14 +156,22 @@ dict_clear (struct dictionary *d)
 
   while (d->var_cnt > 0 )
     {
-      var_clear_vardict (d->var[d->var_cnt - 1]);
-      var_destroy (d->var[d->var_cnt -1]);
+      struct variable *v = d->var[d->var_cnt - 1];
+      int dict_index = var_get_dict_index (v);
+      int case_index = var_get_case_index (v);
+      int val_cnt = var_get_value_cnt (v);
+
+      var_clear_vardict (v);
+      var_destroy (v);
 
       d->var_cnt--;
 
       if (d->callbacks &&  d->callbacks->var_deleted )
-	d->callbacks->var_deleted (d, d->var_cnt, d->cb_data);
+	d->callbacks->var_deleted (d,
+				   dict_index, case_index, val_cnt,
+				   d->cb_data);
     }
+
   free (d->var);
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
@@ -418,7 +426,7 @@ set_var_dict_index (struct variable *v, int dict_index)
     d->callbacks->var_changed (d, dict_index, d->cb_data);
 }
 
-/* Sets the case_index in V's vardict to DICT_INDEX. */
+/* Sets the case_index in V's vardict to CASE_INDEX. */
 static void
 set_var_case_index (struct variable *v, int case_index)
 {
@@ -455,6 +463,8 @@ void
 dict_delete_var (struct dictionary *d, struct variable *v)
 {
   int dict_index = var_get_dict_index (v);
+  const int case_index = var_get_case_index (v);
+  const int val_cnt = var_get_value_cnt (v);
 
   assert (dict_contains_var (d, v));
 
@@ -487,7 +497,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   var_destroy (v);
 
   if (d->callbacks &&  d->callbacks->var_deleted )
-    d->callbacks->var_deleted (d, dict_index, d->cb_data);
+    d->callbacks->var_deleted (d, dict_index, case_index, val_cnt, d->cb_data);
 }
 
 /* Deletes the COUNT variables listed in VARS from D.  This is
@@ -833,6 +843,33 @@ dict_compact_values (struct dictionary *d)
         dict_delete_var (d, v);
     }
 }
+
+
+/*
+   Reassigns case indices for D, increasing each index above START by
+   the value PADDING.
+*/
+static void
+dict_pad_values (struct dictionary *d, int start, int padding)
+{
+  size_t i;
+
+  if ( padding <= 0 ) 
+	return;
+
+  for (i = 0; i < d->var_cnt; ++i)
+    {
+      struct variable *v = d->var[i];
+
+      int index = var_get_case_index (v);
+
+      if ( index >= start)
+	set_var_case_index (v, index + padding);
+    }
+
+  d->next_value_idx += padding;
+}
+
 
 /* Returns the number of values that would be used by a case if
    dict_compact_values() were called. */
@@ -1386,5 +1423,25 @@ dict_var_changed (const struct variable *v)
 
       if ( d->callbacks && d->callbacks->var_changed )
 	d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
+    }
+}
+
+
+/* Called from variable.c to notify the dictionary that the variable's width
+   has changed */
+void
+dict_var_resized (const struct variable *v, int delta)
+{
+  if ( var_has_vardict (v))
+    {
+      const struct vardict_info *vdi = var_get_vardict (v);
+      struct dictionary *d;
+
+      d = vdi->dict;
+
+      dict_pad_values (d, var_get_case_index(v) + 1, delta);
+
+      if ( d->callbacks && d->callbacks->var_resized )
+	d->callbacks->var_resized (d, var_get_dict_index (v), delta, d->cb_data);
     }
 }

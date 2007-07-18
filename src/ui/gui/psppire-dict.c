@@ -45,7 +45,7 @@ static GObjectClass     *parent_class = NULL;
 enum  {VARIABLE_CHANGED,
        VARIABLE_RESIZED,
        VARIABLE_INSERTED,
-       VARIABLES_DELETED,
+       VARIABLE_DELETED,
        WEIGHT_CHANGED,
        FILTER_CHANGED,
        SPLIT_CHANGED,
@@ -131,15 +131,16 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT);
 
 
-  signals [VARIABLES_DELETED] =
-    g_signal_new ("variables_deleted",
+  signals [VARIABLE_DELETED] =
+    g_signal_new ("variable-deleted",
 		  G_TYPE_FROM_CLASS (class),
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
-		  gtkextra_VOID__INT_INT,
+		  marshaller_VOID__INT_INT_INT,
 		  G_TYPE_NONE,
-		  2,
+		  3,
+		  G_TYPE_INT,
 		  G_TYPE_INT,
 		  G_TYPE_INT);
 
@@ -211,15 +212,23 @@ addcb (struct dictionary *d, int idx, void *pd)
 }
 
 static void
-delcb (struct dictionary *d, int idx, void *pd)
+delcb (struct dictionary *d, int dict_idx, int case_idx, int value_cnt,
+       void *pd)
 {
-  g_signal_emit (pd, signals [VARIABLES_DELETED], 0, idx, 1);
+  g_signal_emit (pd, signals [VARIABLE_DELETED], 0,
+		 dict_idx, case_idx, value_cnt );
 }
 
 static void
 mutcb (struct dictionary *d, int idx, void *pd)
 {
   g_signal_emit (pd, signals [VARIABLE_CHANGED], 0, idx);
+}
+
+static void
+resize_cb (struct dictionary *d, int idx, int delta, void *pd)
+{
+  g_signal_emit (pd, signals [VARIABLE_RESIZED], 0, idx, delta);
 }
 
 static void
@@ -246,6 +255,7 @@ static const struct dict_callbacks gui_callbacks =
     addcb,
     delcb,
     mutcb,
+    resize_cb,
     weight_changed_callback,
     filter_changed_callback,
     split_changed_callback
@@ -346,7 +356,6 @@ psppire_dict_delete_variables (PsppireDict *d, gint first, gint n)
       var = dict_get_var (d->dict, first);
       dict_delete_var (d->dict, var);
     }
-  dict_compact_values (d->dict);
 }
 
 
@@ -466,8 +475,6 @@ psppire_dict_resize_variable (PsppireDict *d, const struct variable *pv,
 
   if ( old_size == new_size )
     return ;
-
-  dict_compact_values (d->dict);
 
   fv = var_get_case_index (pv);
 
@@ -764,3 +771,29 @@ psppire_dict_get_weight_variable (const PsppireDict *dict)
 {
   return dict_get_weight (dict->dict);
 }
+
+
+
+#if DEBUGGING
+void
+psppire_dict_dump (const PsppireDict *dict)
+{
+  gint i;
+  const struct dictionary *d = dict->dict;
+
+  int *map = dict_get_compacted_dict_index_to_case_index (d);
+
+  for (i = 0; i < dict_get_var_cnt (d); ++i)
+    {
+      const struct variable *v = psppire_dict_get_variable (dict, i);
+      int di = var_get_dict_index (v);
+      g_print ("\"%s\" idx=%d, fv=%d(%d), size=%d\n",
+	       var_get_name(v),
+	       di,
+	       var_get_case_index(v),
+	       map[di],
+	       value_cnt_from_width(var_get_width(v)));
+
+    }
+}
+#endif

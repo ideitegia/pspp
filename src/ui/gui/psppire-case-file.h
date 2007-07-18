@@ -93,7 +93,7 @@ void psppire_case_file_clear (PsppireCaseFile *cf);
 gboolean psppire_case_file_delete_cases (PsppireCaseFile *cf, casenumber n_rows,
 					casenumber first);
 
-gboolean psppire_case_file_insert_values (PsppireCaseFile *cf, gint n_values, gint before);
+gboolean psppire_case_file_insert_values (PsppireCaseFile *cf, gint n_values, gint where);
 
 struct case_ordering;
 

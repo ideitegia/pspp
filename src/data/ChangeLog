@@ -1,3 +1,16 @@
+2007-07-18 John Darrington <john@darrington.wattle.id.au>
+
+	* datasheet.c (datasheet_delete_columns): Added assertion to check
+	we're not deleting outside the range of the sheet.  
+
+	
+	* dictionary.c dictionary.h variable.c: Added the ability for string
+	variables to be resized.
+	
+	* vardict.h: Added some prototypes (moved from dictionary.h) as
+	these should only be called by variable.c
+
+
 2007-07-14 John Darrington <john@darrington.wattle.id.au>
 
 	* sfm-reader.c: Respect case_cnt field in file header.

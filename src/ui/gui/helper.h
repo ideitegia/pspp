@@ -61,5 +61,12 @@ gboolean execute_syntax (struct getl_interface *sss);
    glade_xml_new (relocate(PKGDATADIR "/" FILE), NULL, NULL)
 
 
+void marshaller_VOID__INT_INT_INT (GClosure     *closure,
+				   GValue       *return_value,
+				   guint         n_param_values,
+				   const GValue *param_values,
+				   gpointer      invocation_hint,
+				   gpointer      marshal_data);
+
 
 #endif

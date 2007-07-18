@@ -29,8 +29,9 @@ struct string;
 struct dict_callbacks
  {
   void (*var_added) (struct dictionary *, int, void *);
-  void (*var_deleted) (struct dictionary *, int, void *);
+  void (*var_deleted) (struct dictionary *, int, int, int, void *);
   void (*var_changed) (struct dictionary *, int, void *);
+  void (*var_resized) (struct dictionary *, int, int, void *);
   void (*weight_changed) (struct dictionary *, int, void *);
   void (*filter_changed) (struct dictionary *, int, void *);
   void (*split_changed) (struct dictionary *, void *);
@@ -147,8 +148,5 @@ const struct vector *dict_lookup_vector (const struct dictionary *,
 void dict_clear_vectors (struct dictionary *);
 
 void dict_assign_short_names (struct dictionary *);
-
-/* Called only from variable.c */
-void dict_var_changed (const struct variable *v);
 
 #endif /* dictionary.h */
