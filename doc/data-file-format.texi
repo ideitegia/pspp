@@ -1,84 +1,130 @@
-@node Data File Format
-@appendix Data File Format
+@node System File Format
+@appendix System File Format
 
-PSPP necessarily uses the same format for system files as do the
-products with which it is compatible.  This chapter is a description of
-that format.
+A system file encapsulates a set of cases and dictionary information
+that describes how they may be interpreted.  This chapter describes
+the format of a system file.
 
-There are three data types used in system files: 32-bit integers, 64-bit
-floating points, and 1-byte characters.  In this document these will
-simply be referred to as @code{int32}, @code{flt64}, and @code{char},
-the names that are used in the PSPP source code.  Every field of type
-@code{int32} or @code{flt64} is aligned on a 32-bit boundary relative to 
-the start of the record.
+System files use three data types: 8-bit characters, 32-bit integers,
+and 64-bit floating points, called here @code{char}, @code{int32}, and
+@code{flt64}, respectively.  Data is not necessarily aligned on a word
+or double-word boundary: the long variable name record (@pxref{Long
+Variable Names Record}) and very long string records (@pxref{Very Long
+String Record}) have arbitrary byte length and can therefore cause all
+data coming after them in the file to be misaligned.
 
-The endianness of data in PSPP system files is not specified.  System
-files output on a computer of a particular endianness will have the
-endianness of that computer.  However, PSPP can read files of either
-endianness, regardless of its host computer's endianness.  PSPP
-translates endianness for both integer and floating point numbers.
+Integer data in system files may be big-endian or little-endian.  A
+reader may detect the endianness of a system file by examining
+@code{layout_code} in the file header record
+(@pxref{layout_code,,@code{layout_code}}).
 
-Floating point formats are also not specified.  PSPP does not
-translate between floating point formats.  This is unlikely to be a
-problem as all modern computer architectures use IEEE 754 format for
-floating point representation.
+Floating-point data in system files may nominally be in IEEE 754, IBM,
+or VAX formats.  A reader may detect the floating-point format in use
+by examining @code{bias} in the file header record
+(@pxref{bias,,@code{bias}}).
+
+PSPP detects big-endian and little-endian integer formats in system
+files and translates as necessary.  PSPP also detects the
+floating-point format in use, as well as the endianness of IEEE 754
+floating-point numbers, and translates as needed.  However, only IEEE
+754 numbers with the same endianness as integer data in the same file
+has actually been observed in system files, and it is likely that
+other formats are obsolete or were never used.
 
 The PSPP system-missing value is represented by the largest possible
-negative number in the floating point format; in C, this is most likely
-@code{-DBL_MAX}.  There are two other important values used in missing
-values: @code{HIGHEST} and @code{LOWEST}.  These are represented by the
-largest possible positive number (probably @code{DBL_MAX}) and the
-second-largest negative number.  The latter must be determined in a
-system-dependent manner; in IEEE 754 format it is represented by value
-@code{0xffeffffffffffffe}.
+negative number in the floating point format (@code{-DBL_MAX}).  Two
+other values are important for use as missing values: @code{HIGHEST},
+represented by the largest possible positive number (@code{DBL_MAX}),
+and @code{LOWEST}, represented by the second-largest negative number
+(in IEEE 754 format, @code{0xffeffffffffffffe}).
 
-System files are divided into records.  Each record begins with an
-@code{int32} giving a numeric record type.  Individual record types are
-described below:
+System files are divided into records, each of which begins with a
+4-byte record type, usually regarded as an @code{int32}.
+
+The records must appear in the following order:
+
+@itemize @bullet
+@item
+File header record.
+
+@item
+Variable records.
+
+@item
+All pairs of value labels records and value label variables records,
+if present.
+
+@item
+Document record, if present.
+
+@item
+Any of the following records, if present, in any order:
+
+@itemize @minus
+@item
+Machine integer info record.
+
+@item
+Machine floating-point info record.
+
+@item
+Variable display parameter record.
+
+@item
+Long variable names record.
+
+@item
+Miscellaneous informational records.
+@end itemize
+
+@item
+Dictionary termination record.
+
+@item
+Data record.
+@end itemize
+
+Each type of record is described separately below.
 
 @menu
-* File Header Record::          
-* Variable Record::             
-* Value Label Record::          
-* Value Label Variable Record::  
-* Document Record::             
-* Machine int32 Info Record::   
-* Machine flt64 Info Record::   
-* Auxiliary Variable Parameter Record::
+* File Header Record::
+* Variable Record::
+* Value Labels Records::
+* Document Record::
+* Machine Integer Info Record::
+* Machine Floating-Point Info Record::
+* Variable Display Parameter Record::
 * Long Variable Names Record::
-* Very Long String Length Record::
-* Miscellaneous Informational Records::  
-* Dictionary Termination Record::  
-* Data Record::                 
+* Very Long String Record::
+* Miscellaneous Informational Records::
+* Dictionary Termination Record::
+* Data Record::
 @end menu
 
 @node File Header Record
 @section File Header Record
 
-The file header is always the first record in the file.
+The file header is always the first record in the file.  It has the
+following format:
 
 @example
-struct sysfile_header
-  @{
-    char                rec_type[4];
-    char                prod_name[60];
-    int32               layout_code;
-    int32               nominal_case_size;
-    int32               compressed;
-    int32               weight_index;
-    int32               ncases;
-    flt64               bias;
-    char                creation_date[9];
-    char                creation_time[8];
-    char                file_label[64];
-    char                padding[3];
-  @};
+char                rec_type[4];
+char                prod_name[60];
+int32               layout_code;
+int32               nominal_case_size;
+int32               compressed;
+int32               weight_index;
+int32               ncases;
+flt64               bias;
+char                creation_date[9];
+char                creation_time[8];
+char                file_label[64];
+char                padding[3];
 @end example
 
 @table @code
 @item char rec_type[4];
-Record type code.  Always set to @samp{$FL2}.  This is the only record
-for which the record type is not of type @code{int32}.
+Record type code, set to @samp{$FL2}.
 
 @item char prod_name[60];
 Product identification string.  This always begins with the characters
@@ -88,14 +134,16 @@ pspp 0.1.4 - sparc-sun-solaris2.5.2}.  The string is truncated if it
 would be longer than 60 characters; otherwise it is padded on the right
 with spaces.
 
+@anchor{layout_code}
 @item int32 layout_code;
-Always set to 2.  PSPP reads this value to determine the
-file's endianness.
+Normally set to 2, although a few system files have been spotted in
+the wild with a value of 3 here.  PSPP use this value to determine the
+file's integer endianness (@pxref{System File Format}).
 
 @item int32 nominal_case_size;
 Number of data elements per case.  This is the number of variables,
 except that long string variables add extra data elements (one for every
-8 characters after the first 8).  However, string variables do not 
+8 characters after the first 8).  However, string variables do not
 contribute to this value beyond the first 255 bytes.   Further, system
 files written by some systems set this value to -1.  In general, it is
 unsafe for systems reading system files to rely upon this value.
@@ -104,8 +152,9 @@ unsafe for systems reading system files to rely upon this value.
 Set to 1 if the data in the file is compressed, 0 otherwise.
 
 @item int32 weight_index;
-If one of the variables in the data set is used as a weighting variable,
-set to the index of that variable.  Otherwise, set to 0.
+If one of the variables in the data set is used as a weighting
+variable, set to the dictionary index of that variable, plus 1
+(@pxref{Dictionary Index}).  Otherwise, set to 0.
 
 @item int32 ncases;
 Set to the number of cases in the file if it is known, or -1 otherwise.
@@ -118,24 +167,31 @@ the file and writing just the @code{ncases} field.  For `files' in which
 this is not valid, the seek operation fails.  In this case,
 @code{ncases} remains -1.
 
+@anchor{bias}
 @item flt64 bias;
-Compression bias.  Always set to 100.  The significance of this value is
-that only numbers between @code{(1 - bias)} and @code{(251 - bias)} can
-be compressed.
+Compression bias, ordinarily set to 100.  Only integers between
+@code{1 - bias} and @code{251 - bias} can be compressed.
+
+By assuming that its value is 100, PSPP uses @code{bias} to determine
+the file's floating-point format and endianness (@pxref{System File
+Format}).  If the compression bias is not 100, PSPP cannot auto-detect
+the floating-point format and assumes that it is IEEE 754 format with
+the same endianness as the system file's integers, which is correct
+for all known system files.
 
 @item char creation_date[9];
-Set to the date of creation of the system file, in @samp{dd mmm yy}
+Date of creation of the system file, in @samp{dd mmm yy}
 format, with the month as standard English abbreviations, using an
 initial capital letter and following with lowercase.  If the date is not
 available then this field is arbitrarily set to @samp{01 Jan 70}.
 
 @item char creation_time[8];
-Set to the time of creation of the system file, in @samp{hh:mm:ss}
+Time of creation of the system file, in @samp{hh:mm:ss}
 format and using 24-hour time.  If the time is not available then this
 field is arbitrarily set to @samp{00:00:00}.
 
 @item char file_label[64];
-Set the file label declared by the user, if any (@pxref{FILE LABEL}).
+File label declared by the user, if any (@pxref{FILE LABEL}).
 Padded on the right with spaces.
 
 @item char padding[3];
@@ -146,30 +202,44 @@ length.  Set to zeros.
 @node Variable Record
 @section Variable Record
 
-Immediately following the header must come the variable records.  There
-must be one variable record for every variable and every 8 characters in
-a long string beyond the first 8.
+There must be one variable record for each numeric variable and each
+string variable with width 8 bytes or less.  String variables wider
+than 8 bytes have one variable record for each 8 bytes, rounding up.
+The first variable record for a long string specifies the variable's
+correct dictionary information.  Subsequent variable records for a
+long string are filled with dummy information: a type of -1, no
+variable label or missing values, print and write formats that are
+ignored, and an empty string as name.  A few system files have been
+encountered that include a variable label on dummy variable records,
+so readers should take care to parse dummy variable records in the
+same way as other variable records.
+
+@anchor{Dictionary Index}
+The @dfn{dictionary index} of a variable is its offset in the set of
+variable records, including dummy variable records for long string
+variables.  The first variable record has a dictionary index of 0, the
+second has a dictionary index of 1, and so on.
+
+The system file format does not directly support string variables
+wider than 255 bytes.  Such very long string variables are represented
+by a number of narrower string variables.  @xref{Very Long String
+Record}, for details.
 
 @example
-struct sysfile_variable
-  @{
-    int32               rec_type;
-    int32               type;
-    int32               has_var_label;
-    int32               n_missing_values;
-    int32               print;
-    int32               write;
-    char                name[8];
+int32               rec_type;
+int32               type;
+int32               has_var_label;
+int32               n_missing_values;
+int32               print;
+int32               write;
+char                name[8];
 
-    /* The following two fields are present 
-       only if has_var_label is 1. */
-    int32               label_len;
-    char                label[/* variable length */];
+/* @r{Present only if @code{has_var_label} is 1.} */
+int32               label_len;
+char                label[];
 
-    /* The following field is present only
-       if n_missing_values is not 0. */
-    flt64               missing_values[/* variable length */];
-  @};
+/* @r{Present only if @code{n_missing_values} is nonzero}. */
+flt64               missing_values[];
 @end example
 
 @table @code
@@ -210,12 +280,12 @@ This field is present only if @code{has_var_label} is set to 1.  It is
 set to the length, in characters, of the variable label, which must be a
 number between 0 and 120.
 
-@item char label[/* variable length */];
+@item char label[];
 This field is present only if @code{has_var_label} is set to 1.  It has
 length @code{label_len}, rounded up to the nearest multiple of 32 bits.
 The first @code{label_len} characters are the variable's variable label.
 
-@item flt64 missing_values[/* variable length */];
+@item flt64 missing_values[];
 This field is present only if @code{n_missing_values} is not 0.  It has
 the same number of elements as the absolute value of
 @code{n_missing_values}.  For discrete missing values, each element
@@ -228,166 +298,176 @@ introduction.
 @end table
 
 The @code{print} and @code{write} members of sysfile_variable are output
-formats coded into @code{int32} types.  The LSB (least-significant byte)
+formats coded into @code{int32} types.  The least-significant byte
 of the @code{int32} represents the number of decimal places, and the
 next two bytes in order of increasing significance represent field width
-and format type, respectively.  The MSB (most-significant byte) is not
+and format type, respectively.  The most-significant byte is not
 used and should be set to zero.
 
 Format types are defined as follows:
-@table @asis
+
+@quotation
+@multitable {Value} {@code{DATETIME}}
+@headitem Value
+@tab Meaning
 @item 0
-Not used.
+@tab Not used.
 @item 1
-@code{A}
+@tab @code{A}
 @item 2
-@code{AHEX}
+@tab @code{AHEX}
 @item 3
-@code{COMMA}
+@tab @code{COMMA}
 @item 4
-@code{DOLLAR}
+@tab @code{DOLLAR}
 @item 5
-@code{F}
+@tab @code{F}
 @item 6
-@code{IB}
+@tab @code{IB}
 @item 7
-@code{PIBHEX}
+@tab @code{PIBHEX}
 @item 8
-@code{P}
+@tab @code{P}
 @item 9
-@code{PIB}
+@tab @code{PIB}
 @item 10
-@code{PK}
+@tab @code{PK}
 @item 11
-@code{RB}
+@tab @code{RB}
 @item 12
-@code{RBHEX}
+@tab @code{RBHEX}
 @item 13
-Not used.
+@tab Not used.
 @item 14
-Not used.
+@tab Not used.
 @item 15
-@code{Z}
+@tab @code{Z}
 @item 16
-@code{N}
+@tab @code{N}
 @item 17
-@code{E}
+@tab @code{E}
 @item 18
-Not used.
+@tab Not used.
 @item 19
-Not used.
+@tab Not used.
 @item 20
-@code{DATE}
+@tab @code{DATE}
 @item 21
-@code{TIME}
+@tab @code{TIME}
 @item 22
-@code{DATETIME}
+@tab @code{DATETIME}
 @item 23
-@code{ADATE}
+@tab @code{ADATE}
 @item 24
-@code{JDATE}
+@tab @code{JDATE}
 @item 25
-@code{DTIME}
+@tab @code{DTIME}
 @item 26
-@code{WKDAY}
+@tab @code{WKDAY}
 @item 27
-@code{MONTH}
+@tab @code{MONTH}
 @item 28
-@code{MOYR}
+@tab @code{MOYR}
 @item 29
-@code{QYR}
+@tab @code{QYR}
 @item 30
-@code{WKYR}
+@tab @code{WKYR}
 @item 31
-@code{PCT}
+@tab @code{PCT}
 @item 32
-@code{DOT}
+@tab @code{DOT}
 @item 33
-@code{CCA}
+@tab @code{CCA}
 @item 34
-@code{CCB}
+@tab @code{CCB}
 @item 35
-@code{CCC}
+@tab @code{CCC}
 @item 36
-@code{CCD}
+@tab @code{CCD}
 @item 37
-@code{CCE}
+@tab @code{CCE}
 @item 38
-@code{EDATE}
+@tab @code{EDATE}
 @item 39
-@code{SDATE}
-@end table
+@tab @code{SDATE}
+@end multitable
+@end quotation
 
-@node Value Label Record
-@section Value Label Record
+@node Value Labels Records
+@section Value Labels Records
 
-Value label records must follow the variable records and must precede
-the header termination record.  Other than this, they may appear
-anywhere in the system file.  Every value label record must be
-immediately followed by a label variable record, described below.
-
-Value label records begin with @code{rec_type}, an @code{int32} value
-set to the record type of 3.  This is followed by @code{count}, an
-@code{int32} value set to the number of value labels present in this
-record.
-
-These two fields are followed by a series of @code{count} tuples.  Each
-tuple is divided into two fields, the value and the label.  The first of
-these, the value, is composed of a 64-bit value, which is either a
-@code{flt64} value or up to 8 characters (padded on the right to 8
-bytes) denoting a short string value.  Whether the value is a
-@code{flt64} or a character string is not defined inside the value label
-record.
-
-The second field in the tuple, the label, has variable length.  The
-first @code{char} is a count of the number of characters in the value
-label.  The remainder of the field is the label itself.  The field is
-padded on the right to a multiple of 64 bits in length.
-
-@node Value Label Variable Record
-@section Value Label Variable Record
-
-Every value label variable record must be immediately preceded by a
-value label record, described above.
+The value label record has the following format:
 
 @example
-struct sysfile_value_label_variable
-  @{
-     int32              rec_type;
-     int32              count;
-     int32              vars[/* variable length */];
-  @};
+int32               rec_type;
+int32               label_count;
+
+/* @r{Repeated @code{label_cnt} times}. */
+char                value[8];
+char                label_len;
+char                label[];
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 3.
+
+@item int32 label_count;
+Number of value labels present in this record.
+@end table
+
+The remaining fields are repeated @code{count} times.  Each
+repetition specifies one value label.
+
+@table @code
+@item char value[8];
+A numeric value or a short string value padded as necessary to 8 bytes
+in length.  Its type and width cannot be determined until the
+following value label variables record (see below) is read.
+
+@item char label_len;
+The label's length, in bytes.
+
+@item char label[];
+@code{label_len} bytes of the actual label, followed by up to 7 bytes
+of padding to bring @code{label} and @code{label_len} together to a
+multiple of 8 bytes in length.
+@end table
+
+The value label record is always immediately followed by a value label
+variables record with the following format:
+
+@example
+int32               rec_type;
+int32               var_count;
+int32               vars[];
 @end example
 
 @table @code
 @item int32 rec_type;
 Record type.  Always set to 4.
 
-@item int32 count;
+@item int32 var_count;
 Number of variables that the associated value labels from the value
 label record are to be applied.
 
-@item int32 vars[/* variable length */];
-A list of variables to which to apply the value labels.  There are
-@code{count} elements.  Each element identifies a variable record, where
-the first element is numbered 1 and long string variables are considered
-to occupy multiple indexes.
+@item int32 vars[];
+A list of dictionary indexes of variables to which to apply the value
+labels (@pxref{Dictionary Index}).  There are @code{var_count}
+elements.
+
+String variables wider than 8 bytes may not have value labels.
 @end table
 
 @node Document Record
 @section Document Record
 
-There must be no more than one document record per system file.
-Document records must follow the variable records and precede the
-dictionary termination record.
+The document record, if present, has the following format:
 
 @example
-struct sysfile_document
-  @{
-    int32               rec_type;
-    int32               n_lines;
-    char                lines[/* variable length */][80];
-  @};
+int32               rec_type;
+int32               n_lines;
+char                lines[][80];
 @end example
 
 @table @code
@@ -397,37 +477,32 @@ Record type.  Always set to 6.
 @item int32 n_lines;
 Number of lines of documents present.
 
-@item char lines[/* variable length */][80];
+@item char lines[][80];
 Document lines.  The number of elements is defined by @code{n_lines}.
 Lines shorter than 80 characters are padded on the right with spaces.
 @end table
 
-@node Machine int32 Info Record
-@section Machine @code{int32} Info Record
+@node Machine Integer Info Record
+@section Machine Integer Info Record
 
-There must be no more than one machine @code{int32} info record per
-system file.  Machine @code{int32} info records must follow the variable
-records and precede the dictionary termination record.
+The integer info record, if present, has the following format:
 
 @example
-struct sysfile_machine_int32_info
-  @{
-    /* Header. */
-    int32               rec_type;
-    int32               subtype;
-    int32               size;
-    int32               count;
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
 
-    /* Data. */
-    int32               version_major;
-    int32               version_minor;
-    int32               version_revision;
-    int32               machine_code;
-    int32               floating_point_rep;
-    int32               compression_code;
-    int32               endianness;
-    int32               character_code;
-  @};
+/* @r{Data.} */
+int32               version_major;
+int32               version_minor;
+int32               version_revision;
+int32               machine_code;
+int32               floating_point_rep;
+int32               compression_code;
+int32               endianness;
+int32               character_code;
 @end example
 
 @table @code
@@ -475,27 +550,22 @@ indicates 8-bit ASCII, 4 indicates DEC Kanji.
 Windows code page numbers are also valid.
 @end table
 
-@node Machine flt64 Info Record
-@section Machine @code{flt64} Info Record
+@node Machine Floating-Point Info Record
+@section Machine Floating-Point Info Record
 
-There must be no more than one machine @code{flt64} info record per
-system file.  Machine @code{flt64} info records must follow the variable
-records and precede the dictionary termination record.
+The floating-point info record, if present, has the following format:
 
 @example
-struct sysfile_machine_flt64_info
-  @{
-    /* Header. */
-    int32               rec_type;
-    int32               subtype;
-    int32               size;
-    int32               count;
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
 
-    /* Data. */
-    flt64               sysmis;
-    flt64               highest;
-    flt64               lowest;
-  @};
+/* @r{Data.} */
+flt64               sysmis;
+flt64               highest;
+flt64               lowest;
 @end example
 
 @table @code
@@ -521,25 +591,23 @@ The value used for HIGHEST in missing values.
 The value used for LOWEST in missing values.
 @end table
 
-@node Auxiliary Variable Parameter Record
-@section Auxiliary Variable Parameter Record
+@node Variable Display Parameter Record
+@section Variable Display Parameter Record
 
-There must be no more than one auxiliary variable parameter record per
-system file.  This  record must follow the variable
-records and precede the dictionary termination record.
+The variable display parameter record, if present, has the following
+format:
 
 @example
-struct sysfile_aux_var_parameter
-  @{
-    /* Header. */
-    int32               rec_type;
-    int32               subtype;
-    int32               size;
-    int32               count;
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
 
-    /* Data. */
-    struct aux_params   aux_params[/* variable length */];
-  @};
+/* @r{Repeated @code{count} times}. */
+int32               measure;
+int32               width;
+int32               alignment;
 @end example
 
 @table @code
@@ -550,29 +618,21 @@ Record type.  Always set to 7.
 Record subtype.  Always set to 11.
 
 @item int32 size;
-The size  @code{int32}. Always set to 4.
+The size of @code{int32}.  Always set to 4.
 
 @item int32 count;
-The total number of records in @code{aux_params}, multiplied by 3.
+The number of sets of variable display parameters (ordinarily the
+number of variables in the dictionary), times 3.
+@end table
 
-@item struct aux_params aux_params[];
-An array of @code{struct aux_params}.   The order of the elements corresponds 
-to the order of the variables in the Variable Records.  No element
-corresponds to variable records that continue long string variables.
-The @code{struct aux_params} type is defined as follows:
-
-@example
-struct aux_params
-  @{
-    int32 measure;
-    int32 width;
-    int32 alignment;
-  @};
-@end example
+The remaining members are repeated @code{count} times, in the same
+order as the variable records.  No element corresponds to variable
+records that continue long string variables.  The meanings of these
+members are as follows:
 
 @table @code
-@item int32 measure
-The measurement type of the variable:  
+@item int32 measure;
+The measurement type of the variable:
 @table @asis
 @item 1
 Nominal Scale
@@ -582,13 +642,13 @@ Ordinal Scale
 Continuous Scale
 @end table
 
-Occasionally a value of 0 is seen here.  PSPP interprets this to mean
-a nominal scale.
+SPSS 14 sometimes writes a @code{measure} of 0.  PSPP interprets this
+as nominal scale.
 
-@item int32 width
+@item int32 width;
 The width of the display column for the variable in characters.
 
-@item int32 alignment 
+@item int32 alignment;
 The alignment of the variable for display purposes:
 
 @table @asis
@@ -599,34 +659,22 @@ Right aligned
 @item 2
 Centre aligned
 @end table
-
 @end table
-
-
-
-@end table
-
-
 
 @node Long Variable Names Record
 @section Long Variable Names Record
 
-There must be no more than one long variable names record per
-system file.  This  record must follow the variable
-records and precede the dictionary termination record.
+If present, the long variable names record has the following format:
 
 @example
-struct sysfile_long_variable_names
-  @{
-    /* Header. */
-    int32               rec_type;
-    int32               subtype;
-    int32               size;
-    int32               count;
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
 
-    /* Data. */
-    char                var_name_pairs[/* variable length */];
-  @};
+/* @r{Exactly @code{count} bytes of data.} */
+char                var_name_pairs[];
 @end example
 
 @table @code
@@ -642,9 +690,9 @@ The size of each element in the @code{var_name_pairs} member. Always set to 1.
 @item int32 count;
 The total number of bytes in @code{var_name_pairs}.
 
-@item char var_name_pairs[/* variable length */];
+@item char var_name_pairs[];
 A list of @var{key}--@var{value} tuples, where @var{key} is the name
-of a variable, and @var{value} is its long variable name. 
+of a variable, and @var{value} is its long variable name.
 The @var{key} field is at most 8 bytes long and must match the
 name of a variable which appears in the variable record (@pxref{Variable
 Record}).
@@ -655,27 +703,61 @@ trailing separator following the last tuple.
 The total length is @code{count} bytes.
 @end table
 
-@node Very Long String Length Record
-@comment  node-name,  next,  previous,  up
-@section Very Long String Length Record
+@node Very Long String Record
+@section Very Long String Record
 
+Old versions of SPSS limited string variables to a width of 255 bytes.
+For backward compatibility with these older versions, the system file
+format represents a string longer than 255 bytes, called a @dfn{very
+long string}, as a collection of strings no longer than 255 bytes
+each.  The strings concatenated to make a very long string are called
+its @dfn{segments}; for consistency, variables other than very long
+strings are considered to have a single segment.
 
-There must be no more than one very long string length record per
-system file.  This  record must follow the variable records and precede the 
-dictionary termination record. 
+A very long string with a width of @var{w} has @var{n} =
+(@var{w} + 251) / 252 segments, that is, one segment for every
+252 bytes of width, rounding up.  It would be logical, then, for each
+of the segments except the last to have a width of 252 and the last
+segment to have the remainder, but this is not the case.  In fact,
+each segment except the last has a width of 255 bytes.  The last
+segment has width @var{w} - (@var{n} - 1) * 252; some versions
+of SPSS make it slightly wider, but not wide enough to make the last
+segment require another 8 bytes of data.
+
+Data is packed tightly into segments of a very long string, 255 bytes
+per segment.  Because 255 bytes of segment data are allocated for
+every 252 bytes of the very long string's width (approximately), some
+unused space is left over at the end of the allocated segments.  Data
+in unused space is ignored.
+
+Example: Consider a very long string of width 20,000.  Such a very
+long string has 20,000 / 252 = 80 (rounding up) segments.  The first
+79 segments have width 255; the last segment has width 20,000 - 79 *
+252 = 92 or slightly wider (up to 96 bytes, the next multiple of 8).
+The very long string's data is actually stored in the 19,890 bytes in
+the first 78 segments, plus the first 110 bytes of the 79th segment
+(19,890 + 110 = 20,000).  The remaining 145 bytes of the 79th segment
+and all 92 bytes of the 80th segment are unused.
+
+The very long string record explains how to stitch together segments
+to obtain very long string data.  For each of the very long string
+variables in the dictionary, it specifies the name of its first
+segment's variable and the very long string variable's actual width.
+The remaining segments immediately follow the named variable in the
+system file's dictionary.
+
+The very long string record, which is present only if the system file
+contains very long string variables, has the following format:
 
 @example
-struct sysfile_very_long_string_lengths
-  @{
-    /* Header. */
-    int32               rec_type;
-    int32               subtype;
-    int32               size;
-    int32               count;
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
 
-    /* Data. */
-    char                string_lengths[/* variable length */];
-  @};
+/* @r{Exactly @code{count} bytes of data.} */
+char                string_lengths[];
 @end example
 
 @table @code
@@ -691,7 +773,7 @@ The size of each element in the @code{string_lengths} member. Always set to 1.
 @item int32 count;
 The total number of bytes in @code{string_lengths}.
 
-@item char string_lengths[/* variable length */];
+@item char string_lengths[];
 A list of @var{key}--@var{value} tuples, where @var{key} is the name
 of a variable, and @var{value} is its length.
 The @var{key} field is at most 8 bytes long and must match the
@@ -700,35 +782,27 @@ Record}).
 The @var{value} field is exactly 5 bytes long. It is a zero-padded,
 ASCII-encoded string that is the length of the variable.
 The @var{key} and @var{value} fields are separated by a @samp{=} byte.
-Tuples are delimited by a two-byte sequence @{00, 09@}.  
-After the last tuple, there may be a single byte 00, or @{00, 09@}.  
+Tuples are delimited by a two-byte sequence @{00, 09@}.
+After the last tuple, there may be a single byte 00, or @{00, 09@}.
 The total length is @code{count} bytes.
 @end table
 
-
-
 @node Miscellaneous Informational Records
 @section Miscellaneous Informational Records
-
-Miscellaneous informational records must follow the variable records and
-precede the dictionary termination record.
 
 Some specific types of miscellaneous informational records are
 documented here, but others are known to exist.  PSPP ignores unknown
 miscellaneous informational records when reading system files.
 
 @example
-struct sysfile_misc_info
-  @{
-    /* Header. */
-    int32               rec_type;
-    int32               subtype;
-    int32               size;
-    int32               count;
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
 
-    /* Data. */
-    char                data[/* variable length */];
-  @};
+/* @r{Exactly @code{size * count} bytes of data.} */
+char                data[];
 @end example
 
 @table @code
@@ -741,13 +815,14 @@ H@"am@"al@"ainen, value 5 indicates a set of grouped variables and 6
 indicates date info (probably related to USE).
 
 @item int32 size;
-Size of each piece of data in the data part.  Should have the value 4 or
-8, for @code{int32} and @code{flt64}, respectively.
+Size of each piece of data in the data part.  Should have the value 1,
+4, or 8, for @code{char}, @code{int32}, and @code{flt64} format data,
+respectively.
 
 @item int32 count;
 Number of pieces of data in the data part.
 
-@item char data[/* variable length */];
+@item char data[];
 Arbitrary data.  There must be @code{size} times @code{count} bytes of
 data.
 @end table
@@ -755,16 +830,12 @@ data.
 @node Dictionary Termination Record
 @section Dictionary Termination Record
 
-The dictionary termination record must follow all other records, except
-for the actual cases, which it must precede.  There must be exactly one
-dictionary termination record in every system file.
+The dictionary termination record separates all other records from the
+data records.
 
 @example
-struct sysfile_dict_term
-  @{
-    int32               rec_type;
-    int32               filler;
-  @};
+int32               rec_type;
+int32               filler;
 @end example
 
 @table @code
@@ -778,22 +849,22 @@ Ignored padding.  Should be set to 0.
 @node Data Record
 @section Data Record
 
-Data records must follow all other records in the data file.  There must
+Data records must follow all other records in the system file.  There must
 be at least one data record in every system file.
 
 The format of data records varies depending on whether the data is
 compressed.  Regardless, the data is arranged in a series of 8-byte
 elements.
 
-When data is not compressed, 
+When data is not compressed,
 each element corresponds to
 the variable declared in the respective variable record (@pxref{Variable
 Record}).  Numeric values are given in @code{flt64} format; string
 values are literal characters string, padded on the right when
-necessary.
+necessary to fill out 8-byte units.
 
-Compressed data is arranged in the following manner: the first 8-byte
-element in the data section is divided into a series of 1-byte command
+Compressed data is arranged in the following manner: the first 8 bytes
+in the data section is divided into a series of 1-byte command
 codes.  These codes have meanings as described below:
 
 @table @asis
@@ -803,10 +874,10 @@ data in blocks of fixed length, 0 bytes can be used to pad out extra
 bytes remaining at the end of a fixed-size block.
 
 @item 1 through 251
-These values indicate that the corresponding numeric variable has the
-value @code{(@var{code} - @var{bias})} for the case being read, where
+A number with
+value @var{code} - @var{bias}, where
 @var{code} is the value of the compression code and @var{bias} is the
-variable @code{compression_bias} from the file header.  For example,
+variable @code{bias} from the file header.  For example,
 code 105 with bias 100.0 (the normal value) indicates a numeric variable
 of value 5.
 
@@ -815,21 +886,21 @@ End of file.  This code may or may not appear at the end of the data
 stream.  PSPP always outputs this code but its use is not required.
 
 @item 253
-This value indicates that the numeric or string value is not
-compressible.  The value is stored in the 8-byte element following the
+A numeric or string value that is not
+compressible.  The value is stored in the 8 bytes following the
 current block of command bytes.  If this value appears twice in a block
-of command bytes, then it indicates the second element following the
+of command bytes, then it indicates the second group of 8 bytes following the
 command bytes, and so on.
 
 @item 254
-Used to indicate a string value that is all spaces.
+An 8-byte string value that is all spaces.
 
 @item 255
-Used to indicate the system-missing value.
+The system-missing value.
 @end table
 
-When the end of the first 8-byte element of command bytes is reached,
-any blocks of non-compressible values are skipped, and the next element
-of command bytes is read and interpreted, until the end of the file is
-reached.
+When the end of the an 8-byte group of command bytes is reached, any
+blocks of non-compressible values indicated by code 253 are skipped,
+and the next element of command bytes is read and interpreted, until
+the end of the file or a code with value 252 is reached.
 @setfilename ignored
