@@ -43,6 +43,9 @@ struct data_editor
   GtkAction *insert_variable;
   GtkAction *insert_case;
 
+  GtkAction *delete_variables;
+  GtkAction *delete_cases;
+
   GladeXML *xml;
 
   gboolean save_as_portable;

@@ -4754,6 +4754,7 @@ gtk_sheet_unselect_range (GtkSheet * sheet)
 {
   gtk_sheet_real_unselect_range (sheet, NULL);
   sheet->state = GTK_STATE_NORMAL;
+
   gtk_sheet_activate_cell (sheet,
 			   sheet->active_cell.row, sheet->active_cell.col);
 }
@@ -4771,6 +4772,9 @@ gtk_sheet_real_unselect_range (GtkSheet * sheet,
 
   if (range->row0 < 0 || range->rowi < 0) return;
   if (range->col0 < 0 || range->coli < 0) return;
+
+  g_signal_emit (G_OBJECT (sheet), sheet_signals[SELECT_COLUMN], 0, -1);
+  g_signal_emit (G_OBJECT (sheet), sheet_signals[SELECT_ROW], 0, -1);
 
   if (gtk_sheet_range_isvisible (sheet, *range))
     gtk_sheet_draw_backing_pixmap (sheet, *range);

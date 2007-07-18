@@ -169,10 +169,18 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="edit_clear">
+                      <widget class="GtkMenuItem" id="edit_clear-variables">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="label" translatable="yes">Cl_ear</property>
+                        <property name="label" translatable="yes">Cl_ear Variables</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+		    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="edit_clear-cases">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="label" translatable="yes">_Clear Cases</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
