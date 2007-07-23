@@ -50,6 +50,9 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+/* Maximum width of a variable in a portable file. */
+#define MAX_POR_WIDTH 255
+
 /* Portable file writer. */
 struct pfm_writer
   {
@@ -139,7 +142,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     {
       const struct variable *dv = dict_get_var (dict, i);
       struct pfm_var *pv = &w->vars[i];
-      pv->width = var_get_width (dv);
+      pv->width = MIN (var_get_width (dv), MAX_POR_WIDTH);
       pv->fv = var_get_case_index (dv);
     }
 
@@ -284,13 +287,17 @@ write_version_data (struct pfm_writer *w)
   write_string (w, host_system);
 }
 
-/* Write format F to file H. */
+/* Write format F to file H.  The format is first resized to fit
+   a value of the given WIDTH, which is handy in case F
+   represents a string longer than 255 bytes and thus WIDTH is
+   truncated to 255 bytes.  */
 static void
-write_format (struct pfm_writer *w, const struct fmt_spec *f)
+write_format (struct pfm_writer *w, struct fmt_spec f, int width)
 {
-  write_int (w, fmt_to_io (f->type));
-  write_int (w, f->w);
-  write_int (w, f->d);
+  fmt_resize (&f, width);
+  write_int (w, fmt_to_io (f.type));
+  write_int (w, f.w);
+  write_int (w, f.d);
 }
 
 /* Write value V for variable VV to file H. */
@@ -301,8 +308,9 @@ write_value (struct pfm_writer *w, union value *v, struct variable *vv)
     write_float (w, v->f);
   else
     {
-      write_int (w, var_get_width (vv));
-      buf_write (w, v->s, var_get_width (vv));
+      int width = MIN (var_get_width (vv), MAX_POR_WIDTH);
+      write_int (w, width);
+      buf_write (w, v->s, width);
     }
 }
 
@@ -322,12 +330,13 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
     {
       struct variable *v = dict_get_var (dict, i);
       struct missing_values mv;
+      int width = MIN (var_get_width (v), MAX_POR_WIDTH);
 
       buf_write (w, "7", 1);
-      write_int (w, var_get_width (v));
+      write_int (w, width);
       write_string (w, var_get_short_name (v, 0));
-      write_format (w, var_get_print_format (v));
-      write_format (w, var_get_write_format (v));
+      write_format (w, *var_get_print_format (v), width);
+      write_format (w, *var_get_write_format (v), width);
 
       /* Write missing values. */
       mv_copy (&mv, var_get_missing_values (v));

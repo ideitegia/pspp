@@ -1,5 +1,17 @@
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
+	Don't try to write very long strings to portable files.  The
+	format does not support it.
+
+	* por-file-writer.c (MAX_POR_WIDTH): New macro.
+	(pfm_open_writer): Limit output width to MAX_POR_WIDTH.
+	(write_format): Add arg to take width to resize format to.
+	(write_value): Limit width of value written to MAX_POR_WIDTH.
+	(write_variables): Limit width of variable and its output formats
+	to MAX_POR_WIDTH.
+
+2007-07-22  Ben Pfaff  <blp@gnu.org>
+
 	* sys-file-reader.c (read_variable_to_value_map): Use max_warnings
 	local variable instead of literal 5.
 	
