@@ -1,5 +1,10 @@
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
+	* sys-file-reader.c (read_variable_to_value_map): Use max_warnings
+	local variable instead of literal 5.
+	
+2007-07-22  Ben Pfaff  <blp@gnu.org>
+
 	Fix problems with uniqueness of short names in system files with
 	very long string variables.  Now a variable may have multiple
 	short names.

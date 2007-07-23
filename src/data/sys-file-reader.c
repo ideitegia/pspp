@@ -1579,7 +1579,7 @@ read_variable_to_value_map (struct sfm_reader *r, struct dictionary *dict,
       *var = lookup_var_by_short_name (dict, ss_data (short_name_ss));
       if (*var == NULL)
         {
-          if (++*warning_cnt <= 5)
+          if (++*warning_cnt <= max_warnings)
             sys_warn (r, _("Variable map refers to unknown variable %s."),
                       ss_data (short_name_ss));
           continue;
