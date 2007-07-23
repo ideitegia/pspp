@@ -351,7 +351,6 @@ void
 var_set_width (struct variable *v, int new_width)
 {
   const int old_width = v->width;
-  enum var_type new_type = var_type_from_width (new_width);
 
   if (mv_is_resizable (&v->miss, new_width))
     mv_resize (&v->miss, new_width);
@@ -369,18 +368,8 @@ var_set_width (struct variable *v, int new_width)
         }
     }
 
-  if (var_get_type (v) != new_type)
-    {
-      v->print = (new_type == VAR_NUMERIC
-                  ? fmt_for_output (FMT_F, 8, 2)
-                  : fmt_for_output (FMT_A, new_width, 0));
-      v->write = v->print;
-    }
-  else if (new_type == VAR_STRING)
-    {
-      v->print.w = v->print.type == FMT_AHEX ? new_width * 2 : new_width;
-      v->write.w = v->write.type == FMT_AHEX ? new_width * 2 : new_width;
-    }
+  fmt_resize (&v->print, new_width);
+  fmt_resize (&v->write, new_width);
 
   v->width = new_width;
 

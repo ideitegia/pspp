@@ -208,11 +208,11 @@ mv_replace_value (struct missing_values *mv, const union value *v, int idx)
 }
 
 
-
+/* Returns the number of individual (not part of a range) missing
+   values in MV. */
 int
 mv_n_values (const struct missing_values *mv)
 {
-  assert(mv_has_value(mv));
   return mv->type & 3;
 }
 

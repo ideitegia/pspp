@@ -207,6 +207,16 @@ fmt_for_output_from_input (const struct fmt_spec *input)
   return output;
 }
 
+/* Returns the default format for the given WIDTH: F8.2 format
+   for a numeric value, A format for a string value. */
+struct fmt_spec
+fmt_default_for_width (int width)
+{
+  return (width == 0
+          ? fmt_for_output (FMT_F, 8, 2)
+          : fmt_for_output (FMT_A, width, 0));
+}
+
 /* Checks whether SPEC is valid as an input format (if FOR_INPUT)
    or an output format (otherwise) and returns nonzero if so.
    Otherwise, emits an error message and returns zero. */
@@ -367,6 +377,28 @@ bool
 fmt_equal (const struct fmt_spec *a, const struct fmt_spec *b)
 {
   return a->type == b->type && a->w == b->w && a->d == b->d;
+}
+
+/* Adjusts FMT to be valid for a value of the given WIDTH. */
+void
+fmt_resize (struct fmt_spec *fmt, int width) 
+{
+  if ((width > 0) != fmt_is_string (fmt->type))
+    {
+      /* Changed from numeric to string or vice versa.  Set to
+         default format for new width. */
+      *fmt = fmt_default_for_width (width);
+    }
+  else if (width > 0)
+    {
+      /* Changed width of string.  Preserve format type, adjust
+         width. */
+      fmt->w = fmt->type == FMT_AHEX ? width * 2 : width;
+    }
+  else 
+    {
+      /* Still numeric. */
+    }
 }
 
 /* Describes a display format. */
