@@ -1,3 +1,8 @@
+2007-07-22  Ben Pfaff  <blp@gnu.org>
+
+	* command/very-long-strings.sh: Test both compressed and
+	uncompressed system files with very long strings.
+
 2007-07-17  Ben Pfaff  <blp@gnu.org>
 
 	Patch #19335.  Reviewed by John Darrington.

@@ -121,9 +121,9 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-
-activity="Create file1"
-cat > $TESTFILE <<EOF
+for options in uncompressed compressed; do
+    activity="Create file1 ($options)"
+    cat > $TESTFILE <<EOF
 DATA LIST FIXED FILE='$TEMPDIR/data'  /a 2-11 (a) 
  b (a256) 
  c (a200) 
@@ -131,19 +131,18 @@ DATA LIST FIXED FILE='$TEMPDIR/data'  /a 2-11 (a)
  .
 
 
-SAVE OUTFILE='$TEMPDIR/foo.sav' /UNCOMPRESSED.
+SAVE OUTFILE='$TEMPDIR/foo.sav' /$options.
 
 EOF
-if [ $? -ne 0 ] ; then no_result ; fi
+    if [ $? -ne 0 ] ; then no_result ; fi
 
 
+    activity="run program 1 ($options)"
+    $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+    if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="run program 1"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
-if [ $? -ne 0 ] ; then no_result ; fi
-
-activity="Create file2"
-cat > $TESTFILE <<EOF
+    activity="Create file2 ($options)"
+    cat > $TESTFILE <<EOF
 
 GET FILE='$TEMPDIR/foo.sav'.
 
@@ -157,23 +156,23 @@ PRINT OUTFILE='$TEMPDIR/out.txt'
 EXECUTE.
 
 EOF
-if [ $? -ne 0 ] ; then no_result ; fi
+    if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="run program 2"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
-if [ $? -ne 0 ] ; then no_result ; fi
+    activity="run program 2 ($options)"
+    $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+    if [ $? -ne 0 ] ; then no_result ; fi
 
 
 # Check that the file read back in has the same data as what we wrote.
 
-activity="compare print"
-diff -b $TEMPDIR/out.txt $TEMPDIR/data
-if [ $? -ne 0 ] ; then fail ; fi
+    activity="compare print ($options)"
+    diff --text -b $TEMPDIR/out.txt $TEMPDIR/data
+    if [ $? -ne 0 ] ; then fail ; fi
 
 
-activity="compare variable display"
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b $TEMPDIR/pspp.list - <<EOF
+    activity="compare variable display ($options)"
+    perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+    diff -b $TEMPDIR/pspp.list - <<EOF
 1.1 DISPLAY.  
 +--------+-------------------------------------------+--------+
 |Variable|Description                                |Position|
@@ -187,7 +186,7 @@ diff -b $TEMPDIR/pspp.list - <<EOF
 |d       |Format: A32767                             |       4|
 +--------+-------------------------------------------+--------+
 EOF
-if [ $? -ne 0 ] ; then fail ; fi
-
+    if [ $? -ne 0 ] ; then fail ; fi
+done
 
 pass;
