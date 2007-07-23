@@ -1,5 +1,7 @@
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
+	* str.h: Include xstrndup.h also.
+
 	* float-format.c (float_get_double): New function.
 
 2007-07-06  Ben Pfaff  <blp@gnu.org>
