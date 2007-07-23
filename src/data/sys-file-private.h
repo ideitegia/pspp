@@ -23,5 +23,6 @@
 #define EFFECTIVE_LONG_STRING_LENGTH (MIN_VERY_LONG_STRING - 4)
 
 int sfm_width_to_bytes (int width);
+int sfm_width_to_segments (int width);
 
 #endif /* data/sys-file-private.h */

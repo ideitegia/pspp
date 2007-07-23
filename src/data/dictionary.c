@@ -114,7 +114,10 @@ dict_clone (const struct dictionary *s)
     {
       struct variable *sv = s->var[i];
       struct variable *dv = dict_clone_var_assert (d, sv, var_get_name (sv));
-      var_set_short_name (dv, var_get_short_name (sv));
+      size_t i;
+
+      for (i = 0; i < var_get_short_name_cnt (sv); i++)
+        var_set_short_name (dv, i, var_get_short_name (sv, i));
     }
 
   d->next_value_idx = s->next_value_idx;
@@ -624,7 +627,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   hsh_force_insert (d->name_tab, v);
 
   if (get_algorithm () == ENHANCED)
-    var_clear_short_name (v);
+    var_clear_short_names (v);
 
   if ( d->callbacks &&  d->callbacks->var_changed )
     d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
@@ -690,7 +693,7 @@ dict_rename_vars (struct dictionary *d,
   /* Clear short names. */
   if (get_algorithm () == ENHANCED)
     for (i = 0; i < count; i++)
-      var_clear_short_name (vars[i]);
+      var_clear_short_names (vars[i]);
 
   pool_destroy (pool);
   return true;
@@ -1281,133 +1284,6 @@ dict_clear_vectors (struct dictionary *d)
   d->vector = NULL;
   d->vector_cnt = 0;
 }
-
-/* Compares two strings. */
-static int
-compare_strings (const void *a, const void *b, const void *aux UNUSED)
-{
-  return strcmp (a, b);
-}
-
-/* Hashes a string. */
-static unsigned
-hash_string (const void *s, const void *aux UNUSED)
-{
-  return hsh_hash_string (s);
-}
-
-
-/* Sets V's short name to BASE, followed by a suffix of the form
-   _A, _B, _C, ..., _AA, _AB, etc. according to the value of
-   SUFFIX_NUMBER.  Truncates BASE as necessary to fit. */
-static void
-set_var_short_name_suffix (struct variable *v, const char *base,
-                           int suffix_number)
-{
-  char suffix[SHORT_NAME_LEN + 1];
-  char short_name[SHORT_NAME_LEN + 1];
-  char *start, *end;
-  int len, ofs;
-
-  assert (v != NULL);
-  assert (suffix_number >= 0);
-
-  /* Set base name. */
-  var_set_short_name (v, base);
-
-  /* Compose suffix. */
-  start = end = suffix + sizeof suffix - 1;
-  *end = '\0';
-  do
-    {
-      *--start = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[suffix_number % 26];
-      if (start <= suffix + 1)
-        msg (SE, _("Variable suffix too large."));
-      suffix_number /= 26;
-    }
-  while (suffix_number > 0);
-  *--start = '_';
-
-  /* Append suffix to V's short name. */
-  str_copy_trunc (short_name, sizeof short_name, base);
-  len = end - start;
-  if (len + strlen (short_name) > SHORT_NAME_LEN)
-    ofs = SHORT_NAME_LEN - len;
-  else
-    ofs = strlen (short_name);
-  strcpy (short_name + ofs, start);
-
-  /* Set name. */
-  var_set_short_name (v, short_name);
-}
-
-/* Assigns a valid, unique short_name[] to each variable in D.
-   Each variable whose actual name is short has highest priority
-   for that short name.  Otherwise, variables with an existing
-   short_name[] have the next highest priority for a given short
-   name; if it is already taken, then the variable is treated as
-   if short_name[] had been empty.  Otherwise, long names are
-   truncated to form short names.  If that causes conflicts,
-   variables are renamed as PREFIX_A, PREFIX_B, and so on. */
-void
-dict_assign_short_names (struct dictionary *d)
-{
-  struct hsh_table *short_names;
-  size_t i;
-
-  /* Give variables whose names are short the corresponding short
-     names, and clear short_names[] that conflict with a variable
-     name. */
-  for (i = 0; i < d->var_cnt; i++)
-    {
-      struct variable *v = d->var[i];
-      const char *short_name = var_get_short_name (v);
-      if (strlen (var_get_name (v)) <= SHORT_NAME_LEN)
-        var_set_short_name (v, var_get_name (v));
-      else if (short_name != NULL && dict_lookup_var (d, short_name) != NULL)
-        var_clear_short_name (v);
-    }
-
-  /* Each variable with an assigned short_name[] now gets it
-     unless there is a conflict. */
-  short_names = hsh_create (d->var_cnt, compare_strings, hash_string,
-                            NULL, NULL);
-  for (i = 0; i < d->var_cnt; i++)
-    {
-      struct variable *v = d->var[i];
-      const char *name = var_get_short_name (v);
-      if (name != NULL && hsh_insert (short_names, (char *) name) != NULL)
-        var_clear_short_name (v);
-    }
-
-  /* Now assign short names to remaining variables. */
-  for (i = 0; i < d->var_cnt; i++)
-    {
-      struct variable *v = d->var[i];
-      const char *name = var_get_short_name (v);
-      if (name == NULL)
-        {
-          /* Form initial short_name from the variable name, then
-             try _A, _B, ... _AA, _AB, etc., if needed.*/
-          int trial = 0;
-          do
-            {
-              if (trial == 0)
-                var_set_short_name (v, var_get_name (v));
-              else
-                set_var_short_name_suffix (v, var_get_name (v), trial - 1);
-
-              trial++;
-            }
-          while (hsh_insert (short_names, (char *) var_get_short_name (v))
-                 != NULL);
-        }
-    }
-
-  /* Get rid of hash table. */
-  hsh_destroy (short_names);
-}
-
 
 /* Called from variable.c to notify the dictionary that some property of
    the variable has changed */

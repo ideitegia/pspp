@@ -35,6 +35,7 @@
 #include <data/file-handle-def.h>
 #include <data/format.h>
 #include <data/missing-values.h>
+#include <data/short-names.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 
@@ -311,7 +312,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
 {
   int i;
 
-  dict_assign_short_names (dict);
+  short_names_assign (dict);
 
   buf_write (w, "4", 1);
   write_int (w, dict_get_var_cnt (dict));
@@ -324,7 +325,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
 
       buf_write (w, "7", 1);
       write_int (w, var_get_width (v));
-      write_string (w, var_get_short_name (v));
+      write_string (w, var_get_short_name (v, 0));
       write_format (w, var_get_print_format (v));
       write_format (w, var_get_write_format (v));
 
@@ -386,7 +387,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 
       buf_write (w, "D", 1);
       write_int (w, 1);
-      write_string (w, var_get_short_name (v));
+      write_string (w, var_get_short_name (v, 0));
       write_int (w, val_labs_count (val_labs));
 
       for (vl = val_labs_first_sorted (val_labs, &j); vl != NULL;

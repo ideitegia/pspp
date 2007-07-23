@@ -19,7 +19,6 @@
 
 #include <stdlib.h>
 
-
 #include "category.h"
 #include "data-out.h"
 #include "format.h"
@@ -63,11 +62,10 @@ struct variable
     /* Data for use by containing dictionary. */
     struct vardict_info vardict;
 
-    /* Short name, used only for system and portable file input
-       and output.  Upper case only. Short names are not necessarily
-       unique.  Any variable may have no short name, indicated by an
-       empty string. */
-    char short_name[SHORT_NAME_LEN + 1];
+    /* Used only for system and portable file input and output.
+       See short-names.h. */
+    char **short_names;
+    size_t short_name_cnt;
 
     /* Each command may use these fields as needed. */
     void *aux;
@@ -127,7 +125,8 @@ var_create (const char *name, int width)
   v->write = v->print;
   v->val_labs = NULL;
   v->label = NULL;
-  var_clear_short_name (v);
+  v->short_names = NULL;
+  v->short_name_cnt = 0;
   v->aux = NULL;
   v->aux_dtor = NULL;
   v->obs_vals = NULL;
@@ -786,47 +785,80 @@ var_must_leave (const struct variable *v)
   return dict_class_from_id (v->name) == DC_SCRATCH;
 }
 
-/* Returns V's short name, if it has one, or a null pointer
-   otherwise.
+/* Returns the number of short names stored in VAR.
 
    Short names are used only for system and portable file input
    and output.  They are upper-case only, not necessarily unique,
    and limited to SHORT_NAME_LEN characters (plus a null
-   terminator).  Any variable may have no short name, indicated
-   by returning a null pointer. */
-const char *
-var_get_short_name (const struct variable *v)
+   terminator).  Ordinarily a variable has at most one short
+   name, but very long string variables (longer than 255 bytes)
+   may have more.  A variable might not have any short name at
+   all if it hasn't been saved to or read from a system or
+   portable file. */
+size_t
+var_get_short_name_cnt (const struct variable *var) 
 {
-  return v->short_name[0] != '\0' ? v->short_name : NULL;
+  return var->short_name_cnt;
 }
 
-/* Sets V's short_name to SHORT_NAME, truncating it to
-   SHORT_NAME_LEN characters and converting it to uppercase in
-   the process.  Specifying a null pointer for SHORT_NAME clears
-   the variable's short name. */
-void
-var_set_short_name (struct variable *v, const char *short_name)
+/* Returns VAR's short name with the given IDX, if it has one
+   with that index, or a null pointer otherwise.  Short names may
+   be sparse: even if IDX is less than the number of short names
+   in VAR, this function may return a null pointer. */
+const char *
+var_get_short_name (const struct variable *var, size_t idx)
 {
-  assert (v != NULL);
+  return idx < var->short_name_cnt ? var->short_names[idx] : NULL;
+}
+
+/* Sets VAR's short name with the given IDX to SHORT_NAME,
+   truncating it to SHORT_NAME_LEN characters and converting it
+   to uppercase in the process.  Specifying a null pointer for
+   SHORT_NAME clears the specified short name. */
+void
+var_set_short_name (struct variable *var, size_t idx, const char *short_name)
+{
+  assert (var != NULL);
   assert (short_name == NULL || var_is_plausible_name (short_name, false));
 
-  if (short_name != NULL)
+  /* Clear old short name numbered IDX, if any. */
+  if (idx < var->short_name_cnt) 
     {
-      str_copy_trunc (v->short_name, sizeof v->short_name, short_name);
-      str_uppercase (v->short_name);
+      free (var->short_names[idx]);
+      var->short_names[idx] = NULL; 
     }
-  else
-    v->short_name[0] = '\0';
-  dict_var_changed (v);
+
+  /* Install new short name for IDX. */
+  if (short_name != NULL) 
+    {
+      if (idx >= var->short_name_cnt)
+        {
+          size_t old_cnt = var->short_name_cnt;
+          size_t i;
+          
+          var->short_name_cnt = MAX (idx * 2, 1);
+          var->short_names = xnrealloc (var->short_names, var->short_name_cnt,
+                                        sizeof *var->short_names);
+          for (i = old_cnt; i < var->short_name_cnt; i++)
+            var->short_names[i] = NULL;
+        }
+      var->short_names[idx] = xstrndup (short_name, MAX_SHORT_STRING);
+      str_uppercase (var->short_names[idx]);
+    }
+
+  dict_var_changed (var);
 }
 
-/* Clears V's short name. */
+/* Clears V's short names. */
 void
-var_clear_short_name (struct variable *v)
+var_clear_short_names (struct variable *v)
 {
-  assert (v != NULL);
-
-  v->short_name[0] = '\0';
+  size_t i;
+  
+  for (i = 0; i < v->short_name_cnt; i++)
+    free (v->short_names[i]);
+  v->short_names = NULL;
+  v->short_name_cnt = 0;
 }
 
 /* Relationship with dictionary. */

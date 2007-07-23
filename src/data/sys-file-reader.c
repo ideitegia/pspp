@@ -279,7 +279,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 	     name, but we want to retain it, so re-set it
 	     explicitly. */
 	  dict_rename_var (*dict, var, long_name);
-	  var_set_short_name (var, short_name);
+	  var_set_short_name (var, 0, short_name);
 	}
 
       r->has_long_var_names = true;
@@ -508,8 +508,8 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
                _("Duplicate variable name `%s' within system file."),
                name);
 
-  /* Set the short name the same as the long name */
-  var_set_short_name (var, var_get_name (var));
+  /* Set the short name the same as the long name. */
+  var_set_short_name (var, 0, var_get_name (var));
 
   /* Get variable label, if any. */
   if (has_variable_label != 0 && has_variable_label != 1)
@@ -904,8 +904,9 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
   while (read_variable_to_value_map (r, dict, map, &var, &long_name,
                                      &warning_cnt))
     {
-      char short_name[SHORT_NAME_LEN + 1];
-      strcpy (short_name, var_get_short_name (var));
+      char **short_names;
+      size_t short_name_cnt;
+      size_t i;
 
       /* Validate long name. */
       if (!var_is_valid_name (long_name, false))
@@ -917,7 +918,7 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
         }
 
       /* Identify any duplicates. */
-      if (strcasecmp (short_name, long_name)
+      if (strcasecmp (var_get_short_name (var, 0), long_name)
           && dict_lookup_var (dict, long_name) != NULL)
         {
           sys_warn (r, _("Duplicate long variable name `%s' "
@@ -925,11 +926,26 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
           continue;
         }
 
-      /* Set long name.  Renaming a variable may clear the short
-         name, but we want to retain it, so re-set it
-         explicitly. */
+      /* Renaming a variable may clear its short names, but we
+         want to retain them, so we save them and re-set them
+         afterward. */
+      short_name_cnt = var_get_short_name_cnt (var);
+      short_names = xnmalloc (short_name_cnt, sizeof *short_names);
+      for (i = 0; i < short_name_cnt; i++) 
+        {
+          const char *s = var_get_short_name (var, i);
+          short_names[i] = s != NULL ? xstrdup (s) : NULL;
+        }
+
+      /* Set long name. */
       dict_rename_var (dict, var, long_name);
-      var_set_short_name (var, short_name);
+
+      /* Restore short names. */
+      for (i = 0; i < short_name_cnt; i++) 
+        {
+          var_set_short_name (var, i, short_names[i]);
+          free (short_names[i]);
+        }
     }
   close_variable_to_value_map (r, map);
   r->has_long_var_names = true;
@@ -1483,7 +1499,7 @@ lookup_var_by_short_name (struct dictionary *d, const char *short_name)
 
   /* First try looking up by full name.  This often succeeds. */
   var = dict_lookup_var (d, short_name);
-  if (var != NULL && !strcasecmp (var_get_short_name (var), short_name))
+  if (var != NULL && !strcasecmp (var_get_short_name (var, 0), short_name))
     return var;
 
   /* Iterate through the whole dictionary as a fallback. */
@@ -1491,7 +1507,7 @@ lookup_var_by_short_name (struct dictionary *d, const char *short_name)
   for (i = 0; i < var_cnt; i++)
     {
       var = dict_get_var (d, i);
-      if (!strcasecmp (var_get_short_name (var), short_name))
+      if (!strcasecmp (var_get_short_name (var, 0), short_name))
         return var;
     }
 

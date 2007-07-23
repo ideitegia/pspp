@@ -40,4 +40,16 @@ sfm_width_to_bytes (int width)
     }
 }
 
+/* Returns the number of "segments" used for writing case data
+   for a variable of the given WIDTH.  A segment is a physical
+   variable in the system file that represents some piece of a
+   logical variable as seen by a PSPP user.  Only very long
+   string variables have more than one segment. */
+int
+sfm_width_to_segments (int width)
+{
+  assert (width >= 0);
 
+  return (width < MIN_VERY_LONG_STRING ? 1
+          : DIV_RND_UP (width, EFFECTIVE_LONG_STRING_LENGTH));
+}

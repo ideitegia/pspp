@@ -43,6 +43,7 @@
 #include <data/format.h>
 #include <data/missing-values.h>
 #include <data/settings.h>
+#include <data/short-names.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 
@@ -195,28 +196,6 @@ sfm_writer_default_options (void)
   return opts;
 }
 
-
-/* Return a short variable name to be used as the continuation of the
-   variable with the short name SN.
-
-   FIXME: Need to resolve clashes somehow.
-
- */
-static const char *
-cont_var_name(const char *sn, int idx)
-{
-  static char s[SHORT_NAME_LEN + 1];
-
-  char abb[SHORT_NAME_LEN + 1 - 3]= {0};
-
-  strncpy(abb, sn, SHORT_NAME_LEN - 3);
-
-  snprintf(s, SHORT_NAME_LEN + 1, "%s%03d", abb, idx);
-
-  return s;
-}
-
-
 /* Opens the system file designated by file handle FH for writing
    cases from dictionary D according to the given OPTS.  If
    COMPRESS is nonzero, the system file will be compressed.
@@ -295,7 +274,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_header (w, d);
 
   /* Write basic variable info. */
-  dict_assign_short_names (d);
+  short_names_assign (d);
   for (i = 0; i < dict_get_var_cnt (d); i++)
     {
       int count = 0;
@@ -304,15 +283,14 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
       do {
 	struct variable *var_cont = var_clone (v);
-        var_set_short_name (var_cont, var_get_short_name (v));
+        var_set_short_name (var_cont, 0, var_get_short_name (v, 0));
 	if ( var_is_alpha (v))
 	  {
 	    if ( 0 != count )
 	      {
 		var_clear_missing_values (var_cont);
-                var_set_short_name (var_cont,
-                                    cont_var_name (var_get_short_name (v),
-                                                   count));
+                var_set_short_name (var_cont, 0,
+                                    var_get_short_name (v, count));
                 var_clear_label (var_cont);
 		w->var_cnt_vls++;
 	      }
@@ -548,7 +526,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   sv.n_missing_values = nm;
   write_format_spec (var_get_print_format (v), &sv.print);
   write_format_spec (var_get_write_format (v), &sv.write);
-  buf_copy_str_rpad (sv.name, sizeof sv.name, var_get_short_name (v));
+  buf_copy_str_rpad (sv.name, sizeof sv.name, var_get_short_name (v, 0));
   buf_write (w, &sv, sizeof sv);
 
   if (label != NULL)
@@ -769,7 +747,7 @@ write_vls_length_table (struct sfm_writer *w,
 	continue;
 
       ds_put_format (&vls_length_map, "%s=%05d",
-                     var_get_short_name (v), var_get_width (v));
+                     var_get_short_name (v, 0), var_get_width (v));
       ds_put_char (&vls_length_map, '\0');
       ds_put_char (&vls_length_map, '\t');
     }
@@ -808,7 +786,7 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
       if (i)
         ds_put_char (&long_name_map, '\t');
       ds_put_format (&long_name_map, "%s=%s",
-                     var_get_short_name (v), var_get_name (v));
+                     var_get_short_name (v, 0), var_get_name (v));
     }
 
   lv_hdr.rec_type = 7;
