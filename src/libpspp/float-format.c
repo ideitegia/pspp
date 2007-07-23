@@ -106,6 +106,16 @@ float_convert (enum float_format from, const void *src,
     }
 }
 
+/* Converts SRC from format FROM to a native double and returns
+   the double. */
+double
+float_get_double (enum float_format from, const void *src)
+{
+  double dst;
+  float_convert (from, src, FLOAT_NATIVE_DOUBLE, &dst);
+  return dst;
+}
+
 /* Returns the number of bytes in a number in the given
    FORMAT. */
 size_t
