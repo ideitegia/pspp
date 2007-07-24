@@ -71,6 +71,7 @@ static void insert_case (GtkAction *a, gpointer data);
 static void delete_cases (GtkAction *a, gpointer data);
 static void delete_variables (GtkAction *a, gpointer data);
 
+static void toggle_value_labels (GtkToggleAction *a, gpointer data);
 
 /* Switch between the VAR SHEET and the DATA SHEET */
 
@@ -101,10 +102,6 @@ static void data_sheet_activate (GtkCheckMenuItem *, gpointer);
 static void variable_sheet_activate (GtkCheckMenuItem *, gpointer );
 
 static void fonts_activate (GtkMenuItem *, gpointer);
-
-static void value_labels_activate (GtkCheckMenuItem *, gpointer);
-static void value_labels_toggled (GtkToggleToolButton *, gpointer);
-
 
 static void file_quit (GtkCheckMenuItem *, gpointer );
 
@@ -244,6 +241,24 @@ new_data_editor (void)
 
   register_data_editor_actions (de);
 
+  de->toggle_value_labels =
+    gtk_toggle_action_new ("toggle-value-labels",
+			   _("Labels"),
+			   _("Show (hide) value labels"),
+			   "pspp-value-labels");
+
+  g_signal_connect (de->toggle_value_labels, "activate",
+		    G_CALLBACK (toggle_value_labels), de);
+
+
+  gtk_action_connect_proxy (GTK_ACTION (de->toggle_value_labels),
+			    get_widget_assert (de->xml,
+					       "togglebutton-value-labels"));
+
+
+  gtk_action_connect_proxy (GTK_ACTION (de->toggle_value_labels),
+			    get_widget_assert (de->xml,
+					       "view_value-labels"));
 
   de->delete_cases =
     gtk_action_new ("clear-cases",
@@ -579,14 +594,6 @@ new_data_editor (void)
 
 
 
-  g_signal_connect (get_widget_assert (de->xml, "view_valuelabels"),
-		    "activate",
-		    G_CALLBACK (value_labels_activate), de);
-
-
-  g_signal_connect (get_widget_assert (de->xml, "togglebutton-value-labels"),
-		    "toggled",
-		    G_CALLBACK (value_labels_toggled), de);
 
   gtk_action_connect_proxy (de->action_data_open,
 			    get_widget_assert (de->xml, "button-open")
@@ -828,50 +835,20 @@ fonts_activate (GtkMenuItem *menuitem, gpointer data)
 }
 
 
-/* The next two callbacks are mutually co-operative */
 
-/* Callback for the value labels menu item */
+/* Callback for the value labels action */
 static void
-value_labels_activate (GtkCheckMenuItem *menuitem, gpointer data)
+toggle_value_labels (GtkToggleAction *ta, gpointer data)
 {
   struct data_editor *de = data;
 
   GtkSheet *data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
 
-  GtkToggleToolButton *tb =
-    GTK_TOGGLE_TOOL_BUTTON (get_widget_assert (de->xml,
-					       "togglebutton-value-labels"));
-
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
 
-  gboolean show_value_labels = gtk_check_menu_item_get_active (menuitem);
 
-  gtk_toggle_tool_button_set_active (tb, show_value_labels);
-
-  psppire_data_store_show_labels (ds, show_value_labels);
-}
-
-
-/* Callback for the value labels tooglebutton */
-static void
-value_labels_toggled (GtkToggleToolButton *toggle_tool_button,
-		      gpointer data)
-{
-  struct data_editor *de = data;
-
-  GtkSheet *data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-  GtkCheckMenuItem *item =
-    GTK_CHECK_MENU_ITEM (get_widget_assert (de->xml, "view_valuelabels"));
-
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
-
-  gboolean show_value_labels =
-    gtk_toggle_tool_button_get_active (toggle_tool_button);
-
-  gtk_check_menu_item_set_active (item, show_value_labels);
-
-  psppire_data_store_show_labels (ds, show_value_labels);
+  psppire_data_store_show_labels (ds,
+				  gtk_toggle_action_get_active (ta));
 }
 
 
@@ -1684,3 +1661,5 @@ popup_cases_menu (GtkSheet *sheet, gint row,
 		      event->button, event->time);
     }
 }
+
+

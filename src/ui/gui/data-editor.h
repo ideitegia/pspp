@@ -47,6 +47,8 @@ struct data_editor
   GtkAction *delete_variables;
   GtkAction *delete_cases;
 
+  GtkToggleAction *toggle_value_labels;
+
   GladeXML *xml;
 
   GtkMenu *data_sheet_variable_popup_menu;
