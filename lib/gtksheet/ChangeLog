@@ -1,3 +1,9 @@
+24 July 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* gtksheet.c gtksheet.h: Removed the `clip' feature, which IMO 
+	is a croc, and we're unlikely to use.  In its place, added a primary 
+	selection which supports text and html targets.
+
 16 July 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* gtksheet.c gtksheet.h: Removed some legacy functions called from 

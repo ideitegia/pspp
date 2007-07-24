@@ -74,7 +74,6 @@ enum
 #define GTK_SHEET_ROW_FROZEN(sheet)      !gtk_sheet_rows_resizable (sheet)
 #define GTK_SHEET_COLUMN_FROZEN(sheet)   !gtk_sheet_columns_resizable (sheet)
 #define GTK_SHEET_AUTORESIZE(sheet)      gtk_sheet_autoresize (sheet)
-#define GTK_SHEET_CLIP_TEXT(sheet)       gtk_sheet_clip_text (sheet)
 #define GTK_SHEET_ROW_TITLES_VISIBLE(sheet)   gtk_sheet_row_titles_visible (sheet)
 #define GTK_SHEET_COL_TITLES_VISIBLE(sheet)   gtk_sheet_column_titles_visible (sheet)
 #define GTK_SHEET_AUTO_SCROLL(sheet)     gtk_sheet_autoscroll (sheet)
@@ -124,7 +123,6 @@ struct _GtkSheet{
   GtkSelectionMode selection_mode;
   gboolean autoresize;
   gboolean autoscroll;
-  gboolean clip_text;
   gboolean justify_entry;
 
   guint freeze_count;
@@ -157,10 +155,6 @@ struct _GtkSheet{
 
   /* expanding selection */
   GtkSheetCell selection_cell;
-
-  /* timer for flashing clipped range */
-  gint32 clip_timer;
-  gint interval;
 
   /* global selection button */
   GtkWidget *button;
@@ -224,9 +218,6 @@ struct _GtkSheet{
   /* current range being dragged */
   GtkSheetRange drag_range;
 
-  /* clipped range */
-  GtkSheetRange clip_range;
-
   /* Used for the subtitle (popups) */
   gint motion_timer;
   GtkSheetHoverTitle *hover_window;
@@ -245,8 +236,6 @@ struct _GtkSheetClass
  void (*select_column) 		(GtkSheet *sheet, gint column);
 
  void (*select_range) 		(GtkSheet *sheet, GtkSheetRange *range);
-
- void (*clip_range) 		(GtkSheet *sheet, GtkSheetRange *clip_range);
 
  void (*resize_range)		(GtkSheet *sheet,
 	                	GtkSheetRange *old_range,
@@ -369,12 +358,6 @@ gtk_sheet_set_autoscroll		(GtkSheet *sheet, gboolean autoscroll);
 
 gboolean
 gtk_sheet_autoscroll			(GtkSheet *sheet);
-
-void
-gtk_sheet_set_clip_text			(GtkSheet *sheet, gboolean clip_text);
-
-gboolean
-gtk_sheet_clip_text			(GtkSheet *sheet);
 
 void
 gtk_sheet_set_justify_entry		(GtkSheet *sheet, gboolean justify);
@@ -504,16 +487,6 @@ gtk_sheet_select_row 			(GtkSheet * sheet,
 void
 gtk_sheet_select_column 		(GtkSheet * sheet,
 		         		gint column);
-
-/* save selected range to "clipboard" */
-void
-gtk_sheet_clip_range 			(GtkSheet *sheet, const GtkSheetRange *range);
-/* free clipboard */
-void
-gtk_sheet_unclip_range			(GtkSheet *sheet);
-
-gboolean
-gtk_sheet_in_clip			(GtkSheet *sheet);
 
 /* get scrollbars adjustment */
 GtkAdjustment *
