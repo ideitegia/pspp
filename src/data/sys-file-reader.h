@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <data/case.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 
@@ -33,8 +34,15 @@ struct sfm_read_info
     enum integer_format integer_format;
     enum float_format float_format;
     bool compressed;		/* 0=no, 1=yes. */
-    int case_cnt;               /* -1 if unknown. */
+    casenumber case_cnt;        /* -1 if unknown. */
     char product[61];		/* Product name plus a null. */
+
+    /* Writer's version number in X.Y.Z format.
+       The version number is not always present; if not, then
+       all of these are set to 0. */
+    int version_major;          /* X. */
+    int version_minor;          /* Y. */
+    int version_revision;       /* Z. */
   };
 
 struct dictionary;

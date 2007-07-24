@@ -135,7 +135,8 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
             (unsigned int) dict_get_var_cnt (d));
   tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
   tab_text (t, 1, 6, TAB_LEFT | TAT_PRINTF,
-		info.case_cnt == -1 ? _("Unknown") : "%d", info.case_cnt);
+            info.case_cnt == -1 ? _("Unknown") : "%ld",
+            (long int) info.case_cnt);
   tab_text (t, 0, 7, TAB_LEFT, _("Type:"));
   tab_text (t, 1, 7, TAB_LEFT, _("System File."));
   tab_text (t, 0, 8, TAB_LEFT, _("Weight:"));

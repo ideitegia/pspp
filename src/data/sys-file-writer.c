@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,13 +22,15 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
 #include <libpspp/alloc.h>
-#include <libpspp/hash.h>
+#include <libpspp/float-format.h>
+#include <libpspp/integer-format.h>
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
@@ -48,63 +50,10 @@
 #include <data/variable.h>
 
 #include "minmax.h"
+#include "unlocked-io.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-/* Find 64-bit floating-point type. */
-#if SIZEOF_FLOAT == 8
-  #define flt64 float
-  #define FLT64_MAX FLT_MAX
-#elif SIZEOF_DOUBLE == 8
-  #define flt64 double
-  #define FLT64_MAX DBL_MAX
-#elif SIZEOF_LONG_DOUBLE == 8
-  #define flt64 long double
-  #define FLT64_MAX LDBL_MAX
-#else
-  #error Which one of your basic types is 64-bit floating point?
-#endif
-
-/* Figure out SYSMIS value for flt64. */
-#include <libpspp/magic.h>
-#if SIZEOF_DOUBLE == 8
-#define second_lowest_flt64 second_lowest_value
-#else
-#error Must define second_lowest_flt64 for your architecture.
-#endif
-
-/* Record Type 1: General Information. */
-struct sysfile_header
-  {
-    char rec_type[4] ;		/* 00: Record-type code, "$FL2". */
-    char prod_name[60] ;	/* 04: Product identification. */
-    int32_t layout_code ;	/* 40: 2. */
-    int32_t nominal_case_size ;	/* 44: Number of `value's per case.
-				   Note: some systems set this to -1 */
-    int32_t compress ;		/* 48: 1=compressed, 0=not compressed. */
-    int32_t weight_idx ;         /* 4c: 1-based index of weighting var, or 0. */
-    int32_t case_cnt ;		/* 50: Number of cases, -1 if unknown. */
-    flt64 bias ;		/* 54: Compression bias (100.0). */
-    char creation_date[9] ;	/* 5c: `dd mmm yy' creation date of file. */
-    char creation_time[8] ;	/* 65: `hh:mm:ss' 24-hour creation time. */
-    char file_label[64] ;	/* 6d: File label. */
-    char padding[3] ;		/* ad: Ignored padding. */
-  } ATTRIBUTE((packed)) ;
-
-/* Record Type 2: Variable. */
-struct sysfile_variable
-  {
-    int32_t rec_type ;		/* 2. */
-    int32_t type ;		/* 0=numeric, 1-255=string width,
-				   -1=continued string. */
-    int32_t has_var_label ;	/* 1=has a variable label, 0=doesn't. */
-    int32_t n_missing_values ;	/* Missing value code of -3,-2,0,1,2, or 3. */
-    int32_t print ;	        /* Print format. */
-    int32_t write ;	        /* Write format. */
-    char name[SHORT_NAME_LEN] ; /* Variable name. */
-    /* The rest of the structure varies. */
-  } ATTRIBUTE((packed)) ;
 
 /* Compression bias used by PSPP.  Values between (1 -
    COMPRESSION_BIAS) and (251 - COMPRESSION_BIAS) inclusive can be
@@ -117,43 +66,36 @@ struct sfm_writer
     struct file_handle *fh;     /* File handle. */
     FILE *file;			/* File stream. */
 
-    int needs_translation;      /* 0=use fast path, 1=translation needed. */
-    int compress;		/* 1=compressed, 0=not compressed. */
-    int case_cnt;		/* Number of cases written so far. */
-    size_t flt64_cnt;           /* Number of flt64 elements in case. */
-    bool has_vls;               /* Does the dict have very long strings? */
+    bool compress;		/* 1=compressed, 0=not compressed. */
+    casenumber case_cnt;	/* Number of cases written so far. */
 
-    /* Compression buffering. */
-    flt64 *buf;			/* Buffered data. */
-    flt64 *end;			/* Buffer end. */
-    flt64 *ptr;			/* Current location in buffer. */
-    unsigned char *x;		/* Location in current instruction octet. */
-    unsigned char *y;		/* End of instruction octet. */
+    /* Compression buffering.
+
+       Compressed data is output as groups of 8 1-byte opcodes
+       followed by up to 8 (depending on the opcodes) 8-byte data
+       items.  Data items and opcodes arrive at the same time but
+       must be reordered for writing to disk, thus a small amount
+       of buffering here. */
+    uint8_t opcodes[8];         /* Buffered opcodes. */
+    int opcode_cnt;             /* Number of buffered opcodes. */
+    uint8_t data[8][8];         /* Buffered data. */
+    int data_cnt;               /* Number of buffered data items. */
 
     /* Variables. */
-    struct sfm_var *vars;       /* Variables. */
-    size_t var_cnt;             /* Number of variables. */
-    size_t var_cnt_vls;         /* Number of variables including
-				   very long string components. */
-  };
-
-/* A variable in a system file. */
-struct sfm_var
-  {
-    int width;                  /* 0=numeric, otherwise string width. */
-    int fv;                     /* Index into case. */
-    size_t flt64_cnt;           /* Number of flt64 elements. */
+    struct sfm_var *sfm_vars;   /* Variables. */
+    size_t sfm_var_cnt;         /* Number of variables. */
+    size_t segment_cnt;         /* Number of variables including extra segments
+                                   for long string variables. */
   };
 
 static struct casewriter_class sys_file_casewriter_class;
 
-static char *append_string_max (char *, const char *, const char *);
 static void write_header (struct sfm_writer *, const struct dictionary *);
-static void buf_write (struct sfm_writer *, const void *, size_t);
 static void write_variable (struct sfm_writer *, const struct variable *);
 static void write_value_labels (struct sfm_writer *,
                                 struct variable *, int idx);
-static void write_rec_7_34 (struct sfm_writer *);
+static void write_integer_info_record (struct sfm_writer *);
+static void write_float_info_record (struct sfm_writer *);
 
 static void write_longvar_table (struct sfm_writer *w,
                                  const struct dictionary *dict);
@@ -167,23 +109,24 @@ static void write_variable_display_parameters (struct sfm_writer *w,
 
 static void write_documents (struct sfm_writer *, const struct dictionary *);
 
+static void write_int (struct sfm_writer *, int32_t);
+static inline void convert_double_to_output_format (double, uint8_t[8]);
+static void write_float (struct sfm_writer *, double);
+static void write_string (struct sfm_writer *, const char *, size_t);
+static void write_bytes (struct sfm_writer *, const void *, size_t);
+static void write_zeros (struct sfm_writer *, size_t);
+static void write_spaces (struct sfm_writer *, size_t);
+static void write_value (struct sfm_writer *, const union value *, int width);
+
+static void write_case_uncompressed (struct sfm_writer *, struct ccase *);
+static void write_case_compressed (struct sfm_writer *, struct ccase *);
+static void flush_compressed (struct sfm_writer *);
+static void put_cmp_opcode (struct sfm_writer *, uint8_t);
+static void put_cmp_number (struct sfm_writer *, double);
+static void put_cmp_string (struct sfm_writer *, const void *, size_t);
+
 bool write_error (const struct sfm_writer *);
 bool close_writer (struct sfm_writer *);
-
-static inline int
-var_flt64_cnt (const struct variable *v)
-{
-  assert(sizeof(flt64) == MAX_SHORT_STRING);
-  return sfm_width_to_bytes(var_get_width (v)) / MAX_SHORT_STRING ;
-}
-
-static inline int
-var_flt64_cnt_nom (const struct variable *v)
-{
-  return (var_is_numeric (v)
-          ? 1 : DIV_RND_UP (var_get_width (v), sizeof (flt64)));
-}
-
 
 /* Returns default options for writing a system file. */
 struct sfm_write_options
@@ -238,30 +181,17 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   w->fh = fh;
   w->file = fdopen (fd, "w");
 
-  w->needs_translation = dict_compacting_would_change (d);
   w->compress = opts.compress;
   w->case_cnt = 0;
-  w->flt64_cnt = 0;
-  w->has_vls = false;
 
-  w->buf = w->end = w->ptr = NULL;
-  w->x = w->y = NULL;
+  w->opcode_cnt = w->data_cnt = 0;
 
-  w->var_cnt = dict_get_var_cnt (d);
-  w->var_cnt_vls = w->var_cnt;
-  w->vars = xnmalloc (w->var_cnt, sizeof *w->vars);
-  for (i = 0; i < w->var_cnt; i++)
-    {
-      const struct variable *dv = dict_get_var (d, i);
-      struct sfm_var *sv = &w->vars[i];
-      sv->width = var_get_width (dv);
-      /* spss compatibility nonsense */
-      if ( var_get_width (dv) >= MIN_VERY_LONG_STRING )
-	  w->has_vls = true;
-
-      sv->fv = var_get_case_index (dv);
-      sv->flt64_cnt = var_flt64_cnt (dv);
-    }
+  /* Figure out how to map in-memory case data to on-disk case
+     data.  Also count the number of segments.  Very long strings
+     occupy multiple segments, otherwise each variable only takes
+     one segment. */
+  w->segment_cnt = sfm_dictionary_to_sfm_vars (d, &w->sfm_vars,
+                                               &w->sfm_var_cnt);
 
   /* Check that file create succeeded. */
   if (w->file == NULL)
@@ -276,86 +206,34 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   /* Write basic variable info. */
   short_names_assign (d);
   for (i = 0; i < dict_get_var_cnt (d); i++)
-    {
-      int count = 0;
-      const struct variable *v = dict_get_var(d, i);
-      int wcount = var_get_width (v);
-
-      do {
-	struct variable *var_cont = var_clone (v);
-        var_set_short_name (var_cont, 0, var_get_short_name (v, 0));
-	if ( var_is_alpha (v))
-	  {
-	    if ( 0 != count )
-	      {
-		var_clear_missing_values (var_cont);
-                var_set_short_name (var_cont, 0,
-                                    var_get_short_name (v, count));
-                var_clear_label (var_cont);
-		w->var_cnt_vls++;
-	      }
-	    count++;
-	    if ( wcount >= MIN_VERY_LONG_STRING )
-	      {
-                var_set_width (var_cont, MIN_VERY_LONG_STRING - 1);
-		wcount -= EFFECTIVE_LONG_STRING_LENGTH;
-	      }
-	    else
-	      {
-		var_set_width (var_cont, wcount);
-		wcount -= var_get_width (var_cont);
-	      }
-	  }
-
-	write_variable (w, var_cont);
-        var_destroy (var_cont);
-      } while(wcount > 0);
-    }
+    write_variable (w, dict_get_var (d, i));
 
   /* Write out value labels. */
-  for (idx = i = 0; i < dict_get_var_cnt (d); i++)
+  idx = 0;
+  for (i = 0; i < dict_get_var_cnt (d); i++)
     {
       struct variable *v = dict_get_var (d, i);
 
       write_value_labels (w, v, idx);
-      idx += var_flt64_cnt (v);
+      idx += sfm_width_to_octs (var_get_width (v));
     }
 
   if (dict_get_documents (d) != NULL)
     write_documents (w, d);
 
-  write_rec_7_34 (w);
+  write_integer_info_record (w);
+  write_float_info_record (w);
 
   write_variable_display_parameters (w, d);
 
   if (opts.version >= 3)
     write_longvar_table (w, d);
 
-  write_vls_length_table(w, d);
+  write_vls_length_table (w, d);
 
   /* Write end-of-headers record. */
-  {
-    struct
-      {
-	int32_t rec_type ;
-	int32_t filler ;
-    } ATTRIBUTE((packed))
-    rec_999;
-
-    rec_999.rec_type = 999;
-    rec_999.filler = 0;
-
-    buf_write (w, &rec_999, sizeof rec_999);
-  }
-
-  if (w->compress)
-    {
-      w->buf = xnmalloc (128, sizeof *w->buf);
-      w->ptr = w->buf;
-      w->end = &w->buf[128];
-      w->x = (unsigned char *) w->ptr++;
-      w->y = (unsigned char *) w->ptr;
-    }
+  write_int (w, 999);
+  write_int (w, 0);
 
   if (write_error (w))
     goto error;
@@ -383,61 +261,72 @@ rerange (int x)
   return x;
 }
 
+/* Calculates the offset of data for TARGET_VAR from the
+   beginning of each case's data for dictionary D.  The return
+   value is in "octs" (8-byte units). */
+static int
+calc_oct_idx (const struct dictionary *d, struct variable *target_var)
+{
+  int oct_idx;
+  int i;
+
+  oct_idx = 0;
+  for (i = 0; i < dict_get_var_cnt (d); i++)
+    {
+      struct variable *var = dict_get_var (d, i);
+      if (var == target_var)
+        break;
+      oct_idx += sfm_width_to_octs (var_get_width (var));
+    }
+  return oct_idx;
+}
+
 /* Write the sysfile_header header to system file W. */
 static void
 write_header (struct sfm_writer *w, const struct dictionary *d)
 {
-  struct sysfile_header hdr;
-  char *p;
-  int i;
+  char prod_name[61];
+  char creation_date[10];
+  char creation_time[9];
+  const char *file_label;
+  struct variable *weight;
 
   time_t t;
 
-  memcpy (hdr.rec_type, "$FL2", 4);
+  /* Record-type code. */
+  write_string (w, "$FL2", 4);
 
-  p = stpcpy (hdr.prod_name, "@(#) SPSS DATA FILE ");
-  p = append_string_max (p, version, &hdr.prod_name[60]);
-  p = append_string_max (p, " - ", &hdr.prod_name[60]);
-  p = append_string_max (p, host_system, &hdr.prod_name[60]);
-  memset (p, ' ', &hdr.prod_name[60] - p);
+  /* Product identification. */
+  snprintf (prod_name, sizeof prod_name, "@(#) SPSS DATA FILE %s - %s",
+            version, host_system);
+  write_string (w, prod_name, 60);
 
-  hdr.layout_code = 2;
+  /* Layout code. */
+  write_int (w, 2);
 
-  w->flt64_cnt = 0;
-  for (i = 0; i < dict_get_var_cnt (d); i++)
-    {
-      w->flt64_cnt += var_flt64_cnt (dict_get_var (d, i));
-    }
-  hdr.nominal_case_size = w->flt64_cnt;
+  /* Number of `union value's per case. */
+  write_int (w, calc_oct_idx (d, NULL));
 
-  hdr.compress = w->compress;
+  /* Compressed? */
+  write_int (w, w->compress);
 
-  if (dict_get_weight (d) != NULL)
-    {
-      const struct variable *weight_var;
-      int recalc_weight_idx = 1;
-      int i;
+  /* Weight variable. */
+  weight = dict_get_weight (d);
+  write_int (w, weight != NULL ? calc_oct_idx (d, weight) + 1 : 0);
 
-      weight_var = dict_get_weight (d);
-      for (i = 0; ; i++)
-        {
-	  struct variable *v = dict_get_var (d, i);
-          if (v == weight_var)
-            break;
-	  recalc_weight_idx += var_flt64_cnt (v);
-	}
-      hdr.weight_idx = recalc_weight_idx;
-    }
-  else
-    hdr.weight_idx = 0;
+  /* Number of cases.  We don't know this in advance, so we write
+     -1 to indicate an unknown number of cases.  Later we can
+     come back and overwrite it with the true value. */
+  write_int (w, -1);
 
-  hdr.case_cnt = -1;
-  hdr.bias = COMPRESSION_BIAS;
+  /* Compression bias. */
+  write_float (w, COMPRESSION_BIAS);
 
+  /* Creation date and time. */
   if (time (&t) == (time_t) -1)
     {
-      memcpy (hdr.creation_date, "01 Jan 70", 9);
-      memcpy (hdr.creation_time, "00:00:00", 8);
+      strcpy (creation_date, "01 Jan 70");
+      strcpy (creation_time, "00:00:00");
     }
   else
     {
@@ -453,120 +342,134 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
       int hour = rerange (tmp->tm_hour + 1);
       int min = rerange (tmp->tm_min + 1);
       int sec = rerange (tmp->tm_sec + 1);
-      char buf[10];
 
-      sprintf (buf, "%02d %s %02d", day, month_name[mon - 1], year);
-      memcpy (hdr.creation_date, buf, sizeof hdr.creation_date);
-      sprintf (buf, "%02d:%02d:%02d", hour - 1, min - 1, sec - 1);
-      memcpy (hdr.creation_time, buf, sizeof hdr.creation_time);
+      snprintf (creation_date, sizeof creation_date,
+                "%02d %s %02d", day, month_name[mon - 1], year);
+      snprintf (creation_time, sizeof creation_time,
+                "%02d:%02d:%02d", hour - 1, min - 1, sec - 1);
     }
+  write_string (w, creation_date, 9);
+  write_string (w, creation_time, 8);
 
-  {
-    const char *label = dict_get_label (d);
-    if (label == NULL)
-      label = "";
+  /* File label. */
+  file_label = dict_get_label (d);
+  if (file_label == NULL)
+    file_label = "";
+  write_string (w, file_label, 64);
 
-    buf_copy_str_rpad (hdr.file_label, sizeof hdr.file_label, label);
-  }
-
-  memset (hdr.padding, 0, sizeof hdr.padding);
-
-  buf_write (w, &hdr, sizeof hdr);
+  /* Padding. */
+  write_zeros (w, 3);
 }
 
-/* Translates format spec from internal form in SRC to system file
-   format in DEST. */
-static inline void
-write_format_spec (const struct fmt_spec *src, int32_t *dest)
+/* Write format spec FMT to W, after adjusting it to be
+   compatible with the given WIDTH. */
+static void
+write_format (struct sfm_writer *w, struct fmt_spec fmt, int width)
 {
-  assert (fmt_check_output (src));
-  *dest = (fmt_to_io (src->type) << 16) | (src->w << 8) | src->d;
+  assert (fmt_check_output (&fmt));
+  assert (sfm_width_to_segments (width) == 1);
+
+  if (width > 0)
+    fmt_resize (&fmt, width);
+  write_int (w, (fmt_to_io (fmt.type) << 16) | (fmt.w << 8) | fmt.d);
 }
 
-/* Write the variable record(s) for primary variable P and secondary
-   variable S to system file W. */
+/* Write a string continuation variable record for each 8-byte
+   section beyond the initial 8 bytes, for a variable of the
+   given WIDTH. */
+static void
+write_variable_continuation_records (struct sfm_writer *w, int width)
+{
+  int position;
+
+  assert (sfm_width_to_segments (width) == 1);
+  for (position = 8; position < width; position += 8)
+    {
+      write_int (w, 2);   /* Record type. */
+      write_int (w, -1);  /* Width. */
+      write_int (w, 0);   /* No variable label. */
+      write_int (w, 0);   /* No missing values. */
+      write_int (w, 0);   /* Print format. */
+      write_int (w, 0);   /* Write format. */
+      write_zeros (w, 8);   /* Name. */
+    }
+}
+
+/* Write the variable record(s) for variable V to system file
+   W. */
 static void
 write_variable (struct sfm_writer *w, const struct variable *v)
 {
-  struct sysfile_variable sv;
+  int width = var_get_width (v);
+  int segment_cnt = sfm_width_to_segments (width);
+  int seg0_width = sfm_segment_alloc_width (width, 0);
+  const struct missing_values *mv = var_get_missing_values (v);
+  int i;
 
-  /* Missing values. */
-  struct missing_values mv;
-  flt64 m[3];           /* Missing value values. */
-  int nm;               /* Number of missing values, possibly negative. */
-  const char *label = var_get_label (v);
+  /* Record type. */
+  write_int (w, 2);
 
-  sv.rec_type = 2;
-  sv.type = MIN (var_get_width (v), MIN_VERY_LONG_STRING - 1);
-  sv.has_var_label = label != NULL;
+  /* Width. */
+  write_int (w, seg0_width);
 
-  mv_copy (&mv, var_get_missing_values (v));
-  nm = 0;
-  if (mv_has_range (&mv))
+  /* Variable has a variable label? */
+  write_int (w, var_has_label (v));
+
+  /* Number of missing values.  If there is a range, then the
+     range counts as 2 missing values and causes the number to be
+     negated. */
+  write_int (w, mv_has_range (mv) ? 2 - mv_n_values (mv) : mv_n_values (mv));
+
+  /* Print and write formats. */
+  write_format (w, *var_get_print_format (v), seg0_width);
+  write_format (w, *var_get_write_format (v), seg0_width);
+
+  /* Short name.
+     The full name is in a translation table written
+     separately. */
+  write_string (w, var_get_short_name (v, 0), 8);
+
+  /* Value label. */
+  if (var_has_label (v))
+    {
+      const char *label = var_get_label (v);
+      size_t padded_len = ROUND_UP (MIN (strlen (label), 255), 4);
+      write_int (w, padded_len);
+      write_string (w, label, padded_len);
+    }
+
+  /* Write the missing values, if any, range first. */
+  if (mv_has_range (mv))
     {
       double x, y;
-      mv_pop_range (&mv, &x, &y);
-      m[nm++] = x == LOWEST ? second_lowest_flt64 : x;
-      m[nm++] = y == HIGHEST ? FLT64_MAX : y;
+      mv_peek_range (mv, &x, &y);
+      write_float (w, x);
+      write_float (w, y);
     }
-  while (mv_has_value (&mv))
+  for (i = 0; i < mv_n_values (mv); i++)
     {
       union value value;
-      mv_pop_value (&mv, &value);
-      if (var_is_numeric (v))
-        m[nm] = value.f;
-      else
-        buf_copy_rpad ((char *) &m[nm], sizeof m[nm], value.s,
-                       var_get_width (v));
-      nm++;
-    }
-  if (mv_has_range (var_get_missing_values (v)))
-    nm = -nm;
-
-  sv.n_missing_values = nm;
-  write_format_spec (var_get_print_format (v), &sv.print);
-  write_format_spec (var_get_write_format (v), &sv.write);
-  buf_copy_str_rpad (sv.name, sizeof sv.name, var_get_short_name (v, 0));
-  buf_write (w, &sv, sizeof sv);
-
-  if (label != NULL)
-    {
-      struct label
-	{
-	  int32_t label_len ;
-	  char label[255] ;
-      } ATTRIBUTE((packed))
-      l;
-
-      int ext_len;
-
-      l.label_len = MIN (strlen (label), 255);
-      ext_len = ROUND_UP (l.label_len, sizeof l.label_len);
-      memcpy (l.label, label, l.label_len);
-      memset (&l.label[l.label_len], ' ', ext_len - l.label_len);
-
-      buf_write (w, &l, offsetof (struct label, label) + ext_len);
+      mv_peek_value (mv, &value, i);
+      write_value (w, &value, seg0_width);
     }
 
-  if (nm)
-    buf_write (w, m, sizeof *m * abs (nm));
+  write_variable_continuation_records (w, seg0_width);
 
-  if (var_is_alpha (v) && var_get_width (v) > (int) sizeof (flt64))
+  /* Write additional segments for very long string variables. */
+  for (i = 1; i < segment_cnt; i++)
     {
-      int i;
-      int pad_count;
+      int seg_width = sfm_segment_alloc_width (width, i);
+      struct fmt_spec fmt = fmt_for_output (FMT_A, MAX (seg_width, 1), 0);
 
-      sv.type = -1;
-      sv.has_var_label = 0;
-      sv.n_missing_values = 0;
-      memset (&sv.print, 0, sizeof sv.print);
-      memset (&sv.write, 0, sizeof sv.write);
-      memset (&sv.name, 0, sizeof sv.name);
+      write_int (w, 2);           /* Variable record. */
+      write_int (w, seg_width);   /* Width. */
+      write_int (w, 0);           /* No variable label. */
+      write_int (w, 0);           /* No missing values. */
+      write_format (w, fmt, seg_width); /* Print format. */
+      write_format (w, fmt, seg_width); /* Write format. */
+      write_string (w, var_get_short_name (v, i), 8);
 
-      pad_count = DIV_RND_UP (MIN(var_get_width (v), MIN_VERY_LONG_STRING - 1),
-			      (int) sizeof (flt64)) - 1;
-      for (i = 0; i < pad_count; i++)
-	buf_write (w, &sv, sizeof sv);
+      write_variable_continuation_records (w, seg_width);
     }
 }
 
@@ -575,345 +478,194 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 static void
 write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 {
-  struct value_label_rec
-    {
-      int32_t rec_type ;
-      int32_t n_labels ;
-      flt64 labels[1] ;
-    } ATTRIBUTE((packed));
-
-  struct var_idx_rec
-    {
-      int32_t rec_type ;
-      int32_t n_vars ;
-      int32_t vars[1] ;
-    } ATTRIBUTE((packed));
-
   const struct val_labs *val_labs;
   struct val_labs_iterator *i;
-  struct value_label_rec *vlr;
-  struct var_idx_rec vir;
   struct val_lab *vl;
-  size_t vlr_size;
-  flt64 *loc;
 
   val_labs = var_get_value_labels (v);
   if (val_labs == NULL)
     return;
 
-  /* Pass 1: Count bytes. */
-  vlr_size = (sizeof (struct value_label_rec)
-	      + sizeof (flt64) * (val_labs_count (val_labs) - 1));
-  for (vl = val_labs_first (val_labs, &i); vl != NULL;
-       vl = val_labs_next (val_labs, &i))
-    vlr_size += ROUND_UP (strlen (vl->label) + 1, sizeof (flt64));
-
-  /* Pass 2: Copy bytes. */
-  vlr = xmalloc (vlr_size);
-  vlr->rec_type = 3;
-  vlr->n_labels = val_labs_count (val_labs);
-  loc = vlr->labels;
+  /* Value label record. */
+  write_int (w, 3);             /* Record type. */
+  write_int (w, val_labs_count (val_labs));
   for (vl = val_labs_first_sorted (val_labs, &i); vl != NULL;
        vl = val_labs_next (val_labs, &i))
     {
-      size_t len = strlen (vl->label);
+      uint8_t len = MIN (strlen (vl->label), 255);
 
-      *loc++ = vl->value.f;
-      *(unsigned char *) loc = len;
-      memcpy (&((char *) loc)[1], vl->label, len);
-      memset (&((char *) loc)[1 + len], ' ',
-	      REM_RND_UP (len + 1, sizeof (flt64)));
-      loc += DIV_RND_UP (len + 1, sizeof (flt64));
+      write_value (w, &vl->value, var_get_width (v));
+      write_bytes (w, &len, 1);
+      write_bytes (w, vl->label, len);
+      write_zeros (w, REM_RND_UP (len + 1, 8));
     }
 
-  buf_write (w, vlr, vlr_size);
-  free (vlr);
-
-  vir.rec_type = 4;
-  vir.n_vars = 1;
-  vir.vars[0] = idx + 1;
-  buf_write (w, &vir, sizeof vir);
+  /* Value label variable record. */
+  write_int (w, 4);             /* Record type. */
+  write_int (w, 1);             /* Number of variables. */
+  write_int (w, idx + 1);       /* Variable's dictionary index. */
 }
 
 /* Writes record type 6, document record. */
 static void
 write_documents (struct sfm_writer *w, const struct dictionary *d)
 {
-  struct
-  {
-    int32_t rec_type ;		/* Always 6. */
-    int32_t n_lines ;		/* Number of lines of documents. */
-  } ATTRIBUTE((packed)) rec_6;
+  size_t line_cnt = dict_get_document_line_cnt (d);
 
-  const char * documents = dict_get_documents (d);
-  size_t doc_bytes = strlen (documents);
-
-  assert (doc_bytes % 80 == 0);
-
-  rec_6.rec_type = 6;
-  rec_6.n_lines = doc_bytes / 80;
-  buf_write (w, &rec_6, sizeof rec_6);
-  buf_write (w, documents, 80 * rec_6.n_lines);
+  write_int (w, 6);             /* Record type. */
+  write_int (w, line_cnt);
+  write_bytes (w, dict_get_documents (d), line_cnt * DOC_LINE_LENGTH);
 }
 
-/* Write the alignment, width and scale values */
+/* Write the alignment, width and scale values. */
 static void
 write_variable_display_parameters (struct sfm_writer *w,
 				   const struct dictionary *dict)
 {
   int i;
 
-  struct
-  {
-    int32_t rec_type ;
-    int32_t subtype ;
-    int32_t elem_size ;
-    int32_t n_elem ;
-  } ATTRIBUTE((packed)) vdp_hdr;
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 11);            /* Record subtype. */
+  write_int (w, 4);             /* Data item (int32) size. */
+  write_int (w, w->segment_cnt * 3); /* Number of data items. */
 
-  vdp_hdr.rec_type = 7;
-  vdp_hdr.subtype = 11;
-  vdp_hdr.elem_size = 4;
-  vdp_hdr.n_elem = w->var_cnt_vls * 3;
-
-  buf_write (w, &vdp_hdr, sizeof vdp_hdr);
-
-  for ( i = 0 ; i < w->var_cnt ; ++i )
+  for (i = 0; i < dict_get_var_cnt (dict); ++i)
     {
-      struct variable *v;
-      struct
-      {
-	int32_t measure ;
-	int32_t width ;
-	int32_t align ;
-      } ATTRIBUTE((packed)) params;
+      struct variable *v = dict_get_var (dict, i);
+      int width = var_get_width (v);
+      int segment_cnt = sfm_width_to_segments (width);
+      int measure = (var_get_measure (v) == MEASURE_NOMINAL ? 1
+                     : var_get_measure (v) == MEASURE_ORDINAL ? 2
+                     : 3);
+      int alignment = (var_get_alignment (v) == ALIGN_LEFT ? 0
+                       : var_get_alignment (v) == ALIGN_RIGHT ? 1
+                       : 2);
+      int i;
 
-      v = dict_get_var(dict, i);
-
-      params.measure = (var_get_measure (v) == MEASURE_NOMINAL ? 1
-                        : var_get_measure (v) == MEASURE_ORDINAL ? 2
-                        : 3);
-      params.width = var_get_display_width (v);
-      params.align = (var_get_alignment (v) == ALIGN_LEFT ? 0
-                      : var_get_alignment (v) == ALIGN_RIGHT ? 1
-                      : 2);
-
-      buf_write (w, &params, sizeof(params));
-
-      if (var_is_long_string (v))
-	{
-	  int wcount = var_get_width (v) - EFFECTIVE_LONG_STRING_LENGTH ;
-
-	  while (wcount > 0)
-	    {
-	      params.width = wcount >= MIN_VERY_LONG_STRING ? 32 : wcount;
-
-	      buf_write (w, &params, sizeof(params));
-
-	      wcount -= EFFECTIVE_LONG_STRING_LENGTH ;
-	    }
-	}
+      for (i = 0; i < segment_cnt; i++)
+        {
+          int width_left = width - sfm_segment_effective_offset (width, i);
+          write_int (w, measure);
+          write_int (w, (i == 0 ? var_get_display_width (v)
+                         : sfm_width_to_segments (width_left) > 1 ? 32
+                         : width_left));
+          write_int (w, alignment);
+        }
     }
 }
 
-/* Writes the table of lengths for Very Long String Variables */
+/* Writes the table of lengths for very long string variables. */
 static void
 write_vls_length_table (struct sfm_writer *w,
 			const struct dictionary *dict)
 {
+  struct string map;
   int i;
-  struct
-  {
-    int32_t rec_type ;
-    int32_t subtype ;
-    int32_t elem_size ;
-    int32_t n_elem ;
-  } ATTRIBUTE((packed)) vls_hdr;
 
-  struct string vls_length_map;
-
-  ds_init_empty (&vls_length_map);
-
-  vls_hdr.rec_type = 7;
-  vls_hdr.subtype = 14;
-  vls_hdr.elem_size = 1;
-
-
+  ds_init_empty (&map);
   for (i = 0; i < dict_get_var_cnt (dict); ++i)
     {
       const struct variable *v = dict_get_var (dict, i);
-
-      if ( var_get_width (v) < MIN_VERY_LONG_STRING )
-	continue;
-
-      ds_put_format (&vls_length_map, "%s=%05d",
-                     var_get_short_name (v, 0), var_get_width (v));
-      ds_put_char (&vls_length_map, '\0');
-      ds_put_char (&vls_length_map, '\t');
+      if (sfm_width_to_segments (var_get_width (v)) > 1)
+        ds_put_format (&map, "%s=%05d%c\t",
+                       var_get_short_name (v, 0), var_get_width (v), 0);
     }
-
-  vls_hdr.n_elem = ds_length (&vls_length_map);
-
-  if ( vls_hdr.n_elem > 0 )
+  if (!ds_is_empty (&map))
     {
-      buf_write (w, &vls_hdr, sizeof vls_hdr);
-      buf_write (w, ds_data (&vls_length_map), ds_length (&vls_length_map));
+      write_int (w, 7);         /* Record type. */
+      write_int (w, 14);        /* Record subtype. */
+      write_int (w, 1);         /* Data item (char) size. */
+      write_int (w, ds_length (&map)); /* Number of data items. */
+      write_bytes (w, ds_data (&map), ds_length (&map));
     }
-
-  ds_destroy (&vls_length_map);
+  ds_destroy (&map);
 }
 
-/* Writes the long variable name table */
+/* Writes the long variable name table. */
 static void
 write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
 {
-  struct
-    {
-      int32_t rec_type ;
-      int32_t subtype ;
-      int32_t elem_size ;
-      int32_t n_elem ;
-  } ATTRIBUTE((packed)) lv_hdr;
-
-  struct string long_name_map;
+  struct string map;
   size_t i;
 
-  ds_init_empty (&long_name_map);
+  ds_init_empty (&map);
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *v = dict_get_var (dict, i);
 
       if (i)
-        ds_put_char (&long_name_map, '\t');
-      ds_put_format (&long_name_map, "%s=%s",
+        ds_put_char (&map, '\t');
+      ds_put_format (&map, "%s=%s",
                      var_get_short_name (v, 0), var_get_name (v));
     }
 
-  lv_hdr.rec_type = 7;
-  lv_hdr.subtype = 13;
-  lv_hdr.elem_size = 1;
-  lv_hdr.n_elem = ds_length (&long_name_map);
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 13);            /* Record subtype. */
+  write_int (w, 1);             /* Data item (char) size. */
+  write_int (w, ds_length (&map)); /* Number of data items. */
+  write_bytes (w, ds_data (&map), ds_length (&map));
 
-  buf_write (w, &lv_hdr, sizeof lv_hdr);
-  buf_write (w, ds_data (&long_name_map), ds_length (&long_name_map));
-
-  ds_destroy (&long_name_map);
+  ds_destroy (&map);
 }
 
-/* Writes record type 7, subtypes 3 and 4. */
+/* Write integer information record. */
 static void
-write_rec_7_34 (struct sfm_writer *w)
+write_integer_info_record (struct sfm_writer *w)
 {
-  struct
-    {
-      int32_t rec_type_3 ;
-      int32_t subtype_3 ;
-      int32_t data_type_3 ;
-      int32_t n_elem_3 ;
-      int32_t elem_3[8] ;
-      int32_t rec_type_4 ;
-      int32_t subtype_4 ;
-      int32_t data_type_4 ;
-      int32_t n_elem_4 ;
-      flt64 elem_4[3] ;
-  } ATTRIBUTE((packed)) rec_7;
-
-  /* Components of the version number, from major to minor. */
   int version_component[3];
+  int float_format;
 
-  /* Used to step through the version string. */
-  char *p;
+  /* Parse the version string. */
+  memset (version_component, 0, sizeof version_component);
+  sscanf (bare_version, "%d.%d.%d",
+          &version_component[0], &version_component[1], &version_component[2]);
 
-  /* Parses the version string, which is assumed to be of the form
-     #.#x, where each # is a string of digits, and x is a single
-     letter. */
-  version_component[0] = strtol (bare_version, &p, 10);
-  if (*p == '.')
-    p++;
-  version_component[1] = strtol (bare_version, &p, 10);
-  version_component[2] = (isalpha ((unsigned char) *p)
-			  ? tolower ((unsigned char) *p) - 'a' : 0);
+  /* Figure out the floating-point format. */
+  if (FLOAT_NATIVE_64_BIT == FLOAT_IEEE_DOUBLE_LE
+      || FLOAT_NATIVE_64_BIT == FLOAT_IEEE_DOUBLE_BE)
+    float_format = 1;
+  else if (FLOAT_NATIVE_64_BIT == FLOAT_Z_LONG)
+    float_format = 2;
+  else if (FLOAT_NATIVE_64_BIT == FLOAT_VAX_D)
+    float_format = 3;
+  else
+    abort ();
 
-  rec_7.rec_type_3 = 7;
-  rec_7.subtype_3 = 3;
-  rec_7.data_type_3 = sizeof (int32_t);
-  rec_7.n_elem_3 = 8;
-  rec_7.elem_3[0] = version_component[0];
-  rec_7.elem_3[1] = version_component[1];
-  rec_7.elem_3[2] = version_component[2];
-  rec_7.elem_3[3] = -1;
-
-  /* PORTME: 1=IEEE754, 2=IBM 370, 3=DEC VAX E. */
-#ifdef FPREP_IEEE754
-  rec_7.elem_3[4] = 1;
-#endif
-
-  rec_7.elem_3[5] = 1;
-
-  /* PORTME: 1=big-endian, 2=little-endian. */
-#if WORDS_BIGENDIAN
-  rec_7.elem_3[6] = 1;
-#else
-  rec_7.elem_3[6] = 2;
-#endif
-
-  /* PORTME: 1=EBCDIC, 2=7-bit ASCII, 3=8-bit ASCII, 4=DEC Kanji. */
-  rec_7.elem_3[7] = 2;
-
-  rec_7.rec_type_4 = 7;
-  rec_7.subtype_4 = 4;
-  rec_7.data_type_4 = sizeof (flt64);
-  rec_7.n_elem_4 = 3;
-  rec_7.elem_4[0] = -FLT64_MAX;
-  rec_7.elem_4[1] = FLT64_MAX;
-  rec_7.elem_4[2] = second_lowest_flt64;
-
-  buf_write (w, &rec_7, sizeof rec_7);
+  /* Write record. */
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 3);             /* Record subtype. */
+  write_int (w, 4);             /* Data item (int32) size. */
+  write_int (w, 8);             /* Number of data items. */
+  write_int (w, version_component[0]);
+  write_int (w, version_component[1]);
+  write_int (w, version_component[2]);
+  write_int (w, -1);          /* Machine code. */
+  write_int (w, float_format);
+  write_int (w, 1);           /* Compression code. */
+  write_int (w, INTEGER_NATIVE == INTEGER_MSB_FIRST ? 1 : 2);
+  write_int (w, 2);           /* 7-bit ASCII. */
 }
 
-/* Write NBYTES starting at BUF to the system file represented by
-   H. */
+/* Write floating-point information record. */
 static void
-buf_write (struct sfm_writer *w, const void *buf, size_t nbytes)
+write_float_info_record (struct sfm_writer *w)
 {
-  assert (buf != NULL);
-  fwrite (buf, nbytes, 1, w->file);
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 4);             /* Record subtype. */
+  write_int (w, 8);             /* Data item (flt64) size. */
+  write_int (w, 3);             /* Number of data items. */
+  write_float (w, SYSMIS);      /* System-missing value. */
+  write_float (w, HIGHEST);     /* Value used for HIGHEST in missing values. */
+  write_float (w, LOWEST);      /* Value used for LOWEST in missing values. */
 }
-
-/* Copies string DEST to SRC with the proviso that DEST does not reach
-   byte END; no null terminator is copied.  Returns a pointer to the
-   byte after the last byte copied. */
-static char *
-append_string_max (char *dest, const char *src, const char *end)
-{
-  int nbytes = MIN (end - dest, (int) strlen (src));
-  memcpy (dest, src, nbytes);
-  return dest + nbytes;
-}
-
-/* Makes certain that the compression buffer of H has room for another
-   element.  If there's not room, pads out the current instruction
-   octet with zero and dumps out the buffer. */
-static void
-ensure_buf_space (struct sfm_writer *w)
-{
-  if (w->ptr >= w->end)
-    {
-      memset (w->x, 0, w->y - w->x);
-      w->x = w->y;
-      w->ptr = w->buf;
-      buf_write (w, w->buf, sizeof *w->buf * 128);
-    }
-}
-
-static void write_compressed_data (struct sfm_writer *w, const flt64 *elem);
-
+
 /* Writes case C to system file W. */
 static void
 sys_file_casewriter_write (struct casewriter *writer, void *w_,
                            struct ccase *c)
 {
   struct sfm_writer *w = w_;
+
   if (ferror (w->file))
     {
       casewriter_force_error (writer);
@@ -923,132 +675,21 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
 
   w->case_cnt++;
 
-  if (!w->needs_translation && !w->compress
-      && sizeof (flt64) == sizeof (union value) && ! w->has_vls )
-    {
-      /* Fast path: external and internal representations are the
-         same and the dictionary is properly ordered.  Write
-         directly to file. */
-      buf_write (w, case_data_all (c), sizeof (union value) * w->flt64_cnt);
-    }
+  if (!w->compress)
+    write_case_uncompressed (w, c);
   else
-    {
-      /* Slow path: internal and external representations differ.
-         Write into a bounce buffer, then write to W. */
-      flt64 *bounce;
-      flt64 *bounce_cur;
-      flt64 *bounce_end;
-      size_t bounce_size;
-      size_t i;
-
-      bounce_size = sizeof *bounce * w->flt64_cnt;
-      bounce = bounce_cur = local_alloc (bounce_size);
-      bounce_end = bounce + bounce_size;
-
-      for (i = 0; i < w->var_cnt; i++)
-        {
-          struct sfm_var *v = &w->vars[i];
-
-	  memset(bounce_cur, ' ', v->flt64_cnt * sizeof (flt64));
-
-          if (v->width == 0)
-	    {
-	      *bounce_cur = case_num_idx (c, v->fv);
-	      bounce_cur += v->flt64_cnt;
-	    }
-          else
-	    { int ofs = 0;
-	    while (ofs < v->width)
-	      {
-		int chunk = MIN (MIN_VERY_LONG_STRING - 1, v->width - ofs);
-		int nv = DIV_RND_UP (chunk, sizeof (flt64));
-		buf_copy_rpad ((char *) bounce_cur, nv * sizeof (flt64),
-			       case_data_idx (c, v->fv)->s + ofs, chunk);
-		bounce_cur += nv;
-		ofs += chunk;
-	      }
-	    }
-
-        }
-
-      if (!w->compress)
-        buf_write (w, bounce, bounce_size);
-      else
-        write_compressed_data (w, bounce);
-
-      local_free (bounce);
-    }
+    write_case_compressed (w, c);
 
   case_destroy (c);
 }
 
+/* Destroys system file writer W. */
 static void
 sys_file_casewriter_destroy (struct casewriter *writer, void *w_)
 {
   struct sfm_writer *w = w_;
   if (!close_writer (w))
     casewriter_force_error (writer);
-}
-
-static void
-put_instruction (struct sfm_writer *w, unsigned char instruction)
-{
-  if (w->x >= w->y)
-    {
-      ensure_buf_space (w);
-      w->x = (unsigned char *) w->ptr++;
-      w->y = (unsigned char *) w->ptr;
-    }
-  *w->x++ = instruction;
-}
-
-static void
-put_element (struct sfm_writer *w, const flt64 *elem)
-{
-  ensure_buf_space (w);
-  memcpy (w->ptr++, elem, sizeof *elem);
-}
-
-static void
-write_compressed_data (struct sfm_writer *w, const flt64 *elem)
-{
-  size_t i;
-
-  for (i = 0; i < w->var_cnt; i++)
-    {
-      struct sfm_var *v = &w->vars[i];
-
-      if (v->width == 0)
-        {
-          if (*elem == -FLT64_MAX)
-            put_instruction (w, 255);
-          else if (*elem >= 1 - COMPRESSION_BIAS
-                   && *elem <= 251 - COMPRESSION_BIAS
-                   && *elem == (int) *elem)
-            put_instruction (w, (int) *elem + COMPRESSION_BIAS);
-          else
-            {
-              put_instruction (w, 253);
-              put_element (w, elem);
-            }
-          elem++;
-        }
-      else
-        {
-          size_t j;
-
-          for (j = 0; j < v->flt64_cnt; j++, elem++)
-            {
-              if (!memcmp (elem, "        ", sizeof (flt64)))
-                put_instruction (w, 254);
-              else
-                {
-                  put_instruction (w, 253);
-                  put_element (w, elem);
-                }
-            }
-        }
-    }
 }
 
 /* Returns true if an I/O error has occurred on WRITER, false otherwise. */
@@ -1072,11 +713,8 @@ close_writer (struct sfm_writer *w)
   if (w->file != NULL)
     {
       /* Flush buffer. */
-      if (w->buf != NULL && w->ptr > w->buf)
-        {
-          memset (w->x, 0, w->y - w->x);
-          buf_write (w, w->buf, (w->ptr - w->buf) * sizeof *w->buf);
-        }
+      if (w->opcode_cnt > 0)
+        flush_compressed (w);
       fflush (w->file);
 
       ok = !write_error (w);
@@ -1084,11 +722,9 @@ close_writer (struct sfm_writer *w)
       /* Seek back to the beginning and update the number of cases.
          This is just a courtesy to later readers, so there's no need
          to check return values or report errors. */
-      if (ok && !fseek (w->file, offsetof (struct sysfile_header, case_cnt),
-                        SEEK_SET))
+      if (ok && w->case_cnt <= INT32_MAX && !fseek (w->file, 80, SEEK_SET))
         {
-          int32_t case_cnt = w->case_cnt;
-          fwrite (&case_cnt, sizeof case_cnt, 1, w->file);
+          write_int (w, w->case_cnt);
           clearerr (w->file);
         }
 
@@ -1102,16 +738,235 @@ close_writer (struct sfm_writer *w)
 
   fh_close (w->fh, "system file", "we");
 
-  free (w->buf);
-  free (w->vars);
+  free (w->sfm_vars);
   free (w);
 
   return ok;
 }
-
+
+/* System file writer casewriter class. */
 static struct casewriter_class sys_file_casewriter_class =
   {
     sys_file_casewriter_write,
     sys_file_casewriter_destroy,
     NULL,
   };
+
+/* Writes case C to system file W, without compressing it. */
+static void
+write_case_uncompressed (struct sfm_writer *w, struct ccase *c)
+{
+  size_t i;
+
+  for (i = 0; i < w->sfm_var_cnt; i++)
+    {
+      struct sfm_var *v = &w->sfm_vars[i];
+
+      if (v->width == 0)
+        write_float (w, case_num_idx (c, v->case_index));
+      else
+        {
+          write_bytes (w, case_str_idx (c, v->case_index) + v->offset,
+                       v->width);
+          write_spaces (w, v->padding);
+        }
+    }
+}
+
+/* Writes case C to system file W, with compression. */
+static void
+write_case_compressed (struct sfm_writer *w, struct ccase *c)
+{
+  size_t i;
+
+  for (i = 0; i < w->sfm_var_cnt; i++)
+    {
+      struct sfm_var *v = &w->sfm_vars[i];
+
+      if (v->width == 0)
+        {
+          double d = case_num_idx (c, v->case_index);
+          if (d == SYSMIS)
+            put_cmp_opcode (w, 255);
+          else if (d >= 1 - COMPRESSION_BIAS
+                   && d <= 251 - COMPRESSION_BIAS
+                   && d == (int) d)
+            put_cmp_opcode (w, (int) d + COMPRESSION_BIAS);
+          else
+            {
+              put_cmp_opcode (w, 253);
+              put_cmp_number (w, d);
+            }
+        }
+      else
+        {
+          int offset = v->offset;
+          int width, padding;
+
+          /* This code properly deals with a width that is not a
+             multiple of 8, by ensuring that the final partial
+             oct (8 byte unit) is treated as padded with spaces
+             on the right. */
+          for (width = v->width; width > 0; width -= 8, offset += 8)
+            {
+              const void *data = case_str_idx (c, v->case_index) + offset;
+              int chunk_size = MIN (width, 8);
+              if (!memcmp (data, "        ", chunk_size))
+                put_cmp_opcode (w, 254);
+              else
+                {
+                  put_cmp_opcode (w, 253);
+                  put_cmp_string (w, data, chunk_size);
+                }
+            }
+
+          /* This code deals properly with padding that is not a
+             multiple of 8 bytes, by discarding the remainder,
+             which was already effectively padded with spaces in
+             the previous loop.  (Note that v->width + v->padding
+             is always a multiple of 8.) */
+          for (padding = v->padding / 8; padding > 0; padding--)
+            put_cmp_opcode (w, 254);
+        }
+    }
+}
+
+/* Flushes buffered compressed opcodes and data to W.
+   The compression buffer must not be empty. */
+static void
+flush_compressed (struct sfm_writer *w)
+{
+  assert (w->opcode_cnt > 0 && w->opcode_cnt <= 8);
+
+  write_bytes (w, w->opcodes, w->opcode_cnt);
+  write_zeros (w, 8 - w->opcode_cnt);
+
+  write_bytes (w, w->data, w->data_cnt * sizeof *w->data);
+
+  w->opcode_cnt = w->data_cnt = 0;
+}
+
+/* Appends OPCODE to the buffered set of compression opcodes in
+   W.  Flushes the compression buffer beforehand if necessary. */
+static void
+put_cmp_opcode (struct sfm_writer *w, uint8_t opcode)
+{
+  if (w->opcode_cnt >= 8)
+    flush_compressed (w);
+
+  w->opcodes[w->opcode_cnt++] = opcode;
+}
+
+/* Appends NUMBER to the buffered compression data in W.  The
+   buffer must not be full; the way to assure that is to call
+   this function only just after a call to put_cmp_opcode, which
+   will flush the buffer as necessary. */
+static void
+put_cmp_number (struct sfm_writer *w, double number)
+{
+  assert (w->opcode_cnt > 0);
+  assert (w->data_cnt < 8);
+
+  convert_double_to_output_format (number, w->data[w->data_cnt++]);
+}
+
+/* Appends SIZE bytes of DATA to the buffered compression data in
+   W, followed by enough spaces to pad the output data to exactly
+   8 bytes (thus, SIZE must be no greater than 8).  The buffer
+   must not be full; the way to assure that is to call this
+   function only just after a call to put_cmp_opcode, which will
+   flush the buffer as necessary. */
+static void
+put_cmp_string (struct sfm_writer *w, const void *data, size_t size)
+{
+  assert (w->opcode_cnt > 0);
+  assert (w->data_cnt < 8);
+  assert (size <= 8);
+
+  memset (w->data[w->data_cnt], ' ', 8);
+  memcpy (w->data[w->data_cnt], data, size);
+  w->data_cnt++;
+}
+
+/* Writes 32-bit integer X to the output file for writer W. */
+static void
+write_int (struct sfm_writer *w, int32_t x)
+{
+  write_bytes (w, &x, sizeof x);
+}
+
+/* Converts NATIVE to the 64-bit format used in output files in
+   OUTPUT. */
+static inline void
+convert_double_to_output_format (double native, uint8_t output[8])
+{
+  /* If "double" is not a 64-bit type, then convert it to a
+     64-bit type.  Otherwise just copy it. */
+  if (FLOAT_NATIVE_DOUBLE != FLOAT_NATIVE_64_BIT)
+    float_convert (FLOAT_NATIVE_DOUBLE, &native, FLOAT_NATIVE_64_BIT, output);
+  else
+    memcpy (output, &native, sizeof native);
+}
+
+/* Writes floating-point number X to the output file for writer
+   W. */
+static void
+write_float (struct sfm_writer *w, double x)
+{
+  uint8_t output[8];
+  convert_double_to_output_format (x, output);
+  write_bytes (w, output, sizeof output);
+}
+
+/* Writes contents of VALUE with the given WIDTH to W, padding
+   with zeros to a multiple of 8 bytes.
+   To avoid a branch, and because we don't actually need to
+   support it, WIDTH must be no bigger than 8. */
+static void
+write_value (struct sfm_writer *w, const union value *value, int width)
+{
+  assert (width <= 8);
+  if (width == 0)
+    write_float (w, value->f);
+  else
+    {
+      write_bytes (w, value->s, width);
+      write_zeros (w, 8 - width);
+    }
+}
+
+/* Writes null-terminated STRING in a field of the given WIDTH to
+   W.  If WIDTH is longer than WIDTH, it is truncated; if WIDTH
+   is narrowed, it is padded on the right with spaces. */
+static void
+write_string (struct sfm_writer *w, const char *string, size_t width)
+{
+  size_t data_bytes = MIN (strlen (string), width);
+  size_t pad_bytes = width - data_bytes;
+  write_bytes (w, string, data_bytes);
+  while (pad_bytes-- > 0)
+    putc (' ', w->file);
+}
+
+/* Writes SIZE bytes of DATA to W's output file. */
+static void
+write_bytes (struct sfm_writer *w, const void *data, size_t size)
+{
+  fwrite (data, 1, size, w->file);
+}
+
+/* Writes N zeros to W's output file. */
+static void
+write_zeros (struct sfm_writer *w, size_t n)
+{
+  while (n-- > 0)
+    putc (0, w->file);
+}
+
+/* Writes N spaces to W's output file. */
+static void
+write_spaces (struct sfm_writer *w, size_t n)
+{
+  while (n-- > 0)
+    putc (' ', w->file);
+}

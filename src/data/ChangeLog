@@ -1,3 +1,134 @@
+2007-07-23  Ben Pfaff  <blp@gnu.org>
+
+	Improvements to system file reader and writer.
+	
+        First, move all detailed knowledge of very long strings into
+	sys-file-private.[ch], so that this nasty stuff can be isolated.
+
+	* sys-file-private.c (REAL_VLS_CHUNK): New macro.
+	(EFFECTIVE_VLS_CHUNK): New macro.
+	(min_int): New function.
+	(max_int): New function.
+	(sfm_width_to_bytes): Rewrite.
+	(sfm_width_to_octs): New function.
+	(sfm_segment_alloc_width): New function.
+	(sfm_segment_alloc_bytes): New function.
+	(sfm_segment_used_bytes): New function.
+	(sfm_segment_offset): New function.
+	(sfm_segment_effective_offset): New function.
+	(sfm_dictionary_to_sfm_vars): New function.
+
+	* sys-file-private.h (MIN_VERY_LONG_STRING): Removed.
+	(EFFECTIVE_LONG_STRING_LENGTH): Removed.
+	(struct sfm_var): New structure.
+
+        Next, improvements to the system file reader.
+
+	* sys-file-reader.h (struct sfm_read_info): Changed `case_cnt' to
+	type casenumber.  Added `version_major', `version_minor',
+	`version_revision'.
+
+	* sys-file-reader.c (struct sfm_reader): Replaced `flt64_cnt' by
+	`oct_cnt'.  Rename `vars', `var_cnt' to `sfm_vars', `sfm_var_cnt'.
+	Change `case_cnt' to type casenumber.  Removed `has_vls'.
+	(struct sfm_var): Removed.
+	(sfm_open_reader): Don't warn on wrong case size if the file was
+	written by SPSS 13, which tends to get it wrong.  Use
+	sfm_dictionary_to_sfm_vars.
+	(read_header): Always output system file info.
+	(read_variable_record): Simplify code for reading missing values.
+	(read_machine_int32_info): Save version numbers from system file
+	into info struct passed as new argument.
+	(read_long_string_map): Restructured to use new sys-file-private
+	functions.
+	(read_value_labels): Use size_overflow_p.
+	(sys_file_casereader_read): Get rid of distinction between fast
+	and slow paths.  Use information provided by sys-file-primate's
+	struct sfm_var to simplify code.
+	(skip_whole_strings): New function.
+	(read_int32): Renamed read_int.  Changed return value to int.
+	Updated all callers.
+	(read_flt64): Renamed read_float.  Changed return value to
+	double.  Updated all callers.
+	(int32_to_native): Removed.  Changed callers to use
+	integer_convert.
+	(flt64_to_double): Removed.  Changed callers to use float_convert.
+	
+        Finally, get rid of int32, flt64 terminology and types in system
+	file writer.  The former wasn't very useful since a POSIX "int"
+	can hold the whole range of int32 and we generally didn't have a
+	need for it to be exactly-32-bits, just at-least-32-bits.  The
+	latter was inconvenient because we had to assume that it could be
+	different from double and thereby convert special values SYSMIS,
+	HIGHEST, LOWEST to and from it in multiple places.  Instead, now
+	we just use "int" and "double" in most places, and do conversions,
+	if necessary, very close to where we do I/O.  This change meant
+	that the writer code couldn't represent records in the file as C
+	structs any longer, but that's no great loss.  The code actually
+	seems to be more readable without them.
+
+	Simplify the compression buffering code: only buffer as much as
+	necessary, which is no more than eight 8-byte units at any given
+	time.
+
+	* sys-file-writer.c (typedef flt64): Removed.
+	(macro second_lowest_flt64): Removed.
+	(struct sysfile_header): Removed.
+	(struct sysfile_variable): Removed.
+	(struct sfm_writer): Removed `needs_translation', `has_vls',
+	`flt64_cnt'.  Changed `compress' to type bool and `case_cnt' to
+	type casenumber.  Renamed `vars' to `sfm_vars', `var_cnt' to
+	`sfm_var_cnt'.  Replaced `buf', `end', `ptr', `x', `y' for
+	compression buffering by `opcodes', `opcode_cnt', `data',
+	`data_cnt'.  Renamed `var_cnt_vls' as `segment_cnt'.
+	(sfm_open_writer): Use sfm_dictionary_to_sfm_vars.  Use simple
+	data writer functions instead of structures.
+	(calc_oct_idx): New function.
+	(write_header): Use simple data writer functions instead of
+	structures.
+	(write_format_spec): Renamed write_format.  New argument.
+	(write_variable_continuation_records): New function.
+	(write_variable): Use simple data writer functions instead of
+	structures.  Use write_variable_continuation_records.  Write
+	entire very long string instead of requiring caller to understand
+	them.
+	(write_value_labels): Use simple data writer functions instead of
+	structures.
+	(write_documents): Ditto.
+	(write_variable_display_parameters): Use sys-file-private
+	functions to simplify.  Use simple data writer functions instead
+	of structures.
+	(write_vls_length_table): Use simple data writer functions instead
+	of structures.
+	(write_longvar_table): Ditto.
+	(write_rec_7_34): Break into new functions
+	write_integer_info_record, write_float_info_record.  Use simple
+	data writer functions instead of structures.
+	(buf_write): Removed.
+	(append_string_max): Removed.
+	(ensure_buf_space): Removed.
+	(sys_file_casewriter_write): Get rid of the distinction between
+	fast and slow paths, which didn't seem to be too useful.  Use new
+	functions write_case_uncompressed, write_case_compressed.
+	(put_instruction): Removed.
+	(put_element): Removed.
+	(write_compressed_data): Removed.
+	(close_writer): Use flush_compressed.  Only write case count to
+	system file if it will fit in the field.
+	(write_case_compressed): New function.
+	(write_case_uncompressed): New function.
+	(flush_compressed): New function.
+	(put_cmp_opcode): New function.
+	(put_cmp_number): New function.
+	(write_int): New function.
+	(convert_double_to_output_format): New function.
+	(write_float): New function.
+	(write_value): New function.
+	(write_string): New function.
+	(write_bytes): New function.
+	(write_zeros): New function.
+	(write_spaces): New function.
+
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
 	Don't try to write very long strings to portable files.  The

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,15 +14,49 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+/* Infrastructure common to system file reader and writer.
+
+   Old versions of SPSS limited string variables to a width of
+   255 bytes.  For backward compatibility with these older
+   versions, the system file format represents a string longer
+   than 255 bytes, called a "very long string", as a collection
+   of strings no longer than 255 bytes each.  The strings
+   concatenated to make a very long string are called its
+   "segments"; for consistency, variables other than very long
+   strings are considered to have a single segment.
+
+   The interfaces in this file primarily provide support for
+   dealing with very long strings.  */
+
 #ifndef DATA_SYS_FILE_PRIVATE_H
 #define DATA_SYS_FILE_PRIVATE_H 1
 
-/* This nonsense is required for SPSS compatibility. */
+#include <stddef.h>
 
-#define MIN_VERY_LONG_STRING 256
-#define EFFECTIVE_LONG_STRING_LENGTH (MIN_VERY_LONG_STRING - 4)
+struct dictionary;
 
-int sfm_width_to_bytes (int width);
+/* A variable in a system file. */
+struct sfm_var
+  {
+    int width;                  /* Value width (0=numeric, else string). */
+    int case_index;             /* Index into case. */
+
+    /* The following members are interesting only for string
+       variables (width != 0).  For numeric variables (width ==
+       0) their values are always 0.
+
+       Note: width + padding is always a multiple of 8. */
+    int offset;                 /* Offset within string variable in case. */
+    int padding;                /* Number of padding bytes following data. */
+  };
+
+int sfm_dictionary_to_sfm_vars (const struct dictionary *,
+                                struct sfm_var **, size_t *);
+
+int sfm_width_to_octs (int width);
 int sfm_width_to_segments (int width);
+
+int sfm_segment_effective_offset (int width, int segment);
+int sfm_segment_alloc_width (int width, int segment);
 
 #endif /* data/sys-file-private.h */
