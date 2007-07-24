@@ -629,6 +629,10 @@ new_data_editor (void)
   g_signal_connect (G_OBJECT (data_sheet), "button-event-row",
 		    G_CALLBACK (popup_cases_menu), de);
 
+     /* The "switch-page" signal does get emitted unless the page actually 
+	changes.  But the state is indeterminate at startup.  Therefore we 
+	must explicitly change it to one state, then the other */
+  data_editor_select_sheet (de, PAGE_VAR_SHEET);
   data_editor_select_sheet (de, PAGE_DATA_SHEET);
 
   return de;
