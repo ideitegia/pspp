@@ -76,11 +76,7 @@ static void toggle_value_labels (GtkToggleAction *a, gpointer data);
 /* Switch between the VAR SHEET and the DATA SHEET */
 
 static gboolean click2column (GtkWidget *w, gint col, gpointer data);
-
 static gboolean click2row (GtkWidget *w, gint row, gpointer data);
-
-
-static void select_sheet (struct data_editor *de, guint page_num);
 
 
 /* Callback for when the dictionary changes properties*/
@@ -566,7 +562,6 @@ new_data_editor (void)
 		    G_CALLBACK (data_var_select), de);
 
 
-
   g_signal_connect (get_widget_assert (de->xml, "view_statusbar"),
 		    "activate",
 		    G_CALLBACK (status_bar_activate), de);
@@ -634,8 +629,7 @@ new_data_editor (void)
   g_signal_connect (G_OBJECT (data_sheet), "button-event-row",
 		    G_CALLBACK (popup_cases_menu), de);
 
-
-  select_sheet (de, PAGE_DATA_SHEET);
+  data_editor_select_sheet (de, PAGE_DATA_SHEET);
 
   return de;
 }
@@ -702,8 +696,13 @@ new_data_window (GtkMenuItem *menuitem, gpointer parent)
 
 
 static void
-select_sheet (struct data_editor *de, guint page_num)
+data_var_select (GtkNotebook *notebook,
+		GtkNotebookPage *page,
+		guint page_num,
+		gpointer user_data)
 {
+  struct data_editor *de = user_data;
+
   GtkWidget *view_data = get_widget_assert (de->xml, "view_data");
   GtkWidget *view_variables = get_widget_assert (de->xml, "view_variables");
 
@@ -729,20 +728,6 @@ select_sheet (struct data_editor *de, guint page_num)
 }
 
 
-static void
-data_var_select (GtkNotebook *notebook,
-		GtkNotebookPage *page,
-		guint page_num,
-		gpointer user_data)
-{
-  struct data_editor *de = user_data;
-
-  select_sheet (de, page_num);
-}
-
-
-
-
 void
 data_editor_select_sheet (struct data_editor *de, gint page)
 {
@@ -751,6 +736,7 @@ data_editor_select_sheet (struct data_editor *de, gint page)
     GTK_NOTEBOOK (get_widget_assert (de->xml,"notebook")), page
     );
 }
+
 
 
 static void
@@ -1661,5 +1647,3 @@ popup_cases_menu (GtkSheet *sheet, gint row,
 		      event->button, event->time);
     }
 }
-
-
