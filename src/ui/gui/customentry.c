@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005  Free Software Foundation
+   Copyright (C) 2005, 2007  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -259,6 +259,7 @@ psppire_custom_entry_expose (GtkWidget      *widget,
 
   if (GTK_WIDGET_DRAWABLE (widget))
     {
+      gboolean is_editable;
       GtkShadowType shadow_type;
       GdkRectangle rect;
 
@@ -275,14 +276,14 @@ psppire_custom_entry_expose (GtkWidget      *widget,
 
       shadow_type = psppire_custom_entry_get_shadow_type (ce);
 
-      if (shadow_type != GTK_SHADOW_NONE)
-	{
-	  gtk_paint_box (widget->style, ce->panel,
-			 GTK_STATE_NORMAL, shadow_type,
-			 NULL, widget, "customentry",
-			 rect.x, rect.y, rect.width, rect.height);
+      g_object_get (widget, "editable", &is_editable, NULL);
 
-	}
+      gtk_paint_box (widget->style, ce->panel,
+		     is_editable ? GTK_STATE_NORMAL: GTK_STATE_INSENSITIVE,
+		     shadow_type,
+		     NULL, widget, "customentry",
+		     rect.x, rect.y, rect.width, rect.height);
+
 
       gdk_window_end_paint (ce->panel);
     }
@@ -370,10 +371,13 @@ psppire_custom_entry_button_press (GtkWidget *widget,
 
   if (event->window == ce->panel)
     {
+      gboolean is_editable ;
       if (!GTK_WIDGET_HAS_FOCUS (widget))
 	gtk_widget_grab_focus (widget);
 
-      if ( event->button == 1)
+      g_object_get (ce, "editable", &is_editable, NULL);
+
+      if ( event->button == 1 && is_editable )
 	g_signal_emit (widget, custom_entry_signals[CLICKED], 0);
 
     }

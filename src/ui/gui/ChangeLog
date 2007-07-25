@@ -1,3 +1,13 @@
+2007-07-25  John Darrington <john@darrington.wattle.id.au>
+
+	* customentry.c: Redraw button in insensitive state, if the widget's 
+	 "editable" style is FALSE.  Don't emit the "clicked" signal if 
+	 "editable" is FALSE.
+	
+	* var-sheet.c: If variables are long-string variables, then set the 
+	"editable" properties of the entry widgets for the values and missing
+	cells to FALSE,
+
 2007-07-18  John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-case-file.c psppire-case-file.h psppire-data-store.c 

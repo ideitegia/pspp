@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2007  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -206,7 +206,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 {
   GtkSheetCellAttr attributes;
   PsppireVarStore *var_store ;
-  struct variable *pv ;
+  struct variable *var ;
 
   GladeXML *xml;
 
@@ -223,13 +223,13 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
   gtk_sheet_get_attributes (sheet, row, column, &attributes);
 
-  pv = psppire_var_store_get_var (var_store, row);
+  var = psppire_var_store_get_var (var_store, row);
 
   switch (column)
     {
     case COL_ALIGN:
       {
-	static GtkListStore *list_store = 0;
+	static GtkListStore *list_store = NULL;
 	GtkComboBoxEntry *cbe;
 	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
 	cbe =
@@ -245,9 +245,10 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
 
 	g_signal_connect (G_OBJECT (cbe),"changed",
-			 G_CALLBACK (change_alignment), pv);
+			 G_CALLBACK (change_alignment), var);
       }
       break;
+
     case COL_MEASURE:
       {
 	static GtkListStore *list_store = 0;
@@ -265,13 +266,13 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	gtk_combo_box_entry_set_text_column (cbe, 0);
 
 	g_signal_connect (G_OBJECT (cbe),"changed",
-			  G_CALLBACK (change_measure), pv);
+			  G_CALLBACK (change_measure), var);
       }
       break;
 
     case COL_VALUES:
       {
-	static struct val_labs_dialog *val_labs_dialog = 0;
+	static struct val_labs_dialog *val_labs_dialog = NULL;
 
 	PsppireCustomEntry *customEntry;
 
@@ -280,11 +281,15 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	customEntry =
 	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
 
+	if ( var_is_long_string (var))
+	  g_object_set (customEntry,
+			"editable", FALSE,
+			NULL);
 
 	if (!val_labs_dialog )
 	    val_labs_dialog = val_labs_dialog_create (xml);
 
-	val_labs_dialog_set_target_variable (val_labs_dialog, pv);
+	val_labs_dialog_set_target_variable (val_labs_dialog, var);
 
 	g_signal_connect_swapped (GTK_OBJECT (customEntry),
 				 "clicked",
@@ -292,6 +297,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 				 val_labs_dialog);
       }
       break;
+
     case COL_MISSING:
       {
 	static struct missing_val_dialog *missing_val_dialog = 0;
@@ -301,6 +307,11 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 
 	customEntry =
 	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
+
+	if ( var_is_long_string (var))
+	  g_object_set (customEntry,
+			"editable", FALSE,
+			NULL);
 
 	if (!missing_val_dialog )
 	    missing_val_dialog = missing_val_dialog_create (xml);
@@ -331,7 +342,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 	    var_type_dialog = var_type_dialog_create (xml);
 
 
-	var_type_dialog->pv = pv;
+	var_type_dialog->pv = var;
 
 	g_signal_connect_swapped (GTK_OBJECT (customEntry),
 				 "clicked",
@@ -339,6 +350,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 				 var_type_dialog);
       }
       break;
+
     case COL_WIDTH:
     case COL_DECIMALS:
     case COL_COLUMNS:
@@ -355,7 +367,7 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
 		const gint current_value  = atoi (s);
 		GtkObject *adj ;
 
-		const struct fmt_spec *fmt = var_get_write_format (pv);
+		const struct fmt_spec *fmt = var_get_write_format (var);
 		switch (column)
 		  {
 		  case COL_WIDTH:
