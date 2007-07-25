@@ -547,8 +547,7 @@ write_variable_display_parameters (struct sfm_writer *w,
           int width_left = width - sfm_segment_effective_offset (width, i);
           write_int (w, measure);
           write_int (w, (i == 0 ? var_get_display_width (v)
-                         : sfm_width_to_segments (width_left) > 1 ? 32
-                         : width_left));
+                         : var_default_display_width (width_left)));
           write_int (w, alignment);
         }
     }

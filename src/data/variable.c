@@ -112,16 +112,15 @@ var_create (const char *name, int width)
     {
       v->print = fmt_for_output (FMT_F, 8, 2);
       v->alignment = ALIGN_RIGHT;
-      v->display_width = 8;
       v->measure = MEASURE_SCALE;
     }
   else
     {
       v->print = fmt_for_output (FMT_A, var_get_width (v), 0);
       v->alignment = ALIGN_LEFT;
-      v->display_width = 8;
       v->measure = MEASURE_NOMINAL;
     }
+  v->display_width = var_default_display_width (width);
   v->write = v->print;
   v->val_labs = NULL;
   v->label = NULL;
@@ -722,15 +721,21 @@ var_get_display_width (const struct variable *v)
   return v->display_width;
 }
 
-
-
-
 /* Sets V's display width to DISPLAY_WIDTH. */
 void
 var_set_display_width (struct variable *v, int display_width)
 {
   v->display_width = display_width;
   dict_var_changed (v);
+}
+
+/* Returns the default display width for a variable of the given
+   WIDTH, as set by var_create.  The return value can be used to
+   reset a variable's display width to the default. */
+int
+var_default_display_width (int width)
+{
+  return width == 0 ? 8 : MIN (width, 32);
 }
 
 /* Returns true if A is a valid alignment,

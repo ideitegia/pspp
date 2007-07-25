@@ -123,6 +123,8 @@ void var_set_measure (struct variable *, enum measure);
 int var_get_display_width (const struct variable *);
 void var_set_display_width (struct variable *, int display_width);
 
+int var_default_display_width (int width);
+
 /* Alignment of data for display. */
 enum alignment
   {

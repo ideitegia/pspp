@@ -1,5 +1,15 @@
 2007-07-24  Ben Pfaff  <blp@gnu.org>
 
+	Fix bug #6113.
+	* sys-file-writer.c (write_variable_display_parameters): Use new
+	var_default_display_width function to choose display width of
+	segments after the first one in a given variable.
+	* variable.c (var_create): Use var_default_display_width to pick
+	new variable's display width.
+	(var_default_display_width): New function.
+
+2007-07-24  Ben Pfaff  <blp@gnu.org>
+
 	Fix bug #20427.
 	* por-file-writer.c (write_variables): Write weight variable.
 	Reviewed by John Darrington.
