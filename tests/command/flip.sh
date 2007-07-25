@@ -56,7 +56,8 @@ cd $TEMPDIR
 
 activity="create flip.stat"
 cat > $TEMPDIR/flip.stat <<EOF
-data list /N 1 (a) A B C D 2-9.
+* Test FLIP with NEWNAME or, equivalently, with a variable named CASE_LBL.
+data list notable /N 1 (a) A B C D 2-9.
 list.
 begin data.
 v 1 2 3 4 5
@@ -69,6 +70,19 @@ flip newnames=n.
 list.
 flip.
 list.
+
+* Test FLIP without NEWNAME.
+data list list notable /v1 to v10.
+format all(f2).
+begin data.
+1 2 3 4 5 6 7 8 9 10
+4 5 6 7 8 9 10 11 12 13
+end data.
+
+list.
+
+flip.
+list. 
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -80,16 +94,6 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff  -b  $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading 1 record from INLINE.
-+--------+------+-------+------+
-|Variable|Record|Columns|Format|
-#========#======#=======#======#
-|N       |     1|  1-  1|A1    |
-|A       |     1|  2-  3|F2.0  |
-|B       |     1|  4-  5|F2.0  |
-|C       |     1|  6-  7|F2.0  |
-|D       |     1|  8-  9|F2.0  |
-+--------+------+-------+------+
 N  A  B  C  D
 - -- -- -- --
 v  1  2  3  4 
@@ -110,6 +114,22 @@ W            6.00     7.00     8.00     9.00
 X           11.00    12.00    13.00    14.00 
 Y           16.00    17.00    18.00    19.00 
 Z           21.00    22.00    23.00    24.00 
+v1 v2 v3 v4 v5 v6 v7 v8 v9 v10
+-- -- -- -- -- -- -- -- -- ---
+ 1  2  3  4  5  6  7  8  9  10 
+ 4  5  6  7  8  9 10 11 12  13 
+CASE_LBL   VAR000   VAR001
+-------- -------- --------
+v1           1.00     4.00 
+v2           2.00     5.00 
+v3           3.00     6.00 
+v4           4.00     7.00 
+v5           5.00     8.00 
+v6           6.00     9.00 
+v7           7.00    10.00 
+v8           8.00    11.00 
+v9           9.00    12.00 
+v10         10.00    13.00 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

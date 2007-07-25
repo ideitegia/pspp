@@ -65,7 +65,6 @@ struct flip_pgm
     int *idx_to_fv;             /* var[]->index to compacted sink case fv. */
     size_t var_cnt;             /* Number of elements in `var'. */
     int case_cnt;               /* Pre-flip case count. */
-    size_t case_size;           /* Post-flip bytes per case. */
 
     struct variable *new_names; /* Variable containing new variable names. */
     struct varname *new_names_head; /* First new variable. */
@@ -119,7 +118,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
     {
       lex_match (lexer, '=');
       if (!parse_variables_const (lexer, dict, &flip->var, &flip->var_cnt,
-                            PV_NO_DUPLICATE))
+                                  PV_NO_DUPLICATE))
 	goto error;
       lex_match (lexer, '/');
     }
@@ -149,8 +148,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
 	  }
     }
 
-  output_buf = pool_nalloc (flip->pool,
-                                  flip->var_cnt, sizeof *output_buf);
+  output_buf = pool_nalloc (flip->pool, flip->var_cnt, sizeof *output_buf);
 
   flip->file = pool_tmpfile (flip->pool);
   if (flip->file == NULL)
@@ -199,11 +197,10 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
       proc_discard_active_file (ds);
       goto error;
     }
-  flip->case_size = dict_get_case_size (dict);
 
   /* Set up flipped data for reading. */
   reader = casereader_create_sequential (NULL, dict_get_next_value_idx (dict),
-                                         flip->case_cnt,
+                                         flip->var_cnt,
                                          &flip_casereader_class, flip);
   proc_set_active_file_data (ds, reader);
   return lex_end_of_command (lexer);
@@ -288,7 +285,7 @@ build_dictionary (struct dictionary *dict, struct flip_pgm *flip)
 	  return false;
 	}
 
-      for (i = 0; i < flip->case_cnt; i++)
+      for (i = 0; i < flip->case_cnt - 1; i++)
 	{
           struct variable *v;
 	  char s[SHORT_NAME_LEN + 1];

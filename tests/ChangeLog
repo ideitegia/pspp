@@ -1,3 +1,8 @@
+2007-07-24  Ben Pfaff  <blp@gnu.org>
+
+	* tests/command/flip.sh: Add tests to avoid regression on bugs
+	#20493, #20494.
+
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
 	* command/very-long-strings.sh: Test both compressed and

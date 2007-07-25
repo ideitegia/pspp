@@ -1,3 +1,13 @@
+2007-07-24  Ben Pfaff  <blp@gnu.org>
+
+	* flip.c (struct flip_pgm): Remove `case_size' member (now
+	unused).
+	(cmd_flip): Pass var_cnt as number of cases instead of case_cnt,
+	to fix bug #20494.  Don't assign to `case_size' member, which was
+	unused after assignment.
+	(build_dictionary): When NEWNAMES not used, get the number of
+	variables right, to fix bug #20493.
+
 2007-07-10  Jason Stover  <jhs@math.gcsu.edu>
 
 	* glm.q: Initial version of the GLM procedure.
