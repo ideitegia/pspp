@@ -7,6 +7,7 @@
 	* variable.c (var_create): Use var_default_display_width to pick
 	new variable's display width.
 	(var_default_display_width): New function.
+	Reviewed by John Darrington.
 
 2007-07-24  Ben Pfaff  <blp@gnu.org>
 
