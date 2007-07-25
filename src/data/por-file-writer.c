@@ -322,6 +322,12 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
 
   short_names_assign (dict);
 
+  if (dict_get_weight (dict) != NULL) 
+    {
+      buf_write (w, "6", 1);
+      write_string (w, var_get_short_name (dict_get_weight (dict), 0));
+    }
+  
   buf_write (w, "4", 1);
   write_int (w, dict_get_var_cnt (dict));
   write_int (w, 161);

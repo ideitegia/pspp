@@ -1,3 +1,9 @@
+2007-07-24  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #20427.
+	* por-file-writer.c (write_variables): Write weight variable.
+	Reviewed by John Darrington.
+
 2007-07-23  Ben Pfaff  <blp@gnu.org>
 
 	Improvements to system file reader and writer.
@@ -129,6 +135,8 @@
 	(write_zeros): New function.
 	(write_spaces): New function.
 
+	Reviewed by John Darrington.
+
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
 	Don't try to write very long strings to portable files.  The
@@ -140,11 +148,13 @@
 	(write_value): Limit width of value written to MAX_POR_WIDTH.
 	(write_variables): Limit width of variable and its output formats
 	to MAX_POR_WIDTH.
+	Reviewed by John Darrington.
 
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
 	* sys-file-reader.c (read_variable_to_value_map): Use max_warnings
 	local variable instead of literal 5.
+	Reviewed by John Darrington.
 	
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
@@ -189,6 +199,8 @@
 	(var_clear_short_name): Renamed var_clear_short_names, changed to
 	clear all short names.
 	
+	Reviewed by John Darrington.
+
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
 	* variable.c (var_set_width): Use new var_set_width function.
@@ -198,6 +210,8 @@
 
 	* format.c (fmt_default_for_width): New function.
 	(fmt_resize): New function.
+
+	Reviewed by John Darrington.
 
 2007-07-18 John Darrington <john@darrington.wattle.id.au>
 
