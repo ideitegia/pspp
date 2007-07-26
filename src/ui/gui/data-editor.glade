@@ -901,31 +901,6 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkFrame" id="frame4">
-                <property name="visible">True</property>
-                <property name="label_xalign">0</property>
-                <property name="shadow_type">GTK_SHADOW_IN</property>
-                <child>
-                  <widget class="GtkEventBox" id="eventbox3">
-                    <property name="visible">True</property>
-                    <property name="tooltip" translatable="yes">OMS Area</property>
-                    <child>
-                      <widget class="GtkLabel" id="oms-area">
-                        <property name="visible">True</property>
-                        <property name="width_chars">3</property>
-                        <property name="single_line_mode">True</property>
-                      </widget>
-                    </child>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
               <widget class="GtkFrame" id="frame5">
                 <property name="visible">True</property>
                 <property name="label_xalign">0</property>
@@ -937,7 +912,7 @@
                     <child>
                       <widget class="GtkLabel" id="case-counter-area">
                         <property name="visible">True</property>
-                        <property name="width_chars">25</property>
+                        <property name="width_chars">20</property>
                         <property name="single_line_mode">True</property>
                       </widget>
                     </child>
@@ -989,7 +964,7 @@
                       <widget class="GtkLabel" id="weight-status-area">
                         <property name="visible">True</property>
                         <property name="ellipsize">PANGO_ELLIPSIZE_START</property>
-                        <property name="width_chars">10</property>
+                        <property name="width_chars">15</property>
                         <property name="single_line_mode">True</property>
                       </widget>
                     </child>
@@ -1015,7 +990,7 @@
                       <widget class="GtkLabel" id="split-file-status-area">
                         <property name="visible">True</property>
                         <property name="ellipsize">PANGO_ELLIPSIZE_START</property>
-                        <property name="width_chars">10</property>
+                        <property name="width_chars">15</property>
                         <property name="single_line_mode">True</property>
                       </widget>
                     </child>
