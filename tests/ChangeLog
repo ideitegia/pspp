@@ -1,7 +1,13 @@
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #17100.
+	* command/data-list.sh: Add tests for multi-record DATA LIST with
+	and without empty trailing record.
+
 2007-07-24  Ben Pfaff  <blp@gnu.org>
 
-	* tests/command/flip.sh: Add tests to avoid regression on bugs
-	#20493, #20494.
+	* command/flip.sh: Add tests to avoid regression on bugs #20493,
+	#20494.
 
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 

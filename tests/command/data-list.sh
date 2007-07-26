@@ -104,6 +104,40 @@ begin data.
 			
 end data.
 list.
+
+* Test DATA LIST FIXED with multiple records.
+data list fixed notable
+	/1 start 1-20 (adate)
+	/2 end 1-20 (adate)
+	/3 count 1-3.
+begin data.
+07-22-2007
+10-06-2007
+321
+07-14-1789
+08-26-1789
+4
+01-01-1972
+12-31-1999
+682
+end data.
+list.
+
+* Test that DATA LIST FIXED works with an empty trailing record.
+data list fixed notable records=2/x 1 y 2.
+begin data.
+12
+
+34
+
+56
+
+78
+
+90
+
+end data.
+list.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -155,6 +189,18 @@ diff -b  $TEMPDIR/pspp.list - << EOF
      .        .       3.00      .   
      .        .        .       4.00 
      .        .        .        .   
+               start                  end count
+-------------------- -------------------- -----
+          07/22/2007           10/06/2007   321
+          07/14/1789           08/26/1789     4
+          01/01/1972           12/31/1999   682
+x y
+- -
+1 2
+3 4
+5 6
+7 8
+9 0
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

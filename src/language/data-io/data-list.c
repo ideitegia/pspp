@@ -683,9 +683,15 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
       line = dfm_get_record (dls->reader);
 
       ll_for_each_continue (spec, struct dls_var_spec, ll, &dls->specs)
-        data_in (ss_substr (line, spec->first_column - 1, spec->input.w),
-                 spec->input.type, spec->input.d, spec->first_column,
-                 case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
+        {
+          if (row < spec->record)
+            break;
+
+          data_in (ss_substr (line, spec->first_column - 1, spec->input.w),
+                   spec->input.type, spec->input.d, spec->first_column,
+                   case_data_rw_idx (c, spec->fv),
+                   fmt_var_width (&spec->input));
+        }
 
       dfm_forward_record (dls->reader);
     }

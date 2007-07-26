@@ -1,3 +1,9 @@
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #17100.
+	* data-list.c (read_from_data_list_fixed): Handle multi-record
+	DATA LIST correctly.
+
 2007-07-11  Ben Pfaff  <blp@gnu.org>
 
 	* get.c (map_case): Create destination case instead of leaving it
