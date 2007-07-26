@@ -399,6 +399,22 @@
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
+                 <child>
+                   <widget class="GtkSeparatorMenuItem" id="separator7">
+                     <property name="visible">True</property>
+                   </widget>
+                 </child>
+
+                 <child>
+                   <widget class="GtkMenuItem" id="transform_run-pending">
+                     <property name="visible">True</property>
+                     <property name="sensitive">False</property>
+                     <property name="label" translatable="yes">_Run Pending Transforms</property>
+                     <property name="use_underline">True</property>
+                     <accelerator key="G" modifiers="GDK_CONTROL_MASK" signal="activate"/>
+                   </widget>
+                 </child>
+
                   </widget>
                 </child>
               </widget>
@@ -921,7 +937,7 @@
                     <child>
                       <widget class="GtkLabel" id="case-counter-area">
                         <property name="visible">True</property>
-                        <property name="width_chars">10</property>
+                        <property name="width_chars">25</property>
                         <property name="single_line_mode">True</property>
                       </widget>
                     </child>

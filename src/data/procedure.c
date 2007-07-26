@@ -37,6 +37,7 @@
 #include <libpspp/str.h>
 #include <libpspp/taint.h>
 
+
 struct dataset {
   /* Cases are read from source,
      their transformation variables are initialized,
@@ -60,6 +61,11 @@ struct dataset {
 
   /* Callback which occurs whenever the DICT is replaced by a new one */
   replace_dictionary_callback *replace_dict;
+
+  /* Callback which occurs whenever the transformation chain(s) have
+     been modified */
+  transformation_change_callback_func *xform_callback;
+  void *xform_callback_aux;
 
   /* If true, cases are discarded instead of being written to
      sink. */
@@ -384,6 +390,10 @@ proc_capture_transformations (struct dataset *ds)
   assert (ds->temporary_trns_chain == NULL);
   chain = ds->permanent_trns_chain;
   ds->cur_trns_chain = ds->permanent_trns_chain = trns_chain_create ();
+
+  if ( ds->xform_callback)
+    ds->xform_callback (false, ds->xform_callback_aux);
+
   return chain;
 }
 
@@ -394,6 +404,8 @@ void
 add_transformation (struct dataset *ds, trns_proc_func *proc, trns_free_func *free, void *aux)
 {
   trns_chain_append (ds->cur_trns_chain, NULL, proc, free, aux);
+  if ( ds->xform_callback)
+    ds->xform_callback (true, ds->xform_callback_aux);
 }
 
 /* Adds a transformation that processes a case with PROC and
@@ -408,6 +420,9 @@ add_transformation_with_finalizer (struct dataset *ds,
                                    trns_free_func *free, void *aux)
 {
   trns_chain_append (ds->cur_trns_chain, finalize, proc, free, aux);
+
+  if ( ds->xform_callback)
+    ds->xform_callback (true, ds->xform_callback_aux);
 }
 
 /* Returns the index of the next transformation.
@@ -442,6 +457,9 @@ proc_start_temporary_transformations (struct dataset *ds)
 
       trns_chain_finalize (ds->permanent_trns_chain);
       ds->temporary_trns_chain = ds->cur_trns_chain = trns_chain_create ();
+
+      if ( ds->xform_callback)
+	ds->xform_callback (true, ds->xform_callback_aux);
     }
 }
 
@@ -483,6 +501,10 @@ proc_cancel_temporary_transformations (struct dataset *ds)
       trns_chain_destroy (ds->temporary_trns_chain);
       ds->temporary_trns_chain = NULL;
 
+      if ( ds->xform_callback)
+	ds->xform_callback (!trns_chain_is_empty (ds->permanent_trns_chain),
+			    ds->xform_callback_aux);
+
       return true;
     }
   else
@@ -500,21 +522,33 @@ proc_cancel_all_transformations (struct dataset *ds)
   ok = trns_chain_destroy (ds->temporary_trns_chain) && ok;
   ds->permanent_trns_chain = ds->cur_trns_chain = trns_chain_create ();
   ds->temporary_trns_chain = NULL;
+  if ( ds->xform_callback)
+    ds->xform_callback (false, ds->xform_callback_aux);
+
   return ok;
 }
 
 /* Initializes procedure handling. */
 struct dataset *
-create_dataset (replace_source_callback *rps,
-		replace_dictionary_callback *rds)
+create_dataset (transformation_change_callback_func *cb, void *aux)
 {
   struct dataset *ds = xzalloc (sizeof(*ds));
   ds->dict = dict_create ();
   ds->caseinit = caseinit_create ();
-  ds->replace_source = rps;
-  ds->replace_dict = rds;
+  ds->xform_callback = cb;
+  ds->xform_callback_aux = aux;
   proc_cancel_all_transformations (ds);
   return ds;
+}
+
+
+void
+dataset_add_transform_change_callback (struct dataset *ds,
+				       transformation_change_callback_func *cb,
+				       void *aux)
+{
+  ds->xform_callback = cb;
+  ds->xform_callback_aux = aux;
 }
 
 /* Finishes up procedure handling. */
@@ -525,6 +559,9 @@ destroy_dataset (struct dataset *ds)
   dict_destroy (ds->dict);
   caseinit_destroy (ds->caseinit);
   trns_chain_destroy (ds->permanent_trns_chain);
+
+  if ( ds->xform_callback)
+    ds->xform_callback (false, ds->xform_callback_aux);
   free (ds);
 }
 

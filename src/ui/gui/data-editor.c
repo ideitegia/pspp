@@ -26,6 +26,7 @@
 
 #include "helper.h"
 #include "about.h"
+#include <data/procedure.h>
 #include "psppire-dialog.h"
 #include "psppire-selector.h"
 #include "weight-cases-dialog.h"
@@ -119,6 +120,37 @@ enable_delete_variables (GtkWidget *w, gint var, gpointer data)
 }
 
 
+
+/* Run the EXECUTE command. */
+static void
+execute (GtkMenuItem *mi, gpointer data)
+{
+  struct getl_interface *sss = create_syntax_string_source ("EXECUTE.");
+
+  execute_syntax (sss);
+}
+
+static void
+transformation_change_callback (bool transformations_pending,
+				gpointer data)
+{
+  struct data_editor *de = data;
+  GtkWidget *menuitem =
+    get_widget_assert (de->xml, "transform_run-pending");
+  GtkWidget *status_label  =
+    get_widget_assert (de->xml, "case-counter-area");
+
+  gtk_widget_set_sensitive (menuitem, transformations_pending);
+
+
+  if ( transformations_pending)
+    gtk_label_set_text (GTK_LABEL (status_label),
+			_("Transformations Pending"));
+  else
+    gtk_label_set_text (GTK_LABEL (status_label), "");
+}
+
+
 static void open_data_file (const gchar *, struct data_editor *);
 
 
@@ -184,6 +216,8 @@ datum_entry_activate (GtkEntry *entry, gpointer data)
   psppire_data_store_set_string (store, text, row, column);
 }
 
+extern struct dataset *the_dataset;
+
 /*
   Create a new data editor.
 */
@@ -202,6 +236,11 @@ new_data_editor (void)
   e = (struct editor_window *) de;
 
   de->xml = XML_NEW ("data-editor.glade");
+
+
+  dataset_add_transform_change_callback (the_dataset,
+					 transformation_change_callback,
+					 de);
 
   var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
   data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
@@ -613,6 +652,10 @@ new_data_editor (void)
   g_signal_connect (get_widget_assert (de->xml, "file_quit"),
 		    "activate",
 		    G_CALLBACK (file_quit), de);
+
+  g_signal_connect (get_widget_assert (de->xml, "transform_run-pending"),
+		    "activate",
+		    G_CALLBACK (execute), de);
 
 
   g_signal_connect (get_widget_assert (de->xml, "windows_minimise_all"),

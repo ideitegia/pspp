@@ -1,3 +1,11 @@
+2007-07-26  John Darrington <john@darrington.wattle.id.au>
+
+	* helper.c helper.h (execute_syntax): removed implicit EXECUTE at end 
+	of commands.
+
+	* data-editor.c data-editor.glade: Added "Run Pending Transformations" 
+	menuitem.
+
 2007-07-25  John Darrington <john@darrington.wattle.id.au>
 
 	* customentry.c: Redraw button in insensitive state, if the widget's 

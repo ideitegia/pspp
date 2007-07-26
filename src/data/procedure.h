@@ -51,11 +51,13 @@ struct dictionary ;
 typedef void  replace_source_callback (struct casereader *);
 typedef void  replace_dictionary_callback (struct dictionary *);
 
+typedef void transformation_change_callback_func (bool non_empty, void *aux);
 
-struct dataset * create_dataset (replace_source_callback *,
-				 replace_dictionary_callback *);
-
+struct dataset * create_dataset (transformation_change_callback_func *, void *);
 void destroy_dataset (struct dataset *);
+
+void dataset_add_transform_change_callback (struct dataset *,
+					    transformation_change_callback_func *, void *);
 
 void proc_discard_active_file (struct dataset *);
 void proc_set_active_file (struct dataset *,

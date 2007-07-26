@@ -54,7 +54,7 @@ void connect_help (GladeXML *);
 void reference_manual (GtkMenuItem *, gpointer);
 
 struct getl_interface;
-gboolean execute_syntax (struct getl_interface *sss);
+void execute_syntax (struct getl_interface *sss);
 
 
 #define XML_NEW(FILE) \
