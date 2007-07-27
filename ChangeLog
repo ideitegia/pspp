@@ -1,3 +1,10 @@
+2007-07-27  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Make PKG_CHECK_MODULES tests more user-friendly,
+	by having them give their errors at the end of the configuration
+	process instead of stopping it in the middle.  Patch #6116.
+	Reviewed by Jason Stover.
+
 2007-06-14  Ben Pfaff  <blp@gnu.org>
 
 	* Smake: Use xmalloca instead of xallocsa due to module renaming.
