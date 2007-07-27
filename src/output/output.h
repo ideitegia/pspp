@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,6 +72,8 @@ struct outp_class
 
     void (*open_page) (struct outp_driver *);
     void (*close_page) (struct outp_driver *);
+
+    void (*flush) (struct outp_driver *);
 
     /* special != 0 only. */
     void (*submit) (struct outp_driver *, struct som_entity *);
@@ -155,6 +157,7 @@ bool outp_get_paper_size (char *, int *h, int *v);
 void outp_open_page (struct outp_driver *);
 void outp_close_page (struct outp_driver *);
 void outp_eject_page (struct outp_driver *);
+void outp_flush (struct outp_driver *);
 
 int outp_string_width (struct outp_driver *, const char *, enum outp_font);
 

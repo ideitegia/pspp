@@ -1433,6 +1433,7 @@ const struct outp_class postscript_class =
 
   ps_open_page,
   ps_close_page,
+  NULL,
 
   ps_submit,
 

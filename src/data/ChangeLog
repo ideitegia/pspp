@@ -1,3 +1,17 @@
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
+	Fix bugs related to bug #17213.
+
+	* settings.c: Use HAVE_LIBNCURSES instead of HAVE_LIBTERMCAP,
+	since the former is what config.h has.  Include the needed ncurses
+	headers.
+	(static var echo) Rename to `do_echo' because the original name is
+	the same as an ncurses identifier.
+	(get_termcap_viewport) Use error instead of msg.
+
+	* file-name.c (fn_interp_vars): Fix interpolation of $VARS.
+	(fn_close): Don't close stdin, stdout, stderr.
+
 2007-07-26 John Darrington <john@darrington.wattle.id.au>
 
 	* procedure.c procedure.h: Added callbacks which get invoked whenever 

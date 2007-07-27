@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 #include <language/prompt.h>
+#include <output/manager.h>
 
 #include "xalloc.h"
 
@@ -147,6 +148,9 @@ readln_read (struct string *line, enum prompt_style style)
   reset_msg_count ();
 
   welcome ();
+
+  if (style == PROMPT_FIRST)
+    som_flush ();
 
 #if HAVE_READLINE
   rl_attempted_completion_function = (style == PROMPT_FIRST

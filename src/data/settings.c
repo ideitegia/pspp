@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,13 +24,23 @@
 #include "xalloc.h"
 #include <libpspp/i18n.h>
 
+#include "error.h"
+
+#ifdef HAVE_LIBNCURSES
+#include <curses.h>
+#include <term.h>
+#endif
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 static int viewlength = 24;
 static int viewwidth = 79;
 static bool long_view = false;
 
 static bool safer_mode = false;
 
-static bool echo = false;
+static bool do_echo = false;
 static bool include = true;
 
 static int epoch = -1;
@@ -121,7 +131,7 @@ set_viewwidth (int viewwidth_)
   viewwidth = viewwidth_;
 }
 
-#if HAVE_LIBTERMCAP
+#if HAVE_LIBNCURSES
 static void
 get_termcap_viewport (void)
 {
@@ -130,7 +140,8 @@ get_termcap_viewport (void)
     return;
   else if (tgetent (term_buffer, getenv ("TERM")) <= 0)
     {
-      msg (IE, _("Could not access definition for terminal `%s'."), termtype);
+      error (0,0, _("could not access definition for terminal `%s'"),
+             getenv ("TERM"));
       return;
     }
 
@@ -140,7 +151,7 @@ get_termcap_viewport (void)
   if (tgetnum ("co") > 1)
     viewwidth = tgetnum ("co") - 1;
 }
-#endif /* HAVE_LIBTERMCAP */
+#endif /* HAVE_LIBNCURSES */
 
 static void
 init_viewport (void)
@@ -150,9 +161,9 @@ init_viewport (void)
 
   viewwidth = viewlength = -1;
 
-#if HAVE_LIBTERMCAP
+#if HAVE_LIBNCURSES
   get_termcap_viewport ();
-#endif /* HAVE_LIBTERMCAP */
+#endif /* HAVE_LIBNCURSES */
 
   if (viewwidth < 0 && getenv ("COLUMNS") != NULL)
     viewwidth = atoi (getenv ("COLUMNS"));
@@ -183,14 +194,14 @@ set_safer_mode (void)
 bool
 get_echo (void)
 {
-  return echo;
+  return do_echo;
 }
 
 /* Set echo. */
 void
 set_echo (bool echo_)
 {
-  echo = echo_;
+  do_echo = echo_;
 }
 
 /* If echo is on, whether commands from include files are echoed. */

@@ -41,16 +41,17 @@
 # referenced with $var or ${var} syntax; the latter is preferred.
 
 # Preferred devices.
-default=tty list
-tty=#tty-ibmpc
-list=list-ascii
+default=list-ascii
+interactive=tty-ascii
 
 # Output files.
-define tty-output-file "/dev/tty"
+define tty-output-file "|more"
 define list-output-file "pspp.list"
 
 # Generic ASCII devices
-tty-ascii:ascii:screen:output-file=${tty-output-file}
+tty-ascii:ascii:screen:squeeze=on headers=off top-margin=0 bottom-margin=0 \
+  paginate=off length=${viewlength} width=${viewwidth} \
+  output-file=${tty-output-file}
 list-ascii:ascii:listing:length=66 width=79 output-file=${list-output-file}
 raw-ascii:ascii:screen:width=9999 length=9999 output-file=${list-output-file} \
   emphasis=none headers=off paginate=off squeeze=on \

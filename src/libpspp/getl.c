@@ -94,7 +94,7 @@ getl_append_source (struct source_stream *ss, struct getl_interface *i)
 
   s->interface = i ;
 
-  ll_push_head (&ss->sources, &s->ll);
+  ll_push_tail (&ss->sources, &s->ll);
 }
 
 /* Nests source S within the current source file. */

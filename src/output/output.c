@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -150,8 +150,8 @@ add_name (char *bp, char *ep, int source)
   outp_configure_vec = n;
 }
 
-/* Checks that outp_configure_vec is empty, bitches & clears it if it
-   isn't. */
+/* Checks that outp_configure_vec is empty, complains and clears
+   it if it isn't. */
 static void
 check_configure_vec (void)
 {
@@ -701,7 +701,7 @@ configure_driver (struct substring driver_name, struct substring class_name,
   d->class = c->class;
   d->name = ss_xstrdup (driver_name);
   d->page_open = false;
-  d->device = OUTP_DEV_NONE;
+  d->device = device;
   d->cp_x = d->cp_y = 0;
   d->ext = NULL;
   d->prc = NULL;
@@ -1141,6 +1141,18 @@ outp_eject_page (struct outp_driver *d)
   if (d->page_open && d->cp_y != 0)
     outp_close_page (d);
   outp_open_page (d);
+}
+
+/* Flushes output to screen devices, so that the user can see
+   output that doesn't fill up an entire page. */
+void
+outp_flush (struct outp_driver *d)
+{
+  if (d->device & OUTP_DEV_SCREEN && d->class->flush != NULL)
+    {
+      outp_close_page (d);
+      d->class->flush (d);
+    }
 }
 
 /* Returns the width of string S, in device units, when output on

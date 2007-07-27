@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,11 +42,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-void welcome (void);
 static void usage (void);
-
-char *subst_vars (char *);
-
 
 /* Parses the command line specified by ARGC and ARGV as received by
    main().  Returns true if normal execution should proceed,
@@ -209,7 +205,11 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
       }
 
   if (!syntax_files || interactive_mode)
-    getl_append_source (ss, create_readln_source () );
+    {
+      getl_append_source (ss, create_readln_source () );
+      if (!cleared_device_defaults)
+        outp_configure_add ("interactive");
+    }
 
   return true;
 }

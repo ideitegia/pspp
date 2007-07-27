@@ -1,3 +1,11 @@
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
+	* getl.c (getl_append_source): Add source to *end* of list.
+	Otherwise the list ends up in reverse order.
+
+	* automake.mk (src/libpspp/version.c): Use $HOME instead of ~ in
+	paths.  We don't interpolate ~.
+
 2007-07-22  Ben Pfaff  <blp@gnu.org>
 
 	* str.h: Include xstrndup.h also.

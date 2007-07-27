@@ -87,7 +87,7 @@ fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
             else if (ss_match_char (&src, '{'))
               ss_get_until (&src, '}', &var_name);
             else
-              ss_get_chars (&src, MIN (1, ss_span (src, ss_cstr (CC_ALNUM))),
+              ss_get_chars (&src, MAX (1, ss_span (src, ss_cstr (CC_ALNUM))),
                             &var_name);
 
             start = ds_length (&dst);
@@ -305,7 +305,9 @@ fn_open (const char *fn, const char *mode)
 int
 fn_close (const char *fn, FILE *f)
 {
-  if (!strcmp (fn, "-"))
+  if (fileno (f) == STDIN_FILENO
+      || fileno (f) == STDOUT_FILENO
+      || fileno (f) == STDERR_FILENO)
     return 0;
 #if HAVE_POPEN
   else if (fn[0] == '|' || (*fn && fn[strlen (fn) - 1] == '|'))

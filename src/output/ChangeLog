@@ -1,3 +1,22 @@
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
+	Make interactive output go to the terminal (bug #17213), by
+	causing the UI to flush output to the user when it prompts for a
+	command.
+
+	* ascii.c (ascii_open_driver): Move the file open into
+	ascii_open_page, so that we can re-open after a flush.
+	(ascii_close_driver): Close file using ascii_flush.
+	(ascii_open_page): Open the output file if it's not already open.
+	Use fn_open so that we can support pipes.
+	(ascii_close_page): Do nothing if output file not open.
+	(ascii_flush): New function.
+	(static var ascii_class): Add ascii_flush.
+
+	* manager.c (som_flush): New function.
+
+	* output.c (outp_flush): New function.
+
 Tue Feb 20 07:03:48 2007  Ben Pfaff  <blp@gnu.org>
 
 	* html.c: Don't need to include "getlogin_r.h" anymore, because

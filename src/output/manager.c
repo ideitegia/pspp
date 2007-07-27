@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,6 +45,16 @@ som_eject_page (void)
 
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     outp_eject_page (d);
+}
+
+/* Flushes output on all active devices. */
+void
+som_flush (void)
+{
+  struct outp_driver *d;
+
+  for (d = outp_drivers (NULL); d; d = outp_drivers (d))
+    outp_flush (d);
 }
 
 /* Skip down a single line on all active devices. */

@@ -114,5 +114,6 @@ void som_submit (struct som_entity *t);
 /* Miscellaneous. */
 void som_eject_page (void);
 void som_blank_line (void);
+void som_flush (void);
 
 #endif /* som_h */

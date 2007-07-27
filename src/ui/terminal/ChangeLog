@@ -1,3 +1,15 @@
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
+	Make interactive output go to the terminal (bug #17213), by
+	causing the UI to flush output to the user when it prompts for a
+	command.
+
+	* command-line.c (parse_command_line): Configure interactive
+	output devices if appropriate.
+
+	* read-line.c (readln_read): Flush output if this is a prompt for
+	the first line of a command.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	Adapt case sources, sinks, and clients of procedure code to the

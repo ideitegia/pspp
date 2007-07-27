@@ -407,6 +407,7 @@ const struct outp_class html_class =
 
     NULL,
     NULL,
+    NULL,
 
     html_submit,
 

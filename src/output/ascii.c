@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -115,6 +115,7 @@ struct ascii_driver_ext
     int line_cap;               /* Number of lines allocated. */
   };
 
+static void ascii_flush (struct outp_driver *);
 static int get_default_box_char (size_t idx);
 static bool handle_option (struct outp_driver *this, const char *key,
                            const struct string *val);
@@ -151,13 +152,6 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
 
   if (!outp_parse_options (options, handle_option, this))
     goto error;
-
-  x->file = pool_fopen (x->pool, x->file_name, "w");
-  if (x->file == NULL)
-    {
-      error (0, errno, _("ascii: opening output file \"%s\""), x->file_name);
-      goto error;
-    }
 
   this->length = x->page_length - x->top_margin - x->bottom_margin - 1;
   if (x->headers)
@@ -226,8 +220,7 @@ ascii_close_driver (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
 
-  if (fn_close (x->file_name, x->file) != 0)
-    error (0, errno, _("ascii: closing output file \"%s\""), x->file_name);
+  ascii_flush (this);
   pool_detach_file (x->pool, x->file);
   pool_destroy (x->pool);
 
@@ -409,6 +402,18 @@ ascii_open_page (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
   int i;
+
+  if (x->file == NULL)
+    {
+      x->file = fn_open (x->file_name, "w");
+      if (x->file == NULL)
+        {
+          error (0, errno, _("ascii: opening output file \"%s\""),
+                 x->file_name);
+          return;
+        }
+      pool_attach_file (x->pool, x->file);
+    }
 
   x->page_number++;
 
@@ -670,6 +675,9 @@ ascii_close_page (struct outp_driver *this)
   struct string out;
   int line_num;
 
+  if (x->file == NULL)
+    return;
+
   ds_init_empty (&out);
 
   ds_put_char_multiple (&out, '\n', x->top_margin);
@@ -718,6 +726,25 @@ ascii_close_page (struct outp_driver *this)
   ds_destroy (&out);
 }
 
+/* Flushes all output to the user and lets the user deal with it.
+   This is applied only to output drivers that are designated as
+   "screen" drivers that the user is interacting with in real
+   time. */
+static void
+ascii_flush (struct outp_driver *this)
+{
+  struct ascii_driver_ext *x = this->ext;
+
+  if (x->file != NULL)
+    {
+      if (fn_close (x->file_name, x->file) != 0)
+        error (0, errno, _("ascii: closing output file \"%s\""),
+               x->file_name);
+      pool_detach_file (x->pool, x->file);
+      x->file = NULL;
+    }
+}
+
 static void
 ascii_chart_initialise (struct outp_driver *d UNUSED, struct chart *ch)
 {
@@ -741,6 +768,7 @@ const struct outp_class ascii_class =
 
   ascii_open_page,
   ascii_close_page,
+  ascii_flush,
 
   NULL,
 
