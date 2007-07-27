@@ -1211,7 +1211,6 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
                 }
           gsl_vector_set (Y, row, case_num (&c, dep_var));
             }
-          casereader_destroy (reader);
 	  /*
 	     Now that we know the number of coefficients, allocate space
 	     and store pointers to the variables that correspond to the
@@ -1238,6 +1237,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	{
 	  msg (SE, gettext ("No valid data found. This command was skipped."));
 	}
+      casereader_destroy (reader);
     }
   free (indep_vars);
   free (lopts.get_indep_mean_std);

@@ -1,3 +1,10 @@
+2007-07-27  Ben Pfaff  <blp@gnu.org>
+
+	* regression.q (run_regression): Move casereader_destroy call so
+	that it always gets called, not just if there was some valid
+	data.  Fixes bug #19581.
+	Reviewed by Jason Stover.
+
 2007-07-24  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c (struct flip_pgm): Remove `case_size' member (now
