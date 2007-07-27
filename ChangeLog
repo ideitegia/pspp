@@ -1,5 +1,10 @@
 2007-07-27  Ben Pfaff  <blp@gnu.org>
 
+	Bug #19069.
+	* INSTALL: Improve installation instructions.
+	* README: Move prerequisites to INSTALL.
+	Reviewed by Jason Stover.
+
 	* configure.ac: Make PKG_CHECK_MODULES tests more user-friendly,
 	by having them give their errors at the end of the configuration
 	process instead of stopping it in the middle.  Patch #6116.
