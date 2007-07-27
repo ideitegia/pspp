@@ -1,5 +1,10 @@
 2007-07-25  Ben Pfaff  <blp@gnu.org>
 
+	* devices: Add tty and listing devices that use VT100 (and xterm)
+	line-drawing characters.
+
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
 	* devices: Add an "interactive" category that defaults to
 	tty-ascii.  Make the tty-ascii device more user-friendly.
 

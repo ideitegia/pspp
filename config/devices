@@ -61,6 +61,20 @@ raw-ascii:ascii:screen:width=9999 length=9999 output-file=${list-output-file} \
 tty-ascii-bi:ascii:screen:output-file=${tty-output-file}
 list-ascii-bi:ascii:listing:length=66 width=79 output-file=${list-output-file}
 
+# VT100 graphics devices.
+define vt100-graphics \
+  init='\033(B\033)0' \
+  box[1000]='\16q\17' box[1010]='\16q\17' box[0010]='\16q\17' \
+  box[0100]='\16x\17' box[0101]='\16x\17' box[0001]='\16x\17' \
+  box[0011]='\16j\17' box[1100]='\16l\17' box[0110]='\16k\17' \
+  box[1001]='\16m\17' box[1110]='\16w\17' box[1101]='\16t\17' \
+  box[0111]='\16u\17' box[1011]='\16v\17' box[1111]='\16n\17'
+
+tty-vt100:ascii:screen:squeeze=on headers=off top-margin=0 bottom-margin=0 \
+  paginate=off output-file=${tty-output-file} ${vt100-graphics}
+list-vt100:ascii:listing:length=66 width=79 output-file=${list-output-file} \
+  ${vt100-graphics}
+
 # HTML device.
 html:html::
 

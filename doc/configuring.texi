@@ -668,7 +668,7 @@ The available options are listed below.
 @item output-file=@var{file-name}
 
 File to which output should be sent.  This can be an ordinary file name
-(e.g., @code{"pspp.txt"}), a pipe (e.g., @code{"|lpr"}), or
+(e.g., @code{"pspp.txt"}), a pipe (e.g., @code{"|more"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.list"}.
 
 @item paginate=@var{boolean}
@@ -780,6 +780,11 @@ Defaults:
 For all others, @samp{+} is used unless there are double lines or
 special lines, in which case @samp{#} is used.
 @end itemize
+
+@item init=@var{init-string}
+If set, this string is written at the beginning of each output file.
+It can be used to initialize device features, e.g.@: to enable VT100
+line-drawing characters.
 
 @item emphasis=@var{emphasis-style}
 

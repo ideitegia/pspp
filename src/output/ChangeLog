@@ -1,5 +1,16 @@
 2007-07-25  Ben Pfaff  <blp@gnu.org>
 
+	Allow the user to specify an initialization string to write at the
+	beginning of an ASCII output file.
+	* ascii.c (struct ascii_driver_ext): New member `init'.
+	(ascii_open_driver): Initialize `init'.
+	(ascii_close_driver): Parse `init'.
+	(ascii_open_page): Write `init' to output file.
+
+	* output.c (get_option_token): Fix parsing of octal constants.
+
+2007-07-25  Ben Pfaff  <blp@gnu.org>
+
 	Make interactive output go to the terminal (bug #17213), by
 	causing the UI to flush output to the user when it prompts for a
 	command.

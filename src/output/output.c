@@ -562,7 +562,7 @@ get_option_token (struct substring *s, const char *driver_name,
                 case '7':
                   out = c - '0';
                   while (ss_first (*s) >= '0' && ss_first (*s) <= '7')
-                    out = c * 8 + (ss_get_char (s) - '0');
+                    out = out * 8 + (ss_get_char (s) - '0');
                   break;
                 case 'x':
                 case 'X':

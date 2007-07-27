@@ -53,6 +53,7 @@
    bottom-margin=2
 
    box[x]="strng"               Sets box character X (X in base 4: 0-3333).
+   init="string"                Set initialization string.
  */
 
 /* Disable messages by failed range checks. */
@@ -106,6 +107,7 @@ struct ascii_driver_ext
     int bottom_margin;		/* Bottom margin in lines. */
 
     char *box[LNS_COUNT];       /* Line & box drawing characters. */
+    char *init;                 /* Device initialization string. */
 
     /* Internal state. */
     char *file_name;            /* Output file name. */
@@ -144,6 +146,7 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
   x->bottom_margin = 2;
   for (i = 0; i < LNS_COUNT; i++)
     x->box[i] = NULL;
+  x->init = NULL;
   x->file_name = pool_strdup (x->pool, "pspp.list");
   x->file = NULL;
   x->page_number = 0;
@@ -231,10 +234,11 @@ ascii_close_driver (struct outp_driver *this)
 enum
   {
     boolean_arg,
-    string_arg,
+    emphasis_arg,
     nonneg_int_arg,
     pos_int_arg,
-    output_file_arg
+    output_file_arg,
+    string_arg
   };
 
 static const struct outp_option option_tab[] =
@@ -243,7 +247,7 @@ static const struct outp_option option_tab[] =
     {"paginate", boolean_arg, 1},
     {"squeeze", boolean_arg, 2},
 
-    {"emphasis", string_arg, 3},
+    {"emphasis", emphasis_arg, 0},
 
     {"output-file", output_file_arg, 0},
 
@@ -253,6 +257,8 @@ static const struct outp_option option_tab[] =
     {"top-margin", nonneg_int_arg, 0},
     {"bottom-margin", nonneg_int_arg, 1},
     {"tab-width", nonneg_int_arg, 2},
+
+    {"init", string_arg, 0},
 
     {NULL, 0, 0},
   };
@@ -318,7 +324,7 @@ handle_option (struct outp_driver *this, const char *key,
 	  }
       }
       break;
-    case string_arg:
+    case emphasis_arg:
       if (!strcmp (value, "bold"))
         x->emphasis = EMPH_BOLD;
       else if (!strcmp (value, "underline"))
@@ -390,6 +396,10 @@ handle_option (struct outp_driver *this, const char *key,
 	  }
       }
       break;
+    case string_arg:
+      free (x->init);
+      x->init = pool_strdup (x->pool, value);
+      break;
     default:
       NOT_REACHED ();
     }
@@ -413,6 +423,9 @@ ascii_open_page (struct outp_driver *this)
           return;
         }
       pool_attach_file (x->pool, x->file);
+
+      if (x->init != NULL)
+        fputs (x->init, x->file);
     }
 
   x->page_number++;
