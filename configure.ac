@@ -36,8 +36,8 @@ AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
 AC_ARG_WITH(gui, [  --without-gui         don't build the PSPPIRE gui])
 
 if test x"$with_gui" != x"no" ; then 
-  PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.6.0,,
-    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 v2.6.0 or later (or use --without-gui)])])
+  PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.8.0,,
+    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 v2.8.0 or later (or use --without-gui)])])
   PKG_CHECK_MODULES(GLADE, libglade-2.0,,
     [PSPP_REQUIRED_PREREQ([libglade 2.0 (or use --without-gui)])])
 fi

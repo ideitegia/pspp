@@ -1,17 +1,19 @@
 PSPP is a program for statistical analysis of sampled data. It
-interprets commands in the SPSS language and produces tabular output
-in ASCII, PostScript, or HTML format.
+is a free replacement for the proprietary program SPSS.
 
 PSPP development is ongoing. It already supports a large subset of
-SPSS's transformation language.  Its statistical procedure support is
-currently limited, but growing.
+SPSS's syntax.  Its statistical procedure support is currently
+limited, but growing. At your option, PSPP will produce statistical
+reports in  ASCII, PostScript, or HTML formats. 
+
 
 Instructions for PSPP installation are in INSTALL, including a list of
-prerequisite packages and other PSPP-specific information.
+prerequisite packages and other PSPP-specific information. Full
+documentation  on PSPP's language will be installed along with the
+programs. 
 
 For information on differences from previous versions, please see file
-NEWS.  Full documentation on PSPP's language can be found in the doc/
-directory.
+NEWS.  
           
 Source code for the latest release of PSPP is available at
 ftp://ftp.gnu.org/pub/gnu/pspp/.  Older versions may be obtained from
@@ -31,8 +33,7 @@ following support to users:
           supports a large subset of it.
 
 	* All the statistical procedures that someone is willing to
-          implement, whether they exist in SPSS or not.  Currently,
-          statistical support is limited, but growing.
+          implement, whether they exist in SPSS or not.
 
 	* Compatibility with SPSS syntax, including compatibility with
           known bugs and warts, where it makes sense.  We also provide
@@ -56,8 +57,9 @@ following support to users:
 	* Efficient support for very large data sets.  For procedures
           where it is practical, we wish to efficiently support data
           sets many times larger than physical memory.  The framework
-          for this feature is already in place, but it has not been
-          tuned or extensively tested.
+          for this feature is already in place. It has not been tuned
+          or extensively tested, however initial experience has given
+          impressive results.
 
 Over the long term, we also wish to provide support to developers who
 wish to extend PSPP with new statistical procedures, by supplying the
