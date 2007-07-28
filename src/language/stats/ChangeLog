@@ -1,3 +1,8 @@
+2007-07-28 John Darrington <john@darrington.wattle.id.au>
+
+	* t-test.q: Moved the order in which groups are displayed in the 
+	independent samples case, where a cut point is given.
+
 2007-07-27  Ben Pfaff  <blp@gnu.org>
 
 	* regression.q (run_regression): Move casereader_destroy call so

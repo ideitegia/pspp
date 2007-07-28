@@ -736,8 +736,8 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 
   if (gp.criterion == CMP_LE )
     {
-      strcpy(prefix[0],"< ");
-      strcpy(prefix[1],">=");
+      strcpy(prefix[0],">=");
+      strcpy(prefix[1],"<");
       indep_value[0] = gp.v.critical_value;
       indep_value[1] = gp.v.critical_value;
     }
@@ -785,13 +785,13 @@ ssbox_independent_samples_populate(struct ssbox *ssb,
 	    {
 	      if ( count == 0 )
 		{
-		  /*  less than ( < )  case */
-		  search_val.f = gp.v.critical_value - 1.0;
+		  /* >= case  */
+		  search_val.f = gp.v.critical_value + 1.0;
 		}
 	      else
 		{
-		  /* >= case  */
-		  search_val.f = gp.v.critical_value + 1.0;
+		  /*  less than ( < )  case */
+		  search_val.f = gp.v.critical_value - 1.0;
 		}
 	    }
 	  else
@@ -1688,7 +1688,6 @@ group_precalc (struct cmd_t_test *cmd )
 	    }
 
 	  hsh_insert ( ttpr->group_hash, (void *) gs );
-
 	}
     }
 
@@ -1867,7 +1866,7 @@ compare_group_binary(const struct group_statistics *a,
 
   if ( p->criterion == CMP_LE )
     {
-      /* less-than-or-equal comparision is not meaningfull for
+      /* less-than comparision is not meaningfull for
 	 alpha variables, so we shouldn't ever arrive here */
       assert(p->indep_width == 0 ) ;
 

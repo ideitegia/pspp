@@ -702,8 +702,8 @@ of 1.0 and 2.0 are assumed.
 If the independent variable is numeric, 
 it is acceptable to specify only one value inside the parentheses.
 If you do this, cases where the independent variable is
-less than  or equal to this value belong to the first group, and cases
-greater than this value belong to the second group.
+greater than or equal to this value belong to the first group, and cases
+less than this value belong to the second group.
 When using this form of the @cmd{GROUPS} subcommand, missing values in
 the independent variable are excluded on a listwise basis, regardless
 of whether @cmd{/MISSING=LISTWISE} was specified.
