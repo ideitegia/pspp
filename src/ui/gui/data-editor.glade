@@ -354,7 +354,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="select_cases1">
+                      <widget class="GtkMenuItem" id="data_select-cases">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Select Cases</property>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-07-28 13:06+0800\n"
+"POT-Creation-Date: 2007-07-28 19:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -306,13 +306,13 @@ msgstr ""
 
 #: src/data/format.c:318 src/data/por-file-reader.c:492
 #: src/data/sys-file-reader.c:631 src/ui/gui/data-editor.glade:1143
-#: src/ui/gui/psppire.glade:1947 src/ui/gui/psppire-var-store.c:482
+#: src/ui/gui/psppire.glade:2144 src/ui/gui/psppire-var-store.c:482
 msgid "String"
 msgstr ""
 
 #: src/data/format.c:318 src/data/por-file-reader.c:492
 #: src/data/sys-file-reader.c:631 src/ui/gui/data-editor.glade:1039
-#: src/ui/gui/psppire.glade:2020 src/ui/gui/psppire-var-store.c:475
+#: src/ui/gui/psppire.glade:2217 src/ui/gui/psppire-var-store.c:475
 msgid "Numeric"
 msgstr ""
 
@@ -1592,7 +1592,7 @@ msgstr ""
 
 #: src/language/dictionary/split-file.c:85
 #: src/language/dictionary/sys-file-info.c:395
-#: src/language/dictionary/sys-file-info.c:543 src/ui/gui/psppire.glade:1911
+#: src/language/dictionary/sys-file-info.c:543 src/ui/gui/psppire.glade:2108
 #: src/ui/gui/var-sheet.c:68
 msgid "Label"
 msgstr ""
@@ -1601,7 +1601,7 @@ msgstr ""
 msgid "File:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:110 src/ui/gui/psppire.glade:1852
+#: src/language/dictionary/sys-file-info.c:110 src/ui/gui/psppire.glade:2049
 msgid "Label:"
 msgstr ""
 
@@ -2511,7 +2511,7 @@ msgstr ""
 msgid "Directional measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1206 src/ui/gui/psppire.glade:2035
+#: src/language/stats/crosstabs.q:1206 src/ui/gui/psppire.glade:2232
 #: src/ui/gui/var-sheet.c:65
 msgid "Type"
 msgstr ""
@@ -4175,200 +4175,209 @@ msgstr ""
 msgid "Style of bevel around the custom entry button"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:148
+#: src/ui/gui/data-editor.c:149
 msgid "Transformations Pending"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:281
+#: src/ui/gui/data-editor.c:282
 msgid "Labels"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:282
+#: src/ui/gui/data-editor.c:283
 msgid "Show (hide) value labels"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:300 src/ui/gui/data-editor.c:315
-#: src/ui/gui/data-editor.c:1573 src/ui/gui/data-editor.c:1626
+#: src/ui/gui/data-editor.c:301 src/ui/gui/data-editor.c:316
+#: src/ui/gui/data-editor.c:1592 src/ui/gui/data-editor.c:1645
 msgid "Clear"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:301
+#: src/ui/gui/data-editor.c:302
 msgid "Delete the cases at the selected position(s)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:316
+#: src/ui/gui/data-editor.c:317
 msgid "Delete the variables at the selected position(s)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:330 src/ui/gui/data-editor.c:1570
+#: src/ui/gui/data-editor.c:331 src/ui/gui/data-editor.c:1589
 #: src/ui/gui/data-editor.glade:286 src/ui/gui/data-editor.glade:654
 msgid "Insert Variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:331
+#: src/ui/gui/data-editor.c:332
 msgid "Create a new variable at the current position"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:349 src/ui/gui/data-editor.c:1623
+#: src/ui/gui/data-editor.c:350 src/ui/gui/data-editor.c:1642
 #: src/ui/gui/data-editor.glade:642
 msgid "Insert Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:350
+#: src/ui/gui/data-editor.c:351
 msgid "Create a new case at the current position"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:370
+#: src/ui/gui/data-editor.c:371
 msgid "Goto Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:371
+#: src/ui/gui/data-editor.c:372
 msgid "Jump to a Case in the Data Sheet"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:390
+#: src/ui/gui/data-editor.c:391
 msgid "Weights"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:391
+#: src/ui/gui/data-editor.c:392
 msgid "Weight cases by variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:400 src/ui/gui/data-editor.glade:323
+#: src/ui/gui/data-editor.c:401 src/ui/gui/data-editor.glade:323
 msgid "Transpose"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:401
+#: src/ui/gui/data-editor.c:402
 msgid "Transpose the cases with the variables"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:412
+#: src/ui/gui/data-editor.c:413
 msgid "Split"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:413
+#: src/ui/gui/data-editor.c:414
 msgid "Split the active file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:423
+#: src/ui/gui/data-editor.c:424
 msgid "Sort"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:424
+#: src/ui/gui/data-editor.c:425
 msgid "Sort cases in the active file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:433
-msgid "Compute"
+#: src/ui/gui/data-editor.c:433 src/ui/gui/data-editor.glade:360
+#: src/ui/gui/data-editor.glade:697
+msgid "Select Cases"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:434
-msgid "Compute new values for a variable"
-msgstr ""
-
-#: src/ui/gui/data-editor.c:442
-msgid "Data File Comments"
+msgid "Select cases from the active file"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:443
+msgid "Compute"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:444
+msgid "Compute new values for a variable"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:452
+msgid "Data File Comments"
+msgstr ""
+
+#: src/ui/gui/data-editor.c:453
 msgid "Commentary text for the data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:451 src/ui/gui/data-editor.glade:267
+#: src/ui/gui/data-editor.c:461 src/ui/gui/data-editor.glade:267
 #: src/ui/gui/data-editor.glade:601
 msgid "Variables"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:452
+#: src/ui/gui/data-editor.c:462
 msgid "Jump to Variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:841
+#: src/ui/gui/data-editor.c:860
 msgid "Font Selection"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1048
+#: src/ui/gui/data-editor.c:1067
 msgid "No Split"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1057
+#: src/ui/gui/data-editor.c:1076
 msgid "Split by "
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1082
+#: src/ui/gui/data-editor.c:1101
 msgid "Filter off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1095
+#: src/ui/gui/data-editor.c:1114
 #, c-format
 msgid "Filter by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1113
+#: src/ui/gui/data-editor.c:1132
 msgid "Weights off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1126
+#: src/ui/gui/data-editor.c:1145
 #, c-format
 msgid "Weight by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1149 src/ui/gui/data-editor.c:1380
+#: src/ui/gui/data-editor.c:1168 src/ui/gui/data-editor.c:1399
 #: src/ui/gui/data-editor.glade:512
 msgid "Open"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1150
+#: src/ui/gui/data-editor.c:1169
 msgid "Open a data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1158 src/ui/gui/data-editor.c:1265
+#: src/ui/gui/data-editor.c:1177 src/ui/gui/data-editor.c:1284
 #: src/ui/gui/data-editor.glade:522
 msgid "Save"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1159 src/ui/gui/data-editor.c:1169
+#: src/ui/gui/data-editor.c:1178 src/ui/gui/data-editor.c:1188
 msgid "Save data to file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1168
+#: src/ui/gui/data-editor.c:1187
 msgid "Save As"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1177
+#: src/ui/gui/data-editor.c:1196
 msgid "New"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1178
+#: src/ui/gui/data-editor.c:1197
 msgid "New data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1273 src/ui/gui/data-editor.c:1388
+#: src/ui/gui/data-editor.c:1292 src/ui/gui/data-editor.c:1407
 msgid "System Files (*.sav)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1279 src/ui/gui/data-editor.c:1394
+#: src/ui/gui/data-editor.c:1298 src/ui/gui/data-editor.c:1413
 msgid "Portable Files (*.por) "
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1285 src/ui/gui/data-editor.c:1400
+#: src/ui/gui/data-editor.c:1304 src/ui/gui/data-editor.c:1419
 #: src/ui/gui/syntax-editor.c:138 src/ui/gui/syntax-editor.c:524
 msgid "All Files"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1293
+#: src/ui/gui/data-editor.c:1312
 msgid "System File"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1298
+#: src/ui/gui/data-editor.c:1317
 msgid "Portable File"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1563
+#: src/ui/gui/data-editor.c:1582
 msgid "Sort Ascending"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1566
+#: src/ui/gui/data-editor.c:1585
 msgid "Sort Descending"
 msgstr ""
 
@@ -4466,10 +4475,6 @@ msgstr ""
 
 #: src/ui/gui/data-editor.glade:352 src/ui/gui/data-editor.glade:674
 msgid "Split File"
-msgstr ""
-
-#: src/ui/gui/data-editor.glade:360 src/ui/gui/data-editor.glade:697
-msgid "Select Cases"
 msgstr ""
 
 #: src/ui/gui/data-editor.glade:367 src/ui/gui/data-editor.glade:685
@@ -4748,11 +4753,11 @@ msgstr ""
 msgid "Paste"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:745
+#: src/ui/gui/psppire-data-store.c:744
 msgid "var"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:866 src/ui/gui/psppire-var-store.c:710
+#: src/ui/gui/psppire-data-store.c:865 src/ui/gui/psppire-var-store.c:710
 #, c-format
 msgid "%ld"
 msgstr ""
@@ -4870,79 +4875,71 @@ msgstr ""
 msgid "Functions:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1120 src/ui/gui/psppire.glade:1275
+#: src/ui/gui/psppire.glade:1120 src/ui/gui/psppire.glade:1517
 msgid "If..."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1231
-msgid "All Cases"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1256
-msgid "If condition is satisfied"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1311
-msgid "Random Sample of cases"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1325
-msgid "Sample..."
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1336
-msgid "Approximately 23% of cases"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1371
-msgid "Based on time or case range"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1385
-msgid "Range..."
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1396
-msgid "2 thru 3"
-msgstr ""
-
-#: src/ui/gui/psppire.glade:1431
+#: src/ui/gui/psppire.glade:1349
 msgid "Use filter variable"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1478
+#: src/ui/gui/psppire.glade:1401
+msgid "Based on time or case range"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1414
+msgid "Range..."
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1452
+msgid "Random sample of cases"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1465
+msgid "Sample..."
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1503
+msgid "If condition is satisfied"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1551
+msgid "All Cases"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1566
 msgid "Select"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1507
+#: src/ui/gui/psppire.glade:1595
 msgid "Filtered"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1517
+#: src/ui/gui/psppire.glade:1605
 msgid "Deleted"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1534
+#: src/ui/gui/psppire.glade:1622
 msgid "Unselected Cases Are"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1596
+#: src/ui/gui/psppire.glade:1687
 msgid "Comments:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1638
+#: src/ui/gui/psppire.glade:1729
 msgid "Display comments in output"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1652
+#: src/ui/gui/psppire.glade:1743
 msgid "Column Number: 0"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1728
+#: src/ui/gui/psppire.glade:1819
 msgid "Variable Information:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1754
+#: src/ui/gui/psppire.glade:1845
 msgid ""
 "\n"
 "\n"
@@ -4956,16 +4953,32 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1833
+#: src/ui/gui/psppire.glade:1939
+msgid "First case"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1952
+msgid "Last case"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:1965
+msgid "Observation"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:2030
 msgid "Use expression as label"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1958 src/ui/gui/var-sheet.c:66
+#: src/ui/gui/psppire.glade:2155 src/ui/gui/var-sheet.c:66
 msgid "Width"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2086
+#: src/ui/gui/psppire.glade:2283
 msgid "Goto Case Number:"
+msgstr ""
+
+#: src/ui/gui/psppire.glade:2418
+msgid "Sample Size"
 msgstr ""
 
 #: src/ui/gui/psppire-var-store.c:468 src/ui/gui/var-display.c:14
@@ -4984,6 +4997,16 @@ msgstr ""
 #: src/ui/gui/psppire-var-store.c:572
 #, c-format
 msgid "%d"
+msgstr ""
+
+#: src/ui/gui/select-cases-dialog.c:67
+#, c-format
+msgid "Approximately %3d%% of all cases."
+msgstr ""
+
+#: src/ui/gui/select-cases-dialog.c:68
+#, c-format
+msgid "Exactly %3d cases from the first %3d cases."
 msgstr ""
 
 #: src/ui/gui/syntax-editor.c:77

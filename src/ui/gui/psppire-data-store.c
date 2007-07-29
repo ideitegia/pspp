@@ -159,18 +159,17 @@ psppire_data_store_get_var_count (const GSheetModel *model)
   return psppire_dict_get_var_cnt (store->dict);
 }
 
-casenumber
-psppire_data_store_get_case_count (PsppireDataStore *store)
+inline casenumber
+psppire_data_store_get_case_count (const PsppireDataStore *store)
 {
   return psppire_case_file_get_case_count (store->case_file);
 }
 
-static glong
-psppire_data_store_get_case_count_from_model (const GSheetModel *model)
+inline casenumber
+psppire_data_store_get_case_count_wrapper (const GSheetModel *model)
 {
   const PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
-
-  return psppire_case_file_get_case_count (store->case_file);
+  return psppire_data_store_get_case_count (store);
 }
 
 static void
@@ -224,7 +223,7 @@ psppire_data_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_font_desc = psppire_data_store_get_font_desc;
   iface->get_cell_border = NULL;
   iface->get_column_count = psppire_data_store_get_var_count;
-  iface->get_row_count = psppire_data_store_get_case_count_from_model;
+  iface->get_row_count = psppire_data_store_get_case_count_wrapper;
 }
 
 static

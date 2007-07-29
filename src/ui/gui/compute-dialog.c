@@ -405,7 +405,6 @@ compute_dialog (GObject *o, gpointer data)
 
 
 
-  
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
 

@@ -33,6 +33,7 @@
 #include "split-file-dialog.h"
 #include "transpose-dialog.h"
 #include "sort-cases-dialog.h"
+#include "select-cases-dialog.h"
 #include "compute-dialog.h"
 #include "goto-case-dialog.h"
 #include "comments-dialog.h"
@@ -427,6 +428,15 @@ new_data_editor (void)
   g_signal_connect (de->invoke_sort_cases_dialog, "activate",
 		    G_CALLBACK (sort_cases_dialog), de);
 
+  de->invoke_select_cases_dialog =
+    gtk_action_new ("select-cases-dialog",
+		    _("Select Cases"),
+		    _("Select cases from the active file"),
+		    "pspp-select-cases");
+
+  g_signal_connect (de->invoke_select_cases_dialog, "activate",
+		    G_CALLBACK (select_cases_dialog), de);
+
 
   de->invoke_compute_dialog =
     gtk_action_new ("compute-dialog",
@@ -547,6 +557,10 @@ new_data_editor (void)
 			    get_widget_assert (de->xml, "data_sort-cases")
 			    );
 
+  gtk_action_connect_proxy (de->invoke_select_cases_dialog,
+			    get_widget_assert (de->xml, "data_select-cases")
+			    );
+
   gtk_action_connect_proxy (de->invoke_compute_dialog,
 			    get_widget_assert (de->xml, "transform_compute")
 			    );
@@ -648,6 +662,11 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->invoke_split_file_dialog,
 			    get_widget_assert (de->xml, "button-split-file")
 			    );
+
+  gtk_action_connect_proxy (de->invoke_select_cases_dialog,
+			    get_widget_assert (de->xml, "button-select-cases")
+			    );
+
 
   g_signal_connect (get_widget_assert (de->xml, "file_quit"),
 		    "activate",
