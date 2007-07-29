@@ -83,6 +83,8 @@ static void write_version_data (struct pfm_writer *);
 static void write_variables (struct pfm_writer *, struct dictionary *);
 static void write_value_labels (struct pfm_writer *,
                                 const struct dictionary *);
+static void write_documents (struct pfm_writer *,
+                             const struct dictionary *);
 
 static void format_trig_double (long double, int base_10_precision, char[]);
 static char *format_trig_int (int, bool force_sign, char[]);
@@ -159,6 +161,8 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   write_version_data (w);
   write_variables (w, dict);
   write_value_labels (w, dict);
+  if (dict_get_document_line_cnt (dict) > 0)
+    write_documents (w, dict);
   buf_write (w, "F", 1);
   if (ferror (w->file))
     goto error;
@@ -414,7 +418,25 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
     }
 }
 
-/* Writes case C to the portable file represented by H. */
+/* Write documents in DICT to portable file W. */
+static void
+write_documents (struct pfm_writer *w, const struct dictionary *dict)
+{
+  size_t line_cnt = dict_get_document_line_cnt (dict);
+  struct string line = DS_EMPTY_INITIALIZER;
+  int i;
+
+  buf_write (w, "E", 1);
+  write_int (w, line_cnt);
+  for (i = 0; i < line_cnt; i++)
+    {
+      dict_get_document_line (dict, i, &line);
+      write_string (w, ds_cstr (&line));
+    }
+  ds_destroy (&line);
+}
+
+/* Writes case C to the portable file represented by WRITER. */
 static void
 por_file_casewriter_write (struct casewriter *writer, void *w_,
                            struct ccase *c)

@@ -22,16 +22,23 @@ may be incorrect in the general case.
 * Case Weight Variable Record::  
 * Variable Records::            
 * Value Label Records::         
+* Portable File Document Record::
 * Portable File Data::          
 @end menu
 
 @node Portable File Characters
 @section Portable File Characters
 
-Portable files are arranged as a series of lines of exactly 80
+Portable files are arranged as a series of lines of 80
 characters each.  Each line is terminated by a carriage-return,
-line-feed sequence ``new-lines'').  New-lines are only used to avoid
+line-feed sequence (``new-lines'').  New-lines are only used to avoid
 line length limits imposed by some OSes; they are not meaningful.
+
+Most lines in portable files are exactly 80 characters long.  The only
+exception is a line that ends in one or more spaces, in which the
+spaces may optionally be omitted.  Thus, a portable file reader must
+act as though a line shorter than 80 characters is padded to that
+length with spaces.
 
 The file must be terminated with a @samp{Z} character.  In addition, if
 the final line in the file does not have exactly 80 characters, then it
@@ -79,6 +86,9 @@ missing value record and a variable label record.
 
 @item
 Value labels (optional).
+
+@item
+Documents (optional).
 
 @item
 Data.
@@ -369,6 +379,11 @@ and 255 for a string variable.
 @item
 Name (string).  1--8 characters long.  Must be in all capitals.
 
+A few portable files that contain duplicate variable names have been
+spotted in the wild.  PSPP handles these by renaming the duplicates
+with numeric extensions: @code{@var{var}_1}, @code{@var{var}_2}, and
+so on.
+
 @item
 Print format.  This is a set of three integer fields:
 
@@ -383,6 +398,11 @@ Format width.  1--40.
 @item
 Number of decimal places.  1--40.
 @end itemize
+
+A few portable files with invalid format types or formats that are not
+of the appropriate width for their variables have been spotted in the
+wild.  PSPP assigns a default F or A format to a variable with an
+invalid format.
 
 @item
 Write format.  Same structure as the print format described above.
@@ -420,7 +440,8 @@ Variable count (integer).
 @item
 List of variables (strings).  The variable count specifies the number in
 the list.  Variables are specified by their names.  All variables must
-be of the same type (numeric or string).
+be of the same type (numeric or string), but string variables do not
+necessarily have the same width.
 
 @item
 Label count (integer).
@@ -430,6 +451,20 @@ List of (value, label) tuples.  The label count specifies the number of
 tuples.  Each tuple consists of a value, which is numeric or string as
 appropriate to the variables, followed by a label (string).
 @end itemize
+
+A few portable files that specify duplicate value labels, that is, two
+different labels for a single value of a single variable, have been
+spotted in the wild.  PSPP uses the last value label specified in
+these cases.
+
+@node Portable File Document Record
+@section Document Record
+
+One document record may optionally follow the value label record.  The
+document record consists of tag code @samp{E}, following by the number
+of document lines as an integer, followed by that number of strings,
+each of which represents one document line.  Document lines must be 80
+bytes long or shorter.
 
 @node Portable File Data
 @section Portable File Data

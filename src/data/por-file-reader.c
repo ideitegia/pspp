@@ -65,6 +65,7 @@ struct pfm_reader
 
     struct file_handle *fh;     /* File handle. */
     FILE *file;			/* File stream. */
+    int line_length;            /* Number of characters so far on this line. */
     char cc;			/* Current character. */
     char *trans;                /* 256-byte character set translation table. */
     int var_cnt;                /* Number of variables. */
@@ -91,7 +92,7 @@ error (struct pfm_reader *r, const char *msg, ...)
   va_list args;
 
   ds_init_empty (&text);
-  ds_put_format (&text, _("portable file %s corrupt at offset %ld: "),
+  ds_put_format (&text, _("portable file %s corrupt at offset 0x%lx: "),
                  fh_get_file_name (r->fh), ftell (r->file));
   va_start (args, msg);
   ds_put_vformat (&text, msg, args);
@@ -110,6 +111,31 @@ error (struct pfm_reader *r, const char *msg, ...)
   longjmp (r->bail_out, 1);
 }
 
+/* Displays MSG as an warning for the current position in
+   portable file reader R. */
+static void
+warning (struct pfm_reader *r, const char *msg, ...)
+{
+  struct msg m;
+  struct string text;
+  va_list args;
+
+  ds_init_empty (&text);
+  ds_put_format (&text, _("reading portable file %s at offset 0x%lx: "),
+                 fh_get_file_name (r->fh), ftell (r->file));
+  va_start (args, msg);
+  ds_put_vformat (&text, msg, args);
+  va_end (args);
+
+  m.category = MSG_GENERAL;
+  m.severity = MSG_WARNING;
+  m.where.file_name = NULL;
+  m.where.line_number = 0;
+  m.text = ds_cstr (&text);
+
+  msg_emit (&m);
+}
+
 /* Closes portable file reader R, after we're done with it. */
 static void
 por_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
@@ -124,14 +150,33 @@ advance (struct pfm_reader *r)
 {
   int c;
 
-  while ((c = getc (r->file)) == '\r' || c == '\n')
-    continue;
+  /* Read the next character from the file.
+     Ignore carriage returns entirely.
+     Mostly ignore new-lines, but if a new-line occurs before the
+     line has reached 80 bytes in length, then treat the
+     "missing" bytes as spaces. */
+  for (;;)
+    {
+      while ((c = getc (r->file)) == '\r')
+        continue;
+      if (c != '\n')
+        break;
+
+      if (r->line_length < 80)
+        {
+          c = ' ';
+          ungetc ('\n', r->file);
+          break;
+        }
+      r->line_length = 0;
+    }
   if (c == EOF)
     error (r, _("unexpected end of file"));
 
   if (r->trans != NULL)
     c = r->trans[c];
   r->cc = c;
+  r->line_length++;
 }
 
 /* Skip a single character if present, and return whether it was
@@ -152,7 +197,7 @@ static void read_header (struct pfm_reader *);
 static void read_version_data (struct pfm_reader *, struct pfm_read_info *);
 static void read_variables (struct pfm_reader *, struct dictionary *);
 static void read_value_label (struct pfm_reader *, struct dictionary *);
-void dump_dictionary (struct dictionary *);
+static void read_documents (struct pfm_reader *, struct dictionary *);
 
 /* Reads the dictionary from file with handle H, and returns it in a
    dictionary structure.  This dictionary may be modified in order to
@@ -176,6 +221,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
     goto error;
   r->fh = fh;
   r->file = pool_fopen (r->pool, fh_get_file_name (r->fh), "rb");
+  r->line_length = 0;
   r->weight_index = -1;
   r->trans = NULL;
   r->var_cnt = 0;
@@ -200,6 +246,10 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   /* Read value labels. */
   while (match (r, 'D'))
     read_value_label (r, *dict);
+
+  /* Read documents. */
+  if (match (r, 'E'))
+    read_documents (r, *dict);
 
   /* Check that we've made it to the data. */
   if (!match (r, 'F'))
@@ -469,14 +519,20 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
    checking that the format is appropriate for variable V. */
 static struct fmt_spec
 convert_format (struct pfm_reader *r, const int portable_format[3],
-                struct variable *v)
+                struct variable *v, bool *report_error)
 {
   struct fmt_spec format;
   bool ok;
 
   if (!fmt_from_io (portable_format[0], &format.type))
-    error (r, _("%s: Bad format specifier byte (%d)."),
-           var_get_name (v), portable_format[0]);
+    {
+      if (*report_error)
+        warning (r, _("%s: Bad format specifier byte (%d).  Variable "
+                      "will be assigned a default format."),
+                 var_get_name (v), portable_format[0]);
+      goto assign_default;
+    }
+
   format.w = portable_format[1];
   format.d = portable_format[2];
 
@@ -487,14 +543,27 @@ convert_format (struct pfm_reader *r, const int portable_format[3],
 
   if (!ok)
     {
-      char fmt_string[FMT_STRING_LEN_MAX + 1];
-      error (r, _("%s variable %s has invalid format specifier %s."),
-             var_is_numeric (v) ? _("Numeric") : _("String"),
-             var_get_name (v), fmt_to_string (&format, fmt_string));
-      format = fmt_default_for_width (var_get_width (v));
+      if (*report_error)
+        {
+          char fmt_string[FMT_STRING_LEN_MAX + 1];
+          fmt_to_string (&format, fmt_string);
+          if (var_is_numeric (v))
+            warning (r, _("Numeric variable %s has invalid format "
+                          "specifier %s."),
+                     var_get_name (v), fmt_string);
+          else
+            warning (r, _("String variable %s with width %d has "
+                          "invalid format specifier %s."),
+                     var_get_name (v), var_get_width (v), fmt_string);
+        }
+      goto assign_default;
     }
 
   return format;
+
+assign_default:
+  *report_error = false;
+  return fmt_default_for_width (var_get_width (v));
 }
 
 static union value parse_value (struct pfm_reader *, struct variable *);
@@ -532,6 +601,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       struct variable *v;
       struct missing_values miss;
       struct fmt_spec print, write;
+      bool report_error = true;
       int j;
 
       if (!match (r, '7'))
@@ -547,7 +617,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         fmt[j] = read_int (r);
 
       if (!var_is_valid_name (name, false) || *name == '#' || *name == '$')
-        error (r, _("position %d: Invalid variable name `%s'."), i, name);
+        error (r, _("Invalid variable name `%s' in position %d."), name, i);
       str_uppercase (name);
 
       if (width < 0 || width > 255)
@@ -555,10 +625,24 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
 
       v = dict_create_var (dict, name, width);
       if (v == NULL)
-	error (r, _("Duplicate variable name %s."), name);
+        {
+          int i;
+          for (i = 1; i < 100000; i++)
+            {
+              char try_name[LONG_NAME_LEN + 1];
+              sprintf (try_name, "%.*s_%d", LONG_NAME_LEN - 6, name, i);
+              v = dict_create_var (dict, try_name, width);
+              if (v != NULL)
+                break;
+            }
+          if (v == NULL)
+            error (r, _("Duplicate variable name %s in position %d."), name, i);
+          warning (r, _("Duplicate variable name %s in position %d renamed "
+                        "to %s."), name, i, var_get_name (v));
+        }
 
-      print = convert_format (r, &fmt[0], v);
-      write = convert_format (r, &fmt[3], v);
+      print = convert_format (r, &fmt[0], v, &report_error);
+      write = convert_format (r, &fmt[3], v, &report_error);
       var_set_print_format (v, &print);
       var_set_write_format (v, &write);
 
@@ -645,9 +729,9 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
       if (v[i] == NULL)
 	error (r, _("Unknown variable %s while parsing value labels."), name);
 
-      if (var_get_width (v[0]) != var_get_width (v[i]))
+      if (var_get_type (v[0]) != var_get_type (v[i]))
 	error (r, _("Cannot assign value labels to %s and %s, which "
-		    "have different variable types or widths."),
+		    "have different variable types."),
 	       var_get_name (v[0]), var_get_name (v[i]));
     }
 
@@ -661,21 +745,30 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
       val = parse_value (r, v[0]);
       read_string (r, label);
 
-      /* Assign the value_label's to each variable. */
+      /* Assign the value label to each variable. */
       for (j = 0; j < nv; j++)
 	{
 	  struct variable *var = v[j];
 
-	  if (!var_add_value_label (var, &val, label))
-	    continue;
-
-	  if (var_is_numeric (var))
-	    error (r, _("Duplicate label for value %g for variable %s."),
-		   val.f, var_get_name (var));
-	  else
-	    error (r, _("Duplicate label for value `%.*s' for variable %s."),
-		   var_get_width (var), val.s, var_get_name (var));
+	  if (!var_is_long_string (var))
+            var_replace_value_label (var, &val, label);
 	}
+    }
+}
+
+/* Reads a set of documents from portable file R into DICT. */
+static void
+read_documents (struct pfm_reader *r, struct dictionary *dict)
+{
+  int line_cnt;
+  int i;
+
+  line_cnt = read_int (r);
+  for (i = 0; i < line_cnt; i++)
+    {
+      char line[256];
+      read_string (r, line);
+      dict_add_document_line (dict, line);
     }
 }
 

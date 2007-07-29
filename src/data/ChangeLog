@@ -1,3 +1,26 @@
+2007-07-28  Ben Pfaff  <blp@gnu.org>
+
+	Make PSPP able to read all the portable files I could find on the
+	web.  Thanks to John Darrington for review.  Bug #17620.
+	* por-file-reader.c (struct pfm_reader): New member `line_length'.
+	(error): Print file offset in hexadecimal.
+	(warning): New function.
+	(advance): Treat lines less than 80 bytes long as padded to 80
+	bytes with spaces.
+	(pfm_open_reader): Call read_documents if we find an "E" record.
+	(convert_format): Convert invalid formats to the default format
+	instead of aborting reading the file.
+	(read_variables): Rename duplicate variable names instead of
+	aborting reading the file.
+	(read_value_label): Allow string variables of different widths to
+	be assigned value labels in the same record.  Replace duplicate
+	value labels instead of aborting.
+	(read_documents): New function.
+
+	* por-file-writer.c (pfm_open_writer): Call write_documents if the
+	dictionary has documents.
+	(write_documents): New function.
+
 2007-07-25  Ben Pfaff  <blp@gnu.org>
 
 	Fix bugs related to bug #17213.
