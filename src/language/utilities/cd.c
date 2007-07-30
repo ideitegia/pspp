@@ -41,7 +41,7 @@ cmd_cd (struct lexer *lexer, struct dataset *ds UNUSED)
     {
       int err = errno;
       msg (SE, _("Cannot change directory to %s:  %s "), path,
-	   strerror (errno));
+	   strerror (err));
       goto error;
     }
 
