@@ -40,6 +40,7 @@
 #include <data/procedure.h>
 #include <language/lexer/lexer.h>
 #include "psppire-data-store.h"
+#include <output/manager.h>
 
 
 #include <gettext.h>
@@ -199,6 +200,8 @@ execute_syntax (struct getl_interface *sss)
 
     psppire_data_store_set_case_file (the_data_store, pcf);
   }
+
+  som_flush ();
 }
 
 

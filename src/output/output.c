@@ -1096,10 +1096,10 @@ outp_drivers (struct outp_driver *d)
   return d;
 }
 
-/* Enables (if ENABLE is nonzero) or disables (if ENABLE is zero) the
+/* Enables (if ENABLE is true) or disables (if ENABLE is false) the
    device(s) given in mask DEVICE. */
 void
-outp_enable_device (int enable, int device)
+outp_enable_device (bool enable, int device)
 {
   if (enable)
     disabled_devices &= ~device;

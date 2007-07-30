@@ -142,7 +142,7 @@ void outp_configure_macro (char *);
 
 void outp_list_classes (void);
 
-void outp_enable_device (int enable, int device);
+void outp_enable_device (bool enable, int device);
 struct outp_driver *outp_drivers (struct outp_driver *);
 
 bool outp_parse_options (struct substring options,

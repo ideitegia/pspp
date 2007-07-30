@@ -36,6 +36,7 @@
 #include <libpspp/getl.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/version.h>
+#include <output/output.h>
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -80,6 +81,8 @@ initialize (void)
   glade_init ();
 
   fmt_init ();
+  fn_init ();
+  outp_init ();
   settings_init ();
   fh_init ();
   the_source_stream =
@@ -94,9 +97,7 @@ initialize (void)
 
   dictionary = psppire_dict_new_from_dict (dataset_dict (the_dataset));
 
-
   bind_textdomain_codeset (PACKAGE, "UTF-8");
-
 
   /* Create the model for the var_sheet */
   the_var_store = psppire_var_store_new (dictionary);
@@ -104,8 +105,10 @@ initialize (void)
   the_data_store = psppire_data_store_new (dictionary);
   replace_casereader (NULL);
 
-
   create_icon_factory ();
+
+  outp_read_devices ();
+  outp_enable_device (true, OUTP_DEV_SCREEN);
 
   new_data_window (NULL, NULL);
 }
@@ -117,6 +120,7 @@ de_initialize (void)
   destroy_source_stream (the_source_stream);
   message_dialog_done ();
   settings_done ();
+  outp_done ();
 }
 
 
