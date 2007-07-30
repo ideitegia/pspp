@@ -10,6 +10,7 @@ encountered in the input.
 
 @menu
 * ADD DOCUMENT::                Add documentary text to the active file.
+* CD::                          Change the current directory.
 * COMMENT::                     Document your syntax file.
 * DOCUMENT::                    Document the active file.
 * DISPLAY DOCUMENTS::           Display active file documents.
@@ -29,7 +30,7 @@ encountered in the input.
 * TITLE::                       Provide a document title.
 @end menu
 
-@node ADD DOCUMENT, COMMENT, Utilities, Utilities
+@node ADD DOCUMENT
 @comment  node-name,  next,  previous,  up
 @section ADD DOCUMENT
 @vindex  ADD DOCUMENT
@@ -49,7 +50,17 @@ DOCUMENTS}.
 Each line of documentary text must be enclosed in quotation marks, and 
 may not be more than 80 bytes long. @xref{DOCUMENT}.
 
+@node CD
+@section CD
+@vindex CD
+@cindex directory
+@cindex changing directory
 
+@display
+CD 'new directory' .
+@end display 
+
+@cmd{CD} changes the current directory.  The new directory will become that specified by the command.
 
 @node COMMENT
 @section COMMENT

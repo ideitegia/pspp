@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-07-28 19:12+0800\n"
+"POT-Creation-Date: 2007-07-30 17:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -304,15 +304,15 @@ msgstr[1] ""
 msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
-#: src/data/format.c:318 src/data/por-file-reader.c:492
-#: src/data/sys-file-reader.c:631 src/ui/gui/data-editor.glade:1143
-#: src/ui/gui/psppire.glade:2144 src/ui/gui/psppire-var-store.c:482
+#: src/data/format.c:318 src/data/sys-file-reader.c:631
+#: src/ui/gui/data-editor.glade:1143 src/ui/gui/psppire.glade:2148
+#: src/ui/gui/psppire-var-store.c:482
 msgid "String"
 msgstr ""
 
-#: src/data/format.c:318 src/data/por-file-reader.c:492
-#: src/data/sys-file-reader.c:631 src/ui/gui/data-editor.glade:1039
-#: src/ui/gui/psppire.glade:2217 src/ui/gui/psppire-var-store.c:475
+#: src/data/format.c:318 src/data/sys-file-reader.c:631
+#: src/ui/gui/data-editor.glade:1039 src/ui/gui/psppire.glade:2221
+#: src/ui/gui/psppire-var-store.c:475
 msgid "Numeric"
 msgstr ""
 
@@ -349,149 +349,155 @@ msgstr ""
 msgid "%s: Creating file: %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:94
+#: src/data/por-file-reader.c:95
 #, c-format
-msgid "portable file %s corrupt at offset %ld: "
+msgid "portable file %s corrupt at offset 0x%lx: "
 msgstr ""
 
-#: src/data/por-file-reader.c:130
+#: src/data/por-file-reader.c:124
+#, c-format
+msgid "reading portable file %s at offset 0x%lx: "
+msgstr ""
+
+#: src/data/por-file-reader.c:174
 msgid "unexpected end of file"
 msgstr ""
 
-#: src/data/por-file-reader.c:189
+#: src/data/por-file-reader.c:235
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for reading as a portable file: %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:206
+#: src/data/por-file-reader.c:256
 msgid "Data record expected."
 msgstr ""
 
-#: src/data/por-file-reader.c:288
+#: src/data/por-file-reader.c:338
 msgid "Number expected."
 msgstr ""
 
-#: src/data/por-file-reader.c:316
+#: src/data/por-file-reader.c:366
 msgid "Missing numeric terminator."
 msgstr ""
 
-#: src/data/por-file-reader.c:339
+#: src/data/por-file-reader.c:389
 msgid "Invalid integer."
 msgstr ""
 
-#: src/data/por-file-reader.c:350
+#: src/data/por-file-reader.c:400
 #, c-format
 msgid "Bad string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:411
+#: src/data/por-file-reader.c:461
 #, c-format
 msgid "%s: Not a portable file."
 msgstr ""
 
-#: src/data/por-file-reader.c:427
+#: src/data/por-file-reader.c:477
 #, c-format
 msgid "Unrecognized version code `%c'."
 msgstr ""
 
-#: src/data/por-file-reader.c:436
+#: src/data/por-file-reader.c:486
 #, c-format
 msgid "Bad date string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:438
+#: src/data/por-file-reader.c:488
 #, c-format
 msgid "Bad time string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:478
+#: src/data/por-file-reader.c:530
 #, c-format
-msgid "%s: Bad format specifier byte (%d)."
+msgid ""
+"%s: Bad format specifier byte (%d).  Variable will be assigned a default "
+"format."
 msgstr ""
 
-#: src/data/por-file-reader.c:491
+#: src/data/por-file-reader.c:551
 #, c-format
-msgid "%s variable %s has invalid format specifier %s."
+msgid "Numeric variable %s has invalid format specifier %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:510
+#: src/data/por-file-reader.c:555
+#, c-format
+msgid "String variable %s with width %d has invalid format specifier %s."
+msgstr ""
+
+#: src/data/por-file-reader.c:579
 msgid "Expected variable count record."
 msgstr ""
 
-#: src/data/por-file-reader.c:514
+#: src/data/por-file-reader.c:583
 #, c-format
 msgid "Invalid number of variables %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:524
+#: src/data/por-file-reader.c:593
 #, c-format
 msgid "Weight variable name (%s) truncated."
 msgstr ""
 
-#: src/data/por-file-reader.c:538
+#: src/data/por-file-reader.c:608
 msgid "Expected variable record."
 msgstr ""
 
-#: src/data/por-file-reader.c:542
+#: src/data/por-file-reader.c:612
 #, c-format
 msgid "Invalid variable width %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:550
+#: src/data/por-file-reader.c:620
 #, c-format
-msgid "position %d: Invalid variable name `%s'."
+msgid "Invalid variable name `%s' in position %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:554
+#: src/data/por-file-reader.c:624
 #, c-format
 msgid "Bad width %d for variable %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:558 src/language/expressions/evaluate.c:167
+#: src/data/por-file-reader.c:639
 #, c-format
-msgid "Duplicate variable name %s."
+msgid "Duplicate variable name %s in position %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:599
+#: src/data/por-file-reader.c:640
+#, c-format
+msgid "Duplicate variable name %s in position %d renamed to %s."
+msgstr ""
+
+#: src/data/por-file-reader.c:683
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/data/por-file-reader.c:646
+#: src/data/por-file-reader.c:730
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/data/por-file-reader.c:649
+#: src/data/por-file-reader.c:733
 #, c-format
 msgid ""
-"Cannot assign value labels to %s and %s, which have different variable types "
-"or widths."
+"Cannot assign value labels to %s and %s, which have different variable types."
 msgstr ""
 
-#: src/data/por-file-reader.c:673
-#, c-format
-msgid "Duplicate label for value %g for variable %s."
-msgstr ""
-
-#: src/data/por-file-reader.c:676
-#, c-format
-msgid "Duplicate label for value `%.*s' for variable %s."
-msgstr ""
-
-#: src/data/por-file-writer.c:152
+#: src/data/por-file-writer.c:154
 #, c-format
 msgid "Invalid decimal digits count %d.  Treating as %d."
 msgstr ""
 
-#: src/data/por-file-writer.c:172
+#: src/data/por-file-writer.c:176
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for writing as a portable file: %s."
 msgstr ""
 
-#: src/data/por-file-writer.c:476
+#: src/data/por-file-writer.c:498
 #, c-format
 msgid "An I/O error occurred writing portable file \"%s\"."
 msgstr ""
@@ -1592,7 +1598,7 @@ msgstr ""
 
 #: src/language/dictionary/split-file.c:85
 #: src/language/dictionary/sys-file-info.c:395
-#: src/language/dictionary/sys-file-info.c:543 src/ui/gui/psppire.glade:2108
+#: src/language/dictionary/sys-file-info.c:543 src/ui/gui/psppire.glade:2112
 #: src/ui/gui/var-sheet.c:68
 msgid "Label"
 msgstr ""
@@ -1601,7 +1607,7 @@ msgstr ""
 msgid "File:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:110 src/ui/gui/psppire.glade:2049
+#: src/language/dictionary/sys-file-info.c:110 src/ui/gui/psppire.glade:2053
 msgid "Label:"
 msgstr ""
 
@@ -1839,6 +1845,11 @@ msgstr ""
 
 #: src/language/expressions/evaluate.c:153
 msgid "expecting number or string"
+msgstr ""
+
+#: src/language/expressions/evaluate.c:167
+#, c-format
+msgid "Duplicate variable name %s."
 msgstr ""
 
 #: src/language/expressions/helpers.c:35
@@ -2511,7 +2522,7 @@ msgstr ""
 msgid "Directional measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1206 src/ui/gui/psppire.glade:2232
+#: src/language/stats/crosstabs.q:1206 src/ui/gui/psppire.glade:2236
 #: src/ui/gui/var-sheet.c:65
 msgid "Type"
 msgstr ""
@@ -4669,11 +4680,11 @@ msgstr ""
 msgid "_Discrete missing values"
 msgstr ""
 
-#: src/ui/gui/helper.c:134
+#: src/ui/gui/helper.c:135
 msgid "Sorry. The help system hasn't yet been implemented."
 msgstr ""
 
-#: src/ui/gui/helper.c:157
+#: src/ui/gui/helper.c:158
 #, c-format
 msgid "Cannot open reference manual: %s"
 msgstr ""
@@ -4875,71 +4886,71 @@ msgstr ""
 msgid "Functions:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1120 src/ui/gui/psppire.glade:1517
+#: src/ui/gui/psppire.glade:1120 src/ui/gui/psppire.glade:1520
 msgid "If..."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1349
+#: src/ui/gui/psppire.glade:1350
 msgid "Use filter variable"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1401
+#: src/ui/gui/psppire.glade:1403
 msgid "Based on time or case range"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1414
+#: src/ui/gui/psppire.glade:1416
 msgid "Range..."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1452
+#: src/ui/gui/psppire.glade:1454
 msgid "Random sample of cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1465
+#: src/ui/gui/psppire.glade:1468
 msgid "Sample..."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1503
+#: src/ui/gui/psppire.glade:1506
 msgid "If condition is satisfied"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1551
+#: src/ui/gui/psppire.glade:1554
 msgid "All Cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1566
+#: src/ui/gui/psppire.glade:1569
 msgid "Select"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1595
+#: src/ui/gui/psppire.glade:1599
 msgid "Filtered"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1605
+#: src/ui/gui/psppire.glade:1609
 msgid "Deleted"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1622
+#: src/ui/gui/psppire.glade:1626
 msgid "Unselected Cases Are"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1687
+#: src/ui/gui/psppire.glade:1691
 msgid "Comments:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1729
+#: src/ui/gui/psppire.glade:1733
 msgid "Display comments in output"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1743
+#: src/ui/gui/psppire.glade:1747
 msgid "Column Number: 0"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1819
+#: src/ui/gui/psppire.glade:1823
 msgid "Variable Information:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1845
+#: src/ui/gui/psppire.glade:1849
 msgid ""
 "\n"
 "\n"
@@ -4953,31 +4964,31 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1939
+#: src/ui/gui/psppire.glade:1943
 msgid "First case"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1952
+#: src/ui/gui/psppire.glade:1956
 msgid "Last case"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1965
+#: src/ui/gui/psppire.glade:1969
 msgid "Observation"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2030
+#: src/ui/gui/psppire.glade:2034
 msgid "Use expression as label"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2155 src/ui/gui/var-sheet.c:66
+#: src/ui/gui/psppire.glade:2159 src/ui/gui/var-sheet.c:66
 msgid "Width"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2283
+#: src/ui/gui/psppire.glade:2287
 msgid "Goto Case Number:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2418
+#: src/ui/gui/psppire.glade:2423
 msgid "Sample Size"
 msgstr ""
 
@@ -4997,16 +5008,6 @@ msgstr ""
 #: src/ui/gui/psppire-var-store.c:572
 #, c-format
 msgid "%d"
-msgstr ""
-
-#: src/ui/gui/select-cases-dialog.c:67
-#, c-format
-msgid "Approximately %3d%% of all cases."
-msgstr ""
-
-#: src/ui/gui/select-cases-dialog.c:68
-#, c-format
-msgid "Exactly %3d cases from the first %3d cases."
 msgstr ""
 
 #: src/ui/gui/syntax-editor.c:77
