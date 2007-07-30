@@ -30,6 +30,7 @@
 #include <data/casereader.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <data/file-name.h>
 #include <data/format.h>
 #include <data/missing-values.h>
 #include <data/value-labels.h>
@@ -136,12 +137,42 @@ warning (struct pfm_reader *r, const char *msg, ...)
   msg_emit (&m);
 }
 
+/* Close and destroy R.
+   Returns false if an error was detected on R, true otherwise. */
+static bool
+close_reader (struct pfm_reader *r)
+{
+  bool ok;
+  if (r == NULL)
+    return true;
+
+  if (r->file)
+    {
+      if (fn_close (fh_get_file_name (r->fh), r->file) == EOF)
+        {
+          msg (ME, _("Error closing portable file \"%s\": %s."),
+               fh_get_file_name (r->fh), strerror (errno));
+          r->ok = false;
+        }
+      r->file = NULL;
+    }
+
+  if (r->fh != NULL)
+    fh_close (r->fh, "portable file", "rs");
+
+  ok = r->ok;
+  pool_destroy (r->pool);
+
+  return ok;
+}
+
 /* Closes portable file reader R, after we're done with it. */
 static void
-por_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
+por_file_casereader_destroy (struct casereader *reader, void *r_)
 {
   struct pfm_reader *r = r_;
-  pool_destroy (r->pool);
+  if (!close_reader (r))
+    casereader_force_error (reader);
 }
 
 /* Read a single character into cur_char.  */
@@ -217,10 +248,8 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   pool = pool_create ();
   r = pool_alloc (pool, sizeof *r);
   r->pool = pool;
-  if (setjmp (r->bail_out))
-    goto error;
   r->fh = fh;
-  r->file = pool_fopen (r->pool, fh_get_file_name (r->fh), "rb");
+  r->file = fn_open (fh_get_file_name (r->fh), "rb");
   r->line_length = 0;
   r->weight_index = -1;
   r->trans = NULL;
@@ -229,7 +258,10 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->value_cnt = 0;
   r->ok = true;
 
-  /* Check that file open succeeded, prime reading. */
+  if (setjmp (r->bail_out))
+    goto error;
+
+  /* Check that file open succeeded. */
   if (r->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for reading "
@@ -260,7 +292,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
                                        &por_file_casereader_class, r);
 
  error:
-  pool_destroy (r->pool);
+  close_reader (r);
   dict_destroy (*dict);
   *dict = NULL;
   return NULL;

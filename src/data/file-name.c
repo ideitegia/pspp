@@ -267,7 +267,7 @@ fn_open (const char *fn, const char *mode)
       if (get_safer_mode ())
 	return safety_violation (fn);
 
-      return popen (&fn[1], mode);
+      return popen (&fn[1], mode[0] == 'r' ? "r" : "w");
     }
   else if (*fn && fn[strlen (fn) - 1] == '|')
     {
@@ -281,7 +281,7 @@ fn_open (const char *fn, const char *mode)
       memcpy (s, fn, strlen (fn) - 1);
       s[strlen (fn) - 1] = 0;
 
-      f = popen (s, mode);
+      f = popen (s, mode[0] == 'r' ? "r" : "w");
 
       local_free (s);
 

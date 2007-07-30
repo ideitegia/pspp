@@ -1,3 +1,19 @@
+2007-07-29  Ben Pfaff  <blp@gnu.org>
+
+	Provisional fix for bug #18692 and bug #20161.  Reviewed by John
+	Darrington.
+
+	* file-name.c (fn_open): Only pass "r" or "w" to popen as mode
+	argument (never "rb" or "wb") because SUSv3 says that only those
+	modes are defined, and glibc in fact rejects other modes.
+
+	Open portable files with fn_open so that they can be read from
+	pipes.  Fix missing fh_close call to go along with fh_open.
+	Report an error if the file close reports an error.
+	* por-file-reader.c (close_reader): New function.
+	(por_file_casereader_destroy): Use close_reader.
+	(pfm_open_reader): Open file with fn_open.
+
 2007-07-28  Ben Pfaff  <blp@gnu.org>
 
 	Make PSPP able to read all the portable files I could find on the

@@ -1331,6 +1331,14 @@ file, or scratch file.  Most often, a file handle is specified as the
 name of a file as a string, that is, enclosed within @samp{'} or
 @samp{"}.
 
+A file name string that begins or ends with @samp{|} is treated as the
+name of a command to pipe data to or from.  You can use this feature
+to read data over the network using a program such as @samp{curl}
+(e.g.@: @code{GET '|curl -s -S http://example.com/mydata.sav'}), to
+read compressed data from a file using a program such as @samp{zcat}
+(e.g.@: @code{GET '|zcat mydata.sav.gz'}), and for many other
+purposes.
+
 PSPP also supports declaring named file handles with the @cmd{FILE
 HANDLE} command.  This command associates an identifier of your choice
 (the file handle's name) with a file.  Later, the file handle name can
