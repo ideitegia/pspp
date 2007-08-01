@@ -174,13 +174,13 @@ sample_subdialog (GtkButton *b, gpointer data)
       if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (percent)))
 	{
 	  text = widget_printf (gettext(label1), scd->spinbutton);
-	  gtk_label_set (GTK_LABEL (l0), text);
+	  gtk_label_set_text (GTK_LABEL (l0), text);
 	}
       else
 	{
 	  text =
 	    widget_printf (gettext(label2), scd->spinbutton1, scd->spinbutton2);
-	  gtk_label_set (GTK_LABEL (l0), text);
+	  gtk_label_set_text (GTK_LABEL (l0), text);
 
 	}
       g_free (text);
@@ -225,7 +225,7 @@ range_subdialog (GtkButton *b, gpointer data)
       GtkWidget *l1 = get_widget_assert (scd->xml, "range-sample-label");
       gchar *text = widget_printf (_("%d thru %d"), first, last);
 
-      gtk_label_set (GTK_LABEL (l1), text);
+      gtk_label_set_text (GTK_LABEL (l1), text);
 
       g_free (text);
     }
