@@ -1,3 +1,18 @@
+2007-07-31  Ben Pfaff  <blp@gnu.org>
+
+	Remove integer mode from FREQUENCIES and incidentally fix bug
+	#17421.  Reviewed by John Darrington.
+	* frequencies.q (int_pool): Rename data_pool.
+	(gen_pool): Rename syntax_pool.
+	(enum FRQM_*): Removed.
+	(struct freq_tab): Removed `mode', `vector', `min', `max',
+	`out_of_range', `sysmis' members.
+	(calc): Delete support for integer mode.
+	(precalc): Ditto.
+	(postprocess_freq_tab): Ditto.
+	(cleanup_freq_tab): Ditto.
+	(frq_custom_variables): Ditto.
+
 2007-07-28 John Darrington <john@darrington.wattle.id.au>
 
 	* t-test.q: Moved the order in which groups are displayed in the 

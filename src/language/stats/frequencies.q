@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -198,34 +198,16 @@ static int normal;		/* FIXME */
 static size_t n_variables;
 static const struct variable **v_variables;
 
-/* Arenas used to store semi-permanent storage. */
-static struct pool *int_pool;	/* Integer mode. */
-static struct pool *gen_pool;	/* General mode. */
+/* Pools. */
+static struct pool *data_pool;  	/* For per-SPLIT FILE group data. */
+static struct pool *syntax_pool;        /* For syntax-related data. */
 
 /* Frequency tables. */
-
-/* Types of frequency tables. */
-enum
-  {
-    FRQM_GENERAL,
-    FRQM_INTEGER
-  };
 
 /* Entire frequency table. */
 struct freq_tab
   {
-    int mode;			/* FRQM_GENERAL or FRQM_INTEGER. */
-
-    /* General mode. */
     struct hsh_table *data;	/* Undifferentiated data. */
-
-    /* Integer mode. */
-    double *vector;		/* Frequencies proper. */
-    int min, max;		/* The boundaries of the table. */
-    double out_of_range;	/* Sum of weights of out-of-range values. */
-    double sysmis;		/* Sum of weights of SYSMIS values. */
-
-    /* All modes. */
     struct freq *valid;         /* Valid freqs. */
     int n_valid;		/* Number of total freqs. */
 
@@ -303,12 +285,12 @@ cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 {
   int result;
 
-  int_pool = pool_create ();
+  syntax_pool = pool_create ();
   result = internal_cmd_frequencies (lexer, ds);
-  pool_destroy (int_pool);
-  int_pool=0;
-  pool_destroy (gen_pool);
-  gen_pool=0;
+  pool_destroy (syntax_pool);
+  syntax_pool=0;
+  pool_destroy (data_pool);
+  data_pool=0;
   free (v_variables);
   v_variables=0;
   return result;
@@ -524,46 +506,23 @@ calc (const struct ccase *c, const struct dataset *ds)
       struct var_freqs *vf = get_var_freqs (v);
       struct freq_tab *ft = &vf->tab;
 
-      switch (ft->mode)
-	{
-	  case FRQM_GENERAL:
-	    {
-	      /* General mode. */
-              struct freq target;
-	      struct freq **fpp;
+      struct freq target;
+      struct freq **fpp;
 
-              target.value = (union value *) val;
-              fpp = (struct freq **) hsh_probe (ft->data, &target);
+      target.value = (union value *) val;
+      fpp = (struct freq **) hsh_probe (ft->data, &target);
 
-	      if (*fpp != NULL)
-		(*fpp)->count += weight;
-	      else
-		{
-		  struct freq *fp = pool_alloc (gen_pool, sizeof *fp);
-                  fp->count = weight;
-                  fp->value = pool_clone (gen_pool,
-                                          val,
-                                          MAX (MAX_SHORT_STRING, vf->width));
-                  *fpp = fp;
-		}
-	    }
-	  break;
-	case FRQM_INTEGER:
-	  /* Integer mode. */
-	  if (val->f == SYSMIS)
-	    ft->sysmis += weight;
-	  else if (val->f > INT_MIN+1 && val->f < INT_MAX-1)
-	    {
-	      int i = val->f;
-	      if (i >= ft->min && i <= ft->max)
-		ft->vector[i - ft->min] += weight;
-	    }
-	  else
-	    ft->out_of_range += weight;
-	  break;
-	default:
-          NOT_REACHED ();
-	}
+      if (*fpp != NULL)
+        (*fpp)->count += weight;
+      else
+        {
+          struct freq *fp = pool_alloc (data_pool, sizeof *fp);
+          fp->count = weight;
+          fp->value = pool_clone (data_pool,
+                                  val,
+                                  MAX (MAX_SHORT_STRING, vf->width));
+          *fpp = fp;
+        }
     }
 }
 
@@ -580,27 +539,15 @@ precalc (struct casereader *input, struct dataset *ds)
   output_split_file_values (ds, &c);
   case_destroy (&c);
 
-  pool_destroy (gen_pool);
-  gen_pool = pool_create ();
+  pool_destroy (data_pool);
+  data_pool = pool_create ();
 
   for (i = 0; i < n_variables; i++)
     {
       const struct variable *v = v_variables[i];
       struct freq_tab *ft = &get_var_freqs (v)->tab;
 
-      if (ft->mode == FRQM_GENERAL)
-	{
-	  ft->data = hsh_create (16, compare_freq, hash_freq, NULL, v);
-	}
-      else
-	{
-	  int j;
-
-	  for (j = (ft->max - ft->min); j >= 0; j--)
-	    ft->vector[j] = 0.0;
-	  ft->out_of_range = 0.0;
-	  ft->sysmis = 0.0;
-	}
+      ft->data = hsh_create (16, compare_freq, hash_freq, NULL, v);
     }
 }
 
@@ -729,7 +676,6 @@ postprocess_freq_tab (const struct variable *v)
   size_t i;
 
   ft = &get_var_freqs (v)->tab;
-  assert (ft->mode == FRQM_GENERAL);
   compare = get_freq_comparator (cmd.sort, var_get_type (v));
 
   /* Extract data from hash table. */
@@ -777,7 +723,6 @@ static void
 cleanup_freq_tab (const struct variable *v)
 {
   struct freq_tab *ft = &get_var_freqs (v)->tab;
-  assert (ft->mode == FRQM_GENERAL);
   free (ft->valid);
   hsh_destroy (ft->data);
 }
@@ -787,9 +732,6 @@ cleanup_freq_tab (const struct variable *v)
 static int
 frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_frequencies *cmd UNUSED, void *aux UNUSED)
 {
-  int mode;
-  int min = 0, max = 0;
-
   size_t old_n_variables = n_variables;
   size_t i;
 
@@ -802,31 +744,6 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
 			PV_APPEND | PV_NO_SCRATCH))
     return 0;
 
-  if (!lex_match (lexer, '('))
-    mode = FRQM_GENERAL;
-  else
-    {
-      mode = FRQM_INTEGER;
-      if (!lex_force_int (lexer))
-	return 0;
-      min = lex_integer (lexer);
-      lex_get (lexer);
-      if (!lex_force_match (lexer, ','))
-	return 0;
-      if (!lex_force_int (lexer))
-	return 0;
-      max = lex_integer (lexer);
-      lex_get (lexer);
-      if (!lex_force_match (lexer, ')'))
-	return 0;
-      if (max < min)
-	{
-	  msg (SE, _("Upper limit of integer mode value range must be "
-		     "greater than lower limit."));
-	  return 0;
-	}
-    }
-
   for (i = old_n_variables; i < n_variables; i++)
     {
       const struct variable *v = v_variables[i];
@@ -838,25 +755,8 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
 		     "subcommand."), var_get_name (v));
 	  return 0;
 	}
-      if (mode == FRQM_INTEGER && !var_is_numeric (v))
-        {
-          msg (SE, _("Integer mode specified, but %s is not a numeric "
-                     "variable."), var_get_name (v));
-          return 0;
-        }
-
       vf = var_attach_aux (v, xmalloc (sizeof *vf), var_dtor_free);
-      vf->tab.mode = mode;
       vf->tab.valid = vf->tab.missing = NULL;
-      if (mode == FRQM_INTEGER)
-	{
-	  vf->tab.min = min;
-	  vf->tab.max = max;
-	  vf->tab.vector = pool_nalloc (int_pool,
-                                        max - min + 1, sizeof *vf->tab.vector);
-	}
-      else
-        vf->tab.vector = NULL;
       vf->n_groups = 0;
       vf->groups = NULL;
       vf->width = var_get_width (v);
@@ -903,7 +803,7 @@ frq_custom_grouped (struct lexer *lexer, struct dataset *ds, struct cmd_frequenc
 		if (nl >= ml)
 		  {
 		    ml += 16;
-		    dl = pool_nrealloc (int_pool, dl, ml, sizeof *dl);
+		    dl = pool_nrealloc (syntax_pool, dl, ml, sizeof *dl);
 		  }
 		dl[nl++] = lex_tokval (lexer);
 		lex_get (lexer);
@@ -974,7 +874,7 @@ add_percentile (double x)
 
   if (i >= n_percentiles || x != percentiles[i].p)
     {
-      percentiles = pool_nrealloc (int_pool, percentiles,
+      percentiles = pool_nrealloc (syntax_pool, percentiles,
                                    n_percentiles + 1, sizeof *percentiles);
 
       if (i < n_percentiles)

@@ -133,9 +133,6 @@ FREQUENCIES
         /BARCHART=@dots{}
         /HBAR=@dots{}
         /GROUPED=@dots{}
-
-(Integer mode.)
-        /VARIABLES=var_list (low,high)@dots{}
 @end display
 
 The @cmd{FREQUENCIES} procedure outputs frequency tables for specified
@@ -148,16 +145,7 @@ histograms and pie charts.  In the future, it will be able to produce
 bar charts and output percentiles for grouped data.
 
 The VARIABLES subcommand is the only required subcommand.  Specify the
-variables to be analyzed.  In most cases, this is all that is required.
-This is known as @dfn{general mode}.
-
-Occasionally, one may want to invoke a special mode called @dfn{integer
-mode}.  Normally, in general mode, PSPP will automatically determine
-what values occur in the data.  In integer mode, the user specifies the
-range of values that the data assumes.  To invoke this mode, specify a
-range of data values in parentheses, separated by a comma.  Data values
-inside the range are truncated to the nearest integer, then assigned to
-that value.  If values occur outside this range, they are discarded.
+variables to be analyzed.
 
 The FORMAT subcommand controls the output format.  It has several
 possible settings:  
