@@ -868,12 +868,12 @@ bool
 lex_get_line (struct lexer *lexer)
 {
   bool line_starts_command;
-  enum getl_syntax syntax;
+  enum getl_syntax syntax = GETL_BATCH;
 
   if (!lex_get_line_raw (lexer, &syntax))
     {
       lexer->prog = NULL;
-    return false;
+      return false;
     }
 
   lex_preprocess_line (&lexer->line_buffer, syntax,
