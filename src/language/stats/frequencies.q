@@ -156,8 +156,6 @@ static void add_percentile (double x) ;
 static struct percentile *percentiles;
 static int n_percentiles;
 
-static int implicit_50th ;
-
 /* Groups of statistics. */
 #define BI          BIT_INDEX
 #define frq_default							\
@@ -323,14 +321,14 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   if (cmd.a_statistics[FRQ_ST_ALL])
     stats |= frq_all;
   if (cmd.sort != FRQ_AVALUE && cmd.sort != FRQ_DVALUE)
-    stats &= ~frq_median;
+    stats &= ~BIT_INDEX (frq_median);
   for (i = 0; i < frq_n_stats; i++)
     if (cmd.a_statistics[st_name[i].st_indx])
       stats |= BIT_INDEX (i);
   if (stats & frq_kurt)
-    stats |= frq_sekurt;
+    stats |= BIT_INDEX (frq_sekurt);
   if (stats & frq_skew)
-    stats |= frq_seskew;
+    stats |= BIT_INDEX (frq_seskew);
 
   /* Calculate n_stats. */
   n_stats = 0;
@@ -363,7 +361,14 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
 	      add_percentile (j / (double) cmd.n_ntiles[i]);
 	}
     }
-
+  if (stats & BIT_INDEX (frq_median))
+    {
+      /* Treat the median as the 50% percentile.
+         We output it in the percentiles table as "50 (Median)." */
+      add_percentile (0.5);
+      stats &= ~BIT_INDEX (frq_median);
+      n_stats--;
+    }
 
   /* Do it! */
   input = casereader_create_filter_weight (proc_open (ds), dataset_dict (ds),
@@ -876,11 +881,7 @@ add_percentile (double x)
     {
       percentiles = pool_nrealloc (syntax_pool, percentiles,
                                    n_percentiles + 1, sizeof *percentiles);
-
-      if (i < n_percentiles)
-          memmove (&percentiles[i + 1], &percentiles[i],
-                   (n_percentiles - i) * sizeof (struct percentile) );
-
+      insert_element (percentiles, n_percentiles, sizeof *percentiles, i);
       percentiles[i].p = x;
       n_percentiles++;
     }
@@ -1236,27 +1237,8 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   double rank;
   int i = 0;
   int idx;
-  double *median_value;
 
   /* Calculate percentiles. */
-
-  /* If the 50th percentile was not explicitly requested then we must
-     calculate it anyway --- it's the median */
-  median_value = 0 ;
-  for (i = 0; i < n_percentiles; i++)
-    {
-      if (percentiles[i].p == 0.5)
-	{
-	  median_value = &percentiles[i].value;
-	  break;
-	}
-    }
-
-  if ( 0 == median_value )
-    {
-      add_percentile (0.5);
-      implicit_50th = 1;
-    }
 
   for (i = 0; i < n_percentiles; i++)
     {
@@ -1337,9 +1319,6 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 
       percentiles[i].value = percentiles[i].x1 +
 	( percentiles[i].x2 - percentiles[i].x1) * s ;
-
-      if ( percentiles[i].p == 0.50)
-	median_value = &percentiles[i].value;
     }
 
 
@@ -1376,7 +1355,6 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
   d[frq_max] = ft->valid[ft->n_valid - 1].value[0].f;
   d[frq_mode] = X_mode;
   d[frq_range] = d[frq_max] - d[frq_min];
-  d[frq_median] = *median_value;
   d[frq_sum] = d[frq_mean] * W;
   d[frq_stddev] = sqrt (d[frq_variance]);
   d[frq_semean] = d[frq_stddev] / sqrt (W);
@@ -1393,11 +1371,6 @@ dump_statistics (const struct variable *v, int show_varname)
   struct tab_table *t;
   int i, r;
 
-  int n_explicit_percentiles = n_percentiles;
-
-  if ( implicit_50th && n_percentiles > 0 )
-    --n_percentiles;
-
   if (var_is_alpha (v))
     return;
   ft = &get_var_freqs (v)->tab;
@@ -1409,7 +1382,7 @@ dump_statistics (const struct variable *v, int show_varname)
     }
   calc_stats (v, stat_value);
 
-  t = tab_create (3, n_stats + n_explicit_percentiles + 2, 0);
+  t = tab_create (3, n_stats + n_percentiles + 2, 0);
   tab_dim (t, tab_natural_dimensions);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
@@ -1437,14 +1410,17 @@ dump_statistics (const struct variable *v, int show_varname)
   tab_float(t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, 11, 0);
 
 
-  for (i = 0; i < n_explicit_percentiles; i++, r++)
+  for (i = 0; i < n_percentiles; i++, r++)
     {
       if ( i == 0 )
 	{
 	  tab_text (t, 0, r, TAB_LEFT | TAT_TITLE, _("Percentiles"));
 	}
 
-      tab_float (t, 1, r, TAB_LEFT, percentiles[i].p * 100, 3, 0 );
+      if (percentiles[i].p == 0.5)
+        tab_text (t, 1, r, TAB_LEFT, _("50 (Median)"));
+      else
+        tab_float (t, 1, r, TAB_LEFT, percentiles[i].p * 100, 3, 0);
       tab_float (t, 2, r, TAB_NONE, percentiles[i].value, 11, 3);
 
     }

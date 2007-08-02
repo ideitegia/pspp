@@ -146,24 +146,24 @@ diff  -b $TEMPDIR/pspp.list - <<EOF
 |      80|       1|  0|100|
 |      94|       1|  0|100|
 +--------+--------+---+---+
-+-----------------+---------+
-|N         Valid  |      730|
-|          Missing|        0|
-|Mean             |   31.515|
-|S.E. Mean        |     .405|
-|Median           |   28.500|
-|Mode             |   21.000|
-|Std Dev          |   10.937|
-|Variance         |  119.608|
-|Kurtosis         |    2.411|
-|S.E. Kurt        |     .181|
-|Skewness         |    1.345|
-|S.E. Skew        |     .090|
-|Range            |   76.000|
-|Minimum          |   18.000|
-|Maximum          |   94.000|
-|Sum              |23006.000|
-+-----------------+---------+
++-----------------------+---------+
+|N           Valid      |      730|
+|            Missing    |        0|
+|Mean                   |   31.515|
+|S.E. Mean              |     .405|
+|Mode                   |   21.000|
+|Std Dev                |   10.937|
+|Variance               |  119.608|
+|Kurtosis               |    2.411|
+|S.E. Kurt              |     .181|
+|Skewness               |    1.345|
+|S.E. Skew              |     .090|
+|Range                  |   76.000|
+|Minimum                |   18.000|
+|Maximum                |   94.000|
+|Sum                    |23006.000|
+|Percentiles 50 (Median)|   28.500|
++-----------------------+---------+
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

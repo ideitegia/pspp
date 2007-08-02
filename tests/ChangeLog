@@ -1,3 +1,12 @@
+2007-08-01  Ben Pfaff  <blp@gnu.org>
+
+	* command/weight.sh: Update to match new output format for median
+	under FREQUENCIES.
+	
+	* stats/percentiles-compatible.sh: Ditto.
+
+	* stats/percentiles-enhanced.sh: Ditto.
+
 2007-07-28 John Darrington <john@darrington.wattle.id.au>
 
 	* command/t-test-1-indep-val.sh: Changed the order of groups in the 

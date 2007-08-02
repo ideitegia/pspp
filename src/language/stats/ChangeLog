@@ -1,3 +1,16 @@
+2007-08-01  Ben Pfaff  <blp@gnu.org>
+
+	Clean up handling of median, by treating it almost like any other
+	percentile.  Fixes bug #17424.  Thanks to John Darrington for
+	review.
+	* frequencies.q	(internal_cmd_frequencies): Fix handling of bit
+	masks for `stats' variable.  If median is selected, turn it off
+	and add a 50th percentile.
+	(add_percentile): Simplify code a little.
+	(calc_stats): Drop special casing of median.
+	(dump_statistics): Ditto, except that we label the 50th percentile
+	as "50 (Median)" to make it clear that it's also the median.	
+
 2007-07-31  Ben Pfaff  <blp@gnu.org>
 
 	Remove integer mode from FREQUENCIES and incidentally fix bug
