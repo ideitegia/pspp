@@ -2,7 +2,7 @@
 
 	Bug #16189.  Reviewed by Jason Stover.
 	* acinclude.m4: If -lplot doesn't work by itself, also test with
-	typical X11 libraries.X
+	typical X11 libraries.
 
 2007-07-27  Ben Pfaff  <blp@gnu.org>
 
