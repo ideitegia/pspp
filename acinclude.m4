@@ -40,8 +40,28 @@ AC_DEFUN([PSPP_LIBPLOT],
   AC_ARG_WITH(libplot, [  --without-libplot         don't compile in support of charts (using libplot)])
 
   if test x"$with_libplot" != x"no" ; then 
-    AC_CHECK_LIB(plot, pl_newpl_r,,
-	         [PSPP_REQUIRED_PREREQ([libplot (or use --without-libplot)])])
+    # Check whether we can link against libplot without any extra libraries.
+    AC_CHECK_LIB(plot, pl_newpl_r, [LIBPLOT_LIBS="-lplot"])
+
+    # Check whether we can link against libplot if we also link X.
+    if test x"$LIBPLOT_LIBS" = x""; then
+      AC_PATH_XTRA
+      extra_libs="-lXaw -lXmu -lXt $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS -lm"
+      AC_CHECK_LIB(plot, pl_newpl_r,
+      		   [LIBPLOT_LIBS="-lplot $extra_libs"
+                    LDFLAGS="$LDFLAGS $X_LIBS"],,
+      		   [$extra_libs])
+    fi
+
+    # Still can't link?
+    if test x"$LIBPLOT_LIBS" = x""; then
+      PSPP_REQUIRED_PREREQ([libplot (or use --without-libplot)])
+    fi
+
+    # Set up to make everything work.
+    LIBS="$LIBPLOT_LIBS $LIBS"
+    AC_DEFINE(HAVE_LIBPLOT, 1,
+              [Define to 1 if you have the `libplot' library (-lplot).])
   fi
 ])
 
