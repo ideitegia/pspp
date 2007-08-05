@@ -235,50 +235,59 @@ static bool
 rank_cmd (struct dataset *ds, const struct case_ordering *sc,
 	  const struct rank_spec *rank_specs, int n_rank_specs)
 {
-  struct case_ordering *base_ordering;
+  struct dictionary *d = dataset_dict (ds);
   bool ok = true;
   int i;
-  const int n_splits = dict_get_split_cnt (dataset_dict (ds));
 
-  base_ordering = case_ordering_create (dataset_dict (ds));
-  for (i = 0; i < n_splits ; i++)
-    case_ordering_add_var (base_ordering,
-                           dict_get_split_vars (dataset_dict (ds))[i],
-                           SRT_ASCEND);
-
-  for (i = 0; i < n_group_vars; i++)
-    case_ordering_add_var (base_ordering, group_vars[i], SRT_ASCEND);
   for (i = 0 ; i < case_ordering_get_var_cnt (sc) ; ++i )
     {
-      struct case_ordering *ordering;
-      struct casegrouper *grouper;
-      struct casereader *group;
+      /* Rank variable at index I in SC. */
+      struct casegrouper *split_grouper;
+      struct casereader *split_group;
       struct casewriter *output;
-      struct casereader *ranked_file;
-
-      ordering = case_ordering_clone (base_ordering);
-      case_ordering_add_var (ordering,
-                             case_ordering_get_var (sc, i),
-                             case_ordering_get_direction (sc, i));
 
       proc_discard_output (ds);
-      grouper = casegrouper_create_case_ordering (sort_execute (proc_open (ds),
-                                                                ordering),
-                                                  base_ordering);
-      output = autopaging_writer_create (dict_get_next_value_idx (
-                                           dataset_dict (ds)));
-      while (casegrouper_get_next_group (grouper, &group))
-        rank_sorted_file (group, output, dataset_dict (ds),
-                          rank_specs, n_rank_specs,
-                          i, src_vars[i]);
-      ok = casegrouper_destroy (grouper);
+      split_grouper = casegrouper_create_splits (proc_open (ds), d);
+      output = autopaging_writer_create (dict_get_next_value_idx (d));
+
+      while (casegrouper_get_next_group (split_grouper, &split_group))
+        {
+          struct case_ordering *ordering;
+          struct casereader *ordered;
+          struct casegrouper *by_grouper;
+          struct casereader *by_group;
+          int j;
+
+          /* Sort this split group by the BY variables as primary
+             keys and the rank variable as secondary key. */
+          ordering = case_ordering_create (d);
+          for (j = 0; j < n_group_vars; j++)
+            case_ordering_add_var (ordering, group_vars[j], SRT_ASCEND);
+          case_ordering_add_var (ordering,
+                                 case_ordering_get_var (sc, i),
+                                 case_ordering_get_direction (sc, i));
+          ordered = sort_execute (split_group, ordering);
+
+          /* Rank the rank variable within this split group. */
+          by_grouper = casegrouper_create_vars (ordered,
+                                                group_vars, n_group_vars);
+          while (casegrouper_get_next_group (by_grouper, &by_group))
+            {
+              /* Rank the rank variable within this BY group
+                 within the split group. */
+
+              rank_sorted_file (by_group, output, d, rank_specs, n_rank_specs,
+                                i, src_vars[i]);
+            }
+          ok = casegrouper_destroy (by_grouper) && ok;
+        }
+      ok = casegrouper_destroy (split_grouper);
       ok = proc_commit (ds) && ok;
-      ranked_file = casewriter_make_reader (output);
-      ok = proc_set_active_file_data (ds, ranked_file) && ok;
+      ok = (proc_set_active_file_data (ds, casewriter_make_reader (output))
+            && ok);
       if (!ok)
         break;
     }
-  case_ordering_destroy (base_ordering);
 
   return ok;
 }

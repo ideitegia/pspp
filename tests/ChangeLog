@@ -1,3 +1,10 @@
+2007-08-03  Ben Pfaff  <blp@gnu.org>
+
+	* command/rank.sh: Test RANK with noncontiguous groups of SPLIT
+	FILE variables and how they should behave differently from
+	noncontiguous groups of BY variables.  Regression test for bug
+	#17239.
+
 2007-08-01  Ben Pfaff  <blp@gnu.org>
 
 	* command/weight.sh: Update to match new output format for median

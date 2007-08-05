@@ -1,3 +1,9 @@
+2007-08-03  Ben Pfaff  <blp@gnu.org>
+
+	* rank.q (rank_cmd): Instead of sorting by SPLIT FILE vars, group
+	by them.  Fixes bug #17239.
+	Reviewed by John Darrington.
+
 2007-08-01  Ben Pfaff  <blp@gnu.org>
 
 	Clean up handling of median, by treating it almost like any other
