@@ -1,3 +1,7 @@
+2007-08-06  John Darrington <john@darrington.wattle.id.au>
+
+	* syntax-editor.glade: Changed some properties to be less annoying.
+
 2007-07-29  John Darrington <john@darrington.wattle.id.au>
 
 	* helper.c psppire.c: Enabled the output system so that the results
