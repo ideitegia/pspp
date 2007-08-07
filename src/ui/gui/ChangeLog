@@ -1,3 +1,16 @@
+2007-08-07  John Darrington <john@darrington.wattle.id.au>
+
+	* helper.c (execute_syntax): Set the active file data to NULL at the 
+	end of the procedure.  Thanks to Ben for suggesting this.
+
+	* psppire-case-file.c: Added assertions to the remaining functions 
+	on inaccessible objects.
+
+	* psppire-data-store.c psppire-data-store.h: Disconnect or block 
+	signals on dictionary and case_file, when make_reader has been called. 
+	Reconnect or unblock them when a new datasheet has been set for the 
+	data_store.
+	
 2007-08-06  John Darrington <john@darrington.wattle.id.au>
 
 	* syntax-editor.glade: Changed some properties to be less annoying.

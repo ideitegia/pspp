@@ -201,6 +201,8 @@ execute_syntax (struct getl_interface *sss)
     psppire_data_store_set_case_file (the_data_store, pcf);
   }
 
+  proc_set_active_file_data (the_dataset, NULL);
+
   som_flush ();
 }
 

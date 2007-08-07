@@ -178,6 +178,8 @@ psppire_data_store_init (PsppireDataStore *data_store)
   data_store->dict = 0;
   data_store->case_file = 0;
   data_store->width_of_m = 10;
+
+
 }
 
 const PangoFontDescription *
@@ -384,34 +386,53 @@ psppire_data_store_new (PsppireDict *dict)
 
 
 void
-psppire_data_store_set_case_file (PsppireDataStore *data_store,
+psppire_data_store_set_case_file (PsppireDataStore *ds,
 				  PsppireCaseFile *cf)
 {
-  if ( data_store->case_file)
+  gint i;
+  if ( ds->case_file)
     {
-      g_object_unref (data_store->case_file);
+      g_object_unref (ds->case_file);
     }
 
-  data_store->case_file = cf;
+  ds->case_file = cf;
 
-  g_sheet_model_range_changed (G_SHEET_MODEL (data_store),
+  g_sheet_model_range_changed (G_SHEET_MODEL (ds),
 			       -1, -1, -1, -1);
 
-
-  g_signal_connect (data_store->case_file, "cases-deleted",
-		   G_CALLBACK (delete_cases_callback),
-		   data_store);
-
-  g_signal_connect (data_store->case_file, "case-inserted",
-		   G_CALLBACK (insert_case_callback),
-		   data_store);
+  for (i = 0 ; i < n_cf_signals ; ++i )
+    {
+      if ( ds->cf_handler_id [i] > 0 )
+	g_signal_handler_disconnect (ds->case_file,
+				     ds->cf_handler_id[i]);
+    }
 
 
-  g_signal_connect (data_store->case_file, "case-changed",
-		   G_CALLBACK (changed_case_callback),
-		   data_store);
+  if ( ds->dict )
+    for (i = 0 ; i < n_dict_signals; ++i )
+      {
+	if ( ds->dict_handler_id [i] > 0)
+	  {
+	    g_signal_handler_unblock (ds->dict,
+				      ds->dict_handler_id[i]);
+	  }
+      }
+
+  ds->cf_handler_id [CASES_DELETED] =
+    g_signal_connect (ds->case_file, "cases-deleted",
+		      G_CALLBACK (delete_cases_callback),
+		      ds);
+
+  ds->cf_handler_id [CASE_INSERTED] =
+    g_signal_connect (ds->case_file, "case-inserted",
+		      G_CALLBACK (insert_case_callback),
+		      ds);
+
+  ds->cf_handler_id [CASE_CHANGED] =
+    g_signal_connect (ds->case_file, "case-changed",
+		      G_CALLBACK (changed_case_callback),
+		      ds);
 }
-
 
 
 /**
@@ -425,28 +446,59 @@ psppire_data_store_set_case_file (PsppireDataStore *data_store,
 void
 psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *dict)
 {
+  int i;
+
+  /* Disconnect any existing handlers */
+  if ( data_store->dict )
+    for (i = 0 ; i < n_dict_signals; ++i )
+      {
+	g_signal_handler_disconnect (data_store->dict,
+				     data_store->dict_handler_id[i]);
+      }
+
   data_store->dict = dict;
 
-  g_signal_connect (dict, "variable-inserted",
-		   G_CALLBACK (insert_variable_callback),
-		   data_store);
+  if ( dict != NULL)
+    {
 
-  g_signal_connect (dict, "variable-deleted",
-		   G_CALLBACK (delete_variable_callback),
-		   data_store);
+      data_store->dict_handler_id [VARIABLE_INSERTED] =
+	g_signal_connect (dict, "variable-inserted",
+			  G_CALLBACK (insert_variable_callback),
+			  data_store);
 
-  g_signal_connect (dict, "variable-changed",
-		   G_CALLBACK (variable_changed_callback),
-		   data_store);
+      data_store->dict_handler_id [VARIABLE_DELETED] =
+	g_signal_connect (dict, "variable-deleted",
+			  G_CALLBACK (delete_variable_callback),
+			  data_store);
 
-  g_signal_connect (dict, "dict-size-changed",
-		    G_CALLBACK (dict_size_change_callback),
-		    data_store);
+      data_store->dict_handler_id [VARIABLE_CHANGED] =
+	g_signal_connect (dict, "variable-changed",
+			  G_CALLBACK (variable_changed_callback),
+			  data_store);
+
+      data_store->dict_handler_id [SIZE_CHANGED] =
+	g_signal_connect (dict, "dict-size-changed",
+			  G_CALLBACK (dict_size_change_callback),
+			  data_store);
+    }
+
+
 
   /* The entire model has changed */
   g_sheet_model_range_changed (G_SHEET_MODEL (data_store), -1, -1, -1, -1);
 
   g_sheet_column_columns_changed (G_SHEET_COLUMN (data_store), 0, -1);
+
+
+  if ( data_store->dict )
+    for (i = 0 ; i < n_dict_signals; ++i )
+      {
+	if ( data_store->dict_handler_id [i] > 0)
+	  {
+	    g_signal_handler_block (data_store->dict,
+				    data_store->dict_handler_id[i]);
+	  }
+      }
 }
 
 static void
@@ -673,7 +725,21 @@ psppire_data_store_clear (PsppireDataStore *data_store)
 struct casereader *
 psppire_data_store_get_reader (PsppireDataStore *ds)
 {
+  int i;
   struct casereader *reader ;
+
+  for (i = 0 ; i < n_cf_signals ; ++i )
+    {
+      g_signal_handler_disconnect (ds->case_file, ds->cf_handler_id[i]);
+      ds->cf_handler_id[i] = 0 ;
+    }
+
+  if ( ds->dict )
+    for (i = 0 ; i < n_dict_signals; ++i )
+      {
+	g_signal_handler_block (ds->dict,
+				ds->dict_handler_id[i]);
+      }
 
   reader = psppire_case_file_make_reader (ds->case_file);
 
@@ -835,7 +901,7 @@ geometry_pixel_to_row (const GSheetRow *geo, guint pixel, gpointer data)
   glong row  = pixel / ROW_HEIGHT;
 
   if (row >= geometry_get_row_count (geo, data))
-    row = geometry_get_row_count (geo, data) -1;
+    row = geometry_get_row_count (geo, data) - 1;
 
   return row;
 }
