@@ -38,6 +38,44 @@ pass()
 
 cd $TEMPDIR
 
+activity="write PRNG fragment"
+cat > my-rand.pl <<'EOF'
+# This random number generator and the test for it below are drawn
+# from Park and Miller, "Random Number Generators: Good Ones are Hard
+# to Come By", Communications of the ACM 31:10 (October 1988).  It is
+# documented to function properly on systems with a 46-bit or longer
+# real significand, which includes systems that have 64-bit IEEE reals
+# (with 53-bit significand).  The test should catch any systems for
+# which this is not true, in any case.
+
+our ($seed) = 1;
+sub my_rand {
+  my ($modulo) = @_;
+  my ($a) = 16807;
+  my ($m) = 2147483647;
+  my ($tmp) = $a * $seed;
+  $seed = $tmp - $m * int ($tmp / $m);
+  return $seed % $modulo;
+}
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="write PRNG test program"
+cat > test-my-rand.pl <<'EOF'
+#! /usr/bin/perl
+use strict;
+use warnings;
+do 'my-rand.pl';
+my_rand (1) foreach 1...10000;
+our $seed;
+die $seed if $seed != 1043618065;
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="test PRNG"
+$PERL test-my-rand.pl
+if [ $? -ne 0 ] ; then no_result ; fi
+
 activity="write Perl program"
 cat > num-in.pl <<'EOF'
 #! /usr/bin/perl
@@ -46,7 +84,7 @@ use POSIX;
 use strict;
 use warnings;
 
-our $next = 0;
+do 'my-rand.pl';
 
 for my $number (0, 1, .5, .015625, 123) {
     my ($base_exp) = floor ($number ? log10 ($number) : 0);
@@ -134,12 +172,6 @@ sub permute_spaces {
 
 sub pick {
     return $_[int (my_rand ($#_ + 1))];
-}
-
-sub my_rand {
-    my ($modulo) = @_;
-    $next = ($next * 1103515245 + 12345) % (2**32);
-    return int ($next / 65536) % $modulo;
 }
 EOF
 
