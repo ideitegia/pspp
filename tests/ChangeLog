@@ -1,3 +1,15 @@
+2007-08-09  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #18982.  Thanks to John Darrington for investigation,
+	review, and verification of fix.
+	
+	* formats/date-in.sh: Use a portable pseudo-random number
+	generator.
+	
+	* formats/time-in.sh: Ditto.
+
+	* formats/num-in.sh: Ditto.
+
 2007-08-03  Ben Pfaff  <blp@gnu.org>
 
 	* command/rank.sh: Test RANK with noncontiguous groups of SPLIT
