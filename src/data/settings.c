@@ -26,11 +26,6 @@
 
 #include "error.h"
 
-#ifdef HAVE_LIBNCURSES
-#include <curses.h>
-#include <term.h>
-#endif
-
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
@@ -80,6 +75,7 @@ static int *algorithm = &global_algorithm;
 static int syntax = ENHANCED;
 
 static void init_viewport (void);
+static void get_termcap_viewport (void);
 
 void
 settings_init (void)
@@ -131,28 +127,6 @@ set_viewwidth (int viewwidth_)
   viewwidth = viewwidth_;
 }
 
-#if HAVE_LIBNCURSES
-static void
-get_termcap_viewport (void)
-{
-  char term_buffer[16384];
-  if (getenv ("TERM") == NULL)
-    return;
-  else if (tgetent (term_buffer, getenv ("TERM")) <= 0)
-    {
-      error (0,0, _("could not access definition for terminal `%s'"),
-             getenv ("TERM"));
-      return;
-    }
-
-  if (tgetnum ("li") > 0)
-    viewlength = tgetnum ("li");
-
-  if (tgetnum ("co") > 1)
-    viewwidth = tgetnum ("co") - 1;
-}
-#endif /* HAVE_LIBNCURSES */
-
 static void
 init_viewport (void)
 {
@@ -161,9 +135,7 @@ init_viewport (void)
 
   viewwidth = viewlength = -1;
 
-#if HAVE_LIBNCURSES
   get_termcap_viewport ();
-#endif /* HAVE_LIBNCURSES */
 
   if (viewwidth < 0 && getenv ("COLUMNS") != NULL)
     viewwidth = atoi (getenv ("COLUMNS"));
@@ -526,3 +498,38 @@ set_syntax (enum behavior_mode mode)
 {
   syntax = mode;
 }
+
+/* Code that interfaces to ncurses.  This must be at the very end
+   of this file because curses.h redefines "bool" on some systems
+   (e.g. OpenBSD), causing declaration mismatches with functions
+   that have parameters or return values of type "bool". */
+#if HAVE_LIBNCURSES
+#include <curses.h>
+#include <term.h>
+
+static void
+get_termcap_viewport (void)
+{
+  char term_buffer[16384];
+  if (getenv ("TERM") == NULL)
+    return;
+  else if (tgetent (term_buffer, getenv ("TERM")) <= 0)
+    {
+      error (0,0, _("could not access definition for terminal `%s'"),
+             getenv ("TERM"));
+      return;
+    }
+
+  if (tgetnum ("li") > 0)
+    viewlength = tgetnum ("li");
+
+  if (tgetnum ("co") > 1)
+    viewwidth = tgetnum ("co") - 1;
+}
+#else /* !HAVE_LIBNCURSES */
+static void
+get_termcap_viewport (void)
+{
+  /* Nothing to do. */
+}
+#endif /* !HAVE_LIBNCURSES */

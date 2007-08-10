@@ -1,3 +1,13 @@
+2007-08-09  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug reported by Jason Stover.
+	* settings.c: Move get_termcap_viewport and in particular the
+	#include for <curses.h> to the end of the file.  curses.h
+	redefines bool on some systems (e.g. OpenBSD), which causes
+	disagreement between uses of bool before its inclusion and
+	afterward.
+	Tested by Jason Stover.
+
 2007-07-29  Ben Pfaff  <blp@gnu.org>
 
 	Provisional fix for bug #18692 and bug #20161.  Reviewed by John
