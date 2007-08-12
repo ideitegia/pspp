@@ -1,3 +1,8 @@
+2007-08-13  John Darrington <john@darrington.wattle.id.au>
+
+        * psppire-case-file.c (psppire_case_file_append_case):  
+	Deleted unused function.
+
 2007-08-07  John Darrington <john@darrington.wattle.id.au>
 
 	* helper.c (execute_syntax): Set the active file data to NULL at the 

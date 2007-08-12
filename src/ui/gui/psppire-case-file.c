@@ -205,30 +205,6 @@ psppire_case_file_insert_case (PsppireCaseFile *cf,
 }
 
 
-/* Append a case to the case file */
-static gboolean
-psppire_case_file_append_case (PsppireCaseFile *cf,
-			      struct ccase *c)
-{
-  struct ccase tmp;
-  bool result ;
-  gint posn ;
-
-  g_return_val_if_fail (cf, FALSE);
-  g_return_val_if_fail (cf->datasheet, FALSE);
-  g_return_val_if_fail (cf->accessible, FALSE);
-
-  posn = datasheet_get_row_cnt (cf->datasheet);
-
-  case_clone (&tmp, c);
-  result = datasheet_insert_rows (cf->datasheet, posn, &tmp, 1);
-
-  g_signal_emit (cf, signals [CASE_INSERTED], 0, posn);
-
-  return result;
-}
-
-
 inline casenumber
 psppire_case_file_get_case_count (const PsppireCaseFile *cf)
 {
