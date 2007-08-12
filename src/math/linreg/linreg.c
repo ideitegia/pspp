@@ -110,7 +110,7 @@ pspp_linreg_get_vars (const void *c_, const struct variable **v)
   /*
      Start at c->coeff[1] to avoid the intercept.
    */
-  v[result] =  pspp_coeff_get_var (c->coeff[1], 0);
+  v[result] = pspp_coeff_get_var (c->coeff[1], 0);
   result = (v[result] == NULL) ? 0 : 1;
 
   for (coef = c->coeff[2]; coef < c->coeff[c->n_coeffs]; coef++)
@@ -365,6 +365,18 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	  exit (rc);
 	}
       gsl_matrix_free (sw);
+    }
+  else if (cache->method == PSPP_LINREG_CONDITIONAL_INVERSE)
+    {
+      /*
+	Use the SVD of X^T X to find a conditional inverse of X^TX. If
+	the SVD is X^T X = U D V^T, then set the conditional inverse
+	to (X^T X)^c = V D^- U^T. D^- is defined as follows: If entry
+	(i, i) has value sigma_i, then entry (i, i) of D^- is 1 /
+	sigma_i if sigma_i > 0, and 0 otherwise. Then solve the normal
+	equations by setting the estimated parameter vector to 
+	(X^TX)^c X^T Y.
+       */
     }
   else
     {

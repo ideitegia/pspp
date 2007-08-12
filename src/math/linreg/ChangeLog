@@ -1,3 +1,11 @@
+2007-08-11  Jason Stover  <jhs@math.gcsu.edu>
+
+	* linreg.h (enum): Dropped ambiguous PSPP_LINREG_SVD in favor of
+	PSPP_LINREG_QR. Added PSPP_LINREG_CONDITIONAL_INVERSE.
+
+	* linreg.c (pspp_linreg): Added scope and comment for use of
+	generalized inverse to solve normal equations.
+
 2007-04-12  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg.c: (pspp_linreg_cache_free) Check for null pointer before
