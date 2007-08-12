@@ -122,7 +122,7 @@ static size_t n_variables;
 static struct file_handle *model_file;
 
 static bool run_regression (struct casereader *, struct cmd_regression *,
-                            struct dataset *);
+			    struct dataset *);
 
 /*
    STATISTICS subcommand output functions.
@@ -1012,7 +1012,8 @@ regression_custom_variables (struct lexer *lexer, struct dataset *ds,
 /* Identify the explanatory variables in v_variables.  Returns
    the number of independent variables. */
 static int
-identify_indep_vars (const struct variable **indep_vars, const struct variable *depvar)
+identify_indep_vars (const struct variable **indep_vars,
+		     const struct variable *depvar)
 {
   int n_indep_vars = 0;
   int i;
@@ -1028,8 +1029,8 @@ identify_indep_vars (const struct variable **indep_vars, const struct variable *
    Returns number of valid cases. */
 static int
 prepare_categories (struct casereader *input,
-                    const struct variable **vars, size_t n_vars,
-                    struct moments_var *mom)
+		    const struct variable **vars, size_t n_vars,
+		    struct moments_var *mom)
 {
   int n_data;
   struct ccase c;
@@ -1043,20 +1044,20 @@ prepare_categories (struct casereader *input,
   for (; casereader_read (input, &c); case_destroy (&c))
     {
       /*
-	The second condition ensures the program will run even if
-	there is only one variable to act as both explanatory and
-	response.
+         The second condition ensures the program will run even if
+         there is only one variable to act as both explanatory and
+         response.
        */
       for (i = 0; i < n_vars; i++)
-        {
-          const union value *val = case_data (&c, vars[i]);
-          if (var_is_alpha (vars[i]))
-            cat_value_update (vars[i], val);
-          else
-            moments1_add (mom[i].m, val->f, 1.0);
-        }
+	{
+	  const union value *val = case_data (&c, vars[i]);
+	  if (var_is_alpha (vars[i]))
+	    cat_value_update (vars[i], val);
+	  else
+	    moments1_add (mom[i].m, val->f, 1.0);
+	}
       n_data++;
-   }
+    }
   casereader_destroy (input);
 
   return n_data;
@@ -1106,7 +1107,7 @@ compute_moments (pspp_linreg_cache * c, struct moments_var *mom,
 
 static bool
 run_regression (struct casereader *input, struct cmd_regression *cmd,
-                struct dataset *ds)
+		struct dataset *ds)
 {
   size_t i;
   int n_indep = 0;
@@ -1165,11 +1166,11 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 
       reader = casereader_clone (input);
       reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
-                                                 MV_ANY, NULL);
+						 MV_ANY, NULL);
       reader = casereader_create_filter_missing (reader, &dep_var, 1,
-                                                 MV_ANY, NULL);
-       n_data = prepare_categories (casereader_clone (reader),
-                                    indep_vars, n_indep, mom);
+						 MV_ANY, NULL);
+      n_data = prepare_categories (casereader_clone (reader),
+				   indep_vars, n_indep, mom);
 
       if ((n_data > 0) && (n_indep > 0))
 	{
@@ -1185,32 +1186,32 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	  models[k] = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
 	  models[k]->indep_means = gsl_vector_alloc (X->m->size2);
 	  models[k]->indep_std = gsl_vector_alloc (X->m->size2);
-          models[k]->depvar = dep_var;
-          /*
+	  models[k]->depvar = dep_var;
+	  /*
 	     For large data sets, use QR decomposition.
 	   */
 	  if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
 	    {
-	      models[k]->method = PSPP_LINREG_SVD;
+	      models[k]->method = PSPP_LINREG_QR;
 	    }
 
 	  /*
-            The second pass fills the design matrix.
-          */
-          reader = casereader_create_counter (reader, &row, -1);
-          for (; casereader_read (reader, &c); case_destroy (&c))
-            {
-              for (i = 0; i < n_indep; ++i)
-                {
-                  const struct variable *v = indep_vars[i];
-                  const union value *val = case_data (&c, v);
-                  if (var_is_alpha (v))
-                    design_matrix_set_categorical (X, row, v, val);
-                  else
-                    design_matrix_set_numeric (X, row, v, val);
-                }
-          gsl_vector_set (Y, row, case_num (&c, dep_var));
-            }
+	     The second pass fills the design matrix.
+	   */
+	  reader = casereader_create_counter (reader, &row, -1);
+	  for (; casereader_read (reader, &c); case_destroy (&c))
+	    {
+	      for (i = 0; i < n_indep; ++i)
+		{
+		  const struct variable *v = indep_vars[i];
+		  const union value *val = case_data (&c, v);
+		  if (var_is_alpha (v))
+		    design_matrix_set_categorical (X, row, v, val);
+		  else
+		    design_matrix_set_numeric (X, row, v, val);
+		}
+	      gsl_vector_set (Y, row, case_num (&c, dep_var));
+	    }
 	  /*
 	     Now that we know the number of coefficients, allocate space
 	     and store pointers to the variables that correspond to the
@@ -1224,18 +1225,19 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	  pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, models[k]);
 	  compute_moments (models[k], mom, X, n_variables);
 
-          if (!taint_has_tainted_successor (casereader_get_taint (input)))
-            {
-              subcommand_statistics (cmd->a_statistics, models[k]);
-              subcommand_export (cmd->sbc_export, models[k]);
-            }
+	  if (!taint_has_tainted_successor (casereader_get_taint (input)))
+	    {
+	      subcommand_statistics (cmd->a_statistics, models[k]);
+	      subcommand_export (cmd->sbc_export, models[k]);
+	    }
 
 	  gsl_vector_free (Y);
 	  design_matrix_destroy (X);
 	}
       else
 	{
-	  msg (SE, gettext ("No valid data found. This command was skipped."));
+	  msg (SE,
+	       gettext ("No valid data found. This command was skipped."));
 	}
       casereader_destroy (reader);
     }
