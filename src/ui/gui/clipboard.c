@@ -166,6 +166,7 @@ clip_to_text (void)
 
   const size_t val_cnt = casereader_get_value_cnt (clip_datasheet);
   const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
+  const size_t var_cnt = dict_get_var_cnt (clip_dict);
 
   string = g_string_sized_new (10 * val_cnt * case_cnt);
 
@@ -179,7 +180,7 @@ clip_to_text (void)
 	  break;
 	}
 
-      for (c = 0 ; c < val_cnt ; ++c)
+      for (c = 0 ; c < var_cnt ; ++c)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
 	  data_out_g_string (string, v, &cc);
@@ -205,6 +206,8 @@ clip_to_html (void)
 
   const size_t val_cnt = casereader_get_value_cnt (clip_datasheet);
   const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
+  const size_t var_cnt = dict_get_var_cnt (clip_dict);
+
 
   /* Guestimate the size needed */
   string = g_string_sized_new (20 * val_cnt * case_cnt);
@@ -221,7 +224,7 @@ clip_to_html (void)
 	}
       g_string_append (string, "<tr>\n");
 
-      for (c = 0 ; c < val_cnt ; ++c)
+      for (c = 0 ; c < var_cnt ; ++c)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
 	  g_string_append (string, "<td>");

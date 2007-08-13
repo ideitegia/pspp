@@ -1,3 +1,8 @@
+2007-08-13  John Darrington <john@darrington.wattle.id.au>
+
+	* clipboard.c (clip_to_html clip_to_text): Fixed bug --- use the
+	variable count instead of the value count for the columns limit. 
+
 2007-08-12  John Darrington <john@darrington.wattle.id.au>
 	    Ben Pfaff  <blp@gnu.org>
 
