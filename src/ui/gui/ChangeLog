@@ -1,3 +1,21 @@
+2007-08-12  John Darrington <john@darrington.wattle.id.au>
+	    Ben Pfaff  <blp@gnu.org>
+
+	Implement Edit|Cut operation for datasheet.  Patch #6117.
+
+	* automake.mk: Add clipboard.c, clipboard.h.
+
+	* clipboard.c: New file.
+
+	* clipboard.h: New file.
+
+	* data-editor.c (new_data_editor): Connect Edit|Copy to
+	on_edit_copy function.
+	(data_var_select): Enable or disable Edit|Copy as appropriate.
+	(on_edit_copy): New function.
+
+	* data-editor.glade: Connect menu items to new operations.
+
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
 	* psppire-dict.c (psppire_dict_dump): Don't use
@@ -6,22 +24,22 @@
 
 2007-08-13  John Darrington <john@darrington.wattle.id.au>
 
-        * psppire-case-file.c (psppire_case_file_append_case):  
+        * psppire-case-file.c (psppire_case_file_append_case):
 	Deleted unused function.
 
 2007-08-07  John Darrington <john@darrington.wattle.id.au>
 
-	* helper.c (execute_syntax): Set the active file data to NULL at the 
+	* helper.c (execute_syntax): Set the active file data to NULL at the
 	end of the procedure.  Thanks to Ben for suggesting this.
 
-	* psppire-case-file.c: Added assertions to the remaining functions 
+	* psppire-case-file.c: Added assertions to the remaining functions
 	on inaccessible objects.
 
-	* psppire-data-store.c psppire-data-store.h: Disconnect or block 
-	signals on dictionary and case_file, when make_reader has been called. 
-	Reconnect or unblock them when a new datasheet has been set for the 
+	* psppire-data-store.c psppire-data-store.h: Disconnect or block
+	signals on dictionary and case_file, when make_reader has been called.
+	Reconnect or unblock them when a new datasheet has been set for the
 	data_store.
-	
+
 2007-08-06  John Darrington <john@darrington.wattle.id.au>
 
 	* syntax-editor.glade: Changed some properties to be less annoying.
@@ -33,45 +51,45 @@
 
 2007-07-26  John Darrington <john@darrington.wattle.id.au>
 
-	* helper.c helper.h (execute_syntax): removed implicit EXECUTE at end 
+	* helper.c helper.h (execute_syntax): removed implicit EXECUTE at end
 	of commands.
 
-	* data-editor.c data-editor.glade: Added "Run Pending Transformations" 
+	* data-editor.c data-editor.glade: Added "Run Pending Transformations"
 	menuitem.
 
 2007-07-25  John Darrington <john@darrington.wattle.id.au>
 
-	* customentry.c: Redraw button in insensitive state, if the widget's 
-	 "editable" style is FALSE.  Don't emit the "clicked" signal if 
+	* customentry.c: Redraw button in insensitive state, if the widget's
+	 "editable" style is FALSE.  Don't emit the "clicked" signal if
 	 "editable" is FALSE.
-	
-	* var-sheet.c: If variables are long-string variables, then set the 
+
+	* var-sheet.c: If variables are long-string variables, then set the
 	"editable" properties of the entry widgets for the values and missing
 	cells to FALSE,
 
 2007-07-18  John Darrington <john@darrington.wattle.id.au>
 
-	* psppire-case-file.c psppire-case-file.h psppire-data-store.c 
+	* psppire-case-file.c psppire-case-file.h psppire-data-store.c
 	psppire-dict.c psppire-dict.h psppire-var-store.c : Added the
 	ability to resize string variables.  Fixed associated problems
-	inserting/deleting variables.   
-	
+	inserting/deleting variables.
+
 	* helper.c helper.h (marshaller_VOID__INT_INT_INT): New marshaller
 	function.
-	
+
 2007-07-16  John Darrington <john@darrington.wattle.id.au>
 
-	* data-editor.c: File Open dialog remembers directory.  Thanks to 
+	* data-editor.c: File Open dialog remembers directory.  Thanks to
 	Ben Pfaff for this suggestion.
-	
+
 2007-07-15  John Darrington <john@darrington.wattle.id.au>
 
-	* compute-dialog.c: Only generate NUMERIC/STRING command if the 
+	* compute-dialog.c: Only generate NUMERIC/STRING command if the
 	type-and-label dialog was used.
 
 2007-07-12  John Darrington <john@darrington.wattle.id.au>
 
-	* psppire-data-store.c: Added call to g_sheet_model_range_changed to 
+	* psppire-data-store.c: Added call to g_sheet_model_range_changed to
 	ensure that datasheet displays the current store.
 
 	* psppire-data-store.h: Formatting tidy up.
@@ -82,46 +100,46 @@
 
 2007-07-08  John Darrington <john@darrington.wattle.id.au>
 
-	* data-editor.c data-editor.glade data-editor.h: Implemented 
+	* data-editor.c data-editor.glade data-editor.h: Implemented
 	the "Insert Case" button/dialog.
 
 2007-07-08  John Darrington <john@darrington.wattle.id.au>
 
 	* goto-case-dialog.c goto-case-dialog.h (new files)
-	* automake.mk data-editor.c data-editor.glade data-editor.h 
-	psppire-case-file.c psppire-case-file.h psppire-data-store.c 
+	* automake.mk data-editor.c data-editor.glade data-editor.h
+	psppire-case-file.c psppire-case-file.h psppire-data-store.c
 	psppire-data-store.h psppire.glade :  Implemented the goto-case dialog
-	
+
 
 2007-07-07  John Darrington <john@darrington.wattle.id.au>
-	
-	* psppire-data-store.c psppire-data-store.h: Made cases number from 
-	1 instead of 0. 
+
+	* psppire-data-store.c psppire-data-store.h: Made cases number from
+	1 instead of 0.
 
 	* psppire-data-store.c: Added a tooltip like feature to display
-	the label of variables. 
-	
+	the label of variables.
+
 2007-07-03  John Darrington <john@darrington.wattle.id.au>
-	
-	* data-editor.c data-sheet.c: Turned off autoscrolling, and 
+
+	* data-editor.c data-sheet.c: Turned off autoscrolling, and
 	manually move to cell on column click instead.
 
 2007-06-29  John Darrington <john@darrington.wattle.id.au>
 
-	* data-editor.c data-editor.glade psppire-data-store.c 
-	psppire-data-store.h: Enabled cell reference entry and datum 
+	* data-editor.c data-editor.glade psppire-data-store.c
+	psppire-data-store.h: Enabled cell reference entry and datum
 	entry widgets.
 
 2007-06-29  John Darrington <john@darrington.wattle.id.au>
 
-	* data-editor.c data-sheet.c: Moved update_cell_ref_entry from 
+	* data-editor.c data-sheet.c: Moved update_cell_ref_entry from
 	data-sheet.c to data-editor.c and made it work again.
 
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	Adapt case sources, sinks, and clients of procedure code to the
 	new infrastructure.
-	
+
 	* automake.mk: Removed files.
 
 	* flexifile-factory.c: Removed, dead code.
@@ -137,21 +155,21 @@
 
 	* psppire-var-store.c (psppire_var_store_item_editable): Use
 	var_is_alpha.
-	
+
 2007-05-07 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-dialog.c psppire-dialog.h: Added "orientation" property,
         to allow dialogs to be either vertical or horizontal.
 
-	* comments-dialog.c comments-dialog.h: New files, invoking 
+	* comments-dialog.c comments-dialog.h: New files, invoking
 	ADD DOCUMENT cmd.
 
 2007-04-30 John Darrington <john@darrington.wattle.id.au>
 
 	* var-display.c var-display.h variable-info-dialog.c
-	variable-info-dialog.h : New files. 
+	variable-info-dialog.h : New files.
 
-	* data-editor.c : 
+	* data-editor.c :
 
 	* psppire-buttonbox.c psppire-buttonbox.h : Added the "buttons"
 	property, and optional 	GOTO and CONTINUE buttons.
@@ -163,10 +181,10 @@
 2007-04-25 John Darrington <john@darrington.wattle.id.au>
 
 	* icons/scalable/splash.c icons/splash.png : More eye candy.
-	
+
 	* main.c psppire.h : new files.
 
-	* psppire.c : Seperated the command line parsing and other 
+	* psppire.c : Seperated the command line parsing and other
 	environment startup from the core psppire code.
 
 2007-04-25 John Darrington <john@darrington.wattle.id.au>
@@ -174,7 +192,7 @@
 	* icons/scalable icons/16x16: new directories.
 	* psppire.c : Add new icons to factory.
 
-	* dict-display.c: Refactor code get model from modelfilter. 
+	* dict-display.c: Refactor code get model from modelfilter.
 	Added cellrenderer to display icon indicating variables' types.
         Displayed the label of variables, if there is one.
 
@@ -190,25 +208,25 @@
 	builds.
 
 2007-04-13   John Darrington <john@darrington.wattle.id.au>
-	
+
 	* var-type-dialog.c: Added a FMT_DATETIME20 template.
-	
+
 2007-04-04   John Darrington <john@darrington.wattle.id.au>
 
 	* compute-dialog.c compute-dialog.h: New files
 
-	* data-editor.c data-editor.h data-editor.glade : Added Transform 
+	* data-editor.c data-editor.h data-editor.glade : Added Transform
 	menu, and support for Compute dialog
 
-	* glade-register.c psppire-buttonbox.c psppire-buttonbox.h 
-	  psppire-vbottonbox.c psppire-vbuttonbox.h psppire-hbuttonbox.c 
-	  psppire-vbuttonbox.h : Made buttonbox an abstract base class 
+	* glade-register.c psppire-buttonbox.c psppire-buttonbox.h
+	  psppire-vbottonbox.c psppire-vbuttonbox.h psppire-hbuttonbox.c
+	  psppire-vbuttonbox.h : Made buttonbox an abstract base class
          and separated it into vbuttonbox and hbuttonbox.
 
-	* psppire-selector.c : Allowed GtkTextView to be the destination 
+	* psppire-selector.c : Allowed GtkTextView to be the destination
 	widget.
 
-	* psppire-keypad.c: Added an "erase" signal.  Fixed other 
+	* psppire-keypad.c: Added an "erase" signal.  Fixed other
         minor problems.
 
 2007-04-03  Ben Pfaff  <blp@gnu.org>
@@ -218,33 +236,33 @@
 	assert that may or may not trap some Windows-related bugs.
 
 2007-04-03   John Darrington <john@darrington.wattle.id.au>
-	
+
 	* data-editor.c data-editor.glade helper.h syntax-editor.c
 	syntax-editor.h : Implemented the File->Recently_Used_ menus.
 
 
 2007-03-31   John Darrington <john@darrington.wattle.id.au>
-        
+
 	* data-editor.c data-editor.glade data-editor.h dialog-common.c
 	psppire-buttonbox.c psppire-dialog.c psppire-dialog.h
 	psppire-selector.c psppire-selector.h psppire.c psppire.glade
 	sort-cases-dialog.c sort-cases-dialog.h split-file-dialog.c
 	transpose-dialog.c weight-cases-dialog.c : Fixed the Refresh
-	button on all the dialogs. 
-	
+	button on all the dialogs.
+
 2007-03-31   John Darrington <john@darrington.wattle.id.au>
-	
+
 	* data-editor.c: Added hooks for the split-file-dialog
 
 	* psppire.glade: Added the split file dialog box.
-	
+
 	* split-file-dialog.c split-file-dialog.h: New files.
-	
-	* dialog-common.c dialog-common.h: New files containing functions 
-	which seem to be used a lot in dialog box implementations. 
+
+	* dialog-common.c dialog-common.h: New files containing functions
+	which seem to be used a lot in dialog box implementations.
 
 	* psppire-keypad.c psppire-keypad.h: New files.  Implements keypad
-	thingumy widget.  
+	thingumy widget.
 
 	* psppire-selector.c: Made the orientation of the arrow a property
 	of the widget, so that it can be selected from glade.
@@ -255,20 +273,20 @@
 	conflict with POSIX function of same name.
 
 Tue Mar 13 17:20:05 CET 2007 John Darrington <john@darrington.wattle.id.au>
-	* psppire.c:  Changed gtk_init to gtk_parse_args, followed by a delayed 	call to gdk_init, so that psppire --version will succeed, even if it 
+	* psppire.c:  Changed gtk_init to gtk_parse_args, followed by a delayed 	call to gdk_init, so that psppire --version will succeed, even if it
 	cannot connect to a display .
-	
+
 Wed Mar  7 19:05:12 CET 2007 John Darrington <john@darrington.wattle.id.au>
 
-	* var-sheet.c: Replaced call to nl_langinfo with locale_charset 
+	* var-sheet.c: Replaced call to nl_langinfo with locale_charset
 	from gnulib.
 
 Thu Feb 22 12:27:41 CET 2007 John Darrington <john@darrington.wattle.id.au>
 
-	* data-editor.c : called new gen_quoted_string function to properly 
+	* data-editor.c : called new gen_quoted_string function to properly
           quote filenames in generated syntax.
 
-	* window-manager.c : Converted name from filename encoding to UTF8 
+	* window-manager.c : Converted name from filename encoding to UTF8
           before displaying in title bar.
 
 Tue Jan 30 20:13:46 WST 2007 John Darrington <john@darrington.wattle.id.au>
@@ -290,10 +308,10 @@ Fri Jan 26 15:51:34 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* transpose-dialog.c transpose-dialog.h : New files.
 
-	* psppire-dict.c psppire-dict.h : Added missing GtkTreeModel 
+	* psppire-dict.c psppire-dict.h : Added missing GtkTreeModel
 	interface functions.
 
-	* weight-cases-dialog.c weight-cases-dialog.h : Re-implemented, 
+	* weight-cases-dialog.c weight-cases-dialog.h : Re-implemented,
 	using new PsppireSelector widget.
 
 	* dict-display.c dict-display.h : New files.
@@ -304,21 +322,21 @@ Tue Jan 23 21:10:01 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* helper.c helper.h: New function execute_syntax.
 
-	* syntax-editor.c syntax-editor.glade: Disabled data open/save menu 
+	* syntax-editor.c syntax-editor.glade: Disabled data open/save menu
 	items.
 
-	* data-editor.c data-editor.glade data-editor.h: Enabled data 
+	* data-editor.c data-editor.glade data-editor.h: Enabled data
 	open/save/save_as  menu-items.
-	
-	* window-manager.h window-manager.c (default_window_name) : New 
+
+	* window-manager.h window-manager.c (default_window_name) : New
 	function.
 
 Sat Jan 13 07:47:26 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-case-file.c psppire-data-store.c psppire-dialog.c
-	psppire-dict.c psppire-var-select.c : Replaced identifier 'signal' 
+	psppire-dict.c psppire-var-select.c : Replaced identifier 'signal'
 	with 'signals' to avoid conflict with sysv based systems which use
-	this identifer for something else.  
+	this identifer for something else.
 	Thanks to Daniel E WILLIAMS for reporting this problem.
 
 Wed Jan 10 07:20:39 WST 2007 John Darrington <john@darrington.wattle.id.au>
@@ -327,33 +345,33 @@ Wed Jan 10 07:20:39 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-data-store.c : assertions.
 
-	* psppire.c: Ignore replace source callbacks if the new source is 
+	* psppire.c: Ignore replace source callbacks if the new source is
 	  not of storiage_source_class
 
 	* syntax-editor.c: Close/Abort source after parsing is complete.
 
 Sun Jan  7 08:38:29 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
-	* psppire-dict.c: Add FILTER_CHANGED and SPLIT_CHANGED signals 
+	* psppire-dict.c: Add FILTER_CHANGED and SPLIT_CHANGED signals
 	corresponding to the callbacks in src/data/dictionary.c
 
-	* data-editor.c : Connect functions to the FILTER_CHANGED and 
+	* data-editor.c : Connect functions to the FILTER_CHANGED and
 	SPLIT_CHANGED signals to update the status bar accordingly.
 
 Mon Jan  1 10:37:07 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
-	* psppire-case-file.c psppire-case-file.h: Changed the backend 
+	* psppire-case-file.c psppire-case-file.h: Changed the backend
 	semantics. An object is now created without any backend.  A new function        ( psppire_case_file_replace_flexifile ) sets the backend to use.
 
 	* psppire-data-store.c : Updated callers accordingly.
 
-	* psppire-dict.c psppire-dict.h : New function 
+	* psppire-dict.c psppire-dict.h : New function
 	(psppire_dict_replace_dictionary) .
 
-	* psppire.c : Updated to use new dataset replace_{source, dictionary} 
+	* psppire.c : Updated to use new dataset replace_{source, dictionary}
 	callbacks.
 
-	* syntax-editor.c : parses in state CMD_STATE_DATA unless there are 
+	* syntax-editor.c : parses in state CMD_STATE_DATA unless there are
 	no variables in the dictionary.
 
 Mon Dec 25 12:38:24 WST 2006 John Darrington <john@darrington.wattle.id.au>
@@ -373,16 +391,16 @@ Mon Dec 25 08:49:57 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 Sun Dec 17 08:26:10 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
-	* syntax-editor-source.c syntax-editor-source.h syntax-editor.h: 
-	New files. 
+	* syntax-editor-source.c syntax-editor-source.h syntax-editor.h:
+	New files.
 
-	* message-dialog.c :  Now reports the filename and line number in 
+	* message-dialog.c :  Now reports the filename and line number in
 	error messages.
-	
-	* psppire.c psppire.glade syntax-editor.c: Added the ability to run 
+
+	* psppire.c psppire.glade syntax-editor.c: Added the ability to run
 	syntax from the syntax editor.
 
-	
+
 Sat Dec 16 14:13:07 2006  Ben Pfaff  <blp@gnu.org>
 
 	* psppire-data-store.c (geometry_get_justification): Don't assume
@@ -399,16 +417,16 @@ Sat Dec 16 12:24:35 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-variable.c psppire-variable.h: Deleted.
 
-	* psppire-dict.c psppire-dict.h: Removed the caching of the variable 
-	    data, which is now unecessary because src/data/vardict.h maintains 
+	* psppire-dict.c psppire-dict.h: Removed the caching of the variable
+	    data, which is now unecessary because src/data/vardict.h maintains
 	    an association between variables and their dictionary.
-	
-	* data-sheet.c menu-actions.c missing-val-dialog.c 
-	  missing-val-dialog.h psppire-data-store.c 
-	  psppire-var-store.c psppire-var-store.h 
-	  sort-cases-dialog.c val-labs-dialog.c val-labs-dialog.h 
-	  var-sheet.c var-type-dialog.c var-type-dialog.h: Dealt with the 
-	    consequences of deleting psppire-variable.[ch]. 
+
+	* data-sheet.c menu-actions.c missing-val-dialog.c
+	  missing-val-dialog.h psppire-data-store.c
+	  psppire-var-store.c psppire-var-store.h
+	  sort-cases-dialog.c val-labs-dialog.c val-labs-dialog.h
+	  var-sheet.c var-type-dialog.c var-type-dialog.h: Dealt with the
+	    consequences of deleting psppire-variable.[ch].
 
 
 Sat Dec  9 20:03:04 2006  Ben Pfaff  <blp@gnu.org>
@@ -435,50 +453,50 @@ Mon Jul 17 18:21:29 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 Sat Jul 15 11:27:15 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
-   * psppire.c psppire.glade automake.mk icons/* : Added toolbar icons where 
+   * psppire.c psppire.glade automake.mk icons/* : Added toolbar icons where
    	there's no suitable gtk stock icon.
 
 Tue Jul  4 09:08:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
-	
+
    * psppire.c: Fixed --help and --version options.
-	
+
 Sat Jun 24 16:56:22 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * menu-actions.c: Added goto case and sort cases dialogs.
 
    * psppire-case-file.c psppire-case-file.h: Added sort function.
 
-   * psppire-data-store.c psppire-variable.c psppire-variable.h: 
+   * psppire-data-store.c psppire-variable.c psppire-variable.h:
      Renamed  psppire_variable_get_index to psppire_variable_get_fv and
      dealt with the consequences.  Added a psppire_variable_get_index
      function which actually does what the name suggests.
 
    * psppire-dict.c psppire-dict.h: Implemented GtkTreeModel interface,
-     which allows a dictionary to be displayed in a GtkTreeView.	
+     which allows a dictionary to be displayed in a GtkTreeView.
 
-   * psppire.glade: Added dialog boxes for Goto Case and Sort Case.	
+   * psppire.glade: Added dialog boxes for Goto Case and Sort Case.
 
    * sort-cases-dialog.c sort-cases-dialog.h (new files).
 
 Mon Jun 19 18:10:53 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
    * psppire-case-file.c psppire-case-file.h (new files)
-   
+
    * automake.mk data-sheet.c data-sheet.h menu-actions.c
    psppire-data-store.c psppire-data-store.h psppire-dict.c
    psppire-dict.h psppire-var-store.c psppire.c
-   
+
      Replaced psppire-case-array.c  with psppire-case-file.c, so as to
      allow an arbitrary number of cases to be represented.
-   
+
 Sun Jun  4 15:50:28 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
-   * psppire-var-store.c, psppire.c, var-sheet.c :  Unlimited the number of 
+   * psppire-var-store.c, psppire.c, var-sheet.c :  Unlimited the number of
    variables that can be displayed. Minor i18n issues.
 
 Tue May 30 19:53:35 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
-   * menu-actions.c menu-actions.h psppire.c: Fixed up load/new 
+   * menu-actions.c menu-actions.h psppire.c: Fixed up load/new
    interactions with startup.
 
    * psppire-data-store.c: Fixed bad i18n call.
@@ -490,8 +508,8 @@ Tue May 30 19:53:35 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 Sat May 27 16:25:38 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
-   * customentry.c data-sheet.c menu-actions.c message-dialog.c 
-     missing-val-dialog.c psppire-data-store.c psppire-var-store.c 
+   * customentry.c data-sheet.c menu-actions.c message-dialog.c
+     missing-val-dialog.c psppire-data-store.c psppire-var-store.c
      psppire.c psppire.glade var-sheet.c: Fixed internationalisation.
 
 Thu May 25 18:01:17 WST 2006 John Darrington <john@darrington.wattle.id.au>
@@ -512,24 +530,24 @@ Sat May 20 21:08:18 WST 2006 John Darrington <john@darrington.wattle.id.au>
    * psppire.c: Allowed user to specify *.sav file on command line.
 
 Mon May 15 20:01:25 WST 2006 John Darrington <john@darrington.wattle.id.au>
-	
+
 	* menu-actions.c psppire-case-array.c psppire-case-array.h
-	  psppire-data-store.c  psppire-dict.c psppire-dict.h 
+	  psppire-data-store.c  psppire-dict.c psppire-dict.h
 	  psppire-variable.c:
 
 	  Initialised new cases to SYSMIS/blank when inserting in data sheet.
 
 Sat May 13 08:00:50 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
-	* data-sheet.c, helper.c, helper.h, psppire-data-store.c, 
+	* data-sheet.c, helper.c, helper.h, psppire-data-store.c,
           psppire-var-store.c:
-	  
-	  Set free_strings flag so that the gtksheet frees the string data 
+
+	  Set free_strings flag so that the gtksheet frees the string data
 	  when it's done with them.
 
 Thu May 11 22:25:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
-	* data-sheet.c helper.c helper.h psppire-data-store.c psppire-var-store.c 
+	* data-sheet.c helper.c helper.h psppire-data-store.c psppire-var-store.c
 	psppire.c: Converted strings to utf8 before passing to gtksheet.
 
 	* psppire-dict.c: Changed buffer to more reasonable length
@@ -537,7 +555,7 @@ Thu May 11 22:25:49 WST 2006 John Darrington <john@darrington.wattle.id.au>
 	* var-sheet.c: Changed maximum string length to use macro from
 	data/values.h
 
-	
+
 Sun May  7 10:07:28 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-data-store.c: Fixed buglet initialising string members.
@@ -557,7 +575,7 @@ Tue Apr 25 11:08:04 2006  Ben Pfaff  <blp@gnu.org>
 
 	Finish reforming error message support.  In this phase, move
 	message.c into libpspp.
-	
+
 	* automake.mk: (src_ui_gui_psppire_SOURCES) Remove src/message.c.
 
 Tue Apr 25 10:56:53 2006  Ben Pfaff  <blp@gnu.org>
@@ -583,7 +601,7 @@ Sun Apr 23 22:07:49 2006  Ben Pfaff  <blp@gnu.org>
 	Continue reforming error message support.  In this phase, get rid
 	of message "titles" and put the message text in `struct error'.
 	Now `struct error' encapsulates a message more properly.
-	
+
 	* message-dialog.c: (err_vmsg) Rename err_msg().  Updated
 	interface.
 
@@ -603,7 +621,7 @@ Sun Apr 16 16:06:54 2006  Ben Pfaff  <blp@gnu.org>
 	rid of VM() and the other msg() support for "verbosity", replacing
 	it by a new function verbose_msg().
 
-	* message-dialog.c: (verbose_msg) New function.  
+	* message-dialog.c: (verbose_msg) New function.
 	(err_cond_fail) Removed (dead code).
 	(err_failure) Removed (dead code).
 
@@ -622,7 +640,7 @@ Mon Mar 13 16:42:44 WST 2006 John Darrington <john@darrington.wattle.id.au>
     * Rename error-dialog.[ch] -> message-dialog.[ch]
 
     * Moved code from the psppire module.
-	
+
 Sat Jan 28 16:22:23 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
     * Separated the data out of the GtkSheet.

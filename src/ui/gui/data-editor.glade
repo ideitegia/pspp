@@ -134,7 +134,7 @@
                 <child>
                   <widget class="GtkMenu" id="edit_menu">
                     <child>
-                      <widget class="GtkImageMenuItem" id="cut1">
+                      <widget class="GtkImageMenuItem" id="edit_cut">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label">gtk-cut</property>
@@ -143,7 +143,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="copy1">
+                      <widget class="GtkImageMenuItem" id="edit_copy">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label">gtk-copy</property>
@@ -152,7 +152,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="paste1">
+                      <widget class="GtkImageMenuItem" id="edit_paste">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label">gtk-paste</property>
@@ -161,7 +161,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="paste_variables1">
+                      <widget class="GtkMenuItem" id="edit_paste-variables">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">Paste _Variables</property>

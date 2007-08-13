@@ -63,6 +63,23 @@ struct dictionary
     void *cb_data ;                  /* Data passed to callbacks */
   };
 
+/* Print a representation of dictionary D to stdout, for
+   debugging purposes. */
+void
+dict_dump (const struct dictionary *d)
+{
+  int i;
+  for (i = 0 ; i < d->var_cnt ; ++i )
+    {
+      const struct variable *v =
+	d->var[i];
+      printf ("Name: %s;\tdict_idx: %d; case_idx: %d\n",
+	      var_get_name (v),
+	      var_get_dict_index (v),
+	      var_get_case_index (v));
+
+    }
+}
 
 /* Associate CALLBACKS with DICT.  Callbacks will be invoked whenever
    the dictionary or any of the variables it contains are modified.

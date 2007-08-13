@@ -39,6 +39,7 @@
 #include "comments-dialog.h"
 #include "variable-info-dialog.h"
 #include "dict-display.h"
+#include "clipboard.h"
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -52,6 +53,7 @@
 #include "psppire-data-store.h"
 #include "psppire-var-store.h"
 
+static void on_edit_copy (GtkMenuItem *, gpointer);
 
 static void create_data_sheet_variable_popup_menu (struct data_editor *);
 static void create_data_sheet_cases_popup_menu (struct data_editor *);
@@ -275,12 +277,18 @@ new_data_editor (void)
   connect_help (de->xml);
 
 
+
+  g_signal_connect (get_widget_assert (de->xml, "edit_copy"),
+		    "activate",
+		    G_CALLBACK (on_edit_copy), de);
+
+
   register_data_editor_actions (de);
 
   de->toggle_value_labels =
     gtk_toggle_action_new ("toggle-value-labels",
 			   _("Labels"),
-			   _("Show (hide) value labels"),
+			   _("Show/hide value labels"),
 			   "pspp-value-labels");
 
   g_signal_connect (de->toggle_value_labels, "activate",
@@ -771,21 +779,24 @@ data_var_select (GtkNotebook *notebook,
 
   GtkWidget *view_data = get_widget_assert (de->xml, "view_data");
   GtkWidget *view_variables = get_widget_assert (de->xml, "view_variables");
+  GtkWidget *edit_copy = get_widget_assert (de->xml, "edit_copy");
 
   switch (page_num)
     {
     case PAGE_VAR_SHEET:
       gtk_widget_hide (view_variables);
       gtk_widget_show (view_data);
+      gtk_widget_set_sensitive (edit_copy, FALSE);
       gtk_action_set_sensitive (de->insert_variable, TRUE);
       gtk_action_set_sensitive (de->insert_case, FALSE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
       break;
     case PAGE_DATA_SHEET:
       gtk_widget_show (view_variables);
-      gtk_widget_hide (view_data);
+      gtk_widget_show (view_data);
       gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
       gtk_action_set_sensitive (de->insert_case, TRUE);
+      gtk_widget_set_sensitive (edit_copy, TRUE);
       break;
     default:
       g_assert_not_reached ();
@@ -1713,3 +1724,18 @@ popup_cases_menu (GtkSheet *sheet, gint row,
 		      event->button, event->time);
     }
 }
+
+
+
+static void
+on_edit_copy (GtkMenuItem *m, gpointer data)
+{
+  struct data_editor *de = data;
+
+  GtkSheet *data_sheet = GTK_SHEET (get_widget_assert (de->xml,
+						       "data_sheet"));
+
+  data_sheet_set_clip (data_sheet);
+}
+
+

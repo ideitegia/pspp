@@ -1,5 +1,9 @@
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
+	* dictionary.c (dict_dump): New function.
+
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
 	Drop dict_compactor in favor of using the new struct case_map.
 
 	* dictionary.c (struct copy_map): Removed.

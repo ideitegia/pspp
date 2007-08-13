@@ -140,4 +140,6 @@ const struct vector *dict_lookup_vector (const struct dictionary *,
                                          const char *name);
 void dict_clear_vectors (struct dictionary *);
 
+void dict_dump (const struct dictionary *);
+
 #endif /* dictionary.h */
