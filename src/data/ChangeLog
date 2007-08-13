@@ -1,5 +1,13 @@
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
+	* automake.mk: Add case-map.c, case-map.h.
+
+	* case-map.c: New file.
+
+	* case-map.h: New file.
+
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
 	* dictionary.c (dict_compact_values): Don't delete scratch
 	variables as well as compacting case indexes.  Update all callers.
 	(dict_get_compacted_value_cnt): Rename dict_count_values and

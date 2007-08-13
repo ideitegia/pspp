@@ -21,6 +21,7 @@
 #include <data/any-reader.h>
 #include <data/any-writer.h>
 #include <data/case.h>
+#include <data/case-map.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
 #include <data/format.h>
@@ -47,14 +48,6 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
-
-/* Rearranging and reducing a dictionary. */
-static void start_case_map (struct dictionary *);
-static struct case_map *finish_case_map (struct dictionary *);
-static void map_case (const struct case_map *,
-                      const struct ccase *, struct ccase *);
-static void destroy_case_map (struct case_map *);
-static size_t case_map_get_value_cnt (const struct case_map *);
 
 static bool parse_dict_trim (struct lexer *, struct dictionary *);
 
@@ -120,7 +113,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
   if (reader == NULL)
     goto error;
 
-  start_case_map (dict);
+  case_map_prepare_dict (dict);
 
   while (lex_token (lexer) != '.')
     {
@@ -129,7 +122,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
         goto error;
     }
 
-  map = finish_case_map (dict);
+  map = case_map_from_dict (dict);
   if (map != NULL)
     reader = casereader_create_translator (reader,
                                            dict_get_next_value_idx (dict),
@@ -153,14 +146,14 @@ get_translate_case (const struct ccase *input, struct ccase *output,
                     void *map_)
 {
   struct case_map *map = map_;
-  map_case (map, input, output);
+  case_map_execute (map, input, output);
 }
 
 static bool
 get_destroy_case_map (void *map_)
 {
   struct case_map *map = map_;
-  destroy_case_map (map);
+  case_map_destroy (map);
   return true;
 }
 
@@ -238,7 +231,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   sysfile_opts = sfm_writer_default_options ();
   porfile_opts = pfm_writer_default_options ();
 
-  start_case_map (dict);
+  case_map_prepare_dict (dict);
   dict_delete_scratch_vars (dict);
 
   lex_match (lexer, '/');
@@ -357,7 +350,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   if (writer == NULL)
     goto error;
 
-  map = finish_case_map (dict);
+  map = case_map_from_dict (dict);
   if (map != NULL)
     writer = casewriter_create_translator (writer,
                                            case_map_get_value_cnt (map),
@@ -371,7 +364,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
  error:
   casewriter_destroy (writer);
   dict_destroy (dict);
-  destroy_case_map (map);
+  case_map_destroy (map);
   return NULL;
 }
 
@@ -1325,132 +1318,4 @@ mtf_merge_dictionary (struct dictionary *const m, struct mtf_file *f)
     }
 
   return true;
-}
-
-/* Case map.
-
-   A case map copies data from a case that corresponds for one
-   dictionary to a case that corresponds to a second dictionary
-   derived from the first by, optionally, deleting, reordering,
-   or renaming variables.  (No new variables may be created.)
-   */
-
-/* A case map. */
-struct case_map
-  {
-    size_t value_cnt;   /* Number of values in map. */
-    int *map;           /* For each destination index, the
-                           corresponding source index. */
-  };
-
-/* Prepares dictionary D for producing a case map.  Afterward,
-   the caller may delete, reorder, or rename variables within D
-   at will before using finish_case_map() to produce the case
-   map.
-
-   Uses D's aux members, which must otherwise not be in use. */
-static void
-start_case_map (struct dictionary *d)
-{
-  size_t var_cnt = dict_get_var_cnt (d);
-  size_t i;
-
-  for (i = 0; i < var_cnt; i++)
-    {
-      struct variable *v = dict_get_var (d, i);
-      int *src_fv = xmalloc (sizeof *src_fv);
-      *src_fv = var_get_case_index (v);
-      var_attach_aux (v, src_fv, var_dtor_free);
-    }
-}
-
-/* Produces a case map from dictionary D, which must have been
-   previously prepared with start_case_map().
-
-   Does not retain any reference to D, and clears the aux members
-   set up by start_case_map().
-
-   Returns the new case map, or a null pointer if no mapping is
-   required (that is, no data has changed position). */
-static struct case_map *
-finish_case_map (struct dictionary *d)
-{
-  struct case_map *map;
-  size_t var_cnt = dict_get_var_cnt (d);
-  size_t i;
-  int identity_map;
-
-  map = xmalloc (sizeof *map);
-  map->value_cnt = dict_get_next_value_idx (d);
-  map->map = xnmalloc (map->value_cnt, sizeof *map->map);
-  for (i = 0; i < map->value_cnt; i++)
-    map->map[i] = -1;
-
-  identity_map = 1;
-  for (i = 0; i < var_cnt; i++)
-    {
-      struct variable *v = dict_get_var (d, i);
-      size_t value_cnt = var_get_value_cnt (v);
-      int *src_fv = (int *) var_detach_aux (v);
-      size_t idx;
-
-      if (var_get_case_index (v) != *src_fv)
-        identity_map = 0;
-
-      for (idx = 0; idx < value_cnt; idx++)
-        {
-          int src_idx = *src_fv + idx;
-          int dst_idx = var_get_case_index (v) + idx;
-
-          assert (map->map[dst_idx] == -1);
-          map->map[dst_idx] = src_idx;
-        }
-      free (src_fv);
-    }
-
-  if (identity_map)
-    {
-      destroy_case_map (map);
-      return NULL;
-    }
-
-  while (map->value_cnt > 0 && map->map[map->value_cnt - 1] == -1)
-    map->value_cnt--;
-
-  return map;
-}
-
-/* Maps from SRC to DST, applying case map MAP. */
-static void
-map_case (const struct case_map *map,
-          const struct ccase *src, struct ccase *dst)
-{
-  size_t dst_idx;
-
-  case_create (dst, map->value_cnt);
-  for (dst_idx = 0; dst_idx < map->value_cnt; dst_idx++)
-    {
-      int src_idx = map->map[dst_idx];
-      if (src_idx != -1)
-        *case_data_rw_idx (dst, dst_idx) = *case_data_idx (src, src_idx);
-    }
-}
-
-/* Destroys case map MAP. */
-static void
-destroy_case_map (struct case_map *map)
-{
-  if (map != NULL)
-    {
-      free (map->map);
-      free (map);
-    }
-}
-
-/* Returns the number of `union value's in cases created by
-   MAP. */
-static size_t
-case_map_get_value_cnt (const struct case_map *map)
-{
-  return map->value_cnt;
 }

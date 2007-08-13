@@ -1,5 +1,14 @@
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
+	* get.c (struct case_map): Move into new file src/data/case-map.c.
+	(start_case_map): Ditto, and rename case_map_prepare_dict.
+	(finish_case_map): Ditto, and rename case_map_from_dict.
+	(map_case): Ditto, and rename case_map_execute.
+	(destroy_case_map): Ditto, and rename case_map_destroy.
+	(case_map_get_value_cnt): Ditto.
+
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
 	* get.c (case_map_get_value_cnt): New function.
 
 2007-07-25  Ben Pfaff  <blp@gnu.org>
