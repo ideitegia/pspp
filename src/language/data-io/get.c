@@ -337,6 +337,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
       goto error;
     }
 
+  dict_delete_scratch_vars (dict);
   dict_compact_values (dict);
 
   if (fh_get_referent (handle) == FH_REF_FILE)
@@ -983,6 +984,7 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
       || !create_flag_var ("LAST", last_name, mtf.dict, &mtf.last))
     goto error;
 
+  dict_delete_scratch_vars (mtf.dict);
   dict_compact_values (mtf.dict);
   mtf.output = autopaging_writer_create (dict_get_next_value_idx (mtf.dict));
   taint = taint_clone (casewriter_get_taint (mtf.output));

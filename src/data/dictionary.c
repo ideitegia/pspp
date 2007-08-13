@@ -824,29 +824,21 @@ dict_get_case_size (const struct dictionary *d)
   return sizeof (union value) * dict_get_next_value_idx (d);
 }
 
-/* Deletes scratch variables in dictionary D and reassigns values
-   so that fragmentation is eliminated. */
+/* Reassigns values in dictionary D so that fragmentation is
+   eliminated. */
 void
 dict_compact_values (struct dictionary *d)
 {
   size_t i;
 
   d->next_value_idx = 0;
-  for (i = 0; i < d->var_cnt; )
+  for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
-
-      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH)
-        {
-          set_var_case_index (v, d->next_value_idx);
-          d->next_value_idx += var_get_value_cnt (v);
-          i++;
-        }
-      else
-        dict_delete_var (d, v);
+      set_var_case_index (v, d->next_value_idx);
+      d->next_value_idx += var_get_value_cnt (v);
     }
 }
-
 
 /*
    Reassigns case indices for D, increasing each index above START by
@@ -874,88 +866,34 @@ dict_pad_values (struct dictionary *d, int start, int padding)
 }
 
 
-/* Returns the number of values that would be used by a case if
-   dict_compact_values() were called. */
+/* Returns the number of values occupied by the variables in
+   dictionary D.  All variables are considered if EXCLUDE_CLASSES
+   is 0, or it may contain one or more of (1u << DC_ORDINARY),
+   (1u << DC_SYSTEM), or (1u << DC_SCRATCH) to exclude the
+   corresponding type of variable.
+
+   The return value may be less than the number of values in one
+   of dictionary D's cases (as returned by
+   dict_get_next_value_idx) even if E is 0, because there may be
+   gaps in D's cases due to deleted variables. */
 size_t
-dict_get_compacted_value_cnt (const struct dictionary *d)
+dict_count_values (const struct dictionary *d, unsigned int exclude_classes)
 {
   size_t i;
   size_t cnt;
 
+  assert ((exclude_classes & ~((1u << DC_ORDINARY)
+                               | (1u << DC_SYSTEM)
+                               | (1u << DC_SCRATCH))) == 0);
+
   cnt = 0;
   for (i = 0; i < d->var_cnt; i++)
-    if (dict_class_from_id (var_get_name (d->var[i])) != DC_SCRATCH)
-      cnt += var_get_value_cnt (d->var[i]);
+    {
+      enum dict_class class = dict_class_from_id (var_get_name (d->var[i]));
+      if (!(exclude_classes & (1u << class)))
+        cnt += var_get_value_cnt (d->var[i]);
+    }
   return cnt;
-}
-
-/* Creates and returns an array mapping from a dictionary index
-   to the case index that the corresponding variable will have
-   after calling dict_compact_values().  Scratch variables
-   receive -1 for case index because dict_compact_values() will
-   delete them. */
-int *
-dict_get_compacted_dict_index_to_case_index (const struct dictionary *d)
-{
-  size_t i;
-  size_t next_value_idx;
-  int *map;
-
-  map = xnmalloc (d->var_cnt, sizeof *map);
-  next_value_idx = 0;
-  for (i = 0; i < d->var_cnt; i++)
-    {
-      struct variable *v = d->var[i];
-
-      if (dict_class_from_id (var_get_name (v)) != DC_SCRATCH)
-        {
-          map[i] = next_value_idx;
-          next_value_idx += var_get_value_cnt (v);
-        }
-      else
-        map[i] = -1;
-    }
-  return map;
-}
-
-/* Returns true if a case for dictionary D would be smaller after
-   compacting, false otherwise.  Compacting a case eliminates
-   "holes" between values and after the last value.  Holes are
-   created by deleting variables (or by scratch variables).
-
-   The return value may differ from whether compacting a case
-   from dictionary D would *change* the case: compacting could
-   rearrange values even if it didn't reduce space
-   requirements. */
-bool
-dict_compacting_would_shrink (const struct dictionary *d)
-{
-  return dict_get_compacted_value_cnt (d) < dict_get_next_value_idx (d);
-}
-
-/* Returns true if a case for dictionary D would change after
-   compacting, false otherwise.  Compacting a case eliminates
-   "holes" between values and after the last value.  Holes are
-   created by deleting variables (or by scratch variables).
-
-   The return value may differ from whether compacting a case
-   from dictionary D would *shrink* the case: compacting could
-   rearrange values without reducing space requirements. */
-bool
-dict_compacting_would_change (const struct dictionary *d)
-{
-  size_t case_idx;
-  size_t i;
-
-  case_idx = 0;
-  for (i = 0; i < dict_get_var_cnt (d); i++)
-    {
-      struct variable *v = dict_get_var (d, i);
-      if (var_get_case_index (v) != case_idx)
-        return true;
-      case_idx += var_get_value_cnt (v);
-    }
-  return false;
 }
 
 /* How to copy a contiguous range of values between cases. */
@@ -977,16 +915,24 @@ struct dict_compactor
    compact cases for dictionary D.
 
    Compacting a case eliminates "holes" between values and after
-   the last value.  Holes are created by deleting variables (or
-   by scratch variables). */
+   the last value.  (Holes are created by deleting variables.)
+
+   All variables are compacted if EXCLUDE_CLASSES is 0, or it may
+   contain one or more of (1u << DC_ORDINARY), (1u << DC_SYSTEM),
+   or (1u << DC_SCRATCH) to cause the corresponding type of
+   variable to be deleted during compaction. */
 struct dict_compactor *
-dict_make_compactor (const struct dictionary *d)
+dict_make_compactor (const struct dictionary *d, unsigned int exclude_classes)
 {
   struct dict_compactor *compactor;
   struct copy_map *map;
   size_t map_allocated;
   size_t value_idx;
   size_t i;
+
+  assert ((exclude_classes & ~((1u << DC_ORDINARY)
+                               | (1u << DC_SYSTEM)
+                               | (1u << DC_SCRATCH))) == 0);
 
   compactor = xmalloc (sizeof *compactor);
   compactor->maps = NULL;
@@ -998,9 +944,10 @@ dict_make_compactor (const struct dictionary *d)
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
-
-      if (dict_class_from_id (var_get_name (v)) == DC_SCRATCH)
+      enum dict_class class = dict_class_from_id (var_get_name (v));
+      if (exclude_classes & (1u << class))
         continue;
+
       if (map != NULL && map->src_idx + map->cnt == var_get_case_index (v))
         map->cnt += var_get_value_cnt (v);
       else
@@ -1023,8 +970,7 @@ dict_make_compactor (const struct dictionary *d)
    COMPACTOR.
 
    Compacting a case eliminates "holes" between values and after
-   the last value.  Holes are created by deleting variables (or
-   by scratch variables). */
+   the last value.  (Holes are created by deleting variables.) */
 void
 dict_compactor_compact (const struct dict_compactor *compactor,
                         struct ccase *dst, const struct ccase *src)

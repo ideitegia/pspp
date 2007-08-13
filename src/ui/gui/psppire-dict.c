@@ -781,17 +781,14 @@ psppire_dict_dump (const PsppireDict *dict)
   gint i;
   const struct dictionary *d = dict->dict;
 
-  int *map = dict_get_compacted_dict_index_to_case_index (d);
-
   for (i = 0; i < dict_get_var_cnt (d); ++i)
     {
       const struct variable *v = psppire_dict_get_variable (dict, i);
       int di = var_get_dict_index (v);
-      g_print ("\"%s\" idx=%d, fv=%d(%d), size=%d\n",
+      g_print ("\"%s\" idx=%d, fv=%d, size=%d\n",
 	       var_get_name(v),
 	       di,
 	       var_get_case_index(v),
-	       map[di],
 	       value_cnt_from_width(var_get_width(v)));
 
     }

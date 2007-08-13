@@ -62,7 +62,6 @@ struct flip_pgm
   {
     struct pool *pool;          /* Pool containing FLIP data. */
     const struct variable **var;      /* Variables to transpose. */
-    int *idx_to_fv;             /* var[]->index to compacted sink case fv. */
     size_t var_cnt;             /* Number of elements in `var'. */
     int case_cnt;               /* Pre-flip case count. */
 
@@ -101,8 +100,6 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
 
   flip = pool_create_container (struct flip_pgm, pool);
   flip->var = NULL;
-  flip->idx_to_fv = dict_get_compacted_dict_index_to_case_index (dict);
-  pool_register (flip->pool, free, flip->idx_to_fv);
   flip->var_cnt = 0;
   flip->case_cnt = 0;
   flip->new_names = NULL;
@@ -171,7 +168,6 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->case_cnt = 1;
 
   /* Read the active file into a flip_sink. */
-  proc_make_temporary_transformations_permanent (ds);
   proc_discard_output (ds);
 
   input = proc_open (ds);
@@ -318,11 +314,10 @@ write_flip_case (struct flip_pgm *flip, const struct ccase *c)
   if (flip->new_names != NULL)
     {
       struct varname *v = pool_alloc (flip->pool, sizeof *v);
-      int fv = flip->idx_to_fv[var_get_dict_index (flip->new_names)];
       v->next = NULL;
       if (var_is_numeric (flip->new_names))
         {
-          double f = case_num_idx (c, fv);
+          double f = case_num (c, flip->new_names);
 
           if (f == SYSMIS)
             strcpy (v->name, "VSYSMIS");
@@ -336,7 +331,7 @@ write_flip_case (struct flip_pgm *flip, const struct ccase *c)
       else
 	{
 	  int width = MIN (var_get_width (flip->new_names), MAX_SHORT_STRING);
-	  memcpy (v->name, case_str_idx (c, fv), width);
+	  memcpy (v->name, case_str (c, flip->new_names), width);
 	  v->name[width] = 0;
 	}
 
@@ -350,15 +345,8 @@ write_flip_case (struct flip_pgm *flip, const struct ccase *c)
   /* Write to external file. */
   for (i = 0; i < flip->var_cnt; i++)
     {
-      double out;
-
-      if (var_is_numeric (flip->var[i]))
-        {
-          int fv = flip->idx_to_fv[var_get_dict_index (flip->var[i])];
-          out = case_num_idx (c, fv);
-        }
-      else
-        out = SYSMIS;
+      const struct variable *v = flip->var[i];
+      double out = var_is_numeric (v) ? case_num (c, v) : SYSMIS;
       fwrite (&out, sizeof out, 1, flip->file);
     }
   return true;

@@ -1,5 +1,20 @@
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
+	* dictionary.c (dict_compact_values): Don't delete scratch
+	variables as well as compacting case indexes.  Update all callers.
+	(dict_get_compacted_value_cnt): Rename dict_count_values and
+	change interface.  Update all callers.
+	(dict_get_compacted_value_cnt): Remove.
+	(dict_compacting_would_shrink): Remove.
+	(dict_compacting_would_change): Remove.
+	(dict_make_compactor): Add new parameter.  Update all callers.
+	
+	* procedure.c (proc_casereader_read): Use casewriter_get_value_cnt
+	instead of dict_count_values, changing an O(N) operation into
+	O(1).
+
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
 	* casereader.c (casereader_read): Don't require cases read by a
 	casereader to be exactly the expected size: as long as they're big
 	enough, it's OK.

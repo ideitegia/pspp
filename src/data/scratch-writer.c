@@ -27,6 +27,7 @@
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <data/scratch-handle.h>
+#include <data/variable.h>
 #include <libpspp/compiler.h>
 #include <libpspp/taint.h>
 
@@ -68,9 +69,11 @@ scratch_writer_open (struct file_handle *fh,
 
   /* Copy the dictionary and compact if needed. */
   scratch_dict = dict_clone (dictionary);
-  if (dict_compacting_would_shrink (scratch_dict))
+  dict_delete_scratch_vars (scratch_dict);
+  if (dict_count_values (scratch_dict, 0)
+      < dict_get_next_value_idx (scratch_dict))
     {
-      compactor = dict_make_compactor (scratch_dict);
+      compactor = dict_make_compactor (scratch_dict, 0);
       dict_compact_values (scratch_dict);
     }
   else

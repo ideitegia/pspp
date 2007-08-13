@@ -102,13 +102,12 @@ void dict_set_case_limit (struct dictionary *, size_t);
 int dict_get_next_value_idx (const struct dictionary *);
 size_t dict_get_case_size (const struct dictionary *);
 
+size_t dict_count_values (const struct dictionary *,
+                          unsigned int exclude_classes);
 void dict_compact_values (struct dictionary *);
-size_t dict_get_compacted_value_cnt (const struct dictionary *);
-int *dict_get_compacted_dict_index_to_case_index (const struct dictionary *);
-bool dict_compacting_would_shrink (const struct dictionary *);
-bool dict_compacting_would_change (const struct dictionary *);
 
-struct dict_compactor *dict_make_compactor (const struct dictionary *);
+struct dict_compactor *dict_make_compactor (const struct dictionary *,
+                                            unsigned int exclude_classes);
 void dict_compactor_compact (const struct dict_compactor *,
                              struct ccase *, const struct ccase *);
 void dict_compactor_destroy (struct dict_compactor *);

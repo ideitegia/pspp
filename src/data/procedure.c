@@ -170,11 +170,13 @@ proc_open (struct dataset *ds)
   /* Prepare sink. */
   if (!ds->discard_output)
     {
-      ds->compactor = (dict_compacting_would_shrink (ds->permanent_dict)
-                       ? dict_make_compactor (ds->permanent_dict)
+      struct dictionary *pd = ds->permanent_dict;
+      size_t compacted_value_cnt = dict_count_values (pd, 1u << DC_SCRATCH);
+      bool should_compact = compacted_value_cnt < dict_get_next_value_idx (pd);
+      ds->compactor = (should_compact
+                       ? dict_make_compactor (pd, 1u << DC_SCRATCH)
                        : NULL);
-      ds->sink = autopaging_writer_create (dict_get_compacted_value_cnt (
-                                             ds->permanent_dict));
+      ds->sink = autopaging_writer_create (compacted_value_cnt);
     }
   else
     {
@@ -257,7 +259,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
           struct ccase tmp;
           if (ds->compactor != NULL)
             {
-              case_create (&tmp, dict_get_compacted_value_cnt (ds->dict));
+              case_create (&tmp, casewriter_get_value_cnt (ds->sink));
               dict_compactor_compact (ds->compactor, &tmp, c);
             }
           else
@@ -325,8 +327,10 @@ proc_commit (struct dataset *ds)
       if (ds->compactor != NULL)
         {
           dict_compactor_destroy (ds->compactor);
-          dict_compact_values (ds->dict);
           ds->compactor = NULL;
+
+          dict_delete_scratch_vars (ds->dict);
+          dict_compact_values (ds->dict);
         }
 
       /* Old data sink becomes new data source. */
