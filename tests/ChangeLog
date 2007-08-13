@@ -1,3 +1,14 @@
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
+	* command/no_case_size.sh: Update to match update DISPLAY and
+	SYSFILE INFO command output.
+
+	* command/rank.sh: Ditto.
+
+	* command/sysfile-info.sh: Ditto.
+
+	* command/very-long-strings.sh: Ditto.
+
 2007-08-09  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #18982.  Thanks to John Darrington for investigation,

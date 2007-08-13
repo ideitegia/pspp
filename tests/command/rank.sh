@@ -389,26 +389,50 @@ b into Nb(N of b)
 |Variable|Description                                |Position|
 #========#===========================================#========#
 |a       |Format: F8.2                               |       1|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |b       |Format: F8.2                               |       2|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |count   |N of a                                     |       3|
 |        |Format: F6.0                               |        |
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |Ra      |RANK of a                                  |       4|
 |        |Format: F9.3                               |        |
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |Rb      |RANK of b                                  |       5|
 |        |Format: F9.3                               |        |
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |RFR001  |RFRACTION of a                             |       6|
 |        |Format: F6.4                               |        |
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |RFR002  |RFRACTION of b                             |       7|
 |        |Format: F6.4                               |        |
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |Nb      |N of b                                     |       8|
 |        |Format: F6.0                               |        |
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
        a        b  count        Ra        Rb RFR001 RFR002     Nb
 -------- -------- ------ --------- --------- ------ ------ ------
@@ -430,13 +454,25 @@ foo into RAN001(RANK of foo)
 |Variable|Description                                |Position|
 #========#===========================================#========#
 |foo     |Format: F8.2                               |       1|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |rfoo    |Format: F8.2                               |       2|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |ran003  |Format: F8.2                               |       3|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |RAN001  |RANK of foo                                |       4|
 |        |Format: F9.3                               |        |
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 Variables Created By RANK
 a into Sa(SAVAGE of a)

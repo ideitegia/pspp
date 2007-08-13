@@ -80,15 +80,27 @@ diff -b -w pspp.list - <<EOF
 #========#===========================================#========#
 |cont    |continents of the world                    |       1|
 |        |Format: A32                                |        |
+|        |Measure: Nominal                           |        |
+|        |Display Alignment: Left                    |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |size    |sq km                                      |       2|
 |        |Format: F8.2                               |        |
+|        |Measure: Nominal                           |        |
+|        |Display Alignment: Left                    |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |pop     |population                                 |       3|
 |        |Format: F8.2                               |        |
+|        |Measure: Nominal                           |        |
+|        |Display Alignment: Left                    |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 |count   |number of countries                        |       4|
 |        |Format: F8.2                               |        |
+|        |Measure: Nominal                           |        |
+|        |Display Alignment: Left                    |        |
+|        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
                             cont     size      pop    count
 -------------------------------- -------- -------- --------

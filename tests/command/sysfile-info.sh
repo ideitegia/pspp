@@ -107,8 +107,14 @@ Mode:           Compression on.
 |        |             |on |
 #========#=============#===#
 |x       |Format: F8.2 |  1|
+|        |Measure:     |   |
+|        |Display      |   |
+|        |Display      |   |
 +--------+-------------+---+
 |name    |Format: A10  |  2|
+|        |Measure:     |   |
+|        |Display      |   |
+|        |Display      |   |
 +--------+-------------+---+
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
