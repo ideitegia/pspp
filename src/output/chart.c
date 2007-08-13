@@ -15,20 +15,29 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
+#include <output/chart.h>
+
+#include <assert.h>
+#include <errno.h>
+#include <float.h>
+#include <math.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <plot.h>
-#include <stdarg.h>
 #include <string.h>
-#include <float.h>
-#include <assert.h>
-#include <math.h>
 
-#include "chart.h"
-#include <libpspp/str.h>
+#include <plot.h>
+
 #include <libpspp/alloc.h>
-#include "manager.h"
-#include "output.h"
+#include <libpspp/str.h>
+#include <output/manager.h>
+#include <output/output.h>
+
+#include "error.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 extern struct som_table_class tab_table_class;
 
@@ -117,3 +126,33 @@ chart_submit(struct chart *chart)
   free(chart);
 }
 
+void
+chart_init_separate (struct chart *ch, const char *type,
+                     const char *file_name_tmpl, int number)
+{
+  FILE *fp;
+  int number_pos;
+
+  number_pos = strchr (file_name_tmpl, '#') - file_name_tmpl;
+  ch->file_name = xasprintf ("%.*s%d%s",
+                             number_pos, file_name_tmpl,
+                             number,
+                             file_name_tmpl + number_pos + 1);
+  fp = fopen (ch->file_name, "wb");
+  if (fp == NULL)
+    {
+      error (0, errno, _("creating \"%s\""), ch->file_name);
+      free (ch->file_name);
+      ch->file_name = NULL;
+      return;
+    }
+
+  ch->pl_params = pl_newplparams ();
+  ch->lp = pl_newpl_r (type, 0, fp, stderr, ch->pl_params);
+}
+
+void
+chart_finalise_separate (struct chart *ch)
+{
+  free (ch->file_name);
+}

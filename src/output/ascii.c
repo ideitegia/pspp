@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <data/file-name.h>
@@ -40,6 +41,9 @@
 /* ASCII driver options: (defaults listed first)
 
    output-file="pspp.list"
+   chart-files="pspp-#.png"     Name used for charts.
+   chart-type=png               Format of charts (use "none" to disable).
+
    paginate=on|off              Formfeeds are desired?
    tab-width=8                  Width of a tab; 0 to not use tabs.
 
@@ -101,6 +105,8 @@ struct ascii_driver_ext
     bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
     enum emphasis_style emphasis; /* How to emphasize text. */
     int tab_width;		/* Width of a tab; 0 not to use tabs. */
+    const char *chart_type;     /* Type of charts to output; NULL for none. */
+    const char *chart_file_name; /* Name of files used for charts. */
 
     int page_length;		/* Page length before subtracting margins. */
     int top_margin;		/* Top margin in lines. */
@@ -115,6 +121,7 @@ struct ascii_driver_ext
     int page_number;		/* Current page number. */
     struct line *lines;         /* Page content. */
     int line_cap;               /* Number of lines allocated. */
+    int chart_cnt;              /* Number of charts so far. */
   };
 
 static void ascii_flush (struct outp_driver *);
@@ -141,6 +148,8 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
   x->squeeze_blank_lines = false;
   x->emphasis = EMPH_BOLD;
   x->tab_width = 8;
+  x->chart_file_name = pool_strdup (x->pool, "pspp-#.png");
+  x->chart_type = pool_strdup (x->pool, "png");
   x->page_length = 66;
   x->top_margin = 2;
   x->bottom_margin = 2;
@@ -152,6 +161,7 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
   x->page_number = 0;
   x->lines = NULL;
   x->line_cap = 0;
+  x->chart_cnt = 0;
 
   if (!outp_parse_options (options, handle_option, this))
     goto error;
@@ -237,7 +247,6 @@ enum
     emphasis_arg,
     nonneg_int_arg,
     pos_int_arg,
-    output_file_arg,
     string_arg
   };
 
@@ -249,8 +258,6 @@ static const struct outp_option option_tab[] =
 
     {"emphasis", emphasis_arg, 0},
 
-    {"output-file", output_file_arg, 0},
-
     {"length", pos_int_arg, 0},
     {"width", pos_int_arg, 1},
 
@@ -258,7 +265,10 @@ static const struct outp_option option_tab[] =
     {"bottom-margin", nonneg_int_arg, 1},
     {"tab-width", nonneg_int_arg, 2},
 
-    {"init", string_arg, 0},
+    {"output-file", string_arg, 0},
+    {"chart-files", string_arg, 1},
+    {"chart-type", string_arg, 2},
+    {"init", string_arg, 3},
 
     {NULL, 0, 0},
   };
@@ -294,9 +304,6 @@ handle_option (struct outp_driver *this, const char *key,
     {
     case -1:
       error (0, 0, _("ascii: unknown parameter `%s'"), key);
-      break;
-    case output_file_arg:
-      x->file_name = pool_strdup (x->pool, value);
       break;
     case pos_int_arg:
       {
@@ -397,8 +404,27 @@ handle_option (struct outp_driver *this, const char *key,
       }
       break;
     case string_arg:
-      free (x->init);
-      x->init = pool_strdup (x->pool, value);
+      switch (subcat)
+        {
+        case 0:
+          x->file_name = pool_strdup (x->pool, value);
+          break;
+        case 1:
+          if (ds_find_char (val, '#') != SIZE_MAX)
+            x->chart_file_name = pool_strdup (x->pool, value);
+          else
+            error (0, 0, _("`chart-files' value must contain `#'"));
+          break;
+        case 2:
+          if (value[0] != '\0')
+            x->chart_type = pool_strdup (x->pool, value);
+          else
+            x->chart_type = NULL;
+          break;
+        case 3:
+          x->init = pool_strdup (x->pool, value);
+          break;
+        }
       break;
     default:
       NOT_REACHED ();
@@ -505,6 +531,15 @@ ascii_line (struct outp_driver *this,
 }
 
 static void
+ascii_submit (struct outp_driver *this UNUSED, struct som_entity *s)
+{
+  extern struct som_table_class tab_table_class;
+
+  assert (s->class == &tab_table_class);
+  assert (s->type == SOM_CHART);
+}
+
+static void
 text_draw (struct outp_driver *this,
            enum outp_font font,
            int x, int y,
@@ -543,9 +578,10 @@ text_draw (struct outp_driver *this,
     ext->lines[y].chars[x++] = *string++ | attr;
 }
 
-/* Divides the text T->S into lines of width T->H.  Sets T->V to the
-   number of lines necessary.  Actually draws the text if DRAW is
-   true. */
+/* Divides the text T->S into lines of width T->H.  Sets *WIDTH
+   to the maximum width of a line and *HEIGHT to the number of
+   lines, if those arguments are non-null.  Actually draws the
+   text if DRAW is true. */
 static void
 delineate (struct outp_driver *this, const struct outp_text *text, bool draw,
            int *width, int *height)
@@ -623,7 +659,6 @@ ascii_text_draw (struct outp_driver *this, const struct outp_text *t)
   assert (this->page_open);
   delineate (this, t, true, NULL, NULL);
 }
-
 
 /* ascii_close_page () and support routines. */
 
@@ -759,16 +794,55 @@ ascii_flush (struct outp_driver *this)
 }
 
 static void
-ascii_chart_initialise (struct outp_driver *d UNUSED, struct chart *ch)
+ascii_chart_initialise (struct outp_driver *this, struct chart *ch)
 {
-  error (0, 0, _("ascii: charts are unsupported by this driver"));
-  ch->lp = 0;
+  struct ascii_driver_ext *x = this->ext;
+  struct outp_text t;
+  char *text;
+
+  if (x->chart_type == NULL)
+    return;
+
+  /* Initialize chart. */
+  chart_init_separate (ch, x->chart_type, x->chart_file_name, ++x->chart_cnt);
+  if (ch->file_name == NULL)
+    return;
+
+  /* Mention chart in output.
+     First advance current position. */
+  if (!this->page_open)
+    outp_open_page (this);
+  else
+    {
+      this->cp_y++;
+      if (this->cp_y >= this->length)
+        {
+          outp_close_page (this);
+          outp_open_page (this);
+        }
+    }
+
+  /* Then write the text. */
+  text = xasprintf ("See %s for a chart.", ch->file_name);
+  t.font = OUTP_FIXED;
+  t.justification = OUTP_LEFT;
+  t.string = ss_cstr (text);
+  t.h = this->width;
+  t.v = 1;
+  t.x = 0;
+  t.y = this->cp_y;
+  ascii_text_draw (this, &t);
+  this->cp_y++;
+
+  free (text);
 }
 
 static void
-ascii_chart_finalise (struct outp_driver *d UNUSED, struct chart *ch UNUSED)
+ascii_chart_finalise (struct outp_driver *this, struct chart *ch)
 {
-
+  struct ascii_driver_ext *x = this->ext;
+  if (x->chart_type != NULL)
+    chart_finalise_separate (ch);
 }
 
 const struct outp_class ascii_class =
@@ -783,7 +857,7 @@ const struct outp_class ascii_class =
   ascii_close_page,
   ascii_flush,
 
-  NULL,
+  ascii_submit,
 
   ascii_line,
   ascii_text_metrics,

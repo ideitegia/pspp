@@ -671,6 +671,21 @@ File to which output should be sent.  This can be an ordinary file name
 (e.g., @code{"pspp.txt"}), a pipe (e.g., @code{"|more"}), or
 stdout (@code{"-"}).  Default: @code{"pspp.list"}.
 
+@item chart-files=@var{file-name-template}
+Template for the file names used for charts.  The name should contain
+a single @samp{#}, which is replaced by the chart number.  Default:
+@file{"pspp-#.png"}.
+
+@item chart-type=@var{type}.
+Type of charts to output.  Available types typically include @samp{X},
+@samp{png}, @samp{gif}, @samp{svg}, @samp{ps}, @samp{cgm}, @samp{fig},
+@samp{pcl}, @samp{hpgl}, @samp{regis}, @samp{tek}, and @samp{meta}.
+Default: @samp{png}.
+
+You may specify @samp{none} to disable chart output.  Charts are also
+disabled if your installation of PSPP was compiled without
+@code{libplot}.
+
 @item paginate=@var{boolean}
 
 If set, a formfeed will be written at the end of every page.  Default:

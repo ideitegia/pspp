@@ -85,4 +85,10 @@ struct chart {
 struct chart * chart_create(void);
 void chart_submit(struct chart *ch);
 
+/* Helper functions for output drivers that put each chart into a
+   separate file. */
+void chart_init_separate (struct chart *, const char *type,
+                          const char *file_name_tmpl, int number);
+void chart_finalise_separate (struct chart *);
+
 #endif

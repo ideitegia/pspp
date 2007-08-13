@@ -1,3 +1,30 @@
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
+	Add support for charts to ASCII driver.  Bug #16364.
+	Thanks to John Darrington for review.
+	
+	* ascii.c (struct ascii_driver_ext): Add chart_type,
+	chart_file_name, chart_cnt members.
+	(ascii_open_driver): Initialize new members.
+	(static array option_tab): Add new options, reorganize slightly.
+	(handle_option): Handle new options.
+	(ascii_submit): New function.
+	(ascii_chart_initialise): Implement.
+	(ascii_chart_finalise): Implement.
+
+	* chart.c (chart_init_separate): New function.
+	(chart_finalise_separate): New function.
+	
+	* dummy-chart.c (chart_init_separate): New function.
+	(chart_finalise_separate): New function.
+
+	* html.c (html_open_driver): Don't free chart_file_name.
+	(html_close_driver): Do free chart_file_name.
+	(handle_option): Only give an error for chart-files options that
+	don't contain "#".
+	(html_initialise_chart): Use new chart_init_separate.
+	(html_finalise_chart): Use new chart_finalise_separate.
+
 2007-07-25  Ben Pfaff  <blp@gnu.org>
 
 	Allow the user to specify an initialization string to write at the

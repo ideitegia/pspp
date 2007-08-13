@@ -18,6 +18,7 @@
 #include "chart.h"
 #include "htmlP.h"
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
@@ -34,10 +35,14 @@
 #include "table.h"
 #include <libpspp/version.h>
 
-#include "size_max.h"
-
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+
+/* HTML driver options: (defaults listed first)
+
+   output-file="pspp.html"
+   chart-files="pspp-#.png"
+*/
 
 static void escape_string (FILE *file,
                            const char *text, size_t length,
@@ -83,7 +88,6 @@ html_open_driver (struct outp_driver *this, struct substring options)
   fputs (" LINK=\"#1f00ff\" ALINK=\"#ff0000\" VLINK=\"#9900dd\">\n", x->file);
   print_title_tag (x->file, "H1", outp_title);
   print_title_tag (x->file, "H2", outp_subtitle);
-  free (x->chart_file_name);
 
   return true;
 
@@ -123,6 +127,7 @@ html_close_driver (struct outp_driver *this)
     }
   else
     ok = true;
+  free (x->chart_file_name);
   free (x->file_name);
   free (x);
 
@@ -179,7 +184,8 @@ handle_option (struct outp_driver *this,
               free (x->chart_file_name);
               x->chart_file_name = ds_xstrdup (val);
             }
-          error (0, 0, _("`chart-files' value must contain `#'"));
+          else
+            error (0, 0, _("`chart-files' value must contain `#'"));
           break;
         default:
           NOT_REACHED ();
@@ -359,39 +365,14 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 static void
 html_initialise_chart (struct outp_driver *this UNUSED, struct chart *ch)
 {
-#ifdef NO_CHARTS
-  ch->lp = NULL;
-#else
   struct html_driver_ext *x = this->ext;
-
-  FILE *fp;
-  int number_pos;
-
-  x->chart_cnt++;
-
-  number_pos = strchr (x->chart_file_name, '#') - x->chart_file_name;
-  ch->file_name = xasprintf ("%.*s%d%s",
-                             number_pos, x->chart_file_name,
-                             (int) x->chart_cnt,
-                             x->chart_file_name + number_pos + 1);
-  fp = fopen (ch->file_name, "wb");
-  if (fp == NULL)
-    {
-      error (0, errno, _("creating \"%s\""), ch->file_name);
-      free (ch->file_name);
-      ch->file_name = NULL;
-      return;
-    }
-
-  ch->pl_params = pl_newplparams ();
-  ch->lp = pl_newpl_r ("png", 0, fp, stderr, ch->pl_params);
-#endif
+  chart_init_separate (ch, "png", x->chart_file_name, ++x->chart_cnt);
 }
 
 static void
 html_finalise_chart(struct outp_driver *d UNUSED, struct chart *ch)
 {
-  free(ch->file_name);
+  chart_finalise_separate (ch);
 }
 
 
