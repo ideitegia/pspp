@@ -166,7 +166,8 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   buf_write (w, "F", 1);
   if (ferror (w->file))
     goto error;
-  return casewriter_create (&por_file_casewriter_class, w);
+  return casewriter_create (dict_get_next_value_idx (dict),
+                            &por_file_casewriter_class, w);
 
  error:
   close_writer (w);

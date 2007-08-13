@@ -56,6 +56,7 @@ scratch_writer_open (struct file_handle *fh,
   struct dictionary *scratch_dict;
   struct dict_compactor *compactor;
   struct casewriter *casewriter;
+  size_t dict_value_cnt;
 
   if (!fh_open (fh, FH_REF_SCRATCH, "scratch file", "we"))
     return NULL;
@@ -74,6 +75,7 @@ scratch_writer_open (struct file_handle *fh,
     }
   else
     compactor = NULL;
+  dict_value_cnt = dict_get_next_value_idx (scratch_dict);
 
   /* Create new contents. */
   sh = xmalloc (sizeof *sh);
@@ -85,11 +87,11 @@ scratch_writer_open (struct file_handle *fh,
   writer->handle = sh;
   writer->fh = fh;
   writer->compactor = compactor;
-  writer->subwriter = autopaging_writer_create (dict_get_next_value_idx (
-                                               scratch_dict));
+  writer->subwriter = autopaging_writer_create (dict_value_cnt);
 
   fh_set_scratch_handle (fh, sh);
-  casewriter = casewriter_create (&scratch_writer_casewriter_class, writer);
+  casewriter = casewriter_create (dict_value_cnt,
+                                  &scratch_writer_casewriter_class, writer);
   taint_propagate (casewriter_get_taint (writer->subwriter),
                    casewriter_get_taint (casewriter));
   return casewriter;

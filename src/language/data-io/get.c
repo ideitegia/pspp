@@ -54,6 +54,7 @@ static struct case_map *finish_case_map (struct dictionary *);
 static void map_case (const struct case_map *,
                       const struct ccase *, struct ccase *);
 static void destroy_case_map (struct case_map *);
+static size_t case_map_get_value_cnt (const struct case_map *);
 
 static bool parse_dict_trim (struct lexer *, struct dictionary *);
 
@@ -358,6 +359,7 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   map = finish_case_map (dict);
   if (map != NULL)
     writer = casewriter_create_translator (writer,
+                                           case_map_get_value_cnt (map),
                                            get_translate_case,
                                            get_destroy_case_map,
                                            map);
@@ -1441,4 +1443,12 @@ destroy_case_map (struct case_map *map)
       free (map->map);
       free (map);
     }
+}
+
+/* Returns the number of `union value's in cases created by
+   MAP. */
+static size_t
+case_map_get_value_cnt (const struct case_map *map)
+{
+  return map->value_cnt;
 }

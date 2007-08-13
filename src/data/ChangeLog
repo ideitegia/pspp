@@ -1,3 +1,19 @@
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
+	Make casewriters keep track of the number of `union value's in
+	each case.  This is useful for two reasons: casewriter_write can
+	then check that the case being written is large enough, and later
+	recipients of the casewriter can determine the size of the case.
+	
+	* casewriter-translator.c (casewriter_create_translator): Add
+	value_cnt parameter.
+	
+	* casewriter.c (struct casewriter): Add value_cnt member.
+	(casewriter_write): Check that the case passed in is big enough.
+	(casewriter_get_value_cnt): New function.
+	(casewriter_create): Add value_cnt parameter.
+	
+
 2007-08-09  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug reported by Jason Stover.

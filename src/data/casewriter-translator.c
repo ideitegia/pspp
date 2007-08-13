@@ -39,6 +39,7 @@ static struct casewriter_class casewriter_translator_class;
 
 struct casewriter *
 casewriter_create_translator (struct casewriter *subwriter,
+                              size_t translated_value_cnt,
                               void (*translate) (const struct ccase *input,
                                                  struct ccase *output,
                                                  void *aux),
@@ -51,7 +52,8 @@ casewriter_create_translator (struct casewriter *subwriter,
   ct->translate = translate;
   ct->destroy = destroy;
   ct->aux = aux;
-  writer = casewriter_create (&casewriter_translator_class, ct);
+  writer = casewriter_create (translated_value_cnt,
+                              &casewriter_translator_class, ct);
   taint_propagate (casewriter_get_taint (ct->subwriter),
                    casewriter_get_taint (writer));
   return writer;

@@ -63,6 +63,7 @@ static void output_record (struct sort_writer *);
 struct casewriter *
 sort_create_writer (struct case_ordering *ordering)
 {
+  size_t value_cnt = case_ordering_get_value_cnt (ordering);
   struct sort_writer *sort;
 
   sort = xmalloc (sizeof *sort);
@@ -75,7 +76,7 @@ sort_create_writer (struct case_ordering *ordering)
 
   case_ordering_destroy (ordering);
 
-  return casewriter_create (&sort_casewriter_class, sort);
+  return casewriter_create (value_cnt, &sort_casewriter_class, sort);
 }
 
 static void

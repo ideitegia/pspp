@@ -238,7 +238,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   if (write_error (w))
     goto error;
 
-  return casewriter_create (&sys_file_casewriter_class, w);
+  return casewriter_create (dict_get_next_value_idx (d),
+                            &sys_file_casewriter_class, w);
 
  error:
   close_writer (w);

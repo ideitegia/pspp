@@ -35,6 +35,7 @@
 struct casewriter
   {
     struct taint *taint;
+    size_t value_cnt;
     casenumber case_cnt;
     const struct casewriter_class *class;
     void *aux;
@@ -47,6 +48,7 @@ static struct casewriter *create_casewriter_window (size_t value_cnt,
 void
 casewriter_write (struct casewriter *writer, struct ccase *c)
 {
+  assert (case_get_value_cnt (c) >= writer->value_cnt);
   writer->class->write (writer, writer->aux, c);
 }
 
@@ -65,6 +67,14 @@ casewriter_destroy (struct casewriter *writer)
       free (writer);
     }
   return ok;
+}
+
+/* Returns the number of `union value's in each case written to
+   WRITER. */
+size_t
+casewriter_get_value_cnt (const struct casewriter *writer)
+{
+  return writer->value_cnt;
 }
 
 /* Destroys WRITER and in its place returns a casereader that can
@@ -133,12 +143,15 @@ casewriter_get_taint (const struct casewriter *writer)
 }
 
 /* Creates and returns a new casewriter with the given CLASS and
-   auxiliary data AUX. */
+   auxiliary data AUX.  The casewriter accepts cases with
+   VALUE_CNT `union value's. */
 struct casewriter *
-casewriter_create (const struct casewriter_class *class, void *aux)
+casewriter_create (size_t value_cnt,
+                   const struct casewriter_class *class, void *aux)
 {
   struct casewriter *writer = xmalloc (sizeof *writer);
   writer->taint = taint_create ();
+  writer->value_cnt = value_cnt;
   writer->case_cnt = 0;
   writer->class = class;
   writer->aux = aux;
@@ -196,7 +209,8 @@ static struct casewriter *
 create_casewriter_window (size_t value_cnt, casenumber max_in_core_cases)
 {
   struct casewindow *window = casewindow_create (value_cnt, max_in_core_cases);
-  struct casewriter *writer = casewriter_create (&casewriter_window_class,
+  struct casewriter *writer = casewriter_create (value_cnt,
+                                                 &casewriter_window_class,
                                                  window);
   taint_propagate (casewindow_get_taint (window),
                    casewriter_get_taint (writer));
