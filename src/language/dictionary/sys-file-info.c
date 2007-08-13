@@ -166,7 +166,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
       struct variable *v = dict_get_var (d, i);
       const int nvl = val_labs_count (var_get_value_labels (v));
 
-      if (r + 10 + nvl > nr)
+      if (r + 13 + nvl > nr)
 	{
 	  nr = MAX (nr * dict_get_var_cnt (d) / (i + 1), nr);
 	  nr += 10 + nvl;
@@ -407,7 +407,7 @@ display_variables (const struct variable **vl, size_t n, int as)
 	{
 	  int nvl = val_labs_count (var_get_value_labels (v));
 
-	  if (r + 10 + nvl > nr)
+	  if (r + 13 + nvl > nr)
 	    {
 	      nr = MAX (nr * n / (i + 1), nr);
 	      nr += 10 + nvl;
@@ -455,6 +455,8 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
 {
   const struct fmt_spec *print = var_get_print_format (v);
   const struct fmt_spec *write = var_get_write_format (v);
+  enum measure m = var_get_measure (v);
+  enum alignment a = var_get_alignment (v);
 
   /* Put the name, var label, and position into the first row. */
   tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
@@ -484,6 +486,23 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
 		      _("Write Format: %s"), fmt_to_string (write, str));
       r++;
     }
+
+  /* Measurement level, display width, alignment. */
+  tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
+                  _("Measure: %s"),
+                  m == MEASURE_NOMINAL ? _("Nominal")
+                  : m == MEASURE_ORDINAL ? _("Ordinal")
+                  : _("Scale"));
+  r++;
+  tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
+                  _("Display Alignment: %s"),
+                  a == ALIGN_LEFT ? _("Left")
+                  : a == ALIGN_CENTRE ? _("Centre")
+                  : _("Right"));
+  r++;
+  tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
+                  _("Display Width: %d"), var_get_display_width (v));
+  r++;
 
   /* Missing values if any. */
   if (var_has_missing_values (v))

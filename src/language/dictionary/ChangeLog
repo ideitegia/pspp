@@ -1,3 +1,15 @@
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
+	Output variable measurement level, alignment, and display width as
+	part of DISPLAY DICTIONARY and SYSFILE INFO output.  Bug #13019.
+	Reviewed by John Darrington.
+	* sys-file-info.c (cmd_sysfile_info): Allow space for new rows of
+	info in output.
+	(display_variables): Ditto.
+	(describe_variable): Output variable measurement level, alignment,
+	and display width as part of DISPLAY DICTIONARY and SYSFILE INFO
+	output.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	Adapt case sources, sinks, and clients of procedure code to the
