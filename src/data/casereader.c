@@ -58,7 +58,7 @@ casereader_read (struct casereader *reader, struct ccase *c)
 {
   if (reader->case_cnt != 0 && reader->class->read (reader, reader->aux, c))
     {
-      assert (case_get_value_cnt (c) == reader->value_cnt);
+      assert (case_get_value_cnt (c) >= reader->value_cnt);
       if (reader->case_cnt != CASENUMBER_MAX)
         reader->case_cnt--;
       return true;
