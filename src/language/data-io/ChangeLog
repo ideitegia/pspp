@@ -1,5 +1,10 @@
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
+	* get.c (parse_read_command): Compact the values in the target
+	dictionary, to save space.
+
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
 	* get.c (struct case_map): Move into new file src/data/case-map.c.
 	(start_case_map): Ditto, and rename case_map_prepare_dict.
 	(finish_case_map): Ditto, and rename case_map_from_dict.

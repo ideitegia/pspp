@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <data/case.h>
+#include <data/case-map.h>
 #include <data/casereader.h>
 #include <data/casewriter-provider.h>
 #include <data/casewriter.h>
@@ -38,7 +39,7 @@ struct scratch_writer
   {
     struct scratch_handle *handle;      /* Underlying scratch handle. */
     struct file_handle *fh;             /* Underlying file handle. */
-    struct dict_compactor *compactor;   /* Compacts into handle->dictionary. */
+    struct case_map *compactor;         /* Compacts into handle->dictionary. */
     struct casewriter *subwriter;       /* Data output. */
   };
 
@@ -55,7 +56,7 @@ scratch_writer_open (struct file_handle *fh,
   struct scratch_handle *sh;
   struct scratch_writer *writer;
   struct dictionary *scratch_dict;
-  struct dict_compactor *compactor;
+  struct case_map *compactor;
   struct casewriter *casewriter;
   size_t dict_value_cnt;
 
@@ -73,7 +74,7 @@ scratch_writer_open (struct file_handle *fh,
   if (dict_count_values (scratch_dict, 0)
       < dict_get_next_value_idx (scratch_dict))
     {
-      compactor = dict_make_compactor (scratch_dict, 0);
+      compactor = case_map_to_compact_dict (scratch_dict, 0);
       dict_compact_values (scratch_dict);
     }
   else
@@ -106,12 +107,10 @@ scratch_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
                                  struct ccase *c)
 {
   struct scratch_writer *writer = writer_;
-  struct scratch_handle *handle = writer->handle;
   struct ccase tmp;
   if (writer->compactor)
     {
-      case_create (&tmp, dict_get_next_value_idx (handle->dictionary));
-      dict_compactor_compact (writer->compactor, &tmp, c);
+      case_map_execute (writer->compactor, c, &tmp);
       case_destroy (c);
     }
   else

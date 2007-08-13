@@ -106,12 +106,6 @@ size_t dict_count_values (const struct dictionary *,
                           unsigned int exclude_classes);
 void dict_compact_values (struct dictionary *);
 
-struct dict_compactor *dict_make_compactor (const struct dictionary *,
-                                            unsigned int exclude_classes);
-void dict_compactor_compact (const struct dict_compactor *,
-                             struct ccase *, const struct ccase *);
-void dict_compactor_destroy (struct dict_compactor *);
-
 const struct variable *const *dict_get_split_vars (const struct dictionary *);
 size_t dict_get_split_cnt (const struct dictionary *);
 void dict_set_split_vars (struct dictionary *,

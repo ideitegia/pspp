@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include <data/case.h>
+#include <data/case-map.h>
 #include <data/caseinit.h>
 #include <data/casereader.h>
 #include <data/casereader-provider.h>
@@ -75,9 +76,9 @@ struct dataset {
      added to. */
   struct trns_chain *cur_trns_chain;
 
-  /* The compactor used to compact a case, if necessary;
+  /* The case map used to compact a case, if necessary;
      otherwise a null pointer. */
-  struct dict_compactor *compactor;
+  struct case_map *compactor;
 
   /* Time at which proc was last invoked. */
   time_t last_proc_invocation;
@@ -174,7 +175,7 @@ proc_open (struct dataset *ds)
       size_t compacted_value_cnt = dict_count_values (pd, 1u << DC_SCRATCH);
       bool should_compact = compacted_value_cnt < dict_get_next_value_idx (pd);
       ds->compactor = (should_compact
-                       ? dict_make_compactor (pd, 1u << DC_SCRATCH)
+                       ? case_map_to_compact_dict (pd, 1u << DC_SCRATCH)
                        : NULL);
       ds->sink = autopaging_writer_create (compacted_value_cnt);
     }
@@ -258,10 +259,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
         {
           struct ccase tmp;
           if (ds->compactor != NULL)
-            {
-              case_create (&tmp, casewriter_get_value_cnt (ds->sink));
-              dict_compactor_compact (ds->compactor, &tmp, c);
-            }
+            case_map_execute (ds->compactor, c, &tmp);
           else
             case_clone (&tmp, c);
           casewriter_write (ds->sink, &tmp);
@@ -326,7 +324,7 @@ proc_commit (struct dataset *ds)
       /* Finish compacting. */
       if (ds->compactor != NULL)
         {
-          dict_compactor_destroy (ds->compactor);
+          case_map_destroy (ds->compactor);
           ds->compactor = NULL;
 
           dict_delete_scratch_vars (ds->dict);

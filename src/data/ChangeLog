@@ -1,5 +1,31 @@
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
+	Drop dict_compactor in favor of using the new struct case_map.
+
+	* dictionary.c (struct copy_map): Removed.
+	(struct dict_compactor): Removed.
+	(dict_make_compactor): Removed.
+	(dict_compactor_compact): Removed.
+	(dict_compactor_destroy): Removed.
+
+	* procedure.c (struct data_set): Change `compactor' member to be a
+	struct case_map *.
+	(proc_open): Use case_map_to_compact_dict instead of
+	dict_make_compactor.
+	(proc_casereader_read): Use case_map_execute instead of
+	dict_compactor_compact.
+	(proc_commit): Use case_map_destroy instead of
+	dict_compactor_destroy.
+
+	* scratch-writer.c (struct scratch_writer): Change `compactor'
+	member to be a struct case_map *.
+	(scratch_writer_open): Use case_map_to_compact_dict instead of
+	dict_make_compactor.
+	(scratch_writer_casewriter_write): Use case_map_execute instead of
+	dict_compactor_compact.
+o
+2007-08-12  Ben Pfaff  <blp@gnu.org>
+
 	* automake.mk: Add case-map.c, case-map.h.
 
 	* case-map.c: New file.

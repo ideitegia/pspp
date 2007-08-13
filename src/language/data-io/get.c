@@ -121,6 +121,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
       if (!parse_dict_trim (lexer, dict))
         goto error;
     }
+  dict_compact_values (dict);
 
   map = case_map_from_dict (dict);
   if (map != NULL)
