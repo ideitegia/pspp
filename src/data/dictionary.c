@@ -386,7 +386,7 @@ dict_lookup_var (const struct dictionary *d, const char *name)
   struct variable *target ;
   struct variable *result ;
 
-  if ( ! var_is_valid_name (name, false))
+  if ( ! var_is_plausible_name (name, false))
     return NULL;
 
   target = var_create (name, 0);
