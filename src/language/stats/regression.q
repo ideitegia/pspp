@@ -1021,7 +1021,17 @@ identify_indep_vars (const struct variable **indep_vars,
   for (i = 0; i < n_variables; i++)
     if (!is_depvar (i, depvar))
       indep_vars[n_indep_vars++] = v_variables[i];
-
+  if ((n_indep_vars < 2) && is_depvar (0, depvar))
+    {
+      /*
+	There is only one independent variable, and it is the same
+	as the dependent variable. Print a warning and continue.
+       */
+      msg (SE,
+	   gettext ("The dependent variable is equal to the independent variable. The least sequares line is therefore Y=X. Standard errors and related statistics may be meaningless."));
+      n_indep_vars = 1;
+      indep_vars[0] = v_variables[0];
+    }
   return n_indep_vars;
 }
 
@@ -1035,6 +1045,9 @@ prepare_categories (struct casereader *input,
   int n_data;
   struct ccase c;
   size_t i;
+
+  assert (vars != NULL);
+  assert (mom != NULL);
 
   for (i = 0; i < n_vars; i++)
     if (var_is_alpha (vars[i]))
@@ -1163,7 +1176,6 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 
       dep_var = cmd->v_dependent[k];
       n_indep = identify_indep_vars (indep_vars, dep_var);
-
       reader = casereader_clone (input);
       reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
 						 MV_ANY, NULL);

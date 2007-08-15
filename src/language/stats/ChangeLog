@@ -1,3 +1,8 @@
+2007-08-15  Jason Stover  <jhs@wonko.gcsu.edu>
+
+	* regression.q (identify_indep_vars): Print an error if dependent
+	and independent variables are the same. Fixes bug 19819.
+
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c: Drop use of dict_get_compacted_dict_index_to_case_index
