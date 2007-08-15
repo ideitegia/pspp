@@ -33,7 +33,7 @@ chart_submit(struct chart *chart UNUSED)
 
 void
 chart_init_separate (struct chart *ch UNUSED, const char *type UNUSED,
-                     const *file_name_tmpl UNUSED, int number UNUSED)
+                     const char *file_name_tmpl UNUSED, int number UNUSED)
 {
 }
 

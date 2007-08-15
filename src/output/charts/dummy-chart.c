@@ -32,21 +32,8 @@
 #error This file should be used only when compiling without charts.
 #endif
 
-struct chart *
-chart_create(void)
-{
-  return 0;
-}
-
-
 void
 chart_write_title(struct chart *chart UNUSED, const char *title UNUSED, ...)
-{
-}
-
-
-void
-chart_submit(struct chart *chart UNUSED)
 {
 }
 
