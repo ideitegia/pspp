@@ -1028,7 +1028,7 @@ identify_indep_vars (const struct variable **indep_vars,
 	as the dependent variable. Print a warning and continue.
        */
       msg (SE,
-	   gettext ("The dependent variable is equal to the independent variable. The least sequares line is therefore Y=X. Standard errors and related statistics may be meaningless."));
+	   gettext ("The dependent variable is equal to the independent variable. The least squares line is therefore Y=X. Standard errors and related statistics may be meaningless."));
       n_indep_vars = 1;
       indep_vars[0] = v_variables[0];
     }
