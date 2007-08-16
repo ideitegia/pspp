@@ -22,6 +22,7 @@
 #include <glib.h>
 #include "syntax-editor.h"
 #include "data-editor.h"
+#include "output-viewer.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -88,6 +89,9 @@ window_create (enum window_type type, const gchar *name)
     case WINDOW_DATA:
       e = (struct editor_window *) new_data_editor ();
       break;
+    case WINDOW_OUTPUT:
+      e = (struct editor_window *) new_output_viewer ();
+      break;
     default:
       g_assert_not_reached ();
     };
@@ -141,6 +145,10 @@ set_window_name (struct editor_window *e,
     case WINDOW_DATA:
       e->name = g_strdup_printf (_("Untitled%d"), next_window_id () );
       title = g_strdup_printf (_("%s --- PSPP Data Editor"), e->name);
+      break;
+    case WINDOW_OUTPUT:
+      e->name = g_strdup_printf (_("Output%d"), next_window_id () );
+      title = g_strdup_printf (_("%s --- PSPP Output"), e->name);
       break;
     default:
       g_assert_not_reached ();

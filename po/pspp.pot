@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-08-15 08:33+0800\n"
+"POT-Creation-Date: 2007-08-16 14:11+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3071,11 +3071,11 @@ msgstr ""
 msgid "Multivariate GLM not yet supported"
 msgstr ""
 
-#: src/language/stats/glm.q:268 src/language/stats/regression.q:1140
+#: src/language/stats/glm.q:268 src/language/stats/regression.q:1153
 msgid "Dependent variable must be numeric."
 msgstr ""
 
-#: src/language/stats/glm.q:343 src/language/stats/regression.q:1240
+#: src/language/stats/glm.q:343 src/language/stats/regression.q:1252
 msgid "No valid data found. This command was skipped."
 msgstr ""
 
@@ -3325,6 +3325,13 @@ msgstr ""
 
 #: src/language/stats/regression.q:413
 msgid "Coefficient Correlations"
+msgstr ""
+
+#: src/language/stats/regression.q:1031
+msgid ""
+"The dependent variable is equal to the independent variable. The least "
+"sequares line is therefore Y=X. Standard errors and related statistics may "
+"be meaningless."
 msgstr ""
 
 #: src/language/stats/sort-cases.c:63
@@ -3884,69 +3891,69 @@ msgstr ""
 msgid "unexpected end of line expecting string"
 msgstr ""
 
-#: src/output/ascii.c:176
+#: src/output/ascii.c:179
 #, c-format
 msgid ""
 "ascii: page excluding margins and headers must be at least 59 characters "
 "wide by 15 lines long, but as configured is only %d characters by %d lines"
 msgstr ""
 
-#: src/output/ascii.c:291
+#: src/output/ascii.c:295
 #, c-format
 msgid ""
 "ascii: bad index value for `box' key: syntax is box[INDEX], 0 <= INDEX < %d "
 "decimal, with INDEX expressed in base 4"
 msgstr ""
 
-#: src/output/ascii.c:298
+#: src/output/ascii.c:302
 #, c-format
 msgid "ascii: multiple values for %s"
 msgstr ""
 
-#: src/output/ascii.c:306
+#: src/output/ascii.c:310
 #, c-format
 msgid "ascii: unknown parameter `%s'"
 msgstr ""
 
-#: src/output/ascii.c:317
+#: src/output/ascii.c:321
 #, c-format
 msgid "ascii: positive integer required as `%s' value"
 msgstr ""
 
-#: src/output/ascii.c:343
+#: src/output/ascii.c:347
 msgid "ascii: `emphasis' value must be `bold', `underline', or `none'"
 msgstr ""
 
-#: src/output/ascii.c:356
+#: src/output/ascii.c:360
 #, c-format
 msgid "ascii: zero or positive integer required as `%s' value"
 msgstr ""
 
-#: src/output/ascii.c:387
+#: src/output/ascii.c:391
 #, c-format
 msgid "ascii: boolean value expected for `%s'"
 msgstr ""
 
-#: src/output/ascii.c:416 src/output/html.c:188
+#: src/output/ascii.c:423 src/output/html.c:188
 msgid "`chart-files' value must contain `#'"
 msgstr ""
 
-#: src/output/ascii.c:447
+#: src/output/ascii.c:454
 #, c-format
 msgid "ascii: opening output file \"%s\""
 msgstr ""
 
-#: src/output/ascii.c:514
+#: src/output/ascii.c:521
 #, c-format
 msgid "ascii: bad line (%d,%d)-(%d,%d) out of (%d,%d)\n"
 msgstr ""
 
-#: src/output/ascii.c:736 src/output/postscript.c:826
+#: src/output/ascii.c:743 src/output/postscript.c:826
 #, c-format
 msgid "%s - Page %d"
 msgstr ""
 
-#: src/output/ascii.c:789
+#: src/output/ascii.c:795
 #, c-format
 msgid "ascii: closing output file \"%s\""
 msgstr ""
@@ -3974,141 +3981,141 @@ msgstr ""
 msgid "unknown configuration parameter `%s' for HTML device driver"
 msgstr ""
 
-#: src/output/output.c:162
+#: src/output/output.c:161
 #, c-format
 msgid "unknown output driver `%s'"
 msgstr ""
 
-#: src/output/output.c:164
+#: src/output/output.c:163
 #, c-format
 msgid "output driver `%s' referenced but never defined"
 msgstr ""
 
-#: src/output/output.c:255
+#: src/output/output.c:254
 msgid "using default output driver configuration"
 msgstr ""
 
-#: src/output/output.c:284
+#: src/output/output.c:283
 msgid "cannot find output initialization file (use `-vv' to view search path)"
 msgstr ""
 
-#: src/output/output.c:292
+#: src/output/output.c:291
 #, c-format
 msgid "cannot open \"%s\""
 msgstr ""
 
-#: src/output/output.c:304
+#: src/output/output.c:303
 #, c-format
 msgid "reading \"%s\""
 msgstr ""
 
-#: src/output/output.c:326
+#: src/output/output.c:325
 msgid "syntax error"
 msgstr ""
 
-#: src/output/output.c:335
+#: src/output/output.c:334
 #, c-format
 msgid "error closing \"%s\""
 msgstr ""
 
-#: src/output/output.c:343
+#: src/output/output.c:342
 msgid "no active output drivers"
 msgstr ""
 
-#: src/output/output.c:346
+#: src/output/output.c:345
 msgid "error reading device definition file"
 msgstr ""
 
-#: src/output/output.c:463
+#: src/output/output.c:462
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output/output.c:495
+#: src/output/output.c:494
 #, c-format
 msgid "syntax error parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:511
+#: src/output/output.c:510
 #, c-format
 msgid ""
 "reached end of options inside quoted string parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:581
+#: src/output/output.c:580
 #, c-format
 msgid "syntax error in string constant parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:629
+#: src/output/output.c:628
 #, c-format
 msgid "syntax error expecting `=' parsing options for driver \"%s\""
 msgstr ""
 
-#: src/output/output.c:680
+#: src/output/output.c:679
 #, c-format
 msgid "unknown output driver class `%.*s'"
 msgstr ""
 
-#: src/output/output.c:695
+#: src/output/output.c:694
 #, c-format
 msgid "unknown device type `%.*s'"
 msgstr ""
 
-#: src/output/output.c:712
+#: src/output/output.c:711
 #, c-format
 msgid "cannot initialize output driver `%s' of class `%s'"
 msgstr ""
 
-#: src/output/output.c:758
+#: src/output/output.c:757
 msgid "driver definition line missing driver name or class name"
 msgstr ""
 
-#: src/output/output.c:904
+#: src/output/output.c:903
 #, c-format
 msgid "unit \"%s\" is unknown in dimension \"%s\""
 msgstr ""
 
-#: src/output/output.c:919
+#: src/output/output.c:918
 #, c-format
 msgid "bad dimension \"%s\""
 msgstr ""
 
-#: src/output/output.c:945
+#: src/output/output.c:944
 #, c-format
 msgid "`x' expected in paper size `%s'"
 msgstr ""
 
-#: src/output/output.c:955
+#: src/output/output.c:954
 #, c-format
 msgid "trailing garbage `%s' on paper size `%s'"
 msgstr ""
 
-#: src/output/output.c:999
+#: src/output/output.c:998
 msgid "paper size name cannot be empty"
 msgstr ""
 
-#: src/output/output.c:1016
+#: src/output/output.c:1015
 msgid "cannot find `papersize' configuration file"
 msgstr ""
 
-#: src/output/output.c:1023
+#: src/output/output.c:1022
 #, c-format
 msgid "error opening \"%s\""
 msgstr ""
 
-#: src/output/output.c:1034
+#: src/output/output.c:1033
 #, c-format
 msgid "error reading \"%s\""
 msgstr ""
 
-#: src/output/output.c:1060
+#: src/output/output.c:1059
 msgid "syntax error in paper size definition"
 msgstr ""
 
-#: src/output/output.c:1072
+#: src/output/output.c:1071
 msgid "error reading paper size definition file"
 msgstr ""
 
@@ -4431,7 +4438,8 @@ msgstr ""
 msgid "Sort Descending"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:18 src/ui/gui/syntax-editor.glade:39
+#: src/ui/gui/data-editor.glade:18 src/ui/gui/output-viewer.glade:22
+#: src/ui/gui/syntax-editor.glade:39
 msgid "_File"
 msgstr ""
 
@@ -4454,7 +4462,8 @@ msgstr ""
 msgid "Recently Used _Files"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:132 src/ui/gui/syntax-editor.glade:143
+#: src/ui/gui/data-editor.glade:132 src/ui/gui/output-viewer.glade:55
+#: src/ui/gui/syntax-editor.glade:143
 msgid "_Edit"
 msgstr ""
 
@@ -4559,23 +4568,28 @@ msgstr ""
 msgid "Data File _Comments"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:456 src/ui/gui/syntax-editor.glade:233
+#: src/ui/gui/data-editor.glade:456 src/ui/gui/output-viewer.glade:78
+#: src/ui/gui/syntax-editor.glade:234
 msgid "_Windows"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:463 src/ui/gui/syntax-editor.glade:242
+#: src/ui/gui/data-editor.glade:463 src/ui/gui/output-viewer.glade:88
+#: src/ui/gui/syntax-editor.glade:243
 msgid "_Minimise All Windows"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:474 src/ui/gui/syntax-editor.glade:254
+#: src/ui/gui/data-editor.glade:474 src/ui/gui/output-viewer.glade:99
+#: src/ui/gui/syntax-editor.glade:254
 msgid "_Help"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:481 src/ui/gui/syntax-editor.glade:263
+#: src/ui/gui/data-editor.glade:481 src/ui/gui/output-viewer.glade:106
+#: src/ui/gui/syntax-editor.glade:262
 msgid "_Reference Manual"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:488 src/ui/gui/syntax-editor.glade:271
+#: src/ui/gui/data-editor.glade:488 src/ui/gui/output-viewer.glade:113
+#: src/ui/gui/syntax-editor.glade:269
 msgid "_About"
 msgstr ""
 
@@ -4761,6 +4775,18 @@ msgstr ""
 
 #: src/ui/gui/missing-val-dialog.c:135 src/ui/gui/missing-val-dialog.c:142
 msgid "Incorrect range specification"
+msgstr ""
+
+#: src/ui/gui/output-viewer.glade:32
+msgid "gtk-save"
+msgstr ""
+
+#: src/ui/gui/output-viewer.glade:41
+msgid "gtk-save-as"
+msgstr ""
+
+#: src/ui/gui/output-viewer.glade:65
+msgid "gtk-copy"
 msgstr ""
 
 #: src/ui/gui/psppire-buttonbox.c:143
@@ -5101,7 +5127,7 @@ msgstr ""
 msgid "Current Line"
 msgstr ""
 
-#: src/ui/gui/syntax-editor.glade:221
+#: src/ui/gui/syntax-editor.glade:222
 msgid "To End"
 msgstr ""
 
@@ -5159,24 +5185,34 @@ msgstr ""
 msgid "Weight cases by %s"
 msgstr ""
 
-#: src/ui/gui/window-manager.c:138
+#: src/ui/gui/window-manager.c:142
 #, c-format
 msgid "Syntax%d"
 msgstr ""
 
-#: src/ui/gui/window-manager.c:139 src/ui/gui/window-manager.c:170
+#: src/ui/gui/window-manager.c:143 src/ui/gui/window-manager.c:178
 #, c-format
 msgid "%s --- PSPP Syntax Editor"
 msgstr ""
 
-#: src/ui/gui/window-manager.c:142
+#: src/ui/gui/window-manager.c:146
 #, c-format
 msgid "Untitled%d"
 msgstr ""
 
-#: src/ui/gui/window-manager.c:143 src/ui/gui/window-manager.c:173
+#: src/ui/gui/window-manager.c:147 src/ui/gui/window-manager.c:181
 #, c-format
 msgid "%s --- PSPP Data Editor"
+msgstr ""
+
+#: src/ui/gui/window-manager.c:150
+#, c-format
+msgid "Output%d"
+msgstr ""
+
+#: src/ui/gui/window-manager.c:151
+#, c-format
+msgid "%s --- PSPP Output"
 msgstr ""
 
 #: src/ui/terminal/command-line.c:219

@@ -82,7 +82,6 @@ char *outp_subtitle;
 static int disabled_devices;
 
 static void destroy_driver (struct outp_driver *);
-static void configure_driver_line (struct substring);
 static void configure_driver (const struct substring, const struct substring,
                               const struct substring, const struct substring);
 
@@ -318,7 +317,7 @@ outp_read_devices (void)
 	      struct outp_names *n = search_names (cp, ep);
 	      if (n)
 		{
-		  configure_driver_line (ds_ss (&line));
+		  outp_configure_driver_line (ds_ss (&line));
 		  delete_name (n);
 		}
 	    }
@@ -733,8 +732,8 @@ configure_driver (struct substring driver_name, struct substring class_name,
    DRIVERNAME:CLASSNAME:DEVICETYPE:OPTIONS
    Adds a driver to outp_driver_list pursuant to the specification
    provided.  */
-static void
-configure_driver_line (struct substring line_)
+void
+outp_configure_driver_line (struct substring line_)
 {
   struct string line = DS_EMPTY_INITIALIZER;
   struct substring tokens[4];

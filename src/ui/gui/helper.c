@@ -41,7 +41,7 @@
 #include <language/lexer/lexer.h>
 #include "psppire-data-store.h"
 #include <output/manager.h>
-
+#include "output-viewer.h"
 
 #include <gettext.h>
 
@@ -104,7 +104,7 @@ get_widget_assert (GladeXML *xml, const gchar *name)
   w = glade_xml_get_widget (xml, name);
 
   if ( !w )
-    g_warning ("Widget \"%s\" could not be found\n", name);
+    g_critical ("Widget \"%s\" could not be found\n", name);
 
   return w;
 }
@@ -204,6 +204,8 @@ execute_syntax (struct getl_interface *sss)
   proc_set_active_file_data (the_dataset, NULL);
 
   som_flush ();
+
+  reload_the_viewer ();
 }
 
 

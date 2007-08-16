@@ -252,7 +252,7 @@ safety_violation (const char *fn)
 FILE *
 fn_open (const char *fn, const char *mode)
 {
-  assert (mode[0] == 'r' || mode[0] == 'w');
+  assert (mode[0] == 'r' || mode[0] == 'w' || mode[0] == 'a');
 
   if (mode[0] == 'r' && (!strcmp (fn, "stdin") || !strcmp (fn, "-")))
     return stdin;

@@ -14,8 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if !output_h
-#define output_h 1
+#ifndef OUTPUT_OUTPUT_H
+#define OUTPUT_OUTPUT_H 1
 
 #include <config.h>
 
@@ -134,6 +134,7 @@ extern char *outp_subtitle;
 
 void outp_init (void);
 void outp_read_devices (void);
+void outp_configure_driver_line (struct substring);
 void outp_done (void);
 
 void outp_configure_clear (void);
@@ -164,4 +165,4 @@ int outp_string_width (struct outp_driver *, const char *, enum outp_font);
 /* Imported from som-frnt.c. */
 void som_destroy_driver (struct outp_driver *);
 
-#endif /* output.h */
+#endif /* output/output.h */

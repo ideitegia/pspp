@@ -22,10 +22,9 @@
 #include "relocatable.h"
 
 #include "data-editor.h"
-
 #include "psppire.h"
 
-
+#include <unistd.h>
 #include <data/casereader.h>
 #include <data/datasheet.h>
 #include <data/file-handle-def.h>
@@ -47,6 +46,8 @@
 #include "data-sheet.h"
 #include "var-sheet.h"
 #include "message-dialog.h"
+
+#include "output-viewer.h"
 
 PsppireDataStore *the_data_store = 0;
 PsppireVarStore *the_var_store = 0;
@@ -107,8 +108,13 @@ initialize (void)
 
   create_icon_factory ();
 
-  outp_read_devices ();
-  outp_enable_device (true, OUTP_DEV_SCREEN);
+  outp_configure_driver_line (
+    ss_cstr ("gui:ascii:screen:squeeze=on headers=off top-margin=0 "
+             "bottom-margin=0 paginate=off length=50 "
+	     "width=" OUTPUT_LINE_WIDTH_str " emphasis=none "
+             "output-file=\"" OUTPUT_FILE_NAME "\" append=yes"));
+
+  unlink (OUTPUT_FILE_NAME);
 
   new_data_window (NULL, NULL);
 }

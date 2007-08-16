@@ -41,6 +41,7 @@
 /* ASCII driver options: (defaults listed first)
 
    output-file="pspp.list"
+   append=no|yes                If output-file exists, append to it?
    chart-files="pspp-#.png"     Name used for charts.
    chart-type=png               Format of charts (use "none" to disable).
 
@@ -100,6 +101,7 @@ struct ascii_driver_ext
     struct pool *pool;
 
     /* User parameters. */
+    bool append;                /* Append if output-file already exists? */
     bool headers;		/* Print headers at top of page? */
     bool paginate;		/* Insert formfeeds? */
     bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
@@ -143,6 +145,7 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
     this->horiz_line_width[i] = this->vert_line_width[i] = i != OUTP_L_NONE;
 
   this->ext = x = pool_create_container (struct ascii_driver_ext, pool);
+  x->append = false;
   x->headers = true;
   x->paginate = true;
   x->squeeze_blank_lines = false;
@@ -255,6 +258,7 @@ static const struct outp_option option_tab[] =
     {"headers", boolean_arg, 0},
     {"paginate", boolean_arg, 1},
     {"squeeze", boolean_arg, 2},
+    {"append", boolean_arg, 3},
 
     {"emphasis", emphasis_arg, 0},
 
@@ -398,6 +402,9 @@ handle_option (struct outp_driver *this, const char *key,
           case 2:
             x->squeeze_blank_lines = setting;
             break;
+          case 3:
+            x->append = setting;
+            break;
 	  default:
 	    NOT_REACHED ();
 	  }
@@ -441,7 +448,7 @@ ascii_open_page (struct outp_driver *this)
 
   if (x->file == NULL)
     {
-      x->file = fn_open (x->file_name, "w");
+      x->file = fn_open (x->file_name, x->append ? "a" : "w");
       if (x->file == NULL)
         {
           error (0, errno, _("ascii: opening output file \"%s\""),
@@ -782,7 +789,6 @@ static void
 ascii_flush (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
-
   if (x->file != NULL)
     {
       if (fn_close (x->file_name, x->file) != 0)

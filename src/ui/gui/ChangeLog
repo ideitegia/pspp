@@ -1,3 +1,9 @@
+2007-08-16  John Darrington <john@darrington.wattle.id.au>
+
+        * output-viewer.c output-viewer.h output-viewer.glade (new files)
+	  helper.c psppire.c syntax-editor.glade window-manager.c 
+	  window-manager.h : Added a basic output viewer window.
+
 2007-08-13  John Darrington <john@darrington.wattle.id.au>
 
 	* clipboard.c (clip_to_html clip_to_text): Fixed bug --- use the
