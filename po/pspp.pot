@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-08-16 14:11+0800\n"
+"POT-Creation-Date: 2007-08-18 08:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3071,11 +3071,11 @@ msgstr ""
 msgid "Multivariate GLM not yet supported"
 msgstr ""
 
-#: src/language/stats/glm.q:268 src/language/stats/regression.q:1153
+#: src/language/stats/glm.q:268 src/language/stats/regression.q:1155
 msgid "Dependent variable must be numeric."
 msgstr ""
 
-#: src/language/stats/glm.q:343 src/language/stats/regression.q:1252
+#: src/language/stats/glm.q:343 src/language/stats/regression.q:1254
 msgid "No valid data found. This command was skipped."
 msgstr ""
 
@@ -3329,9 +3329,9 @@ msgstr ""
 
 #: src/language/stats/regression.q:1031
 msgid ""
-"The dependent variable is equal to the independent variable. The least "
-"sequares line is therefore Y=X. Standard errors and related statistics may "
-"be meaningless."
+"The dependent variable is equal to the independent variable.The least "
+"squares line is therefore Y=X.Standard errors and related statistics may be "
+"meaningless."
 msgstr ""
 
 #: src/language/stats/sort-cases.c:63
@@ -4232,209 +4232,209 @@ msgstr ""
 msgid "Style of bevel around the custom entry button"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:151
+#: src/ui/gui/data-editor.c:154
 msgid "Transformations Pending"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:290
+#: src/ui/gui/data-editor.c:349
 msgid "Labels"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:291
+#: src/ui/gui/data-editor.c:350
 msgid "Show/hide value labels"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:309 src/ui/gui/data-editor.c:324
-#: src/ui/gui/data-editor.c:1603 src/ui/gui/data-editor.c:1656
+#: src/ui/gui/data-editor.c:368 src/ui/gui/data-editor.c:385
+#: src/ui/gui/data-editor.c:1660 src/ui/gui/data-editor.c:1713
 msgid "Clear"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:310
+#: src/ui/gui/data-editor.c:369
 msgid "Delete the cases at the selected position(s)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:325
+#: src/ui/gui/data-editor.c:386
 msgid "Delete the variables at the selected position(s)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:339 src/ui/gui/data-editor.c:1600
+#: src/ui/gui/data-editor.c:400 src/ui/gui/data-editor.c:1657
 #: src/ui/gui/data-editor.glade:286 src/ui/gui/data-editor.glade:654
 msgid "Insert Variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:340
+#: src/ui/gui/data-editor.c:401
 msgid "Create a new variable at the current position"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:358 src/ui/gui/data-editor.c:1653
+#: src/ui/gui/data-editor.c:419 src/ui/gui/data-editor.c:1710
 #: src/ui/gui/data-editor.glade:642
 msgid "Insert Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:359
+#: src/ui/gui/data-editor.c:420
 msgid "Create a new case at the current position"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:379
+#: src/ui/gui/data-editor.c:440
 msgid "Goto Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:380
+#: src/ui/gui/data-editor.c:441
 msgid "Jump to a Case in the Data Sheet"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:399
+#: src/ui/gui/data-editor.c:460
 msgid "Weights"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:400
+#: src/ui/gui/data-editor.c:461
 msgid "Weight cases by variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:409 src/ui/gui/data-editor.glade:323
+#: src/ui/gui/data-editor.c:470 src/ui/gui/data-editor.glade:323
 msgid "Transpose"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:410
+#: src/ui/gui/data-editor.c:471
 msgid "Transpose the cases with the variables"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:421
+#: src/ui/gui/data-editor.c:482
 msgid "Split"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:422
+#: src/ui/gui/data-editor.c:483
 msgid "Split the active file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:432
+#: src/ui/gui/data-editor.c:493
 msgid "Sort"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:433
+#: src/ui/gui/data-editor.c:494
 msgid "Sort cases in the active file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:441 src/ui/gui/data-editor.glade:360
+#: src/ui/gui/data-editor.c:502 src/ui/gui/data-editor.glade:360
 #: src/ui/gui/data-editor.glade:697
 msgid "Select Cases"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:442
+#: src/ui/gui/data-editor.c:503
 msgid "Select cases from the active file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:451
+#: src/ui/gui/data-editor.c:512
 msgid "Compute"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:452
+#: src/ui/gui/data-editor.c:513
 msgid "Compute new values for a variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:460
+#: src/ui/gui/data-editor.c:521
 msgid "Data File Comments"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:461
+#: src/ui/gui/data-editor.c:522
 msgid "Commentary text for the data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:469 src/ui/gui/data-editor.glade:267
+#: src/ui/gui/data-editor.c:530 src/ui/gui/data-editor.glade:267
 #: src/ui/gui/data-editor.glade:601
 msgid "Variables"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:470
+#: src/ui/gui/data-editor.c:531
 msgid "Jump to Variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:871
+#: src/ui/gui/data-editor.c:928
 msgid "Font Selection"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1078
+#: src/ui/gui/data-editor.c:1135
 msgid "No Split"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1087
+#: src/ui/gui/data-editor.c:1144
 msgid "Split by "
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1112
+#: src/ui/gui/data-editor.c:1169
 msgid "Filter off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1125
+#: src/ui/gui/data-editor.c:1182
 #, c-format
 msgid "Filter by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1143
+#: src/ui/gui/data-editor.c:1200
 msgid "Weights off"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1156
+#: src/ui/gui/data-editor.c:1213
 #, c-format
 msgid "Weight by %s"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1179 src/ui/gui/data-editor.c:1410
+#: src/ui/gui/data-editor.c:1236 src/ui/gui/data-editor.c:1467
 #: src/ui/gui/data-editor.glade:512
 msgid "Open"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1180
+#: src/ui/gui/data-editor.c:1237
 msgid "Open a data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1188 src/ui/gui/data-editor.c:1295
+#: src/ui/gui/data-editor.c:1245 src/ui/gui/data-editor.c:1352
 #: src/ui/gui/data-editor.glade:522
 msgid "Save"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1189 src/ui/gui/data-editor.c:1199
+#: src/ui/gui/data-editor.c:1246 src/ui/gui/data-editor.c:1256
 msgid "Save data to file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1198
+#: src/ui/gui/data-editor.c:1255
 msgid "Save As"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1207
+#: src/ui/gui/data-editor.c:1264
 msgid "New"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1208
+#: src/ui/gui/data-editor.c:1265
 msgid "New data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1303 src/ui/gui/data-editor.c:1418
+#: src/ui/gui/data-editor.c:1360 src/ui/gui/data-editor.c:1475
 msgid "System Files (*.sav)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1309 src/ui/gui/data-editor.c:1424
+#: src/ui/gui/data-editor.c:1366 src/ui/gui/data-editor.c:1481
 msgid "Portable Files (*.por) "
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1315 src/ui/gui/data-editor.c:1430
+#: src/ui/gui/data-editor.c:1372 src/ui/gui/data-editor.c:1487
 #: src/ui/gui/syntax-editor.c:138 src/ui/gui/syntax-editor.c:524
 msgid "All Files"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1323
+#: src/ui/gui/data-editor.c:1380
 msgid "System File"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1328
+#: src/ui/gui/data-editor.c:1385
 msgid "Portable File"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1593
+#: src/ui/gui/data-editor.c:1650
 msgid "Sort Ascending"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1596
+#: src/ui/gui/data-editor.c:1653
 msgid "Sort Descending"
 msgstr ""
 

@@ -3896,10 +3896,6 @@ gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
   if (row >= yyy_row_count (sheet) || col >= xxx_column_count (sheet))
     return FALSE;
 
-  /* _gtkextra_signal_emit (GTK_OBJECT (sheet), sheet_signals[ACTIVATE], row, col, &veto);
-     if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return veto;
-  */
-
   if (!veto) return FALSE;
   if (sheet->state != GTK_SHEET_NORMAL)
     {
@@ -3926,7 +3922,7 @@ gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
 		    G_CALLBACK (gtk_sheet_entry_changed),
 		    sheet);
 
-  _gtkextra_signal_emit (GTK_OBJECT (sheet), sheet_signals[ACTIVATE], row, col, &veto);
+  _gtkextra_signal_emit (GTK_OBJECT (sheet), sheet_signals [ACTIVATE], row, col, &veto);
 
   return TRUE;
 }
@@ -5014,6 +5010,7 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column, gboolean *veto)
 	      *veto = FALSE;
 	      return;
 	    }
+	  gtk_sheet_activate_cell (sheet, row, column);
 	}
 
       if (gtk_sheet_autoscroll (sheet))

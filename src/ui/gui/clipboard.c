@@ -26,7 +26,9 @@
 #include <data/casewriter.h>
 #include <data/format.h>
 #include <data/data-out.h>
+#include "helper.h"
 #include <stdlib.h>
+#include "data-editor.h"
 
 
 /* A casereader and dictionary holding the data currently in the clip */
@@ -307,3 +309,72 @@ data_sheet_update_clipboard (GtkSheet *sheet)
     clipboard_clear_cb (clipboard, sheet);
 }
 
+
+
+/* A callback for when  clipboard contents have been received */
+void
+data_sheet_contents_received_callback (GtkClipboard *clipboard,
+				      GtkSelectionData *sd,
+				      gpointer data)
+{
+  struct data_editor *de = data;
+
+  gint count = 0;
+  gint row, column;
+  gint next_row, next_column;
+  gint first_column;
+  char *c;
+  GtkSheet *data_sheet ;
+  PsppireDataStore *data_store;
+
+  if ( sd->length < 0 )
+    return;
+
+  if ( sd->type != gdk_atom_intern ("UTF8_STRING", FALSE))
+    return;
+
+  c = (char *) sd->data;
+
+  /* Paste text to selected position */
+  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+  data_store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
+
+  gtk_sheet_get_active_cell (data_sheet, &row, &column);
+
+  g_return_if_fail (row >= 0);
+  g_return_if_fail (column >= 0);
+
+  first_column = column;
+  next_row = row;
+  next_column = column;
+  while (count < sd->length)
+    {
+      char *s = c;
+
+      row = next_row;
+      column = next_column;
+      while (*c != '\t' && *c != '\n' && count < sd->length)
+	{
+	  c++;
+	  count++;
+	}
+      if ( *c == '\t')
+	{
+	  next_row = row ;
+	  next_column = column + 1;
+	}
+      else if ( *c == '\n')
+	{
+	  next_row = row + 1;
+	  next_column = first_column;
+	}
+      *c++ = '\0';
+      count++;
+
+      /* Append some new cases if pasting beyond the last row */
+      if ( row >= psppire_data_store_get_case_count (data_store))
+	psppire_data_store_insert_new_case (data_store, row);
+
+      gtk_sheet_set_cell_text (data_sheet, row, column, s);
+    }
+}

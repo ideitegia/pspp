@@ -54,6 +54,9 @@
 #include "psppire-var-store.h"
 
 static void on_edit_copy (GtkMenuItem *, gpointer);
+static void on_edit_cut (GtkMenuItem *, gpointer);
+static void on_edit_paste (GtkAction *a, gpointer data);
+
 
 static void create_data_sheet_variable_popup_menu (struct data_editor *);
 static void create_data_sheet_cases_popup_menu (struct data_editor *);
@@ -88,7 +91,7 @@ static void on_weight_change (GObject *, gint, gpointer);
 static void on_filter_change (GObject *, gint, gpointer);
 static void on_split_change (PsppireDict *, gpointer);
 
-static void data_var_select (GtkNotebook *notebook,
+static void on_switch_sheet (GtkNotebook *notebook,
 			    GtkNotebookPage *page,
 			    guint page_num,
 			    gpointer user_data);
@@ -219,6 +222,96 @@ datum_entry_activate (GtkEntry *entry, gpointer data)
   psppire_data_store_set_string (store, text, row, column);
 }
 
+
+/* Update the Edit->Paste menuitem
+   If PAGE is not -1 , then it should be set to the current page of
+   the data editors notebook widget.
+   If -1, then it'll be queried.
+*/
+static void
+update_paste_menuitem (struct data_editor *de, gint page)
+{
+  GtkWidget * edit_paste = get_widget_assert (de->xml, "edit_paste");
+  GtkWidget *notebook = get_widget_assert (de->xml, "notebook");
+  GtkSheet * data_sheet ;
+  gint row, column;
+
+  if ( page < 0 )
+    page = gtk_notebook_get_current_page (GTK_NOTEBOOK(notebook));
+
+
+  if ( PAGE_VAR_SHEET == page )
+    {
+      /* We don't yet support pasting to the var sheet */
+      gtk_widget_set_sensitive (edit_paste, FALSE);
+      return;
+    }
+
+  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+
+  gtk_sheet_get_active_cell (data_sheet, &row, &column);
+
+  if ( row < 0 || column < 0 )
+      gtk_widget_set_sensitive (edit_paste, FALSE);
+  else
+      gtk_widget_set_sensitive (edit_paste, TRUE);
+}
+
+/* Update the Edit->Cut and Edit->Copy menuitems
+   If PAGE is not -1 , then it should be set to the current page of
+   the data editors notebook widget.
+   If -1, then it'll be queried.
+*/
+static void
+update_cut_copy_menuitem (struct data_editor *de, gint page)
+{
+  GtkWidget * edit_copy = get_widget_assert (de->xml, "edit_copy");
+  GtkWidget * edit_cut = get_widget_assert (de->xml, "edit_cut");
+  GtkWidget *notebook = get_widget_assert (de->xml, "notebook");
+  GtkSheet * data_sheet ;
+  gint row, column;
+
+  if ( page < 0 )
+    page = gtk_notebook_get_current_page (GTK_NOTEBOOK(notebook));
+
+
+  if ( PAGE_VAR_SHEET == page )
+    {
+      /* We don't yet support copying from the var sheet */
+      gtk_widget_set_sensitive (edit_copy, FALSE);
+      gtk_widget_set_sensitive (edit_cut, FALSE);
+      return;
+    }
+
+  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+
+  gtk_sheet_get_active_cell (data_sheet, &row, &column);
+
+  if ( row < 0 || column < 0 )
+    {
+      gtk_widget_set_sensitive (edit_copy, FALSE);
+      gtk_widget_set_sensitive (edit_cut, FALSE);
+      return;
+    }
+
+  gtk_widget_set_sensitive (edit_copy, TRUE);
+  gtk_widget_set_sensitive (edit_cut, TRUE);
+}
+
+
+/* Callback for when the datasheet's active cell becomes active/inactive */
+static gboolean
+on_data_sheet_activate_change (GtkSheet *sheet,
+			       gint row, gint column, gpointer data)
+{
+  struct data_editor *de = data;
+
+  update_paste_menuitem (de, -1);
+  update_cut_copy_menuitem (de, -1);
+
+  return TRUE;
+}
+
 extern struct dataset *the_dataset;
 
 /*
@@ -247,6 +340,14 @@ new_data_editor (void)
 
   var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
   data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+
+
+  g_signal_connect (G_OBJECT (data_sheet), "activate",
+		    G_CALLBACK (on_data_sheet_activate_change), de);
+
+  g_signal_connect (G_OBJECT (data_sheet), "deactivate",
+		    G_CALLBACK (on_data_sheet_activate_change), de);
+
 
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
@@ -282,6 +383,10 @@ new_data_editor (void)
 		    "activate",
 		    G_CALLBACK (on_edit_copy), de);
 
+  g_signal_connect (get_widget_assert (de->xml, "edit_cut"),
+		    "activate",
+		    G_CALLBACK (on_edit_cut), de);
+
 
   register_data_editor_actions (de);
 
@@ -316,6 +421,8 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->delete_cases,
 			    get_widget_assert (de->xml, "edit_clear-cases"));
 
+  g_signal_connect (get_widget_assert (de->xml, "edit_paste"), "activate",
+		    G_CALLBACK (on_edit_paste), de);
 
   gtk_action_set_visible (de->delete_cases, FALSE);
 
@@ -620,7 +727,7 @@ new_data_editor (void)
 
   g_signal_connect (get_widget_assert (de->xml, "notebook"),
 		    "switch-page",
-		    G_CALLBACK (data_var_select), de);
+		    G_CALLBACK (on_switch_sheet), de);
 
 
   g_signal_connect (get_widget_assert (de->xml, "view_statusbar"),
@@ -699,12 +806,6 @@ new_data_editor (void)
   g_signal_connect (G_OBJECT (data_sheet), "button-event-row",
 		    G_CALLBACK (popup_cases_menu), de);
 
-     /* The "switch-page" signal does get emitted unless the page actually 
-	changes.  But the state is indeterminate at startup.  Therefore we 
-	must explicitly change it to one state, then the other */
-  data_editor_select_sheet (de, PAGE_VAR_SHEET);
-  data_editor_select_sheet (de, PAGE_DATA_SHEET);
-
   return de;
 }
 
@@ -768,9 +869,9 @@ new_data_window (GtkMenuItem *menuitem, gpointer parent)
   window_create (WINDOW_DATA, NULL);
 }
 
-
+/* Callback for when the datasheet/varsheet is selected */
 static void
-data_var_select (GtkNotebook *notebook,
+on_switch_sheet (GtkNotebook *notebook,
 		GtkNotebookPage *page,
 		guint page_num,
 		gpointer user_data)
@@ -779,14 +880,12 @@ data_var_select (GtkNotebook *notebook,
 
   GtkWidget *view_data = get_widget_assert (de->xml, "view_data");
   GtkWidget *view_variables = get_widget_assert (de->xml, "view_variables");
-  GtkWidget *edit_copy = get_widget_assert (de->xml, "edit_copy");
 
   switch (page_num)
     {
     case PAGE_VAR_SHEET:
       gtk_widget_hide (view_variables);
       gtk_widget_show (view_data);
-      gtk_widget_set_sensitive (edit_copy, FALSE);
       gtk_action_set_sensitive (de->insert_variable, TRUE);
       gtk_action_set_sensitive (de->insert_case, FALSE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
@@ -796,12 +895,14 @@ data_var_select (GtkNotebook *notebook,
       gtk_widget_show (view_data);
       gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
       gtk_action_set_sensitive (de->insert_case, TRUE);
-      gtk_widget_set_sensitive (edit_copy, TRUE);
       break;
     default:
       g_assert_not_reached ();
       break;
     }
+
+  update_paste_menuitem (de, page_num);
+  update_cut_copy_menuitem (de, page_num);
 }
 
 
@@ -1726,6 +1827,17 @@ popup_cases_menu (GtkSheet *sheet, gint row,
 }
 
 
+static void
+on_edit_paste (GtkAction *a, gpointer data)
+{
+  GtkClipboard *clipboard = gtk_clipboard_get (GDK_SELECTION_CLIPBOARD);
+
+  gtk_clipboard_request_contents (clipboard,
+				  gdk_atom_intern ("UTF8_STRING", TRUE),
+				  data_sheet_contents_received_callback,
+				  data);
+}
+
 
 static void
 on_edit_copy (GtkMenuItem *m, gpointer data)
@@ -1736,6 +1848,76 @@ on_edit_copy (GtkMenuItem *m, gpointer data)
 						       "data_sheet"));
 
   data_sheet_set_clip (data_sheet);
+}
+
+
+
+static void
+on_edit_cut (GtkMenuItem *m, gpointer data)
+{
+  struct data_editor *de = data;
+  gint max_rows, max_columns;
+  gint r;
+  GtkSheetRange range;
+  PsppireDataStore *ds;
+  GtkSheet *data_sheet = GTK_SHEET (get_widget_assert (de->xml,
+						       "data_sheet"));
+
+  data_sheet_set_clip (data_sheet);
+
+
+  /* Now blank all the cells */
+  gtk_sheet_get_selected_range (data_sheet, &range);
+
+  ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
+
+
+   /* If nothing selected, then use active cell */
+  if ( range.row0 < 0 || range.col0 < 0 )
+    {
+      gint row, col;
+      gtk_sheet_get_active_cell (data_sheet, &row, &col);
+
+      range.row0 = range.rowi = row;
+      range.col0 = range.coli = col;
+    }
+
+  /* The sheet range can include cells that do not include data.
+     Exclude them from the range. */
+  max_rows = psppire_data_store_get_case_count (ds);
+  if (range.rowi >= max_rows)
+    {
+      if (max_rows == 0)
+        return;
+      range.rowi = max_rows - 1;
+    }
+
+  max_columns = dict_get_var_cnt (ds->dict->dict);
+  if (range.coli >= max_columns)
+    {
+      if (max_columns == 0)
+        return;
+      range.coli = max_columns - 1;
+    }
+
+  g_return_if_fail (range.rowi >= range.row0);
+  g_return_if_fail (range.row0 >= 0);
+  g_return_if_fail (range.coli >= range.col0);
+  g_return_if_fail (range.col0 >= 0);
+
+
+  for (r = range.row0; r <= range.rowi ; ++r )
+    {
+      gint c;
+
+      for (c = range.col0 ; c <= range.coli; ++c)
+	{
+	  psppire_data_store_set_string (ds, "", r, c);
+	}
+    }
+
+  /* and remove the selection */
+  gtk_sheet_unselect_range (data_sheet);
 }
 
 

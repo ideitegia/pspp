@@ -23,6 +23,10 @@
 
 void data_sheet_set_clip (GtkSheet *data_sheet);
 
+void data_sheet_contents_received_callback (GtkClipboard *clipboard,
+					    GtkSelectionData *sd,
+					    gpointer data);
+
 
 #endif /* CLIPBOARD_H */
 

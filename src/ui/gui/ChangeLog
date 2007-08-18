@@ -1,3 +1,8 @@
+2007-08-18  John Darrington <john@darrington.wattle.id.au>
+
+	* clipboard.c clipboard.h data-editor.c: Added the ability to paste from 
+	the clipboard into the data sheet.
+
 2007-08-16  John Darrington <john@darrington.wattle.id.au>
 
         * output-viewer.c output-viewer.h output-viewer.glade (new files)
