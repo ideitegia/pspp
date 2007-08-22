@@ -747,7 +747,7 @@
             <property name="can_focus">True</property>
             <property name="tab_pos">GTK_POS_BOTTOM</property>
             <property name="scrollable">True</property>
-            <property name="enable_popup">True</property>
+            <property name="enable_popup">False</property>
             <child>
               <widget class="GtkVBox" id="vbox3">
                 <property name="visible">True</property>
