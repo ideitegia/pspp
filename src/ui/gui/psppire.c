@@ -130,84 +130,54 @@ de_initialize (void)
 }
 
 
-#define PIXBUF_NEW_FROM_FILE(FILE) \
-  gdk_pixbuf_new_from_file (relocate (PKGDATADIR "/" FILE), 0)
+struct icon_info
+{
+  const char *file_name;
+  const gchar *id;
+};
 
+
+static const struct icon_info icons[] =
+  {
+    {PKGDATADIR "/value-labels.png",    "pspp-value-labels"},
+    {PKGDATADIR "/weight-cases.png",    "pspp-weight-cases"},
+    {PKGDATADIR "/goto-variable.png",   "pspp-goto-variable"},
+    {PKGDATADIR "/insert-variable.png", "pspp-insert-variable"},
+    {PKGDATADIR "/insert-case.png",     "pspp-insert-case"},
+    {PKGDATADIR "/split-file.png",      "pspp-split-file"},
+    {PKGDATADIR "/select-cases.png",    "pspp-select-cases"},
+    {PKGDATADIR "/recent-dialogs.png",  "pspp-recent-dialogs"},
+    {PKGDATADIR "/nominal.png",         "var-nominal"},
+    {PKGDATADIR "/ordinal.png",         "var-ordinal"},
+    {PKGDATADIR "/scale.png",           "var-scale"},
+    {PKGDATADIR "/string.png",          "var-string"},
+    {PKGDATADIR "/date-scale.png",      "var-date-scale"}
+  };
 
 static void
 create_icon_factory (void)
 {
+  gint i;
   GtkIconFactory *factory = gtk_icon_factory_new ();
 
-  GtkIconSet *icon_set;
+  for (i = 0 ; i < sizeof (icons) / sizeof(icons[0]); ++i)
+    {
+      GError *err = NULL;
+      GdkPixbuf *pixbuf =
+	gdk_pixbuf_new_from_file (relocate (icons[i].file_name), &err);
 
-  GdkPixbuf *pixbuf;
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("value-labels.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-value-labels", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("weight-cases.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-weight-cases", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("goto-variable.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-goto-variable", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("insert-variable.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-insert-variable", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("insert-case.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-insert-case", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("split-file.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-split-file", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("select-cases.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-select-cases", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("recent-dialogs.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "pspp-recent-dialogs", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("nominal.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "var-nominal", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("ordinal.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "var-ordinal", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("scale.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "var-scale", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("string.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "var-string", icon_set);
-
-  pixbuf = PIXBUF_NEW_FROM_FILE ("date-scale.png");
-  icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
-  g_object_unref (pixbuf);
-  gtk_icon_factory_add ( factory, "var-date-scale", icon_set);
-
+      if ( pixbuf )
+	{
+	  GtkIconSet *icon_set = gtk_icon_set_new_from_pixbuf (pixbuf);
+	  g_object_unref (pixbuf);
+	  gtk_icon_factory_add ( factory, icons[i].id, icon_set);
+	}
+      else
+	{
+	  g_warning ("Cannot create icon: %s", err->message);
+	  g_clear_error (&err);
+	}
+    }
 
   gtk_icon_factory_add_default (factory);
 }
