@@ -1,3 +1,11 @@
+2007-08-16  Ben Pfaff  <blp@gnu.org>
+
+	Implement journaling.  Bug #17240.
+	
+	* set.q: Add LOG subcommand as synonym for JOURNAL.
+	(stc_custom_journal): Implement.
+	(stc_custom_log): New function.
+
 2007-05-06  Ben Pfaff  <blp@gnu.org>
 
 	Abstract the documents within a dictionary a little better.

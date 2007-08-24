@@ -25,6 +25,7 @@
 #include <data/settings.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
+#include <output/journal.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,9 +113,11 @@ any_errors (void)
   return error_count > 0;
 }
 
-static void dump_message (char *msg, unsigned width, unsigned indent, FILE *);
-static void dump_line (int line_indent, const char *line, size_t length,
-                       FILE *);
+typedef void write_line_func (int indent, struct substring line, void *aux);
+static void dump_message (char *msg, unsigned width, unsigned indent,
+                          write_line_func *, void *aux);
+static write_line_func write_stream;
+static write_line_func write_journal;
 
 static void
 handle_msg (const struct msg *m)
@@ -169,16 +172,21 @@ handle_msg (const struct msg *m)
   ds_put_cstr (&string, m->text);
 
   if (msg_file != stdout || get_error_routing_to_terminal ())
-    dump_message (ds_cstr (&string), get_viewwidth (), 8, msg_file);
+    dump_message (ds_cstr (&string), get_viewwidth (), 8,
+                  write_stream, msg_file);
+
+  dump_message (ds_cstr (&string), 78, 0, write_journal, NULL);
 
   ds_destroy (&string);
 }
 
 /* Divides MSG into lines of WIDTH width for the first line and
    WIDTH - INDENT width for each succeeding line, and writes the
-   lines to STREAM. */
+   lines by calling DUMP_LINE for each line, passing AUX as
+   auxiliary data. */
 static void
-dump_message (char *msg, unsigned width, unsigned indent, FILE *stream)
+dump_message (char *msg, unsigned width, unsigned indent,
+              write_line_func *dump_line, void *aux)
 {
   size_t length = strlen (msg);
   char *string, *breaks;
@@ -194,8 +202,7 @@ dump_message (char *msg, unsigned width, unsigned indent, FILE *stream)
     {
       free (string);
       free (breaks);
-      fputs (msg, stream);
-      putc ('\n', stream);
+      dump_line (0, ss_cstr (msg), aux);
       return;
     }
 
@@ -210,42 +217,44 @@ dump_message (char *msg, unsigned width, unsigned indent, FILE *stream)
   line_start = 0;
   line_indent = 0;
   for (i = 0; i < length; i++)
-    switch (breaks[i])
+    if (breaks[i] == UC_BREAK_POSSIBLE || breaks[i] == UC_BREAK_MANDATORY)
       {
-      case UC_BREAK_POSSIBLE:
-        /* Break before this character,
-           and include this character in the next line. */
-        dump_line (line_indent, &string[line_start], i - line_start, stream);
-        line_start = i;
+        dump_line (line_indent,
+                   ss_buffer (string + line_start, i - line_start), aux);
         line_indent = indent;
-        break;
-      case UC_BREAK_MANDATORY:
-        /* Break before this character,
-           but don't include this character in the next line
-           (because it'string a new-line). */
-        dump_line (line_indent, &string[line_start], i - line_start, stream);
-        line_start = i + 1;
-        line_indent = indent;
-        break;
-      default:
-        break;
+
+        /* UC_BREAK_POSSIBLE means that a line break can be
+           inserted, and that the character should be included
+           in the next line.
+           UC_BREAK_MANDATORY means that this character is a line
+           break, so it should not be included in the next line. */
+        line_start = i + (breaks[i] == UC_BREAK_MANDATORY);
       }
   if (line_start < length)
-    dump_line (line_indent, &string[line_start], length - line_start, stream);
+    dump_line (line_indent,
+               ss_buffer (string + line_start, length - line_start), aux);
 
   free (string);
   free (breaks);
 }
 
-/* Write LINE_INDENT spaces, the LENGTH characters in LINE, then
-   a new-line to STREAM. */
+/* Write LINE_INDENT spaces, LINE, then a new-line to STREAM. */
 static void
-dump_line (int line_indent, const char *line, size_t length, FILE *stream)
+write_stream (int line_indent, struct substring line, void *stream_)
 {
+  FILE *stream = stream_;
   int i;
   for (i = 0; i < line_indent; i++)
     putc (' ', stream);
-  fwrite (line, 1, length, stream);
+  fwrite (ss_data (line), 1, ss_length (line), stream);
   putc ('\n', stream);
 }
 
+/* Writes LINE to the journal. */
+static void
+write_journal (int line_indent, struct substring line, void *unused UNUSED)
+{
+  char *s = xstrndup (ss_data (line), ss_length (line));
+  journal_write (true, s);
+  free (s);
+}

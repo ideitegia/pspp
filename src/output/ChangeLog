@@ -1,3 +1,13 @@
+2007-08-23  Ben Pfaff  <blp@gnu.org>
+
+	Implement journaling.  Bug #17240.
+	
+	* automake.mk (output_sources): Add journal.c, journal.h.
+	
+	* journal.c: New file.
+	
+	* journal.h: New file.
+
 2007-08-16  Ben Pfaff  <blp@gnu.org>
 
 	* output.c output.h: export function outp_configure_driver_line.

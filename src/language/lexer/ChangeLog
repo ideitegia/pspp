@@ -1,3 +1,9 @@
+2007-08-16  Ben Pfaff  <blp@gnu.org>
+
+	Implement journaling.  Bug #17240.
+	
+	* lexer.c (lex_get_line_raw): Pass the line read to journal_write.
+
 2007-06-03  Ben Pfaff  <blp@gnu.org>
 
 	Implement missing functions for subcommand integer lists.

@@ -11,6 +11,8 @@ output_sources = \
 	src/output/ascii.c \
 	src/output/html.c \
 	src/output/htmlP.h \
+	src/output/journal.c \
+	src/output/journal.h \
 	src/output/output.c \
 	src/output/output.h \
 	src/output/postscript.c \

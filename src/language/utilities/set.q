@@ -41,6 +41,7 @@
 #include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <math/random.h>
+#include <output/journal.h>
 #include <output/output.h>
 
 #if HAVE_LIBTERMCAP
@@ -83,6 +84,7 @@ int tgetnum (const char *);
      histogram=string "x==1" "one character long";
      include=inc:on/off;
      journal=custom;
+     log=custom;
      length=custom;
      listing=custom;
      lowres=lores:auto/on/off;
@@ -507,17 +509,27 @@ static int
 stc_custom_journal (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match (lexer, '=');
-  if (!lex_match_id (lexer, "ON") && !lex_match_id (lexer, "OFF"))
+  if (lex_match_id (lexer, "ON") || lex_match_id (lexer, "YES"))
+    journal_enable ();
+  else if (lex_match_id (lexer, "OFF") || lex_match_id (lexer, "NO"))
+    journal_disable ();
+  else if (lex_token (lexer) == T_STRING || lex_token (lexer) == T_ID)
     {
-      if (lex_token (lexer) == T_STRING)
-        lex_get (lexer);
-      else
-        {
-          lex_error (lexer, NULL);
-          return 0;
-        }
+      journal_set_file_name (ds_cstr (lex_tokstr (lexer)));
+      lex_get (lexer);
+    }
+  else
+    {
+      lex_error (lexer, NULL);
+      return 0;
     }
   return 1;
+}
+
+static int
+stc_custom_log (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  return stc_custom_journal (lexer, ds, cmd, aux);
 }
 
 static int

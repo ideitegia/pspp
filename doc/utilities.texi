@@ -592,8 +592,16 @@ files.  These subcommands are
 
 @table @asis
 @item JOURNAL
-@item LOG
-Not currently used.
+@itemx LOG
+These subcommands, which are synonyms, control the journal.  The
+default is ON, which causes commands entered interactively to be
+written to the journal file.  Commands included from syntax files that
+are included interactively and error messages printed by PSPP are also
+written to the journal file, prefixed by @samp{>}.  OFF disables use
+of the journal.
+
+The journal is named @file{pspp.jnl} by default.  A different name may
+be specified.
 @end table
 
 System file subcommands affect the default format of system files

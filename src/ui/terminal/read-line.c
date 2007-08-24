@@ -32,6 +32,7 @@
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 #include <language/prompt.h>
+#include <output/journal.h>
 #include <output/manager.h>
 
 #include "xalloc.h"
@@ -129,6 +130,7 @@ welcome (void)
 	 "warranty.\" for details.\n", stdout);
   puts (stat_version);
   readln_initialize ();
+  journal_enable ();
 }
 
 /* Gets a line from the user and stores it into LINE.

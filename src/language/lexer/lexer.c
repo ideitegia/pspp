@@ -31,6 +31,7 @@
 #include <data/settings.h>
 #include <libpspp/getl.h>
 #include <libpspp/str.h>
+#include <output/journal.h>
 
 #include "size_max.h"
 
@@ -856,8 +857,13 @@ bool
 lex_get_line_raw (struct lexer *lexer, enum getl_syntax *syntax)
 {
   enum getl_syntax dummy;
-  bool ok = getl_read_line (lexer->ss, &lexer->line_buffer,
-                              syntax != NULL ? syntax : &dummy);
+  bool ok;
+
+  if (syntax == NULL)
+    syntax = &dummy;
+  ok = getl_read_line (lexer->ss, &lexer->line_buffer, syntax);
+  journal_write (*syntax == GETL_BATCH, ds_cstr (&lexer->line_buffer));
+
   return ok;
 }
 

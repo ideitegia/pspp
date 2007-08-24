@@ -1,3 +1,17 @@
+2007-08-23  Ben Pfaff  <blp@gnu.org>
+
+	Implement journaling.  Bug #17240.
+	
+	* msg-ui.c (handle_msg): Send message to write_journal function
+	as well as msg_file.
+	(dump_message): Change interface so that it takes a function
+	pointer instead of a FILE.
+	(write_stream): New function.
+	(write_journal): New function.
+	
+	* read-line.c (welcome): Call journal_enable, so that the journal
+	is enabled by default.
+
 2007-07-25  Ben Pfaff  <blp@gnu.org>
 
 	Make interactive output go to the terminal (bug #17213), by
