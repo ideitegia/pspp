@@ -36,6 +36,7 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/version.h>
 #include <output/output.h>
+#include <output/journal.h>
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -115,6 +116,8 @@ initialize (void)
              "output-file=\"" OUTPUT_FILE_NAME "\" append=yes"));
 
   unlink (OUTPUT_FILE_NAME);
+
+  journal_enable ();
 
   new_data_window (NULL, NULL);
 }

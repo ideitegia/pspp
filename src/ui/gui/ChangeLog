@@ -1,3 +1,7 @@
+2007-08-25  John Darrington <john@darrington.wattle.id.au>
+
+	* psppire.c : Enable journal.
+
 2007-08-18  John Darrington <john@darrington.wattle.id.au>
 
 	* clipboard.c clipboard.h data-editor.c: Added the ability to paste from 
