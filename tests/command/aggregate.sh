@@ -150,6 +150,10 @@ EOF
 
 activity="expected output (itemwise missing) create"
 cat > agg-itemwise.out <<EOF
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
 G        N       NI      NU     NUI NFGT2 NFGT2I SFGT2 SFGT2I NFIN23 NFIN23I SFIN23 SFIN23I NFLT2 NFLT2I SFLT2 SFLT2I NFIRST NFIRSTI SFIRST SFIRSTI NFOUT23 NFOUT23I SFOUT23 SFOUT23I NLAST NLASTI SLAST SLASTI NMAX NMAXI SMAX SMAXI    NMEAN   NMEANI NMIN NMINI SMIN SMINI       NN      NNI       SN      SNI   NNMISS  NNMISSI   SNMISS  SNMISSI     NNU    NNUI     SNU    SNUI NNUMISS NNUMISSI SNUMISS SNUMISSI NPGT2 NPGT2I SPGT2 SPGT2I NPIN23 NPIN23I SPIN23 SPIN23I NPLT2 NPLT2I SPLT2 SPLT2I NPOUT23 NPOUT23I SPOUT23 SPOUT23I      NSD     NSDI     NSUM    NSUMI
 - -------- -------- ------- ------- ----- ------ ----- ------ ------ ------- ------ ------- ----- ------ ----- ------ ------ ------- ------ ------- ------- -------- ------- -------- ----- ------ ----- ------ ---- ----- ---- ----- -------- -------- ---- ----- ---- ----- -------- -------- -------- -------- -------- -------- -------- -------- ------- ------- ------- ------- ------- -------- ------- -------- ----- ------ ----- ------ ------ ------- ------ ------- ----- ------ ----- ------ ------- -------- ------- -------- -------- -------- -------- --------
 1     7.00     7.00       6       6  .333   .429  .333   .429   .333    .286   .333    .286  .500   .429  .500   .429      0       0      0       0    .667     .714    .667     .714     5      5     5      5    5     5    5     5     2.00     2.29    0     0    0     0     6.00     7.00     6.00     7.00     1.00      .00     1.00      .00       5       6       5       6       1        0       1        0  33.3   42.9  33.3   42.9   33.3    28.6   33.3    28.6  50.0   42.9  50.0   42.9    66.7     71.4    66.7     71.4     1.79     1.80    12.00    16.00 
@@ -160,6 +164,10 @@ EOF
 
 activity="expected output (columnwise missing) create"
 cat > agg-columnwise.out <<EOF
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
+warning: AGGREGATE: The value arguments passed to the FOUT function are out-of-order.  They will be treated as if they had been specified in the correct order.
 G        N       NI      NU     NUI NFGT2 NFGT2I SFGT2 SFGT2I NFIN23 NFIN23I SFIN23 SFIN23I NFLT2 NFLT2I SFLT2 SFLT2I NFIRST NFIRSTI SFIRST SFIRSTI NFOUT23 NFOUT23I SFOUT23 SFOUT23I NLAST NLASTI SLAST SLASTI NMAX NMAXI SMAX SMAXI    NMEAN   NMEANI NMIN NMINI SMIN SMINI       NN      NNI       SN      SNI   NNMISS  NNMISSI   SNMISS  SNMISSI     NNU    NNUI     SNU    SNUI NNUMISS NNUMISSI SNUMISS SNUMISSI NPGT2 NPGT2I SPGT2 SPGT2I NPIN23 NPIN23I SPIN23 SPIN23I NPLT2 NPLT2I SPLT2 SPLT2I NPOUT23 NPOUT23I SPOUT23 SPOUT23I      NSD     NSDI     NSUM    NSUMI
 - -------- -------- ------- ------- ----- ------ ----- ------ ------ ------- ------ ------- ----- ------ ----- ------ ------ ------- ------ ------- ------- -------- ------- -------- ----- ------ ----- ------ ---- ----- ---- ----- -------- -------- ---- ----- ---- ----- -------- -------- -------- -------- -------- -------- -------- -------- ------- ------- ------- ------- ------- -------- ------- -------- ----- ------ ----- ------ ------ ------- ------ ------- ----- ------ ----- ------ ------- -------- ------- -------- -------- -------- -------- --------
 1     7.00     7.00       6       6  .      .429  .      .429   .       .286   .       .286  .      .429  .      .429      .       0              0    .        .714    .        .714     .      5            5    .     5          5      .       2.29    .     0          0     6.00     7.00     6.00     7.00     1.00      .00     1.00      .00       5       6       5       6       1        0       1        0    .    42.9    .    42.9     .     28.6     .     28.6    .    42.9    .    42.9      .      71.4      .      71.4      .       1.80      .      16.00 
@@ -210,7 +218,7 @@ for outfile in scratch active external; do
 	    if [ $? -ne 0 ] ; then no_result ; fi
 
 	    activity="check $name output"
-	    perl -pi -e 's/^\s*$//g' pspp.list agg-$missing.out
+	    perl -pi -e 's/^\s*$//g;s/^.*:\d+: //;' pspp.list agg-$missing.out
 	    diff -b -w pspp.list agg-$missing.out
 	    if [ $? -ne 0 ] ; then fail ; fi
 	done

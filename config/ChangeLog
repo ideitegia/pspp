@@ -1,3 +1,8 @@
+2007-08-26  Ben Pfaff  <blp@gnu.org>
+
+	* devices: Change raw-ascii from screen to listing device (because
+	that's how it's used).
+
 2007-07-25  Ben Pfaff  <blp@gnu.org>
 
 	* devices: Add tty and listing devices that use VT100 (and xterm)

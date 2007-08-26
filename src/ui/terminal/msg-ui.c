@@ -26,6 +26,8 @@
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <output/journal.h>
+#include <output/output.h>
+#include <output/table.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -176,6 +178,16 @@ handle_msg (const struct msg *m)
                   write_stream, msg_file);
 
   dump_message (ds_cstr (&string), 78, 0, write_journal, NULL);
+
+  if (get_error_routing_to_listing ())
+    {
+      /* Disable screen output devices, because the error should
+         already have been reported to the screen with the
+         dump_message call above. */
+      outp_enable_device (false, OUTP_DEV_SCREEN);
+      tab_output_text (TAB_LEFT, ds_cstr (&string));
+      outp_enable_device (true, OUTP_DEV_SCREEN);
+    }
 
   ds_destroy (&string);
 }

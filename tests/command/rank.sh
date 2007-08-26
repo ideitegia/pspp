@@ -587,6 +587,13 @@ if [ $? -ne 0 ] ; then fail ; fi
 activity="compare output 4"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff  -b $TEMPDIR/pspp.list - << EOF
+$TEMPDIR/rank.sh.sps:3: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate.
+$TEMPDIR/rank.sh.sps:4: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate.
+$TEMPDIR/rank.sh.sps:5: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate.
+$TEMPDIR/rank.sh.sps:6: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate.
+$TEMPDIR/rank.sh.sps:7: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate.
+$TEMPDIR/rank.sh.sps:8: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate.
+$TEMPDIR/rank.sh.sps:9: warning: BEGIN DATA: Missing value(s) for all variables from rx onward.  These will be filled with the system-missing value or blanks, as appropriate.
 Variables Created By RANK
 x into RNKRA01(RANK of x)
        x       rx   RNKRA01

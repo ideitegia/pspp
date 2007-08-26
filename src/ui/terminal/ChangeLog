@@ -1,3 +1,9 @@
+2007-08-26  Ben Pfaff  <blp@gnu.org>
+
+	* msg-ui.c (handle_msg): Send error message to non-screen output
+	devices also, if routing to listing files is enabled.  Bug
+	#17238.  Thanks to John Darrington for review.
+
 2007-08-23  Ben Pfaff  <blp@gnu.org>
 
 	Implement journaling.  Bug #17240.

@@ -1,3 +1,10 @@
+2007-08-26  Ben Pfaff  <blp@gnu.org>
+
+	* command/aggregate.sh: Update output to include error messages,
+	which are now sent to output files also.
+
+	* command/ranks.h: Ditto.
+
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
 	* command/no_case_size.sh: Update to match update DISPLAY and
