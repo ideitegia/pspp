@@ -91,7 +91,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 1"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
@@ -192,7 +192,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 2"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE  > $TEMPDIR/output
+$SUPERVISOR $PSPP --testing-mode $TESTFILE  > $TEMPDIR/output
 if [ $? -eq 0 ] ; then no_result ; fi
 
 activity="compare errors 2"
@@ -231,7 +231,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 3"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode $TESTFILE 
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -302,7 +302,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 4"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode $TESTFILE 
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

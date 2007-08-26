@@ -73,7 +73,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 cd $TEMPDIR
 
 activity="run data"
-$SUPERVISOR $PSPP  $TEMPDIR/ff.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/ff.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 

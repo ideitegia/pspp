@@ -77,7 +77,7 @@ if [ ! -f $TEMPDIR/foobar ] ; then fail ; fi
 
 # This command must fail
 activity="run prog 1"
-$SUPERVISOR $PSPP -e /dev/null $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
 if [ $? -eq 0 ] ; then fail ; fi
 
 
@@ -91,7 +91,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run prog 1"
-$SUPERVISOR $PSPP $TESTFILE
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 # foobar should now be gone

@@ -1,8 +1,13 @@
 2007-08-26  Ben Pfaff  <blp@gnu.org>
 
+	Bug #17238.  Thanks to John Darrington for review.
+
+	* main.c (main): When testing mode is enabled, use a built-in
+	output driver configuration instead of reading it from the
+	configuration file.
+
 	* msg-ui.c (handle_msg): Send error message to non-screen output
-	devices also, if routing to listing files is enabled.  Bug
-	#17238.  Thanks to John Darrington for review.
+	devices also, if routing to listing files is enabled.
 
 2007-08-23  Ben Pfaff  <blp@gnu.org>
 

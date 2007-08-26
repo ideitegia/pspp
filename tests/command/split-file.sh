@@ -81,7 +81,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/split.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/split.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare results"

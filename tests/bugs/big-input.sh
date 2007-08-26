@@ -71,7 +71,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii -e /dev/null $TEMPDIR/foo.sps 
+$SUPERVISOR $PSPP --testing-mode -e /dev/null $TEMPDIR/foo.sps 
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

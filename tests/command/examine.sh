@@ -94,7 +94,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 # NOTE:  In the following data: Only the extreme values have been checked

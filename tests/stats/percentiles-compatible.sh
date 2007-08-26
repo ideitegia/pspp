@@ -79,7 +79,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result; fi
 
 activity="run program $i"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/prog.sps
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output $i"

@@ -97,7 +97,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/variables.stat > $TEMPDIR/variables.err 2> $TEMPDIR/variables.out
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/variables.stat > $TEMPDIR/variables.err 2> $TEMPDIR/variables.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"

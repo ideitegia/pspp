@@ -60,7 +60,7 @@ perl $top_srcdir/tests/expressions/randist/randist.pl \
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run command file"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii \
+$SUPERVISOR $PSPP --testing-mode \
     $TEMPDIR/randist.pspp >$TEMPDIR/randist.err 2> $TEMPDIR/randist.out
 if [ $? -ne 0 ] ; then fail ; fi
 

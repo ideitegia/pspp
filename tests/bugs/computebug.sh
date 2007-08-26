@@ -60,7 +60,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/computebug.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/computebug.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

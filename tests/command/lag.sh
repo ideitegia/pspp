@@ -73,7 +73,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/lag.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/lag.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare result"

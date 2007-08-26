@@ -64,7 +64,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 1"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/recode-copy-bug-1.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/recode-copy-bug-1.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -75,7 +75,7 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 
 activity="run program 2"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/recode-copy-bug-2.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/recode-copy-bug-2.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

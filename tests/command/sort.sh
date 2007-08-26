@@ -116,7 +116,7 @@ for count_repeat_buffers in \
   } > sort.pspp || no_result
   
   activity="run program"
-  $SUPERVISOR $PSPP --testing-mode -o raw-ascii sort.pspp
+  $SUPERVISOR $PSPP --testing-mode sort.pspp
   if [ $? -ne 0 ] ; then no_result ; fi
   
   perl -pi -e 's/^\s*$//g' sort.exp sort.out

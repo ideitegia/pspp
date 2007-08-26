@@ -64,7 +64,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 # We use the stdinput here, because the bug seems to manifest itself only in 
 # interactive mode.
 activity="run program"
-cat $TESTFILE | $SUPERVISOR $PSPP --testing-mode -o raw-ascii  > /dev/null
+cat $TESTFILE | $SUPERVISOR $PSPP --testing-mode  > /dev/null
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass

@@ -112,7 +112,14 @@ main (int argc, char **argv)
   if (parse_command_line (argc, argv, the_source_stream))
     {
       msg_ui_init (the_source_stream);
-      outp_read_devices ();
+      if (!get_testing_mode ())
+        outp_read_devices ();
+      else
+        outp_configure_driver_line (
+          ss_cstr ("raw-ascii:ascii:listing:width=9999 length=9999 "
+                   "output-file=\"pspp.list\" emphasis=none "
+                   "headers=off paginate=off squeeze=on "
+                   "top-margin=0 bottom-margin=0"));
       the_lexer = lex_create (the_source_stream);
 
       for (;;)

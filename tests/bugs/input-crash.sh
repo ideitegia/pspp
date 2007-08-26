@@ -73,7 +73,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 # The above syntax is invalid, so this program should fail to parse
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii -e /dev/null $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
 if [ $? -ne 1 ] ; then fail ; fi
 
 

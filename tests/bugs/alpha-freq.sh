@@ -69,7 +69,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-$SUPERVISOR $PSPP $TEMPDIR/prog.sps
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/prog.sps
 if [ $? -ne 0 ] ; then fail ; fi
 
 

@@ -66,7 +66,7 @@ CROSSTABS VARIABLES X (1,7) Y (1,7) /TABLES X BY Y.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-$SUPERVISOR $PSPP -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

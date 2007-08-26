@@ -77,7 +77,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TESTFILE > /dev/null
+$SUPERVISOR $PSPP --testing-mode $TESTFILE > /dev/null
 #invert  v
 if [ $? -eq 0 ] ; then fail ; fi
 

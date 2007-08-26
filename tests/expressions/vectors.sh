@@ -74,7 +74,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/vectors.stat > $TEMPDIR/vectors.err 2> $TEMPDIR/vectors.out
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/vectors.stat > $TEMPDIR/vectors.err 2> $TEMPDIR/vectors.out
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare results"

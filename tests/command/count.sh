@@ -76,7 +76,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="Run pspp 1"
-$SUPERVISOR $PSPP -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -124,7 +124,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="Run pspp 2"
-$SUPERVISOR $PSPP -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 

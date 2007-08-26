@@ -71,7 +71,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/descript.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/descript.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"

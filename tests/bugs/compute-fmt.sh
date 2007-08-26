@@ -66,7 +66,7 @@ SAVE outfile='$TEMPDIR/temp.sav'.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/foo.sps
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/foo.sps
 if [ $? -ne 0 ] ; then fail; fi
 
 

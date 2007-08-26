@@ -71,7 +71,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 0"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii -e /dev/null $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare variable display 0"
@@ -162,7 +162,7 @@ EOF
 
 
     activity="run program 1 ($options)"
-    $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+    $SUPERVISOR $PSPP --testing-mode $TESTFILE
     if [ $? -ne 0 ] ; then no_result ; fi
 
     activity="Create file2 ($options)"
@@ -183,7 +183,7 @@ EOF
     if [ $? -ne 0 ] ; then no_result ; fi
 
     activity="run program 2 ($options)"
-    $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+    $SUPERVISOR $PSPP --testing-mode $TESTFILE
     if [ $? -ne 0 ] ; then no_result ; fi
 
 

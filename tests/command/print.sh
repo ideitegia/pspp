@@ -101,7 +101,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii --testing-mode --error-file=$TEMPDIR/errs $TEMPDIR/print.stat 
+$SUPERVISOR $PSPP --testing-mode --error-file=$TEMPDIR/errs $TEMPDIR/print.stat 
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare print.out"

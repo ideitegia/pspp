@@ -1,5 +1,11 @@
 2007-08-26  Ben Pfaff  <blp@gnu.org>
 
+	* Updated most invocations of PSPP in the tests to use
+          --testing-mode and to avoid specifying an output format with -o
+	  (because --testing-mode implies -o raw-ascii).
+
+2007-08-26  Ben Pfaff  <blp@gnu.org>
+
 	* command/aggregate.sh: Update output to include error messages,
 	which are now sent to output files also.
 

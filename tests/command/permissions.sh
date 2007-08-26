@@ -66,7 +66,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/per.sps
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/per.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="Check Permissions"
@@ -82,7 +82,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP -o raw-ascii $TEMPDIR/per.sps
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/per.sps
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="Check Permissions"

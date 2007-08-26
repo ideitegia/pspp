@@ -81,7 +81,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 # Check that it properly handles failed transformations.
 activity="run program 1"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii -e $TEMPDIR/err $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode -e $TEMPDIR/err $TESTFILE 
 if [ $? -ne 1 ] ; then fail ; fi
 
 activity="diff 1"
@@ -130,7 +130,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program (syntax errors)"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii -e $TEMPDIR/errs $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode -e $TEMPDIR/errs $TESTFILE 
 if [ $? -ne 1 ] ; then fail ; fi
 
 activity="compare errors"
@@ -358,7 +358,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run program 3"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -580,7 +580,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program 4"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii -e /dev/null $TESTFILE 
+$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
 if [ $? -ne 0 ] ; then fail ; fi
 
 

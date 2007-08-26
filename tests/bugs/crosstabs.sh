@@ -80,7 +80,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-$SUPERVISOR $PSPP $TEMPDIR/ct.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/ct.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 

@@ -145,7 +145,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TEMPDIR/float-format.pspp
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/float-format.pspp
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass

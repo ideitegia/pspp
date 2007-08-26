@@ -68,7 +68,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP $TEMPDIR/compute-sum.stat
+$SUPERVISOR $PSPP --testing-mode $TEMPDIR/compute-sum.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
