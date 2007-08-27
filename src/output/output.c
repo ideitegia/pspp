@@ -435,6 +435,7 @@ void
 outp_done (void)
 {
   struct outp_driver_class_list *n = outp_class_list ;
+  outp_configure_clear ();
   destroy_list (&outp_driver_list);
 
   while (n)

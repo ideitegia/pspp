@@ -77,7 +77,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
           if (vector_cnt == vector_cap)
             vectors = pool_2nrealloc (pool,
                                        vectors, &vector_cap, sizeof *vectors);
-          vectors[vector_cnt++] = xstrdup (lex_tokid (lexer));
+          vectors[vector_cnt++] = pool_strdup (pool, lex_tokid (lexer));
 
 	  lex_get (lexer);
 	  lex_match (lexer, ',');

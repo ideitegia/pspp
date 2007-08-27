@@ -1849,6 +1849,8 @@ calculate(struct cmd_t_test *cmd,
       trbox_populate(&test_results_box,cmd);
       trbox_finalize(&test_results_box);
     }
+
+  taint_destroy (taint);
 }
 
 short which_group(const struct group_statistics *g,
