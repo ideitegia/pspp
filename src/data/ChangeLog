@@ -1,3 +1,8 @@
+2007-08-27  John Darrinton <john@darrington.wattle.id.au>
+	
+	* sys-file-reader.c (read_display_parameters): Force display width 
+	to 8, if the sys file says 0 (like SPSS does).
+
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
 	* dictionary.c (dict_dump): New function.

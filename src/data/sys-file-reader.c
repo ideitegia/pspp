@@ -857,6 +857,11 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
       if (0 == measure && var_is_alpha (v))
         measure = 1;
 
+      /* Older versions (SPSS 9.0) sometimes set the display width
+	 to zero.  This causes confusion especially in the GUI */
+      if (0 == width)
+	width = 8;
+
       if (measure < 1 || measure > 3 || align < 0 || align > 2)
         {
           if (!warned)
