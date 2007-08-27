@@ -3,12 +3,11 @@ is a free replacement for the proprietary program SPSS.
 
 PSPP development is ongoing. It already supports a large subset of
 SPSS's syntax.  Its statistical procedure support is currently
-limited, but growing. At your option, PSPP will produce statistical
-reports in  ASCII, PostScript, or HTML formats. 
-
+limited, but growing.  At your option, PSPP will produce statistical
+reports in ASCII, PostScript, or HTML formats. 
 
 Instructions for PSPP installation are in INSTALL, including a list of
-prerequisite packages and other PSPP-specific information. Full
+prerequisite packages and other PSPP-specific information.  Full
 documentation  on PSPP's language will be installed along with the
 programs. 
 
