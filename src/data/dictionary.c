@@ -176,20 +176,7 @@ dict_clear (struct dictionary *d)
 
   while (d->var_cnt > 0 )
     {
-      struct variable *v = d->var[d->var_cnt - 1];
-      int dict_index = var_get_dict_index (v);
-      int case_index = var_get_case_index (v);
-      int val_cnt = var_get_value_cnt (v);
-
-      var_clear_vardict (v);
-      var_destroy (v);
-
-      d->var_cnt--;
-
-      if (d->callbacks &&  d->callbacks->var_deleted )
-	d->callbacks->var_deleted (d,
-				   dict_index, case_index, val_cnt,
-				   d->cb_data);
+      dict_delete_var (d, d->var[d->var_cnt - 1]);
     }
 
   free (d->var);
@@ -515,6 +502,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   /* Free memory. */
   var_clear_vardict (v);
   var_destroy (v);
+
 
   if (d->callbacks &&  d->callbacks->var_deleted )
     d->callbacks->var_deleted (d, dict_index, case_index, val_cnt, d->cb_data);
@@ -959,8 +947,16 @@ dict_set_split_vars (struct dictionary *d,
   assert (cnt == 0 || split != NULL);
 
   d->split_cnt = cnt;
-  d->split = cnt > 0 ? xnrealloc (d->split, cnt, sizeof *d->split) : NULL;
-  memcpy (d->split, split, cnt * sizeof *d->split);
+  if ( cnt > 0 )
+   {
+    d->split = xnrealloc (d->split, cnt, sizeof *d->split) ;
+    memcpy (d->split, split, cnt * sizeof *d->split);
+   }
+  else
+   {
+    free (d->split);
+    d->split = NULL;
+   }
 
   if ( d->callbacks &&  d->callbacks->split_changed )
     d->callbacks->split_changed (d, d->cb_data);

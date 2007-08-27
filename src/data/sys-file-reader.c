@@ -939,6 +939,7 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
           var_set_short_name (var, i, short_names[i]);
           free (short_names[i]);
         }
+      free (short_names);
     }
   close_variable_to_value_map (r, map);
   r->has_long_var_names = true;

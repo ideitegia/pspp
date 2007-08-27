@@ -173,6 +173,7 @@ var_destroy (struct variable *v)
     {
       assert (!var_has_vardict (v));
       cat_stored_values_destroy (v->obs_vals);
+      var_clear_short_names (v);
       var_clear_aux (v);
       val_labs_destroy (v->val_labs);
       var_clear_label (v);
@@ -840,7 +841,6 @@ var_set_short_name (struct variable *var, size_t idx, const char *short_name)
         {
           size_t old_cnt = var->short_name_cnt;
           size_t i;
-          
           var->short_name_cnt = MAX (idx * 2, 1);
           var->short_names = xnrealloc (var->short_names, var->short_name_cnt,
                                         sizeof *var->short_names);
@@ -859,9 +859,10 @@ void
 var_clear_short_names (struct variable *v)
 {
   size_t i;
-  
+
   for (i = 0; i < v->short_name_cnt; i++)
     free (v->short_names[i]);
+  free (v->short_names);
   v->short_names = NULL;
   v->short_name_cnt = 0;
 }
