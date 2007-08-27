@@ -55,7 +55,7 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/foo.sps <<EOF
+cat > $TESTFILE <<EOF
 INPUT PROGRAM.
     COMPUTE #I = 1.
     COMPUTE X = #I.
@@ -68,7 +68,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $TEMPDIR/foo.sps
+$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

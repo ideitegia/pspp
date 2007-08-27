@@ -57,7 +57,7 @@ rm -f $TEMPDIR/bar.dat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program"
-cat > $TEMPDIR/foo.sps <<EOF
+cat > $TESTFILE <<EOF
 DATA LIST FILE='$TEMPDIR/bar.dat' /S 1-2 (A) X 3 .
 
 EXECUTE.
@@ -66,7 +66,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="run program"
 # This must exit with non zero status
-$SUPERVISOR $here/../src/pspp -o raw-ascii -e /dev/null $TEMPDIR/foo.sps 2> $TEMPDIR/stderr
+$SUPERVISOR $here/../src/pspp -o raw-ascii -e /dev/null $TESTFILE 2> $TEMPDIR/stderr
 if [ $? -eq 0 ] ; then fail ; fi
 
 activity="compare stderr"

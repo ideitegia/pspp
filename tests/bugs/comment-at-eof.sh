@@ -54,12 +54,12 @@ mkdir -p $TEMPDIR
 cd $TEMPDIR
 
 activity="create program"
-cat > $TEMPDIR/foo.sps <<EOF
+cat > $TESTFILE <<EOF
 COMMENT this is a comment at end of file.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-$SUPERVISOR $PSPP --testing-mode $TEMPDIR/foo.sps
+$SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then fail; fi
 
 pass;
