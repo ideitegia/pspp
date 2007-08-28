@@ -194,6 +194,8 @@ create_variable_frequency_table (const struct dictionary *dict,
 	  test->n_expected, n_cells,
 	  var_get_name (var)
 	  );
+      hsh_destroy (*freq_hash);
+      *freq_hash = NULL;
       return NULL;
     }
 

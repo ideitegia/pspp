@@ -130,6 +130,7 @@ cmd_document (struct lexer *lexer, struct dataset *ds)
   while (!end_dot);
 
   add_document_trailer (dict);
+  ds_destroy (&line);
 
   return CMD_SUCCESS;
 }
