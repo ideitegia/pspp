@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-08-23 13:05+0800\n"
+"POT-Creation-Date: 2007-08-31 07:06+0800\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -203,13 +203,13 @@ msgstr ""
 msgid "Month number %f is not between 1 and 12."
 msgstr ""
 
-#: src/data/dictionary.c:751
+#: src/data/dictionary.c:739
 msgid ""
 "At least one case in the data file had a weight value that was user-missing, "
 "system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
-#: src/data/dictionary.c:1044
+#: src/data/dictionary.c:1040
 #, c-format
 msgid "Truncating document line to %d bytes."
 msgstr ""
@@ -318,8 +318,8 @@ msgstr "Zeichenkette"
 msgid "Numeric"
 msgstr "Nummer"
 
-#: src/data/format.c:319 src/data/sys-file-reader.c:1100
-#: src/data/sys-file-reader.c:1102
+#: src/data/format.c:319 src/data/sys-file-reader.c:1106
+#: src/data/sys-file-reader.c:1108
 #: src/language/dictionary/apply-dictionary.c:76
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/xforms/recode.c:472 src/language/xforms/recode.c:473
@@ -327,8 +327,8 @@ msgstr "Nummer"
 msgid "numeric"
 msgstr "numerisch"
 
-#: src/data/format.c:319 src/data/sys-file-reader.c:1100
-#: src/data/sys-file-reader.c:1102
+#: src/data/format.c:319 src/data/sys-file-reader.c:1106
+#: src/data/sys-file-reader.c:1108
 #: src/language/dictionary/apply-dictionary.c:76
 #: src/language/dictionary/apply-dictionary.c:77
 #: src/language/xforms/recode.c:472 src/language/xforms/recode.c:473
@@ -699,122 +699,122 @@ msgstr ""
 msgid "Bad size (%u) or count (%u) on extension 11."
 msgstr ""
 
-#: src/data/sys-file-reader.c:863
+#: src/data/sys-file-reader.c:868
 msgid "Invalid variable display parameters.  Default parameters substituted."
 msgstr ""
 
-#: src/data/sys-file-reader.c:902
+#: src/data/sys-file-reader.c:907
 #, c-format
 msgid "Long variable mapping from %s to invalid variable name `%s'."
 msgstr ""
 
-#: src/data/sys-file-reader.c:912
+#: src/data/sys-file-reader.c:917
 #, c-format
 msgid "Duplicate long variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:966
+#: src/data/sys-file-reader.c:972
 #, c-format
 msgid "%s listed as string of invalid length %s in very length string record."
 msgstr ""
 
-#: src/data/sys-file-reader.c:976
+#: src/data/sys-file-reader.c:982
 #, c-format
 msgid ""
 "%s listed in very long string record with width %s, which requires only one "
 "segment."
 msgstr ""
 
-#: src/data/sys-file-reader.c:982
+#: src/data/sys-file-reader.c:988
 #, c-format
 msgid "Very long string %s overflows dictionary."
 msgstr ""
 
-#: src/data/sys-file-reader.c:996
+#: src/data/sys-file-reader.c:1002
 #, c-format
 msgid ""
 "Very long string with width %ld has segment %d of width %d (expected %d)"
 msgstr ""
 
-#: src/data/sys-file-reader.c:1041
+#: src/data/sys-file-reader.c:1047
 #, c-format
 msgid "Invalid number of labels: %d.  Ignoring labels."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1072
+#: src/data/sys-file-reader.c:1078
 msgid ""
 "Variable index record (type 4) does not immediately follow value label "
 "record (type 3) as it should."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1079
+#: src/data/sys-file-reader.c:1085
 #, c-format
 msgid ""
 "Number of variables associated with a value label (%d) is not between 1 and "
 "the number of variables (%u)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1089
+#: src/data/sys-file-reader.c:1095
 #, c-format
 msgid "Value labels are not allowed on long string variables (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1096
+#: src/data/sys-file-reader.c:1102
 #, c-format
 msgid ""
 "Variables associated with value label are not all of identical type.  "
 "Variable %s is %s, but variable %s is %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1129
+#: src/data/sys-file-reader.c:1135
 #, c-format
 msgid "Duplicate value label for %g on %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1132
+#: src/data/sys-file-reader.c:1138
 #, c-format
 msgid "Duplicate value label for \"%.*s\" on %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1210
+#: src/data/sys-file-reader.c:1216
 msgid "File ends in partial case."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1218
+#: src/data/sys-file-reader.c:1224
 #, c-format
 msgid "Error reading case from file %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1315 src/data/sys-file-reader.c:1351
+#: src/data/sys-file-reader.c:1321 src/data/sys-file-reader.c:1357
 msgid "Compressed data is corrupt."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1438
+#: src/data/sys-file-reader.c:1444
 #, c-format
 msgid "Variable index %d not in valid range 1...%d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1443
+#: src/data/sys-file-reader.c:1449
 #, c-format
 msgid "Variable index %d refers to long string continuation."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1529
+#: src/data/sys-file-reader.c:1535
 #, c-format
 msgid "Suppressed %d additional variable map warnings."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1542
+#: src/data/sys-file-reader.c:1548
 #, c-format
 msgid "Variable map refers to unknown variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1618
+#: src/data/sys-file-reader.c:1624
 #, c-format
 msgid "System error: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1620
+#: src/data/sys-file-reader.c:1626
 #, fuzzy
 msgid "Unexpected end of file."
 msgstr "plotzlich ist der Datei beendet"
@@ -834,41 +834,41 @@ msgstr ""
 msgid "An I/O error occurred writing system file \"%s\"."
 msgstr ""
 
-#: src/data/variable.c:229
+#: src/data/variable.c:230
 #, c-format
 msgid ""
 "Character `%c' (in %s) may not appear as the first character in a variable "
 "name."
 msgstr ""
 
-#: src/data/variable.c:241
+#: src/data/variable.c:242
 #, c-format
 msgid "Character `%c' (in %s) may not appear in a variable name."
 msgstr ""
 
-#: src/data/variable.c:269
+#: src/data/variable.c:270
 msgid "Variable name cannot be empty string."
 msgstr "Ein Variablename darf nicht eines leeres Kette sein."
 
-#: src/data/variable.c:275
+#: src/data/variable.c:276
 #, c-format
 msgid "Variable name %s exceeds %d-character limit."
 msgstr "Der Variabelname %s ist große als %d Buchstaben."
 
-#: src/data/variable.c:283
+#: src/data/variable.c:284
 #, c-format
 msgid "`%s' may not be used as a variable name because it is a reserved word."
 msgstr ""
 
-#: src/data/variable.c:1001
+#: src/data/variable.c:1002
 msgid "ordinary"
 msgstr ""
 
-#: src/data/variable.c:1003
+#: src/data/variable.c:1004
 msgid "system"
 msgstr ""
 
-#: src/data/variable.c:1005
+#: src/data/variable.c:1006
 msgid "scratch"
 msgstr ""
 
@@ -1411,7 +1411,7 @@ msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:463
+#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:464
 #: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:59
 msgid "expecting end of command"
 msgstr ""
@@ -1828,11 +1828,11 @@ msgid ""
 "s."
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:156 src/language/lexer/lexer.c:607
+#: src/language/dictionary/value-labels.c:156 src/language/lexer/lexer.c:608
 msgid "expecting string"
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:165 src/language/lexer/lexer.c:621
+#: src/language/dictionary/value-labels.c:165 src/language/lexer/lexer.c:622
 msgid "expecting integer"
 msgstr ""
 
@@ -2079,89 +2079,89 @@ msgstr ""
 msgid "expecting format type"
 msgstr ""
 
-#: src/language/lexer/lexer.c:269
+#: src/language/lexer/lexer.c:270
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/language/lexer/lexer.c:373
+#: src/language/lexer/lexer.c:374
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:375
+#: src/language/lexer/lexer.c:376
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:411
+#: src/language/lexer/lexer.c:412
 #, c-format
 msgid "Subcommand %s may only be specified once."
 msgstr ""
 
-#: src/language/lexer/lexer.c:419
+#: src/language/lexer/lexer.c:420
 #, c-format
 msgid "missing required subcommand %s"
 msgstr ""
 
-#: src/language/lexer/lexer.c:448
+#: src/language/lexer/lexer.c:449
 #, c-format
 msgid "Syntax error %s at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:451
+#: src/language/lexer/lexer.c:452
 #, c-format
 msgid "Syntax error at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:576 src/language/lexer/lexer.c:593
+#: src/language/lexer/lexer.c:577 src/language/lexer/lexer.c:594
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/language/lexer/lexer.c:634
+#: src/language/lexer/lexer.c:635
 msgid "expecting number"
 msgstr ""
 
-#: src/language/lexer/lexer.c:646
+#: src/language/lexer/lexer.c:647
 msgid "expecting identifier"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1039
+#: src/language/lexer/lexer.c:1045
 msgid "binary"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1044
+#: src/language/lexer/lexer.c:1050
 msgid "octal"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1049
+#: src/language/lexer/lexer.c:1055
 msgid "hex"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1059
+#: src/language/lexer/lexer.c:1065
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1088
+#: src/language/lexer/lexer.c:1094
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1122
+#: src/language/lexer/lexer.c:1128
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1176
+#: src/language/lexer/lexer.c:1182
 msgid "Unexpected end of file in string concatenation."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1184
+#: src/language/lexer/lexer.c:1190
 msgid "String expected following `+'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1197
+#: src/language/lexer/lexer.c:1203
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
@@ -2350,8 +2350,8 @@ msgstr ""
 msgid "Group2"
 msgstr ""
 
-#: src/language/stats/binomial.c:194 src/language/stats/chisquare.c:220
-#: src/language/stats/chisquare.c:280 src/language/stats/crosstabs.q:845
+#: src/language/stats/binomial.c:194 src/language/stats/chisquare.c:222
+#: src/language/stats/chisquare.c:282 src/language/stats/crosstabs.q:845
 #: src/language/stats/crosstabs.q:1045 src/language/stats/crosstabs.q:1768
 #: src/language/stats/examine.q:910 src/language/stats/frequencies.q:1137
 #: src/language/stats/oneway.q:307 src/language/stats/oneway.q:471
@@ -2359,7 +2359,7 @@ msgstr ""
 msgid "Total"
 msgstr ""
 
-#: src/language/stats/binomial.c:225 src/language/stats/chisquare.c:243
+#: src/language/stats/binomial.c:225 src/language/stats/chisquare.c:245
 #: src/language/stats/crosstabs.q:1163 src/language/stats/crosstabs.q:1204
 msgid "Category"
 msgstr ""
@@ -2392,39 +2392,39 @@ msgid ""
 "encountered in variable %s."
 msgstr ""
 
-#: src/language/stats/chisquare.c:204 src/language/stats/chisquare.c:244
+#: src/language/stats/chisquare.c:206 src/language/stats/chisquare.c:246
 msgid "Observed N"
 msgstr ""
 
-#: src/language/stats/chisquare.c:205 src/language/stats/chisquare.c:245
+#: src/language/stats/chisquare.c:207 src/language/stats/chisquare.c:247
 msgid "Expected N"
 msgstr ""
 
-#: src/language/stats/chisquare.c:206 src/language/stats/chisquare.c:246
+#: src/language/stats/chisquare.c:208 src/language/stats/chisquare.c:248
 #: src/language/stats/regression.q:319
 msgid "Residual"
 msgstr ""
 
-#: src/language/stats/chisquare.c:239
+#: src/language/stats/chisquare.c:241
 msgid "Frequencies"
 msgstr ""
 
-#: src/language/stats/chisquare.c:294
+#: src/language/stats/chisquare.c:296
 msgid "Test Statistics"
 msgstr ""
 
-#: src/language/stats/chisquare.c:308
+#: src/language/stats/chisquare.c:310
 msgid "Chi-Square"
 msgstr ""
 
-#: src/language/stats/chisquare.c:309 src/language/stats/crosstabs.q:1139
+#: src/language/stats/chisquare.c:311 src/language/stats/crosstabs.q:1139
 #: src/language/stats/oneway.q:280 src/language/stats/oneway.q:681
 #: src/language/stats/regression.q:313 src/language/stats/t-test.q:983
 #: src/language/stats/t-test.q:1175 src/language/stats/t-test.q:1268
 msgid "df"
 msgstr ""
 
-#: src/language/stats/chisquare.c:310
+#: src/language/stats/chisquare.c:312
 msgid "Asymp. Sig."
 msgstr ""
 
@@ -3574,139 +3574,139 @@ msgstr ""
 msgid "Cannot change mode of %s: %s"
 msgstr ""
 
-#: src/language/utilities/set.q:199 src/language/utilities/set.q:201
-#: src/language/utilities/set.q:203 src/language/utilities/set.q:205
-#: src/language/utilities/set.q:207 src/language/utilities/set.q:209
-#: src/language/utilities/set.q:211 src/language/utilities/set.q:213
-#: src/language/utilities/set.q:215
+#: src/language/utilities/set.q:201 src/language/utilities/set.q:203
+#: src/language/utilities/set.q:205 src/language/utilities/set.q:207
+#: src/language/utilities/set.q:209 src/language/utilities/set.q:211
+#: src/language/utilities/set.q:213 src/language/utilities/set.q:215
+#: src/language/utilities/set.q:217
 #, c-format
 msgid "%s is obsolete."
 msgstr ""
 
-#: src/language/utilities/set.q:218
+#: src/language/utilities/set.q:220
 #, c-format
 msgid "%s is not implemented."
 msgstr ""
 
-#: src/language/utilities/set.q:221
+#: src/language/utilities/set.q:223
 msgid "Active file compression is not implemented."
 msgstr ""
 
-#: src/language/utilities/set.q:345
+#: src/language/utilities/set.q:347
 #, c-format
 msgid ""
 "%s: Custom currency string `%s' does not contain exactly three periods or "
 "commas (or it contains both)."
 msgstr ""
 
-#: src/language/utilities/set.q:401
+#: src/language/utilities/set.q:403
 msgid "EPOCH must be 1500 or later."
 msgstr ""
 
-#: src/language/utilities/set.q:408
+#: src/language/utilities/set.q:410
 msgid "expecting AUTOMATIC or year"
 msgstr ""
 
-#: src/language/utilities/set.q:429
+#: src/language/utilities/set.q:431
 msgid "LENGTH must be at least 1."
 msgstr ""
 
-#: src/language/utilities/set.q:473
+#: src/language/utilities/set.q:475
 msgid "WIDTH must be at least 40."
 msgstr ""
 
-#: src/language/utilities/set.q:496
+#: src/language/utilities/set.q:498
 #, c-format
 msgid ""
 "FORMAT requires numeric output format as an argument.  Specified format %s "
 "is of type string."
 msgstr ""
 
-#: src/language/utilities/set.q:553
+#: src/language/utilities/set.q:565
 msgid "BLANKS is SYSMIS."
 msgstr ""
 
-#: src/language/utilities/set.q:555
+#: src/language/utilities/set.q:567
 #, c-format
 msgid "BLANKS is %g."
 msgstr ""
 
-#: src/language/utilities/set.q:590
+#: src/language/utilities/set.q:602
 #, c-format
 msgid "%s is \"%s\"."
 msgstr ""
 
-#: src/language/utilities/set.q:626
+#: src/language/utilities/set.q:638
 #, c-format
 msgid "DECIMAL is \"%c\"."
 msgstr ""
 
-#: src/language/utilities/set.q:632
+#: src/language/utilities/set.q:644
 #, c-format
 msgid "ENDCMD is \"%c\"."
 msgstr ""
 
-#: src/language/utilities/set.q:640
+#: src/language/utilities/set.q:652
 #, c-format
 msgid "ERRORS is \"%s\"."
 msgstr ""
 
-#: src/language/utilities/set.q:651
+#: src/language/utilities/set.q:663
 #, c-format
 msgid "FORMAT is %s."
 msgstr ""
 
-#: src/language/utilities/set.q:657
+#: src/language/utilities/set.q:669
 #, c-format
 msgid "LENGTH is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:663
+#: src/language/utilities/set.q:675
 #, c-format
 msgid "MXERRS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:669
+#: src/language/utilities/set.q:681
 #, c-format
 msgid "MXLOOPS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:675
+#: src/language/utilities/set.q:687
 #, c-format
 msgid "MXWARNS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:682 src/language/utilities/set.q:733
+#: src/language/utilities/set.q:694 src/language/utilities/set.q:745
 #, c-format
 msgid "%s is %s (%s)."
 msgstr ""
 
-#: src/language/utilities/set.q:754
+#: src/language/utilities/set.q:766
 msgid "SCOMPRESSION is ON."
 msgstr ""
 
-#: src/language/utilities/set.q:756
+#: src/language/utilities/set.q:768
 msgid "SCOMPRESSION is OFF."
 msgstr ""
 
-#: src/language/utilities/set.q:763
+#: src/language/utilities/set.q:775
 msgid "UNDEFINED is WARN."
 msgstr ""
 
-#: src/language/utilities/set.q:765
+#: src/language/utilities/set.q:777
 msgid "UNDEFINED is NOWARN."
 msgstr ""
 
-#: src/language/utilities/set.q:773
+#: src/language/utilities/set.q:785
 msgid "WEIGHT is off."
 msgstr ""
 
-#: src/language/utilities/set.q:775
+#: src/language/utilities/set.q:787
 #, c-format
 msgid "WEIGHT is variable %s."
 msgstr ""
 
-#: src/language/utilities/set.q:793
+#: src/language/utilities/set.q:805
 #, c-format
 msgid "WIDTH is %d."
 msgstr ""
@@ -3988,6 +3988,16 @@ msgstr ""
 msgid "unknown configuration parameter `%s' for HTML device driver"
 msgstr ""
 
+#: src/output/journal.c:68
+#, c-format
+msgid "error writing \"%s\""
+msgstr ""
+
+#: src/output/journal.c:90
+#, c-format
+msgid "error creating \"%s\""
+msgstr ""
+
 #: src/output/output.c:161
 #, c-format
 msgid "unknown output driver `%s'"
@@ -4033,96 +4043,96 @@ msgstr ""
 msgid "error reading device definition file"
 msgstr ""
 
-#: src/output/output.c:462
+#: src/output/output.c:463
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output/output.c:494
+#: src/output/output.c:495
 #, c-format
 msgid "syntax error parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:510
+#: src/output/output.c:511
 #, c-format
 msgid ""
 "reached end of options inside quoted string parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:580
+#: src/output/output.c:581
 #, c-format
 msgid "syntax error in string constant parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:628
+#: src/output/output.c:629
 #, c-format
 msgid "syntax error expecting `=' parsing options for driver \"%s\""
 msgstr ""
 
-#: src/output/output.c:679
+#: src/output/output.c:680
 #, c-format
 msgid "unknown output driver class `%.*s'"
 msgstr ""
 
-#: src/output/output.c:694
+#: src/output/output.c:695
 #, c-format
 msgid "unknown device type `%.*s'"
 msgstr ""
 
-#: src/output/output.c:711
+#: src/output/output.c:712
 #, c-format
 msgid "cannot initialize output driver `%s' of class `%s'"
 msgstr ""
 
-#: src/output/output.c:757
+#: src/output/output.c:758
 msgid "driver definition line missing driver name or class name"
 msgstr ""
 
-#: src/output/output.c:903
+#: src/output/output.c:904
 #, c-format
 msgid "unit \"%s\" is unknown in dimension \"%s\""
 msgstr ""
 
-#: src/output/output.c:918
+#: src/output/output.c:919
 #, c-format
 msgid "bad dimension \"%s\""
 msgstr ""
 
-#: src/output/output.c:944
+#: src/output/output.c:945
 #, c-format
 msgid "`x' expected in paper size `%s'"
 msgstr ""
 
-#: src/output/output.c:954
+#: src/output/output.c:955
 #, c-format
 msgid "trailing garbage `%s' on paper size `%s'"
 msgstr ""
 
-#: src/output/output.c:998
+#: src/output/output.c:999
 msgid "paper size name cannot be empty"
 msgstr ""
 
-#: src/output/output.c:1015
+#: src/output/output.c:1016
 msgid "cannot find `papersize' configuration file"
 msgstr ""
 
-#: src/output/output.c:1022
+#: src/output/output.c:1023
 #, c-format
 msgid "error opening \"%s\""
 msgstr ""
 
-#: src/output/output.c:1033
+#: src/output/output.c:1034
 #, c-format
 msgid "error reading \"%s\""
 msgstr ""
 
-#: src/output/output.c:1059
+#: src/output/output.c:1060
 msgid "syntax error in paper size definition"
 msgstr ""
 
-#: src/output/output.c:1071
+#: src/output/output.c:1072
 msgid "error reading paper size definition file"
 msgstr ""
 
@@ -5323,36 +5333,36 @@ msgid ""
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/ui/terminal/main.c:127
+#: src/ui/terminal/main.c:134
 msgid ""
 "Stopping syntax file processing here to avoid a cascade of dependent command "
 "failures."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:62
+#: src/ui/terminal/msg-ui.c:65
 #, c-format
 msgid "Cannot open %s (%s). Writing errors to stdout instead.\n"
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:89
+#: src/ui/terminal/msg-ui.c:92
 msgid "Terminating execution of syntax file due to error."
-msgstr ""
-
-#: src/ui/terminal/msg-ui.c:91
-#, c-format
-msgid "Errors (%d) exceeds limit (%d)."
 msgstr ""
 
 #: src/ui/terminal/msg-ui.c:94
 #, c-format
+msgid "Errors (%d) exceeds limit (%d)."
+msgstr ""
+
+#: src/ui/terminal/msg-ui.c:97
+#, c-format
 msgid "Warnings (%d) exceed limit (%d)."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:143
+#: src/ui/terminal/msg-ui.c:148
 msgid "error"
 msgstr "Fehler"
 
-#: src/ui/terminal/msg-ui.c:144
+#: src/ui/terminal/msg-ui.c:149
 msgid "warning"
 msgstr "Warnung"
 
