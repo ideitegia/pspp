@@ -456,7 +456,7 @@ new_data_editor (void)
 			    );
 
   gtk_action_connect_proxy (de->insert_variable,
-			    get_widget_assert (de->xml, "data_insert-variable")
+			    get_widget_assert (de->xml, "edit_insert-variable")
 			    );
 
 
@@ -476,7 +476,7 @@ new_data_editor (void)
 
 
   gtk_action_connect_proxy (de->insert_case,
-			    get_widget_assert (de->xml, "data_insert-case")
+			    get_widget_assert (de->xml, "edit_insert-case")
 			    );
 
 
@@ -493,7 +493,7 @@ new_data_editor (void)
 			    );
 
   gtk_action_connect_proxy (de->invoke_goto_dialog,
-			    get_widget_assert (de->xml, "data_goto-case")
+			    get_widget_assert (de->xml, "edit_goto-case")
 			    );
 
 
