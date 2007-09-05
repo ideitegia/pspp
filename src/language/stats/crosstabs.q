@@ -191,10 +191,15 @@ int
 cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
 {
   int result = internal_cmd_crosstabs (lexer, ds);
+  int i;
 
   free (variables);
   pool_destroy (pl_tc);
   pool_destroy (pl_col);
+
+  for (i = 0; i < nxtab; i++)
+    free (xtab[i]);
+  free (xtab);
 
   return result;
 }

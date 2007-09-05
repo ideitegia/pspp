@@ -1,3 +1,8 @@
+2007-09-04  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.q (cmd_crosstabs): Free xtab and the structures that
+	it points to, to plug a memory leak.  Fixes bug #18315.
+
 2007-08-15  Jason Stover  <jhs@wonko.gcsu.edu>
 
 	* regression.q (identify_indep_vars): Print an error if dependent
