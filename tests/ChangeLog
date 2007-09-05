@@ -1,3 +1,18 @@
+2007-09-04  Ben Pfaff  <blp@gnu.org>
+
+	Update scripts that invoke Perl to invoke it as simply "perl" if
+	not run from the PSPP Makefiles.  Patch #6169.  Thanks to John
+	Darrington for suggestion and review.
+	* bugs/big-input-2.sh: Make $PERL default to perl.
+	* command/sort.sh: Ditto.
+	* formats/bcd-in.sh: Ditto.
+	* formats/date-in.sh: Ditto.
+	* formats/ib-in.sh: Ditto.
+	* formats/legacy-in.sh: Ditto.
+	* formats/num-in.sh: Ditto.
+	* formats/num-out.sh: Ditto.
+	* formats/time-in.sh: Ditto.
+
 2007-08-26  Ben Pfaff  <blp@gnu.org>
 
 	* Updated most invocations of PSPP in the tests to use

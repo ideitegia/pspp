@@ -7,6 +7,7 @@ if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
 if [ -z "$top_srcdir" ] ; then top_srcdir=. ; fi
 top_builddir=`cd $top_builddir; pwd`
 PSPP=$top_builddir/src/ui/terminal/pspp
+: ${PERL:=perl}
 
 # ensure that top_srcdir is absolute
 top_srcdir=`cd $top_srcdir; pwd`

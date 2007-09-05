@@ -7,6 +7,7 @@
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
 TESTFILE=$TEMPDIR/`basename $0`.sps
+: ${PERL:=perl}
 
 # ensure that top_builddir  are absolute
 if [ -z "$top_builddir" ] ; then top_builddir=. ; fi
