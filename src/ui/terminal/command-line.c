@@ -189,7 +189,11 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
       char *pspprc_fn = fn_search_path ("rc", config_path);
       if (pspprc_fn != NULL)
         {
-	  getl_append_source (ss, create_syntax_file_source (pspprc_fn));
+	  getl_append_source (ss,
+			      create_syntax_file_source (pspprc_fn),
+			      GETL_BATCH,
+			      ERRMODE_CONTINUE
+			      );
 
           free (pspprc_fn);
         }
@@ -200,13 +204,20 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
       outp_configure_macro (argv[i]);
     else
       {
-	getl_append_source (ss, create_syntax_file_source (argv[i]));
+	getl_append_source (ss,
+			    create_syntax_file_source (argv[i]),
+			    GETL_BATCH,
+			    ERRMODE_CONTINUE
+			    );
         syntax_files++;
       }
 
   if (!syntax_files || interactive_mode)
     {
-      getl_append_source (ss, create_readln_source () );
+      getl_append_source (ss, create_readln_source (),
+			  GETL_INTERACTIVE,
+			  ERRMODE_CONTINUE
+			  );
       if (!cleared_device_defaults)
         outp_configure_add ("interactive");
     }

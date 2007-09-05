@@ -49,7 +49,6 @@ struct repeat_line
     const char *file_name;      /* File name. */
     int line_number;            /* Line number. */
     struct substring text;	/* Contents. */
-    enum getl_syntax syntax;    /* Syntax mode. */
   };
 
 /* The type of substitution made for a DO REPEAT macro. */
@@ -103,9 +102,9 @@ static int parse_strings (struct lexer *, struct repeat_macro *,
 			  struct pool *);
 
 static void do_repeat_filter (struct getl_interface *,
-                              struct string *, enum getl_syntax);
+                              struct string *);
 static bool do_repeat_read (struct getl_interface *,
-                            struct string *, enum getl_syntax *);
+                            struct string *);
 static void do_repeat_close (struct getl_interface *);
 static bool always_false (const struct getl_interface *);
 static const char *do_repeat_name (const struct getl_interface *);
@@ -136,7 +135,11 @@ cmd_do_repeat (struct lexer *lexer, struct dataset *ds)
   block->parent.location = do_repeat_location;
 
   if (!ll_is_empty (&block->lines))
-    getl_include_source (lex_get_source_stream (lexer), &block->parent);
+    getl_include_source (lex_get_source_stream (lexer),
+			 &block->parent,
+			 lex_current_syntax_mode (lexer),
+			 lex_current_error_mode (lexer)
+			 );
   else
     pool_destroy (block->pool);
 
@@ -298,11 +301,10 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
       const char *cur_file_name;
       struct repeat_line *line;
       struct string text;
-      enum getl_syntax syntax;
       bool command_ends_before_line, command_ends_after_line;
 
       /* Retrieve an input line and make a copy of it. */
-      if (!lex_get_line_raw (lexer, &syntax))
+      if (!lex_get_line_raw (lexer))
         return false;
       ds_init_string (&text, lex_entire_line_ds (lexer));
 
@@ -318,11 +320,12 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
       line->file_name = previous_file_name;
       line->line_number = getl_source_location (lex_get_source_stream (lexer));
       ss_alloc_substring_pool (&line->text, ds_ss (&text), block->pool);
-      line->syntax = syntax;
+
 
       /* Check whether the line contains a DO REPEAT or END
          REPEAT command. */
-      lex_preprocess_line (&text, syntax,
+      lex_preprocess_line (&text,
+			   lex_current_syntax_mode (lexer),
                            &command_ends_before_line,
                            &command_ends_after_line);
       if (recognize_do_repeat (ds_ss (&text)))
@@ -510,7 +513,7 @@ find_substitution (struct repeat_block *block, struct substring name)
    repeated lines. */
 static void
 do_repeat_filter (struct getl_interface *block_,
-                  struct string *line, enum getl_syntax syntax UNUSED)
+                  struct string *line)
 {
   struct repeat_block *block = (struct repeat_block *) block_;
   bool in_apos, in_quote, dot;
@@ -566,7 +569,7 @@ current_line (const struct getl_interface *interface)
    was obtained, false if the source is exhausted. */
 static bool
 do_repeat_read  (struct getl_interface *interface,
-                 struct string *output, enum getl_syntax *syntax)
+                 struct string *output)
 {
   struct repeat_block *block = (struct repeat_block *) interface;
   struct repeat_line *line;
@@ -583,7 +586,6 @@ do_repeat_read  (struct getl_interface *interface,
 
   line = current_line (interface);
   ds_assign_substring (output, line->text);
-  *syntax = line->syntax;
   return true;
 }
 

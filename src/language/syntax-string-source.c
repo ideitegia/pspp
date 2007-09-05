@@ -70,8 +70,7 @@ do_close (struct getl_interface *i )
 
 static bool
 read_single_line (struct getl_interface *i,
-		  struct string *line,
-		  enum getl_syntax *syntax_rules UNUSED)
+		  struct string *line)
 {
   struct syntax_string_source *sss = (struct syntax_string_source *) i;
 

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-08-31 07:06+0800\n"
+"POT-Creation-Date: 2007-09-01 08:59+0800\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -988,41 +988,41 @@ msgstr ""
 msgid "Only one index clause may be specified."
 msgstr ""
 
-#: src/language/control/repeat.c:168
+#: src/language/control/repeat.c:173
 #, c-format
 msgid "Dummy variable name \"%s\" hides dictionary variable \"%s\"."
 msgstr ""
 
-#: src/language/control/repeat.c:173
+#: src/language/control/repeat.c:178
 #, c-format
 msgid "Dummy variable name \"%s\" is given twice."
 msgstr ""
 
-#: src/language/control/repeat.c:219
+#: src/language/control/repeat.c:224
 #, c-format
 msgid ""
 "Dummy variable \"%.*s\" had %d substitutions, so \"%.*s\" must also, but %d "
 "were specified."
 msgstr ""
 
-#: src/language/control/repeat.c:331
+#: src/language/control/repeat.c:336
 msgid "DO REPEAT may not nest in compatibility mode."
 msgstr ""
 
-#: src/language/control/repeat.c:433
+#: src/language/control/repeat.c:438
 msgid "Ranges may only have integer bounds"
 msgstr ""
 
-#: src/language/control/repeat.c:442
+#: src/language/control/repeat.c:447
 #, c-format
 msgid "%g TO %g is an invalid range."
 msgstr ""
 
-#: src/language/control/repeat.c:477
+#: src/language/control/repeat.c:482
 msgid "String expected."
 msgstr ""
 
-#: src/language/control/repeat.c:496
+#: src/language/control/repeat.c:501
 msgid "No matching DO REPEAT."
 msgstr ""
 
@@ -1411,7 +1411,7 @@ msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:464
+#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:471
 #: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:59
 msgid "expecting end of command"
 msgstr ""
@@ -1828,11 +1828,11 @@ msgid ""
 "s."
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:156 src/language/lexer/lexer.c:608
+#: src/language/dictionary/value-labels.c:156 src/language/lexer/lexer.c:615
 msgid "expecting string"
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:165 src/language/lexer/lexer.c:622
+#: src/language/dictionary/value-labels.c:165 src/language/lexer/lexer.c:629
 msgid "expecting integer"
 msgstr ""
 
@@ -2079,89 +2079,89 @@ msgstr ""
 msgid "expecting format type"
 msgstr ""
 
-#: src/language/lexer/lexer.c:270
+#: src/language/lexer/lexer.c:277
 #, c-format
 msgid "%s does not form a valid number."
 msgstr ""
 
-#: src/language/lexer/lexer.c:374
+#: src/language/lexer/lexer.c:381
 #, c-format
 msgid "Bad character in input: `%c'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:376
+#: src/language/lexer/lexer.c:383
 #, c-format
 msgid "Bad character in input: `\\%o'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:412
+#: src/language/lexer/lexer.c:419
 #, c-format
 msgid "Subcommand %s may only be specified once."
 msgstr ""
 
-#: src/language/lexer/lexer.c:420
+#: src/language/lexer/lexer.c:427
 #, c-format
 msgid "missing required subcommand %s"
 msgstr ""
 
-#: src/language/lexer/lexer.c:449
+#: src/language/lexer/lexer.c:456
 #, c-format
 msgid "Syntax error %s at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:452
+#: src/language/lexer/lexer.c:459
 #, c-format
 msgid "Syntax error at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:577 src/language/lexer/lexer.c:594
+#: src/language/lexer/lexer.c:584 src/language/lexer/lexer.c:601
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/language/lexer/lexer.c:635
+#: src/language/lexer/lexer.c:642
 msgid "expecting number"
 msgstr ""
 
-#: src/language/lexer/lexer.c:647
+#: src/language/lexer/lexer.c:654
 msgid "expecting identifier"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1045
+#: src/language/lexer/lexer.c:1048
 msgid "binary"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1050
+#: src/language/lexer/lexer.c:1053
 msgid "octal"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1055
+#: src/language/lexer/lexer.c:1058
 msgid "hex"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1065
+#: src/language/lexer/lexer.c:1068
 #, c-format
 msgid "String of %s digits has %d characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1094
+#: src/language/lexer/lexer.c:1097
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1128
+#: src/language/lexer/lexer.c:1131
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1182
+#: src/language/lexer/lexer.c:1185
 msgid "Unexpected end of file in string concatenation."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1190
+#: src/language/lexer/lexer.c:1193
 msgid "String expected following `+'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1203
+#: src/language/lexer/lexer.c:1206
 #, c-format
 msgid "String exceeds 255 characters in length (%d characters)."
 msgstr ""
@@ -3494,7 +3494,7 @@ msgstr ""
 msgid "Reading `%s': %s."
 msgstr ""
 
-#: src/language/syntax-file.c:125
+#: src/language/syntax-file.c:124
 #, c-format
 msgid "Closing `%s': %s."
 msgstr ""
@@ -3550,14 +3550,31 @@ msgstr ""
 msgid "Only USE ALL is currently implemented."
 msgstr ""
 
-#: src/language/utilities/include.c:47
+#: src/language/utilities/include.c:47 src/language/utilities/insert.c:138
 msgid "expecting file name"
 msgstr ""
 
-#: src/language/utilities/include.c:62
+#: src/language/utilities/include.c:63 src/language/utilities/insert.c:149
 #, c-format
 msgid "Can't find `%s' in include file search path."
 msgstr ""
+
+#: src/language/utilities/insert.c:60
+msgid "Expecting BATCH or INTERACTIVE after SYNTAX."
+msgstr ""
+
+#: src/language/utilities/insert.c:77
+msgid "Expecting YES or NO after CD."
+msgstr ""
+
+#: src/language/utilities/insert.c:94
+msgid "Expecting CONTINUE or STOP after ERROR."
+msgstr ""
+
+#: src/language/utilities/insert.c:101
+#, fuzzy, c-format
+msgid "Unexpected token: `%s'."
+msgstr "plotzlich ist der Datei beendet"
 
 #: src/language/utilities/permissions.c:73
 #, c-format
@@ -5280,7 +5297,7 @@ msgstr ""
 msgid "%s --- PSPP Output"
 msgstr "PSPP Dateiaufbereiter"
 
-#: src/ui/terminal/command-line.c:219
+#: src/ui/terminal/command-line.c:223
 #, c-format
 msgid ""
 "PSPP, a program for statistical analysis of sample data.\n"
@@ -5326,7 +5343,7 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/terminal/command-line.c:254
+#: src/ui/terminal/command-line.c:258
 #, c-format
 msgid ""
 "\n"

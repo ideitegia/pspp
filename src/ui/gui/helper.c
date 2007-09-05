@@ -178,7 +178,7 @@ execute_syntax (struct getl_interface *sss)
 
   lexer = lex_create (the_source_stream);
 
-  getl_append_source (the_source_stream, sss);
+  getl_append_source (the_source_stream, sss, GETL_BATCH, ERRMODE_CONTINUE);
 
   for (;;)
     {

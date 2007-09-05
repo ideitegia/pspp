@@ -1,3 +1,8 @@
+2007-09-05 John Darrington <john@darrington.wattle.id.au>
+
+	* getl.c: Add extra members to struct getl_source, to maintain the
+	error mode and the syntax_mode. 
+
 2007-07-25  Ben Pfaff  <blp@gnu.org>
 
 	* getl.c (getl_append_source): Add source to *end* of list.

@@ -1,3 +1,10 @@
+2007-09-05  John Darrington <john@darrington.wattle.id.au>
+
+	* command.c (do_parse_command): Translate CMD_FAILURE into
+	CMD_CASCADING_FAILURE, if the ERRMODE_STOP is set on the syntax
+	source. 
+	
+	
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	* command.def: Add DEBUG DATASHEET command.  Remove DEBUG CASEFILE

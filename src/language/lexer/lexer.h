@@ -30,8 +30,10 @@ struct lexer;
 struct lexer * lex_create (struct source_stream *);
 void lex_destroy (struct lexer *);
 
+/* State accessors */
 struct source_stream * lex_get_source_stream (const struct lexer *);
-
+enum syntax_mode lex_current_syntax_mode (const struct lexer *);
+enum error_mode lex_current_error_mode (const struct lexer *);
 
 /* Common functions. */
 void lex_get (struct lexer *);
@@ -71,7 +73,7 @@ const char *lex_entire_line (const struct lexer *);
 const struct string *lex_entire_line_ds (const struct lexer *);
 const char *lex_rest_of_line (const struct lexer *);
 bool lex_end_dot (const struct lexer *);
-void lex_preprocess_line (struct string *, enum getl_syntax,
+void lex_preprocess_line (struct string *, enum syntax_mode,
                           bool *line_starts_command,
                           bool *line_ends_command);
 void lex_discard_line (struct lexer *);
@@ -79,7 +81,7 @@ void lex_discard_rest_of_command (struct lexer *);
 
 /* Weird line reading functions. */
 bool lex_get_line (struct lexer *);
-bool lex_get_line_raw (struct lexer *, enum getl_syntax *);
+bool lex_get_line_raw (struct lexer *);
 
 /* Token names. */
 const char *lex_token_name (int);

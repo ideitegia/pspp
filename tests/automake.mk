@@ -20,6 +20,7 @@ dist_TESTS = \
 	tests/command/filter.sh \
 	tests/command/flip.sh \
 	tests/command/import-export.sh \
+	tests/command/insert.sh \
 	tests/command/lag.sh \
 	tests/command/list.sh \
 	tests/command/loop.sh \

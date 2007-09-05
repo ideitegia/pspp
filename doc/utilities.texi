@@ -23,6 +23,7 @@ encountered in the input.
 * FINISH::                      Terminate the PSPP session.
 * HOST::                        Temporarily return to the operating system.
 * INCLUDE::                     Include a file within the current one.
+* INSERT::                      Insert a file within the current one.
 * PERMISSIONS::                 Change permissions on a file.
 * SET::                         Adjust PSPP runtime parameters.
 * SHOW::                        Display runtime parameters.
@@ -220,23 +221,70 @@ This command cannot be used if the SAFER setting is active.
 @node INCLUDE
 @section INCLUDE
 @vindex INCLUDE
-@vindex @@
 
 @display
-Two possible syntaxes:
-        INCLUDE 'file-name'.
-        @@file-name.
+        INCLUDE [FILE=]'file-name'.
 @end display
 
 @cmd{INCLUDE} causes the PSPP command processor to read an
 additional command file as if it were included bodily in the current
 command file.
-
+If errors are encountered in the included file, then command processing will 
+stop and no more commands will be processed.
 Include files may be nested to any depth, up to the limit of available
 memory.
 
+
+The @cmd{INSERT} command (@pxref{INSERT}) may be used instead of
+@cmd{INCLUDE} if you require more flexible options.
+The syntax 
+@example
+INCLUDE FILE=@var{file-name}.
+@end example
+@noindent 
+functions identically to 
+@example
+INSERT FILE=@var{file-name} ERROR=STOP CD=NO SYNTAX=BATCH.
+@end example
+
+
+@node INSERT
+@section INSERT
+@vindex INSERT
+
+@display
+     INSERT [FILE=]'file-name'
+        [CD=@{NO,YES@}]
+        [ERROR=@{CONTINUE,STOP@}]
+        [SYNTAX=@{BATCH,INTERACTIVE@}].
+@end display
+
+@cmd{INSERT} is similar to @cmd{INCLUDE} (@pxref{INCLUDE}) 
+but somewhat more flexible.
+It causes the command processor to read a file as if it were embedded in the 
+current command file.
+
+If @samp{CD=YES} is specified, then before including the file, the
+current directory  will be changed to the directory of the included
+file.  
+The default setting is @samp{CD=NO}.
+Note that this directory will remain current until it is
+changed explicitly (with the @cmd{CD} command, or a subsequent
+@cmd{INSERT} command with the @samp{CD=YES} option).
+It will not revert to its original setting even after the included
+file is finished processing.
+
+If @samp{ERROR=STOP} is specified, errors encountered in the
+inserted file will cause processing to immediately cease.
+Otherwise processing will continue at the next command.
+The default setting is @samp{ERROR=CONTINUE}.
+
+If @samp{SYNTAX=INTERACTIVE} is specified then the syntax contained in
+the included file must conform to interactive syntax
+conventions. @xref{Syntax Variants}.
+The default setting is @samp{SYNTAX=BATCH}.
+
 @node PERMISSIONS
-@comment  node-name,  next,  previous,  up
 @section PERMISSIONS
 @vindex PERMISSIONS
 @cindex mode

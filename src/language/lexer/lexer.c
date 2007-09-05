@@ -43,6 +43,7 @@
 #define DUMP_TOKENS 0
 
 
+
 struct lexer
 {
   struct string line_buffer;
@@ -106,6 +107,18 @@ struct source_stream *
 lex_get_source_stream (const struct lexer *lex)
 {
   return lex->ss;
+}
+
+enum syntax_mode
+lex_current_syntax_mode (const struct lexer *lex)
+{
+  return source_stream_current_syntax_mode (lex->ss);
+}
+
+enum error_mode
+lex_current_error_mode (const struct lexer *lex)
+{
+  return source_stream_current_error_mode (lex->ss);
 }
 
 
@@ -832,7 +845,7 @@ strip_comments (struct string *string)
    *LINE_STARTS_COMMAND and *LINE_ENDS_COMMAND appropriately. */
 void
 lex_preprocess_line (struct string *line,
-                     enum getl_syntax syntax,
+                     enum syntax_mode syntax,
                      bool *line_starts_command,
                      bool *line_ends_command)
 {
@@ -854,15 +867,11 @@ lex_preprocess_line (struct string *line,
    Sets *SYNTAX, if SYNTAX is non-null, to the line's syntax
    mode. */
 bool
-lex_get_line_raw (struct lexer *lexer, enum getl_syntax *syntax)
+lex_get_line_raw (struct lexer *lexer)
 {
-  enum getl_syntax dummy;
-  bool ok;
-
-  if (syntax == NULL)
-    syntax = &dummy;
-  ok = getl_read_line (lexer->ss, &lexer->line_buffer, syntax);
-  journal_write (*syntax == GETL_BATCH, ds_cstr (&lexer->line_buffer));
+  bool ok = getl_read_line (lexer->ss, &lexer->line_buffer);
+  enum syntax_mode mode = lex_current_syntax_mode (lexer);
+  journal_write (mode == GETL_BATCH, ds_cstr (&lexer->line_buffer));
 
   return ok;
 }
@@ -874,15 +883,15 @@ bool
 lex_get_line (struct lexer *lexer)
 {
   bool line_starts_command;
-  enum getl_syntax syntax = GETL_BATCH;
 
-  if (!lex_get_line_raw (lexer, &syntax))
+  if (!lex_get_line_raw (lexer))
     {
       lexer->prog = NULL;
       return false;
     }
 
-  lex_preprocess_line (&lexer->line_buffer, syntax,
+  lex_preprocess_line (&lexer->line_buffer,
+		       lex_current_syntax_mode (lexer),
                        &line_starts_command, &lexer->dot);
 
   if (line_starts_command)

@@ -15,6 +15,7 @@ Later chapters will describe individual commands in detail.
 @menu
 * Tokens::                      Characters combine to form tokens.
 * Commands::                    Tokens combine to form commands.
+* Syntax Variants::             Batch vs. Interactive mode
 * Types of Commands::           Commands come in several flavors.
 * Order of Commands::           Commands combine to form syntax files.
 * Missing Observations::        Handling missing observations.
@@ -23,6 +24,7 @@ Later chapters will describe individual commands in detail.
 * File Handles::                How files are named.
 * BNF::                         How command syntax is described.
 @end menu
+
 
 @node Tokens
 @section Tokens
@@ -188,15 +190,34 @@ one that consists only of white space or comments, also ends a command
 by default, although you can use the NULLINE subcommand of @cmd{SET}
 to disable this feature (@pxref{SET}).
 
-In batch mode only, that is, when reading commands from a file instead
-of an interactive user, any line that contains a non-space character
-in the leftmost column begins a new command.  Thus, each command
-consists of a flush-left line followed by any number of lines indented
-from the left margin.  In this mode, a plus or minus sign
-(@samp{+}, @samp{@minus{}}) as the first character
-in a line is ignored and causes that line to begin a new command,
-which allows for visual indentation of a command without that command
-being considered part of the previous command.
+@node Syntax Variants
+@section Variants of syntax.
+
+@cindex Batch syntax
+@cindex Interactive syntax
+
+There are two variants of command syntax, @i{viz}: @dfn{batch} mode and
+@dfn{interactive} mode.
+Batch mode is the default when reading commands from a file.
+Interactive mode is the default when commands are typed at a prompt
+by a user.
+Certain commands, such as @cmd{INSERT} (@pxref{INSERT}), may explicitly
+change the syntax mode. 
+
+In batch mode, any line that contains a non-space character
+in the leftmost column begins a new command. 
+Thus, each command consists of a flush-left line followed by any
+number of lines indented from the left margin. 
+In this mode, a plus or minus sign (@samp{+}, @samp{@minus{}}) as the
+first character in a line is ignored and causes that line to begin a
+new command, which allows for visual indentation of a command without
+that command being considered part of the previous command. 
+The period terminating the end of a command is optional but recommended.
+
+In interactive mode, each command must  either be terminated with a period,
+or an empty line must follow the command.
+The use of (@samp{+} and @samp{@minus{}} as continuation characters is not
+permitted.
 
 @node Types of Commands
 @section Types of Commands

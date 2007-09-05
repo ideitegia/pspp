@@ -32,6 +32,8 @@ struct getl_source
     struct ll  ll;   /* Element in the sources list */
 
     struct getl_interface *interface;
+    enum syntax_mode syntax_mode;
+    enum error_mode error_mode;
   };
 
 struct source_stream
@@ -53,6 +55,26 @@ current_source (const struct source_stream *ss)
   const struct ll *ll = ll_head (&ss->sources);
   return ll_data (ll, struct getl_source, ll );
 }
+
+enum syntax_mode
+source_stream_current_syntax_mode (const struct source_stream *ss)
+{
+  struct getl_source *cs = current_source (ss);
+
+  return cs->syntax_mode;
+}
+
+
+
+enum error_mode
+source_stream_current_error_mode (const struct source_stream *ss)
+{
+  struct getl_source *cs = current_source (ss);
+
+  return cs->error_mode;
+}
+
+
 
 /* Initialize getl. */
 struct source_stream *
@@ -88,18 +110,26 @@ getl_add_include_dir (struct source_stream *ss, const char *path)
 
 /* Appends source S to the list of source files. */
 void
-getl_append_source (struct source_stream *ss, struct getl_interface *i)
+getl_append_source (struct source_stream *ss,
+		    struct getl_interface *i,
+		    enum syntax_mode syntax_mode,
+		    enum error_mode err_mode)
 {
   struct getl_source *s = xzalloc (sizeof ( struct getl_source ));
 
   s->interface = i ;
+  s->syntax_mode = syntax_mode;
+  s->error_mode = err_mode;
 
   ll_push_tail (&ss->sources, &s->ll);
 }
 
 /* Nests source S within the current source file. */
 void
-getl_include_source (struct source_stream *ss, struct getl_interface *i)
+getl_include_source (struct source_stream *ss,
+		     struct getl_interface *i,
+		     enum syntax_mode syntax_mode,
+		     enum error_mode err_mode)
 {
   struct getl_source *current = current_source (ss);
   struct getl_source *s = xzalloc (sizeof ( struct getl_source ));
@@ -108,6 +138,8 @@ getl_include_source (struct source_stream *ss, struct getl_interface *i)
 
   s->included_from = current ;
   s->includes  = NULL;
+  s->syntax_mode  = syntax_mode;
+  s->error_mode = err_mode;
   current->includes = s;
 
   ll_push_head (&ss->sources, &s->ll);
@@ -205,10 +237,9 @@ destroy_source_stream (struct source_stream *ss)
 
 /* Reads a single line into LINE.
    Returns true when a line has been read, false at end of input.
-   On success, sets *SYNTAX to the style of the syntax read. */
+*/
 bool
-getl_read_line (struct source_stream *ss, struct string *line,
-		enum getl_syntax *syntax)
+getl_read_line (struct source_stream *ss, struct string *line)
 {
   assert (ss != NULL);
   while (!ll_is_empty (&ss->sources))
@@ -216,12 +247,12 @@ getl_read_line (struct source_stream *ss, struct string *line,
       struct getl_source *s = current_source (ss);
 
       ds_clear (line);
-      if (s->interface->read (s->interface, line, syntax))
+      if (s->interface->read (s->interface, line))
         {
           while (s)
 	    {
 	      if (s->interface->filter)
-		s->interface->filter (s->interface, line, *syntax);
+		s->interface->filter (s->interface, line);
 	      s = s->included_from;
 	    }
 

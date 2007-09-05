@@ -25,7 +25,7 @@ struct string;
 struct getl_source;
 
 /* Syntax rules that apply to a given source line. */
-enum getl_syntax
+enum syntax_mode
   {
     /* Each line that begins in column 1 starts a new command.  A
        `+' or `-' in column 1 is ignored to allow visual
@@ -36,6 +36,16 @@ enum getl_syntax
 
     /* Each command must end in a period or in a blank line. */
     GETL_INTERACTIVE
+  };
+
+enum error_mode
+  {
+    /* When errors are encountered, report the error and continue to
+       the next command. */
+    ERRMODE_CONTINUE,
+
+    /* When errors are encountered, abort the current stream. */
+    ERRMODE_STOP
   };
 
 /* An abstract base class for objects which act as line buffers for the
@@ -51,7 +61,7 @@ struct getl_interface
        Returns true if succesful, false on failure or at end of
        input. */
     bool  (*read)  (struct getl_interface *,
-                    struct string *, enum getl_syntax *);
+                    struct string *);
 
     /* Close and destroy the interface */
     void  (*close) (struct getl_interface *);
@@ -59,7 +69,7 @@ struct getl_interface
     /* Filter for current and all included sources, which may
        modify the line.  Usually null.  */
     void  (*filter) (struct getl_interface *,
-                     struct string *line, enum getl_syntax);
+                     struct string *line);
 
     /* Returns the name of the source */
     const char * (*name) (const struct getl_interface *);
@@ -71,6 +81,15 @@ struct getl_interface
 struct source_stream;
 
 struct source_stream * create_source_stream (const char *);
+
+enum syntax_mode source_stream_current_syntax_mode
+   (const struct source_stream *);
+
+
+enum error_mode source_stream_current_error_mode
+   (const struct source_stream *);
+
+
 void destroy_source_stream (struct source_stream *);
 
 void getl_clear_include_path (struct source_stream *);
@@ -80,11 +99,13 @@ const char * getl_include_path (const struct source_stream *);
 void getl_abort_noninteractive (struct source_stream *);
 bool getl_is_interactive (const struct source_stream *);
 
-bool getl_read_line (struct source_stream *, struct string *,
-		     enum getl_syntax *);
+bool getl_read_line (struct source_stream *, struct string *);
 
-void getl_append_source (struct source_stream *, struct getl_interface *s) ;
-void getl_include_source (struct source_stream *, struct getl_interface *s) ;
+void getl_append_source (struct source_stream *, struct getl_interface *s,
+			 enum syntax_mode, enum error_mode) ;
+
+void getl_include_source (struct source_stream *, struct getl_interface *s,
+			  enum syntax_mode, enum error_mode) ;
 
 const char * getl_source_name (const struct source_stream *);
 int getl_source_location (const struct source_stream *);

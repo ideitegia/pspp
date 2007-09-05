@@ -39,6 +39,7 @@
 #include <libpspp/str.h>
 #include <output/manager.h>
 #include <output/table.h>
+#include <libpspp/getl.h>
 
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
@@ -169,7 +170,8 @@ cmd_parse (struct lexer *lexer, struct dataset *ds)
 /* Parses an entire command, from command name to terminating
    dot. */
 static enum cmd_result
-do_parse_command (struct lexer *lexer, struct dataset *ds, enum cmd_state state)
+do_parse_command (struct lexer *lexer,
+		  struct dataset *ds, enum cmd_state state)
 {
   const struct command *command;
   enum cmd_result result;
@@ -179,38 +181,50 @@ do_parse_command (struct lexer *lexer, struct dataset *ds, enum cmd_state state)
   set_completion_state (state);
   lex_get (lexer);
   if (lex_token (lexer) == T_STOP)
-    return CMD_EOF;
+    {
+      result = CMD_EOF;
+      goto finish;
+    }
   else if (lex_token (lexer) == '.')
     {
       /* Null commands can result from extra empty lines. */
-      return CMD_SUCCESS;
+      result = CMD_SUCCESS;
+      goto finish;
     }
+
   prompt_set_style (PROMPT_LATER);
 
   /* Parse the command name. */
   command = parse_command_name (lexer);
   if (command == NULL)
-    return CMD_FAILURE;
+    {
+      result = CMD_FAILURE;
+      goto finish;
+    }
   else if (command->function == NULL)
     {
       msg (SE, _("%s is unimplemented."), command->name);
-      return CMD_NOT_IMPLEMENTED;
+      result = CMD_NOT_IMPLEMENTED;
+      goto finish;
     }
   else if ((command->flags & F_TESTING) && !get_testing_mode ())
     {
       msg (SE, _("%s may be used only in testing mode."), command->name);
-      return CMD_FAILURE;
+      result = CMD_FAILURE;
+      goto finish;
     }
   else if ((command->flags & F_ENHANCED) && get_syntax () != ENHANCED)
     {
       msg (SE, _("%s may be used only in enhanced syntax mode."),
            command->name);
-      return CMD_FAILURE;
+      result = CMD_FAILURE;
+      goto finish;
     }
   else if (!in_correct_state (command, state))
     {
       report_state_mismatch (command, state);
-      return CMD_FAILURE;
+      result = CMD_FAILURE;
+      goto finish;
     }
 
   /* Execute command. */
@@ -221,6 +235,19 @@ do_parse_command (struct lexer *lexer, struct dataset *ds, enum cmd_state state)
   msg_set_command_name (NULL);
 
   assert (cmd_result_is_valid (result));
+
+ finish:
+  if ( cmd_result_is_failure (result))
+    {
+      const struct source_stream *cs = lex_get_source_stream (lexer);
+
+      if ( source_stream_current_error_mode (cs) == ERRMODE_STOP )
+	{
+	  msg (MW, _("Error encountered while ERROR=STOP is effective."));
+	  result = CMD_CASCADING_FAILURE;
+	}
+    }
+
   return result;
 }
 

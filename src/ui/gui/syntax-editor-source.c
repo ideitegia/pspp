@@ -67,8 +67,7 @@ location (const struct getl_interface *i)
 
 static bool
 read_line_from_buffer (struct getl_interface *i,
-		       struct string *line,
-		       enum getl_syntax *syntax_rules)
+		       struct string *line)
 {
   gchar *text;
   GtkTextIter next_line;

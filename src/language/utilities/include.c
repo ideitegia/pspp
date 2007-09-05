@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,17 +25,147 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/str.h>
 #include <data/file-name.h>
+#include <dirname.h>
+#include <canonicalize.h>
 
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+static int parse_insert (struct lexer *lexer, char **filename);
+
+
 int
 cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  struct source_stream *ss;
-  char *found_fn;
+  char *filename = NULL;
+  int status = parse_insert (lexer, &filename);
+
+  if ( CMD_SUCCESS != status)
+    return status;
+
+  lex_get (lexer);
+
+  status = lex_end_of_command (lexer);
+
+  if ( status == CMD_SUCCESS)
+    {
+      struct source_stream *ss = lex_get_source_stream (lexer);
+
+      assert (filename);
+      getl_include_source (ss, create_syntax_file_source (filename),
+			   GETL_BATCH, ERRMODE_STOP);
+      free (filename);
+    }
+
+  return status;
+}
+
+
+int
+cmd_insert (struct lexer *lexer, struct dataset *ds UNUSED)
+{
+  enum syntax_mode syntax_mode = GETL_INTERACTIVE;
+  enum error_mode error_mode = ERRMODE_CONTINUE;
+  char *filename = NULL;
+  int status = parse_insert (lexer, &filename);
+  bool cd = false;
+
+  if ( CMD_SUCCESS != status)
+    return status;
+
+  lex_get (lexer);
+
+  while ( '.' != lex_token (lexer))
+    {
+      if (lex_match_id (lexer, "SYNTAX"))
+	{
+	  lex_match (lexer, '=');
+	  if ( lex_match_id (lexer, "INTERACTIVE") )
+	    syntax_mode = GETL_INTERACTIVE;
+	  else if ( lex_match_id (lexer, "BATCH"))
+	    syntax_mode = GETL_BATCH;
+	  else
+	    {
+	      lex_error(lexer,
+			_("Expecting BATCH or INTERACTIVE after SYNTAX."));
+	      return CMD_FAILURE;
+	    }
+	}
+      else if (lex_match_id (lexer, "CD"))
+	{
+	  lex_match (lexer, '=');
+	  if ( lex_match_id (lexer, "YES") )
+	    {
+	      cd = true;
+	    }
+	  else if ( lex_match_id (lexer, "NO"))
+	    {
+	      cd = false;
+	    }
+	  else
+	    {
+	      lex_error (lexer, _("Expecting YES or NO after CD."));
+	      return CMD_FAILURE;
+	    }
+	}
+      else if (lex_match_id (lexer, "ERROR"))
+	{
+	  lex_match (lexer, '=');
+	  if ( lex_match_id (lexer, "CONTINUE") )
+	    {
+	      error_mode = ERRMODE_CONTINUE;
+	    }
+	  else if ( lex_match_id (lexer, "STOP"))
+	    {
+	      error_mode = ERRMODE_STOP;
+	    }
+	  else
+	    {
+	      lex_error (lexer, _("Expecting CONTINUE or STOP after ERROR."));
+	      return CMD_FAILURE;
+	    }
+	}
+
+      else
+	{
+	  lex_error (lexer, _("Unexpected token: `%s'."),
+		     lex_token_representation (lexer));
+
+	  return CMD_FAILURE;
+	}
+    }
+
+  status = lex_end_of_command (lexer);
+
+  if ( status == CMD_SUCCESS)
+    {
+      struct source_stream *ss = lex_get_source_stream (lexer);
+
+      assert (filename);
+      getl_include_source (ss, create_syntax_file_source (filename),
+			   syntax_mode,
+			   error_mode);
+
+      if ( cd )
+	{
+	  char *directory = dir_name (filename);
+	  chdir (directory);
+	  free (directory);
+	}
+
+      free (filename);
+    }
+
+  return status;
+}
+
+
+static int
+parse_insert (struct lexer *lexer, char **filename)
+{
   char *target_fn;
+  char *relative_filename;
 
   /* Skip optional FILE=. */
   if (lex_match_id (lexer, "FILE"))
@@ -45,23 +175,24 @@ cmd_include (struct lexer *lexer, struct dataset *ds UNUSED)
   if (lex_token (lexer) != T_ID && lex_token (lexer) != T_STRING)
     {
       lex_error (lexer, _("expecting file name"));
-      return CMD_CASCADING_FAILURE;
+      return CMD_FAILURE;
     }
 
   target_fn = ds_cstr (lex_tokstr (lexer));
 
-  ss = lex_get_source_stream (lexer);
-  found_fn = fn_search_path (target_fn, getl_include_path ( ss ));
+  relative_filename =
+    fn_search_path (target_fn,
+		    getl_include_path (lex_get_source_stream (lexer)));
 
-  if (found_fn != NULL)
+  if ( ! relative_filename)
     {
-      getl_include_source (ss, create_syntax_file_source (found_fn));
-      free (found_fn);
-    }
-  else
-    msg (SE, _("Can't find `%s' in include file search path."),
+      msg (SE, _("Can't find `%s' in include file search path."),
 	 target_fn);
+      return CMD_FAILURE;
+    }
 
-  lex_get (lexer);
-  return lex_end_of_command (lexer);
+  *filename = canonicalize_file_name (relative_filename);
+  free (relative_filename);
+
+  return CMD_SUCCESS;
 }
