@@ -47,6 +47,7 @@
 #include "data-editor.h"
 #include "syntax-editor.h"
 #include <language/syntax-string-source.h>
+#include <language/command.h>
 #include <libpspp/syntax-gen.h>
 #include "window-manager.h"
 
@@ -158,6 +159,27 @@ transformation_change_callback (bool transformations_pending,
 
 
 static void open_data_file (const gchar *, struct data_editor *);
+
+
+/* Puts FILE_NAME into the recent list.
+   If it's already in the list, it moves it to the top
+*/
+static void
+add_most_recent (const char *file_name)
+{
+#if RECENT_LISTS_AVAILABLE
+
+  GtkRecentManager *manager = gtk_recent_manager_get_default();
+  gchar *uri = g_filename_to_uri (file_name, NULL, NULL);
+
+  gtk_recent_manager_remove_item (manager, uri, NULL);
+
+  if ( ! gtk_recent_manager_add_item (manager, uri))
+    g_warning ("Could not add item %s to recent list\n",uri);
+
+  g_free (uri);
+#endif
+}
 
 
 
@@ -1492,12 +1514,15 @@ open_data_file (const gchar *file_name, struct data_editor *de)
 
   sss = create_syntax_string_source ("GET FILE=%s.",
 				     ds_cstr (&filename));
-
-  execute_syntax (sss);
   ds_destroy (&filename);
 
-  window_set_name_from_filename ((struct editor_window *) de, file_name);
+  if (execute_syntax (sss) )
+  {
+    window_set_name_from_filename ((struct editor_window *) de, file_name);
+    add_most_recent (file_name);
+  }
 }
+
 
 
 /* Callback for the data_open action.
@@ -1550,19 +1575,6 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
 	open_data_file (de->file_name, de);
-
-#if RECENT_LISTS_AVAILABLE
-	{
-	  GtkRecentManager *manager = gtk_recent_manager_get_default();
-	  gchar *uri = g_filename_to_uri (de->file_name, NULL, NULL);
-
-	  if ( ! gtk_recent_manager_add_item (manager, uri))
-	    g_warning ("Could not add item %s to recent list\n",uri);
-
-	  g_free (uri);
-	}
-#endif
-
       }
       break;
     default:

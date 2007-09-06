@@ -26,7 +26,6 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
-
 /*
    GtkRecentChooserMenu was added in 2.10.0
    but it didn't support GtkRecentFilters until
@@ -54,8 +53,7 @@ void connect_help (GladeXML *);
 void reference_manual (GtkMenuItem *, gpointer);
 
 struct getl_interface;
-void execute_syntax (struct getl_interface *sss);
-
+gboolean execute_syntax (struct getl_interface *sss);
 
 #define XML_NEW(FILE) \
    glade_xml_new (relocate(PKGDATADIR "/" FILE), NULL, NULL)

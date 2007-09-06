@@ -165,16 +165,17 @@ extern struct dataset *the_dataset;
 extern struct source_stream *the_source_stream;
 extern PsppireDataStore *the_data_store;
 
-void
+gboolean
 execute_syntax (struct getl_interface *sss)
 {
   struct lexer *lexer;
+  gboolean retval = TRUE;
 
   struct casereader *reader = psppire_data_store_get_reader (the_data_store);
 
   proc_set_active_file_data (the_dataset, reader);
 
-  g_return_if_fail (proc_has_active_file (the_dataset));
+  g_return_val_if_fail (proc_has_active_file (the_dataset), FALSE);
 
   lexer = lex_create (the_source_stream);
 
@@ -182,9 +183,17 @@ execute_syntax (struct getl_interface *sss)
 
   for (;;)
     {
-      int result = cmd_parse (lexer, the_dataset);
+      enum cmd_result result = cmd_parse (lexer, the_dataset);
 
-      if (result == CMD_EOF || result == CMD_FINISH)
+      if ( cmd_result_is_failure (result))
+	{
+	  retval = FALSE;
+	  if ( source_stream_current_error_mode (the_source_stream)
+	       == ERRMODE_STOP )
+	    break;
+	}
+
+      if ( result == CMD_EOF || result == CMD_FINISH)
 	break;
     }
 
@@ -206,6 +215,8 @@ execute_syntax (struct getl_interface *sss)
   som_flush ();
 
   reload_the_viewer ();
+
+  return retval;
 }
 
 

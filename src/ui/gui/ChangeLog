@@ -1,3 +1,13 @@
+2007-09-06  John Darrington <john@darrington.wattle.id.au>
+	
+	* helper.c helper.h (execute_syntax): changed return type to 
+	gboolean to indicated if all the syntax executed successfully or not.
+
+	* data-editor.c syntax-editor.c: Fixed update of recent file list
+	and window title,  on data_file_open.  They now only change, if
+	the file_open was  successfull. 
+
+
 2007-08-25  John Darrington <john@darrington.wattle.id.au>
 
 	* psppire.c : Enable journal.
