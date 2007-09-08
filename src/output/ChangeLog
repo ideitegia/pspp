@@ -1,3 +1,8 @@
+2007-09-08  John Darrington <john@darrington.wattle.id.au>	
+
+	* postscript.c html.c: Remove #include "getline.h" to concurr with 
+	new gnulib arrangements.
+
 2007-08-23  Ben Pfaff  <blp@gnu.org>
 
 	Implement journaling.  Bug #17240.

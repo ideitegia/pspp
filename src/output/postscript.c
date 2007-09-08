@@ -38,7 +38,6 @@
 #include "afm.h"
 #include "chart.h"
 #include "error.h"
-#include "getline.h"
 #include "intprops.h"
 #include "manager.h"
 #include "minmax.h"
