@@ -38,6 +38,7 @@
 #include <gtksheet/gsheet-uniform-row.h>
 
 #include "localcharset.h"
+#include "xalloc.h"
 #include "psppire-var-store.h"
 #include "helper.h"
 #include "psppire-dict.h"
@@ -455,7 +456,7 @@ psppire_variable_sheet_create (gchar *widget_name,
 
   /* Since this happens inside glade_xml_new, we must prevent strings from
    * being re-encoded twice */
-  codeset = bind_textdomain_codeset (PACKAGE, 0);
+  codeset = xstrdup (bind_textdomain_codeset (PACKAGE, 0));
   bind_textdomain_codeset (PACKAGE, locale_charset ());
 
   for (i = 0 ; i < n_COLS ; ++i )
@@ -468,6 +469,7 @@ psppire_variable_sheet_create (gchar *widget_name,
     }
 
   bind_textdomain_codeset (PACKAGE, codeset);
+  free (codeset);
 
   gtk_widget_show (sheet);
 
