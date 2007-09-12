@@ -105,7 +105,7 @@ casereader_create_counter (struct casereader *, casenumber *counter,
 
 struct casereader *
 casereader_create_translator (struct casereader *, size_t output_value_cnt,
-                              void (*translate) (const struct ccase *input,
+                              void (*translate) (struct ccase *input,
                                                  struct ccase *output,
                                                  void *aux),
                               bool (*destroy) (void *aux),

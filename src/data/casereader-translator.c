@@ -33,8 +33,7 @@ struct casereader_translator
   {
     struct casereader *subreader; /* Source of input cases. */
 
-    void (*translate) (const struct ccase *input, struct ccase *output,
-                       void *aux);
+    void (*translate) (struct ccase *input, struct ccase *output, void *aux);
     bool (*destroy) (void *aux);
     void *aux;
   };
@@ -56,7 +55,7 @@ static struct casereader_class casereader_translator_class;
 struct casereader *
 casereader_create_translator (struct casereader *subreader,
                               size_t output_value_cnt,
-                              void (*translate) (const struct ccase *input,
+                              void (*translate) (struct ccase *input,
                                                  struct ccase *output,
                                                  void *aux),
                               bool (*destroy) (void *aux),

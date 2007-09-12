@@ -60,8 +60,7 @@ enum reader_command
     IMPORT_CMD
   };
 
-static void get_translate_case (const struct ccase *, struct ccase *,
-                                void *map_);
+static void get_translate_case (struct ccase *, struct ccase *, void *map_);
 static bool get_destroy_case_map (void *map_);
 
 /* Parses a GET or IMPORT command. */
@@ -143,11 +142,12 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 }
 
 static void
-get_translate_case (const struct ccase *input, struct ccase *output,
+get_translate_case (struct ccase *input, struct ccase *output,
                     void *map_)
 {
   struct case_map *map = map_;
   case_map_execute (map, input, output);
+  case_destroy (input);
 }
 
 static bool

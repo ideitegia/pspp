@@ -1,3 +1,10 @@
+2007-09-12  Ben Pfaff  <blp@gnu.org>
+
+	* get.c (get_translate_case): Change input case parameter from
+	const struct ccase * to struct ccase *, to match change in
+	casereader and casewriter translators.  Destroy input case, to fix
+	memory leak.
+
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
 	* get.c (parse_read_command): Compact the values in the target

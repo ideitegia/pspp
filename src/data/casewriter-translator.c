@@ -29,18 +29,29 @@ struct casewriter_translator
   {
     struct casewriter *subwriter;
 
-    void (*translate) (const struct ccase *input, struct ccase *output,
-                       void *aux);
+    void (*translate) (struct ccase *input, struct ccase *output, void *aux);
     bool (*destroy) (void *aux);
     void *aux;
   };
 
 static struct casewriter_class casewriter_translator_class;
 
+/* Creates and returns a new casewriter whose cases are passed
+   through TRANSLATE, which must create case OUTPUT, with
+   OUTPUT_VALUE_CNT values, and populate it based on INPUT and
+   auxiliary data AUX.  The translated cases are then written to
+   SUBWRITER.  TRANSLATE must also destroy INPUT.
+
+   When the translating casewriter is destroyed, DESTROY will be
+   called to allow any state maintained by TRANSLATE to be freed.
+
+   After this function is called, SUBWRITER must not ever again
+   be referenced directly.  It will be destroyed automatically
+   when the translating casewriter is destroyed. */
 struct casewriter *
 casewriter_create_translator (struct casewriter *subwriter,
                               size_t translated_value_cnt,
-                              void (*translate) (const struct ccase *input,
+                              void (*translate) (struct ccase *input,
                                                  struct ccase *output,
                                                  void *aux),
                               bool (*destroy) (void *aux),

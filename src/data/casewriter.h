@@ -43,7 +43,7 @@ struct casewriter *autopaging_writer_create (size_t value_cnt);
 
 struct casewriter *
 casewriter_create_translator (struct casewriter *, size_t translated_value_cnt,
-                              void (*translate) (const struct ccase *input,
+                              void (*translate) (struct ccase *input,
                                                  struct ccase *output,
                                                  void *aux),
                               bool (*destroy) (void *aux),

@@ -1,3 +1,16 @@
+2007-09-12  Ben Pfaff  <blp@gnu.org>
+
+	Make it clear that translator casereader and casewriter translate
+	functions are supposed to destroy their input case.
+	
+	* casereader-translator.c (struct casereader_translator): Change
+	input case parameter of translate member function from const
+	struct ccase * to struct ccase *.
+	(casereader_create_translator): Ditto, for translate parameter.
+
+	* casewriter-translator.c (struct casewriter_translator): Ditto.
+	(casewriter_create_translator): Ditto.
+
 2007-08-27  John Darrinton <john@darrington.wattle.id.au>
 	
 	* sys-file-reader.c (read_display_parameters): Force display width 
@@ -32,7 +45,7 @@
 	dict_make_compactor.
 	(scratch_writer_casewriter_write): Use case_map_execute instead of
 	dict_compactor_compact.
-o
+
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add case-map.c, case-map.h.
