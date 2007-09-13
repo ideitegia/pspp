@@ -213,6 +213,9 @@ parse_options (struct lexer *lexer)
       mc_options_set_output_file (options, output_file);
     }
 
+
+  free_check_model (&cmd);
+
   return options;
 }
 
