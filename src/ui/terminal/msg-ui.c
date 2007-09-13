@@ -19,6 +19,7 @@
 #include "msg-ui.h"
 
 #include "linebreak.h"
+#include "localcharset.h"
 
 #include <libpspp/msg-locator.h>
 #include <libpspp/getl.h>
