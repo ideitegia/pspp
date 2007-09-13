@@ -30,6 +30,16 @@ value_dup (const union value *val, int width)
   return xmemdup (val, MAX (width, sizeof *val));
 }
 
+
+/* Create a value of specified width.
+   The caller is responsible for freeing the returned value. */
+union value *
+value_create (int width)
+{
+  return xnmalloc (value_cnt_from_width (width), sizeof (union value));
+}
+
+
 /* Compares A and B, which both have the given WIDTH, and returns
    a strcmp()-type result.
    Only the short string portion of longer strings are

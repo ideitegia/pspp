@@ -41,6 +41,7 @@ struct data_editor
   GtkAction *invoke_select_cases_dialog;
   GtkAction *invoke_goto_dialog;
   GtkAction *invoke_variable_info_dialog;
+  GtkAction *invoke_find_dialog;
 
   /* Actions which do things */
   GtkAction *insert_variable;

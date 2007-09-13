@@ -1,3 +1,7 @@
+2007-09-13  John Darrinton <john@darrington.wattle.id.au>
+
+	* value.c value.h (create_value): New function.
+
 2007-09-12  Ben Pfaff  <blp@gnu.org>
 
 	Make it clear that translator casereader and casewriter translate

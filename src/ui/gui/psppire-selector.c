@@ -673,13 +673,15 @@ set_tree_view_dest (PsppireSelector *selector,
 
 }
 
-/* Callback for when the DEST GtkEntry is activated (Enter is pressed) */
-static void
-on_entry_activate (GtkEntry *w, gpointer data)
+/* Callback which causes the filter to be refiltered.
+   Called when the DEST GtkEntry is activated (Enter is pressed), or when it
+   looses focus.
+*/
+static gboolean
+refilter (PsppireSelector *selector)
 {
-  PsppireSelector * selector = data;
-
   gtk_tree_model_filter_refilter (selector->filtered_source);
+  return FALSE;
 }
 
 /* Callback for when the DEST GtkEntry is selected (clicked) */
@@ -693,16 +695,50 @@ on_entry_dest_select (GtkWidget *widget, GdkEventFocus *event, gpointer data)
   return FALSE;
 }
 
+
+
+/* Callback for when an item disappears from the source list.
+   By implication, this means that the item has been inserted into the
+   destination.
+ */
+static void
+on_row_deleted (PsppireSelector *selector)
+{
+  g_signal_emit (selector, signals [SELECTED], 0);
+}
+
+/* Callback for when a new item appears in the source list.
+   By implication, this means that an item has been deleted from the
+   destination.
+ */
+static void
+on_row_inserted (PsppireSelector *selector)
+{
+  g_signal_emit (selector, signals [DE_SELECTED], 0);
+}
+
+
+
 /* Set DEST to be the destination GtkEntry widget */
 static void
 set_entry_dest (PsppireSelector *selector,
 		GtkEntry *dest)
 {
-  g_signal_connect (dest, "activate", G_CALLBACK (on_entry_activate),
+  g_signal_connect_swapped (dest, "activate", G_CALLBACK (refilter),
 		    selector);
 
   g_signal_connect (dest, "focus-in-event", G_CALLBACK (on_entry_dest_select),
 		    selector);
+
+  g_signal_connect_swapped (dest, "focus-out-event", G_CALLBACK (refilter),
+		    selector);
+
+
+  g_signal_connect_swapped (selector->filtered_source, "row-deleted",
+		    G_CALLBACK (on_row_deleted), selector);
+
+  g_signal_connect_swapped (selector->filtered_source, "row-inserted",
+		    G_CALLBACK (on_row_inserted), selector);
 }
 
 

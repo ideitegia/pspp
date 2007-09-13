@@ -53,6 +53,8 @@ union value
   };
 
 union value *value_dup (const union value *, int width);
+union value *value_create (int width);
+
 int compare_values (const union value *, const union value *, int width);
 unsigned hash_value (const union value  *, int width);
 

@@ -86,6 +86,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/data-sheet.h \
 	src/ui/gui/data-editor.c \
 	src/ui/gui/data-editor.h \
+	src/ui/gui/find-dialog.c \
+	src/ui/gui/find-dialog.h \
 	src/ui/gui/dialog-common.c \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.c \

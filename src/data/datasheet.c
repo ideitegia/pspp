@@ -428,6 +428,7 @@ bool
 datasheet_get_value (const struct datasheet *ds, casenumber row, size_t column,
                      union value *value, int width)
 {
+  assert ( row >= 0 );
   return rw_case ((struct datasheet *) ds,
                   OP_READ, row, column, value_cnt_from_width (width), value);
 }

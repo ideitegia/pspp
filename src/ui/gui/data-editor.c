@@ -36,6 +36,7 @@
 #include "select-cases-dialog.h"
 #include "compute-dialog.h"
 #include "goto-case-dialog.h"
+#include "find-dialog.h"
 #include "comments-dialog.h"
 #include "variable-info-dialog.h"
 #include "dict-display.h"
@@ -593,6 +594,16 @@ new_data_editor (void)
   g_signal_connect (de->invoke_comments_dialog, "activate",
 		    G_CALLBACK (comments_dialog), de);
 
+  de->invoke_find_dialog  =
+    gtk_action_new ("find-dialog",
+		    _("Find"),
+		    _("Find Case"),
+		    "gtk-find");
+
+  g_signal_connect (de->invoke_find_dialog, "activate",
+		    G_CALLBACK (find_dialog), de);
+
+
   de->invoke_variable_info_dialog  =
     gtk_action_new ("variable-info-dialog",
 		    _("Variables"),
@@ -677,6 +688,14 @@ new_data_editor (void)
 			    "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->action_data_save_as);
+
+  gtk_action_connect_proxy (de->invoke_find_dialog,
+			    get_widget_assert (de->xml, "edit_find")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_find_dialog,
+			    get_widget_assert (de->xml, "button-find")
+			    );
 
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
 			    get_widget_assert (de->xml, "data_weight-cases")

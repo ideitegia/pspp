@@ -212,7 +212,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkImageMenuItem" id="find1">
+                      <widget class="GtkImageMenuItem" id="edit_find">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="label" translatable="yes">_Find</property>

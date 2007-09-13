@@ -1,3 +1,13 @@
+2007-09-13  John Darrington <john@darrington.wattle.id.au>
+
+	* find-dialog.c find-dialog.h: New files.
+
+	* data-editor.c data-editor.h data-editor.glade: Added action for
+	the find dialog.
+
+	* psppire-selector.c: Emit the (de)selected signal when the 
+	destination entry widget's text changes.
+
 2007-09-10  Ben Pfaff  <blp@gnu.org>
 
 	* var-sheet.c (psppire_variable_sheet_create): Use xstrdup to save
