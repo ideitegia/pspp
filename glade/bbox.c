@@ -1,4 +1,4 @@
-#include <glade.h>
+#include <gladeui/glade.h>
 #include <gtk/gtk.h>
 
 #include "psppire-buttonbox.h"

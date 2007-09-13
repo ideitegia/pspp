@@ -2,9 +2,9 @@
 
 module_LTLIBRARIES = libglade-psppire.la
 
-moduledir = `pkg-config --variable=moduledir libgladeui-1.0`
-catalogdir = `pkg-config --variable=catalogdir libgladeui-1.0`
-pixmapdir = `pkg-config --variable=pixmapdir libgladeui-1.0`
+moduledir = `pkg-config --variable=moduledir gladeui-1.0`
+catalogdir = `pkg-config --variable=catalogdir gladeui-1.0`
+pixmapdir = `pkg-config --variable=pixmapdir gladeui-1.0`
 
 small_pixmapdir = $(pixmapdir)/16x16
 large_pixmapdir = $(pixmapdir)/22x22

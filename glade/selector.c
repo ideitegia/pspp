@@ -3,10 +3,10 @@
 
 #include "psppire-selector.h"
 
-#include <glade-gtk.h>
+#include <gladeui/glade.h>
 
 
-void GLADEGTK_API
+void
 glade_psppire_selector_post_create (GladeWidgetAdaptor *adaptor,
 				    GObject            *object,
 				    GladeCreateReason   reason)

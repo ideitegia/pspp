@@ -45,7 +45,7 @@ AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
 AC_ARG_WITH(gui_tools, [  --with-gui-tools          build the gui developer tools])
 if test x"$with_gui_tools" = x"yes" ; then 
-	PKG_CHECK_MODULES(GLADE_UI, libgladeui-1.0)
+	PKG_CHECK_MODULES(GLADE_UI, gladeui-1.0)
 fi
 AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 

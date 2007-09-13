@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-09-08 08:48+0800\n"
+"POT-Creation-Date: 2007-09-13 18:51+0800\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -1083,7 +1083,7 @@ msgid "Record"
 msgstr ""
 
 #: src/language/data-io/data-list.c:425 src/language/data-io/print.c:396
-#: src/ui/gui/var-sheet.c:71
+#: src/ui/gui/var-sheet.c:72
 msgid "Columns"
 msgstr "Spalten"
 
@@ -1215,7 +1215,7 @@ msgstr ""
 msgid "Handle for %s not allowed here."
 msgstr ""
 
-#: src/language/data-io/get.c:98
+#: src/language/data-io/get.c:97
 msgid "expecting COMM or TAPE"
 msgstr ""
 
@@ -1604,8 +1604,8 @@ msgstr ""
 
 #: src/language/dictionary/split-file.c:84
 #: src/language/dictionary/sys-file-info.c:561
-#: src/language/stats/crosstabs.q:1143 src/language/stats/crosstabs.q:1170
-#: src/language/stats/crosstabs.q:1190 src/language/stats/crosstabs.q:1212
+#: src/language/stats/crosstabs.q:1153 src/language/stats/crosstabs.q:1180
+#: src/language/stats/crosstabs.q:1200 src/language/stats/crosstabs.q:1222
 #: src/language/stats/examine.q:1190 src/language/stats/frequencies.q:1060
 #: src/language/stats/frequencies.q:1184
 msgid "Value"
@@ -1614,7 +1614,7 @@ msgstr ""
 #: src/language/dictionary/split-file.c:85
 #: src/language/dictionary/sys-file-info.c:395
 #: src/language/dictionary/sys-file-info.c:562 src/ui/gui/psppire.glade:2112
-#: src/ui/gui/var-sheet.c:68
+#: src/ui/gui/var-sheet.c:69
 msgid "Label"
 msgstr "Kennsatz"
 
@@ -1775,15 +1775,15 @@ msgstr ""
 msgid "Measure: %s"
 msgstr "Messe"
 
-#: src/language/dictionary/sys-file-info.c:493 src/ui/gui/var-sheet.c:86
+#: src/language/dictionary/sys-file-info.c:493 src/ui/gui/var-sheet.c:87
 msgid "Nominal"
 msgstr "Nominalwert"
 
-#: src/language/dictionary/sys-file-info.c:494 src/ui/gui/var-sheet.c:87
+#: src/language/dictionary/sys-file-info.c:494 src/ui/gui/var-sheet.c:88
 msgid "Ordinal"
 msgstr "Ordinalwert"
 
-#: src/language/dictionary/sys-file-info.c:495 src/ui/gui/var-sheet.c:88
+#: src/language/dictionary/sys-file-info.c:495 src/ui/gui/var-sheet.c:89
 msgid "Scale"
 msgstr "Skalwert"
 
@@ -1792,15 +1792,15 @@ msgstr "Skalwert"
 msgid "Display Alignment: %s"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:499 src/ui/gui/var-sheet.c:79
+#: src/language/dictionary/sys-file-info.c:499 src/ui/gui/var-sheet.c:80
 msgid "Left"
 msgstr "Links"
 
-#: src/language/dictionary/sys-file-info.c:500 src/ui/gui/var-sheet.c:81
+#: src/language/dictionary/sys-file-info.c:500 src/ui/gui/var-sheet.c:82
 msgid "Centre"
 msgstr "Mittel"
 
-#: src/language/dictionary/sys-file-info.c:501 src/ui/gui/var-sheet.c:80
+#: src/language/dictionary/sys-file-info.c:501 src/ui/gui/var-sheet.c:81
 msgid "Right"
 msgstr "Rechts"
 
@@ -2355,8 +2355,8 @@ msgid "Group2"
 msgstr ""
 
 #: src/language/stats/binomial.c:194 src/language/stats/chisquare.c:222
-#: src/language/stats/chisquare.c:282 src/language/stats/crosstabs.q:850
-#: src/language/stats/crosstabs.q:1050 src/language/stats/crosstabs.q:1773
+#: src/language/stats/chisquare.c:282 src/language/stats/crosstabs.q:860
+#: src/language/stats/crosstabs.q:1060 src/language/stats/crosstabs.q:1783
 #: src/language/stats/examine.q:910 src/language/stats/frequencies.q:1137
 #: src/language/stats/oneway.q:307 src/language/stats/oneway.q:471
 #: src/language/stats/regression.q:320
@@ -2364,11 +2364,11 @@ msgid "Total"
 msgstr ""
 
 #: src/language/stats/binomial.c:225 src/language/stats/chisquare.c:245
-#: src/language/stats/crosstabs.q:1168 src/language/stats/crosstabs.q:1209
+#: src/language/stats/crosstabs.q:1178 src/language/stats/crosstabs.q:1219
 msgid "Category"
 msgstr ""
 
-#: src/language/stats/binomial.c:226 src/language/stats/crosstabs.q:860
+#: src/language/stats/binomial.c:226 src/language/stats/crosstabs.q:870
 #: src/language/stats/examine.q:986 src/language/stats/frequencies.q:1405
 #: src/language/stats/npar-summary.c:122 src/language/stats/oneway.q:392
 #: src/language/stats/t-test.q:683 src/language/stats/t-test.q:706
@@ -2421,7 +2421,7 @@ msgstr ""
 msgid "Chi-Square"
 msgstr ""
 
-#: src/language/stats/chisquare.c:311 src/language/stats/crosstabs.q:1144
+#: src/language/stats/chisquare.c:311 src/language/stats/crosstabs.q:1154
 #: src/language/stats/oneway.q:280 src/language/stats/oneway.q:681
 #: src/language/stats/regression.q:313 src/language/stats/t-test.q:983
 #: src/language/stats/t-test.q:1175 src/language/stats/t-test.q:1268
@@ -2458,255 +2458,255 @@ msgstr ""
 msgid "Maximum value (%ld) less than minimum value (%ld)."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:845
+#: src/language/stats/crosstabs.q:855
 msgid "Summary."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:847 src/language/stats/examine.q:974
+#: src/language/stats/crosstabs.q:857 src/language/stats/examine.q:974
 msgid "Cases"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:848 src/language/stats/examine.q:908
+#: src/language/stats/crosstabs.q:858 src/language/stats/examine.q:908
 #: src/language/stats/frequencies.q:1058 src/language/stats/frequencies.q:1406
 msgid "Valid"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:849 src/language/stats/examine.q:909
+#: src/language/stats/crosstabs.q:859 src/language/stats/examine.q:909
 #: src/language/stats/frequencies.q:1128 src/language/stats/frequencies.q:1407
-#: src/ui/gui/var-sheet.c:70
+#: src/ui/gui/var-sheet.c:71
 msgid "Missing"
 msgstr "Löse"
 
-#: src/language/stats/crosstabs.q:861 src/language/stats/examine.q:989
+#: src/language/stats/crosstabs.q:871 src/language/stats/examine.q:989
 #: src/language/stats/frequencies.q:1062 src/language/stats/frequencies.q:1063
 #: src/language/stats/frequencies.q:1064
 msgid "Percent"
 msgstr "Prozent"
 
-#: src/language/stats/crosstabs.q:1102
+#: src/language/stats/crosstabs.q:1112
 msgid "count"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1103
+#: src/language/stats/crosstabs.q:1113
 msgid "row %"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1104
+#: src/language/stats/crosstabs.q:1114
 msgid "column %"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1105
+#: src/language/stats/crosstabs.q:1115
 msgid "total %"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1106
+#: src/language/stats/crosstabs.q:1116
 msgid "expected"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1107
+#: src/language/stats/crosstabs.q:1117
 msgid "residual"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1108
+#: src/language/stats/crosstabs.q:1118
 msgid "std. resid."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1109
+#: src/language/stats/crosstabs.q:1119
 msgid "adj. resid."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1139
+#: src/language/stats/crosstabs.q:1149
 msgid "Chi-square tests."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1142 src/language/stats/crosstabs.q:1169
-#: src/language/stats/crosstabs.q:1189 src/language/stats/crosstabs.q:1210
+#: src/language/stats/crosstabs.q:1152 src/language/stats/crosstabs.q:1179
+#: src/language/stats/crosstabs.q:1199 src/language/stats/crosstabs.q:1220
 #: src/language/stats/examine.q:1421
 msgid "Statistic"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1146
+#: src/language/stats/crosstabs.q:1156
 msgid "Asymp. Sig. (2-sided)"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1148
+#: src/language/stats/crosstabs.q:1158
 msgid "Exact. Sig. (2-sided)"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1150
+#: src/language/stats/crosstabs.q:1160
 msgid "Exact. Sig. (1-sided)"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1165
+#: src/language/stats/crosstabs.q:1175
 msgid "Symmetric measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1171 src/language/stats/crosstabs.q:1213
+#: src/language/stats/crosstabs.q:1181 src/language/stats/crosstabs.q:1223
 msgid "Asymp. Std. Error"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1172 src/language/stats/crosstabs.q:1214
+#: src/language/stats/crosstabs.q:1182 src/language/stats/crosstabs.q:1224
 msgid "Approx. T"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1173 src/language/stats/crosstabs.q:1215
+#: src/language/stats/crosstabs.q:1183 src/language/stats/crosstabs.q:1225
 msgid "Approx. Sig."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1184
+#: src/language/stats/crosstabs.q:1194
 msgid "Risk estimate."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1188
+#: src/language/stats/crosstabs.q:1198
 #, c-format
 msgid "95%% Confidence Interval"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1191 src/language/stats/t-test.q:987
+#: src/language/stats/crosstabs.q:1201 src/language/stats/t-test.q:987
 #: src/language/stats/t-test.q:1172 src/language/stats/t-test.q:1271
 msgid "Lower"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1192 src/language/stats/t-test.q:988
+#: src/language/stats/crosstabs.q:1202 src/language/stats/t-test.q:988
 #: src/language/stats/t-test.q:1173 src/language/stats/t-test.q:1272
 msgid "Upper"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1206
+#: src/language/stats/crosstabs.q:1216
 msgid "Directional measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1211 src/ui/gui/psppire.glade:2236
-#: src/ui/gui/var-sheet.c:65
+#: src/language/stats/crosstabs.q:1221 src/ui/gui/psppire.glade:2236
+#: src/ui/gui/var-sheet.c:66
 msgid "Type"
 msgstr "Typ"
 
-#: src/language/stats/crosstabs.q:1965
+#: src/language/stats/crosstabs.q:1975
 msgid "Pearson Chi-Square"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1966
+#: src/language/stats/crosstabs.q:1976
 msgid "Likelihood Ratio"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1967
+#: src/language/stats/crosstabs.q:1977
 msgid "Fisher's Exact Test"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1968
+#: src/language/stats/crosstabs.q:1978
 msgid "Continuity Correction"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1969
+#: src/language/stats/crosstabs.q:1979
 msgid "Linear-by-Linear Association"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2006 src/language/stats/crosstabs.q:2076
-#: src/language/stats/crosstabs.q:2135
+#: src/language/stats/crosstabs.q:2016 src/language/stats/crosstabs.q:2086
+#: src/language/stats/crosstabs.q:2145
 msgid "N of Valid Cases"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2022 src/language/stats/crosstabs.q:2151
+#: src/language/stats/crosstabs.q:2032 src/language/stats/crosstabs.q:2161
 msgid "Nominal by Nominal"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2023 src/language/stats/crosstabs.q:2152
+#: src/language/stats/crosstabs.q:2033 src/language/stats/crosstabs.q:2162
 msgid "Ordinal by Ordinal"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2024
+#: src/language/stats/crosstabs.q:2034
 msgid "Interval by Interval"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2025
+#: src/language/stats/crosstabs.q:2035
 msgid "Measure of Agreement"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2030
+#: src/language/stats/crosstabs.q:2040
 msgid "Phi"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2031
+#: src/language/stats/crosstabs.q:2041
 msgid "Cramer's V"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2032
+#: src/language/stats/crosstabs.q:2042
 msgid "Contingency Coefficient"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2033
+#: src/language/stats/crosstabs.q:2043
 msgid "Kendall's tau-b"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2034
+#: src/language/stats/crosstabs.q:2044
 msgid "Kendall's tau-c"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2035
+#: src/language/stats/crosstabs.q:2045
 msgid "Gamma"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2036
+#: src/language/stats/crosstabs.q:2046
 msgid "Spearman Correlation"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2037
+#: src/language/stats/crosstabs.q:2047
 msgid "Pearson's R"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2038
+#: src/language/stats/crosstabs.q:2048
 msgid "Kappa"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2108
+#: src/language/stats/crosstabs.q:2118
 #, c-format
 msgid "Odds Ratio for %s (%g / %g)"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2111
+#: src/language/stats/crosstabs.q:2121
 #, c-format
 msgid "Odds Ratio for %s (%.*s / %.*s)"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2119
+#: src/language/stats/crosstabs.q:2129
 #, c-format
 msgid "For cohort %s = %g"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2122
+#: src/language/stats/crosstabs.q:2132
 #, c-format
 msgid "For cohort %s = %.*s"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2153
+#: src/language/stats/crosstabs.q:2163
 msgid "Nominal by Interval"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2158
+#: src/language/stats/crosstabs.q:2168
 msgid "Lambda"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2159
+#: src/language/stats/crosstabs.q:2169
 msgid "Goodman and Kruskal tau"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2160
+#: src/language/stats/crosstabs.q:2170
 msgid "Uncertainty Coefficient"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2161
+#: src/language/stats/crosstabs.q:2171
 msgid "Somers' d"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2162
+#: src/language/stats/crosstabs.q:2172
 msgid "Eta"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2167
+#: src/language/stats/crosstabs.q:2177
 msgid "Symmetric"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:2168 src/language/stats/crosstabs.q:2169
+#: src/language/stats/crosstabs.q:2178 src/language/stats/crosstabs.q:2179
 #, c-format
 msgid "%s Dependent"
 msgstr ""
@@ -3962,7 +3962,7 @@ msgstr ""
 msgid "ascii: boolean value expected for `%s'"
 msgstr ""
 
-#: src/output/ascii.c:423 src/output/html.c:188
+#: src/output/ascii.c:423 src/output/html.c:187
 msgid "`chart-files' value must contain `#'"
 msgstr ""
 
@@ -3976,7 +3976,7 @@ msgstr ""
 msgid "ascii: bad line (%d,%d)-(%d,%d) out of (%d,%d)\n"
 msgstr ""
 
-#: src/output/ascii.c:743 src/output/postscript.c:826
+#: src/output/ascii.c:743 src/output/postscript.c:825
 #, c-format
 msgid "%s - Page %d"
 msgstr ""
@@ -3995,16 +3995,16 @@ msgstr ""
 msgid "HISTOGRAM"
 msgstr ""
 
-#: src/output/html.c:71
+#: src/output/html.c:70
 #, c-format
 msgid "opening HTML output file: %s"
 msgstr ""
 
-#: src/output/html.c:82
+#: src/output/html.c:81
 msgid "PSPP Output"
 msgstr ""
 
-#: src/output/html.c:171
+#: src/output/html.c:170
 #, c-format
 msgid "unknown configuration parameter `%s' for HTML device driver"
 msgstr ""
@@ -4157,12 +4157,12 @@ msgstr ""
 msgid "error reading paper size definition file"
 msgstr ""
 
-#: src/output/postscript.c:159
+#: src/output/postscript.c:158
 #, c-format
 msgid "opening PostScript output file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:197
+#: src/output/postscript.c:196
 #, c-format
 msgid ""
 "The defined PostScript page is not long enough to hold margins and headers, "
@@ -4170,82 +4170,82 @@ msgid ""
 "lines of each font at the default size of %d.%03d points."
 msgstr ""
 
-#: src/output/postscript.c:245
+#: src/output/postscript.c:244
 #, c-format
 msgid "closing PostScript output file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:305
+#: src/output/postscript.c:304
 #, c-format
 msgid "unknown configuration parameter `%s' for PostScript device driver"
 msgstr ""
 
-#: src/output/postscript.c:321
+#: src/output/postscript.c:320
 #, c-format
 msgid ""
 "unknown orientation `%s' (valid orientations are `portrait' and `landscape')"
 msgstr ""
 
-#: src/output/postscript.c:333
+#: src/output/postscript.c:332
 #, c-format
 msgid "boolean value expected for %s"
 msgstr ""
 
-#: src/output/postscript.c:346
+#: src/output/postscript.c:345
 #, c-format
 msgid "positive integer value required for `%s'"
 msgstr ""
 
-#: src/output/postscript.c:351
+#: src/output/postscript.c:350
 #, c-format
 msgid "default font size must be at least 1 point (value of 1000 for key `%s')"
 msgstr ""
 
-#: src/output/postscript.c:383
+#: src/output/postscript.c:382
 #, c-format
 msgid "value for `%s' must be a dimension of positive length (i.e., `1in')"
 msgstr ""
 
-#: src/output/postscript.c:1176
+#: src/output/postscript.c:1175
 #, c-format
 msgid "\"%s\": bad font specification"
 msgstr ""
 
-#: src/output/postscript.c:1184
+#: src/output/postscript.c:1183
 #, c-format
 msgid "could not find AFM file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1198
+#: src/output/postscript.c:1197
 #, c-format
 msgid "could not find font \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1207
+#: src/output/postscript.c:1206
 #, c-format
 msgid "could not find encoding \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1307
+#: src/output/postscript.c:1306
 #, c-format
 msgid "cannot open font file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1348
+#: src/output/postscript.c:1347
 #, c-format
 msgid "reading font file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1370
+#: src/output/postscript.c:1369
 #, c-format
 msgid "cannot open font encoding file \"%s\""
 msgstr ""
 
-#: src/output/postscript.c:1399
+#: src/output/postscript.c:1398
 msgid "invalid numeric format"
 msgstr ""
 
-#: src/output/postscript.c:1421
+#: src/output/postscript.c:1420
 #, c-format
 msgid "closing Postscript encoding \"%s\""
 msgstr ""
@@ -5121,7 +5121,7 @@ msgstr ""
 msgid "Use expression as label"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2159 src/ui/gui/var-sheet.c:66
+#: src/ui/gui/psppire.glade:2159 src/ui/gui/var-sheet.c:67
 msgid "Width"
 msgstr "Große"
 
@@ -5241,23 +5241,23 @@ msgstr "Werten"
 msgid "%s %s\n"
 msgstr ""
 
-#: src/ui/gui/var-sheet.c:64
+#: src/ui/gui/var-sheet.c:65
 msgid "Name"
 msgstr "Name"
 
-#: src/ui/gui/var-sheet.c:67
+#: src/ui/gui/var-sheet.c:68
 msgid "Decimals"
 msgstr "Dezimalstellen"
 
-#: src/ui/gui/var-sheet.c:69
+#: src/ui/gui/var-sheet.c:70
 msgid "Values"
 msgstr "Werten"
 
-#: src/ui/gui/var-sheet.c:72
+#: src/ui/gui/var-sheet.c:73
 msgid "Align"
 msgstr "Einstellung"
 
-#: src/ui/gui/var-sheet.c:73
+#: src/ui/gui/var-sheet.c:74
 msgid "Measure"
 msgstr "Messe"
 
@@ -5355,30 +5355,30 @@ msgid ""
 "failures."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:65
+#: src/ui/terminal/msg-ui.c:66
 #, c-format
 msgid "Cannot open %s (%s). Writing errors to stdout instead.\n"
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:92
+#: src/ui/terminal/msg-ui.c:93
 msgid "Terminating execution of syntax file due to error."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:94
+#: src/ui/terminal/msg-ui.c:95
 #, c-format
 msgid "Errors (%d) exceeds limit (%d)."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:97
+#: src/ui/terminal/msg-ui.c:98
 #, c-format
 msgid "Warnings (%d) exceed limit (%d)."
 msgstr ""
 
-#: src/ui/terminal/msg-ui.c:148
+#: src/ui/terminal/msg-ui.c:149
 msgid "error"
 msgstr "Fehler"
 
-#: src/ui/terminal/msg-ui.c:149
+#: src/ui/terminal/msg-ui.c:150
 msgid "warning"
 msgstr "Warnung"
 

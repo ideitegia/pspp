@@ -3,12 +3,12 @@
 
 #include "psppire-dialog.h"
 #include <string.h>
-#include <glade-gtk.h>
 #include <assert.h>
 #include <string.h>
+#include <gladeui/glade.h>
 
 
-void GLADEGTK_API
+void
 glade_psppire_dialog_post_create (GladeWidgetAdaptor *adaptor,
 				  GObject            *object,
 				  GladeCreateReason   reason)
