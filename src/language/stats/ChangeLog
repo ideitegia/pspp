@@ -1,3 +1,9 @@
+2007-09-12  Ben Pfaff  <blp@gnu.org>
+
+	* crosstabs.q (postcalc): Free sorted_tab and the structures that
+	it points to, to plug a memory leak.  Fixes bug #20910.  Thanks to
+	John Darrington for reporting this bug and for review.
+
 2007-09-04  Ben Pfaff  <blp@gnu.org>
 
 	* crosstabs.q (cmd_crosstabs): Free xtab and the structures that

@@ -827,6 +827,16 @@ postcalc (void)
   }
 
   hsh_destroy (gen_tab);
+  if (mode == INTEGER)
+    {
+      int i;
+      for (i = 0; i < n_sorted_tab; i++)
+        {
+          free (sorted_tab[i]->u.data);
+          free (sorted_tab[i]);
+        }
+      free (sorted_tab);
+    }
 }
 
 static void insert_summary (struct tab_table *, int tab_index, double valid);
