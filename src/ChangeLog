@@ -1267,7 +1267,7 @@ Sat Dec 10 18:13:36 2005  Ben Pfaff  <blp@gnu.org>
 
 	* q2c.c: Remove "aux" support, which was only needed by set.q.
 	
-Sun Nov 27 06:43:46 WST 2005 John Darrington <john@darington.wattle.id.au>
+Sun Nov 27 06:43:46 WST 2005 John Darrington <john@darrington.wattle.id.au>
 
 	* data-out.c format.h: Added return value to data_out function.
 

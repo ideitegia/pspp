@@ -105,7 +105,7 @@ Sun Nov 19 09:20:42 2006  Ben Pfaff  <blp@gnu.org>
 	corresponding argument.  Updated all callers.
 	(parse_number) Ditto.
 
-Sun Nov 12 06:34:06 WST 2006 John Darrrington <john@darrington.wattle.id.au>
+Sun Nov 12 06:34:06 WST 2006 John Darrington <john@darrington.wattle.id.au>
 
 	* format-parser.c format-parser.h lexer.c lexer.h q2c.c range-parser.c
 	  range-parser.h subcommand-list.c variable-parser.c

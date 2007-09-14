@@ -18,7 +18,7 @@
 	updated document API.
 	(cmd_add_documents): Ditto.
 
-2007-05-03 John Darrington <john@darrington.wattle.ud.au>
+2007-05-03 John Darrington <john@darrington.wattle.id.au>
 
 	* title.c: Implemented ADD DOCUMENT command.
 
