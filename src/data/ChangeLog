@@ -1,4 +1,9 @@
-2007-09-13  John Darrinton <john@darrington.wattle.id.au>
+2007-09-14  Ben Pfaff  <blp@gnu.org>
+
+	* dictionary.c (dict_clone): Copy case indexes from cloned
+	dictionary.  Fixes bug #21061.  Reviewed by John Darrington.
+
+2007-09-13  John Darrington <john@darrington.wattle.id.au>
 
 	* value.c value.h (create_value): New function.
 
@@ -15,7 +20,7 @@
 	* casewriter-translator.c (struct casewriter_translator): Ditto.
 	(casewriter_create_translator): Ditto.
 
-2007-08-27  John Darrinton <john@darrington.wattle.id.au>
+2007-08-27  John Darrington <john@darrington.wattle.id.au>
 	
 	* sys-file-reader.c (read_display_parameters): Force display width 
 	to 8, if the sys file says 0 (like SPSS does).

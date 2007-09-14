@@ -116,7 +116,13 @@ dict_create (void)
 }
 
 /* Creates and returns a (deep) copy of an existing
-   dictionary. */
+   dictionary.
+
+   The new dictionary's case indexes are copied from the old
+   dictionary.  If the new dictionary won't be used to access
+   cases produced with the old dictionary, then the new
+   dictionary's case indexes should be compacted with
+   dict_compact_values to save space. */
 struct dictionary *
 dict_clone (const struct dictionary *s)
 {
@@ -135,6 +141,8 @@ dict_clone (const struct dictionary *s)
 
       for (i = 0; i < var_get_short_name_cnt (sv); i++)
         var_set_short_name (dv, i, var_get_short_name (sv, i));
+
+      var_set_vardict (dv, var_get_vardict (sv));
     }
 
   d->next_value_idx = s->next_value_idx;
