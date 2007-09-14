@@ -1,3 +1,10 @@
+2007-09-13  Jason Stover  <jhs@debs.hoobahooba.net>
+
+	* regression.q (cmd_regression): Move declaration of models in to
+	definition of cmd_regression.
+
+	* regression.q (run_regression): Free mom to fix memory leak.
+
 2007-09-12  Ben Pfaff  <blp@gnu.org>
 
 	* crosstabs.q (postcalc): Free sorted_tab and the structures that

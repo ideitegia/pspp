@@ -92,9 +92,6 @@ struct moments_var
   const struct variable *v;
 };
 
-/* Linear regression models. */
-static pspp_linreg_cache **models = NULL;
-
 /*
   Transformations for saving predicted values
   and residuals, etc.
@@ -122,7 +119,7 @@ static size_t n_variables;
 static struct file_handle *model_file;
 
 static bool run_regression (struct casereader *, struct cmd_regression *,
-			    struct dataset *);
+			    struct dataset *, pspp_linreg_cache **);
 
 /*
    STATISTICS subcommand output functions.
@@ -948,6 +945,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 {
   struct casegrouper *grouper;
   struct casereader *group;
+  pspp_linreg_cache **models;
   bool ok;
   size_t i;
 
@@ -963,7 +961,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   /* Data pass. */
   grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
   while (casegrouper_get_next_group (grouper, &group))
-    run_regression (group, &cmd, ds);
+    run_regression (group, &cmd, ds, models);
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
 
@@ -1122,7 +1120,7 @@ compute_moments (pspp_linreg_cache * c, struct moments_var *mom,
 
 static bool
 run_regression (struct casereader *input, struct cmd_regression *cmd,
-		struct dataset *ds)
+		struct dataset *ds, pspp_linreg_cache **models)
 {
   size_t i;
   int n_indep = 0;
@@ -1255,6 +1253,11 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	}
       casereader_destroy (reader);
     }
+  for (i = 0; i < n_variables; i++)
+    {
+      moments1_destroy ((mom + i)->m);
+    }
+  free (mom);
   free (indep_vars);
   free (lopts.get_indep_mean_std);
   casereader_destroy (input);
