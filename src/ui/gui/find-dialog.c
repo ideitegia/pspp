@@ -103,8 +103,8 @@ refresh (GObject *obj, const struct find_dialog *fd)
 static void
 do_find (GObject *obj, const struct find_dialog *fd)
 {
-  casenumber x;
-  gint column;
+  casenumber x = -1;
+  gint column = -1;
   gint row;
   gtk_sheet_get_active_cell (fd->data_sheet, &row, NULL);
 

@@ -204,7 +204,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	     const pspp_linreg_opts * opts, pspp_linreg_cache * cache)
 {
   int rc;
-  gsl_matrix *design;
+  gsl_matrix *design = NULL;
   gsl_matrix_view xtx;
   gsl_matrix_view xm;
   gsl_matrix_view xmxtx;
