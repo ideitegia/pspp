@@ -79,7 +79,7 @@ static const struct column_parameters column_def[] = {
 const gchar *const alignments[n_ALIGNMENTS + 1]={
   N_("Left"),
   N_("Right"),
-  N_("Centre"),
+  N_("Center"),
   0
 };
 

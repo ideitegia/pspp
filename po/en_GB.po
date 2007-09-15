@@ -1,21 +1,18 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Free Software Foundation, Inc.
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# British translations for PSPP
+# Copyright (C) 2007 Free Software Foundation, Inc.
+# This file is distributed under the same licence as the PSPP package.
+# John Darrington <john@darrington.wattle.id.au>, 2007.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2007-09-15 09:11+0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2007-09-15 08:29+0800\n"
+"Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
 #: src/data/any-reader.c:57
 #, c-format
@@ -1792,7 +1789,7 @@ msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:500 src/ui/gui/var-sheet.c:82
 msgid "Center"
-msgstr ""
+msgstr "Centre"
 
 #: src/language/dictionary/sys-file-info.c:501 src/ui/gui/var-sheet.c:81
 msgid "Right"
@@ -4893,6 +4890,21 @@ msgid ""
 "   You should have received a copy of the GNU General Public License\n"
 "   along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
 msgstr ""
+"\"   This program is free software: you can redistribute it and/or modify\\n"
+"\"\n"
+"\"   it under the terms of the GNU General Public License as published by\\n"
+"\"\n"
+"\"   the Free Software Foundation, either version 3 of the Licence, or\\n\"\n"
+"\"   (at your option) any later version.\\n\"\n"
+"\"\\n\"\n"
+"\"   This program is distributed in the hope that it will be useful,\\n\"\n"
+"\"   but WITHOUT ANY WARRANTY; without even the implied warranty of\\n\"\n"
+"\"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n\"\n"
+"\"   GNU General Public License for more details.\\n\"\n"
+"\"\\n\"\n"
+"\"   You should have received a copy of the GNU General Public License\\n\"\n"
+"\"   along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n"
+"\"\n"
 
 #: src/ui/gui/psppire.glade:86 src/ui/gui/psppire.glade:167
 #: src/ui/gui/weight-cases-dialog.c:82
@@ -4921,7 +4933,7 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:442
 msgid "Analyze all cases.  Do not create groups."
-msgstr ""
+msgstr "Analyse all cases.  Do not create groups."
 
 #: src/ui/gui/psppire.glade:452
 msgid "Compare groups."

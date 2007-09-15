@@ -497,7 +497,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
   tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
                   _("Display Alignment: %s"),
                   a == ALIGN_LEFT ? _("Left")
-                  : a == ALIGN_CENTRE ? _("Centre")
+                  : a == ALIGN_CENTRE ? _("Center")
                   : _("Right"));
   r++;
   tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,

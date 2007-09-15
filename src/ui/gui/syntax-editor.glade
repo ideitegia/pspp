@@ -240,7 +240,7 @@
 		  <child>
 		    <widget class="GtkMenuItem" id="windows_minimise_all">
 		      <property name="visible">True</property>
-		      <property name="label" translatable="yes">_Minimise All Windows</property>
+		      <property name="label" translatable="yes">_Minimize All Windows</property>
 		      <property name="use_underline">True</property>
 		    </widget>
 		  </child>
