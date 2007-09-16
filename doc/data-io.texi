@@ -22,7 +22,6 @@ actually be read until a procedure is executed.
 
 @menu
 * BEGIN DATA::                  Embed data within a syntax file.
-* CLEAR TRANSFORMATIONS::       Clear pending transformations.
 * CLOSE FILE HANDLE::           Close a file handle.
 * DATA LIST::                   Fundamental data reading command.
 * END CASE::                    Output the current case.
@@ -63,17 +62,6 @@ white space and exactly one space between the words @code{END} and
 @example
 END DATA.
 @end example
-
-@node CLEAR TRANSFORMATIONS
-@section CLEAR TRANSFORMATIONS
-@vindex CLEAR TRANSFORMATIONS
-
-@display
-CLEAR TRANSFORMATIONS.
-@end display
-
-@cmd{CLEAR TRANSFORMATIONS} clears out all pending
-transformations.  It does not cancel the current input program.
 
 @node CLOSE FILE HANDLE
 @section CLOSE FILE HANDLE
