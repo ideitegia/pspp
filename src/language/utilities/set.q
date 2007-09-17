@@ -858,13 +858,13 @@ show_all_cc (void)
 static void
 show_warranty (const struct dataset *ds UNUSED)
 {
-  msg (MN, lack_of_warranty);
+  fputs (lack_of_warranty, stdout);
 }
 
 static void
 show_copying (const struct dataset *ds UNUSED)
 {
-  msg (MN, copyleft);
+  fputs (copyleft, stdout);
 }
 
 int

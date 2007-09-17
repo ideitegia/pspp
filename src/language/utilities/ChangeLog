@@ -1,3 +1,12 @@
+2007-09-16  Ben Pfaff  <blp@gnu.org>
+
+	* set.q (show_warranty): Use fputs to print lack-of-warranty
+	statement, instead of msg.  This is because msg now outputs the
+	message to output devices, and the output subsystem is not
+	prepared to deal with table cells that exceed one page in length.
+	Thanks to John Darrington for bug report and review.  Bug #21093.
+	(show_copying) Ditto.
+
 2007-08-16  Ben Pfaff  <blp@gnu.org>
 
 	Implement journaling.  Bug #17240.
