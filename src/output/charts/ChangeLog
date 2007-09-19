@@ -1,3 +1,8 @@
+2007-09-18  Ben Pfaff  <blp@gnu.org>
+
+	* plot-hist.c (histogram_plot): Remove incorrect assertion.  Fixes
+	bug #21101.  Reviewed by John Darrington.
+
 Sun Feb 11 19:43:39 2007  Ben Pfaff  <blp@gnu.org>
 
 	* dummy-chart.c: Apply UNUSED and include additional headers to

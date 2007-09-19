@@ -156,7 +156,6 @@ histogram_plot(const gsl_histogram *hist,
     gsl_histogram_get_range(hist, 0, &x_min, &not_used);
     range = not_used - x_min;
     gsl_histogram_get_range(hist, bins - 1, &not_used, &x_max);
-    assert(range == x_max - not_used);
 
     abscissa_scale = (ch->data_right - ch->data_left) / (x_max - x_min);
     ordinate_scale = (ch->data_top - ch->data_bottom) /
