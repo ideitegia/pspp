@@ -311,6 +311,26 @@ casereader_create_sequential (const struct taint *taint,
   reader->aux = aux;
   return reader;
 }
+
+/* If READER is a casereader of the given CLASS, returns its
+   associated auxiliary data; otherwise, returns a null pointer.
+
+   This function is intended for use from casereader
+   implementations, not by casereader users.  Even within
+   casereader implementations, its usefulness is quite limited,
+   for at least two reasons.  First, every casereader member
+   function already receives a pointer to the casereader's
+   auxiliary data.  Second, a casereader's class can change
+   (through a call to casereader_swap) and this is in practice
+   quite common (e.g. any call to casereader_clone on a
+   casereader that does not directly support clone will cause the
+   casereader to be replaced by a shim caseader). */
+void *
+casereader_dynamic_cast (struct casereader *reader,
+                         struct casereader_class *class)
+{
+  return reader->class == class ? reader->aux : NULL;
+}
 
 /* Random-access casereader implementation.
 

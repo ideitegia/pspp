@@ -1,3 +1,17 @@
+2007-09-18  Ben Pfaff  <blp@gnu.org>
+
+	* helper.c (create_casereader_from_data_store): New function.
+	(execute_syntax): Only replace the active file data by a new
+	casereader if syntax caused the active file to be read, to avoid
+	exponential slowdown as an increasing number of snippets that do
+	not read from the active file are consecutively executed.  Bug
+	#20910.  Reviewed by and heavily influenced by John Darrington.
+
+	* psppire-data-store.c (psppire_data_store_get_value_count): New
+	function.
+
+	* psppire-dict.c (psppire_dict_get_value_cnt): New function.
+
 2007-09-13  John Darrington <john@darrington.wattle.id.au>
 
 	* find-dialog.c find-dialog.h: New files.

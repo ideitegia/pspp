@@ -636,6 +636,18 @@ proc_has_active_file (const struct dataset *ds)
   return ds->source != NULL;
 }
 
+/* Returns the active file data source from DS, or a null pointer
+   if DS has no data source, and removes it from DS. */
+struct casereader *
+proc_extract_active_file_data (struct dataset *ds)
+{
+  struct casereader *reader = ds->source;
+  ds->source = NULL;
+  if (ds->replace_source) ds->replace_source (reader);
+
+  return reader;
+}
+
 /* Checks whether DS has a corrupted active file.  If so,
    discards it and returns false.  If not, returns true without
    doing anything. */

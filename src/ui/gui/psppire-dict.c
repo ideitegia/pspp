@@ -411,6 +411,17 @@ psppire_dict_get_var_cnt (const PsppireDict *d)
 }
 
 
+/* Return the number of `union value's in the dictionary */
+size_t
+psppire_dict_get_value_cnt (const PsppireDict *d)
+{
+  g_return_val_if_fail (d, -1);
+  g_return_val_if_fail (d->dict, -1);
+
+  return dict_get_next_value_idx (d->dict);
+}
+
+
 /* Return a variable by name.
    Return NULL if it doesn't exist
 */

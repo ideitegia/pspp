@@ -64,6 +64,7 @@ void proc_set_active_file (struct dataset *,
                            struct casereader *, struct dictionary *);
 bool proc_set_active_file_data (struct dataset *, struct casereader *);
 bool proc_has_active_file (const struct dataset *ds);
+struct casereader *proc_extract_active_file_data (struct dataset *);
 
 void proc_discard_output (struct dataset *ds);
 

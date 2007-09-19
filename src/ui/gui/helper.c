@@ -28,20 +28,25 @@
 #include <data/data-in.h>
 #include <data/data-out.h>
 #include <data/dictionary.h>
+#include <data/casereader-provider.h>
 #include <libpspp/message.h>
 
 #include <libpspp/i18n.h>
 
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 #include <data/settings.h>
 
 #include <language/command.h>
+#include <data/lazy-casereader.h>
 #include <data/procedure.h>
 #include <language/lexer/lexer.h>
 #include "psppire-data-store.h"
 #include <output/manager.h>
 #include "output-viewer.h"
+
+#include "xalloc.h"
 
 #include <gettext.h>
 
@@ -165,14 +170,43 @@ extern struct dataset *the_dataset;
 extern struct source_stream *the_source_stream;
 extern PsppireDataStore *the_data_store;
 
+/* Lazy casereader callback function used by execute_syntax. */
+static struct casereader *
+create_casereader_from_data_store (void *data_store_)
+{
+  PsppireDataStore *data_store = data_store_;
+  return psppire_data_store_get_reader (data_store);
+}
+
 gboolean
 execute_syntax (struct getl_interface *sss)
 {
   struct lexer *lexer;
   gboolean retval = TRUE;
 
-  struct casereader *reader = psppire_data_store_get_reader (the_data_store);
+  struct casereader *reader;
+  size_t value_cnt;
+  casenumber case_cnt;
+  unsigned long int lazy_serial;
 
+  /* When the user executes a number of snippets of syntax in a
+     row, none of which read from the active file, the GUI becomes
+     progressively less responsive.  The reason is that each syntax
+     execution encapsulates the active file data in another
+     datasheet layer.  The cumulative effect of having a number of
+     layers of datasheets wastes time and space.
+
+     To solve the problem, we use a "lazy casereader", a wrapper
+     around the casereader obtained from the data store, that
+     only actually instantiates that casereader when it is
+     needed.  If the data store casereader is never needed, then
+     it is reused the next time syntax is run, without wrapping
+     it in another layer. */
+  value_cnt = psppire_data_store_get_value_count (the_data_store);
+  case_cnt = psppire_data_store_get_case_count (the_data_store);
+  reader = lazy_casereader_create (value_cnt, case_cnt,
+                                   create_casereader_from_data_store,
+                                   the_data_store, &lazy_serial);
   proc_set_active_file_data (the_dataset, reader);
 
   g_return_val_if_fail (proc_has_active_file (the_dataset), FALSE);
@@ -204,13 +238,10 @@ execute_syntax (struct getl_interface *sss)
   psppire_dict_replace_dictionary (the_data_store->dict,
 				   dataset_dict (the_dataset));
 
-  {
-    PsppireCaseFile *pcf = psppire_case_file_new (dataset_source (the_dataset));
-
-    psppire_data_store_set_case_file (the_data_store, pcf);
-  }
-
-  proc_set_active_file_data (the_dataset, NULL);
+  reader = proc_extract_active_file_data (the_dataset);
+  if (!lazy_casereader_destroy (reader, lazy_serial))
+    psppire_data_store_set_case_file (the_data_store,
+                                      psppire_case_file_new (reader));
 
   som_flush ();
 

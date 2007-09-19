@@ -165,6 +165,12 @@ psppire_data_store_get_case_count (const PsppireDataStore *store)
   return psppire_case_file_get_case_count (store->case_file);
 }
 
+size_t
+psppire_data_store_get_value_count (const PsppireDataStore *store)
+{
+  return psppire_dict_get_value_cnt (store->dict);
+}
+
 inline casenumber
 psppire_data_store_get_case_count_wrapper (const GSheetModel *model)
 {

@@ -50,6 +50,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/format.def \
 	src/data/identifier.c \
 	src/data/identifier.h \
+	src/data/lazy-casereader.c \
+	src/data/lazy-casereader.h \
 	src/data/missing-values.c \
 	src/data/missing-values.h \
 	src/data/make-file.c \

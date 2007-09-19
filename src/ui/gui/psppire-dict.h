@@ -69,6 +69,9 @@ void           psppire_dict_delete_var (PsppireDict *s, gint idx);
 /* Return the number of variables in the dictionary */
 gint psppire_dict_get_var_cnt (const PsppireDict *d);
 
+/* Return the number of `union value's in the dictionary */
+size_t psppire_dict_get_value_cnt (const PsppireDict *d);
+
 /* Return a variable by name.
    Return NULL if it doesn't exist
 */

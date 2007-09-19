@@ -142,6 +142,7 @@ gboolean psppire_data_store_set_string (PsppireDataStore *ds,
 					glong row, glong column);
 
 casenumber psppire_data_store_get_case_count (const PsppireDataStore *ds);
+size_t psppire_data_store_get_value_count (const PsppireDataStore *ds);
 
 #ifdef __cplusplus
 }
