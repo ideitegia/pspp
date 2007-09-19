@@ -56,13 +56,6 @@ struct dataset {
   struct trns_chain *temporary_trns_chain;
   struct dictionary *dict;
 
-  /* Callback which occurs when a procedure provides a new source for
-     the dataset */
-  replace_source_callback *replace_source ;
-
-  /* Callback which occurs whenever the DICT is replaced by a new one */
-  replace_dictionary_callback *replace_dict;
-
   /* Callback which occurs whenever the transformation chain(s) have
      been modified */
   transformation_change_callback_func *xform_callback;
@@ -341,7 +334,6 @@ proc_commit (struct dataset *ds)
       ds->discard_output = false;
     }
   ds->sink = NULL;
-  if ( ds->replace_source) ds->replace_source (ds->source);
 
   caseinit_clear (ds->caseinit);
   caseinit_mark_as_preinited (ds->caseinit, ds->dict);
@@ -498,7 +490,6 @@ proc_cancel_temporary_transformations (struct dataset *ds)
       dict_destroy (ds->dict);
       ds->dict = ds->permanent_dict;
       ds->permanent_dict = NULL;
-      if (ds->replace_dict) ds->replace_dict (ds->dict);
 
       trns_chain_destroy (ds->temporary_trns_chain);
       ds->temporary_trns_chain = NULL;
@@ -532,13 +523,11 @@ proc_cancel_all_transformations (struct dataset *ds)
 
 /* Initializes procedure handling. */
 struct dataset *
-create_dataset (transformation_change_callback_func *cb, void *aux)
+create_dataset (void)
 {
   struct dataset *ds = xzalloc (sizeof(*ds));
   ds->dict = dict_create ();
   ds->caseinit = caseinit_create ();
-  ds->xform_callback = cb;
-  ds->xform_callback_aux = aux;
   proc_cancel_all_transformations (ds);
   return ds;
 }
@@ -589,7 +578,6 @@ proc_discard_active_file (struct dataset *ds)
 
   casereader_destroy (ds->source);
   ds->source = NULL;
-  if ( ds->replace_source) ds->replace_source (NULL);
 
   proc_cancel_all_transformations (ds);
 }
@@ -608,7 +596,6 @@ proc_set_active_file (struct dataset *ds,
 
   dict_destroy (ds->dict);
   ds->dict = dict;
-  if ( ds->replace_dict) ds->replace_dict (dict);
 
   proc_set_active_file_data (ds, source);
 }
@@ -620,7 +607,6 @@ proc_set_active_file_data (struct dataset *ds, struct casereader *reader)
 {
   casereader_destroy (ds->source);
   ds->source = reader;
-  if (ds->replace_source) ds->replace_source (reader);
 
   caseinit_clear (ds->caseinit);
   caseinit_mark_as_preinited (ds->caseinit, ds->dict);
@@ -643,7 +629,6 @@ proc_extract_active_file_data (struct dataset *ds)
 {
   struct casereader *reader = ds->source;
   ds->source = NULL;
-  if (ds->replace_source) ds->replace_source (reader);
 
   return reader;
 }

@@ -92,7 +92,7 @@ initialize (void)
 			  fn_getenv_default ("STAT_INCLUDE_PATH", include_path)
 			  );
 
-  the_dataset = create_dataset (NULL, NULL);
+  the_dataset = create_dataset ();
 
 
   message_dialog_init (the_source_stream);

@@ -53,7 +53,8 @@ typedef void  replace_dictionary_callback (struct dictionary *);
 
 typedef void transformation_change_callback_func (bool non_empty, void *aux);
 
-struct dataset * create_dataset (transformation_change_callback_func *, void *);
+struct dataset * create_dataset (void);
+
 void destroy_dataset (struct dataset *);
 
 void dataset_add_transform_change_callback (struct dataset *,

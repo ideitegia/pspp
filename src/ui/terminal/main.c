@@ -107,7 +107,7 @@ main (int argc, char **argv)
   settings_init ();
   random_init ();
 
-  the_dataset = create_dataset (NULL, NULL);
+  the_dataset = create_dataset ();
 
   if (parse_command_line (argc, argv, the_source_stream))
     {
