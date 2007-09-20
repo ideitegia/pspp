@@ -77,5 +77,23 @@ $SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE
 if [ $? -ne 1 ] ; then fail ; fi
 
 
+activity="create test program 2"
+cat > $TESTFILE <<EOF
+* From bug #21108.
+input program.
+data list list /x.
+end file.
+end input program.
+
+descriptives x.
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
+# The above syntax is invalid, so this program should fail to parse
+activity="run program 2"
+$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE
+if [ $? -ne 1 ] ; then fail ; fi
+
 
 pass;

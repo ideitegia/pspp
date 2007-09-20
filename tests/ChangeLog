@@ -1,3 +1,7 @@
+2007-09-19  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/input-crash.sh: Add regression test for bug #21108.
+
 2007-09-04  Ben Pfaff  <blp@gnu.org>
 
 	Update scripts that invoke Perl to invoke it as simply "perl" if
