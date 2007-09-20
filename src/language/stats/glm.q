@@ -251,7 +251,10 @@ run_glm (struct casereader *input,
   assert (model != NULL);
 
   if (!casereader_peek (input, 0, &c))
-    return true;
+    {
+      casereader_destroy (input);
+      return true;
+    }
   output_split_file_values (ds, &c);
   case_destroy (&c);
 

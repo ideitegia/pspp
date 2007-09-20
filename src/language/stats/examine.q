@@ -720,7 +720,10 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
   struct factor *fctr;
 
   if (!casereader_peek (input, 0, &c))
-    return;
+    {
+      casereader_destroy (input);
+      return;
+    }
   output_split_file_values (ds, &c);
   case_destroy (&c);
 

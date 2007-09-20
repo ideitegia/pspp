@@ -1,3 +1,23 @@
+2007-09-19  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #21108.
+	
+	* aggregate.c (cmd_aggregate): Destroy casereader consistently,
+	even if casereader fails.
+
+	* examine.q (run_examine): Ditto.
+	 
+	* glm.q (run_glm): Ditto.
+
+	* oneway.q (run_oneway): Ditto.
+
+	* regression.q (run_regression): Ditto.
+
+	* t-test.q (calculate): Ditto.
+
+	* descriptives.c (calc_descriptives): Ditto.  Also avoid
+	gratuitous casereader_clone.
+
 2007-09-13  Jason Stover  <jhs@debs.hoobahooba.net>
 
 	* regression.q (cmd_regression): Move declaration of models in to

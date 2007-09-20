@@ -1787,7 +1787,10 @@ calculate(struct cmd_t_test *cmd,
   enum mv_class exclude = cmd->miss != TTS_INCLUDE ? MV_ANY : MV_SYSTEM;
 
   if (!casereader_peek (input, 0, &c))
-    return;
+    {
+      casereader_destroy (input);
+      return;
+    }
   output_split_file_values (ds, &c);
   case_destroy (&c);
 

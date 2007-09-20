@@ -699,16 +699,18 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
   size_t i;
 
   if (!casereader_peek (group, 0, &c))
-    return;
+    {
+      casereader_destroy (group);
+      return;
+    }
   output_split_file_values (ds, &c);
   case_destroy (&c);
 
   group = casereader_create_filter_weight (group, dataset_dict (ds),
                                            NULL, NULL);
 
-  casereader_split (group, &pass1, &pass2);
-  if (dsc->max_moment <= MOMENT_MEAN)
-    casereader_destroy (pass2);
+  pass1 = group;
+  pass2 = dsc->max_moment <= MOMENT_MEAN ? NULL : casereader_clone (pass1);
 
   for (i = 0; i < dsc->var_cnt; i++)
     {
@@ -758,7 +760,10 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
         }
     }
   if (!casereader_destroy (pass1))
-    return;
+    {
+      casereader_destroy (pass2);
+      return;
+    }
 
   /* Second pass for higher-order moments. */
   if (dsc->max_moment > MOMENT_MEAN)

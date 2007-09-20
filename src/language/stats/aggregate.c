@@ -291,7 +291,10 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
       struct ccase c;
 
       if (!casereader_peek (group, 0, &c))
-        continue;
+        {
+          casereader_destroy (group);
+          continue;
+        }
       initialize_aggregate_info (&agr, &c);
       case_destroy (&c);
 
