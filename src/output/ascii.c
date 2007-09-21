@@ -120,6 +120,7 @@ struct ascii_driver_ext
     /* Internal state. */
     char *file_name;            /* Output file name. */
     FILE *file;                 /* Output file. */
+    bool reported_error;        /* Reported file open error? */
     int page_number;		/* Current page number. */
     struct line *lines;         /* Page content. */
     int line_cap;               /* Number of lines allocated. */
@@ -161,6 +162,7 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
   x->init = NULL;
   x->file_name = pool_strdup (x->pool, "pspp.list");
   x->file = NULL;
+  x->reported_error = false;
   x->page_number = 0;
   x->lines = NULL;
   x->line_cap = 0;
@@ -449,16 +451,25 @@ ascii_open_page (struct outp_driver *this)
   if (x->file == NULL)
     {
       x->file = fn_open (x->file_name, x->append ? "a" : "w");
-      if (x->file == NULL)
+      if (x->file != NULL)
         {
-          error (0, errno, _("ascii: opening output file \"%s\""),
-                 x->file_name);
-          return;
+          pool_attach_file (x->pool, x->file);
+          if (x->init != NULL)
+            fputs (x->init, x->file);
         }
-      pool_attach_file (x->pool, x->file);
-
-      if (x->init != NULL)
-        fputs (x->init, x->file);
+      else
+        {
+          /* Report the error to the user and complete
+             initialization.  If we do not finish initialization,
+             then calls to other driver functions will segfault
+             later.  It would be better to simply drop the driver
+             entirely, but we do not have a convenient mechanism
+             for this (yet). */
+          if (!x->reported_error)
+            error (0, errno, _("ascii: opening output file \"%s\""),
+                   x->file_name);
+          x->reported_error = true;
+        }
     }
 
   x->page_number++;

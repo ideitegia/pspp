@@ -91,7 +91,6 @@ html_open_driver (struct outp_driver *this, struct substring options)
   return true;
 
  error:
-  free (x->chart_file_name);
   this->class->close_driver (this);
   return false;
 }

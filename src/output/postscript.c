@@ -230,18 +230,23 @@ static bool
 ps_close_driver (struct outp_driver *this)
 {
   struct ps_driver_ext *x = this->ext;
-  bool ok;
+  bool ok = true;
   size_t i;
 
-  fprintf (x->file,
-	   "%%%%Trailer\n"
-           "%%%%Pages: %d\n"
-           "%%%%EOF\n",
-           x->page_number);
+  if (x->file != NULL)
+    {
+      fprintf (x->file,
+               "%%%%Trailer\n"
+               "%%%%Pages: %d\n"
+               "%%%%EOF\n",
+               x->page_number);
 
-  ok = fn_close (x->file_name, x->file) == 0;
-  if (!ok)
-    error (0, errno, _("closing PostScript output file \"%s\""), x->file_name);
+      ok = fn_close (x->file_name, x->file) == 0;
+      if (!ok)
+        error (0, errno, _("closing PostScript output file \"%s\""),
+               x->file_name);
+    }
+
   free (x->file_name);
   for (i = 0; i < OUTP_FONT_CNT; i++)
     free_font (x->fonts[i]);
