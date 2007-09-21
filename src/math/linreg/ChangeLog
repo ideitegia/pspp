@@ -1,3 +1,8 @@
+2007-09-21  Jason Stover  <jhs@wonko.gcsu.edu>
+
+	* linreg.c (pspp_linreg_cache_free): Partial fix of memory leak,
+	bug 21056.
+
 2007-08-11  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg.h (enum): Dropped ambiguous PSPP_LINREG_SVD in favor of

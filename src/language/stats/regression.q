@@ -1199,8 +1199,6 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	      lopts.get_indep_mean_std[i] = 1;
 	    }
 	  models[k] = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
-	  models[k]->indep_means = gsl_vector_alloc (X->m->size2);
-	  models[k]->indep_std = gsl_vector_alloc (X->m->size2);
 	  models[k]->depvar = dep_var;
 	  /*
 	     For large data sets, use QR decomposition.

@@ -189,6 +189,7 @@ pspp_linreg_cache_free (void *m)
 	{
 	  pspp_coeff_free (c->coeff[i]);
 	}
+      free (c->coeff);
       free (c);
     }
   return true;
