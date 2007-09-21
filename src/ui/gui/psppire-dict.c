@@ -42,14 +42,19 @@ static void dictionary_tree_model_init (GtkTreeModelIface *iface);
 /* --- variables --- */
 static GObjectClass     *parent_class = NULL;
 
-enum  {VARIABLE_CHANGED,
-       VARIABLE_RESIZED,
-       VARIABLE_INSERTED,
-       VARIABLE_DELETED,
-       WEIGHT_CHANGED,
-       FILTER_CHANGED,
-       SPLIT_CHANGED,
-       n_SIGNALS};
+enum  {
+  BACKEND_CHANGED,
+
+  VARIABLE_CHANGED,
+  VARIABLE_RESIZED,
+  VARIABLE_INSERTED,
+  VARIABLE_DELETED,
+
+  WEIGHT_CHANGED,
+  FILTER_CHANGED,
+  SPLIT_CHANGED,
+  n_SIGNALS
+};
 
 static guint signals [n_SIGNALS];
 
@@ -105,6 +110,17 @@ psppire_dict_class_init (PsppireDictClass *class)
   parent_class = g_type_class_peek_parent (class);
 
   object_class->finalize = psppire_dict_finalize;
+
+  signals [BACKEND_CHANGED] =
+    g_signal_new ("backend-changed",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__VOID,
+		  G_TYPE_NONE,
+		  0);
+
 
   signals [VARIABLE_CHANGED] =
     g_signal_new ("variable_changed",
@@ -289,6 +305,7 @@ void
 psppire_dict_replace_dictionary (PsppireDict *dict, struct dictionary *d)
 {
   struct variable *var =  dict_get_weight (d);
+
   dict->dict = d;
 
   weight_changed_callback (d, var ? var_get_dict_index (var) : -1, dict);
@@ -299,6 +316,8 @@ psppire_dict_replace_dictionary (PsppireDict *dict, struct dictionary *d)
   split_changed_callback (d, dict);
 
   dict_set_callbacks (dict->dict, &gui_callbacks, dict);
+
+  g_signal_emit (dict, signals [BACKEND_CHANGED], 0);
 }
 
 

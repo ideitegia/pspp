@@ -61,6 +61,7 @@ static gboolean psppire_var_store_set_string (GSheetModel *model,
 					  const gchar *text, glong row, glong column);
 
 static glong psppire_var_store_get_row_count (const GSheetModel * model);
+static glong psppire_var_store_get_column_count (const GSheetModel * model);
 
 static gchar *text_for_column (const struct variable *pv, gint c, GError **err);
 
@@ -223,10 +224,12 @@ psppire_var_store_get_font_desc (const GSheetModel *model,
 
 
 
+
 static void
 psppire_var_store_sheet_model_init (GSheetModelIface *iface)
 {
   iface->get_row_count = psppire_var_store_get_row_count;
+  iface->get_column_count = psppire_var_store_get_column_count;
   iface->free_strings = TRUE;
   iface->get_string = psppire_var_store_get_string;
   iface->set_string = psppire_var_store_set_string;
@@ -288,7 +291,13 @@ var_insert_callback (GtkWidget *w, glong row, gpointer data)
   g_sheet_model_rows_inserted (model, row, 1);
 }
 
+static void
+refresh (PsppireDict  *d, gpointer data)
+{
+  PsppireVarStore *vs = data;
 
+  g_sheet_model_range_changed (G_SHEET_MODEL (vs), -1, -1, -1, -1);
+}
 
 /**
  * psppire_var_store_replace_set_dictionary:
@@ -311,9 +320,11 @@ psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict)
   g_signal_connect (dict, "variable-deleted", G_CALLBACK (var_delete_callback),
 		   var_store);
 
-  g_signal_connect (dict, "variable-inserted", G_CALLBACK (var_insert_callback),
-		   var_store);
+  g_signal_connect (dict, "variable-inserted",
+		    G_CALLBACK (var_insert_callback), var_store);
 
+  g_signal_connect (dict, "backend-changed", G_CALLBACK (refresh),
+		    var_store);
 
   /* The entire model has changed */
   g_sheet_model_range_changed (G_SHEET_MODEL (var_store), -1, -1, -1, -1);
@@ -663,6 +674,13 @@ psppire_var_store_get_row_count (const GSheetModel * model)
 
   return rows ;
 }
+
+static glong
+psppire_var_store_get_column_count (const GSheetModel * model)
+{
+  return n_COLS ;
+}
+
 
 /* Row related funcs */
 

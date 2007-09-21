@@ -1,3 +1,14 @@
+2007-09-27  John Darrington <john@darrington.wattle.id.au>
+
+	Addressing bug #20821:
+	
+	* psppire-dict.c: Added a BACKEND_CHANGED signal to indicate when 
+	a PsppireDict's struct dictionary has been replaced.
+
+	* psppire-var-store.c: Added the appropriate method for 
+	get_column_count. Added a signal handler for dict:BACKEND_CHANGED, 
+	which calls the g_sheet_model_range_changed for the entire sheet.
+	
 2007-09-18  Ben Pfaff  <blp@gnu.org>
 
 	* helper.c (create_casereader_from_data_store): New function.

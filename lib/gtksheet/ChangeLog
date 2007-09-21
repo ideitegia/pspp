@@ -1,3 +1,8 @@
+21 Septempber 2007 John Darrington <john@darrington.wattle.id.au>
+
+	* gtksheet.c (range_update_callback): Scroll to cell 0,0 if the
+	current position is outside the model's range.
+
 24 July 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* gtksheet.c gtksheet.h: Removed the `clip' feature, which IMO 

@@ -1320,6 +1320,15 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
   range.rowi = rowi;
   range.coli = coli;
 
+  if ( MAX_VISIBLE_ROW (sheet) >
+       g_sheet_model_get_row_count (sheet->model)
+       ||
+       MAX_VISIBLE_COLUMN (sheet) >
+       g_sheet_model_get_column_count (sheet->model))
+    {
+      gtk_sheet_move_query (sheet, 0, 0);
+    }
+
   if ( ( row0 < 0 && col0 < 0 ) || ( rowi < 0 && coli < 0 ) )
     {
       gint i;
