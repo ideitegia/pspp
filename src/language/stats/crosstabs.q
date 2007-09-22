@@ -361,7 +361,7 @@ crs_custom_tables (struct lexer *lexer, struct dataset *ds, struct cmd_crosstabs
 	goto done;
       if (xalloc_oversized (nx, by_nvar[n_by]))
         {
-          msg (SE, _("Too many crosstabulation variables or dimensions."));
+          msg (SE, _("Too many cross-tabulation variables or dimensions."));
           goto done;
         }
       nx *= by_nvar[n_by];

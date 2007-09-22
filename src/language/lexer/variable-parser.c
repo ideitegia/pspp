@@ -191,7 +191,7 @@ add_variable (struct variable ***v, size_t *nv, size_t *mv,
            && var_get_width (add) != var_get_width ((*v)[0]))
     msg (SE, _("%s and %s are string variables with different widths.  "
                "All variables in this variable list must have the "
-               "same width.  %s will be omttied from the list."),
+               "same width.  %s will be omitted from the list."),
          var_get_name ((*v)[0]), add_name, add_name);
   else if ((pv_opts & PV_NO_DUPLICATE) && included[idx])
     msg (SE, _("Variable %s appears twice in variable list."), add_name);

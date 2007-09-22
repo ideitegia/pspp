@@ -231,8 +231,8 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 
 	  if (already_encountered & 4)
 	    {
-	      msg (SE, _("KEEP subcommand may be given at most once.  It may not"
-		   "be given in conjunction with the DROP subcommand."));
+	      msg (SE, _("KEEP subcommand may be given at most once.  It may "
+                   "not be given in conjunction with the DROP subcommand."));
 	      goto done;
 	    }
 	  already_encountered |= 4;
