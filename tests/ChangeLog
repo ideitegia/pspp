@@ -1,3 +1,7 @@
+2007-09-21  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/unwritable-dir.sh: New test for bug #21117.
+
 2007-09-19  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/input-crash.sh: Add regression test for bug #21108.

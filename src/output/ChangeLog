@@ -1,3 +1,20 @@
+2007-09-21  Ben Pfaff  <blp@gnu.org>
+
+	* ascii.c (struct ascii_driver_ext): New member reported_error.
+	(ascii_open_driver): Initialize reported_error.
+	(ascii_open_page): Initialize the rest of the ascii driver data
+	even if we fail to open the output file.  Fixes bug #21117.
+
+	* chart.c (chart_create): Initialize lp member.  Fixes crash if
+	chart initialization fails.
+
+	* html.c (html_open_driver): Don't free chart_file_name in error
+	case, since html_close_driver will do that.  Fixes crash if file
+	open fails.
+
+	* postscript.c (ps_close_driver): Don't try to write to file if
+	it's null.  Fixes crash if file open fails.
+
 2007-09-08  John Darrington <john@darrington.wattle.id.au>	
 
 	* postscript.c html.c: Remove #include "getline.h" to concurr with 
