@@ -968,6 +968,8 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   subcommand_save (ds, cmd.sbc_save, models);
   free (v_variables);
   free (models);
+  free_regression (&cmd);
+
   return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
 
