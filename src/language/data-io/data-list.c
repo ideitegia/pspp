@@ -249,6 +249,12 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   if (dls->type == -1)
     dls->type = DLS_FIXED;
 
+  if (dls->type != DLS_FIXED && dls->end != NULL)
+    {
+      msg (SE, _("The END keyword may be used only with DATA LIST FIXED."));
+      goto error;
+    }
+
   if (table == -1)
     table = dls->type != DLS_FREE;
 

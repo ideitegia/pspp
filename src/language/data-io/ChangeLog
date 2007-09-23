@@ -4,6 +4,8 @@
 
 	* data-list.c (data_list_trns_proc): Properly set retval when END
 	subcommand is in use.
+	(cmd_data_list): Don't allow END subcommand to be used with DATA
+	LIST FREE or LIST.
 
 2007-09-12  Ben Pfaff  <blp@gnu.org>
 

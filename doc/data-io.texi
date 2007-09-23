@@ -339,7 +339,6 @@ DATA LIST FREE
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
         [FILE='file-name']
-        [END=end_var]
         [SKIP=record_cnt]
         /var_spec@dots{}
 
@@ -369,7 +368,7 @@ of quoting is allowed.
 The NOTABLE and TABLE subcommands are as in @cmd{DATA LIST FIXED} above.
 NOTABLE is the default.
 
-The FILE, END, and SKIP subcommands are as in @cmd{DATA LIST FIXED} above.
+The FILE and SKIP subcommands are as in @cmd{DATA LIST FIXED} above.
 
 The variables to be parsed are given as a single list of variable names.
 This list must be introduced by a single slash (@samp{/}).  The set of
@@ -392,7 +391,6 @@ DATA LIST LIST
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
         [FILE='file-name']
-        [END=end_var]
         [SKIP=record_count]
         /var_spec@dots{}
 
