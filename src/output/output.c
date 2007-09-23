@@ -15,19 +15,24 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "output.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
+
 #include <ctype.h>
-#include <libpspp/alloc.h>
+#include <errno.h>
+#include <langinfo.h>
+#include <locale.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <data/file-name.h>
-#include "htmlP.h"
-#include "intprops.h"
-#include <libpspp/misc.h>
 #include <data/settings.h>
+#include <libpspp/alloc.h>
+#include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <output/htmlP.h>
+#include <output/output.h>
+
 #include "error.h"
+#include "intprops.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -803,275 +808,274 @@ outp_match_keyword (const char *s, const struct outp_option *tab, int *subcat)
   return -1;
 }
 
-/* Encapsulate two characters in a single int. */
-#define TWO_CHARS(A, B)				\
-	((A) + ((B)<<8))
-
-/* Determines the size of a dimensional measurement and returns the
-   size in units of 1/72000".  Units if not specified explicitly are
-   inches for values under 50, millimeters otherwise.  Returns 0,
-   stores NULL to *TAIL on error; otherwise returns dimension, stores
-   address of next */
-int
-outp_evaluate_dimension (char *dimen, char **tail)
+/* Parses UNIT as a dimensional unit.  Returns the multiplicative
+   factor needed to change a quantity measured in that unit into
+   1/72000" units.  If UNIT is empty, it is treated as
+   millimeters.  If the unit is unrecognized, returns 0. */
+static double
+parse_unit (const char *unit)
 {
-  char *s = dimen;
-  char *ptail;
-  double value;
-
-  value = strtod (s, &ptail);
-  if (ptail == s)
-    goto lossage;
-  if (*ptail == '-')
+  struct unit
     {
-      double b, c;
-      s = &ptail[1];
-      b = strtod (s, &ptail);
-      if (b <= 0.0 || ptail == s)
-	goto lossage;
-      if (*ptail != '/')
-	goto lossage;
-      s = &ptail[1];
-      c = strtod (s, &ptail);
-      if (c <= 0.0 || ptail == s)
-	goto lossage;
-      s = ptail;
-      if (c == 0.0)
-	goto lossage;
-      if (value > 0)
-	value += b / c;
-      else
-	value -= b / c;
-    }
-  else if (*ptail == '/')
-    {
-      double b;
-      s = &ptail[1];
-      b = strtod (s, &ptail);
-      if (b <= 0.0 || ptail == s)
-	goto lossage;
-      s = ptail;
-      value /= b;
-    }
-  else
-    s = ptail;
-  if (*s == 0 || isspace ((unsigned char) *s))
-    {
-      if (value < 50.0)
-	value *= 72000;
-      else
-	value *= 72000 / 25.4;
-    }
-  else
-    {
+      char name[3];
       double factor;
+    };
 
-      /* Standard TeX units are supported. */
-      if (*s == '"')
-	factor = 72000, s++;
-      else
-	switch (TWO_CHARS (s[0], s[1]))
-	  {
-	  case TWO_CHARS ('p', 't'):
-	    factor = 72000 / 72.27;
-	    break;
-	  case TWO_CHARS ('p', 'c'):
-	    factor = 72000 / 72.27 * 12.0;
-	    break;
-	  case TWO_CHARS ('i', 'n'):
-	    factor = 72000;
-	    break;
-	  case TWO_CHARS ('b', 'p'):
-	    factor = 72000 / 72.0;
-	    break;
-	  case TWO_CHARS ('c', 'm'):
-	    factor = 72000 / 2.54;
-	    break;
-	  case TWO_CHARS ('m', 'm'):
-	    factor = 72000 / 25.4;
-	    break;
-	  case TWO_CHARS ('d', 'd'):
-	    factor = 72000 / 72.27 * 1.0700086;
-	    break;
-	  case TWO_CHARS ('c', 'c'):
-	    factor = 72000 / 72.27 * 12.840104;
-	    break;
-	  case TWO_CHARS ('s', 'p'):
-	    factor = 72000 / 72.27 / 65536.0;
-	    break;
-	  default:
-	    error (0, 0,
-                   _("unit \"%s\" is unknown in dimension \"%s\""), s, dimen);
-	    *tail = NULL;
-	    return 0;
-	  }
-      ptail += 2;
-      value *= factor;
-    }
-  if (value <= 0.0)
-    goto lossage;
-  if (tail)
-    *tail = ptail;
-  return value + 0.5;
+  static const struct unit units[] =
+    {
+      {"pt", 72000 / 72},
+      {"pc", 72000 / 72 * 12.0},
+      {"in", 72000},
+      {"cm", 72000 / 2.54},
+      {"mm", 72000 / 25.4},
+      {"", 72000 / 25.4},
+    };
 
-lossage:
-  *tail = NULL;
-  error (0, 0, _("bad dimension \"%s\""), dimen);
+  const struct unit *p;
+
+  unit += strspn (unit, CC_SPACES);
+  for (p = units; p < units + sizeof units / sizeof *units; p++)
+    if (!strcasecmp (unit, p->name))
+      return p->factor;
+  return 0.0;
+}
+
+/* Determines the size of a dimensional measurement and returns
+   the size in units of 1/72000".  Units are assumed to be
+   millimeters unless otherwise specified.  Returns 0 on
+   error. */
+int
+outp_evaluate_dimension (const char *dimen)
+{
+  double raw, factor;
+  char *tail;
+
+  /* Number. */
+  raw = strtod (dimen, &tail);
+  if (raw <= 0.0)
+    goto syntax_error;
+
+  /* Unit. */
+  factor = parse_unit (tail);
+  if (factor == 0.0)
+    goto syntax_error;
+
+  return raw * factor;
+
+syntax_error:
+  error (0, 0, _("`%s' is not a valid length."), dimen);
   return 0;
 }
 
 /* Stores the dimensions in 1/72000" units of paper identified by
-   SIZE, which is of form `HORZ x VERT' or `HORZ by VERT' where each
-   of HORZ and VERT are dimensions, into *H and *V.  Return true on
-   success. */
+   SIZE, which is of form `HORZ x VERT [UNIT]' where HORZ and
+   VERT are numbers and UNIT is an optional unit of measurement,
+   into *H and *V.  Return true on success. */
 static bool
-internal_get_paper_size (char *size, int *h, int *v)
+parse_paper_size (const char *size, int *h, int *v)
 {
+  double raw_h, raw_v, factor;
   char *tail;
 
-  while (isspace ((unsigned char) *size))
-    size++;
-  *h = outp_evaluate_dimension (size, &tail);
-  if (tail == NULL)
+  /* Width. */
+  raw_h = strtod (size, &tail);
+  if (raw_h <= 0.0)
     return false;
-  while (isspace ((unsigned char) *tail))
-    tail++;
-  if (*tail == 'x')
-    tail++;
-  else if (*tail == 'b' && tail[1] == 'y')
-    tail += 2;
-  else
-    {
-      error (0, 0, _("`x' expected in paper size `%s'"), size);
-      return false;
-    }
-  *v = outp_evaluate_dimension (tail, &tail);
-  if (tail == NULL)
-    return 0;
-  while (isspace ((unsigned char) *tail))
-    tail++;
-  if (*tail)
-    {
-      error (0, 0, _("trailing garbage `%s' on paper size `%s'"), tail, size);
-      return false;
-    }
 
+  /* Delimiter. */
+  tail += strspn (tail, CC_SPACES "x,");
+
+  /* Length. */
+  raw_v = strtod (tail, &tail);
+  if (raw_v <= 0.0)
+    return false;
+
+  /* Unit. */
+  factor = parse_unit (tail);
+  if (factor == 0.0)
+    return false;
+
+  *h = raw_h * factor + .5;
+  *v = raw_v * factor + .5;
   return true;
 }
 
-/* Stores the dimensions, in 1/72000" units, of paper identified by
-   SIZE into *H and *V.  SIZE may be a pair of dimensions of form `H x
-   V', or it may be a case-insensitive paper identifier, which is
-   looked up in the `papersize' configuration file.  Returns true
-   on success.  May modify SIZE. */
-/* Don't read further unless you've got a strong stomach. */
-bool
-outp_get_paper_size (char *size, int *h, int *v)
+static bool
+get_standard_paper_size (struct substring name, int *h, int *v)
 {
-  struct paper_size
+  static const char *sizes[][2] =
     {
-      char *name;
-      int use;
-      int h, v;
+      {"a0", "841 x 1189 mm"},
+      {"a1", "594 x 841 mm"},
+      {"a2", "420 x 594 mm"},
+      {"a3", "297 x 420 mm"},
+      {"a4", "210 x 297 mm"},
+      {"a5", "148 x 210 mm"},
+      {"b5", "176 x 250 mm"},
+      {"a6", "105 x 148 mm"},
+      {"a7", "74 x 105 mm"},
+      {"a8", "52 x 74 mm"},
+      {"a9", "37 x 52 mm"},
+      {"a10", "26 x 37 mm"},
+      {"b0", "1000 x 1414 mm"},
+      {"b1", "707 x 1000 mm"},
+      {"b2", "500 x 707 mm"},
+      {"b3", "353 x 500 mm"},
+      {"b4", "250 x 353 mm"},
+      {"letter", "612 x 792 pt"},
+      {"legal", "612 x 1008 pt"},
+      {"executive", "522 x 756 pt"},
+      {"note", "612 x 792 pt"},
+      {"11x17", "792 x 1224 pt"},
+      {"tabloid", "792 x 1224 pt"},
+      {"statement", "396 x 612 pt"},
+      {"halfletter", "396 x 612 pt"},
+      {"halfexecutive", "378 x 522 pt"},
+      {"folio", "612 x 936 pt"},
+      {"quarto", "610 x 780 pt"},
+      {"ledger", "1224 x 792 pt"},
+      {"archA", "648 x 864 pt"},
+      {"archB", "864 x 1296 pt"},
+      {"archC", "1296 x 1728 pt"},
+      {"archD", "1728 x 2592 pt"},
+      {"archE", "2592 x 3456 pt"},
+      {"flsa", "612 x 936 pt"},
+      {"flse", "612 x 936 pt"},
+      {"csheet", "1224 x 1584 pt"},
+      {"dsheet", "1584 x 2448 pt"},
+      {"esheet", "2448 x 3168 pt"},
     };
 
-  FILE *f;
-  char *pprsz_fn;
+  size_t i;
 
-  struct string line;
+  for (i = 0; i < sizeof sizes / sizeof *sizes; i++)
+    if (ss_equals_case (ss_cstr (sizes[i][0]), name))
+      {
+        bool ok = parse_paper_size (sizes[i][1], h, v);
+        assert (ok);
+        return ok;
+      }
+  error (0, 0, _("unknown paper type `%.*s'"),
+         (int) ss_length (name), ss_data (name));
+  return false;
+}
+
+/* Reads file FILE_NAME to find a paper size.  Stores the
+   dimensions, in 1/72000" units, into *H and *V.  Returns true
+   on success, false on failure. */
+static bool
+read_paper_conf (const char *file_name, int *h, int *v)
+{
+  struct string line = DS_EMPTY_INITIALIZER;
   int line_number = 0;
+  FILE *file;
 
-  bool free_it = false;
-  bool result = false;
-  char *ep;
-
-  while (isspace ((unsigned char) *size))
-    size++;
-  if (isdigit ((unsigned char) *size))
-    return internal_get_paper_size (size, h, v);
-  ep = size;
-  while (*ep)
-    ep++;
-  while (isspace ((unsigned char) *ep) && ep >= size)
-    ep--;
-  if (ep == size)
+  file = fopen (file_name, "r");
+  if (file == NULL)
     {
-      error (0, 0, _("paper size name cannot be empty"));
-      return 0;
-    }
-
-  ep++;
-  if (*ep)
-    *ep = 0;
-
-  pprsz_fn = fn_search_path (fn_getenv_default ("STAT_OUTPUT_PAPERSIZE_FILE",
-						"papersize"),
-			     fn_getenv_default ("STAT_OUTPUT_INIT_PATH",
-						config_path));
-
-  ds_init_empty (&line);
-
-  if (pprsz_fn == NULL)
-    {
-      error (0, 0, _("cannot find `papersize' configuration file"));
-      goto exit;
-    }
-
-  f = fopen (pprsz_fn, "r");
-  if (!f)
-    {
-      error (0, errno, _("error opening \"%s\""), pprsz_fn);
-      goto exit;
+      error (0, errno, _("error opening \"%s\""), file_name);
+      return false;
     }
 
   for (;;)
     {
-      struct substring p, name;
+      struct substring name;
 
-      if (!ds_read_config_line (&line, &line_number, f))
+      if (!ds_read_config_line (&line, &line_number, file))
 	{
-	  if (ferror (f))
-	    error (0, errno, _("error reading \"%s\""), pprsz_fn);
+	  if (ferror (file))
+	    error (0, errno, _("error reading \"%s\""), file_name);
 	  break;
 	}
 
-      p = ds_ss (&line);
-      ss_ltrim (&p, ss_cstr (CC_SPACES));
-      if (!ss_match_char (&p, '"') || !ss_get_until (&p, '"', &name))
-	goto lex_error;
-      if (ss_compare (name, ss_cstr (size)))
-	continue;
-
-      ss_ltrim (&p, ss_cstr (CC_SPACES));
-      if (ss_match_char (&p, '='))
-	{
-          if (free_it)
-            free (size);
-          ss_trim (&p, ss_cstr (CC_SPACES));
-          size = ss_xstrdup (p);
-	  free_it = true;
-	  continue;
-	}
-      size = ss_data (p);
-      break;
-
-    lex_error:
-      error_at_line (0, 0, pprsz_fn, line_number,
-                     _("syntax error in paper size definition"));
+      name = ds_ss (&line);
+      ss_trim (&name, ss_cstr (CC_SPACES));
+      if (!ss_is_empty (name))
+        {
+          bool ok = get_standard_paper_size (name, h, v);
+          fclose (file);
+          ds_destroy (&line);
+          return ok;
+        }
     }
 
-  /* We found the one we want! */
-  result = internal_get_paper_size (size, h, v);
-
-exit:
+  fclose (file);
   ds_destroy (&line);
-  if (free_it)
-    free (size);
+  error (0, 0, _("paper size file \"%s\" does not state a paper size"),
+         file_name);
+  return false;
+}
 
-  if (!result)
-    error (0, 0, _("error reading paper size definition file"));
+/* The user didn't specify a paper size, so let's choose a
+   default based on his environment.  Stores the
+   dimensions, in 1/72000" units, into *H and *V.  Returns true
+   on success, false on failure. */
+static bool
+get_default_paper_size (int *h, int *v)
+{
+  /* libpaper in Debian (and other distributions?) allows the
+     paper size to be specified in $PAPERSIZE or in a file
+     specified in $PAPERCONF. */
+  if (getenv ("PAPERSIZE") != NULL)
+    return get_standard_paper_size (ss_cstr (getenv ("PAPERSIZE")), h, v);
+  if (getenv ("PAPERCONF") != NULL)
+    return read_paper_conf (getenv ("PAPERCONF"), h, v);
 
-  return result;
+#if HAVE_LC_PAPER
+  /* LC_PAPER is a non-standard glibc extension. */
+  *h = (int) nl_langinfo(_NL_PAPER_WIDTH) * (72000 / 25.4);
+  *v = (int) nl_langinfo(_NL_PAPER_HEIGHT) * (72000 / 25.4);
+  if (*h > 0 && *v > 0)
+     return true;
+#endif
+
+  /* libpaper defaults to /etc/papersize. */
+  if (fn_exists ("/etc/papersize"))
+    return read_paper_conf ("/etc/papersize", h, v);
+
+  /* Can't find a default. */
+  return false;
+}
+
+/* Stores the dimensions, in 1/72000" units, of paper identified
+   by SIZE into *H and *V.  SIZE can be the name of a kind of
+   paper ("a4", "letter", ...) or a pair of dimensions
+   ("210x297", "8.5x11in", ...).  Returns true on success, false
+   on failure.  On failure, *H and *V are set for A4 paper. */
+bool
+outp_get_paper_size (const char *size, int *h, int *v)
+{
+  struct substring s;
+  bool ok;
+
+  s = ss_cstr (size);
+  ss_trim (&s, ss_cstr (CC_SPACES));
+
+  if (ss_is_empty (s))
+    {
+      /* Treat empty string as default paper size. */
+      ok = get_default_paper_size (h, v);
+    }
+  else if (isdigit (ss_first (s)))
+    {
+      /* Treat string that starts with digit as explicit size. */
+      ok = parse_paper_size (size, h, v);
+      if (!ok)
+        error (0, 0, _("syntax error in paper size `%s'"), size);
+    }
+  else
+    {
+      /* Check against standard paper sizes. */
+      ok = get_standard_paper_size (s, h, v);
+    }
+
+  /* Default to A4 on error. */
+  if (!ok)
+    {
+      *h = 210 * (72000 / 25.4);
+      *v = 297 * (72000 / 25.4);
+    }
+  return ok;
 }
 
 /* If D is NULL, returns the first enabled driver if any, NULL if

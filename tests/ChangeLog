@@ -1,3 +1,9 @@
+2007-09-22  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21128.  Reviewed by John Darrington.
+
+	* output/paper-size.sh: New test.
+
 2007-09-21  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/unwritable-dir.sh: New test for bug #21117.

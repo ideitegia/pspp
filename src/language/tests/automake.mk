@@ -8,6 +8,7 @@ language_tests_sources = \
 	src/language/tests/datasheet-test.c \
 	src/language/tests/float-format.c \
 	src/language/tests/moments-test.c \
+	src/language/tests/paper-size.c \
 	src/language/tests/pool-test.c \
 	$(language_tests_built_sources)
 

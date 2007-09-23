@@ -1,3 +1,23 @@
+2007-09-22  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21128.  Reviewed by John Darrington.
+
+	* output.c (TWO_CHARS macro): Removed.
+	(outp_evaluate_dimension): Changed interface, rewritten.  Updated
+	all callers.
+	(internal_get_paper_size): Removed.
+	(parse_unit): New function.
+	(parse_paper_size): New function.
+	(outp_get_paper_size): Tweaked interface, rewritten.
+	(get_standard_paper_size): New function.
+	(read_paper_conf): New function.
+	(get_default_paper_size): New function.
+
+	* postscript.c (ps_open_driver): Use system default paper size as
+	default paper, instead of hard-coding US letter.
+	(handle_option): Allow outp_evaluate_dimension to supply error
+	message instead of generating it here.
+
 2007-09-21  Ben Pfaff  <blp@gnu.org>
 
 	* ascii.c (struct ascii_driver_ext): New member reported_error.

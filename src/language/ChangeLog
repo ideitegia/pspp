@@ -1,9 +1,14 @@
+2007-09-22  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21128.  Reviewed by John Darrington.
+
+	* command.def: Add DEBUG PAPER SIZE command.
+
 2007-09-05  John Darrington <john@darrington.wattle.id.au>
 
 	* command.c (do_parse_command): Translate CMD_FAILURE into
 	CMD_CASCADING_FAILURE, if the ERRMODE_STOP is set on the syntax
 	source. 
-	
 	
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 

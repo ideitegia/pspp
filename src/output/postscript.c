@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -138,8 +138,7 @@ ps_open_driver (struct outp_driver *this, struct substring options)
   x->draw_headers = true;
   x->page_number = 0;
   x->portrait = true;
-  x->paper_width = PSUS * 17 / 2;
-  x->paper_length = PSUS * 11;
+  outp_get_paper_size ("", &x->paper_width, &x->paper_length);
   x->left_margin = PSUS / 2;
   x->right_margin = PSUS / 2;
   x->top_margin = PSUS / 2;
@@ -380,14 +379,10 @@ handle_option (struct outp_driver *this, const char *key,
       break;
     case dimension_arg:
       {
-	int dimension = outp_evaluate_dimension (value, NULL);
+	int dimension = outp_evaluate_dimension (value);
 
 	if (dimension <= 0)
-	  {
-	    error (0, 0, _("value for `%s' must be a dimension of positive "
-                           "length (i.e., `1in')"), key);
-	    break;
-	  }
+          break;
 	switch (subcat)
 	  {
 	  case 0:

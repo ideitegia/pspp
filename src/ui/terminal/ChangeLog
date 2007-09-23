@@ -1,3 +1,10 @@
+2007-09-22  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21128.  Reviewed by John Darrington.
+
+	* main.c (i18_init): Set up LC_PAPER locale, if available.  Don't
+	bother with LC_MONETARY locale, since we don't use it anywhere.
+
 2007-08-26  Ben Pfaff  <blp@gnu.org>
 
 	Bug #17238.  Thanks to John Darrington for review.

@@ -208,7 +208,6 @@ The following sections further elaborate the contents of the
 * Macro definitions::           Environment variables local to @file{devices}.
 * Device definitions::          Output device descriptions.
 * Dimensions::                  Lengths, widths, sizes, @enddots{}
-* papersize::                   Letter, legal, A4, envelope, @enddots{}
 * Distinguishing line types::   Details on @file{devices} parsing.
 * Tokenizing lines::            Dividing @file{devices} lines into tokens.
 @end menu
@@ -444,36 +443,6 @@ Numbers 50 or greater are assumed to be in millimeters.
 @end itemize
 @end itemize
 
-@node papersize
-@subsection Paper sizes
-
-Output drivers usually deal with some sort of hardcopy media.  This
-media is called @dfn{paper} by the drivers, though in reality it could
-be a transparency or film or thinly veiled sarcasm.  To make it easier
-for you to deal with paper, PSPP allows you to have (of course!) a
-configuration file that gives symbolic names, like ``letter'' or
-``legal'' or ``a4'', to paper sizes, rather than forcing you to use
-cryptic numbers like ``8-1/2 x 11'' or ``210 by 297''.  Surprisingly
-enough, this configuration file is named @file{papersize}.
-@xref{Configuration files}.
-
-When PSPP tries to connect a symbolic paper name to a paper size, it
-reads and parses each non-comment line in the file, in order.  The first
-field on each line must be a symbolic paper name in double quotes.
-Paper names may not contain double quotes.  Paper names are not
-case-sensitive: @samp{legal} and @samp{Legal} are equivalent.
-
-If a match is found for the paper name, the rest of the line is parsed.
-If it is found to be a pair of dimensions (@pxref{Dimensions}) separated
-by either @samp{x} or @samp{by}, then those are taken to be the paper
-size, in order of width followed by length.  There @emph{must} be at
-least one space on each side of @samp{x} or @samp{by}.
-
-Otherwise the line must be of the form
-@samp{"@var{paper-1}"="@var{paper-2}"}.  In this case the target of the
-search becomes paper name @var{paper-2} and the search through the file
-continues.
-
 @node Distinguishing line types
 @subsection How lines are divided into types
 
@@ -594,9 +563,16 @@ title and subtitle are printed at the top of each page.  Default:
 
 @item paper-size=@var{paper-size}
 
-Paper size, either as a symbolic name (i.e., @code{letter} or @code{a4})
-or specific measurements (i.e., @code{8-1/2x11} or @code{"210 x 297"}.
-@xref{papersize, , Paper sizes}.  Default: @code{letter}.
+Paper size.  You may specify a name (e.g.@: @code{a4}, @code{letter})
+or measurements (e.g.@: @code{210x297}, @code{8.5x11in}).
+
+The default paper size is taken from the @env{PAPERSIZE} environment
+variable or the file indicated by the @env{PAPERCONF} environment
+variable, if either variable is set.  If not, and your system supports
+the @code{LC_PAPER} locale category, then the default paper size is
+taken from the locale.  Otherwise, if @file{/etc/papersize} exists,
+the default paper size is read from it.  As a last resort, A4 paper is
+assumed.
 
 @item orientation=@var{orientation}
 
@@ -898,15 +874,10 @@ support was compiled into PSPP.
 The basename used to search for the driver definition file.
 @xref{Output devices}.  @xref{File locations}.  Default: @code{devices}.
 
-@item STAT_OUTPUT_PAPERSIZE_FILE
-
-The basename used to search for the papersize file.  @xref{papersize}.
-@xref{File locations}.  Default: @code{papersize}.
-
 @item STAT_OUTPUT_INIT_PATH
 
-The path used to search for the driver definition file and the papersize
-file.  @xref{File locations}.  Default: the standard configuration path.
+The path used to search for the driver definition file.
+@xref{File locations}.  Default: the standard configuration path.
 
 @item TMPDIR
 

@@ -1,3 +1,11 @@
+2007-09-22  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21128.  Reviewed by John Darrington.
+
+	* automake.mk: Add new file.
+
+	* paper-size.c: New file.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new file.

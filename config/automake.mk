@@ -2,8 +2,7 @@
 
 
 dist_pkgsysconf_DATA = \
-	config/devices \
-	config/papersize
+	config/devices
 
 psfontsdir = $(pkgsysconfdir)/psfonts
 dist_psfonts_DATA = \

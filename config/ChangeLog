@@ -1,3 +1,11 @@
+2007-09-22  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21128.  Reviewed by John Darrington.
+
+	* papersize: Removed.
+
+	* automake.mk (dist_pkgsysconf_DATA): Remove papersize.
+
 2007-08-26  Ben Pfaff  <blp@gnu.org>
 
 	* devices: Change raw-ascii from screen to listing device (because

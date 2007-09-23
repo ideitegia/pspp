@@ -1,4 +1,4 @@
-dnl Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+dnl Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -205,4 +205,21 @@ t}
 fi
 AC_SUBST(EXEEXT_FOR_BUILD)])
 
-dnl aclocal.m4 ends here
+dnl Check for LC_PAPER, _NL_PAPER_WIDTH, _NL_PAPER_HEIGHT.
+AC_DEFUN([PSPP_LC_PAPER],
+[AC_CACHE_CHECK(for LC_PAPER, pspp_cv_lc_paper, [
+    pspp_cv_lc_paper=no
+    AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM(
+        [#include <locale.h>
+#include <langinfo.h>
+],
+        [(void) LC_PAPER; (void) _NL_PAPER_WIDTH; (void) _NL_PAPER_HEIGHT])],
+      [pspp_cv_lc_paper=yes])
+  ])
+  if test "$pspp_cv_lc_paper" = yes; then
+    AC_DEFINE(HAVE_LC_PAPER, 1, [Define if you have LC_PAPER.])
+  fi
+])
+
+dnl acinclude.m4 ends here

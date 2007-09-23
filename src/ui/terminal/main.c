@@ -150,7 +150,9 @@ i18n_init (void)
 #if HAVE_LC_MESSAGES
   setlocale (LC_MESSAGES, "");
 #endif
-  setlocale (LC_MONETARY, "");
+#if HAVE_LC_PAPER
+  setlocale (LC_PAPER, "");
+#endif
   bindtextdomain (PACKAGE, locale_dir);
   textdomain (PACKAGE);
 #endif /* ENABLE_NLS */

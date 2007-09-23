@@ -1,3 +1,11 @@
+2007-09-22  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21128.  Reviewed by John Darrington.
+
+	* acinclude.m4 (PSPP_LC_PAPER): New macro.
+
+	* configure.ac: Use PSPP_LC_PAPER.
+
 2007-08-05  Ben Pfaff  <blp@gnu.org>
 
 	Bug #16189.  Reviewed by Jason Stover.
