@@ -10,6 +10,7 @@ dist_TESTS = \
 	tests/command/count.sh \
 	tests/command/datasheet.sh \
 	tests/command/data-list.sh \
+	tests/command/do-if.sh \
 	tests/command/do-repeat.sh \
 	tests/command/erase.sh \
 	tests/command/examine.sh \
@@ -20,6 +21,7 @@ dist_TESTS = \
 	tests/command/filter.sh \
 	tests/command/flip.sh \
 	tests/command/import-export.sh \
+	tests/command/input-program.sh \
 	tests/command/insert.sh \
 	tests/command/lag.sh \
 	tests/command/list.sh \

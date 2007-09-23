@@ -1,3 +1,10 @@
+2007-09-23  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21111.  Reviewed by John Darrington.
+
+	* data-list.c (data_list_trns_proc): Properly set retval when END
+	subcommand is in use.
+
 2007-09-12  Ben Pfaff  <blp@gnu.org>
 
 	* get.c (get_translate_case): Change input case parameter from

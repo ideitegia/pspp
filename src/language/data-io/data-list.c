@@ -807,10 +807,10 @@ data_list_trns_proc (void *dls_, struct ccase *c, casenumber case_num UNUSED)
   if (dls->end != NULL)
     {
       double *end = &case_data_rw (c, dls->end)->f;
-      if (retval == TRNS_DROP_CASE)
+      if (retval == TRNS_END_FILE)
         {
           *end = 1.0;
-          retval = TRNS_END_FILE;
+          retval = TRNS_CONTINUE;
         }
       else
         *end = 0.0;

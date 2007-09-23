@@ -1,3 +1,11 @@
+2007-09-23  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21111.  Reviewed by John Darrington.
+	
+	* command/input-program.sh: New test.
+
+	* command/do-if.sh: New tests.
+
 2007-09-22  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21128.  Reviewed by John Darrington.

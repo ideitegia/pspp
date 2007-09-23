@@ -541,6 +541,8 @@ structure.
 
 All this is very confusing.  A few examples should help to clarify.
 
+@c If you change this example, change the regression test1 in
+@c tests/command/input-program.sh to match.
 @example
 INPUT PROGRAM.
         DATA LIST NOTABLE FILE='a.data'/X 1-10.
@@ -553,6 +555,8 @@ The example above reads variable X from file @file{a.data} and variable
 Y from file @file{b.data}.  If one file is shorter than the other then
 the extra data in the longer file is ignored.
 
+@c If you change this example, change the regression test2 in
+@c tests/command/input-program.sh to match.
 @example
 INPUT PROGRAM.
         NUMERIC #A #B.
@@ -576,6 +580,8 @@ The above example reads variable X from @file{a.data} and variable Y from
 field is set to the system-missing value alongside the present value for
 the remaining length of the longer file.
 
+@c If you change this example, change the regression test3 in
+@c tests/command/input-program.sh to match.
 @example
 INPUT PROGRAM.
         NUMERIC #A #B.
@@ -600,6 +606,8 @@ LIST.
 The above example reads data from file @file{a.data}, then from
 @file{b.data}, and concatenates them into a single active file.
 
+@c If you change this example, change the regression test4 in
+@c tests/command/input-program.sh to match.
 @example
 INPUT PROGRAM.
         NUMERIC #EOF.
@@ -627,6 +635,8 @@ LIST.
 The above example does the same thing as the previous example, in a
 different way.
 
+@c If you change this example, make similar changes to the regression
+@c test5 in tests/command/input-program.sh.
 @example
 INPUT PROGRAM.
         LOOP #I=1 TO 50.

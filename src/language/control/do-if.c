@@ -82,8 +82,7 @@ struct do_if_trns
 static const struct ctl_class do_if_class;
 
 static int parse_clause (struct lexer *, struct do_if_trns *, struct dataset *ds);
-static void add_clause (struct do_if_trns *,
-                        struct expression *condition, int target_index);
+static void add_clause (struct do_if_trns *, struct expression *condition);
 static void add_else (struct do_if_trns *);
 
 static bool has_else (struct do_if_trns *);
@@ -165,7 +164,7 @@ static void
 add_else (struct do_if_trns *do_if)
 {
   assert (!has_else (do_if));
-  add_clause (do_if, NULL, next_transformation (do_if->ds));
+  add_clause (do_if, NULL);
 }
 
 /* Returns true if DO_IF does not yet have an ELSE clause.
@@ -203,16 +202,16 @@ parse_clause (struct lexer *lexer, struct do_if_trns *do_if, struct dataset *ds)
   if (condition == NULL)
     return CMD_CASCADING_FAILURE;
 
-  add_clause (do_if, condition, next_transformation (ds));
+  add_clause (do_if, condition);
 
   return lex_end_of_command (lexer);
 }
 
 /* Adds a clause to DO_IF that tests for the given CONDITION and,
-   if true, jumps to TARGET_INDEX. */
+   if true, jumps to the set of transformations produced by
+   following commands. */
 static void
-add_clause (struct do_if_trns *do_if,
-            struct expression *condition, int target_index)
+add_clause (struct do_if_trns *do_if, struct expression *condition)
 {
   struct clause *clause;
 
@@ -223,7 +222,7 @@ add_clause (struct do_if_trns *do_if,
                               do_if->clause_cnt + 1, sizeof *do_if->clauses);
   clause = &do_if->clauses[do_if->clause_cnt++];
   clause->condition = condition;
-  clause->target_index = target_index;
+  clause->target_index = next_transformation (do_if->ds);
 }
 
 /* Finalizes DO IF by clearing the control stack, thus ensuring

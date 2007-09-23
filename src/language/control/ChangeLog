@@ -1,3 +1,12 @@
+2007-09-23  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21111.  Reviewed by John Darrington.
+
+	* do-if.c: Fix ELSE and ELSE IF clauses.
+	(add_clause): Drop TARGET_INDEX argument and figure out the target
+	of the jump on our own.  The caller couldn't compensate for the
+	inserted BREAK transformation.  Updated all callers.
+
 Fri Feb  2 22:41:43 WST 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* repeat.c (parse_numbers): Fixed bug parseing ranges vs. lists.
