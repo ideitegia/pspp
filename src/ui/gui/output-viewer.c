@@ -46,6 +46,8 @@ cancel_urgency (GtkWindow *window,  gpointer data)
 
 static struct output_viewer *the_output_viewer = NULL;
 
+int viewer_length = -1;
+int viewer_width = -1;
 
 /* Callback for the "delete" action (clicking the x on the top right
    hand corner of the window) */
@@ -62,6 +64,46 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 
   return FALSE;
 }
+
+
+/* Sets width and length according to the new size
+   of the output window */
+static void
+on_textview_resize (GtkWidget     *widget,
+		    GtkAllocation *allocation,
+		    gpointer       user_data)
+{
+  PangoContext * context ;
+  PangoLayout *layout ;
+  PangoRectangle logical;
+  GtkStyle *style;
+  gint right_margin, left_margin;
+  GtkTextView *text_view = GTK_TEXT_VIEW (widget);
+
+  context = gtk_widget_create_pango_context (widget);
+  layout = pango_layout_new (context);
+
+  style = gtk_widget_get_style (widget);
+
+  pango_layout_set_font_description (layout, style->font_desc);
+
+  /* Find the width of one character.  We can use any character, because
+     the textview has a monospaced font */
+  pango_layout_set_text (layout, "M", 1);
+
+  pango_layout_get_extents (layout,  NULL, &logical);
+
+  left_margin = gtk_text_view_get_left_margin (text_view);
+  right_margin = gtk_text_view_get_right_margin (text_view);
+
+  viewer_length = allocation->height / PANGO_PIXELS (logical.height);
+  viewer_width = (allocation->width - right_margin - left_margin)
+    / PANGO_PIXELS (logical.width);
+
+  g_object_unref (G_OBJECT (layout));
+  g_object_unref (G_OBJECT (context));
+}
+
 
 
 /*
@@ -100,6 +142,9 @@ new_output_viewer (void)
     gtk_widget_modify_font (ov->textview, font_desc);
     pango_font_description_free (font_desc);
   }
+
+  g_signal_connect (ov->textview, "size-allocate",
+		    G_CALLBACK (on_textview_resize), NULL);
 
   ov->fp = NULL;
 

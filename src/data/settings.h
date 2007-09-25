@@ -20,7 +20,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-void settings_init (void);
+void settings_init (int *, int *);
 void settings_done (void);
 
 void force_long_view (void);

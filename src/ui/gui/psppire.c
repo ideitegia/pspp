@@ -85,7 +85,7 @@ initialize (void)
   fmt_init ();
   fn_init ();
   outp_init ();
-  settings_init ();
+  settings_init (&viewer_width, &viewer_length);
   fh_init ();
   the_source_stream =
     create_source_stream (

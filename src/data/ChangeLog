@@ -1,3 +1,9 @@
+2007-09-19  John Darrington <john@darrington.wattle.id.au>
+	
+	* settings.c settings.h: Changed viewport's length and width to be 
+	owned by the user interface which uses the data library.  This allows
+	better abstraction, and makes dynamically adjustable dimensions easier.
+	
 2007-09-18  Ben Pfaff  <blp@gnu.org>
 
 	* procedure.c (proc_extract_active_file_data): New function.

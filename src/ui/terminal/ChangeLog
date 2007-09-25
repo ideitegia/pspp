@@ -1,3 +1,9 @@
+2007-09-19  John Darrington <john@darrington.wattle.id.au>
+
+	* main.c: Moved get_termcap_viewport from src/data/settings.c 
+	Added a handler for SIGWINCH to call this function.  Adjusted
+	init_settings to suit new interface. 
+
 2007-09-22  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21128.  Reviewed by John Darrington.

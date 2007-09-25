@@ -1,3 +1,14 @@
+2007-09-19  John Darrington <john@darrington.wattle.id.au>
+	
+	* message-dialog.c: Changed the ouput message title to be 
+	appropriate for the severity of the message.
+
+	* output-viewer.c output-viewer.h : Added a callback for the resize 
+	signal of the output viewer, and set the viewport length and
+	width accordingly.
+
+	* psppire.c: Update to new init_settings interface.
+
 2007-09-27  John Darrington <john@darrington.wattle.id.au>
 
 	Addressing bug #20821:

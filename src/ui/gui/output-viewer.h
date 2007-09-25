@@ -23,6 +23,9 @@
 #include "window-manager.h"
 
 
+extern int viewer_length ;
+extern int viewer_width ;
+
 struct output_viewer * new_output_viewer (void);
 
 void reload_viewer (struct output_viewer *);

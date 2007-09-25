@@ -103,29 +103,58 @@ popup_message (const struct msg *m)
     {
     case MSG_ERROR:
       message_type = GTK_MESSAGE_ERROR;
+      switch (m->category)
+	{
+	case MSG_SYNTAX:
+	  msg = _("Script Error");
+	  break;
+
+	case MSG_DATA:
+	  msg = _("Data File Error");
+	  break;
+
+	case MSG_GENERAL:
+	default:
+	  msg = _("PSPP Error");
+	  break;
+	};
       break;
     case MSG_WARNING:
       message_type = GTK_MESSAGE_WARNING;
+      switch (m->category)
+	{
+	case MSG_SYNTAX:
+	  msg = _("Script Warning");
+      break;
+
+	case MSG_DATA:
+	  msg = _("Data File Warning");
+	  break;
+
+	case MSG_GENERAL:
+    default:
+	  msg = _("PSPP Warning");
+      break;
+    };
       break;
     case MSG_NOTE:
     default:
       message_type = GTK_MESSAGE_INFO;
-      break;
-    };
-
   switch (m->category)
     {
     case MSG_SYNTAX:
-      msg = _("Script Error");
+	  msg = _("Script Information");
       break;
 
     case MSG_DATA:
-      msg = _("Data File Error");
+	  msg = _("Data File Information");
       break;
 
     case MSG_GENERAL:
     default:
-      msg = _("PSPP Error");
+	  msg = _("PSPP Information");
+	  break;
+	};
       break;
     };
 

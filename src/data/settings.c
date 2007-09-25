@@ -29,8 +29,8 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static int viewlength = 24;
-static int viewwidth = 79;
+static int *viewlength = NULL;
+static int *viewwidth = NULL;
 static bool long_view = false;
 
 static bool safer_mode = false;
@@ -74,13 +74,12 @@ static int *algorithm = &global_algorithm;
 
 static int syntax = ENHANCED;
 
-static void init_viewport (void);
-static void get_termcap_viewport (void);
+static void init_viewport (int *, int *);
 
 void
-settings_init (void)
+settings_init (int *width, int *length)
 {
-  init_viewport ();
+  init_viewport (width, length);
   i18n_init ();
 }
 
@@ -94,14 +93,14 @@ settings_done (void)
 int
 get_viewlength (void)
 {
-  return viewlength;
+  return *viewlength;
 }
 
 /* Sets the view length. */
 void
 set_viewlength (int viewlength_)
 {
-  viewlength = viewlength_;
+  *viewlength = viewlength_;
 }
 
 /* Set view width to a very long value, and prevent it from ever
@@ -110,42 +109,34 @@ void
 force_long_view (void)
 {
   long_view = true;
-  viewwidth = 9999;
 }
 
 /* Screen width. */
 int
 get_viewwidth(void)
 {
-  return viewwidth;
+  if (long_view)
+    return 9999;
+
+  return *viewwidth;
 }
 
 /* Sets the screen width. */
 void
 set_viewwidth (int viewwidth_)
 {
-  viewwidth = viewwidth_;
+  *viewwidth = viewwidth_;
 }
 
 static void
-init_viewport (void)
+init_viewport (int  *width, int *length)
 {
+  viewwidth = width;
+  viewlength = length;
+
   if (long_view)
     return;
 
-  viewwidth = viewlength = -1;
-
-  get_termcap_viewport ();
-
-  if (viewwidth < 0 && getenv ("COLUMNS") != NULL)
-    viewwidth = atoi (getenv ("COLUMNS"));
-  if (viewlength < 0 && getenv ("LINES") != NULL)
-    viewlength = atoi (getenv ("LINES"));
-
-  if (viewwidth < 0)
-    viewwidth = 79;
-  if (viewlength < 0)
-    viewlength = 24;
 }
 
 /* Whether PSPP can erase and overwrite files. */
@@ -498,38 +489,3 @@ set_syntax (enum behavior_mode mode)
 {
   syntax = mode;
 }
-
-/* Code that interfaces to ncurses.  This must be at the very end
-   of this file because curses.h redefines "bool" on some systems
-   (e.g. OpenBSD), causing declaration mismatches with functions
-   that have parameters or return values of type "bool". */
-#if HAVE_LIBNCURSES
-#include <curses.h>
-#include <term.h>
-
-static void
-get_termcap_viewport (void)
-{
-  char term_buffer[16384];
-  if (getenv ("TERM") == NULL)
-    return;
-  else if (tgetent (term_buffer, getenv ("TERM")) <= 0)
-    {
-      error (0,0, _("could not access definition for terminal `%s'"),
-             getenv ("TERM"));
-      return;
-    }
-
-  if (tgetnum ("li") > 0)
-    viewlength = tgetnum ("li");
-
-  if (tgetnum ("co") > 1)
-    viewwidth = tgetnum ("co") - 1;
-}
-#else /* !HAVE_LIBNCURSES */
-static void
-get_termcap_viewport (void)
-{
-  /* Nothing to do. */
-}
-#endif /* !HAVE_LIBNCURSES */

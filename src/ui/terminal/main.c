@@ -78,6 +78,11 @@ static struct dataset * the_dataset = NULL;
 static struct lexer *the_lexer;
 static struct source_stream *the_source_stream ;
 
+static int view_length = -1;
+static int view_width = -1;
+
+static void get_termcap_viewport (int);
+
 
 /* Program entry point. */
 int
@@ -87,6 +92,7 @@ main (int argc, char **argv)
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
   signal (SIGINT, interrupt_handler);
+  signal (SIGWINCH, get_termcap_viewport);
 
   set_program_name (argv[0]);
 
@@ -104,7 +110,8 @@ main (int argc, char **argv)
 			  );
   prompt_init ();
   readln_initialize ();
-  settings_init ();
+  get_termcap_viewport (0);
+  settings_init (&view_width, &view_length);
   random_init ();
 
   the_dataset = create_dataset ();
@@ -224,3 +231,71 @@ terminate (bool success)
     }
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
+
+
+
+#include "error.h"
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
+static void
+set_fallback_viewport (void)
+{
+  if (view_width < 0 && getenv ("COLUMNS") != NULL)
+    view_width = atoi (getenv ("COLUMNS"));
+
+  if (view_length < 0 && getenv ("LINES") != NULL)
+    view_length = atoi (getenv ("LINES"));
+
+  if (view_width < 0)
+    view_width = 79;
+
+  if (view_length < 0)
+    view_length = 24;
+}
+
+/* Code that interfaces to ncurses.  This must be at the very end
+   of this file because curses.h redefines "bool" on some systems
+   (e.g. OpenBSD), causing declaration mismatches with functions
+   that have parameters or return values of type "bool". */
+#if HAVE_LIBNCURSES
+#include <curses.h>
+#include <term.h>
+
+static void
+get_termcap_viewport (int sig UNUSED)
+{
+  char term_buffer [16384];
+
+  if (getenv ("TERM") == NULL)
+    goto fallback;
+
+  else if (tgetent (term_buffer, getenv ("TERM")) <= 0)
+    {
+      error (0,0, _("could not access definition for terminal `%s'"),
+             getenv ("TERM"));
+      goto fallback;
+    }
+
+  if (tgetnum ("li") > 0)
+    view_length = tgetnum ("li");
+
+  if (tgetnum ("co") > 1)
+    view_width = tgetnum ("co") - 1;
+
+ fallback:
+  set_fallback_viewport ();
+}
+
+#else /* !HAVE_LIBNCURSES */
+
+static void
+get_termcap_viewport (int sig UNUSED)
+{
+  set_fallback_viewport ();
+}
+
+#endif /* !HAVE_LIBNCURSES */
+
+
