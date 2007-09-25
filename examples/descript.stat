@@ -1,16 +1,9 @@
 title 'Demonstrate DESCRIPTIVES procedure'.
 
-remark EOF
-                        Sample syntax file for PSPP.
-                (This comment will appear in the output.)
-EOF
-
-/*      run this syntax file with the command:
-/*                 pspp example.stat
-/*
-/*      Output is written to the file "pspp.list".
-/*
-/*      (This comment will not appear in the output.)
+* Sample syntax file for PSPP.
+* Run this syntax file with the command:
+*                 pspp example.stat
+* Output is written to the file "pspp.list".
 
 data list / v0 to v2 1-9.
 begin data.
