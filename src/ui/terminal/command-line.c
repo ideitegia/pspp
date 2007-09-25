@@ -171,7 +171,6 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
 	  puts (legal);
 	  return false;
         case 'T':
-          force_long_view ();
           set_testing_mode (true);
           break;
 	case '?':

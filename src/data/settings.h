@@ -23,7 +23,6 @@
 void settings_init (int *, int *);
 void settings_done (void);
 
-void force_long_view (void);
 int get_viewlength (void);
 void set_viewlength (int);
 

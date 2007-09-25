@@ -1,8 +1,14 @@
 2007-09-24  Ben Pfaff  <blp@gnu.org>
 
+	Patch #6210.  Reviewed by John Darrington.
 	* main.c (set_fallback_viewport): Make code easier to understand.
 	(get_termcap_viewport): Ditto.
-	Reviewed by John Darrington.
+
+	* command-line.c (parse_command_line): Don't call force_long_view,
+	as that function is no longer necessary.
+
+	* msg-ui.c (handle_msg): Only wrap message output to the message
+	file to the width of the terminal if the message file is a tty.
 
 2007-09-19  John Darrington <john@darrington.wattle.id.au>
 

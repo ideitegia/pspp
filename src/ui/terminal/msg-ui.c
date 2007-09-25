@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -175,7 +176,8 @@ handle_msg (const struct msg *m)
   ds_put_cstr (&string, m->text);
 
   if (msg_file != stdout || get_error_routing_to_terminal ())
-    dump_message (ds_cstr (&string), get_viewwidth (), 8,
+    dump_message (ds_cstr (&string),
+                  isatty (fileno (msg_file)) ? get_viewwidth () : INT_MAX, 8,
                   write_stream, msg_file);
 
   dump_message (ds_cstr (&string), 78, 0, write_journal, NULL);

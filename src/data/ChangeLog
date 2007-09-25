@@ -1,3 +1,12 @@
+2007-09-24  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6210.  Reviewed by John Darrington.
+	* settings.c: Drop "long view", which is not needed any longer.
+	(static var long_view): Removed.
+	(force_long_view): Removed.
+	(get_viewwidth): Removed.
+	(init_viewport): Removed long_view reference.
+
 2007-09-19  John Darrington <john@darrington.wattle.id.au>
 	
 	* settings.c settings.h: Changed viewport's length and width to be 

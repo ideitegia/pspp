@@ -31,7 +31,6 @@
 
 static int *viewlength = NULL;
 static int *viewwidth = NULL;
-static bool long_view = false;
 
 static bool safer_mode = false;
 
@@ -103,21 +102,10 @@ set_viewlength (int viewlength_)
   *viewlength = viewlength_;
 }
 
-/* Set view width to a very long value, and prevent it from ever
-   changing. */
-void
-force_long_view (void)
-{
-  long_view = true;
-}
-
 /* Screen width. */
 int
 get_viewwidth(void)
 {
-  if (long_view)
-    return 9999;
-
   return *viewwidth;
 }
 
@@ -133,10 +121,6 @@ init_viewport (int  *width, int *length)
 {
   viewwidth = width;
   viewlength = length;
-
-  if (long_view)
-    return;
-
 }
 
 /* Whether PSPP can erase and overwrite files. */
