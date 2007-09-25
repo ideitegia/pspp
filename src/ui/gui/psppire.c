@@ -111,8 +111,8 @@ initialize (void)
 
   outp_configure_driver_line (
     ss_cstr ("gui:ascii:screen:squeeze=on headers=off top-margin=0 "
-             "bottom-margin=0 paginate=off length=50 "
-	     "width=" OUTPUT_LINE_WIDTH_str " emphasis=none "
+             "bottom-margin=0 paginate=off length=auto width=auto "
+	     "emphasis=none "
              "output-file=\"" OUTPUT_FILE_NAME "\" append=yes"));
 
   unlink (OUTPUT_FILE_NAME);

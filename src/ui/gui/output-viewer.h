@@ -35,10 +35,5 @@ void reload_the_viewer (void);
 
 #define OUTPUT_FILE_NAME "psppire.txt"
 
-/* Make sure these two agree !! */
-#define OUTPUT_LINE_WIDTH 80
-#define OUTPUT_LINE_WIDTH_str "80"
-
-
 
 #endif

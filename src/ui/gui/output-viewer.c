@@ -46,8 +46,8 @@ cancel_urgency (GtkWindow *window,  gpointer data)
 
 static struct output_viewer *the_output_viewer = NULL;
 
-int viewer_length = -1;
-int viewer_width = -1;
+int viewer_length = 16;
+int viewer_width = 59;
 
 /* Callback for the "delete" action (clicking the x on the top right
    hand corner of the window) */
@@ -196,7 +196,7 @@ void
 reload_viewer (struct output_viewer *ov)
 {
   GtkTextIter end_iter;
-  char line[OUTPUT_LINE_WIDTH];
+  static char *line = NULL;
   GtkTextMark *mark ;
   gboolean chars_inserted = FALSE;
 
@@ -211,12 +211,14 @@ reload_viewer (struct output_viewer *ov)
 	}
     }
 
+  line = xrealloc (line, sizeof (char) * (viewer_width + 1));
+
   gtk_text_buffer_get_end_iter (ov->buffer, &end_iter);
 
   mark = gtk_text_buffer_create_mark (ov->buffer, NULL, &end_iter, TRUE);
 
   /* Read in the next lot of text */
-  while (fgets (line, OUTPUT_LINE_WIDTH, ov->fp) != NULL)
+  while (fgets (line, viewer_width + 1, ov->fp) != NULL)
     {
       chars_inserted = TRUE;
       gtk_text_buffer_insert (ov->buffer, &end_iter, line, -1);
