@@ -233,26 +233,31 @@ terminate (bool success)
 }
 
 
-
 #include "error.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+/* If view_width or view_length has not yet been set to a
+   reasonable value, takes a guess. */
 static void
 set_fallback_viewport (void)
 {
-  if (view_width < 0 && getenv ("COLUMNS") != NULL)
-    view_width = atoi (getenv ("COLUMNS"));
+  if (view_width <= 0)
+    {
+      if (getenv ("COLUMNS") != NULL)
+        view_width = atoi (getenv ("COLUMNS"));
+      if (view_width <= 0)
+        view_width = 79;
+    }
 
-  if (view_length < 0 && getenv ("LINES") != NULL)
-    view_length = atoi (getenv ("LINES"));
-
-  if (view_width < 0)
-    view_width = 79;
-
-  if (view_length < 0)
-    view_length = 24;
+  if (view_length <= 0)
+    {
+      if (getenv ("LINES") != NULL)
+        view_length = atoi (getenv ("LINES"));
+      if (view_length <= 0)
+        view_length = 24;
+    }
 }
 
 /* Code that interfaces to ncurses.  This must be at the very end
@@ -268,23 +273,20 @@ get_termcap_viewport (int sig UNUSED)
 {
   char term_buffer [16384];
 
-  if (getenv ("TERM") == NULL)
-    goto fallback;
-
-  else if (tgetent (term_buffer, getenv ("TERM")) <= 0)
+  if (getenv ("TERM") != NULL)
     {
-      error (0,0, _("could not access definition for terminal `%s'"),
-             getenv ("TERM"));
-      goto fallback;
+      if (tgetent (term_buffer, getenv ("TERM")) > 0)
+        {
+          if (tgetnum ("li") > 0)
+            view_length = tgetnum ("li");
+          if (tgetnum ("co") > 1)
+            view_width = tgetnum ("co") - 1;
+        }
+      else
+        error (0, 0, _("could not access definition for terminal `%s'"),
+               getenv ("TERM"));
     }
 
-  if (tgetnum ("li") > 0)
-    view_length = tgetnum ("li");
-
-  if (tgetnum ("co") > 1)
-    view_width = tgetnum ("co") - 1;
-
- fallback:
   set_fallback_viewport ();
 }
 
