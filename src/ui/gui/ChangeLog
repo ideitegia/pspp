@@ -1,3 +1,10 @@
+2007-09-24  Ben Pfaff  <blp@gnu.org>
+
+	* message-dialog.c (popup_message): Refer to files that contain
+	commands as "syntax" files, not "script" files, for better user
+	familiarity.
+	Patch #6210.  Reviewed by John Darrington.
+
 2007-09-19  John Darrington <john@darrington.wattle.id.au>
 	
 	* message-dialog.c: Changed the ouput message title to be 

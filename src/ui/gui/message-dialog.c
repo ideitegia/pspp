@@ -106,7 +106,7 @@ popup_message (const struct msg *m)
       switch (m->category)
 	{
 	case MSG_SYNTAX:
-	  msg = _("Script Error");
+	  msg = _("Syntax Error");
 	  break;
 
 	case MSG_DATA:
@@ -124,7 +124,7 @@ popup_message (const struct msg *m)
       switch (m->category)
 	{
 	case MSG_SYNTAX:
-	  msg = _("Script Warning");
+	  msg = _("Syntax Warning");
       break;
 
 	case MSG_DATA:
@@ -143,7 +143,7 @@ popup_message (const struct msg *m)
   switch (m->category)
     {
     case MSG_SYNTAX:
-	  msg = _("Script Information");
+	  msg = _("Syntax Information");
       break;
 
     case MSG_DATA:
