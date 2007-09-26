@@ -28,6 +28,8 @@
 #include <glade/glade.h>
 #include <ctype.h>
 
+#include "xalloc.h"
+
 struct output_viewer
 {
   struct editor_window parent;
