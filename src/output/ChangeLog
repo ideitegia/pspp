@@ -1,3 +1,17 @@
+2007-09-25  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6210.  Reviewed by John Darrington.
+
+	* ascii.c: Implement ability to resize output device parameters to
+	fit terminal window size as it changes.
+	(struct ascii_driver_ext): New members `auto_width',
+	`auto_length'.
+	(ascii_open_driver): Initialize new members, call
+	update_page_size.
+	(update_page_size): New function to update device size.
+	(handle_option): Support new "auto" setting for length, width.
+	(ascii_open_page): Call update_page_size.
+
 2007-09-22  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21128.  Reviewed by John Darrington.

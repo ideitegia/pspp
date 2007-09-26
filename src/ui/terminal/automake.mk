@@ -9,7 +9,9 @@ src_ui_terminal_libui_a_SOURCES = \
 	src/ui/terminal/read-line.h \
 	src/ui/terminal/main.c \
 	src/ui/terminal/msg-ui.c \
-	src/ui/terminal/msg-ui.h
+	src/ui/terminal/msg-ui.h \
+	src/ui/terminal/terminal.c \
+	src/ui/terminal/terminal.h	
 
 src_ui_terminal_libui_a_CFLAGS = -DINSTALLDIR=\"$(bindir)\"
 

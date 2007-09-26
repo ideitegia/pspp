@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include <data/file-name.h>
+#include <data/settings.h>
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
@@ -50,8 +51,8 @@
 
    headers=on|off               Put headers at top of page?
    emphasis=bold|underline|none Style to use for emphasis.
-   length=66
-   width=130
+   length=66|auto
+   width=79|auto
    squeeze=off|on               Squeeze multiple newlines into exactly one.
 
    top-margin=2
@@ -110,6 +111,8 @@ struct ascii_driver_ext
     const char *chart_type;     /* Type of charts to output; NULL for none. */
     const char *chart_file_name; /* Name of files used for charts. */
 
+    bool auto_width;            /* Use viewwidth as page width? */
+    bool auto_length;           /* Use viewlength as page width? */
     int page_length;		/* Page length before subtracting margins. */
     int top_margin;		/* Top margin in lines. */
     int bottom_margin;		/* Bottom margin in lines. */
@@ -129,6 +132,7 @@ struct ascii_driver_ext
 
 static void ascii_flush (struct outp_driver *);
 static int get_default_box_char (size_t idx);
+static bool update_page_size (struct outp_driver *, bool issue_error);
 static bool handle_option (struct outp_driver *this, const char *key,
                            const struct string *val);
 
@@ -154,6 +158,8 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
   x->tab_width = 8;
   x->chart_file_name = pool_strdup (x->pool, "pspp-#.png");
   x->chart_type = pool_strdup (x->pool, "png");
+  x->auto_width = false;
+  x->auto_length = false;
   x->page_length = 66;
   x->top_margin = 2;
   x->bottom_margin = 2;
@@ -171,19 +177,8 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
   if (!outp_parse_options (options, handle_option, this))
     goto error;
 
-  this->length = x->page_length - x->top_margin - x->bottom_margin - 1;
-  if (x->headers)
-    this->length -= 3;
-
-  if (this->width < 59 || this->length < 15)
-    {
-      error (0, 0,
-             _("ascii: page excluding margins and headers "
-               "must be at least 59 characters wide by 15 lines long, but as "
-               "configured is only %d characters by %d lines"),
-             this->width, this->length);
-      return false;
-    }
+  if (!update_page_size (this, true))
+    goto error;
 
   for (i = 0; i < LNS_COUNT; i++)
     if (x->box[i] == NULL)
@@ -233,6 +228,43 @@ get_default_box_char (size_t idx)
     }
 }
 
+/* Re-calculates the page width and length based on settings,
+   margins, and, if "auto" is set, the size of the user's
+   terminal window or GUI output window. */
+static bool
+update_page_size (struct outp_driver *this, bool issue_error)
+{
+  struct ascii_driver_ext *x = this->ext;
+  int margins = x->top_margin + x->bottom_margin + 1 + (x->headers ? 3 : 0);
+
+  if (x->auto_width)
+    this->width = get_viewwidth ();
+  if (x->auto_length)
+    x->page_length = get_viewlength ();
+
+  this->length = x->page_length - margins;
+
+  if (this->width < 59 || this->length < 15)
+    {
+      if (issue_error)
+        error (0, 0,
+               _("ascii: page excluding margins and headers "
+                 "must be at least 59 characters wide by 15 lines long, but "
+                 "as configured is only %d characters by %d lines"),
+             this->width, this->length);
+      if (this->width < 59)
+        this->width = 59;
+      if (this->length < 15)
+        {
+          this->length = 15;
+          x->page_length = this->length + margins;
+        }
+      return false;
+    }
+
+  return true;
+}
+
 static bool
 ascii_close_driver (struct outp_driver *this)
 {
@@ -251,7 +283,7 @@ enum
     boolean_arg,
     emphasis_arg,
     nonneg_int_arg,
-    pos_int_arg,
+    page_size_arg,
     string_arg
   };
 
@@ -264,8 +296,8 @@ static const struct outp_option option_tab[] =
 
     {"emphasis", emphasis_arg, 0},
 
-    {"length", pos_int_arg, 0},
-    {"width", pos_int_arg, 1},
+    {"length", page_size_arg, 0},
+    {"width", page_size_arg, 1},
 
     {"top-margin", nonneg_int_arg, 0},
     {"bottom-margin", nonneg_int_arg, 1},
@@ -311,30 +343,51 @@ handle_option (struct outp_driver *this, const char *key,
     case -1:
       error (0, 0, _("ascii: unknown parameter `%s'"), key);
       break;
-    case pos_int_arg:
+    case page_size_arg:
       {
 	char *tail;
 	int arg;
 
-	errno = 0;
-	arg = strtol (value, &tail, 0);
-	if (arg < 1 || errno == ERANGE || *tail)
-	  {
-	    error (0, 0, _("ascii: positive integer required as `%s' value"),
-                   key);
-	    break;
-	  }
-	switch (subcat)
-	  {
-	  case 0:
-	    x->page_length = arg;
-	    break;
-	  case 1:
-	    this->width = arg;
-	    break;
-	  default:
-	    NOT_REACHED ();
-	  }
+        if (ss_equals_case (ds_ss (val), ss_cstr ("auto")))
+          {
+            if (!(this->device & OUTP_DEV_SCREEN))
+              {
+                /* We only let `screen' devices have `auto'
+                   length or width because output to such devices
+                   is flushed before each new command.  Resizing
+                   a device in the middle of output seems like a
+                   bad idea. */
+                error (0, 0, _("ascii: only screen devices may have `auto' "
+                               "length or width"));
+              }
+            else if (subcat == 0)
+              x->auto_length = true;
+            else
+              x->auto_width = true;
+          }
+        else
+          {
+            errno = 0;
+            arg = strtol (value, &tail, 0);
+            if (arg < 1 || errno == ERANGE || *tail)
+              {
+                error (0, 0, _("ascii: positive integer required as "
+                               "`%s' value"),
+                       key);
+                break;
+              }
+            switch (subcat)
+              {
+              case 0:
+                x->page_length = arg;
+                break;
+              case 1:
+                this->width = arg;
+                break;
+              default:
+                NOT_REACHED ();
+              }
+          }
       }
       break;
     case emphasis_arg:
@@ -447,6 +500,8 @@ ascii_open_page (struct outp_driver *this)
 {
   struct ascii_driver_ext *x = this->ext;
   int i;
+
+  update_page_size (this, false);
 
   if (x->file == NULL)
     {

@@ -34,6 +34,7 @@
 #include <language/prompt.h>
 #include <output/journal.h>
 #include <output/manager.h>
+#include <ui/terminal/terminal.h>
 
 #include "xalloc.h"
 
@@ -143,6 +144,7 @@ readln_read (struct string *line, enum prompt_style style)
 #if HAVE_READLINE
   char *string;
 #endif
+  bool eof;
 
   assert (initialised);
 
@@ -159,14 +161,14 @@ readln_read (struct string *line, enum prompt_style style)
                                       : dont_complete);
   string = readline (prompt);
   if (string == NULL)
-    return false;
+    eof = true;
   else
     {
       if (string[0])
         add_history (string);
       ds_assign_cstr (line, string);
       free (string);
-      return true;
+      eof = false;
     }
 #else
   fputs (prompt, stdout);
@@ -174,13 +176,23 @@ readln_read (struct string *line, enum prompt_style style)
   if (ds_read_line (line, stdin))
     {
       ds_chomp (line, '\n');
-      return true;
+      eof = false;
     }
   else
-    return false;
+    eof = true;
 #endif
-}
 
+  /* Check whether the size of the window has changed, so that
+     the output drivers can adjust their settings as needed.  We
+     only do this for the first line of a command, as it's
+     possible that the output drivers are actually in use
+     afterward, and we don't want to confuse them in the middle
+     of output. */
+  if (style == PROMPT_FIRST)
+    terminal_check_size ();
+
+  return !eof;
+}
 
 static void
 readln_close (struct getl_interface *i)

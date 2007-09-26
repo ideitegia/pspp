@@ -681,13 +681,17 @@ requested.  Default: @code{on}.
 
 @item length=@var{line-count}
 
-Physical length of a page, in lines.  Headers and margins are subtracted
-from this value.  Default: @code{66}.
+Physical length of a page.  Headers and margins are subtracted from
+this value.  You may specify the number of lines as a number, or for
+screen output you may specify @code{auto} to track the height of the
+terminal as it changes.  Default: @code{66}.
 
 @item width=@var{character-count}
 
-Physical width of a page, in characters.  Margins are subtracted from
-this value.  Default: @code{130}.
+Physical width of a page.  Margins are subtracted from this value.
+You may specify the width as a number of characters, or for screen
+output you may specify @code{auto} to track the width of the terminal
+as it changes.  Default: @code{79}.
 
 @item top-margin=@var{top-margin-lines}
 

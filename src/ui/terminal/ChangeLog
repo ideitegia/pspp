@@ -1,3 +1,25 @@
+2007-09-25  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6210: implement ability to resize output device parameters
+	to fit terminal window size as it changes.  Reviewed by John
+	Darrington.
+	
+	* automake.mk (src_ui_terminal_libui_a_SOURCES): Add new files.
+
+	* terminal.c: New file.
+
+	* terminal.h: New file.
+
+	* main.c (main): No need to set up SIGWINCH handler any longer.
+	But we do need to call terminal_init.
+	(set_fallback_viewport): Move to terminal.c.
+	[HAVE_LIBNCURSES] (get_termcap_viewport): Ditto.
+	[!HAVE_LIBNCURSES] (get_termcap_viewport): Ditto.
+
+	* read-line.c (readln_read): After the first line of a command,
+	call terminal_check_size to allow it to re-detect the terminal
+	size.
+
 2007-09-24  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6210.  Reviewed by John Darrington.

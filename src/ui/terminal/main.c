@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,14 +16,19 @@
 
 #include <config.h>
 
+#include <locale.h>
 #include <signal.h>
 #include <stdio.h>
-
-#include <ui/debugger.h>
-#include "command-line.h"
-#include "msg-ui.h"
-#include "progname.h"
-#include "read-line.h"
+#include <stdlib.h>
+#if HAVE_FPU_CONTROL_H
+#include <fpu_control.h>
+#endif
+#if HAVE_FENV_H
+#include <fenv.h>
+#endif
+#if HAVE_IEEEFP_H
+#include <ieeefp.h>
+#endif
 
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
@@ -42,27 +47,17 @@
 #include <libpspp/version.h>
 #include <math/random.h>
 #include <output/output.h>
+#include <ui/debugger.h>
+#include <ui/terminal/command-line.h>
+#include <ui/terminal/msg-ui.h>
+#include <ui/terminal/read-line.h>
+#include <ui/terminal/terminal.h>
 
-#if HAVE_FPU_CONTROL_H
-#include <fpu_control.h>
-#endif
-
-#if HAVE_LOCALE_H
-#include <locale.h>
-#endif
-
-#if HAVE_FENV_H
-#include <fenv.h>
-#endif
-
-#if HAVE_IEEEFP_H
-#include <ieeefp.h>
-#endif
+#include "progname.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-#include <stdlib.h>
 
 static void i18n_init (void);
 static void fpu_init (void);
@@ -78,23 +73,18 @@ static struct dataset * the_dataset = NULL;
 static struct lexer *the_lexer;
 static struct source_stream *the_source_stream ;
 
-static int view_length = -1;
-static int view_width = -1;
-
-static void get_termcap_viewport (int);
-
-
 /* Program entry point. */
 int
 main (int argc, char **argv)
 {
+  int *view_width_p, *view_length_p;
+
+  set_program_name (argv[0]);
+
   signal (SIGABRT, bug_handler);
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
   signal (SIGINT, interrupt_handler);
-  signal (SIGWINCH, get_termcap_viewport);
-
-  set_program_name (argv[0]);
 
   i18n_init ();
   fpu_init ();
@@ -110,8 +100,8 @@ main (int argc, char **argv)
 			  );
   prompt_init ();
   readln_initialize ();
-  get_termcap_viewport (0);
-  settings_init (&view_width, &view_length);
+  terminal_init (&view_width_p, &view_length_p);
+  settings_init (view_width_p, view_length_p);
   random_init ();
 
   the_dataset = create_dataset ();
@@ -231,73 +221,3 @@ terminate (bool success)
     }
   exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }
-
-
-#include "error.h"
-
-#include "gettext.h"
-#define _(msgid) gettext (msgid)
-
-/* If view_width or view_length has not yet been set to a
-   reasonable value, takes a guess. */
-static void
-set_fallback_viewport (void)
-{
-  if (view_width <= 0)
-    {
-      if (getenv ("COLUMNS") != NULL)
-        view_width = atoi (getenv ("COLUMNS"));
-      if (view_width <= 0)
-        view_width = 79;
-    }
-
-  if (view_length <= 0)
-    {
-      if (getenv ("LINES") != NULL)
-        view_length = atoi (getenv ("LINES"));
-      if (view_length <= 0)
-        view_length = 24;
-    }
-}
-
-/* Code that interfaces to ncurses.  This must be at the very end
-   of this file because curses.h redefines "bool" on some systems
-   (e.g. OpenBSD), causing declaration mismatches with functions
-   that have parameters or return values of type "bool". */
-#if HAVE_LIBNCURSES
-#include <curses.h>
-#include <term.h>
-
-static void
-get_termcap_viewport (int sig UNUSED)
-{
-  char term_buffer [16384];
-
-  if (getenv ("TERM") != NULL)
-    {
-      if (tgetent (term_buffer, getenv ("TERM")) > 0)
-        {
-          if (tgetnum ("li") > 0)
-            view_length = tgetnum ("li");
-          if (tgetnum ("co") > 1)
-            view_width = tgetnum ("co") - 1;
-        }
-      else
-        error (0, 0, _("could not access definition for terminal `%s'"),
-               getenv ("TERM"));
-    }
-
-  set_fallback_viewport ();
-}
-
-#else /* !HAVE_LIBNCURSES */
-
-static void
-get_termcap_viewport (int sig UNUSED)
-{
-  set_fallback_viewport ();
-}
-
-#endif /* !HAVE_LIBNCURSES */
-
-

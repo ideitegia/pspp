@@ -1,3 +1,9 @@
+2007-09-25  Ben Pfaff  <blp@gnu.org>
+
+	* devices (tty-ascii): Set length and width to "auto", so that
+	they reflect the current size of the terminal window as it
+	changes.
+
 2007-09-22  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21128.  Reviewed by John Darrington.
