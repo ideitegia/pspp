@@ -1,3 +1,8 @@
+2007-09-26  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk (libglade_psppire_la_CFLAGS): Enable VPATH build by
+	using $(top_srcdir) in -I directive.
+
 4/4/2007 John Darrington <john@darrington.wattle.id.au>
 
   * Seperated psppire-buttonbox into psppire-vbuttonbox and psppire-buttonbox

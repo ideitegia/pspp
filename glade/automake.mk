@@ -39,4 +39,4 @@ nodist_large_pixmap_DATA = \
 
 
 libglade_psppire_la_CFLAGS = $(GLADE_UI_CFLAGS) $(GLADE_CFLAGS) \
-	-I src/ui/gui -DDEBUGGING
+	-I $(top_srcdir)/src/ui/gui -DDEBUGGING
