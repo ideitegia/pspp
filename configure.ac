@@ -105,5 +105,6 @@ PSPP_CHECK_PREREQS
 AC_CONFIG_FILES([Makefile gl/Makefile po/Makefile.in])
 
 AC_OUTPUT
+echo "PSPP configured successfully."
 
 dnl configure.ac ends here
