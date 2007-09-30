@@ -3,6 +3,8 @@
 	* configure.ac: Print a message indicating success at the end of
 	the run.
 
+	* INSTALL: Improve instructions.
+
 2007-09-22  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21128.  Reviewed by John Darrington.

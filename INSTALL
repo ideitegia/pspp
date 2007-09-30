@@ -92,17 +92,20 @@ release.
      Running `configure' takes awhile.  While running, it prints some
      messages telling which features it is checking for.
 
-     When `configure' completes, it may print a list of packages that
-     you must install before PSPP.  If it does, you need to install
-     those packages, then re-run this step.  Some prerequisites may be
+     If `configure' completes successfully, it prints the message
+     "PSPP configured successfully." at the end of its run.
+     Otherwise, it may stop with a list of packages that you must
+     install before PSPP.  If it does, you need to install those
+     packages, then re-run this step.  Some prerequisites may be
      omitted by passing a --without-<feature> flag to `configure' (see
      "Optional Features", below).  If you use one of these flags, then
      the feature that it disables will not be available in your PSPP
      installation.
 
      `configure' may also print a list of packages that you should
-     consider installing.  If you install them, additional features
-     will be available in your PSPP installation.
+     consider installing.  If you install them, then re-run
+     `configure', additional features will be available in your PSPP
+     installation.
 
   2. Type `make' to compile the package.
 
