@@ -76,7 +76,7 @@ lazy_casereader_create (size_t value_cnt, casenumber case_cnt,
    a serial number different from SERIAL, or if READER is a lazy
    casereader that was instantiated.
 
-   When this function returns false, it necessarily indicates
+   When this function returns true, it necessarily indicates
    that the lazy casereader was never cloned and never
    destroyed. */
 bool
