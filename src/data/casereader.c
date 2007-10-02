@@ -56,19 +56,30 @@ static void insert_shim (struct casereader *);
 bool
 casereader_read (struct casereader *reader, struct ccase *c)
 {
-  if (reader->case_cnt != 0 && reader->class->read (reader, reader->aux, c))
+  if (reader->case_cnt != 0)
     {
-      assert (case_get_value_cnt (c) >= reader->value_cnt);
+      /* ->read may use casereader_swap to replace itself by
+         another reader and then delegate to that reader by
+         recursively calling casereader_read.  Currently only
+         lazy_casereader does this and, with luck, nothing else
+         ever will.
+
+         To allow this to work, however, we must decrement
+         case_cnt before calling ->read.  If we decremented
+         case_cnt after calling ->read, then this would actually
+         drop two cases from case_cnt instead of one, and we'd
+         lose the last case in the casereader. */
       if (reader->case_cnt != CASENUMBER_MAX)
         reader->case_cnt--;
-      return true;
+      if (reader->class->read (reader, reader->aux, c))
+        {
+          assert (case_get_value_cnt (c) >= reader->value_cnt);
+          return true;
+        }
     }
-  else
-    {
-      reader->case_cnt = 0;
-      case_nullify (c);
-      return false;
-    }
+  reader->case_cnt = 0;
+  case_nullify (c);
+  return false;
 }
 
 /* Destroys READER.

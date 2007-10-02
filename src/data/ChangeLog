@@ -1,3 +1,19 @@
+2007-10-01  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #21192.  Thanks to John Darrington for review.
+
+	* casereader.c (casereader_read): Decrement case_cnt before
+	calling the casereader's "read" member function, so that we
+	interact properly with lazy_casereader.
+
+	* datasheet.c: Add regression test for above bug fix.
+	(clone_datasheet): New function.
+	(lazy_callback): New function.
+	(check_datasheet_casereader): New function.
+	(check_datasheet): Check datasheet contents are reported correctly
+	through an ordinary casereader and a lazy casereader.
+	(clone_model): Use clone_datasheet.
+
 2007-09-24  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6210.  Reviewed by John Darrington.

@@ -24,6 +24,7 @@
 #include <data/casereader-provider.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
+#include <data/lazy-casereader.h>
 #include <data/sparse-cases.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
@@ -1258,6 +1259,93 @@ hash_datasheet (const struct datasheet *ds)
   return hash[0];
 }
 
+/* Clones the structure and contents of ODS into a new datasheet,
+   and returns the new datasheet. */
+static struct datasheet *
+clone_datasheet (const struct datasheet *ods)
+{
+  struct datasheet *ds;
+  struct range_map_node *r;
+
+  ds = xmalloc (sizeof *ds);
+  ds->columns = axis_clone (ods->columns);
+  ds->rows = axis_clone (ods->rows);
+  range_map_init (&ds->sources);
+  for (r = range_map_first (&ods->sources); r != NULL;
+       r = range_map_next (&ods->sources, r))
+    {
+      const struct source_info *osi = source_info_from_range_map (r);
+      struct source_info *si = xmalloc (sizeof *si);
+      si->source = source_clone (osi->source);
+      range_map_insert (&ds->sources, range_map_node_get_start (r),
+                        range_map_node_get_width (r), &si->column_range);
+    }
+  ds->column_min_alloc = ods->column_min_alloc;
+  ds->taint = taint_create ();
+
+  return ds;
+}
+
+/* lazy_casereader callback function to instantiate a casereader
+   from the datasheet. */
+static struct casereader *
+lazy_callback (void *ds_)
+{
+  struct datasheet *ds = ds_;
+  return datasheet_make_reader (ds);
+}
+
+/* Checks that READER contains the ROW_CNT rows and COLUMN_CNT
+   columns of data in ARRAY, reporting any errors via MC. */
+static void
+check_datasheet_casereader (struct mc *mc, struct casereader *reader,
+                            double array[MAX_ROWS][MAX_COLS],
+                            size_t row_cnt, size_t column_cnt)
+{
+  if (casereader_get_case_cnt (reader) != row_cnt)
+    {
+      if (casereader_get_case_cnt (reader) == CASENUMBER_MAX
+          && casereader_count_cases (reader) == row_cnt)
+        mc_error (mc, "datasheet casereader has unknown case count");
+      else
+        mc_error (mc, "casereader row count (%lu) does not match "
+                  "expected (%zu)",
+                  (unsigned long int) casereader_get_case_cnt (reader),
+                  row_cnt);
+    }
+  else if (casereader_get_value_cnt (reader) != column_cnt)
+    mc_error (mc, "casereader column count (%zu) does not match "
+              "expected (%zu)",
+              casereader_get_value_cnt (reader), column_cnt);
+  else
+    {
+      struct ccase c;
+      size_t row;
+
+      for (row = 0; row < row_cnt; row++)
+        {
+          size_t col;
+
+          if (!casereader_read (reader, &c))
+            {
+              mc_error (mc, "casereader_read failed reading row %zu of %zu "
+                        "(%zu columns)", row, row_cnt, column_cnt);
+              return;
+            }
+
+          for (col = 0; col < column_cnt; col++)
+            if (case_num_idx (&c, col) != array[row][col])
+              mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
+                        "%g != %g",
+                        row, col, row_cnt, column_cnt,
+                        case_num_idx (&c, col), array[row][col]);
+        }
+
+      if (casereader_read (reader, &c))
+        mc_error (mc, "casereader has extra cases (expected %zu)", row_cnt);
+    }
+}
+
 /* Checks that datasheet DS contains has ROW_CNT rows, COLUMN_CNT
    columns, and the same contents as ARRAY, reporting any
    mismatches via mc_error.  Then, adds DS to MC as a new state. */
@@ -1266,6 +1354,10 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
                  double array[MAX_ROWS][MAX_COLS],
                  size_t row_cnt, size_t column_cnt)
 {
+  struct datasheet *ds2;
+  struct casereader *reader;
+  unsigned long int serial = 0;
+
   assert (row_cnt < MAX_ROWS);
   assert (column_cnt < MAX_COLS);
 
@@ -1277,6 +1369,7 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
       return;
     }
 
+  /* Check contents of datasheet via datasheet functions. */
   if (row_cnt != datasheet_get_row_cnt (ds))
     mc_error (mc, "row count (%lu) does not match expected (%zu)",
               (unsigned long int) datasheet_get_row_cnt (ds), row_cnt);
@@ -1297,6 +1390,43 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
               mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: %g != %g",
                         row, col, row_cnt, column_cnt, v.f, array[row][col]);
           }
+    }
+
+  /* Check that datasheet contents are correct when read through
+     casereader. */
+  ds2 = clone_datasheet (ds);
+  reader = datasheet_make_reader (ds2);
+  check_datasheet_casereader (mc, reader, array, row_cnt, column_cnt);
+  casereader_destroy (reader);
+
+  /* Check that datasheet contents are correct when read through
+     casereader with lazy_casereader wrapped around it.  This is
+     valuable because otherwise there is no non-GUI code that
+     uses the lazy_casereader. */
+  ds2 = clone_datasheet (ds);
+  reader = lazy_casereader_create (column_cnt, row_cnt,
+                                   lazy_callback, ds2, &serial);
+  check_datasheet_casereader (mc, reader, array, row_cnt, column_cnt);
+  if (lazy_casereader_destroy (reader, serial))
+    {
+      /* Lazy casereader was never instantiated.  This will
+         only happen if there are no rows (because in that case
+         casereader_read never gets called). */
+      datasheet_destroy (ds2);
+      if (row_cnt != 0)
+        mc_error (mc, "lazy casereader not instantiated, but should "
+                  "have been (size %zu,%zu)", row_cnt, column_cnt);
+    }
+  else
+    {
+      /* Lazy casereader was instantiated.  This is the common
+         case, in which some casereader operation
+         (casereader_read in this case) was performed on the
+         lazy casereader. */
+      casereader_destroy (reader);
+      if (row_cnt == 0)
+        mc_error (mc, "lazy casereader instantiated, but should not "
+                  "have been (size %zu,%zu)", row_cnt, column_cnt);
     }
 
   mc_add_state (mc, ds);
@@ -1326,29 +1456,9 @@ extract_data (const struct datasheet *ds, double data[MAX_ROWS][MAX_COLS])
    and the contents of ODATA into DATA. */
 static void
 clone_model (const struct datasheet *ods, double odata[MAX_ROWS][MAX_COLS],
-             struct datasheet **ds_, double data[MAX_ROWS][MAX_COLS])
+             struct datasheet **ds, double data[MAX_ROWS][MAX_COLS])
 {
-  struct datasheet *ds;
-  struct range_map_node *r;
-
-  /* Clone ODS into DS. */
-  ds = *ds_ = xmalloc (sizeof *ds);
-  ds->columns = axis_clone (ods->columns);
-  ds->rows = axis_clone (ods->rows);
-  range_map_init (&ds->sources);
-  for (r = range_map_first (&ods->sources); r != NULL;
-       r = range_map_next (&ods->sources, r))
-    {
-      const struct source_info *osi = source_info_from_range_map (r);
-      struct source_info *si = xmalloc (sizeof *si);
-      si->source = source_clone (osi->source);
-      range_map_insert (&ds->sources, range_map_node_get_start (r),
-                        range_map_node_get_width (r), &si->column_range);
-    }
-  ds->column_min_alloc = ods->column_min_alloc;
-  ds->taint = taint_create ();
-
-  /* Clone ODATA into DATA. */
+  *ds = clone_datasheet (ods);
   memcpy (data, odata, MAX_ROWS * MAX_COLS * sizeof **data);
 }
 
