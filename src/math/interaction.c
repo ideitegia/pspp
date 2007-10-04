@@ -25,6 +25,8 @@
   N_1, N_2, ..., N_K categories, then the interaction will have
   N_1 * N_2 * N_3 *...* N_K - 1 entries.
  */
+
+#include <config.h>
 #include <assert.h>
 #include <libpspp/alloc.h>
 #include <gsl/gsl_math.h>

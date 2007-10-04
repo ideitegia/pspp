@@ -68,6 +68,10 @@ replace_casereader (struct casereader *s)
   psppire_data_store_set_case_file (the_data_store, pcf);
 }
 
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+
 void
 initialize (void)
 {
@@ -79,7 +83,6 @@ initialize (void)
 
   bindtextdomain (PACKAGE, locale_dir);
 
-  textdomain (PACKAGE);
 
   glade_init ();
 
@@ -120,6 +123,7 @@ initialize (void)
   unlink (OUTPUT_FILE_NAME);
 
   journal_enable ();
+  textdomain (PACKAGE);
 
   new_data_window (NULL, NULL);
 }
@@ -133,6 +137,7 @@ de_initialize (void)
   settings_done ();
   outp_done ();
 }
+
 
 
 struct icon_info
@@ -183,6 +188,19 @@ create_icon_factory (void)
 	  g_clear_error (&err);
 	}
     }
+
+
+  {
+    /* Create our own "pspp-stock-reset" item, using the
+       GTK_STOCK_REFRESH icon set */
+
+    GtkStockItem item = {"pspp-stock-reset", N_("_Reset"), 0, 0, PACKAGE};
+    GtkIconSet *icon_set =
+      gtk_icon_factory_lookup_default (GTK_STOCK_REFRESH);
+
+    gtk_stock_add (&item, 1);
+    gtk_icon_factory_add (factory, "pspp-stock-reset", icon_set);
+  }
 
   gtk_icon_factory_add_default (factory);
 }

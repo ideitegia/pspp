@@ -257,7 +257,7 @@ psppire_button_box_init (PsppireButtonBox *bb)
 
 
 
-  bb->button[PSPPIRE_BUTTON_PASTE] = gtk_button_new_with_mnemonic (_("_Paste"));
+  bb->button[PSPPIRE_BUTTON_PASTE] = gtk_button_new_from_stock (GTK_STOCK_PASTE);
   g_signal_connect (bb->button[PSPPIRE_BUTTON_PASTE], "clicked",
 		    G_CALLBACK (paste_button_clicked), NULL);
   gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_PASTE]);
@@ -270,7 +270,7 @@ psppire_button_box_init (PsppireButtonBox *bb)
   g_object_set (bb->button[PSPPIRE_BUTTON_CANCEL], "no-show-all", TRUE, NULL);
 
 
-  bb->button[PSPPIRE_BUTTON_RESET] = gtk_button_new_from_stock (GTK_STOCK_REFRESH);
+  bb->button[PSPPIRE_BUTTON_RESET] = gtk_button_new_from_stock ("pspp-stock-reset");
   g_signal_connect (bb->button[PSPPIRE_BUTTON_RESET], "clicked",
 		    G_CALLBACK (refresh_clicked), NULL);
   gtk_box_pack_start_defaults (GTK_BOX (bb), bb->button[PSPPIRE_BUTTON_RESET]);

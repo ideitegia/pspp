@@ -20,9 +20,11 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
+#include <libpspp/copyleft.h>
 #include <libpspp/version.h>
 #include "about.h"
 #include "helper.h"
+
 
 const static gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
 
@@ -54,6 +56,10 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
 
   gtk_about_dialog_set_artists (GTK_ABOUT_DIALOG (about),
 				artists);
+
+  gtk_about_dialog_set_license (GTK_ABOUT_DIALOG (about),
+				copyleft);
+
 
   gtk_window_set_transient_for (GTK_WINDOW (about), parent);
 

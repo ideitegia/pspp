@@ -1,4 +1,15 @@
-2007-09-26  John Darrington <john@darrington.wattle.id.au>
+2007-10-04  John Darrington <john@darrington.wattle.id.au>
+
+	* compute-dialog.c goto-case-dialog.c main.c psppire-keypad.c: Added 
+	#include <config.h>
+
+	* psppire.glade about.c: Read GPL text from src/libpspp/copyleft.c 
+	instead of makeing another copy in psppire.glade.
+
+	* psppirebuttonbox.c psppire.c: Create a new stock item for 
+	RESET buttons.
+	
+2007-09-26  John Darrington <john@darrington.wattle.id.au>	
 	
 	* output-viewer.c output-viewer.h psppire.c: (closes patch #6210) 
 	Changed width and length parameters of output driver to

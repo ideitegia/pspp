@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 
+#include <config.h>
 #include "goto-case-dialog.h"
 #include "helper.h"
 #include "psppire-dialog.h"

@@ -7,9 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-09-28 12:24+0800\n"
+"POT-Creation-Date: 2007-10-04 10:39+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
+"Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -302,13 +303,13 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:318 src/data/sys-file-reader.c:631
-#: src/ui/gui/data-editor.glade:1285 src/ui/gui/psppire.glade:2189
+#: src/ui/gui/data-editor.glade:1285 src/ui/gui/psppire.glade:2176
 #: src/ui/gui/psppire-var-store.c:493
 msgid "String"
 msgstr ""
 
 #: src/data/format.c:318 src/data/sys-file-reader.c:631
-#: src/ui/gui/data-editor.glade:1174 src/ui/gui/psppire.glade:2144
+#: src/ui/gui/data-editor.glade:1174 src/ui/gui/psppire.glade:2131
 #: src/ui/gui/psppire-var-store.c:486
 msgid "Numeric"
 msgstr ""
@@ -1603,7 +1604,7 @@ msgstr ""
 
 #: src/language/dictionary/split-file.c:85
 #: src/language/dictionary/sys-file-info.c:395
-#: src/language/dictionary/sys-file-info.c:562 src/ui/gui/psppire.glade:2112
+#: src/language/dictionary/sys-file-info.c:562 src/ui/gui/psppire.glade:2099
 #: src/ui/gui/var-sheet.c:69
 msgid "Label"
 msgstr ""
@@ -1612,7 +1613,7 @@ msgstr ""
 msgid "File:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:110 src/ui/gui/psppire.glade:2065
+#: src/language/dictionary/sys-file-info.c:110 src/ui/gui/psppire.glade:2052
 msgid "Label:"
 msgstr ""
 
@@ -2566,7 +2567,7 @@ msgstr ""
 msgid "Directional measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1221 src/ui/gui/psppire.glade:2236
+#: src/language/stats/crosstabs.q:1221 src/ui/gui/psppire.glade:2223
 #: src/ui/gui/var-sheet.c:66
 msgid "Type"
 msgstr ""
@@ -4771,7 +4772,7 @@ msgstr ""
 msgid "Width:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1634 src/ui/gui/psppire.glade:2557
+#: src/ui/gui/data-editor.glade:1634 src/ui/gui/psppire.glade:2544
 msgid "Value:"
 msgstr ""
 
@@ -4904,10 +4905,6 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: src/ui/gui/psppire-buttonbox.c:260
-msgid "_Paste"
-msgstr ""
-
 #: src/ui/gui/psppire-buttonbox.c:400
 msgid "OK"
 msgstr ""
@@ -4932,6 +4929,10 @@ msgstr ""
 msgid "Paste"
 msgstr ""
 
+#: src/ui/gui/psppire.c:197
+msgid "_Reset"
+msgstr ""
+
 #: src/ui/gui/psppire-data-store.c:816
 msgid "var"
 msgstr ""
@@ -4945,195 +4946,164 @@ msgstr ""
 msgid "This is pre-alpha software.  Use at your own risk."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:12
-msgid ""
-"   This program is free software: you can redistribute it and/or modify\n"
-"   it under the terms of the GNU General Public License as published by\n"
-"   the Free Software Foundation, either version 3 of the License, or\n"
-"   (at your option) any later version.\n"
-"\n"
-"   This program is distributed in the hope that it will be useful,\n"
-"   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"   GNU General Public License for more details.\n"
-"\n"
-"   You should have received a copy of the GNU General Public License\n"
-"   along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
-msgstr ""
-"\"   This program is free software: you can redistribute it and/or modify\\n"
-"\"\n"
-"\"   it under the terms of the GNU General Public License as published by\\n"
-"\"\n"
-"\"   the Free Software Foundation, either version 3 of the Licence, or\\n\"\n"
-"\"   (at your option) any later version.\\n\"\n"
-"\"\\n\"\n"
-"\"   This program is distributed in the hope that it will be useful,\\n\"\n"
-"\"   but WITHOUT ANY WARRANTY; without even the implied warranty of\\n\"\n"
-"\"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n\"\n"
-"\"   GNU General Public License for more details.\\n\"\n"
-"\"\\n\"\n"
-"\"   You should have received a copy of the GNU General Public License\\n\"\n"
-"\"   along with this program.  If not, see <http://www.gnu.org/licenses/>.\\n"
-"\"\n"
-
-#: src/ui/gui/psppire.glade:86 src/ui/gui/psppire.glade:167
+#: src/ui/gui/psppire.glade:73 src/ui/gui/psppire.glade:154
 #: src/ui/gui/weight-cases-dialog.c:82
 msgid "Do not weight cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:96
+#: src/ui/gui/psppire.glade:83
 msgid "Weight cases by"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:120
+#: src/ui/gui/psppire.glade:107
 msgid "Frequency Variable"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:160
+#: src/ui/gui/psppire.glade:147
 msgid "Current Status: "
 msgstr ""
 
-#: src/ui/gui/psppire.glade:278
+#: src/ui/gui/psppire.glade:265
 msgid "Variable(s):"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:327
+#: src/ui/gui/psppire.glade:314
 msgid "Name Variable:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:442
+#: src/ui/gui/psppire.glade:429
 msgid "Analyze all cases.  Do not create groups."
 msgstr "Analyse all cases.  Do not create groups."
 
-#: src/ui/gui/psppire.glade:452
+#: src/ui/gui/psppire.glade:439
 msgid "Compare groups."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:465
+#: src/ui/gui/psppire.glade:452
 msgid "Organize output by groups."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:512
+#: src/ui/gui/psppire.glade:499
 msgid "Groups based on:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:576
+#: src/ui/gui/psppire.glade:563
 msgid "Sort the file by grouping variables."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:587
+#: src/ui/gui/psppire.glade:574
 msgid "File is already sorted."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:631
+#: src/ui/gui/psppire.glade:618
 msgid "Current Status : "
 msgstr ""
 
-#: src/ui/gui/psppire.glade:639
+#: src/ui/gui/psppire.glade:626
 msgid "Analysis by groups is off"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:738
+#: src/ui/gui/psppire.glade:725
 msgid "Sort by:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:791
+#: src/ui/gui/psppire.glade:778
 msgid "Ascending"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:801
+#: src/ui/gui/psppire.glade:788
 msgid "Descending"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:817
+#: src/ui/gui/psppire.glade:804
 msgid "Sort Order"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:886
+#: src/ui/gui/psppire.glade:873
 msgid "Target Variable:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:917
+#: src/ui/gui/psppire.glade:904
 msgid "Type & Label"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:956
+#: src/ui/gui/psppire.glade:943
 msgid "="
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1002
+#: src/ui/gui/psppire.glade:989
 msgid "Numeric Expressions:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1056
+#: src/ui/gui/psppire.glade:1043
 msgid "Functions:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1120 src/ui/gui/psppire.glade:1266
+#: src/ui/gui/psppire.glade:1107 src/ui/gui/psppire.glade:1253
 msgid "If..."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1236
+#: src/ui/gui/psppire.glade:1223
 msgid "All Cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1252
+#: src/ui/gui/psppire.glade:1239
 msgid "If condition is satisfied"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1304
+#: src/ui/gui/psppire.glade:1291
 msgid "Random sample of cases"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1318
+#: src/ui/gui/psppire.glade:1305
 msgid "Sample..."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1356
+#: src/ui/gui/psppire.glade:1343
 msgid "Based on time or case range"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1369
+#: src/ui/gui/psppire.glade:1356
 msgid "Range..."
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1407
+#: src/ui/gui/psppire.glade:1394
 msgid "Use filter variable"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1569
+#: src/ui/gui/psppire.glade:1556
 msgid "Select"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1599
+#: src/ui/gui/psppire.glade:1586
 msgid "Filtered"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1609
+#: src/ui/gui/psppire.glade:1596
 msgid "Deleted"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1626
+#: src/ui/gui/psppire.glade:1613
 msgid "Unselected Cases Are"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1691
+#: src/ui/gui/psppire.glade:1678
 msgid "Comments:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1733
+#: src/ui/gui/psppire.glade:1720
 msgid "Display comments in output"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1747
+#: src/ui/gui/psppire.glade:1734
 msgid "Column Number: 0"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1823
+#: src/ui/gui/psppire.glade:1810
 msgid "Variable Information:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1849
+#: src/ui/gui/psppire.glade:1836
 msgid ""
 "\n"
 "\n"
@@ -5147,55 +5117,55 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1913
+#: src/ui/gui/psppire.glade:1900
 msgid "Observation"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1923
+#: src/ui/gui/psppire.glade:1910
 msgid "Last case"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:1936
+#: src/ui/gui/psppire.glade:1923
 msgid "First case"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2094
+#: src/ui/gui/psppire.glade:2081
 msgid "Use expression as label"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2200 src/ui/gui/var-sheet.c:67
+#: src/ui/gui/psppire.glade:2187 src/ui/gui/var-sheet.c:67
 msgid "Width"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2287
+#: src/ui/gui/psppire.glade:2274
 msgid "Goto Case Number:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2423
+#: src/ui/gui/psppire.glade:2410
 msgid "Sample Size"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2526
+#: src/ui/gui/psppire.glade:2513
 msgid "Variable:"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2583
+#: src/ui/gui/psppire.glade:2570
 msgid "Search value labels"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2606
+#: src/ui/gui/psppire.glade:2593
 msgid "Regular expression Match"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2616
+#: src/ui/gui/psppire.glade:2603
 msgid "Search substrings"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2628
+#: src/ui/gui/psppire.glade:2615
 msgid "Wrap around"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2640
+#: src/ui/gui/psppire.glade:2627
 msgid "Search backward"
 msgstr ""
 
@@ -5447,3 +5417,36 @@ msgstr ""
 #, c-format
 msgid "could not access definition for terminal `%s'"
 msgstr ""
+
+#~ msgid ""
+#~ "   This program is free software: you can redistribute it and/or modify\n"
+#~ "   it under the terms of the GNU General Public License as published by\n"
+#~ "   the Free Software Foundation, either version 3 of the License, or\n"
+#~ "   (at your option) any later version.\n"
+#~ "\n"
+#~ "   This program is distributed in the hope that it will be useful,\n"
+#~ "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+#~ "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+#~ "   GNU General Public License for more details.\n"
+#~ "\n"
+#~ "   You should have received a copy of the GNU General Public License\n"
+#~ "   along with this program.  If not, see <http://www.gnu.org/licenses/>.\n"
+#~ msgstr ""
+#~ "\"   This program is free software: you can redistribute it and/or modify"
+#~ "\\n\"\n"
+#~ "\"   it under the terms of the GNU General Public License as published by"
+#~ "\\n\"\n"
+#~ "\"   the Free Software Foundation, either version 3 of the Licence, or\\n"
+#~ "\"\n"
+#~ "\"   (at your option) any later version.\\n\"\n"
+#~ "\"\\n\"\n"
+#~ "\"   This program is distributed in the hope that it will be useful,\\n"
+#~ "\"\n"
+#~ "\"   but WITHOUT ANY WARRANTY; without even the implied warranty of\\n\"\n"
+#~ "\"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\\n\"\n"
+#~ "\"   GNU General Public License for more details.\\n\"\n"
+#~ "\"\\n\"\n"
+#~ "\"   You should have received a copy of the GNU General Public License\\n"
+#~ "\"\n"
+#~ "\"   along with this program.  If not, see <http://www.gnu.org/licenses/>."
+#~ "\\n\"\n"
