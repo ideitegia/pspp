@@ -50,7 +50,7 @@ use the GUI, you must run `configure' with --without-gui.
       recommend version 2.10.2 or later.
 
     * libglade (http://www.jamesh.id.au/software/libglade/), version
-      2.0 or later.
+      2.6 or later.
 
 The following packages are optional.
 
