@@ -51,6 +51,7 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
 	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/output-viewer.glade \
+	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
@@ -86,6 +87,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/data-sheet.h \
 	src/ui/gui/data-editor.c \
 	src/ui/gui/data-editor.h \
+	src/ui/gui/descriptives-dialog.c \
+	src/ui/gui/descriptives-dialog.h \
 	src/ui/gui/find-dialog.c \
 	src/ui/gui/find-dialog.h \
 	src/ui/gui/dialog-common.c \

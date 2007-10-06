@@ -39,6 +39,7 @@
 #include "find-dialog.h"
 #include "comments-dialog.h"
 #include "variable-info-dialog.h"
+#include "descriptives-dialog.h"
 #include "dict-display.h"
 #include "clipboard.h"
 
@@ -613,6 +614,15 @@ new_data_editor (void)
   g_signal_connect (de->invoke_variable_info_dialog, "activate",
 		    G_CALLBACK (variable_info_dialog), de);
 
+  de->invoke_descriptives_dialog =
+    gtk_action_new ("descriptives-dialog",
+		    _("_Descriptives"),
+		    _("Calculate descriptive statistics (mean, variance, ...)"),
+		    "pspp-descriptives");
+
+  g_signal_connect (de->invoke_descriptives_dialog, "activate",
+		    G_CALLBACK (descriptives_dialog), de);
+
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
   g_signal_connect_swapped (get_widget_assert (de->xml,"file_new_data"),
@@ -727,6 +737,10 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->invoke_variable_info_dialog,
 			    get_widget_assert (de->xml, "utilities_variables")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_descriptives_dialog,
+			    get_widget_assert (de->xml, "analyze_descriptives")
 			    );
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
