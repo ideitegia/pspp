@@ -12,6 +12,26 @@
 
 	* descriptives-dialog.c compute-dialog.c: Add a validity predicate.
 
+2007-10-05  Ben Pfaff  <blp@gnu.org>
+
+	Add DESCRIPTIVES dialog.
+	
+	* automake.mk (dist_src_ui_gui_psppire_DATA): Add
+	descriptives-dialog.data.
+	(src_ui_gui_psppire_SOURCES): Add descriptives-dialog.c,
+	descriptives-dialog.h.
+
+	* data-editor.c (new_data_editor): Connect descriptive dialog to
+	action.
+
+	* data-editor.glade: Change menu item to invoke DESCRIPTIVES.
+
+	* descriptives-dialog.c: New file.
+	
+	* descriptives-dialog.h: New file.
+	
+	* descriptives-dialog.glade: New file.
+
 2007-10-04  John Darrington <john@darrington.wattle.id.au>
 
 	* compute-dialog.c goto-case-dialog.c main.c psppire-keypad.c: Added 
