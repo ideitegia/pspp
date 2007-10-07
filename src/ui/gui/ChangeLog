@@ -1,3 +1,17 @@
+2007-10-06  John Darrington <john@darrington.wattle.id.au>
+	
+	* psppire-dialog.c psppire-dialog.h: Added a predicate function
+	member to indicate when a dialog's state is (not) valid. Added a
+	signal "validity-changed" which gets emitted whenever this
+	predicate changes. 
+
+	* psppire-buttonbox.c: Connect to the toplevel window's
+	"validity-changed" signal (assuming it happens to be a
+	PsppireDialog) and set the OK, PASTE, GOTO and CONTINUE buttons
+	according.y. 
+
+	* descriptives-dialog.c compute-dialog.c: Add a validity predicate.
+
 2007-10-04  John Darrington <john@darrington.wattle.id.au>
 
 	* compute-dialog.c goto-case-dialog.c main.c psppire-keypad.c: Added 

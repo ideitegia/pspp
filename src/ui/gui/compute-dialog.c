@@ -327,6 +327,28 @@ on_expression_toggle (GtkToggleButton *button, gpointer data)
     }
 }
 
+
+/* Return TRUE if the dialog box's widgets' state are such that clicking OK
+   might not result in erroneous syntax being generated */
+static gboolean
+contents_plausible (gpointer data)
+{
+  struct compute_dialog *cd = data;
+
+  GtkWidget *target      = get_widget_assert (cd->xml, "compute-entry1");
+  GtkWidget *syntax_area = get_widget_assert (cd->xml, "compute-textview1");
+  GtkTextBuffer *buffer  =
+    gtk_text_view_get_buffer (GTK_TEXT_VIEW (syntax_area));
+
+  if ( 0 == strcmp ("", gtk_entry_get_text (GTK_ENTRY (target))))
+    return FALSE;
+
+  if ( gtk_text_buffer_get_char_count (buffer) == 0 )
+    return FALSE;
+
+  return TRUE;
+}
+
 /* Pops up the Compute dialog box */
 void
 compute_dialog (GObject *o, gpointer data)
@@ -359,6 +381,7 @@ compute_dialog (GObject *o, gpointer data)
 
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
+
   scd.dict = vs->dict;
   scd.use_type = FALSE;
 
@@ -388,6 +411,9 @@ compute_dialog (GObject *o, gpointer data)
 
 
   scd.xml = xml;
+
+  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
+				      contents_plausible, &scd);
 
   g_signal_connect (target, "changed", G_CALLBACK (on_target_change), &scd);
 

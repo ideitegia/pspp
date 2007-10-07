@@ -20,12 +20,15 @@
 #include <gtk/gtk.h>
 #include <gtk/gtksignal.h>
 #include "psppire-dialog.h"
+#include "psppire-buttonbox.h"
+#include "psppire-selector.h"
 
 static void psppire_dialog_class_init          (PsppireDialogClass *);
 static void psppire_dialog_init                (PsppireDialog      *);
 
 
 enum  {DIALOG_REFRESH,
+       VALIDITY_CHANGED,
        n_SIGNALS};
 
 static guint signals [n_SIGNALS];
@@ -193,6 +196,18 @@ psppire_dialog_class_init (PsppireDialogClass *class)
 		  0);
 
 
+  signals [VALIDITY_CHANGED] =
+    g_signal_new ("validity-changed",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__BOOLEAN,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_BOOLEAN);
+
+
   object_class->finalize = psppire_dialog_finalize;
 }
 
@@ -227,6 +242,8 @@ psppire_dialog_init (PsppireDialog *dialog)
 {
   GValue value = {0};
   dialog->box = NULL;
+  dialog->contents_are_valid = NULL;
+  dialog->validity_data = NULL;
 
   g_value_init (&value, orientation_spec->value_type);
   g_param_value_set_default (orientation_spec, &value);
@@ -259,12 +276,120 @@ psppire_dialog_new (void)
   return GTK_WIDGET (dialog) ;
 }
 
+
+static void
+notify_change (PsppireDialog *dialog)
+{
+  if ( dialog->contents_are_valid )
+    {
+      gboolean valid = dialog->contents_are_valid (dialog->validity_data);
+
+      g_signal_emit (dialog, signals [VALIDITY_CHANGED], 0, valid);
+    }
+}
+
+
+/* Descend the widget tree, connecting appropriate signals to the
+   notify_change callback */
+static void
+connect_notify_signal (GtkWidget *w, gpointer data)
+{
+  PsppireDialog *dialog = data;
+
+  if ( PSPPIRE_IS_BUTTONBOX (w))
+    return;
+
+
+
+  if ( GTK_IS_CONTAINER (w))
+    {
+      gtk_container_foreach (GTK_CONTAINER (w),
+			     connect_notify_signal,
+			     dialog);
+    }
+
+
+  /* It's unfortunate that GTK+ doesn't have a generic
+     "user-modified-state-changed" signal.  Instead, we have to try and
+     predict what widgets and signals are likely to exist in our dialogs. */
+
+  if ( GTK_IS_TOGGLE_BUTTON (w))
+    {
+      g_signal_connect_swapped (w, "toggled", G_CALLBACK (notify_change),
+				dialog);
+    }
+
+  if ( PSPPIRE_IS_SELECTOR (w))
+    {
+      g_signal_connect_swapped (w, "selected", G_CALLBACK (notify_change),
+				dialog);
+
+      g_signal_connect_swapped (w, "de-selected", G_CALLBACK (notify_change),
+				dialog);
+    }
+
+  if ( GTK_IS_EDITABLE (w))
+    {
+      g_signal_connect_swapped (w, "changed", G_CALLBACK (notify_change),
+				dialog);
+    }
+
+  if ( GTK_IS_CELL_EDITABLE (w))
+    {
+      g_signal_connect_swapped (w, "editing-done", G_CALLBACK (notify_change),
+				dialog);
+    }
+
+  if ( GTK_IS_TEXT_VIEW (w))
+    {
+      GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (w));
+
+      g_signal_connect_swapped (buffer, "changed", G_CALLBACK (notify_change),
+				dialog);
+    }
+
+  if ( GTK_IS_TREE_VIEW (w))
+    {
+      gint i = 0;
+      GtkTreeView *tv = GTK_TREE_VIEW (w);
+      GtkTreeSelection *selection =
+	gtk_tree_view_get_selection (tv);
+      GtkTreeViewColumn *col;
+
+      g_signal_connect_swapped (selection, "changed",
+				G_CALLBACK (notify_change), dialog);
+
+      while ((col = gtk_tree_view_get_column (tv, i++)))
+	{
+	  GList *renderers = gtk_tree_view_column_get_cell_renderers (col);
+	  GList *start = renderers;
+	  while (renderers)
+	    {
+	      if ( GTK_IS_CELL_RENDERER_TOGGLE (renderers->data))
+		g_signal_connect_swapped (renderers->data, "toggled",
+					  G_CALLBACK (notify_change), dialog);
+	      renderers = renderers->next;
+	    }
+	  g_list_free (start);
+	}
+    }
+}
+
+
 gint
 psppire_dialog_run (PsppireDialog *dialog)
 {
+  if ( dialog->contents_are_valid != NULL )
+    gtk_container_foreach (GTK_CONTAINER (dialog->box),
+			   connect_notify_signal,
+			   dialog);
+
   dialog->loop = g_main_loop_new (NULL, FALSE);
 
   gtk_widget_show (GTK_WIDGET (dialog));
+
+  if ( dialog->contents_are_valid != NULL)
+    g_signal_emit (dialog, signals [VALIDITY_CHANGED], 0, FALSE);
 
   g_signal_emit (dialog, signals [DIALOG_REFRESH], 0);
 
@@ -302,3 +427,15 @@ psppire_orientation_get_type (void)
     }
   return etype;
 }
+
+
+void
+psppire_dialog_set_valid_predicate (PsppireDialog *dialog,
+				    ContentsAreValid contents_are_valid,
+				    gpointer data)
+{
+  dialog->contents_are_valid = contents_are_valid;
+  dialog->validity_data = data;
+}
+
+

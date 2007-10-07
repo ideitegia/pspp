@@ -40,6 +40,9 @@ G_BEGIN_DECLS
 typedef struct _PsppireDialog       PsppireDialog;
 typedef struct _PsppireDialogClass  PsppireDialogClass;
 
+typedef gboolean (*ContentsAreValid) (gpointer);
+
+
 struct _PsppireDialog
 {
   GtkWindow window;
@@ -48,6 +51,9 @@ struct _PsppireDialog
   /* Private */
   GMainLoop *loop;
   gint response;
+
+  ContentsAreValid contents_are_valid;
+  gpointer validity_data;
 };
 
 struct _PsppireDialogClass
@@ -55,11 +61,15 @@ struct _PsppireDialogClass
   GtkWindowClass parent_class;
 };
 
+
 GType          psppire_dialog_get_type        (void);
 GtkWidget*     psppire_dialog_new             (void);
 void           psppire_dialog_reload          (PsppireDialog *);
 void           psppire_dialog_close           (PsppireDialog *);
 gint           psppire_dialog_run             (PsppireDialog *);
+void           psppire_dialog_set_valid_predicate (PsppireDialog *,
+						   ContentsAreValid,
+						   gpointer );
 
 
 GType psppire_orientation_get_type (void);

@@ -225,6 +225,31 @@ refresh_clicked (GtkWidget *w, gpointer data)
 }
 
 
+
+static void
+on_validity_change (GtkWidget *toplevel, gboolean valid, gpointer data)
+{
+  PsppireButtonBox *bb = data;
+
+  /* Set the sensitivity of all the 'executive order' buttons */
+  gtk_widget_set_sensitive (GTK_WIDGET (bb->button[PSPPIRE_BUTTON_OK]), valid);
+  gtk_widget_set_sensitive (GTK_WIDGET (bb->button[PSPPIRE_BUTTON_PASTE]), valid);
+  gtk_widget_set_sensitive (GTK_WIDGET (bb->button[PSPPIRE_BUTTON_GOTO]), valid);
+  gtk_widget_set_sensitive (GTK_WIDGET (bb->button[PSPPIRE_BUTTON_CONTINUE]), valid);
+}
+
+static void
+on_realize (GtkWidget *buttonbox, gpointer data)
+{
+  GtkWidget *toplevel = gtk_widget_get_toplevel (buttonbox);
+
+  if ( PSPPIRE_IS_DIALOG (toplevel))
+    {
+      g_signal_connect (toplevel, "validity-changed",
+			G_CALLBACK (on_validity_change), buttonbox);
+    }
+}
+
 static void
 psppire_button_box_init (PsppireButtonBox *bb)
 {
@@ -299,6 +324,8 @@ psppire_button_box_init (PsppireButtonBox *bb)
     g_value_unset (&value);
   }
 
+
+  g_signal_connect (bb, "realize", G_CALLBACK (on_realize), NULL);
 }
 
 

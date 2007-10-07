@@ -287,6 +287,20 @@ put_statistics_in_treeview (GtkTreeView *treeview)
   gtk_tree_view_append_column (treeview, col);
 }
 
+
+/* Dialog is valid iff at least one variable has been selected */
+static gboolean
+dialog_state_valid (gpointer data)
+{
+  struct descriptives_dialog *dd = data;
+
+  GtkTreeModel *vars = gtk_tree_view_get_model (dd->stat_vars);
+
+  GtkTreeIter notused;
+
+  return gtk_tree_model_get_iter_first (vars, &notused);
+}
+
 /* Pops up the Descriptives dialog box */
 void
 descriptives_dialog (GObject *o, gpointer data)
@@ -339,6 +353,9 @@ descriptives_dialog (GObject *o, gpointer data)
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "save_z_scores"));
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &scd);
+
+  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
+				      dialog_state_valid, &scd);
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
