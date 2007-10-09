@@ -1,3 +1,11 @@
+2007-10-08  Ben Pfaff  <blp@gnu.org>
+
+	Bug #21280.  Thanks to John Darrington for review.
+
+	* automake.mk: Add new file.
+
+	* bugs/overwrite-input-file.sh: New test.
+
 2007-09-23  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21111.  Reviewed by John Darrington.

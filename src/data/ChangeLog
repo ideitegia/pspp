@@ -1,3 +1,16 @@
+2007-10-08  Ben Pfaff  <blp@gnu.org>
+
+	Fix bug #21280.  Thanks to John Darrington for review.
+
+	* file-name.c (create_stream): New function.
+
+	* por-file-writer.c (pfm_open_writer): Use fh_open to open the
+	file handle before creating the file, to ensure that we don't
+	truncate a file that we're reading.  Make code easier to read by
+	using create_stream.
+
+	* sys-file-write.c (sfm_open_writer): Ditto.
+
 2007-10-01  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #21192.  Thanks to John Darrington for review.

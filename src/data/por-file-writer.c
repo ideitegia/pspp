@@ -19,20 +19,19 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <unistd.h>
 
 #include <data/case.h>
 #include <data/casewriter-provider.h>
 #include <data/casewriter.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <data/file-name.h>
 #include <data/format.h>
 #include <data/missing-values.h>
 #include <data/short-names.h>
@@ -109,30 +108,31 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
 {
   struct pfm_writer *w = NULL;
   mode_t mode;
-  int fd;
+  FILE *file;
   size_t i;
+
+  /* Open file handle. */
+  if (!fh_open (fh, FH_REF_FILE, "portable file", "we"))
+    return NULL;
 
   /* Create file. */
   mode = S_IRUSR | S_IRGRP | S_IROTH;
   if (opts.create_writeable)
     mode |= S_IWUSR | S_IWGRP | S_IWOTH;
-  fd = open (fh_get_file_name (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
-  if (fd < 0)
-    goto open_error;
-
-  /* Open file handle. */
-  if (!fh_open (fh, FH_REF_FILE, "portable file", "we"))
-    goto error;
+  file = create_stream (fh_get_file_name (fh), "w", mode);
+  if (file == NULL)
+    {
+      fh_close (fh, "portable file", "we");
+      msg (ME, _("An error occurred while opening \"%s\" for writing "
+                 "as a portable file: %s."),
+           fh_get_file_name (fh), strerror (errno));
+      return NULL;
+    }
 
   /* Initialize data structures. */
   w = xmalloc (sizeof *w);
   w->fh = fh;
-  w->file = fdopen (fd, "w");
-  if (w->file == NULL)
-    {
-      close (fd);
-      goto open_error;
-    }
+  w->file = file;
 
   w->lc = 0;
   w->var_cnt = 0;
@@ -165,19 +165,12 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     write_documents (w, dict);
   buf_write (w, "F", 1);
   if (ferror (w->file))
-    goto error;
+    {
+      close_writer (w);
+      return NULL;
+    }
   return casewriter_create (dict_get_next_value_idx (dict),
                             &por_file_casewriter_class, w);
-
- error:
-  close_writer (w);
-  return NULL;
-
- open_error:
-  msg (ME, _("An error occurred while opening \"%s\" for writing "
-             "as a portable file: %s."),
-       fh_get_file_name (fh), strerror (errno));
-  goto error;
 }
 
 /* Write NBYTES starting at BUF to the portable file represented by

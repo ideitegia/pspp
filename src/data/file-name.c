@@ -20,8 +20,10 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "intprops.h"
 #include "minmax.h"
@@ -318,6 +320,30 @@ fn_close (const char *fn, FILE *f)
 #endif
   else
     return fclose (f);
+}
+
+/* Creates a new file named FN with the given PERMISSIONS bits,
+   and returns a stream for it or a null pointer on failure.
+   MODE should be "w" or "wb". */
+FILE *
+create_stream (const char *fn, const char *mode, mode_t permissions)
+{
+  int fd;
+  FILE *stream;
+
+  fd = open (fn, O_WRONLY | O_CREAT | O_TRUNC, permissions);
+  if (fd < 0)
+    return NULL;
+
+  stream = fdopen (fd, mode);
+  if (stream == NULL)
+    {
+      int save_errno = errno;
+      close (fd);
+      errno = save_errno;
+    }
+
+  return stream;
 }
 
 #if !(defined _WIN32 || defined __WIN32__)

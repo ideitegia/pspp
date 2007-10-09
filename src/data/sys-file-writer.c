@@ -21,12 +21,10 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <unistd.h>
 
 #include <libpspp/alloc.h>
 #include <libpspp/float-format.h>
@@ -42,6 +40,7 @@
 #include <data/casewriter.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
+#include <data/file-name.h>
 #include <data/format.h>
 #include <data/missing-values.h>
 #include <data/settings.h>
@@ -152,7 +151,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 {
   struct sfm_writer *w = NULL;
   mode_t mode;
-  int fd;
+  FILE *file;
   int idx;
   int i;
 
@@ -164,22 +163,27 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       opts.version = 3;
     }
 
-  /* Create file. */
+  /* Open file handle as an exclusive writer. */
+  if (!fh_open (fh, FH_REF_FILE, "system file", "we"))
+    return NULL;
+
+  /* Create the file on disk. */
   mode = S_IRUSR | S_IRGRP | S_IROTH;
   if (opts.create_writeable)
     mode |= S_IWUSR | S_IWGRP | S_IWOTH;
-  fd = open (fh_get_file_name (fh), O_WRONLY | O_CREAT | O_TRUNC, mode);
-  if (fd < 0)
-    goto open_error;
-
-  /* Open file handle. */
-  if (!fh_open (fh, FH_REF_FILE, "system file", "we"))
-    goto error;
+  file = create_stream (fh_get_file_name (fh), "w", mode);
+  if (file == NULL)
+    {
+      msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
+           fh_get_file_name (fh), strerror (errno));
+      fh_close (fh, "system file", "we");
+      return NULL;
+    }
 
   /* Create and initialize writer. */
   w = xmalloc (sizeof *w);
   w->fh = fh;
-  w->file = fdopen (fd, "w");
+  w->file = file;
 
   w->compress = opts.compress;
   w->case_cnt = 0;
@@ -192,13 +196,6 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
      one segment. */
   w->segment_cnt = sfm_dictionary_to_sfm_vars (d, &w->sfm_vars,
                                                &w->sfm_var_cnt);
-
-  /* Check that file create succeeded. */
-  if (w->file == NULL)
-    {
-      close (fd);
-      goto open_error;
-    }
 
   /* Write the file header. */
   write_header (w, d);
@@ -236,19 +233,13 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   write_int (w, 0);
 
   if (write_error (w))
-    goto error;
+    {
+      close_writer (w);
+      return NULL;
+    }
 
   return casewriter_create (dict_get_next_value_idx (d),
                             &sys_file_casewriter_class, w);
-
- error:
-  close_writer (w);
-  return NULL;
-
- open_error:
-  msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
-       fh_get_file_name (fh), strerror (errno));
-  goto error;
 }
 
 /* Returns value of X truncated to two least-significant digits. */
