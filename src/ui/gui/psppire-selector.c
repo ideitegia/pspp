@@ -727,6 +727,9 @@ set_entry_dest (PsppireSelector *selector,
   g_signal_connect_swapped (dest, "activate", G_CALLBACK (refilter),
 		    selector);
 
+  g_signal_connect_swapped (dest, "changed", G_CALLBACK (refilter),
+		    selector);
+
   g_signal_connect (dest, "focus-in-event", G_CALLBACK (on_entry_dest_select),
 		    selector);
 

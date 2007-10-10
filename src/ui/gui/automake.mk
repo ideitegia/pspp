@@ -47,11 +47,12 @@ src_ui_gui_psppire_LDADD = \
 src_ui_gui_psppiredir = $(pkgdatadir)
 
 dist_src_ui_gui_psppire_DATA = \
+	$(top_srcdir)/src/ui/gui/data-editor.glade \
+	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
+	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
 	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
-	$(top_srcdir)/src/ui/gui/data-editor.glade \
-	$(top_srcdir)/src/ui/gui/output-viewer.glade \
-	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
+	$(top_srcdir)/src/ui/gui/t-test.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
@@ -138,6 +139,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/syntax-editor-source.h \
 	src/ui/gui/transpose-dialog.c \
 	src/ui/gui/transpose-dialog.h \
+	src/ui/gui/t-test-independent-samples-dialog.c \
+	src/ui/gui/t-test-independent-samples-dialog.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \

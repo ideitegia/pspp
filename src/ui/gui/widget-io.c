@@ -27,21 +27,42 @@
 #include <gl/gettext.h>
 
 
+/* Create a GtkLabel and pack it into BOX.
+   The label is created using part of the string at S, and the directives
+   at DIRS[DIR_IDX] and subsequent.
 
+   After this function returns, *S points to the first unused character.
+*/
 static void
-ship_label (GtkBox *box, const char **s, const char_directive *dir)
+ship_label (GtkBox *box, const char **s,
+	    const char_directives *dirs, size_t dir_idx)
 {
   GtkWidget *label ;
-  gchar *text = g_strdup (*s);
+  GString *str = g_string_new (*s);
 
-  if ( dir )
+  if ( dirs)
     {
-      text [ dir->dir_start - *s ] = '\0';
-      *s = dir->dir_end;
+      char_directive dir = dirs->dir[dir_idx];
+      int n = 0;
+
+      while (dir_idx < dirs->count && dir.conversion == '%' )
+	{
+	  g_string_erase (str, dir.dir_start - *s, 1);
+	  dir = dirs->dir[++dir_idx];
+	  n++;
+	}
+
+      g_string_truncate (str, dir.dir_start - *s - n);
+
+      if ( dir_idx >= dirs->count)
+	*s = NULL;
+      else
+	*s = dir.dir_end;
     }
 
-  label = gtk_label_new (text);
-  g_free (text);
+  label = gtk_label_new (str->str);
+
+  g_string_free (str, TRUE);
 
   gtk_box_pack_start (box, label, FALSE, FALSE, 0);
   gtk_widget_show (label);
@@ -158,6 +179,7 @@ widget_scanf (const gchar *fmt, ...)
   va_end (ap);
 
 
+
   for (i = 0 ; i < d.count ; ++i )
     {
       char_directive dir = d.dir[i];
@@ -173,11 +195,11 @@ widget_scanf (const gchar *fmt, ...)
 	width = strtol (dir.width_start, (char **) &dir.width_end, 10);
 
       if ( dir.dir_start > s )
-	ship_label (GTK_BOX (hbox), &s, &dir);
+	ship_label (GTK_BOX (hbox), &s, &d, i);
 
       if ( dir.conversion == '%')
 	{
-	  s++;
+	  if (s) s++;
 	  continue;
 	}
 
@@ -202,8 +224,9 @@ widget_scanf (const gchar *fmt, ...)
       gtk_widget_show (*w);
     }
 
-  if ( *s )
-    ship_label (GTK_BOX (hbox), &s, NULL);
+  if ( s && *s )
+    ship_label (GTK_BOX (hbox), &s, NULL, 0);
+
 
 
   g_free (widgets);
