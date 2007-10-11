@@ -40,6 +40,7 @@
 struct tt_indep_samples_dialog
 {
   GladeXML *xml;  /* The xml that generated the widgets */
+  GtkWidget *dialog;
   PsppireDict *dict;
   gboolean groups_defined;
   gboolean non_default_options;
@@ -149,6 +150,8 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
 				      define_groups_state_valid, ttd);
 
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (ttd->dialog));
+
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
   ttd->groups_defined = (response == PSPPIRE_RESPONSE_CONTINUE);
@@ -176,6 +179,8 @@ run_options (struct tt_indep_samples_dialog *ttd)
   gtk_widget_show (confidence);
 
   gtk_box_pack_start_defaults (GTK_BOX (box), confidence);
+
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (ttd->dialog));
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
@@ -229,7 +234,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   GladeXML *xml = XML_NEW ("t-test.glade");
 
-  GtkWidget *dialog = get_widget_assert (xml,
+  tt_d.dialog = get_widget_assert (xml,
 					 "t-test-independent-samples-dialog");
 
   GtkSheet *var_sheet =
@@ -265,7 +270,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   tt_d.non_default_options = FALSE;
   tt_d.confidence_interval = 95.0;
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), de->parent.window);
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
 				 vs->dict,
@@ -293,13 +298,13 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 			    G_CALLBACK (run_options), &tt_d);
 
 
-  g_signal_connect_swapped (dialog, "refresh", G_CALLBACK (refresh),  xml);
+  g_signal_connect_swapped (tt_d.dialog, "refresh", G_CALLBACK (refresh),  xml);
 
 
-  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
+  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (tt_d.dialog),
 				      dialog_state_valid, &tt_d);
 
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
+  response = psppire_dialog_run (PSPPIRE_DIALOG (tt_d.dialog));
 
   switch (response)
     {

@@ -215,6 +215,8 @@ split_file_dialog (GObject *o, gpointer data)
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &sfd);
 
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
 
