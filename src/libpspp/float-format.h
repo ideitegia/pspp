@@ -43,7 +43,6 @@ enum float_format
     FLOAT_FP,                      /* Neutral intermediate format. */
     FLOAT_HEX,                     /* C99 hexadecimal floating constant. */
 
-#ifdef FPREP_IEEE754
 #ifdef WORDS_BIGENDIAN
     FLOAT_NATIVE_FLOAT = FLOAT_IEEE_SINGLE_BE,
     FLOAT_NATIVE_DOUBLE = FLOAT_IEEE_DOUBLE_BE,
@@ -54,9 +53,6 @@ enum float_format
     FLOAT_NATIVE_DOUBLE = FLOAT_IEEE_DOUBLE_LE,
     FLOAT_NATIVE_32_BIT = FLOAT_IEEE_SINGLE_LE,
     FLOAT_NATIVE_64_BIT = FLOAT_IEEE_DOUBLE_LE
-#endif
-#else
-#error Only IEEE-754 floating point currently supported for PSPP hosts.
 #endif
   };
 

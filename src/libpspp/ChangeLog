@@ -1,3 +1,12 @@
+2007-10-10  Ben Pfaff  <blp@gnu.org>
+
+	We assume IEEE-754 now.
+
+	* float-format.h (enum float_format): Don't check for
+	FPREP_IEEE754 macro any longer.
+
+	* magic.h: Ditto.
+
 2007-09-16  Ben Pfaff  <blp@gnu.org>
 
 	* copyleft.c: Add trailing new-lines to lack-of-warranty

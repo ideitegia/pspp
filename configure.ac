@@ -34,7 +34,9 @@ PSPP_LC_PAPER
 AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
 
 
-AC_ARG_WITH(gui, [  --without-gui         don't build the PSPPIRE gui])
+AC_ARG_WITH(
+  gui, 
+  [AS_HELP_STRING([--without-gui], [don't build the PSPPIRE gui])])
 
 if test x"$with_gui" != x"no" ; then 
   PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.8.0,,
@@ -44,7 +46,9 @@ if test x"$with_gui" != x"no" ; then
 fi
 AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
-AC_ARG_WITH(gui_tools, [  --with-gui-tools          build the gui developer tools])
+AC_ARG_WITH(
+  gui_tools,
+  [AS_HELP_STRING([--with-gui-tools], [build the gui developer tools])])
 if test x"$with_gui_tools" = x"yes" ; then 
 	PKG_CHECK_MODULES(GLADE_UI, gladeui-1.0)
 fi
@@ -61,36 +65,32 @@ AC_CHECK_HEADERS(termcap.h)
 PSPP_READLINE
 
 dnl Checks for header files.
-AC_CHECK_HEADERS([limits.h memory.h sys/stat.h sys/time.h sys/types.h \
-                  fpu_control.h sys/mman.h sys/wait.h ieeefp.h fenv.h] )
+AC_CHECK_HEADERS([sys/wait.h fpu_control.h ieeefp.h fenv.h])
 
 # For gnulib.
 gl_INIT
 
-AC_C_CONST
 AC_C_INLINE
 
 dnl  Dont use AC_TYPE_OFF_T --- it doesnt generate the HAVE_TYPE macro
 AC_CHECK_TYPES(off_t) 
-AC_CHECK_SIZEOF(float, 0)
-AC_CHECK_SIZEOF(double, 8)
-AC_CHECK_SIZEOF(long double, 0)
-
-AC_DEFINE(FPREP_IEEE754, 1,
-	[Define for machines that have IEEE 754 floating point arithmetic,
-         the most common format today.])
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(long double)
 
 AC_C_BIGENDIAN
 
-AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([__setfpucw execl fork isinf isnan finite getpid feholdexcept fpsetmask popen round trunc])
+AC_CHECK_FUNCS([__setfpucw fork execl execlp isinf isnan finite getpid feholdexcept fpsetmask popen round trunc])
 
 AC_PROG_LN_S
 
 dnl This is needed otherwise --with-included-gettext fails
 AH_BOTTOM([#include <locale.h>])
 
-AC_ARG_ENABLE(debug, [  --enable-debug          Turn on diagnostic features in the program])
+AC_ARG_ENABLE(
+  debug, 
+  [AS_HELP_STRING([--enable-debug], 
+                  [Turn on diagnostic features in the program])])
 if test x"$enable_debug" = x"yes"  ; then
   AC_DEFINE(DEBUGGING, 1, [Define to 1 if debugging is enabled.])
 fi

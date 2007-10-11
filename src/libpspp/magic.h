@@ -22,12 +22,6 @@
 #include <float.h>
 #include <limits.h>
 
-/* Check that the floating-point representation is one that we
-   understand. */
-#ifndef FPREP_IEEE754
-#error Only IEEE-754 floating point currently supported.
-#endif
-
 /* Allows us to specify individual bytes of a double. */
 union cvt_dbl {
   unsigned char cvt_dbl_i[8];

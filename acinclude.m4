@@ -37,7 +37,10 @@ AC_DEFUN([PSPP_PERL],
 dnl Check that libplot is available.
 AC_DEFUN([PSPP_LIBPLOT],
 [
-  AC_ARG_WITH(libplot, [  --without-libplot         don't compile in support of charts (using libplot)])
+  AC_ARG_WITH(
+    libplot, 
+    [AS_HELP_STRING([--without-libplot],
+                    [don't compile in support of charts (using libplot)])])
 
   if test x"$with_libplot" != x"no" ; then 
     # Check whether we can link against libplot without any extra libraries.

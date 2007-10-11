@@ -18,7 +18,7 @@
 
 #include "debugger.h"
 
-#if HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H
+#if HAVE_FORK && HAVE_EXECLP
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -61,7 +61,7 @@ connect_debugger (void)
   exit (EXIT_FAILURE);
 }
 
-#else /* !(HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H) */
+#else /* !(HAVE_FORK && HAVE_EXECLP) */
 /* Don't know how to connect to gdb.
    Just return.
  */
@@ -69,4 +69,4 @@ void
 connect_debugger (void)
 {
 }
-#endif /* !(HAVE_SYS_TYPES_H && HAVE_SYS_WAIT_H) */
+#endif /* !(HAVE_FORK && HAVE_EXECLP) */

@@ -1,3 +1,14 @@
+2007-10-10  Ben Pfaff  <blp@gnu.org>
+
+	* acinclude.m4: Improve formatting.
+
+	* configure.ac: Ditto.  Don't check for headers whose presence is
+	never tested.  Don't use AC_C_CONST (we can assume that "const" is
+	implemented these days).  Don't pass default sizes to
+	AC_CHECK_SIZEOF, since modern Autoconf doesn't need them.  Don't
+	define FPREP_IEEE754, since it was not tested for.  Don't use
+	AC_FUNC_VPRINTF, since we never tested for it.
+
 2007-10-06 John Darrington <john@darrington.wattle.id.au>
 
 	* configure.ac INSTALL: Change libglade version requirement.

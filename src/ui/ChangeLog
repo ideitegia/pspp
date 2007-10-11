@@ -1,3 +1,9 @@
+2007-10-10  Ben Pfaff  <blp@gnu.org>
+
+	* src/ui/debugger.c: Use debugger if HAVE_FORK is defined, not
+	HAVE_SYS_TYPES_H.  The latter is almost universal, but the former
+	is only available where it can be implemented.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	Adapt case sources, sinks, and clients of procedure code to the
