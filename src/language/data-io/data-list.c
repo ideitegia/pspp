@@ -18,6 +18,7 @@
 
 #include <ctype.h>
 #include <float.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -48,7 +49,6 @@
 #include <libpspp/str.h>
 #include <output/table.h>
 
-#include "size_max.h"
 #include "xsize.h"
 #include "xalloc.h"
 

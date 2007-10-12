@@ -18,6 +18,7 @@
 
 #include <gsl/gsl_cdf.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -43,7 +44,6 @@
 #include <output/manager.h>
 #include <output/table.h>
 
-#include "size_max.h"
 #include "xalloc.h"
 
 #include "gettext.h"

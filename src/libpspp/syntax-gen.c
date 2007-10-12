@@ -16,8 +16,8 @@
 
 #include <config.h>
 #include <stdbool.h>
+#include <stdint.h>
 
-#include "size_max.h"
 #include <libpspp/str.h>
 #include <libpspp/assertion.h>
 #include <string.h>

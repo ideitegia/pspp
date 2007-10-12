@@ -42,7 +42,6 @@
 
 #include "c-ctype.h"
 #include "minmax.h"
-#include "size_max.h"
 #include "xalloc.h"
 
 #include "gettext.h"

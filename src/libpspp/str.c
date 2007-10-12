@@ -19,14 +19,13 @@
 #include "str.h"
 
 #include <ctype.h>
-#include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <libpspp/message.h>
 #include <libpspp/pool.h>
 
 #include "minmax.h"
-#include "size_max.h"
 #include "xalloc.h"
 #include "xsize.h"
 

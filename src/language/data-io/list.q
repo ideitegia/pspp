@@ -16,11 +16,11 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "intprops.h"
-#include "size_max.h"
 #include "xmalloca.h"
 
 #include <data/casegrouper.h>

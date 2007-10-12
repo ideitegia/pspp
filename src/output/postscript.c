@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -42,7 +43,6 @@
 
 #include "intprops.h"
 #include "minmax.h"
-#include "size_max.h"
 #include "xalloc.h"
 
 #include "gettext.h"

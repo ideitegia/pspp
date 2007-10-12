@@ -20,6 +20,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -36,7 +37,6 @@
 #include <libpspp/str.h>
 
 #include "minmax.h"
-#include "size_max.h"
 #include "xalloc.h"
 
 #include "gettext.h"

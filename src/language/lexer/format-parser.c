@@ -19,6 +19,7 @@
 #include "format-parser.h"
 
 #include <ctype.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "lexer.h"
@@ -28,8 +29,6 @@
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
-
-#include "size_max.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
