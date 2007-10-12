@@ -17,8 +17,6 @@
 #ifndef BOX_WHISKER_H
 #define BOX_WHISKER_H
 
-#include <config.h>
-
 struct chart ;
 struct weighted_value;
 struct metrics;

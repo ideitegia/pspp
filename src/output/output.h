@@ -17,8 +17,6 @@
 #ifndef OUTPUT_OUTPUT_H
 #define OUTPUT_OUTPUT_H 1
 
-#include <config.h>
-
 #include <libpspp/str.h>
 
 

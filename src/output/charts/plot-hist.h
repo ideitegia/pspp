@@ -17,7 +17,6 @@
 #ifndef PLOT_HIST_H
 #define PLOT_HIST_H
 
-#include <config.h>
 #include <gsl/gsl_histogram.h>
 
 

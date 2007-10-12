@@ -17,7 +17,6 @@
 #if !binomial_h
 #define binomial_h 1
 
-#include <config.h>
 #include <stddef.h>
 #include <stdbool.h>
 

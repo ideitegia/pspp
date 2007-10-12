@@ -16,6 +16,7 @@
 */
 
 
+#include <config.h>
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 #include "t-test-independent-samples-dialog.h"

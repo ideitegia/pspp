@@ -17,7 +17,6 @@
 #ifndef SORT_CRITERIA_H
 #define SORT_CRITERIA_H
 
-#include <config.h>
 #include <stdbool.h>
 #include <stddef.h>
 

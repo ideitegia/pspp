@@ -17,8 +17,6 @@
 #if !n_par_summary_h
 #define n_par_summary_h 1
 
-#include <config.h>
-
 struct variable ;
 struct casereader ;
 struct dictionary;
