@@ -25,7 +25,6 @@
 
 #include <data/file-name.h>
 #include <data/settings.h>
-#include <libpspp/alloc.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <output/htmlP.h>
@@ -33,6 +32,7 @@
 
 #include "error.h"
 #include "intprops.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

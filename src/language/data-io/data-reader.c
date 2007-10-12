@@ -31,13 +31,13 @@
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
 #include <language/prompt.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
 #include "minmax.h"
 #include "size_max.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -17,7 +17,6 @@
 #include <config.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
 #include <language/command.h>
 #include <libpspp/message.h>
 #include <libpspp/getl.h>
@@ -25,9 +24,10 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/str.h>
 #include <data/file-name.h>
-#include <dirname.h>
-#include <canonicalize.h>
 
+#include "dirname.h"
+#include "canonicalize.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

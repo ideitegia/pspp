@@ -38,7 +38,6 @@
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
@@ -59,6 +58,7 @@
 #include "freq.h"
 
 #include "minmax.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

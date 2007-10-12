@@ -18,13 +18,14 @@
 #include <config.h>
 
 #include <libpspp/getl.h>
-#include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/str.h>
 
 #include <stdlib.h>
 
 #include "syntax-string-source.h"
+
+#include "xalloc.h"
 
 struct syntax_string_source
   {

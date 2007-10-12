@@ -29,13 +29,13 @@
 #include <data/data-out.h>
 #include <data/format.h>
 #include <data/value.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 
 #include "minmax.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

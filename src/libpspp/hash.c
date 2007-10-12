@@ -24,12 +24,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "array.h"
-#include "alloc.h"
 #include "compiler.h"
 #include "misc.h"
 #include "str.h"
 #include "pool.h"
 
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

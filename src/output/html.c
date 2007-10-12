@@ -24,7 +24,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <data/file-name.h>
@@ -33,6 +32,8 @@
 #include "manager.h"
 #include "table.h"
 #include <libpspp/version.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -28,10 +28,10 @@
 #include <output/chart.h>
 
 #include <libpspp/str.h>
-#include <libpspp/alloc.h>
 #include <output/manager.h>
 #include <output/output.h>
 
+#include "xalloc.h"
 
 #ifndef PLOT_CHART_H
 #define PLOT_CHART_H

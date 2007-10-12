@@ -29,12 +29,13 @@
 #include "vardict.h"
 
 #include <libpspp/misc.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

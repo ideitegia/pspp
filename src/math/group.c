@@ -16,7 +16,6 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include "group.h"
@@ -25,6 +24,7 @@
 #include <data/variable.h>
 #include <libpspp/misc.h>
 
+#include "xalloc.h"
 
 /* Return -1 if the id of a is less than b; +1 if greater than and
    0 if equal */

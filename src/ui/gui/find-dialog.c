@@ -30,17 +30,16 @@ which match particular strings */
 #include <data/datasheet.h>
 #include <data/data-in.h>
 #include "psppire-data-store.h"
-#include <libpspp/alloc.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <regex.h>
 #include <libpspp/message.h>
 
-
-
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <stdlib.h>
+
+#include "xalloc.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)

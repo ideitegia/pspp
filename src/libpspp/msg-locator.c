@@ -16,11 +16,12 @@
 
 #include <config.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
 #include "msg-locator.h"
 #include <libpspp/message.h>
 #include <libpspp/assertion.h>
 #include "getl.h"
+
+#include "xalloc.h"
 
 /* File locator stack. */
 static const struct msg_locator **file_loc;

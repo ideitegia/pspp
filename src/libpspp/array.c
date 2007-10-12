@@ -88,11 +88,9 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
-#include "alloc.h"
 #include <libpspp/assertion.h>
 
-#include "message.h"
-
+#include "xalloc.h"
 #include "minmax.h"
 
 /* Finds an element in ARRAY, which contains COUNT elements of

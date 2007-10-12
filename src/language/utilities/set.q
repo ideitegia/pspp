@@ -33,7 +33,6 @@
 #include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/prompt.h>
-#include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/copyleft.h>
 #include <libpspp/float-format.h>
@@ -51,6 +50,8 @@ int tgetent (char *, const char *);
 int tgetnum (const char *);
 #endif /* !HAVE_TERMCAP_H */
 #endif /* !HAVE_LIBTERMCAP */
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

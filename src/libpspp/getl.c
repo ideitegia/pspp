@@ -22,7 +22,8 @@
 #include <libpspp/str.h>
 #include <libpspp/ll.h>
 #include <libpspp/version.h>
-#include <libpspp/alloc.h>
+
+#include "xalloc.h"
 
 struct getl_source
   {

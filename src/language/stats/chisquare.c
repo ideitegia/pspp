@@ -29,7 +29,6 @@
 #include <data/variable.h>
 #include <language/stats/freq.h>
 #include <language/stats/npar.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
@@ -38,6 +37,8 @@
 #include <output/table.h>
 
 #include <gsl/gsl_cdf.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

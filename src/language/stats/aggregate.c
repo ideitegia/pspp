@@ -36,7 +36,6 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <language/stats/sort-criteria.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
@@ -46,6 +45,7 @@
 #include <math/sort.h>
 
 #include "minmax.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

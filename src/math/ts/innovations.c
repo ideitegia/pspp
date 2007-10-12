@@ -30,10 +30,11 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_math.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <math/coefficient.h>
 #include <math/ts/innovations.h>
+
+#include "xalloc.h"
 
 static void
 get_mean (const gsl_matrix *data,

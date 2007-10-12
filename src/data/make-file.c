@@ -23,7 +23,8 @@
 #include "file-name.h"
 #include "make-file.h"
 #include <libpspp/message.h>
-#include <libpspp/alloc.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

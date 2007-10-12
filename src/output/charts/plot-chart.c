@@ -32,11 +32,11 @@
 
 
 #include <libpspp/str.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <output/manager.h>
 #include <output/output.h>
 
+#include "xalloc.h"
 
 const char *const data_colour[] = {
   "brown",

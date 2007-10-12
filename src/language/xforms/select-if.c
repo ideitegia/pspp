@@ -26,9 +26,10 @@
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

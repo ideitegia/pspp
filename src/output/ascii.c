@@ -24,7 +24,6 @@
 
 #include <data/file-name.h>
 #include <data/settings.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/pool.h>
@@ -35,6 +34,7 @@
 #include "error.h"
 #include "minmax.h"
 #include "output.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

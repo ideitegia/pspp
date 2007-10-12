@@ -33,7 +33,6 @@
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
@@ -44,6 +43,7 @@
 #include <output/table.h>
 
 #include "minmax.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

@@ -17,7 +17,6 @@
 #include <config.h>
 #include <libpspp/compiler.h>
 #include <output/table.h>
-#include <libpspp/alloc.h>
 
 #include <data/case.h>
 #include <data/casereader.h>
@@ -32,6 +31,8 @@
 
 #include "binomial.h"
 #include "freq.h"
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

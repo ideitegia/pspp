@@ -26,11 +26,12 @@
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <data/case-ordering.h>
 #include <math/sort.h>
 #include <sys/types.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

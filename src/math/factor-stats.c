@@ -19,7 +19,6 @@
 #include <data/value.h>
 #include <libpspp/hash.h>
 #include <libpspp/array.h>
-#include <libpspp/alloc.h>
 #include "moments.h"
 #include "percentiles.h"
 
@@ -29,6 +28,7 @@
 #include <assert.h>
 #include "histogram.h"
 
+#include "xalloc.h"
 
 void
 metrics_precalc(struct metrics *m)

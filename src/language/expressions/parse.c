@@ -31,13 +31,14 @@
 #include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
+
+#include "xalloc.h"
 
 /* Declarations. */
 

@@ -23,7 +23,6 @@
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <language/command.h>
 #include <libpspp/message.h>
@@ -33,6 +32,7 @@
 #include <output/journal.h>
 
 #include "size_max.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

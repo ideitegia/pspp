@@ -19,12 +19,14 @@
 #include <data/case-map.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <data/dictionary.h>
 #include <data/variable.h>
 #include <data/case.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
+
+#include "xalloc.h"
 
 /* A case map. */
 struct case_map

@@ -16,12 +16,13 @@
 
 #include <config.h>
 #include <libpspp/message.h>
-#include <libpspp/alloc.h>
 #include <libpspp/str.h>
 #include <language/lexer/lexer.h>
 #include <language/command.h>
 #include <output/table.h>
 #include <output/manager.h>
+
+#include "xalloc.h"
 
 /* Echos a string to the output stream */
 int

@@ -22,12 +22,12 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <libpspp/pool.h>
 
 #include "minmax.h"
 #include "size_max.h"
+#include "xalloc.h"
 #include "xsize.h"
 
 /* Reverses the order of NBYTES bytes at address P, thus converting

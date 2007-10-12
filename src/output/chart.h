@@ -25,9 +25,10 @@
 
 #include <math/chart-geometry.h>
 #include <libpspp/str.h>
-#include <libpspp/alloc.h>
 #include "manager.h"
 #include "output.h"
+
+#include "xalloc.h"
 
 #ifndef CHART_H
 #define CHART_H

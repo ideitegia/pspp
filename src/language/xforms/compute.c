@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <data/case.h>
@@ -27,11 +28,11 @@
 #include <language/command.h>
 #include <language/expressions/public.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/alloc.h>
-#include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

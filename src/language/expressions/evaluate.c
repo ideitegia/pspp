@@ -18,12 +18,13 @@
 #include "private.h"
 
 #include <ctype.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include "helpers.h"
 #include "evaluate.h"
 #include <libpspp/pool.h>
+
+#include "xalloc.h"
 
 static void
 expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,

@@ -29,12 +29,12 @@
 
 #include <plot.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/str.h>
 #include <output/manager.h>
 #include <output/output.h>
 
 #include "error.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

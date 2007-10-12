@@ -24,11 +24,12 @@
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
 #include <output/output.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

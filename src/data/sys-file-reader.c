@@ -25,7 +25,6 @@
 #include <setjmp.h>
 #include <stdlib.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/compiler.h>
@@ -51,6 +50,7 @@
 #include "inttostr.h"
 #include "minmax.h"
 #include "unlocked-io.h"
+#include "xalloc.h"
 #include "xsize.h"
 
 #include "gettext.h"

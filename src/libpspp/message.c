@@ -26,10 +26,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/version.h>
 
 #include "progname.h"
+#include "xalloc.h"
 #include "xvasprintf.h"
 
 /* Current command name as set by msg_set_command_name(). */

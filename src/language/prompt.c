@@ -27,7 +27,6 @@
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
@@ -35,6 +34,8 @@
 #include <libpspp/verbose-msg.h>
 #include <libpspp/version.h>
 #include <output/table.h>
+
+#include "xalloc.h"
 
 /* Current prompts in each style. */
 static char *prompts[PROMPT_CNT];

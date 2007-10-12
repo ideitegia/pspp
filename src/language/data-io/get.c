@@ -37,7 +37,6 @@
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
@@ -45,6 +44,8 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <libpspp/taint.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

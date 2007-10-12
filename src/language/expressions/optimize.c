@@ -20,7 +20,6 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <data/calendar.h>
 #include <data/data-in.h>
@@ -32,6 +31,8 @@
 #include "public.h"
 #include <libpspp/str.h>
 #include <data/variable.h>
+
+#include "xalloc.h"
 
 static union any_node *evaluate_tree (struct composite_node *,
                                       struct expression *);

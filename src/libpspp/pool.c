@@ -17,11 +17,12 @@
 #include <config.h>
 #include "pool.h"
 #include <stdlib.h>
-#include "alloc.h"
 #include <libpspp/assertion.h>
 #include "message.h"
-#include "size_max.h"
 #include "str.h"
+
+#include "size_max.h"
+#include "xalloc.h"
 
 /* Fast, low-overhead memory block suballocator. */
 struct pool

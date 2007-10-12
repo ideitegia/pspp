@@ -28,12 +28,13 @@
 
 #include <config.h>
 #include <assert.h>
-#include <libpspp/alloc.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <data/category.h>
 #include <data/variable.h>
 #include "interaction.h"
+
+#include "xalloc.h"
 
 /*
   Convert a list of values to a binary vector. The order of VALS must

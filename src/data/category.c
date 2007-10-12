@@ -34,11 +34,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include "category.h"
 #include "value.h"
 #include "variable.h"
+
+#include "xalloc.h"
 
 #define CAT_VALUE_NOT_FOUND -2
 

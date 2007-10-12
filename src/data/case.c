@@ -24,10 +24,10 @@
 
 #include <data/value.h>
 #include <data/variable.h>
-#include <libpspp/alloc.h>
 #include <libpspp/str.h>
 
 #include "minmax.h"
+#include "xalloc.h"
 
 /* Reference-counted case implementation. */
 struct case_data

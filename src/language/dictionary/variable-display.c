@@ -24,9 +24,10 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
+
+#include "xalloc.h"
 
 /* Set variables' alignment
    This is the alignment for GUI display only.

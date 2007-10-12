@@ -32,12 +32,12 @@
 #include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/variable.h>
-#include <libpspp/alloc.h>
 #include <libpspp/deque.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <libpspp/taint.h>
 
+#include "xalloc.h"
 
 struct dataset {
   /* Cases are read from source,

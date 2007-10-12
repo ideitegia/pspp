@@ -28,7 +28,6 @@
 #include "vardict.h"
 #include "variable.h"
 #include "vector.h"
-#include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
@@ -38,6 +37,7 @@
 #include <libpspp/str.h>
 
 #include "minmax.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

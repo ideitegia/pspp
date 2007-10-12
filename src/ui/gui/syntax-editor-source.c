@@ -18,7 +18,6 @@
 #include <config.h>
 
 #include <libpspp/getl.h>
-#include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/str.h>
 
@@ -28,6 +27,8 @@
 
 #include "syntax-editor-source.h"
 #include "syntax-editor.h"
+
+#include "xalloc.h"
 
 struct syntax_editor_source
   {

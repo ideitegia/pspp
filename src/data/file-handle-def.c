@@ -23,13 +23,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <data/file-name.h>
 #include <data/variable.h>
 #include <data/scratch-handle.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

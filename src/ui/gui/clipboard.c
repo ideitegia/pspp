@@ -22,7 +22,6 @@
 #include "psppire-data-store.h"
 #include <data/casereader.h>
 #include <data/case-map.h>
-#include <libpspp/alloc.h>
 #include <data/casewriter.h>
 #include <data/format.h>
 #include <data/data-out.h>
@@ -30,6 +29,7 @@
 #include <stdlib.h>
 #include "data-editor.h"
 
+#include "xalloc.h"
 
 /* A casereader and dictionary holding the data currently in the clip */
 static struct casereader *clip_datasheet = NULL;

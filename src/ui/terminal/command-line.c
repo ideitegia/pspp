@@ -23,7 +23,6 @@
 #include <errno.h>
 #include <getopt.h>
 #include <stdlib.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/copyleft.h>
 #include <libpspp/message.h>
@@ -37,6 +36,8 @@
 #include <libpspp/version.h>
 #include <libpspp/verbose-msg.h>
 #include "read-line.h"
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

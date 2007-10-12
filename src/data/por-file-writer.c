@@ -38,12 +38,13 @@
 #include <data/value-labels.h>
 #include <data/variable.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

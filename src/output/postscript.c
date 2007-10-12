@@ -23,7 +23,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
@@ -38,11 +37,13 @@
 #include "afm.h"
 #include "chart.h"
 #include "error.h"
-#include "intprops.h"
 #include "manager.h"
-#include "minmax.h"
 #include "output.h"
+
+#include "intprops.h"
+#include "minmax.h"
 #include "size_max.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

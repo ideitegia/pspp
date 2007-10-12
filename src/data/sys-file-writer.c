@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
@@ -49,6 +48,7 @@
 
 #include "minmax.h"
 #include "unlocked-io.h"
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

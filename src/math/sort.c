@@ -26,10 +26,11 @@
 #include <data/casewriter.h>
 #include <data/casewriter-provider.h>
 #include <data/settings.h>
-#include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <math/merge.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

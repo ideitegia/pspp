@@ -26,7 +26,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <data/variable.h>
 #include <data/category.h>
@@ -35,6 +34,8 @@
 #include <gsl/gsl_machine.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
+
+#include "xalloc.h"
 
 #define DM_COLUMN_NOT_FOUND -1
 #define DM_INDEX_NOT_FOUND -3

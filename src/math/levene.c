@@ -25,12 +25,13 @@
 #include <libpspp/str.h>
 #include <data/variable.h>
 #include <data/procedure.h>
-#include <libpspp/alloc.h>
 #include <libpspp/misc.h>
 #include "group.h"
 
 #include <math.h>
 #include <stdlib.h>
+
+#include "xalloc.h"
 
 
 /* This module calculates the Levene statistic for variables.
