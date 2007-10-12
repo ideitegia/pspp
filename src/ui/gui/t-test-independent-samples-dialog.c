@@ -234,9 +234,6 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   GladeXML *xml = XML_NEW ("t-test.glade");
 
-  tt_d.dialog = get_widget_assert (xml,
-					 "t-test-independent-samples-dialog");
-
   GtkSheet *var_sheet =
     GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
@@ -264,6 +261,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
+  tt_d.dialog = get_widget_assert (xml, "t-test-independent-samples-dialog");
   tt_d.xml = xml;
   tt_d.dict = vs->dict;
   tt_d.groups_defined = FALSE;
