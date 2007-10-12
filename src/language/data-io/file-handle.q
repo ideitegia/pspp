@@ -25,7 +25,6 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
-#include <libpspp/magic.h>
 #include <libpspp/str.h>
 #include <data/variable.h>
 #include <data/file-handle-def.h>
@@ -93,7 +92,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
       break;
     case FH_IMAGE:
       properties.mode = FH_MODE_BINARY;
-      if (cmd.n_lrecl[0] == NOT_LONG)
+      if (cmd.n_lrecl[0] == LONG_MIN)
         msg (SE, _("Fixed-length records were specified on /RECFORM, but "
                    "record length was not specified on /LRECL.  "
                    "Assuming %u-character records."),

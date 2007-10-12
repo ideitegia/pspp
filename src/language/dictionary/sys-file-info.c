@@ -36,7 +36,6 @@
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/hash.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>

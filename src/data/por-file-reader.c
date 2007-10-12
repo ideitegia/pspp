@@ -38,7 +38,6 @@
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -611,7 +610,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
     error (r, _("Expected variable count record."));
 
   r->var_cnt = read_int (r);
-  if (r->var_cnt <= 0 || r->var_cnt == NOT_INT)
+  if (r->var_cnt <= 0)
     error (r, _("Invalid number of variables %d."), r->var_cnt);
   r->widths = pool_nalloc (r->pool, r->var_cnt, sizeof *r->widths);
 

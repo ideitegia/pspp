@@ -43,7 +43,6 @@
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -311,7 +310,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   if (!parse_frequencies (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
-  if (cmd.onepage_limit == NOT_LONG)
+  if (cmd.onepage_limit == LONG_MIN)
     cmd.onepage_limit = 50;
 
   /* Figure out statistics to calculate. */

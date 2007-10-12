@@ -38,7 +38,6 @@
 #include <libpspp/copyleft.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <math/random.h>
 #include <output/journal.h>

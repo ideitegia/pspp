@@ -1244,7 +1244,7 @@ dump_specifier_init (const specifier *spec, const subcommand *sbc)
 
 	    assert (s->value == VAL_INT || s->value == VAL_DBL
                     || s->value == VAL_STRING);
-	    init = (s->value == VAL_INT ? "NOT_LONG"
+	    init = (s->value == VAL_INT ? "LONG_MIN"
                     : s->value == VAL_DBL ? "SYSMIS"
                     : "NULL");
 
@@ -1339,7 +1339,7 @@ dump_vars_init (int persistent)
 		dump (1, "{");
 		dump (0, "int i;");
 		dump (1, "for (i = 0; i < MAXLISTS; ++i)");
-		dump (0, "p->n_%s[i] = NOT_LONG;", st_lower (sbc->name));
+		dump (0, "p->n_%s[i] = LONG_MIN;", st_lower (sbc->name));
 		dump (-2, "}");
 		break;
 
@@ -2079,7 +2079,6 @@ main (int argc, char *argv[])
 	  dump (0, "#include <language/lexer/lexer.h>");
 	  dump (0, "#include <language/lexer/variable-parser.h>");
           dump (0, "#include <data/settings.h>");
-	  dump (0, "#include <libpspp/magic.h>");
 	  dump (0, "#include <libpspp/str.h>");
           dump (0, "#include <language/lexer/subcommand-list.h>");
 	  dump (0, "#include <data/variable.h>");

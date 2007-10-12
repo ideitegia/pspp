@@ -20,7 +20,6 @@
 #include <data/data-in.h>
 #include <libpspp/message.h>
 #include "lexer.h"
-#include <libpspp/magic.h>
 #include <libpspp/str.h>
 #include <data/value.h>
 

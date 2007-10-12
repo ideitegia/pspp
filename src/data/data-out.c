@@ -34,7 +34,6 @@
 #include <libpspp/assertion.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/misc.h>

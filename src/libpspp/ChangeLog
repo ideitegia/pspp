@@ -1,3 +1,13 @@
+2007-10-11  Ben Pfaff  <blp@gnu.org>
+
+	* float-format.c (float_get_lowest): New function.
+	
+	* magic.c: Removed.
+
+	* magic.h: Removed.  Changed all references to NOT_INT,
+	NOT_DOUBLE, and NOT_LONG to use other constants.  Changed
+	references to second_lowest_value to call float_get_lowest.
+
 2007-10-10  Ben Pfaff  <blp@gnu.org>
 
 	We assume IEEE-754 now.

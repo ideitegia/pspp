@@ -18,6 +18,7 @@
 #define value_h 1
 
 #include <float.h>
+#include <libpspp/float-format.h>
 #include <libpspp/misc.h>
 #include "minmax.h"
 #include <config.h>
@@ -33,7 +34,7 @@
 
 /* Special values. */
 #define SYSMIS (-DBL_MAX)
-#define LOWEST second_lowest_value
+#define LOWEST (float_get_lowest ())
 #define HIGHEST DBL_MAX
 
 /* Number of "union value"s required for a variable of the given

@@ -66,4 +66,6 @@ size_t float_get_size (enum float_format) PURE_FUNCTION;
 int float_identify (double expected_value, const void *, size_t,
                     enum float_format *best_guess);
 
+double float_get_lowest (void);
+
 #endif /* float-format.h */

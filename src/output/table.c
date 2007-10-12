@@ -32,7 +32,6 @@
 #include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
-#include <libpspp/magic.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 
@@ -474,7 +473,6 @@ tab_natural_height (struct tab_table *t, struct outp_driver *d, int r)
 	unsigned char opt = t->ct[c + r * t->cf];
         int h;
 
-	assert (t->w[c] != NOT_INT);
 	if (opt & (TAB_JOIN | TAB_EMPTY))
 	  continue;
 

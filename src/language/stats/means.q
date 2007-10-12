@@ -26,7 +26,6 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/hash.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 
 #include "gettext.h"

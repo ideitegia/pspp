@@ -39,8 +39,6 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/ll.h \
 	src/libpspp/llx.c \
 	src/libpspp/llx.h \
-	src/libpspp/magic.c \
-	src/libpspp/magic.h \
 	src/libpspp/message.c \
 	src/libpspp/message.h \
 	src/libpspp/misc.c \

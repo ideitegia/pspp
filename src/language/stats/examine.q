@@ -35,7 +35,6 @@
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>

@@ -155,9 +155,9 @@ parse_options (struct lexer *lexer)
             msg (SW, _("At least one value must be specified on PATH."));
         }
     }
-  if (cmd.max_depth != NOT_LONG)
+  if (cmd.max_depth != LONG_MIN)
     mc_options_set_max_depth (options, cmd.max_depth);
-  if (cmd.hash_bits != NOT_LONG)
+  if (cmd.hash_bits != LONG_MIN)
     {
       int hash_bits;
       mc_options_set_hash_bits (options, cmd.hash_bits);
@@ -165,7 +165,7 @@ parse_options (struct lexer *lexer)
       if (hash_bits != cmd.hash_bits)
         msg (SW, _("Hash bits adjusted to %d."), hash_bits);
     }
-  if (cmd.queue_limit != NOT_LONG)
+  if (cmd.queue_limit != LONG_MIN)
     mc_options_set_queue_limit (options, cmd.queue_limit);
   if (cmd.drop != -1)
     {
@@ -178,15 +178,15 @@ parse_options (struct lexer *lexer)
     }
   if (cmd.sbc_search > 0)
     mc_options_set_seed (options, cmd.n_seed[0]);
-  if (cmd.max_unique_states != NOT_LONG)
+  if (cmd.max_unique_states != LONG_MIN)
     mc_options_set_max_unique_states (options, cmd.max_unique_states);
-  if (cmd.max_errors != NOT_LONG)
+  if (cmd.max_errors != LONG_MIN)
     mc_options_set_max_errors (options, cmd.max_errors);
   if (cmd.time_limit != SYSMIS)
     mc_options_set_time_limit (options, cmd.time_limit);
-  if (cmd.verbosity != NOT_LONG)
+  if (cmd.verbosity != LONG_MIN)
     mc_options_set_verbosity (options, cmd.verbosity);
-  if (cmd.err_verbosity != NOT_LONG)
+  if (cmd.err_verbosity != LONG_MIN)
     mc_options_set_failure_verbosity (options, cmd.err_verbosity);
   if (cmd.progress != -1)
     {

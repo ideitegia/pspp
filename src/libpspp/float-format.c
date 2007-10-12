@@ -187,6 +187,24 @@ float_identify (double expected_value, const void *number, size_t length,
       }
   return match_cnt;
 }
+
+/* Returns the double value that is just greater than -DBL_MAX,
+   which in PSPP syntax files is called LOWEST and used as the
+   low end of numeric ranges that are supposed to be unbounded on
+   the low end, as in the missing value set created by,
+   e.g. MISSING VALUES X(LOWEST THRU 5).  (-DBL_MAX is used for
+   SYSMIS so it is not available for LOWEST.) */
+double
+float_get_lowest (void)
+{
+  struct fp fp;
+  double x;
+
+  fp.class = LOWEST;
+  fp.sign = POSITIVE;
+  assemble_number (FLOAT_NATIVE_DOUBLE, &fp, &x);
+  return x;
+}
 
 /* Returns CNT bits in X starting from the given bit OFS. */
 static inline uint64_t

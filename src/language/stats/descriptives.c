@@ -33,7 +33,6 @@
 #include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/compiler.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/assertion.h>
 #include <math/moments.h>

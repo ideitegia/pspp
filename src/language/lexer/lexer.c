@@ -27,7 +27,6 @@
 #include <libpspp/assertion.h>
 #include <language/command.h>
 #include <libpspp/message.h>
-#include <libpspp/magic.h>
 #include <data/settings.h>
 #include <libpspp/getl.h>
 #include <libpspp/str.h>
@@ -513,8 +512,7 @@ bool
 lex_is_integer (struct lexer *lexer)
 {
   return (lex_is_number (lexer)
-	  && lexer->tokval != NOT_LONG
-	  && lexer->tokval >= LONG_MIN
+	  && lexer->tokval > LONG_MIN
 	  && lexer->tokval <= LONG_MAX
 	  && floor (lexer->tokval) == lexer->tokval);
 }

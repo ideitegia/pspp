@@ -27,7 +27,6 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <language/lexer/range-parser.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>

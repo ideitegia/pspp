@@ -33,7 +33,6 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/alloc.h>
 #include <libpspp/compiler.h>
-#include <libpspp/magic.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
@@ -141,11 +140,11 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
     return CMD_FAILURE;
 
   /* Fill in defaults. */
-  if (cmd.step == NOT_LONG)
+  if (cmd.step == LONG_MIN)
     cmd.step = 1;
-  if (cmd.first == NOT_LONG)
+  if (cmd.first == LONG_MIN)
     cmd.first = 1;
-  if (cmd.last == NOT_LONG)
+  if (cmd.last == LONG_MIN)
     cmd.last = LONG_MAX;
   if (!cmd.sbc_variables)
     dict_get_vars (dict, &cmd.v_variables, &cmd.n_variables,

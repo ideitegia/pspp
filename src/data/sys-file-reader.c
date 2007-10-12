@@ -29,7 +29,6 @@
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/compiler.h>
-#include <libpspp/magic.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
