@@ -46,12 +46,10 @@
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
-#include <libpspp/alloc.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
-#include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
@@ -60,6 +58,8 @@
 #include <output/table.h>
 
 #include "minmax.h"
+#include "xalloc.h"
+#include "xmalloca.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -551,7 +551,7 @@ precalc (struct casereader *input, const struct dataset *ds)
 
 	  sorted_tab = xnrealloc (sorted_tab,
                                   n_sorted_tab + count, sizeof *sorted_tab);
-	  v = local_alloc (sizeof *v * x->nvar);
+	  v = xmalloca (sizeof *v * x->nvar);
 	  for (j = 2; j < x->nvar; j++)
             v[j] = get_var_range (x->vars[j])->min;
 	  for (j = 0; j < count; j++)
@@ -585,7 +585,7 @@ precalc (struct casereader *input, const struct dataset *ds)
                     break;
                 }
 	    }
-	  local_free (v);
+	  freea (v);
 	}
 
       sorted_tab = xnrealloc (sorted_tab,
@@ -615,7 +615,7 @@ calc_general (struct ccase *c, const struct dataset *ds)
       struct crosstab *x = xtab[t];
       const size_t entry_size = (sizeof (struct table_entry)
 				 + sizeof (union value) * (x->nvar - 1));
-      struct table_entry *te = local_alloc (entry_size);
+      struct table_entry *te = xmalloca (entry_size);
 
       /* Construct table entry for the current record and table. */
       te->table = t;
@@ -664,7 +664,7 @@ calc_general (struct ccase *c, const struct dataset *ds)
       }
 
     next_crosstab:
-      local_free (te);
+      freea (te);
     }
 }
 
@@ -924,7 +924,7 @@ insert_summary (struct tab_table *t, int tab_index, double valid)
 
   /* Crosstabulation name. */
   {
-    char *buf = local_alloc (128 * x->nvar);
+    char *buf = xmalloca (128 * x->nvar);
     char *cp = buf;
     int i;
 
@@ -937,7 +937,7 @@ insert_summary (struct tab_table *t, int tab_index, double valid)
       }
     tab_text (t, 0, 0, TAB_LEFT, buf);
 
-    local_free (buf);
+    freea (buf);
   }
 
   /* Counts and percentages. */
@@ -1064,7 +1064,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 
       /* Title. */
       {
-	char *title = local_alloc (x->nvar * 64 + 128);
+	char *title = xmalloca (x->nvar * 64 + 128);
 	char *cp = title;
 	int i;
 
@@ -1130,7 +1130,7 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
 	strcpy (cp, "].");
 
 	tab_title (table, "%s", title);
-	local_free (title);
+	freea (title);
       }
 
       tab_offset (table, 0, 2);
@@ -2734,8 +2734,8 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
   /* Spearman correlation, Pearson's r. */
   if (cmd.a_statistics[CRS_ST_CORR])
     {
-      double *R = local_alloc (sizeof *R * n_rows);
-      double *C = local_alloc (sizeof *C * n_cols);
+      double *R = xmalloca (sizeof *R * n_rows);
+      double *C = xmalloca (sizeof *C * n_cols);
 
       {
 	double y, t, c = 0., s = 0.;
@@ -2774,8 +2774,8 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
       calc_r (R, C, &v[6], &t[6], &ase[6]);
       t[6] = v[6] / t[6];
 
-      local_free (R);
-      local_free (C);
+      freea (R);
+      freea (C);
 
       calc_r ((double *) rows, (double *) cols, &v[7], &t[7], &ase[7]);
       t[7] = v[7] / t[7];

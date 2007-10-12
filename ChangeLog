@@ -1,3 +1,8 @@
+2007-10-11  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Drop alloca, alloca-opt modules as we don't use them
+	anymore.
+
 2007-10-10  Ben Pfaff  <blp@gnu.org>
 
 	* acinclude.m4: Improve formatting.

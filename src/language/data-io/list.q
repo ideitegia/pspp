@@ -21,6 +21,8 @@
 
 #include "intprops.h"
 #include "size_max.h"
+#include "xmalloca.h"
+
 #include <data/casegrouper.h>
 #include <data/casereader.h>
 #include <data/dictionary.h>
@@ -462,8 +464,8 @@ write_fallback_headers (struct outp_driver *d)
   int line_number = 0;
 
   const char *Line = _("Line");
-  char *leader = local_alloc (strlen (Line)
-                              + INT_STRLEN_BOUND (line_number) + 1 + 1);
+  char *leader = xmalloca (strlen (Line)
+                           + INT_STRLEN_BOUND (line_number) + 1 + 1);
 
   while (index < cmd.n_variables)
     {
@@ -517,7 +519,7 @@ write_fallback_headers (struct outp_driver *d)
   d->cp_x = 0;
   d->cp_y += d->font_height;
 
-  local_free (leader);
+  freea (leader);
 }
 
 /* There are three possible layouts for the LIST procedure:

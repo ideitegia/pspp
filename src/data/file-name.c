@@ -28,13 +28,15 @@
 #include "intprops.h"
 #include "minmax.h"
 #include "dirname.h"
+#include "xmalloca.h"
 
-#include <libpspp/alloc.h>
 #include <libpspp/message.h>
 #include <data/settings.h>
 #include <libpspp/str.h>
 #include <libpspp/verbose-msg.h>
 #include <libpspp/version.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -279,13 +281,13 @@ fn_open (const char *fn, const char *mode)
       if (get_safer_mode ())
 	return safety_violation (fn);
 
-      s = local_alloc (strlen (fn));
+      s = xmalloca (strlen (fn));
       memcpy (s, fn, strlen (fn) - 1);
       s[strlen (fn) - 1] = 0;
 
       f = popen (s, mode[0] == 'r' ? "r" : "w");
 
-      local_free (s);
+      freea (s);
 
       return f;
     }

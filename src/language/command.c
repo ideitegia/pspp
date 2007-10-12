@@ -31,7 +31,6 @@
 #include <data/variable.h>
 #include <language/lexer/lexer.h>
 #include <language/prompt.h>
-#include <libpspp/alloc.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
@@ -48,6 +47,9 @@
 #if HAVE_READLINE
 #include <readline/readline.h>
 #endif
+
+#include "xalloc.h"
+#include "xmalloca.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -777,7 +779,7 @@ shell (void)
 	{
 	  const char *cp = strrchr (shell_fn, '/');
 	  cp = cp ? &cp[1] : shell_fn;
-	  shell_process = local_alloc (strlen (cp) + 8);
+	  shell_process = xmalloca (strlen (cp) + 8);
 	  strcpy (shell_process, "-");
 	  strcat (shell_process, cp);
 	  if (strcmp (cp, "sh"))

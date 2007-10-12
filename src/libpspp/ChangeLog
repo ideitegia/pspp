@@ -1,5 +1,11 @@
 2007-10-11  Ben Pfaff  <blp@gnu.org>
 
+	* alloc.h (local_alloc): Removed.  Changed all users to use
+	xmalloca instead.
+	(local_free): Removed.  Changed all users to use freea instead.
+
+2007-10-11  Ben Pfaff  <blp@gnu.org>
+
 	* float-format.c (float_get_lowest): New function.
 	
 	* magic.c: Removed.

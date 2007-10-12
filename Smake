@@ -5,8 +5,6 @@ GNULIB = ../gnulib
 GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
 GNULIB_MODULES = \
-	alloca \
-	alloca-opt \
 	assert \
 	byteswap \
 	c-ctype \
