@@ -1,3 +1,10 @@
+2007-10-12  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6224.
+
+	* helpers.c: Don't need our own trunc function implementation
+	anymore, since we now use the one from gnulib.
+
 2007-07-17  Ben Pfaff  <blp@gnu.org>
 
 	Patch #19335.  Reviewed by John Darrington.

@@ -131,15 +131,6 @@ enum date_unit
     DATE_SECONDS
   };
 
-#ifndef HAVE_TRUNC
-/* Return X rounded toward zero. */
-static double
-trunc (double x)
-{
-  return x >= 0.0 ? floor (x) : ceil (x);
-}
-#endif /* !HAVE_TRUNC */
-
 /* Stores in *UNIT the unit whose name is NAME.
    Return success. */
 static enum date_unit

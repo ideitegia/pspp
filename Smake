@@ -60,6 +60,7 @@ GNULIB_MODULES = \
 	strtoul \
 	sys_stat \
 	tmpfile \
+	trunc \
 	unistd \
 	unlocked-io \
 	vasprintf-posix \

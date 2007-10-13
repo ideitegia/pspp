@@ -1,5 +1,14 @@
 2007-10-12  Ben Pfaff  <blp@gnu.org>
 
+	Use trunc module from gnulib instead of our home-grown solution.
+	Patch #6224.
+
+	* Smake: Add trunc to module list.
+
+	* configure.ac: Don't need to check for trunc function any longer.
+
+2007-10-12  Ben Pfaff  <blp@gnu.org>
+
 	Use fseeko module from gnulib instead of our home-grown solution.
 	Patch #6228.
 

@@ -77,7 +77,7 @@ AC_CHECK_SIZEOF(long double)
 
 AC_C_BIGENDIAN
 
-AC_CHECK_FUNCS([__setfpucw fork execl execlp isinf isnan finite getpid feholdexcept fpsetmask popen round trunc])
+AC_CHECK_FUNCS([__setfpucw fork execl execlp isinf isnan finite getpid feholdexcept fpsetmask popen round])
 
 AC_PROG_LN_S
 
