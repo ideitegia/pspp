@@ -37,6 +37,7 @@
 #include "compute-dialog.h"
 #include "goto-case-dialog.h"
 #include "find-dialog.h"
+#include "rank-dialog.h"
 #include "comments-dialog.h"
 #include "variable-info-dialog.h"
 #include "descriptives-dialog.h"
@@ -620,6 +621,16 @@ new_data_editor (void)
 		    G_CALLBACK (find_dialog), de);
 
 
+  de->invoke_rank_dialog  =
+    gtk_action_new ("rank-dialog",
+		    _("Ran_k Cases"),
+		    _("Rank Cases"),
+		    "pspp-rank-cases");
+
+  g_signal_connect (de->invoke_rank_dialog, "activate",
+		    G_CALLBACK (rank_dialog), de);
+
+
   de->invoke_variable_info_dialog  =
     gtk_action_new ("variable-info-dialog",
 		    _("Variables"),
@@ -720,6 +731,10 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->invoke_find_dialog,
 			    get_widget_assert (de->xml, "button-find")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_rank_dialog,
+			    get_widget_assert (de->xml, "transform_rank")
 			    );
 
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
