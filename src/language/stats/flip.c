@@ -423,14 +423,6 @@ flip_file (struct flip_pgm *flip)
 	  for (j = 0; j < read_cases; j++)
 	    output_buf[j] = input_buf[i + j * flip->var_cnt];
 
-#ifndef HAVE_FSEEKO
-#define fseeko fseek
-#endif
-
-#ifndef HAVE_OFF_T
-#define off_t long int
-#endif
-
 	  if (fseeko (output_file,
                       sizeof *input_buf * (case_idx
                                            + (off_t) i * flip->case_cnt),

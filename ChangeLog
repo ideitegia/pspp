@@ -1,5 +1,14 @@
 2007-10-12  Ben Pfaff  <blp@gnu.org>
 
+	Use fseeko module from gnulib instead of our home-grown solution.
+	Patch #6228.
+
+	* acinclude.m4: Delete PSPP_OFF_T macro.
+
+	* configure.ac: Don't call AC_FUNC_FSEEKO or PSPP_OFF_T.
+
+2007-10-12  Ben Pfaff  <blp@gnu.org>
+
 	* Smake: Add fprintf-posix, printf-posix, printf-safe,
 	snprintf-posix, sprintf-posix, vasprintf-posxi, vfprintf-posix,
 	vprintf-posix, vsnprintf-posix, and vsprintf-posix modules, which

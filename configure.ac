@@ -27,7 +27,6 @@ AM_GNU_GETTEXT_VERSION([0.16.1])
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
-AC_FUNC_FSEEKO
 AC_CHECK_LIB(m, sin)
 PSPP_LIBPLOT
 PSPP_LC_PAPER
@@ -53,8 +52,6 @@ if test x"$with_gui_tools" = x"yes" ; then
 	PKG_CHECK_MODULES(GLADE_UI, gladeui-1.0)
 fi
 AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
-
-PSPP_OFF_T
 
 AC_CHECK_LIB(gslcblas,main,,[PSPP_REQUIRED_PREREQ([libgslcblas])])
 AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,[PSPP_REQUIRED_PREREQ([libgsl (version 1.4 or later)])])

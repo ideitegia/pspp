@@ -68,24 +68,6 @@ AC_DEFUN([PSPP_LIBPLOT],
   fi
 ])
 
-dnl Check that off_t is defined as an integer type.
-dnl Solaris sometimes declares it as a struct, if it
-dnl thinks that the compiler does not support `long long'.
-AC_DEFUN([PSPP_OFF_T],
-[
-  AC_COMPILE_IFELSE([#include <sys/types.h>
-  #include <unistd.h>
-  off_t x = 0;
-  int main (void) 
-  { 
-    lseek (0, 1, 2);
-    return 0;
-  }], [], [AC_MSG_ERROR(
-  [Your system's definition of off_t is broken.  You are probably
-  using Solaris.  You can probably fix the problem with
-  `--disable-largefile' or `CFLAGS=-ansi'.])])
-])
-
 dnl Check whether a C compiler option is accepted.
 dnl If so, add it to CFLAGS.
 dnl Example: PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)

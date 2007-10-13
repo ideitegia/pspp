@@ -1,3 +1,9 @@
+2007-10-12  Ben Pfaff  <blp@gnu.org>
+
+	* flip.c (flip_file): No need to conditionally substitute for
+	"fseeko" and "off_t" manually anymore, as gnulib takes care of it
+	for us.
+
 2007-09-21  Jason Stover  <jhs@wonko.gcsu.edu>
 
 	* regression.q (run_regression): Partial fix of memory leak, bug
