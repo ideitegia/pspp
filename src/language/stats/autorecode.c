@@ -133,9 +133,9 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
     {
       size_t i;
 
-      msg (SE, _("Source variable count (%u) does not match "
-                 "target variable count (%u)."),
-           (unsigned) arc.var_cnt, (unsigned) dst_cnt);
+      msg (SE, _("Source variable count (%zu) does not match "
+                 "target variable count (%zu)."),
+           arc.var_cnt, dst_cnt);
 
       for (i = 0; i < dst_cnt; i++)
         free (arc.dst_names[i]);

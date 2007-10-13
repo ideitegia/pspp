@@ -256,9 +256,9 @@ parse_specs (struct lexer *lexer, struct pool *tmp_pool, struct print_trns *trns
     }
 
   if (trns->record_cnt != 0 && trns->record_cnt != record)
-    msg (SW, _("Output calls for %d records but %u specified on RECORDS "
+    msg (SW, _("Output calls for %d records but %zu specified on RECORDS "
                "subcommand."),
-         record, (unsigned int) trns->record_cnt);
+         record, trns->record_cnt);
   trns->record_cnt = record;
 
   return true;

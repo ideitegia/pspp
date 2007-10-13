@@ -423,8 +423,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 	{
 	  if ( n_vlist1 != n_vlist2)
 	    msg (SE, _("PAIRED was specified but the number of variables "
-		       "preceding WITH (%d) did not match the number "
-		       "following (%d)."), (int) n_vlist1, (int) n_vlist2);
+		       "preceding WITH (%zu) did not match the number "
+		       "following (%zu)."), n_vlist1, n_vlist2);
 
 	  test_parameters->n_pairs = n_vlist1 ;
 	}

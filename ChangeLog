@@ -1,3 +1,12 @@
+2007-10-12  Ben Pfaff  <blp@gnu.org>
+
+	* Smake: Add fprintf-posix, printf-posix, printf-safe,
+	snprintf-posix, sprintf-posix, vasprintf-posxi, vfprintf-posix,
+	vprintf-posix, vsnprintf-posix, and vsprintf-posix modules, which
+	allow us to use C99 format specifiers (e.g. 'z') in *printf.
+	Also, changed many formerly casted arguments in *printf calls to
+	use one of these format specifiers and drop the cast.
+ 
 2007-10-11  Ben Pfaff  <blp@gnu.org>
 
 	* Smake: Drop alloca, alloca-opt modules as we don't use them

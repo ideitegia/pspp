@@ -485,8 +485,8 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 		  }
                 else
                   {
-		    msg (SE, _("Missing argument %d to %s."),
-                         (int) i + 1, function->name);
+		    msg (SE, _("Missing argument %zu to %s."),
+                         i + 1, function->name);
 		    goto error;
 		  }
 
@@ -516,9 +516,9 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 	     like `unknown variable t'. */
 	  if (n_src != n_dest)
 	    {
-	      msg (SE, _("Number of source variables (%u) does not match "
-			 "number of target variables (%u)."),
-		   (unsigned) n_src, (unsigned) n_dest);
+	      msg (SE, _("Number of source variables (%zu) does not match "
+			 "number of target variables (%zu)."),
+		    n_src, n_dest);
 	      goto error;
 	    }
 

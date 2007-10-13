@@ -74,9 +74,8 @@ cmd_rename_variables (struct lexer *lexer, struct dataset *ds)
           size_t i;
 
 	  msg (SE, _("Differing number of variables in old name list "
-                     "(%d) and in new name list (%d)."),
-	       (int) (rename_cnt - prev_nv_2),
-               (int) (prev_nv_1 - prev_nv_2));
+                     "(%zu) and in new name list (%zu)."),
+	       rename_cnt - prev_nv_2, prev_nv_1 - prev_nv_2);
 	  for (i = 0; i < prev_nv_1; i++)
 	    free (rename_new_names[i]);
 	  free (rename_new_names);

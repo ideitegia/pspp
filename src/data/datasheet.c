@@ -1374,8 +1374,8 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
     mc_error (mc, "row count (%lu) does not match expected (%zu)",
               (unsigned long int) datasheet_get_row_cnt (ds), row_cnt);
   else if (column_cnt != datasheet_get_column_cnt (ds))
-    mc_error (mc, "column count (%lu) does not match expected (%zu)",
-              (unsigned long int) datasheet_get_column_cnt (ds), column_cnt);
+    mc_error (mc, "column count (%zu) does not match expected (%zu)",
+              datasheet_get_column_cnt (ds), column_cnt);
   else
     {
       size_t row, col;

@@ -436,10 +436,10 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
 
       if (name_cnt != trns->var_cnt)
         {
-          msg (SE, _("%u variable(s) cannot be recoded into "
-                     "%u variable(s).  Specify the same number "
+          msg (SE, _("%zu variable(s) cannot be recoded into "
+                     "%zu variable(s).  Specify the same number "
                      "of variables as source and target variables."),
-               (unsigned) trns->var_cnt, (unsigned) name_cnt);
+               trns->var_cnt, name_cnt);
           return false;
         }
 

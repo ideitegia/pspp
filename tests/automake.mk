@@ -161,6 +161,7 @@ tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
 	src/libpspp/ll.h \
 	tests/libpspp/ll-test.c
+tests_libpspp_ll_test_LDADD = gl/libgl.la @LIBINTL@
 
 tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -168,6 +169,7 @@ tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/llx.c \
 	src/libpspp/llx.h \
 	tests/libpspp/llx-test.c
+tests_libpspp_llx_test_LDADD = gl/libgl.la @LIBINTL@
 
 tests_libpspp_heap_test_SOURCES = \
 	src/libpspp/heap.c \

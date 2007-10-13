@@ -82,9 +82,9 @@ parse_var_placements (struct lexer *lexer, struct pool *pool, size_t var_cnt, bo
 
       if (assignment_cnt != var_cnt)
         {
-          msg (SE, _("Number of variables specified (%d) "
-                     "differs from number of variable formats (%d)."),
-               (int) var_cnt, (int) assignment_cnt);
+          msg (SE, _("Number of variables specified (%zu) "
+                     "differs from number of variable formats (%zu)."),
+               var_cnt, assignment_cnt);
           return false;
         }
 
@@ -115,8 +115,8 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
   if ((lc - fc + 1) % var_cnt)
     {
       msg (SE, _("The %d columns %d-%d "
-		 "can't be evenly divided into %u fields."),
-	   lc - fc + 1, fc, lc, (unsigned int) var_cnt);
+		 "can't be evenly divided into %zu fields."),
+	   lc - fc + 1, fc, lc, var_cnt);
       return false;
     }
 

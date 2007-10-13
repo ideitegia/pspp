@@ -564,10 +564,10 @@ rename_variables (struct lexer *lexer, struct dictionary *dict)
 	goto done;
       if (nn != nv)
 	{
-	  msg (SE, _("Number of variables on left side of `=' (%d) does not "
-                     "match number of variables on right side (%d), in "
+	  msg (SE, _("Number of variables on left side of `=' (%zu) does not "
+                     "match number of variables on right side (%zu), in "
                      "parenthesized group %d of RENAME subcommand."),
-	       (unsigned) (nv - old_nv), (unsigned) (nn - old_nv), group);
+	       nv - old_nv, nn - old_nv, group);
 	  goto done;
 	}
       if (!lex_force_match (lexer, ')'))

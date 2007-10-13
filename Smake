@@ -13,6 +13,7 @@ GNULIB_MODULES = \
 	dirname \
 	exit \
 	fpieee \
+	fprintf-posix \
 	full-read \
 	full-write \
         fseeko \
@@ -37,9 +38,13 @@ GNULIB_MODULES = \
 	memset \
 	minmax \
 	mkstemp \
+	printf-posix \
+	printf-safe \
 	progname \
 	relocatable-prog \
 	snprintf \
+	snprintf-posix \
+	sprintf-posix \
 	stdarg \
 	stdbool \
 	stdint \
@@ -57,7 +62,12 @@ GNULIB_MODULES = \
 	tmpfile \
 	unistd \
 	unlocked-io \
+	vasprintf-posix \
+	vfprintf-posix \
+	vprintf-posix \
 	vsnprintf \
+	vsnprintf-posix \
+	vsprintf-posix \
 	xalloc \
 	xalloc-die \
 	xmalloca \

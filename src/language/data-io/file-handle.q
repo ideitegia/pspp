@@ -96,12 +96,12 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
       if (cmd.n_lrecl[0] == LONG_MIN)
         msg (SE, _("Fixed-length records were specified on /RECFORM, but "
                    "record length was not specified on /LRECL.  "
-                   "Assuming %u-character records."),
-             (unsigned int) properties.record_width);
+                   "Assuming %zu-character records."),
+             properties.record_width);
       else if (cmd.n_lrecl[0] < 1)
         msg (SE, _("Record length (%ld) must be at least one byte.  "
-                   "Assuming %u-character records."),
-             cmd.n_lrecl[0], (unsigned int) properties.record_width);
+                   "Assuming %zu-character records."),
+             cmd.n_lrecl[0], properties.record_width);
       else
         properties.record_width = cmd.n_lrecl[0];
       break;

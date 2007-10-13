@@ -130,8 +130,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
             : info.float_format == FLOAT_Z_LONG ? _("IBM 390 Hex Long.")
             : _("Unknown."));
   tab_text (t, 0, 5, TAB_LEFT, _("Variables:"));
-  tab_text (t, 1, 5, TAB_LEFT | TAT_PRINTF, "%u",
-            (unsigned int) dict_get_var_cnt (d));
+  tab_text (t, 1, 5, TAB_LEFT | TAT_PRINTF, "%zu", dict_get_var_cnt (d));
   tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
   tab_text (t, 1, 6, TAB_LEFT | TAT_PRINTF,
             info.case_cnt == -1 ? _("Unknown") : "%ld",
@@ -424,8 +423,8 @@ display_variables (const struct variable **vl, size_t n, int as)
             }
 	  if (as != AS_NAMES)
 	    {
-	      tab_text (t, pc, r, TAT_PRINTF, "%d",
-                        (int) var_get_dict_index (v) + 1);
+	      tab_text (t, pc, r, TAT_PRINTF, "%zu",
+                        var_get_dict_index (v) + 1);
 	      tab_hline (t, TAL_1, 0, nc - 1, r);
 	    }
 	  r++;
@@ -459,7 +458,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r, int as)
 
   /* Put the name, var label, and position into the first row. */
   tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
-  tab_text (t, 3, r, TAT_PRINTF, "%d", (int) var_get_dict_index (v) + 1);
+  tab_text (t, 3, r, TAT_PRINTF, "%zu", var_get_dict_index (v) + 1);
 
   if (as == AS_DICTIONARY && var_has_label (v))
     {
@@ -647,7 +646,7 @@ display_vectors (const struct dictionary *dict, int sorted)
           char fmt_string[FMT_STRING_LEN_MAX + 1];
           fmt_to_string (var_get_print_format (var), fmt_string);
 
-          tab_text (t, 1, row, TAB_RIGHT | TAT_PRINTF, "%d", (int) j + 1);
+          tab_text (t, 1, row, TAB_RIGHT | TAT_PRINTF, "%zu", j + 1);
           tab_text (t, 2, row, TAB_LEFT, var_get_name (var));
           tab_text (t, 3, row, TAB_LEFT, fmt_string);
           row++;

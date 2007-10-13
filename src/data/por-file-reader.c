@@ -515,9 +515,9 @@ read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
 
   /* Validate file. */
   if (strlen (date) != 8)
-    error (r, _("Bad date string length %d."), (int) strlen (date));
+    error (r, _("Bad date string length %zu."), strlen (date));
   if (strlen (time) != 6)
-    error (r, _("Bad time string length %d."), (int) strlen (time));
+    error (r, _("Bad time string length %zu."), strlen (time));
 
   /* Save file info. */
   if (info != NULL)

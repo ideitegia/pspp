@@ -121,8 +121,9 @@ parse_fp (struct lexer *lexer, struct fp *fp)
         {
           if (length != float_get_size (fp->format))
             {
-              msg (SE, _("%d-byte string needed but %d-byte string supplied."),
-                   (int) float_get_size (fp->format), (int) length);
+              msg (SE, _("%zu-byte string needed but %zu-byte string "
+                         "supplied."),
+                   float_get_size (fp->format), length);
               return false;
             }
           assert (length <= sizeof fp->data);
