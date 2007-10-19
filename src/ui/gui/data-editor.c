@@ -44,8 +44,9 @@
 #include "dict-display.h"
 #include "clipboard.h"
 
-#include "t-test-independent-samples-dialog.h"
 
+#include "oneway-anova-dialog.h"
+#include "t-test-independent-samples-dialog.h"
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -590,7 +591,14 @@ new_data_editor (void)
   g_signal_connect (de->invoke_compute_dialog, "activate",
 		    G_CALLBACK (compute_dialog), de);
 
+  de->invoke_oneway_anova_dialog =
+    gtk_action_new ("oneway-anova",
+		    _("Oneway _ANOVA"),
+		    _("Perform one way analysis of variance"),
+		    NULL);
 
+  g_signal_connect (de->invoke_oneway_anova_dialog, "activate",
+		    G_CALLBACK (oneway_anova_dialog), de);
 
   de->invoke_t_test_independent_samples_dialog =
     gtk_action_new ("t-test-independent-samples",
@@ -764,6 +772,12 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->invoke_t_test_independent_samples_dialog,
 			    get_widget_assert (de->xml,
 					       "indep-t-test")
+			    );
+
+
+  gtk_action_connect_proxy (de->invoke_oneway_anova_dialog,
+			    get_widget_assert (de->xml,
+					       "oneway-anova")
 			    );
 
 

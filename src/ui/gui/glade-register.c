@@ -22,6 +22,7 @@
 #include <glade/glade-build.h>
 #include "psppire-dialog.h"
 #include "psppire-selector.h"
+#include "psppire-acr.h"
 #include "psppire-keypad.h"
 #include "psppire-hbuttonbox.h"
 #include "psppire-vbuttonbox.h"
@@ -65,6 +66,9 @@ glade_module_register_widgets (void)
 			 glade_standard_build_children,
 			 NULL);
 
+  glade_register_widget (PSPPIRE_ACR_TYPE, NULL,
+			 glade_standard_build_children,
+			 NULL);
 }
 
 

@@ -730,7 +730,7 @@ of variable preceding @code{WITH} against variable following
 ONEWAY
         [/VARIABLES = ] var_list BY var
         /MISSING=@{ANALYSIS,LISTWISE@} @{EXCLUDE,INCLUDE@}
-        /CONTRASTS= value1 [, value2] ... [,valueN]
+        /CONTRAST= value1 [, value2] ... [,valueN]
         /STATISTICS=@{DESCRIPTIVES,HOMOGENEITY@}
 
 @end display
@@ -756,7 +756,7 @@ Displays the Levene test of Homogeneity of Variance for the
 variables and their groups.
 @end itemize
 
-The @code{CONTRASTS} subcommand is used when you anticipate certain
+The @code{CONTRAST} subcommand is used when you anticipate certain
 differences between the groups.
 The subcommand must be followed by a list of numerals which are the
 coefficients of the groups to be tested.
@@ -764,7 +764,7 @@ The number of coefficients must correspond to the number of distinct
 groups (or values of the independent variable).
 If the total sum of the coefficients are not zero, then PSPP will
 display a warning, but will proceed with the analysis.
-The @code{CONTRASTS} subcommand may be given up to 10 times in order
+The @code{CONTRAST} subcommand may be given up to 10 times in order
 to specify different contrast tests.
 @setfilename ignored
 

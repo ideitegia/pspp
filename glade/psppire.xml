@@ -181,6 +181,22 @@
 
 
 
+    <glade-widget-class name="PsppireAcr" generic-name="psppire-acr" title="Add-Change-Remove">
+
+      <post-create-function>glade_psppire_acr_post_create</post-create-function>
+      <get-children-function>glade_psppire_acr_get_children</get-children-function>
+
+      <get-internal-child-function>glade_psppire_acr_get_internal_child</get-internal-child-function>
+
+
+    <properties>
+      <property id="child"                disabled="True" />
+      <property id="homogeneous"          disabled="True" />
+      <property id="visible" ignore="True" default="True" />
+    </properties>
+
+    </glade-widget-class>
+
   </glade-widget-classes>
  
 
@@ -190,6 +206,7 @@
   <glade-widget-class-ref name="PsppireVButtonBox"/>
   <glade-widget-class-ref name="PsppireKeypad"/>
   <glade-widget-class-ref name="PsppireSelector"/>
+  <glade-widget-class-ref name="PsppireAcr"/>
  </glade-widget-group>
 
 

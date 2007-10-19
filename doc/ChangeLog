@@ -1,3 +1,9 @@
+2007-10-19 John Darrington <john@darrington.wattle.id.au>
+
+	* statistics.texi: Changed /CONTRASTS to /CONTRAST in ONEWAY which
+	is what the command accepts. 
+	
+
 2007-07-28 John Darrington <john@darrington.wattle.id.au>
 
 	* statistics.texi: Made the documentation for T-TEST match 

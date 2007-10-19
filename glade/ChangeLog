@@ -1,3 +1,8 @@
+2007-10-19 John Darrington <john@darrington.wattle.id.au>
+
+	* acr.c (new file)
+	* psppire.xml: Added entry for PsppireAcr widget
+
 2007-09-26  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk (libglade_psppire_la_CFLAGS): Enable VPATH build by

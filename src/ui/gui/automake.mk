@@ -49,6 +49,7 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
+	$(top_srcdir)/src/ui/gui/oneway.glade \
 	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
 	$(top_srcdir)/src/ui/gui/rank.glade \
@@ -106,8 +107,12 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/helper.h \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
+        src/ui/gui/oneway-anova-dialog.c \
+        src/ui/gui/oneway-anova-dialog.h \
 	src/ui/gui/output-viewer.c \
 	src/ui/gui/output-viewer.h \
+	src/ui/gui/psppire-acr.c \
+	src/ui/gui/psppire-acr.h \
 	src/ui/gui/psppire-buttonbox.c \
 	src/ui/gui/psppire-buttonbox.h \
 	src/ui/gui/psppire-hbuttonbox.c \

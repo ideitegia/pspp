@@ -1,3 +1,13 @@
+2007-10-19  John Darrington <john@darrington.wattle.id.au>
+
+        * psppire-acr.c psppire-acr.h (new files): Added this new
+	composite widget.
+
+	* data-editor.c data-editor.h: Added entries for ONEWAY command
+	dialog box.
+
+	* oneway-anova-dialog.c oneway-anova-dialog.h oneway.glade (new files)
+	
 2007-10-06  John Darrington <john@darrington.wattle.id.au>
 	
 	* psppire-dialog.c psppire-dialog.h: Added a predicate function
