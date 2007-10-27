@@ -135,6 +135,8 @@ dict_clone (const struct dictionary *s)
 
   for (i = 0; i < s->var_cnt; i++)
     {
+      const struct vardict_info *svdi;
+      struct vardict_info dvdi;
       struct variable *sv = s->var[i];
       struct variable *dv = dict_clone_var_assert (d, sv, var_get_name (sv));
       size_t i;
@@ -142,7 +144,10 @@ dict_clone (const struct dictionary *s)
       for (i = 0; i < var_get_short_name_cnt (sv); i++)
         var_set_short_name (dv, i, var_get_short_name (sv, i));
 
-      var_set_vardict (dv, var_get_vardict (sv));
+      svdi = var_get_vardict (sv);
+      dvdi = *svdi;
+      dvdi.dict = d;
+      var_set_vardict (dv, &dvdi);
     }
 
   d->next_value_idx = s->next_value_idx;
@@ -387,6 +392,12 @@ dict_lookup_var (const struct dictionary *d, const char *name)
   target = var_create (name, 0);
   result = hsh_find (d->name_tab, target);
   var_destroy (target);
+
+  if ( result && var_has_vardict (result)) 
+  {
+      const struct vardict_info *vdi = var_get_vardict (result);
+      assert (vdi->dict == d);
+  }
 
   return result;
 }
@@ -1161,9 +1172,7 @@ dict_var_changed (const struct variable *v)
   if ( var_has_vardict (v))
     {
       const struct vardict_info *vdi = var_get_vardict (v);
-      struct dictionary *d;
-
-      d = vdi->dict;
+      struct dictionary *d = vdi->dict;
 
       if ( d->callbacks && d->callbacks->var_changed )
 	d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);

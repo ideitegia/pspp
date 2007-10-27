@@ -1,3 +1,9 @@
+2007-10-27  John Darrington <john@darrington.wattle.id.au>
+
+	* dictionary.c: Fixed bug in dict_clone, where the vardict.dict member
+	wasn't initialised correctly. Closes bugs #21330 and 21397
+
+
 2007-10-08  Ben Pfaff  <blp@gnu.org>
 
 	Fix bug #21280.  Thanks to John Darrington for review.
