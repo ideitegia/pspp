@@ -505,8 +505,8 @@ src_value matches any user- or system-missing value.  SYSMIS matches the
 system missing value only.  ELSE is a catch-all that matches anything.
 It should be the last src_value specified.
 
-Numeric and string dest_value's should also be self-explanatory.  COPY
-causes the input values to be copied to the output.  This is only value
+Numeric and string dest_value's should be self-explanatory.  COPY
+causes the input values to be copied to the output.  This is only valid
 if the source and target variables are of the same type.  SYSMIS
 indicates the system-missing value.
 
