@@ -1,3 +1,13 @@
+2007-11-03  Ben Pfaff  <blp@gnu.org>
+
+	Allow output files to overwrite input files (bug #21280).
+
+	* apply-dictionary.c (cmd_apply_dictionary): Manage file handle
+	reference counts.
+
+	* sys-file-info.c (cmd_sysfile_info): Manage file handle reference
+	counts.
+
 2007-08-12  Ben Pfaff  <blp@gnu.org>
 
 	Output variable measurement level, alignment, and display width as

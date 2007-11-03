@@ -24,6 +24,8 @@
 #include <string.h>
 
 #include <libpspp/compiler.h>
+#include <libpspp/hash.h>
+#include <libpspp/ll.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <data/file-name.h>
@@ -35,25 +37,17 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* (headers) */
-
 /* File handle. */
 struct file_handle
   {
-    struct file_handle *next;   /* Next in global list. */
-    int open_cnt;               /* 0=not open, otherwise # of openers. */
-    bool deleted;               /* Destroy handle when open_cnt goes to 0? */
-
-    char id[LONG_NAME_LEN + 1]; /* Identifier token; empty string if none. */
+    struct ll ll;               /* Element in global list. */
+    size_t ref_cnt;             /* Number of references. */
+    char *id;                   /* Identifier token, NULL if none. */
     char *name;                 /* User-friendly identifying name. */
-    const char *type;           /* If open, type of file. */
-    char open_mode[3];          /* "[rw][se]". */
-    void *aux;                  /* Aux data pointer for owner if any. */
     enum fh_referent referent;  /* What the file handle refers to. */
 
     /* FH_REF_FILE only. */
     char *file_name;		/* File name as provided by user. */
-    struct file_identity *identity; /* For checking file identity. */
     enum fh_mode mode;  	/* File mode. */
 
     /* FH_REF_FILE and FH_REF_INLINE only. */
@@ -64,8 +58,14 @@ struct file_handle
     struct scratch_handle *sh;  /* Scratch file data. */
   };
 
-/* List of all handles. */
-static struct file_handle *file_handles;
+static struct file_handle *
+file_handle_from_ll (struct ll *ll)
+{
+  return ll_data (ll, struct file_handle, ll);
+}
+
+/* List of all named handles. */
+static struct ll_list named_handles;
 
 /* Default file handle for DATA LIST, REREAD, REPEATING DATA
    commands. */
@@ -75,15 +75,26 @@ static struct file_handle *default_handle;
 static struct file_handle *inline_file;
 
 static struct file_handle *create_handle (const char *id,
-                                          const char *name, enum fh_referent);
+                                          char *name, enum fh_referent);
+static void free_handle (struct file_handle *);
+static void unname_handle (struct file_handle *);
 
 /* File handle initialization routine. */
 void
 fh_init (void)
 {
-  inline_file = create_handle ("INLINE", "INLINE", FH_REF_INLINE);
+  ll_init (&named_handles);
+  inline_file = create_handle ("INLINE", xstrdup ("INLINE"), FH_REF_INLINE);
   inline_file->record_width = 80;
   inline_file->tab_width = 8;
+}
+
+/* Removes all named file handles from the global list. */
+void
+fh_done (void)
+{
+  while (!ll_is_empty (&named_handles))
+    unname_handle (file_handle_from_ll (ll_head (&named_handles)));
 }
 
 /* Free HANDLE and remove it from the global list. */
@@ -91,30 +102,66 @@ static void
 free_handle (struct file_handle *handle)
 {
   /* Remove handle from global list. */
-  if (file_handles == handle)
-    file_handles = handle->next;
-  else
-    {
-      struct file_handle *iter = file_handles;
-      while (iter->next != handle)
-        iter = iter->next;
-      iter->next = handle->next;
-    }
+  if (handle->id != NULL)
+    ll_remove (&handle->ll);
 
   /* Free data. */
+  free (handle->id);
   free (handle->name);
   free (handle->file_name);
-  fn_free_identity (handle->identity);
   scratch_handle_destroy (handle->sh);
   free (handle);
 }
 
-/* Frees all the file handles. */
-void
-fh_done (void)
+/* Make HANDLE unnamed, so that it can no longer be referenced by
+   name.  The caller must hold a reference to HANDLE, which is
+   not affected by this function. */
+static void
+unname_handle (struct file_handle *handle)
 {
-  while (file_handles != NULL)
-    free_handle (file_handles);
+  assert (handle->id != NULL);
+  free (handle->id);
+  handle->id = NULL;
+  ll_remove (&handle->ll);
+
+  /* Drop the reference held by the named_handles table. */
+  fh_unref (handle);
+}
+
+/* Increments HANDLE's reference count and returns HANDLE. */
+struct file_handle *
+fh_ref (struct file_handle *handle)
+{
+  assert (handle->ref_cnt > 0);
+  handle->ref_cnt++;
+  return handle;
+}
+
+/* Decrements HANDLE's reference count.
+   If the reference count drops to 0, HANDLE is destroyed. */
+void
+fh_unref (struct file_handle *handle)
+{
+  if (handle != NULL)
+    {
+      assert (handle->ref_cnt > 0);
+      if (--handle->ref_cnt == 0)
+        free_handle (handle);
+    }
+}
+
+/* Make HANDLE unnamed, so that it can no longer be referenced by
+   name.  The caller must hold a reference to HANDLE, which is
+   not affected by this function.
+
+   This function ignores a null pointer as input.  It has no
+   effect on the inline handle, which is always named INLINE.*/
+void
+fh_unname (struct file_handle *handle)
+{
+  assert (handle->ref_cnt > 1);
+  if (handle != fh_inline_file () && handle->id != NULL)
+    unname_handle (handle);
 }
 
 /* Returns the handle with the given ID, or a null pointer if
@@ -122,45 +169,14 @@ fh_done (void)
 struct file_handle *
 fh_from_id (const char *id)
 {
-  struct file_handle *iter;
+  struct file_handle *handle;
 
-  for (iter = file_handles; iter != NULL; iter = iter->next)
-    if (!iter->deleted && !strcasecmp (id, iter->id))
-      return iter;
-  return NULL;
-}
-
-/* Returns the handle for the file named FILE_NAME,
-   or a null pointer if none exists.
-   Different names for the same file (e.g. "x" and "./x") are
-   considered equivalent. */
-struct file_handle *
-fh_from_file_name (const char *file_name)
-{
-  struct file_identity *identity;
-  struct file_handle *iter;
-
-  /* First check for a file with the same identity. */
-  identity = fn_get_identity (file_name);
-  if (identity != NULL)
-    {
-      for (iter = file_handles; iter != NULL; iter = iter->next)
-        if (!iter->deleted
-            && iter->referent == FH_REF_FILE
-            && iter->identity != NULL
-            && !fn_compare_file_identities (identity, iter->identity))
-          {
-            fn_free_identity (identity);
-            return iter;
-          }
-      fn_free_identity (identity);
-    }
-
-  /* Then check for a file with the same name. */
-  for (iter = file_handles; iter != NULL; iter = iter->next)
-    if (!iter->deleted
-        && iter->referent == FH_REF_FILE && !strcmp (file_name, iter->file_name))
-      return iter;
+  ll_for_each (handle, struct file_handle, ll, &named_handles)
+    if (!strcasecmp (id, handle->id))
+      {
+        handle->ref_cnt++;
+        return handle;
+      }
 
   return NULL;
 }
@@ -172,20 +188,22 @@ fh_from_file_name (const char *file_name)
    The new handle is not fully initialized.  The caller is
    responsible for completing its initialization. */
 static struct file_handle *
-create_handle (const char *id, const char *handle_name,
-               enum fh_referent referent)
+create_handle (const char *id, char *handle_name, enum fh_referent referent)
 {
   struct file_handle *handle = xzalloc (sizeof *handle);
-  assert (id == NULL || fh_from_id (id) == NULL);
-  handle->next = file_handles;
-  handle->open_cnt = 0;
-  handle->deleted = false;
-  str_copy_trunc (handle->id, sizeof handle->id, id != NULL ? id : "");
-  handle->name = xstrdup (handle_name);
-  handle->type = NULL;
-  handle->aux = NULL;
+
+  handle->ref_cnt = 1;
+  handle->id = id != NULL ? xstrdup (id) : NULL;
+  handle->name = handle_name;
   handle->referent = referent;
-  file_handles = handle;
+
+  if (id != NULL)
+    {
+      assert (fh_from_id (id) == NULL);
+      ll_push_tail (&named_handles, &handle->ll);
+      handle->ref_cnt++;
+    }
+
   return handle;
 }
 
@@ -195,13 +213,14 @@ create_handle (const char *id, const char *handle_name,
 struct file_handle *
 fh_inline_file (void)
 {
+  fh_ref (inline_file);
   return inline_file;
 }
 
-/* Creates a new file handle with the given ID, which may be
-   null.  If it is non-null, it must be unique among existing
-   file identifiers.  The new handle is associated with file
-   FILE_NAME and the given PROPERTIES. */
+/* Creates and returns a new file handle with the given ID, which
+   may be null.  If it is non-null, it must be unique among
+   existing file identifiers.  The new handle is associated with
+   file FILE_NAME and the given PROPERTIES. */
 struct file_handle *
 fh_create_file (const char *id, const char *file_name,
                 const struct fh_properties *properties)
@@ -209,12 +228,9 @@ fh_create_file (const char *id, const char *file_name,
   char *handle_name;
   struct file_handle *handle;
 
-  handle_name = id != NULL ? (char *) id : xasprintf ("\"%s\"", file_name);
+  handle_name = id != NULL ? xstrdup (id) : xasprintf ("\"%s\"", file_name);
   handle = create_handle (id, handle_name, FH_REF_FILE);
-  if (id == NULL)
-    free (handle_name);
   handle->file_name = xstrdup (file_name);
-  handle->identity = fn_get_identity (file_name);
   handle->mode = properties->mode;
   handle->record_width = properties->record_width;
   handle->tab_width = properties->tab_width;
@@ -228,8 +244,7 @@ struct file_handle *
 fh_create_scratch (const char *id)
 {
   struct file_handle *handle;
-  assert (id != NULL);
-  handle = create_handle (id, id, FH_REF_SCRATCH);
+  handle = create_handle (id, xstrdup (id), FH_REF_SCRATCH);
   handle->sh = NULL;
   return handle;
 }
@@ -243,142 +258,6 @@ fh_default_properties (void)
   return &default_properties;
 }
 
-/* Deletes FH from the global list of file handles.  Afterward,
-   attempts to search for it will fail.  Unless the file handle
-   is currently open, it will be destroyed; otherwise, it will be
-   destroyed later when it is closed.
-   Normally needed only if a file_handle needs to be re-assigned.
-   Otherwise, just let fh_done() destroy the handle. */
-void
-fh_free (struct file_handle *handle)
-{
-  if (handle == fh_inline_file () || handle == NULL || handle->deleted)
-    return;
-  handle->deleted = true;
-
-  if (handle == default_handle)
-    default_handle = fh_inline_file ();
-
-  if (handle->open_cnt == 0)
-    free_handle (handle);
-}
-
-/* Returns an English description of MODE,
-   which is in the format of the MODE argument to fh_open(). */
-static const char *
-mode_name (const char *mode)
-{
-  assert (mode != NULL);
-  assert (mode[0] == 'r' || mode[0] == 'w');
-
-  return mode[0] == 'r' ? "reading" : "writing";
-}
-
-/* Tries to open handle H with the given TYPE and MODE.
-
-   H's referent type must be one of the bits in MASK.  The caller
-   must verify this ahead of time; we simply assert it here.
-
-   TYPE is the sort of file, e.g. "system file".  Only one given
-   type of access is allowed on a given file handle at once.
-   If successful, a reference to TYPE is retained, so it should
-   probably be a string literal.
-
-   MODE combines the read or write mode with the sharing mode.
-   The first character is 'r' for read, 'w' for write.  The
-   second character is 's' to permit sharing, 'e' to require
-   exclusive access.
-
-   Returns the address of a void * that the caller can use for
-   data specific to the file handle if successful, or a null
-   pointer on failure.  For exclusive access modes the void *
-   will always be a null pointer at return.  In shared access
-   modes the void * will necessarily be null only if no other
-   sharers are active. */
-void **
-fh_open (struct file_handle *h, enum fh_referent mask UNUSED,
-         const char *type, const char *mode)
-{
-  assert (h != NULL);
-  assert ((fh_get_referent (h) & mask) != 0);
-  assert (type != NULL);
-  assert (mode != NULL);
-  assert (mode[0] == 'r' || mode[0] == 'w');
-  assert (mode[1] == 's' || mode[1] == 'e');
-  assert (mode[2] == '\0');
-
-  if (h->open_cnt != 0)
-    {
-      if (strcmp (h->type, type))
-        {
-          msg (SE, _("Can't open %s as a %s because it is "
-                     "already open as a %s."),
-               fh_get_name (h), type, h->type);
-          return NULL;
-        }
-      else if (strcmp (h->open_mode, mode))
-        {
-          msg (SE, _("Can't open %s as a %s for %s because it is "
-                     "already open for %s."),
-               fh_get_name (h), type, mode_name (mode),
-               mode_name (h->open_mode));
-          return NULL;
-        }
-      else if (h->open_mode[1] == 'e')
-        {
-          msg (SE, _("Can't re-open %s as a %s for %s."),
-               fh_get_name (h), type, mode_name (mode));
-          return NULL;
-        }
-    }
-  else
-    {
-      h->type = type;
-      strcpy (h->open_mode, mode);
-      assert (h->aux == NULL);
-    }
-  h->open_cnt++;
-
-  return &h->aux;
-}
-
-/* Closes file handle H, which must have been open for the
-   specified TYPE and MODE of access provided to fh_open().
-   Returns zero if the file is now closed, nonzero if it is still
-   open due to another reference.
-
-   After fh_close() returns zero for a handle, it is unsafe to
-   reference that file handle again in any way, because its
-   storage may have been freed. */
-int
-fh_close (struct file_handle *h, const char *type, const char *mode)
-{
-  assert (h != NULL);
-  assert (h->open_cnt > 0);
-  assert (type != NULL);
-  assert (!strcmp (type, h->type));
-  assert (mode != NULL);
-  assert (!strcmp (mode, h->open_mode));
-
-  if (--h->open_cnt == 0)
-    {
-      h->type = NULL;
-      h->aux = NULL;
-      if (h->deleted)
-        free_handle (h);
-      return 0;
-    }
-  return 1;
-}
-
-/* Is the file open?  BEGIN DATA...END DATA uses this to detect
-   whether the inline file is actually in use. */
-bool
-fh_is_open (const struct file_handle *handle)
-{
-  return handle->open_cnt > 0;
-}
-
 /* Returns the identifier that may be used in syntax to name the
    given HANDLE, which takes the form of a PSPP identifier.  If
    HANDLE has no identifier, returns a null pointer.
@@ -387,7 +266,7 @@ fh_is_open (const struct file_handle *handle)
 const char *
 fh_get_id (const struct file_handle *handle)
 {
-  return handle->id[0] != '\0' ? handle->id : NULL;
+  return handle->id;
 }
 
 /* Returns a user-friendly string to identify the given HANDLE.
@@ -446,7 +325,7 @@ fh_get_tab_width (const struct file_handle *handle)
 /* Returns the scratch file handle associated with HANDLE.
    Applicable to only FH_REF_SCRATCH files. */
 struct scratch_handle *
-fh_get_scratch_handle (struct file_handle *handle)
+fh_get_scratch_handle (const struct file_handle *handle)
 {
   assert (handle->referent == FH_REF_SCRATCH);
   return handle->sh;
@@ -465,7 +344,7 @@ fh_set_scratch_handle (struct file_handle *handle, struct scratch_handle *sh)
 struct file_handle *
 fh_get_default_handle (void)
 {
-  return default_handle ? default_handle : fh_inline_file ();
+  return default_handle ? fh_ref (default_handle) : fh_inline_file ();
 }
 
 /* Sets NEW_DEFAULT_HANDLE as the default handle. */
@@ -474,5 +353,235 @@ fh_set_default_handle (struct file_handle *new_default_handle)
 {
   assert (new_default_handle == NULL
           || (new_default_handle->referent & (FH_REF_INLINE | FH_REF_FILE)));
+  if (default_handle != NULL)
+    fh_unref (default_handle);
   default_handle = new_default_handle;
+  if (default_handle != NULL)
+    fh_ref (default_handle);
+}
+
+/* Information about a file handle's readers or writers. */
+struct fh_lock
+  {
+    /* Hash key. */
+    enum fh_referent referent;  /* Type of underlying file. */
+    union
+      {
+        struct file_identity *file; /* FH_REF_FILE only. */
+        unsigned int unique_id;    /* FH_REF_SCRATCH only. */
+      }
+    u;
+    enum fh_access access;      /* Type of file access. */
+
+    /* Number of openers. */
+    size_t open_cnt;
+
+    /* Applicable only when open_cnt > 0. */
+    bool exclusive;             /* No other openers allowed? */
+    const char *type;           /* Human-readable type of file. */
+    void *aux;                  /* Owner's auxiliary data. */
+  };
+
+/* Hash table of all active locks. */
+static struct hsh_table *locks;
+
+static void make_key (struct fh_lock *, const struct file_handle *,
+                      enum fh_access);
+static void free_key (struct fh_lock *);
+static int compare_fh_locks (const void *, const void *, const void *);
+static unsigned int hash_fh_lock (const void *, const void *);
+
+/* Tries to lock handle H for the given kind of ACCESS and TYPE
+   of file.  Returns a pointer to a struct fh_lock if successful,
+   otherwise a null pointer.
+
+   H's referent type must be one of the bits in MASK.  The caller
+   must verify this ahead of time; we simply assert it here.
+
+   TYPE is the sort of file, e.g. "system file".  Only one type
+   of access is allowed on a given file at a time for reading,
+   and similarly for writing.  If successful, a reference to TYPE
+   is retained, so it should probably be a string literal.
+
+   ACCESS specifies whether the lock is for reading or writing.
+   EXCLUSIVE is true to require exclusive access, false to allow
+   sharing with other accessors.  Exclusive read access precludes
+   other readers, but not writers; exclusive write access
+   precludes other writers, but not readers.  A sharable read or
+   write lock precludes reader or writers, respectively, of a
+   different TYPE.
+
+   A lock may be associated with auxiliary data.  See
+   fh_lock_get_aux and fh_lock_set_aux for more details. */
+struct fh_lock *
+fh_lock (struct file_handle *h, enum fh_referent mask UNUSED,
+         const char *type, enum fh_access access, bool exclusive)
+{
+  struct fh_lock key, *lock;
+  void **lockp;
+
+  assert ((fh_get_referent (h) & mask) != 0);
+  assert (access == FH_ACC_READ || access == FH_ACC_WRITE);
+
+  if (locks == NULL)
+    locks = hsh_create (0, compare_fh_locks, hash_fh_lock, NULL, NULL);
+
+  make_key (&key, h, access);
+  lockp = hsh_probe (locks, &key);
+  if (*lockp == NULL)
+    {
+      lock = *lockp = xmalloc (sizeof *lock);
+      *lock = key;
+      lock->open_cnt = 1;
+      lock->exclusive = exclusive;
+      lock->type = type;
+      lock->aux = NULL;
+    }
+  else
+    {
+      free_key (&key);
+
+      lock = *lockp;
+      if (strcmp (lock->type, type))
+        {
+          if (access == FH_ACC_READ)
+            msg (SE, _("Can't read from %s as a %s because it is "
+                       "already being read as a %s."),
+                 fh_get_name (h), gettext (type), gettext (lock->type));
+          else
+            msg (SE, _("Can't write to %s as a %s because it is "
+                       "already being written as a %s."),
+                 fh_get_name (h), gettext (type), gettext (lock->type));
+          return NULL;
+        }
+      else if (exclusive || lock->exclusive)
+        {
+          msg (SE, _("Can't re-open %s as a %s."),
+               fh_get_name (h), gettext (type));
+          return NULL;
+        }
+      lock->open_cnt++;
+    }
+
+  return lock;
+}
+
+/* Releases LOCK that was acquired with fh_lock.
+   Returns true if LOCK is still locked, because other clients
+   also had it locked.
+
+   Returns false if LOCK has now been destroyed.  In this case
+   the caller must ensure that any auxiliary data associated with
+   LOCK is destroyed, to avoid a memory leak.  The caller must
+   obtain a pointer to the auxiliary data, e.g. via
+   fh_lock_get_aux *before* calling fh_unlock (because it yields
+   undefined behavior to call fh_lock_get_aux on a destroyed
+   lock).  */
+bool
+fh_unlock (struct fh_lock *lock)
+{
+  if (lock != NULL)
+    {
+      assert (lock->open_cnt > 0);
+      if (--lock->open_cnt == 0)
+        {
+          hsh_delete (locks, lock);
+          free_key (lock);
+          free (lock);
+          return false;
+        }
+    }
+  return true;
+}
+
+/* Returns auxiliary data for LOCK.
+
+   Auxiliary data is shared by every client that holds LOCK (for
+   an exclusive lock, this is a single client).  To avoid leaks,
+   auxiliary data must be released before LOCK is destroyed. */
+void *
+fh_lock_get_aux (const struct fh_lock *lock)
+{
+  return lock->aux;
+}
+
+/* Sets the auxiliary data for LOCK to AUX. */
+void
+fh_lock_set_aux (struct fh_lock *lock, void *aux)
+{
+  lock->aux = aux;
+}
+
+/* Returns true if HANDLE is locked for the given type of ACCESS,
+   false otherwise. */
+bool
+fh_is_locked (const struct file_handle *handle, enum fh_access access)
+{
+  struct fh_lock key;
+  bool is_locked;
+
+  make_key (&key, handle, access);
+  is_locked = hsh_find (locks, &key) != NULL;
+  free_key (&key);
+
+  return is_locked;
+}
+
+/* Initializes the key fields in LOCK for looking up or inserting
+   handle H for the given kind of ACCESS. */
+static void
+make_key (struct fh_lock *lock, const struct file_handle *h,
+          enum fh_access access)
+{
+  lock->referent = fh_get_referent (h);
+  lock->access = access;
+  if (lock->referent == FH_REF_FILE)
+    lock->u.file = fn_get_identity (fh_get_file_name (h));
+  else if (lock->referent == FH_REF_SCRATCH)
+    {
+      struct scratch_handle *sh = fh_get_scratch_handle (h);
+      lock->u.unique_id = sh != NULL ? sh->unique_id : 0;
+    }
+}
+
+/* Frees the key fields in LOCK. */
+static void
+free_key (struct fh_lock *lock)
+{
+  if (lock->referent == FH_REF_FILE)
+    fn_free_identity (lock->u.file);
+}
+
+/* Compares the key fields in struct fh_lock objects A and B and
+   returns a strcmp()-type result. */
+static int
+compare_fh_locks (const void *a_, const void *b_, const void *aux UNUSED)
+{
+  const struct fh_lock *a = a_;
+  const struct fh_lock *b = b_;
+
+  if (a->referent != b->referent)
+    return a->referent < b->referent ? -1 : 1;
+  else if (a->access != b->access)
+    return a->access < b->access ? -1 : 1;
+  else if (a->referent == FH_REF_FILE)
+    return fn_compare_file_identities (a->u.file, b->u.file);
+  else if (a->referent == FH_REF_SCRATCH)
+    return (a->u.unique_id < b->u.unique_id ? -1
+            : a->u.unique_id > b->u.unique_id);
+  else
+    return 0;
+}
+
+/* Returns a hash value for LOCK. */
+static unsigned int
+hash_fh_lock (const void *lock_, const void *aux UNUSED)
+{
+  const struct fh_lock *lock = lock_;
+  unsigned int hash = hsh_hash_int ((lock->referent << 3) | lock->access);
+  if (lock->referent == FH_REF_FILE)
+    hash ^= fn_hash_identity (lock->u.file);
+  else if (lock->referent == FH_REF_SCRATCH)
+    hash ^= hsh_hash_int (lock->u.unique_id);
+  return hash;
 }

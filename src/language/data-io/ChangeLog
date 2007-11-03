@@ -1,3 +1,36 @@
+2007-11-03  Ben Pfaff  <blp@gnu.org>
+
+	Allow output files to overwrite input files (bug #21280).
+
+	* data-list.c (cmd_data_list): Manage file handle reference
+	counts.
+
+	* data-reader.c (struct dfm_reader): Add `lock' member.
+	(dfm_close_reader): Simplify, as reference counting is now
+	separate from locking.
+	(dfm_open_reader): Lock file.
+
+	* data-writer.c (struct dfm_writer): Add fh_lock, replace_file
+	members.
+	(dfm_open_writer): Lock file and prepare for replacement.
+	(dfm_close_writer): Unlock file and replace it.
+
+	* file-handle.q (cmd_close_file_handle): Use fh_unname.
+	(fh_parse): Don't distinguish existing handles for a given file
+	name from new ones.  Manage file handle reference counts.
+
+	* get.c (parse_read_command): Manage file handle reference counts.
+	(parse_write_command): Ditto.
+	(mtf_close_all_files): Ditto.
+
+	* inpt-pgm.c (cmd_reread): Manage file handle reference counts.
+
+	* print-space.c (cmd_print_space): Manage file handle reference
+	counts.
+
+	* print.c (internal_cmd_print): Manage file handle reference
+	counts.
+
 2007-11-03 John Darrington <john@darrington.wattle.id.au>
 
 	* get.c: Add GET DATA command variant.

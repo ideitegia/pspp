@@ -50,13 +50,15 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 
   lex_match_id (lexer, "FROM");
   lex_match (lexer, '=');
+
   handle = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
   if (!handle)
     return CMD_FAILURE;
-
   reader = any_reader_open (handle, &dict);
+  fh_unref (handle);
   if (dict == NULL)
     return CMD_FAILURE;
+
   casereader_destroy (reader);
 
   for (i = 0; i < dict_get_var_cnt (dict); i++)

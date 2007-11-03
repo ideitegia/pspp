@@ -37,6 +37,13 @@ enum fh_mode
     FH_MODE_BINARY              /* Fixed-length records. */
   };
 
+/* Ways to access a file. */
+enum fh_access
+  {
+    FH_ACC_READ,                /* Read from it. */
+    FH_ACC_WRITE                /* Write to it. */
+  };
+
 /* Properties of a file handle. */
 struct fh_properties
   {
@@ -55,8 +62,10 @@ struct file_handle *fh_create_file (const char *handle_name,
 struct file_handle *fh_create_scratch (const char *handle_name);
 const struct fh_properties *fh_default_properties (void);
 
-/* Delete file handle from global list. */
-void fh_free (struct file_handle *);
+/* Reference management. */
+struct file_handle *fh_ref (struct file_handle *);
+void fh_unref (struct file_handle *);
+void fh_unname (struct file_handle *);
 
 /* Finding file handles. */
 struct file_handle *fh_from_id (const char *handle_name);
@@ -77,14 +86,16 @@ size_t fh_get_record_width (const struct file_handle *);
 size_t fh_get_tab_width (const struct file_handle *);
 
 /* Properties of FH_REF_SCRATCH file handles. */
-struct scratch_handle *fh_get_scratch_handle (struct file_handle *);
+struct scratch_handle *fh_get_scratch_handle (const struct file_handle *);
 void fh_set_scratch_handle (struct file_handle *, struct scratch_handle *);
 
-/* Opening and closing file handles. */
-void **fh_open (struct file_handle *, enum fh_referent mask,
-                const char *type, const char *mode);
-int fh_close (struct file_handle *, const char *type, const char *mode);
-bool fh_is_open (const struct file_handle *);
+/* Mutual exclusion for access . */
+struct fh_lock *fh_lock (struct file_handle *, enum fh_referent mask,
+                         const char *type, enum fh_access, bool exclusive);
+bool fh_unlock (struct fh_lock *);
+void *fh_lock_get_aux (const struct fh_lock *);
+void fh_lock_set_aux (struct fh_lock *, void *aux);
+bool fh_is_locked (const struct file_handle *, enum fh_access);
 
 /* Default file handle for DATA LIST, REREAD, REPEATING DATA
    commands. */

@@ -21,8 +21,10 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include <data/file-name.h>
+#include <data/make-file.h>
 #include <language/data-io/file-handle.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
@@ -38,7 +40,9 @@
 struct dfm_writer
   {
     struct file_handle *fh;     /* File handle. */
+    struct fh_lock *lock;       /* Exclusive access to file. */
     FILE *file;                 /* Associated file. */
+    struct replace_file *rf;    /* Atomic file replacement support. */
   };
 
 /* Opens a file handle for writing as a data file. */
@@ -46,31 +50,33 @@ struct dfm_writer *
 dfm_open_writer (struct file_handle *fh)
 {
   struct dfm_writer *w;
-  void **aux;
+  struct fh_lock *lock;
 
-  aux = fh_open (fh, FH_REF_FILE, "data file", "ws");
-  if (aux == NULL)
+  lock = fh_lock (fh, FH_REF_FILE, "data file", FH_ACC_WRITE, false);
+  if (lock == NULL)
     return NULL;
-  if (*aux != NULL)
-    return *aux;
 
-  w = *aux = xmalloc (sizeof *w);
-  w->fh = fh;
-  w->file = fn_open (fh_get_file_name (w->fh), "wb");
+  w = fh_lock_get_aux (lock);
+  if (w != NULL)
+    return w;
 
-  if (w->file == NULL)
+  w = xmalloc (sizeof *w);
+  w->fh = fh_ref (fh);
+  w->lock = lock;
+  w->rf = replace_file_start (fh_get_file_name (w->fh), "wb",
+                              (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP
+                               | S_IROTH | S_IWOTH), &w->file, NULL);
+  if (w->rf == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for writing "
                  "as a data file: %s."),
            fh_get_file_name (w->fh), strerror (errno));
-      goto error;
+      dfm_close_writer (w);
+      return NULL;
     }
+  fh_lock_set_aux (lock, w);
 
   return w;
-
- error:
-  dfm_close_writer (w);
-  return NULL;
 }
 
 /* Returns false if an I/O error occurred on WRITER, true otherwise. */
@@ -126,28 +132,27 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
 bool
 dfm_close_writer (struct dfm_writer *w)
 {
-  char *file_name;
   bool ok;
 
   if (w == NULL)
     return true;
-  file_name = xstrdup (fh_get_name (w->fh));
-  if (fh_close (w->fh, "data file", "ws"))
-    {
-      free (file_name);
-      return true;
-    }
+  if (fh_unlock (w->lock))
+    return true;
 
   ok = true;
   if (w->file != NULL)
     {
+      const char *file_name = fh_get_file_name (w->fh);
       ok = !dfm_write_error (w) && !fn_close (file_name, w->file);
 
       if (!ok)
         msg (ME, _("I/O error occurred writing data file \"%s\"."), file_name);
+
+      if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))
+        ok = false;
     }
+  fh_unref (w->fh);
   free (w);
-  free (file_name);
 
   return ok;
 }

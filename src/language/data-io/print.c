@@ -204,11 +204,13 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
   add_transformation (ds, print_trns_proc, print_trns_free, trns);
 
   pool_destroy (tmp_pool);
+  fh_unref (fh);
 
   return CMD_SUCCESS;
 
  error:
   print_trns_free (trns);
+  fh_unref (fh);
   return CMD_FAILURE;
 }
 

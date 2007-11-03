@@ -53,6 +53,7 @@
 #include <ui/terminal/read-line.h>
 #include <ui/terminal/terminal.h>
 
+#include "fatal-signal.h"
 #include "progname.h"
 
 #include "gettext.h"
@@ -61,7 +62,7 @@
 
 static void i18n_init (void);
 static void fpu_init (void);
-static void terminate (bool success) NO_RETURN;
+static void clean_up (void);
 
 /* If a segfault happens, issue a message to that effect and halt */
 void bug_handler(int sig);
@@ -84,7 +85,7 @@ main (int argc, char **argv)
   signal (SIGABRT, bug_handler);
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
-  signal (SIGINT, interrupt_handler);
+  at_fatal_signal (clean_up);
 
   i18n_init ();
   fpu_init ();
@@ -137,7 +138,8 @@ main (int argc, char **argv)
         }
     }
 
-  terminate (!any_errors ());
+  clean_up ();
+  return any_errors ();
 }
 
 static void
@@ -188,17 +190,9 @@ bug_handler(int sig)
     }
 }
 
-void
-interrupt_handler(int sig UNUSED)
-{
-  terminate (false);
-}
-
-
-/* Terminate PSPP.  SUCCESS should be true to exit successfully,
-   false to exit as a failure.  */
+/* Clean up PSPP in preparation for termination.  */
 static void
-terminate (bool success)
+clean_up (void)
 {
   static bool terminating = false;
   if (!terminating)
@@ -214,10 +208,8 @@ terminate (bool success)
       destroy_source_stream (the_source_stream);
       prompt_done ();
       readln_uninitialize ();
-
       outp_done ();
       msg_ui_done ();
       fmt_done ();
     }
-  exit (success ? EXIT_SUCCESS : EXIT_FAILURE);
 }

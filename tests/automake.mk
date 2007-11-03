@@ -108,6 +108,7 @@ dist_TESTS = \
 	tests/bugs/match-files-scratch.sh \
 	tests/bugs/multipass.sh \
 	tests/bugs/overwrite-input-file.sh \
+	tests/bugs/overwrite-special-file.sh \
 	tests/bugs/random.sh \
 	tests/bugs/signals.sh \
 	tests/bugs/t-test-with-temp.sh \

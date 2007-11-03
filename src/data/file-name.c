@@ -30,8 +30,9 @@
 #include "dirname.h"
 #include "xmalloca.h"
 
-#include <libpspp/message.h>
 #include <data/settings.h>
+#include <libpspp/hash.h>
+#include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <libpspp/verbose-msg.h>
 #include <libpspp/version.h>
@@ -348,60 +349,24 @@ create_stream (const char *fn, const char *mode, mode_t permissions)
   return stream;
 }
 
-#if !(defined _WIN32 || defined __WIN32__)
-/* A file's identity. */
+/* A file's identity:
+
+   - For a file that exists, this is its device and inode.
+
+   - For a file that does not exist, but which has a directory
+     name that exists, this is the device and inode of the
+     directory, plus the file's base name.
+
+   - For a file that does not exist and has a nonexistent
+     directory, this is the file name.
+
+   Windows doesn't have inode numbers, so we just use the name
+   there. */
 struct file_identity
 {
   dev_t device;               /* Device number. */
   ino_t inode;                /* Inode number. */
-};
-
-/* Returns a pointer to a dynamically allocated structure whose
-   value can be used to tell whether two files are actually the
-   same file.  Returns a null pointer if no information about the
-   file is available, perhaps because it does not exist.  The
-   caller is responsible for freeing the structure with
-   fn_free_identity() when finished. */
-struct file_identity *
-fn_get_identity (const char *file_name)
-{
-  struct stat s;
-
-  if (stat (file_name, &s) == 0)
-    {
-      struct file_identity *identity = xmalloc (sizeof *identity);
-      identity->device = s.st_dev;
-      identity->inode = s.st_ino;
-      return identity;
-    }
-  else
-    return NULL;
-}
-
-/* Frees IDENTITY obtained from fn_get_identity(). */
-void
-fn_free_identity (struct file_identity *identity)
-{
-  free (identity);
-}
-
-/* Compares A and B, returning a strcmp()-type result. */
-int
-fn_compare_file_identities (const struct file_identity *a,
-                            const struct file_identity *b)
-{
-  assert (a != NULL);
-  assert (b != NULL);
-  if (a->device != b->device)
-    return a->device < b->device ? -1 : 1;
-  else
-    return a->inode < b->inode ? -1 : a->inode > b->inode;
-}
-#else /* Windows */
-/* A file's identity. */
-struct file_identity
-{
-  char *normalized_file_name;  /* File's normalized name. */
+  char *name;                 /* File name, where needed, otherwise NULL. */
 };
 
 /* Returns a pointer to a dynamically allocated structure whose
@@ -414,12 +379,40 @@ struct file_identity *
 fn_get_identity (const char *file_name)
 {
   struct file_identity *identity = xmalloc (sizeof *identity);
-  char cname[PATH_MAX];
 
-  if (GetFullPathName (file_name, sizeof cname, cname, NULL))
-    identity->normalized_file_name = xstrdup (cname);
+#if !(defined _WIN32 || defined __WIN32__)
+  struct stat s;
+  if (lstat (file_name, &s) == 0)
+    {
+      identity->device = s.st_dev;
+      identity->inode = s.st_ino;
+      identity->name = NULL;
+    }
   else
-    identity->normalized_file_name = xstrdup (file_name);
+    {
+      char *dir = dir_name (file_name);
+      if (last_component (file_name) != NULL && stat (dir, &s) == 0)
+        {
+          identity->device = s.st_dev;
+          identity->inode = s.st_ino;
+          identity->name = base_name (file_name);
+        }
+      else
+        {
+          identity->device = 0;
+          identity->inode = 0;
+          identity->name = xstrdup (file_name);
+        }
+      free (dir);
+    }
+#else /* Windows */
+  char cname[PATH_MAX];
+  int ok = GetFullPathName (file_name, sizeof cname, cname, NULL);
+  identity->device = 0;
+  identity->inode = 0;
+  identity->name = xstrdup (ok ? cname : file_name);
+  str_lowercase (identity->file_name);
+#endif /* Windows */
 
   return identity;
 }
@@ -430,7 +423,7 @@ fn_free_identity (struct file_identity *identity)
 {
   if (identity != NULL)
     {
-      free (identity->normalized_file_name);
+      free (identity->name);
       free (identity);
     }
 }
@@ -440,6 +433,22 @@ int
 fn_compare_file_identities (const struct file_identity *a,
                             const struct file_identity *b)
 {
-  return strcasecmp (a->normalized_file_name, b->normalized_file_name);
+  if (a->device != b->device)
+    return a->device < b->device ? -1 : 1;
+  else if (a->inode != b->inode)
+    return a->inode < b->inode ? -1 : 1;
+  else if (a->name != NULL)
+    return b->name != NULL ? strcmp (a->name, b->name) : 1;
+  else
+    return b->name != NULL ? -1 : 0;
 }
-#endif /* Windows */
+
+/* Returns a hash value for IDENTITY. */
+unsigned int
+fn_hash_identity (const struct file_identity *identity)
+{
+  unsigned int hash = identity->device ^ identity->inode;
+  if (identity->name != NULL)
+    hash ^= hsh_hash_string (identity->name);
+  return hash;
+}

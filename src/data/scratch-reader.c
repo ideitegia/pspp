@@ -16,15 +16,16 @@
 
 #include <config.h>
 
-#include "scratch-reader.h"
+#include <data/scratch-reader.h>
 
 #include <stdlib.h>
 
-#include "dictionary.h"
-#include "file-handle-def.h"
-#include "scratch-handle.h"
 #include <data/case.h>
 #include <data/casereader.h>
+#include <data/dictionary.h>
+#include <data/file-handle-def.h>
+#include <data/scratch-handle.h>
+#include <libpspp/assertion.h>
 #include <libpspp/message.h>
 
 #include "xalloc.h"
@@ -41,8 +42,11 @@ scratch_reader_open (struct file_handle *fh, struct dictionary **dict)
 {
   struct scratch_handle *sh;
 
-  if (!fh_open (fh, FH_REF_SCRATCH, "scratch file", "rs"))
-    return NULL;
+  /* We don't bother doing fh_lock or fh_ref on the file handle,
+     as there's no advantage in this case, and doing these would
+     require us to keep track of the "struct file_handle" and
+     "struct fh_lock" and undo our work later. */
+  assert (fh_get_referent (fh) == FH_REF_SCRATCH);
 
   sh = fh_get_scratch_handle (fh);
   if (sh == NULL || sh->casereader == NULL)

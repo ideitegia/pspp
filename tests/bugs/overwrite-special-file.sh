@@ -1,6 +1,8 @@
 #!/bin/sh
 
-# This program tests the ERASE command.
+# This program tests that simultaneous input and output to a single
+# file properly coexist, with the output atomically replacing the
+# input if successful.
 
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps
@@ -52,50 +54,46 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-activity="create file"
-cat > $TEMPDIR/foobar <<EOF
-xyzzy
-EOF
-if [ $? -ne 0 ] ; then no_result ; fi
+# This test only works on systems that have a /dev/null device...
+test -c /dev/null || no_result
 
-activity="check for file 1"
-if [ ! -f $TEMPDIR/foobar ] ; then no_result ; fi 
+# ...and that are able to make a symbolic link to it...
+ln -s /dev/null foo.out || no_result
 
+# ...that is still /dev/null.
+test -c /dev/null || no_result
 
 activity="create program 1"
 cat > $TESTFILE <<EOF
-set safer on
-
-erase FILE='foobar'.
-
+DATA LIST /x 1.
+BEGIN DATA.
+1
+2
+3
+4
+5
+END DATA.
+PRINT OUTFILE='foo.out'/x.
+PRINT OUTFILE='foo2.out'/x.
+EXECUTE.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-# foobar must still exist
-activity="check for file 2"
-if [ ! -f $TEMPDIR/foobar ] ; then fail ; fi 
-
-# This command must fail
-activity="run prog 1"
-$SUPERVISOR $PSPP --testing-mode -e /dev/null $TESTFILE 
-if [ $? -eq 0 ] ; then fail ; fi
-
-
-activity="create program 2"
-cat > $TESTFILE <<EOF
-
-erase FILE='foobar'.
-
-EOF
-if [ $? -ne 0 ] ; then no_result ; fi
-
-
-activity="run prog 2"
+activity="run program 1"
 $SUPERVISOR $PSPP --testing-mode $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="check that foo2.out was created"
+diff -b -B foo2.out - << EOF
+ 1
+ 2
+ 3
+ 4
+ 5
+EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
-# foobar should now be gone
-if [ -f $TEMPDIR/foobar ] ; then fail ; fi 
-
+activity="check that foo.out is unchanged"
+test -c /dev/null || fail
 
 pass;

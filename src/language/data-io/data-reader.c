@@ -55,6 +55,7 @@ enum dfm_reader_flags
 struct dfm_reader
   {
     struct file_handle *fh;     /* File handle. */
+    struct fh_lock *lock;       /* Mutual exclusion lock for file. */
     struct msg_locator where;   /* Current location in data file. */
     struct string line;         /* Current line. */
     struct string scratch;      /* Extra line buffer. */
@@ -69,24 +70,18 @@ struct dfm_reader
 void
 dfm_close_reader (struct dfm_reader *r)
 {
-  int still_open;
-  bool is_inline;
-  char *file_name;
-
   if (r == NULL)
     return;
 
-  is_inline = r->fh == fh_inline_file ();
-  file_name = is_inline ? NULL : xstrdup (fh_get_file_name (r->fh));
-  still_open = fh_close (r->fh, "data file", "rs");
-  if (still_open)
+  if (fh_unlock (r->lock))
     {
-      free (file_name);
+      /* File is still locked by another client. */
       return;
     }
 
-  if (!is_inline)
-    fn_close (file_name, r->file);
+  /* This was the last client, so close the underlying file. */
+  if (fh_get_referent (r->fh) != FH_REF_INLINE)
+    fn_close (fh_get_file_name (r->fh), r->file);
   else
     {
       /* Skip any remaining data on the inline file. */
@@ -98,10 +93,10 @@ dfm_close_reader (struct dfm_reader *r)
         }
     }
 
+  fh_unref (r->fh);
   ds_destroy (&r->line);
   ds_destroy (&r->scratch);
   free (r);
-  free (file_name);
 }
 
 /* Opens the file designated by file handle FH for reading as a
@@ -113,22 +108,26 @@ struct dfm_reader *
 dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
 {
   struct dfm_reader *r;
-  void **rp;
+  struct fh_lock *lock;
 
-  rp = fh_open (fh, FH_REF_FILE | FH_REF_INLINE, "data file", "rs");
-  if (rp == NULL)
+  lock = fh_lock (fh, FH_REF_FILE | FH_REF_INLINE, "data file",
+                  FH_ACC_READ, false);
+  if (lock == NULL)
     return NULL;
-  if (*rp != NULL)
-    return *rp;
+
+  r = fh_lock_get_aux (lock);
+  if (r != NULL)
+    return r;
 
   r = xmalloc (sizeof *r);
-  r->fh = fh;
-  r->lexer = lexer ;
+  r->fh = fh_ref (fh);
+  r->lock = lock;
+  r->lexer = lexer;
   ds_init_empty (&r->line);
   ds_init_empty (&r->scratch);
   r->flags = DFM_ADVANCE;
   r->eof_cnt = 0;
-  if (fh != fh_inline_file ())
+  if (fh_get_referent (fh) != FH_REF_INLINE)
     {
       r->where.file_name = fh_get_file_name (fh);
       r->where.line_number = 0;
@@ -137,12 +136,13 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
         {
           msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
                fh_get_file_name (r->fh), strerror (errno));
-          fh_close (fh,"data file", "rs");
+          fh_unlock (r->lock);
+          fh_unref (fh);
           free (r);
           return NULL;
         }
     }
-  *rp = r;
+  fh_lock_set_aux (lock, r);
 
   return r;
 }
@@ -430,7 +430,7 @@ cmd_begin_data (struct lexer *lexer, struct dataset *ds)
   struct dfm_reader *r;
   bool ok;
 
-  if (!fh_is_open (fh_inline_file ()))
+  if (!fh_is_locked (fh_inline_file (), FH_ACC_READ))
     {
       msg (SE, _("This command is not valid here since the current "
                  "input program does not access the inline file."));

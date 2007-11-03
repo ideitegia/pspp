@@ -1,3 +1,16 @@
+2007-11-03  Ben Pfaff  <blp@gnu.org>
+
+	Allow output files to overwrite input files (bug #21280).
+
+	* automake.mk: Add new file.
+
+	* bugs/overwrite-input-file.sh: Rewrite to make sure that we can
+	overwrite input files safely.
+
+	* bugs/overwrite-special-file.sh: New test.
+
+	* command/erase.sh: Fix "activity" message.
+
 2007-11-03  John Darrington <john@darrington.wattle.id.au>
 
 	* Book1.gnm.unzipped command/get-data-gnm.sh: New test and data

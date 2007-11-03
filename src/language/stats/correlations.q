@@ -77,9 +77,13 @@ internal_cmd_correlations (struct lexer *lexer, struct dataset *ds)
   matrix_file = NULL;
 
   if (!parse_correlations (lexer, ds, &cmd, NULL))
-    return CMD_FAILURE;
+    {
+      fh_unref (matrix_file);
+      return CMD_FAILURE;
+    }
 
   free_correlations (&cmd);
+  fh_unref (matrix_file);
 
   return CMD_SUCCESS;
 }
@@ -141,6 +145,7 @@ cor_custom_matrix (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_co
     matrix_file = NULL;
   else
     {
+      fh_unref (matrix_file);
       matrix_file = fh_parse (lexer, FH_REF_FILE);
       if (matrix_file == NULL)
         return 0;

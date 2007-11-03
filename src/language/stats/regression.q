@@ -930,6 +930,7 @@ regression_custom_export (struct lexer *lexer, struct dataset *ds UNUSED,
     model_file = NULL;
   else
     {
+      fh_unref (model_file);
       model_file = fh_parse (lexer, FH_REF_FILE);
       if (model_file == NULL)
 	return 0;
@@ -950,8 +951,12 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   bool ok;
   size_t i;
 
+  model_file = NULL;
   if (!parse_regression (lexer, ds, &cmd, NULL))
-    return CMD_FAILURE;
+    {
+      fh_unref (model_file);
+      return CMD_FAILURE;
+    }
 
   models = xnmalloc (cmd.n_dependent, sizeof *models);
   for (i = 0; i < cmd.n_dependent; i++)
@@ -970,6 +975,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   free (v_variables);
   free (models);
   free_regression (&cmd);
+  fh_unref (model_file);
 
   return ok ? CMD_SUCCESS : CMD_FAILURE;
 }

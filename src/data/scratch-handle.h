@@ -22,6 +22,7 @@
 /* A scratch file. */
 struct scratch_handle
   {
+    unsigned int unique_id;             /* Identifies this scratch file. */
     struct dictionary *dictionary;      /* Dictionary. */
     struct casereader *casereader;      /* Cases. */
   };

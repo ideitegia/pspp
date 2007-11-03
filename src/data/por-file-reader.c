@@ -65,6 +65,7 @@ struct pfm_reader
     jmp_buf bail_out;           /* longjmp() target for error handling. */
 
     struct file_handle *fh;     /* File handle. */
+    struct fh_lock *lock;       /* Read lock for file. */
     FILE *file;			/* File stream. */
     int line_length;            /* Number of characters so far on this line. */
     char cc;			/* Current character. */
@@ -157,8 +158,8 @@ close_reader (struct pfm_reader *r)
       r->file = NULL;
     }
 
-  if (r->fh != NULL)
-    fh_close (r->fh, "portable file", "rs");
+  fh_unlock (r->lock);
+  fh_unref (r->fh);
 
   ok = r->ok;
   pool_destroy (r->pool);
@@ -241,15 +242,14 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   struct pfm_reader *volatile r = NULL;
 
   *dict = dict_create ();
-  if (!fh_open (fh, FH_REF_FILE, "portable file", "rs"))
-    goto error;
 
   /* Create and initialize reader. */
   pool = pool_create ();
   r = pool_alloc (pool, sizeof *r);
   r->pool = pool;
-  r->fh = fh;
-  r->file = fn_open (fh_get_file_name (r->fh), "rb");
+  r->fh = fh_ref (fh);
+  r->lock = NULL;
+  r->file = NULL;
   r->line_length = 0;
   r->weight_index = -1;
   r->trans = NULL;
@@ -257,11 +257,16 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->widths = NULL;
   r->value_cnt = 0;
   r->ok = true;
-
   if (setjmp (r->bail_out))
     goto error;
 
-  /* Check that file open succeeded. */
+  /* Lock file. */
+  r->lock = fh_lock (fh, FH_REF_FILE, "portable file", FH_ACC_READ, false);
+  if (r->lock == NULL)
+    goto error;
+
+  /* Open file. */
+  r->file = fn_open (fh_get_file_name (r->fh), "rb");
   if (r->file == NULL)
     {
       msg (ME, _("An error occurred while opening \"%s\" for reading "

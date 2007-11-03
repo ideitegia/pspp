@@ -120,7 +120,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   struct dictionary *dict;
   struct data_list_pgm *dls;
   int table = -1;                /* Print table if nonzero, -1=undecided. */
-  struct file_handle *fh = fh_inline_file ();
+  struct file_handle *fh = NULL;
   struct pool *tmp_pool;
   bool ok;
 
@@ -143,6 +143,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
       if (lex_match_id (lexer, "FILE"))
 	{
 	  lex_match (lexer, '=');
+          fh_unref (fh);
 	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto error;
@@ -244,6 +245,8 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
+  if (fh == NULL)
+    fh = fh_inline_file ();
   fh_set_default_handle (fh);
 
   if (dls->type == -1)
@@ -292,10 +295,12 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
     }
 
   pool_destroy (tmp_pool);
+  fh_unref (fh);
 
   return CMD_SUCCESS;
 
  error:
+  fh_unref (fh);
   data_list_trns_free (dls);
   return CMD_CASCADING_FAILURE;
 }

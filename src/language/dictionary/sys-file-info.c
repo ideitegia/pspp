@@ -99,7 +99,10 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 
   reader = sfm_open_reader (h, &d, &info);
   if (!reader)
-    return CMD_FAILURE;
+    {
+      fh_unref (h);
+      return CMD_FAILURE;
+    }
   casereader_destroy (reader);
 
   t = tab_create (2, 10, 0);
@@ -184,6 +187,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 
   dict_destroy (d);
 
+  fh_unref (h);
   return lex_end_of_command (lexer);
 }
 

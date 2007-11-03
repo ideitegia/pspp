@@ -33,6 +33,7 @@
 #include <data/file-handle-def.h>
 #include <data/file-name.h>
 #include <data/format.h>
+#include <data/make-file.h>
 #include <data/missing-values.h>
 #include <data/short-names.h>
 #include <data/value-labels.h>
@@ -56,7 +57,9 @@
 struct pfm_writer
   {
     struct file_handle *fh;     /* File handle. */
+    struct fh_lock *lock;       /* Lock on file handle. */
     FILE *file;			/* File stream. */
+    struct replace_file *rf;    /* Ticket for replacing output file. */
 
     int lc;			/* Number of characters on this line so far. */
 
@@ -108,32 +111,14 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
 {
   struct pfm_writer *w = NULL;
   mode_t mode;
-  FILE *file;
   size_t i;
-
-  /* Open file handle. */
-  if (!fh_open (fh, FH_REF_FILE, "portable file", "we"))
-    return NULL;
-
-  /* Create file. */
-  mode = S_IRUSR | S_IRGRP | S_IROTH;
-  if (opts.create_writeable)
-    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
-  file = create_stream (fh_get_file_name (fh), "w", mode);
-  if (file == NULL)
-    {
-      fh_close (fh, "portable file", "we");
-      msg (ME, _("An error occurred while opening \"%s\" for writing "
-                 "as a portable file: %s."),
-           fh_get_file_name (fh), strerror (errno));
-      return NULL;
-    }
 
   /* Initialize data structures. */
   w = xmalloc (sizeof *w);
-  w->fh = fh;
-  w->file = file;
-
+  w->fh = fh_ref (fh);
+  w->lock = NULL;
+  w->file = NULL;
+  w->rf = NULL;
   w->lc = 0;
   w->var_cnt = 0;
   w->vars = NULL;
@@ -156,6 +141,24 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
       w->digits = DBL_DIG;
     }
 
+  /* Lock file. */
+  w->lock = fh_lock (fh, FH_REF_FILE, "portable file", FH_ACC_WRITE, true);
+  if (w->lock == NULL)
+    goto error;
+
+  /* Create file. */
+  mode = S_IRUSR | S_IRGRP | S_IROTH;
+  if (opts.create_writeable)
+    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
+  w->rf = replace_file_start (fh_get_file_name (fh), "w", mode,
+                              &w->file, NULL);
+  if (w->rf == NULL)
+    {
+      msg (ME, _("Error opening \"%s\" for writing as a portable file: %s."),
+           fh_get_file_name (fh), strerror (errno));
+      goto error;
+    }
+
   /* Write file header. */
   write_header (w);
   write_version_data (w);
@@ -165,12 +168,13 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     write_documents (w, dict);
   buf_write (w, "F", 1);
   if (ferror (w->file))
-    {
-      close_writer (w);
-      return NULL;
-    }
+    goto error;
   return casewriter_create (dict_get_next_value_idx (dict),
                             &por_file_casewriter_class, w);
+
+error:
+  close_writer (w);
+  return NULL;
 }
 
 /* Write NBYTES starting at BUF to the portable file represented by
@@ -491,9 +495,13 @@ close_writer (struct pfm_writer *w)
       if (!ok)
         msg (ME, _("An I/O error occurred writing portable file \"%s\"."),
              fh_get_file_name (w->fh));
+
+      if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))
+        ok = false;
     }
 
-  fh_close (w->fh, "portable file", "we");
+  fh_unlock (w->lock);
+  fh_unref (w->fh);
 
   free (w->vars);
   free (w);

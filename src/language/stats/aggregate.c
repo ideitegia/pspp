@@ -330,6 +330,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
     }
 
   agr_destroy (&agr);
+  fh_unref (out_file);
   return CMD_SUCCESS;
 
 error:
@@ -337,6 +338,7 @@ error:
     proc_commit (ds);
   casewriter_destroy (output);
   agr_destroy (&agr);
+  fh_unref (out_file);
   return CMD_CASCADING_FAILURE;
 }
 

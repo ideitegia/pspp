@@ -296,6 +296,7 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
       else if (lex_match_id (lexer, "FILE"))
 	{
 	  lex_match (lexer, '=');
+          fh_unref (fh);
           fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    {
@@ -316,6 +317,7 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
   t->column = e;
   add_transformation (ds, reread_trns_proc, reread_trns_free, t);
 
+  fh_unref (fh);
   return CMD_SUCCESS;
 }
 

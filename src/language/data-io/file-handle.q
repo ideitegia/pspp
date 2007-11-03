@@ -133,8 +133,7 @@ cmd_close_file_handle (struct lexer *lexer, struct dataset *ds UNUSED)
   if (handle == NULL)
     return CMD_CASCADING_FAILURE;
 
-  fh_free (handle);
-
+  fh_unname (handle);
   return CMD_SUCCESS;
 }
 
@@ -158,7 +157,10 @@ referent_name (enum fh_referent referent)
 /* Parses a file handle name, which may be a file name as a string
    or a file handle name as an identifier.  The allowed types of
    file handle are restricted to those in REFERENT_MASK.  Returns
-   the file handle when successful, a null pointer on failure. */
+   the file handle when successful, a null pointer on failure.
+
+   The caller is responsible for fh_unref()'ing the returned
+   file handle when it is no longer needed. */
 struct file_handle *
 fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
 {
@@ -178,8 +180,6 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
       if (lex_token (lexer) == T_ID)
         handle = fh_from_id (lex_tokid (lexer));
       if (handle == NULL)
-        handle = fh_from_file_name (ds_cstr (lex_tokstr (lexer)));
-      if (handle == NULL)
         {
           if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || get_syntax () != ENHANCED)
             handle = fh_create_file (NULL, ds_cstr (lex_tokstr (lexer)),
@@ -194,6 +194,7 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
     {
       msg (SE, _("Handle for %s not allowed here."),
            referent_name (fh_get_referent (handle)));
+      fh_unref (handle);
       return NULL;
     }
 

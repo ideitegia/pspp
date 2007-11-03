@@ -40,6 +40,7 @@
 #include <data/file-handle-def.h>
 #include <data/file-name.h>
 #include <data/format.h>
+#include <data/make-file.h>
 #include <data/missing-values.h>
 #include <data/settings.h>
 #include <data/short-names.h>
@@ -62,7 +63,9 @@
 struct sfm_writer
   {
     struct file_handle *fh;     /* File handle. */
+    struct fh_lock *lock;       /* Mutual exclusion for file. */
     FILE *file;			/* File stream. */
+    struct replace_file *rf;    /* Ticket for replacing output file. */
 
     bool compress;		/* 1=compressed, 0=not compressed. */
     casenumber case_cnt;	/* Number of cases written so far. */
@@ -148,9 +151,8 @@ struct casewriter *
 sfm_open_writer (struct file_handle *fh, struct dictionary *d,
                  struct sfm_write_options opts)
 {
-  struct sfm_writer *w = NULL;
+  struct sfm_writer *w;
   mode_t mode;
-  FILE *file;
   int idx;
   int i;
 
@@ -162,27 +164,12 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       opts.version = 3;
     }
 
-  /* Open file handle as an exclusive writer. */
-  if (!fh_open (fh, FH_REF_FILE, "system file", "we"))
-    return NULL;
-
-  /* Create the file on disk. */
-  mode = S_IRUSR | S_IRGRP | S_IROTH;
-  if (opts.create_writeable)
-    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
-  file = create_stream (fh_get_file_name (fh), "w", mode);
-  if (file == NULL)
-    {
-      msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
-           fh_get_file_name (fh), strerror (errno));
-      fh_close (fh, "system file", "we");
-      return NULL;
-    }
-
   /* Create and initialize writer. */
   w = xmalloc (sizeof *w);
-  w->fh = fh;
-  w->file = file;
+  w->fh = fh_ref (fh);
+  w->lock = NULL;
+  w->file = NULL;
+  w->rf = NULL;
 
   w->compress = opts.compress;
   w->case_cnt = 0;
@@ -195,6 +182,24 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
      one segment. */
   w->segment_cnt = sfm_dictionary_to_sfm_vars (d, &w->sfm_vars,
                                                &w->sfm_var_cnt);
+
+  /* Open file handle as an exclusive writer. */
+  w->lock = fh_lock (fh, FH_REF_FILE, "system file", FH_ACC_WRITE, true);
+  if (w->lock == NULL)
+    goto error;
+
+  /* Create the file on disk. */
+  mode = S_IRUSR | S_IRGRP | S_IROTH;
+  if (opts.create_writeable)
+    mode |= S_IWUSR | S_IWGRP | S_IWOTH;
+  w->rf = replace_file_start (fh_get_file_name (fh), "wb", mode,
+                              &w->file, NULL);
+  if (w->rf == NULL)
+    {
+      msg (ME, _("Error opening \"%s\" for writing as a system file: %s."),
+           fh_get_file_name (fh), strerror (errno));
+      goto error;
+    }
 
   /* Write the file header. */
   write_header (w, d);
@@ -239,6 +244,10 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
 
   return casewriter_create (dict_get_next_value_idx (d),
                             &sys_file_casewriter_class, w);
+
+error:
+  close_writer (w);
+  return NULL;
 }
 
 /* Returns value of X truncated to two least-significant digits. */
@@ -724,9 +733,13 @@ close_writer (struct sfm_writer *w)
       if (!ok)
         msg (ME, _("An I/O error occurred writing system file \"%s\"."),
              fh_get_file_name (w->fh));
+
+      if (ok ? !replace_file_commit (w->rf) : !replace_file_abort (w->rf))
+        ok = false;
     }
 
-  fh_close (w->fh, "system file", "we");
+  fh_unlock (w->lock);
+  fh_unref (w->fh);
 
   free (w->sfm_vars);
   free (w);

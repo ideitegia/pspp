@@ -37,9 +37,10 @@
 /* A scratch file writer. */
 struct scratch_writer
   {
-    struct scratch_handle *handle;      /* Underlying scratch handle. */
     struct file_handle *fh;             /* Underlying file handle. */
-    struct case_map *compactor;         /* Compacts into handle->dictionary. */
+    struct fh_lock *lock;               /* Exclusive access to file handle. */
+    struct dictionary *dict;            /* Dictionary for subwriter. */
+    struct case_map *compactor;         /* Compacts into dictionary. */
     struct casewriter *subwriter;       /* Data output. */
   };
 
@@ -53,47 +54,34 @@ struct casewriter *
 scratch_writer_open (struct file_handle *fh,
                      const struct dictionary *dictionary)
 {
-  struct scratch_handle *sh;
   struct scratch_writer *writer;
-  struct dictionary *scratch_dict;
-  struct case_map *compactor;
   struct casewriter *casewriter;
+  struct fh_lock *lock;
   size_t dict_value_cnt;
 
-  if (!fh_open (fh, FH_REF_SCRATCH, "scratch file", "we"))
+  /* Get exclusive write access to handle. */
+  lock = fh_lock (fh, FH_REF_SCRATCH, "scratch file", FH_ACC_WRITE, true);
+  if (lock == NULL)
     return NULL;
-
-  /* Destroy previous contents of handle. */
-  sh = fh_get_scratch_handle (fh);
-  if (sh != NULL)
-    scratch_handle_destroy (sh);
-
-  /* Copy the dictionary and compact if needed. */
-  scratch_dict = dict_clone (dictionary);
-  dict_delete_scratch_vars (scratch_dict);
-  if (dict_count_values (scratch_dict, 0)
-      < dict_get_next_value_idx (scratch_dict))
-    {
-      compactor = case_map_to_compact_dict (scratch_dict, 0);
-      dict_compact_values (scratch_dict);
-    }
-  else
-    compactor = NULL;
-  dict_value_cnt = dict_get_next_value_idx (scratch_dict);
-
-  /* Create new contents. */
-  sh = xmalloc (sizeof *sh);
-  sh->dictionary = scratch_dict;
-  sh->casereader = NULL;
 
   /* Create writer. */
   writer = xmalloc (sizeof *writer);
-  writer->handle = sh;
-  writer->fh = fh;
-  writer->compactor = compactor;
+  writer->lock = lock;
+  writer->fh = fh_ref (fh);
+
+  writer->dict = dict_clone (dictionary);
+  dict_delete_scratch_vars (writer->dict);
+  if (dict_count_values (writer->dict, 0)
+      < dict_get_next_value_idx (writer->dict))
+    {
+      writer->compactor = case_map_to_compact_dict (writer->dict, 0);
+      dict_compact_values (writer->dict);
+    }
+  else
+    writer->compactor = NULL;
+  dict_value_cnt = dict_get_next_value_idx (writer->dict);
   writer->subwriter = autopaging_writer_create (dict_value_cnt);
 
-  fh_set_scratch_handle (fh, sh);
   casewriter = casewriter_create (dict_value_cnt,
                                   &scratch_writer_casewriter_class, writer);
   taint_propagate (casewriter_get_taint (writer->subwriter),
@@ -122,11 +110,32 @@ scratch_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
 static void
 scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_)
 {
+  static unsigned int next_unique_id = 0x12345678;
+
   struct scratch_writer *writer = writer_;
   struct casereader *reader = casewriter_make_reader (writer->subwriter);
   if (!casereader_error (reader))
-    writer->handle->casereader = reader;
-  fh_close (writer->fh, "scratch file", "we");
+    {
+      /* Destroy previous contents of handle. */
+      struct scratch_handle *sh = fh_get_scratch_handle (writer->fh);
+      if (sh != NULL)
+        scratch_handle_destroy (sh);
+
+      /* Create new contents. */
+      sh = xmalloc (sizeof *sh);
+      sh->unique_id = ++next_unique_id;
+      sh->dictionary = writer->dict;
+      sh->casereader = reader;
+      fh_set_scratch_handle (writer->fh, sh);
+    }
+  else
+    {
+      casereader_destroy (reader);
+      dict_destroy (writer->dict);
+    }
+
+  fh_unlock (writer->lock);
+  fh_unref (writer->fh);
   free (writer);
 }
 

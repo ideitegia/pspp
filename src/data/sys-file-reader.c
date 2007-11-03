@@ -66,6 +66,7 @@ struct sfm_reader
 
     /* File state. */
     struct file_handle *fh;     /* File handle. */
+    struct fh_lock *lock;       /* Mutual exclusion for file handle. */
     FILE *file;                 /* File stream. */
     bool error;                 /* I/O or corruption error? */
     size_t value_cnt;           /* Number of "union value"s in struct case. */
@@ -179,19 +180,29 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   int claimed_oct_cnt;
   int rec_type;
 
-  if (!fh_open (fh, FH_REF_FILE, "system file", "rs"))
-    return NULL;
-
   *dict = dict_create ();
 
   /* Create and initialize reader. */
   r = pool_create_container (struct sfm_reader, pool);
-  r->fh = fh;
-  r->file = fn_open (fh_get_file_name (fh), "rb");
+  r->fh = fh_ref (fh);
+  r->lock = NULL;
+  r->file = NULL;
   r->error = false;
   r->oct_cnt = 0;
   r->has_long_var_names = false;
   r->opcode_idx = sizeof r->opcodes;
+
+  r->lock = fh_lock (fh, FH_REF_FILE, "system file", FH_ACC_READ, false);
+  if (r->lock == NULL)
+    goto error;
+
+  r->file = fn_open (fh_get_file_name (fh), "rb");
+  if (r->file == NULL)
+    {
+      msg (ME, _("Error opening \"%s\" for reading as a system file: %s."),
+           fh_get_file_name (r->fh), strerror (errno));
+      goto error;
+    }
 
   /* Initialize info. */
   if (info == NULL)
@@ -199,19 +210,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   memset (info, 0, sizeof *info);
 
   if (setjmp (r->bail_out))
-    {
-      close_reader (r);
-      dict_destroy (*dict);
-      *dict = NULL;
-      return NULL;
-    }
+    goto error;
 
-  if (r->file == NULL)
-    {
-      msg (ME, _("Error opening \"%s\" for reading as a system file: %s."),
-           fh_get_file_name (r->fh), strerror (errno));
-      longjmp (r->bail_out, 1);
-    }
 
   /* Read header. */
   read_header (r, *dict, &weight_idx, &claimed_oct_cnt, info);
@@ -305,6 +305,12 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
     (NULL, r->value_cnt,
      r->case_cnt == -1 ? CASENUMBER_MAX: r->case_cnt,
                                        &sys_file_casereader_class, r);
+
+error:
+  close_reader (r);
+  dict_destroy (*dict);
+  *dict = NULL;
+  return NULL;
 }
 
 /* Closes a system file after we're done with it.
@@ -329,8 +335,8 @@ close_reader (struct sfm_reader *r)
       r->file = NULL;
     }
 
-  if (r->fh != NULL)
-    fh_close (r->fh, "system file", "rs");
+  fh_unlock (r->lock);
+  fh_unref (r->fh);
 
   error = r->error;
   pool_destroy (r->pool);

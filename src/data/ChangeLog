@@ -1,3 +1,103 @@
+2007-11-03  Ben Pfaff  <blp@gnu.org>
+
+	Allow output files to overwrite input files (bug #21280).
+
+	* file-handle-def.c: Separate locking of files for input and for
+	output, to allow both to take place at once.  Also, distinguish a
+	file handle from the identity of the underlying file, because the
+	identity of a file changes over time and the file handle can't
+	represent two different identities.
+	(struct file_handle): Remove `next', `open_cnt', `deleted',
+	`type', `open_mode', `aux', `identity' members.  Change `id' from
+	char array to char *.  Add `ref_cnt' member.
+	(file_handle_from_ll) New function.
+	(file_handles) Removed.
+	(named_handles) New variable.
+	(fh_init) Initialize named_handles.
+	(fh_done) Remove name from all named_handles.
+	(free_handle) Updated for modified struct file_handle.
+	(unname_handle) New function.
+	(fh_ref) New function.
+	(fh_from_file_name) Removed.
+	(fh_unref) New function.
+	(fh_unname) New function.
+	(fh_from_id) Rewritten.
+	(create_handle) Updated for modified struct file_handle.
+	(fh_inline_file) Increment the handle's ref count.
+	(fh_create_file) Updated for modified struct file_handle.
+	(fh_create_scratch) Ditto.
+	(fh_free) Removed.
+	(mode_name) Removed.
+	(fh_open) Removed.
+	(fh_close) Removed.
+	(fh_is_open) Removed.
+	(fh_get_id) Updated for modified struct file_handle.
+	(fh_get_default_handle) Increment the handle's ref count.
+	(fh_set_default_handle) Handle ref counts.
+	(struct fh_lock) New structure.
+	(locks) New static var.
+	(fh_lock) New function.
+	(fh_unlock) New function.
+	(fh_lock_get_aux) New function.
+	(fh_lock_set_aux) New function.
+	(fh_is_locked) New function.
+	(make_key) New function.
+	(free_key) New function.
+	(compare_fh_locks) New function.
+	(hash_fh_lock) New function.
+
+	* file-handle-def.h (enum fh_access) New enum.
+
+	* file-name.c: Made file_identity the same in all supported
+	environments.
+	(struct file_identity): New `name' member.
+	(fn_get_identity): For a file that doesn't exist, get the
+	dev/inode of its directory plus its name.  If even the directory
+	doesn't exist, just use its name.  Merge the Windows
+	implementation into the Unix one.
+	(fn_compare_file_identities): Rewritten.  Merge the Windows
+	implementation into the Unix one.
+	(fn_hash_identity): New function.
+
+	* make-file.c (struct replace_file): New structure.
+	(all_files): New static var.
+	(replace_file_start): New function.
+	(replace_file_commit): New function.
+	(replace_file_abort): New function.
+	(free_replace_file): New function.
+	(unlink_replace_files): New function.
+
+	* por-file-reader.c (struct pfm_reader): Add `lock' member.
+	(close_reader): Unlock file.
+	(pfm_open_reader): Lock file.
+
+	* por-file-writer.c (struct pfm_writer): Add fh_lock, replace_file
+	members.
+	(pfm_open_writer): Lock file and prepare for its replacement.
+	(close_writer): Unlock file.
+
+	* scratch-handle.h (struct scratch_handle): Add unique_id so that
+	different generations of a scratch file can be distinguished.
+
+	* scratch-reader.c (scratch_reader_open): Verify that the file is
+	a scratch file.
+
+	* scratch-writer.c (struct scratch_writer): Add `lock' and `dict',
+	remove scratch_handle member.
+	(scratch_writer_open): Lock handle.  Prepare to replace handle
+	data, instead of doing it immediately.
+	(scratch_writer_casewriter_destroy): Replace handle data and
+	unlock handle.
+
+	* sys-file-reader.c (struct sfm_reader): Add `lock' member.
+	(sfm_open_reader): Lock file.
+	(close_reader): Unlock file.
+
+	* sys-file-writer.c (struct sfm_writer): Add fh_lock, replace_file
+	members.
+	(sfm_open_writer): Lock file and prepare for its replacement.
+	(close_writer): Unlock file.
+
 2007-11-02  Ben Pfaff  <blp@gnu.org>
 
 	* data-out.c (output_number): Use isfinite (from C99) instead of

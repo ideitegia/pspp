@@ -12,6 +12,7 @@ GNULIB_MODULES = \
 	crypto/md4 \
 	dirname \
 	exit \
+	fatal-signal \
 	fpieee \
 	fprintf-posix \
 	full-read \
@@ -61,6 +62,7 @@ GNULIB_MODULES = \
 	strtol \
 	strtoul \
 	sys_stat \
+	tempname \
 	tmpfile \
 	trunc \
 	unistd \

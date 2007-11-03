@@ -1,3 +1,16 @@
+2007-11-03  Ben Pfaff  <blp@gnu.org>
+
+	Allow output files to overwrite input files (bug #21280).
+
+	* aggregate.c (cmd_aggregate): Manage file handle reference
+	counts.
+
+	* correlations.q (internal_cmd_frequencies): Ditto.
+	(cor_custom_matrix): Ditto.
+
+	* regression.q (regression_custom_export): Ditto.
+	(cmd_regression): Ditto.
+
 2007-10-12  Ben Pfaff  <blp@gnu.org>
 
 	* flip.c (flip_file): No need to conditionally substitute for

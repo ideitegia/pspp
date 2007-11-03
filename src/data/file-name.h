@@ -50,5 +50,6 @@ struct file_identity *fn_get_identity (const char *file_name);
 void fn_free_identity (struct file_identity *);
 int fn_compare_file_identities (const struct file_identity *,
                                 const struct file_identity *);
+unsigned int fn_hash_identity (const struct file_identity *);
 
 #endif /* file-name.h */

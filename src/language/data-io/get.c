@@ -88,6 +88,7 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 	{
 	  lex_match (lexer, '=');
 
+          fh_unref (fh);
 	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_SCRATCH);
 	  if (fh == NULL)
             goto error;
@@ -140,9 +141,11 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
 
   proc_set_active_file (ds, reader, dict);
 
+  fh_unref (fh);
   return CMD_SUCCESS;
 
  error:
+  fh_unref (fh);
   casereader_destroy (reader);
   if (dict != NULL)
     dict_destroy (dict);
@@ -368,9 +371,11 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
                                            map);
   dict_destroy (dict);
 
+  fh_unref (handle);
   return writer;
 
  error:
+  fh_unref (handle);
   casewriter_destroy (writer);
   dict_destroy (dict);
   case_map_destroy (map);
@@ -1089,6 +1094,7 @@ mtf_close_all_files (struct mtf_proc *mtf)
 
   ll_for_each_preremove (file, struct mtf_file, ll, &mtf->files)
     {
+      fh_unref (file->handle);
       casereader_destroy (file->reader);
       free (file->by);
       dict_destroy (file->dict);

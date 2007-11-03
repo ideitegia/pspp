@@ -82,6 +82,7 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
       writer = dfm_open_writer (handle);
       if (writer == NULL)
         {
+          fh_unref (handle);
           expr_free (expr);
           return CMD_FAILURE;
         }
@@ -95,6 +96,7 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
 
   add_transformation (ds,
 		      print_space_trns_proc, print_space_trns_free, trns);
+  fh_unref (handle);
   return CMD_SUCCESS;
 }
 
