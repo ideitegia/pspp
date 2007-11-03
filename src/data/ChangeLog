@@ -1,3 +1,12 @@
+2007-11-02  Ben Pfaff  <blp@gnu.org>
+
+	* data-out.c (output_number): Use isfinite (from C99) instead of
+	gsl_isfinite, since we now have universal support for it in
+	gnulib.
+	(output_infinite): Ditto.
+	[!HAVE_ROUND] (round): Remove definition, since we now have a
+	replacement in gnulib.
+
 2007-10-27  John Darrington <john@darrington.wattle.id.au>
 
 	* dictionary.c: Fixed bug in dict_clone, where the vardict.dict member

@@ -24,6 +24,7 @@ GNULIB_MODULES = \
 	getopt \
 	gettext-h \
 	gettimeofday \
+	isfinite \
 	intprops \
 	inttostr \
 	linebreak \
@@ -42,6 +43,7 @@ GNULIB_MODULES = \
 	printf-safe \
 	progname \
 	relocatable-prog \
+	round \
 	snprintf \
 	snprintf-posix \
 	sprintf-posix \

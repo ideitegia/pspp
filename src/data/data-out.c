@@ -24,7 +24,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
-#include <gsl/gsl_math.h>
 
 #include "calendar.h"
 #include "format.h"
@@ -150,7 +149,7 @@ output_number (const union value *input, const struct fmt_spec *format,
 
   if (number == SYSMIS)
     output_missing (format, output);
-  else if (!gsl_finite (number))
+  else if (!isfinite (number))
     output_infinite (number, format, output);
   else
     {
@@ -710,16 +709,6 @@ output_scientific (double number, const struct fmt_spec *format,
   return true;
 }
 
-#ifndef HAVE_ROUND
-/* Return X rounded to the nearest integer,
-   rounding ties away from zero. */
-static double
-round (double x)
-{
-  return x >= 0.0 ? floor (x + .5) : ceil (x - .5);
-}
-#endif /* !HAVE_ROUND */
-
 /* Returns true if the magnitude represented by R should be
    rounded up when chopped off at DECIMALS decimal places, false
    if it should be rounded down. */
@@ -948,7 +937,7 @@ power256 (int x)
 static void
 output_infinite (double number, const struct fmt_spec *format, char *output)
 {
-  assert (!gsl_finite (number));
+  assert (!isfinite (number));
 
   if (format->w >= 3)
     {
