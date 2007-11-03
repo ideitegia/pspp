@@ -551,7 +551,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 	      xmlChar *attr =
 		xmlTextReaderGetAttribute (r->xtr, _xml ("ValueType"));
 
-	      if ( 60 !=  _xmlchar_to_int (attr))
+	      if ( NULL == attr || 60 !=  _xmlchar_to_int (attr))
 		var_spec [idx].width = 0;
 
 	      free (attr);
