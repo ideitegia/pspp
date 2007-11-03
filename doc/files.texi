@@ -8,6 +8,7 @@ portable files.
 * APPLY DICTIONARY::            Apply system file dictionary to active file.
 * EXPORT::                      Write to a portable file.
 * GET::                         Read from a system file.
+* GET DATA::                    Read from foreign files.
 * IMPORT::                      Read from a portable file.
 * MATCH FILES::                 Merge system files.
 * SAVE::                        Write to a system file.
@@ -155,6 +156,72 @@ is read later, when a procedure is executed.
 
 Use of @cmd{GET} to read a portable file or scratch file is a PSPP
 extension.
+
+@node GET DATA
+@section GET DATA
+@vindex GET DATA
+
+@display
+GET DATA /TYPE=gnm
+        /FILE=@{'file-name'@}
+        
+        /SHEET=@{NAME 'sheet-name', INDEX n@}
+        /CELLRANGE=@{RANGE 'range', FULL@}
+        /READNAMES=@{ON, OFF@}
+        /ASSUMEDVARWIDTH=n.
+@end display
+
+The @cmd{GET DATA} command is used to read files and other data sources 
+created by other applications. 
+When this command is executed, the current dictionary and active file are
+replaced  with variables and data read from the specified source.
+The TYPE subcommand is mandatory and determines the type of the file or source to read.
+Currently @samp{gnm} is the only supported type.
+
+@cindex Gnumeric
+@cindex spreadsheet files
+The @samp{gnm} type is used to read spreadsheet files created by 
+Gnumeric (@url{http://gnumeric.org}).
+With this type, the FILE subcommand must be used, to specify the
+spreadsheet file to read.  
+All other subcommands are optional.
+The format of each variable is determined by the format of the spreadsheet 
+cell containing the first datum for the variable.
+If this cell is of string (text) format, then the width of the variable is
+determined from the length of the string it contains, unless the 
+ASSUMEDVARWIDTH subcommand is given.
+
+The SHEET subcommand specifies the sheet within the spreadsheet file to read.
+There are two forms of the SHEET subcommand.
+In the first form,
+@samp{/SHEET=name @var{sheet-name}}, the string @var{sheet-name} is the
+name of the sheet to read.
+In the second form, @samp{/SHEET=index @var{idx}}, @var{idx} is a
+integer which is the index of the sheet to read.
+The first sheet has the index 1.
+If the SHEET subcommand is omitted, then the command will read the
+first sheet in the file.
+
+The CELLRANGE subcommand specifies the range of cells within the sheet to read.
+If the subcommand is given as @samp{/CELLRANGE=FULL}, then the entire
+sheet  is read.
+To read only part of a sheet, use the form 
+@samp{/CELLRANGE=range '@var{top-left-cell}:@var{bottom-right-cell}'}.
+For example, the subcommand @samp{/CELLRANGE=range 'C3:P19'} reads 
+columns C--P, and rows 3--19 inclusive.
+If no CELLRANGE subcommand is given, then the entire sheet is read.
+
+If @samp{/READNAMES=ON} is specified, then the contents of cells of
+the first row are used as the names of the variables in which to store
+the data from subsequent rows. 
+If the READNAMES command is omitted, or if @samp{/READNAMES=OFF} is
+used, then the variables  receive automatically assigned names.
+
+The ASSUMEDVARWIDTH subcommand specifies the maximum width of string
+variables read  from the file.
+If omitted, the default value is determined from the length of the 
+string in the first spreadsheet cell for each variable.
+
 
 @node IMPORT
 @section IMPORT

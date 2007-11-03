@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,27 +14,13 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef I18N_H
-#define I18N_H
+#ifndef GET_DATA_H
+#define GET_DATA_H
 
-const char * get_pspp_locale (void);
-void set_pspp_locale (const char *locale);
-const char * get_pspp_charset (void);
+struct lexer;
+struct dataset;
 
-void  i18n_done (void);
-void  i18n_init (void);
-
-enum conv_id
-  {
-    CONV_PSPP_TO_UTF8,
-    CONV_SYSTEM_TO_PSPP,
-    CONV_UTF8_TO_PSPP,
-    n_CONV
-  };
+int parse_get_data_command (struct lexer *lexer, struct dataset *ds);
 
 
-char * recode_string (enum conv_id how,  const char *text, int len);
-
-
-
-#endif /* i18n.h */
+#endif

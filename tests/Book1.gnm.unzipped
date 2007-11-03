@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gnm:Workbook xmlns:gnm="http://www.gnumeric.org/v10.dtd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gnumeric.org/v8.xsd">
+  <gnm:Version Epoch="1" Major="6" Minor="3" Full="1.6.3"/>
+  <gnm:Attributes>
+    <gnm:Attribute>
+      <gnm:type>4</gnm:type>
+      <gnm:name>WorkbookView::show_horizontal_scrollbar</gnm:name>
+      <gnm:value>TRUE</gnm:value>
+    </gnm:Attribute>
+    <gnm:Attribute>
+      <gnm:type>4</gnm:type>
+      <gnm:name>WorkbookView::show_vertical_scrollbar</gnm:name>
+      <gnm:value>TRUE</gnm:value>
+    </gnm:Attribute>
+    <gnm:Attribute>
+      <gnm:type>4</gnm:type>
+      <gnm:name>WorkbookView::show_notebook_tabs</gnm:name>
+      <gnm:value>TRUE</gnm:value>
+    </gnm:Attribute>
+    <gnm:Attribute>
+      <gnm:type>4</gnm:type>
+      <gnm:name>WorkbookView::do_auto_completion</gnm:name>
+      <gnm:value>TRUE</gnm:value>
+    </gnm:Attribute>
+    <gnm:Attribute>
+      <gnm:type>4</gnm:type>
+      <gnm:name>WorkbookView::is_protected</gnm:name>
+      <gnm:value>FALSE</gnm:value>
+    </gnm:Attribute>
+  </gnm:Attributes>
+  <gnm:Summary>
+    <gnm:Item>
+      <gnm:name>application</gnm:name>
+      <gnm:val-string>gnumeric</gnm:val-string>
+    </gnm:Item>
+    <gnm:Item>
+      <gnm:name>author</gnm:name>
+      <gnm:val-string>John Darrington</gnm:val-string>
+    </gnm:Item>
+  </gnm:Summary>
+  <gnm:SheetNameIndex>
+    <gnm:SheetName>This</gnm:SheetName>
+    <gnm:SheetName>vars</gnm:SheetName>
+    <gnm:SheetName>That</gnm:SheetName>
+    <gnm:SheetName>Empty</gnm:SheetName>
+    <gnm:SheetName>Blank</gnm:SheetName>
+  </gnm:SheetNameIndex>
+  <gnm:Geometry Width="1278" Height="633"/>
+  <gnm:Sheets>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE">
+      <gnm:Name>This</gnm:Name>
+      <gnm:MaxCol>9</gnm:MaxCol>
+      <gnm:MaxRow>17</gnm:MaxRow>
+      <gnm:Zoom>1</gnm:Zoom>
+      <gnm:PrintInformation>
+        <gnm:Margins>
+          <gnm:top Points="120" PrefUnit="cm"/>
+          <gnm:bottom Points="120" PrefUnit="cm"/>
+        </gnm:Margins>
+        <gnm:Scale type="percentage" percentage="100"/>
+        <gnm:vcenter value="0"/>
+        <gnm:hcenter value="0"/>
+        <gnm:grid value="0"/>
+        <gnm:even_if_only_styles value="0"/>
+        <gnm:monochrome value="0"/>
+        <gnm:draft value="0"/>
+        <gnm:titles value="0"/>
+        <gnm:order>d_then_r</gnm:order>
+        <gnm:orientation>portrait</gnm:orientation>
+        <gnm:Header Left="" Middle="&amp;[TAB]" Right=""/>
+        <gnm:Footer Left="" Middle="Page &amp;[PAGE]" Right=""/>
+      </gnm:PrintInformation>
+      <gnm:Styles>
+        <gnm:StyleRegion startCol="0" startRow="0" endCol="255" endRow="65535">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+      </gnm:Styles>
+      <gnm:Cols DefaultSizePts="48">
+        <gnm:ColInfo No="0" Unit="48" MarginA="2" MarginB="2" Count="10"/>
+      </gnm:Cols>
+      <gnm:Rows DefaultSizePts="12.75">
+        <gnm:RowInfo No="0" Unit="12.75" MarginA="0" MarginB="0" Count="15"/>
+        <gnm:RowInfo No="15" Unit="9.75" MarginA="0" MarginB="0" HardSize="1"/>
+        <gnm:RowInfo No="17" Unit="12.75" MarginA="0" MarginB="0"/>
+      </gnm:Rows>
+      <gnm:Selections CursorCol="7" CursorRow="7">
+        <gnm:Selection startCol="7" startRow="7" endCol="7" endRow="7"/>
+      </gnm:Selections>
+      <gnm:Cells>
+        <gnm:Cell Col="0" Row="0" ValueType="60">numeral</gnm:Cell>
+        <gnm:Cell Col="1" Row="0" ValueType="60">eng_name</gnm:Cell>
+        <gnm:Cell Col="2" Row="0" ValueType="60">xxx</gnm:Cell>
+        <gnm:Cell Col="0" Row="1" ValueType="30">1</gnm:Cell>
+        <gnm:Cell Col="1" Row="1" ValueType="60">One</gnm:Cell>
+        <gnm:Cell Col="2" Row="1" ValueType="60">Eins</gnm:Cell>
+        <gnm:Cell Col="0" Row="2" ValueType="30">2</gnm:Cell>
+        <gnm:Cell Col="1" Row="2" ValueType="60">Two</gnm:Cell>
+        <gnm:Cell Col="2" Row="2" ValueType="60">Zwei</gnm:Cell>
+        <gnm:Cell Col="0" Row="3" ValueType="30">3</gnm:Cell>
+        <gnm:Cell Col="1" Row="3" ValueType="60">Three</gnm:Cell>
+        <gnm:Cell Col="2" Row="3" ValueType="60">Drei</gnm:Cell>
+        <gnm:Cell Col="2" Row="4" ValueType="60">Vier</gnm:Cell>
+        <gnm:Cell Col="5" Row="6" ValueType="60">XY</gnm:Cell>
+        <gnm:Cell Col="6" Row="6" ValueType="60">xxx</gnm:Cell>
+        <gnm:Cell Col="7" Row="6" ValueType="60">xxxx</gnm:Cell>
+        <gnm:Cell Col="8" Row="6" ValueType="60">xxxx</gnm:Cell>
+        <gnm:Cell Col="5" Row="7" ValueType="60">yyy</gnm:Cell>
+        <gnm:Cell Col="6" Row="7" ValueType="60">V1</gnm:Cell>
+        <gnm:Cell Col="7" Row="7" ValueType="60">V2</gnm:Cell>
+        <gnm:Cell Col="5" Row="8" ValueType="60">yyy</gnm:Cell>
+        <gnm:Cell Col="6" Row="8" ValueType="30">0</gnm:Cell>
+        <gnm:Cell Col="7" Row="8" ValueType="60">fred</gnm:Cell>
+        <gnm:Cell Col="8" Row="8" ValueType="30">20</gnm:Cell>
+        <gnm:Cell Col="9" Row="8" ValueType="60">$$$$</gnm:Cell>
+        <gnm:Cell Col="5" Row="9" ValueType="60">yyy</gnm:Cell>
+        <gnm:Cell Col="6" Row="9" ValueType="30">1</gnm:Cell>
+        <gnm:Cell Col="7" Row="9" ValueType="30">11</gnm:Cell>
+        <gnm:Cell Col="8" Row="9" ValueType="30">21</gnm:Cell>
+        <gnm:Cell Col="9" Row="9" ValueType="60">$$$$</gnm:Cell>
+        <gnm:Cell Col="5" Row="10" ValueType="60">yyyy</gnm:Cell>
+        <gnm:Cell Col="6" Row="10" ValueType="30">2</gnm:Cell>
+        <gnm:Cell Col="7" Row="10" ValueType="60">twelve</gnm:Cell>
+        <gnm:Cell Col="8" Row="10" ValueType="30">22</gnm:Cell>
+        <gnm:Cell Col="9" Row="10" ValueType="60">$$$$</gnm:Cell>
+        <gnm:Cell Col="5" Row="11" ValueType="60">yyyy</gnm:Cell>
+        <gnm:Cell Col="6" Row="11" ValueType="30">3</gnm:Cell>
+        <gnm:Cell Col="7" Row="11" ValueType="30">13</gnm:Cell>
+        <gnm:Cell Col="8" Row="11" ValueType="30">23</gnm:Cell>
+        <gnm:Cell Col="9" Row="11" ValueType="60">$$$$</gnm:Cell>
+        <gnm:Cell Col="1" Row="12" ValueType="60">Eleven</gnm:Cell>
+        <gnm:Cell Col="5" Row="12" ValueType="60">yyyy</gnm:Cell>
+        <gnm:Cell Col="6" Row="12" ValueType="30">4</gnm:Cell>
+        <gnm:Cell Col="7" Row="12" ValueType="30">14</gnm:Cell>
+        <gnm:Cell Col="8" Row="12" ValueType="30">24</gnm:Cell>
+        <gnm:Cell Col="9" Row="12" ValueType="60">$$$$</gnm:Cell>
+        <gnm:Cell Col="5" Row="13" ValueType="60">zzz</gnm:Cell>
+        <gnm:Cell Col="6" Row="13" ValueType="60">zzz</gnm:Cell>
+        <gnm:Cell Col="7" Row="13" ValueType="60">zzz</gnm:Cell>
+        <gnm:Cell Col="8" Row="13" ValueType="60">zzz</gnm:Cell>
+        <gnm:Cell Col="9" Row="13" ValueType="60">zzz</gnm:Cell>
+        <gnm:Cell Col="1" Row="17" ValueType="60">Seventeen</gnm:Cell>
+      </gnm:Cells>
+      <gnm:SheetLayout TopLeft="A1"/>
+      <gnm:Solver ProblemType="1" Inputs="" MaxTime="0" MaxIter="0" NonNeg="1" Discr="0" AutoScale="0" ShowIter="0" AnswerR="0" SensitivityR="0" LimitsR="0" PerformR="0" ProgramR="0"/>
+    </gnm:Sheet>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE">
+      <gnm:Name>vars</gnm:Name>
+      <gnm:MaxCol>4</gnm:MaxCol>
+      <gnm:MaxRow>8</gnm:MaxRow>
+      <gnm:Zoom>1</gnm:Zoom>
+      <gnm:PrintInformation>
+        <gnm:Margins>
+          <gnm:top Points="120" PrefUnit="cm"/>
+          <gnm:bottom Points="120" PrefUnit="cm"/>
+        </gnm:Margins>
+        <gnm:Scale type="percentage" percentage="100"/>
+        <gnm:vcenter value="0"/>
+        <gnm:hcenter value="0"/>
+        <gnm:grid value="0"/>
+        <gnm:even_if_only_styles value="0"/>
+        <gnm:monochrome value="0"/>
+        <gnm:draft value="0"/>
+        <gnm:titles value="0"/>
+        <gnm:order>d_then_r</gnm:order>
+        <gnm:orientation>portrait</gnm:orientation>
+        <gnm:Header Left="" Middle="&amp;[TAB]" Right=""/>
+        <gnm:Footer Left="" Middle="Page &amp;[PAGE]" Right=""/>
+      </gnm:PrintInformation>
+      <gnm:Styles>
+        <gnm:StyleRegion startCol="0" startRow="0" endCol="255" endRow="65535">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+      </gnm:Styles>
+      <gnm:Cols DefaultSizePts="48">
+        <gnm:ColInfo No="0" Unit="48" MarginA="2" MarginB="2" Count="5"/>
+      </gnm:Cols>
+      <gnm:Rows DefaultSizePts="12.75">
+        <gnm:RowInfo No="0" Unit="12.75" MarginA="0" MarginB="0" Count="5"/>
+      </gnm:Rows>
+      <gnm:Selections CursorCol="0" CursorRow="0">
+        <gnm:Selection startCol="0" startRow="0" endCol="0" endRow="0"/>
+      </gnm:Selections>
+      <gnm:Cells>
+        <gnm:Cell Col="0" Row="0" ValueType="60">1v12</gnm:Cell>
+        <gnm:Cell Col="1" Row="0" ValueType="60">var&amp;x@</gnm:Cell>
+        <gnm:Cell Col="2" Row="0" ValueType="60">a(43)</gnm:Cell>
+        <gnm:Cell Col="3" Row="0" ValueType="60">varx</gnm:Cell>
+        <gnm:Cell Col="4" Row="0" ValueType="60">varx</gnm:Cell>
+        <gnm:Cell Col="0" Row="1" ValueType="30">1</gnm:Cell>
+        <gnm:Cell Col="1" Row="1" ValueType="30">2</gnm:Cell>
+        <gnm:Cell Col="2" Row="1" ValueType="30">23</gnm:Cell>
+        <gnm:Cell Col="3" Row="1" ValueType="30">2</gnm:Cell>
+        <gnm:Cell Col="4" Row="1" ValueType="30">4</gnm:Cell>
+        <gnm:Cell Col="0" Row="2" ValueType="30">3</gnm:Cell>
+        <gnm:Cell Col="1" Row="2" ValueType="30">4</gnm:Cell>
+        <gnm:Cell Col="2" Row="2" ValueType="30">23</gnm:Cell>
+        <gnm:Cell Col="3" Row="2" ValueType="30">3</gnm:Cell>
+        <gnm:Cell Col="4" Row="2" ValueType="30">4</gnm:Cell>
+        <gnm:Cell Col="1" Row="8" ValueType="10"></gnm:Cell>
+      </gnm:Cells>
+      <gnm:SheetLayout TopLeft="A1"/>
+      <gnm:Solver ProblemType="1" Inputs="" MaxTime="0" MaxIter="0" NonNeg="1" Discr="0" AutoScale="0" ShowIter="0" AnswerR="0" SensitivityR="0" LimitsR="0" PerformR="0" ProgramR="0"/>
+    </gnm:Sheet>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE">
+      <gnm:Name>That</gnm:Name>
+      <gnm:MaxCol>3</gnm:MaxCol>
+      <gnm:MaxRow>4</gnm:MaxRow>
+      <gnm:Zoom>1</gnm:Zoom>
+      <gnm:PrintInformation>
+        <gnm:Margins>
+          <gnm:top Points="120" PrefUnit="cm"/>
+          <gnm:bottom Points="120" PrefUnit="cm"/>
+        </gnm:Margins>
+        <gnm:Scale type="percentage" percentage="100"/>
+        <gnm:vcenter value="0"/>
+        <gnm:hcenter value="0"/>
+        <gnm:grid value="0"/>
+        <gnm:even_if_only_styles value="0"/>
+        <gnm:monochrome value="0"/>
+        <gnm:draft value="0"/>
+        <gnm:titles value="0"/>
+        <gnm:order>d_then_r</gnm:order>
+        <gnm:orientation>portrait</gnm:orientation>
+        <gnm:Header Left="" Middle="&amp;[TAB]" Right=""/>
+        <gnm:Footer Left="" Middle="Page &amp;[PAGE]" Right=""/>
+      </gnm:PrintInformation>
+      <gnm:Styles>
+        <gnm:StyleRegion startCol="0" startRow="4096" endCol="63" endRow="65535">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="4" startRow="0" endCol="15" endRow="255">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="0" startRow="16" endCol="3" endRow="255">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="16" startRow="0" endCol="63" endRow="4095">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="64" startRow="0" endCol="255" endRow="65535">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="3" startRow="0" endCol="3" endRow="15">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="2" startRow="5" endCol="2" endRow="15">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="2" startRow="1" endCol="2" endRow="4">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="0.00">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="0" startRow="256" endCol="15" endRow="4095">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="0" startRow="0" endCol="1" endRow="15">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+        <gnm:StyleRegion startCol="2" startRow="0" endCol="2" endRow="0">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+      </gnm:Styles>
+      <gnm:Cols DefaultSizePts="48">
+        <gnm:ColInfo No="0" Unit="48" MarginA="2" MarginB="2" Count="2"/>
+        <gnm:ColInfo No="2" Unit="90.75" MarginA="2" MarginB="2" HardSize="1"/>
+        <gnm:ColInfo No="3" Unit="81" MarginA="2" MarginB="2" HardSize="1"/>
+      </gnm:Cols>
+      <gnm:Rows DefaultSizePts="12.75">
+        <gnm:RowInfo No="0" Unit="12.75" MarginA="0" MarginB="0" Count="5"/>
+      </gnm:Rows>
+      <gnm:Selections CursorCol="0" CursorRow="5">
+        <gnm:Selection startCol="0" startRow="5" endCol="0" endRow="5"/>
+      </gnm:Selections>
+      <gnm:Cells>
+        <gnm:Cell Col="0" Row="0" ValueType="60">name</gnm:Cell>
+        <gnm:Cell Col="1" Row="0" ValueType="60">id</gnm:Cell>
+        <gnm:Cell Col="2" Row="0" ValueType="60">height</gnm:Cell>
+        <gnm:Cell Col="0" Row="1" ValueType="60">fred</gnm:Cell>
+        <gnm:Cell Col="1" Row="1" ValueType="30">0</gnm:Cell>
+        <gnm:Cell Col="2" Row="1" ValueType="40">23.4</gnm:Cell>
+        <gnm:Cell Col="0" Row="2" ValueType="60">bert </gnm:Cell>
+        <gnm:Cell Col="1" Row="2" ValueType="30">1</gnm:Cell>
+        <gnm:Cell Col="2" Row="2" ValueType="40">0.56</gnm:Cell>
+        <gnm:Cell Col="0" Row="3" ValueType="60">charlie</gnm:Cell>
+        <gnm:Cell Col="1" Row="3" ValueType="30">2</gnm:Cell>
+        <gnm:Cell Col="2" Row="3" ValueType="60">n/a</gnm:Cell>
+        <gnm:Cell Col="0" Row="4" ValueType="60">dick</gnm:Cell>
+        <gnm:Cell Col="1" Row="4" ValueType="30">3</gnm:Cell>
+        <gnm:Cell Col="2" Row="4" ValueType="40" ValueFormat="0.00">-34.09</gnm:Cell>
+      </gnm:Cells>
+      <gnm:SheetLayout TopLeft="A1"/>
+      <gnm:Solver ProblemType="1" Inputs="" MaxTime="0" MaxIter="0" NonNeg="1" Discr="0" AutoScale="0" ShowIter="0" AnswerR="0" SensitivityR="0" LimitsR="0" PerformR="0" ProgramR="0"/>
+    </gnm:Sheet>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE">
+      <gnm:Name>Empty</gnm:Name>
+      <gnm:MaxCol>-1</gnm:MaxCol>
+      <gnm:MaxRow>-1</gnm:MaxRow>
+      <gnm:Zoom>1</gnm:Zoom>
+      <gnm:PrintInformation>
+        <gnm:Margins>
+          <gnm:top Points="120" PrefUnit="cm"/>
+          <gnm:bottom Points="120" PrefUnit="cm"/>
+        </gnm:Margins>
+        <gnm:Scale type="percentage" percentage="100"/>
+        <gnm:vcenter value="0"/>
+        <gnm:hcenter value="0"/>
+        <gnm:grid value="0"/>
+        <gnm:even_if_only_styles value="0"/>
+        <gnm:monochrome value="0"/>
+        <gnm:draft value="0"/>
+        <gnm:titles value="0"/>
+        <gnm:order>d_then_r</gnm:order>
+        <gnm:orientation>portrait</gnm:orientation>
+        <gnm:Header Left="" Middle="&amp;[TAB]" Right=""/>
+        <gnm:Footer Left="" Middle="Page &amp;[PAGE]" Right=""/>
+      </gnm:PrintInformation>
+      <gnm:Styles>
+        <gnm:StyleRegion startCol="0" startRow="0" endCol="255" endRow="65535">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+      </gnm:Styles>
+      <gnm:Cols DefaultSizePts="48"/>
+      <gnm:Rows DefaultSizePts="12.75"/>
+      <gnm:Selections CursorCol="0" CursorRow="0">
+        <gnm:Selection startCol="0" startRow="0" endCol="0" endRow="0"/>
+      </gnm:Selections>
+      <gnm:Cells/>
+      <gnm:SheetLayout TopLeft="A1"/>
+      <gnm:Solver ProblemType="1" Inputs="" MaxTime="0" MaxIter="0" NonNeg="1" Discr="0" AutoScale="0" ShowIter="0" AnswerR="0" SensitivityR="0" LimitsR="0" PerformR="0" ProgramR="0"/>
+    </gnm:Sheet>
+    <gnm:Sheet DisplayFormulas="0" HideZero="0" HideGrid="0" HideColHeader="0" HideRowHeader="0" DisplayOutlines="1" OutlineSymbolsBelow="1" OutlineSymbolsRight="1" Visibility="GNM_SHEET_VISIBILITY_VISIBLE">
+      <gnm:Name>Blank</gnm:Name>
+      <gnm:MaxCol>3</gnm:MaxCol>
+      <gnm:MaxRow>2</gnm:MaxRow>
+      <gnm:Zoom>1</gnm:Zoom>
+      <gnm:PrintInformation>
+        <gnm:Margins>
+          <gnm:top Points="120" PrefUnit="cm"/>
+          <gnm:bottom Points="120" PrefUnit="cm"/>
+        </gnm:Margins>
+        <gnm:Scale type="percentage" percentage="100"/>
+        <gnm:vcenter value="0"/>
+        <gnm:hcenter value="0"/>
+        <gnm:grid value="0"/>
+        <gnm:even_if_only_styles value="0"/>
+        <gnm:monochrome value="0"/>
+        <gnm:draft value="0"/>
+        <gnm:titles value="0"/>
+        <gnm:order>d_then_r</gnm:order>
+        <gnm:orientation>portrait</gnm:orientation>
+        <gnm:Header Left="" Middle="&amp;[TAB]" Right=""/>
+        <gnm:Footer Left="" Middle="Page &amp;[PAGE]" Right=""/>
+      </gnm:PrintInformation>
+      <gnm:Styles>
+        <gnm:StyleRegion startCol="0" startRow="0" endCol="255" endRow="65535">
+          <gnm:Style HAlign="1" VAlign="2" WrapText="0" ShrinkToFit="0" Rotation="0" Shade="0" Indent="0" Locked="1" Hidden="0" Fore="0:0:0" Back="FFFF:FFFF:FFFF" PatternColor="0:0:0" Format="General">
+            <gnm:Font Unit="10" Bold="0" Italic="0" Underline="0" StrikeThrough="0" Script="0">Sans</gnm:Font>
+            <gnm:StyleBorder>
+              <gnm:Top Style="0"/>
+              <gnm:Bottom Style="0"/>
+              <gnm:Left Style="0"/>
+              <gnm:Right Style="0"/>
+              <gnm:Diagonal Style="0"/>
+              <gnm:Rev-Diagonal Style="0"/>
+            </gnm:StyleBorder>
+          </gnm:Style>
+        </gnm:StyleRegion>
+      </gnm:Styles>
+      <gnm:Cols DefaultSizePts="48">
+        <gnm:ColInfo No="0" Unit="48" MarginA="2" MarginB="2" Count="4"/>
+      </gnm:Cols>
+      <gnm:Rows DefaultSizePts="12.75">
+        <gnm:RowInfo No="0" Unit="12.75" MarginA="0" MarginB="0" Count="3"/>
+      </gnm:Rows>
+      <gnm:Selections CursorCol="3" CursorRow="1">
+        <gnm:Selection startCol="3" startRow="1" endCol="3" endRow="1"/>
+      </gnm:Selections>
+      <gnm:Cells>
+        <gnm:Cell Col="0" Row="0" ValueType="60">vone</gnm:Cell>
+        <gnm:Cell Col="1" Row="0" ValueType="60">vtwo</gnm:Cell>
+        <gnm:Cell Col="2" Row="0" ValueType="60">vthree</gnm:Cell>
+        <gnm:Cell Col="3" Row="0" ValueType="60">v4</gnm:Cell>
+        <gnm:Cell Col="0" Row="1" ValueType="30">1</gnm:Cell>
+        <gnm:Cell Col="1" Row="1" ValueType="30">3</gnm:Cell>
+        <gnm:Cell Col="3" Row="1" ValueType="30">5</gnm:Cell>
+        <gnm:Cell Col="0" Row="2" ValueType="30">2</gnm:Cell>
+        <gnm:Cell Col="1" Row="2" ValueType="30">4</gnm:Cell>
+        <gnm:Cell Col="3" Row="2" ValueType="30">6</gnm:Cell>
+      </gnm:Cells>
+      <gnm:SheetLayout TopLeft="A1"/>
+      <gnm:Solver ProblemType="1" Inputs="" MaxTime="0" MaxIter="0" NonNeg="1" Discr="0" AutoScale="0" ShowIter="0" AnswerR="0" SensitivityR="0" LimitsR="0" PerformR="0" ProgramR="0"/>
+    </gnm:Sheet>
+  </gnm:Sheets>
+  <gnm:UIData SelectedTab="4"/>
+  <gnm:Calculation ManualRecalc="0" EnableIteration="1" MaxIterations="100" IterationTolerance="0.001"/>
+</gnm:Workbook>

@@ -1,3 +1,8 @@
+2007-11-03  John Darrington <john@darrington.wattle.id.au>
+
+	* Book1.gnm.unzipped command/get-data-gnm.sh: New test and data
+	for reading gnumeric files.
+
 2007-10-08  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21280.  Thanks to John Darrington for review.

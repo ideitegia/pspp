@@ -45,6 +45,19 @@ if test x"$with_gui" != x"no" ; then
 fi
 AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
+
+dnl Checks needed for gnumeric reader
+gnm_support=yes;
+PKG_CHECK_MODULES(LIBXML2, libxml-2.0,,
+			   [PSPP_OPTIONAL_PREREQ([libxml2]); gnm_support=no]);
+AC_SEARCH_LIBS(gzopen,z,,[PSPP_OPTIONAL_PREREQ([zlib]); gnm_support=no;])
+AC_CHECK_HEADERS(zlib.h,,[PSPP_OPTIONAL_PREREQ([zlib]); gnm_support=no;])
+
+if test x"$gnm_support" = x"yes" ; then 
+   AC_DEFINE([GNM_SUPPORT], 1,
+   [Define to 1 if building in support for reading Gnumeric files.])
+fi
+
 AC_ARG_WITH(
   gui_tools,
   [AS_HELP_STRING([--with-gui-tools], [build the gui developer tools])])

@@ -20,6 +20,7 @@ dist_TESTS = \
 	tests/command/file-handle.sh \
 	tests/command/filter.sh \
 	tests/command/flip.sh \
+	tests/command/get-data-gnm.sh \
 	tests/command/import-export.sh \
 	tests/command/input-program.sh \
 	tests/command/insert.sh \
@@ -238,6 +239,7 @@ tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 
 EXTRA_DIST += \
 	$(dist_TESTS) \
+        tests/Book1.gnm.unzipped \
 	tests/weighting.data tests/data-list.data tests/list.data \
 	tests/no_case_size.sav \
 	tests/coverage.sh tests/test_template \

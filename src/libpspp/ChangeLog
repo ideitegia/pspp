@@ -1,3 +1,8 @@
+2007-11-03 John Darrington <john@darrington.wattle.id.au>
+
+	* i18n.c i18n.h: Added convertor from UTF8 to system.
+	This is needed for reading gnumeric files (and possibly others).
+
 2007-10-11  Ben Pfaff  <blp@gnu.org>
 
 	* xalloc.h: Removed.  Changed all users to include "xalloc.h" from

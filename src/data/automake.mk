@@ -1,6 +1,9 @@
 
 noinst_LIBRARIES += src/data/libdata.a
 
+src_data_libdata_a_CPPFLAGS = $(LIBXML2_CFLAGS) $(AM_CPPFLAGS)
+
+
 src_data_libdata_a_SOURCES = \
 	src/data/any-reader.c \
 	src/data/any-reader.h \
@@ -48,6 +51,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/format.c \
 	src/data/format.h \
 	src/data/format.def \
+	src/data/gnumeric-reader.c \
+	src/data/gnumeric-reader.h \
 	src/data/identifier.c \
 	src/data/identifier.h \
 	src/data/lazy-casereader.c \

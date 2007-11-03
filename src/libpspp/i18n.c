@@ -177,6 +177,9 @@ set_pspp_locale (const char *l)
 
   iconv_close (convertor[CONV_SYSTEM_TO_PSPP]);
   convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, current_charset);
+
+  iconv_close (convertor[CONV_UTF8_TO_PSPP]);
+  convertor[CONV_UTF8_TO_PSPP] = create_iconv (charset, "UTF-8");
 }
 
 void
@@ -188,8 +191,9 @@ i18n_init (void)
   setlocale (LC_CTYPE, locale);
   charset = locale_charset ();
 
-  convertor[CONV_PSPP_TO_UTF8] = create_iconv ("UTF-8", charset);
+  convertor[CONV_PSPP_TO_UTF8]   = create_iconv ("UTF-8", charset);
   convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, charset);
+  convertor[CONV_UTF8_TO_PSPP]   = create_iconv (charset, "UTF-8");
 }
 
 

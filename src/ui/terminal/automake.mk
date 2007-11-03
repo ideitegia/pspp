@@ -32,6 +32,7 @@ src_ui_terminal_pspp_LDADD = \
 	lib/gsl-extras/libgsl-extras.a	\
 	src/data/libdata.a \
 	src/libpspp/libpspp.a \
+	$(LIBXML2_LIBS) \
 	$(LIBICONV) \
 	gl/libgl.la \
 	@LIBINTL@ @LIBREADLINE@
