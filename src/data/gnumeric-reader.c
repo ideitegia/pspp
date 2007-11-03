@@ -53,8 +53,6 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 #include <data/case.h>
 #include <data/value.h>
 
-#include <gl/mbswidth.h>
-
 #include "gnumeric-reader.h"
 #include <data/identifier.h>
 #include <assert.h>
