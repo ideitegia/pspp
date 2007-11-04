@@ -439,7 +439,7 @@ a system file and displays information on its dictionary.
 @vindex XEXPORT
 
 @display
-EXPORT
+XEXPORT
         /OUTFILE='file-name'
         /DIGITS=n
         /DROP=var_list
