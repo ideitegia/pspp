@@ -66,6 +66,12 @@ The following packages are optional.
       later.  Installing Texinfo will allow you to build PSPP
       documentation in PostScript or PDF format.
 
+    * zlib (http://www.zlib.net/).  Installing zlib and libxml2 will
+      allow your PSPP binary to read Gnumeric files.
+
+    * libxml2 (http://xmlsoft.org/).  Installing zlib and libxml2 will
+      allow your PSPP binary to read Gnumeric files.
+
 Basic Installation
 ==================
 
