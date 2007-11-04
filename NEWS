@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2007-11-03 23:01:41 blp>
+Time-stamp: <2007-11-04 08:01:18 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -10,7 +10,11 @@ Changes since 0.4.3:
   * The PSPP license is now version 3 or later of the GNU General
     Public License.  Previously, it was version 2 or later.
 
-  * PSPP now has a graphical interface, called PSPPIRE.
+  * PSPP now has a graphical interface, called PSPPIRE.  This
+    interface allows you to enter data and variable definitions
+    interactively.  Commands may be executed in syntax form, or by
+    using the interactive dialog boxes available from the dropdown
+    menus.
 
   * A few sample syntax files are now included in the `examples'
     directory.
@@ -109,8 +113,7 @@ Changes since 0.4.3:
     * The following commands are new:
 
       - GET DATA, which currently supports reading Gnumeric files.  It
-	will be extended later to read other types of foreign data
-	files.
+	will be extended later to read other types of foreign data.
 
       - CD, to change the current directory.
 
