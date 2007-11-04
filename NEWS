@@ -1,11 +1,11 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2007-11-04 08:01:18 blp>
+Time-stamp: <2007-11-04 14:52:10 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
-Changes since 0.4.3:
+Changes from 0.4.0 to 0.4.3:
 
   * The PSPP license is now version 3 or later of the GNU General
     Public License.  Previously, it was version 2 or later.
@@ -53,6 +53,9 @@ Changes since 0.4.3:
     * In many situations where PSPP once terminated with a fatal
       error, PSPP now recovers and continues execution.
 
+    * PSPP is now able to start up and run even if it cannot find its
+      configuration files.
+
     * Journaling of interactive commands to a disk file is now
       implemented.  By default, journaling is enabled, to a file named
       `pspp.jnl' in the current directory.  SET JOURNAL may be used to
@@ -75,6 +78,12 @@ Changes since 0.4.3:
 
   Output changes:
 
+    * Output configuration options have changed.  Please refer to the
+      manual for a full description of the available options.
+
+      In consequence, you will need to reinstall your "devices" file.
+      "make install" will do this for you.
+
     * Most error messages are now written to PSPP output files by
       default.  SET ERROR can be used to disable this behavior.
 
@@ -85,35 +94,54 @@ Changes since 0.4.3:
       automatically adapts to the terminal size, even if the terminal
       is resized.
 
-    * The ASCII output driver now supports charts in output.  Charts
-      are written as separate files that the main output file refers
-      to.  By default, charts are written in PNG format to files named
-      pspp-1.png, pspp-2.png, and so on.
+    * ASCII driver:
 
-    * An output device is provided that uses VT100 (and xterm)
-      line-drawing characters in tables.  The option "-o list-vt100"
-      requests use of this device for output to pspp.list.
+      - This driver now supports charts in output.  Charts are written
+        as separate files that the main output file refers to.  By
+        default, charts are written in PNG format to files named
+        pspp-1.png, pspp-2.png, and so on.
 
-    * The default paper size for the PostScript driver is now determined
-      using the PAPERSIZE environment variable, or the LC_PAPER locale
-      category on systems that support it.  If these are not set, the
-      default is now A4, instead of US letter.  To make US letter the
-      default, set PAPERSIZE to "letter" in your environment.
+      - Configurations are provided that use VT100 (and xterm)
+        line-drawing characters in tables.  The option "-o list-vt100"
+        requests use of this device for output to pspp.list.
 
-    * Standard paper sizes no longer need to be specified through a
-      configuration file.  The "papersize" configuration file is no
-      longer needed, or supported.
+    * PostScript driver:
 
-    * The HTML and PostScript prologues are no longer obtained from
-      the "html-prologue" and "ps-prologue" configuration files.
-      These configuration files are no longer needed, or supported.
+      - The default paper size is now determined using the PAPERSIZE
+        environment variable, or the LC_PAPER locale category on
+        systems that support it.  If these are not set, the default is
+        now A4, instead of US letter.  To make US letter the default,
+        set PAPERSIZE to "letter" in your environment.
+
+      - Font metrics are now read from AFM files, instead of
+        Groff-format metrics files.  PostScript fonts can now be
+        embedded in output.
+
+        In consequence, you will need to install an AFM file for each
+        font used in PostScript output.  "make install" will install
+        AFM files for the standard PostScript fonts, including the
+        ones that the PostScript driver uses by default.
+
+      - Standard paper sizes no longer need to be specified through a
+        configuration file.  The "papersize" configuration file is no
+        longer needed, or supported.
+
+      - The PostScript prologue is no longer obtained from the
+        "ps-prologue" configuration file.  This configuration file is
+        no longer needed, or supported.
+
+    * HTML driver:
+
+      - The HTML prologue is no longer obtained from the
+        "html-prologue" configuration file.  This configuration file
+        is no longer needed, or supported.
 
   Command language changes:
 
     * The following commands are new:
 
       - GET DATA, which currently supports reading Gnumeric files.  It
-	will be extended later to read other types of foreign data.
+        will be extended later to read other types of foreign data.
 
       - CD, to change the current directory.
 
@@ -123,6 +151,8 @@ Changes since 0.4.3:
         dictionary.
 
       - ADD DOCUMENT, to add text to active file documents.
+
+      - CLOSE FILE HANDLE (a PSPP extension; see below).
 
       - XEXPORT, a PSPP extension that is a transformation equivalent
         to EXPORT.
@@ -134,6 +164,9 @@ Changes since 0.4.3:
       - DATESUM, for advancing a date by a specified duration.
 
       - VALUELABEL, to obtain the value label for a value.
+
+    * PSPP now supports very long string variables (over 255 bytes
+      long).
 
     * MATCH FILES now supports the FIRST and LAST subcommands.
 
@@ -156,6 +189,27 @@ Changes since 0.4.3:
 
     * The output format for variables created by VECTOR may now be
       specified as part of the VECTOR syntax.
+
+  "Scratch files", a new PSPP extension:
+
+    A scratch file, like a system file, consists of a dictionary and
+    any number of cases.  Small scratch files are stored in memory;
+    one that grows too large is written to disk.  By default, any file
+    handle whose name begins with # is assumed to refer to a scratch
+    file.
+
+    Scratch files can be used just about anywhere a system or portable
+    file can be used.  Also, portable files are now allowed in most
+    places that system files were allowed in previous PSPP version.
+
+    A new CLOSE FILE HANDLE command allows the storage associated with
+    scratch files to be freed.  It also allows file handles to be
+    reassigned to new files.
+
+    For more information on scratch files, refer to the "File Handles"
+    section in the PSPP manual.  For specifics of what commands now
+    allow what kinds of files to be specified, refer to the
+    documentation on those particular commands.
 
   Data access changes:
 
@@ -210,60 +264,6 @@ Changes since 0.4.3:
   For developers, the build system now requires Autoconf 2.60 and
   Automake 1.10.
 
-Changes since 0.4.0 to 0.4.1:
-
-  Added support for very long string variables (over 255 bytes long).
-
-  Output changes:
-
-    * Output configuration options have changed.  Please refer to the
-      manual for a full description of the available options.
-
-      In consequence, you will need to reinstall your "devices" file.
-      "make install" will do this for you.
-
-    * The PostScript driver now obtains font metrics from AFM files,
-      instead of Groff-format metrics files.  It can now embed
-      PostScript fonts in its output.
-
-      In consequence, you will need to install an AFM file for each
-      font used in PostScript output.  "make install" will install AFM
-      files for the standard PostScript files, including the ones that
-      the PostScript driver uses by default.
-
-  Newly implemented commands and statistical features:
-
-    * CLOSE FILE HANDLE (a PSPP extension; see below).
-
-    * REGRESSION.
-
-    * XEXPORT (a PSPP extension).
-
-  New PSPP extension:
-
-    A new PSPP extension called "scratch files" has been implemented.
-    A scratch file, like a system file, consists of a dictionary and
-    any number of cases.  Small scratch files are stored in memory;
-    one that grows too large is written to disk.  By default, any file
-    handle whose name begins with # is assumed to refer to a scratch
-    file.
-
-    Scratch files can be used just about anywhere a system or portable
-    file can be used.  Also, portable files are now allowed in most
-    places that system files were allowed in previous PSPP version.
-
-    A new CLOSE FILE HANDLE command allows the storage associated with
-    scratch files to be freed.  It also allows file handles to be
-    reassigned to new files.
-
-    For more information on scratch files, refer to the "File Handles"
-    section in the PSPP manual.  For specifics of what commands now
-    allow what kinds of files to be specified, refer to the
-    documentation on those particular commands.
-
-  PSPP is now able to start up and run even if it cannot find its
-  configuration files.
-
 Changes from 0.3.0 to 0.4.0:
 
   Changes in build dependencies:
