@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2007-09-22 17:48:06 blp>
+Time-stamp: <2007-11-03 23:01:41 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -7,24 +7,202 @@ Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
 
 Changes since 0.4.3:
 
-  The PSPP license is now version 3 or later of the GNU General Public
-  License.  Previously, it was version 2 or later.
+  * The PSPP license is now version 3 or later of the GNU General
+    Public License.  Previously, it was version 2 or later.
 
-  Changes in build dependencies:
+  * PSPP now has a graphical interface, called PSPPIRE.
+
+  * A few sample syntax files are now included in the `examples'
+    directory.
+
+  * Numerous major and minor bugs have been fixed.
+
+  Build changes:
+
+    * The INSTALL file now reflects the details of how to install
+      PSPP.  It is a tailored version of the generic installation
+      instructions, instead of a verbatim copy.
 
     * iconv, which is ordinarily installed as part of a Unix-like
       system, is now required.  If you don't have it already, you can
       install GNU libiconv (http://www.gnu.org/software/libiconv/).
 
-  The PROCESS IF command, which was deprecated, has been removed.  You
-  may replace any usage of it by SELECT IF following TEMPORARY, which
-  has the same effect.
+    * libxml2 and zlib are new optional dependencies.  They are
+      required to use PSPP's support for reading Gnumeric files.
 
-  The default paper size for the PostScript driver is now determined
-  using the PAPERSIZE environment variable, or the LC_PAPER locale
-  category on systems that support it.  If these are not set, the
-  default is now A4, instead of US letter.  To make US letter the
-  default, set PAPERSIZE to "letter" in your environment.
+  Statistical procedure changes:
+
+    * REGRESSION is a new procedure for fitting linear models to data
+      via least-squares estimation.
+
+    * NPAR TESTS is a new procedure for non-parametric tests.  In this
+      release, it supports binomial and chi-square tests.
+
+    * RANK is a new procedure to rank variables.  It supports numerous
+      forms of ranking.
+
+    * FREQUENCIES can now output histograms and pie charts.  These
+      features were present in earlier releases, but not documented.
+
+  User interface changes:
+
+    * In many situations where PSPP once terminated with a fatal
+      error, PSPP now recovers and continues execution.
+
+    * Journaling of interactive commands to a disk file is now
+      implemented.  By default, journaling is enabled, to a file named
+      `pspp.jnl' in the current directory.  SET JOURNAL may be used to
+      control journaling.
+
+    * The use of `+' between syntax file names on the command line to
+      prevent the dictionary from being cleared between their
+      executions is no longer supported.  All syntax files are now
+      executed as if `+' had been specified.
+
+    * The -d/--define and -u/--undef command line options are no
+      longer supported.  Instead, use /usr/bin/env or shell primitives
+      to define or clear environment variables before invoking PSPP.
+
+    * If a syntax file named named `rc' is found in a configuration
+      directory (such as $HOME/.pspp), it is executed before any
+      syntax file specified on the command line.  The -r or
+      --no-statrc command line option may be used to disable this
+      behavior.
+
+  Output changes:
+
+    * Most error messages are now written to PSPP output files by
+      default.  SET ERROR can be used to disable this behavior.
+
+    * When invoked interactively, PSPP now by default produces output
+      on the terminal, piping it through the "more" program.
+      Previously, by default output was written only to file
+      pspp.list.  On most terminals, the page length used for output
+      automatically adapts to the terminal size, even if the terminal
+      is resized.
+
+    * The ASCII output driver now supports charts in output.  Charts
+      are written as separate files that the main output file refers
+      to.  By default, charts are written in PNG format to files named
+      pspp-1.png, pspp-2.png, and so on.
+
+    * An output device is provided that uses VT100 (and xterm)
+      line-drawing characters in tables.  The option "-o list-vt100"
+      requests use of this device for output to pspp.list.
+
+    * The default paper size for the PostScript driver is now determined
+      using the PAPERSIZE environment variable, or the LC_PAPER locale
+      category on systems that support it.  If these are not set, the
+      default is now A4, instead of US letter.  To make US letter the
+      default, set PAPERSIZE to "letter" in your environment.
+
+    * Standard paper sizes no longer need to be specified through a
+      configuration file.  The "papersize" configuration file is no
+      longer needed, or supported.
+
+    * The HTML and PostScript prologues are no longer obtained from
+      the "html-prologue" and "ps-prologue" configuration files.
+      These configuration files are no longer needed, or supported.
+
+  Command language changes:
+
+    * The following commands are new:
+
+      - GET DATA, which currently supports reading Gnumeric files.  It
+	will be extended later to read other types of foreign data
+	files.
+
+      - CD, to change the current directory.
+
+      - INSERT, to execute a syntax file.
+
+      - DELETE VARIABLES, to remove variables from the active file
+        dictionary.
+
+      - ADD DOCUMENT, to add text to active file documents.
+
+      - XEXPORT, a PSPP extension that is a transformation equivalent
+        to EXPORT.
+
+    * The following functions for transformation expressions are new:
+
+      - DATEDIFF, for computing the difference of two dates.
+
+      - DATESUM, for advancing a date by a specified duration.
+
+      - VALUELABEL, to obtain the value label for a value.
+
+    * MATCH FILES now supports the FIRST and LAST subcommands.
+
+    * Previous versions of PSPP prohibited using commands to both read and
+      write a single file at the same time.  Now, PSPP allows this, and
+      the new version of the file atomically replaces the old version.
+
+    * The following commands are no longer available.  They will be
+      re-implemented in a later release:
+
+      - CLEAR TRANSFORMATIONS
+
+      - MATRIX DATA
+
+      - REPEATING DATA
+
+    * The PROCESS IF command, which was deprecated, has been removed.
+      You may replace any usage of it by SELECT IF following
+      TEMPORARY, which has the same effect.
+
+    * The output format for variables created by VECTOR may now be
+      specified as part of the VECTOR syntax.
+
+  Data access changes:
+
+    * Binary formats and IBM/360 formats, including ASCII/EBCDIC
+      translation, are now supported.  Use FILE HANDLE to specify the
+      format of these files.
+
+    * Little-endian, big-endian, and VAX-endian formats are now
+      supported for integer binary formats when reading and writing
+      data files.  The new RIB and WIB subcommands on the SET command
+      control endianness of integer data.  The default is the host's
+      native endianness.
+
+    * IEEE 754, VAX, and IBM hexadecimal formats are now supported for
+      floating point binary formats when reading and writing data
+      files.  The new RRB and WRB subcommands on the SET command
+      control the floating point format.  The default is the host's
+      native floating point format.
+
+    * DATA LIST now supports the SKIP subcommand, to skip records at
+      the beginning of a file.  For compatibility, DATA LIST now
+      treats N format as F format for FREE and LIST format input.
+
+    * The SAVE and XSAVE commands now support the UNSELECTED,
+      PERMISSIONS, NAMES, and MAP subcommands.
+
+    * The EXPORT command has been re-implemented to obtain better
+      results.  Support for the UNSELECTED, DIGITS, and TYPE
+      subcommands has been added.
+
+    * For compatibility, PRINT now inserts a space at the beginning of
+      every output line, even lines that would otherwise be blank,
+      when OUTFILE is specified.  (The behavior of WRITE is
+      unchanged.)
+
+    * For compatibility, PRINT EJECT now inserts the digit `1' at the
+      beginning of each line that should begin a new page.
+
+    * For compatibility, WRITE now outputs the system-missing value as
+      a field filled with spaces.  Binary formats are an exception.
+      (The behavior of PRINT is unchanged.)
+
+  Documentation:
+
+    * Input and output format descriptions have been rewritten.  They
+      now precisely describe what is accepted on input and written on
+      output.
+
+    * The descriptions of the PSPP system and portable file formats
+      have been extensively revised and improved.
 
   For developers, the build system now requires Autoconf 2.60 and
   Automake 1.10.
