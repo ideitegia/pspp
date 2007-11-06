@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-11-03 12:36+0900\n"
+"POT-Creation-Date: 2007-11-06 09:50+0900\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -213,36 +213,36 @@ msgstr ""
 msgid "Truncating document line to %d bytes."
 msgstr ""
 
-#: src/data/file-handle-def.c:314
+#: src/data/file-handle-def.c:448
 #, c-format
-msgid "Can't open %s as a %s because it is already open as a %s."
+msgid "Can't read from %s as a %s because it is already being read as a %s."
 msgstr ""
 
-#: src/data/file-handle-def.c:321
+#: src/data/file-handle-def.c:452
 #, c-format
-msgid "Can't open %s as a %s for %s because it is already open for %s."
+msgid "Can't write to %s as a %s because it is already being written as a %s."
 msgstr ""
 
-#: src/data/file-handle-def.c:329
+#: src/data/file-handle-def.c:459
 #, c-format
-msgid "Can't re-open %s as a %s for %s."
+msgid "Can't re-open %s as a %s."
 msgstr ""
 
-#: src/data/file-name.c:130
+#: src/data/file-name.c:131
 #, c-format
 msgid "searching for \"%s\" in path \"%s\""
 msgstr ""
 
-#: src/data/file-name.c:144
+#: src/data/file-name.c:145
 #, c-format
 msgid "...found \"%s\""
 msgstr ""
 
-#: src/data/file-name.c:151
+#: src/data/file-name.c:152
 msgid "...not found"
 msgstr ""
 
-#: src/data/file-name.c:241
+#: src/data/file-name.c:242
 #, c-format
 msgid "Not opening pipe file `%s' because SAFER option set."
 msgstr ""
@@ -305,31 +305,31 @@ msgstr[1] ""
 msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
-#: src/data/format.c:318 src/data/sys-file-reader.c:630
+#: src/data/format.c:318 src/data/sys-file-reader.c:636
 #: src/ui/gui/data-editor.glade:1285 src/ui/gui/psppire.glade:2176
 #: src/ui/gui/psppire-var-store.c:493
 msgid "String"
 msgstr "Zeichenkette"
 
-#: src/data/format.c:318 src/data/sys-file-reader.c:630
+#: src/data/format.c:318 src/data/sys-file-reader.c:636
 #: src/ui/gui/data-editor.glade:1174 src/ui/gui/psppire.glade:2131
 #: src/ui/gui/psppire-var-store.c:486
 msgid "Numeric"
 msgstr "Nummer"
 
-#: src/data/format.c:319 src/data/sys-file-reader.c:1105
-#: src/data/sys-file-reader.c:1107
-#: src/language/dictionary/apply-dictionary.c:76
-#: src/language/dictionary/apply-dictionary.c:77
+#: src/data/format.c:319 src/data/sys-file-reader.c:1111
+#: src/data/sys-file-reader.c:1113
+#: src/language/dictionary/apply-dictionary.c:78
+#: src/language/dictionary/apply-dictionary.c:79
 #: src/language/xforms/recode.c:471 src/language/xforms/recode.c:472
 #: src/language/xforms/recode.c:484 src/language/xforms/recode.c:485
 msgid "numeric"
 msgstr "numerisch"
 
-#: src/data/format.c:319 src/data/sys-file-reader.c:1105
-#: src/data/sys-file-reader.c:1107
-#: src/language/dictionary/apply-dictionary.c:76
-#: src/language/dictionary/apply-dictionary.c:77
+#: src/data/format.c:319 src/data/sys-file-reader.c:1111
+#: src/data/sys-file-reader.c:1113
+#: src/language/dictionary/apply-dictionary.c:78
+#: src/language/dictionary/apply-dictionary.c:79
 #: src/language/xforms/recode.c:471 src/language/xforms/recode.c:472
 #: src/language/xforms/recode.c:484 src/language/xforms/recode.c:485
 msgid "string"
@@ -340,175 +340,229 @@ msgstr "kette"
 msgid "String variable with width %d is not compatible with format %s."
 msgstr ""
 
-#: src/data/make-file.c:58
+#: src/data/gnumeric-reader.c:33
+msgid ""
+"Support for Gnumeric files was not compiled into this installation of PSPP"
+msgstr ""
+
+#: src/data/gnumeric-reader.c:425
+#, c-format
+msgid "Error opening \"%s\" for reading as a gnumeric file: %s."
+msgstr ""
+
+#: src/data/gnumeric-reader.c:445
+#, c-format
+msgid "Invalid cell range \"%s\""
+msgstr ""
+
+#: src/data/gnumeric-reader.c:596
+#, c-format
+msgid "Selected sheet or range of spreadsheet \"%s\" is empty."
+msgstr ""
+
+#: src/data/make-file.c:63
 #, c-format
 msgid "%s: Creating temporary file: %s."
 msgstr ""
 
-#: src/data/make-file.c:100
+#: src/data/make-file.c:105
 #, c-format
 msgid "%s: Creating file: %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:96
+#: src/data/make-file.c:143
+#, c-format
+msgid "Opening %s for writing: %s."
+msgstr ""
+
+#: src/data/make-file.c:152
+#, c-format
+msgid "Opening stream for %s: %s."
+msgstr ""
+
+#: src/data/make-file.c:181
+#, c-format
+msgid "Creating temporary file to replace %s: %s."
+msgstr ""
+
+#: src/data/make-file.c:192
+#, c-format
+msgid "Creating temporary file %s: %s."
+msgstr ""
+
+#: src/data/make-file.c:204
+#, c-format
+msgid "Opening stream for temporary file %s: %s."
+msgstr ""
+
+#: src/data/make-file.c:245
+#, c-format
+msgid "Replacing %s by %s: %s."
+msgstr ""
+
+#: src/data/make-file.c:273
+#, c-format
+msgid "Removing %s: %s."
+msgstr ""
+
+#: src/data/por-file-reader.c:97
 #, c-format
 msgid "portable file %s corrupt at offset 0x%lx: "
 msgstr ""
 
-#: src/data/por-file-reader.c:125
+#: src/data/por-file-reader.c:126
 #, c-format
 msgid "reading portable file %s at offset 0x%lx: "
 msgstr ""
 
-#: src/data/por-file-reader.c:153
+#: src/data/por-file-reader.c:154
 #, c-format
 msgid "Error closing portable file \"%s\": %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:205
+#: src/data/por-file-reader.c:206
 msgid "unexpected end of file"
 msgstr "plotzlich ist der Datei beendet"
 
-#: src/data/por-file-reader.c:267
+#: src/data/por-file-reader.c:272
 #, c-format
 msgid ""
 "An error occurred while opening \"%s\" for reading as a portable file: %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:288
+#: src/data/por-file-reader.c:293
 msgid "Data record expected."
 msgstr ""
 
-#: src/data/por-file-reader.c:370
+#: src/data/por-file-reader.c:375
 msgid "Number expected."
 msgstr ""
 
-#: src/data/por-file-reader.c:398
+#: src/data/por-file-reader.c:403
 msgid "Missing numeric terminator."
 msgstr ""
 
-#: src/data/por-file-reader.c:421
+#: src/data/por-file-reader.c:426
 msgid "Invalid integer."
 msgstr ""
 
-#: src/data/por-file-reader.c:432
+#: src/data/por-file-reader.c:437
 #, c-format
 msgid "Bad string length %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:493
+#: src/data/por-file-reader.c:498
 #, c-format
 msgid "%s: Not a portable file."
 msgstr ""
 
-#: src/data/por-file-reader.c:509
+#: src/data/por-file-reader.c:514
 #, c-format
 msgid "Unrecognized version code `%c'."
 msgstr ""
 
-#: src/data/por-file-reader.c:518
+#: src/data/por-file-reader.c:523
 #, c-format
 msgid "Bad date string length %zu."
 msgstr ""
 
-#: src/data/por-file-reader.c:520
+#: src/data/por-file-reader.c:525
 #, c-format
 msgid "Bad time string length %zu."
 msgstr ""
 
-#: src/data/por-file-reader.c:562
+#: src/data/por-file-reader.c:567
 #, c-format
 msgid ""
 "%s: Bad format specifier byte (%d).  Variable will be assigned a default "
 "format."
 msgstr ""
 
-#: src/data/por-file-reader.c:583
+#: src/data/por-file-reader.c:588
 #, c-format
 msgid "Numeric variable %s has invalid format specifier %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:587
+#: src/data/por-file-reader.c:592
 #, c-format
 msgid "String variable %s with width %d has invalid format specifier %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:611
+#: src/data/por-file-reader.c:616
 msgid "Expected variable count record."
 msgstr ""
 
-#: src/data/por-file-reader.c:615
+#: src/data/por-file-reader.c:620
 #, c-format
 msgid "Invalid number of variables %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:625
+#: src/data/por-file-reader.c:630
 #, c-format
 msgid "Weight variable name (%s) truncated."
 msgstr ""
 
-#: src/data/por-file-reader.c:640
+#: src/data/por-file-reader.c:645
 msgid "Expected variable record."
 msgstr ""
 
-#: src/data/por-file-reader.c:644
+#: src/data/por-file-reader.c:649
 #, c-format
 msgid "Invalid variable width %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:652
+#: src/data/por-file-reader.c:657
 #, c-format
 msgid "Invalid variable name `%s' in position %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:656
+#: src/data/por-file-reader.c:661
 #, c-format
 msgid "Bad width %d for variable %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:671
+#: src/data/por-file-reader.c:676
 #, c-format
 msgid "Duplicate variable name %s in position %d."
 msgstr ""
 
-#: src/data/por-file-reader.c:672
+#: src/data/por-file-reader.c:677
 #, c-format
 msgid "Duplicate variable name %s in position %d renamed to %s."
 msgstr ""
 
-#: src/data/por-file-reader.c:715
+#: src/data/por-file-reader.c:720
 #, c-format
 msgid "Weighting variable %s not present in dictionary."
 msgstr ""
 
-#: src/data/por-file-reader.c:762
+#: src/data/por-file-reader.c:767
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
 msgstr ""
 
-#: src/data/por-file-reader.c:765
+#: src/data/por-file-reader.c:770
 #, c-format
 msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types."
 msgstr ""
 
-#: src/data/por-file-writer.c:126
-#, c-format
-msgid ""
-"An error occurred while opening \"%s\" for writing as a portable file: %s."
-msgstr ""
-
-#: src/data/por-file-writer.c:154
+#: src/data/por-file-writer.c:139
 #, c-format
 msgid "Invalid decimal digits count %d.  Treating as %d."
 msgstr ""
 
-#: src/data/por-file-writer.c:492
+#: src/data/por-file-writer.c:157
+#, c-format
+msgid "Error opening \"%s\" for writing as a portable file: %s."
+msgstr ""
+
+#: src/data/por-file-writer.c:496
 #, c-format
 msgid "An I/O error occurred writing portable file \"%s\"."
 msgstr ""
 
-#: src/data/scratch-reader.c:50
+#: src/data/scratch-reader.c:54
 #, c-format
 msgid ""
 "Scratch file handle %s has not yet been written, using SAVE or another "
@@ -519,7 +573,7 @@ msgstr ""
 msgid "Variable suffix too large."
 msgstr ""
 
-#: src/data/sys-file-reader.c:211
+#: src/data/sys-file-reader.c:202
 #, c-format
 msgid "Error opening \"%s\" for reading as a system file: %s."
 msgstr ""
@@ -538,289 +592,289 @@ msgstr ""
 msgid "File header claims %d variable positions but %d were read from file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:325
+#: src/data/sys-file-reader.c:331
 #, c-format
 msgid "Error closing system file \"%s\": %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:390 src/data/sys-file-reader.c:400
+#: src/data/sys-file-reader.c:396 src/data/sys-file-reader.c:406
 #, fuzzy
 msgid "This is not an SPSS system file."
 msgstr "\"%s\" ist kein Systemdatei und kein Tragbardatei."
 
-#: src/data/sys-file-reader.c:419
+#: src/data/sys-file-reader.c:425
 #, c-format
 msgid ""
 "Compression bias (%g) is not the usual value of 100, or system file uses "
 "unrecognized floating-point format."
 msgstr ""
 
-#: src/data/sys-file-reader.c:488
+#: src/data/sys-file-reader.c:494
 #, c-format
 msgid "Invalid variable name `%s'."
 msgstr ""
 
-#: src/data/sys-file-reader.c:492
+#: src/data/sys-file-reader.c:498
 #, c-format
 msgid "Bad variable width %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:496
+#: src/data/sys-file-reader.c:502
 #, c-format
 msgid "Duplicate variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:504
+#: src/data/sys-file-reader.c:510
 msgid "Variable label indicator field is not 0 or 1."
 msgstr ""
 
-#: src/data/sys-file-reader.c:512
+#: src/data/sys-file-reader.c:518
 #, c-format
 msgid "Variable %s has label of invalid length %zu."
 msgstr ""
 
-#: src/data/sys-file-reader.c:531
+#: src/data/sys-file-reader.c:537
 msgid "Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
 msgstr ""
 
-#: src/data/sys-file-reader.c:546
+#: src/data/sys-file-reader.c:552
 msgid "String missing value indicator field is not 0, 1, 2, or 3."
 msgstr ""
 
-#: src/data/sys-file-reader.c:556
+#: src/data/sys-file-reader.c:562
 #, c-format
 msgid "Long string variable %s may not have missing values."
 msgstr ""
 
-#: src/data/sys-file-reader.c:577
+#: src/data/sys-file-reader.c:583
 msgid "Missing string continuation record."
 msgstr ""
 
-#: src/data/sys-file-reader.c:611
+#: src/data/sys-file-reader.c:617
 #, c-format
 msgid "Unknown variable format %<PRIu8>."
 msgstr ""
 
-#: src/data/sys-file-reader.c:629
+#: src/data/sys-file-reader.c:635
 #, c-format
 msgid "%s variable %s has invalid %s format %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:632
+#: src/data/sys-file-reader.c:638
 msgid "print"
 msgstr "drucken"
 
-#: src/data/sys-file-reader.c:632
+#: src/data/sys-file-reader.c:638
 msgid "write"
 msgstr "schreiben"
 
-#: src/data/sys-file-reader.c:636
+#: src/data/sys-file-reader.c:642
 msgid "Suppressing further invalid format warnings."
 msgstr ""
 
-#: src/data/sys-file-reader.c:654
+#: src/data/sys-file-reader.c:660
 msgid "Weighting variable must be numeric."
 msgstr ""
 
-#: src/data/sys-file-reader.c:668
+#: src/data/sys-file-reader.c:674
 msgid "Multiple type 6 (document) records."
 msgstr ""
 
-#: src/data/sys-file-reader.c:672
+#: src/data/sys-file-reader.c:678
 #, c-format
 msgid "Number of document lines (%d) must be greater than 0."
 msgstr ""
 
-#: src/data/sys-file-reader.c:680
+#: src/data/sys-file-reader.c:686
 msgid "Document line contains null byte."
 msgstr ""
 
-#: src/data/sys-file-reader.c:747
+#: src/data/sys-file-reader.c:753
 #, c-format
 msgid "Unrecognized record type 7, subtype %d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:772
+#: src/data/sys-file-reader.c:778
 #, c-format
 msgid "Bad size (%zu) or count (%zu) field on record type 7, subtype 3."
 msgstr ""
 
-#: src/data/sys-file-reader.c:792
+#: src/data/sys-file-reader.c:798
 #, c-format
 msgid ""
 "Floating-point representation indicated by system file (%d) differs from "
 "expected (%d)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:805
+#: src/data/sys-file-reader.c:811
 msgid "little-endian"
 msgstr ""
 
-#: src/data/sys-file-reader.c:805
+#: src/data/sys-file-reader.c:811
 msgid "big-endian"
 msgstr ""
 
-#: src/data/sys-file-reader.c:806
+#: src/data/sys-file-reader.c:812
 #, c-format
 msgid ""
 "Integer format indicated by system file (%s) differs from expected (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:822
+#: src/data/sys-file-reader.c:828
 #, c-format
 msgid "Bad size (%zu) or count (%zu) on extension 4."
 msgstr ""
 
-#: src/data/sys-file-reader.c:826
+#: src/data/sys-file-reader.c:832
 #, c-format
 msgid "File specifies unexpected value %g as SYSMIS."
 msgstr ""
 
-#: src/data/sys-file-reader.c:828
+#: src/data/sys-file-reader.c:834
 #, c-format
 msgid "File specifies unexpected value %g as HIGHEST."
 msgstr ""
 
-#: src/data/sys-file-reader.c:830
+#: src/data/sys-file-reader.c:836
 #, c-format
 msgid "File specifies unexpected value %g as LOWEST."
 msgstr ""
 
-#: src/data/sys-file-reader.c:844
+#: src/data/sys-file-reader.c:850
 #, c-format
 msgid "Bad size (%zu) or count (%zu) on extension 11."
 msgstr ""
 
-#: src/data/sys-file-reader.c:867
+#: src/data/sys-file-reader.c:873
 msgid "Invalid variable display parameters.  Default parameters substituted."
 msgstr ""
 
-#: src/data/sys-file-reader.c:906
+#: src/data/sys-file-reader.c:912
 #, c-format
 msgid "Long variable mapping from %s to invalid variable name `%s'."
 msgstr ""
 
-#: src/data/sys-file-reader.c:916
+#: src/data/sys-file-reader.c:922
 #, c-format
 msgid "Duplicate long variable name `%s' within system file."
 msgstr ""
 
-#: src/data/sys-file-reader.c:971
+#: src/data/sys-file-reader.c:977
 #, c-format
 msgid "%s listed as string of invalid length %s in very length string record."
 msgstr ""
 
-#: src/data/sys-file-reader.c:981
+#: src/data/sys-file-reader.c:987
 #, c-format
 msgid ""
 "%s listed in very long string record with width %s, which requires only one "
 "segment."
 msgstr ""
 
-#: src/data/sys-file-reader.c:987
+#: src/data/sys-file-reader.c:993
 #, c-format
 msgid "Very long string %s overflows dictionary."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1001
+#: src/data/sys-file-reader.c:1007
 #, c-format
 msgid ""
 "Very long string with width %ld has segment %d of width %d (expected %d)"
 msgstr ""
 
-#: src/data/sys-file-reader.c:1046
+#: src/data/sys-file-reader.c:1052
 #, c-format
 msgid "Invalid number of labels: %d.  Ignoring labels."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1077
+#: src/data/sys-file-reader.c:1083
 msgid ""
 "Variable index record (type 4) does not immediately follow value label "
 "record (type 3) as it should."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1084
+#: src/data/sys-file-reader.c:1090
 #, c-format
 msgid ""
 "Number of variables associated with a value label (%d) is not between 1 and "
 "the number of variables (%zu)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1094
+#: src/data/sys-file-reader.c:1100
 #, c-format
 msgid "Value labels are not allowed on long string variables (%s)."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1101
+#: src/data/sys-file-reader.c:1107
 #, c-format
 msgid ""
 "Variables associated with value label are not all of identical type.  "
 "Variable %s is %s, but variable %s is %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1134
+#: src/data/sys-file-reader.c:1140
 #, c-format
 msgid "Duplicate value label for %g on %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1137
+#: src/data/sys-file-reader.c:1143
 #, c-format
 msgid "Duplicate value label for \"%.*s\" on %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1215
+#: src/data/sys-file-reader.c:1221
 msgid "File ends in partial case."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1223
+#: src/data/sys-file-reader.c:1229
 #, c-format
 msgid "Error reading case from file %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1320 src/data/sys-file-reader.c:1356
+#: src/data/sys-file-reader.c:1326 src/data/sys-file-reader.c:1362
 msgid "Compressed data is corrupt."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1443
+#: src/data/sys-file-reader.c:1449
 #, c-format
 msgid "Variable index %d not in valid range 1...%d."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1448
+#: src/data/sys-file-reader.c:1454
 #, c-format
 msgid "Variable index %d refers to long string continuation."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1534
+#: src/data/sys-file-reader.c:1540
 #, c-format
 msgid "Suppressed %d additional variable map warnings."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1547
+#: src/data/sys-file-reader.c:1553
 #, c-format
 msgid "Variable map refers to unknown variable %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1623
+#: src/data/sys-file-reader.c:1629
 #, c-format
 msgid "System error: %s."
 msgstr ""
 
-#: src/data/sys-file-reader.c:1625
+#: src/data/sys-file-reader.c:1631
 msgid "Unexpected end of file."
 msgstr "plotzlich ist der Datei beendet"
 
-#: src/data/sys-file-writer.c:160
+#: src/data/sys-file-writer.c:162
 #, c-format
 msgid "Unknown system file version %d. Treating as version %d."
 msgstr ""
 
-#: src/data/sys-file-writer.c:176
+#: src/data/sys-file-writer.c:199
 #, c-format
 msgid "Error opening \"%s\" for writing as a system file: %s."
 msgstr ""
 
-#: src/data/sys-file-writer.c:725
+#: src/data/sys-file-writer.c:734
 #, c-format
 msgid "An I/O error occurred writing system file \"%s\"."
 msgstr ""
@@ -1027,100 +1081,100 @@ msgid ""
 "commands."
 msgstr ""
 
-#: src/language/data-io/data-list.c:172
+#: src/language/data-io/data-list.c:173
 msgid "The END subcommand may only be specified once."
 msgstr ""
 
-#: src/language/data-io/data-list.c:207
+#: src/language/data-io/data-list.c:208
 msgid "Only one of FIXED, FREE, or LIST may be specified."
 msgstr ""
 
-#: src/language/data-io/data-list.c:254
+#: src/language/data-io/data-list.c:257
 msgid "The END keyword may be used only with DATA LIST FIXED."
 msgstr ""
 
-#: src/language/data-io/data-list.c:362 src/language/data-io/data-list.c:506
+#: src/language/data-io/data-list.c:367 src/language/data-io/data-list.c:511
 #, c-format
 msgid "%s is a duplicate variable name."
 msgstr ""
 
-#: src/language/data-io/data-list.c:369
+#: src/language/data-io/data-list.c:374
 #, c-format
 msgid "There is already a variable %s of a different type."
 msgstr ""
 
-#: src/language/data-io/data-list.c:376
+#: src/language/data-io/data-list.c:381
 #, c-format
 msgid "There is already a string variable %s of a different width."
 msgstr ""
 
-#: src/language/data-io/data-list.c:397
+#: src/language/data-io/data-list.c:402
 msgid "At least one variable must be specified."
 msgstr ""
 
-#: src/language/data-io/data-list.c:404
+#: src/language/data-io/data-list.c:409
 msgid ""
 "Variables are specified on records that should not exist according to "
 "RECORDS subcommand."
 msgstr ""
 
-#: src/language/data-io/data-list.c:429 src/language/data-io/data-list.c:538
-#: src/language/data-io/print.c:395 src/language/dictionary/split-file.c:84
-#: src/language/dictionary/sys-file-info.c:158
-#: src/language/dictionary/sys-file-info.c:386
-#: src/language/dictionary/sys-file-info.c:630
+#: src/language/data-io/data-list.c:434 src/language/data-io/data-list.c:543
+#: src/language/data-io/print.c:397 src/language/dictionary/split-file.c:84
+#: src/language/dictionary/sys-file-info.c:161
+#: src/language/dictionary/sys-file-info.c:390
+#: src/language/dictionary/sys-file-info.c:634
 #: src/language/stats/descriptives.c:883 src/ui/gui/dict-display.c:195
 msgid "Variable"
 msgstr ""
 
-#: src/language/data-io/data-list.c:430 src/language/data-io/print.c:396
+#: src/language/data-io/data-list.c:435 src/language/data-io/print.c:398
 msgid "Record"
 msgstr ""
 
-#: src/language/data-io/data-list.c:431 src/language/data-io/print.c:397
+#: src/language/data-io/data-list.c:436 src/language/data-io/print.c:399
 #: src/ui/gui/var-sheet.c:72
 msgid "Columns"
 msgstr "Spalten"
 
-#: src/language/data-io/data-list.c:432 src/language/data-io/data-list.c:539
-#: src/language/data-io/print.c:398
+#: src/language/data-io/data-list.c:437 src/language/data-io/data-list.c:544
+#: src/language/data-io/print.c:400
 msgid "Format"
 msgstr ""
 
-#: src/language/data-io/data-list.c:450
+#: src/language/data-io/data-list.c:455
 #, c-format
 msgid "Reading %d record from %s."
 msgid_plural "Reading %d records from %s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/language/data-io/data-list.c:553
+#: src/language/data-io/data-list.c:558
 #, c-format
 msgid "Reading free-form data from %s."
 msgstr ""
 
-#: src/language/data-io/data-list.c:599
+#: src/language/data-io/data-list.c:604
 msgid "Quoted string extends beyond end of line."
 msgstr ""
 
-#: src/language/data-io/data-list.c:684
+#: src/language/data-io/data-list.c:689
 #, c-format
 msgid "Partial case of %d of %d records discarded."
 msgstr ""
 
-#: src/language/data-io/data-list.c:728
+#: src/language/data-io/data-list.c:733
 #, c-format
 msgid "Partial case discarded.  The first variable missing was %s."
 msgstr ""
 
-#: src/language/data-io/data-list.c:759
+#: src/language/data-io/data-list.c:764
 #, c-format
 msgid ""
 "Missing value(s) for all variables from %s onward.  These will be filled "
 "with the system-missing value or blanks, as appropriate."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:138
+#: src/language/data-io/data-reader.c:137
 #, c-format
 msgid "Could not open \"%s\" for reading as a data file: %s."
 msgstr ""
@@ -1158,12 +1212,12 @@ msgid ""
 "access the inline file."
 msgstr ""
 
-#: src/language/data-io/data-writer.c:63
+#: src/language/data-io/data-writer.c:71
 #, c-format
 msgid "An error occurred while opening \"%s\" for writing as a data file: %s."
 msgstr ""
 
-#: src/language/data-io/data-writer.c:147
+#: src/language/data-io/data-writer.c:149
 #, c-format
 msgid "I/O error occurred writing data file \"%s\"."
 msgstr ""
@@ -1189,19 +1243,19 @@ msgid ""
 "records."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:148
+#: src/language/data-io/file-handle.q:147
 msgid "file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:150
+#: src/language/data-io/file-handle.q:149
 msgid "inline file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:152
+#: src/language/data-io/file-handle.q:151
 msgid "scratch file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:173
+#: src/language/data-io/file-handle.q:175
 msgid "expecting a file name or handle name"
 msgstr ""
 
@@ -1210,21 +1264,21 @@ msgstr ""
 msgid "Handle for %s not allowed here."
 msgstr ""
 
-#: src/language/data-io/get.c:105
+#: src/language/data-io/get.c:106
 msgid "expecting COMM or TAPE"
 msgstr ""
 
-#: src/language/data-io/get.c:276 src/language/data-io/get.c:290
-#: src/language/data-io/get.c:315
+#: src/language/data-io/get.c:279 src/language/data-io/get.c:293
+#: src/language/data-io/get.c:318
 #, c-format
 msgid "expecting %s or %s"
 msgstr ""
 
-#: src/language/data-io/get.c:508 src/language/data-io/print.c:176
+#: src/language/data-io/get.c:513 src/language/data-io/print.c:176
 msgid "expecting a valid subcommand"
 msgstr ""
 
-#: src/language/data-io/get.c:541
+#: src/language/data-io/get.c:546
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1232,11 +1286,11 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/language/data-io/get.c:567
+#: src/language/data-io/get.c:572
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/language/data-io/get.c:574
+#: src/language/data-io/get.c:579
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%zu) does not match number of "
@@ -1244,59 +1298,64 @@ msgid ""
 "subcommand."
 msgstr ""
 
-#: src/language/data-io/get.c:587
+#: src/language/data-io/get.c:592
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/language/data-io/get.c:617
+#: src/language/data-io/get.c:622
 msgid "Cannot DROP all variables from dictionary."
 msgstr ""
 
-#: src/language/data-io/get.c:790
+#: src/language/data-io/get.c:795
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/language/data-io/get.c:797
+#: src/language/data-io/get.c:802
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/language/data-io/get.c:831
+#: src/language/data-io/get.c:836
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/language/data-io/get.c:875
+#: src/language/data-io/get.c:880
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/language/data-io/get.c:878
+#: src/language/data-io/get.c:883
 #, c-format
 msgid "Active file lacks BY variable %s."
 msgstr ""
 
-#: src/language/data-io/get.c:948
+#: src/language/data-io/get.c:953
 msgid "BY is required when TABLE is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:953
+#: src/language/data-io/get.c:958
 msgid "BY is required when IN is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1058
+#: src/language/data-io/get.c:1063
 #, c-format
 msgid ""
 "Variable name %s specified on %s subcommand duplicates an existing variable "
 "name."
 msgstr ""
 
-#: src/language/data-io/get.c:1304
+#: src/language/data-io/get.c:1310
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
+msgstr ""
+
+#: src/language/data-io/get-data.c:48
+#, c-format
+msgid "Unsupported TYPE %s"
 msgstr ""
 
 #: src/language/data-io/inpt-pgm.c:129
@@ -1311,7 +1370,7 @@ msgstr ""
 msgid "COLUMN subcommand multiply specified."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:335
+#: src/language/data-io/inpt-pgm.c:337
 msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
@@ -1392,19 +1451,19 @@ msgid ""
 "Data fields must be listed in order of increasing record number."
 msgstr ""
 
-#: src/language/data-io/print.c:259
+#: src/language/data-io/print.c:261
 #, c-format
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
 msgstr ""
 
-#: src/language/data-io/print.c:428
+#: src/language/data-io/print.c:430
 #, c-format
 msgid "Writing %d record to %s."
 msgid_plural "Writing %d records to %s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/language/data-io/print.c:432
+#: src/language/data-io/print.c:434
 #, c-format
 msgid "Writing %d record."
 msgid_plural "Writing %d records."
@@ -1416,32 +1475,32 @@ msgstr[1] ""
 msgid "expecting end of command"
 msgstr ""
 
-#: src/language/data-io/print-space.c:114
+#: src/language/data-io/print-space.c:116
 msgid "The expression on PRINT SPACE evaluated to the system-missing value."
 msgstr ""
 
-#: src/language/data-io/print-space.c:117
+#: src/language/data-io/print-space.c:119
 #, c-format
 msgid "The expression on PRINT SPACE evaluated to %g."
 msgstr ""
 
-#: src/language/dictionary/apply-dictionary.c:73
+#: src/language/dictionary/apply-dictionary.c:75
 #, c-format
 msgid "Variable %s is %s in target file, but %s in source file."
 msgstr ""
 
-#: src/language/dictionary/apply-dictionary.c:97
+#: src/language/dictionary/apply-dictionary.c:99
 #, c-format
 msgid "Cannot add value labels from source file to long string variable %s."
 msgstr ""
 
-#: src/language/dictionary/apply-dictionary.c:111
+#: src/language/dictionary/apply-dictionary.c:113
 #, c-format
 msgid ""
 "Cannot apply missing values from source file to long string variable %s."
 msgstr ""
 
-#: src/language/dictionary/apply-dictionary.c:124
+#: src/language/dictionary/apply-dictionary.c:126
 msgid "No matching variables found between the source and target files."
 msgstr ""
 
@@ -1466,7 +1525,7 @@ msgid "`)' expected after output format."
 msgstr ""
 
 #: src/language/dictionary/missing-values.c:55
-#: src/language/stats/aggregate.c:449
+#: src/language/stats/aggregate.c:451
 msgid "expecting `('"
 msgstr ""
 
@@ -1599,7 +1658,7 @@ msgid "Renaming would duplicate variable name %s."
 msgstr ""
 
 #: src/language/dictionary/split-file.c:85
-#: src/language/dictionary/sys-file-info.c:559
+#: src/language/dictionary/sys-file-info.c:563
 #: src/language/stats/crosstabs.q:1152 src/language/stats/crosstabs.q:1179
 #: src/language/stats/crosstabs.q:1199 src/language/stats/crosstabs.q:1221
 #: src/language/stats/examine.q:1192 src/language/stats/frequencies.q:1059
@@ -1608,217 +1667,217 @@ msgid "Value"
 msgstr ""
 
 #: src/language/dictionary/split-file.c:86
-#: src/language/dictionary/sys-file-info.c:393
-#: src/language/dictionary/sys-file-info.c:560 src/ui/gui/psppire.glade:2099
+#: src/language/dictionary/sys-file-info.c:397
+#: src/language/dictionary/sys-file-info.c:564 src/ui/gui/psppire.glade:2099
 #: src/ui/gui/var-sheet.c:69
 msgid "Label"
 msgstr "Kennsatz"
 
-#: src/language/dictionary/sys-file-info.c:107
+#: src/language/dictionary/sys-file-info.c:110
 msgid "File:"
 msgstr "Datei:"
 
-#: src/language/dictionary/sys-file-info.c:109 src/ui/gui/psppire.glade:2052
+#: src/language/dictionary/sys-file-info.c:112 src/ui/gui/psppire.glade:2052
 msgid "Label:"
 msgstr "Kennsatz:"
 
-#: src/language/dictionary/sys-file-info.c:113
+#: src/language/dictionary/sys-file-info.c:116
 msgid "No label."
 msgstr "Kein Kennsatz."
 
-#: src/language/dictionary/sys-file-info.c:116
+#: src/language/dictionary/sys-file-info.c:119
 msgid "Created:"
 msgstr "Gemacht:"
 
-#: src/language/dictionary/sys-file-info.c:119
+#: src/language/dictionary/sys-file-info.c:122
 msgid "Integer Format:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:121
+#: src/language/dictionary/sys-file-info.c:124
 msgid "Big Endian."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:122
+#: src/language/dictionary/sys-file-info.c:125
 msgid "Little Endian."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:123
-#: src/language/dictionary/sys-file-info.c:131
+#: src/language/dictionary/sys-file-info.c:126
+#: src/language/dictionary/sys-file-info.c:134
 msgid "Unknown."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:124
+#: src/language/dictionary/sys-file-info.c:127
 msgid "Real Format:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:126
+#: src/language/dictionary/sys-file-info.c:129
 msgid "IEEE 754 LE."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:127
+#: src/language/dictionary/sys-file-info.c:130
 msgid "IEEE 754 BE."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:128
+#: src/language/dictionary/sys-file-info.c:131
 msgid "VAX D."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:129
+#: src/language/dictionary/sys-file-info.c:132
 msgid "VAX G."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:130
+#: src/language/dictionary/sys-file-info.c:133
 msgid "IBM 390 Hex Long."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:132
+#: src/language/dictionary/sys-file-info.c:135
 #: src/ui/gui/descriptives-dialog.glade:79
 msgid "Variables:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:134
+#: src/language/dictionary/sys-file-info.c:137
 msgid "Cases:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:136
+#: src/language/dictionary/sys-file-info.c:139
 msgid "Unknown"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:138
+#: src/language/dictionary/sys-file-info.c:141
 msgid "Type:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:139
+#: src/language/dictionary/sys-file-info.c:142
 msgid "System File."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:140
+#: src/language/dictionary/sys-file-info.c:143
 msgid "Weight:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:145
+#: src/language/dictionary/sys-file-info.c:148
 msgid "Not weighted."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:147
+#: src/language/dictionary/sys-file-info.c:150
 msgid "Mode:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:149
+#: src/language/dictionary/sys-file-info.c:152
 #, c-format
 msgid "Compression %s."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:149
+#: src/language/dictionary/sys-file-info.c:152
 msgid "on"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:149
+#: src/language/dictionary/sys-file-info.c:152
 msgid "off"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:159
-#: src/language/dictionary/sys-file-info.c:391
+#: src/language/dictionary/sys-file-info.c:162
+#: src/language/dictionary/sys-file-info.c:395
 msgid "Description"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:160
-#: src/language/dictionary/sys-file-info.c:389
-#: src/language/dictionary/sys-file-info.c:629
+#: src/language/dictionary/sys-file-info.c:163
+#: src/language/dictionary/sys-file-info.c:393
+#: src/language/dictionary/sys-file-info.c:633
 msgid "Position"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:218
+#: src/language/dictionary/sys-file-info.c:222
 msgid "The active file does not have a file label."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:221
+#: src/language/dictionary/sys-file-info.c:225
 msgid "File label:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:284
+#: src/language/dictionary/sys-file-info.c:288
 msgid "No variables to display."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:303
+#: src/language/dictionary/sys-file-info.c:307
 msgid "Macros not supported."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:313
+#: src/language/dictionary/sys-file-info.c:317
 msgid "The active file dictionary does not contain any documents."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:321
+#: src/language/dictionary/sys-file-info.c:325
 msgid "Documents in the active file:"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:473
+#: src/language/dictionary/sys-file-info.c:477
 #, c-format
 msgid "Format: %s"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:481
+#: src/language/dictionary/sys-file-info.c:485
 #, c-format
 msgid "Print Format: %s"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:484
+#: src/language/dictionary/sys-file-info.c:488
 #, c-format
 msgid "Write Format: %s"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:490
+#: src/language/dictionary/sys-file-info.c:494
 #, fuzzy, c-format
 msgid "Measure: %s"
 msgstr "Messe"
 
-#: src/language/dictionary/sys-file-info.c:491 src/ui/gui/var-sheet.c:87
+#: src/language/dictionary/sys-file-info.c:495 src/ui/gui/var-sheet.c:87
 msgid "Nominal"
 msgstr "Nominalwert"
 
-#: src/language/dictionary/sys-file-info.c:492 src/ui/gui/var-sheet.c:88
+#: src/language/dictionary/sys-file-info.c:496 src/ui/gui/var-sheet.c:88
 msgid "Ordinal"
 msgstr "Ordinalwert"
 
-#: src/language/dictionary/sys-file-info.c:493 src/ui/gui/var-sheet.c:89
+#: src/language/dictionary/sys-file-info.c:497 src/ui/gui/var-sheet.c:89
 msgid "Scale"
 msgstr "Skalwert"
 
-#: src/language/dictionary/sys-file-info.c:496
+#: src/language/dictionary/sys-file-info.c:500
 #, c-format
 msgid "Display Alignment: %s"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:497 src/ui/gui/var-sheet.c:80
+#: src/language/dictionary/sys-file-info.c:501 src/ui/gui/var-sheet.c:80
 msgid "Left"
 msgstr "Links"
 
-#: src/language/dictionary/sys-file-info.c:498 src/ui/gui/var-sheet.c:82
+#: src/language/dictionary/sys-file-info.c:502 src/ui/gui/var-sheet.c:82
 msgid "Center"
 msgstr "Mittel"
 
-#: src/language/dictionary/sys-file-info.c:499 src/ui/gui/var-sheet.c:81
+#: src/language/dictionary/sys-file-info.c:503 src/ui/gui/var-sheet.c:81
 msgid "Right"
 msgstr "Rechts"
 
-#: src/language/dictionary/sys-file-info.c:502
+#: src/language/dictionary/sys-file-info.c:506
 #, c-format
 msgid "Display Width: %d"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:513
+#: src/language/dictionary/sys-file-info.c:517
 msgid "Missing Values: "
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:607
+#: src/language/dictionary/sys-file-info.c:611
 msgid "No vectors defined."
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:628
+#: src/language/dictionary/sys-file-info.c:632
 msgid "Vector"
 msgstr ""
 
-#: src/language/dictionary/sys-file-info.c:631
+#: src/language/dictionary/sys-file-info.c:635
 msgid "Print Format"
 msgstr ""
 
@@ -1993,7 +2052,7 @@ msgstr ""
 msgid "Unknown identifier %s."
 msgstr ""
 
-#: src/language/expressions/parse.c:885 src/language/stats/aggregate.c:507
+#: src/language/expressions/parse.c:885 src/language/stats/aggregate.c:509
 msgid "expecting `)'"
 msgstr ""
 
@@ -2279,40 +2338,40 @@ msgid ""
 "has no effect.  Output data will be sorted the same way as the input data."
 msgstr ""
 
-#: src/language/stats/aggregate.c:414
+#: src/language/stats/aggregate.c:416
 msgid "expecting aggregation function"
 msgstr ""
 
-#: src/language/stats/aggregate.c:432
+#: src/language/stats/aggregate.c:434
 #, c-format
 msgid "Unknown aggregation function %s."
 msgstr ""
 
-#: src/language/stats/aggregate.c:488
+#: src/language/stats/aggregate.c:490
 #, fuzzy, c-format
 msgid "Missing argument %zu to %s."
 msgstr "Lösewerten"
 
-#: src/language/stats/aggregate.c:497
+#: src/language/stats/aggregate.c:499
 #, c-format
 msgid "Arguments to %s must be of same type as source variables."
 msgstr ""
 
-#: src/language/stats/aggregate.c:519
+#: src/language/stats/aggregate.c:521
 #, c-format
 msgid ""
 "Number of source variables (%zu) does not match number of target variables (%"
 "zu)."
 msgstr ""
 
-#: src/language/stats/aggregate.c:535
+#: src/language/stats/aggregate.c:537
 #, c-format
 msgid ""
 "The value arguments passed to the %s function are out-of-order.  They will "
 "be treated as if they had been specified in the correct order."
 msgstr ""
 
-#: src/language/stats/aggregate.c:605
+#: src/language/stats/aggregate.c:607
 #, c-format
 msgid ""
 "Variable name %s is not unique within the aggregate file dictionary, which "
@@ -3079,11 +3138,11 @@ msgstr ""
 msgid "Multivariate GLM not yet supported"
 msgstr ""
 
-#: src/language/stats/glm.q:271 src/language/stats/regression.q:1159
+#: src/language/stats/glm.q:271 src/language/stats/regression.q:1165
 msgid "Dependent variable must be numeric."
 msgstr ""
 
-#: src/language/stats/glm.q:346 src/language/stats/regression.q:1256
+#: src/language/stats/glm.q:346 src/language/stats/regression.q:1262
 msgid "No valid data found. This command was skipped."
 msgstr ""
 
@@ -3335,7 +3394,7 @@ msgstr ""
 msgid "Coefficient Correlations"
 msgstr ""
 
-#: src/language/stats/regression.q:1032
+#: src/language/stats/regression.q:1038
 msgid ""
 "The dependent variable is equal to the independent variable.The least "
 "squares line is therefore Y=X.Standard errors and related statistics may be "
@@ -5685,7 +5744,7 @@ msgid ""
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/ui/terminal/main.c:131
+#: src/ui/terminal/main.c:132
 msgid ""
 "Stopping syntax file processing here to avoid a cascade of dependent command "
 "failures."

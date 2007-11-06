@@ -13,6 +13,7 @@ gl_EARLY
 AM_PROG_CC_C_O
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
+PKG_PROG_PKG_CONFIG
 
 PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
 
@@ -49,7 +50,7 @@ AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 dnl Checks needed for gnumeric reader
 gnm_support=yes;
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0,,
-			   [PSPP_OPTIONAL_PREREQ([libxml2]); gnm_support=no]);
+			   [PSPP_OPTIONAL_PREREQ([libxml2]); gnm_support=no;]);
 AC_SEARCH_LIBS(gzopen,z,,[PSPP_OPTIONAL_PREREQ([zlib]); gnm_support=no;])
 AC_CHECK_HEADERS(zlib.h,,[PSPP_OPTIONAL_PREREQ([zlib]); gnm_support=no;])
 
@@ -57,6 +58,7 @@ if test x"$gnm_support" = x"yes" ; then
    AC_DEFINE([GNM_SUPPORT], 1,
    [Define to 1 if building in support for reading Gnumeric files.])
 fi
+AM_CONDITIONAL(GNM_SUPPORT, test x"$gnm_support" = x"yes")
 
 AC_ARG_WITH(
   gui_tools,

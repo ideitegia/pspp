@@ -20,7 +20,6 @@ dist_TESTS = \
 	tests/command/file-handle.sh \
 	tests/command/filter.sh \
 	tests/command/flip.sh \
-	tests/command/get-data-gnm.sh \
 	tests/command/import-export.sh \
 	tests/command/input-program.sh \
 	tests/command/insert.sh \
@@ -141,6 +140,10 @@ dist_TESTS = \
 	tests/expressions/valuelabel.sh \
 	tests/expressions/variables.sh \
 	tests/expressions/vectors.sh
+
+if GNM_SUPPORT
+dist_TESTS += tests/command/get-data-gnm.sh 
+endif
 
 nodist_TESTS = \
 	tests/libpspp/abt-test \
