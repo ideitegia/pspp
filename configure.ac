@@ -84,20 +84,13 @@ gl_INIT
 
 AC_C_INLINE
 
-dnl  Dont use AC_TYPE_OFF_T --- it doesnt generate the HAVE_TYPE macro
-AC_CHECK_TYPES(off_t) 
-AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
-AC_CHECK_SIZEOF(long double)
 
 AC_C_BIGENDIAN
 
 AC_CHECK_FUNCS([__setfpucw fork execl execlp isinf isnan finite getpid feholdexcept fpsetmask popen round])
 
 AC_PROG_LN_S
-
-dnl This is needed otherwise --with-included-gettext fails
-AH_BOTTOM([#include <locale.h>])
 
 AC_ARG_ENABLE(
   debug, 

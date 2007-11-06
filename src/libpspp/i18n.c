@@ -17,6 +17,7 @@
 #include <config.h>
 #include <xalloc.h>
 #include <assert.h>
+#include <locale.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

@@ -1,3 +1,11 @@
+2007-11-05  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: No need for check for off_t or for the size of
+	float or long double any longer, as we don't use the results
+	anymore.  Also, no need to put #include <locale.h> into config.h
+	any longer, as this was only needed for --with-included-gettext,
+	which we have not supported for some time.
+
 2007-11-03  Ben Pfaff  <blp@gnu.org>
 
 	Allow output files to overwrite input files (bug #21280).
