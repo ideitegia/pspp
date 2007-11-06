@@ -53,6 +53,7 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) (msgid)
 
 /* Compression bias used by PSPP.  Values between (1 -
    COMPRESSION_BIAS) and (251 - COMPRESSION_BIAS) inclusive can be
@@ -184,7 +185,9 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
                                                &w->sfm_var_cnt);
 
   /* Open file handle as an exclusive writer. */
-  w->lock = fh_lock (fh, FH_REF_FILE, "system file", FH_ACC_WRITE, true);
+  /* TRANSLATORS: this fragment will be interpolated into
+     messages in fh_lock() that identify types of files. */
+  w->lock = fh_lock (fh, FH_REF_FILE, N_("system file"), FH_ACC_WRITE, true);
   if (w->lock == NULL)
     goto error;
 

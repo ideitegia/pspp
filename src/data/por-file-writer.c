@@ -49,6 +49,7 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) (msgid)
 
 /* Maximum width of a variable in a portable file. */
 #define MAX_POR_WIDTH 255
@@ -142,7 +143,9 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
     }
 
   /* Lock file. */
-  w->lock = fh_lock (fh, FH_REF_FILE, "portable file", FH_ACC_WRITE, true);
+  /* TRANSLATORS: this fragment will be interpolated into
+     messages in fh_lock() that identify types of files. */
+  w->lock = fh_lock (fh, FH_REF_FILE, N_("portable file"), FH_ACC_WRITE, true);
   if (w->lock == NULL)
     goto error;
 

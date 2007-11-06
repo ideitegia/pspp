@@ -46,6 +46,7 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) (msgid)
 
 /* portable_to_local[PORTABLE] translates the given portable
    character into the local character set. */
@@ -261,7 +262,9 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
     goto error;
 
   /* Lock file. */
-  r->lock = fh_lock (fh, FH_REF_FILE, "portable file", FH_ACC_READ, false);
+  /* TRANSLATORS: this fragment will be interpolated into
+     messages in fh_lock() that identify types of files. */
+  r->lock = fh_lock (fh, FH_REF_FILE, N_("portable file"), FH_ACC_READ, false);
   if (r->lock == NULL)
     goto error;
 

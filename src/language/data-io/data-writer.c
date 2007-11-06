@@ -35,6 +35,7 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) (msgid)
 
 /* Data file writer. */
 struct dfm_writer
@@ -52,7 +53,7 @@ dfm_open_writer (struct file_handle *fh)
   struct dfm_writer *w;
   struct fh_lock *lock;
 
-  lock = fh_lock (fh, FH_REF_FILE, "data file", FH_ACC_WRITE, false);
+  lock = fh_lock (fh, FH_REF_FILE, N_("data file"), FH_ACC_WRITE, false);
   if (lock == NULL)
     return NULL;
 

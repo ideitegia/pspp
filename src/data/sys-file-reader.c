@@ -192,7 +192,9 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->has_long_var_names = false;
   r->opcode_idx = sizeof r->opcodes;
 
-  r->lock = fh_lock (fh, FH_REF_FILE, "system file", FH_ACC_READ, false);
+  /* TRANSLATORS: this fragment will be interpolated into
+     messages in fh_lock() that identify types of files. */
+  r->lock = fh_lock (fh, FH_REF_FILE, N_("system file"), FH_ACC_READ, false);
   if (r->lock == NULL)
     goto error;
 

@@ -34,6 +34,8 @@
 
 #include "xalloc.h"
 
+#define N_(msgid) (msgid)
+
 /* A scratch file writer. */
 struct scratch_writer
   {
@@ -60,7 +62,9 @@ scratch_writer_open (struct file_handle *fh,
   size_t dict_value_cnt;
 
   /* Get exclusive write access to handle. */
-  lock = fh_lock (fh, FH_REF_SCRATCH, "scratch file", FH_ACC_WRITE, true);
+  /* TRANSLATORS: this fragment will be interpolated into
+     messages in fh_lock() that identify types of files. */
+  lock = fh_lock (fh, FH_REF_SCRATCH, N_("scratch file"), FH_ACC_WRITE, true);
   if (lock == NULL)
     return NULL;
 

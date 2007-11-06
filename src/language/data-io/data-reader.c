@@ -41,6 +41,7 @@
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
+#define N_(msgid) (msgid)
 
 /* Flags for DFM readers. */
 enum dfm_reader_flags
@@ -110,7 +111,9 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
   struct dfm_reader *r;
   struct fh_lock *lock;
 
-  lock = fh_lock (fh, FH_REF_FILE | FH_REF_INLINE, "data file",
+  /* TRANSLATORS: this fragment will be interpolated into
+     messages in fh_lock() that identify types of files. */
+  lock = fh_lock (fh, FH_REF_FILE | FH_REF_INLINE, N_("data file"),
                   FH_ACC_READ, false);
   if (lock == NULL)
     return NULL;

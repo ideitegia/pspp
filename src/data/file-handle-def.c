@@ -403,6 +403,10 @@ static unsigned int hash_fh_lock (const void *, const void *);
    and similarly for writing.  If successful, a reference to TYPE
    is retained, so it should probably be a string literal.
 
+   TYPE should be marked with N_() in the caller: that is, the
+   caller should not translate it with gettext, but fh_lock will
+   do so.
+
    ACCESS specifies whether the lock is for reading or writing.
    EXCLUSIVE is true to require exclusive access, false to allow
    sharing with other accessors.  Exclusive read access precludes

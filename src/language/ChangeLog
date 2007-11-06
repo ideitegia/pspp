@@ -1,3 +1,12 @@
+2007-11-05  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6258.  Reviewed by John Darrington.
+
+	* command.c (report_state_mismatch): Replace code to construct an
+	error message from bits and pieces by a switch statement that
+	hard-codes each possible error.  Makes i18n easier.
+	Suggested by Chusslove Illich <caslav.ilic@gmx.net>.
+
 2007-09-22  Ben Pfaff  <blp@gnu.org>
 
 	Bug #21128.  Reviewed by John Darrington.

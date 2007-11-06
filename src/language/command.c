@@ -621,32 +621,72 @@ report_state_mismatch (const struct command *command, enum cmd_state state)
   assert (!in_correct_state (command, state));
   if (state == CMD_STATE_INITIAL || state == CMD_STATE_DATA)
     {
-      const char *allowed[3];
-      int allowed_cnt;
-      char *s;
+      switch (command->states)
+        {
+          /* One allowed state. */
+        case S_INITIAL:
+          msg (SE, _("%s is allowed only before the active file has "
+                     "been defined."), command->name);
+          break;
+        case S_DATA:
+          msg (SE, _("%s is allowed only after the active file has "
+                     "been defined."), command->name);
+          break;
+        case S_INPUT_PROGRAM:
+          msg (SE, _("%s is allowed only inside INPUT PROGRAM."),
+               command->name);
+          break;
+        case S_FILE_TYPE:
+          msg (SE, _("%s is allowed only inside FILE TYPE."), command->name);
+          break;
 
-      allowed_cnt = 0;
-      if (command->states & S_INITIAL)
-        allowed[allowed_cnt++] = _("before the active file has been defined");
-      else if (command->states & S_DATA)
-        allowed[allowed_cnt++] = _("after the active file has been defined");
-      if (command->states & S_INPUT_PROGRAM)
-        allowed[allowed_cnt++] = _("inside INPUT PROGRAM");
-      if (command->states & S_FILE_TYPE)
-        allowed[allowed_cnt++] = _("inside FILE TYPE");
+          /* Two allowed states. */
+        case S_INITIAL | S_DATA:
+          NOT_REACHED ();
+        case S_INITIAL | S_INPUT_PROGRAM:
+          msg (SE, _("%s is allowed only before the active file has "
+                     "been defined or inside INPUT PROGRAM."), command->name);
+          break;
+        case S_INITIAL | S_FILE_TYPE:
+          msg (SE, _("%s is allowed only before the active file has "
+                     "been defined or inside FILE TYPE."), command->name);
+          break;
+        case S_DATA | S_INPUT_PROGRAM:
+          msg (SE, _("%s is allowed only after the active file has "
+                     "been defined or inside INPUT PROGRAM."), command->name);
+          break;
+        case S_DATA | S_FILE_TYPE:
+          msg (SE, _("%s is allowed only after the active file has "
+                     "been defined or inside FILE TYPE."), command->name);
+          break;
+        case S_INPUT_PROGRAM | S_FILE_TYPE:
+          msg (SE, _("%s is allowed only inside INPUT PROGRAM "
+                     "or inside FILE TYPE."), command->name);
+          break;
 
-      if (allowed_cnt == 1)
-        s = xstrdup (allowed[0]);
-      else if (allowed_cnt == 2)
-        s = xasprintf (_("%s or %s"), allowed[0], allowed[1]);
-      else if (allowed_cnt == 3)
-        s = xasprintf (_("%s, %s, or %s"), allowed[0], allowed[1], allowed[2]);
-      else
-        NOT_REACHED ();
+          /* Three allowed states. */
+        case S_DATA | S_INPUT_PROGRAM | S_FILE_TYPE:
+          msg (SE, _("%s is allowed only after the active file has "
+                     "been defined, inside INPUT PROGRAM, or inside "
+                     "FILE TYPE."), command->name);
+          break;
+        case S_INITIAL | S_INPUT_PROGRAM | S_FILE_TYPE:
+          msg (SE, _("%s is allowed only before the active file has "
+                     "been defined, inside INPUT PROGRAM, or inside "
+                     "FILE TYPE."), command->name);
+          break;
+        case S_INITIAL | S_DATA | S_FILE_TYPE:
+          NOT_REACHED ();
+        case S_INITIAL | S_DATA | S_INPUT_PROGRAM:
+          NOT_REACHED ();
 
-      msg (SE, _("%s is allowed only %s."), command->name, s);
+          /* Four allowed states. */
+        case S_INITIAL | S_DATA | S_INPUT_PROGRAM | S_FILE_TYPE:
+          NOT_REACHED ();
 
-      free (s);
+        default:
+          NOT_REACHED ();
+        }
     }
   else if (state == CMD_STATE_INPUT_PROGRAM)
     msg (SE, _("%s is not allowed inside INPUT PROGRAM."), command->name);
