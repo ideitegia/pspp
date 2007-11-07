@@ -84,7 +84,8 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check that foo2.out was created"
-diff -b -B foo2.out - << EOF
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b foo2.out - << EOF
  1
  2
  3
