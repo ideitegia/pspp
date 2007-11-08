@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <locale.h>
 #include <assert.h>
 #include <libintl.h>
 #include <gsl/gsl_errno.h>
