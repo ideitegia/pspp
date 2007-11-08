@@ -1339,6 +1339,8 @@ check_datasheet_casereader (struct mc *mc, struct casereader *reader,
                         "%g != %g",
                         row, col, row_cnt, column_cnt,
                         case_num_idx (&c, col), array[row][col]);
+
+	  case_destroy (&c);
         }
 
       if (casereader_read (reader, &c))

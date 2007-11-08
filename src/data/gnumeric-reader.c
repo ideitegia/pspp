@@ -633,6 +633,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
     }
 
   free (var_spec);
+  dict_destroy (*dict);
 
   gnm_file_casereader_destroy (NULL, r);
 
