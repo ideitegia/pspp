@@ -202,7 +202,7 @@ char *ds_cstr (const struct string *);
 /* File input. */
 bool ds_read_line (struct string *, FILE *);
 bool ds_read_config_line (struct string *, int *line_number, FILE *);
-size_t ds_read_stream (struct string *, size_t size, size_t cnt, FILE *stream);
+bool ds_read_stream (struct string *, size_t size, size_t cnt, FILE *stream);
 
 /* Append. */
 void ds_put_char (struct string *, int ch);

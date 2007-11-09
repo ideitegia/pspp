@@ -1,3 +1,8 @@
+2007-11-08  Ben Pfaff  <blp@gnu.org>
+
+	* str.c (ds_read_stream): Change return value semantics to be more
+	useful.  Update all users.
+
 2007-11-03 John Darrington <john@darrington.wattle.id.au>
 
 	* i18n.c i18n.h: Added convertor from UTF8 to system.

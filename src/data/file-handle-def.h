@@ -19,6 +19,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <libpspp/legacy-encoding.h>
 
 /* What a file handle refers to.
    (Ordinarily only a single value is allowed, but fh_open()
@@ -34,7 +35,10 @@ enum fh_referent
 enum fh_mode
   {
     FH_MODE_TEXT,               /* New-line delimited lines. */
-    FH_MODE_BINARY              /* Fixed-length records. */
+    FH_MODE_FIXED,              /* Fixed-length records. */
+    FH_MODE_VARIABLE,           /* Binary variable-length records. */
+    FH_MODE_360_VARIABLE,       /* IBM 360 variable-length records. */
+    FH_MODE_360_SPANNED,        /* IBM 360 variable-length, spanned records. */
   };
 
 /* Ways to access a file. */
@@ -50,6 +54,7 @@ struct fh_properties
     enum fh_mode mode;          /* File mode. */
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
+    enum legacy_encoding encoding;/* ASCII or EBCDIC? */
   };
 
 void fh_init (void);
@@ -84,6 +89,7 @@ enum fh_mode fh_get_mode (const struct file_handle *) ;
 /* Properties of FH_REF_FILE and FH_REF_INLINE file handles. */
 size_t fh_get_record_width (const struct file_handle *);
 size_t fh_get_tab_width (const struct file_handle *);
+enum legacy_encoding fh_get_legacy_encoding (const struct file_handle *);
 
 /* Properties of FH_REF_SCRATCH file handles. */
 struct scratch_handle *fh_get_scratch_handle (const struct file_handle *);

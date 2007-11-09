@@ -19,6 +19,7 @@
 #include "str.h"
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -1217,8 +1218,8 @@ ds_read_config_line (struct string *st, int *line_number, FILE *stream)
 
 /* Attempts to read SIZE * CNT bytes from STREAM and append them
    to ST.
-   Returns number of bytes actually read. */
-size_t
+   Returns true if all the requested data was read, false otherwise. */
+bool
 ds_read_stream (struct string *st, size_t size, size_t cnt, FILE *stream)
 {
   if (size != 0)
@@ -1227,12 +1228,18 @@ ds_read_stream (struct string *st, size_t size, size_t cnt, FILE *stream)
       if (size_in_bounds_p (xsum (ds_length (st), try_bytes)))
         {
           char *buffer = ds_put_uninit (st, try_bytes);
-          size_t got_bytes = fread (buffer, size, cnt, stream);
+          size_t got_bytes = fread (buffer, 1, try_bytes, stream);
           ds_truncate (st, ds_length (st) - (try_bytes - got_bytes));
-          return got_bytes;
+          return got_bytes == try_bytes;
+        }
+      else
+        {
+          errno = ENOMEM;
+          return false;
         }
     }
-  return 0;
+  else
+    return true;
 }
 
 /* Concatenates S onto ST. */

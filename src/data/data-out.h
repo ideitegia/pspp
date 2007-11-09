@@ -20,11 +20,15 @@
 #include <stdbool.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
+#include <libpspp/legacy-encoding.h>
 
 struct fmt_spec;
 union value;
 
 void data_out (const union value *, const struct fmt_spec *, char *);
+
+void data_out_legacy (const union value *, enum legacy_encoding,
+                      const struct fmt_spec *, char *);
 
 enum integer_format data_out_get_integer_format (void);
 void data_out_set_integer_format (enum integer_format);

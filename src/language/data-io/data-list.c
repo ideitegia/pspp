@@ -673,6 +673,7 @@ read_from_data_list (const struct data_list_pgm *dls, struct ccase *c)
 static bool
 read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
 {
+  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (dls->reader);
   struct dls_var_spec *spec;
   int row;
 
@@ -698,9 +699,10 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
           if (row < spec->record)
             break;
 
-          data_in (ss_substr (line, spec->first_column - 1, spec->input.w),
-                   spec->input.type, spec->input.d, spec->first_column,
-                   case_data_rw_idx (c, spec->fv),
+          data_in (ss_substr (line, spec->first_column - 1,
+                              spec->input.w),
+                   encoding, spec->input.type, spec->input.d,
+                   spec->first_column, case_data_rw_idx (c, spec->fv),
                    fmt_var_width (&spec->input));
         }
 
@@ -716,6 +718,7 @@ read_from_data_list_fixed (const struct data_list_pgm *dls, struct ccase *c)
 static bool
 read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 {
+  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (dls->reader);
   struct dls_var_spec *spec;
 
   ll_for_each (spec, struct dls_var_spec, ll, &dls->specs)
@@ -736,7 +739,7 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 	    }
 	}
 
-      data_in (field, spec->input.type, 0,
+      data_in (field, encoding, spec->input.type, 0,
                dfm_get_column (dls->reader, ss_data (field)),
                case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
     }
@@ -749,6 +752,7 @@ read_from_data_list_free (const struct data_list_pgm *dls, struct ccase *c)
 static bool
 read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 {
+  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (dls->reader);
   struct dls_var_spec *spec;
 
   if (dfm_eof (dls->reader))
@@ -776,7 +780,7 @@ read_from_data_list_list (const struct data_list_pgm *dls, struct ccase *c)
 	  break;
 	}
 
-      data_in (field, spec->input.type, 0,
+      data_in (field, encoding, spec->input.type, 0,
                dfm_get_column (dls->reader, ss_data (field)),
                case_data_rw_idx (c, spec->fv), fmt_var_width (&spec->input));
     }

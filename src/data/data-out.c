@@ -92,11 +92,12 @@ static void output_hex (const void *, size_t bytes, char *);
 
 /* Converts the INPUT value into printable form in the exactly
    FORMAT->W characters in OUTPUT according to format
-   specification FORMAT.  No null terminator is appended to the
-   buffer.  */
+   specification FORMAT.  The output is recoded from native form
+   into the given legacy character ENCODING.  No null terminator
+   is appended to the buffer.  */
 void
-data_out (const union value *input, const struct fmt_spec *format,
-          char *output)
+data_out_legacy (const union value *input, enum legacy_encoding encoding,
+                 const struct fmt_spec *format, char *output)
 {
   static data_out_converter_func *const converters[FMT_NUMBER_OF_FORMATS] =
     {
@@ -107,6 +108,17 @@ data_out (const union value *input, const struct fmt_spec *format,
   assert (fmt_check_output (format));
 
   converters[format->type] (input, format, output);
+  if (encoding != LEGACY_NATIVE
+      && fmt_get_category (format->type) != FMT_CAT_BINARY)
+    legacy_recode (LEGACY_NATIVE, output, encoding, output, format->w);
+}
+
+/* Same as data_out_legacy with ENCODING set to LEGACY_NATIVE.  */
+void
+data_out (const union value *value, const struct fmt_spec *format,
+          char *output)
+{
+  return data_out_legacy (value, LEGACY_NATIVE, format, output);
 }
 
 /* Returns the current output integer format. */

@@ -1,3 +1,33 @@
+2007-11-08  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6256: add support for binary, 360 file formats.  Reviewed
+	by John Darrington.
+
+	* data-reader.c (struct dfm_reader): New member `block_left'.
+	(dfm_open_reader): Initialize block_left.  For FH_MODE_TEXT, open
+	the file in text mode.
+	(read_error): New function.
+	(partial_record): New function.
+	(try_to_read_fully): New function.
+	(enum descriptor_type): New enum.
+	(read_descriptor_word): New function.
+	(corrupt_size): New function.
+	(read_size): New function.
+	(read_file_record): Implement new modes.
+	(read_record): Now take care of tracking line numbers here.
+	(dfm_reader_get_legacy_encoding): New function.
+
+	* data-writer.c (dfm_put_record): Implement new modes.
+	(dfm_writer_get_legacy_encoding): New function.
+
+	* file-handle.q: Parse new formats.
+	(cmd_file_handle): Set up new formats.
+
+	* print.c (struct print_trns): New member `encoding'.
+	(internal_cmd_print): Set encoding.
+	(print_trns_proc): Recode output data if necessary.
+	(flush_records): Recode leader byte.
+
 2007-11-03  Ben Pfaff  <blp@gnu.org>
 
 	Allow output files to overwrite input files (bug #21280).

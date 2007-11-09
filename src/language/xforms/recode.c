@@ -606,7 +606,8 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
             union value uv;
 
             msg_disable ();
-            match = data_in (ss_buffer (value, width), FMT_F, 0, 0, &uv, 0);
+            match = data_in (ss_buffer (value, width), LEGACY_NATIVE,
+                             FMT_F, 0, 0, &uv, 0);
             msg_enable ();
             out->value.f = uv.f;
             break;

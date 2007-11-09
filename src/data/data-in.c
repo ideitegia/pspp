@@ -34,13 +34,14 @@
 #include "value.h"
 
 #include <libpspp/assertion.h>
+#include <libpspp/legacy-encoding.h>
 #include <libpspp/compiler.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
-
 #include "c-ctype.h"
+#include "c-strtod.h"
 #include "minmax.h"
 #include "xalloc.h"
 
@@ -50,6 +51,7 @@
 /* Information about parsing one data field. */
 struct data_in
   {
+    enum legacy_encoding encoding;/* Encoding of source. */
     struct substring input;     /* Source. */
     enum fmt_type format;       /* Input format. */
     int implied_decimals;       /* Number of implied decimal places. */
@@ -83,9 +85,10 @@ static bool trim_spaces_and_check_missing (struct data_in *);
 
 static int hexit_value (int c);
 
-/* Parses the characters in INPUT according to FORMAT.  Stores
-   the parsed representation in OUTPUT, which has the given WIDTH
-   (0 for a numeric field, otherwise the string width).
+/* Parses the characters in INPUT, which are encoded in the given
+   ENCODING, according to FORMAT.  Stores the parsed
+   representation in OUTPUT, which has the given WIDTH (0 for
+   a numeric field, otherwise the string width).
 
    If no decimal point is included in a numeric format, then
    IMPLIED_DECIMALS decimal places are implied.  Specify 0 if no
@@ -95,7 +98,7 @@ static int hexit_value (int c);
    column number of the first character in INPUT, used in error
    messages. */
 bool
-data_in (struct substring input,
+data_in (struct substring input, enum legacy_encoding encoding,
          enum fmt_type format, int implied_decimals,
          int first_column, union value *output, int width)
 {
@@ -106,11 +109,25 @@ data_in (struct substring input,
     };
 
   struct data_in i;
+  void *copy = NULL;
   bool ok;
 
   assert ((width != 0) == fmt_is_string (format));
 
-  i.input = input;
+  if (encoding == LEGACY_NATIVE
+      || fmt_get_category (format) & (FMT_CAT_BINARY | FMT_CAT_STRING))
+    {
+      i.input = input;
+      i.encoding = encoding;
+    }
+  else
+    {
+      ss_alloc_uninit (&i.input, ss_length (input));
+      legacy_recode (encoding, ss_data (input), LEGACY_NATIVE,
+                     ss_data (i.input), ss_length (input));
+      i.encoding = LEGACY_NATIVE;
+      copy = ss_data (i.input);
+    }
   i.format = format;
   i.implied_decimals = implied_decimals;
 
@@ -131,6 +148,9 @@ data_in (struct substring input,
       default_result (&i);
       ok = true;
     }
+
+  if (copy)
+    free (copy);
 
   return ok;
 }
@@ -271,10 +291,10 @@ parse_number (struct data_in *i)
       return false;
     }
 
-  /* Let strtod() do the conversion. */
+  /* Let c_strtod() do the conversion. */
   save_errno = errno;
   errno = 0;
-  i->output->f = strtod (ds_cstr (&tmp), &tail);
+  i->output->f = c_strtod (ds_cstr (&tmp), &tail);
   if (*tail != '\0')
     {
       data_warning (i, _("Invalid numeric syntax."));
@@ -461,10 +481,10 @@ parse_Z (struct data_in *i)
       return false;
     }
 
-  /* Let strtod() do the conversion. */
+  /* Let c_strtod() do the conversion. */
   save_errno = errno;
   errno = 0;
-  i->output->f = strtod (ds_cstr (&tmp), NULL);
+  i->output->f = c_strtod (ds_cstr (&tmp), NULL);
   if (errno == ERANGE)
     {
       if (fabs (i->output->f) > 1)
@@ -609,8 +629,17 @@ parse_RB (struct data_in *i)
 static bool
 parse_A (struct data_in *i)
 {
-  buf_copy_rpad (i->output->s, i->width,
-                 ss_data (i->input), ss_length (i->input));
+  /* This is equivalent to buf_copy_rpad, except that we posibly
+     do a character set recoding in the middle. */
+  char *dst = i->output->s;
+  size_t dst_size = i->width;
+  const char *src = ss_data (i->input);
+  size_t src_size = ss_length (i->input);
+
+  legacy_recode (i->encoding, src, LEGACY_NATIVE, dst, MIN (src_size, dst_size));
+  if (dst_size > src_size)
+    memset (&dst[src_size], ' ', dst_size - src_size);
+
   return true;
 }
 
@@ -632,6 +661,11 @@ parse_AHEX (struct data_in *i)
           return false;
         }
 
+      if (i->encoding != LEGACY_NATIVE)
+        {
+          hi = legacy_to_native (i->encoding, hi);
+          lo = legacy_to_native (i->encoding, lo);
+        }
       if (!c_isxdigit (hi) || !c_isxdigit (lo))
 	{
 	  data_warning (i, _("Field must contain only hex digits."));

@@ -19,6 +19,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <libpspp/legacy-encoding.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/str.h>
@@ -30,7 +31,7 @@ void data_in_set_integer_format (enum integer_format);
 enum float_format data_in_get_float_format (void);
 void data_in_set_float_format (enum float_format);
 
-bool data_in (struct substring input,
+bool data_in (struct substring input, enum legacy_encoding,
               enum fmt_type, int implied_decimals, int first_column,
               union value *output, int width);
 

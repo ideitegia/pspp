@@ -33,6 +33,7 @@
 #include <language/lexer/lexer.h>
 #include <language/prompt.h>
 #include <libpspp/assertion.h>
+#include <libpspp/integer-format.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
@@ -65,6 +66,9 @@ struct dfm_reader
     size_t pos;                 /* Offset in line of current character. */
     unsigned eof_cnt;           /* # of attempts to advance past EOF. */
     struct lexer *lexer;        /* The lexer reading the file */
+
+    /* For FH_MODE_360_VARIABLE and FH_MODE_360_SPANNED files only. */
+    size_t block_left;          /* Bytes left in current block. */
   };
 
 /* Closes reader R opened by dfm_open_reader(). */
@@ -130,11 +134,13 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
   ds_init_empty (&r->scratch);
   r->flags = DFM_ADVANCE;
   r->eof_cnt = 0;
+  r->block_left = 0;
   if (fh_get_referent (fh) != FH_REF_INLINE)
     {
       r->where.file_name = fh_get_file_name (fh);
       r->where.line_number = 0;
-      r->file = fn_open (fh_get_file_name (fh), "rb");
+      r->file = fn_open (fh_get_file_name (fh),
+                         fh_get_mode (fh) == FH_MODE_TEXT ? "r" : "rb");
       if (r->file == NULL)
         {
           msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
@@ -195,46 +201,268 @@ read_inline_record (struct dfm_reader *r)
   return true;
 }
 
+/* Report a read error or unexpected end-of-file condition on R. */
+static void
+read_error (struct dfm_reader *r)
+{
+  if (ferror (r->file))
+    msg (ME, _("Error reading file %s: %s."),
+         fh_get_name (r->fh), strerror (errno));
+  else if (feof (r->file))
+    msg (ME, _("Unexpected end of file reading %s."), fh_get_name (r->fh));
+  else
+    NOT_REACHED ();
+}
+
+/* Report a partial read at end of file reading R. */
+static void
+partial_record (struct dfm_reader *r)
+{
+  msg (ME, _("Unexpected end of file in partial record reading %s."),
+       fh_get_name (r->fh));
+}
+
+/* Tries to read SIZE bytes from R into BUFFER.  Returns 1 if
+   successful, 0 if end of file was reached before any bytes
+   could be read, and -1 if some bytes were read but fewer than
+   SIZE due to end of file or an error mid-read.  In the latter
+   case, reports an error. */
+static int
+try_to_read_fully (struct dfm_reader *r, void *buffer, size_t size)
+{
+  size_t bytes_read = fread (buffer, 1, size, r->file);
+  if (bytes_read == size)
+    return 1;
+  else if (bytes_read == 0)
+    return 0;
+  else
+    {
+      partial_record (r);
+      return -1;
+    }
+}
+
+/* Type of a descriptor word. */
+enum descriptor_type
+  {
+    BLOCK,
+    RECORD
+  };
+
+/* Reads a block descriptor word or record descriptor word
+   (according to TYPE) from R.  Returns 1 if successful, 0 if
+   end of file was reached before any bytes could be read, -1 if
+   an error occurred.  Reports an error in the latter case.
+
+   If successful, stores the number of remaining bytes in the
+   block or record (that is, the block or record length, minus
+   the 4 bytes in the BDW or RDW itself) into *REMAINING_SIZE.
+   If SEGMENT is nonnull, also stores the segment control
+   character (SCC) into *SEGMENT. */
+static int
+read_descriptor_word (struct dfm_reader *r, enum descriptor_type type,
+                      size_t *remaining_size, int *segment)
+{
+  uint8_t raw_descriptor[4];
+  int status;
+
+  status = try_to_read_fully (r, raw_descriptor, sizeof raw_descriptor);
+  if (status <= 0)
+    return status;
+
+  *remaining_size = (raw_descriptor[0] << 8) | raw_descriptor[1];
+  if (segment != NULL)
+    *segment = raw_descriptor[2];
+
+  if (*remaining_size < 4)
+    {
+      msg (ME,
+           (type == BLOCK
+            ? _("Corrupt block descriptor word at offset 0x%lx in %s.")
+            : _("Corrupt record descriptor word at offset 0x%lx in %s.")),
+           (long) ftello (r->file) - 4, fh_get_name (r->fh));
+      return -1;
+    }
+
+  *remaining_size -= 4;
+  return 1;
+}
+
+/* Reports that reader R has read a corrupt record size. */
+static void
+corrupt_size (struct dfm_reader *r)
+{
+  msg (ME, _("Corrupt record size at offset 0x%lx in %s."),
+       (long) ftello (r->file) - 4, fh_get_name (r->fh));
+}
+
+/* Reads a 32-byte little-endian signed number from R and stores
+   its value into *SIZE_OUT.  Returns 1 if successful, 0 if end
+   of file was reached before any bytes could be read, -1 if an
+   error occurred.  Reports an error in the latter case.  Numbers
+   less than 0 are considered errors. */
+static int
+read_size (struct dfm_reader *r, size_t *size_out)
+{
+  int32_t size;
+  int status;
+
+  status = try_to_read_fully (r, &size, sizeof size);
+  if (status <= 0)
+    return status;
+
+  integer_convert (INTEGER_LSB_FIRST, &size, INTEGER_NATIVE, &size,
+                   sizeof size);
+  if (size < 0)
+    {
+      corrupt_size (r);
+      return -1;
+    }
+
+  *size_out = size;
+  return 1;
+}
+
 /* Reads a record from a disk file into R.
-   Returns true if successful, false on failure. */
+   Returns true if successful, false on error or at end of file. */
 static bool
 read_file_record (struct dfm_reader *r)
 {
   assert (r->fh != fh_inline_file ());
+
   ds_clear (&r->line);
-  if (fh_get_mode (r->fh) == FH_MODE_TEXT)
+  switch (fh_get_mode (r->fh))
     {
-      if (!ds_read_line (&r->line, r->file))
+    case FH_MODE_TEXT:
+      if (ds_read_line (&r->line, r->file))
+        {
+          ds_chomp (&r->line, '\n');
+          return true;
+        }
+      else
         {
           if (ferror (r->file))
-            msg (ME, _("Error reading file %s: %s."),
-                 fh_get_name (r->fh), strerror (errno));
+            read_error (r);
           return false;
         }
-      ds_chomp (&r->line, '\n');
-    }
-  else if (fh_get_mode (r->fh) == FH_MODE_BINARY)
-    {
-      size_t record_width = fh_get_record_width (r->fh);
-      size_t amt = ds_read_stream (&r->line, 1, record_width, r->file);
-      if (record_width != amt)
+      return true;
+
+    case FH_MODE_FIXED:
+      if (ds_read_stream (&r->line, 1, fh_get_record_width (r->fh), r->file))
+        return true;
+      else
         {
           if (ferror (r->file))
-            msg (ME, _("Error reading file %s: %s."),
-                 fh_get_name (r->fh), strerror (errno));
-          else if (amt != 0)
-            msg (ME, _("%s: Partial record at end of file."),
-                 fh_get_name (r->fh));
-
+            read_error (r);
+          else if (!ds_is_empty (&r->line))
+            partial_record (r);
           return false;
         }
+      return true;
+
+    case FH_MODE_VARIABLE:
+      {
+        size_t leading_size;
+        size_t trailing_size;
+        int status;
+
+        /* Read leading record size. */
+        status = read_size (r, &leading_size);
+        if (status <= 0)
+          return false;
+
+        /* Read record data. */
+        if (!ds_read_stream (&r->line, leading_size, 1, r->file))
+          {
+            if (ferror (r->file))
+              read_error (r);
+            else
+              partial_record (r);
+            return false;
+          }
+
+        /* Read trailing record size and check that it's the same
+           as the leading record size. */
+        status = read_size (r, &trailing_size);
+        if (status <= 0)
+          {
+            if (status == 0)
+              partial_record (r);
+            return false;
+          }
+        if (leading_size != trailing_size)
+          {
+            corrupt_size (r);
+            return false;
+          }
+
+        return true;
+      }
+
+    case FH_MODE_360_VARIABLE:
+    case FH_MODE_360_SPANNED:
+      for (;;)
+        {
+          size_t record_size;
+          int segment;
+          int status;
+
+          /* If we've exhausted our current block, start another
+             one by reading the new block descriptor word. */
+          if (r->block_left == 0)
+            {
+              status = read_descriptor_word (r, BLOCK, &r->block_left, NULL);
+              if (status < 0)
+                return false;
+              else if (status == 0)
+                return !ds_is_empty (&r->line);
+            }
+
+          /* Read record descriptor. */
+          if (r->block_left < 4)
+            {
+              partial_record (r);
+              return false;
+            }
+          r->block_left -= 4;
+          status = read_descriptor_word (r, RECORD, &record_size, &segment);
+          if (status <= 0)
+            {
+              if (status == 0)
+                partial_record (r);
+              return false;
+            }
+          if (record_size > r->block_left)
+            {
+              msg (ME, _("Record exceeds remaining block length."));
+              return false;
+            }
+
+          /* Read record data. */
+          if (!ds_read_stream (&r->line, record_size, 1, r->file))
+            {
+              if (ferror (r->file))
+                read_error (r);
+              else
+                partial_record (r);
+              return false;
+            }
+          r->block_left -= record_size;
+
+          /* In variable mode, read only a single record.
+             In spanned mode, a segment value of 0 should
+             designate a whole record without spanning, 1 the
+             first segment in a record, 2 the last segment in a
+             record, and 3 an intermediate segment in a record.
+             For compatibility, though, we actually pay attention
+             only to whether the segment value is even or odd. */
+          if (fh_get_mode (r->fh) == FH_MODE_360_VARIABLE
+              || (segment & 1) == 0)
+            return true;
+        }
     }
-  else
-    NOT_REACHED ();
 
-  r->where.line_number++;
-
-  return true;
+  NOT_REACHED ();
 }
 
 /* Reads a record from R, setting the current position to the
@@ -243,9 +471,15 @@ read_file_record (struct dfm_reader *r)
 static bool
 read_record (struct dfm_reader *r)
 {
-  return (fh_get_referent (r->fh) == FH_REF_FILE
-          ? read_file_record (r)
-          : read_inline_record (r));
+  if (fh_get_referent (r->fh) == FH_REF_FILE)
+    {
+      bool ok = read_file_record (r);
+      if (ok)
+        r->where.line_number++;
+      return ok;
+    }
+  else
+    return read_inline_record (r);
 }
 
 /* Returns the number of attempts, thus far, to advance past
@@ -313,7 +547,7 @@ dfm_expand_tabs (struct dfm_reader *r)
   r->flags |= DFM_TABS_EXPANDED;
 
   if (r->fh != fh_inline_file ()
-      && (fh_get_mode (r->fh) == FH_MODE_BINARY
+      && (fh_get_mode (r->fh) != FH_MODE_TEXT
           || fh_get_tab_width (r->fh) == 0
           || ds_find_char (&r->line, '\t') == SIZE_MAX))
     return;
@@ -353,6 +587,13 @@ dfm_expand_tabs (struct dfm_reader *r)
   /* Swap r->line and r->scratch and set new r->pos. */
   ds_swap (&r->line, &r->scratch);
   r->pos = new_pos;
+}
+
+/* Returns the legacy character encoding of data read from READER. */
+enum legacy_encoding
+dfm_reader_get_legacy_encoding (const struct dfm_reader *reader)
+{
+  return fh_get_legacy_encoding (reader->fh);
 }
 
 /* Causes dfm_get_record() or dfm_get_whole_record() to read in

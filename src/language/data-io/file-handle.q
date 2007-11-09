@@ -41,7 +41,8 @@
      name=string;
      lrecl=integer;
      tabwidth=integer "x>=0" "%s must be nonnegative";
-     mode=mode:!character/image/scratch.
+     mode=mode:!character/binary/image/360/scratch;
+     recform=recform:fixed/f/variable/v/spanned/vs.
 */
 /* (declarations) */
 /* (functions) */
@@ -50,8 +51,6 @@ int
 cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 {
   char handle_name[LONG_NAME_LEN + 1];
-  struct fh_properties properties = *fh_default_properties ();
-
   struct cmd_file_handle cmd;
   struct file_handle *handle;
 
@@ -78,39 +77,69 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
   if (lex_end_of_command (lexer) != CMD_SUCCESS)
     goto lossage;
 
-  if (cmd.s_name == NULL && cmd.mode != FH_SCRATCH)
-    {
-      lex_sbc_missing (lexer, "NAME");
-      goto lossage;
-    }
-
-  switch (cmd.mode)
-    {
-    case FH_CHARACTER:
-      properties.mode = FH_MODE_TEXT;
-      if (cmd.sbc_tabwidth)
-        properties.tab_width = cmd.n_tabwidth[0];
-      break;
-    case FH_IMAGE:
-      properties.mode = FH_MODE_BINARY;
-      if (cmd.n_lrecl[0] == LONG_MIN)
-        msg (SE, _("Fixed-length records were specified on /RECFORM, but "
-                   "record length was not specified on /LRECL.  "
-                   "Assuming %zu-character records."),
-             properties.record_width);
-      else if (cmd.n_lrecl[0] < 1)
-        msg (SE, _("Record length (%ld) must be at least one byte.  "
-                   "Assuming %zu-character records."),
-             cmd.n_lrecl[0], properties.record_width);
-      else
-        properties.record_width = cmd.n_lrecl[0];
-      break;
-    default:
-      NOT_REACHED ();
-    }
-
   if (cmd.mode != FH_SCRATCH)
-    fh_create_file (handle_name, cmd.s_name, &properties);
+    {
+      struct fh_properties properties = *fh_default_properties ();
+
+      if (cmd.s_name == NULL)
+        {
+          lex_sbc_missing (lexer, "NAME");
+          goto lossage;
+        }
+
+      switch (cmd.mode)
+        {
+        case FH_CHARACTER:
+          properties.mode = FH_MODE_TEXT;
+          if (cmd.sbc_tabwidth)
+            properties.tab_width = cmd.n_tabwidth[0];
+          break;
+        case FH_IMAGE:
+          properties.mode = FH_MODE_FIXED;
+          break;
+        case FH_BINARY:
+          properties.mode = FH_MODE_VARIABLE;
+          break;
+        case FH_360:
+          properties.encoding = LEGACY_EBCDIC;
+          if (cmd.recform == FH_FIXED || cmd.recform == FH_F)
+            properties.mode = FH_MODE_FIXED;
+          else if (cmd.recform == FH_VARIABLE || cmd.recform == FH_V)
+            {
+              properties.mode = FH_MODE_360_VARIABLE;
+              properties.record_width = 8192;
+            }
+          else if (cmd.recform == FH_SPANNED || cmd.recform == FH_VS)
+            {
+              properties.mode = FH_MODE_360_SPANNED;
+              properties.record_width = 8192;
+            }
+          else
+            {
+              msg (SE, _("RECFORM must be specified with MODE=360."));
+              goto lossage;
+            }
+          break;
+        default:
+          NOT_REACHED ();
+        }
+
+      if (properties.mode == FH_MODE_FIXED || cmd.n_lrecl[0] != LONG_MIN)
+        {
+          if (cmd.n_lrecl[0] == LONG_MIN)
+            msg (SE, _("The specified file mode requires LRECL.  "
+                       "Assuming %d-character records."),
+                 properties.record_width);
+          else if (cmd.n_lrecl[0] < 1 || cmd.n_lrecl[0] >= (1UL << 31))
+            msg (SE, _("Record length (%ld) must be between 1 and %lu bytes.  "
+                       "Assuming %d-character records."),
+                 cmd.n_lrecl[0], (1UL << 31) - 1, properties.record_width);
+          else
+            properties.record_width = cmd.n_lrecl[0];
+        }
+
+      fh_create_file (handle_name, cmd.s_name, &properties);
+    }
   else
     fh_create_scratch (handle_name);
 

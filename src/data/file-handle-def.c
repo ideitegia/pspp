@@ -49,6 +49,7 @@ struct file_handle
     /* FH_REF_FILE only. */
     char *file_name;		/* File name as provided by user. */
     enum fh_mode mode;  	/* File mode. */
+    enum legacy_encoding encoding;/* File encoding. */
 
     /* FH_REF_FILE and FH_REF_INLINE only. */
     size_t record_width;        /* Length of fixed-format records. */
@@ -234,6 +235,7 @@ fh_create_file (const char *id, const char *file_name,
   handle->mode = properties->mode;
   handle->record_width = properties->record_width;
   handle->tab_width = properties->tab_width;
+  handle->encoding = properties->encoding;
   return handle;
 }
 
@@ -254,7 +256,7 @@ const struct fh_properties *
 fh_default_properties (void)
 {
   static const struct fh_properties default_properties
-    = {FH_MODE_TEXT, 1024, 4};
+    = {FH_MODE_TEXT, 1024, 4, LEGACY_NATIVE};
   return &default_properties;
 }
 
@@ -320,6 +322,14 @@ fh_get_tab_width (const struct file_handle *handle)
 {
   assert (handle->referent & (FH_REF_FILE | FH_REF_INLINE));
   return handle->tab_width;
+}
+
+/* Returns the encoding of characters read from HANDLE. */
+enum legacy_encoding
+fh_get_legacy_encoding (const struct file_handle *handle)
+{
+  assert (handle->referent & (FH_REF_FILE | FH_REF_INLINE));
+  return (handle->referent == FH_REF_FILE ? handle->encoding : LEGACY_NATIVE);
 }
 
 /* Returns the scratch file handle associated with HANDLE.

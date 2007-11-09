@@ -82,6 +82,7 @@ struct print_trns
     struct pool *pool;          /* Stores related data. */
     bool eject;                 /* Eject page before printing? */
     bool include_prefix;        /* Prefix lines with space? */
+    enum legacy_encoding encoding; /* Encoding to use for output. */
     struct dfm_writer *writer;	/* Output file, NULL=listing file. */
     struct ll_list specs;       /* List of struct prt_out_specs. */
     size_t record_cnt;          /* Number of records to write. */
@@ -194,7 +195,10 @@ internal_cmd_print (struct lexer *lexer, struct dataset *ds,
       trns->writer = dfm_open_writer (fh);
       if (trns->writer == NULL)
         goto error;
+      trns->encoding = dfm_writer_get_legacy_encoding (trns->writer);
     }
+  else
+    trns->encoding = LEGACY_NATIVE;
 
   /* Output the variable table if requested. */
   if (print_table)
@@ -448,6 +452,7 @@ print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
 {
   struct print_trns *trns = trns_;
   bool eject = trns->eject;
+  char encoded_space = legacy_from_native (trns->encoding, ' ');
   int record = 1;
   struct prt_out_spec *spec;
 
@@ -457,20 +462,29 @@ print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
     {
       flush_records (trns, spec->record, &eject, &record);
 
-      ds_set_length (&trns->line, spec->first_column, ' ');
+      ds_set_length (&trns->line, spec->first_column, encoded_space);
       if (spec->type == PRT_VAR)
         {
           const union value *input = case_data (c, spec->var);
           char *output = ds_put_uninit (&trns->line, spec->format.w);
           if (!spec->sysmis_as_spaces || input->f != SYSMIS)
-            data_out (input, &spec->format, output);
+            data_out_legacy (input, trns->encoding, &spec->format, output);
           else
-            memset (output, ' ', spec->format.w);
+            memset (output, encoded_space, spec->format.w);
           if (spec->add_space)
-            ds_put_char (&trns->line, ' ');
+            ds_put_char (&trns->line, encoded_space);
         }
       else
-        ds_put_substring (&trns->line, ds_ss (&spec->string));
+        {
+          ds_put_substring (&trns->line, ds_ss (&spec->string));
+          if (trns->encoding != LEGACY_NATIVE)
+            {
+              size_t length = ds_length (&spec->string);
+              char *data = ss_data (ds_tail (&trns->line, length));
+              legacy_recode (LEGACY_NATIVE, data,
+                             trns->encoding, data, length);
+            }
+        }
     }
   flush_records (trns, trns->record_cnt + 1, &eject, &record);
 
@@ -501,7 +515,7 @@ flush_records (struct print_trns *trns, int target_record,
           else
             leader = '1';
         }
-      line[0] = leader;
+      line[0] = legacy_from_native (trns->encoding, leader);
 
       if (trns->writer == NULL)
         tab_output_text (TAB_FIX | TAT_NOWRAP, &line[1]);

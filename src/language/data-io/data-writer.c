@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 
@@ -27,6 +28,7 @@
 #include <data/make-file.h>
 #include <language/data-io/file-handle.h>
 #include <libpspp/assertion.h>
+#include <libpspp/integer-format.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
@@ -106,7 +108,7 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
       putc ('\n', w->file);
       break;
 
-    case FH_MODE_BINARY:
+    case FH_MODE_FIXED:
       {
         size_t record_width = fh_get_record_width (w->fh);
         size_t write_bytes = MIN (len, record_width);
@@ -118,6 +120,45 @@ dfm_put_record (struct dfm_writer *w, const char *rec, size_t len)
             size_t chunk = MIN (pad_bytes, sizeof spaces);
             fwrite (spaces, chunk, 1, w->file);
             pad_bytes -= chunk;
+          }
+      }
+      break;
+
+    case FH_MODE_VARIABLE:
+      {
+        uint32_t size = len;
+        integer_convert (INTEGER_NATIVE, &size, INTEGER_LSB_FIRST, &size,
+                         sizeof size);
+        fwrite (&size, sizeof size, 1, w->file);
+        fwrite (rec, len, 1, w->file);
+        fwrite (&size, sizeof size, 1, w->file);
+      }
+      break;
+
+    case FH_MODE_360_VARIABLE:
+    case FH_MODE_360_SPANNED:
+      {
+        size_t ofs = 0;
+        if (fh_get_mode (w->fh) == FH_MODE_360_VARIABLE)
+          len = MIN (65527, len);
+        while (ofs < len)
+          {
+            size_t chunk = MIN (65527, len - ofs);
+            uint32_t bdw = (chunk + 8) << 16;
+            int scc = (ofs == 0 && chunk == len ? 0
+                       : ofs == 0 ? 1
+                       : ofs + chunk == len ? 2
+                       : 3);
+            uint32_t rdw = ((chunk + 4) << 16) | (scc << 8);
+
+            integer_convert (INTEGER_NATIVE, &bdw, INTEGER_MSB_FIRST, &bdw,
+                             sizeof bdw);
+            integer_convert (INTEGER_NATIVE, &rdw, INTEGER_MSB_FIRST, &rdw,
+                             sizeof rdw);
+            fwrite (&bdw, 1, sizeof bdw, w->file);
+            fwrite (&rdw, 1, sizeof rdw, w->file);
+            fwrite (rec + ofs, 1, chunk, w->file);
+            ofs += chunk;
           }
       }
       break;
@@ -156,4 +197,11 @@ dfm_close_writer (struct dfm_writer *w)
   free (w);
 
   return ok;
+}
+
+/* Returns the legacy character encoding of data written to WRITER. */
+enum legacy_encoding
+dfm_writer_get_legacy_encoding (const struct dfm_writer *writer)
+{
+  return fh_get_legacy_encoding (writer->fh);
 }

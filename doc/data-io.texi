@@ -438,10 +438,23 @@ For text files:
                 [/MODE=CHARACTER]
                 /TABWIDTH=tab_width
 
-For binary files with fixed-length records:
+For binary files in native encoding with fixed-length records:
         FILE HANDLE handle_name
                 /NAME='file-name'
                 /MODE=IMAGE
+                [/LRECL=rec_len]
+
+For binary files in native encoding with variable-length records:
+        FILE HANDLE handle_name
+                /NAME='file-name'
+                /MODE=BINARY
+                [/LRECL=rec_len]
+
+For binary files encoded in EBCDIC:
+        FILE HANDLE handle_name
+                /NAME='file-name'
+                /MODE=360
+                /RECFORM=@{FIXED,VARIABLE,SPANNED@}
                 [/LRECL=rec_len]
 
 To explicitly declare a scratch handle:
@@ -465,28 +478,129 @@ file handle name must not already have been used in a previous
 invocation of @cmd{FILE HANDLE}, unless it has been closed by an
 intervening command (@pxref{CLOSE FILE HANDLE}).
 
-MODE specifies a file mode.  In CHARACTER mode, the default, the data
-file is read as a text file, according to the local system's 
-conventions, and each text line is read as one record.
-In CHARACTER mode, most input programs will expand tabs to spaces
-(@cmd{DATA LIST FREE} with explicitly specified delimiters is an
-exception).  By default, each tab is 4 characters wide, but an
-alternate width may be specified on TABWIDTH.  A tab width of 0
-suppresses tab expansion entirely.
+The effect and syntax of FILE HANDLE depends on the selected MODE:
 
-In IMAGE mode, the data file is opened in ANSI C binary mode.  Record
-length is fixed, with output data truncated or padded with spaces to
-the record length.  LRECL specifies the record length in bytes, with a
-default of 1024.  Tab characters are never expanded to spaces in
-binary mode.  Records
+@itemize
+@item
+In CHARACTER mode, the default, the data file is read as a text file,
+according to the local system's conventions, and each text line is
+read as one record.
 
-The NAME subcommand specifies the name of the file associated with the
-handle.  It is required in CHARACTER and IMAGE modes.
+In CHARACTER mode only, tabs are expanded to spaces by input programs,
+except by @cmd{DATA LIST FREE} with explicitly specified delimiters.
+Each tab is 4 characters wide by default, but TABWIDTH (a PSPP
+extension) may be used to specify an alternate width.  Use a TABWIDTH
+of 0 to suppress tab expansion.
 
-The SCRATCH mode designates the file handle as a scratch file handle.
+@item
+In IMAGE mode, the data file is treated as a series of fixed-length
+binary records.  LRECL should be used to specify the record length in
+bytes, with a default of 1024.  On input, it is an error if an IMAGE
+file's length is not a integer multiple of the record length.  On
+output, each record is padded with spaces or truncated, if necessary,
+to make it exactly the correct length.
+
+@item
+In BINARY mode, the data file is treated as a series of
+variable-length binary records.  LRECL may be specified, but its value
+is ignored.  The data for each record is both preceded and followed by
+a 32-bit signed integer in little-endian byte order that specifies the
+length of the record.  (This redundancy permits records in these
+files to be efficiently read in reverse order, although PSPP always
+reads them in forward order.)  The length does not include either
+integer.
+
+@item
+Mode 360 reads and writes files in formats first used for tapes in the
+1960s on IBM mainframe operating systems and still supported today by
+the modern successors of those operating systems.  For more
+information, see @cite{OS/400 Tape and Diskette Device Programming},
+available on IBM's website.
+
+Alphanumeric data in mode 360 files are encoded in EBCDIC.  PSPP
+translates EBCDIC to or from the host's native format as necessary on
+input or output, using an ASCII/EBCDIC translation that is one-to-one,
+so that a ``round trip'' from ASCII to EBCDIC back to ASCII, or vice
+versa, always yields exactly the original data.
+
+The RECFORM subcommand is required in mode 360.  The precise file
+format depends on its setting:
+
+@table @asis
+@item F
+@itemx FIXED
+This record format is equivalent to IMAGE mode, except for EBCDIC
+translation.
+
+IBM documentation calls this @code{*F} (fixed-length, deblocked)
+format.
+
+@item V
+@itemx VARIABLE
+The file comprises a sequence of zero or more variable-length blocks.
+Each block begins with a 4-byte @dfn{block descriptor word} (BDW).
+The first two bytes of the BDW are an unsigned integer in big-endian
+byte order that specifies the length of the block, including the BDW
+itself.  The other two bytes of the BDW are ignored on input and
+written as zeros on output.
+
+Following the BDW, the remainder of each block is a sequence of one or
+more variable-length records, each of which in turn begins with a
+4-byte @dfn{record descriptor word} (RDW) that has the same format as
+the BDW.  Following the RDW, the remainder of each record is the
+record data.
+
+The maximum length of a record in VARIABLE mode is 65,527 bytes:
+65,535 bytes (the maximum value of a 16-bit unsigned integer), minus 4
+bytes for the BDW, minus 4 bytes for the RDW.
+
+In mode VARIABLE, LRECL specifies a maximum, not a fixed, record
+length, in bytes.  The default is 8,192.
+
+IBM documentation calls this @code{*VB} (variable-length, blocked,
+unspanned) format.
+
+@item VS
+@itemx SPANNED
+The file format is like that of VARIABLE mode, except that logical
+records may be split among multiple physical records (called
+@dfn{segments}) or blocks.  In SPANNED mode, the third byte of each
+RDW is called the segment control character (SCC).  Odd SCC values
+cause the segment to be appended to a record buffer maintained in
+memory; even values also append the segment and then flush its
+contents to the input procedure.  Canonically, SCC value 0 designates
+a record not spanned among multiple segments, and values 1 through 3
+designate the first segment, the last segment, or an intermediate
+segment, respectively, within a multi-segment record.  The record
+buffer is also flushed at end of file regardless of the final record's
+SCC.
+
+The maximum length of a logical record in VARIABLE mode is limited
+only by memory available to PSPP.  Segments are limited to 65,527
+bytes, as in VARIABLE mode.
+
+This format is similar to what IBM documentation call @code{*VS}
+(variable-length, deblocked, spanned) format.
+@end table
+
+In mode 360, fields of type A that extend beyond the end of a record
+read from disk are padded with spaces in the host's native character
+set, which are then translated from EBCDIC to the native character
+set.  Thus, when the host's native character set is based on ASCII,
+these fields are effectively padded with character @code{X'80'}.  This
+wart is implemented for compatibility.
+
+@item
+SCRATCH mode is a PSPP extension that designates the file handle as a
+scratch file handle.
 Its use is usually unnecessary because file handle names that begin with
 @samp{#} are assumed to refer to scratch files.  @pxref{File Handles},
 for more information.
+@end itemize
+
+The NAME subcommand specifies the name of the file associated with the
+handle.  It is required in all modes but SCRATCH mode, in which its
+use is forbidden.
 
 @node INPUT PROGRAM
 @section INPUT PROGRAM

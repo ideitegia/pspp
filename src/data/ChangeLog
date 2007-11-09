@@ -1,3 +1,34 @@
+2007-11-08  Ben Pfaff  <blp@gnu.org>
+
+	* data-in.c: Make formatted data parsing locale-independent.
+	(parse_number): Use c_strtod instead of strtod, to avoid
+	locale-specific behavior.
+	(parse_Z): Ditto.
+
+2007-11-06  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6256: add support for binary, 360 file formats.  Reviewed
+	by John Darrington.
+
+	* data-in.c (struct data_in): Add `encoding' member.
+	(data_in): Add `encoding' parameter, and re-encode the data passed
+	in where appropriate.  Update all callers to pass it in.
+	(parse_A): Implement EBCDIC recoding wart described in manual.
+	(parse_AHEX): Implement EBCDIC recoding.
+
+	* data-out.c (data_out_legacy): New function.
+	(data_out): Make into a wrapper around data_out_legacy.
+
+	* file-handle-def.c (struct file_handle): New member `encoding'.
+	(fh_create_file): Set encoding.
+	(fh_default_properties): Set default encoding.
+	(fh_get_legacy_encoding): New function.
+
+	* file-handle-def.h (enum fh_mode): New modes FH_MODE_FIXED
+	(that replaces FH_MODE_BINARY), FH_MODE_VARIABLE,
+	FH_MODE_360_VARIABLE, FH_MODE_360_SPANNED.
+	(struct fh_properties): New member `encoding'.
+
 2007-11-05  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6258.  Reviewed by John Darrington.

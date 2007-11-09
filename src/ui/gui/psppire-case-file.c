@@ -294,7 +294,7 @@ psppire_case_file_data_in (PsppireCaseFile *cf, casenumber casenum, gint idx,
   width = fmt_var_width (fmt);
   value = xmalloca (value_cnt_from_width (width) * sizeof *value);
   ok = (datasheet_get_value (cf->datasheet, casenum, idx, value, width)
-        && data_in (input, fmt->type, 0, 0, value, width)
+        && data_in (input, LEGACY_NATIVE, fmt->type, 0, 0, value, width)
         && datasheet_put_value (cf->datasheet, casenum, idx, value, width));
 
   if (ok)
