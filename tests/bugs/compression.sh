@@ -81,7 +81,7 @@ dd if=$TEMPDIR/com.sav bs=1 skip=72 count=1 2> /dev/null | od > $TEMPDIR/file
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="check compression byte"
-diff $TEMPDIR/file - <<EOF
+diff -b $TEMPDIR/file - <<EOF
 0000000 000001
 0000001
 EOF

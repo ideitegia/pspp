@@ -1,3 +1,8 @@
+2007-11-10  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/compression.sh: Pass -b option to diff to avoid spurious
+	failure on od.
+
 2007-11-08  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6256: add support for binary, 360 file formats.  Reviewed
