@@ -53,7 +53,7 @@ struct dictionary
     size_t split_cnt;           /* SPLIT FILE count. */
     struct variable *weight;    /* WEIGHT variable. */
     struct variable *filter;    /* FILTER variable. */
-    size_t case_limit;          /* Current case limit (N command). */
+    casenumber case_limit;      /* Current case limit (N command). */
     char *label;		/* File label. */
     struct string documents;    /* Documents, as a string. */
     struct vector **vector;     /* Vectors of variables. */
@@ -257,21 +257,26 @@ dict_get_var (const struct dictionary *d, size_t idx)
   return d->var[idx];
 }
 
-inline void
+/* Sets *VARS to an array of pointers to variables in D and *CNT
+   to the number of variables in *D.  All variables are returned
+   except for those, if any, in the classes indicated by EXCLUDE.
+   (There is no point in putting DC_SYSTEM in EXCLUDE as
+   dictionaries never include system variables.) */
+void
 dict_get_vars (const struct dictionary *d, const struct variable ***vars,
-               size_t *cnt, unsigned exclude_classes)
+               size_t *cnt, enum dict_class exclude)
 {
-  dict_get_vars_mutable (d, (struct variable ***) vars, cnt, exclude_classes);
+  dict_get_vars_mutable (d, (struct variable ***) vars, cnt, exclude);
 }
 
 /* Sets *VARS to an array of pointers to variables in D and *CNT
    to the number of variables in *D.  All variables are returned
-   if EXCLUDE_CLASSES is 0, or it may contain one or more of (1u
-   << DC_ORDINARY), (1u << DC_SYSTEM), or (1u << DC_SCRATCH) to
-   exclude the corresponding type of variable. */
+   except for those, if any, in the classes indicated by EXCLUDE.
+   (There is no point in putting DC_SYSTEM in EXCLUDE as
+   dictionaries never include system variables.) */
 void
 dict_get_vars_mutable (const struct dictionary *d, struct variable ***vars,
-               size_t *cnt, unsigned exclude_classes)
+                       size_t *cnt, enum dict_class exclude)
 {
   size_t count;
   size_t i;
@@ -279,15 +284,13 @@ dict_get_vars_mutable (const struct dictionary *d, struct variable ***vars,
   assert (d != NULL);
   assert (vars != NULL);
   assert (cnt != NULL);
-  assert ((exclude_classes & ~((1u << DC_ORDINARY)
-                               | (1u << DC_SYSTEM)
-                               | (1u << DC_SCRATCH))) == 0);
+  assert (exclude == (exclude & DC_ALL));
 
   count = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
-      enum dict_class class = dict_class_from_id (var_get_name (d->var[i]));
-      if (!(exclude_classes & (1u << class)))
+      enum dict_class class = var_get_dict_class (d->var[i]);
+      if (!(class & exclude))
         count++;
     }
 
@@ -295,8 +298,8 @@ dict_get_vars_mutable (const struct dictionary *d, struct variable ***vars,
   *cnt = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
-      enum dict_class class = dict_class_from_id (var_get_name (d->var[i]));
-      if (!(exclude_classes & (1u << class)))
+      enum dict_class class = var_get_dict_class (d->var[i]);
+      if (!(class & exclude))
         (*vars)[(*cnt)++] = d->var[i];
     }
   assert (*cnt == count);
@@ -480,7 +483,7 @@ reindex_vars (struct dictionary *d, size_t from, size_t to)
    active on the dictionary's dataset, because those
    transformations might reference the deleted variable.  The
    safest time to delete a variable is just after a procedure has
-   been executed, as done by MODIFY VARS.
+   been executed, as done by DELETE VARIABLES.
 
    Pointers to V within D are not a problem, because
    dict_delete_var() knows to remove V from split variables,
@@ -567,7 +570,7 @@ dict_delete_scratch_vars (struct dictionary *d)
   assert (d != NULL);
 
   for (i = 0; i < d->var_cnt; )
-    if (dict_class_from_id (var_get_name (d->var[i])) == DC_SCRATCH)
+    if (var_get_dict_class (d->var[i]) == DC_SCRATCH)
       dict_delete_var (d, d->var[i]);
     else
       i++;
@@ -734,11 +737,12 @@ dict_get_weight (const struct dictionary *d)
   return d->weight;
 }
 
-/* Returns the value of D's weighting variable in case C, except that a
-   negative weight is returned as 0.  Returns 1 if the dictionary is
-   unweighted. Will warn about missing, negative, or zero values if
-   warn_on_invalid is true. The function will set warn_on_invalid to false
-   if an invalid weight is found. */
+/* Returns the value of D's weighting variable in case C, except
+   that a negative weight is returned as 0.  Returns 1 if the
+   dictionary is unweighted.  Will warn about missing, negative,
+   or zero values if *WARN_ON_INVALID is true.  The function will
+   set *WARN_ON_INVALID to false if an invalid weight is
+   found. */
 double
 dict_get_case_weight (const struct dictionary *d, const struct ccase *c,
 		      bool *warn_on_invalid)
@@ -798,6 +802,7 @@ dict_set_filter (struct dictionary *d, struct variable *v)
 {
   assert (d != NULL);
   assert (v == NULL || dict_contains_var (d, v));
+  assert (v == NULL || var_is_numeric (v));
 
   d->filter = v;
 
@@ -809,7 +814,7 @@ dict_set_filter (struct dictionary *d, struct variable *v)
 
 /* Returns the case limit for dictionary D, or zero if the number
    of cases is unlimited. */
-size_t
+casenumber
 dict_get_case_limit (const struct dictionary *d)
 {
   assert (d != NULL);
@@ -820,7 +825,7 @@ dict_get_case_limit (const struct dictionary *d)
 /* Sets CASE_LIMIT as the case limit for dictionary D.  Use
    0 for CASE_LIMIT to indicate no limit. */
 void
-dict_set_case_limit (struct dictionary *d, size_t case_limit)
+dict_set_case_limit (struct dictionary *d, casenumber case_limit)
 {
   assert (d != NULL);
 
@@ -913,7 +918,7 @@ dict_count_values (const struct dictionary *d, unsigned int exclude_classes)
   cnt = 0;
   for (i = 0; i < d->var_cnt; i++)
     {
-      enum dict_class class = dict_class_from_id (var_get_name (d->var[i]));
+      enum dict_class class = var_get_dict_class (d->var[i]);
       if (!(exclude_classes & (1u << class)))
         cnt += var_get_value_cnt (d->var[i]);
     }
@@ -941,20 +946,25 @@ dict_get_split_cnt (const struct dictionary *d)
   return d->split_cnt;
 }
 
-/* Removes variable V from the set of split variables in dictionary D */
+/* Removes variable V, which must be in D, from D's set of split
+   variables. */
 void
-dict_unset_split_var (struct dictionary *d,
-		      struct variable *v)
+dict_unset_split_var (struct dictionary *d, struct variable *v)
 {
-  const int count = d->split_cnt;
+  int orig_count;
+
+  assert (dict_contains_var (d, v));
+
+  orig_count = d->split_cnt;
   d->split_cnt = remove_equal (d->split, d->split_cnt, sizeof *d->split,
                                &v, compare_var_ptrs, NULL);
-
-  if ( count == d->split_cnt)
-    return;
-
-  if ( d->callbacks &&  d->callbacks->split_changed )
-    d->callbacks->split_changed (d, d->cb_data);
+  if (orig_count != d->split_cnt)
+    {
+      /* We changed the set of split variables so invoke the
+         callback. */
+      if (d->callbacks &&  d->callbacks->split_changed)
+        d->callbacks->split_changed (d, d->cb_data);
+    }
 }
 
 /* Sets CNT split vars SPLIT in dictionary D. */
@@ -999,16 +1009,7 @@ dict_set_label (struct dictionary *d, const char *label)
   assert (d != NULL);
 
   free (d->label);
-  if (label == NULL)
-    d->label = NULL;
-  else if (strlen (label) < 60)
-    d->label = xstrdup (label);
-  else
-    {
-      d->label = xmalloc (61);
-      memcpy (d->label, label, 60);
-      d->label[60] = '\0';
-    }
+  d->label = label != NULL ? xstrndup (label, 60) : NULL;
 }
 
 /* Returns the documents for D, or a null pointer if D has no

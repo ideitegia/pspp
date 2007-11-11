@@ -519,7 +519,7 @@ val_labs_dialog_show (struct val_labs_dialog *dialog)
   value_labels = var_get_value_labels (dialog->pv);
 
   if (value_labels)
-    dialog->labs = val_labs_copy ( value_labels );
+    dialog->labs = val_labs_clone ( value_labels );
   else
     dialog->labs = val_labs_create ( var_get_width (dialog->pv));
 

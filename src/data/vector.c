@@ -27,7 +27,7 @@
 /* Vector of variables. */
 struct vector
   {
-    char name[LONG_NAME_LEN + 1];       /* Name. */
+    char name[VAR_NAME_LEN + 1];       /* Name. */
     struct variable **vars;             /* Set of variables. */
     size_t var_cnt;                     /* Number of variables. */
   };
@@ -108,7 +108,7 @@ vector_get_name (const struct vector *vector)
 }
 
 /* Returns the type of the variables in VECTOR. */
-enum var_type vector_get_type (const struct vector *vector)
+enum val_type vector_get_type (const struct vector *vector)
 {
   return var_get_type (vector->vars[0]);
 }

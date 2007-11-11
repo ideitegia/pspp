@@ -20,6 +20,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <libpspp/misc.h>
+#include <data/val-type.h>
 #include <data/value.h>
 
 #include "xalloc.h"

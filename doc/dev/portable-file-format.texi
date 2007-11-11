@@ -7,23 +7,22 @@ big- versus little-endian byte ordering.  However, occasionally it is
 necessary to exchange data between systems with incompatible data
 formats.  This is what portable files are designed to do.
 
-@strong{Please note:} Although all of the following information is
-correct, as far as the author has been able to ascertain, it is gleaned
-from examination of ASCII-formatted portable files only, so some of it
-may be incorrect in the general case.
+@strong{Please note:} This information is gleaned from examination of
+ASCII-formatted portable files only, so some of it may be incorrect
+for portable files formatted in EBCDIC or other character sets.
 
 @menu
-* Portable File Characters::    
-* Portable File Structure::     
-* Portable File Header::        
-* Version and Date Info Record::  
-* Identification Records::      
-* Variable Count Record::       
-* Case Weight Variable Record::  
-* Variable Records::            
-* Value Label Records::         
+* Portable File Characters::
+* Portable File Structure::
+* Portable File Header::
+* Version and Date Info Record::
+* Identification Records::
+* Variable Count Record::
+* Case Weight Variable Record::
+* Variable Records::
+* Value Label Records::
 * Portable File Document Record::
-* Portable File Data::          
+* Portable File Data::
 @end menu
 
 @node Portable File Characters
@@ -177,7 +176,7 @@ Digits @samp{0} through @samp{9}.
 
 @item 74--99
 
-Capital letters @samp{A} through @samp{Z}. 
+Capital letters @samp{A} through @samp{Z}.
 
 @item 100--125
 

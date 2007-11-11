@@ -14,17 +14,21 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef FORMAT_H
-#define FORMAT_H 1
+#ifndef DATA_FORMAT_H
+#define DATA_FORMAT_H 1
 
 /* Display format types. */
 
 #include <stdbool.h>
-#include <stddef.h>
-#include <data/variable.h>
 #include <libpspp/str.h>
+#include <data/val-type.h>
 
-/* Format type categories. */
+/* Format type categories.
+
+   Each format is in exactly one category.  We give categories
+   bitwise disjoint values only to enable bitwise comparisons
+   against a mask of FMT_CAT_* values, not to allow multiple
+   categories per format. */
 enum fmt_category
   {
     /* Numeric formats. */
@@ -41,6 +45,7 @@ enum fmt_category
     FMT_CAT_STRING         = 0x100      /* String formats. */
   };
 
+/* Format type. */
 enum fmt_type
   {
 #define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY) FMT_##NAME,
@@ -64,8 +69,6 @@ struct fmt_spec
     int d;			/* Number of implied decimal places. */
   };
 
-union value;
-
 /* Initialization. */
 void fmt_init (void);
 void fmt_done (void);
@@ -74,13 +77,13 @@ void fmt_done (void);
 struct fmt_spec fmt_for_input (enum fmt_type, int w, int d) PURE_FUNCTION;
 struct fmt_spec fmt_for_output (enum fmt_type, int w, int d) PURE_FUNCTION;
 struct fmt_spec fmt_for_output_from_input (const struct fmt_spec *);
-struct fmt_spec fmt_default_for_width (int var_width);
+struct fmt_spec fmt_default_for_width (int width);
 
 /* Verifying formats. */
 bool fmt_check (const struct fmt_spec *, bool for_input);
 bool fmt_check_input (const struct fmt_spec *);
 bool fmt_check_output (const struct fmt_spec *);
-bool fmt_check_type_compat (const struct fmt_spec *, enum var_type);
+bool fmt_check_type_compat (const struct fmt_spec *, enum val_type);
 bool fmt_check_width_compat (const struct fmt_spec *, int var_width);
 
 /* Working with formats. */
@@ -108,11 +111,11 @@ bool fmt_is_numeric (enum fmt_type) PURE_FUNCTION;
 enum fmt_category fmt_get_category (enum fmt_type) PURE_FUNCTION;
 
 enum fmt_type fmt_input_to_output (enum fmt_type) PURE_FUNCTION;
+bool fmt_usable_for_input (enum fmt_type) PURE_FUNCTION;
 
 int fmt_to_io (enum fmt_type) PURE_FUNCTION;
 bool fmt_from_io (int io, enum fmt_type *);
 
-bool fmt_usable_for_input (enum fmt_type) PURE_FUNCTION;
 const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
 char *fmt_dollar_template (const struct fmt_spec *);
 
@@ -134,15 +137,15 @@ struct fmt_number_style
 struct fmt_number_style *fmt_number_style_create (void);
 void fmt_number_style_destroy (struct fmt_number_style *);
 
-const struct fmt_number_style *fmt_get_style (enum fmt_type);
-void fmt_set_style (enum fmt_type, struct fmt_number_style *);
-
 int fmt_affix_width (const struct fmt_number_style *);
 int fmt_neg_affix_width (const struct fmt_number_style *);
+
+const struct fmt_number_style *fmt_get_style (enum fmt_type);
+void fmt_set_style (enum fmt_type, struct fmt_number_style *);
 
 int fmt_decimal_char (enum fmt_type);
 int fmt_grouping_char (enum fmt_type);
 
 void fmt_set_decimal (char);
 
-#endif /* format.h */
+#endif /* data/format.h */

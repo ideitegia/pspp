@@ -1,0 +1,22 @@
+@node Introduction
+@chapter Introduction
+
+This manual is a guide to PSPP internals.  Its intended audience is
+developers who wish to modify or extend PSPP's capabilities.  The use
+of PSPP is documented in a separate manual.  @xref{Top, ,
+Introduction, pspp, PSPP Users Guide}.
+
+This manual is both a tutorial and a reference manual for PSPP
+developers.  It is ultimately intended to cover everything that
+developers who wish to implement new PSPP statistical procedures and
+other commands should know.  It is currently incomplete, partly
+because existing developers have not yet spent enough time on writing,
+and partly because the interfaces not yet documented are not yet
+mature enough to making documenting them worthwhile.
+
+PSPP developers should have some familiarity with the basics of PSPP
+from a user's perspective.  This manual attempts to refer to the PSPP
+user manual's descriptions of concepts that PSPP users should find
+familiar at the time of their first reference.  However, it is
+probably a good idea to at least skim the PSPP manual before reading
+this one, if you are not already familiar with PSPP.

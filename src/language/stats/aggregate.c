@@ -92,7 +92,7 @@ struct agr_func
   {
     const char *name;		/* Aggregation function name. */
     size_t n_args;              /* Number of arguments. */
-    enum var_type alpha_type;   /* When given ALPHA arguments, output type. */
+    enum val_type alpha_type;   /* When given ALPHA arguments, output type. */
     struct fmt_spec format;	/* Format spec if alpha_type != ALPHA. */
   };
 
@@ -103,25 +103,25 @@ static const struct agr_func agr_func_tab[] =
     {"SUM",     0, -1,          {FMT_F, 8, 2}},
     {"MEAN",	0, -1,          {FMT_F, 8, 2}},
     {"SD",      0, -1,          {FMT_F, 8, 2}},
-    {"MAX",     0, VAR_STRING,  {-1, -1, -1}},
-    {"MIN",     0, VAR_STRING,  {-1, -1, -1}},
-    {"PGT",     1, VAR_NUMERIC, {FMT_F, 5, 1}},
-    {"PLT",     1, VAR_NUMERIC, {FMT_F, 5, 1}},
-    {"PIN",     2, VAR_NUMERIC, {FMT_F, 5, 1}},
-    {"POUT",    2, VAR_NUMERIC, {FMT_F, 5, 1}},
-    {"FGT",     1, VAR_NUMERIC, {FMT_F, 5, 3}},
-    {"FLT",     1, VAR_NUMERIC, {FMT_F, 5, 3}},
-    {"FIN",     2, VAR_NUMERIC, {FMT_F, 5, 3}},
-    {"FOUT",    2, VAR_NUMERIC, {FMT_F, 5, 3}},
-    {"N",       0, VAR_NUMERIC, {FMT_F, 7, 0}},
-    {"NU",      0, VAR_NUMERIC, {FMT_F, 7, 0}},
-    {"NMISS",   0, VAR_NUMERIC, {FMT_F, 7, 0}},
-    {"NUMISS",  0, VAR_NUMERIC, {FMT_F, 7, 0}},
-    {"FIRST",   0, VAR_STRING,  {-1, -1, -1}},
-    {"LAST",    0, VAR_STRING,  {-1, -1, -1}},
+    {"MAX",     0, VAL_STRING,  {-1, -1, -1}},
+    {"MIN",     0, VAL_STRING,  {-1, -1, -1}},
+    {"PGT",     1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PLT",     1, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"PIN",     2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"POUT",    2, VAL_NUMERIC, {FMT_F, 5, 1}},
+    {"FGT",     1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FLT",     1, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FIN",     2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"FOUT",    2, VAL_NUMERIC, {FMT_F, 5, 3}},
+    {"N",       0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NU",      0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NMISS",   0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NUMISS",  0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"FIRST",   0, VAL_STRING,  {-1, -1, -1}},
+    {"LAST",    0, VAL_STRING,  {-1, -1, -1}},
     {NULL,      0, -1,          {-1, -1, -1}},
-    {"N",       0, VAR_NUMERIC, {FMT_F, 7, 0}},
-    {"NU",      0, VAR_NUMERIC, {FMT_F, 7, 0}},
+    {"N",       0, VAL_NUMERIC, {FMT_F, 7, 0}},
+    {"NU",      0, VAL_NUMERIC, {FMT_F, 7, 0}},
   };
 
 /* Missing value types. */
@@ -478,12 +478,12 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 		if (lex_token (lexer) == T_STRING)
 		  {
 		    arg[i].c = ds_xstrdup (lex_tokstr (lexer));
-		    type = VAR_STRING;
+		    type = VAL_STRING;
 		  }
 		else if (lex_is_number (lexer))
 		  {
 		    arg[i].f = lex_tokval (lexer);
-		    type = VAR_NUMERIC;
+		    type = VAL_NUMERIC;
 		  }
                 else
                   {
@@ -573,12 +573,12 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
 		    v->string = xmalloc (var_get_width (src[i]));
 		  }
 
-		if (function->alpha_type == VAR_STRING)
+		if (function->alpha_type == VAL_STRING)
 		  destvar = dict_clone_var (agr->dict, v->src, dest[i]);
 		else
                   {
                     assert (var_is_numeric (v->src)
-                            || function->alpha_type == VAR_NUMERIC);
+                            || function->alpha_type == VAL_NUMERIC);
                     destvar = dict_create_var (agr->dict, dest[i], 0);
                     if (destvar != NULL)
                       {

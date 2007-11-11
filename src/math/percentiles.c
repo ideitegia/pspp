@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include <assert.h>
+#include <data/val-type.h>
 #include <libpspp/compiler.h>
 #include "factor-stats.h"
 #include "percentiles.h"

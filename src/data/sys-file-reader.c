@@ -42,6 +42,7 @@
 #include <data/file-name.h>
 #include <data/format.h>
 #include <data/missing-values.h>
+#include <data/short-names.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <data/value.h>
@@ -263,8 +264,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
       for (i = 0; i < dict_get_var_cnt (*dict); i++)
 	{
 	  struct variable *var = dict_get_var (*dict, i);
-	  char short_name [SHORT_NAME_LEN + 1];
-	  char long_name [SHORT_NAME_LEN + 1];
+	  char short_name[SHORT_NAME_LEN + 1];
+	  char long_name[SHORT_NAME_LEN + 1];
 
 	  strcpy (short_name, var_get_name (var));
 
@@ -542,7 +543,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
             {
               double low = read_float (r);
               double high = read_float (r);
-              mv_add_num_range (&mv, low, high);
+              mv_add_range (&mv, low, high);
               missing_value_code = -missing_value_code - 2;
             }
           for (i = 0; i < missing_value_code; i++)

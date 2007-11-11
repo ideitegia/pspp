@@ -405,8 +405,8 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names, size_t *nnames, int pv
   int d1, d2;
   int n;
   size_t nvar, mvar;
-  char name1[LONG_NAME_LEN + 1], name2[LONG_NAME_LEN + 1];
-  char root1[LONG_NAME_LEN + 1], root2[LONG_NAME_LEN + 1];
+  char name1[VAR_NAME_LEN + 1], name2[VAR_NAME_LEN + 1];
+  char root1[VAR_NAME_LEN + 1], root2[VAR_NAME_LEN + 1];
   int success = 0;
 
   assert (names != NULL);
@@ -474,7 +474,7 @@ parse_DATA_LIST_vars (struct lexer *lexer, char ***names, size_t *nnames, int pv
 
 	  for (n = n1; n <= n2; n++)
 	    {
-              char name[LONG_NAME_LEN + 1];
+              char name[VAR_NAME_LEN + 1];
 	      sprintf (name, "%s%0*d", root1, d1, n);
 	      (*names)[nvar] = xstrdup (name);
 	      nvar++;
@@ -664,7 +664,7 @@ var_set_lookup_var_idx (const struct var_set *vs, const char *name,
 {
   assert (vs != NULL);
   assert (name != NULL);
-  assert (strlen (name) <= LONG_NAME_LEN);
+  assert (strlen (name) <= VAR_NAME_LEN);
 
   return vs->lookup_var_idx (vs, name, idx);
 }

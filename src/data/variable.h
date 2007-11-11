@@ -14,40 +14,33 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if !variable_h
-#define variable_h 1
+#ifndef DATA_VARIABLE_H
+#define DATA_VARIABLE_H 1
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <data/dict-class.h>
 #include <data/missing-values.h>
+#include <data/val-type.h>
 
 union value;
 
-/* Variable type. */
-enum var_type
-  {
-    VAR_NUMERIC,                /* A numeric variable. */
-    VAR_STRING			/* A string variable. */
-  };
-
-bool var_type_is_valid (enum var_type);
-enum var_type var_type_from_width (int width);
-
-/* Variables. */
+/* Variables.
+   These functions should rarely be called directly: use
+   dict_create_var, dict_clone_var, or dict_delete_var
+   instead. */
 struct variable *var_create (const char *name, int width);
 struct variable *var_clone (const struct variable *);
 void var_destroy (struct variable *);
 
-/* Variable names.
-   Long variable names can be used in most contexts, but a few
-   procedures and file formats are limited to short names. */
-#define SHORT_NAME_LEN 8
-#define LONG_NAME_LEN 64
+/* Variable names. */
+#define VAR_NAME_LEN 64 /* Maximum length of variable name, in bytes. */
 
 const char *var_get_name (const struct variable *);
 void var_set_name (struct variable *, const char *);
 bool var_is_valid_name (const char *, bool issue_error);
 bool var_is_plausible_name (const char *name, bool issue_error);
+enum dict_class var_get_dict_class (const struct variable *);
 
 int compare_vars_by_name (const void *, const void *, const void *);
 unsigned hash_var_by_name (const void *, const void *);
@@ -55,17 +48,16 @@ unsigned hash_var_by_name (const void *, const void *);
 int compare_var_ptrs_by_name (const void *, const void *, const void *);
 unsigned hash_var_ptr_by_name (const void *, const void *);
 
-/* Variable types and widths. */
-enum var_type var_get_type (const struct variable *);
+/* Types and widths of values associated with a variable. */
+enum val_type var_get_type (const struct variable *);
 int var_get_width (const struct variable *);
 void var_set_width (struct variable *, int width);
-
-typedef bool var_predicate_func (const struct variable *);
 
 bool var_is_numeric (const struct variable *);
 bool var_is_alpha (const struct variable *);
 bool var_is_short_string (const struct variable *);
 bool var_is_long_string (const struct variable *);
+
 size_t var_get_value_cnt (const struct variable *);
 
 /* Variables' missing values. */
@@ -80,17 +72,19 @@ bool var_is_num_missing (const struct variable *, double, enum mv_class);
 bool var_is_str_missing (const struct variable *, const char[], enum mv_class);
 
 /* Value labels. */
-const struct val_labs *var_get_value_labels (const struct variable *);
+const char *var_lookup_value_label (const struct variable *,
+                                    const union value *);
+const char *var_get_value_name (const struct variable *, const union value *);
+
 bool var_has_value_labels (const struct variable *);
+const struct val_labs *var_get_value_labels (const struct variable *);
 void var_set_value_labels (struct variable *, const struct val_labs *);
+
 bool var_add_value_label (struct variable *,
                           const union value *, const char *);
 void var_replace_value_label (struct variable *,
                               const union value *, const char *);
 void var_clear_value_labels (struct variable *);
-const char *var_lookup_value_label (const struct variable *,
-                                    const union value *);
-const char *var_get_value_name (const struct variable *, const union value *);
 
 /* Print and write formats. */
 const struct fmt_spec *var_get_print_format (const struct variable *);
@@ -167,15 +161,7 @@ struct cat_vals *var_get_obs_vals (const struct variable *);
 void var_set_obs_vals (const struct variable *, struct cat_vals *);
 bool var_has_obs_vals (const struct variable *);
 
-/* Classes of variables. */
-enum dict_class
-  {
-    DC_ORDINARY,                /* Ordinary identifier. */
-    DC_SYSTEM,                  /* System variable. */
-    DC_SCRATCH                  /* Scratch variable. */
-  };
+/* Function types. */
+typedef bool var_predicate_func (const struct variable *);
 
-enum dict_class dict_class_from_id (const char *name);
-const char *dict_class_to_name (enum dict_class dict_class);
-
-#endif /* !variable.h */
+#endif /* data/variable.h */

@@ -258,7 +258,7 @@ cmd_if (struct lexer *lexer, struct dataset *ds)
 static trns_proc_func *
 get_proc_func (const struct lvalue *lvalue)
 {
-  bool is_numeric = lvalue_get_type (lvalue) == VAR_NUMERIC;
+  bool is_numeric = lvalue_get_type (lvalue) == VAL_NUMERIC;
   bool is_vector = lvalue_is_vector (lvalue);
 
   return (is_numeric
@@ -272,7 +272,7 @@ static struct expression *
 parse_rvalue (struct lexer *lexer,
 	      const struct lvalue *lvalue, struct dataset *ds)
 {
-  bool is_numeric = lvalue_get_type (lvalue) == VAR_NUMERIC;
+  bool is_numeric = lvalue_get_type (lvalue) == VAL_NUMERIC;
 
   return expr_parse (lexer, ds, is_numeric ? EXPR_NUMBER : EXPR_STRING);
 }

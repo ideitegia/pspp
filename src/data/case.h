@@ -14,8 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef HEADER_CASE
-#define HEADER_CASE
+#ifndef DATA_CASE_H
+#define DATA_CASE_H 1
 
 #include <limits.h>
 #include <stddef.h>
@@ -82,4 +82,4 @@ int case_compare_2dict (const struct ccase *, const struct ccase *,
 const union value *case_data_all (const struct ccase *);
 union value *case_data_all_rw (struct ccase *);
 
-#endif /* case.h */
+#endif /* data/case.h */

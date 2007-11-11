@@ -406,6 +406,7 @@ files.  The data input subcommands are
 
 @table @asis
 @item BLANKS
+@anchor{SET BLANKS}
 This is the value assigned to an item data item that is empty or
 contains only white space.  An argument of SYSMIS or '.' will cause the
 system-missing value to be assigned to null items.  This is the

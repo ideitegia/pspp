@@ -790,14 +790,14 @@ on_var_type_ok_clicked (GtkWidget *w, gpointer data)
     gint decimals = atoi (gtk_entry_get_text
 			 (GTK_ENTRY (dialog->entry_decimals)));
 
-    gint new_type = VAR_NUMERIC;
+    gint new_type = VAL_NUMERIC;
     gint new_width = 0;
     bool result = false;
     struct fmt_spec spec;
     switch (dialog->active_button)
       {
       case BUTTON_STRING:
-	new_type = VAR_STRING;
+	new_type = VAL_STRING;
 	new_width = width;
 	result = make_output_format_try (&spec, FMT_A, width, 0);
 	break;

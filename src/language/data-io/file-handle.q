@@ -50,7 +50,7 @@
 int
 cmd_file_handle (struct lexer *lexer, struct dataset *ds)
 {
-  char handle_name[LONG_NAME_LEN + 1];
+  char handle_name[VAR_NAME_LEN + 1];
   struct cmd_file_handle cmd;
   struct file_handle *handle;
 

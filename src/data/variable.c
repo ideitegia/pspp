@@ -44,7 +44,7 @@
 struct variable
   {
     /* Dictionary information. */
-    char name[LONG_NAME_LEN + 1]; /* Variable name.  Mixed case. */
+    char name[VAR_NAME_LEN + 1]; /* Variable name.  Mixed case. */
     int width;			/* 0 for numeric, otherwise string width. */
     struct missing_values miss; /* Missing values. */
     struct fmt_spec print;	/* Default format for PRINT. */
@@ -77,20 +77,6 @@ struct variable
        have its values stored here. */
     struct cat_vals *obs_vals;
   };
-
-/* Returns true if VAR_TYPE is a valid variable type. */
-bool
-var_type_is_valid (enum var_type var_type)
-{
-  return var_type == VAR_NUMERIC || var_type == VAR_STRING;
-}
-
-/* Returns the variable type for the given width. */
-enum var_type
-var_type_from_width (int width)
-{
-  return width != 0 ? VAR_STRING : VAR_NUMERIC;
-}
 
 /* Creates and returns a new variable with the given NAME and
    WIDTH and other fields initialized to default values.  The
@@ -271,11 +257,11 @@ var_is_plausible_name (const char *name, bool issue_error)
         msg (SE, _("Variable name cannot be empty string."));
       return false;
     }
-  else if (length > LONG_NAME_LEN)
+  else if (length > VAR_NAME_LEN)
     {
       if (issue_error)
         msg (SE, _("Variable name %s exceeds %d-character limit."),
-             name, (int) LONG_NAME_LEN);
+             name, (int) VAR_NAME_LEN);
       return false;
     }
 
@@ -288,6 +274,13 @@ var_is_plausible_name (const char *name, bool issue_error)
     }
 
   return true;
+}
+
+/* Returns VAR's dictionary class. */
+enum dict_class
+var_get_dict_class (const struct variable *var)
+{
+  return dict_class_from_id (var->name);
 }
 
 /* A hsh_compare_func that orders variables A and B by their
@@ -333,10 +326,10 @@ hash_var_ptr_by_name (const void *v_, const void *aux UNUSED)
 }
 
 /* Returns the type of variable V. */
-enum var_type
+enum val_type
 var_get_type (const struct variable *v)
 {
-  return var_type_from_width (v->width);
+  return val_type_from_width (v->width);
 }
 
 /* Returns the width of variable V. */
@@ -346,7 +339,8 @@ var_get_width (const struct variable *v)
   return v->width;
 }
 
-/* Sets the width of V to WIDTH. */
+/* Changes the width of V to NEW_WIDTH.
+   This function should be used cautiously. */
 void
 var_set_width (struct variable *v, int new_width)
 {
@@ -388,7 +382,7 @@ var_set_width (struct variable *v, int new_width)
 bool
 var_is_numeric (const struct variable *v)
 {
-  return var_get_type (v) == VAR_NUMERIC;
+  return var_get_type (v) == VAL_NUMERIC;
 }
 
 /* Returns true if variable V is a string variable, false
@@ -396,7 +390,7 @@ var_is_numeric (const struct variable *v)
 bool
 var_is_alpha (const struct variable *v)
 {
-  return var_get_type (v) == VAR_STRING;
+  return var_get_type (v) == VAL_STRING;
 }
 
 /* Returns true if variable V is a short string variable, false
@@ -520,7 +514,7 @@ var_set_value_labels (struct variable *v, const struct val_labs *vls)
   if (vls != NULL)
     {
       assert (val_labs_can_set_width (vls, v->width));
-      v->val_labs = val_labs_copy (vls);
+      v->val_labs = val_labs_clone (vls);
       val_labs_set_width (v->val_labs, v->width);
       dict_var_changed (v);
     }
@@ -538,8 +532,7 @@ alloc_value_labels (struct variable *v)
 
 /* Attempts to add a value label with the given VALUE and LABEL
    to V.  Returns true if successful, false if VALUE has an
-   existing label.
-   V must not be a long string variable. */
+   existing label or if V is a long string variable. */
 bool
 var_add_value_label (struct variable *v,
                      const union value *value, const char *label)
@@ -550,7 +543,7 @@ var_add_value_label (struct variable *v,
 
 /* Adds or replaces a value label with the given VALUE and LABEL
    to V.
-   V must not be a long string variable. */
+   Has no effect if V is a long string variable. */
 void
 var_replace_value_label (struct variable *v,
                          const union value *value, const char *label)
@@ -768,7 +761,7 @@ var_set_alignment (struct variable *v, enum alignment alignment)
    case. */
 
 /* Returns true if variable V's value should be left from case to
-   case, instead of being reset to 0, system-missing, or blanks. */
+   case, instead of being reset to system-missing or blanks. */
 bool
 var_get_leave (const struct variable *v)
 {
@@ -789,7 +782,7 @@ var_set_leave (struct variable *v, bool leave)
 bool
 var_must_leave (const struct variable *v)
 {
-  return dict_class_from_id (v->name) == DC_SCRATCH;
+  return var_get_dict_class (v) == DC_SCRATCH;
 }
 
 /* Returns the number of short names stored in VAR.
@@ -960,7 +953,8 @@ var_get_obs_vals (const struct variable *v)
   return v->obs_vals;
 }
 
-/* Sets V's observed categorical values to CAT_VALS. */
+/* Sets V's observed categorical values to CAT_VALS.
+   V becomes the owner of CAT_VALS. */
 void
 var_set_obs_vals (const struct variable *v_, struct cat_vals *cat_vals)
 {
@@ -975,39 +969,6 @@ bool
 var_has_obs_vals (const struct variable *v)
 {
   return v->obs_vals != NULL;
-}
-
-/* Returns the dictionary class corresponding to a variable named
-   NAME. */
-enum dict_class
-dict_class_from_id (const char *name)
-{
-  switch (name[0])
-    {
-    default:
-      return DC_ORDINARY;
-    case '$':
-      return DC_SYSTEM;
-    case '#':
-      return DC_SCRATCH;
-    }
-}
-
-/* Returns the name of dictionary class DICT_CLASS. */
-const char *
-dict_class_to_name (enum dict_class dict_class)
-{
-  switch (dict_class)
-    {
-    case DC_ORDINARY:
-      return _("ordinary");
-    case DC_SYSTEM:
-      return _("system");
-    case DC_SCRATCH:
-      return _("scratch");
-    default:
-      NOT_REACHED ();
-    }
 }
 
 /* Returns V's vardict structure. */

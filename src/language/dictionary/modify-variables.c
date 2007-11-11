@@ -138,7 +138,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 			   "of variables."));
 		      goto done;
 		    }
-		  dict_get_vars_mutable (dataset_dict (ds), &v, &nv, 1u << DC_SYSTEM);
+		  dict_get_vars_mutable (dataset_dict (ds), &v, &nv, DC_SYSTEM);
 		}
 	      else
 		{
@@ -367,7 +367,7 @@ compare_variables_given_ordering (const void *a_, const void *b_,
 struct var_renaming
   {
     struct variable *var;
-    char new_name[LONG_NAME_LEN + 1];
+    char new_name[VAR_NAME_LEN + 1];
   };
 
 /* A algo_compare_func that compares new_name members in struct

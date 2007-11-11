@@ -637,16 +637,16 @@ try_name (const struct dictionary *dict, const char *name)
 }
 
 static void
-reg_get_name (const struct dictionary *dict, char name[LONG_NAME_LEN],
-	      const char prefix[LONG_NAME_LEN])
+reg_get_name (const struct dictionary *dict, char name[VAR_NAME_LEN],
+	      const char prefix[VAR_NAME_LEN])
 {
   int i = 1;
 
-  snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
+  snprintf (name, VAR_NAME_LEN, "%s%d", prefix, i);
   while (!try_name (dict, name))
     {
       i++;
-      snprintf (name, LONG_NAME_LEN, "%s%d", prefix, i);
+      snprintf (name, VAR_NAME_LEN, "%s%d", prefix, i);
     }
 }
 
@@ -656,7 +656,7 @@ reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
 {
   struct dictionary *dict = dataset_dict (ds);
   static int trns_index = 1;
-  char name[LONG_NAME_LEN];
+  char name[VAR_NAME_LEN];
   struct variable *new_var;
   struct reg_trns *t = NULL;
 
@@ -1154,8 +1154,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 
   if (!v_variables)
     {
-      dict_get_vars (dataset_dict (ds), &v_variables, &n_variables,
-		     1u << DC_SYSTEM);
+      dict_get_vars (dataset_dict (ds), &v_variables, &n_variables, 0);
     }
 
   for (i = 0; i < cmd->n_dependent; i++)

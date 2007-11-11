@@ -664,10 +664,10 @@ static trns_free_func case_limit_trns_free;
 static void
 add_case_limit_trns (struct dataset *ds)
 {
-  size_t case_limit = dict_get_case_limit (ds->dict);
+  casenumber case_limit = dict_get_case_limit (ds->dict);
   if (case_limit != 0)
     {
-      size_t *cases_remaining = xmalloc (sizeof *cases_remaining);
+      casenumber *cases_remaining = xmalloc (sizeof *cases_remaining);
       *cases_remaining = case_limit;
       add_transformation (ds, case_limit_trns_proc, case_limit_trns_free,
                           cases_remaining);

@@ -1,13 +1,12 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-info_TEXINFOS = doc/pspp.texinfo 
+info_TEXINFOS = doc/pspp.texinfo doc/pspp-dev.texinfo
 
 doc_pspp_TEXINFOS = doc/version.texi \
 	doc/bugs.texi \
 	doc/command-index.texi \
 	doc/concept-index.texi \
 	doc/configuring.texi \
-	doc/data-file-format.texi \
 	doc/data-io.texi \
 	doc/data-selection.texi \
 	doc/expressions.texi \
@@ -21,8 +20,6 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/license.texi \
 	doc/ni.texi \
 	doc/not-implemented.texi \
-	doc/portable-file-format.texi \
-	doc/q2c.texi \
 	doc/statistics.texi \
 	doc/transformation.texi \
 	doc/regression.texi \
@@ -30,9 +27,18 @@ doc_pspp_TEXINFOS = doc/version.texi \
 	doc/variables.texi \
 	doc/fdl.texi 
 
+doc_pspp_dev_TEXINFOS = doc/version-dev.texi \
+	doc/dev/intro.texi \
+	doc/dev/concepts.texi \
+	doc/dev/syntax.texi \
+	doc/dev/data.texi \
+	doc/dev/output.texi \
+	doc/dev/system-file-format.texi \
+	doc/dev/portable-file-format.texi \
+	doc/dev/q2c.texi
+
 EXTRA_DIST += doc/pspp.man \
-	doc/get-commands.pl \
-	$(doc_pspp_TEXINFOS)
+	doc/get-commands.pl
 
 doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc

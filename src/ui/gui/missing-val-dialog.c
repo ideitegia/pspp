@@ -148,7 +148,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	g_strdup (gtk_entry_get_text (GTK_ENTRY (dialog->discrete)));
 
       mv_clear (&dialog->mvl);
-      mv_add_num_range (&dialog->mvl, low_val.f, high_val.f);
+      mv_add_range (&dialog->mvl, low_val.f, high_val.f);
 
       if ( discrete_text && strlen (g_strstrip (discrete_text)) > 0 )
 	{
@@ -307,7 +307,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       union value low, high;
       gchar *low_text;
       gchar *high_text;
-      mv_peek_range (&dialog->mvl, &low.f, &high.f);
+      mv_get_range (&dialog->mvl, &low.f, &high.f);
 
       low_text = value_to_text (low, *write_spec);
       high_text = value_to_text (high, *write_spec);
@@ -321,7 +321,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	{
 	  gchar *text;
 	  union value value;
-	  mv_peek_value (&dialog->mvl, &value, 0);
+	  mv_get_value (&dialog->mvl, &value, 0);
 	  text = value_to_text (value, *write_spec);
 	  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), text);
 	  g_free (text);
@@ -344,7 +344,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	      gchar *text ;
 	      union value value;
 
-	      mv_peek_value (&dialog->mvl, &value, i);
+	      mv_get_value (&dialog->mvl, &value, i);
 	      text = value_to_text (value, *write_spec);
 	      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), text);
 	      g_free (text);

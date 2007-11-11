@@ -735,8 +735,8 @@ cmd_match_files (struct lexer *lexer, struct dataset *ds)
   bool saw_in = false;
   struct casereader *active_file = NULL;
 
-  char first_name[LONG_NAME_LEN + 1] = "";
-  char last_name[LONG_NAME_LEN + 1] = "";
+  char first_name[VAR_NAME_LEN + 1] = "";
+  char last_name[VAR_NAME_LEN + 1] = "";
 
   struct taint *taint = NULL;
 

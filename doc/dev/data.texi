@@ -1,0 +1,47 @@
+@node Processing Data
+@chapter Processing Data
+
+Developer's Guide
+
+Proposed outline:
+
+@example
+* Introduction
+* Basic concepts
+** Data sets
+** Variables
+** Dictionaries
+** Coding conventions
+** Pools
+* Syntax parsing
+* Data processing
+** Reading data
+*** Casereaders generalities
+*** Casereaders from data files
+*** Casereaders from the active file
+*** Other casereaders
+** Writing data
+*** Casewriters generally
+*** Casewriters to data files
+*** Modifying the active file
+**** Modifying cases obtained from active file casereaders has no real effect
+**** Transformations; procedures that transform
+** Transforming data
+*** Sorting and merging
+*** Filtering
+*** Grouping
+**** Ordering and interaction of filtering and grouping
+*** Multiple passes over data
+*** Counting cases and case weights
+** Best practices
+*** Multiple passes with filters versus single pass with loops
+*** Sequential versus random access
+*** Managing memory
+*** Passing cases around
+*** Renaming casereaders
+*** Avoiding excessive buffering
+*** Propagating errors
+*** Avoid static/global data
+*** Don't worry about null filters, groups, etc.
+*** Be aware of reference counting semantics for cases
+@end example

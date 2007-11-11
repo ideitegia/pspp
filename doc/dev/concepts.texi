@@ -1,0 +1,2451 @@
+@node Basic Concepts
+@chapter Basic Concepts
+
+This chapter introduces basic data structures and other concepts
+needed for developing in PSPP.
+
+@menu
+* Values::
+* Input and Output Formats::
+* User-Missing Values::
+* Value Labels::
+* Variables::
+* Dictionaries::
+* Coding Conventions::
+* Cases::
+* Data Sets::
+* Pools::
+@end menu
+
+@node Values
+@section Values
+
+@cindex value
+The unit of data in PSPP is a @dfn{value}.
+
+@cindex width
+@cindex string value
+@cindex numeric value
+@cindex MAX_STRING
+Values are classified by @dfn{type} and @dfn{width}.  The
+type of a value is either @dfn{numeric} or @dfn{string} (sometimes
+called alphanumeric).  The width of a string value ranges from 1 to
+@code{MAX_STRING} bytes.  The width of a numeric value is artificially
+defined to be 0; thus, the type of a value can be inferred from its
+width.
+
+Some support is provided for working with value types and widths, in
+@file{data/val-type.h}:
+
+@deftypefn Macro int MAX_STRING
+Maximum width of a string value, in bytes, currently 32,767.
+@end deftypefn
+
+@deftypefun bool val_type_is_valid (enum val_type @var{val_type})
+Returns true if @var{val_type} is a valid value type, that is,
+either @code{VAL_NUMERIC} or @code{VAL_STRING}.  Useful for
+assertions.
+@end deftypefun
+
+@deftypefun {enum val_type} val_type_from_width (int @var{width})
+Returns @code{VAL_NUMERIC} if @var{width} is 0 and thus represents the
+width of a numeric value, otherwise @code{VAL_STRING} to indicate that
+@var{width} is the width of a string value.
+@end deftypefun
+
+The following subsections describe how values of each type are
+represented.
+
+@menu
+* Numeric Values::
+* String Values::
+* Runtime Typed Values::
+@end menu
+
+@node Numeric Values
+@subsection Numeric Values
+
+A value known to be numeric at compile time is represented as a
+@code{double}.  PSPP provides three values of @code{double} for
+special purposes, defined in @file{data/val-type.h}:
+
+@deftypefn Macro double SYSMIS
+The @dfn{system-missing value}, used to represent a datum whose true
+value is unknown, such as a survey question that was not answered by
+the respondent, or undefined, such as the result of division by zero.
+PSPP propagates the system-missing value through calculations and
+compensates for missing values in statistical analyses.  @xref{Missing
+Observations,,,pspp, PSPP Users Guide}, for a PSPP user's view of
+missing values.
+
+PSPP currently defines @code{SYSMIS} as @code{-DBL_MAX}, that is, the
+greatest finite negative value of @code{double}.  It is best not to
+depend on this definition, because PSPP may transition to using an
+IEEE NaN (not a number) instead at some point in the future.
+@end deftypefn
+
+@deftypefn Macro double LOWEST
+@deftypefnx Macro double HIGHEST
+The greatest finite negative (except for @code{SYSMIS}) and positive
+values of @code{double}, respectively.  These values do not ordinarily
+appear in user data files.  Instead, they are used to implement
+endpoints of open-ended ranges that are occasionally permitted in PSPP
+syntax, e.g.@: @code{5 THRU HI} as a range of missing values
+(@pxref{MISSING VALUES,,,pspp, PSPP Users Guide}).
+@end deftypefn
+
+@node String Values
+@subsection String Values
+
+A value known at compile time to have string type is represented as an
+array of @code{char}.  String values do not necessarily represent
+readable text strings and may contain arbitrary 8-bit data, including
+null bytes, control codes, and bytes with the high bit set.  Thus,
+string values are not null-terminated strings, but rather opaque
+arrays of bytes.
+
+@code{SYSMIS}, @code{LOWEST}, and @code{HIGHEST} have no equivalents
+as string values.  Usually, PSPP fills an unknown or undefined string
+values with spaces, but PSPP does not treat such a string as a special
+case when it processes it later.
+
+@cindex MAX_STRING
+@code{MAX_STRING}, the maximum length of a string value, is defined in
+@file{data/val-type.h}.
+
+@node Runtime Typed Values
+@subsection Runtime Typed Values
+
+When a value's type is only known at runtime, it is often represented
+as a @union{value}, defined in @file{data/value.h}.  @union{value} has
+two members: a @code{double} named @samp{f} to store a numeric value
+and an array of @code{char} named @samp{s} to a store a string value.
+A @union{value} does not identify the type or width of the data it
+contains.  Code that works with @union{values}s must therefore have
+external knowledge of its content, often through the type and width of
+a @struct{variable} (@pxref{Variables}).
+
+@cindex MAX_SHORT_STRING
+@cindex short string
+@cindex long string
+@cindex string value
+The array of @code{char} in @union{value} has only a small, fixed
+capacity of @code{MAX_SHORT_STRING} bytes.  A value that
+fits within this capacity is called a @dfn{short string}.  Any wider
+string value, which must be represented by more than one
+@union{value}, is called a @dfn{long string}.
+
+@deftypefn Macro int MAX_SHORT_STRING
+Maximum width of a short string value, never less than 8 bytes.  It is
+wider than 8 bytes on systems where @code{double} is either larger
+than 8 bytes or has stricter alignment than 8 bytes.
+@end deftypefn
+
+@deftypefn Macro int MIN_LONG_STRING
+Minimum width of a long string value, that is, @code{MAX_SHORT_STRING
++ 1}.
+@end deftypefn
+
+Long string variables are slightly harder to work with than short
+string values, because they cannot be conveniently and efficiently
+allocated as block scope variables or structure members.  The PSPP
+language exposes this inconvenience to the user: there are many
+circumstances in PSPP syntax where short strings are allowed but not
+long strings.  Short string variables, for example, may have
+user-missing values, but long string variables may not (@pxref{Missing
+Observations,,,pspp, PSPP Users Guide}).
+
+PSPP provides a few functions for working with @union{value}s.  The
+most useful are described below.  To use these functions, recall that
+a numeric value has a width of 0.
+
+@deftypefun size_t value_cnt_from_width (int @var{width})
+Returns the number of consecutive @union{value}s that must be
+allocated to store a value of the given @var{width}.  For a numeric or
+short string value, the return value is 1; for long string
+variables, it is greater than 1.
+@end deftypefun
+
+@deftypefun void value_copy (union value *@var{dst}, @
+                             const union value *@var{src}, @
+                             int @var{width})
+Copies a value of the given @var{width} from the @union{value} array
+starting at @var{src} to the one starting at @var{dst}.  The two
+arrays must not overlap.
+@end deftypefun
+
+@deftypefun void value_set_missing (union value *@var{value}, int @var{width})
+Sets @var{value} to @code{SYSMIS} if it is numeric or to all spaces if
+it is alphanumeric, according to @var{width}.  @var{value} must point
+to the start of a @union{value} array of the given @var{width}.
+@end deftypefun
+
+@anchor{value_is_resizable}
+@deftypefun bool value_is_resizable (const union value *@var{value}, int @var{old_width}, int @var{new_width})
+Determines whether @var{value} may be resized from @var{old_width} to
+@var{new_width}.  Resizing is possible if the following criteria are
+met.  First, @var{old_width} and @var{new_width} must be both numeric
+or both string widths.  Second, if @var{new_width} is a short string
+width and less than @var{old_width}, resizing is allowed only if bytes
+@var{new_width} through @var{old_width} in @var{value} contain only
+spaces.
+
+These rules are part of those used by @func{mv_is_resizable} and
+@func{val_labs_can_set_width}.
+@end deftypefun
+
+@deftypefun void value_resize (union value *@var{value}, int @var{old_width}, int @var{new_width})
+Resizes @var{value} from @var{old_width} to @var{new_width}, which
+must be allowed by the rules stated above.  This has an effect only if
+@var{new_width} is greater than @var{old_width}, in which case the
+bytes newly added to @var{value} are cleared to spaces.
+@end deftypefun
+
+@node Input and Output Formats
+@section Input and Output Formats
+
+Input and output formats specify how to convert data fields to and
+from data values (@pxref{Input and Output Formats,,,pspp, PSPP Users
+Guide}).  PSPP uses @struct{fmt_spec} to represent input and output
+formats.
+
+Function prototypes and other declarations related to formats are in
+the @file{<data/format.h>} header.
+
+@deftp {Structure} {struct fmt_spec}
+An input or output format, with the following members:
+
+@table @code
+@item enum fmt_type type
+The format type (see below).
+
+@item int w
+Field width, in bytes.  The width of numeric fields is always between
+1 and 40 bytes, and the width of string fields is always between 1 and
+65534 bytes.  However, many individual types of formats place stricter
+limits on field width (see @ref{fmt_max_input_width},
+@ref{fmt_max_output_width}).
+
+@item int d
+Number of decimal places, in character positions.  For format types
+that do not allow decimal places to be specified, this value must be
+0.  Format types that do allow decimal places have type-specific and
+often width-specific restrictions on @code{d} (see
+@ref{fmt_max_input_decimals}, @ref{fmt_max_output_decimals}).
+@end table
+@end deftp
+
+@deftp {Enumeration} {enum fmt_type}
+An enumerated type representing an input or output format type.  Each
+PSPP input and output format has a corresponding enumeration constant
+prefixed by @samp{FMT}: @code{FMT_F}, @code{FMT_COMMA},
+@code{FMT_DOT}, and so on.
+@end deftp
+
+The following sections describe functions for manipulating formats and
+the data in fields represented by formats.
+
+@menu
+* Constructing and Verifying Formats::
+* Format Utility Functions::
+* Obtaining Properties of Format Types::
+* Numeric Formatting Styles::
+* Formatted Data Input and Output::
+@end menu
+
+@node Constructing and Verifying Formats
+@subsection Constructing and Verifying Formats
+
+These functions construct @struct{fmt_spec}s and verify that they are
+valid.
+
+@deftypefun {struct fmt_spec} fmt_for_input (enum fmt_type @var{type}, int @var{w}, int @var{d})
+@deftypefunx {struct fmt_spec} fmt_for_output (enum fmt_type @var{type}, int @var{w}, int @var{d})
+Constructs a @struct{fmt_spec} with the given @var{type}, @var{w}, and
+@var{d}, asserts that the result is a valid input (or output) format,
+and returns it.
+@end deftypefun
+
+@anchor{fmt_for_output_from_input}
+@deftypefun {struct fmt_spec} fmt_for_output_from_input (const struct fmt_spec *@var{input})
+Given @var{input}, which must be a valid input format, returns the
+equivalent output format.  @xref{Input and Output Formats,,,pspp, PSPP
+Users Guide}, for the rules for converting input formats into output
+formats.
+@end deftypefun
+
+@deftypefun {struct fmt_spec} fmt_default_for_width (int @var{width})
+Returns the default output format for a variable of the given
+@var{width}.  For a numeric variable, this is F8.2 format; for a
+string variable, it is the A format of the given @var{width}.
+@end deftypefun
+
+The following functions check whether a @struct{fmt_spec} is valid for
+various uses and return true if so, false otherwise.  When any of them
+returns false, it also outputs an explanatory error message using
+@func{msg}.  To suppress error output, enclose a call to one of these
+functions by a @func{msg_disable}/@func{msg_enable} pair.
+
+@deftypefun bool fmt_check (const struct fmt_spec *@var{format}, bool @var{for_input})
+@deftypefunx bool fmt_check_input (const struct fmt_spec *@var{format})
+@deftypefunx bool fmt_check_output (const struct fmt_spec *@var{format})
+Checks whether @var{format} is a valid input format (for
+@func{fmt_check_input}, or @func{fmt_check} if @var{for_input}) or
+output format (for @func{fmt_check_output}, or @func{fmt_check} if not
+@var{for_input}).
+@end deftypefun
+
+@deftypefun bool fmt_check_type_compat (const struct fmt_spec *@var{format}, enum val_type @var{type})
+Checks whether @var{format} matches the value type @var{type}, that
+is, if @var{type} is @code{VAL_NUMERIC} and @var{format} is a numeric
+format or @var{type} is @code{VAL_STRING} and @var{format} is a string
+format.
+@end deftypefun
+
+@deftypefun bool fmt_check_width_compat (const struct fmt_spec *@var{format}, int @var{width})
+Checks whether @var{format} may be used as an output format for a
+value of the given @var{width}.
+
+@func{fmt_var_width}, described in
+the following section, can be also be used to determine the value
+width needed by a format.
+@end deftypefun
+
+@node Format Utility Functions
+@subsection Format Utility Functions
+
+These functions work with @struct{fmt_spec}s.
+
+@deftypefun int fmt_var_width (const struct fmt_spec *@var{format})
+Returns the width for values associated with @var{format}.  If
+@var{format} is a numeric format, the width is 0; if @var{format} is
+an A format, then the width @code{@var{format}->w}; otherwise,
+@var{format} is an AHEX format and its width is @code{@var{format}->w
+/ 2}.
+@end deftypefun
+
+@deftypefun char *fmt_to_string (const struct fmt_spec *@var{format}, char @var{s}[FMT_STRING_LEN_MAX + 1])
+Converts @var{format} to a human-readable format specifier in @var{s}
+and returns @var{s}.  @var{format} need not be a valid input or output
+format specifier, e.g.@: it is allowed to have an excess width or
+decimal places.  In particular, if @var{format} has decimals, they are
+included in the output string, even if @var{format}'s type does not
+allow decimals, to allow accurately presenting incorrect formats to
+the user.
+@end deftypefun
+
+@deftypefun bool fmt_equal (const struct fmt_spec *@var{a}, const struct fmt_spec *@var{b})
+Compares @var{a} and @var{b} memberwise and returns true if they are
+identical, false otherwise.  @var{format} need not be a valid input or
+output format specifier.
+@end deftypefun
+
+@node Obtaining Properties of Format Types
+@subsection Obtaining Properties of Format Types
+
+These functions work with @enum{fmt_type}s instead of the higher-level
+@struct{fmt_spec}s.  Their primary purpose is to report properties of
+each possible format type, which in turn allows clients to abstract
+away many of the details of the very heterogeneous requirements of
+each format type.
+
+The first group of functions works with format type names.
+
+@deftypefun const char *fmt_name (enum fmt_type @var{type})
+Returns the name for the given @var{type}, e.g.@: @code{"COMMA"} for
+@code{FMT_COMMA}.
+@end deftypefun
+
+@deftypefun bool fmt_from_name (const char *@var{name}, enum fmt_type *@var{type})
+Tries to find the @enum{fmt_type} associated with @var{name}.  If
+successful, sets @code{*@var{type}} to the type and returns true;
+otherwise, returns false without modifying @code{*@var{type}}.
+@end deftypefun
+
+The functions below query basic limits on width and decimal places for
+each kind of format.
+
+@deftypefun bool fmt_takes_decimals (enum fmt_type @var{type})
+Returns true if a format of the given @var{type} is allowed to have a
+nonzero number of decimal places (the @code{d} member of
+@struct{fmt_spec}), false if not.
+@end deftypefun
+
+@anchor{fmt_min_input_width}
+@anchor{fmt_max_input_width}
+@anchor{fmt_min_output_width}
+@anchor{fmt_max_output_width}
+@deftypefun int fmt_min_input_width (enum fmt_type @var{type})
+@deftypefunx int fmt_max_input_width (enum fmt_type @var{type})
+@deftypefunx int fmt_min_output_width (enum fmt_type @var{type})
+@deftypefunx int fmt_max_output_width (enum fmt_type @var{type})
+Returns the minimum or maximum width (the @code{w} member of
+@struct{fmt_spec}) allowed for an input or output format of the
+specified @var{type}.
+@end deftypefun
+
+@anchor{fmt_max_input_decimals}
+@anchor{fmt_max_output_decimals}
+@deftypefun int fmt_max_input_decimals (enum fmt_type @var{type}, int @var{width})
+@deftypefunx int fmt_max_output_decimals (enum fmt_type @var{type}, int @var{width})
+Returns the maximum number of decimal places allowed for an input or
+output format, respectively, of the given @var{type} and @var{width}.
+Returns 0 if the specified @var{type} does not allow any decimal
+places or if @var{width} is too narrow to allow decimal places.
+@end deftypefun
+
+@deftypefun int fmt_step_width (enum fmt_type @var{type})
+Returns the ``width step'' for a @struct{fmt_spec} of the given
+@var{type}.  A @struct{fmt_spec}'s width must be a multiple of its
+type's width step.  Most format types have a width step of 1, so that
+their formats' widths may be any integer within the valid range, but
+hexadecimal numeric formats and AHEX string formats have a width step
+of 2.
+@end deftypefun
+
+These functions allow clients to broadly determine how each kind of
+input or output format behaves.
+
+@deftypefun bool fmt_is_string (enum fmt_type @var{type})
+@deftypefunx bool fmt_is_numeric (enum fmt_type @var{type})
+Returns true if @var{type} is a format for numeric or string values,
+respectively, false otherwise.
+@end deftypefun
+
+@deftypefun enum fmt_category fmt_get_category (enum fmt_type @var{type})
+Returns the category within which @var{type} falls.
+
+@deftp {Enumeration} {enum fmt_category}
+A group of format types.  Format type categories correspond to the
+input and output categories described in the PSPP user documentation
+(@pxref{Input and Output Formats,,,pspp, PSPP Users Guide}).
+
+Each format is in exactly one category.  The categories have bitwise
+disjoint values to make it easy to test whether a format type is in
+one of multiple categories, e.g.@:
+
+@example
+if (fmt_get_category (type) & (FMT_CAT_DATE | FMT_CAT_TIME))
+  @{
+    /* @dots{}@r{@code{type} is a date or time format}@dots{} */
+  @}
+@end example
+
+The format categories are:
+@table @code
+@item FMT_CAT_BASIC
+Basic numeric formats.
+
+@item FMT_CAT_CUSTOM
+Custom currency formats.
+
+@item FMT_CAT_LEGACY
+Legacy numeric formats.
+
+@item FMT_CAT_BINARY
+Binary formats.
+
+@item FMT_CAT_HEXADECIMAL
+Hexadecimal formats.
+
+@item FMT_CAT_DATE
+Date formats.
+
+@item FMT_CAT_TIME
+Time formats.
+
+@item FMT_CAT_DATE_COMPONENT
+Date component formats.
+
+@item FMT_CAT_STRING
+String formats.
+@end table
+@end deftp
+@end deftypefun
+
+The PSPP input and output routines use the following pair of functions
+to convert @enum{fmt_type}s to and from the separate set of codes used
+in system and portable files:
+
+@deftypefun int fmt_to_io (enum fmt_type @var{type})
+Returns the format code used in system and portable files that
+corresponds to @var{type}.
+@end deftypefun
+
+@deftypefun bool fmt_from_io (int @var{io}, enum fmt_type *@var{type})
+Converts @var{io}, a format code used in system and portable files,
+into a @enum{fmt_type} in @code{*@var{type}}.  Returns true if
+successful, false if @var{io} is not valid.
+@end deftypefun
+
+These functions reflect the relationship between input and output
+formats.
+
+@deftypefun enum fmt_type fmt_input_to_output (enum fmt_type @var{type})
+Returns the output format type that is used by default by DATA LIST
+and other input procedures when @var{type} is specified as an input
+format.  The conversion from input format to output format is more
+complicated than simply changing the format.
+@xref{fmt_for_output_from_input}, for a function that performs the
+entire conversion.
+@end deftypefun
+
+@deftypefun bool fmt_usable_for_input (enum fmt_type @var{type})
+Returns true if @var{type} may be used as an input format type, false
+otherwise.  The custom currency formats, in particular, may be used
+for output but not for input.
+
+All format types are valid for output.
+@end deftypefun
+
+The final group of format type property functions obtain
+human-readable templates that illustrate the formats graphically.
+
+@deftypefun const char *fmt_date_template (enum fmt_type @var{type})
+Returns a formatting template for @var{type}, which must be a date or
+time format type.  These formats are used by @func{data_in} and
+@func{data_out} to guide parsing and formatting date and time data.
+@end deftypefun
+
+@deftypefun char *fmt_dollar_template (const struct fmt_spec *@var{format})
+Returns a string of the form @code{$#,###.##} according to
+@var{format}, which must be of type @code{FMT_DOLLAR}.  The caller
+must free the string with @code{free}.
+@end deftypefun
+
+@node Numeric Formatting Styles
+@subsection Numeric Formatting Styles
+
+Each of the basic numeric formats (F, E, COMMA, DOT, DOLLAR, PCT) and
+custom currency formats (CCA, CCB, CCC, CCD, CCE) has an associated
+numeric formatting style, represented by @struct{fmt_number_style}.
+Input and output conversion of formats that have numeric styles is
+determined mainly by the style, although the formatting rules have
+special cases that are not represented within the style.
+
+@deftp {Structure} {struct fmt_number_style}
+A structure type with the following members:
+
+@table @code
+@item struct substring neg_prefix
+@itemx struct substring prefix
+@itemx struct substring suffix
+@itemx struct substring neg_suffix
+A set of strings used a prefix to negative numbers, a prefix to every
+number, a suffix to every number, and a suffix to negative numbers,
+respectively.  Each of these strings is no more than
+@code{FMT_STYLE_AFFIX_MAX} bytes (currently 16) bytes in length.
+These strings must be freed with @func{ss_dealloc} when no longer
+needed.
+
+@item decimal
+The character used as a decimal point.  It must be either @samp{.} or
+@samp{,}.
+
+@item grouping
+The character used for grouping digits to the left of the decimal
+point.  It may be @samp{.} or @samp{,}, in which case it must not be
+equal to @code{decimal}, or it may be set to 0 to disable grouping.
+@end table
+@end deftp
+
+The following functions are provided for working with numeric
+formatting styles.
+
+@deftypefun {struct fmt_number_style *} fmt_number_style_create (void)
+Creates and returns a new @struct{fmt_number_style} with all of the
+prefixes and suffixes set to the empty string, @samp{.} as the decimal
+point character, and grouping disables.
+@end deftypefun
+
+@deftypefun void fmt_number_style_destroy (struct fmt_number_style *@var{style})
+Destroys @var{style}, freeing its storage.
+@end deftypefun
+
+@deftypefun int fmt_affix_width (const struct fmt_number_style *@var{style})
+Returns the total length of @var{style}'s @code{prefix} and @code{suffix}.
+@end deftypefun
+
+@deftypefun int fmt_neg_affix_width (const struct fmt_number_style *@var{style})
+Returns the total length of @var{style}'s @code{neg_prefix} and
+@code{neg_suffix}.
+@end deftypefun
+
+PSPP maintains a global set of number styles for each of the basic
+numeric formats and custom currency formats.  The following functions
+work with these global styles:
+
+@deftypefun {const struct fmt_number_style *} fmt_get_style (enum fmt_type @var{type})
+Returns the numeric style for the given format @var{type}.
+@end deftypefun
+
+@deftypefun void fmt_set_style (enum fmt_type @var{type}, struct fmt_number_style *@var{style})
+Replaces the current numeric style for format @var{type} by the given
+@var{style}, which becomes owned by the callee.  @var{type} must be a
+custom currency format and @var{style} must follow all the rules for
+numeric styles explained above.
+@end deftypefun
+
+@deftypefun int fmt_decimal_char (enum fmt_type @var{type})
+Returns the decimal point character for the given format @var{type}.
+Equivalent to @code{fmt_get_style (@var{type})->decimal}.
+@end deftypefun
+
+@deftypefun int fmt_grouping_char (enum fmt_type @var{type})
+Returns the grouping character for the given format @var{type}, or 0
+if @var{type} output should not be grouped.  Equivalent to
+@code{fmt_get_style (@var{type})->grouping}.
+@end deftypefun
+
+@deftypefun void fmt_set_decimal (char @var{decimal})
+Changes the decimal point character for the basic numeric formats to
+@var{decimal}, which must be @samp{.} or @samp{,}.  The F, E, COMMA,
+DOLLAR, and PCT will use the specified decimal point character, and the
+opposite character for grouping where appropriate.  The DOT format
+uses the reverse choices.
+@end deftypefun
+
+@node Formatted Data Input and Output
+@subsection Formatted Data Input and Output
+
+These functions provide the ability to convert data fields into
+@union{value}s and vice versa.
+
+@deftypefun bool data_in (struct substring @var{input}, enum legacy_encoding @var{legacy_encoding}, enum fmt_type @var{type}, int @var{implied_decimals}, int @var{first_column}, union value *@var{output}, int @var{width})
+Parses @var{input} as a field containing data in the given format
+@var{type}.  The resulting value is stored in @var{output}, which has
+the given @var{width}.  For consistency, @var{width} must be 0 if
+@var{type} is a numeric format type and greater than 0 if @var{type}
+is a string format type.
+
+Ordinarily @var{legacy_encoding} should be @code{LEGACY_NATIVE},
+indicating that @var{input} is encoded in the character set
+conventionally used on the host machine.  It may be set to
+@code{LEGACY_EBCDIC} to cause @var{input} to be re-encoded from EBCDIC
+during data parsing.
+
+If @var{input} is the empty string (with length 0), @var{output} is
+set to the value set on SET BLANKS (@pxref{SET BLANKS,,,pspp, PSPP
+Users Guide}) for a numeric value, or to all spaces for a string
+value.  This applies regardless of the usual parsing requirements for
+@var{type}.
+
+If @var{implied_decimals} is greater than zero, then the numeric
+result is shifted right by @var{implied_decimals} decimal places if
+@var{input} does not contain a decimal point character or an exponent.
+Only certain numeric format types support implied decimal places; for
+string formats and other numeric formats, @var{implied_decimals} has
+no effect.  DATA LIST FIXED is the primary user of this feature
+(@pxref{DATA LIST FIXED,,,pspp, PSPP Users Guide}).  Other callers
+should generally specify 0 for @var{implied_decimals}, to disable this
+feature.
+
+When @var{input} contains invalid input data, @func{data_in} outputs a
+message using @func{msg}.
+@c (@pxref{msg}).
+If @var{first_column} is
+nonzero, it is included in any such error message as the 1-based
+column number of the start of the field.  The last column in the field
+is calculated as @math{@var{first_column} + @var{input} - 1}.  To
+suppress error output, enclose the call to @func{data_in} by calls to
+@func{msg_disable} and @func{msg_enable}.
+
+This function returns true on success, false if a message was output
+(even if suppressed).  Overflow and underflow provoke warnings but are
+not propagated to the caller as errors.
+
+This function is declared in @file{data/data-in.h}.
+@end deftypefun
+
+@deftypefun void data_out (const union value *@var{input}, const struct fmt_spec *@var{format}, char *@var{output})
+@deftypefunx void data_out_legacy (const union value *@var{input}, enum legacy_encoding @var{legacy_encoding}, const struct fmt_spec *@var{format}, char *@var{output})
+Converts the data pointed to by @var{input} into a data field in
+@var{output} according to output format specifier @var{format}, which
+must be a valid output format.  Exactly @code{@var{format}->w} bytes
+are written to @var{output}.  The width of @var{input} is also
+inferred from @var{format} using an algorithm equivalent to
+@func{fmt_var_width}.
+
+If @func{data_out} is called, or @func{data_out_legacy} is called with
+@var{legacy_encoding} set to @code{LEGACY_NATIVE}, @var{output} will
+be encoded in the character set conventionally used on the host
+machine.  If @var{legacy_encoding} is set to @code{LEGACY_EBCDIC},
+@var{output} will be re-encoded from EBCDIC during data output.
+
+When @var{input} contains data that cannot be represented in the given
+@var{format}, @func{data_out} may output a message using @func{msg},
+@c (@pxref{msg}),
+although the current implementation does not
+consistently do so.  To suppress error output, enclose the call to
+@func{data_out} by calls to @func{msg_disable} and @func{msg_enable}.
+
+This function is declared in @file{data/data-out.h}.
+@end deftypefun
+
+@node User-Missing Values
+@section User-Missing Values
+
+In addition to the system-missing value for numeric values, each
+variable has a set of user-missing values (@pxref{MISSING
+VALUES,,,pspp, PSPP Users Guide}).  A set of user-missing values is
+represented by @struct{missing_values}.
+
+It is rarely necessary to interact directly with a
+@struct{missing_values} object.  Instead, the most common operation,
+querying whether a particular value is a missing value for a given
+variable, is most conveniently executed through functions on
+@struct{variable}.  @xref{Variable Missing Values}, for details.
+
+A @struct{missing_values} is essentially a set of @union{value}s that
+have a common value width (@pxref{Values}).  For a set of
+missing values associated with a variable (the common case), the set's
+width is the same as the variable's width.  The contents of a set of
+missing values is subject to some restrictions.  Regardless of width,
+a set of missing values is allowed to be empty.  Otherwise, its
+possible contents depend on its width:
+
+@table @asis
+@item 0 (numeric values)
+Up to three discrete numeric values, or a range of numeric values
+(which includes both ends of the range), or a range plus one discrete
+numeric value.
+
+@item 1@dots{}@t{MAX_SHORT_STRING} - 1 (short string values)
+Up to three discrete string values (with the same width as the set).
+
+@item @t{MAX_SHORT_STRING}@dots{}@t{MAX_STRING} (long string values)
+Always empty.
+@end table
+
+These somewhat arbitrary restrictions are the same as those imposed by
+SPSS.  In PSPP we could easily eliminate these restrictions, but doing
+so would also require us to extend the system file format in an
+incompatible way, which we consider a bad tradeoff.
+
+Function prototypes and other declarations related to missing values
+are declared in @file{data/missing-values.h}.
+
+@deftp {Structure} {struct missing_values}
+Opaque type that represents a set of missing values.
+@end deftp
+
+The most often useful functions for missing values are those for
+testing whether a given value is missing, described in the following
+section.  Several other functions for creating, inspecting, and
+modifying @struct{missing_values} objects are described afterward, but
+these functions are much more rarely useful.  No function for
+destroying a @struct{missing_values} is provided, because
+@struct{missing_values} does not contain any pointers or other
+references to resources that need deallocation.
+
+@menu
+* Testing for Missing Values::
+* Initializing User-Missing Value Sets::
+* Changing User-Missing Value Set Width::
+* Inspecting User-Missing Value Sets::
+* Modifying User-Missing Value Sets::
+@end menu
+
+@node Testing for Missing Values
+@subsection Testing for Missing Values
+
+The most often useful functions for missing values are those for
+testing whether a given value is missing, described here.  However,
+using one of the corresponding missing value testing functions for
+variables can be even easier (@pxref{Variable Missing Values}).
+
+@deftypefun bool mv_is_value_missing (const struct missing_values *@var{mv}, const union value *@var{value}, enum mv_class @var{class})
+@deftypefunx bool mv_is_num_missing (const struct missing_values *@var{mv}, double @var{value}, enum mv_class @var{class})
+@deftypefunx bool mv_is_str_missing (const struct missing_values *@var{mv}, const char @var{value}[], enum mv_class @var{class})
+Tests whether @var{value} is in one of the categories of missing
+values given by @var{class}.  Returns true if so, false otherwise.
+
+@var{mv} determines the width of @var{value} and provides the set of
+user-missing values to test.
+
+The only difference among these functions in the form in which
+@var{value} is provided, so you may use whichever function is most
+convenient.
+
+The @var{class} argument determines the exact kinds of missing values
+that the functions test for:
+
+@deftp Enumeration {enum mv_class}
+@table @t
+@item MV_USER
+Returns true if @var{value} is in the set of user-missing values given
+by @var{mv}.
+
+@item MV_SYSTEM
+Returns true if @var{value} is system-missing.  (If @var{mv}
+represents a set of string values, then @var{value} is never
+system-missing.)
+
+@item MV_ANY
+@itemx MV_USER | MV_SYSTEM
+Returns true if @var{value} is user-missing or system-missing.
+
+@item MV_NONE
+Always returns false, that is, @var{value} is never considered
+missing.
+@end table
+@end deftp
+@end deftypefun
+
+@node Initializing User-Missing Value Sets
+@subsection Initializing User-Missing Value Sets
+
+@deftypefun void mv_init (struct missing_values *@var{mv}, int @var{width})
+Initializes @var{mv} as a set of user-missing values.  The set is
+initially empty.  Any values added to it must have the specified
+@var{width}.
+@end deftypefun
+
+@deftypefun void mv_copy (struct missing_values *@var{mv}, const struct missing_values *@var{old})
+Initializes @var{mv} as a copy of the existing set of user-missing
+values @var{old}.
+@end deftypefun
+
+@deftypefun void mv_clear (struct missing_values *@var{mv})
+Empties the user-missing value set @var{mv}, retaining its existing
+width.
+@end deftypefun
+
+@node Changing User-Missing Value Set Width
+@subsection Changing User-Missing Value Set Width
+
+A few PSPP language constructs copy sets of user-missing values from
+one variable to another.  When the source and target variables have
+the same width, this is simple.  But when the target variable's width
+might be different from the source variable's, it takes a little more
+work.  The functions described here can help.
+
+In fact, it is usually unnecessary to call these functions directly.
+Most of the time @func{var_set_missing_values}, which uses
+@func{mv_resize} internally to resize the new set of missing values to
+the required width, may be used instead.
+@xref{var_set_missing_values}, for more information.
+
+@deftypefun bool mv_is_resizable (const struct missing_values *@var{mv}, int @var{new_width})
+Tests whether @var{mv}'s width may be changed to @var{new_width} using
+@func{mv_resize}.  Returns true if it is allowed, false otherwise.
+
+If @var{new_width} is a long string width, @var{mv} may be resized
+only if it is empty.  Otherwise, if @var{mv} contains any missing
+values, then it may be resized only if each missing value may be
+resized, as determined by @func{value_is_resizable}
+(@pxref{value_is_resizable}).
+@end deftypefun
+
+@anchor{mv_resize}
+@deftypefun void mv_resize (struct missing_values *@var{mv}, int @var{width})
+Changes @var{mv}'s width to @var{width}.  @var{mv} and @var{width}
+must satisfy the constraints explained above.
+
+When a string missing value set's width is increased, each
+user-missing value is padded on the right with spaces to the new
+width.
+@end deftypefun
+
+@node Inspecting User-Missing Value Sets
+@subsection Inspecting User-Missing Value Sets
+
+These functions inspect the properties and contents of
+@struct{missing_values} objects.
+
+The first set of functions inspects the discrete values that numeric
+and short string sets of user-missing values may contain:
+
+@deftypefun bool mv_is_empty (const struct missing_values *@var{mv})
+Returns true if @var{mv} contains no user-missing values, false if it
+contains at least one user-missing value (either a discrete value or a
+numeric range).
+@end deftypefun
+
+@deftypefun int mv_get_width (const struct missing_values *@var{mv})
+Returns the width of the user-missing values that @var{mv} represents.
+@end deftypefun
+
+@deftypefun int mv_n_values (const struct missing_values *@var{mv})
+Returns the number of discrete user-missing values included in
+@var{mv}.  The return value will be between 0 and 3.  For sets of
+numeric user-missing values that include a range, the return value
+will be 0 or 1.
+@end deftypefun
+
+@deftypefun bool mv_has_value (const struct missing_values *@var{mv})
+Returns true if @var{mv} has at least one discrete user-missing
+values, that is, if @func{mv_n_values} would return nonzero for
+@var{mv}.
+@end deftypefun
+
+@deftypefun void mv_get_value (const struct missing_values *@var{mv}, union value *@var{value}, int @var{index})
+Copies the discrete user-missing value in @var{mv} with the given
+@var{index} into @var{value}.  The index must be less than the number
+of discrete user-missing values in @var{mv}, as reported by
+@func{mv_n_values}.
+@end deftypefun
+
+The second set of functions inspects the single range of values that
+numeric sets of user-missing values may contain:
+
+@deftypefun bool mv_has_range (const struct missing_values *@var{mv})
+Returns true if @var{mv} includes a range, false otherwise.
+@end deftypefun
+
+@deftypefun void mv_get_range (const struct missing_values *@var{mv}, double *@var{low}, double *@var{high})
+Stores the low endpoint of @var{mv}'s range in @code{*@var{low}} and
+the high endpoint of the range in @code{*@var{high}}.  @var{mv} must
+include a range.
+@end deftypefun
+
+@node Modifying User-Missing Value Sets
+@subsection Modifying User-Missing Value Sets
+
+These functions modify the contents of @struct{missing_values}
+objects.
+
+The first set of functions applies to all sets of user-missing values:
+
+@deftypefun bool mv_add_value (struct missing_values *@var{mv}, const union value *@var{value})
+@deftypefunx bool mv_add_str (struct missing_values *@var{mv}, const char @var{value}[])
+@deftypefunx bool mv_add_num (struct missing_values *@var{mv}, double @var{value})
+Attempts to add the given discrete @var{value} to set of user-missing
+values @var{mv}.  @var{value} must have the same width as @var{mv}.
+Returns true if @var{value} was successfully added, false if the set
+could not accept any more discrete values.  (Always returns false if
+@var{mv} is a set of long string user-missing values.)
+
+These functions are equivalent, except for the form in which
+@var{value} is provided, so you may use whichever function is most
+convenient.
+@end deftypefun
+
+@deftypefun void mv_pop_value (struct missing_values *@var{mv}, union value *@var{value})
+Removes a discrete value from @var{mv} (which must contain at least
+one discrete value) and stores it in @var{value}.
+@end deftypefun
+
+@deftypefun void mv_replace_value (struct missing_values *@var{mv}, const union value *@var{value}, int @var{index})
+Replaces the discrete value with the given @var{index} in @var{mv}
+(which must contain at least @var{index} + 1 discrete values) with
+@var{value}.
+@end deftypefun
+
+The second set of functions applies only to numeric sets of
+user-missing values:
+
+@deftypefun bool mv_add_range (struct missing_values *@var{mv}, double @var{low}, double @var{high})
+Attempts to add a numeric range covering @var{low}@dots{}@var{high}
+(inclusive on both ends) to @var{mv}, which must be a numeric set of
+user-missing values.  Returns true if the range is successful added,
+false on failure.  Fails if @var{mv} already contains a range, or if
+@var{mv} contains more than one discrete value, or if @var{low} >
+@var{high}.
+@end deftypefun
+
+@deftypefun void mv_pop_range (struct missing_values *@var{mv}, double *@var{low}, double *@var{high})
+Given @var{mv}, which must be a numeric set of user-missing values
+that contains a range, removes that range from @var{mv} and stores its
+low endpoint in @code{*@var{low}} and its high endpoint in
+@code{*@var{high}}.
+@end deftypefun
+
+@node Value Labels
+@section Value Labels
+
+Each variable has a set of value labels (@pxref{VALUE LABELS,,,pspp,
+PSPP Users Guide}), represented as @struct{val_labs}.  A
+@struct{val_labs} is essentially a map from @union{value}s to strings.
+All of the values in a set of value labels have the same width, which
+for a set of value labels owned by a variable (the common case) is the
+same as its variable.
+
+Numeric and short string sets of value labels may contain any number
+of entries.  Long string sets of value labels may not contain any
+value labels at all, due to a corresponding restriction in SPSS.  In
+PSPP we could easily eliminate this restriction, but doing so would
+also require us to extend the system file format in an incompatible
+way, which we consider a bad tradeoff.
+
+It is rarely necessary to interact directly with a @struct{val_labs}
+object.  Instead, the most common operation, looking up the label for
+a value of a given variable, can be conveniently executed through
+functions on @struct{variable}.  @xref{Variable Value Labels}, for
+details.
+
+Function prototypes and other declarations related to missing values
+are declared in @file{data/value-labels.h}.
+
+@deftp {Structure} {struct val_labs}
+Opaque type that represents a set of value labels.
+@end deftp
+
+The most often useful function for value labels is
+@func{val_labs_find}, for looking up the label associated with a
+value.
+
+@deftypefun {char *} val_labs_find (const struct val_labs *@var{val_labs}, union value @var{value})
+Looks in @var{val_labs} for a label for the given @var{value}.
+Returns the label, if one is found, or a null pointer otherwise.
+@end deftypefun
+
+Several other functions for working with value labels are described in
+the following section, but these are more rarely useful.
+
+@menu
+* Value Labels Creation and Destruction::
+* Value Labels Properties::
+* Value Labels Adding and Removing Labels::
+* Value Labels Iteration::
+@end menu
+
+@node Value Labels Creation and Destruction
+@subsection Creation and Destruction
+
+These functions create and destroy @struct{val_labs} objects.
+
+@deftypefun {struct val_labs *} val_labs_create (int @var{width})
+Creates and returns an initially empty set of value labels with the
+given @var{width}.
+@end deftypefun
+
+@deftypefun {struct val_labs *} val_labs_clone (const struct val_labs *@var{val_labs})
+Creates and returns a set of value labels whose width and contents are
+the same as those of @var{var_labs}.
+@end deftypefun
+
+@deftypefun void val_labs_clear (struct val_labs *@var{var_labs})
+Deletes all value labels from @var{var_labs}.
+@end deftypefun
+
+@deftypefun void val_labs_destroy (struct val_labs *@var{var_labs})
+Destroys @var{var_labs}, which must not be referenced again.
+@end deftypefun
+
+@node Value Labels Properties
+@subsection Value Labels Properties
+
+These functions inspect and manipulate basic properties of
+@struct{val_labs} objects.
+
+@deftypefun size_t val_labs_count (const struct val_labs *@var{val_labs})
+Returns the number of value labels in @var{val_labs}.
+@end deftypefun
+
+@deftypefun bool val_labs_can_set_width (const struct val_labs *@var{val_labs}, int @var{new_width})
+Tests whether @var{val_labs}'s width may be changed to @var{new_width}
+using @func{val_labs_set_width}.  Returns true if it is allowed, false
+otherwise.
+
+A set of value labels may be resized to a given width only if each
+value in it may be resized to that width, as determined by
+@func{value_is_resizable} (@pxref{value_is_resizable}).
+@end deftypefun
+
+@deftypefun void val_labs_set_width (struct val_labs *@var{val_labs}, int @var{new_width})
+Changes the width of @var{val_labs}'s values to @var{new_width}, which
+must be a valid new width as determined by
+@func{val_labs_can_set_width}.
+
+If @var{new_width} is a long string width, this function deletes all
+value labels from @var{val_labs}.
+@end deftypefun
+
+@node Value Labels Adding and Removing Labels
+@subsection Adding and Removing Labels
+
+These functions add and remove value labels from a @struct{val_labs}
+object.  These functions apply only to numeric and short string sets
+of value labels.  They have no effect on long string sets of value
+labels, since these sets are always empty.
+
+@deftypefun bool val_labs_add (struct val_labs *@var{val_labs}, union value @var{value}, const char *@var{label})
+Adds @var{label} to in @var{var_labs} as a label for @var{value},
+which must have the same width as the set of value labels.  Returns
+true if successful, false if @var{value} already has a label or if
+@var{val_labs} has long string width.
+@end deftypefun
+
+@deftypefun void val_labs_replace (struct val_labs *@var{val_labs}, union value @var{value}, const char *@var{label})
+Adds @var{label} to in @var{var_labs} as a label for @var{value},
+which must have the same width as the set of value labels.  If
+@var{value} already has a label in @var{var_labs}, it is replaced.
+Has no effect if @var{var_labs} has long string width.
+@end deftypefun
+
+@deftypefun bool val_labs_remove (struct val_labs *@var{val_labs}, union value @var{value})
+Removes from @var{val_labs} any label for @var{value}, which must have
+the same width as the set of value labels.  Returns true if a label
+was removed, false otherwise.
+@end deftypefun
+
+@node Value Labels Iteration
+@subsection Iterating through Value Labels
+
+These functions allow iteration through the set of value labels
+represented by a @struct{val_labs} object.  They are usually used in
+the context of a @code{for} loop:
+
+@example
+struct val_labs val_labs;
+struct val_labs_iterator *i;
+struct val_lab *vl;
+
+@dots{}
+
+for (vl = val_labs_first (val_labs, &i); vl != NULL;
+     vl = val_labs_next (val_labs, &i))
+  @{
+    @dots{}@r{do something with @code{vl}}@dots{}
+  @}
+@end example
+
+The value labels in a @struct{val_labs} must not be modified as it is
+undergoing iteration.
+
+@deftp {Structure} {struct val_lab}
+Represents a value label for iteration purposes, with two
+client-visible members:
+
+@table @code
+@item union value value
+Value being labeled, of the same width as the @struct{val_labs} being
+iterated.
+
+@item const char *label
+The label, as a null-terminated string.
+@end table
+@end deftp
+
+@deftp {Structure} {struct val_labs_iterator}
+Opaque object that represents the current state of iteration through a
+set of value value labels.  Automatically destroyed by successful
+completion of iteration.  Must be destroyed manually in other
+circumstances, by calling @func{val_labs_done}.
+@end deftp
+
+@deftypefun {struct val_lab *} val_labs_first (const struct val_labs *@var{val_labs}, struct val_labs_iterator **@var{iterator})
+If @var{val_labs} contains at least one value label, starts an
+iteration through @var{val_labs}, initializes @code{*@var{iterator}}
+to point to a newly allocated iterator, and returns the first value
+label in @var{val_labs}.  If @var{val_labs} is empty, sets
+@code{*@var{iterator}} to null and returns a null pointer.
+
+This function creates iterators that traverse sets of value labels in
+no particular order.
+@end deftypefun
+
+@deftypefun {struct val_lab *} val_labs_first_sorted (const struct val_labs *@var{val_labs}, struct val_labs_iterator **@var{iterator})
+Same as @func{val_labs_first}, except that the created iterator
+traverses the set of value labels in ascending order of value.
+@end deftypefun
+
+@deftypefun {struct val_lab *} val_labs_next (const struct val_labs *@var{val_labs}, struct val_labs_iterator **@var{iterator})
+Advances an iterator created with @func{val_labs_first} or
+@func{val_labs_first_sorted} to the next value label, which is
+returned.  If the set of value labels is exhausted, returns a null
+pointer after freeing @code{*@var{iterator}} and setting it to a null
+pointer.
+@end deftypefun
+
+@deftypefun void val_labs_done (struct val_labs_iterator **@var{iterator})
+Frees @code{*@var{iterator}} and sets it to a null pointer.  Does
+not need to be called explicitly if @func{val_labs_next} returns a
+null pointer, indicating that all value labels have been visited.
+@end deftypefun
+
+@node Variables
+@section Variables
+
+A PSPP variable is represented by @struct{variable}, an opaque type
+declared in @file{data/variable.h} along with related declarations.
+@xref{Variables,,,pspp, PSPP Users Guide}, for a description of PSPP
+variables from a user perspective.
+
+PSPP is unusual among computer languages in that, by itself, a PSPP
+variable does not have a value.  Instead, a variable in PSPP takes on
+a value only in the context of a case, which supplies one value for
+each variable in a set of variables (@pxref{Cases}).  The set of
+variables in a case, in turn, are ordinarily part of a dictionary
+(@pxref{Dictionaries}).
+
+Every variable has several attributes, most of which correspond
+directly to one of the variable attributes visible to PSPP users
+(@pxref{Attributes,,,pspp, PSPP Users Guide}).
+
+The following sections describe variable-related functions and macros.
+
+@menu
+* Variable Name::
+* Variable Type and Width::
+* Variable Missing Values::
+* Variable Value Labels::
+* Variable Print and Write Formats::
+* Variable Labels::
+* Variable GUI Attributes::
+* Variable Leave Status::
+* Dictionary Class::
+* Variable Creation and Destruction::
+* Variable Short Names::
+* Variable Relationships::
+* Variable Auxiliary Data::
+* Variable Categorical Values::
+@end menu
+
+@node Variable Name
+@subsection Variable Name
+
+A variable name is a string between 1 and @code{VAR_NAME_LEN} bytes
+long that satisfies the rules for PSPP identifiers
+(@pxref{Tokens,,,pspp, PSPP Users Guide}).  Variable names are
+mixed-case and treated case-insensitively.
+
+@deftypefn Macro int VAR_NAME_LEN
+Maximum length of a variable name, in bytes, currently 64.
+@end deftypefn
+
+Only one commonly useful function relates to variable names:
+
+@deftypefun {const char *} var_get_name (const struct variable *@var{var})
+Returns @var{var}'s variable name as a C string.
+@end deftypefun
+
+A few other functions are much more rarely used.  Some of these
+functions are used internally by the dictionary implementation:
+
+@anchor{var_set_name}
+@deftypefun {void} var_set_name (struct variable *@var{var}, const char *@var{new_name})
+Changes the name of @var{var} to @var{new_name}, which must be a
+``plausible'' name as defined below.
+
+This function cannot be applied to a variable that is part of a
+dictionary.  Use @func{dict_rename_var} instead (@pxref{Dictionary
+Renaming Variables}).
+@end deftypefun
+
+@anchor{var_is_plausible_name}
+@deftypefun {bool} var_is_valid_name (const char *@var{name}, bool @var{issue_error})
+@deftypefunx {bool} var_is_plausible_name (const char *@var{name}, bool @var{issue_error})
+Tests @var{name} for validity or ``plausibility.''  Returns true if
+the name is acceptable, false otherwise.  If the name is not
+acceptable and @var{issue_error} is true, also issues an error message
+explaining the violation.
+
+A valid name is one that fully satisfies all of the requirements for
+variable names (@pxref{Tokens,,,pspp, PSPP Users Guide}).  A
+``plausible'' name is simply a string whose length is in the valid
+range and that is not a reserved word.  PSPP accepts plausible but
+invalid names as variable names in some contexts where the character
+encoding scheme is ambiguous, as when reading variable names from
+system files.
+@end deftypefun
+
+@deftypefun {enum dict_class} var_get_dict_class (const struct variable *@var{var})
+Returns the dictionary class of @var{var}'s name (@pxref{Dictionary
+Class}).
+@end deftypefun
+
+@node Variable Type and Width
+@subsection Variable Type and Width
+
+A variable's type and width are the type and width of its values
+(@pxref{Values}).
+
+@deftypefun {enum val_type} var_get_type (const struct variable *@var{var})
+Returns the type of variable @var{var}.
+@end deftypefun
+
+@deftypefun int var_get_width (const struct variable *@var{var})
+Returns the width of variable @var{var}.
+@end deftypefun
+
+@deftypefun void var_set_width (struct variable *@var{var}, int @var{width})
+Sets the width of variable @var{var} to @var{width}.  The width of a
+variable should not normally be changed after the variable is created,
+so this function is rarely used.  This function cannot be applied to a
+variable that is part of a dictionary.
+@end deftypefun
+
+@deftypefun bool var_is_numeric (const struct variable *@var{var})
+Returns true if @var{var} is a numeric variable, false otherwise.
+@end deftypefun
+
+@deftypefun bool var_is_alpha (const struct variable *@var{var})
+Returns true if @var{var} is an alphanumeric (string) variable, false
+otherwise.
+@end deftypefun
+
+@deftypefun bool var_is_short_string (const struct variable *@var{var})
+Returns true if @var{var} is a string variable of width
+@code{MAX_SHORT_STRING} or less, false otherwise.
+@end deftypefun
+
+@deftypefun bool var_is_long_string (const struct variable *var{var})
+Returns true if @var{var} is a string variable of width greater than
+@code{MAX_SHORT_STRING}, false otherwise.
+@end deftypefun
+
+@deftypefun size_t var_get_value_cnt (const struct variable *@var{var})
+Returns the number of @union{value}s needed to hold an instance of
+variable @var{var}.  @code{var_get_value_cnt (var)} is equivalent to
+@code{value_cnt_from_width (var_get_width (var))}.
+@end deftypefun
+
+@node Variable Missing Values
+@subsection Variable Missing Values
+
+A numeric or short string variable may have a set of user-missing
+values (@pxref{MISSING VALUES,,,pspp, PSPP Users Guide}), represented
+as a @struct{missing_values} (@pxref{User-Missing Values}).
+
+The most frequent operation on a variable's missing values is to query
+whether a value is user- or system-missing:
+
+@deftypefun bool var_is_value_missing (const struct variable *@var{var}, const union value *@var{value}, enum mv_class @var{class})
+@deftypefunx bool var_is_num_missing (const struct variable *@var{var}, double @var{value}, enum mv_class @var{class})
+@deftypefunx bool var_is_str_missing (const struct variable *@var{var}, const char @var{value}[], enum mv_class @var{class})
+Tests whether @var{value} is a missing value of the given @var{class}
+for variable @var{var} and returns true if so, false otherwise.
+@func{var_is_num_missing} may only be applied to numeric variables;
+@func{var_is_str_missing} may only be applied to string variables.
+For string variables, @var{value} must contain exactly as many
+characters as @var{var}'s width.
+
+@code{var_is_@var{type}_missing (@var{var}, @var{value}, @var{class})}
+is equivalent to @code{mv_is_@var{type}_missing
+(var_get_missing_values (@var{var}), @var{value}, @var{class})}.
+@end deftypefun
+
+In addition, a few functions are provided to work more directly with a
+variable's @struct{missing_values}:
+
+@deftypefun {const struct missing_values *} var_get_missing_values (const struct variable *@var{var})
+Returns the @struct{missing_values} associated with @var{var}.  The
+caller must not modify the returned structure.  The return value is
+always non-null.
+@end deftypefun
+
+@anchor{var_set_missing_values}
+@deftypefun {void} var_set_missing_values (struct variable *@var{var}, const struct missing_values *@var{miss})
+Changes @var{var}'s missing values to a copy of @var{miss}, or if
+@var{miss} is a null pointer, clears @var{var}'s missing values.  If
+@var{miss} is non-null, it must have the same width as @var{var} or be
+resizable to @var{var}'s width (@pxref{mv_resize}).  The caller
+retains ownership of @var{miss}.
+@end deftypefun
+
+b@deftypefun void var_clear_missing_values (struct variable *@var{var})
+Clears @var{var}'s missing values.  Equivalent to
+@code{var_set_missing_values (@var{var}, NULL)}.
+@end deftypefun
+
+@deftypefun bool var_has_missing_values (const struct variable *@var{var})
+Returns true if @var{var} has any missing values, false if it has
+none.  Equivalent to @code{mv_is_empty (var_get_missing_values (@var{var}))}.
+@end deftypefun
+
+@node Variable Value Labels
+@subsection Variable Value Labels
+
+A numeric or short string variable may have a set of value labels
+(@pxref{VALUE LABELS,,,pspp, PSPP Users Guide}), represented as a
+@struct{val_labs} (@pxref{Value Labels}).  The most commonly useful
+functions for value labels return the value label associated with a
+value:
+
+@deftypefun {const char *} var_lookup_value_label (const struct variable *@var{var}, const union value *@var{value})
+Looks for a label for @var{value} in @var{var}'s set of value labels.
+Returns the label if one exists, otherwise a null pointer.
+@end deftypefun
+
+@deftypefun {const char *} var_get_value_name (const struct variable *@var{var}, const union value *@var{value})
+Looks for a label for @var{value} in @var{var}'s set of value labels.
+Returns the label if one exists.  If none exists, formats @var{label}
+using @var{var}'s print format (@pxref{Input and Output Formats}) in a
+static buffer and returns the buffer.
+
+@quotation Important
+This function's use of a static buffer means that it must be used with
+care.
+@end quotation
+@end deftypefun
+
+The underlying @struct{val_labs} structure may also be accessed
+directly using the functions described below.
+
+@deftypefun bool var_has_value_labels (const struct variable *@var{var})
+Returns true if @var{var} has at least one value label, false
+otherwise.
+@end deftypefun
+
+@deftypefun {const struct val_labs *} var_get_value_labels (const struct variable *@var{var})
+Returns the @struct{val_labs} associated with @var{var}.  If @var{var}
+has no value labels, then the return value may or may not be a null
+pointer.
+
+The variable retains ownership of the returned @struct{val_labs},
+which the caller must not attempt to modify.
+@end deftypefun
+
+@deftypefun void var_set_value_labels (struct variable *@var{var}, const struct val_labs *@var{val_labs})
+Replaces @var{var}'s value labels by a copy of @var{val_labs}.  The
+caller retains ownership of @var{val_labs}.  If @var{val_labs} is a
+null pointer, then @var{var}'s value labels, if any, are deleted.
+@end deftypefun
+
+@deftypefun void var_clear_value_labels (struct variable *@var{var})
+Deletes @var{var}'s value labels.  Equivalent to
+@code{var_set_value_labels (@var{var}, NULL)}.
+@end deftypefun
+
+A final group of functions offers shorthands for operations that would
+otherwise require getting the value labels from a variable, copying
+them, modifying them, and then setting the modified value labels into
+the variable (making a second copy):
+
+@deftypefun bool var_add_value_label (struct variable *@var{var}, const union value *@var{value}, const char *@var{label})
+Attempts to add a copy of @var{label} as a label for @var{value} for
+the given @var{var}.  If @var{value} already has a label, then the old
+label is retained.  Returns true if a label is added, false if there
+was an existing label for @var{value} or if @var{var} is a long string
+variable.  Either way, the caller retains ownership of @var{value} and
+@var{label}.
+@end deftypefun
+
+@deftypefun void var_replace_value_label (struct variable *@var{var}, const union value *@var{value}, const char *@var{label})
+Attempts to add a copy of @var{label} as a label for @var{value} for
+the given @var{var}.  If @var{value} already has a label, then
+@var{label} replaces the old label.  Either way, the caller retains
+ownership of @var{value} and @var{label}.
+
+If @var{var} is a long string variable, this function has no effect.
+@end deftypefun
+
+@node Variable Print and Write Formats
+@subsection Variable Print and Write Formats
+
+Each variable has an associated pair of output formats, called its
+@dfn{print format} and @dfn{write format}.  @xref{Input and Output
+Formats,,,pspp, PSPP Users Guide}, for an introduction to formats.
+@xref{Input and Output Formats}, for a developer's description of
+format representation.
+
+The print format is used to convert a variable's data values to
+strings for human-readable output.  The write format is used similarly
+for machine-readable output, primarily by the WRITE transformation
+(@pxref{WRITE,,,pspp, PSPP Users Guide}).  Most often a variable's
+print and write formats are the same.
+
+A newly created variable by default has format F8.2 if it is numeric
+or an A format with the same width as the variable if it is string.
+Many creators of variables override these defaults.
+
+Both the print format and write format are output formats.  Input
+formats are not part of @struct{variable}.  Instead, input programs
+and transformations keep track of variable input formats themselves.
+
+The following functions work with variable print and write formats.
+
+@deftypefun {const struct fmt_spec *} var_get_print_format (const struct variable *@var{var})
+@deftypefunx {const struct fmt_spec *} var_get_write_format (const struct variable *@var{var})
+Returns @var{var}'s print or write format, respectively.
+@end deftypefun
+
+@deftypefun void var_set_print_format (struct variable *@var{var}, const struct fmt_spec *@var{format})
+@deftypefunx void var_set_write_format (struct variable *@var{var}, const struct fmt_spec *@var{format})
+@deftypefunx void var_set_both_formats (struct variable *@var{var}, const struct fmt_spec *@var{format})
+Sets @var{var}'s print format, write format, or both formats,
+respectively, to a copy of @var{format}.
+@end deftypefun
+
+@node Variable Labels
+@subsection Variable Labels
+
+A variable label is a string that describes a variable.  Variable
+labels may contain spaces and punctuation not allowed in variable
+names.  @xref{VARIABLE LABELS,,,pspp, PSPP Users Guide}, for a
+user-level description of variable labels.
+
+The most commonly useful functions for variable labels are those to
+retrieve a variable's label:
+
+@deftypefun {const char *} var_to_string (const struct variable *@var{var})
+Returns @var{var}'s variable label, if it has one, otherwise
+@var{var}'s name.  In either case the caller must not attempt to
+modify or free the returned string.
+
+This function is useful for user output.
+@end deftypefun
+
+@deftypefun {const char *} var_get_label (const struct variable *@var{var})
+Returns @var{var}'s variable label, if it has one, or a null pointer
+otherwise.
+@end deftypefun
+
+A few other variable label functions are also provided:
+
+@deftypefun void var_set_label (struct variable *@var{var}, const char *@var{label})
+Sets @var{var}'s variable label to a copy of @var{label}, or removes
+any label from @var{var} if @var{label} is a null pointer or contains
+only spaces.  Leading and trailing spaces are removed from the
+variable label and its remaining content is truncated at 255 bytes.
+@end deftypefun
+
+@deftypefun void var_clear_label (struct variable *@var{var})
+Removes any variable label from @var{var}.
+@end deftypefun
+
+@deftypefun bool var_has_label (const struct variable *@var{var})
+Returns true if @var{var} has a variable label, false otherwise.
+@end deftypefun
+
+@node Variable GUI Attributes
+@subsection GUI Attributes
+
+These functions and types access and set attributes that are mainly
+used by graphical user interfaces.  Their values are also stored in
+and retrieved from system files (but not portable files).
+
+The first group of functions relate to the measurement level of
+numeric data.  New variables are assigned a nominal level of
+measurement by default.
+
+@deftp {Enumeration} {enum measure}
+Measurement level.  Available values are:
+
+@table @code
+@item MEASURE_NOMINAL
+Numeric data values are arbitrary.  Arithmetic operations and
+numerical comparisons of such data are not meaningful.
+
+@item MEASURE_ORDINAL
+Numeric data values indicate progression along a rank order.
+Arbitrary arithmetic operations such as addition are not meaningful on
+such data, but inequality comparisons (less, greater, etc.) have
+straightforward interpretations.
+
+@item MEASURE_SCALE
+Ratios, sums, etc. of numeric data values have meaningful
+interpretations.
+@end table
+
+PSPP does not have a separate category for interval data, which would
+naturally fall between the ordinal and scale measurement levels.
+@end deftp
+
+@deftypefun bool measure_is_valid (enum measure @var{measure})
+Returns true if @var{measure} is a valid level of measurement, that
+is, if it is one of the @code{enum measure} constants listed above,
+and false otherwise.
+@end deftypefun
+
+@deftypefun enum measure var_get_measure (const struct variable *@var{var})
+@deftypefunx void var_set_measure (struct variable *@var{var}, enum measure @var{measure})
+Gets or sets @var{var}'s measurement level.
+@end deftypefun
+
+The following set of functions relates to the width of on-screen
+columns used for displaying variable data in a graphical user
+interface environment.  The unit of measurement is the width of a
+character.  For proportionally spaced fonts, this is based on the
+average width of a character.
+
+@deftypefun int var_get_display_width (const struct variable *@var{var})
+@deftypefunx void var_set_display_width (struct variable *@var{var}, int @var{display_width})
+Gets or sets @var{var}'s display width.
+@end deftypefun
+
+@anchor{var_default_display_width}
+@deftypefun int var_default_display_width (int @var{width})
+Returns the default display width for a variable with the given
+@var{width}.  The default width of a numeric variable is 8.  The
+default width of a string variable is @var{width} or 32, whichever is
+less.
+@end deftypefun
+
+The final group of functions work with the justification of data when
+it is displayed in on-screen columns.  New variables are by default
+right-justified.
+
+@deftp {Enumeration} {enum alignment}
+Text justification.  Possible values are @code{ALIGN_LEFT},
+@code{ALIGN_RIGHT}, and @code{ALIGN_CENTRE}.
+@end deftp
+
+@deftypefun bool alignment_is_valid (enum alignment @var{alignment})
+Returns true if @var{alignment} is a valid alignment, that is, if it
+is one of the @code{enum alignment} constants listed above, and false
+otherwise.
+@end deftypefun
+
+@deftypefun enum alignment var_get_alignment (const struct variable *@var{var})
+@deftypefunx void var_set_alignment (struct variable *@var{var}, enum alignment @var{alignment})
+Gets or sets @var{var}'s alignment.
+@end deftypefun
+
+@node Variable Leave Status
+@subsection Variable Leave Status
+
+Commonly, most or all data in a case come from an input file, read
+with a command such as DATA LIST or GET, but data can also be
+generated with transformations such as COMPUTE.  In the latter case
+the question of a datum's ``initial value'' can arise.  For example,
+the value of a piece of generated data can recursively depend on its
+own value:
+@example
+COMPUTE X = X + 1.
+@end example
+Another situation where the initial value of a variable arises is when
+its value is not set at all for some cases, e.g.@: below, @code{Y} is
+set only for the first 10 cases:
+@example
+DO IF #CASENUM <= 10.
++ COMPUTE Y = 1.
+END IF.
+@end example
+
+By default, the initial value of a datum in either of these situations
+is the system-missing value for numeric values and spaces for string
+values.  This means that, above, X would be system-missing and that Y
+would be 1 for the first 10 cases and system-missing for the
+remainder.
+
+PSPP also supports retaining the value of a variable from one case to
+another, using the LEAVE command (@pxref{LEAVE,,,pspp, PSPP Users
+Guide}).  The initial value of such a variable is 0 if it is numeric
+and spaces if it is a string.  If the command @samp{LEAVE X Y} is
+appended to the above example, then X would have value 1 in the first
+case and increase by 1 in every succeeding case, and Y would have
+value 1 for the first 10 cases and 0 for later cases.
+
+The LEAVE command has no effect on data that comes from an input file
+or whose values do not depend on a variable's initial value.
+
+The value of scratch variables (@pxref{Scratch Variables,,,pspp, PSPP
+Users Guide}) are always left from one case to another.
+
+The following functions work with a variable's leave status.
+
+@deftypefun bool var_get_leave (const struct variable *@var{var})
+Returns true if @var{var}'s value is to be retained from case to case,
+false if it is reinitialized to system-missing or spaces.
+@end deftypefun
+
+@deftypefun void var_set_leave (struct variable *@var{var}, bool @var{leave})
+If @var{leave} is true, marks @var{var} to be left from case to case;
+if @var{leave} is false, marks @var{var} to be reinitialized for each
+case.
+
+If @var{var} is a scratch variable, @var{leave} must be true.
+@end deftypefun
+
+@deftypefun bool var_must_leave (const struct variable *@var{var})
+Returns true if @var{var} must be left from case to case, that is, if
+@var{var} is a scratch variable.
+@end deftypefun
+
+@node Dictionary Class
+@subsection Dictionary Class
+
+Occasionally it is useful to classify variables into @dfn{dictionary
+classes} based on their names.  Dictionary classes are represented by
+@enum{dict_class}.  This type and other declarations for dictionary
+classes are in the @file{<data/dict-class.h>} header.
+
+@deftp {Enumeration} {enum dict_class}
+The dictionary classes are:
+
+@table @code
+@item DC_ORDINARY
+An ordinary variable, one whose name does not begin with @samp{$} or
+@samp{#}.
+
+@item DC_SYSTEM
+A system variable, one whose name begins with @samp{$}.  @xref{System
+Variables,,,pspp, PSPP Users Guide}.
+
+@item DC_SCRATCH
+A scratch variable, one whose name begins with @samp{#}.
+@xref{Scratch Variables,,,pspp, PSPP Users Guide}.
+@end table
+
+The values for dictionary classes are bitwise disjoint, which allows
+them to be used in bit-masks.  An extra enumeration constant
+@code{DC_ALL}, whose value is the bitwise-@i{or} of all of the above
+constants, is provided to aid in this purpose.
+@end deftp
+
+One example use of dictionary classes arises in connection with PSPP
+syntax that uses @code{@var{a} TO @var{b}} to name the variables in a
+dictionary from @var{a} to @var{b} (@pxref{Sets of Variables,,,pspp,
+PSPP Users Guide}).  This syntax requires @var{a} and @var{b} to be in
+the same dictionary class.  It limits the variables that it includes
+to those in that dictionary class.
+
+The following functions relate to dictionary classes.
+
+@deftypefun {enum dict_class} dict_class_from_id (const char *@var{name})
+Returns the ``dictionary class'' for the given variable @var{name}, by
+looking at its first letter.
+@end deftypefun
+
+@deftypefun {const char *} dict_class_to_name (enum dict_class @var{dict_class})
+Returns a name for the given @var{dict_class} as an adjective, e.g.@:
+@code{"scratch"}.
+
+This function should probably not be used in new code as it can lead
+to difficulties for internationalization.
+@end deftypefun
+
+@node Variable Creation and Destruction
+@subsection Variable Creation and Destruction
+
+Only rarely should PSPP code create or destroy variables directly.
+Ordinarily, variables are created within a dictionary and destroying
+by individual deletion from the dictionary or by destroying the entire
+dictionary at once.  The functions here enable the exceptional case,
+of creation and destruction of variables that are not associated with
+any dictionary.  These functions are used internally in the dictionary
+implementation.
+
+@anchor{var_create}
+@deftypefun {struct variable *} var_create (const char *@var{name}, int @var{width})
+Creates and returns a new variable with the given @var{name} and
+@var{width}.  The new variable is not part of any dictionary.  Use
+@func{dict_create_var}, instead, to create a variable in a dictionary
+(@pxref{Dictionary Creating Variables}).
+
+@var{name} should be a valid variable name and must be a ``plausible''
+variable name (@pxref{Variable Name}).  @var{width} must be between 0
+and @code{MAX_STRING}, inclusive (@pxref{Values}).
+
+The new variable has no user-missing values, value labels, or variable
+label.  Numeric variables initially have F8.2 print and write formats,
+right-justified display alignment, and scale level of measurement.
+String variables are created with A print and write formats,
+left-justified display alignment, and nominal level of measurement.
+The initial display width is determined by
+@func{var_default_display_width} (@pxref{var_default_display_width}).
+
+The new variable initially has no short name (@pxref{Variable Short
+Names}) and no auxiliary data (@pxref{Variable Auxiliary Data}).
+@end deftypefun
+
+@anchor{var_clone}
+@deftypefun {struct variable *} var_clone (const struct variable *@var{old_var})
+Creates and returns a new variable with the same attributes as
+@var{old_var}, with a few exceptions.  First, the new variable is not
+part of any dictionary, regardless of whether @var{old_var} was in a
+dictionary.  Use @func{dict_clone_var}, instead, to add a clone of a
+variable to a dictionary.
+
+Second, the new variable is not given any short name, even if
+@var{old_var} had a short name.  This is because the new variable is
+likely to be immediately renamed, in which case the short name would
+be incorrect (@pxref{Variable Short Names}).
+
+Finally, @var{old_var}'s auxiliary data, if any, is not copied to the
+new variable (@pxref{Variable Auxiliary Data}).
+@end deftypefun
+
+@deftypefun {void} var_destroy (struct variable *@var{var})
+Destroys @var{var} and frees all associated storage, including its
+auxiliary data, if any.  @var{var} must not be part of a dictionary.
+To delete a variable from a dictionary and destroy it, use
+@func{dict_delete_var} (@pxref{Dictionary Deleting Variables}).
+@end deftypefun
+
+@node Variable Short Names
+@subsection Variable Short Names
+
+PSPP variable names may be up to 64 (@code{VAR_NAME_LEN}) bytes long.
+The system and portable file formats, however, were designed when
+variable names were limited to 8 bytes in length.  Since then, the
+system file format has been augmented with an extension record that
+explains how the 8-byte short names map to full-length names
+(@pxref{Long Variable Names Record}), but the short names are still
+present.  Thus, the continued presence of the short names is more or
+less invisible to PSPP users, but every variable in a system file
+still has a short name that must be unique.
+
+PSPP can generate unique short names for variables based on their full
+names at the time it creates the data file.  If all variables' full
+names are unique in their first 8 bytes, then the short names are
+simply prefixes of the full names; otherwise, PSPP changes them so
+that they are unique.
+
+By itself this algorithm interoperates well with other software that
+can read system files, as long as that software understands the
+extension record that maps short names to long names.  When the other
+software does not understand the extension record, it can produce
+surprising results.  Consider a situation where PSPP reads a system
+file that contains two variables named RANKINGSCORE, then the user
+adds a new variable named RANKINGSTATUS, then saves the modified data
+as a new system file.  A program that does not understand long names
+would then see one of these variables under the name RANKINGS---either
+one, depending on the algorithm's details---and the other under a
+different name.  The effect could be very confusing: by adding a new
+and apparently unrelated variable in PSPP, the user effectively
+renamed the existing variable.
+
+To counteract this potential problem, every @struct{variable} may have
+a short name.  A variable created by the system or portable file
+reader receives the short name from that data file.  When a variable
+with a short name is written to a system or portable file, that
+variable receives priority over other long names whose names begin
+with the same 8 bytes but which were not read from a data file under
+that short name.
+
+Variables not created by the system or portable file reader have no
+short name by default.
+
+A variable with a full name of 8 bytes or less in length has absolute
+priority for that name when the variable is written to a system file,
+even over a second variable with that assigned short name.
+
+PSPP does not enforce uniqueness of short names, although the short
+names read from any given data file will always be unique.  If two
+variables with the same short name are written to a single data file,
+neither one receives priority.
+
+The following macros and functions relate to short names.
+
+@defmac SHORT_NAME_LEN
+Maximum length of a short name, in bytes.  Its value is 8.
+@end defmac
+
+@deftypefun {const char *} var_get_short_name (const struct variable *@var{var})
+Returns @var{var}'s short name, or a null pointer if @var{var} has not
+been assigned a short name.
+@end deftypefun
+
+@deftypefun void var_set_short_name (struct variable *@var{var}, const char *@var{short_name})
+Sets @var{var}'s short name to @var{short_name}, or removes
+@var{var}'s short name if @var{short_name} is a null pointer.  If it
+is non-null, then @var{short_name} must be a plausible name for a
+variable (@pxref{var_is_plausible_name}).  The name will be truncated
+to 8 bytes in length and converted to all-uppercase.
+@end deftypefun
+
+@deftypefun void var_clear_short_name (struct variable *@var{var})
+Removes @var{var}'s short name.
+@end deftypefun
+
+@node Variable Relationships
+@subsection Variable Relationships
+
+Variables have close relationships with dictionaries
+(@pxref{Dictionaries}) and cases (@pxref{Cases}).  A variable is
+usually a member of some dictionary, and a case is often used to store
+data for the set of variables in a dictionary.
+
+These functions report on these relationships.  They may be applied
+only to variables that are in a dictionary.
+
+@deftypefun size_t var_get_dict_index (const struct variable *@var{var})
+Returns @var{var}'s index within its dictionary.  The first variable
+in a dictionary has index 0, the next variable index 1, and so on.
+
+The dictionary index can be influenced using dictionary functions such
+as dict_reorder_var (@pxref{dict_reorder_var}).
+@end deftypefun
+
+@deftypefun size_t var_get_case_index (const struct variable *@var{var})
+Returns @var{var}'s index within a case.  The case index is an index
+into an array of @union{value} large enough to contain all the data in
+the dictionary.
+
+The returned case index can be used to access the value of @var{var}
+within a case for its dictionary, as in e.g.@: @code{case_data_idx
+(case, var_get_case_index (@var{var}))}, but ordinarily it is more
+convenient to use the data access functions that do variable-to-index
+translation internally, as in e.g.@: @code{case_data (case,
+@var{var})}.
+@end deftypefun
+
+@node Variable Auxiliary Data
+@subsection Variable Auxiliary Data
+
+Each @struct{variable} can have a single pointer to auxiliary data of
+type @code{void *}.  These functions manipulate a variable's auxiliary
+data.
+
+Use of auxiliary data is discouraged because of its lack of
+flexibility.  Only one client can make use of auxiliary data on a
+given variable at any time, even though many clients could usefully
+associate data with a variable.
+
+To prevent multiple clients from attempting to use a variable's single
+auxiliary data field at the same time, we adopt the convention that
+use of auxiliary data in the active file dictionary is restricted to
+the currently executing command.  In particular, transformations must
+not attach auxiliary data to a variable in the active file in the
+expectation that it can be used later when the active file is read and
+the transformation is executed.  To help enforce this restriction,
+auxiliary data is deleted from all variables in the active file
+dictionary after the execution of each PSPP command.
+
+This convention for safe use of auxiliary data applies only to the
+active file dictionary.  Rules for other dictionaries may be
+established separately.
+
+Auxiliary data should be replaced by a more flexible mechanism at some
+point, but no replacement mechanism has been designed or implemented
+so far.
+
+The following functions work with variable auxiliary data.
+
+@deftypefun {void *} var_get_aux (const struct variable *@var{var})
+Returns @var{var}'s auxiliary data, or a null pointer if none has been
+assigned.
+@end deftypefun
+
+@deftypefun {void *} var_attach_aux (const struct variable *@var{var}, void *@var{aux}, void (*@var{aux_dtor}) (struct variable *))
+Sets @var{var}'s auxiliary data to @var{aux}, which must not be null.
+@var{var} must not already have auxiliary data.
+
+Before @var{var}'s auxiliary data is cleared by @code{var_clear_aux},
+@var{aux_dtor}, if non-null, will be called with @var{var} as its
+argument.  It should free any storage associated with @var{aux}, if
+necessary.  @code{var_dtor_free} may be appropriate for use as
+@var{aux_dtor}:
+
+@deffn {Function} void var_dtor_free (struct variable *@var{var})
+Frees @var{var}'s auxiliary data by calling @code{free}.
+@end deffn
+@end deftypefun
+
+@deftypefun void var_clear_aux (struct variable *@var{var})
+Removes auxiliary data, if any, from @var{var}, first calling the
+destructor passed to @code{var_attach_aux}, if one was provided.
+
+Use @code{dict_clear_aux} to remove auxiliary data from every variable
+in a dictionary. @c (@pxref{dict_clear_aux}).
+@end deftypefun
+
+@deftypefun {void *} var_detach_aux (struct variable *@var{var})
+Removes auxiliary data, if any, from @var{var}, and returns it.
+Returns a null pointer if @var{var} had no auxiliary data.
+
+Any destructor passed to @code{var_attach_aux} is not called, so the
+caller is responsible for freeing storage associated with the returned
+auxiliary data.
+@end deftypefun
+
+@node Variable Categorical Values
+@subsection Variable Categorical Values
+
+Some statistical procedures require a list of all the values that a
+categorical variable takes on.  Arranging such a list requires making
+a pass through the data, so PSPP caches categorical values in
+@struct{variable}.
+
+When variable auxiliary data is revamped to support multiple clients
+as described in the previous section, categorical values are an
+obvious candidate.  The form in which they are currently supported is
+inelegant.
+
+Categorical values are not robust against changes in the data.  That
+is, there is currently no way to detect that a transformation has
+changed data values, meaning that categorical values lists for the
+changed variables must be recomputed.  PSPP is in fact in need of a
+general-purpose caching and cache-invalidation mechanism, but none
+has yet been designed and built.
+
+The following functions work with cached categorical values.
+
+@deftypefun {struct cat_vals *} var_get_obs_vals (const struct variable *@var{var})
+Returns @var{var}'s set of categorical values.  Yields undefined
+behavior if @var{var} does not have any categorical values.
+@end deftypefun
+
+@deftypefun void var_set_obs_vals (const struct variable *@var{var}, struct cat_vals *@var{cat_vals})
+Destroys @var{var}'s categorical values, if any, and replaces them by
+@var{cat_vals}, ownership of which is transferred to @var{var}.  If
+@var{cat_vals} is a null pointer, then @var{var}'s categorical values
+are cleared.
+@end deftypefun
+
+@deftypefun bool var_has_obs_vals (const struct variable *@var{var})
+Returns true if @var{var} has a set of categorical values, false
+otherwise.
+@end deftypefun
+
+@node Dictionaries
+@section Dictionaries
+
+Each data file in memory or on disk has an associated dictionary,
+whose primary purpose is to describe the data in the file.
+@xref{Variables,,,pspp, PSPP Users Guide}, for a PSPP user's view of a
+dictionary.
+
+A data file stored in a PSPP format, either as a system or portable
+file, has a representation of its dictionary embedded in it.  Other
+kinds of data files are usually not self-describing enough to
+construct a dictionary unassisted, so the dictionaries for these files
+must be specified explicitly with PSPP commands such as @cmd{DATA
+LIST}.
+
+The most important content of a dictionary is an array of variables,
+which must have unique names.  A dictionary also conceptually contains
+a mapping from each of its variables to a location within a case
+(@pxref{Cases}), although in fact these mappings are stored within
+individual variables.
+
+System variables are not members of any dictionary (@pxref{System
+Variables,,,pspp, PSPP Users Guide}).
+
+Dictionaries are represented by @struct{dictionary}.  Declarations
+related to dictionaries are in the @file{<data/dictionary.h>} header.
+
+The following sections describe functions for use with dictionaries.
+
+@menu
+* Dictionary Variable Access::
+* Dictionary Creating Variables::
+* Dictionary Deleting Variables::
+* Dictionary Reordering Variables::
+* Dictionary Renaming Variables::
+* Dictionary Weight Variable::
+* Dictionary Filter Variable::
+* Dictionary Case Limit::
+* Dictionary Split Variables::
+* Dictionary File Label::
+* Dictionary Documents::
+@end menu
+
+@node Dictionary Variable Access
+@subsection Accessing Variables
+
+The most common operations on a dictionary simply retrieve a
+@code{struct variable *} of an individual variable based on its name
+or position.
+
+@deftypefun {struct variable *} dict_lookup_var (const struct dictionary *@var{dict}, const char *@var{name})
+@deftypefunx {struct variable *} dict_lookup_var_assert (const struct dictionary *@var{dict}, const char *@var{name})
+Looks up and returns the variable with the given @var{name} within
+@var{dict}.  Name lookup is not case-sensitive.
+
+@code{dict_lookup_var} returns a null pointer if @var{dict} does not
+contain a variable named @var{name}.  @code{dict_lookup_var_assert}
+asserts that such a variable exists.
+@end deftypefun
+
+@deftypefun {struct variable *} dict_get_var (const struct dictionary *@var{dict}, size_t @var{position})
+Returns the variable at the given @var{position} in @var{dict}.
+@var{position} must be less than the number of variables in @var{dict}
+(see below).
+@end deftypefun
+
+@deftypefun size_t dict_get_var_cnt (const struct dictionary *@var{dict})
+Returns the number of variables in @var{dict}.
+@end deftypefun
+
+Another pair of functions allows retrieving a number of variables at
+once.  These functions are more rarely useful.
+
+@deftypefun void dict_get_vars (const struct dictionary *@var{dict}, const struct variable ***@var{vars}, size_t *@var{cnt}, enum dict_class @var{exclude})
+@deftypefunx void dict_get_vars_mutable (const struct dictionary *@var{dict}, struct variable ***@var{vars}, size_t *@var{cnt}, enum dict_class @var{exclude})
+Retrieves all of the variables in @var{dict}, in their original order,
+except that any variables in the dictionary classes specified
+@var{exclude}, if any, are excluded (@pxref{Dictionary Class}).
+Pointers to the variables are stored in an array allocated with
+@code{malloc}, and a pointer to the first element of this array is
+stored in @code{*@var{vars}}.  The caller is responsible for freeing
+this memory when it is no longer needed.  The number of variables
+retrieved is stored in @code{*@var{cnt}}.
+
+The presence or absence of @code{DC_SYSTEM} in @var{exclude} has no
+effect, because dictionaries never include system variables.
+@end deftypefun
+
+One additional function is available.  This function is most often
+used in assertions, but it is not restricted to such use.
+
+@deftypefun bool dict_contains_var (const struct dictionary *@var{dict}, const struct variable *@var{var})
+Tests whether @var{var} is one of the variables in @var{dict}.
+Returns true if so, false otherwise.
+@end deftypefun
+
+@node Dictionary Creating Variables
+@subsection Creating Variables
+
+These functions create a new variable and insert it into a dictionary
+in a single step.
+
+There is no provision for inserting an already created variable into a
+dictionary.  There is no reason that such a function could not be
+written, but so far there has been no need for one.
+
+The names provided to one of these functions should be valid variable
+names and must be plausible variable names. @c (@pxref{Variable Names}).
+
+If a variable with the same name already exists in the dictionary, the
+non-@code{assert} variants of these functions return a null pointer,
+without modifying the dictionary.  The @code{assert} variants, on the
+other hand, assert that no duplicate name exists.
+
+A variable may be in only one dictionary at any given time.
+
+@deftypefun {struct variable *} dict_create_var (struct dictionary *@var{dict}, const char *@var{name}, int @var{width})
+@deftypefunx {struct variable *} dict_create_var_assert (struct dictionary *@var{dict}, const char *@var{name}, int @var{width})
+Creates a new variable with the given @var{name} and @var{width}, as
+if through a call to @code{var_create} with those arguments
+(@pxref{var_create}), appends the new variable to @var{dict}'s array
+of variables, and returns the new variable.
+@end deftypefun
+
+@deftypefun {struct variable *} dict_clone_var (struct dictionary *@var{dict}, const struct variable *@var{old_var}, const char *@var{name})
+@deftypefunx {struct variable *} dict_clone_var_assert (struct dictionary *@var{dict}, const struct variable *@var{old_var}, const char *@var{name})
+Creates a new variable as a clone of @var{var}, inserts the new
+variable into @var{dict}, and returns the new variable.  The new
+variable is named @var{name}.  Other properties of the new variable
+are copied from @var{old_var}, except for those not copied by
+@code{var_clone} (@pxref{var_clone}).
+
+@var{var} does not need to be a member of any dictionary.
+@end deftypefun
+
+@node Dictionary Deleting Variables
+@subsection Deleting Variables
+
+These functions remove variables from a dictionary's array of
+variables.  They also destroy the removed variables and free their
+associated storage.
+
+Deleting a variable to which there might be external pointers is a bad
+idea.  In particular, deleting variables from the active file
+dictionary is a risky proposition, because transformations can retain
+references to arbitrary variables.  Therefore, no variable should be
+deleted from the active file dictionary when any transformations are
+active, because those transformations might reference the variable to
+be deleted.  The safest time to delete a variable is just after a
+procedure has been executed, as done by @cmd{DELETE VARIABLES}.
+
+Deleting a variable automatically removes references to that variable
+from elsewhere in the dictionary as a weighting variable, filter
+variable, @cmd{SPLIT FILE} variable, or member of a vector.
+
+No functions are provided for removing a variable from a dictionary
+without destroying that variable.  As with insertion of an existing
+variable, there is no reason that this could not be implemented, but
+so far there has been no need.
+
+@deftypefun void dict_delete_var (struct dictionary *@var{dict}, struct variable *@var{var})
+Deletes @var{var} from @var{dict}, of which it must be a member.
+@end deftypefun
+
+@deftypefun void dict_delete_vars (struct dictionary *@var{dict}, struct variable *const *@var{vars}, size_t @var{count})
+Deletes the @var{count} variables in array @var{vars} from @var{dict}.
+All of the variables in @var{vars} must be members of @var{dict}.  No
+variable may be included in @var{vars} more than once.
+@end deftypefun
+
+@deftypefun void dict_delete_consecutive_vars (struct dictionary *@var{dict}, size_t @var{idx}, size_t @var{count})
+Deletes the variables in sequential positions
+@var{idx}@dots{}@var{idx} + @var{count} (exclusive) from @var{dict},
+which must contain at least @var{idx} + @var{count} variables.
+@end deftypefun
+
+@deftypefun void dict_delete_scratch_vars (struct dictionary *@var{dict})
+Deletes all scratch variables from @var{dict}.
+@end deftypefun
+
+@node Dictionary Reordering Variables
+@subsection Changing Variable Order
+
+The variables in a dictionary are stored in an array.  These functions
+change the order of a dictionary's array of variables without changing
+which variables are in the dictionary.
+
+@anchor{dict_reorder_var}
+@deftypefun void dict_reorder_var (struct dictionary *@var{dict}, struct variable *@var{var}, size_t @var{new_index})
+Moves @var{var}, which must be in @var{dict}, so that it is at
+position @var{new_index} in @var{dict}'s array of variables.  Other
+variables in @var{dict}, if any, retain their relative positions.
+@var{new_index} must be less than the number of variables in
+@var{dict}.
+@end deftypefun
+
+@deftypefun void dict_reorder_vars (struct dictionary *@var{dict}, struct variable *const *@var{new_order}, size_t @var{count})
+Moves the @var{count} variables in @var{new_order} to the beginning of
+@var{dict}'s array of variables in the specified order.  Other
+variables in @var{dict}, if any, retain their relative positions.
+
+All of the variables in @var{new_order} must be in @var{dict}.  No
+duplicates are allowed within @var{new_order}, which means that
+@var{count} must be no greater than the number of variables in
+@var{dict}.
+@end deftypefun
+
+@node Dictionary Renaming Variables
+@subsection Renaming Variables
+
+These functions change the names of variables within a dictionary.
+The @func{var_set_name} function (@pxref{var_set_name}) cannot be
+applied directly to a variable that is in a dictionary, because
+@struct{dictionary} contains an index by name that @func{var_set_name}
+would not update.  The following functions take care to update the
+index as well.  They also ensure that variable renaming does not cause
+a dictionary to contain a duplicate variable name.
+
+@deftypefun void dict_rename_var (struct dictionary *@var{dict}, struct variable *@var{var}, const char *@var{new_name})
+Changes the name of @var{var}, which must be in @var{dict}, to
+@var{new_name}.  A variable named @var{new_name} must not already be
+in @var{dict}, unless @var{new_name} is the same as @var{var}'s
+current name.
+@end deftypefun
+
+@deftypefun bool dict_rename_vars (struct dictionary *@var{dicT}, struct variable **@var{vars}, char **@var{new_names}, size_t @var{count}, char **@var{err_name})
+Renames each of the @var{count} variables in @var{vars} to the name in
+the corresponding position of @var{new_names}.  If the renaming would
+result in a duplicate variable name, returns false and stores one of
+the names that would be be duplicated into @code{*@var{err_name}}, if
+@var{err_name} is non-null.  Otherwise, the renaming is successful,
+and true is returned.
+@end deftypefun
+
+@node Dictionary Weight Variable
+@subsection Weight Variable
+
+A data set's cases may optionally be weighted by the value of a
+numeric variable.  @xref{WEIGHT,,,pspp, PSPP Users Guide}, for a user
+view of weight variables.
+
+The weight variable is written to and read from system and portable
+files.
+
+The most commonly useful function related to weighting is a
+convenience function to retrieve a weighting value from a case.
+
+@deftypefun double dict_get_case_weight (const struct dictionary *@var{dict}, const struct ccase *@var{case}, bool *@var{warn_on_invalid})
+Retrieves and returns the value of the weighting variable specified by
+@var{dict} from @var{case}.  Returns 1.0 if @var{dict} has no
+weighting variable.
+
+Returns 0.0 if @var{c}'s weight value is user- or system-missing,
+zero, or negative.  In such a case, if @var{warn_on_invalid} is
+non-null and @code{*@var{warn_on_invalid}} is true,
+@func{dict_get_case_weight} also issues an error message and sets
+@code{*@var{warn_on_invalid}} to false.  To disable error reporting,
+pass a null pointer or a pointer to false as @var{warn_on_invalid} or
+use a @func{msg_disable}/@func{msg_enable} pair.
+@end deftypefun
+
+The dictionary also has a pair of functions for getting and setting
+the weight variable.
+
+@deftypefun {struct variable *} dict_get_weight (const struct dictionary *@var{dict})
+Returns @var{dict}'s current weighting variable, or a null pointer if
+the dictionary does not have a weighting variable.
+@end deftypefun
+
+@deftypefun void dict_set_weight (struct dictionary *@var{dict}, struct variable *@var{var})
+Sets @var{dict}'s weighting variable to @var{var}.  If @var{var} is
+non-null, it must be a numeric variable in @var{dict}.  If @var{var}
+is null, then @var{dict}'s weighting variable, if any, is cleared.
+@end deftypefun
+
+@node Dictionary Filter Variable
+@subsection Filter Variable
+
+When the active file is read by a procedure, cases can be excluded
+from analysis based on the values of a @dfn{filter variable}.
+@xref{FILTER,,,pspp, PSPP Users Guide}, for a user view of filtering.
+
+These functions store and retrieve the filter variable.  They are
+rarely useful, because the data analysis framework automatically
+excludes from analysis the cases that should be filtered.
+
+@deftypefun {struct variable *} dict_get_filter (const struct dictionary *@var{dict})
+Returns @var{dict}'s current filter variable, or a null pointer if the
+dictionary does not have a filter variable.
+@end deftypefun
+
+@deftypefun void dict_set_filter (struct dictionary *@var{dict}, struct variable *@var{var})
+Sets @var{dict}'s filter variable to @var{var}.  If @var{var} is
+non-null, it must be a numeric variable in @var{dict}.  If @var{var}
+is null, then @var{dict}'s filter variable, if any, is cleared.
+@end deftypefun
+
+@node Dictionary Case Limit
+@subsection Case Limit
+
+The limit on cases analyzed by a procedure, set by the @cmd{N OF
+CASES} command (@pxref{N OF CASES,,,pspp, PSPP Users Guide}), is
+stored as part of the dictionary.  The dictionary does not, on the
+other hand, play any role in enforcing the case limit (a job done by
+data analysis framework code).
+
+A case limit of 0 means that the number of cases is not limited.
+
+These functions are rarely useful, because the data analysis framework
+automatically excludes from analysis any cases beyond the limit.
+
+@deftypefun casenumber dict_get_case_limit (const struct dictionary *@var{dict})
+Returns the current case limit for @var{dict}.
+@end deftypefun
+
+@deftypefun void dict_set_case_limit (struct dictionary *@var{dict}, casenumber @var{limit})
+Sets @var{dict}'s case limit to @var{limit}.
+@end deftypefun
+
+@node Dictionary Split Variables
+@subsection Split Variables
+
+The user may use the @cmd{SPLIT FILE} command (@pxref{SPLIT
+FILE,,,pspp, PSPP Users Guide}) to select a set of variables on which
+to split the active file into groups of cases to be analyzed
+independently in each statistical procedure.  The set of split
+variables is stored as part of the dictionary, although the effect on
+data analysis is implemented by each individual statistical procedure.
+
+Split variables may be numeric or short or long string variables.
+
+The most useful functions for split variables are those to retrieve
+them.  Even these functions are rarely useful directly: for the
+purpose of breaking cases into groups based on the values of the split
+variables, it is usually easier to use
+@func{casegrouper_create_splits}.
+
+@deftypefun {const struct variable *const *} dict_get_split_vars (const struct dictionary *@var{dict})
+Returns a pointer to an array of pointers to split variables.  If and
+only if there are no split variables, returns a null pointer.  The
+caller must not modify or free the returned array.
+@end deftypefun
+
+@deftypefun size_t dict_get_split_cnt (const struct dictionary *@var{dict})
+Returns the number of split variables.
+@end deftypefun
+
+The following functions are also available for working with split
+variables.
+
+@deftypefun void dict_set_split_vars (struct dictionary *@var{dict}, struct variable *const *@var{vars}, size_t @var{cnt})
+Sets @var{dict}'s split variables to the @var{cnt} variables in
+@var{vars}.  If @var{cnt} is 0, then @var{dict} will not have any
+split variables.  The caller retains ownership of @var{vars}.
+@end deftypefun
+
+@deftypefun void dict_unset_split_var (struct dictionary *@var{dict}, struct variable *@var{var})
+Removes @var{var}, which must be a variable in @var{dict}, from
+@var{dict}'s split of split variables.
+@end deftypefun
+
+@node Dictionary File Label
+@subsection File Label
+
+A dictionary may optionally have an associated string that describes
+its contents, called its file label.  The user may set the file label
+with the @cmd{FILE LABEL} command (@pxref{FILE LABEL,,,pspp, PSPP
+Users Guide}).
+
+These functions set and retrieve the file label.
+
+@deftypefun {const char *} dict_get_label (const struct dictionary *@var{dict})
+Returns @var{dict}'s file label.  If @var{dict} does not have a label,
+returns a null pointer.
+@end deftypefun
+
+@deftypefun void dict_set_label (struct dictionary *@var{dict}, const char *@var{label})
+Sets @var{dict}'s label to @var{label}.  If @var{label} is non-null,
+then its content, truncated to at most 60 bytes, becomes the new file
+label.  If @var{label} is null, then @var{dict}'s label is removed.
+
+The caller retains ownership of @var{label}.
+@end deftypefun
+
+@node Dictionary Documents
+@subsection Documents
+
+A dictionary may include an arbitrary number of lines of explanatory
+text, called the dictionary's documents.  For compatibility, document
+lines have a fixed width, and lines that are not exactly this width
+are truncated or padded with spaces as necessary to bring them to the
+correct width.
+
+PSPP users can use the @cmd{DOCUMENT} (@pxref{DOCUMENT,,,pspp, PSPP
+Users Guide}), @cmd{ADD DOCUMENT} (@pxref{ADD DOCUMENT,,,pspp, PSPP
+Users Guide}), and @cmd{DROP DOCUMENTS} (@pxref{DROP DOCUMENTS,,,pspp,
+PSPP Users Guide}) commands to manipulate documents.
+
+@deftypefn Macro int DOC_LINE_LENGTH
+The fixed length of a document line, in bytes, defined to 80.
+@end deftypefn
+
+The following functions work with whole sets of documents.  They
+accept or return sets of documents formatted as null-terminated
+strings that are an exact multiple of @code{DOC_LINE_LENGTH}
+bytes in length.
+
+@deftypefun {const char *} dict_get_documents (const struct dictionary *@var{dict})
+Returns the documents in @var{dict}, or a null pointer if @var{dict}
+has no documents.
+@end deftypefun
+
+@deftypefun void dict_set_documents (struct dictionary *@var{dict}, const char *@var{new_documents})
+Sets @var{dict}'s documents to @var{new_documents}.  If
+@var{new_documents} is a null pointer or an empty string, then
+@var{dict}'s documents are cleared.  The caller retains ownership of
+@var{new_documents}.
+@end deftypefun
+
+@deftypefun void dict_clear_documents (struct dictionary *@var{dict})
+Clears the documents from @var{dict}.
+@end deftypefun
+
+The following functions work with individual lines in a dictionary's
+set of documents.
+
+@deftypefun void dict_add_document_line (struct dictionary *@var{dict}, const char *@var{content})
+Appends @var{content} to the documents in @var{dict}.  The text in
+@var{content} will be truncated or padded with spaces as necessary to
+make it exactly @code{DOC_LINE_LENGTH} bytes long.  The caller retains
+ownership of @var{content}.
+
+If @var{content} is over @code{DOC_LINE_LENGTH}, this function also
+issues a warning using @func{msg}.  To suppress the warning, enclose a
+call to one of this function in a @func{msg_disable}/@func{msg_enable}
+pair.
+@end deftypefun
+
+@deftypefun size_t dict_get_document_line_cnt (const struct dictionary *@var{dict})
+Returns the number of line of documents in @var{dict}.  If the
+dictionary contains no documents, returns 0.
+@end deftypefun
+
+@deftypefun void dict_get_document_line (const struct dictionary *@var{dict}, size_t @var{idx}, struct string *@var{content})
+Replaces the text in @var{content} (which must already have been
+initialized by the caller) by the document line in @var{dict} numbered
+@var{idx}, which must be less than the number of lines of documents in
+@var{dict}.  Any trailing white space in the document line is trimmed,
+so that @var{content} will have a length between 0 and
+@code{DOC_LINE_LENGTH}.
+@end deftypefun
+
+@node Coding Conventions
+@section Coding Conventions
+
+Every @file{.c} file should have @samp{#include <config.h>} as its
+first non-comment line.  No @file{.h} file should include
+@file{config.h}.
+
+This section needs to be finished.
+
+@node Cases
+@section Cases
+
+This section needs to be written.
+
+@node Data Sets
+@section Data Sets
+
+This section needs to be written.
+
+@node Pools
+@section Pools
+
+This section needs to be written.
+
+@c  LocalWords:  bool

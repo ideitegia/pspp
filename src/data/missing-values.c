@@ -18,6 +18,7 @@
 #include "missing-values.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include "variable.h"
 #include <libpspp/str.h>
@@ -129,27 +130,18 @@ mv_add_num (struct missing_values *mv, double d)
    missing values MV.  Returns true if successful, false if MV
    has no room for a range, or if LOW > HIGH. */
 bool
-mv_add_num_range (struct missing_values *mv, double low, double high)
+mv_add_range (struct missing_values *mv, double low, double high)
 {
   assert (mv->width == 0);
-  if (low > high)
-    return false;
-  switch (mv->type)
+  if (low <= high && (mv->type == MVT_NONE || mv->type == MVT_1))
     {
-    case MVT_NONE:
-    case MVT_1:
       mv->values[1].f = low;
       mv->values[2].f = high;
       mv->type |= 4;
       return true;
-
-    case MVT_2:
-    case MVT_3:
-    case MVT_RANGE:
-    case MVT_RANGE_1:
-      return false;
     }
-  NOT_REACHED ();
+  else
+    return false;
 }
 
 /* Returns true if MV contains an individual value,
@@ -157,44 +149,36 @@ mv_add_num_range (struct missing_values *mv, double low, double high)
 bool
 mv_has_value (const struct missing_values *mv)
 {
-  switch (mv->type)
-    {
-    case MVT_1:
-    case MVT_2:
-    case MVT_3:
-    case MVT_RANGE_1:
-      return true;
-
-    case MVT_NONE:
-    case MVT_RANGE:
-      return false;
-    }
-  NOT_REACHED ();
+  return mv_n_values (mv) > 0;
 }
 
 /* Removes one individual value from MV and stores it in *V.
    MV must contain an individual value (as determined by
-   mv_has_value()). */
+   mv_has_value()).
+
+   We remove the first value from MV, not the last, because the
+   common use for this function is in iterating through a set of
+   missing values.  If we remove the last value then we'll output
+   the missing values in order opposite of that in which they
+   were added, so that a GET followed by a SAVE would reverse the
+   order of missing values in the system file, a weird effect. */
 void
 mv_pop_value (struct missing_values *mv, union value *v)
 {
   assert (mv_has_value (mv));
+
+  *v = mv->values[0];
+  remove_element (mv->values, mv->type & 3, sizeof *mv->values, 0);
   mv->type--;
-  *v = mv->values[mv->type & 3];
 }
 
-/* Stores  a value  in *V.
-   MV must contain an individual value (as determined by
-   mv_has_value()).
-   IDX is the zero based index of the value to get
-*/
+/* Stores MV's value with index IDX in *V.
+   IDX must be less than the number of discrete values in MV, as
+   reported by mv_n_values(MV). */
 void
-mv_peek_value (const struct missing_values *mv, union value *v, int idx)
+mv_get_value (const struct missing_values *mv, union value *v, int idx)
 {
-  assert (idx >= 0 ) ;
-  assert (idx < 3);
-
-  assert (mv_has_value (mv));
+  assert (idx >= 0 && idx < mv_n_values (mv));
   *v = mv->values[idx];
 }
 
@@ -222,19 +206,7 @@ mv_n_values (const struct missing_values *mv)
 bool
 mv_has_range (const struct missing_values *mv)
 {
-  switch (mv->type)
-    {
-    case MVT_RANGE:
-    case MVT_RANGE_1:
-      return true;
-
-    case MVT_NONE:
-    case MVT_1:
-    case MVT_2:
-    case MVT_3:
-      return false;
-    }
-  NOT_REACHED ();
+  return mv->type == MVT_RANGE || mv->type == MVT_RANGE_1;
 }
 
 /* Removes the numeric range from MV and stores it in *LOW and
@@ -249,12 +221,11 @@ mv_pop_range (struct missing_values *mv, double *low, double *high)
   mv->type &= 3;
 }
 
-
 /* Returns the numeric range from MV  into *LOW and
    *HIGH.  MV must contain a individual range (as determined by
    mv_has_range()). */
 void
-mv_peek_range (const struct missing_values *mv, double *low, double *high)
+mv_get_range (const struct missing_values *mv, double *low, double *high)
 {
   assert (mv_has_range (mv));
   *low = mv->values[1].f;
@@ -288,65 +259,39 @@ using_element (unsigned type, int idx)
   NOT_REACHED ();
 }
 
-/* Returns true if S contains only spaces between indexes
-   NEW_WIDTH (inclusive) and OLD_WIDTH (exclusive),
-   false otherwise. */
-static bool
-can_resize_string (const char *s, int old_width, int new_width)
-{
-  int i;
-
-  assert (new_width < old_width);
-  for (i = new_width; i < old_width; i++)
-    if (s[i] != ' ')
-      return false;
-  return true;
-}
-
 /* Returns true if MV can be resized to the given WIDTH with
-   mv_resize(), false otherwise.  Resizing to the same width is
-   always possible.  Resizing to a long string WIDTH is only
-   possible if MV is an empty set of missing values; otherwise,
-   resizing to a larger WIDTH is always possible.  Resizing to a
-   shorter width is possible only when each missing value
-   contains only spaces in the characters that will be
-   trimmed. */
+   mv_resize(), false otherwise.  Resizing is possible only when
+   each value in MV (if any) is resizable from MV's current width
+   to WIDTH, as determined by value_is_resizable.  In addition,
+   resizing must not produce a non-empty set of long string
+   missing values. */
 bool
 mv_is_resizable (const struct missing_values *mv, int width)
 {
-  if ( var_type_from_width (width) != var_type_from_width (mv->width) )
-    return false;
+  int i;
 
   if (width > MAX_SHORT_STRING && mv->type != MVT_NONE)
     return false;
 
-  if (width >= mv->width)
-    return true;
-  else
-    {
-      int i;
+  for (i = 0; i < 3; i++)
+    if (using_element (mv->type, i)
+        && !value_is_resizable (&mv->values[i], mv->width, width))
+      return false;
 
-      for (i = 0; i < 3; i++)
-        if (using_element (mv->type, i)
-            && !can_resize_string (mv->values[i].s, mv->width, width))
-          return false;
-      return true;
-    }
+  return true;
 }
 
 /* Resizes MV to the given WIDTH.  WIDTH must fit the constraints
-   explained for mv_is_resizable(). */
+   explained for mv_is_resizable. */
 void
 mv_resize (struct missing_values *mv, int width)
 {
-  assert (mv_is_resizable (mv, width));
-  if (width > mv->width && mv->type != MVT_NONE)
-    {
-      int i;
+  int i;
 
-      for (i = 0; i < 3; i++)
-        memset (mv->values[i].s + mv->width, ' ', width - mv->width);
-    }
+  assert (mv_is_resizable (mv, width));
+  for (i = 0; i < 3; i++)
+    if (using_element (mv->type, i))
+      value_resize (&mv->values[i], mv->width, width);
   mv->width = width;
 }
 

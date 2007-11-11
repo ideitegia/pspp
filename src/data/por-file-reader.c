@@ -33,6 +33,7 @@
 #include <data/file-name.h>
 #include <data/format.h>
 #include <data/missing-values.h>
+#include <data/short-names.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <libpspp/compiler.h>
@@ -669,8 +670,8 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
           int i;
           for (i = 1; i < 100000; i++)
             {
-              char try_name[LONG_NAME_LEN + 1];
-              sprintf (try_name, "%.*s_%d", LONG_NAME_LEN - 6, name, i);
+              char try_name[VAR_NAME_LEN + 1];
+              sprintf (try_name, "%.*s_%d", VAR_NAME_LEN - 6, name, i);
               v = dict_create_var (dict, try_name, width);
               if (v != NULL)
                 break;
@@ -692,12 +693,12 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
         {
           double x = read_float (r);
           double y = read_float (r);
-          mv_add_num_range (&miss, x, y);
+          mv_add_range (&miss, x, y);
         }
       else if (match (r, 'A'))
-        mv_add_num_range (&miss, read_float (r), HIGHEST);
+        mv_add_range (&miss, read_float (r), HIGHEST);
       else if (match (r, '9'))
-        mv_add_num_range (&miss, LOWEST, read_float (r));
+        mv_add_range (&miss, LOWEST, read_float (r));
 
       /* Single missing values. */
       while (match (r, '8'))

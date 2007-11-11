@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include "factor-stats.h"
+#include <data/val-type.h>
 #include <data/value.h>
 #include <libpspp/hash.h>
 #include <libpspp/array.h>

@@ -88,7 +88,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
 
                   ok = (x == y
                         ? mv_add_num (&mv, x)
-                        : mv_add_num_range (&mv, x, y));
+                        : mv_add_range (&mv, x, y));
                   if (!ok)
                     deferred_errors = true;
 

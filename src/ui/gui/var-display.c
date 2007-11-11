@@ -63,7 +63,7 @@ missing_values_to_string (const struct variable *pv, GError **err)
 	  for (i = 0 ; i < n; ++i )
 	    {
 	      union value v;
-	      mv_peek_value (miss, &v, i);
+	      mv_get_value (miss, &v, i);
 	      mv[i] = value_to_text (v, *fmt);
 	      if ( i > 0 )
 		g_string_append (gstr, ", ");
@@ -78,7 +78,7 @@ missing_values_to_string (const struct variable *pv, GError **err)
 	  GString *gstr = g_string_sized_new (10);
 	  gchar *l, *h;
 	  union value low, high;
-	  mv_peek_range (miss, &low.f, &high.f);
+	  mv_get_range (miss, &low.f, &high.f);
 
 	  l = value_to_text (low, *fmt);
 	  h = value_to_text (high, *fmt);
@@ -91,7 +91,7 @@ missing_values_to_string (const struct variable *pv, GError **err)
 	    {
 	      gchar *ss = 0;
 	      union value v;
-	      mv_peek_value (miss, &v, 0);
+	      mv_get_value (miss, &v, 0);
 
 	      ss = value_to_text (v, *fmt);
 

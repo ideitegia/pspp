@@ -52,7 +52,7 @@ struct lexer
   int token;      /* Current token. */
   double tokval;  /* T_POS_NUM, T_NEG_NUM: the token's value. */
 
-  char tokid [LONG_NAME_LEN + 1];   /* T_ID: the identifier. */
+  char tokid [VAR_NAME_LEN + 1];   /* T_ID: the identifier. */
 
   struct string tokstr;   /* T_ID, T_STRING: token string value.
   			    For T_ID, this is not truncated as is

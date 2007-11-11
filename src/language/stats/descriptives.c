@@ -123,7 +123,7 @@ static const struct dsc_statistic_info dsc_info[DSC_N_STATS] =
 struct dsc_var
   {
     const struct variable *v;         /* Variable to calculate on. */
-    char z_name[LONG_NAME_LEN + 1]; /* Name for z-score variable. */
+    char z_name[VAR_NAME_LEN + 1]; /* Name for z-score variable. */
     double valid, missing;	/* Valid, missing counts. */
     struct moments *moments;    /* Moments. */
     double min, max;            /* Maximum and mimimum values. */
@@ -495,7 +495,7 @@ static bool
 generate_z_varname (const struct dictionary *dict, struct dsc_proc *dsc, char *z_name,
                     const char *var_name, int *z_cnt)
 {
-  char name[LONG_NAME_LEN + 1];
+  char name[VAR_NAME_LEN + 1];
 
   /* Try a name based on the original variable name. */
   name[0] = 'Z';

@@ -15,8 +15,9 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "value.h"
+#include <data/value.h>
 
+#include <data/val-type.h>
 #include <libpspp/hash.h>
 #include <libpspp/str.h>
 
@@ -82,4 +83,33 @@ value_set_missing (union value *v, int width)
     v->f = SYSMIS;
   else
     memset (v->s, ' ', width);
+}
+
+/* Tests whether VALUE may be resized from OLD_WIDTH to
+   NEW_WIDTH, using the following rules that match those for
+   resizing missing values and value labels.  First, OLD_WIDTH
+   and NEW_WIDTH must be both numeric or both string.  Second, if
+   NEW_WIDTH is less than OLD_WIDTH, then the bytes that would be
+   trimmed off the right end of VALUE must be all spaces. */
+bool
+value_is_resizable (const union value *value, int old_width, int new_width)
+{
+  int i;
+
+  if (val_type_from_width (old_width) != val_type_from_width (new_width))
+    return false;
+  for (i = new_width; i < old_width; i++)
+    if (value->s[i] != ' ')
+      return false;
+  return true;
+}
+
+/* Resizes VALUE from OLD_WIDTH to NEW_WIDTH.  The arguments must
+   satisfy the rules specified above for value_is_resizable. */
+void
+value_resize (union value *value, int old_width, int new_width)
+{
+  assert (value_is_resizable (value, old_width, new_width));
+  if (new_width > old_width)
+    memset (&value->s[old_width], ' ', new_width - old_width);
 }

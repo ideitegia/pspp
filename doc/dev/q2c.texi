@@ -211,14 +211,14 @@ this option is the default for its specifier.
 setting-value ::=
               ::= ( setting-value-2 )
               ::= setting-value-2
-setting-value-2 ::= setting-value-options setting-value-type : ID 
+setting-value-2 ::= setting-value-options setting-value-type : ID
                     setting-value-restriction
 setting-value-options ::=
                       ::= *
 setting-value-type ::= N
                    ::= D
                    ::= S
-setting-value-restriction ::= 
+setting-value-restriction ::=
                           ::= , STRING
 @end example
 
@@ -242,11 +242,11 @@ sbc-special-form ::= VAR
                  ::= PINT
                  ::= STRING @r{(the literal word STRING)} string-options
                  ::= CUSTOM
-varlist-options ::= 
+varlist-options ::=
                 ::= ( STRING )
 opt-list ::=
          ::= LIST
-string-options ::= 
+string-options ::=
                ::= ( STRING STRING )
 @end example
 
@@ -260,7 +260,7 @@ A single variable name.
 @item VARLIST
 
 A list of variables.  If given, the string can be used to provide
-@code{PV_@var{*}} options to the call to @code{parse_variables}. 
+@code{PV_@var{*}} options to the call to @code{parse_variables}.
 
 @item INTEGER
 

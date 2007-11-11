@@ -66,7 +66,7 @@ fmt_done (void)
 {
   int t;
   for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
-	  fmt_number_style_destroy (styles[t]);
+    fmt_number_style_destroy (styles[t]);
 }
 
 /* Returns an input format specification with type TYPE, width W,
@@ -305,18 +305,18 @@ fmt_check_output (const struct fmt_spec *spec)
 }
 
 /* Checks that FORMAT is appropriate for a variable of the given
-   TYPE and returns true if so.  Otherwise returns false and
+   VAR_TYPE and returns true if so.  Otherwise returns false and
    emits an error message. */
 bool
-fmt_check_type_compat (const struct fmt_spec *format, enum var_type var_type)
+fmt_check_type_compat (const struct fmt_spec *format, enum val_type var_type)
 {
-  assert (var_type_is_valid (var_type));
-  if ((var_type == VAR_STRING) != (fmt_is_string (format->type) != 0))
+  assert (val_type_is_valid (var_type));
+  if ((var_type == VAL_STRING) != (fmt_is_string (format->type) != 0))
     {
       char str[FMT_STRING_LEN_MAX + 1];
       msg (SE, _("%s variables are not compatible with %s format %s."),
-           var_type == VAR_STRING ? _("String") : _("Numeric"),
-           var_type == VAR_STRING ? _("numeric") : _("string"),
+           var_type == VAL_STRING ? _("String") : _("Numeric"),
+           var_type == VAL_STRING ? _("numeric") : _("string"),
            fmt_to_string (format, str));
       return false;
     }
@@ -329,7 +329,7 @@ fmt_check_type_compat (const struct fmt_spec *format, enum var_type var_type)
 bool
 fmt_check_width_compat (const struct fmt_spec *format, int width)
 {
-  if (!fmt_check_type_compat (format, var_type_from_width (width)))
+  if (!fmt_check_type_compat (format, val_type_from_width (width)))
     return false;
   if (fmt_var_width (format) != width)
     {
@@ -342,14 +342,13 @@ fmt_check_width_compat (const struct fmt_spec *format, int width)
   return true;
 }
 
-/* Returns the width corresponding to the format specifier.  The
-   return value is the value of the `width' member of a `struct
-   variable' for such an input format. */
+/* Returns the width corresponding to FORMAT.  The return value
+   is the width of the `union value's required by FORMAT. */
 int
-fmt_var_width (const struct fmt_spec *spec)
+fmt_var_width (const struct fmt_spec *format)
 {
-  return (spec->type == FMT_AHEX ? spec->w / 2
-          : spec->type == FMT_A ? spec->w
+  return (format->type == FMT_AHEX ? format->w / 2
+          : format->type == FMT_A ? format->w
           : 0);
 }
 
@@ -499,7 +498,8 @@ fmt_max_output_decimals (enum fmt_type type, int width)
 int
 fmt_step_width (enum fmt_type type)
 {
-  return fmt_get_category (type) == FMT_CAT_HEXADECIMAL ? 2 : 1;
+  return (fmt_get_category (type) == FMT_CAT_HEXADECIMAL || type == FMT_AHEX
+          ? 2 : 1);
 }
 
 /* Returns true if TYPE is used for string fields,
@@ -868,9 +868,9 @@ fmt_set_style (enum fmt_type type, struct fmt_number_style *style)
   assert (ss_length (style->suffix) <= FMT_STYLE_AFFIX_MAX);
   assert (ss_length (style->neg_suffix) <= FMT_STYLE_AFFIX_MAX);
   assert (style->decimal == '.' || style->decimal == ',');
-  assert (style->grouping != style->decimal
-          && (style->grouping == '.' || style->grouping == ','
-              || style->grouping == 0));
+  assert (style->grouping == '.' || style->grouping == ','
+          || style->grouping == 0);
+  assert (style->grouping != style->decimal);
 
   assert (fmt_get_category (type) == FMT_CAT_CUSTOM);
   assert (styles[type] != NULL);

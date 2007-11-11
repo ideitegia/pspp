@@ -66,7 +66,7 @@ val_labs_create (int width)
 /* Creates and returns a new set of value labels identical to
    VLS. */
 struct val_labs *
-val_labs_copy (const struct val_labs *vls)
+val_labs_clone (const struct val_labs *vls)
 {
   struct val_labs *copy;
   struct val_labs_iterator *i;
@@ -82,46 +82,29 @@ val_labs_copy (const struct val_labs *vls)
   return copy;
 }
 
-/* Determines whether VLS's width can be changed to NEW_WIDTH.
-   Numeric widths cannot be changed at all.
-   Strings can be widened.  They can be shortened only if the
-   characters that will be truncated are spaces. */
+/* Determines whether VLS's width can be changed to NEW_WIDTH,
+   using the rules checked by value_is_resizable. */
 bool
 val_labs_can_set_width (const struct val_labs *vls, int new_width)
 {
-  if ( var_type_from_width (new_width) != var_type_from_width (vls->width ))
-    return false;
+  struct val_labs_iterator *i;
+  struct val_lab *lab;
 
-  if (vls->width == 0)
-    return new_width == 0;
-  else if (new_width < vls->width)
-    {
-      struct val_labs_iterator *i;
-      struct val_lab *lab;
+  for (lab = val_labs_first (vls, &i); lab != NULL;
+       lab = val_labs_next (vls, &i))
+    if (!value_is_resizable (&lab->value, vls->width, new_width))
+      {
+        val_labs_done (&i);
+        return false;
+      }
 
-      for (lab = val_labs_first (vls, &i); lab != NULL;
-           lab = val_labs_next (vls, &i))
-        {
-          int j;
-
-          /* We can shorten the value labels only if all the
-             truncated characters are blanks. */
-          for (j = vls->width; j < new_width; j++)
-            if (lab->value.s[j] != ' ')
-              {
-                val_labs_done (&i);
-                return false;
-              }
-        }
-      return true;
-    }
-  else
-    return true;
+  return true;
 }
 
-/* Changes the width of VLS to NEW_WIDTH.  If VLS is numeric,
-   NEW_WIDTH must be 0, otherwise it must be within the range
-   1...MAX_SHORT_STRING inclusive. */
+/* Changes the width of VLS to NEW_WIDTH.  The original and new
+   width must be both numeric or both string.  If the new width
+   is a long string width, then any value labels in VLS are
+   deleted. */
 void
 val_labs_set_width (struct val_labs *vls, int new_width)
 {
@@ -186,64 +169,61 @@ create_int_val_lab (struct val_labs *vls, union value value, const char *label)
   return ivl;
 }
 
-/* If VLS does not already contain a value label for VALUE, adds
-   LABEL for it and returns true.  Otherwise, returns false.
-   Behavior is undefined if VLS's width is greater than
-   MAX_SHORT_STRING. */
+/* If VLS does not already contain a value label for VALUE (and
+   VLS represents a numeric or short string set of value labels),
+   adds LABEL for it and returns true.  Otherwise, returns
+   false. */
 bool
 val_labs_add (struct val_labs *vls, union value value, const char *label)
 {
-  struct int_val_lab *ivl;
-  void **vlpp;
-
-  assert (vls != NULL);
-  assert (vls->width <= MAX_SHORT_STRING);
   assert (label != NULL);
-
-  if (vls->labels == NULL)
-    vls->labels = hsh_create (8, compare_int_val_lab, hash_int_val_lab,
-                              free_int_val_lab, vls);
-
-  ivl = create_int_val_lab (vls, value, label);
-  vlpp = hsh_probe (vls->labels, ivl);
-  if (*vlpp == NULL)
+  if (vls->width < MIN_LONG_STRING)
     {
-      *vlpp = ivl;
-      return true;
+      struct int_val_lab *ivl;
+      void **vlpp;
+
+      if (vls->labels == NULL)
+        vls->labels = hsh_create (8, compare_int_val_lab, hash_int_val_lab,
+                                  free_int_val_lab, vls);
+
+      ivl = create_int_val_lab (vls, value, label);
+      vlpp = hsh_probe (vls->labels, ivl);
+      if (*vlpp == NULL)
+        {
+          *vlpp = ivl;
+          return true;
+        }
+      free_int_val_lab (ivl, vls);
     }
-  free_int_val_lab (ivl, vls);
   return false;
 }
 
-/* Sets LABEL as the value label for VALUE in VLS.  Returns false
-   if there wasn't already a value label for VALUE, or true if
-   there was.  Behavior is undefined if VLS's width is greater
-   than MAX_SHORT_STRING. */
+/* Sets LABEL as the value label for VALUE in VLS, replacing any
+   existing label for VALUE.  Has no effect if VLS has a long
+   string width. */
 void
 val_labs_replace (struct val_labs *vls, union value value, const char *label)
 {
-  assert (vls->width <= MAX_SHORT_STRING);
-  if (vls->labels != NULL)
+  if (vls->width < MIN_LONG_STRING)
     {
-      struct int_val_lab *new = create_int_val_lab (vls, value, label);
-      struct int_val_lab *old = hsh_replace (vls->labels, new);
-      if (old != NULL)
-        free_int_val_lab (old, vls);
+      if (vls->labels != NULL)
+        {
+          struct int_val_lab *new = create_int_val_lab (vls, value, label);
+          struct int_val_lab *old = hsh_replace (vls->labels, new);
+          if (old != NULL)
+            free_int_val_lab (old, vls);
+        }
+      else
+        val_labs_add (vls, value, label);
     }
-  else
-    val_labs_add (vls, value, label);
 }
 
 /* Removes any value label for VALUE within VLS.  Returns true
-   if a value label was removed. Behavior is undefined if VLS's
-   width is greater than MAX_SHORT_STRING. */
+   if a value label was removed. */
 bool
 val_labs_remove (struct val_labs *vls, union value value)
 {
-  assert (vls != NULL);
-  assert (vls->width <= MAX_SHORT_STRING);
-
-  if (vls->labels != NULL)
+  if (vls->width < MIN_LONG_STRING && vls->labels != NULL)
     {
       struct int_val_lab *ivl = create_int_val_lab (vls, value, "");
       int deleted = hsh_delete (vls->labels, ivl);
@@ -298,7 +278,10 @@ val_labs_first (const struct val_labs *vls, struct val_labs_iterator **ip)
   assert (ip != NULL);
 
   if (vls->labels == NULL || vls->width > MAX_SHORT_STRING)
-    return NULL;
+    {
+      *ip = NULL;
+      return NULL;
+    }
 
   i = *ip = xmalloc (sizeof *i);
   i->labels = hsh_data_copy (vls->labels);
@@ -322,7 +305,10 @@ val_labs_first_sorted (const struct val_labs *vls,
   assert (ip != NULL);
 
   if (vls->labels == NULL || vls->width > MAX_SHORT_STRING)
-    return NULL;
+    {
+      *ip = NULL;
+      return NULL;
+    }
 
   i = *ip = xmalloc (sizeof *i);
   i->lp = i->labels = hsh_sort_copy (vls->labels);
@@ -367,15 +353,13 @@ val_labs_next (const struct val_labs *vls, struct val_labs_iterator **ip)
 void
 val_labs_done (struct val_labs_iterator **ip)
 {
-  struct val_labs_iterator *i;
-
-  assert (ip != NULL);
-  assert (*ip != NULL);
-
-  i = *ip;
-  free (i->labels);
-  free (i);
-  *ip = NULL;
+  if (*ip != NULL)
+    {
+      struct val_labs_iterator *i = *ip;
+      free (i->labels);
+      free (i);
+      *ip = NULL;
+    }
 }
 
 /* Compares two value labels and returns a strcmp()-type result. */

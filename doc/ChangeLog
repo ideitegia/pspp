@@ -1,3 +1,36 @@
+2007-11-10  Ben Pfaff  <blp@gnu.org>
+
+	* not-implemented.texi: Fix @include command so that it works
+	consistently, by using a file name relative to Makefile.am's
+	srcdir instead of relative to doc.
+
+2007-11-10  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6262: New developers guide (currently incomplete).
+
+	* automake.mk: Add definitions for new manual.
+
+	* pspp.texinfo: Now this is the PSPP Users Guide instead of just
+	the PSPP manual.  Remove development chapters.
+
+	* pspp-dev.texinfo: New file.
+
+	* data-file-format.texi: Move to dev/system-file-format.texi.
+
+	* portable-file-format.texi: Move to dev/.
+
+	* q2c.texi: Move to dev/
+
+	* dev/concepts.texi: New file.
+
+	* dev/data.texi: New file.
+
+	* dev/intro.texi: New file.
+
+	* dev/output.texi: New file.
+
+	* dev/syntax.texi: New file.
+
 2007-10-19 John Darrington <john@darrington.wattle.id.au>
 
 	* statistics.texi: Changed /CONTRASTS to /CONTRAST in ONEWAY which

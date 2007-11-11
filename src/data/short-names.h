@@ -33,6 +33,9 @@
 
 struct dictionary;
 
+/* Maximum length of a short name, in bytes. */
+#define SHORT_NAME_LEN 8
+
 void short_names_assign (struct dictionary *);
 
 #endif /* data/short-names.h */

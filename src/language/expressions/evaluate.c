@@ -126,7 +126,7 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
         dump_postfix = 1;
       else if (lex_match (lexer, '('))
         {
-          char name[LONG_NAME_LEN + 1];
+          char name[VAR_NAME_LEN + 1];
           struct variable *v;
           size_t old_value_cnt;
           int width;

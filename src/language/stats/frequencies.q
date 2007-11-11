@@ -636,12 +636,12 @@ postcalc (void)
 }
 
 /* Returns the comparison function that should be used for
-   sorting a frequency table by FRQ_SORT using VAR_TYPE
-   variables. */
+   sorting a frequency table by FRQ_SORT using VAL_TYPE
+   values. */
 static hsh_compare_func *
-get_freq_comparator (int frq_sort, enum var_type var_type)
+get_freq_comparator (int frq_sort, enum val_type val_type)
 {
-  bool is_numeric = var_type == VAR_NUMERIC;
+  bool is_numeric = val_type == VAL_NUMERIC;
   switch (frq_sort)
     {
     case FRQ_AVALUE:

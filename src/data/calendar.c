@@ -2,8 +2,8 @@
 #include "calendar.h"
 #include <assert.h>
 #include <stdbool.h>
-#include "settings.h"
-#include "value.h"
+#include <data/settings.h>
+#include <data/val-type.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

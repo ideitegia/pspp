@@ -26,6 +26,7 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <data/val-type.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
 #include <libpspp/deque.h>

@@ -1,3 +1,80 @@
+2007-11-10  Ben Pfaff  <blp@gnu.org>
+
+	Cleanups and bug fixes devised while writing up documentation.
+	Patch #6262.
+
+	* automake.mk (src_data_libdata_a_SOURCES): Add new files.
+
+	* dict-class.c: New file.
+	(dict_class_from_id): Move here.
+	(dict_class_to_name): Move here.
+
+	* dict-class.h: New file.
+	(enum dict_class): Move here.  Change from consecutive integers to
+	consecutive bits, to make testing for any of multiple values
+	easier.  Add new DC_ALL constant.
+
+	* dictionary.c (struct dictionary): Change `case_limit' from
+	size_t to casenumber.
+	(dict_get_vars): Make final argument an enum dict_class.
+	(dict_get_vars_mutable): Ditto.
+	(dict_get_case_limit): Change return value to casenumber.
+	(dict_set_case_limit): Change final argument to a casenumber.
+	(dict_unset_split_var): Add assertion.  Rephrase slightly.
+	(dict_set_label): Use xstrndup to simplify.
+
+	* format.c (fmt_step_width): AHEX format also needs 2-byte
+	stepping.
+	(fmt_set_style): Simplify assertions.
+
+	* missing-values.c (mv_add_num_range): Rename mv_add_range.
+	Simplify implementation.
+	(mv_has_value): Simplify implementation.
+	(mv_pop_value): Remove the first value, not the last, to avoid
+	having GET followed by SAVE reverse the order of missing values.
+	(mv_peek_value): Rename mv_get_value.  Simplify assertion.
+	(mv_has_range): Simplify implementation.
+	(mv_peek_range): Rename mv_get_range.
+	(can_resize_string): Removed.
+	(mv_is_resizable): Use value_is_resizable.
+	(mv_resize): Use value_resize.
+
+	* short-names.h (SHORT_NAME_LEN): Move here.
+
+	* val-type.h: New file, for definitions related to type and width
+	of abstract values.  Before, these definitions were mixed among
+	those related to "union value" and those related to variables.
+	(macro SYSMIS): Move here.
+	(macro LOWEST): Move here.
+	(macro HIGHEST): Move here.
+	(macro MAX_STRING); Move here.
+	(enum val_type): New enum with values VAL_NUMERIC and VAL_STRING.
+	Replaces enum var_type that had values VAR_NUMERIC and VAR_STRING.
+	All references updated.
+	(val_type_is_valid): New function.  Replaces var_type_is_valid.
+	All references updated.
+	(val_type_from_width): New function.  Replaces
+	var_type_from_width.  All references updated.
+
+	* value-labels.c (val_labs_copy): Renamed val_labs_clone.  All
+	references updated.
+	(val_labs_can_set_width): Use value_is_resizable.
+	(val_labs_add): Simply return false if the value labels set is too
+	wide, instead of having undefined behavior.
+	(val_labs_replace): Ditto.
+	(val_labs_replace): Ditto.
+	(val_labs_first): Set iterator to null if iteration is complete.
+	(val_labs_first_sorted): Ditto.
+	(val_labs_done): Become a no-op if the iterator is null.
+
+	* value.c (value_is_resizable): New function.
+	(value_resize): New function.
+
+	* variable.c (var_get_dict_class): New function.
+
+	* variable.h (macro LONG_NAME_LEN): Rename VAR_NAME_LEN.  Update
+	all references.
+
 2007-11-08  Ben Pfaff  <blp@gnu.org>
 
 	* data-in.c: Make formatted data parsing locale-independent.

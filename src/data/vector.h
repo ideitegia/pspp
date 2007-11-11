@@ -30,7 +30,7 @@ struct vector *vector_clone (const struct vector *old,
 void vector_destroy (struct vector *);
 
 const char *vector_get_name (const struct vector *);
-enum var_type vector_get_type (const struct vector *);
+enum val_type vector_get_type (const struct vector *);
 struct variable *vector_get_var (const struct vector *, size_t idx);
 size_t vector_get_var_cnt (const struct vector *);
 

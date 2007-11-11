@@ -43,9 +43,10 @@ Software Foundation raise funds for GNU development.''
 @end copying
 
 @titlepage
-@title GNU PSPP
-@subtitle A System for Statistical Analysis
-@subtitle Edition @value{EDITION}, for PSPP version @value{VERSION}
+@title PSPP Users Guide
+@subtitle GNU PSPP Statistical Analysis Software
+@subtitle Release @value{VERSION}
+@author
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -87,10 +88,6 @@ Software Foundation raise funds for GNU development.''
 
 * Configuration::               Configuring PSPP.
 
-* Portable File Format::        Format of PSPP portable files.
-* System File Format::          Format of PSPP system files.
-* q2c Input Format::            Format of syntax accepted by q2c.
-
 * GNU Free Documentation License:: License for copying this manual.
 @end menu
 
@@ -116,10 +113,6 @@ Software Foundation raise funds for GNU development.''
 @include concept-index.texi
 
 @include configuring.texi
-
-@include portable-file-format.texi
-@include data-file-format.texi
-@include q2c.texi
 
 @include fdl.texi
 

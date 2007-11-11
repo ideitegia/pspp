@@ -19,23 +19,24 @@
 #include <limits.h>
 #include <math.h>
 
-#include <data/dictionary.h>
-#include <data/format.h>
-#include <data/missing-values.h>
-#include <data/procedure.h>
-#include <data/variable.h>
 #include <data/case-ordering.h>
 #include <data/case.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
+#include <data/dictionary.h>
+#include <data/format.h>
+#include <data/missing-values.h>
+#include <data/procedure.h>
+#include <data/short-names.h>
+#include <data/variable.h>
 #include <language/command.h>
 #include <language/stats/sort-criteria.h>
 #include <libpspp/compiler.h>
 #include <libpspp/taint.h>
 #include <math/sort.h>
-#include <output/table.h>
 #include <output/manager.h>
+#include <output/table.h>
 
 #include <gsl/gsl_cdf.h>
 

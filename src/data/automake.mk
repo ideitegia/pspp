@@ -42,6 +42,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/data-out.h \
 	src/data/datasheet.c \
 	src/data/datasheet.h \
+	src/data/dict-class.c \
+	src/data/dict-class.h \
 	src/data/dictionary.c \
 	src/data/dictionary.h \
 	src/data/file-handle-def.c \

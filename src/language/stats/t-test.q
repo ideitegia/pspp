@@ -147,7 +147,7 @@ struct pair
 
 static struct pair *pairs=0;
 
-static int parse_value (struct lexer *lexer, union value * v, enum var_type);
+static int parse_value (struct lexer *lexer, union value * v, enum val_type);
 
 /* Structures and Functions for the Statistics Summary Box */
 struct ssbox;
@@ -565,9 +565,9 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cm
 /* Parses the current token (numeric or string, depending on type)
     value v and returns success. */
 static int
-parse_value (struct lexer *lexer, union value * v, enum var_type type)
+parse_value (struct lexer *lexer, union value * v, enum val_type type)
 {
-  if (type == VAR_NUMERIC)
+  if (type == VAL_NUMERIC)
     {
       if (!lex_force_num (lexer))
 	return 0;

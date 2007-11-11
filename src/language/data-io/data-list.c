@@ -65,7 +65,7 @@ struct dls_var_spec
     /* All parsers. */
     struct fmt_spec input;	/* Input format of this field. */
     int fv;			/* First value in case. */
-    char name[LONG_NAME_LEN + 1]; /* Var name for error messages and tables. */
+    char name[VAR_NAME_LEN + 1]; /* Var name for error messages and tables. */
 
     /* Fixed format only. */
     int record;			/* Record number (1-based). */

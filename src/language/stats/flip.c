@@ -28,6 +28,7 @@
 #include <data/dictionary.h>
 #include <data/procedure.h>
 #include <data/settings.h>
+#include <data/short-names.h>
 #include <data/value.h>
 #include <data/variable.h>
 #include <language/command.h>
@@ -117,7 +118,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
       lex_match (lexer, '/');
     }
   else
-    dict_get_vars (dict, &flip->var, &flip->var_cnt, 1u << DC_SYSTEM);
+    dict_get_vars (dict, &flip->var, &flip->var_cnt, DC_SYSTEM);
   pool_register (flip->pool, free, flip->var);
 
   lex_match (lexer, '/');

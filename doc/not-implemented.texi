@@ -7,6 +7,6 @@ implemented.
 @cindex unimplemented commands
 @cindex commands, unimplemented
 
-@include ni.texi
+@include doc/ni.texi
 
 @setfilename ignored

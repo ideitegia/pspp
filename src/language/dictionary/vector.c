@@ -135,7 +135,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
                   seen_format = true;
                   if (!parse_format_specifier (lexer, &format)
                       || !fmt_check_output (&format)
-                      || !fmt_check_type_compat (&format, VAR_NUMERIC))
+                      || !fmt_check_type_compat (&format, VAL_NUMERIC))
                     goto fail;
                 }
               else
@@ -152,16 +152,16 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
             }
 
 	  /* Check that none of the variables exist and that
-             their names are no more than LONG_NAME_LEN bytes
+             their names are no more than VAR_NAME_LEN bytes
              long. */
           for (i = 0; i < vector_cnt; i++)
 	    {
               int j;
 	      for (j = 0; j < var_cnt; j++)
 		{
-                  char name[LONG_NAME_LEN + INT_STRLEN_BOUND (int) + 1];
+                  char name[VAR_NAME_LEN + INT_STRLEN_BOUND (int) + 1];
 		  sprintf (name, "%s%d", vectors[i], j + 1);
-                  if (strlen (name) > LONG_NAME_LEN)
+                  if (strlen (name) > VAR_NAME_LEN)
                     {
                       msg (SE, _("%s is too long for a variable name."), name);
                       goto fail;
@@ -181,7 +181,7 @@ cmd_vector (struct lexer *lexer, struct dataset *ds)
               int j;
 	      for (j = 0; j < var_cnt; j++)
 		{
-                  char name[LONG_NAME_LEN + 1];
+                  char name[VAR_NAME_LEN + 1];
 		  sprintf (name, "%s%d", vectors[i], j + 1);
 		  vars[j] = dict_create_var_assert (dict, name, 0);
                   var_set_both_formats (vars[j], &format);

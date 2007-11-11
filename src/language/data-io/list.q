@@ -29,6 +29,7 @@
 #include <data/data-out.h>
 #include <data/format.h>
 #include <data/procedure.h>
+#include <data/short-names.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
@@ -150,7 +151,7 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
     cmd.last = LONG_MAX;
   if (!cmd.sbc_variables)
     dict_get_vars (dict, &cmd.v_variables, &cmd.n_variables,
-		   (1u << DC_SYSTEM) | (1u << DC_SCRATCH));
+                   DC_SYSTEM | DC_SCRATCH);
   if (cmd.n_variables == 0)
     {
       msg (SE, _("No variables specified."));
@@ -507,7 +508,7 @@ write_fallback_headers (struct outp_driver *d)
 	  }
 
 	  {
-	    char varname[LONG_NAME_LEN + 2];
+	    char varname[VAR_NAME_LEN + 2];
 	    snprintf (varname, sizeof varname,
                       " %s", var_get_name (cmd.v_variables[index]));
 	    write_varname (d, varname, leader_width);

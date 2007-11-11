@@ -1,6 +1,9 @@
 Makefile
 Makefile.in
 ni.texi
+pspp-dev.info
 pspp.info*
+stamp-1
 stamp-vti
+version-dev.texi
 version.texi

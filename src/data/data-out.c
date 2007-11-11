@@ -25,16 +25,15 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "calendar.h"
-#include "format.h"
-#include "settings.h"
-#include "value.h"
+#include <data/calendar.h>
+#include <data/format.h>
+#include <data/settings.h>
+#include <data/value.h>
 
 #include <libpspp/assertion.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
-#include <libpspp/misc.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 

@@ -445,14 +445,14 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   if (mv_has_range (mv))
     {
       double x, y;
-      mv_peek_range (mv, &x, &y);
+      mv_get_range (mv, &x, &y);
       write_float (w, x);
       write_float (w, y);
     }
   for (i = 0; i < mv_n_values (mv); i++)
     {
       union value value;
-      mv_peek_value (mv, &value, i);
+      mv_get_value (mv, &value, i);
       write_value (w, &value, seg0_width);
     }
 

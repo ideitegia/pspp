@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,35 +14,18 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if !value_h
-#define value_h 1
+#ifndef DATA_VALUE_H
+#define DATA_VALUE_H 1
 
-#include <float.h>
-#include <libpspp/float-format.h>
 #include <libpspp/misc.h>
+#include <stdbool.h>
 #include "minmax.h"
-
-/* Values. */
 
 /* "Short" strings, which are generally those no more than 8
    characters wide, can participate in more operations than
    longer strings. */
 #define MAX_SHORT_STRING (MAX (ROUND_UP (SIZEOF_DOUBLE, 2), 8))
 #define MIN_LONG_STRING (MAX_SHORT_STRING + 1)
-#define MAX_STRING 32767
-
-/* Special values. */
-#define SYSMIS (-DBL_MAX)
-#define LOWEST (float_get_lowest ())
-#define HIGHEST DBL_MAX
-
-/* Number of "union value"s required for a variable of the given
-   WIDTH. */
-static inline size_t
-value_cnt_from_width (int width)
-{
-  return width == 0 ? 1 : DIV_RND_UP (width, MAX_SHORT_STRING);
-}
 
 /* A numeric or short string value.
    Multiple consecutive values represent a long string. */
@@ -58,7 +41,18 @@ union value *value_create (int width);
 int compare_values (const union value *, const union value *, int width);
 unsigned hash_value (const union value  *, int width);
 
+static inline size_t value_cnt_from_width (int width);
 void value_copy (union value *, const union value *, int width);
 void value_set_missing (union value *, int width);
+bool value_is_resizable (const union value *, int old_width, int new_width);
+void value_resize (union value *, int old_width, int new_width);
 
-#endif /* !value.h */
+/* Number of "union value"s required for a variable of the given
+   WIDTH. */
+static inline size_t
+value_cnt_from_width (int width)
+{
+  return width == 0 ? 1 : DIV_RND_UP (width, MAX_SHORT_STRING);
+}
+
+#endif /* data/value.h */
