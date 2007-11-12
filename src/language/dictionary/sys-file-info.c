@@ -423,7 +423,7 @@ display_variables (const struct variable **vl, size_t n, int as)
             {
               const char *label = var_get_label (v);
               tab_joint_text (t, 1, r, 2, r, TAB_LEFT,
-                              label != NULL ? "(no label)" : label);
+                              label == NULL ? "(no label)" : label);
             }
 	  if (as != AS_NAMES)
 	    {

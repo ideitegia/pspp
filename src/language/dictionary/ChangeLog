@@ -1,3 +1,8 @@
+2007-11-11  Ben Pfaff  <blp@gnu.org>
+
+	* sys-file-info.c (display_variables): Fix DISPLAY LABELS.  Thanks
+	to Guido Gay <gay@irer.it> for reporting this bug.
+
 2007-11-03  Ben Pfaff  <blp@gnu.org>
 
 	Allow output files to overwrite input files (bug #21280).
