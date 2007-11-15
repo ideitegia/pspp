@@ -1,3 +1,9 @@
+2007-11-15  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add definition of CHARSETALIASDIR to
+	TESTS_ENVIRONMENT, to allow locale_charset to find charset.alias
+	before running "make install".
+
 2007-11-10  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/compression.sh: Pass -b option to diff to avoid spurious
