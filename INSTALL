@@ -44,13 +44,26 @@ The following packages are required to enable PSPPIRE, the graphical
 user interface for PSPP.  If you cannot install them or do not wish to
 use the GUI, you must run `configure' with --without-gui.
 
-    * pkg-config (http://pkg-config.freedesktop.org/wiki/). 
+    * pkg-config (http://pkg-config.freedesktop.org/wiki/).  Versions
+      0.18 and 0.19 have a bug that will prevent library detection,
+      but other versions should be fine.
 
     * GTK+ (http://www.gtk.org/), version 2.8.0 or later, although we
       recommend version 2.10.2 or later.
 
     * libglade (http://www.jamesh.id.au/software/libglade/), version
       2.6 or later.
+
+Installing the following packages will allow your PSPP binary to read
+Gnumeric files.
+
+    * pkg-config (http://pkg-config.freedesktop.org/wiki/).  Versions
+      0.18 and 0.19 have a bug that will prevent library detection,
+      but other versions should be fine.
+
+    * zlib (http://www.zlib.net/).
+
+    * libxml2 (http://xmlsoft.org/).  
 
 The following packages are optional.
 
@@ -65,12 +78,6 @@ The following packages are optional.
     * Texinfo (http://www.gnu.org/software/texinfo/), version 4.7 or
       later.  Installing Texinfo will allow you to build PSPP
       documentation in PostScript or PDF format.
-
-    * zlib (http://www.zlib.net/).  Installing zlib and libxml2 will
-      allow your PSPP binary to read Gnumeric files.
-
-    * libxml2 (http://xmlsoft.org/).  Installing zlib and libxml2 will
-      allow your PSPP binary to read Gnumeric files.
 
 Basic Installation
 ==================
