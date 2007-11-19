@@ -421,7 +421,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   /* Number of missing values.  If there is a range, then the
      range counts as 2 missing values and causes the number to be
      negated. */
-  write_int (w, mv_has_range (mv) ? 2 - mv_n_values (mv) : mv_n_values (mv));
+  write_int (w, mv_has_range (mv) ? -2 - mv_n_values (mv) : mv_n_values (mv));
 
   /* Print and write formats. */
   write_format (w, *var_get_print_format (v), seg0_width);

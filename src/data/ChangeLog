@@ -1,3 +1,13 @@
+2007-11-18  Ben Pfaff  <blp@gnu.org>
+
+	Properly write variables that include a range of missing values to
+	system files.  Thanks to Guido Gay <gay@irer.it> for reporting
+	this bug.
+
+	* sys-file-writer.c (write_variable): Correctly calculate
+	n_missing_values field when writing variables that include a range
+	of missing values.
+
 2007-11-10  Ben Pfaff  <blp@gnu.org>
 
 	Cleanups and bug fixes devised while writing up documentation.
