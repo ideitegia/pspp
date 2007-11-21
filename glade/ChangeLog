@@ -1,3 +1,8 @@
+2007-11-21 John Darrington <john@darrington.wattle.id.au>
+
+	* icons/22x22/psppire-acr.png icons/16x16/psppire-acr.png: New files.
+	* automake.mk: Install the new icons.
+
 2007-10-19 John Darrington <john@darrington.wattle.id.au>
 
 	* acr.c (new file)
