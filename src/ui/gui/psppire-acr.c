@@ -14,17 +14,31 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+
+/*
+  This widget is a GtkBox which looks roughly like:
+
+  +-----------------------------+
+  |+------------+  +----------+	|
+  ||   Add      |  |	      |	|
+  |+------------+  |	      |	|
+  |                |	      |	|
+  |+------------+  |	      |	|
+  ||   Edit     |  |	      |	|
+  |+------------+  |	      |	|
+  |      	   |	      |	|
+  |+------------+  |	      |	|
+  ||  Remove    |  |	      |	|
+  |+------------+  +----------+	|
+  +-----------------------------+
+
+*/
+
 #include <gtk/gtk.h>
 
 #include "psppire-acr.h"
 
 static void psppire_acr_init (PsppireAcr *);
-
-enum {
-  COLUMN_DOUBLE,
-  n_COLUMNS
-};
-
 
 GType
 psppire_acr_get_type (void)
@@ -53,29 +67,99 @@ psppire_acr_get_type (void)
   return acr_type;
 }
 
+
+static gboolean row_is_selected (const PsppireAcr *acr);
+
+
+static gboolean
+value_from_entry (gint col, GValue *val, gpointer data)
+{
+  GtkEntry *entry = data;
+  const gchar *text = gtk_entry_get_text (entry);
+  gdouble x = g_strtod (text, 0);
+
+  g_value_init (val, G_TYPE_DOUBLE);
+  g_value_set_double (val, x);
+
+  return TRUE;
+}
+
+
+/* Returns true, if there's text in the entry */
+static gboolean
+entry_not_empty (gpointer data)
+{
+  GtkEntry *entry = data;
+
+  const char *text = gtk_entry_get_text (entry);
+
+  return !g_str_equal (text, "");
+}
+
+
+static void
+clear_entry (gpointer data)
+{
+  GtkEntry *entry = data;
+  gtk_entry_set_text (entry, "");
+}
+
+
+static void
+on_entry_change (GtkEntry *entry, PsppireAcr *acr)
+{
+  gtk_widget_set_sensitive (acr->add_button, acr->enabled (entry));
+
+  gtk_widget_set_sensitive (acr->change_button, acr->enabled (entry)
+			    && row_is_selected (acr));
+}
+
+void
+psppire_acr_set_entry  (PsppireAcr *acr, GtkEntry *entry)
+{
+  acr->get_value = value_from_entry;
+  acr->get_value_data = entry;
+  acr->enabled = entry_not_empty;
+  acr->enabled_data = entry;
+  acr->update = clear_entry;
+  acr->update_data = entry;
+
+  g_signal_connect (entry, "changed", G_CALLBACK (on_entry_change), acr);
+}
+
+
+/* Callback for when the Add button is clicked.
+   It appends an item to the list. */
 static void
 on_add_button_clicked (PsppireAcr *acr)
 {
+  gint i;
   GtkTreeIter iter;
-  gdouble x;
-
-  const gchar *text = gtk_entry_get_text (acr->entry);
-  x = g_strtod (text, 0);
-
   gtk_list_store_append (acr->list_store, &iter);
 
-  gtk_list_store_set (acr->list_store, &iter,
-		      COLUMN_DOUBLE, x,
-		      -1);
+  for (i = 0 ;
+       i < gtk_tree_model_get_n_columns (GTK_TREE_MODEL (acr->list_store));
+       ++i)
+    {
+      static GValue value;
+      if ( ! acr->get_value (i, &value, acr->get_value_data) )
+	continue;
 
-  gtk_entry_set_text (acr->entry, "");
+      gtk_list_store_set_value (acr->list_store, &iter,
+				i, &value);
+      g_value_unset (&value);
+    }
+
+  if (acr->update) acr->update (acr->update_data);
 }
 
+
+/* Callback for when the Changed button is clicked.
+   It replaces the currently selected entry. */
 static void
 on_change_button_clicked (PsppireAcr *acr)
 {
-  const gchar *text;
-  GValue value = {0};
+  gint i;
   GtkTreeModel *model = GTK_TREE_MODEL (acr->list_store);
 
   GList *l=
@@ -88,16 +172,28 @@ on_change_button_clicked (PsppireAcr *acr)
 
   gtk_tree_model_get_iter (model, &iter, path);
 
-  text = gtk_entry_get_text (acr->entry);
+  for (i = 0 ;
+       i < gtk_tree_model_get_n_columns (GTK_TREE_MODEL (acr->list_store));
+       ++i)
+    {
+      static GValue value;
+      if ( ! acr->get_value (i, &value, acr->get_value_data) )
+	continue;
 
-  g_value_init (&value, G_TYPE_DOUBLE);
-  g_value_set_double (&value, g_strtod (text, NULL));
-  gtk_list_store_set_value (acr->list_store, &iter, 0, &value);
+      gtk_list_store_set_value (acr->list_store, &iter,
+				i, &value);
+      g_value_unset (&value);
+    }
 
   g_list_foreach (l, (GFunc) gtk_tree_path_free, NULL);
   g_list_free (l);
+
+  if ( acr->update) acr->update (acr->update_data);
 }
 
+
+/* Callback for when the remove button is clicked.
+   It deletes the currently selected entry. */
 static void
 on_remove_button_clicked (PsppireAcr *acr)
 {
@@ -119,15 +215,10 @@ on_remove_button_clicked (PsppireAcr *acr)
   g_list_free (l);
 }
 
+/* Returns true if there is a row currently selected.
+   False otherwise. */
 static gboolean
-value_present (const PsppireAcr *acr)
-{
-  const char *text = gtk_entry_get_text (acr->entry);
-  return !g_str_equal (text, "");
-}
-
-static gboolean
-row_is_selected (PsppireAcr *acr)
+row_is_selected (const PsppireAcr *acr)
 {
   gboolean result;
   GtkTreeModel *model = GTK_TREE_MODEL (acr->list_store);
@@ -143,6 +234,8 @@ row_is_selected (PsppireAcr *acr)
 }
 
 
+/* Callback which occurs when an item in the treeview
+   is selected */
 static void
 on_select (GtkTreeSelection *selection, gpointer data)
 {
@@ -151,9 +244,20 @@ on_select (GtkTreeSelection *selection, gpointer data)
   gtk_widget_set_sensitive (acr->remove_button, row_is_selected (acr));
 
   gtk_widget_set_sensitive (acr->change_button,
-			    row_is_selected (acr) && value_present (acr));
+			    row_is_selected (acr)
+			    );
 }
 
+
+void
+psppire_acr_set_enabled (PsppireAcr *acr, gboolean status)
+{
+
+  gtk_widget_set_sensitive (acr->add_button, status);
+
+  gtk_widget_set_sensitive (acr->change_button, status
+			    && row_is_selected (acr));
+}
 
 
 static void
@@ -168,6 +272,11 @@ psppire_acr_init (PsppireAcr *acr)
   acr->add_button = gtk_button_new_from_stock (GTK_STOCK_ADD);
   acr->change_button = gtk_button_new_from_stock (GTK_STOCK_EDIT);
   acr->remove_button = gtk_button_new_from_stock (GTK_STOCK_REMOVE);
+
+  acr->get_value = NULL;
+  acr->get_value_data = NULL;
+  acr->enabled = NULL;
+  acr->update = NULL;
 
   gtk_widget_set_sensitive (acr->change_button, FALSE);
   gtk_widget_set_sensitive (acr->remove_button, FALSE);
@@ -215,19 +324,16 @@ psppire_acr_init (PsppireAcr *acr)
   gtk_widget_show_all (sw);
 
   {
-    GtkCellRenderer *renderer;
-    GtkTreeViewColumn *column;
-
-    renderer = gtk_cell_renderer_text_new ();
-    column = gtk_tree_view_column_new_with_attributes ("header",
-						       renderer,
-						       "text", COLUMN_DOUBLE,
-						       NULL);
+    GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
+    GtkTreeViewColumn *column =
+      gtk_tree_view_column_new_with_attributes ("value",
+						renderer,
+						"text", 0,
+						NULL);
 
     gtk_tree_view_append_column (acr->tv, column);
   }
 
-  acr->entry = NULL;
 }
 
 
@@ -235,23 +341,6 @@ GtkWidget*
 psppire_acr_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_acr_get_type (), NULL));
-}
-
-static void
-on_entry_change (GtkEntry *entry, PsppireAcr *acr)
-{
-  gtk_widget_set_sensitive (acr->add_button, value_present (acr));
-
-  gtk_widget_set_sensitive (acr->change_button, value_present (acr)
-			    && row_is_selected (acr));
-}
-
-void
-psppire_acr_set_entry  (PsppireAcr *acr, GtkEntry *entry)
-{
-  acr->entry = entry;
-
-  g_signal_connect (entry, "changed", G_CALLBACK (on_entry_change), acr);
 }
 
 
@@ -266,4 +355,20 @@ psppire_acr_set_model (PsppireAcr *acr, GtkListStore *liststore)
 			   GTK_TREE_MODEL (liststore));
 
   gtk_widget_set_sensitive (GTK_WIDGET (acr), liststore != NULL);
+}
+
+
+void
+psppire_acr_set_enable_func (PsppireAcr *acr, EnabledFunc func, gpointer p)
+{
+  acr->enabled = func;
+  acr->enabled_data = p;
+}
+
+void
+psppire_acr_set_get_value_func (PsppireAcr *acr,
+				GetValueFunc getvalue, gpointer data)
+{
+  acr->get_value_data = data;
+  acr->get_value = getvalue;
 }

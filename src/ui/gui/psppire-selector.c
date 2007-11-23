@@ -126,6 +126,9 @@ enum
 };
 
 
+static void on_activate (PsppireSelector *selector, gpointer data);
+
+
 static void
 psppire_selector_set_property (GObject         *object,
 			       guint            prop_id,
@@ -230,15 +233,22 @@ psppire_selector_base_finalize(PsppireSelectorClass *class,
 }
 
 
+
 static void
 psppire_selector_init (PsppireSelector *selector)
 {
   selector->arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
   selector->filtered_source = NULL;
 
+  selector->action = gtk_action_new ("select", NULL, NULL, NULL);
+
+  gtk_action_connect_proxy (selector->action, GTK_WIDGET (selector));
+
   gtk_container_add (GTK_CONTAINER (selector), selector->arrow);
 
   gtk_widget_show (selector->arrow);
+
+  g_signal_connect_swapped (selector->action, "activate", G_CALLBACK (on_activate), selector);
 
   selector->selecting = FALSE;
 }
@@ -311,9 +321,14 @@ on_source_select (GtkTreeSelection *treeselection, gpointer data)
 
   set_direction (selector, PSPPIRE_SELECTOR_SOURCE_TO_DEST);
 
-  if ( GTK_IS_ENTRY (selector->dest) )
+  if ( selector->allow_selection )
     {
-      gtk_widget_set_sensitive (GTK_WIDGET (selector),
+      gtk_action_set_sensitive (selector->action,
+				selector->allow_selection (selector->source, selector->dest));
+    }
+  else if ( GTK_IS_ENTRY (selector->dest) )
+    {
+      gtk_action_set_sensitive (selector->action,
 				gtk_tree_selection_count_selected_rows
 				(treeselection) <= 1 );
     }
@@ -324,6 +339,8 @@ static void
 on_dest_treeview_select (GtkTreeSelection *treeselection, gpointer data)
 {
   PsppireSelector *selector = data;
+
+  gtk_tree_selection_unselect_all (gtk_tree_view_get_selection (GTK_TREE_VIEW (selector->source)));
 
   set_direction (selector, PSPPIRE_SELECTOR_DEST_TO_SOURCE);
 }
@@ -470,12 +487,14 @@ on_row_activate (GtkTreeView       *tree_view,
 {
   PsppireSelector *selector  = data;
 
-  select_selection (selector);
+  gtk_action_activate (selector->action);
 }
 
-/* Callback for when the selector button is clicked */
+/* Callback for when the selector button is clicked,
+   or other event which causes the selector's action to occur.
+ */
 static void
-on_click (PsppireSelector *selector, gpointer data)
+on_activate (PsppireSelector *selector, gpointer data)
 {
   switch (selector->direction)
     {
@@ -690,6 +709,7 @@ on_entry_dest_select (GtkWidget *widget, GdkEventFocus *event, gpointer data)
 {
   PsppireSelector * selector = data;
 
+  gtk_tree_selection_unselect_all (gtk_tree_view_get_selection (GTK_TREE_VIEW (selector->source)));
   set_direction (selector, PSPPIRE_SELECTOR_DEST_TO_SOURCE);
 
   return FALSE;
@@ -767,8 +787,6 @@ psppire_selector_set_subjects (PsppireSelector *selector,
 	selector->filter = is_item_in_dest;
     }
 
-  g_signal_connect (selector, "clicked", G_CALLBACK (on_click), NULL);
-
   if ( GTK_IS_TREE_VIEW (source))
     set_tree_view_source (selector, GTK_TREE_VIEW (source) );
   else
@@ -791,6 +809,14 @@ psppire_selector_set_subjects (PsppireSelector *selector,
     g_error ("Unsupported destination widget: %s", G_OBJECT_TYPE_NAME (dest));
 
   selector->select_items = select_func;
+}
+
+
+
+void
+psppire_selector_set_allow        (PsppireSelector *selector , AllowSelectionFunc *allow)
+{
+  selector->allow_selection = allow;
 }
 
 

@@ -43,6 +43,8 @@ struct data_editor
   GtkAction *invoke_variable_info_dialog;
   GtkAction *invoke_find_dialog;
   GtkAction *invoke_rank_dialog;
+  GtkAction *invoke_recode_same_dialog;
+  GtkAction *invoke_recode_different_dialog;
 
   GtkAction *invoke_descriptives_dialog;
 

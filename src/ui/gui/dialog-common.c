@@ -136,6 +136,103 @@ set_dest_model (GtkTreeView *dest, PsppireDict *dict)
 
   gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
 
-  gtk_tree_view_append_column (GTK_TREE_VIEW(dest), col);
+  gtk_tree_view_append_column (GTK_TREE_VIEW (dest), col);
+}
+
+
+
+/* Returns FALSE if the variables represented by the union of the rows
+   currently selected by SOURCE widget, and contents of the DEST
+   widget, are of different types.
+
+   In other words, this function when passed as the argument to
+   psppire_selector_set_allow, ensures that the selector selects only
+   string  variables, or only numeric variables, not a mixture.
+*/
+gboolean
+homogeneous_types (GtkWidget *source, GtkWidget *dest)
+{
+  gboolean ok;
+  GtkTreeIter iter;
+  gboolean retval = TRUE;
+
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (source));
+
+  PsppireDict *dict;
+  GtkTreeSelection *selection;
+  enum val_type type = -1;
+  GList *list, *l;
+
+  while (GTK_IS_TREE_MODEL_FILTER (model))
+    {
+      model = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
+    }
+
+  dict = PSPPIRE_DICT (model);
+
+  selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (source));
+
+  list = gtk_tree_selection_get_selected_rows (selection, &model);
+
+  /* Iterate through the selection of the source treeview */
+  for (l = list; l ; l = l->next)
+    {
+      GtkTreePath *path = l->data;
+      GtkTreePath *fpath;
+      gint *idx;
+
+      const struct variable *v;
+
+      fpath = gtk_tree_model_filter_convert_path_to_child_path (GTK_TREE_MODEL_FILTER (model), path);
+
+      idx = gtk_tree_path_get_indices (fpath);
+
+      v = psppire_dict_get_variable (dict, idx[0]);
+
+      if ( type != -1 )
+	{
+	  if ( var_get_type (v) != type )
+	    {
+	      retval = FALSE;
+	      break;
+	    }
+	}
+
+      type = var_get_type (v);
+    }
+
+  g_list_foreach (list, (GFunc) gtk_tree_path_free, NULL);
+  g_list_free (list);
+
+  if ( retval == FALSE )
+    return FALSE;
+
+  /* now deal with the dest widget */
+  model = gtk_tree_view_get_model (GTK_TREE_VIEW (dest));
+
+  for (ok = gtk_tree_model_get_iter_first (model, &iter);
+       ok;
+       ok = gtk_tree_model_iter_next (model, &iter))
+    {
+      gint idx;
+      const struct variable *v;
+      gtk_tree_model_get (model, &iter, 0, &idx, -1);
+
+      v = psppire_dict_get_variable (dict, idx);
+
+      if ( type != -1 )
+	{
+	  if ( var_get_type (v) != type )
+	    {
+	      retval = FALSE;
+	      break;
+	    }
+	}
+
+      type = var_get_type (v);
+    }
+
+
+  return retval;
 }
 

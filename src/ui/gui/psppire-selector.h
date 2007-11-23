@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtkbutton.h>
+#include <gtk/gtkaction.h>
 #include <gtk/gtkarrow.h>
 #include <gtk/gtktreemodel.h>
 #include <gtk/gtktreemodelfilter.h>
@@ -47,6 +48,9 @@ typedef void SelectItemsFunc (GtkTreeIter iter,
 			      GtkWidget *dest,
 			      GtkTreeModel *source_model);
 
+/* Function to determine if items may be selected */
+typedef gboolean AllowSelectionFunc (GtkWidget *src, GtkWidget *dest);
+
 
 /* Function to determine whether an item in MODEL, pointed to by ITER
    is currently selected.
@@ -70,6 +74,7 @@ struct _PsppireSelector
 
   /* <private> */
   GtkWidget *arrow;
+  GtkAction *action;
 
   enum psppire_selector_dir direction;
   GtkWidget *source;
@@ -87,6 +92,8 @@ struct _PsppireSelector
 
   SelectItemsFunc *select_items;
   FilterItemsFunc *filter;
+
+  AllowSelectionFunc *allow_selection;
 };
 
 struct _PsppireSelectorClass
@@ -105,6 +112,9 @@ void       psppire_selector_set_subjects    (PsppireSelector *,
 					     GtkWidget *,
 					     SelectItemsFunc *,
 					     FilterItemsFunc * );
+
+void      psppire_selector_set_allow        (PsppireSelector *, AllowSelectionFunc *);
+
 
 GType psppire_selector_orientation_get_type (void) G_GNUC_CONST;
 

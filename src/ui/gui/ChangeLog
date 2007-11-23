@@ -1,5 +1,29 @@
 2007-11-23  John Darrington <john@darrington.wattle.id.au>
 
+	* psppire-acr.c psppire-acr.h: Generalised the external widget
+	somewhat. It can now be anything, not necessarily a GTK_ENTRY.
+
+	* helper.c helper.h (clone_list_store): New function.
+
+	* oneway-anova-dialog.c : Used the clone_list_store function
+	instead of writing it ourselves.
+	
+	* psppire-dialog.c psppire-dialog.h: Added a tabular orientation
+	in addition to the horizontal/vertical options.
+	
+	* recode-dialog.c recode-dialog.h recode.glade (new files).
+
+	* psppire-selector.c psppire-selector.h: Added a function to
+	allow the prohibition of items based on a predicate.
+
+	* dialog-common.h dialog-common.c (homogeneous_types): New function.
+
+	* data-editor.c data-editor.glade data-editor.h: Enabled the
+	recode dialog options.
+
+
+2007-11-23  John Darrington <john@darrington.wattle.id.au>
+
 	* compute-dialog.c (generate_syntax): Append "EXECUTE." to the 
 	generated syntax.
 

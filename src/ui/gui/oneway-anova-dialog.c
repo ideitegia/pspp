@@ -371,6 +371,7 @@ list_store_changed (struct contrasts_subdialog *csd)
 }
 
 
+
 /* Copy the contrasts array into the local array */
 static GArray *
 clone_contrasts_array (GArray *src_array)
@@ -383,7 +384,7 @@ clone_contrasts_array (GArray *src_array)
 
   for (i = 0 ; i < src_array->len ; ++i )
     {
-      gboolean ok;
+
       GtkTreeIter src_iter;
       GtkListStore *src = g_array_index (src_array, GtkListStore*, i);
       GtkListStore *dest;
@@ -393,21 +394,7 @@ clone_contrasts_array (GArray *src_array)
 					   &src_iter))
 	continue;
 
-      dest = gtk_list_store_new (1, G_TYPE_DOUBLE);
-
-      for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(src),
-					       &src_iter);
- 	   ok;
-	   ok = gtk_tree_model_iter_next (GTK_TREE_MODEL (src), &src_iter))
-	{
-	  gdouble v;
-	  GtkTreeIter dest_iter;
-
-	  gtk_tree_model_get (GTK_TREE_MODEL (src), &src_iter, 0, &v, -1);
-
-	  gtk_list_store_append  (dest, &dest_iter);
-	  gtk_list_store_set (dest, &dest_iter, 0, v, -1);
-	}
+      dest = clone_list_store (src);
 
       g_array_append_val (dest_array, dest);
     }

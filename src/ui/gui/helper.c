@@ -297,3 +297,46 @@ marshaller_VOID__INT_INT_INT (GClosure     *closure,
             g_marshal_value_peek_int (param_values + 3),
             data2);
 }
+
+/* Create a deep copy of SRC */
+GtkListStore *
+clone_list_store (const GtkListStore *src)
+{
+  GtkTreeIter src_iter;
+  gboolean ok;
+  gint i;
+  const gint n_cols =  gtk_tree_model_get_n_columns (GTK_TREE_MODEL (src));
+  GType *types = g_malloc (sizeof (*types) *  n_cols);
+
+  int row = 0;
+  GtkListStore *dest;
+
+  for (i = 0 ; i < n_cols; ++i )
+    types[i] = gtk_tree_model_get_column_type (GTK_TREE_MODEL (src), i);
+
+  dest = gtk_list_store_newv (n_cols, types);
+
+  for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (src),
+					   &src_iter);
+       ok;
+       ok = gtk_tree_model_iter_next (GTK_TREE_MODEL (src), &src_iter))
+    {
+      GtkTreeIter dest_iter;
+      gtk_list_store_append  (dest, &dest_iter);
+
+      for (i = 0 ; i < n_cols; ++i )
+	{
+	  GValue val = {0};
+
+	  gtk_tree_model_get_value (GTK_TREE_MODEL (src), &src_iter, i, &val);
+	  gtk_list_store_set_value (dest, &dest_iter, i, &val);
+
+	  g_value_unset (&val);
+	}
+      row++;
+    }
+
+  return dest;
+}
+
+

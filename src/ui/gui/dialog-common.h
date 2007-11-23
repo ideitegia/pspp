@@ -55,4 +55,15 @@ void cell_var_name (GtkTreeViewColumn *tree_column,
 void set_dest_model (GtkTreeView *dest, PsppireDict *dict);
 
 
+/* Returns FALSE if the variables represented by the union of the rows
+   currently selected by SOURCE widget, and contents of the DEST
+   widget, are of different types.
+
+   In other words, this function when passed as the argument to
+   psppire_selector_set_allow, ensures that the selector selects only
+   string  variables, or only numeric variables, not a mixture.
+*/
+gboolean homogeneous_types (GtkWidget *source, GtkWidget *dest);
+
+
 #endif

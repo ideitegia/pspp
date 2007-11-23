@@ -67,4 +67,8 @@ void marshaller_VOID__INT_INT_INT (GClosure     *closure,
 				   gpointer      marshal_data);
 
 
+/* Create a deep copy of SRC */
+GtkListStore * clone_list_store (const GtkListStore *src);
+
+
 #endif

@@ -106,6 +106,8 @@ psppire_dialog_get_property (GObject         *object,
 	  g_value_set_enum (value, PSPPIRE_VERTICAL);
 	else if ( GTK_IS_HBOX (dialog->box))
 	  g_value_set_enum (value, PSPPIRE_HORIZONTAL);
+	else if ( GTK_IS_TABLE (dialog->box))
+	  g_value_set_enum (value, PSPPIRE_TABULAR);
       }
       break;
     default:
@@ -125,13 +127,21 @@ dialog_set_orientation (PsppireDialog *dialog, const GValue *orval)
       gtk_container_remove (GTK_CONTAINER (dialog), dialog->box);
     }
 
-  if ( orientation == PSPPIRE_HORIZONTAL)
+  switch ( orientation )
     {
+    case PSPPIRE_HORIZONTAL:
       dialog->box = gtk_hbox_new (FALSE, 5);
-    }
-  else
-    {
+      break;
+    case PSPPIRE_VERTICAL:
       dialog->box = gtk_vbox_new (FALSE, 5);
+      break;
+    case PSPPIRE_TABULAR:
+      dialog->box = gtk_table_new (2, 3, FALSE);
+      g_object_set (dialog->box,
+		    "row-spacing", 5,
+		    "column-spacing", 5,
+		    NULL);
+      break;
     }
 
   gtk_container_add (GTK_CONTAINER (dialog), dialog->box);
@@ -277,8 +287,8 @@ psppire_dialog_new (void)
 }
 
 
-static void
-notify_change (PsppireDialog *dialog)
+void
+psppire_dialog_notify_change (PsppireDialog *dialog)
 {
   if ( dialog->contents_are_valid )
     {
@@ -290,7 +300,7 @@ notify_change (PsppireDialog *dialog)
 
 
 /* Descend the widget tree, connecting appropriate signals to the
-   notify_change callback */
+   psppire_dialog_notify_change callback */
 static void
 connect_notify_signal (GtkWidget *w, gpointer data)
 {
@@ -315,28 +325,33 @@ connect_notify_signal (GtkWidget *w, gpointer data)
 
   if ( GTK_IS_TOGGLE_BUTTON (w))
     {
-      g_signal_connect_swapped (w, "toggled", G_CALLBACK (notify_change),
+      g_signal_connect_swapped (w, "toggled",
+				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
     }
 
   if ( PSPPIRE_IS_SELECTOR (w))
     {
-      g_signal_connect_swapped (w, "selected", G_CALLBACK (notify_change),
+      g_signal_connect_swapped (w, "selected",
+				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
 
-      g_signal_connect_swapped (w, "de-selected", G_CALLBACK (notify_change),
+      g_signal_connect_swapped (w, "de-selected",
+				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
     }
 
   if ( GTK_IS_EDITABLE (w))
     {
-      g_signal_connect_swapped (w, "changed", G_CALLBACK (notify_change),
+      g_signal_connect_swapped (w, "changed",
+				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
     }
 
   if ( GTK_IS_CELL_EDITABLE (w))
     {
-      g_signal_connect_swapped (w, "editing-done", G_CALLBACK (notify_change),
+      g_signal_connect_swapped (w, "editing-done",
+				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
     }
 
@@ -344,7 +359,8 @@ connect_notify_signal (GtkWidget *w, gpointer data)
     {
       GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (w));
 
-      g_signal_connect_swapped (buffer, "changed", G_CALLBACK (notify_change),
+      g_signal_connect_swapped (buffer, "changed",
+				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
     }
 
@@ -355,9 +371,23 @@ connect_notify_signal (GtkWidget *w, gpointer data)
       GtkTreeSelection *selection =
 	gtk_tree_view_get_selection (tv);
       GtkTreeViewColumn *col;
+      GtkTreeModel *model = gtk_tree_view_get_model (tv);
+
+      g_signal_connect_swapped (model, "row-changed",
+				G_CALLBACK (psppire_dialog_notify_change),
+				dialog);
+
+      g_signal_connect_swapped (model, "row-deleted",
+				G_CALLBACK (psppire_dialog_notify_change),
+				dialog);
+
+      g_signal_connect_swapped (model, "row-inserted",
+				G_CALLBACK (psppire_dialog_notify_change),
+				dialog);
 
       g_signal_connect_swapped (selection, "changed",
-				G_CALLBACK (notify_change), dialog);
+				G_CALLBACK (psppire_dialog_notify_change),
+				dialog);
 
       while ((col = gtk_tree_view_get_column (tv, i++)))
 	{
@@ -367,7 +397,7 @@ connect_notify_signal (GtkWidget *w, gpointer data)
 	    {
 	      if ( GTK_IS_CELL_RENDERER_TOGGLE (renderers->data))
 		g_signal_connect_swapped (renderers->data, "toggled",
-					  G_CALLBACK (notify_change), dialog);
+					  G_CALLBACK (psppire_dialog_notify_change), dialog);
 	      renderers = renderers->next;
 	    }
 	  g_list_free (start);
@@ -418,6 +448,7 @@ psppire_orientation_get_type (void)
 	{
 	  { PSPPIRE_HORIZONTAL, "PSPPIRE_HORIZONTAL", "Horizontal" },
 	  { PSPPIRE_VERTICAL,   "PSPPIRE_VERTICAL",   "Vertical" },
+	  { PSPPIRE_TABULAR,   "PSPPIRE_TABULAR",   "Tabular" },
 	  { 0, NULL, NULL }
 	};
 

@@ -38,6 +38,7 @@
 #include "goto-case-dialog.h"
 #include "find-dialog.h"
 #include "rank-dialog.h"
+#include "recode-dialog.h"
 #include "comments-dialog.h"
 #include "variable-info-dialog.h"
 #include "descriptives-dialog.h"
@@ -639,6 +640,26 @@ new_data_editor (void)
 		    G_CALLBACK (rank_dialog), de);
 
 
+  de->invoke_recode_same_dialog  =
+    gtk_action_new ("recode-same-dialog",
+		    _("Recode into _Same Variables"),
+		    _("Recode values into the same Variables"),
+		    "pspp-recode-same");
+
+  g_signal_connect (de->invoke_recode_same_dialog, "activate",
+		    G_CALLBACK (recode_same_dialog), de);
+
+
+  de->invoke_recode_different_dialog  =
+    gtk_action_new ("recode-different-dialog",
+		    _("Recode into _Different Variables"),
+		    _("Recode values into different Variables"),
+		    "pspp-recode-different");
+
+  g_signal_connect (de->invoke_recode_different_dialog, "activate",
+		    G_CALLBACK (recode_different_dialog), de);
+
+
   de->invoke_variable_info_dialog  =
     gtk_action_new ("variable-info-dialog",
 		    _("Variables"),
@@ -743,6 +764,16 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->invoke_rank_dialog,
 			    get_widget_assert (de->xml, "transform_rank")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_recode_same_dialog,
+			    get_widget_assert (de->xml,
+					       "transform_recode-same")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_recode_different_dialog,
+			    get_widget_assert (de->xml,
+					       "transform_recode-different")
 			    );
 
   gtk_action_connect_proxy (de->invoke_weight_cases_dialog,

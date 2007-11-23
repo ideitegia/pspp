@@ -70,6 +70,8 @@ gint           psppire_dialog_run             (PsppireDialog *);
 void           psppire_dialog_set_valid_predicate (PsppireDialog *,
 						   ContentsAreValid,
 						   gpointer );
+void           psppire_dialog_notify_change (PsppireDialog *);
+
 
 
 GType psppire_orientation_get_type (void);
@@ -78,7 +80,8 @@ GType psppire_orientation_get_type (void);
 typedef enum
   {
     PSPPIRE_HORIZONTAL,
-    PSPPIRE_VERTICAL
+    PSPPIRE_VERTICAL,
+    PSPPIRE_TABULAR
   } PsppireOrientation;
 
 #define G_TYPE_PSPPIRE_ORIENTATION (psppire_orientation_get_type ())

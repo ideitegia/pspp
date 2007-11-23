@@ -35,7 +35,8 @@
   |+------------+  +----------+	|
   +-----------------------------+
 
-  It interacts with a GtkEntry, which  allows items to be added to its internal list.
+  It interacts with an external widget, such as a GtkEntry.
+  It maintains a list of items controlled by the three buttons.
   This implementation deals only with g_double values.
  */
 
@@ -59,20 +60,33 @@ G_BEGIN_DECLS
 typedef struct _PsppireAcr       PsppireAcr;
 typedef struct _PsppireAcrClass  PsppireAcrClass;
 
-/* All members are private. */
+typedef gboolean (*GetValueFunc) (gint, GValue *, gpointer);
+typedef gboolean (*EnabledFunc) (gpointer);
+typedef void (*UpdateCallbackFunc) (gpointer);
+
 struct _PsppireAcr
 {
   GtkHBox parent;
 
-  /* <private> */
-  GtkEntry *entry;
+
   GtkListStore *list_store;
 
   GtkTreeView *tv;
   GtkTreeSelection *selection;
+
+  /* The buttons */
   GtkWidget *add_button;
   GtkWidget *change_button;
   GtkWidget *remove_button;
+
+  GetValueFunc get_value;
+  gpointer get_value_data;
+
+  EnabledFunc enabled;
+  gpointer enabled_data;
+
+  UpdateCallbackFunc update;
+  gpointer update_data;
 };
 
 
@@ -82,11 +96,20 @@ struct _PsppireAcrClass
 };
 
 
-GType          psppire_acr_get_type        (void);
-GtkWidget*     psppire_acr_new             (void);
 
-void           psppire_acr_set_entry       (PsppireAcr *, GtkEntry *);
-void           psppire_acr_set_model       (PsppireAcr *, GtkListStore *);
+GType       psppire_acr_get_type        (void);
+GtkWidget*  psppire_acr_new             (void);
+
+void        psppire_acr_set_model       (PsppireAcr *, GtkListStore *);
+void        psppire_acr_set_get_value_func (PsppireAcr *, GetValueFunc,
+					    gpointer);
+
+void        psppire_acr_set_enable_func (PsppireAcr *, EnabledFunc, gpointer);
+
+void        psppire_acr_set_enabled (PsppireAcr *, gboolean);
+void        psppire_acr_set_entry  (PsppireAcr *, GtkEntry *);
+
+
 
 G_END_DECLS
 
