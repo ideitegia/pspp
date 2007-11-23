@@ -1,3 +1,8 @@
+2007-11-23  John Darrington <john@darrington.wattle.id.au>
+
+	* compute-dialog.c (generate_syntax): Append "EXECUTE." to the 
+	generated syntax.
+
 2007-10-19  John Darrington <john@darrington.wattle.id.au>
 
         * psppire-acr.c psppire-acr.h (new files): Added this new

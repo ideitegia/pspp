@@ -176,7 +176,7 @@ generate_syntax (const struct compute_dialog *cd)
 
   string = g_string_sized_new (64);
 
-  if ( cd-> use_type && 
+  if ( cd-> use_type &&
        NULL == psppire_dict_lookup_var (cd->dict, target_name ))
     {
       if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (string_toggle)))
@@ -199,10 +199,12 @@ generate_syntax (const struct compute_dialog *cd)
 			    target_name,
 			    label);
 
-  g_string_append_printf (string, "COMPUTE %s = %s.",
+  g_string_append_printf (string, "COMPUTE %s = %s.\n",
 			  target_name,
 			  expression
 			  );
+
+  g_string_append (string, "EXECUTE.\n");
 
   text = string->str;
 
