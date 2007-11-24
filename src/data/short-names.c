@@ -181,7 +181,7 @@ short_names_assign (struct dictionary *d)
       struct variable *v = dict_get_var (d, i);
       int segment_cnt = sfm_width_to_segments (var_get_width (v));
       for (j = 1; j < segment_cnt; j++)
-        claim_short_name (v, i, short_names);
+        claim_short_name (v, j, short_names);
     }
 
   /* Assign short names to first segment of remaining variables,
