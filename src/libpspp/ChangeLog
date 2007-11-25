@@ -1,3 +1,8 @@
+2007-11-25  Ben Pfaff  <blp@gnu.org>
+
+	* float-format.c (assemble_number): Only store 32 bits for Z short
+	format.  Partial fix for bug #21590.
+
 2007-11-08  Ben Pfaff  <blp@gnu.org>
 
 	* str.c (ds_read_stream): Change return value semantics to be more

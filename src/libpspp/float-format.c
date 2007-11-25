@@ -695,7 +695,7 @@ assemble_number (enum float_format type, struct fp *fp, void *number)
       break;
 
     case FLOAT_Z_SHORT:
-      put_uint64 (native_to_be32 (assemble_z (fp, 7, 24)), number);
+      put_uint32 (native_to_be32 (assemble_z (fp, 7, 24)), number);
       break;
     case FLOAT_Z_LONG:
       put_uint64 (native_to_be64 (assemble_z (fp, 7, 56)), number);

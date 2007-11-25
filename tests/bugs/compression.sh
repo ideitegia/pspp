@@ -77,15 +77,22 @@ if [ $? -ne 0 ] ; then fail ; fi
 
 # Make sure the file really was compressed
 activity="inspect system file"
-dd if=$TEMPDIR/com.sav bs=1 skip=72 count=1 2> /dev/null | od > $TEMPDIR/file 
+dd if=$TEMPDIR/com.sav bs=1 skip=72 count=4 2> /dev/null | od > $TEMPDIR/file
 if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="check compression byte"
-diff -b $TEMPDIR/file - <<EOF
-0000000 000001
-0000001
+activity="check compression setting"
+# Big-endian?
+diff -b $TEMPDIR/file - > /dev/null <<EOF
+0000000 000000 000001
+0000004
 EOF
-if [ $? -ne 0 ] ; then fail ; fi
-
-
-pass;
+if [ $? -ne 0 ] ; then pass ; fi
+# Little-endian?
+diff -b $TEMPDIR/file - > /dev/null <<EOF
+0000000 000001 000000
+0000004
+EOF
+if [ $? -ne 0 ] ; then pass ; fi
+# Otherwise error.
+cat $TEMPDIR/file
+fail

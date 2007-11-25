@@ -1,3 +1,12 @@
+2007-11-25  Ben Pfaff  <blp@gnu.org>
+
+	* bugs/compression.sh: Don't fail on big-endian system.  Partial
+	fix for bug #21590.
+
+	* bugs/sysfile-info.sh: Disregard "Integer Format" and "Real
+	Format" lines in SYSFILE INFO output, to permit big-endian systems
+	to pass also.  Partial fix for bug #21590.
+
 2007-11-15  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add definition of CHARSETALIASDIR to

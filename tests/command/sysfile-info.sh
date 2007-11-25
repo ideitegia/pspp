@@ -78,7 +78,7 @@ $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="filter output"
-egrep -v '^(Created|Endian): ' $TEMPDIR/pspp.list > $TEMPDIR/out-filtered
+egrep -v '^(Created|Endian|Integer Format|Real Format): ' $TEMPDIR/pspp.list > $TEMPDIR/out-filtered
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
@@ -94,8 +94,6 @@ diff -b -w $TEMPDIR/out-filtered - << EOF
 2.1 SYSFILE INFO.  
 File:           pro.sav
 Label:          No label.
-Integer Format: Little Endian.
-Real Format:    IEEE 754 LE.
 Variables:      2
 Cases:          3
 Type:           System File.
