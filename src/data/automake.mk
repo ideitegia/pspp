@@ -89,6 +89,7 @@ src_data_libdata_a_SOURCES = \
 	src/data/sys-file-writer.h \
 	src/data/transformations.c \
 	src/data/transformations.h \
+	src/data/val-type.h \
 	src/data/value.c \
 	src/data/value.h \
 	src/data/value-labels.c \

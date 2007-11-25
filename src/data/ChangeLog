@@ -1,5 +1,10 @@
 2007-11-24  Ben Pfaff  <blp@gnu.org>
 
+	* automake.mk (src_data_libdata_a_SOURCES): Add val-type.h, to fix
+	make distcheck.
+
+2007-11-24  Ben Pfaff  <blp@gnu.org>
+
 	Fix warning reported when reading back system files that include
 	very long string variables.  Thanks to Guido Gay <gay@irer.it> for
 	reporting this bug.
