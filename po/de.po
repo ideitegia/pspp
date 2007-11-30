@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-11-21 21:01+0900\n"
+"POT-Creation-Date: 2007-11-29 20:13+0900\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -4640,8 +4640,8 @@ msgstr "Speichern unter"
 msgid "Save As"
 msgstr "Speichern unter"
 
-#: src/ui/gui/data-editor.c:1444 src/ui/gui/recode-dialog.c:906
-#: src/ui/gui/recode-dialog.c:997
+#: src/ui/gui/data-editor.c:1444 src/ui/gui/recode-dialog.c:931
+#: src/ui/gui/recode-dialog.c:1025
 msgid "New"
 msgstr ""
 
@@ -5617,24 +5617,24 @@ msgstr ""
 msgid "Rank Assigned to Ties"
 msgstr ""
 
-#: src/ui/gui/recode-dialog.c:857
+#: src/ui/gui/recode-dialog.c:882
 msgid "Recode into Different Variables"
 msgstr ""
 
-#: src/ui/gui/recode-dialog.c:860
+#: src/ui/gui/recode-dialog.c:885
 #, fuzzy
 msgid "Recode into Same Variables"
 msgstr "Variableansicht"
 
-#: src/ui/gui/recode-dialog.c:891 src/ui/gui/recode-dialog.c:989
+#: src/ui/gui/recode-dialog.c:916 src/ui/gui/recode-dialog.c:1017
 msgid "Old"
 msgstr ""
 
-#: src/ui/gui/recode-dialog.c:1246
+#: src/ui/gui/recode-dialog.c:1274
 msgid "Recode into Different Variables: Old and New Values "
 msgstr ""
 
-#: src/ui/gui/recode-dialog.c:1247
+#: src/ui/gui/recode-dialog.c:1275
 msgid "Recode into Same Variables: Old and New Values"
 msgstr ""
 
