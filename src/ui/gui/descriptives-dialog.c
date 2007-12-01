@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include "checkbox-treeview.h"
 #include "descriptives-dialog.h"
 
 #include <gtk/gtk.h>
@@ -34,19 +35,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
-enum
-  {
-    COLUMN_LABEL,
-    COLUMN_SELECTED,
-    N_STAT_COLUMNS
-  };
-
-struct descriptive_stat
-  {
-    const char *name;
-    const char *label;
-  };
 
 #define DESCRIPTIVE_STATS                       \
   DS (MEAN, N_("Mean"))                         \
@@ -77,7 +65,8 @@ enum
     B_DS_DEFAULT = B_DS_MEAN | B_DS_STDDEV | B_DS_MINIMUM | B_DS_MAXIMUM
   };
 
-static const struct descriptive_stat stats[] =
+
+static const struct checkbox_entry_item stats[] =
   {
 #define DS(NAME, LABEL) {#NAME, LABEL},
     DESCRIPTIVE_STATS
@@ -107,7 +96,8 @@ refresh (PsppireDialog *dialog, struct descriptives_dialog *scd)
 
   for (i = 0, ok = gtk_tree_model_get_iter_first (scd->stats, &iter); ok;
        i++, ok = gtk_tree_model_iter_next (scd->stats, &iter))
-    gtk_list_store_set (GTK_LIST_STORE (scd->stats), &iter, COLUMN_SELECTED,
+    gtk_list_store_set (GTK_LIST_STORE (scd->stats), &iter,
+			CHECKBOX_COLUMN_SELECTED,
                         (B_DS_DEFAULT & (1u << i)) ? true : false, -1);
 
   gtk_toggle_button_set_active (scd->exclude_missing_listwise, false);
@@ -150,7 +140,8 @@ generate_syntax (const struct descriptives_dialog *scd)
        i++, ok = gtk_tree_model_iter_next (scd->stats, &iter))
     {
       gboolean toggled;
-      gtk_tree_model_get (scd->stats, &iter, COLUMN_SELECTED, &toggled, -1);
+      gtk_tree_model_get (scd->stats, &iter,
+			  CHECKBOX_COLUMN_SELECTED, &toggled, -1);
       if (toggled)
         selected |= 1u << i;
     }
@@ -193,100 +184,6 @@ generate_syntax (const struct descriptives_dialog *scd)
   return text;
 }
 
-/* A GtkTreeCellDataFunc which renders a checkbox that determines
-   whether to calculate the statistic. */
-static void
-stat_calculate_cell_data_func (GtkTreeViewColumn *col,
-                               GtkCellRenderer *cell,
-                               GtkTreeModel *model,
-                               GtkTreeIter *iter,
-                               gpointer data)
-{
-  gboolean selected;
-
-  gtk_tree_model_get (model, iter, COLUMN_SELECTED, &selected, -1);
-  g_object_set (cell, "active", selected, NULL);
-}
-
-/* Callback for checkbox cells in the statistics tree view.
-   Toggles the checkbox. */
-static void
-toggle (GtkCellRendererToggle *cell_renderer, gchar *path_str, gpointer data)
-{
-  GtkTreeModel *model = (GtkTreeModel *)data;
-  GtkTreeIter iter;
-  GtkTreePath *path = gtk_tree_path_new_from_string (path_str);
-  gboolean selected;
-
-  gtk_tree_model_get_iter (model, &iter, path);
-  gtk_tree_model_get (model, &iter, COLUMN_SELECTED, &selected, -1);
-  gtk_list_store_set (GTK_LIST_STORE (model), &iter, COLUMN_SELECTED,
-                      !selected, -1);
-  gtk_tree_path_free (path);
-}
-
-/* A GtkTreeCellDataFunc which renders the label of the statistic. */
-static void
-stat_label_cell_data_func (GtkTreeViewColumn *col,
-                           GtkCellRenderer *cell,
-                           GtkTreeModel *model,
-                           GtkTreeIter *iter,
-                           gpointer statistic)
-{
-  gchar *label = NULL;
-  gtk_tree_model_get (model, iter, COLUMN_LABEL, &label, -1);
-  g_object_set (cell, "text", gettext (label), NULL);
-  g_free (label);
-}
-
-static void
-put_statistics_in_treeview (GtkTreeView *treeview)
-{
-  GtkTreeViewColumn *col;
-  GtkCellRenderer *renderer;
-  GtkListStore *list;
-  size_t i;
-
-  list = gtk_list_store_new (N_STAT_COLUMNS, G_TYPE_STRING, G_TYPE_BOOLEAN);
-  gtk_tree_view_set_model (GTK_TREE_VIEW (treeview), GTK_TREE_MODEL (list));
-
-  for (i = 0; i < sizeof stats / sizeof *stats; i++)
-    {
-      GtkTreeIter iter;
-      gtk_list_store_append (list, &iter);
-      gtk_list_store_set (list, &iter,
-                          COLUMN_LABEL, stats[i].label,
-                          COLUMN_SELECTED, (B_DS_DEFAULT & (1u << i)) != 0,
-                          -1);
-    }
-
-  /* Calculate column. */
-  col = gtk_tree_view_column_new ();
-  renderer = gtk_cell_renderer_toggle_new ();
-  g_signal_connect (GTK_CELL_RENDERER_TOGGLE (renderer),
-                    "toggled", G_CALLBACK (toggle), GTK_TREE_MODEL (list));
-  gtk_tree_view_column_pack_start (col, renderer, TRUE);
-  gtk_tree_view_column_set_cell_data_func (col, renderer,
-					   stat_calculate_cell_data_func,
-					   NULL, NULL);
-  gtk_tree_view_append_column (treeview, col);
-
-  /* Statistic column. */
-  col = gtk_tree_view_column_new ();
-  gtk_tree_view_column_set_title (col, _("Statistic"));
-  renderer = gtk_cell_renderer_text_new ();
-  gtk_tree_view_column_pack_start (col, renderer, TRUE);
-  gtk_tree_view_column_set_cell_data_func (col, renderer,
-					   stat_label_cell_data_func,
-					   NULL, NULL);
-  g_object_set (renderer, "ellipsize-set", TRUE, NULL);
-  g_object_set (renderer, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
-  gtk_tree_view_column_set_min_width (col, 150);
-  gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
-  gtk_tree_view_column_set_resizable (col, true);
-  gtk_tree_view_append_column (treeview, col);
-}
-
 
 /* Dialog is valid iff at least one variable has been selected */
 static gboolean
@@ -319,7 +216,7 @@ descriptives_dialog (GObject *o, gpointer data)
   GtkWidget *selector = get_widget_assert (xml, "stat-var-selector");
   GtkWidget *dest =   get_widget_assert   (xml, "stat-variables");
 
-  GtkWidget *stats = get_widget_assert    (xml, "statistics");
+  GtkWidget *stats_treeview = get_widget_assert    (xml, "statistics");
 
   GtkSheet *var_sheet =
     GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
@@ -340,10 +237,12 @@ descriptives_dialog (GObject *o, gpointer data)
 				 insert_source_row_into_tree_view,
 				 NULL);
 
-  put_statistics_in_treeview (GTK_TREE_VIEW (stats));
+  put_checkbox_items_in_treeview (GTK_TREE_VIEW (stats_treeview),
+				  B_DS_DEFAULT,
+				  N_DESCRIPTIVE_STATS, stats);
 
   scd.stat_vars = GTK_TREE_VIEW (dest);
-  scd.stats = gtk_tree_view_get_model (GTK_TREE_VIEW (stats));
+  scd.stats = gtk_tree_view_get_model (GTK_TREE_VIEW (stats_treeview));
   scd.dict = vs->dict;
   scd.include_user_missing =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "include_user_missing"));

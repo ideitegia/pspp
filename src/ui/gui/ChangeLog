@@ -1,3 +1,17 @@
+2007-12-01  John Darrington <john@darrington.wattle.id.au>
+
+	* descriptives-dialog.c: Moved the code dealing with checkboxes 
+	inside treeview widgets into their own files.
+
+	* checkbox-treeview.c checkbox-treeview.h: New file (see above).
+
+	* frequencies-dialog.c frequencies-dialog.h frequencies.glade: New 
+	files. Implemented FREQUENCIES dialog box.
+
+	* data-editor.c data-editor.h data-editor.glade :  Added callback
+	for frequencies dialog.
+
+
 2007-11-23  John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-acr.c psppire-acr.h: Generalised the external widget

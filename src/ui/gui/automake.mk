@@ -49,6 +49,7 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
+	$(top_srcdir)/src/ui/gui/frequencies.glade \
 	$(top_srcdir)/src/ui/gui/oneway.glade \
 	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
@@ -79,12 +80,16 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/about.h \
 	src/ui/gui/clipboard.c \
 	src/ui/gui/clipboard.h \
+	src/ui/gui/checkbox-treeview.c \
+	src/ui/gui/checkbox-treeview.h \
 	src/ui/gui/compute-dialog.c \
 	src/ui/gui/compute-dialog.h \
 	src/ui/gui/comments-dialog.c \
 	src/ui/gui/comments-dialog.h \
 	src/ui/gui/customentry.c \
 	src/ui/gui/customentry.h \
+	src/ui/gui/frequencies-dialog.c \
+	src/ui/gui/frequencies-dialog.h \
 	src/ui/gui/goto-case-dialog.c \
 	src/ui/gui/goto-case-dialog.h \
 	src/ui/gui/data-sheet.c \
