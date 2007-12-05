@@ -40,6 +40,7 @@ struct substring dfm_get_record (struct dfm_reader *);
 void dfm_expand_tabs (struct dfm_reader *);
 enum legacy_encoding dfm_reader_get_legacy_encoding (
   const struct dfm_reader *);
+int dfm_get_percent_read (const struct dfm_reader *);
 
 /* Line control. */
 void dfm_forward_record (struct dfm_reader *);

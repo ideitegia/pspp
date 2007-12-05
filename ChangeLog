@@ -1,3 +1,7 @@
+2007-12-04  Ben Pfaff  <blp@gnu.org>
+
+	* Smake (GNULIB_MODULES): Add ftello module.
+
 2007-11-05  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: No need for check for off_t or for the size of
