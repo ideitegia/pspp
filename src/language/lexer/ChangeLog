@@ -1,3 +1,8 @@
+2007-12-04  Ben Pfaff  <blp@gnu.org>
+
+	* lexer.c (lex_match_id_n): New function.
+	(lex_match_id): Reimplement in terms of lex_match_id_n.
+
 2007-08-16  Ben Pfaff  <blp@gnu.org>
 
 	Implement journaling.  Bug #17240.

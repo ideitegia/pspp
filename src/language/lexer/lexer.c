@@ -549,8 +549,18 @@ lex_match (struct lexer *lexer, int t)
 bool
 lex_match_id (struct lexer *lexer, const char *s)
 {
+  return lex_match_id_n (lexer, s, 3);
+}
+
+/* If the current token is the identifier S, skips it and returns
+   true.  The identifier may be abbreviated to its first N
+   letters.
+   Otherwise, returns false. */
+bool
+lex_match_id_n (struct lexer *lexer, const char *s, size_t n)
+{
   if (lexer->token == T_ID
-      && lex_id_match (ss_cstr (s), ss_cstr (lexer->tokid)))
+      && lex_id_match_n (ss_cstr (s), ss_cstr (lexer->tokid), n))
     {
       lex_get (lexer);
       return true;

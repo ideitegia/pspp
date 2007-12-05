@@ -1,3 +1,8 @@
+2007-12-04  Ben Pfaff  <blp@gnu.org>
+
+	* identifier.c (lex_id_match_n): New function.
+	(lex_id_match): Reimplement in terms of lex_id_match_n.
+
 2007-11-24  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk (src_data_libdata_a_SOURCES): Add val-type.h, to fix

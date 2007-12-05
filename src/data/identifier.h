@@ -60,6 +60,8 @@ size_t lex_id_get_length (struct substring);
 
 /* Comparing identifiers. */
 bool lex_id_match (struct substring keyword, struct substring token);
+bool lex_id_match_n (struct substring keyword, struct substring token,
+                     size_t n);
 int lex_id_to_token (struct substring);
 
 /* Identifier names. */

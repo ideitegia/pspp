@@ -53,6 +53,7 @@ bool lex_is_string (struct lexer *);
 /* Token matching functions. */
 bool lex_match (struct lexer *, int);
 bool lex_match_id (struct lexer *, const char *);
+bool lex_match_id_n (struct lexer *, const char *, size_t n);
 bool lex_match_int (struct lexer *, int);
 
 /* Forcible matching functions. */

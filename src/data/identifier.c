@@ -75,10 +75,18 @@ lex_id_get_length (struct substring string)
 bool
 lex_id_match (struct substring keyword, struct substring token)
 {
+  return lex_id_match_n (keyword, token, 3);
+}
+
+/* Returns true if TOKEN is a case-insensitive match for at least
+   the first N characters of KEYWORD. */
+bool
+lex_id_match_n (struct substring keyword, struct substring token, size_t n)
+{
   size_t token_len = ss_length (token);
   size_t keyword_len = ss_length (keyword);
 
-  if (token_len >= 3 && token_len < keyword_len)
+  if (token_len >= n && token_len < keyword_len)
     return ss_equals_case (ss_head (keyword, token_len), token);
   else
     return ss_equals_case (keyword, token);
