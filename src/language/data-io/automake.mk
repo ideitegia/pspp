@@ -8,7 +8,6 @@ language_data_io_sources = \
 	src/language/data-io/data-list.c \
 	src/language/data-io/get.c \
 	src/language/data-io/get-data.c \
-	src/language/data-io/get-data.h \
 	src/language/data-io/inpt-pgm.c \
 	src/language/data-io/inpt-pgm.h \
 	src/language/data-io/print.c \

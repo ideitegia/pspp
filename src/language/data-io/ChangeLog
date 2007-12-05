@@ -1,5 +1,19 @@
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
+	Make GET DATA a separate command, instead of something invoked
+	indirectly from GET.
+
+	* automake.mk: Remove get-data.h from sources.
+
+	* get-data.h: Removed.
+
+	* get-data.c (parse_get_data_command): Rename cmd_get_data.
+
+	* get.c (parse_read_command): No longer any need to check for DATA
+	keyword.
+
+2007-12-04  Ben Pfaff  <blp@gnu.org>
+
 	* src/language/data-io/data-reader.c (struct dfm_reader): New
 	`file_size' member to support dfm_get_percent_read.
 	(dfm_open_reader): Initialize file_size.

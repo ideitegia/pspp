@@ -42,6 +42,7 @@ DEF_CMD (S_ANY, F_KEEP_FINAL_TOKEN, "TITLE", cmd_title)
 /* Commands that define (or replace) the active file. */
 DEF_CMD (S_INITIAL | S_DATA | S_INPUT_PROGRAM | S_FILE_TYPE, 0, "DATA LIST", cmd_data_list)
 DEF_CMD (S_INITIAL | S_DATA, 0, "GET", cmd_get)
+DEF_CMD (S_INITIAL | S_DATA, 0, "GET DATA", cmd_get_data)
 DEF_CMD (S_INITIAL | S_DATA, 0, "IMPORT", cmd_import)
 DEF_CMD (S_INITIAL | S_DATA, 0, "INPUT PROGRAM", cmd_input_program)
 

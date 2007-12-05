@@ -45,8 +45,6 @@
 #include <libpspp/str.h>
 #include <libpspp/taint.h>
 
-#include "get-data.h"
-
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -74,11 +72,6 @@ parse_read_command (struct lexer *lexer, struct dataset *ds, enum reader_command
   struct file_handle *fh = NULL;
   struct dictionary *dict = NULL;
   struct case_map *map = NULL;
-
-  if ( type == GET_CMD && lex_match_id (lexer, "DATA") )
-    {
-      return parse_get_data_command (lexer, ds);
-    }
 
   for (;;)
     {

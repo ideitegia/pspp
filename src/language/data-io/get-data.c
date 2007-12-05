@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-#include "get-data.h"
 
 #include <libpspp/message.h>
 #include <data/gnumeric-reader.h>
@@ -33,7 +32,7 @@
 static int parse_get_gnm (struct lexer *lexer, struct dataset *);
 
 int
-parse_get_data_command (struct lexer *lexer, struct dataset *ds)
+cmd_get_data (struct lexer *lexer, struct dataset *ds)
 {
   lex_force_match (lexer, '/');
 
