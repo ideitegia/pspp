@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2007-11-04 14:52:10 blp>
+Time-stamp: <2007-12-04 22:44:10 blp>
 Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -140,8 +140,9 @@ Changes from 0.4.0 to 0.4.3:
 
     * The following commands are new:
 
-      - GET DATA, which currently supports reading Gnumeric files.  It
-        will be extended later to read other types of foreign data.
+      - GET DATA, which currently supports reading Gnumeric files and
+        text data files.  It will be extended later to read other
+        types of foreign data.
 
       - CD, to change the current directory.
 
