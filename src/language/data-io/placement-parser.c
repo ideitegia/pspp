@@ -107,7 +107,7 @@ fixed_parse_columns (struct lexer *lexer, struct pool *pool, size_t var_cnt, boo
   int fc, lc;
   size_t i;
 
-  if ( !parse_column_range (lexer, &fc, &lc, NULL) )
+  if ( !parse_column_range (lexer, 1, &fc, &lc, NULL) )
     return false;
 
   /* Divide columns evenly. */
@@ -287,42 +287,57 @@ execute_placement_format (const struct fmt_spec *format,
     }
 }
 
+/* Parses a BASE-based column using LEXER.  Returns true and
+   stores a 1-based column number into *COLUMN if successful,
+   otherwise emits an error message and returns false. */
+static bool
+parse_column (struct lexer *lexer, int base, int *column)
+{
+  assert (base == 0 || base == 1);
+  if (!lex_force_int (lexer))
+    return false;
+  *column = lex_integer (lexer) - base + 1;
+  if (*column < 1)
+    {
+      if (base == 1)
+        msg (SE, _("Column positions for fields must be positive."));
+      else
+        msg (SE, _("Column positions for fields must not be negative."));
+      return false;
+    }
+  lex_get (lexer);
+  return true;
+}
+
 /* Parse a column or a range of columns, specified as a single
-   integer or two integer delimited by a dash.  Stores the range
+   integer or two integers delimited by a dash.  Stores the range
    in *FIRST_COLUMN and *LAST_COLUMN.  (If only a single integer
    is given, it is stored in both.)  If RANGE_SPECIFIED is
    non-null, then *RANGE_SPECIFIED is set to true if the syntax
    contained a dash, false otherwise.  Returns true if
    successful, false if the syntax was invalid or the values
-   specified did not make sense. */
+   specified did not make sense.
+
+   If BASE is 0, zero-based column numbers are parsed; if BASE is
+   1, 1-based column numbers are parsed.  Regardless of BASE, the
+   values stored in *FIRST_COLUMN and *LAST_COLUMN are
+   1-based. */
 bool
-parse_column_range (struct lexer *lexer, int *first_column, int *last_column,
+parse_column_range (struct lexer *lexer, int base,
+                    int *first_column, int *last_column,
                     bool *range_specified)
 {
   /* First column. */
-  if (!lex_force_int (lexer))
+  if (!parse_column (lexer, base, first_column))
     return false;
-  *first_column = lex_integer (lexer);
-  if (*first_column < 1)
-    {
-      msg (SE, _("Column positions for fields must be positive."));
-      return false;
-    }
-  lex_get (lexer);
 
   /* Last column. */
   lex_negative_to_dash (lexer);
   if (lex_match (lexer, '-'))
     {
-      if (!lex_force_int (lexer))
-	return false;
-      *last_column = lex_integer (lexer);
-      if (*last_column < 1)
-	{
-	  msg (SE, _("Column positions for fields must be positive."));
-	  return false;
-	}
-      else if (*last_column < *first_column)
+      if (!parse_column (lexer, base, last_column))
+        return false;
+      if (*last_column < *first_column)
 	{
 	  msg (SE, _("The ending column for a field must be "
 		     "greater than the starting column."));
@@ -331,7 +346,6 @@ parse_column_range (struct lexer *lexer, int *first_column, int *last_column,
 
       if (range_specified)
         *range_specified = true;
-      lex_get (lexer);
     }
   else
     {

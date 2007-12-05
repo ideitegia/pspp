@@ -288,7 +288,8 @@ parse_string_argument (struct lexer *lexer, struct print_trns *trns, int record,
       int first_column, last_column;
       bool range_specified;
 
-      if (!parse_column_range (lexer, &first_column, &last_column, &range_specified))
+      if (!parse_column_range (lexer, 1,
+                               &first_column, &last_column, &range_specified))
         return false;
 
       spec->first_column = first_column;

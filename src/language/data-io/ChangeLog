@@ -1,5 +1,10 @@
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
+	* placement-parser.c (parse_column): New function.
+	(parse_column_range): Add `base' argument.  Update all callers.
+	
+2007-12-04  Ben Pfaff  <blp@gnu.org>
+
 	Make GET DATA a separate command, instead of something invoked
 	indirectly from GET.
 

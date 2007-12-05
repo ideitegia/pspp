@@ -29,7 +29,8 @@ bool parse_var_placements (struct lexer *, struct pool *, size_t var_cnt, bool f
                            struct fmt_spec **, size_t *format_cnt);
 bool execute_placement_format (const struct fmt_spec *,
                                int *record, int *column);
-bool parse_column_range (struct lexer *, int *first_column, int *last_column,
+bool parse_column_range (struct lexer *, int base,
+                         int *first_column, int *last_column,
                          bool *range_specified);
 
 #endif /* language/data-io/placement-parser.h */
