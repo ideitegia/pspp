@@ -162,29 +162,60 @@ extension.
 @vindex GET DATA
 
 @display
-GET DATA /TYPE=gnm
-        /FILE=@{'file-name'@}
-        
-        /SHEET=@{NAME 'sheet-name', INDEX n@}
-        /CELLRANGE=@{RANGE 'range', FULL@}
-        /READNAMES=@{ON, OFF@}
-        /ASSUMEDVARWIDTH=n.
+GET DATA
+        /TYPE=@{GNM,TXT@}
+        /FILE=@{'file-name',file_handle@}
+        @dots{}additional subcommands depending on TYPE@dots{}
 @end display
 
 The @cmd{GET DATA} command is used to read files and other data sources 
 created by other applications. 
 When this command is executed, the current dictionary and active file are
 replaced  with variables and data read from the specified source.
-The TYPE subcommand is mandatory and determines the type of the file or source to read.
-Currently @samp{gnm} is the only supported type.
+
+The TYPE subcommand is mandatory and must be the first subcommand
+specified.  It determines the type of the file or source to read.
+PSPP currently supports the following file types:
+
+@table @asis
+@item GNM
+Spreadsheet files created by Gnumeric (@url{http://gnumeric.org}).
+
+@item TXT
+Textual data files in columnar and delimited formats.
+@end table
+
+The FILE subcommand is mandatory for all implemented file types.
+Specify the file to be read as a string file name or (for textual data
+only) a file handle (@pxref{File Handles}).
+
+Each supported file type has additional subcommands, explained in
+separate sections below.
+
+@menu
+* GET DATA /TYPE=GNM::
+* GET DATA /TYPE=TXT::
+@end menu
+
+@node GET DATA /TYPE=GNM
+@subsection Gnumeric Spreadsheet Files
+
+@display
+GET DATA /TYPE=GNM
+        /FILE=@{'file-name'@}
+        /SHEET=@{NAME 'sheet-name', INDEX n@}
+        /CELLRANGE=@{RANGE 'range', FULL@}
+        /READNAMES=@{ON, OFF@}
+        /ASSUMEDVARWIDTH=n.
+@end display
 
 @cindex Gnumeric
 @cindex spreadsheet files
-The @samp{gnm} type is used to read spreadsheet files created by 
-Gnumeric (@url{http://gnumeric.org}).
-With this type, the FILE subcommand must be used, to specify the
-spreadsheet file to read.  
-All other subcommands are optional.
+To use GET DATA to read a spreadsheet file created by Gnumeric
+(@url{http://gnumeric.org}), specify TYPE=GNM to indicate the file's
+format and use FILE to indicate the Gnumeric file to be read.  All
+other subcommands are optional.
+
 The format of each variable is determined by the format of the spreadsheet 
 cell containing the first datum for the variable.
 If this cell is of string (text) format, then the width of the variable is
@@ -222,6 +253,267 @@ variables read  from the file.
 If omitted, the default value is determined from the length of the 
 string in the first spreadsheet cell for each variable.
 
+@node GET DATA /TYPE=TXT
+@subsection Textual Data Files
+
+@display
+GET DATA /TYPE=TXT
+        /FILE=@{'file-name',file_handle@}
+        [/ARRANGEMENT=@{DELIMITED,FIXED@}]
+        [/FIRSTCASE=@{first_case@}]
+        [/IMPORTCASE=@{ALL,FIRST max_cases,PERCENT percent@}]
+        @dots{}additional subcommands depending on ARRANGEMENT@dots{}
+@end display
+
+@cindex text files
+@cindex data files
+When TYPE=TXT is specified, GET DATA reads data in a delimited or
+fixed columnar format, much like DATA LIST (@pxref{DATA LIST}).  The
+FILE subcommand must be specified indicate the name or the file handle
+of the file to be read.
+
+The ARRANGEMENT subcommand determines the file's basic format.
+DELIMITED, the default setting, specifies that fields in the input
+data are separated by spaces, tabs, or other user-specified
+delimiters.  FIXED specifies that fields in the input data appear at
+particular fixed column positions within records of a case.
+
+By default, cases are read from the input file starting from the first
+line.  To skip lines at the beginning of an input file, set FIRSTCASE
+to the number of the first line to read: 2 to skip the first line, 3
+to skip the first two lines, and so on.
+
+IMPORTCASE can be used to limit the number of cases read from the
+input file.  With the default setting, ALL, all cases in the file are
+read.  Specify FIRST @i{max_cases} to read at most @i{max_cases} cases
+from the file.  Use PERCENT @i{percent} to read only @i{percent}
+percent, approximately, of the cases contained in the file.  (The
+percentage is approximate, because there is no way to accurately count
+the number of cases in the file without reading the entire file.  The
+number of cases in some kinds of unusual files cannot be estimated;
+PSPP will read all cases in such files.)
+
+FIRSTCASE and IMPORTCASE may be used with delimited and fixed-format
+data.  The remaining subcommands, which apply only to one of the two  file
+arrangements, are described below.
+
+@menu
+* GET DATA /TYPE=TXT /ARRANGEMENT=DELIMITED::
+* GET DATA /TYPE=TXT /ARRANGEMENT=FIXED::
+@end menu
+
+@node GET DATA /TYPE=TXT /ARRANGEMENT=DELIMITED
+@subsubsection Reading Delimited Data
+
+@display
+GET DATA /TYPE=TXT
+        /FILE=@{'file-name',file_handle@}
+        [/ARRANGEMENT=@{DELIMITED,FIXED@}]
+        [/FIRSTCASE=@{first_case@}]
+        [/IMPORTCASE=@{ALL,FIRST max_cases,PERCENT percent@}]
+
+        /DELIMITERS="delimiters"
+        [/QUALIFIER="quote"]
+        [/DELCASE=@{LINE,VARIABLES n_variables@}]
+        /VARIABLES=del_var [del_var]@dots{}
+where each del_var takes the form:
+        variable format
+@end display
+
+The GET DATA command with TYPE=TXT and ARRANGEMENT=DELIMITED reads
+input data from text files in delimited format, where fields are
+separated by a set of user-specified delimiters.  Its capabilities are
+similar to those of DATA LIST FREE (@pxref{DATA LIST FREE}), with a
+few enhancements.
+
+The required FILE subcommand and optional FIRSTCASE and IMPORTCASE
+subcommands are described above (@pxref{GET DATA /TYPE=TXT}).
+
+DELIMITERS, which is required, specifies the set of characters that
+may separate fields.  Each character in the string specified on
+DELIMITERS separates one field from the next.  The end of a line also
+separates fields, regardless of DELIMITERS.  Two consecutive
+delimiters in the input yield an empty field, as does a delimiter at
+the end of a line.  A space character as a delimiter is an exception:
+consecutive spaces do not yield an empty field and neither does any
+number of spaces at the end of a line.
+
+To use a tab as a delimiter, specify @samp{\t} at the beginning of the
+DELIMITERS string.  To use a backslash as a delimiter, specify
+@samp{\\} as the first delimiter or, if a tab should also be a
+delimiter, immediately following @samp{\t}.  To read a data file in
+which each field appears on a separate line, specify the empty string
+for DELIMITERS.
+
+The optional QUALIFIER subcommand names a character that can be used
+to quote values within fields in the input.  A field that begins with
+the specified quote character ends at the next match quote.
+Intervening delimiters become part of the field, instead of
+terminating it.
+
+The DELCASE subcommand controls how data may be broken across lines in
+the data file.  With LINE, the default setting, each line must contain
+all the data for exactly one case.  For additional flexibility, to
+allow a single case to be split among lines or multiple cases to be
+contained on a single line, specify VARIABLES @i{n_variables}, where
+@i{n_variables} is the number of variables per case.
+
+The VARIABLES subcommand is required and must be the last subcommand.
+Specify the name of each variable and its input format (@pxref{Input
+and Output Formats}) in the order they should be read from the input
+file.
+
+@subsubheading Examples
+
+@noindent
+On a Unix-like system, the @samp{/etc/passwd} file has a format
+similar to this:
+
+@example
+root:$1$nyeSP5gD$pDq/:0:0:,,,:/root:/bin/bash
+blp:$1$BrP/pFg4$g7OG:1000:1000:Ben Pfaff,,,:/home/blp:/bin/bash
+john:$1$JBuq/Fioq$g4A:1001:1001:John Darrington,,,:/home/john:/bin/bash
+jhs:$1$D3li4hPL$88X1:1002:1002:Jason Stover,,,:/home/jhs:/bin/csh
+@end example
+
+@noindent
+The following syntax reads a file in the format used by
+@samp{/etc/passwd}:
+
+@c If you change this example, change the regression test in
+@c tests/command/get-data-txt-examples.sh to match.
+@example
+GET DATA /TYPE=TXT /FILE='/etc/passwd' /DELIMITERS=':'
+        /VARIABLES=username A20
+                   password A40
+                   uid F10
+                   gid F10
+                   gecos A40
+                   home A40
+                   shell A40.
+@end example
+
+@noindent
+Consider the following data on used cars:
+
+@example
+model   year    mileage price   type    age
+Civic   2002    29883   15900   Si      2
+Civic   2003    13415   15900   EX      1
+Civic   1992    107000  3800    n/a     12
+Accord  2002    26613   17900   EX      1
+@end example
+
+@noindent
+The following syntax can be used to read the used car data:
+
+@c If you change this example, change the regression test in
+@c tests/command/get-data-txt-examples.sh to match.
+@example
+GET DATA /TYPE=TXT /FILE='cars.data' /DELIMITERS=' ' /FIRSTCASE=2
+        /VARIABLES=model A8
+                   year F4
+                   mileage F6
+                   price F5
+                   type A4
+                   age F2.
+@end example
+
+@noindent
+Consider the following information on animals in a pet store:
+
+@example
+"Pet Name", "Age", "Color", "Date Received", "Price", "Needs Walking", "Type"
+, (Years), , , (Dollars), ,
+"Rover", 4.5, Brown, "12 Feb 2004", 80, True, "Dog"
+"Charlie", , Gold, "5 Apr 2007", 12.3, False, "Fish"
+"Molly", 2, Black, "12 Dec 2006", 25, False, "Cat"
+"Gilly", , White, "10 Apr 2007", 10, False, "Guinea Pig"
+@end example
+
+@noindent
+The following syntax can be used to read the pet store data:
+
+@c If you change this example, change the regression test in
+@c tests/command/get-data-txt-examples.sh to match.
+@example
+GET DATA /TYPE=TXT /FILE='pets.data' /DELIMITERS=', ' /QUALIFIER='"'
+        /FIRSTCASE=3
+        /VARIABLES=name A10
+                   age F3.1
+                   color A5
+                   received EDATE10
+                   price F5.2
+                   needs_walking A5
+                   type A10.
+@end example
+
+@node GET DATA /TYPE=TXT /ARRANGEMENT=FIXED
+@subsubsection Reading Fixed Columnar Data
+
+@display
+GET DATA /TYPE=TXT
+        /FILE=@{'file-name',file_handle@}
+        [/ARRANGEMENT=@{DELIMITED,FIXED@}]
+        [/FIRSTCASE=@{first_case@}]
+        [/IMPORTCASE=@{ALL,FIRST max_cases,PERCENT percent@}]
+
+        [/FIXCASE=n]
+        /VARIABLES fixed_var [fixed_var]@dots{}
+            [/rec# fixed_var [fixed_var]@dots{}]@dots{}
+where each fixed_var takes the form:
+        variable start-end format
+@end display
+
+The GET DATA command with TYPE=TXT and ARRANGEMENT=FIXED reads input
+data from text files in fixed format, where each field is located in
+particular fixed column positions within records of a case.  Its
+capabilities are similar to those of DATA LIST FIXED (@pxref{DATA LIST
+FIXED}), with a few enhancements.
+
+The required FILE subcommand and optional FIRSTCASE and IMPORTCASE
+subcommands are described above (@pxref{GET DATA /TYPE=TXT}).
+
+The optional FIXCASE subcommand may be used to specify the positive
+integer number of input lines that make up each case.  The default
+value is 1.
+
+The VARIABLES subcommand, which is required, specifies the positions
+at which each variable can be found.  For each variable, specify its
+name, followed by its start and end column separated by @samp{-}
+(e.g.@: @samp{0-9}), followed by the input format type (e.g.@:
+@samp{F}).  For this command, columns are numbered starting from 0 at
+the left column.  Introduce the variables in the second and later
+lines of a case by a slash followed by the number of the line within
+the case, e.g.@: @samp{/2} for the second line.
+
+@subsubheading Examples
+
+@noindent
+Consider the following data on used cars:
+
+@example
+model   year    mileage price   type    age
+Civic   2002    29883   15900   Si      2
+Civic   2003    13415   15900   EX      1
+Civic   1992    107000  3800    n/a     12
+Accord  2002    26613   17900   EX      1
+@end example
+
+@noindent
+The following syntax can be used to read the used car data:
+
+@c If you change this example, change the regression test in
+@c tests/command/get-data-txt-examples.sh to match.
+@example
+GET DATA /TYPE=TXT /FILE='cars.data' /ARRANGEMENT=FIXED /FIRSTCASE=2
+        /VARIABLES=model 0-7 A
+                   year 8-15 F
+                   mileage 16-23 F
+                   price 24-31 F
+                   type 32-40 A
+                   age 40-47 F.
+@end example
 
 @node IMPORT
 @section IMPORT

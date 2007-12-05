@@ -1,3 +1,13 @@
+2007-12-04  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add new tests.
+
+	* command/get-data-txt.sh: New test.
+
+	* command/get-data-txt-examples.sh: New test.
+
+	* command/get-data-txt-importcases.sh: New test.
+
 2007-11-25  Ben Pfaff  <blp@gnu.org>
 
 	* bugs/compression.sh: Don't fail on big-endian system.  Partial

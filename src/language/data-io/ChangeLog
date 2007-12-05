@@ -1,5 +1,41 @@
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
+	Move DATA LIST parsing into generic infrastructure, and generalize
+	it slightly.  Then, use the same infrastructure to implement GET
+	DATA/TYPE=TXT.
+
+	* data-parser.c: New file.
+
+	* data-parser.h: New file.
+
+	* data-list.c (struct dls_var_spec): Removed.
+	(ll_to_dls_var_spec): Removed.
+	(enum dls_type): Removed.
+	(struct data_list_pgm): Rename struct data_list_trns.  Remove
+	pool, specs, type, record_cnt, delims, skip_records, value_cnt
+	members.  Add new `parser' member.
+	(cmd_data_list): Use data-parser infrastructure.
+	(parse_fixed): Ditto.
+	(parse_free): Ditto.
+	(dump_fixed_table): Removed.
+	(dump_free_table): Removed.
+	(cut_field): Removed.
+	(read_from_data_list): Removed.
+	(read_from_data_list_fixed): Removed.
+	(read_from_data_list_free): Removed.
+	(read_from_data_list_list): Removed.
+	(data_list_trns_free): Rename arguments for clarity.
+	(data_list_trns_proc): Ditto.
+	(data_list_casereader_read): Removed.
+	(data_list_casereader_destroy): Removed.
+	(data_list_casereader_class): Removed.
+
+	* get-data.c (cmd_get_data): Support TXT type.
+	(set_type): New function.
+	(parse_get_txt): New function.
+
+2007-12-04  Ben Pfaff  <blp@gnu.org>
+
 	* placement-parser.c (parse_column): New function.
 	(parse_column_range): Add `base' argument.  Update all callers.
 	

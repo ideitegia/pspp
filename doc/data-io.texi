@@ -108,6 +108,10 @@ free format.
 
 Each form of @cmd{DATA LIST} is described in detail below.
 
+@xref{GET DATA}, for a command that offers a few enhancements over
+DATA LIST and that may be substituted for DATA LIST in many
+situations.
+
 @menu
 * DATA LIST FIXED::             Fixed columnar locations for data.
 * DATA LIST FREE::              Any spacing you like.

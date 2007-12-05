@@ -24,6 +24,9 @@ dist_TESTS = \
 	tests/command/file-handle.sh \
 	tests/command/filter.sh \
 	tests/command/flip.sh \
+	tests/command/get-data-txt.sh \
+	tests/command/get-data-txt-examples.sh \
+	tests/command/get-data-txt-importcases.sh \
 	tests/command/import-export.sh \
 	tests/command/input-program.sh \
 	tests/command/insert.sh \

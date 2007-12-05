@@ -6,6 +6,8 @@ src_language_data_io_built_sources = \
 
 language_data_io_sources = \
 	src/language/data-io/data-list.c \
+	src/language/data-io/data-parser.c \
+	src/language/data-io/data-parser.h \
 	src/language/data-io/get.c \
 	src/language/data-io/get-data.c \
 	src/language/data-io/inpt-pgm.c \
