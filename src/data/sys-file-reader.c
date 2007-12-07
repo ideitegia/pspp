@@ -845,19 +845,36 @@ static void
 read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
                          struct dictionary *dict)
 {
-  const size_t n_vars = count / 3 ;
+  size_t n_vars;
+  bool includes_width;
   bool warned = false;
-  int i;
+  size_t i;
 
-  if (count % 3 || n_vars != dict_get_var_cnt (dict))
-    sys_error (r, _("Bad size (%zu) or count (%zu) on extension 11."),
-               size, count);
+  if (size != 4)
+    {
+      sys_warn (r, _("Bad size %zu on extension 11."), size);
+      skip_bytes (r, size * count);
+      return;
+    }
+
+  n_vars = dict_get_var_cnt (dict);
+  if (count == 3 * n_vars)
+    includes_width = true;
+  else if (count == 2 * n_vars)
+    includes_width = false;
+  else
+    {
+      sys_warn (r, _("Extension 11 has bad count %zu (for %zu variables)."),
+                count, n_vars);
+      skip_bytes (r, size * count);
+      return;
+    }
 
   for (i = 0; i < n_vars; ++i)
     {
       struct variable *v = dict_get_var (dict, i);
       int measure = read_int (r);
-      int width = read_int (r);
+      int width = includes_width ? read_int (r) : 0;
       int align = read_int (r);
 
       /* SPSS 14 sometimes seems to set string variables' measure
@@ -865,16 +882,13 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
       if (0 == measure && var_is_alpha (v))
         measure = 1;
 
-      /* Older versions (SPSS 9.0) sometimes set the display width
-	 to zero.  This causes confusion especially in the GUI */
-      if (0 == width)
-	width = 8;
-
       if (measure < 1 || measure > 3 || align < 0 || align > 2)
         {
           if (!warned)
-            sys_warn (r, _("Invalid variable display parameters.  "
-                           "Default parameters substituted."));
+            sys_warn (r, _("Invalid variable display parameters "
+                           "for variable %zu (%s).  "
+                           "Default parameters substituted."),
+                      i, var_get_name (v));
           warned = true;
           continue;
         }
@@ -882,10 +896,15 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count,
       var_set_measure (v, (measure == 1 ? MEASURE_NOMINAL
                            : measure == 2 ? MEASURE_ORDINAL
                            : MEASURE_SCALE));
-      var_set_display_width (v, width);
       var_set_alignment (v, (align == 0 ? ALIGN_LEFT
                              : align == 1 ? ALIGN_RIGHT
                              : ALIGN_CENTRE));
+
+      /* Older versions (SPSS 9.0) sometimes set the display
+	 width to zero.  This causes confusion in the GUI, so
+	 only set the width if it is nonzero. */
+      if (width > 0)
+        var_set_display_width (v, width);
     }
 }
 

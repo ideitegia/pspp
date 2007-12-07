@@ -1,3 +1,11 @@
+2007-12-06  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6303.
+
+	* sys-file-reader.c (read_display_parameters): Handle variable
+	display parameters record with only 2 data items per variable.
+	Reported by Guido Gay <gay@irer.it>.
+
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
 	* identifier.c (lex_id_match_n): New function.

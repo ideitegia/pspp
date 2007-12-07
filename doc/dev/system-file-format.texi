@@ -606,7 +606,7 @@ int32               count;
 
 /* @r{Repeated @code{count} times}. */
 int32               measure;
-int32               width;
+int32               width;           /* @r{Not always present.} */
 int32               alignment;
 @end example
 
@@ -622,7 +622,7 @@ The size of @code{int32}.  Always set to 4.
 
 @item int32 count;
 The number of sets of variable display parameters (ordinarily the
-number of variables in the dictionary), times 3.
+number of variables in the dictionary), times 2 or 3.
 @end table
 
 The remaining members are repeated @code{count} times, in the same
@@ -647,6 +647,10 @@ as nominal scale.
 
 @item int32 width;
 The width of the display column for the variable in characters.
+
+This field is present if @var{count} is 3 times the number of
+variables in the dictionary.  It is omitted if @var{count} is 2 times
+the number of variables.
 
 @item int32 alignment;
 The alignment of the variable for display purposes:
