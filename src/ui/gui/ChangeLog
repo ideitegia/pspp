@@ -1,3 +1,8 @@
+2007-12-07  John Darrington <john@darrington.wattle.id.au>
+
+	* frequencies-dialog.c: Made the options subdialog transient
+	on the parent.
+
 2007-12-01  John Darrington <john@darrington.wattle.id.au>
 
 	* descriptives-dialog.c: Moved the code dealing with checkboxes 

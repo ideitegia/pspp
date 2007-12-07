@@ -371,6 +371,10 @@ frequencies_dialog (GObject *o, gpointer data)
   fd.current_opts.use_limits = FALSE;
   fd.current_opts.limit = 50;
 
+
+  gtk_window_set_transient_for (GTK_WINDOW (fd.format_dialog), de->parent.window);
+
+
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &fd);
 
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),

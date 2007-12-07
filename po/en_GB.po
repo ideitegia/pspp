@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-11-30 16:17+0900\n"
+"POT-Creation-Date: 2007-12-07 13:00+0900\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -1131,45 +1131,75 @@ msgid ""
 "commands."
 msgstr ""
 
-#: src/language/data-io/data-list.c:173
+#: src/language/data-io/data-list.c:128
+msgid "The END subcommand may only be used within INPUT PROGRAM."
+msgstr ""
+
+#: src/language/data-io/data-list.c:134
 msgid "The END subcommand may only be specified once."
 msgstr ""
 
-#: src/language/data-io/data-list.c:208
+#: src/language/data-io/data-list.c:172
 msgid "Only one of FIXED, FREE, or LIST may be specified."
 msgstr ""
 
-#: src/language/data-io/data-list.c:257
-msgid "The END keyword may be used only with DATA LIST FIXED."
+#: src/language/data-io/data-list.c:237
+msgid "The END subcommand may be used only with DATA LIST FIXED."
 msgstr ""
 
-#: src/language/data-io/data-list.c:367 src/language/data-io/data-list.c:511
+#: src/language/data-io/data-list.c:252
+msgid "At least one variable must be specified."
+msgstr ""
+
+#: src/language/data-io/data-list.c:348 src/language/data-io/data-list.c:437
+#: src/language/data-io/get-data.c:440
 #, c-format
 msgid "%s is a duplicate variable name."
 msgstr ""
 
-#: src/language/data-io/data-list.c:374
+#: src/language/data-io/data-list.c:355
 #, c-format
 msgid "There is already a variable %s of a different type."
 msgstr ""
 
-#: src/language/data-io/data-list.c:381
+#: src/language/data-io/data-list.c:362
 #, c-format
 msgid "There is already a string variable %s of a different width."
 msgstr ""
 
-#: src/language/data-io/data-list.c:402
-msgid "At least one variable must be specified."
+#: src/language/data-io/data-list.c:370
+#, c-format
+msgid "Cannot place variable %s on record %d when RECORDS=%d is specified."
 msgstr ""
 
-#: src/language/data-io/data-list.c:409
+#: src/language/data-io/data-parser.c:434
+msgid "Quoted string extends beyond end of line."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:483
+#, c-format
+msgid "Partial case of %d of %d records discarded."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:525
+#, c-format
+msgid "Partial case discarded.  The first variable missing was %s."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:558
+#, c-format
 msgid ""
-"Variables are specified on records that should not exist according to "
-"RECORDS subcommand."
+"Missing value(s) for all variables from %s onward.  These will be filled "
+"with the system-missing value or blanks, as appropriate."
 msgstr ""
 
-#: src/language/data-io/data-list.c:434 src/language/data-io/data-list.c:543
-#: src/language/data-io/print.c:401 src/language/dictionary/split-file.c:84
+#: src/language/data-io/data-parser.c:582
+msgid "Record ends in data not part of any field."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:601
+#: src/language/data-io/data-parser.c:642 src/language/data-io/print.c:402
+#: src/language/dictionary/split-file.c:84
 #: src/language/dictionary/sys-file-info.c:161
 #: src/language/dictionary/sys-file-info.c:390
 #: src/language/dictionary/sys-file-info.c:634
@@ -1177,116 +1207,95 @@ msgstr ""
 msgid "Variable"
 msgstr ""
 
-#: src/language/data-io/data-list.c:435 src/language/data-io/print.c:402
+#: src/language/data-io/data-parser.c:602 src/language/data-io/print.c:403
 msgid "Record"
 msgstr ""
 
-#: src/language/data-io/data-list.c:436 src/language/data-io/print.c:403
+#: src/language/data-io/data-parser.c:603 src/language/data-io/print.c:404
 #: src/ui/gui/var-sheet.c:72
 msgid "Columns"
 msgstr ""
 
-#: src/language/data-io/data-list.c:437 src/language/data-io/data-list.c:544
-#: src/language/data-io/print.c:404
+#: src/language/data-io/data-parser.c:604
+#: src/language/data-io/data-parser.c:643 src/language/data-io/print.c:405
 msgid "Format"
 msgstr ""
 
-#: src/language/data-io/data-list.c:455
+#: src/language/data-io/data-parser.c:623
 #, c-format
 msgid "Reading %d record from %s."
 msgid_plural "Reading %d records from %s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/language/data-io/data-list.c:558
+#: src/language/data-io/data-parser.c:659
 #, c-format
 msgid "Reading free-form data from %s."
 msgstr ""
 
-#: src/language/data-io/data-list.c:604
-msgid "Quoted string extends beyond end of line."
-msgstr ""
-
-#: src/language/data-io/data-list.c:690
-#, c-format
-msgid "Partial case of %d of %d records discarded."
-msgstr ""
-
-#: src/language/data-io/data-list.c:736
-#, c-format
-msgid "Partial case discarded.  The first variable missing was %s."
-msgstr ""
-
-#: src/language/data-io/data-list.c:768
-#, c-format
-msgid ""
-"Missing value(s) for all variables from %s onward.  These will be filled "
-"with the system-missing value or blanks, as appropriate."
-msgstr ""
-
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
-#: src/language/data-io/data-reader.c:120
+#: src/language/data-io/data-reader.c:122
 #: src/language/data-io/data-writer.c:58
 msgid "data file"
 msgstr ""
 
-#: src/language/data-io/data-reader.c:146
+#: src/language/data-io/data-reader.c:149
 #, c-format
 msgid "Could not open \"%s\" for reading as a data file: %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:184
+#: src/language/data-io/data-reader.c:190
 msgid ""
 "Unexpected end-of-file while reading data in BEGIN DATA.  This probably "
 "indicates a missing or misformatted END DATA command.  END DATA must appear "
 "by itself on a single line with exactly one space between words."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:209
+#: src/language/data-io/data-reader.c:215
 #, c-format
 msgid "Error reading file %s: %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:212
+#: src/language/data-io/data-reader.c:218
 #, c-format
 msgid "Unexpected end of file reading %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:221
+#: src/language/data-io/data-reader.c:227
 #, c-format
 msgid "Unexpected end of file in partial record reading %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:281
+#: src/language/data-io/data-reader.c:287
 #, c-format
 msgid "Corrupt block descriptor word at offset 0x%lx in %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:282
+#: src/language/data-io/data-reader.c:288
 #, c-format
 msgid "Corrupt record descriptor word at offset 0x%lx in %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:295
+#: src/language/data-io/data-reader.c:301
 #, c-format
 msgid "Corrupt record size at offset 0x%lx in %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:437
+#: src/language/data-io/data-reader.c:443
 msgid "Record exceeds remaining block length."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:511
+#: src/language/data-io/data-reader.c:517
 #, c-format
 msgid "Attempt to read beyond end-of-file on file %s."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:514
+#: src/language/data-io/data-reader.c:520
 msgid "Attempt to read beyond END DATA."
 msgstr ""
 
-#: src/language/data-io/data-reader.c:679
+#: src/language/data-io/data-reader.c:706
 msgid ""
 "This command is not valid here since the current input program does not "
 "access the inline file."
@@ -1342,21 +1351,21 @@ msgstr ""
 msgid "Handle for %s not allowed here."
 msgstr ""
 
-#: src/language/data-io/get.c:106
+#: src/language/data-io/get.c:99
 msgid "expecting COMM or TAPE"
 msgstr ""
 
-#: src/language/data-io/get.c:279 src/language/data-io/get.c:293
-#: src/language/data-io/get.c:318
+#: src/language/data-io/get.c:272 src/language/data-io/get.c:286
+#: src/language/data-io/get.c:311
 #, c-format
 msgid "expecting %s or %s"
 msgstr ""
 
-#: src/language/data-io/get.c:513 src/language/data-io/print.c:177
+#: src/language/data-io/get.c:506 src/language/data-io/print.c:177
 msgid "expecting a valid subcommand"
 msgstr ""
 
-#: src/language/data-io/get.c:546
+#: src/language/data-io/get.c:539
 #, c-format
 msgid ""
 "Cannot rename %s as %s because there already exists a variable named %s.  To "
@@ -1364,11 +1373,11 @@ msgid ""
 "as \"/RENAME (A=B)(B=C)(C=A)\", or equivalently, \"/RENAME (A B C=B C A)\"."
 msgstr ""
 
-#: src/language/data-io/get.c:572
+#: src/language/data-io/get.c:565
 msgid "`=' expected after variable list."
 msgstr ""
 
-#: src/language/data-io/get.c:579
+#: src/language/data-io/get.c:572
 #, c-format
 msgid ""
 "Number of variables on left side of `=' (%zu) does not match number of "
@@ -1376,64 +1385,114 @@ msgid ""
 "subcommand."
 msgstr ""
 
-#: src/language/data-io/get.c:592
+#: src/language/data-io/get.c:585
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
 msgstr ""
 
-#: src/language/data-io/get.c:622
+#: src/language/data-io/get.c:615
 msgid "Cannot DROP all variables from dictionary."
 msgstr ""
 
-#: src/language/data-io/get.c:795
+#: src/language/data-io/get.c:788
 msgid "Cannot specify the active file since no active file has been defined."
 msgstr ""
 
-#: src/language/data-io/get.c:802
+#: src/language/data-io/get.c:795
 msgid ""
 "MATCH FILES may not be used after TEMPORARY when the active file is an input "
 "source.  Temporary transformations will be made permanent."
 msgstr ""
 
-#: src/language/data-io/get.c:836
+#: src/language/data-io/get.c:829
 msgid "Multiple IN subcommands for a single FILE or TABLE."
 msgstr ""
 
-#: src/language/data-io/get.c:880
+#: src/language/data-io/get.c:873
 #, c-format
 msgid "File %s lacks BY variable %s."
 msgstr ""
 
-#: src/language/data-io/get.c:883
+#: src/language/data-io/get.c:876
 #, c-format
 msgid "Active file lacks BY variable %s."
 msgstr ""
 
-#: src/language/data-io/get.c:953
+#: src/language/data-io/get.c:946
 msgid "BY is required when TABLE is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:958
+#: src/language/data-io/get.c:951
 msgid "BY is required when IN is specified."
 msgstr ""
 
-#: src/language/data-io/get.c:1063
+#: src/language/data-io/get.c:1056
 #, c-format
 msgid ""
 "Variable name %s specified on %s subcommand duplicates an existing variable "
 "name."
 msgstr ""
 
-#: src/language/data-io/get.c:1310
+#: src/language/data-io/get.c:1303
 #, c-format
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
 msgstr ""
 
-#: src/language/data-io/get-data.c:48
+#: src/language/data-io/get-data.c:57
 #, c-format
 msgid "Unsupported TYPE %s"
+msgstr ""
+
+#: src/language/data-io/get-data.c:181
+#, c-format
+msgid ""
+"%s is allowed only with %s arrangement, but %s arrangement was stated or "
+"implied earlier in this command."
+msgstr ""
+
+#: src/language/data-io/get-data.c:236
+msgid "expecting FIXED or DELIMITED"
+msgstr ""
+
+#: src/language/data-io/get-data.c:249
+msgid "Value of FIRSTCASE must be 1 or greater."
+msgstr ""
+
+#: src/language/data-io/get-data.c:274
+msgid "expecting LINE or VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:287
+msgid "Value of FIXCASE must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:307
+msgid "Value of FIRST must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:319
+msgid "Value of PERCENT must be between 1 and 100."
+msgstr ""
+
+#: src/language/data-io/get-data.c:372
+msgid "expecting VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:394
+#: src/language/data-io/placement-parser.c:376
+#, c-format
+msgid ""
+"The record number specified, %ld, is at or before the previous record, %d.  "
+"Data fields must be listed in order of increasing record number."
+msgstr ""
+
+#: src/language/data-io/get-data.c:403
+#, c-format
+msgid ""
+"The record number specified, %ld, exceeds the number of records per case "
+"specified on FIXCASE, %d."
 msgstr ""
 
 #: src/language/data-io/inpt-pgm.c:129
@@ -1513,20 +1572,16 @@ msgstr ""
 msgid "Unknown format type \"%s\"."
 msgstr ""
 
-#: src/language/data-io/placement-parser.c:308
-#: src/language/data-io/placement-parser.c:322
+#: src/language/data-io/placement-parser.c:303
 msgid "Column positions for fields must be positive."
 msgstr ""
 
-#: src/language/data-io/placement-parser.c:327
-msgid "The ending column for a field must be greater than the starting column."
+#: src/language/data-io/placement-parser.c:305
+msgid "Column positions for fields must not be negative."
 msgstr ""
 
-#: src/language/data-io/placement-parser.c:362
-#, c-format
-msgid ""
-"The record number specified, %ld, is at or before the previous record, %d.  "
-"Data fields must be listed in order of increasing record number."
+#: src/language/data-io/placement-parser.c:342
+msgid "The ending column for a field must be greater than the starting column."
 msgstr ""
 
 #: src/language/data-io/print.c:265
@@ -1534,14 +1589,14 @@ msgstr ""
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
 msgstr ""
 
-#: src/language/data-io/print.c:434
+#: src/language/data-io/print.c:435
 #, c-format
 msgid "Writing %d record to %s."
 msgid_plural "Writing %d records to %s."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/language/data-io/print.c:438
+#: src/language/data-io/print.c:439
 #, c-format
 msgid "Writing %d record."
 msgid_plural "Writing %d records."
@@ -1967,11 +2022,11 @@ msgid ""
 "s."
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:157 src/language/lexer/lexer.c:619
+#: src/language/dictionary/value-labels.c:157 src/language/lexer/lexer.c:629
 msgid "expecting string"
 msgstr ""
 
-#: src/language/dictionary/value-labels.c:166 src/language/lexer/lexer.c:633
+#: src/language/dictionary/value-labels.c:166 src/language/lexer/lexer.c:643
 msgid "expecting integer"
 msgstr ""
 
@@ -2253,54 +2308,54 @@ msgstr ""
 msgid "Syntax error at %s."
 msgstr ""
 
-#: src/language/lexer/lexer.c:588 src/language/lexer/lexer.c:605
+#: src/language/lexer/lexer.c:598 src/language/lexer/lexer.c:615
 #, c-format
 msgid "expecting `%s'"
 msgstr ""
 
-#: src/language/lexer/lexer.c:646
+#: src/language/lexer/lexer.c:656
 msgid "expecting number"
 msgstr ""
 
-#: src/language/lexer/lexer.c:658
+#: src/language/lexer/lexer.c:668
 msgid "expecting identifier"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1052
+#: src/language/lexer/lexer.c:1062
 msgid "binary"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1057
+#: src/language/lexer/lexer.c:1067
 msgid "octal"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1062
+#: src/language/lexer/lexer.c:1072
 msgid "hex"
 msgstr ""
 
-#: src/language/lexer/lexer.c:1072
+#: src/language/lexer/lexer.c:1082
 #, c-format
 msgid "String of %s digits has %zu characters, which is not a multiple of %d."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1101
+#: src/language/lexer/lexer.c:1111
 #, c-format
 msgid "`%c' is not a valid %s digit."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1135
+#: src/language/lexer/lexer.c:1145
 msgid "Unterminated string constant."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1189
+#: src/language/lexer/lexer.c:1199
 msgid "Unexpected end of file in string concatenation."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1197
+#: src/language/lexer/lexer.c:1207
 msgid "String expected following `+'."
 msgstr ""
 
-#: src/language/lexer/lexer.c:1210
+#: src/language/lexer/lexer.c:1220
 #, c-format
 msgid "String exceeds 255 characters in length (%zu characters)."
 msgstr ""
