@@ -1,3 +1,12 @@
+2007-12-07  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6302.
+
+	* crosstabs.q (precalc): Initialize data structures even if the
+	first case cannot be read.  
+
+	* frequencies.q (precalc): Ditto.
+
 2007-11-03  Ben Pfaff  <blp@gnu.org>
 
 	Allow output files to overwrite input files (bug #21280).

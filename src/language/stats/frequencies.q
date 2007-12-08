@@ -538,10 +538,11 @@ precalc (struct casereader *input, struct dataset *ds)
   struct ccase c;
   size_t i;
 
-  if (!casereader_peek (input, 0, &c))
-    return;
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  if (casereader_peek (input, 0, &c))
+    {
+      output_split_file_values (ds, &c);
+      case_destroy (&c);
+    }
 
   pool_destroy (data_pool);
   data_pool = pool_create ();

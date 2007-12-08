@@ -520,10 +520,11 @@ precalc (struct casereader *input, const struct dataset *ds)
 {
   struct ccase c;
 
-  if (!casereader_peek (input, 0, &c))
-    return;
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  if (casereader_peek (input, 0, &c))
+    {
+      output_split_file_values (ds, &c);
+      case_destroy (&c);
+    }
 
   if (mode == GENERAL)
     {
