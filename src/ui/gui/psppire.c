@@ -195,12 +195,20 @@ create_icon_factory (void)
     /* Create our own "pspp-stock-reset" item, using the
        GTK_STOCK_REFRESH icon set */
 
-    GtkStockItem item = {"pspp-stock-reset", N_("_Reset"), 0, 0, PACKAGE};
-    GtkIconSet *icon_set =
-      gtk_icon_factory_lookup_default (GTK_STOCK_REFRESH);
+    GtkStockItem items[] = {
+      {"pspp-stock-reset", N_("_Reset"), 0, 0, PACKAGE},
+      {"pspp-stock-select", N_("_Select"), 0, 0, PACKAGE}
+    };
 
-    gtk_stock_add (&item, 1);
-    gtk_icon_factory_add (factory, "pspp-stock-reset", icon_set);
+
+    gtk_stock_add (&items, 2);
+    gtk_icon_factory_add (factory, "pspp-stock-reset", 
+			  gtk_icon_factory_lookup_default (GTK_STOCK_REFRESH)
+			  );
+
+    gtk_icon_factory_add (factory, "pspp-stock-select", 
+			  gtk_icon_factory_lookup_default (GTK_STOCK_INDEX)
+			  );
   }
 
   gtk_icon_factory_add_default (factory);

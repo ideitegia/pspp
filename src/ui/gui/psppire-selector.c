@@ -240,7 +240,7 @@ psppire_selector_init (PsppireSelector *selector)
   selector->arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
   selector->filtered_source = NULL;
 
-  selector->action = gtk_action_new ("select", NULL, NULL, NULL);
+  selector->action = gtk_action_new ("select", NULL, NULL, "pspp-stock-select");
 
   gtk_action_connect_proxy (selector->action, GTK_WIDGET (selector));
 
