@@ -701,8 +701,8 @@ data_parser_make_active_file (struct data_parser *parser, struct dataset *ds,
   r->reader = reader;
   r->value_cnt = dict_get_next_value_idx (dict);
   casereader = casereader_create_sequential (NULL, r->value_cnt,
-                                             -1, &data_parser_casereader_class,
-                                             r);
+                                             CASENUMBER_MAX,
+                                             &data_parser_casereader_class, r);
   proc_set_active_file (ds, casereader, dict);
 }
 

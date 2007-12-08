@@ -1,3 +1,12 @@
+2007-12-07  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6302.
+
+	* data-parser.c (data_parser_make_active_file): Fix case count
+	argument to casereader_create_sequential, which fixes data reading
+	in the GUI.
+	Provided by John Darrington.
+
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
 	Move DATA LIST parsing into generic infrastructure, and generalize
