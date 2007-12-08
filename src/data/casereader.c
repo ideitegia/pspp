@@ -183,6 +183,24 @@ casereader_peek (struct casereader *reader, casenumber idx, struct ccase *c)
   return false;
 }
 
+/* Returns true if no cases remain to be read from READER, or if
+   an error has occurred on READER.  (A return value of false
+   does *not* mean that the next call to casereader_peek or
+   casereader_read will return true, because an error can occur
+   in the meantime.) */
+bool
+casereader_is_empty (struct casereader *reader)
+{
+  struct ccase c;
+  if (reader->case_cnt == 0 || !casereader_peek (reader, 0, &c))
+    return true;
+  else
+    {
+      case_destroy (&c);
+      return false;
+    }
+}
+
 /* Returns true if an I/O error or another hard error has
    occurred on READER, a clone of READER, or on some object on
    which READER's data has a dependency, false otherwise. */

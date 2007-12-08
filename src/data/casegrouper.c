@@ -110,9 +110,18 @@ casegrouper_get_next_group (struct casegrouper *grouper,
     {
       if (grouper->reader != NULL)
         {
-          *reader = grouper->reader;
-          grouper->reader = NULL;
-          return true;
+          if (!casereader_is_empty (grouper->reader))
+            {
+              *reader = grouper->reader;
+              grouper->reader = NULL;
+              return true;
+            }
+          else
+            {
+              casereader_destroy (grouper->reader);
+              grouper->reader = NULL;
+              return false;
+            }
         }
       else
         {

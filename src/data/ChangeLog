@@ -1,3 +1,13 @@
+2007-12-07  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6302.
+
+	* casegrouper.c (casegrouper_get_next_group): Cause a casegrouper
+	made from an empty casereader produce a casegrouper with no
+	groups, instead of one with one group that has no cases.
+
+	* casereader.c (casereader_is_empty): New function.
+
 2007-12-06  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6303.

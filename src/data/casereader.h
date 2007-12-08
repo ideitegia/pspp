@@ -70,6 +70,7 @@ void casereader_swap (struct casereader *, struct casereader *);
 
 bool casereader_peek (struct casereader *, casenumber, struct ccase *)
      WARN_UNUSED_RESULT;
+bool casereader_is_empty (struct casereader *);
 
 bool casereader_error (const struct casereader *);
 void casereader_force_error (struct casereader *);
