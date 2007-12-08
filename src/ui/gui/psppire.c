@@ -201,7 +201,7 @@ create_icon_factory (void)
     };
 
 
-    gtk_stock_add (&items, 2);
+    gtk_stock_add (items, 2);
     gtk_icon_factory_add (factory, "pspp-stock-reset", 
 			  gtk_icon_factory_lookup_default (GTK_STOCK_REFRESH)
 			  );
