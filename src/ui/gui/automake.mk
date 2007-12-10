@@ -157,6 +157,10 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/transpose-dialog.h \
 	src/ui/gui/t-test-independent-samples-dialog.c \
 	src/ui/gui/t-test-independent-samples-dialog.h \
+	src/ui/gui/t-test-one-sample.c \
+	src/ui/gui/t-test-one-sample.h \
+	src/ui/gui/t-test-options.c \
+	src/ui/gui/t-test-options.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \

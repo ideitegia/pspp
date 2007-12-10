@@ -51,6 +51,7 @@ struct data_editor
 
   GtkAction *invoke_t_test_independent_samples_dialog;
   GtkAction *invoke_oneway_anova_dialog;
+  GtkAction *invoke_t_test_one_sample_dialog;
 
 
   /* Actions which do things */

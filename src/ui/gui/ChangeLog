@@ -1,3 +1,16 @@
+2007-12-08  John Darrington <john@darrington.wattle.id.au>
+
+	* data-editor.h data-editor.c: Added hooks for one sample t-test
+
+	* t-test-one-sample.c t-test-one-sample.h (new files): Implemented
+	a dialog box for the One Sample T Test.
+
+	* t-test-independent-samples-dialog.c: Factored out the options sub
+	dialog (see following).
+
+	* t-test-options.c t-test-options.h (new files):  New module
+	 implementing the options sub-dialog for T tests.
+
 2007-12-07  John Darrington <john@darrington.wattle.id.au>
 
 	* frequencies-dialog.c: Made the options subdialog transient

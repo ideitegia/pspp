@@ -29,6 +29,7 @@
 #include "dialog-common.h"
 #include "dict-display.h"
 #include "widget-io.h"
+#include "t-test-options.h"
 
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"
@@ -44,8 +45,8 @@ struct tt_indep_samples_dialog
   GtkWidget *dialog;
   PsppireDict *dict;
   gboolean groups_defined;
-  gboolean non_default_options;
-  gdouble confidence_interval;
+
+  struct tt_options_dialog *opts;
 };
 
 
@@ -79,21 +80,8 @@ generate_syntax (const struct tt_indep_samples_dialog *d)
       g_string_append (str, ")");
     }
 
-  if ( d->non_default_options )
-    {
-      GtkToggleButton *analysis =
-	GTK_TOGGLE_BUTTON (get_widget_assert (d->xml, "radiobutton1"));
 
-      g_string_append (str, "\n\t");
-      g_string_append_printf (str, "/CRITERIA=CIN(%g)",
-			      d->confidence_interval/100.0);
-
-
-      g_string_append (str, "\n\t");
-      g_string_append_printf (str, "/MISSING=%s",
-		       gtk_toggle_button_get_active (analysis) ?
-		       "ANALYSIS" : "LISTWISE");
-    }
+  tt_options_dialog_append_syntax (d->opts, str);
 
   g_string_append (str, ".\n");
 
@@ -159,43 +147,6 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
 }
 
 
-static void
-run_options (struct tt_indep_samples_dialog *ttd)
-{
-  gint response;
-  GtkWidget *dialog =
-    get_widget_assert (ttd->xml, "options-dialog");
-
-  GtkWidget *box =
-    get_widget_assert (ttd->xml, "vbox1");
-
-  GtkSpinButton *conf_percent = NULL;
-
-  GtkWidget *confidence =
-    widget_scanf (_("Confidence Interval: %2d %%"),
-		  &conf_percent);
-
-  gtk_spin_button_set_value (conf_percent, ttd->confidence_interval);
-
-  gtk_widget_show (confidence);
-
-  gtk_box_pack_start_defaults (GTK_BOX (box), confidence);
-
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (ttd->dialog));
-
-  response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
-
-  if ( response == PSPPIRE_RESPONSE_CONTINUE)
-    {
-      ttd->non_default_options = TRUE;
-      ttd->confidence_interval = gtk_spin_button_get_value (conf_percent);
-    }
-
-  gtk_container_remove (GTK_CONTAINER (box), confidence);
-}
-
-
-
 
 static gboolean
 dialog_state_valid (gpointer data)
@@ -250,7 +201,6 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   GtkWidget *selector1 =
     get_widget_assert (xml, "indep-samples-t-test-selector1");
 
-
   GtkWidget *entry =
     get_widget_assert (xml, "indep-samples-t-test-entry");
 
@@ -266,8 +216,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   tt_d.xml = xml;
   tt_d.dict = vs->dict;
   tt_d.groups_defined = FALSE;
-  tt_d.non_default_options = FALSE;
-  tt_d.confidence_interval = 95.0;
+  tt_d.opts = tt_options_dialog_create (xml, de->parent.window);
 
   gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), de->parent.window);
 
@@ -294,7 +243,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
 
   g_signal_connect_swapped (options_button, "clicked",
-			    G_CALLBACK (run_options), &tt_d);
+			    G_CALLBACK (tt_options_dialog_run), tt_d.opts);
 
 
   g_signal_connect_swapped (tt_d.dialog, "refresh", G_CALLBACK (refresh),  xml);
@@ -332,7 +281,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
       break;
     }
 
-
+  tt_options_dialog_destroy (tt_d.opts);
   g_object_unref (xml);
 }
 
