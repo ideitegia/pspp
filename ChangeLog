@@ -1,3 +1,8 @@
+2007-12-11  John Darrington <john@darrington.wattle.id.au>
+
+	* t-test-independent-samples-dialog.c: Quoted the group values, when
+	the group variable is a string variable.
+
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
 	* Smake (GNULIB_MODULES): Add ftello module.

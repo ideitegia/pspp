@@ -30,6 +30,7 @@
 #include "dict-display.h"
 #include "widget-io.h"
 #include "t-test-options.h"
+#include <libpspp/syntax-gen.h>
 
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"
@@ -53,6 +54,7 @@ struct tt_indep_samples_dialog
 static gchar *
 generate_syntax (const struct tt_indep_samples_dialog *d)
 {
+  struct variable *group_variable;
   gchar *text;
   GtkWidget *entry =
     get_widget_assert (d->xml, "indep-samples-t-test-entry");
@@ -66,17 +68,45 @@ generate_syntax (const struct tt_indep_samples_dialog *d)
 
   g_string_append (str, "\n\t/GROUPS=");
 
-  g_string_append (str, gtk_entry_get_text (GTK_ENTRY (entry)));
+  group_variable =
+    psppire_dict_lookup_var (d->dict, gtk_entry_get_text (GTK_ENTRY (entry)));
+
+  g_string_append (str, var_get_name (group_variable));
 
   if ( d->groups_defined )
     {
       GtkWidget *entry1 = get_widget_assert (d->xml, "group1-entry");
       GtkWidget *entry2 = get_widget_assert (d->xml, "group2-entry");
 
+      const gchar *val1 = gtk_entry_get_text (GTK_ENTRY (entry1));
+      const gchar *val2 = gtk_entry_get_text (GTK_ENTRY (entry2));
+
       g_string_append (str, "(");
-      g_string_append (str, gtk_entry_get_text (GTK_ENTRY (entry1)));
+      if ( var_is_alpha (group_variable))
+	{
+	  struct string s;
+	  ds_init_cstr (&s, val1);
+	  gen_quoted_string (&s);
+	  g_string_append (str, ds_cstr (&s));
+	  ds_destroy (&s);
+	}
+      else
+	{
+	  g_string_append (str, val1);
+	}
       g_string_append (str, ",");
-      g_string_append (str, gtk_entry_get_text (GTK_ENTRY (entry2)));
+      if ( var_is_alpha (group_variable))
+	{
+	  struct string s;
+	  ds_init_cstr (&s, val2);
+	  gen_quoted_string (&s);
+	  g_string_append (str, ds_cstr (&s));
+	  ds_destroy (&s);
+	}
+      else
+	{
+	  g_string_append (str, val2);
+	}
       g_string_append (str, ")");
     }
 
