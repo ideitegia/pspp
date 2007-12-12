@@ -64,8 +64,6 @@ struct group_statistics
     /* min and max values */
     double minimum ;
     double maximum ;
-
-
   };
 
 
@@ -75,13 +73,13 @@ struct group_statistics
 
 /* Return -1 if the id of a is less than b; +1 if greater than and
    0 if equal */
-int  compare_group(const struct group_statistics *a,
-		   const struct group_statistics *b,
-		   int width);
+int  compare_group (const struct group_statistics *a,
+		    const struct group_statistics *b,
+		    int width);
 
-unsigned hash_group(const struct group_statistics *g, int width);
+unsigned hash_group (const struct group_statistics *g, int width);
 
-void  free_group(struct group_statistics *v, void *aux);
+void  free_group (struct group_statistics *v, void *aux);
 
 
 

@@ -29,7 +29,7 @@
 /* Return -1 if the id of a is less than b; +1 if greater than and
    0 if equal */
 int
-compare_group(const struct group_statistics *a,
+compare_group (const struct group_statistics *a,
 		 const struct group_statistics *b,
 		 int width)
 {
@@ -39,7 +39,7 @@ compare_group(const struct group_statistics *a,
 
 
 unsigned
-hash_group(const struct group_statistics *g, int width)
+hash_group (const struct group_statistics *g, int width)
 {
   unsigned id_hash;
 
@@ -50,7 +50,7 @@ hash_group(const struct group_statistics *g, int width)
 
 
 void
-free_group(struct group_statistics *v, void *aux UNUSED)
+free_group (struct group_statistics *v, void *aux UNUSED)
 {
   free(v);
 }
