@@ -71,7 +71,7 @@ tt_options_dialog_create (GladeXML *xml, GtkWindow *parent)
 
   gtk_box_pack_start_defaults (GTK_BOX (tto->box), tto->confidence);
 
-  gtk_window_set_transient_for (parent, GTK_WINDOW (tto->dialog));
+  gtk_window_set_transient_for (GTK_WINDOW (tto->dialog), parent);
 
   tto->confidence_interval = 95;
   tto->excl = EXCL_ANALYSIS;
