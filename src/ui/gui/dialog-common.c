@@ -236,3 +236,59 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
   return retval;
 }
 
+
+
+/* Returns true iff the variable selected by SOURCE is numeric */
+gboolean
+numeric_only (GtkWidget *source, GtkWidget *dest)
+{
+  gboolean ok;
+  GtkTreeIter iter;
+  gboolean retval = TRUE;
+
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (source));
+
+  PsppireDict *dict;
+  GtkTreeSelection *selection;
+  GList *list, *l;
+
+  while (GTK_IS_TREE_MODEL_FILTER (model))
+    {
+      model = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
+    }
+
+  dict = PSPPIRE_DICT (model);
+
+  selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (source));
+
+  list = gtk_tree_selection_get_selected_rows (selection, &model);
+
+  /* Iterate through the selection of the source treeview */
+  for (l = list; l ; l = l->next)
+    {
+      GtkTreePath *path = l->data;
+      GtkTreePath *fpath;
+      gint *idx;
+
+      const struct variable *v;
+
+      fpath = gtk_tree_model_filter_convert_path_to_child_path
+	(GTK_TREE_MODEL_FILTER (model), path);
+
+      idx = gtk_tree_path_get_indices (fpath);
+
+      v = psppire_dict_get_variable (dict, idx[0]);
+
+      if ( var_is_alpha (v))
+	{
+	  retval = FALSE;
+	  break;
+	}
+    }
+
+  g_list_foreach (list, (GFunc) gtk_tree_path_free, NULL);
+  g_list_free (list);
+
+  return retval;
+}
+

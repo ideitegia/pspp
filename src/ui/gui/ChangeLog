@@ -1,3 +1,12 @@
+2007-12-13  John Darrington <john@darrington.wattle.id.au>
+
+	* dialog-common.c dialog-common.h (numeric_only): New function.
+
+	* t-test-independent-samples-dialog.c:  Added the ability to specify 
+	groups by a threshold ("Cut Point").  Keep OK/Paste buttons insensitive,
+	until groups are properly defined.  Prevented variables treeview from
+	accepting string variables.
+
 2007-12-08  John Darrington <john@darrington.wattle.id.au>
 
 	* data-editor.h data-editor.c: Added hooks for one sample t-test

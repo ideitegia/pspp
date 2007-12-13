@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-12-10 21:25+0900\n"
+"POT-Creation-Date: 2007-12-12 21:07+0900\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -5047,7 +5047,7 @@ msgstr ""
 msgid "Value:"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1814 src/ui/gui/t-test.glade:365
+#: src/ui/gui/data-editor.glade:1814 src/ui/gui/t-test.glade:460
 msgid "Missing Values"
 msgstr ""
 
@@ -5837,45 +5837,44 @@ msgstr ""
 msgid "To End"
 msgstr ""
 
-#: src/ui/gui/t-test.glade:54
-msgid "Grouping Variable:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:89 src/ui/gui/t-test.glade:545
-msgid "Test Variable(s):"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:162
+#: src/ui/gui/t-test.glade:53 src/ui/gui/t-test.glade:161
 msgid "Define Groups"
 msgstr ""
 
-#: src/ui/gui/t-test.glade:175 src/ui/gui/t-test.glade:438
+#: src/ui/gui/t-test.glade:88 src/ui/gui/t-test.glade:640
+msgid "Test Variable(s):"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:174 src/ui/gui/t-test.glade:533
 msgid "Options..."
 msgstr ""
 
-#: src/ui/gui/t-test.glade:259
+#: src/ui/gui/t-test.glade:255
+msgid "_Use specified values:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:273
+msgid "_Cut point:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:333
 msgid "Group_1 value:"
 msgstr ""
 
-#: src/ui/gui/t-test.glade:270
+#: src/ui/gui/t-test.glade:344
 msgid "Group_2 value:"
 msgstr ""
 
-#: src/ui/gui/t-test.glade:336
+#: src/ui/gui/t-test.glade:431
 msgid "Exclude cases _analysis by analysis"
 msgstr ""
 
-#: src/ui/gui/t-test.glade:347
+#: src/ui/gui/t-test.glade:442
 msgid "Exclude cases _listwise"
 msgstr ""
 
-#: src/ui/gui/t-test.glade:459
+#: src/ui/gui/t-test.glade:554
 msgid "Test Value: "
-msgstr ""
-
-#: src/ui/gui/t-test-options.c:60
-#, c-format
-msgid "Confidence Interval: %2d %%"
 msgstr ""
 
 #: src/ui/gui/variable-info-dialog.c:88

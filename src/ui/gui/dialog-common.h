@@ -65,5 +65,14 @@ void set_dest_model (GtkTreeView *dest, PsppireDict *dict);
 */
 gboolean homogeneous_types (GtkWidget *source, GtkWidget *dest);
 
+/* Returns TRUE if all of the variable(s) represented by the rows
+   currently selected by SOURCE widget, are numeric. DEST is ignored.
+
+   In other words, this function when passed as the argument to
+   psppire_selector_set_allow, ensures that the selector selects only
+   numeric variables.
+*/
+gboolean numeric_only (GtkWidget *source, GtkWidget *dest);
+
 
 #endif
