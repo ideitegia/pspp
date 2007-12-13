@@ -242,8 +242,6 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
 gboolean
 numeric_only (GtkWidget *source, GtkWidget *dest)
 {
-  gboolean ok;
-  GtkTreeIter iter;
   gboolean retval = TRUE;
 
   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (source));

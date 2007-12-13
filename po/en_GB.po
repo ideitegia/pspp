@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-12-13 19:23+0900\n"
+"POT-Creation-Date: 2007-12-14 08:07+0900\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -197,6 +197,18 @@ msgstr ""
 #: src/data/data-out.c:497
 #, c-format
 msgid "Month number %f is not between 1 and 12."
+msgstr ""
+
+#: src/data/dict-class.c:52
+msgid "ordinary"
+msgstr ""
+
+#: src/data/dict-class.c:54
+msgid "system"
+msgstr ""
+
+#: src/data/dict-class.c:56
+msgid "scratch"
 msgstr ""
 
 #: src/data/dictionary.c:762
@@ -1168,6 +1180,67 @@ msgstr ""
 msgid "Cannot place variable %s on record %d when RECORDS=%d is specified."
 msgstr ""
 
+#: src/language/data-io/data-parser.c:434
+msgid "Quoted string extends beyond end of line."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:483
+#, c-format
+msgid "Partial case of %d of %d records discarded."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:525
+#, c-format
+msgid "Partial case discarded.  The first variable missing was %s."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:558
+#, c-format
+msgid ""
+"Missing value(s) for all variables from %s onward.  These will be filled "
+"with the system-missing value or blanks, as appropriate."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:582
+msgid "Record ends in data not part of any field."
+msgstr ""
+
+#: src/language/data-io/data-parser.c:601
+#: src/language/data-io/data-parser.c:642 src/language/data-io/print.c:402
+#: src/language/dictionary/split-file.c:84
+#: src/language/dictionary/sys-file-info.c:161
+#: src/language/dictionary/sys-file-info.c:390
+#: src/language/dictionary/sys-file-info.c:634
+#: src/language/stats/descriptives.c:883 src/ui/gui/dict-display.c:195
+msgid "Variable"
+msgstr ""
+
+#: src/language/data-io/data-parser.c:602 src/language/data-io/print.c:403
+msgid "Record"
+msgstr ""
+
+#: src/language/data-io/data-parser.c:603 src/language/data-io/print.c:404
+#: src/ui/gui/var-sheet.c:72
+msgid "Columns"
+msgstr ""
+
+#: src/language/data-io/data-parser.c:604
+#: src/language/data-io/data-parser.c:643 src/language/data-io/print.c:405
+msgid "Format"
+msgstr ""
+
+#: src/language/data-io/data-parser.c:623
+#, c-format
+msgid "Reading %d record from %s."
+msgid_plural "Reading %d records from %s."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/language/data-io/data-parser.c:659
+#, c-format
+msgid "Reading free-form data from %s."
+msgstr ""
+
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
 #: src/language/data-io/data-reader.c:122
@@ -1524,26 +1597,6 @@ msgstr ""
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
 msgstr ""
 
-#: src/language/data-io/print.c:402 src/language/dictionary/split-file.c:84
-#: src/language/dictionary/sys-file-info.c:161
-#: src/language/dictionary/sys-file-info.c:390
-#: src/language/dictionary/sys-file-info.c:634
-#: src/language/stats/descriptives.c:883 src/ui/gui/dict-display.c:195
-msgid "Variable"
-msgstr ""
-
-#: src/language/data-io/print.c:403
-msgid "Record"
-msgstr ""
-
-#: src/language/data-io/print.c:404 src/ui/gui/var-sheet.c:72
-msgid "Columns"
-msgstr ""
-
-#: src/language/data-io/print.c:405
-msgid "Format"
-msgstr ""
-
 #: src/language/data-io/print.c:435
 #, c-format
 msgid "Writing %d record to %s."
@@ -1766,6 +1819,7 @@ msgid "File:"
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:112 src/ui/gui/psppire.glade:2052
+#: src/ui/gui/recode.glade:841
 msgid "Label:"
 msgstr ""
 
@@ -1819,7 +1873,7 @@ msgid "IBM 390 Hex Long."
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:135
-#: src/ui/gui/descriptives-dialog.glade:79
+#: src/ui/gui/descriptives-dialog.glade:79 src/ui/gui/recode.glade:940
 msgid "Variables:"
 msgstr ""
 
@@ -2665,7 +2719,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:1152 src/language/stats/crosstabs.q:1179
 #: src/language/stats/crosstabs.q:1199 src/language/stats/crosstabs.q:1220
-#: src/language/stats/examine.q:1423
+#: src/language/stats/examine.q:1423 src/ui/gui/checkbox-treeview.c:115
 msgid "Statistic"
 msgstr ""
 
@@ -2860,6 +2914,7 @@ msgstr ""
 #: src/language/stats/oneway.q:392 src/language/stats/t-test.q:683
 #: src/language/stats/t-test.q:706 src/language/stats/t-test.q:830
 #: src/language/stats/t-test.q:1168 src/ui/gui/descriptives-dialog.c:40
+#: src/ui/gui/frequencies-dialog.c:41
 msgid "Mean"
 msgstr ""
 
@@ -2873,11 +2928,13 @@ msgstr ""
 
 #: src/language/stats/descriptives.c:105 src/language/stats/examine.q:1604
 #: src/language/stats/frequencies.q:128 src/ui/gui/descriptives-dialog.c:47
+#: src/ui/gui/frequencies-dialog.c:46
 msgid "Variance"
 msgstr ""
 
 #: src/language/stats/descriptives.c:106 src/language/stats/examine.q:1711
 #: src/language/stats/frequencies.q:129 src/ui/gui/descriptives-dialog.c:48
+#: src/ui/gui/frequencies-dialog.c:51
 msgid "Kurtosis"
 msgstr ""
 
@@ -2887,6 +2944,7 @@ msgstr ""
 
 #: src/language/stats/descriptives.c:108 src/language/stats/examine.q:1691
 #: src/language/stats/frequencies.q:131 src/ui/gui/descriptives-dialog.c:49
+#: src/ui/gui/frequencies-dialog.c:47
 msgid "Skewness"
 msgstr ""
 
@@ -2896,23 +2954,26 @@ msgstr ""
 
 #: src/language/stats/descriptives.c:110 src/language/stats/examine.q:1652
 #: src/language/stats/frequencies.q:133 src/ui/gui/descriptives-dialog.c:44
+#: src/ui/gui/frequencies-dialog.c:49
 msgid "Range"
 msgstr ""
 
 #: src/language/stats/descriptives.c:111 src/language/stats/examine.q:1629
 #: src/language/stats/frequencies.q:134 src/language/stats/npar-summary.c:131
 #: src/language/stats/oneway.q:404 src/ui/gui/descriptives-dialog.c:42
+#: src/ui/gui/frequencies-dialog.c:43
 msgid "Minimum"
 msgstr ""
 
 #: src/language/stats/descriptives.c:112 src/language/stats/examine.q:1640
 #: src/language/stats/frequencies.q:135 src/language/stats/npar-summary.c:134
 #: src/language/stats/oneway.q:405 src/ui/gui/descriptives-dialog.c:43
+#: src/ui/gui/frequencies-dialog.c:44
 msgid "Maximum"
 msgstr ""
 
 #: src/language/stats/descriptives.c:113 src/language/stats/frequencies.q:136
-#: src/ui/gui/descriptives-dialog.c:45
+#: src/ui/gui/descriptives-dialog.c:45 src/ui/gui/frequencies-dialog.c:54
 msgid "Sum"
 msgstr ""
 
@@ -3019,6 +3080,7 @@ msgid "5%% Trimmed Mean"
 msgstr ""
 
 #: src/language/stats/examine.q:1582 src/language/stats/frequencies.q:125
+#: src/ui/gui/frequencies-dialog.c:53
 msgid "Median"
 msgstr ""
 
@@ -3147,7 +3209,7 @@ msgstr ""
 msgid "S.E. Mean"
 msgstr ""
 
-#: src/language/stats/frequencies.q:126
+#: src/language/stats/frequencies.q:126 src/ui/gui/frequencies-dialog.c:50
 msgid "Mode"
 msgstr ""
 
@@ -4639,7 +4701,8 @@ msgstr ""
 msgid "Save As"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1477
+#: src/ui/gui/data-editor.c:1477 src/ui/gui/recode-dialog.c:931
+#: src/ui/gui/recode-dialog.c:1025
 msgid "New"
 msgstr ""
 
@@ -4980,6 +5043,7 @@ msgid "Value Label:"
 msgstr ""
 
 #: src/ui/gui/data-editor.glade:1677 src/ui/gui/psppire.glade:2544
+#: src/ui/gui/recode.glade:185
 msgid "Value:"
 msgstr ""
 
@@ -5011,7 +5075,7 @@ msgstr ""
 msgid "_Discrete missing values"
 msgstr ""
 
-#: src/ui/gui/descriptives-dialog.c:41
+#: src/ui/gui/descriptives-dialog.c:41 src/ui/gui/frequencies-dialog.c:42
 msgid "Standard deviation"
 msgstr ""
 
@@ -5019,7 +5083,7 @@ msgstr ""
 msgid "Standard error"
 msgstr ""
 
-#: src/ui/gui/descriptives-dialog.glade:122
+#: src/ui/gui/descriptives-dialog.glade:122 src/ui/gui/frequencies.glade:139
 msgid "Statistics:"
 msgstr ""
 
@@ -5042,6 +5106,59 @@ msgstr ""
 #: src/ui/gui/find-dialog.c:658
 #, c-format
 msgid "Bad regular expression: %s"
+msgstr ""
+
+#: src/ui/gui/frequencies-dialog.c:45
+msgid "Standard error of the mean"
+msgstr ""
+
+#: src/ui/gui/frequencies-dialog.c:48
+msgid "Standard error of the skewness"
+msgstr ""
+
+#: src/ui/gui/frequencies-dialog.c:52
+msgid "Standard error of the kurtosis"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:98 src/ui/gui/psppire.glade:265
+#: src/ui/gui/rank.glade:67
+msgid "Variable(s):"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:168
+msgid "Display Frequency Table"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:185
+msgid "Format..."
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:264
+msgid "Ascending Order"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:275
+msgid "Descending Order"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:290
+msgid "Ascending Counts"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:305
+msgid "Descending Counts"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:323
+msgid "Order by"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:355
+msgid "Supress tables with more than N categories"
+msgstr ""
+
+#: src/ui/gui/frequencies.glade:371
+msgid "Maximum no of categories"
 msgstr ""
 
 #: src/ui/gui/helper.c:140
@@ -5243,10 +5360,6 @@ msgstr ""
 msgid "Current Status: "
 msgstr ""
 
-#: src/ui/gui/psppire.glade:265 src/ui/gui/rank.glade:67
-msgid "Variable(s):"
-msgstr ""
-
 #: src/ui/gui/psppire.glade:314
 msgid "Name Variable:"
 msgstr ""
@@ -5320,6 +5433,7 @@ msgid "Functions:"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:1107 src/ui/gui/psppire.glade:1253
+#: src/ui/gui/recode.glade:731
 msgid "If..."
 msgstr ""
 
@@ -5567,6 +5681,106 @@ msgstr ""
 msgid "Rank Assigned to Ties"
 msgstr ""
 
+#: src/ui/gui/recode-dialog.c:882
+msgid "Recode into Different Variables"
+msgstr ""
+
+#: src/ui/gui/recode-dialog.c:885
+msgid "Recode into Same Variables"
+msgstr ""
+
+#: src/ui/gui/recode-dialog.c:916 src/ui/gui/recode-dialog.c:1017
+msgid "Old"
+msgstr ""
+
+#: src/ui/gui/recode-dialog.c:1274
+msgid "Recode into Different Variables: Old and New Values "
+msgstr ""
+
+#: src/ui/gui/recode-dialog.c:1275
+msgid "Recode into Same Variables: Old and New Values"
+msgstr ""
+
+#: src/ui/gui/recode.glade:197
+msgid "System-Missing"
+msgstr ""
+
+#: src/ui/gui/recode.glade:211
+msgid "System-or user-missing"
+msgstr ""
+
+#: src/ui/gui/recode.glade:245
+msgid "through"
+msgstr ""
+
+#: src/ui/gui/recode.glade:283
+msgid "Range, LOWEST thru value"
+msgstr ""
+
+#: src/ui/gui/recode.glade:297
+msgid "Range, value thru HIGHEST"
+msgstr ""
+
+#: src/ui/gui/recode.glade:327
+msgid "All other values"
+msgstr ""
+
+#: src/ui/gui/recode.glade:363
+msgid "Range:"
+msgstr ""
+
+#: src/ui/gui/recode.glade:380
+msgid "Old Value"
+msgstr ""
+
+#: src/ui/gui/recode.glade:462
+msgid "System Missing"
+msgstr ""
+
+#: src/ui/gui/recode.glade:476
+msgid "Copy old values"
+msgstr ""
+
+#: src/ui/gui/recode.glade:500
+msgid "Value: "
+msgstr ""
+
+#: src/ui/gui/recode.glade:530
+msgid "New Value"
+msgstr ""
+
+#: src/ui/gui/recode.glade:590
+msgid "Convert numeric strings to numbers ('5' -> 5)"
+msgstr ""
+
+#: src/ui/gui/recode.glade:608
+msgid "Output variables are strings"
+msgstr ""
+
+#: src/ui/gui/recode.glade:620
+msgid "Width: "
+msgstr ""
+
+#: src/ui/gui/recode.glade:743
+msgid "(optional case selection condition)"
+msgstr ""
+
+#: src/ui/gui/recode.glade:823
+msgid "Name:"
+msgstr ""
+
+#: src/ui/gui/recode.glade:867
+msgid "Change"
+msgstr ""
+
+#: src/ui/gui/recode.glade:885
+msgid "Output Variable"
+msgstr ""
+
+#: src/ui/gui/recode.glade:965
+msgid "Old and New Values"
+msgstr ""
+
 #: src/ui/gui/select-cases-dialog.c:85
 #, c-format
 msgid "Approximately %3d%% of all cases."
@@ -5661,6 +5875,11 @@ msgstr ""
 
 #: src/ui/gui/t-test.glade:554
 msgid "Test Value: "
+msgstr ""
+
+#: src/ui/gui/t-test-options.c:60
+#, c-format
+msgid "Confidence Interval: %2d %%"
 msgstr ""
 
 #: src/ui/gui/variable-info-dialog.c:88
