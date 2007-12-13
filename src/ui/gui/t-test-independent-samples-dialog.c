@@ -117,10 +117,7 @@ tt_groups_dialog_create (GladeXML *xml, GtkWindow *parent)
   g_signal_connect (grps->values_toggle_button, "toggled",
 		    G_CALLBACK (set_group_criterion_type), grps);
 
-  gtk_window_set_transient_for (parent,
-				GTK_WINDOW (grps->dialog));
-
-
+  gtk_window_set_transient_for (GTK_WINDOW (grps->dialog), parent);
 
   grps->val[0] = strdup ("");
   grps->val[1] = strdup ("");
