@@ -88,7 +88,7 @@ struct sfm_reader
     size_t opcode_idx;          /* Next opcode to interpret, 8 if none left. */
   };
 
-static struct casereader_class sys_file_casereader_class;
+static const struct casereader_class sys_file_casereader_class;
 
 static bool close_reader (struct sfm_reader *);
 
@@ -1716,7 +1716,7 @@ skip_bytes (struct sfm_reader *r, size_t bytes)
     }
 }
 
-static struct casereader_class sys_file_casereader_class =
+static const struct casereader_class sys_file_casereader_class =
   {
     sys_file_casereader_read,
     sys_file_casereader_destroy,

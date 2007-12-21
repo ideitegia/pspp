@@ -137,7 +137,7 @@ proc_execute (struct dataset *ds)
   return proc_commit (ds) && ok;
 }
 
-static struct casereader_class proc_casereader_class;
+static const struct casereader_class proc_casereader_class;
 
 /* Opens dataset DS for reading cases with proc_read.
    proc_commit must be called when done. */
@@ -344,7 +344,7 @@ proc_commit (struct dataset *ds)
 }
 
 /* Casereader class for procedure execution. */
-static struct casereader_class proc_casereader_class =
+static const struct casereader_class proc_casereader_class =
   {
     proc_casereader_read,
     proc_casereader_destroy,

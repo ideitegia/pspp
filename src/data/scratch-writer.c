@@ -46,7 +46,7 @@ struct scratch_writer
     struct casewriter *subwriter;       /* Data output. */
   };
 
-static struct casewriter_class scratch_writer_casewriter_class;
+static const struct casewriter_class scratch_writer_casewriter_class;
 
 /* Opens FH, which must have referent type FH_REF_SCRATCH, and
    returns a scratch_writer for it, or a null pointer on
@@ -143,7 +143,7 @@ scratch_writer_casewriter_destroy (struct casewriter *w UNUSED, void *writer_)
   free (writer);
 }
 
-static struct casewriter_class scratch_writer_casewriter_class =
+static const struct casewriter_class scratch_writer_casewriter_class =
   {
     scratch_writer_casewriter_write,
     scratch_writer_casewriter_destroy,

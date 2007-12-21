@@ -90,7 +90,7 @@ struct sfm_writer
                                    for long string variables. */
   };
 
-static struct casewriter_class sys_file_casewriter_class;
+static const struct casewriter_class sys_file_casewriter_class;
 
 static void write_header (struct sfm_writer *, const struct dictionary *);
 static void write_variable (struct sfm_writer *, const struct variable *);
@@ -751,7 +751,7 @@ close_writer (struct sfm_writer *w)
 }
 
 /* System file writer casewriter class. */
-static struct casewriter_class sys_file_casewriter_class =
+static const struct casewriter_class sys_file_casewriter_class =
   {
     sys_file_casewriter_write,
     sys_file_casewriter_destroy,

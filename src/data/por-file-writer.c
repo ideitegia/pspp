@@ -77,7 +77,7 @@ struct pfm_var
     int fv;                     /* Starting case index. */
   };
 
-static struct casewriter_class por_file_casewriter_class;
+static const struct casewriter_class por_file_casewriter_class;
 
 static bool close_writer (struct pfm_writer *);
 static void buf_write (struct pfm_writer *, const void *, size_t);
@@ -898,7 +898,7 @@ format_trig_double (long double value, int base_10_precision, char output[])
   return;
 }
 
-static struct casewriter_class por_file_casewriter_class =
+static const struct casewriter_class por_file_casewriter_class =
   {
     por_file_casewriter_write,
     por_file_casewriter_destroy,

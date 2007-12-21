@@ -111,7 +111,7 @@ casereader_create_sequential (const struct taint *,
                               size_t value_cnt, casenumber case_cnt,
                               const struct casereader_class *, void *);
 
-void *casereader_dynamic_cast (struct casereader *, struct casereader_class *);
+void *casereader_dynamic_cast (struct casereader *, const struct casereader_class *);
 
 /* Casereader class for random-access data sources. */
 struct casereader_random_class

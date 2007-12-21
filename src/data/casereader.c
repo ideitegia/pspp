@@ -356,7 +356,7 @@ casereader_create_sequential (const struct taint *taint,
    casereader to be replaced by a shim caseader). */
 void *
 casereader_dynamic_cast (struct casereader *reader,
-                         struct casereader_class *class)
+                         const struct casereader_class *class)
 {
   return reader->class == class ? reader->aux : NULL;
 }
@@ -393,7 +393,7 @@ struct random_reader_shared
     void *aux;
   };
 
-static struct casereader_class random_reader_casereader_class;
+static const struct casereader_class random_reader_casereader_class;
 
 /* Creates and returns a new random_reader with the given SHARED
    data and OFFSET.  Inserts the new random reader into the
@@ -541,7 +541,7 @@ random_reader_peek (struct casereader *reader, void *br_,
 }
 
 /* Casereader class for random reader. */
-static struct casereader_class random_reader_casereader_class =
+static const struct casereader_class random_reader_casereader_class =
   {
     random_reader_read,
     random_reader_destroy,
@@ -580,7 +580,7 @@ struct shim
     struct casereader *subreader;       /* Subordinate casereader. */
   };
 
-static struct casereader_random_class shim_class;
+static const struct casereader_random_class shim_class;
 
 /* Interposes a buffering shim atop READER. */
 static void
@@ -646,7 +646,7 @@ shim_advance (struct casereader *reader UNUSED, void *b_, casenumber case_cnt)
 }
 
 /* Class for the buffered reader. */
-static struct casereader_random_class shim_class =
+static const struct casereader_random_class shim_class =
   {
     shim_read,
     shim_destroy,

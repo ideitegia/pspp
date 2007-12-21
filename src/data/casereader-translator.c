@@ -38,7 +38,7 @@ struct casereader_translator
     void *aux;
   };
 
-static struct casereader_class casereader_translator_class;
+static const struct casereader_class casereader_translator_class;
 
 /* Creates and returns a new casereader whose cases are produced
    by reading from SUBREADER and passing through TRANSLATE, which
@@ -103,7 +103,7 @@ casereader_translator_destroy (struct casereader *reader UNUSED, void *ct_)
 }
 
 /* Casereader class for translating casereader. */
-static struct casereader_class casereader_translator_class =
+static const struct casereader_class casereader_translator_class =
   {
     casereader_translator_read,
     casereader_translator_destroy,

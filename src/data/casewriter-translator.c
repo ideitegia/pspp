@@ -34,7 +34,7 @@ struct casewriter_translator
     void *aux;
   };
 
-static struct casewriter_class casewriter_translator_class;
+static const struct casewriter_class casewriter_translator_class;
 
 /* Creates and returns a new casewriter whose cases are passed
    through TRANSLATE, which must create case OUTPUT, with
@@ -101,7 +101,7 @@ casewriter_translator_convert_to_reader (struct casewriter *writer UNUSED,
   return reader;
 }
 
-static struct casewriter_class casewriter_translator_class =
+static const struct casewriter_class casewriter_translator_class =
   {
     casewriter_translator_write,
     casewriter_translator_destroy,

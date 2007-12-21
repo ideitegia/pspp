@@ -63,7 +63,7 @@ static void gnm_file_casereader_destroy (struct casereader *, void *);
 static bool gnm_file_casereader_read (struct casereader *, void *,
 				      struct ccase *);
 
-static struct casereader_class gnm_file_casereader_class =
+static const struct casereader_class gnm_file_casereader_class =
   {
     gnm_file_casereader_read,
     gnm_file_casereader_destroy,

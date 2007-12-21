@@ -43,7 +43,7 @@ struct casereader_filter
     struct casewriter *exclude; /* Writer that gets filtered cases, or NULL. */
   };
 
-static struct casereader_class casereader_filter_class;
+static const struct casereader_class casereader_filter_class;
 
 /* Creates and returns a casereader whose content is a filtered
    version of the data in SUBREADER.  Only the cases for which
@@ -130,7 +130,7 @@ casereader_filter_destroy (struct casereader *reader, void *filter_)
 }
 
 /* Filtering casereader class. */
-static struct casereader_class casereader_filter_class =
+static const struct casereader_class casereader_filter_class =
   {
     casereader_filter_read,
     casereader_filter_destroy,

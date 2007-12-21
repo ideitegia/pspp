@@ -35,7 +35,7 @@ struct lazy_casereader
     void *aux;
   };
 
-static struct casereader_class lazy_casereader_class;
+static const struct casereader_class lazy_casereader_class;
 
 /* Creates and returns a new lazy casereader that will
    instantiate its underlying casereader, if necessary, by
@@ -152,7 +152,7 @@ lazy_casereader_peek (struct casereader *reader, void *lc_,
   return casereader_peek (reader, idx, c);
 }
 
-static struct casereader_class lazy_casereader_class =
+static const struct casereader_class lazy_casereader_class =
   {
     lazy_casereader_read,
     lazy_casereader_do_destroy,

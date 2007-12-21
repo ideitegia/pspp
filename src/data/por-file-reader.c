@@ -79,7 +79,7 @@ struct pfm_reader
     bool ok;                    /* Set false on I/O error. */
   };
 
-static struct casereader_class por_file_casereader_class;
+static const struct casereader_class por_file_casereader_class;
 
 static void
 error (struct pfm_reader *r, const char *msg,...)
@@ -894,7 +894,7 @@ pfm_detect (FILE *file)
   return true;
 }
 
-static struct casereader_class por_file_casereader_class =
+static const struct casereader_class por_file_casereader_class =
   {
     por_file_casereader_read,
     por_file_casereader_destroy,
