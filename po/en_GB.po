@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2007-12-14 08:07+0900\n"
+"POT-Creation-Date: 2007-12-19 08:29+0900\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -2569,8 +2569,8 @@ msgstr ""
 #: src/language/stats/binomial.c:227 src/language/stats/crosstabs.q:870
 #: src/language/stats/examine.q:988 src/language/stats/frequencies.q:1405
 #: src/language/stats/npar-summary.c:122 src/language/stats/oneway.q:391
-#: src/language/stats/t-test.q:682 src/language/stats/t-test.q:705
-#: src/language/stats/t-test.q:831 src/language/stats/t-test.q:1368
+#: src/language/stats/t-test.q:693 src/language/stats/t-test.q:716
+#: src/language/stats/t-test.q:850 src/language/stats/t-test.q:1387
 msgid "N"
 msgstr ""
 
@@ -2621,8 +2621,8 @@ msgstr ""
 
 #: src/language/stats/chisquare.c:312 src/language/stats/crosstabs.q:1154
 #: src/language/stats/oneway.q:279 src/language/stats/oneway.q:680
-#: src/language/stats/regression.q:311 src/language/stats/t-test.q:982
-#: src/language/stats/t-test.q:1174 src/language/stats/t-test.q:1267
+#: src/language/stats/regression.q:311 src/language/stats/t-test.q:1001
+#: src/language/stats/t-test.q:1193 src/language/stats/t-test.q:1286
 msgid "df"
 msgstr ""
 
@@ -2760,13 +2760,13 @@ msgstr ""
 msgid "95%% Confidence Interval"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1201 src/language/stats/t-test.q:986
-#: src/language/stats/t-test.q:1171 src/language/stats/t-test.q:1270
+#: src/language/stats/crosstabs.q:1201 src/language/stats/t-test.q:1005
+#: src/language/stats/t-test.q:1190 src/language/stats/t-test.q:1289
 msgid "Lower"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1202 src/language/stats/t-test.q:987
-#: src/language/stats/t-test.q:1172 src/language/stats/t-test.q:1271
+#: src/language/stats/crosstabs.q:1202 src/language/stats/t-test.q:1006
+#: src/language/stats/t-test.q:1191 src/language/stats/t-test.q:1290
 msgid "Upper"
 msgstr ""
 
@@ -2911,9 +2911,9 @@ msgstr ""
 
 #: src/language/stats/descriptives.c:102 src/language/stats/examine.q:1524
 #: src/language/stats/frequencies.q:123 src/language/stats/npar-summary.c:125
-#: src/language/stats/oneway.q:392 src/language/stats/t-test.q:683
-#: src/language/stats/t-test.q:706 src/language/stats/t-test.q:830
-#: src/language/stats/t-test.q:1168 src/ui/gui/descriptives-dialog.c:40
+#: src/language/stats/oneway.q:392 src/language/stats/t-test.q:694
+#: src/language/stats/t-test.q:717 src/language/stats/t-test.q:849
+#: src/language/stats/t-test.q:1187 src/ui/gui/descriptives-dialog.c:40
 #: src/ui/gui/frequencies-dialog.c:41
 msgid "Mean"
 msgstr ""
@@ -3085,9 +3085,9 @@ msgid "Median"
 msgstr ""
 
 #: src/language/stats/examine.q:1616 src/language/stats/npar-summary.c:128
-#: src/language/stats/oneway.q:393 src/language/stats/t-test.q:684
-#: src/language/stats/t-test.q:707 src/language/stats/t-test.q:832
-#: src/language/stats/t-test.q:1169
+#: src/language/stats/oneway.q:393 src/language/stats/t-test.q:695
+#: src/language/stats/t-test.q:718 src/language/stats/t-test.q:851
+#: src/language/stats/t-test.q:1188
 msgid "Std. Deviation"
 msgstr ""
 
@@ -3321,7 +3321,7 @@ msgid ""
 "exactly %d values."
 msgstr ""
 
-#: src/language/stats/npar.q:425 src/language/stats/t-test.q:486
+#: src/language/stats/npar.q:425 src/language/stats/t-test.q:496
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
@@ -3367,7 +3367,7 @@ msgid "Mean Square"
 msgstr ""
 
 #: src/language/stats/oneway.q:281 src/language/stats/regression.q:313
-#: src/language/stats/t-test.q:979
+#: src/language/stats/t-test.q:998
 msgid "F"
 msgstr ""
 
@@ -3421,13 +3421,13 @@ msgid "Value of Contrast"
 msgstr ""
 
 #: src/language/stats/oneway.q:679 src/language/stats/regression.q:215
-#: src/language/stats/t-test.q:981 src/language/stats/t-test.q:1173
-#: src/language/stats/t-test.q:1266
+#: src/language/stats/t-test.q:1000 src/language/stats/t-test.q:1192
+#: src/language/stats/t-test.q:1285
 msgid "t"
 msgstr ""
 
-#: src/language/stats/oneway.q:681 src/language/stats/t-test.q:983
-#: src/language/stats/t-test.q:1175 src/language/stats/t-test.q:1268
+#: src/language/stats/oneway.q:681 src/language/stats/t-test.q:1002
+#: src/language/stats/t-test.q:1194 src/language/stats/t-test.q:1287
 msgid "Sig. (2-tailed)"
 msgstr ""
 
@@ -3580,111 +3580,111 @@ msgstr ""
 msgid "One or more VARIABLES must be specified."
 msgstr ""
 
-#: src/language/stats/t-test.q:380
+#: src/language/stats/t-test.q:381
 #, c-format
 msgid "Long string variable %s is not valid here."
 msgstr ""
 
-#: src/language/stats/t-test.q:400 src/language/stats/t-test.q:414
+#: src/language/stats/t-test.q:401 src/language/stats/t-test.q:415
 msgid ""
 "When applying GROUPS to a string variable, two values must be specified."
 msgstr ""
 
-#: src/language/stats/t-test.q:503
+#: src/language/stats/t-test.q:513
 msgid "At least two variables must be specified on PAIRS."
 msgstr ""
 
-#: src/language/stats/t-test.q:680
+#: src/language/stats/t-test.q:691
 msgid "One-Sample Statistics"
 msgstr ""
 
-#: src/language/stats/t-test.q:685 src/language/stats/t-test.q:708
-#: src/language/stats/t-test.q:833
+#: src/language/stats/t-test.q:696 src/language/stats/t-test.q:719
+#: src/language/stats/t-test.q:852
 msgid "SE. Mean"
 msgstr ""
 
-#: src/language/stats/t-test.q:703
+#: src/language/stats/t-test.q:714
 msgid "Group Statistics"
 msgstr ""
 
-#: src/language/stats/t-test.q:827
+#: src/language/stats/t-test.q:846
 msgid "Paired Sample Statistics"
 msgstr ""
 
-#: src/language/stats/t-test.q:849 src/language/stats/t-test.q:1194
-#: src/language/stats/t-test.q:1385
+#: src/language/stats/t-test.q:868 src/language/stats/t-test.q:1213
+#: src/language/stats/t-test.q:1404
 #, c-format
 msgid "Pair %d"
 msgstr ""
 
-#: src/language/stats/t-test.q:967
+#: src/language/stats/t-test.q:986
 msgid "Independent Samples Test"
 msgstr ""
 
-#: src/language/stats/t-test.q:975
+#: src/language/stats/t-test.q:994
 msgid "Levene's Test for Equality of Variances"
 msgstr ""
 
-#: src/language/stats/t-test.q:977
+#: src/language/stats/t-test.q:996
 msgid "t-test for Equality of Means"
 msgstr ""
 
-#: src/language/stats/t-test.q:980 src/language/stats/t-test.q:1370
+#: src/language/stats/t-test.q:999 src/language/stats/t-test.q:1389
 msgid "Sig."
 msgstr ""
 
-#: src/language/stats/t-test.q:984 src/language/stats/t-test.q:1269
+#: src/language/stats/t-test.q:1003 src/language/stats/t-test.q:1288
 msgid "Mean Difference"
 msgstr ""
 
-#: src/language/stats/t-test.q:985
+#: src/language/stats/t-test.q:1004
 msgid "Std. Error Difference"
 msgstr ""
 
-#: src/language/stats/t-test.q:990 src/language/stats/t-test.q:1165
-#: src/language/stats/t-test.q:1261
+#: src/language/stats/t-test.q:1009 src/language/stats/t-test.q:1184
+#: src/language/stats/t-test.q:1280
 #, c-format
 msgid "%g%% Confidence Interval of the Difference"
 msgstr ""
 
-#: src/language/stats/t-test.q:1045
+#: src/language/stats/t-test.q:1064
 msgid "Equal variances assumed"
 msgstr ""
 
-#: src/language/stats/t-test.q:1097
+#: src/language/stats/t-test.q:1116
 msgid "Equal variances not assumed"
 msgstr ""
 
-#: src/language/stats/t-test.q:1155
+#: src/language/stats/t-test.q:1174
 msgid "Paired Samples Test"
 msgstr ""
 
-#: src/language/stats/t-test.q:1158
+#: src/language/stats/t-test.q:1177
 msgid "Paired Differences"
 msgstr ""
 
-#: src/language/stats/t-test.q:1170
+#: src/language/stats/t-test.q:1189
 msgid "Std. Error Mean"
 msgstr ""
 
-#: src/language/stats/t-test.q:1250
+#: src/language/stats/t-test.q:1269
 msgid "One-Sample Test"
 msgstr ""
 
-#: src/language/stats/t-test.q:1255
+#: src/language/stats/t-test.q:1274
 #, c-format
 msgid "Test Value = %f"
 msgstr ""
 
-#: src/language/stats/t-test.q:1365
+#: src/language/stats/t-test.q:1384
 msgid "Paired Samples Correlations"
 msgstr ""
 
-#: src/language/stats/t-test.q:1369
+#: src/language/stats/t-test.q:1388
 msgid "Correlation"
 msgstr ""
 
-#: src/language/stats/t-test.q:1388
+#: src/language/stats/t-test.q:1407
 #, c-format
 msgid "%s & %s"
 msgstr ""

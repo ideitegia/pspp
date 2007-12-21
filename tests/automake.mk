@@ -122,6 +122,7 @@ dist_TESTS = \
 	tests/bugs/t-test.sh \
 	tests/bugs/t-test-alpha.sh \
 	tests/bugs/t-test-alpha2.sh \
+	tests/bugs/t-test-alpha3.sh \
 	tests/bugs/temporary.sh \
 	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \

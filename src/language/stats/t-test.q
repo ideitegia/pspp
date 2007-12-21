@@ -362,7 +362,8 @@ cmd_t_test (struct lexer *lexer, struct dataset *ds)
 }
 
 static int
-tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cmd UNUSED, void *aux UNUSED)
+tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *cmd UNUSED, 
+	void *aux UNUSED)
 {
   int n_group_values=0;
 
@@ -434,6 +435,15 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
   else
     gp.criterion = CMP_LE ;
 
+
+  if ( var_is_alpha (indep_var))
+    {
+      buf_copy_rpad (gp.v.g_value [0].s, var_get_width (indep_var),
+		     gp.v.g_value [0].s, strlen (gp.v.g_value[0].s));
+
+      buf_copy_rpad (gp.v.g_value [1].s, var_get_width (indep_var),
+		     gp.v.g_value [1].s, strlen (gp.v.g_value[1].s));
+    }
 
   return 1;
 }
@@ -577,6 +587,7 @@ parse_value (struct lexer *lexer, union value * v, enum val_type type)
     {
       if (!lex_force_string (lexer))
 	return 0;
+      memset  (v->s, ' ', MAX_SHORT_STRING);
       strncpy (v->s, ds_cstr (lex_tokstr (lexer)), ds_length (lex_tokstr (lexer)));
     }
 
@@ -716,21 +727,27 @@ ssbox_independent_samples_populate (struct ssbox *ssb,
 {
   int i;
 
-  const char *val_lab0;
-  const char *val_lab1;
+  char *val_lab[2] = {NULL, NULL};
   double indep_value[2];
 
   char prefix[2][3]={"",""};
 
   if ( var_is_numeric (indep_var) )
     {
-      val_lab0 = var_lookup_value_label (indep_var, &gp.v.g_value[0]);
-      val_lab1 = var_lookup_value_label (indep_var, &gp.v.g_value[1]);
+      const char *s;
+
+      s = var_lookup_value_label (indep_var, &gp.v.g_value[0]);
+      val_lab[0] = s ? strdup (s) : NULL;
+
+      s = var_lookup_value_label (indep_var, &gp.v.g_value[1]);
+      val_lab[1] = s ? strdup (s) : NULL;
     }
   else
     {
-      val_lab0 = gp.v.g_value[0].s;
-      val_lab1 = gp.v.g_value[1].s;
+      val_lab[0] = calloc (sizeof (char), MAX_SHORT_STRING + 1);
+      val_lab[1] = calloc (sizeof (char), MAX_SHORT_STRING + 1);
+      memcpy (val_lab[0], gp.v.g_value[0].s, MAX_SHORT_STRING);
+      memcpy (val_lab[1], gp.v.g_value[1].s, MAX_SHORT_STRING);
     }
 
   if (gp.criterion == CMP_LE )
@@ -757,17 +774,17 @@ ssbox_independent_samples_populate (struct ssbox *ssb,
       tab_text (ssb->t, 0, i*2+1, TAB_LEFT,
                 var_get_name (cmd->v_variables[i]));
 
-      if (val_lab0)
+      if (val_lab[0])
 	tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF,
-		  "%s%s", prefix[0], val_lab0);
+		  "%s%s", prefix[0], val_lab[0]);
       else
 	  tab_text (ssb->t, 1, i*2+1, TAB_LEFT | TAT_PRINTF,
 		    "%s%g", prefix[0], indep_value[0]);
 
 
-      if (val_lab1)
+      if (val_lab[1])
 	tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF,
-		  "%s%s", prefix[1], val_lab1);
+		  "%s%s", prefix[1], val_lab[1]);
       else
 	  tab_text (ssb->t, 1, i*2+1+1, TAB_LEFT | TAT_PRINTF,
 		    "%s%g", prefix[1], indep_value[1]);
@@ -807,6 +824,8 @@ ssbox_independent_samples_populate (struct ssbox *ssb,
 	  tab_float (ssb->t, 5 ,i*2+count+1, TAB_RIGHT, gs->se_mean, 8, 3);
 	}
     }
+  free (val_lab[0]);
+  free (val_lab[1]);
 }
 
 
