@@ -1,3 +1,7 @@
+2007-12-24  John Darrington <john@darrington.wattle.id.au>
+
+        * taint.c (taint_destroy): Return true if pointer is null.
+
 2007-11-25  Ben Pfaff  <blp@gnu.org>
 
 	* float-format.c (assemble_number): Only store 32 bits for Z short
