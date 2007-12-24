@@ -795,7 +795,7 @@ parse_name_token (struct data_in *i)
    exact matches (except for case) are allowed.
    Returns true if successful, false otherwise. */
 static bool
-match_name (struct substring token, const char **names, long *output)
+match_name (struct substring token, const char *const *names, long *output)
 {
   int i;
 
@@ -824,14 +824,14 @@ parse_month (struct data_in *i, long *month)
     }
   else
     {
-      static const char *english_names[] =
+      static const char *const english_names[] =
         {
           "jan", "feb", "mar", "apr", "may", "jun",
           "jul", "aug", "sep", "oct", "nov", "dec",
           NULL,
         };
 
-      static const char *roman_names[] =
+      static const char *const roman_names[] =
         {
           "i", "ii", "iii", "iv", "v", "vi",
           "vii", "viii", "ix", "x", "xi", "xii",
@@ -1012,7 +1012,7 @@ parse_minute_second (struct data_in *i, double *time)
 static bool
 parse_weekday (struct data_in *i, long *weekday)
 {
-  static const char *weekday_names[] =
+  static const char *const weekday_names[] =
     {
       "su", "mo", "tu", "we", "th", "fr", "sa",
       NULL,

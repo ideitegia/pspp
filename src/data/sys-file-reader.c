@@ -811,7 +811,7 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count,
     NOT_REACHED ();
   if (integer_representation != expected_integer_format)
     {
-      static const char *endian[] = {N_("little-endian"), N_("big-endian")};
+      static const char *const endian[] = {N_("little-endian"), N_("big-endian")};
       sys_warn (r, _("Integer format indicated by system file (%s) "
                      "differs from expected (%s)."),
                 gettext (endian[integer_representation == 1]),

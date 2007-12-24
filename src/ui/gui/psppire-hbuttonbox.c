@@ -40,7 +40,7 @@ static void gtk_hbutton_box_size_allocate (GtkWidget      *widget,
 					   GtkAllocation  *allocation);
 
 
-static GtkButtonBoxStyle default_layout_style = GTK_BUTTONBOX_EDGE;
+static const GtkButtonBoxStyle default_layout_style = GTK_BUTTONBOX_EDGE;
 
 GType
 psppire_hbutton_box_get_type (void)

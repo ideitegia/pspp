@@ -333,7 +333,7 @@ write_header (struct sfm_writer *w, const struct dictionary *d)
     }
   else
     {
-      static const char *month_name[12] =
+      static const char *const month_name[12] =
         {
           "Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",

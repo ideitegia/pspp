@@ -509,8 +509,9 @@ read_header (struct pfm_reader *r)
 static void
 read_version_data (struct pfm_reader *r, struct pfm_read_info *info)
 {
-  static char empty_string[] = "";
-  char *date, *time, *product, *author, *subproduct;
+  static const char empty_string[] = "";
+  char *date, *time;
+  const char *product, *author, *subproduct;
   int i;
 
   /* Read file. */

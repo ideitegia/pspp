@@ -31,7 +31,7 @@ enum {
 static void psppire_keypad_class_init          (PsppireKeypadClass *klass);
 static void psppire_keypad_init                (PsppireKeypad      *kp);
 
-static guint keypad_signals[n_SIGNALS] = { 0 };
+static guint keypad_signals [n_SIGNALS] = { 0 };
 
 GType
 psppire_keypad_get_type (void)
@@ -125,7 +125,7 @@ psppire_keypad_class_init (PsppireKeypadClass *klass)
    The order of these must correspond
    to the order of the button declarations
 */
-static const char *keypad_insert_text[] = {
+static const char * const keypad_insert_text[] = {
   "0",  "1",  "2", "3", "4", "5", "6", "7", "8", "9",
   ".", "+", "-", "*", "**", "/", "=", "<>", "<", "<=",
   ">", ">=", "&", "|", "~", "()", NULL

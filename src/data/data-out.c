@@ -366,7 +366,7 @@ output_date (const union value *input, const struct fmt_spec *format,
             p += sprintf (p, "%02d", month);
           else
             {
-              static const char *months[12] =
+              static const char *const months[12] =
                 {
                   "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                   "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
@@ -462,7 +462,7 @@ static void
 output_WKDAY (const union value *input, const struct fmt_spec *format,
               char *output)
 {
-  static const char *weekdays[7] =
+  static const char *const weekdays[7] =
     {
       "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY",
       "THURSDAY", "FRIDAY", "SATURDAY",
@@ -483,7 +483,7 @@ static void
 output_MONTH (const union value *input, const struct fmt_spec *format,
               char *output)
 {
-  static const char *months[12] =
+  static const char *const months[12] =
     {
       "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
       "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER",

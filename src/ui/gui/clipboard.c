@@ -33,7 +33,7 @@
 
 /* A casereader and dictionary holding the data currently in the clip */
 static struct casereader *clip_datasheet = NULL;
-struct dictionary *clip_dict = NULL;
+static struct dictionary *clip_dict = NULL;
 
 
 

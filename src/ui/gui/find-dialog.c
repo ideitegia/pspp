@@ -375,7 +375,7 @@ enum iteration_type{
   n_iterators
 };
 
-static struct casenum_iterator ip[n_iterators] =
+static const struct casenum_iterator ip[n_iterators] =
   {
     {cp1, last, forward},
     {cp1c, cm1, forward_wrap},
@@ -386,7 +386,7 @@ static struct casenum_iterator ip[n_iterators] =
 
 
 /* A factory returning an iterator according to the dialog box's settings */
-static struct casenum_iterator *
+static const struct casenum_iterator *
 get_iteration_params (const struct find_dialog *fd)
 {
   gboolean wrap = gtk_toggle_button_get_active
@@ -742,7 +742,7 @@ find_value (const struct find_dialog *fd, casenumber current_row,
   {
     union value *val = value_create (width);
     casenumber i;
-    struct casenum_iterator *ip = get_iteration_params (fd);
+    const struct casenum_iterator *ip = get_iteration_params (fd);
     struct comparator *cmptr =
       comparator_factory (var, target_string, flags);
 
