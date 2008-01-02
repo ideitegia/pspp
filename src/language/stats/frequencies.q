@@ -1499,7 +1499,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
     {
       const struct freq *frq = &frq_tab->valid[i];
 
-      slices[i].label = var_get_value_name (var, frq->value);
+      var_append_value_name (var, frq->value, &slices[i].label);
       slices[i].magnetude = frq->count;
     }
 
@@ -1513,11 +1513,16 @@ static void
 do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
 {
   struct slice *slices;
-  int n_slices;
+  int n_slices, i;
 
   slices = freq_tab_to_slice_array(frq_tab, var, &n_slices);
 
   piechart_plot(var_to_string(var), slices, n_slices);
+
+  for (i = 0 ; i < n_slices ; ++i )
+    {
+      ds_destroy (&slices[i].label);
+    }
 
   free(slices);
 }

@@ -185,7 +185,16 @@ binomial_execute (const struct dataset *ds,
       for (v = 0 ; v < ost->n_vars; ++v)
         {
           double n_total, sig;
+	  struct string catstr1;
+	  struct string catstr2;
           const struct variable *var = ost->vars[v];
+
+	  ds_init_empty (&catstr1);
+	  ds_init_empty (&catstr2);
+
+	  var_append_value_name (var, cat1[v].value, &catstr1);
+	  var_append_value_name (var, cat2[v].value, &catstr2);
+
           tab_hline (table, TAL_1, 0, tab_nc (table) -1, 1 + v * 3);
 
           /* Titles */
@@ -198,10 +207,8 @@ binomial_execute (const struct dataset *ds,
           tab_float (table, 5, 1 + v * 3, TAB_NONE, bst->p, 8, 3);
 
           /* Category labels */
-          tab_text (table, 2, 1 + v * 3, TAB_NONE,
-                    var_get_value_name (var, cat1[v].value));
-          tab_text (table, 2, 2 + v * 3, TAB_NONE,
-                    var_get_value_name (var, cat2[v].value));
+          tab_text (table, 2, 1 + v * 3, TAB_NONE, ds_cstr (&catstr1));
+	  tab_text (table, 2, 2 + v * 3, TAB_NONE, ds_cstr (&catstr2));
 
           /* Observed N */
           tab_float (table, 3, 1 + v * 3, TAB_NONE, cat1[v].count, 8, 0);
@@ -221,6 +228,9 @@ binomial_execute (const struct dataset *ds,
           /* Significance */
           sig = calculate_binomial (cat1[v].count, cat2[v].count, bst->p);
           tab_float (table, 6, 1 + v * 3, TAB_NONE, sig, 8, 3);
+
+	  ds_destroy (&catstr1);
+	  ds_destroy (&catstr2);
         }
 
       tab_text (table,  2, 0,  TAB_CENTER, _("Category"));

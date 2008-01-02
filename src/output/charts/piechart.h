@@ -17,8 +17,10 @@
 #ifndef PIECHART_H
 #define PIECHART_H
 
+#include <libpspp/str.h>
+
 struct slice {
-  const char *label;
+  struct string label;
   double magnetude;
 };
 

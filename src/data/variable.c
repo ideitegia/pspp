@@ -567,22 +567,25 @@ var_lookup_value_label (const struct variable *v, const union value *value)
   return val_labs_find (v->val_labs, *value);
 }
 
-/* Get a string representing VALUE for variable V.
-   That is, if VALUE has a label, return that label,
-   otherwise format VALUE and return the formatted string. */
-const char *
-var_get_value_name (const struct variable *v, const union value *value)
+/* Append STR with a string representing VALUE for variable V.
+   That is, if VALUE has a label, append that label,
+   otherwise format VALUE and append the formatted string.
+   STR must be a pointer to an initialised struct string.
+*/
+void
+var_append_value_name (const struct variable *v, const union value *value,
+		       struct string *str)
 {
   const char *name = var_lookup_value_label (v, value);
   if (name == NULL)
     {
-      static char buf[MAX_STRING + 1];
-      data_out (value, &v->print, buf);
-      buf[v->print.w] = '\0';
-      name = buf;
+      char *s = ds_put_uninit (str, v->print.w);
+      data_out (value, &v->print, s);
     }
-  return name;
+  else
+    ds_put_cstr (str, name);
 }
+
 
 /* Print and write formats. */
 

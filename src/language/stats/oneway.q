@@ -431,11 +431,17 @@ show_descriptives(void)
 
       for (count = 0 ; count < hsh_count(gp->group_hash) ; ++count)
 	{
+	  struct string vstr;
+	  ds_init_empty (&vstr);
 	  gs = gs_array[count];
 
+	  var_append_value_name (indep_var, &gs->id, &vstr);
+
 	  tab_text (t, 1, row + count,
-		    TAB_LEFT | TAT_TITLE, var_get_value_name(indep_var,
-                                                             &gs->id));
+		    TAB_LEFT | TAT_TITLE,
+		    ds_cstr (&vstr));
+
+	  ds_destroy (&vstr);
 
 	  /* Now fill in the numbers ... */
 
@@ -618,10 +624,18 @@ show_contrast_coeffs (short *bad_contrast)
        ++count)
     {
       int i;
+      struct string vstr;
       group_value = group_values[count];
 
+      ds_init_empty (&vstr);
+
+      var_append_value_name (indep_var, group_value, &vstr);
+
       tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE,
-		var_get_value_name (indep_var, group_value));
+		ds_cstr (&vstr));
+
+      ds_destroy (&vstr);
+
 
       for (i = 0 ; i < cmd.sbc_contrast ; ++i )
 	{

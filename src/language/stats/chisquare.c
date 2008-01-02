@@ -362,12 +362,17 @@ chisquare_execute (const struct dataset *ds,
 	  xsq[v] = 0.0;
 	  for ( i = 0 ; i < n_cells ; ++i )
 	    {
+	      struct string str;
 	      double exp;
 	      const union value *observed_value = ff[i]->value;
 
+	      ds_init_empty (&str);
+	      var_append_value_name (ost->vars[v], observed_value, &str);
+
 	      /* The key */
-	      tab_text (freq_table, 0, i + 1, TAB_LEFT,
-			var_get_value_name (ost->vars[v], observed_value));
+	      tab_text (freq_table, 0, i + 1, TAB_LEFT, ds_cstr (&str));
+	      ds_destroy (&str);
+
 
 	      /* The observed N */
 	      tab_float (freq_table, 1, i + 1, TAB_NONE,
@@ -428,13 +433,17 @@ chisquare_execute (const struct dataset *ds,
 	  xsq[v] = 0.0;
 	  for ( i = 0 ; i < hsh_count (freq_hash) ; ++i )
 	    {
+	      struct string str;
 	      double exp;
 
 	      const union value *observed_value = ff[i]->value;
 
+	      ds_init_empty (&str);
+	      var_append_value_name (ost->vars[v], observed_value, &str);
 	      /* The key */
 	      tab_text  (freq_table, v * 4 + 1, i + 2 , TAB_LEFT,
-			 var_get_value_name (ost->vars[v], observed_value));
+			 ds_cstr (&str));
+	      ds_destroy (&str);
 
 	      /* The observed N */
 	      tab_float (freq_table, v * 4 + 2, i + 2 , TAB_NONE,

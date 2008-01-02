@@ -1359,16 +1359,12 @@ Looks for a label for @var{value} in @var{var}'s set of value labels.
 Returns the label if one exists, otherwise a null pointer.
 @end deftypefun
 
-@deftypefun {const char *} var_get_value_name (const struct variable *@var{var}, const union value *@var{value})
+@deftypefun void var_append_value_name (const struct variable *@var{var}, const union value *@var{value}, struct string *@var{str})
 Looks for a label for @var{value} in @var{var}'s set of value labels.
-Returns the label if one exists.  If none exists, formats @var{label}
-using @var{var}'s print format (@pxref{Input and Output Formats}) in a
-static buffer and returns the buffer.
-
-@quotation Important
-This function's use of a static buffer means that it must be used with
-care.
-@end quotation
+If a label exists, it will be appended to the string pointed to by @var{str}.
+Otherwise, it formats @var{value}
+using @var{var}'s print format (@pxref{Input and Output Formats}) 
+and appends the formatted string.
 @end deftypefun
 
 The underlying @struct{val_labs} structure may also be accessed

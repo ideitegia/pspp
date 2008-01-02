@@ -74,7 +74,13 @@ bool var_is_str_missing (const struct variable *, const char[], enum mv_class);
 /* Value labels. */
 const char *var_lookup_value_label (const struct variable *,
                                     const union value *);
-const char *var_get_value_name (const struct variable *, const union value *);
+struct string;
+void var_append_value_name (const struct variable *, const union value *,
+			    struct string *);
+
+const char *
+var_get_value_name (const struct variable *v, const union value *value);
+
 
 bool var_has_value_labels (const struct variable *);
 const struct val_labs *var_get_value_labels (const struct variable *);

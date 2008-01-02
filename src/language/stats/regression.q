@@ -191,14 +191,12 @@ reg_stats_coeff (pspp_linreg_cache * c)
   double std_err;
   double beta;
   const char *label;
-  char *tmp;
+
   const struct variable *v;
   const union value *val;
-  const char *val_s;
   struct tab_table *t;
 
   assert (c != NULL);
-  tmp = xnmalloc (MAX_STRING, sizeof (*tmp));
   n_rows = c->n_coeffs + 2;
 
   t = tab_create (n_cols, n_rows, 0);
@@ -227,10 +225,13 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_float (t, 6, 1, 0, pval, 10, 2);
   for (j = 1; j <= c->n_indeps; j++)
     {
+      struct string tstr;
+      ds_init_empty (&tstr);
+
       v = pspp_coeff_get_var (c->coeff[j], 0);
       label = var_to_string (v);
       /* Do not overwrite the variable's name. */
-      strncpy (tmp, label, MAX_STRING);
+      ds_put_cstr (&tstr, label);
       if (var_is_alpha (v))
 	{
 	  /*
@@ -240,11 +241,11 @@ reg_stats_coeff (pspp_linreg_cache * c)
 	   */
 
 	  val = pspp_coeff_get_value (c->coeff[j], v);
-	  val_s = var_get_value_name (v, val);
-	  strncat (tmp, val_s, MAX_STRING);
+
+	  var_append_value_name (v, val, &tstr);
 	}
 
-      tab_text (t, 1, j + 1, TAB_CENTER, tmp);
+      tab_text (t, 1, j + 1, TAB_CENTER, ds_cstr (&tstr));
       /*
          Regression coefficients.
        */
@@ -275,10 +276,10 @@ reg_stats_coeff (pspp_linreg_cache * c)
 	2 * gsl_cdf_tdist_Q (fabs (t_stat),
 			     (double) (c->n_obs - c->n_coeffs));
       tab_float (t, 6, j + 1, 0, pval, 10, 2);
+      ds_destroy (&tstr);
     }
   tab_title (t, _("Coefficients"));
   tab_submit (t);
-  free (tmp);
 }
 
 /*
@@ -782,10 +783,15 @@ reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
 
       for (j = 0; j < n_categories; j++)
 	{
+	  struct string vstr;
 	  const union value *val = cat_subscript_to_value (j, varlist[i]);
+	  ds_init_empty (&vstr);
+	  var_append_value_name (varlist[i], val, &vstr);
 	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t",
 		   var_get_name (varlist[i]), j,
-		   var_get_value_name (varlist[i], val));
+		   ds_cstr (&vstr));
+
+	  ds_destroy (&vstr);
 	}
     }
   fprintf (fp, "%s", reg_export_categorical_encode_2);

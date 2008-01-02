@@ -161,16 +161,18 @@ void factor_calc (const struct ccase *c, int case_no,
 
 /* Represent a factor as a string, so it can be
    printed in a human readable fashion */
-const char * factor_to_string (const struct factor *fctr,
+static void factor_to_string (const struct factor *fctr,
 			       const struct factor_statistics *fs,
-			       const struct variable *var);
-
+			      const struct variable *var,
+			      struct string *str
+			      );
 
 /* Represent a factor as a string, so it can be
    printed in a human readable fashion,
    but sacrificing some readablility for the sake of brevity */
-const char *factor_to_string_concise (const struct factor *fctr,
-				     struct factor_statistics *fs);
+static void factor_to_string_concise (const struct factor *fctr,
+				      const struct factor_statistics *fs,
+				      struct string *);
 
 
 
@@ -370,10 +372,12 @@ output_examine (void)
 
 	      for ( fs = fctr->fs ; *fs ; ++fs )
 		{
-		  const char *s = factor_to_string (fctr, *fs, dependent_vars[v]);
+		  struct string str;
+		  ds_init_empty (&str);
+		  factor_to_string (fctr, *fs, dependent_vars[v], &str);
 
 		  if ( cmd.a_plot[XMN_PLT_NPPLOT] )
-		    np_plot (& (*fs)->m[v], s);
+		    np_plot (& (*fs)->m[v], ds_cstr (&str));
 
 		  if ( cmd.a_plot[XMN_PLT_HISTOGRAM] )
 		    {
@@ -384,8 +388,10 @@ output_examine (void)
 		      normal.stddev = (*fs)->m[v].stddev;
 
 		      histogram_plot ((*fs)->m[v].histogram,
-				     s,  &normal, 0);
+				     ds_cstr (&str) ,  &normal, 0);
 		    }
+
+		  ds_destroy (&str);
 
 		} /* for ( fs .... */
 
@@ -1053,14 +1059,20 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		   0 != compare_values (prev, (*fs)->id[0],
 				   var_get_width (fctr->indep_var[0])))
 		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[0],
+				      (*fs)->id[0], &vstr);
+
 		  tab_text (tbl,
 			    1,
 			    (i * n_factors ) + count +
 			    heading_rows,
 			    TAB_LEFT | TAT_TITLE,
-			    var_get_value_name (fctr->indep_var[0],
-                                                (*fs)->id[0])
+			    ds_cstr (&vstr)
 			    );
+
+		  ds_destroy (&vstr);
 
 		  if (fctr->indep_var[1] && count > 0 )
 		    tab_hline (tbl, TAL_1, 1, n_cols - 1,
@@ -1070,15 +1082,21 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 
 	      prev = (*fs)->id[0];
 
-
 	      if ( fctr->indep_var[1])
+		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[1],
+					 (*fs)->id[1], &vstr);
 		tab_text (tbl,
 			  2,
 			  (i * n_factors ) + count +
 			  heading_rows,
 			  TAB_LEFT | TAT_TITLE,
-			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
+			    ds_cstr (&vstr)
 			  );
+		  ds_destroy (&vstr);
+	    }
 
 	      populate_summary (tbl, heading_columns,
 			       (i * n_factors) + count
@@ -1226,6 +1244,10 @@ show_extremes (const struct variable **dependent_var, int n_dep_var,
 	      if ( !prev || 0 != compare_values (prev, (*fs)->id[0],
                                         var_get_width (fctr->indep_var[0])))
 		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[0],
+				      (*fs)->id[0], &vstr);
 
 		  if ( count > 0 )
 		    tab_hline (tbl, TAL_1, 1, n_cols - 1, row);
@@ -1233,9 +1255,10 @@ show_extremes (const struct variable **dependent_var, int n_dep_var,
 		  tab_text (tbl,
 			    1, row,
 			    TAB_LEFT | TAT_TITLE,
-			    var_get_value_name (fctr->indep_var[0],
-                                                (*fs)->id[0])
+			    ds_cstr (&vstr)
 			    );
+
+		  ds_destroy (&vstr);
 		}
 
 	      prev = (*fs)->id[0];
@@ -1244,10 +1267,18 @@ show_extremes (const struct variable **dependent_var, int n_dep_var,
 		tab_hline (tbl, TAL_1, 2, n_cols - 1, row);
 
 	      if ( fctr->indep_var[1])
+		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[1], (*fs)->id[1], &vstr);
+
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE,
-			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
+			    ds_cstr (&vstr)
 			  );
+
+		  ds_destroy (&vstr);
+		}
 
 	      populate_extremes (tbl, heading_columns - 2,
 				row, n_extremities,
@@ -1464,6 +1495,10 @@ show_descriptives (const struct variable **dependent_var,
 	      if ( !prev || 0 != compare_values (prev, (*fs)->id[0],
                                         var_get_width (fctr->indep_var[0])))
 		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[0],
+				      (*fs)->id[0], &vstr);
 
 		  if ( count > 0 )
 		    tab_hline (tbl, TAL_1, 1, n_cols - 1, row);
@@ -1471,9 +1506,10 @@ show_descriptives (const struct variable **dependent_var,
 		  tab_text (tbl,
 			    1, row,
 			    TAB_LEFT | TAT_TITLE,
-			    var_get_value_name (fctr->indep_var[0],
-                                                (*fs)->id[0])
+			    ds_cstr (&vstr)
 			    );
+
+		  ds_destroy (&vstr);
 		}
 
 	      prev = (*fs)->id[0];
@@ -1482,10 +1518,18 @@ show_descriptives (const struct variable **dependent_var,
 		tab_hline (tbl, TAL_1, 2, n_cols - 1, row);
 
 	      if ( fctr->indep_var[1])
+		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[1], (*fs)->id[1], &vstr);
+
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE,
-			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
+			    ds_cstr (&vstr)
 			  );
+
+		  ds_destroy (&vstr);
+		}
 
 	      populate_descriptives (tbl, heading_columns - 2,
 				    row, & (*fs)->m[i]);
@@ -1746,12 +1790,14 @@ box_plot_variables (const struct factor *fctr,
 
   for ( fs = fctr->fs ; *fs ; ++fs )
     {
+      struct string str;
       double y_min = DBL_MAX;
       double y_max = -DBL_MAX;
       struct chart *ch = chart_create ();
-      const char *s = factor_to_string (fctr, *fs, 0 );
+      ds_init_empty (&str);
+      factor_to_string (fctr, *fs, 0, &str );
 
-      chart_write_title (ch, s);
+      chart_write_title (ch, ds_cstr (&str));
 
       for ( i = 0 ; i < n_vars ; ++i )
 	{
@@ -1779,7 +1825,7 @@ box_plot_variables (const struct factor *fctr,
 	}
 
       chart_submit (ch);
-
+      ds_destroy (&str);
     }
 }
 
@@ -1818,19 +1864,21 @@ box_plot_group (const struct factor *fctr,
 
 	  for ( fs = fctr->fs ; *fs ; ++fs )
 	    {
-
-	      const char *s = factor_to_string_concise (fctr, *fs);
-
+	      struct string str;
 	      const double box_width = (ch->data_right - ch->data_left)
 		/ (n_factors * 2.0 ) ;
 
 	      const double box_centre = ( f++ * 2 + 1) * box_width
 		+ ch->data_left;
 
+	      ds_init_empty (&str);
+	      factor_to_string_concise (fctr, *fs, &str);
+
 	      boxplot_draw_boxplot (ch,
 				   box_centre, box_width,
 				   & (*fs)->m[i],
-				   s);
+				   ds_cstr (&str));
+              ds_destroy (&str);
 	    }
 	}
       else if ( ch )
@@ -2087,6 +2135,11 @@ show_percentiles (const struct variable **dependent_var,
 	      if ( !prev || 0 != compare_values (prev, (*fs)->id[0],
                                         var_get_width (fctr->indep_var[0])))
 		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[0],
+				      (*fs)->id[0], &vstr);
+
 
 		  if ( count > 0 )
 		    tab_hline (tbl, TAL_1, 1, n_cols - 1, row);
@@ -2094,11 +2147,10 @@ show_percentiles (const struct variable **dependent_var,
 		  tab_text (tbl,
 			    1, row,
 			    TAB_LEFT | TAT_TITLE,
-			    var_get_value_name (fctr->indep_var[0],
-                                                (*fs)->id[0])
+			    ds_cstr (&vstr)
 			    );
 
-
+		  ds_destroy (&vstr);
 		}
 
 	      prev = (*fs)->id[0];
@@ -2107,10 +2159,18 @@ show_percentiles (const struct variable **dependent_var,
 		tab_hline (tbl, TAL_1, 2, n_cols - 1, row);
 
 	      if ( fctr->indep_var[1])
+		{
+		  struct string vstr;
+		  ds_init_empty (&vstr);
+		  var_append_value_name (fctr->indep_var[1], (*fs)->id[1], &vstr);
+
 		tab_text (tbl, 2, row,
 			  TAB_LEFT | TAT_TITLE,
-			  var_get_value_name (fctr->indep_var[1], (*fs)->id[1])
+			    ds_cstr (&vstr)
 			  );
+
+		  ds_destroy (&vstr);
+		}
 
 
 	      populate_percentiles (tbl, n_heading_columns - 1,
@@ -2192,69 +2252,54 @@ populate_percentiles (struct tab_table *tbl, int col, int row,
 
 }
 
-
-
-const char *
+static void
 factor_to_string (const struct factor *fctr,
 		  const struct factor_statistics *fs,
-		  const struct variable *var)
+		  const struct variable *var,
+		  struct string *str
+		  )
 {
-
-  static char buf1[100];
-  char buf2[100];
-
-  strcpy (buf1,"");
-
   if (var)
-    sprintf (buf1, "%s (",var_to_string (var) );
+    ds_put_format (str, "%s (",var_to_string (var) );
 
 
-  snprintf (buf2, 100, "%s = %s",
-	   var_to_string (fctr->indep_var[0]),
-           var_get_value_name (fctr->indep_var[0], fs->id[0]));
+  ds_put_format (str,  "%s = ",
+		 var_to_string (fctr->indep_var[0]));
 
-  strcat (buf1, buf2);
+  var_append_value_name (fctr->indep_var[0], fs->id[0], str);
 
   if ( fctr->indep_var[1] )
     {
-      sprintf (buf2, "; %s = %s)",
-	      var_to_string (fctr->indep_var[1]),
-              var_get_value_name (fctr->indep_var[1], fs->id[1]));
-      strcat (buf1, buf2);
+      ds_put_format (str, "; %s = )",
+		     var_to_string (fctr->indep_var[1]));
+
+      var_append_value_name (fctr->indep_var[1], fs->id[1], str);
     }
   else
     {
       if ( var )
-	strcat (buf1, ")");
+	ds_put_cstr (str, ")");
     }
-
-  return buf1;
 }
 
 
-
-const char *
+static void
 factor_to_string_concise (const struct factor *fctr,
-			 struct factor_statistics *fs)
+			  const struct factor_statistics *fs,
+			  struct string *str
+			  )
 
 {
-
-  static char buf[100];
-
-  char buf2[100];
-
-  snprintf (buf, 100, "%s",
-            var_get_value_name (fctr->indep_var[0], fs->id[0]));
+  var_append_value_name (fctr->indep_var[0], fs->id[0], str);
 
   if ( fctr->indep_var[1] )
     {
-      sprintf (buf2, ",%s)", var_get_value_name (fctr->indep_var[1],
-                                                 fs->id[1]) );
-      strcat (buf, buf2);
+      ds_put_cstr (str, ",");
+
+      var_append_value_name (fctr->indep_var[1],fs->id[1], str);
+
+      ds_put_cstr (str, ")");
     }
-
-
-  return buf;
 }
 
 /*

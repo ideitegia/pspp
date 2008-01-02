@@ -104,7 +104,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 	  pl_line_r(ch->lp, label_x, label_y,
 		    left_label, label_y );
 	  pl_moverel_r(ch->lp,0,5);
-	  pl_alabel_r(ch->lp,0,0,slices[i].label);
+	  pl_alabel_r (ch->lp, 0, 0, ds_cstr (&slices[i].label));
 	}
       else
 	{
@@ -113,7 +113,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 		    right_label, label_y
 		    );
 	  pl_moverel_r(ch->lp,0,5);
-	  pl_alabel_r(ch->lp,'r',0,slices[i].label);
+	  pl_alabel_r (ch->lp, 'r', 0, ds_cstr (&slices[i].label));
 	}
 
       angle += segment_angle;

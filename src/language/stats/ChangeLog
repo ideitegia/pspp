@@ -1,3 +1,8 @@
+2008-01-02  John Darrington <john@darrington.wattle.id.au>
+
+	*  binomial.c chisquare.c examine.q frequencies.q oneway.q regression.q : updated
+	all users of var_get_value_name to use replacement function var_append_value_name.
+
 2007-12-07  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6302.
