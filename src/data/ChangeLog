@@ -1,3 +1,8 @@
+2008-01-14  John Darrington <john@darrington.wattle.id.au>
+
+	* data-out.c (output_AHEX): Corrected number of bytes in
+	call to output_hex.  Closes bug #22011
+
 2008-01-02  John Darrington <john@darrington.wattle.id.au>
 
 	* variable.c variable.h: Replaced var_get_value_name with 
