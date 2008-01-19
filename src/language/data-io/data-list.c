@@ -424,7 +424,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
 	{
 	  lex_match (lexer, '*');
           input = fmt_for_input (FMT_F, 8, 0);
-	  output = *get_format ();
+	  output = *settings_get_format ();
 	}
 
       for (i = 0; i < name_cnt; i++)

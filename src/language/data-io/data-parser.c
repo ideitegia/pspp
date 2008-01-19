@@ -554,7 +554,7 @@ parse_delimited_no_span (const struct data_parser *parser,
     {
       if (!cut_field (parser, reader, &s))
 	{
-	  if (get_undefined ())
+	  if (settings_get_undefined ())
 	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
                        "These will be filled with the system-missing value "
                        "or blanks, as appropriate."),

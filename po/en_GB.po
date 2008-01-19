@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-01-10 11:14+0900\n"
+"POT-Creation-Date: 2008-01-19 15:35+0900\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -44,12 +44,6 @@ msgstr ""
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
 msgstr ""
 
-#: src/data/casereader-filter.c:221
-msgid ""
-"At least one case in the data read had a weight value that was user-missing, "
-"system-missing, zero, or negative.  These case(s) were ignored."
-msgstr ""
-
 #: src/data/case-tmpfile.c:57
 msgid "failed to create temporary file"
 msgstr ""
@@ -70,131 +64,137 @@ msgstr ""
 msgid "writing to temporary file"
 msgstr ""
 
-#: src/data/data-in.c:287 src/data/data-in.c:477
+#: src/data/casereader-filter.c:221
+msgid ""
+"At least one case in the data read had a weight value that was user-missing, "
+"system-missing, zero, or negative.  These case(s) were ignored."
+msgstr ""
+
+#: src/data/data-in.c:254 src/data/data-in.c:444
 msgid "Field contents are not numeric."
 msgstr ""
 
-#: src/data/data-in.c:289 src/data/data-in.c:479
+#: src/data/data-in.c:256 src/data/data-in.c:446
 msgid "Number followed by garbage."
 msgstr ""
 
-#: src/data/data-in.c:300
+#: src/data/data-in.c:267
 msgid "Invalid numeric syntax."
 msgstr ""
 
-#: src/data/data-in.c:309 src/data/data-in.c:492
+#: src/data/data-in.c:276 src/data/data-in.c:459
 msgid "Too-large number set to system-missing."
 msgstr ""
 
-#: src/data/data-in.c:314 src/data/data-in.c:497
+#: src/data/data-in.c:281 src/data/data-in.c:464
 msgid "Too-small number set to zero."
 msgstr ""
 
-#: src/data/data-in.c:340
+#: src/data/data-in.c:307
 msgid "All characters in field must be digits."
 msgstr ""
 
-#: src/data/data-in.c:363
+#: src/data/data-in.c:330
 msgid "Unrecognized character in field."
 msgstr ""
 
-#: src/data/data-in.c:387 src/data/data-in.c:660
+#: src/data/data-in.c:354 src/data/data-in.c:628
 msgid "Field must have even length."
 msgstr ""
 
-#: src/data/data-in.c:392 src/data/data-in.c:671
+#: src/data/data-in.c:359 src/data/data-in.c:639
 msgid "Field must contain only hex digits."
 msgstr ""
 
-#: src/data/data-in.c:710 src/data/data-in.c:757
+#: src/data/data-in.c:678 src/data/data-in.c:725
 msgid "Syntax error in date field."
 msgstr ""
 
-#: src/data/data-in.c:726
+#: src/data/data-in.c:694
 #, c-format
 msgid "Day (%ld) must be between 1 and 31."
 msgstr ""
 
-#: src/data/data-in.c:773
+#: src/data/data-in.c:741
 msgid "Delimiter expected between fields in date."
 msgstr ""
 
-#: src/data/data-in.c:847
+#: src/data/data-in.c:815
 msgid ""
 "Unrecognized month format.  Months may be specified as Arabic or Roman "
 "numerals or as at least 3 letters of their English names."
 msgstr ""
 
-#: src/data/data-in.c:874
+#: src/data/data-in.c:842
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
 msgstr ""
 
-#: src/data/data-in.c:886
+#: src/data/data-in.c:854
 #, c-format
 msgid "Trailing garbage \"%.*s\" following date."
 msgstr ""
 
-#: src/data/data-in.c:902
+#: src/data/data-in.c:870
 msgid "Julian day must have exactly three digits."
 msgstr ""
 
-#: src/data/data-in.c:907
+#: src/data/data-in.c:875
 #, c-format
 msgid "Julian day (%ld) must be between 1 and 366."
 msgstr ""
 
-#: src/data/data-in.c:931
+#: src/data/data-in.c:899
 #, c-format
 msgid "Quarter (%ld) must be between 1 and 4."
 msgstr ""
 
-#: src/data/data-in.c:951
+#: src/data/data-in.c:919
 #, c-format
 msgid "Week (%ld) must be between 1 and 53."
 msgstr ""
 
-#: src/data/data-in.c:964
+#: src/data/data-in.c:932
 msgid "Delimiter expected between fields in time."
 msgstr ""
 
-#: src/data/data-in.c:984
+#: src/data/data-in.c:952
 #, c-format
 msgid "Minute (%ld) must be between 0 and 59."
 msgstr ""
 
-#: src/data/data-in.c:1024
+#: src/data/data-in.c:992
 msgid ""
 "Unrecognized weekday name.  At least the first two letters of an English "
 "weekday name must be specified."
 msgstr ""
 
-#: src/data/data-in.c:1162
+#: src/data/data-in.c:1130
 #, c-format
 msgid "`%c' expected in date field."
 msgstr ""
 
-#: src/data/data-in.c:1203
+#: src/data/data-in.c:1171
 #, c-format
 msgid "column %d"
 msgstr ""
 
-#: src/data/data-in.c:1205
+#: src/data/data-in.c:1173
 #, c-format
 msgid "columns %d-%d"
 msgstr ""
 
-#: src/data/data-in.c:1209
+#: src/data/data-in.c:1177
 #, c-format
 msgid "%s field) "
 msgstr ""
 
-#: src/data/data-out.c:476
+#: src/data/data-out.c:446
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
 msgstr ""
 
-#: src/data/data-out.c:497
+#: src/data/data-out.c:467
 #, c-format
 msgid "Month number %f is not between 1 and 12."
 msgstr ""
@@ -256,30 +256,30 @@ msgstr ""
 msgid "Not opening pipe file `%s' because SAFER option set."
 msgstr ""
 
-#: src/data/format.c:226
+#: src/data/format.c:238
 msgid "Input format"
 msgstr ""
 
-#: src/data/format.c:226
+#: src/data/format.c:238
 msgid "Output format"
 msgstr ""
 
-#: src/data/format.c:235
+#: src/data/format.c:247
 #, c-format
 msgid "Format %s may not be used for input."
 msgstr ""
 
-#: src/data/format.c:242
+#: src/data/format.c:254
 #, c-format
 msgid "%s specifies width %d, but %s requires an even width."
 msgstr ""
 
-#: src/data/format.c:251
+#: src/data/format.c:263
 #, c-format
 msgid "%s %s specifies width %d, but %s requires a width between %d and %d."
 msgstr ""
 
-#: src/data/format.c:260
+#: src/data/format.c:272
 #, c-format
 msgid "%s %s specifies %d decimal place, but %s does not allow any decimals."
 msgid_plural ""
@@ -287,7 +287,7 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/data/format.c:271
+#: src/data/format.c:283
 #, c-format
 msgid ""
 "%s %s specifies %d decimal place, but the given width allows at most %d "
@@ -298,7 +298,7 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/data/format.c:278
+#: src/data/format.c:290
 #, c-format
 msgid ""
 "%s %s specifies %d decimal place, but the given width does not allow for any "
@@ -309,24 +309,24 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/data/format.c:317
+#: src/data/format.c:329
 #, c-format
 msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
-#: src/data/format.c:318 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1304 src/ui/gui/psppire.glade:2176
-#: src/ui/gui/psppire-var-store.c:493
+#: src/data/format.c:330 src/data/sys-file-reader.c:639
+#: src/ui/gui/data-editor.glade:1304 src/ui/gui/psppire-var-store.c:493
+#: src/ui/gui/psppire.glade:2176
 msgid "String"
 msgstr ""
 
-#: src/data/format.c:318 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1193 src/ui/gui/psppire.glade:2131
-#: src/ui/gui/psppire-var-store.c:486
+#: src/data/format.c:330 src/data/sys-file-reader.c:639
+#: src/ui/gui/data-editor.glade:1193 src/ui/gui/psppire-var-store.c:486
+#: src/ui/gui/psppire.glade:2131
 msgid "Numeric"
 msgstr ""
 
-#: src/data/format.c:319 src/data/sys-file-reader.c:1133
+#: src/data/format.c:331 src/data/sys-file-reader.c:1133
 #: src/data/sys-file-reader.c:1135
 #: src/language/dictionary/apply-dictionary.c:78
 #: src/language/dictionary/apply-dictionary.c:79
@@ -335,7 +335,7 @@ msgstr ""
 msgid "numeric"
 msgstr ""
 
-#: src/data/format.c:319 src/data/sys-file-reader.c:1133
+#: src/data/format.c:331 src/data/sys-file-reader.c:1133
 #: src/data/sys-file-reader.c:1135
 #: src/language/dictionary/apply-dictionary.c:78
 #: src/language/dictionary/apply-dictionary.c:79
@@ -344,7 +344,7 @@ msgstr ""
 msgid "string"
 msgstr ""
 
-#: src/data/format.c:337
+#: src/data/format.c:349
 #, c-format
 msgid "String variable with width %d is not compatible with format %s."
 msgstr ""
@@ -588,6 +588,13 @@ msgstr ""
 #. messages in fh_lock() that identify types of files.
 #: src/data/scratch-writer.c:67 src/language/data-io/file-handle.q:180
 msgid "scratch file"
+msgstr ""
+
+#: src/data/settings.c:685
+#, c-format
+msgid ""
+"%s: Custom currency string `%s' does not contain exactly three periods or "
+"commas (or it contains both)."
 msgstr ""
 
 #: src/data/short-names.c:71
@@ -1359,6 +1366,61 @@ msgstr ""
 msgid "Handle for %s not allowed here."
 msgstr ""
 
+#: src/language/data-io/get-data.c:57
+#, c-format
+msgid "Unsupported TYPE %s"
+msgstr ""
+
+#: src/language/data-io/get-data.c:181
+#, c-format
+msgid ""
+"%s is allowed only with %s arrangement, but %s arrangement was stated or "
+"implied earlier in this command."
+msgstr ""
+
+#: src/language/data-io/get-data.c:236
+msgid "expecting FIXED or DELIMITED"
+msgstr ""
+
+#: src/language/data-io/get-data.c:249
+msgid "Value of FIRSTCASE must be 1 or greater."
+msgstr ""
+
+#: src/language/data-io/get-data.c:274
+msgid "expecting LINE or VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:287
+msgid "Value of FIXCASE must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:307
+msgid "Value of FIRST must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:319
+msgid "Value of PERCENT must be between 1 and 100."
+msgstr ""
+
+#: src/language/data-io/get-data.c:372
+msgid "expecting VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:394
+#: src/language/data-io/placement-parser.c:376
+#, c-format
+msgid ""
+"The record number specified, %ld, is at or before the previous record, %d.  "
+"Data fields must be listed in order of increasing record number."
+msgstr ""
+
+#: src/language/data-io/get-data.c:403
+#, c-format
+msgid ""
+"The record number specified, %ld, exceeds the number of records per case "
+"specified on FIXCASE, %d."
+msgstr ""
+
 #: src/language/data-io/get.c:99
 msgid "expecting COMM or TAPE"
 msgstr ""
@@ -1446,61 +1508,6 @@ msgstr ""
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
-msgstr ""
-
-#: src/language/data-io/get-data.c:57
-#, c-format
-msgid "Unsupported TYPE %s"
-msgstr ""
-
-#: src/language/data-io/get-data.c:181
-#, c-format
-msgid ""
-"%s is allowed only with %s arrangement, but %s arrangement was stated or "
-"implied earlier in this command."
-msgstr ""
-
-#: src/language/data-io/get-data.c:236
-msgid "expecting FIXED or DELIMITED"
-msgstr ""
-
-#: src/language/data-io/get-data.c:249
-msgid "Value of FIRSTCASE must be 1 or greater."
-msgstr ""
-
-#: src/language/data-io/get-data.c:274
-msgid "expecting LINE or VARIABLES"
-msgstr ""
-
-#: src/language/data-io/get-data.c:287
-msgid "Value of FIXCASE must be at least 1."
-msgstr ""
-
-#: src/language/data-io/get-data.c:307
-msgid "Value of FIRST must be at least 1."
-msgstr ""
-
-#: src/language/data-io/get-data.c:319
-msgid "Value of PERCENT must be between 1 and 100."
-msgstr ""
-
-#: src/language/data-io/get-data.c:372
-msgid "expecting VARIABLES"
-msgstr ""
-
-#: src/language/data-io/get-data.c:394
-#: src/language/data-io/placement-parser.c:376
-#, c-format
-msgid ""
-"The record number specified, %ld, is at or before the previous record, %d.  "
-"Data fields must be listed in order of increasing record number."
-msgstr ""
-
-#: src/language/data-io/get-data.c:403
-#, c-format
-msgid ""
-"The record number specified, %ld, exceeds the number of records per case "
-"specified on FIXCASE, %d."
 msgstr ""
 
 #: src/language/data-io/inpt-pgm.c:129
@@ -1592,6 +1599,20 @@ msgstr ""
 msgid "The ending column for a field must be greater than the starting column."
 msgstr ""
 
+#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:476
+#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:60
+msgid "expecting end of command"
+msgstr ""
+
+#: src/language/data-io/print-space.c:116
+msgid "The expression on PRINT SPACE evaluated to the system-missing value."
+msgstr ""
+
+#: src/language/data-io/print-space.c:119
+#, c-format
+msgid "The expression on PRINT SPACE evaluated to %g."
+msgstr ""
+
 #: src/language/data-io/print.c:265
 #, c-format
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
@@ -1610,20 +1631,6 @@ msgid "Writing %d record."
 msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
-
-#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:476
-#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:60
-msgid "expecting end of command"
-msgstr ""
-
-#: src/language/data-io/print-space.c:116
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr ""
-
-#: src/language/data-io/print-space.c:119
-#, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr ""
 
 #: src/language/dictionary/apply-dictionary.c:75
 #, c-format
@@ -3304,6 +3311,22 @@ msgstr ""
 msgid "TABLES subcommand may not appear more than once."
 msgstr ""
 
+#: src/language/stats/npar-summary.c:108
+msgid "Descriptive Statistics"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:145
+msgid "25th"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:148
+msgid "50th (Median)"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:151
+msgid "75th"
+msgstr ""
+
 #: src/language/stats/npar.q:98
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
@@ -3326,22 +3349,6 @@ msgstr ""
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
 "not match the number following (%zu)."
-msgstr ""
-
-#: src/language/stats/npar-summary.c:108
-msgid "Descriptive Statistics"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:145
-msgid "25th"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:148
-msgid "50th (Median)"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:151
-msgid "75th"
 msgstr ""
 
 #: src/language/stats/oneway.q:169
@@ -3819,121 +3826,114 @@ msgstr ""
 msgid "Active file compression is not implemented."
 msgstr ""
 
-#: src/language/utilities/set.q:347
-#, c-format
-msgid ""
-"%s: Custom currency string `%s' does not contain exactly three periods or "
-"commas (or it contains both)."
-msgstr ""
-
-#: src/language/utilities/set.q:403
+#: src/language/utilities/set.q:318
 msgid "EPOCH must be 1500 or later."
 msgstr ""
 
-#: src/language/utilities/set.q:410
+#: src/language/utilities/set.q:325
 msgid "expecting AUTOMATIC or year"
 msgstr ""
 
-#: src/language/utilities/set.q:431
+#: src/language/utilities/set.q:346
 msgid "LENGTH must be at least 1."
 msgstr ""
 
-#: src/language/utilities/set.q:475
+#: src/language/utilities/set.q:390
 msgid "WIDTH must be at least 40."
 msgstr ""
 
-#: src/language/utilities/set.q:498
+#: src/language/utilities/set.q:413
 #, c-format
 msgid ""
 "FORMAT requires numeric output format as an argument.  Specified format %s "
 "is of type string."
 msgstr ""
 
-#: src/language/utilities/set.q:565
+#: src/language/utilities/set.q:480
 msgid "BLANKS is SYSMIS."
 msgstr ""
 
-#: src/language/utilities/set.q:567
+#: src/language/utilities/set.q:482
 #, c-format
 msgid "BLANKS is %g."
 msgstr ""
 
-#: src/language/utilities/set.q:602
+#: src/language/utilities/set.q:517
 #, c-format
 msgid "%s is \"%s\"."
 msgstr ""
 
-#: src/language/utilities/set.q:638
+#: src/language/utilities/set.q:553
 #, c-format
 msgid "DECIMAL is \"%c\"."
 msgstr ""
 
-#: src/language/utilities/set.q:644
+#: src/language/utilities/set.q:559
 #, c-format
 msgid "ENDCMD is \"%c\"."
 msgstr ""
 
-#: src/language/utilities/set.q:652
+#: src/language/utilities/set.q:567
 #, c-format
 msgid "ERRORS is \"%s\"."
 msgstr ""
 
-#: src/language/utilities/set.q:663
+#: src/language/utilities/set.q:578
 #, c-format
 msgid "FORMAT is %s."
 msgstr ""
 
-#: src/language/utilities/set.q:669
+#: src/language/utilities/set.q:584
 #, c-format
 msgid "LENGTH is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:675
+#: src/language/utilities/set.q:590
 #, c-format
 msgid "MXERRS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:681
+#: src/language/utilities/set.q:596
 #, c-format
 msgid "MXLOOPS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:687
+#: src/language/utilities/set.q:602
 #, c-format
 msgid "MXWARNS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:694 src/language/utilities/set.q:745
+#: src/language/utilities/set.q:609 src/language/utilities/set.q:660
 #, c-format
 msgid "%s is %s (%s)."
 msgstr ""
 
-#: src/language/utilities/set.q:766
+#: src/language/utilities/set.q:681
 msgid "SCOMPRESSION is ON."
 msgstr ""
 
-#: src/language/utilities/set.q:768
+#: src/language/utilities/set.q:683
 msgid "SCOMPRESSION is OFF."
 msgstr ""
 
-#: src/language/utilities/set.q:775
+#: src/language/utilities/set.q:690
 msgid "UNDEFINED is WARN."
 msgstr ""
 
-#: src/language/utilities/set.q:777
+#: src/language/utilities/set.q:692
 msgid "UNDEFINED is NOWARN."
 msgstr ""
 
-#: src/language/utilities/set.q:785
+#: src/language/utilities/set.q:700
 msgid "WEIGHT is off."
 msgstr ""
 
-#: src/language/utilities/set.q:787
+#: src/language/utilities/set.q:702
 #, c-format
 msgid "WEIGHT is variable %s."
 msgstr ""
 
-#: src/language/utilities/set.q:805
+#: src/language/utilities/set.q:720
 #, c-format
 msgid "WIDTH is %d."
 msgstr ""
@@ -5322,14 +5322,6 @@ msgstr ""
 msgid "Paste"
 msgstr ""
 
-#: src/ui/gui/psppire.c:199
-msgid "_Reset"
-msgstr ""
-
-#: src/ui/gui/psppire.c:200
-msgid "_Select"
-msgstr ""
-
 #: src/ui/gui/psppire-data-store.c:816
 msgid "var"
 msgstr ""
@@ -5337,6 +5329,32 @@ msgstr ""
 #: src/ui/gui/psppire-data-store.c:937 src/ui/gui/psppire-var-store.c:728
 #, c-format
 msgid "%ld"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:479 src/ui/gui/var-display.c:14
+msgid "None"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:489
+msgid "Scientific"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:492
+msgid "Custom"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:563 src/ui/gui/psppire-var-store.c:573
+#: src/ui/gui/psppire-var-store.c:583
+#, c-format
+msgid "%d"
+msgstr ""
+
+#: src/ui/gui/psppire.c:198
+msgid "_Reset"
+msgstr ""
+
+#: src/ui/gui/psppire.c:199
+msgid "_Select"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:11
@@ -5561,24 +5579,6 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:2627
 msgid "Search backward"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:479 src/ui/gui/var-display.c:14
-msgid "None"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:489
-msgid "Scientific"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:492
-msgid "Custom"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:563 src/ui/gui/psppire-var-store.c:573
-#: src/ui/gui/psppire-var-store.c:583
-#, c-format
-msgid "%d"
 msgstr ""
 
 #: src/ui/gui/rank.glade:111
@@ -5837,6 +5837,11 @@ msgstr ""
 msgid "To End"
 msgstr ""
 
+#: src/ui/gui/t-test-options.c:60
+#, c-format
+msgid "Confidence Interval: %2d %%"
+msgstr ""
+
 #: src/ui/gui/t-test.glade:53 src/ui/gui/t-test.glade:161
 msgid "Define Groups"
 msgstr ""
@@ -5877,9 +5882,24 @@ msgstr ""
 msgid "Test Value: "
 msgstr ""
 
-#: src/ui/gui/t-test-options.c:60
-#, c-format
-msgid "Confidence Interval: %2d %%"
+#: src/ui/gui/var-sheet.c:65
+msgid "Name"
+msgstr ""
+
+#: src/ui/gui/var-sheet.c:68
+msgid "Decimals"
+msgstr ""
+
+#: src/ui/gui/var-sheet.c:70
+msgid "Values"
+msgstr ""
+
+#: src/ui/gui/var-sheet.c:73
+msgid "Align"
+msgstr ""
+
+#: src/ui/gui/var-sheet.c:74
+msgid "Measure"
 msgstr ""
 
 #: src/ui/gui/variable-info-dialog.c:88
@@ -5909,26 +5929,6 @@ msgstr ""
 #: src/ui/gui/variable-info-dialog.c:132
 #, c-format
 msgid "%s %s\n"
-msgstr ""
-
-#: src/ui/gui/var-sheet.c:65
-msgid "Name"
-msgstr ""
-
-#: src/ui/gui/var-sheet.c:68
-msgid "Decimals"
-msgstr ""
-
-#: src/ui/gui/var-sheet.c:70
-msgid "Values"
-msgstr ""
-
-#: src/ui/gui/var-sheet.c:73
-msgid "Align"
-msgstr ""
-
-#: src/ui/gui/var-sheet.c:74
-msgid "Measure"
 msgstr ""
 
 #: src/ui/gui/weight-cases-dialog.c:88
@@ -6019,7 +6019,7 @@ msgid ""
 "Report bugs to <%s>.\n"
 msgstr ""
 
-#: src/ui/terminal/main.c:132
+#: src/ui/terminal/main.c:131
 msgid ""
 "Stopping syntax file processing here to avoid a cascade of dependent command "
 "failures."

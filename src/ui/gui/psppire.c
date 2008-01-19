@@ -88,7 +88,6 @@ initialize (void)
   glade_init ();
 
   gsl_set_error_handler_off ();
-  fmt_init ();
   fn_init ();
   outp_init ();
   settings_init (&viewer_width, &viewer_length);

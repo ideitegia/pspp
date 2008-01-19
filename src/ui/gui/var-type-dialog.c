@@ -467,7 +467,7 @@ var_type_dialog_create (GladeXML *xml)
 
   for ( i = 0 ; i < sizeof (dollar_format)/sizeof (dollar_format[0]) ; ++i )
     {
-      char *template = fmt_dollar_template (&dollar_format[i]);
+      char *template = settings_dollar_template (&dollar_format[i]);
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
                           0, template,

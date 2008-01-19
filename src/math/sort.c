@@ -208,7 +208,7 @@ pqueue_create (const struct case_ordering *ordering)
   pq = xmalloc (sizeof *pq);
   pq->ordering = case_ordering_clone (ordering);
   pq->record_cap
-    = get_workspace_cases (case_ordering_get_value_cnt (ordering));
+    = settings_get_workspace_cases (case_ordering_get_value_cnt (ordering));
   if (pq->record_cap > max_buffers)
     pq->record_cap = max_buffers;
   else if (pq->record_cap < min_buffers)

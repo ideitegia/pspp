@@ -63,11 +63,7 @@ struct data_in
     int last_column; 		/* Last column. */
   };
 
-/* Integer format used for IB and PIB input. */
-static enum integer_format input_integer_format = INTEGER_NATIVE;
 
-/* Floating-point format used for RB and RBHEX input. */
-static enum float_format input_float_format = FLOAT_NATIVE_DOUBLE;
 
 typedef bool data_in_parser_func (struct data_in *);
 #define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY) \
@@ -155,36 +151,6 @@ data_in (struct substring input, enum legacy_encoding encoding,
   return ok;
 }
 
-/* Returns the integer format used for IB and PIB input. */
-enum integer_format
-data_in_get_integer_format (void)
-{
-  return input_integer_format;
-}
-
-/* Sets the integer format used for IB and PIB input to
-   FORMAT. */
-void
-data_in_set_integer_format (enum integer_format format)
-{
-  input_integer_format = format;
-}
-
-/* Returns the floating-point format used for RB and RBHEX
-   input. */
-enum float_format
-data_in_get_float_format (void)
-{
-  return input_float_format;
-}
-
-/* Sets the floating-point format used for RB and RBHEX input to
-   FORMAT. */
-void
-data_in_set_float_format (enum float_format format)
-{
-  input_float_format = format;
-}
 
 /* Format parsers. */
 
@@ -192,7 +158,8 @@ data_in_set_float_format (enum float_format format)
 static bool
 parse_number (struct data_in *i)
 {
-  const struct fmt_number_style *style = fmt_get_style (i->format);
+  const struct fmt_number_style *style =
+    settings_get_style (i->format);
 
   struct string tmp;
 
@@ -518,7 +485,7 @@ parse_IB (struct data_in *i)
   uint64_t sign_bit;
 
   bytes = MIN (8, ss_length (i->input));
-  value = integer_get (input_integer_format, ss_data (i->input), bytes);
+  value = integer_get (settings_get_input_integer_format (), ss_data (i->input), bytes);
 
   sign_bit = UINT64_C(1) << (8 * bytes - 1);
   if (!(value & sign_bit))
@@ -539,7 +506,7 @@ parse_IB (struct data_in *i)
 static bool
 parse_PIB (struct data_in *i)
 {
-  i->output->f = integer_get (input_integer_format, ss_data (i->input),
+  i->output->f = integer_get (settings_get_input_integer_format (), ss_data (i->input),
                               MIN (8, ss_length (i->input)));
 
   apply_implied_decimals (i);
@@ -615,9 +582,10 @@ parse_PK (struct data_in *i)
 static bool
 parse_RB (struct data_in *i)
 {
-  size_t size = float_get_size (input_float_format);
+  enum float_format ff = settings_get_input_float_format ();
+  size_t size = float_get_size (ff);
   if (ss_length (i->input) >= size)
-    float_convert (input_float_format, ss_data (i->input),
+    float_convert (ff, ss_data (i->input),
                    FLOAT_NATIVE_DOUBLE, &i->output->f);
   else
     i->output->f = SYSMIS;
@@ -860,7 +828,7 @@ parse_year (struct data_in *i, long *year, size_t max_digits)
 
   if (*year >= 0 && *year <= 99)
     {
-      int epoch = get_epoch ();
+      int epoch = settings_get_epoch ();
       int epoch_century = ROUND_DOWN (epoch, 100);
       int epoch_offset = epoch - epoch_century;
       if (*year >= epoch_offset)
@@ -995,7 +963,7 @@ parse_minute_second (struct data_in *i, double *time)
   cp = buf;
   while (c_isdigit (ss_first (i->input)))
     *cp++ = ss_get_char (&i->input);
-  if (ss_match_char (&i->input, fmt_decimal_char (FMT_F)))
+  if (ss_match_char (&i->input, settings_get_decimal_char (FMT_F)))
     *cp++ = '.';
   while (c_isdigit (ss_first (i->input)))
     *cp++ = ss_get_char (&i->input);
@@ -1246,7 +1214,7 @@ default_result (struct data_in *i)
   if (fmt_is_string (i->format))
     memset (i->output->s, ' ', i->width);
   else
-    i->output->f = get_blanks ();
+    i->output->f = settings_get_blanks ();
 }
 
 /* Trims leading and trailing spaces from I.

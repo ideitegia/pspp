@@ -238,9 +238,9 @@ update_page_size (struct outp_driver *this, bool issue_error)
   int margins = x->top_margin + x->bottom_margin + 1 + (x->headers ? 3 : 0);
 
   if (x->auto_width)
-    this->width = get_viewwidth ();
+    this->width = settings_get_viewwidth ();
   if (x->auto_length)
-    x->page_length = get_viewlength ();
+    x->page_length = settings_get_viewlength ();
 
   this->length = x->page_length - margins;
 

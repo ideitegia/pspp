@@ -48,7 +48,7 @@ sparse_cases_create (size_t column_cnt)
   struct sparse_cases *sc = xmalloc (sizeof *sc);
   sc->column_cnt = column_cnt;
   sc->default_columns = NULL;
-  sc->max_memory_cases = get_workspace_cases (column_cnt);
+  sc->max_memory_cases = settings_get_workspace_cases (column_cnt);
   sc->memory = sparse_array_create (sizeof (struct ccase));
   sc->disk = NULL;
   sc->disk_cases = NULL;

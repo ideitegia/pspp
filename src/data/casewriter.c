@@ -170,7 +170,7 @@ casewriter_create (size_t value_cnt,
 struct casewriter *
 autopaging_writer_create (size_t value_cnt)
 {
-  return create_casewriter_window (value_cnt, get_workspace_cases (value_cnt));
+  return create_casewriter_window (value_cnt, settings_get_workspace_cases (value_cnt));
 }
 
 /* Returns a casewriter for cases with VALUE_CNT struct values

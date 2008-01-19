@@ -1,3 +1,8 @@
+2008-01-19  John Darrington <john@darrington.wattle.id.au>
+
+	* settings.c settings.h: Moved static variables into a 
+	single struct.  Renamed functions to have a settings_ prefix.
+
 2008-01-14  John Darrington <john@darrington.wattle.id.au>
 
 	* data-out.c (output_AHEX): Corrected number of bytes in

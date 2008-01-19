@@ -88,12 +88,12 @@ cmd_permissions (struct lexer *lexer, struct dataset *ds UNUSED)
 
 
 int
-change_permissions(const char *file_name, enum PER per)
+change_permissions (const char *file_name, enum PER per)
 {
   struct stat buf;
   mode_t mode;
 
-  if (get_safer_mode ())
+  if (settings_get_safer_mode ())
     {
       msg (SE, _("This command not allowed when the SAFER option is set."));
       return CMD_FAILURE;

@@ -210,7 +210,7 @@ fh_parse (struct lexer *lexer, enum fh_referent referent_mask)
         handle = fh_from_id (lex_tokid (lexer));
       if (handle == NULL)
         {
-          if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || get_syntax () != ENHANCED)
+          if (lex_token (lexer) != T_ID || lex_tokid (lexer)[0] != '#' || settings_get_syntax () != ENHANCED)
             handle = fh_create_file (NULL, ds_cstr (lex_tokstr (lexer)),
                                      fh_default_properties ());
           else

@@ -58,7 +58,7 @@ calendar_gregorian_to_offset (int y, int m, int d,
   /* Normalize year. */
   if (y >= 0 && y < 100)
     {
-      int epoch = get_epoch ();
+      int epoch = settings_get_epoch ();
       int century = epoch / 100 + (y < epoch % 100);
       y += century * 100;
     }

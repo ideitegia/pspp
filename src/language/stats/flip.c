@@ -362,7 +362,7 @@ flip_file (struct flip_pgm *flip)
 
   /* Allocate memory for many cases. */
   case_bytes = flip->var_cnt * sizeof *input_buf;
-  case_capacity = get_workspace () / case_bytes;
+  case_capacity = settings_get_workspace () / case_bytes;
   if (case_capacity > flip->case_cnt * 2)
     case_capacity = flip->case_cnt * 2;
   if (case_capacity < 2)

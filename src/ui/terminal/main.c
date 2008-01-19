@@ -91,7 +91,6 @@ main (int argc, char **argv)
   fpu_init ();
   gsl_set_error_handler_off ();
 
-  fmt_init ();
   outp_init ();
   fn_init ();
   fh_init ();
@@ -110,7 +109,7 @@ main (int argc, char **argv)
   if (parse_command_line (argc, argv, the_source_stream))
     {
       msg_ui_init (the_source_stream);
-      if (!get_testing_mode ())
+      if (!settings_get_testing_mode ())
         outp_read_devices ();
       else
         outp_configure_driver_line (
@@ -210,6 +209,5 @@ clean_up (void)
       readln_uninitialize ();
       outp_done ();
       msg_ui_done ();
-      fmt_done ();
     }
 }

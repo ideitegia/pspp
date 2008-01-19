@@ -69,9 +69,25 @@ struct fmt_spec
     int d;			/* Number of implied decimal places. */
   };
 
+
+/* A numeric output style. */
+struct fmt_number_style
+  {
+    struct substring neg_prefix;      /* Negative prefix. */
+    struct substring prefix;          /* Prefix. */
+    struct substring suffix;          /* Suffix. */
+    struct substring neg_suffix;      /* Negative suffix. */
+    char decimal;                     /* Decimal point: '.' or ','. */
+    char grouping;                    /* Grouping character: ',', '.', or 0. */
+  };
+
+
+extern struct fmt_number_style *the_styles ;
+
+
 /* Initialization. */
-void fmt_init (void);
-void fmt_done (void);
+struct fmt_number_style * fmt_create (void);
+void fmt_done (struct fmt_number_style *);
 
 /* Constructing formats. */
 struct fmt_spec fmt_for_input (enum fmt_type, int w, int d) PURE_FUNCTION;
@@ -117,22 +133,11 @@ int fmt_to_io (enum fmt_type) PURE_FUNCTION;
 bool fmt_from_io (int io, enum fmt_type *);
 
 const char *fmt_date_template (enum fmt_type) PURE_FUNCTION;
-char *fmt_dollar_template (const struct fmt_spec *);
 
 /* Maximum length of prefix or suffix string in
    struct fmt_number_style. */
 #define FMT_STYLE_AFFIX_MAX 16
 
-/* A numeric output style. */
-struct fmt_number_style
-  {
-    struct substring neg_prefix;      /* Negative prefix. */
-    struct substring prefix;          /* Prefix. */
-    struct substring suffix;          /* Suffix. */
-    struct substring neg_suffix;      /* Negative suffix. */
-    char decimal;                     /* Decimal point: '.' or ','. */
-    char grouping;                    /* Grouping character: ',', '.', or 0. */
-  };
 
 struct fmt_number_style *fmt_number_style_create (void);
 void fmt_number_style_destroy (struct fmt_number_style *);
@@ -140,12 +145,14 @@ void fmt_number_style_destroy (struct fmt_number_style *);
 int fmt_affix_width (const struct fmt_number_style *);
 int fmt_neg_affix_width (const struct fmt_number_style *);
 
-const struct fmt_number_style *fmt_get_style (enum fmt_type);
-void fmt_set_style (enum fmt_type, struct fmt_number_style *);
+bool is_fmt_type (enum fmt_type);
 
-int fmt_decimal_char (enum fmt_type);
-int fmt_grouping_char (enum fmt_type);
+const struct fmt_number_style *fmt_get_style (const struct fmt_number_style *,      enum fmt_type);
 
-void fmt_set_decimal (char);
+void fmt_check_style (const struct fmt_number_style *style);
+
+int fmt_grouping_char (const struct fmt_number_style *, enum fmt_type);
+
+void fmt_set_decimal (struct fmt_number_style *, char);
 
 #endif /* data/format.h */

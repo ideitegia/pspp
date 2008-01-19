@@ -92,7 +92,7 @@ readln_uninitialize (void)
   initialised = false;
 
 #if HAVE_READLINE
-  if (history_file != NULL && false == get_testing_mode() )
+  if (history_file != NULL && false == settings_get_testing_mode () )
     write_history (history_file);
   clear_history ();
   free (history_file);

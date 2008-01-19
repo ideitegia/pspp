@@ -210,12 +210,12 @@ find_defn_value (const char *key)
       return ds_cstr (&d->value);
   if (!strcmp (key, "viewwidth"))
     {
-      sprintf (buf, "%d", get_viewwidth ());
+      sprintf (buf, "%d", settings_get_viewwidth ());
       return buf;
     }
   else if (!strcmp (key, "viewlength"))
     {
-      sprintf (buf, "%d", get_viewlength ());
+      sprintf (buf, "%d", settings_get_viewlength ());
       return buf;
     }
   else
@@ -462,7 +462,7 @@ outp_done (void)
 void
 outp_list_classes (void)
 {
-  int width = get_viewwidth();
+  int width = settings_get_viewwidth ();
   struct outp_driver_class_list *c;
 
   printf (_("Driver classes:\n\t"));
@@ -472,7 +472,7 @@ outp_list_classes (void)
       if ((int) strlen (c->class->name) + 1 > width)
 	{
 	  printf ("\n\t");
-	  width = get_viewwidth() - 8;
+	  width = settings_get_viewwidth () - 8;
 	}
       else
 	putc (' ', stdout);

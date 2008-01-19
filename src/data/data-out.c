@@ -60,12 +60,6 @@ static int rounder_width (const struct rounder *, int decimals,
 static void rounder_format (const struct rounder *, int decimals,
                             char *output);
 
-/* Format of integers in output (SET WIB). */
-static enum integer_format output_integer_format = INTEGER_NATIVE;
-
-/* Format of reals in output (SET WRB). */
-static enum float_format output_float_format = FLOAT_NATIVE_DOUBLE;
-
 typedef void data_out_converter_func (const union value *,
                                       const struct fmt_spec *,
                                       char *);
@@ -120,33 +114,6 @@ data_out (const union value *value, const struct fmt_spec *format,
   return data_out_legacy (value, LEGACY_NATIVE, format, output);
 }
 
-/* Returns the current output integer format. */
-enum integer_format
-data_out_get_integer_format (void)
-{
-  return output_integer_format;
-}
-
-/* Sets the output integer format to INTEGER_FORMAT. */
-void
-data_out_set_integer_format (enum integer_format integer_format)
-{
-  output_integer_format = integer_format;
-}
-
-/* Returns the current output float format. */
-enum float_format
-data_out_get_float_format (void)
-{
-  return output_float_format;
-}
-
-/* Sets the output float format to FLOAT_FORMAT. */
-void
-data_out_set_float_format (enum float_format float_format)
-{
-  output_float_format = float_format;
-}
 
 /* Main conversion functions. */
 
@@ -260,7 +227,8 @@ output_IB (const union value *input, const struct fmt_spec *format,
       uint64_t integer = fabs (number);
       if (number < 0)
         integer = -integer;
-      output_binary_integer (integer, format->w, output_integer_format,
+      output_binary_integer (integer, format->w,
+			     settings_get_output_integer_format (),
                              output);
     }
 }
@@ -275,7 +243,8 @@ output_PIB (const union value *input, const struct fmt_spec *format,
       || number < 0 || number >= power256 (format->w))
     memset (output, 0, format->w);
   else
-    output_binary_integer (number, format->w, output_integer_format, output);
+    output_binary_integer (number, format->w,
+			   settings_get_output_integer_format (), output);
 }
 
 /* Outputs PIBHEX format. */
@@ -386,7 +355,8 @@ output_date (const union value *input, const struct fmt_spec *format,
             }
           else
             {
-              int offset = year - get_epoch ();
+              int epoch =  settings_get_epoch ();
+              int offset = year - epoch;
               if (offset < 0 || offset > 99)
                 goto overflow;
               p += sprintf (p, "%02d", abs (year) % 100);
@@ -426,11 +396,11 @@ output_date (const union value *input, const struct fmt_spec *format,
               int d = MIN (format->d, excess_width - 4);
               int w = d + 3;
               sprintf (p, ":%0*.*f", w, d, number);
-              if (fmt_decimal_char (FMT_F) != '.')
+	      if (settings_get_decimal_char (FMT_F) != '.')
                 {
                   char *cp = strchr (p, '.');
                   if (cp != NULL)
-                    *cp = fmt_decimal_char (FMT_F);
+		    *cp = settings_get_decimal_char (FMT_F);
                 }
               p += strlen (p);
             }
@@ -543,7 +513,9 @@ static bool
 output_decimal (const struct rounder *r, const struct fmt_spec *format,
                 bool require_affixes, char *output)
 {
-  const struct fmt_number_style *style = fmt_get_style (format->type);
+  const struct fmt_number_style *style =
+    settings_get_style (format->type);
+
   int decimals;
 
   for (decimals = format->d; decimals >= 0; decimals--)
@@ -645,7 +617,8 @@ static bool
 output_scientific (double number, const struct fmt_spec *format,
                    bool require_affixes, char *output)
 {
-  const struct fmt_number_style *style = fmt_get_style (format->type);
+  const struct fmt_number_style *style =
+    settings_get_style (format->type);
   int width;
   int fraction_width;
   bool add_affixes;

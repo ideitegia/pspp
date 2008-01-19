@@ -136,7 +136,7 @@ sfm_writer_default_options (void)
 {
   struct sfm_write_options opts;
   opts.create_writeable = true;
-  opts.compress = get_scompression ();
+  opts.compress = settings_get_scompression ();
   opts.version = 3;
   return opts;
 }

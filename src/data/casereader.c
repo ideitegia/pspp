@@ -589,7 +589,7 @@ insert_shim (struct casereader *reader)
   size_t value_cnt = casereader_get_value_cnt (reader);
   casenumber case_cnt = casereader_get_case_cnt (reader);
   struct shim *b = xmalloc (sizeof *b);
-  b->window = casewindow_create (value_cnt, get_workspace_cases (value_cnt));
+  b->window = casewindow_create (value_cnt, settings_get_workspace_cases (value_cnt));
   b->subreader = casereader_create_random (value_cnt, case_cnt,
                                            &shim_class, b);
   casereader_swap (reader, b->subreader);

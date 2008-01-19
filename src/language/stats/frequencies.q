@@ -766,7 +766,7 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
       vf->groups = NULL;
       vf->width = var_get_width (v);
       vf->print = *var_get_print_format (v);
-      if (vf->width > MAX_SHORT_STRING && get_algorithm () == COMPATIBLE)
+      if (vf->width > MAX_SHORT_STRING && settings_get_algorithm () == COMPATIBLE)
         {
           enum fmt_type type = var_get_print_format (v)->type;
           vf->width = MAX_SHORT_STRING;
@@ -1257,7 +1257,7 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 	  double tp;
 	  if ( percentiles[i].flag2  ) continue ;
 
-	  if ( get_algorithm() != COMPATIBLE )
+	  if ( settings_get_algorithm () != COMPATIBLE )
 	    tp =
 	      (ft->valid_cases - 1) *  percentiles[i].p;
 	  else
@@ -1308,7 +1308,7 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
       double s;
 
       double dummy;
-      if ( get_algorithm() != COMPATIBLE )
+      if ( settings_get_algorithm () != COMPATIBLE )
 	{
 	  s = modf((ft->valid_cases - 1) * percentiles[i].p , &dummy);
 	}

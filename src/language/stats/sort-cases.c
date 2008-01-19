@@ -52,7 +52,7 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
   if (ordering == NULL)
     return CMD_CASCADING_FAILURE;
 
-  if (get_testing_mode () && lex_match (lexer, '/'))
+  if (settings_get_testing_mode () && lex_match (lexer, '/'))
     {
       if (!lex_force_match_id (lexer, "BUFFERS") || !lex_match (lexer, '=')
           || !lex_force_int (lexer))

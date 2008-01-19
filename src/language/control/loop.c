@@ -180,7 +180,7 @@ close_loop (void *loop_)
       && loop->index_var == NULL
       && loop->loop_condition == NULL
       && loop->end_loop_condition == NULL)
-    loop->max_pass_count = get_mxloops ();
+    loop->max_pass_count = settings_get_mxloops ();
 }
 
 /* Parses an IF clause for LOOP or END LOOP and stores the

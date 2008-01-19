@@ -30,10 +30,4 @@ void data_out (const union value *, const struct fmt_spec *, char *);
 void data_out_legacy (const union value *, enum legacy_encoding,
                       const struct fmt_spec *, char *);
 
-enum integer_format data_out_get_integer_format (void);
-void data_out_set_integer_format (enum integer_format);
-
-enum float_format data_out_get_float_format (void);
-void data_out_set_float_format (enum float_format);
-
 #endif /* data-out.h */

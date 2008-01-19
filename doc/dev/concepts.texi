@@ -259,6 +259,8 @@ the data in fields represented by formats.
 These functions construct @struct{fmt_spec}s and verify that they are
 valid.
 
+
+
 @deftypefun {struct fmt_spec} fmt_for_input (enum fmt_type @var{type}, int @var{w}, int @var{d})
 @deftypefunx {struct fmt_spec} fmt_for_output (enum fmt_type @var{type}, int @var{w}, int @var{d})
 Constructs a @struct{fmt_spec} with the given @var{type}, @var{w}, and
@@ -338,6 +340,10 @@ the user.
 Compares @var{a} and @var{b} memberwise and returns true if they are
 identical, false otherwise.  @var{format} need not be a valid input or
 output format specifier.
+@end deftypefun
+
+@deftypefun void fmt_resize (struct fmt_spec *@var{fmt}, int @var{width})
+Sets the width of @var{fmt} to a valid format for a  @union{value} of size @var{width}.
 @end deftypefun
 
 @node Obtaining Properties of Format Types
@@ -552,15 +558,28 @@ equal to @code{decimal}, or it may be set to 0 to disable grouping.
 The following functions are provided for working with numeric
 formatting styles.
 
-@deftypefun {struct fmt_number_style *} fmt_number_style_create (void)
-Creates and returns a new @struct{fmt_number_style} with all of the
+@deftypefun void fmt_number_style_init (struct fmt_number_style *@var{style})
+Initialises a @struct{fmt_number_style} with all of the
 prefixes and suffixes set to the empty string, @samp{.} as the decimal
 point character, and grouping disables.
 @end deftypefun
 
+
 @deftypefun void fmt_number_style_destroy (struct fmt_number_style *@var{style})
 Destroys @var{style}, freeing its storage.
 @end deftypefun
+
+@deftypefun {struct fmt_number_style}    *fmt_create (void)
+A function which creates an array of all the styles used by pspp, and 
+calls fmt_number_style_init on each of them.
+@end deftypefun
+
+@deftypefun void fmt_done (struct fmt_number_style *@var{styles})
+A wrapper function which takes an array of @struct{fmt_number_style}, calls
+fmt_number_style_destroy on each of them, and then frees the array.
+@end deftypefun
+
+
 
 @deftypefun int fmt_affix_width (const struct fmt_number_style *@var{style})
 Returns the total length of @var{style}'s @code{prefix} and @code{suffix}.
@@ -579,31 +598,16 @@ work with these global styles:
 Returns the numeric style for the given format @var{type}.
 @end deftypefun
 
-@deftypefun void fmt_set_style (enum fmt_type @var{type}, struct fmt_number_style *@var{style})
-Replaces the current numeric style for format @var{type} by the given
-@var{style}, which becomes owned by the callee.  @var{type} must be a
-custom currency format and @var{style} must follow all the rules for
-numeric styles explained above.
+@deftypefun void fmt_check_style (const struct fmt_number_style *@var{style})
+Asserts that style is self consistent.
 @end deftypefun
 
-@deftypefun int fmt_decimal_char (enum fmt_type @var{type})
-Returns the decimal point character for the given format @var{type}.
-Equivalent to @code{fmt_get_style (@var{type})->decimal}.
+
+@deftypefun {const char *} fmt_name (enum fmt_type @var{type})
+Returns the name of the given format @var{type}.
 @end deftypefun
 
-@deftypefun int fmt_grouping_char (enum fmt_type @var{type})
-Returns the grouping character for the given format @var{type}, or 0
-if @var{type} output should not be grouped.  Equivalent to
-@code{fmt_get_style (@var{type})->grouping}.
-@end deftypefun
 
-@deftypefun void fmt_set_decimal (char @var{decimal})
-Changes the decimal point character for the basic numeric formats to
-@var{decimal}, which must be @samp{.} or @samp{,}.  The F, E, COMMA,
-DOLLAR, and PCT will use the specified decimal point character, and the
-opposite character for grouping where appropriate.  The DOT format
-uses the reverse choices.
-@end deftypefun
 
 @node Formatted Data Input and Output
 @subsection Formatted Data Input and Output
@@ -1281,7 +1285,7 @@ Returns true if @var{var} is a string variable of width
 @code{MAX_SHORT_STRING} or less, false otherwise.
 @end deftypefun
 
-@deftypefun bool var_is_long_string (const struct variable *var{var})
+@deftypefun bool var_is_long_string (const struct variable *@var{var})
 Returns true if @var{var} is a string variable of width greater than
 @code{MAX_SHORT_STRING}, false otherwise.
 @end deftypefun

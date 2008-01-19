@@ -330,7 +330,7 @@ parse_lines (struct lexer *lexer, struct repeat_block *block)
                            &command_ends_after_line);
       if (recognize_do_repeat (ds_ss (&text)))
         {
-          if (get_syntax () == COMPATIBLE)
+          if (settings_get_syntax () == COMPATIBLE)
             msg (SE, _("DO REPEAT may not nest in compatibility mode."));
           else
             nesting_level++;
@@ -525,8 +525,7 @@ do_repeat_filter (struct getl_interface *block_,
 
   /* Strip trailing whitespace, check for & remove terminal dot. */
   ds_rtrim (line, ss_cstr (CC_SPACES));
-  dot = ds_chomp (line, get_endcmd ());
-
+  dot = ds_chomp (line, settings_get_endcmd ());
   input = ds_ss (line);
   in_apos = in_quote = false;
   while ((c = ss_first (input)) != EOF)
@@ -549,7 +548,7 @@ do_repeat_filter (struct getl_interface *block_,
         }
     }
   if (dot)
-    ds_put_char (&output, get_endcmd ());
+    ds_put_char (&output, settings_get_endcmd ());
 
   ds_swap (line, &output);
   ds_destroy (&output);

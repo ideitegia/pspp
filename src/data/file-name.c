@@ -269,7 +269,7 @@ fn_open (const char *fn, const char *mode)
 #if HAVE_POPEN
   if (fn[0] == '|')
     {
-      if (get_safer_mode ())
+      if (settings_get_safer_mode ())
 	return safety_violation (fn);
 
       return popen (&fn[1], mode[0] == 'r' ? "r" : "w");
@@ -279,7 +279,7 @@ fn_open (const char *fn, const char *mode)
       char *s;
       FILE *f;
 
-      if (get_safer_mode ())
+      if (settings_get_safer_mode ())
 	return safety_violation (fn);
 
       s = xmalloca (strlen (fn));

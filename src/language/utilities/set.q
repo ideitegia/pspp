@@ -125,7 +125,6 @@ int tgetnum (const char *);
 
 /* (functions) */
 
-static bool do_cc (const char *cc_string, enum fmt_type);
 static enum integer_format stc_to_integer_format (int stc);
 static enum float_format stc_to_float_format (int stc);
 
@@ -141,15 +140,15 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     }
 
   if (cmd.sbc_cca)
-    do_cc (cmd.s_cca, FMT_CCA);
+    settings_set_cc ( cmd.s_cca, FMT_CCA);
   if (cmd.sbc_ccb)
-    do_cc (cmd.s_ccb, FMT_CCB);
+    settings_set_cc ( cmd.s_ccb, FMT_CCB);
   if (cmd.sbc_ccc)
-    do_cc (cmd.s_ccc, FMT_CCC);
+    settings_set_cc ( cmd.s_ccc, FMT_CCC);
   if (cmd.sbc_ccd)
-    do_cc (cmd.s_ccd, FMT_CCD);
+    settings_set_cc ( cmd.s_ccd, FMT_CCD);
   if (cmd.sbc_cce)
-    do_cc (cmd.s_cce, FMT_CCE);
+    settings_set_cc ( cmd.s_cce, FMT_CCE);
 
   if (cmd.sbc_prompt)
     prompt_set (PROMPT_FIRST, cmd.s_prompt);
@@ -159,43 +158,44 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     prompt_set (PROMPT_DATA, cmd.s_dprompt);
 
   if (cmd.sbc_decimal)
-    fmt_set_decimal (cmd.dec == STC_DOT ? '.' : ',');
+    settings_set_decimal_char (cmd.dec == STC_DOT ? '.' : ',');
+
   if (cmd.sbc_echo)
-    set_echo (cmd.echo == STC_ON);
+    settings_set_echo (cmd.echo == STC_ON);
   if (cmd.sbc_endcmd)
-    set_endcmd (cmd.s_endcmd[0]);
+    settings_set_endcmd (cmd.s_endcmd[0]);
   if (cmd.sbc_errorbreak)
-    set_errorbreak (cmd.errbrk == STC_ON);
+    settings_set_errorbreak (cmd.errbrk == STC_ON);
   if (cmd.sbc_errors)
     {
       bool both = cmd.errors == STC_BOTH || cmd.errors == STC_ON;
-      set_error_routing_to_terminal (cmd.errors == STC_TERMINAL || both);
-      set_error_routing_to_listing (cmd.errors == STC_LISTING || both);
+      settings_set_error_routing_to_terminal (cmd.errors == STC_TERMINAL || both);
+      settings_set_error_routing_to_listing (cmd.errors == STC_LISTING || both);
     }
   if (cmd.sbc_include)
-    set_include (cmd.inc == STC_ON);
+    settings_set_include (cmd.inc == STC_ON);
   if (cmd.sbc_mxerrs)
-    set_mxerrs (cmd.n_mxerrs[0]);
+    settings_set_mxerrs (cmd.n_mxerrs[0]);
   if (cmd.sbc_mxwarns)
-    set_mxwarns (cmd.n_mxwarns[0]);
+    settings_set_mxwarns (cmd.n_mxwarns[0]);
   if (cmd.sbc_nulline)
-    set_nulline (cmd.null == STC_ON);
+    settings_set_nulline (cmd.null == STC_ON);
   if (cmd.sbc_rib)
-    data_in_set_integer_format (stc_to_integer_format (cmd.rib));
+    settings_set_input_integer_format (stc_to_integer_format (cmd.rib));
   if (cmd.sbc_rrb)
-    data_in_set_float_format (stc_to_float_format (cmd.rrb));
+    settings_set_input_float_format (stc_to_float_format (cmd.rrb));
   if (cmd.sbc_safer)
-    set_safer_mode ();
+    settings_set_safer_mode ();
   if (cmd.sbc_scompression)
-    set_scompression (cmd.scompress == STC_ON);
+    settings_set_scompression (cmd.scompress == STC_ON);
   if (cmd.sbc_undefined)
-    set_undefined (cmd.undef == STC_WARN);
+    settings_set_undefined (cmd.undef == STC_WARN);
   if (cmd.sbc_wib)
-    data_out_set_integer_format (stc_to_integer_format (cmd.wib));
+    settings_set_output_integer_format (stc_to_integer_format (cmd.wib));
   if (cmd.sbc_wrb)
-    data_out_set_float_format (stc_to_float_format (cmd.wrb));
+    settings_set_output_float_format (stc_to_float_format (cmd.wrb));
   if (cmd.sbc_workspace)
-    set_workspace (cmd.n_workspace[0] * 1024L);
+    settings_set_workspace (cmd.n_workspace[0] * 1024L);
 
   if (cmd.sbc_block)
     msg (SW, _("%s is obsolete."), "BLOCK");
@@ -273,92 +273,7 @@ stc_to_float_format (int stc)
   NOT_REACHED ();
 }
 
-/* Find the grouping characters in CC_STRING and set CC's
-   grouping and decimal members appropriately.  Returns true if
-   successful, false otherwise. */
-static bool
-find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
-{
-  const char *sp;
-  int comma_cnt, dot_cnt;
 
-  /* Count commas and periods.  There must be exactly three of
-     one or the other, except that an apostrophe escapes a
-     following comma or period. */
-  comma_cnt = dot_cnt = 0;
-  for (sp = cc_string; *sp; sp++)
-    if (*sp == ',')
-      comma_cnt++;
-    else if (*sp == '.')
-      dot_cnt++;
-    else if (*sp == '\'' && (sp[1] == '.' || sp[1] == ',' || sp[1] == '\''))
-      sp++;
-
-  if ((comma_cnt == 3) == (dot_cnt == 3))
-    return false;
-
-  if (comma_cnt == 3)
-    {
-      cc->decimal = '.';
-      cc->grouping = ',';
-    }
-  else
-    {
-      cc->decimal = ',';
-      cc->grouping = '.';
-    }
-  return true;
-}
-
-/* Extracts a token from IN into a newly allocated AFFIX.  Tokens
-   are delimited by GROUPING.  The token is truncated to at most
-   FMT_STYLE_AFFIX_MAX characters.  Returns the first character
-   following the token. */
-static const char *
-extract_cc_token (const char *in, int grouping, struct substring *affix)
-{
-  size_t ofs = 0;
-  ss_alloc_uninit (affix, FMT_STYLE_AFFIX_MAX);
-  for (; *in != '\0' && *in != grouping; in++)
-    {
-      if (*in == '\'' && in[1] == grouping)
-        in++;
-      if (ofs < FMT_STYLE_AFFIX_MAX)
-        ss_data (*affix)[ofs++] = *in;
-    }
-  affix->length = ofs;
-
-  if (*in == grouping)
-    in++;
-  return in;
-}
-
-/* Sets custom currency specifier CC having name CC_NAME ('A' through
-   'E') to correspond to the settings in CC_STRING. */
-static bool
-do_cc (const char *cc_string, enum fmt_type type)
-{
-  struct fmt_number_style *cc = fmt_number_style_create ();
-
-  /* Determine separators. */
-  if (!find_cc_separators (cc_string, cc))
-    {
-      fmt_number_style_destroy (cc);
-      msg (SE, _("%s: Custom currency string `%s' does not contain "
-                 "exactly three periods or commas (or it contains both)."),
-           fmt_name (type), cc_string);
-      return false;
-    }
-
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_prefix);
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->prefix);
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->suffix);
-  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_suffix);
-
-  fmt_set_style (type, cc);
-
-  return true;
-}
 
 /* Parses the BLANKS subcommand, which controls the value that
    completely blank fields in numeric data imply.  X, Wnd: Syntax is
@@ -372,13 +287,13 @@ stc_custom_blanks (struct lexer *lexer,
   if (lex_match_id (lexer, "SYSMIS"))
     {
       lex_get (lexer);
-      set_blanks (SYSMIS);
+      settings_set_blanks (SYSMIS);
     }
   else
     {
       if (!lex_force_num (lexer))
 	return 0;
-      set_blanks (lex_number (lexer));
+      settings_set_blanks (lex_number (lexer));
       lex_get (lexer);
     }
   return 1;
@@ -393,7 +308,7 @@ stc_custom_epoch (struct lexer *lexer,
 {
   lex_match (lexer, '=');
   if (lex_match_id (lexer, "AUTOMATIC"))
-    set_epoch (-1);
+    settings_set_epoch (-1);
   else if (lex_is_integer (lexer))
     {
       int new_epoch = lex_integer (lexer);
@@ -403,7 +318,7 @@ stc_custom_epoch (struct lexer *lexer,
           msg (SE, _("EPOCH must be 1500 or later."));
           return 0;
         }
-      set_epoch (new_epoch);
+      settings_set_epoch (new_epoch);
     }
   else
     {
@@ -436,7 +351,7 @@ stc_custom_length (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
     }
 
   if (page_length != -1)
-    set_viewlength (page_length);
+    settings_set_viewlength (page_length);
 
   return 1;
 }
@@ -463,9 +378,9 @@ stc_custom_width (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set
 {
   lex_match (lexer, '=');
   if (lex_match_id (lexer, "NARROW"))
-    set_viewwidth (79);
+    settings_set_viewwidth (79);
   else if (lex_match_id (lexer, "WIDE"))
-    set_viewwidth (131);
+    settings_set_viewwidth (131);
   else
     {
       if (!lex_force_int (lexer))
@@ -475,7 +390,7 @@ stc_custom_width (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set
 	  msg (SE, _("WIDTH must be at least 40."));
 	  return 0;
 	}
-      set_viewwidth (lex_integer (lexer));
+      settings_set_viewwidth (lex_integer (lexer));
       lex_get (lexer);
     }
 
@@ -501,7 +416,7 @@ stc_custom_format (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
       return 0;
     }
 
-  set_format (&fmt);
+  settings_set_format (&fmt);
   return 1;
 }
 
@@ -561,10 +476,10 @@ stc_custom_disk (struct lexer *lexer, struct dataset *ds, struct cmd_set *cmd UN
 static void
 show_blanks (const struct dataset *ds UNUSED)
 {
-  if (get_blanks () == SYSMIS)
+  if (settings_get_blanks () == SYSMIS)
     msg (SN, _("BLANKS is SYSMIS."));
   else
-    msg (SN, _("BLANKS is %g."), get_blanks ());
+    msg (SN, _("BLANKS is %g."), settings_get_blanks ());
 
 }
 
@@ -586,7 +501,7 @@ format_cc (struct substring in, char grouping, char *out)
 static void
 show_cc (enum fmt_type type)
 {
-  const struct fmt_number_style *cc = fmt_get_style (type);
+  const struct fmt_number_style *cc = settings_get_style (type);
   char cc_string[FMT_STYLE_AFFIX_MAX * 4 * 2 + 3 + 1];
   char *out;
 
@@ -635,20 +550,20 @@ show_cce (const struct dataset *ds UNUSED)
 static void
 show_decimals (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("DECIMAL is \"%c\"."), fmt_decimal_char (FMT_F));
+  msg (SN, _("DECIMAL is \"%c\"."), settings_get_decimal_char (FMT_F));
 }
 
 static void
 show_endcmd (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("ENDCMD is \"%c\"."), get_endcmd ());
+  msg (SN, _("ENDCMD is \"%c\"."), settings_get_endcmd ());
 }
 
 static void
 show_errors (const struct dataset *ds UNUSED)
 {
-  bool terminal = get_error_routing_to_terminal ();
-  bool listing = get_error_routing_to_listing ();
+  bool terminal = settings_get_error_routing_to_terminal ();
+  bool listing = settings_get_error_routing_to_listing ();
   msg (SN, _("ERRORS is \"%s\"."),
        terminal && listing ? "BOTH"
        : terminal ? "TERMINAL"
@@ -660,31 +575,31 @@ static void
 show_format (const struct dataset *ds UNUSED)
 {
   char str[FMT_STRING_LEN_MAX + 1];
-  msg (SN, _("FORMAT is %s."), fmt_to_string (get_format (), str));
+  msg (SN, _("FORMAT is %s."), fmt_to_string (settings_get_format (), str));
 }
 
 static void
 show_length (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("LENGTH is %d."), get_viewlength ());
+  msg (SN, _("LENGTH is %d."), settings_get_viewlength ());
 }
 
 static void
 show_mxerrs (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("MXERRS is %d."), get_mxerrs ());
+  msg (SN, _("MXERRS is %d."), settings_get_mxerrs ());
 }
 
 static void
 show_mxloops (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("MXLOOPS is %d."), get_mxloops ());
+  msg (SN, _("MXLOOPS is %d."), settings_get_mxloops ());
 }
 
 static void
 show_mxwarns (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("MXWARNS is %d."), get_mxwarns ());
+  msg (SN, _("MXWARNS is %d."), settings_get_mxwarns ());
 }
 
 /* Outputs that SETTING has the given INTEGER_FORMAT value. */
@@ -750,19 +665,19 @@ show_float_format (const char *setting, enum float_format float_format)
 static void
 show_rib (const struct dataset *ds UNUSED)
 {
-  show_integer_format ("RIB", data_in_get_integer_format ());
+  show_integer_format ("RIB", settings_get_input_integer_format ());
 }
 
 static void
 show_rrb (const struct dataset *ds UNUSED)
 {
-  show_float_format ("RRB", data_in_get_float_format ());
+  show_float_format ("RRB", settings_get_input_float_format ());
 }
 
 static void
 show_scompression (const struct dataset *ds UNUSED)
 {
-  if (get_scompression ())
+  if (settings_get_scompression ())
     msg (SN, _("SCOMPRESSION is ON."));
   else
     msg (SN, _("SCOMPRESSION is OFF."));
@@ -771,7 +686,7 @@ show_scompression (const struct dataset *ds UNUSED)
 static void
 show_undefined (const struct dataset *ds UNUSED)
 {
-  if (get_undefined ())
+  if (settings_get_undefined ())
     msg (SN, _("UNDEFINED is WARN."));
   else
     msg (SN, _("UNDEFINED is NOWARN."));
@@ -780,7 +695,7 @@ show_undefined (const struct dataset *ds UNUSED)
 static void
 show_weight (const struct dataset *ds)
 {
-  struct variable *var = dict_get_weight (dataset_dict (ds));
+  const struct variable *var = dict_get_weight (dataset_dict (ds));
   if (var == NULL)
     msg (SN, _("WEIGHT is off."));
   else
@@ -790,19 +705,19 @@ show_weight (const struct dataset *ds)
 static void
 show_wib (const struct dataset *ds UNUSED)
 {
-  show_integer_format ("WIB", data_out_get_integer_format ());
+  show_integer_format ("WIB", settings_get_output_integer_format ());
 }
 
 static void
 show_wrb (const struct dataset *ds UNUSED)
 {
-  show_float_format ("WRB", data_out_get_float_format ());
+  show_float_format ("WRB", settings_get_output_float_format ());
 }
 
 static void
 show_width (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("WIDTH is %d."), get_viewwidth ());
+  msg (SN, _("WIDTH is %d."), settings_get_viewwidth ());
 }
 
 struct show_sbc

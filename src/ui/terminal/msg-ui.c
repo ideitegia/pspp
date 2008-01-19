@@ -90,14 +90,14 @@ check_msg_count (struct source_stream *ss)
 {
   if (!getl_is_interactive (ss))
     {
-      if (get_errorbreak () && error_count)
+      if (settings_get_errorbreak () && error_count)
         msg (MN, _("Terminating execution of syntax file due to error."));
-      else if (error_count > get_mxerrs() )
+      else if (error_count > settings_get_mxerrs () )
         msg (MN, _("Errors (%d) exceeds limit (%d)."),
-             error_count, get_mxerrs());
-      else if (error_count + warning_count > get_mxwarns() )
+             error_count, settings_get_mxerrs ());
+      else if (error_count + warning_count > settings_get_mxwarns () )
         msg (MN, _("Warnings (%d) exceed limit (%d)."),
-             error_count + warning_count, get_mxwarns() );
+             error_count + warning_count, settings_get_mxwarns () );
       else
         return;
 
@@ -175,14 +175,14 @@ handle_msg (const struct msg *m)
 
   ds_put_cstr (&string, m->text);
 
-  if (msg_file != stdout || get_error_routing_to_terminal ())
+  if (msg_file != stdout || settings_get_error_routing_to_terminal ())
     dump_message (ds_cstr (&string),
-                  isatty (fileno (msg_file)) ? get_viewwidth () : INT_MAX, 8,
+                  isatty (fileno (msg_file)) ? settings_get_viewwidth () : INT_MAX, 8,
                   write_stream, msg_file);
 
   dump_message (ds_cstr (&string), 78, 0, write_journal, NULL);
 
-  if (get_error_routing_to_listing ())
+  if (settings_get_error_routing_to_listing ())
     {
       /* Disable screen output devices, because the error should
          already have been reported to the screen with the

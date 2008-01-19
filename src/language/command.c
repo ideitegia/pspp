@@ -209,13 +209,13 @@ do_parse_command (struct lexer *lexer,
       result = CMD_NOT_IMPLEMENTED;
       goto finish;
     }
-  else if ((command->flags & F_TESTING) && !get_testing_mode ())
+  else if ((command->flags & F_TESTING) && !settings_get_testing_mode ())
     {
       msg (SE, _("%s may be used only in testing mode."), command->name);
       result = CMD_FAILURE;
       goto finish;
     }
-  else if ((command->flags & F_ENHANCED) && get_syntax () != ENHANCED)
+  else if ((command->flags & F_ENHANCED) && settings_get_syntax () != ENHANCED)
     {
       msg (SE, _("%s may be used only in enhanced syntax mode."),
            command->name);
@@ -718,8 +718,8 @@ cmd_complete (const char *prefix, const struct command **cmd)
 
   for (; *cmd < commands + command_cnt; (*cmd)++)
     if (!memcasecmp ((*cmd)->name, prefix, strlen (prefix))
-        && (!((*cmd)->flags & F_TESTING) || get_testing_mode ())
-        && (!((*cmd)->flags & F_ENHANCED) || get_syntax () == ENHANCED)
+        && (!((*cmd)->flags & F_TESTING) || settings_get_testing_mode ())
+        && (!((*cmd)->flags & F_ENHANCED) || settings_get_syntax () == ENHANCED)
         && !((*cmd)->flags & F_ABBREV)
         && ((*cmd)->function != NULL)
         && in_correct_state (*cmd, completion_state))
@@ -768,7 +768,7 @@ cmd_execute (struct lexer *lexer, struct dataset *ds)
 int
 cmd_erase (struct lexer *lexer, struct dataset *ds UNUSED)
 {
-  if (get_safer_mode ())
+  if (settings_get_safer_mode ())
     {
       msg (SE, _("This command not allowed when the SAFER option is set."));
       return CMD_FAILURE;
@@ -876,7 +876,7 @@ cmd_host (struct lexer *lexer, struct dataset *ds UNUSED)
 {
   int look_ahead;
 
-  if (get_safer_mode ())
+  if (settings_get_safer_mode ())
     {
       msg (SE, _("This command not allowed when the SAFER option is set."));
       return CMD_FAILURE;

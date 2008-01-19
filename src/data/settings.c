@@ -23,151 +23,290 @@
 #include "value.h"
 #include "xalloc.h"
 #include <libpspp/i18n.h>
+#include <libpspp/integer-format.h>
+#include <libpspp/message.h>
 
 #include "error.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static int *viewlength = NULL;
-static int *viewwidth = NULL;
-
-static bool safer_mode = false;
-
-static bool do_echo = false;
-static bool include = true;
-
-static int epoch = -1;
-
-static bool errorbreak = false;
-
-static bool route_errors_to_terminal = true;
-static bool route_errors_to_listing = true;
-
-static bool scompress = true;
-
-static bool undefined = true;
-static double blanks = SYSMIS;
-
-static int mxwarns = 100;
-static int mxerrs = 100;
-
-static bool printback = true;
-static bool mprint = true;
-
-static int mxloops = 1;
-
-static bool nulline = true;
-
-static char endcmd = '.';
-
-static size_t workspace = 4L * 1024 * 1024;
-
-static struct fmt_spec default_format = {FMT_F, 8, 2};
-
-static bool testing_mode = false;
-
 static int global_algorithm = ENHANCED;
-static int cmd_algorithm = ENHANCED;
-static int *algorithm = &global_algorithm;
 
-static int syntax = ENHANCED;
+struct settings
+{
+  /* Integer format used for IB and PIB input. */
+  enum integer_format input_integer_format;
 
-static void init_viewport (int *, int *);
+  /* Floating-point format used for RB and RBHEX input. */
+  enum float_format input_float_format;
+
+  /* Format of integers in output (SET WIB). */
+  enum integer_format output_integer_format;
+
+  /* Format of reals in output (SET WRB). */
+  enum float_format output_float_format;
+
+  int *viewlength;
+  int *viewwidth;
+  bool safer_mode;
+  bool do_echo;
+  bool include;
+  int epoch;
+  bool errorbreak;
+  bool route_errors_to_terminal;
+  bool route_errors_to_listing;
+  bool scompress;
+  bool undefined;
+  double blanks;
+  int mxwarns;
+  int mxerrs;
+  bool printback;
+  bool mprint;
+  int mxloops;
+  bool nulline;
+  char endcmd;
+  size_t workspace;
+  struct fmt_spec default_format;
+  bool testing_mode;
+
+  int cmd_algorithm;
+  int *algorithm;
+  int syntax;
+
+  struct fmt_number_style *styles;
+};
+
+static struct settings the_settings = {
+    /* input_integer_format */
+  INTEGER_NATIVE,
+    /* input_float_format */
+  FLOAT_NATIVE_DOUBLE,
+    /* output_integer_format */
+  INTEGER_NATIVE,
+    /* output_float_format */
+  FLOAT_NATIVE_DOUBLE,
+    /* viewlength */
+  NULL,
+    /* viewwidth */
+  NULL,
+    /* safer_mode */
+  false,
+    /* do_echo */
+  false,
+    /* include */
+  true,
+    /* epoch */
+  -1,
+    /* errorbreak */
+  false,
+    /* route_errors_to_terminal */
+  true,
+    /* route_errors_to_listing */
+  true,
+    /* scompress */
+  true,
+    /* undefined */
+  true,
+    /* blanks */
+  SYSMIS,
+    /* mxwarns */
+  100,
+    /* mxerrs */
+  100,
+    /* printback */
+  true,
+    /* mprint */
+  true,
+    /* mxloops */
+  1,
+    /* nulline */
+  true,
+    /* endcmd */
+  '.',
+    /* workspace */
+  4L * 1024 * 1024,
+    /* default_format */
+  {FMT_F, 8, 2},
+    /* testing_mode */
+  false,
+    /* cmd_algorithm */
+  ENHANCED,
+    /* algorithm */
+  &global_algorithm,
+    /* syntax */
+  ENHANCED,
+    /* styles */
+  NULL
+};
+
+static void init_viewport ( int *, int *);
 
 void
 settings_init (int *width, int *length)
 {
   init_viewport (width, length);
+  settings_set_epoch (-1);
   i18n_init ();
+  the_settings.styles = fmt_create ();
 }
 
 void
 settings_done (void)
 {
+  fmt_done (the_settings.styles);
   i18n_done ();
+}
+
+/* Returns the floating-point format used for RB and RBHEX
+   input. */
+enum float_format
+settings_get_input_float_format (void)
+{
+  return the_settings.input_float_format;
+}
+
+/* Sets the floating-point format used for RB and RBHEX input to
+   FORMAT. */
+void
+settings_set_input_float_format ( enum float_format format)
+{
+  the_settings.input_float_format = format;
+}
+
+/* Returns the integer format used for IB and PIB input. */
+enum integer_format
+settings_get_input_integer_format (void)
+{
+  return the_settings.input_integer_format;
+}
+
+/* Sets the integer format used for IB and PIB input to
+   FORMAT. */
+void
+settings_set_input_integer_format ( enum integer_format format)
+{
+  the_settings.input_integer_format = format;
+}
+
+/* Returns the current output integer format. */
+enum integer_format
+settings_get_output_integer_format (void)
+{
+  return the_settings.output_integer_format;
+}
+
+/* Sets the output integer format to INTEGER_FORMAT. */
+void
+settings_set_output_integer_format (
+			   enum integer_format integer_format)
+{
+  the_settings.output_integer_format = integer_format;
+}
+
+/* Returns the current output float format. */
+enum float_format
+settings_get_output_float_format (void)
+{
+  return the_settings.output_float_format;
+}
+
+/* Sets the output float format to FLOAT_FORMAT. */
+void
+settings_set_output_float_format ( enum float_format float_format)
+{
+  the_settings.output_float_format = float_format;
 }
 
 /* Screen length in lines. */
 int
-get_viewlength (void)
+settings_get_viewlength (void)
 {
-  return *viewlength;
+  return *the_settings.viewlength;
 }
 
 /* Sets the view length. */
 void
-set_viewlength (int viewlength_)
+settings_set_viewlength ( int viewlength_)
 {
-  *viewlength = viewlength_;
+  *the_settings.viewlength = viewlength_;
 }
 
 /* Screen width. */
 int
-get_viewwidth(void)
+settings_get_viewwidth(void)
 {
-  return *viewwidth;
+  return *the_settings.viewwidth;
 }
 
 /* Sets the screen width. */
 void
-set_viewwidth (int viewwidth_)
+settings_set_viewwidth ( int viewwidth_)
 {
-  *viewwidth = viewwidth_;
+  *the_settings.viewwidth = viewwidth_;
 }
 
 static void
-init_viewport (int  *width, int *length)
+init_viewport ( int  *width, int *length)
 {
-  viewwidth = width;
-  viewlength = length;
+  the_settings.viewwidth = width;
+  the_settings.viewlength = length;
 }
 
 /* Whether PSPP can erase and overwrite files. */
 bool
-get_safer_mode (void)
+settings_get_safer_mode (void)
 {
-  return safer_mode;
+  return the_settings.safer_mode;
 }
 
 /* Set safer mode. */
 void
-set_safer_mode (void)
+settings_set_safer_mode (void)
 {
-  safer_mode = true;
+  the_settings.safer_mode = true;
 }
 
 /* Echo commands to the listing file/printer? */
 bool
-get_echo (void)
+settings_get_echo (void)
 {
-  return do_echo;
+  return the_settings.do_echo;
 }
 
 /* Set echo. */
 void
-set_echo (bool echo_)
+settings_set_echo ( bool echo)
 {
-  do_echo = echo_;
+  the_settings.do_echo = echo;
 }
 
 /* If echo is on, whether commands from include files are echoed. */
 bool
-get_include (void)
+settings_get_include (void)
 {
-  return include;
+  return the_settings.include;
 }
 
 /* Set include file echo. */
 void
-set_include (bool include_)
+settings_set_include ( bool include)
 {
-  include = include_;
+  the_settings.include = include;
 }
 
 /* What year to use as the start of the epoch. */
 int
-get_epoch (void)
+settings_get_epoch (void)
+{
+  assert (the_settings.epoch >= 0);
+
+  return the_settings.epoch;
+}
+
+/* Sets the year that starts the epoch. */
+void
+settings_set_epoch ( int epoch)
 {
   if (epoch < 0)
     {
@@ -176,218 +315,212 @@ get_epoch (void)
       epoch = (tm != NULL ? tm->tm_year + 1900 : 2000) - 69;
     }
 
-  return epoch;
-}
-
-/* Sets the year that starts the epoch. */
-void
-set_epoch (int epoch_)
-{
-  epoch = epoch_;
+  the_settings.epoch = epoch;
+  assert (the_settings.epoch >= 0);
 }
 
 /* Does an error stop execution? */
 bool
-get_errorbreak (void)
+settings_get_errorbreak (void)
 {
-  return errorbreak;
+  return the_settings.errorbreak;
 }
 
 /* Sets whether an error stops execution. */
 void
-set_errorbreak (bool errorbreak_)
+settings_set_errorbreak ( bool errorbreak)
 {
-  errorbreak = errorbreak_;
+  the_settings.errorbreak = errorbreak;
 }
 
 /* Route error messages to terminal? */
 bool
-get_error_routing_to_terminal (void)
+settings_get_error_routing_to_terminal (void)
 {
-  return route_errors_to_terminal;
+  return the_settings.route_errors_to_terminal;
 }
 
 /* Sets whether error messages should be routed to the
    terminal. */
 void
-set_error_routing_to_terminal (bool route_to_terminal)
+settings_set_error_routing_to_terminal ( bool route_to_terminal)
 {
-  route_errors_to_terminal = route_to_terminal;
+  the_settings.route_errors_to_terminal = route_to_terminal;
 }
 
 /* Route error messages to listing file? */
 bool
-get_error_routing_to_listing (void)
+settings_get_error_routing_to_listing (void)
 {
-  return route_errors_to_listing;
+  return the_settings.route_errors_to_listing;
 }
 
 /* Sets whether error messages should be routed to the
    listing file. */
 void
-set_error_routing_to_listing (bool route_to_listing)
+settings_set_error_routing_to_listing ( bool route_to_listing)
 {
-  route_errors_to_listing = route_to_listing;
+  the_settings.route_errors_to_listing = route_to_listing;
 }
 
 /* Compress system files by default? */
 bool
-get_scompression (void)
+settings_get_scompression (void)
 {
-  return scompress;
+  return the_settings.scompress;
 }
 
 /* Set system file default compression. */
 void
-set_scompression (bool scompress_)
+settings_set_scompression ( bool scompress)
 {
-  scompress = scompress_;
+  the_settings.scompress = scompress;
 }
 
 /* Whether to warn on undefined values in numeric data. */
 bool
-get_undefined (void)
+settings_get_undefined (void)
 {
-  return undefined;
+  return the_settings.undefined;
 }
 
 /* Set whether to warn on undefined values. */
 void
-set_undefined (bool undefined_)
+settings_set_undefined ( bool undefined)
 {
-  undefined = undefined_;
+  the_settings.undefined = undefined;
 }
 
 /* The value that blank numeric fields are set to when read in. */
 double
-get_blanks (void)
+settings_get_blanks (void)
 {
-  return blanks;
+  return the_settings.blanks;
 }
 
 /* Set the value that blank numeric fields are set to when read
    in. */
 void
-set_blanks (double blanks_)
+settings_set_blanks ( double blanks)
 {
-  blanks = blanks_;
+  the_settings.blanks = blanks;
 }
 
 /* Maximum number of warnings + errors. */
 int
-get_mxwarns (void)
+settings_get_mxwarns (void)
 {
-  return mxwarns;
+  return the_settings.mxwarns;
 }
 
 /* Sets maximum number of warnings + errors. */
 void
-set_mxwarns (int mxwarns_)
+settings_set_mxwarns ( int mxwarns)
 {
-  mxwarns = mxwarns_;
+  the_settings.mxwarns = mxwarns;
 }
 
 /* Maximum number of errors. */
 int
-get_mxerrs (void)
+settings_get_mxerrs (void)
 {
-  return mxerrs;
+  return the_settings.mxerrs;
 }
 
 /* Sets maximum number of errors. */
 void
-set_mxerrs (int mxerrs_)
+settings_set_mxerrs ( int mxerrs)
 {
-  mxerrs = mxerrs_;
+  the_settings.mxerrs = mxerrs;
 }
 
 /* Whether commands are written to the display. */
 bool
-get_printback (void)
+settings_get_printback (void)
 {
-  return printback;
+  return the_settings.printback;
 }
 
 /* Sets whether commands are written to the display. */
 void
-set_printback (bool printback_)
+settings_set_printback ( bool printback)
 {
-  printback = printback_;
+  the_settings.printback = printback;
 }
 
 /* Independent of get_printback, controls whether the commands
    generated by macro invocations are displayed. */
 bool
-get_mprint (void)
+settings_get_mprint (void)
 {
-  return mprint;
+  return the_settings.mprint;
 }
 
 /* Sets whether the commands generated by macro invocations are
    displayed. */
 void
-set_mprint (bool mprint_)
+settings_set_mprint ( bool mprint)
 {
-  mprint = mprint_;
+  the_settings.mprint = mprint;
 }
 
 /* Implied limit of unbounded loop. */
 int
-get_mxloops (void)
+settings_get_mxloops (void)
 {
-  return mxloops;
+  return the_settings.mxloops;
 }
 
 /* Set implied limit of unbounded loop. */
 void
-set_mxloops (int mxloops_)
+settings_set_mxloops ( int mxloops)
 {
-  mxloops = mxloops_;
+  the_settings.mxloops = mxloops;
 }
 
 /* Whether a blank line is a command terminator. */
 bool
-get_nulline (void)
+settings_get_nulline (void)
 {
-  return nulline;
+  return the_settings.nulline;
 }
 
 /* Set whether a blank line is a command terminator. */
 void
-set_nulline (bool nulline_)
+settings_set_nulline ( bool nulline)
 {
-  nulline = nulline_;
+  the_settings.nulline = nulline;
 }
 
 /* The character used to terminate commands. */
 char
-get_endcmd (void)
+settings_get_endcmd (void)
 {
-  return endcmd;
+  return the_settings.endcmd;
 }
 
 /* Set the character used to terminate commands. */
 void
-set_endcmd (char endcmd_)
+settings_set_endcmd ( char endcmd)
 {
-  endcmd = endcmd_;
+  the_settings.endcmd = endcmd;
 }
 
 /* Approximate maximum amount of memory to use for cases, in
    bytes. */
 size_t
-get_workspace (void)
+settings_get_workspace (void)
 {
-  return workspace;
+  return the_settings.workspace;
 }
 
 /* Approximate maximum number of cases to allocate in-core, given
    that each case contains VALUE_CNT values. */
 size_t
-get_workspace_cases (size_t value_cnt)
+settings_get_workspace_cases (size_t value_cnt)
 {
   size_t case_size = sizeof (union value) * value_cnt + 4 * sizeof (void *);
-  size_t case_cnt = MAX (get_workspace () / case_size, 4);
+  size_t case_cnt = MAX (settings_get_workspace () / case_size, 4);
   return case_cnt;
 }
 
@@ -395,81 +528,231 @@ get_workspace_cases (size_t value_cnt)
    bytes. */
 
 void
-set_workspace (size_t workspace_)
+settings_set_workspace ( size_t workspace)
 {
-  workspace = workspace_;
+  the_settings.workspace = workspace;
 }
 
 /* Default format for variables created by transformations and by
    DATA LIST {FREE,LIST}. */
 const struct fmt_spec *
-get_format (void)
+settings_get_format (void)
 {
-  return &default_format;
+  return &the_settings.default_format;
 }
 
 /* Set default format for variables created by transformations
    and by DATA LIST {FREE,LIST}. */
 void
-set_format (const struct fmt_spec *default_format_)
+settings_set_format ( const struct fmt_spec *default_format)
 {
-  default_format = *default_format_;
+  the_settings.default_format = *default_format;
 }
 
 /* Are we in testing mode?  (e.g. --testing-mode command line
    option) */
 bool
-get_testing_mode (void)
+settings_get_testing_mode (void)
 {
-  return testing_mode;
+  return the_settings.testing_mode;
 }
 
 /* Set testing mode. */
 void
-set_testing_mode (bool testing_mode_)
+settings_set_testing_mode ( bool testing_mode)
 {
-  testing_mode = testing_mode_;
+  the_settings.testing_mode = testing_mode;
 }
 
 /* Return the current algorithm setting */
 enum behavior_mode
-get_algorithm (void)
+settings_get_algorithm (void)
 {
-  return *algorithm;
+  return *the_settings.algorithm;
 }
 
 /* Set the algorithm option globally. */
 void
-set_algorithm (enum behavior_mode mode)
+settings_set_algorithm (enum behavior_mode mode)
 {
   global_algorithm = mode;
 }
 
 /* Set the algorithm option for this command only */
 void
-set_cmd_algorithm (enum behavior_mode mode)
+settings_set_cmd_algorithm ( enum behavior_mode mode)
 {
-  cmd_algorithm = mode;
-  algorithm = &cmd_algorithm;
+  the_settings.cmd_algorithm = mode;
+  the_settings.algorithm = &the_settings.cmd_algorithm;
 }
 
 /* Unset the algorithm option for this command */
 void
 unset_cmd_algorithm (void)
 {
-  algorithm = &global_algorithm;
+  the_settings.algorithm = &global_algorithm;
 }
 
 /* Get the current syntax setting */
 enum behavior_mode
-get_syntax (void)
+settings_get_syntax (void)
 {
-  return syntax;
+  return the_settings.syntax;
 }
 
 /* Set the syntax option */
 void
-set_syntax (enum behavior_mode mode)
+settings_set_syntax ( enum behavior_mode mode)
 {
-  syntax = mode;
+  the_settings.syntax = mode;
+}
+
+
+
+/* Find the grouping characters in CC_STRING and set CC's
+   grouping and decimal members appropriately.  Returns true if
+   successful, false otherwise. */
+static bool
+find_cc_separators (const char *cc_string, struct fmt_number_style *cc)
+{
+  const char *sp;
+  int comma_cnt, dot_cnt;
+
+  /* Count commas and periods.  There must be exactly three of
+     one or the other, except that an apostrophe escapes a
+     following comma or period. */
+  comma_cnt = dot_cnt = 0;
+  for (sp = cc_string; *sp; sp++)
+    if (*sp == ',')
+      comma_cnt++;
+    else if (*sp == '.')
+      dot_cnt++;
+    else if (*sp == '\'' && (sp[1] == '.' || sp[1] == ',' || sp[1] == '\''))
+      sp++;
+
+  if ((comma_cnt == 3) == (dot_cnt == 3))
+    return false;
+
+  if (comma_cnt == 3)
+    {
+      cc->decimal = '.';
+      cc->grouping = ',';
+    }
+  else
+    {
+      cc->decimal = ',';
+      cc->grouping = '.';
+    }
+  return true;
+}
+
+/* Extracts a token from IN into a newly allocated AFFIX.  Tokens
+   are delimited by GROUPING.  The token is truncated to at most
+   FMT_STYLE_AFFIX_MAX characters.  Returns the first character
+   following the token. */
+static const char *
+extract_cc_token (const char *in, int grouping, struct substring *affix)
+{
+  size_t ofs = 0;
+  ss_alloc_uninit (affix, FMT_STYLE_AFFIX_MAX);
+  for (; *in != '\0' && *in != grouping; in++)
+    {
+      if (*in == '\'' && in[1] == grouping)
+        in++;
+      if (ofs < FMT_STYLE_AFFIX_MAX)
+        ss_data (*affix)[ofs++] = *in;
+    }
+  affix->length = ofs;
+
+  if (*in == grouping)
+    in++;
+  return in;
+}
+
+
+/* Sets custom currency specifier CC having name CC_NAME ('A' through
+   'E') to correspond to the settings in CC_STRING. */
+bool
+settings_set_cc (const char *cc_string, enum fmt_type type)
+{
+  struct fmt_number_style *cc = &the_settings.styles[type];
+
+  assert (fmt_get_category (type) == FMT_CAT_CUSTOM);
+
+  /* Determine separators. */
+  if (!find_cc_separators (cc_string, cc))
+    {
+      msg (SE, _("%s: Custom currency string `%s' does not contain "
+                 "exactly three periods or commas (or it contains both)."),
+           fmt_name (type), cc_string);
+      return false;
+    }
+
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_prefix);
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->prefix);
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->suffix);
+  cc_string = extract_cc_token (cc_string, cc->grouping, &cc->neg_suffix);
+
+  fmt_check_style (cc);
+
+  return true;
+}
+
+/* Returns the decimal point character for TYPE. */
+int
+settings_get_decimal_char (enum fmt_type type)
+{
+  return fmt_get_style (the_settings.styles, type)->decimal;
+}
+
+void
+settings_set_decimal_char (char decimal)
+{
+  fmt_set_decimal (the_settings.styles, decimal);
+}
+
+
+
+/* Returns the number formatting style associated with the given
+   format TYPE. */
+const struct fmt_number_style *
+settings_get_style (enum fmt_type type)
+{
+  assert (is_fmt_type (type));
+  return &the_settings.styles[type];
+}
+
+
+/* Returns a string of the form "$#,###.##" according to FMT,
+   which must be of type FMT_DOLLAR.  The caller must free the
+   string. */
+char *
+settings_dollar_template (const struct fmt_spec *fmt)
+{
+  const struct fmt_number_style *styles = the_settings.styles;
+  struct string str = DS_EMPTY_INITIALIZER;
+  int c;
+  const struct fmt_number_style *fns ;
+
+  assert (fmt->type == FMT_DOLLAR);
+
+  fns = fmt_get_style (styles, fmt->type);
+
+  ds_put_char (&str, '$');
+  for (c = MAX (fmt->w - fmt->d - 1, 0); c > 0; )
+    {
+      ds_put_char (&str, '#');
+      if (--c % 4 == 0 && c > 0)
+        {
+          ds_put_char (&str, fns->grouping);
+          --c;
+        }
+    }
+  if (fmt->d > 0)
+    {
+      ds_put_char (&str, fns->decimal);
+      ds_put_char_multiple (&str, '#', fmt->d);
+    }
+
+  return ds_cstr (&str);
 }

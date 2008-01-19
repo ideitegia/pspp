@@ -801,9 +801,9 @@ parse_sysvar (struct lexer *lexer, struct expression *e)
                                    + tm->tm_sec);
     }
   else if (lex_match_id (lexer, "$LENGTH"))
-    return expr_allocate_number (e, get_viewlength ());
+    return expr_allocate_number (e, settings_get_viewlength ());
   else if (lex_match_id (lexer, "$WIDTH"))
-    return expr_allocate_number (e, get_viewwidth ());
+    return expr_allocate_number (e, settings_get_viewwidth ());
   else
     {
       msg (SE, _("Unknown system variable %s."), lex_tokid (lexer));
@@ -1260,7 +1260,7 @@ parse_function (struct lexer *lexer, struct expression *e)
   if (!validate_function_args (f, arg_cnt, min_valid))
     goto fail;
 
-  if ((f->flags & OPF_EXTENSION) && get_syntax () == COMPATIBLE)
+  if ((f->flags & OPF_EXTENSION) && settings_get_syntax () == COMPATIBLE)
     msg (SW, _("%s is a PSPP extension."), f->prototype);
   if (f->flags & OPF_UNIMPLEMENTED)
     {

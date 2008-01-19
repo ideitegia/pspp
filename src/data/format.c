@@ -37,7 +37,9 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-static bool is_fmt_type (enum fmt_type);
+
+
+bool is_fmt_type (enum fmt_type);
 
 static int min_width (enum fmt_type, bool for_input);
 static int max_width (enum fmt_type);
@@ -46,27 +48,35 @@ static int max_decimals (enum fmt_type, int width, bool for_input);
 
 static int max_digits_for_bytes (int bytes);
 
+void fmt_number_style_init (struct fmt_number_style *style);
+
+
 /* Initialize the format module. */
-void
-fmt_init (void)
+struct fmt_number_style *
+fmt_create (void)
 {
-  static bool inited = false;
-  if (!inited)
-    {
-      inited = true;
-      fmt_set_decimal ('.');
-    }
+  struct fmt_number_style *styles =
+    xcalloc (FMT_NUMBER_OF_FORMATS, sizeof (*styles));
+
+  int t;
+  for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
+    fmt_number_style_init (&styles[t]);
+
+  fmt_set_decimal (styles, '.');
+
+  return styles;
 }
 
-static struct fmt_number_style *styles[FMT_NUMBER_OF_FORMATS];
 
 /* Deinitialize the format module. */
 void
-fmt_done (void)
+fmt_done (struct fmt_number_style *styles)
 {
   int t;
   for (t = 0 ; t < FMT_NUMBER_OF_FORMATS ; ++t )
-    fmt_number_style_destroy (styles[t]);
+    fmt_number_style_destroy (&styles[t]);
+
+  free (styles);
 }
 
 /* Returns an input format specification with type TYPE, width W,
@@ -126,7 +136,9 @@ fmt_for_output_from_input (const struct fmt_spec *input)
     case FMT_DOLLAR:
     case FMT_PCT:
       {
-        const struct fmt_number_style *style = fmt_get_style (input->type);
+        const struct fmt_number_style *style =
+	  settings_get_style (input->type);
+
         output.w += fmt_affix_width (style);
         if (style->grouping != 0 && input->w - input->d >= 3)
           output.w += (input->w - input->d - 1) / 3;
@@ -380,7 +392,7 @@ fmt_equal (const struct fmt_spec *a, const struct fmt_spec *b)
 
 /* Adjusts FMT to be valid for a value of the given WIDTH. */
 void
-fmt_resize (struct fmt_spec *fmt, int width) 
+fmt_resize (struct fmt_spec *fmt, int width)
 {
   if ((width > 0) != fmt_is_string (fmt->type))
     {
@@ -394,7 +406,7 @@ fmt_resize (struct fmt_spec *fmt, int width)
          width. */
       fmt->w = fmt->type == FMT_AHEX ? width * 2 : width;
     }
-  else 
+  else
     {
       /* Still numeric. */
     }
@@ -617,39 +629,10 @@ fmt_date_template (enum fmt_type type)
     }
 }
 
-/* Returns a string of the form "$#,###.##" according to FMT,
-   which must be of type FMT_DOLLAR.  The caller must free the
-   string. */
-char *
-fmt_dollar_template (const struct fmt_spec *fmt)
-{
-  struct string s = DS_EMPTY_INITIALIZER;
-  int c;
-
-  assert (fmt->type == FMT_DOLLAR);
-
-  ds_put_char (&s, '$');
-  for (c = MAX (fmt->w - fmt->d - 1, 0); c > 0; )
-    {
-      ds_put_char (&s, '#');
-      if (--c % 4 == 0 && c > 0)
-        {
-          ds_put_char (&s, fmt_grouping_char (fmt->type));
-          --c;
-        }
-    }
-  if (fmt->d > 0)
-    {
-      ds_put_char (&s, fmt_decimal_char (fmt->type));
-      ds_put_char_multiple (&s, '#', fmt->d);
-    }
-
-  return ds_cstr (&s);
-}
 
 /* Returns true if TYPE is a valid format type,
    false otherwise. */
-static bool
+bool
 is_fmt_type (enum fmt_type type)
 {
   return type < FMT_NUMBER_OF_FORMATS;
@@ -819,20 +802,18 @@ max_digits_for_bytes (int bytes)
 }
 
 
-/* Creates and returns a new struct fmt_number_style,
-   initializing all affixes to empty strings. */
-struct fmt_number_style *
-fmt_number_style_create (void)
+
+void
+fmt_number_style_init (struct fmt_number_style *style)
 {
-  struct fmt_number_style *style = xmalloc (sizeof *style);
   style->neg_prefix = ss_empty ();
   style->prefix = ss_empty ();
   style->suffix = ss_empty ();
   style->neg_suffix = ss_empty ();
   style->decimal = '.';
   style->grouping = 0;
-  return style;
 }
+
 
 /* Destroys a struct fmt_number_style. */
 void
@@ -844,24 +825,22 @@ fmt_number_style_destroy (struct fmt_number_style *style)
       ss_dealloc (&style->prefix);
       ss_dealloc (&style->suffix);
       ss_dealloc (&style->neg_suffix);
-      free (style);
     }
 }
 
 /* Returns the number formatting style associated with the given
    format TYPE. */
 const struct fmt_number_style *
-fmt_get_style (enum fmt_type type)
+fmt_get_style (const struct fmt_number_style *styles, enum fmt_type type)
 {
   assert (is_fmt_type (type));
-  assert (styles[type] != NULL);
-  return styles[type];
+  return &styles[type];
 }
 
-/* Sets STYLE as the number formatting style associated with the
-   given format TYPE, transferring ownership of STYLE.  */
+
+/* Checks that style is STYLE sane */
 void
-fmt_set_style (enum fmt_type type, struct fmt_number_style *style)
+fmt_check_style (const struct fmt_number_style *style)
 {
   assert (ss_length (style->neg_prefix) <= FMT_STYLE_AFFIX_MAX);
   assert (ss_length (style->prefix) <= FMT_STYLE_AFFIX_MAX);
@@ -871,13 +850,8 @@ fmt_set_style (enum fmt_type type, struct fmt_number_style *style)
   assert (style->grouping == '.' || style->grouping == ','
           || style->grouping == 0);
   assert (style->grouping != style->decimal);
-
-  assert (fmt_get_category (type) == FMT_CAT_CUSTOM);
-  assert (styles[type] != NULL);
-
-  fmt_number_style_destroy (styles[type]);
-  styles[type] = style;
 }
+
 
 /* Returns the total width of the standard prefix and suffix for
    STYLE. */
@@ -895,28 +869,13 @@ fmt_neg_affix_width (const struct fmt_number_style *style)
   return ss_length (style->neg_prefix) + ss_length (style->neg_suffix);
 }
 
-/* Returns the decimal point character for the given format
-   TYPE. */
-int
-fmt_decimal_char (enum fmt_type type)
-{
-  return fmt_get_style (type)->decimal;
-}
-
-/* Returns the grouping character for the given format TYPE, or 0
-   if the format type does not group digits. */
-int
-fmt_grouping_char (enum fmt_type type)
-{
-  return fmt_get_style (type)->grouping;
-}
 
 /* Sets the number style for TYPE to have the given standard
    PREFIX and SUFFIX, "-" as prefix suffix, an empty negative
    suffix, DECIMAL as the decimal point character, and GROUPING
    as the grouping character. */
 static void
-set_style (enum fmt_type type,
+set_style (struct fmt_number_style *styles, enum fmt_type type,
            const char *prefix, const char *suffix,
            char decimal, char grouping)
 {
@@ -924,9 +883,10 @@ set_style (enum fmt_type type,
 
   assert (is_fmt_type (type));
 
-  fmt_number_style_destroy (styles[type]);
+  style = &styles[type] ;
 
-  style = styles[type] = fmt_number_style_create ();
+  fmt_number_style_destroy (style);
+
   ss_alloc_substring (&style->neg_prefix, ss_cstr ("-"));
   ss_alloc_substring (&style->prefix, ss_cstr (prefix));
   ss_alloc_substring (&style->suffix, ss_cstr (suffix));
@@ -934,37 +894,19 @@ set_style (enum fmt_type type,
   style->grouping = grouping;
 }
 
-/* Sets the number style for TYPE as with set_style, but only if
-   TYPE has not already been initialized. */
-static void
-init_style (enum fmt_type type,
-            const char *prefix, const char *suffix,
-            char decimal, char grouping)
-{
-  assert (is_fmt_type (type));
-  if (styles[type] == NULL)
-    set_style (type, prefix, suffix, decimal, grouping);
-}
-
 /* Sets the decimal point character to DECIMAL. */
 void
-fmt_set_decimal (char decimal)
+fmt_set_decimal (struct fmt_number_style *styles, char decimal)
 {
   int grouping = decimal == '.' ? ',' : '.';
   assert (decimal == '.' || decimal == ',');
 
-  set_style (FMT_F, "", "", decimal, 0);
-  set_style (FMT_E, "", "", decimal, 0);
-  set_style (FMT_COMMA, "", "", decimal, grouping);
-  set_style (FMT_DOT, "", "", grouping, decimal);
-  set_style (FMT_DOLLAR, "$", "", decimal, grouping);
-  set_style (FMT_PCT, "", "%", decimal, 0);
-
-  init_style (FMT_CCA, "", "", decimal, grouping);
-  init_style (FMT_CCB, "", "", decimal, grouping);
-  init_style (FMT_CCC, "", "", decimal, grouping);
-  init_style (FMT_CCD, "", "", decimal, grouping);
-  init_style (FMT_CCE, "", "", decimal, grouping);
+  set_style (styles, FMT_F, "", "", decimal, 0);
+  set_style (styles, FMT_E, "", "", decimal, 0);
+  set_style (styles, FMT_COMMA, "", "", decimal, grouping);
+  set_style (styles, FMT_DOT, "", "", grouping, decimal);
+  set_style (styles, FMT_DOLLAR, "$", "", decimal, grouping);
+  set_style (styles, FMT_PCT, "", "%", decimal, 0);
 }
 
 /* Returns the struct fmt_desc for the given format TYPE. */

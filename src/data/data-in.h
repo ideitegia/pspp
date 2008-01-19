@@ -24,11 +24,6 @@
 #include <libpspp/integer-format.h>
 #include <libpspp/str.h>
 
-enum integer_format data_in_get_integer_format (void);
-void data_in_set_integer_format (enum integer_format);
-
-enum float_format data_in_get_float_format (void);
-void data_in_set_float_format (enum float_format);
 
 union value;
 bool data_in (struct substring input, enum legacy_encoding,

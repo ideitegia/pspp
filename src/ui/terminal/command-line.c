@@ -96,9 +96,9 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
 	  /* Compatibility options */
         case 'a':
 	  if ( 0 == strcmp(optarg,"compatible") )
-	      set_algorithm(COMPATIBLE);
+	      settings_set_algorithm(COMPATIBLE);
 	  else if ( 0 == strcmp(optarg,"enhanced"))
-	      set_algorithm(ENHANCED);
+	      settings_set_algorithm(ENHANCED);
 	  else
 	    {
 	      usage ();
@@ -108,9 +108,9 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
 
 	case 'x':
 	  if ( 0 == strcmp(optarg,"compatible") )
-	    set_syntax(COMPATIBLE);
+	    settings_set_syntax (COMPATIBLE);
 	  else if ( 0 == strcmp(optarg,"enhanced"))
-	    set_syntax(ENHANCED);
+	    settings_set_syntax (ENHANCED);
 	  else
 	    {
 	      usage ();
@@ -162,7 +162,7 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
 	  process_statrc = false;
 	  break;
 	case 's':
-	  set_safer_mode ();
+	  settings_set_safer_mode ();
 	  break;
 	case 'v':
 	  verbose_increment_level ();
@@ -172,7 +172,7 @@ parse_command_line (int argc, char **argv, struct source_stream *ss)
 	  puts (legal);
 	  return false;
         case 'T':
-          set_testing_mode (true);
+          settings_set_testing_mode (true);
           break;
 	case '?':
 	  usage ();

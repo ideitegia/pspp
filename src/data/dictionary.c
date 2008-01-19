@@ -653,7 +653,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   rename_var (d, v, new_name);
   hsh_force_insert (d->name_tab, v);
 
-  if (get_algorithm () == ENHANCED)
+  if (settings_get_algorithm () == ENHANCED)
     var_clear_short_names (v);
 
   if ( d->callbacks &&  d->callbacks->var_changed )
@@ -718,7 +718,7 @@ dict_rename_vars (struct dictionary *d,
       }
 
   /* Clear short names. */
-  if (get_algorithm () == ENHANCED)
+  if (settings_get_algorithm () == ENHANCED)
     for (i = 0; i < count; i++)
       var_clear_short_names (vars[i]);
 

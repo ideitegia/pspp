@@ -1850,16 +1850,16 @@ dump_parser (int persistent)
 
 
   /* Now deal with the /ALGORITHM subcommand implicit to all commands */
-  dump(1,"else if ( get_syntax() != COMPATIBLE && lex_match_id(lexer, \"ALGORITHM\"))");
+  dump(1,"else if ( settings_get_syntax () != COMPATIBLE && lex_match_id(lexer, \"ALGORITHM\"))");
   dump(1,"{");
 
   dump (0, "lex_match (lexer, '=');");
 
   dump(1,"if (lex_match_id(lexer, \"COMPATIBLE\"))");
-  dump(0,"set_cmd_algorithm(COMPATIBLE);");
+  dump(0,"settings_set_cmd_algorithm (COMPATIBLE);");
   outdent();
   dump(1,"else if (lex_match_id(lexer, \"ENHANCED\"))");
-  dump(0,"set_cmd_algorithm(ENHANCED);");
+  dump(0,"settings_set_cmd_algorithm (ENHANCED);");
 
   dump (-1, "}");
   outdent ();
