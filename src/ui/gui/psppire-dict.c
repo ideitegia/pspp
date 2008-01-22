@@ -790,6 +790,10 @@ psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
   if ( ! var_is_valid_name (name, false))
     return FALSE;
 
+  /* Make sure no other variable has this name */
+  if ( NULL != psppire_dict_lookup_var (dict, name))
+    return FALSE;
+
   dict_rename_var (dict->dict, v, name);
 
   return TRUE;
