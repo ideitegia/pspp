@@ -15,18 +15,22 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
 #include "dialog-common.h"
+
+#include "psppire-var-ptr.h"
 
 #include "helper.h"
 
 
 /* Append the names of selected variables to STRING.
    TREEVIEW is the treeview containing the variables.
+   COLUMN is the column in the treeview containing the variables.
    DICT is the dictionary for those variables.
 */
 gint
 append_variable_names (GString *string,
-		       PsppireDict *dict, GtkTreeView *treeview)
+		       PsppireDict *dict, GtkTreeView *treeview, gint column)
 {
   gint n_vars = 0;
   GtkTreeIter iter;
@@ -39,12 +43,23 @@ append_variable_names (GString *string,
       do
 	{
 	  GValue value = {0};
-	  struct variable *var;
+	  struct variable *var = NULL;
 	  GtkTreePath *path = gtk_tree_model_get_path (list_store, &iter);
 
-	  gtk_tree_model_get_value (list_store, &iter, 0, &value);
+	  gtk_tree_model_get_value (list_store, &iter, column, &value);
 
+	  /* FIXME:  G_TYPE_INT should be deprecated.
+	     As well as being simpler, it'd be unecessary to pass dict */
+	  if ( G_VALUE_TYPE (&value) == G_TYPE_INT )
 	  var = psppire_dict_get_variable (dict, g_value_get_int (&value));
+
+	  else if ( G_VALUE_TYPE (&value) == PSPPIRE_VAR_PTR_TYPE)
+	    var = g_value_get_boxed (&value);
+
+	  else
+	    g_critical ("Unsupported type \"%s\", in variable name treeview.",
+			G_VALUE_TYPE_NAME (&value));
+
 	  g_value_unset (&value);
 
 	  g_string_append (string, " ");

@@ -71,7 +71,7 @@ generate_syntax (const struct split_file_dialog *sfd)
       GtkWidget *sort = get_widget_assert (sfd->xml, "split-radiobutton3");
       GtkWidget *layered = get_widget_assert (sfd->xml, "split-radiobutton1");
       gint n_vars = append_variable_names (varlist,
-					   sfd->dict, GTK_TREE_VIEW (vars));
+					   sfd->dict, GTK_TREE_VIEW (vars), 0);
 
       if ( n_vars > 0 )
 	{
@@ -211,6 +211,7 @@ split_file_dialog (GObject *o, gpointer data)
 				 source,
 				 dest,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &sfd);

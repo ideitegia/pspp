@@ -162,7 +162,7 @@ generate_syntax (const struct tt_indep_samples_dialog *d)
 
   GString *str = g_string_new ("T-TEST /VARIABLES=");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (tv));
+  append_variable_names (str, d->dict, GTK_TREE_VIEW (tv), 0);
 
   g_string_append (str, "\n\t/GROUPS=");
 
@@ -443,6 +443,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
 				 dict_view, test_variables_treeview,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (selector1),
@@ -452,7 +453,8 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
 				 dict_view, tt_d.groups_entry,
 				 insert_source_row_into_entry,
-				 is_currently_in_entry);
+				 is_currently_in_entry,
+				 NULL);
 
   g_signal_connect_swapped (tt_d.define_groups_button, "clicked",
 			    G_CALLBACK (run_define_groups), &tt_d);

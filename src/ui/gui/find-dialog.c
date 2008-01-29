@@ -251,7 +251,8 @@ find_dialog (GObject *o, gpointer data)
 				 source,
 				 fd.variable_entry,
 				 insert_source_row_into_entry,
-				 is_currently_in_entry
+				 is_currently_in_entry,
+				 NULL
 				 );
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &fd);

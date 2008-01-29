@@ -118,7 +118,7 @@ generate_syntax (const struct descriptives_dialog *scd)
 
   string = g_string_new ("DESCRIPTIVES");
   g_string_append (string, "\n    /VARIABLES=");
-  append_variable_names (string, scd->dict, GTK_TREE_VIEW (scd->stat_vars));
+  append_variable_names (string, scd->dict, GTK_TREE_VIEW (scd->stat_vars), 0);
 
   listwise = gtk_toggle_button_get_active (scd->exclude_missing_listwise);
   include = gtk_toggle_button_get_active (scd->include_user_missing);
@@ -235,6 +235,7 @@ descriptives_dialog (GObject *o, gpointer data)
 				 source,
 				 dest,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
   put_checkbox_items_in_treeview (GTK_TREE_VIEW (stats_treeview),

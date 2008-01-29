@@ -111,7 +111,7 @@ generate_syntax (const struct rank_dialog *rd)
 
   GString *str = g_string_new ("RANK VARIABLES=");
 
-  append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->rank_vars));
+  append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->rank_vars), 0);
 
   g_string_append_printf (str, " (%c)",
 		   gtk_toggle_button_get_active (rd->ascending_togglebutton)
@@ -121,7 +121,7 @@ generate_syntax (const struct rank_dialog *rd)
     {
       g_string_append (str, "\n\tBY ");
 
-      append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->group_vars));
+      append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->group_vars), 0);
     }
 
   g_string_append (str, "\n\t/PRINT = ");
@@ -320,6 +320,7 @@ rank_dialog (GObject *o, gpointer data)
 				 vars,
 				 rd.rank_vars,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
   set_dest_model (GTK_TREE_VIEW (rd.group_vars), vs->dict);
@@ -328,6 +329,7 @@ rank_dialog (GObject *o, gpointer data)
 				 vars,
 				 rd.group_vars,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
 

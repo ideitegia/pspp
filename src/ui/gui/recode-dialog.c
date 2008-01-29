@@ -959,6 +959,7 @@ recode_dialog (struct data_editor *de, gboolean diff)
 				 rd.dict_treeview,
 				 rd.variable_treeview,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (selector), homogeneous_types);
@@ -1443,7 +1444,7 @@ generate_syntax (const struct recode_dialog *rd)
 
   g_string_append (str, "\nRECODE ");
 
-  append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->variable_treeview));
+  append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->variable_treeview), 0);
 
   g_string_append (str, "\n\t");
 

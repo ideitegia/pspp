@@ -1,3 +1,16 @@
+2008-01-29  John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-var-ptr.c psppire-var-ptr.h: New files
+
+	* t-test-paired-samples.c t-test-paired-samples.h: New files
+
+        * dialog-common.c dialog-common.h (append_variable_names): Add extra 
+	argument to specify the column number containing the variables.
+
+	* psppire-selector.c psppire-selector.h:  Add auxilliary data variable
+	to SelectItemsFunc.  (is_item_in_dest) transform model value to G_TYPE_INT
+	before using.  Hence the model need not be of integer type.
+
 2008-01-22  John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-dict.c (psppire_dict_rename_var): Fixed bug where

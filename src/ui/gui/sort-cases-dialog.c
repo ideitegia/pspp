@@ -51,7 +51,7 @@ generate_syntax (const struct sort_cases_dialog *scd)
   gchar *text;
   GString *string = g_string_new ("SORT CASES BY ");
   gint n_vars = append_variable_names (string,
-				       scd->dict, GTK_TREE_VIEW (scd->tv));
+				       scd->dict, GTK_TREE_VIEW (scd->tv), 0);
 
   if ( n_vars == 0 )
     g_string_assign (string, "");
@@ -107,6 +107,7 @@ sort_cases_dialog (GObject *o, gpointer data)
 				 source,
 				 dest,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  dest);

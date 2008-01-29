@@ -465,7 +465,9 @@ select_selection (PsppireSelector *selector)
 
       selector->select_items (child_iter,
 			      selector->dest,
-			      childmodel);
+			      childmodel,
+			      selector->select_user_data
+			      );
     }
 
   g_list_foreach (selected_rows, (GFunc) gtk_tree_path_free, NULL);
@@ -549,10 +551,21 @@ is_item_in_dest (GtkTreeModel *model, GtkTreeIter *iter,
 
   do
     {
+      int x;
       GValue value = {0};
+      GValue int_value = {0};
       gtk_tree_model_get_value (dest_model, &dest_iter, 0, &value);
 
-      if ( g_value_get_int (&value) == index)
+      g_value_init (&int_value, G_TYPE_INT);
+
+      g_value_transform (&value, &int_value);
+
+      x = g_value_get_int (&int_value);
+
+      g_value_unset (&int_value);
+      g_value_unset (&value);
+
+      if ( x == index )
 	return TRUE;
     }
   while (gtk_tree_model_iter_next (dest_model, &dest_iter));
@@ -772,7 +785,8 @@ psppire_selector_set_subjects (PsppireSelector *selector,
 			       GtkWidget *source,
 			       GtkWidget *dest,
 			       SelectItemsFunc *select_func,
-			       FilterItemsFunc *filter_func )
+			       FilterItemsFunc *filter_func,
+			       gpointer user_data)
 {
   g_assert(selector);
 
@@ -780,6 +794,7 @@ psppire_selector_set_subjects (PsppireSelector *selector,
 
   selector->source = source;
   selector->dest = dest;
+  selector->select_user_data = user_data;
 
   if ( filter_func == NULL)
     {
@@ -794,7 +809,9 @@ psppire_selector_set_subjects (PsppireSelector *selector,
 
   g_assert ( GTK_IS_TREE_MODEL_FILTER (selector->filtered_source));
 
-  if  ( GTK_IS_TREE_VIEW (dest))
+  if ( NULL == dest)
+    ;
+  else if  ( GTK_IS_TREE_VIEW (dest))
     set_tree_view_dest (selector, GTK_TREE_VIEW (dest));
 
   else if ( GTK_IS_ENTRY (dest))

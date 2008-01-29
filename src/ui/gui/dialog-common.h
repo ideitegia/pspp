@@ -25,9 +25,11 @@
 
 /* Append the names of selected variables to STRING.
    TREEVIEW is the treeview containing the variables.
+   COLUMN is column in treeview containing the variables.
    DICT is the dictionary for those variables.
 */
-gint append_variable_names (GString *, PsppireDict *, GtkTreeView *);
+gint append_variable_names (GString *string, PsppireDict *dict,
+			    GtkTreeView *treeview, gint column);
 
 
 /* Returns the variable currently selected by the iterator

@@ -373,6 +373,8 @@ connect_notify_signal (GtkWidget *w, gpointer data)
       GtkTreeViewColumn *col;
       GtkTreeModel *model = gtk_tree_view_get_model (tv);
 
+      if ( model)
+	{
       g_signal_connect_swapped (model, "row-changed",
 				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
@@ -384,6 +386,7 @@ connect_notify_signal (GtkWidget *w, gpointer data)
       g_signal_connect_swapped (model, "row-inserted",
 				G_CALLBACK (psppire_dialog_notify_change),
 				dialog);
+	}
 
       g_signal_connect_swapped (selection, "changed",
 				G_CALLBACK (psppire_dialog_notify_change),

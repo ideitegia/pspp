@@ -148,7 +148,7 @@ generate_syntax (const struct frequencies_dialog *fd)
   GString *string = g_string_new ("FREQUENCIES");
 
   g_string_append (string, "\n\t/VARIABLES=");
-  append_variable_names (string, fd->dict, GTK_TREE_VIEW (fd->stat_vars));
+  append_variable_names (string, fd->dict, GTK_TREE_VIEW (fd->stat_vars), 0);
 
   g_string_append (string, "\n\t/FORMAT=");
 
@@ -348,6 +348,7 @@ frequencies_dialog (GObject *o, gpointer data)
 				 source,
 				 dest,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
 

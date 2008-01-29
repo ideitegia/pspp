@@ -34,12 +34,14 @@ static void function_list_populate (GtkTreeView *tv);
 
 static void insert_function_into_syntax_area (GtkTreeIter iter,
 					      GtkWidget *text_view,
-					      GtkTreeModel *model
+					      GtkTreeModel *model,
+					      gpointer data
 					      );
 
 static void insert_source_row_into_text_view (GtkTreeIter iter,
 					      GtkWidget *dest,
-					      GtkTreeModel *model
+					      GtkTreeModel *model,
+					      gpointer data
 					      );
 
 
@@ -401,6 +403,7 @@ compute_dialog (GObject *o, gpointer data)
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (var_selector),
 				 dict_view, syntax_area,
 				 insert_source_row_into_text_view,
+				 NULL,
 				 NULL);
 
 
@@ -409,6 +412,7 @@ compute_dialog (GObject *o, gpointer data)
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (func_selector),
 				 functions, syntax_area,
 				 insert_function_into_syntax_area,
+				 NULL,
 				 NULL);
 
 
@@ -527,7 +531,8 @@ function_list_populate (GtkTreeView *tv)
 static void
 insert_function_into_syntax_area (GtkTreeIter iter,
 				  GtkWidget *text_view,
-				  GtkTreeModel *model
+				  GtkTreeModel *model,
+				  gpointer data
 				  )
 {
   GString *string;
@@ -590,7 +595,8 @@ insert_function_into_syntax_area (GtkTreeIter iter,
 static void
 insert_source_row_into_text_view (GtkTreeIter iter,
 				  GtkWidget *dest,
-				  GtkTreeModel *model
+				  GtkTreeModel *model,
+				  gpointer data
 				  )
 {
   GtkTreePath *path;

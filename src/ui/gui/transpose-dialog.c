@@ -84,13 +84,15 @@ transpose_dialog (GObject *o, gpointer data)
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
 				 source, dest,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
 				 source, new_name_entry,
 				 insert_source_row_into_entry,
-				 is_currently_in_entry);
+				 is_currently_in_entry,
+				 NULL);
 
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  xml);
@@ -145,7 +147,7 @@ generate_syntax (PsppireDict *dict, GladeXML *xml)
 
   g_string_append (string, " /VARIABLES = ");
 
-  append_variable_names (string, dict, GTK_TREE_VIEW (dest));
+  append_variable_names (string, dict, GTK_TREE_VIEW (dest), 0);
 
   text = gtk_entry_get_text (GTK_ENTRY (entry));
 

@@ -144,7 +144,8 @@ weight_cases_dialog (GObject *o, gpointer data)
 				 source,
 				 entry,
 				 insert_source_row_into_entry,
-				 is_currently_in_entry
+				 is_currently_in_entry,
+				 NULL
 				 );
 
 

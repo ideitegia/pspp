@@ -46,7 +46,8 @@ typedef struct _PsppireSelectorClass  PsppireSelectorClass;
 /* Function for appending selected items to the destination widget */
 typedef void SelectItemsFunc (GtkTreeIter iter,
 			      GtkWidget *dest,
-			      GtkTreeModel *source_model);
+			      GtkTreeModel *source_model,
+			      gpointer data);
 
 /* Function to determine if items may be selected */
 typedef gboolean AllowSelectionFunc (GtkWidget *src, GtkWidget *dest);
@@ -91,6 +92,8 @@ struct _PsppireSelector
   GtkTreeModelFilter *filtered_source;
 
   SelectItemsFunc *select_items;
+  gpointer select_user_data;
+
   FilterItemsFunc *filter;
 
   AllowSelectionFunc *allow_selection;
@@ -111,7 +114,8 @@ void       psppire_selector_set_subjects    (PsppireSelector *,
 					     GtkWidget *,
 					     GtkWidget *,
 					     SelectItemsFunc *,
-					     FilterItemsFunc * );
+					     FilterItemsFunc *,
+					     gpointer );
 
 void      psppire_selector_set_allow        (PsppireSelector *, AllowSelectionFunc *);
 

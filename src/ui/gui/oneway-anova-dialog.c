@@ -184,13 +184,15 @@ oneway_anova_dialog (GObject *o, gpointer data)
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
 				 dict_view, ow.vars_treeview,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
 				 dict_view, ow.factor_entry,
 				 insert_source_row_into_entry,
-				 is_currently_in_entry);
+				 is_currently_in_entry,
+				 NULL);
 
 
 
@@ -271,7 +273,7 @@ static gchar * generate_syntax (const struct oneway_anova_dialog *ow)
 
   GString *str = g_string_new ("ONEWAY /VARIABLES=");
 
-  append_variable_names (str, ow->dict, GTK_TREE_VIEW (ow->vars_treeview));
+  append_variable_names (str, ow->dict, GTK_TREE_VIEW (ow->vars_treeview), 0);
 
   g_string_append (str, " BY ");
 

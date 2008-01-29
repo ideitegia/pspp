@@ -60,7 +60,7 @@ generate_syntax (const struct tt_one_sample_dialog *d)
 
   g_string_append (str, "\n\t/VARIABLES=");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (d->vars_treeview));
+  append_variable_names (str, d->dict, GTK_TREE_VIEW (d->vars_treeview), 0);
 
   tt_options_dialog_append_syntax (d->opt, str);
 
@@ -164,6 +164,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 dict_view, tt_d.vars_treeview,
 				 insert_source_row_into_tree_view,
+				 NULL,
 				 NULL);
 
 

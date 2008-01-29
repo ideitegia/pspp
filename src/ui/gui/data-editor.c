@@ -50,6 +50,7 @@
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
 #include "t-test-one-sample.h"
+#include "t-test-paired-samples.h"
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -613,6 +614,16 @@ new_data_editor (void)
 		    G_CALLBACK (t_test_independent_samples_dialog), de);
 
 
+  de->invoke_t_test_paired_samples_dialog =
+    gtk_action_new ("t-test-paired-samples",
+		    _("_Paired Samples T Test"),
+		    _("Calculate T Test for paired samples"),
+		    NULL);
+
+  g_signal_connect (de->invoke_t_test_paired_samples_dialog, "activate",
+		    G_CALLBACK (t_test_paired_samples_dialog), de);
+
+
   de->invoke_t_test_one_sample_dialog =
     gtk_action_new ("t-test-one-sample",
 		    _("One _Sample T Test"),
@@ -826,6 +837,12 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->invoke_t_test_independent_samples_dialog,
 			    get_widget_assert (de->xml,
 					       "indep-t-test")
+			    );
+
+
+  gtk_action_connect_proxy (de->invoke_t_test_paired_samples_dialog,
+			    get_widget_assert (de->xml,
+					       "paired-t-test")
 			    );
 
 

@@ -137,6 +137,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-keypad.h \
 	src/ui/gui/psppire-selector.c \
 	src/ui/gui/psppire-selector.h \
+	src/ui/gui/psppire-var-ptr.c \
+	src/ui/gui/psppire-var-ptr.h \
 	src/ui/gui/psppire-var-store.c \
 	src/ui/gui/psppire-var-store.h \
 	src/ui/gui/rank-dialog.c \
@@ -161,6 +163,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/t-test-one-sample.h \
 	src/ui/gui/t-test-options.c \
 	src/ui/gui/t-test-options.h \
+	src/ui/gui/t-test-paired-samples.c \
+	src/ui/gui/t-test-paired-samples.h \
 	src/ui/gui/val-labs-dialog.c \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \

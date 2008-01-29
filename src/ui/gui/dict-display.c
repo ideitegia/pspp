@@ -225,7 +225,8 @@ attach_dictionary_to_treeview (GtkTreeView *treeview, PsppireDict *dict,
 void
 insert_source_row_into_entry (GtkTreeIter iter,
 			      GtkWidget *dest,
-			      GtkTreeModel *model
+			      GtkTreeModel *model,
+			      gpointer data
 			      )
 {
   GtkTreePath *path;
@@ -257,7 +258,8 @@ insert_source_row_into_entry (GtkTreeIter iter,
 void
 insert_source_row_into_tree_view (GtkTreeIter iter,
 				  GtkWidget *dest,
-				  GtkTreeModel *model
+				  GtkTreeModel *model,
+				  gpointer data
 				  )
 {
   GtkTreePath *path;
