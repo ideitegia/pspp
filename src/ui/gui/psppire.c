@@ -189,7 +189,6 @@ create_icon_factory (void)
 	}
     }
 
-
   {
     /* Create our own "pspp-stock-reset" item, using the
        GTK_STOCK_REFRESH icon set */

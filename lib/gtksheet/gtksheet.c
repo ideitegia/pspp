@@ -6261,6 +6261,7 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
 	      style->fg[GTK_STATE_ACTIVE] = previous_style->fg[GTK_STATE_ACTIVE];
 	    }
 	  gtk_widget_set_style (GTK_WIDGET (sheet_entry), style);
+          g_object_unref (style);
 	}
     }
 

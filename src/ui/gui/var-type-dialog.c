@@ -332,6 +332,7 @@ var_type_dialog_create (GladeXML *xml)
   g_assert (xml);
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
+  dialog->active_button = -1;
 
 
   g_signal_connect (dialog->window, "delete-event",

@@ -282,7 +282,7 @@ gboolean
 psppire_case_file_data_in (PsppireCaseFile *cf, casenumber casenum, gint idx,
                           struct substring input, const struct fmt_spec *fmt)
 {
-  union value *value;
+  union value *value = NULL;
   int width;
   bool ok;
 
