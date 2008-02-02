@@ -1,3 +1,9 @@
+2008-02-01  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6386.  Thanks to John Darrington for review.
+
+	* str.c (str_format_26adic): New function.
+
 2007-12-24  John Darrington <john@darrington.wattle.id.au>
 
         * taint.c (taint_destroy): Return true if pointer is null.

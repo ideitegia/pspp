@@ -53,7 +53,6 @@ set_var_short_name_suffix (struct variable *v, size_t i,
 {
   char suffix[SHORT_NAME_LEN + 1];
   char short_name[SHORT_NAME_LEN + 1];
-  char *start, *end;
   int len, ofs;
 
   assert (suffix_number >= 0);
@@ -62,26 +61,18 @@ set_var_short_name_suffix (struct variable *v, size_t i,
   var_set_short_name (v, i, base);
 
   /* Compose suffix. */
-  start = end = suffix + sizeof suffix - 1;
-  *end = '\0';
-  do
-    {
-      *--start = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[suffix_number % 26];
-      if (start <= suffix + 1)
-        msg (SE, _("Variable suffix too large."));
-      suffix_number /= 26;
-    }
-  while (suffix_number > 0);
-  *--start = '_';
+  suffix[0] = '_';
+  if (!str_format_26adic (suffix_number, &suffix[1], sizeof suffix - 1))
+    msg (SE, _("Variable suffix too large."));
+  len = strlen (suffix);
 
   /* Append suffix to V's short name. */
   str_copy_trunc (short_name, sizeof short_name, base);
-  len = end - start;
-  if (len + strlen (short_name) > SHORT_NAME_LEN)
+  if (strlen (short_name) + len > SHORT_NAME_LEN)
     ofs = SHORT_NAME_LEN - len;
   else
     ofs = strlen (short_name);
-  strcpy (short_name + ofs, start);
+  strcpy (short_name + ofs, suffix);
 
   /* Set name. */
   var_set_short_name (v, i, short_name);
@@ -111,7 +102,7 @@ assign_short_name (struct variable *v, size_t i, struct hsh_table *short_names)
       if (trial == 0)
         var_set_short_name (v, i, var_get_name (v));
       else
-        set_var_short_name_suffix (v, i, var_get_name (v), trial - 1);
+        set_var_short_name_suffix (v, i, var_get_name (v), trial);
 
       if (hsh_insert (short_names, (char *) var_get_short_name (v, i)) == NULL)
         break;

@@ -23,12 +23,14 @@
 
 #include "case.h"
 #include "category.h"
+#include "identifier.h"
 #include "settings.h"
 #include "value-labels.h"
 #include "vardict.h"
 #include "variable.h"
 #include "vector.h"
 #include <libpspp/array.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
@@ -36,6 +38,7 @@
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 
+#include "intprops.h"
 #include "minmax.h"
 #include "xalloc.h"
 
@@ -724,6 +727,111 @@ dict_rename_vars (struct dictionary *d,
 
   pool_destroy (pool);
   return true;
+}
+
+static bool
+make_hinted_name (const struct dictionary *dict, const char *hint,
+                  char name[VAR_NAME_LEN + 1])
+{
+  bool dropped = false;
+  char *cp;
+
+  for (cp = name; *hint && cp < name + VAR_NAME_LEN; hint++)
+    {
+      if (cp == name
+          ? lex_is_id1 (*hint) && *hint != '$'
+          : lex_is_idn (*hint))
+        {
+          if (dropped)
+            {
+              *cp++ = '_';
+              dropped = false;
+            }
+          if (cp < name + VAR_NAME_LEN)
+            *cp++ = *hint;
+        }
+      else if (cp > name)
+        dropped = true;
+    }
+  *cp = '\0';
+
+  if (name[0] != '\0')
+    {
+      size_t len = strlen (name);
+      unsigned long int i;
+
+      if (dict_lookup_var (dict, name) == NULL)
+        return true;
+
+      for (i = 0; i < ULONG_MAX; i++)
+        {
+          char suffix[INT_BUFSIZE_BOUND (i) + 1];
+          int ofs;
+
+          suffix[0] = '_';
+          if (!str_format_26adic (i + 1, &suffix[1], sizeof suffix - 1))
+            NOT_REACHED ();
+
+          ofs = MIN (VAR_NAME_LEN - strlen (suffix), len);
+          strcpy (&name[ofs], suffix);
+
+          if (dict_lookup_var (dict, name) == NULL)
+            return true;
+        }
+    }
+
+  return false;
+}
+
+static bool
+make_numeric_name (const struct dictionary *dict, unsigned long int *num_start,
+                   char name[VAR_NAME_LEN + 1])
+{
+  unsigned long int number;
+
+  for (number = num_start != NULL ? MAX (*num_start, 1) : 1;
+       number < ULONG_MAX;
+       number++)
+    {
+      sprintf (name, "VAR%03lu", number);
+      if (dict_lookup_var (dict, name) == NULL)
+        {
+          if (num_start != NULL)
+            *num_start = number + 1;
+          return true;
+        }
+    }
+
+  if (num_start != NULL)
+    *num_start = ULONG_MAX;
+  return false;
+}
+
+
+/* Attempts to devise a variable name unique within DICT.
+   Returns true if successful, in which case the new variable
+   name is stored into NAME.  Returns false if all names that can
+   be generated have already been taken.  (Returning false is
+   quite unlikely: at least ULONG_MAX unique names can be
+   generated.)
+
+   HINT, if it is non-null, is used as a suggestion that will be
+   modified for suitability as a variable name and for
+   uniqueness.
+
+   If HINT is null or entirely unsuitable, a name in the form
+   "VAR%03d" will be generated, where the smallest unused integer
+   value is used.  If NUM_START is non-null, then its value is
+   used as the minimum numeric value to check, and it is updated
+   to the next value to be checked.
+   */
+bool
+dict_make_unique_var_name (const struct dictionary *dict, const char *hint,
+                           unsigned long int *num_start,
+                           char name[VAR_NAME_LEN + 1])
+{
+  return ((hint != NULL && make_hinted_name (dict, hint, name))
+          || make_numeric_name (dict, num_start, name));
 }
 
 /* Returns the weighting variable in dictionary D, or a null

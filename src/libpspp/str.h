@@ -46,6 +46,8 @@ void str_copy_buf_trunc (char *, size_t, const char *, size_t);
 void str_uppercase (char *);
 void str_lowercase (char *);
 
+bool str_format_26adic (unsigned long int number, char buffer[], size_t);
+
 char *spprintf (char *dst, const char *format, ...);
 
 void *mempset (void *, int, size_t);

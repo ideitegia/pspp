@@ -308,66 +308,6 @@ process_node (struct gnumeric_reader *r)
 }
 
 
-
-/*
-  Change SUGGESTION until it's a valid name that can be added to DICT.
-*/
-static void
-devise_name (const struct dictionary *dict, struct string *name, int *x)
-{
-  struct string basename;
-  if ( ds_is_empty (name))
-    ds_init_cstr (&basename, "var");
-  else
-    ds_init_string (&basename, name);
-  do
-    {
-      ds_clear (name);
-      ds_put_format (name, "%s%d", ds_cstr (&basename), ++(*x));
-    }
-  while (NULL != dict_lookup_var (dict, ds_cstr (name)) );
-
-  ds_destroy (&basename);
-}
-
-/*
-   Mutate NAME of a variable, which is gauranteed to be valid for the
-   dictionary DICT.
-*/
-static void
-munge_name (const struct dictionary *dict, struct string *name)
-{
-  int x = 0;
-
-  if (! ds_is_empty (name))
-    {
-      /* Change all the invalid characters to valid ones */
-      char *s;
-
-      s = ds_data (name);
-
-      if ( !lex_is_id1 (*s))
-	*s = '@';
-
-      s++;
-
-      while (s < ds_data (name) + ds_length (name))
-	{
-	  if ( !lex_is_idn (*s))
-	    *s = '_';
-	  s++;
-	}
-
-      assert (var_is_valid_name (ds_cstr (name), false));
-    }
-
-  while (ds_is_empty (name) || NULL != dict_lookup_var (dict, ds_cstr (name)) )
-    {
-      devise_name (dict, name, &x);
-    }
-}
-
-
 /*
    Sets the VAR of case C, to the value corresponding to the xml string XV
  */
@@ -410,6 +350,7 @@ struct var_spec
 struct casereader *
 gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 {
+  unsigned long int vstart = 0;
   int ret;
   casenumber n_cases = CASENUMBER_MAX;
   int i;
@@ -567,25 +508,23 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
   for (i = 0 ; i < n_var_specs ; ++i )
     {
-      struct string name;
+      char name[VAR_NAME_LEN + 1];
 
-      /* Probably no data exists for this variable, so allocate a default width */
+      /* Probably no data exists for this variable, so allocate a
+	 default width */
       if ( var_spec[i].width == -1 )
 	var_spec[i].width = MAX_SHORT_STRING;
 
       r->value_cnt += value_cnt_from_width (var_spec[i].width);
 
-      if (var_spec[i].name)
-	ds_init_cstr (&name, var_spec[i].name);
-      else
-	ds_init_empty (&name);
+      if  ( ! dict_make_unique_var_name (r->dict, var_spec[i].name,
+					 &vstart, name))
+	{
+	  msg (ME, _("Cannot create variable name from %s"), var_spec[i].name);
+	  goto error;
+	}
 
-      munge_name (r->dict, &name);
-
-
-      dict_create_var (r->dict, ds_cstr (&name), var_spec[i].width);
-
-      ds_destroy (&name);
+      dict_create_var (r->dict, name, var_spec[i].width);
     }
 
   /* Create the first case, and cache it */

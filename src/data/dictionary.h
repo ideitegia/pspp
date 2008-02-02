@@ -75,11 +75,14 @@ void dict_reorder_var (struct dictionary *, struct variable *,
 void dict_reorder_vars (struct dictionary *,
                         struct variable *const *, size_t count);
 
-/* Changing variable names. */
+/* Variable names. */
 void dict_rename_var (struct dictionary *, struct variable *, const char *);
 bool dict_rename_vars (struct dictionary *,
                        struct variable **, char **new_names,
                        size_t count, char **err_name);
+bool dict_make_unique_var_name (const struct dictionary *, const char *hint,
+                                unsigned long int *num_start,
+                                char name[]);
 
 /* Weight variable. */
 double dict_get_case_weight (const struct dictionary *,

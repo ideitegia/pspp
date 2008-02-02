@@ -252,6 +252,41 @@ str_lowercase (char *s)
     *s = tolower ((unsigned char) *s);
 }
 
+/* Converts NUMBER into a string in 26-adic notation in BUFFER,
+   which has room for SIZE bytes.  Returns true if successful,
+   false if NUMBER, plus a trailing null, is too large to fit in
+   the available space.
+
+   26-adic notation is "spreadsheet column numbering": 1 = A, 2 =
+   B, 3 = C, ... 26 = Z, 27 = AA, 28 = AB, 29 = AC, ...
+
+   26-adic notation is the special case of a k-adic numeration
+   system (aka bijective base-k numeration) with k=26.  In k-adic
+   numeration, the digits are {1, 2, 3, ..., k} (there is no
+   digit 0), and integer 0 is represented by the empty string.
+   For more information, see
+   http://en.wikipedia.org/wiki/Bijective_numeration. */
+bool
+str_format_26adic (unsigned long int number, char buffer[], size_t size)
+{
+  size_t length = 0;
+
+  while (number-- > 0)
+    {
+      if (length >= size)
+        return false;
+      buffer[length++] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[number % 26];
+      number /= 26;
+    }
+
+  if (length >= size)
+    return false;
+  buffer[length] = '\0';
+
+  buf_reverse (buffer, length);
+  return true;
+}
+
 /* Formats FORMAT into DST, as with sprintf(), and returns the
    address of the terminating null written to DST. */
 char *

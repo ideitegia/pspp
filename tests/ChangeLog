@@ -1,3 +1,12 @@
+2008-02-01  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add new test.
+
+	* libpspp/str-test.c: New test.
+
+	* command/get-dat-gnm.sh: Update variable names to match new
+	naming scheme.
+
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new tests.

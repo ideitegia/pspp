@@ -1,3 +1,20 @@
+2008-02-01  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6386.  Thanks to John Darrington for review and for the
+	updates to gnumeric-reader.c.
+
+	* dictionary.c (make_hinted_name): New function.
+	(make_numeric_name): New function.
+	(dict_make_unique_var_name): New function.
+
+	* gnumeric-reader.c (devise_name): Removed.
+	(munge_name): Removed.
+	(gnumeric_open_reader): Use new function
+	dict_make_unique_var_name.
+
+	* short-names.c (set_var_short_name_suffix): Use new function
+	str_format_26adic.
+
 2008-01-19  John Darrington <john@darrington.wattle.id.au>
 
 	* settings.c settings.h: Moved static variables into a 

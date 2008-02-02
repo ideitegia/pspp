@@ -96,23 +96,23 @@ diff $TEMPDIR/pspp.list - <<EOF
 +--------+-------------------------------------------+--------+
 |Variable|Description                                |Position|
 #========#===========================================#========#
-|var1    |Format: F8.2                               |       1|
+|VAR001  |Format: F8.2                               |       1|
 |        |Measure: Scale                             |        |
 |        |Display Alignment: Right                   |        |
 |        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
-|var2    |Format: A8                                 |       2|
+|VAR002  |Format: A8                                 |       2|
 |        |Measure: Nominal                           |        |
 |        |Display Alignment: Left                    |        |
 |        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
-|var3    |Format: F8.2                               |       3|
+|VAR003  |Format: F8.2                               |       3|
 |        |Measure: Scale                             |        |
 |        |Display Alignment: Right                   |        |
 |        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 
-    var1     var2     var3
+  VAR001   VAR002   VAR003
 -------- -------- --------
      .00 fred        20.00 
     1.00 11          21.00 
@@ -134,13 +134,13 @@ diff $TEMPDIR/pspp.list - <<EOF
 |        |Display Alignment: Left                    |        |
 |        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
-|var1    |Format: F8.2                               |       3|
+|VAR001  |Format: F8.2                               |       3|
 |        |Measure: Scale                             |        |
 |        |Display Alignment: Right                   |        |
 |        |Display Width: 8                           |        |
 +--------+-------------------------------------------+--------+
 
-      V1       V2     var1
+      V1       V2   VAR001
 -------- -------- --------
      .00 fred        20.00 
     1.00 11          21.00 
