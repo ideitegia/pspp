@@ -1,3 +1,13 @@
+2008-02-02  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6347.
+
+	* sys-file-reader.c (read_variable_record): Allow missing values
+	to be specified on long string variables, but warn about them
+	because PSPP does not yet support them.
+	(read_extension_record): Ignore extension records 20 and 21, which
+	PSPP does not yet support.
+
 2008-02-01  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6386.  Thanks to John Darrington for review and for the

@@ -549,11 +549,14 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
           for (i = 0; i < missing_value_code; i++)
             mv_add_num (&mv, read_float (r));
         }
-      else if (var_get_width (var) <= MAX_SHORT_STRING)
+      else
         {
           if (missing_value_code < 1 || missing_value_code > 3)
             sys_error (r, _("String missing value indicator field is not "
                             "0, 1, 2, or 3."));
+          if (var_is_long_string (var))
+            sys_warn (r, _("Ignoring missing values on long string variable "
+                           "%s, which PSPP does not yet support."), name);
           for (i = 0; i < missing_value_code; i++)
             {
               char string[9];
@@ -561,10 +564,8 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
               mv_add_str (&mv, string);
             }
         }
-      else
-        sys_error (r, _("Long string variable %s may not have missing "
-                        "values."), name);
-      var_set_missing_values (var, &mv);
+      if (!var_is_long_string (var))
+        var_set_missing_values (var, &mv);
     }
 
   /* Set formats. */
@@ -750,6 +751,18 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
     case 17:
       /* Text field that defines variable attributes.  New in
          SPSS 14. */
+      break;
+
+    case 20:
+      /* New in SPSS 16.  Contains a single string that describes
+         the character encoding, e.g. "windows-1252". */
+      break;
+
+    case 21:
+      /* New in SPSS 16.  Encodes value labels for long string
+         variables. */
+      sys_warn (r, _("Ignoring value labels for long string variables, "
+                     "which PSPP does not yet support."));
       break;
 
     default:
