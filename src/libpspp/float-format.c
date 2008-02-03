@@ -21,10 +21,10 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <libpspp/assertion.h>
 #include <libpspp/integer-format.h>
-#include <libpspp/str.h>
 
 #include "error.h"
 #include <byteswap.h>

@@ -255,6 +255,13 @@ tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 
+noinst_PROGRAMS += tests/dissect-sysfile
+tests_dissect_sysfile_SOURCES = \
+	src/libpspp/integer-format.c \
+	src/libpspp/float-format.c \
+	tests/dissect-sysfile.c
+tests_dissect_sysfile_LDADD = gl/libgl.la @LIBINTL@
+
 EXTRA_DIST += \
 	$(dist_TESTS) \
         tests/Book1.gnm.unzipped \

@@ -1,3 +1,9 @@
+2008-02-02  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Add target for dissect-sysfile.
+
+	* dissect-sysfile.c: New program.
+
 2008-02-01  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add new test.
