@@ -417,7 +417,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
     get_widget_assert (xml, "indep-samples-t-test-selector1");
 
   GtkWidget *options_button =
-    get_widget_assert (xml, "options-button");
+    get_widget_assert (xml, "indep-samples-t-test-options-button");
 
   vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 

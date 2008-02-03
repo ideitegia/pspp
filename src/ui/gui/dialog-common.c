@@ -280,17 +280,14 @@ numeric_only (GtkWidget *source, GtkWidget *dest)
   for (l = list; l ; l = l->next)
     {
       GtkTreePath *path = l->data;
-      GtkTreePath *fpath;
-      gint *idx;
-
-      const struct variable *v;
-
-      fpath = gtk_tree_model_filter_convert_path_to_child_path
+      GtkTreePath *fpath = gtk_tree_model_filter_convert_path_to_child_path
 	(GTK_TREE_MODEL_FILTER (model), path);
 
-      idx = gtk_tree_path_get_indices (fpath);
+      gint *idx = gtk_tree_path_get_indices (fpath);
 
-      v = psppire_dict_get_variable (dict, idx[0]);
+      const struct variable *v = psppire_dict_get_variable (dict, idx[0]);
+
+      gtk_tree_path_free (fpath);
 
       if ( var_is_alpha (v))
 	{

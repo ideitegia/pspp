@@ -196,7 +196,7 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
   GtkWidget *dict_view =
     get_widget_assert (xml, "paired-samples-t-test-treeview1");
 
-  GtkWidget *options_button = get_widget_assert (xml, "options-button");
+  GtkWidget *options_button = get_widget_assert (xml, "paired-samples-t-test-options-button");
 
   GtkWidget *selector = get_widget_assert (xml, "psppire-selector3");
 
