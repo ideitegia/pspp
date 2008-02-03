@@ -7,6 +7,8 @@
 	because PSPP does not yet support them.
 	(read_extension_record): Ignore extension records 20 and 21, which
 	PSPP does not yet support.
+	(read_header): Fix error message when floating-point format cannot
+	be identified.
 
 2008-02-01  Ben Pfaff  <blp@gnu.org>
 

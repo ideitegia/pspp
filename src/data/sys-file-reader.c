@@ -425,10 +425,9 @@ read_header (struct sfm_reader *r, struct dictionary *dict,
   read_bytes (r, raw_bias, sizeof raw_bias);
   if (float_identify (100.0, raw_bias, sizeof raw_bias, &r->float_format) == 0)
     {
-      sys_warn (r, _("Compression bias (%g) is not the usual "
+      sys_warn (r, _("Compression bias is not the usual "
                      "value of 100, or system file uses unrecognized "
-                     "floating-point format."),
-                r->bias);
+                     "floating-point format."));
       if (r->integer_format == INTEGER_MSB_FIRST)
         r->float_format = FLOAT_IEEE_DOUBLE_BE;
       else
