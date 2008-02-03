@@ -326,7 +326,6 @@ struct recode_dialog
   GtkWidget *ov_high_down_entry;
 
   GtkListStore *value_map;
-  GtkListStore *local_store;
 
   /* Indicates that the INTO {new variables} form of the dialog
      is being used */
@@ -1110,6 +1109,10 @@ recode_dialog (struct data_editor *de, gboolean diff)
       break;
     }
 
+
+  gtk_list_store_clear (GTK_LIST_STORE (rd.value_map));
+  g_object_unref (rd.value_map);
+
   g_object_unref (xml);
 }
 
@@ -1263,11 +1266,9 @@ static void
 run_old_and_new_dialog (struct recode_dialog *rd)
 {
   gint response;
-  rd->local_store = clone_list_store (rd->value_map);
+  GtkListStore *local_store = clone_list_store (rd->value_map);
 
-  g_object_ref (rd->local_store);
-
-  psppire_acr_set_model (rd->acr, rd->local_store);
+  psppire_acr_set_model (rd->acr, local_store);
   psppire_acr_set_get_value_func (rd->acr, set_value, rd);
 
   gtk_window_set_title (GTK_WINDOW (rd->old_and_new_dialog),
@@ -1316,7 +1317,12 @@ run_old_and_new_dialog (struct recode_dialog *rd)
 
 
   if ( response == PSPPIRE_RESPONSE_CONTINUE )
-      rd->value_map = clone_list_store (rd->local_store);
+    {
+      g_object_unref (rd->value_map);
+      rd->value_map = clone_list_store (local_store);
+    }
+  else
+    g_object_unref (local_store);
 
 
   psppire_dialog_notify_change (PSPPIRE_DIALOG (rd->dialog));

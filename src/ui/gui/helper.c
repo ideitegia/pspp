@@ -336,6 +336,8 @@ clone_list_store (const GtkListStore *src)
       row++;
     }
 
+  g_free (types);
+
   return dest;
 }
 
