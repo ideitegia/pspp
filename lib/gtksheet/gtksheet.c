@@ -136,10 +136,13 @@ guint DEFAULT_ROW_HEIGHT (GtkWidget *widget)
 	pango_context_get_metrics (context,
 				   widget->style->font_desc,
 				   pango_context_get_language (context));
+
       guint val = pango_font_metrics_get_descent (metrics) +
 	pango_font_metrics_get_ascent (metrics);
+
       pango_font_metrics_unref (metrics);
-      return PANGO_PIXELS (val)+2 * CELLOFFSET;
+
+      return PANGO_PIXELS (val) + 2 * CELLOFFSET;
     }
 }
 
@@ -6702,7 +6705,7 @@ gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column)
 {
   GdkWindow *window = NULL;
   GdkRectangle allocation;
-  GtkSheetButton *button = NULL;
+
   gboolean is_sensitive = FALSE;
 
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
@@ -6731,7 +6734,7 @@ gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column)
     }
   else
     {
-      button = xxx_column_button (sheet, column);
+      GtkSheetButton *button = xxx_column_button (sheet, column);
       allocation.x = COLUMN_LEFT_XPIXEL (sheet, column) + CELL_SPACING;
       if (sheet->row_titles_visible)
 	allocation.x -= sheet->row_title_area.width;
@@ -6741,6 +6744,12 @@ gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column)
       is_sensitive = xxx_column_is_sensitive (sheet, column);
       gtk_sheet_button_draw (sheet, window, button,
 			     is_sensitive, allocation);
+
+      /* FIXME: Not freeing this button is correct (sort of),
+      because in PSPP the model always returns a static copy */
+
+      /* gtk_sheet_button_free (button); */
+
     }
 }
 
@@ -7640,10 +7649,13 @@ gtk_sheet_column_size_request (GtkSheet *sheet,
 {
   GtkRequisition button_requisition;
   GList *children;
+  GtkSheetButton *button = xxx_column_button (sheet, col);
 
   gtk_sheet_button_size_request (sheet,
-				 xxx_column_button (sheet, col),
+				 button,
 				 &button_requisition);
+
+  gtk_sheet_button_free (button);
 
   *requisition = button_requisition.width;
 

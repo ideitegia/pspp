@@ -48,6 +48,7 @@ static void psppire_data_store_sheet_column_init (GSheetColumnIface *iface);
 static void psppire_data_store_sheet_row_init (GSheetRowIface *iface);
 
 static void psppire_data_store_finalize        (GObject           *object);
+static void psppire_data_store_dispose        (GObject           *object);
 
 static gboolean psppire_data_store_clear_datum (GSheetModel *model,
 					  glong row, glong column);
@@ -137,6 +138,7 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
   object_class = (GObjectClass*) class;
 
   object_class->finalize = psppire_data_store_finalize;
+  object_class->dispose = psppire_data_store_dispose;
 
   signals [FONT_CHANGED] =
     g_signal_new ("font_changed",
@@ -182,10 +184,9 @@ static void
 psppire_data_store_init (PsppireDataStore *data_store)
 {
   data_store->dict = 0;
-  data_store->case_file = 0;
+  data_store->case_file = NULL;
   data_store->width_of_m = 10;
-
-
+  data_store->dispose_has_run = FALSE;
 }
 
 const PangoFontDescription *
@@ -396,10 +397,8 @@ psppire_data_store_set_case_file (PsppireDataStore *ds,
 				  PsppireCaseFile *cf)
 {
   gint i;
-  if ( ds->case_file)
-    {
-      g_object_unref (ds->case_file);
-    }
+  if ( ds->case_file)  g_object_unref (ds->case_file);
+
 
   ds->case_file = cf;
 
@@ -514,6 +513,24 @@ psppire_data_store_finalize (GObject *object)
   /* must chain up */
   (* parent_class->finalize) (object);
 }
+
+
+static void
+psppire_data_store_dispose (GObject *object)
+{
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (object);
+
+  if (ds->dispose_has_run)
+    return;
+
+  if (ds->case_file) g_object_unref (ds->case_file);
+
+  /* must chain up */
+  (* parent_class->dispose) (object);
+
+  ds->dispose_has_run = TRUE;
+}
+
 
 gboolean
 psppire_data_store_delete_cases (PsppireDataStore *ds,

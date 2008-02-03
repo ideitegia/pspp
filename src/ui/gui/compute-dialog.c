@@ -153,7 +153,7 @@ generate_syntax (const struct compute_dialog *cd)
   gchar *text;
   GString *string ;
   const gchar *target_name ;
-  const gchar *expression;
+  gchar *expression;
   const gchar *label;
   GtkTextIter start, end;
   GtkWidget *target = get_widget_assert   (cd->xml, "compute-entry1");
@@ -207,6 +207,9 @@ generate_syntax (const struct compute_dialog *cd)
 			  );
 
   g_string_append (string, "EXECUTE.\n");
+
+
+  g_free (expression);
 
   text = string->str;
 

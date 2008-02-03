@@ -1,3 +1,11 @@
+2008-02-03  John Darrington <john@darrington.wattle.id.au>
+
+        * psppire-case-file.c psppire-case-file.h: Dont clone the casereader
+	before creating datasheet.  Add properties instead of direct code 
+        in _new function.
+
+        * psppire-data-store.c:  Implement proper dispose function.
+
 2008-01-29  John Darrington <john@darrington.wattle.id.au>
 
 	* psppire-var-ptr.c psppire-var-ptr.h: New files

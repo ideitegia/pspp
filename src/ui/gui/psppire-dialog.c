@@ -428,6 +428,8 @@ psppire_dialog_run (PsppireDialog *dialog)
 
   g_main_loop_run (dialog->loop);
 
+  g_main_loop_unref (dialog->loop);
+
   return dialog->response;
 }
 

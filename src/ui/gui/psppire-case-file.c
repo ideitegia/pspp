@@ -80,15 +80,90 @@ psppire_case_file_get_type (void)
   return object_type;
 }
 
+/* Properties */
+enum
+{
+  PROP_0,
+  PROP_DATASHEET,
+  PROP_READER
+};
+
+
+
+
+static void
+psppire_case_file_set_property (GObject         *object,
+				guint            prop_id,
+				const GValue    *value,
+				GParamSpec      *pspec)
+
+{
+  PsppireCaseFile *cf = PSPPIRE_CASE_FILE (object);
+
+  switch (prop_id)
+    {
+    case PROP_READER:
+      cf->datasheet = datasheet_create (g_value_get_pointer (value));
+      cf->accessible = TRUE;
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
+static void
+psppire_case_file_get_property (GObject         *object,
+				guint            prop_id,
+				GValue          *value,
+				GParamSpec      *pspec)
+{
+  PsppireCaseFile *cf = PSPPIRE_CASE_FILE (object);
+
+  switch (prop_id)
+    {
+    case PROP_DATASHEET:
+      g_value_set_pointer (value, cf->datasheet);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    };
+}
+
 
 static void
 psppire_case_file_class_init (PsppireCaseFileClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
+  GParamSpec *datasheet_spec ;
+  GParamSpec *reader_spec ;
 
   parent_class = g_type_class_peek_parent (class);
 
   object_class->finalize = psppire_case_file_finalize;
+
+  datasheet_spec =
+    g_param_spec_pointer ("datasheet",
+			  "Datasheet",
+			  "A pointer to the datasheet belonging to this object",
+			  G_PARAM_READABLE );
+  reader_spec =
+    g_param_spec_pointer ("casereader",
+			  "CaseReader",
+			  "A pointer to the case reader from which this object is constructed",
+			  G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE );
+
+  object_class->set_property = psppire_case_file_set_property;
+  object_class->get_property = psppire_case_file_get_property;
+
+  g_object_class_install_property (object_class,
+                                   PROP_DATASHEET,
+                                   datasheet_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_READER,
+                                   reader_spec);
 
   signals [CASE_CHANGED] =
     g_signal_new ("case-changed",
@@ -152,14 +227,11 @@ psppire_case_file_init (PsppireCaseFile *cf)
  * Creates a new #PsppireCaseFile.
  */
 PsppireCaseFile*
-psppire_case_file_new (const struct casereader *reader)
+psppire_case_file_new (struct casereader *reader)
 {
-  PsppireCaseFile *cf = g_object_new (G_TYPE_PSPPIRE_CASE_FILE, NULL);
-
-  cf->datasheet = datasheet_create (casereader_clone (reader));
-  cf->accessible = TRUE;
-
-  return cf;
+  return g_object_new (G_TYPE_PSPPIRE_CASE_FILE,
+		       "casereader", reader,
+		       NULL);
 }
 
 
@@ -343,7 +415,7 @@ psppire_case_file_insert_values (PsppireCaseFile *cf,
   {
     union value *values = xcalloc (n_values, sizeof *values);
     datasheet_insert_columns (cf->datasheet, values, n_values, where);
-  free (values);
+    free (values);
   }
 
   return TRUE;

@@ -81,6 +81,7 @@ struct _PsppireDataStore
   GObject parent;
 
   /*< private >*/
+  gboolean dispose_has_run ;
   PsppireDict *dict;
   PsppireCaseFile *case_file;
   const PangoFontDescription *font_desc;

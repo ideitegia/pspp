@@ -1201,6 +1201,7 @@ toggle_value_labels (GtkToggleAction *ta, gpointer data)
 				  gtk_toggle_action_get_active (ta));
 }
 
+extern PsppireDataStore *the_data_store ;
 
 static void
 file_quit (GtkCheckMenuItem *menuitem, gpointer data)
@@ -1208,6 +1209,7 @@ file_quit (GtkCheckMenuItem *menuitem, gpointer data)
   /* FIXME: Need to be more intelligent here.
      Give the user the opportunity to save any unsaved data.
   */
+  g_object_unref (the_data_store);
   gtk_main_quit ();
 }
 

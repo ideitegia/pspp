@@ -67,7 +67,7 @@ struct _PsppireCaseFileClass
 /* -- PsppireCaseFile --- */
 GType          psppire_case_file_get_type (void);
 
-PsppireCaseFile *psppire_case_file_new (const struct casereader *);
+PsppireCaseFile *psppire_case_file_new (struct casereader *);
 
 gboolean psppire_case_file_insert_case (PsppireCaseFile *cf, struct ccase *c, casenumber row);
 
