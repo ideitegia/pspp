@@ -1,3 +1,9 @@
+2008-02-04  John Darrington <john@darrington.wattle.id.au>
+
+	* checkbox-treeview.c: In toggle callback, use the treeview's 
+	current model, instead of relying on the one set at creation.
+	Use attributes instead of cell_renderer functions.
+
 2008-02-03  John Darrington <john@darrington.wattle.id.au>
 
         * psppire-case-file.c psppire-case-file.h: Dont clone the casereader

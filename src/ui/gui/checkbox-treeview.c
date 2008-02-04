@@ -24,42 +24,13 @@
 #define N_(msgid) msgid
 
 
-/* A GtkTreeCellDataFunc which renders a checkbox that determines
-   whether to calculate the statistic. */
-static void
-stat_calculate_cell_data_func (GtkTreeViewColumn *col,
-                               GtkCellRenderer *cell,
-                               GtkTreeModel *model,
-                               GtkTreeIter *iter,
-                               gpointer data)
-{
-  gboolean selected;
-
-  gtk_tree_model_get (model, iter, CHECKBOX_COLUMN_SELECTED, &selected, -1);
-  g_object_set (cell, "active", selected, NULL);
-}
-
-
-/* A GtkTreeCellDataFunc which renders the label of the statistic. */
-static void
-stat_label_cell_data_func (GtkTreeViewColumn *col,
-                           GtkCellRenderer *cell,
-                           GtkTreeModel *model,
-                           GtkTreeIter *iter,
-                           gpointer statistic)
-{
-  gchar *label = NULL;
-  gtk_tree_model_get (model, iter, CHECKBOX_COLUMN_LABEL, &label, -1);
-  g_object_set (cell, "text", gettext (label), NULL);
-  g_free (label);
-}
-
 /* Callback for checkbox cells in the statistics tree view.
    Toggles the checkbox. */
 static void
 toggle (GtkCellRendererToggle *cell_renderer, gchar *path_str, gpointer data)
 {
-  GtkTreeModel *model = (GtkTreeModel *)data;
+  GtkTreeView *tv = GTK_TREE_VIEW (data);
+  GtkTreeModel *model = gtk_tree_view_get_model (tv);
   GtkTreeIter iter;
   GtkTreePath *path = gtk_tree_path_new_from_string (path_str);
   gboolean selected;
@@ -72,15 +43,13 @@ toggle (GtkCellRendererToggle *cell_renderer, gchar *path_str, gpointer data)
 }
 
 
-void
-put_checkbox_items_in_treeview (GtkTreeView *treeview,
+static void
+treeview_create_checkbox_model (GtkTreeView *treeview,
 				guint default_items,
 				gint n_items,
 				const struct checkbox_entry_item *items
 				)
 {
-  GtkTreeViewColumn *col;
-  GtkCellRenderer *renderer;
   GtkListStore *list;
   size_t i;
 
@@ -98,30 +67,52 @@ put_checkbox_items_in_treeview (GtkTreeView *treeview,
 			  (default_items & (1u << i)) != 0,
                           -1);
     }
+}
 
-  /* Calculate column. */
+static void
+treeview_checkbox_populate (GtkTreeView *treeview)
+{
+  GtkTreeViewColumn *col;
+  GtkCellRenderer *renderer;
+
+  /* Checkbox column. */
   col = gtk_tree_view_column_new ();
   renderer = gtk_cell_renderer_toggle_new ();
-  g_signal_connect (GTK_CELL_RENDERER_TOGGLE (renderer),
-                    "toggled", G_CALLBACK (toggle), GTK_TREE_MODEL (list));
+
   gtk_tree_view_column_pack_start (col, renderer, TRUE);
-  gtk_tree_view_column_set_cell_data_func (col, renderer,
-					   stat_calculate_cell_data_func,
-					   NULL, NULL);
+
   gtk_tree_view_append_column (treeview, col);
 
-  /* Statistic column. */
+  gtk_tree_view_column_add_attribute  (col, renderer, "active", CHECKBOX_COLUMN_SELECTED);
+
+  g_signal_connect (GTK_CELL_RENDERER_TOGGLE (renderer),
+                    "toggled", G_CALLBACK (toggle), treeview);
+
+
+  /* Label column. */
   col = gtk_tree_view_column_new ();
   gtk_tree_view_column_set_title (col, _("Statistic"));
   renderer = gtk_cell_renderer_text_new ();
   gtk_tree_view_column_pack_start (col, renderer, TRUE);
-  gtk_tree_view_column_set_cell_data_func (col, renderer,
-					   stat_label_cell_data_func,
-					   NULL, NULL);
+
+  gtk_tree_view_column_add_attribute  (col, renderer, "text", CHECKBOX_COLUMN_LABEL);
+
   g_object_set (renderer, "ellipsize-set", TRUE, NULL);
   g_object_set (renderer, "ellipsize", PANGO_ELLIPSIZE_END, NULL);
   gtk_tree_view_column_set_min_width (col, 200);
   gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
   gtk_tree_view_column_set_resizable (col, TRUE);
   gtk_tree_view_append_column (treeview, col);
+}
+
+
+void
+put_checkbox_items_in_treeview (GtkTreeView *treeview,
+				guint default_items,
+				gint n_items,
+				const struct checkbox_entry_item *items
+				)
+{
+  treeview_create_checkbox_model (treeview, default_items, n_items, items);
+  treeview_checkbox_populate (treeview);
 }
