@@ -1,3 +1,8 @@
+2008-02-02  John Darrington <john@darrington.wattle.id.au>
+
+	psql-reader.c psql-reader.h: New files.  Thanks to Ben Pfaff
+	for reviewing this code.
+	
 2008-02-02  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6347.

@@ -154,6 +154,10 @@ if GNM_SUPPORT
 dist_TESTS += tests/command/get-data-gnm.sh 
 endif
 
+if PSQL_SUPPORT
+dist_TESTS += tests/command/get-data-psql.sh 
+endif
+
 nodist_TESTS = \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \

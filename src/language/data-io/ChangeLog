@@ -1,3 +1,7 @@
+2008-02-02 John Darrington <john@darrington.wattle.id.au>
+
+	* get-data.c (cmd_get_data): Support PSQL type.
+
 2007-12-07  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6302.

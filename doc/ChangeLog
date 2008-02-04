@@ -1,3 +1,9 @@
+2008-02-04 John Darrington <john@darrington.wattle.id.au>
+
+	* files.texi data-io.texi: Document the GET DATA TYPE=PSQL
+	option.  Thanks to Ben Pfaff for reviewing this text.
+
+
 2007-11-10  Ben Pfaff  <blp@gnu.org>
 
 	* not-implemented.texi: Fix @include command so that it works

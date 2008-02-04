@@ -163,8 +163,7 @@ extension.
 
 @display
 GET DATA
-        /TYPE=@{GNM,TXT@}
-        /FILE=@{'file-name',file_handle@}
+        /TYPE=@{GNM,PSQL,TXT@}
         @dots{}additional subcommands depending on TYPE@dots{}
 @end display
 
@@ -181,19 +180,19 @@ PSPP currently supports the following file types:
 @item GNM
 Spreadsheet files created by Gnumeric (@url{http://gnumeric.org}).
 
+@item PSQL
+Relations from PostgreSQL databases (@url{http://postgresql.org}).
+
 @item TXT
 Textual data files in columnar and delimited formats.
 @end table
-
-The FILE subcommand is mandatory for all implemented file types.
-Specify the file to be read as a string file name or (for textual data
-only) a file handle (@pxref{File Handles}).
 
 Each supported file type has additional subcommands, explained in
 separate sections below.
 
 @menu
 * GET DATA /TYPE=GNM::
+* GET DATA /TYPE=PSQL::
 * GET DATA /TYPE=TXT::
 @end menu
 
@@ -221,6 +220,10 @@ cell containing the first datum for the variable.
 If this cell is of string (text) format, then the width of the variable is
 determined from the length of the string it contains, unless the 
 ASSUMEDVARWIDTH subcommand is given.
+
+
+The FILE subcommand is mandatory. Specify the name of the file
+to be read.
 
 The SHEET subcommand specifies the sheet within the spreadsheet file to read.
 There are two forms of the SHEET subcommand.
@@ -253,6 +256,61 @@ variables read  from the file.
 If omitted, the default value is determined from the length of the 
 string in the first spreadsheet cell for each variable.
 
+
+@node GET DATA /TYPE=PSQL
+@subsection Postgres Database Queries
+
+@display
+GET DATA /TYPE=PSQL
+         /CONNECT=@{connection info@}
+         /SQL=@{query@}
+         [/ASSUMEDVARWIDTH=n]
+         [/UNENCRYPTED].
+@end display
+
+@cindex postgres
+@cindex databases
+
+The PSQL type is used to import data from a postgres database server.
+The server may be located locally or remotely.
+Variables are automatically created based on the table column names 
+or the names specified in the SQL query.
+Postgres data types of high precision, will loose precision when 
+imported into PSPP.
+Not all the postgres data types are able to be represented in PSPP.
+If a datum cannot be represented a warning will be issued and that 
+datum will be set to SYSMIS.
+
+The CONNECT subcommand is mandatory.
+It is a string specifying the parameters of the database server from
+which the data should be fetched.
+The format of the string is given in the postgres manual
+@url{http://www.postgresql.org/docs/8.0/static/libpq.html#LIBPQ-CONNECT}.
+
+The SQL subcommand is mandatory.
+It must be a valid SQL string to retrieve data from the database.
+
+The ASSUMEDVARWIDTH subcommand specifies the maximum width of string
+variables read  from the database.
+If omitted, the default value is determined from the length of the 
+string in the first value read for each variable.
+
+The UNENCRYPTED subcommand allows data to be retrieved over an insecure
+connection.
+If the connection is not encrypted, and the UNENCRYPTED subcommand is not
+given, then an error will occur.
+Whether or not the connection is
+encrypted depends upon the underlying psql library and the 
+capabilities of the database server.
+
+The following syntax is an example:
+@example
+GET DATA /TYPE=PSQL
+     /CONNECT='host=example.com port=5432 dbname=product user=fred passwd=xxxx'
+     /SQL='select * from manufacturer'.
+@end example
+
+
 @node GET DATA /TYPE=TXT
 @subsection Textual Data Files
 
@@ -268,9 +326,11 @@ GET DATA /TYPE=TXT
 @cindex text files
 @cindex data files
 When TYPE=TXT is specified, GET DATA reads data in a delimited or
-fixed columnar format, much like DATA LIST (@pxref{DATA LIST}).  The
-FILE subcommand must be specified indicate the name or the file handle
-of the file to be read.
+fixed columnar format, much like DATA LIST (@pxref{DATA LIST}).
+
+The FILE subcommand is mandatory.  Specify the file to be read as 
+a string file name or (for textual data
+only) a file handle (@pxref{File Handles}).
 
 The ARRANGEMENT subcommand determines the file's basic format.
 DELIMITED, the default setting, specifies that fields in the input

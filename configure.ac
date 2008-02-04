@@ -47,6 +47,20 @@ fi
 AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
 
+dnl Checks needed for psql reader
+AC_CHECK_PROG(psql_support, pg_config, yes, no)
+if test x"$psql_support" = x"yes" ; then 
+   AC_DEFINE([PSQL_SUPPORT], 1,
+   [Define to 1 if building in support for reading from postgres databases.])
+   PG_CFLAGS=-I`pg_config --includedir` 
+   AC_SUBST(PG_CFLAGS)
+   PG_LDFLAGS=-L`pg_config --libdir`
+   AC_SUBST(PG_LDFLAGS)
+   PG_LIBS=-lpq
+   AC_SUBST(PG_LIBS)
+fi
+AM_CONDITIONAL(PSQL_SUPPORT, test x"$psql_support" = x"yes")
+
 dnl Checks needed for gnumeric reader
 gnm_support=yes;
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0,,

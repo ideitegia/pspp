@@ -1,7 +1,7 @@
 
 noinst_LIBRARIES += src/data/libdata.a
 
-src_data_libdata_a_CPPFLAGS = $(LIBXML2_CFLAGS) $(AM_CPPFLAGS)
+src_data_libdata_a_CPPFLAGS = $(LIBXML2_CFLAGS) $(PG_CFLAGS) $(AM_CPPFLAGS) 
 
 
 src_data_libdata_a_SOURCES = \
@@ -69,6 +69,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/por-file-reader.h \
 	src/data/por-file-writer.c \
 	src/data/por-file-writer.h \
+	src/data/psql-reader.c \
+	src/data/psql-reader.h \
 	src/data/scratch-handle.c \
 	src/data/scratch-handle.h \
 	src/data/scratch-reader.c \

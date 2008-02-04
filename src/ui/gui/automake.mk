@@ -41,6 +41,7 @@ src_ui_gui_psppire_LDADD = \
 	src/libpspp/libpspp.a \
 	$(GTK_LIBS) \
 	$(GLADE_LIBS) \
+	$(PG_LIBS) \
 	gl/libgl.la \
 	@LIBINTL@ @LIBREADLINE@
 

@@ -14,6 +14,8 @@ their sex, age, etc.@: and their responses are all data and the data
 pertaining to single respondent is a case.
 This chapter examines
 the PSPP commands for defining variables and reading and writing data.
+There are alternative commands to  read data from predefined sources
+such as system files or databases (@xref{GET, GET DATA}.)
 
 @quotation Note
 These commands tell PSPP how to read data, but the data will not

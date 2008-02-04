@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include <data/gnumeric-reader.h>
+#include <data/psql-reader.h>
 
 #include <data/dictionary.h>
 #include <data/format.h>
@@ -38,6 +39,7 @@
 
 static int parse_get_gnm (struct lexer *lexer, struct dataset *);
 static int parse_get_txt (struct lexer *lexer, struct dataset *);
+static int parse_get_psql (struct lexer *lexer, struct dataset *);
 
 int
 cmd_get_data (struct lexer *lexer, struct dataset *ds)
@@ -53,11 +55,78 @@ cmd_get_data (struct lexer *lexer, struct dataset *ds)
     return parse_get_gnm (lexer, ds);
   else if (lex_match_id (lexer, "TXT"))
     return parse_get_txt (lexer, ds);
+  else if (lex_match_id (lexer, "PSQL"))
+    return parse_get_psql (lexer, ds);
 
   msg (SE, _("Unsupported TYPE %s"), lex_tokid (lexer));
   return CMD_FAILURE;
 }
 
+static int
+parse_get_psql (struct lexer *lexer, struct dataset *ds)
+{
+  struct psql_read_info psql;
+  psql.allow_clear = false;
+  psql.conninfo = NULL;
+  psql.str_width = -1;
+  ds_init_empty (&psql.sql);
+
+  lex_force_match (lexer, '/');
+
+  if (!lex_force_match_id (lexer, "CONNECT"))
+    goto error;
+
+  lex_force_match (lexer, '=');
+
+  if (!lex_force_string (lexer))
+    goto error;
+
+  psql.conninfo = strdup (ds_cstr (lex_tokstr (lexer)));
+
+  lex_get (lexer);
+
+  while (lex_match (lexer, '/') )
+    {
+      if ( lex_match_id (lexer, "ASSUMEDSTRWIDTH"))
+	{
+	  lex_match (lexer, '=');
+	  psql.str_width = lex_integer (lexer);
+	  lex_get (lexer);
+	}
+      else if ( lex_match_id (lexer, "UNENCRYPTED"))
+	{
+	  psql.allow_clear = true;
+	}
+      else if (lex_match_id (lexer, "SQL"))
+	{
+	  lex_match (lexer, '=');
+	  if ( ! lex_force_string (lexer) )
+	    goto error;
+
+	  ds_put_substring (&psql.sql,  lex_tokstr (lexer)->ss);
+	  lex_get (lexer);
+	}
+     }
+  {
+    struct dictionary *dict = NULL;
+    struct casereader *reader = psql_open_reader (&psql, &dict);
+
+    if ( reader )
+      proc_set_active_file (ds, reader, dict);
+  }
+
+  ds_destroy (&psql.sql);
+  free (psql.conninfo);
+
+  return CMD_SUCCESS;
+
+ error:
+
+  ds_destroy (&psql.sql);
+  free (psql.conninfo);
+
+  return CMD_FAILURE;
+}
 
 static int
 parse_get_gnm (struct lexer *lexer, struct dataset *ds)
