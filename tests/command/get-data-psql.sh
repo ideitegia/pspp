@@ -74,7 +74,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="run server"
-PGHOST=$TEMPDIR $pgpath/pg_ctl -D $TEMPDIR/cluster  start -w -o "-k $TEMPDIR -p $port -h ''"  > /dev/null
+PGHOST=$TEMPDIR PGPORT=$port $pgpath/pg_ctl -D $TEMPDIR/cluster  start -w -o "-k $TEMPDIR" > /dev/null
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
