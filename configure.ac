@@ -58,6 +58,10 @@ if test x"$psql_support" = x"yes" ; then
    AC_SUBST(PG_LDFLAGS)
    PG_LIBS=-lpq
    AC_SUBST(PG_LIBS)
+   PKG_CHECK_MODULES(OPENSSL,libssl,
+         AC_DEFINE([USE_SSL],1,
+	 	    [Define to 1 if the openssl library is present.])
+	    ,)
 fi
 AM_CONDITIONAL(PSQL_SUPPORT, test x"$psql_support" = x"yes")
 
