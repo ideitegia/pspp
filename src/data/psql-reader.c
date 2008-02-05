@@ -589,9 +589,28 @@ set_value (const struct psql_reader *r,
 
 	    case CASHOID:
 	      {
-		int32_t x;
-		GET_VALUE (&vptr, x);
-		val->f = x / 100.0;
+		/* Postgres 8.3 uses 64 bits.
+		   Earlier versions use 32 */
+		switch (length)
+		  {
+		  case 8:
+		    {
+		      int64_t x;
+		      GET_VALUE (&vptr, x);
+		      val->f = x / 100.0;
+		    }
+		    break;
+		  case 4:
+		    {
+		      int32_t x;
+		      GET_VALUE (&vptr, x);
+		      val->f = x / 100.0;
+		    }
+		    break;
+		  default:
+		    val->f = SYSMIS;
+		    break;
+		  }
 	      }
 	      break;
 

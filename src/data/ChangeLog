@@ -1,3 +1,9 @@
+2008-02-05  John Darrington <john@darrington.wattle.id.au>
+
+	psql-reader.c: So yesterday they release postgresql 8.3.0
+	which has money represented with 64 bits.  They must get
+	paid more than me.
+
 2008-02-02  John Darrington <john@darrington.wattle.id.au>
 
 	psql-reader.c psql-reader.h: New files.  Thanks to Ben Pfaff
