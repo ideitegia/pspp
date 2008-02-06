@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 TESTS_ENVIRONMENT = top_srcdir='$(top_srcdir)' top_builddir='$(top_builddir)'
-TESTS_ENVIRONMENT += PERL='@PERL@'
+TESTS_ENVIRONMENT += PERL='@PERL@' PG_CONFIG='@PG_CONFIG@'
 
 # Allow locale_charset to find charset.alias before running "make install".
 TESTS_ENVIRONMENT += CHARSETALIASDIR='$(abs_top_builddir)/gl'

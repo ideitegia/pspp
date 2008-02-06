@@ -48,13 +48,15 @@ AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
 
 dnl Checks needed for psql reader
-AC_CHECK_PROG(psql_support, pg_config, yes, no)
-if test x"$psql_support" = x"yes" ; then 
+AC_ARG_VAR([PG_CONFIG], [Full pathname of the pg_config program shipped with Postgresql])
+AC_PATH_PROG([PG_CONFIG], [pg_config], [], [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
+if test -n "$PG_CONFIG" ; then 
+   AC_SUBST(PG_CONFIG)
    AC_DEFINE([PSQL_SUPPORT], 1,
    [Define to 1 if building in support for reading from postgres databases.])
-   PG_CFLAGS=-I`pg_config --includedir` 
+   PG_CFLAGS=-I`$PG_CONFIG --includedir` 
    AC_SUBST(PG_CFLAGS)
-   PG_LDFLAGS=-L`pg_config --libdir`
+   PG_LDFLAGS=-R`$PG_CONFIG --libdir`
    AC_SUBST(PG_LDFLAGS)
    PG_LIBS=-lpq
    AC_SUBST(PG_LIBS)
@@ -63,7 +65,7 @@ if test x"$psql_support" = x"yes" ; then
 	 	    [Define to 1 if the openssl library is present.])
 	    ,)
 fi
-AM_CONDITIONAL(PSQL_SUPPORT, test x"$psql_support" = x"yes")
+AM_CONDITIONAL(PSQL_SUPPORT, test -n "$PG_CONFIG")
 
 dnl Checks needed for gnumeric reader
 gnm_support=yes;

@@ -21,7 +21,7 @@ export LANG
 
 port=6543
 dbase=pspptest
-PG_CONFIG=pg_config
+PG_CONFIG=${PG_CONFIG:=pg_config}
 pgpath=`$PG_CONFIG | awk '/BINDIR/{print $3}'`
 
 cleanup()
