@@ -28,6 +28,7 @@
 #include "calendar.h"
 
 #include <inttypes.h>
+#include <libpspp/str.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -88,6 +89,8 @@ static const struct casereader_class psql_casereader_class =
 struct psql_reader
 {
   PGconn *conn;
+  PGresult *res;
+  int tuple;
 
   bool integer_datetimes;
 
@@ -96,18 +99,18 @@ struct psql_reader
   size_t value_cnt;
   struct dictionary *dict;
 
-  bool used_first_case;
-  struct ccase first_case;
-
   /* An array of ints, which maps psql column numbers into
-     pspp variable numbers */
-  int *vmap;
+     pspp variables */
+  struct variable **vmap;
   size_t vmapsize;
+
+  struct string fetch_cmd;
+  int cache_size;
 };
 
 
-static void set_value (const struct psql_reader *r,
-		       PGresult *res, struct ccase *c);
+static bool set_value (struct psql_reader *r,
+		       struct ccase *cc);
 
 
 
@@ -171,7 +174,6 @@ create_var (struct psql_reader *r, const struct fmt_spec *fmt,
 	    int width, const char *suggested_name, int col)
 {
   unsigned long int vx = 0;
-  int vidx;
   struct variable *var;
   char name[VAR_NAME_LEN + 1];
 
@@ -186,29 +188,50 @@ create_var (struct psql_reader *r, const struct fmt_spec *fmt,
   var = dict_create_var (r->dict, name, width);
   var_set_both_formats (var, fmt);
 
-  vidx = var_get_dict_index (var);
-
   if ( col != -1)
     {
-      r->vmap = xrealloc (r->vmap, (col + 1) * sizeof (int));
+      r->vmap = xrealloc (r->vmap, (col + 1) * sizeof (*r->vmap));
 
-      r->vmap[col] = vidx;
+      r->vmap[col] = var;
       r->vmapsize = col + 1;
     }
 
   return var;
 }
 
+
+
+
+/* Fill the cache */
+static bool
+reload_cache (struct psql_reader *r)
+{
+  PQclear (r->res);
+  r->tuple = 0;
+
+  r->res = PQexec (r->conn, ds_cstr (&r->fetch_cmd));
+
+  if (PQresultStatus (r->res) != PGRES_TUPLES_OK || PQntuples (r->res) < 1)
+    {
+      PQclear (r->res);
+      r->res = NULL;
+      return false;
+    }
+
+  return true;
+}
+
+
 struct casereader *
 psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 {
   int i;
-  int n_fields;
-  PGresult *res = NULL;
+  int n_fields, n_tuples;
+  PGresult *qres = NULL;
+  casenumber n_cases = CASENUMBER_MAX;
 
   struct psql_reader *r = xzalloc (sizeof *r);
   struct string query ;
-
 
   r->conn = PQconnectdb (info->conninfo);
   if ( NULL == r->conn)
@@ -226,12 +249,12 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
     }
 
   {
-    int v1;
+    int ver_num;
     const char *vers = PQparameterStatus (r->conn, "server_version");
 
-    sscanf (vers, "%d", &v1);
+    sscanf (vers, "%d", &ver_num);
 
-    if ( v1 < 8)
+    if ( ver_num < 8)
       {
 	msg (ME,
 	     _("Postgres server is version %s."
@@ -267,29 +290,62 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
   /* Create the dictionary and populate it */
   *dict = r->dict = dict_create ();
 
-  ds_init_cstr (&query, "BEGIN READ ONLY ISOLATION LEVEL SERIALIZABLE; DECLARE  pspp BINARY CURSOR FOR ");
+  /*
+    select count (*) from (select * from medium) stupid_sql_standard;
+  */
+
+  ds_init_cstr (&query,
+		"BEGIN READ ONLY ISOLATION LEVEL SERIALIZABLE; "
+		"DECLARE  pspp BINARY CURSOR FOR ");
+
   ds_put_substring (&query, info->sql.ss);
 
-  res = PQexec (r->conn, ds_cstr (&query));
+  qres = PQexec (r->conn, ds_cstr (&query));
   ds_destroy (&query);
-  if ( PQresultStatus (res) != PGRES_COMMAND_OK )
+  if ( PQresultStatus (qres) != PGRES_COMMAND_OK )
     {
       msg (ME, _("Error from psql source: %s."),
-	   PQresultErrorMessage (res));
+	   PQresultErrorMessage (qres));
       goto error;
     }
 
-  PQclear (res);
+  PQclear (qres);
 
-  res = PQexec (r->conn, "FETCH FIRST FROM pspp");
-  if ( PQresultStatus (res) != PGRES_TUPLES_OK )
+
+  /* Now use the count() function to find the total number of cases
+     that this query returns.
+     Doing this incurs some overhead.  The server has to iterate every
+     case in order to find this number.  However, it's performed on the
+     server side, and in all except the most huge databases the extra
+     overhead will be worth the effort.
+     On the other hand, most PSPP functions don't need to know this.
+     The GUI is the notable exception.
+  */
+  ds_init_cstr (&query, "SELECT count (*) FROM (");
+  ds_put_substring (&query, info->sql.ss);
+  ds_put_cstr (&query, ") stupid_sql_standard");
+
+  qres = PQexec (r->conn, ds_cstr (&query));
+  ds_destroy (&query);
+  if ( PQresultStatus (qres) != PGRES_TUPLES_OK )
     {
       msg (ME, _("Error from psql source: %s."),
-	   PQresultErrorMessage (res));
+	   PQresultErrorMessage (qres));
+      goto error;
+    }
+  n_cases = atol (PQgetvalue (qres, 0, 0));
+  PQclear (qres);
+
+  qres = PQexec (r->conn, "FETCH FIRST FROM pspp");
+  if ( PQresultStatus (qres) != PGRES_TUPLES_OK )
+    {
+      msg (ME, _("Error from psql source: %s."),
+	   PQresultErrorMessage (qres));
       goto error;
     }
 
-  n_fields = PQnfields (res);
+  n_tuples = PQntuples (qres);
+  n_fields = PQnfields (qres);
 
   r->value_cnt = 0;
   r->vmap = NULL;
@@ -299,9 +355,16 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
     {
       struct variable *var;
       struct fmt_spec fmt = {FMT_F, 8, 2};
-      Oid type = PQftype (res, i);
+      Oid type = PQftype (qres, i);
       int width = 0;
-      int length = PQgetlength (res, 0, i);
+      int length ;
+
+      /* If there are no data then make a finger in the air 
+	 guess at the contents */
+      if ( n_tuples > 0 )
+	length = PQgetlength (qres, 0, i);
+      else 
+	length = MAX_SHORT_STRING;
 
       switch (type)
 	{
@@ -376,11 +439,28 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 	  width = length > 0 ? length : MAX_SHORT_STRING;
 	  fmt.w = width ;
 	  fmt.d = 0;
-
 	  break;
 	}
 
-      var = create_var (r, &fmt, width, PQfname (res, i), i);
+      var = create_var (r, &fmt, width, PQfname (qres, i), i);
+      if ( type == NUMERICOID && n_tuples > 0)
+	{
+	  const uint8_t *vptr = (const uint8_t *) PQgetvalue (qres, 0, i);
+	  struct fmt_spec fmt;
+	  int16_t n_digits, weight, dscale;
+	  uint16_t sign;
+
+	  GET_VALUE (&vptr, n_digits);
+	  GET_VALUE (&vptr, weight);
+	  GET_VALUE (&vptr, sign);
+	  GET_VALUE (&vptr, dscale);
+
+	  fmt.d = dscale;
+	  fmt.type = FMT_E;
+	  fmt.w = fmt_max_output_width (fmt.type) ;
+	  fmt.d =  MIN (dscale, fmt_max_output_decimals (fmt.type, fmt.w));
+	  var_set_both_formats (var, &fmt);
+	}
 
       /* Timezones need an extra variable */
       switch (type)
@@ -416,29 +496,32 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 	default:
 	  break;
 	}
-
     }
 
-  /* Create the first case, and cache it */
-  r->used_first_case = false;
+  PQclear (qres);
 
+  qres = PQexec (r->conn, "MOVE BACKWARD 1 FROM pspp");
+  if ( PQresultStatus (qres) != PGRES_COMMAND_OK)
+    {
+      PQclear (qres);
+      goto error;
+    }
+  PQclear (qres);
 
-  case_create (&r->first_case, r->value_cnt);
-  memset (case_data_rw_idx (&r->first_case, 0)->s,
-	  ' ', MAX_SHORT_STRING * r->value_cnt);
+  r->cache_size = info->bsize != -1 ? info->bsize: 4096;
 
-  set_value (r, res, &r->first_case);
+  ds_init_empty (&r->fetch_cmd);
+  ds_put_format (&r->fetch_cmd,  "FETCH FORWARD %d FROM pspp", r->cache_size);
 
-  PQclear (res);
+  reload_cache (r);
 
   return casereader_create_sequential
     (NULL,
      r->value_cnt,
-     CASENUMBER_MAX,
+     n_cases,
      &psql_casereader_class, r);
 
  error:
-  PQclear (res);
   dict_destroy (*dict);
 
   psql_casereader_destroy (NULL, r);
@@ -453,69 +536,76 @@ psql_casereader_destroy (struct casereader *reader UNUSED, void *r_)
   if (r == NULL)
     return ;
 
+  ds_destroy (&r->fetch_cmd);
   free (r->vmap);
+  if (r->res) PQclear (r->res);
   PQfinish (r->conn);
 
   free (r);
 }
 
+
+
 static bool
 psql_casereader_read (struct casereader *reader UNUSED, void *r_,
 		      struct ccase *cc)
 {
-  PGresult *res;
-
   struct psql_reader *r = r_;
 
-  if ( !r->used_first_case )
+  if ( NULL == r->res || r->tuple >= r->cache_size)
     {
-      *cc = r->first_case;
-      r->used_first_case = true;
-      return true;
+      if ( ! reload_cache (r) )
+	return false;
     }
 
-  case_create (cc, r->value_cnt);
-  memset (case_data_rw_idx (cc, 0)->s, ' ', MAX_SHORT_STRING * r->value_cnt);
-
-  res = PQexec (r->conn, "FETCH NEXT FROM pspp");
-  if ( PQresultStatus (res) != PGRES_TUPLES_OK || PQntuples (res) < 1)
-    {
-      PQclear (res);
-      case_destroy (cc);
-      return false;
-    }
-
-  set_value (r, res, cc);
-
-  PQclear (res);
-
-  return true;
+  return set_value (r, cc);
 }
 
-static void
-set_value (const struct psql_reader *r,
-	   PGresult *res, struct ccase *c)
+static bool
+set_value (struct psql_reader *r,
+	   struct ccase *c)
 {
   int i;
-  int n_vars = PQnfields (res);
+  int n_vars;
+
+  assert (r->res);
+
+  n_vars = PQnfields (r->res);
+
+  if ( r->tuple >= PQntuples (r->res))
+    return false;
+
+  case_create (c, r->value_cnt);
+  memset (case_data_rw_idx (c, 0)->s, ' ', MAX_SHORT_STRING * r->value_cnt);
+
 
   for (i = 0 ; i < n_vars ; ++i )
     {
-      Oid type = PQftype (res, i);
-      struct variable *v = dict_get_var (r->dict, r->vmap[i]);
+      Oid type = PQftype (r->res, i);
+      const struct variable *v = r->vmap[i];
       union value *val = case_data_rw (c, v);
-      const struct variable *v1 = NULL;
+
       union value *val1 = NULL;
 
-      if (i < r->vmapsize && r->vmap[i] + 1 < dict_get_var_cnt (r->dict))
+      switch (type)
 	{
-	  v1 = dict_get_var (r->dict, r->vmap[i] + 1);
+	case INTERVALOID:
+	case TIMESTAMPTZOID:
+	case TIMETZOID:
+	  if (i < r->vmapsize && var_get_dict_index(v) + 1 < dict_get_var_cnt (r->dict))
+	    {
+	      const struct variable *v1 = NULL;
+	      v1 = dict_get_var (r->dict, var_get_dict_index (v) + 1);
 
-	  val1 = case_data_rw (c, v1);
+	      val1 = case_data_rw (c, v1);
+	    }
+	  break;
+	default:
+	  break;
 	}
 
 
-      if (PQgetisnull (res, 0, i))
+      if (PQgetisnull (r->res, r->tuple, i))
 	{
 	  value_set_missing (val, var_get_width (v));
 
@@ -532,8 +622,8 @@ set_value (const struct psql_reader *r,
 	}
       else
 	{
-	  const uint8_t *vptr = (const uint8_t *) PQgetvalue (res, 0, i);
-	  int length = PQgetlength (res, 0, i);
+	  const uint8_t *vptr = (const uint8_t *) PQgetvalue (r->res, r->tuple, i);
+	  int length = PQgetlength (r->res, r->tuple, i);
 
 	  int var_width = var_get_width (v);
 	  switch (type)
@@ -743,6 +833,7 @@ set_value (const struct psql_reader *r,
 		GET_VALUE (&vptr, sign);
 		GET_VALUE (&vptr, dscale);
 
+#if 0
 		{
 		  struct fmt_spec fmt;
 		  fmt.d = dscale;
@@ -751,6 +842,7 @@ set_value (const struct psql_reader *r,
 		  fmt.d =  MIN (dscale, fmt_max_output_decimals (fmt.type, fmt.w));
 		  var_set_both_formats (v, &fmt);
 		}
+#endif
 
 		for (i = 0 ; i < n_digits;  ++i)
 		  {
@@ -775,6 +867,10 @@ set_value (const struct psql_reader *r,
 	    }
 	}
     }
+
+  r->tuple++;
+
+  return true;
 }
 
 #endif

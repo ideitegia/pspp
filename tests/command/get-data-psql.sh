@@ -30,7 +30,7 @@ cleanup()
 	echo "NOT cleaning $TEMPDIR"
      	return ; 
     fi
-    PGHOST=$TEMPDIR $pgpath/pg_ctl -D $TEMPDIR/cluster  stop -w -o "-k $TEMPDIR -h ''"   > /dev/null 2>&1
+    PGHOST=$TEMPDIR $pgpath/pg_ctl -D $TEMPDIR/cluster  stop -W -o "-k $TEMPDIR -h ''"   > /dev/null 2>&1
     rm -rf $TEMPDIR
 }
 
@@ -72,9 +72,8 @@ activity="create cluster"
 $pgpath/initdb  -D $TEMPDIR/cluster -A trust > /dev/null
 if [ $? -ne 0 ] ; then no_result ; fi
 
-
 activity="run server"
-PGHOST=$TEMPDIR PGPORT=$port $pgpath/pg_ctl -D $TEMPDIR/cluster  start -w -o "-k $TEMPDIR" > /dev/null
+PGHOST=$TEMPDIR PGPORT=$port $pgpath/pg_ctl -D $TEMPDIR/cluster  start -w -o "-k $TEMPDIR -h ''" > /dev/null
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
@@ -84,6 +83,14 @@ createdb  -h $TEMPDIR  -p $port $dbase > /dev/null 2> /dev/null
 
 activity="populate database"
 psql  -h $TEMPDIR -p $port  $dbase > /dev/null << EOF
+
+CREATE TABLE empty (a int, b date, c numeric(23, 4));
+
+-- a largeish table to check big queries work ok.
+CREATE TABLE large (x int);
+INSERT INTO large  (select * from generate_series(1, 1000));
+
+
 CREATE TABLE thing (
  bool    bool                      ,
  bytea   bytea                     ,
@@ -178,7 +185,7 @@ INSERT INTO thing VALUES (
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
-activity="create program"
+activity="create program 1"
 cat > $TESTFILE <<EOF
 GET DATA /TYPE=psql 
 	/CONNECT="host=$TEMPDIR port=$port dbname=$dbase"
@@ -192,11 +199,11 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-activity="run program"
+activity="run program 1"
 $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="compare output"
+activity="compare output 1"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - << 'EOF'
 1.1 DISPLAY.  
@@ -318,6 +325,103 @@ diff -b  $TEMPDIR/pspp.list - << 'EOF'
      .00    30 a             .00      .00      .00                           -2.560980E+002 this-long-text        .00      .00      .00     $.01 a        A        01-JAN-2000     0:00:00   08-JAN-1999 04:05:06   08-JAN-1999 12:05:06    0 00:01:00               0    10:09:00        4.00 
      .      20               .        .        .                                .                                 .        .        .        .                               .           .                      .                      .             .               .           .         .   
     1.00    31 b            1.00     1.00     1.00                            6.553500E+004 that-long-text        .00     1.00     1.00    $1.23 b        B        10-JAN-1963     1:05:02   10-JAN-1963 23:58:00   10-JAN-1963 22:58:00   12 01:03:04              25     1:05:02       -7.00 
+EOF
+if [ $? -ne 0 ] ; then fail ; fi
+
+
+activity="create program 2"
+cat > $TESTFILE <<EOF
+GET DATA /TYPE=psql 
+	/CONNECT="host=$TEMPDIR port=$port dbname=$dbase"
+	/UNENCRYPTED
+	/SQL="select * from empty".
+
+DISPLAY DICTIONARY.
+
+LIST.
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="run program 2"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="compare output 2"
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << 'EOF'
+1.1 DISPLAY.  
++--------+-------------------------------------------+--------+
+|Variable|Description                                |Position|
+#========#===========================================#========#
+|a       |Format: F8.2                               |       1|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
++--------+-------------------------------------------+--------+
+|b       |Format: DATE11                             |       2|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
++--------+-------------------------------------------+--------+
+|c       |Format: E40.2                              |       3|
+|        |Measure: Scale                             |        |
+|        |Display Alignment: Right                   |        |
+|        |Display Width: 8                           |        |
++--------+-------------------------------------------+--------+
+EOF
+if [ $? -ne 0 ] ; then fail ; fi
+
+activity="create program 3"
+cat > $TESTFILE <<EOF
+GET DATA /TYPE=psql 
+	/CONNECT="host=$TEMPDIR port=$port dbname=$dbase"
+	/UNENCRYPTED
+	/BSIZE = 27
+	/SQL="select * from large".
+
+NUMERIC diff.
+COMPUTE diff = x - lag (x).
+
+TEMPORARY.
+SELECT IF (diff <> 1).
+LIST.
+
+TEMPORARY.
+N OF CASES 6.
+LIST.
+
+SORT CASES BY x (D).
+
+TEMPORARY.
+N OF CASES 6.
+LIST.
+
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="run program 3"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="compare output 3"
+perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
+diff -b  $TEMPDIR/pspp.list - << 'EOF'
+       x     diff
+-------- --------
+    1.00      .   
+    2.00     1.00 
+    3.00     1.00 
+    4.00     1.00 
+    5.00     1.00 
+    6.00     1.00 
+       x     diff
+-------- --------
+ 1000.00     1.00 
+  999.00     1.00 
+  998.00     1.00 
+  997.00     1.00 
+  996.00     1.00 
+  995.00     1.00 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

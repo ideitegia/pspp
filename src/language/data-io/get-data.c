@@ -69,6 +69,7 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
   psql.allow_clear = false;
   psql.conninfo = NULL;
   psql.str_width = -1;
+  psql.bsize = -1;
   ds_init_empty (&psql.sql);
 
   lex_force_match (lexer, '/');
@@ -91,6 +92,12 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
 	{
 	  lex_match (lexer, '=');
 	  psql.str_width = lex_integer (lexer);
+	  lex_get (lexer);
+	}
+      else if ( lex_match_id (lexer, "BSIZE"))
+	{
+	  lex_match (lexer, '=');
+	  psql.bsize = lex_integer (lexer);
 	  lex_get (lexer);
 	}
       else if ( lex_match_id (lexer, "UNENCRYPTED"))

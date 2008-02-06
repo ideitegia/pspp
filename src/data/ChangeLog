@@ -1,3 +1,11 @@
+2008-02-06  John Darrington <john@darrington.wattle.id.au>
+
+	psql-reader.c psql-reader.h: Read more than one tuple at
+	once.  Fix bug reading a query which returns no data. Fix bug
+	when transformation followed a reader.
+	Ask the server for the number of records in the query, for the
+	benefit of the gui.
+
 2008-02-05  John Darrington <john@darrington.wattle.id.au>
 
 	psql-reader.c: So yesterday they release postgresql 8.3.0

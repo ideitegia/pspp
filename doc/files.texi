@@ -265,7 +265,8 @@ GET DATA /TYPE=PSQL
          /CONNECT=@{connection info@}
          /SQL=@{query@}
          [/ASSUMEDVARWIDTH=n]
-         [/UNENCRYPTED].
+         [/UNENCRYPTED]
+         [/BSIZE=n].
 @end display
 
 @cindex postgres
@@ -302,6 +303,17 @@ given, then an error will occur.
 Whether or not the connection is
 encrypted depends upon the underlying psql library and the 
 capabilities of the database server.
+
+The BSIZE subcommand serves only to optimise the speed of data transfer.
+It specifies an upper limit on
+number of cases to fetch from the database at once.
+The default value is 4096.
+If your SQL statement fetches a large number of cases but only a small number of
+variables, then the data transfer may be faster if you increase this value.
+Conversely, if the number of variables is large, or if the machine on which 
+PSPP is running has only a
+small amount of memory, then a smaller value will be better.
+
 
 The following syntax is an example:
 @example

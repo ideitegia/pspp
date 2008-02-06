@@ -1,3 +1,7 @@
+2008-02-06 John Darrington <john@darrington.wattle.id.au>
+
+	* get-data.c: Add a /BSIZE subcommand to PSQL reader.
+
 2008-02-02 John Darrington <john@darrington.wattle.id.au>
 
 	* get-data.c (cmd_get_data): Support PSQL type.

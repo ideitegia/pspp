@@ -1,3 +1,8 @@
+2008-02-06 John Darrington <john@darrington.wattle.id.au>
+
+	* files.texi: Document the /BSIZE subcommand to the PSQL
+	reader.
+
 2008-02-04 John Darrington <john@darrington.wattle.id.au>
 
 	* files.texi data-io.texi: Document the GET DATA TYPE=PSQL

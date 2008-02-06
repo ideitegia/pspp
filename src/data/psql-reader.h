@@ -28,6 +28,7 @@ struct psql_read_info
   struct string sql;
   bool allow_clear;
   int str_width;
+  int bsize;
 };
 
 struct dictionary;
