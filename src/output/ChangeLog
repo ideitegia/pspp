@@ -1,3 +1,8 @@
+2008-02-08  John Darrington <john@darrington.wattle.id.au>	
+
+	* journal.c: (journal_write) flush the stream on writes.
+	Useful for discovering syntax which causes a crash.
+
 2007-09-25  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6210.  Reviewed by John Darrington.

@@ -98,4 +98,5 @@ journal_write (bool prefix, const char *line)
   fputs (line, journal_file);
   if (strchr (line, '\n') == NULL)
     putc ('\n', journal_file);
+  fflush (journal_file);
 }
