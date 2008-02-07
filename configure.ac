@@ -48,6 +48,22 @@ AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
 
 dnl Checks needed for psql reader
+
+dnl The 8.x series postgres tarballs installs with a default prefix of
+dnl /usr/local/pgsql whereas, OSes (such as debian)  install into /usr .
+
+dnl If the libpq.so file is in a non standard path, (one which the linker
+dnl doesn't search) then we must set the PG_LDFLAGS to -R/usr/wherever/
+dnl However, if the system happens to have more than one version of other
+dnl dependent libraries (eg. libgtk) in different standard paths. (eg:
+dnl /usr and /usr/local) then the wrong one may get linked. 
+
+dnl To overcome this, we first check for libpq in the standard places, and
+dnl only set PG_LDFLAGS if it's not found.
+
+
+AC_CHECK_LIB([pq], [PQexec], [libpq_in_std_lib_path=yes])
+
 AC_ARG_VAR([PG_CONFIG], [Full pathname of the pg_config program shipped with Postgresql])
 AC_PATH_PROG([PG_CONFIG], [pg_config], [], [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
 if test -n "$PG_CONFIG" ; then 
@@ -56,8 +72,12 @@ if test -n "$PG_CONFIG" ; then
    [Define to 1 if building in support for reading from postgres databases.])
    PG_CFLAGS=-I`$PG_CONFIG --includedir` 
    AC_SUBST(PG_CFLAGS)
-   PG_LDFLAGS=-R`$PG_CONFIG --libdir`
+   
+   if test "x$libpq_in_std_lib_path" != x"yes" ; then
+      PG_LDFLAGS="-L`$PG_CONFIG --libdir` -R`$PG_CONFIG --libdir`"
+   fi
    AC_SUBST(PG_LDFLAGS)
+
    PG_LIBS=-lpq
    AC_SUBST(PG_LIBS)
    PKG_CHECK_MODULES(OPENSSL,libssl,
