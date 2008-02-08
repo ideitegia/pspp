@@ -42,10 +42,11 @@
 #include "comments-dialog.h"
 #include "variable-info-dialog.h"
 #include "descriptives-dialog.h"
+#include "crosstabs-dialog.h"
 #include "frequencies-dialog.h"
+#include "text-data-import-dialog.h"
 #include "dict-display.h"
 #include "clipboard.h"
-
 
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
@@ -711,6 +712,15 @@ new_data_editor (void)
   g_signal_connect (de->invoke_frequencies_dialog, "activate",
 		    G_CALLBACK (frequencies_dialog), de);
 
+  de->invoke_crosstabs_dialog =
+    gtk_action_new ("crosstabs-dialog",
+		    _("_Crosstabs"),
+		    _("Generate crosstabulations"),
+		    "pspp-crosstabs");
+
+  g_signal_connect (de->invoke_crosstabs_dialog, "activate",
+		    G_CALLBACK (crosstabs_dialog), de);
+
 
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
@@ -723,7 +733,6 @@ new_data_editor (void)
 			    "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->action_data_open);
-
 
 #if RECENT_LISTS_AVAILABLE
   {
@@ -777,6 +786,11 @@ new_data_editor (void)
 		    "activate",
 		    G_CALLBACK (open_syntax_window),
 		    e->window);
+
+  g_signal_connect_swapped (get_widget_assert (de->xml,"file_import-text"),
+			    "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->invoke_text_import_assistant);
 
   g_signal_connect_swapped (get_widget_assert (de->xml,"file_save"),
 			    "activate",
@@ -868,6 +882,10 @@ new_data_editor (void)
 
   gtk_action_connect_proxy (de->invoke_descriptives_dialog,
 			    get_widget_assert (de->xml, "analyze_descriptives")
+			    );
+
+  gtk_action_connect_proxy (de->invoke_crosstabs_dialog,
+			    get_widget_assert (de->xml, "crosstabs")
 			    );
 
   gtk_action_connect_proxy (de->invoke_frequencies_dialog,
@@ -1499,6 +1517,15 @@ register_data_editor_actions (struct data_editor *de)
 
   g_signal_connect (de->action_data_new, "activate",
 		    G_CALLBACK (new_file), de);
+
+  de->invoke_text_import_assistant =
+    gtk_action_new ("file_import-text",
+		    _("_Import Text Data"),
+		    _("Import text data file"),
+		    "");
+
+  g_signal_connect (de->invoke_text_import_assistant, "activate",
+		    G_CALLBACK (text_data_import_assistant), de);
 }
 
 /* Returns true if NAME has a suffix which might denote a PSPP file */
