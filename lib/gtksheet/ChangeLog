@@ -1,3 +1,11 @@
+2008-02-08 John Darrington <john@darrington.wattle.id.au>
+
+	* gtksheet.c: Removed the sheet_locked feature, which we never
+	used, and interfered with the editability of the entry widget.
+
+	* gtksheet.c: Add one to the row to which we scroll. Seems like
+	the best way to cope with granularity problems.
+	
 21 Septempber 2007 John Darrington <john@darrington.wattle.id.au>
 
 	* gtksheet.c (range_update_callback): Scroll to cell 0,0 if the

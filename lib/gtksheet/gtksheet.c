@@ -1,5 +1,11 @@
-/* This version of GtkSheet has been *heavily* modified, for the specific
-   requirements of PSPPIRE. */
+/*
+ * Copyright (C) 2006, 2008 Free Software Foundation
+ *
+ * This version of GtkSheet has been *heavily* modified, for the specific
+ * requirements of PSPPIRE.  The changes are copyright by the
+ * Free Software Foundation.  The copyright notice for the original work is
+ * below.
+*/
 
 /* GtkSheet widget for Gtk+.
  * Copyright (C) 1999-2001 Adrian E. Feiguin <adrian@ifir.ifir.edu.ar>
@@ -66,7 +72,6 @@
 /* sheet flags */
 enum
   {
-    GTK_SHEET_IS_LOCKED = 1 << 0,
     GTK_SHEET_IS_FROZEN = 1 << 1,
     GTK_SHEET_IN_XDRAG = 1 << 2,
     GTK_SHEET_IN_YDRAG = 1 << 3,
@@ -79,9 +84,6 @@ enum
 #define GTK_SHEET_FLAGS(sheet) (GTK_SHEET (sheet)->flags)
 #define GTK_SHEET_SET_FLAGS(sheet,flag) (GTK_SHEET_FLAGS (sheet) |= (flag))
 #define GTK_SHEET_UNSET_FLAGS(sheet,flag) (GTK_SHEET_FLAGS (sheet) &= ~ (flag))
-
-#define GTK_SHEET_IS_LOCKED(sheet) (GTK_SHEET_FLAGS (sheet) & GTK_SHEET_IS_LOCKED)
-
 
 #define GTK_SHEET_IS_FROZEN(sheet) (GTK_SHEET_FLAGS (sheet) & GTK_SHEET_IS_FROZEN)
 #define GTK_SHEET_IN_XDRAG(sheet) (GTK_SHEET_FLAGS (sheet) & GTK_SHEET_IN_XDRAG)
@@ -1752,40 +1754,6 @@ gtk_sheet_justify_entry (GtkSheet *sheet)
   return sheet->justify_entry;
 }
 
-void
-gtk_sheet_set_locked (GtkSheet *sheet, gboolean locked)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  if ( locked )
-    {
-      GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IS_LOCKED);
-      gtk_widget_hide (sheet->sheet_entry);
-      gtk_widget_unmap (sheet->sheet_entry);
-    }
-  else
-    {
-      GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IS_LOCKED);
-      if (GTK_WIDGET_MAPPED (GTK_WIDGET (sheet)))
-	{
-	  gtk_widget_show (sheet->sheet_entry);
-	  gtk_widget_map (sheet->sheet_entry);
-	}
-    }
-
-  gtk_editable_set_editable (GTK_EDITABLE (sheet->sheet_entry), locked);
-
-}
-
-gboolean
-gtk_sheet_locked (const GtkSheet *sheet)
-{
-  g_return_val_if_fail (sheet != NULL, FALSE);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
-
-  return GTK_SHEET_IS_LOCKED (sheet);
-}
 
 /* This routine has problems with gtk+- 1.2 related with the
    label / button drawing - I think it's a bug in gtk+- 1.2 */
@@ -2080,21 +2048,22 @@ gtk_sheet_moveto (GtkSheet *sheet,
   width = sheet->sheet_window_width;
 
   /* adjust vertical scrollbar */
-  if (row >= 0 && row_align >= 0.)
+  if (row >= 0 && row_align >= 0.0)
     {
       y = ROW_TOP_YPIXEL (sheet, row) - sheet->voffset
-	- (gint) ( row_align*height + (1. - row_align)
+	- (gint) ( row_align * height + (1.0 - row_align)
 		   * yyy_row_height (sheet, row));
 
       /* This forces the sheet to scroll when you don't see the entire cell */
       min_row = row;
       adjust = 0;
-      if (row_align == 1.)
+      if (row_align >= 1.0)
 	{
 	  while (min_row >= 0 && min_row > MIN_VISIBLE_ROW (sheet))
 	    {
 	      if (yyy_row_is_visible (sheet, min_row))
 		adjust += yyy_row_height (sheet, min_row);
+
 	      if (adjust >= height)
 		{
 		  break;
@@ -2102,6 +2071,9 @@ gtk_sheet_moveto (GtkSheet *sheet,
 	      min_row--;
 	    }
 	  min_row = MAX (min_row, 0);
+
+	  min_row ++;
+
 	  y = ROW_TOP_YPIXEL (sheet, min_row) - sheet->voffset +
 	    yyy_row_height (sheet, min_row) - 1;
 	}
@@ -2118,17 +2090,16 @@ gtk_sheet_moveto (GtkSheet *sheet,
     }
 
   /* adjust horizontal scrollbar */
-  if (column >= 0 && col_align >= 0.)
+  if (column >= 0 && col_align >= 0.0)
     {
       x = COLUMN_LEFT_XPIXEL (sheet, column) - sheet->hoffset
-	- (gint) ( col_align*width + (1.- col_align)*
+	- (gint) ( col_align*width + (1.0 - col_align)*
 		   xxx_column_width (sheet, column));
-
 
       /* This forces the sheet to scroll when you don't see the entire cell */
       min_col = column;
       adjust = 0;
-      if (col_align == 1.)
+      if (col_align == 1.0)
 	{
 	  while (min_col >= 0 && min_col > MIN_VISIBLE_COLUMN (sheet))
 	    {
@@ -2154,7 +2125,6 @@ gtk_sheet_moveto (GtkSheet *sheet,
       sheet->old_vadjustment = -1.;
       g_signal_emit_by_name (G_OBJECT (sheet->hadjustment),
 			     "value_changed");
-
     }
 }
 
@@ -2822,7 +2792,6 @@ gtk_sheet_map (GtkWidget * widget)
 	}
 
       if (!GTK_WIDGET_MAPPED (sheet->sheet_entry)
-	  && ! gtk_sheet_locked (sheet)
 	  && sheet->active_cell.row >= 0
 	  && sheet->active_cell.col >= 0 )
 	{
@@ -3863,16 +3832,6 @@ gtk_sheet_hide_active_cell (GtkSheet *sheet)
   gtk_sheet_get_attributes (sheet, row, col, &attributes);
   justification = attributes.justification;
 
-  if (text && strlen (text) != 0)
-    {
-      gtk_sheet_set_cell (sheet, row, col, justification, text);
-      g_signal_emit (G_OBJECT (sheet), sheet_signals[SET_CELL], 0, row, col);
-    }
-  else
-    {
-      gtk_sheet_cell_clear (sheet, row, col);
-    }
-
   row = sheet->active_cell.row;
   col = sheet->active_cell.col;
 
@@ -3905,7 +3864,8 @@ gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
   g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
 
   if (row < 0 || col < 0) return FALSE;
-  if (row >= yyy_row_count (sheet) || col >= xxx_column_count (sheet))
+
+  if ( row > yyy_row_count (sheet) || col > xxx_column_count (sheet))
     return FALSE;
 
   if (!veto) return FALSE;
@@ -3927,7 +3887,6 @@ gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
   GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 
   gtk_sheet_show_active_cell (sheet);
-
 
   g_signal_connect (G_OBJECT (gtk_sheet_get_entry (sheet)),
 		    "changed",
@@ -3980,10 +3939,6 @@ gtk_sheet_show_active_cell (GtkSheet *sheet)
 
   gtk_entry_set_visibility (GTK_ENTRY (sheet_entry), attributes.is_visible);
 
-  if (gtk_sheet_locked (sheet) || !attributes.is_editable)
-    gtk_editable_set_editable (GTK_EDITABLE (sheet_entry), FALSE);
-  else
-    gtk_editable_set_editable (GTK_EDITABLE (sheet_entry), TRUE);
 
   /*** Added by John Gotts. Mar 25, 2005 *********/
   old_text = gtk_entry_get_text (GTK_ENTRY (sheet_entry));
@@ -4560,8 +4515,6 @@ gtk_sheet_select_range (GtkSheet * sheet, const GtkSheetRange *range)
   if (range->col0 < 0 || range->coli < 0) return;
 
 
-  if ( gtk_sheet_locked (sheet)) return ;
-
   if (sheet->state != GTK_SHEET_NORMAL)
     gtk_sheet_real_unselect_range (sheet, NULL);
   else
@@ -4851,7 +4804,6 @@ gtk_sheet_button_press (GtkWidget * widget,
       else if (sheet->cursor_drag->type == GDK_TOP_LEFT_ARROW &&
 	       !GTK_SHEET_IN_SELECTION (sheet)
 	       && ! GTK_SHEET_IN_DRAG (sheet)
-	       && ! gtk_sheet_locked (sheet)
 	       && sheet->active_cell.row >= 0
 	       && sheet->active_cell.col >= 0
 	       )
@@ -4915,38 +4867,6 @@ gtk_sheet_button_press (GtkWidget * widget,
 
   return TRUE;
 }
-
-#if 0
-static gint
-gtk_sheet_scroll (gpointer data)
-{
-  GtkSheet *sheet;
-  gint x, y, row, column;
-  gint move;
-
-  sheet = GTK_SHEET (data);
-
-  GDK_THREADS_ENTER ();
-
-  gtk_widget_get_pointer (GTK_WIDGET (sheet), &x, &y);
-  gtk_sheet_get_pixel_info (sheet, x, y, &row, &column);
-
-  move = TRUE;
-
-  if (GTK_SHEET_IN_SELECTION (sheet))
-    gtk_sheet_extend_selection (sheet, row, column);
-
-  if (GTK_SHEET_IN_DRAG (sheet) || GTK_SHEET_IN_RESIZE (sheet))
-    {
-      move = gtk_sheet_move_query (sheet, row, column);
-      if (move) draw_xor_rectangle (sheet, sheet->drag_range);
-    }
-
-  GDK_THREADS_LEAVE ();
-
-  return TRUE;
-}
-#endif
 
 static void
 gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column, gboolean *veto)
@@ -5618,7 +5538,7 @@ gtk_sheet_move_query (GtkSheet *sheet, gint row, gint column)
   if (row >= MAX_VISIBLE_ROW (sheet) && sheet->state != GTK_SHEET_COLUMN_SELECTED)
     {
       row_align = 1.;
-      new_row = MIN (yyy_row_count (sheet), row + 1);
+      new_row = MIN (yyy_row_count (sheet) - 1, row + 1);
       row_move = TRUE;
       if (MAX_VISIBLE_ROW (sheet) == yyy_row_count (sheet) - 1 &&
 	  ROW_TOP_YPIXEL (sheet, yyy_row_count (sheet)- 1) +
@@ -5959,12 +5879,12 @@ gtk_sheet_key_press (GtkWidget *widget,
       break;
     case GDK_Home:
       row = 0;
-      while (!yyy_row_is_visible (sheet, row) && row < yyy_row_count (sheet)- 1) row++;
+      while (!yyy_row_is_visible (sheet, row) && row < yyy_row_count (sheet) - 1) row++;
       gtk_sheet_click_cell (sheet, row, sheet->active_cell.col, &veto);
       extend_selection = FALSE;
       break;
     case GDK_End:
-      row = yyy_row_count (sheet)- 1;
+      row = yyy_row_count (sheet) - 1;
       while (!yyy_row_is_visible (sheet, row) && row > 0) row--;
       gtk_sheet_click_cell (sheet, row, sheet->active_cell.col, &veto);
       extend_selection = FALSE;

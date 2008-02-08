@@ -676,23 +676,17 @@ gboolean
 psppire_data_store_set_string (PsppireDataStore *store,
 			       const gchar *text, glong row, glong col)
 {
+  glong n_cases;
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
   g_return_val_if_fail (pv, FALSE);
 
-#if 0
-  /* Allow the user to insert a lot of blank cases, simply by skipping rows */
-  for (r = psppire_case_file_get_case_count (store->case_file); r <= row ; ++r)
-    {
+  n_cases = psppire_data_store_get_case_count (store);
 
-      gint c;
+  if ( row > n_cases)
+    return FALSE;
 
-      psppire_case_array_insert_case (store->cases, r, 0, 0);
-
-
-      for (c = 0 ; c < psppire_dict_get_var_cnt (store->dict); ++c )
-	psppire_data_store_clear_datum (model, r, c);
-    }
-#endif
+  if (row == n_cases)
+    psppire_data_store_insert_new_case (store, row);
 
   psppire_case_file_data_in (store->case_file, row,
                              var_get_case_index (pv), ss_cstr (text),

@@ -8,6 +8,13 @@
 
 2008-02-08  John Darrington <john@darrington.wattle.id.au>
 
+	* psppire-data-store.c: Remove feature which automatically inserts
+	cases at end of data.
+
+	* datasheet.c: Make rows after the last + 1, not editable.
+
+2008-02-08  John Darrington <john@darrington.wattle.id.au>
+
 	* sort-cases-dialog.c transpose-dialog.c: Added dialog_valid
 	predicates.
 

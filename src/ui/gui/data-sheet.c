@@ -36,36 +36,27 @@
 
 
 static gboolean
-traverse_callback (GtkSheet * sheet,
+traverse_callback (GtkSheet *sheet,
 		   gint row, gint col,
 		   gint *new_row, gint *new_column
 		   )
 {
-  gint case_count;
-  gint n_vars;
+  gint n_vars, n_cases;
+  GtkWidget *entry = gtk_sheet_get_entry (sheet);
 
   PsppireDataStore *data_store =
     PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
-
 
   g_assert (data_store);
 
   n_vars = psppire_dict_get_var_cnt (data_store->dict);
 
+  n_cases = psppire_data_store_get_case_count (data_store);
+
+  g_object_set (entry, "editable", (*new_row < n_cases + 1), NULL);
+
   if ( *new_column >= n_vars )
     return FALSE;
-
-  case_count = psppire_case_file_get_case_count (data_store->case_file);
-
-  if ( *new_row >= case_count )
-    {
-      gint i;
-
-      for ( i = case_count ; i <= *new_row; ++i )
-	psppire_data_store_insert_new_case (data_store, i);
-
-      return TRUE;
-    }
 
   return TRUE;
 }

@@ -1768,12 +1768,18 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
 static gint
 update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
 {
+  GtkEntry *datum_entry;
   GladeXML *data_editor_xml = data;
 
   PsppireDataStore *data_store =
     PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
 
   g_return_val_if_fail (data_editor_xml, FALSE);
+
+
+  datum_entry =
+    GTK_ENTRY (get_widget_assert (data_editor_xml,
+				  "datum_entry"));
 
   if (data_store)
     {
@@ -1784,10 +1790,6 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
       GtkEntry *cell_ref_entry =
 	GTK_ENTRY (get_widget_assert (data_editor_xml,
 				      "cell_ref_entry"));
-      GtkEntry *datum_entry =
-	GTK_ENTRY (get_widget_assert (data_editor_xml,
-				      "datum_entry"));
-
       if ( var )
 	{
 	  gchar *text = g_strdup_printf ("%d: %s", row + FIRST_CASE_NUMBER,
@@ -1802,14 +1804,17 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
 	  g_free (s);
 	}
       else
-	gtk_entry_set_text (cell_ref_entry, "");
-
+	goto blank_entry;
 
       if ( var )
 	{
 	  gchar *text =
 	    psppire_data_store_get_string (data_store, row,
 					   var_get_dict_index(var));
+
+	  if ( ! text )
+	    goto blank_entry;
+
 	  g_strchug (text);
 
 	  gtk_entry_set_text (datum_entry, text);
@@ -1817,8 +1822,14 @@ update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
 	  free (text);
 	}
       else
-	gtk_entry_set_text (datum_entry, "");
+	goto blank_entry;
+
     }
+
+  return FALSE;
+
+ blank_entry:
+  gtk_entry_set_text (datum_entry, "");
 
   return FALSE;
 }
