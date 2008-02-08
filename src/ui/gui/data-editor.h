@@ -31,6 +31,8 @@ struct data_editor
   GtkAction *action_data_save_as;
   GtkAction *action_data_save;
 
+  GtkAction *invoke_text_import_assistant;
+
   /* Actions which invoke dialog boxes */
   GtkAction *invoke_weight_cases_dialog;
   GtkAction *invoke_transpose_dialog;
@@ -46,6 +48,7 @@ struct data_editor
   GtkAction *invoke_recode_same_dialog;
   GtkAction *invoke_recode_different_dialog;
 
+  GtkAction *invoke_crosstabs_dialog;
   GtkAction *invoke_descriptives_dialog;
   GtkAction *invoke_frequencies_dialog;
 
