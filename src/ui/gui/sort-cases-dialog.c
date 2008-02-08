@@ -45,6 +45,21 @@ struct sort_cases_dialog
   GtkToggleButton *ascending;
 };
 
+
+static gboolean
+dialog_state_valid (gpointer data)
+{
+  struct sort_cases_dialog *scd = data;
+  GtkTreeModel *model = gtk_tree_view_get_model (scd->tv);
+
+  gint n_rows = gtk_tree_model_iter_n_children  (model, NULL);
+
+  if ( n_rows == 0 )
+    return FALSE;
+
+  return TRUE;
+}
+
 static char *
 generate_syntax (const struct sort_cases_dialog *scd)
 {
@@ -116,6 +131,11 @@ sort_cases_dialog (GObject *o, gpointer data)
   scd.dict = vs->dict;
   scd.ascending =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "sort-cases-radiobutton0"));
+
+
+  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
+				      dialog_state_valid, &scd);
+
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 

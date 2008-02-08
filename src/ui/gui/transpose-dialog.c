@@ -55,6 +55,28 @@ refresh (PsppireDialog *dialog, gpointer data)
   gtk_entry_set_text (GTK_ENTRY (entry), "");
 }
 
+static gboolean
+dialog_state_valid (gpointer data)
+{
+  GladeXML *xml = data;
+
+  GtkWidget *tv = get_widget_assert (xml, "variables-treeview");
+  GtkWidget *entry = get_widget_assert (xml, "new-name-entry");
+
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (tv));
+
+  gint n_rows = gtk_tree_model_iter_n_children  (model, NULL);
+
+  if ( n_rows == 0 )
+    return FALSE;
+
+  if ( 0 == strcmp ("", gtk_entry_get_text (GTK_ENTRY (entry))))
+    return FALSE;
+
+  return TRUE;
+}
+
+
 void
 transpose_dialog (GObject *o, gpointer data)
 {
@@ -98,6 +120,9 @@ transpose_dialog (GObject *o, gpointer data)
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  xml);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+
+  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
+				      dialog_state_valid, xml);
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
