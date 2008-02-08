@@ -1,3 +1,11 @@
+2008-02-08  Jason Stover  <jhs@math.gcsu.edu>
+
+	* crosstabs-dialog.c: New file.
+
+	* crosstabs-dialog.h: New file.
+
+	* crosstabs.glade: New file.
+
 2008-02-08  John Darrington <john@darrington.wattle.id.au>
 
 	* sort-cases-dialog.c transpose-dialog.c: Added dialog_valid
