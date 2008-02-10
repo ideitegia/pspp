@@ -385,7 +385,7 @@ GET DATA /TYPE=TXT
         [/IMPORTCASE=@{ALL,FIRST max_cases,PERCENT percent@}]
 
         /DELIMITERS="delimiters"
-        [/QUALIFIER="quote"]
+        [/QUALIFIER="quotes" [/ESCAPE]]
         [/DELCASE=@{LINE,VARIABLES n_variables@}]
         /VARIABLES=del_var [del_var]@dots{}
 where each del_var takes the form:
@@ -417,11 +417,22 @@ delimiter, immediately following @samp{\t}.  To read a data file in
 which each field appears on a separate line, specify the empty string
 for DELIMITERS.
 
-The optional QUALIFIER subcommand names a character that can be used
-to quote values within fields in the input.  A field that begins with
-the specified quote character ends at the next match quote.
-Intervening delimiters become part of the field, instead of
-terminating it.
+The optional QUALIFIER subcommand names one or more characters that
+can be used to quote values within fields in the input.  A field that
+begins with one of the specified quote characters ends at the next
+matching quote.  Intervening delimiters become part of the field,
+instead of terminating it.  The ability to specify more than one quote
+character is a PSPP extension.
+
+By default, a character specified on QUALIFIER cannot itself be
+embedded within a field that it quotes, because the quote character
+always terminates the quoted field.  With ESCAPE, however, a doubled
+quote character within a quoted field inserts a single instance of the
+quote into the field.  For example, if @samp{'} is specified on
+QUALIFIER, then without ESCAPE @code{'a''b'} specifies a pair of
+fields that contain @samp{a} and @samp{b}, but with ESCAPE it
+specifies a single field that contains @samp{a'b}.  ESCAPE is a PSPP
+extension.
 
 The DELCASE subcommand controls how data may be broken across lines in
 the data file.  With LINE, the default setting, each line must contain
@@ -495,12 +506,12 @@ GET DATA /TYPE=TXT /FILE='cars.data' /DELIMITERS=' ' /FIRSTCASE=2
 Consider the following information on animals in a pet store:
 
 @example
-"Pet Name", "Age", "Color", "Date Received", "Price", "Needs Walking", "Type"
+'Pet''s Name', "Age", "Color", "Date Received", "Price", "Height", "Type"
 , (Years), , , (Dollars), ,
-"Rover", 4.5, Brown, "12 Feb 2004", 80, True, "Dog"
-"Charlie", , Gold, "5 Apr 2007", 12.3, False, "Fish"
-"Molly", 2, Black, "12 Dec 2006", 25, False, "Cat"
-"Gilly", , White, "10 Apr 2007", 10, False, "Guinea Pig"
+"Rover", 4.5, Brown, "12 Feb 2004", 80, '1''4"', "Dog"
+"Charlie", , Gold, "5 Apr 2007", 12.3, "3""", "Fish"
+"Molly", 2, Black, "12 Dec 2006", 25, '5"', "Cat"
+"Gilly", , White, "10 Apr 2007", 10, "3""", "Guinea Pig"
 @end example
 
 @noindent
@@ -509,15 +520,15 @@ The following syntax can be used to read the pet store data:
 @c If you change this example, change the regression test in
 @c tests/command/get-data-txt-examples.sh to match.
 @example
-GET DATA /TYPE=TXT /FILE='pets.data' /DELIMITERS=', ' /QUALIFIER='"'
+GET DATA /TYPE=TXT /FILE='pets.data' /DELIMITERS=', ' /QUALIFIER='''"' /ESCAPE
         /FIRSTCASE=3
         /VARIABLES=name A10
                    age F3.1
                    color A5
                    received EDATE10
                    price F5.2
-                   needs_walking A5
-                   type A10.
+                   height a5
+                   type a10.
 @end example
 
 @node GET DATA /TYPE=TXT /ARRANGEMENT=FIXED

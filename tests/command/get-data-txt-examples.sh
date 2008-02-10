@@ -75,12 +75,12 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create pets.data"
 cat > pets.data <<'EOF'
-"Pet Name", "Age", "Color", "Date Received", "Price", "Needs Walking", "Type"
+'Pet''s Name', "Age", "Color", "Date Received", "Price", "Height", "Type"
 , (Years), , , (Dollars), ,
-"Rover", 4.5, Brown, "12 Feb 2004", 80, True, "Dog"
-"Charlie", , Gold, "5 Apr 2007", 12.3, False, "Fish"
-"Molly", 2, Black, "12 Dec 2006", 25, False, "Cat"
-"Gilly", , White, "10 Apr 2007", 10, False, "Guinea Pig"
+"Rover", 4.5, Brown, "12 Feb 2004", 80, '1''4"', "Dog"
+"Charlie", , Gold, "5 Apr 2007", 12.3, "3""", "Fish"
+"Molly", 2, Black, "12 Dec 2006", 25, '5"', "Cat"
+"Gilly", , White, "10 Apr 2007", 10, "3""", "Guinea Pig"
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -114,14 +114,14 @@ GET DATA /TYPE=TXT /FILE='cars.data' /ARRANGEMENT=FIXED /FIRSTCASE=2
                    age 40-47 F.
 LIST.
 
-GET DATA /TYPE=TXT /FILE='pets.data' /DELIMITERS=', ' /QUALIFIER='"'
+GET DATA /TYPE=TXT /FILE='pets.data' /DELIMITERS=', ' /QUALIFIER='''"' /ESCAPE
         /FIRSTCASE=3
         /VARIABLES=name A10
                    age F3.1
                    color A5
                    received EDATE10
                    price F5.2
-                   needs_walking a5
+                   height a5
                    type a10.
 LIST.
 EOF
@@ -152,12 +152,12 @@ Civic        2002    29883    15900 Si              2
 Civic        2003    13415    15900 EX              1
 Civic        1992   107000     3800 n/a            12
 Accord       2002    26613    17900 EX              1
-      name  age color   received  price needs_walking       type
----------- ---- ----- ---------- ------ ------------- ----------
-Rover       4.5 Brown 12.02.2004  80.00         True  Dog
-Charlie      .  Gold  05.04.2007  12.30         False Fish
-Molly       2.0 Black 12.12.2006  25.00         False Cat
-Gilly        .  White 10.04.2007  10.00         False Guinea Pig
+      name  age color   received  price height       type
+---------- ---- ----- ---------- ------ ------ ----------
+Rover       4.5 Brown 12.02.2004  80.00  1'4"  Dog
+Charlie      .  Gold  05.04.2007  12.30  3"    Fish
+Molly       2.0 Black 12.12.2006  25.00  5"    Cat
+Gilly        .  White 10.04.2007  10.00  3"    Guinea Pig
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

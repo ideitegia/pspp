@@ -27,7 +27,8 @@
 
 union value;
 bool data_in (struct substring input, enum legacy_encoding,
-              enum fmt_type, int implied_decimals, int first_column,
+              enum fmt_type, int implied_decimals,
+              int first_column, int last_column,
               union value *output, int width);
 
 #endif /* data/data-in.h */

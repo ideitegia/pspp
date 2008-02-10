@@ -54,6 +54,7 @@ struct data_parser
     bool span;                  /* May cases span multiple records? */
     bool empty_line_has_field;  /* Does an empty line have an (empty) field? */
     struct substring quotes;    /* Characters that can quote separators. */
+    bool quote_escape;          /* Doubled quote acts as escape? */
     struct substring soft_seps; /* Two soft separators act like just one. */
     struct substring hard_seps; /* Two hard separators yield empty fields. */
     struct string any_sep;      /* Concatenation of soft_seps and hard_seps. */
@@ -94,6 +95,7 @@ data_parser_create (void)
   parser->span = true;
   parser->empty_line_has_field = false;
   ss_alloc_substring (&parser->quotes, ss_cstr ("\"'"));
+  parser->quote_escape = false;
   ss_alloc_substring (&parser->soft_seps, ss_cstr (CC_SPACES));
   ss_alloc_substring (&parser->hard_seps, ss_cstr (","));
   ds_init_empty (&parser->any_sep);
@@ -216,6 +218,20 @@ data_parser_set_quotes (struct data_parser *parser, struct substring quotes)
 {
   ss_dealloc (&parser->quotes);
   ss_alloc_substring (&parser->quotes, quotes);
+}
+
+/* If ESCAPE is false (the default setting), a character used for
+   quoting cannot itself be embedded within a quoted field.  If
+   ESCAPE is true, then a quote character can be embedded within
+   a quoted field by doubling it.
+
+   This setting affects parsing of DP_DELIMITED files only, and
+   only when at least one quote character has been set (with
+   data_parser_set_quotes). */
+void
+data_parser_set_quote_escape (struct data_parser *parser, bool escape)
+{
+  parser->quote_escape = escape;
 }
 
 /* Sets PARSER's soft delimiters to DELIMITERS.  Soft delimiters
@@ -401,6 +417,7 @@ data_parser_parse (struct data_parser *parser, struct dfm_reader *reader,
    beginning of the field on success. */
 static bool
 cut_field (const struct data_parser *parser, struct dfm_reader *reader,
+           int *first_column, int *last_column, struct string *tmp,
            struct substring *field)
 {
   struct substring line, p;
@@ -422,16 +439,34 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
       else
         {
           *field = p;
+          *first_column = dfm_column_start (reader);
+          *last_column = *first_column + 1;
           dfm_forward_columns (reader, 1);
           return true;
         }
     }
 
+  *first_column = dfm_column_start (reader);
   if (ss_find_char (parser->quotes, ss_first (p)) != SIZE_MAX)
     {
       /* Quoted field. */
-      if (!ss_get_until (&p, ss_get_char (&p), field))
+      int quote = ss_get_char (&p);
+      if (!ss_get_until (&p, quote, field))
         msg (SW, _("Quoted string extends beyond end of line."));
+      if (parser->quote_escape && ss_first (p) == quote)
+        {
+          ds_assign_substring (tmp, *field);
+          while (ss_match_char (&p, quote))
+            {
+              struct substring ss;
+              ds_put_char (tmp, quote);
+              if (!ss_get_until (&p, quote, &ss))
+                msg (SW, _("Quoted string extends beyond end of line."));
+              ds_put_substring (tmp, ss);
+            }
+          *field = ds_ss (tmp);
+        }
+      *last_column = dfm_column_start (reader);
 
       /* Skip trailing soft separator and a single hard separator
          if present. */
@@ -444,6 +479,7 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
     {
       /* Regular field. */
       ss_get_chars (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
+      *last_column = dfm_column_start (reader);
       if (!ss_ltrim (&p, parser->soft_seps) || ss_is_empty (p))
         {
           /* Advance past a trailing hard separator,
@@ -491,7 +527,8 @@ parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
         data_in (ss_substr (line, f->first_column - 1,
                             f->format.w),
                  encoding, f->format.type, f->format.d,
-                 f->first_column, case_data_rw_idx (c, f->case_idx),
+                 f->first_column, f->first_column + f->format.w,
+                 case_data_rw_idx (c, f->case_idx),
                  fmt_var_width (&f->format));
 
       dfm_forward_record (reader);
@@ -508,14 +545,17 @@ parse_delimited_span (const struct data_parser *parser,
                       struct dfm_reader *reader, struct ccase *c)
 {
   enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  struct string tmp = DS_EMPTY_INITIALIZER;
   struct field *f;
 
   for (f = parser->fields; f < &parser->fields[parser->field_cnt]; f++)
     {
       struct substring s;
+      int first_column, last_column;
 
       /* Cut out a field and read in a new record if necessary. */
-      while (!cut_field (parser, reader, &s))
+      while (!cut_field (parser, reader,
+                         &first_column, &last_column, &tmp, &s))
 	{
 	  if (!dfm_eof (reader))
             dfm_forward_record (reader);
@@ -524,15 +564,17 @@ parse_delimited_span (const struct data_parser *parser,
 	      if (f > parser->fields)
 		msg (SW, _("Partial case discarded.  The first variable "
                            "missing was %s."), f->name);
+              ds_destroy (&tmp);
 	      return false;
 	    }
 	}
 
       data_in (s, encoding, f->format.type, 0,
-               dfm_get_column (reader, ss_data (s)),
+               first_column, last_column,
                case_data_rw_idx (c, f->case_idx),
                fmt_var_width (&f->format));
     }
+  ds_destroy (&tmp);
   return true;
 }
 
@@ -544,6 +586,7 @@ parse_delimited_no_span (const struct data_parser *parser,
                          struct dfm_reader *reader, struct ccase *c)
 {
   enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  struct string tmp = DS_EMPTY_INITIALIZER;
   struct substring s;
   struct field *f;
 
@@ -552,7 +595,8 @@ parse_delimited_no_span (const struct data_parser *parser,
 
   for (f = parser->fields; f < &parser->fields[parser->field_cnt]; f++)
     {
-      if (!cut_field (parser, reader, &s))
+      int first_column, last_column;
+      if (!cut_field (parser, reader, &first_column, &last_column, &tmp, &s))
 	{
 	  if (settings_get_undefined ())
 	    msg (SW, _("Missing value(s) for all variables from %s onward.  "
@@ -560,18 +604,13 @@ parse_delimited_no_span (const struct data_parser *parser,
                        "or blanks, as appropriate."),
 		 f->name);
           for (; f < &parser->fields[parser->field_cnt]; f++)
-            {
-              int width = fmt_var_width (&f->format);
-              if (width == 0)
-                case_data_rw_idx (c, f->case_idx)->f = SYSMIS;
-              else
-                memset (case_data_rw_idx (c, f->case_idx)->s, ' ', width);
-            }
+            value_set_missing (case_data_rw_idx (c, f->case_idx),
+                               fmt_var_width (&f->format));
           goto exit;
 	}
 
       data_in (s, encoding, f->format.type, 0,
-               dfm_get_column (reader, ss_data (s)),
+               first_column, last_column,
                case_data_rw_idx (c, f->case_idx),
                fmt_var_width (&f->format));
     }
@@ -583,6 +622,7 @@ parse_delimited_no_span (const struct data_parser *parser,
 
 exit:
   dfm_forward_record (reader);
+  ds_destroy (&tmp);
   return true;
 }
 

@@ -1,3 +1,18 @@
+2008-02-09  Ben Pfaff  <blp@gnu.org>
+
+	Consolidate multiple messages into single message dialog.  Patch
+	#6405.  Thanks to John Darrington for review.
+
+	* automake.mk (dist_src_ui_gui_psppire_DATA): Add
+	message-dialog.glade.
+
+	* helper.c (give_help): Use GtkMessageDialog directly instead of
+	trying to reuse message-dialog code.
+
+	* message-dialog.c: Rewritten.
+
+	* message-dialog.glade: New file.
+
 2008-02-08  Jason Stover  <jhs@math.gcsu.edu>
 
 	* crosstabs-dialog.c: New file.

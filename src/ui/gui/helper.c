@@ -91,7 +91,7 @@ text_to_value (const gchar *text, union value *v,
     }
 
   msg_disable ();
-  ok = data_in (ss_cstr (text), LEGACY_NATIVE, format.type, 0, 0,
+  ok = data_in (ss_cstr (text), LEGACY_NATIVE, format.type, 0, 0, 0,
                 v, fmt_var_width (&format));
   msg_enable ();
 

@@ -1,3 +1,23 @@
+2008-02-09  Ben Pfaff  <blp@gnu.org>
+
+	Add a couple of extensions to GET DATA TYPE=TXT.  Patch #6412.
+	Thanks to John Darrington for review.
+
+	* data-in.c (data_in): Add new argument to designate the last
+	column of the data field being parsed, for use in error messages.
+	Update all callers.
+
+	* data-parser (struct data_parser): New member `quote_escape'.
+	(data_parser_create): Initialize quote_escape.
+	(data_parser_set_quotes): New function.
+	(cut_field): Support escaped quotes.
+	(parse_delimited_span): Ditto.
+	(parse_delimited_no_span): Ditto.
+
+	* get-data.c (parse_get_txt): Support ESCAPE extension subcommand
+	in enhanced mode.  Only support multiple quote characters in
+	enhanced mode.
+
 2008-02-06  John Darrington <john@darrington.wattle.id.au>
 
 	psql-reader.c psql-reader.h: Read more than one tuple at

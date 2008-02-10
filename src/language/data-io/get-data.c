@@ -24,6 +24,7 @@
 #include <data/dictionary.h>
 #include <data/format.h>
 #include <data/procedure.h>
+#include <data/settings.h>
 #include <language/command.h>
 #include <language/data-io/data-parser.h>
 #include <language/data-io/data-reader.h>
@@ -429,18 +430,29 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
 
           lex_get (lexer);
         }
-      else if (lex_match_id (lexer, "QUALIFIER"))
+      else if (lex_match_id (lexer, "QUALIFIERS"))
         {
-          if (!set_type (parser, "QUALIFIER", DP_DELIMITED, &has_type))
+          if (!set_type (parser, "QUALIFIERS", DP_DELIMITED, &has_type))
             goto error;
           lex_match (lexer, '=');
 
           if (!lex_force_string (lexer))
             goto error;
 
+          if (settings_get_syntax () == COMPATIBLE
+              && ds_length (lex_tokstr (lexer)) != 1)
+            {
+              msg (SE, _("In compatible syntax mode, the QUALIFIER string "
+                         "must contain exactly one character."));
+              goto error;
+            }
+
           data_parser_set_quotes (parser, ds_ss (lex_tokstr (lexer)));
           lex_get (lexer);
         }
+      else if (settings_get_syntax () == ENHANCED
+               && lex_match_id (lexer, "ESCAPE"))
+        data_parser_set_quote_escape (parser, true);
       else if (lex_match_id (lexer, "VARIABLES"))
         break;
       else

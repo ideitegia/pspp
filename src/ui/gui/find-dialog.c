@@ -600,7 +600,7 @@ value_comparator_create (const struct variable *var, const char *target)
   if ( ! data_in (ss_cstr (target),
                   LEGACY_NATIVE,
 		  fmt->type,
-		  0, 0,
+		  0, 0, 0,
 		  vc->pattern, width) )
     {
       free (vc);

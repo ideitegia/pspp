@@ -54,6 +54,7 @@ void data_parser_set_span (struct data_parser *, bool may_cases_span_records);
 void data_parser_set_empty_line_has_field (struct data_parser *,
                                            bool empty_line_has_field);
 void data_parser_set_quotes (struct data_parser *, struct substring);
+void data_parser_set_quote_escape (struct data_parser *, bool escape);
 void data_parser_set_soft_delimiters (struct data_parser *, struct substring);
 void data_parser_set_hard_delimiters (struct data_parser *, struct substring);
 

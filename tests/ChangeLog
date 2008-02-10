@@ -1,3 +1,9 @@
+2008-02-10  Ben Pfaff  <blp@gnu.org>
+
+	* command/get-data-txt-examples.sh: Update to match changes to
+	documentation (which were in turn updated to show how the escaped
+	quote feature works).
+
 2008-02-02  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Add target for dissect-sysfile.

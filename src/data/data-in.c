@@ -90,13 +90,16 @@ static int hexit_value (int c);
    IMPLIED_DECIMALS decimal places are implied.  Specify 0 if no
    decimal places should be implied.
 
-   If FIRST_COLUMN is nonzero, then it should be the 1-based
-   column number of the first character in INPUT, used in error
-   messages. */
+   If FIRST_COLUMN and LAST_COLUMN are nonzero, then they should
+   be the 1-based column number of the first and
+   one-past-the-last-character in INPUT, for use in error
+   messages.  (LAST_COLUMN cannot always be calculated from
+   FIRST_COLUMN plus the length of the input because of the
+   possibility of escaped quotes in strings, etc.) */
 bool
 data_in (struct substring input, enum legacy_encoding encoding,
          enum fmt_type format, int implied_decimals,
-         int first_column, union value *output, int width)
+         int first_column, int last_column, union value *output, int width)
 {
   static data_in_parser_func *const handlers[FMT_NUMBER_OF_FORMATS] =
     {
@@ -131,7 +134,7 @@ data_in (struct substring input, enum legacy_encoding encoding,
   i.width = width;
 
   i.first_column = first_column;
-  i.last_column = first_column + ss_length (input) - 1;
+  i.last_column = last_column;
 
   if (!ss_is_empty (i.input))
     {
@@ -1167,11 +1170,11 @@ vdata_warning (const struct data_in *i, const char *format, va_list args)
   ds_put_char (&text, '(');
   if (i->first_column != 0)
     {
-      if (i->first_column == i->last_column)
+      if (i->first_column == i->last_column - 1)
         ds_put_format (&text, _("column %d"), i->first_column);
       else
         ds_put_format (&text, _("columns %d-%d"),
-                       i->first_column, i->last_column);
+                       i->first_column, i->last_column - 1);
       ds_put_cstr (&text, ", ");
     }
   ds_put_format (&text, _("%s field) "), fmt_name (i->format));
