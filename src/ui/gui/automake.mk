@@ -53,6 +53,7 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
 	$(top_srcdir)/src/ui/gui/frequencies.glade \
+	$(top_srcdir)/src/ui/gui/message-dialog.glade \
 	$(top_srcdir)/src/ui/gui/oneway.glade \
 	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/psppire.glade \

@@ -36,29 +36,161 @@
 #include "helper.h"
 
 static void enqueue_msg (const struct msg *m);
+static gboolean popup_messages (gpointer);
 
+#define MAX_EARLY_MESSAGES 100
+static GQueue *early_queue;
 
-static GQueue *message_queue;
+static unsigned long dropped_messages;
 
+#define MAX_LATE_MESSAGES 10
+static GQueue *late_queue;
+
+static int error_cnt, warning_cnt, note_cnt;
+
+static GladeXML *message_xml;
+static GtkDialog *message_dialog;
 
 void
 message_dialog_init (struct source_stream *ss)
 {
-  message_queue = g_queue_new ();
+  early_queue = g_queue_new ();
+  dropped_messages = 0;
+  late_queue = g_queue_new ();
+  error_cnt = warning_cnt = note_cnt = 0;
   msg_init (ss, enqueue_msg);
+  message_xml = XML_NEW ("message-dialog.glade");
+  message_dialog = GTK_DIALOG (get_widget_assert (message_xml,
+                                                  "message-dialog"));
 }
 
 void
 message_dialog_done (void)
 {
   msg_done ();
-  g_queue_free (message_queue);
+  g_queue_free (early_queue);
+  dropped_messages = 0;
+  g_queue_free (late_queue);
+  gtk_widget_destroy (GTK_WIDGET (message_dialog));
+  g_object_unref (message_xml);
 }
 
-static gboolean
-dequeue_message (gpointer data)
+static void
+format_message (struct msg *m, struct string *msg)
 {
-  struct msg * m ;
+  const char *label;
+
+  if (m->where.file_name)
+    ds_put_format (msg, "%s:", m->where.file_name);
+  if (m->where.line_number != -1)
+    ds_put_format (msg, "%d:", m->where.line_number);
+  if (m->where.file_name || m->where.line_number != -1)
+    ds_put_char (msg, ' ');
+
+  switch (m->severity)
+    {
+    case MSG_ERROR:
+      switch (m->category)
+	{
+	case MSG_SYNTAX:
+	  label = _("syntax error");
+	  break;
+
+	case MSG_DATA:
+	  label = _("data file error");
+	  break;
+
+	case MSG_GENERAL:
+	default:
+	  label = _("PSPP error");
+	  break;
+	}
+      break;
+    case MSG_WARNING:
+      switch (m->category)
+	{
+	case MSG_SYNTAX:
+	  label = _("syntax warning");
+          break;
+
+	case MSG_DATA:
+	  label = _("data file warning");
+	  break;
+
+	case MSG_GENERAL:
+        default:
+	  label = _("PSPP warning");
+          break;
+        }
+      break;
+    case MSG_NOTE:
+    default:
+      switch (m->category)
+        {
+        case MSG_SYNTAX:
+	  label = _("syntax information");
+          break;
+
+        case MSG_DATA:
+	  label = _("data file information");
+          break;
+
+        case MSG_GENERAL:
+        default:
+	  label = _("PSPP information");
+	  break;
+	}
+      break;
+    }
+  ds_put_format (msg, "%s: %s\n", label, m->text);
+  msg_destroy (m);
+}
+
+static void
+enqueue_msg (const struct msg *msg)
+{
+  struct msg *m = msg_dup (msg);
+
+  switch (m->severity)
+    {
+    case MSG_ERROR:
+      error_cnt++;
+      break;
+    case MSG_WARNING:
+      warning_cnt++;
+      break;
+    case MSG_NOTE:
+      note_cnt++;
+      break;
+    }
+
+  if (g_queue_get_length (early_queue) < MAX_EARLY_MESSAGES)
+    {
+      if (g_queue_is_empty (early_queue))
+        g_idle_add (popup_messages, NULL);
+      g_queue_push_tail (early_queue, m);
+    }
+  else
+    {
+      if (g_queue_get_length (late_queue) >= MAX_LATE_MESSAGES)
+        {
+          struct msg *m = g_queue_pop_head (late_queue);
+          msg_destroy (m);
+          dropped_messages++;
+        }
+      g_queue_push_tail (late_queue, m);
+    }
+}
+
+gboolean
+popup_messages (gpointer unused UNUSED)
+{
+  GtkTextBuffer *text_buffer;
+  GtkTextIter end;
+  GtkTextView *text_view;
+  GtkLabel *label;
+  struct string lead, msg;
+  int message_cnt;
 
   /* If a pointer grab is in effect, then the combination of that, and
      a modal dialog box, will cause an impossible situation.
@@ -67,123 +199,76 @@ dequeue_message (gpointer data)
   if ( gdk_pointer_is_grabbed ())
     return TRUE;
 
-  m = g_queue_pop_tail (message_queue);
-
-  if ( m )
-    {
-      popup_message (m);
-      msg_destroy (m);
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-static void
-enqueue_msg (const struct msg *msg)
-{
-  struct msg *m = msg_dup (msg);
-
-  g_queue_push_head (message_queue, m);
-
-  g_idle_add (dequeue_message, 0);
-}
-
-
-void
-popup_message (const struct msg *m)
-{
-  GtkWidget *dialog;
-  gchar *location = NULL;
-
-  gint message_type;
-  const char *msg;
-
-  switch (m->severity)
-    {
-    case MSG_ERROR:
-      message_type = GTK_MESSAGE_ERROR;
-      switch (m->category)
-	{
-	case MSG_SYNTAX:
-	  msg = _("Syntax Error");
-	  break;
-
-	case MSG_DATA:
-	  msg = _("Data File Error");
-	  break;
-
-	case MSG_GENERAL:
-	default:
-	  msg = _("PSPP Error");
-	  break;
-	};
-      break;
-    case MSG_WARNING:
-      message_type = GTK_MESSAGE_WARNING;
-      switch (m->category)
-	{
-	case MSG_SYNTAX:
-	  msg = _("Syntax Warning");
-      break;
-
-	case MSG_DATA:
-	  msg = _("Data File Warning");
-	  break;
-
-	case MSG_GENERAL:
-    default:
-	  msg = _("PSPP Warning");
-      break;
-    };
-      break;
-    case MSG_NOTE:
-    default:
-      message_type = GTK_MESSAGE_INFO;
-  switch (m->category)
-    {
-    case MSG_SYNTAX:
-	  msg = _("Syntax Information");
-      break;
-
-    case MSG_DATA:
-	  msg = _("Data File Information");
-      break;
-
-    case MSG_GENERAL:
-    default:
-	  msg = _("PSPP Information");
-	  break;
-	};
-      break;
-    };
-
-  dialog = gtk_message_dialog_new ( NULL,
-				  GTK_DIALOG_MODAL,
-				  message_type,
-				  GTK_BUTTONS_CLOSE,
-				  msg);
-  if ( m->where.line_number != -1)
-    {
-      location = g_strdup_printf (_("%s (line %d)"),
-				  m->where.file_name ? m->where.file_name : "",
-				  m->where.line_number);
-    }
+  /* Compose the lead-in. */
+  message_cnt = error_cnt + warning_cnt + note_cnt;
+  ds_init_empty (&lead);
+  if (dropped_messages == 0)
+    ds_put_format (
+      &lead,
+      ngettext ("The PSPP processing engine reported the following message:",
+                "The PSPP processing engine reported the following messages:",
+                message_cnt));
   else
     {
-      location = g_strdup_printf (_("%s"),
-				  m->where.file_name ? m->where.file_name : "");    }
+      ds_put_format (
+        &lead,
+        ngettext ("The PSPP processing engine reported %d message.",
+                  "The PSPP processing engine reported %d messages.",
+                  message_cnt),
+        message_cnt);
+      ds_put_cstr (&lead, "  ");
+      ds_put_format (
+        &lead,
+        ngettext ("%d of these messages are displayed below.",
+                  "%d of these messages are displayed below.",
+                  MAX_EARLY_MESSAGES + MAX_LATE_MESSAGES),
+        MAX_EARLY_MESSAGES + MAX_LATE_MESSAGES);
+    }
 
-  gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
-					    _("%s %s"),
-					    location,
-					    m->text);
-  g_free (location);
 
-  gtk_window_set_keep_above (GTK_WINDOW (dialog), TRUE);
+  /* Compose the messages. */
+  ds_init_empty (&msg);
+  while (!g_queue_is_empty (early_queue))
+    format_message (g_queue_pop_head (early_queue), &msg);
+  if (dropped_messages)
+    {
+      ds_put_format (&msg, "...\nOmitting %lu messages\n...\n",
+                     dropped_messages);
+      dropped_messages = 0;
+    }
+  while (!g_queue_is_empty (late_queue))
+    format_message (g_queue_pop_head (late_queue), &msg);
 
-  gtk_dialog_run (GTK_DIALOG (dialog));
+  /* Set up the dialog. */
+  if (message_xml == NULL || message_dialog == NULL)
+    goto use_fallback;
 
-  gtk_widget_destroy (dialog);
+  text_buffer = gtk_text_buffer_new (NULL);
+  gtk_text_buffer_get_end_iter (text_buffer, &end);
+  gtk_text_buffer_insert (text_buffer, &end, ds_data (&msg), ds_length (&msg));
+  ds_destroy (&msg);
+
+  label = GTK_LABEL (get_widget_assert (message_xml, "lead-in"));
+  if (label == NULL)
+    goto use_fallback;
+  gtk_label_set_text (label, ds_cstr (&lead));
+
+  text_view = GTK_TEXT_VIEW (get_widget_assert (message_xml, "message"));
+  if (text_view == NULL)
+    goto use_fallback;
+  gtk_text_view_set_buffer (text_view, text_buffer);
+
+  gtk_dialog_run (message_dialog);
+  gtk_widget_hide (GTK_WIDGET (message_dialog));
+
+  return FALSE;
+
+use_fallback:
+  g_warning ("Could not create message dialog.  "
+             "Is PSPPIRE properly installed?");
+  fputs (ds_cstr (&msg), stderr);
+  ds_destroy (&lead);
+  ds_destroy (&msg);
+  return FALSE;
 }
 

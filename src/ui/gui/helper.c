@@ -129,17 +129,16 @@ pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err)
 static void
 give_help (void)
 {
-  static struct msg m = {
-    MSG_GENERAL,
-    MSG_NOTE,
-    {0, -1},
-    0,
-  };
+  GtkWidget *dialog;
 
-  if (! m.text)
-    m.text=g_strdup (_("Sorry. The help system hasn't yet been implemented."));
-
-  popup_message (&m);
+  dialog = gtk_message_dialog_new (NULL,
+                                   GTK_DIALOG_MODAL,
+                                   GTK_MESSAGE_INFO,
+                                   GTK_BUTTONS_CLOSE,
+                                   _("Sorry. The help system hasn't yet "
+                                     "been implemented."));
+  gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_destroy (dialog);
 }
 
 void
