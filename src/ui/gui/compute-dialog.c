@@ -325,10 +325,15 @@ on_expression_toggle (GtkToggleButton *button, gpointer data)
 	(GTK_ENTRY (get_widget_assert (cd->xml, "compute-entry1")));
 
       target_var = psppire_dict_lookup_var (cd->dict, target_name);
-      label = var_get_label (target_var);
+      if ( target_var )
+	{
+	  label = var_get_label (target_var);
 
-      if ( label )
-	gtk_entry_set_text (GTK_ENTRY (entry), label);
+	  if ( label )
+	    gtk_entry_set_text (GTK_ENTRY (entry), label);
+	}
+      else
+	gtk_entry_set_text (GTK_ENTRY (entry), "");
 
       gtk_widget_set_sensitive (entry, TRUE);
     }

@@ -4,6 +4,9 @@
 	variable selected.  Add a valid predicate so that this can't 
 	happen anyway.
 
+	* compute-dialog.c: Fix crash when trying to set label on non
+	existant variable.
+
 2008-02-09  Ben Pfaff  <blp@gnu.org>
 
 	Consolidate multiple messages into single message dialog.  Patch
