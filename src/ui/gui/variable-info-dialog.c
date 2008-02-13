@@ -142,6 +142,21 @@ populate_text (GtkTreeView *treeview, gpointer data)
   g_string_free (gstring, TRUE);
 }
 
+static gboolean
+treeview_item_selected (gpointer data)
+{
+  GtkTreeView *tv = GTK_TREE_VIEW (data);
+  GtkTreeModel *model = gtk_tree_view_get_model (tv);
+
+  gint n_rows = gtk_tree_model_iter_n_children  (model, NULL);
+
+  if ( n_rows == 0 )
+    return FALSE;
+
+  return TRUE;
+}
+
+
 static gchar * generate_syntax (GtkTreeView *treeview);
 
 
@@ -178,6 +193,9 @@ variable_info_dialog (GObject *o, gpointer data)
 
   gtk_text_view_set_indent (GTK_TEXT_VIEW (textview), -5);
 
+  psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
+				      treeview_item_selected, treeview);
+
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
   switch (response)
@@ -190,6 +208,9 @@ variable_info_dialog (GObject *o, gpointer data)
 
 	const struct variable *var =
 	  get_selected_variable (GTK_TREE_VIEW (treeview));
+
+	if ( NULL == var)
+	  goto done;
 
 
 	if (PAGE_VAR_SHEET == gtk_notebook_get_current_page (notebook))
@@ -228,8 +249,8 @@ variable_info_dialog (GObject *o, gpointer data)
       break;
     }
 
+ done:
   g_object_unref (xml);
-
 }
 
 static gchar *

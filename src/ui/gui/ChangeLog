@@ -1,3 +1,9 @@
+2008-02-13  John Darrington <john@darrington.wattle.id.au>
+
+	* variable-info-dialog.c: Fix crash when clicking "Jump" when no 
+	variable selected.  Add a valid predicate so that this can't 
+	happen anyway.
+
 2008-02-09  Ben Pfaff  <blp@gnu.org>
 
 	Consolidate multiple messages into single message dialog.  Patch
