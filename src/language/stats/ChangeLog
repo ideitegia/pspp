@@ -1,3 +1,8 @@
+2008-02-14  John Darrington <john@darrington.wattle.id.au>
+
+	* examine.q: Fixed counts of missing variables.  Thanks to 
+	Jason Stover for reporting this problem.
+
 2008-01-02  John Darrington <john@darrington.wattle.id.au>
 
 	*  binomial.c chisquare.c examine.q frequencies.q oneway.q regression.q : updated

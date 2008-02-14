@@ -156,7 +156,7 @@ static void output_examine (void);
 
 
 void factor_calc (const struct ccase *c, int case_no,
-		  double weight, int case_missing);
+		  double weight, bool case_missing);
 
 
 /* Represent a factor as a string, so it can be
@@ -639,7 +639,7 @@ void populate_summary (struct tab_table *t, int col, int row,
 /* Perform calculations for the sub factors */
 void
 factor_calc (const struct ccase *c, int case_no, double weight,
-	     int case_missing)
+	     bool case_missing)
 {
   size_t v;
   struct factor *fctr = factors;
@@ -700,7 +700,7 @@ factor_calc (const struct ccase *c, int case_no, double weight,
 	  if (case_missing || var_is_value_missing (var, val, exclude_values))
 	    {
 	      free (val);
-	      continue;
+	      val = NULL;
 	    }
 
 	  metrics_calc ( & (*foo)->m[v], val, weight, case_no);
@@ -754,7 +754,7 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 
   for (; casereader_read (input, &c); case_destroy (&c))
     {
-      int case_missing = 0;
+      bool case_missing = false;
       const double weight = dict_get_case_weight (dict, &c, NULL);
 
       if ( cmd->miss == XMN_LISTWISE )
@@ -768,7 +768,7 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 						  );
 
 	      if ( var_is_value_missing (var, val, exclude_values))
-		case_missing = 1;
+		case_missing = true;
 
 	      free (val);
 	    }
@@ -786,7 +786,7 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
                || case_missing )
 	    {
 	      free (val) ;
-	      continue ;
+	      val = NULL;
 	    }
 
 	  metrics_calc (&totals[v], val, weight, case_no);
@@ -975,7 +975,6 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 
   tab_title (tbl, _ ("Case Processing Summary"));
 
-
   tab_joint_text (tbl, heading_columns, 0,
 		 n_cols -1, 0,
 		 TAB_CENTER | TAT_TITLE,
@@ -990,22 +989,21 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 
   for ( i = 0 ; i < 3 ; ++i )
     {
-      tab_text (tbl, heading_columns + i*2 , 2, TAB_CENTER | TAT_TITLE,
+      tab_text (tbl, heading_columns + i * 2 , 2, TAB_CENTER | TAT_TITLE,
 		_ ("N"));
 
-      tab_text (tbl, heading_columns + i*2 + 1, 2, TAB_CENTER | TAT_TITLE,
+      tab_text (tbl, heading_columns + i * 2 + 1, 2, TAB_CENTER | TAT_TITLE,
 		_ ("Percent"));
 
       tab_joint_text (tbl, heading_columns + i*2 , 1,
-		     heading_columns + i*2 + 1, 1,
+		     heading_columns + i * 2 + 1, 1,
 		     TAB_CENTER | TAT_TITLE,
 		     subtitle[i]);
 
       tab_box (tbl, -1, -1,
 	       TAL_0, TAL_0,
-	       heading_columns + i*2, 1,
-	       heading_columns + i*2 + 1, 1);
-
+	       heading_columns + i * 2, 1,
+	       heading_columns + i * 2 + 1, 1);
     }
 
 
@@ -1020,7 +1018,6 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 	  tab_text (tbl, 2, heading_rows - 1, TAB_CENTER | TAT_TITLE,
 		    var_to_string (fctr->indep_var[1]));
 	}
-
     }
 
 
@@ -1029,7 +1026,6 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
       int n_factors = 1;
       if ( fctr )
 	n_factors = hsh_count (fctr->fstats);
-
 
       if ( i > 0 )
 	tab_hline (tbl, TAL_1, 0, n_cols -1 , i * n_factors + heading_rows);
@@ -1040,13 +1036,10 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		var_to_string (dependent_var[i])
 		);
 
-
       if ( !fctr )
 	populate_summary (tbl, heading_columns,
 			 (i * n_factors) + heading_rows,
 			 &totals[i]);
-
-
       else
 	{
 	  struct factor_statistics **fs = fctr->fs;
@@ -1077,7 +1070,6 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		  if (fctr->indep_var[1] && count > 0 )
 		    tab_hline (tbl, TAL_1, 1, n_cols - 1,
 			      (i * n_factors ) + count + heading_rows);
-
 		}
 
 	      prev = (*fs)->id[0];
@@ -1088,20 +1080,20 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		  ds_init_empty (&vstr);
 		  var_append_value_name (fctr->indep_var[1],
 					 (*fs)->id[1], &vstr);
-		tab_text (tbl,
-			  2,
-			  (i * n_factors ) + count +
-			  heading_rows,
-			  TAB_LEFT | TAT_TITLE,
+		  tab_text (tbl,
+			    2,
+			    (i * n_factors ) + count +
+			    heading_rows,
+			    TAB_LEFT | TAT_TITLE,
 			    ds_cstr (&vstr)
-			  );
+			    );
 		  ds_destroy (&vstr);
-	    }
+		}
 
 	      populate_summary (tbl, heading_columns,
-			       (i * n_factors) + count
-			       + heading_rows,
-			       & (*fs)->m[i]);
+				(i * n_factors) + count
+				+ heading_rows,
+				& (*fs)->m[i]);
 
 	      count++ ;
 	      fs++;
@@ -1135,11 +1127,7 @@ populate_summary (struct tab_table *t, int col, int row,
     /* This seems a bit pointless !!! */
     tab_text (t, col + 5, row + 0, TAB_RIGHT | TAT_PRINTF, "%2.0f%%",
 	      100.0 * total / total );
-
-
   }
-
-
 }
 
 

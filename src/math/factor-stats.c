@@ -73,10 +73,8 @@ metrics_calc (struct metrics *fs, const union value *val,
 
   moments1_add(fs->moments, x, weight);
 
-
   if ( x < fs->min) fs->min = x;
   if ( x > fs->max) fs->max = x;
-
 
   wv = (struct weighted_value **) hsh_probe (fs->ordered_data,(void *) val );
 
