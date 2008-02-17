@@ -177,7 +177,7 @@ guint STRING_WIDTH (GtkWidget *widget,
 
   pango_layout_get_extents (layout, NULL, &rect);
 
-  g_object_unref (G_OBJECT (layout));
+  g_object_unref (layout);
   return PANGO_PIXELS (rect.width);
 }
 
@@ -1454,7 +1454,7 @@ column_titles_changed (GtkWidget *w, gint first, gint n_columns, gpointer data)
       for ( i = first ; i <= first + n_columns ; ++i )
 	{
 	  gtk_sheet_column_title_button_draw (sheet, i);
-	  g_signal_emit (G_OBJECT (sheet), sheet_signals[CHANGED], 0, -1, i);
+	  g_signal_emit (sheet, sheet_signals[CHANGED], 0, -1, i);
 	}
     }
 
@@ -1550,7 +1550,7 @@ gtk_sheet_change_entry (GtkSheet *sheet, GtkType entry_type)
   if (state == GTK_SHEET_NORMAL)
     {
       gtk_sheet_show_active_cell (sheet);
-      g_signal_connect (G_OBJECT (gtk_sheet_get_entry (sheet)),
+      g_signal_connect (gtk_sheet_get_entry (sheet),
 			"changed",
 			G_CALLBACK (gtk_sheet_entry_changed),
 			sheet);
@@ -1808,10 +1808,10 @@ gtk_sheet_thaw (GtkSheet *sheet)
   sheet->old_hadjustment = -1.;
 
   if (sheet->hadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->hadjustment),
+    g_signal_emit_by_name (sheet->hadjustment,
 			   "value_changed");
   if (sheet->vadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->vadjustment),
+    g_signal_emit_by_name (sheet->vadjustment,
 			   "value_changed");
 
   if (sheet->state == GTK_STATE_NORMAL)
@@ -1834,7 +1834,7 @@ gtk_sheet_set_row_titles_width (GtkSheet *sheet, guint width)
 
   sheet->old_hadjustment = -1.;
   if (sheet->hadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->hadjustment),
+    g_signal_emit_by_name (sheet->hadjustment,
 			   "value_changed");
   size_allocate_global_button (sheet);
 }
@@ -1850,7 +1850,7 @@ gtk_sheet_set_column_titles_height (GtkSheet *sheet, guint height)
 
   sheet->old_vadjustment = -1.;
   if (sheet->vadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->vadjustment),
+    g_signal_emit_by_name (sheet->vadjustment,
 			   "value_changed");
   size_allocate_global_button (sheet);
 }
@@ -1889,7 +1889,7 @@ gtk_sheet_show_column_titles (GtkSheet *sheet)
 
   sheet->old_vadjustment = -1.;
   if (sheet->vadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->vadjustment),
+    g_signal_emit_by_name (sheet->vadjustment,
 			   "value_changed");
   size_allocate_global_button (sheet);
 }
@@ -1931,7 +1931,7 @@ gtk_sheet_show_row_titles (GtkSheet *sheet)
 
   sheet->old_hadjustment = -1.;
   if (sheet->hadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->hadjustment),
+    g_signal_emit_by_name (sheet->hadjustment,
 			   "value_changed");
   size_allocate_global_button (sheet);
 }
@@ -1967,7 +1967,7 @@ gtk_sheet_hide_column_titles (GtkSheet *sheet)
 
   sheet->old_vadjustment = -1.;
   if (sheet->vadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->vadjustment),
+    g_signal_emit_by_name (sheet->vadjustment,
 			   "value_changed");
 }
 
@@ -2002,7 +2002,7 @@ gtk_sheet_hide_row_titles (GtkSheet *sheet)
 
   sheet->old_hadjustment = -1.;
   if (sheet->hadjustment)
-    g_signal_emit_by_name (G_OBJECT (sheet->hadjustment),
+    g_signal_emit_by_name (sheet->hadjustment,
 			   "value_changed");
 }
 
@@ -2084,7 +2084,7 @@ gtk_sheet_moveto (GtkSheet *sheet,
 	sheet->vadjustment->value = y;
 
       sheet->old_vadjustment = -1.;
-      g_signal_emit_by_name (G_OBJECT (sheet->vadjustment),
+      g_signal_emit_by_name (sheet->vadjustment,
 			     "value_changed");
 
     }
@@ -2123,7 +2123,7 @@ gtk_sheet_moveto (GtkSheet *sheet,
 	sheet->hadjustment->value = x;
 
       sheet->old_vadjustment = -1.;
-      g_signal_emit_by_name (G_OBJECT (sheet->hadjustment),
+      g_signal_emit_by_name (sheet->hadjustment,
 			     "value_changed");
     }
 }
@@ -2194,7 +2194,7 @@ gtk_sheet_select_row (GtkSheet * sheet,
   sheet->active_cell.row = row;
   sheet->active_cell.col = 0;
 
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[SELECT_ROW], 0, row);
+  g_signal_emit (sheet, sheet_signals[SELECT_ROW], 0, row);
   gtk_sheet_real_select_range (sheet, NULL);
 }
 
@@ -2225,7 +2225,7 @@ gtk_sheet_select_column (GtkSheet * sheet, gint column)
   sheet->active_cell.row = 0;
   sheet->active_cell.col = column;
 
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[SELECT_COLUMN], 0, column);
+  g_signal_emit (sheet, sheet_signals[SELECT_COLUMN], 0, column);
   gtk_sheet_real_select_range (sheet, NULL);
 }
 
@@ -2328,21 +2328,21 @@ gtk_sheet_set_vadjustment (GtkSheet *sheet,
 
   if (sheet->vadjustment)
     {
-      g_signal_handlers_disconnect_matched (G_OBJECT (sheet->vadjustment),
+      g_signal_handlers_disconnect_matched (sheet->vadjustment,
 					    G_SIGNAL_MATCH_DATA,
 					    0, 0, 0, 0,
 					    sheet);
-      g_object_unref (G_OBJECT (sheet->vadjustment));
+      g_object_unref (sheet->vadjustment);
     }
 
   sheet->vadjustment = adjustment;
 
   if (sheet->vadjustment)
     {
-      g_object_ref (G_OBJECT (sheet->vadjustment));
-      g_object_ref_sink (G_OBJECT (sheet->vadjustment));
+      g_object_ref (sheet->vadjustment);
+      g_object_ref_sink (sheet->vadjustment);
 
-      g_signal_connect (G_OBJECT (sheet->vadjustment), "value_changed",
+      g_signal_connect (sheet->vadjustment, "value_changed",
 			G_CALLBACK (vadjustment_value_changed),
 			sheet);
     }
@@ -2374,21 +2374,21 @@ gtk_sheet_set_hadjustment (GtkSheet *sheet,
 
   if (sheet->hadjustment)
     {
-      g_signal_handlers_disconnect_matched (G_OBJECT (sheet->hadjustment),
+      g_signal_handlers_disconnect_matched (sheet->hadjustment,
 					    G_SIGNAL_MATCH_DATA,
 					    0, 0, 0, 0,
 					    sheet);
-      g_object_unref (G_OBJECT (sheet->hadjustment));
+      g_object_unref (sheet->hadjustment);
     }
 
   sheet->hadjustment = adjustment;
 
   if (sheet->hadjustment)
     {
-      g_object_ref (G_OBJECT (sheet->hadjustment));
-      g_object_ref_sink (G_OBJECT (sheet->hadjustment));
+      g_object_ref (sheet->hadjustment);
+      g_object_ref_sink (sheet->hadjustment);
 
-      g_signal_connect (G_OBJECT (sheet->hadjustment), "value_changed",
+      g_signal_connect (sheet->hadjustment, "value_changed",
 			G_CALLBACK (hadjustment_value_changed),
 			sheet);
     }
@@ -2462,23 +2462,23 @@ gtk_sheet_destroy (GtkObject * object)
   /* unref adjustments */
   if (sheet->hadjustment)
     {
-      g_signal_handlers_disconnect_matched (G_OBJECT (sheet->hadjustment),
+      g_signal_handlers_disconnect_matched (sheet->hadjustment,
 					    G_SIGNAL_MATCH_DATA,
 					    0, 0, 0, 0,
 					    sheet);
 
-      g_object_unref (G_OBJECT (sheet->hadjustment));
+      g_object_unref (sheet->hadjustment);
       sheet->hadjustment = NULL;
     }
 
   if (sheet->vadjustment)
     {
-      g_signal_handlers_disconnect_matched (G_OBJECT (sheet->vadjustment),
+      g_signal_handlers_disconnect_matched (sheet->vadjustment,
 					    G_SIGNAL_MATCH_DATA,
 					    0, 0, 0, 0,
 					    sheet);
 
-      g_object_unref (G_OBJECT (sheet->vadjustment));
+      g_object_unref (sheet->vadjustment);
 
       sheet->vadjustment = NULL;
     }
@@ -2686,7 +2686,7 @@ create_global_button (GtkSheet *sheet)
 {
   sheet->button = gtk_button_new_with_label (" ");
 
-  g_signal_connect (G_OBJECT (sheet->button),
+  g_signal_connect (sheet->button,
 		    "pressed",
 		    G_CALLBACK (global_button_clicked),
 		    sheet);
@@ -3105,7 +3105,7 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
 		   layout);
 
   gdk_gc_set_clip_rectangle (fg_gc, NULL);
-  g_object_unref (G_OBJECT (layout));
+  g_object_unref (layout);
 
   gdk_draw_pixmap (sheet->sheet_window,
 		   GTK_WIDGET (sheet)->style->fg_gc[GTK_STATE_NORMAL],
@@ -3447,7 +3447,7 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
     }
 
   if ( changed )
-    g_signal_emit (G_OBJECT (sheet), sheet_signals[CHANGED], 0, row, col);
+    g_signal_emit (sheet, sheet_signals[CHANGED], 0, row, col);
 
 }
 
@@ -3488,8 +3488,8 @@ gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column)
     {
       g_sheet_model_datum_clear (model, row, column);
 
-      if (GTK_IS_OBJECT (sheet) && G_OBJECT (sheet)->ref_count > 0)
-	g_signal_emit (G_OBJECT (sheet), sheet_signals[CLEAR_CELL], 0,
+      if (G_OBJECT (sheet)->ref_count > 0)
+	g_signal_emit (sheet, sheet_signals[CLEAR_CELL], 0,
 		       row, column);
     }
 
@@ -3750,8 +3750,8 @@ gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
 
   if (row < 0 || col < 0) return;
 
-  sheet->active_cell.row =- 1;
-  sheet->active_cell.col =- 1;
+  sheet->active_cell.row = -1;
+  sheet->active_cell.col = -1;
 
   text = gtk_entry_get_text (GTK_ENTRY (gtk_sheet_get_entry (sheet)));
 
@@ -3792,7 +3792,7 @@ gtk_sheet_deactivate_cell (GtkSheet *sheet)
   if ( sheet->active_cell.row == -1 || sheet->active_cell.col == -1 )
     return TRUE;
 
-  g_signal_handlers_disconnect_by_func (G_OBJECT (gtk_sheet_get_entry (sheet)),
+  g_signal_handlers_disconnect_by_func (gtk_sheet_get_entry (sheet),
 					G_CALLBACK (gtk_sheet_entry_changed),
 					sheet);
 
@@ -3888,7 +3888,7 @@ gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
 
   gtk_sheet_show_active_cell (sheet);
 
-  g_signal_connect (G_OBJECT (gtk_sheet_get_entry (sheet)),
+  g_signal_connect (gtk_sheet_get_entry (sheet),
 		    "changed",
 		    G_CALLBACK (gtk_sheet_entry_changed),
 		    sheet);
@@ -4335,7 +4335,7 @@ gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
 
   gdk_gc_set_clip_rectangle (sheet->xor_gc, &area);
 
-  for (i =- 1; i <= 1; ++i)
+  for (i = -1; i <= 1; ++i)
     gdk_draw_rectangle (sheet->sheet_window,
 			sheet->xor_gc,
 			FALSE,
@@ -4491,7 +4491,7 @@ gtk_sheet_real_select_range (GtkSheet * sheet,
 
   gtk_sheet_update_primary_selection (sheet);
 
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[SELECT_RANGE], 0, &sheet->range);
+  g_signal_emit (sheet, sheet_signals[SELECT_RANGE], 0, &sheet->range);
 }
 
 
@@ -4562,8 +4562,8 @@ gtk_sheet_real_unselect_range (GtkSheet * sheet,
   if (range->row0 < 0 || range->rowi < 0) return;
   if (range->col0 < 0 || range->coli < 0) return;
 
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[SELECT_COLUMN], 0, -1);
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[SELECT_ROW], 0, -1);
+  g_signal_emit (sheet, sheet_signals[SELECT_COLUMN], 0, -1);
+  g_signal_emit (sheet, sheet_signals[SELECT_ROW], 0, -1);
 
   if (gtk_sheet_range_isvisible (sheet, *range))
     gtk_sheet_draw_backing_pixmap (sheet, *range);
@@ -4681,23 +4681,23 @@ gtk_sheet_button_press (GtkWidget * widget,
 
   if (event->window == sheet->column_title_window)
     {
-      g_signal_emit (G_OBJECT (sheet),
+      g_signal_emit (sheet,
 		     sheet_signals[BUTTON_EVENT_COLUMN], 0,
 		     column, event);
 
       if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
-	g_signal_emit (G_OBJECT (sheet),
+	g_signal_emit (sheet,
 		       sheet_signals[DOUBLE_CLICK_COLUMN], 0, column);
 
     }
   else if (event->window == sheet->row_title_window)
     {
-      g_signal_emit (G_OBJECT (sheet),
+      g_signal_emit (sheet,
 		     sheet_signals[BUTTON_EVENT_ROW], 0,
 		     row, event);
 
       if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
-	g_signal_emit (G_OBJECT (sheet),
+	g_signal_emit (sheet,
 		       sheet_signals[DOUBLE_CLICK_ROW], 0, row);
     }
 
@@ -4916,7 +4916,7 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column, gboolean *veto)
       return;
     }
 
-  if (row == - 1 && column == - 1)
+  if (row == -1 && column == -1)
     {
       sheet->range.row0 = 0;
       sheet->range.col0 = 0;
@@ -4987,7 +4987,7 @@ gtk_sheet_button_release (GtkWidget * widget,
       gtk_sheet_set_column_width (sheet, sheet->drag_cell.col,
 				  new_column_width (sheet, sheet->drag_cell.col, &x));
       sheet->old_hadjustment = -1.;
-      g_signal_emit_by_name (G_OBJECT (sheet->hadjustment), "value_changed");
+      g_signal_emit_by_name (sheet->hadjustment, "value_changed");
       return TRUE;
     }
 
@@ -5001,7 +5001,7 @@ gtk_sheet_button_release (GtkWidget * widget,
 
       gtk_sheet_set_row_height (sheet, sheet->drag_cell.row, new_row_height (sheet, sheet->drag_cell.row, &y));
       sheet->old_vadjustment = -1.;
-      g_signal_emit_by_name (G_OBJECT (sheet->vadjustment), "value_changed");
+      g_signal_emit_by_name (sheet->vadjustment, "value_changed");
       return TRUE;
     }
 
@@ -5026,7 +5026,7 @@ gtk_sheet_button_release (GtkWidget * widget,
       old_range = sheet->range;
       sheet->range = sheet->drag_range;
       sheet->drag_range = old_range;
-      g_signal_emit (G_OBJECT (sheet), sheet_signals[MOVE_RANGE], 0,
+      g_signal_emit (sheet, sheet_signals[MOVE_RANGE], 0,
 		     &sheet->drag_range, &sheet->range);
       gtk_sheet_select_range (sheet, &sheet->range);
     }
@@ -5057,7 +5057,7 @@ gtk_sheet_button_release (GtkWidget * widget,
       sheet->drag_range = old_range;
 
       if (sheet->state == GTK_STATE_NORMAL) sheet->state = GTK_SHEET_RANGE_SELECTED;
-      g_signal_emit (G_OBJECT (sheet), sheet_signals[RESIZE_RANGE], 0,
+      g_signal_emit (sheet, sheet_signals[RESIZE_RANGE], 0,
 		     &sheet->drag_range, &sheet->range);
       gtk_sheet_select_range (sheet, &sheet->range);
     }
@@ -5529,8 +5529,8 @@ gtk_sheet_move_query (GtkSheet *sheet, gint row, gint column)
 
   row_move = FALSE;
   column_move = FALSE;
-  row_align =- 1.;
-  col_align =- 1.;
+  row_align = -1.;
+  col_align = -1.;
 
   height = sheet->sheet_window_height;
   width = sheet->sheet_window_width;
@@ -5649,7 +5649,7 @@ gtk_sheet_entry_key_press (GtkWidget *widget,
 			   GdkEventKey *key)
 {
   gboolean focus;
-  g_signal_emit_by_name (G_OBJECT (widget), "key_press_event", key, &focus);
+  g_signal_emit_by_name (widget, "key_press_event", key, &focus);
   return focus;
 }
 
@@ -6374,7 +6374,7 @@ create_sheet_entry (GtkSheet *sheet)
       gtk_widget_realize (sheet->sheet_entry);
     }
 
-  g_signal_connect_swapped (G_OBJECT (entry), "key_press_event",
+  g_signal_connect_swapped (entry, "key_press_event",
 			    G_CALLBACK (gtk_sheet_entry_key_press),
 			    sheet);
 
@@ -6569,7 +6569,7 @@ gtk_sheet_button_draw (GtkSheet *sheet, GdkWindow *window,
 				    "label",
 				    real_x, real_y,
 				    layout);
-		  g_object_unref (G_OBJECT (layout));
+		  g_object_unref (layout);
 
 		  real_y += text_height + 2;
 
@@ -6720,7 +6720,7 @@ adjust_scrollbars (GtkSheet * sheet)
       sheet->vadjustment->step_increment = DEFAULT_ROW_HEIGHT (GTK_WIDGET (sheet));
       sheet->vadjustment->lower = 0;
       sheet->vadjustment->upper = SHEET_HEIGHT (sheet) + 80;
-      g_signal_emit_by_name (G_OBJECT (sheet->vadjustment), "changed");
+      g_signal_emit_by_name (sheet->vadjustment, "changed");
 
     }
 
@@ -6731,7 +6731,7 @@ adjust_scrollbars (GtkSheet * sheet)
       sheet->hadjustment->step_increment = DEFAULT_COLUMN_WIDTH;
       sheet->hadjustment->lower = 0;
       sheet->hadjustment->upper = SHEET_WIDTH (sheet)+ 80;
-      g_signal_emit_by_name (G_OBJECT (sheet->hadjustment), "changed");
+      g_signal_emit_by_name (sheet->hadjustment, "changed");
 
     }
 }
@@ -7027,7 +7027,7 @@ draw_xor_rectangle (GtkSheet *sheet, GtkSheetRange range)
 
   gdk_gc_set_clip_rectangle (sheet->xor_gc, &clip_area);
 
-  for (i =- 1; i <= 1; ++i)
+  for (i = -1; i <= 1; ++i)
     gdk_draw_rectangle (sheet->sheet_window,
 			sheet->xor_gc,
 			FALSE,
@@ -7134,8 +7134,8 @@ gtk_sheet_set_column_width (GtkSheet * sheet,
       gtk_sheet_range_draw (sheet, NULL);
     }
 
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[CHANGED], 0, -1, column);
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[NEW_COL_WIDTH], 0,
+  g_signal_emit (sheet, sheet_signals[CHANGED], 0, -1, column);
+  g_signal_emit (sheet, sheet_signals[NEW_COL_WIDTH], 0,
 		 column, width);
 }
 
@@ -7167,8 +7167,8 @@ gtk_sheet_set_row_height (GtkSheet * sheet,
       gtk_sheet_range_draw (sheet, NULL);
     }
 
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[CHANGED], 0, row, - 1);
-  g_signal_emit (G_OBJECT (sheet), sheet_signals[NEW_ROW_HEIGHT], 0,
+  g_signal_emit (sheet, sheet_signals[CHANGED], 0, row, - 1);
+  g_signal_emit (sheet, sheet_signals[NEW_ROW_HEIGHT], 0,
 		 row, height);
 
 }
@@ -8053,12 +8053,12 @@ gtk_sheet_update_primary_selection (GtkSheet *sheet)
   if (!GTK_WIDGET_REALIZED (sheet))
     return;
 
-  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (sheet), 
+  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (sheet),
 					GDK_SELECTION_PRIMARY);
-  
+
   if (gtk_sheet_range_isvisible (sheet, sheet->range))
     {
-      if (!gtk_clipboard_set_with_owner (clipboard, targets, 
+      if (!gtk_clipboard_set_with_owner (clipboard, targets,
 					 G_N_ELEMENTS (targets),
 					 primary_get_cb, primary_clear_cb,
 					 G_OBJECT (sheet)))
