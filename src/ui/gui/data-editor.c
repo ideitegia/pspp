@@ -44,6 +44,7 @@
 #include "descriptives-dialog.h"
 #include "crosstabs-dialog.h"
 #include "frequencies-dialog.h"
+#include "examine-dialog.h"
 #include "dict-display.h"
 #include "clipboard.h"
 
@@ -721,6 +722,17 @@ new_data_editor (void)
 		    G_CALLBACK (crosstabs_dialog), de);
 
 
+  de->invoke_examine_dialog =
+    gtk_action_new ("examine-dialog",
+		    _("_Explore"),
+		    _("Examine Data by Factors"),
+		    "pspp-examine");
+
+  g_signal_connect (de->invoke_examine_dialog, "activate",
+		    G_CALLBACK (examine_dialog), de);
+
+
+
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
   g_signal_connect_swapped (get_widget_assert (de->xml,"file_new_data"),
@@ -885,6 +897,12 @@ new_data_editor (void)
   gtk_action_connect_proxy (de->invoke_frequencies_dialog,
 			    get_widget_assert (de->xml, "analyze_frequencies")
 			    );
+
+
+  gtk_action_connect_proxy (de->invoke_examine_dialog,
+			    get_widget_assert (de->xml, "analyze_explore")
+			    );
+
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
 		    "activate",

@@ -51,6 +51,7 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
+	$(top_srcdir)/src/ui/gui/examine.glade \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
 	$(top_srcdir)/src/ui/gui/frequencies.glade \
 	$(top_srcdir)/src/ui/gui/message-dialog.glade \
@@ -104,6 +105,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/data-editor.h \
 	src/ui/gui/descriptives-dialog.c \
 	src/ui/gui/descriptives-dialog.h \
+	src/ui/gui/examine-dialog.c \
+	src/ui/gui/examine-dialog.h \
 	src/ui/gui/find-dialog.c \
 	src/ui/gui/find-dialog.h \
 	src/ui/gui/dialog-common.c \
