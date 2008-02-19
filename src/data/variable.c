@@ -86,6 +86,7 @@ struct variable *
 var_create (const char *name, int width)
 {
   struct variable *v;
+  enum val_type type;
 
   assert (width >= 0 && width <= MAX_STRING);
 
@@ -95,20 +96,11 @@ var_create (const char *name, int width)
   v->width = width;
   mv_init (&v->miss, width);
   v->leave = var_must_leave (v);
-  if (var_is_numeric (v))
-    {
-      v->print = fmt_for_output (FMT_F, 8, 2);
-      v->alignment = ALIGN_RIGHT;
-      v->measure = MEASURE_SCALE;
-    }
-  else
-    {
-      v->print = fmt_for_output (FMT_A, var_get_width (v), 0);
-      v->alignment = ALIGN_LEFT;
-      v->measure = MEASURE_NOMINAL;
-    }
+  type = val_type_from_width (width);
+  v->alignment = var_default_alignment (type);
+  v->measure = var_default_measure (type);
   v->display_width = var_default_display_width (width);
-  v->write = v->print;
+  v->print = v->write = var_default_formats (width);
   v->val_labs = NULL;
   v->label = NULL;
   v->short_names = NULL;
@@ -597,8 +589,9 @@ var_get_print_format (const struct variable *v)
 }
 
 /* Sets V's print format specification to PRINT, which must be a
-   valid format specification for outputting a variable of V's
-   width. */
+   valid format specification for a variable of V's width
+   (ordinarily an output format, but input formats are not
+   rejected). */
 void
 var_set_print_format (struct variable *v, const struct fmt_spec *print)
 {
@@ -615,8 +608,9 @@ var_get_write_format (const struct variable *v)
 }
 
 /* Sets V's write format specification to WRITE, which must be a
-   valid format specification for outputting a variable of V's
-   width. */
+   valid format specification for a variable of V's width
+   (ordinarily an output format, but input formats are not
+   rejected). */
 void
 var_set_write_format (struct variable *v, const struct fmt_spec *write)
 {
@@ -626,13 +620,26 @@ var_set_write_format (struct variable *v, const struct fmt_spec *write)
 }
 
 /* Sets V's print and write format specifications to FORMAT,
-   which must be a valid format specification for outputting a
-   variable of V's width. */
+   which must be a valid format specification for a variable of
+   V's width (ordinarily an output format, but input formats are
+   not rejected). */
 void
 var_set_both_formats (struct variable *v, const struct fmt_spec *format)
 {
   var_set_print_format (v, format);
   var_set_write_format (v, format);
+}
+
+/* Returns the default print and write format for a variable of
+   the given TYPE, as set by var_create.  The return value can be
+   used to reset a variable's print and write formats to the
+   default. */
+struct fmt_spec
+var_default_formats (int width)
+{
+  return (width == 0
+          ? fmt_for_output (FMT_F, 8, 2)
+          : fmt_for_output (FMT_A, width, 0));
 }
 
 /* Return a string representing this variable, in the form most
@@ -711,6 +718,16 @@ var_set_measure (struct variable *v, enum measure measure)
   v->measure = measure;
   dict_var_changed (v);
 }
+
+/* Returns the default measurement level for a variable of the
+   given TYPE, as set by var_create.  The return value can be
+   used to reset a variable's measurement level to the
+   default. */
+enum measure
+var_default_measure (enum val_type type)
+{
+  return type == VAL_NUMERIC ? MEASURE_SCALE : MEASURE_NOMINAL;
+}
 
 /* Returns V's display width, which applies only to GUIs. */
 int
@@ -758,6 +775,15 @@ var_set_alignment (struct variable *v, enum alignment alignment)
   assert (alignment_is_valid (alignment));
   v->alignment = alignment;
   dict_var_changed (v);
+}
+
+/* Returns the default display alignment for a variable of the
+   given TYPE, as set by var_create.  The return value can be
+   used to reset a variable's display alignment to the default. */
+enum alignment
+var_default_alignment (enum val_type type)
+{
+  return type == VAL_NUMERIC ? ALIGN_RIGHT : ALIGN_LEFT;
 }
 
 /* Whether variables' values should be preserved from case to

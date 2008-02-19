@@ -99,6 +99,8 @@ const struct fmt_spec *var_get_write_format (const struct variable *);
 void var_set_write_format (struct variable *, const struct fmt_spec *);
 void var_set_both_formats (struct variable *, const struct fmt_spec *);
 
+struct fmt_spec var_default_formats (int width);
+
 /* Variable labels. */
 const char *var_to_string (const struct variable *);
 const char *var_get_label (const struct variable *);
@@ -119,6 +121,8 @@ bool measure_is_valid (enum measure);
 enum measure var_get_measure (const struct variable *);
 void var_set_measure (struct variable *, enum measure);
 
+enum measure var_default_measure (enum val_type);
+
 /* GUI display width. */
 int var_get_display_width (const struct variable *);
 void var_set_display_width (struct variable *, int display_width);
@@ -137,6 +141,8 @@ enum alignment
 bool alignment_is_valid (enum alignment);
 enum alignment var_get_alignment (const struct variable *);
 void var_set_alignment (struct variable *, enum alignment);
+
+enum alignment var_default_alignment (enum val_type);
 
 /* Whether variables' values should be preserved from case to
    case. */

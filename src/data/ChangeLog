@@ -8,6 +8,11 @@
 	references.
 	(max_decimals): Renamed fmt_max_decimals and made public.  Updated
 	all references.
+	(var_create): Use the new functions for default variable
+	attributes below.
+	(var_default_formats): New function.
+	(var_default_measure): New function.
+	(var_default_alignment): New function.
 
 	* format.h (macro FMT_MAX_NUMERIC_WIDTH): New macro.
 
