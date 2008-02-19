@@ -1,3 +1,8 @@
+2008-02-19  John Darrington <john@darrington.wattle.id.au>
+
+	* dict-display.c: Display names of variables in dialog box
+	dictionary treeviews, when the mouse hovers over the variable.
+
 2008-02-13  John Darrington <john@darrington.wattle.id.au>
 
 	* variable-info-dialog.c: Fix crash when clicking "Jump" when no 

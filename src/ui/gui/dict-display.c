@@ -136,10 +136,9 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
   if ( var_has_label (var))
     {
       gchar *text = g_strdup_printf (
-				     "<span stretch=\"condensed\">%s</span>"
-				     " (<span weight=\"bold\">%s</span>)",
-				     var_get_label (var),
-				     var_get_name (var));
+				     "<span stretch=\"condensed\">%s</span>",
+				     var_get_label (var));
+
 
       char *utf8 = pspp_locale_to_utf8 (text, -1, NULL);
 
@@ -151,6 +150,53 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
     {
       g_object_set (cell, "text", var_get_name (var), NULL);
     }
+}
+
+
+/* Sets the tooltip to be the name of the variable under the cursor */
+static gboolean
+set_tooltip_for_variable (GtkTreeView  *treeview,
+			  gint        x,
+			  gint        y,
+			  gboolean    keyboard_mode,
+			  GtkTooltip *tooltip,
+			  gpointer    user_data)
+
+{
+  gint bx, by;
+  GtkTreeIter iter;
+  GtkTreePath *path;
+  GtkTreeModel *tree_model;
+  struct variable *var = NULL;
+  gboolean ok;
+
+  gtk_tree_view_convert_widget_to_bin_window_coords (treeview,
+                                                     x, y, &bx, &by);
+
+  if (!gtk_tree_view_get_path_at_pos (treeview, bx, by,
+                                      &path, NULL, NULL, NULL))
+    return FALSE;
+
+  tree_model = gtk_tree_view_get_model (treeview);
+
+
+  gtk_tree_view_set_tooltip_row (treeview, tooltip, path);
+
+  ok = gtk_tree_model_get_iter (tree_model, &iter, path);
+
+  gtk_tree_path_free (path);
+  if (!ok)
+    return FALSE;
+
+
+  gtk_tree_model_get (tree_model, &iter, DICT_TVM_COL_VAR,  &var, -1);
+
+  if ( ! var_has_label (var))
+    return FALSE;
+
+  gtk_tooltip_set_text (tooltip, var_get_name (var));
+
+  return TRUE;
 }
 
    /* Sets up TREEVIEW to display the variables of DICT.
@@ -219,6 +265,10 @@ attach_dictionary_to_treeview (GtkTreeView *treeview, PsppireDict *dict,
   gtk_tree_view_append_column (treeview, col);
 
   gtk_tree_selection_set_mode (selection, mode);
+
+  g_object_set (treeview, "has-tooltip", TRUE, NULL);
+
+  g_signal_connect (treeview, "query-tooltip", G_CALLBACK (set_tooltip_for_variable), NULL);
 }
 
 
