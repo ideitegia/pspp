@@ -41,10 +41,7 @@
 
 bool is_fmt_type (enum fmt_type);
 
-static int min_width (enum fmt_type, bool for_input);
-static int max_width (enum fmt_type);
 static bool valid_width (enum fmt_type, int width, bool for_input);
-static int max_decimals (enum fmt_type, int width, bool for_input);
 
 static int max_digits_for_bytes (int bytes);
 
@@ -256,8 +253,8 @@ fmt_check (const struct fmt_spec *spec, bool for_input)
       return false;
     }
 
-  min_w = min_width (spec->type, for_input);
-  max_w = max_width (spec->type);
+  min_w = fmt_min_width (spec->type, for_input);
+  max_w = fmt_max_width (spec->type, for_input);
   if (spec->w < min_w || spec->w > max_w)
     {
       msg (SE, _("%s %s specifies width %d, but "
@@ -266,7 +263,7 @@ fmt_check (const struct fmt_spec *spec, bool for_input)
       return false;
     }
 
-  max_d = max_decimals (spec->type, spec->w, for_input);
+  max_d = fmt_max_decimals (spec->type, spec->w, for_input);
   if (!fmt_takes_decimals (spec->type) && spec->d != 0)
     {
       msg (SE, ngettext ("%s %s specifies %d decimal place, but "
@@ -455,6 +452,151 @@ fmt_takes_decimals (enum fmt_type type)
   return fmt_max_output_decimals (type, fmt_max_output_width (type)) > 0;
 }
 
+/* Returns the minimum width of the given format TYPE,
+   for input if FOR_INPUT is true,
+   for output otherwise. */
+int
+fmt_min_width (enum fmt_type type, bool for_input)
+{
+  return for_input ? fmt_min_input_width (type) : fmt_min_output_width (type);
+}
+
+/* Returns the maximum width of the given format TYPE,
+   for input if FOR_INPUT is true,
+   for output otherwise. */
+int
+fmt_max_width (enum fmt_type type, bool for_input UNUSED)
+{
+  /* Maximum width is actually invariant of whether the format is
+     for input or output, so FOR_INPUT is unused. */
+  assert (is_fmt_type (type));
+  switch (type)
+    {
+    case FMT_P:
+    case FMT_PK:
+    case FMT_PIBHEX:
+    case FMT_RBHEX:
+      return 16;
+
+    case FMT_IB:
+    case FMT_PIB:
+    case FMT_RB:
+      return 8;
+
+    case FMT_A:
+      return MAX_STRING;
+
+    case FMT_AHEX:
+      return 2 * MAX_STRING;
+
+    default:
+      return 40;
+    }
+}
+
+/* Returns the maximum number of decimal places allowed for the
+   given format TYPE with a width of WIDTH places,
+   for input if FOR_INPUT is true,
+   for output otherwise. */
+int
+fmt_max_decimals (enum fmt_type type, int width, bool for_input)
+{
+  int max_d;
+
+  switch (type)
+    {
+    case FMT_F:
+    case FMT_COMMA:
+    case FMT_DOT:
+      max_d = for_input ? width : width - 1;
+      break;
+
+    case FMT_DOLLAR:
+    case FMT_PCT:
+      max_d = for_input ? width : width - 2;
+      break;
+
+    case FMT_E:
+      max_d = for_input ? width : width - 7;
+      break;
+
+    case FMT_CCA:
+    case FMT_CCB:
+    case FMT_CCC:
+    case FMT_CCD:
+    case FMT_CCE:
+      assert (!for_input);
+      max_d = width - 1;
+      break;
+
+    case FMT_N:
+    case FMT_Z:
+      max_d = width;
+      break;
+
+    case FMT_P:
+      max_d = width * 2 - 1;
+      break;
+
+    case FMT_PK:
+      max_d = width * 2;
+      break;
+
+    case FMT_IB:
+    case FMT_PIB:
+      max_d = max_digits_for_bytes (width);
+      break;
+
+    case FMT_PIBHEX:
+      max_d = 0;
+      break;
+
+    case FMT_RB:
+    case FMT_RBHEX:
+      max_d = 16;
+      break;
+
+    case FMT_DATE:
+    case FMT_ADATE:
+    case FMT_EDATE:
+    case FMT_JDATE:
+    case FMT_SDATE:
+    case FMT_QYR:
+    case FMT_MOYR:
+    case FMT_WKYR:
+      max_d = 0;
+      break;
+
+    case FMT_DATETIME:
+      max_d = width - 21;
+      break;
+
+    case FMT_TIME:
+      max_d = width - 9;
+      break;
+
+    case FMT_DTIME:
+      max_d = width - 12;
+      break;
+
+    case FMT_WKDAY:
+    case FMT_MONTH:
+    case FMT_A:
+    case FMT_AHEX:
+      max_d = 0;
+      break;
+
+    default:
+      NOT_REACHED ();
+    }
+
+  if (max_d < 0)
+    max_d = 0;
+  else if (max_d > 16)
+    max_d = 16;
+  return max_d;
+}
+
 /* Returns the minimum acceptable width for an input field
    formatted with the given TYPE. */
 int
@@ -468,7 +610,7 @@ fmt_min_input_width (enum fmt_type type)
 int
 fmt_max_input_width (enum fmt_type type)
 {
-  return max_width (type);
+  return fmt_max_width (type, true);
 }
 
 /* Returns the maximum number of decimal places allowed in an
@@ -477,7 +619,7 @@ int
 fmt_max_input_decimals (enum fmt_type type, int width)
 {
   assert (valid_width (type, width, true));
-  return max_decimals (type, width, true);
+  return fmt_max_decimals (type, width, true);
 }
 
 /* Returns the minimum acceptable width for an output field
@@ -493,7 +635,7 @@ fmt_min_output_width (enum fmt_type type)
 int
 fmt_max_output_width (enum fmt_type type)
 {
-  return max_width (type);
+  return fmt_max_width (type, false);
 }
 
 /* Returns the maximum number of decimal places allowed in an
@@ -502,7 +644,7 @@ int
 fmt_max_output_decimals (enum fmt_type type, int width)
 {
   assert (valid_width (type, width, false));
-  return max_decimals (type, width, false);
+  return fmt_max_decimals (type, width, false);
 }
 
 /* Returns the width step for a field formatted with the given
@@ -638,45 +780,6 @@ is_fmt_type (enum fmt_type type)
   return type < FMT_NUMBER_OF_FORMATS;
 }
 
-/* Returns the minimum width of the given format TYPE,
-   for input if FOR_INPUT is true,
-   for output otherwise. */
-static int
-min_width (enum fmt_type type, bool for_input)
-{
-  return for_input ? fmt_min_input_width (type) : fmt_min_output_width (type);
-}
-
-/* Returns the maximum width of the given format TYPE,
-   which is invariant between input and output. */
-static int
-max_width (enum fmt_type type)
-{
-  assert (is_fmt_type (type));
-  switch (type)
-    {
-    case FMT_P:
-    case FMT_PK:
-    case FMT_PIBHEX:
-    case FMT_RBHEX:
-      return 16;
-
-    case FMT_IB:
-    case FMT_PIB:
-    case FMT_RB:
-      return 8;
-
-    case FMT_A:
-      return MAX_STRING;
-
-    case FMT_AHEX:
-      return 2 * MAX_STRING;
-
-    default:
-      return 40;
-    }
-}
-
 /* Returns true if WIDTH is a valid width for the given format
    TYPE,
    for input if FOR_INPUT is true,
@@ -684,111 +787,8 @@ max_width (enum fmt_type type)
 static bool
 valid_width (enum fmt_type type, int width, bool for_input)
 {
-  return (width >= min_width (type, for_input)
-          && width <= max_width (type));
-}
-
-/* Returns the maximum number of decimal places allowed for the
-   given format TYPE with a width of WIDTH places,
-   for input if FOR_INPUT is true,
-   for output otherwise. */
-static int
-max_decimals (enum fmt_type type, int width, bool for_input)
-{
-  int max_d;
-
-  switch (type)
-    {
-    case FMT_F:
-    case FMT_COMMA:
-    case FMT_DOT:
-      max_d = for_input ? width : width - 1;
-      break;
-
-    case FMT_DOLLAR:
-    case FMT_PCT:
-      max_d = for_input ? width : width - 2;
-      break;
-
-    case FMT_E:
-      max_d = for_input ? width : width - 7;
-      break;
-
-    case FMT_CCA:
-    case FMT_CCB:
-    case FMT_CCC:
-    case FMT_CCD:
-    case FMT_CCE:
-      assert (!for_input);
-      max_d = width - 1;
-      break;
-
-    case FMT_N:
-    case FMT_Z:
-      max_d = width;
-      break;
-
-    case FMT_P:
-      max_d = width * 2 - 1;
-      break;
-
-    case FMT_PK:
-      max_d = width * 2;
-      break;
-
-    case FMT_IB:
-    case FMT_PIB:
-      max_d = max_digits_for_bytes (width);
-      break;
-
-    case FMT_PIBHEX:
-      max_d = 0;
-      break;
-
-    case FMT_RB:
-    case FMT_RBHEX:
-      max_d = 16;
-      break;
-
-    case FMT_DATE:
-    case FMT_ADATE:
-    case FMT_EDATE:
-    case FMT_JDATE:
-    case FMT_SDATE:
-    case FMT_QYR:
-    case FMT_MOYR:
-    case FMT_WKYR:
-      max_d = 0;
-      break;
-
-    case FMT_DATETIME:
-      max_d = width - 21;
-      break;
-
-    case FMT_TIME:
-      max_d = width - 9;
-      break;
-
-    case FMT_DTIME:
-      max_d = width - 12;
-      break;
-
-    case FMT_WKDAY:
-    case FMT_MONTH:
-    case FMT_A:
-    case FMT_AHEX:
-      max_d = 0;
-      break;
-
-    default:
-      NOT_REACHED ();
-    }
-
-  if (max_d < 0)
-    max_d = 0;
-  else if (max_d > 16)
-    max_d = 16;
-  return max_d;
+  return (width >= fmt_min_width (type, for_input)
+          && width <= fmt_max_width (type, for_input));
 }
 
 /* Returns the maximum number of decimal digits in an unsigned

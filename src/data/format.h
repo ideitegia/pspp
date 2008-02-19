@@ -114,6 +114,9 @@ bool fmt_from_name (const char *name, enum fmt_type *);
 
 bool fmt_takes_decimals (enum fmt_type) PURE_FUNCTION;
 
+int fmt_min_width (enum fmt_type, bool for_input) PURE_FUNCTION;
+int fmt_max_width (enum fmt_type, bool for_input) PURE_FUNCTION;
+int fmt_max_decimals (enum fmt_type, int width, bool for_input) PURE_FUNCTION;
 int fmt_min_input_width (enum fmt_type) PURE_FUNCTION;
 int fmt_max_input_width (enum fmt_type) PURE_FUNCTION;
 int fmt_max_input_decimals (enum fmt_type, int width) PURE_FUNCTION;
