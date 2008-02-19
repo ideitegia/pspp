@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <data/file-name.h>
@@ -99,7 +100,7 @@ read_syntax_file (struct getl_interface *s,
   do
     {
       sfs->ln++;
-      if (!ds_read_line (line, sfs->syntax_file))
+      if (!ds_read_line (line, sfs->syntax_file, SIZE_MAX))
         {
           if (ferror (sfs->syntax_file))
             msg (ME, _("Reading `%s': %s."), sfs->fn, strerror (errno));

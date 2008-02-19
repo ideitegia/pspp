@@ -1170,30 +1170,47 @@ ds_cstr (const struct string *st_)
   return st->ss.string;
 }
 
-/* Appends to ST a newline-terminated line read from STREAM.
-   Newline is the last character of ST on return, unless an I/O error
-   or end of file is encountered after reading some characters.
-   Returns true if a line is successfully read, false if no characters at
-   all were read before an I/O error or end of file was
-   encountered. */
+/* Appends to ST a newline-terminated line read from STREAM, but
+   no more than MAX_LENGTH characters.
+   Newline is the last character of ST on return, if encountering
+   a newline was the reason for terminating.
+   Returns true if at least one character was read from STREAM
+   and appended to ST, false if no characters at all were read
+   before an I/O error or end of file was encountered (or
+   MAX_LENGTH was 0). */
 bool
-ds_read_line (struct string *st, FILE *stream)
+ds_read_line (struct string *st, FILE *stream, size_t max_length)
 {
-  int c;
-
-  c = getc (stream);
-  if (c == EOF)
-    return false;
-
-  for (;;)
+  if (!st->ss.length && max_length == SIZE_MAX)
     {
-      ds_put_char (st, c);
-      if (c == '\n')
-	return true;
+      size_t capacity = st->capacity ? st->capacity + 1 : 0;
+      ssize_t n = getline (&st->ss.string, &capacity, stream);
+      if (capacity)
+        st->capacity = capacity - 1;
+      if (n > 0)
+        {
+          st->ss.length = n;
+          return true;
+        }
+      else
+        return false;
+    }
+  else
+    {
+      size_t length;
 
-      c = getc (stream);
-      if (c == EOF)
-	return true;
+      for (length = 0; length < max_length; length++)
+        {
+          int c = getc (stream);
+          if (c == EOF)
+            break;
+
+          ds_put_char (st, c);
+          if (c == '\n')
+            return true;
+        }
+
+      return length > 0;
     }
 }
 
@@ -1240,7 +1257,7 @@ ds_read_config_line (struct string *st, int *line_number, FILE *stream)
   ds_clear (st);
   do
     {
-      if (!ds_read_line (st, stream))
+      if (!ds_read_line (st, stream, SIZE_MAX))
         return false;
       (*line_number)++;
       ds_rtrim (st, ss_cstr (CC_SPACES));

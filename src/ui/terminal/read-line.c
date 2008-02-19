@@ -173,7 +173,7 @@ readln_read (struct string *line, enum prompt_style style)
 #else
   fputs (prompt, stdout);
   fflush (stdout);
-  if (ds_read_line (line, stdin))
+  if (ds_read_line (line, stdin, SIZE_MAX))
     {
       ds_chomp (line, '\n');
       eof = false;

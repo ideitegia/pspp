@@ -202,7 +202,7 @@ size_t ds_capacity (const struct string *);
 char *ds_cstr (const struct string *);
 
 /* File input. */
-bool ds_read_line (struct string *, FILE *);
+bool ds_read_line (struct string *, FILE *, size_t max_length);
 bool ds_read_config_line (struct string *, int *line_number, FILE *);
 bool ds_read_stream (struct string *, size_t size, size_t cnt, FILE *stream);
 

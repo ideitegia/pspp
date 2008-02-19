@@ -1,3 +1,10 @@
+2008-02-18  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6426.  Thanks to John Darrington for review.
+
+	* str.c (ds_read_line): Add argument to limit the length of the
+	line to be read.  Update all callers.
+
 2008-02-01  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6386.  Thanks to John Darrington for review.
