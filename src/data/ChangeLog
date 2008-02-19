@@ -9,6 +9,8 @@
 	(max_decimals): Renamed fmt_max_decimals and made public.  Updated
 	all references.
 
+	* format.h (macro FMT_MAX_NUMERIC_WIDTH): New macro.
+
 2008-02-09  Ben Pfaff  <blp@gnu.org>
 
 	Add a couple of extensions to GET DATA TYPE=TXT.  Patch #6412.

@@ -69,6 +69,8 @@ struct fmt_spec
     int d;			/* Number of implied decimal places. */
   };
 
+/* Maximum width of any numeric format. */
+#define FMT_MAX_NUMERIC_WIDTH 40
 
 /* A numeric output style. */
 struct fmt_number_style
