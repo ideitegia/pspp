@@ -58,7 +58,7 @@ static gboolean
 hide_splash_window (gpointer data)
 {
   GtkWidget *splash = data;
-  gtk_widget_hide (splash);
+  gtk_widget_destroy (splash);
   gtk_window_set_auto_startup_notification (TRUE);
   return FALSE;
 }

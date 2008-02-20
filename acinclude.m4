@@ -103,7 +103,7 @@ AC_DEFUN([PSPP_READLINE],
 
   dnl Add $INCREADLINE to CPPFLAGS before performing the following checks,
   dnl because if the user has installed libreadline and not disabled its use
-  dnl via --without-libreadline-prefix, he wants to use it. The AC_TRY_LINK
+  dnl via --without-libreadline-prefix, he wants to use it. The AC_LINK_IFELSE
   dnl will then succeed.
   am_save_CPPFLAGS="$CPPFLAGS"
   AC_LIB_APPENDTOVAR([CPPFLAGS], [$INCREADLINE $INCHISTORY])
@@ -121,11 +121,9 @@ AC_DEFUN([PSPP_READLINE],
       if test -n "$extra_lib"; then
         LIBS="$LIBS -l$extra_lib"
       fi
-      AC_TRY_LINK([#include <stdio.h>
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>
 #include <readline/readline.h>
-#include <readline/history.h>],
-        [readline((char*)0); add_history((char*)0);],
-        gl_cv_lib_readline=yes)
+#include <readline/history.h>]], [[readline((char*)0); add_history((char*)0);]])],[gl_cv_lib_readline=yes],[])
       if test "$gl_cv_lib_readline" = yes; then
         if test -n "$extra_lib"; then
           LIBREADLINE="$LIBREADLINE $LIBHISTORY -l$extra_lib"

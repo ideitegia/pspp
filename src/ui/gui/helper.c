@@ -149,6 +149,8 @@ connect_help (GladeXML *xml)
   GList *i;
   for ( i = g_list_first (helps); i ; i = g_list_next (i))
     g_signal_connect (GTK_WIDGET (i->data), "clicked", give_help, 0);
+
+  g_list_free (helps);
 }
 
 
