@@ -41,7 +41,11 @@
 
 #include "var-display.h"
 
-#define TRAILING_ROWS 40
+enum
+  {
+    PSPPIRE_VAR_STORE_TRAILING_ROWS = 1,
+    PSPPIRE_VAR_STORE_FORMAT_TYPE
+  };
 
 static void         psppire_var_store_init            (PsppireVarStore      *var_store);
 static void         psppire_var_store_class_init      (PsppireVarStoreClass *class);
@@ -71,6 +75,30 @@ static void psppire_var_store_sheet_row_init (GSheetRowIface *iface);
 
 
 static GObjectClass *parent_class = NULL;
+
+GType
+psppire_var_store_format_type_get_type (void)
+{
+  static GType etype = 0;
+  if (etype == 0)
+    {
+      static const GEnumValue values[] =
+	{
+	  { PSPPIRE_VAR_STORE_INPUT_FORMATS,
+            "PSPPIRE_VAR_STORE_INPUT_FORMATS",
+            "input" },
+	  { PSPPIRE_VAR_STORE_OUTPUT_FORMATS,
+            "PSPPIRE_VAR_STORE_OUTPUT_FORMATS",
+            "output" },
+	  { 0, NULL, NULL }
+	};
+
+      etype = g_enum_register_static
+	(g_intern_static_string ("PsppireVarStoreFormatType"), values);
+
+    }
+  return etype;
+}
 
 GType
 psppire_var_store_get_type (void)
@@ -123,16 +151,92 @@ psppire_var_store_get_type (void)
 }
 
 static void
+psppire_var_store_set_property (GObject      *object,
+                                guint         property_id,
+                                const GValue *value,
+                                GParamSpec   *pspec)
+{
+  PsppireVarStore *self = (PsppireVarStore *) object;
+
+  switch (property_id)
+    {
+    case PSPPIRE_VAR_STORE_TRAILING_ROWS:
+      self->trailing_rows = g_value_get_int (value);
+      break;
+
+    case PSPPIRE_VAR_STORE_FORMAT_TYPE:
+      self->format_type = g_value_get_enum (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+      break;
+    }
+}
+
+static void
+psppire_var_store_get_property (GObject      *object,
+                        guint         property_id,
+                        GValue       *value,
+                        GParamSpec   *pspec)
+{
+  PsppireVarStore *self = (PsppireVarStore *) object;
+
+  switch (property_id)
+    {
+    case PSPPIRE_VAR_STORE_TRAILING_ROWS:
+      g_value_set_int (value, self->trailing_rows);
+      break;
+
+    case PSPPIRE_VAR_STORE_FORMAT_TYPE:
+      g_value_set_enum (value, self->format_type);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+      break;
+    }
+}
+
+
+static void
 psppire_var_store_class_init (PsppireVarStoreClass *class)
 {
   GObjectClass *object_class;
+  GParamSpec *pspec;
 
   parent_class = g_type_class_peek_parent (class);
   object_class = (GObjectClass*) class;
 
   object_class->finalize = psppire_var_store_finalize;
-}
+  object_class->set_property = psppire_var_store_set_property;
+  object_class->get_property = psppire_var_store_get_property;
 
+  /* The minimum value for trailing-rows is 1 to prevent the
+     var-store from ever having 0 rows, which breaks invariants
+     in gtksheet. */
+  pspec = g_param_spec_int ("trailing-rows",
+                            "Trailing rows",
+                            "Number of rows displayed after last variable",
+                            1  /* minimum value */,
+                            100 /* maximum value */,
+                            40  /* default value */,
+                            G_PARAM_READWRITE);
+  g_object_class_install_property (object_class,
+                                   PSPPIRE_VAR_STORE_TRAILING_ROWS,
+                                   pspec);
+
+  pspec = g_param_spec_enum ("format-type",
+                             "Variable format type",
+                             ("Whether variables have input or output "
+                              "formats"),
+                             G_TYPE_PSPPIRE_VAR_STORE_FORMAT_TYPE,
+                             PSPPIRE_VAR_STORE_OUTPUT_FORMATS,
+                             G_PARAM_READWRITE);
+  g_object_class_install_property (object_class,
+                                   PSPPIRE_VAR_STORE_FORMAT_TYPE,
+                                   pspec);
+}
 
 static void
 psppire_var_store_init (PsppireVarStore *var_store)
@@ -144,6 +248,8 @@ psppire_var_store_init (PsppireVarStore *var_store)
   gdk_colormap_alloc_color (colormap, &var_store->disabled, FALSE, TRUE);
 
   var_store->dict = 0;
+  var_store->trailing_rows = 40;
+  var_store->format_type = PSPPIRE_VAR_STORE_OUTPUT_FORMATS;
 }
 
 static gboolean
@@ -421,15 +527,17 @@ psppire_var_store_set_string (GSheetModel *model,
 	    var_set_width (pv, width);
 	else
 	  {
+            bool for_input
+              = var_store->format_type == PSPPIRE_VAR_STORE_INPUT_FORMATS;
 	    struct fmt_spec fmt ;
 	    fmt = *var_get_write_format (pv);
-	    if ( width < fmt_min_output_width (fmt.type)
+	    if ( width < fmt_min_width (fmt.type, for_input)
 		 ||
-		 width > fmt_max_output_width (fmt.type))
+		 width > fmt_max_width (fmt.type, for_input))
 	      return FALSE;
 
 	    fmt.w = width;
-	    fmt.d = MIN (fmt_max_output_decimals (fmt.type, width), fmt.d);
+	    fmt.d = MIN (fmt_max_decimals (fmt.type, width, for_input), fmt.d);
 
 	    var_set_both_formats (pv, &fmt);
 	  }
@@ -439,15 +547,18 @@ psppire_var_store_set_string (GSheetModel *model,
       break;
     case COL_DECIMALS:
       {
+        bool for_input
+          = var_store->format_type == PSPPIRE_VAR_STORE_INPUT_FORMATS;
 	int decimals;
 	struct fmt_spec fmt;
 	if ( ! text) return FALSE;
 	decimals = atoi (text);
 	fmt = *var_get_write_format (pv);
 	if ( decimals >
-	     fmt_max_output_decimals (fmt.type,
-				      fmt.w
-				      ))
+	     fmt_max_decimals (fmt.type,
+                               fmt.w,
+                               for_input
+                               ))
 	  return FALSE;
 
 	fmt.d = decimals;
@@ -693,7 +804,7 @@ geometry_get_row_count (const GSheetRow *geom, gpointer data)
   if (vs->dict)
     rows =  psppire_dict_get_var_cnt (vs->dict);
 
-  return rows + TRAILING_ROWS;
+  return rows + vs->trailing_rows;
 }
 
 
@@ -725,7 +836,7 @@ gboolean always_true ()
 static gchar *
 geometry_get_button_label (const GSheetRow *geom, glong unit, gpointer data)
 {
-  gchar *label = g_strdup_printf (_("%ld"), unit);
+  gchar *label = g_strdup_printf (_("%ld"), unit + 1);
 
   return label;
 }

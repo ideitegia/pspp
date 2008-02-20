@@ -21,10 +21,24 @@
 #include "psppire-dict.h"
 #include <gdk/gdk.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+G_BEGIN_DECLS
 
+/* PSPPIRE variable store format type, to determine whether a
+   PSPPIRE variable store contains variable input formats or
+   variable output formats.  */
+GType psppire_var_store_format_type_get_type (void);
+
+typedef enum
+  {
+    PSPPIRE_VAR_STORE_INPUT_FORMATS,
+    PSPPIRE_VAR_STORE_OUTPUT_FORMATS
+  }
+PsppireVarStoreFormatType;
+
+#define G_TYPE_PSPPIRE_VAR_STORE_FORMAT_TYPE \
+        (psppire_var_store_format_type_get_type ())
+
+/* PSPPIRE variable store. */
 #define GTK_TYPE_VAR_STORE	       (psppire_var_store_get_type ())
 
 #define PSPPIRE_VAR_STORE(obj)	       (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
@@ -53,6 +67,8 @@ struct _PsppireVarStore
   PsppireDict *dict;
   GdkColor disabled;
   const PangoFontDescription *font_desc;
+  gint trailing_rows;
+  PsppireVarStoreFormatType format_type;
 };
 
 struct _PsppireVarStoreClass
@@ -80,9 +96,6 @@ gint psppire_var_store_get_var_cnt (PsppireVarStore      *var_store);
 void psppire_var_store_set_font (PsppireVarStore *store, const PangoFontDescription *fd);
 
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
+G_END_DECLS
 
 #endif /* __PSPPIRE_VAR_STORE_H__ */

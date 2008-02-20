@@ -1,5 +1,12 @@
 2008-02-19  Ben Pfaff  <blp@gnu.org>
 
+	Patch #6426.  Reviewed by John Darrington.
+	
+	* psppire-var-store.c: Add "trailing-rows", "format-type"
+	properties to PsppireVarStore.
+
+2008-02-19  Ben Pfaff  <blp@gnu.org>
+
 	* message-dialog.c (popup_messages): Always destroy `msg' and
 	`lead' strings, avoiding a memory leak.  Thanks to John Darrington
 	for reporting the problem.
