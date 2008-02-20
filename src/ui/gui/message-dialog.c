@@ -189,7 +189,8 @@ popup_messages (gpointer unused UNUSED)
   GtkTextIter end;
   GtkTextView *text_view;
   GtkLabel *label;
-  struct string lead, msg;
+  struct string lead = DS_EMPTY_INITIALIZER;
+  struct string msg = DS_EMPTY_INITIALIZER;
   int message_cnt;
 
   /* If a pointer grab is in effect, then the combination of that, and
@@ -201,7 +202,6 @@ popup_messages (gpointer unused UNUSED)
 
   /* Compose the lead-in. */
   message_cnt = error_cnt + warning_cnt + note_cnt;
-  ds_init_empty (&lead);
   if (dropped_messages == 0)
     ds_put_format (
       &lead,
@@ -227,7 +227,6 @@ popup_messages (gpointer unused UNUSED)
 
 
   /* Compose the messages. */
-  ds_init_empty (&msg);
   while (!g_queue_is_empty (early_queue))
     format_message (g_queue_pop_head (early_queue), &msg);
   if (dropped_messages)
@@ -246,7 +245,6 @@ popup_messages (gpointer unused UNUSED)
   text_buffer = gtk_text_buffer_new (NULL);
   gtk_text_buffer_get_end_iter (text_buffer, &end);
   gtk_text_buffer_insert (text_buffer, &end, ds_data (&msg), ds_length (&msg));
-  ds_destroy (&msg);
 
   label = GTK_LABEL (get_widget_assert (message_xml, "lead-in"));
   if (label == NULL)
@@ -260,6 +258,9 @@ popup_messages (gpointer unused UNUSED)
 
   gtk_dialog_run (message_dialog);
   gtk_widget_hide (GTK_WIDGET (message_dialog));
+
+  ds_destroy (&lead);
+  ds_destroy (&msg);
 
   return FALSE;
 

@@ -1,3 +1,9 @@
+2008-02-19  Ben Pfaff  <blp@gnu.org>
+
+	* message-dialog.c (popup_messages): Always destroy `msg' and
+	`lead' strings, avoiding a memory leak.  Thanks to John Darrington
+	for reporting the problem.
+
 2008-02-19  John Darrington <john@darrington.wattle.id.au>
 
 	* dict-display.c: Display names of variables in dialog box
