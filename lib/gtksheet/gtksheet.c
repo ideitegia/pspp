@@ -5,7 +5,7 @@
  * requirements of PSPPIRE.  The changes are copyright by the
  * Free Software Foundation.  The copyright notice for the original work is
  * below.
-*/
+ */
 
 /* GtkSheet widget for Gtk+.
  * Copyright (C) 1999-2001 Adrian E. Feiguin <adrian@ifir.ifir.edu.ar>
@@ -881,12 +881,12 @@ static void column_titles_changed (GtkWidget *w, gint first, gint n_columns, gpo
 
 /* Properties */
 enum
-{
-  PROP_0,
-  PROP_ROW_GEO,
-  PROP_COL_GEO,
-  PROP_MODEL
-};
+  {
+    PROP_0,
+    PROP_ROW_GEO,
+    PROP_COL_GEO,
+    PROP_MODEL
+  };
 
 static void
 gtk_sheet_set_property (GObject         *object,
@@ -1482,20 +1482,20 @@ gtk_sheet_set_model (GtkSheet *sheet, GSheetModel *model)
 
   if ( model)
     {
-  g_signal_connect (model, "range_changed",
-		    G_CALLBACK (range_update_callback), sheet);
+      g_signal_connect (model, "range_changed",
+			G_CALLBACK (range_update_callback), sheet);
 
-  g_signal_connect (model, "rows_inserted",
-		    G_CALLBACK (rows_inserted_deleted_callback), sheet);
+      g_signal_connect (model, "rows_inserted",
+			G_CALLBACK (rows_inserted_deleted_callback), sheet);
 
-  g_signal_connect (model, "rows_deleted",
-		    G_CALLBACK (rows_inserted_deleted_callback), sheet);
+      g_signal_connect (model, "rows_deleted",
+			G_CALLBACK (rows_inserted_deleted_callback), sheet);
 
-  g_signal_connect (model, "columns_inserted",
-		    G_CALLBACK (columns_inserted_deleted_callback), sheet);
+      g_signal_connect (model, "columns_inserted",
+			G_CALLBACK (columns_inserted_deleted_callback), sheet);
 
-  g_signal_connect (model, "columns_deleted",
-		    G_CALLBACK (columns_inserted_deleted_callback), sheet);
+      g_signal_connect (model, "columns_deleted",
+			G_CALLBACK (columns_inserted_deleted_callback), sheet);
     }
 }
 
@@ -2983,18 +2983,18 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
     case GTK_JUSTIFY_RIGHT:
       size = area.width;
       area.x +=area.width;
-	{
-	  for (i = col - 1; i >= MIN_VISIBLE_COLUMN (sheet); i--)
-	    {
-	      if ( !gtk_sheet_cell_empty (sheet, row, i)) break;
-	      if (size >= text_width + CELLOFFSET) break;
-	      size +=xxx_column_width (sheet, i);
-	      xxx_column_set_right_column (sheet, i,
-					   MAX (col,
-						xxx_column_right_column (sheet, i)));
-	    }
-	  area.width = size;
-	}
+      {
+	for (i = col - 1; i >= MIN_VISIBLE_COLUMN (sheet); i--)
+	  {
+	    if ( !gtk_sheet_cell_empty (sheet, row, i)) break;
+	    if (size >= text_width + CELLOFFSET) break;
+	    size +=xxx_column_width (sheet, i);
+	    xxx_column_set_right_column (sheet, i,
+					 MAX (col,
+					      xxx_column_right_column (sheet, i)));
+	  }
+	area.width = size;
+      }
       area.x -= size;
       xoffset += area.width - text_width - 2 * CELLOFFSET -
 	attributes.border.width / 2;
@@ -3003,28 +3003,28 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
       sizel = area.width / 2;
       sizer = area.width / 2;
       area.x += area.width / 2;
-	{
-	  for (i = col + 1; i <= MAX_VISIBLE_COLUMN (sheet); i++)
-	    {
-	      if ( ! gtk_sheet_cell_empty (sheet, row, i)) break;
-	      if (sizer >= text_width / 2) break;
-	      sizer += xxx_column_width (sheet, i);
-	      xxx_column_set_left_column (sheet, i,
-					  MIN (
-					       col,
-					       xxx_column_left_column (sheet, i)));
-	    }
-	  for (i = col - 1; i >= MIN_VISIBLE_COLUMN (sheet); i--)
-	    {
-	      if ( ! gtk_sheet_cell_empty (sheet, row, i)) break;
-	      if (sizel >= text_width / 2) break;
-	      sizel +=xxx_column_width (sheet, i);
-	      xxx_column_set_right_column (sheet, i,
-					   MAX (col,
-						xxx_column_right_column (sheet, i)));
-	    }
-	  size = MIN (sizel, sizer);
-	}
+      {
+	for (i = col + 1; i <= MAX_VISIBLE_COLUMN (sheet); i++)
+	  {
+	    if ( ! gtk_sheet_cell_empty (sheet, row, i)) break;
+	    if (sizer >= text_width / 2) break;
+	    sizer += xxx_column_width (sheet, i);
+	    xxx_column_set_left_column (sheet, i,
+					MIN (
+					     col,
+					     xxx_column_left_column (sheet, i)));
+	  }
+	for (i = col - 1; i >= MIN_VISIBLE_COLUMN (sheet); i--)
+	  {
+	    if ( ! gtk_sheet_cell_empty (sheet, row, i)) break;
+	    if (sizel >= text_width / 2) break;
+	    sizel +=xxx_column_width (sheet, i);
+	    xxx_column_set_right_column (sheet, i,
+					 MAX (col,
+					      xxx_column_right_column (sheet, i)));
+	  }
+	size = MIN (sizel, sizer);
+      }
       area.x -= sizel;
       xoffset += sizel - text_width / 2 - CELLOFFSET;
       area.width = sizel + sizer;
@@ -3032,20 +3032,20 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
     case GTK_JUSTIFY_LEFT:
     default:
       size = area.width;
-	{
-	  for (i = col + 1; i <= MAX_VISIBLE_COLUMN (sheet); i++)
-	    {
-	      if (! gtk_sheet_cell_empty (sheet, row, i)) break;
-	      if (size >= text_width + CELLOFFSET) break;
-	      size +=xxx_column_width (sheet, i);
-	      xxx_column_set_left_column (sheet, i,
-					  MIN (
-					       col,
-					       xxx_column_left_column (sheet, i)));
+      {
+	for (i = col + 1; i <= MAX_VISIBLE_COLUMN (sheet); i++)
+	  {
+	    if (! gtk_sheet_cell_empty (sheet, row, i)) break;
+	    if (size >= text_width + CELLOFFSET) break;
+	    size +=xxx_column_width (sheet, i);
+	    xxx_column_set_left_column (sheet, i,
+					MIN (
+					     col,
+					     xxx_column_left_column (sheet, i)));
 
-	    }
-	  area.width = size;
-	}
+	  }
+	area.width = size;
+      }
       xoffset += attributes.border.width / 2;
       break;
     }
@@ -3647,7 +3647,7 @@ gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint column)
     return FALSE;
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
-      gtk_sheet_deactivate_cell (sheet);
+    gtk_sheet_deactivate_cell (sheet);
 
   sheet->active_cell.row = row;
   sheet->active_cell.col = column;
@@ -3698,8 +3698,8 @@ gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
 
   if (row < 0 || col < 0) return;
 
-  sheet->active_cell.row =- 1;
-  sheet->active_cell.col =- 1;
+  sheet->active_cell.row = -1;
+  sheet->active_cell.col = -1;
 
   text = gtk_entry_get_text (GTK_ENTRY (gtk_sheet_get_entry (sheet)));
 
@@ -4278,7 +4278,7 @@ gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
 
   gdk_gc_set_clip_rectangle (sheet->xor_gc, &area);
 
-  for (i =- 1; i <= 1; ++i)
+  for (i = -1; i <= 1; ++i)
     gdk_draw_rectangle (sheet->sheet_window,
 			sheet->xor_gc,
 			FALSE,
@@ -5464,8 +5464,8 @@ gtk_sheet_move_query (GtkSheet *sheet, gint row, gint column)
 
   row_move = FALSE;
   column_move = FALSE;
-  row_align =- 1.;
-  col_align =- 1.;
+  row_align = -1.;
+  col_align = -1.;
 
   height = sheet->sheet_window_height;
   width = sheet->sheet_window_width;
@@ -5619,7 +5619,7 @@ gtk_sheet_key_press (GtkWidget *widget,
       if (sheet->state == GTK_SHEET_NORMAL &&
 	  !GTK_SHEET_IN_SELECTION (sheet))
 	g_signal_stop_emission_by_name (gtk_sheet_get_entry (sheet),
-					 "key-press-event");
+					"key-press-event");
       row = sheet->active_cell.row;
       col = sheet->active_cell.col;
       if (sheet->state == GTK_SHEET_COLUMN_SELECTED)
@@ -6605,7 +6605,7 @@ gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column)
 			     is_sensitive, allocation);
 
       /* FIXME: Not freeing this button is correct (sort of),
-      because in PSPP the model always returns a static copy */
+	 because in PSPP the model always returns a static copy */
 
       /* gtk_sheet_button_free (button); */
 
@@ -6966,7 +6966,7 @@ draw_xor_rectangle (GtkSheet *sheet, GtkSheetRange range)
 
   gdk_gc_set_clip_rectangle (sheet->xor_gc, &clip_area);
 
-  for (i =- 1; i <= 1; ++i)
+  for (i = -1; i <= 1; ++i)
     gdk_draw_rectangle (sheet->sheet_window,
 			sheet->xor_gc,
 			FALSE,
@@ -7906,7 +7906,7 @@ range_to_html (const GtkSheet *sheet)
   g_string_append (string, "<html>\n");
   g_string_append (string, "<body>\n");
   g_string_append (string, "<table>\n");
-  for (r = sheet->range.row0; r <= sheet->range.rowi; ++r) 
+  for (r = sheet->range.row0; r <= sheet->range.rowi; ++r)
     {
       g_string_append (string, "<tr>\n");
       for (c = sheet->range.col0; c <= sheet->range.coli; ++c)
@@ -7942,16 +7942,16 @@ primary_get_cb (GtkClipboard     *clipboard,
   GString *string = NULL;
 
   switch (info)
-  {
-  case SELECT_FMT_TEXT:
-    string = range_to_text (sheet);
-    break;
-  case SELECT_FMT_HTML:
-    string = range_to_html (sheet);
-    break;
-  default:
-    g_assert_not_reached ();
-  }
+    {
+    case SELECT_FMT_TEXT:
+      string = range_to_text (sheet);
+      break;
+    case SELECT_FMT_HTML:
+      string = range_to_html (sheet);
+      break;
+    default:
+      g_assert_not_reached ();
+    }
 
   gtk_selection_data_set (selection_data, selection_data->target,
 			  8,
@@ -7973,24 +7973,24 @@ gtk_sheet_update_primary_selection (GtkSheet *sheet)
   static const GtkTargetEntry targets[] = {
     { "UTF8_STRING",   0, SELECT_FMT_TEXT },
     { "STRING",        0, SELECT_FMT_TEXT },
-    { "TEXT",          0, SELECT_FMT_TEXT }, 
+    { "TEXT",          0, SELECT_FMT_TEXT },
     { "COMPOUND_TEXT", 0, SELECT_FMT_TEXT },
-    { "text/plain;charset=utf-8", 0, SELECT_FMT_TEXT }, 
+    { "text/plain;charset=utf-8", 0, SELECT_FMT_TEXT },
     { "text/plain",    0, SELECT_FMT_TEXT },
     { "text/html",     0, SELECT_FMT_HTML }
   };
-  
+
   GtkClipboard *clipboard;
 
   if (!GTK_WIDGET_REALIZED (sheet))
     return;
 
-  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (sheet), 
+  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (sheet),
 					GDK_SELECTION_PRIMARY);
-  
+
   if (gtk_sheet_range_isvisible (sheet, sheet->range))
     {
-      if (!gtk_clipboard_set_with_owner (clipboard, targets, 
+      if (!gtk_clipboard_set_with_owner (clipboard, targets,
 					 G_N_ELEMENTS (targets),
 					 primary_get_cb, primary_clear_cb,
 					 G_OBJECT (sheet)))

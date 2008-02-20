@@ -396,39 +396,39 @@ val_labs_dialog_create (GladeXML *xml)
 
   gtk_tree_view_append_column (GTK_TREE_VIEW (dialog->treeview), column);
 
-  g_signal_connect (GTK_OBJECT (get_widget_assert (xml, "val_labs_cancel")),
+  g_signal_connect (get_widget_assert (xml, "val_labs_cancel"),
 		   "clicked",
 		   GTK_SIGNAL_FUNC (on_cancel), dialog);
 
-  g_signal_connect (GTK_OBJECT (dialog->window), "delete-event",
+  g_signal_connect (dialog->window, "delete-event",
 		    GTK_SIGNAL_FUNC (on_delete), dialog);
 
-  g_signal_connect (GTK_OBJECT (get_widget_assert (xml, "val_labs_ok")),
+  g_signal_connect (get_widget_assert (xml, "val_labs_ok"),
 		   "clicked",
 		   GTK_SIGNAL_FUNC (val_labs_ok), dialog);
 
   dialog->change_handler_id =
-    g_signal_connect (GTK_OBJECT (dialog->label_entry),
+    g_signal_connect (dialog->label_entry,
 		     "changed",
 		     GTK_SIGNAL_FUNC (on_label_entry_change), dialog);
 
   dialog->value_handler_id  =
-    g_signal_connect (GTK_OBJECT (dialog->value_entry),
+    g_signal_connect (dialog->value_entry,
 		     "changed",
 		     GTK_SIGNAL_FUNC (on_value_entry_change), dialog);
 
-  g_signal_connect (GTK_OBJECT (dialog->change_button),
+  g_signal_connect (dialog->change_button,
 		   "clicked",
 		   GTK_SIGNAL_FUNC (on_change), dialog);
 
 
-  g_signal_connect (GTK_OBJECT (dialog->treeview), "cursor-changed",
+  g_signal_connect (dialog->treeview, "cursor-changed",
 		   GTK_SIGNAL_FUNC (on_select_row), dialog);
 
-  g_signal_connect (GTK_OBJECT (dialog->remove_button), "clicked",
+  g_signal_connect (dialog->remove_button, "clicked",
 		   GTK_SIGNAL_FUNC (on_remove), dialog);
 
-  g_signal_connect (GTK_OBJECT (dialog->add_button), "clicked",
+  g_signal_connect (dialog->add_button, "clicked",
 		   GTK_SIGNAL_FUNC (on_add), dialog);
 
   dialog->labs = 0;
