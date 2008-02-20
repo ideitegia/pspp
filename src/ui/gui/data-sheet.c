@@ -108,8 +108,7 @@ psppire_data_sheet_create (gchar *widget_name, gchar *string1, gchar *string2,
 {
   GtkWidget *sheet;
 
-  sheet = gtk_sheet_new (G_SHEET_ROW (the_data_store),
-			G_SHEET_COLUMN (the_data_store), "data sheet", 0);
+  sheet = gtk_sheet_new (G_SHEET_ROW (the_data_store), G_SHEET_COLUMN (the_data_store), NULL);
 
   the_data_store->width_of_m = calc_m_width (sheet, the_data_store->font_desc);
 

@@ -1,3 +1,8 @@
+2008-02-20 John Darrington <john@darrington.wattle.id.au>
+
+	* gtksheet.c gtksheet.h: Removed some unused signals.
+	Made the models properties of the widget.
+
 2008-02-08 John Darrington <john@darrington.wattle.id.au>
 
 	* gtksheet.c: Removed the sheet_locked feature, which we never

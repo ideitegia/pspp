@@ -90,6 +90,13 @@ const gchar *const measures[n_MEASURES + 1]={
   0
 };
 
+G_DEFINE_TYPE (PsppireVarSheet, psppire_var_sheet, GTK_TYPE_SHEET);
+
+static void
+psppire_var_sheet_class_init (PsppireVarSheetClass *class)
+{
+}
+
 static GtkListStore *
 create_label_list (const gchar *const *labels)
 {
@@ -150,9 +157,13 @@ traverse_cell_callback (GtkSheet * sheet,
 			gint *new_row, gint *new_column
 			)
 {
+  PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (sheet);
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
 
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
+
+  if (*new_row >= n_vars && !var_sheet->may_create_vars)
+    return FALSE;
 
   if ( row == n_vars && *new_row >= n_vars)
     {
@@ -415,49 +426,40 @@ var_sheet_cell_entry_enter (GtkSheet * sheet, gint row, gint column,
   return TRUE;
 }
 
-
-extern PsppireVarStore *the_var_store;
-
-
-/* Create the var sheet */
-G_MODULE_EXPORT GtkWidget*
-psppire_variable_sheet_create (gchar *widget_name,
-			       gchar *string1,
-			       gchar *string2,
-			       gint int1, gint int2)
+static void
+psppire_var_sheet_init (PsppireVarSheet *self)
 {
-  gchar *codeset;
-  gint i;
-  GtkWidget *sheet;
+  self->may_create_vars = true;
 
-  GObject *geo = g_sheet_hetero_column_new (75, n_COLS);
-
-  g_assert (the_var_store);
-
-  sheet = gtk_sheet_new (G_SHEET_ROW (the_var_store),
-			G_SHEET_COLUMN (geo),
-			"variable sheet", 0);
-
-
-  g_signal_connect (GTK_OBJECT (sheet), "activate",
+  g_signal_connect (self, "activate",
 		    GTK_SIGNAL_FUNC (var_sheet_cell_entry_enter),
 		    0);
 
-  g_signal_connect (GTK_OBJECT (sheet), "deactivate",
+  g_signal_connect (self, "deactivate",
 		    GTK_SIGNAL_FUNC (var_sheet_cell_entry_leave),
 		    0);
 
-  g_signal_connect (GTK_OBJECT (sheet), "traverse",
+  g_signal_connect (self, "traverse",
 		    GTK_SIGNAL_FUNC (traverse_cell_callback), 0);
+}
 
+GtkWidget *
+psppire_var_sheet_new_with_var_store (PsppireVarStore *var_store)
+{
+  GtkWidget *sheet;
 
-  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL (the_var_store));
+  gint i;
 
+  GObject *geo = g_sheet_hetero_column_new (75, n_COLS);
+  g_assert (var_store);
 
-  /* Since this happens inside glade_xml_new, we must prevent strings from
-   * being re-encoded twice */
-  codeset = xstrdup (bind_textdomain_codeset (PACKAGE, 0));
-  bind_textdomain_codeset (PACKAGE, locale_charset ());
+  sheet = g_object_new (PSPPIRE_TYPE_VAR_SHEET,
+			"row-geometry", var_store,
+			"column-geometry", geo,
+			NULL);
+
+  gtk_sheet_set_model (GTK_SHEET (sheet), G_SHEET_MODEL (var_store));
+
 
   for (i = 0 ; i < n_COLS ; ++i )
     {
@@ -468,6 +470,30 @@ psppire_variable_sheet_create (gchar *widget_name,
 					       column_def[i].width);
     }
 
+
+
+  return sheet;
+}
+
+/* Create the var sheet */
+G_MODULE_EXPORT GtkWidget*
+psppire_variable_sheet_create (gchar *widget_name,
+			       gchar *string1,
+			       gchar *string2,
+			       gint int1, gint int2)
+{
+  gchar *codeset;
+  GtkWidget *sheet;
+  extern PsppireVarStore *the_var_store;
+
+  /* Since this happens inside glade_xml_new, we must prevent strings from
+   * being re-encoded twice */
+  codeset = xstrdup (bind_textdomain_codeset (PACKAGE, 0));
+  bind_textdomain_codeset (PACKAGE, locale_charset ());
+
+
+  sheet = psppire_var_sheet_new_with_var_store (the_var_store);
+
   bind_textdomain_codeset (PACKAGE, codeset);
   free (codeset);
 
@@ -477,3 +503,10 @@ psppire_variable_sheet_create (gchar *widget_name,
 }
 
 
+
+void
+psppire_var_sheet_set_may_create_vars (PsppireVarSheet *sheet,
+                                       gboolean may_create_vars)
+{
+  sheet->may_create_vars = may_create_vars;
+}

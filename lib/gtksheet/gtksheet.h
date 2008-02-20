@@ -110,9 +110,12 @@ struct _GtkSheetHoverTitle
   gint row, column;
 };
 
-struct _GtkSheet{
+struct _GtkSheet
+{
   GtkContainer container;
 
+
+  gboolean dispose_has_run;
   GSheetColumn *column_geometry;
   GSheetRow *row_geometry;
 
@@ -125,8 +128,6 @@ struct _GtkSheet{
   gboolean autoscroll;
   gboolean justify_entry;
 
-  guint freeze_count;
-
   /* Background colors */
   GdkColor bg_color;
   GdkColor grid_color;
@@ -138,8 +139,6 @@ struct _GtkSheet{
   /* allocation rectangle after the container_border_width
      and the width of the shadow border */
   GdkRectangle internal_allocation;
-
-  gchar *name;
 
   gint16 column_requisition;
   gint16 row_requisition;
@@ -196,6 +195,8 @@ struct _GtkSheet{
   /*scrollbars*/
   GtkAdjustment *hadjustment;
   GtkAdjustment *vadjustment;
+
+  gint freeze_count;
 
   /* xor GC for the verticle drag line */
   GdkGC *xor_gc;
@@ -255,23 +256,8 @@ struct _GtkSheetClass
  gboolean (*activate) 		(GtkSheet *sheet,
 	                	gint row, gint column);
 
- void (*set_cell) 		(GtkSheet *sheet,
-	           		gint row, gint column);
-
- void (*clear_cell) 		(GtkSheet *sheet,
-	           		gint row, gint column);
-
  void (*changed) 		(GtkSheet *sheet,
 	          		gint row, gint column);
-
- void (*new_column_width)       (GtkSheet *sheet,
-                                 gint col,
-                                 guint width);
-
- void (*new_row_height)       	(GtkSheet *sheet,
-                                 gint row,
-                                 guint height);
-
 };
 
 GType gtk_sheet_get_type (void);
@@ -280,7 +266,6 @@ GtkType gtk_sheet_range_get_type (void);
 
 /* create a new sheet */
 GtkWidget * gtk_sheet_new (GSheetRow *vgeo, GSheetColumn *hgeo,
-			   const gchar *title,
 			   GSheetModel *model);
 
 
@@ -298,13 +283,11 @@ gtk_sheet_construct_browser		(GtkSheet *sheet,
 GtkWidget *
 gtk_sheet_new_with_custom_entry 	(GSheetRow *vgeo,
 					 GSheetColumn *hgeo,
-                                         const gchar *title,
                                  	 GtkType entry_type);
 void
 gtk_sheet_construct_with_custom_entry	(GtkSheet *sheet,
 					 GSheetRow *vgeo,
 					 GSheetColumn *hgeo,
-                                         const gchar *title,
 					 GtkType entry_type);
 /* change scroll adjustments */
 void
