@@ -95,7 +95,7 @@ main (int argc, char *argv[])
   gchar *filename = 0;
   gboolean show_splash = TRUE;
   GError *err = 0;
-  gchar *vers;
+  const gchar *vers;
 
   set_program_name (argv[0]);
 
