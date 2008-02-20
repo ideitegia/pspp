@@ -239,7 +239,7 @@ missing_val_dialog_create (GladeXML *xml)
   g_signal_connect (get_widget_assert (xml, "missing_val_ok"),
 		   "clicked", G_CALLBACK (missing_val_dialog_accept), dialog);
 
-  g_signal_connect (GTK_OBJECT (dialog->window), "delete-event",
+  g_signal_connect (dialog->window, "delete-event",
 		    G_CALLBACK (on_delete), dialog);
 
   dialog->mv[0] = get_widget_assert (xml, "mv0");
