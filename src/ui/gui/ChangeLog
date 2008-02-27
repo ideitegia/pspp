@@ -1,3 +1,11 @@
+2008-02-27  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression-dialog.c: New file.
+
+	* regression-dialog.h: New file.
+
+	* regression.glade: New file.
+
 2008-02-19  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6426.  Reviewed by John Darrington.
