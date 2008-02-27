@@ -51,6 +51,7 @@ struct data_editor
   GtkAction *invoke_descriptives_dialog;
   GtkAction *invoke_frequencies_dialog;
   GtkAction *invoke_examine_dialog;
+  GtkAction *invoke_regression_dialog;
 
   GtkAction *invoke_t_test_independent_samples_dialog;
   GtkAction *invoke_t_test_paired_samples_dialog;

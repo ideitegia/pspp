@@ -46,6 +46,7 @@
 #include "frequencies-dialog.h"
 #include "examine-dialog.h"
 #include "dict-display.h"
+#include "regression-dialog.h"
 #include "clipboard.h"
 
 #include "oneway-anova-dialog.h"
@@ -732,6 +733,14 @@ new_data_editor (void)
 		    G_CALLBACK (examine_dialog), de);
 
 
+  de->invoke_regression_dialog =
+    gtk_action_new ("regression-dialog",
+		    _("Linear _Regression"),
+		    _("Estimate parameters of the linear model"),
+		    "pspp-regression");
+
+  g_signal_connect (de->invoke_regression_dialog, "activate",
+		    G_CALLBACK (regression_dialog), de);
 
   e->window = GTK_WINDOW (get_widget_assert (de->xml, "data_editor"));
 
@@ -903,6 +912,9 @@ new_data_editor (void)
 			    get_widget_assert (de->xml, "analyze_explore")
 			    );
 
+  gtk_action_connect_proxy (de->invoke_regression_dialog,
+			    get_widget_assert (de->xml, "linear-regression")
+			    );
 
   g_signal_connect (get_widget_assert (de->xml,"help_about"),
 		    "activate",
