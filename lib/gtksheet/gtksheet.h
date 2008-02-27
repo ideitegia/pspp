@@ -148,8 +148,15 @@ struct _GtkSheet
 
   /* active cell */
   GtkSheetCell active_cell;
-  GtkWidget *sheet_entry;
 
+  /* The GtkEntry used for editing the cells */
+  GtkWidget *entry_widget;
+
+  /* The widget containing entry_widget, or
+     entry_widget itself if no container */
+  GtkWidget *entry_container;
+
+  /* The type of entry_widget */
   GtkType entry_type;
 
   /* expanding selection */

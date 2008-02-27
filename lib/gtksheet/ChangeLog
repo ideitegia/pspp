@@ -1,4 +1,8 @@
 2008-02-27 John Darrington <john@darrington.wattle.id.au>
+	* gtksheet.c gtksheet.h: Corrected some leaks and other problems
+	related to de-allocating the sheet.
+
+2008-02-27 John Darrington <john@darrington.wattle.id.au>
 	* gtksheet.c: (gtk_sheet_expose) Don't queue a redraw on the entry
 	widget.  Fixes bug #21073
 
