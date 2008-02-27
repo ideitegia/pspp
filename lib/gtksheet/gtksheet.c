@@ -4574,11 +4574,7 @@ gtk_sheet_expose (GtkWidget * widget,
 	  if ((!GTK_SHEET_IN_XDRAG (sheet)) && (!GTK_SHEET_IN_YDRAG (sheet)))
 	    {
 	      if (sheet->state == GTK_SHEET_NORMAL)
-		{
-		  gtk_sheet_draw_active_cell (sheet);
-		  if (!GTK_SHEET_IN_SELECTION (sheet))
-		    gtk_widget_queue_draw (sheet->sheet_entry);
-		}
+		gtk_sheet_draw_active_cell (sheet);
 	    }
 	}
     }

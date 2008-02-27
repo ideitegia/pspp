@@ -1,3 +1,7 @@
+2008-02-27 John Darrington <john@darrington.wattle.id.au>
+	* gtksheet.c: (gtk_sheet_expose) Don't queue a redraw on the entry
+	widget.  Fixes bug #21073
+
 2008-02-20 John Darrington <john@darrington.wattle.id.au>
 
 	* gtksheet.c gtksheet.h: Removed some unused signals.
