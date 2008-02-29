@@ -93,7 +93,7 @@ refresh (PsppireDialog *dialog, struct regression_dialog *rd)
 {
   GtkTreeModel *liststore = gtk_tree_view_get_model (rd->dep_vars);
   gtk_list_store_clear (GTK_LIST_STORE (liststore));
-  
+
   liststore = gtk_tree_view_get_model (rd->indep_vars);
   gtk_list_store_clear (GTK_LIST_STORE (liststore));
 }
@@ -229,7 +229,6 @@ regression_dialog (GObject *o, gpointer data)
   struct regression_dialog rd;
 
   GladeXML *xml = XML_NEW ("regression.glade");
-  GtkSheet *var_sheet;
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "regression-dialog");
@@ -244,9 +243,8 @@ regression_dialog (GObject *o, gpointer data)
 
   rd.stat_view = get_widget_assert (xml, "stat-view");
 
-  var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
 
   put_checkbox_items_in_treeview (GTK_TREE_VIEW(rd.stat_view),
 				  B_RG_STATS_DEFAULT,
