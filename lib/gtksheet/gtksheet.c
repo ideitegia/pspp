@@ -4469,6 +4469,9 @@ gtk_sheet_select_range (GtkSheet * sheet, const GtkSheetRange *range)
 void
 gtk_sheet_unselect_range (GtkSheet * sheet)
 {
+  if (! GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
+    return;
+
   gtk_sheet_real_unselect_range (sheet, NULL);
   sheet->state = GTK_STATE_NORMAL;
 

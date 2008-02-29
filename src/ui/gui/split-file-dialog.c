@@ -178,8 +178,6 @@ split_file_dialog (GObject *o, gpointer data)
   GtkWidget *selector ;
   GtkWidget *on_off   ;
 
-  GtkSheet *var_sheet ;
-
   sfd.xml = XML_NEW ("psppire.glade");
 
   dialog = get_widget_assert   (sfd.xml, "split-file-dialog");
@@ -188,9 +186,7 @@ split_file_dialog (GObject *o, gpointer data)
   selector = get_widget_assert (sfd.xml, "split-file-selector");
   on_off = get_widget_assert   (sfd.xml, "split-radiobutton0");
 
-  var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   sfd.dict = vs->dict;
   sfd.tv = GTK_TREE_VIEW (dest);

@@ -368,7 +368,7 @@ compute_dialog (GObject *o, gpointer data)
   gint response;
   struct data_editor *de = data;
 
-  PsppireVarStore *vs;
+  PsppireVarStore *vs = NULL;
   struct compute_dialog scd;
 
   GladeXML *xml = XML_NEW ("psppire.glade");
@@ -388,12 +388,7 @@ compute_dialog (GObject *o, gpointer data)
 	get_widget_assert (xml, "radio-button-expression-label");
 
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
-
-
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
   scd.dict = vs->dict;
   scd.use_type = FALSE;
 
@@ -480,9 +475,9 @@ compute_dialog (GObject *o, gpointer data)
 
 
 enum {
-  COL_NAME,
-  COL_USAGE,
-  COL_ARITY
+  COMPUTE_COL_NAME,
+  COMPUTE_COL_USAGE,
+  COMPUTE_COL_ARITY
 };
 
 
@@ -504,9 +499,9 @@ function_list_populate (GtkTreeView *tv)
       gtk_list_store_append (liststore, &iter);
 
       gtk_list_store_set (liststore, &iter,
-			  COL_NAME, expr_operation_get_name (op),
-			  COL_USAGE, expr_operation_get_prototype (op),
-			  COL_ARITY, expr_operation_get_arg_cnt (op),
+			  COMPUTE_COL_NAME, expr_operation_get_name (op),
+			  COMPUTE_COL_USAGE, expr_operation_get_prototype (op),
+			  COMPUTE_COL_ARITY, expr_operation_get_arg_cnt (op),
 			  -1);
     }
 
@@ -527,7 +522,7 @@ function_list_populate (GtkTreeView *tv)
 
     gtk_tree_view_column_pack_start (col, renderer, TRUE);
 
-    gtk_tree_view_column_add_attribute (col, renderer, "text", COL_USAGE);
+    gtk_tree_view_column_add_attribute (col, renderer, "text", COMPUTE_COL_USAGE);
   }
 
   gtk_tree_view_set_model (tv, GTK_TREE_MODEL (liststore));
@@ -555,8 +550,8 @@ insert_function_into_syntax_area (GtkTreeIter iter,
 
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
 
-  gtk_tree_model_get_value (model, &iter, COL_NAME, &name_value);
-  gtk_tree_model_get_value (model, &iter, COL_ARITY, &arity_value);
+  gtk_tree_model_get_value (model, &iter, COMPUTE_COL_NAME, &name_value);
+  gtk_tree_model_get_value (model, &iter, COMPUTE_COL_ARITY, &arity_value);
 
   arity = g_value_get_int (&arity_value);
 

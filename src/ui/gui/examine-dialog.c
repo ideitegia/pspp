@@ -256,10 +256,9 @@ examine_dialog (GObject *o, gpointer data)
   GtkWidget *fct_selector = get_widget_assert (xml, "psppire-selector2");
   GtkWidget *id_selector = get_widget_assert (xml, "psppire-selector3");
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  PsppireVarStore *vs = NULL;
 
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   ex_d.dep_list =   get_widget_assert   (xml, "treeview2");
   ex_d.fct_list =   get_widget_assert   (xml, "treeview3");

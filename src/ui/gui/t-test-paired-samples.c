@@ -186,12 +186,9 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
   gint response;
   struct data_editor *de = data;
 
-  PsppireVarStore *vs;
+  PsppireVarStore *vs = NULL;
 
   GladeXML *xml = XML_NEW ("t-test.glade");
-
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "paired-samples-t-test-treeview1");
@@ -202,7 +199,7 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
 
   GtkWidget *dialog = get_widget_assert (xml, "t-test-paired-samples-dialog");
 
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   tt_d.dict = vs->dict;
   tt_d.pairs_treeview =

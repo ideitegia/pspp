@@ -28,7 +28,7 @@
 #include <gtksheet/gsheetmodel.h>
 
 #include "psppire-var-store.h"
-#include "var-sheet.h"
+#include <gtksheet/gsheet-row-iface.h>
 #include "helper.h"
 
 #include <data/dictionary.h>
@@ -262,7 +262,7 @@ psppire_var_store_item_editable (PsppireVarStore *var_store, glong row, glong co
   if ( !pv )
     return TRUE;
 
-  if ( var_is_alpha (pv) && column == COL_DECIMALS )
+  if ( var_is_alpha (pv) && column == PSPPIRE_VAR_STORE_COL_DECIMALS )
     return FALSE;
 
   write_spec = var_get_print_format (pv);
@@ -282,7 +282,7 @@ psppire_var_store_item_editable (PsppireVarStore *var_store, glong row, glong co
     case FMT_DTIME:
     case FMT_WKDAY:
     case FMT_MONTH:
-      if ( column == COL_DECIMALS || column == COL_WIDTH)
+      if ( column == PSPPIRE_VAR_STORE_COL_DECIMALS || column == PSPPIRE_VAR_STORE_COL_WIDTH)
 	return FALSE;
       break;
     default:
@@ -375,7 +375,7 @@ var_change_callback (GtkWidget *w, gint n, gpointer data)
   GSheetModel *model = G_SHEET_MODEL (data);
 
   g_sheet_model_range_changed (model,
-				 n, 0, n, n_COLS);
+				 n, 0, n, PSPPIRE_VAR_STORE_n_COLS);
 }
 
 
@@ -480,7 +480,7 @@ psppire_var_store_clear (GSheetModel *model,  glong row, glong col)
 
   switch (col)
     {
-    case COL_LABEL:
+    case PSPPIRE_VAR_STORE_COL_LABEL:
       var_set_label (pv, 0);
       return TRUE;
       break;
@@ -511,15 +511,15 @@ psppire_var_store_set_string (GSheetModel *model,
 
   switch (col)
     {
-    case COL_NAME:
+    case PSPPIRE_VAR_STORE_COL_NAME:
       return psppire_dict_rename_var (var_store->dict, pv, text);
       break;
-    case COL_COLUMNS:
+    case PSPPIRE_VAR_STORE_COL_COLUMNS:
       if ( ! text) return FALSE;
       var_set_display_width (pv, atoi (text));
       return TRUE;
       break;
-    case COL_WIDTH:
+    case PSPPIRE_VAR_STORE_COL_WIDTH:
       {
 	int width = atoi (text);
 	if ( ! text) return FALSE;
@@ -545,7 +545,7 @@ psppire_var_store_set_string (GSheetModel *model,
 	return TRUE;
       }
       break;
-    case COL_DECIMALS:
+    case PSPPIRE_VAR_STORE_COL_DECIMALS:
       {
         bool for_input
           = var_store->format_type == PSPPIRE_VAR_STORE_INPUT_FORMATS;
@@ -566,15 +566,15 @@ psppire_var_store_set_string (GSheetModel *model,
 	return TRUE;
       }
       break;
-    case COL_LABEL:
+    case PSPPIRE_VAR_STORE_COL_LABEL:
       var_set_label (pv, text);
       return TRUE;
       break;
-    case COL_TYPE:
-    case COL_VALUES:
-    case COL_MISSING:
-    case COL_ALIGN:
-    case COL_MEASURE:
+    case PSPPIRE_VAR_STORE_COL_TYPE:
+    case PSPPIRE_VAR_STORE_COL_VALUES:
+    case PSPPIRE_VAR_STORE_COL_MISSING:
+    case PSPPIRE_VAR_STORE_COL_ALIGN:
+    case PSPPIRE_VAR_STORE_COL_MEASURE:
       /* These can be modified only by their respective dialog boxes */
       return FALSE;
       break;
@@ -610,10 +610,10 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 
   switch (c)
     {
-    case COL_NAME:
+    case PSPPIRE_VAR_STORE_COL_NAME:
       return pspp_locale_to_utf8 ( var_get_name (pv), -1, err);
       break;
-    case COL_TYPE:
+    case PSPPIRE_VAR_STORE_COL_TYPE:
       {
 	switch ( write_spec->type )
 	  {
@@ -667,7 +667,7 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 	  }
       }
       break;
-    case COL_WIDTH:
+    case PSPPIRE_VAR_STORE_COL_WIDTH:
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new (10);
@@ -677,7 +677,7 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 	return s;
       }
       break;
-    case COL_DECIMALS:
+    case PSPPIRE_VAR_STORE_COL_DECIMALS:
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new (10);
@@ -687,7 +687,7 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 	return s;
       }
       break;
-    case COL_COLUMNS:
+    case PSPPIRE_VAR_STORE_COL_COLUMNS:
       {
 	gchar *s;
 	GString *gstr = g_string_sized_new (10);
@@ -697,16 +697,16 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 	return s;
       }
       break;
-    case COL_LABEL:
+    case PSPPIRE_VAR_STORE_COL_LABEL:
       return pspp_locale_to_utf8 (var_get_label (pv), -1, err);
       break;
 
-    case COL_MISSING:
+    case PSPPIRE_VAR_STORE_COL_MISSING:
       {
 	return missing_values_to_string (pv, err);
       }
       break;
-    case COL_VALUES:
+    case PSPPIRE_VAR_STORE_COL_VALUES:
       {
 	if ( ! var_has_value_labels (pv))
 	  return g_locale_to_utf8 (gettext (none), -1, 0, 0, err);
@@ -735,7 +735,7 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 	  }
       }
       break;
-    case COL_ALIGN:
+    case PSPPIRE_VAR_STORE_COL_ALIGN:
       {
 	const gint align = var_get_alignment (pv);
 
@@ -743,7 +743,7 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 	return g_locale_to_utf8 (gettext (alignments[align]), -1, 0, 0, err);
       }
       break;
-    case COL_MEASURE:
+    case PSPPIRE_VAR_STORE_COL_MEASURE:
       {
 	return measure_to_string (pv, err);
       }
@@ -789,7 +789,7 @@ psppire_var_store_get_row_count (const GSheetModel * model)
 static glong
 psppire_var_store_get_column_count (const GSheetModel * model)
 {
-  return n_COLS ;
+  return PSPPIRE_VAR_STORE_n_COLS ;
 }
 
 

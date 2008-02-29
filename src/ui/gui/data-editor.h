@@ -21,6 +21,7 @@
 #include <glade/glade.h>
 #include <gtk/gtk.h>
 #include "window-manager.h"
+#include "psppire-data-editor.h"
 
 struct data_editor
 {
@@ -72,6 +73,7 @@ struct data_editor
   GtkMenu *data_sheet_variable_popup_menu;
   GtkMenu *data_sheet_cases_popup_menu;
 
+  PsppireDataEditor *data_editor;
 
   gboolean save_as_portable;
 
@@ -87,8 +89,5 @@ struct data_editor * new_data_editor (void);
 void new_data_window (GtkMenuItem *, gpointer);
 
 void data_editor_select_sheet (struct data_editor *de, gint page);
-
-enum {PAGE_DATA_SHEET = 0, PAGE_VAR_SHEET};
-
 
 #endif

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2007  Free Software Foundation
+   Copyright (C) 2006, 2007, 2008  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 #include "window-manager.h"
 #include <gtksheet/gtksheet.h>
 
+#include "psppire-data-editor.h"
+
 #include "helper.h"
 #include "about.h"
 #include <data/procedure.h>
@@ -47,7 +49,6 @@
 #include "examine-dialog.h"
 #include "dict-display.h"
 #include "regression-dialog.h"
-#include "clipboard.h"
 
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
@@ -72,33 +73,14 @@ static void on_edit_cut (GtkMenuItem *, gpointer);
 static void on_edit_paste (GtkAction *a, gpointer data);
 
 
-static void create_data_sheet_variable_popup_menu (struct data_editor *);
-static void create_data_sheet_cases_popup_menu (struct data_editor *);
-
-static void popup_variable_menu (GtkSheet *, gint,
-				 GdkEventButton *, gpointer data);
-
-static void popup_cases_menu (GtkSheet *, gint,
-				 GdkEventButton *, gpointer data);
-
-/* Update the data_ref_entry with the reference of the active cell */
-static gint update_data_ref_entry (const GtkSheet *sheet,
-				   gint row, gint col, gpointer data);
+static GtkWidget * create_data_sheet_variable_popup_menu (struct data_editor *);
+static GtkWidget * create_data_sheet_cases_popup_menu (struct data_editor *);
 
 static void register_data_editor_actions (struct data_editor *de);
-
-static void insert_variable (GtkAction *, gpointer data);
+static void on_insert_variable (GtkAction *, gpointer data);
 static void insert_case (GtkAction *a, gpointer data);
-static void delete_cases (GtkAction *a, gpointer data);
-static void delete_variables (GtkAction *a, gpointer data);
 
 static void toggle_value_labels (GtkToggleAction *a, gpointer data);
-
-/* Switch between the VAR SHEET and the DATA SHEET */
-
-static gboolean click2column (GtkWidget *w, gint col, gpointer data);
-static gboolean click2row (GtkWidget *w, gint row, gpointer data);
-
 
 /* Callback for when the dictionary changes properties*/
 static void on_weight_change (GObject *, gint, gpointer);
@@ -114,20 +96,20 @@ static void status_bar_activate (GtkCheckMenuItem *, gpointer);
 
 static void grid_lines_activate (GtkCheckMenuItem *, gpointer);
 
-static void data_sheet_activate (GtkCheckMenuItem *, gpointer);
+static void data_view_activate (GtkCheckMenuItem *, gpointer);
 
-static void variable_sheet_activate (GtkCheckMenuItem *, gpointer );
+static void variable_view_activate (GtkCheckMenuItem *, gpointer );
 
 static void fonts_activate (GtkMenuItem *, gpointer);
 
 static void file_quit (GtkCheckMenuItem *, gpointer );
 
 static void
-enable_delete_cases (GtkWidget *w, gint var, gpointer data)
+enable_delete_cases (GtkWidget *w, gint case_num, gpointer data)
 {
   struct data_editor *de = data;
 
-  gtk_action_set_visible (de->delete_cases, var != -1);
+  gtk_action_set_visible (de->delete_cases, case_num != -1);
 }
 
 
@@ -240,114 +222,33 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
 #endif
 
+
 static void
-datum_entry_activate (GtkEntry *entry, gpointer data)
-{
-  gint row, column;
-  GtkSheet *data_sheet = GTK_SHEET (data);
-  PsppireDataStore *store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
-
-  const char *text = gtk_entry_get_text (entry);
-
-  gtk_sheet_get_active_cell (data_sheet, &row, &column);
-
-  if ( row == -1 || column == -1)
-    return;
-
-  psppire_data_store_set_string (store, text, row, column);
-}
-
-
-/* Update the Edit->Paste menuitem
-   If PAGE is not -1 , then it should be set to the current page of
-   the data editors notebook widget.
-   If -1, then it'll be queried.
-*/
-static void
-update_paste_menuitem (struct data_editor *de, gint page)
-{
-  GtkWidget * edit_paste = get_widget_assert (de->xml, "edit_paste");
-  GtkWidget *notebook = get_widget_assert (de->xml, "notebook");
-  GtkSheet * data_sheet ;
-  gint row, column;
-
-  if ( page < 0 )
-    page = gtk_notebook_get_current_page (GTK_NOTEBOOK(notebook));
-
-
-  if ( PAGE_VAR_SHEET == page )
-    {
-      /* We don't yet support pasting to the var sheet */
-      gtk_widget_set_sensitive (edit_paste, FALSE);
-      return;
-    }
-
-  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-  gtk_sheet_get_active_cell (data_sheet, &row, &column);
-
-  if ( row < 0 || column < 0 )
-      gtk_widget_set_sensitive (edit_paste, FALSE);
-  else
-      gtk_widget_set_sensitive (edit_paste, TRUE);
-}
-
-/* Update the Edit->Cut and Edit->Copy menuitems
-   If PAGE is not -1 , then it should be set to the current page of
-   the data editors notebook widget.
-   If -1, then it'll be queried.
-*/
-static void
-update_cut_copy_menuitem (struct data_editor *de, gint page)
-{
-  GtkWidget * edit_copy = get_widget_assert (de->xml, "edit_copy");
-  GtkWidget * edit_cut = get_widget_assert (de->xml, "edit_cut");
-  GtkWidget *notebook = get_widget_assert (de->xml, "notebook");
-  GtkSheet * data_sheet ;
-  gint row, column;
-
-  if ( page < 0 )
-    page = gtk_notebook_get_current_page (GTK_NOTEBOOK(notebook));
-
-
-  if ( PAGE_VAR_SHEET == page )
-    {
-      /* We don't yet support copying from the var sheet */
-      gtk_widget_set_sensitive (edit_copy, FALSE);
-      gtk_widget_set_sensitive (edit_cut, FALSE);
-      return;
-    }
-
-  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-  gtk_sheet_get_active_cell (data_sheet, &row, &column);
-
-  if ( row < 0 || column < 0 )
-    {
-      gtk_widget_set_sensitive (edit_copy, FALSE);
-      gtk_widget_set_sensitive (edit_cut, FALSE);
-      return;
-    }
-
-  gtk_widget_set_sensitive (edit_copy, TRUE);
-  gtk_widget_set_sensitive (edit_cut, TRUE);
-}
-
-
-/* Callback for when the datasheet's active cell becomes active/inactive */
-static gboolean
-on_data_sheet_activate_change (GtkSheet *sheet,
-			       gint row, gint column, gpointer data)
+update_paste_menuitems (GtkWidget *w, gboolean x, gpointer data)
 {
   struct data_editor *de = data;
 
-  update_paste_menuitem (de, -1);
-  update_cut_copy_menuitem (de, -1);
+  GtkWidget * edit_paste = get_widget_assert (de->xml, "edit_paste");
 
-  return TRUE;
+  gtk_widget_set_sensitive (edit_paste, x);
 }
 
+static void
+update_cut_copy_menuitems (GtkWidget *w, gboolean x, gpointer data)
+{
+  struct data_editor *de = data;
+
+  GtkWidget * edit_copy = get_widget_assert (de->xml, "edit_copy");
+  GtkWidget * edit_cut = get_widget_assert (de->xml, "edit_cut");
+
+  gtk_widget_set_sensitive (edit_copy, x);
+  gtk_widget_set_sensitive (edit_cut, x);
+}
+
+extern PsppireVarStore *the_var_store;
 extern struct dataset *the_dataset;
+extern PsppireDataStore *the_data_store ;
+
 
 /*
   Create a new data editor.
@@ -357,10 +258,8 @@ new_data_editor (void)
 {
   struct data_editor *de ;
   struct editor_window *e;
-  GtkSheet *var_sheet ;
-  GtkSheet *data_sheet ;
   PsppireVarStore *vs;
-  GtkWidget *datum_entry;
+  GtkWidget *vbox ;
 
   de = g_malloc0 (sizeof (*de));
 
@@ -369,34 +268,28 @@ new_data_editor (void)
   de->xml = XML_NEW ("data-editor.glade");
 
 
+  vbox = get_widget_assert (de->xml, "vbox1");
+
+  de->data_editor = PSPPIRE_DATA_EDITOR (psppire_data_editor_new (the_var_store, the_data_store));
+
+  g_signal_connect (de->data_editor, "data-selection-changed",
+		    G_CALLBACK (update_cut_copy_menuitems), de);
+
+  g_signal_connect (de->data_editor, "data-available-changed",
+		    G_CALLBACK (update_paste_menuitems), de);
+
+
+  gtk_widget_show (GTK_WIDGET (de->data_editor));
+
+  gtk_container_add (GTK_CONTAINER (vbox), GTK_WIDGET (de->data_editor));
+  gtk_box_reorder_child (GTK_BOX (vbox) , GTK_WIDGET (de->data_editor), 2);
   dataset_add_transform_change_callback (the_dataset,
 					 transformation_change_callback,
 					 de);
 
-  var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+  vs = the_var_store;
 
-
-  g_signal_connect (G_OBJECT (data_sheet), "activate",
-		    G_CALLBACK (on_data_sheet_activate_change), de);
-
-  g_signal_connect (G_OBJECT (data_sheet), "deactivate",
-		    G_CALLBACK (on_data_sheet_activate_change), de);
-
-
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
-
-  g_assert(vs); /* Traps a possible bug in win32 build */
-
-  g_signal_connect (G_OBJECT (data_sheet), "activate",
-		    G_CALLBACK (update_data_ref_entry),
-		    de->xml);
-
-  datum_entry = get_widget_assert (de->xml, "datum_entry");
-
-  g_signal_connect (G_OBJECT (datum_entry), "activate",
-		    G_CALLBACK (datum_entry_activate),
-		    data_sheet);
+  g_assert(vs); /* Traps a possible bug in w32 build */
 
   g_signal_connect (vs->dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
@@ -431,7 +324,7 @@ new_data_editor (void)
 			   _("Show/hide value labels"),
 			   "pspp-value-labels");
 
-  g_signal_connect (de->toggle_value_labels, "activate",
+  g_signal_connect (de->toggle_value_labels, "toggled",
 		    G_CALLBACK (toggle_value_labels), de);
 
 
@@ -450,14 +343,16 @@ new_data_editor (void)
 		    _("Delete the cases at the selected position(s)"),
 		    "pspp-clear-cases");
 
-  g_signal_connect (de->delete_cases, "activate",
-		    G_CALLBACK (delete_cases), de);
+  g_signal_connect_swapped (de->delete_cases, "activate",
+		    G_CALLBACK (psppire_data_editor_delete_cases),
+		    de->data_editor);
 
   gtk_action_connect_proxy (de->delete_cases,
 			    get_widget_assert (de->xml, "edit_clear-cases"));
 
   g_signal_connect (get_widget_assert (de->xml, "edit_paste"), "activate",
-		    G_CALLBACK (on_edit_paste), de);
+		    G_CALLBACK (on_edit_paste),
+		    de);
 
   gtk_action_set_visible (de->delete_cases, FALSE);
 
@@ -467,8 +362,9 @@ new_data_editor (void)
 		    _("Delete the variables at the selected position(s)"),
 		    "pspp-clear-variables");
 
-  g_signal_connect (de->delete_variables, "activate",
-		    G_CALLBACK (delete_variables), de);
+  g_signal_connect_swapped (de->delete_variables, "activate",
+			    G_CALLBACK (psppire_data_editor_delete_variables),
+			    de->data_editor);
 
   gtk_action_connect_proxy (de->delete_variables,
 			    get_widget_assert (de->xml, "edit_clear-variables")
@@ -483,7 +379,7 @@ new_data_editor (void)
 		    "pspp-insert-variable");
 
   g_signal_connect (de->insert_variable, "activate",
-		    G_CALLBACK (insert_variable), de);
+		    G_CALLBACK (on_insert_variable), de->data_editor);
 
 
   gtk_action_connect_proxy (de->insert_variable,
@@ -927,36 +823,25 @@ new_data_editor (void)
 		    G_CALLBACK (reference_manual),
 		    e->window);
 
-  g_signal_connect (data_sheet,
-		    "double-click-column",
-		    G_CALLBACK (click2column),
-		    de);
 
-  g_signal_connect (data_sheet,
-		    "select-column",
-		    G_CALLBACK (enable_delete_variables),
-		    de);
-
-  g_signal_connect (data_sheet,
-		    "select-row",
+  g_signal_connect (de->data_editor,
+		    "cases-selected",
 		    G_CALLBACK (enable_delete_cases),
 		    de);
 
 
-  g_signal_connect (var_sheet,
-		    "double-click-row",
-		    GTK_SIGNAL_FUNC (click2row),
-		    de);
-
-  g_signal_connect_after (var_sheet,
-		    "select-row",
+  g_signal_connect (de->data_editor,
+		    "variables-selected",
 		    G_CALLBACK (enable_delete_variables),
 		    de);
 
-  g_signal_connect (get_widget_assert (de->xml, "notebook"),
+
+  g_signal_connect (GTK_NOTEBOOK (de->data_editor),
 		    "switch-page",
 		    G_CALLBACK (on_switch_sheet), de);
 
+  gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
+  gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
   g_signal_connect (get_widget_assert (de->xml, "view_statusbar"),
 		    "activate",
@@ -971,11 +856,11 @@ new_data_editor (void)
 
   g_signal_connect (get_widget_assert (de->xml, "view_data"),
 		    "activate",
-		    G_CALLBACK (data_sheet_activate), de);
+		    G_CALLBACK (data_view_activate), de);
 
   g_signal_connect (get_widget_assert (de->xml, "view_variables"),
 		    "activate",
-		    G_CALLBACK (variable_sheet_activate), de);
+		    G_CALLBACK (variable_view_activate), de);
 
 
 
@@ -1025,69 +910,21 @@ new_data_editor (void)
 		    G_CALLBACK (minimise_all_windows), NULL);
 
 
-  create_data_sheet_variable_popup_menu (de);
-  create_data_sheet_cases_popup_menu (de);
+  de->data_sheet_variable_popup_menu =
+    GTK_MENU (create_data_sheet_variable_popup_menu (de));
 
-  g_signal_connect (G_OBJECT (data_sheet), "button-event-column",
-		    G_CALLBACK (popup_variable_menu), de);
+  de->data_sheet_cases_popup_menu =
+    GTK_MENU (create_data_sheet_cases_popup_menu (de));
 
-  g_signal_connect (G_OBJECT (data_sheet), "button-event-row",
-		    G_CALLBACK (popup_cases_menu), de);
+
+  g_object_set (de->data_editor,
+		"column-menu", de->data_sheet_variable_popup_menu, NULL);
+
+
+  g_object_set (de->data_editor,
+		"row-menu", de->data_sheet_cases_popup_menu, NULL);
 
   return de;
-}
-
-
-/* Callback which occurs when the var sheet's row title
-   button is double clicked */
-static gboolean
-click2row (GtkWidget *w, gint row, gpointer data)
-{
-  struct data_editor *de = data;
-  GtkSheetRange visible_range;
-
-  gint current_row, current_column;
-
-  GtkWidget *data_sheet  = get_widget_assert (de->xml, "data_sheet");
-
-  data_editor_select_sheet (de, PAGE_DATA_SHEET);
-
-  gtk_sheet_get_active_cell (GTK_SHEET (data_sheet),
-			     &current_row, &current_column);
-
-  gtk_sheet_set_active_cell (GTK_SHEET (data_sheet), current_row, row);
-
-  gtk_sheet_get_visible_range (GTK_SHEET (data_sheet), &visible_range);
-
-  if ( row < visible_range.col0 || row > visible_range.coli)
-    {
-      gtk_sheet_moveto (GTK_SHEET (data_sheet),
-			current_row, row, 0, 0);
-    }
-
-  return FALSE;
-}
-
-
-/* Callback which occurs when the data sheet's column title
-   is double clicked */
-static gboolean
-click2column (GtkWidget *w, gint col, gpointer data)
-{
-  struct data_editor *de = data;
-
-  gint current_row, current_column;
-
-  GtkWidget *var_sheet  = get_widget_assert (de->xml, "variable_sheet");
-
-  data_editor_select_sheet (de, PAGE_VAR_SHEET);
-
-  gtk_sheet_get_active_cell (GTK_SHEET (var_sheet),
-			     &current_row, &current_column);
-
-  gtk_sheet_set_active_cell (GTK_SHEET (var_sheet), col, current_column);
-
-  return FALSE;
 }
 
 
@@ -1111,16 +948,16 @@ on_switch_sheet (GtkNotebook *notebook,
 
   switch (page_num)
     {
-    case PAGE_VAR_SHEET:
+    case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
       gtk_widget_hide (view_variables);
       gtk_widget_show (view_data);
       gtk_action_set_sensitive (de->insert_variable, TRUE);
       gtk_action_set_sensitive (de->insert_case, FALSE);
       gtk_action_set_sensitive (de->invoke_goto_dialog, FALSE);
       break;
-    case PAGE_DATA_SHEET:
+    case PSPPIRE_DATA_EDITOR_DATA_VIEW:
       gtk_widget_show (view_variables);
-      gtk_widget_show (view_data);
+      gtk_widget_hide (view_data);
       gtk_action_set_sensitive (de->invoke_goto_dialog, TRUE);
       gtk_action_set_sensitive (de->insert_case, TRUE);
       break;
@@ -1129,20 +966,10 @@ on_switch_sheet (GtkNotebook *notebook,
       break;
     }
 
+#if 0
   update_paste_menuitem (de, page_num);
-  update_cut_copy_menuitem (de, page_num);
+#endif
 }
-
-
-void
-data_editor_select_sheet (struct data_editor *de, gint page)
-{
-  gtk_notebook_set_current_page
-   (
-    GTK_NOTEBOOK (get_widget_assert (de->xml,"notebook")), page
-    );
-}
-
 
 
 static void
@@ -1162,33 +989,28 @@ static void
 grid_lines_activate (GtkCheckMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
-  const bool grid_visible = gtk_check_menu_item_get_active (menuitem);
+  const gboolean grid_visible = gtk_check_menu_item_get_active (menuitem);
 
-  gtk_sheet_show_grid (GTK_SHEET (get_widget_assert (de->xml,
-						     "variable_sheet")),
-		       grid_visible);
-
-  gtk_sheet_show_grid (GTK_SHEET (get_widget_assert (de->xml, "data_sheet")),
-		       grid_visible);
+  psppire_data_editor_show_grid (de->data_editor, grid_visible);
 }
 
 
 
 static void
-data_sheet_activate (GtkCheckMenuItem *menuitem, gpointer data)
+data_view_activate (GtkCheckMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
 
-  data_editor_select_sheet (de, PAGE_DATA_SHEET);
+  gtk_notebook_set_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 }
 
 
 static void
-variable_sheet_activate (GtkCheckMenuItem *menuitem, gpointer data)
+variable_view_activate (GtkCheckMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
 
-  data_editor_select_sheet (de, PAGE_VAR_SHEET);
+  gtk_notebook_set_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
 }
 
 
@@ -1204,23 +1026,13 @@ fonts_activate (GtkMenuItem *menuitem, gpointer data)
 							       "data_editor")));
   if ( GTK_RESPONSE_OK == gtk_dialog_run (GTK_DIALOG (dialog)) )
     {
-      GtkSheet *data_sheet =
-	GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-      GtkSheet *var_sheet =
-	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-      PsppireDataStore *ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
-      PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
-
       const gchar *font = gtk_font_selection_dialog_get_font_name
 	(GTK_FONT_SELECTION_DIALOG (dialog));
 
       PangoFontDescription* font_desc =
 	pango_font_description_from_string (font);
 
-      psppire_var_store_set_font (vs, font_desc);
-      psppire_data_store_set_font (ds, font_desc);
+      psppire_data_editor_set_font (de->data_editor, font_desc);
     }
 
   gtk_widget_hide (dialog);
@@ -1234,16 +1046,10 @@ toggle_value_labels (GtkToggleAction *ta, gpointer data)
 {
   struct data_editor *de = data;
 
-  GtkSheet *data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
-
-
-  psppire_data_store_show_labels (ds,
-				  gtk_toggle_action_get_active (ta));
+  g_object_set (de->data_editor, "value-labels", gtk_toggle_action_get_active (ta), NULL);
 }
 
-extern PsppireDataStore *the_data_store ;
+
 
 static void
 file_quit (GtkCheckMenuItem *menuitem, gpointer data)
@@ -1255,143 +1061,22 @@ file_quit (GtkCheckMenuItem *menuitem, gpointer data)
   gtk_main_quit ();
 }
 
-static void
-delete_cases (GtkAction *action, gpointer data)
-{
-  struct data_editor *de = data;
-  GtkSheet *data_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-  GtkSheetRange range;
-
-  PsppireDataStore *data_store = PSPPIRE_DATA_STORE
-    (gtk_sheet_get_model (data_sheet) );
-
-
-  /* This shouldn't be able to happen, because the action
-     should be disabled */
-  g_return_if_fail (gtk_sheet_get_state (data_sheet)
-		    ==  GTK_SHEET_ROW_SELECTED );
-
-  gtk_sheet_get_selected_range (data_sheet, &range);
-
-  gtk_sheet_unselect_range (data_sheet);
-
-  psppire_data_store_delete_cases (data_store, range.row0,
-				   1 + range.rowi - range.row0);
-
-}
-
-static void
-delete_variables (GtkAction *a, gpointer data)
-{
-  struct data_editor *de = data;
-  GtkSheetRange range;
-
-  GtkNotebook *notebook = GTK_NOTEBOOK (get_widget_assert (de->xml,
-							   "notebook"));
-
-  const gint page = gtk_notebook_get_current_page (notebook);
-
-  GtkSheet *sheet = GTK_SHEET (get_widget_assert (de->xml,
-						  (page == PAGE_VAR_SHEET) ?
-						  "variable_sheet" :
-						  "data_sheet"));
-
-
-  gtk_sheet_get_selected_range (sheet, &range);
-
-  switch ( page )
-    {
-    case PAGE_VAR_SHEET:
-      {
-	PsppireVarStore *vs =
-	  PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
-
-	psppire_dict_delete_variables (vs->dict,
-				       range.row0,
-				       1 +
-				       range.rowi -
-				       range.row0 );
-      }
-      break;
-    case PAGE_DATA_SHEET:
-      {
-	PsppireDataStore *ds =
-	  PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
-
-	psppire_dict_delete_variables (ds->dict,
-				       range.col0,
-				       1 +
-				       range.coli -
-				       range.col0 );
-      }
-      break;
-    };
-
-  gtk_sheet_unselect_range (sheet);
-}
 
 static void
 insert_case (GtkAction *action, gpointer data)
 {
-  gint current_row ;
   struct data_editor *de = data;
 
-  GtkSheet *data_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE
-    (gtk_sheet_get_model (data_sheet) );
-
-
-  gtk_sheet_get_active_cell (data_sheet, &current_row, NULL);
-
-  if (current_row < 0) current_row = 0;
-
-  psppire_data_store_insert_new_case (ds, current_row);
+  psppire_data_editor_insert_case (de->data_editor);
 }
 
-/* Insert a new variable before the current row in the variable sheet,
-   or before the current column in the data sheet, whichever is selected */
 static void
-insert_variable (GtkAction *action, gpointer data)
+on_insert_variable (GtkAction *action, gpointer data)
 {
-  struct data_editor *de = data;
-  gint posn = -1;
-
-  GtkWidget *notebook = get_widget_assert (de->xml, "notebook");
-
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE
-    (gtk_sheet_get_model (var_sheet) );
-
-  switch ( gtk_notebook_get_current_page ( GTK_NOTEBOOK (notebook)) )
-    {
-    case PAGE_VAR_SHEET:
-      posn = var_sheet->active_cell.row;
-      break;
-    case PAGE_DATA_SHEET:
-      {
-	GtkSheet *data_sheet =
-	  GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-	if ( data_sheet->state == GTK_SHEET_COLUMN_SELECTED )
-	  posn = data_sheet->range.col0;
-	else
-	  posn = data_sheet->active_cell.col;
-      }
-      break;
-    default:
-      g_assert_not_reached ();
-    }
-
-  if ( posn == -1 ) posn = 0;
-
-  psppire_dict_insert_variable (vs->dict, posn, NULL);
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+  psppire_data_editor_insert_variable (de);
 }
+
 
 /* Callback for when the dictionary changes its split variables */
 static void
@@ -1444,16 +1129,15 @@ on_filter_change (GObject *o, gint filter_index, gpointer data)
     }
   else
     {
-      GtkSheet *var_sheet =
-	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+      PsppireVarStore *vs = NULL;
+      struct variable *var ;
+      gchar *text ;
 
-      PsppireVarStore *vs = PSPPIRE_VAR_STORE
-	(gtk_sheet_get_model (var_sheet) );
+      g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-      struct variable *var = psppire_dict_get_variable (vs->dict,
-							filter_index);
+      var = psppire_dict_get_variable (vs->dict, filter_index);
 
-      gchar *text = g_strdup_printf (_("Filter by %s"), var_get_name (var));
+      text = g_strdup_printf (_("Filter by %s"), var_get_name (var));
 
       gtk_label_set_text (GTK_LABEL (filter_status_area), text);
 
@@ -1475,16 +1159,15 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
     }
   else
     {
-      GtkSheet *var_sheet =
-	GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+      struct variable *var ;
+      PsppireVarStore *vs = NULL;
+      gchar *text;
 
-      PsppireVarStore *vs = PSPPIRE_VAR_STORE
-	(gtk_sheet_get_model (var_sheet) );
+      g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-      struct variable *var = psppire_dict_get_variable (vs->dict,
-							weight_index);
+      var = psppire_dict_get_variable (vs->dict, weight_index);
 
-      gchar *text = g_strdup_printf (_("Weight by %s"), var_get_name (var));
+      text = g_strdup_printf (_("Weight by %s"), var_get_name (var));
 
       gtk_label_set_text (GTK_LABEL (weight_status_area), text);
 
@@ -1793,132 +1476,9 @@ open_data_dialog (GtkAction *action, struct data_editor *de)
 }
 
 
-
-/* Update the data_ref_entry with the reference of the active cell */
-static gint
-update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
-{
-  GtkEntry *datum_entry;
-  GladeXML *data_editor_xml = data;
-
-  PsppireDataStore *data_store =
-    PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
-
-  g_return_val_if_fail (data_editor_xml, FALSE);
-
-
-  datum_entry =
-    GTK_ENTRY (get_widget_assert (data_editor_xml,
-				  "datum_entry"));
-
-  if (data_store)
-    {
-      const struct variable *var =
-	psppire_dict_get_variable (data_store->dict, col);
-
-      /* The entry where the reference to the current cell is displayed */
-      GtkEntry *cell_ref_entry =
-	GTK_ENTRY (get_widget_assert (data_editor_xml,
-				      "cell_ref_entry"));
-      if ( var )
-	{
-	  gchar *text = g_strdup_printf ("%d: %s", row + FIRST_CASE_NUMBER,
-					 var_get_name (var));
-
-	  gchar *s = pspp_locale_to_utf8 (text, -1, 0);
-
-	  g_free (text);
-
-	  gtk_entry_set_text (cell_ref_entry, s);
-
-	  g_free (s);
-	}
-      else
-	goto blank_entry;
-
-      if ( var )
-	{
-	  gchar *text =
-	    psppire_data_store_get_string (data_store, row,
-					   var_get_dict_index(var));
-
-	  if ( ! text )
-	    goto blank_entry;
-
-	  g_strchug (text);
-
-	  gtk_entry_set_text (datum_entry, text);
-
-	  free (text);
-	}
-      else
-	goto blank_entry;
-
-    }
-
-  return FALSE;
-
- blank_entry:
-  gtk_entry_set_text (datum_entry, "");
-
-  return FALSE;
-}
-
-
-
-
-
-static void
-do_sort (PsppireDataStore *ds, int var, gboolean descend)
-{
-  GString *string = g_string_new ("SORT CASES BY ");
-
-  const struct variable *v =
-    psppire_dict_get_variable (ds->dict, var);
-
-  g_string_append_printf (string, "%s", var_get_name (v));
-
-  if ( descend )
-    g_string_append (string, " (D)");
-
-  g_string_append (string, ".");
-
-  execute_syntax (create_syntax_string_source (string->str));
-
-  g_string_free (string, TRUE);
-}
-
-
-static void
-sort_up (GtkMenuItem *item, gpointer data)
-{
-  GtkSheet *sheet  = data;
-  GtkSheetRange range;
-  gtk_sheet_get_selected_range (sheet, &range);
-
-  do_sort (PSPPIRE_DATA_STORE (gtk_sheet_get_model(sheet)),
-	   range.col0, FALSE);
-
-}
-
-static void
-sort_down (GtkMenuItem *item, gpointer data)
-{
-  GtkSheet *sheet  = data;
-  GtkSheetRange range;
-  gtk_sheet_get_selected_range (sheet, &range);
-
-  do_sort (PSPPIRE_DATA_STORE (gtk_sheet_get_model(sheet)),
-	   range.col0, TRUE);
-}
-
-
-
-
-static void
+static GtkWidget *
 create_data_sheet_variable_popup_menu (struct data_editor *de)
 {
-  GtkSheet *sheet  = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
   GtkWidget *menu = gtk_menu_new ();
 
   GtkWidget *sort_ascending =
@@ -1927,13 +1487,11 @@ create_data_sheet_variable_popup_menu (struct data_editor *de)
   GtkWidget *sort_descending =
     gtk_menu_item_new_with_label (_("Sort Descending"));
 
-
   GtkWidget *insert_variable =
     gtk_menu_item_new_with_label (_("Insert Variable"));
 
   GtkWidget *clear_variable =
     gtk_menu_item_new_with_label (_("Clear"));
-
 
   gtk_action_connect_proxy (de->insert_variable,
 			    insert_variable );
@@ -1957,26 +1515,26 @@ create_data_sheet_variable_popup_menu (struct data_editor *de)
 			 gtk_separator_menu_item_new ());
 
 
-  g_signal_connect (G_OBJECT (sort_ascending), "activate",
-		    G_CALLBACK (sort_up), sheet);
-
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_ascending);
 
 
-  g_signal_connect (G_OBJECT (sort_descending), "activate",
-		    G_CALLBACK (sort_down), sheet);
+  g_signal_connect_swapped (G_OBJECT (sort_ascending), "activate",
+			    G_CALLBACK (psppire_data_editor_sort_ascending),
+			    de->data_editor);
 
+  g_signal_connect_swapped (G_OBJECT (sort_descending), "activate",
+			    G_CALLBACK (psppire_data_editor_sort_descending),
+			    de->data_editor);
 
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_descending);
 
   gtk_widget_show_all (menu);
 
-
-  de->data_sheet_variable_popup_menu = GTK_MENU(menu);
+  return menu;
 }
 
 
-static void
+static GtkWidget *
 create_data_sheet_cases_popup_menu (struct data_editor *de)
 {
   GtkWidget *menu = gtk_menu_new ();
@@ -2008,77 +1566,26 @@ create_data_sheet_cases_popup_menu (struct data_editor *de)
 
   gtk_widget_show_all (menu);
 
-
-  de->data_sheet_cases_popup_menu = GTK_MENU (menu);
+  return menu;
 }
 
 
-static void
-popup_variable_menu (GtkSheet *sheet, gint column,
-		     GdkEventButton *event, gpointer data)
-{
-  struct data_editor *de = data;
-
-  PsppireDataStore *data_store =
-    PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
-
-  const struct variable *v =
-    psppire_dict_get_variable (data_store->dict, column);
-
-  if ( v && event->button == 3)
-    {
-
-      gtk_sheet_select_column (sheet, column);
-
-      gtk_menu_popup (GTK_MENU (de->data_sheet_variable_popup_menu),
-		      NULL, NULL, NULL, NULL,
-		      event->button, event->time);
-    }
-}
-
-
-static void
-popup_cases_menu (GtkSheet *sheet, gint row,
-		  GdkEventButton *event, gpointer data)
-{
-  struct data_editor *de = data;
-
-  PsppireDataStore *data_store =
-    PSPPIRE_DATA_STORE (gtk_sheet_get_model (sheet));
-
-  if ( row <= psppire_data_store_get_case_count (data_store) &&
-       event->button == 3)
-    {
-      gtk_sheet_select_row (sheet, row);
-
-      gtk_menu_popup (GTK_MENU (de->data_sheet_cases_popup_menu),
-		      NULL, NULL, NULL, NULL,
-		      event->button, event->time);
-    }
-}
-
+
 
 static void
 on_edit_paste (GtkAction *a, gpointer data)
 {
-  GtkClipboard *clipboard = gtk_clipboard_get (GDK_SELECTION_CLIPBOARD);
+  struct data_editor *de = data;
 
-  gtk_clipboard_request_contents (clipboard,
-				  gdk_atom_intern ("UTF8_STRING", TRUE),
-				  data_sheet_contents_received_callback,
-				  data);
+  psppire_data_editor_clip_paste (de->data_editor);
 }
-
 
 static void
 on_edit_copy (GtkMenuItem *m, gpointer data)
 {
   struct data_editor *de = data;
 
-  GtkSheet *data_sheet = GTK_SHEET (get_widget_assert (de->xml,
-						       "data_sheet"));
-
-  data_sheet_set_clip (data_sheet);
+  psppire_data_editor_clip_copy (de->data_editor);
 }
 
 
@@ -2087,68 +1594,6 @@ static void
 on_edit_cut (GtkMenuItem *m, gpointer data)
 {
   struct data_editor *de = data;
-  gint max_rows, max_columns;
-  gint r;
-  GtkSheetRange range;
-  PsppireDataStore *ds;
-  GtkSheet *data_sheet = GTK_SHEET (get_widget_assert (de->xml,
-						       "data_sheet"));
 
-  data_sheet_set_clip (data_sheet);
-
-
-  /* Now blank all the cells */
-  gtk_sheet_get_selected_range (data_sheet, &range);
-
-  ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
-
-
-   /* If nothing selected, then use active cell */
-  if ( range.row0 < 0 || range.col0 < 0 )
-    {
-      gint row, col;
-      gtk_sheet_get_active_cell (data_sheet, &row, &col);
-
-      range.row0 = range.rowi = row;
-      range.col0 = range.coli = col;
-    }
-
-  /* The sheet range can include cells that do not include data.
-     Exclude them from the range. */
-  max_rows = psppire_data_store_get_case_count (ds);
-  if (range.rowi >= max_rows)
-    {
-      if (max_rows == 0)
-        return;
-      range.rowi = max_rows - 1;
-    }
-
-  max_columns = dict_get_var_cnt (ds->dict->dict);
-  if (range.coli >= max_columns)
-    {
-      if (max_columns == 0)
-        return;
-      range.coli = max_columns - 1;
-    }
-
-  g_return_if_fail (range.rowi >= range.row0);
-  g_return_if_fail (range.row0 >= 0);
-  g_return_if_fail (range.coli >= range.col0);
-  g_return_if_fail (range.col0 >= 0);
-
-
-  for (r = range.row0; r <= range.rowi ; ++r )
-    {
-      gint c;
-
-      for (c = range.col0 ; c <= range.coli; ++c)
-	{
-	  psppire_data_store_set_string (ds, "", r, c);
-	}
-    }
-
-  /* and remove the selection */
-  gtk_sheet_unselect_range (data_sheet);
+  psppire_data_editor_clip_cut (de->data_editor);
 }
-
-

@@ -27,17 +27,14 @@
 static void
 refresh (const struct data_editor *de, GladeXML *xml)
 {
-  GtkSheet *data_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
+  PsppireDataStore *ds = NULL;
+  casenumber case_count ;
 
-  PsppireDataStore *ds =
-    PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
+  GtkWidget *case_num_entry = get_widget_assert (xml, "goto-case-case-num-entry");
 
-  GtkWidget *case_num_entry =
-    get_widget_assert (xml, "goto-case-case-num-entry");
+  g_object_get (de->data_editor, "data-store", &ds, NULL);
 
-  casenumber case_count =
-    psppire_data_store_get_case_count (ds);
+  case_count =  psppire_data_store_get_case_count (ds);
 
   gtk_spin_button_set_range (GTK_SPIN_BUTTON (case_num_entry),
 			     1, case_count);
@@ -61,24 +58,13 @@ goto_case_dialog (GObject *o, gpointer data)
 
   if ( response == PSPPIRE_RESPONSE_GOTO )
     {
-      gint row, column;
-      GtkSheet *data_sheet =
-	GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-
+      glong case_num;
       GtkWidget *case_num_entry =
 	get_widget_assert (xml, "goto-case-case-num-entry");
 
-      gtk_sheet_get_active_cell (data_sheet, &row, &column);
-
-      row =
-	gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (case_num_entry))
+      case_num = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (case_num_entry))
 	- FIRST_CASE_NUMBER ;
 
-      gtk_sheet_moveto (data_sheet,
-			row, column,
-			0.5, 0.5);
-
-      gtk_sheet_set_active_cell (data_sheet, row, column);
+      g_object_set (de->data_editor, "current-case", case_num, NULL);
     }
 }

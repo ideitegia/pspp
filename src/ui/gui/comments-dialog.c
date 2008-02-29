@@ -106,10 +106,9 @@ comments_dialog (GObject *o, gpointer data)
   GtkWidget *label = get_widget_assert (xml, "column-number-label");
   GtkTextBuffer *buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  PsppireVarStore *vs = NULL;
 
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
 

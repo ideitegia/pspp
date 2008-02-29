@@ -397,12 +397,9 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   gint response;
   struct data_editor *de = data;
 
-  PsppireVarStore *vs;
+  PsppireVarStore *vs = NULL;
 
   GladeXML *xml = XML_NEW ("t-test.glade");
-
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "indep-samples-t-test-treeview1");
@@ -419,7 +416,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   GtkWidget *options_button =
     get_widget_assert (xml, "indep-samples-t-test-options-button");
 
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   tt_d.dialog = get_widget_assert (xml, "t-test-independent-samples-dialog");
   tt_d.xml = xml;

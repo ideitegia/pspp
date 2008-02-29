@@ -19,8 +19,15 @@
 #define VAR_DISPLAY 1
 
 #include <glib.h>
+#include <data/variable.h>
 
 struct variable;
+
+#define n_ALIGNMENTS 3
+
+extern const gchar *const alignments[n_ALIGNMENTS + 1];
+
+extern const gchar *const measures[n_MEASURES + 1];
 
 
 gchar * name_to_string (const struct variable *var, GError **err);

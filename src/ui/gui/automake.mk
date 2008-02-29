@@ -10,7 +10,7 @@ src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall \
 
 src_ui_gui_psppire_LDFLAGS = \
 	$(PG_LDFLAGS) \
-	-export-dynamic 
+	-export-dynamic
 
 
 if RELOCATABLE_VIA_LD
@@ -84,8 +84,6 @@ dist_src_ui_gui_psppire_DATA = \
 src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/about.c \
 	src/ui/gui/about.h \
-	src/ui/gui/clipboard.c \
-	src/ui/gui/clipboard.h \
 	src/ui/gui/checkbox-treeview.c \
 	src/ui/gui/checkbox-treeview.h \
 	src/ui/gui/compute-dialog.c \
@@ -100,8 +98,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/frequencies-dialog.h \
 	src/ui/gui/goto-case-dialog.c \
 	src/ui/gui/goto-case-dialog.h \
-	src/ui/gui/data-sheet.c \
-	src/ui/gui/data-sheet.h \
 	src/ui/gui/data-editor.c \
 	src/ui/gui/data-editor.h \
 	src/ui/gui/descriptives-dialog.c \
@@ -137,6 +133,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-vbuttonbox.h \
 	src/ui/gui/psppire-case-file.c \
 	src/ui/gui/psppire-case-file.h \
+	src/ui/gui/psppire-data-editor.c \
+	src/ui/gui/psppire-data-editor.h \
 	src/ui/gui/psppire-data-store.c \
 	src/ui/gui/psppire-data-store.h \
 	src/ui/gui/psppire-dialog.c \
@@ -149,6 +147,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-selector.h \
 	src/ui/gui/psppire-var-ptr.c \
 	src/ui/gui/psppire-var-ptr.h \
+	src/ui/gui/psppire-var-sheet.c \
+	src/ui/gui/psppire-var-sheet.h \
 	src/ui/gui/psppire-var-store.c \
 	src/ui/gui/psppire-var-store.h \
 	src/ui/gui/rank-dialog.c \
@@ -181,8 +181,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \
 	src/ui/gui/var-display.h \
-	src/ui/gui/var-sheet.c \
-	src/ui/gui/var-sheet.h \
 	src/ui/gui/var-type-dialog.c \
 	src/ui/gui/var-type-dialog.h \
 	src/ui/gui/variable-info-dialog.c \

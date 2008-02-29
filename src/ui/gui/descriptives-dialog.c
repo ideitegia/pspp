@@ -218,10 +218,9 @@ descriptives_dialog (GObject *o, gpointer data)
 
   GtkWidget *stats_treeview = get_widget_assert    (xml, "statistics");
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  PsppireVarStore *vs = NULL;
 
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
 

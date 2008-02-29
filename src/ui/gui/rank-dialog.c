@@ -235,11 +235,9 @@ rank_dialog (GObject *o, gpointer data)
   GtkWidget *types_button = get_widget_assert (xml, "button1");
   GtkWidget *ties_button = get_widget_assert (xml, "button2");
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  PsppireVarStore *vs = NULL;
 
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
-
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   rd.dict = vs->dict;
   rd.rank_vars =   get_widget_assert (xml, "variables-treeview");

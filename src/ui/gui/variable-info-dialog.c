@@ -173,11 +173,9 @@ variable_info_dialog (GObject *o, gpointer data)
   GtkWidget *treeview = get_widget_assert (xml, "treeview2");
   GtkWidget *textview = get_widget_assert (xml, "textview1");
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
+  PsppireVarStore *vs = NULL;
 
-
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
 
@@ -202,36 +200,15 @@ variable_info_dialog (GObject *o, gpointer data)
     {
     case PSPPIRE_RESPONSE_GOTO:
       {
-	gint row, col;
-	GtkNotebook *notebook = GTK_NOTEBOOK
-	  (get_widget_assert (de->xml,"notebook"));
-
 	const struct variable *var =
 	  get_selected_variable (GTK_TREE_VIEW (treeview));
 
 	if ( NULL == var)
 	  goto done;
 
-
-	if (PAGE_VAR_SHEET == gtk_notebook_get_current_page (notebook))
-	  {
-	    GtkSheet *var_sheet =
-	      GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-	    gtk_sheet_get_active_cell (var_sheet, &row, &col);
-	    row = var_get_dict_index (var);
-	    gtk_sheet_set_active_cell (var_sheet, row, col);
-	  }
-	else
-	  {
-	    GtkSheet *data_sheet =
-	      GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-	    gtk_sheet_get_active_cell (data_sheet, &row, &col);
-	    col = var_get_dict_index (var);
-	    gtk_sheet_set_active_cell (data_sheet, row, col);
-	  }
+	g_object_set (de->data_editor, "current-variable",  var_get_dict_index (var), NULL);
       }
+
       break;
     case PSPPIRE_RESPONSE_PASTE:
       {

@@ -391,8 +391,7 @@ crosstabs_dialog (GObject *o, gpointer data)
   struct crosstabs_dialog cd;
 
   GladeXML *xml = XML_NEW ("crosstabs.glade");
-  GtkSheet *var_sheet;
-  PsppireVarStore *vs;
+  PsppireVarStore *vs = NULL;
 
   GtkWidget *dialog = get_widget_assert   (xml, "crosstabs-dialog");
   GtkWidget *source = get_widget_assert   (xml, "dict-treeview");
@@ -408,9 +407,7 @@ crosstabs_dialog (GObject *o, gpointer data)
   cd.stat_view = get_widget_assert (xml, "stats-view");
   cd.cell_view = get_widget_assert (xml, "cell-view");
 
-  var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   put_checkbox_items_in_treeview (GTK_TREE_VIEW(cd.stat_view),
 				  B_CS_STATS_DEFAULT,

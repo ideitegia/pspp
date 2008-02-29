@@ -374,7 +374,7 @@ enum {
   COL_OLD,
   COL_NEW_NAME,
   COL_NEW_LABEL,
-  n_COLS
+  n_COL_VARS
 };
 
 enum {
@@ -853,11 +853,10 @@ recode_dialog (struct data_editor *de, gboolean diff)
 
   GtkWidget *output_variable_box = get_widget_assert (xml,"frame4");
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
+  PsppireVarStore *vs = NULL;
 
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   rd.change_button = get_widget_assert (xml, "change-button");
 
@@ -903,7 +902,7 @@ recode_dialog (struct data_editor *de, gboolean diff)
       GtkTreeViewColumn *col;
       GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
 
-      rd.var_map = gtk_list_store_new (n_COLS, G_TYPE_INT,
+      rd.var_map = gtk_list_store_new (n_COL_VARS, G_TYPE_INT,
 						    G_TYPE_STRING,
 						    G_TYPE_STRING);
 

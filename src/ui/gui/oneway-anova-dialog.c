@@ -129,14 +129,11 @@ oneway_anova_dialog (GObject *o, gpointer data)
   gint response;
   struct data_editor *de = data;
 
-  PsppireVarStore *vs;
+  PsppireVarStore *vs = NULL;
 
   GladeXML *xml = XML_NEW ("oneway.glade");
 
   struct oneway_anova_dialog ow;
-
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "oneway-anova-treeview1");
@@ -165,7 +162,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
   ow.homogeneity =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "checkbutton2"));
 
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   ow.dict = vs->dict;
 

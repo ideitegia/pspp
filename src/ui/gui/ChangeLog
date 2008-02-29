@@ -1,3 +1,28 @@
+2008-02-29  John Darrington <john@darrington.wattle.id.au>
+
+	* psppire-data-editor.c psppire-data-editor.h: New files.  Contains functionality
+	previously scattered thoughout data-editor.c and elsewhere.
+
+	* data-editor.c data-editor.h: Abstracted the variable sheet, the data sheet and
+	their containing GtkNotebook into a new Object.
+
+	* data-sheet.c data-sheet.h: Deleted.
+
+	* var-sheet.c var-sheet.h: Deleted.  Moved to psppire-var-sheet.[ch]
+
+	* psppire-var-sheet.c psppire-var-sheet.h: New files.
+	
+	* clipboard.c clipboard.h: Deleted.  Moved to psppire-data-editor.c
+
+	* psppire-var-store.c psppire-var-store.h: Updated symbols to avoid name clashes.
+	
+	* comments-dialog.c compute-dialog.c crosstabs-dialog.c descriptives-dialog.c
+	examine-dialog.c find-dialog.c frequencies-dialog.c goto-case-dialog.c
+	oneway-anova-dialog.c rank-dialog.c recode-dialog.c select-cases-dialog.c
+	sort-cases-dialog.c split-file-dialog.c t-test-independent-samples-dialog.c
+	transpose-dialog.c variable-info-dialog.c weight-cases-dialog.c t-test-one-sample.c
+	t-test-paired-samples.c: Updated dialogs to match above changes.
+
 2008-02-27  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression-dialog.c: New file.

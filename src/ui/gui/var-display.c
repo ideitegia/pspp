@@ -4,7 +4,6 @@
 #include <data/variable.h>
 #include <stdlib.h>
 
-#include "var-sheet.h"
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid

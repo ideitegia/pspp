@@ -127,12 +127,9 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
   gint response;
   struct data_editor *de = data;
 
-  PsppireVarStore *vs;
+  PsppireVarStore *vs = NULL;
 
   GladeXML *xml = XML_NEW ("t-test.glade");
-
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "one-sample-t-test-treeview2");
@@ -144,7 +141,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
 
   GtkWidget *dialog = get_widget_assert (xml, "t-test-one-sample-dialog");
 
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   tt_d.dict = vs->dict;
   tt_d.vars_treeview = get_widget_assert (xml, "one-sample-t-test-treeview1");

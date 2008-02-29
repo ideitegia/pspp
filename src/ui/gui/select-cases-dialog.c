@@ -253,12 +253,7 @@ select_cases_dialog (GObject *o, gpointer data)
 
   scd.xml = XML_NEW ("psppire.glade");
 
-  {
-    GtkSheet *data_sheet =
-      GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-    scd.data_store = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
-  }
+  g_object_get (de->data_editor, "data-store", &scd.data_store, NULL);
 
   button_range = get_widget_assert (scd.xml, "button-range");
   button_sample = get_widget_assert (scd.xml, "button-sample");

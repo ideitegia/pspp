@@ -85,10 +85,7 @@ transpose_dialog (GObject *o, gpointer data)
 
   GladeXML *xml = XML_NEW ("psppire.glade");
 
-  GtkSheet *var_sheet =
-    GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
+  PsppireVarStore *vs = NULL;
 
   GtkWidget *dialog = get_widget_assert (xml, "transpose-dialog");
   GtkWidget *source = get_widget_assert (xml, "source-treeview");
@@ -96,6 +93,8 @@ transpose_dialog (GObject *o, gpointer data)
   GtkWidget *selector1 = get_widget_assert (xml, "psppire-selector2");
   GtkWidget *selector2 = get_widget_assert (xml, "psppire-selector3");
   GtkWidget *new_name_entry = get_widget_assert (xml, "new-name-entry");
+
+  g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,

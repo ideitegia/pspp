@@ -54,7 +54,6 @@ struct find_dialog
 {
   GladeXML *xml;
   PsppireDict *dict;
-  GtkSheet *data_sheet;
   struct datasheet *data;
   struct data_editor *de;
   GtkWidget *variable_entry;
@@ -104,22 +103,27 @@ do_find (GObject *obj, const struct find_dialog *fd)
 {
   casenumber x = -1;
   gint column = -1;
-  gint row;
-  gtk_sheet_get_active_cell (fd->data_sheet, &row, NULL);
+  glong row;
+
+  g_object_get (fd->de->data_editor, "current-case", &row, NULL);
 
   if ( row < 0 )
     row = 0;
 
   find_value (fd, row, &x, &column);
 
+
   if ( x != -1)
     {
-      data_editor_select_sheet (fd->de, PAGE_DATA_SHEET);
+      gtk_notebook_set_page (GTK_NOTEBOOK (fd->de->data_editor),
+			     PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
-      gtk_sheet_moveto (fd->data_sheet, x, column, 0.5, 0.5);
-
-      gtk_sheet_set_active_cell (fd->data_sheet, x, column);
+      g_object_set (fd->de->data_editor,
+		    "current-case", x,
+		    "current-variable", column,
+		    NULL);
     }
+
 }
 
 /* Callback on the selector.
@@ -191,11 +195,9 @@ find_dialog (GObject *o, gpointer data)
   GtkWidget *selector;
   GtkWidget *find_button;
 
-  GtkSheet *var_sheet;
-  GtkSheet *data_sheet ;
   GtkWidget *buttonbox;
 
-  PsppireVarStore *vs  ;
+  PsppireVarStore *vs ;
   PsppireDataStore *ds ;
 
   fd.xml = XML_NEW ("psppire.glade");
@@ -213,15 +215,13 @@ find_dialog (GObject *o, gpointer data)
   source = get_widget_assert (fd.xml, "find-variable-treeview");
   selector = get_widget_assert (fd.xml, "find-selector");
 
-  var_sheet = GTK_SHEET (get_widget_assert (de->xml, "variable_sheet"));
-  data_sheet = GTK_SHEET (get_widget_assert (de->xml, "data_sheet"));
-
-  vs = PSPPIRE_VAR_STORE (gtk_sheet_get_model (var_sheet));
-  ds = PSPPIRE_DATA_STORE (gtk_sheet_get_model (data_sheet));
+  g_object_get (de->data_editor,
+		"var-store", &vs,
+		"data-store", &ds,
+		NULL);
 
   fd.dict = vs->dict;
   fd.data = ds->case_file->datasheet;
-  fd.data_sheet = data_sheet;
 
   fd.variable_entry        = get_widget_assert (fd.xml, "find-variable-entry");
   fd.value_entry           = get_widget_assert (fd.xml, "find-value-entry");

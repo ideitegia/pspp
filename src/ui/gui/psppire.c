@@ -46,8 +46,6 @@
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
 #include "helper.h"
-#include "data-sheet.h"
-#include "var-sheet.h"
 #include "message-dialog.h"
 
 #include "output-viewer.h"
