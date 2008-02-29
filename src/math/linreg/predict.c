@@ -20,6 +20,26 @@
 #include <gl/xalloc.h>
 
 /*
+  Is the coefficient COEF contained in the list of coefficients
+  COEF_LIST?
+ */
+static int
+has_coefficient (const struct pspp_coeff **coef_list, const struct pspp_coeff *coef,
+		 size_t n)
+{
+  size_t i = 0;
+
+  while (i < n)
+    {
+      if (coef_list[i] == coef)
+	{
+	  return 1;
+	}
+      i++;
+    }
+  return 0;
+}
+/*
   Predict the value of the dependent variable with the
   new set of predictors. PREDICTORS must point to a list
   of variables, each of whose values are stored in VALS,
@@ -30,9 +50,9 @@ pspp_linreg_predict (const struct variable **predictors,
 		     const union value **vals, const void *c_, int n_vals)
 {
   const pspp_linreg_cache *c = c_;
-  int i;
   int j;
-  const struct pspp_coeff **found;
+  size_t next_coef = 1;
+  const struct pspp_coeff **coef_list;
   const struct pspp_coeff *coe;
   double result;
   double tmp;
@@ -46,8 +66,8 @@ pspp_linreg_predict (const struct variable **predictors,
       /* The stupid model: just guess the mean. */
       return c->depvar_mean;
     }
-  found = xnmalloc (c->n_coeffs, sizeof (*found));
-  *found = c->coeff[0];
+  coef_list = xnmalloc (c->n_coeffs, sizeof (*coef_list));
+  *coef_list = c->coeff[0];
   result = c->coeff[0]->estimate;	/* Intercept. */
 
   /*
@@ -58,23 +78,18 @@ pspp_linreg_predict (const struct variable **predictors,
   for (j = 0; j < n_vals; j++)
     {
       coe = pspp_linreg_get_coeff (c, predictors[j], vals[j]);
-      i = 1;
-      while (found[i] == coe && i < c->n_coeffs)
+      if (!has_coefficient (coef_list, coe, next_coef))
 	{
-	  i++;
-	}
-      if (i < c->n_coeffs)
-	{
-	  found[i] = coe;
 	  tmp = pspp_coeff_get_est (coe);
 	  if (var_is_numeric (predictors[j]))
 	    {
 	      tmp *= vals[j]->f;
 	    }
 	  result += tmp;
+	  coef_list[next_coef++] = coe;
 	}
     }
-  free (found);
+  free (coef_list);
 
   return result;
 }
