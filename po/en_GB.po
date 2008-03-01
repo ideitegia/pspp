@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-03-01 06:47+0900\n"
+"POT-Creation-Date: 2008-03-01 12:10+0900\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -6166,31 +6166,31 @@ msgstr ""
 msgid "Var 2"
 msgstr ""
 
-#: src/ui/gui/variable-info-dialog.c:88
+#: src/ui/gui/variable-info-dialog.c:90
 #, c-format
 msgid "Label: %s\n"
 msgstr ""
 
-#: src/ui/gui/variable-info-dialog.c:97
+#: src/ui/gui/variable-info-dialog.c:99
 #, c-format
 msgid "Type: %s\n"
 msgstr ""
 
-#: src/ui/gui/variable-info-dialog.c:101
+#: src/ui/gui/variable-info-dialog.c:103
 #, c-format
 msgid "Missing Values: %s\n"
 msgstr ""
 
-#: src/ui/gui/variable-info-dialog.c:106
+#: src/ui/gui/variable-info-dialog.c:108
 #, c-format
 msgid "Measurement Level: %s\n"
 msgstr ""
 
-#: src/ui/gui/variable-info-dialog.c:120
+#: src/ui/gui/variable-info-dialog.c:122
 msgid "Value Labels:\n"
 msgstr ""
 
-#: src/ui/gui/variable-info-dialog.c:132
+#: src/ui/gui/variable-info-dialog.c:134
 #, c-format
 msgid "%s %s\n"
 msgstr ""
