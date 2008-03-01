@@ -125,6 +125,8 @@ static void
 set_window_name (struct editor_window *e,
 		 const gchar *name )
 {
+  gchar mdash[6] = { 0, 0, 0, 0, 0, 0};
+
   gchar *title ;
   g_free (e->name);
 
@@ -136,26 +138,32 @@ set_window_name (struct editor_window *e,
       return;
     }
 
+  g_unichar_to_utf8 (2014, mdash);
+
   switch (e->type )
     {
     case WINDOW_SYNTAX:
       e->name = g_strdup_printf (_("Syntax%d"), next_window_id () );
-      title = g_strdup_printf (_("%s --- PSPP Syntax Editor"), e->name);
+      title = g_strdup_printf (_("%s %s PSPP Syntax Editor"), e->name, mdash);
       break;
     case WINDOW_DATA:
       e->name = g_strdup_printf (_("Untitled%d"), next_window_id () );
-      title = g_strdup_printf (_("%s --- PSPP Data Editor"), e->name);
+      title = g_strdup_printf (_("%s %s PSPP Data Editor"), e->name, mdash);
       break;
     case WINDOW_OUTPUT:
       e->name = g_strdup_printf (_("Output%d"), next_window_id () );
-      title = g_strdup_printf (_("%s --- PSPP Output"), e->name);
+      title = g_strdup_printf (_("%s %s PSPP Output"), e->name, mdash);
       break;
     default:
       g_assert_not_reached ();
     }
 
-  gtk_window_set_title (GTK_WINDOW (e->window), title);
+  gchar* x = g_locale_from_utf8  (title, -1, NULL, NULL, NULL);
 
+
+  gtk_window_set_title (GTK_WINDOW (e->window), x);
+
+  g_free (x);
   g_free (title);
 }
 
@@ -185,8 +193,12 @@ window_set_name_from_filename (struct editor_window *e,
     }
   g_free (basename);
 
-  gtk_window_set_title (GTK_WINDOW (e->window), title);
+  gchar* x = g_locale_from_utf8  (title, -1, NULL, NULL, NULL);
 
+
+  gtk_window_set_title (GTK_WINDOW (e->window), x);
+
+  g_free (x);
   g_free (title);
   g_free (filename);
 }

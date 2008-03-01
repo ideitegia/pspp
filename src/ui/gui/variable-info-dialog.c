@@ -76,6 +76,8 @@ populate_text (GtkTreeView *treeview, gpointer data)
 
   GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(data));
   const struct variable *var = get_selected_variable (treeview);
+  if ( var == NULL)
+    return;
 
   gstring = g_string_sized_new (200);
   text = name_to_string (var, NULL);
