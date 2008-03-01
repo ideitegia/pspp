@@ -55,6 +55,7 @@ pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
   size_t i;
   int n_vals = 1;
 
+  assert (c != NULL);
   for (i = 0; i < X->m->size2; i++)
     {
       c[i] = xmalloc (sizeof (*c[i]));
@@ -182,7 +183,7 @@ const struct pspp_coeff *
 pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 		       const struct variable *v, const union value *val)
 {
-  int i = 1;
+  int i;
   struct pspp_coeff *result = NULL;
   const struct variable *tmp = NULL;
 
@@ -194,7 +195,10 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
     {
       return NULL;
     }
-
+  /*
+    C->N_COEFFS == 1 means regression through the origin.
+   */
+  i = (c->n_coeffs > 1) ? 1 : 0;
   result = c->coeff[i];
   tmp = pspp_coeff_get_var (result, 0);
   while (tmp != v && i < c->n_coeffs)
@@ -203,7 +207,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
       tmp = pspp_coeff_get_var (result, 0);
       i++;
     }
-  if (i > c->n_coeffs)
+  if (i >= c->n_coeffs)
     {
       return NULL;
     }

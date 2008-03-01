@@ -1,3 +1,12 @@
+2008-03-01  Jason Stover  <jhs@math.gcsu.edu>
+
+	* coefficient.c (pspp_coeff_init): Ensure first arg is not a null
+	pointer.
+
+	* coefficient.c (pspp_linreg_get_coeff): Make sure we don't return
+	a result beyond the last coefficient, or start with a coefficient
+	beyond the last one if there is only one.
+
 2007-06-06  Ben Pfaff  <blp@gnu.org>
 
 	Adapt case sources, sinks, and clients of procedure code to the
