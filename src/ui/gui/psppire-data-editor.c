@@ -1023,7 +1023,7 @@ data_is_selected (PsppireDataEditor *de)
   GtkSheetRange range;
   gint row, col;
 
-  if ( gtk_notebook_current_page (GTK_NOTEBOOK (de)) != PSPPIRE_DATA_EDITOR_DATA_VIEW)
+  if ( gtk_notebook_get_current_page (GTK_NOTEBOOK (de)) != PSPPIRE_DATA_EDITOR_DATA_VIEW)
     return FALSE;
 
   gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &col);

@@ -114,8 +114,8 @@ do_find (GObject *obj, const struct find_dialog *fd)
 
   if ( x != -1)
     {
-      gtk_notebook_set_page (GTK_NOTEBOOK (fd->de->data_editor),
-			     PSPPIRE_DATA_EDITOR_DATA_VIEW);
+      gtk_notebook_set_current_page (GTK_NOTEBOOK (fd->de->data_editor),
+				     PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
       g_object_set (fd->de->data_editor,
 		    "current-case", x,

@@ -1000,7 +1000,7 @@ data_view_activate (GtkCheckMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
 
-  gtk_notebook_set_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
+  gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 }
 
 
@@ -1009,7 +1009,7 @@ variable_view_activate (GtkCheckMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
 
-  gtk_notebook_set_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
+  gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
 }
 
 
