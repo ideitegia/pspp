@@ -889,6 +889,27 @@ enum
   };
 
 static void
+gtk_sheet_set_row_geometry (GtkSheet *sheet, GSheetRow *geo)
+{
+  if ( sheet->row_geometry ) g_object_unref (sheet->row_geometry);
+
+  sheet->row_geometry = geo;
+
+  if ( sheet->row_geometry ) g_object_ref (sheet->row_geometry);
+}
+
+static void
+gtk_sheet_set_column_geometry (GtkSheet *sheet, GSheetColumn *geo)
+{
+  if ( sheet->column_geometry ) g_object_unref (sheet->column_geometry);
+
+  sheet->column_geometry = geo;
+
+  if ( sheet->column_geometry ) g_object_ref (sheet->column_geometry);
+}
+
+
+static void
 gtk_sheet_set_property (GObject         *object,
 			guint            prop_id,
 			const GValue    *value,
@@ -900,10 +921,10 @@ gtk_sheet_set_property (GObject         *object,
   switch (prop_id)
     {
     case PROP_ROW_GEO:
-      sheet->row_geometry = g_value_get_pointer (value);
+      gtk_sheet_set_row_geometry (sheet, g_value_get_pointer (value));
       break;
     case PROP_COL_GEO:
-      sheet->column_geometry = g_value_get_pointer (value);
+      gtk_sheet_set_column_geometry (sheet, g_value_get_pointer (value));
       if ( sheet->column_geometry)
 	g_signal_connect (sheet->column_geometry, "columns_changed",
 			  G_CALLBACK (column_titles_changed), sheet);
@@ -1232,6 +1253,7 @@ gtk_sheet_class_init (GtkSheetClass * klass)
 static void
 gtk_sheet_init (GtkSheet *sheet)
 {
+  sheet->model = NULL;
   sheet->column_geometry = NULL;
   sheet->row_geometry = NULL;
 
@@ -1482,6 +1504,8 @@ gtk_sheet_set_model (GtkSheet *sheet, GSheetModel *model)
 
   if ( model)
     {
+      g_object_ref (model);
+
       g_signal_connect (model, "range_changed",
 			G_CALLBACK (range_update_callback), sheet);
 
@@ -2401,7 +2425,7 @@ gtk_sheet_finalize (GObject * object)
 }
 
 static void
-gtk_sheet_dispose  (GObject * object)
+gtk_sheet_dispose  (GObject *object)
 {
   GtkSheet *sheet = GTK_SHEET (object);
   GList *children;
@@ -2412,8 +2436,11 @@ gtk_sheet_dispose  (GObject * object)
   if ( sheet->dispose_has_run )
     return ;
 
-  if (sheet->model) g_object_unref (sheet->model);
   sheet->dispose_has_run = TRUE;
+
+  if (sheet->model) g_object_unref (sheet->model);
+  if (sheet->row_geometry) g_object_unref (sheet->row_geometry);
+  if (sheet->column_geometry) g_object_unref (sheet->column_geometry);
 
   g_object_unref (sheet->entry_container);
   g_object_unref (sheet->button);
@@ -2595,6 +2622,7 @@ gtk_sheet_realize (GtkWidget * widget)
 					  GDK_GC_FUNCTION |
 					  GDK_GC_SUBWINDOW);
 
+
   gtk_widget_set_parent_window (sheet->entry_widget, sheet->sheet_window);
   gtk_widget_set_parent (sheet->entry_widget, GTK_WIDGET (sheet));
 
@@ -2698,6 +2726,9 @@ gtk_sheet_unrealize (GtkWidget * widget)
   sheet->xor_gc = NULL;
   sheet->fg_gc = NULL;
   sheet->bg_gc = NULL;
+
+  gtk_widget_unparent (sheet->entry_widget);
+  gtk_widget_unparent (sheet->button);
 
   if (GTK_WIDGET_CLASS (parent_class)->unrealize)
     (* GTK_WIDGET_CLASS (parent_class)->unrealize) (widget);
@@ -6662,9 +6693,7 @@ vadjustment_value_changed (GtkAdjustment * adjustment,
 
   if (GTK_SHEET_IS_FROZEN (sheet)) return;
 
-  row = ROW_FROM_YPIXEL (sheet, sheet->column_title_area.height + CELL_SPACING);
-  if (!sheet->column_titles_visible)
-    row = ROW_FROM_YPIXEL (sheet, CELL_SPACING);
+  row = ROW_FROM_YPIXEL (sheet, CELL_SPACING);
 
   old_value = - sheet->voffset;
 
@@ -6767,9 +6796,7 @@ hadjustment_value_changed (GtkAdjustment * adjustment,
 
   if (GTK_SHEET_IS_FROZEN (sheet)) return;
 
-  column = COLUMN_FROM_XPIXEL (sheet, sheet->row_title_area.width + CELL_SPACING);
-  if (!sheet->row_titles_visible)
-    column = COLUMN_FROM_XPIXEL (sheet, CELL_SPACING);
+  column = COLUMN_FROM_XPIXEL (sheet, CELL_SPACING);
 
   old_value = - sheet->hoffset;
 
@@ -7937,6 +7964,9 @@ primary_clear_cb (GtkClipboard *clipboard,
 		  gpointer      data)
 {
   GtkSheet *sheet = GTK_SHEET (data);
+  if ( ! GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
+    return;
+
   gtk_sheet_real_unselect_range (sheet, NULL);
 }
 

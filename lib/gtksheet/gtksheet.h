@@ -436,6 +436,11 @@ void
 gtk_sheet_show_row_titles		(GtkSheet *sheet);
 void
 gtk_sheet_hide_row_titles		(GtkSheet *sheet);
+void
+gtk_sheet_show_column_titles		(GtkSheet *sheet);
+void
+gtk_sheet_hide_column_titles		(GtkSheet *sheet);
+
 gboolean
 gtk_sheet_row_titles_visible		(GtkSheet *sheet);
 
