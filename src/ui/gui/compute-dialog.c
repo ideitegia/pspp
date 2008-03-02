@@ -21,7 +21,6 @@
 #include "psppire-dialog.h"
 #include "psppire-keypad.h"
 #include "data-editor.h"
-#include <gtksheet/gtksheet.h>
 #include "psppire-var-store.h"
 #include "dialog-common.h"
 #include "dict-display.h"

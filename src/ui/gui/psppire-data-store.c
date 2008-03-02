@@ -25,9 +25,9 @@
 #include <data/data-out.h>
 #include <data/variable.h>
 
-#include <gtksheet/gtksheet.h>
 #include <gtksheet/gsheetmodel.h>
 #include <gtksheet/gsheet-column-iface.h>
+#include <gtksheet/gsheet-row-iface.h>
 
 #include <pango/pango-context.h>
 

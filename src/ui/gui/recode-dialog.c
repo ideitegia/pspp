@@ -25,7 +25,6 @@
 #include "recode-dialog.h"
 
 #include <gtk/gtk.h>
-#include <gtksheet/gtksheet.h>
 
 #include <language/syntax-string-source.h>
 #include <ui/gui/data-editor.h>

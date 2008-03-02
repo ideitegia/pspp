@@ -21,7 +21,6 @@
 #include "psppire-dialog.h"
 #include "data-editor.h"
 #include "psppire-data-store.h"
-#include <gtksheet/gtksheet.h>
 
 
 static void

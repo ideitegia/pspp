@@ -19,7 +19,6 @@
 #include "examine-dialog.h"
 
 #include <gtk/gtk.h>
-#include <gtksheet/gtksheet.h>
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>

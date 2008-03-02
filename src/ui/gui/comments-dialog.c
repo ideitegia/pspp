@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-#include <gtksheet/gtksheet.h>
 #include "psppire-dialog.h"
 #include "helper.h"
 #include "data-editor.h"

@@ -23,7 +23,6 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "helper.h"
-#include <gtksheet/gtksheet.h>
 #include "data-editor.h"
 #include "psppire-dialog.h"
 #include "dialog-common.h"

@@ -47,7 +47,6 @@ which match particular strings */
 
 
 /* FIXME: These shouldn't be here */
-#include <gtksheet/gtksheet.h>
 #include "psppire-var-store.h"
 
 struct find_dialog

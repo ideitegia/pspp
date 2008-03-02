@@ -39,7 +39,6 @@
 
 
 /* FIXME: These shouldn't be here */
-#include <gtksheet/gtksheet.h>
 #include "psppire-data-store.h"
 
 

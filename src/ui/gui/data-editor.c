@@ -22,7 +22,6 @@
 #include <gtk/gtk.h>
 
 #include "window-manager.h"
-#include <gtksheet/gtksheet.h>
 
 #include "psppire-data-editor.h"
 

@@ -19,7 +19,6 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <language/syntax-string-source.h>
-#include <gtksheet/gtksheet.h>
 
 #include "data-editor.h"
 

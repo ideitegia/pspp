@@ -17,7 +17,6 @@
 #include <config.h>
 #include <gtk/gtk.h>
 #include <glade/glade.h>
-#include <gtksheet/gtksheet.h>
 
 #include "dict-display.h"
 #include "var-display.h"
@@ -27,7 +26,6 @@
 #include "psppire-dialog.h"
 #include "psppire-var-store.h"
 #include "helper.h"
-#include <gtksheet/gtksheet.h>
 
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"

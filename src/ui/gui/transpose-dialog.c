@@ -37,7 +37,6 @@
 
 
 /* FIXME: These shouldn't be here */
-#include <gtksheet/gtksheet.h>
 #include "psppire-var-store.h"
 
 
