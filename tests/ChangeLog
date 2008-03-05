@@ -1,3 +1,11 @@
+2008-03-04  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6441.  Reviewed by John Darrington.
+
+	* automake.mk: Add new test.
+
+	* formats/format-guesser.sh: New test.
+
 2008-02-10  Ben Pfaff  <blp@gnu.org>
 
 	* command/get-data-txt-examples.sh: Update to match changes to

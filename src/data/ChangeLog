@@ -9,6 +9,12 @@
 	* format.def: Correct minimum width for DATETIME format.  It was
 	7, should have been 17.
 
+	* automake.mk: Add new files.
+
+	* format-guesser.c: New file.
+
+	* format-guesser.h: New file.
+
 2008-02-18  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6426.  Reviewed by John Darrington.

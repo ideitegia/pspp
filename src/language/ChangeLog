@@ -1,3 +1,9 @@
+2008-03-04  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6441.  Reviewed by John Darrington.
+
+	* command.def: Add DEBUG FORMAT GUESSER command.
+
 2007-12-04  Ben Pfaff  <blp@gnu.org>
 
 	* command.def: Add GET DATA command.

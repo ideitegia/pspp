@@ -50,6 +50,8 @@ src_data_libdata_a_SOURCES = \
 	src/data/file-handle-def.h \
 	src/data/file-name.c \
 	src/data/file-name.h \
+	src/data/format-guesser.c \
+	src/data/format-guesser.h \
 	src/data/format.c \
 	src/data/format.h \
 	src/data/format.def \
