@@ -105,6 +105,7 @@ bool ss_tokenize (struct substring src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 void ss_advance (struct substring *, size_t);
 bool ss_match_char (struct substring *, char);
+int ss_match_char_in (struct substring *, struct substring);
 bool ss_match_string (struct substring *, const struct substring);
 int ss_get_char (struct substring *);
 size_t ss_get_chars (struct substring *, size_t cnt, struct substring *);

@@ -1,3 +1,9 @@
+2008-03-04  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6441.  Reviewed by John Darrington.
+
+	* str.c (ss_match_char_in): New function.
+
 2008-02-18  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6426.  Thanks to John Darrington for review.

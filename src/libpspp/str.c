@@ -546,6 +546,23 @@ ss_match_char (struct substring *ss, char c)
     return false;
 }
 
+/* If the first character in SS is in MATCH, removes it and
+   returns the character that was removed.
+   Otherwise, returns EOF without changing the string. */
+int
+ss_match_char_in (struct substring *ss, struct substring match)
+{
+  int c = EOF;
+  if (ss->length > 0
+      && memchr (match.string, ss->string[0], match.length) != NULL)
+    {
+      c = ss->string[0];
+      ss->string++;
+      ss->length--;
+    }
+  return c;
+}
+
 /* If SS begins with TARGET, removes it and returns true.
    Otherwise, returns false without changing SS. */
 bool
