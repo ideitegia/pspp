@@ -110,6 +110,10 @@ char *fmt_to_string (const struct fmt_spec *, char s[FMT_STRING_LEN_MAX + 1]);
 bool fmt_equal (const struct fmt_spec *, const struct fmt_spec *);
 void fmt_resize (struct fmt_spec *, int new_width);
 
+void fmt_fix (struct fmt_spec *, bool for_input);
+void fmt_fix_input (struct fmt_spec *);
+void fmt_fix_output (struct fmt_spec *);
+
 /* Format types. */
 const char *fmt_name (enum fmt_type) PURE_FUNCTION;
 bool fmt_from_name (const char *name, enum fmt_type *);

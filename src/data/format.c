@@ -408,6 +408,61 @@ fmt_resize (struct fmt_spec *fmt, int width)
       /* Still numeric. */
     }
 }
+
+/* Adjusts FMT's width and decimal places to be valid for an
+   input format (if FOR_INPUT) or an output format (if
+   !FOR_INPUT).  */
+void
+fmt_fix (struct fmt_spec *fmt, bool for_input)
+{
+  int min_w, max_w;
+  int max_d;
+
+  /* Clamp width to those allowed by format. */
+  min_w = fmt_min_width (fmt->type, for_input);
+  max_w = fmt_max_width (fmt->type, for_input);
+  if (fmt->w < min_w)
+    fmt->w = min_w;
+  else if (fmt->w > max_w)
+    fmt->w = max_w;
+
+  /* First, if FMT has more decimal places than allowed, attempt
+     to increase FMT's width until that number of decimal places
+     can be achieved. */
+  if (fmt->d > fmt_max_decimals (fmt->type, fmt->w, for_input))
+    {
+      int w;
+      for (w = fmt->w; w <= max_w; w++)
+        if (fmt_max_decimals (fmt->type, w, for_input) >= fmt->d)
+          {
+            fmt->w = w;
+            break;
+          }
+    }
+
+  /* Clamp decimals to those allowed by format and width. */
+  max_d = fmt_max_decimals (fmt->type, fmt->w, for_input);
+  if (fmt->d < 0)
+    fmt->d = 0;
+  else if (fmt->d > max_d)
+    fmt->d = max_d;
+}
+
+/* Adjusts FMT's width and decimal places to be valid for an
+   input format.  */
+void
+fmt_fix_input (struct fmt_spec *fmt)
+{
+  fmt_fix (fmt, true);
+}
+
+/* Adjusts FMT's width and decimal places to be valid for an
+   output format.  */
+void
+fmt_fix_output (struct fmt_spec *fmt)
+{
+  fmt_fix (fmt, false);
+}
 
 /* Describes a display format. */
 struct fmt_desc
