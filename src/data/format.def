@@ -51,7 +51,7 @@ FMT (SDATE,    date,	8,  8, 39, FMT_CAT_DATE)
 FMT (QYR,      date,	4,  6, 29, FMT_CAT_DATE)
 FMT (MOYR,     date,	6,  6, 28, FMT_CAT_DATE)
 FMT (WKYR,     date,	6,  8, 30, FMT_CAT_DATE)
-FMT (DATETIME, date,    7, 17, 22, FMT_CAT_DATE)
+FMT (DATETIME, date,   17, 17, 22, FMT_CAT_DATE)
 FMT (TIME,     date,	5,  5, 21, FMT_CAT_TIME)
 FMT (DTIME,    date,	8,  8, 25, FMT_CAT_TIME)
 

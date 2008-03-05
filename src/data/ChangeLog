@@ -6,6 +6,9 @@
 	(fmt_fix_input): New function.
 	(fmt_fix_output): New function.
 
+	* format.def: Correct minimum width for DATETIME format.  It was
+	7, should have been 17.
+
 2008-02-18  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6426.  Reviewed by John Darrington.
