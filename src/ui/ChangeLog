@@ -1,3 +1,15 @@
+2008-03-04  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6427.  Reviewed by John Darrington.
+
+	* automake.mk: Add new files.
+
+	* syntax-gen.c: New file.  Based on former
+	src/libpspp/syntax-gen.c but rewritten.
+
+	* syntax-gen.h: New file.  Based on former
+	src/libpspp/syntax-gen.h but rewritten.
+
 2007-10-10  Ben Pfaff  <blp@gnu.org>
 
 	* src/ui/debugger.c: Use debugger if HAVE_FORK is defined, not

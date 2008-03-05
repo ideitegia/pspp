@@ -61,7 +61,7 @@
 #include "syntax-editor.h"
 #include <language/syntax-string-source.h>
 #include <language/command.h>
-#include <libpspp/syntax-gen.h>
+#include <ui/syntax-gen.h>
 #include "window-manager.h"
 
 #include "psppire-data-store.h"
@@ -1262,8 +1262,8 @@ save_file (struct data_editor *de)
 
   g_assert (de->file_name);
 
-  ds_init_cstr (&file_name, de->file_name);
-  gen_quoted_string (&file_name);
+  ds_init_empty (&file_name);
+  syntax_gen_string (&file_name, ss_cstr (de->file_name));
 
   if ( de->save_as_portable )
     {
@@ -1398,9 +1398,8 @@ open_data_file (const gchar *file_name, struct data_editor *de)
   struct getl_interface *sss;
   struct string filename;
 
-  ds_init_cstr (&filename, file_name);
-
-  gen_quoted_string (&filename);
+  ds_init_empty (&filename);
+  syntax_gen_string (&filename, ss_cstr (file_name));
 
   sss = create_syntax_string_source ("GET FILE=%s.",
 				     ds_cstr (&filename));

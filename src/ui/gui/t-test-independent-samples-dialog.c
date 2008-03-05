@@ -29,7 +29,7 @@
 #include "dict-display.h"
 #include "widget-io.h"
 #include "t-test-options.h"
-#include <libpspp/syntax-gen.h>
+#include <ui/syntax-gen.h>
 
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"
@@ -177,9 +177,8 @@ generate_syntax (const struct tt_indep_samples_dialog *d)
 
       if ( var_is_alpha (group_variable))
 	{
-	  struct string s;
-	  ds_init_cstr (&s, d->grps->val[0]);
-	  gen_quoted_string (&s);
+	  struct string s = DS_EMPTY_INITIALIZER;
+	  syntax_gen_string (&s, ss_cstr (d->grps->val[0]));
 	  g_string_append (str, ds_cstr (&s));
 	  ds_destroy (&s);
 	}
@@ -194,9 +193,8 @@ generate_syntax (const struct tt_indep_samples_dialog *d)
 
 	  if ( var_is_alpha (group_variable))
 	    {
-	      struct string s;
-	      ds_init_cstr (&s, d->grps->val[1]);
-	      gen_quoted_string (&s);
+	      struct string s = DS_EMPTY_INITIALIZER;
+	      syntax_gen_string (&s, ss_cstr (d->grps->val[1]));
 	      g_string_append (str, ds_cstr (&s));
 	      ds_destroy (&s);
 	    }

@@ -57,8 +57,6 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/start-date.h \
 	src/libpspp/str.c \
 	src/libpspp/str.h \
-	src/libpspp/syntax-gen.c \
-	src/libpspp/syntax-gen.h \
 	src/libpspp/taint.c \
 	src/libpspp/taint.h \
 	src/libpspp/tower.c \

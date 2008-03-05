@@ -10,4 +10,6 @@ noinst_LIBRARIES += src/ui/libuicommon.a
 
 src_ui_libuicommon_a_SOURCES = \
 	src/ui/debugger.c \
-	src/ui/debugger.h
+	src/ui/debugger.h \
+	src/ui/syntax-gen.c \
+	src/ui/syntax-gen.h

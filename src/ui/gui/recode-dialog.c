@@ -34,7 +34,7 @@
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
 #include <ui/gui/syntax-editor.h>
-#include <libpspp/syntax-gen.h>
+#include <ui/syntax-gen.h>
 
 #include "psppire-acr.h"
 
@@ -1338,9 +1338,8 @@ new_value_append_syntax (GString *str, const struct new_value *nv)
       break;
     case NV_STRING:
       {
-	struct string ds;
-	ds_init_cstr (&ds, nv->v.s);
-	gen_quoted_string (&ds);
+	struct string ds = DS_EMPTY_INITIALIZER;
+	syntax_gen_string (&ds, ss_cstr (nv->v.s));
 	g_string_append (str, ds_cstr (&ds));
 	ds_destroy (&ds);
       }
@@ -1371,9 +1370,8 @@ old_value_append_syntax (GString *str, const struct old_value *ov)
       break;
     case OV_STRING:
       {
-	struct string ds;
-	ds_init_cstr (&ds, ov->v.s);
-	gen_quoted_string (&ds);
+	struct string ds = DS_EMPTY_INITIALIZER;
+	syntax_gen_string (&ds, ss_cstr (ov->v.s));
 	g_string_append (str, ds_cstr (&ds));
 	ds_destroy (&ds);
       }
@@ -1537,9 +1535,9 @@ generate_syntax (const struct recode_dialog *rd)
 	      continue;
 	    }
 
-	  ds_init_cstr (&ls, label);
+	  ds_init_empty (&ls);
+	  syntax_gen_string (&ls, ss_cstr (label));
 	  g_free (label);
-	  gen_quoted_string (&ls);
 
 	  g_string_append_printf (str, "\nVARIABLE LABELS %s %s.",
 				  name, ds_cstr (&ls));

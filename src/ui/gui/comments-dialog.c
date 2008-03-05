@@ -22,7 +22,7 @@
 #include <language/syntax-string-source.h>
 #include "syntax-editor.h"
 #include "psppire-var-store.h"
-#include <libpspp/syntax-gen.h>
+#include <ui/syntax-gen.h>
 
 #include "comments-dialog.h"
 
@@ -244,27 +244,27 @@ generate_syntax (const struct comment_dialog *cd)
 
   for (i = 0 ; i < gtk_text_buffer_get_line_count (buffer) ; ++i )
     {
-      struct string line;
-      GtkTextIter start, end;
+      struct string tmp;
+      GtkTextIter start;
+      char *line;
+
       gtk_text_buffer_get_iter_at_line (buffer, &start, i);
-
-      end = start;
-
-      gtk_text_iter_forward_to_line_end (&end);
-
-      if ( gtk_text_iter_ends_line (&start))
-	ds_init_cstr (&line, "");
+      if (gtk_text_iter_ends_line (&start))
+	line = g_strdup ("");
       else
-	ds_init_cstr (&line,
-		      gtk_text_buffer_get_text (buffer,
-						&start, &end,
-						FALSE));
+        {
+          GtkTextIter end = start;
+          gtk_text_iter_forward_to_line_end (&end);
+          line = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
+        }
 
-      gen_quoted_string (&line);
+      ds_init_empty (&tmp);
+      syntax_gen_string (&tmp, ss_cstr (line));
+      g_free (line);
 
-      g_string_append_printf (str, " %s\n", ds_cstr (&line));
+      g_string_append_printf (str, " %s\n", ds_cstr (&tmp));
 
-      ds_destroy (&line);
+      ds_destroy (&tmp);
     }
   g_string_append (str, " .\n");
 

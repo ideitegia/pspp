@@ -1,5 +1,15 @@
 2008-03-04  Ben Pfaff  <blp@gnu.org>
 
+	Patch #6427.  Reviewed by John Darrington.
+
+	* automake.mk: Remove moved files.
+
+	* syntax-gen.c: Moved to src/ui (and rewritten).
+
+	* syntax-gen.h: Ditto.
+
+2008-03-04  Ben Pfaff  <blp@gnu.org>
+
 	Patch #6441.  Reviewed by John Darrington.
 
 	* str.c (ss_match_char_in): New function.
