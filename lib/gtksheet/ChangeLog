@@ -1,3 +1,10 @@
+2008-03-06 John Darrington <john@darrington.wattle.id.au>
+
+	* gsheet-row-iface.c gsheet-row-iface.h: Delete unused, unneccesary
+	gpointer variable from the interface.
+
+	* gtksheet.c: Update to match new gsheet-row-iface
+
 2008-02-27 John Darrington <john@darrington.wattle.id.au>
 	* gtksheet.c gtksheet.h: Corrected some leaks and other problems
 	related to de-allocating the sheet.

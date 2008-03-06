@@ -50,38 +50,31 @@ struct _GSheetRowIface
 				      glong row, glong n_rows);
 
   /* Virtual Table */
-  gint (* get_height) (const GSheetRow *grow, glong row, gpointer);
-  void (* set_height) (GSheetRow *grow, glong row, gint height,
-		       gpointer);
+  gint (* get_height) (const GSheetRow *grow, glong row);
+  void (* set_height) (GSheetRow *grow, glong row, gint height);
 
-  gboolean (* get_visibility) (const GSheetRow *grow, glong row,
-			       gpointer);
+  gboolean (* get_visibility) (const GSheetRow *grow, glong row);
 
-  gboolean (* get_sensitivity) (const GSheetRow *grow, glong row,
-				gpointer);
+  gboolean (* get_sensitivity) (const GSheetRow *grow, glong row);
 
-  const GtkSheetButton * (* get_button) (const GSheetRow *grow, glong row,
-					 gpointer);
+  const GtkSheetButton * (* get_button) (const GSheetRow *grow, glong row);
 
-  glong  (* get_row_count) (const GSheetRow *geo, gpointer);
+  glong  (* get_row_count) (const GSheetRow *geo);
 
+  GtkStateType  (*get_button_state) (const GSheetRow *geo, glong row);
 
-  GtkStateType  (*get_button_state) (const GSheetRow *geo, glong row,
-				    gpointer);
-
-  gchar * (*get_button_label) (const GSheetRow *geo, glong row,
-			      gpointer);
+  gchar * (*get_button_label) (const GSheetRow *geo, glong row);
 
   gchar * (*get_subtitle) (const GSheetRow *geo, glong row);
 
-  gboolean      (*get_button_visibility) (const GSheetRow *geo,
-					glong row, gpointer);
+  gboolean  (*get_button_visibility) (const GSheetRow *geo,
+					  glong row);
 
   const GtkSheetChild * (*get_button_child) (const GSheetRow *geo,
-					   glong row, gpointer);
+					     glong row);
 
-  guint (*top_ypixel) (const GSheetRow *geo, glong row, gpointer);
-  glong (*pixel_to_row) (const GSheetRow *geo, guint pixel, gpointer);
+  guint (*top_ypixel) (const GSheetRow *geo, glong row);
+  glong (*pixel_to_row) (const GSheetRow *geo, guint pixel);
 };
 
 
@@ -89,33 +82,32 @@ GType g_sheet_row_get_type   (void) G_GNUC_CONST;
 
 
 gint  g_sheet_row_get_height (const GSheetRow *grow,
-					glong row, gpointer);
+			      glong row);
 
 
 void  g_sheet_row_set_height (GSheetRow *grow,
-					glong row, gint size, gpointer);
+			      glong row, gint size);
 
 
 gboolean  g_sheet_row_get_visibility (const GSheetRow *grow,
-					    glong row, gpointer);
+				      glong row);
 
 gboolean  g_sheet_row_get_sensitivity (const GSheetRow *grow,
-					     glong row, gpointer);
+				       glong row);
 
 
 GtkSheetButton *g_sheet_row_get_button (const GSheetRow *grow,
-					     glong row, gpointer);
+					glong row);
 
 
-glong  g_sheet_row_get_row_count (const GSheetRow *geo, gpointer);
+glong  g_sheet_row_get_row_count (const GSheetRow *geo);
 
 /* Return the top pixel of row ROW */
-gint  g_sheet_row_start_pixel (const GSheetRow *geo, glong row,
-			      gpointer);
+gint  g_sheet_row_start_pixel (const GSheetRow *geo, glong row);
+
 
 /* Return the row contained by pixel PIXEL */
-glong  g_sheet_row_pixel_to_row (const GSheetRow *geo, gint pixel,
-			       gpointer);
+glong  g_sheet_row_pixel_to_row (const GSheetRow *geo, gint pixel);
 
 
 void g_sheet_row_rows_deleted (GSheetRow *geo,

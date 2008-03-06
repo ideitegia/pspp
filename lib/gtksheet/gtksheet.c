@@ -202,7 +202,7 @@ yyy_row_is_visible (const GtkSheet *sheet, gint row)
 {
   GSheetRow *row_geo = sheet->row_geometry;
 
-  return g_sheet_row_get_visibility (row_geo, row, 0);
+  return g_sheet_row_get_visibility (row_geo, row);
 }
 
 
@@ -211,7 +211,7 @@ yyy_row_is_sensitive (const GtkSheet *sheet, gint row)
 {
   GSheetRow *row_geo = sheet->row_geometry;
 
-  return g_sheet_row_get_sensitivity (row_geo, row, 0);
+  return g_sheet_row_get_sensitivity (row_geo, row);
 }
 
 
@@ -221,7 +221,7 @@ yyy_row_count (const GtkSheet *sheet)
 {
   GSheetRow *row_geo = sheet->row_geometry;
 
-  return g_sheet_row_get_row_count (row_geo, 0);
+  return g_sheet_row_get_row_count (row_geo);
 }
 
 static inline gint
@@ -229,7 +229,7 @@ yyy_row_height (const GtkSheet *sheet, gint row)
 {
   GSheetRow *row_geo = sheet->row_geometry;
 
-  return g_sheet_row_get_height (row_geo, row, 0);
+  return g_sheet_row_get_height (row_geo, row);
 }
 
 static gint
@@ -237,7 +237,7 @@ yyy_row_top_ypixel (const GtkSheet *sheet, gint row)
 {
   GSheetRow *geo = sheet->row_geometry;
 
-  gint y = g_sheet_row_start_pixel (geo, row, 0);
+  gint y = g_sheet_row_start_pixel (geo, row);
 
   if ( sheet->column_titles_visible )
     y += sheet->column_title_area.height;
@@ -259,7 +259,7 @@ yyy_row_ypixel_to_row (const GtkSheet *sheet, gint y)
 
   if (y < cy) return 0;
 
-  return g_sheet_row_pixel_to_row (geo, y - cy, 0);
+  return g_sheet_row_pixel_to_row (geo, y - cy);
 }
 
 
@@ -434,7 +434,7 @@ yyy_row_button (GtkSheet *sheet, gint row)
 {
   GSheetRow *row_geo = sheet->row_geometry;
 
-  return g_sheet_row_get_button (row_geo, row, sheet);
+  return g_sheet_row_get_button (row_geo, row);
 }
 
 
@@ -444,7 +444,7 @@ static inline void
 yyy_set_row_height (GtkSheet *sheet, gint row, gint height)
 {
   if ( sheet->row_geometry )
-    g_sheet_row_set_height (sheet->row_geometry, row, height, sheet);
+    g_sheet_row_set_height (sheet->row_geometry, row, height);
 }
 
 
@@ -6693,9 +6693,9 @@ vadjustment_value_changed (GtkAdjustment * adjustment,
   old_value = - sheet->voffset;
 
   new_row = g_sheet_row_pixel_to_row (sheet->row_geometry,
-				      adjustment->value, sheet);
+				      adjustment->value);
 
-  y = g_sheet_row_start_pixel (sheet->row_geometry, new_row, sheet);
+  y = g_sheet_row_start_pixel (sheet->row_geometry, new_row);
 
   if (adjustment->value > sheet->old_vadjustment && sheet->old_vadjustment > 0. &&
       yyy_row_height (sheet, row) > sheet->vadjustment->step_increment)

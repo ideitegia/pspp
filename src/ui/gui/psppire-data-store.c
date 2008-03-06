@@ -891,7 +891,7 @@ psppire_data_store_sheet_column_init (GSheetColumnIface *iface)
 /* Row related funcs */
 
 static glong
-geometry_get_row_count (const GSheetRow *geom, gpointer data)
+geometry_get_row_count (const GSheetRow *geom)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
 
@@ -901,31 +901,31 @@ geometry_get_row_count (const GSheetRow *geom, gpointer data)
 #define ROW_HEIGHT 25
 
 static gint
-geometry_get_height (const GSheetRow *geom, glong unit, gpointer data)
+geometry_get_height (const GSheetRow *geom, glong unit)
 {
   return ROW_HEIGHT;
 }
 
 static guint
-geometry_get_top_ypixel (const GSheetRow *geo, glong row, gpointer data)
+geometry_get_top_ypixel (const GSheetRow *geo, glong row)
 {
   return row * ROW_HEIGHT;
 }
 
 static glong
-geometry_pixel_to_row (const GSheetRow *geo, guint pixel, gpointer data)
+geometry_pixel_to_row (const GSheetRow *geo, guint pixel)
 {
   glong row  = pixel / ROW_HEIGHT;
 
-  if (row >= geometry_get_row_count (geo, data))
-    row = geometry_get_row_count (geo, data) - 1;
+  if (row >= geometry_get_row_count (geo))
+    row = geometry_get_row_count (geo) - 1;
 
   return row;
 }
 
 
 static gboolean
-geometry_get_row_sensitivity (const GSheetRow *geom, glong unit, gpointer data)
+geometry_get_row_sensitivity (const GSheetRow *geom, glong unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
 
@@ -935,7 +935,7 @@ geometry_get_row_sensitivity (const GSheetRow *geom, glong unit, gpointer data)
 
 
 static gchar *
-geometry_get_row_button_label (const GSheetRow *geom, glong unit, gpointer data)
+geometry_get_row_button_label (const GSheetRow *geom, glong unit)
 {
   gchar *text;
   gchar *s;

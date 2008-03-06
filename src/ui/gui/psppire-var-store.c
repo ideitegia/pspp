@@ -796,7 +796,7 @@ psppire_var_store_get_column_count (const GSheetModel * model)
 /* Row related funcs */
 
 static glong
-geometry_get_row_count (const GSheetRow *geom, gpointer data)
+geometry_get_row_count (const GSheetRow *geom)
 {
   gint rows = 0;
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (geom);
@@ -809,14 +809,14 @@ geometry_get_row_count (const GSheetRow *geom, gpointer data)
 
 
 static gint
-geometry_get_height (const GSheetRow *geom, glong row, gpointer data)
+geometry_get_height (const GSheetRow *geom, glong row)
 {
   return 25;
 }
 
 
 static gboolean
-geometry_is_sensitive (const GSheetRow *geom, glong row, gpointer data)
+geometry_is_sensitive (const GSheetRow *geom, glong row)
 {
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (geom);
 
@@ -834,7 +834,7 @@ gboolean always_true ()
 
 
 static gchar *
-geometry_get_button_label (const GSheetRow *geom, glong unit, gpointer data)
+geometry_get_button_label (const GSheetRow *geom, glong unit)
 {
   gchar *label = g_strdup_printf (_("%ld"), unit + 1);
 
