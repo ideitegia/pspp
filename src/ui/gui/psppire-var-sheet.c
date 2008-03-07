@@ -33,6 +33,10 @@
 static void psppire_var_sheet_class_init  (PsppireVarSheetClass *klass);
 static void psppire_var_sheet_init        (PsppireVarSheet      *vs);
 
+enum 
+  {
+    PSPPIRE_VAR_SHEET_MAY_CREATE_VARS = 1
+  };
 
 GType
 psppire_var_sheet_get_type (void)
@@ -148,18 +152,69 @@ create_label_list (const gchar *const *labels)
 }
 
 
+static void
+psppire_var_sheet_set_property (GObject      *object,
+                                guint         property_id,
+                                const GValue *value,
+                                GParamSpec   *pspec)
+{
+  PsppireVarSheet *self = (PsppireVarSheet *) object;
+
+  switch (property_id)
+    {
+    case PSPPIRE_VAR_SHEET_MAY_CREATE_VARS:
+      self->may_create_vars = g_value_get_boolean (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+      break;
+    }
+}
+
+static void
+psppire_var_sheet_get_property (GObject      *object,
+                                guint         property_id,
+                                GValue       *value,
+                                GParamSpec   *pspec)
+{
+  PsppireVarSheet *self = (PsppireVarSheet *) object;
+
+  switch (property_id)
+    {
+    case PSPPIRE_VAR_SHEET_MAY_CREATE_VARS:
+      g_value_set_boolean (value, self->may_create_vars);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+      break;
+    }
+}
+
 
 
 static void
 psppire_var_sheet_class_init (PsppireVarSheetClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GParamSpec *pspec;
 
   parent_class = g_type_class_peek_parent (klass);
 
   object_class->dispose = psppire_var_sheet_dispose;
   object_class->finalize = psppire_var_sheet_finalize;
+  object_class->set_property = psppire_var_sheet_set_property;
+  object_class->get_property = psppire_var_sheet_get_property;
 
+  pspec = g_param_spec_boolean ("may-create-vars",
+                                "May create variables",
+                                "Whether the user may create more variables",
+                                TRUE,
+                                G_PARAM_READWRITE);
+  g_object_class_install_property (object_class,
+                                   PSPPIRE_VAR_SHEET_MAY_CREATE_VARS,
+                                   pspec);
 
   klass->measure_list = create_label_list (measures);
   klass->alignment_list = create_label_list (alignments);
@@ -203,9 +258,13 @@ traverse_cell_callback (GtkSheet *sheet,
 			gint *new_row, gint *new_column
 			)
 {
+  PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (sheet);
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
 
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
+
+  if (*new_row >= n_vars && !var_sheet->may_create_vars)
+    return FALSE;
 
   if ( row == n_vars && *new_row >= n_vars)
     {
@@ -224,8 +283,8 @@ traverse_cell_callback (GtkSheet *sheet,
   /* If the destination cell is outside the current  variables, then
      automatically create variables for the new rows.
   */
-  if ( (*new_row > n_vars) ||
-       (*new_row == n_vars && *new_column != PSPPIRE_VAR_STORE_COL_NAME) )
+  if ( ((*new_row > n_vars) ||
+        (*new_row == n_vars && *new_column != PSPPIRE_VAR_STORE_COL_NAME)) )
     {
       gint i;
       for ( i = n_vars ; i <= *new_row; ++i )

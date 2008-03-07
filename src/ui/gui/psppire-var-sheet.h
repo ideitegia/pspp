@@ -43,6 +43,7 @@ struct _PsppireVarSheet
   GtkSheet parent;
 
   gboolean dispose_has_run;
+  gboolean may_create_vars;
 
   struct val_labs_dialog *val_labs_dialog ;
   struct missing_val_dialog *missing_val_dialog ;
