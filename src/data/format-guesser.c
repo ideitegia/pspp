@@ -135,8 +135,13 @@ static struct date_syntax syntax[] =
     /* www */
     { FMT_WKDAY, 1, {DT_WEEKDAY} },
 
-    /* mmm */
-    { FMT_MONTH, 1, {DT_MONTH} },
+    /* mmm
+
+       We require a spelled-out English month so that
+       single-character Roman numerals like "i" and "x" don't get
+       detected as months.  The latter is particularly common in
+       the password field of /etc/passwd-like files. */
+    { FMT_MONTH, 1, {DT_ENGLISH_MONTH} },
   };
 
 /* Number of recognized date syntax formats. */

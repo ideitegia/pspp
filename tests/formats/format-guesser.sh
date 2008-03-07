@@ -94,6 +94,7 @@ sed -ne 's/#.*//;/^[ 	]*$/!p' > $TEMPDIR/test-list <<'EOF'
 
 # Date and time formats.
 "01-OCT-1978" => DATE11
+"01-x-1978" => EDATE9		# Roman numeral for month.
 "01-13-99" => ADATE8
 "1-13-99" => ADATE7 (ADATE8)
 "13-01-99" => EDATE8
@@ -135,20 +136,10 @@ sed -ne 's/#.*//;/^[ 	]*$/!p' > $TEMPDIR/test-list <<'EOF'
 "jan" => MONTH3
 "Feb" => MONTH3
 "MAR" => MONTH3
-"i" => MONTH1 (MONTH3)
-"ii" => MONTH2 (MONTH3)
-"iii" => MONTH3
-"iiii" => A4
-"iv" => MONTH2 (MONTH3)
-"v" => MONTH1 (MONTH3)
-"vi" => MONTH2 (MONTH3)
-"vii" => MONTH3
-"viii" => MONTH4
-"ix" => MONTH2 (MONTH3)
-"viiii" => A5
-"x" => MONTH1 (MONTH3)
-"xi" => MONTH2 (MONTH3)
-"xii" => MONTH3
+"i" => A1			# Not detected as MONTH format.
+"v" => A1
+"ix" => A2
+"x" => A1
 "january" => MONTH7
 "janaury" => MONTH7
 "february" => MONTH8

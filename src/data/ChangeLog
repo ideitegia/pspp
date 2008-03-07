@@ -1,3 +1,10 @@
+2008-03-06  Ben Pfaff  <blp@gnu.org>
+
+	* format-guesser.c (syntax): Require month names to be spelled out
+	as English words, so that single characters that happen to be
+	Roman numerals don't get detected as months.  Thanks to John
+	Darrington for reporting this bug.
+
 2008-03-04  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6441.  Reviewed by John Darrington.
