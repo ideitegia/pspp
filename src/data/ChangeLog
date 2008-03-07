@@ -1,5 +1,11 @@
 2008-03-06  Ben Pfaff  <blp@gnu.org>
 
+	* dictionary.c (var_name_is_insertable): New function.
+	(make_hinted_name): Don't accept variable names that match PSPP
+	keywords.  Thanks to Jason Stover for reporting the problem.
+
+2008-03-06  Ben Pfaff  <blp@gnu.org>
+
 	* format-guesser.c (syntax): Require month names to be spelled out
 	as English words, so that single characters that happen to be
 	Roman numerals don't get detected as months.  Thanks to John

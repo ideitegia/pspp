@@ -729,6 +729,18 @@ dict_rename_vars (struct dictionary *d,
   return true;
 }
 
+/* Returns true if a variable named NAME may be inserted in DICT;
+   that is, if there is not already a variable with that name in
+   DICT and if NAME is not a reserved word.  (The caller's checks
+   have already verified that NAME is otherwise acceptable as a
+   variable name.) */
+static bool
+var_name_is_insertable (const struct dictionary *dict, const char *name)
+{
+  return (dict_lookup_var (dict, name) == NULL
+          && lex_id_to_token (ss_cstr (name)) == T_ID);
+}
+
 static bool
 make_hinted_name (const struct dictionary *dict, const char *hint,
                   char name[VAR_NAME_LEN + 1])
@@ -760,7 +772,7 @@ make_hinted_name (const struct dictionary *dict, const char *hint,
       size_t len = strlen (name);
       unsigned long int i;
 
-      if (dict_lookup_var (dict, name) == NULL)
+      if (var_name_is_insertable (dict, name))
         return true;
 
       for (i = 0; i < ULONG_MAX; i++)
@@ -775,7 +787,7 @@ make_hinted_name (const struct dictionary *dict, const char *hint,
           ofs = MIN (VAR_NAME_LEN - strlen (suffix), len);
           strcpy (&name[ofs], suffix);
 
-          if (dict_lookup_var (dict, name) == NULL)
+          if (var_name_is_insertable (dict, name))
             return true;
         }
     }
