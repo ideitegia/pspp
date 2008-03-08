@@ -96,14 +96,9 @@ enum
 #define CELL_SPACING 1
 #define DRAG_WIDTH 6
 #define TIMEOUT_HOVER 300
-#define TIME_INTERVAL 8
 #define COLUMN_MIN_WIDTH 10
-#define MINROWS 1
-#define MINCOLS 1
-#define MAXLENGTH 30
 #define CELLOFFSET 4
 #define DEFAULT_COLUMN_WIDTH 80
-
 
 static void gtk_sheet_update_primary_selection (GtkSheet *sheet);
 static void gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column);
