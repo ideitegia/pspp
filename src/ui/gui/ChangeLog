@@ -1,3 +1,8 @@
+2008-03-07  Ben Pfaff  <blp@gnu.org>
+
+	* psppire-var-sheet.c: Initialize "may-create-vars" to TRUE by
+	default.
+
 2008-03-06  Ben Pfaff  <blp@gnu.org>
 
 	* psppire-var-sheet.c psppire-var-sheet.h: Add "may-create-vars"

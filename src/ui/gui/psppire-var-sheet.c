@@ -526,6 +526,7 @@ psppire_var_sheet_init (PsppireVarSheet *vs)
   g_object_unref (xml);
 
   vs->dispose_has_run = FALSE;
+  vs->may_create_vars = TRUE;
 
   for (i = 0 ; i < PSPPIRE_VAR_STORE_n_COLS ; ++i )
     {
