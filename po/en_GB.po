@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-03-06 18:35+0900\n"
+"POT-Creation-Date: 2008-03-08 09:47+0900\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -211,13 +211,13 @@ msgstr ""
 msgid "scratch"
 msgstr ""
 
-#: src/data/dictionary.c:870
+#: src/data/dictionary.c:882
 msgid ""
 "At least one case in the data file had a weight value that was user-missing, "
 "system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
-#: src/data/dictionary.c:1168
+#: src/data/dictionary.c:1180
 #, c-format
 msgid "Truncating document line to %d bytes."
 msgstr ""
@@ -1279,7 +1279,7 @@ msgid "Record"
 msgstr ""
 
 #: src/language/data-io/data-parser.c:643 src/language/data-io/print.c:404
-#: src/ui/gui/crosstabs.glade:92 src/ui/gui/psppire-var-sheet.c:103
+#: src/ui/gui/crosstabs.glade:92 src/ui/gui/psppire-var-sheet.c:107
 msgid "Columns"
 msgstr ""
 
@@ -1875,7 +1875,7 @@ msgstr ""
 #: src/language/dictionary/split-file.c:86
 #: src/language/dictionary/sys-file-info.c:397
 #: src/language/dictionary/sys-file-info.c:564 src/ui/gui/crosstabs.glade:275
-#: src/ui/gui/psppire.glade:2099 src/ui/gui/psppire-var-sheet.c:100
+#: src/ui/gui/psppire.glade:2099 src/ui/gui/psppire-var-sheet.c:104
 msgid "Label"
 msgstr ""
 
@@ -2039,17 +2039,17 @@ msgid "Measure: %s"
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:495
-#: src/ui/gui/psppire-var-sheet.c:119
+#: src/ui/gui/psppire-var-sheet.c:123
 msgid "Nominal"
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:496
-#: src/ui/gui/psppire-var-sheet.c:120
+#: src/ui/gui/psppire-var-sheet.c:124
 msgid "Ordinal"
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:497
-#: src/ui/gui/psppire-var-sheet.c:121
+#: src/ui/gui/psppire-var-sheet.c:125
 msgid "Scale"
 msgstr ""
 
@@ -2059,17 +2059,17 @@ msgid "Display Alignment: %s"
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:501
-#: src/ui/gui/psppire-var-sheet.c:112
+#: src/ui/gui/psppire-var-sheet.c:116
 msgid "Left"
 msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:502
-#: src/ui/gui/psppire-var-sheet.c:114
+#: src/ui/gui/psppire-var-sheet.c:118
 msgid "Center"
 msgstr "Centre"
 
 #: src/language/dictionary/sys-file-info.c:503
-#: src/ui/gui/psppire-var-sheet.c:113
+#: src/ui/gui/psppire-var-sheet.c:117
 msgid "Right"
 msgstr ""
 
@@ -2742,7 +2742,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:859 src/language/stats/examine.q:917
 #: src/language/stats/frequencies.q:1128 src/language/stats/frequencies.q:1407
-#: src/ui/gui/psppire-var-sheet.c:102
+#: src/ui/gui/psppire-var-sheet.c:106
 msgid "Missing"
 msgstr ""
 
@@ -2846,7 +2846,7 @@ msgid "Directional measures."
 msgstr ""
 
 #: src/language/stats/crosstabs.q:1221 src/ui/gui/psppire.glade:2223
-#: src/ui/gui/psppire-var-sheet.c:97
+#: src/ui/gui/psppire-var-sheet.c:101
 msgid "Type"
 msgstr ""
 
@@ -5758,7 +5758,7 @@ msgstr ""
 msgid "Use expression as label"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2187 src/ui/gui/psppire-var-sheet.c:98
+#: src/ui/gui/psppire.glade:2187 src/ui/gui/psppire-var-sheet.c:102
 msgid "Width"
 msgstr ""
 
@@ -5794,23 +5794,23 @@ msgstr ""
 msgid "Search backward"
 msgstr ""
 
-#: src/ui/gui/psppire-var-sheet.c:96
+#: src/ui/gui/psppire-var-sheet.c:100
 msgid "Name"
 msgstr ""
 
-#: src/ui/gui/psppire-var-sheet.c:99
+#: src/ui/gui/psppire-var-sheet.c:103
 msgid "Decimals"
 msgstr ""
 
-#: src/ui/gui/psppire-var-sheet.c:101
+#: src/ui/gui/psppire-var-sheet.c:105
 msgid "Values"
 msgstr ""
 
-#: src/ui/gui/psppire-var-sheet.c:104
+#: src/ui/gui/psppire-var-sheet.c:108
 msgid "Align"
 msgstr ""
 
-#: src/ui/gui/psppire-var-sheet.c:105
+#: src/ui/gui/psppire-var-sheet.c:109
 msgid "Measure"
 msgstr ""
 
