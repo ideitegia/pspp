@@ -1,3 +1,8 @@
+2008-03-08  Jason Stover  <jhs@wonko.gcsu.edu>
+
+	* linreg.c (pspp_linreg_get_vars): Clean up the loop that searches
+	for coefficient/variable matches. Fix for bug 22419.
+
 2008-02-28  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg.c (has_coefficient): New function.
