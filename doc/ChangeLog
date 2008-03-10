@@ -1,3 +1,7 @@
+2008-03-09  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.texi (REGRESSION): Removed references to subcommand EXPORT.
+
 2008-02-06 John Darrington <john@darrington.wattle.id.au>
 
 	* files.texi: Document the /BSIZE subcommand to the PSQL

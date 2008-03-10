@@ -18,7 +18,7 @@ explanatory variable.
 
 @item The dependent variable Y has the following relationship to the 
 explanatory variables:
-@math{Y_i = b_0 + b_1 X_1i + ... + b_k X_ki + Z_i} 
+@math{Y_i = b_0 + b_1 X_{1i} + ... + b_k X_{ki} + Z_i} 
 where @math{b_0, b_1, ..., b_k} are unknown
 coefficients, and @math{Z_1,...,Z_n} are independent, normally
 distributed ``noise'' terms with common variance. The noise, or
@@ -47,7 +47,6 @@ REGRESSION
         /VARIABLES=var_list
         /DEPENDENT=var_list
         /STATISTICS=@{ALL, DEFAULTS, R, COEFF, ANOVA, BCOV@}
-        /EXPORT ('file-name')
         /SAVE=@{PRED, RESID@}
 @end display
 
@@ -87,23 +86,10 @@ RES3 if RES1 and RES2 already exist, etc. It will choose the name of
 the variable for the predicted values similarly, but with PRED as a
 prefix.
 
-The EXPORT subcommand causes PSPP to write a C program containing
-functions related to the model. One such function accepts values of
-explanatory variables as arguments, and returns an estimate of the
-corresponding new
-value of the dependent variable. The generated program will also contain
-functions that return prediction and confidence intervals related to
-those new estimates. PSPP will write the program to the
-'file-name' given by the user, and write declarations of functions
-to a file called pspp_model_reg.h. The user can then compile the C
-program and use it as part of another program. This subcommand is a
-PSPP extension.
-
 @node Examples
 @subsection Examples
-The following PSPP syntax will generate the default output, save the
-predicted values and residuals to the active file, and save the
-linear model in a program called ``model.c.''
+The following PSPP syntax will generate the default output and save the
+predicted values and residuals to the active file.
 
 @example
 title 'Demonstrate REGRESSION procedure'.
@@ -122,19 +108,6 @@ b  6.200189 -18.58219
 end data.
 list.
 regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 
-           /export (model.c) /save pred resid /method=enter.
+           /save pred resid /method=enter.
 @end example
-
-The file pspp_model_reg.h contains these declarations:
-
-@example
-double pspp_reg_estimate (const double *, const char *[]);
-double pspp_reg_variance (const double *var_vals, const char *[]);
-double pspp_reg_confidence_interval_U (const double *var_vals, const char *var_names[], double p);
-double pspp_reg_confidence_interval_L (const double *var_vals, const char *var_names[], double p);
-double pspp_reg_prediction_interval_U (const double *var_vals, const char *var_names[], double p);
-double pspp_reg_prediction_interval_L (const double *var_vals, const char *var_names[], double p);
-@end example
-
-The file model.c contains the definitions of the functions. 
 @setfilename ignored
