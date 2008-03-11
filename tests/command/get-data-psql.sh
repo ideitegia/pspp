@@ -78,11 +78,12 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="create database"
-createdb  -h $TEMPDIR  -p $port $dbase > /dev/null 2> /dev/null
+$pgpath/createdb  -h $TEMPDIR  -p $port $dbase > /dev/null 2> /dev/null
+if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="populate database"
-psql  -h $TEMPDIR -p $port  $dbase > /dev/null << EOF
+$pgpath/psql  -h $TEMPDIR -p $port  $dbase > /dev/null << EOF
 
 CREATE TABLE empty (a int, b date, c numeric(23, 4));
 
