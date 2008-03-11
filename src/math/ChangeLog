@@ -1,3 +1,8 @@
+2008-03-10  Jason Stover  <jhs@debs.hoobahooba.net>
+
+	* coefficient.c (pspp_linreg_get_coeff): Removed use of
+	coefficient 0 as intercept.
+
 2008-03-01  Jason Stover  <jhs@math.gcsu.edu>
 
 	* coefficient.c (pspp_coeff_init): Ensure first arg is not a null

@@ -107,10 +107,7 @@ pspp_linreg_get_vars (const void *c_, const struct variable **v)
     {
       v[i] = NULL;
     }
-  /*
-     Start at c->coeff[1] to avoid the intercept.
-   */
-  for (j = 1; j < c->n_coeffs; j++)
+  for (j = 0; j < c->n_coeffs; j++)
     {
       tmp = pspp_coeff_get_var (c->coeff[j], 0);
       assert (tmp != NULL);
@@ -243,9 +240,9 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
   cache->dft = cache->n_obs - 1;
   cache->dfm = cache->n_indeps;
   cache->dfe = cache->dft - cache->dfm;
-  cache->n_coeffs = X->size2 + 1;	/* Adjust this later to allow for
-					   regression through the origin.
-					 */
+  cache->n_coeffs = X->size2;
+  cache->intercept = 0.0;
+
   if (cache->method == PSPP_LINREG_SWEEP)
     {
       gsl_matrix *sw;
@@ -319,7 +316,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
       for (i = 0; i < cache->n_indeps; i++)
 	{
 	  tmp = gsl_matrix_get (sw, i, cache->n_indeps);
-	  cache->coeff[i + 1]->estimate = tmp;
+	  cache->coeff[i]->estimate = tmp;
 	  m -= tmp * gsl_vector_get (cache->indep_means, i);
 	}
       /*
@@ -355,7 +352,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	    }
 	  gsl_matrix_set (cache->cov, 0, 0, tmp);
 
-	  cache->coeff[0]->estimate = m;
+	  cache->intercept = m;
 	}
       else
 	{

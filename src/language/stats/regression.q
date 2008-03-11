@@ -22,7 +22,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "regression-export.h"
 #include <data/case.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>
@@ -75,7 +74,6 @@
                     f,
                     defaults,
                     all;
-   export=custom;
    ^dependent=varlist;
    +save[sv_]=resid,pred;
    +method=enter.
@@ -112,12 +110,6 @@ static const struct variable **v_variables;
   Number of variables.
  */
 static size_t n_variables;
-
-/*
-  File where the model will be saved if the EXPORT subcommand
-  is given.
- */
-static struct file_handle *model_file;
 
 static bool run_regression (struct casereader *, struct cmd_regression *,
 			    struct dataset *, pspp_linreg_cache **);
@@ -185,6 +177,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   size_t j;
   int n_cols = 7;
   int n_rows;
+  int this_row;
   double t_stat;
   double pval;
   double coeff;
@@ -197,7 +190,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   struct tab_table *t;
 
   assert (c != NULL);
-  n_rows = c->n_coeffs + 2;
+  n_rows = c->n_coeffs + 3;
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 1, 0);
@@ -213,18 +206,18 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("(Constant)"));
-  coeff = c->coeff[0]->estimate;
-  tab_float (t, 2, 1, 0, coeff, 10, 2);
+  tab_float (t, 2, 1, 0, c->intercept, 10, 2);
   std_err = sqrt (gsl_matrix_get (c->cov, 0, 0));
   tab_float (t, 3, 1, 0, std_err, 10, 2);
-  beta = coeff / c->depvar_std;
+  beta = c->intercept / c->depvar_std;
   tab_float (t, 4, 1, 0, beta, 10, 2);
-  t_stat = coeff / std_err;
+  t_stat = c->intercept / std_err;
   tab_float (t, 5, 1, 0, t_stat, 10, 2);
   pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
   tab_float (t, 6, 1, 0, pval, 10, 2);
-  for (j = 1; j <= c->n_indeps; j++)
+  for (j = 0; j < c->n_coeffs; j++)
     {
+      this_row = j + 2;
       struct string tstr;
       ds_init_empty (&tstr);
 
@@ -245,37 +238,37 @@ reg_stats_coeff (pspp_linreg_cache * c)
 	  var_append_value_name (v, val, &tstr);
 	}
 
-      tab_text (t, 1, j + 1, TAB_CENTER, ds_cstr (&tstr));
+      tab_text (t, 1, this_row, TAB_CENTER, ds_cstr (&tstr));
       /*
          Regression coefficients.
        */
       coeff = c->coeff[j]->estimate;
-      tab_float (t, 2, j + 1, 0, coeff, 10, 2);
+      tab_float (t, 2, this_row, 0, coeff, 10, 2);
       /*
          Standard error of the coefficients.
        */
-      std_err = sqrt (gsl_matrix_get (c->cov, j, j));
-      tab_float (t, 3, j + 1, 0, std_err, 10, 2);
+      std_err = sqrt (gsl_matrix_get (c->cov, j + 1, j + 1));
+      tab_float (t, 3, this_row, 0, std_err, 10, 2);
       /*
          'Standardized' coefficient, i.e., regression coefficient
          if all variables had unit variance.
        */
-      beta = gsl_vector_get (c->indep_std, j);
+      beta = gsl_vector_get (c->indep_std, j + 1);
       beta *= coeff / c->depvar_std;
-      tab_float (t, 4, j + 1, 0, beta, 10, 2);
+      tab_float (t, 4, this_row, 0, beta, 10, 2);
 
       /*
          Test statistic for H0: coefficient is 0.
        */
       t_stat = coeff / std_err;
-      tab_float (t, 5, j + 1, 0, t_stat, 10, 2);
+      tab_float (t, 5, this_row, 0, t_stat, 10, 2);
       /*
          P values for the test statistic above.
        */
       pval =
 	2 * gsl_cdf_tdist_Q (fabs (t_stat),
 			     (double) (c->n_obs - c->n_coeffs));
-      tab_float (t, 6, j + 1, 0, pval, 10, 2);
+      tab_float (t, 6, this_row, 0, pval, 10, 2);
       ds_destroy (&tstr);
     }
   tab_title (t, _("Coefficients"));
@@ -395,7 +388,7 @@ reg_stats_bcov (pspp_linreg_cache * c)
   tab_vline (t, TAL_0, 1, 0, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Model"));
   tab_text (t, 1, 1, TAB_CENTER | TAT_TITLE, _("Covariances"));
-  for (i = 1; i < c->n_coeffs; i++)
+  for (i = 0; i < c->n_coeffs; i++)
     {
       const struct variable *v = pspp_coeff_get_var (c->coeff[i], 0);
       label = var_to_string (v);
@@ -672,7 +665,6 @@ reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
   add_transformation (ds, f, regression_trns_free, t);
   trns_index++;
 }
-
 static void
 subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
 {
@@ -722,232 +714,6 @@ subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
     }
 }
 
-static int
-reg_inserted (const struct variable *v, struct variable **varlist, int n_vars)
-{
-  int i;
-
-  for (i = 0; i < n_vars; i++)
-    {
-      if (v == varlist[i])
-	{
-	  return 1;
-	}
-    }
-  return 0;
-}
-
-static void
-reg_print_categorical_encoding (FILE * fp, pspp_linreg_cache * c)
-{
-  int i;
-  int n_vars = 0;
-  struct variable **varlist;
-
-  fprintf (fp, "%s", reg_export_categorical_encode_1);
-
-  varlist = xnmalloc (c->n_indeps, sizeof (*varlist));
-  for (i = 1; i < c->n_indeps; i++)	/* c->coeff[0] is the intercept. */
-    {
-      struct pspp_coeff *coeff = c->coeff[i];
-      const struct variable *v = pspp_coeff_get_var (coeff, 0);
-      if (var_is_alpha (v))
-	{
-	  if (!reg_inserted (v, varlist, n_vars))
-	    {
-	      fprintf (fp, "struct pspp_reg_categorical_variable %s;\n\t",
-		       var_get_name (v));
-	      varlist[n_vars] = (struct variable *) v;
-	      n_vars++;
-	    }
-	}
-    }
-  fprintf (fp, "int n_vars = %d;\n\t", n_vars);
-  fprintf (fp, "struct pspp_reg_categorical_variable *varlist[%d] = {",
-	   n_vars);
-  for (i = 0; i < n_vars - 1; i++)
-    {
-      fprintf (fp, "&%s,\n\t\t", var_get_name (varlist[i]));
-    }
-  fprintf (fp, "&%s};\n\t", var_get_name (varlist[i]));
-
-  for (i = 0; i < n_vars; i++)
-    {
-      int n_categories = cat_get_n_categories (varlist[i]);
-      int j;
-
-      fprintf (fp, "%s.name = \"%s\";\n\t",
-	       var_get_name (varlist[i]), var_get_name (varlist[i]));
-      fprintf (fp, "%s.n_vals = %d;\n\t",
-	       var_get_name (varlist[i]), n_categories);
-
-      for (j = 0; j < n_categories; j++)
-	{
-	  struct string vstr;
-	  const union value *val = cat_subscript_to_value (j, varlist[i]);
-	  ds_init_empty (&vstr);
-	  var_append_value_name (varlist[i], val, &vstr);
-	  fprintf (fp, "%s.values[%d] = \"%s\";\n\t",
-		   var_get_name (varlist[i]), j,
-		   ds_cstr (&vstr));
-
-	  ds_destroy (&vstr);
-	}
-    }
-  fprintf (fp, "%s", reg_export_categorical_encode_2);
-}
-
-static void
-reg_print_depvars (FILE * fp, pspp_linreg_cache * c)
-{
-  int i;
-  struct pspp_coeff *coeff;
-  const struct variable *v;
-
-  fprintf (fp, "char *model_depvars[%d] = {", c->n_indeps);
-  for (i = 1; i < c->n_indeps; i++)
-    {
-      coeff = c->coeff[i];
-      v = pspp_coeff_get_var (coeff, 0);
-      fprintf (fp, "\"%s\",\n\t\t", var_get_name (v));
-    }
-  coeff = c->coeff[i];
-  v = pspp_coeff_get_var (coeff, 0);
-  fprintf (fp, "\"%s\"};\n\t", var_get_name (v));
-}
-static void
-reg_print_getvar (FILE * fp, pspp_linreg_cache * c)
-{
-  fprintf (fp, "static int\npspp_reg_getvar (char *v_name)\n{\n\t");
-  fprintf (fp, "int i;\n\tint n_vars = %d;\n\t", c->n_indeps);
-  reg_print_depvars (fp, c);
-  fprintf (fp, "for (i = 0; i < n_vars; i++)\n\t{\n\t\t");
-  fprintf (fp,
-	   "if (strncmp (v_name, model_depvars[i], PSPP_REG_MAXLEN) == 0)\n\t\t{\n\t\t\t");
-  fprintf (fp, "return i;\n\t\t}\n\t}\n}\n");
-}
-static int
-reg_has_categorical (pspp_linreg_cache * c)
-{
-  int i;
-  const struct variable *v;
-
-  for (i = 1; i < c->n_coeffs; i++)
-    {
-      v = pspp_coeff_get_var (c->coeff[i], 0);
-      if (var_is_alpha (v))
-	return 1;
-    }
-  return 0;
-}
-
-static void
-subcommand_export (int export, pspp_linreg_cache * c)
-{
-  FILE *fp;
-  size_t i;
-  size_t j;
-  int n_quantiles = 100;
-  double tmp;
-  struct pspp_coeff *coeff;
-
-  if (export)
-    {
-      assert (c != NULL);
-      assert (model_file != NULL);
-      fp = fopen (fh_get_file_name (model_file), "w");
-      assert (fp != NULL);
-      fprintf (fp, "%s", reg_preamble);
-      reg_print_getvar (fp, c);
-      if (reg_has_categorical (c))
-	{
-	  reg_print_categorical_encoding (fp, c);
-	}
-      fprintf (fp, "%s", reg_export_t_quantiles_1);
-      for (i = 0; i < n_quantiles - 1; i++)
-	{
-	  tmp = 0.5 + 0.005 * (double) i;
-	  fprintf (fp, "%.15e,\n\t\t",
-		   gsl_cdf_tdist_Pinv (tmp, c->n_obs - c->n_indeps));
-	}
-      fprintf (fp, "%.15e};\n\t",
-	       gsl_cdf_tdist_Pinv (.9995, c->n_obs - c->n_indeps));
-      fprintf (fp, "%s", reg_export_t_quantiles_2);
-      fprintf (fp, "%s", reg_mean_cmt);
-      fprintf (fp, "double\npspp_reg_estimate (const double *var_vals,");
-      fprintf (fp, "const char *var_names[])\n{\n\t");
-      fprintf (fp, "double model_coeffs[%d] = {", c->n_indeps);
-      for (i = 1; i < c->n_indeps; i++)
-	{
-	  coeff = c->coeff[i];
-	  fprintf (fp, "%.15e,\n\t\t", coeff->estimate);
-	}
-      coeff = c->coeff[i];
-      fprintf (fp, "%.15e};\n\t", coeff->estimate);
-      coeff = c->coeff[0];
-      fprintf (fp, "double estimate = %.15e;\n\t", coeff->estimate);
-      fprintf (fp, "int i;\n\tint j;\n\n\t");
-      fprintf (fp, "for (i = 0; i < %d; i++)\n\t", c->n_indeps);
-      fprintf (fp, "%s", reg_getvar);
-      fprintf (fp, "const double cov[%d][%d] = {\n\t", c->n_coeffs,
-	       c->n_coeffs);
-      for (i = 0; i < c->cov->size1 - 1; i++)
-	{
-	  fprintf (fp, "{");
-	  for (j = 0; j < c->cov->size2 - 1; j++)
-	    {
-	      fprintf (fp, "%.15e, ", gsl_matrix_get (c->cov, i, j));
-	    }
-	  fprintf (fp, "%.15e},\n\t", gsl_matrix_get (c->cov, i, j));
-	}
-      fprintf (fp, "{");
-      for (j = 0; j < c->cov->size2 - 1; j++)
-	{
-	  fprintf (fp, "%.15e, ",
-		   gsl_matrix_get (c->cov, c->cov->size1 - 1, j));
-	}
-      fprintf (fp, "%.15e}\n\t",
-	       gsl_matrix_get (c->cov, c->cov->size1 - 1, c->cov->size2 - 1));
-      fprintf (fp, "};\n\tint n_vars = %d;\n\tint i;\n\tint j;\n\t",
-	       c->n_indeps);
-      fprintf (fp, "double unshuffled_vals[%d];\n\t", c->n_indeps);
-      fprintf (fp, "%s", reg_variance);
-      fprintf (fp, "%s", reg_export_confidence_interval);
-      tmp = c->mse * c->mse;
-      fprintf (fp, "%s %.15e", reg_export_prediction_interval_1, tmp);
-      fprintf (fp, "%s %.15e", reg_export_prediction_interval_2, tmp);
-      fprintf (fp, "%s", reg_export_prediction_interval_3);
-      fclose (fp);
-      fp = fopen ("pspp_model_reg.h", "w");
-      fprintf (fp, "%s", reg_header);
-      fclose (fp);
-    }
-}
-
-static int
-regression_custom_export (struct lexer *lexer, struct dataset *ds UNUSED,
-			  struct cmd_regression *cmd UNUSED, void *aux UNUSED)
-{
-  /* 0 on failure, 1 on success, 2 on failure that should result in syntax error */
-  if (!lex_force_match (lexer, '('))
-    return 0;
-
-  if (lex_match (lexer, '*'))
-    model_file = NULL;
-  else
-    {
-      fh_unref (model_file);
-      model_file = fh_parse (lexer, FH_REF_FILE);
-      if (model_file == NULL)
-	return 0;
-    }
-
-  if (!lex_force_match (lexer, ')'))
-    return 0;
-
-  return 1;
-}
-
 int
 cmd_regression (struct lexer *lexer, struct dataset *ds)
 {
@@ -957,10 +723,8 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   bool ok;
   size_t i;
 
-  model_file = NULL;
   if (!parse_regression (lexer, ds, &cmd, NULL))
     {
-      fh_unref (model_file);
       return CMD_FAILURE;
     }
 
@@ -981,7 +745,6 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
   free (v_variables);
   free (models);
   free_regression (&cmd);
-  fh_unref (model_file);
 
   return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
@@ -1094,10 +857,8 @@ prepare_categories (struct casereader *input,
 static void
 coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
 {
-  c->coeff = xnmalloc (dm->m->size2 + 1, sizeof (*c->coeff));
-  c->coeff[0] = xmalloc (sizeof (*(c->coeff[0])));	/* The first coefficient is the intercept. */
-  c->coeff[0]->v_info = NULL;	/* Intercept has no associated variable. */
-  pspp_coeff_init (c->coeff + 1, dm);
+  c->coeff = xnmalloc (dm->m->size2, sizeof (*c->coeff));
+  pspp_coeff_init (c->coeff, dm);
 }
 
 /*
@@ -1255,7 +1016,6 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	  if (!taint_has_tainted_successor (casereader_get_taint (input)))
 	    {
 	      subcommand_statistics (cmd->a_statistics, models[k]);
-	      subcommand_export (cmd->sbc_export, models[k]);
 	    }
 
 	  gsl_vector_free (Y);

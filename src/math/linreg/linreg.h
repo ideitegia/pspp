@@ -95,7 +95,8 @@ struct pspp_linreg_cache_struct
 {
   int n_obs;			/* Number of observations. */
   int n_indeps;			/* Number of independent variables. */
-  int n_coeffs;
+  int n_coeffs;                 /* The intercept is not considered a
+				   coefficient here. */
 
   /*
      The variable struct is ignored during estimation. It is here so
@@ -105,6 +106,7 @@ struct pspp_linreg_cache_struct
 
   gsl_vector *residuals;
   struct pspp_coeff **coeff;
+  double intercept;
   int method;			/* Method to use to estimate parameters. */
   /*
      Means and standard deviations of the variables.

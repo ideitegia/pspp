@@ -195,11 +195,8 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
     {
       return NULL;
     }
-  /*
-    C->N_COEFFS == 1 means regression through the origin.
-   */
-  i = (c->n_coeffs > 1) ? 1 : 0;
-  result = c->coeff[i];
+  i = 0;
+  result = c->coeff[0];
   tmp = pspp_coeff_get_var (result, 0);
   while (tmp != v && i < c->n_coeffs)
     {
@@ -207,8 +204,11 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
       tmp = pspp_coeff_get_var (result, 0);
       i++;
     }
-  if (i >= c->n_coeffs)
+  if (tmp != v)
     {
+      /*
+	Not found.
+       */
       return NULL;
     }
   if (var_is_numeric (v))
@@ -229,7 +229,7 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 	  result = c->coeff[i];
 	  tmp = pspp_coeff_get_var (result, 0);
 	}
-      if (i == c->n_coeffs)
+      if (i == c->n_coeffs && tmp != v)
 	{
 	  return NULL;
 	}

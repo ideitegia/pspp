@@ -51,7 +51,7 @@ pspp_linreg_predict (const struct variable **predictors,
 {
   const pspp_linreg_cache *c = c_;
   int j;
-  size_t next_coef = 1;
+  size_t next_coef = 0;
   const struct pspp_coeff **coef_list;
   const struct pspp_coeff *coe;
   double result;
@@ -67,8 +67,7 @@ pspp_linreg_predict (const struct variable **predictors,
       return c->depvar_mean;
     }
   coef_list = xnmalloc (c->n_coeffs, sizeof (*coef_list));
-  *coef_list = c->coeff[0];
-  result = c->coeff[0]->estimate;	/* Intercept. */
+  result = c->intercept;
 
   /*
      The loops guard against the possibility that the caller passed us
