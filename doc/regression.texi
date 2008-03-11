@@ -10,24 +10,24 @@ assumptions typical in linear regression:
 
 @itemize @bullet
 @item The data set contains n observations of a dependent variable, say
-Y_1,...,Y_n, and n observations of one or more explanatory
-variables. Let X_11, X_12, ..., X_1n denote the n observations of the
-first explanatory variable; X_21,...,X_2n denote the n observations of the
-second explanatory variable; X_k1,...,X_kn denote the n observations of the kth
+Y_1,@dots{},Y_n, and n observations of one or more explanatory
+variables. Let X_11, X_12, @dots{}, X_1n denote the n observations of the
+first explanatory variable; X_21,@dots{},X_2n denote the n observations of the
+second explanatory variable; X_k1,@dots{},X_kn denote the n observations of the kth
 explanatory variable.
 
 @item The dependent variable Y has the following relationship to the 
 explanatory variables:
 @math{Y_i = b_0 + b_1 X_{1i} + ... + b_k X_{ki} + Z_i} 
-where @math{b_0, b_1, ..., b_k} are unknown
-coefficients, and @math{Z_1,...,Z_n} are independent, normally
+where @math{b_0, b_1, @dots{}, b_k} are unknown
+coefficients, and @math{Z_1,@dots{},Z_n} are independent, normally
 distributed ``noise'' terms with common variance. The noise, or
 ``error'' terms are unobserved. This relationship is called the
 ``linear model.''
 @end itemize
 
 The REGRESSION procedure estimates the coefficients
-@math{b_0,...,b_k} and produces output relevant to inferences for the
+@math{b_0,@dots{},b_k} and produces output relevant to inferences for the
 linear model. 
 
 @c If you add any new commands, then don't forget to remove the entry in 
