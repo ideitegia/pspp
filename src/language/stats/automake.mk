@@ -32,7 +32,6 @@ language_stats_sources = \
 	src/language/stats/freq.h \
 	src/language/stats/npar-summary.c \
 	src/language/stats/npar-summary.h \
-	src/language/stats/regression-export.h \
 	$(src_language_stats_built_sources)
 
 all_q_sources += $(src_language_stats_built_sources:.c=.q)
