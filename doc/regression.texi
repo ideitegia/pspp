@@ -9,19 +9,19 @@ estimation. The procedure is appropriate for data which satisfy those
 assumptions typical in linear regression:
 
 @itemize @bullet
-@item The data set contains n observations of a dependent variable, say
-Y_1,@dots{},Y_n, and n observations of one or more explanatory
-variables. Let X_11, X_12, @dots{}, X_1n denote the n observations of the
-first explanatory variable; X_21,@dots{},X_2n denote the n observations of the
-second explanatory variable; X_k1,@dots{},X_kn denote the n observations of the kth
+@item The data set contains @math{n} observations of a dependent variable, say
+@math{Y_1,@dots{},Y_n}, and @math{n} observations of one or more explanatory
+variables. Let @math{X_{11}, X_{12}, @dots{}, X_{1n}} denote the @math{n} observations of the
+first explanatory variable; @math{X_{21},@dots{},X_{2n}} denote the @math{n} observations of the
+second explanatory variable; @math{X_{k1},@dots{},X_{kn}} denote the @math{n} observations of the kth
 explanatory variable.
 
-@item The dependent variable Y has the following relationship to the 
+@item The dependent variable @math{Y} has the following relationship to the 
 explanatory variables:
 @math{Y_i = b_0 + b_1 X_{1i} + ... + b_k X_{ki} + Z_i} 
 where @math{b_0, b_1, @dots{}, b_k} are unknown
 coefficients, and @math{Z_1,@dots{},Z_n} are independent, normally
-distributed ``noise'' terms with common variance. The noise, or
+distributed ``noise'' terms with mean zero and common variance. The noise, or
 ``error'' terms are unobserved. This relationship is called the
 ``linear model.''
 @end itemize

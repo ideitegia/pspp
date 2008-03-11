@@ -1,3 +1,9 @@
+2008-03-11  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.texi: Made more consistent use of math mode for
+	description of linear regression. Added reference to the mean of
+	the error terms being 0.
+
 2008-03-09  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.texi (REGRESSION): Removed references to subcommand EXPORT.
