@@ -217,9 +217,9 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_float (t, 6, 1, 0, pval, 10, 2);
   for (j = 0; j < c->n_coeffs; j++)
     {
-      this_row = j + 2;
       struct string tstr;
       ds_init_empty (&tstr);
+      this_row = j + 2;
 
       v = pspp_coeff_get_var (c->coeff[j], 0);
       label = var_to_string (v);
