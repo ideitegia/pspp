@@ -11,9 +11,9 @@ assumptions typical in linear regression:
 @itemize @bullet
 @item The data set contains @math{n} observations of a dependent variable, say
 @math{Y_1,@dots{},Y_n}, and @math{n} observations of one or more explanatory
-variables. Let @math{X_{11}, X_{12}, @dots{}, X_{1n}} denote the @math{n} observations of the
-first explanatory variable; @math{X_{21},@dots{},X_{2n}} denote the @math{n} observations of the
-second explanatory variable; @math{X_{k1},@dots{},X_{kn}} denote the @math{n} observations of the kth
+variables. Let @math{X_{11}, X_{12}}, @dots{}, @math{X_{1n}} denote the @math{n} observations of the
+first explanatory variable; @math{X_{21}},@dots{},@math{X_{2n}} denote the @math{n} observations of the
+second explanatory variable; @math{X_{k1}},@dots{},@math{X_{kn}} denote the @math{n} observations of the kth
 explanatory variable.
 
 @item The dependent variable @math{Y} has the following relationship to the 
