@@ -30,7 +30,6 @@
 #include <data/casereader.h>
 #include <data/datasheet.h>
 #include <data/file-handle-def.h>
-#include <data/format.h>
 #include <data/settings.h>
 #include <data/file-name.h>
 #include <data/procedure.h>

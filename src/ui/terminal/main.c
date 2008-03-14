@@ -34,7 +34,6 @@
 #include <data/file-handle-def.h>
 #include <libpspp/getl.h>
 #include <data/file-name.h>
-#include <data/format.h>
 #include <data/procedure.h>
 #include <data/settings.h>
 #include <data/variable.h>

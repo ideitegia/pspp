@@ -22,7 +22,6 @@
 #include <gtksheet/gtkextra-marshal.h>
 
 #include "psppire-dict.h"
-#include <data/format.h>
 #include <data/dictionary.h>
 #include <data/missing-values.h>
 #include <data/value-labels.h>

@@ -21,7 +21,6 @@
 #include <stdlib.h>
 
 #include <data/data-out.h>
-#include <data/format.h>
 #include <data/value.h>
 #include <data/variable.h>
 #include <libpspp/compiler.h>
