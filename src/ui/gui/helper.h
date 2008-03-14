@@ -21,7 +21,6 @@
 #include "relocatable.h"
 
 #include <data/value.h>
-#include <data/format.h>
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -33,6 +32,7 @@
 */
 #define RECENT_LISTS_AVAILABLE GTK_CHECK_VERSION (2, 10, 2)
 
+struct fmt_spec;
 
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */

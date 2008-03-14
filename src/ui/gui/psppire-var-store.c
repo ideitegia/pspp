@@ -33,6 +33,7 @@
 
 #include <data/dictionary.h>
 #include <data/variable.h>
+#include <data/format.h>
 #include <data/missing-values.h>
 
 #include "val-labs-dialog.h"

@@ -23,6 +23,7 @@
 #include <data/procedure.h>
 #include <data/value.h>
 #include <data/variable.h>
+#include <data/format.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>

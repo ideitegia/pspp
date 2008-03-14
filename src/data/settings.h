@@ -19,7 +19,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "format.h"
 
 struct settings;
 
@@ -127,6 +126,7 @@ void settings_set_syntax (enum behavior_mode);
 void settings_set_cmd_algorithm (enum behavior_mode);
 void unset_cmd_algorithm (void);
 
+enum fmt_type;
 bool settings_set_cc (const char *cc_string, enum fmt_type type);
 
 int settings_get_decimal_char (enum fmt_type type);

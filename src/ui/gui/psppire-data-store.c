@@ -39,6 +39,7 @@
 #include <data/missing-values.h>
 #include <data/value-labels.h>
 #include <data/data-in.h>
+#include <data/format.h>
 
 
 static void psppire_data_store_init            (PsppireDataStore      *data_store);

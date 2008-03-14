@@ -19,13 +19,13 @@
 
 #include <stdbool.h>
 
-#include <data/format.h>
-
-
 struct lexer;
 
-bool parse_abstract_format_specifier (struct lexer *, char type[FMT_TYPE_LEN_MAX + 1],
+bool parse_abstract_format_specifier (struct lexer *, char *type,
                                       int *width, int *decimals);
+
+enum fmt_type ;
+struct fmt_spec;
 bool parse_format_specifier (struct lexer *, struct fmt_spec *);
 bool parse_format_specifier_name (struct lexer *, enum fmt_type *type);
 

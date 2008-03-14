@@ -18,13 +18,13 @@
 #define DATA_DATA_IN_H 1
 
 #include <stdbool.h>
-#include <data/format.h>
 #include <libpspp/legacy-encoding.h>
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/str.h>
 
 
+enum fmt_type;
 union value;
 bool data_in (struct substring input, enum legacy_encoding,
               enum fmt_type, int implied_decimals,

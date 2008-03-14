@@ -22,6 +22,7 @@
 #include "lexer.h"
 #include <libpspp/str.h>
 #include <data/value.h>
+#include <data/format.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

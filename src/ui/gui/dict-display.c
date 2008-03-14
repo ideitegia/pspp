@@ -24,6 +24,7 @@
 #include "psppire-dict.h"
 #include "helper.h"
 #include <data/variable.h>
+#include <data/format.h>
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid

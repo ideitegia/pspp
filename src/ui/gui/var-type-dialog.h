@@ -18,11 +18,10 @@
 #ifndef __PSPPIRE_VAR_TYPE_DIALOG_H
 #define __PSPPIRE_VAR_TYPE_DIALOG_H
 
+#include <data/format.h>
 
 /*  This module describes the behaviour of the Variable Type dialog box,
     used for input of the variable type parameter in the var sheet */
-
-#include <data/format.h>
 
 enum
   {

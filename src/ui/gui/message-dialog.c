@@ -24,6 +24,7 @@
 #define N_(msgid) msgid
 
 #include <libpspp/message.h>
+#include <libpspp/str.h>
 #include <libpspp/msg-locator.h>
 #include "message-dialog.h"
 #include "progname.h"

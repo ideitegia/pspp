@@ -26,6 +26,8 @@
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 
+#include <data/format.h>
+
 #include "xalloc.h"
 #include "xsize.h"
 

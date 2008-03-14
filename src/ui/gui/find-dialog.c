@@ -27,6 +27,7 @@ which match particular strings */
 #include "data-editor.h"
 #include "dict-display.h"
 #include <data/value.h>
+#include <data/format.h>
 #include <data/datasheet.h>
 #include <data/data-in.h>
 #include "psppire-data-store.h"

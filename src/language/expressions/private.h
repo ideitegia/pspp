@@ -19,11 +19,12 @@
 
 #include <assert.h>
 #include <stddef.h>
-#include <data/format.h>
 #include <libpspp/str.h>
 
 #include "public.h"
 #include "operations.h"
+
+#include <data/format.h>
 
 enum operation_flags
   {

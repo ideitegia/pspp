@@ -23,6 +23,7 @@
 #include <data/procedure.h>
 #include <data/transformations.h>
 #include <data/variable.h>
+#include <data/format.h>
 #include <language/command.h>
 #include <language/data-io/data-writer.h>
 #include <language/data-io/file-handle.h>

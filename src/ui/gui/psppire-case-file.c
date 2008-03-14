@@ -22,6 +22,7 @@
 
 #include <gtksheet/gtkextra-marshal.h>
 
+#include <data/format.h>
 #include <data/case.h>
 #include <data/data-in.h>
 #include <data/datasheet.h>

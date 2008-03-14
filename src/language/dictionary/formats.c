@@ -22,6 +22,7 @@
 
 #include <data/procedure.h>
 #include <data/variable.h>
+#include <data/format.h>
 #include <language/command.h>
 #include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>

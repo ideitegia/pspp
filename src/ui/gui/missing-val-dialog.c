@@ -24,6 +24,7 @@
 
 
 #include "helper.h"
+#include <data/format.h>
 #include "missing-val-dialog.h"
 #include <data/missing-values.h>
 #include <data/variable.h>

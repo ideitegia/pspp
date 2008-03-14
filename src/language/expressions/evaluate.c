@@ -22,6 +22,7 @@
 #include <libpspp/message.h>
 #include "helpers.h"
 #include "evaluate.h"
+#include <data/format.h>
 #include <libpspp/pool.h>
 
 #include "xalloc.h"

@@ -25,6 +25,7 @@
 #include <glib.h>
 #include "helper.h"
 #include "message-dialog.h"
+#include <data/format.h>
 #include <data/data-in.h>
 #include <data/data-out.h>
 #include <data/dictionary.h>

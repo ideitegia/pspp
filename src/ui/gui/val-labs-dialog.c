@@ -25,6 +25,7 @@
 #include "helper.h"
 #include "val-labs-dialog.h"
 #include <data/value-labels.h>
+#include <data/format.h>
 
 
 struct val_labs_dialog

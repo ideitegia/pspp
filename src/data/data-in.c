@@ -32,6 +32,7 @@
 #include "identifier.h"
 #include "settings.h"
 #include "value.h"
+#include "format.h"
 
 #include <libpspp/assertion.h>
 #include <libpspp/legacy-encoding.h>

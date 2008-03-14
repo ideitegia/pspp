@@ -21,6 +21,7 @@
 #include "dict-display.h"
 #include "var-display.h"
 #include <data/variable.h>
+#include <data/format.h>
 #include <data/value-labels.h>
 #include "data-editor.h"
 #include "psppire-dialog.h"

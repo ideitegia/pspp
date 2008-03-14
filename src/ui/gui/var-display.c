@@ -2,6 +2,7 @@
 #include "var-display.h"
 
 #include <data/variable.h>
+#include <data/format.h>
 #include <stdlib.h>
 
 #include <gettext.h>
