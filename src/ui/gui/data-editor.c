@@ -48,6 +48,7 @@
 #include "examine-dialog.h"
 #include "dict-display.h"
 #include "regression-dialog.h"
+#include "text-data-import-dialog.h"
 
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
@@ -702,6 +703,11 @@ new_data_editor (void)
 		    G_CALLBACK (open_syntax_window),
 		    e->window);
 
+  g_signal_connect_swapped (get_widget_assert (de->xml,"file_import-text"),
+			    "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->invoke_text_import_assistant);
+
   g_signal_connect_swapped (get_widget_assert (de->xml,"file_save"),
 			    "activate",
 			    G_CALLBACK (gtk_action_activate),
@@ -1223,6 +1229,15 @@ register_data_editor_actions (struct data_editor *de)
 
   g_signal_connect (de->action_data_new, "activate",
 		    G_CALLBACK (new_file), de);
+
+  de->invoke_text_import_assistant =
+    gtk_action_new ("file_import-text",
+		    _("_Import Text Data"),
+		    _("Import text data file"),
+		    "");
+
+  g_signal_connect (de->invoke_text_import_assistant, "activate",
+		    G_CALLBACK (text_data_import_assistant), de);
 }
 
 /* Returns true if NAME has a suffix which might denote a PSPP file */

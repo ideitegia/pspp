@@ -33,6 +33,8 @@ struct data_editor
   GtkAction *action_data_save;
 
 
+  GtkAction *invoke_text_import_assistant;
+
   /* Actions which invoke dialog boxes */
   GtkAction *invoke_weight_cases_dialog;
   GtkAction *invoke_transpose_dialog;

@@ -1,3 +1,20 @@
+2008-03-16  Ben Pfaff  <blp@gnu.org>
+
+	Patch #5368.  Reviewed by John Darrington.  Tested by Jason
+	Stover.
+
+	* automake.mk: Add new files.
+
+	* data-editor.glade: Add "import delimited text data" menu item.
+
+	* data-editor.c: Connect "import delimited text data" menu item.
+
+	* text-data-import-dialog.c: New file.
+
+	* text-data-import-dialog.h: New file.
+
+	* text-data-import.glade: New file.
+
 2008-03-07  Ben Pfaff  <blp@gnu.org>
 
 	* psppire-var-sheet.c: Initialize "may-create-vars" to TRUE by

@@ -62,6 +62,7 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/recode.glade \
 	$(top_srcdir)/src/ui/gui/regression.glade \
 	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
+	$(top_srcdir)/src/ui/gui/text-data-import.glade \
 	$(top_srcdir)/src/ui/gui/t-test.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
@@ -167,6 +168,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/syntax-editor.h \
 	src/ui/gui/syntax-editor-source.c \
 	src/ui/gui/syntax-editor-source.h \
+	src/ui/gui/text-data-import-dialog.c \
+	src/ui/gui/text-data-import-dialog.h \
 	src/ui/gui/transpose-dialog.c \
 	src/ui/gui/transpose-dialog.h \
 	src/ui/gui/t-test-independent-samples-dialog.c \
