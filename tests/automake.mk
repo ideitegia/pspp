@@ -68,6 +68,7 @@ dist_TESTS = \
 	tests/command/trimmed-mean.sh \
 	tests/command/tabs.sh \
 	tests/command/use.sh \
+	tests/command/variable-display.sh \
 	tests/command/vector.sh \
 	tests/command/very-long-strings.sh \
 	tests/command/weight.sh \

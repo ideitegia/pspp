@@ -1,3 +1,11 @@
+2008-03-16  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6452.  Reviewed by John Darrington.
+
+	* automake.mk: Add new test.
+
+	* command/variable-display.sh: New test.
+
 2008-03-04  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6441.  Reviewed by John Darrington.

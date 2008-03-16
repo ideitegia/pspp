@@ -1,3 +1,11 @@
+2008-03-16  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6452.  Reviewed by John Darrington.
+
+	* variable-display.c (cmd_variable_width): Fix parsing bug.  Also,
+	limit variable display widths to within range 1 thru 2 *
+	MAX_STRING.
+
 2007-11-11  Ben Pfaff  <blp@gnu.org>
 
 	* sys-file-info.c (display_variables): Fix DISPLAY LABELS.  Thanks

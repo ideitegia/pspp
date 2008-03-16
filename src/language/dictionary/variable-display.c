@@ -29,6 +29,9 @@
 
 #include "xalloc.h"
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+
 /* Set variables' alignment
    This is the alignment for GUI display only.
    It affects nothing but GUIs
@@ -91,23 +94,36 @@ cmd_variable_width (struct lexer *lexer, struct dataset *ds)
   do
     {
       struct variable **v;
+      long int width;
       size_t nv;
       size_t i;
 
       if (!parse_variables (lexer, dataset_dict (ds), &v, &nv, PV_NONE))
         return CMD_FAILURE;
 
-      if ( lex_force_match (lexer, '(') )
-	{
-	  if ( lex_force_int (lexer))
-	    lex_get (lexer);
-	  else
-	    return CMD_FAILURE;
-	  lex_force_match (lexer, ')');
-	}
+      if (!lex_force_match (lexer, '(') || !lex_force_int (lexer))
+        {
+          free (v);
+          return CMD_FAILURE;
+        }
+      width = lex_integer (lexer);
+      lex_get (lexer);
+      if (!lex_force_match (lexer, ')'))
+        {
+          free (v);
+          return CMD_FAILURE;
+        }
+
+      if (width < 0)
+        {
+          msg (SE, _("Variable display width must be a positive integer."));
+          free (v);
+          return CMD_FAILURE;
+        }
+      width = MIN (width, 2 * MAX_STRING);
 
       for( i = 0 ; i < nv ; ++i )
-        var_set_display_width (v[i], lex_integer (lexer));
+        var_set_display_width (v[i], width);
 
       while (lex_token (lexer) == '/')
 	lex_get (lexer);
