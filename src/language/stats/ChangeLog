@@ -1,3 +1,11 @@
+2008-03-16  Ben Pfaff  <blp@gnu.org>
+
+	Bug #22037.  Thanks to John Darrington for reporting this bug.
+	
+	* crosstabs.q (calc_general): Only the short string prefix of long
+	string variables are tabulated, so we must not copy or zero out
+	more data than that.
+
 2008-03-10  Jason Stover  <jhs@debs.hoobahooba.net>
 
 	* regression.q (run_regression): Removed code for EXPORT

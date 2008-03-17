@@ -637,12 +637,14 @@ calc_general (struct ccase *c, const struct dataset *ds)
 	      te->values[j].f = case_num (c, x->vars[j]);
 	    else
 	      {
-		memcpy (te->values[j].s, case_str (c, x->vars[j]),
-                        var_get_width (x->vars[j]));
+                size_t n = var_get_width (x->vars[j]);
+                if (n > MAX_SHORT_STRING)
+                  n = MAX_SHORT_STRING;
+		memcpy (te->values[j].s, case_str (c, x->vars[j]), n);
 
 		/* Necessary in order to simplify comparisons. */
 		memset (&te->values[j].s[var_get_width (x->vars[j])], 0,
-			sizeof (union value) - var_get_width (x->vars[j]));
+			sizeof (union value) - n);
 	      }
 	  }
       }

@@ -100,6 +100,7 @@ dist_TESTS = \
 	tests/bugs/compression.sh \
 	tests/bugs/crosstabs.sh \
 	tests/bugs/crosstabs-crash.sh \
+	tests/bugs/crosstabs-crash2.sh \
 	tests/bugs/curtailed.sh \
 	tests/bugs/data-crash.sh \
 	tests/bugs/double-frequency.sh \

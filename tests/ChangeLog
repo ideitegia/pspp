@@ -1,5 +1,13 @@
 2008-03-16  Ben Pfaff  <blp@gnu.org>
 
+	Bug #22037.
+
+	* automake.mk: Add new test.
+
+	* bugs/crosstabs-crash2.sh: New test.
+
+2008-03-16  Ben Pfaff  <blp@gnu.org>
+
 	Patch #6452.  Reviewed by John Darrington.
 
 	* automake.mk: Add new test.
