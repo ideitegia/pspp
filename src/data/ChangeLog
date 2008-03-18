@@ -1,3 +1,8 @@
+2008-03-18  John Darrington <john@darrington.wattle.id.au>
+
+	* data-in.c: If category is custom currency, then use
+	numeric format for input.
+
 2008-03-06  Ben Pfaff  <blp@gnu.org>
 
 	* dictionary.c (var_name_is_insertable): New function.

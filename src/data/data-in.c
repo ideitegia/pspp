@@ -171,7 +171,10 @@ parse_number (struct data_in *i)
   int save_errno;
   char *tail;
 
-  assert (fmt_get_category (i->format) != FMT_CAT_CUSTOM);
+  if  (fmt_get_category (i->format) == FMT_CAT_CUSTOM)
+    {
+      style = settings_get_style (FMT_F);
+    }
 
   /* Trim spaces and check for missing value representation. */
   if (trim_spaces_and_check_missing (i))
