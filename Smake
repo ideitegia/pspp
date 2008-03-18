@@ -11,6 +11,7 @@ GNULIB_MODULES = \
 	c-strtod \
 	crypto/md4 \
 	dirname \
+	environ \
 	exit \
 	fatal-signal \
 	fpieee \
