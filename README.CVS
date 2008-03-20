@@ -14,7 +14,9 @@ following:
 
         * gperf 3.0.1 (or later).
 
-	* Gnulib, from CVS (see http://savannah.gnu.org/cvs/?group=gnulib).
+	* Gnulib, from Git at <git://git.savannah.gnu.org/gnulib.git>.
+	  If you do not have Git installed, up-to-date snapshots are
+	  at <http://git.savannah.gnu.org/gitweb/?p=gnulib.git>.
 	  Note that Gnulib does not require any form of installation:
 	  simply checking it out into a directory is sufficient.  We
 	  recommend checking out gnulib into a directory named `gnulib'
