@@ -80,7 +80,7 @@ if test -n "$PG_CONFIG" ; then
 
    PG_LIBS=-lpq
    AC_SUBST(PG_LIBS)
-   PKG_CHECK_MODULES(OPENSSL,libssl,
+   PKG_CHECK_EXISTS(libssl,
          AC_DEFINE([USE_SSL],1,
 	 	    [Define to 1 if the openssl library is present.])
 	    ,)
