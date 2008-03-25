@@ -320,7 +320,7 @@ new_data_editor (void)
 
   de->toggle_value_labels =
     gtk_toggle_action_new ("toggle-value-labels",
-			   _("Labels"),
+			   _("_Labels"),
 			   _("Show/hide value labels"),
 			   "pspp-value-labels");
 
@@ -374,7 +374,7 @@ new_data_editor (void)
 
   de->insert_variable =
     gtk_action_new ("insert-variable",
-		    _("Insert Variable"),
+		    _("Insert _Variable"),
 		    _("Create a new variable at the current position"),
 		    "pspp-insert-variable");
 
@@ -393,7 +393,7 @@ new_data_editor (void)
 
   de->insert_case =
     gtk_action_new ("insert-case",
-		    _("Insert Case"),
+		    _("Insert Ca_se"),
 		    _("Create a new case at the current position"),
 		    "pspp-insert-case");
 
@@ -414,7 +414,7 @@ new_data_editor (void)
 
   de->invoke_goto_dialog =
     gtk_action_new ("goto-case-dialog",
-		    _("Goto Case"),
+		    _("_Goto Case"),
 		    _("Jump to a Case in the Data Sheet"),
 		    "gtk-jump-to");
 
@@ -434,7 +434,7 @@ new_data_editor (void)
 
   de->invoke_weight_cases_dialog =
     gtk_action_new ("weight-cases-dialog",
-		    _("Weights"),
+		    _("_Weights"),
 		    _("Weight cases by variable"),
 		    "pspp-weight-cases");
 
@@ -444,7 +444,7 @@ new_data_editor (void)
 
   de->invoke_transpose_dialog =
     gtk_action_new ("transpose-dialog",
-		    _("Transpose"),
+		    _("_Transpose"),
 		    _("Transpose the cases with the variables"),
 		    NULL);
 
@@ -456,7 +456,7 @@ new_data_editor (void)
 
   de->invoke_split_file_dialog =
     gtk_action_new ("split-file-dialog",
-		    _("Split"),
+		    _("S_plit"),
 		    _("Split the active file"),
 		    "pspp-split-file");
 
@@ -467,7 +467,7 @@ new_data_editor (void)
 
   de->invoke_sort_cases_dialog =
     gtk_action_new ("sort-cases-dialog",
-		    _("Sort"),
+		    _("_Sort"),
 		    _("Sort cases in the active file"),
 		    "pspp-sort-cases");
 
@@ -476,7 +476,7 @@ new_data_editor (void)
 
   de->invoke_select_cases_dialog =
     gtk_action_new ("select-cases-dialog",
-		    _("Select Cases"),
+		    _("Select _Cases"),
 		    _("Select cases from the active file"),
 		    "pspp-select-cases");
 
@@ -486,7 +486,7 @@ new_data_editor (void)
 
   de->invoke_compute_dialog =
     gtk_action_new ("compute-dialog",
-		    _("Compute"),
+		    _("_Compute"),
 		    _("Compute new values for a variable"),
 		    "pspp-compute");
 
@@ -534,7 +534,7 @@ new_data_editor (void)
 
   de->invoke_comments_dialog =
     gtk_action_new ("commments-dialog",
-		    _("Data File Comments"),
+		    _("Data File _Comments"),
 		    _("Commentary text for the data file"),
 		    NULL);
 
@@ -543,7 +543,7 @@ new_data_editor (void)
 
   de->invoke_find_dialog  =
     gtk_action_new ("find-dialog",
-		    _("Find"),
+		    _("_Find"),
 		    _("Find Case"),
 		    "gtk-find");
 
@@ -583,7 +583,7 @@ new_data_editor (void)
 
   de->invoke_variable_info_dialog  =
     gtk_action_new ("variable-info-dialog",
-		    _("Variables"),
+		    _("_Variables"),
 		    _("Jump to Variable"),
 		    "pspp-goto-variable");
 

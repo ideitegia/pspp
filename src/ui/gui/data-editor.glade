@@ -80,6 +80,11 @@
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkSeparatorMenuItem" id="file_separator1">
+                        <property name="visible">True</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="file_save">
                         <property name="visible">True</property>
                         <property name="label">gtk-save</property>
@@ -96,8 +101,8 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorMenuItem" id="file_separator1">
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                      <widget class="GtkSeparatorMenuItem" id="file_separator2">
+                        <property name="visible">True</property>
                       </widget>
                     </child>
                     <child>
@@ -115,7 +120,7 @@
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkSeparatorMenuItem" id="separatormenuitem1">
+                      <widget class="GtkSeparatorMenuItem" id="file_separator3">
                         <property name="visible">True</property>
                       </widget>
                     </child>
@@ -238,15 +243,9 @@
                     <child>
                       <widget class="GtkCheckMenuItem" id="view_statusbar">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Status Bar</property>
+                        <property name="label" translatable="yes">_Status Bar</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkMenuItem" id="toolbars">
-                        <property name="label" translatable="yes">Toolbars</property>
-                        <property name="use_underline">True</property>
                       </widget>
                     </child>
                     <child>
@@ -257,14 +256,14 @@
                     <child>
                       <widget class="GtkMenuItem" id="view_fonts">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Fonts</property>
+                        <property name="label" translatable="yes">_Fonts</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
                     <child>
                       <widget class="GtkCheckMenuItem" id="view_gridlines">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Grid Lines</property>
+                        <property name="label" translatable="yes">_Grid Lines</property>
                         <property name="use_underline">True</property>
                         <property name="active">True</property>
                       </widget>
@@ -272,7 +271,7 @@
                     <child>
                       <widget class="GtkCheckMenuItem" id="view_value-labels">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Value Labels</property>
+                        <property name="label" translatable="yes">Value _Labels</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
@@ -284,14 +283,14 @@
                     <child>
                       <widget class="GtkMenuItem" id="view_data">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Data</property>
+                        <property name="label" translatable="yes">_Data</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
                     <child>
                       <widget class="GtkMenuItem" id="view_variables">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Variables</property>
+                        <property name="label" translatable="yes">_Variables</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
@@ -309,7 +308,7 @@
                     <child>
                       <widget class="GtkMenuItem" id="data_sort-cases">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Sort Cases</property>
+                        <property name="label" translatable="yes">_Sort Cases</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
@@ -317,21 +316,7 @@
                       <widget class="GtkMenuItem" id="data_transpose">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="label" translatable="yes">Transpose</property>
-                        <property name="use_underline">True</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkMenuItem" id="data_merge-files">
-                        <property name="sensitive">False</property>
-                        <property name="label" translatable="yes">Merge Files</property>
-                        <property name="use_underline">True</property>
-                      </widget>
-                    </child>
-                    <child>
-                      <widget class="GtkMenuItem" id="data_aggregate">
-                        <property name="sensitive">False</property>
-                        <property name="label" translatable="yes">Aggregate</property>
+                        <property name="label" translatable="yes">_Transpose</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
@@ -344,7 +329,7 @@
                     <child>
                       <widget class="GtkMenuItem" id="data_split-file">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Split File</property>
+                        <property name="label" translatable="yes">S_plit File</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
@@ -352,14 +337,14 @@
                       <widget class="GtkMenuItem" id="data_select-cases">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
-                        <property name="label" translatable="yes">Select Cases</property>
+                        <property name="label" translatable="yes">Select _Cases</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
                     <child>
                       <widget class="GtkMenuItem" id="data_weight-cases">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">Weight Cases</property>
+                        <property name="label" translatable="yes">_Weight Cases</property>
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
@@ -534,7 +519,7 @@
                     </child>
                     <child>
                       <widget class="GtkMenuItem" id="bivariate-correlation">
-                        <property name="visible">True</property>
+                        <property name="visible">False</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="label" translatable="yes">Bivariate _Correlation</property>
                         <property name="use_underline">True</property>
@@ -550,7 +535,7 @@
                     </child>
                     <child>
                       <widget class="GtkMenuItem" id="non-parametrics">
-                        <property name="visible">True</property>
+                        <property name="visible">False</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="label" translatable="yes">_Non-Parametric Statistics</property>
                         <property name="use_underline">True</property>

@@ -1,3 +1,9 @@
+2008-03-25  John Darrington <john@darrington.wattle.id.au>
+
+	* data-editor.glade: Removed unused menuitems.
+
+	* data-editor.c data-editor.glade: Added Mnemonics to all menuitems.
+
 2008-03-16  Ben Pfaff  <blp@gnu.org>
 
 	Patch #5368.  Reviewed by John Darrington.  Tested by Jason
