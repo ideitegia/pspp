@@ -22,6 +22,9 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <errno.h>
+#if ! HAVE_READLINE
+#include <stdint.h>
+#endif
 
 #include "msg-ui.h"
 
