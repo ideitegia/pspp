@@ -226,7 +226,7 @@ g_sheet_hetero_column_set_button_label (GSheetHeteroColumn *geo,
 
 
 
-inline void
+void
 g_sheet_hetero_column_set_width (GSheetHeteroColumn *geo, glong i, gint size)
 {
   GSheetColumn *iface = G_SHEET_COLUMN (geo);

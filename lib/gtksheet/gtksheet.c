@@ -7839,7 +7839,7 @@ gtk_sheet_button_new (void)
 }
 
 
-inline void
+void
 gtk_sheet_button_free (GtkSheetButton *button)
 {
   if (!button) return ;

@@ -449,7 +449,7 @@ hsh_sort_copy (struct hsh_table *h)
    to a pointer to that entry; otherwise returns a pointer to a
    NULL entry which *must* be used to insert a new entry having
    the same key data.  */
-inline void **
+void **
 hsh_probe (struct hsh_table *h, const void *target)
 {
   unsigned i;

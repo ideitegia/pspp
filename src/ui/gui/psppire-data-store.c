@@ -68,7 +68,7 @@ enum  {FONT_CHANGED,
 static guint signals [n_SIGNALS];
 
 
-inline GType
+GType
 psppire_data_store_get_type (void)
 {
   static GType data_store_type = 0;
@@ -162,7 +162,7 @@ psppire_data_store_get_var_count (const GSheetModel *model)
   return psppire_dict_get_var_cnt (store->dict);
 }
 
-inline casenumber
+casenumber
 psppire_data_store_get_case_count (const PsppireDataStore *store)
 {
   return psppire_case_file_get_case_count (store->case_file);
@@ -174,7 +174,7 @@ psppire_data_store_get_value_count (const PsppireDataStore *store)
   return psppire_dict_get_value_cnt (store->dict);
 }
 
-inline casenumber
+casenumber
 psppire_data_store_get_case_count_wrapper (const GSheetModel *model)
 {
   const PsppireDataStore *store = PSPPIRE_DATA_STORE (model);

@@ -37,7 +37,7 @@ static guint sheet_model_signals[LAST_SIGNAL] = { 0 };
 static void      g_sheet_model_base_init   (gpointer           g_class);
 
 
-inline GType
+GType
 g_sheet_model_get_type (void)
 {
   static GType sheet_model_type = 0;
@@ -148,7 +148,7 @@ g_sheet_model_base_init (gpointer g_class)
  * Returns: True if strings obtained with get_string should be freed by the
  * sheet when no longer required.
  **/
-inline  gboolean
+gboolean
 g_sheet_model_free_strings (const GSheetModel *sheet_model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (sheet_model), FALSE);
@@ -166,7 +166,7 @@ g_sheet_model_free_strings (const GSheetModel *sheet_model)
  * Retrieves the datum at location ROW, COLUMN in the form of a string.
  * Returns: The string representation of the datum, or NULL on error.
  **/
-inline gchar *
+gchar *
 g_sheet_model_get_string (const GSheetModel *sheet_model,
 			  glong row, glong column)
 {
@@ -335,7 +335,7 @@ g_sheet_model_columns_deleted (GSheetModel *sheet_model,
  *
  * Returns: TRUE if the cell is editable, FALSE otherwise
  **/
-inline gboolean
+gboolean
 g_sheet_model_is_editable (const GSheetModel *model,
 			     glong row, glong column)
 {
@@ -356,7 +356,7 @@ g_sheet_model_is_editable (const GSheetModel *model,
  *
  * Returns: TRUE if the cell is visible, FALSE otherwise
  **/
-inline gboolean
+gboolean
 g_sheet_model_is_visible (const GSheetModel *model,
 			  glong row, glong column)
 {
@@ -379,7 +379,7 @@ g_sheet_model_is_visible (const GSheetModel *model,
  * Returns the foreground colour of the cell at @row, @column
  * Returns: the foreground colour, or NULL on error.
  **/
-inline const GdkColor *
+const GdkColor *
 g_sheet_model_get_foreground (const GSheetModel *model,
 				glong row, glong column)
 {
@@ -401,7 +401,7 @@ g_sheet_model_get_foreground (const GSheetModel *model,
  * Returns the background colour of the cell at @row, @column
  * Returns: the background colour, or NULL on error.
  **/
-inline const GdkColor *
+const GdkColor *
 g_sheet_model_get_background (const GSheetModel *model,
 				glong row, glong column)
 {
@@ -423,7 +423,7 @@ g_sheet_model_get_background (const GSheetModel *model,
  * Returns the justification of the cell at @row, @column
  * Returns: the justification, or NULL on error.
  **/
-inline const GtkJustification *
+const GtkJustification *
 g_sheet_model_get_justification (const GSheetModel *model,
 				   glong row, glong column)
 {
@@ -445,7 +445,7 @@ g_sheet_model_get_justification (const GSheetModel *model,
  * Returns the font description of the cell at @row, @column
  * Returns: the font description, or NULL on error.
  **/
-inline const PangoFontDescription *
+const PangoFontDescription *
 g_sheet_model_get_font_desc(const GSheetModel *model,
 			      glong row, glong column)
 {
@@ -466,7 +466,7 @@ g_sheet_model_get_font_desc(const GSheetModel *model,
  * Returns the cell border of the cell at @row, @column
  * Returns: the cell border, or NULL on error.
  **/
-inline const GtkSheetCellBorder *
+const GtkSheetCellBorder *
 g_sheet_model_get_cell_border (const GSheetModel *model,
 				 glong row, glong column)
 {
@@ -486,7 +486,7 @@ g_sheet_model_get_cell_border (const GSheetModel *model,
  *
  * Returns the total number of columns represented by the model
  **/
-inline glong
+glong
 g_sheet_model_get_column_count (const GSheetModel *model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);
@@ -500,7 +500,7 @@ g_sheet_model_get_column_count (const GSheetModel *model)
  *
  * Returns the total number of rows represented by the model
  **/
-inline gint
+gint
 g_sheet_model_get_row_count(const GSheetModel *model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);

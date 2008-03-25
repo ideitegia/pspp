@@ -487,7 +487,7 @@ psppire_dict_check_name (const PsppireDict *dict,
 }
 
 
-inline gint
+gint
 psppire_dict_get_next_value_idx (const PsppireDict *dict)
 {
   return dict_get_next_value_idx (dict->dict);

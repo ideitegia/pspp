@@ -171,7 +171,7 @@ g_sheet_row_get_button(const GSheetRow *row_geo,
   return button;
 }
 
-inline gchar *
+gchar *
 g_sheet_row_get_subtitle (const GSheetRow *row_geo, glong row)
 {
   g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), NULL);

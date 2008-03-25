@@ -118,7 +118,7 @@ abt_insert (struct abt *abt, struct abt_node *node)
    the tree, if AFTER is true, or the last node, if AFTER is
    false. */
 static inline void
-insert_relative (struct abt *abt, struct abt_node *p, bool after,
+insert_relative (struct abt *abt, const struct abt_node *p, bool after,
                  struct abt_node *node)
 {
   node->down[0] = NULL;
@@ -145,8 +145,8 @@ insert_relative (struct abt *abt, struct abt_node *p, bool after,
           p = p->down[dir];
           dir = !after;
         }
-      p->down[dir] = node;
-      node->up = p;
+      ((struct abt_node *) p)->down[dir] = node;
+      node->up = (struct abt_node *) p;
       abt_reaugmented (abt, node);
     }
 
@@ -167,7 +167,7 @@ abt_insert_after (struct abt *abt,
                   const struct abt_node *p, struct abt_node *node)
 {
   assert (abt->compare == NULL);
-  insert_relative (abt, (struct abt_node *) p, true, node);
+  insert_relative (abt, p, true, node);
 }
 
 /* Inserts NODE before node P in ABT.
@@ -180,7 +180,7 @@ abt_insert_before (struct abt *abt,
                    const struct abt_node *p, struct abt_node *node)
 {
   assert (abt->compare == NULL);
-  insert_relative (abt, (struct abt_node *) p, false, node);
+  insert_relative (abt, p, false, node);
 }
 
 /* Deletes P from ABT. */
