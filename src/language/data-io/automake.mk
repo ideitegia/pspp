@@ -20,8 +20,7 @@ language_data_io_sources = \
 	src/language/data-io/data-writer.h \
 	src/language/data-io/file-handle.h \
 	src/language/data-io/placement-parser.c \
-	src/language/data-io/placement-parser.h \
-	$(src_language_data_io_built_sources)
+	src/language/data-io/placement-parser.h 
 
 all_q_sources += $(src_language_data_io_built_sources:.c=.q)
 EXTRA_DIST += $(src_language_data_io_built_sources:.c=.q)

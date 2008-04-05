@@ -31,3 +31,12 @@ src_language_liblanguage_a_SOURCES = \
 	$(language_stats_sources) \
 	$(language_data_io_sources) \
 	$(language_expressions_sources)
+
+
+
+nodist_src_language_liblanguage_a_SOURCES = \
+	$(src_language_data_io_built_sources) \
+	$(src_language_utilities_built_sources) \
+	$(src_language_stats_built_sources)  \
+	$(language_tests_built_sources) \
+	$(expressions_built_sources)

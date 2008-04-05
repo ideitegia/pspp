@@ -10,8 +10,7 @@ language_tests_sources = \
 	src/language/tests/float-format.c \
 	src/language/tests/moments-test.c \
 	src/language/tests/paper-size.c \
-	src/language/tests/pool-test.c \
-	$(language_tests_built_sources)
+	src/language/tests/pool-test.c 
 
 all_q_sources += $(language_tests_built_sources:.c=.q)
 EXTRA_DIST += $(language_tests_built_sources:.c=.q)

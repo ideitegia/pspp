@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-03-18 17:54+0900\n"
+"POT-Creation-Date: 2008-03-25 18:43+0900\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -320,13 +320,13 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1205 src/ui/gui/psppire-var-store.c:605
+#: src/ui/gui/data-editor.glade:1190 src/ui/gui/psppire-var-store.c:605
 #: src/ui/gui/psppire.glade:2176
 msgid "String"
 msgstr "Zeichenkette"
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1094 src/ui/gui/psppire-var-store.c:598
+#: src/ui/gui/data-editor.glade:1079 src/ui/gui/psppire-var-store.c:598
 #: src/ui/gui/psppire.glade:2131
 msgid "Numeric"
 msgstr "Nummer"
@@ -4663,7 +4663,7 @@ msgstr ""
 
 #: src/ui/gui/data-editor.c:323
 #, fuzzy
-msgid "Labels"
+msgid "_Labels"
 msgstr "Kennsatz"
 
 #: src/ui/gui/data-editor.c:324
@@ -4683,20 +4683,18 @@ msgstr ""
 msgid "Delete the variables at the selected position(s)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:377 src/ui/gui/data-editor.c:1504
-#: src/ui/gui/data-editor.glade:145 src/ui/gui/data-editor.glade:816
+#: src/ui/gui/data-editor.c:377
 #, fuzzy
-msgid "Insert Variable"
+msgid "Insert _Variable"
 msgstr "Variableansicht"
 
 #: src/ui/gui/data-editor.c:378
 msgid "Create a new variable at the current position"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:396 src/ui/gui/data-editor.c:1556
-#: src/ui/gui/data-editor.glade:804
+#: src/ui/gui/data-editor.c:396
 #, fuzzy
-msgid "Insert Case"
+msgid "Insert Ca_se"
 msgstr "_Stecken"
 
 #: src/ui/gui/data-editor.c:397
@@ -4705,7 +4703,7 @@ msgstr ""
 
 #: src/ui/gui/data-editor.c:417
 #, fuzzy
-msgid "Goto Case"
+msgid "_Goto Case"
 msgstr "_Stecken"
 
 #: src/ui/gui/data-editor.c:418
@@ -4714,15 +4712,15 @@ msgstr ""
 
 #: src/ui/gui/data-editor.c:437
 #, fuzzy
-msgid "Weights"
+msgid "_Weights"
 msgstr "Rechts"
 
 #: src/ui/gui/data-editor.c:438
 msgid "Weight cases by variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:447 src/ui/gui/data-editor.glade:320
-msgid "Transpose"
+#: src/ui/gui/data-editor.c:447 src/ui/gui/data-editor.glade:319
+msgid "_Transpose"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:448
@@ -4731,7 +4729,7 @@ msgstr ""
 
 #: src/ui/gui/data-editor.c:459
 #, fuzzy
-msgid "Split"
+msgid "S_plit"
 msgstr "Alle Datei"
 
 #: src/ui/gui/data-editor.c:460
@@ -4739,24 +4737,24 @@ msgid "Split the active file"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:470
-msgid "Sort"
+msgid "_Sort"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:471
 msgid "Sort cases in the active file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:479 src/ui/gui/data-editor.glade:355
-#: src/ui/gui/data-editor.glade:859
-msgid "Select Cases"
-msgstr ""
+#: src/ui/gui/data-editor.c:479 src/ui/gui/data-editor.glade:340
+#, fuzzy
+msgid "Select _Cases"
+msgstr "_Stecken"
 
 #: src/ui/gui/data-editor.c:480
 msgid "Select cases from the active file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:489
-msgid "Compute"
+#: src/ui/gui/data-editor.c:489 src/ui/gui/data-editor.glade:369
+msgid "_Compute"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:490
@@ -4772,7 +4770,7 @@ msgstr ""
 msgid "Perform one way analysis of variance"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:507 src/ui/gui/data-editor.glade:511
+#: src/ui/gui/data-editor.c:507 src/ui/gui/data-editor.glade:496
 msgid "_Independent Samples T Test"
 msgstr ""
 
@@ -4780,7 +4778,7 @@ msgstr ""
 msgid "Calculate T Test for samples from independent groups"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:517 src/ui/gui/data-editor.glade:519
+#: src/ui/gui/data-editor.c:517 src/ui/gui/data-editor.glade:504
 msgid "_Paired Samples T Test"
 msgstr ""
 
@@ -4796,25 +4794,26 @@ msgstr ""
 msgid "Calculate T Test for sample from a single distribution"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:537
+#: src/ui/gui/data-editor.c:537 src/ui/gui/data-editor.glade:593
 #, fuzzy
-msgid "Data File Comments"
+msgid "Data File _Comments"
 msgstr "Datei Fehler"
 
 #: src/ui/gui/data-editor.c:538
 msgid "Commentary text for the data file"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:546 src/ui/gui/data-editor.glade:784
-msgid "Find"
-msgstr ""
+#: src/ui/gui/data-editor.c:546 src/ui/gui/data-editor.glade:228
+#, fuzzy
+msgid "_Find"
+msgstr "_Datei"
 
 #: src/ui/gui/data-editor.c:547
 #, fuzzy
 msgid "Find Case"
 msgstr "_Stecken"
 
-#: src/ui/gui/data-editor.c:556 src/ui/gui/data-editor.glade:392
+#: src/ui/gui/data-editor.c:556 src/ui/gui/data-editor.glade:377
 #, fuzzy
 msgid "Ran_k Cases"
 msgstr "_Stecken"
@@ -4824,7 +4823,7 @@ msgstr "_Stecken"
 msgid "Rank Cases"
 msgstr "_Stecken"
 
-#: src/ui/gui/data-editor.c:566 src/ui/gui/data-editor.glade:404
+#: src/ui/gui/data-editor.c:566 src/ui/gui/data-editor.glade:389
 #, fuzzy
 msgid "Recode into _Same Variables"
 msgstr "Variableansicht"
@@ -4834,7 +4833,7 @@ msgstr "Variableansicht"
 msgid "Recode values into the same Variables"
 msgstr "Unpassend Wert für Variable"
 
-#: src/ui/gui/data-editor.c:576 src/ui/gui/data-editor.glade:411
+#: src/ui/gui/data-editor.c:576 src/ui/gui/data-editor.glade:396
 msgid "Recode into _Different Variables"
 msgstr ""
 
@@ -4842,9 +4841,10 @@ msgstr ""
 msgid "Recode values into different Variables"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:586 src/ui/gui/data-editor.glade:294
-#: src/ui/gui/data-editor.glade:763
-msgid "Variables"
+#: src/ui/gui/data-editor.c:586 src/ui/gui/data-editor.glade:293
+#: src/ui/gui/data-editor.glade:584
+#, fuzzy
+msgid "_Variables"
 msgstr "Variableansicht"
 
 #: src/ui/gui/data-editor.c:587
@@ -4852,7 +4852,7 @@ msgstr "Variableansicht"
 msgid "Jump to Variable"
 msgstr "Variableansicht"
 
-#: src/ui/gui/data-editor.c:595 src/ui/gui/data-editor.glade:465
+#: src/ui/gui/data-editor.c:595 src/ui/gui/data-editor.glade:450
 #: src/ui/gui/oneway.glade:179
 msgid "_Descriptives"
 msgstr ""
@@ -4861,7 +4861,7 @@ msgstr ""
 msgid "Calculate descriptive statistics (mean, variance, ...)"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:605 src/ui/gui/data-editor.glade:457
+#: src/ui/gui/data-editor.c:605 src/ui/gui/data-editor.glade:442
 #, fuzzy
 msgid "_Frequencies"
 msgstr "Variableansicht"
@@ -4870,7 +4870,7 @@ msgstr "Variableansicht"
 msgid "Generate frequency statistics"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:614 src/ui/gui/data-editor.glade:481
+#: src/ui/gui/data-editor.c:614 src/ui/gui/data-editor.glade:466
 msgid "_Crosstabs"
 msgstr ""
 
@@ -4878,7 +4878,7 @@ msgstr ""
 msgid "Generate crosstabulations"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:624 src/ui/gui/data-editor.glade:473
+#: src/ui/gui/data-editor.c:624 src/ui/gui/data-editor.glade:458
 msgid "_Explore"
 msgstr ""
 
@@ -4886,7 +4886,7 @@ msgstr ""
 msgid "Examine Data by Factors"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:634 src/ui/gui/data-editor.glade:547
+#: src/ui/gui/data-editor.c:634 src/ui/gui/data-editor.glade:532
 msgid "Linear _Regression"
 msgstr ""
 
@@ -4926,7 +4926,7 @@ msgid "Weight by %s"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:1198 src/ui/gui/data-editor.c:1440
-#: src/ui/gui/data-editor.glade:675
+#: src/ui/gui/data-editor.glade:660
 msgid "Open"
 msgstr "Öffen"
 
@@ -4935,7 +4935,7 @@ msgid "Open a data file"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:1207 src/ui/gui/data-editor.c:1323
-#: src/ui/gui/data-editor.glade:685
+#: src/ui/gui/data-editor.glade:670
 msgid "Save"
 msgstr "Speichen"
 
@@ -4998,6 +4998,17 @@ msgstr ""
 msgid "Sort Descending"
 msgstr ""
 
+#: src/ui/gui/data-editor.c:1504 src/ui/gui/data-editor.glade:150
+#: src/ui/gui/data-editor.glade:801
+#, fuzzy
+msgid "Insert Variable"
+msgstr "Variableansicht"
+
+#: src/ui/gui/data-editor.c:1556 src/ui/gui/data-editor.glade:789
+#, fuzzy
+msgid "Insert Case"
+msgstr "_Stecken"
+
 #: src/ui/gui/data-editor.glade:18 src/ui/gui/output-viewer.glade:22
 #: src/ui/gui/syntax-editor.glade:39
 msgid "_File"
@@ -5009,8 +5020,8 @@ msgid "_Syntax"
 msgstr ""
 
 #: src/ui/gui/data-editor.glade:40 src/ui/gui/data-editor.glade:66
-#: src/ui/gui/data-editor.glade:305 src/ui/gui/syntax-editor.glade:66
-#: src/ui/gui/syntax-editor.glade:96
+#: src/ui/gui/data-editor.glade:286 src/ui/gui/data-editor.glade:304
+#: src/ui/gui/syntax-editor.glade:66 src/ui/gui/syntax-editor.glade:96
 #, fuzzy
 msgid "_Data"
 msgstr "Daten"
@@ -5019,311 +5030,306 @@ msgstr "Daten"
 msgid "_Import Delimited Text Data"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:106
+#: src/ui/gui/data-editor.glade:111
 msgid "Recently Used Da_ta"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:113
+#: src/ui/gui/data-editor.glade:118
 msgid "Recently Used _Files"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:137 src/ui/gui/output-viewer.glade:55
+#: src/ui/gui/data-editor.glade:142 src/ui/gui/output-viewer.glade:55
 #: src/ui/gui/syntax-editor.glade:143
 msgid "_Edit"
 msgstr "_Bearbeiten"
 
-#: src/ui/gui/data-editor.glade:153
+#: src/ui/gui/data-editor.glade:158
 #, fuzzy
 msgid "Insert Cases"
 msgstr "_Stecken"
 
-#: src/ui/gui/data-editor.glade:161 src/ui/gui/data-editor.glade:753
+#: src/ui/gui/data-editor.glade:166 src/ui/gui/data-editor.glade:738
 msgid "Go To Case"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:202
+#: src/ui/gui/data-editor.glade:207
 #, fuzzy
 msgid "Cl_ear Variables"
 msgstr "Variableansicht"
 
-#: src/ui/gui/data-editor.glade:210
+#: src/ui/gui/data-editor.glade:215
 #, fuzzy
 msgid "_Clear Cases"
 msgstr "_Stecken"
 
-#: src/ui/gui/data-editor.glade:223
-#, fuzzy
-msgid "_Find"
-msgstr "_Datei"
-
-#: src/ui/gui/data-editor.glade:234
+#: src/ui/gui/data-editor.glade:239
 msgid "_View"
 msgstr "_Ansicht"
 
-#: src/ui/gui/data-editor.glade:241
-msgid "Status Bar"
+#: src/ui/gui/data-editor.glade:246
+#, fuzzy
+msgid "_Status Bar"
 msgstr "Statusleiste"
 
-#: src/ui/gui/data-editor.glade:248
-msgid "Toolbars"
-msgstr "Werkzeugregal"
-
-#: src/ui/gui/data-editor.glade:260
-msgid "Fonts"
+#: src/ui/gui/data-editor.glade:259
+#, fuzzy
+msgid "_Fonts"
 msgstr "Schrift"
 
-#: src/ui/gui/data-editor.glade:267
-msgid "Grid Lines"
+#: src/ui/gui/data-editor.glade:266
+#, fuzzy
+msgid "_Grid Lines"
 msgstr "Glitten"
 
-#: src/ui/gui/data-editor.glade:275 src/ui/gui/data-editor.glade:879
-#: src/ui/gui/data-editor.glade:1467 src/ui/gui/data-editor.glade:1648
-msgid "Value Labels"
+#: src/ui/gui/data-editor.glade:274
+#, fuzzy
+msgid "Value _Labels"
 msgstr "Werten"
 
-#: src/ui/gui/data-editor.glade:287
-msgid "Data"
-msgstr "Daten"
-
-#: src/ui/gui/data-editor.glade:312
-msgid "Sort Cases"
-msgstr ""
-
-#: src/ui/gui/data-editor.glade:327
+#: src/ui/gui/data-editor.glade:311
 #, fuzzy
-msgid "Merge Files"
+msgid "_Sort Cases"
+msgstr "_Stecken"
+
+#: src/ui/gui/data-editor.glade:332
+#, fuzzy
+msgid "S_plit File"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.glade:334
-msgid "Aggregate"
-msgstr ""
-
-#: src/ui/gui/data-editor.glade:347 src/ui/gui/data-editor.glade:836
+#: src/ui/gui/data-editor.glade:347
 #, fuzzy
-msgid "Split File"
-msgstr "Alle Datei"
+msgid "_Weight Cases"
+msgstr "Rechts"
 
-#: src/ui/gui/data-editor.glade:362 src/ui/gui/data-editor.glade:847
-msgid "Weight Cases"
-msgstr ""
-
-#: src/ui/gui/data-editor.glade:374
+#: src/ui/gui/data-editor.glade:359
 msgid "_Transform"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:384
-msgid "_Compute"
-msgstr ""
-
-#: src/ui/gui/data-editor.glade:424
+#: src/ui/gui/data-editor.glade:409
 msgid "_Run Pending Transforms"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:437
+#: src/ui/gui/data-editor.glade:422
 msgid "_Analyze"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:447
+#: src/ui/gui/data-editor.glade:432
 msgid "_Descriptive Statistics"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:493
+#: src/ui/gui/data-editor.glade:478
 msgid "Compare _Means"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:503
+#: src/ui/gui/data-editor.glade:488
 msgid "_One Sample T Test"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:527
+#: src/ui/gui/data-editor.glade:512
 msgid "One Way _ANOVA"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:539
+#: src/ui/gui/data-editor.glade:524
 msgid "Bivariate _Correlation"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:555
+#: src/ui/gui/data-editor.glade:540
 msgid "_Non-Parametric Statistics"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:565
+#: src/ui/gui/data-editor.glade:550
 msgid "_Chi-Square"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:573
+#: src/ui/gui/data-editor.glade:558
 #, fuzzy
 msgid "_Binomial"
 msgstr "Nominalwert"
 
-#: src/ui/gui/data-editor.glade:589
+#: src/ui/gui/data-editor.glade:574
 msgid "_Utilities"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:599
-#, fuzzy
-msgid "_Variables"
-msgstr "Variableansicht"
-
-#: src/ui/gui/data-editor.glade:608
-#, fuzzy
-msgid "Data File _Comments"
-msgstr "Datei Fehler"
-
-#: src/ui/gui/data-editor.glade:619 src/ui/gui/output-viewer.glade:78
+#: src/ui/gui/data-editor.glade:604 src/ui/gui/output-viewer.glade:78
 #: src/ui/gui/syntax-editor.glade:234
 #, fuzzy
 msgid "_Windows"
 msgstr "_Datei"
 
-#: src/ui/gui/data-editor.glade:626 src/ui/gui/output-viewer.glade:88
+#: src/ui/gui/data-editor.glade:611 src/ui/gui/output-viewer.glade:88
 #: src/ui/gui/syntax-editor.glade:243
 msgid "_Minimize All Windows"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:637 src/ui/gui/output-viewer.glade:99
+#: src/ui/gui/data-editor.glade:622 src/ui/gui/output-viewer.glade:99
 #: src/ui/gui/syntax-editor.glade:254
 msgid "_Help"
 msgstr "_Hilfe"
 
-#: src/ui/gui/data-editor.glade:644 src/ui/gui/output-viewer.glade:106
+#: src/ui/gui/data-editor.glade:629 src/ui/gui/output-viewer.glade:106
 #: src/ui/gui/syntax-editor.glade:262
 msgid "_Reference Manual"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:651 src/ui/gui/output-viewer.glade:113
+#: src/ui/gui/data-editor.glade:636 src/ui/gui/output-viewer.glade:113
 #: src/ui/gui/syntax-editor.glade:269
 msgid "_About"
 msgstr "_Info"
 
-#: src/ui/gui/data-editor.glade:695
+#: src/ui/gui/data-editor.glade:680
 msgid "Print"
 msgstr "Drucken"
 
-#: src/ui/gui/data-editor.glade:705
+#: src/ui/gui/data-editor.glade:690
 msgid "Recall"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:723
+#: src/ui/gui/data-editor.glade:708
 msgid "Undo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:733
+#: src/ui/gui/data-editor.glade:718
 msgid "Redo"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:890
+#: src/ui/gui/data-editor.glade:748
+msgid "Variables"
+msgstr "Variableansicht"
+
+#: src/ui/gui/data-editor.glade:769
+msgid "Find"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:821
+#, fuzzy
+msgid "Split File"
+msgstr "Alle Datei"
+
+#: src/ui/gui/data-editor.glade:832
+msgid "Weight Cases"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:844
+msgid "Select Cases"
+msgstr ""
+
+#: src/ui/gui/data-editor.glade:864 src/ui/gui/data-editor.glade:1452
+#: src/ui/gui/data-editor.glade:1633
+msgid "Value Labels"
+msgstr "Werten"
+
+#: src/ui/gui/data-editor.glade:875
 msgid "Use Sets"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:922
+#: src/ui/gui/data-editor.glade:907
 msgid "Information Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:941
+#: src/ui/gui/data-editor.glade:926
 msgid "Processor Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:966
+#: src/ui/gui/data-editor.glade:951
 msgid "Case Counter Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:991
+#: src/ui/gui/data-editor.glade:976
 msgid "Filter Use Status Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1017
+#: src/ui/gui/data-editor.glade:1002
 msgid "Weight Status Area"
 msgstr ""
 
-#: src/ui/gui/data-editor.glade:1043
+#: src/ui/gui/data-editor.glade:1028
 #, fuzzy
 msgid "Split File Status Area"
 msgstr "Alle Datei"
 
-#: src/ui/gui/data-editor.glade:1073
+#: src/ui/gui/data-editor.glade:1058
 msgid "Variable Type"
 msgstr "Variableansicht"
 
-#: src/ui/gui/data-editor.glade:1109 src/ui/gui/psppire-var-store.c:599
+#: src/ui/gui/data-editor.glade:1094 src/ui/gui/psppire-var-store.c:599
 msgid "Comma"
 msgstr "Komma"
 
-#: src/ui/gui/data-editor.glade:1125 src/ui/gui/psppire-var-store.c:600
+#: src/ui/gui/data-editor.glade:1110 src/ui/gui/psppire-var-store.c:600
 msgid "Dot"
 msgstr "Punkt"
 
-#: src/ui/gui/data-editor.glade:1141
+#: src/ui/gui/data-editor.glade:1126
 msgid "Scientific notation"
 msgstr "Wissenschaftlichnotation"
 
-#: src/ui/gui/data-editor.glade:1157 src/ui/gui/psppire-var-store.c:602
+#: src/ui/gui/data-editor.glade:1142 src/ui/gui/psppire-var-store.c:602
 msgid "Date"
 msgstr "Datum"
 
-#: src/ui/gui/data-editor.glade:1173 src/ui/gui/psppire-var-store.c:603
+#: src/ui/gui/data-editor.glade:1158 src/ui/gui/psppire-var-store.c:603
 msgid "Dollar"
 msgstr "Euro"
 
-#: src/ui/gui/data-editor.glade:1189
+#: src/ui/gui/data-editor.glade:1174
 msgid "Custom currency"
 msgstr "Spezialwährung"
 
-#: src/ui/gui/data-editor.glade:1283
+#: src/ui/gui/data-editor.glade:1268
 msgid "positive"
 msgstr "positiv"
 
-#: src/ui/gui/data-editor.glade:1289
+#: src/ui/gui/data-editor.glade:1274
 msgid "negative"
 msgstr "negativ"
 
-#: src/ui/gui/data-editor.glade:1302
+#: src/ui/gui/data-editor.glade:1287
 msgid "Sample"
 msgstr "Muster"
 
-#: src/ui/gui/data-editor.glade:1352
+#: src/ui/gui/data-editor.glade:1337
 msgid "Width:"
 msgstr "Große:"
 
-#: src/ui/gui/data-editor.glade:1396
+#: src/ui/gui/data-editor.glade:1381
 msgid "Decimal Places:"
 msgstr "Dezimalstellen:"
 
-#: src/ui/gui/data-editor.glade:1565
+#: src/ui/gui/data-editor.glade:1550
 msgid "Value Label:"
 msgstr "Kennsatz:"
 
-#: src/ui/gui/data-editor.glade:1578 src/ui/gui/psppire.glade:2544
+#: src/ui/gui/data-editor.glade:1563 src/ui/gui/psppire.glade:2544
 #: src/ui/gui/recode.glade:185
 msgid "Value:"
 msgstr "Werte:"
 
-#: src/ui/gui/data-editor.glade:1715 src/ui/gui/examine.glade:423
+#: src/ui/gui/data-editor.glade:1700 src/ui/gui/examine.glade:423
 #: src/ui/gui/t-test.glade:460
 msgid "Missing Values"
 msgstr "Lösewerten"
 
-#: src/ui/gui/data-editor.glade:1733
+#: src/ui/gui/data-editor.glade:1718
 msgid "_Range plus one optional discrete missing value"
 msgstr "Wertebereich und ein optional Lösewert"
 
-#: src/ui/gui/data-editor.glade:1758
+#: src/ui/gui/data-editor.glade:1743
 msgid "_Low:"
 msgstr "_Tief:"
 
-#: src/ui/gui/data-editor.glade:1787
+#: src/ui/gui/data-editor.glade:1772
 msgid "_High:"
 msgstr "_Hoch:"
 
-#: src/ui/gui/data-editor.glade:1828
+#: src/ui/gui/data-editor.glade:1813
 msgid "Di_screte value:"
 msgstr "Di_skretwerte"
 
-#: src/ui/gui/data-editor.glade:1875
+#: src/ui/gui/data-editor.glade:1860
 msgid "_No missing values"
 msgstr "_Kein Lösewerten"
 
-#: src/ui/gui/data-editor.glade:1893
+#: src/ui/gui/data-editor.glade:1878
 msgid "_Discrete missing values"
 msgstr "_Diskret Lösewerten"
 
@@ -6670,6 +6676,20 @@ msgstr "Warnung"
 #, c-format
 msgid "could not access definition for terminal `%s'"
 msgstr ""
+
+#, fuzzy
+#~ msgid "Data File Comments"
+#~ msgstr "Datei Fehler"
+
+#~ msgid "Toolbars"
+#~ msgstr "Werkzeugregal"
+
+#~ msgid "Data"
+#~ msgstr "Daten"
+
+#, fuzzy
+#~ msgid "Merge Files"
+#~ msgstr "Alle Datei"
 
 #, fuzzy
 #~ msgid "Syntax Error"
