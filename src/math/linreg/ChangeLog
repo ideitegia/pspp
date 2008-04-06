@@ -1,3 +1,9 @@
+2008-04-06  Jason Stover  <jhs@math.gcsu.edu>
+
+	* linreg.c (pspp_linreg): For the QR method of getting the least
+	squares estimates, store intercept in cache->intercept
+	instead of coefficienc structure. Partial fix of bug 22788.
+
 2008-03-10  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg.c (pspp_linreg): Remove use of coefficient 0 as intercept.

@@ -397,10 +397,11 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
       wk = gsl_multifit_linear_alloc (design->size1, design->size2);
       rc = gsl_multifit_linear (design, Y, param_estimates,
 				cache->cov, &(cache->sse), wk);
-      for (i = 0; i < cache->n_coeffs; i++)
+      for (i = 1; i < cache->n_coeffs; i++)
 	{
 	  cache->coeff[i]->estimate = gsl_vector_get (param_estimates, i);
 	}
+      cache->intercept = gsl_vector_get (param_estimates, 0);
       if (rc == GSL_SUCCESS)
 	{
 	  gsl_multifit_linear_free (wk);
