@@ -797,7 +797,7 @@ identify_indep_vars (const struct variable **indep_vars,
   for (i = 0; i < n_variables; i++)
     if (!is_depvar (i, depvar))
       indep_vars[n_indep_vars++] = v_variables[i];
-  if ((n_indep_vars < 2) && is_depvar (0, depvar))
+  if ((n_indep_vars < 1) && is_depvar (0, depvar))
     {
       /*
 	There is only one independent variable, and it is the same
