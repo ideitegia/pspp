@@ -1099,7 +1099,7 @@
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <child>
                   <widget class="GtkButton" id="button4">
-                    <property name="visible">True</property>
+                    <property name="visible">False</property>
                     <property name="sensitive">False</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -1229,7 +1229,7 @@
                                 </child>
                                 <child>
                                   <widget class="GtkVBox" id="vbox14">
-                                    <property name="visible">True</property>
+                                    <property name="visible">False</property>
                                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                     <child>
                                       <widget class="GtkLabel" id="label11">
@@ -1445,7 +1445,7 @@
                                     <property name="yscale">0</property>
                                     <child>
                                       <widget class="GtkRadioButton" id="radiobutton-if">
-                                        <property name="visible">True</property>
+                                        <property name="visible">False</property>
                                         <property name="sensitive">False</property>
                                         <property name="can_focus">True</property>
                                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>

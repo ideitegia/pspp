@@ -138,7 +138,7 @@
 
 	  <child>
 	    <widget class="GtkMenuItem" id="menuitem7">
-	      <property name="visible">True</property>
+	      <property name="visible">False</property>
 	      <property name="sensitive">False</property>
 	      <property name="label" translatable="yes">_Edit</property>
 	      <property name="use_underline">True</property>
