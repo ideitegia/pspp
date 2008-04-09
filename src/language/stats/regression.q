@@ -318,12 +318,11 @@ reg_stats_anova (pspp_linreg_cache * c)
 
 
   /* Degrees of freedom */
-  tab_float (t, 3, 1, 0, c->dfm, 4, 0);
-  tab_float (t, 3, 2, 0, c->dfe, 4, 0);
-  tab_float (t, 3, 3, 0, c->dft, 4, 0);
+  tab_text (t, 3, 1, TAB_RIGHT | TAT_PRINTF, "%g", c->dfm);
+  tab_text (t, 3, 2, TAB_RIGHT | TAT_PRINTF, "%g", c->dfe);
+  tab_text (t, 3, 3, TAB_RIGHT | TAT_PRINTF, "%g", c->dft);
 
   /* Mean Squares */
-
   tab_float (t, 4, 1, TAB_RIGHT, msm, 8, 3);
   tab_float (t, 4, 2, TAB_RIGHT, mse, 8, 3);
 
@@ -334,21 +333,25 @@ reg_stats_anova (pspp_linreg_cache * c)
   tab_title (t, _("ANOVA"));
   tab_submit (t);
 }
+
 static void
 reg_stats_outs (pspp_linreg_cache * c)
 {
   assert (c != NULL);
 }
+
 static void
 reg_stats_zpp (pspp_linreg_cache * c)
 {
   assert (c != NULL);
 }
+
 static void
 reg_stats_label (pspp_linreg_cache * c)
 {
   assert (c != NULL);
 }
+
 static void
 reg_stats_sha (pspp_linreg_cache * c)
 {

@@ -1,3 +1,7 @@
+2008-04-09  John Darrington <john@darrington.wattle.id.au>
+
+	* regression.q: Fix display of degrees of freedom.
+
 2008-04-08  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (identify_indep_vars): Don't panic unless
