@@ -1,3 +1,8 @@
+2008-04-15  Ben Pfaff  <blp@gnu.org>
+
+	* configure.ac: Properly report required version of libglade.
+	Thanks to unknown-1 <pspp@sjpaes.nl> for reporting this bug.
+
 2008-04-15  John Darrington <john@darrington.wattle.id.au>
 
 	* configure.ac : Replace AC_CHECK_LIB with AC_SEARCH_LIBS as
