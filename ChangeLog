@@ -1,3 +1,8 @@
+2008-04-15  John Darrington <john@darrington.wattle.id.au>
+
+	* configure.ac : Replace AC_CHECK_LIB with AC_SEARCH_LIBS as
+	recommended by latest autoconf manual.
+
 2008-02-19  John Darrington <john@darrington.wattle.id.au>
 
 	* configure.ac INSTALL: We now depend on GTK+ 2.12

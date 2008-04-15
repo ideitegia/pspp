@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-03-25 18:43+0900\n"
+"POT-Creation-Date: 2008-04-15 13:59+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -44,6 +44,12 @@ msgstr ""
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
 msgstr ""
 
+#: src/data/casereader-filter.c:221
+msgid ""
+"At least one case in the data read had a weight value that was user-missing, "
+"system-missing, zero, or negative.  These case(s) were ignored."
+msgstr ""
+
 #: src/data/case-tmpfile.c:57
 msgid "failed to create temporary file"
 msgstr ""
@@ -62,12 +68,6 @@ msgstr ""
 
 #: src/data/case-tmpfile.c:175
 msgid "writing to temporary file"
-msgstr ""
-
-#: src/data/casereader-filter.c:221
-msgid ""
-"At least one case in the data read had a weight value that was user-missing, "
-"system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
 #: src/data/data-in.c:261 src/data/data-in.c:451
@@ -315,14 +315,14 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1190 src/ui/gui/psppire-var-store.c:605
-#: src/ui/gui/psppire.glade:2176
+#: src/ui/gui/data-editor.glade:1190 src/ui/gui/psppire.glade:2176
+#: src/ui/gui/psppire-var-store.c:605
 msgid "String"
 msgstr ""
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1079 src/ui/gui/psppire-var-store.c:598
-#: src/ui/gui/psppire.glade:2131
+#: src/ui/gui/data-editor.glade:1079 src/ui/gui/psppire.glade:2131
+#: src/ui/gui/psppire-var-store.c:598
 msgid "Numeric"
 msgstr ""
 
@@ -1418,67 +1418,6 @@ msgstr ""
 msgid "Handle for %s not allowed here."
 msgstr ""
 
-#: src/language/data-io/get-data.c:62
-#, c-format
-msgid "Unsupported TYPE %s"
-msgstr ""
-
-#: src/language/data-io/get-data.c:258
-#, c-format
-msgid ""
-"%s is allowed only with %s arrangement, but %s arrangement was stated or "
-"implied earlier in this command."
-msgstr ""
-
-#: src/language/data-io/get-data.c:313
-msgid "expecting FIXED or DELIMITED"
-msgstr ""
-
-#: src/language/data-io/get-data.c:326
-msgid "Value of FIRSTCASE must be 1 or greater."
-msgstr ""
-
-#: src/language/data-io/get-data.c:351
-msgid "expecting LINE or VARIABLES"
-msgstr ""
-
-#: src/language/data-io/get-data.c:364
-msgid "Value of FIXCASE must be at least 1."
-msgstr ""
-
-#: src/language/data-io/get-data.c:384
-msgid "Value of FIRST must be at least 1."
-msgstr ""
-
-#: src/language/data-io/get-data.c:396
-msgid "Value of PERCENT must be between 1 and 100."
-msgstr ""
-
-#: src/language/data-io/get-data.c:445
-msgid ""
-"In compatible syntax mode, the QUALIFIER string must contain exactly one "
-"character."
-msgstr ""
-
-#: src/language/data-io/get-data.c:460
-msgid "expecting VARIABLES"
-msgstr ""
-
-#: src/language/data-io/get-data.c:482
-#: src/language/data-io/placement-parser.c:378
-#, c-format
-msgid ""
-"The record number specified, %ld, is at or before the previous record, %d.  "
-"Data fields must be listed in order of increasing record number."
-msgstr ""
-
-#: src/language/data-io/get-data.c:491
-#, c-format
-msgid ""
-"The record number specified, %ld, exceeds the number of records per case "
-"specified on FIXCASE, %d."
-msgstr ""
-
 #: src/language/data-io/get.c:99
 msgid "expecting COMM or TAPE"
 msgstr ""
@@ -1566,6 +1505,67 @@ msgstr ""
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
+msgstr ""
+
+#: src/language/data-io/get-data.c:62
+#, c-format
+msgid "Unsupported TYPE %s"
+msgstr ""
+
+#: src/language/data-io/get-data.c:258
+#, c-format
+msgid ""
+"%s is allowed only with %s arrangement, but %s arrangement was stated or "
+"implied earlier in this command."
+msgstr ""
+
+#: src/language/data-io/get-data.c:313
+msgid "expecting FIXED or DELIMITED"
+msgstr ""
+
+#: src/language/data-io/get-data.c:326
+msgid "Value of FIRSTCASE must be 1 or greater."
+msgstr ""
+
+#: src/language/data-io/get-data.c:351
+msgid "expecting LINE or VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:364
+msgid "Value of FIXCASE must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:384
+msgid "Value of FIRST must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:396
+msgid "Value of PERCENT must be between 1 and 100."
+msgstr ""
+
+#: src/language/data-io/get-data.c:445
+msgid ""
+"In compatible syntax mode, the QUALIFIER string must contain exactly one "
+"character."
+msgstr ""
+
+#: src/language/data-io/get-data.c:460
+msgid "expecting VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:482
+#: src/language/data-io/placement-parser.c:378
+#, c-format
+msgid ""
+"The record number specified, %ld, is at or before the previous record, %d.  "
+"Data fields must be listed in order of increasing record number."
+msgstr ""
+
+#: src/language/data-io/get-data.c:491
+#, c-format
+msgid ""
+"The record number specified, %ld, exceeds the number of records per case "
+"specified on FIXCASE, %d."
 msgstr ""
 
 #: src/language/data-io/inpt-pgm.c:129
@@ -1657,20 +1657,6 @@ msgstr ""
 msgid "The ending column for a field must be greater than the starting column."
 msgstr ""
 
-#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:476
-#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:60
-msgid "expecting end of command"
-msgstr ""
-
-#: src/language/data-io/print-space.c:116
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr ""
-
-#: src/language/data-io/print-space.c:119
-#, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr ""
-
 #: src/language/data-io/print.c:266
 #, c-format
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
@@ -1689,6 +1675,20 @@ msgid "Writing %d record."
 msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:476
+#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:60
+msgid "expecting end of command"
+msgstr ""
+
+#: src/language/data-io/print-space.c:116
+msgid "The expression on PRINT SPACE evaluated to the system-missing value."
+msgstr ""
+
+#: src/language/data-io/print-space.c:119
+#, c-format
+msgid "The expression on PRINT SPACE evaluated to %g."
+msgstr ""
 
 #: src/language/dictionary/apply-dictionary.c:75
 #, c-format
@@ -1875,7 +1875,7 @@ msgstr ""
 #: src/language/dictionary/split-file.c:86
 #: src/language/dictionary/sys-file-info.c:397
 #: src/language/dictionary/sys-file-info.c:564 src/ui/gui/crosstabs.glade:275
-#: src/ui/gui/psppire-var-sheet.c:104 src/ui/gui/psppire.glade:2099
+#: src/ui/gui/psppire.glade:2099 src/ui/gui/psppire-var-sheet.c:104
 msgid "Label"
 msgstr ""
 
@@ -2849,8 +2849,8 @@ msgstr ""
 msgid "Directional measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1223 src/ui/gui/psppire-var-sheet.c:101
-#: src/ui/gui/psppire.glade:2223
+#: src/language/stats/crosstabs.q:1223 src/ui/gui/psppire.glade:2223
+#: src/ui/gui/psppire-var-sheet.c:101
 msgid "Type"
 msgstr ""
 
@@ -3365,11 +3365,11 @@ msgstr ""
 msgid "Multivariate GLM not yet supported"
 msgstr ""
 
-#: src/language/stats/glm.q:271 src/language/stats/regression.q:931
+#: src/language/stats/glm.q:271 src/language/stats/regression.q:934
 msgid "Dependent variable must be numeric."
 msgstr ""
 
-#: src/language/stats/glm.q:346 src/language/stats/regression.q:1027
+#: src/language/stats/glm.q:346 src/language/stats/regression.q:1030
 msgid "No valid data found. This command was skipped."
 msgstr ""
 
@@ -3379,22 +3379,6 @@ msgstr ""
 
 #: src/language/stats/means.q:134
 msgid "TABLES subcommand may not appear more than once."
-msgstr ""
-
-#: src/language/stats/npar-summary.c:108
-msgid "Descriptive Statistics"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:145
-msgid "25th"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:148
-msgid "50th (Median)"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:151
-msgid "75th"
 msgstr ""
 
 #: src/language/stats/npar.q:98
@@ -3419,6 +3403,22 @@ msgstr ""
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
 "not match the number following (%zu)."
+msgstr ""
+
+#: src/language/stats/npar-summary.c:108
+msgid "Descriptive Statistics"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:145
+msgid "25th"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:148
+msgid "50th (Median)"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:151
+msgid "75th"
 msgstr ""
 
 #: src/language/stats/oneway.q:169
@@ -3461,7 +3461,7 @@ msgstr ""
 msgid "Within Groups"
 msgstr ""
 
-#: src/language/stats/oneway.q:352 src/language/stats/regression.q:334
+#: src/language/stats/oneway.q:352 src/language/stats/regression.q:333
 msgid "ANOVA"
 msgstr ""
 
@@ -3609,19 +3609,19 @@ msgstr ""
 msgid "Regression"
 msgstr ""
 
-#: src/language/stats/regression.q:389
+#: src/language/stats/regression.q:392
 msgid "Model"
 msgstr ""
 
-#: src/language/stats/regression.q:390
+#: src/language/stats/regression.q:393
 msgid "Covariances"
 msgstr ""
 
-#: src/language/stats/regression.q:405
+#: src/language/stats/regression.q:408
 msgid "Coefficient Correlations"
 msgstr ""
 
-#: src/language/stats/regression.q:807
+#: src/language/stats/regression.q:810
 msgid ""
 "The dependent variable is equal to the independent variable.The least "
 "squares line is therefore Y=X.Standard errors and related statistics may be "
@@ -5563,6 +5563,14 @@ msgstr ""
 msgid "Paste"
 msgstr ""
 
+#: src/ui/gui/psppire.c:194
+msgid "_Reset"
+msgstr ""
+
+#: src/ui/gui/psppire.c:195
+msgid "_Select"
+msgstr ""
+
 #: src/ui/gui/psppire-data-editor.c:604
 msgid "Data View"
 msgstr ""
@@ -5578,52 +5586,6 @@ msgstr ""
 #: src/ui/gui/psppire-data-store.c:949 src/ui/gui/psppire-var-store.c:840
 #, c-format
 msgid "%ld"
-msgstr ""
-
-#: src/ui/gui/psppire-var-sheet.c:100
-msgid "Name"
-msgstr ""
-
-#: src/ui/gui/psppire-var-sheet.c:102 src/ui/gui/psppire.glade:2187
-msgid "Width"
-msgstr ""
-
-#: src/ui/gui/psppire-var-sheet.c:103
-msgid "Decimals"
-msgstr ""
-
-#: src/ui/gui/psppire-var-sheet.c:105
-msgid "Values"
-msgstr ""
-
-#: src/ui/gui/psppire-var-sheet.c:108
-msgid "Align"
-msgstr ""
-
-#: src/ui/gui/psppire-var-sheet.c:109
-msgid "Measure"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:601
-msgid "Scientific"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:604
-msgid "Custom"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:675 src/ui/gui/psppire-var-store.c:685
-#: src/ui/gui/psppire-var-store.c:695
-#, c-format
-msgid "%d"
-msgstr ""
-
-#: src/ui/gui/psppire.c:194
-msgid "_Reset"
-msgstr ""
-
-#: src/ui/gui/psppire.c:195
-msgid "_Select"
 msgstr ""
 
 #: src/ui/gui/psppire.glade:11
@@ -5810,6 +5772,10 @@ msgstr ""
 msgid "Use expression as label"
 msgstr ""
 
+#: src/ui/gui/psppire.glade:2187 src/ui/gui/psppire-var-sheet.c:102
+msgid "Width"
+msgstr ""
+
 #: src/ui/gui/psppire.glade:2274
 msgid "Goto Case Number:"
 msgstr ""
@@ -5840,6 +5806,40 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:2627
 msgid "Search backward"
+msgstr ""
+
+#: src/ui/gui/psppire-var-sheet.c:100
+msgid "Name"
+msgstr ""
+
+#: src/ui/gui/psppire-var-sheet.c:103
+msgid "Decimals"
+msgstr ""
+
+#: src/ui/gui/psppire-var-sheet.c:105
+msgid "Values"
+msgstr ""
+
+#: src/ui/gui/psppire-var-sheet.c:108
+msgid "Align"
+msgstr ""
+
+#: src/ui/gui/psppire-var-sheet.c:109
+msgid "Measure"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:601
+msgid "Scientific"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:604
+msgid "Custom"
+msgstr ""
+
+#: src/ui/gui/psppire-var-store.c:675 src/ui/gui/psppire-var-store.c:685
+#: src/ui/gui/psppire-var-store.c:695
+#, c-format
+msgid "%d"
 msgstr ""
 
 #: src/ui/gui/rank.glade:111
@@ -6130,56 +6130,6 @@ msgstr ""
 msgid "To End"
 msgstr ""
 
-#: src/ui/gui/t-test-options.c:60
-#, c-format
-msgid "Confidence Interval: %2d %%"
-msgstr ""
-
-#: src/ui/gui/t-test-paired-samples.c:228
-msgid "Var 1"
-msgstr ""
-
-#: src/ui/gui/t-test-paired-samples.c:229
-msgid "Var 2"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:56 src/ui/gui/t-test.glade:165
-msgid "Define Groups"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:123 src/ui/gui/t-test.glade:549
-#: src/ui/gui/t-test.glade:761
-msgid "Test Variable(s):"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:258
-msgid "Group_2 value:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:271
-msgid "Group_1 value:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:320
-msgid "_Cut point:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:349
-msgid "_Use specified values:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:431
-msgid "Exclude cases _analysis by analysis"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:442
-msgid "Exclude cases _listwise"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:594
-msgid "Test Value: "
-msgstr ""
-
 #: src/ui/gui/text-data-import-dialog.c:451
 #, c-format
 msgid "Could not open \"%s\": %s"
@@ -6391,6 +6341,56 @@ msgstr ""
 
 #: src/ui/gui/text-data-import.glade:700
 msgid "<b>Data Preview</b>"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:56 src/ui/gui/t-test.glade:165
+msgid "Define Groups"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:123 src/ui/gui/t-test.glade:549
+#: src/ui/gui/t-test.glade:761
+msgid "Test Variable(s):"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:258
+msgid "Group_2 value:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:271
+msgid "Group_1 value:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:320
+msgid "_Cut point:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:349
+msgid "_Use specified values:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:431
+msgid "Exclude cases _analysis by analysis"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:442
+msgid "Exclude cases _listwise"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:594
+msgid "Test Value: "
+msgstr ""
+
+#: src/ui/gui/t-test-options.c:60
+#, c-format
+msgid "Confidence Interval: %2d %%"
+msgstr ""
+
+#: src/ui/gui/t-test-paired-samples.c:228
+msgid "Var 1"
+msgstr ""
+
+#: src/ui/gui/t-test-paired-samples.c:229
+msgid "Var 2"
 msgstr ""
 
 #: src/ui/gui/variable-info-dialog.c:89

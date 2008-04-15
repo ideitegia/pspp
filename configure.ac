@@ -28,7 +28,7 @@ AM_GNU_GETTEXT_VERSION([0.16.1])
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
-AC_CHECK_LIB(m, sin)
+AC_SEARCH_LIBS([sin], [m])
 PSPP_LIBPLOT
 PSPP_LC_PAPER
 AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
@@ -62,7 +62,7 @@ dnl To overcome this, we first check for libpq in the standard places, and
 dnl only set PG_LDFLAGS if it's not found.
 
 
-AC_CHECK_LIB([pq], [PQexec], [libpq_in_std_lib_path=yes])
+AC_SEARCH_LIBS([PQexec], [pq], [libpq_in_std_lib_path=yes])
 
 AC_ARG_VAR([PG_CONFIG], [Full pathname of the pg_config program shipped with Postgresql])
 AC_PATH_PROG([PG_CONFIG], [pg_config], [], [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
@@ -108,8 +108,8 @@ if test x"$with_gui_tools" = x"yes" ; then
 fi
 AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 
-AC_CHECK_LIB(gslcblas,main,,[PSPP_REQUIRED_PREREQ([libgslcblas])])
-AC_CHECK_LIB(gsl, gsl_cdf_chisq_Q,,[PSPP_REQUIRED_PREREQ([libgsl (version 1.4 or later)])])
+AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
+AC_SEARCH_LIBS([gsl_cdf_chisq_Q], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.4 or later)])])
 
 AC_CHECK_LIB(ncurses, tgetent)
 AC_CHECK_HEADERS(termcap.h)
