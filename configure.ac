@@ -111,8 +111,30 @@ AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
 AC_SEARCH_LIBS([gsl_cdf_chisq_Q], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.4 or later)])])
 
-AC_CHECK_LIB(ncurses, tgetent)
-AC_CHECK_HEADERS(termcap.h)
+dnl Recent versions of GNU ncurses install the curses header files into
+dnl /usr/include/ncurses, and provide a 'ncurses5-config' program which
+dnl enables us to discover where they are. Earlier versions don't have
+dnl this, so we can't rely on it.  So if ncurses5-config is present,
+dnl we'll trust it to find the right information.  Otherwise, we'll
+dnl try to discover it ourselves.
+dnl To confound things further, Cygwin has decided to rename ncurses5-config
+dnl to ncurses8-config !!!
+AC_CHECK_PROGS([NCURSES_CONFIG], [ncurses5-config ncurses8-config])
+if test x"$NCURSES_CONFIG" = x ; then
+  AC_SEARCH_LIBS([tgetent], [ncurses],
+    [curses_available=yes; AC_CHECK_HEADERS([term.h curses.h],,[curses_available=no])])
+else
+  curses_available=yes
+  NCURSES_CFLAGS=`$NCURSES_CONFIG --cflags`
+  NCURSES_LIBS=`$NCURSES_CONFIG --libs`
+  AC_SUBST(NCURSES_CFLAGS)
+  AC_SUBST(NCURSES_LIBS)
+fi
+if test x"$curses_available" = x"yes" ; then
+   AC_DEFINE([LIBNCURSES_USABLE], 1,
+     [Define to 1 if the libncurses is both present and usable.])
+fi
+AC_CHECK_HEADERS([termcap.h])
 
 PSPP_READLINE
 

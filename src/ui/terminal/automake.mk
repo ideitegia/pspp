@@ -13,7 +13,7 @@ src_ui_terminal_libui_a_SOURCES = \
 	src/ui/terminal/terminal.c \
 	src/ui/terminal/terminal.h	
 
-src_ui_terminal_libui_a_CFLAGS = -DINSTALLDIR=\"$(bindir)\"
+src_ui_terminal_libui_a_CFLAGS = -DINSTALLDIR=\"$(bindir)\" $(NCURSES_CFLAGS)
 
 bin_PROGRAMS += src/ui/terminal/pspp
 
@@ -34,6 +34,7 @@ src_ui_terminal_pspp_LDADD = \
 	src/libpspp/libpspp.a \
 	$(LIBXML2_LIBS) \
 	$(PG_LIBS) \
+	$(NCURSES_LIBS) \
 	$(LIBICONV) \
 	gl/libgl.la \
 	@LIBINTL@ @LIBREADLINE@

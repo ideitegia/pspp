@@ -46,7 +46,7 @@ terminal_init (int **view_width_p, int **view_length_p)
    of this file because curses.h redefines "bool" on some systems
    (e.g. OpenBSD), causing declaration mismatches with functions
    that have parameters or return values of type "bool". */
-#if HAVE_LIBNCURSES
+#if LIBNCURSES_USABLE
 #include <curses.h>
 #include <term.h>
 #endif
@@ -56,7 +56,7 @@ terminal_init (int **view_width_p, int **view_length_p)
 void
 terminal_check_size (void)
 {
-#if HAVE_LIBNCURSES
+#if LIBNCURSES_USABLE
   if (getenv ("TERM") != NULL)
     {
       char term_buffer [16384];

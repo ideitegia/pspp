@@ -1,3 +1,7 @@
+2008-04-19  John Darrington <john@darrington.wattle.id.au>
+
+	* configure.ac : Improve checking of ncurses availability.
+
 2008-04-15  Ben Pfaff  <blp@gnu.org>
 
 	* configure.ac: Properly report required version of libglade.
