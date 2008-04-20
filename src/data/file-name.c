@@ -411,7 +411,7 @@ fn_get_identity (const char *file_name)
   identity->device = 0;
   identity->inode = 0;
   identity->name = xstrdup (ok ? cname : file_name);
-  str_lowercase (identity->file_name);
+  str_lowercase (identity->name);
 #endif /* Windows */
 
   return identity;

@@ -19,6 +19,7 @@
 
 #include <libpspp/misc.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include "minmax.h"
 
 /* "Short" strings, which are generally those no more than 8
