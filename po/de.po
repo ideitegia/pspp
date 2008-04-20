@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-04-19 07:19+0800\n"
+"POT-Creation-Date: 2008-04-20 16:16+0800\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -73,121 +73,121 @@ msgstr "plotzlich ist der Datei beendet"
 msgid "writing to temporary file"
 msgstr ""
 
-#: src/data/data-in.c:261 src/data/data-in.c:451
+#: src/data/data-in.c:262 src/data/data-in.c:452
 msgid "Field contents are not numeric."
 msgstr ""
 
-#: src/data/data-in.c:263 src/data/data-in.c:453
+#: src/data/data-in.c:264 src/data/data-in.c:454
 msgid "Number followed by garbage."
 msgstr ""
 
-#: src/data/data-in.c:274
+#: src/data/data-in.c:275
 msgid "Invalid numeric syntax."
 msgstr ""
 
-#: src/data/data-in.c:283 src/data/data-in.c:466
+#: src/data/data-in.c:284 src/data/data-in.c:467
 msgid "Too-large number set to system-missing."
 msgstr ""
 
-#: src/data/data-in.c:288 src/data/data-in.c:471
+#: src/data/data-in.c:289 src/data/data-in.c:472
 msgid "Too-small number set to zero."
 msgstr ""
 
-#: src/data/data-in.c:314
+#: src/data/data-in.c:315
 msgid "All characters in field must be digits."
 msgstr ""
 
-#: src/data/data-in.c:337
+#: src/data/data-in.c:338
 msgid "Unrecognized character in field."
 msgstr ""
 
-#: src/data/data-in.c:361 src/data/data-in.c:635
+#: src/data/data-in.c:362 src/data/data-in.c:636
 msgid "Field must have even length."
 msgstr ""
 
-#: src/data/data-in.c:366 src/data/data-in.c:646
+#: src/data/data-in.c:367 src/data/data-in.c:647
 msgid "Field must contain only hex digits."
 msgstr ""
 
-#: src/data/data-in.c:685 src/data/data-in.c:732
+#: src/data/data-in.c:686 src/data/data-in.c:733
 msgid "Syntax error in date field."
 msgstr ""
 
-#: src/data/data-in.c:701
+#: src/data/data-in.c:702
 #, c-format
 msgid "Day (%ld) must be between 1 and 31."
 msgstr ""
 
-#: src/data/data-in.c:748
+#: src/data/data-in.c:749
 msgid "Delimiter expected between fields in date."
 msgstr ""
 
-#: src/data/data-in.c:822
+#: src/data/data-in.c:823
 msgid ""
 "Unrecognized month format.  Months may be specified as Arabic or Roman "
 "numerals or as at least 3 letters of their English names."
 msgstr ""
 
-#: src/data/data-in.c:849
+#: src/data/data-in.c:850
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
 msgstr ""
 
-#: src/data/data-in.c:861
+#: src/data/data-in.c:862
 #, c-format
 msgid "Trailing garbage \"%.*s\" following date."
 msgstr ""
 
-#: src/data/data-in.c:877
+#: src/data/data-in.c:878
 msgid "Julian day must have exactly three digits."
 msgstr ""
 
-#: src/data/data-in.c:882
+#: src/data/data-in.c:883
 #, c-format
 msgid "Julian day (%ld) must be between 1 and 366."
 msgstr ""
 
-#: src/data/data-in.c:906
+#: src/data/data-in.c:907
 #, c-format
 msgid "Quarter (%ld) must be between 1 and 4."
 msgstr ""
 
-#: src/data/data-in.c:926
+#: src/data/data-in.c:927
 #, c-format
 msgid "Week (%ld) must be between 1 and 53."
 msgstr ""
 
-#: src/data/data-in.c:939
+#: src/data/data-in.c:940
 msgid "Delimiter expected between fields in time."
 msgstr ""
 
-#: src/data/data-in.c:959
+#: src/data/data-in.c:960
 #, c-format
 msgid "Minute (%ld) must be between 0 and 59."
 msgstr ""
 
-#: src/data/data-in.c:999
+#: src/data/data-in.c:1000
 msgid ""
 "Unrecognized weekday name.  At least the first two letters of an English "
 "weekday name must be specified."
 msgstr ""
 
-#: src/data/data-in.c:1137
+#: src/data/data-in.c:1138
 #, c-format
 msgid "`%c' expected in date field."
 msgstr ""
 
-#: src/data/data-in.c:1178
+#: src/data/data-in.c:1179
 #, c-format
 msgid "column %d"
 msgstr "Spalten %d"
 
-#: src/data/data-in.c:1180
+#: src/data/data-in.c:1181
 #, fuzzy, c-format
 msgid "columns %d-%d"
 msgstr "Spalten"
 
-#: src/data/data-in.c:1184
+#: src/data/data-in.c:1185
 #, c-format
 msgid "%s field) "
 msgstr ""
@@ -3795,20 +3795,20 @@ msgstr ""
 msgid "Closing `%s': %s."
 msgstr ""
 
-#: src/language/tests/check-model.q:137
+#: src/language/tests/check-model.q:138
 msgid "PATH and SEARCH subcommands are mutually exclusive.  Ignoring PATH."
 msgstr ""
 
-#: src/language/tests/check-model.q:155
+#: src/language/tests/check-model.q:156
 msgid "At least one value must be specified on PATH."
 msgstr ""
 
-#: src/language/tests/check-model.q:166
+#: src/language/tests/check-model.q:167
 #, c-format
 msgid "Hash bits adjusted to %d."
 msgstr ""
 
-#: src/language/tests/check-model.q:207
+#: src/language/tests/check-model.q:208
 #, c-format
 msgid "error opening \"%s\" for writing"
 msgstr ""

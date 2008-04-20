@@ -18,7 +18,9 @@
 
 #include <ctype.h>
 #include <errno.h>
+#if HAVE_LC_PAPER
 #include <langinfo.h>
+#endif
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
