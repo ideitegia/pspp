@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+#include <limits.h>
 #include <language/data-io/file-handle.h>
 #include <libpspp/message.h>
 #include <errno.h>
