@@ -65,7 +65,9 @@ dnl only set PG_LDFLAGS if it's not found.
 AC_SEARCH_LIBS([PQexec], [pq], [libpq_in_std_lib_path=yes])
 
 AC_ARG_VAR([PG_CONFIG], [Full pathname of the pg_config program shipped with Postgresql])
-AC_PATH_PROG([PG_CONFIG], [pg_config], [], [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
+if test x"$cross_compiling" != x"yes" ; then
+   AC_PATH_PROG([PG_CONFIG], [pg_config], [], [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
+fi 
 if test -n "$PG_CONFIG" ; then 
    AC_SUBST(PG_CONFIG)
    AC_DEFINE([PSQL_SUPPORT], 1,
@@ -119,7 +121,9 @@ dnl we'll trust it to find the right information.  Otherwise, we'll
 dnl try to discover it ourselves.
 dnl To confound things further, Cygwin has decided to rename ncurses5-config
 dnl to ncurses8-config !!!
-AC_CHECK_PROGS([NCURSES_CONFIG], [ncurses5-config ncurses8-config])
+if test x"$cross_compiling" != x"yes" ; then
+  AC_CHECK_PROGS([NCURSES_CONFIG], [ncurses5-config ncurses8-config])
+fi
 if test x"$NCURSES_CONFIG" = x ; then
   AC_SEARCH_LIBS([tgetent], [ncurses],
     [curses_available=yes; AC_CHECK_HEADERS([term.h curses.h],,[curses_available=no])])
