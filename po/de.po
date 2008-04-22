@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-04-20 16:16+0800\n"
+"POT-Creation-Date: 2008-04-22 16:37+0800\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -636,7 +636,7 @@ msgstr ""
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
-#: src/data/scratch-writer.c:67 src/language/data-io/file-handle.q:180
+#: src/data/scratch-writer.c:67 src/language/data-io/file-handle.q:181
 msgid "scratch file"
 msgstr ""
 
@@ -1387,42 +1387,42 @@ msgstr ""
 msgid "I/O error occurred writing data file \"%s\"."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:64
+#: src/language/data-io/file-handle.q:65
 #, c-format
 msgid ""
 "File handle %s is already defined.  Use CLOSE FILE HANDLE before redefining "
 "a file handle."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:119
+#: src/language/data-io/file-handle.q:120
 msgid "RECFORM must be specified with MODE=360."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:130
+#: src/language/data-io/file-handle.q:131
 #, c-format
 msgid "The specified file mode requires LRECL.  Assuming %d-character records."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:134
+#: src/language/data-io/file-handle.q:135
 #, c-format
 msgid ""
 "Record length (%ld) must be between 1 and %lu bytes.  Assuming %d-character "
 "records."
 msgstr ""
 
-#: src/language/data-io/file-handle.q:176
+#: src/language/data-io/file-handle.q:177
 msgid "file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:178
+#: src/language/data-io/file-handle.q:179
 msgid "inline file"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:204
+#: src/language/data-io/file-handle.q:205
 msgid "expecting a file name or handle name"
 msgstr ""
 
-#: src/language/data-io/file-handle.q:224
+#: src/language/data-io/file-handle.q:225
 #, c-format
 msgid "Handle for %s not allowed here."
 msgstr ""
@@ -2188,50 +2188,50 @@ msgstr ""
 msgid "Duplicate variable name %s."
 msgstr ""
 
-#: src/language/expressions/helpers.c:35
+#: src/language/expressions/helpers.c:51
 msgid ""
 "One of the arguments to a DATE function is not an integer.  The result will "
 "be system-missing."
 msgstr ""
 
-#: src/language/expressions/helpers.c:57
+#: src/language/expressions/helpers.c:73
 msgid ""
 "The week argument to DATE.WKYR is not an integer.  The result will be system-"
 "missing."
 msgstr ""
 
-#: src/language/expressions/helpers.c:63
+#: src/language/expressions/helpers.c:79
 msgid ""
 "The week argument to DATE.WKYR is outside the acceptable range of 1 to 53.  "
 "The result will be system-missing."
 msgstr ""
 
-#: src/language/expressions/helpers.c:85
+#: src/language/expressions/helpers.c:101
 msgid ""
 "The day argument to DATE.YRDAY is not an integer.  The result will be system-"
 "missing."
 msgstr ""
 
-#: src/language/expressions/helpers.c:91
+#: src/language/expressions/helpers.c:107
 msgid ""
 "The day argument to DATE.YRDAY is outside the acceptable range of 1 to 366.  "
 "The result will be system-missing."
 msgstr ""
 
-#: src/language/expressions/helpers.c:113
+#: src/language/expressions/helpers.c:129
 msgid ""
 "The year argument to YRMODA is greater than 47516.  The result will be "
 "system-missing."
 msgstr ""
 
-#: src/language/expressions/helpers.c:166
+#: src/language/expressions/helpers.c:182
 #, c-format
 msgid ""
 "Unrecognized date unit \"%.*s\".  Valid date units are \"years\", \"quarters"
 "\", \"months\", \"weeks\", \"days\", \"hours\", \"minutes\", and \"seconds\"."
 msgstr ""
 
-#: src/language/expressions/helpers.c:316
+#: src/language/expressions/helpers.c:332
 msgid ""
 "Invalid DATESUM method.  Valid choices are \"closest\" and \"rollover\"."
 msgstr ""
@@ -3837,7 +3837,7 @@ msgstr ""
 msgid "expecting weight value"
 msgstr ""
 
-#: src/language/utilities/cd.c:43
+#: src/language/utilities/cd.c:41
 #, c-format
 msgid "Cannot change directory to %s:  %s "
 msgstr ""
@@ -4308,124 +4308,124 @@ msgstr ""
 msgid "error creating \"%s\""
 msgstr ""
 
-#: src/output/output.c:166
+#: src/output/output.c:168
 #, c-format
 msgid "unknown output driver `%s'"
 msgstr ""
 
-#: src/output/output.c:168
+#: src/output/output.c:170
 #, c-format
 msgid "output driver `%s' referenced but never defined"
 msgstr ""
 
-#: src/output/output.c:259
+#: src/output/output.c:261
 msgid "using default output driver configuration"
 msgstr ""
 
-#: src/output/output.c:288
+#: src/output/output.c:290
 msgid "cannot find output initialization file (use `-vv' to view search path)"
 msgstr ""
 
-#: src/output/output.c:296
+#: src/output/output.c:298
 #, c-format
 msgid "cannot open \"%s\""
 msgstr ""
 
-#: src/output/output.c:308
+#: src/output/output.c:310
 #, c-format
 msgid "reading \"%s\""
 msgstr ""
 
-#: src/output/output.c:330 src/ui/gui/message-dialog.c:97
+#: src/output/output.c:332 src/ui/gui/message-dialog.c:97
 msgid "syntax error"
 msgstr ""
 
-#: src/output/output.c:339
+#: src/output/output.c:341
 #, c-format
 msgid "error closing \"%s\""
 msgstr ""
 
-#: src/output/output.c:347
+#: src/output/output.c:349
 msgid "no active output drivers"
 msgstr ""
 
-#: src/output/output.c:350
+#: src/output/output.c:352
 msgid "error reading device definition file"
 msgstr ""
 
-#: src/output/output.c:468
+#: src/output/output.c:470
 #, c-format
 msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
 
-#: src/output/output.c:500
+#: src/output/output.c:502
 #, c-format
 msgid "syntax error parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:516
+#: src/output/output.c:518
 #, c-format
 msgid ""
 "reached end of options inside quoted string parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:586
+#: src/output/output.c:588
 #, c-format
 msgid "syntax error in string constant parsing options for \"%s\" driver"
 msgstr ""
 
-#: src/output/output.c:634
+#: src/output/output.c:636
 #, c-format
 msgid "syntax error expecting `=' parsing options for driver \"%s\""
 msgstr ""
 
-#: src/output/output.c:685
+#: src/output/output.c:687
 #, c-format
 msgid "unknown output driver class `%.*s'"
 msgstr ""
 
-#: src/output/output.c:700
+#: src/output/output.c:702
 #, c-format
 msgid "unknown device type `%.*s'"
 msgstr ""
 
-#: src/output/output.c:717
+#: src/output/output.c:719
 #, c-format
 msgid "cannot initialize output driver `%s' of class `%s'"
 msgstr ""
 
-#: src/output/output.c:763
+#: src/output/output.c:765
 msgid "driver definition line missing driver name or class name"
 msgstr ""
 
-#: src/output/output.c:866
+#: src/output/output.c:868
 #, c-format
 msgid "`%s' is not a valid length."
 msgstr ""
 
-#: src/output/output.c:958
+#: src/output/output.c:960
 #, c-format
 msgid "unknown paper type `%.*s'"
 msgstr ""
 
-#: src/output/output.c:976
+#: src/output/output.c:978
 #, c-format
 msgid "error opening \"%s\""
 msgstr ""
 
-#: src/output/output.c:987
+#: src/output/output.c:989
 #, c-format
 msgid "error reading \"%s\""
 msgstr ""
 
-#: src/output/output.c:1004
+#: src/output/output.c:1006
 #, c-format
 msgid "paper size file \"%s\" does not state a paper size"
 msgstr ""
 
-#: src/output/output.c:1064
+#: src/output/output.c:1066
 #, c-format
 msgid "syntax error in paper size `%s'"
 msgstr ""
@@ -6190,17 +6190,17 @@ msgstr "Variableansicht"
 msgid "Residuals"
 msgstr ""
 
-#: src/ui/gui/select-cases-dialog.c:84
+#: src/ui/gui/select-cases-dialog.c:81
 #, c-format
 msgid "Approximately %3d%% of all cases."
 msgstr ""
 
-#: src/ui/gui/select-cases-dialog.c:85
+#: src/ui/gui/select-cases-dialog.c:82
 #, c-format
 msgid "Exactly %3d cases from the first %3d cases."
 msgstr "Aus %2$3d beispielen, wahl genau %1$3d daren"
 
-#: src/ui/gui/select-cases-dialog.c:225
+#: src/ui/gui/select-cases-dialog.c:222
 #, c-format
 msgid "%d thru %d"
 msgstr ""
