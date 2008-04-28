@@ -78,6 +78,9 @@ The following packages are optional.
       later.  Installing Texinfo will allow you to build PSPP
       documentation in PostScript or PDF format.
 
+    * libpq, from Postgresql (http://postgresql.org). This enables PSPP 
+      to read Postgresql databases.
+
 Basic Installation
 ==================
 
@@ -199,6 +202,12 @@ Optional Features
     Build the gui developer tools.  There is no reason to use this
     option unless you're involved with the development of PSPP
 
+`--without-lib{xx}'
+    Optional libraries should normally be detected and the relevant
+    functionality will be built they exist.  However, on some poorly
+    configured systems a library may exist, but be totally broken.
+    In these cases you can use --without-lib{xx} to force configure
+    to disregard it.
 
 Defining Variables
 ==================

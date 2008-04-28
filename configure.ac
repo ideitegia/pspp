@@ -24,7 +24,7 @@ PSPP_PERL
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])
-AM_GNU_GETTEXT_VERSION([0.16.1])
+AM_GNU_GETTEXT_VERSION([0.17])
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
@@ -62,13 +62,18 @@ dnl To overcome this, we first check for libpq in the standard places, and
 dnl only set PG_LDFLAGS if it's not found.
 
 
-AC_SEARCH_LIBS([PQexec], [pq], [libpq_in_std_lib_path=yes])
+AC_ARG_WITH(
+  libpq, 
+  [AS_HELP_STRING([--without-libpq], [don't compile in Postgres capability])])
 
-AC_ARG_VAR([PG_CONFIG], [Full pathname of the pg_config program shipped with Postgresql])
-if test x"$cross_compiling" != x"yes" ; then
+if test x"$with_libpq" != x"no" ; then
+ AC_SEARCH_LIBS([PQexec], [pq], [libpq_in_std_lib_path=yes])
+
+ AC_ARG_VAR([PG_CONFIG], [Full pathname of the pg_config program shipped with Postgresql])
+ if test x"$cross_compiling" != x"yes" ; then
    AC_PATH_PROG([PG_CONFIG], [pg_config], [], [$PATH:/usr/local/pgsql/bin:/usr/pgsql/bin])
-fi 
-if test -n "$PG_CONFIG" ; then 
+ fi 
+ if test -n "$PG_CONFIG" ; then 
    AC_SUBST(PG_CONFIG)
    AC_DEFINE([PSQL_SUPPORT], 1,
    [Define to 1 if building in support for reading from postgres databases.])
@@ -86,6 +91,7 @@ if test -n "$PG_CONFIG" ; then
          AC_DEFINE([USE_SSL],1,
 	 	    [Define to 1 if the openssl library is present.])
 	    ,)
+ fi
 fi
 AM_CONDITIONAL(PSQL_SUPPORT, test -n "$PG_CONFIG")
 
@@ -121,24 +127,30 @@ dnl we'll trust it to find the right information.  Otherwise, we'll
 dnl try to discover it ourselves.
 dnl To confound things further, Cygwin has decided to rename ncurses5-config
 dnl to ncurses8-config !!!
-if test x"$cross_compiling" != x"yes" ; then
-  AC_CHECK_PROGS([NCURSES_CONFIG], [ncurses5-config ncurses8-config])
+AC_ARG_WITH(
+  libncurses, 
+  [AS_HELP_STRING([--without-libncurses], [don't compile in ncurses functions])])
+
+if test x"$with_libncurses" != x"no" ; then
+  if test x"$cross_compiling" != x"yes" ; then
+	  AC_CHECK_PROGS([NCURSES_CONFIG], [ncurses5-config ncurses8-config])
+  fi
+  if test x"$NCURSES_CONFIG" = x ; then
+	  AC_SEARCH_LIBS([tgetent], [ncurses],
+	      [curses_available=yes; AC_CHECK_HEADERS([term.h curses.h],,[curses_available=no])])
+  else
+	  curses_available=yes
+	  NCURSES_CFLAGS=`$NCURSES_CONFIG --cflags`
+	  NCURSES_LIBS=`$NCURSES_CONFIG --libs`
+	  AC_SUBST(NCURSES_CFLAGS)
+	  AC_SUBST(NCURSES_LIBS)
+  fi
+  if test x"$curses_available" = x"yes" ; then
+	  AC_DEFINE([LIBNCURSES_USABLE], 1,
+	      [Define to 1 if the libncurses is both present and usable.])
+  fi
+  AC_CHECK_HEADERS([termcap.h])
 fi
-if test x"$NCURSES_CONFIG" = x ; then
-  AC_SEARCH_LIBS([tgetent], [ncurses],
-    [curses_available=yes; AC_CHECK_HEADERS([term.h curses.h],,[curses_available=no])])
-else
-  curses_available=yes
-  NCURSES_CFLAGS=`$NCURSES_CONFIG --cflags`
-  NCURSES_LIBS=`$NCURSES_CONFIG --libs`
-  AC_SUBST(NCURSES_CFLAGS)
-  AC_SUBST(NCURSES_LIBS)
-fi
-if test x"$curses_available" = x"yes" ; then
-   AC_DEFINE([LIBNCURSES_USABLE], 1,
-     [Define to 1 if the libncurses is both present and usable.])
-fi
-AC_CHECK_HEADERS([termcap.h])
 
 PSPP_READLINE
 
