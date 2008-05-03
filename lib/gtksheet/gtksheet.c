@@ -7849,10 +7849,21 @@ gtk_sheet_button_free (GtkSheetButton *button)
 }
 
 
+static void
+append_cell_text (GString *string, const GtkSheet *sheet, gint r, gint c)
+{
+  gchar *celltext = gtk_sheet_cell_get_text (sheet, r, c);
+
+  if ( NULL == celltext)
+    return;
+
+  g_string_append (string, celltext);
+  g_free (celltext);
+}
+
 static GString *
 range_to_text (const GtkSheet *sheet)
 {
-  gchar *celltext = NULL;
   gint r, c;
   GString *string;
 
@@ -7865,16 +7876,12 @@ range_to_text (const GtkSheet *sheet)
     {
       for (c = sheet->range.col0; c < sheet->range.coli; ++c)
 	{
-	  celltext = gtk_sheet_cell_get_text (sheet, r, c);
-	  g_string_append (string, celltext);
+	  append_cell_text (string, sheet, r, c);
 	  g_string_append (string, "\t");
-	  g_free (celltext);
 	}
-      celltext = gtk_sheet_cell_get_text (sheet, r, c);
-      g_string_append (string, celltext);
+      append_cell_text (string, sheet, r, c);
       if ( r < sheet->range.rowi)
 	g_string_append (string, "\n");
-      g_free (celltext);
     }
 
   return string;
@@ -7883,7 +7890,6 @@ range_to_text (const GtkSheet *sheet)
 static GString *
 range_to_html (const GtkSheet *sheet)
 {
-  gchar *celltext = NULL;
   gint r, c;
   GString *string;
 
@@ -7901,10 +7907,8 @@ range_to_html (const GtkSheet *sheet)
       for (c = sheet->range.col0; c <= sheet->range.coli; ++c)
 	{
 	  g_string_append (string, "<td>");
-	  celltext = gtk_sheet_cell_get_text (sheet, r, c);
-	  g_string_append (string, celltext);
+	  append_cell_text (string, sheet, r, c);
 	  g_string_append (string, "</td>\n");
-	  g_free (celltext);
 	}
       g_string_append (string, "</tr>\n");
     }
