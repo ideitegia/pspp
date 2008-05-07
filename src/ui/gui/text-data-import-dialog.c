@@ -1808,6 +1808,19 @@ get_tooltip_location (GtkWidget *widget, gint wx, gint wy,
   GtkTreeModel *tree_model;
   bool ok;
 
+  /* Check that WIDGET is really visible on the screen before we
+     do anything else.  This is a bug fix for a sticky situation:
+     when text_data_import_assistant() returns, it frees the data
+     necessary to compose the tool tip message, but there may be
+     a tool tip under preparation at that point (even if there is
+     no visible tool tip) that will call back into us a little
+     bit later.  Perhaps the correct solution to this problem is
+     to make the data related to the tool tips part of a GObject
+     that only gets destroyed when all references are released,
+     but this solution appears to be effective too. */
+  if (!GTK_WIDGET_MAPPED (widget))
+    return FALSE;
+
   gtk_tree_view_convert_widget_to_bin_window_coords (tree_view,
                                                      wx, wy, &bx, &by);
   if (!gtk_tree_view_get_path_at_pos (tree_view, bx, by,

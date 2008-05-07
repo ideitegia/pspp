@@ -1,5 +1,13 @@
 2008-05-06  Ben Pfaff  <blp@gnu.org>
 
+	Bug #23127.  Reviewed by John Darrington.  Tested by Jason Stover,
+	in an earlier form.
+
+	* text-data-import-dialog.c (get_tooltip_location): Prevent crash
+	when a tooltip is being prepared when the assistant is closed.
+
+2008-05-06  Ben Pfaff  <blp@gnu.org>
+
 	* text-data-import-dialog.c (text_data_import_assistant): Allocate
 	the struct import_assistant on the heap instead of the stack, to
 	make it easier for memory debuggers such as Valgrind to point out
