@@ -229,34 +229,39 @@ text_data_import_assistant (GObject *o, gpointer de_)
 {
   struct data_editor *de = de_;
   GtkWindow *parent_window = de->parent.window;
-  struct import_assistant ia = { { 0, } };
+  struct import_assistant *ia;
 
-  if (!init_file (&ia, parent_window))
-    return;
+  ia = xzalloc (sizeof *ia);
+  if (!init_file (ia, parent_window))
+    {
+      free (ia);
+      return;
+    }
 
-  init_assistant (&ia, parent_window);
-  init_intro_page (&ia);
-  init_first_line_page (&ia);
-  init_separators_page (&ia);
-  init_formats_page (&ia);
+  init_assistant (ia, parent_window);
+  init_intro_page (ia);
+  init_first_line_page (ia);
+  init_separators_page (ia);
+  init_formats_page (ia);
 
-  gtk_widget_show_all (GTK_WIDGET (ia.asst.assistant));
+  gtk_widget_show_all (GTK_WIDGET (ia->asst.assistant));
 
-  ia.asst.main_loop = g_main_loop_new (NULL, false);
-  g_main_loop_run (ia.asst.main_loop);
+  ia->asst.main_loop = g_main_loop_new (NULL, false);
+  g_main_loop_run (ia->asst.main_loop);
+  g_main_loop_unref (ia->asst.main_loop);
 
-  switch (ia.asst.response)
+  switch (ia->asst.response)
     {
     case GTK_RESPONSE_APPLY:
       {
-	char *syntax = generate_syntax (&ia);
+	char *syntax = generate_syntax (ia);
 	execute_syntax (create_syntax_string_source (syntax));
 	free (syntax);
       }
       break;
     case PSPPIRE_RESPONSE_PASTE:
       {
-	char *syntax = generate_syntax (&ia);
+	char *syntax = generate_syntax (ia);
 	struct syntax_editor *se =
 	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
 	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
@@ -267,10 +272,11 @@ text_data_import_assistant (GObject *o, gpointer de_)
       break;
     }
 
-  destroy_formats_page (&ia);
-  destroy_separators_page (&ia);
-  destroy_assistant (&ia);
-  destroy_file (&ia);
+  destroy_formats_page (ia);
+  destroy_separators_page (ia);
+  destroy_assistant (ia);
+  destroy_file (ia);
+  free (ia);
 }
 
 /* Emits PSPP syntax to S that applies the dictionary attributes
