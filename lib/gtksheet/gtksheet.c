@@ -2440,7 +2440,10 @@ gtk_sheet_dispose  (GObject *object)
   if (sheet->column_geometry) g_object_unref (sheet->column_geometry);
 
   g_object_unref (sheet->entry_container);
+  sheet->entry_container = NULL;
+
   g_object_unref (sheet->button);
+  sheet->button = NULL;
 
   /* unref adjustments */
   if (sheet->hadjustment)

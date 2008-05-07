@@ -1,3 +1,10 @@
+2008-05-06  Ben Pfaff  <blp@gnu.org>
+
+	* gtksheet.c (gtk_sheet_dispose): Set the sheet's entry_container
+	and button members to NULL after unref'ing them, so that a later
+	call to gtk_sheet_for_all will not try to dereference a dangling
+	pointer.
+
 2008-03-06 John Darrington <john@darrington.wattle.id.au>
 
 	* gsheet-row-iface.c gsheet-row-iface.h: Delete unused, unneccesary
