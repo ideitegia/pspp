@@ -633,6 +633,7 @@ add_page_to_assistant (struct import_assistant *ia,
   gtk_assistant_append_page (ia->asst.assistant, content);
   gtk_assistant_set_page_type (ia->asst.assistant, content, type);
   gtk_assistant_set_page_title (ia->asst.assistant, content, title_copy);
+  gtk_assistant_set_page_complete (ia->asst.assistant, content, true);
 
   free (title_copy);
 
@@ -656,11 +657,6 @@ on_prepare (GtkAssistant *assistant, GtkWidget *page,
     gtk_widget_show (ia->asst.paste_button);
   else
     gtk_widget_hide (ia->asst.paste_button);
-
-  /* Make the user visit each page in the assistant once.  Seems
-     like a reasonable user interface, plus visiting the final
-     page is what constructs the dictionary. */
-  gtk_assistant_set_page_complete (assistant, page, true);
 }
 
 /* Called when the Cancel button in the assistant is clicked. */

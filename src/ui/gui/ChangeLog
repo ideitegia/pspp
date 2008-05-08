@@ -2,14 +2,25 @@
 
 	Patch #6505.  Reviewed by John Darrington.
 
-	* text-data-import-dialog: (struct assistant) New member
+	* text-data-import-dialog.c: Don't make the user wiggle the mouse
+	to be able to click on the Forward button twice in quick
+	succession.
+	(add_page_to_assistant): Mark pages in the assistant complete
+	immediately.
+	(on_prepare): No longer mark pages complete upon first visit.
+
+2008-05-08  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6505.  Reviewed by John Darrington.
+
+	* text-data-import-dialog.c: (struct assistant) New member
 	`watch_cursor'.
-	(revise_fields_preview) Change the mouse pointer to a watch to
+	(revise_fields_preview): Change the mouse pointer to a watch to
 	indicate that a long operation is ongoing.
-	(prepare_formats_page) Ditto.
-	(on_variable_change) Ditto.
-	(push_watch_cursor) New function.
-	(pop_watch_cursor) New function.
+	(prepare_formats_page): Ditto.
+	(on_variable_change): Ditto.
+	(push_watch_cursor): New function.
+	(pop_watch_cursor): New function.
 
 2008-05-08  John Darrington <john@darrington.wattle.id.au>
 
