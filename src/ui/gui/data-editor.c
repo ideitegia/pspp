@@ -1506,9 +1506,6 @@ create_data_sheet_variable_popup_menu (struct data_editor *de)
   GtkWidget *clear_variable =
     gtk_menu_item_new_with_label (_("Clear"));
 
-  gtk_action_connect_proxy (de->insert_variable,
-			    insert_variable );
-
 
   gtk_action_connect_proxy (de->delete_variables,
 			    clear_variable );
@@ -1539,6 +1536,11 @@ create_data_sheet_variable_popup_menu (struct data_editor *de)
 			    G_CALLBACK (psppire_data_editor_sort_descending),
 			    de->data_editor);
 
+  g_signal_connect_swapped (G_OBJECT (insert_variable), "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->insert_variable);
+
+
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_descending);
 
   gtk_widget_show_all (menu);
@@ -1559,15 +1561,15 @@ create_data_sheet_cases_popup_menu (struct data_editor *de)
     gtk_menu_item_new_with_label (_("Clear"));
 
 
-  gtk_action_connect_proxy (de->insert_case,
-			    insert_case);
-
-
   gtk_action_connect_proxy (de->delete_cases,
 			    delete_case);
 
 
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_case);
+
+  g_signal_connect_swapped (G_OBJECT (insert_case), "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->insert_case);
 
 
   gtk_menu_shell_append (GTK_MENU_SHELL (menu),

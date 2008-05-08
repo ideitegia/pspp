@@ -1,3 +1,10 @@
+2008-05-08  John Darrington <john@darrington.wattle.id.au>
+
+	* data-editor.c: In popup menus, connect the Insert Variable and
+	Insert Case callbacks manually, instead of relying on
+	gtk_action_connect_proxy, as the latter connects a label with a
+	mnemonic which is inappropriate.
+
 2008-05-06  Ben Pfaff  <blp@gnu.org>
 
 	Bug #23127.  Reviewed by John Darrington.  Tested by Jason Stover,
