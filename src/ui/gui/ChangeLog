@@ -1,3 +1,16 @@
+2008-05-08  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6505.  Reviewed by John Darrington.
+
+	* text-data-import-dialog: (struct assistant) New member
+	`watch_cursor'.
+	(revise_fields_preview) Change the mouse pointer to a watch to
+	indicate that a long operation is ongoing.
+	(prepare_formats_page) Ditto.
+	(on_variable_change) Ditto.
+	(push_watch_cursor) New function.
+	(pop_watch_cursor) New function.
+
 2008-05-08  John Darrington <john@darrington.wattle.id.au>
 
 	* data-editor.c: In popup menus, connect the Insert Variable and

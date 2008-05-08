@@ -89,6 +89,7 @@ struct assistant
     GtkWidget *paste_button;
     GtkWidget *reset_button;
     int response;
+    int watch_cursor;
 
     GtkCellRenderer *prop_renderer;
     GtkCellRenderer *fixed_renderer;
@@ -222,6 +223,8 @@ static GtkTreeViewColumn *make_data_column (struct import_assistant *,
 static GtkTreeView *create_data_tree_view (bool input, GtkContainer *parent,
                                            struct import_assistant *);
 static void escape_underscores (const char *in, char *out);
+static void push_watch_cursor (struct import_assistant *);
+static void pop_watch_cursor (struct import_assistant *);
 
 /* Pops up the Text Data Import assistant. */
 void
@@ -1282,6 +1285,9 @@ static void
 revise_fields_preview (struct import_assistant *ia)
 {
   GtkWidget *w;
+
+  push_watch_cursor (ia);
+
   w = GTK_WIDGET (ia->separators.fields_tree_view);
   gtk_widget_destroy (w);
   get_separators (ia);
@@ -1291,6 +1297,8 @@ revise_fields_preview (struct import_assistant *ia)
     true,
     GTK_CONTAINER (get_widget_assert (ia->asst.xml, "fields-scroller")),
     ia);
+
+  pop_watch_cursor (ia);
 }
 
 /* Sets the widgets to match IA's separators substructure. */
@@ -1536,6 +1544,8 @@ prepare_formats_page (struct import_assistant *ia)
   unsigned long int number = 0;
   size_t column_idx;
 
+  push_watch_cursor (ia);
+
   dict = dict_create ();
   fg = fmt_guesser_create ();
   for (column_idx = 0; column_idx < s->column_cnt; column_idx++)
@@ -1611,6 +1621,8 @@ prepare_formats_page (struct import_assistant *ia)
     false,
     GTK_CONTAINER (get_widget_assert (ia->asst.xml, "data-scroller")),
     ia);
+
+  pop_watch_cursor (ia);
 }
 
 /* Clears the set of user-modified variables from IA's formats
@@ -1649,6 +1661,8 @@ on_variable_change (PsppireDict *dict, int dict_idx,
   GtkTreeView *tv = ia->formats.data_tree_view;
   gint column_idx = dict_idx + 1;
 
+  push_watch_cursor (ia);
+
   /* Remove previous column and replace with new column. */
   gtk_tree_view_remove_column (tv, gtk_tree_view_get_column (tv, column_idx));
   gtk_tree_view_insert_column (tv, make_data_column (ia, tv, false, dict_idx),
@@ -1671,6 +1685,8 @@ on_variable_change (PsppireDict *dict, int dict_idx,
     var_destroy (p->modified_vars[dict_idx]);
   p->modified_vars[dict_idx]
     = var_clone (psppire_dict_get_variable (dict, dict_idx));
+
+  pop_watch_cursor (ia);
 }
 
 /* Parses the contents of the field at (ROW,COLUMN) according to
@@ -2241,4 +2257,32 @@ text_import_model_iter_to_row (const GtkTreeIter *iter)
 {
   assert (iter->stamp == TREE_MODEL_STAMP);
   return GPOINTER_TO_INT (iter->user_data);
+}
+
+/* Increments the "watch cursor" level, setting the cursor for
+   the assistant window to a watch face to indicate to the user
+   that the ongoing operation may take some time. */
+static void
+push_watch_cursor (struct import_assistant *ia)
+{
+  if (++ia->asst.watch_cursor == 1)
+    {
+      GtkWidget *widget = GTK_WIDGET (ia->asst.assistant);
+      GdkCursor *cursor = gdk_cursor_new (GDK_WATCH);
+      gdk_window_set_cursor (widget->window, cursor);
+      gdk_cursor_unref (cursor);
+      gdk_display_flush (gtk_widget_get_display (widget));
+    }
+}
+
+/* Decrements the "watch cursor" level.  If the level reaches
+   zero, the cursor is reset to its default shape. */
+static void
+pop_watch_cursor (struct import_assistant *ia)
+{
+  if (--ia->asst.watch_cursor == 0)
+    {
+      GtkWidget *widget = GTK_WIDGET (ia->asst.assistant);;
+      gdk_window_set_cursor (widget->window, NULL);
+    }
 }
