@@ -2725,7 +2725,8 @@ gtk_sheet_unrealize (GtkWidget * widget)
   sheet->bg_gc = NULL;
 
   gtk_widget_unparent (sheet->entry_widget);
-  gtk_widget_unparent (sheet->button);
+  if (sheet->button != NULL)
+    gtk_widget_unparent (sheet->button);
 
   if (GTK_WIDGET_CLASS (parent_class)->unrealize)
     (* GTK_WIDGET_CLASS (parent_class)->unrealize) (widget);
