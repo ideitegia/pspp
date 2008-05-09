@@ -1,3 +1,14 @@
+2008-05-09  John Darrington <john@darrington.wattle.id.au>
+
+	* INSTALL: For obscure reasons gettext 0.17 requires that 
+	the string 'GNU pspp' occurs in some file in the root 
+	directory. Otherwise make distcheck fails with a very non-intuitive 
+	error message.  So for want of somewhere better I added it 
+	in INSTALL.
+
+	But since this string now appears in this ChangeLog file, it
+	could be taken out of INSTALL ...
+
 2008-04-19  John Darrington <john@darrington.wattle.id.au>
 
 	* configure.ac : Improve checking of ncurses availability.
