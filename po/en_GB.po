@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-04-22 16:37+0800\n"
+"POT-Creation-Date: 2008-05-09 12:10+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -51,22 +51,27 @@ msgid ""
 msgstr ""
 
 #: src/data/case-tmpfile.c:57
+#, c-format
 msgid "failed to create temporary file"
 msgstr ""
 
 #: src/data/case-tmpfile.c:131
+#, c-format
 msgid "seeking in temporary file"
 msgstr ""
 
 #: src/data/case-tmpfile.c:153
+#, c-format
 msgid "reading temporary file"
 msgstr ""
 
 #: src/data/case-tmpfile.c:155
+#, c-format
 msgid "unexpected end of file reading temporary file"
 msgstr ""
 
 #: src/data/case-tmpfile.c:175
+#, c-format
 msgid "writing to temporary file"
 msgstr ""
 
@@ -4220,6 +4225,7 @@ msgid "ascii: unknown parameter `%s'"
 msgstr ""
 
 #: src/output/ascii.c:360
+#, c-format
 msgid "ascii: only screen devices may have `auto' length or width"
 msgstr ""
 
@@ -4229,6 +4235,7 @@ msgid "ascii: positive integer required as `%s' value"
 msgstr ""
 
 #: src/output/ascii.c:402
+#, c-format
 msgid "ascii: `emphasis' value must be `bold', `underline', or `none'"
 msgstr ""
 
@@ -4243,6 +4250,7 @@ msgid "ascii: boolean value expected for `%s'"
 msgstr ""
 
 #: src/output/ascii.c:478 src/output/html.c:187
+#, c-format
 msgid "`chart-files' value must contain `#'"
 msgstr ""
 
@@ -4310,10 +4318,12 @@ msgid "output driver `%s' referenced but never defined"
 msgstr ""
 
 #: src/output/output.c:261
+#, c-format
 msgid "using default output driver configuration"
 msgstr ""
 
 #: src/output/output.c:290
+#, c-format
 msgid "cannot find output initialization file (use `-vv' to view search path)"
 msgstr ""
 
@@ -4328,6 +4338,7 @@ msgid "reading \"%s\""
 msgstr ""
 
 #: src/output/output.c:332 src/ui/gui/message-dialog.c:97
+#, c-format
 msgid "syntax error"
 msgstr ""
 
@@ -4337,10 +4348,12 @@ msgid "error closing \"%s\""
 msgstr ""
 
 #: src/output/output.c:349
+#, c-format
 msgid "no active output drivers"
 msgstr ""
 
 #: src/output/output.c:352
+#, c-format
 msgid "error reading device definition file"
 msgstr ""
 
@@ -4388,6 +4401,7 @@ msgid "cannot initialize output driver `%s' of class `%s'"
 msgstr ""
 
 #: src/output/output.c:765
+#, c-format
 msgid "driver definition line missing driver name or class name"
 msgstr ""
 
@@ -4501,6 +4515,7 @@ msgid "cannot open font encoding file \"%s\""
 msgstr ""
 
 #: src/output/postscript.c:1399
+#, c-format
 msgid "invalid numeric format"
 msgstr ""
 
@@ -4654,7 +4669,7 @@ msgid "Show/hide value labels"
 msgstr ""
 
 #: src/ui/gui/data-editor.c:342 src/ui/gui/data-editor.c:361
-#: src/ui/gui/data-editor.c:1507 src/ui/gui/data-editor.c:1559
+#: src/ui/gui/data-editor.c:1507 src/ui/gui/data-editor.c:1561
 msgid "Clear"
 msgstr ""
 
@@ -4963,7 +4978,7 @@ msgstr ""
 msgid "Insert Variable"
 msgstr ""
 
-#: src/ui/gui/data-editor.c:1556 src/ui/gui/data-editor.glade:789
+#: src/ui/gui/data-editor.c:1558 src/ui/gui/data-editor.glade:789
 msgid "Insert Case"
 msgstr ""
 
@@ -6130,37 +6145,37 @@ msgstr ""
 msgid "To End"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:451
+#: src/ui/gui/text-data-import-dialog.c:460
 #, c-format
 msgid "Could not open \"%s\": %s"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:467
+#: src/ui/gui/text-data-import-dialog.c:476
 #, c-format
 msgid "Error reading \"%s\": %s"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:470
+#: src/ui/gui/text-data-import-dialog.c:479
 #, c-format
 msgid ""
 "Failed to read \"%s\", because it contains a line over %d bytes long and "
 "therefore appears not to be a text file."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:484
+#: src/ui/gui/text-data-import-dialog.c:493
 #, c-format
 msgid "\"%s\" is empty."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:529
+#: src/ui/gui/text-data-import-dialog.c:538
 msgid "Import Delimited Text Data"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:580
+#: src/ui/gui/text-data-import-dialog.c:589
 msgid "Importing Delimited Text Data"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:735
+#: src/ui/gui/text-data-import-dialog.c:740
 msgid ""
 "This assistant will guide you through the process of importing data into "
 "PSPP from a text file with one line per case,  in which fields are separated "
@@ -6168,21 +6183,21 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:741
+#: src/ui/gui/text-data-import-dialog.c:746
 #, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/gui/text-data-import-dialog.c:749
+#: src/ui/gui/text-data-import-dialog.c:754
 #, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/gui/text-data-import-dialog.c:755
+#: src/ui/gui/text-data-import-dialog.c:760
 #, c-format
 msgid ""
 "Only the first %zu line of the file will be shown for preview purposes in "
@@ -6193,16 +6208,16 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/gui/text-data-import-dialog.c:762
+#: src/ui/gui/text-data-import-dialog.c:767
 msgid "You may choose below how much of the file should actually be imported."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:1477
-#: src/ui/gui/text-data-import-dialog.c:1713
+#: src/ui/gui/text-data-import-dialog.c:1487
+#: src/ui/gui/text-data-import-dialog.c:1731
 msgid "This input line has too few separators to fill in this field."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:1704
+#: src/ui/gui/text-data-import-dialog.c:1722
 #, c-format
 msgid "Field content \"%.*s\" cannot be parsed in format %s."
 msgstr ""
