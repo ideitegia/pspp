@@ -139,11 +139,16 @@ if test x"$with_libncurses" != x"no" ; then
 	  AC_SEARCH_LIBS([tgetent], [ncurses],
 	      [curses_available=yes; AC_CHECK_HEADERS([term.h curses.h],,[curses_available=no])])
   else
-	  curses_available=yes
-	  NCURSES_CFLAGS=`$NCURSES_CONFIG --cflags`
-	  NCURSES_LIBS=`$NCURSES_CONFIG --libs`
-	  AC_SUBST(NCURSES_CFLAGS)
-	  AC_SUBST(NCURSES_LIBS)
+          old_cflags=$CFLAGS
+          CFLAGS=$CFLAGS `$NCURSES_CONFIG --cflags`
+	  AC_CHECK_HEADERS([term.h curses.h],[curses_available=yes])
+	  CFLAGS=$old_cflags
+	  if test x"$curses_available" = x"yes" ; then
+	   NCURSES_LIBS=`$NCURSES_CONFIG --libs`
+	   NCURSES_CFLAGS=`$NCURSES_CONFIG --cflags`
+	   AC_SUBST(NCURSES_CFLAGS)
+	   AC_SUBST(NCURSES_LIBS)
+          fi
   fi
   if test x"$curses_available" = x"yes" ; then
 	  AC_DEFINE([LIBNCURSES_USABLE], 1,
