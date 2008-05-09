@@ -43,3 +43,15 @@ EXTRA_DIST += doc/pspp.man \
 doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc
 	@PERL@ $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
+
+# It seems that recent versions of yelp, upon which the gui relies to display the reference
+# manual, are broken.  It only works on compressed info files.  So we must compress them.
+install-data-hook::
+	for ifile in $(DESTDIR)$(infodir)/pspp.info-[0-9] \
+		$(DESTDIR)$(infodir)/pspp.info  ; do \
+	  gzip -f $$ifile ; \
+	done
+
+uninstall-hook::
+	rm -f $(DESTDIR)$(infodir)/pspp.info-[0-9].gz
+	rm -f $(DESTDIR)$(infodir)/pspp.info.gz

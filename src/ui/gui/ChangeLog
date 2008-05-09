@@ -1,3 +1,7 @@
+2008-05-09  John Darrington <john@darrington.wattle.id.au>
+
+	* automake.mk: On make install, warn about the non-existance of yelp.
+
 2008-05-08  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6505.  Reviewed by John Darrington.

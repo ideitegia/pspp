@@ -1,3 +1,8 @@
+2008-05-08 John Darrington <john@darrington.wattle.id.au>
+
+	* automake.mk: Compress the info files, because later
+	versions of yelp seem to crash otherwise.
+
 2008-03-11  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.texi (REGRESSION): Fixed use of @dots in @math
