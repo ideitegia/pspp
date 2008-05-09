@@ -140,7 +140,7 @@ if test x"$with_libncurses" != x"no" ; then
 	      [curses_available=yes; AC_CHECK_HEADERS([term.h curses.h],,[curses_available=no])])
   else
           old_cflags=$CFLAGS
-          CFLAGS=$CFLAGS `$NCURSES_CONFIG --cflags`
+          CFLAGS="$CFLAGS `$NCURSES_CONFIG --cflags`"
 	  AC_CHECK_HEADERS([term.h curses.h],[curses_available=yes])
 	  CFLAGS=$old_cflags
 	  if test x"$curses_available" = x"yes" ; then
