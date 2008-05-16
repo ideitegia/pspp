@@ -18,7 +18,7 @@
 
 #include "msg-ui.h"
 
-#include "linebreak.h"
+#include "unilbrk.h"
 #include "localcharset.h"
 
 #include <libpspp/msg-locator.h>
@@ -224,7 +224,7 @@ dump_message (char *msg, unsigned width, unsigned indent,
   /* Break into lines. */
   if (indent > width / 3)
     indent = width / 3;
-  mbs_width_linebreaks (string, length,
+  ulc_width_linebreaks (string, length,
                         width - indent, -indent, 0,
                         NULL, locale_charset (), breaks);
 

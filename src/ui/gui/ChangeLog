@@ -1,3 +1,11 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Rename install-data-hook to yelp-check and mark it
+	phony.  This avoids an automake warning for duplicate
+	install-data-hook commands in doc/automake.mk and this file
+	(automake does not understand double-colon rules, since they are
+	not in POSIX).
+
 2008-05-09  John Darrington <john@darrington.wattle.id.au>
 
 	* automake.mk: On make install, warn about the non-existance of yelp.

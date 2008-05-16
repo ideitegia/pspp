@@ -1,3 +1,11 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	* Smake (GNULIB_MODULES): Don't depend on memmem module, because
+	PSPP does not use memmem any longer.  Use
+	unilbrk/ulc-width-linebreaks module instead of the linebreak
+	module, because the latter was split up into multiple modules and
+	that's the one we actually need.
+
 2008-05-09  John Darrington <john@darrington.wattle.id.au>
 
 	* INSTALL: For obscure reasons gettext 0.17 requires that 

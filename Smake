@@ -30,13 +30,11 @@ GNULIB_MODULES = \
 	isfinite \
 	intprops \
 	inttostr \
-	linebreak \
 	localcharset \
         mbchar \
 	memcasecmp \
 	memchr \
 	memcmp \
-	memmem \
 	memmove \
 	mempcpy \
 	memset \
@@ -67,6 +65,7 @@ GNULIB_MODULES = \
 	tempname \
 	tmpfile \
 	trunc \
+	unilbrk/ulc-width-linebreaks \
 	unistd \
 	unlocked-io \
 	vasprintf-posix \

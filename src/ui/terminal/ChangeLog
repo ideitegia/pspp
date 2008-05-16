@@ -1,3 +1,9 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	* Use unilbrk.h instead of linebreak.h and ulc_width_linebreaks
+	instead of mbs_width_linebreaks for compatibility with latest
+	gnulib.
+
 2007-11-03  Ben Pfaff  <blp@gnu.org>
 
 	Allow output files to overwrite input files (bug #21280).

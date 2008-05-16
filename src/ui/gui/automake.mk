@@ -195,7 +195,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/window-manager.c \
 	src/ui/gui/window-manager.h
 
-install-data-hook::
+yelp-check:
 	@if ! yelp --version > /dev/null 2>&1 ; then \
 		echo    ; \
 		echo '    The Yelp document viewer does not seem to be installed on the system.' ; \
@@ -204,3 +204,4 @@ install-data-hook::
 		echo '    Yelp is available from the GNOME project.  ftp://ftp.gnome.org/pub/gnome/sources/yelp' ; \
 		echo ; \
 	fi
+.PHONY: yelp-check

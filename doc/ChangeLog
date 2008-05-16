@@ -1,3 +1,8 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	* automake.mk: Make install-data-hook depend on yelp-check if the
+	GUI is configured.
+
 2008-05-08 John Darrington <john@darrington.wattle.id.au>
 
 	* automake.mk: Compress the info files, because later

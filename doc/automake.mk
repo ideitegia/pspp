@@ -46,7 +46,12 @@ doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 
 # It seems that recent versions of yelp, upon which the gui relies to display the reference
 # manual, are broken.  It only works on compressed info files.  So we must compress them.
-install-data-hook::
+if WITHGUI
+YELP_CHECK = yelp-check
+else
+YELP_CHECK =
+endif
+install-data-hook:: $(YELP_CHECK)
 	for ifile in $(DESTDIR)$(infodir)/pspp.info-[0-9] \
 		$(DESTDIR)$(infodir)/pspp.info  ; do \
 	  gzip -f $$ifile ; \
