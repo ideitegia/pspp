@@ -1,3 +1,14 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6512.
+
+	* data-out.c (output_infinite): Use gsl_isnan instead of isnan,
+	and gsl_isinf instead of isinf, as a stopgap measure for
+	portability until appropriate gnulib modules are available.
+
+	* por-file-writer.c (format_trig_double): Similarly, use
+	gsl_finite instead of finite.
+
 2008-03-18  John Darrington <john@darrington.wattle.id.au>
 
 	* data-in.c: If category is custom currency, then use

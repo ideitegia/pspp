@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <float.h>
 #include <gsl/gsl_cdf.h>
+#include <gsl/gsl_math.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_sf.h>
 #include <limits.h>
@@ -68,7 +69,7 @@ struct substring copy_string (struct expression *,
 static inline bool
 is_valid (double d)
 {
-  return finite (d) && d != SYSMIS;
+  return gsl_finite (d) && d != SYSMIS;
 }
 
 size_t count_valid (double *, size_t);

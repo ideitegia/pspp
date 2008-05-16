@@ -1,3 +1,15 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6512.
+
+	* hash.c (hsh_hash_int): Use gsl_isnan instead of isnan, as a
+	stopgap measure for portability until appropriate gnulib modules
+	are available.
+
+	* misc.h (macro isinf): Remove implementations of isinf, isnan,
+	and finite, because they were not effective and we are now using
+	the equivalent GSL functions.
+
 2008-03-04  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6427.  Reviewed by John Darrington.

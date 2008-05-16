@@ -1,3 +1,11 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6512.
+
+	* moments.c (calc_moments): Use gsl_finite instead of finite, as a
+	stopgap measure for portability until appropriate gnulib modules
+	are available.
+
 2008-03-10  Jason Stover  <jhs@debs.hoobahooba.net>
 
 	* coefficient.c (pspp_linreg_get_coeff): Removed use of

@@ -1,3 +1,13 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6512.
+
+	* evaluate.c (expr_evaluate): Use gsl_finite instead of finite, as
+	a stopgap measure for portability until appropriate gnulib modules
+	are available.
+
+	* helpers.h (copy_string): Ditto.
+
 2007-10-12  Ben Pfaff  <blp@gnu.org>
 
 	Patch #6224.

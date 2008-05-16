@@ -1,3 +1,11 @@
+2008-05-15  Ben Pfaff  <blp@gnu.org>
+
+	Patch #6512.
+
+	* inpt-pgm.c (reread_trns_proc): Use gsl_finite instead of finite,
+	as a stopgap measure for portability until appropriate gnulib
+	modules are available.
+
 2008-02-06 John Darrington <john@darrington.wattle.id.au>
 
 	* get-data.c: Add a /BSIZE subcommand to PSQL reader.

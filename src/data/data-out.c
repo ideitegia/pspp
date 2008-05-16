@@ -20,6 +20,7 @@
 
 #include <ctype.h>
 #include <float.h>
+#include <gsl/gsl_math.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -927,9 +928,9 @@ output_infinite (double number, const struct fmt_spec *format, char *output)
     {
       const char *s;
 
-      if (isnan (number))
+      if (gsl_isnan (number))
         s = "NaN";
-      else if (isinf (number))
+      else if (gsl_isinf (number))
         s = number > 0 ? "+Infinity" : "-Infinity";
       else
         s = "Unknown";

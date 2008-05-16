@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <float.h>
+#include <gsl/gsl_math.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -777,7 +778,7 @@ format_trig_double (long double value, int base_10_precision, char output[])
      0...30**6, an invariant of the loop below. */
   errno = 0;
   base_2_sig = frexp (value, &base_2_exp);
-  if (errno != 0 || !finite (base_2_sig))
+  if (errno != 0 || !gsl_finite (base_2_sig))
     goto missing_value;
   if (base_2_exp == 0 && base_2_sig == 0.)
     goto zero;
