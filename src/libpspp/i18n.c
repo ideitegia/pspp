@@ -46,7 +46,7 @@ create_iconv (const char* tocode, const char* fromcode)
 
   /* I don't think it's safe to translate this string or to use messaging
      as the convertors have not yet been set up */
-  if ( (iconv_t) -1 == conv)
+  if ( (iconv_t) -1 == conv && 0 != strcmp (tocode, fromcode))
     {
       const int err = errno;
       fprintf (stderr,
