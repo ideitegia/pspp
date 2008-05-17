@@ -1,3 +1,10 @@
+2008-05-16  John Darrington <john@darrington.wattle.id.au>
+
+	* compression.sh print-crash.sh print-strings.sh very-long-strings.sh :
+	Removed export VAR=VAL syntax.
+
+	* automake.mk:  Added test to check for non-portable shell syntax
+
 2008-04-14  Jason Stover  <jhs@math.gcsu.edu>
 
 	* automake.mk: New test for regression with QR decomposition.

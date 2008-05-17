@@ -311,3 +311,8 @@ EXTRA_DIST += \
 
 CLEANFILES += *.save pspp.* foo*
 
+dist-hook:
+	@if grep -q 'export .*=' $(dist_TESTS) ; then \
+	 echo 'One or more tests contain non-portable "export VAR=val" syntax' ; \
+	 false ; \
+	fi
