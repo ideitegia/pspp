@@ -192,7 +192,7 @@ EOF
 # Check that the file read back in has the same data as what we wrote.
 
     activity="compare print ($options)"
-    diff --text -b $TEMPDIR/out.txt $TEMPDIR/data
+    diff -b $TEMPDIR/out.txt $TEMPDIR/data
     if [ $? -ne 0 ] ; then fail ; fi
 
 
