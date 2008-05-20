@@ -27,6 +27,7 @@ cleanup()
 	echo "NOT cleaning $TEMPDIR"
      	return ; 
      fi
+     cd /
      rm -rf $TEMPDIR
 }
 

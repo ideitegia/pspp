@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-05-09 11:48+0800\n"
+"POT-Creation-Date: 2008-05-20 08:52+0800\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -197,12 +197,12 @@ msgstr "Spalten"
 msgid "%s field) "
 msgstr ""
 
-#: src/data/data-out.c:446
+#: src/data/data-out.c:447
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
 msgstr ""
 
-#: src/data/data-out.c:467
+#: src/data/data-out.c:468
 #, c-format
 msgid "Month number %f is not between 1 and 12."
 msgstr ""
@@ -450,7 +450,7 @@ msgstr "plotzlich ist der Datei beendet"
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
-#: src/data/por-file-reader.c:268 src/data/por-file-writer.c:148
+#: src/data/por-file-reader.c:268 src/data/por-file-writer.c:149
 #, fuzzy
 msgid "portable file"
 msgstr "Tragbardatein (*.por)"
@@ -578,17 +578,17 @@ msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types."
 msgstr ""
 
-#: src/data/por-file-writer.c:140
+#: src/data/por-file-writer.c:141
 #, c-format
 msgid "Invalid decimal digits count %d.  Treating as %d."
 msgstr ""
 
-#: src/data/por-file-writer.c:160
+#: src/data/por-file-writer.c:161
 #, c-format
 msgid "Error opening \"%s\" for writing as a portable file: %s."
 msgstr ""
 
-#: src/data/por-file-writer.c:499
+#: src/data/por-file-writer.c:500
 #, c-format
 msgid "An I/O error occurred writing portable file \"%s\"."
 msgstr ""
@@ -1162,7 +1162,7 @@ msgstr ""
 msgid "This command may not follow ELSE in DO IF...END IF."
 msgstr ""
 
-#: src/language/control/loop.c:213
+#: src/language/control/loop.c:216
 msgid "Only one index clause may be specified."
 msgstr ""
 
@@ -1582,19 +1582,19 @@ msgid ""
 "specified on FIXCASE, %d."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:129
+#: src/language/data-io/inpt-pgm.c:130
 msgid "Unexpected end-of-file within INPUT PROGRAM."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:142
+#: src/language/data-io/inpt-pgm.c:143
 msgid "Input program did not create any variables."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:287
+#: src/language/data-io/inpt-pgm.c:288
 msgid "COLUMN subcommand multiply specified."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:337
+#: src/language/data-io/inpt-pgm.c:338
 msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
@@ -2184,11 +2184,11 @@ msgstr ""
 msgid "The weighting variable may not be scratch."
 msgstr ""
 
-#: src/language/expressions/evaluate.c:154
+#: src/language/expressions/evaluate.c:155
 msgid "expecting number or string"
 msgstr ""
 
-#: src/language/expressions/evaluate.c:168
+#: src/language/expressions/evaluate.c:169
 #, c-format
 msgid "Duplicate variable name %s."
 msgstr ""
@@ -4117,7 +4117,7 @@ msgstr ""
 msgid "The filter variable may not be scratch."
 msgstr ""
 
-#: src/libpspp/hash.c:614
+#: src/libpspp/hash.c:615
 #, c-format
 msgid "hash table:"
 msgstr ""

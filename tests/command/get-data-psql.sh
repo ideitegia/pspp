@@ -31,6 +31,7 @@ cleanup()
      	return ; 
     fi
     PGHOST=$TEMPDIR $pgpath/pg_ctl -D $TEMPDIR/cluster  stop -W -o "-k $TEMPDIR -h ''"   > /dev/null 2>&1
+    cd /
     rm -rf $TEMPDIR
 }
 
