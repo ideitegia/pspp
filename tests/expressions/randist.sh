@@ -19,7 +19,7 @@ export STAT_CONFIG_PATH
 cleanup()
 {
      if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then 
-        echo NOT removing directory $TEMPDIR
+	echo "NOT cleaning $TEMPDIR" 
      	return ; 
      fi
      cd /

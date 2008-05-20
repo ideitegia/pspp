@@ -22,6 +22,10 @@ PSPP=$top_builddir/src/ui/terminal/pspp
 
 cleanup()
 {
+     if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then 
+	echo "NOT cleaning $TEMPDIR" 
+	return ; 
+     fi
      cd /
      rm -rf $TEMPDIR
 }
