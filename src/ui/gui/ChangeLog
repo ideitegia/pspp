@@ -1,3 +1,13 @@
+2008-05-20  John Darrington <john@darrington.wattle.id.au>
+
+	* automake.mk: Added the -no-undefined flag so that dlls can be built
+	on w32 platforms.  Abstracted the dependencies of glade-register.c
+	into a new shared library libpsppwidgets.so, which can be either
+	linked directly by psppire or by libpsppire.so
+
+	* psppire-keypad.c: Changed snprintf to g_snprintf so as not to use
+	gnulib.
+
 2008-05-15  Ben Pfaff  <blp@gnu.org>
 
 	* automake.mk: Rename install-data-hook to yelp-check and mark it

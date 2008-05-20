@@ -339,7 +339,7 @@ psppire_keypad_init (PsppireKeypad *kp)
     {
       int j = i - 1;
       char buf[5];
-      snprintf (buf, 5, "%d", i);
+      g_snprintf (buf, 5, "%d", i);
       kp->digit[i] = gtk_button_new_with_label (buf);
 
       if ( i == 0 )
