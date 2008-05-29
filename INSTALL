@@ -209,6 +209,14 @@ Optional Features
     In these cases you can use --without-lib{xx} to force configure
     to disregard it.
 
+`--enable-anachronistic-dependencies'
+   If you use this option, some of the checks for dependent libraries
+   will be relaxed, permitting configure to succeed when older versions
+   of libraries are detected.   Use of this option is not recommended.
+   If you use it, some features may be missing and the build may fail
+   with obscure error messages.
+   
+
 Defining Variables
 ==================
 

@@ -16,11 +16,15 @@
 
 #include <config.h>
 
+#include <gtk/gtk.h>
+
+
+
 #include "checkbox-treeview.h"
 #include "descriptives-dialog.h"
 
 #include <errno.h>
-#include <gtk/gtk.h>
+
 #include <gtksheet/gtksheet.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -49,6 +53,30 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
+
+
+#if !GTK_CHECK_VERSION (2, 10, 0)
+
+void
+text_data_import_assistant (GObject *o, gpointer de_)
+{
+  struct data_editor *de = de_;
+
+  GtkWidget *dialog =
+    gtk_message_dialog_new  (de->parent.window,
+			     GTK_DIALOG_MODAL,
+			     GTK_MESSAGE_WARNING,
+			     GTK_BUTTONS_CLOSE,
+			     _("The text import assistant has not been "
+			       "compiled into this build of PSPPIRE, because "
+			       "GTK+ version 2.10.0 or later was not available."));
+
+  gtk_dialog_run (GTK_DIALOG (dialog));
+
+  gtk_widget_destroy (dialog);
+}
+
+#else
 
 /* TextImportModel, a GtkTreeModel used by the text data import
    dialog. */
@@ -2282,3 +2310,5 @@ pop_watch_cursor (struct import_assistant *ia)
       gdk_window_set_cursor (widget->window, NULL);
     }
 }
+
+#endif

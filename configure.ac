@@ -16,6 +16,11 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 PKG_PROG_PKG_CONFIG
 
+AC_ARG_ENABLE(
+  anachronistic-dependencies, 
+  [AS_HELP_STRING([--enable-anachronistic-dependencies], 
+                  [Attempt to allow building against older versions of dependent libraries])])
+
 PSPP_ENABLE_OPTION(-Wdeclaration-after-statement)
 
 AM_CONDITIONAL(cc_is_gcc, test x"$GCC" = x"yes" )
@@ -39,9 +44,14 @@ AC_ARG_WITH(
   gui, 
   [AS_HELP_STRING([--without-gui], [don't build the PSPPIRE gui])])
 
+required_gtk_version=2.12
+if test x"$enable_anachronistic_dependencies" = x"yes"  ; then
+  required_gtk_version=2.8.20
+fi
+
 if test x"$with_gui" != x"no" ; then 
-  PKG_CHECK_MODULES(GTK, gtk+-2.0 >= 2.12.0,,
-    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 v2.12.0 or later (or use --without-gui)])])
+  PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $required_gtk_version,,
+    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 v$required_gtk_version or later (or use --without-gui)])])
   PKG_CHECK_MODULES(GLADE, libglade-2.0 >= 2.6.0,,
     [PSPP_REQUIRED_PREREQ([libglade 2.0 v2.6.0 or later (or use --without-gui)])])
 fi

@@ -154,6 +154,7 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
 }
 
 
+#if GTK_CHECK_VERSION (2, 12, 0)
 /* Sets the tooltip to be the name of the variable under the cursor */
 static gboolean
 set_tooltip_for_variable (GtkTreeView  *treeview,
@@ -170,6 +171,7 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
   GtkTreeModel *tree_model;
   struct variable *var = NULL;
   gboolean ok;
+
 
   gtk_tree_view_convert_widget_to_bin_window_coords (treeview,
                                                      x, y, &bx, &by);
@@ -199,6 +201,7 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
 
   return TRUE;
 }
+#endif
 
    /* Sets up TREEVIEW to display the variables of DICT.
    MODE is the selection mode for TREEVIEW.
@@ -269,7 +272,9 @@ attach_dictionary_to_treeview (GtkTreeView *treeview, PsppireDict *dict,
 
   g_object_set (treeview, "has-tooltip", TRUE, NULL);
 
+#if GTK_CHECK_VERSION (2, 12, 0)
   g_signal_connect (treeview, "query-tooltip", G_CALLBACK (set_tooltip_for_variable), NULL);
+#endif
 }
 
 
