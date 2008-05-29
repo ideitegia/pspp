@@ -63,6 +63,20 @@ hash_value (const union value *v, int width)
           : hsh_hash_bytes (v->s, MIN (MAX_SHORT_STRING, width)));
 }
 
+
+int
+compare_ptr_values (const union value **v1, const union value **v2, int width)
+{
+  return compare_values (*v1, *v2, width);
+}
+
+unsigned
+hash_ptr_value (const union value **v, int width)
+{
+  return hash_value (*v, width);
+}
+
+
 /* Copies SRC to DST, given that they both contain data of the
    given WIDTH. */
 void

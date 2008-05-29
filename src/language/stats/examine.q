@@ -835,17 +835,17 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
       struct hsh_iterator hi1;
       struct factor_statistics *fs;
 
-      struct hsh_table *idh0=0;
-      struct hsh_table *idh1=0;
-      union value *val0;
-      union value *val1;
+      struct hsh_table *idh0 = NULL;
+      struct hsh_table *idh1 = NULL;
+      union value **val0;
+      union value **val1;
 
-      idh0 = hsh_create (4, (hsh_compare_func *) compare_values,
-			 (hsh_hash_func *) hash_value,
+      idh0 = hsh_create (4, (hsh_compare_func *) compare_ptr_values,
+			 (hsh_hash_func *) hash_ptr_value,
 			0,0);
 
-      idh1 = hsh_create (4, (hsh_compare_func *) compare_values,
-			 (hsh_hash_func *) hash_value,
+      idh1 = hsh_create (4, (hsh_compare_func *) compare_ptr_values,
+			 (hsh_hash_func *) hash_ptr_value,
 			0,0);
 
 
@@ -853,8 +853,8 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 	    fs != 0 ;
 	    fs = hsh_next (fctr->fstats, &hi))
 	{
-	  hsh_insert (idh0, (void *) &fs->id[0]);
-	  hsh_insert (idh1, (void *) &fs->id[1]);
+	  hsh_insert (idh0, &fs->id[0]);
+	  hsh_insert (idh1, &fs->id[1]);
 	}
 
       /* Ensure that the factors combination is complete */
@@ -867,17 +867,17 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 		val1 = hsh_next (idh1, &hi1))
 	    {
 	      struct factor_statistics **ffs;
-	      union value key[2];
+	      union value *key[2];
 	      key[0] = *val0;
 	      key[1] = *val1;
 
 	      ffs = (struct factor_statistics **)
-		hsh_probe (fctr->fstats, (void *) &key );
+		hsh_probe (fctr->fstats, &key );
 
 	      if ( !*ffs ) {
 		size_t i;
 		 (*ffs) = create_factor_statistics (n_dependent_vars,
-						   &key[0], &key[1]);
+						   key[0], key[1]);
 		for ( i = 0 ; i < n_dependent_vars ; ++i )
 		  metrics_precalc ( & (*ffs)->m[i]);
 	      }

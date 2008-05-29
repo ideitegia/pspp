@@ -40,7 +40,11 @@ union value *value_dup (const union value *, int width);
 union value *value_create (int width);
 
 int compare_values (const union value *, const union value *, int width);
-unsigned hash_value (const union value  *, int width);
+unsigned hash_value (const union value *, int width);
+
+int compare_ptr_values (const union value **, const union value **, int width);
+unsigned hash_ptr_value (const union value **, int width);
+
 
 static inline size_t value_cnt_from_width (int width);
 void value_copy (union value *, const union value *, int width);
