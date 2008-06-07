@@ -1,16 +1,18 @@
 We wish to thank current active contributors to PSPP:
 
 * Ben Pfaff wrote the initial program and manual, which comprises the
-majority of the current code.  Ben is the current maintainer and
-continues to contribute. 
+majority of the current code. Ben continues to contribute and 
+most of the core libraries which ensure that PSPP runs with optimal
+speed are his work.
 
 * John Darrington wrote the graphical user interface, and the T-TEST,
 ONEWAY, EXAMINE, RANK and  NPAR TESTS commands, implemented support
-for long variable names and made numerous revisions to other  modules.  
+for long variable names, psql and gnumeric and made numerous revisions
+to other modules.   
 
 * Jason Stover contributed statistical and numerical functionality,
-including lib/gslextras. Jason is also an important contributor to
-GSL, used by PSPP. 
+including lib/gslextras and the linear regression features. Jason 
+is also an important contributor to GSL, which is used by PSPP. 
 
 We also thank past contributors:
 
