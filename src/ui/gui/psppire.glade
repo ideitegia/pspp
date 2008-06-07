@@ -8,7 +8,7 @@
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
     <property name="name">PSPPire</property>
     <property name="copyright">Free Software Foundation</property>
-    <property name="comments" translatable="yes">This is pre-alpha software.  Use at your own risk.</property>
+    <property name="comments" translatable="yes">This is beta status software.  Please report bugs to bug-gnu-pspp@gnu.org</property>
     <property name="authors"></property>
     <property name="logo">pspplogo.png</property>
     <child internal-child="vbox">
