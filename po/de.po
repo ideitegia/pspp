@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-05-20 08:52+0800\n"
+"POT-Creation-Date: 2008-06-07 23:34-0700\n"
 "PO-Revision-Date: 2006-07-28 19:32+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: German <pspp-dev@gnu.org>\n"
@@ -47,12 +47,6 @@ msgstr "Tag %d muß zwischen 0 bit 31 sein."
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
 msgstr ""
 
-#: src/data/casereader-filter.c:221
-msgid ""
-"At least one case in the data read had a weight value that was user-missing, "
-"system-missing, zero, or negative.  These case(s) were ignored."
-msgstr ""
-
 #: src/data/case-tmpfile.c:57
 #, c-format
 msgid "failed to create temporary file"
@@ -76,6 +70,12 @@ msgstr "plotzlich ist der Datei beendet"
 #: src/data/case-tmpfile.c:175
 #, c-format
 msgid "writing to temporary file"
+msgstr ""
+
+#: src/data/casereader-filter.c:221
+msgid ""
+"At least one case in the data read had a weight value that was user-missing, "
+"system-missing, zero, or negative.  These case(s) were ignored."
 msgstr ""
 
 #: src/data/data-in.c:262 src/data/data-in.c:452
@@ -325,14 +325,14 @@ msgid "%s variables are not compatible with %s format %s."
 msgstr ""
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1190 src/ui/gui/psppire.glade:2176
-#: src/ui/gui/psppire-var-store.c:605
+#: src/ui/gui/data-editor.glade:1190 src/ui/gui/psppire-var-store.c:605
+#: src/ui/gui/psppire.glade:2176
 msgid "String"
 msgstr "Zeichenkette"
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:639
-#: src/ui/gui/data-editor.glade:1079 src/ui/gui/psppire.glade:2131
-#: src/ui/gui/psppire-var-store.c:598
+#: src/ui/gui/data-editor.glade:1079 src/ui/gui/psppire-var-store.c:598
+#: src/ui/gui/psppire.glade:2131
 msgid "Numeric"
 msgstr "Nummer"
 
@@ -1283,7 +1283,7 @@ msgstr ""
 #: src/language/dictionary/sys-file-info.c:161
 #: src/language/dictionary/sys-file-info.c:390
 #: src/language/dictionary/sys-file-info.c:634
-#: src/language/stats/descriptives.c:883 src/ui/gui/dict-display.c:242
+#: src/language/stats/descriptives.c:883 src/ui/gui/dict-display.c:245
 msgid "Variable"
 msgstr ""
 
@@ -1432,6 +1432,67 @@ msgstr ""
 msgid "Handle for %s not allowed here."
 msgstr ""
 
+#: src/language/data-io/get-data.c:62
+#, c-format
+msgid "Unsupported TYPE %s"
+msgstr ""
+
+#: src/language/data-io/get-data.c:258
+#, c-format
+msgid ""
+"%s is allowed only with %s arrangement, but %s arrangement was stated or "
+"implied earlier in this command."
+msgstr ""
+
+#: src/language/data-io/get-data.c:313
+msgid "expecting FIXED or DELIMITED"
+msgstr ""
+
+#: src/language/data-io/get-data.c:326
+msgid "Value of FIRSTCASE must be 1 or greater."
+msgstr ""
+
+#: src/language/data-io/get-data.c:351
+msgid "expecting LINE or VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:364
+msgid "Value of FIXCASE must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:384
+msgid "Value of FIRST must be at least 1."
+msgstr ""
+
+#: src/language/data-io/get-data.c:396
+msgid "Value of PERCENT must be between 1 and 100."
+msgstr ""
+
+#: src/language/data-io/get-data.c:445
+msgid ""
+"In compatible syntax mode, the QUALIFIER string must contain exactly one "
+"character."
+msgstr ""
+
+#: src/language/data-io/get-data.c:460
+msgid "expecting VARIABLES"
+msgstr ""
+
+#: src/language/data-io/get-data.c:482
+#: src/language/data-io/placement-parser.c:378
+#, c-format
+msgid ""
+"The record number specified, %ld, is at or before the previous record, %d.  "
+"Data fields must be listed in order of increasing record number."
+msgstr ""
+
+#: src/language/data-io/get-data.c:491
+#, c-format
+msgid ""
+"The record number specified, %ld, exceeds the number of records per case "
+"specified on FIXCASE, %d."
+msgstr ""
+
 #: src/language/data-io/get.c:99
 msgid "expecting COMM or TAPE"
 msgstr ""
@@ -1519,67 +1580,6 @@ msgstr ""
 msgid ""
 "Variable %s in file %s (%s) has different type or width from the same "
 "variable in earlier file (%s)."
-msgstr ""
-
-#: src/language/data-io/get-data.c:62
-#, c-format
-msgid "Unsupported TYPE %s"
-msgstr ""
-
-#: src/language/data-io/get-data.c:258
-#, c-format
-msgid ""
-"%s is allowed only with %s arrangement, but %s arrangement was stated or "
-"implied earlier in this command."
-msgstr ""
-
-#: src/language/data-io/get-data.c:313
-msgid "expecting FIXED or DELIMITED"
-msgstr ""
-
-#: src/language/data-io/get-data.c:326
-msgid "Value of FIRSTCASE must be 1 or greater."
-msgstr ""
-
-#: src/language/data-io/get-data.c:351
-msgid "expecting LINE or VARIABLES"
-msgstr ""
-
-#: src/language/data-io/get-data.c:364
-msgid "Value of FIXCASE must be at least 1."
-msgstr ""
-
-#: src/language/data-io/get-data.c:384
-msgid "Value of FIRST must be at least 1."
-msgstr ""
-
-#: src/language/data-io/get-data.c:396
-msgid "Value of PERCENT must be between 1 and 100."
-msgstr ""
-
-#: src/language/data-io/get-data.c:445
-msgid ""
-"In compatible syntax mode, the QUALIFIER string must contain exactly one "
-"character."
-msgstr ""
-
-#: src/language/data-io/get-data.c:460
-msgid "expecting VARIABLES"
-msgstr ""
-
-#: src/language/data-io/get-data.c:482
-#: src/language/data-io/placement-parser.c:378
-#, c-format
-msgid ""
-"The record number specified, %ld, is at or before the previous record, %d.  "
-"Data fields must be listed in order of increasing record number."
-msgstr ""
-
-#: src/language/data-io/get-data.c:491
-#, c-format
-msgid ""
-"The record number specified, %ld, exceeds the number of records per case "
-"specified on FIXCASE, %d."
 msgstr ""
 
 #: src/language/data-io/inpt-pgm.c:130
@@ -1671,6 +1671,20 @@ msgstr ""
 msgid "The ending column for a field must be greater than the starting column."
 msgstr ""
 
+#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:476
+#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:60
+msgid "expecting end of command"
+msgstr ""
+
+#: src/language/data-io/print-space.c:116
+msgid "The expression on PRINT SPACE evaluated to the system-missing value."
+msgstr ""
+
+#: src/language/data-io/print-space.c:119
+#, c-format
+msgid "The expression on PRINT SPACE evaluated to %g."
+msgstr ""
+
 #: src/language/data-io/print.c:266
 #, c-format
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
@@ -1689,20 +1703,6 @@ msgid "Writing %d record."
 msgid_plural "Writing %d records."
 msgstr[0] ""
 msgstr[1] ""
-
-#: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:476
-#: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:60
-msgid "expecting end of command"
-msgstr ""
-
-#: src/language/data-io/print-space.c:116
-msgid "The expression on PRINT SPACE evaluated to the system-missing value."
-msgstr ""
-
-#: src/language/data-io/print-space.c:119
-#, c-format
-msgid "The expression on PRINT SPACE evaluated to %g."
-msgstr ""
 
 #: src/language/dictionary/apply-dictionary.c:75
 #, c-format
@@ -1889,7 +1889,7 @@ msgstr ""
 #: src/language/dictionary/split-file.c:86
 #: src/language/dictionary/sys-file-info.c:397
 #: src/language/dictionary/sys-file-info.c:564 src/ui/gui/crosstabs.glade:275
-#: src/ui/gui/psppire.glade:2099 src/ui/gui/psppire-var-sheet.c:104
+#: src/ui/gui/psppire-var-sheet.c:104 src/ui/gui/psppire.glade:2099
 msgid "Label"
 msgstr "Kennsatz"
 
@@ -2863,8 +2863,8 @@ msgstr ""
 msgid "Directional measures."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:1223 src/ui/gui/psppire.glade:2223
-#: src/ui/gui/psppire-var-sheet.c:101
+#: src/language/stats/crosstabs.q:1223 src/ui/gui/psppire-var-sheet.c:101
+#: src/ui/gui/psppire.glade:2223
 msgid "Type"
 msgstr "Typ"
 
@@ -3395,6 +3395,22 @@ msgstr ""
 msgid "TABLES subcommand may not appear more than once."
 msgstr ""
 
+#: src/language/stats/npar-summary.c:108
+msgid "Descriptive Statistics"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:145
+msgid "25th"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:148
+msgid "50th (Median)"
+msgstr ""
+
+#: src/language/stats/npar-summary.c:151
+msgid "75th"
+msgstr ""
+
 #: src/language/stats/npar.q:98
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
@@ -3417,22 +3433,6 @@ msgstr ""
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
 "not match the number following (%zu)."
-msgstr ""
-
-#: src/language/stats/npar-summary.c:108
-msgid "Descriptive Statistics"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:145
-msgid "25th"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:148
-msgid "50th (Median)"
-msgstr ""
-
-#: src/language/stats/npar-summary.c:151
-msgid "75th"
 msgstr ""
 
 #: src/language/stats/oneway.q:169
@@ -5654,15 +5654,6 @@ msgstr "xyzzy"
 msgid "Paste"
 msgstr "Datum"
 
-#: src/ui/gui/psppire.c:194
-msgid "_Reset"
-msgstr "_Zurücksetzen"
-
-#: src/ui/gui/psppire.c:195
-#, fuzzy
-msgid "_Select"
-msgstr "Schriftwahlung"
-
 #: src/ui/gui/psppire-data-editor.c:604
 msgid "Data View"
 msgstr "Datenansicht"
@@ -5680,10 +5671,57 @@ msgstr ""
 msgid "%ld"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:11
+#: src/ui/gui/psppire-var-sheet.c:100
+msgid "Name"
+msgstr "Name"
+
+#: src/ui/gui/psppire-var-sheet.c:102 src/ui/gui/psppire.glade:2187
+msgid "Width"
+msgstr "Große"
+
+#: src/ui/gui/psppire-var-sheet.c:103
+msgid "Decimals"
+msgstr "Dezimalstellen"
+
+#: src/ui/gui/psppire-var-sheet.c:105
+msgid "Values"
+msgstr "Werten"
+
+#: src/ui/gui/psppire-var-sheet.c:108
+msgid "Align"
+msgstr "Einstellung"
+
+#: src/ui/gui/psppire-var-sheet.c:109
+msgid "Measure"
+msgstr "Messe"
+
+#: src/ui/gui/psppire-var-store.c:601
+msgid "Scientific"
+msgstr "Wissenschäflich"
+
+#: src/ui/gui/psppire-var-store.c:604
+msgid "Custom"
+msgstr "Spezial"
+
+#: src/ui/gui/psppire-var-store.c:675 src/ui/gui/psppire-var-store.c:685
+#: src/ui/gui/psppire-var-store.c:695
+#, c-format
+msgid "%d"
+msgstr ""
+
+#: src/ui/gui/psppire.c:194
+msgid "_Reset"
+msgstr "_Zurücksetzen"
+
+#: src/ui/gui/psppire.c:195
 #, fuzzy
-msgid "This is pre-alpha software.  Use at your own risk."
-msgstr "Diese Software ist vor-Alpha.  Wahrscheinlich Funktioniert es nicht."
+msgid "_Select"
+msgstr "Schriftwahlung"
+
+#: src/ui/gui/psppire.glade:11
+msgid ""
+"This is beta status software.  Please report bugs to bug-gnu-pspp@gnu.org"
+msgstr ""
 
 #: src/ui/gui/psppire.glade:73 src/ui/gui/psppire.glade:154
 #: src/ui/gui/weight-cases-dialog.c:80
@@ -5876,10 +5914,6 @@ msgstr ""
 msgid "Use expression as label"
 msgstr ""
 
-#: src/ui/gui/psppire.glade:2187 src/ui/gui/psppire-var-sheet.c:102
-msgid "Width"
-msgstr "Große"
-
 #: src/ui/gui/psppire.glade:2274
 msgid "Goto Case Number:"
 msgstr ""
@@ -5913,40 +5947,6 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:2627
 msgid "Search backward"
-msgstr ""
-
-#: src/ui/gui/psppire-var-sheet.c:100
-msgid "Name"
-msgstr "Name"
-
-#: src/ui/gui/psppire-var-sheet.c:103
-msgid "Decimals"
-msgstr "Dezimalstellen"
-
-#: src/ui/gui/psppire-var-sheet.c:105
-msgid "Values"
-msgstr "Werten"
-
-#: src/ui/gui/psppire-var-sheet.c:108
-msgid "Align"
-msgstr "Einstellung"
-
-#: src/ui/gui/psppire-var-sheet.c:109
-msgid "Measure"
-msgstr "Messe"
-
-#: src/ui/gui/psppire-var-store.c:601
-msgid "Scientific"
-msgstr "Wissenschäflich"
-
-#: src/ui/gui/psppire-var-store.c:604
-msgid "Custom"
-msgstr "Spezial"
-
-#: src/ui/gui/psppire-var-store.c:675 src/ui/gui/psppire-var-store.c:685
-#: src/ui/gui/psppire-var-store.c:695
-#, c-format
-msgid "%d"
 msgstr ""
 
 #: src/ui/gui/rank.glade:111
@@ -6264,37 +6264,95 @@ msgstr ""
 msgid "To End"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:460
+#: src/ui/gui/t-test-options.c:60
+#, c-format
+msgid "Confidence Interval: %2d %%"
+msgstr ""
+
+#: src/ui/gui/t-test-paired-samples.c:228
+msgid "Var 1"
+msgstr ""
+
+#: src/ui/gui/t-test-paired-samples.c:229
+msgid "Var 2"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:56 src/ui/gui/t-test.glade:165
+msgid "Define Groups"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:123 src/ui/gui/t-test.glade:549
+#: src/ui/gui/t-test.glade:761
+#, fuzzy
+msgid "Test Variable(s):"
+msgstr "Variableansicht"
+
+#: src/ui/gui/t-test.glade:258
+msgid "Group_2 value:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:271
+msgid "Group_1 value:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:320
+msgid "_Cut point:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:349
+msgid "_Use specified values:"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:431
+msgid "Exclude cases _analysis by analysis"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:442
+msgid "Exclude cases _listwise"
+msgstr ""
+
+#: src/ui/gui/t-test.glade:594
+#, fuzzy
+msgid "Test Value: "
+msgstr "Werte:"
+
+#: src/ui/gui/text-data-import-dialog.c:70
+msgid ""
+"The text import assistant has not been compiled into this build of PSPPIRE, "
+"because GTK+ version 2.10.0 or later was not available."
+msgstr ""
+
+#: src/ui/gui/text-data-import-dialog.c:488
 #, c-format
 msgid "Could not open \"%s\": %s"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:476
+#: src/ui/gui/text-data-import-dialog.c:504
 #, fuzzy, c-format
 msgid "Error reading \"%s\": %s"
 msgstr "Ein Fehler ist passiert als \\\"%s\\\" geoffnet war: %s"
 
-#: src/ui/gui/text-data-import-dialog.c:479
+#: src/ui/gui/text-data-import-dialog.c:507
 #, c-format
 msgid ""
 "Failed to read \"%s\", because it contains a line over %d bytes long and "
 "therefore appears not to be a text file."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:493
+#: src/ui/gui/text-data-import-dialog.c:521
 #, c-format
 msgid "\"%s\" is empty."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:538
+#: src/ui/gui/text-data-import-dialog.c:566
 msgid "Import Delimited Text Data"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:589
+#: src/ui/gui/text-data-import-dialog.c:617
 msgid "Importing Delimited Text Data"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:740
+#: src/ui/gui/text-data-import-dialog.c:768
 msgid ""
 "This assistant will guide you through the process of importing data into "
 "PSPP from a text file with one line per case,  in which fields are separated "
@@ -6302,21 +6360,21 @@ msgid ""
 "\n"
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:746
+#: src/ui/gui/text-data-import-dialog.c:774
 #, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/gui/text-data-import-dialog.c:754
+#: src/ui/gui/text-data-import-dialog.c:782
 #, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/gui/text-data-import-dialog.c:760
+#: src/ui/gui/text-data-import-dialog.c:788
 #, c-format
 msgid ""
 "Only the first %zu line of the file will be shown for preview purposes in "
@@ -6327,16 +6385,16 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/gui/text-data-import-dialog.c:767
+#: src/ui/gui/text-data-import-dialog.c:795
 msgid "You may choose below how much of the file should actually be imported."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:1487
-#: src/ui/gui/text-data-import-dialog.c:1731
+#: src/ui/gui/text-data-import-dialog.c:1515
+#: src/ui/gui/text-data-import-dialog.c:1759
 msgid "This input line has too few separators to fill in this field."
 msgstr ""
 
-#: src/ui/gui/text-data-import-dialog.c:1722
+#: src/ui/gui/text-data-import-dialog.c:1750
 #, c-format
 msgid "Field content \"%.*s\" cannot be parsed in format %s."
 msgstr ""
@@ -6482,58 +6540,6 @@ msgstr "Variableansicht"
 
 #: src/ui/gui/text-data-import.glade:700
 msgid "<b>Data Preview</b>"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:56 src/ui/gui/t-test.glade:165
-msgid "Define Groups"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:123 src/ui/gui/t-test.glade:549
-#: src/ui/gui/t-test.glade:761
-#, fuzzy
-msgid "Test Variable(s):"
-msgstr "Variableansicht"
-
-#: src/ui/gui/t-test.glade:258
-msgid "Group_2 value:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:271
-msgid "Group_1 value:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:320
-msgid "_Cut point:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:349
-msgid "_Use specified values:"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:431
-msgid "Exclude cases _analysis by analysis"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:442
-msgid "Exclude cases _listwise"
-msgstr ""
-
-#: src/ui/gui/t-test.glade:594
-#, fuzzy
-msgid "Test Value: "
-msgstr "Werte:"
-
-#: src/ui/gui/t-test-options.c:60
-#, c-format
-msgid "Confidence Interval: %2d %%"
-msgstr ""
-
-#: src/ui/gui/t-test-paired-samples.c:228
-msgid "Var 1"
-msgstr ""
-
-#: src/ui/gui/t-test-paired-samples.c:229
-msgid "Var 2"
 msgstr ""
 
 #: src/ui/gui/variable-info-dialog.c:89
@@ -6691,6 +6697,11 @@ msgstr "Warnung"
 #, c-format
 msgid "could not access definition for terminal `%s'"
 msgstr ""
+
+#, fuzzy
+#~ msgid "This is pre-alpha software.  Use at your own risk."
+#~ msgstr ""
+#~ "Diese Software ist vor-Alpha.  Wahrscheinlich Funktioniert es nicht."
 
 #, fuzzy
 #~ msgid "Data File Comments"

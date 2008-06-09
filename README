@@ -16,9 +16,22 @@ NEWS.
           
 Source code for the latest release of PSPP is available at
 ftp://ftp.gnu.org/pub/gnu/pspp/.  Older versions may be obtained from
-ftp://alpha.gnu.org/gnu/pspp/.  Development sources are available from
-CVS at http://savannah.gnu.org/projects/pspp
-   
+ftp://alpha.gnu.org/gnu/pspp/.  Development sources are available
+at http://savannah.gnu.org/projects/pspp
+
+The following miscellaneous notes apply to this release:
+
+	* If you use GCC 4.3 or later to compile PSPP, along with any
+	  version of the GNU Scientific Library (GSL) released as of
+	  this writing (June 2008), then you will need to specify the
+	  -fgnu89-inline flag to the compiler on the "configure"
+	  command line: "./configure CFLAGS=-fgnu89-inline".
+
+	* On a few operating systems, such as OpenBSD, some of the
+          tests may fail with messages similar to: 'Warning: cannot
+          create a convertor for "646" to "UTF-8"'.  These test
+          failures may safely be ignored.
+
 Questions and comments about using PSPP may be sent to pspp-users@gnu.org.
 Bug reports may be filed at http://savannah.gnu.org/bugs/?group=pspp
 or emailed to bug-gnu-pspp@gnu.org.  We prefer the web-based system
