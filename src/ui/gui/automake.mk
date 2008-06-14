@@ -58,7 +58,6 @@ src_ui_gui_psppire_LDADD = \
 	src/output/charts/libcharts.a \
 	src/output/liboutput.a \
 	src/math/libpspp_math.a  \
-	src/math/linreg/libpspp_linreg.a  \
 	lib/linreg/liblinreg.a	\
 	lib/gsl-extras/libgsl-extras.a	\
 	src/data/libdata.a \

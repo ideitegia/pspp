@@ -40,7 +40,7 @@
 #include <libpspp/message.h>
 #include <math/design-matrix.h>
 #include <math/coefficient.h>
-#include <math/linreg/linreg.h>
+#include <math/linreg.h>
 #include <math/moments.h>
 #include <output/table.h>
 

@@ -26,7 +26,6 @@ src_ui_terminal_pspp_LDADD = \
 	src/output/charts/libcharts.a \
 	src/output/liboutput.a \
 	src/math/libpspp_math.a  \
-	src/math/linreg/libpspp_linreg.a  \
 	src/ui/libuicommon.a \
 	lib/linreg/liblinreg.a	\
 	lib/gsl-extras/libgsl-extras.a	\

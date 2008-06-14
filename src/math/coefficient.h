@@ -19,7 +19,6 @@
 #define COEFFICIENT_H
 
 #include <assert.h>
-#include <math/linreg/linreg.h>
 #include <src/data/variable.h>
 #include <src/data/value.h>
 
@@ -107,10 +106,4 @@ const struct variable *pspp_coeff_get_var (struct pspp_coeff *,
  */
 const union value *pspp_coeff_get_value (struct pspp_coeff *,
 						const struct variable *);
-
-const struct pspp_coeff *pspp_linreg_get_coeff (const pspp_linreg_cache
-						       *,
-						       const struct variable
-						       *,
-						       const union value *);
 #endif

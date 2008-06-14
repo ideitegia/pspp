@@ -41,7 +41,7 @@
 #include <libpspp/taint.h>
 #include <math/design-matrix.h>
 #include <math/coefficient.h>
-#include <math/linreg/linreg.h>
+#include <math/linreg.h>
 #include <math/moments.h>
 #include <output/table.h>
 
@@ -250,7 +250,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
       std_err = sqrt (gsl_matrix_get (c->cov, j + 1, j + 1));
       tab_float (t, 3, this_row, 0, std_err, 10, 2);
       /*
-         'Standardized' coefficient, i.e., regression coefficient
+         Standardized coefficient, i.e., regression coefficient
          if all variables had unit variance.
        */
       beta = gsl_vector_get (c->indep_std, j + 1);

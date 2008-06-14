@@ -1,7 +1,6 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 include $(top_srcdir)/src/math/ts/automake.mk
-include $(top_srcdir)/src/math/linreg/automake.mk
 
 noinst_LIBRARIES += src/math/libpspp_math.a
 
@@ -19,6 +18,8 @@ src_math_libpspp_math_a_SOURCES = \
 	src/math/interaction.h \
 	src/math/levene.c \
 	src/math/levene.h \
+	src/math/linreg.c \
+	src/math/linreg.h \
 	src/math/merge.c \
 	src/math/merge.h \
 	src/math/moments.c  src/math/moments.h \

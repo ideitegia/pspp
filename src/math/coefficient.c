@@ -19,7 +19,6 @@
  */
 #include <config.h>
 #include <math/coefficient.h>
-#include <math/linreg/linreg.h>
 #include "src/math/design-matrix.h"
 
 #include <gl/xalloc.h>
@@ -47,7 +46,7 @@ pspp_coeff_free (struct pspp_coeff *c)
 
 /*
   Initialize the variable and value pointers inside the
-  coefficient structures for the linear model.
+  coefficient structures for the model.
  */
 void
 pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
@@ -175,65 +174,3 @@ pspp_coeff_get_value (struct pspp_coeff *c,
   return NULL;
 }
 
-/*
-  Which coefficient is associated with V? The VAL argument is relevant
-  only to categorical variables.
- */
-const struct pspp_coeff *
-pspp_linreg_get_coeff (const pspp_linreg_cache * c,
-		       const struct variable *v, const union value *val)
-{
-  int i;
-  struct pspp_coeff *result = NULL;
-  const struct variable *tmp = NULL;
-
-  if (c == NULL)
-    {
-      return NULL;
-    }
-  if (c->coeff == NULL || c->n_indeps == 0 || v == NULL)
-    {
-      return NULL;
-    }
-  i = 0;
-  result = c->coeff[0];
-  tmp = pspp_coeff_get_var (result, 0);
-  while (tmp != v && i < c->n_coeffs)
-    {
-      result = c->coeff[i];
-      tmp = pspp_coeff_get_var (result, 0);
-      i++;
-    }
-  if (tmp != v)
-    {
-      /*
-	Not found.
-       */
-      return NULL;
-    }
-  if (var_is_numeric (v))
-    {
-      return result;
-    }
-  else if (val != NULL)
-    {
-      /*
-         If v is categorical, we need to ensure the coefficient
-         matches the VAL.
-       */
-      while (tmp != v && i < c->n_coeffs
-	     && compare_values (pspp_coeff_get_value (result, tmp),
-				val, var_get_width (v)))
-	{			/* FIX THIS */
-	  i++;
-	  result = c->coeff[i];
-	  tmp = pspp_coeff_get_var (result, 0);
-	}
-      if (i == c->n_coeffs && tmp != v)
-	{
-	  return NULL;
-	}
-      return result;
-    }
-  return NULL;
-}
