@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
-AX_PREREQ(2.60)
+AC_PREREQ(2.60)
 AC_INIT([pspp],[0.6.0],[bug-gnu-pspp@gnu.org])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
