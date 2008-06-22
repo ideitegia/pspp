@@ -20,10 +20,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
-
-struct variable;
-struct pspp_coeff;
-union value;
+#include <src/math/coefficient.h>
 
 enum
 {
@@ -189,8 +186,8 @@ bool pspp_linreg_cache_free (void *);
   values as indicated by opts.
  */
 int
-pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
-	     const pspp_linreg_opts * opts, pspp_linreg_cache * cache);
+pspp_linreg (const gsl_vector *, const struct design_matrix *,
+	     const pspp_linreg_opts *, pspp_linreg_cache *);
 
 double
 pspp_linreg_predict (const struct variable **, const union value **,
@@ -208,4 +205,14 @@ const struct pspp_coeff *pspp_linreg_get_coeff (const pspp_linreg_cache
 						       const struct variable
 						       *,
 						       const union value *);
+/*
+  Return or set the standard deviation of the independent variable.
+ */
+double pspp_linreg_get_indep_variable_sd (pspp_linreg_cache *, const struct variable *);
+void pspp_linreg_set_indep_variable_sd (pspp_linreg_cache *, const struct variable *, double);
+/*
+  Mean of the independent variable.
+ */
+double pspp_linreg_get_indep_variable_mean (pspp_linreg_cache *, const struct variable *);
+void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *, const struct variable *, double);
 #endif

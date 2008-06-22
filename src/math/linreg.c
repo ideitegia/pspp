@@ -24,6 +24,8 @@
 #include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/coefficient.h>
+#include <math/design-matrix.h>
+#include <src/data/category.h>
 #include <src/data/variable.h>
 #include <src/data/value.h>
 #include <gl/xalloc.h>
@@ -197,18 +199,21 @@ pspp_linreg_cache_free (void *m)
   values as indicated by opts.
  */
 int
-pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
+pspp_linreg (const gsl_vector * Y, const struct design_matrix *dm,
 	     const pspp_linreg_opts * opts, pspp_linreg_cache * cache)
 {
   int rc;
   gsl_matrix *design = NULL;
   gsl_matrix_view xtx;
-  gsl_matrix_view xm;
+  gsl_matrix *xm;
   gsl_matrix_view xmxtx;
   gsl_vector_view xty;
   gsl_vector_view xi;
   gsl_vector_view xj;
   gsl_vector *param_estimates;
+  struct pspp_coeff *coef;
+  const struct variable *v;
+  const union value *val;
 
   size_t i;
   size_t j;
@@ -229,28 +234,39 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
       cache->depvar_std = s;
       cache->sst = ss;
     }
-  for (i = 0; i < cache->n_indeps; i++)
-    {
-      if (opts->get_indep_mean_std[i])
-	{
-	  linreg_mean_std (gsl_matrix_const_column (X, i), &m, &s, &ss);
-	  gsl_vector_set (cache->indep_means, i, m);
-	  gsl_vector_set (cache->indep_std, i, s);
-	  gsl_vector_set (cache->ssx, i, ss);
-	}
-    }
+
   cache->dft = cache->n_obs - 1;
   cache->dfm = cache->n_indeps;
   cache->dfe = cache->dft - cache->dfm;
-  cache->n_coeffs = X->size2;
+  cache->n_coeffs = dm->m->size2;
   cache->intercept = 0.0;
+  
+  for (i = 0; i < dm->m->size2; i++)
+    {
+      if (opts->get_indep_mean_std[i])
+	{
+	  linreg_mean_std (gsl_matrix_const_column (dm->m, i), &m, &s, &ss);
+	  v = design_matrix_col_to_var (dm, i);
+	  val = NULL;
+	  if (var_is_alpha (v))
+	    {
+	      j = i - design_matrix_var_to_column (dm, v);
+	      val = cat_subscript_to_value (j, v);
+	    }
+	  coef = pspp_linreg_get_coeff (cache, v, val);
+	  pspp_coeff_set_mean (coef, m);
+	  pspp_coeff_set_sd (coef, s);
+	  gsl_vector_set (cache->ssx, i, ss);
+
+	}
+    }
 
   if (cache->method == PSPP_LINREG_SWEEP)
     {
       gsl_matrix *sw;
       /*
          Subtract the means to improve the condition of the design
-         matrix. This requires copying X and Y. We do not divide by the
+         matrix. This requires copying dm->m and Y. We do not divide by the
          standard deviations of the independent variables here since doing
          so would cause a miscalculation of the residual sums of
          squares. Dividing by the standard deviation is done GSL's linear
@@ -261,13 +277,14 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
          (i.e., a column of 1's). If using PSPP_LINREG_QR, we need that column,
          so design is allocated here when sweeping, or below if using QR.
        */
-      design = gsl_matrix_alloc (X->size1, X->size2);
-      for (i = 0; i < X->size2; i++)
+      design = gsl_matrix_alloc (dm->m->size1, dm->m->size2);
+      for (i = 0; i < dm->m->size2; i++)
 	{
-	  m = gsl_vector_get (cache->indep_means, i);
-	  for (j = 0; j < X->size1; j++)
+	  v = design_matrix_col_to_var (dm, i);
+	  m = pspp_linreg_get_indep_variable_mean (cache, v);
+	  for (j = 0; j < dm->m->size1; j++)
 	    {
-	      tmp = (gsl_matrix_get (X, j, i) - m);
+	      tmp = (gsl_matrix_get (dm->m, j, i) - m);
 	      gsl_matrix_set (design, j, i, tmp);
 	    }
 	}
@@ -319,7 +336,7 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
 	{
 	  tmp = gsl_matrix_get (sw, i, cache->n_indeps);
 	  cache->coeff[i]->estimate = tmp;
-	  m -= tmp * gsl_vector_get (cache->indep_means, i);
+	  m -= tmp * pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i));
 	}
       /*
          Get the covariance matrix of the parameter estimates.
@@ -341,16 +358,22 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
        */
       xtx = gsl_matrix_submatrix (sw, 0, 0, cache->n_indeps, cache->n_indeps);
       xmxtx = gsl_matrix_submatrix (cache->cov, 0, 1, 1, cache->n_indeps);
-      xm = gsl_matrix_view_vector (cache->indep_means, 1, cache->n_indeps);
+      xm = gsl_matrix_calloc (1, cache->n_indeps);
+      for (i = 0; i < xm->size2; i++)
+	{
+	  gsl_matrix_set (xm, 0, i, 
+			  pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i)));
+	}
       rc = gsl_blas_dsymm (CblasRight, CblasUpper, cache->mse,
-			   &xtx.matrix, &xm.matrix, 0.0, &xmxtx.matrix);
+			   &xtx.matrix, xm, 0.0, &xmxtx.matrix);
+      gsl_matrix_free (xm);
       if (rc == GSL_SUCCESS)
 	{
 	  tmp = cache->mse / cache->n_obs;
 	  for (i = 1; i < 1 + cache->n_indeps; i++)
 	    {
 	      tmp -= gsl_matrix_get (cache->cov, 0, i)
-		* gsl_vector_get (cache->indep_means, i - 1);
+		* pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i - 1));
 	    }
 	  gsl_matrix_set (cache->cov, 0, 0, tmp);
 
@@ -383,15 +406,15 @@ pspp_linreg (const gsl_vector * Y, const gsl_matrix * X,
          Use QR decomposition via GSL.
        */
 
-      param_estimates = gsl_vector_alloc (1 + X->size2);
-      design = gsl_matrix_alloc (X->size1, 1 + X->size2);
+      param_estimates = gsl_vector_alloc (1 + dm->m->size2);
+      design = gsl_matrix_alloc (dm->m->size1, 1 + dm->m->size2);
 
-      for (j = 0; j < X->size1; j++)
+      for (j = 0; j < dm->m->size1; j++)
 	{
 	  gsl_matrix_set (design, j, 0, 1.0);
-	  for (i = 0; i < X->size2; i++)
+	  for (i = 0; i < dm->m->size2; i++)
 	    {
-	      tmp = gsl_matrix_get (X, j, i);
+	      tmp = gsl_matrix_get (dm->m, j, i);
 	      gsl_matrix_set (design, j, i + 1, tmp);
 	    }
 	}
@@ -535,10 +558,6 @@ const struct pspp_coeff *
 pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 		       const struct variable *v, const union value *val)
 {
-  int i;
-  struct pspp_coeff *result = NULL;
-  const struct variable *tmp = NULL;
-
   if (c == NULL)
     {
       return NULL;
@@ -547,45 +566,54 @@ pspp_linreg_get_coeff (const pspp_linreg_cache * c,
     {
       return NULL;
     }
-  i = 0;
-  result = c->coeff[0];
-  tmp = pspp_coeff_get_var (result, 0);
-  while (tmp != v && i < c->n_coeffs)
-    {
-      result = c->coeff[i];
-      tmp = pspp_coeff_get_var (result, 0);
-      i++;
-    }
-  if (tmp != v)
-    {
-      /*
-	Not found.
-       */
-      return NULL;
-    }
+  return pspp_coeff_var_to_coeff (v, c->coeff, c->n_coeffs, val);
+}
+/*
+  Return the standard deviation of the independent variable.
+ */
+double pspp_linreg_get_indep_variable_sd (pspp_linreg_cache *c, const struct variable *v)
+{
   if (var_is_numeric (v))
     {
-      return result;
+      const struct pspp_coeff *coef;
+      coef = pspp_linreg_get_coeff (c, v, NULL);
+      return pspp_coeff_get_sd (coef);
     }
-  else if (val != NULL)
+  return GSL_NAN;
+}
+
+void pspp_linreg_set_indep_variable_sd (pspp_linreg_cache *c, const struct variable *v, 
+					double s)
+{
+  if (var_is_numeric (v))
     {
-      /*
-         If v is categorical, we need to ensure the coefficient
-         matches the VAL.
-       */
-      while (tmp != v && i < c->n_coeffs
-	     && compare_values (pspp_coeff_get_value (result, tmp),
-				val, var_get_width (v)))
-	{			/* FIX THIS */
-	  i++;
-	  result = c->coeff[i];
-	  tmp = pspp_coeff_get_var (result, 0);
-	}
-      if (i == c->n_coeffs && tmp != v)
-	{
-	  return NULL;
-	}
-      return result;
+      struct pspp_coeff *coef;
+      coef = pspp_linreg_get_coeff (c, v, NULL);
+      pspp_coeff_set_sd (coef, s);
     }
-  return NULL;
+}
+
+/*
+  Mean of the independent variable.
+ */
+double pspp_linreg_get_indep_variable_mean (pspp_linreg_cache *c, const struct variable *v)
+{
+  if (var_is_numeric (v))
+    {
+      struct pspp_coeff *coef;
+      coef = pspp_linreg_get_coeff (c, v, NULL);
+      return pspp_coeff_get_mean (coef);
+    }
+  return GSL_NAN;
+}
+
+void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *c, const struct variable *v, 
+					  double m)
+{
+  if (var_is_numeric (v))
+    {
+      struct pspp_coeff *coef;
+      coef = pspp_linreg_get_coeff (c, v, NULL);
+      pspp_coeff_set_mean (coef, m);
+    }
 }

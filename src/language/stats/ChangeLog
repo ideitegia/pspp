@@ -1,3 +1,9 @@
+2008-06-21  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.q (reg_stats_coeff): Use new accessor function
+	pspp_coeff_get_sd. Fixed bug 23567. No longer call compute_moments
+	in run_regression. Pass entire design_matrix to pspp_linreg ().
+
 2008-05-29  John Darrington <john@darrington.wattle.id.au>
 
 	* examine.q: Fixed bug where incorrect levels of dereferencing
@@ -20,7 +26,7 @@
 	string variables are tabulated, so we must not copy or zero out
 	more data than that.
 
-2008-03-10  Jason Stover  <jhs@debs.hoobahooba.net>
+2008-03-10  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (run_regression): Removed code for EXPORT
 	subcommand. Remove use of coefficient 0 as the intercept.
@@ -88,7 +94,7 @@
 	* descriptives.c (calc_descriptives): Ditto.  Also avoid
 	gratuitous casereader_clone.
 
-2007-09-13  Jason Stover  <jhs@debs.hoobahooba.net>
+2007-09-13  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (cmd_regression): Move declaration of models in to
 	definition of cmd_regression.

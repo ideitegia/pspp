@@ -96,6 +96,15 @@ double pspp_coeff_get_std_err (const struct pspp_coeff *);
 int pspp_coeff_get_n_vars (struct pspp_coeff *);
 
 /*
+  Which coefficient does this variable match? If the variable is
+  categorical, and has more than one coefficient, report the first
+  coefficient found. Note that in this case, the result will depend on
+  the order of COEFS.
+ */
+const struct pspp_coeff *
+pspp_coeff_var_to_coeff (const struct variable *, struct pspp_coeff **, size_t, const union value *);
+
+/*
   Which variable does this coefficient match? The int argument is usually
   0, unless the coefficient refers to an interaction.
  */
@@ -106,4 +115,16 @@ const struct variable *pspp_coeff_get_var (struct pspp_coeff *,
  */
 const union value *pspp_coeff_get_value (struct pspp_coeff *,
 						const struct variable *);
+
+/*
+  Get or set the standard deviation of the variable associated with this coefficient.
+ */
+double pspp_coeff_get_sd (const struct pspp_coeff *);
+void pspp_coeff_set_sd (struct pspp_coeff *, double);
+
+/*
+  Get or set the mean for the variable associated with this coefficient.
+*/
+double pspp_coeff_get_mean (const struct pspp_coeff *);
+void pspp_coeff_set_mean (struct pspp_coeff *, double);
 #endif

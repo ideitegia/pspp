@@ -180,7 +180,6 @@ reg_stats_coeff (pspp_linreg_cache * c)
   int this_row;
   double t_stat;
   double pval;
-  double coeff;
   double std_err;
   double beta;
   const char *label;
@@ -209,8 +208,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_float (t, 2, 1, 0, c->intercept, 10, 2);
   std_err = sqrt (gsl_matrix_get (c->cov, 0, 0));
   tab_float (t, 3, 1, 0, std_err, 10, 2);
-  beta = c->intercept / c->depvar_std;
-  tab_float (t, 4, 1, 0, beta, 10, 2);
+  tab_float (t, 4, 1, 0, 0.0, 10, 2);
   t_stat = c->intercept / std_err;
   tab_float (t, 5, 1, 0, t_stat, 10, 2);
   pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
@@ -242,8 +240,7 @@ reg_stats_coeff (pspp_linreg_cache * c)
       /*
          Regression coefficients.
        */
-      coeff = c->coeff[j]->estimate;
-      tab_float (t, 2, this_row, 0, coeff, 10, 2);
+      tab_float (t, 2, this_row, 0, c->coeff[j]->estimate, 10, 2);
       /*
          Standard error of the coefficients.
        */
@@ -253,14 +250,14 @@ reg_stats_coeff (pspp_linreg_cache * c)
          Standardized coefficient, i.e., regression coefficient
          if all variables had unit variance.
        */
-      beta = gsl_vector_get (c->indep_std, j + 1);
-      beta *= coeff / c->depvar_std;
+      beta = pspp_coeff_get_sd (c->coeff[j]);
+      beta *= c->coeff[j]->estimate / c->depvar_std;
       tab_float (t, 4, this_row, 0, beta, 10, 2);
 
       /*
          Test statistic for H0: coefficient is 0.
        */
-      t_stat = coeff / std_err;
+      t_stat = c->coeff[j]->estimate / std_err;
       tab_float (t, 5, this_row, 0, t_stat, 10, 2);
       /*
          P values for the test statistic above.
@@ -890,8 +887,8 @@ compute_moments (pspp_linreg_cache * c, struct moments_var *mom,
 	    {
 	      moments1_calculate ((mom + j)->m, &weight, &mean, &variance,
 				  &skewness, &kurtosis);
-	      gsl_vector_set (c->indep_means, i, mean);
-	      gsl_vector_set (c->indep_std, i, sqrt (variance));
+	      pspp_linreg_set_indep_variable_mean (c, (mom + j)->v, mean);
+	      pspp_linreg_set_indep_variable_sd (c, (mom + j)->v, sqrt (variance));
 	    }
 	}
     }
@@ -1013,8 +1010,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	  /*
 	     Find the least-squares estimates and other statistics.
 	   */
-	  pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, models[k]);
-	  compute_moments (models[k], mom, X, n_variables);
+	  pspp_linreg ((const gsl_vector *) Y, X, &lopts, models[k]);
 
 	  if (!taint_has_tainted_successor (casereader_get_taint (input)))
 	    {

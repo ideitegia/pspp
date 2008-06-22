@@ -1,3 +1,8 @@
+2008-06-21  Jason Stover  <jhs@math.gcsu.edu>
+
+	* regression.sh, regression-qr.sh: Fixed column showing
+	standardized coefficients.
+
 2008-05-16  John Darrington <john@darrington.wattle.id.au>
 
 	* compression.sh print-crash.sh print-strings.sh very-long-strings.sh :

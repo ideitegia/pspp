@@ -35,6 +35,8 @@ struct varinfo
   const union value *val;	/* Value of the variable v which this varinfo
 				   refers to. This member is relevant only to
 				   categorical variables. */
+  double mean; /* Mean for this variable */
+  double sd; /* Standard deviation for this variable */
 };
 
 void
@@ -49,84 +51,86 @@ pspp_coeff_free (struct pspp_coeff *c)
   coefficient structures for the model.
  */
 void
-pspp_coeff_init (struct pspp_coeff ** c, const struct design_matrix *X)
+pspp_coeff_init (struct pspp_coeff ** coeff, const struct design_matrix *X)
 {
   size_t i;
   int n_vals = 1;
 
-  assert (c != NULL);
+  assert (coeff != NULL);
   for (i = 0; i < X->m->size2; i++)
     {
-      c[i] = xmalloc (sizeof (*c[i]));
-      c[i]->n_vars = n_vals;	/* Currently, no procedures allow
-				   interactions.  This line will have to
-				   change when procedures that allow
-				   interaction terms are written.
-				 */
-      c[i]->v_info = xnmalloc (c[i]->n_vars, sizeof (*c[i]->v_info));
-      assert (c[i]->v_info != NULL);
-      c[i]->v_info->v = design_matrix_col_to_var (X, i);
-
-      if (var_is_alpha (c[i]->v_info->v))
+      coeff[i] = xmalloc (sizeof (*coeff[i]));
+      coeff[i]->n_vars = n_vals;	/* Currently, no procedures allow
+					   interactions.  This line will have to
+					   change when procedures that allow
+					   interaction terms are written.
+					*/
+      coeff[i]->v_info = xnmalloc (coeff[i]->n_vars, sizeof (*coeff[i]->v_info));
+      assert (coeff[i]->v_info != NULL);
+      coeff[i]->v_info->v = design_matrix_col_to_var (X, i);
+      
+      if (var_is_alpha (coeff[i]->v_info->v))
 	{
 	  size_t k;
-	  k = design_matrix_var_to_column (X, c[i]->v_info->v);
+	  k = design_matrix_var_to_column (X, coeff[i]->v_info->v);
 	  assert (k <= i);
 	  k = i - k;
-	  c[i]->v_info->val =
-	    cat_subscript_to_value (k, c[i]->v_info->v);
+	  coeff[i]->v_info->val =
+	    cat_subscript_to_value (k, coeff[i]->v_info->v);
 	}
+      coeff[i]->v_info->mean = 0.0;
+      coeff[i]->v_info->sd = 0.0;
     }
 }
 void
-pspp_coeff_set_estimate (struct pspp_coeff *c, double estimate)
+pspp_coeff_set_estimate (struct pspp_coeff *coef, double estimate)
 {
-  c->estimate = estimate;
+  coef->estimate = estimate;
 }
 
 void
-pspp_coeff_set_std_err (struct pspp_coeff *c, double std_err)
+pspp_coeff_set_std_err (struct pspp_coeff *coef, double std_err)
 {
-  c->std_err = std_err;
+  coef->std_err = std_err;
 }
 
 /*
   Return the estimated value of the coefficient.
  */
 double
-pspp_coeff_get_est (const struct pspp_coeff *c)
+pspp_coeff_get_est (const struct pspp_coeff *coef)
 {
-  if (c == NULL)
+  if (coef == NULL)
     {
       return 0.0;
     }
-  return c->estimate;
+  return coef->estimate;
 }
 
 /*
   Return the standard error of the estimated coefficient.
 */
 double
-pspp_coeff_get_std_err (const struct pspp_coeff *c)
+pspp_coeff_get_std_err (const struct pspp_coeff *coef)
 {
-  if (c == NULL)
+  if (coef == NULL)
     {
       return 0.0;
     }
-  return c->std_err;
+  return coef->std_err;
 }
 
 /*
   How many variables are associated with this coefficient?
  */
 int
-pspp_coeff_get_n_vars (struct pspp_coeff *c)
+pspp_coeff_get_n_vars (struct pspp_coeff *coef)
 {
-  if (c == NULL)
+  if (coef == NULL)
     {
       return 0;
     }
-  return c->n_vars;
+  return coef->n_vars;
 }
 
 /*
@@ -134,27 +138,69 @@ pspp_coeff_get_n_vars (struct pspp_coeff *c)
   0 unless the coefficient refers to an interaction term.
  */
 const struct variable *
-pspp_coeff_get_var (struct pspp_coeff *c, int i)
+pspp_coeff_get_var (struct pspp_coeff *coef, int i)
 {
-  if (c == NULL)
+  if (coef == NULL)
     {
       return NULL;
     }
-  assert (i < c->n_vars);
-  return (c->v_info + i)->v;
+  assert (i < coef->n_vars);
+  return (coef->v_info + i)->v;
+}
+
+/*
+  Which coefficient does this variable match? If the variable is
+  categorical, and has more than one coefficient, use the VAL to find
+  its coefficient.
+ */
+const struct pspp_coeff *
+pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs, 
+			 size_t n_coef, const union value *val)
+{
+  size_t i = 0;
+  size_t j = 0;
+  size_t v_idx;
+  struct pspp_coeff *result = NULL;
+
+  if (v != NULL)
+    {
+      v_idx = var_get_dict_index (v);
+      while (i < n_coef && var_get_dict_index (coefs[i]->v_info->v) != v_idx)
+	{
+	  i++;
+	}
+      result = coefs[i];
+      if (var_is_alpha (v))
+	{
+	  /*
+	    Use the VAL to find the coefficient.
+	   */
+	  if (val != NULL)
+	    {
+	      j = i;
+	      while (j < n_coef && compare_values (pspp_coeff_get_value (coefs[j], v),
+						   val, var_get_width (v)) != 0)
+		{
+		  j++;
+		}
+	      result = ((j < n_coef) ? coefs[j] : NULL);
+	    }
+	}
+    }
+  return result;
 }
 
 /*
   Which value is associated with this coefficient/variable combination?
  */
 const union value *
-pspp_coeff_get_value (struct pspp_coeff *c,
+pspp_coeff_get_value (struct pspp_coeff *coef,
 			     const struct variable *v)
 {
   int i = 0;
   const struct variable *candidate;
 
-  if (c == NULL || v == NULL)
+  if (coef == NULL || v == NULL)
     {
       return NULL;
     }
@@ -162,15 +208,40 @@ pspp_coeff_get_value (struct pspp_coeff *c,
     {
       return NULL;
     }
-  while (i < c->n_vars)
+  while (i < coef->n_vars)
     {
-      candidate = pspp_coeff_get_var (c, i);
+      candidate = pspp_coeff_get_var (coef, i);
       if (v == candidate)
 	{
-	  return (c->v_info + i)->val;
+	  return (coef->v_info + i)->val;
 	}
       i++;
     }
   return NULL;
+}
+
+/*
+  Get or set the standard deviation of the variable associated with this coefficient.
+ */
+double pspp_coeff_get_sd (const struct pspp_coeff *coef)
+{
+  return coef->v_info->sd;
+}
+void pspp_coeff_set_sd (struct pspp_coeff *coef, double s)
+{
+  coef->v_info->sd = s;
+}
+
+/*
+  Get or set the mean for the variable associated with this coefficient.
+*/
+double pspp_coeff_get_mean (const struct pspp_coeff *coef)
+{
+  return coef->v_info->mean;
+}
+
+void pspp_coeff_set_mean (struct pspp_coeff *coef, double m)
+{
+  coef->v_info->mean = m;
 }
 

@@ -1,3 +1,18 @@
+2008-06-21  Jason Stover  <jhs@math.gcsu.edu>
+
+	* linreg.c (pspp_linreg): Accept a struct design_matrix.  Use new
+	accessor functions pspp_coeff_get_mean, pspp_coeff_get_sd.  New
+	functions pspp_linreg_get_indep_variable_mean,
+	pspp_linreg_set_indep_variable_mean,
+	pspp_linreg_get_indep_variable_sd,
+	pspp_linreg_set_indep_variable_sd. Altered pspp_linreg_get_coeff
+	to use accessor function pspp_coeff_var_to_coeff.
+
+	* coefficient.c: New functions pspp_coeff_get_mean,
+	pspp_coeff_set_mean, pspp_coeff_get_sd, pspp_coeff_set_sd,
+	pspp_coeff_var_to_coeff. Added doubles to hold mean and standard
+	deviation in struct varinfo.
+
 2008-06-14  Jason Stover  <jhs@math.gcsu.edu>
 
 	* linreg/: moved linreg.[ch] to src/math.
@@ -10,7 +25,7 @@
 	stopgap measure for portability until appropriate gnulib modules
 	are available.
 
-2008-03-10  Jason Stover  <jhs@debs.hoobahooba.net>
+2008-03-10  Jason Stover  <jhs@math.gcsu.edu>
 
 	* coefficient.c (pspp_linreg_get_coeff): Removed use of
 	coefficient 0 as intercept.
