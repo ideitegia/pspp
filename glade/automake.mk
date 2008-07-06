@@ -22,10 +22,10 @@ libglade_psppire_la_SOURCES = \
 	src/ui/gui/psppire-keypad.c \
 	src/ui/gui/psppire-selector.c
 
-nodist_catalog_DATA = \
+dist_catalog_DATA = \
 	glade/psppire.xml
 
-nodist_small_pixmap_DATA = \
+dist_small_pixmap_DATA = \
 	glade/icons/16x16/psppire-acr.png \
 	glade/icons/16x16/psppire-hbuttonbox.png \
 	glade/icons/16x16/psppire-vbuttonbox.png \
@@ -33,7 +33,7 @@ nodist_small_pixmap_DATA = \
 	glade/icons/16x16/psppire-keypad.png \
 	glade/icons/16x16/psppire-selector.png 
 
-nodist_large_pixmap_DATA = \
+dist_large_pixmap_DATA = \
 	glade/icons/22x22/psppire-acr.png \
 	glade/icons/22x22/psppire-hbuttonbox.png \
 	glade/icons/22x22/psppire-vbuttonbox.png \
