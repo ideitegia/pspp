@@ -15,15 +15,12 @@ config.sub
 configure
 depcomp
 gl
-gl/
 install-reloc
 install-sh
 intl
-intl/
 link-warning.h
 ltmain.sh
 m4
-m4/
 mdate-sh
 missing
 mkinstalldirs
@@ -32,5 +29,4 @@ potfiles.tmp
 pref.h
 reloc-ldflags
 stamp-h1
-sysdeps/
 texinfo.tex

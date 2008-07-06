@@ -1,10 +1,2 @@
-*.actual
-*.save
 Makefile
 Makefile.in
-expect/
-foo*
-gengarbage
-pspp.list
-pspp.ps
-sort.data
