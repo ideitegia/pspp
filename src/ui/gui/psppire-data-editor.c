@@ -564,6 +564,29 @@ on_map (GtkWidget *w)
 
 
 static void
+xxx (GtkToggleButton *button, gpointer data)
+{
+  PsppireDataEditor *de = data;
+  if ( gtk_toggle_button_get_active (button))
+    gtk_sheet_show_row_titles (GTK_SHEET (de->data_sheet));
+  else
+    gtk_sheet_hide_row_titles (GTK_SHEET (de->data_sheet));
+}
+
+
+static void
+yyy (GtkToggleButton *button, gpointer data)
+{
+  PsppireDataEditor *de = data;
+  if ( gtk_toggle_button_get_active (button))
+    gtk_sheet_show_column_titles (GTK_SHEET (de->data_sheet));
+  else
+    gtk_sheet_hide_column_titles (GTK_SHEET (de->data_sheet));
+}
+
+
+
+static void
 psppire_data_editor_init (PsppireDataEditor *de)
 {
   GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
@@ -596,6 +619,26 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
   gtk_container_add (GTK_CONTAINER (sw_ds), de->data_sheet);
   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+
+  {
+    GtkWidget *hbox2 = gtk_hbox_new (FALSE, 0);
+    GtkWidget *button1 = gtk_toggle_button_new_with_label ("vertical");
+    GtkWidget *button2 = gtk_toggle_button_new_with_label ("horizontal");
+
+    gtk_box_pack_start (GTK_BOX (hbox2), button1, TRUE, TRUE, 0);
+
+    gtk_box_pack_start (GTK_BOX (hbox2), button2, TRUE, TRUE, 0);
+    gtk_widget_show_all (hbox2);
+
+    gtk_box_pack_start (GTK_BOX (vbox), hbox2, FALSE, FALSE, 0);
+
+    g_signal_connect (button1, "toggled", G_CALLBACK (xxx), de);
+    g_signal_connect (button2, "toggled", G_CALLBACK (yyy), de);
+
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button1), TRUE);
+    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button2), TRUE);
+  }
+
   gtk_box_pack_start (GTK_BOX (vbox), sw_ds, TRUE, TRUE, 0);
 
   gtk_widget_show_all (vbox);
@@ -655,6 +698,11 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
   g_signal_connect (de, "map", G_CALLBACK (on_map), NULL);
 
+
+  //     gtk_sheet_hide_column_titles (de->var_sheet);
+  //  gtk_sheet_hide_row_titles (de->data_sheet);
+
+
   de->dispose_has_run = FALSE;
 }
 
@@ -669,6 +717,7 @@ psppire_data_editor_new (PsppireVarStore *var_store,
 			  "var-store",  var_store,
 			  "data-store",  data_store,
 			  NULL);
+
 
   return widget;
 }

@@ -32,34 +32,12 @@ struct _GtkSheet ;
 typedef struct _GtkSheet GtkSheet;
 
 
-struct _GtkSheetChild
-{
-  GtkWidget *widget;
-  gint x,y ;
-  gboolean attached_to_cell;
-  gboolean floating;
-  gint row, col;
-  guint16 xpadding;
-  guint16 ypadding;
-  gboolean xexpand;
-  gboolean yexpand;
-  gboolean xshrink;
-  gboolean yshrink;
-  gboolean xfill;
-  gboolean yfill;
-};
-
-typedef struct _GtkSheetChild GtkSheetChild;
-
-
-
 struct _GtkSheetButton
 {
   GtkStateType state;
   gchar *label;
 
   gboolean label_visible;
-  GtkSheetChild *child;
 
   GtkJustification justification;
 };

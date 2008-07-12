@@ -96,7 +96,6 @@ g_sheet_row_base_init (gpointer g_class)
       default_button.state = GTK_STATE_NORMAL;
       default_button.label = NULL;
       default_button.label_visible = TRUE;
-      default_button.child = NULL;
       default_button.justification = GTK_JUSTIFY_FILL;
 
       initialized = TRUE;

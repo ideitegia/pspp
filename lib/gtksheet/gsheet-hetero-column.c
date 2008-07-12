@@ -165,7 +165,6 @@ g_sheet_hetero_column_class_init (GSheetHeteroColumnClass *class)
   object_class->finalize = g_sheet_hetero_column_finalize;
 
   default_button.label=NULL;
-  default_button.child=NULL;
   default_button.state=GTK_STATE_NORMAL;
   default_button.justification=GTK_JUSTIFY_CENTER;
   default_button.label_visible = TRUE;

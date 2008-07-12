@@ -56,7 +56,6 @@ static gboolean psppire_data_store_clear_datum (GSheetModel *model,
 
 
 #define MIN_COLUMNS 10
-
 #define TRAILING_ROWS 10
 
 static GObjectClass *parent_class = NULL;
@@ -800,9 +799,11 @@ geometry_set_width (GSheetColumn *geom, glong unit, gint width)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
 
-  struct variable *pv = psppire_dict_get_variable (ds->dict, unit);
+  struct variable *v = psppire_dict_get_variable (ds->dict, unit);
 
-  var_set_display_width (pv, width / ds->width_of_m );
+  g_return_if_fail (v);
+
+  var_set_display_width (v, width / ds->width_of_m );
 }
 
 
@@ -933,7 +934,6 @@ geometry_get_row_sensitivity (const GSheetRow *geom, glong unit)
 
   return (unit < psppire_case_file_get_case_count (ds->case_file));
 }
-
 
 static gchar *
 geometry_get_row_button_label (const GSheetRow *geom, glong unit)

@@ -76,8 +76,7 @@ struct _GSheetColumnIface
 
   gboolean      (*get_button_visibility)(const GSheetColumn *geo,
 					glong col);
-  const GtkSheetChild * (*get_button_child)(const GSheetColumn *geo,
-					   glong col);
+
   GtkJustification * (*get_button_justification)(const GSheetColumn *geo,
 						glong col);
 };

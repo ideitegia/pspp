@@ -70,9 +70,6 @@ struct _GSheetRowIface
   gboolean  (*get_button_visibility) (const GSheetRow *geo,
 					  glong row);
 
-  const GtkSheetChild * (*get_button_child) (const GSheetRow *geo,
-					     glong row);
-
   guint (*top_ypixel) (const GSheetRow *geo, glong row);
   glong (*pixel_to_row) (const GSheetRow *geo, guint pixel);
 };
