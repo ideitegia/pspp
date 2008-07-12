@@ -61,6 +61,8 @@ struct data_editor
   GtkAction *invoke_oneway_anova_dialog;
   GtkAction *invoke_t_test_one_sample_dialog;
 
+  GtkToggleAction *toggle_split_window;
+
 
   /* Actions which do things */
   GtkAction *insert_variable;

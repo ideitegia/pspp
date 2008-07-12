@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-07-12 13:32+0800\n"
+"POT-Creation-Date: 2008-07-12 14:17+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -5586,15 +5586,15 @@ msgstr ""
 msgid "_Select"
 msgstr ""
 
-#: src/ui/gui/psppire-data-editor.c:604
+#: src/ui/gui/psppire-data-editor.c:647
 msgid "Data View"
 msgstr ""
 
-#: src/ui/gui/psppire-data-editor.c:607
+#: src/ui/gui/psppire-data-editor.c:650
 msgid "Variable View"
 msgstr ""
 
-#: src/ui/gui/psppire-data-store.c:828
+#: src/ui/gui/psppire-data-store.c:829
 msgid "var"
 msgstr ""
 

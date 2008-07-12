@@ -26,10 +26,14 @@
 #include "psppire-data-store.h"
 #include "helper.h"
 
+#include <gtksheet/gtkxpaned.h>
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+
+static void psppire_data_editor_remove_split (PsppireDataEditor *de);
+static void psppire_data_editor_set_split (PsppireDataEditor *de);
 
 enum {
   DATA_SELECTION_CHANGED,
@@ -143,16 +147,16 @@ on_var_row_clicked (PsppireDataEditor *de, gint row, gpointer data)
 
   gtk_notebook_set_current_page (GTK_NOTEBOOK(de), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
-  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet),
+  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]),
 			     &current_row, &current_column);
 
-  gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet), current_row, row);
+  gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet[0]), current_row, row);
 
-  gtk_sheet_get_visible_range (GTK_SHEET (de->data_sheet), &visible_range);
+  gtk_sheet_get_visible_range (GTK_SHEET (de->data_sheet[0]), &visible_range);
 
   if ( row < visible_range.col0 || row > visible_range.coli)
     {
-      gtk_sheet_moveto (GTK_SHEET (de->data_sheet),
+      gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]),
 			current_row, row, 0, 0);
     }
 
@@ -171,7 +175,8 @@ enum
     PROP_VALUE_LABELS,
     PROP_CURRENT_CASE,
     PROP_CURRENT_VAR,
-    PROP_DATA_SELECTED
+    PROP_DATA_SELECTED,
+    PROP_SPLIT_WINDOW
   };
 
 static void
@@ -180,20 +185,25 @@ psppire_data_editor_set_property (GObject         *object,
 				  const GValue    *value,
 				  GParamSpec      *pspec)
 {
+  int i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (object);
 
   switch (prop_id)
     {
+    case PROP_SPLIT_WINDOW:
+      psppire_data_editor_split_window (de, g_value_get_boolean (value));
+      break;
     case PROP_DATA_STORE:
       if ( de->data_store) g_object_unref (de->data_store);
       de->data_store = g_value_get_pointer (value);
       g_object_ref (de->data_store);
 
-      g_object_set (de->data_sheet,
-		    "row-geometry", de->data_store,
-		    "column-geometry", de->data_store,
-		    "model", de->data_store,
-		    NULL);
+      for (i = 0 ; i < 4 ; ++i )
+	g_object_set (de->data_sheet[i],
+		      "row-geometry", de->data_store,
+		      "column-geometry", de->data_store,
+		      "model", de->data_store,
+		      NULL);
       break;
     case PROP_VAR_STORE:
       if ( de->var_store) g_object_unref (de->var_store);
@@ -209,7 +219,7 @@ psppire_data_editor_set_property (GObject         *object,
       {
 	GObject *menu = g_value_get_object (value);
 
-	g_signal_connect (de->data_sheet, "button-event-column",
+	g_signal_connect (de->data_sheet[0], "button-event-column",
 			  G_CALLBACK (popup_variable_menu), menu);
       }
       break;
@@ -217,7 +227,7 @@ psppire_data_editor_set_property (GObject         *object,
       {
 	GObject *menu = g_value_get_object (value);
 
-	g_signal_connect (de->data_sheet, "button-event-row",
+	g_signal_connect (de->data_sheet[0], "button-event-row",
 			  G_CALLBACK (popup_cases_menu), menu);
       }
       break;
@@ -228,9 +238,9 @@ psppire_data_editor_set_property (GObject         *object,
 	switch (gtk_notebook_get_current_page (GTK_NOTEBOOK (object)))
 	  {
 	  case PSPPIRE_DATA_EDITOR_DATA_VIEW:
-	    gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &col);
-	    gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet), row, var);
-	    gtk_sheet_moveto (GTK_SHEET (de->data_sheet), row, var, 0.5, 0.5);
+	    gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &col);
+	    gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet[0]), row, var);
+	    gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]), row, var, 0.5, 0.5);
 	    break;
 	  case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
 	    gtk_sheet_get_active_cell (GTK_SHEET (de->var_sheet), &row, &col);
@@ -247,9 +257,9 @@ psppire_data_editor_set_property (GObject         *object,
       {
 	gint row, col;
 	gint case_num = g_value_get_long (value);
-	gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &col);
-	gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet), case_num, col);
-	gtk_sheet_moveto (GTK_SHEET (de->data_sheet), case_num, col, 0.5, 0.5);
+	gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &col);
+	gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet[0]), case_num, col);
+	gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]), case_num, col, 0.5, 0.5);
       }
       break;
     case PROP_VALUE_LABELS:
@@ -274,6 +284,9 @@ psppire_data_editor_get_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_SPLIT_WINDOW:
+      g_value_set_boolean (value, de->split);
+      break;
     case PROP_DATA_STORE:
       g_value_set_pointer (value, de->data_store);
       break;
@@ -283,14 +296,14 @@ psppire_data_editor_get_property (GObject         *object,
     case PROP_CURRENT_CASE:
       {
 	gint row, column;
-	gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &column);
+	gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &column);
 	g_value_set_long (value, row);
       }
       break;
     case PROP_CURRENT_VAR:
       {
 	gint row, column;
-	gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &column);
+	gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &column);
 	g_value_set_long (value, column);
       }
       break;
@@ -315,6 +328,7 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
   GParamSpec *current_case_spec;
   GParamSpec *current_var_spec;
   GParamSpec *data_selected_spec;
+  GParamSpec *split_window_spec;
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   parent_class = g_type_class_peek_parent (klass);
@@ -418,6 +432,17 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
                                    data_selected_spec);
 
 
+
+  split_window_spec =
+    g_param_spec_boolean ("split",
+			  "Split Window",
+			  "True iff the data sheet is split",
+			  FALSE,
+			  G_PARAM_READABLE | G_PARAM_WRITABLE);
+
+  g_object_class_install_property (object_class,
+                                   PROP_SPLIT_WINDOW,
+                                   split_window_spec);
 
   data_editor_signals [DATA_SELECTION_CHANGED] =
     g_signal_new ("data-selection-changed",
@@ -533,7 +558,7 @@ datum_entry_activate (GtkEntry *entry, gpointer data)
 
   const gchar *text = gtk_entry_get_text (entry);
 
-  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &column);
+  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &column);
 
   if ( row == -1 || column == -1)
     return;
@@ -541,7 +566,7 @@ datum_entry_activate (GtkEntry *entry, gpointer data)
   psppire_data_store_set_string (de->data_store, text, row, column);
 }
 
-
+static gboolean on_data_sheet_activate (GtkWidget *sheet, gint i, gint j, PsppireDataEditor *de);
 static void on_activate (PsppireDataEditor *de);
 static void on_deactivate (PsppireDataEditor *de);
 static gboolean on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p, gint pagenum, gpointer data);
@@ -564,38 +589,87 @@ on_map (GtkWidget *w)
 
 
 static void
-xxx (GtkToggleButton *button, gpointer data)
+init_sheet (PsppireDataEditor *de, int i,
+	    GtkAdjustment *hadj, GtkAdjustment *vadj)
 {
-  PsppireDataEditor *de = data;
-  if ( gtk_toggle_button_get_active (button))
-    gtk_sheet_show_row_titles (GTK_SHEET (de->data_sheet));
-  else
-    gtk_sheet_hide_row_titles (GTK_SHEET (de->data_sheet));
+  de->sheet_bin[i] = gtk_scrolled_window_new (hadj, vadj);
+
+  de->data_sheet[i] = gtk_sheet_new (NULL, NULL, NULL);
+
+  g_object_set (de->sheet_bin[i],
+		"border-width", 3,
+		"shadow-type",  GTK_SHADOW_ETCHED_IN,
+		NULL);
+
+  gtk_container_add (GTK_CONTAINER (de->sheet_bin[i]), de->data_sheet[i]);
+
+  gtk_widget_show (de->sheet_bin[i]);
 }
 
 
 static void
-yyy (GtkToggleButton *button, gpointer data)
+init_data_sheet (PsppireDataEditor *de)
 {
-  PsppireDataEditor *de = data;
-  if ( gtk_toggle_button_get_active (button))
-    gtk_sheet_show_column_titles (GTK_SHEET (de->data_sheet));
-  else
-    gtk_sheet_hide_column_titles (GTK_SHEET (de->data_sheet));
-}
+  GtkAdjustment *va0, *ha0;
+  GtkAdjustment *va1, *ha1;
+  GtkWidget *sheet ;
 
+  de->split = TRUE;
+  de->paned = gtk_xpaned_new ();
+
+  init_sheet (de, 0, NULL, NULL);
+  gtk_widget_show (de->sheet_bin[0]);
+  va0 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
+  ha0 = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
+
+  g_object_set (de->sheet_bin[0], "vscrollbar-policy", GTK_POLICY_NEVER, NULL);
+  g_object_set (de->sheet_bin[0], "hscrollbar-policy", GTK_POLICY_NEVER, NULL);
+
+  init_sheet (de, 1, NULL, va0);
+  gtk_widget_show (de->sheet_bin[1]);
+  sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[1]));
+  gtk_sheet_hide_row_titles (GTK_SHEET (sheet));
+  ha1 = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[1]));
+  g_object_set (de->sheet_bin[1], "vscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
+  g_object_set (de->sheet_bin[1], "hscrollbar-policy", GTK_POLICY_NEVER, NULL);
+
+  init_sheet (de, 2, ha0, NULL);
+  gtk_widget_show (de->sheet_bin[2]);
+  sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[2]));
+  gtk_sheet_hide_column_titles (GTK_SHEET (sheet));
+  g_object_set (de->sheet_bin[2], "vscrollbar-policy", GTK_POLICY_NEVER, NULL);
+  g_object_set (de->sheet_bin[2], "hscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
+  va1 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[2]));
+
+  init_sheet (de, 3, ha1, va1);
+  gtk_widget_show (de->sheet_bin[3]);
+  sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[3]));
+  gtk_sheet_hide_column_titles (GTK_SHEET (sheet));
+  gtk_sheet_hide_row_titles (GTK_SHEET (sheet));
+  g_object_set (de->sheet_bin[3], "vscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
+  g_object_set (de->sheet_bin[3], "hscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
+
+  gtk_xpaned_pack_top_left (GTK_XPANED (de->paned), de->sheet_bin[0], TRUE, TRUE);
+  gtk_xpaned_pack_top_right (GTK_XPANED (de->paned), de->sheet_bin[1], TRUE, TRUE);
+  gtk_xpaned_pack_bottom_left (GTK_XPANED (de->paned), de->sheet_bin[2], TRUE, TRUE);
+  gtk_xpaned_pack_bottom_right (GTK_XPANED (de->paned), de->sheet_bin[3], TRUE, TRUE);
+
+  gtk_xpaned_set_position_y (GTK_XPANED (de->paned), 150);
+  gtk_xpaned_set_position_x (GTK_XPANED (de->paned), 350);
+}
 
 
 static void
 psppire_data_editor_init (PsppireDataEditor *de)
 {
-  GtkWidget *vbox = gtk_vbox_new (FALSE, 0);
+  int i;
+
   GtkWidget *hbox = gtk_hbox_new (FALSE, 0);
-  GtkWidget *sw_ds = gtk_scrolled_window_new (NULL, NULL);
   GtkWidget *sw_vs = gtk_scrolled_window_new (NULL, NULL);
 
+  init_data_sheet (de);
 
-  de->data_sheet = gtk_sheet_new (NULL, NULL, NULL);
+  de->data_vbox = gtk_vbox_new (FALSE, 0);
   de->var_sheet = psppire_var_sheet_new ();
 
   g_object_set (de, "tab-pos", GTK_POS_BOTTOM, NULL);
@@ -617,39 +691,21 @@ psppire_data_editor_init (PsppireDataEditor *de)
   gtk_widget_show_all (sw_vs);
 
 
-  gtk_container_add (GTK_CONTAINER (sw_ds), de->data_sheet);
-  gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (de->data_vbox), hbox, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (de->data_vbox), de->paned, TRUE, TRUE, 0);
 
-  {
-    GtkWidget *hbox2 = gtk_hbox_new (FALSE, 0);
-    GtkWidget *button1 = gtk_toggle_button_new_with_label ("vertical");
-    GtkWidget *button2 = gtk_toggle_button_new_with_label ("horizontal");
 
-    gtk_box_pack_start (GTK_BOX (hbox2), button1, TRUE, TRUE, 0);
+  psppire_data_editor_remove_split (de);
 
-    gtk_box_pack_start (GTK_BOX (hbox2), button2, TRUE, TRUE, 0);
-    gtk_widget_show_all (hbox2);
+  gtk_widget_show_all (de->data_vbox);
 
-    gtk_box_pack_start (GTK_BOX (vbox), hbox2, FALSE, FALSE, 0);
-
-    g_signal_connect (button1, "toggled", G_CALLBACK (xxx), de);
-    g_signal_connect (button2, "toggled", G_CALLBACK (yyy), de);
-
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button1), TRUE);
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button2), TRUE);
-  }
-
-  gtk_box_pack_start (GTK_BOX (vbox), sw_ds, TRUE, TRUE, 0);
-
-  gtk_widget_show_all (vbox);
-
-  gtk_notebook_append_page (GTK_NOTEBOOK (de), vbox,
+  gtk_notebook_append_page (GTK_NOTEBOOK (de), de->data_vbox,
 			    gtk_label_new_with_mnemonic (_("Data View")));
 
   gtk_notebook_append_page (GTK_NOTEBOOK (de), sw_vs,
 			    gtk_label_new_with_mnemonic (_("Variable View")));
 
-  g_signal_connect (de->data_sheet, "activate",
+  g_signal_connect (de->data_sheet[0], "activate",
 		    G_CALLBACK (update_data_ref_entry),
 		    de);
 
@@ -658,7 +714,7 @@ psppire_data_editor_init (PsppireDataEditor *de)
 		    de);
 
 
-  g_signal_connect_swapped (de->data_sheet,
+  g_signal_connect_swapped (de->data_sheet[0],
 		    "double-click-column",
 		    G_CALLBACK (on_data_column_clicked),
 		    de);
@@ -668,22 +724,27 @@ psppire_data_editor_init (PsppireDataEditor *de)
 		    G_CALLBACK (on_var_row_clicked),
 		    de);
 
-  g_signal_connect_swapped (de->data_sheet, "activate",
+  g_signal_connect_swapped (de->data_sheet[0], "activate",
 			    G_CALLBACK (on_activate),
 			    de);
 
-  g_signal_connect_swapped (de->data_sheet, "deactivate",
+  for (i = 0 ; i < 4 ; ++i )
+    g_signal_connect (de->data_sheet[i], "activate",
+			      G_CALLBACK (on_data_sheet_activate),
+			      de);
+
+  g_signal_connect_swapped (de->data_sheet[0], "deactivate",
 			    G_CALLBACK (on_deactivate),
 			    de);
 
-  g_signal_connect_swapped (de->data_sheet, "select-range",
+  g_signal_connect_swapped (de->data_sheet[0], "select-range",
 			    G_CALLBACK (on_select_range),
 			    de);
 
-  g_signal_connect (de->data_sheet, "select-row",
+  g_signal_connect (de->data_sheet[0], "select-row",
 		    G_CALLBACK (on_select_row), de);
 
-  g_signal_connect (de->data_sheet, "select-column",
+  g_signal_connect (de->data_sheet[0], "select-column",
 		    G_CALLBACK (on_select_variable), de);
 
 
@@ -697,6 +758,7 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
 
   g_signal_connect (de, "map", G_CALLBACK (on_map), NULL);
+
 
 
   //     gtk_sheet_hide_column_titles (de->var_sheet);
@@ -719,7 +781,69 @@ psppire_data_editor_new (PsppireVarStore *var_store,
 			  NULL);
 
 
+
   return widget;
+}
+
+
+static void
+psppire_data_editor_remove_split (PsppireDataEditor *de)
+{
+  if ( !de->split ) return;
+  de->split = FALSE;
+
+  g_object_ref (de->sheet_bin[0]);
+  gtk_container_remove (GTK_CONTAINER (de->paned), de->sheet_bin[0]);
+
+  g_object_ref (de->paned);
+  gtk_container_remove (GTK_CONTAINER (de->data_vbox), de->paned);
+
+  gtk_box_pack_start (GTK_BOX (de->data_vbox), de->sheet_bin[0],
+		      TRUE, TRUE, 0);
+
+  g_object_unref (de->sheet_bin[0]);
+
+  g_object_set (de->sheet_bin[0], "vscrollbar-policy",
+		GTK_POLICY_ALWAYS, NULL);
+
+  g_object_set (de->sheet_bin[0], "hscrollbar-policy",
+		GTK_POLICY_ALWAYS, NULL);
+}
+
+
+static void
+psppire_data_editor_set_split (PsppireDataEditor *de)
+{
+  if ( de->split ) return;
+  de->split = TRUE;
+
+  g_object_ref (de->sheet_bin[0]);
+  gtk_container_remove (GTK_CONTAINER (de->data_vbox), de->sheet_bin[0]);
+
+  gtk_xpaned_pack_top_left (GTK_XPANED (de->paned), de->sheet_bin [0],
+			    TRUE, TRUE);
+
+  gtk_box_pack_start (GTK_BOX (de->data_vbox), de->paned,
+		      TRUE, TRUE, 0);
+
+  g_object_unref (de->paned);
+
+  g_object_set (de->sheet_bin[0], "vscrollbar-policy",
+		GTK_POLICY_NEVER, NULL);
+
+  g_object_set (de->sheet_bin[0], "hscrollbar-policy",
+		GTK_POLICY_NEVER, NULL);
+}
+
+void
+psppire_data_editor_split_window (PsppireDataEditor *de, gboolean split)
+{
+  if (split )
+    psppire_data_editor_set_split (de);
+  else
+    psppire_data_editor_remove_split (de);
+
+  gtk_widget_show_all (de->data_vbox);
 }
 
 static void data_sheet_set_clip (GtkSheet *sheet);
@@ -731,7 +855,7 @@ static void data_sheet_contents_received_callback (GtkClipboard *clipboard,
 void
 psppire_data_editor_clip_copy (PsppireDataEditor *de)
 {
-  data_sheet_set_clip (GTK_SHEET (de->data_sheet));
+  data_sheet_set_clip (GTK_SHEET (de->data_sheet[0]));
 }
 
 void
@@ -755,16 +879,16 @@ psppire_data_editor_clip_cut (PsppireDataEditor *de)
   GtkSheetRange range;
   PsppireDataStore *ds = de->data_store;
 
-  data_sheet_set_clip (GTK_SHEET (de->data_sheet));
+  data_sheet_set_clip (GTK_SHEET (de->data_sheet[0]));
 
   /* Now blank all the cells */
-  gtk_sheet_get_selected_range (GTK_SHEET (de->data_sheet), &range);
+  gtk_sheet_get_selected_range (GTK_SHEET (de->data_sheet[0]), &range);
 
    /* If nothing selected, then use active cell */
   if ( range.row0 < 0 || range.col0 < 0 )
     {
       gint row, col;
-      gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &col);
+      gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &col);
 
       range.row0 = range.rowi = row;
       range.col0 = range.coli = col;
@@ -805,7 +929,7 @@ psppire_data_editor_clip_cut (PsppireDataEditor *de)
     }
 
   /* and remove the selection */
-  gtk_sheet_unselect_range (GTK_SHEET (de->data_sheet));
+  gtk_sheet_unselect_range (GTK_SHEET (de->data_sheet[0]));
 }
 
 
@@ -887,7 +1011,7 @@ void
 psppire_data_editor_sort_ascending  (PsppireDataEditor *de)
 {
   GtkSheetRange range;
-  gtk_sheet_get_selected_range (GTK_SHEET(de->data_sheet), &range);
+  gtk_sheet_get_selected_range (GTK_SHEET(de->data_sheet[0]), &range);
 
   do_sort (de->data_store,  range.col0, FALSE);
 }
@@ -899,7 +1023,7 @@ void
 psppire_data_editor_sort_descending (PsppireDataEditor *de)
 {
   GtkSheetRange range;
-  gtk_sheet_get_selected_range (GTK_SHEET(de->data_sheet), &range);
+  gtk_sheet_get_selected_range (GTK_SHEET(de->data_sheet[0]), &range);
 
   do_sort (de->data_store,  range.col0, TRUE);
 }
@@ -914,10 +1038,10 @@ psppire_data_editor_insert_variable (PsppireDataEditor *de)
 {
   glong posn = -1;
 
-  if ( de->data_sheet->state == GTK_SHEET_COLUMN_SELECTED )
-    posn = GTK_SHEET (de->data_sheet)->range.col0;
+  if ( de->data_sheet[0]->state == GTK_SHEET_COLUMN_SELECTED )
+    posn = GTK_SHEET (de->data_sheet[0])->range.col0;
   else
-    posn = GTK_SHEET (de->data_sheet)->active_cell.col;
+    posn = GTK_SHEET (de->data_sheet[0])->active_cell.col;
 
   if ( posn == -1 ) posn = 0;
 
@@ -930,10 +1054,10 @@ psppire_data_editor_insert_case (PsppireDataEditor *de)
 {
   glong posn = -1;
 
-  if ( de->data_sheet->state == GTK_SHEET_ROW_SELECTED )
-    posn = GTK_SHEET (de->data_sheet)->range.row0;
+  if ( de->data_sheet[0]->state == GTK_SHEET_ROW_SELECTED )
+    posn = GTK_SHEET (de->data_sheet[0])->range.row0;
   else
-    posn = GTK_SHEET (de->data_sheet)->active_cell.row;
+    posn = GTK_SHEET (de->data_sheet[0])->active_cell.row;
 
   if ( posn == -1 ) posn = 0;
 
@@ -944,12 +1068,12 @@ psppire_data_editor_insert_case (PsppireDataEditor *de)
 void
 psppire_data_editor_delete_cases    (PsppireDataEditor *de)
 {
-  gint first = GTK_SHEET (de->data_sheet)->range.row0;
-  gint n = GTK_SHEET (de->data_sheet)->range.rowi - first + 1;
+  gint first = GTK_SHEET (de->data_sheet[0])->range.row0;
+  gint n = GTK_SHEET (de->data_sheet[0])->range.rowi - first + 1;
 
   psppire_data_store_delete_cases (de->data_store, first, n);
 
-  gtk_sheet_unselect_range (GTK_SHEET (de->data_sheet));
+  gtk_sheet_unselect_range (GTK_SHEET (de->data_sheet[0]));
 }
 
 /* Delete the variables currently selected in the
@@ -962,8 +1086,8 @@ psppire_data_editor_delete_variables (PsppireDataEditor *de)
   switch (gtk_notebook_get_current_page (GTK_NOTEBOOK (de)))
     {
     case PSPPIRE_DATA_EDITOR_DATA_VIEW:
-      first = GTK_SHEET (de->data_sheet)->range.col0;
-      n = GTK_SHEET (de->data_sheet)->range.coli - first + 1;
+      first = GTK_SHEET (de->data_sheet[0])->range.col0;
+      n = GTK_SHEET (de->data_sheet[0])->range.coli - first + 1;
       break;
     case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
       first = GTK_SHEET (de->var_sheet)->range.row0;
@@ -976,7 +1100,7 @@ psppire_data_editor_delete_variables (PsppireDataEditor *de)
 
   psppire_dict_delete_variables (de->var_store->dict, first, n);
 
-  gtk_sheet_unselect_range (GTK_SHEET (de->data_sheet));
+  gtk_sheet_unselect_range (GTK_SHEET (de->data_sheet[0]));
   gtk_sheet_unselect_range (GTK_SHEET (de->var_sheet));
 }
 
@@ -985,7 +1109,7 @@ void
 psppire_data_editor_show_grid (PsppireDataEditor *de, gboolean grid_visible)
 {
   gtk_sheet_show_grid (GTK_SHEET (de->var_sheet), grid_visible);
-  gtk_sheet_show_grid (GTK_SHEET (de->data_sheet), grid_visible);
+  gtk_sheet_show_grid (GTK_SHEET (de->data_sheet[0]), grid_visible);
 }
 
 void
@@ -1007,11 +1131,32 @@ emit_selected_signal (PsppireDataEditor *de)
   g_signal_emit (de, data_editor_signals[DATA_SELECTION_CHANGED], 0, data_selected);
 }
 
+static gboolean
+on_data_sheet_activate (GtkWidget *sheet, gint row, gint col, PsppireDataEditor *de)
+{
+  gint i;
+
+  for ( i = 0 ; i < 4 ; ++i )
+    {
+      gint current_row, current_col;
+      if (de->data_sheet[i] == sheet) continue;
+
+      gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &current_row, &current_col);
+
+      if ( row == current_row  && current_col == col ) continue;
+
+      gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet[i]), row, col);
+    }
+
+  return TRUE;
+}
+
 static void
 on_activate (PsppireDataEditor *de)
 {
   gint row, col;
-  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &col);
+  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &col);
+
 
   if ( row < psppire_data_store_get_case_count (de->data_store)
        &&
@@ -1036,7 +1181,7 @@ on_select_range (PsppireDataEditor *de)
 {
   GtkSheetRange range;
 
-  gtk_sheet_get_selected_range (GTK_SHEET (de->data_sheet), &range);
+  gtk_sheet_get_selected_range (GTK_SHEET (de->data_sheet[0]), &range);
 
   if ( range.rowi < psppire_data_store_get_case_count (de->data_store)
        &&
@@ -1051,7 +1196,8 @@ on_select_range (PsppireDataEditor *de)
 
 
 static gboolean
-on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p, gint pagenum, gpointer data)
+on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p,
+		gint pagenum, gpointer data)
 {
   if ( pagenum != PSPPIRE_DATA_EDITOR_DATA_VIEW )
     {
@@ -1075,7 +1221,7 @@ data_is_selected (PsppireDataEditor *de)
   if ( gtk_notebook_get_current_page (GTK_NOTEBOOK (de)) != PSPPIRE_DATA_EDITOR_DATA_VIEW)
     return FALSE;
 
-  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet), &row, &col);
+  gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &col);
 
   if ( row >= psppire_data_store_get_case_count (de->data_store)
        ||
@@ -1084,7 +1230,7 @@ data_is_selected (PsppireDataEditor *de)
       return FALSE;
     }
 
-  gtk_sheet_get_selected_range (GTK_SHEET (de->data_sheet), &range);
+  gtk_sheet_get_selected_range (GTK_SHEET (de->data_sheet[0]), &range);
 
   if ( range.rowi >= psppire_data_store_get_case_count (de->data_store)
        ||
@@ -1424,7 +1570,7 @@ data_sheet_contents_received_callback (GtkClipboard *clipboard,
   c = (char *) sd->data;
 
   /* Paste text to selected position */
-  gtk_sheet_get_active_cell (GTK_SHEET (data_editor->data_sheet),
+  gtk_sheet_get_active_cell (GTK_SHEET (data_editor->data_sheet[0]),
 			     &row, &column);
 
   g_return_if_fail (row >= 0);
@@ -1487,3 +1633,5 @@ on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
   g_signal_emit (de, data_editor_signals[DATA_AVAILABLE_CHANGED], 0,
 		 compatible_target);
 }
+
+

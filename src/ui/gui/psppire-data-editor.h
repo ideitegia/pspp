@@ -46,10 +46,17 @@ struct _PsppireDataEditor
   gboolean dispose_has_run;
   GtkWidget *cell_ref_entry;
   GtkWidget *datum_entry;
-  GtkWidget *data_sheet;
   GtkWidget *var_sheet;
   PsppireDataStore *data_store;
   PsppireVarStore *var_store;
+
+  GtkWidget *sheet_bin[4];
+  GtkWidget *data_sheet[4];
+
+  GtkWidget *data_vbox;
+
+  GtkWidget *paned;
+  gboolean split;
 };
 
 
@@ -73,7 +80,7 @@ void           psppire_data_editor_insert_case     (PsppireDataEditor *);
 void           psppire_data_editor_delete_cases    (PsppireDataEditor *);
 void           psppire_data_editor_set_font        (PsppireDataEditor *, PangoFontDescription *);
 void           psppire_data_editor_delete_cases    (PsppireDataEditor *);
-
+void           psppire_data_editor_split_window    (PsppireDataEditor *, gboolean );
 
 
 G_END_DECLS

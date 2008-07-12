@@ -81,6 +81,8 @@ static void on_insert_variable (GtkAction *, gpointer data);
 static void insert_case (GtkAction *a, gpointer data);
 
 static void toggle_value_labels (GtkToggleAction *a, gpointer data);
+static void toggle_split_window (GtkToggleAction *ta, gpointer data);
+
 
 /* Callback for when the dictionary changes properties*/
 static void on_weight_change (GObject *, gint, gpointer);
@@ -914,6 +916,19 @@ new_data_editor (void)
 		    "activate",
 		    G_CALLBACK (minimise_all_windows), NULL);
 
+  de->toggle_split_window =
+    gtk_toggle_action_new ("toggle-split-window",
+			   _("_Split Window"),
+			   _("Split the window vertically and horizontally"),
+			   "pspp-split-window");
+
+  g_signal_connect (de->toggle_split_window, "toggled",
+		    G_CALLBACK (toggle_split_window),
+		    de);
+
+  gtk_action_connect_proxy (GTK_ACTION (de->toggle_split_window),
+			    get_widget_assert (de->xml,
+					       "windows_split"));
 
   de->data_sheet_variable_popup_menu =
     GTK_MENU (create_data_sheet_variable_popup_menu (de));
@@ -1053,6 +1068,18 @@ toggle_value_labels (GtkToggleAction *ta, gpointer data)
 
   g_object_set (de->data_editor, "value-labels", gtk_toggle_action_get_active (ta), NULL);
 }
+
+
+
+static void
+toggle_split_window (GtkToggleAction *ta, gpointer data)
+{
+  struct data_editor *de = data;
+
+  psppire_data_editor_split_window (de->data_editor,
+				    gtk_toggle_action_get_active (ta));
+}
+
 
 
 

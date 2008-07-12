@@ -612,6 +612,13 @@
                         <property name="use_underline">True</property>
                       </widget>
                     </child>
+                    <child>
+                      <widget class="GtkCheckMenuItem" id="windows_split">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Split</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
                   </widget>
                 </child>
               </widget>
