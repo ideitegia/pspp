@@ -205,4 +205,68 @@ AC_DEFUN([PSPP_LC_PAPER],
   fi
 ])
 
+
+# PSPP_LINK2_IFELSE(SOURCE1, SOURCE2, [ACTION-IF-TRUE], [ACTION-IF-FALSE])
+# -------------------------------------------------------------
+# Based on AC_LINK_IFELSE, but tries to link both SOURCE1 and SOURCE2
+# into a program.
+#
+# Test that resulting file is executable; see the problem reported by mwoehlke
+# in <http://lists.gnu.org/archive/html/bug-coreutils/2006-10/msg00048.html>.
+# But skip the test when cross-compiling, to prevent problems like the one
+# reported by Chris Johns in
+# <http://lists.gnu.org/archive/html/autoconf/2007-03/msg00085.html>.
+#
+m4_define([PSPP_LINK2_IFELSE],
+[m4_ifvaln([$1], [AC_LANG_CONFTEST([$1])])dnl
+mv conftest.$ac_ext conftest1.$ac_ext
+m4_ifvaln([$2], [AC_LANG_CONFTEST([$2])])dnl
+mv conftest.$ac_ext conftest2.$ac_ext
+rm -f conftest1.$ac_objext conftest2.$ac_objext conftest$ac_exeext
+pspp_link2='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest1.$ac_ext conftest2.$ac_ext $LIBS >&AS_MESSAGE_LOG_FD'
+AS_IF([_AC_DO_STDERR($pspp_link2) && {
+	 test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 AS_TEST_X([conftest$ac_exeext])
+       }],
+      [$3],
+      [AS_ECHO(["$as_me: failed source file 1 of 2 was:"]) >&AS_MESSAGE_LOG_FD
+sed 's/^/| /' conftest1.$ac_ext >&AS_MESSAGE_LOG_FD
+AS_ECHO(["$as_me: failed source file 2 of 2 was:"]) >&AS_MESSAGE_LOG_FD
+sed 's/^/| /' conftest2.$ac_ext >&AS_MESSAGE_LOG_FD
+	$4])
+dnl Delete also the IPA/IPO (Inter Procedural Analysis/Optimization)
+dnl information created by the PGI compiler (conftest_ipa8_conftest.oo),
+dnl as it would interfere with the next link command.
+rm -rf conftest.dSYM conftest1.dSYM conftest2.dSYM
+rm -f core conftest.err conftest1.err conftest2.err
+rm -f conftest1.$ac_objext conftest2.$ac_objext conftest*_ipa8_conftest*.oo
+rm -f conftest$ac_exeext
+rm -f m4_ifval([$1], [conftest1.$ac_ext]) m4_ifval([$2], [conftest1.$ac_ext])[]dnl
+])# PSPP_LINK2_IFELSE
+
+# GSL uses "extern inline" without determining whether the compiler uses
+# GCC inline rules or C99 inline rules.  If it uses the latter then GSL
+# will be broken without passing -fgnu89-inline to GCC.
+AC_DEFUN([PSPP_GSL_NEEDS_FGNU89_INLINE],
+[# GSL only uses "inline" at all if HAVE_INLINE is defined as a macro.
+ # In turn, gnulib's gl_INLINE is one macro that does that.  We need to
+ # make sure that it has run by the time we run this test, otherwise we'll
+ # get a false result.
+ AC_REQUIRE([gl_INLINE])
+ AC_CACHE_CHECK([whether GSL needs -fgnu89-inline to link],
+                pspp_cv_gsl_needs_fgnu89_inline, [
+		PSPP_LINK2_IFELSE(
+		  [AC_LANG_PROGRAM([#include <gsl/gsl_math.h>
+                                   ], [GSL_MAX_INT(1,2);])],
+                  [AC_LANG_SOURCE([#include <gsl/gsl_math.h>
+                                   void x (void) {}])],
+                  [pspp_cv_gsl_needs_fgnu89_inline=no],
+		  [pspp_cv_gsl_needs_fgnu89_inline=yes])])
+ if test "$pspp_cv_gsl_needs_fgnu89_inline" = "yes"; then
+     CFLAGS="$CFLAGS -fgnu89-inline"
+ fi
+])
 dnl acinclude.m4 ends here

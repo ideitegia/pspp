@@ -129,6 +129,7 @@ AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
 AC_SEARCH_LIBS([gsl_cdf_chisq_Q], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.4 or later)])])
+PSPP_GSL_NEEDS_FGNU89_INLINE
 
 dnl Recent versions of GNU ncurses install the curses header files into
 dnl /usr/include/ncurses, and provide a 'ncurses5-config' program which
