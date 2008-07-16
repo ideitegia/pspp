@@ -50,6 +50,11 @@ const union value *cat_subscript_to_value (const size_t,
 
 void cat_value_update (const struct variable *, const union value *);
 
+/*
+  Return the count for the sth category.
+*/
+size_t
+cat_get_category_count (const size_t, const struct variable *);
 
 /*
   Return the number of categories of a categorical variable.

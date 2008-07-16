@@ -148,6 +148,23 @@ cat_value_update (const struct variable *v, const union value *val)
 	}
     }
 }
+/*
+  Return the count for the sth category.
+ */
+size_t
+cat_get_category_count (const size_t s, const struct variable *v)
+{
+  struct cat_vals *tmp;
+  size_t n_categories;
+
+  tmp = var_get_obs_vals (v);
+  n_categories = cat_get_n_categories (v);
+  if (s < n_categories)
+    {
+      return tmp->value_counts[s];
+    }
+  return CAT_VALUE_NOT_FOUND;
+}
 
 const union value *
 cat_subscript_to_value (const size_t s, const struct variable *v)

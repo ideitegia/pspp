@@ -69,13 +69,35 @@ covariance_update_categorical_numeric (struct design_matrix *cov, double mean,
       gsl_matrix_set (cov->m, row, col, (val2->f - mean) * x * weight);
     }
 }
+static void
+column_iterate (struct design_matrix *cov, const struct variable *v, double weight,
+		double ssize, double x, const union value *val1, size_t row)
+{
+  size_t col;
+  size_t i;
+  double y;
+  union value *tmp_val;
 
+  col = design_matrix_var_to_column (cov, v);  
+  for (i = 0; i < cat_get_n_categories (v) - 1; i++)
+    {
+      col += i;
+      y = -1.0 * cat_get_category_count (i, v) / ssize;
+      tmp_val = cat_subscript_to_value (i, v);
+      if (compare_values (tmp_val, val1, var_get_width (v)))
+	{
+	  y += -1.0;
+	}
+      gsl_matrix_set (cov->m, row, col, x * y * weight);
+      gsl_matrix_set (cov->m, col, row, x * y * weight);
+    }
+}
 /*
-  Call this function in the first data pass. The central moments are
+  Call this function in the second data pass. The central moments are
   MEAN1 and MEAN2. Any categorical variables should already have their
   values summarized in in its OBS_VALS element.
  */
-void covariance_pass_one (struct design_matrix *cov, double mean1, double mean2,
+void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 			  double weight, double ssize, const struct variable *v1, 
 			  const struct variable *v2, const union value *val1, const union value *val2)
 {
@@ -83,7 +105,7 @@ void covariance_pass_one (struct design_matrix *cov, double mean1, double mean2,
   size_t col;
   size_t i;
   double x;
-  double y;
+  union value *tmp_val;
 
   if (var_is_alpha (v1))
     {
@@ -94,18 +116,18 @@ void covariance_pass_one (struct design_matrix *cov, double mean1, double mean2,
 	}
       else
 	{
-	  row = design_matrix_var_to_column (cov, v1);  
-	  col = design_matrix_var_to_column (cov, v2);
-	  for (i = 0; i < cat_get_n_categories (v2); i++)
+	  row = design_matrix_var_to_column (cov, v1);
+	  for (i = 0; i < cat_get_n_categories (v1) - 1; i++)
 	    {
-	      col += i;
-	      y = -1.0 * cat_get_n_categories (v2) / ssize;
-	      if (i == cat_value_find (v2, val2))
+	      row += i;
+	      x = -1.0 * cat_get_category_count (i, v1) / ssize;
+	      tmp_val = cat_subscript_to_value (i, v1);
+	      if (compare_values (tmp_val, val1, var_get_width (v1)))
 		{
-		  y += 1.0;
+		  x += 1.0;
 		}
-	      gsl_matrix_set (cov->m, row, col, x * y * weight);
-	      gsl_matrix_set (cov->m, col, row, x * y * weight);
+	      column_iterate (cov, v1, weight, ssize, x, val1, row);
+	      column_iterate (cov, v2, weight, ssize, x, val2, row);
 	    }
 	}
     }
