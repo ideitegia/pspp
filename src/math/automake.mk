@@ -11,6 +11,8 @@ src_math_libpspp_math_a_SOURCES = \
 	src/math/chart-geometry.h \
 	src/math/coefficient.c \
 	src/math/coefficient.h \
+	src/math/covariance-matrix.c \
+	src/math/covariance-matrix.h \
 	src/math/group.c  src/math/group.h \
 	src/math/group-proc.h \
 	src/math/histogram.c src/math/histogram.h \
