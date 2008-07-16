@@ -223,7 +223,7 @@ mv conftest.$ac_ext conftest1.$ac_ext
 m4_ifvaln([$2], [AC_LANG_CONFTEST([$2])])dnl
 mv conftest.$ac_ext conftest2.$ac_ext
 rm -f conftest1.$ac_objext conftest2.$ac_objext conftest$ac_exeext
-pspp_link2='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest1.$ac_ext conftest2.$ac_ext $LIBS >&AS_MESSAGE_LOG_FD'
+pspp_link2='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest1.$ac_ext conftest2.$ac_ext $LIBS >&5'
 AS_IF([_AC_DO_STDERR($pspp_link2) && {
 	 test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
 	 test ! -s conftest.err
@@ -232,10 +232,10 @@ AS_IF([_AC_DO_STDERR($pspp_link2) && {
 	 AS_TEST_X([conftest$ac_exeext])
        }],
       [$3],
-      [AS_ECHO(["$as_me: failed source file 1 of 2 was:"]) >&AS_MESSAGE_LOG_FD
-sed 's/^/| /' conftest1.$ac_ext >&AS_MESSAGE_LOG_FD
-AS_ECHO(["$as_me: failed source file 2 of 2 was:"]) >&AS_MESSAGE_LOG_FD
-sed 's/^/| /' conftest2.$ac_ext >&AS_MESSAGE_LOG_FD
+      [echo "$as_me: failed source file 1 of 2 was:" >&5
+sed 's/^/| /' conftest1.$ac_ext >&5
+echo "$as_me: failed source file 2 of 2 was:" >&5
+sed 's/^/| /' conftest2.$ac_ext >&5
 	$4])
 dnl Delete also the IPA/IPO (Inter Procedural Analysis/Optimization)
 dnl information created by the PGI compiler (conftest_ipa8_conftest.oo),
