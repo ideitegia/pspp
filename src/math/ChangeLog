@@ -1,3 +1,15 @@
+2008-07-17  Jason H Stover  <jhs@math.gcsu.edu>
+
+	* covariance-matrix.c (covariance_update_categorical_numeric):
+	Altered to match new code in covariance_pass_two();
+
+	* covariance-matrix.h: Fix declaration of covariance_pass_two.
+
+	* covariance-matrix.c (covariance_pass_two): Moved numeric and
+	categorical scopes of V2 inside for loop. If V1 is not
+	categorical, but V2 is, recurse with the order of the variables
+	reversed to use the code in the previous "if" scope.
+
 2008-07-16  Jason Stover  <jhs@math.gcsu.edu>
 
 	* covariance-matrix.c (covariance_pass_two): Renamed

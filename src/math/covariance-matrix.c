@@ -39,35 +39,21 @@ void covariance_matrix_destroy (struct design_matrix *x)
 }
 
 /*
-  Update the covariance matrix with the new entries, assuming that V1 
-  is categorical and V2 is numeric.
+  Update the covariance matrix with the new entries, assuming that ROW
+  corresponds to a categorical variable and V2 is numeric.
  */
 static void
 covariance_update_categorical_numeric (struct design_matrix *cov, double mean,
-			  double weight, double ssize, const struct variable *v1, 
-			  const struct variable *v2, const union value *val1, const union value *val2)
+			  double weight, size_t row, 
+			  const struct variable *v2, double x, const union value *val2)
 {
-  double x;
-  size_t i;
   size_t col;
-  size_t row;
   
-  assert (var_is_alpha (v1));
   assert (var_is_numeric (v2));
 
-  row = design_matrix_var_to_column (cov, v1);  
   col = design_matrix_var_to_column (cov, v2);
-  for (i = 0; i < cat_get_n_categories (v1); i++)
-    {
-      row += i;
-      x = -1.0 * cat_get_n_categories (v1) / ssize;
-      if (i == cat_value_find (v1, val1))
-	{
-	  x += 1.0;
-	}
-      assert (val2 != NULL);
-      gsl_matrix_set (cov->m, row, col, (val2->f - mean) * x * weight);
-    }
+  assert (val2 != NULL);
+  gsl_matrix_set (cov->m, row, col, (val2->f - mean) * x * weight);
 }
 static void
 column_iterate (struct design_matrix *cov, const struct variable *v, double weight,
@@ -109,23 +95,23 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 
   if (var_is_alpha (v1))
     {
-      if (var_is_numeric (v2))
+      row = design_matrix_var_to_column (cov, v1);
+      for (i = 0; i < cat_get_n_categories (v1) - 1; i++)
 	{
-	  covariance_update_categorical_numeric (cov, mean2, weight, ssize, v1, 
-						 v2, val1, val2);
-	}
-      else
-	{
-	  row = design_matrix_var_to_column (cov, v1);
-	  for (i = 0; i < cat_get_n_categories (v1) - 1; i++)
+	  row += i;
+	  x = -1.0 * cat_get_category_count (i, v1) / ssize;
+	  tmp_val = cat_subscript_to_value (i, v1);
+	  if (compare_values (tmp_val, val1, var_get_width (v1)))
 	    {
-	      row += i;
-	      x = -1.0 * cat_get_category_count (i, v1) / ssize;
-	      tmp_val = cat_subscript_to_value (i, v1);
-	      if (compare_values (tmp_val, val1, var_get_width (v1)))
-		{
-		  x += 1.0;
-		}
+	      x += 1.0;
+	    }
+	  if (var_is_numeric (v2))
+	    {
+	      covariance_update_categorical_numeric (cov, mean2, weight, row, 
+						     v2, x, val2);
+	    }
+	  else
+	    {
 	      column_iterate (cov, v1, weight, ssize, x, val1, row);
 	      column_iterate (cov, v2, weight, ssize, x, val2, row);
 	    }
@@ -133,8 +119,11 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
     }
   else if (var_is_alpha (v2))
     {
-      covariance_update_categorical_numeric (cov, mean1, weight, ssize, v2, 
-					     v1, val2, val1);
+      /*
+	Reverse the orders of V1, V2, etc. and put ourselves back
+	in the previous IF scope.
+       */
+      covariance_pass_two (cov, mean2, mean1, weight, ssize, v2, v1, val2, val1);
     }
   else
     {
