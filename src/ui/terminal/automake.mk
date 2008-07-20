@@ -28,7 +28,6 @@ src_ui_terminal_pspp_LDADD = \
 	src/math/libpspp_math.a  \
 	src/ui/libuicommon.a \
 	lib/linreg/liblinreg.a	\
-	lib/gsl-extras/libgsl-extras.a	\
 	src/data/libdata.a \
 	src/libpspp/libpspp.a \
 	$(LIBXML2_LIBS) \

@@ -21,7 +21,6 @@
 #include <data/value.h>
 #include <data/variable.h>
 #include <data/vector.h>
-#include <gsl-extras/gsl-extras.h>
 #include <language/expressions/public.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>

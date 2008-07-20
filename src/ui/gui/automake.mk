@@ -59,7 +59,6 @@ src_ui_gui_psppire_LDADD = \
 	src/output/liboutput.a \
 	src/math/libpspp_math.a  \
 	lib/linreg/liblinreg.a	\
-	lib/gsl-extras/libgsl-extras.a	\
 	src/data/libdata.a \
 	src/libpspp/libpspp.a \
 	$(GTK_LIBS) \

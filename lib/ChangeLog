@@ -1,3 +1,8 @@
+2008/07/20 John Darrington <john@darrington.wattle.id.au>
+
+	* Removed gsl-extras.  Functionality now
+	available in gsl.
+
 Sun Jul 31 11:29:04 2005  Ben Pfaff  <blp@gnu.org>
 
 	* misc/: Removed in favor of gnulib.
