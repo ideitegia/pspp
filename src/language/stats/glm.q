@@ -38,7 +38,7 @@
 #include <language/lexer/lexer.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
-#include <math/design-matrix.h>
+#include <math/covariance-matrix.h>
 #include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/moments.h>
@@ -67,6 +67,9 @@ static struct cmd_glm cmd;
 struct moments_var
 {
   struct moments1 *m;
+  double *weight;
+  double *mean;
+  double *variance;
   const struct variable *v;
 };
 
@@ -90,10 +93,9 @@ static int pspp_glm_rc = CMD_SUCCESS;
 int cmd_glm (struct lexer *lexer, struct dataset *ds);
 #endif
 
-static bool run_glm (struct casereader*,
+static bool run_glm (struct casereader *,
 		     struct cmd_glm *,
-		     const struct dataset *,
-		     pspp_linreg_cache *);
+		     const struct dataset *, pspp_linreg_cache *);
 
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
@@ -126,8 +128,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
 /* Parser for the dependent sub command */
 static int
 glm_custom_dependent (struct lexer *lexer, struct dataset *ds,
-		      struct cmd_glm *cmd UNUSED,
-		      void *aux UNUSED)
+		      struct cmd_glm *cmd UNUSED, void *aux UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
 
@@ -145,7 +146,7 @@ glm_custom_dependent (struct lexer *lexer, struct dataset *ds,
   assert (n_dependent);
   if (n_dependent > 1)
     msg (SE, _("Multivariate GLM not yet supported"));
-  n_dependent = 1; /* Drop this line after adding support for multivariate GLM. */
+  n_dependent = 1;		/* Drop this line after adding support for multivariate GLM. */
 
   return 1;
 }
@@ -191,40 +192,57 @@ compute_moments (pspp_linreg_cache * c, struct moments_var *mom,
 	}
     }
 }
+
 /* Encode categorical variables.
    Returns number of valid cases. */
 static int
-prepare_categories (struct casereader *input,
-                    const struct variable **vars, size_t n_vars,
-                    struct moments_var *mom)
+data_pass_one (struct casereader *input,
+	       const struct variable **vars, size_t n_vars,
+	       struct moments_var **mom)
 {
   int n_data;
   struct ccase c;
   size_t i;
 
   for (i = 0; i < n_vars; i++)
-    if (var_is_alpha (vars[i]))
-      cat_stored_values_create (vars[i]);
+    {
+      mom[i] = xmalloc (sizeof (*mom[i]));
+      mom[i]->v = vars[i];
+      mom[i]->mean = xmalloc (sizeof (*mom[i]->mean));
+      mom[i]->variance = xmalloc (sizeof (*mom[i]->mean));
+      mom[i]->weight = xmalloc (sizeof (*mom[i]->weight));
+      mom[i]->m = moments1_create (MOMENT_VARIANCE);
+      if (var_is_alpha (vars[i]))
+	cat_stored_values_create (vars[i]);
+    }
 
   n_data = 0;
   for (; casereader_read (input, &c); case_destroy (&c))
     {
       /*
-	The second condition ensures the program will run even if
-	there is only one variable to act as both explanatory and
-	response.
+         The second condition ensures the program will run even if
+         there is only one variable to act as both explanatory and
+         response.
        */
       for (i = 0; i < n_vars; i++)
-        {
-          const union value *val = case_data (&c, vars[i]);
-          if (var_is_alpha (vars[i]))
-            cat_value_update (vars[i], val);
-          else
-            moments1_add (mom[i].m, val->f, 1.0);
-        }
+	{
+	  const union value *val = case_data (&c, vars[i]);
+	  if (var_is_alpha (vars[i]))
+	    cat_value_update (vars[i], val);
+	  else
+	    moments1_add (mom[i]->m, val->f, 1.0);
+	}
       n_data++;
-   }
+    }
   casereader_destroy (input);
+  for (i = 0; i < n_vars; i++)
+    {
+      if (var_is_numeric (mom[i]->v))
+	{
+	  moments1_calculate (mom[i]->m, mom[i]->weight, mom[i]->mean,
+			      mom[i]->variance, NULL, NULL);
+	}
+    }
 
   return n_data;
 }
@@ -232,18 +250,19 @@ prepare_categories (struct casereader *input,
 static bool
 run_glm (struct casereader *input,
 	 struct cmd_glm *cmd,
-	 const struct dataset *ds,
-	 pspp_linreg_cache *model)
+	 const struct dataset *ds, pspp_linreg_cache * model)
 {
   size_t i;
+  size_t j;
   int n_indep = 0;
   struct ccase c;
   const struct variable **indep_vars;
+  struct variable **all_vars;
   struct design_matrix *X;
-  struct moments_var *mom;
-  gsl_vector *Y;
+  struct moments_var **mom;
   struct casereader *reader;
   casenumber row;
+  size_t n_all_vars;
   size_t n_data;		/* Number of valid cases. */
 
   pspp_linreg_opts lopts;
@@ -264,82 +283,73 @@ run_glm (struct casereader *input,
 		     1u << DC_SYSTEM);
     }
 
-  for (i = 0; i < n_dependent; i++)
-    {
-      if (!var_is_numeric (v_dependent[i]))
-	{
-	  msg (SE, _("Dependent variable must be numeric."));
-	  return false;
-	}
-    }
 
-  mom = xnmalloc (n_dependent, sizeof (*mom));
-  mom->m = moments1_create (MOMENT_VARIANCE);
-  mom->v = v_dependent[0];
+
   lopts.get_depvar_mean_std = 1;
 
   lopts.get_indep_mean_std = xnmalloc (n_dependent, sizeof (int));
   indep_vars = xnmalloc (cmd->n_by, sizeof *indep_vars);
+  n_all_vars = cmd->n_by + n_dependent;
+  all_vars = xnmalloc (n_all_vars, sizeof *all_vars);
 
+  for (i = 0; i < n_dependent; i++)
+    {
+      all_vars[i] = v_dependent[i];
+    }
   for (i = 0; i < cmd->n_by; i++)
     {
       indep_vars[i] = cmd->v_by[i];
+      all_vars[i + n_dependent] = cmd->v_by[i];
     }
   n_indep = cmd->n_by;
-  
+  mom = xnmalloc (n_all_vars, sizeof (*mom));
+
+
   reader = casereader_clone (input);
   reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
 					     MV_ANY, NULL);
   reader = casereader_create_filter_missing (reader, v_dependent, 1,
 					     MV_ANY, NULL);
-  n_data = prepare_categories (casereader_clone (reader),
-			       indep_vars, n_indep, mom);
+  n_data = data_pass_one (casereader_clone (reader),
+			  (const struct variable **) all_vars, n_all_vars,
+			  mom);
 
   if ((n_data > 0) && (n_indep > 0))
     {
-      Y = gsl_vector_alloc (n_data);
       X =
-	design_matrix_create (n_indep,
-			      (const struct variable **) indep_vars,
-			      n_data);
-      for (i = 0; i < X->m->size2; i++)
-	{
-	  lopts.get_indep_mean_std[i] = 1;
-	}
-      model = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
-      model->indep_means = gsl_vector_alloc (X->m->size2);
-      model->indep_std = gsl_vector_alloc (X->m->size2);
-      model->depvar = v_dependent[0];
+	covariance_matrix_create (n_all_vars,
+				  (const struct variable **) all_vars);
       reader = casereader_create_counter (reader, &row, -1);
       for (; casereader_read (reader, &c); case_destroy (&c))
 	{
-	  for (i = 0; i < n_indep; ++i)
+	  /* 
+	     Accumulate the covariance matrix.
+	   */
+	  for (i = 0; i < n_all_vars; ++i)
 	    {
-	      const struct variable *v = indep_vars[i];
-	      const union value *val = case_data (&c, v);
-	      if (var_is_alpha (v))
-		design_matrix_set_categorical (X, row, v, val);
-	      else
-		design_matrix_set_numeric (X, row, v, val);
+	      const struct variable *v = all_vars[i];
+	      const union value *val_v = case_data (&c, v);
+	      for (j = i; j < n_all_vars; j++)
+		{
+		  const struct variable *w = all_vars[j];
+		  const union value *val_w = case_data (&c, w);
+		  covariance_pass_two (X, *mom[i]->mean, *mom[j]->mean,
+				       (double) 1 / n_data, (double) n_data,
+				       v, w, val_v, val_w);
+		}
 	    }
-          gsl_vector_set (Y, row, case_num (&c, model->depvar));
 	}
       casereader_destroy (reader);
-      /*
-	Now that we know the number of coefficients, allocate space
-	and store pointers to the variables that correspond to the
-	coefficients.
-      */
-      coeff_init (model, X);
-      
-      /*
-	Find the least-squares estimates and other statistics.
-      */
-      pspp_linreg ((const gsl_vector *) Y, X->m, &lopts, model);
-      compute_moments (model, mom, X, n_dependent);
-      
-      gsl_vector_free (Y);
-      design_matrix_destroy (X);
+      for (i = 0; i < n_all_vars; i++)
+	{
+	  moments1_destroy (mom[i]->m);
+	  free (mom[i]->mean);
+	  free (mom[i]->variance);
+	  free (mom[i]->weight);
+	  free (mom[i]);
+	}
+      free (mom);
+      covariance_matrix_destroy (X);
     }
   else
     {

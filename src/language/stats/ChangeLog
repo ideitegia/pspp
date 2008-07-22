@@ -1,3 +1,11 @@
+2008-07-22  Jason H Stover  <jhs@math.gcsu.edu>
+
+	* glm.q (run_glm): Re-written to form covariance matrix rather
+	than store entire data set in memory.
+
+	* glm.q (data_pass_one): Renamed prepare_categories() to
+	data_pass_one(). Accumulate mean and variance.
+
 2008-06-21  Jason Stover  <jhs@math.gcsu.edu>
 
 	* regression.q (reg_stats_coeff): Use new accessor function
