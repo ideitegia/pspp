@@ -1,3 +1,8 @@
+2008-07-26  John Darrington <john@darrington.wattle.id.au>
+
+	* case-ordering.c case-ordering.h: Removed the value_cnt
+	associated with the ordering structure.
+
 2008-07-16  Jason Stover  <jhs@math.gcsu.edu>
 
 	* category.c (cat_get_category_count): New function.

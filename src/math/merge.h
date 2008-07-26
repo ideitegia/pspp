@@ -18,11 +18,12 @@
 #define MATH_MERGE_H 1
 
 #include <stdbool.h>
+#include <stddef.h>
 
 struct case_ordering;
 struct casereader;
 
-struct merge *merge_create (const struct case_ordering *);
+struct merge *merge_create (const struct case_ordering *, size_t);
 void merge_destroy (struct merge *);
 void merge_append (struct merge *, struct casereader *);
 struct casereader *merge_make_reader (struct merge *);

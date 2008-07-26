@@ -37,8 +37,6 @@ struct sort_key
 /* A set of criteria for ordering cases. */
 struct case_ordering
   {
-    size_t value_cnt;           /* Number of `union value's per case. */
-
     /* Sort keys. */
     struct sort_key *keys;
     size_t key_cnt;
@@ -49,10 +47,9 @@ struct case_ordering
    contains no variables, so that all cases will compare as
    equal. */
 struct case_ordering *
-case_ordering_create (const struct dictionary *dict)
+case_ordering_create (void)
 {
   struct case_ordering *co = xmalloc (sizeof *co);
-  co->value_cnt = dict_get_next_value_idx (dict);
   co->keys = NULL;
   co->key_cnt = 0;
   return co;
@@ -63,7 +60,6 @@ struct case_ordering *
 case_ordering_clone (const struct case_ordering *orig)
 {
   struct case_ordering *co = xmalloc (sizeof *co);
-  co->value_cnt = orig->value_cnt;
   co->keys = xmemdup (orig->keys, orig->key_cnt * sizeof *orig->keys);
   co->key_cnt = orig->key_cnt;
   return co;
@@ -78,15 +74,6 @@ case_ordering_destroy (struct case_ordering *co)
       free (co->keys);
       free (co);
     }
-}
-
-/* Returns the number of `union value's in the cases that case
-   ordering CO compares (taken from the dictionary used to
-   construct it). */
-size_t
-case_ordering_get_value_cnt (const struct case_ordering *co)
-{
-  return co->value_cnt;
 }
 
 /* Compares cases A and B given case ordering CO and returns a

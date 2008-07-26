@@ -25,7 +25,7 @@ struct case_ordering;
 extern int min_buffers ;
 extern int max_buffers ;
 
-struct casewriter *sort_create_writer (struct case_ordering *);
+struct casewriter *sort_create_writer (struct case_ordering *, size_t value_cnt);
 struct casereader *sort_execute (struct casereader *, struct case_ordering *);
 
 #endif /* math/sort.h */
