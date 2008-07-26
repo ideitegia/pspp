@@ -28,7 +28,7 @@ covariance_matrix_create (int, const struct variable *[]);
 
 void covariance_matrix_destroy (struct design_matrix *);
 
-void covariance_pass_two (struct design_matrix *, double, double,
+void covariance_pass_two (struct design_matrix *, double,
 			  double, double, const struct variable *, 
 			  const struct variable *, const union value *, const union value *);
 #endif

@@ -44,24 +44,28 @@ void covariance_matrix_destroy (struct design_matrix *x)
  */
 static void
 covariance_update_categorical_numeric (struct design_matrix *cov, double mean,
-			  double weight, size_t row, 
+			  size_t row, 
 			  const struct variable *v2, double x, const union value *val2)
 {
   size_t col;
+  double tmp;
   
   assert (var_is_numeric (v2));
 
   col = design_matrix_var_to_column (cov, v2);
   assert (val2 != NULL);
-  gsl_matrix_set (cov->m, row, col, (val2->f - mean) * x * weight);
+  tmp = gsl_matrix_get (cov->m, row, col);
+  gsl_matrix_set (cov->m, row, col, (val2->f - mean) * x + tmp);
+  gsl_matrix_set (cov->m, col, row, (val2->f - mean) * x + tmp);
 }
 static void
-column_iterate (struct design_matrix *cov, const struct variable *v, double weight,
+column_iterate (struct design_matrix *cov, const struct variable *v,
 		double ssize, double x, const union value *val1, size_t row)
 {
   size_t col;
   size_t i;
   double y;
+  double tmp;
   union value *tmp_val;
 
   col = design_matrix_var_to_column (cov, v);  
@@ -74,8 +78,9 @@ column_iterate (struct design_matrix *cov, const struct variable *v, double weig
 	{
 	  y += -1.0;
 	}
-      gsl_matrix_set (cov->m, row, col, x * y * weight);
-      gsl_matrix_set (cov->m, col, row, x * y * weight);
+      tmp = gsl_matrix_get (cov->m, row, col);
+      gsl_matrix_set (cov->m, row, col, x * y + tmp);
+      gsl_matrix_set (cov->m, col, row, x * y + tmp);
     }
 }
 /*
@@ -84,7 +89,7 @@ column_iterate (struct design_matrix *cov, const struct variable *v, double weig
   values summarized in in its OBS_VALS element.
  */
 void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
-			  double weight, double ssize, const struct variable *v1, 
+			  double ssize, const struct variable *v1, 
 			  const struct variable *v2, const union value *val1, const union value *val2)
 {
   size_t row;
@@ -107,13 +112,13 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 	    }
 	  if (var_is_numeric (v2))
 	    {
-	      covariance_update_categorical_numeric (cov, mean2, weight, row, 
+	      covariance_update_categorical_numeric (cov, mean2, row, 
 						     v2, x, val2);
 	    }
 	  else
 	    {
-	      column_iterate (cov, v1, weight, ssize, x, val1, row);
-	      column_iterate (cov, v2, weight, ssize, x, val2, row);
+	      column_iterate (cov, v1, ssize, x, val1, row);
+	      column_iterate (cov, v2, ssize, x, val2, row);
 	    }
 	}
     }
@@ -123,7 +128,7 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 	Reverse the orders of V1, V2, etc. and put ourselves back
 	in the previous IF scope.
        */
-      covariance_pass_two (cov, mean2, mean1, weight, ssize, v2, v1, val2, val1);
+      covariance_pass_two (cov, mean2, mean1, ssize, v2, v1, val2, val1);
     }
   else
     {
@@ -132,7 +137,8 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
       */
       row = design_matrix_var_to_column (cov, v1);  
       col = design_matrix_var_to_column (cov, v2);
-      x = (val1->f - mean1) * (val2->f - mean2) * weight;
+      x = (val1->f - mean1) * (val2->f - mean2);
+      x += gsl_matrix_get (cov->m, col, row);
       gsl_matrix_set (cov->m, row, col, x);
       gsl_matrix_set (cov->m, col, row, x);
     }

@@ -5,6 +5,20 @@
 	sort_execute now has the same dimensions as the casereader passed 
 	in.
 
+2008-07-24  Jason H Stover  <jhs@math.gcsu.edu>
+
+	* covariance-matrix.c (covariance_pass_two): Dropped weight
+	argument. Corrected update of the entries of the covariance
+	matrix. 
+
+	* covariance-matrix.c (column_iterate): Dropped weight
+	argument. Corrected update of the entries of the covariance
+	matrix. 
+
+	* covariance-matrix.c (covariance_update_categorical_numeric):
+	Dropped weight argument. Corrected update of the entries of the
+	covariance matrix.
+
 2008-07-17  Jason H Stover  <jhs@math.gcsu.edu>
 
 	* covariance-matrix.c (covariance_update_categorical_numeric):

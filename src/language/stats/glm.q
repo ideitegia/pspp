@@ -334,7 +334,7 @@ run_glm (struct casereader *input,
 		  const struct variable *w = all_vars[j];
 		  const union value *val_w = case_data (&c, w);
 		  covariance_pass_two (X, *mom[i]->mean, *mom[j]->mean,
-				       (double) 1 / n_data, (double) n_data,
+				       (double) n_data,
 				       v, w, val_v, val_w);
 		}
 	    }
