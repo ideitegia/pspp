@@ -110,3 +110,58 @@ static const struct casereader_class casereader_translator_class =
     NULL,
     NULL,
   };
+
+struct casereader_arithmetic_sequence 
+  {
+    int value_ofs;
+    double first;
+    double increment;
+    casenumber n;
+  };
+
+static void cas_translate (struct ccase *input, struct ccase *output,
+                           void *aux);
+static bool cas_destroy (void *aux);
+
+/* Creates and returns a new casereader whose cases are produced
+   by reading from SUBREADER and appending an additional value,
+   which takes the value FIRST in the first case, FIRST +
+   INCREMENT in the second case, FIRST + INCREMENT * 2 in the
+   third case, and so on.
+
+   After this function is called, SUBREADER must not ever again
+   be referenced directly.  It will be destroyed automatically
+   when the translating casereader is destroyed. */
+struct casereader *
+casereader_create_arithmetic_sequence (struct casereader *subreader,
+                                       double first, double increment)
+{
+  /* This could be implemented with a great deal more efficiency
+     and generality.  However, this implementation is easy. */
+  struct casereader_arithmetic_sequence *cas = xmalloc (sizeof *cas);
+  cas->value_ofs = casereader_get_value_cnt (subreader);
+  cas->first = first;
+  cas->increment = increment;
+  cas->n = 0;
+  return casereader_create_translator (subreader, cas->value_ofs + 1,
+                                       cas_translate, cas_destroy, cas);
+}
+
+static void
+cas_translate (struct ccase *input, struct ccase *output, void *cas_)
+{
+  struct casereader_arithmetic_sequence *cas = cas_;
+  case_nullify (output);
+  case_move (output, input);
+  case_resize (output, cas->value_ofs + 1);
+  case_data_rw_idx (output, cas->value_ofs)->f
+    = cas->first + cas->increment * cas->n++;
+}
+
+static bool
+cas_destroy (void *cas_) 
+{
+  struct casereader_arithmetic_sequence *cas = cas_;
+  free (cas);
+  return true;
+}

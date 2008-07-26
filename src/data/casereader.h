@@ -112,4 +112,8 @@ casereader_create_translator (struct casereader *, size_t output_value_cnt,
                               bool (*destroy) (void *aux),
                               void *aux);
 
+struct casereader *
+casereader_create_arithmetic_sequence (struct casereader *,
+                                       double first, double increment);
+
 #endif /* data/casereader.h */

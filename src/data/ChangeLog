@@ -1,3 +1,11 @@
+2008-07-25  Ben Pfaff  <blp@gnu.org>
+
+	* casereader-translator.c (struct casereader_arithmetic_sequence):
+	New struct.
+	(casereader_create_arithmetic_sequence): New function.
+	(cas_translate): New function.
+	(cas_destroy): New function.
+
 2008-07-26  John Darrington <john@darrington.wattle.id.au>
 
 	* case-ordering.c case-ordering.h: Removed the value_cnt
