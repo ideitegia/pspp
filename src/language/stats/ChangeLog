@@ -1,3 +1,7 @@
+2008-07-24  Jason H Stover  <jhs@math.gcsu.edu>
+
+	* glm.q (run_glm): Dropped weight argument.
+
 2008-07-22  Jason H Stover  <jhs@math.gcsu.edu>
 
 	* glm.q (run_glm): Re-written to form covariance matrix rather
