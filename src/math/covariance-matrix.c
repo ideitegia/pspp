@@ -66,7 +66,7 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
   size_t i;
   double y;
   double tmp;
-  union value *tmp_val;
+  const union value *tmp_val;
 
   col = design_matrix_var_to_column (cov, v);  
   for (i = 0; i < cat_get_n_categories (v) - 1; i++)
@@ -96,7 +96,7 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
   size_t col;
   size_t i;
   double x;
-  union value *tmp_val;
+  const union value *tmp_val;
 
   if (var_is_alpha (v1))
     {

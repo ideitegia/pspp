@@ -101,7 +101,7 @@ int pspp_coeff_get_n_vars (struct pspp_coeff *);
   coefficient found. Note that in this case, the result will depend on
   the order of COEFS.
  */
-const struct pspp_coeff *
+struct pspp_coeff *
 pspp_coeff_var_to_coeff (const struct variable *, struct pspp_coeff **, size_t, const union value *);
 
 /*

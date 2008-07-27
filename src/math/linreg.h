@@ -200,7 +200,7 @@ pspp_linreg_residual (const struct variable **, const union value **,
  */
 int pspp_linreg_get_vars (const void *, const struct variable **);
 
-const struct pspp_coeff *pspp_linreg_get_coeff (const pspp_linreg_cache
+struct pspp_coeff *pspp_linreg_get_coeff (const pspp_linreg_cache
 						       *,
 						       const struct variable
 						       *,

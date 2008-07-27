@@ -153,7 +153,7 @@ pspp_coeff_get_var (struct pspp_coeff *coef, int i)
   categorical, and has more than one coefficient, use the VAL to find
   its coefficient.
  */
-const struct pspp_coeff *
+struct pspp_coeff *
 pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs, 
 			 size_t n_coef, const union value *val)
 {

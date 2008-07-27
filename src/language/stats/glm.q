@@ -257,7 +257,7 @@ run_glm (struct casereader *input,
   int n_indep = 0;
   struct ccase c;
   const struct variable **indep_vars;
-  struct variable **all_vars;
+  const struct variable **all_vars;
   struct design_matrix *X;
   struct moments_var **mom;
   struct casereader *reader;

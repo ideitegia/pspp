@@ -554,7 +554,7 @@ pspp_linreg_residual (const struct variable **predictors,
   Which coefficient is associated with V? The VAL argument is relevant
   only to categorical variables.
  */
-const struct pspp_coeff *
+struct pspp_coeff *
 pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 		       const struct variable *v, const union value *val)
 {
