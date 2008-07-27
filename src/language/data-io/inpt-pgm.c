@@ -19,7 +19,6 @@
 #include <language/data-io/inpt-pgm.h>
 
 #include <float.h>
-#include <gsl/gsl_math.h>
 #include <stdlib.h>
 
 #include <data/case.h>
@@ -333,7 +332,7 @@ reread_trns_proc (void *t_, struct ccase *c, casenumber case_num)
   else
     {
       double column = expr_evaluate_num (t->column, c, case_num);
-      if (!gsl_finite (column) || column < 1)
+      if (!isfinite (column) || column < 1)
 	{
 	  msg (SE, _("REREAD: Column numbers must be positive finite "
 	       "numbers.  Column set to 1."));

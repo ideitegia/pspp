@@ -18,8 +18,6 @@
 
 #include "control-stack.h"
 
-#include <gsl/gsl_math.h>
-
 #include <data/case.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
@@ -323,8 +321,8 @@ loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num)
       case_data_rw (c, loop->index_var)->f = loop->cur;
 
       /* Throw out pathological cases. */
-      if (!gsl_finite (loop->cur) || !gsl_finite (loop->by)
-          || !gsl_finite (loop->last)
+      if (!isfinite (loop->cur) || !isfinite (loop->by)
+          || !isfinite (loop->last)
           || loop->by == 0.0
           || (loop->by > 0.0 && loop->cur > loop->last)
           || (loop->by < 0.0 && loop->cur < loop->last))

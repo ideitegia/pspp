@@ -18,7 +18,6 @@
 #include "private.h"
 
 #include <ctype.h>
-#include <gsl/gsl_math.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include "helpers.h"
@@ -64,7 +63,7 @@ expr_evaluate (struct expression *e, const struct ccase *c, int case_idx,
           break;
 
         case OP_return_number:
-          *(double *) result = gsl_finite (ns[-1]) ? ns[-1] : SYSMIS;
+          *(double *) result = isfinite (ns[-1]) ? ns[-1] : SYSMIS;
           return;
 
         case OP_return_string:

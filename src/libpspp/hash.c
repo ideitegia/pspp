@@ -20,7 +20,6 @@
 #include "message.h"
 #include <assert.h>
 #include <ctype.h>
-#include <gsl/gsl_math.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -134,7 +133,7 @@ hsh_hash_int (int i)
 unsigned
 hsh_hash_double (double d)
 {
-  if (!gsl_isnan (d))
+  if (!isnan (d))
     return hsh_hash_bytes (&d, sizeof d);
   else
     return 0;

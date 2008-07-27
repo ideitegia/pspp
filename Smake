@@ -28,6 +28,8 @@ GNULIB_MODULES = \
 	gettext-h \
 	gettimeofday \
 	isfinite \
+	isinf \
+	isnan \
 	intprops \
 	inttostr \
 	localcharset \

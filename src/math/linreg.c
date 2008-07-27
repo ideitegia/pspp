@@ -546,7 +546,7 @@ pspp_linreg_residual (const struct variable **predictors,
     }
   pred = pspp_linreg_predict (predictors, vals, c, n_vals);
 
-  result = gsl_isnan (pred) ? GSL_NAN : (obs->f - pred);
+  result = isnan (pred) ? GSL_NAN : (obs->f - pred);
   return result;
 }
 

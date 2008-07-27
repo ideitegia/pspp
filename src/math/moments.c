@@ -17,7 +17,6 @@
 #include <config.h>
 #include "moments.h"
 #include <assert.h>
-#include <gsl/gsl_math.h>
 #include <math.h>
 #include <stdlib.h>
 #include <libpspp/misc.h>
@@ -56,7 +55,7 @@ calc_moments (enum moment max_moment,
             {
               double s3 = s2 * sqrt (s2);
               double g1 = (w * d3) / ((w - 1.0) * (w - 2.0) * s3);
-              if (gsl_finite (g1))
+              if (isfinite (g1))
                 *skewness = g1;
             }
           if (max_moment >= MOMENT_KURTOSIS && kurtosis != NULL && w > 3.)
@@ -64,7 +63,7 @@ calc_moments (enum moment max_moment,
               double den = (w - 2.) * (w - 3.) * pow2 (s2);
               double g2 = (w * (w + 1) * d4 / (w - 1.) / den
                            - 3. * pow2 (d2) / den);
-              if (gsl_finite (g2))
+              if (isfinite (g2))
                 *kurtosis = g2;
             }
         }
