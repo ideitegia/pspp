@@ -125,7 +125,7 @@ static struct settings the_settings = {
     /* endcmd */
   '.',
     /* workspace */
-  4L * 1024 * 1024,
+  64L * 1024 * 1024,
     /* default_format */
   {FMT_F, 8, 2},
     /* testing_mode */

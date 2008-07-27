@@ -334,6 +334,7 @@ SET
         /MXERRS=max_errs
         /MXWARNS=max_warnings
         /PROMPT='prompt'
+        /WORKSPACE=workspace_size
 
 (program execution)
         /MEXPAND=@{ON,OFF@}
@@ -390,7 +391,6 @@ SET
         /SCRIPTTAB='c'
         /TB1=@{'xxx','xxxxxxxxxxx'@}
         /TBFONTS='string'
-        /WORKSPACE=workspace_size
         /XSORT=@{YES,NO@}
 @end display
 
@@ -554,6 +554,17 @@ RANDOM, which will obtain an initial seed from the current time of day.
 
 @item UNDEFINED
 Currently not used.
+
+@item WORKSPACE
+The maximum amount of memory that PSPP will use to store data being processed.
+If memory in excess of the workspace size is required, then PSPP will start
+to use temporary files to store the data.
+Setting a higher value will, in general, mean procedures will run faster, 
+but may cause other applications to run slower.
+On platforms without virtual memory management, setting a very large workspace
+may cause PSPP to abort.
+@cindex workspace
+@cindex memory, amount used to store cases
 @end table
 
 Data output subcommands affect the format of output data.  These
