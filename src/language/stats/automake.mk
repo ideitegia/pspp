@@ -37,3 +37,4 @@ all_q_sources += $(src_language_stats_built_sources:.c=.q)
 EXTRA_DIST += $(src_language_stats_built_sources:.c=.q)
 CLEANFILES += $(src_language_stats_built_sources)
 
+EXTRA_DIST += src/language/stats/OChangeLog

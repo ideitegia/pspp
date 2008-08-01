@@ -91,3 +91,5 @@ src/libpspp/version.c: $(top_srcdir)/AUTHORS
 	sed -e 's/^/  \"/' -e 's/$$/\",/' $(top_srcdir)/AUTHORS >> $@
 	echo "0 };" >> $@
 
+
+EXTRA_DIST += src/libpspp/OChangeLog

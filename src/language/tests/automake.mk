@@ -15,3 +15,5 @@ language_tests_sources = \
 all_q_sources += $(language_tests_built_sources:.c=.q)
 EXTRA_DIST += $(language_tests_built_sources:.c=.q)
 CLEANFILES += $(language_tests_built_sources)
+
+EXTRA_DIST += src/language/tests/OChangeLog

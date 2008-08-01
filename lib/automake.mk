@@ -5,3 +5,5 @@ include $(top_srcdir)/lib/linreg/automake.mk
 if WITHGUI
 include $(top_srcdir)/lib/gtksheet/automake.mk
 endif
+
+EXTRA_DIST += lib/OChangeLog

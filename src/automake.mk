@@ -11,3 +11,5 @@ include $(top_srcdir)/src/language/automake.mk
 include $(top_srcdir)/src/ui/automake.mk
 
 AM_CPPFLAGS += -I$(top_srcdir)/src -I$(top_srcdir)/lib -DPKGDATADIR=\"$(pkgdatadir)\"
+
+EXTRA_DIST += src/OChangeLog

@@ -13,3 +13,5 @@ src_ui_libuicommon_a_SOURCES = \
 	src/ui/debugger.h \
 	src/ui/syntax-gen.c \
 	src/ui/syntax-gen.h
+
+EXTRA_DIST += src/ui/OChangeLog

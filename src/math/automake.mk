@@ -29,3 +29,5 @@ src_math_libpspp_math_a_SOURCES = \
 	src/math/design-matrix.c src/math/design-matrix.h \
 	src/math/random.c src/math/random.h \
 	src/math/sort.c src/math/sort.h 
+
+EXTRA_DIST += src/math/OChangeLog
