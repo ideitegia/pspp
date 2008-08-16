@@ -96,8 +96,7 @@ struct pspp_linreg_cache_struct
 				   coefficient here. */
 
   /*
-     The variable struct is ignored during estimation. It is here so
-     the calling procedure can find the variable used in the model.
+    Pointer to the dependent variable.
    */
   const struct variable *depvar;
 
