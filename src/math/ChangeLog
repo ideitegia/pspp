@@ -1,3 +1,13 @@
+2008-08-16  Jason H Stover  <jhs@math.gcsu.edu>
+
+	* linreg.c (pspp_linreg_with_cov): New function to estimate
+	parameters directly from covariance matrix instead of using the
+	entire data set.
+
+	* linreg.c (rearrange_covariance_matrix): New function to ensure
+	the columns of the covariance matrix correspond to the variables
+	in the model.
+
 2008-07-24   John Darrington <john@darrington.wattle.id.au>
 
 	* merge.c merge.h sort.c sort.h: Removed the value_cnt associated

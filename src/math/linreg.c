@@ -617,3 +617,98 @@ void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *c, const struct var
       pspp_coeff_set_mean (coef, m);
     }
 }
+
+/*
+  Make sure the dependent variable is at the last column, and that
+  only variables in the model are in the covariance matrix. 
+ */
+static struct design_matrix *
+rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache *c)
+{
+  struct variable **v;
+  struct variable **model_vars;
+  struct variable *tmp;
+  struct design_matrix *result;
+  int n_vars;
+  int found;
+  size_t *columns;
+  size_t i;
+  size_t j;
+  size_t k;
+  size_t dep_col;
+
+  assert (cov != NULL);
+  assert (c != NULL);
+  assert (cov->m->size1 > 0);
+  assert (cov->m->size2 == cov->m->size1);
+  v = xnmalloc (c->n_coeffs, sizeof (*v));
+  model_vars = xnmalloc (c->n_coeffs, sizeof (*model_vars));
+  columns = xnmalloc (cov->m->size2, sizeof (*columns));
+  n_vars = pspp_linreg_get_vars (c, v);
+  dep_col = 0;
+  k = 0;
+  for (i = 0; i < cov->m->size2; i++)
+    {
+      tmp = design_matrix_col_to_var (cov, i);
+      found = 0;
+      j = 0;
+      while (!found && j < n_vars)
+	{
+	  if (tmp == v[j])
+	    {
+	      found = 1;
+	      if (tmp == c->depvar)
+		{
+		  dep_col = j;
+		}
+	      else
+		{
+		  columns[k] = j;
+		  k++;
+		}
+	    }
+	  j++;
+	}
+    }
+  k++;
+  columns[k] = dep_col;
+  /*
+    K should now be equal to C->N_INDEPS + 1. If it is not, then
+    either the code above is wrong or the caller didn't send us the
+    correct values in C.
+   */
+  assert (k == c->n_indeps + 1);
+  /*
+    Put the model variables in the right order in MODEL_VARS.
+   */
+  for (i = 0; i < k; i++)
+    {
+      model_vars[i] = v[columns[i]];
+    }
+
+  result = covariance_matrix_create (k, model_vars);
+  for (i = 0; i < result->m->size1; i++)
+    {
+      for (j = 0; j < result->m->size2; j++)
+	{
+	  gsl_matrix_set (result->m, i, j, gsl_matrix_get (cov->m, columns[i], columns[j]));
+	}
+    }
+  free (columns);
+  free (v);
+  return result;
+}
+/*
+  Estimate the model parameters from the covariance matrix only. This
+  method uses less memory than PSPP_LINREG, which requires the entire
+  data set to be stored in memory.
+*/
+int
+pspp_linreg_with_cov (const struct design_matrix *cov, 
+		      const pspp_linreg_opts * opts, pspp_linreg_cache * cache)
+{
+  assert (cov != NULL);
+  assert (opts != NULL);
+  assert (cache != NULL);
+}
+
