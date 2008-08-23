@@ -30,3 +30,5 @@ EXTRA_DIST += $(chart_sources)
 AM_CPPFLAGS += -DNO_CHARTS
 
 endif
+
+EXTRA_DIST += src/output/charts/OChangeLog

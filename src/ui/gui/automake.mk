@@ -218,4 +218,6 @@ yelp-check:
 		echo '    Yelp is available from the GNOME project.  ftp://ftp.gnome.org/pub/gnome/sources/yelp' ; \
 		echo ; \
 	fi
-.PHONY: yelp-check
+PHONY += yelp-check
+
+EXTRA_DIST += src/ui/gui/OChangeLog

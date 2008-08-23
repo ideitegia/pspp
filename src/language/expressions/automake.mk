@@ -37,3 +37,5 @@ generate_from_pl = $(MKDIR_P) `dirname $@` && \
 
 .inc.pl.inc:
 	$(generate_from_pl)
+
+EXTRA_DIST += src/language/expressions/OChangeLog

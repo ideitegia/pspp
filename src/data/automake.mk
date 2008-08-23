@@ -103,3 +103,5 @@ src_data_libdata_a_SOURCES = \
 	src/data/variable.c \
 	src/data/vector.c \
 	src/data/vector.h
+
+EXTRA_DIST += src/data/OChangeLog

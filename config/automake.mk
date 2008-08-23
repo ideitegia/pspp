@@ -18,3 +18,5 @@ dist_psfonts_DATA = \
 	config/psfonts/Helvetica.afm \
 	config/psfonts/Times-Roman.afm \
 	config/psfonts/Courier.afm
+
+EXTRA_DIST += config/OChangeLog

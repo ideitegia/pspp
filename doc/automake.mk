@@ -60,3 +60,5 @@ install-data-hook:: $(YELP_CHECK)
 uninstall-hook::
 	rm -f $(DESTDIR)$(infodir)/pspp.info-[0-9].gz
 	rm -f $(DESTDIR)$(infodir)/pspp.info.gz
+
+EXTRA_DIST += doc/OChangeLog

@@ -10,3 +10,4 @@ language_control_sources = \
 	src/language/control/repeat.c \
 	src/language/control/repeat.h
 
+EXTRA_DIST += src/language/control/OChangeLog

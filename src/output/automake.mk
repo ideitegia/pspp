@@ -32,4 +32,4 @@ src_output_liboutput_a_SOURCES = $(output_sources) src/output/dummy-chart.c
 EXTRA_DIST += src/output/chart.c
 endif
 
-
+EXTRA_DIST += src/output/OChangeLog

@@ -21,3 +21,5 @@ src/language/lexer/q2c$(EXEEXT_FOR_BUILD): $(top_srcdir)/src/language/lexer/q2c.
 
 
 CLEANFILES += src/language/lexer/q2c$(EXEEXT_FOR_BUILD)
+
+EXTRA_DIST += src/language/lexer/OChangeLog
