@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-07-24 19:40+0800\n"
+"POT-Creation-Date: 2008-08-23 08:35+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -194,12 +194,12 @@ msgstr ""
 msgid "%s field) "
 msgstr ""
 
-#: src/data/data-out.c:447
+#: src/data/data-out.c:446
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
 msgstr ""
 
-#: src/data/data-out.c:468
+#: src/data/data-out.c:467
 #, c-format
 msgid "Month number %f is not between 1 and 12."
 msgstr ""
@@ -445,7 +445,7 @@ msgstr ""
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
-#: src/data/por-file-reader.c:268 src/data/por-file-writer.c:149
+#: src/data/por-file-reader.c:268 src/data/por-file-writer.c:148
 msgid "portable file"
 msgstr ""
 
@@ -572,17 +572,17 @@ msgid ""
 "Cannot assign value labels to %s and %s, which have different variable types."
 msgstr ""
 
-#: src/data/por-file-writer.c:141
+#: src/data/por-file-writer.c:140
 #, c-format
 msgid "Invalid decimal digits count %d.  Treating as %d."
 msgstr ""
 
-#: src/data/por-file-writer.c:161
+#: src/data/por-file-writer.c:160
 #, c-format
 msgid "Error opening \"%s\" for writing as a portable file: %s."
 msgstr ""
 
-#: src/data/por-file-writer.c:500
+#: src/data/por-file-writer.c:499
 #, c-format
 msgid "An I/O error occurred writing portable file \"%s\"."
 msgstr ""
@@ -1154,7 +1154,7 @@ msgstr ""
 msgid "This command may not follow ELSE in DO IF...END IF."
 msgstr ""
 
-#: src/language/control/loop.c:216
+#: src/language/control/loop.c:214
 msgid "Only one index clause may be specified."
 msgstr ""
 
@@ -1573,19 +1573,19 @@ msgid ""
 "specified on FIXCASE, %d."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:130
+#: src/language/data-io/inpt-pgm.c:129
 msgid "Unexpected end-of-file within INPUT PROGRAM."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:143
+#: src/language/data-io/inpt-pgm.c:142
 msgid "Input program did not create any variables."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:288
+#: src/language/data-io/inpt-pgm.c:287
 msgid "COLUMN subcommand multiply specified."
 msgstr ""
 
-#: src/language/data-io/inpt-pgm.c:338
+#: src/language/data-io/inpt-pgm.c:337
 msgid ""
 "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
 msgstr ""
@@ -2175,11 +2175,11 @@ msgstr ""
 msgid "The weighting variable may not be scratch."
 msgstr ""
 
-#: src/language/expressions/evaluate.c:155
+#: src/language/expressions/evaluate.c:154
 msgid "expecting number or string"
 msgstr ""
 
-#: src/language/expressions/evaluate.c:169
+#: src/language/expressions/evaluate.c:168
 #, c-format
 msgid "Duplicate variable name %s."
 msgstr ""
@@ -3883,132 +3883,136 @@ msgstr ""
 msgid "Cannot change mode of %s: %s"
 msgstr ""
 
-#: src/language/utilities/set.q:201 src/language/utilities/set.q:203
-#: src/language/utilities/set.q:205 src/language/utilities/set.q:207
-#: src/language/utilities/set.q:209 src/language/utilities/set.q:211
-#: src/language/utilities/set.q:213 src/language/utilities/set.q:215
-#: src/language/utilities/set.q:217
+#: src/language/utilities/set.q:200
+msgid "WORKSPACE must be at least 1MB"
+msgstr ""
+
+#: src/language/utilities/set.q:206 src/language/utilities/set.q:208
+#: src/language/utilities/set.q:210 src/language/utilities/set.q:212
+#: src/language/utilities/set.q:214 src/language/utilities/set.q:216
+#: src/language/utilities/set.q:218 src/language/utilities/set.q:220
+#: src/language/utilities/set.q:222
 #, c-format
 msgid "%s is obsolete."
 msgstr ""
 
-#: src/language/utilities/set.q:220
+#: src/language/utilities/set.q:225
 #, c-format
 msgid "%s is not implemented."
 msgstr ""
 
-#: src/language/utilities/set.q:223
+#: src/language/utilities/set.q:228
 msgid "Active file compression is not implemented."
 msgstr ""
 
-#: src/language/utilities/set.q:318
+#: src/language/utilities/set.q:323
 msgid "EPOCH must be 1500 or later."
 msgstr ""
 
-#: src/language/utilities/set.q:325
+#: src/language/utilities/set.q:330
 msgid "expecting AUTOMATIC or year"
 msgstr ""
 
-#: src/language/utilities/set.q:346
+#: src/language/utilities/set.q:351
 msgid "LENGTH must be at least 1."
 msgstr ""
 
-#: src/language/utilities/set.q:390
+#: src/language/utilities/set.q:395
 msgid "WIDTH must be at least 40."
 msgstr ""
 
-#: src/language/utilities/set.q:413
+#: src/language/utilities/set.q:418
 #, c-format
 msgid ""
 "FORMAT requires numeric output format as an argument.  Specified format %s "
 "is of type string."
 msgstr ""
 
-#: src/language/utilities/set.q:480
+#: src/language/utilities/set.q:485
 msgid "BLANKS is SYSMIS."
 msgstr ""
 
-#: src/language/utilities/set.q:482
+#: src/language/utilities/set.q:487
 #, c-format
 msgid "BLANKS is %g."
 msgstr ""
 
-#: src/language/utilities/set.q:517
+#: src/language/utilities/set.q:522
 #, c-format
 msgid "%s is \"%s\"."
 msgstr ""
 
-#: src/language/utilities/set.q:553
+#: src/language/utilities/set.q:558
 #, c-format
 msgid "DECIMAL is \"%c\"."
 msgstr ""
 
-#: src/language/utilities/set.q:559
+#: src/language/utilities/set.q:564
 #, c-format
 msgid "ENDCMD is \"%c\"."
 msgstr ""
 
-#: src/language/utilities/set.q:567
+#: src/language/utilities/set.q:572
 #, c-format
 msgid "ERRORS is \"%s\"."
 msgstr ""
 
-#: src/language/utilities/set.q:578
+#: src/language/utilities/set.q:583
 #, c-format
 msgid "FORMAT is %s."
 msgstr ""
 
-#: src/language/utilities/set.q:584
+#: src/language/utilities/set.q:589
 #, c-format
 msgid "LENGTH is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:590
+#: src/language/utilities/set.q:595
 #, c-format
 msgid "MXERRS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:596
+#: src/language/utilities/set.q:601
 #, c-format
 msgid "MXLOOPS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:602
+#: src/language/utilities/set.q:607
 #, c-format
 msgid "MXWARNS is %d."
 msgstr ""
 
-#: src/language/utilities/set.q:609 src/language/utilities/set.q:660
+#: src/language/utilities/set.q:614 src/language/utilities/set.q:665
 #, c-format
 msgid "%s is %s (%s)."
 msgstr ""
 
-#: src/language/utilities/set.q:681
+#: src/language/utilities/set.q:686
 msgid "SCOMPRESSION is ON."
 msgstr ""
 
-#: src/language/utilities/set.q:683
+#: src/language/utilities/set.q:688
 msgid "SCOMPRESSION is OFF."
 msgstr ""
 
-#: src/language/utilities/set.q:690
+#: src/language/utilities/set.q:695
 msgid "UNDEFINED is WARN."
 msgstr ""
 
-#: src/language/utilities/set.q:692
+#: src/language/utilities/set.q:697
 msgid "UNDEFINED is NOWARN."
 msgstr ""
 
-#: src/language/utilities/set.q:700
+#: src/language/utilities/set.q:705
 msgid "WEIGHT is off."
 msgstr ""
 
-#: src/language/utilities/set.q:702
+#: src/language/utilities/set.q:707
 #, c-format
 msgid "WEIGHT is variable %s."
 msgstr ""
 
-#: src/language/utilities/set.q:720
+#: src/language/utilities/set.q:725
 #, c-format
 msgid "WIDTH is %d."
 msgstr ""
@@ -4108,7 +4112,7 @@ msgstr ""
 msgid "The filter variable may not be scratch."
 msgstr ""
 
-#: src/libpspp/hash.c:615
+#: src/libpspp/hash.c:614
 #, c-format
 msgid "hash table:"
 msgstr ""
