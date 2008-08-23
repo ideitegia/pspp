@@ -39,7 +39,6 @@ struct percentile
   struct order_stats parent;
 
   double ptile;
-  double w;
 
   /* Mutable */
   double g1;
