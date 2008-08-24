@@ -110,16 +110,16 @@ struct factor_metrics
   struct statistic *histogram;
   struct order_stats *np;
 
-  /* Tukey_Hingesree quartiles indexing into PTL */
+  /* Three quartiles indexing into PTL */
   struct percentile **quartiles;
 
   /* A reader sorted in ASCENDING order */
   struct casereader *up_reader;
 
-  /* Tukey_Hingese minimum value of all tukey_hingese weights */
+  /* The minimum value of all the weights */
   double cmin;
 
-  /* Sum of all weights, including tukey_hingesose for missing values */
+  /* Sum of all weights, including those for missing values */
   double n;
 
   double mean;
@@ -148,13 +148,13 @@ struct factor_result
 
 struct xfactor
 {
-  /* We need to make a list of tukey_hingesis structure */
+  /* We need to make a list of this structure */
   struct ll ll;
 
-  /* Tukey_Hingese independent variable */
+  /* The independent variable */
   const struct variable const* indep_var[2];
 
-  /* A list of results for tukey_hingesis factor */
+  /* A list of results for this factor */
   struct ll_list result_list ;
 };
 
@@ -197,7 +197,7 @@ factor_destroy (struct xfactor *fctr)
 static struct xfactor level0_factor;
 static struct ll_list factor_list = LL_INITIALIZER (factor_list);
 
-/* Parse tukey_hingese clause specifying tukey_hingese factors */
+/* Parse the clause specifying the factors */
 static int examine_parse_independent_vars (struct lexer *lexer,
 					   const struct dictionary *dict,
 					   struct cmd_examine *cmd);
@@ -243,7 +243,7 @@ static void factor_to_string (const struct xfactor *fctr,
 
 /* Represent a factor as a string, so it can be
    printed in a human readable fashion,
-   but sacrificing some readablility for tukey_hingese sake of brevity */
+   but sacrificing some readablility for the sake of brevity */
 static void
 factor_to_string_concise (const struct xfactor *fctr,
 			  const struct factor_result *result,
@@ -271,7 +271,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
       return CMD_FAILURE;
     }
 
-  /* If /MISSING=INCLUDE is set, tukey_hingesen user missing values are ignored */
+  /* If /MISSING=INCLUDE is set, then user missing values are ignored */
   exclude_values = cmd.incl == XMN_INCLUDE ? MV_SYSTEM : MV_ANY;
 
   if ( cmd.st_n == SYSMIS )
@@ -280,7 +280,7 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
   if ( ! cmd.sbc_cinterval)
     cmd.n_cinterval[0] = 95.0;
 
-  /* If descriptives have been requested, make sure tukey_hingese
+  /* If descriptives have been requested, make sure the
      quartiles are calculated */
   if ( cmd.a_statistics[XMN_ST_DESCRIPTIVES] )
     {
