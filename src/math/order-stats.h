@@ -29,17 +29,11 @@ struct variable;
 struct k
 {
   double tc;
-
   double cc;
-
   double cc_p1;
-
   double c;
-
   double c_p1;
-
   double y;
-
   double y_p1;
 };
 
@@ -49,18 +43,18 @@ struct order_stats
   struct statistic parent;
   int n_k;
   struct k *k;
+
+  double cc;
 };
 
+enum mv_class;
 
-
-void dump_ptile_k1 (const struct order_stats *ptl);
-
-void dump_ptile_k2 (const struct order_stats *ptl);
-
+void order_stats_dump (const struct order_stats *os);
 
 void order_stats_accumulate (struct order_stats **ptl, size_t nos,
-			 struct casereader *reader,
-			 const struct variable *wv,
-			 const struct variable *var);
+			     struct casereader *reader,
+			     const struct variable *wv,
+			     const struct variable *var,
+			     enum mv_class exclude);
 
 #endif

@@ -1020,7 +1020,7 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 
 	  order_stats_accumulate (os, n_os,
 				  casereader_clone (metric->up_reader),
-				  wv, dependent_vars[v]);
+				  wv, dependent_vars[v], MV_ANY);
 	  free (os);
 	}
     }
@@ -1091,7 +1091,7 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	  order_stats_accumulate ((struct order_stats **) &metric->box_whisker,
 				  1,
 				  casereader_clone (metric->up_reader),
-				  wv, dependent_vars[v]);
+				  wv, dependent_vars[v], MV_ANY);
 	}
     }
 

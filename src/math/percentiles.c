@@ -47,6 +47,8 @@ percentile_calculate (const struct percentile *ptl, enum pc_alg alg)
   struct percentile *mutable = (struct percentile *) ptl;
   const struct order_stats *os = &ptl->parent;
 
+  assert (os->cc == ptl->w);
+
   if ( ptl->g1 == SYSMIS)
     mutable->g1 = (os->k[0].tc - os->k[0].cc) / os->k[0].c_p1;
 
@@ -169,6 +171,7 @@ percentile_create (double p, double W)
   assert (p <= 1.0);
 
   ptl->ptile = p;
+  ptl->w = W;
 
   os->n_k = 2;
   os->k = xcalloc (sizeof (*os->k), 2);
@@ -186,15 +189,3 @@ percentile_create (double p, double W)
   return os;
 }
 
-#if 0
-void
-percentile_dump (const struct percentile *ptl)
-{
-  printf ("Percentile %g:\n\tk1: ", ptl->ptile);
-
-  dump_os_k1 ((const struct os *)ptl);
-  printf ("\tk2: ");
-  dump_os_k2 ((const struct os *)ptl);
-  printf ("\n");
-}
-#endif

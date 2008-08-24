@@ -23,6 +23,36 @@
 #include <data/casereader.h>
 #include <string.h>
 
+#if 0
+
+#include <stdio.h>
+
+static void
+order_stats_dump_k1 (const struct order_stats *os)
+{
+  struct k *k = &os->k[0];
+  printf ("K1: tc %g; c %g cc %g ccp %g\n",
+	  k->tc, k->c, k->cc, k->cc_p1);
+
+}
+
+static void
+order_stats_dump_k2 (const struct order_stats *os)
+{
+  struct k *k = &os->k[1];
+  printf ("K2: tc %g; c %g cc %g ccp %g\n",
+	  k->tc, k->c, k->cc, k->cc_p1);
+}
+
+
+void
+order_stats_dump (const struct order_stats *os)
+{
+  order_stats_dump_k1 (os);
+  order_stats_dump_k2 (os);
+}
+
+#endif
 
 static void
 update_k_lower (struct k *kk,
@@ -55,6 +85,7 @@ update_k_values (const struct ccase *cx, double y_i, double c_i, double cc_i,
 		 struct order_stats **os, size_t n_os)
 {
   int j;
+
   for (j = 0 ; j < n_os ; ++j)
     {
       int k;
@@ -69,15 +100,18 @@ update_k_values (const struct ccase *cx, double y_i, double c_i, double cc_i,
 
       if ( stat->accumulate )
 	stat->accumulate (stat, cx, c_i, cc_i, y_i);
+
+      tos->cc = cc_i;
     }
 }
 
 
 void
 order_stats_accumulate (struct order_stats **os, size_t nos,
-		    struct casereader *reader,
-		    const struct variable *wv,
-		    const struct variable *var)
+			struct casereader *reader,
+			const struct variable *wv,
+			const struct variable *var,
+			enum mv_class exclude)
 {
   struct ccase cx;
   struct ccase prev_cx;
@@ -95,6 +129,9 @@ order_stats_accumulate (struct order_stats **os, size_t nos,
 
       /* The casereader MUST be sorted */
       assert (this_value >= prev_value);
+
+      if ( var_is_value_missing (var, case_data (&cx, var), exclude))
+	continue;
 
       case_destroy (&prev_cx);
 
@@ -117,3 +154,6 @@ order_stats_accumulate (struct order_stats **os, size_t nos,
 
   casereader_destroy (reader);
 }
+
+
+
