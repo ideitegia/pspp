@@ -266,7 +266,7 @@ static bool casereader_filter_missing_destroy (void *);
    is destroyed.
 
    If N_MISSING is non-null, then after reading, it will be filled
-   with the total number of dropped cases.
+   with the totla number of dropped cases.
 
    After this function is called, READER must not ever again
    be referenced directly.  It will be destroyed automatically
@@ -285,8 +285,7 @@ casereader_create_filter_missing (struct casereader *reader,
       cfm->var_cnt = var_cnt;
       cfm->class = class;
       cfm->n_missing = n_missing;
-      if (n_missing) 
-	*n_missing = 0;
+      if (n_missing) *n_missing = 0;
       return casereader_create_filter_func (reader,
                                             casereader_filter_missing_include,
                                             casereader_filter_missing_destroy,
