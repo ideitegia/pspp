@@ -113,6 +113,14 @@ casereader_create_translator (struct casereader *, size_t output_value_cnt,
                               bool (*destroy) (void *aux),
                               void *aux);
 
+/* A function which creates a numberic value from an existing case */
+typedef double new_value_func (const struct ccase *, casenumber, void *);
+
+struct casereader *
+casereader_create_append_numeric (struct casereader *subreader,
+				  new_value_func func, void *aux,
+				  void (*destroy) (void *aux));
+
 struct casereader *
 casereader_create_arithmetic_sequence (struct casereader *,
                                        double first, double increment);

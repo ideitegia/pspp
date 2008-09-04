@@ -285,7 +285,8 @@ casereader_create_filter_missing (struct casereader *reader,
       cfm->var_cnt = var_cnt;
       cfm->class = class;
       cfm->n_missing = n_missing;
-      if (n_missing) *n_missing = 0;
+      if (n_missing) 
+	*n_missing = 0;
       return casereader_create_filter_func (reader,
                                             casereader_filter_missing_include,
                                             casereader_filter_missing_destroy,
