@@ -232,7 +232,7 @@ EXAMINE
         /PLOT=@{BOXPLOT, NPPLOT, HISTOGRAM, ALL, NONE@}
         /CINTERVAL n
         /COMPARE=@{GROUPS,VARIABLES@}
-        /ID=@{case_number, var_name@}
+        /ID=var_name
         /@{TOTAL,NOTOTAL@}
         /PERCENTILE=[value_list]=@{HAVERAGE, WAVERAGE, ROUND, AEMPIRICAL, EMPIRICAL @}
         /MISSING=@{LISTWISE, PAIRWISE@} [@{EXCLUDE, INCLUDE@}] 
@@ -271,6 +271,12 @@ If /COMPARE=VARIABLES is specified, then one plot per factor is produced, each
 each containing one boxplot per dependent variable.
 If the /COMPARE subcommand is ommitted, then PSPP uses the default value of 
 /COMPARE=GROUPS.
+ 
+The ID subcommand also pertains to boxplots.  If given, it must
+specify a variable name.   Outliers and extreme cases plotted in
+boxplots will be labelled with the case from that variable.  Numeric or
+string variables are permissible.  If the ID subcommand is not given,
+then the casenumber will be used for labelling.
 
 The CINTERVAL subcommand specifies the confidence interval to use in
 calculation of the descriptives command.  The default it 95%.

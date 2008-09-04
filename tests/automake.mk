@@ -107,6 +107,7 @@ dist_TESTS = \
 	tests/bugs/double-frequency.sh \
 	tests/bugs/empty-do-repeat.sh \
 	tests/bugs/get.sh \
+	tests/bugs/examine-crash.sh \
 	tests/bugs/examine-1sample.sh \
 	tests/bugs/examine-missing.sh \
 	tests/bugs/examine-missing2.sh \

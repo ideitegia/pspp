@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,11 +14,25 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef HISTOGRAM_H
-#define HISTOGRAM_H
+#ifndef __NEW_HISTOGRAM_H__
+#define __NEW_HISTOGRAM_H__
+
+#include <stddef.h>
+
+#include "statistic.h"
 
 #include <gsl/gsl_histogram.h>
 
-gsl_histogram * histogram_create(double bins, double x_min, double x_max);
+
+struct histogram
+{
+  struct statistic parent;
+  gsl_histogram *gsl_hist;
+};
+
+struct statistic * histogram_create (int bins, double max, double min);
+
+void histogram_add (struct histogram *h, double y, double c);
+
 
 #endif

@@ -91,8 +91,7 @@ casewriter_get_value_cnt (const struct casewriter *writer)
 struct casereader *
 casewriter_make_reader (struct casewriter *writer)
 {
-  struct casereader *reader;
-  reader = writer->class->convert_to_reader (writer, writer->aux);
+  struct casereader *reader = writer->class->convert_to_reader (writer, writer->aux);
   taint_propagate (writer->taint, casereader_get_taint (reader));
   taint_destroy (writer->taint);
   free (writer);
@@ -241,10 +240,11 @@ casewriter_window_convert_to_reader (struct casewriter *writer UNUSED,
                                      void *window_)
 {
   struct casewindow *window = window_;
-  struct casereader *reader;
-  reader = casereader_create_random (casewindow_get_value_cnt (window),
-                                     casewindow_get_case_cnt (window),
-                                     &casereader_window_class, window);
+  struct casereader *reader =
+    casereader_create_random (casewindow_get_value_cnt (window),
+			      casewindow_get_case_cnt (window),
+			      &casereader_window_class, window);
+
   taint_propagate (casewindow_get_taint (window),
                    casereader_get_taint (reader));
   return reader;

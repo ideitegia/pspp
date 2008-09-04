@@ -14,8 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if !math_misc_h
-#define math_misc_h 1
+#if !libpspp_misc_h
+#define libpspp_misc_h 1
 
 #include <float.h>
 #include <math.h>
@@ -60,4 +60,21 @@ pow4 (double x)
   return y;
 }
 
-#endif /* math/misc.h */
+/* Set *DEST to the lower of *DEST and SRC */
+static inline void
+minimize (double *dest, double src)
+{
+  if (src < *dest)
+    *dest = src;
+}
+
+
+/* Set *DEST to the greater of *DEST and SRC */
+static inline void
+maximize (double *dest, double src)
+{
+  if (src > *dest)
+    *dest = src;
+}
+
+#endif /* libpspp/misc.h */

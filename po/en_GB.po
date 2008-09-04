@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-08-23 08:35+0800\n"
+"POT-Creation-Date: 2008-09-04 19:43+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -1872,8 +1872,8 @@ msgstr ""
 #: src/language/dictionary/sys-file-info.c:563
 #: src/language/stats/crosstabs.q:1155 src/language/stats/crosstabs.q:1182
 #: src/language/stats/crosstabs.q:1202 src/language/stats/crosstabs.q:1224
-#: src/language/stats/examine.q:1198 src/language/stats/frequencies.q:1060
-#: src/language/stats/frequencies.q:1184
+#: src/language/stats/examine.q:1948 src/language/stats/frequencies.q:1055
+#: src/language/stats/frequencies.q:1179
 msgid "Value"
 msgstr ""
 
@@ -2635,7 +2635,7 @@ msgstr ""
 #: src/language/stats/binomial.c:203 src/language/stats/chisquare.c:223
 #: src/language/stats/chisquare.c:283 src/language/stats/crosstabs.q:862
 #: src/language/stats/crosstabs.q:1062 src/language/stats/crosstabs.q:1785
-#: src/language/stats/examine.q:918 src/language/stats/frequencies.q:1137
+#: src/language/stats/examine.q:1207 src/language/stats/frequencies.q:1132
 #: src/language/stats/oneway.q:306 src/language/stats/oneway.q:476
 #: src/language/stats/regression.q:309 src/ui/gui/crosstabs-dialog.c:59
 msgid "Total"
@@ -2647,7 +2647,7 @@ msgid "Category"
 msgstr ""
 
 #: src/language/stats/binomial.c:236 src/language/stats/crosstabs.q:872
-#: src/language/stats/examine.q:993 src/language/stats/frequencies.q:1405
+#: src/language/stats/examine.q:1280 src/language/stats/frequencies.q:1400
 #: src/language/stats/npar-summary.c:122 src/language/stats/oneway.q:391
 #: src/language/stats/t-test.q:693 src/language/stats/t-test.q:716
 #: src/language/stats/t-test.q:850 src/language/stats/t-test.q:1387
@@ -2740,24 +2740,24 @@ msgstr ""
 msgid "Summary."
 msgstr ""
 
-#: src/language/stats/crosstabs.q:859 src/language/stats/examine.q:981
+#: src/language/stats/crosstabs.q:859 src/language/stats/examine.q:1268
 msgid "Cases"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:860 src/language/stats/examine.q:916
-#: src/language/stats/frequencies.q:1058 src/language/stats/frequencies.q:1406
+#: src/language/stats/crosstabs.q:860 src/language/stats/examine.q:1205
+#: src/language/stats/frequencies.q:1053 src/language/stats/frequencies.q:1401
 msgid "Valid"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:861 src/language/stats/examine.q:917
-#: src/language/stats/frequencies.q:1128 src/language/stats/frequencies.q:1407
+#: src/language/stats/crosstabs.q:861 src/language/stats/examine.q:1206
+#: src/language/stats/frequencies.q:1123 src/language/stats/frequencies.q:1402
 #: src/ui/gui/psppire-var-sheet.c:106
 msgid "Missing"
 msgstr ""
 
-#: src/language/stats/crosstabs.q:873 src/language/stats/examine.q:996
-#: src/language/stats/frequencies.q:1062 src/language/stats/frequencies.q:1063
-#: src/language/stats/frequencies.q:1064
+#: src/language/stats/crosstabs.q:873 src/language/stats/examine.q:1283
+#: src/language/stats/frequencies.q:1057 src/language/stats/frequencies.q:1058
+#: src/language/stats/frequencies.q:1059
 msgid "Percent"
 msgstr ""
 
@@ -2799,7 +2799,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:1154 src/language/stats/crosstabs.q:1181
 #: src/language/stats/crosstabs.q:1201 src/language/stats/crosstabs.q:1222
-#: src/language/stats/examine.q:1442 src/ui/gui/checkbox-treeview.c:94
+#: src/language/stats/examine.q:1745 src/ui/gui/checkbox-treeview.c:94
 msgid "Statistic"
 msgstr ""
 
@@ -2989,7 +2989,7 @@ msgstr ""
 msgid "%s Dependent"
 msgstr ""
 
-#: src/language/stats/descriptives.c:102 src/language/stats/examine.q:1556
+#: src/language/stats/descriptives.c:102 src/language/stats/examine.q:1550
 #: src/language/stats/frequencies.q:123 src/language/stats/npar-summary.c:125
 #: src/language/stats/oneway.q:392 src/language/stats/t-test.q:694
 #: src/language/stats/t-test.q:717 src/language/stats/t-test.q:849
@@ -3006,13 +3006,13 @@ msgstr ""
 msgid "Std Dev"
 msgstr ""
 
-#: src/language/stats/descriptives.c:105 src/language/stats/examine.q:1636
+#: src/language/stats/descriptives.c:105 src/language/stats/examine.q:1581
 #: src/language/stats/frequencies.q:128 src/ui/gui/descriptives-dialog.c:46
 #: src/ui/gui/frequencies-dialog.c:45
 msgid "Variance"
 msgstr ""
 
-#: src/language/stats/descriptives.c:106 src/language/stats/examine.q:1743
+#: src/language/stats/descriptives.c:106 src/language/stats/examine.q:1617
 #: src/language/stats/frequencies.q:129 src/ui/gui/descriptives-dialog.c:47
 #: src/ui/gui/frequencies-dialog.c:50
 msgid "Kurtosis"
@@ -3022,7 +3022,7 @@ msgstr ""
 msgid "S E Kurt"
 msgstr ""
 
-#: src/language/stats/descriptives.c:108 src/language/stats/examine.q:1723
+#: src/language/stats/descriptives.c:108 src/language/stats/examine.q:1612
 #: src/language/stats/frequencies.q:131 src/ui/gui/descriptives-dialog.c:48
 #: src/ui/gui/frequencies-dialog.c:46
 msgid "Skewness"
@@ -3032,20 +3032,20 @@ msgstr ""
 msgid "S E Skew"
 msgstr ""
 
-#: src/language/stats/descriptives.c:110 src/language/stats/examine.q:1684
+#: src/language/stats/descriptives.c:110 src/language/stats/examine.q:1601
 #: src/language/stats/frequencies.q:133 src/ui/gui/descriptives-dialog.c:43
 #: src/ui/gui/frequencies-dialog.c:48
 msgid "Range"
 msgstr ""
 
-#: src/language/stats/descriptives.c:111 src/language/stats/examine.q:1661
+#: src/language/stats/descriptives.c:111 src/language/stats/examine.q:1591
 #: src/language/stats/frequencies.q:134 src/language/stats/npar-summary.c:131
 #: src/language/stats/oneway.q:404 src/ui/gui/descriptives-dialog.c:41
 #: src/ui/gui/frequencies-dialog.c:42
 msgid "Minimum"
 msgstr ""
 
-#: src/language/stats/descriptives.c:112 src/language/stats/examine.q:1672
+#: src/language/stats/descriptives.c:112 src/language/stats/examine.q:1596
 #: src/language/stats/frequencies.q:135 src/language/stats/npar-summary.c:134
 #: src/language/stats/oneway.q:405 src/ui/gui/descriptives-dialog.c:42
 #: src/ui/gui/frequencies-dialog.c:43
@@ -3102,119 +3102,132 @@ msgstr ""
 msgid "Valid cases = %g; cases with missing value(s) = %g."
 msgstr ""
 
-#: src/language/stats/examine.q:288 src/language/stats/examine.q:291
-#, c-format
-msgid "%s is not currently supported."
+#: src/language/stats/examine.q:337 src/language/stats/examine.q:490
+#: src/language/stats/examine.q:1047
+msgid "Not creating plot because data set is empty."
 msgstr ""
 
-#: src/language/stats/examine.q:501 src/language/stats/examine.q:514
+#: src/language/stats/examine.q:347
+#, c-format
+msgid "Normal Q-Q Plot of %s"
+msgstr ""
+
+#: src/language/stats/examine.q:348 src/language/stats/examine.q:353
+msgid "Observed Value"
+msgstr ""
+
+#: src/language/stats/examine.q:349
+msgid "Expected Normal"
+msgstr ""
+
+#: src/language/stats/examine.q:351
+#, c-format
+msgid "Detrended Normal Q-Q Plot of %s"
+msgstr ""
+
+#: src/language/stats/examine.q:354
+msgid "Dev from Normal"
+msgstr ""
+
+#: src/language/stats/examine.q:507
+#, c-format
+msgid "Boxplot of %s vs. %s"
+msgstr ""
+
+#: src/language/stats/examine.q:511
+#, c-format
+msgid "Boxplot of %s"
+msgstr ""
+
+#: src/language/stats/examine.q:747 src/language/stats/examine.q:760
 #, c-format
 msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/language/stats/examine.q:976
+#: src/language/stats/examine.q:1263
 msgid "Case Processing Summary"
 msgstr ""
 
-#: src/language/stats/examine.q:1183
-msgid "Extreme Values"
-msgstr ""
-
-#: src/language/stats/examine.q:1199
-msgid "Case Number"
-msgstr ""
-
-#: src/language/stats/examine.q:1297
-msgid "Highest"
-msgstr ""
-
-#: src/language/stats/examine.q:1302
-msgid "Lowest"
-msgstr ""
-
-#: src/language/stats/examine.q:1443 src/language/stats/oneway.q:394
-#: src/language/stats/oneway.q:692 src/language/stats/regression.q:203
-msgid "Std. Error"
-msgstr ""
-
-#: src/language/stats/examine.q:1445 src/language/stats/oneway.q:408
-#: src/ui/gui/examine.glade:307
-msgid "Descriptives"
-msgstr ""
-
-#: src/language/stats/examine.q:1574 src/language/stats/oneway.q:399
+#: src/language/stats/examine.q:1555 src/language/stats/oneway.q:399
 #, c-format
 msgid "%g%% Confidence Interval for Mean"
 msgstr ""
 
-#: src/language/stats/examine.q:1580 src/language/stats/oneway.q:401
+#: src/language/stats/examine.q:1561 src/language/stats/oneway.q:401
 msgid "Lower Bound"
 msgstr ""
 
-#: src/language/stats/examine.q:1591 src/language/stats/oneway.q:402
+#: src/language/stats/examine.q:1566 src/language/stats/oneway.q:402
 msgid "Upper Bound"
 msgstr ""
 
-#: src/language/stats/examine.q:1603
+#: src/language/stats/examine.q:1571
 #, c-format
 msgid "5%% Trimmed Mean"
 msgstr ""
 
-#: src/language/stats/examine.q:1614 src/language/stats/frequencies.q:125
+#: src/language/stats/examine.q:1576 src/language/stats/frequencies.q:125
 #: src/ui/gui/frequencies-dialog.c:52
 msgid "Median"
 msgstr ""
 
-#: src/language/stats/examine.q:1648 src/language/stats/npar-summary.c:128
+#: src/language/stats/examine.q:1586 src/language/stats/npar-summary.c:128
 #: src/language/stats/oneway.q:393 src/language/stats/t-test.q:695
 #: src/language/stats/t-test.q:718 src/language/stats/t-test.q:851
 #: src/language/stats/t-test.q:1188
 msgid "Std. Deviation"
 msgstr ""
 
-#: src/language/stats/examine.q:1696
+#: src/language/stats/examine.q:1606
 msgid "Interquartile Range"
 msgstr ""
 
-#: src/language/stats/examine.q:1850
+#: src/language/stats/examine.q:1742 src/language/stats/oneway.q:408
+#: src/ui/gui/examine.glade:307
+msgid "Descriptives"
+msgstr ""
+
+#: src/language/stats/examine.q:1748 src/language/stats/oneway.q:394
+#: src/language/stats/oneway.q:692 src/language/stats/regression.q:203
+msgid "Std. Error"
+msgstr ""
+
+#: src/language/stats/examine.q:1845 src/language/stats/examine.q:1850
+#: src/ui/gui/psppire-var-store.c:675 src/ui/gui/psppire-var-store.c:685
+#: src/ui/gui/psppire-var-store.c:695
 #, c-format
-msgid "Boxplot of %s vs. %s"
+msgid "%d"
 msgstr ""
 
-#: src/language/stats/examine.q:1877
-msgid "Boxplot"
+#: src/language/stats/examine.q:1928
+msgid "Highest"
 msgstr ""
 
-#: src/language/stats/examine.q:1919
-#, c-format
-msgid "Normal Q-Q Plot of %s"
+#: src/language/stats/examine.q:1933
+msgid "Lowest"
 msgstr ""
 
-#: src/language/stats/examine.q:1920 src/language/stats/examine.q:1926
-msgid "Observed Value"
+#: src/language/stats/examine.q:1940
+msgid "Extreme Values"
 msgstr ""
 
-#: src/language/stats/examine.q:1921
-msgid "Expected Normal"
+#: src/language/stats/examine.q:1944
+msgid "Case Number"
 msgstr ""
 
-#: src/language/stats/examine.q:1924
-#, c-format
-msgid "Detrended Normal Q-Q Plot of %s"
+#: src/language/stats/examine.q:2066
+msgid "Tukey's Hinges"
 msgstr ""
 
-#: src/language/stats/examine.q:1927
-msgid "Dev from Normal"
-msgstr ""
-
-#: src/language/stats/examine.q:2046 src/language/stats/examine.q:2068
-#: src/language/stats/frequencies.q:1417 src/language/stats/npar-summary.c:141
+#: src/language/stats/examine.q:2106 src/language/stats/examine.q:2124
+#: src/language/stats/frequencies.q:1412 src/language/stats/npar-summary.c:141
 #: src/ui/gui/examine.glade:328
 msgid "Percentiles"
 msgstr ""
 
-#: src/language/stats/examine.q:2204
-msgid "Tukey's Hinges"
+#: src/language/stats/examine.q:2113
+#, c-format
+msgid "%g"
 msgstr ""
 
 #: src/language/stats/flip.c:96
@@ -3317,52 +3330,52 @@ msgid ""
 "MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
 msgstr ""
 
-#: src/language/stats/frequencies.q:759
+#: src/language/stats/frequencies.q:754
 #, c-format
 msgid "Variable %s specified multiple times on VARIABLES subcommand."
 msgstr ""
 
-#: src/language/stats/frequencies.q:822
+#: src/language/stats/frequencies.q:817
 msgid "`)' expected after GROUPED interval list."
 msgstr ""
 
-#: src/language/stats/frequencies.q:834
+#: src/language/stats/frequencies.q:829
 #, c-format
 msgid "Variables %s specified on GROUPED but not on VARIABLES."
 msgstr ""
 
-#: src/language/stats/frequencies.q:841
+#: src/language/stats/frequencies.q:836
 #, c-format
 msgid "Variables %s specified multiple times on GROUPED subcommand."
 msgstr ""
 
-#: src/language/stats/frequencies.q:1059 src/language/stats/frequencies.q:1152
-#: src/language/stats/frequencies.q:1153 src/language/stats/frequencies.q:1187
+#: src/language/stats/frequencies.q:1054 src/language/stats/frequencies.q:1147
+#: src/language/stats/frequencies.q:1148 src/language/stats/frequencies.q:1182
 msgid "Cum"
 msgstr ""
 
-#: src/language/stats/frequencies.q:1061 src/output/charts/plot-hist.c:126
+#: src/language/stats/frequencies.q:1056 src/output/charts/plot-hist.c:138
 msgid "Frequency"
 msgstr ""
 
-#: src/language/stats/frequencies.q:1082
+#: src/language/stats/frequencies.q:1077
 msgid "Value Label"
 msgstr ""
 
-#: src/language/stats/frequencies.q:1185
+#: src/language/stats/frequencies.q:1180
 msgid "Freq"
 msgstr ""
 
-#: src/language/stats/frequencies.q:1186 src/language/stats/frequencies.q:1188
+#: src/language/stats/frequencies.q:1181 src/language/stats/frequencies.q:1183
 msgid "Pct"
 msgstr ""
 
-#: src/language/stats/frequencies.q:1379
+#: src/language/stats/frequencies.q:1374
 #, c-format
 msgid "No valid data for variable %s; statistics not displayed."
 msgstr ""
 
-#: src/language/stats/frequencies.q:1421
+#: src/language/stats/frequencies.q:1416
 msgid "50 (Median)"
 msgstr ""
 
@@ -4117,23 +4130,23 @@ msgstr ""
 msgid "hash table:"
 msgstr ""
 
-#: src/math/percentiles.c:41
+#: src/math/percentiles.c:35
 msgid "HAverage"
 msgstr ""
 
-#: src/math/percentiles.c:42
+#: src/math/percentiles.c:36
 msgid "Weighted Average"
 msgstr ""
 
-#: src/math/percentiles.c:43
+#: src/math/percentiles.c:37
 msgid "Rounded"
 msgstr ""
 
-#: src/math/percentiles.c:44
+#: src/math/percentiles.c:38
 msgid "Empirical"
 msgstr ""
 
-#: src/math/percentiles.c:45
+#: src/math/percentiles.c:39
 msgid "Empirical with averaging"
 msgstr ""
 
@@ -4283,7 +4296,7 @@ msgstr ""
 msgid "creating \"%s\""
 msgstr ""
 
-#: src/output/charts/plot-hist.c:124
+#: src/output/charts/plot-hist.c:136
 msgid "HISTOGRAM"
 msgstr ""
 
@@ -5854,12 +5867,6 @@ msgstr ""
 
 #: src/ui/gui/psppire-var-store.c:604
 msgid "Custom"
-msgstr ""
-
-#: src/ui/gui/psppire-var-store.c:675 src/ui/gui/psppire-var-store.c:685
-#: src/ui/gui/psppire-var-store.c:695
-#, c-format
-msgid "%d"
 msgstr ""
 
 #: src/ui/gui/rank.glade:111
