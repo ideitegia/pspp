@@ -486,7 +486,7 @@ rank_sorted_file (struct casereader *input,
 
 
   input = casereader_create_filter_missing (input, &rank_var, 1,
-                                            exclude_values, output);
+                                            exclude_values, NULL, output);
   input = casereader_create_filter_weight (input, dict, NULL, output);
 
   casereader_split (input, &pass1, &pass2);

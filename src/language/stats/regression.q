@@ -956,9 +956,9 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
       n_indep = identify_indep_vars (indep_vars, dep_var);
       reader = casereader_clone (input);
       reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
-						 MV_ANY, NULL);
+						 MV_ANY, NULL, NULL);
       reader = casereader_create_filter_missing (reader, &dep_var, 1,
-						 MV_ANY, NULL);
+						 MV_ANY, NULL, NULL);
       n_data = prepare_categories (casereader_clone (reader),
 				   indep_vars, n_indep, mom);
 

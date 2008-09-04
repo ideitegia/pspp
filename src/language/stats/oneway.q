@@ -931,10 +931,10 @@ run_oneway (struct cmd_oneway *cmd,
 
   exclude = cmd->incl != ONEWAY_INCLUDE ? MV_ANY : MV_SYSTEM;
   input = casereader_create_filter_missing (input, &indep_var, 1,
-                                            exclude, NULL);
+                                            exclude, NULL, NULL);
   if (cmd->miss == ONEWAY_LISTWISE)
     input = casereader_create_filter_missing (input, vars, n_vars,
-                                              exclude, NULL);
+                                              exclude, NULL, NULL);
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
   reader = casereader_clone (input);

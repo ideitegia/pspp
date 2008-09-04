@@ -98,6 +98,7 @@ struct casereader *
 casereader_create_filter_missing (struct casereader *,
                                   const struct variable **vars, size_t var_cnt,
                                   enum mv_class,
+				  casenumber *n_missing,
                                   struct casewriter *exclude);
 
 struct casereader *

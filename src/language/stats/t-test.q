@@ -1815,7 +1815,7 @@ calculate (struct cmd_t_test *cmd,
     input = casereader_create_filter_missing (input,
                                               cmd->v_variables,
                                               cmd->n_variables,
-                                              exclude, NULL);
+                                              exclude, NULL, NULL);
 
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 

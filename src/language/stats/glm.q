@@ -307,9 +307,9 @@ run_glm (struct casereader *input,
 
   reader = casereader_clone (input);
   reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
-					     MV_ANY, NULL);
+					     MV_ANY, NULL, NULL);
   reader = casereader_create_filter_missing (reader, v_dependent, 1,
-					     MV_ANY, NULL);
+					     MV_ANY, NULL, NULL);
   n_data = data_pass_one (casereader_clone (reader),
 			  (const struct variable **) all_vars, n_all_vars,
 			  mom);

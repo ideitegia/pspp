@@ -245,6 +245,7 @@ struct casereader_filter_missing
     struct variable **vars;     /* Variables whose values to filter. */
     size_t var_cnt;             /* Number of variables. */
     enum mv_class class;        /* Types of missing values to filter. */
+    casenumber *n_missing;
   };
 
 static bool casereader_filter_missing_include (const struct ccase *, void *);
@@ -264,6 +265,9 @@ static bool casereader_filter_missing_destroy (void *);
    read or, if that never occurs, until the filtering casereader
    is destroyed.
 
+   If N_MISSING is non-null, then after reading, it will be filled
+   with the total number of dropped cases.
+
    After this function is called, READER must not ever again
    be referenced directly.  It will be destroyed automatically
    when the filtering casereader is destroyed. */
@@ -271,6 +275,7 @@ struct casereader *
 casereader_create_filter_missing (struct casereader *reader,
                                   const struct variable **vars, size_t var_cnt,
                                   enum mv_class class,
+				  casenumber *n_missing,
                                   struct casewriter *exclude)
 {
   if (var_cnt > 0 && class != MV_NEVER)
@@ -279,6 +284,8 @@ casereader_create_filter_missing (struct casereader *reader,
       cfm->vars = xmemdup (vars, sizeof *vars * var_cnt);
       cfm->var_cnt = var_cnt;
       cfm->class = class;
+      cfm->n_missing = n_missing;
+      if (n_missing) *n_missing = 0;
       return casereader_create_filter_func (reader,
                                             casereader_filter_missing_include,
                                             casereader_filter_missing_destroy,
@@ -302,7 +309,11 @@ casereader_filter_missing_include (const struct ccase *c, void *cfm_)
       struct variable *var = cfm->vars[i];
       const union value *value = case_data (c, var);
       if (var_is_value_missing (var, value, cfm->class))
-        return false;
+	{
+	  if ( cfm->n_missing )
+	    (*cfm->n_missing)++;
+	  return false;
+	}
     }
   return true;
 }

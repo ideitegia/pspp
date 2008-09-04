@@ -186,7 +186,8 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
     input = casereader_create_filter_missing (input,
                                               npar_specs.vv,
                                               npar_specs.n_vars,
-                                              npar_specs.filter, NULL);
+                                              npar_specs.filter,
+					       NULL, NULL);
 
   grouper = casegrouper_create_splits (input, dataset_dict (ds));
   while (casegrouper_get_next_group (grouper, &group))
