@@ -191,3 +191,25 @@ design_matrix_set_numeric (struct design_matrix *dm, size_t row,
   assert (col != DM_COLUMN_NOT_FOUND);
   gsl_matrix_set (dm->m, row, col, val->f);
 }
+
+struct design_matrix *
+design_matrix_clone (const struct design_matrix *dm)
+{
+  struct design_matrix *result;
+  size_t i;
+  size_t j;
+  
+  assert (dm != NULL);
+  result = xmalloc (sizeof *result);
+  result->vars = xnmalloc (dm->n_vars, sizeof *dm->vars);
+  result->n_vars = dm->n_vars;
+  result->m = gsl_matrix_alloc (dm->m->size1, dm->m->size2);
+  
+  gsl_matrix_memcpy (result->m, dm->m);
+  for (i = 0; i < result->n_vars; i++)
+    {
+      result->vars[i] = dm->vars[i];
+    }
+  return result;
+}
+
