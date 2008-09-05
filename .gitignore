@@ -32,3 +32,9 @@ reloc-ldflags
 stamp-h1
 texinfo.tex
 gitlog-to-changelog
+*~
+*.o
+*.lo
+*.a
+*.dirstamp
+*.deps
