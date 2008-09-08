@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-09-04 19:43+0800\n"
+"POT-Creation-Date: 2008-09-08 18:04+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -3399,20 +3399,20 @@ msgstr ""
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
 
-#: src/language/stats/npar.q:236
+#: src/language/stats/npar.q:237
 #, c-format
 msgid ""
 "The specified value of HI (%d) is lower than the specified value of LO (%d)"
 msgstr ""
 
-#: src/language/stats/npar.q:291
+#: src/language/stats/npar.q:292
 #, c-format
 msgid ""
 "%d expected values were given, but the specified range (%d-%d) requires "
 "exactly %d values."
 msgstr ""
 
-#: src/language/stats/npar.q:425 src/language/stats/t-test.q:496
+#: src/language/stats/npar.q:426 src/language/stats/t-test.q:496
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "

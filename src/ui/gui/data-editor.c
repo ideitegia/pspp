@@ -1375,6 +1375,11 @@ data_save_as_dialog (GtkAction *action, struct data_editor *de)
 	de->save_as_portable =
 	  ! gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_sys));
 
+	if ( de->save_as_portable)
+	  append_filename_suffix (de, ".por");
+	else
+	  append_filename_suffix (de, ".sav");
+
 	save_file (de);
 
 	window_set_name_from_filename (e, de->file_name);
