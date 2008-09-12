@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-09-04 19:43+0800\n"
+"POT-Creation-Date: 2008-09-13 07:24+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -1873,7 +1873,8 @@ msgstr ""
 #: src/language/stats/crosstabs.q:1155 src/language/stats/crosstabs.q:1182
 #: src/language/stats/crosstabs.q:1202 src/language/stats/crosstabs.q:1224
 #: src/language/stats/examine.q:1948 src/language/stats/frequencies.q:1055
-#: src/language/stats/frequencies.q:1179
+#: src/language/stats/frequencies.q:1179 src/language/stats/reliability.q:569
+#: src/language/stats/reliability.q:580
 msgid "Value"
 msgstr ""
 
@@ -2637,7 +2638,8 @@ msgstr ""
 #: src/language/stats/crosstabs.q:1062 src/language/stats/crosstabs.q:1785
 #: src/language/stats/examine.q:1207 src/language/stats/frequencies.q:1132
 #: src/language/stats/oneway.q:306 src/language/stats/oneway.q:476
-#: src/language/stats/regression.q:309 src/ui/gui/crosstabs-dialog.c:59
+#: src/language/stats/regression.q:309 src/language/stats/reliability.q:702
+#: src/ui/gui/crosstabs-dialog.c:59
 msgid "Total"
 msgstr ""
 
@@ -2649,8 +2651,9 @@ msgstr ""
 #: src/language/stats/binomial.c:236 src/language/stats/crosstabs.q:872
 #: src/language/stats/examine.q:1280 src/language/stats/frequencies.q:1400
 #: src/language/stats/npar-summary.c:122 src/language/stats/oneway.q:391
-#: src/language/stats/t-test.q:693 src/language/stats/t-test.q:716
-#: src/language/stats/t-test.q:850 src/language/stats/t-test.q:1387
+#: src/language/stats/reliability.q:705 src/language/stats/t-test.q:693
+#: src/language/stats/t-test.q:716 src/language/stats/t-test.q:850
+#: src/language/stats/t-test.q:1387
 msgid "N"
 msgstr ""
 
@@ -2741,11 +2744,13 @@ msgid "Summary."
 msgstr ""
 
 #: src/language/stats/crosstabs.q:859 src/language/stats/examine.q:1268
+#: src/language/stats/reliability.q:693
 msgid "Cases"
 msgstr ""
 
 #: src/language/stats/crosstabs.q:860 src/language/stats/examine.q:1205
 #: src/language/stats/frequencies.q:1053 src/language/stats/frequencies.q:1401
+#: src/language/stats/reliability.q:696
 msgid "Valid"
 msgstr ""
 
@@ -3144,7 +3149,7 @@ msgstr ""
 msgid "%s and %s are mutually exclusive"
 msgstr ""
 
-#: src/language/stats/examine.q:1263
+#: src/language/stats/examine.q:1263 src/language/stats/reliability.q:670
 msgid "Case Processing Summary"
 msgstr ""
 
@@ -3399,20 +3404,20 @@ msgstr ""
 msgid "NPAR subcommand not currently implemented."
 msgstr ""
 
-#: src/language/stats/npar.q:236
+#: src/language/stats/npar.q:237
 #, c-format
 msgid ""
 "The specified value of HI (%d) is lower than the specified value of LO (%d)"
 msgstr ""
 
-#: src/language/stats/npar.q:291
+#: src/language/stats/npar.q:292
 #, c-format
 msgid ""
 "%d expected values were given, but the specified range (%d-%d) requires "
 "exactly %d values."
 msgstr ""
 
-#: src/language/stats/npar.q:425 src/language/stats/t-test.q:496
+#: src/language/stats/npar.q:426 src/language/stats/t-test.q:496
 #, c-format
 msgid ""
 "PAIRED was specified but the number of variables preceding WITH (%zu) did "
@@ -3644,6 +3649,83 @@ msgstr ""
 
 #: src/language/stats/regression.q:931
 msgid "Dependent variable must be numeric."
+msgstr ""
+
+#: src/language/stats/reliability.q:426
+msgid "Reliability Statistics"
+msgstr ""
+
+#: src/language/stats/reliability.q:469
+msgid "Item-Total Statistics"
+msgstr ""
+
+#: src/language/stats/reliability.q:491
+msgid "Scale Mean if Item Deleted"
+msgstr ""
+
+#: src/language/stats/reliability.q:494
+msgid "Scale Variance if Item Deleted"
+msgstr ""
+
+#: src/language/stats/reliability.q:497
+msgid "Corrected Item-Total Correlation"
+msgstr ""
+
+#: src/language/stats/reliability.q:500
+msgid "Cronbach's Alpha if Item Deleted"
+msgstr ""
+
+#: src/language/stats/reliability.q:547 src/language/stats/reliability.q:563
+msgid "Cronbach's Alpha"
+msgstr ""
+
+#: src/language/stats/reliability.q:550
+msgid "N of items"
+msgstr ""
+
+#: src/language/stats/reliability.q:566
+msgid "Part 1"
+msgstr ""
+
+#: src/language/stats/reliability.q:572 src/language/stats/reliability.q:583
+msgid "N of Items"
+msgstr ""
+
+#: src/language/stats/reliability.q:577
+msgid "Part 2"
+msgstr ""
+
+#: src/language/stats/reliability.q:588
+msgid "Total N of Items"
+msgstr ""
+
+#: src/language/stats/reliability.q:591
+msgid "Correlation Between Forms"
+msgstr ""
+
+#: src/language/stats/reliability.q:595
+msgid "Spearman-Brown Coefficient"
+msgstr ""
+
+#: src/language/stats/reliability.q:598
+msgid "Equal Length"
+msgstr ""
+
+#: src/language/stats/reliability.q:601
+msgid "Unequal Length"
+msgstr ""
+
+#: src/language/stats/reliability.q:605
+msgid "Guttman Split-Half Coefficient"
+msgstr ""
+
+#: src/language/stats/reliability.q:699
+msgid "Excluded"
+msgstr ""
+
+#: src/language/stats/reliability.q:708
+#, c-format
+msgid "%%"
 msgstr ""
 
 #: src/language/stats/sort-cases.c:64

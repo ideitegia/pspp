@@ -109,7 +109,7 @@ main (int argc, char *argv[])
 				 GTK_MINOR_VERSION,
 				 GTK_MICRO_VERSION)) )
     {
-      g_critical (vers);
+      g_warning (vers);
     }
 
   /* Deal with options like --version, --help etc */
