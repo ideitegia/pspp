@@ -47,7 +47,7 @@
 #include "xalloc.h"
 #include "gettext.h"
 
-#define GLM_LARGE_DATA 1000
+#define GLM_LARGE_DATA 10000
 
 /* (headers) */
 
@@ -339,6 +339,17 @@ run_glm (struct casereader *input,
 		}
 	    }
 	}
+      model = pspp_linreg_cache_alloc (n_data, n_indep);
+      model->depvar = v_dependent;
+      /*
+	For large data sets, use QR decomposition.
+      */
+      if (n_data > sqrt (n_indep) && n_data > GLM_LARGE_DATA)
+	{
+	  model->method = PSPP_LINREG_QR;
+	}
+      coeff_init (model, X);
+      pspp_linreg_with_cov (X, model);
       casereader_destroy (reader);
       for (i = 0; i < n_all_vars; i++)
 	{
@@ -357,6 +368,7 @@ run_glm (struct casereader *input,
     }
   free (indep_vars);
   free (lopts.get_indep_mean_std);
+  pspp_linreg_cache_free (model);
   casereader_destroy (input);
 
   return true;

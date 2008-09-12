@@ -197,7 +197,7 @@ pspp_linreg_residual (const struct variable **, const union value **,
 /*
   All variables used in the model.
  */
-int pspp_linreg_get_vars (const void *, const struct variable **);
+int pspp_linreg_get_vars (const void *, struct variable **);
 
 struct pspp_coeff *pspp_linreg_get_coeff (const pspp_linreg_cache
 						       *,
