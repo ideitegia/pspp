@@ -14,6 +14,7 @@ far.
 * ONEWAY::                      One way analysis of variance.
 * RANK::                        Compute rank scores.
 * REGRESSION::                  Linear regression.
+* RELIABILITY::                 Reliability analysis.
 @end menu
 
 @node DESCRIPTIVES
@@ -837,3 +838,50 @@ user-missing are to be excluded from the rank scores. A setting of
 INCLUDE means they are to be included.  The default is EXCLUDE.
 
 @include regression.texi
+
+
+@node RELIABILITY
+@section RELIABILITY
+
+@vindex RELIABILITY
+@display
+RELIABILITY
+        /VARIABLES=var_list
+        /SCALE (@var{name}) = @{var_list, ALL@}
+        /MODEL=@{ALPHA, SPLIT[(N)]@}
+        /SUMMARY=@{TOTAL,ALL@}
+        /MISSING=@{EXCLUDE,INCLUDE@}
+@end display
+
+@cindex Cronbach's Alpha
+The @cmd{RELIABILTY} command performs reliablity analysis on the data.
+
+The VARIABLES subcommand is required. It determines the set of variables 
+upon which analysis is to be performed.
+
+The SCALE subcommand determines which variables reliability is to be 
+calculated for.  If it is omitted, then analysis for all variables named
+in the VARIABLES subcommand will be used.
+Optionally, the @var{name} parameter may be specified to set a string name 
+for the scale.
+
+The MODEL subcommand determines the type of analysis. If ALPHA is specified, 
+then Cronbach's Alpha is calculated for the scale.  If the model is SPLIT, 
+then the variables  are divided into 2 subsets.  An optional parameter 
+@var{N} may be given, to specify how many variables to be in the first subset.
+If @var{N} is omitted, then it defaults to one half of the variables in the 
+scale, or one half minus one if there are an odd number of variables.
+The default model is ALPHA.
+
+By default, any cases with user missing, or system missing values for 
+any variables given 
+in the VARIABLES subcommand will be omitted from analysis.
+The MISSING subcommand determines whether user missing values are to 
+be included or excluded in the analysis.
+
+The SUMMARY subcommand determines the type of summary analysis to be performed.
+Currently there is only one type: SUMMARY=TOTAL, which displays per-item
+analysis tested against the totals.
+
+
+

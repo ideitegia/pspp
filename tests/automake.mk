@@ -50,6 +50,7 @@ dist_TESTS = \
 	tests/command/rename.sh \
 	tests/command/regression.sh \
 	tests/command/regression-qr.sh \
+	tests/command/reliability.sh \
 	tests/command/sample.sh \
 	tests/command/sort.sh \
 	tests/command/sysfiles.sh \

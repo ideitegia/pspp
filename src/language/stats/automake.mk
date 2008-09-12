@@ -13,6 +13,7 @@ src_language_stats_built_sources = \
 	src/language/stats/oneway.c \
 	src/language/stats/rank.c \
 	src/language/stats/regression.c \
+	src/language/stats/reliability.c \
 	src/language/stats/t-test.c
 
 language_stats_sources = \
