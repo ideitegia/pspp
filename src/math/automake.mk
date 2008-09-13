@@ -26,6 +26,7 @@ src_math_libpspp_math_a_SOURCES = \
 	src/math/order-stats.c src/math/order-stats.h \
 	src/math/percentiles.c src/math/percentiles.h \
 	src/math/random.c src/math/random.h \
+        src/math/statistic.h \
 	src/math/sort.c src/math/sort.h \
 	src/math/trimmed-mean.c src/math/trimmed-mean.h \
 	src/math/tukey-hinges.c src/math/tukey-hinges.h 
