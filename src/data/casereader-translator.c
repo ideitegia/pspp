@@ -15,9 +15,9 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-
+#include <data/val-type.h>
 #include <data/casereader.h>
-
+#include <assert.h>
 #include <stdlib.h>
 
 #include <data/casereader-provider.h>
@@ -210,4 +210,124 @@ casereader_create_arithmetic_sequence (struct casereader *subreader,
   return casereader_create_append_numeric (subreader, next_arithmetic,
 					   as, free);
 }
+
+
+
+
+struct casereader_append_rank
+{
+  struct casereader *clone;
+  casenumber n;
+  const struct variable *var;
+  const struct variable *weight;
+  int value_ofs;
+  casenumber n_common;
+  double mean_rank;
+  double cc;
+  distinct_func *distinct;
+  void *aux;
+};
+
+static bool car_destroy (void *car_);
+
+static void car_translate (struct ccase *input, struct ccase *output,
+			   void *car_);
+
+/* Creates and returns a new casereader whose cases are produced
+   by reading from SUBREADER and appending an additional value,
+   which is the rank of the observation.  SUBREADER must be sorted
+   on V.  W is the weight variable of the dictionary containing V,
+   or NULL if there is no weight variable.
+
+   If DISTINCT_CALLBACK is non-null, then  it will be called exactly
+   once for every case containing a distinct value of V.  AUX is
+   an auxilliary pointer passed to DISTINCT_CALLBACK.
+
+   After this function is called, SUBREADER must not ever again
+   be referenced directly.  It will be destroyed automatically
+   when the translating casereader is destroyed. */
+struct casereader *
+casereader_create_append_rank (struct casereader *subreader,
+			       const struct variable *v,
+			       const struct variable *w,
+			       distinct_func *distinct_callback,
+			       void *aux
+			       )
+{
+  struct casereader_append_rank *car = xmalloc (sizeof *car);
+  car->value_ofs = casereader_get_value_cnt (subreader);
+  car->weight = w;
+  car->var = v;
+  car->n = 0;
+  car->n_common = 1;
+  car->cc = 0.0;
+  car->clone = casereader_clone (subreader);
+  car->distinct = distinct_callback;
+  car->aux = aux;
+
+  return casereader_create_translator (subreader, car->value_ofs + 1,
+                                       car_translate, car_destroy, car);
+}
+
+
+static bool
+car_destroy (void *car_)
+{
+  struct casereader_append_rank *car = car_;
+  casereader_destroy (car->clone);
+  free (car);
+  return true;
+}
+
+
+static void
+car_translate (struct ccase *input, struct ccase *output,  void *car_)
+{
+  struct casereader_append_rank *car = car_;
+
+  double value = case_data (input, car->var)->f;
+
+  if ( car->n_common == 1)
+    {
+      double vxx = SYSMIS;
+      casenumber k = 0;
+      double weight = 1.0;
+      if (car->weight)
+	weight = case_data (input, car->weight)->f;
+
+      do
+	{
+	  struct ccase c;
+	  if ( ! casereader_peek (car->clone, car->n + ++k, &c))
+	    break;
+	  vxx = case_data (&c, car->var)->f;
+
+	  if ( vxx == value)
+	    {
+	      if (car->weight)
+		weight += case_data (&c, car->weight)->f;
+	      else
+		weight += 1.0;
+	      car->n_common++;
+	    }
+	  case_destroy (&c);
+	}
+      while (vxx == value);
+      car->mean_rank = car->cc + (weight + 1) / 2.0;
+      car->cc += weight;
+
+      if (car->distinct)
+	car->distinct (value, car->n_common, weight, car->aux);
+    }
+  else
+    car->n_common--;
+
+  car->n++;
+
+  case_nullify (output);
+  case_move (output, input);
+  case_resize (output, car->value_ofs + 1);
+  case_data_rw_idx (output, car->value_ofs)->f = car->mean_rank ;
+}
+
 
