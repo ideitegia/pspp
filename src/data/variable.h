@@ -32,6 +32,8 @@ union value;
 struct variable *var_create (const char *name, int width);
 struct variable *var_clone (const struct variable *);
 void var_destroy (struct variable *);
+struct variable *var_create_internal (int case_idx);
+
 
 /* Variable names. */
 #define VAR_NAME_LEN 64 /* Maximum length of variable name, in bytes. */

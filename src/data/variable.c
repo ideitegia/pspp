@@ -142,6 +142,23 @@ var_clone (const struct variable *old_var)
   return new_var;
 }
 
+/* Create a variable to be used for internal calculations only */
+struct variable *
+var_create_internal (int case_idx)
+{
+  struct variable *v = var_create ("$internal", 0);
+
+  struct vardict_info vdi;
+
+  vdi.dict = NULL;
+  vdi.dict_index = 0;
+  vdi.case_index = case_idx;
+
+  var_set_vardict (v, &vdi);
+
+  return v;
+}
+
 /* Destroys variable V.
    V must not belong to a dictionary.  If it does, use
    dict_delete_var instead. */
@@ -150,7 +167,11 @@ var_destroy (struct variable *v)
 {
   if (v != NULL)
     {
-      assert (!var_has_vardict (v));
+      if (var_has_vardict (v))
+	{
+	  const struct vardict_info *vdi = var_get_vardict (v);
+	  assert (vdi->dict == NULL);
+	}
       cat_stored_values_destroy (v->obs_vals);
       var_clear_short_names (v);
       var_clear_aux (v);

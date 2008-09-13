@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.4.3\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-09-13 07:24+0800\n"
+"POT-Creation-Date: 2008-09-13 08:26+0800\n"
 "PO-Revision-Date: 2007-09-15 08:29+0800\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -976,28 +976,28 @@ msgstr ""
 msgid "An I/O error occurred writing system file \"%s\"."
 msgstr ""
 
-#: src/data/variable.c:209
+#: src/data/variable.c:225
 #, c-format
 msgid ""
 "Character `%c' (in %s) may not appear as the first character in a variable "
 "name."
 msgstr ""
 
-#: src/data/variable.c:221
+#: src/data/variable.c:237
 #, c-format
 msgid "Character `%c' (in %s) may not appear in a variable name."
 msgstr ""
 
-#: src/data/variable.c:249
+#: src/data/variable.c:265
 msgid "Variable name cannot be empty string."
 msgstr ""
 
-#: src/data/variable.c:255
+#: src/data/variable.c:271
 #, c-format
 msgid "Variable name %s exceeds %d-character limit."
 msgstr ""
 
-#: src/data/variable.c:263
+#: src/data/variable.c:279
 #, c-format
 msgid "`%s' may not be used as a variable name because it is a reserved word."
 msgstr ""
