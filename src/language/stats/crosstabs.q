@@ -1861,7 +1861,6 @@ display_crosstabulation (void)
     tab_offset (table, -1, tab_row (table) - num_cells * n_rows);
     for (r = 0; r < n_rows; r++)
       {
-        char suffix = 0;
         bool mark_missing = false;
 
         if (cmd.miss == CRS_REPORT
@@ -1870,6 +1869,7 @@ display_crosstabulation (void)
 
         for (i = 0; i < num_cells; i++)
           {
+            char suffix = 0;
             double v;
 
             switch (cells[i])
@@ -1878,7 +1878,7 @@ display_crosstabulation (void)
                 v = row_tot[r];
                 break;
               case CRS_CL_ROW:
-                v = 100.;
+                v = 100.0;
                 suffix = '%';
                 break;
               case CRS_CL_COLUMN:
@@ -1916,7 +1916,6 @@ display_crosstabulation (void)
       {
 	double ct = c < n_cols ? col_tot[c] : W;
         bool mark_missing = false;
-        char suffix = 0;
         int i;
 
         if (cmd.miss == CRS_REPORT && c < n_cols
@@ -1925,13 +1924,13 @@ display_crosstabulation (void)
 
         for (i = 0; i < num_cells; i++)
 	  {
+            char suffix = 0;
 	    double v;
 
 	    switch (cells[i])
 	      {
 	      case CRS_CL_COUNT:
 		v = ct;
-                suffix = '%';
 		break;
 	      case CRS_CL_ROW:
 		v = ct / W * 100.;
@@ -1954,7 +1953,7 @@ display_crosstabulation (void)
                 NOT_REACHED ();
 	      }
 
-            format_cell_entry (table, c, i, v, suffix, mark_missing);
+	    format_cell_entry (table, c, i, v, suffix, mark_missing);
 	  }
         last_row = i;
       }
