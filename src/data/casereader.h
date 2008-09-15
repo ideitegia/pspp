@@ -125,12 +125,20 @@ struct casereader *
 casereader_create_arithmetic_sequence (struct casereader *,
                                        double first, double increment);
 
+enum rank_error
+  {
+    RANK_ERR_NONE = 0,
+    RANK_ERR_NEGATIVE_WEIGHT = 0x01,
+    RANK_ERR_UNSORTED = 0x02
+  };
+
 
 typedef void distinct_func (double v, casenumber n, double w, void *aux);
 
 struct casereader *
 casereader_create_append_rank (struct casereader *,
 			       const struct variable *v, const struct variable *w,
+			       enum rank_error *err,
 			       distinct_func *distinct_callback, void *aux);
 
 
