@@ -160,13 +160,21 @@ pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs,
   size_t i = 0;
   size_t j = 0;
   size_t v_idx;
+  int found = 0;
   struct pspp_coeff *result = NULL;
 
   if (v != NULL)
     {
       v_idx = var_get_dict_index (v);
-      while (i < n_coef && var_get_dict_index (coefs[i]->v_info->v) != v_idx)
+      while (i < n_coef)
 	{
+	  if (coefs[i]->v_info != NULL)
+	    {
+	      if (var_get_dict_index (coefs[i]->v_info->v) == v_idx)
+		{
+		  break;
+		}
+	    }
 	  i++;
 	}
       result = coefs[i];

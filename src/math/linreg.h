@@ -96,9 +96,10 @@ struct pspp_linreg_cache_struct
 				   coefficient here. */
 
   /*
-    Pointer to the dependent variable.
+    Pointers to the variables.
    */
   const struct variable *depvar;
+  const struct variable **indep_vars;
 
   gsl_vector *residuals;
   struct pspp_coeff **coeff;
@@ -175,7 +176,8 @@ typedef struct pspp_linreg_cache_struct pspp_linreg_cache;
   to it. n is the number of cases, p is the number of
   independent variables.
  */
-pspp_linreg_cache *pspp_linreg_cache_alloc (size_t n, size_t p);
+pspp_linreg_cache *pspp_linreg_cache_alloc (const struct variable *, const struct variable **, 
+					    size_t, size_t);
 
 bool pspp_linreg_cache_free (void *);
 

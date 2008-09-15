@@ -151,13 +151,18 @@ glm_custom_dependent (struct lexer *lexer, struct dataset *ds,
   return 1;
 }
 
+/*
+  COV is the covariance matrix for variables included in the
+  model. That means the dependent variable is in there, too.
+ */
 static void
-coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
+coeff_init (pspp_linreg_cache * c, struct design_matrix *cov)
 {
-  c->coeff = xnmalloc (dm->m->size2 + 1, sizeof (*c->coeff));
+  c->coeff = xnmalloc (cov->m->size2, sizeof (*c->coeff));
+  c->n_coeffs = cov->m->size2 - 1;
   c->coeff[0] = xmalloc (sizeof (*(c->coeff[0])));	/* The first coefficient is the intercept. */
   c->coeff[0]->v_info = NULL;	/* Intercept has no associated variable. */
-  pspp_coeff_init (c->coeff + 1, dm);
+  pspp_coeff_init (c->coeff + 1, cov);
 }
 
 /*
@@ -339,8 +344,7 @@ run_glm (struct casereader *input,
 		}
 	    }
 	}
-      model = pspp_linreg_cache_alloc (n_data, n_indep);
-      model->depvar = v_dependent;
+      model = pspp_linreg_cache_alloc (v_dependent, indep_vars, n_data, n_indep);
       /*
 	For large data sets, use QR decomposition.
       */
