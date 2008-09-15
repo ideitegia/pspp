@@ -96,7 +96,7 @@ linreg_mean_std (gsl_vector_const_view v, double *mp, double *sp, double *ssp)
   The return value is the number of distinct variables found.
  */
 int
-pspp_linreg_get_vars (const void *c_, const struct variable **v)
+pspp_linreg_get_vars (const void *c_, struct variable **v)
 {
   const pspp_linreg_cache *c = c_;
   const struct variable *tmp;
@@ -666,7 +666,7 @@ rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache 
   v = xnmalloc (c->n_coeffs, sizeof (*v));
   model_vars = xnmalloc (c->n_coeffs, sizeof (*model_vars));
   columns = xnmalloc (cov->m->size2, sizeof (*columns));
-  n_vars = pspp_linreg_get_vars (c, (const struct variable **) v);
+  n_vars = pspp_linreg_get_vars (c, v);
   dep_col = 0;
   k = 0;
   for (i = 0; i < cov->m->size2; i++)
@@ -731,7 +731,7 @@ pspp_linreg_with_cov (const struct design_matrix *full_cov,
 {
   struct design_matrix *cov;
 
-  assert (cov != NULL);
+  assert (full_cov != NULL);
   assert (cache != NULL);
 
   cov = rearrange_covariance_matrix (full_cov, cache);
