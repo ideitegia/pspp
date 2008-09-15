@@ -35,8 +35,6 @@
 /* Rounds X down to the previous multiple of Y. */
 #define ROUND_DOWN(X, Y) ((X) / (Y) * (Y))
 
-#define SQR(X) ((X) * (X))
-
 int intlog10 (unsigned);
 
 /* Returns the square of X. */

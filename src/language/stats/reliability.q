@@ -640,10 +640,10 @@ reliability_statistics_model_split (struct tab_table *tbl,
     tab_float (tbl, 3, 8, TAB_RIGHT, g, 8, 3);
 
     tmp = (1.0 - r*r) * rel->sc[1].n_items * rel->sc[2].n_items /
-      SQR (rel->sc[0].n_items);
+      pow2 (rel->sc[0].n_items);
 
-    uly = sqrt( SQR (SQR (r)) + 4 * SQR (r) * tmp);
-    uly -= SQR (r);
+    uly = sqrt( pow4 (r) + 4 * pow2 (r) * tmp);
+    uly -= pow2 (r);
     uly /= 2 * tmp;
 
     tab_float (tbl, 3, 7, TAB_RIGHT, uly, 8, 3);
