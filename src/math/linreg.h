@@ -216,4 +216,9 @@ void pspp_linreg_set_indep_variable_sd (pspp_linreg_cache *, const struct variab
  */
 double pspp_linreg_get_indep_variable_mean (pspp_linreg_cache *, const struct variable *);
 void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *, const struct variable *, double);
+
+/*
+  Regression using only the covariance matrix.
+ */
+int pspp_linreg_with_cov (const struct design_matrix *, pspp_linreg_cache *);
 #endif

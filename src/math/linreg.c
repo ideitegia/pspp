@@ -674,7 +674,7 @@ rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache 
   assert (c != NULL);
   assert (cov->m->size1 > 0);
   assert (cov->m->size2 == cov->m->size1);
-  permutation = xnmalloc (cov->m->size2, sizeof (*permutation));
+  permutation = xnmalloc (1 + c->n_indeps, sizeof (*permutation));
   model_vars = xnmalloc (1 + c->n_indeps, sizeof (*model_vars));
 
   /*
@@ -688,17 +688,18 @@ rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache 
   result = covariance_matrix_create (1 + c->n_indeps, model_vars);
   for (j = 0; j < cov->m->size2; j++)
     {
-      for (k = 0; k < result->m->size2; k++)
+      k = 0;
+      while (k < result->m->size2)
 	{
 	  if (design_matrix_col_to_var (cov, j) == design_matrix_col_to_var (result, k)) 
 	    {
 	      permutation[k] = j;
-	      break;
 	    }
+	  k++;
 	}
     }
-  for (j = 0; j < result->m->size2; j++)
-    for (i = 0; i < result->m->size1; i++)
+  for (i = 0; i < result->m->size1; i++)
+    for (j = 0; j < result->m->size2; j++)
       {
 	gsl_matrix_set (result->m, i, j, gsl_matrix_get (cov->m, permutation[i], permutation[j]));
       }

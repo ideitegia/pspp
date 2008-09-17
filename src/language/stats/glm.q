@@ -95,18 +95,15 @@ int cmd_glm (struct lexer *lexer, struct dataset *ds);
 
 static bool run_glm (struct casereader *,
 		     struct cmd_glm *,
-		     const struct dataset *, pspp_linreg_cache *);
+		     const struct dataset *);
 
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
 {
   struct casegrouper *grouper;
   struct casereader *group;
-  pspp_linreg_cache *model = NULL;
 
   bool ok;
-
-  model = xmalloc (sizeof *model);
 
   if (!parse_glm (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
@@ -115,12 +112,11 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
   while (casegrouper_get_next_group (grouper, &group))
     {
-      run_glm (group, &cmd, ds, model);
+      run_glm (group, &cmd, ds);
     }
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
 
-  free (model);
   free (v_dependent);
   return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
@@ -160,9 +156,7 @@ coeff_init (pspp_linreg_cache * c, struct design_matrix *cov)
 {
   c->coeff = xnmalloc (cov->m->size2, sizeof (*c->coeff));
   c->n_coeffs = cov->m->size2 - 1;
-  c->coeff[0] = xmalloc (sizeof (*(c->coeff[0])));	/* The first coefficient is the intercept. */
-  c->coeff[0]->v_info = NULL;	/* Intercept has no associated variable. */
-  pspp_coeff_init (c->coeff + 1, cov);
+  pspp_coeff_init (c->coeff, cov);
 }
 
 /*
@@ -255,8 +249,9 @@ data_pass_one (struct casereader *input,
 static bool
 run_glm (struct casereader *input,
 	 struct cmd_glm *cmd,
-	 const struct dataset *ds, pspp_linreg_cache * model)
+	 const struct dataset *ds)
 {
+  pspp_linreg_cache *model = NULL; 
   size_t i;
   size_t j;
   int n_indep = 0;
@@ -272,8 +267,6 @@ run_glm (struct casereader *input,
 
   pspp_linreg_opts lopts;
 
-  assert (model != NULL);
-
   if (!casereader_peek (input, 0, &c))
     {
       casereader_destroy (input);
@@ -287,8 +280,6 @@ run_glm (struct casereader *input,
       dict_get_vars (dataset_dict (ds), &v_dependent, &n_dependent,
 		     1u << DC_SYSTEM);
     }
-
-
 
   lopts.get_depvar_mean_std = 1;
 
@@ -321,6 +312,10 @@ run_glm (struct casereader *input,
 
   if ((n_data > 0) && (n_indep > 0))
     {
+      for (i = 0; i < n_all_vars; i++)
+	if (var_is_alpha (all_vars[i]))
+	  cat_stored_values_create (all_vars[i]);
+      
       X =
 	covariance_matrix_create (n_all_vars,
 				  (const struct variable **) all_vars);
@@ -334,6 +329,8 @@ run_glm (struct casereader *input,
 	    {
 	      const struct variable *v = all_vars[i];
 	      const union value *val_v = case_data (&c, v);
+	      if (var_is_alpha (all_vars[i]))
+		cat_value_update (all_vars[i], val_v);
 	      for (j = i; j < n_all_vars; j++)
 		{
 		  const struct variable *w = all_vars[j];
@@ -344,7 +341,7 @@ run_glm (struct casereader *input,
 		}
 	    }
 	}
-      model = pspp_linreg_cache_alloc (v_dependent, indep_vars, n_data, n_indep);
+      model = pspp_linreg_cache_alloc (v_dependent[0], indep_vars, n_data, n_indep);
       /*
 	For large data sets, use QR decomposition.
       */
