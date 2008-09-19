@@ -83,7 +83,7 @@ list.
 Each set must have exactly as many source variables as aggregation
 variables.  Each aggregation variable receives the results of applying
 the specified aggregation function to the corresponding source
-variable.  The MEAN, SD, and SUM aggregation functions may only be
+variable.  The MEAN, MEDIAN, SD, and SUM aggregation functions may only be
 applied to numeric variables.  All the rest may be applied to numeric
 and short and long string variables.
 
@@ -127,6 +127,9 @@ dictionary information from the source variable.
 @item MEAN(var_name)
 Arithmetic mean.  Limited to numeric values.  The default format is
 F8.2.
+
+@item MEDIAN(var_name)
+The median value.  Limited to numeric values.  The default format is F8.2.
 
 @item MIN(var_name)
 Minimum value.  The aggregation variable receives the complete

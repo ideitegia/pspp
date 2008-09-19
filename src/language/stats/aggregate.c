@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,6 +43,8 @@
 #include <libpspp/str.h>
 #include <math/moments.h>
 #include <math/sort.h>
+#include <math/statistic.h>
+#include <math/percentiles.h>
 
 #include "minmax.h"
 #include "xalloc.h"
@@ -75,12 +77,17 @@ struct agr_var
     char *string;
     bool saw_missing;
     struct moments1 *moments;
+    double cc;
+
+    struct variable *subject;
+    struct variable *weight;
+    struct casewriter *writer;
   };
 
 /* Aggregation functions. */
 enum
   {
-    NONE, SUM, MEAN, SD, MAX, MIN, PGT, PLT, PIN, POUT, FGT, FLT, FIN,
+    NONE, SUM, MEAN, MEDIAN, SD, MAX, MIN, PGT, PLT, PIN, POUT, FGT, FLT, FIN,
     FOUT, N, NU, NMISS, NUMISS, FIRST, LAST,
     N_AGR_FUNCS, N_NO_VARS, NU_NO_VARS,
     FUNC = 0x1f, /* Function mask. */
@@ -102,6 +109,7 @@ static const struct agr_func agr_func_tab[] =
     {"<NONE>",  0, -1,          {0, 0, 0}},
     {"SUM",     0, -1,          {FMT_F, 8, 2}},
     {"MEAN",	0, -1,          {FMT_F, 8, 2}},
+    {"MEDIAN",	0, -1,          {FMT_F, 8, 2}},
     {"SD",      0, -1,          {FMT_F, 8, 2}},
     {"MAX",     0, VAL_STRING,  {-1, -1, -1}},
     {"MIN",     0, VAL_STRING,  {-1, -1, -1}},
@@ -135,7 +143,7 @@ enum missing_treatment
 struct agr_proc
   {
     /* Break variables. */
-    struct case_ordering *sort;         /* Sort criteria. */
+    struct case_ordering *sort;         /* Sort criteria (break variable). */
     const struct variable **break_vars;       /* Break variables. */
     size_t break_var_cnt;               /* Number of break variables. */
     struct ccase break_case;            /* Last values of break variables. */
@@ -149,6 +157,7 @@ struct agr_proc
 
 static void initialize_aggregate_info (struct agr_proc *,
                                        const struct ccase *);
+
 static void accumulate_aggregate_info (struct agr_proc *,
                                        const struct ccase *);
 /* Prototypes. */
@@ -344,7 +353,8 @@ error:
 
 /* Parse all the aggregate functions. */
 static bool
-parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, struct agr_proc *agr)
+parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict,
+			   struct agr_proc *agr)
 {
   struct agr_var *tail; /* Tail of linked list starting at agr->vars. */
 
@@ -545,7 +555,7 @@ parse_aggregate_functions (struct lexer *lexer, const struct dictionary *dict, s
          variables. */
       for (i = 0; i < n_dest; i++)
 	{
-	  struct agr_var *v = xmalloc (sizeof *v);
+	  struct agr_var *v = xzalloc (sizeof *v);
 
 	  /* Add variable to chain. */
 	  if (agr->agr_vars != NULL)
@@ -703,6 +713,10 @@ agr_destroy (struct agr_proc *agr)
 	}
       else if (iter->function == SD)
         moments1_destroy (iter->moments);
+
+      var_destroy (iter->subject);
+      var_destroy (iter->weight);
+
       free (iter);
     }
   if (agr->dict != NULL)
@@ -755,6 +769,25 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
             iter->dbl[0] += v->f * weight;
             iter->dbl[1] += weight;
             break;
+	  case MEDIAN:
+	    {
+	      double wv ;
+	      struct ccase cout;
+	      case_create (&cout, 2);
+
+	      case_data_rw (&cout, iter->subject)->f =
+		case_data (input, iter->src)->f;
+
+	      wv = dict_get_case_weight (agr->src_dict, input, NULL);
+
+	      case_data_rw (&cout, iter->weight)->f = wv;
+
+	      iter->cc += wv;
+
+	      casewriter_write (iter->writer, &cout);
+	      case_destroy (&cout);
+	    }
+	    break;
 	  case SD:
             moments1_add (iter->moments, v->f, weight);
             break;
@@ -911,6 +944,7 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
       {
 	union value *v = case_data_rw (&c, i->dest);
 
+
 	if (agr->missing == COLUMNWISE && i->saw_missing
 	    && (i->function & FUNC) != N && (i->function & FUNC) != NU
 	    && (i->function & FUNC) != NMISS && (i->function & FUNC) != NUMISS)
@@ -919,6 +953,9 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 	      memset (v->s, ' ', var_get_width (i->dest));
 	    else
 	      v->f = SYSMIS;
+
+	    casewriter_destroy (i->writer);
+
 	    continue;
 	  }
 
@@ -929,6 +966,25 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 	    break;
 	  case MEAN:
 	    v->f = i->dbl[1] != 0.0 ? i->dbl[0] / i->dbl[1] : SYSMIS;
+	    break;
+	  case MEDIAN:
+	    {
+	      struct casereader *sorted_reader;
+	      struct order_stats *median = percentile_create (0.5, i->cc);
+
+	      sorted_reader = casewriter_make_reader (i->writer);
+
+	      order_stats_accumulate (&median, 1,
+				      sorted_reader,
+				      i->weight,
+				      i->subject,
+				      i->exclude);
+
+	      v->f = percentile_calculate ((struct percentile *) median,
+					   PC_HAVERAGE);
+
+	      statistic_destroy ((struct statistic *) median);
+	    }
 	    break;
 	  case SD:
             {
@@ -1043,6 +1099,22 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  break;
 	case MAX | FSTRING:
 	  memset (iter->string, 0, var_get_width (iter->src));
+	  break;
+	case MEDIAN:
+	  {
+	    struct case_ordering *ordering = case_ordering_create ();
+
+	    if ( ! iter->subject)
+	      iter->subject = var_create_internal (0);
+
+	    if ( ! iter->weight)
+	      iter->weight = var_create_internal (1);
+
+	    case_ordering_add_var (ordering, iter->subject, SRT_ASCEND);
+
+	    iter->writer = sort_create_writer (ordering, 2);
+	    iter->cc = 0;
+	  }
 	  break;
         case SD:
           if (iter->moments == NULL)
