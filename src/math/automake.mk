@@ -2,9 +2,12 @@
 
 include $(top_srcdir)/src/math/ts/automake.mk
 
-noinst_LIBRARIES += src/math/libpspp_math.a
+noinst_LTLIBRARIES += src/math/libpspp-math.la
 
-src_math_libpspp_math_a_SOURCES = \
+src_math_libpspp_math_la_LIBADD = \
+	lib/linreg/liblinreg.la
+
+src_math_libpspp_math_la_SOURCES = \
 	src/math/chart-geometry.c \
 	src/math/chart-geometry.h \
 	src/math/box-whisker.c src/math/box-whisker.h \

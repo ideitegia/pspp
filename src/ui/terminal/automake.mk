@@ -1,8 +1,8 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-noinst_LIBRARIES += src/ui/terminal/libui.a
+noinst_LTLIBRARIES += src/ui/terminal/libui.la
 
-src_ui_terminal_libui_a_SOURCES = \
+src_ui_terminal_libui_la_SOURCES = \
 	src/ui/terminal/command-line.c \
 	src/ui/terminal/command-line.h \
 	src/ui/terminal/read-line.c \
@@ -17,28 +17,15 @@ src_ui_terminal_libui_a_CFLAGS = -DINSTALLDIR=\"$(bindir)\" $(NCURSES_CFLAGS)
 
 bin_PROGRAMS += src/ui/terminal/pspp
 
-
 src_ui_terminal_pspp_SOURCES =
 
 src_ui_terminal_pspp_LDADD = \
-	src/ui/terminal/libui.a \
-	src/language/liblanguage.a \
-	src/output/charts/libcharts.a \
-	src/output/liboutput.a \
-	src/math/libpspp_math.a  \
-	src/ui/libuicommon.a \
-	lib/linreg/liblinreg.a	\
-	lib/misc/libmisc.a	\
-	src/data/libdata.a \
-	src/libpspp/libpspp.a \
-	$(LIBXML2_LIBS) \
-	$(PG_LIBS) \
+	src/ui/terminal/libui.la \
+	src/libpspp.la \
+	src/libpspp-core.la \
 	$(NCURSES_LIBS) \
 	$(LIBICONV) \
-	gl/libgl.la \
 	@LIBINTL@ @LIBREADLINE@
-
-
 
 
 src_ui_terminal_pspp_LDFLAGS = $(PG_LDFLAGS)

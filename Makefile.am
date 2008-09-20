@@ -32,6 +32,7 @@ EXTRA_DIST = OChangeLog ONEWS config.rpath pspp-mode.el
 CLEANFILES = 
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=
+noinst_LTLIBRARIES=
 noinst_PROGRAMS=
 check_PROGRAMS=
 bin_PROGRAMS=

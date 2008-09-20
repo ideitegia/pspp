@@ -10,9 +10,14 @@ include $(top_srcdir)/src/language/stats/automake.mk
 include $(top_srcdir)/src/language/data-io/automake.mk
 include $(top_srcdir)/src/language/expressions/automake.mk
 
-noinst_LIBRARIES += src/language/liblanguage.a
+noinst_LTLIBRARIES +=  src/language/liblanguage.la
 
-src_language_liblanguage_a_SOURCES = \
+
+src_language_liblanguage_la_LIBADD = \
+	lib/misc/libmisc.la \
+	src/output/charts/libcharts.la
+
+src_language_liblanguage_la_SOURCES = \
 	src/language/syntax-file.c \
 	src/language/syntax-file.h \
 	src/language/syntax-string-source.c \
@@ -33,8 +38,7 @@ src_language_liblanguage_a_SOURCES = \
 	$(language_expressions_sources)
 
 
-
-nodist_src_language_liblanguage_a_SOURCES = \
+nodist_src_language_liblanguage_la_SOURCES = \
 	$(src_language_data_io_built_sources) \
 	$(src_language_utilities_built_sources) \
 	$(src_language_stats_built_sources)  \

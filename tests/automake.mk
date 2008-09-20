@@ -189,6 +189,7 @@ tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.h \
 	tests/libpspp/ll-test.c
 tests_libpspp_ll_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_ll_test_CFLAGS = $(AM_CFLAGS)
 
 tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -197,6 +198,7 @@ tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/llx.h \
 	tests/libpspp/llx-test.c
 tests_libpspp_llx_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_llx_test_CFLAGS = $(AM_CFLAGS)
 
 tests_libpspp_heap_test_SOURCES = \
 	src/libpspp/heap.c \
@@ -243,7 +245,7 @@ tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
-tests_libpspp_str_test_LDADD = src/libpspp/libpspp.a gl/libgl.la @LIBINTL@
+tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la @LIBINTL@
 
 tests_libpspp_tower_test_SOURCES = \
 	src/libpspp/abt.c \
@@ -273,6 +275,7 @@ tests_dissect_sysfile_SOURCES = \
 	src/libpspp/float-format.c \
 	tests/dissect-sysfile.c
 tests_dissect_sysfile_LDADD = gl/libgl.la @LIBINTL@
+tests_dissect_sysfile_CFLAGS = $(AM_CFLAGS)
 
 EXTRA_DIST += \
 	$(dist_TESTS) \

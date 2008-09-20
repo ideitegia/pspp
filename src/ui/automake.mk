@@ -6,9 +6,9 @@ include $(top_srcdir)/src/ui/gui/automake.mk
 endif
 
 
-noinst_LIBRARIES += src/ui/libuicommon.a
+noinst_LTLIBRARIES += src/ui/libuicommon.la
 
-src_ui_libuicommon_a_SOURCES = \
+src_ui_libuicommon_la_SOURCES = \
 	src/ui/debugger.c \
 	src/ui/debugger.h \
 	src/ui/syntax-gen.c \
