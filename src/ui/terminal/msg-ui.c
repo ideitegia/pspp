@@ -267,7 +267,7 @@ write_stream (int line_indent, struct substring line, void *stream_)
 
 /* Writes LINE to the journal. */
 static void
-write_journal (int line_indent, struct substring line, void *unused UNUSED)
+write_journal (int line_indent UNUSED, struct substring line, void *unused UNUSED)
 {
   char *s = xstrndup (ss_data (line), ss_length (line));
   journal_write (true, s);
