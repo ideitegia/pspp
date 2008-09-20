@@ -18,6 +18,7 @@
 #define npar_h 1
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <data/missing-values.h>
 
 #include <stddef.h>
@@ -36,8 +37,9 @@ struct npar_test
   void (*execute) (const struct dataset *,
 		   struct casereader *,
                    enum mv_class exclude,
-		   const struct npar_test *
-		   );
+		   const struct npar_test *,
+		   bool,
+		   double);
 
   void (*insert_variables) (const struct npar_test *,
 			    struct const_hsh_table *);

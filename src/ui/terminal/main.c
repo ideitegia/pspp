@@ -84,6 +84,7 @@ main (int argc, char **argv)
   signal (SIGABRT, bug_handler);
   signal (SIGSEGV, bug_handler);
   signal (SIGFPE, bug_handler);
+  signal (SIGALRM, SIG_IGN);
   at_fatal_signal (clean_up);
 
   i18n_init ();

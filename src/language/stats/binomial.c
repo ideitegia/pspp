@@ -143,7 +143,9 @@ void
 binomial_execute (const struct dataset *ds,
 		  struct casereader *input,
                   enum mv_class exclude,
-		  const struct npar_test *test)
+		  const struct npar_test *test,
+		  bool exact UNUSED,
+		  double timer UNUSED)
 {
   int v;
   const struct binomial_test *bst = (const struct binomial_test *) test;

@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <libintl.h>
 #include <gsl/gsl_errno.h>
+#include <signal.h>
 
 #include "relocatable.h"
 
@@ -121,6 +122,9 @@ initialize (void)
 
   journal_enable ();
   textdomain (PACKAGE);
+
+  /* Ignore alarm clock signals */
+  signal (SIGALRM, SIG_IGN);
 
   new_data_window (NULL, NULL);
 }

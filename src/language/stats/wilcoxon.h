@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,41 +14,51 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if !chisquare_h
-#define chisquare_h 1
+#if !wilcoxon_h
+#define wilcoxon_h 1
 
 #include <stddef.h>
 #include <stdbool.h>
 #include <language/stats/npar.h>
+#include <data/case.h>
 
-struct chisquare_test
+
+struct rank_sum
 {
-  struct one_sample_test parent;
+  double n;
+  double sum;
+};
 
-  bool ranged ;     /* True if this test has a range specified */
+struct wilcoxon_state
+{
+  struct casereader *reader;
+  struct variable *sign;
+  struct variable *absdiff;
 
-  int lo;           /* Lower bound of range (undefined if RANGED is false) */
-  int hi;           /* Upper bound of range (undefined if RANGED is false) */
+  struct rank_sum positives;
+  struct rank_sum negatives;
+  double n_zeros;
 
-  double *expected;
-  int n_expected;
+  double tiebreaker;
+};
+
+
+struct wilcoxon_test
+{
+  struct two_sample_test parent;
 };
 
 struct casereader;
-struct dictionary;
-struct hsh_table;
 struct dataset;
 
-void chisquare_insert_variables (const struct npar_test *test,
-				 struct hsh_table *variables);
 
-
-void chisquare_execute (const struct dataset *ds,
-			struct casereader *input,
-                        enum mv_class exclude,
-			const struct npar_test *test,
-			bool,
-			double);
+void wilcoxon_execute (const struct dataset *ds,
+		       struct casereader *input,
+		       enum mv_class exclude,
+		       const struct npar_test *test,
+		       bool exact,
+		       double timer
+		       );
 
 
 

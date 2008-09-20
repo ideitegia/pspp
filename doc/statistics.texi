@@ -506,6 +506,8 @@ NPAR TESTS
      [ /STATISTICS=@{DESCRIPTIVES@} ]
 
      [ /MISSING=@{ANALYSIS, LISTWISE@} @{INCLUDE, EXCLUDE@} ]
+
+     [ /METHOD=EXACT [ TIMER [(n)] ] ]
 @end display
 
 NPAR TESTS performs nonparametric tests. 
@@ -515,10 +517,21 @@ One or more tests may be specified by using the corresponding subcommand.
 If the /STATISTICS subcommand is also specified, then summary statistics are 
 produces for each variable that is the subject of any test.
 
+Certain tests may take a long time to execute, if an exact figure is required.
+Therefore, by default asymptotic approximations are used unless the
+subcommand /METHOD=EXACT is specified.  
+Exact tests give more accurate results, but may take an unacceptably long 
+time to perform.  If the TIMER keyword is used, it sets a maximum time,
+after which the test will be abandoned, and a warning message printed.
+The time, in minutes, should be specified in parentheses after the TIMER keyword.
+If the TIMER keyword is given without this figure, then a default value of 5 minutes 
+is used.
+
 
 @menu
 * BINOMIAL::                Binomial Test
 * CHISQUARE::               Chisquare Test
+* WILCOXON::                Wilcoxon Signed Ranks Test
 @end menu
 
 
@@ -598,6 +611,34 @@ sum of the frequencies need not be 1.
 If no /EXPECTED subcommand is given, then then equal frequencies 
 are expected.
 
+@node WILCOXON
+@subsection Wilcoxon
+@comment  node-name,  next,  previous,  up
+@vindex WILCOXON
+@cindex wilcoxon matched pairs signed ranks test
+
+@display
+     [ /WILCOXON varlist [ WITH varlist [ (PAIRED) ]]]
+@end display
+
+The wilcoxon subcommand tests for differences between means of the 
+variables listed.  The test does not make any assumptions about the
+variances of the samples.
+
+If the @code{WITH} keyword is omitted, then tests for all
+combinations of the listed variables are performed.
+If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
+is also given, then the number of variables preceding @code{WITH}
+must be the same as the number following it.
+In this case, tests for each respective pair of variables are
+performed.
+If the @code{WITH} keyword is given, but the
+@code{(PAIRED)} keyword is omitted, then tests for each combination
+of variable preceding @code{WITH} against variable following
+@code{WITH} are performed.
+
+If the number of observations is large, and exact tests have been
+requested. then the test may take a very long time to complete.
 
 @node T-TEST
 @comment  node-name,  next,  previous,  up

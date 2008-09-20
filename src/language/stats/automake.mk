@@ -32,7 +32,9 @@ language_stats_sources = \
 	src/language/stats/freq.c \
 	src/language/stats/freq.h \
 	src/language/stats/npar-summary.c \
-	src/language/stats/npar-summary.h 
+	src/language/stats/npar-summary.h \
+	src/language/stats/wilcoxon.c \
+	src/language/stats/wilcoxon.h
 
 all_q_sources += $(src_language_stats_built_sources:.c=.q)
 EXTRA_DIST += $(src_language_stats_built_sources:.c=.q)

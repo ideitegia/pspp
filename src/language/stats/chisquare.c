@@ -320,7 +320,9 @@ void
 chisquare_execute (const struct dataset *ds,
 		   struct casereader *input,
                    enum mv_class exclude,
-		   const struct npar_test *test)
+		   const struct npar_test *test,
+		   bool exact UNUSED,
+		   double timer UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
   int v, i;
