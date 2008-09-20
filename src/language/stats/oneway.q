@@ -288,17 +288,17 @@ show_anova_table(void)
       struct hsh_table *group_hash = group_proc_get (vars[i])->group_hash;
       struct hsh_iterator g;
       struct group_statistics *gs;
-      double ssa=0;
+      double ssa = 0;
       const char *s = var_to_string(vars[i]);
 
       for (gs =  hsh_first (group_hash,&g);
 	   gs != 0;
 	   gs = hsh_next(group_hash,&g))
 	{
-	  ssa += (gs->sum * gs->sum)/gs->n;
+	  ssa += pow2 (gs->sum) / gs->n;
 	}
 
-      ssa -= ( totals->sum * totals->sum ) / totals->n ;
+      ssa -= pow2 (totals->sum) / totals->n;
 
       tab_text (t, 0, i * 3 + 1, TAB_LEFT | TAT_TITLE, s);
       tab_text (t, 1, i * 3 + 1, TAB_LEFT | TAT_TITLE, _("Between Groups"));
@@ -310,7 +310,7 @@ show_anova_table(void)
 
       {
         struct group_proc *gp = group_proc_get (vars[i]);
-	const double sst = totals->ssq - ( totals->sum * totals->sum) / totals->n ;
+	const double sst = totals->ssq - pow2 (totals->sum) / totals->n ;
 	const double df1 = gp->n_groups - 1;
 	const double df2 = totals->n - gp->n_groups ;
 	const double msa = ssa / df1;
@@ -333,7 +333,6 @@ show_anova_table(void)
 	tab_float (t, 4, i * 3 + 1, TAB_RIGHT, msa, 8, 3);
 	tab_float (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, 8, 3);
 
-
 	{
 	  const double F = msa/gp->mse ;
 
@@ -343,9 +342,7 @@ show_anova_table(void)
 	  /* The significance */
 	  tab_float (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q(F,df1,df2), 8, 3);
 	}
-
       }
-
     }
 
 
@@ -447,17 +444,17 @@ show_descriptives(void)
 
 	  tab_float (t, 2, row + count, 0, gs->n, 8,0);
 
-	  tab_float (t, 3, row + count, 0, gs->mean,8,2);
+	  tab_float (t, 3, row + count, 0, gs->mean, 8, 2);
 
-	  tab_float (t, 4, row + count, 0, gs->std_dev,8,2);
+	  tab_float (t, 4, row + count, 0, gs->std_dev, 8, 2);
 
 	  std_error = gs->std_dev/sqrt(gs->n) ;
 	  tab_float (t, 5, row + count, 0,
-		     std_error, 8,2);
+		     std_error, 8, 2);
 
 	  /* Now the confidence interval */
 
-	  T = gsl_cdf_tdist_Qinv(q,gs->n - 1);
+	  T = gsl_cdf_tdist_Qinv(q, gs->n - 1);
 
 	  tab_float(t, 6, row + count, 0,
 		    gs->mean - T * std_error, 8, 2);
@@ -761,13 +758,13 @@ show_contrast_tests(short *bad_contrast)
 	      const double coef = subc_list_double_at(&cmd.dl_contrast[i], ci);
 	      struct group_statistics *gs = group_stat_array[ci];
 
-	      const double winv = (gs->std_dev * gs->std_dev) / gs->n;
+	      const double winv = pow2 (gs->std_dev) / gs->n;
 
 	      contrast_value += coef * gs->mean;
 
 	      coef_msq += (coef * coef) / gs->n ;
 
-	      sec_vneq += (coef * coef) * (gs->std_dev * gs->std_dev ) /gs->n ;
+	      sec_vneq += (coef * coef) * pow2 (gs->std_dev) /gs->n ;
 
 	      df_numerator += (coef * coef) * winv;
 	      df_denominator += pow2((coef * coef) * winv) / (gs->n - 1);
@@ -783,7 +780,7 @@ show_contrast_tests(short *bad_contrast)
 		     cmd.sbc_contrast,
 		     TAB_RIGHT, contrast_value, 8,2);
 
-	  std_error_contrast = sqrt(grp_data->mse * coef_msq);
+	  std_error_contrast = sqrt (grp_data->mse * coef_msq);
 
 	  /* Std. Error */
 	  tab_float (t,  4, (v * lines_per_variable) + i + 1,
@@ -980,9 +977,9 @@ run_oneway (struct cmd_oneway *cmd,
 	    {
 	      struct group_statistics *totals = &gp->ugs;
 
-	      totals->n+=weight;
-	      totals->sum+=weight * val->f;
-	      totals->ssq+=weight * val->f * val->f;
+	      totals->n += weight;
+	      totals->sum += weight * val->f;
+	      totals->ssq += weight * pow2 (val->f);
 
 	      if ( val->f * weight  < totals->minimum )
 		totals->minimum = val->f * weight;
@@ -990,9 +987,9 @@ run_oneway (struct cmd_oneway *cmd,
 	      if ( val->f * weight  > totals->maximum )
 		totals->maximum = val->f * weight;
 
-	      gs->n+=weight;
-	      gs->sum+=weight * val->f;
-	      gs->ssq+=weight * val->f * val->f;
+	      gs->n += weight;
+	      gs->sum += weight * val->f;
+	      gs->ssq += weight * pow2 (val->f);
 
 	      if ( val->f * weight  < gs->minimum )
 		gs->minimum = val->f * weight;
@@ -1043,31 +1040,27 @@ postcalc (  struct cmd_oneway *cmd UNUSED )
 	   gs != 0;
 	   gs = hsh_next(group_hash,&g))
 	{
-	  gs->mean=gs->sum / gs->n;
+	  gs->mean = gs->sum / gs->n;
 	  gs->s_std_dev= sqrt(
-			      ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			      gs->ssq / gs->n - pow2 (gs->mean)
 			      ) ;
 
 	  gs->std_dev= sqrt(
-			    gs->n/(gs->n-1) *
-			    ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			    gs->n / (gs->n - 1) *
+			    ( gs->ssq / gs->n - pow2 (gs->mean))
 			    ) ;
 
-	  gs->se_mean = gs->std_dev / sqrt(gs->n);
-	  gs->mean_diff= gs->sum_diff / gs->n;
-
+	  gs->se_mean = gs->std_dev / sqrt (gs->n);
+	  gs->mean_diff = gs->sum_diff / gs->n;
 	}
-
-
 
       totals->mean = totals->sum / totals->n;
       totals->std_dev= sqrt(
-			    totals->n/(totals->n-1) *
-			    ( (totals->ssq / totals->n ) - totals->mean * totals->mean )
+			    totals->n / (totals->n - 1) *
+			    (totals->ssq / totals->n - pow2 (totals->mean))
 			    ) ;
 
-      totals->se_mean = totals->std_dev / sqrt(totals->n);
-
+      totals->se_mean = totals->std_dev / sqrt (totals->n);
     }
 }
 

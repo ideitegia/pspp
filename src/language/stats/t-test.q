@@ -1459,7 +1459,7 @@ common_calc (const struct dictionary *dict,
 
 	  gs->n += weight;
 	  gs->sum += weight * val->f;
-	  gs->ssq += weight * val->f * val->f;
+	  gs->ssq += weight * pow2 (val->f);
 	}
     }
   return 0;
@@ -1496,12 +1496,12 @@ common_postcalc (struct cmd_t_test *cmd)
 
       gs->mean=gs->sum / gs->n;
       gs->s_std_dev= sqrt (
-			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			 ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			 ) ;
 
       gs->std_dev= sqrt (
 			 gs->n/ (gs->n-1) *
-			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			 ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			 ) ;
 
       gs->se_mean = gs->std_dev / sqrt (gs->n);
@@ -1772,12 +1772,12 @@ group_postcalc ( struct cmd_t_test *cmd )
 	  gs->mean = gs->sum / gs->n;
 
 	  gs->s_std_dev= sqrt (
-			      ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			      ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			      ) ;
 
 	  gs->std_dev= sqrt (
 			    gs->n/ (gs->n-1) *
-			    ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			    ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			    ) ;
 
 	  gs->se_mean = gs->std_dev / sqrt (gs->n);

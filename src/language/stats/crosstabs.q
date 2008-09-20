@@ -2456,7 +2456,7 @@ calc_r (double *X, double *Y, double *r, double *ase_0, double *ase_1)
   for (sum_Xr = sum_X2r = 0., i = 0; i < n_rows; i++)
     {
       sum_Xr += X[i] * row_tot[i];
-      sum_X2r += X[i] * X[i] * row_tot[i];
+      sum_X2r += pow2 (X[i]) * row_tot[i];
     }
   Xbar = sum_Xr / W;
 
@@ -2468,11 +2468,11 @@ calc_r (double *X, double *Y, double *r, double *ase_0, double *ase_1)
   Ybar = sum_Yc / W;
 
   S = sum_XYf - sum_Xr * sum_Yc / W;
-  SX = sum_X2r - sum_Xr * sum_Xr / W;
-  SY = sum_Y2c - sum_Yc * sum_Yc / W;
+  SX = sum_X2r - pow2 (sum_Xr) / W;
+  SY = sum_Y2c - pow2 (sum_Yc) / W;
   T = sqrt (SX * SY);
   *r = S / T;
-  *ase_0 = sqrt ((sum_X2Y2f - (sum_XYf * sum_XYf) / W) / (sum_X2r * sum_Y2c));
+  *ase_0 = sqrt ((sum_X2Y2f - pow2 (sum_XYf) / W) / (sum_X2r * sum_Y2c));
 
   {
     double s, c, y, t;
@@ -2562,9 +2562,9 @@ calc_symmetric (double v[N_SYMMETRIC], double ase[N_SYMMETRIC],
 
 	Dr = Dc = W * W;
 	for (r = 0; r < n_rows; r++)
-	  Dr -= row_tot[r] * row_tot[r];
+	  Dr -= pow2 (row_tot[r]);
 	for (c = 0; c < n_cols; c++)
-	  Dc -= col_tot[c] * col_tot[c];
+	  Dc -= pow2 (col_tot[c]);
       }
 
       {
@@ -3073,10 +3073,10 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	    }
 
 	for (sum_ri2 = 0., i = 0; i < n_rows; i++)
-	  sum_ri2 += row_tot[i] * row_tot[i];
+	  sum_ri2 += pow2 (row_tot[i]);
 
 	for (sum_cj2 = 0., j = 0; j < n_cols; j++)
-	  sum_cj2 += col_tot[j] * col_tot[j];
+	  sum_cj2 += pow2 (col_tot[j]);
 
 	v[3] = (W * sum_fij2_ci - sum_ri2) / (W * W - sum_ri2);
 	v[4] = (W * sum_fij2_ri - sum_cj2) / (W * W - sum_cj2);
@@ -3166,9 +3166,9 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	for (sum_Xr = sum_X2r = 0., i = 0; i < n_rows; i++)
 	  {
 	    sum_Xr += rows[i].f * row_tot[i];
-	    sum_X2r += rows[i].f * rows[i].f * row_tot[i];
+	    sum_X2r += pow2 (rows[i].f) * row_tot[i];
 	  }
-	SX = sum_X2r - sum_Xr * sum_Xr / W;
+	SX = sum_X2r - pow2 (sum_Xr) / W;
 
 	for (SXW = 0., j = 0; j < n_cols; j++)
 	  {
@@ -3176,7 +3176,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 
 	    for (cum = 0., i = 0; i < n_rows; i++)
 	      {
-		SXW += rows[i].f * rows[i].f * mat[j + i * n_cols];
+		SXW += pow2 (rows[i].f) * mat[j + i * n_cols];
 		cum += rows[i].f * mat[j + i * n_cols];
 	      }
 
@@ -3193,7 +3193,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 	for (sum_Yc = sum_Y2c = 0., i = 0; i < n_cols; i++)
 	  {
 	    sum_Yc += cols[i].f * col_tot[i];
-	    sum_Y2c += cols[i].f * cols[i].f * col_tot[i];
+	    sum_Y2c += pow2 (cols[i].f) * col_tot[i];
 	  }
 	SY = sum_Y2c - sum_Yc * sum_Yc / W;
 
@@ -3203,7 +3203,7 @@ calc_directional (double v[N_DIRECTIONAL], double ase[N_DIRECTIONAL],
 
 	    for (cum = 0., j = 0; j < n_cols; j++)
 	      {
-		SYW += cols[j].f * cols[j].f * mat[j + i * n_cols];
+		SYW += pow2 (cols[j].f) * mat[j + i * n_cols];
 		cum += cols[j].f * mat[j + i * n_cols];
 	      }
 

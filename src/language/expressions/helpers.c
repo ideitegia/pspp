@@ -589,7 +589,7 @@ ncdf_beta (double x, double a, double b, double lambda)
 double
 cdf_bvnor (double x0, double x1, double r)
 {
-  double z = x0 * x0 - 2. * r * x0 * x1 + x1 * x1;
+  double z = pow2 (x0) - 2. * r * x0 * x1 + pow2 (x1);
   return exp (-z / (2. * (1 - r * r))) * (2. * M_PI * sqrt (1 - r * r));
 }
 

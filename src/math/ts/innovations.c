@@ -160,7 +160,7 @@ innovations_update_scale (struct innovations_estimate *est, double *theta,
       for (j = 0; j < i; j++)
 	{
 	  k = i - j - 1;
-	  result -= theta[k] * theta[k] * est->scale[j];
+	  result -= pow2 (theta[k]) * est->scale[j];
 	}
       est->scale[i] = result;
     }
