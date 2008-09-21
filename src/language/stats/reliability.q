@@ -262,8 +262,11 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
       free (c->items);
 
       moments1_destroy (c->total);
-      for (x = 0 ; x < c->n_items; ++x)
-	moments1_destroy (c->m[x]);
+
+      if ( c->m)
+	for (x = 0 ; x < c->n_items; ++x)
+	  moments1_destroy (c->m[x]);
+
       free (c->m);
     }
 
