@@ -873,13 +873,9 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 	 The hash contains a group_statistics structure,
 	 and is keyed by value of the independent variable */
 
-      gp->group_hash =
-	hsh_create(4,
-		   (hsh_compare_func *) compare_group,
-		   (hsh_hash_func *) hash_group,
-		   (hsh_free_func *) free_group,
-		   (void *) var_get_width (indep_var) );
-
+      gp->group_hash = hsh_create(4, compare_group, hash_group,
+				  (hsh_free_func *) free_group,
+				  indep_var);
 
       totals->sum=0;
       totals->n=0;
@@ -919,10 +915,10 @@ run_oneway (struct cmd_oneway *cmd,
   taint = taint_clone (casereader_get_taint (input));
 
   global_group_hash = hsh_create(4,
-				 (hsh_compare_func *) compare_values,
-				 (hsh_hash_func *) hash_value,
+				 compare_values,
+				 hash_value,
 				 free_value,
-				 (void *) var_get_width (indep_var) );
+				 indep_var);
 
   precalc(cmd);
 
@@ -957,7 +953,7 @@ run_oneway (struct cmd_oneway *cmd,
 
 	  struct group_statistics *gs;
 
-	  gs = hsh_find(group_hash, (void *) indep_val );
+	  gs = hsh_find (group_hash, indep_val );
 
 	  if ( ! gs )
 	    {
@@ -970,7 +966,7 @@ run_oneway (struct cmd_oneway *cmd,
 	      gs->minimum = DBL_MAX;
 	      gs->maximum = -DBL_MAX;
 
-	      hsh_insert ( group_hash, (void *) gs );
+	      hsh_insert ( group_hash, gs );
 	    }
 
 	  if (!var_is_value_missing (v, val, exclude))

@@ -1338,7 +1338,7 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 
 	      if ( last_value == NULL ||
 		   compare_values (last_value, result->value[0],
-				   var_get_width(fctr->indep_var[0])))
+				   fctr->indep_var[0]))
 		{
 		  struct string str;
 

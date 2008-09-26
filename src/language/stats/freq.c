@@ -30,16 +30,15 @@ compare_freq ( const void *_f1, const void *_f2, const void *_var)
   const struct freq *f2 = _f2;
   const struct variable *var = _var;
 
-  return  compare_values (f1->value, f2->value, var_get_width (var) );
+  return  compare_values (f1->value, f2->value, var );
 }
 
 unsigned int
-hash_freq (const void *_f, const void *_var)
+hash_freq (const void *_f, const void *var)
 {
   const struct freq *f = _f;
-  const struct variable *var  = _var;
 
-  return hash_value (f->value, var_get_width (var));
+  return hash_value (f->value, var);
 }
 
 /* Free function to be used on FR whose value parameter has been copied */

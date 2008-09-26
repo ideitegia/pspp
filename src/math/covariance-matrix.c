@@ -74,7 +74,7 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
       col += i;
       y = -1.0 * cat_get_category_count (i, v) / ssize;
       tmp_val = cat_subscript_to_value (i, v);
-      if (compare_values (tmp_val, val1, var_get_width (v)))
+      if (compare_values (tmp_val, val1, v))
 	{
 	  y += -1.0;
 	}
@@ -106,7 +106,7 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 	  row += i;
 	  x = -1.0 * cat_get_category_count (i, v1) / ssize;
 	  tmp_val = cat_subscript_to_value (i, v1);
-	  if (compare_values (tmp_val, val1, var_get_width (v1)))
+	  if (compare_values (tmp_val, val1, v1))
 	    {
 	      x += 1.0;
 	    }

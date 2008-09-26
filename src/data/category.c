@@ -108,7 +108,7 @@ cat_value_find (const struct variable *v, const union value *val)
     {
       candidate = obs_vals->vals + i;
       assert (candidate != NULL);
-      if (!compare_values (candidate, val, var_get_width (v)))
+      if (!compare_values (candidate, val, v))
 	{
 	  return i;
 	}

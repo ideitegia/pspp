@@ -464,7 +464,7 @@ value_compare (const struct comparator *cmptr,
 	       const union value *v)
 {
   const struct value_comparator *vc = (const struct value_comparator *) cmptr;
-  return 0 == compare_values (v, vc->pattern, var_get_width (cmptr->var));
+  return 0 == compare_values (v, vc->pattern, cmptr->var);
 }
 
 

@@ -160,7 +160,7 @@ pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs,
   size_t i = 0;
   size_t j = 0;
   size_t v_idx;
-  int found = 0;
+
   struct pspp_coeff *result = NULL;
 
   if (v != NULL)
@@ -187,7 +187,7 @@ pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs,
 	    {
 	      j = i;
 	      while (j < n_coef && compare_values (pspp_coeff_get_value (coefs[j], v),
-						   val, var_get_width (v)) != 0)
+						   val, v) != 0)
 		{
 		  j++;
 		}
