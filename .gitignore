@@ -38,3 +38,4 @@ gitlog-to-changelog
 *.a
 *.dirstamp
 *.deps
+*.la
