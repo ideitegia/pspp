@@ -170,6 +170,8 @@ nodist_TESTS = \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \
 	tests/libpspp/heap-test \
+	tests/libpspp/hmap-test \
+	tests/libpspp/hmapx-test \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
 	tests/libpspp/range-map-test \
@@ -208,6 +210,22 @@ tests_libpspp_heap_test_SOURCES = \
 	tests/libpspp/heap-test.c
 tests_libpspp_heap_test_LDADD = gl/libgl.la @LIBINTL@
 tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_hmap_test_SOURCES = \
+	src/libpspp/hmap.c \
+	src/libpspp/hmap.h \
+	tests/libpspp/hmap-test.c
+tests_libpspp_hmap_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_hmap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_hmapx_test_SOURCES = \
+	src/libpspp/hmap.c \
+	src/libpspp/hmap.h \
+	src/libpspp/hmapx.c \
+	src/libpspp/hmapx.h \
+	tests/libpspp/hmapx-test.c
+tests_libpspp_hmapx_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_hmapx_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_abt_test_SOURCES = \
 	src/libpspp/abt.c \

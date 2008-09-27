@@ -23,10 +23,16 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/freaderror.h \
 	src/libpspp/getl.c \
 	src/libpspp/getl.h \
+	src/libpspp/hash-functions.c \
+	src/libpspp/hash-functions.h \
 	src/libpspp/hash.c \
 	src/libpspp/hash.h \
 	src/libpspp/heap.c \
 	src/libpspp/heap.h \
+	src/libpspp/hmap.c \
+	src/libpspp/hmap.h \
+	src/libpspp/hmapx.c \
+	src/libpspp/hmapx.h \
 	src/libpspp/i18n.c \
 	src/libpspp/i18n.h \
 	src/libpspp/integer-format.c \
