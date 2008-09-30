@@ -121,7 +121,7 @@ AM_CONDITIONAL(GNM_SUPPORT, test x"$gnm_support" = x"yes")
 
 AC_ARG_WITH(
   gui_tools,
-  [AS_HELP_STRING([--with-gui-tools], [build the gui developer tools])])
+  [AS_HELP_STRING([--with-gui-tools], [build the gui developer tools.  For DEVELOPERS only! There is no reason why users will need this flag.])])
 if test x"$with_gui_tools" = x"yes" ; then 
 	PKG_CHECK_MODULES(GLADE_UI, gladeui-1.0)
 fi
