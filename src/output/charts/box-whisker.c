@@ -63,6 +63,7 @@ boxplot_draw_boxplot (struct chart *ch,
 {
   double whisker[2];
   double hinge[3];
+  struct ll *ll;
 
   const struct ll_list *outliers;
 
@@ -138,7 +139,7 @@ boxplot_draw_boxplot (struct chart *ch,
 	     box_centre, box_top);
 
   outliers = box_whisker_outliers (bw);
-  for (struct ll *ll = ll_head (outliers);
+  for (ll = ll_head (outliers);
        ll != ll_null (outliers); ll = ll_next (ll))
     {
       const struct outlier *outlier = ll_data (ll, struct outlier, ll);
