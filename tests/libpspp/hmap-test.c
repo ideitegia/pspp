@@ -21,6 +21,70 @@
    "valgrind --leak-check=yes --show-reachable=yes" should give a
    clean report. */
 
+/* Warning:
+
+   GCC 4.3 will miscompile this test program, specifically
+   test_moved(), given small changes.  This is a bug in GCC
+   triggered by the test program, not by the library under test,
+   so you may safely ignore it.  To avoid miscompilation, compile
+   this file with GCC 4.2 or earlier or GCC 4.4 or later.
+
+   Here is a minimal test program that demonstrates the same or a
+   similar bug in GCC 4.3:
+
+   #include <stdio.h>
+   #include <stdlib.h>
+
+   struct node
+     {
+       struct node *next;
+       unsigned int data1;
+       int data2;
+     };
+   struct list
+     {
+       struct node *head;
+       int dummy;
+     };
+
+   static void *
+   xmalloc (int n)
+   {
+     return malloc (n);
+   }
+
+   static void
+   check_list (struct list *list)
+   {
+     int i __attribute__((unused));
+     struct node *e;
+     for (e = list->head; e != NULL; e = e->next)
+       if (e->data1 != e->data2)
+         abort ();
+   }
+
+   int
+   main (void)
+   {
+   #define MAX_ELEMS 2
+     struct node *elements = xmalloc (MAX_ELEMS * sizeof *elements);
+     int *values = xmalloc (MAX_ELEMS * sizeof *values);
+     struct list list;
+     int i;
+
+     list.head = NULL;
+     for (i = 0; i < MAX_ELEMS; i++)
+       {
+         values[i] = elements[i].data2 = i;
+         elements[i].data1 = elements[i].data2;
+         elements[i].next = list.head;
+         list.head = &elements[i];
+       }
+     check_list (&list);
+     return 0;
+   }
+*/
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -75,6 +139,10 @@ xalloc_die (void)
   printf ("virtual memory exhausted\n");
   exit (EXIT_FAILURE);
 }
+
+static void *xmalloc (size_t n) MALLOC_LIKE;
+static void *xnmalloc (size_t n, size_t m) MALLOC_LIKE;
+static void *xmemdup (const void *p, size_t n) MALLOC_LIKE;
 
 /* Allocates and returns N bytes of memory. */
 static void *
