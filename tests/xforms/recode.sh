@@ -124,15 +124,17 @@ RECODE x (LOWEST THRU 5=1)(ELSE=COPY) INTO cx5.
 RECODE x (4 THRU HIGHEST=2)(ELSE=COPY) INTO cx6.
 RECODE x (LO THRU HI=3)(ELSE=COPY) INTO cx7.
 RECODE x (SYSMIS=4)(ELSE=COPY) INTO cx8.
-LIST x cx0 TO cx8.
+RECODE x (5=COPY)(ELSE=22) INTO cx9.
+LIST x cx0 TO cx9.
 
 * String to string, with INTO, without COPY.
-STRING s0 TO s2 (A4)/t0 TO t3 (A10).
+STRING s0 TO s3 (A4)/t0 TO t3 (A10).
 RECODE s t ('a'='b')('ab'='bc') INTO s0 t0.
 RECODE s t ('abcd'='xyzw') INTO s1 t1.
 RECODE s t ('abc'='def')(ELSE='xyz') INTO s2 t2.
 RECODE t ('a'='b')('abcdefghi'='xyz')('abcdefghij'='jklmnopqr') INTO t3.
-LIST s t s0 TO s2 t0 TO t3.
+RECODE s (MISSING='gone') INTO s3.
+LIST s t s0 TO s3 t0 TO t3.
 
 * String to string, with INTO, with COPY.
 STRING cs0 TO cs2 (A4)/ct0 TO ct3 (A10).
@@ -168,97 +170,96 @@ perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -bu $TEMPDIR/pspp.list - <<EOF
 x  x0  x1  x2  x3  x4  x5  x6  x7  x8
 - --- --- --- --- --- --- --- --- ---
-0   0   0   0   0   0   1   0   3   0
-1   9   9   8  10  10   1   1   3   1
-2   2   2   9  10  10   1   2   3   2
-3   3   8   9  10  10   1   3   3   3
-4   4   4   9  10  10   1   2   3   4
-5   5   7   9  10  10   1   2   3   5
-6   6   6   9  10  10   6   2   3   6
-7   7   7   7  10  10   7   2   3   7
-8   8   8   9  10  10   8   2   3   8
-9   9   9   1  10  11   9   2   3   9
-.   .   .   .  11  11   .   .   .   4
+0   0   0   0   0   0   1   0   3   0 
+1   9   9   8  10  10   1   1   3   1 
+2   2   2   9  10  10   1   2   3   2 
+3   3   8   9  10  10   1   3   3   3 
+4   4   4   9  10  10   1   2   3   4 
+5   5   7   9  10  10   1   2   3   5 
+6   6   6   9  10  10   6   2   3   6 
+7   7   7   7  10  10   7   2   3   7 
+8   8   8   9  10  10   8   2   3   8 
+9   9   9   1  10  11   9   2   3   9 
+.   .   .   .  11  11   .   .   .   4 
 x ix0 ix1 ix2 ix3 ix4 ix5 ix6 ix7 ix8
 - --- --- --- --- --- --- --- --- ---
-0   .   .   .   .   .   1   .   3   .
-1   9   9   8  10  10   1   .   3   .
-2   .   .   9  10  10   1   .   3   .
-3   .   8   9  10  10   1   .   3   .
-4   .   .   9  10  10   1   2   3   .
-5   .   7   9  10  10   1   2   3   .
-6   .   .   9  10  10   .   2   3   .
-7   .   .   .  10  10   .   2   3   .
-8   .   .   9  10  10   .   2   3   .
-9   .   .   1  10  11   .   2   3   .
-.   .   .   .  11  11   .   .   .   4
-x cx0 cx1 cx2 cx3 cx4 cx5 cx6 cx7 cx8
-- --- --- --- --- --- --- --- --- ---
-0   0   0   0   0   0   1   0   3   0
-1   9   9   8  10  10   1   1   3   1
-2   2   2   9  10  10   1   2   3   2
-3   3   8   9  10  10   1   3   3   3
-4   4   4   9  10  10   1   2   3   4
-5   5   7   9  10  10   1   2   3   5
-6   6   6   9  10  10   6   2   3   6
-7   7   7   7  10  10   7   2   3   7
-8   8   8   9  10  10   8   2   3   8
-9   9   9   1  10  11   9   2   3   9
-.   .   .   .  11  11   .   .   .   4
-   s          t   s0   s1   s2         t0         t1         t2         t3
----- ---------- ---- ---- ---- ---------- ---------- ---------- ----------
-                          xyz                        xyz
-a    a          b         xyz  b                     xyz        b
-ab   ab         bc        xyz  bc                    xyz
-abc  abc                  def                        def
-abcd abcd            xyzw xyz             xyzw       xyz
-123  123                  xyz                        xyz
- 123  123                 xyz                        xyz
-+1   +1                   xyz                        xyz
-1x   1x                   xyz                        xyz
-abcd abcdefghi       xyzw xyz                        xyz        xyz
-xxx  abcdefghij           xyz                        xyz        jklmnopqr
+0   .   .   .   .   .   1   .   3   . 
+1   9   9   8  10  10   1   .   3   . 
+2   .   .   9  10  10   1   .   3   . 
+3   .   8   9  10  10   1   .   3   . 
+4   .   .   9  10  10   1   2   3   . 
+5   .   7   9  10  10   1   2   3   . 
+6   .   .   9  10  10   .   2   3   . 
+7   .   .   .  10  10   .   2   3   . 
+8   .   .   9  10  10   .   2   3   . 
+9   .   .   1  10  11   .   2   3   . 
+.   .   .   .  11  11   .   .   .   4 
+x cx0 cx1 cx2 cx3 cx4 cx5 cx6 cx7 cx8      cx9
+- --- --- --- --- --- --- --- --- --- --------
+0   0   0   0   0   0   1   0   3   0    22.00 
+1   9   9   8  10  10   1   1   3   1    22.00 
+2   2   2   9  10  10   1   2   3   2    22.00 
+3   3   8   9  10  10   1   3   3   3    22.00 
+4   4   4   9  10  10   1   2   3   4    22.00 
+5   5   7   9  10  10   1   2   3   5     5.00 
+6   6   6   9  10  10   6   2   3   6    22.00 
+7   7   7   7  10  10   7   2   3   7    22.00 
+8   8   8   9  10  10   8   2   3   8    22.00 
+9   9   9   1  10  11   9   2   3   9    22.00 
+.   .   .   .  11  11   .   .   .   4    22.00 
+   s          t   s0   s1   s2   s3         t0         t1         t2         t3
+---- ---------- ---- ---- ---- ---- ---------- ---------- ---------- ----------
+                          xyz                             xyz                   
+a    a          b         xyz       b                     xyz        b          
+ab   ab         bc        xyz       bc                    xyz                   
+abc  abc                  def                             def                   
+abcd abcd            xyzw xyz                  xyzw       xyz                   
+123  123                  xyz                             xyz                   
+ 123  123                 xyz                             xyz                   
++1   +1                   xyz                             xyz                   
+1x   1x                   xyz                             xyz                   
+abcd abcdefghi       xyzw xyz                             xyz        xyz        
+xxx  abcdefghij           xyz  gone                       xyz        jklmnopqr  
    s          t  cs0  cs1  cs2        ct0        ct1        ct2        ct3
 ---- ---------- ---- ---- ---- ---------- ---------- ---------- ----------
-                          xyz                        xyz
-a    a          b    a    xyz  b          a          xyz        b
-ab   ab         bc   ab   xyz  bc         ab         xyz        ab
-abc  abc        abc  abc  def  abc        abc        def        abc
-abcd abcd       abcd xyzw xyz  abcd       xyzw       xyz        abcd
-123  123        123  123  xyz  123        123        xyz        123
- 123  123        123  123 xyz   123        123       xyz         123
-+1   +1         +1   +1   xyz  +1         +1         xyz        +1
-1x   1x         1x   1x   xyz  1x         1x         xyz        1x
-abcd abcdefghi  abcd xyzw xyz  abcdefghi  abcdefghi  xyz        xyz
-xxx  abcdefghij xxx  xxx  xyz  abcdefghij abcdefghij xyz        jklmnopqr
+                          xyz                        xyz                   
+a    a          b    a    xyz  b          a          xyz        b          
+ab   ab         bc   ab   xyz  bc         ab         xyz        ab         
+abc  abc        abc  abc  def  abc        abc        def        abc        
+abcd abcd       abcd xyzw xyz  abcd       xyzw       xyz        abcd       
+123  123        123  123  xyz  123        123        xyz        123        
+ 123  123        123  123 xyz   123        123       xyz         123       
++1   +1         +1   +1   xyz  +1         +1         xyz        +1         
+1x   1x         1x   1x   xyz  1x         1x         xyz        1x         
+abcd abcdefghi  abcd xyzw xyz  abcdefghi  abcdefghi  xyz        xyz        
+xxx  abcdefghij xxx  xxx  xyz  abcdefghij abcdefghij xyz        jklmnopqr  
    s          t ns0 ns1 ns2 nt0 nt1 nt2
 ---- ---------- --- --- --- --- --- ---
-                  .   0   3   .   0   3
-a    a            .   .   3   .   .   3
-ab   ab           .   .   3   .   .   3
-abc  abc          .   .   3   .   .   3
-abcd abcd         1   1   2   1   1   2
-123  123        123 123   3 123 123   3
- 123  123       123 123   3 123 123   3
-+1   +1           1   1   3   1   1   3
-1x   1x           .   .   1   .   .   1
-abcd abcdefghi    1   1   2   .   .   3
-xxx  abcdefghij   .   .   3   .   .   3
+                  .   0   3   .   0   3 
+a    a            .   .   3   .   .   3 
+ab   ab           .   .   3   .   .   3 
+abc  abc          .   .   3   .   .   3 
+abcd abcd         1   1   2   1   1   2 
+123  123        123 123   3 123 123   3 
+ 123  123       123 123   3 123 123   3 
++1   +1           1   1   3   1   1   3 
+1x   1x           .   .   1   .   .   1 
+abcd abcdefghi    1   1   2   .   .   3 
+xxx  abcdefghij   .   .   3   .   .   3 
 x        sx0        sx1        sx2
 - ---------- ---------- ----------
-0            xxx        foobar
-1 abcdefghij xxx        foobar
-2 abcdefghij            xyz
-3 abcdefghij xxx        xyz
-4 abcdefghij            xyz
-5 abcdefghij xxx        xyz
-6 abcdefghij            xyz
-7 abcdefghij xxx        foobar
-8 abcdefghij            foobar
-9 abcdefghij xxx        foobar
-.            xxx        xyz
+0            xxx        foobar     
+1 abcdefghij xxx        foobar     
+2 abcdefghij            xyz        
+3 abcdefghij xxx        xyz        
+4 abcdefghij            xyz        
+5 abcdefghij xxx        xyz        
+6 abcdefghij            xyz        
+7 abcdefghij xxx        foobar     
+8 abcdefghij            foobar     
+9 abcdefghij xxx        foobar     
+.            xxx        xyz        
 EOF
-
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass

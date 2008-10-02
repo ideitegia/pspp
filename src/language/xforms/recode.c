@@ -161,7 +161,7 @@ cmd_recode (struct lexer *lexer, struct dataset *ds)
          This must be the final step; otherwise we'd have to
          delete destination variables on failure. */
       if (trns->src_vars != trns->dst_vars)
-        create_dst_vars (trns, dataset_dict (ds));
+	create_dst_vars (trns, dataset_dict (ds));
 
       /* Done. */
       add_transformation (ds,
@@ -230,6 +230,7 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
           do
             {
               struct map_in in;
+
               if (!parse_map_in (lexer, &in, trns->pool,
                                  trns->src_type, max_src_width))
                 return false;
@@ -240,7 +241,11 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
 
           if (!parse_map_out (lexer, trns->pool, &out))
             return false;
-          dst_type = val_type_from_width (out.width);
+
+	  if (out.copy_input)
+	    dst_type = trns->src_type;
+	  else
+	    dst_type = val_type_from_width (out.width);
           if (have_dst_type && dst_type != trns->dst_type)
             {
               msg (SE, _("Inconsistent target variable types.  "
@@ -289,8 +294,11 @@ static bool
 parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
               enum val_type src_type, size_t max_src_width)
 {
+
   if (lex_match_id (lexer, "ELSE"))
+    {
     set_map_in_generic (in, MAP_ELSE);
+    }
   else if (src_type == VAL_NUMERIC)
     {
       if (lex_match_id (lexer, "MISSING"))
@@ -307,16 +315,21 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
     }
   else
     {
-      if (!lex_force_string (lexer))
+      if (lex_match_id (lexer, "MISSING"))
+        set_map_in_generic (in, MAP_MISSING);
+      else if (!lex_force_string (lexer))
         return false;
-      set_map_in_str (in, pool, lex_tokstr (lexer), max_src_width);
-      lex_get (lexer);
-      if (lex_token (lexer) == T_ID
-          && lex_id_match (ss_cstr ("THRU"), ss_cstr (lex_tokid (lexer))))
-        {
-          msg (SE, _("THRU is not allowed with string variables."));
-          return false;
-        }
+      else 
+	{
+	  set_map_in_str (in, pool, lex_tokstr (lexer), max_src_width);
+	  lex_get (lexer);
+	  if (lex_token (lexer) == T_ID
+	      && lex_id_match (ss_cstr ("THRU"), ss_cstr (lex_tokid (lexer))))
+	    {
+	      msg (SE, _("THRU is not allowed with string variables."));
+	      return false;
+	    }
+	}
     }
 
   return true;
@@ -461,6 +474,7 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
               return false;
             }
         }
+
     }
   else
     {
@@ -584,9 +598,10 @@ find_src_numeric (struct recode_trns *trns, double value, const struct variable 
 /* Returns the output mapping in TRNS for an input of VALUE with
    the given WIDTH, or a null pointer if there is no mapping. */
 static const struct map_out *
-find_src_string (struct recode_trns *trns, const char *value, int width)
+find_src_string (struct recode_trns *trns, const char *value, const struct variable *src_var)
 {
   struct mapping *m;
+  int width = var_get_width (src_var);
 
   for (m = trns->mappings; m < trns->mappings + trns->map_cnt; m++)
     {
@@ -613,6 +628,9 @@ find_src_string (struct recode_trns *trns, const char *value, int width)
             out->value.f = uv.f;
             break;
           }
+	case MAP_MISSING:
+	  match = var_is_str_missing (src_var, value, MV_ANY);
+	  break;
         default:
           NOT_REACHED ();
         }
@@ -644,7 +662,7 @@ recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
       if (trns->src_type == VAL_NUMERIC)
         out = find_src_numeric (trns, src_data->f, src_var);
       else
-        out = find_src_string (trns, src_data->s, var_get_width (src_var));
+        out = find_src_string (trns, src_data->s, src_var);
 
       if (trns->dst_type == VAL_NUMERIC)
         {
