@@ -5,9 +5,11 @@ dnl with or without modifications, as long as this notice is preserved.
 
 dnl Prerequisites.
 
-dnl Instead of giving an error about each prerequisite as we encounter it, 
-dnl group them all together at the end of the run, to be user-friendly.
-AC_DEFUN([PSPP_REQUIRED_PREREQ], [pspp_required_prereqs="$pspp_required_prereqs
+dnl Summarize all the missing prerequisites at the end of the run to
+dnl increase user-friendliness.
+AC_DEFUN([PSPP_REQUIRED_PREREQ], 
+  [AC_MSG_WARN([You must install $1 before building PSPP.])
+pspp_required_prereqs="$pspp_required_prereqs
 	$1"])
 AC_DEFUN([PSPP_OPTIONAL_PREREQ], [pspp_optional_prereqs="$pspp_optional_prereqs
 	$1"])
