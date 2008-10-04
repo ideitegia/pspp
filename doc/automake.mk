@@ -62,3 +62,4 @@ uninstall-hook::
 	rm -f $(DESTDIR)$(infodir)/pspp.info.gz
 
 EXTRA_DIST += doc/OChangeLog
+CLEANFILES += pspp-dev.dvi
