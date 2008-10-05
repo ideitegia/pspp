@@ -197,7 +197,6 @@ design_matrix_clone (const struct design_matrix *dm)
 {
   struct design_matrix *result;
   size_t i;
-  size_t j;
   
   assert (dm != NULL);
   result = xmalloc (sizeof *result);
