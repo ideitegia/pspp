@@ -14,9 +14,10 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef DATA_DATASHEET_H
-#define DATA_DATASHEET_H 1
+#ifndef DATA_DATASHEET_TEST_H
+#define DATA_DATASHEET_TEST_H 1
 
+#if 0
 #include <data/case.h>
 #include <data/value.h>
 
@@ -66,7 +67,23 @@ bool datasheet_get_value (const struct datasheet *, casenumber, size_t column,
 bool datasheet_put_value (struct datasheet *, casenumber, size_t column,
                           const union value *, int width);
 
+#endif
 
-unsigned int hash_datasheet (const struct datasheet *ds);
-struct datasheet *clone_datasheet (const struct datasheet *ds);
+/* Testing. */
+struct mc_options;
+
+struct datasheet_test_params
+  {
+    /* Parameters. */
+    int max_rows;
+    int max_cols;
+    int backing_rows;
+    int backing_cols;
+
+    /* State. */
+    int next_value;
+  };
+
+struct mc_results *datasheet_test (struct mc_options *options, void *params);
+
 #endif /* data/datasheet.h */

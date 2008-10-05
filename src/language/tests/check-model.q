@@ -21,7 +21,7 @@
 
 #include <errno.h>
 
-#include <libpspp/model-checker.h>
+#include "model-checker.h"
 #include <language/lexer/lexer.h>
 
 #include "error.h"

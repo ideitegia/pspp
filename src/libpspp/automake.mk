@@ -47,8 +47,6 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/message.h \
 	src/libpspp/misc.c \
 	src/libpspp/misc.h \
-	src/libpspp/model-checker.c \
-	src/libpspp/model-checker.h \
 	src/libpspp/msg-locator.c \
 	src/libpspp/msg-locator.h \
 	src/libpspp/pool.c \
