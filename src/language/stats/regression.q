@@ -861,39 +861,6 @@ coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
   pspp_coeff_init (c->coeff, dm);
 }
 
-/*
-  Put the moments in the linreg cache.
- */
-static void
-compute_moments (pspp_linreg_cache * c, struct moments_var *mom,
-		 struct design_matrix *dm, size_t n)
-{
-  size_t i;
-  size_t j;
-  double weight;
-  double mean;
-  double variance;
-  double skewness;
-  double kurtosis;
-  /*
-     Scan the variable names in the columns of the design matrix.
-     When we find the variable we need, insert its mean in the cache.
-   */
-  for (i = 0; i < dm->m->size2; i++)
-    {
-      for (j = 0; j < n; j++)
-	{
-	  if (design_matrix_col_to_var (dm, i) == (mom + j)->v)
-	    {
-	      moments1_calculate ((mom + j)->m, &weight, &mean, &variance,
-				  &skewness, &kurtosis);
-	      pspp_linreg_set_indep_variable_mean (c, (mom + j)->v, mean);
-	      pspp_linreg_set_indep_variable_sd (c, (mom + j)->v, sqrt (variance));
-	    }
-	}
-    }
-}
-
 static bool
 run_regression (struct casereader *input, struct cmd_regression *cmd,
 		struct dataset *ds, pspp_linreg_cache **models)
