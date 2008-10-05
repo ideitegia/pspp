@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <libpspp/model-checker.h>
+#include "model-checker.h"
 
 #include <limits.h>
 #include <signal.h>

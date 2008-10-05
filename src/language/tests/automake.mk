@@ -6,9 +6,13 @@ language_tests_built_sources = \
 language_tests_sources = \
 	src/language/tests/check-model.h \
 	src/language/tests/datasheet-test.c \
+	src/language/tests/datasheet-check.c \
+	src/language/tests/datasheet-check.h \
 	src/language/tests/format-guesser-test.c \
 	src/language/tests/float-format.c \
 	src/language/tests/moments-test.c \
+	src/language/tests/model-checker.c \
+	src/language/tests/model-checker.h \
 	src/language/tests/paper-size.c \
 	src/language/tests/pool-test.c 
 
