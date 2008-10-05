@@ -46,6 +46,7 @@ GNULIB_MODULES = \
 	printf-posix \
 	printf-safe \
 	progname \
+	regex \
 	relocatable-prog \
 	round \
 	snprintf \
