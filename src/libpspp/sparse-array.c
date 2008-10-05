@@ -88,7 +88,7 @@ struct sparse_array
 /* An internal node in the radix tree. */
 struct internal_node
   {
-    int count;                  /* Number of nonnul children. */
+    int count;                  /* Number of nonnull children. */
     union pointer down[PTRS_PER_LEVEL]; /* Children. */
   };
 
