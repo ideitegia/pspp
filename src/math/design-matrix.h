@@ -75,6 +75,8 @@ void design_matrix_set_numeric (struct design_matrix *, size_t,
 				    const struct variable *,
 				    const union value *);
 
+struct design_matrix *design_matrix_clone (const struct design_matrix *);
+
 size_t design_matrix_var_to_column (const struct design_matrix *,
 				    const struct variable *);
 
