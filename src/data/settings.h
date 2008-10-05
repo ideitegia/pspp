@@ -19,6 +19,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <data/format.h>
+#include <libpspp/float-format.h>
+#include <libpspp/integer-format.h>
 
 struct settings;
 

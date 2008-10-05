@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 #include <data/case.h>
+#include <libpspp/str.h>
 
 struct dataset;
 struct dfm_reader;

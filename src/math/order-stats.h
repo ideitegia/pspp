@@ -18,6 +18,7 @@
 #define __ORDER_STATS_H__
 
 #include <stddef.h>
+#include <data/missing-values.h>
 #include <math/statistic.h>
 
 struct casereader;
