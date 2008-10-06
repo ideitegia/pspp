@@ -1304,3 +1304,28 @@ lex_tokstr (const struct lexer *lexer)
 {
   return &lexer->tokstr;
 }
+
+/* If the lexer is positioned at the (pseudo)identifier S, which
+   may contain a hyphen ('-'), skips it and returns true.  Each
+   half of the identifier may be abbreviated to its first three
+   letters.
+   Otherwise, returns false. */
+bool
+lex_match_hyphenated_word (struct lexer *lexer, const char *s)
+{
+  const char *hyphen = strchr (s, '-');
+  if (hyphen == NULL)
+    return lex_match_id (lexer, s);
+  else if (lexer->token != T_ID
+	   || !lex_id_match (ss_buffer (s, hyphen - s), ss_cstr (lexer->tokid))
+	   || lex_look_ahead (lexer) != '-')
+    return false;
+  else
+    {
+      lex_get (lexer);
+      lex_force_match (lexer, '-');
+      lex_force_match_id (lexer, hyphen + 1);
+      return true;
+    }
+}
+

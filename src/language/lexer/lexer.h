@@ -55,6 +55,8 @@ bool lex_match (struct lexer *, int);
 bool lex_match_id (struct lexer *, const char *);
 bool lex_match_id_n (struct lexer *, const char *, size_t n);
 bool lex_match_int (struct lexer *, int);
+bool lex_match_hyphenated_word (struct lexer *lexer, const char *s);
+
 
 /* Forcible matching functions. */
 bool lex_force_match (struct lexer *, int);

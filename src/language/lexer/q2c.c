@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -357,6 +357,44 @@ dump_token (void)
 }
 #endif /* DUMP_TOKENS */
 
+
+const char hyphen_proxy = '_';
+
+static void
+id_cpy (char **cp)
+{
+  char *dest = tokstr;
+  char *src = *cp;
+
+  while (*src == '_' || *src == '-' || isalnum ((unsigned char) *src))
+    {
+      *dest++ = *src == '-' ? hyphen_proxy :toupper ((unsigned char) (*src));
+      src++;
+    }
+
+  *cp = src;
+  *dest++ = '\0';
+}
+
+static const char *
+unmunge (const char *s)
+{
+  char *dest = xmalloc (strlen (s));
+  char *d = dest;
+
+  while (*s)
+    {
+      if (*s == hyphen_proxy)
+	*d = '-';
+      else
+	*d = *s;
+      s++;
+      d++;
+    }
+
+  return dest;
+}
+
 /* Reads a token from the input file. */
 static int
 lex_get (void)
@@ -398,9 +436,8 @@ lex_get (void)
     {
       char *dest = tokstr;
       token = T_ID;
-      while (*cp == '_' || isalnum ((unsigned char) *cp))
-	*dest++ = toupper ((unsigned char) (*cp++));
-      *dest++ = '\0';
+
+      id_cpy (&cp);
     }
   else
     token = *cp++;
@@ -1374,7 +1411,11 @@ make_match (const char *t)
   else if (isdigit ((unsigned char) t[0]))
     sprintf (s, "lex_match_int (lexer, %s)", t);
   else
-    sprintf (s, "lex_match_id (lexer, \"%s\")", t);
+    {
+      char *c = unmunge (t);
+      sprintf (s, "lex_match_hyphenated_word (lexer, \"%s\")", c);
+      free (c);
+    }
 
   return s;
 }
