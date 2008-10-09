@@ -295,6 +295,7 @@ lex_get (struct lexer *lexer)
 	  break;
 
 	case '(': case ')': case ',': case '=': case '+': case '/':
+        case '[': case ']':
 	  lexer->token = *lexer->prog++;
 	  break;
 
