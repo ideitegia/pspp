@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2008-10-03 21:21:11 blp>
+Time-stamp: <2008-10-09 21:32:07 blp>
 Copyright (C) 1996-9, 2000, 2008 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -33,6 +33,10 @@ Changes from 0.6.0 to 0.6.1:
     - Make it possible to reopen the output window on Windows (bug
       #24033).
 
+    - A POSIX regular expression library is now included and used
+      automatically if the host does not have one or has one that is
+      inadequate.
+
   * Build fixes and changes:
 
     - Work around bug in GSL that prevented build with recent GCC
@@ -48,6 +52,8 @@ Changes from 0.6.0 to 0.6.1:
       q2c, fixing build problems on Windows.
 
     - GSL 1.8 or later is now required.
+
+    - Build errors with --enable-relocatable were fixed.
 
   * The German translations were removed, since native German speakers
     found them too poor to be useful.
