@@ -108,6 +108,19 @@ release.
   1. `cd' to the directory containing the package's source code and type
      `./configure' to configure the package for your system.
 
+     You may invoke `configure' with --help to see what options are
+     available.  The most common of these are listed under "Optional
+     Features", below.
+
+     If you installed some of the libraries that PSPP uses in a
+     non-standard location (on many systems, anywhere other than
+     /usr), you may need to provide some special flags to `configure'
+     to tell it where to find them.  For example, on GNU/Linux, if you
+     installed some libraries in /usr/local, then you need to invoke
+     it with at least the following options:
+
+	./configure LDFLAGS='-L/usr/local/lib -Wl,-rpath,/usr/local/lib' CPPFLAGS='-I/usr/local/include'
+
      Running `configure' takes awhile.  While running, it prints some
      messages telling which features it is checking for.
 

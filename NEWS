@@ -1,9 +1,62 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2008-06-04 21:27:06 blp>
-Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
+Time-stamp: <2008-10-09 21:32:07 blp>
+Copyright (C) 1996-9, 2000, 2008 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
+
+Changes from 0.6.0 to 0.6.1:
+
+  * Statistical bug fixes:
+
+    - Report correct standardized regression coefficients in linear
+      regression output (bug #23567).
+
+  * Bug fixes that affect PSPP and PSPPIRE:
+
+    - Avoid crash with pie charts (bug #24014).
+
+    - Don't append % to count totals (bug #24003).
+
+    - Don't crash on bad input (bug #24031).
+
+    - Don't crash if "end data." is not left aligned (bug #24115).
+
+    - Change default workspace value to 64 MB, to avoid unnecessary
+      disk accesses on modern machines.
+
+  * PSPPIRE bug fixes:
+
+    - Add ".sav" or ".por" suffix to filename when saving with Save_As
+      (bug #23137).
+
+    - Make it possible to reopen the output window on Windows (bug
+      #24033).
+
+    - A POSIX regular expression library is now included and used
+      automatically if the host does not have one or has one that is
+      inadequate.
+
+  * Build fixes and changes:
+
+    - Work around bug in GSL that prevented build with recent GCC
+      versions without manually adding -fgnu89-inline to CFLAGS.
+
+    - Also warn about missing prerequisites as we encounter them (bug
+      #24445).
+
+    - Distribute necessary files to allow users working from the
+      distributed tarball to configure with --enable-gui-tools.
+
+    - Append $(EXEEXT_FOR_BUILD) to output file name when building
+      q2c, fixing build problems on Windows.
+
+    - GSL 1.8 or later is now required.
+
+    - Build errors with --enable-relocatable were fixed.
+
+  * The German translations were removed, since native German speakers
+    found them too poor to be useful.
 
 Changes from 0.4.0 to 0.6.0:
 

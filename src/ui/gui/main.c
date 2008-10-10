@@ -20,6 +20,7 @@
 #include "progname.h"
 #include <stdlib.h>
 #include <getopt.h>
+#include <gl/relocatable.h>
 
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
@@ -45,7 +46,7 @@ create_splash_window (void)
   gtk_window_set_type_hint (GTK_WINDOW (splash),
 			    GDK_WINDOW_TYPE_HINT_SPLASHSCREEN);
 
-  image = gtk_image_new_from_file (PKGDATADIR "/splash.png");
+  image = gtk_image_new_from_file (relocate (PKGDATADIR "/splash.png"));
 
   gtk_container_add (GTK_CONTAINER (splash), image);
 

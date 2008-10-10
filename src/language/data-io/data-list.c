@@ -282,7 +282,8 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 
  error:
   data_parser_destroy (parser);
-  dict_destroy (dict);
+  if (!in_input_program ())
+    dict_destroy (dict);
   fh_unref (fh);
   return CMD_CASCADING_FAILURE;
 }
@@ -404,7 +405,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
 
       if (!parse_DATA_LIST_vars_pool (lexer, tmp_pool,
 				      &name, &name_cnt, PV_NONE))
-	return 0;
+	return false;
 
       if (lex_match (lexer, '('))
 	{
@@ -435,7 +436,7 @@ parse_free (struct lexer *lexer, struct dictionary *dict,
 	  if (v == NULL)
 	    {
 	      msg (SE, _("%s is a duplicate variable name."), name[i]);
-	      return 0;
+	      return false;
 	    }
           var_set_both_formats (v, &output);
 
