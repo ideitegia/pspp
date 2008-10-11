@@ -21,7 +21,7 @@
 
 #include <errno.h>
 
-#include "model-checker.h"
+#include <language/tests/model-checker.h>
 #include <language/lexer/lexer.h>
 
 #include "error.h"
