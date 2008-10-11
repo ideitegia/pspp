@@ -376,7 +376,7 @@ id_cpy (char **cp)
   *dest++ = '\0';
 }
 
-static const char *
+static char *
 unmunge (const char *s)
 {
   char *dest = xmalloc (strlen (s));
