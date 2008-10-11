@@ -8,6 +8,7 @@ TESTS_ENVIRONMENT += CHARSETALIASDIR='$(abs_top_builddir)/gl'
 
 dist_TESTS = \
 	tests/command/aggregate.sh \
+	tests/command/attributes.sh \
 	tests/command/autorecod.sh \
 	tests/command/beg-data.sh \
 	tests/command/bignum.sh \

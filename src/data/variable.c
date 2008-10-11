@@ -19,14 +19,15 @@
 
 #include <stdlib.h>
 
-#include "category.h"
-#include "data-out.h"
-#include "format.h"
-#include "dictionary.h"
-#include "identifier.h"
-#include "missing-values.h"
-#include "value-labels.h"
-#include "vardict.h"
+#include <data/attributes.h>
+#include <data/category.h>
+#include <data/data-out.h>
+#include <data/format.h>
+#include <data/dictionary.h>
+#include <data/identifier.h>
+#include <data/missing-values.h>
+#include <data/value-labels.h>
+#include <data/vardict.h>
 
 #include <libpspp/misc.h>
 #include <libpspp/assertion.h>
@@ -76,6 +77,9 @@ struct variable
        vectors with binary entries, so any variable of type ALPHA will
        have its values stored here. */
     struct cat_vals *obs_vals;
+
+    /* Custom attributes. */
+    struct attrset attributes;
   };
 
 /* Creates and returns a new variable with the given NAME and
@@ -108,6 +112,7 @@ var_create (const char *name, int width)
   v->aux = NULL;
   v->aux_dtor = NULL;
   v->obs_vals = NULL;
+  attrset_init (&v->attributes);
 
   return v;
 }
@@ -138,6 +143,7 @@ var_clone (const struct variable *old_var)
   var_set_display_width (new_var, var_get_display_width (old_var));
   var_set_alignment (new_var, var_get_alignment (old_var));
   var_set_leave (new_var, var_get_leave (old_var));
+  var_set_attributes (new_var, var_get_attributes (old_var));
 
   return new_var;
 }
@@ -326,6 +332,20 @@ compare_var_ptrs_by_name (const void *a_, const void *b_,
   struct variable *const *b = b_;
 
   return strcasecmp (var_get_name (*a), var_get_name (*b));
+}
+
+/* A hsh_compare_func that orders pointers to variables A and B
+   by their dictionary indexes. */
+int
+compare_var_ptrs_by_dict_index (const void *a_, const void *b_,
+                                const void *aux UNUSED)
+{
+  struct variable *const *a = a_;
+  struct variable *const *b = b_;
+  size_t a_index = var_get_dict_index (*a);
+  size_t b_index = var_get_dict_index (*b);
+
+  return a_index < b_index ? -1 : a_index > b_index;
 }
 
 /* A hsh_hash_func that hashes pointer to variable V based on its
@@ -598,7 +618,6 @@ var_append_value_name (const struct variable *v, const union value *value,
   else
     ds_put_cstr (str, name);
 }
-
 
 /* Print and write formats. */
 
@@ -1019,6 +1038,31 @@ bool
 var_has_obs_vals (const struct variable *v)
 {
   return v->obs_vals != NULL;
+}
+
+/* Returns variable V's attribute set.  The caller may examine or
+   modify the attribute set, but must not destroy it.  Destroying
+   V, or calling var_set_attributes() on V, will also destroy its
+   attribute set. */
+struct attrset *
+var_get_attributes (const struct variable *v) 
+{
+  return (struct attrset *) &v->attributes;
+}
+
+/* Replaces variable V's attributes set by a copy of ATTRS. */
+void
+var_set_attributes (struct variable *v, const struct attrset *attrs) 
+{
+  attrset_destroy (&v->attributes);
+  attrset_clone (&v->attributes, attrs);
+}
+
+/* Returns true if V has any custom attributes, false if it has none. */
+bool
+var_has_attributes (const struct variable *v)
+{
+  return attrset_count (&v->attributes) > 0;
 }
 
 /* Returns V's vardict structure. */

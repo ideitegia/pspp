@@ -39,25 +39,46 @@ Only variables with names that exist in both the active file and the
 system file are considered.  Variables with the same name but different
 types (numeric, string) will cause an error message.  Otherwise, the
 system file variables' attributes will replace those in their matching
-active file variables, as described below.
+active file variables:
 
+@itemize @bullet
+@item
 If a system file variable has a variable label, then it will replace the
 active file variable's variable label.  If the system file variable does
 not have a variable label, then the active file variable's variable
-label, if any, will be retained.
+label, if any, will be retained.  
 
+@item
+If the system file variable has custom attributes (@pxref{VARIABLE
+ATTRIBUTE}), then those attributes replace the active file variable's
+custom attributes.  If the system file variable does not have custom
+attributes, then the active file variable's custom attributes, if any,
+will be retained.
+
+@item
 If the active file variable is numeric or short string, then value
 labels and missing values, if any, will be copied to the active file
 variable.  If the system file variable does not have value labels or
 missing values, then those in the active file variable, if any, will not
 be disturbed.
+@end itemize
 
-Finally, weighting of the active file is updated (@pxref{WEIGHT}).  If
-the active file has a weighting variable, and the system file does not,
-or if the weighting variable in the system file does not exist in the
-active file, then the active file weighting variable, if any, is
-retained.  Otherwise, the weighting variable in the system file becomes
-the active file weighting variable.
+In addition to properties of variables, some properties of the active
+file dictionary as a whole are updated:
+
+@itemize @bullet
+@item
+If the system file has custom attributes (@pxref{DATAFILE ATTRIBUTE}),
+then those attributes replace the active file variable's custom
+attributes.
+
+@item
+If the active file has a weighting variable (@pxref{WEIGHT}), and the
+system file does not, or if the weighting variable in the system file
+does not exist in the active file, then the active file weighting
+variable, if any, is retained.  Otherwise, the weighting variable in
+the system file becomes the active file weighting variable.
+@end itemize
 
 @cmd{APPLY DICTIONARY} takes effect immediately.  It does not read the
 active

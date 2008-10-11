@@ -33,6 +33,7 @@
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 
+#include <data/attributes.h>
 #include <data/case.h>
 #include <data/casewriter-provider.h>
 #include <data/casewriter.h>
@@ -110,6 +111,11 @@ static void write_variable_display_parameters (struct sfm_writer *w,
                                                const struct dictionary *dict);
 
 static void write_documents (struct sfm_writer *, const struct dictionary *);
+
+static void write_data_file_attributes (struct sfm_writer *,
+                                        const struct dictionary *);
+static void write_variable_attributes (struct sfm_writer *,
+                                       const struct dictionary *);
 
 static void write_int (struct sfm_writer *, int32_t);
 static inline void convert_double_to_output_format (double, uint8_t[8]);
@@ -234,6 +240,10 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     write_longvar_table (w, d);
 
   write_vls_length_table (w, d);
+
+  if (attrset_count (dict_get_attributes (d)))
+    write_data_file_attributes (w, d);
+  write_variable_attributes (w, d);
 
   /* Write end-of-headers record. */
   write_int (w, 999);
@@ -518,6 +528,72 @@ write_documents (struct sfm_writer *w, const struct dictionary *d)
   write_int (w, 6);             /* Record type. */
   write_int (w, line_cnt);
   write_bytes (w, dict_get_documents (d), line_cnt * DOC_LINE_LENGTH);
+}
+
+static void
+put_attrset (struct string *string, const struct attrset *attrs)
+{
+  const struct attribute *attr;
+  struct attrset_iterator i;
+
+  for (attr = attrset_first (attrs, &i); attr != NULL;
+       attr = attrset_next (attrs, &i)) 
+    {
+      size_t n_values = attribute_get_n_values (attr);
+      size_t j;
+
+      ds_put_cstr (string, attribute_get_name (attr));
+      ds_put_char (string, '(');
+      for (j = 0; j < n_values; j++) 
+        ds_put_format (string, "'%s'\n", attribute_get_value (attr, j));
+      ds_put_char (string, ')');
+    }
+}
+
+static void
+write_attribute_record (struct sfm_writer *w, const struct string *content,
+                        int subtype) 
+{
+  write_int (w, 7);
+  write_int (w, subtype);
+  write_int (w, 1);
+  write_int (w, ds_length (content));
+  write_bytes (w, ds_data (content), ds_length (content));
+}
+
+static void
+write_data_file_attributes (struct sfm_writer *w,
+                            const struct dictionary *d)
+{
+  struct string s = DS_EMPTY_INITIALIZER;
+  put_attrset (&s, dict_get_attributes (d));
+  write_attribute_record (w, &s, 17);
+  ds_destroy (&s);
+}
+
+static void
+write_variable_attributes (struct sfm_writer *w, const struct dictionary *d)
+{
+  struct string s = DS_EMPTY_INITIALIZER;
+  size_t n_vars = dict_get_var_cnt (d);
+  size_t n_attrsets = 0;
+  size_t i;
+
+  for (i = 0; i < n_vars; i++)
+    { 
+      struct variable *v = dict_get_var (d, i);
+      struct attrset *attrs = var_get_attributes (v);
+      if (attrset_count (attrs)) 
+        {
+          if (n_attrsets++)
+            ds_put_char (&s, '/');
+          ds_put_format (&s, "%s:", var_get_short_name (v, 0));
+          put_attrset (&s, attrs);
+        }
+    }
+  if (n_attrsets) 
+    write_attribute_record (w, &s, 18);
+  ds_destroy (&s);
 }
 
 /* Write the alignment, width and scale values. */

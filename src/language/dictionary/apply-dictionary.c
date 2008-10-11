@@ -120,11 +120,18 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
           var_set_print_format (t, var_get_print_format (s));
           var_set_write_format (t, var_get_write_format (s));
 	}
+
+      if (var_has_attributes (s)) 
+        var_set_attributes (t, var_get_attributes (s));
     }
 
   if (!n_matched)
     msg (SW, _("No matching variables found between the source "
 	       "and target files."));
+
+  /* Data file attributes. */
+  if (dict_has_attributes (dict))
+    dict_set_attributes (dataset_dict (ds), dict_get_attributes (dict));
 
   /* Weighting. */
   if (dict_get_weight (dict) != NULL)

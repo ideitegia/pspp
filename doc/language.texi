@@ -497,6 +497,11 @@ they are displayed.  Example: a width of 8, with 2 decimal places.
 @item Write format
 Similar to print format, but used by the @cmd{WRITE} command
 (@pxref{WRITE}).
+
+@cindex custom attributes
+@item Custom attributes
+User-defined associations between names and values.  @xref{VARIABLE
+ATTRIBUTE}.
 @end table
 
 @node System Variables

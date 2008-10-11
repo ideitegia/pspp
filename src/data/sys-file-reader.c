@@ -34,6 +34,7 @@
 #include <libpspp/hash.h>
 #include <libpspp/array.h>
 
+#include <data/attributes.h>
 #include <data/case.h>
 #include <data/casereader-provider.h>
 #include <data/casereader.h>
@@ -98,9 +99,11 @@ static struct variable *lookup_var_by_value_idx (struct sfm_reader *,
                                                  struct variable **,
                                                  int value_idx);
 
+static void sys_msg (struct sfm_reader *r, int class,
+                     const char *format, va_list args)
+     PRINTF_FORMAT (3, 0);
 static void sys_warn (struct sfm_reader *, const char *, ...)
      PRINTF_FORMAT (2, 3);
-
 static void sys_error (struct sfm_reader *, const char *, ...)
      PRINTF_FORMAT (2, 3)
      NO_RETURN;
@@ -112,15 +115,23 @@ static double read_float (struct sfm_reader *);
 static void read_string (struct sfm_reader *, char *, size_t);
 static void skip_bytes (struct sfm_reader *, size_t);
 
-static struct variable_to_value_map *open_variable_to_value_map (
-  struct sfm_reader *, size_t size);
-static void close_variable_to_value_map (struct sfm_reader *r,
-                                         struct variable_to_value_map *);
-static bool read_variable_to_value_map (struct sfm_reader *,
-                                        struct dictionary *,
-                                        struct variable_to_value_map *,
-                                        struct variable **var, char **value,
-                                        int *warning_cnt);
+static struct text_record *open_text_record (struct sfm_reader *, size_t size);
+static void close_text_record (struct sfm_reader *r,
+                               struct text_record *);
+static bool read_variable_to_value_pair (struct sfm_reader *,
+                                         struct dictionary *,
+                                         struct text_record *,
+                                         struct variable **var, char **value);
+static void text_warn (struct sfm_reader *r, struct text_record *text,
+                       const char *format, ...)
+  PRINTF_FORMAT (3, 4);
+static char *text_get_token (struct text_record *,
+                             struct substring delimiters);
+static bool text_match (struct text_record *, char c);
+static bool text_read_short_name (struct sfm_reader *, struct dictionary *,
+                                  struct text_record *,
+                                  struct substring delimiters,
+                                  struct variable **);
 
 static bool close_reader (struct sfm_reader *r);
 
@@ -163,7 +174,12 @@ static void read_long_var_name_map (struct sfm_reader *,
 static void read_long_string_map (struct sfm_reader *,
                                   size_t size, size_t count,
                                   struct dictionary *);
-
+static void read_data_file_attributes (struct sfm_reader *,
+                                       size_t size, size_t count,
+                                       struct dictionary *);
+static void read_variable_attributes (struct sfm_reader *,
+                                      size_t size, size_t count,
+                                      struct dictionary *);
 
 /* Opens the system file designated by file handle FH for
    reading.  Reads the system file's dictionary into *DICT.
@@ -748,9 +764,12 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       break;
 
     case 17:
-      /* Text field that defines variable attributes.  New in
-         SPSS 14. */
-      break;
+      read_data_file_attributes (r, size, count, dict);
+      return;
+
+    case 18:
+      read_variable_attributes (r, size, count, dict);
+      return;
 
     case 20:
       /* New in SPSS 16.  Contains a single string that describes
@@ -927,14 +946,12 @@ static void
 read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
                         struct dictionary *dict)
 {
-  struct variable_to_value_map *map;
+  struct text_record *text;
   struct variable *var;
   char *long_name;
-  int warning_cnt = 0;
 
-  map = open_variable_to_value_map (r, size * count);
-  while (read_variable_to_value_map (r, dict, map, &var, &long_name,
-                                     &warning_cnt))
+  text = open_text_record (r, size * count);
+  while (read_variable_to_value_pair (r, dict, text, &var, &long_name))
     {
       char **short_names;
       size_t short_name_cnt;
@@ -980,7 +997,7 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count,
         }
       free (short_names);
     }
-  close_variable_to_value_map (r, map);
+  close_text_record (r, text);
   r->has_long_var_names = true;
 }
 
@@ -990,14 +1007,12 @@ static void
 read_long_string_map (struct sfm_reader *r, size_t size, size_t count,
                       struct dictionary *dict)
 {
-  struct variable_to_value_map *map;
+  struct text_record *text;
   struct variable *var;
   char *length_s;
-  int warning_cnt = 0;
 
-  map = open_variable_to_value_map (r, size * count);
-  while (read_variable_to_value_map (r, dict, map, &var, &length_s,
-                                     &warning_cnt))
+  text = open_text_record (r, size * count);
+  while (read_variable_to_value_pair (r, dict, text, &var, &length_s))
     {
       size_t idx = var_get_dict_index (var);
       long int length;
@@ -1045,7 +1060,7 @@ read_long_string_map (struct sfm_reader *r, size_t size, size_t count,
       dict_delete_consecutive_vars (dict, idx + 1, segment_cnt - 1);
       var_set_width (var, length);
     }
-  close_variable_to_value_map (r, map);
+  close_text_record (r, text);
   dict_compact_values (dict);
 }
 
@@ -1183,6 +1198,96 @@ read_value_labels (struct sfm_reader *r,
 
   pool_destroy (subpool);
 }
+
+/* Reads a set of custom attributes from TEXT into ATTRS.
+   ATTRS may be a null pointer, in which case the attributes are
+   read but discarded. */
+static void
+read_attributes (struct sfm_reader *r, struct text_record *text,
+                 struct attrset *attrs)
+{
+  do
+    {
+      struct attribute *attr;
+      char *key;
+      int index;
+
+      /* Parse the key. */
+      key = text_get_token (text, ss_cstr ("("));
+      if (key == NULL)
+        return;
+
+      attr = attribute_create (key);
+      for (index = 1; ; index++)
+        {
+          /* Parse the value. */
+          char *value;
+          size_t length;
+
+          value = text_get_token (text, ss_cstr ("\n"));
+          if (value == NULL)
+            {
+              text_warn (r, text, _("Error parsing attribute value %s[%d]"),
+                         key, index);
+              break;
+            }              
+
+          length = strlen (value);
+          if (length >= 2 && value[0] == '\'' && value[length - 1] == '\'') 
+            {
+              value[length - 1] = '\0';
+              attribute_add_value (attr, value + 1); 
+            }
+          else 
+            {
+              text_warn (r, text,
+                         _("Attribute value %s[%d] is not quoted: %s"),
+                         key, index, value);
+              attribute_add_value (attr, value); 
+            }
+
+          /* Was this the last value for this attribute? */
+          if (text_match (text, ')'))
+            break;
+        }
+      if (attrs != NULL)
+        attrset_add (attrs, attr);
+      else
+        attribute_destroy (attr);
+    }
+  while (!text_match (text, '/'));
+}
+
+/* Reads record type 7, subtype 17, which lists custom
+   attributes on the data file.  */
+static void
+read_data_file_attributes (struct sfm_reader *r,
+                           size_t size, size_t count,
+                           struct dictionary *dict)
+{
+  struct text_record *text = open_text_record (r, size * count);
+  read_attributes (r, text, dict_get_attributes (dict));
+  close_text_record (r, text);
+}
+
+/* Reads record type 7, subtype 18, which lists custom
+   attributes on individual variables.  */
+static void
+read_variable_attributes (struct sfm_reader *r,
+                          size_t size, size_t count,
+                          struct dictionary *dict)
+{
+  struct text_record *text = open_text_record (r, size * count);
+  for (;;) 
+    {
+      struct variable *var;
+      if (!text_read_short_name (r, dict, text, ss_cstr (":"), &var))
+        break;
+      read_attributes (r, text, var != NULL ? var_get_attributes (var) : NULL);
+    }
+  close_text_record (r, text);
+}
+
 
 /* Case reader. */
 
@@ -1518,82 +1623,124 @@ lookup_var_by_short_name (struct dictionary *d, const char *short_name)
   return NULL;
 }
 
-/* Helpers for reading records that contain "variable=value"
-   pairs. */
+/* Helpers for reading records that contain structured text
+   strings. */
+
+/* Maximum number of warnings to issue for a single text
+   record. */
+#define MAX_TEXT_WARNINGS 5
 
 /* State. */
-struct variable_to_value_map
+struct text_record
   {
     struct substring buffer;    /* Record contents. */
     size_t pos;                 /* Current position in buffer. */
+    int n_warnings;             /* Number of warnings issued or suppressed. */
   };
 
-/* Reads SIZE bytes into a "variable=value" map for R,
-   and returns the map. */
-static struct variable_to_value_map *
-open_variable_to_value_map (struct sfm_reader *r, size_t size)
+/* Reads SIZE bytes into a text record for R,
+   and returns the new text record. */
+static struct text_record *
+open_text_record (struct sfm_reader *r, size_t size)
 {
-  struct variable_to_value_map *map = pool_alloc (r->pool, sizeof *map);
+  struct text_record *text = pool_alloc (r->pool, sizeof *text);
   char *buffer = pool_malloc (r->pool, size + 1);
   read_bytes (r, buffer, size);
-  map->buffer = ss_buffer (buffer, size);
-  map->pos = 0;
-  return map;
+  text->buffer = ss_buffer (buffer, size);
+  text->pos = 0;
+  text->n_warnings = 0;
+  return text;
 }
 
-/* Closes MAP and frees its storage.
-   Not really needed, because the pool will free the map anyway,
-   but can be used to free it earlier. */
+/* Closes TEXT, frees its storage, and issues a final warning
+   about suppressed warnings if necesary. */
 static void
-close_variable_to_value_map (struct sfm_reader *r,
-                             struct variable_to_value_map *map)
+close_text_record (struct sfm_reader *r, struct text_record *text)
 {
-  pool_free (r->pool, ss_data (map->buffer));
+  if (text->n_warnings > MAX_TEXT_WARNINGS)
+    sys_warn (r, _("Suppressed %d additional related warnings."),
+              text->n_warnings - MAX_TEXT_WARNINGS);
+  pool_free (r->pool, ss_data (text->buffer));
 }
 
-/* Reads the next variable=value pair from MAP.
+/* Reads a variable=value pair from TEXT.
    Looks up the variable in DICT and stores it into *VAR.
    Stores a null-terminated value into *VALUE. */
 static bool
-read_variable_to_value_map (struct sfm_reader *r, struct dictionary *dict,
-                            struct variable_to_value_map *map,
-                            struct variable **var, char **value,
-                            int *warning_cnt)
+read_variable_to_value_pair (struct sfm_reader *r, struct dictionary *dict,
+                             struct text_record *text,
+                             struct variable **var, char **value)
 {
-  int max_warnings = 5;
-
   for (;;)
     {
-      struct substring short_name_ss, value_ss;
+      if (!text_read_short_name (r, dict, text, ss_cstr ("="), var))
+        return false;
+      
+      *value = text_get_token (text, ss_buffer ("\t\0", 2));
+      if (*value == NULL)
+        return false;
 
-      if (!ss_tokenize (map->buffer, ss_cstr ("="), &map->pos, &short_name_ss)
-          || !ss_tokenize (map->buffer, ss_buffer ("\t\0", 2), &map->pos,
-                           &value_ss))
-        {
-          if (*warning_cnt > max_warnings)
-            sys_warn (r, _("Suppressed %d additional variable map warnings."),
-                      *warning_cnt - max_warnings);
-          return false;
-        }
+      text->pos += ss_span (ss_substr (text->buffer, text->pos, SIZE_MAX),
+                            ss_buffer ("\t\0", 2));
 
-      map->pos += ss_span (ss_substr (map->buffer, map->pos, SIZE_MAX),
-                           ss_buffer ("\t\0", 2));
+      if (*var != NULL)
+        return true;
+    }
+}
 
-      ss_data (short_name_ss)[ss_length (short_name_ss)] = '\0';
-      *var = lookup_var_by_short_name (dict, ss_data (short_name_ss));
-      if (*var == NULL)
-        {
-          if (++*warning_cnt <= max_warnings)
-            sys_warn (r, _("Variable map refers to unknown variable %s."),
-                      ss_data (short_name_ss));
-          continue;
-        }
+static bool
+text_read_short_name (struct sfm_reader *r, struct dictionary *dict,
+                      struct text_record *text, struct substring delimiters,
+                      struct variable **var)
+{
+  char *short_name = text_get_token (text, delimiters);
+  if (short_name == NULL)
+    return false;
 
-      ss_data (value_ss)[ss_length (value_ss)] = '\0';
-      *value = ss_data (value_ss);
+  *var = lookup_var_by_short_name (dict, short_name);
+  if (*var == NULL)
+    text_warn (r, text, _("Variable map refers to unknown variable %s."),
+               short_name);
+  return true;
+}
 
+/* Displays a warning for the current file position, limiting the
+   number to MAX_TEXT_WARNINGS for TEXT. */
+static void
+text_warn (struct sfm_reader *r, struct text_record *text,
+           const char *format, ...)
+{
+  if (text->n_warnings++ < MAX_TEXT_WARNINGS) 
+    {
+      va_list args;
+
+      va_start (args, format);
+      sys_msg (r, MW, format, args);
+      va_end (args);
+    }
+}
+
+static char *
+text_get_token (struct text_record *text, struct substring delimiters)
+{
+  struct substring token;
+
+  if (!ss_tokenize (text->buffer, delimiters, &text->pos, &token))
+    return NULL;
+  ss_data (token)[ss_length (token)] = '\0';
+  return ss_data (token);
+}
+
+static bool
+text_match (struct text_record *text, char c)
+{
+  if (text->buffer.string[text->pos] == c) 
+    {
+      text->pos++;
       return true;
     }
+  else
+    return false;
 }
 
 /* Messages. */

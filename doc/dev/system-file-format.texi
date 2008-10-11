@@ -96,6 +96,7 @@ Each type of record is described separately below.
 * Variable Display Parameter Record::
 * Long Variable Names Record::
 * Very Long String Record::
+* Data File and Variable Attributes Records::
 * Miscellaneous Informational Records::
 * Dictionary Termination Record::
 * Data Record::
@@ -790,6 +791,85 @@ Tuples are delimited by a two-byte sequence @{00, 09@}.
 After the last tuple, there may be a single byte 00, or @{00, 09@}.
 The total length is @code{count} bytes.
 @end table
+
+@node Data File and Variable Attributes Records
+@section Data File and Variable Attributes Records
+
+The data file and variable attributes records represent custom
+attributes for the system file or for individual variables in the
+system file, as defined on the DATAFILE ATTRIBUTE (@pxref{DATAFILE
+ATTRIBUTE,,,pspp, PSPP Users Guide}) and VARIABLE ATTRIBUTE commands
+(@pxref{VARIABLE ATTRIBUTE,,,pspp, PSPP Users Guide}), respectively.
+
+@example
+/* @r{Header.} */
+int32               rec_type;
+int32               subtype;
+int32               size;
+int32               count;
+
+/* @r{Exactly @code{count} bytes of data.} */
+char                attributes[];
+@end example
+
+@table @code
+@item int32 rec_type;
+Record type.  Always set to 7.
+
+@item int32 subtype;
+Record subtype.  Always set to 17 for a data file attribute record or
+to 18 for a variable attributes record.
+
+@item int32 size;
+The size of each element in the @code{attributes} member. Always set to 1.
+
+@item int32 count;
+The total number of bytes in @code{attributes}.
+
+@item char attributes[];
+The attributes, in a text-based format.
+
+In record type 17, this field contains a single attribute set.  An
+attribute set is a sequence of one or more attributes concatenated
+together.  Each attribute consists of a name, which has the same
+syntax as a variable name, followed by, inside parentheses, a sequence
+of one or more values.  Each value consists of a string enclosed in
+single quotes (@code{'}) followed by a line feed (byte 0x0a).  A value
+may contain single quote characters, which are not themselves escaped
+or quoted or required to be present in pairs.  There is no apparent
+way to embed a line feed in a value.  There is no distinction between
+an attribute with a single value and an attribute array with one
+element.
+
+In record type 18, this field contains a sequence of one or more
+variable attribute sets.  If more than one variable attribute set is
+present, each one after the first is delimited from the previous by
+@code{/}.  Each variable attribute set consists of a variable name,
+followed by @code{:}, followed by an attribute set with the same
+syntax as on record type 17.
+
+The total length is @code{count} bytes.
+@end table
+
+@subheading Example
+
+A system file produced with the following VARIABLE ATTRIBUTE commands
+in effect:
+
+@example
+VARIABLE ATTRIBUTE VARIABLES=dummy ATTRIBUTE=fred[1]('23') fred[2]('34').
+VARIABLE ATTRIBUTE VARIABLES=dummy ATTRIBUTE=bert('123').
+@end example
+
+@noindent
+will contain a variable attribute record with the following contents:
+
+@example
+00000000  07 00 00 00 12 00 00 00  01 00 00 00 22 00 00 00  |............"...|
+00000010  64 75 6d 6d 79 3a 66 72  65 64 28 27 32 33 27 0a  |dummy:fred('23'.|
+00000020  27 33 34 27 0a 29 62 65  72 74 28 27 31 32 33 27  |'34'.)bert('123'|
+00000030  0a 29                                             |.)              |
+@end example
 
 @node Miscellaneous Informational Records
 @section Miscellaneous Informational Records

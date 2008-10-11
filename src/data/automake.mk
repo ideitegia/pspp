@@ -10,6 +10,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/any-reader.h \
 	src/data/any-writer.c \
 	src/data/any-writer.h \
+	src/data/attributes.c \
+	src/data/attributes.h \
 	src/data/calendar.c \
 	src/data/calendar.h \
 	src/data/case-map.c \
