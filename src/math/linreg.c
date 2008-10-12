@@ -96,10 +96,10 @@ linreg_mean_std (gsl_vector_const_view v, double *mp, double *sp, double *ssp)
   The return value is the number of distinct variables found.
  */
 int
-pspp_linreg_get_vars (const void *c_, struct variable **v)
+pspp_linreg_get_vars (const void *c_, const struct variable **v)
 {
   const pspp_linreg_cache *c = c_;
-  struct variable *tmp;
+  const struct variable *tmp;
   int i;
   int j;
   int result = 0;
@@ -663,7 +663,7 @@ void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *c, const struct var
 static struct design_matrix *
 rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache *c)
 {
-  struct variable **model_vars;
+  const struct variable **model_vars;
   struct design_matrix *result;
   size_t *permutation;
   size_t i;
