@@ -397,8 +397,11 @@ parse_map_out (struct lexer *lexer, struct pool *pool, struct map_out *out)
       set_map_out_str (out, pool, lex_tokstr (lexer));
       lex_get (lexer);
     }
-  else if (lex_match_id (lexer, "COPY"))
-    out->copy_input = true;
+  else if (lex_match_id (lexer, "COPY")) 
+    {
+      out->copy_input = true;
+      out->width = 0; 
+    }
   else
     {
       lex_error (lexer, _("expecting output value"));
