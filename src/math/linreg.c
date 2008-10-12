@@ -719,7 +719,7 @@ rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache 
   having to alter it. The problem is that this means the caller must
   set CACHE->N_COEFFS.
 */
-int
+void
 pspp_linreg_with_cov (const struct design_matrix *full_cov, 
 		      pspp_linreg_cache * cache)
 {
