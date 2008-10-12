@@ -27,8 +27,10 @@
 #include <stddef.h>
 
 struct case_map;
-struct dictionary;
+struct casereader;
+struct casewriter;
 struct ccase;
+struct dictionary;
 
 struct case_map *case_map_create (void);
 void case_map_destroy (struct case_map *);
@@ -36,6 +38,11 @@ void case_map_execute (const struct case_map *,
                        const struct ccase *, struct ccase *);
 
 size_t case_map_get_value_cnt (const struct case_map *);
+
+struct casereader *case_map_create_input_translator (struct case_map *,
+                                                    struct casereader *);
+struct casewriter *case_map_create_output_translator (struct case_map *,
+                                                      struct casewriter *);
 
 /* For mapping cases for one version of a dictionary to those in
    a modified version of the same dictionary. */

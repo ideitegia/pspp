@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <data/casereader.h>
+#include <data/casewriter.h>
 #include <data/dictionary.h>
 #include <data/variable.h>
 #include <data/case.h>
@@ -35,6 +37,9 @@ struct case_map
     int *map;           /* For each destination index, the
                            corresponding source index. */
   };
+
+static void translate_case (struct ccase *, struct ccase *, void *map_);
+static bool destroy_case_map (void *map_);
 
 /* Creates and returns an empty map. */
 static struct case_map *
@@ -100,6 +105,63 @@ size_t
 case_map_get_value_cnt (const struct case_map *map)
 {
   return map->value_cnt;
+}
+
+/* Creates and returns a new casereader whose cases are produced
+   by reading from SUBREADER and executing the actions of MAP.  
+   The casereader will have as many `union value's as MAP.  When
+   the new casereader is destroyed, MAP will be destroyed too.
+
+   After this function is called, SUBREADER must not ever again
+   be referenced directly.  It will be destroyed automatically
+   when the returned casereader is destroyed. */
+struct casereader *
+case_map_create_input_translator (struct case_map *map,
+                                  struct casereader *subreader) 
+{
+    return casereader_create_translator (subreader,
+                                         case_map_get_value_cnt (map),
+                                         translate_case,
+                                         destroy_case_map,
+                                         map);
+}
+
+/* Creates and returns a new casewriter.  Cases written to the
+   new casewriter will be passed through MAP and written to
+   SUBWRITER.  The casewriter will have as many `union value's as
+   MAP.  When the new casewriter is destroyed, MAP will be
+   destroyed too.
+
+   After this function is called, SUBWRITER must not ever again
+   be referenced directly.  It will be destroyed automatically
+   when the returned casewriter is destroyed. */
+struct casewriter *
+case_map_create_output_translator (struct case_map *map,
+                                   struct casewriter *subwriter) 
+{
+    return casewriter_create_translator (subwriter,
+                                         case_map_get_value_cnt (map),
+                                         translate_case,
+                                         destroy_case_map,
+                                         map);
+}
+
+/* Casereader/casewriter translation callback. */
+static void
+translate_case (struct ccase *input, struct ccase *output, void *map_)
+{
+  struct case_map *map = map_;
+  case_map_execute (map, input, output);
+  case_destroy (input);
+}
+
+/* Casereader/casewriter destruction callback. */
+static bool
+destroy_case_map (void *map_)
+{
+  struct case_map *map = map_;
+  case_map_destroy (map);
+  return true;
 }
 
 /* Creates and returns a case_map that can be used to compact
