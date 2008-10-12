@@ -112,6 +112,10 @@ release.
      available.  The most common of these are listed under "Optional
      Features", below.
 
+     It is best to build and install PSPP in directories whose names do
+     not contain unusual characters such as spaces or single-quotes, due
+     to limitations of the tools involved in the build process.
+
      If you installed some of the libraries that PSPP uses in a
      non-standard location (on many systems, anywhere other than
      /usr), you may need to provide some special flags to `configure'
