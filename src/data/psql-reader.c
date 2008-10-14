@@ -37,7 +37,7 @@
 
 #if !PSQL_SUPPORT
 struct casereader *
-psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
+psql_open_reader (struct psql_read_info *info UNUSED, struct dictionary **dict UNUSED)
 {
   msg (ME, _("Support for reading postgres databases was not compiled into this installation of PSPP"));
 
