@@ -6,6 +6,8 @@ TESTS_ENVIRONMENT += PERL='@PERL@' PG_CONFIG='@PG_CONFIG@'
 # Allow locale_charset to find charset.alias before running "make install".
 TESTS_ENVIRONMENT += CHARSETALIASDIR='$(abs_top_builddir)/gl'
 
+TESTS_ENVIRONMENT += LC_ALL=C
+
 dist_TESTS = \
 	tests/command/aggregate.sh \
 	tests/command/attributes.sh \

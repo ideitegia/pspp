@@ -414,10 +414,13 @@ default.  Any real value may be assigned.
 
 @item DECIMAL
 @anchor{SET DECIMAL}
-The default DOT setting causes the decimal point character to be
-@samp{.} and the grouping character to be @samp{,}.  A setting of COMMA
+This value may be set to DOT or COMMA.
+Setting it to DOT causes the decimal point character to be
+@samp{.} and the grouping character to be @samp{,}.
+Setting it to COMMA
 causes the decimal point character to be @samp{,} and the grouping
 character to be @samp{.}.
+The default value is determined from the system locale.
 
 @item FORMAT
 Allows the default numeric input/output format to be specified.  The
