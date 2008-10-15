@@ -21,14 +21,23 @@
 #ifndef COVARIANCE_MATRIX_H
 #define COVARIANCE_MATRIX_H
 
-#include "design-matrix.h"
+#include <math/design-matrix.h>
+
+struct moments1;
+struct ccase;
+struct hsh_table;
 
 struct design_matrix *
-covariance_matrix_create (int, const struct variable *[]);
+covariance_matrix_create (size_t, const struct variable *[]);
 
 void covariance_matrix_destroy (struct design_matrix *);
 
 void covariance_pass_two (struct design_matrix *, double,
 			  double, double, const struct variable *, 
 			  const struct variable *, const union value *, const union value *);
+void covariance_accumulate (struct hsh_table *, struct moments1 **,
+			    const struct ccase *, const struct variable **, size_t);
+struct hsh_table * covariance_hsh_create (size_t);
+struct design_matrix * covariance_accumulator_to_matrix (struct hsh_table *, const struct moments1 **,
+							 const struct variable **, size_t, size_t);
 #endif
