@@ -247,8 +247,8 @@ design_matrix_set_case_count (struct design_matrix *dm, const struct variable *v
 /*
   Get the number of cases for V.
  */
-void 
-design_matrix_get_case_count (struct design_matrix *dm, const struct variable *v)
+size_t 
+design_matrix_get_case_count (const struct design_matrix *dm, const struct variable *v)
 {
   size_t i;
   assert (dm != NULL);

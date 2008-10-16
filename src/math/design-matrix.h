@@ -89,5 +89,5 @@ void design_matrix_increment_case_count (struct design_matrix *, const struct va
 
 void design_matrix_set_case_count (struct design_matrix *, const struct variable *, size_t);
 
-void design_matrix_get_case_count (struct design_matrix *, const struct variable *);
+size_t design_matrix_get_case_count (const struct design_matrix *, const struct variable *);
 #endif
