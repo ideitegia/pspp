@@ -1674,7 +1674,7 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
 
   if (mode == GENERAL)
     {
-      int width = var_get_width (v);
+      int width = MIN (var_get_width (v), MAX_SHORT_STRING);
       int i;
 
       *values = xnmalloc (entry_cnt, sizeof **values);
