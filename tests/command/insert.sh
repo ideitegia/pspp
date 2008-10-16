@@ -250,5 +250,23 @@ EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 
+# Test for regression against bug #24569 in which PSPP crashed
+# upon attempt to insert a nonexistent file.
+activity="create wrapper 9"
+cat <<EOF > $TESTFILE
+INSERT 
+  FILE='$TEMPDIR/nonexistent'
+  ERROR=CONTINUE.
+  .
+
+LIST.
+
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+#This command should fail
+activity="run program 7"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE > /dev/null
+if [ $? -eq 0 ] ; then no_result ; fi
 
 pass;

@@ -16,7 +16,9 @@
 
 #include <config.h>
 #include <ctype.h>
+#include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <language/command.h>
 #include <libpspp/message.h>
 #include <libpspp/getl.h>
@@ -192,6 +194,13 @@ parse_insert (struct lexer *lexer, char **filename)
     }
 
   *filename = canonicalize_file_name (relative_filename);
+  if (*filename == NULL) 
+    {
+      msg (SE, _("Unable to open `%s': %s."),
+           relative_filename, strerror (errno));
+      free (relative_filename);
+      return CMD_FAILURE;
+    }
   free (relative_filename);
 
   return CMD_SUCCESS;
