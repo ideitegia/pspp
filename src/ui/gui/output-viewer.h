@@ -33,7 +33,6 @@ void reload_viewer (struct output_viewer *);
 void reload_the_viewer (void);
 
 
-#define OUTPUT_FILE_NAME "psppire.txt"
-
+const char * output_file_name (void);
 
 #endif
