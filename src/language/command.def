@@ -45,6 +45,7 @@ DEF_CMD (S_INITIAL | S_DATA, 0, "GET", cmd_get)
 DEF_CMD (S_INITIAL | S_DATA, 0, "GET DATA", cmd_get_data)
 DEF_CMD (S_INITIAL | S_DATA, 0, "IMPORT", cmd_import)
 DEF_CMD (S_INITIAL | S_DATA, 0, "INPUT PROGRAM", cmd_input_program)
+DEF_CMD (S_INITIAL | S_DATA, 0, "MATCH FILES", cmd_match_files)
 
 /* Transformations and utilities that may appear after active
    file definition or within INPUT PROGRAM. */
@@ -107,7 +108,6 @@ DEF_CMD (S_DATA, 0, "FILTER", cmd_filter)
 DEF_CMD (S_DATA, 0, "FLIP", cmd_flip)
 DEF_CMD (S_DATA, 0, "FREQUENCIES", cmd_frequencies)
 DEF_CMD (S_DATA, 0, "LIST", cmd_list)
-DEF_CMD (S_DATA, 0, "MATCH FILES", cmd_match_files)
 DEF_CMD (S_DATA, 0, "MEANS", cmd_means)
 DEF_CMD (S_DATA, 0, "MODIFY VARS", cmd_modify_vars)
 DEF_CMD (S_DATA, 0, "NPAR TESTS", cmd_npar_tests)
