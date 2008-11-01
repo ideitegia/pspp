@@ -402,7 +402,6 @@ timed_wilcoxon_significance (double w, long int n, double timer)
   timeout_action.sa_mask = set;
   timeout_action.sa_flags = 0;
 
-  timeout_action.sa_restorer = 0;
   timeout_action.sa_handler = give_up_callback;
 
   if ( 0 == sigsetjmp (env, 1))
