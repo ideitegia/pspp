@@ -54,10 +54,12 @@ design_matrix_create (int n_variables,
 
   dm = xmalloc (sizeof *dm);
   dm->vars = xnmalloc (n_variables, sizeof *dm->vars);
+  dm->n_cases = xnmalloc (n_variables, sizeof (*dm->n_cases));
   dm->n_vars = n_variables;
 
   for (i = 0; i < n_variables; i++)
     {
+      dm->n_cases[i] = 0;
       v = v_variables[i];
       assert ((dm->vars + i) != NULL);
       (dm->vars + i)->v = v;	/* Allows us to look up the variable from
@@ -79,6 +81,7 @@ design_matrix_create (int n_variables,
   dm->m = gsl_matrix_calloc (n_data, n_cols);
   col = 0;
 
+  
   return dm;
 }
 
@@ -87,6 +90,7 @@ design_matrix_destroy (struct design_matrix *dm)
 {
   free (dm->vars);
   gsl_matrix_free (dm->m);
+  free (dm->n_cases);
   free (dm);
 }
 
@@ -212,3 +216,46 @@ design_matrix_clone (const struct design_matrix *dm)
   return result;
 }
 
+/*
+  Increment the number of cases for V.
+ */
+void 
+design_matrix_increment_case_count (struct design_matrix *dm, const struct variable *v)
+{
+  size_t i;
+  assert (dm != NULL);
+  assert (dm->n_cases != NULL);
+  assert (v != NULL);
+  i = design_matrix_var_to_column (dm, v);
+  dm->n_cases[i]++;
+}
+
+/*
+  Set the number of cases for V.
+ */
+void 
+design_matrix_set_case_count (struct design_matrix *dm, const struct variable *v, size_t n)
+{
+  size_t i;
+  assert (dm != NULL);
+  assert (dm->n_cases != NULL);
+  assert (v != NULL);
+  i = design_matrix_var_to_column (dm, v);
+  dm->n_cases[i] = n;
+}
+
+/*
+  Get the number of cases for V.
+ */
+size_t 
+design_matrix_get_case_count (const struct design_matrix *dm, const struct variable *v)
+{
+  size_t i;
+  assert (dm != NULL);
+  assert (dm->n_cases != NULL);
+  assert (v != NULL);
+  i = design_matrix_var_to_column (dm, v);
+  return dm->n_cases[i];
+}
+
+  

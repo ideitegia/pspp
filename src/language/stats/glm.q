@@ -37,6 +37,7 @@
 #include <language/data-io/file-handle.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/compiler.h>
+#include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <math/covariance-matrix.h>
 #include <math/coefficient.h>
@@ -46,8 +47,6 @@
 
 #include "xalloc.h"
 #include "gettext.h"
-
-#define GLM_LARGE_DATA 10000
 
 /* (headers) */
 
@@ -152,7 +151,7 @@ glm_custom_dependent (struct lexer *lexer, struct dataset *ds,
   model. That means the dependent variable is in there, too.
  */
 static void
-coeff_init (pspp_linreg_cache * c, struct design_matrix *cov)
+coeff_init (pspp_linreg_cache * c, const struct design_matrix *cov)
 {
   c->coeff = xnmalloc (cov->m->size2, sizeof (*c->coeff));
   c->n_coeffs = cov->m->size2 - 1;
@@ -213,26 +212,39 @@ data_pass_one (struct casereader *input,
   return n_data;
 }
 
+static pspp_linreg_cache *
+fit_model (const struct design_matrix *cov, const struct moments1 **mom, 
+	   const struct variable *dep_var, 
+	   const struct variable ** indep_vars, 
+	   size_t n_data, size_t n_indep)
+{
+  pspp_linreg_cache *result = NULL;
+  result = pspp_linreg_cache_alloc (dep_var, indep_vars, n_data, n_indep);
+  coeff_init (result, cov);
+  pspp_linreg_with_cov (cov, result);  
+  
+  return result;
+}
+
 static bool
 run_glm (struct casereader *input,
 	 struct cmd_glm *cmd,
 	 const struct dataset *ds)
 {
-  pspp_linreg_cache *model = NULL; 
-  size_t i;
-  size_t j;
-  int n_indep = 0;
-  struct ccase c;
+  casenumber row;
   const struct variable **indep_vars;
   const struct variable **all_vars;
-  struct design_matrix *X;
-  struct moments_var **mom;
-  struct casereader *reader;
-  casenumber row;
+  int n_indep = 0;
+  pspp_linreg_cache *model = NULL; 
+  pspp_linreg_opts lopts;
+  struct ccase c;
+  size_t i;
   size_t n_all_vars;
   size_t n_data;		/* Number of valid cases. */
-
-  pspp_linreg_opts lopts;
+  struct casereader *reader;
+  struct design_matrix *cov;
+  struct hsh_table *cov_hash;
+  struct moments1 **mom;
 
   if (!casereader_peek (input, 0, &c))
     {
@@ -266,69 +278,47 @@ run_glm (struct casereader *input,
     }
   n_indep = cmd->n_by;
   mom = xnmalloc (n_all_vars, sizeof (*mom));
-
+  for (i = 0; i < n_all_vars; i++)
+    mom[i] = moments1_create (MOMENT_MEAN);
 
   reader = casereader_clone (input);
   reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
 					     MV_ANY, NULL, NULL);
   reader = casereader_create_filter_missing (reader, v_dependent, 1,
 					     MV_ANY, NULL, NULL);
-  n_data = data_pass_one (casereader_clone (reader),
-			  (const struct variable **) all_vars, n_all_vars,
-			  mom);
 
-  if ((n_data > 0) && (n_indep > 0))
+  if (n_indep > 0)
     {
       for (i = 0; i < n_all_vars; i++)
 	if (var_is_alpha (all_vars[i]))
 	  cat_stored_values_create (all_vars[i]);
       
-      X =
-	covariance_matrix_create (n_all_vars,
-				  (const struct variable **) all_vars);
+      cov_hash = covariance_hsh_create (n_all_vars);
       reader = casereader_create_counter (reader, &row, -1);
       for (; casereader_read (reader, &c); case_destroy (&c))
 	{
 	  /* 
 	     Accumulate the covariance matrix.
-	   */
-	  for (i = 0; i < n_all_vars; ++i)
-	    {
-	      const struct variable *v = all_vars[i];
-	      const union value *val_v = case_data (&c, v);
-	      if (var_is_alpha (all_vars[i]))
-		cat_value_update (all_vars[i], val_v);
-	      for (j = i; j < n_all_vars; j++)
-		{
-		  const struct variable *w = all_vars[j];
-		  const union value *val_w = case_data (&c, w);
-		  covariance_pass_two (X, *mom[i]->mean, *mom[j]->mean,
-				       (double) n_data,
-				       v, w, val_v, val_w);
-		}
-	    }
+	  */
+	  covariance_accumulate (cov_hash, mom, &c, all_vars, n_all_vars);
+	  n_data++;
 	}
-      model = pspp_linreg_cache_alloc (v_dependent[0], indep_vars, n_data, n_indep);
-      /*
-	For large data sets, use QR decomposition.
-      */
-      if (n_data > sqrt (n_indep) && n_data > GLM_LARGE_DATA)
+      cov = covariance_accumulator_to_matrix (cov_hash, mom, all_vars, n_all_vars, n_data);
+
+      hsh_destroy (cov_hash);
+      for (i = 0; i < n_dependent; i++)
 	{
-	  model->method = PSPP_LINREG_QR;
+	  model = fit_model (cov, mom, v_dependent[i], indep_vars, n_data, n_indep);
+	  pspp_linreg_cache_free (model);
 	}
-      coeff_init (model, X);
-      pspp_linreg_with_cov (X, model);
+
       casereader_destroy (reader);
       for (i = 0; i < n_all_vars; i++)
 	{
-	  moments1_destroy (mom[i]->m);
-	  free (mom[i]->mean);
-	  free (mom[i]->variance);
-	  free (mom[i]->weight);
-	  free (mom[i]);
+	  moments1_destroy (mom[i]);
 	}
       free (mom);
-      covariance_matrix_destroy (X);
+      covariance_matrix_destroy (cov);
     }
   else
     {
@@ -336,7 +326,6 @@ run_glm (struct casereader *input,
     }
   free (indep_vars);
   free (lopts.get_indep_mean_std);
-  pspp_linreg_cache_free (model);
   casereader_destroy (input);
 
   return true;

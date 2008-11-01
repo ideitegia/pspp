@@ -30,6 +30,10 @@
 #include <localcharset.h>
 #include "xstrndup.h"
 
+#if HAVE_NL_LANGINFO
+#include <langinfo.h>
+#endif
+
 
 static char *locale = 0;
 static const char *charset;
@@ -211,5 +215,34 @@ i18n_done (void)
 	continue;
       iconv_close (convertor[i]);
     }
+}
+
+
+
+
+/* Return the system local's idea of the
+   decimal seperator character */
+char
+get_system_decimal (void)
+{
+  char *radix_char = NULL;
+
+  char *ol = setlocale (LC_NUMERIC, NULL);
+  setlocale (LC_NUMERIC, "");
+
+#if HAVE_NL_LANGINFO
+  radix_char = nl_langinfo (RADIXCHAR);
+#else
+  {
+    char *buf = xmalloc (10);
+    snprintf (buf, 10, "%f", 2.5);
+    radix_char = &buf[1];
+  }
+#endif
+
+  /* We MUST leave LC_NUMERIC untouched, since it would
+     otherwise interfere with data_{in,out} */
+  setlocale (LC_NUMERIC, ol);
+  return *radix_char;
 }
 

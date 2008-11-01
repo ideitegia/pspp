@@ -149,6 +149,8 @@ settings_init (int *width, int *length)
   settings_set_epoch (-1);
   i18n_init ();
   the_settings.styles = fmt_create ();
+
+  settings_set_decimal_char (get_system_decimal ());
 }
 
 void
