@@ -194,6 +194,7 @@ reload_the_viewer (void)
   reload_viewer (the_output_viewer);
 }
 
+#define OUTPUT_FILE_NAME "psppire.txt"
 
 void
 reload_viewer (struct output_viewer *ov)
@@ -277,7 +278,7 @@ reload_viewer (struct output_viewer *ov)
 }
 
 
-#define OUTPUT_FILE_NAME "psppire.txt"
+
 
 const char *
 output_file_name (void)
