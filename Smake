@@ -9,6 +9,7 @@ GNULIB_MODULES = \
 	byteswap \
 	c-ctype \
 	c-strtod \
+	close \
 	crypto/md4 \
 	dirname \
 	environ \
