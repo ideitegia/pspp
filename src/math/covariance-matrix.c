@@ -43,29 +43,151 @@ struct covariance_accumulator
 {
   const struct variable *v1;
   const struct variable *v2;
-  double product;
   const union value *val1;
   const union value *val2;
+  double dot_product;
+  double sum1;
+  double sum2;
+  double ssize;
 };
 
+
+
+struct covariance_matrix
+{
+  struct design_matrix *cov;
+  struct hsh_table *ca;
+  struct moments1 **m1;
+  struct moments **m;
+  const struct variable **v_variables;
+  size_t n_variables;
+  int n_pass;
+  int missing_handling;
+  enum mv_class missing_value;
+  void (*accumulate) (struct covariance_matrix *, const struct ccase *);
+  void (*update_moments) (struct covariance_matrix *, size_t, double);
+};
+
+static struct hsh_table *covariance_hsh_create (size_t);
 static hsh_hash_func covariance_accumulator_hash;
-static unsigned int hash_numeric_alpha (const struct variable *, const struct variable *, 
+static unsigned int hash_numeric_alpha (const struct variable *,
+					const struct variable *,
 					const union value *, size_t);
 static hsh_compare_func covariance_accumulator_compare;
 static hsh_free_func covariance_accumulator_free;
+static void update_moments1 (struct covariance_matrix *, size_t, double);
+static void update_moments2 (struct covariance_matrix *, size_t, double);
+static struct covariance_accumulator *get_new_covariance_accumulator (const
+								      struct
+								      variable
+								      *,
+								      const
+								      struct
+								      variable
+								      *,
+								      const
+								      union
+								      value *,
+								      const
+								      union
+								      value
+								      *);
+static void covariance_accumulate_listwise (struct covariance_matrix *,
+					    const struct ccase *);
+static void covariance_accumulate_pairwise (struct covariance_matrix *,
+					    const struct ccase *);
+
+struct covariance_matrix *
+covariance_matrix_init (size_t n_variables,
+			const struct variable *v_variables[], int n_pass,
+			int missing_handling, enum mv_class missing_value)
+{
+  size_t i;
+  struct covariance_matrix *result = NULL;
+
+  result = xmalloc (sizeof (*result));
+  result->cov = NULL;
+  result->ca = covariance_hsh_create (n_variables);
+  result->m = NULL;
+  result->m1 = NULL;
+  result->missing_handling = missing_handling;
+  result->missing_value = missing_value;
+  result->accumulate = (result->missing_handling == LISTWISE) ?
+    covariance_accumulate_listwise : covariance_accumulate_pairwise;
+  if (n_pass == ONE_PASS)
+    {
+      result->update_moments = update_moments1;
+      result->m1 = xnmalloc (n_variables, sizeof (*result->m1));
+      for (i = 0; i < n_variables; i++)
+	{
+	  result->m1[i] = moments1_create (MOMENT_MEAN);
+	}
+    }
+  else
+    {
+      result->update_moments = update_moments2;
+      result->m = xnmalloc (n_variables, sizeof (*result->m));
+      for (i = 0; i < n_variables; i++)
+	{
+	  result->m[i] = moments_create (MOMENT_MEAN);
+	}
+    }
+  result->v_variables = v_variables;
+  result->n_variables = n_variables;
+  result->n_pass = n_pass;
+
+  return result;
+}
 
 /*
   The covariances are stored in a DESIGN_MATRIX structure.
  */
 struct design_matrix *
-covariance_matrix_create (size_t n_variables, const struct variable *v_variables[])
+covariance_matrix_create (size_t n_variables,
+			  const struct variable *v_variables[])
 {
-  return design_matrix_create (n_variables, v_variables, (size_t) n_variables);
+  return design_matrix_create (n_variables, v_variables,
+			       (size_t) n_variables);
 }
 
-void covariance_matrix_destroy (struct design_matrix *x)
+static void
+update_moments1 (struct covariance_matrix *cov, size_t i, double x)
 {
-  design_matrix_destroy (x);
+  assert (cov->m1 != NULL);
+  moments1_add (cov->m1[i], x, 1.0);
+}
+
+static void
+update_moments2 (struct covariance_matrix *cov, size_t i, double x)
+{
+  assert (cov->m != NULL);
+  moments_pass_one (cov->m[i], x, 1.0);
+}
+
+void
+covariance_matrix_destroy (struct covariance_matrix *cov)
+{
+  size_t i;
+
+  assert (cov != NULL);
+  design_matrix_destroy (cov->cov);
+  hsh_destroy (cov->ca);
+  if (cov->n_pass == ONE_PASS)
+    {
+      for (i = 0; i < cov->n_variables; i++)
+	{
+	  moments1_destroy (cov->m1[i]);
+	}
+      free (cov->m1);
+    }
+  else
+    {
+      for (i = 0; i < cov->n_variables; i++)
+	{
+	  moments_destroy (cov->m[i]);
+	}
+      free (cov->m);
+    }
 }
 
 /*
@@ -74,12 +196,13 @@ void covariance_matrix_destroy (struct design_matrix *x)
  */
 static void
 covariance_update_categorical_numeric (struct design_matrix *cov, double mean,
-			  size_t row, 
-			  const struct variable *v2, double x, const union value *val2)
+				       size_t row,
+				       const struct variable *v2, double x,
+				       const union value *val2)
 {
   size_t col;
   double tmp;
-  
+
   assert (var_is_numeric (v2));
 
   col = design_matrix_var_to_column (cov, v2);
@@ -98,7 +221,7 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
   double tmp;
   const union value *tmp_val;
 
-  col = design_matrix_var_to_column (cov, v);  
+  col = design_matrix_var_to_column (cov, v);
   for (i = 0; i < cat_get_n_categories (v) - 1; i++)
     {
       col += i;
@@ -113,14 +236,17 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
       gsl_matrix_set (cov->m, col, row, x * y + tmp);
     }
 }
+
 /*
   Call this function in the second data pass. The central moments are
   MEAN1 and MEAN2. Any categorical variables should already have their
   values summarized in in its OBS_VALS element.
  */
-void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
-			  double ssize, const struct variable *v1, 
-			  const struct variable *v2, const union value *val1, const union value *val2)
+void
+covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
+		     double ssize, const struct variable *v1,
+		     const struct variable *v2, const union value *val1,
+		     const union value *val2)
 {
   size_t row;
   size_t col;
@@ -142,7 +268,7 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 	    }
 	  if (var_is_numeric (v2))
 	    {
-	      covariance_update_categorical_numeric (cov, mean2, row, 
+	      covariance_update_categorical_numeric (cov, mean2, row,
 						     v2, x, val2);
 	    }
 	  else
@@ -155,17 +281,17 @@ void covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
   else if (var_is_alpha (v2))
     {
       /*
-	Reverse the orders of V1, V2, etc. and put ourselves back
-	in the previous IF scope.
+         Reverse the orders of V1, V2, etc. and put ourselves back
+         in the previous IF scope.
        */
       covariance_pass_two (cov, mean2, mean1, ssize, v2, v1, val2, val1);
     }
   else
     {
       /*
-	Both variables are numeric.
-      */
-      row = design_matrix_var_to_column (cov, v1);  
+         Both variables are numeric.
+       */
+      row = design_matrix_var_to_column (cov, v1);
       col = design_matrix_var_to_column (cov, v2);
       x = (val1->f - mean1) * (val2->f - mean2);
       x += gsl_matrix_get (cov->m, col, row);
@@ -187,11 +313,13 @@ covariance_accumulator_hash (const void *h, const void *aux)
   const union value *val_max;
 
   /*
-    Order everything by the variables' indices. This ensures we get the
-    same key regardless of the order in which the variables are stored
-    and passed around.
+     Order everything by the variables' indices. This ensures we get the
+     same key regardless of the order in which the variables are stored
+     and passed around.
    */
-  v_min = (var_get_dict_index (ca->v1) < var_get_dict_index (ca->v2)) ? ca->v1 : ca->v2;
+  v_min =
+    (var_get_dict_index (ca->v1) <
+     var_get_dict_index (ca->v2)) ? ca->v1 : ca->v2;
   v_max = (ca->v1 == v_min) ? ca->v2 : ca->v1;
 
   val_min = (v_min == ca->v1) ? ca->val1 : ca->val2;
@@ -215,12 +343,12 @@ covariance_accumulator_hash (const void *h, const void *aux)
   if (var_is_alpha (v_max) && var_is_alpha (v_min))
     {
       unsigned int tmp;
-      char *x = xnmalloc (1 + var_get_width (v_max) + var_get_width (v_min), sizeof (*x));
+      char *x =
+	xnmalloc (1 + var_get_width (v_max) + var_get_width (v_min),
+		  sizeof (*x));
       strncpy (x, val_max->s, var_get_width (v_max));
       strncat (x, val_min->s, var_get_width (v_min));
-      tmp = *n_vars * (*n_vars + 1 + idx_max)
-	+ idx_min
-	+ hsh_hash_string (x);
+      tmp = *n_vars * (*n_vars + 1 + idx_max) + idx_min + hsh_hash_string (x);
       free (x);
       return tmp;
     }
@@ -233,61 +361,67 @@ covariance_accumulator_hash (const void *h, const void *aux)
   in a single data pass. Call covariance_accumulate () for each case 
   in the data.
  */
-struct hsh_table *
+static struct hsh_table *
 covariance_hsh_create (size_t n_vars)
 {
-  return hsh_create (n_vars * (n_vars + 1) / 2, covariance_accumulator_compare, 
-		     covariance_accumulator_hash, covariance_accumulator_free, &n_vars);
+  return hsh_create (n_vars * n_vars, covariance_accumulator_compare,
+		     covariance_accumulator_hash, covariance_accumulator_free,
+		     &n_vars);
 }
 
-static void 
+static void
 covariance_accumulator_free (void *c_, const void *aux UNUSED)
 {
   struct covariance_accumulator *c = c_;
   assert (c != NULL);
   free (c);
 }
+
+/*
+  Hash comparison. Returns 0 for a match, or a non-zero int
+  otherwise. The sign of a non-zero return value *should* indicate the
+  position of C relative to the covariance_accumulator described by
+  the other arguments. But for now, it just returns 1 for any
+  non-match.  This should be changed when someone figures out how to
+  compute a sensible sign for the return value.
+ */
 static int
-match_nodes (const struct covariance_accumulator *c, const struct variable *v1,
-	     const struct variable *v2, const union value *val1,
-	     const union value *val2)
+match_nodes (const struct covariance_accumulator *c,
+	     const struct variable *v1, const struct variable *v2,
+	     const union value *val1, const union value *val2)
 {
-  if (var_get_dict_index (v1) == var_get_dict_index (c->v1) && 
-      var_get_dict_index (v2) == var_get_dict_index (c->v2))
-    {
-      if (var_is_numeric (v1) && var_is_numeric (v2))
-	{
-	  return 0;
-	}
-      if (var_is_numeric (v1) && var_is_alpha (v2))
-	{
-	  if (compare_values (val2, c->val2, v2))
-	    {
-	      return 0;
-	    }
-	}
-      if (var_is_alpha (v1) && var_is_numeric (v2))
-	{
-	  if (compare_values (val1, c->val1, v1))
-	    {
-	      return 0;
-	    }
-	}
-      if (var_is_alpha (v1) && var_is_alpha (v2))
-	{
-	  if (compare_values (val1, c->val1, v1))
-	    {
-	      if (compare_values (val2, c->val2, v2))
-		{
-		  return 0;
-		}
-	    }
-	}
-    }
-  else if (v2 == c->v1 && v1 == c->v2)
-    {
-      return -match_nodes (c, v2, v1, val2, val1);
-    }
+  if (var_get_dict_index (v1) == var_get_dict_index (c->v1))
+    if (var_get_dict_index (v2) == var_get_dict_index (c->v2))
+      {
+	if (var_is_numeric (v1) && var_is_numeric (v2))
+	  {
+	    return 0;
+	  }
+	if (var_is_numeric (v1) && var_is_alpha (v2))
+	  {
+	    if (compare_values (val2, c->val2, v2))
+	      {
+		return 0;
+	      }
+	  }
+	if (var_is_alpha (v1) && var_is_numeric (v2))
+	  {
+	    if (compare_values (val1, c->val1, v1))
+	      {
+		return 0;
+	      }
+	  }
+	if (var_is_alpha (v1) && var_is_alpha (v2))
+	  {
+	    if (compare_values (val1, c->val1, v1))
+	      {
+		if (compare_values (val2, c->val2, v2))
+		  {
+		    return 0;
+		  }
+	      }
+	  }
+      }
   return 1;
 }
 
@@ -296,10 +430,11 @@ match_nodes (const struct covariance_accumulator *c, const struct variable *v1,
   a struct hsh_table in src/libpspp/hash.c.
 */
 static int
-covariance_accumulator_compare (const void *a1_, const void *a2_, const void *aux UNUSED)
+covariance_accumulator_compare (const void *a1_, const void *a2_,
+				const void *aux UNUSED)
 {
-  const struct covariance_accumulator *a1 =  a1_;
-  const struct covariance_accumulator *a2 =  a2_;
+  const struct covariance_accumulator *a1 = a1_;
+  const struct covariance_accumulator *a2 = a2_;
 
   if (a1 == NULL && a2 == NULL)
     return 0;
@@ -311,7 +446,7 @@ covariance_accumulator_compare (const void *a1_, const void *a2_, const void *au
 }
 
 static unsigned int
-hash_numeric_alpha (const struct variable *v1, const struct variable *v2, 
+hash_numeric_alpha (const struct variable *v1, const struct variable *v2,
 		    const union value *val, size_t n_vars)
 {
   unsigned int result = -1u;
@@ -329,8 +464,8 @@ hash_numeric_alpha (const struct variable *v1, const struct variable *v2,
 
 
 static double
-update_product (const struct variable *v1, const struct variable *v2, const union value *val1,
-		const union value *val2)
+update_product (const struct variable *v1, const struct variable *v2,
+		const union value *val1, const union value *val2)
 {
   assert (v1 != NULL);
   assert (v2 != NULL);
@@ -354,60 +489,192 @@ update_product (const struct variable *v1, const struct variable *v2, const unio
     }
   return 0.0;
 }
+static double
+update_sum (const struct variable *var, const union value *val)
+{
+  assert (var != NULL);
+  assert (val != NULL);
+  if (var_is_alpha (var))
+    {
+      return 1.0;
+    }
+  return val->f;
+}
+static struct covariance_accumulator *
+get_new_covariance_accumulator (const struct variable *v1,
+				const struct variable *v2,
+				const union value *val1,
+				const union value *val2)
+{
+  if ((v1 != NULL) && (v2 != NULL) && (val1 != NULL) && (val2 != NULL))
+    {
+      struct covariance_accumulator *ca;
+      ca = xmalloc (sizeof (*ca));
+      ca->v1 = v1;
+      ca->v2 = v2;
+      ca->val1 = val1;
+      ca->val2 = val2;
+      return ca;
+    }
+  return NULL;
+}
+
+static const struct variable **
+get_covariance_variables (const struct covariance_matrix *cov)
+{
+  return cov->v_variables;
+}
+
+static void
+update_hash_entry (struct hsh_table *c,
+		   const struct variable *v1,
+		   const struct variable *v2,
+		   const union value *val1, const union value *val2)
+{
+  struct covariance_accumulator *ca;
+  struct covariance_accumulator *new_entry;
+
+
+  ca = get_new_covariance_accumulator (v1, v2, val1, val2);
+  ca->dot_product = update_product (ca->v1, ca->v2, ca->val1, ca->val2);
+  ca->sum1 = update_sum (ca->v1, ca->val1);
+  ca->sum2 = update_sum (ca->v2, ca->val2);
+  ca->ssize = 1.0;
+  new_entry = hsh_insert (c, ca);
+  if (new_entry != NULL)
+    {
+      new_entry->dot_product += ca->dot_product;
+      new_entry->ssize += 1.0;
+      new_entry->sum1 += ca->sum1;
+      new_entry->sum2 += ca->sum2;
+      /*
+         If DOT_PRODUCT is null, CA was not already in the hash
+         hable, so we don't free it because it was just inserted.
+         If DOT_PRODUCT was not null, CA is already in the hash table.
+         Unnecessary now, it must be freed here.
+       */
+      free (ca);
+    }
+}
+
 /*
-  Compute the covariance matrix in a single data-pass.
+  Compute the covariance matrix in a single data-pass. Cases with
+  missing values are dropped pairwise, in other words, only if one of
+  the two values necessary to accumulate the inner product is missing.
+
+  Do not call this function directly. Call it through the struct
+  covariance_matrix ACCUMULATE member function, for example,
+  cov->accumulate (cov, ccase).
  */
-void 
-covariance_accumulate (struct hsh_table *cov, struct moments1 **m,
-		       const struct ccase *ccase, const struct variable **vars,
-		       size_t n_vars)
+static void
+covariance_accumulate_pairwise (struct covariance_matrix *cov,
+				const struct ccase *ccase)
 {
   size_t i;
   size_t j;
-  const union value *val;
-  struct covariance_accumulator *ca;
-  struct covariance_accumulator *entry;
+  const union value *val1;
+  const union value *val2;
+  const struct variable **v_variables;
 
-  assert (m != NULL);
+  assert (cov != NULL);
+  assert (ccase != NULL);
 
-  for (i = 0; i < n_vars; ++i)
+  v_variables = get_covariance_variables (cov);
+  assert (v_variables != NULL);
+
+  for (i = 0; i < cov->n_variables; ++i)
     {
-      val = case_data (ccase, vars[i]);
-      if (var_is_alpha (vars[i]))
+      val1 = case_data (ccase, v_variables[i]);
+      if (!var_is_value_missing (v_variables[i], val1, cov->missing_value))
 	{
-	  cat_value_update (vars[i], val);
-	}
-      else
-	{
-	  moments1_add (m[i], val->f, 1.0);
-	}
-      for (j = i; j < n_vars; j++)
-	{
-	  ca = xmalloc (sizeof (*ca));
-	  ca->v1 = vars[i];
-	  ca->v2 = vars[j];
-	  ca->val1 = val;
-	  ca->val2 = case_data (ccase, ca->v2);
-	  ca->product = update_product (ca->v1, ca->v2, ca->val1, ca->val2);
-	  entry = hsh_insert (cov, ca);
-	  if (entry != NULL)
+	  cat_value_update (v_variables[i], val1);
+	  if (var_is_alpha (v_variables[i]))
+	    cov->update_moments (cov, i, val1->f);
+
+	  for (j = i; j < cov->n_variables; j++)
 	    {
-	      entry->product += ca->product;
-	      /*
-		If ENTRY is null, CA was not already in the hash
-		hable, so we don't free it because it was just inserted.
-		If ENTRY was not null, CA is already in the hash table.
-		Unnecessary now, it must be freed here.
-	      */
-	      free (ca);
+	      val2 = case_data (ccase, v_variables[j]);
+	      if (!var_is_value_missing
+		  (v_variables[j], val2, cov->missing_value))
+		{
+		  update_hash_entry (cov->ca, v_variables[i], v_variables[j],
+				     val1, val2);
+		  if (j != i)
+		    update_hash_entry (cov->ca, v_variables[j],
+				       v_variables[i], val2, val1);
+		}
 	    }
 	}
     }
 }
 
-static void 
-covariance_matrix_insert (struct design_matrix *cov, const struct variable *v1,
-			  const struct variable *v2, const union value *val1, 
+/*
+  Compute the covariance matrix in a single data-pass. Cases with
+  missing values are dropped listwise. In other words, if one of the
+  values for any variable in a case is missing, the entire case is
+  skipped. 
+
+  The caller must use a casefilter to remove the cases with missing
+  values before calling covariance_accumulate_listwise. This function
+  assumes that CCASE has already passed through this filter, and
+  contains no missing values.
+
+  Do not call this function directly. Call it through the struct
+  covariance_matrix ACCUMULATE member function, for example,
+  cov->accumulate (cov, ccase).
+ */
+static void
+covariance_accumulate_listwise (struct covariance_matrix *cov,
+				const struct ccase *ccase)
+{
+  size_t i;
+  size_t j;
+  const union value *val1;
+  const union value *val2;
+  const struct variable **v_variables;
+
+  assert (cov != NULL);
+  assert (ccase != NULL);
+
+  v_variables = get_covariance_variables (cov);
+  assert (v_variables != NULL);
+
+  for (i = 0; i < cov->n_variables; ++i)
+    {
+      val1 = case_data (ccase, v_variables[i]);
+      cat_value_update (v_variables[i], val1);
+      if (var_is_alpha (v_variables[i]))
+	cov->update_moments (cov, i, val1->f);
+
+      for (j = i; j < cov->n_variables; j++)
+	{
+	  val2 = case_data (ccase, v_variables[j]);
+	  update_hash_entry (cov->ca, v_variables[i], v_variables[j],
+			     val1, val2);
+	  if (j != i)
+	    update_hash_entry (cov->ca, v_variables[j], v_variables[i],
+			       val2, val1);
+	}
+    }
+}
+
+/*
+  Call this function during the data pass. Each case will be added to
+  a hash containing all values of the covariance matrix. After the
+  data have been passed, call covariance_matrix_compute to put the
+  values in the struct covariance_matrix.
+ */
+void
+covariance_matrix_accumulate (struct covariance_matrix *cov,
+			      const struct ccase *ccase)
+{
+  cov->accumulate (cov, ccase);
+}
+
+static void
+covariance_matrix_insert (struct design_matrix *cov,
+			  const struct variable *v1,
+			  const struct variable *v2, const union value *val1,
 			  const union value *val2, double product)
 {
   size_t row;
@@ -441,10 +708,10 @@ covariance_matrix_insert (struct design_matrix *cov, const struct variable *v1,
 	    {
 	      i++;
 	      tmp_val = cat_subscript_to_value (i, v1);
-	    } 
+	    }
 	  col += i;
 	}
-    }    
+    }
   else
     {
       if (var_is_numeric (v2))
@@ -457,80 +724,52 @@ covariance_matrix_insert (struct design_matrix *cov, const struct variable *v1,
 	}
     }
   gsl_matrix_set (cov->m, row, col, product);
-  gsl_matrix_set (cov->m, col, row, product);
 }
 
-static double
-get_center (const struct variable *v, const union value *val, 
-	    const struct variable **vars, const struct moments1 **m, size_t n_vars,
-	    size_t ssize)
-{
-  size_t i = 0;
-
-  while ((var_get_dict_index (vars[i]) != var_get_dict_index(v)) && (i < n_vars))
-    {
-      i++;
-    }  
-  if (var_is_numeric (v))
-    {
-      double mean;
-      moments1_calculate (m[i], NULL, &mean, NULL, NULL, NULL);
-      return mean;
-    }
-  else 
-    {
-      i = cat_value_find (v, val);
-      return (cat_get_category_count (i, v) / ssize);
-    }
-  return 0.0;
-}
-
-/*
-  Subtract the product of the means.
- */
-static double
-center_entry (const struct covariance_accumulator *ca, const struct variable **vars,
-	      const struct moments1 **m, size_t n_vars, size_t ssize)
-{
-  double m1;
-  double m2;
-  double result = 0.0;
-  
-  m1 = get_center (ca->v1, ca->val1, vars, m, n_vars, ssize);
-  m2 = get_center (ca->v2, ca->val2, vars, m, n_vars, ssize);
-  result = ca->product - ssize * m1 * m2;
-  return result;
-}
-
-/*
-  The first moments in M should be stored in the order corresponding
-  to the order of VARS. So, for example, VARS[0] has its moments in
-  M[0], VARS[1] has its moments in M[1], etc.
- */
-struct design_matrix *
-covariance_accumulator_to_matrix (struct hsh_table *cov, const struct moments1 **m,
-				  const struct variable **vars, size_t n_vars, size_t ssize)
+static struct design_matrix *
+covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 {
   double tmp;
   struct covariance_accumulator *entry;
   struct design_matrix *result = NULL;
   struct hsh_iterator iter;
-  
-  result = covariance_matrix_create (n_vars, vars);
 
-  entry = hsh_first (cov, &iter);
-  
+  result = covariance_matrix_create (cov->n_variables, cov->v_variables);
+
+  entry = hsh_first (cov->ca, &iter);
+
   while (entry != NULL)
     {
       /*
-	We compute the centered, un-normalized covariance matrix.
+         We compute the centered, un-normalized covariance matrix.
        */
-      tmp = center_entry (entry, vars, m, n_vars, ssize);
+      tmp = entry->dot_product - entry->sum1 * entry->sum2 / entry->ssize;
       covariance_matrix_insert (result, entry->v1, entry->v2, entry->val1,
 				entry->val2, tmp);
-      entry = hsh_next (cov, &iter);
+      entry = hsh_next (cov->ca, &iter);
     }
-
   return result;
 }
 
+
+/*
+  Call this function after passing the data.
+ */
+void
+covariance_matrix_compute (struct covariance_matrix *cov)
+{
+  if (cov->n_pass == ONE_PASS)
+    {
+      cov->cov = covariance_accumulator_to_matrix (cov);
+    }
+}
+
+struct design_matrix *
+covariance_to_design (const struct covariance_matrix *c)
+{
+  if (c != NULL)
+    {
+      return c->cov;
+    }
+  return NULL;
+}
