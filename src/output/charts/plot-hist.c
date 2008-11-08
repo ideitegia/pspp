@@ -122,6 +122,8 @@ histogram_plot (const struct histogram *hist,
   histogram_plot_n (hist, label, n, mean, sqrt(var), m);
 }
 
+
+/* This function is deprecated.  Don't use it in new code */
 void
 histogram_plot_n (const struct histogram *hist,
 		  const char *label,
