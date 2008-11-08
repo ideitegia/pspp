@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PSPP 0.7.0\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
-"POT-Creation-Date: 2008-11-05 08:02+0900\n"
+"POT-Creation-Date: 2008-11-08 12:59+0900\n"
 "PO-Revision-Date: 2008-11-05 08:17+0900\n"
 "Last-Translator: John Darrington <john@darrington.wattle.id.au>\n"
 "Language-Team: John Darrington <john@darrington.wattle.id.au>\n"
@@ -174,8 +174,8 @@ msgid ""
 "Unrecognized weekday name.  At least the first two letters of an English "
 "weekday name must be specified."
 msgstr ""
-"Unrecognised weekday name.  At least the first two letters of an English \n"
-"weekday name must be specified.\n"
+"Unrecognised weekday name.  At least the first two letters of an English "
+"weekday name must be specified."
 
 #: src/data/data-in.c:1138
 #, c-format
@@ -2253,8 +2253,10 @@ msgid ""
 "Unrecognized date unit \"%.*s\".  Valid date units are \"years\", \"quarters"
 "\", \"months\", \"weeks\", \"days\", \"hours\", \"minutes\", and \"seconds\"."
 msgstr ""
-"Unrecognised date unit \"%.*s\".  Valid date units are \"years\", \"quarters\"\n"
-"\"\", \"months\", \"weeks\", \"days\", \"hours\", \"minutes\", and \"seconds\"."
+"Unrecognised date unit \"%.*s\".  Valid date units are \"years\", \"quarters"
+"\"\n"
+"\"\", \"months\", \"weeks\", \"days\", \"hours\", \"minutes\", and \"seconds"
+"\"."
 
 #: src/language/expressions/helpers.c:332
 msgid ""
@@ -3415,7 +3417,7 @@ msgstr ""
 msgid "Multivariate GLM not yet supported"
 msgstr ""
 
-#: src/language/stats/glm.q:325 src/language/stats/regression.q:994
+#: src/language/stats/glm.q:261 src/language/stats/regression.q:994
 msgid "No valid data found. This command was skipped."
 msgstr ""
 
