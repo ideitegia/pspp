@@ -26,18 +26,33 @@
 struct moments1;
 struct ccase;
 struct hsh_table;
+struct covariance_matrix;
+enum
+{ ONE_PASS,
+  TWO_PASS
+};
 
-struct design_matrix *
-covariance_matrix_create (size_t, const struct variable *[]);
+/*
+  How to deal with missing values.
+ */
+enum
+{ LISTWISE,
+  PAIRWISE
+};
+struct design_matrix *covariance_matrix_create (size_t,
+						const struct variable *[]);
 
-void covariance_matrix_destroy (struct design_matrix *);
-
+void covariance_matrix_destroy (struct covariance_matrix *cov);
 void covariance_pass_two (struct design_matrix *, double,
-			  double, double, const struct variable *, 
-			  const struct variable *, const union value *, const union value *);
-void covariance_accumulate (struct hsh_table *, struct moments1 **,
-			    const struct ccase *, const struct variable **, size_t);
-struct hsh_table * covariance_hsh_create (size_t);
-struct design_matrix * covariance_accumulator_to_matrix (struct hsh_table *, const struct moments1 **,
-							 const struct variable **, size_t, size_t);
+			  double, double, const struct variable *,
+			  const struct variable *, const union value *,
+			  const union value *);
+void covariance_matrix_compute (struct covariance_matrix *);
+struct covariance_matrix *covariance_matrix_init (size_t,
+						  const struct variable *[],
+						  int, int, enum mv_class);
+void covariance_matrix_free (struct covariance_matrix *);
+void covariance_matrix_accumulate (struct covariance_matrix *,
+				   const struct ccase *);
+struct design_matrix *covariance_to_design (const struct covariance_matrix *);
 #endif

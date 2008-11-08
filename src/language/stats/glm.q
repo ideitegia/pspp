@@ -158,69 +158,16 @@ coeff_init (pspp_linreg_cache * c, const struct design_matrix *cov)
   pspp_coeff_init (c->coeff, cov);
 }
 
-/* Encode categorical variables.
-   Returns number of valid cases. */
-static int
-data_pass_one (struct casereader *input,
-	       const struct variable **vars, size_t n_vars,
-	       struct moments_var **mom)
-{
-  int n_data;
-  struct ccase c;
-  size_t i;
-
-  for (i = 0; i < n_vars; i++)
-    {
-      mom[i] = xmalloc (sizeof (*mom[i]));
-      mom[i]->v = vars[i];
-      mom[i]->mean = xmalloc (sizeof (*mom[i]->mean));
-      mom[i]->variance = xmalloc (sizeof (*mom[i]->mean));
-      mom[i]->weight = xmalloc (sizeof (*mom[i]->weight));
-      mom[i]->m = moments1_create (MOMENT_VARIANCE);
-      if (var_is_alpha (vars[i]))
-	cat_stored_values_create (vars[i]);
-    }
-
-  n_data = 0;
-  for (; casereader_read (input, &c); case_destroy (&c))
-    {
-      /*
-         The second condition ensures the program will run even if
-         there is only one variable to act as both explanatory and
-         response.
-       */
-      for (i = 0; i < n_vars; i++)
-	{
-	  const union value *val = case_data (&c, vars[i]);
-	  if (var_is_alpha (vars[i]))
-	    cat_value_update (vars[i], val);
-	  else
-	    moments1_add (mom[i]->m, val->f, 1.0);
-	}
-      n_data++;
-    }
-  casereader_destroy (input);
-  for (i = 0; i < n_vars; i++)
-    {
-      if (var_is_numeric (mom[i]->v))
-	{
-	  moments1_calculate (mom[i]->m, mom[i]->weight, mom[i]->mean,
-			      mom[i]->variance, NULL, NULL);
-	}
-    }
-
-  return n_data;
-}
 
 static pspp_linreg_cache *
-fit_model (const struct design_matrix *cov, const struct moments1 **mom, 
+fit_model (const struct covariance_matrix *cov,
 	   const struct variable *dep_var, 
 	   const struct variable ** indep_vars, 
 	   size_t n_data, size_t n_indep)
 {
   pspp_linreg_cache *result = NULL;
   result = pspp_linreg_cache_alloc (dep_var, indep_vars, n_data, n_indep);
-  coeff_init (result, cov);
+  coeff_init (result, covariance_to_design (cov));
   pspp_linreg_with_cov (cov, result);  
   
   return result;
@@ -242,9 +189,7 @@ run_glm (struct casereader *input,
   size_t n_all_vars;
   size_t n_data;		/* Number of valid cases. */
   struct casereader *reader;
-  struct design_matrix *cov;
-  struct hsh_table *cov_hash;
-  struct moments1 **mom;
+  struct covariance_matrix *cov;
 
   if (!casereader_peek (input, 0, &c))
     {
@@ -277,9 +222,6 @@ run_glm (struct casereader *input,
       all_vars[i + n_dependent] = cmd->v_by[i];
     }
   n_indep = cmd->n_by;
-  mom = xnmalloc (n_all_vars, sizeof (*mom));
-  for (i = 0; i < n_all_vars; i++)
-    mom[i] = moments1_create (MOMENT_MEAN);
 
   reader = casereader_clone (input);
   reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
@@ -293,31 +235,25 @@ run_glm (struct casereader *input,
 	if (var_is_alpha (all_vars[i]))
 	  cat_stored_values_create (all_vars[i]);
       
-      cov_hash = covariance_hsh_create (n_all_vars);
+      cov = covariance_matrix_init (n_all_vars, all_vars, ONE_PASS, PAIRWISE, MV_ANY);
       reader = casereader_create_counter (reader, &row, -1);
       for (; casereader_read (reader, &c); case_destroy (&c))
 	{
 	  /* 
 	     Accumulate the covariance matrix.
 	  */
-	  covariance_accumulate (cov_hash, mom, &c, all_vars, n_all_vars);
+	  covariance_matrix_accumulate (cov, &c);
 	  n_data++;
 	}
-      cov = covariance_accumulator_to_matrix (cov_hash, mom, all_vars, n_all_vars, n_data);
+      covariance_matrix_compute (cov);
 
-      hsh_destroy (cov_hash);
       for (i = 0; i < n_dependent; i++)
 	{
-	  model = fit_model (cov, mom, v_dependent[i], indep_vars, n_data, n_indep);
+	  model = fit_model (cov, v_dependent[i], indep_vars, n_data, n_indep);
 	  pspp_linreg_cache_free (model);
 	}
 
       casereader_destroy (reader);
-      for (i = 0; i < n_all_vars; i++)
-	{
-	  moments1_destroy (mom[i]);
-	}
-      free (mom);
       covariance_matrix_destroy (cov);
     }
   else
