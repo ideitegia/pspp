@@ -19,16 +19,49 @@
 #include "psppire.h"
 #include "progname.h"
 #include <stdlib.h>
-#include <getopt.h>
+#include <argp.h>
 #include <gl/relocatable.h>
+#include <ui/command-line.h>
+#include <ui/source-init-opts.h>
 
 #include <libpspp/version.h>
 #include <libpspp/copyleft.h>
 
-static gboolean parse_command_line (int *argc, char ***argv, gchar **filename,
-				    gboolean *show_splash, GError **err);
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
+const char *argp_program_version = version;
+const char *argp_program_bug_address = PACKAGE_BUGREPORT;
 
+
+/* Arguments to be interpreted before the X server gets initialised */
+
+static const struct argp_option startup_options [] =
+  {
+    {"no-splash",  'q',  0,  0,  N_("Don't show the splash screen"), 0 },
+    { 0, 0, 0, 0, 0, 0 }
+  };
+
+static error_t
+parse_startup_opts (int key, char *arg, struct argp_state *state)
+{
+  gboolean *showsplash = state->input;
+
+  switch (key)
+    {
+    case 'q':
+      *showsplash = FALSE;
+      break;
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+static const struct argp startup_argp = {startup_options, parse_startup_opts, 0, 0, 0, 0, 0};
+
+
 
 static GtkWidget *
 create_splash_window (void)
@@ -72,13 +105,22 @@ quit_one_loop (gpointer data)
   return FALSE;
 }
 
+struct initialisation_parameters
+{
+  int argc;
+  char **argv;
+  GtkWidget *splash_window;
+  struct command_line_processor *clp;
+};
+
 
 static gboolean
 run_inner_loop (gpointer data)
 {
-  initialize ();
+  struct initialisation_parameters *ip = data;
+  initialize (ip->clp, ip->argc, ip->argv);
 
-  g_timeout_add (500, hide_splash_window, data);
+  g_timeout_add (500, hide_splash_window, ip->splash_window);
 
   gtk_main ();
 
@@ -92,10 +134,10 @@ run_inner_loop (gpointer data)
 int
 main (int argc, char *argv[])
 {
-  GtkWidget *splash_window;
-  gchar *filename = 0;
+  struct command_line_processor *clp ;
+  struct initialisation_parameters init_p;
   gboolean show_splash = TRUE;
-  GError *err = 0;
+
   const gchar *vers;
 
   set_program_name (argv[0]);
@@ -113,75 +155,29 @@ main (int argc, char *argv[])
       g_warning (vers);
     }
 
-  /* Deal with options like --version, --help etc */
-  if ( ! parse_command_line (&argc, &argv, &filename, &show_splash, &err) )
-    {
-      g_clear_error (&err);
-      return 0;
-    }
+  clp = command_line_processor_create (_("PSPPIRE --- A user interface for PSPP"), "[ DATA-FILE ]", 0);
+
+  command_line_processor_add_options (clp, &startup_argp, _("Miscellaneous options:"),  &show_splash);
+  command_line_processor_add_options (clp, &post_init_argp,
+				      _("Options affecting syntax and behavior:"),  NULL);
+  command_line_processor_add_options (clp, &non_option_argp, NULL, NULL);
+
+  command_line_processor_parse (clp, argc, argv);
 
   gdk_init (&argc, &argv);
 
-  splash_window = create_splash_window ();
+  init_p.splash_window = create_splash_window ();
+  init_p.argc = argc;
+  init_p.argv = argv;
+  init_p.clp = clp;
+
   if ( show_splash )
-    gtk_widget_show (splash_window);
+    gtk_widget_show (init_p.splash_window);
 
   g_idle_add (quit_one_loop, 0);
 
-  gtk_quit_add (0, run_inner_loop, splash_window);
+  gtk_quit_add (0, run_inner_loop, &init_p);
   gtk_main ();
 
-
   return 0;
-}
-
-
-/* Parses the command line specified by ARGC and ARGV as received by
-   main ().  Returns true if normal execution should proceed,
-   false if the command-line indicates that PSPP should exit. */
-static gboolean
-parse_command_line (int *argc, char ***argv, gchar **filename,
-		    gboolean *show_splash, GError **err)
-{
-
-  static struct option long_options[] =
-    {
-      {"help", no_argument, NULL, 'h'},
-      {"version", no_argument, NULL, 'V'},
-      {"no-splash", no_argument, NULL, 'q'},
-      {0, 0, 0, 0},
-    };
-
-  int c;
-
-  for (;;)
-    {
-      c = getopt_long (*argc, *argv, "hVq", long_options, NULL);
-      if (c == -1)
-	break;
-
-      switch (c)
-	{
-	case 'h':
-	  g_print ("Usage: psppire {|--help|--version|--no-splash}\n");
-          return FALSE;
-	case 'V':
-	  g_print (version);
-	  g_print ("\n");
-	  g_print (legal);
-	  return FALSE;
-	case 'q':
-	  *show_splash = FALSE;
-	  break;
-	default:
-	  return FALSE;
-	}
-    }
-
-  if ( optind < *argc)
-    {
-      *filename = (*argv)[optind];
-    }
-
-  return TRUE;
 }

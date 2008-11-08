@@ -1,5 +1,5 @@
-/* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+/* PSPPIRE - a graphical user interface for PSPP.
+   Copyright (C) 2008  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,13 +14,11 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if !INCLUDED_CMDLINE_H
-#define INCLUDED_CMDLINE_H 1
 
-#include <stdbool.h>
+#ifndef SOURCE_INIT_OPTS
+#define SOURCE_INIT_OPTS
 
-struct source_stream ;
+extern const struct argp post_init_argp;
 
-bool parse_command_line (int argc, char **argv, struct source_stream *);
+#endif
 
-#endif /* cmdline.h */

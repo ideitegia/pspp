@@ -5,6 +5,7 @@ GNULIB = ../gnulib
 GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
 GNULIB_MODULES = \
+	argp \
 	assert \
 	byteswap \
 	c-ctype \

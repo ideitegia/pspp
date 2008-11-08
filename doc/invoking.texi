@@ -7,12 +7,12 @@
 @cindex options, command-line
 @example
 pspp [ -B @var{dir} | --config-dir=@var{dir} ] [ -o @var{device} | --device=@var{device} ]
-       [ -d @var{var}[=@var{value}] | --define=@var{var}[=@var{value}] ] [-u @var{var} | --undef=@var{var} ]
-       [ -f @var{file} | --out-file=@var{file} ] [ -p | --pipe ] [ -I- | --no-include ]
+       [ -a @{compatible|enhanced@} | --algorithm=@{compatible|enhanced@}]
+       [ -x @{compatible|enhanced@} | --syntax=@{compatible|enhanced@}]
+       [ -I- | --no-include ]
        [ -I @var{dir} | --include=@var{dir} ] [ -i | --interactive ] 
-       [ -n | --edit | --dry-run | --just-print | --recon ] 
        [ -r | --no-statrc ] [ -h | --help ] [ -l | --list ] 
-       [ -c @var{command} | --command @var{command} ] [ -s | --safer ]
+       [ -s | --safer ]
        [ --testing-mode ] [ -V | --version ] [ -v | --verbose ] 
        [ @var{key}=@var{value} ] @var{file}@enddots{}
 @end example
@@ -101,19 +101,6 @@ Input and output options affect how PSPP reads input and writes
 output.  These are the input and output options:
 
 @table @code
-@item -f @var{file}
-@itemx --out-file=@var{file}
-
-This overrides the output file name for devices designated as listing
-devices.  If a file named @var{file} already exists, it is overwritten.
-
-@item -p
-@itemx --pipe
-
-Allows PSPP to be used as a filter by causing the syntax file to be
-read from stdin and output to be written to stdout.  Conflicts with the
-@code{-f @var{file}} and @code{--file=@var{file}} options.
-
 @item -I-
 @itemx --no-include
 
@@ -126,12 +113,6 @@ configuring}.
 
 Appends directory @var{dir} to the path that is searched for include
 files in PSPP syntax files.
-
-@item -c @var{command}
-@itemx --command=@var{command}
-
-Execute literal command @var{command}.  The command is executed before
-startup syntax files, if any.
 
 @item --testing-mode
 
@@ -157,16 +138,6 @@ In addition, this forces syntax files to be interpreted in interactive
 mode, rather than the default batch mode.  @xref{Tokenizing lines}, for
 information on the differences between batch mode and interactive mode
 command interpretation.
-
-@item -n
-@itemx --edit
-@itemx --dry-run
-@itemx --just-print
-@itemx --recon
-
-Only the syntax of any syntax file specified or of commands entered at
-the command line is checked.  Transformations are not performed and
-procedures are not executed.  Not yet implemented.
 
 @item -r
 @itemx --no-statrc

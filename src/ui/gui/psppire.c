@@ -22,11 +22,14 @@
 #include <gsl/gsl_errno.h>
 #include <signal.h>
 
+#include <argp.h>
+#include <ui/command-line.h>
 #include "relocatable.h"
 
 #include "data-editor.h"
 #include "psppire.h"
 
+#include <libpspp/getl.h>
 #include <unistd.h>
 #include <data/casereader.h>
 #include <data/datasheet.h>
@@ -39,6 +42,7 @@
 #include <libpspp/version.h>
 #include <output/output.h>
 #include <output/journal.h>
+#include <language/syntax-string-source.h>
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -47,8 +51,14 @@
 #include "psppire-data-store.h"
 #include "helper.h"
 #include "message-dialog.h"
+#include <ui/syntax-gen.h>
 
 #include "output-viewer.h"
+
+#include <data/sys-file-reader.h>
+#include <data/por-file-reader.h>
+
+#include <ui/source-init-opts.h>
 
 PsppireDataStore *the_data_store = 0;
 PsppireVarStore *the_var_store = 0;
@@ -70,9 +80,8 @@ replace_casereader (struct casereader *s)
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
 void
-initialize (void)
+initialize (struct command_line_processor *clp, int argc, char **argv)
 {
   PsppireDict *dictionary = 0;
 
@@ -110,6 +119,8 @@ initialize (void)
   the_data_store = psppire_data_store_new (dictionary);
   replace_casereader (NULL);
 
+
+
   create_icon_factory ();
 
   outp_configure_driver_line (
@@ -126,7 +137,14 @@ initialize (void)
   /* Ignore alarm clock signals */
   signal (SIGALRM, SIG_IGN);
 
+  command_line_processor_replace_aux (clp, &post_init_argp, the_source_stream);
+  command_line_processor_replace_aux (clp, &non_option_argp, the_source_stream);
+
+  command_line_processor_parse (clp, argc, argv);
+
   new_data_window (NULL, NULL);
+
+  execute_syntax (create_syntax_string_source (""));
 }
 
 
@@ -201,11 +219,11 @@ create_icon_factory (void)
 
 
     gtk_stock_add (items, 2);
-    gtk_icon_factory_add (factory, "pspp-stock-reset", 
+    gtk_icon_factory_add (factory, "pspp-stock-reset",
 			  gtk_icon_factory_lookup_default (GTK_STOCK_REFRESH)
 			  );
 
-    gtk_icon_factory_add (factory, "pspp-stock-select", 
+    gtk_icon_factory_add (factory, "pspp-stock-select",
 			  gtk_icon_factory_lookup_default (GTK_STOCK_INDEX)
 			  );
   }
@@ -213,3 +231,58 @@ create_icon_factory (void)
   gtk_icon_factory_add_default (factory);
 }
 
+
+
+static error_t
+parse_non_options (int key, char *arg, struct argp_state *state)
+{
+  struct source_stream *ss = state->input;
+
+  if ( NULL == ss )
+    return 0;
+
+  switch (key)
+    {
+    case ARGP_KEY_ARG:
+      {
+	struct string syntax;
+	FILE *fp = fopen (arg, "r");
+	if (NULL == fp)
+	  {
+	    const int errnum = errno;
+	    fprintf (state->err_stream, _("Cannot open %s: %s.\n"),
+		     arg, strerror (errnum));
+	    return 0;
+	  }
+	if ( sfm_detect (fp))
+	  {
+	    ds_init_cstr (&syntax, "GET FILE=");
+	    goto close;
+	  }
+	rewind (fp);
+	if (pfm_detect (fp))
+	  {
+	    ds_init_cstr (&syntax, "IMPORT FILE=");
+	  }
+      close:
+	fclose (fp);
+
+	syntax_gen_string (&syntax, ss_cstr (arg));
+	ds_put_cstr (&syntax, ".");
+
+	getl_append_source (ss,
+			    create_syntax_string_source (ds_cstr (&syntax)),
+			    GETL_BATCH,
+			    ERRMODE_CONTINUE);
+
+	ds_destroy (&syntax);
+	break;
+      }
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+
+const struct argp non_option_argp = {NULL, parse_non_options, 0, 0, 0, 0, 0};

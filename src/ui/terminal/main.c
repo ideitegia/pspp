@@ -47,10 +47,12 @@
 #include <math/random.h>
 #include <output/output.h>
 #include <ui/debugger.h>
-#include <ui/terminal/command-line.h>
 #include <ui/terminal/msg-ui.h>
 #include <ui/terminal/read-line.h>
 #include <ui/terminal/terminal.h>
+#include <ui/terminal/terminal-opts.h>
+#include <ui/command-line.h>
+#include <ui/source-init-opts.h>
 
 #include "fatal-signal.h"
 #include "progname.h"
@@ -73,12 +75,15 @@ static struct dataset * the_dataset = NULL;
 static struct lexer *the_lexer;
 static struct source_stream *the_source_stream ;
 
+const char *argp_program_version = version;
+const char *argp_program_bug_address = PACKAGE_BUGREPORT;
+
 /* Program entry point. */
 int
 main (int argc, char **argv)
 {
   int *view_width_p, *view_length_p;
-
+  struct command_line_processor *clp;
   set_program_name (argv[0]);
 
   signal (SIGABRT, bug_handler);
@@ -106,36 +111,57 @@ main (int argc, char **argv)
 
   the_dataset = create_dataset ();
 
-  if (parse_command_line (argc, argv, the_source_stream))
+
+
+  clp = command_line_processor_create (_("PSPP --- A program for statistical analysis"),
+				       _("FILE1, FILE2 ... FILEn"), NULL);
+
+  command_line_processor_add_options (clp, &io_argp,
+				      _("Options affecting input and output locations:"), the_source_stream);
+
+  command_line_processor_add_options (clp, &test_argp,
+				      _("Diagnositic options:"), the_source_stream);
+
+  command_line_processor_add_options (clp, &post_init_argp,
+				      _("Options affecting syntax and behavior:"), the_source_stream);
+
+  command_line_processor_parse (clp, argc, argv);
+
+  msg_ui_init (the_source_stream);
+
+  if (!settings_get_testing_mode ())
     {
-      msg_ui_init (the_source_stream);
-      if (!settings_get_testing_mode ())
-        outp_read_devices ();
-      else
-        outp_configure_driver_line (
-          ss_cstr ("raw-ascii:ascii:listing:width=9999 length=9999 "
-                   "output-file=\"pspp.list\" emphasis=none "
-                   "headers=off paginate=off squeeze=on "
-                   "top-margin=0 bottom-margin=0"));
-      the_lexer = lex_create (the_source_stream);
-
-      for (;;)
-        {
-          int result = cmd_parse (the_lexer, the_dataset);
-
-          if (result == CMD_EOF || result == CMD_FINISH)
-            break;
-          if (result == CMD_CASCADING_FAILURE &&
-	      !getl_is_interactive (the_source_stream))
-            {
-              msg (SE, _("Stopping syntax file processing here to avoid "
-                         "a cascade of dependent command failures."));
-              getl_abort_noninteractive (the_source_stream);
-            }
-          else
-            check_msg_count (the_source_stream);
-        }
+      outp_read_devices ();
     }
+  else
+    {
+      outp_configure_driver_line
+	(
+	 ss_cstr ("raw-ascii:ascii:listing:width=9999 length=9999 "
+		  "output-file=\"pspp.list\" emphasis=none "
+		  "headers=off paginate=off squeeze=on "
+		  "top-margin=0 bottom-margin=0"));
+    }
+
+  the_lexer = lex_create (the_source_stream);
+
+  for (;;)
+    {
+      int result = cmd_parse (the_lexer, the_dataset);
+
+      if (result == CMD_EOF || result == CMD_FINISH)
+	break;
+      if (result == CMD_CASCADING_FAILURE &&
+	  !getl_is_interactive (the_source_stream))
+	{
+	  msg (SE, _("Stopping syntax file processing here to avoid "
+		     "a cascade of dependent command failures."));
+	  getl_abort_noninteractive (the_source_stream);
+	}
+      else
+	check_msg_count (the_source_stream);
+    }
+
 
   clean_up ();
   return any_errors ();

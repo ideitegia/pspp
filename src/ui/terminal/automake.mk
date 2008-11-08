@@ -3,15 +3,16 @@
 noinst_LTLIBRARIES += src/ui/terminal/libui.la
 
 src_ui_terminal_libui_la_SOURCES = \
-	src/ui/terminal/command-line.c \
-	src/ui/terminal/command-line.h \
 	src/ui/terminal/read-line.c \
 	src/ui/terminal/read-line.h \
 	src/ui/terminal/main.c \
 	src/ui/terminal/msg-ui.c \
 	src/ui/terminal/msg-ui.h \
 	src/ui/terminal/terminal.c \
-	src/ui/terminal/terminal.h	
+	src/ui/terminal/terminal.h \
+	src/ui/terminal/terminal-opts.c \
+	src/ui/terminal/terminal-opts.h	
+
 
 src_ui_terminal_libui_la_CFLAGS = -DINSTALLDIR=\"$(bindir)\" $(NCURSES_CFLAGS)
 
