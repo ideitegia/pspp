@@ -263,7 +263,13 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 	if (pfm_detect (fp))
 	  {
 	    ds_init_cstr (&syntax, "IMPORT FILE=");
+	    goto close;
 	  }
+
+	fclose (fp);
+	msg (ME, _("%s is neither a system nor portable file"), arg);
+	break;
+
       close:
 	fclose (fp);
 
