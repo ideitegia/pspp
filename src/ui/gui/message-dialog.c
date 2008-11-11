@@ -50,7 +50,7 @@ static GQueue *late_queue;
 static int error_cnt, warning_cnt, note_cnt;
 
 static GladeXML *message_xml;
-static GtkDialog *message_dialog;
+static GtkWidget *message_dialog;
 
 void
 message_dialog_init (struct source_stream *ss)
@@ -61,8 +61,7 @@ message_dialog_init (struct source_stream *ss)
   error_cnt = warning_cnt = note_cnt = 0;
   msg_init (ss, enqueue_msg);
   message_xml = XML_NEW ("message-dialog.glade");
-  message_dialog = GTK_DIALOG (get_widget_assert (message_xml,
-                                                  "message-dialog"));
+  message_dialog = get_widget_assert (message_xml, "message-dialog");
 }
 
 void
@@ -72,7 +71,7 @@ message_dialog_done (void)
   g_queue_free (early_queue);
   dropped_messages = 0;
   g_queue_free (late_queue);
-  gtk_widget_destroy (GTK_WIDGET (message_dialog));
+  gtk_widget_destroy (message_dialog);
   g_object_unref (message_xml);
 }
 
@@ -183,7 +182,7 @@ enqueue_msg (const struct msg *msg)
     }
 }
 
-gboolean
+static gboolean
 popup_messages (gpointer unused UNUSED)
 {
   GtkTextBuffer *text_buffer;
@@ -194,12 +193,20 @@ popup_messages (gpointer unused UNUSED)
   struct string msg = DS_EMPTY_INITIALIZER;
   int message_cnt;
 
+  /* Set up the dialog. */
+  if (message_xml == NULL || message_dialog == NULL)
+    goto use_fallback;
+
   /* If a pointer grab is in effect, then the combination of that, and
      a modal dialog box, will cause an impossible situation.
      So don't pop it up just yet.
   */
-  if ( gdk_pointer_is_grabbed ())
-    return TRUE;
+  if ( gdk_display_pointer_is_grabbed (gtk_widget_get_display (message_dialog)))
+    {
+      ds_destroy (&lead);
+      ds_destroy (&msg);
+      return TRUE;
+    }
 
   /* Compose the lead-in. */
   message_cnt = error_cnt + warning_cnt + note_cnt;
@@ -239,10 +246,6 @@ popup_messages (gpointer unused UNUSED)
   while (!g_queue_is_empty (late_queue))
     format_message (g_queue_pop_head (late_queue), &msg);
 
-  /* Set up the dialog. */
-  if (message_xml == NULL || message_dialog == NULL)
-    goto use_fallback;
-
   text_buffer = gtk_text_buffer_new (NULL);
   gtk_text_buffer_get_end_iter (text_buffer, &end);
   gtk_text_buffer_insert (text_buffer, &end, ds_data (&msg), ds_length (&msg));
@@ -257,8 +260,8 @@ popup_messages (gpointer unused UNUSED)
     goto use_fallback;
   gtk_text_view_set_buffer (text_view, text_buffer);
 
-  gtk_dialog_run (message_dialog);
-  gtk_widget_hide (GTK_WIDGET (message_dialog));
+  gtk_dialog_run ( GTK_DIALOG (message_dialog));
+  gtk_widget_hide (message_dialog);
 
   ds_destroy (&lead);
   ds_destroy (&msg);

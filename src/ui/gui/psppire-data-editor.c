@@ -688,7 +688,9 @@ psppire_data_editor_clip_copy (PsppireDataEditor *de)
 void
 psppire_data_editor_clip_paste (PsppireDataEditor *de)
 {
-  GtkClipboard *clipboard = gtk_clipboard_get (GDK_SELECTION_CLIPBOARD);
+  GdkDisplay *display = gtk_widget_get_display ( GTK_WIDGET (de));
+  GtkClipboard *clipboard =
+    gtk_clipboard_get_for_display (display, GDK_SELECTION_CLIPBOARD);
 
   gtk_clipboard_request_contents (clipboard,
 				  gdk_atom_intern ("UTF8_STRING", TRUE),
