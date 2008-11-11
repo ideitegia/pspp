@@ -24,6 +24,7 @@
 #include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/coefficient.h>
+#include <math/covariance-matrix.h>
 #include <math/design-matrix.h>
 #include <src/data/category.h>
 #include <src/data/variable.h>
@@ -137,12 +138,15 @@ pspp_linreg_get_vars (const void *c_, const struct variable **v)
   independent variables.
  */
 pspp_linreg_cache *
-pspp_linreg_cache_alloc (size_t n, size_t p)
+pspp_linreg_cache_alloc (const struct variable *depvar, const struct variable **indep_vars,
+			 size_t n, size_t p)
 {
+  size_t i;
   pspp_linreg_cache *c;
 
   c = (pspp_linreg_cache *) malloc (sizeof (pspp_linreg_cache));
-  c->depvar = NULL;
+  c->depvar = depvar;
+  c->indep_vars = indep_vars;
   c->indep_means = gsl_vector_alloc (p);
   c->indep_std = gsl_vector_alloc (p);
   c->ssx = gsl_vector_alloc (p);	/* Sums of squares for the
@@ -151,9 +155,22 @@ pspp_linreg_cache_alloc (size_t n, size_t p)
   c->ss_indeps = gsl_vector_alloc (p);	/* Sums of squares for the
 					   model parameters.
 					 */
-  c->cov = gsl_matrix_alloc (p + 1, p + 1);	/* Covariance matrix. */
   c->n_obs = n;
   c->n_indeps = p;
+  c->n_coeffs = 0;
+  for (i = 0; i < p; i++)
+    {
+      if (var_is_numeric (indep_vars[i]))
+	{
+	  c->n_coeffs++;
+	}
+      else
+	{
+	  c->n_coeffs += cat_get_n_categories (indep_vars[i]) - 1;
+	}
+    }
+
+  c->cov = gsl_matrix_alloc (c->n_coeffs + 1, c->n_coeffs + 1);
   /*
      Default settings.
    */
@@ -192,7 +209,93 @@ pspp_linreg_cache_free (void *m)
     }
   return true;
 }
+static void
+cache_init (pspp_linreg_cache *cache)
+{
+  assert (cache != NULL);
+  cache->dft = cache->n_obs - 1;
+  cache->dfm = cache->n_indeps;
+  cache->dfe = cache->dft - cache->dfm;
+  cache->intercept = 0.0;
+}
 
+static void
+post_sweep_computations (pspp_linreg_cache *cache, const struct design_matrix *dm,
+			 gsl_matrix *sw)
+{
+  gsl_matrix *xm;
+  gsl_matrix_view xtx;
+  gsl_matrix_view xmxtx;
+  double m;
+  double tmp;
+  size_t i;
+  size_t j;
+  int rc;
+  
+  assert (sw != NULL);
+  assert (cache != NULL);
+
+  cache->sse = gsl_matrix_get (sw, cache->n_indeps, cache->n_indeps);
+  cache->mse = cache->sse / cache->dfe;
+  /*
+    Get the intercept.
+  */
+  m = cache->depvar_mean;
+  for (i = 0; i < cache->n_indeps; i++)
+    {
+      tmp = gsl_matrix_get (sw, i, cache->n_indeps);
+      cache->coeff[i]->estimate = tmp;
+      m -= tmp * pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i));
+    }
+  /*
+    Get the covariance matrix of the parameter estimates.
+    Only the upper triangle is necessary.
+  */
+  
+  /*
+    The loops below do not compute the entries related
+    to the estimated intercept.
+  */
+  for (i = 0; i < cache->n_indeps; i++)
+    for (j = i; j < cache->n_indeps; j++)
+      {
+	tmp = -1.0 * cache->mse * gsl_matrix_get (sw, i, j);
+	gsl_matrix_set (cache->cov, i + 1, j + 1, tmp);
+      }
+  /*
+    Get the covariances related to the intercept.
+  */
+  xtx = gsl_matrix_submatrix (sw, 0, 0, cache->n_indeps, cache->n_indeps);
+  xmxtx = gsl_matrix_submatrix (cache->cov, 0, 1, 1, cache->n_indeps);
+  xm = gsl_matrix_calloc (1, cache->n_indeps);
+  for (i = 0; i < xm->size2; i++)
+    {
+      gsl_matrix_set (xm, 0, i, 
+		      pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i)));
+    }
+  rc = gsl_blas_dsymm (CblasRight, CblasUpper, cache->mse,
+		       &xtx.matrix, xm, 0.0, &xmxtx.matrix);
+  gsl_matrix_free (xm);
+  if (rc == GSL_SUCCESS)
+    {
+      tmp = cache->mse / cache->n_obs;
+      for (i = 1; i < 1 + cache->n_indeps; i++)
+	{
+	  tmp -= gsl_matrix_get (cache->cov, 0, i)
+	    * pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i - 1));
+	}
+      gsl_matrix_set (cache->cov, 0, 0, tmp);
+      
+      cache->intercept = m;
+    }
+  else
+    {
+      fprintf (stderr, "%s:%d:gsl_blas_dsymm: %s\n",
+	       __FILE__, __LINE__, gsl_strerror (rc));
+      exit (rc);
+    }
+}  
+  
 /*
   Fit the linear model via least squares. All pointers passed to pspp_linreg
   are assumed to be allocated to the correct size and initialized to the
@@ -205,8 +308,6 @@ pspp_linreg (const gsl_vector * Y, const struct design_matrix *dm,
   int rc;
   gsl_matrix *design = NULL;
   gsl_matrix_view xtx;
-  gsl_matrix *xm;
-  gsl_matrix_view xmxtx;
   gsl_vector_view xty;
   gsl_vector_view xi;
   gsl_vector_view xj;
@@ -234,13 +335,8 @@ pspp_linreg (const gsl_vector * Y, const struct design_matrix *dm,
       cache->depvar_std = s;
       cache->sst = ss;
     }
-
-  cache->dft = cache->n_obs - 1;
-  cache->dfm = cache->n_indeps;
-  cache->dfe = cache->dft - cache->dfm;
+  cache_init (cache);
   cache->n_coeffs = dm->m->size2;
-  cache->intercept = 0.0;
-  
   for (i = 0; i < dm->m->size2; i++)
     {
       if (opts->get_indep_mean_std[i])
@@ -326,65 +422,7 @@ pspp_linreg (const gsl_vector * Y, const struct design_matrix *dm,
          Sweep on the matrix sw, which contains XtX, XtY and YtY.
        */
       reg_sweep (sw);
-      cache->sse = gsl_matrix_get (sw, cache->n_indeps, cache->n_indeps);
-      cache->mse = cache->sse / cache->dfe;
-      /*
-         Get the intercept.
-       */
-      m = cache->depvar_mean;
-      for (i = 0; i < cache->n_indeps; i++)
-	{
-	  tmp = gsl_matrix_get (sw, i, cache->n_indeps);
-	  cache->coeff[i]->estimate = tmp;
-	  m -= tmp * pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i));
-	}
-      /*
-         Get the covariance matrix of the parameter estimates.
-         Only the upper triangle is necessary.
-       */
-
-      /*
-         The loops below do not compute the entries related
-         to the estimated intercept.
-       */
-      for (i = 0; i < cache->n_indeps; i++)
-	for (j = i; j < cache->n_indeps; j++)
-	  {
-	    tmp = -1.0 * cache->mse * gsl_matrix_get (sw, i, j);
-	    gsl_matrix_set (cache->cov, i + 1, j + 1, tmp);
-	  }
-      /*
-         Get the covariances related to the intercept.
-       */
-      xtx = gsl_matrix_submatrix (sw, 0, 0, cache->n_indeps, cache->n_indeps);
-      xmxtx = gsl_matrix_submatrix (cache->cov, 0, 1, 1, cache->n_indeps);
-      xm = gsl_matrix_calloc (1, cache->n_indeps);
-      for (i = 0; i < xm->size2; i++)
-	{
-	  gsl_matrix_set (xm, 0, i, 
-			  pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i)));
-	}
-      rc = gsl_blas_dsymm (CblasRight, CblasUpper, cache->mse,
-			   &xtx.matrix, xm, 0.0, &xmxtx.matrix);
-      gsl_matrix_free (xm);
-      if (rc == GSL_SUCCESS)
-	{
-	  tmp = cache->mse / cache->n_obs;
-	  for (i = 1; i < 1 + cache->n_indeps; i++)
-	    {
-	      tmp -= gsl_matrix_get (cache->cov, 0, i)
-		* pspp_linreg_get_indep_variable_mean (cache, design_matrix_col_to_var (dm, i - 1));
-	    }
-	  gsl_matrix_set (cache->cov, 0, 0, tmp);
-
-	  cache->intercept = m;
-	}
-      else
-	{
-	  fprintf (stderr, "%s:%d:gsl_blas_dsymm: %s\n",
-		   __FILE__, __LINE__, gsl_strerror (rc));
-	  exit (rc);
-	}
+      post_sweep_computations (cache, dm, sw);
       gsl_matrix_free (sw);
     }
   else if (cache->method == PSPP_LINREG_CONDITIONAL_INVERSE)
@@ -546,7 +584,7 @@ pspp_linreg_residual (const struct variable **predictors,
     }
   pred = pspp_linreg_predict (predictors, vals, c, n_vals);
 
-  result = gsl_isnan (pred) ? GSL_NAN : (obs->f - pred);
+  result = isnan (pred) ? GSL_NAN : (obs->f - pred);
   return result;
 }
 
@@ -554,7 +592,7 @@ pspp_linreg_residual (const struct variable **predictors,
   Which coefficient is associated with V? The VAL argument is relevant
   only to categorical variables.
  */
-const struct pspp_coeff *
+struct pspp_coeff *
 pspp_linreg_get_coeff (const pspp_linreg_cache * c,
 		       const struct variable *v, const union value *val)
 {
@@ -617,3 +655,83 @@ void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *c, const struct var
       pspp_coeff_set_mean (coef, m);
     }
 }
+
+/*
+  Make sure the dependent variable is at the last column, and that
+  only variables in the model are in the covariance matrix. 
+ */
+static struct design_matrix *
+rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache *c)
+{
+  const struct variable **model_vars;
+  struct design_matrix *result;
+  size_t *permutation;
+  size_t i;
+  size_t j;
+  size_t k;
+
+  assert (cov != NULL);
+  assert (c != NULL);
+  assert (cov->m->size1 > 0);
+  assert (cov->m->size2 == cov->m->size1);
+  permutation = xnmalloc (1 + c->n_indeps, sizeof (*permutation));
+  model_vars = xnmalloc (1 + c->n_indeps, sizeof (*model_vars));
+
+  /*
+    Put the model variables in the right order in MODEL_VARS.
+   */
+  for (i = 0; i < c->n_indeps; i++)
+    {
+      model_vars[i] = c->indep_vars[i];
+    }
+  model_vars[i] = c->depvar;
+  result = covariance_matrix_create (1 + c->n_indeps, model_vars);
+  for (j = 0; j < cov->m->size2; j++)
+    {
+      k = 0;
+      while (k < result->m->size2)
+	{
+	  if (design_matrix_col_to_var (cov, j) == design_matrix_col_to_var (result, k)) 
+	    {
+	      permutation[k] = j;
+	    }
+	  k++;
+	}
+    }
+  for (i = 0; i < result->m->size1; i++)
+    for (j = 0; j < result->m->size2; j++)
+      {
+	gsl_matrix_set (result->m, i, j, gsl_matrix_get (cov->m, permutation[i], permutation[j]));
+      }
+  free (permutation);
+  free (model_vars);
+  return result;
+}
+/*
+  Estimate the model parameters from the covariance matrix only. This
+  method uses less memory than PSPP_LINREG, which requires the entire
+  data set to be stored in memory.
+
+  The function assumes FULL_COV may contain columns corresponding to
+  variables that are not in the model. It fixes this in
+  REARRANG_COVARIANCE_MATRIX. This allows the caller to compute a
+  large covariance matrix once before, then pass it to this without
+  having to alter it. The problem is that this means the caller must
+  set CACHE->N_COEFFS.
+*/
+void
+pspp_linreg_with_cov (const struct design_matrix *full_cov, 
+		      pspp_linreg_cache * cache)
+{
+  struct design_matrix *cov;
+
+  assert (full_cov != NULL);
+  assert (cache != NULL);
+
+  cov = rearrange_covariance_matrix (full_cov, cache);
+  cache_init (cache);
+  reg_sweep (cov->m);
+  post_sweep_computations (cache, cov, cov->m);  
+  covariance_matrix_destroy (cov);
+}
+

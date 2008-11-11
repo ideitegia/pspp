@@ -14,6 +14,11 @@ to other modules.
 including lib/gslextras and the linear regression features. Jason 
 is also an important contributor to GSL, which is used by PSPP. 
 
+* Rob van Son wrote the routine for calculation of the significance
+of the Wilcoxon matched pairs signed rank statistic used by the
+ NPAR TEST command.
+
+
 We also thank past contributors:
 
 * John Williams wrote an initial draft of the T-TEST procedure.

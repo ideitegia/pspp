@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,36 +15,69 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <math.h>
-#include <gsl/gsl_histogram.h>
-#include <assert.h>
 #include "histogram.h"
+
+#include <gl/xalloc.h>
+#include <libpspp/assertion.h>
+
+#include <gsl/gsl_histogram.h>
 #include "chart-geometry.h"
+#include <math.h>
 
 
-gsl_histogram *
-histogram_create(double bins, double x_min, double x_max)
+void
+histogram_add (struct histogram *h, double y, double c)
 {
-  int n;
-  double bin_width ;
-  double bin_width_2 ;
+  ((struct statistic *)h)->accumulate ((struct statistic *) h, NULL, c, 0, y);
+}
+
+
+
+static void
+acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc UNUSED, double y)
+{
+  struct histogram *hist = (struct histogram *) s;
+
+  gsl_histogram_accumulate (hist->gsl_hist, y, c);
+}
+
+
+static void
+destroy (struct statistic *s)
+{
+  struct histogram *h = (struct histogram *) s;
+  gsl_histogram_free (h->gsl_hist);
+  free (s);
+}
+
+
+struct statistic *
+histogram_create (int bins, double min, double max)
+{
+  struct histogram *h = xmalloc (sizeof *h);
+  struct statistic *stat = (struct statistic *) h;
   double upper_limit, lower_limit;
 
-  gsl_histogram *hist = gsl_histogram_alloc(bins);
+  double bin_width = chart_rounded_tick ((max - min) / (double) bins);
+  double bin_width_2 = bin_width / 2.0;
 
-  bin_width = chart_rounded_tick((x_max - x_min)/ bins);
-  bin_width_2 = bin_width / 2.0;
+  int n =  ceil (max / (bin_width_2) ) ;
 
-  n =  ceil( x_max / (bin_width_2) ) ;
+  assert (max > min);
+
   if ( ! (n % 2 ) ) n++;
   upper_limit = n * bin_width_2;
 
-  n =  floor( x_min / (bin_width_2) ) ;
+  n =  floor (min / (bin_width_2) ) ;
   if ( ! (n % 2 ) ) n--;
   lower_limit = n * bin_width_2;
 
-  gsl_histogram_set_ranges_uniform(hist, lower_limit, upper_limit);
+  h->gsl_hist = gsl_histogram_alloc (bins);
+  gsl_histogram_set_ranges_uniform (h->gsl_hist, lower_limit, upper_limit);
 
-  return hist;
+  stat->accumulate = acc;
+  stat->destroy = destroy;
+
+  return stat;
 }
 

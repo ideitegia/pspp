@@ -58,6 +58,9 @@ struct design_matrix
 					   design_matrix_var
 					   structure.
 					 */
+  size_t *n_cases; /* Element i is the number of valid cases for this
+		      variable.
+		    */
   size_t n_vars;
 };
 
@@ -75,10 +78,16 @@ void design_matrix_set_numeric (struct design_matrix *, size_t,
 				    const struct variable *,
 				    const union value *);
 
+struct design_matrix *design_matrix_clone (const struct design_matrix *);
+
 size_t design_matrix_var_to_column (const struct design_matrix *,
 				    const struct variable *);
 
 const struct variable *design_matrix_col_to_var (const struct design_matrix *,
 					   size_t);
+void design_matrix_increment_case_count (struct design_matrix *, const struct variable *);
 
+void design_matrix_set_case_count (struct design_matrix *, const struct variable *, size_t);
+
+size_t design_matrix_get_case_count (const struct design_matrix *, const struct variable *);
 #endif

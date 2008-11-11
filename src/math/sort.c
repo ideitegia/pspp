@@ -41,6 +41,7 @@ int max_buffers = INT_MAX;
 
 struct sort_writer
   {
+    size_t value_cnt;
     struct case_ordering *ordering;
     struct merge *merge;
     struct pqueue *pqueue;
@@ -52,7 +53,7 @@ struct sort_writer
 
 static struct casewriter_class sort_casewriter_class;
 
-static struct pqueue *pqueue_create (const struct case_ordering *);
+static struct pqueue *pqueue_create (const struct case_ordering *, size_t);
 static void pqueue_destroy (struct pqueue *);
 static bool pqueue_is_full (const struct pqueue *);
 static bool pqueue_is_empty (const struct pqueue *);
@@ -62,15 +63,15 @@ static void pqueue_pop (struct pqueue *, struct ccase *, casenumber *);
 static void output_record (struct sort_writer *);
 
 struct casewriter *
-sort_create_writer (struct case_ordering *ordering)
+sort_create_writer (struct case_ordering *ordering, size_t value_cnt)
 {
-  size_t value_cnt = case_ordering_get_value_cnt (ordering);
   struct sort_writer *sort;
 
   sort = xmalloc (sizeof *sort);
+  sort->value_cnt = value_cnt;
   sort->ordering = case_ordering_clone (ordering);
-  sort->merge = merge_create (ordering);
-  sort->pqueue = pqueue_create (ordering);
+  sort->merge = merge_create (ordering, value_cnt);
+  sort->pqueue = pqueue_create (ordering, value_cnt);
   sort->run = NULL;
   sort->run_id = 0;
   case_nullify (&sort->run_end);
@@ -118,8 +119,7 @@ sort_casewriter_convert_to_reader (struct casewriter *writer, void *sort_)
   if (sort->run == NULL && sort->run_id == 0)
     {
       /* In-core sort. */
-      sort->run = mem_writer_create (case_ordering_get_value_cnt (
-                                       sort->ordering));
+      sort->run = mem_writer_create (casewriter_get_value_cnt (writer));
       sort->run_id = 1;
     }
   while (!pqueue_is_empty (sort->pqueue))
@@ -151,8 +151,7 @@ output_record (struct sort_writer *sort)
     }
   if (sort->run == NULL)
     {
-      sort->run = tmpfile_writer_create (case_ordering_get_value_cnt (
-                                           sort->ordering));
+      sort->run = tmpfile_writer_create (sort->value_cnt);
       sort->run_id = min_run_id;
     }
 
@@ -176,7 +175,8 @@ static struct casewriter_class sort_casewriter_class =
 struct casereader *
 sort_execute (struct casereader *input, struct case_ordering *ordering)
 {
-  struct casewriter *output = sort_create_writer (ordering);
+  struct casewriter *output =
+    sort_create_writer (ordering, casereader_get_value_cnt (input));
   casereader_transfer (input, output);
   return casewriter_make_reader (output);
 }
@@ -201,14 +201,14 @@ static int compare_pqueue_records_minheap (const void *a, const void *b,
                                            const void *pq_);
 
 static struct pqueue *
-pqueue_create (const struct case_ordering *ordering)
+pqueue_create (const struct case_ordering *ordering, size_t value_cnt)
 {
   struct pqueue *pq;
 
   pq = xmalloc (sizeof *pq);
   pq->ordering = case_ordering_clone (ordering);
   pq->record_cap
-    = settings_get_workspace_cases (case_ordering_get_value_cnt (ordering));
+    = settings_get_workspace_cases (value_cnt);
   if (pq->record_cap > max_buffers)
     pq->record_cap = max_buffers;
   else if (pq->record_cap < min_buffers)

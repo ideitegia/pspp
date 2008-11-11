@@ -6,8 +6,11 @@ TESTS_ENVIRONMENT += PERL='@PERL@' PG_CONFIG='@PG_CONFIG@'
 # Allow locale_charset to find charset.alias before running "make install".
 TESTS_ENVIRONMENT += CHARSETALIASDIR='$(abs_top_builddir)/gl'
 
+TESTS_ENVIRONMENT += LC_ALL=C
+
 dist_TESTS = \
 	tests/command/aggregate.sh \
+	tests/command/attributes.sh \
 	tests/command/autorecod.sh \
 	tests/command/beg-data.sh \
 	tests/command/bignum.sh \
@@ -40,6 +43,7 @@ dist_TESTS = \
 	tests/command/n_of_cases.sh \
 	tests/command/npar-binomial.sh \
 	tests/command/npar-chisquare.sh \
+	tests/command/npar-wilcoxon.sh \
 	tests/command/oneway.sh \
 	tests/command/oneway-missing.sh \
 	tests/command/oneway-with-splits.sh \
@@ -50,6 +54,7 @@ dist_TESTS = \
 	tests/command/rename.sh \
 	tests/command/regression.sh \
 	tests/command/regression-qr.sh \
+	tests/command/reliability.sh \
 	tests/command/sample.sh \
 	tests/command/sort.sh \
 	tests/command/sysfiles.sh \
@@ -107,6 +112,7 @@ dist_TESTS = \
 	tests/bugs/double-frequency.sh \
 	tests/bugs/empty-do-repeat.sh \
 	tests/bugs/get.sh \
+	tests/bugs/examine-crash.sh \
 	tests/bugs/examine-1sample.sh \
 	tests/bugs/examine-missing.sh \
 	tests/bugs/examine-missing2.sh \
@@ -167,6 +173,8 @@ nodist_TESTS = \
 	tests/libpspp/abt-test \
 	tests/libpspp/bt-test \
 	tests/libpspp/heap-test \
+	tests/libpspp/hmap-test \
+	tests/libpspp/hmapx-test \
 	tests/libpspp/ll-test \
 	tests/libpspp/llx-test \
 	tests/libpspp/range-map-test \
@@ -186,6 +194,7 @@ tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.h \
 	tests/libpspp/ll-test.c
 tests_libpspp_ll_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_ll_test_CFLAGS = $(AM_CFLAGS)
 
 tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -194,6 +203,7 @@ tests_libpspp_llx_test_SOURCES = \
 	src/libpspp/llx.h \
 	tests/libpspp/llx-test.c
 tests_libpspp_llx_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_llx_test_CFLAGS = $(AM_CFLAGS)
 
 tests_libpspp_heap_test_SOURCES = \
 	src/libpspp/heap.c \
@@ -203,6 +213,22 @@ tests_libpspp_heap_test_SOURCES = \
 	tests/libpspp/heap-test.c
 tests_libpspp_heap_test_LDADD = gl/libgl.la @LIBINTL@
 tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_hmap_test_SOURCES = \
+	src/libpspp/hmap.c \
+	src/libpspp/hmap.h \
+	tests/libpspp/hmap-test.c
+tests_libpspp_hmap_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_hmap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_hmapx_test_SOURCES = \
+	src/libpspp/hmap.c \
+	src/libpspp/hmap.h \
+	src/libpspp/hmapx.c \
+	src/libpspp/hmapx.h \
+	tests/libpspp/hmapx-test.c
+tests_libpspp_hmapx_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_hmapx_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_abt_test_SOURCES = \
 	src/libpspp/abt.c \
@@ -240,7 +266,7 @@ tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
-tests_libpspp_str_test_LDADD = src/libpspp/libpspp.a gl/libgl.la @LIBINTL@
+tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la @LIBINTL@
 
 tests_libpspp_tower_test_SOURCES = \
 	src/libpspp/abt.c \
@@ -270,6 +296,7 @@ tests_dissect_sysfile_SOURCES = \
 	src/libpspp/float-format.c \
 	tests/dissect-sysfile.c
 tests_dissect_sysfile_LDADD = gl/libgl.la @LIBINTL@
+tests_dissect_sysfile_CPPFLAGS = $(AM_CPPFLAGS) -DINSTALLDIR=\"$(bindir)\"
 
 EXTRA_DIST += \
 	$(dist_TESTS) \
@@ -311,8 +338,11 @@ EXTRA_DIST += \
 
 CLEANFILES += *.save pspp.* foo*
 
-dist-hook:
+DIST_HOOKS += check-for-export-var-val
+check-for-export-var-val:
 	@if grep -q 'export .*=' $(dist_TESTS) ; then \
 	 echo 'One or more tests contain non-portable "export VAR=val" syntax' ; \
 	 false ; \
 	fi
+
+EXTRA_DIST += tests/OChangeLog

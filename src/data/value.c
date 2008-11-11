@@ -20,6 +20,7 @@
 #include <data/val-type.h>
 #include <libpspp/hash.h>
 #include <libpspp/str.h>
+#include "variable.h"
 
 #include "xalloc.h"
 
@@ -46,8 +47,12 @@ value_create (int width)
    Only the short string portion of longer strings are
    compared. */
 int
-compare_values (const union value *a, const union value *b, int width)
+compare_values (const void *a_, const void *b_, const void *var_)
 {
+  const union value *a = a_;
+  const union value *b = b_;
+  const struct variable *var = var_;
+  int width = var_get_width (var);
   return (width == 0
           ? (a->f < b->f ? -1 : a->f > b->f)
           : memcmp (a->s, b->s, MIN (MAX_SHORT_STRING, width)));
@@ -56,24 +61,14 @@ compare_values (const union value *a, const union value *b, int width)
 /* Create a hash of V, which has the given WIDTH.
    Only the short string portion of a longer string is hashed. */
 unsigned
-hash_value (const union value *v, int width)
+hash_value (const void *v_, const void *var_)
 {
+  const union value *v = v_;
+  const struct variable *var = var_;
+  int width = var_get_width (var);
   return (width == 0
           ? hsh_hash_double (v->f)
-          : hsh_hash_bytes (v->s, MIN (MAX_SHORT_STRING, width)));
-}
-
-
-int
-compare_ptr_values (const union value **v1, const union value **v2, int width)
-{
-  return compare_values (*v1, *v2, width);
-}
-
-unsigned
-hash_ptr_value (const union value **v, int width)
-{
-  return hash_value (*v, width);
+	  : hsh_hash_bytes (v->s, width));
 }
 
 

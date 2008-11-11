@@ -336,9 +336,9 @@ struct ll *ll_find_partition (const struct ll *r0, const struct ll *r1,
 #define ll_tail__(STRUCT, MEMBER, LIST)                         \
         ll_data__ (ll_tail (LIST), STRUCT, MEMBER, LIST)
 #define ll_next__(DATA, STRUCT, MEMBER, LIST)                           \
-        ll_data__ (ll_next (&DATA->MEMBER), STRUCT, MEMBER, LIST)
+        ll_data__ (ll_next (&(DATA)->MEMBER), STRUCT, MEMBER, LIST)
 #define ll_prev__(DATA, STRUCT, MEMBER, LIST)                           \
-        ll_data__ (ll_prev (&DATA->MEMBER), STRUCT, MEMBER, LIST)
+        ll_data__ (ll_prev (&(DATA)->MEMBER), STRUCT, MEMBER, LIST)
 
 /* Inline functions. */
 

@@ -1,9 +1,9 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 
-noinst_LIBRARIES += src/libpspp/libpspp.a
+noinst_LTLIBRARIES += src/libpspp/libpspp.la
 
-src_libpspp_libpspp_a_SOURCES = \
+src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/abt.c \
 	src/libpspp/abt.h \
 	src/libpspp/array.c \
@@ -23,10 +23,16 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/freaderror.h \
 	src/libpspp/getl.c \
 	src/libpspp/getl.h \
+	src/libpspp/hash-functions.c \
+	src/libpspp/hash-functions.h \
 	src/libpspp/hash.c \
 	src/libpspp/hash.h \
 	src/libpspp/heap.c \
 	src/libpspp/heap.h \
+	src/libpspp/hmap.c \
+	src/libpspp/hmap.h \
+	src/libpspp/hmapx.c \
+	src/libpspp/hmapx.h \
 	src/libpspp/i18n.c \
 	src/libpspp/i18n.h \
 	src/libpspp/integer-format.c \
@@ -41,8 +47,6 @@ src_libpspp_libpspp_a_SOURCES = \
 	src/libpspp/message.h \
 	src/libpspp/misc.c \
 	src/libpspp/misc.h \
-	src/libpspp/model-checker.c \
-	src/libpspp/model-checker.h \
 	src/libpspp/msg-locator.c \
 	src/libpspp/msg-locator.h \
 	src/libpspp/pool.c \
@@ -67,9 +71,9 @@ src_libpspp_libpspp_a_SOURCES = \
 
 DISTCLEANFILES+=src/libpspp/version.c
 
-src_libpspp_libpspp_a_CPPFLAGS = -I $(top_srcdir)/src/libpspp $(AM_CPPFLAGS)
+src_libpspp_libpspp_la_CPPFLAGS = -I $(top_srcdir)/src/libpspp $(AM_CPPFLAGS)
 
-nodist_src_libpspp_libpspp_a_SOURCES = src/libpspp/version.c
+nodist_src_libpspp_libpspp_la_SOURCES = src/libpspp/version.c
 
 src/libpspp/version.c: $(top_srcdir)/AUTHORS
 	@$(MKDIR_P) src/libpspp
@@ -91,3 +95,5 @@ src/libpspp/version.c: $(top_srcdir)/AUTHORS
 	sed -e 's/^/  \"/' -e 's/$$/\",/' $(top_srcdir)/AUTHORS >> $@
 	echo "0 };" >> $@
 
+
+EXTRA_DIST += src/libpspp/OChangeLog

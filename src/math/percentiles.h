@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,13 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef PERCENTILES_H
-#define PERCENTILES_H
+#ifndef __PERCENTILES_H__
+#define __PERCENTILES_H__
 
+#include <stddef.h>
 
-#include <libpspp/hash.h>
-
-struct weighted_value ;
+#include "order-stats.h"
 
 /* The algorithm used to calculate percentiles */
 enum pc_alg {
@@ -32,48 +31,33 @@ enum pc_alg {
   PC_AEMPIRICAL
 } ;
 
-
-
 extern  const char *const ptile_alg_desc[];
 
 
+struct percentile
+{
+  struct order_stats parent;
 
+  double ptile;
+  double w;
 
-struct percentile {
+  /* Mutable */
+  double g1;
+  double g1_star;
 
-  /* The break point of the percentile */
-  double p;
-
-  /* The value of the percentile */
-  double v;
+  double g2;
+  double g2_star;
 };
 
-
-/* Calculate the percentiles of the break points in pc_bp,
-   placing the values in pc_val.
-   wv is  a sorted array of weighted values of the data set.
+/* Create the Pth percentile.
+   W is the total sum of weights in the data set
 */
-void ptiles(struct hsh_table *pc_hash,
-	    const struct weighted_value **wv,
-	    int n_data,
-	    double w,
-	    enum pc_alg algorithm);
+struct order_stats *percentile_create (double p, double W);
 
+/* Return the value of the percentile */
+double percentile_calculate (const struct percentile *ptl, enum pc_alg alg);
 
-/* Calculate Tukey's Hinges and the Whiskers for the box plot*/
-void tukey_hinges(const struct weighted_value **wv,
-		  int n_data,
-		  double w,
-		  double hinges[3]);
-
-
-
-/* Hash utility functions */
-int ptile_compare(const struct percentile *p1,
-		   const struct percentile *p2,
-		   void *aux);
-
-unsigned ptile_hash(const struct percentile *p, void *aux);
+void percentile_dump (const struct percentile *ptl);
 
 
 #endif

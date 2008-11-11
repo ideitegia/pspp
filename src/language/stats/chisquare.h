@@ -46,7 +46,9 @@ void chisquare_insert_variables (const struct npar_test *test,
 void chisquare_execute (const struct dataset *ds,
 			struct casereader *input,
                         enum mv_class exclude,
-			const struct npar_test *test);
+			const struct npar_test *test,
+			bool,
+			double);
 
 
 

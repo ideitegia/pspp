@@ -22,7 +22,7 @@
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/str.h>
-
+#include <data/format.h>
 
 enum fmt_type;
 union value;

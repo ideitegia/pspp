@@ -21,14 +21,15 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "case.h"
-#include "category.h"
-#include "identifier.h"
-#include "settings.h"
-#include "value-labels.h"
-#include "vardict.h"
-#include "variable.h"
-#include "vector.h"
+#include <data/attributes.h>
+#include <data/case.h>
+#include <data/category.h>
+#include <data/identifier.h>
+#include <data/settings.h>
+#include <data/value-labels.h>
+#include <data/vardict.h>
+#include <data/variable.h>
+#include <data/vector.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
@@ -61,6 +62,7 @@ struct dictionary
     struct string documents;    /* Documents, as a string. */
     struct vector **vector;     /* Vectors of variables. */
     size_t vector_cnt;          /* Number of vectors. */
+    struct attrset attributes;  /* Custom attributes. */
     const struct dict_callbacks *callbacks; /* Callbacks on dictionary
 					       modification */
     void *cb_data ;                  /* Data passed to callbacks */
@@ -115,6 +117,7 @@ dict_create (void)
 
   d->name_tab = hsh_create (8, compare_vars_by_name, hash_var_by_name,
                             NULL, NULL);
+  attrset_init (&d->attributes);
   return d;
 }
 
@@ -178,6 +181,8 @@ dict_clone (const struct dictionary *s)
   for (i = 0; i < s->vector_cnt; i++)
     d->vector[i] = vector_clone (s->vector[i], s, d);
 
+  dict_set_attributes (d, dict_get_attributes (s));
+
   return d;
 }
 
@@ -208,6 +213,7 @@ dict_clear (struct dictionary *d)
   d->label = NULL;
   ds_destroy (&d->documents);
   dict_clear_vectors (d);
+  attrset_clear (&d->attributes);
 }
 
 /* Destroys the aux data for every variable in D, by calling
@@ -235,6 +241,7 @@ dict_destroy (struct dictionary *d)
 
       dict_clear (d);
       hsh_destroy (d->name_tab);
+      attrset_destroy (&d->attributes);
       free (d);
     }
 }
@@ -1283,6 +1290,32 @@ dict_clear_vectors (struct dictionary *d)
 
   d->vector = NULL;
   d->vector_cnt = 0;
+}
+
+/* Returns D's attribute set.  The caller may examine or modify
+   the attribute set, but must not destroy it.  Destroying D or
+   calling dict_set_attributes for D will also destroy D's
+   attribute set. */
+struct attrset *
+dict_get_attributes (const struct dictionary *d) 
+{
+  return (struct attrset *) &d->attributes;
+}
+
+/* Replaces D's attributes set by a copy of ATTRS. */
+void
+dict_set_attributes (struct dictionary *d, const struct attrset *attrs)
+{
+  attrset_destroy (&d->attributes);
+  attrset_clone (&d->attributes, attrs);
+}
+
+/* Returns true if D has at least one attribute in its attribute
+   set, false if D's attribute set is empty. */
+bool
+dict_has_attributes (const struct dictionary *d) 
+{
+  return attrset_count (&d->attributes) > 0;
 }
 
 /* Called from variable.c to notify the dictionary that some property of

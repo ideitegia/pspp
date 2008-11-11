@@ -31,3 +31,6 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/gtksheet.h \
 	lib/gtksheet/gtkxpaned.c \
 	lib/gtksheet/gtkxpaned.h
+
+EXTRA_DIST += lib/gtksheet/OChangeLog \
+	lib/gtksheet/README

@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 language_dictionary_sources = \
+ src/language/dictionary/attributes.c \
  src/language/dictionary/apply-dictionary.c \
  src/language/dictionary/delete-variables.c \
  src/language/dictionary/formats.c \
@@ -17,3 +18,4 @@ language_dictionary_sources = \
  src/language/dictionary/variable-display.c \
  src/language/dictionary/weight.c
 
+EXTRA_DIST += src/language/dictionary/OChangeLog

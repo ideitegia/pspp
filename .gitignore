@@ -1,4 +1,5 @@
 ABOUT-NLS
+ChangeLog
 Makefile
 Makefile.in
 aclocal.m4
@@ -30,3 +31,11 @@ pref.h
 reloc-ldflags
 stamp-h1
 texinfo.tex
+gitlog-to-changelog
+*~
+*.o
+*.lo
+*.a
+*.dirstamp
+*.deps
+*.la

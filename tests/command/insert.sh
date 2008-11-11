@@ -2,7 +2,8 @@
 
 # This program tests the INSERT command
 
-TEMPDIR=/tmp/pspp-tst-$$
+BASETEMPDIR=/tmp/pspp-tst-$$
+TEMPDIR=$BASETEMPDIR/link
 TESTFILE=$TEMPDIR/`basename $0`.sps
 
 # ensure that top_srcdir and top_builddir  are absolute
@@ -23,11 +24,11 @@ export LANG
 cleanup()
 {
      if [ x"$PSPP_TEST_NO_CLEANUP" != x ] ; then 
-	echo "NOT cleaning $TEMPDIR"
+	echo "NOT cleaning $BASETEMPDIR"
      	return ; 
      fi
      cd /
-     rm -rf $TEMPDIR
+     rm -rf $BASETEMPDIR
 }
 
 
@@ -54,7 +55,9 @@ pass()
     exit 0;
 }
 
-mkdir -p $TEMPDIR
+mkdir -p $BASETEMPDIR/target
+
+ln -s $BASETEMPDIR/target $TEMPDIR
 
 cd $TEMPDIR
 
@@ -248,7 +251,5 @@ $TEMPDIR/foo.sps:10: error: DISPLAY: AKSDJ is not a variable name.
 
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
-
-
 
 pass;

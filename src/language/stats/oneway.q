@@ -55,7 +55,7 @@
    "ONEWAY" (oneway_):
    *^variables=custom;
    missing=miss:!analysis/listwise,
-           incl:include/!exclude;
+   incl:include/!exclude;
    +contrast= double list;
    +statistics[st_]=descriptives,homogeneity.
 */
@@ -76,7 +76,7 @@ static const struct variable **vars;
 
 /* A  hash table containing all the distinct values of the independent
    variables */
-static struct hsh_table *global_group_hash ;
+static struct hsh_table *global_group_hash;
 
 /* The number of distinct values of the independent variable, when all
    missing values are disregarded */
@@ -88,19 +88,19 @@ static void run_oneway (struct cmd_oneway *, struct casereader *,
 
 
 /* Routines to show the output tables */
-static void show_anova_table(void);
-static void show_descriptives(void);
-static void show_homogeneity(void);
+static void show_anova_table (void);
+static void show_descriptives (void);
+static void show_homogeneity (void);
 
-static void show_contrast_coeffs(short *);
-static void show_contrast_tests(short *);
+static void show_contrast_coeffs (short *);
+static void show_contrast_tests (short *);
 
 
 enum stat_table_t {STAT_DESC = 1, STAT_HOMO = 2};
 
-static enum stat_table_t stat_tables ;
+static enum stat_table_t stat_tables;
 
-void output_oneway(void);
+void output_oneway (void);
 
 
 int
@@ -111,25 +111,26 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
   int i;
   bool ok;
 
-  if ( !parse_oneway (lexer, ds, &cmd, NULL) )
+  if ( !parse_oneway (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
   /* What statistics were requested */
-  if ( cmd.sbc_statistics )
+  if ( cmd.sbc_statistics)
     {
 
-      for (i = 0 ; i < ONEWAY_ST_count ; ++i )
+      for (i = 0; i < ONEWAY_ST_count; ++i)
 	{
-	  if  ( ! cmd.a_statistics[i]  ) continue;
+	  if (! cmd.a_statistics[i]) continue;
 
-	  switch (i) {
-	  case ONEWAY_ST_DESCRIPTIVES:
-	    stat_tables |= STAT_DESC;
-	    break;
-	  case ONEWAY_ST_HOMOGENEITY:
-	    stat_tables |= STAT_HOMO;
-	    break;
-	  }
+	  switch (i) 
+	    {
+	    case ONEWAY_ST_DESCRIPTIVES:
+	      stat_tables |= STAT_DESC;
+	      break;
+	    case ONEWAY_ST_HOMOGENEITY:
+	      stat_tables |= STAT_HOMO;
+	      break;
+	    }
 	}
     }
 
@@ -148,91 +149,88 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 
 
 void
-output_oneway(void)
+output_oneway (void)
 {
   size_t i;
-  short *bad_contrast ;
+  short *bad_contrast;
 
   bad_contrast = xnmalloc (cmd.sbc_contrast, sizeof *bad_contrast);
 
   /* Check the sanity of the given contrast values */
-  for (i = 0 ; i < cmd.sbc_contrast ; ++i )
+  for (i = 0; i < cmd.sbc_contrast; ++i)
     {
       int j;
       double sum = 0;
 
       bad_contrast[i] = 0;
-      if ( subc_list_double_count(&cmd.dl_contrast[i]) !=
-	   ostensible_number_of_groups )
+      if (subc_list_double_count (&cmd.dl_contrast[i]) !=
+	  ostensible_number_of_groups)
 	{
-	  msg(SW,
-	      _("Number of contrast coefficients must equal the number of groups"));
+	  msg (SW,
+	       _("Number of contrast coefficients must equal the number of groups"));
 	  bad_contrast[i] = 1;
 	  continue;
 	}
 
-      for (j=0; j < ostensible_number_of_groups ; ++j )
-	sum += subc_list_double_at(&cmd.dl_contrast[i],j);
+      for (j = 0; j < ostensible_number_of_groups; ++j)
+	sum += subc_list_double_at (&cmd.dl_contrast[i], j);
 
       if ( sum != 0.0 )
-	msg(SW,_("Coefficients for contrast %zu do not total zero"), i + 1);
+	msg (SW, _("Coefficients for contrast %zu do not total zero"), i + 1);
     }
 
   if ( stat_tables & STAT_DESC )
-    show_descriptives();
+    show_descriptives ();
 
   if ( stat_tables & STAT_HOMO )
-    show_homogeneity();
+    show_homogeneity ();
 
-  show_anova_table();
+  show_anova_table ();
 
   if (cmd.sbc_contrast )
     {
-      show_contrast_coeffs(bad_contrast);
-      show_contrast_tests(bad_contrast);
+      show_contrast_coeffs (bad_contrast);
+      show_contrast_tests (bad_contrast);
     }
 
-
-  free(bad_contrast);
+  free (bad_contrast);
 
   /* Clean up */
-  for (i = 0 ; i < n_vars ; ++i )
+  for (i = 0; i < n_vars; ++i )
     {
       struct hsh_table *group_hash = group_proc_get (vars[i])->group_hash;
 
-      hsh_destroy(group_hash);
+      hsh_destroy (group_hash);
     }
 
-  hsh_destroy(global_group_hash);
-
+  hsh_destroy (global_group_hash);
 }
-
-
 
 
 /* Parser for the variables sub command */
 static int
 oneway_custom_variables (struct lexer *lexer,
-			struct dataset *ds, struct cmd_oneway *cmd UNUSED,
-			void *aux UNUSED)
+			 struct dataset *ds, struct cmd_oneway *cmd UNUSED,
+			 void *aux UNUSED)
 {
   struct dictionary *dict = dataset_dict (ds);
 
   lex_match (lexer, '=');
 
-  if ((lex_token (lexer) != T_ID || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
+  if ((lex_token (lexer) != T_ID ||
+       dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
 
   if (!parse_variables_const (lexer, dict, &vars, &n_vars,
-			PV_DUPLICATE
-			| PV_NUMERIC | PV_NO_SCRATCH) )
+			      PV_DUPLICATE
+			      | PV_NUMERIC | PV_NO_SCRATCH) )
     {
       free (vars);
       return 0;
     }
 
-  assert(n_vars);
+  assert (n_vars);
 
   if ( ! lex_match (lexer, T_BY))
     return 2;
@@ -241,7 +239,7 @@ oneway_custom_variables (struct lexer *lexer,
 
   if ( !indep_var )
     {
-      msg(SE,_("`%s' is not a variable name"),lex_tokid (lexer));
+      msg (SE, _("`%s' is not a variable name"), lex_tokid (lexer));
       return 0;
     }
 
@@ -251,7 +249,7 @@ oneway_custom_variables (struct lexer *lexer,
 
 /* Show the ANOVA table */
 static void
-show_anova_table(void)
+show_anova_table (void)
 {
   size_t i;
   int n_cols =7;
@@ -260,7 +258,7 @@ show_anova_table(void)
   struct tab_table *t;
 
 
-  t = tab_create (n_cols,n_rows,0);
+  t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 1, 0);
   tab_dim (t, tab_natural_dimensions);
 
@@ -282,23 +280,23 @@ show_anova_table(void)
   tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
 
 
-  for ( i=0 ; i < n_vars ; ++i )
+  for (i = 0; i < n_vars; ++i)
     {
       struct group_statistics *totals = &group_proc_get (vars[i])->ugs;
       struct hsh_table *group_hash = group_proc_get (vars[i])->group_hash;
       struct hsh_iterator g;
       struct group_statistics *gs;
-      double ssa=0;
-      const char *s = var_to_string(vars[i]);
+      double ssa = 0;
+      const char *s = var_to_string (vars[i]);
 
-      for (gs =  hsh_first (group_hash,&g);
+      for (gs =  hsh_first (group_hash, &g);
 	   gs != 0;
-	   gs = hsh_next(group_hash,&g))
+	   gs = hsh_next (group_hash, &g))
 	{
-	  ssa += (gs->sum * gs->sum)/gs->n;
+	  ssa += pow2 (gs->sum) / gs->n;
 	}
 
-      ssa -= ( totals->sum * totals->sum ) / totals->n ;
+      ssa -= pow2 (totals->sum) / totals->n;
 
       tab_text (t, 0, i * 3 + 1, TAB_LEFT | TAT_TITLE, s);
       tab_text (t, 1, i * 3 + 1, TAB_LEFT | TAT_TITLE, _("Between Groups"));
@@ -306,13 +304,13 @@ show_anova_table(void)
       tab_text (t, 1, i * 3 + 3, TAB_LEFT | TAT_TITLE, _("Total"));
 
       if (i > 0)
-	tab_hline(t, TAL_1, 0, n_cols - 1 , i * 3 + 1);
+	tab_hline (t, TAL_1, 0, n_cols - 1, i * 3 + 1);
 
       {
         struct group_proc *gp = group_proc_get (vars[i]);
-	const double sst = totals->ssq - ( totals->sum * totals->sum) / totals->n ;
+	const double sst = totals->ssq - pow2 (totals->sum) / totals->n;
 	const double df1 = gp->n_groups - 1;
-	const double df2 = totals->n - gp->n_groups ;
+	const double df2 = totals->n - gp->n_groups;
 	const double msa = ssa / df1;
 
 	gp->mse  = (sst - ssa) / df2;
@@ -333,19 +331,16 @@ show_anova_table(void)
 	tab_float (t, 4, i * 3 + 1, TAB_RIGHT, msa, 8, 3);
 	tab_float (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, 8, 3);
 
-
 	{
-	  const double F = msa/gp->mse ;
+	  const double F = msa/gp->mse;
 
 	  /* The F value */
 	  tab_float (t, 5, i * 3 + 1, 0,  F, 8, 3);
 
 	  /* The significance */
-	  tab_float (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q(F,df1,df2), 8, 3);
+	  tab_float (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), 8, 3);
 	}
-
       }
-
     }
 
 
@@ -356,23 +351,23 @@ show_anova_table(void)
 
 /* Show the descriptives table */
 static void
-show_descriptives(void)
+show_descriptives (void)
 {
   size_t v;
   int n_cols =10;
   struct tab_table *t;
   int row;
 
-  const double confidence=0.95;
+  const double confidence = 0.95;
   const double q = (1.0 - confidence) / 2.0;
 
 
-  int n_rows = 2 ;
+  int n_rows = 2;
 
-  for ( v = 0 ; v < n_vars ; ++v )
+  for ( v = 0; v < n_vars; ++v )
     n_rows += group_proc_get (vars[v])->n_groups + 1;
 
-  t = tab_create (n_cols,n_rows,0);
+  t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 2, 0);
   tab_dim (t, tab_natural_dimensions);
 
@@ -385,7 +380,7 @@ show_descriptives(void)
 	   n_cols - 1, n_rows - 1);
 
   /* Underline headers */
-  tab_hline (t, TAL_2, 0, n_cols - 1, 2 );
+  tab_hline (t, TAL_2, 0, n_cols - 1, 2);
   tab_vline (t, TAL_2, 2, 0, n_rows - 1);
 
   tab_text (t, 2, 1, TAB_CENTER | TAT_TITLE, _("N"));
@@ -394,9 +389,10 @@ show_descriptives(void)
   tab_text (t, 5, 1, TAB_CENTER | TAT_TITLE, _("Std. Error"));
 
 
-  tab_vline(t, TAL_0, 7, 0, 0);
-  tab_hline(t, TAL_1, 6, 7, 1);
-  tab_joint_text (t, 6, 0, 7, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF, _("%g%% Confidence Interval for Mean"),confidence*100.0);
+  tab_vline (t, TAL_0, 7, 0, 0);
+  tab_hline (t, TAL_1, 6, 7, 1);
+  tab_joint_text (t, 6, 0, 7, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF,
+		  _("%g%% Confidence Interval for Mean"), confidence*100.0);
 
   tab_text (t, 6, 1, TAB_CENTER | TAT_TITLE, _("Lower Bound"));
   tab_text (t, 7, 1, TAB_CENTER | TAT_TITLE, _("Upper Bound"));
@@ -409,7 +405,7 @@ show_descriptives(void)
 
 
   row = 2;
-  for ( v=0 ; v < n_vars ; ++v )
+  for (v = 0; v < n_vars; ++v)
     {
       double T;
       double std_error;
@@ -419,17 +415,17 @@ show_descriptives(void)
       struct group_statistics *gs;
       struct group_statistics *totals = &gp->ugs;
 
-      const char *s = var_to_string(vars[v]);
+      const char *s = var_to_string (vars[v]);
 
       struct group_statistics *const *gs_array =
-	(struct group_statistics *const *) hsh_sort(gp->group_hash);
+	(struct group_statistics *const *) hsh_sort (gp->group_hash);
       int count = 0;
 
       tab_text (t, 0, row, TAB_LEFT | TAT_TITLE, s);
       if ( v > 0)
-	tab_hline(t, TAL_1, 0, n_cols - 1 , row);
+	tab_hline (t, TAL_1, 0, n_cols - 1, row);
 
-      for (count = 0 ; count < hsh_count(gp->group_hash) ; ++count)
+      for (count = 0; count < hsh_count (gp->group_hash); ++count)
 	{
 	  struct string vstr;
 	  ds_init_empty (&vstr);
@@ -445,73 +441,67 @@ show_descriptives(void)
 
 	  /* Now fill in the numbers ... */
 
-	  tab_float (t, 2, row + count, 0, gs->n, 8,0);
+	  tab_float (t, 2, row + count, 0, gs->n, 8, 0);
 
-	  tab_float (t, 3, row + count, 0, gs->mean,8,2);
+	  tab_float (t, 3, row + count, 0, gs->mean, 8, 2);
 
-	  tab_float (t, 4, row + count, 0, gs->std_dev,8,2);
+	  tab_float (t, 4, row + count, 0, gs->std_dev, 8, 2);
 
-	  std_error = gs->std_dev/sqrt(gs->n) ;
+	  std_error = gs->std_dev/sqrt (gs->n);
 	  tab_float (t, 5, row + count, 0,
-		     std_error, 8,2);
+		     std_error, 8, 2);
 
 	  /* Now the confidence interval */
 
-	  T = gsl_cdf_tdist_Qinv(q,gs->n - 1);
+	  T = gsl_cdf_tdist_Qinv (q, gs->n - 1);
 
-	  tab_float(t, 6, row + count, 0,
-		    gs->mean - T * std_error, 8, 2);
+	  tab_float (t, 6, row + count, 0,
+		     gs->mean - T * std_error, 8, 2);
 
-	  tab_float(t, 7, row + count, 0,
-		    gs->mean + T * std_error, 8, 2);
+	  tab_float (t, 7, row + count, 0,
+		     gs->mean + T * std_error, 8, 2);
 
 	  /* Min and Max */
-
-	  tab_float(t, 8, row + count, 0,  gs->minimum, 8, 2);
-	  tab_float(t, 9, row + count, 0,  gs->maximum, 8, 2);
-
+	  tab_float (t, 8, row + count, 0,  gs->minimum, 8, 2);
+	  tab_float (t, 9, row + count, 0,  gs->maximum, 8, 2);
 	}
 
       tab_text (t, 1, row + count,
-		TAB_LEFT | TAT_TITLE ,_("Total"));
+		TAB_LEFT | TAT_TITLE, _("Total"));
 
-      tab_float (t, 2, row + count, 0, totals->n, 8,0);
+      tab_float (t, 2, row + count, 0, totals->n, 8, 0);
 
-      tab_float (t, 3, row + count, 0, totals->mean, 8,2);
+      tab_float (t, 3, row + count, 0, totals->mean, 8, 2);
 
-      tab_float (t, 4, row + count, 0, totals->std_dev,8,2);
+      tab_float (t, 4, row + count, 0, totals->std_dev, 8, 2);
 
-      std_error = totals->std_dev/sqrt(totals->n) ;
+      std_error = totals->std_dev/sqrt (totals->n);
 
-      tab_float (t, 5, row + count, 0, std_error, 8,2);
+      tab_float (t, 5, row + count, 0, std_error, 8, 2);
 
       /* Now the confidence interval */
 
-      T = gsl_cdf_tdist_Qinv(q,totals->n - 1);
+      T = gsl_cdf_tdist_Qinv (q, totals->n - 1);
 
-      tab_float(t, 6, row + count, 0,
-		totals->mean - T * std_error, 8, 2);
+      tab_float (t, 6, row + count, 0,
+		 totals->mean - T * std_error, 8, 2);
 
-      tab_float(t, 7, row + count, 0,
-		totals->mean + T * std_error, 8, 2);
+      tab_float (t, 7, row + count, 0,
+		 totals->mean + T * std_error, 8, 2);
 
       /* Min and Max */
-
-      tab_float(t, 8, row + count, 0,  totals->minimum, 8, 2);
-      tab_float(t, 9, row + count, 0,  totals->maximum, 8, 2);
+      tab_float (t, 8, row + count, 0,  totals->minimum, 8, 2);
+      tab_float (t, 9, row + count, 0,  totals->maximum, 8, 2);
 
       row += gp->n_groups + 1;
     }
 
-
   tab_submit (t);
-
-
 }
 
 /* Show the homogeneity table */
 static void
-show_homogeneity(void)
+show_homogeneity (void)
 {
   size_t v;
   int n_cols = 5;
@@ -520,7 +510,7 @@ show_homogeneity(void)
   struct tab_table *t;
 
 
-  t = tab_create (n_cols,n_rows,0);
+  t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 1, 0, 1, 0);
   tab_dim (t, tab_natural_dimensions);
 
@@ -532,38 +522,37 @@ show_homogeneity(void)
 	   n_cols - 1, n_rows - 1);
 
 
-  tab_hline(t, TAL_2, 0, n_cols - 1, 1);
-  tab_vline(t, TAL_2, 1, 0, n_rows - 1);
+  tab_hline (t, TAL_2, 0, n_cols - 1, 1);
+  tab_vline (t, TAL_2, 1, 0, n_rows - 1);
 
 
-  tab_text (t,  1, 0, TAB_CENTER | TAT_TITLE, _("Levene Statistic"));
-  tab_text (t,  2, 0, TAB_CENTER | TAT_TITLE, _("df1"));
-  tab_text (t,  3, 0, TAB_CENTER | TAT_TITLE, _("df2"));
-  tab_text (t,  4, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
-
+  tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Levene Statistic"));
+  tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("df1"));
+  tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("df2"));
+  tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
 
   tab_title (t, _("Test of Homogeneity of Variances"));
 
-  for ( v=0 ; v < n_vars ; ++v )
+  for (v = 0; v < n_vars; ++v)
     {
       double F;
       const struct variable *var = vars[v];
       const struct group_proc *gp = group_proc_get (vars[v]);
-      const char *s = var_to_string(var);
+      const char *s = var_to_string (var);
       const struct group_statistics *totals = &gp->ugs;
 
       const double df1 = gp->n_groups - 1;
-      const double df2 = totals->n - gp->n_groups ;
+      const double df2 = totals->n - gp->n_groups;
 
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
 
       F = gp->levene;
-      tab_float (t, 1, v + 1, TAB_RIGHT, F, 8,3);
-      tab_float (t, 2, v + 1, TAB_RIGHT, df1 ,8,0);
-      tab_float (t, 3, v + 1, TAB_RIGHT, df2 ,8,0);
+      tab_float (t, 1, v + 1, TAB_RIGHT, F, 8, 3);
+      tab_float (t, 2, v + 1, TAB_RIGHT, df1, 8, 0);
+      tab_float (t, 3, v + 1, TAB_RIGHT, df2, 8, 0);
 
       /* Now the significance */
-      tab_float (t, 4, v + 1, TAB_RIGHT,gsl_cdf_fdist_Q(F,df1,df2), 8, 3);
+      tab_float (t, 4, v + 1, TAB_RIGHT, gsl_cdf_fdist_Q (F, df1, df2), 8, 3);
     }
 
   tab_submit (t);
@@ -577,12 +566,12 @@ show_contrast_coeffs (short *bad_contrast)
   int n_cols = 2 + ostensible_number_of_groups;
   int n_rows = 2 + cmd.sbc_contrast;
   union value *group_value;
-  int count = 0 ;
-  void *const *group_values ;
+  int count = 0;
+  void *const *group_values;
 
   struct tab_table *t;
 
-  t = tab_create (n_cols,n_rows,0);
+  t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 2, 0);
   tab_dim (t, tab_natural_dimensions);
 
@@ -594,21 +583,21 @@ show_contrast_coeffs (short *bad_contrast)
 	   n_cols - 1, n_rows - 1);
 
   tab_box (t,
-	   -1,-1,
+	   -1, -1,
 	   TAL_0, TAL_0,
 	   2, 0,
 	   n_cols - 1, 0);
 
   tab_box (t,
-	   -1,-1,
+	   -1, -1,
 	   TAL_0, TAL_0,
-	   0,0,
-	   1,1);
+	   0, 0,
+	   1, 1);
 
-  tab_hline(t, TAL_1, 2, n_cols - 1, 1);
-  tab_hline(t, TAL_2, 0, n_cols - 1, 2);
+  tab_hline (t, TAL_1, 2, n_cols - 1, 1);
+  tab_hline (t, TAL_2, 0, n_cols - 1, 2);
 
-  tab_vline(t, TAL_2, 2, 0, n_rows - 1);
+  tab_vline (t, TAL_2, 2, 0, n_rows - 1);
 
   tab_title (t, _("Contrast Coefficients"));
 
@@ -616,11 +605,11 @@ show_contrast_coeffs (short *bad_contrast)
 
 
   tab_joint_text (t, 2, 0, n_cols - 1, 0, TAB_CENTER | TAT_TITLE,
-		  var_to_string(indep_var));
+		  var_to_string (indep_var));
 
-  group_values = hsh_sort(global_group_hash);
-  for (count = 0 ;
-       count < hsh_count(global_group_hash) ;
+  group_values = hsh_sort (global_group_hash);
+  for (count = 0;
+       count < hsh_count (global_group_hash);
        ++count)
     {
       int i;
@@ -637,16 +626,16 @@ show_contrast_coeffs (short *bad_contrast)
       ds_destroy (&vstr);
 
 
-      for (i = 0 ; i < cmd.sbc_contrast ; ++i )
+      for (i = 0; i < cmd.sbc_contrast; ++i )
 	{
-	  tab_text(t, 1, i + 2, TAB_CENTER | TAT_PRINTF, "%d", i + 1);
+	  tab_text (t, 1, i + 2, TAB_CENTER | TAT_PRINTF, "%d", i + 1);
 
 	  if ( bad_contrast[i] )
-	    tab_text(t, count + 2, i + 2, TAB_RIGHT, "?" );
+	    tab_text (t, count + 2, i + 2, TAB_RIGHT, "?" );
 	  else
-	    tab_text(t, count + 2, i + 2, TAB_RIGHT | TAT_PRINTF, "%g",
-		     subc_list_double_at(&cmd.dl_contrast[i], count)
-		     );
+	    tab_text (t, count + 2, i + 2, TAB_RIGHT | TAT_PRINTF, "%g",
+		      subc_list_double_at (&cmd.dl_contrast[i], count)
+		      );
 	}
     }
 
@@ -656,7 +645,7 @@ show_contrast_coeffs (short *bad_contrast)
 
 /* Show the results of the contrast tests */
 static void
-show_contrast_tests(short *bad_contrast)
+show_contrast_tests (short *bad_contrast)
 {
   size_t v;
   int n_cols = 8;
@@ -664,7 +653,7 @@ show_contrast_tests(short *bad_contrast)
 
   struct tab_table *t;
 
-  t = tab_create (n_cols,n_rows,0);
+  t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 3, 0, 1, 0);
   tab_dim (t, tab_natural_dimensions);
 
@@ -676,34 +665,34 @@ show_contrast_tests(short *bad_contrast)
 	   n_cols - 1, n_rows - 1);
 
   tab_box (t,
-	   -1,-1,
+	   -1, -1,
 	   TAL_0, TAL_0,
 	   0, 0,
 	   2, 0);
 
-  tab_hline(t, TAL_2, 0, n_cols - 1, 1);
-  tab_vline(t, TAL_2, 3, 0, n_rows - 1);
+  tab_hline (t, TAL_2, 0, n_cols - 1, 1);
+  tab_vline (t, TAL_2, 3, 0, n_rows - 1);
 
 
   tab_title (t, _("Contrast Tests"));
 
-  tab_text (t,  2, 0, TAB_CENTER | TAT_TITLE, _("Contrast"));
-  tab_text (t,  3, 0, TAB_CENTER | TAT_TITLE, _("Value of Contrast"));
+  tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("Contrast"));
+  tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Value of Contrast"));
   tab_text (t,  4, 0, TAB_CENTER | TAT_TITLE, _("Std. Error"));
   tab_text (t,  5, 0, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (t,  6, 0, TAB_CENTER | TAT_TITLE, _("df"));
   tab_text (t,  7, 0, TAB_CENTER | TAT_TITLE, _("Sig. (2-tailed)"));
 
-  for ( v = 0 ; v < n_vars ; ++v )
+  for (v = 0; v < n_vars; ++v)
     {
       int i;
       int lines_per_variable = 2 * cmd.sbc_contrast;
 
 
       tab_text (t,  0, (v * lines_per_variable) + 1, TAB_LEFT | TAT_TITLE,
-		var_to_string(vars[v]));
+		var_to_string (vars[v]));
 
-      for ( i = 0 ; i < cmd.sbc_contrast ; ++i )
+      for (i = 0; i < cmd.sbc_contrast; ++i)
 	{
 	  int ci;
 	  double contrast_value = 0.0;
@@ -714,18 +703,18 @@ show_contrast_tests(short *bad_contrast)
 	  void *const *group_stat_array;
 
 	  double T;
-	  double std_error_contrast ;
+	  double std_error_contrast;
 	  double df;
-	  double sec_vneq=0.0;
+	  double sec_vneq = 0.0;
 
 
 	  /* Note: The calculation of the degrees of freedom in the
 	     "variances not equal" case is painfull!!
 	     The following formula may help to understand it:
-	     \frac{\left(\sum_{i=1}^k{c_i^2\frac{s_i^2}{n_i}}\right)^2}
+	     \frac{\left (\sum_{i=1}^k{c_i^2\frac{s_i^2}{n_i}}\right)^2}
 	     {
-	     \sum_{i=1}^k\left(
-	     \frac{\left(c_i^2\frac{s_i^2}{n_i}\right)^2}  {n_i-1}
+	     \sum_{i=1}^k\left (
+	     \frac{\left (c_i^2\frac{s_i^2}{n_i}\right)^2}  {n_i-1}
 	     \right)
 	     }
 	  */
@@ -744,72 +733,72 @@ show_contrast_tests(short *bad_contrast)
 	    }
 
 	  tab_text (t,  2, (v * lines_per_variable) + i + 1,
-		    TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%d",i+1);
+		    TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%d", i + 1);
 
 
 	  tab_text (t,  2, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
-		    TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%d",i+1);
+		    TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%d", i + 1);
 
 
 	  if ( bad_contrast[i])
 	    continue;
 
-	  group_stat_array = hsh_sort(group_hash);
+	  group_stat_array = hsh_sort (group_hash);
 
-	  for (ci = 0 ; ci < hsh_count(group_hash) ;  ++ci)
+	  for (ci = 0; ci < hsh_count (group_hash);  ++ci)
 	    {
-	      const double coef = subc_list_double_at(&cmd.dl_contrast[i], ci);
+	      const double coef = subc_list_double_at (&cmd.dl_contrast[i], ci);
 	      struct group_statistics *gs = group_stat_array[ci];
 
-	      const double winv = (gs->std_dev * gs->std_dev) / gs->n;
+	      const double winv = pow2 (gs->std_dev) / gs->n;
 
 	      contrast_value += coef * gs->mean;
 
-	      coef_msq += (coef * coef) / gs->n ;
+	      coef_msq += (coef * coef) / gs->n;
 
-	      sec_vneq += (coef * coef) * (gs->std_dev * gs->std_dev ) /gs->n ;
+	      sec_vneq += (coef * coef) * pow2 (gs->std_dev) /gs->n;
 
 	      df_numerator += (coef * coef) * winv;
 	      df_denominator += pow2((coef * coef) * winv) / (gs->n - 1);
 	    }
-	  sec_vneq = sqrt(sec_vneq);
+	  sec_vneq = sqrt (sec_vneq);
 
 	  df_numerator = pow2(df_numerator);
 
 	  tab_float (t,  3, (v * lines_per_variable) + i + 1,
-		     TAB_RIGHT, contrast_value, 8,2);
+		     TAB_RIGHT, contrast_value, 8, 2);
 
 	  tab_float (t,  3, (v * lines_per_variable) + i + 1 +
 		     cmd.sbc_contrast,
-		     TAB_RIGHT, contrast_value, 8,2);
+		     TAB_RIGHT, contrast_value, 8, 2);
 
-	  std_error_contrast = sqrt(grp_data->mse * coef_msq);
+	  std_error_contrast = sqrt (grp_data->mse * coef_msq);
 
 	  /* Std. Error */
 	  tab_float (t,  4, (v * lines_per_variable) + i + 1,
 		     TAB_RIGHT, std_error_contrast,
-		     8,3);
+		     8, 3);
 
-	  T = fabs(contrast_value / std_error_contrast) ;
+	  T = fabs (contrast_value / std_error_contrast);
 
 	  /* T Statistic */
 
 	  tab_float (t,  5, (v * lines_per_variable) + i + 1,
 		     TAB_RIGHT, T,
-		     8,3);
+		     8, 3);
 
 	  df = grp_data->ugs.n - grp_data->n_groups;
 
 	  /* Degrees of Freedom */
 	  tab_float (t,  6, (v * lines_per_variable) + i + 1,
 		     TAB_RIGHT,  df,
-		     8,0);
+		     8, 0);
 
 
 	  /* Significance TWO TAILED !!*/
 	  tab_float (t,  7, (v * lines_per_variable) + i + 1,
-		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q(T,df),
-		     8,3);
+		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q (T, df),
+		     8, 3);
 
 
 	  /* Now for the Variances NOT Equal case */
@@ -818,14 +807,14 @@ show_contrast_tests(short *bad_contrast)
 	  tab_float (t,  4,
 		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
 		     TAB_RIGHT, sec_vneq,
-		     8,3);
+		     8, 3);
 
 
 	  T = contrast_value / sec_vneq;
 	  tab_float (t,  5,
 		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
 		     TAB_RIGHT, T,
-		     8,3);
+		     8, 3);
 
 
 	  df = df_numerator / df_denominator;
@@ -833,19 +822,19 @@ show_contrast_tests(short *bad_contrast)
 	  tab_float (t,  6,
 		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
 		     TAB_RIGHT, df,
-		     8,3);
+		     8, 3);
 
 	  /* The Significance */
 
 	  tab_float (t, 7, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
-		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q(T,df),
-		     8,3);
+		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q (T, df),
+		     8, 3);
 
 
 	}
 
       if ( v > 0 )
-	tab_hline(t, TAL_1, 0, n_cols - 1, (v * lines_per_variable) + 1);
+	tab_hline (t, TAL_1, 0, n_cols - 1, (v * lines_per_variable) + 1);
     }
 
   tab_submit (t);
@@ -855,19 +844,19 @@ show_contrast_tests(short *bad_contrast)
 
 /* ONEWAY ANOVA Calculations */
 
-static void  postcalc (  struct cmd_oneway *cmd UNUSED );
+static void  postcalc (struct cmd_oneway *cmd UNUSED);
 
-static void  precalc ( struct cmd_oneway *cmd UNUSED );
+static void  precalc (struct cmd_oneway *cmd UNUSED);
 
 
 
 /* Pre calculations */
 static void
-precalc ( struct cmd_oneway *cmd UNUSED )
+precalc (struct cmd_oneway *cmd UNUSED)
 {
-  size_t i=0;
+  size_t i = 0;
 
-  for(i=0; i< n_vars ; ++i)
+  for (i = 0; i < n_vars; ++i)
     {
       struct group_proc *gp = group_proc_get (vars[i]);
       struct group_statistics *totals = &gp->ugs;
@@ -876,19 +865,15 @@ precalc ( struct cmd_oneway *cmd UNUSED )
 	 The hash contains a group_statistics structure,
 	 and is keyed by value of the independent variable */
 
-      gp->group_hash =
-	hsh_create(4,
-		   (hsh_compare_func *) compare_group,
-		   (hsh_hash_func *) hash_group,
-		   (hsh_free_func *) free_group,
-		   (void *) var_get_width (indep_var) );
+      gp->group_hash = hsh_create (4, compare_group, hash_group,
+				   (hsh_free_func *) free_group,
+				   indep_var);
 
-
-      totals->sum=0;
-      totals->n=0;
-      totals->ssq=0;
-      totals->sum_diff=0;
-      totals->maximum = - DBL_MAX;
+      totals->sum = 0;
+      totals->n = 0;
+      totals->ssq = 0;
+      totals->sum_diff = 0;
+      totals->maximum = -DBL_MAX;
       totals->minimum = DBL_MAX;
     }
 }
@@ -921,20 +906,20 @@ run_oneway (struct cmd_oneway *cmd,
 
   taint = taint_clone (casereader_get_taint (input));
 
-  global_group_hash = hsh_create(4,
-				 (hsh_compare_func *) compare_values,
-				 (hsh_hash_func *) hash_value,
-				 free_value,
-				 (void *) var_get_width (indep_var) );
+  global_group_hash = hsh_create (4,
+				  compare_values,
+				  hash_value,
+				  free_value,
+				  indep_var);
 
-  precalc(cmd);
+  precalc (cmd);
 
   exclude = cmd->incl != ONEWAY_INCLUDE ? MV_ANY : MV_SYSTEM;
   input = casereader_create_filter_missing (input, &indep_var, 1,
-                                            exclude, NULL);
+                                            exclude, NULL, NULL);
   if (cmd->miss == ONEWAY_LISTWISE)
     input = casereader_create_filter_missing (input, vars, n_vars,
-                                              exclude, NULL);
+                                              exclude, NULL, NULL);
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
   reader = casereader_clone (input);
@@ -949,7 +934,7 @@ run_oneway (struct cmd_oneway *cmd,
       if (*p == NULL)
         *p = value_dup (indep_val, var_get_width (indep_var));
 
-      for ( i = 0 ; i < n_vars ; ++i )
+      for (i = 0; i < n_vars; ++i)
 	{
 	  const struct variable *v = vars[i];
 
@@ -960,29 +945,29 @@ run_oneway (struct cmd_oneway *cmd,
 
 	  struct group_statistics *gs;
 
-	  gs = hsh_find(group_hash, (void *) indep_val );
+	  gs = hsh_find (group_hash, indep_val );
 
 	  if ( ! gs )
 	    {
 	      gs = xmalloc (sizeof *gs);
 	      gs->id = *indep_val;
-	      gs->sum=0;
-	      gs->n=0;
-	      gs->ssq=0;
-	      gs->sum_diff=0;
+	      gs->sum = 0;
+	      gs->n = 0;
+	      gs->ssq = 0;
+	      gs->sum_diff = 0;
 	      gs->minimum = DBL_MAX;
 	      gs->maximum = -DBL_MAX;
 
-	      hsh_insert ( group_hash, (void *) gs );
+	      hsh_insert ( group_hash, gs );
 	    }
 
 	  if (!var_is_value_missing (v, val, exclude))
 	    {
 	      struct group_statistics *totals = &gp->ugs;
 
-	      totals->n+=weight;
-	      totals->sum+=weight * val->f;
-	      totals->ssq+=weight * val->f * val->f;
+	      totals->n += weight;
+	      totals->sum += weight * val->f;
+	      totals->ssq += weight * pow2 (val->f);
 
 	      if ( val->f * weight  < totals->minimum )
 		totals->minimum = val->f * weight;
@@ -990,9 +975,9 @@ run_oneway (struct cmd_oneway *cmd,
 	      if ( val->f * weight  > totals->maximum )
 		totals->maximum = val->f * weight;
 
-	      gs->n+=weight;
-	      gs->sum+=weight * val->f;
-	      gs->ssq+=weight * val->f * val->f;
+	      gs->n += weight;
+	      gs->sum += weight * val->f;
+	      gs->ssq += weight * pow2 (val->f);
 
 	      if ( val->f * weight  < gs->minimum )
 		gs->minimum = val->f * weight;
@@ -1007,7 +992,7 @@ run_oneway (struct cmd_oneway *cmd,
     }
   casereader_destroy (reader);
 
-  postcalc(cmd);
+  postcalc (cmd);
 
 
   if ( stat_tables & STAT_HOMO )
@@ -1018,7 +1003,7 @@ run_oneway (struct cmd_oneway *cmd,
   ostensible_number_of_groups = hsh_count (global_group_hash);
 
   if (!taint_has_tainted_successor (taint))
-    output_oneway();
+    output_oneway ();
   taint_destroy (taint);
 }
 
@@ -1027,10 +1012,9 @@ run_oneway (struct cmd_oneway *cmd,
 void
 postcalc (  struct cmd_oneway *cmd UNUSED )
 {
-  size_t i=0;
+  size_t i = 0;
 
-
-  for(i = 0; i < n_vars ; ++i)
+  for (i = 0; i < n_vars; ++i)
     {
       struct group_proc *gp = group_proc_get (vars[i]);
       struct hsh_table *group_hash = gp->group_hash;
@@ -1039,35 +1023,29 @@ postcalc (  struct cmd_oneway *cmd UNUSED )
       struct hsh_iterator g;
       struct group_statistics *gs;
 
-      for (gs =  hsh_first (group_hash,&g);
+      for (gs =  hsh_first (group_hash, &g);
 	   gs != 0;
-	   gs = hsh_next(group_hash,&g))
+	   gs = hsh_next (group_hash, &g))
 	{
-	  gs->mean=gs->sum / gs->n;
-	  gs->s_std_dev= sqrt(
-			      ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
-			      ) ;
+	  gs->mean = gs->sum / gs->n;
+	  gs->s_std_dev = sqrt (gs->ssq / gs->n - pow2 (gs->mean));
 
-	  gs->std_dev= sqrt(
-			    gs->n/(gs->n-1) *
-			    ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
-			    ) ;
+	  gs->std_dev = sqrt (
+			      gs->n / (gs->n - 1) *
+			      ( gs->ssq / gs->n - pow2 (gs->mean))
+			      );
 
-	  gs->se_mean = gs->std_dev / sqrt(gs->n);
-	  gs->mean_diff= gs->sum_diff / gs->n;
-
+	  gs->se_mean = gs->std_dev / sqrt (gs->n);
+	  gs->mean_diff = gs->sum_diff / gs->n;
 	}
 
-
-
       totals->mean = totals->sum / totals->n;
-      totals->std_dev= sqrt(
-			    totals->n/(totals->n-1) *
-			    ( (totals->ssq / totals->n ) - totals->mean * totals->mean )
-			    ) ;
+      totals->std_dev = sqrt (
+			      totals->n / (totals->n - 1) *
+			      (totals->ssq / totals->n - pow2 (totals->mean))
+			      );
 
-      totals->se_mean = totals->std_dev / sqrt(totals->n);
-
+      totals->se_mean = totals->std_dev / sqrt (totals->n);
     }
 }
 

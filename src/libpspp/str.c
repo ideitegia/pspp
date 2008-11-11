@@ -194,15 +194,18 @@ buf_copy_rpad (char *dst, size_t dst_size,
 void
 str_copy_rpad (char *dst, size_t dst_size, const char *src)
 {
-  size_t src_len = strlen (src);
-  if (src_len < dst_size - 1)
+  if (dst_size > 0) 
     {
-      memcpy (dst, src, src_len);
-      memset (&dst[src_len], ' ', dst_size - 1 - src_len);
+      size_t src_len = strlen (src);
+      if (src_len < dst_size - 1)
+        {
+          memcpy (dst, src, src_len);
+          memset (&dst[src_len], ' ', dst_size - 1 - src_len);
+        }
+      else
+        memcpy (dst, src, dst_size - 1);
+      dst[dst_size - 1] = 0;
     }
-  else
-    memcpy (dst, src, dst_size - 1);
-  dst[dst_size - 1] = 0;
 }
 
 /* Copies SRC to DST, which is in a buffer DST_SIZE bytes long.

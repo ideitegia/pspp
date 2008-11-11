@@ -80,8 +80,8 @@ struct group_properties
   /* The comparison criterion */
   enum comparison criterion;
 
-  /* The width of the independent variable */
-  int indep_width ;
+  /* The independent variable */
+  struct variable *indep_var;
 
   union {
     /* The value of the independent variable at which groups are determined to
@@ -1459,7 +1459,7 @@ common_calc (const struct dictionary *dict,
 
 	  gs->n += weight;
 	  gs->sum += weight * val->f;
-	  gs->ssq += weight * val->f * val->f;
+	  gs->ssq += weight * pow2 (val->f);
 	}
     }
   return 0;
@@ -1496,12 +1496,12 @@ common_postcalc (struct cmd_t_test *cmd)
 
       gs->mean=gs->sum / gs->n;
       gs->s_std_dev= sqrt (
-			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			 ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			 ) ;
 
       gs->std_dev= sqrt (
 			 gs->n/ (gs->n-1) *
-			 ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			 ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			 ) ;
 
       gs->se_mean = gs->std_dev / sqrt (gs->n);
@@ -1676,7 +1676,7 @@ group_precalc (struct cmd_t_test *cmd )
       /* There's always 2 groups for a T - TEST */
       ttpr->n_groups = 2;
 
-      gp.indep_width = var_get_width (indep_var);
+      gp.indep_var = indep_var;
 
       ttpr->group_hash = hsh_create (2,
 				    (hsh_compare_func *) compare_group_binary,
@@ -1772,12 +1772,12 @@ group_postcalc ( struct cmd_t_test *cmd )
 	  gs->mean = gs->sum / gs->n;
 
 	  gs->s_std_dev= sqrt (
-			      ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			      ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			      ) ;
 
 	  gs->std_dev= sqrt (
 			    gs->n/ (gs->n-1) *
-			    ( (gs->ssq / gs->n ) - gs->mean * gs->mean )
+			    ( (gs->ssq / gs->n ) - pow2 (gs->mean))
 			    ) ;
 
 	  gs->se_mean = gs->std_dev / sqrt (gs->n);
@@ -1815,7 +1815,7 @@ calculate (struct cmd_t_test *cmd,
     input = casereader_create_filter_missing (input,
                                               cmd->v_variables,
                                               cmd->n_variables,
-                                              exclude, NULL);
+                                              exclude, NULL, NULL);
 
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
@@ -1888,10 +1888,6 @@ compare_group_binary (const struct group_statistics *a,
 
   if ( p->criterion == CMP_LE )
     {
-      /* less-than comparision is not meaningfull for
-	 alpha variables, so we shouldn't ever arrive here */
-      assert (p->indep_width == 0 ) ;
-
       flag_a = ( a->id.f < p->v.critical_value ) ;
       flag_b = ( b->id.f < p->v.critical_value ) ;
     }
@@ -1918,8 +1914,6 @@ hash_group_binary (const struct group_statistics *g,
 
   if ( p->criterion == CMP_LE )
     {
-      /* Not meaningfull to do a less than compare for alpha values ? */
-      assert (p->indep_width == 0 ) ;
       flag = ( g->id.f < p->v.critical_value ) ;
     }
   else if ( p->criterion == CMP_EQ)
@@ -1939,10 +1933,10 @@ short
 which_group (const struct group_statistics *g,
 	    const struct group_properties *p)
 {
-  if ( 0 == compare_values (&g->id, &p->v.g_value[0], p->indep_width))
+  if ( 0 == compare_values (&g->id, &p->v.g_value[0], p->indep_var))
     return 0;
 
-  if ( 0 == compare_values (&g->id, &p->v.g_value[1], p->indep_width))
+  if ( 0 == compare_values (&g->id, &p->v.g_value[1], p->indep_var))
     return 1;
 
   return 2;

@@ -320,7 +320,9 @@ void
 chisquare_execute (const struct dataset *ds,
 		   struct casereader *input,
                    enum mv_class exclude,
-		   const struct npar_test *test)
+		   const struct npar_test *test,
+		   bool exact UNUSED,
+		   double timer UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
   int v, i;
@@ -344,7 +346,8 @@ chisquare_execute (const struct dataset *ds,
 	  struct hsh_table *freq_hash = NULL;
           struct casereader *reader =
             casereader_create_filter_missing (casereader_clone (input),
-                                              &ost->vars[v], 1, exclude, NULL);
+                                              &ost->vars[v], 1, exclude,
+					      NULL, NULL);
 	  struct tab_table *freq_table =
             create_variable_frequency_table(dict, reader, cst, v, &freq_hash);
 
@@ -414,7 +417,8 @@ chisquare_execute (const struct dataset *ds,
 	  double total_obs = 0.0;
           struct casereader *reader =
             casereader_create_filter_missing (casereader_clone (input),
-                                              &ost->vars[v], 1, exclude, NULL);
+                                              &ost->vars[v], 1, exclude,
+					      NULL, NULL);
 	  struct hsh_table *freq_hash =
 	    create_freq_hash_with_range (dict, reader,
                                          ost->vars[v], cst->lo, cst->hi);

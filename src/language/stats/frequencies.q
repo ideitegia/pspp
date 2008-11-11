@@ -268,7 +268,7 @@ static hsh_compare_func compare_freq_numeric_d, compare_freq_alpha_d;
 static void do_piechart(const struct variable *var,
 			const struct freq_tab *frq_tab);
 
-gsl_histogram *
+struct histogram *
 freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var);
 
 
@@ -606,30 +606,25 @@ postcalc (void)
       if ( chart == GFT_HIST)
 	{
 	  double d[frq_n_stats];
-	  struct normal_curve norm;
-	  gsl_histogram *hist ;
-
-
-	  norm.N = vf->tab.valid_cases;
+	  struct histogram *hist ;
 
 	  calc_stats (v, d);
-	  norm.mean = d[frq_mean];
-	  norm.stddev = d[frq_stddev];
 
-	  hist = freq_tab_to_hist(ft,v);
+	  hist = freq_tab_to_hist (ft,v);
 
-	  histogram_plot(hist, var_to_string(v), &norm, normal);
+	  histogram_plot_n (hist, var_to_string(v),
+			  vf->tab.valid_cases,
+			  d[frq_mean],
+			  d[frq_stddev],
+			  normal);
 
-	  gsl_histogram_free(hist);
+	  statistic_destroy ((struct statistic *)hist);
 	}
-
 
       if ( chart == GFT_PIE)
 	{
 	  do_piechart(v_variables[i], ft);
 	}
-
-
 
       cleanup_freq_tab (v);
 
@@ -1437,14 +1432,14 @@ dump_statistics (const struct variable *v, int show_varname)
 
 
 /* Create a gsl_histogram from a freq_tab */
-gsl_histogram *
-freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
+struct histogram *
+freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
 {
   int i;
   double x_min = DBL_MAX;
   double x_max = -DBL_MAX;
 
-  gsl_histogram *hist;
+  struct statistic *hist;
   const double bins = 11;
 
   struct hsh_iterator hi;
@@ -1461,15 +1456,15 @@ freq_tab_to_hist(const struct freq_tab *ft, const struct variable *var)
       if ( frq->value[0].f > x_max ) x_max = frq->value[0].f ;
     }
 
-  hist = histogram_create(bins, x_min, x_max);
+  hist = histogram_create (bins, x_min, x_max);
 
   for( i = 0 ; i < ft->n_valid ; ++i )
     {
       frq = &ft->valid[i];
-      gsl_histogram_accumulate(hist, frq->value[0].f, frq->count);
+      histogram_add ((struct histogram *)hist, frq->value[0].f, frq->count);
     }
 
-  return hist;
+  return (struct histogram *)hist;
 }
 
 
@@ -1499,6 +1494,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
     {
       const struct freq *frq = &frq_tab->valid[i];
 
+      ds_init_empty (&slices[i].label);
       var_append_value_name (var, frq->value, &slices[i].label);
       slices[i].magnetude = frq->count;
     }

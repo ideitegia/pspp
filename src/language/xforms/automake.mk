@@ -8,3 +8,5 @@ language_xforms_sources = \
 	src/language/xforms/sample.c \
 	src/language/xforms/recode.c \
 	src/language/xforms/select-if.c
+
+EXTRA_DIST += src/language/xforms/OChangeLog

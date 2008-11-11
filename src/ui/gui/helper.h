@@ -20,6 +20,7 @@
 
 #include "relocatable.h"
 
+#include <data/format.h>
 #include <data/value.h>
 
 #include <gtk/gtk.h>

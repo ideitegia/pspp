@@ -19,6 +19,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <libpspp/hash-functions.h>
 
 typedef int hsh_compare_func (const void *, const void *, const void *aux);
 typedef unsigned hsh_hash_func (const void *, const void *aux);
@@ -29,13 +30,6 @@ struct hsh_iterator
   {
     size_t next;		/* Index of next entry. */
   };
-
-/* Hash functions. */
-unsigned hsh_hash_bytes (const void *, size_t);
-unsigned hsh_hash_string (const char *);
-unsigned hsh_hash_case_string (const char *);
-unsigned hsh_hash_int (int);
-unsigned hsh_hash_double (double);
 
 /* Hash tables. */
 struct hsh_table *hsh_create (int m, hsh_compare_func *,

@@ -3,7 +3,7 @@
 
 include $(top_srcdir)/src/output/charts/automake.mk
 
-noinst_LIBRARIES += src/output/liboutput.a 
+noinst_LTLIBRARIES += src/output/liboutput.la 
 
 output_sources = \
 	src/output/afm.c \
@@ -23,13 +23,13 @@ output_sources = \
 
 
 if WITHCHARTS
-src_output_liboutput_a_SOURCES = $(output_sources) src/output/chart.c
+src_output_liboutput_la_SOURCES = $(output_sources) src/output/chart.c
 
 EXTRA_DIST += src/output/dummy-chart.c
 else
-src_output_liboutput_a_SOURCES = $(output_sources) src/output/dummy-chart.c
+src_output_liboutput_la_SOURCES = $(output_sources) src/output/dummy-chart.c
 
 EXTRA_DIST += src/output/chart.c
 endif
 
-
+EXTRA_DIST += src/output/OChangeLog

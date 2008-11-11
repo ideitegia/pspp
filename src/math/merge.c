@@ -44,16 +44,18 @@ struct merge
     struct case_ordering *ordering;
     struct merge_input inputs[MAX_MERGE_ORDER];
     size_t input_cnt;
+    size_t value_cnt;
   };
 
 static void do_merge (struct merge *m);
 
 struct merge *
-merge_create (const struct case_ordering *ordering)
+merge_create (const struct case_ordering *ordering, size_t value_cnt)
 {
   struct merge *m = xmalloc (sizeof *m);
   m->ordering = case_ordering_clone (ordering);
   m->input_cnt = 0;
+  m->value_cnt = value_cnt;
   return m;
 }
 
@@ -95,8 +97,7 @@ merge_make_reader (struct merge *m)
     }
   else if (m->input_cnt == 0)
     {
-      size_t value_cnt = case_ordering_get_value_cnt (m->ordering);
-      struct casewriter *writer = mem_writer_create (value_cnt);
+      struct casewriter *writer = mem_writer_create (m->value_cnt);
       r = casewriter_make_reader (writer);
     }
   else
@@ -129,7 +130,7 @@ do_merge (struct merge *m)
 
   assert (m->input_cnt > 1);
 
-  w = tmpfile_writer_create (case_ordering_get_value_cnt (m->ordering));
+  w = tmpfile_writer_create (m->value_cnt);
   for (i = 0; i < m->input_cnt; i++)
     taint_propagate (casereader_get_taint (m->inputs[i].reader),
                      casewriter_get_taint (w));

@@ -46,3 +46,5 @@ libglade_psppire_la_CFLAGS = $(GLADE_UI_CFLAGS) $(GLADE_CFLAGS) \
 	-I $(top_srcdir)/src/ui/gui -DDEBUGGING
 
 libglade_psppire_la_LIBADD = gl/libgl.la
+
+EXTRA_DIST += glade/OChangeLog

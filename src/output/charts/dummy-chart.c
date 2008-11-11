@@ -33,80 +33,87 @@
 #endif
 
 void
-chart_write_title(struct chart *chart UNUSED, const char *title UNUSED, ...)
+chart_write_title (struct chart *chart UNUSED, const char *title UNUSED, ...)
 {
 }
 
 
 void
-chart_write_xscale(struct chart *ch UNUSED,
-                   double min UNUSED, double max UNUSED, int ticks UNUSED)
+chart_write_xscale (struct chart *ch UNUSED,
+		    double min UNUSED, double max UNUSED, int ticks UNUSED)
 {
 }
 
 
 void
-chart_write_yscale(struct chart *ch UNUSED UNUSED,
-                   double smin UNUSED, double smax UNUSED, int ticks UNUSED)
+chart_write_yscale (struct chart *ch UNUSED UNUSED,
+		    double smin UNUSED, double smax UNUSED, int ticks UNUSED)
 {
 }
 
 
 void
-chart_write_xlabel(struct chart *ch UNUSED, const char *label UNUSED)
+chart_write_xlabel (struct chart *ch UNUSED, const char *label UNUSED)
 {
 }
 
 void
-chart_write_ylabel(struct chart *ch UNUSED, const char *label UNUSED)
-{
-}
-
-
-void
-chart_line(struct chart *ch UNUSED,
-           double slope UNUSED, double intercept UNUSED,
-	   double limit1 UNUSED, double limit2 UNUSED,
-           enum CHART_DIM lim_dim UNUSED)
+chart_write_ylabel (struct chart *ch UNUSED, const char *label UNUSED)
 {
 }
 
 
 void
-chart_datum(struct chart *ch UNUSED, int dataset UNUSED UNUSED,
-            double x UNUSED, double y UNUSED)
-{
-}
-
-struct normal_curve;
-
-void
-histogram_plot(const gsl_histogram *hist UNUSED,
-	       const char *factorname UNUSED,
-	       const struct normal_curve *norm UNUSED,
-               short show_normal UNUSED)
-{
-}
-
-void
-boxplot_draw_yscale(struct chart *ch UNUSED,
-                    double y_max UNUSED, double y_min UNUSED)
-{
-}
-
-void
-boxplot_draw_boxplot(struct chart *ch UNUSED,
-		     double box_centre UNUSED,
-		     double box_width UNUSED,
-		     struct metrics *m UNUSED,
-		     const char *name UNUSED)
+chart_line (struct chart *ch UNUSED,
+	    double slope UNUSED, double intercept UNUSED,
+	    double limit1 UNUSED, double limit2 UNUSED,
+	    enum CHART_DIM lim_dim UNUSED)
 {
 }
 
 
+void
+chart_datum (struct chart *ch UNUSED, int dataset UNUSED UNUSED,
+	     double x UNUSED, double y UNUSED)
+{
+}
 
 void
-piechart_plot(const char *title UNUSED,
-              const struct slice *slices UNUSED, int n_slices UNUSED)
+histogram_plot (const struct histogram *hist UNUSED,
+		const char *label UNUSED,
+		const struct moments1 *m UNUSED)
+{
+}
+
+void
+histogram_plot_n (const struct histogram *hist UNUSED,
+		  const char *label UNUSED,
+		  double n UNUSED, double mean UNUSED, double stddev UNUSED,
+		  bool show_normal UNUSED)
+{
+}
+
+
+void
+boxplot_draw_yscale (struct chart *ch UNUSED,
+		     double y_max UNUSED, double y_min UNUSED)
+{
+}
+
+void
+boxplot_draw_boxplot (struct chart *ch UNUSED,
+		      double box_centre UNUSED,
+		      double box_width UNUSED,
+		      const struct box_whisker *w UNUSED,
+		      const char *name UNUSED)
+{
+}
+
+
+
+
+void
+piechart_plot (const char *title UNUSED,
+	       const struct slice *slices UNUSED, int n_slices UNUSED)
 {
 }

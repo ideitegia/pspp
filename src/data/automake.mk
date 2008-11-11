@@ -1,14 +1,17 @@
 
-noinst_LIBRARIES += src/data/libdata.a
+noinst_LTLIBRARIES += src/data/libdata.la
 
-src_data_libdata_a_CPPFLAGS = $(LIBXML2_CFLAGS) $(PG_CFLAGS) $(AM_CPPFLAGS) 
+src_data_libdata_la_CPPFLAGS = $(LIBXML2_CFLAGS) $(PG_CFLAGS) $(AM_CPPFLAGS) 
 
+src_data_libdata_la_LIBADD =   $(LIBXML2_LIBS) $(PG_LIBS)
 
-src_data_libdata_a_SOURCES = \
+src_data_libdata_la_SOURCES = \
 	src/data/any-reader.c \
 	src/data/any-reader.h \
 	src/data/any-writer.c \
 	src/data/any-writer.h \
+	src/data/attributes.c \
+	src/data/attributes.h \
 	src/data/calendar.c \
 	src/data/calendar.h \
 	src/data/case-map.c \
@@ -103,3 +106,5 @@ src_data_libdata_a_SOURCES = \
 	src/data/variable.c \
 	src/data/vector.c \
 	src/data/vector.h
+
+EXTRA_DIST += src/data/OChangeLog

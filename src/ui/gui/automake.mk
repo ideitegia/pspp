@@ -53,20 +53,12 @@ src_ui_gui_psppire_LDADD = \
 	-dlopen src/ui/gui/libpsppire.la \
 	src/ui/gui/libpsppwidgets.la \
 	lib/gtksheet/libgtksheet.a \
-	src/language/liblanguage.a \
-	src/ui/libuicommon.a \
-	src/output/charts/libcharts.a \
-	src/output/liboutput.a \
-	src/math/libpspp_math.a  \
-	lib/linreg/liblinreg.a	\
-	lib/gsl-extras/libgsl-extras.a	\
-	src/data/libdata.a \
-	src/libpspp/libpspp.a \
+	src/ui/libuicommon.la \
+	src/libpspp.la \
+	src/libpspp-core.la \
 	$(GTK_LIBS) \
 	$(GLADE_LIBS) \
-	$(PG_LIBS) \
-	gl/libgl.la \
-	@LIBINTL@ @LIBREADLINE@
+	@LIBINTL@
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 
@@ -219,4 +211,6 @@ yelp-check:
 		echo '    Yelp is available from the GNOME project.  ftp://ftp.gnome.org/pub/gnome/sources/yelp' ; \
 		echo ; \
 	fi
-.PHONY: yelp-check
+PHONY += yelp-check
+
+EXTRA_DIST += src/ui/gui/OChangeLog

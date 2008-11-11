@@ -14,6 +14,7 @@ far.
 * ONEWAY::                      One way analysis of variance.
 * RANK::                        Compute rank scores.
 * REGRESSION::                  Linear regression.
+* RELIABILITY::                 Reliability analysis.
 @end menu
 
 @node DESCRIPTIVES
@@ -232,7 +233,7 @@ EXAMINE
         /PLOT=@{BOXPLOT, NPPLOT, HISTOGRAM, ALL, NONE@}
         /CINTERVAL n
         /COMPARE=@{GROUPS,VARIABLES@}
-        /ID=@{case_number, var_name@}
+        /ID=var_name
         /@{TOTAL,NOTOTAL@}
         /PERCENTILE=[value_list]=@{HAVERAGE, WAVERAGE, ROUND, AEMPIRICAL, EMPIRICAL @}
         /MISSING=@{LISTWISE, PAIRWISE@} [@{EXCLUDE, INCLUDE@}] 
@@ -271,6 +272,12 @@ If /COMPARE=VARIABLES is specified, then one plot per factor is produced, each
 each containing one boxplot per dependent variable.
 If the /COMPARE subcommand is ommitted, then PSPP uses the default value of 
 /COMPARE=GROUPS.
+ 
+The ID subcommand also pertains to boxplots.  If given, it must
+specify a variable name.   Outliers and extreme cases plotted in
+boxplots will be labelled with the case from that variable.  Numeric or
+string variables are permissible.  If the ID subcommand is not given,
+then the casenumber will be used for labelling.
 
 The CINTERVAL subcommand specifies the confidence interval to use in
 calculation of the descriptives command.  The default it 95%.
@@ -499,6 +506,8 @@ NPAR TESTS
      [ /STATISTICS=@{DESCRIPTIVES@} ]
 
      [ /MISSING=@{ANALYSIS, LISTWISE@} @{INCLUDE, EXCLUDE@} ]
+
+     [ /METHOD=EXACT [ TIMER [(n)] ] ]
 @end display
 
 NPAR TESTS performs nonparametric tests. 
@@ -508,10 +517,21 @@ One or more tests may be specified by using the corresponding subcommand.
 If the /STATISTICS subcommand is also specified, then summary statistics are 
 produces for each variable that is the subject of any test.
 
+Certain tests may take a long time to execute, if an exact figure is required.
+Therefore, by default asymptotic approximations are used unless the
+subcommand /METHOD=EXACT is specified.  
+Exact tests give more accurate results, but may take an unacceptably long 
+time to perform.  If the TIMER keyword is used, it sets a maximum time,
+after which the test will be abandoned, and a warning message printed.
+The time, in minutes, should be specified in parentheses after the TIMER keyword.
+If the TIMER keyword is given without this figure, then a default value of 5 minutes 
+is used.
+
 
 @menu
 * BINOMIAL::                Binomial Test
 * CHISQUARE::               Chisquare Test
+* WILCOXON::                Wilcoxon Signed Ranks Test
 @end menu
 
 
@@ -591,6 +611,34 @@ sum of the frequencies need not be 1.
 If no /EXPECTED subcommand is given, then then equal frequencies 
 are expected.
 
+@node WILCOXON
+@subsection Wilcoxon
+@comment  node-name,  next,  previous,  up
+@vindex WILCOXON
+@cindex wilcoxon matched pairs signed ranks test
+
+@display
+     [ /WILCOXON varlist [ WITH varlist [ (PAIRED) ]]]
+@end display
+
+The wilcoxon subcommand tests for differences between means of the 
+variables listed.  The test does not make any assumptions about the
+variances of the samples.
+
+If the @code{WITH} keyword is omitted, then tests for all
+combinations of the listed variables are performed.
+If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
+is also given, then the number of variables preceding @code{WITH}
+must be the same as the number following it.
+In this case, tests for each respective pair of variables are
+performed.
+If the @code{WITH} keyword is given, but the
+@code{(PAIRED)} keyword is omitted, then tests for each combination
+of variable preceding @code{WITH} against variable following
+@code{WITH} are performed.
+
+If the number of observations is large, and exact tests have been
+requested. then the test may take a very long time to complete.
 
 @node T-TEST
 @comment  node-name,  next,  previous,  up
@@ -831,3 +879,50 @@ user-missing are to be excluded from the rank scores. A setting of
 INCLUDE means they are to be included.  The default is EXCLUDE.
 
 @include regression.texi
+
+
+@node RELIABILITY
+@section RELIABILITY
+
+@vindex RELIABILITY
+@display
+RELIABILITY
+        /VARIABLES=var_list
+        /SCALE (@var{name}) = @{var_list, ALL@}
+        /MODEL=@{ALPHA, SPLIT[(N)]@}
+        /SUMMARY=@{TOTAL,ALL@}
+        /MISSING=@{EXCLUDE,INCLUDE@}
+@end display
+
+@cindex Cronbach's Alpha
+The @cmd{RELIABILTY} command performs reliablity analysis on the data.
+
+The VARIABLES subcommand is required. It determines the set of variables 
+upon which analysis is to be performed.
+
+The SCALE subcommand determines which variables reliability is to be 
+calculated for.  If it is omitted, then analysis for all variables named
+in the VARIABLES subcommand will be used.
+Optionally, the @var{name} parameter may be specified to set a string name 
+for the scale.
+
+The MODEL subcommand determines the type of analysis. If ALPHA is specified, 
+then Cronbach's Alpha is calculated for the scale.  If the model is SPLIT, 
+then the variables  are divided into 2 subsets.  An optional parameter 
+@var{N} may be given, to specify how many variables to be in the first subset.
+If @var{N} is omitted, then it defaults to one half of the variables in the 
+scale, or one half minus one if there are an odd number of variables.
+The default model is ALPHA.
+
+By default, any cases with user missing, or system missing values for 
+any variables given 
+in the VARIABLES subcommand will be omitted from analysis.
+The MISSING subcommand determines whether user missing values are to 
+be included or excluded in the analysis.
+
+The SUMMARY subcommand determines the type of summary analysis to be performed.
+Currently there is only one type: SUMMARY=TOTAL, which displays per-item
+analysis tested against the totals.
+
+
+

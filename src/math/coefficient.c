@@ -153,20 +153,28 @@ pspp_coeff_get_var (struct pspp_coeff *coef, int i)
   categorical, and has more than one coefficient, use the VAL to find
   its coefficient.
  */
-const struct pspp_coeff *
+struct pspp_coeff *
 pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs, 
 			 size_t n_coef, const union value *val)
 {
   size_t i = 0;
   size_t j = 0;
   size_t v_idx;
+
   struct pspp_coeff *result = NULL;
 
   if (v != NULL)
     {
       v_idx = var_get_dict_index (v);
-      while (i < n_coef && var_get_dict_index (coefs[i]->v_info->v) != v_idx)
+      while (i < n_coef)
 	{
+	  if (coefs[i]->v_info != NULL)
+	    {
+	      if (var_get_dict_index (coefs[i]->v_info->v) == v_idx)
+		{
+		  break;
+		}
+	    }
 	  i++;
 	}
       result = coefs[i];
@@ -179,7 +187,7 @@ pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs,
 	    {
 	      j = i;
 	      while (j < n_coef && compare_values (pspp_coeff_get_value (coefs[j], v),
-						   val, var_get_width (v)) != 0)
+						   val, v) != 0)
 		{
 		  j++;
 		}

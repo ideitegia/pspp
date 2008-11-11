@@ -41,7 +41,6 @@
 
 #include <gsl/gsl_cdf.h>
 #include <gsl/gsl_randist.h>
-#include <gsl-extras/gsl-extras.h>
 
 #include <minmax.h>
 
@@ -79,7 +78,7 @@ calculate_binomial_internal (double n1, double n2, double p)
   /* SPSS Statistical Algorithms has completely different and WRONG
      advice here. */
 
-  double sig1tailed = gslextras_cdf_binomial_P (n1, n1 + n2, p);
+  double sig1tailed = gsl_cdf_binomial_P (n1, p, n1 + n2);
 
   if ( p == 0.5 )
     return sig1tailed > 0.5 ? 1.0 :sig1tailed * 2.0;
@@ -120,14 +119,14 @@ do_binomial (const struct dictionary *dict,
 	      cat1[v].value = value_dup (value, width);
 	      cat1[v].count = w;
 	    }
-	  else if ( 0 == compare_values (cat1[v].value, value, width))
+	  else if ( 0 == compare_values (cat1[v].value, value, var))
 	    cat1[v].count += w;
 	  else if ( NULL == cat2[v].value )
 	    {
 	      cat2[v].value = value_dup (value, width);
 	      cat2[v].count = w;
 	    }
-	  else if ( 0 == compare_values (cat2[v].value, value, width))
+	  else if ( 0 == compare_values (cat2[v].value, value, var))
 	    cat2[v].count += w;
 	  else if ( bst->category1 == SYSMIS)
 	    msg (ME, _("Variable %s is not dichotomous"), var_get_name (var));
@@ -144,7 +143,9 @@ void
 binomial_execute (const struct dataset *ds,
 		  struct casereader *input,
                   enum mv_class exclude,
-		  const struct npar_test *test)
+		  const struct npar_test *test,
+		  bool exact UNUSED,
+		  double timer UNUSED)
 {
   int v;
   const struct binomial_test *bst = (const struct binomial_test *) test;

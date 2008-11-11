@@ -261,7 +261,7 @@ rank_cmd (struct dataset *ds, const struct case_ordering *sc,
 
           /* Sort this split group by the BY variables as primary
              keys and the rank variable as secondary key. */
-          ordering = case_ordering_create (d);
+          ordering = case_ordering_create ();
           for (j = 0; j < n_group_vars; j++)
             case_ordering_add_var (ordering, group_vars[j], SRT_ASCEND);
           case_ordering_add_var (ordering,
@@ -486,7 +486,7 @@ rank_sorted_file (struct casereader *input,
 
 
   input = casereader_create_filter_missing (input, &rank_var, 1,
-                                            exclude_values, output);
+                                            exclude_values, NULL, output);
   input = casereader_create_filter_weight (input, dict, NULL, output);
 
   casereader_split (input, &pass1, &pass2);
@@ -778,7 +778,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   /* Put the active file back in its original order.  Delete
      our sort key, which we don't need anymore.  */
   {
-    struct case_ordering *ordering = case_ordering_create (dataset_dict (ds));
+    struct case_ordering *ordering = case_ordering_create ();
     struct casereader *sorted;
     case_ordering_add_var (ordering, order, SRT_ASCEND);
     /* FIXME: loses error conditions. */

@@ -27,14 +27,26 @@ all_q_sources =
 pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 
 
-EXTRA_DIST = ONEWS config.rpath pspp-mode.el
+EXTRA_DIST = OChangeLog ONEWS config.rpath pspp-mode.el
 
 CLEANFILES = 
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=
+noinst_LTLIBRARIES=
 noinst_PROGRAMS=
 check_PROGRAMS=
 bin_PROGRAMS=
+DIST_HOOKS =
+PHONY =
+
+DIST_HOOKS += generate-changelog
+generate-changelog:
+	if test -d $(top_srcdir)/.git; then			\
+	  $(top_srcdir)/gitlog-to-changelog --since=2008-07-27	\
+	    > $(distdir)/cl-t;					\
+	  rm -f $(distdir)/ChangeLog;				\
+	  mv $(distdir)/cl-t $(distdir)/ChangeLog;		\
+	fi
 
 include $(top_srcdir)/lib/automake.mk
 include $(top_srcdir)/doc/automake.mk
@@ -47,3 +59,7 @@ include $(top_srcdir)/tests/automake.mk
 if WITH_GUI_TOOLS
 include $(top_srcdir)/glade/automake.mk
 endif
+
+PHONY += $(DIST_HOOKS)
+dist-hook: $(DIST_HOOKS)
+.PHONY: $(PHONY)

@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <data/datasheet.h>
+#include "datasheet-check.h"
 
 #include <language/command.h>
 #include <language/lexer/lexer.h>
@@ -48,6 +48,7 @@ cmd_debug_datasheet (struct lexer *lexer, struct dataset *dataset UNUSED)
   params.max_cols = 4;
   params.backing_rows = 0;
   params.backing_cols = 0;
+
 
   for (;;)
     {

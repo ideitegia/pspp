@@ -861,39 +861,6 @@ coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
   pspp_coeff_init (c->coeff, dm);
 }
 
-/*
-  Put the moments in the linreg cache.
- */
-static void
-compute_moments (pspp_linreg_cache * c, struct moments_var *mom,
-		 struct design_matrix *dm, size_t n)
-{
-  size_t i;
-  size_t j;
-  double weight;
-  double mean;
-  double variance;
-  double skewness;
-  double kurtosis;
-  /*
-     Scan the variable names in the columns of the design matrix.
-     When we find the variable we need, insert its mean in the cache.
-   */
-  for (i = 0; i < dm->m->size2; i++)
-    {
-      for (j = 0; j < n; j++)
-	{
-	  if (design_matrix_col_to_var (dm, i) == (mom + j)->v)
-	    {
-	      moments1_calculate ((mom + j)->m, &weight, &mean, &variance,
-				  &skewness, &kurtosis);
-	      pspp_linreg_set_indep_variable_mean (c, (mom + j)->v, mean);
-	      pspp_linreg_set_indep_variable_sd (c, (mom + j)->v, sqrt (variance));
-	    }
-	}
-    }
-}
-
 static bool
 run_regression (struct casereader *input, struct cmd_regression *cmd,
 		struct dataset *ds, pspp_linreg_cache **models)
@@ -956,9 +923,9 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
       n_indep = identify_indep_vars (indep_vars, dep_var);
       reader = casereader_clone (input);
       reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
-						 MV_ANY, NULL);
+						 MV_ANY, NULL, NULL);
       reader = casereader_create_filter_missing (reader, &dep_var, 1,
-						 MV_ANY, NULL);
+						 MV_ANY, NULL, NULL);
       n_data = prepare_categories (casereader_clone (reader),
 				   indep_vars, n_indep, mom);
 
@@ -973,7 +940,8 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	    {
 	      lopts.get_indep_mean_std[i] = 1;
 	    }
-	  models[k] = pspp_linreg_cache_alloc (X->m->size1, X->m->size2);
+	  models[k] = pspp_linreg_cache_alloc (dep_var, (const struct variable **) indep_vars,
+					       X->m->size1, X->m->size2);
 	  models[k]->depvar = dep_var;
 	  /*
 	     For large data sets, use QR decomposition.

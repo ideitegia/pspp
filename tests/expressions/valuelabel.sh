@@ -60,6 +60,7 @@ cat > $TEMPDIR/valuelabel.stat <<EOF
 DATA LIST notable /n 1 s 2(a).
 VALUE LABELS /n 0 'Very dissatisfied'
                 1 'Dissatisfied'
+		1.5 'Slightly Peeved'
                 2 'Neutral'
                 3 'Satisfied'
                 4 'Very satisfied'.
@@ -82,6 +83,7 @@ BEGIN DATA.
 5f
 6g
 END DATA.
+
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 

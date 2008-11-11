@@ -28,7 +28,6 @@
 #include <config.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
-#include <gsl/gsl_math.h>
 #include <stdlib.h>
 #include <libpspp/compiler.h>
 #include <math/coefficient.h>
@@ -56,7 +55,7 @@ get_mean (const gsl_matrix *data,
       for (n = 0; n < data->size2; n++)
 	{
 	  tmp = gsl_matrix_get (data, i, n);
-	  if (!gsl_isnan (tmp))
+	  if (!isnan (tmp))
 	    {
 	      est[n]->n_obs += 1.0;
 	      d = (tmp - est[n]->mean) / est[n]->n_obs;
@@ -77,9 +76,9 @@ update_cov (struct innovations_estimate **est, gsl_vector_const_view x,
     {
       xj = gsl_vector_get (&x.vector, j);
       yj = gsl_vector_get (&y.vector, j);
-      if (!gsl_isnan (xj))
+      if (!isnan (xj))
 	{
-	  if (!gsl_isnan (yj))
+	  if (!isnan (yj))
 	    {
 	      xj -= est[j]->mean;
 	      yj -= est[j]->mean;
@@ -161,7 +160,7 @@ innovations_update_scale (struct innovations_estimate *est, double *theta,
       for (j = 0; j < i; j++)
 	{
 	  k = i - j - 1;
-	  result -= theta[k] * theta[k] * est->scale[j];
+	  result -= pow2 (theta[k]) * est->scale[j];
 	}
       est->scale[i] = result;
     }

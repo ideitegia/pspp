@@ -163,11 +163,9 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
 	{
 	  if (!lex_is_number (lexer))
 	    {
-	      lex_error (lexer, _("expecting integer"));
+	      lex_error (lexer, _("expecting number"));
 	      return 0;
 	    }
-	  if (!lex_is_integer (lexer))
-	    msg (SW, _("Value label `%g' is not integer."), lex_tokval (lexer));
 	  value.f = lex_tokval (lexer);
 	}
       lex_get (lexer);

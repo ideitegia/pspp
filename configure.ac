@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AC_PREREQ(2.60)
-AC_INIT([pspp],[0.6.0],[bug-gnu-pspp@gnu.org])
+AC_INIT([pspp],[0.7.0],[bug-gnu-pspp@gnu.org])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
@@ -121,14 +121,15 @@ AM_CONDITIONAL(GNM_SUPPORT, test x"$gnm_support" = x"yes")
 
 AC_ARG_WITH(
   gui_tools,
-  [AS_HELP_STRING([--with-gui-tools], [build the gui developer tools])])
+  [AS_HELP_STRING([--with-gui-tools], [build the gui developer tools.  For DEVELOPERS only! There is no reason why users will need this flag.])])
 if test x"$with_gui_tools" = x"yes" ; then 
 	PKG_CHECK_MODULES(GLADE_UI, gladeui-1.0)
 fi
 AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
 
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
-AC_SEARCH_LIBS([gsl_cdf_chisq_Q], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.4 or later)])])
+AC_SEARCH_LIBS([gsl_cdf_binomial_P], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.8 or later)])])
+PSPP_GSL_NEEDS_FGNU89_INLINE
 
 dnl Recent versions of GNU ncurses install the curses header files into
 dnl /usr/include/ncurses, and provide a 'ncurses5-config' program which

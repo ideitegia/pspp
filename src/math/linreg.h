@@ -96,10 +96,10 @@ struct pspp_linreg_cache_struct
 				   coefficient here. */
 
   /*
-     The variable struct is ignored during estimation. It is here so
-     the calling procedure can find the variable used in the model.
+    Pointers to the variables.
    */
   const struct variable *depvar;
+  const struct variable **indep_vars;
 
   gsl_vector *residuals;
   struct pspp_coeff **coeff;
@@ -176,7 +176,8 @@ typedef struct pspp_linreg_cache_struct pspp_linreg_cache;
   to it. n is the number of cases, p is the number of
   independent variables.
  */
-pspp_linreg_cache *pspp_linreg_cache_alloc (size_t n, size_t p);
+pspp_linreg_cache *pspp_linreg_cache_alloc (const struct variable *, const struct variable **, 
+					    size_t, size_t);
 
 bool pspp_linreg_cache_free (void *);
 
@@ -200,7 +201,7 @@ pspp_linreg_residual (const struct variable **, const union value **,
  */
 int pspp_linreg_get_vars (const void *, const struct variable **);
 
-const struct pspp_coeff *pspp_linreg_get_coeff (const pspp_linreg_cache
+struct pspp_coeff *pspp_linreg_get_coeff (const pspp_linreg_cache
 						       *,
 						       const struct variable
 						       *,
@@ -215,4 +216,9 @@ void pspp_linreg_set_indep_variable_sd (pspp_linreg_cache *, const struct variab
  */
 double pspp_linreg_get_indep_variable_mean (pspp_linreg_cache *, const struct variable *);
 void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *, const struct variable *, double);
+
+/*
+  Regression using only the covariance matrix.
+ */
+void pspp_linreg_with_cov (const struct design_matrix *, pspp_linreg_cache *);
 #endif

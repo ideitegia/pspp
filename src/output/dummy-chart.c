@@ -38,6 +38,6 @@ chart_init_separate (struct chart *ch UNUSED, const char *type UNUSED,
 }
 
 void
-chart_finalise_separate (struct chart *ch)
+chart_finalise_separate (struct chart *ch UNUSED)
 {
 }

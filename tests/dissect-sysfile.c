@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -62,12 +62,18 @@ static void read_long_var_name_map (struct sfm_reader *r,
                                     size_t size, size_t count);
 static void read_long_string_map (struct sfm_reader *r,
                                   size_t size, size_t count);
+static void read_datafile_attributes (struct sfm_reader *r,
+                                      size_t size, size_t count);
+static void read_variable_attributes (struct sfm_reader *r,
+                                      size_t size, size_t count);
 
-static struct variable_to_value_map *open_variable_to_value_map (
+static struct text_record *open_text_record (
   struct sfm_reader *, size_t size);
-static void close_variable_to_value_map (struct variable_to_value_map *);
-static bool read_variable_to_value_map (struct variable_to_value_map *,
-                                        char **key, char **value);
+static void close_text_record (struct text_record *);
+static bool read_variable_to_value_pair (struct text_record *,
+                                         char **key, char **value);
+static char *text_tokenize (struct text_record *, int delimiter);
+static bool text_match (struct text_record *text, int c);
 
 static void usage (int exit_code);
 static void sys_warn (struct sfm_reader *, const char *, ...)
@@ -87,50 +93,61 @@ int
 main (int argc, char *argv[])
 {
   struct sfm_reader r;
-  int rec_type;
+  int i;
 
   set_program_name (argv[0]);
-  if (argc != 2)
+  if (argc < 2)
     usage (EXIT_FAILURE);
 
-  r.file_name = argv[1];
-  r.file = fopen (r.file_name, "rb");
-  if (r.file == NULL)
-    error (EXIT_FAILURE, errno, "error opening \"%s\"", r.file_name);
-  r.n_variable_records = 0;
-  r.n_variables = 0;
-
-  read_header (&r);
-  while ((rec_type = read_int (&r)) != 999)
+  for (i = 1; i < argc; i++) 
     {
-      switch (rec_type)
+      int rec_type;
+
+      r.file_name = argv[i];
+      r.file = fopen (r.file_name, "rb");
+      if (r.file == NULL)
+        error (EXIT_FAILURE, errno, "error opening \"%s\"", r.file_name);
+      r.n_variable_records = 0;
+      r.n_variables = 0;
+
+      if (argc > 2)
+        printf ("Reading \"%s\":\n", r.file_name);
+      
+      read_header (&r);
+      while ((rec_type = read_int (&r)) != 999)
         {
-        case 2:
-          read_variable_record (&r);
-          break;
+          switch (rec_type)
+            {
+            case 2:
+              read_variable_record (&r);
+              break;
 
-        case 3:
-          read_value_label_record (&r);
-          break;
+            case 3:
+              read_value_label_record (&r);
+              break;
 
-        case 4:
-          sys_error (&r, _("Misplaced type 4 record."));
+            case 4:
+              sys_error (&r, _("Misplaced type 4 record."));
 
-        case 6:
-          read_document_record (&r);
-          break;
+            case 6:
+              read_document_record (&r);
+              break;
 
-        case 7:
-          read_extension_record (&r);
-          break;
+            case 7:
+              read_extension_record (&r);
+              break;
 
-        default:
-          sys_error (&r, _("Unrecognized record type %d."), rec_type);
+            default:
+              sys_error (&r, _("Unrecognized record type %d."), rec_type);
+            }
         }
-    }
-  printf ("%08lx: end-of-dictionary record (first byte of data at %08lx)\n",
-          ftell (r.file), ftell (r.file) + 4);
+      printf ("%08lx: end-of-dictionary record "
+              "(first byte of data at %08lx)\n",
+              ftell (r.file), ftell (r.file) + 4);
 
+      fclose (r.file);
+    }
+  
   return 0;
 }
 
@@ -486,9 +503,12 @@ read_extension_record (struct sfm_reader *r)
       break;
 
     case 17:
-      /* Text field that defines variable attributes.  New in
-         SPSS 14. */
-      break;
+      read_datafile_attributes (r, size, count);
+      return;
+
+    case 18:
+      read_variable_attributes (r, size, count);
+      return;
 
     default:
       sys_warn (r, _("Unrecognized record type 7, subtype %d."), subtype);
@@ -613,15 +633,15 @@ read_display_parameters (struct sfm_reader *r, size_t size, size_t count)
 static void
 read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count)
 {
-  struct variable_to_value_map *map;
+  struct text_record *text;
   char *var;
   char *long_name;
 
   printf ("%08lx: long variable names (short => long)\n", ftell (r->file));
-  map = open_variable_to_value_map (r, size * count);
-  while (read_variable_to_value_map (map, &var, &long_name))
+  text = open_text_record (r, size * count);
+  while (read_variable_to_value_pair (text, &var, &long_name))
     printf ("\t%s => %s\n", var, long_name);
-  close_variable_to_value_map (map);
+  close_text_record (text);
 }
 
 /* Reads record type 7, subtype 14, which gives the real length
@@ -629,89 +649,170 @@ read_long_var_name_map (struct sfm_reader *r, size_t size, size_t count)
 static void
 read_long_string_map (struct sfm_reader *r, size_t size, size_t count)
 {
-  struct variable_to_value_map *map;
+  struct text_record *text;
   char *var;
   char *length_s;
 
   printf ("%08lx: very long strings (variable => length)\n", ftell (r->file));
-  map = open_variable_to_value_map (r, size * count);
-  while (read_variable_to_value_map (map, &var, &length_s))
+  text = open_text_record (r, size * count);
+  while (read_variable_to_value_pair (text, &var, &length_s))
     printf ("\t%s => %d\n", var, atoi (length_s));
-  close_variable_to_value_map (map);
+  close_text_record (text);
+}
+
+static bool
+read_attributes (struct sfm_reader *r, struct text_record *text,
+                 const char *variable)
+{
+  const char *key;
+  int index;
+
+  for (;;) 
+    {
+      key = text_tokenize (text, '(');
+      if (key == NULL)
+        return true;
+  
+      for (index = 1; ; index++)
+        {
+          /* Parse the value. */
+          const char *value = text_tokenize (text, '\n');
+          if (value == NULL) 
+            {
+              sys_warn (r, _("%s: Error parsing attribute value %s[%d]"),
+                        variable, key, index);
+              return false;
+            }
+          if (strlen (value) < 2
+              || value[0] != '\'' || value[strlen (value) - 1] != '\'')
+            sys_warn (r, _("%s: Attribute value %s[%d] is not quoted: %s"),
+                      variable, key, index, value);
+          else
+            printf ("\t%s: %s[%d] = \"%.*s\"\n",
+                    variable, key, index, (int) strlen (value) - 2, value + 1);
+
+          /* Was this the last value for this attribute? */
+          if (text_match (text, ')'))
+            break;
+        }
+
+      if (text_match (text, '/'))
+        return true; 
+    }
+}
+
+static void
+read_datafile_attributes (struct sfm_reader *r, size_t size, size_t count) 
+{
+  struct text_record *text;
+  
+  printf ("%08lx: datafile attributes\n", ftell (r->file));
+  text = open_text_record (r, size * count);
+  read_attributes (r, text, "datafile");
+  close_text_record (text);
+}
+
+static void
+read_variable_attributes (struct sfm_reader *r, size_t size, size_t count) 
+{
+  struct text_record *text;
+  
+  printf ("%08lx: variable attributes\n", ftell (r->file));
+  text = open_text_record (r, size * count);
+  for (;;) 
+    {
+      const char *variable = text_tokenize (text, ':');
+      if (variable == NULL || !read_attributes (r, text, variable))
+        break; 
+    }
+  close_text_record (text);
 }
 
-/* Helpers for reading records that contain "variable=value"
-   pairs. */
+/* Helpers for reading records that consist of structured text
+   strings. */
 
 /* State. */
-struct variable_to_value_map
+struct text_record
   {
     char *buffer;               /* Record contents. */
     size_t size;                /* Size of buffer. */
     size_t pos;                 /* Current position in buffer. */
   };
 
-/* Reads SIZE bytes into a "variable=value" map for R,
-   and returns the map. */
-static struct variable_to_value_map *
-open_variable_to_value_map (struct sfm_reader *r, size_t size)
+/* Reads SIZE bytes into a text record for R,
+   and returns the new text record. */
+static struct text_record *
+open_text_record (struct sfm_reader *r, size_t size)
 {
-  struct variable_to_value_map *map = xmalloc (sizeof *map);
+  struct text_record *text = xmalloc (sizeof *text);
   char *buffer = xmalloc (size + 1);
   read_bytes (r, buffer, size);
-  map->buffer = buffer;
-  map->size = size;
-  map->pos = 0;
-  return map;
+  text->buffer = buffer;
+  text->size = size;
+  text->pos = 0;
+  return text;
 }
 
-/* Closes MAP and frees its storage.
-   Not really needed, because the pool will free the map anyway,
+/* Closes TEXT and frees its storage.
+   Not really needed, because the pool will free the text record anyway,
    but can be used to free it earlier. */
 static void
-close_variable_to_value_map (struct variable_to_value_map *map)
+close_text_record (struct text_record *text)
 {
-  free (map);
-  free (map->buffer);
+  free (text->buffer);
+  free (text);
 }
 
 static char *
-tokenize (struct variable_to_value_map *map, int delimiter)
+text_tokenize (struct text_record *text, int delimiter)
 {
-  size_t start = map->pos;
-  while (map->pos < map->size
-         && map->buffer[map->pos] != delimiter
-         && map->buffer[map->pos] != '\0')
-    map->pos++;
-  if (map->pos == map->size)
+  size_t start = text->pos;
+  while (text->pos < text->size
+         && text->buffer[text->pos] != delimiter
+         && text->buffer[text->pos] != '\0')
+    text->pos++;
+  if (text->pos == text->size)
     return NULL;
-  map->buffer[map->pos++] = '\0';
-  return &map->buffer[start];
+  text->buffer[text->pos++] = '\0';
+  return &text->buffer[start];
 }
 
-/* Reads the next variable=value pair from MAP.
+static bool
+text_match (struct text_record *text, int c) 
+{
+  if (text->pos < text->size && text->buffer[text->pos] == c) 
+    {
+      text->pos++;
+      return true;
+    }
+  else
+    return false;
+}
+
+/* Reads a variable=value pair from TEXT.
    Looks up the variable in DICT and stores it into *VAR.
    Stores a null-terminated value into *VALUE. */
 static bool
-read_variable_to_value_map (struct variable_to_value_map *map,
-                            char **key, char **value)
+read_variable_to_value_pair (struct text_record *text,
+                             char **key, char **value)
 {
-  *key = tokenize (map, '=');
-  *value = tokenize (map, '\t');
+  *key = text_tokenize (text, '=');
+  *value = text_tokenize (text, '\t');
   if (!*key || !*value)
     return false;
 
-  while (map->pos < map->size
-         && (map->buffer[map->pos] == '\t'
-             || map->buffer[map->pos] == '\0'))
-    map->pos++;
+  while (text->pos < text->size
+         && (text->buffer[text->pos] == '\t'
+             || text->buffer[text->pos] == '\0'))
+    text->pos++;
   return true;
 }
 
 static void
 usage (int exit_code)
 {
-  printf ("usage: %s SYSFILE, where SYSFILE is the name of a system file\n",
+  printf ("usage: %s SYSFILE...\n"
+          "where each SYSFILE is the name of a system file\n",
           program_name);
   exit (exit_code);
 }

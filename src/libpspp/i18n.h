@@ -36,5 +36,8 @@ enum conv_id
 char * recode_string (enum conv_id how,  const char *text, int len);
 
 
+/* Return the decimal separator according to the
+   system locale */
+char get_system_decimal (void);
 
 #endif /* i18n.h */

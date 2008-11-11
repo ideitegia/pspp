@@ -25,6 +25,7 @@ actually be read until a procedure is executed.
 @menu
 * BEGIN DATA::                  Embed data within a syntax file.
 * CLOSE FILE HANDLE::           Close a file handle.
+* DATAFILE ATTRIBUTE::          Set custom attributes on data files.
 * DATA LIST::                   Fundamental data reading command.
 * END CASE::                    Output the current case.
 * END FILE::                    Terminate the current input program.
@@ -88,6 +89,52 @@ DATA} and @cmd{END DATA}, cannot be closed.  Attempts to close it with
 @cmd{CLOSE FILE HANDLE} have no effect.
 
 @cmd{CLOSE FILE HANDLE} is a PSPP extension.
+
+@node DATAFILE ATTRIBUTE
+@section DATAFILE ATTRIBUTE
+@vindex DATAFILE ATTRIBUTE
+
+@display
+DATAFILE ATTRIBUTE
+         ATTRIBUTE=name('value') [name('value')]@dots{}
+         ATTRIBUTE=name@b{[}index@b{]}('value') [name@b{[}index@b{]}('value')]@dots{}
+         DELETE=name [name]@dots{}
+         DELETE=name@b{[}index@b{]} [name@b{[}index@b{]}]@dots{}
+@end display
+
+@cmd{DATAFILE ATTRIBUTE} adds, modifies, or removes user-defined
+attributes associated with the active file.  Custom data file
+attributes are not interpreted by PSPP, but they are saved as part of
+system files and may be used by other software that reads them.
+
+Use the ATTRIBUTE subcommand to add or modify a custom data file
+attribute.  Specify the name of the attribute as an identifier
+(@pxref{Tokens}), followed by the desired value, in parentheses, as a
+quoted string.  Attribute names that begin with @code{$} are reserved
+for PSPP's internal use, and attribute names that begin with @code{@@}
+or @code{$@@} are not displayed by most PSPP commands that display
+other attributes.  Other attribute names are not treated specially.
+
+Attributes may also be organized into arrays.  To assign to an array
+element, add an integer array index enclosed in square brackets
+(@code{[} and @code{]}) between the attribute name and value.  Array
+indexes start at 1, not 0.  An attribute array that has a single
+element (number 1) is not distinguished from a non-array attribute.
+
+Use the DELETE subcommand to delete an attribute.  Specify an
+attribute name by itself to delete an entire attribute, including all
+array elements for attribute arrays.  Specify an attribute name
+followed by an array index in square brackets to delete a single
+element of an attribute array.  In the latter case, all the array
+elements numbered higher than the deleted element are shifted down,
+filling the vacated position.
+
+To associate custom attributes with particular variables, instead of
+with the entire active file, use @cmd{VARIABLE ATTRIBUTE} instead.
+
+@cmd{DATAFILE ATTRIBUTE} takes effect immediately.  It is not affected
+by conditional and looping structures such as @cmd{DO IF} or
+@cmd{LOOP}.
 
 @node DATA LIST
 @section DATA LIST

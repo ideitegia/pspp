@@ -19,6 +19,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <data/format.h>
+#include <libpspp/float-format.h>
+#include <libpspp/integer-format.h>
 
 struct settings;
 
@@ -105,13 +108,13 @@ void settings_set_endcmd (char);
 
 size_t settings_get_workspace (void);
 size_t settings_get_workspace_cases (size_t value_cnt);
-void settings_set_workspace ( size_t);
+void settings_set_workspace (size_t);
 
 const struct fmt_spec *settings_get_format (void);
 void settings_set_format ( const struct fmt_spec *);
 
 bool settings_get_testing_mode (void);
-void settings_set_testing_mode ( bool);
+void settings_set_testing_mode (bool);
 
 enum behavior_mode {
   ENHANCED,             /* Use improved PSPP behavior. */

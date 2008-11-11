@@ -115,7 +115,7 @@ int tgetnum (const char *);
      wib=wib:msbfirst/lsbfirst/vax/native;
      wrb=wrb:native/isl/isb/idl/idb/vf/vd/vg/zs/zl;
      width=custom;
-     workspace=integer "x>=1024" "%s must be at least 1 MB";
+     workspace=integer "x>0" "%s must be positive";
      xsort=xsort:yes/no.
 */
 
@@ -195,7 +195,12 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
   if (cmd.sbc_wrb)
     settings_set_output_float_format (stc_to_float_format (cmd.wrb));
   if (cmd.sbc_workspace)
-    settings_set_workspace (cmd.n_workspace[0] * 1024L);
+    {
+      if ( cmd.n_workspace[0] < 1024 && ! settings_get_testing_mode ())
+	msg (SE, _("WORKSPACE must be at least 1MB"));
+      else
+	settings_set_workspace (cmd.n_workspace[0] * 1024L);
+    }
 
   if (cmd.sbc_block)
     msg (SW, _("%s is obsolete."), "BLOCK");

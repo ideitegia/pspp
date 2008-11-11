@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,193 +26,134 @@
 
 #include <output/chart.h>
 #include <math/chart-geometry.h>
-#include <math/factor-stats.h>
-
-
-
+#include <math/box-whisker.h>
 
 /* Draw a box-and-whiskers plot
 */
 
-/* Draw an outlier on the plot CH
+/* Draw an OUTLIER on the plot CH
  * at CENTRELINE
- * The outlier is in (*wvp)[idx]
- * If EXTREME is non zero, then consider it to be an extreme
- * value
  */
-void
-draw_outlier(struct chart *ch, double centreline,
-	     struct weighted_value **wvp,
-	     int idx,
-	     short extreme);
-
-
-void
-draw_outlier(struct chart *ch, double centreline,
-	     struct weighted_value **wvp,
-	     int idx,
-	     short extreme
-	     )
+static void
+draw_case (struct chart *ch, double centreline,
+	   const struct outlier *outlier)
 {
-  char label[10];
 
 #define MARKER_CIRCLE 4
 #define MARKER_STAR 3
 
   pl_fmarker_r(ch->lp,
 	       centreline,
-	       ch->data_bottom +
-	       (wvp[idx]->v.f - ch->y_min ) * ch->ordinate_scale,
-	       extreme?MARKER_STAR:MARKER_CIRCLE,
+	       ch->data_bottom + (outlier->value - ch->y_min) * ch->ordinate_scale,
+	       outlier->extreme ? MARKER_STAR : MARKER_CIRCLE,
 	       20);
 
   pl_moverel_r(ch->lp, 10,0);
 
-  snprintf(label, 10, "%d", wvp[idx]->case_nos->num);
-
-  pl_alabel_r(ch->lp, 'l', 'c', label);
-
+  pl_alabel_r(ch->lp, 'l', 'c', ds_cstr (&outlier->label));
 }
 
 
 void
-boxplot_draw_boxplot(struct chart *ch,
-		     double box_centre,
-		     double box_width,
-		     struct metrics *m,
-		     const char *name)
+boxplot_draw_boxplot (struct chart *ch,
+		      double box_centre,
+		      double box_width,
+		      const struct box_whisker *bw,
+		      const char *name)
 {
   double whisker[2];
-  int i;
+  double hinge[3];
+  struct ll *ll;
 
-  const double *hinge = m->hinge;
-  struct weighted_value **wvp = m->wvp;
-  const int n_data = m->n_data;
-
-  const double step = (hinge[2] - hinge[0]) * 1.5;
-
+  const struct ll_list *outliers;
 
   const double box_left = box_centre - box_width / 2.0;
 
   const double box_right = box_centre + box_width / 2.0;
 
+  double box_bottom ;
+  double box_top ;
+  double bottom_whisker ;
+  double top_whisker ;
 
-  const double box_bottom =
-    ch->data_bottom + ( hinge[0] - ch->y_min ) * ch->ordinate_scale;
+  box_whisker_whiskers (bw, whisker);
+  box_whisker_hinges (bw, hinge);
 
+  box_bottom = ch->data_bottom + (hinge[0] - ch->y_min ) * ch->ordinate_scale;
 
-  const double box_top =
-    ch->data_bottom + ( hinge[2] - ch->y_min ) * ch->ordinate_scale;
+  box_top = ch->data_bottom + (hinge[2] - ch->y_min ) * ch->ordinate_scale;
 
-  assert(m);
+  bottom_whisker = ch->data_bottom + (whisker[0] - ch->y_min) *
+    ch->ordinate_scale;
 
-  /* Can't really draw a boxplot if there's no data */
-  if ( n_data == 0 )
-	  return ;
-
-  whisker[1] = hinge[2];
-  whisker[0] = wvp[0]->v.f;
-
-  for ( i = 0 ; i < n_data ; ++i )
-    {
-      if ( hinge[2] + step >  wvp[i]->v.f)
-	whisker[1] = wvp[i]->v.f;
-
-      if ( hinge[0] - step >  wvp[i]->v.f)
-	whisker[0] = wvp[i]->v.f;
-
-    }
-
-  {
-  const double bottom_whisker =
-    ch->data_bottom + ( whisker[0] - ch->y_min ) * ch->ordinate_scale;
-
-  const double top_whisker =
-    ch->data_bottom + ( whisker[1] - ch->y_min ) * ch->ordinate_scale;
-
+  top_whisker = ch->data_bottom + (whisker[1] - ch->y_min) * ch->ordinate_scale;
 
   pl_savestate_r(ch->lp);
-
 
   /* Draw the box */
-  pl_savestate_r(ch->lp);
-  pl_fillcolorname_r(ch->lp,ch->fill_colour);
-  pl_filltype_r(ch->lp,1);
-  pl_fbox_r(ch->lp,
+  pl_savestate_r (ch->lp);
+  pl_fillcolorname_r (ch->lp, ch->fill_colour);
+  pl_filltype_r (ch->lp,1);
+  pl_fbox_r (ch->lp,
 	    box_left,
 	    box_bottom,
 	    box_right,
 	    box_top);
 
-  pl_restorestate_r(ch->lp);
-
-
+  pl_restorestate_r (ch->lp);
 
   /* Draw the median */
-  pl_savestate_r(ch->lp);
-  pl_linewidth_r(ch->lp,5);
-  pl_fline_r(ch->lp,
+  pl_savestate_r (ch->lp);
+  pl_linewidth_r (ch->lp, 5);
+  pl_fline_r (ch->lp,
 	     box_left,
-	     ch->data_bottom + ( hinge[1] - ch->y_min ) * ch->ordinate_scale,
+	     ch->data_bottom + (hinge[1] - ch->y_min) * ch->ordinate_scale,
 	     box_right,
-	     ch->data_bottom + ( hinge[1] - ch->y_min ) * ch->ordinate_scale);
-  pl_restorestate_r(ch->lp);
-
+	     ch->data_bottom + (hinge[1] - ch->y_min) * ch->ordinate_scale);
+  pl_restorestate_r (ch->lp);
 
   /* Draw the bottom whisker */
-  pl_fline_r(ch->lp,
+  pl_fline_r (ch->lp,
 	     box_left,
 	     bottom_whisker,
 	     box_right,
 	     bottom_whisker);
 
   /* Draw top whisker */
-  pl_fline_r(ch->lp,
+  pl_fline_r (ch->lp,
 	     box_left,
 	     top_whisker,
 	     box_right,
 	     top_whisker);
 
 
-
   /* Draw centre line.
      (bottom half) */
-  pl_fline_r(ch->lp,
+  pl_fline_r (ch->lp,
 	     box_centre, bottom_whisker,
 	     box_centre, box_bottom);
 
   /* (top half) */
-  pl_fline_r(ch->lp,
+  pl_fline_r (ch->lp,
 	     box_centre, top_whisker,
 	     box_centre, box_top);
-  }
 
-  /* Draw outliers */
-  for ( i = 0 ; i < n_data ; ++i )
+  outliers = box_whisker_outliers (bw);
+  for (ll = ll_head (outliers);
+       ll != ll_null (outliers); ll = ll_next (ll))
     {
-      if ( wvp[i]->v.f >= hinge[2] + step )
-	draw_outlier(ch, box_centre, wvp, i,
-		     ( wvp[i]->v.f > hinge[2] + 2 * step )
-		     );
-
-      if ( wvp[i]->v.f <= hinge[0] - step )
-	draw_outlier(ch, box_centre, wvp, i,
-		     ( wvp[i]->v.f < hinge[0] - 2 * step )
-		     );
+      const struct outlier *outlier = ll_data (ll, struct outlier, ll);
+      draw_case (ch, box_centre, outlier);
     }
-
 
   /* Draw  tick  mark on x axis */
   draw_tick(ch, TICK_ABSCISSA, box_centre - ch->data_left, name);
 
   pl_restorestate_r(ch->lp);
-
 }
 
-
-
 void
-boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
+boxplot_draw_yscale (struct chart *ch, double y_max, double y_min)
 {
   double y_tick;
   double d;
@@ -223,7 +164,7 @@ boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
   ch->y_max  = y_max;
   ch->y_min  = y_min;
 
-  y_tick = chart_rounded_tick(fabs(ch->y_max - ch->y_min) / 5.0);
+  y_tick = chart_rounded_tick (fabs(ch->y_max - ch->y_min) / 5.0);
 
   ch->y_min = (ceil( ch->y_min  / y_tick ) - 1.0  ) * y_tick;
 
@@ -231,7 +172,6 @@ boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
 
   ch->ordinate_scale = fabs(ch->data_top - ch->data_bottom)
     / fabs(ch->y_max - ch->y_min) ;
-
 
   /* Move to data bottom-left */
   pl_move_r(ch->lp,
@@ -241,5 +181,4 @@ boxplot_draw_yscale(struct chart *ch , double y_max, double y_min)
     {
       draw_tick (ch, TICK_ORDINATE, (d - ch->y_min ) * ch->ordinate_scale, "%g", d);
     }
-
 }

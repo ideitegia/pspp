@@ -198,33 +198,72 @@ void
 reload_viewer (struct output_viewer *ov)
 {
   GtkTextIter end_iter;
-  static char *line = NULL;
   GtkTextMark *mark ;
+
+  static char *line = NULL;
+
   gboolean chars_inserted = FALSE;
-
-
-  if ( ov->fp == NULL)
-    {
-      ov->fp = fopen (OUTPUT_FILE_NAME, "r");
-      if ( ov->fp == NULL)
-	{
-	  g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
-	  return;
-	}
-    }
-
-  line = xrealloc (line, sizeof (char) * (viewer_width + 1));
 
   gtk_text_buffer_get_end_iter (ov->buffer, &end_iter);
 
+  line = xrealloc (line, sizeof (char) * (viewer_width + 1));
+
+
   mark = gtk_text_buffer_create_mark (ov->buffer, NULL, &end_iter, TRUE);
 
-  /* Read in the next lot of text */
-  while (fgets (line, viewer_width + 1, ov->fp) != NULL)
-    {
-      chars_inserted = TRUE;
-      gtk_text_buffer_insert (ov->buffer, &end_iter, line, -1);
-    }
+#ifdef __CYGWIN__
+  /*
+    Apparently Windoze is not capabale of writing to a file whilst
+    another (or the same) process is reading from it.   Therefore, we
+    must close the file after reading it, and clear the entire buffer
+    before writing to it.
+    This will be slower for large buffers, but should work
+    (in so far as anything ever works on windows).
+  */
+  {
+    GtkTextIter start_iter;
+    FILE *fp = fopen (OUTPUT_FILE_NAME, "r");
+    if ( !fp)
+      {
+	g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
+	return;
+      }
+
+    /* Delete all the entire buffer */
+    gtk_text_buffer_get_start_iter (ov->buffer, &start_iter);
+    gtk_text_buffer_delete (ov->buffer, &start_iter, &end_iter);
+
+
+    gtk_text_buffer_get_start_iter (ov->buffer, &start_iter);
+    /* Read in the next lot of text */
+    while (fgets (line, viewer_width + 1, fp) != NULL)
+      {
+	chars_inserted = TRUE;
+	gtk_text_buffer_insert (ov->buffer, &start_iter, line, -1);
+      }
+
+    fclose (fp);
+  }
+#else
+  {
+    if ( ov->fp == NULL)
+      {
+	ov->fp = fopen (OUTPUT_FILE_NAME, "r");
+	if ( ov->fp == NULL)
+	  {
+	    g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
+	    return;
+	  }
+      }
+
+    /* Read in the next lot of text */
+    while (fgets (line, viewer_width + 1, ov->fp) != NULL)
+      {
+	chars_inserted = TRUE;
+	gtk_text_buffer_insert (ov->buffer, &end_iter, line, -1);
+      }
+  }
+#endif
 
   /* Scroll to where the start of this lot of text begins */
   gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW (ov->textview),

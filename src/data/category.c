@@ -41,7 +41,7 @@
 
 #include "xalloc.h"
 
-#define CAT_VALUE_NOT_FOUND -2
+#define CAT_VALUE_NOT_FOUND -1
 
 #define N_INITIAL_CATEGORIES 1
 
@@ -58,6 +58,11 @@ struct cat_vals
 					   track of the number of
 					   values stored.
 					 */
+  size_t *value_counts; /* Element i stores the number of cases for which
+			   the categorical variable has that corresponding 
+			   value. This is necessary for computing covariance
+			   matrices.
+			 */
 };
 
 void
@@ -70,6 +75,7 @@ cat_stored_values_create (const struct variable *v)
       obs_vals->n_categories = 0;
       obs_vals->n_allocated_categories = N_INITIAL_CATEGORIES;
       obs_vals->vals = xnmalloc (N_INITIAL_CATEGORIES, sizeof *obs_vals->vals);
+      obs_vals->value_counts = xnmalloc (N_INITIAL_CATEGORIES, sizeof *obs_vals->value_counts);
       var_set_obs_vals (v, obs_vals);
     }
 }
@@ -80,7 +86,10 @@ cat_stored_values_destroy (struct cat_vals *obs_vals)
   if (obs_vals != NULL)
     {
       if (obs_vals->n_allocated_categories > 0)
-        free (obs_vals->vals);
+	{
+	  free (obs_vals->vals);
+	  free (obs_vals->value_counts);
+	}
       free (obs_vals);
     }
 }
@@ -99,7 +108,7 @@ cat_value_find (const struct variable *v, const union value *val)
     {
       candidate = obs_vals->vals + i;
       assert (candidate != NULL);
-      if (!compare_values (candidate, val, var_get_width (v)))
+      if (!compare_values (candidate, val, v))
 	{
 	  return i;
 	}
@@ -108,15 +117,17 @@ cat_value_find (const struct variable *v, const union value *val)
 }
 
 /*
-   Add the new value unless it is already present.
+   Add the new value unless it is already present. Increment the count.
  */
 void
 cat_value_update (const struct variable *v, const union value *val)
 {
   if (var_is_alpha (v))
     {
+      size_t i;
       struct cat_vals *cv = var_get_obs_vals (v);
-      if (cat_value_find (v, val) == CAT_VALUE_NOT_FOUND)
+      i = cat_value_find (v, val);
+      if (i == CAT_VALUE_NOT_FOUND)
 	{
 	  if (cv->n_categories >= cv->n_allocated_categories)
 	    {
@@ -124,11 +135,35 @@ cat_value_update (const struct variable *v, const union value *val)
 	      cv->vals = xnrealloc (cv->vals,
 				    cv->n_allocated_categories,
 				    sizeof *cv->vals);
+	      cv->value_counts = xnrealloc (cv->value_counts, cv->n_allocated_categories,
+					    sizeof *cv->value_counts);
 	    }
 	  cv->vals[cv->n_categories] = *val;
+	  cv->value_counts[cv->n_categories] = 1;
 	  cv->n_categories++;
 	}
+      else
+	{
+	  cv->value_counts[i]++;
+	}
     }
+}
+/*
+  Return the count for the sth category.
+ */
+size_t
+cat_get_category_count (const size_t s, const struct variable *v)
+{
+  struct cat_vals *tmp;
+  size_t n_categories;
+
+  tmp = var_get_obs_vals (v);
+  n_categories = cat_get_n_categories (v);
+  if (s < n_categories)
+    {
+      return tmp->value_counts[s];
+    }
+  return CAT_VALUE_NOT_FOUND;
 }
 
 const union value *

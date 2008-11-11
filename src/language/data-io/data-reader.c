@@ -187,6 +187,7 @@ read_inline_record (struct dfm_reader *r)
 
   if (!lex_get_line_raw (r->lexer))
     {
+      lex_discard_line (r->lexer);
       msg (SE, _("Unexpected end-of-file while reading data in BEGIN "
                  "DATA.  This probably indicates "
                  "a missing or misformatted END DATA command.  "

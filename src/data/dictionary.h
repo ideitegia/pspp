@@ -142,6 +142,11 @@ const struct vector *dict_lookup_vector (const struct dictionary *,
                                          const char *name);
 void dict_clear_vectors (struct dictionary *);
 
+/* Attributes. */
+struct attrset *dict_get_attributes (const struct dictionary *);
+void dict_set_attributes (struct dictionary *, const struct attrset *);
+bool dict_has_attributes (const struct dictionary *);
+
 /* Functions to be called upon dictionary changes. */
 struct dict_callbacks
  {

@@ -29,21 +29,24 @@
 /* Return -1 if the id of a is less than b; +1 if greater than and
    0 if equal */
 int
-compare_group (const struct group_statistics *a,
-		 const struct group_statistics *b,
-		 int width)
+compare_group (const void *a_,
+		 const void *b_,
+		 const void *var)
 {
-  return compare_values(&a->id, &b->id, width);
+  const struct group_statistics *a = a_;
+  const struct group_statistics *b = b_;
+  return compare_values(&a->id, &b->id, var);
 }
 
 
 
-unsigned
-hash_group (const struct group_statistics *g, int width)
+unsigned int
+hash_group (const void *g_, const void *var)
 {
   unsigned id_hash;
+  const struct group_statistics *g = g_;;
 
-  id_hash = hash_value(&g->id, width);
+  id_hash = hash_value(&g->id, var);
 
   return id_hash;
 }

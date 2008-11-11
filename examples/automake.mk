@@ -4,3 +4,5 @@ EXTRA_DIST += \
 	examples/descript.stat \
 	examples/regress.stat \
 	examples/regress_categorical.stat
+
+EXTRA_DIST += examples/OChangeLog

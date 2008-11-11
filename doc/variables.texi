@@ -7,8 +7,7 @@ several utility functions for examining and adjusting them.
 @menu
 * ADD VALUE LABELS::            Add value labels to variables.
 * DELETE VARIABLES::            Delete variables.
-* DISPLAY::                     Display variable names & descriptions.
-* DISPLAY VECTORS::             Display a list of vectors.
+* DISPLAY::                     Display information about the active file.
 * FORMATS::                     Set print and write formats.
 * LEAVE::                       Don't clear variables between cases.
 * MISSING VALUES::              Set missing values for variables.
@@ -18,6 +17,7 @@ several utility functions for examining and adjusting them.
 * RENAME VARIABLES::            Rename variables.
 * VALUE LABELS::                Set value labels for variables.
 * STRING::                      Create new string variables.
+* VARIABLE ATTRIBUTE::          Set custom attributes on variables.
 * VARIABLE LABELS::             Set variable labels for variables.
 * VARIABLE ALIGNMENT::          Set the alignment for display.
 * VARIABLE WIDTH::              Set the display width.
@@ -61,15 +61,26 @@ effect, it causes the temporary transformations to become permanent.
 @vindex DISPLAY
 
 @display
-DISPLAY @{NAMES,INDEX,LABELS,VARIABLES,DICTIONARY,SCRATCH@}
-        [SORTED] [var_list]
+DISPLAY [SORTED] NAMES [[/VARIABLES=]var_list].
+DISPLAY [SORTED] INDEX [[/VARIABLES=]var_list].
+DISPLAY [SORTED] LABELS [[/VARIABLES=]var_list].
+DISPLAY [SORTED] VARIABLES [[/VARIABLES=]var_list].
+DISPLAY [SORTED] DICTIONARY [[/VARIABLES=]var_list].
+DISPLAY [SORTED] SCRATCH [[/VARIABLES=]var_list].
+DISPLAY [SORTED] ATTRIBUTES [[/VARIABLES=]var_list].
+DISPLAY [SORTED] @@ATTRIBUTES [[/VARIABLES=]var_list].
+DISPLAY [SORTED] VECTORS.
 @end display
 
-@cmd{DISPLAY} displays requested information on variables.  Variables can
-optionally be sorted alphabetically.  The entire dictionary or just
-specified variables can be described.
+@cmd{DISPLAY} displays information about the active file.  A variety
+of different forms of information can be requested.
 
-One of the following keywords can be present:
+The following keywords primarily cause information about variables to
+be displayed.  With these keywords, by default information is
+displayed about all variable in the active file, in the order that
+variables occur in the active file dictionary.  The SORTED keyword
+causes output to be sorted alphabetically by variable name.  The
+VARIABLES subcommand limits output to the specified variables.
 
 @table @asis
 @item NAMES
@@ -91,23 +102,24 @@ Variable names, positions, print and write formats, missing values,
 variable labels, and value labels are displayed.
 
 @item SCRATCH
-Varible names are displayed, for scratch variables only (@pxref{Scratch
+Variable names are displayed, for scratch variables only (@pxref{Scratch
 Variables}).
+
+@item ATTRIBUTES
+Datafile and variable attributes are displayed, except that attributes
+whose names begin with @code{@@} or @code{$@@} are omitted.
+
+@itemx @@ATTRIBUTES
+All datafile and variable attributes are displayed.
 @end table
 
-If SORTED is specified, then the variables are displayed in ascending
-order based on their names; otherwise, they are displayed in the order
-that they occur in the active file dictionary.
+With the @code{VECTOR} keyword, @cmd{DISPLAY} lists all the currently
+declared vectors.  If the SORTED keyword is given, the vectors are
+listed in alphabetical order; otherwise, they are listed in textual
+order of definition within the PSPP syntax file.
 
-@node DISPLAY VECTORS
-@section DISPLAY VECTORS
-@vindex DISPLAY VECTORS
-
-@display
-DISPLAY VECTORS.
-@end display
-
-@cmd{DISPLAY VECTORS} lists all the currently declared vectors.
+For related commands, see @ref{DISPLAY DOCUMENTS} and @ref{DISPLAY
+FILE LABEL}.
 
 @node FORMATS
 @section FORMATS
@@ -356,6 +368,60 @@ implicitly derived from the specified output formats.
 
 Created variables are initialized to spaces.
 
+
+@node VARIABLE ATTRIBUTE
+@section VARIABLE ATTRIBUTE
+@vindex VARIABLE ATTRIBUTE
+
+@display
+VARIABLE ATTRIBUTE
+         VARIABLES=var_list
+         ATTRIBUTE=name('value') [name('value')]@dots{}
+         ATTRIBUTE=name@b{[}index@b{]}('value') [name@b{[}index@b{]}('value')]@dots{}
+         DELETE=name [name]@dots{}
+         DELETE=name@b{[}index@b{]} [name@b{[}index@b{]}]@dots{}
+@end display
+
+@cmd{VARIABLE ATTRIBUTE} adds, modifies, or removes user-defined
+attributes associated with variables in the active file.  Custom
+variable attributes are not interpreted by PSPP, but they are saved as
+part of system files and may be used by other software that reads
+them.
+
+The required VARIABLES subcommand must come first.  Specify the
+variables to which the following ATTRIBUTE or DELETE subcommand
+should apply.
+
+Use the ATTRIBUTE subcommand to add or modify custom variable
+attributes.  Specify the name of the attribute as an identifier
+(@pxref{Tokens}), followed by the desired value, in parentheses, as a
+quoted string.  The specified attributes are then added or modified in
+the variables specified on VARIABLES.  Attribute names that begin with
+@code{$} are reserved for PSPP's internal use, and attribute names
+that begin with @code{@@} or @code{$@@} are not displayed by most PSPP
+commands that display other attributes.  Other attribute names are not
+treated specially.
+
+Attributes may also be organized into arrays.  To assign to an array
+element, add an integer array index enclosed in square brackets
+(@code{[} and @code{]}) between the attribute name and value.  Array
+indexes start at 1, not 0.  An attribute array that has a single
+element (number 1) is not distinguished from a non-array attribute.
+
+Use the DELETE subcommand to delete an attribute from the variable
+specified on VARIABLES.  Specify an attribute name by itself to delete
+an entire attribute, including all array elements for attribute
+arrays.  Specify an attribute name followed by an array index in
+square brackets to delete a single element of an attribute array.  In
+the latter case, all the array elements numbered higher than the
+deleted element are shifted down, filling the vacated position.
+
+To associate custom attributes with the entire active file, instead of
+with particular variables, use @cmd{DATAFILE ATTRIBUTE} instead.
+
+@cmd{VARIABLE ATTRIBUTE} takes effect immediately.  It is not affected
+by conditional and looping structures such as @cmd{DO IF} or
+@cmd{LOOP}.
 
 @node VARIABLE LABELS
 @section VARIABLE LABELS

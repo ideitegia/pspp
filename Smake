@@ -5,6 +5,7 @@ GNULIB = ../gnulib
 GNULIB_TOOL = $(GNULIB)/gnulib-tool
 
 GNULIB_MODULES = \
+	argp \
 	assert \
 	byteswap \
 	c-ctype \
@@ -27,7 +28,10 @@ GNULIB_MODULES = \
 	getopt \
 	gettext-h \
 	gettimeofday \
+	gitlog-to-changelog \
 	isfinite \
+	isinf \
+	isnan \
 	intprops \
 	inttostr \
 	localcharset \
@@ -43,6 +47,7 @@ GNULIB_MODULES = \
 	printf-posix \
 	printf-safe \
 	progname \
+	regex \
 	relocatable-prog \
 	round \
 	snprintf \
@@ -82,12 +87,13 @@ GNULIB_MODULES = \
 	xvasprintf
 
 all: po/POTFILES.in
+	test -e ChangeLog || touch ChangeLog
 	test -d m4 || mkdir m4
 	echo '*' > m4/.cvsignore
 	touch m4/Makefile.am
 	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
 		--source-base=gl --lib=libgl --tests-base=tests \
-		--doc-base=gl/doc --import $(GNULIB_MODULES)
+		--doc-base=gl/doc --aux-dir=. --import $(GNULIB_MODULES)
 	echo '*' > gl/.cvsignore
 	echo '*' > gl/m4/.cvsignore
 	libtoolize --force --automake

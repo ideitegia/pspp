@@ -17,8 +17,13 @@
 #ifndef PSPPIRE_H
 #define PSPPIRE_H
 
+#include <argp.h>
 
-void initialize (void);
+struct command_line_processor ;
+extern const struct argp non_option_argp ;
+
+
+void initialize (struct command_line_processor *, int argc, char **argv);
 void de_initialize (void);
 
 #endif /* PSPPIRE_H */

@@ -17,8 +17,8 @@
 #ifndef FORMAT_GUESSER_H
 #define FORMAT_GUESSER_H 1
 
+#include <libpspp/str.h>
 struct fmt_spec;
-struct substring;
 
 struct fmt_guesser *fmt_guesser_create (void);
 void fmt_guesser_destroy (struct fmt_guesser *);

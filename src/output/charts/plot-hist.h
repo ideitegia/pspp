@@ -17,23 +17,23 @@
 #ifndef PLOT_HIST_H
 #define PLOT_HIST_H
 
-#include <gsl/gsl_histogram.h>
+#include <stdbool.h>
 
-
-struct normal_curve
-{
-  double N ;
-  double mean ;
-  double stddev ;
-};
 struct chart;
+struct moments1;
+struct histogram;
 
-/* Write the legend of the chart */
-void histogram_write_legend(struct chart *ch, const struct normal_curve *norm);
+/* Plot M onto histogram HIST and label it with LABEL */
+void histogram_plot (const struct histogram *hist,
+		     const char *label,  const struct moments1 *m);
 
-void histogram_plot(const gsl_histogram *hist,
-	       const char *factorname,
-	       const struct normal_curve *norm, short show_normal);
+
+/* A wrapper aroud histogram_plot.
+   Don't use this function.  It's legacy only */
+void histogram_plot_n (const struct histogram *hist,
+		       const char *label,
+		       double n, double mean, double var,
+		       bool show_normal);
 
 
 #endif

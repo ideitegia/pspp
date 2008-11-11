@@ -66,21 +66,7 @@ bool datasheet_get_value (const struct datasheet *, casenumber, size_t column,
 bool datasheet_put_value (struct datasheet *, casenumber, size_t column,
                           const union value *, int width);
 
-/* Testing. */
-struct mc_options;
 
-struct datasheet_test_params
-  {
-    /* Parameters. */
-    int max_rows;
-    int max_cols;
-    int backing_rows;
-    int backing_cols;
-
-    /* State. */
-    int next_value;
-  };
-
-struct mc_results *datasheet_test (struct mc_options *options, void *params);
-
+unsigned int hash_datasheet (const struct datasheet *ds);
+struct datasheet *clone_datasheet (const struct datasheet *ds);
 #endif /* data/datasheet.h */

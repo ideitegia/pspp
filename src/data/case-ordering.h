@@ -32,7 +32,7 @@ enum sort_direction
   };
 
 /* Creation and destruction. */
-struct case_ordering *case_ordering_create (const struct dictionary *);
+struct case_ordering *case_ordering_create (void);
 struct case_ordering *case_ordering_clone (const struct case_ordering *);
 void case_ordering_destroy (struct case_ordering *);
 

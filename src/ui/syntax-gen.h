@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <libpspp/compiler.h>
+#include <libpspp/str.h>
 
 struct fmt_spec;
 struct substring;

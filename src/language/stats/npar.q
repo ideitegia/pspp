@@ -1,5 +1,5 @@
-/* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+/* PSPP - a program for statistical analysis. -*-c-*-
+   Copyright (C) 2006, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include <language/lexer/variable-parser.h>
 #include <language/stats/binomial.h>
 #include <language/stats/chisquare.h>
+#include <language/stats/wilcoxon.h>
 #include <libpspp/hash.h>
 #include <libpspp/pool.h>
 #include <libpspp/taint.h>
@@ -53,7 +54,8 @@
    +friedman=varlist;
    +kendall=varlist;
    missing=miss:!analysis/listwise,
-           incl:include/!exclude;
+   incl:include/!exclude;
+   method=custom;
    +statistics[st_]=descriptives,quartiles,all.
 */
 /* (declarations) */
@@ -70,17 +72,25 @@ struct npar_specs
   size_t n_tests;
 
   const struct variable ** vv; /* Compendium of all variables
-				       (those mentioned on ANY subcommand */
+				  (those mentioned on ANY subcommand */
   int n_vars; /* Number of variables in vv */
 
   enum mv_class filter;    /* Missing values to filter. */
 
   bool descriptives;       /* Descriptive statistics should be calculated */
   bool quartiles;          /* Quartiles should be calculated */
+
+  bool exact;  /* Whether exact calculations have been requested */
+  double timer;   /* Maximum time (in minutes) to wait for exact calculations */
 };
 
-void one_sample_insert_variables (const struct npar_test *test,
-				  struct const_hsh_table *variables);
+static void one_sample_insert_variables (const struct npar_test *test,
+					 struct const_hsh_table *variables);
+
+static void two_sample_insert_variables (const struct npar_test *test,
+					 struct const_hsh_table *variables);
+
+
 
 static void
 npar_execute(struct casereader *input,
@@ -98,7 +108,7 @@ npar_execute(struct casereader *input,
 	  msg (SW, _("NPAR subcommand not currently implemented."));
 	  continue;
 	}
-      test->execute (ds, casereader_clone (input), specs->filter, test);
+      test->execute (ds, casereader_clone (input), specs->filter, test, specs->exact, specs->timer);
     }
 
   if ( specs->descriptives )
@@ -126,7 +136,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 {
   bool ok;
   int i;
-  struct npar_specs npar_specs = {0, 0, 0, 0, 0, 0, 0, 0};
+  struct npar_specs npar_specs = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   struct const_hsh_table *var_hash;
   struct casegrouper *grouper;
   struct casereader *input, *group;
@@ -134,8 +144,8 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
   npar_specs.pool = pool_create ();
 
   var_hash = const_hsh_create_pool (npar_specs.pool, 0,
-			      compare_vars_by_name, hash_var_by_name,
-			      NULL, NULL);
+				    compare_vars_by_name, hash_var_by_name,
+				    NULL, NULL);
 
   if ( ! parse_npar_tests (lexer, ds, &cmd, &npar_specs) )
     {
@@ -183,10 +193,14 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 
   input = proc_open (ds);
   if ( cmd.miss == NPAR_LISTWISE )
-    input = casereader_create_filter_missing (input,
-                                              npar_specs.vv,
-                                              npar_specs.n_vars,
-                                              npar_specs.filter, NULL);
+    {
+      input = casereader_create_filter_missing (input,
+						npar_specs.vv,
+						npar_specs.n_vars,
+						npar_specs.filter,
+						NULL, NULL);
+    }
+
 
   grouper = casegrouper_create_splits (input, dataset_dict (ds));
   while (casegrouper_get_next_group (grouper, &group))
@@ -202,7 +216,8 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
 }
 
 int
-npar_custom_chisquare(struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests *cmd UNUSED, void *aux )
+npar_custom_chisquare (struct lexer *lexer, struct dataset *ds,
+		       struct cmd_npar_tests *cmd UNUSED, void *aux )
 {
   struct npar_specs *specs = aux;
 
@@ -213,8 +228,8 @@ npar_custom_chisquare(struct lexer *lexer, struct dataset *ds, struct cmd_npar_t
   ((struct npar_test *)tp)->insert_variables = one_sample_insert_variables;
 
   if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
-			     &tp->vars, &tp->n_vars,
-			     PV_NO_SCRATCH | PV_NO_DUPLICATE))
+				   &tp->vars, &tp->n_vars,
+				   PV_NO_SCRATCH | PV_NO_DUPLICATE))
     {
       return 2;
     }
@@ -307,7 +322,8 @@ npar_custom_chisquare(struct lexer *lexer, struct dataset *ds, struct cmd_npar_t
 
 
 int
-npar_custom_binomial(struct lexer *lexer, struct dataset *ds, struct cmd_npar_tests *cmd UNUSED, void *aux)
+npar_custom_binomial (struct lexer *lexer, struct dataset *ds,
+		      struct cmd_npar_tests *cmd UNUSED, void *aux)
 {
   struct npar_specs *specs = aux;
   struct binomial_test *btp = pool_alloc(specs->pool, sizeof(*btp));
@@ -333,8 +349,8 @@ npar_custom_binomial(struct lexer *lexer, struct dataset *ds, struct cmd_npar_te
   if ( lex_match (lexer, '=') )
     {
       if (parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
-				&tp->vars, &tp->n_vars,
-				PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
+				      &tp->vars, &tp->n_vars,
+				      PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	{
 	  if ( lex_match (lexer, '('))
 	    {
@@ -398,18 +414,20 @@ parse_two_sample_related_test (struct lexer *lexer,
   const struct variable **vlist2;
   size_t n_vlist2;
 
+  ((struct npar_test *)test_parameters)->insert_variables = two_sample_insert_variables;
+
   if (!parse_variables_const_pool (lexer, pool,
-			     dict,
-			     &vlist1, &n_vlist1,
-			     PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
+				   dict,
+				   &vlist1, &n_vlist1,
+				   PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
     return false;
 
   if ( lex_match(lexer, T_WITH))
     {
       with = true;
       if ( !parse_variables_const_pool (lexer, pool, dict,
-				  &vlist2, &n_vlist2,
-				  PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
+					&vlist2, &n_vlist2,
+					PV_NUMERIC | PV_NO_SCRATCH | PV_NO_DUPLICATE) )
 	return false;
 
       paired = (lex_match (lexer, '(') &&
@@ -449,8 +467,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 	  assert (n_vlist1 == n_vlist2);
 	  for ( i = 0 ; i < n_vlist1; ++i )
 	    {
-	      test_parameters->pairs[n][0] = vlist1[i];
-	      test_parameters->pairs[n][1] = vlist2[i];
+	      test_parameters->pairs[n][1] = vlist1[i];
+	      test_parameters->pairs[n][0] = vlist2[i];
 	      n++;
 	    }
 	}
@@ -461,8 +479,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 	    {
 	      for ( j = 0 ; j < n_vlist2; ++j )
 		{
-		  test_parameters->pairs[n][0] = vlist1[i];
-		  test_parameters->pairs[n][1] = vlist2[j];
+		  test_parameters->pairs[n][1] = vlist1[i];
+		  test_parameters->pairs[n][0] = vlist2[j];
 		  n++;
 		}
 	    }
@@ -476,8 +494,8 @@ parse_two_sample_related_test (struct lexer *lexer,
 	  for ( j = i + 1 ; j < n_vlist1; ++j )
 	    {
 	      assert ( n < test_parameters->n_pairs);
-	      test_parameters->pairs[n][0] = vlist1[i];
-	      test_parameters->pairs[n][1] = vlist1[j];
+	      test_parameters->pairs[n][1] = vlist1[i];
+	      test_parameters->pairs[n][0] = vlist1[j];
 	      n++;
 	    }
 	}
@@ -495,8 +513,8 @@ npar_custom_wilcoxon (struct lexer *lexer,
 {
   struct npar_specs *specs = aux;
 
-  struct two_sample_test *tp = pool_alloc(specs->pool, sizeof(*tp));
-  ((struct npar_test *)tp)->execute = NULL;
+  struct two_sample_test *tp = pool_alloc (specs->pool, sizeof(*tp));
+  ((struct npar_test *)tp)->execute = wilcoxon_execute;
 
   if (!parse_two_sample_related_test (lexer, dataset_dict (ds), cmd,
 				      tp, specs->pool) )
@@ -559,9 +577,9 @@ npar_custom_sign (struct lexer *lexer, struct dataset *ds,
 }
 
 /* Insert the variables for TEST into VAR_HASH */
-void
+static void
 one_sample_insert_variables (const struct npar_test *test,
-			    struct const_hsh_table *var_hash)
+			     struct const_hsh_table *var_hash)
 {
   int i;
   struct one_sample_test *ost = (struct one_sample_test *) test;
@@ -570,3 +588,50 @@ one_sample_insert_variables (const struct npar_test *test,
     const_hsh_insert (var_hash, ost->vars[i]);
 }
 
+static void
+two_sample_insert_variables (const struct npar_test *test,
+			     struct const_hsh_table *var_hash)
+{
+  int i;
+
+  const struct two_sample_test *tst = (const struct two_sample_test *) test;
+
+  for ( i = 0 ; i < tst->n_pairs ; ++i )
+    {
+      variable_pair *pair = &tst->pairs[i];
+
+      const_hsh_insert (var_hash, (*pair)[0]);
+      const_hsh_insert (var_hash, (*pair)[1]);
+    }
+
+}
+
+
+static int
+npar_custom_method (struct lexer *lexer, struct dataset *ds UNUSED,
+                    struct cmd_npar_tests *test UNUSED, void *aux)
+{
+  struct npar_specs *specs = aux;
+
+  if ( lex_match_id (lexer, "EXACT") )
+    {
+      specs->exact = true;
+      specs->timer = 0.0;
+      if (lex_match_id (lexer, "TIMER"))
+	{
+	  specs->timer = 5.0;
+
+	  if ( lex_match (lexer, '('))
+	    {
+	      if ( lex_force_num (lexer) )
+		{
+		  specs->timer = lex_number (lexer);
+		  lex_get (lexer);
+		}
+	      lex_force_match (lexer, ')');
+	    }
+	}
+    }
+
+  return 1;
+}

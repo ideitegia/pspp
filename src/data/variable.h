@@ -32,6 +32,8 @@ union value;
 struct variable *var_create (const char *name, int width);
 struct variable *var_clone (const struct variable *);
 void var_destroy (struct variable *);
+struct variable *var_create_internal (int case_idx);
+
 
 /* Variable names. */
 #define VAR_NAME_LEN 64 /* Maximum length of variable name, in bytes. */
@@ -47,6 +49,8 @@ unsigned hash_var_by_name (const void *, const void *);
 
 int compare_var_ptrs_by_name (const void *, const void *, const void *);
 unsigned hash_var_ptr_by_name (const void *, const void *);
+
+int compare_var_ptrs_by_dict_index (const void *, const void *, const void *);
 
 /* Types and widths of values associated with a variable. */
 enum val_type var_get_type (const struct variable *);
@@ -172,6 +176,11 @@ void var_dtor_free (struct variable *);
 struct cat_vals *var_get_obs_vals (const struct variable *);
 void var_set_obs_vals (const struct variable *, struct cat_vals *);
 bool var_has_obs_vals (const struct variable *);
+
+/* Custom attributes. */
+struct attrset *var_get_attributes (const struct variable *);
+void var_set_attributes (struct variable *, const struct attrset *);
+bool var_has_attributes (const struct variable *);
 
 /* Function types. */
 typedef bool var_predicate_func (const struct variable *);

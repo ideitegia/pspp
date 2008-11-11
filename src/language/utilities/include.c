@@ -26,7 +26,6 @@
 #include <data/file-name.h>
 
 #include "dirname.h"
-#include "canonicalize.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -191,8 +190,7 @@ parse_insert (struct lexer *lexer, char **filename)
       return CMD_FAILURE;
     }
 
-  *filename = canonicalize_file_name (relative_filename);
-  free (relative_filename);
+  *filename = relative_filename;
 
   return CMD_SUCCESS;
 }

@@ -334,6 +334,7 @@ SET
         /MXERRS=max_errs
         /MXWARNS=max_warnings
         /PROMPT='prompt'
+        /WORKSPACE=workspace_size
 
 (program execution)
         /MEXPAND=@{ON,OFF@}
@@ -390,7 +391,6 @@ SET
         /SCRIPTTAB='c'
         /TB1=@{'xxx','xxxxxxxxxxx'@}
         /TBFONTS='string'
-        /WORKSPACE=workspace_size
         /XSORT=@{YES,NO@}
 @end display
 
@@ -414,10 +414,13 @@ default.  Any real value may be assigned.
 
 @item DECIMAL
 @anchor{SET DECIMAL}
-The default DOT setting causes the decimal point character to be
-@samp{.} and the grouping character to be @samp{,}.  A setting of COMMA
+This value may be set to DOT or COMMA.
+Setting it to DOT causes the decimal point character to be
+@samp{.} and the grouping character to be @samp{,}.
+Setting it to COMMA
 causes the decimal point character to be @samp{,} and the grouping
 character to be @samp{.}.
+The default value is determined from the system locale.
 
 @item FORMAT
 Allows the default numeric input/output format to be specified.  The
@@ -554,6 +557,17 @@ RANDOM, which will obtain an initial seed from the current time of day.
 
 @item UNDEFINED
 Currently not used.
+
+@item WORKSPACE
+The maximum amount of memory that PSPP will use to store data being processed.
+If memory in excess of the workspace size is required, then PSPP will start
+to use temporary files to store the data.
+Setting a higher value will, in general, mean procedures will run faster, 
+but may cause other applications to run slower.
+On platforms without virtual memory management, setting a very large workspace
+may cause PSPP to abort.
+@cindex workspace
+@cindex memory, amount used to store cases
 @end table
 
 Data output subcommands affect the format of output data.  These

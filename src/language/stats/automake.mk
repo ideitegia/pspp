@@ -13,6 +13,7 @@ src_language_stats_built_sources = \
 	src/language/stats/oneway.c \
 	src/language/stats/rank.c \
 	src/language/stats/regression.c \
+	src/language/stats/reliability.c \
 	src/language/stats/t-test.c
 
 language_stats_sources = \
@@ -31,9 +32,12 @@ language_stats_sources = \
 	src/language/stats/freq.c \
 	src/language/stats/freq.h \
 	src/language/stats/npar-summary.c \
-	src/language/stats/npar-summary.h 
+	src/language/stats/npar-summary.h \
+	src/language/stats/wilcoxon.c \
+	src/language/stats/wilcoxon.h
 
 all_q_sources += $(src_language_stats_built_sources:.c=.q)
 EXTRA_DIST += $(src_language_stats_built_sources:.c=.q)
 CLEANFILES += $(src_language_stats_built_sources)
 
+EXTRA_DIST += src/language/stats/OChangeLog
