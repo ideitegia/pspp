@@ -1,3 +1,4 @@
+#define GDK_MULTIHEAD_SAFE 1
 /*
  * Copyright (C) 2006, 2008 Free Software Foundation
  *
@@ -4139,10 +4140,11 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column, gboolean *veto)
 }
 
 static gint
-gtk_sheet_button_release (GtkWidget * widget,
-			  GdkEventButton * event)
+gtk_sheet_button_release (GtkWidget *widget,
+			  GdkEventButton *event)
 {
   gint y;
+  GdkDisplay *display = gtk_widget_get_display (widget);
 
   GtkSheet *sheet = GTK_SHEET (widget);
 
@@ -4154,7 +4156,7 @@ gtk_sheet_button_release (GtkWidget * widget,
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_XDRAG);
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 
-      gdk_pointer_ungrab (event->time);
+      gdk_display_pointer_ungrab (display, event->time);
       draw_xor_vline (sheet);
 
       width = new_column_width (sheet, sheet->drag_cell.col, &xpos);
@@ -4168,7 +4170,7 @@ gtk_sheet_button_release (GtkWidget * widget,
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_YDRAG);
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
       gtk_widget_get_pointer (widget, NULL, &y);
-      gdk_pointer_ungrab (event->time);
+      gdk_display_pointer_ungrab (display, event->time);
       draw_xor_hline (sheet);
 
       gtk_sheet_set_row_height (sheet, sheet->drag_cell.row,
@@ -4183,7 +4185,7 @@ gtk_sheet_button_release (GtkWidget * widget,
       GtkSheetRange old_range;
       draw_xor_rectangle (sheet, sheet->drag_range);
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_DRAG);
-      gdk_pointer_ungrab (event->time);
+      gdk_display_pointer_ungrab (display, event->time);
 
       gtk_sheet_real_unselect_range (sheet, NULL);
 
@@ -4208,7 +4210,7 @@ gtk_sheet_button_release (GtkWidget * widget,
       GtkSheetRange old_range;
       draw_xor_rectangle (sheet, sheet->drag_range);
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_RESIZE);
-      gdk_pointer_ungrab (event->time);
+      gdk_display_pointer_ungrab (display, event->time);
 
       gtk_sheet_real_unselect_range (sheet, NULL);
 
@@ -4237,13 +4239,13 @@ gtk_sheet_button_release (GtkWidget * widget,
   if (sheet->state == GTK_SHEET_NORMAL && GTK_SHEET_IN_SELECTION (sheet))
     {
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
-      gdk_pointer_ungrab (event->time);
+      gdk_display_pointer_ungrab (display, event->time);
       gtk_sheet_activate_cell (sheet, sheet->active_cell.row,
 			       sheet->active_cell.col);
     }
 
   if (GTK_SHEET_IN_SELECTION)
-    gdk_pointer_ungrab (event->time);
+    gdk_display_pointer_ungrab (display, event->time);
   gtk_grab_remove (GTK_WIDGET (sheet));
 
   GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
@@ -6441,3 +6443,4 @@ gtk_sheet_update_primary_selection (GtkSheet *sheet)
 	gtk_clipboard_clear (clipboard);
     }
 }
+
