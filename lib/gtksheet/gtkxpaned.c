@@ -709,6 +709,15 @@ static void gtk_xpaned_size_request (GtkWidget* widget,
 	}
 }
 
+void
+gtk_xpaned_compute_position (GtkXPaned* xpaned,
+			     const GtkAllocation* allocation,
+			     GtkRequisition* top_left_child_req,
+			     GtkRequisition* top_right_child_req,
+			     GtkRequisition* bottom_left_child_req,
+			     GtkRequisition* bottom_right_child_req);
+
+
 static void gtk_xpaned_size_allocate (GtkWidget* widget,
 									  GtkAllocation* allocation)
 {
