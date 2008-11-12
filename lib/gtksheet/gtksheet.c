@@ -2004,6 +2004,8 @@ gtk_sheet_realize (GtkWidget * widget)
 
   GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
 
+  colormap = gtk_widget_get_colormap (widget);
+
   attributes.window_type = GDK_WINDOW_CHILD;
   attributes.x = widget->allocation.x;
   attributes.y = widget->allocation.y;
@@ -2012,7 +2014,7 @@ gtk_sheet_realize (GtkWidget * widget)
   attributes.wclass = GDK_INPUT_OUTPUT;
 
   attributes.visual = gtk_widget_get_visual (widget);
-  attributes.colormap = gtk_widget_get_colormap (widget);
+  attributes.colormap = colormap;
 
   attributes.event_mask = gtk_widget_get_events (widget);
   attributes.event_mask |= (GDK_EXPOSURE_MASK |
@@ -2038,10 +2040,10 @@ gtk_sheet_realize (GtkWidget * widget)
   gtk_style_set_background (widget->style, widget->window, GTK_STATE_NORMAL);
 
   gdk_color_parse ("white", &sheet->color[BG_COLOR]);
-  gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->color[BG_COLOR], FALSE,
+  gdk_colormap_alloc_color (colormap, &sheet->color[BG_COLOR], FALSE,
 			    TRUE);
   gdk_color_parse ("gray", &sheet->color[GRID_COLOR]);
-  gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->color[GRID_COLOR], FALSE,
+  gdk_colormap_alloc_color (colormap, &sheet->color[GRID_COLOR], FALSE,
 			    TRUE);
 
   attributes.x = 0;
@@ -2094,7 +2096,7 @@ gtk_sheet_realize (GtkWidget * widget)
   sheet->fg_gc = gdk_gc_new (widget->window);
   sheet->bg_gc = gdk_gc_new (widget->window);
 
-  colormap = gtk_widget_get_colormap (widget);
+
 
   gdk_gc_get_values (sheet->fg_gc, &auxvalues);
 
@@ -2177,7 +2179,7 @@ global_button_clicked (GtkWidget *widget, gpointer data)
 
 
 static void
-gtk_sheet_unrealize (GtkWidget * widget)
+gtk_sheet_unrealize (GtkWidget *widget)
 {
   GtkSheet *sheet;
 
@@ -2189,11 +2191,8 @@ gtk_sheet_unrealize (GtkWidget * widget)
   gdk_cursor_unref (sheet->cursor_drag);
   sheet->cursor_drag = NULL;
 
-  gdk_colormap_free_colors (gdk_colormap_get_system (),
-			    &sheet->color[BG_COLOR], 1);
-
-  gdk_colormap_free_colors (gdk_colormap_get_system (),
-			    &sheet->color[GRID_COLOR], 1);
+  gdk_colormap_free_colors (gtk_widget_get_colormap (widget),
+			    sheet->color, n_COLORS);
 
   g_object_unref (sheet->xor_gc);
   g_object_unref (sheet->fg_gc);
@@ -6123,8 +6122,6 @@ init_attributes (const GtkSheet *sheet, gint col, GtkSheetCellAttr *attributes)
   attributes->background = sheet->color[BG_COLOR];
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     {
-      GdkColormap *colormap;
-      colormap = gdk_colormap_get_system ();
       attributes->background = sheet->color[BG_COLOR];
     }
   attributes->justification = g_sheet_column_get_justification (sheet->column_geometry, col);
