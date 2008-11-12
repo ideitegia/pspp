@@ -1353,40 +1353,6 @@ gtk_sheet_grid_visible (GtkSheet *sheet)
   return sheet->show_grid;
 }
 
-void
-gtk_sheet_set_background (GtkSheet *sheet, GdkColor *color)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  if (!color)
-    {
-      gdk_color_parse ("white", &sheet->bg_color);
-      gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->bg_color, FALSE, TRUE);
-    }
-  else
-    sheet->bg_color = *color;
-
-    gtk_sheet_range_draw (sheet, NULL);
-}
-
-void
-gtk_sheet_set_grid (GtkSheet *sheet, GdkColor *color)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  if (!color)
-    {
-      gdk_color_parse ("black", &sheet->grid_color);
-      gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->grid_color, FALSE, TRUE);
-    }
-  else
-    sheet->grid_color = *color;
-
-    gtk_sheet_range_draw (sheet, NULL);
-}
-
 guint
 gtk_sheet_get_columns_count (GtkSheet *sheet)
 {
@@ -2071,11 +2037,11 @@ gtk_sheet_realize (GtkWidget * widget)
 
   gtk_style_set_background (widget->style, widget->window, GTK_STATE_NORMAL);
 
-  gdk_color_parse ("white", &sheet->bg_color);
-  gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->bg_color, FALSE,
+  gdk_color_parse ("white", &sheet->color[BG_COLOR]);
+  gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->color[BG_COLOR], FALSE,
 			    TRUE);
-  gdk_color_parse ("gray", &sheet->grid_color);
-  gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->grid_color, FALSE,
+  gdk_color_parse ("gray", &sheet->color[GRID_COLOR]);
+  gdk_colormap_alloc_color (gdk_colormap_get_system (), &sheet->color[GRID_COLOR], FALSE,
 			    TRUE);
 
   attributes.x = 0;
@@ -2224,10 +2190,10 @@ gtk_sheet_unrealize (GtkWidget * widget)
   sheet->cursor_drag = NULL;
 
   gdk_colormap_free_colors (gdk_colormap_get_system (),
-			    &sheet->bg_color, 1);
+			    &sheet->color[BG_COLOR], 1);
 
   gdk_colormap_free_colors (gdk_colormap_get_system (),
-			    &sheet->grid_color, 1);
+			    &sheet->color[GRID_COLOR], 1);
 
   g_object_unref (sheet->xor_gc);
   g_object_unref (sheet->fg_gc);
@@ -2370,7 +2336,7 @@ gtk_sheet_cell_draw_default (GtkSheet *sheet, gint row, gint col)
 
   if (sheet->show_grid)
     {
-      gdk_gc_set_foreground (sheet->bg_gc, &sheet->grid_color);
+      gdk_gc_set_foreground (sheet->bg_gc, &sheet->color[GRID_COLOR]);
 
       gdk_draw_rectangle (sheet->pixmap,
 			  sheet->bg_gc,
@@ -3785,7 +3751,7 @@ gtk_sheet_expose (GtkWidget * widget,
       range.coli = COLUMN_FROM_XPIXEL (sheet,
 				       event->area.x + event->area.width);
 
-      g_print ("Redrawing rows %d--%d, columns %d--%d\n",
+      g_print ("Redrawing rows %ld--%ld, columns %ld--%ld\n",
 	       range.row0, range.rowi, range.col0, range.coli);
 
 
@@ -6154,12 +6120,12 @@ init_attributes (const GtkSheet *sheet, gint col, GtkSheetCellAttr *attributes)
 {
   /* DEFAULT VALUES */
   attributes->foreground = GTK_WIDGET (sheet)->style->black;
-  attributes->background = sheet->bg_color;
+  attributes->background = sheet->color[BG_COLOR];
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     {
       GdkColormap *colormap;
       colormap = gdk_colormap_get_system ();
-      attributes->background = sheet->bg_color;
+      attributes->background = sheet->color[BG_COLOR];
     }
   attributes->justification = g_sheet_column_get_justification (sheet->column_geometry, col);
   attributes->border.width = 0;

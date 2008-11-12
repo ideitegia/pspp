@@ -105,6 +105,13 @@ struct _GtkSheetHoverTitle
   gint row, column;
 };
 
+enum
+  {
+    BG_COLOR,
+    GRID_COLOR,
+    n_COLORS
+  };
+
 struct _GtkSheet
 {
   GtkBin parent;
@@ -122,9 +129,8 @@ struct _GtkSheet
   gboolean autoscroll;
   gboolean justify_entry;
 
-  /* Background colors */
-  GdkColor bg_color;
-  GdkColor grid_color;
+  /* Component colors */
+  GdkColor color[n_COLORS];
   gboolean show_grid;
 
   /* allocation rectangle after the container_border_width
@@ -298,13 +304,6 @@ gboolean gtk_sheet_autoscroll	  (GtkSheet *sheet);
 void gtk_sheet_set_justify_entry  (GtkSheet *sheet, gboolean justify);
 
 gboolean gtk_sheet_justify_entry  (GtkSheet *sheet);
-
-/* Background colors */
-void gtk_sheet_set_background	  (GtkSheet *sheet,
-					 GdkColor *bg_color);
-
-void gtk_sheet_set_grid		  (GtkSheet *sheet,
-					 GdkColor *grid_color);
 
 void gtk_sheet_show_grid	  (GtkSheet *sheet,
 					 gboolean show);
