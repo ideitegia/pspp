@@ -1989,13 +1989,14 @@ gtk_sheet_style_set (GtkWidget *widget,
 }
 
 static void
-gtk_sheet_realize (GtkWidget * widget)
+gtk_sheet_realize (GtkWidget *widget)
 {
   GtkSheet *sheet;
   GdkWindowAttr attributes;
   gint attributes_mask;
   GdkGCValues values, auxvalues;
   GdkColormap *colormap;
+  GdkDisplay *display;
 
   g_return_if_fail (widget != NULL);
   g_return_if_fail (GTK_IS_SHEET (widget));
@@ -2005,6 +2006,7 @@ gtk_sheet_realize (GtkWidget * widget)
   GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
 
   colormap = gtk_widget_get_colormap (widget);
+  display = gtk_widget_get_display (widget);
 
   attributes.window_type = GDK_WINDOW_CHILD;
   attributes.x = widget->allocation.x;
@@ -2028,7 +2030,7 @@ gtk_sheet_realize (GtkWidget * widget)
   attributes_mask = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP |
     GDK_WA_CURSOR;
 
-  attributes.cursor = gdk_cursor_new (GDK_TOP_LEFT_ARROW);
+  attributes.cursor = gdk_cursor_new_for_display (display, GDK_TOP_LEFT_ARROW);
 
   /* main window */
   widget->window = gdk_window_new (gtk_widget_get_parent_window (widget), &attributes, attributes_mask);
@@ -2073,7 +2075,7 @@ gtk_sheet_realize (GtkWidget * widget)
 			    GTK_STATE_NORMAL);
 
   /* sheet - window */
-  attributes.cursor = gdk_cursor_new (GDK_PLUS);
+  attributes.cursor = gdk_cursor_new_for_display (display, GDK_PLUS);
 
   attributes.x = 0;
   attributes.y = 0;
@@ -2121,7 +2123,7 @@ gtk_sheet_realize (GtkWidget * widget)
   gtk_widget_set_parent (sheet->button, GTK_WIDGET (sheet));
 
 
-  sheet->cursor_drag = gdk_cursor_new (GDK_PLUS);
+  sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_PLUS);
 
   if (sheet->column_titles_visible)
     gdk_window_show (sheet->column_title_window);
@@ -4406,12 +4408,15 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
   GdkCursorType new_cursor;
   gint x, y;
   gint row, column;
+  GdkDisplay *display;
 
   g_return_val_if_fail (widget != NULL, FALSE);
   g_return_val_if_fail (GTK_IS_SHEET (widget), FALSE);
   g_return_val_if_fail (event != NULL, FALSE);
 
   sheet = GTK_SHEET (widget);
+
+  display = gtk_widget_get_display (widget);
 
   /* selections on the sheet */
   x = event->x;
@@ -4449,7 +4454,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	  if (new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new (GDK_SB_H_DOUBLE_ARROW);
+	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_SB_H_DOUBLE_ARROW);
 	      gdk_window_set_cursor (sheet->column_title_window,
 				     sheet->cursor_drag);
 	    }
@@ -4461,7 +4466,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	      new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new (GDK_TOP_LEFT_ARROW);
+	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_TOP_LEFT_ARROW);
 	      gdk_window_set_cursor (sheet->column_title_window,
 				     sheet->cursor_drag);
 	    }
@@ -4477,7 +4482,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	  if (new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new (GDK_SB_V_DOUBLE_ARROW);
+	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_SB_V_DOUBLE_ARROW);
 	      gdk_window_set_cursor (sheet->row_title_window, sheet->cursor_drag);
 	    }
 	}
@@ -4488,7 +4493,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	      new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new (GDK_TOP_LEFT_ARROW);
+	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_TOP_LEFT_ARROW);
 	      gdk_window_set_cursor (sheet->row_title_window, sheet->cursor_drag);
 	    }
 	}
@@ -4503,7 +4508,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
        new_cursor != sheet->cursor_drag->type)
     {
       gdk_cursor_unref (sheet->cursor_drag);
-      sheet->cursor_drag = gdk_cursor_new (GDK_PLUS);
+      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_PLUS);
       gdk_window_set_cursor (sheet->sheet_window, sheet->cursor_drag);
     }
 
@@ -4516,7 +4521,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
        new_cursor != sheet->cursor_drag->type)
     {
       gdk_cursor_unref (sheet->cursor_drag);
-      sheet->cursor_drag = gdk_cursor_new (GDK_TOP_LEFT_ARROW);
+      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_TOP_LEFT_ARROW);
       gdk_window_set_cursor (sheet->sheet_window, sheet->cursor_drag);
     }
 
@@ -4529,7 +4534,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
        new_cursor != sheet->cursor_drag->type)
     {
       gdk_cursor_unref (sheet->cursor_drag);
-      sheet->cursor_drag = gdk_cursor_new (GDK_SIZING);
+      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_SIZING);
       gdk_window_set_cursor (sheet->sheet_window, sheet->cursor_drag);
     }
 
