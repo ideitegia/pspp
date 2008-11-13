@@ -566,7 +566,6 @@ datum_entry_activate (GtkEntry *entry, gpointer data)
   psppire_data_store_set_string (de->data_store, text, row, column);
 }
 
-static gboolean on_data_sheet_activate (GtkWidget *sheet, gint i, gint j, PsppireDataEditor *de);
 static void on_activate (PsppireDataEditor *de);
 static void on_deactivate (PsppireDataEditor *de);
 static gboolean on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p, gint pagenum, gpointer data);
@@ -662,8 +661,6 @@ init_data_sheet (PsppireDataEditor *de)
 static void
 psppire_data_editor_init (PsppireDataEditor *de)
 {
-  int i;
-
   GtkWidget *hbox = gtk_hbox_new (FALSE, 0);
   GtkWidget *sw_vs = gtk_scrolled_window_new (NULL, NULL);
 
@@ -727,11 +724,6 @@ psppire_data_editor_init (PsppireDataEditor *de)
   g_signal_connect_swapped (de->data_sheet[0], "activate",
 			    G_CALLBACK (on_activate),
 			    de);
-
-  for (i = 0 ; i < 4 ; ++i )
-    g_signal_connect (de->data_sheet[i], "activate",
-			      G_CALLBACK (on_data_sheet_activate),
-			      de);
 
   g_signal_connect_swapped (de->data_sheet[0], "deactivate",
 			    G_CALLBACK (on_deactivate),
@@ -1133,25 +1125,6 @@ emit_selected_signal (PsppireDataEditor *de)
   g_signal_emit (de, data_editor_signals[DATA_SELECTION_CHANGED], 0, data_selected);
 }
 
-static gboolean
-on_data_sheet_activate (GtkWidget *sheet, gint row, gint col, PsppireDataEditor *de)
-{
-  gint i;
-
-  for ( i = 0 ; i < 4 ; ++i )
-    {
-      gint current_row, current_col;
-      if (de->data_sheet[i] == sheet) continue;
-
-      gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &current_row, &current_col);
-
-      if ( row == current_row  && current_col == col ) continue;
-
-      gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet[i]), row, col);
-    }
-
-  return TRUE;
-}
 
 static void
 on_activate (PsppireDataEditor *de)
