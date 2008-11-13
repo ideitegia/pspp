@@ -4912,46 +4912,60 @@ gtk_sheet_key_press (GtkWidget *widget,
 
   GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 
-
   switch (key->keyval)
     {
     case GDK_Right:
-      /* 
-      gtk_adjustment_set_value (sheet->hadjustment,
-				sheet->hadjustment->value +
-				sheet->hadjustment->step_increment);
-      */
-
       gtk_sheet_activate_cell (sheet,
 			       sheet->active_cell.row,
 			       sheet->active_cell.col + 1);
+
+      if ( sheet->active_cell.col >= max_visible_column (sheet))
+	{
+	  glong hpos  =
+	    g_sheet_column_start_pixel (sheet->column_geometry,
+					sheet->active_cell.col + 1);
+	  hpos -= sheet->hadjustment->page_size;
+
+	  gtk_adjustment_set_value (sheet->hadjustment,
+				    hpos);
+	}
       break;
     case GDK_Left:
       gtk_sheet_activate_cell (sheet,
 			       sheet->active_cell.row,
 			       sheet->active_cell.col - 1);
+
+      if ( sheet->active_cell.col <= min_visible_column (sheet))
+	{
+	  glong hpos  =
+	    g_sheet_column_start_pixel (sheet->column_geometry,
+					sheet->active_cell.col);
+
+	  gtk_adjustment_set_value (sheet->hadjustment,
+				    hpos);
+	}
+
       break;
 
     case GDK_Down:
-      gtk_adjustment_set_value (sheet->vadjustment,
-				sheet->vadjustment->value +
-				sheet->vadjustment->step_increment);
-
       gtk_sheet_activate_cell (sheet,
 			       sheet->active_cell.row + ROWS_PER_STEP,
 			       sheet->active_cell.col);
 
-
+      if ( sheet->active_cell.row >= max_visible_row (sheet))
+	gtk_adjustment_set_value (sheet->vadjustment,
+				  sheet->vadjustment->value +
+				  sheet->vadjustment->step_increment);
       break;
     case GDK_Up:
-      gtk_adjustment_set_value (sheet->vadjustment,
-				sheet->vadjustment->value -
-				sheet->vadjustment->step_increment);
-
       gtk_sheet_activate_cell (sheet,
 			       sheet->active_cell.row - ROWS_PER_STEP,
 			       sheet->active_cell.col);
 
+      if ( sheet->active_cell.row < min_visible_row (sheet))
+	gtk_adjustment_set_value (sheet->vadjustment,
+				  sheet->vadjustment->value -
+				  sheet->vadjustment->step_increment);
       break;
 
     case GDK_Page_Down:
@@ -4961,8 +4975,36 @@ gtk_sheet_key_press (GtkWidget *widget,
       page_vertical (sheet, GTK_SCROLL_PAGE_UP);
       break;
 
+    case GDK_Home:
+      gtk_adjustment_set_value (sheet->vadjustment,
+				sheet->vadjustment->lower);
+
+      gtk_sheet_activate_cell (sheet,  0,
+			       sheet->active_cell.col);
+
+      break;
+
+    case GDK_End:
+      gtk_adjustment_set_value (sheet->vadjustment,
+				sheet->vadjustment->upper -
+				sheet->vadjustment->page_size -
+				sheet->vadjustment->page_increment);
+
+      /*
+	gtk_sheet_activate_cell (sheet,
+	g_sheet_row_get_row_count (sheet->row_geometry) - 1,
+	sheet->active_cell.col);
+      */
+
+      break;
+    case GDK_Tab:
+      break;
+    case GDK_Return:
+      g_print ("Enter\n");
+      break;
 
     default:
+      return FALSE;
       break;
     }
 
@@ -5704,15 +5746,6 @@ adjust_scrollbars (GtkSheet *sheet)
 
       sheet->vadjustment->lower = 0;
       sheet->vadjustment->page_size = sheet->sheet_window_height;
-#if 0
-      {
-	GtkAdjustment *adj = sheet->vadjustment;
-	g_print ("Lower: %g; Upper: %g\n", adj->lower, adj->upper);
-	g_print ("Step: %g; Page %g\n", adj->step_increment,
-		 adj->page_increment);
-	g_print ("Current: %g\n", adj->value);
-      }
-#endif
 
       g_signal_emit_by_name (sheet->vadjustment, "changed");
     }
