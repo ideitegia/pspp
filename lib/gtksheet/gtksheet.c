@@ -96,11 +96,17 @@ static void gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column);
 
 static void gtk_sheet_row_title_button_draw (GtkSheet *sheet, gint row);
 
+static void gtk_sheet_set_row_height (GtkSheet * sheet,
+			  gint row,
+				      guint height);
 
 static gboolean gtk_sheet_cell_empty (const GtkSheet *, gint, gint);
 
 static void destroy_hover_window (GtkSheetHoverTitle *);
 static GtkSheetHoverTitle *create_hover_window (void);
+
+static GtkStateType gtk_sheet_cell_get_state (GtkSheet *sheet, gint row, gint col);
+
 
 static inline  void
 dispose_string (const GtkSheet *sheet, gchar *text)
@@ -138,23 +144,6 @@ default_row_height (const GtkSheet *sheet)
 }
 
 static
-guint DEFAULT_FONT_ASCENT (GtkWidget *widget)
-{
-  if (!widget->style->font_desc) return 12;
-  else
-    {
-      PangoContext *context = gtk_widget_get_pango_context (widget);
-      PangoFontMetrics *metrics =
-	pango_context_get_metrics (context,
-				   widget->style->font_desc,
-				   pango_context_get_language (context));
-      guint val = pango_font_metrics_get_ascent (metrics);
-      pango_font_metrics_unref (metrics);
-      return PANGO_PIXELS (val);
-    }
-}
-
-static
 guint STRING_WIDTH (GtkWidget *widget,
 		    const PangoFontDescription *font, const gchar *text)
 {
@@ -169,24 +158,6 @@ guint STRING_WIDTH (GtkWidget *widget,
   g_object_unref (layout);
   return PANGO_PIXELS (rect.width);
 }
-
-static
-guint DEFAULT_FONT_DESCENT (GtkWidget *widget)
-{
-  if (!widget->style->font_desc) return 12;
-  else
-    {
-      PangoContext *context = gtk_widget_get_pango_context (widget);
-      PangoFontMetrics *metrics =
-	pango_context_get_metrics (context,
-				   widget->style->font_desc,
-				   pango_context_get_language (context));
-      guint val = pango_font_metrics_get_descent (metrics);
-      pango_font_metrics_unref (metrics);
-      return PANGO_PIXELS (val);
-    }
-}
-
 
 /* Return the row containing pixel Y */
 static gint
@@ -203,22 +174,16 @@ yyy_row_ypixel_to_row (const GtkSheet *sheet, gint y)
 static inline glong
 min_visible_row (const GtkSheet *sheet)
 {
-  glong row = 
-    yyy_row_ypixel_to_row (sheet, sheet->vadjustment->value);
-
-  return row;
+  return yyy_row_ypixel_to_row (sheet, sheet->vadjustment->value);
 }
 
 
 static inline glong
 max_visible_row (const GtkSheet *sheet)
 {
-  glong row = 
-    yyy_row_ypixel_to_row (sheet,
+  return yyy_row_ypixel_to_row (sheet,
 			   sheet->vadjustment->value +
 			   sheet->vadjustment->page_size);
-
-  return row;
 }
 
 
@@ -2842,7 +2807,7 @@ gtk_sheet_cell_get_text (const GtkSheet *sheet, gint row, gint col)
 }
 
 
-GtkStateType
+static GtkStateType
 gtk_sheet_cell_get_state (GtkSheet *sheet, gint row, gint col)
 {
   gint state;
@@ -5915,7 +5880,7 @@ gtk_sheet_set_column_width (GtkSheet * sheet,
 
 
 
-void
+static void
 gtk_sheet_set_row_height (GtkSheet * sheet,
 			  gint row,
 			  guint height)
