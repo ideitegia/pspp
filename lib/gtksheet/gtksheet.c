@@ -1411,24 +1411,6 @@ gtk_sheet_set_selection_mode (GtkSheet *sheet, gint mode)
   sheet->selection_mode = mode;
 }
 
-void
-gtk_sheet_set_autoresize (GtkSheet *sheet, gboolean autoresize)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  sheet->autoresize = autoresize;
-}
-
-gboolean
-gtk_sheet_autoresize (GtkSheet *sheet)
-{
-  g_return_val_if_fail (sheet != NULL, FALSE);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
-
-  return sheet->autoresize;
-}
-
 static void
 gtk_sheet_set_column_width (GtkSheet * sheet,
 			    gint column,
@@ -2741,16 +2723,7 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
       range.col0 = min_visible_column (sheet);
       range.coli = max_visible_column (sheet);
 
-      if (gtk_sheet_autoresize (sheet) &&
-	  text_width > g_sheet_column_get_width (sheet->column_geometry, col) -
-	  2 * COLUMN_TITLES_HEIGHT- attributes.border.width)
-	{
-	  gtk_sheet_set_column_width (sheet, col, text_width + 2 * COLUMN_TITLES_HEIGHT
-				      + attributes.border.width);
-	  GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_REDRAW_PENDING);
-	}
-      else
-	gtk_sheet_range_draw (sheet, &range);
+      gtk_sheet_range_draw (sheet, &range);
     }
 
   if ( changed )
@@ -6035,37 +6008,6 @@ init_attributes (const GtkSheet *sheet, gint col, GtkSheetCellAttr *attributes)
   attributes->font_desc = GTK_WIDGET (sheet)->style->font_desc;
 }
 
-static void
-label_size_request (GtkSheet *sheet, gchar *label, GtkRequisition *req)
-{
-  gchar *words;
-  gchar word[1000];
-  gint n = 0;
-  gint row_height = default_row_height (sheet) - 2 * COLUMN_TITLES_HEIGHT + 2;
-
-  req->height = 0;
-  req->width = 0;
-  words = label;
-
-  while (words && *words != '\0')
-    {
-      if (*words == '\n' || * (words + 1) == '\0')
-	{
-	  req->height += row_height;
-
-	  word[n] = '\0';
-	  req->width = MAX (req->width, STRING_WIDTH (GTK_WIDGET (sheet), GTK_WIDGET (sheet)->style->font_desc, word));
-	  n = 0;
-	}
-      else
-	{
-	  word[n++] = *words;
-	}
-      words++;
-    }
-
-  if (n > 0) req->height -= 2;
-}
 
 static void
 gtk_sheet_button_size_request	 (GtkSheet *sheet,
@@ -6075,17 +6017,8 @@ gtk_sheet_button_size_request	 (GtkSheet *sheet,
   GtkRequisition requisition;
   GtkRequisition label_requisition;
 
-  if (gtk_sheet_autoresize (sheet) && button->label && strlen (button->label) > 0)
-    {
-      label_size_request (sheet, button->label, &label_requisition);
-      label_requisition.width += 2 * COLUMN_TITLES_HEIGHT;
-      label_requisition.height += 2 * COLUMN_TITLES_HEIGHT;
-    }
-  else
-    {
-      label_requisition.height = default_row_height (sheet);
-      label_requisition.width = COLUMN_MIN_WIDTH;
-    }
+  label_requisition.height = default_row_height (sheet);
+  label_requisition.width = COLUMN_MIN_WIDTH;
 
   requisition.height = default_row_height (sheet);
   requisition.width = COLUMN_MIN_WIDTH;

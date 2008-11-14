@@ -121,7 +121,6 @@ struct _GtkSheet
   GSheetModel *model;
 
   GtkSelectionMode selection_mode;
-  gboolean autoresize;
 
   /* Component colors */
   GdkColor color[n_COLORS];
@@ -346,8 +345,6 @@ void gtk_sheet_row_set_sensitivity      (GtkSheet *sheet,
 
 /* set sensitivity for all row buttons */
 void gtk_sheet_rows_set_sensitivity	(GtkSheet *sheet, gboolean sensitive);
-void gtk_sheet_rows_set_resizable	(GtkSheet *sheet, gboolean resizable);
-gboolean gtk_sheet_rows_resizable	(GtkSheet *sheet);
 
 /* set row visibility. The default value is TRUE. If FALSE, the
  * row is hidden */
