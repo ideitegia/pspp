@@ -251,12 +251,12 @@ change_measure (GtkComboBox *cb,
 }
 
 
-
+/* Moves the focus to a new cell.
+   Returns TRUE iff the move should be disallowed */
 static gboolean
 traverse_cell_callback (GtkSheet *sheet,
 			gint row, gint column,
-			gint *new_row, gint *new_column
-			)
+			gint *new_row, gint *new_column)
 {
   PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (sheet);
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
@@ -264,7 +264,7 @@ traverse_cell_callback (GtkSheet *sheet,
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
 
   if (*new_row >= n_vars && !var_sheet->may_create_vars)
-    return FALSE;
+    return TRUE;
 
   if ( row == n_vars && *new_row >= n_vars)
     {
@@ -273,11 +273,11 @@ traverse_cell_callback (GtkSheet *sheet,
       const gchar *name = gtk_entry_get_text (entry);
 
       if (! psppire_dict_check_name (var_store->dict, name, TRUE))
-	return FALSE;
+	return TRUE;
 
       psppire_dict_insert_variable (var_store->dict, row, name);
 
-      return TRUE;
+      return FALSE;
     }
 
   /* If the destination cell is outside the current  variables, then
@@ -291,9 +291,8 @@ traverse_cell_callback (GtkSheet *sheet,
 	psppire_dict_insert_variable (var_store->dict, i, NULL);
     }
 
-  return TRUE;
+  return FALSE;
 }
-
 
 
 

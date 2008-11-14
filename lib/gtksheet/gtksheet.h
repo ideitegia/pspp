@@ -69,10 +69,6 @@ enum
 
 
 
-#define GTK_SHEET_AUTORESIZE(sheet)      gtk_sheet_autoresize (sheet)
-#define GTK_SHEET_AUTO_SCROLL(sheet)     gtk_sheet_autoscroll (sheet)
-#define GTK_SHEET_JUSTIFY_ENTRY(sheet)   gtk_sheet_justify_entry (sheet)
-
 
 typedef struct _GtkSheetClass GtkSheetClass;
 typedef struct _GtkSheetCellAttr     GtkSheetCellAttr;
@@ -126,8 +122,6 @@ struct _GtkSheet
 
   GtkSelectionMode selection_mode;
   gboolean autoresize;
-  gboolean autoscroll;
-  gboolean justify_entry;
 
   /* Component colors */
   GdkColor color[n_COLORS];
@@ -293,17 +287,6 @@ void gtk_sheet_get_selected_range (GtkSheet *sheet,
 
 void gtk_sheet_set_selection_mode (GtkSheet *sheet, gint mode);
 
-void gtk_sheet_set_autoresize	  (GtkSheet *sheet, gboolean autoresize);
-
-gboolean gtk_sheet_autoresize	  (GtkSheet *sheet);
-
-void gtk_sheet_set_autoscroll	  (GtkSheet *sheet, gboolean autoscroll);
-
-gboolean gtk_sheet_autoscroll	  (GtkSheet *sheet);
-
-void gtk_sheet_set_justify_entry  (GtkSheet *sheet, gboolean justify);
-
-gboolean gtk_sheet_justify_entry  (GtkSheet *sheet);
 
 void gtk_sheet_show_grid	  (GtkSheet *sheet,
 					 gboolean show);
