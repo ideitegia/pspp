@@ -36,21 +36,7 @@
 
 G_BEGIN_DECLS
 
-
-typedef enum
-{
-  GTK_SHEET_FOREGROUND,
-  GTK_SHEET_BACKGROUND,
-  GTK_SHEET_FONT,
-  GTK_SHEET_JUSTIFICATION,
-  GTK_SHEET_BORDER,
-  GTK_SHEET_BORDER_COLOR,
-  GTK_SHEET_IS_EDITABLE,
-  GTK_SHEET_IS_VISIBLE
-} GtkSheetAttrType;
-
 /* sheet->state */
-
 enum
 {
   GTK_SHEET_NORMAL,
@@ -66,8 +52,6 @@ enum
 #define GTK_SHEET(obj)          GTK_CHECK_CAST (obj, gtk_sheet_get_type (), GtkSheet)
 #define GTK_SHEET_CLASS(klass)  GTK_CHECK_CLASS_CAST (klass, gtk_sheet_get_type (), GtkSheetClass)
 #define GTK_IS_SHEET(obj)       GTK_CHECK_TYPE (obj, gtk_sheet_get_type ())
-
-
 
 
 typedef struct _GtkSheetClass GtkSheetClass;
@@ -335,13 +319,6 @@ void gtk_sheet_get_active_cell (GtkSheet *sheet,
 /* get cell contents */
 gchar *gtk_sheet_cell_get_text (const GtkSheet *sheet, gint row, gint col);
 
-/* clear cell contents */
-void gtk_sheet_cell_clear      (GtkSheet *sheet, gint row, gint col);
-
-/* clear range contents. If range==NULL the whole sheet will be cleared */
-void gtk_sheet_range_clear	(GtkSheet *sheet,
-					 const GtkSheetRange *range);
-
 
 /* get cell attributes of the given cell */
 /* TRUE means that the cell is currently allocated */
@@ -349,7 +326,7 @@ gboolean gtk_sheet_get_attributes       (const GtkSheet *sheet,
 					gint row, gint col,
 					GtkSheetCellAttr *attributes);
 
-void           gtk_sheet_set_model (GtkSheet *sheet,
+void gtk_sheet_set_model (GtkSheet *sheet,
 				   GSheetModel *model);
 
 GSheetModel * gtk_sheet_get_model (const GtkSheet *sheet);

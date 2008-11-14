@@ -96,8 +96,8 @@ static void gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column);
 
 static void gtk_sheet_row_title_button_draw (GtkSheet *sheet, gint row);
 
-static void gtk_sheet_set_row_height (GtkSheet * sheet,
-			  gint row,
+static void gtk_sheet_set_row_height (GtkSheet *sheet,
+				      gint row,
 				      guint height);
 
 static gboolean gtk_sheet_cell_empty (const GtkSheet *, gint, gint);
@@ -522,9 +522,6 @@ static void init_attributes			 (const GtkSheet *sheet,
 
 
 /* Memory allocation routines */
-static void gtk_sheet_real_range_clear 		 (GtkSheet *sheet,
-						  const GtkSheetRange *range);
-
 static void gtk_sheet_real_cell_clear 		 (GtkSheet *sheet,
 						  gint row,
 						  gint column);
@@ -1355,27 +1352,6 @@ gtk_sheet_get_columns_count (GtkSheet *sheet)
   return g_sheet_column_get_column_count (sheet->column_geometry);
 }
 
-guint
-gtk_sheet_get_rows_count (GtkSheet *sheet)
-{
-  g_return_val_if_fail (sheet != NULL, 0);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), 0);
-
-  return g_sheet_row_get_row_count (sheet->row_geometry);
-}
-
-void
-gtk_sheet_set_selection_mode (GtkSheet *sheet, gint mode)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  if (GTK_WIDGET_REALIZED (sheet))
-    gtk_sheet_real_unselect_range (sheet, NULL);
-
-  sheet->selection_mode = mode;
-}
-
 static void
 gtk_sheet_set_column_width (GtkSheet * sheet,
 			    gint column,
@@ -1417,39 +1393,6 @@ gtk_sheet_autoresize_column (GtkSheet *sheet, gint column)
       gtk_sheet_set_column_width (sheet, column, text_width);
       GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_REDRAW_PENDING);
     }
-}
-
-
-
-void
-gtk_sheet_set_row_titles_width (GtkSheet *sheet, guint width)
-{
-  if (width < COLUMN_MIN_WIDTH) return;
-
-  sheet->row_title_area.width = width;
-
-  adjust_scrollbars (sheet);
-
-  if (sheet->hadjustment)
-    g_signal_emit_by_name (sheet->hadjustment,
-			   "value_changed");
-  size_allocate_global_button (sheet);
-}
-
-void
-gtk_sheet_set_column_titles_height (GtkSheet *sheet, guint height)
-{
-  if (height < default_row_height (sheet))
-    return;
-
-  sheet->column_title_area.height = height;
-
-  adjust_scrollbars (sheet);
-
-  if (sheet->vadjustment)
-    g_signal_emit_by_name (sheet->vadjustment,
-			   "value_changed");
-  size_allocate_global_button (sheet);
 }
 
 void
@@ -1655,16 +1598,7 @@ gtk_sheet_moveto (GtkSheet *sheet,
 }
 
 
-void
-gtk_sheet_columns_set_resizable (GtkSheet *sheet, gboolean resizable)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  sheet->columns_resizable = resizable;
-}
-
-gboolean
+static gboolean
 gtk_sheet_columns_resizable (GtkSheet *sheet)
 {
   g_return_val_if_fail (sheet != NULL, FALSE);
@@ -1674,16 +1608,7 @@ gtk_sheet_columns_resizable (GtkSheet *sheet)
 }
 
 
-void
-gtk_sheet_rows_set_resizable (GtkSheet *sheet, gboolean resizable)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  sheet->rows_resizable = resizable;
-}
-
-gboolean
+static gboolean
 gtk_sheet_rows_resizable (GtkSheet *sheet)
 {
   g_return_val_if_fail (sheet != NULL, FALSE);
@@ -2734,44 +2659,6 @@ gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column)
   dispose_string (sheet, old_text);
 }
 
-void
-gtk_sheet_range_clear (GtkSheet *sheet, const GtkSheetRange *range)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  gtk_sheet_real_range_clear (sheet, range);
-}
-
-static void
-gtk_sheet_real_range_clear (GtkSheet *sheet, const GtkSheetRange *range)
-{
-  gint i, j;
-  GtkSheetRange clear;
-
-  if (!range)
-    {
-      clear.row0 = 0;
-      clear.rowi = g_sheet_row_get_row_count (sheet->row_geometry) - 1;
-      clear.col0 = 0;
-      clear.coli = g_sheet_column_get_column_count (sheet->column_geometry) - 1;
-    }
-  else
-    clear=*range;
-
-  clear.row0 = MAX (clear.row0, 0);
-  clear.col0 = MAX (clear.col0, 0);
-  clear.rowi = MIN (clear.rowi, g_sheet_row_get_row_count (sheet->row_geometry) - 1 );
-  clear.coli = MIN (clear.coli, g_sheet_column_get_column_count (sheet->column_geometry) - 1 );
-
-  for (i = clear.row0; i <= clear.rowi; i++)
-    for (j = clear.col0; j <= clear.coli; j++)
-      {
-	gtk_sheet_real_cell_clear (sheet, i, j);
-      }
-
-  gtk_sheet_range_draw (sheet, NULL);
-}
 
 
 static gboolean
