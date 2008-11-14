@@ -39,3 +39,4 @@ gitlog-to-changelog
 *.dirstamp
 *.deps
 *.la
+*.libs
