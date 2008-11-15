@@ -145,14 +145,9 @@ struct _GtkSheet
   /* selected range */
   GtkSheetRange range;
 
-  /*the scrolling window and it's height and width to
+  /* the scrolling window and its height and width to
    * make things a little speedier */
   GdkWindow *sheet_window;
-  guint sheet_window_width;
-  guint sheet_window_height;
-
-  /* sheet backing pixmap */
-  GdkPixmap *pixmap;
 
   /* border shadow style */
   GtkShadowType shadow_type;
