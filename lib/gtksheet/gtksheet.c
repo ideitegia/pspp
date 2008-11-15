@@ -2403,18 +2403,23 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
       drawing_range.coli = MIN (range->coli, max_visible_column (sheet));
 
       x = g_sheet_column_start_pixel (sheet->column_geometry,
-				      drawing_range.row0);
+				      drawing_range.col0);
 
       y = g_sheet_row_start_pixel (sheet->row_geometry,
-				   drawing_range.col0);
+				   drawing_range.row0);
 
 
       width = g_sheet_column_start_pixel (sheet->column_geometry,
-					  drawing_range.rowi + 1) - x;
-
+					  drawing_range.coli + 1) - x;
 
       height = g_sheet_row_start_pixel (sheet->row_geometry,
 				   drawing_range.rowi + 1) - y;
+
+      if ( sheet->column_titles_visible)
+	y += sheet->column_title_area.height;
+
+      if ( sheet->row_titles_visible)
+	x += sheet->row_title_area.width;
     }
 
   gdk_draw_rectangle (sheet->sheet_window,
@@ -2541,27 +2546,21 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
 		    const gchar *text)
 {
   GSheetModel *model ;
-  gboolean changed ;
+  gboolean changed = FALSE;
   gchar *old_text ;
-
-  GtkSheetRange range;
-  gint text_width;
-  GtkSheetCellAttr attributes;
 
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
-  if (col >= g_sheet_column_get_column_count (sheet->column_geometry) || row >= g_sheet_row_get_row_count (sheet->row_geometry)) return;
+
+  if (col >= g_sheet_column_get_column_count (sheet->column_geometry)
+      || row >= g_sheet_row_get_row_count (sheet->row_geometry))
+    return;
+
   if (col < 0 || row < 0) return;
-
-  gtk_sheet_get_attributes (sheet, row, col, &attributes);
-
-  attributes.justification = justification;
 
   model = gtk_sheet_get_model (sheet);
 
   old_text = g_sheet_model_get_string (model, row, col);
-
-  changed = FALSE;
 
   if (0 != safe_strcmp (old_text, text))
     changed = g_sheet_model_set_string (model, text, row, col);
@@ -2569,29 +2568,8 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
   if ( g_sheet_model_free_strings (model))
     g_free (old_text);
 
-
-  if (changed && attributes.is_visible)
-    {
-      gchar *s = gtk_sheet_cell_get_text (sheet, row, col);
-      text_width = 0;
-      if (s && strlen (s) > 0)
-	{
-	  text_width = STRING_WIDTH (GTK_WIDGET (sheet),
-				     attributes.font_desc, text);
-	}
-      dispose_string (sheet, s);
-
-      range.row0 = row;
-      range.rowi = row;
-      range.col0 = min_visible_column (sheet);
-      range.coli = max_visible_column (sheet);
-
-      gtk_sheet_range_draw (sheet, &range);
-    }
-
   if ( changed )
     g_signal_emit (sheet, sheet_signals[CHANGED], 0, row, col);
-
 }
 
 
@@ -2877,7 +2855,7 @@ gtk_sheet_deactivate_cell (GtkSheet *sheet)
 
   GtkSheetRange r;
   r.col0 = r.coli = sheet->active_cell.col;
-  r.row0 = r.rowi = sheet->active_cell.row; 
+  r.row0 = r.rowi = sheet->active_cell.row;
   gtk_sheet_range_draw (sheet, &r);
   */
 
