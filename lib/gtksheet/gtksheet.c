@@ -2711,12 +2711,16 @@ gtk_sheet_get_pixel_info (GtkSheet *sheet,
 
   y += sheet->vadjustment->value;
 
-  if ( y < 0)
-    return FALSE;
-
-  trow = yyy_row_ypixel_to_row (sheet, y);
-  if (trow > g_sheet_row_get_row_count (sheet->row_geometry))
-    return FALSE;
+  if ( y < 0 && sheet->column_titles_visible)
+    {
+      trow = -1;
+    }
+  else
+    {
+      trow = yyy_row_ypixel_to_row (sheet, y);
+      if (trow > g_sheet_row_get_row_count (sheet->row_geometry))
+	return FALSE;
+    }
 
   *row = trow;
 
@@ -2725,9 +2729,16 @@ gtk_sheet_get_pixel_info (GtkSheet *sheet,
 
   x += sheet->hadjustment->value;
 
-  tcol = column_from_xpixel (sheet, x);
-  if (tcol > g_sheet_column_get_column_count (sheet->column_geometry))
-    return FALSE;
+  if ( x < 0 && sheet->row_titles_visible)
+    {
+      tcol = -1;
+    }
+  else
+    {
+      tcol = column_from_xpixel (sheet, x);
+      if (tcol > g_sheet_column_get_column_count (sheet->column_geometry))
+	return FALSE;
+    }
 
   *column = tcol;
 
@@ -3548,7 +3559,8 @@ gtk_sheet_button_press (GtkWidget *widget,
 {
   GtkSheet *sheet;
   GdkModifierType mods;
-  gint x, y, row, column;
+  gint x, y;
+  gint  row, column;
   gboolean veto;
 
   g_return_val_if_fail (widget != NULL, FALSE);
@@ -3982,6 +3994,7 @@ gtk_sheet_button_release (GtkWidget *widget,
 
 
 
+
 /* Shamelessly lifted from gtktooltips */
 static gboolean
 gtk_sheet_subtitle_paint_window (GtkWidget *tip_window)
@@ -4119,7 +4132,7 @@ motion_timeout_callback (gpointer data)
 
 	  text = g_sheet_column_get_subtitle (col_geo, column);
 
-	  show_subtitle (sheet, -1, column, text );
+	  show_subtitle (sheet, -1, column, text);
 
 	  g_free (text);
 	}
@@ -4165,7 +4178,8 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 
       if ( gtk_sheet_get_pixel_info (sheet, wx, wy, &row, &column) )
 	{
-	  if ( row != sheet->hover_window->row || column != sheet->hover_window->column)
+	  if ( row != sheet->hover_window->row ||
+	       column != sheet->hover_window->column)
 	    {
 	      gtk_widget_hide (sheet->hover_window->window);
 	    }
