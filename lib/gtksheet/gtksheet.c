@@ -2221,9 +2221,8 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
   GtkWidget *widget;
   GdkRectangle area;
   gint i;
-  gint text_width, text_height, y;
+  gint text_width, text_height;
   gint size, sizel, sizer;
-  GdkGC *fg_gc, *bg_gc;
   GtkSheetCellAttr attributes;
   PangoLayout *layout;
   PangoRectangle rect;
@@ -2244,8 +2243,12 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
   if (!label)
     return;
 
-  if (row < 0 || row >= g_sheet_row_get_row_count (sheet->row_geometry)) return;
-  if (col < 0 || col >= g_sheet_column_get_column_count (sheet->column_geometry)) return;
+  if (row < 0 || row >= g_sheet_row_get_row_count (sheet->row_geometry))
+    return;
+
+  if (col < 0 ||
+      col >= g_sheet_column_get_column_count (sheet->column_geometry))
+    return;
 
   widget = GTK_WIDGET (sheet);
 
@@ -2255,18 +2258,7 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
   gdk_gc_set_foreground (sheet->fg_gc, &attributes.foreground);
   gdk_gc_set_foreground (sheet->bg_gc, &attributes.background);
 
-  fg_gc = sheet->fg_gc;
-  bg_gc = sheet->bg_gc;
-
-  area.x = g_sheet_column_start_pixel (sheet->column_geometry, col);
-  area.x -= sheet->hadjustment->value;
-
-  area.y = g_sheet_row_start_pixel (sheet->row_geometry, row);
-  area.y -= sheet->vadjustment->value;
-
-  area.width = g_sheet_column_get_width (sheet->column_geometry, col);
-  area.height = g_sheet_row_get_height (sheet->row_geometry, row);
-
+  rectangle_from_cell (sheet, row, col, &area);
 
   layout = gtk_widget_create_pango_layout (GTK_WIDGET (sheet), label);
   dispose_string (sheet, label);
@@ -2301,7 +2293,6 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
 
   text_width = rect.width;
   text_height = rect.height;
-  y = area.y + y_pos - COLUMN_TITLES_HEIGHT;
 
   switch (attributes.justification)
     {
@@ -2371,20 +2362,14 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
       break;
     }
 
-  if (sheet->row_titles_visible)
-    area.x += sheet->row_title_area.width;
+  gdk_gc_set_clip_rectangle (sheet->fg_gc, &area);
 
-  if (sheet->column_titles_visible)
-    area.y += sheet->column_title_area.height;
-
-  gdk_gc_set_clip_rectangle (fg_gc, &area);
-
-  gdk_draw_layout (sheet->sheet_window, fg_gc,
+  gdk_draw_layout (sheet->sheet_window, sheet->fg_gc,
 		   area.x,
 		   area.y,
 		   layout);
 
-  gdk_gc_set_clip_rectangle (fg_gc, NULL);
+  gdk_gc_set_clip_rectangle (sheet->fg_gc, NULL);
   g_object_unref (layout);
 }
 
@@ -6012,4 +5997,3 @@ gtk_sheet_update_primary_selection (GtkSheet *sheet)
 	gtk_clipboard_clear (clipboard);
     }
 }
-
