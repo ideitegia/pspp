@@ -173,54 +173,6 @@ g_sheet_column_get_subtitle (const GSheetColumn *column, glong col)
 
 
 
-gint
-g_sheet_column_get_left_text_column (const GSheetColumn *column,
-					 glong col)
-{
-  g_return_val_if_fail (G_IS_SHEET_COLUMN (column), -1);
-
-  if  ( ! G_SHEET_COLUMN_GET_IFACE (column)->get_left_text_column)
-    return col;
-
-  return (G_SHEET_COLUMN_GET_IFACE (column)->get_left_text_column) (column, col);
-
-}
-
-gint
-g_sheet_column_get_right_text_column (const GSheetColumn *column,
-					  glong col)
-{
-  g_return_val_if_fail (G_IS_SHEET_COLUMN (column), -1);
-
-  if  ( ! G_SHEET_COLUMN_GET_IFACE (column)->get_right_text_column)
-    return col;
-
-  return (G_SHEET_COLUMN_GET_IFACE (column)->get_right_text_column) (column, col);
-
-}
-
-void
-g_sheet_column_set_left_text_column (const GSheetColumn *column,
-					 glong col, gint i)
-{
-  g_return_if_fail (G_IS_SHEET_COLUMN (column));
-
-  if  ( G_SHEET_COLUMN_GET_IFACE (column)->set_left_text_column)
-    (G_SHEET_COLUMN_GET_IFACE (column)->set_left_text_column) (column, col, i);
-
-}
-
-
-void
-g_sheet_column_set_right_text_column (const GSheetColumn *column,
-					  glong col, gint i)
-{
-  g_return_if_fail (G_IS_SHEET_COLUMN (column));
-
-  if  ( G_SHEET_COLUMN_GET_IFACE (column)->set_right_text_column)
-    (G_SHEET_COLUMN_GET_IFACE (column)->set_right_text_column) (column, col, i);
-}
-
 glong
 g_sheet_column_get_column_count (const GSheetColumn *geo)
 {

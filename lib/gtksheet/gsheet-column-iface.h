@@ -54,18 +54,6 @@ struct _GSheetColumnIface
   const GtkSheetButton * (* get_button) (const GSheetColumn *gcolumn, glong col);
   GtkJustification (* get_justification) (const GSheetColumn *gcolumn, glong col);
 
-  gint  (*get_left_text_column) (const GSheetColumn *gcolumn,
-				 glong col);
-
-  gint  (*get_right_text_column) (const GSheetColumn *gcolumn,
-				  glong col);
-
-  void (* set_left_text_column) (const GSheetColumn *gcolumn,
-				 glong col, gint i);
-
-  void (* set_right_text_column) (const GSheetColumn *gcolumn,
-				  glong col, gint i);
-
   glong  (* get_column_count) (const GSheetColumn *geo);
 
 
@@ -105,20 +93,6 @@ inline GtkSheetButton *g_sheet_column_get_button (const GSheetColumn *gcolumn,
 gchar *g_sheet_column_get_subtitle (const GSheetColumn *, glong);
 
 inline GtkJustification g_sheet_column_get_justification (const GSheetColumn *gcolumn, glong col);
-
-
-inline gint  g_sheet_column_get_left_text_column (const GSheetColumn *gcolumn,
-					glong col);
-
-inline gint  g_sheet_column_get_right_text_column (const GSheetColumn *gcolumn,
-					glong col);
-
-inline void g_sheet_column_set_left_text_column (const GSheetColumn *gcolumn,
-					glong col, gint i);
-
-
-inline void g_sheet_column_set_right_text_column (const GSheetColumn *gcolumn,
-					glong col, gint i);
 
 
 inline glong  g_sheet_column_get_column_count (const GSheetColumn *geo);

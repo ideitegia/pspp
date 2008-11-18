@@ -2220,17 +2220,14 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
 {
   GtkWidget *widget;
   GdkRectangle area;
-  gint i;
-  gint text_width, text_height;
-  gint size, sizel, sizer;
   GtkSheetCellAttr attributes;
   PangoLayout *layout;
-  PangoRectangle rect;
+  PangoRectangle text;
   PangoRectangle logical_rect;
   PangoLayoutLine *line;
   PangoFontMetrics *metrics;
   PangoContext *context = gtk_widget_get_pango_context (GTK_WIDGET (sheet));
-  gint ascent, descent, y_pos;
+  gint ascent, descent;
 
   gchar *label;
 
@@ -2264,7 +2261,7 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
   dispose_string (sheet, label);
   pango_layout_set_font_description (layout, attributes.font_desc);
 
-  pango_layout_get_pixel_extents (layout, NULL, &rect);
+  pango_layout_get_pixel_extents (layout, NULL, &text);
 
   line = pango_layout_get_lines (layout)->data;
   pango_layout_line_get_extents (line, NULL, &logical_rect);
@@ -2282,87 +2279,26 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
 
   logical_rect.height /= PANGO_SCALE;
   logical_rect.y /= PANGO_SCALE;
-  y_pos = area.height - logical_rect.height;
 
-  if (logical_rect.height > area.height)
-    y_pos = (logical_rect.height - area.height - 2 * COLUMN_TITLES_HEIGHT) / 2;
-  else if (y_pos < 0)
-    y_pos = 0;
-  else if (y_pos + logical_rect.height > area.height)
-    y_pos = area.height - logical_rect.height;
 
-  text_width = rect.width;
-  text_height = rect.height;
+  gdk_gc_set_clip_rectangle (sheet->fg_gc, &area);
 
   switch (attributes.justification)
     {
     case GTK_JUSTIFY_RIGHT:
-      size = area.width;
-      area.x +=area.width;
-      {
-	for (i = col - 1; i >= min_visible_column (sheet); i--)
-	  {
-	    if ( !gtk_sheet_cell_empty (sheet, row, i)) break;
-	    if (size >= text_width + COLUMN_TITLES_HEIGHT) break;
-	    size += g_sheet_column_get_width (sheet->column_geometry, i);
-	    g_sheet_column_set_right_text_column (sheet->column_geometry, i,
-						  MAX (col,
-						       g_sheet_column_get_right_text_column (sheet->column_geometry, i)));
-	  }
-	area.width = size;
-      }
-      area.x -= size;
+      area.x += area.width - text.width;
       break;
     case GTK_JUSTIFY_CENTER:
-      sizel = area.width / 2;
-      sizer = area.width / 2;
-      area.x += area.width / 2;
-      {
-	for (i = col + 1; i <= max_visible_column (sheet); i++)
-	  {
-	    if ( ! gtk_sheet_cell_empty (sheet, row, i)) break;
-	    if (sizer >= text_width / 2) break;
-	    sizer += g_sheet_column_get_width (sheet->column_geometry, i);
-	    g_sheet_column_set_left_text_column (sheet->column_geometry, i,
-						 MIN (
-						      col,
-						      g_sheet_column_get_left_text_column (sheet->column_geometry, i)));
-	  }
-	for (i = col - 1; i >= min_visible_column (sheet); i--)
-	  {
-	    if ( ! gtk_sheet_cell_empty (sheet, row, i)) break;
-	    if (sizel >= text_width / 2) break;
-	    sizel += g_sheet_column_get_width (sheet->column_geometry, i);
-	    g_sheet_column_set_right_text_column (sheet->column_geometry, i,
-						  MAX (col,
-						       g_sheet_column_get_right_text_column (sheet->column_geometry, i)));
-	  }
-	size = MIN (sizel, sizer);
-      }
-      area.x -= sizel;
-      area.width = sizel + sizer;
+      area.x += (area.width - text.width) / 2.0;
       break;
     case GTK_JUSTIFY_LEFT:
+      /* Do nothing */
+      break;
     default:
-      size = area.width;
-      {
-	for (i = col + 1; i <= max_visible_column (sheet); i++)
-	  {
-	    if (! gtk_sheet_cell_empty (sheet, row, i)) break;
-	    if (size >= text_width + COLUMN_TITLES_HEIGHT) break;
-	    size += g_sheet_column_get_width (sheet->column_geometry, i);
-	    g_sheet_column_set_left_text_column (sheet->column_geometry, i,
-						 MIN (
-						      col,
-						      g_sheet_column_get_left_text_column (sheet->column_geometry, i)));
-
-	  }
-	area.width = size;
-      }
+      g_critical ("Unhandled justification %d in column %d\n",
+		 attributes.justification, col);
       break;
     }
-
-  gdk_gc_set_clip_rectangle (sheet->fg_gc, &area);
 
   gdk_draw_layout (sheet->sheet_window, sheet->fg_gc,
 		   area.x,
