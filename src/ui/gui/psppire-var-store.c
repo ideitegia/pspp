@@ -239,14 +239,12 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
                                    pspec);
 }
 
+#define DISABLED_COLOR "pink"
 static void
 psppire_var_store_init (PsppireVarStore *var_store)
 {
-  GdkColormap *colormap = gdk_colormap_get_system ();
-
-  g_assert (gdk_color_parse ("gray", &var_store->disabled));
-
-  gdk_colormap_alloc_color (colormap, &var_store->disabled, FALSE, TRUE);
+  if ( ! gdk_color_parse (DISABLED_COLOR, &var_store->disabled))
+	g_critical ("Could not parse color \"%s\"", DISABLED_COLOR);
 
   var_store->dict = 0;
   var_store->trailing_rows = 40;
@@ -826,13 +824,6 @@ geometry_is_sensitive (const GSheetRow *geom, glong row)
 
   return  row < psppire_dict_get_var_cnt (vs->dict);
 }
-
-static
-gboolean always_true ()
-{
-  return TRUE;
-}
-
 
 static gchar *
 geometry_get_button_label (const GSheetRow *geom, glong unit)

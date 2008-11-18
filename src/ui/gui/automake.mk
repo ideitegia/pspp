@@ -3,7 +3,7 @@
 bin_PROGRAMS += src/ui/gui/psppire 
 
 src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall \
-	-DINSTALLDIR=\"$(bindir)\"
+	-DINSTALLDIR=\"$(bindir)\" -DGDK_MULTIHEAD_SAFE=1
 
 
 src_ui_gui_psppire_LDFLAGS = \

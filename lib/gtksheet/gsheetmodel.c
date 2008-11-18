@@ -377,9 +377,9 @@ g_sheet_model_is_visible (const GSheetModel *model,
  * @column: The column
  *
  * Returns the foreground colour of the cell at @row, @column
- * Returns: the foreground colour, or NULL on error.
+ * The color is unallocated.  It will be allocated by the viewing object.
  **/
-const GdkColor *
+GdkColor *
 g_sheet_model_get_foreground (const GSheetModel *model,
 				glong row, glong column)
 {
@@ -399,9 +399,9 @@ g_sheet_model_get_foreground (const GSheetModel *model,
  * @column: The column
  *
  * Returns the background colour of the cell at @row, @column
- * Returns: the background colour, or NULL on error.
+ * The color is unallocated.  It will be allocated by the viewing object.
  **/
-const GdkColor *
+GdkColor *
 g_sheet_model_get_background (const GSheetModel *model,
 				glong row, glong column)
 {
