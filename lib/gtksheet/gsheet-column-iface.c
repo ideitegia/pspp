@@ -36,10 +36,7 @@ enum {
 
 static guint sheet_column_signals[LAST_SIGNAL];
 
-
-
 static void g_sheet_column_base_init (gpointer g_class);
-
 
 GType
 g_sheet_column_get_type (void)
@@ -121,19 +118,6 @@ g_sheet_column_get_width (const GSheetColumn *column, glong col)
 }
 
 
-
-gboolean
-g_sheet_column_get_visibility (const GSheetColumn *column,
-					    glong col)
-{
-  g_return_val_if_fail (G_IS_SHEET_COLUMN (column), FALSE);
-
-  g_assert (G_SHEET_COLUMN_GET_IFACE (column)->get_visibility);
-
-  return (G_SHEET_COLUMN_GET_IFACE (column)->get_visibility) (column,
-								  col);
-
-}
 
 gboolean
 g_sheet_column_get_sensitivity (const GSheetColumn *column,
@@ -254,16 +238,14 @@ g_sheet_column_start_pixel (const GSheetColumn *geo, glong col)
   gint start_pixel = 0;
 
   g_return_val_if_fail (G_IS_SHEET_COLUMN (geo), -1);
-  g_return_val_if_fail (col < g_sheet_column_get_column_count (geo), -1);
+  g_return_val_if_fail (col <= g_sheet_column_get_column_count (geo), -1);
 
-  for ( i = 0 ; i < col ; ++i )
+  for (i = 0; i < col; ++i)
     {
-      if ( g_sheet_column_get_visibility (geo, i))
-	start_pixel += g_sheet_column_get_width (geo, i);
+      start_pixel += g_sheet_column_get_width (geo, i);
     }
 
   return start_pixel;
-
 }
 
 
@@ -277,7 +259,4 @@ g_sheet_column_columns_changed (GSheetColumn *geo,
   g_signal_emit (geo, sheet_column_signals[COLUMNS_CHANGED], 0,
 		 first, n_columns);
 }
-
-
-
 

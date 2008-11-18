@@ -882,7 +882,6 @@ psppire_data_store_sheet_column_init (GSheetColumnIface *iface)
   iface->get_column_count = geometry_get_column_count;
   iface->get_width = geometry_get_width;
   iface->set_width = geometry_set_width;
-  iface->get_visibility = always_true;
   iface->get_sensitivity = geometry_get_sensitivity;
   iface->get_justification = geometry_get_justification;
   iface->get_button_label = geometry_get_column_button_label;
@@ -962,7 +961,6 @@ psppire_data_store_sheet_row_init (GSheetRowIface *iface)
 
   iface->get_height = geometry_get_height;
   iface->set_height = 0;
-  iface->get_visibility = always_true;
   iface->get_sensitivity = geometry_get_row_sensitivity;
   iface->top_ypixel = geometry_get_top_ypixel;
   iface->pixel_to_row = geometry_pixel_to_row;

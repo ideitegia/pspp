@@ -41,7 +41,6 @@ extern "C" {
 
     gint width;
     gboolean is_sensitive;
-    gboolean is_visible;
   };
 
 

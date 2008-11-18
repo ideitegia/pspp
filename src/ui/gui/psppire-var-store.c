@@ -847,8 +847,7 @@ psppire_var_store_sheet_row_init (GSheetRowIface *iface)
 {
   iface->get_row_count =     geometry_get_row_count;
   iface->get_height =        geometry_get_height;
-  iface->set_height =        0;
-  iface->get_visibility =    always_true;
+  iface->set_height =        NULL;
   iface->get_sensitivity =   geometry_is_sensitive;
 
   iface->get_button_label = geometry_get_button_label;

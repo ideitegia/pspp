@@ -128,19 +128,6 @@ g_sheet_row_get_height     (const GSheetRow *row_geo,
 
 
 gboolean
-g_sheet_row_get_visibility (const GSheetRow *row_geo,
-			   glong row)
-{
-  g_return_val_if_fail (G_IS_SHEET_ROW (row_geo), FALSE);
-
-  g_assert (G_SHEET_ROW_GET_IFACE (row_geo)->get_visibility);
-
-  return (G_SHEET_ROW_GET_IFACE (row_geo)->get_visibility) (row_geo,
-								  row);
-
-}
-
-gboolean
 g_sheet_row_get_sensitivity (const GSheetRow *row_geo,
 			    glong row)
 {
@@ -150,7 +137,6 @@ g_sheet_row_get_sensitivity (const GSheetRow *row_geo,
 
   return (G_SHEET_ROW_GET_IFACE (row_geo)->get_sensitivity) (row_geo,
 							     row);
-
 }
 
 
@@ -201,6 +187,8 @@ g_sheet_row_get_row_count (const GSheetRow *geo)
  * @sheet: pointer to the sheet
  *
  * Returns the top y pixel for ROW.
+ * ROW may point to the row BELOW the last row, in which case it should
+ * return the position where it would start if it existed.
  * Instances may override this method in order to achieve time and/or memory
  * optmisation.
  *
@@ -215,15 +203,14 @@ g_sheet_row_start_pixel (const GSheetRow *geo, glong row)
 
   g_return_val_if_fail (G_IS_SHEET_ROW (geo), -1);
   g_return_val_if_fail (row >= 0, -1);
-  g_return_val_if_fail (row < g_sheet_row_get_row_count (geo), -1);
+  g_return_val_if_fail (row <= g_sheet_row_get_row_count (geo), -1);
 
   if ( G_SHEET_ROW_GET_IFACE (geo)->top_ypixel)
     return (G_SHEET_ROW_GET_IFACE (geo)->top_ypixel)(geo, row);
 
-  for ( i = 0 ; i < row ; ++i )
+  for (i = 0; i < row; ++i)
     {
-      if ( g_sheet_row_get_visibility (geo, i))
-	start_pixel += g_sheet_row_get_height (geo, i);
+      start_pixel += g_sheet_row_get_height (geo, i);
     }
 
   return start_pixel;
@@ -244,12 +231,10 @@ g_sheet_row_pixel_to_row (const GSheetRow *geo, gint pixel)
   for (i = 0; i < g_sheet_row_get_row_count (geo); ++i )
     {
       if (pixel >= cy  &&
-	  pixel <= (cy + g_sheet_row_get_height (geo, i)) &&
-	  g_sheet_row_get_visibility (geo, i))
+	  pixel <= (cy + g_sheet_row_get_height (geo, i)))
 	return i;
 
-      if (g_sheet_row_get_visibility (geo, i))
-	cy += g_sheet_row_get_height (geo, i);
+      cy += g_sheet_row_get_height (geo, i);
     }
 
   /* no match */

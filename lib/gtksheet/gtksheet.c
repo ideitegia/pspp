@@ -202,11 +202,10 @@ column_from_xpixel (const GtkSheet *sheet, gint x)
        i < g_sheet_column_get_column_count (sheet->column_geometry); i++)
     {
       if (x >= cx &&
-	  x <= (cx + g_sheet_column_get_width (sheet->column_geometry, i)) &&
-	  g_sheet_column_get_visibility (sheet->column_geometry, i))
+	  x <= (cx + g_sheet_column_get_width (sheet->column_geometry, i)))
 	return i;
-      if ( g_sheet_column_get_visibility (sheet->column_geometry, i))
-	cx += g_sheet_column_get_width (sheet->column_geometry, i);
+
+      cx += g_sheet_column_get_width (sheet->column_geometry, i);
     }
 
   /* no match */
@@ -270,7 +269,6 @@ POSSIBLE_YDRAG (const GtkSheet *sheet, gint y, gint *drag_row)
   ydrag = g_sheet_row_start_pixel (sheet->row_geometry, row) + CELL_SPACING;
   if (y <= ydrag + DRAG_WIDTH / 2 && row != 0)
     {
-      while (!g_sheet_row_get_visibility (sheet->row_geometry, row - 1) && row > 0) row--;
       *drag_row = row - 1;
       return g_sheet_row_get_sensitivity (sheet->row_geometry, row - 1);
     }
@@ -1516,8 +1514,7 @@ gtk_sheet_moveto (GtkSheet *sheet,
 	{
 	  while (min_row >= 0 && min_row > min_visible_row (sheet))
 	    {
-	      if (g_sheet_row_get_visibility (sheet->row_geometry, min_row))
-		adjust += g_sheet_row_get_height (sheet->row_geometry, min_row);
+	      adjust += g_sheet_row_get_height (sheet->row_geometry, min_row);
 
 	      if (adjust >= height)
 		{
@@ -1557,8 +1554,7 @@ gtk_sheet_moveto (GtkSheet *sheet,
 	{
 	  while (min_col >= 0 && min_col > min_visible_column (sheet))
 	    {
-	      if (g_sheet_column_get_visibility (sheet->column_geometry, min_col))
-		adjust += g_sheet_column_get_width (sheet->column_geometry, min_col);
+	      adjust += g_sheet_column_get_width (sheet->column_geometry, min_col);
 
 	      if (adjust >= width)
 		{
@@ -2151,12 +2147,6 @@ gtk_sheet_cell_draw_bg (GtkSheet *sheet, gint row, gint col)
       col >= g_sheet_column_get_column_count (sheet->column_geometry))
     return;
 
-  if (! g_sheet_column_get_visibility (sheet->column_geometry, col))
-    return;
-
-  if (! g_sheet_row_get_visibility (sheet->row_geometry, row))
-    return;
-
   gtk_sheet_get_attributes (sheet, row, col, &attributes);
 
   /* select GC for background rectangle */
@@ -2226,8 +2216,6 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
 
   if (row < 0 || row >= g_sheet_row_get_row_count (sheet->row_geometry)) return;
   if (col < 0 || col >= g_sheet_column_get_column_count (sheet->column_geometry)) return;
-  if (! g_sheet_column_get_visibility (sheet->column_geometry, col)) return;
-  if (!g_sheet_row_get_visibility (sheet->row_geometry, row)) return;
 
   widget = GTK_WIDGET (sheet);
 
@@ -2477,9 +2465,7 @@ gtk_sheet_range_draw_selection (GtkSheet *sheet, GtkSheetRange range)
     {
       for (j = range.col0; j <= range.coli; j++)
 	{
-
-	  if (gtk_sheet_cell_get_state (sheet, i, j) == GTK_STATE_SELECTED &&
-	      g_sheet_column_get_visibility (sheet->column_geometry, j) && g_sheet_row_get_visibility (sheet->row_geometry, i))
+	  if (gtk_sheet_cell_get_state (sheet, i, j) == GTK_STATE_SELECTED)
 	    {
 	      area.x = g_sheet_column_start_pixel (sheet->column_geometry, j);
 	      if ( sheet->row_titles_visible)
@@ -3079,7 +3065,6 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 		     j <= new_range.coli && j >= new_range.col0) ? TRUE : FALSE;
 
 	  if (state == GTK_STATE_SELECTED && selected &&
-	      g_sheet_column_get_visibility (sheet->column_geometry, j) && g_sheet_row_get_visibility (sheet->row_geometry, i) &&
 	      (i == sheet->range.row0 || i == sheet->range.rowi ||
 	       j == sheet->range.col0 || j == sheet->range.coli ||
 	       i == new_range.row0 || i == new_range.rowi ||
@@ -3159,8 +3144,7 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 	  selected= (i <= new_range.rowi && i >= new_range.row0 &&
 		     j <= new_range.coli && j >= new_range.col0) ? TRUE : FALSE;
 
-	  if (state == GTK_STATE_SELECTED && !selected &&
-	      g_sheet_column_get_visibility (sheet->column_geometry, j) && g_sheet_row_get_visibility (sheet->row_geometry, i))
+	  if (state == GTK_STATE_SELECTED && !selected)
 	    {
 
 	      x = g_sheet_column_start_pixel (sheet->column_geometry, j);
@@ -3195,7 +3179,6 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 		     j <= new_range.coli && j >= new_range.col0) ? TRUE : FALSE;
 
 	  if (state != GTK_STATE_SELECTED && selected &&
-	      g_sheet_column_get_visibility (sheet->column_geometry, j) && g_sheet_row_get_visibility (sheet->row_geometry, i) &&
 	      (i != sheet->active_cell.row || j != sheet->active_cell.col))
 	    {
 
@@ -3232,57 +3215,52 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
     {
       for (j = aux_range.col0; j <= aux_range.coli; j++)
 	{
+	  state = gtk_sheet_cell_get_state (sheet, i, j);
 
-	  if (g_sheet_column_get_visibility (sheet->column_geometry, j) && g_sheet_row_get_visibility (sheet->row_geometry, i))
+	  mask1 = i == sheet->range.row0 ? 1 : 0;
+	  mask1 = i == sheet->range.rowi ? mask1 + 2 : mask1;
+	  mask1 = j == sheet->range.col0 ? mask1 + 4 : mask1;
+	  mask1 = j == sheet->range.coli ? mask1 + 8 : mask1;
+
+	  mask2 = i == new_range.row0 ? 1 : 0;
+	  mask2 = i == new_range.rowi ? mask2 + 2 : mask2;
+	  mask2 = j == new_range.col0 ? mask2 + 4 : mask2;
+	  mask2 = j == new_range.coli ? mask2 + 8 : mask2;
+	  if (mask2 != mask1 || (mask2 == mask1 && state != GTK_STATE_SELECTED))
 	    {
-
-	      state = gtk_sheet_cell_get_state (sheet, i, j);
-
-	      mask1 = i == sheet->range.row0 ? 1 : 0;
-	      mask1 = i == sheet->range.rowi ? mask1 + 2 : mask1;
-	      mask1 = j == sheet->range.col0 ? mask1 + 4 : mask1;
-	      mask1 = j == sheet->range.coli ? mask1 + 8 : mask1;
-
-	      mask2 = i == new_range.row0 ? 1 : 0;
-	      mask2 = i == new_range.rowi ? mask2 + 2 : mask2;
-	      mask2 = j == new_range.col0 ? mask2 + 4 : mask2;
-	      mask2 = j == new_range.coli ? mask2 + 8 : mask2;
-	      if (mask2 != mask1 || (mask2 == mask1 && state != GTK_STATE_SELECTED))
-		{
-		  x = g_sheet_column_start_pixel (sheet->column_geometry, j);
-		  y = g_sheet_row_start_pixel (sheet->row_geometry, i);
-		  width = g_sheet_column_get_width (sheet->column_geometry, j);
-		  height = g_sheet_row_get_height (sheet->row_geometry, i);
-		  if (mask2 & 1)
-		    gdk_draw_rectangle (sheet->sheet_window,
-					sheet->xor_gc,
-					TRUE,
-					x + 1, y - 1,
-					width, 3);
+	      x = g_sheet_column_start_pixel (sheet->column_geometry, j);
+	      y = g_sheet_row_start_pixel (sheet->row_geometry, i);
+	      width = g_sheet_column_get_width (sheet->column_geometry, j);
+	      height = g_sheet_row_get_height (sheet->row_geometry, i);
+	      if (mask2 & 1)
+		gdk_draw_rectangle (sheet->sheet_window,
+				    sheet->xor_gc,
+				    TRUE,
+				    x + 1, y - 1,
+				    width, 3);
 
 
-		  if (mask2 & 2)
-		    gdk_draw_rectangle (sheet->sheet_window,
-					sheet->xor_gc,
-					TRUE,
-					x + 1, y + height - 1,
-					width, 3);
+	      if (mask2 & 2)
+		gdk_draw_rectangle (sheet->sheet_window,
+				    sheet->xor_gc,
+				    TRUE,
+				    x + 1, y + height - 1,
+				    width, 3);
 
-		  if (mask2 & 4)
-		    gdk_draw_rectangle (sheet->sheet_window,
-					sheet->xor_gc,
-					TRUE,
-					x - 1, y + 1,
-					3, height);
+	      if (mask2 & 4)
+		gdk_draw_rectangle (sheet->sheet_window,
+				    sheet->xor_gc,
+				    TRUE,
+				    x - 1, y + 1,
+				    3, height);
 
 
-		  if (mask2 & 8)
-		    gdk_draw_rectangle (sheet->sheet_window,
-					sheet->xor_gc,
-					TRUE,
-					x + width - 1, y + 1,
-					3, height);
-		}
+	      if (mask2 & 8)
+		gdk_draw_rectangle (sheet->sheet_window,
+				    sheet->xor_gc,
+				    TRUE,
+				    x + width - 1, y + 1,
+				    3, height);
 	    }
 	}
     }
@@ -3795,15 +3773,6 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
       || column >= g_sheet_column_get_column_count (sheet->column_geometry))
     {
       return FALSE;
-    }
-
-  if (column >= 0 && row >= 0)
-    {
-      if (! g_sheet_column_get_visibility (sheet->column_geometry, column)
-	  || !g_sheet_row_get_visibility (sheet->row_geometry, row))
-	{
-	  return FALSE;
-	}
     }
 
   g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
@@ -5392,7 +5361,6 @@ gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column)
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
   if (!sheet->column_titles_visible) return;
-  if (!g_sheet_column_get_visibility (sheet->column_geometry, column)) return;
 
   if (column < min_visible_column (sheet)) return;
   if (column > max_visible_column (sheet)) return;
@@ -5422,7 +5390,6 @@ gtk_sheet_row_title_button_draw (GtkSheet *sheet, gint row)
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
   if (!sheet->row_titles_visible) return;
-  if (!g_sheet_row_get_visibility (sheet->row_geometry, row)) return;
 
   if (row < min_visible_row (sheet)) return;
   if (row > max_visible_row (sheet)) return;

@@ -40,7 +40,6 @@ extern "C" {
 
     gint n_rows;
     gint height;
-    gboolean is_visible;
   };
 
   struct _GSheetUniformRowClass

@@ -42,7 +42,6 @@ extern "C" {
     gint n_columns;
     gint width;
     gboolean is_sensitive;
-    gboolean is_visible;
   };
 
   struct _GSheetUniformColumnClass

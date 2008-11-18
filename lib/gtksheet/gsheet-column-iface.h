@@ -50,7 +50,6 @@ struct _GSheetColumnIface
   gint (* get_width) (const GSheetColumn *gcolumn, glong col);
   void (* set_width) (GSheetColumn *gcolumn, glong col, gint width);
 
-  gboolean (* get_visibility) (const GSheetColumn *gcolumn, glong col);
   gboolean (* get_sensitivity) (const GSheetColumn *gcolumn, glong col);
   const GtkSheetButton * (* get_button) (const GSheetColumn *gcolumn, glong col);
   GtkJustification (* get_justification) (const GSheetColumn *gcolumn, glong col);

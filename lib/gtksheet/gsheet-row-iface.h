@@ -53,8 +53,6 @@ struct _GSheetRowIface
   gint (* get_height) (const GSheetRow *grow, glong row);
   void (* set_height) (GSheetRow *grow, glong row, gint height);
 
-  gboolean (* get_visibility) (const GSheetRow *grow, glong row);
-
   gboolean (* get_sensitivity) (const GSheetRow *grow, glong row);
 
   const GtkSheetButton * (* get_button) (const GSheetRow *grow, glong row);

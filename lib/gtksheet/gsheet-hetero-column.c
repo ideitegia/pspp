@@ -121,14 +121,6 @@ g_sheet_hetero_column_get_sensitivity (const GSheetColumn *geom, glong u)
 }
 
 
-static gboolean
-g_sheet_hetero_column_get_visibility (const GSheetColumn *geom, glong u)
-{
-  return TRUE;
-}
-
-
-
 static gchar *
 g_sheet_hetero_column_get_button_label (const GSheetColumn *geom, glong u)
 {
@@ -202,7 +194,6 @@ g_sheet_column_init (GSheetColumnIface *iface)
   iface->get_width = g_sheet_hetero_column_get_width ;
   iface->set_width = hetero_column_set_width ;
   iface->get_sensitivity = g_sheet_hetero_column_get_sensitivity ;
-  iface->get_visibility = g_sheet_hetero_column_get_visibility ;
   iface->get_justification = g_sheet_hetero_column_get_justification;
   iface->get_column_count = g_sheet_hetero_column_get_column_count;
 

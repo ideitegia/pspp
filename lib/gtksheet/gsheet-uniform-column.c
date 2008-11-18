@@ -90,7 +90,6 @@ g_sheet_uniform_column_new (gint width, gint n_columns)
   ug = G_SHEET_UNIFORM_COLUMN(retval);
   ug->n_columns = n_columns;
   ug->width = width;
-  ug->is_visible = TRUE;
   ug->is_sensitive = FALSE;
 
   return retval;
@@ -110,15 +109,6 @@ g_sheet_uniform_column_get_sensitivity (const GSheetColumn *geom, glong u)
   GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN (geom);
 
   return ug->is_sensitive;
-}
-
-
-static gboolean
-g_sheet_uniform_column_get_visibility (const GSheetColumn *geom, glong u)
-{
-  GSheetUniformColumn *ug = G_SHEET_UNIFORM_COLUMN (geom);
-
-  return ug->is_visible;
 }
 
 
@@ -176,7 +166,6 @@ g_sheet_column_init (GSheetColumnIface *iface)
 {
   iface->get_width = g_sheet_uniform_column_get_width ;
   iface->get_sensitivity = g_sheet_uniform_column_get_sensitivity ;
-  iface->get_visibility = g_sheet_uniform_column_get_visibility ;
   iface->get_justification = g_sheet_uniform_column_get_justification;
   iface->get_column_count = g_sheet_uniform_column_get_column_count;
   iface->get_button_label = g_sheet_uniform_column_get_button_label;

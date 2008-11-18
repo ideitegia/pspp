@@ -90,7 +90,6 @@ g_sheet_uniform_row_new (gint height, gint n_rows)
   ug = G_SHEET_UNIFORM_ROW(retval);
   ug->n_rows = n_rows;
   ug->height = height;
-  ug->is_visible = TRUE;
 
   return retval;
 }
@@ -109,15 +108,6 @@ g_sheet_uniform_row_get_sensitivity (const GSheetRow *geom, glong u)
   GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW(geom);
 
   return (u < ug->n_rows);
-}
-
-
-static gboolean
-g_sheet_uniform_row_get_visibility (const GSheetRow *geom, glong u)
-{
-  GSheetUniformRow *ug = G_SHEET_UNIFORM_ROW (geom);
-
-  return ug->is_visible;
 }
 
 
@@ -192,7 +182,6 @@ g_sheet_row_init (GSheetRowIface *iface)
 {
   iface->get_height = g_sheet_uniform_row_get_height;
   iface->get_sensitivity = g_sheet_uniform_row_get_sensitivity ;
-  iface->get_visibility = g_sheet_uniform_row_get_visibility;
   iface->get_row_count = g_sheet_uniform_row_get_row_count;
   iface->get_button_label = g_sheet_uniform_row_get_button_label;
   iface->top_ypixel = g_sheet_uniform_row_top_ypixel;
