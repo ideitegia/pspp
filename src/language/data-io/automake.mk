@@ -5,6 +5,7 @@ src_language_data_io_built_sources = \
 	src/language/data-io/list.c
 
 language_data_io_sources = \
+	src/language/data-io/combine-files.c \
 	src/language/data-io/data-list.c \
 	src/language/data-io/data-parser.c \
 	src/language/data-io/data-parser.h \
@@ -17,7 +18,6 @@ language_data_io_sources = \
 	src/language/data-io/get.c \
 	src/language/data-io/inpt-pgm.c \
 	src/language/data-io/inpt-pgm.h \
-	src/language/data-io/match-files.c \
 	src/language/data-io/placement-parser.c \
 	src/language/data-io/placement-parser.h \
 	src/language/data-io/print-space.c \

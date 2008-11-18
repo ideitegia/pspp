@@ -59,19 +59,19 @@ cd $TEMPDIR
 
 activity="data create"
 cat > a.data <<EOF
-0aA
 1aB
-1aC
-2aD
+8aM
 3aE
-4aF
 5aG
+0aA
 5aH
 6aI
 7aJ
+2aD
 7aK
+1aC
 7aL
-8aM
+4aF
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 cat > b.data <<EOF
@@ -143,24 +143,27 @@ $dla
 $sa
 $dlb
 $sb
-match files $type1='a.sys' /in=INA /$type2='b.sys' /in=INB /rename c=D /by a
-            /first=FIRST /last=LAST.
+match files $type1='a.sys' /in=INA /sort
+           /$type2='b.sys' /in=INB /rename c=D
+           /by a /first=FIRST /last=LAST.
 EOF
 	    elif [ $sources = sa ]; then
 		cat <<EOF
 $dla
 $sa
 $dlb
-match files $type1='a.sys' /in=INA /$type2=* /in=INB /rename c=D /by a
-            /first=FIRST /last=LAST.
+match files $type1='a.sys' /in=INA /sort
+           /$type2=* /in=INB /rename c=D
+           /by a /first=FIRST /last=LAST.
 EOF
 	    elif [ $sources = as ]; then
 		cat <<EOF
 $dlb
 $sb
 $dla
-match files $type1=* /in=INA /$type2='b.sys' /in=INB /rename c=D /by a
-            /first=FIRST /last=LAST.
+match files $type1=* /in=INA /sort
+           /$type2='b.sys' /in=INB /rename c=D
+           /by a /first=FIRST /last=LAST.
 EOF
 	    else
 		activity="internal error"
@@ -204,19 +207,19 @@ perl -pi -e 's/^\s*$//g' pspp.list
 diff -b -w - pspp.list <<EOF
 A B C D E F
 - - - - - -
-0 a A 1 b N
-1 a B 3 b O
-1 a C 4 b P
-2 a D 6 b Q
-3 a E 7 b R
-4 a F 9 b S
-5 a G
-5 a H
+1 a B 1 b N
+8 a M 3 b O
+3 a E 4 b P
+5 a G 6 b Q
+0 a A 7 b R
+5 a H 9 b S
 6 a I
 7 a J
+2 a D
 7 a K
+1 a C
 7 a L
-8 a M
+4 a F
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

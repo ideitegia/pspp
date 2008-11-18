@@ -9,6 +9,7 @@ TESTS_ENVIRONMENT += CHARSETALIASDIR='$(abs_top_builddir)/gl'
 TESTS_ENVIRONMENT += LC_ALL=C
 
 dist_TESTS = \
+	tests/command/add-files.sh \
 	tests/command/aggregate.sh \
 	tests/command/attributes.sh \
 	tests/command/autorecod.sh \
@@ -73,6 +74,7 @@ dist_TESTS = \
 	tests/command/t-test-pairs.sh \
 	tests/command/trimmed-mean.sh \
 	tests/command/tabs.sh \
+	tests/command/update.sh \
 	tests/command/use.sh \
 	tests/command/variable-display.sh \
 	tests/command/vector.sh \

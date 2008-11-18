@@ -16,6 +16,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/calendar.h \
 	src/data/case-map.c \
 	src/data/case-map.h \
+	src/data/case-matcher.c \
+	src/data/case-matcher.h \
 	src/data/case.c \
 	src/data/casegrouper.c \
 	src/data/casegrouper.h \
