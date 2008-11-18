@@ -2223,11 +2223,7 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
   GtkSheetCellAttr attributes;
   PangoLayout *layout;
   PangoRectangle text;
-  PangoRectangle logical_rect;
-  PangoLayoutLine *line;
-  PangoFontMetrics *metrics;
-  PangoContext *context = gtk_widget_get_pango_context (GTK_WIDGET (sheet));
-  gint ascent, descent;
+  gint font_height;
 
   gchar *label;
 
@@ -2261,27 +2257,17 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
   dispose_string (sheet, label);
   pango_layout_set_font_description (layout, attributes.font_desc);
 
+
   pango_layout_get_pixel_extents (layout, NULL, &text);
 
-  line = pango_layout_get_lines (layout)->data;
-  pango_layout_line_get_extents (line, NULL, &logical_rect);
-
-  metrics = pango_context_get_metrics (context,
-				       attributes.font_desc,
-				       pango_context_get_language (context));
-
-  ascent = pango_font_metrics_get_ascent (metrics) / PANGO_SCALE;
-  descent = pango_font_metrics_get_descent (metrics) / PANGO_SCALE;
-
-  pango_font_metrics_unref (metrics);
-
-  /* Align primarily for locale's ascent / descent */
-
-  logical_rect.height /= PANGO_SCALE;
-  logical_rect.y /= PANGO_SCALE;
-
-
   gdk_gc_set_clip_rectangle (sheet->fg_gc, &area);
+
+  font_height = pango_font_description_get_size (attributes.font_desc);
+  if ( !pango_font_description_get_size_is_absolute (attributes.font_desc))
+    font_height /= PANGO_SCALE;
+
+  /* Centre the text vertically */
+  area.y += (area.height - font_height) / 2.0;
 
   switch (attributes.justification)
     {
