@@ -5478,6 +5478,9 @@ adjust_scrollbars (GtkSheet *sheet)
 	g_sheet_row_get_height (sheet->row_geometry, last_row)
 	;
 
+      if (sheet->column_titles_visible)
+	sheet->vadjustment->upper += sheet->column_title_area.height;
+
       sheet->vadjustment->lower = 0;
       sheet->vadjustment->page_size = height;
 
@@ -5498,6 +5501,9 @@ adjust_scrollbars (GtkSheet *sheet)
 	+
 	g_sheet_column_get_width (sheet->column_geometry, last_col)
 	;
+
+      if (sheet->row_titles_visible)
+	sheet->hadjustment->upper += sheet->row_title_area.width;
 
       sheet->hadjustment->lower = 0;
       sheet->hadjustment->page_size = width;
