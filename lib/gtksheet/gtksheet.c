@@ -370,32 +370,48 @@ POSSIBLE_RESIZE (const GtkSheet *sheet, gint x, gint y,
 
 
 static gboolean
-rectangle_from_cell (GtkSheet *sheet, gint row, gint col, GdkRectangle *r)
+rectangle_from_range (GtkSheet *sheet, const GtkSheetRange *range,
+		      GdkRectangle *r)
 {
-  g_return_val_if_fail (row >= 0, FALSE);
-  g_return_val_if_fail (col >= 0, FALSE);
+  g_return_val_if_fail (range, FALSE);
 
-  r->x = g_sheet_column_start_pixel (sheet->column_geometry, col);
+  r->x = g_sheet_column_start_pixel (sheet->column_geometry, range->col0);
   r->x -= sheet->hadjustment->value;
 
   if ( sheet->row_titles_visible)
     r->x += sheet->row_title_area.width;
 
 
-  r->y = g_sheet_row_start_pixel (sheet->row_geometry, row);
+  r->y = g_sheet_row_start_pixel (sheet->row_geometry, range->row0);
   r->y -= sheet->vadjustment->value;
 
   if ( sheet->column_titles_visible)
     r->y += sheet->column_title_area.height;
 
-  r->width = g_sheet_column_get_width (sheet->column_geometry, col);
+  r->width = g_sheet_column_start_pixel (sheet->column_geometry, range->coli) -
+    g_sheet_column_start_pixel (sheet->column_geometry, range->col0) +
+    g_sheet_column_get_width (sheet->column_geometry, range->coli);
 
-  r->height = g_sheet_row_get_height (sheet->row_geometry, row);
+  r->height = g_sheet_row_start_pixel (sheet->row_geometry, range->rowi) -
+    g_sheet_row_start_pixel (sheet->row_geometry, range->row0) +
+    g_sheet_row_get_height (sheet->row_geometry, range->rowi);
 
   return TRUE;
 }
 
+static gboolean
+rectangle_from_cell (GtkSheet *sheet, gint row, gint col,
+		     GdkRectangle *r)
+{
+  GtkSheetRange range;
+  g_return_val_if_fail (row >= 0, FALSE);
+  g_return_val_if_fail (col >= 0, FALSE);
 
+  range.row0 = range.rowi = row;
+  range.col0 = range.coli = col;
+
+  return rectangle_from_range (sheet, &range, r);
+}
 
 
 static void gtk_sheet_class_init 		 (GtkSheetClass *klass);
@@ -2357,6 +2373,7 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
 
   if (sheet->row_titles_visible)
     area.x += sheet->row_title_area.width;
+
   if (sheet->column_titles_visible)
     area.y += sheet->column_title_area.height;
 
@@ -2369,7 +2386,6 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
 
   gdk_gc_set_clip_rectangle (fg_gc, NULL);
   g_object_unref (layout);
-
 }
 
 static void
@@ -2404,24 +2420,8 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
       drawing_range.rowi = MIN (range->rowi, max_visible_row (sheet));
       drawing_range.coli = MIN (range->coli, max_visible_column (sheet));
 
-      area.x = g_sheet_column_start_pixel (sheet->column_geometry,
-				      drawing_range.col0);
 
-      area.y = g_sheet_row_start_pixel (sheet->row_geometry,
-				   drawing_range.row0);
-
-      area.width =
-	g_sheet_column_start_pixel (sheet->column_geometry,
-				    drawing_range.coli + 1) - area.x;
-
-      area.height = g_sheet_row_start_pixel (sheet->row_geometry,
-					     drawing_range.rowi + 1) - area.y;
-
-      if ( sheet->column_titles_visible)
-	area.y += sheet->column_title_area.height;
-
-      if ( sheet->row_titles_visible)
-	area.x += sheet->row_title_area.width;
+      rectangle_from_range (sheet, &drawing_range, &area);
     }
 
   gdk_draw_rectangle (sheet->sheet_window,
@@ -3290,27 +3290,7 @@ gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
 {
   GdkRectangle area;
 
-  area.x = g_sheet_column_start_pixel (sheet->column_geometry, new_range.col0);
-  area.y = g_sheet_row_start_pixel (sheet->row_geometry, new_range.row0);
-
-  if ( sheet->row_titles_visible)
-    area.x += sheet->row_title_area.width;
-
-  area.x -= sheet->hadjustment->value;
-
-  if ( sheet->column_titles_visible)
-    area.y += sheet->column_title_area.height;
-
-  area.y -= sheet->vadjustment->value;
-
-  area.width =
-    g_sheet_column_start_pixel (sheet->column_geometry, new_range.coli) -
-    g_sheet_column_start_pixel (sheet->column_geometry, new_range.col0) +
-    g_sheet_column_get_width (sheet->column_geometry, new_range.coli);
-
-  area.height = g_sheet_row_start_pixel (sheet->row_geometry, new_range.rowi) -
-    g_sheet_row_start_pixel (sheet->row_geometry, new_range.row0) +
-    g_sheet_row_get_height (sheet->row_geometry, new_range.rowi);
+  rectangle_from_range (sheet, &new_range, &area);
 
   gdk_draw_rectangle (sheet->sheet_window,
 		      sheet->xor_gc,
@@ -3319,7 +3299,6 @@ gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
 		      area.y + 1,
 		      area.width - 2,
 		      area.height - 2);
-
 }
 
 
