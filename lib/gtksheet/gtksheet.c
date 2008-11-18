@@ -99,8 +99,6 @@ static void gtk_sheet_set_row_height (GtkSheet *sheet,
 				      gint row,
 				      guint height);
 
-static gboolean gtk_sheet_cell_empty (const GtkSheet *, gint, gint);
-
 static void destroy_hover_window (GtkSheetHoverTitle *);
 static GtkSheetHoverTitle *create_hover_window (void);
 
@@ -554,7 +552,6 @@ static void init_attributes			 (const GtkSheet *sheet,
 						  GtkSheetCellAttr *attributes);
 
 
-/* Memory allocation routines */
 static void gtk_sheet_real_cell_clear 		 (GtkSheet *sheet,
 						  gint row,
 						  gint column);
@@ -2502,21 +2499,6 @@ gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column)
 
   dispose_string (sheet, old_text);
 }
-
-
-
-static gboolean
-gtk_sheet_cell_empty (const GtkSheet *sheet, gint row, gint col)
-{
-  gboolean empty;
-  char *text = gtk_sheet_cell_get_text (sheet, row, col);
-  empty = (text == NULL );
-
-  dispose_string (sheet, text);
-
-  return empty;
-}
-
 
 gchar *
 gtk_sheet_cell_get_text (const GtkSheet *sheet, gint row, gint col)
@@ -4578,7 +4560,9 @@ gtk_sheet_key_press (GtkWidget *widget,
 	g_sheet_row_get_row_count (sheet->row_geometry) - 1,
 	sheet->active_cell.col);
       */
-
+      break;
+    case GDK_Delete:
+      gtk_sheet_real_cell_clear (sheet, sheet->active_cell.row, sheet->active_cell.col);
       break;
     default:
       return FALSE;
