@@ -5625,7 +5625,7 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
     attributes->background = *bg;
 
   j = g_sheet_model_get_justification (sheet->model, row, col);
-  if (j) attributes->justification = *j;
+  attributes->justification = j ? *j : GTK_JUSTIFY_LEFT;
 
   font_desc = g_sheet_model_get_font_desc (sheet->model, row, col);
   if ( font_desc ) attributes->font_desc = font_desc;
