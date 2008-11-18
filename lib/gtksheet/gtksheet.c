@@ -2130,7 +2130,6 @@ gtk_sheet_unmap (GtkWidget *widget)
 static void
 gtk_sheet_cell_draw_bg (GtkSheet *sheet, gint row, gint col)
 {
-  GdkGC *fg_gc, *bg_gc;
   GtkSheetCellAttr attributes;
   GdkRectangle area;
 
@@ -2152,9 +2151,6 @@ gtk_sheet_cell_draw_bg (GtkSheet *sheet, gint row, gint col)
   /* select GC for background rectangle */
   gdk_gc_set_foreground (sheet->fg_gc, &attributes.foreground);
   gdk_gc_set_foreground (sheet->bg_gc, &attributes.background);
-
-  fg_gc = sheet->fg_gc;
-  bg_gc = sheet->bg_gc;
 
   area.x = g_sheet_column_start_pixel (sheet->column_geometry, col);
   area.x -= sheet->hadjustment->value;
@@ -2882,6 +2878,8 @@ gtk_sheet_deactivate_cell (GtkSheet *sheet)
 static void
 gtk_sheet_hide_active_cell (GtkSheet *sheet)
 {
+  gint x, y;
+  gint width, height;
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     return;
 
@@ -2891,8 +2889,35 @@ gtk_sheet_hide_active_cell (GtkSheet *sheet)
   gtk_widget_hide (sheet->entry_widget);
   gtk_widget_unmap (sheet->entry_widget);
 
+  x = g_sheet_column_start_pixel (sheet->column_geometry,
+				  sheet->active_cell.col);
+  x -= sheet->hadjustment->value;
+  if ( sheet->row_titles_visible)
+    x += sheet->row_title_area.width;
+
+  y = g_sheet_row_start_pixel (sheet->row_geometry,
+			       sheet->active_cell.row);
+  y -= sheet->vadjustment->value;
+
+  if ( sheet->column_titles_visible)
+    y += sheet->column_title_area.height;
+
+
+  width = g_sheet_column_get_width (sheet->column_geometry,
+				    sheet->active_cell.col);
+  height = g_sheet_row_get_height (sheet->row_geometry,
+				   sheet->active_cell.row);
+
+  gdk_draw_rectangle (sheet->sheet_window,
+		      GTK_WIDGET (sheet)->style->white_gc,
+		      TRUE,
+		      x, y,
+		      width, height);
+
   gtk_sheet_cell_draw_bg (sheet, sheet->active_cell.row,
 			       sheet->active_cell.col);
+  gtk_sheet_cell_draw_label (sheet, sheet->active_cell.row,
+			     sheet->active_cell.col);
 
 
   GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (sheet->entry_widget), GTK_VISIBLE);
@@ -3016,7 +3041,8 @@ gtk_sheet_draw_active_cell (GtkSheet *sheet)
 
   if (row < 0 || col < 0) return;
 
-  if (!gtk_sheet_cell_isvisible (sheet, row, col)) return;
+  if (!gtk_sheet_cell_isvisible (sheet, row, col))
+    return;
 
   range.col0 = range.coli = col;
   range.row0 = range.rowi = row;
@@ -3317,7 +3343,7 @@ gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
   gdk_draw_rectangle (sheet->sheet_window,
 		      sheet->xor_gc,
 		      FALSE,
-		      x, y,
+		      x + 1, y + 1,
 		      width - 2,
 		      height - 2);
 
@@ -3816,34 +3842,29 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
       return TRUE;
     }
 
-  if (row != -1 && column != -1)
+  if (sheet->state != GTK_SHEET_NORMAL)
     {
-      if (sheet->state != GTK_SHEET_NORMAL)
-	{
-	  sheet->state = GTK_SHEET_NORMAL;
-	  gtk_sheet_real_unselect_range (sheet, NULL);
-	}
-      else
-	{
-	  gtk_sheet_deactivate_cell (sheet);
-	  gtk_sheet_activate_cell (sheet, row, column);
-	}
-
-      sheet->active_cell.row = row;
-      sheet->active_cell.col = column;
-      sheet->selection_cell.row = row;
-      sheet->selection_cell.col = column;
-      sheet->range.row0 = row;
-      sheet->range.col0 = column;
-      sheet->range.rowi = row;
-      sheet->range.coli = column;
       sheet->state = GTK_SHEET_NORMAL;
-      GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
-      gtk_sheet_draw_active_cell (sheet);
-      return TRUE;
+      gtk_sheet_real_unselect_range (sheet, NULL);
+    }
+  else
+    {
+      gtk_sheet_deactivate_cell (sheet);
+      gtk_sheet_activate_cell (sheet, row, column);
     }
 
-  g_assert_not_reached ();
+  sheet->active_cell.row = row;
+  sheet->active_cell.col = column;
+  sheet->selection_cell.row = row;
+  sheet->selection_cell.col = column;
+  sheet->range.row0 = row;
+  sheet->range.col0 = column;
+  sheet->range.rowi = row;
+  sheet->range.coli = column;
+  sheet->state = GTK_SHEET_NORMAL;
+  GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
+  gtk_sheet_draw_active_cell (sheet);
+  return TRUE;
 }
 
 static gint
