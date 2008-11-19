@@ -5604,6 +5604,7 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
 
   if (row < 0 || col < 0) return FALSE;
 
+
   attr->foreground = GTK_WIDGET (sheet)->style->black;
   attr->background = sheet->color[BG_COLOR];
 
@@ -5617,6 +5618,7 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
 
   attr->is_editable = g_sheet_model_is_editable (sheet->model, row, col);
   attr->is_visible = g_sheet_model_is_visible (sheet->model, row, col);
+
 
   colormap = gtk_widget_get_colormap (GTK_WIDGET (sheet));
   fg = g_sheet_model_get_foreground (sheet->model, row, col);
@@ -5633,8 +5635,12 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
       attr->background = *bg;
     }
 
+  attr->justification =
+    g_sheet_column_get_justification (sheet->column_geometry, col);
+
   j = g_sheet_model_get_justification (sheet->model, row, col);
-  attr->justification = j ? *j : GTK_JUSTIFY_LEFT;
+  if (j)
+    attr->justification = *j;
 
   font_desc = g_sheet_model_get_font_desc (sheet->model, row, col);
   if ( font_desc ) attr->font_desc = font_desc;

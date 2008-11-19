@@ -133,7 +133,7 @@ g_sheet_hetero_column_get_button_label (const GSheetColumn *geom, glong u)
 static GtkJustification
 g_sheet_hetero_column_get_justification (const GSheetColumn *geom, glong u)
 {
-  return GTK_JUSTIFY_FILL;
+  return GTK_JUSTIFY_LEFT;
 }
 
 
