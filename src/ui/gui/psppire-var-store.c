@@ -239,14 +239,13 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
                                    pspec);
 }
 
+#define DISABLED_COLOR "gray"
+
 static void
 psppire_var_store_init (PsppireVarStore *var_store)
 {
-  GdkColormap *colormap = gdk_colormap_get_system ();
-
-  g_assert (gdk_color_parse ("gray", &var_store->disabled));
-
-  gdk_colormap_alloc_color (colormap, &var_store->disabled, FALSE, TRUE);
+  if ( ! gdk_color_parse (DISABLED_COLOR, &var_store->disabled))
+	g_critical ("Could not parse color \"%s\"", DISABLED_COLOR);
 
   var_store->dict = 0;
   var_store->trailing_rows = 40;
@@ -308,7 +307,7 @@ psppire_var_store_is_editable (const GSheetModel *model, glong row, glong column
 }
 
 
-static const GdkColor *
+static GdkColor *
 psppire_var_store_get_foreground (const GSheetModel *model, glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
@@ -347,6 +346,7 @@ psppire_var_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_background = NULL;
   iface->get_font_desc = psppire_var_store_get_font_desc;
   iface->get_cell_border = NULL;
+  iface->get_justification = NULL;
 }
 
 
@@ -827,13 +827,6 @@ geometry_is_sensitive (const GSheetRow *geom, glong row)
   return  row < psppire_dict_get_var_cnt (vs->dict);
 }
 
-static
-gboolean always_true ()
-{
-  return TRUE;
-}
-
-
 static gchar *
 geometry_get_button_label (const GSheetRow *geom, glong unit)
 {
@@ -852,6 +845,4 @@ psppire_var_store_sheet_row_init (GSheetRowIface *iface)
 
   iface->get_button_label = geometry_get_button_label;
 }
-
-
 

@@ -107,10 +107,10 @@ struct _GSheetModelIface
   gboolean (* is_visible) (const GSheetModel *sheet_model, glong row, glong column);
   gboolean (* is_editable) (const GSheetModel *sheet_model, glong row, glong column);
 
-  const GdkColor *  (* get_foreground) (const GSheetModel *sheet_model,
-				    glong row, glong column);
+  GdkColor *  (* get_foreground) (const GSheetModel *sheet_model,
+  			    glong row, glong column);
 
-  const GdkColor *  (* get_background) (const GSheetModel *sheet_model,
+  GdkColor *  (* get_background) (const GSheetModel *sheet_model,
 				    glong row, glong column);
 
   const GtkJustification *  (* get_justification) (const GSheetModel *sheet_model,
@@ -169,10 +169,10 @@ inline gboolean g_sheet_model_is_visible
                    (const GSheetModel *model, glong row, glong column);
 
 
-inline const GdkColor *g_sheet_model_get_foreground
-                   (const GSheetModel *model, glong row, glong column);
+inline GdkColor *g_sheet_model_get_foreground
+             (const GSheetModel *model, glong row, glong column);
 
-inline const GdkColor *g_sheet_model_get_background
+inline GdkColor *g_sheet_model_get_background
                    (const GSheetModel *model, glong row, glong column);
 
 

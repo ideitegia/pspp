@@ -1,3 +1,4 @@
+#undef GDK_MULTIHEAD_SAFE
 /* GTK - The GIMP Toolkit
  * Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
  *

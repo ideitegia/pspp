@@ -235,13 +235,6 @@ psppire_data_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_row_count = psppire_data_store_get_case_count_wrapper;
 }
 
-static
-gboolean always_true ()
-{
-  return TRUE;
-}
-
-
 static void
 delete_cases_callback (GtkWidget *w,
 	 casenumber first, casenumber n_cases, gpointer data)

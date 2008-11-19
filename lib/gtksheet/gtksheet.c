@@ -546,12 +546,6 @@ static void gtk_sheet_button_size_request	 (GtkSheet *sheet,
 						  const GtkSheetButton *button,
 						  GtkRequisition *requisition);
 
-/* Attributes routines */
-static void init_attributes			 (const GtkSheet *sheet,
-						  gint col,
-						  GtkSheetCellAttr *attributes);
-
-
 static void gtk_sheet_real_cell_clear 		 (GtkSheet *sheet,
 						  gint row,
 						  gint column);
@@ -5578,71 +5572,69 @@ gtk_sheet_set_row_height (GtkSheet *sheet,
 
   g_signal_emit (sheet, sheet_signals[CHANGED], 0, row, - 1);
 }
+
 gboolean
 gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
-			  GtkSheetCellAttr *attributes)
+			  GtkSheetCellAttr *attr)
 {
-  const GdkColor *fg, *bg;
+  GdkColor *fg, *bg;
   const GtkJustification *j ;
   const PangoFontDescription *font_desc ;
   const GtkSheetCellBorder *border ;
+  GdkColormap *colormap;
 
   g_return_val_if_fail (sheet != NULL, FALSE);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
 
   if (row < 0 || col < 0) return FALSE;
 
-  init_attributes (sheet, col, attributes);
 
-  if ( !sheet->model)
-    return FALSE;
+  attr->foreground = GTK_WIDGET (sheet)->style->black;
+  attr->background = sheet->color[BG_COLOR];
 
-  attributes->is_editable = g_sheet_model_is_editable (sheet->model, row, col);
-  attributes->is_visible = g_sheet_model_is_visible (sheet->model, row, col);
+  attr->border.width = 0;
+  attr->border.line_style = GDK_LINE_SOLID;
+  attr->border.cap_style = GDK_CAP_NOT_LAST;
+  attr->border.join_style = GDK_JOIN_MITER;
+  attr->border.mask = 0;
+  attr->border.color = GTK_WIDGET (sheet)->style->black;
+  attr->font_desc = GTK_WIDGET (sheet)->style->font_desc;
 
+  attr->is_editable = g_sheet_model_is_editable (sheet->model, row, col);
+  attr->is_visible = g_sheet_model_is_visible (sheet->model, row, col);
+
+
+  colormap = gtk_widget_get_colormap (GTK_WIDGET (sheet));
   fg = g_sheet_model_get_foreground (sheet->model, row, col);
   if ( fg )
-    attributes->foreground = *fg;
+    {
+      gdk_colormap_alloc_color (colormap, fg, TRUE, TRUE);
+      attr->foreground = *fg;
+    }
 
   bg = g_sheet_model_get_background (sheet->model, row, col);
   if ( bg )
-    attributes->background = *bg;
+    {
+      gdk_colormap_alloc_color (colormap, bg, TRUE, TRUE);
+      attr->background = *bg;
+    }
+
+  attr->justification =
+    g_sheet_column_get_justification (sheet->column_geometry, col);
 
   j = g_sheet_model_get_justification (sheet->model, row, col);
-  attributes->justification = j ? *j : GTK_JUSTIFY_LEFT;
+  if (j)
+    attr->justification = *j;
 
   font_desc = g_sheet_model_get_font_desc (sheet->model, row, col);
-  if ( font_desc ) attributes->font_desc = font_desc;
+  if ( font_desc ) attr->font_desc = font_desc;
 
   border = g_sheet_model_get_cell_border (sheet->model, row, col);
 
-  if ( border ) attributes->border = *border;
+  if ( border ) attr->border = *border;
 
   return TRUE;
 }
-
-static void
-init_attributes (const GtkSheet *sheet, gint col, GtkSheetCellAttr *attributes)
-{
-  /* DEFAULT VALUES */
-  attributes->foreground = GTK_WIDGET (sheet)->style->black;
-  attributes->background = sheet->color[BG_COLOR];
-  if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
-    {
-      attributes->background = sheet->color[BG_COLOR];
-    }
-  attributes->justification = g_sheet_column_get_justification (sheet->column_geometry, col);
-  attributes->border.width = 0;
-  attributes->border.line_style = GDK_LINE_SOLID;
-  attributes->border.cap_style = GDK_CAP_NOT_LAST;
-  attributes->border.join_style = GDK_JOIN_MITER;
-  attributes->border.mask = 0;
-  attributes->border.color = GTK_WIDGET (sheet)->style->black;
-  attributes->is_editable = TRUE;
-  attributes->is_visible = TRUE;
-  attributes->font_desc = GTK_WIDGET (sheet)->style->font_desc;
-}
-
 
 static void
 gtk_sheet_button_size_request	 (GtkSheet *sheet,
