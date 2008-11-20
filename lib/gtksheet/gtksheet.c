@@ -158,21 +158,30 @@ yyy_row_ypixel_to_row (const GtkSheet *sheet, gint y)
 {
   GSheetRow *geo = sheet->row_geometry;
 
-  if (y < 0)
-    {
-      g_error ("This shouldnt happen");
-      return -1;
-    }
+  g_return_val_if_fail (y >= 0, -1);
 
   return g_sheet_row_pixel_to_row (geo, y);
 }
 
-
+/* Return the lowest row number which is wholly or partially on
+   the visible range of the sheet */
 static inline glong
 min_visible_row (const GtkSheet *sheet)
 {
   return yyy_row_ypixel_to_row (sheet, sheet->vadjustment->value);
 }
+
+static inline glong
+min_fully_visible_row (const GtkSheet *sheet)
+{
+  glong row = yyy_row_ypixel_to_row (sheet, sheet->vadjustment->value);
+
+  if ( g_sheet_row_start_pixel (sheet->row_geometry, row) < sheet->vadjustment->value)
+    row++;
+
+  return  row;
+}
+
 
 
 static inline glong
@@ -181,6 +190,21 @@ max_visible_row (const GtkSheet *sheet)
   return yyy_row_ypixel_to_row (sheet,
 			   sheet->vadjustment->value +
 			   sheet->vadjustment->page_size);
+}
+
+
+static inline glong
+max_fully_visible_row (const GtkSheet *sheet)
+{
+  glong row = max_visible_row (sheet);
+
+  if ( g_sheet_row_start_pixel (sheet->row_geometry, row)
+       + 
+       g_sheet_row_get_height (sheet->row_geometry, row)
+       > sheet->vadjustment->value)
+    row--;
+
+  return row;
 }
 
 
@@ -207,13 +231,28 @@ column_from_xpixel (const GtkSheet *sheet, gint x)
 }
 
 
+/* Returns the lowest column number which is wholly or partially
+   on the sheet */
 static inline glong
 min_visible_column (const GtkSheet *sheet)
 {
   return column_from_xpixel (sheet, sheet->hadjustment->value);
 }
 
+static inline glong
+min_fully_visible_column (const GtkSheet *sheet)
+{
+  glong col = min_visible_column (sheet);
 
+  if ( g_sheet_column_start_pixel (sheet->column_geometry, col) < sheet->hadjustment->value)
+    col++;
+
+  return col;
+}
+
+
+/* Returns the highest column number which is wholly or partially
+   on the sheet */
 static inline glong
 max_visible_column (const GtkSheet *sheet)
 {
@@ -221,6 +260,21 @@ max_visible_column (const GtkSheet *sheet)
 			     sheet->hadjustment->value +
 			     sheet->hadjustment->page_size);
 }
+
+static inline glong
+max_fully_visible_column (const GtkSheet *sheet)
+{
+  glong col = max_visible_column (sheet);
+
+  if ( g_sheet_column_start_pixel (sheet->column_geometry, col)
+       + 
+       g_sheet_column_get_width (sheet->column_geometry, col)
+       > sheet->hadjustment->value)
+    col--;
+
+  return col;
+}
+
 
 
 /* The size of the region (in pixels) around the row/column boundaries
@@ -4326,24 +4380,45 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
 
   activate_cell (sheet, new_row, new_col);
 
-  if ( sheet->active_cell.col >= max_visible_column (sheet))
+  if ( new_col > max_fully_visible_column (sheet))
     {
       glong hpos  =
 	g_sheet_column_start_pixel (sheet->column_geometry,
-				    sheet->active_cell.col + 1);
+				    new_col + 1);
       hpos -= sheet->hadjustment->page_size;
 
       gtk_adjustment_set_value (sheet->hadjustment,
 				hpos);
     }
-  else if ( sheet->active_cell.col <= min_visible_column (sheet))
+  else if ( new_col < min_fully_visible_column (sheet))
     {
       glong hpos  =
 	g_sheet_column_start_pixel (sheet->column_geometry,
-				    sheet->active_cell.col);
+				    new_col);
 
       gtk_adjustment_set_value (sheet->hadjustment,
 				hpos);
+    }
+
+
+  if ( new_row > max_fully_visible_row (sheet))
+    {
+      glong vpos  =
+	g_sheet_row_start_pixel (sheet->row_geometry,
+				    new_row + 1);
+      vpos -= sheet->vadjustment->page_size;
+
+      gtk_adjustment_set_value (sheet->vadjustment,
+				vpos);
+    }
+  else if ( new_row < min_fully_visible_row (sheet))
+    {
+      glong vpos  =
+	g_sheet_row_start_pixel (sheet->row_geometry,
+				    new_row);
+
+      gtk_adjustment_set_value (sheet->vadjustment,
+				vpos);
     }
 }
 
@@ -4975,6 +5050,12 @@ adjust_scrollbars (GtkSheet *sheet)
 
   gdk_drawable_get_size (sheet->sheet_window, &width, &height);
 
+  if ( sheet->row_titles_visible)
+    width -= sheet->row_title_area.width;
+
+  if (sheet->column_titles_visible)
+    height -= sheet->column_title_area.height;
+
   if (sheet->vadjustment)
     {
       glong last_row = g_sheet_row_get_row_count (sheet->row_geometry) - 1;
@@ -4996,9 +5077,6 @@ adjust_scrollbars (GtkSheet *sheet)
 	g_sheet_row_get_height (sheet->row_geometry, last_row)
 	;
 
-      if (sheet->column_titles_visible)
-	sheet->vadjustment->upper += sheet->column_title_area.height;
-
       sheet->vadjustment->lower = 0;
       sheet->vadjustment->page_size = height;
 
@@ -5019,9 +5097,6 @@ adjust_scrollbars (GtkSheet *sheet)
 	+
 	g_sheet_column_get_width (sheet->column_geometry, last_col)
 	;
-
-      if (sheet->row_titles_visible)
-	sheet->hadjustment->upper += sheet->row_title_area.width;
 
       sheet->hadjustment->lower = 0;
       sheet->hadjustment->page_size = width;
