@@ -77,4 +77,23 @@ maximize (double *dest, double src)
     *dest = src;
 }
 
+
+/* Set *DEST to the lower of *DEST and SRC */
+static inline void
+minimize_int (int *dest, int src)
+{
+  if (src < *dest)
+    *dest = src;
+}
+
+
+/* Set *DEST to the greater of *DEST and SRC */
+static inline void
+maximize_int (int *dest, int src)
+{
+  if (src > *dest)
+    *dest = src;
+}
+
+
 #endif /* libpspp/misc.h */

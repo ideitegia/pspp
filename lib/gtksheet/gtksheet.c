@@ -58,6 +58,7 @@
 #include "gtksheet.h"
 #include "gtkextra-marshal.h"
 #include "gsheetmodel.h"
+#include <libpspp/misc.h>
 
 /* sheet flags */
 enum
@@ -4370,6 +4371,16 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
       g_assert_not_reached ();
       break;
     }
+
+
+  maximize_int (&new_row, 0);
+  maximize_int (&new_col, 0);
+
+  minimize_int (&new_row,
+		g_sheet_row_get_row_count (sheet->row_geometry) - 1);
+
+  minimize_int (&new_col,
+		g_sheet_column_get_column_count (sheet->column_geometry) - 1);
 
   g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
 		 current_row, current_col,
