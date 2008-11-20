@@ -489,7 +489,7 @@ static void gtk_sheet_entry_changed		 (GtkWidget *widget,
 						  gpointer data);
 static void gtk_sheet_deactivate_cell	 (GtkSheet *sheet);
 static void gtk_sheet_hide_active_cell		 (GtkSheet *sheet);
-static gboolean gtk_sheet_activate_cell		 (GtkSheet *sheet,
+static void gtk_sheet_activate_cell		 (GtkSheet *sheet,
 						  gint row, gint col);
 static void gtk_sheet_draw_active_cell		 (GtkSheet *sheet);
 static void gtk_sheet_show_active_cell		 (GtkSheet *sheet);
@@ -924,8 +924,8 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, activate),
 		  NULL, NULL,
-		  gtkextra_BOOLEAN__INT_INT,
-		  G_TYPE_BOOLEAN, 2, G_TYPE_INT, G_TYPE_INT);
+		  gtkextra_VOID__INT_INT,
+		  G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_INT);
 
   sheet_signals[CHANGED] =
     g_signal_new ("changed",
@@ -2552,33 +2552,35 @@ gtk_sheet_get_cell_area (GtkSheet *sheet,
   return TRUE;
 }
 
-gboolean
+void
 gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint col)
 {
-  g_return_val_if_fail (sheet != NULL, 0);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), 0);
+  g_return_if_fail (sheet != NULL);
+  g_return_if_fail (GTK_IS_SHEET (sheet));
 
-  if (row < -1 || col < -1) return FALSE;
+  if (row < -1 || col < -1)
+    return;
+
   if (row >= g_sheet_row_get_row_count (sheet->row_geometry)
       ||
       col >= g_sheet_column_get_column_count (sheet->column_geometry))
-    return FALSE;
+    return;
 
   sheet->active_cell.row = row;
   sheet->active_cell.col = col;
 
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
-    return TRUE;
+    return;
 
   gtk_sheet_deactivate_cell (sheet);
 
   if ( row == -1 || col == -1)
     {
       gtk_sheet_hide_active_cell (sheet);
-      return TRUE;
+      return;
     }
 
-  return gtk_sheet_activate_cell (sheet, row, col);
+  gtk_sheet_activate_cell (sheet, row, col);
 }
 
 void
@@ -2708,21 +2710,19 @@ gtk_sheet_hide_active_cell (GtkSheet *sheet)
   GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (sheet->entry_widget), GTK_VISIBLE);
 }
 
-static gboolean
+static void
 gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
 {
-  gboolean veto = TRUE;
+  g_return_if_fail (sheet != NULL);
+  g_return_if_fail (GTK_IS_SHEET (sheet));
 
-  g_return_val_if_fail (sheet != NULL, FALSE);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
-
-  if (row < 0 || col < 0) return FALSE;
+  if (row < 0 || col < 0)
+    return;
 
   if ( row > g_sheet_row_get_row_count (sheet->row_geometry)
        || col > g_sheet_column_get_column_count (sheet->column_geometry))
-    return FALSE;
+    return;
 
-  if (!veto) return FALSE;
   if (sheet->state != GTK_SHEET_NORMAL)
     {
       sheet->state = GTK_SHEET_NORMAL;
@@ -2747,9 +2747,7 @@ gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
 		    G_CALLBACK (gtk_sheet_entry_changed),
 		    sheet);
 
-   g_signal_emit (sheet, sheet_signals [ACTIVATE], 0, row, col, &veto);
-
-  return TRUE;
+  g_signal_emit (sheet, sheet_signals [ACTIVATE], 0, row, col);
 }
 
 static void

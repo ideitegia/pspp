@@ -299,11 +299,9 @@ void gtk_sheet_get_visible_range (GtkSheet *sheet, GtkSheetRange *range);
 /* obvious */
 void gtk_sheet_unselect_range		(GtkSheet *sheet);
 
-/* set active cell where the entry will be displayed
- * returns FALSE if current cell can't be deactivated or
- * requested cell can't be activated */
-gboolean gtk_sheet_set_active_cell (GtkSheet *sheet,
-					gint row, gint column);
+/* set active cell where the entry will be displayed */
+void gtk_sheet_set_active_cell (GtkSheet *sheet,
+				gint row, gint column);
 
 /* Sets *ROW and *COLUMN to be the coordinates of the active cell.
    ROW and/or COLUMN may be null if the caller is not interested in their
