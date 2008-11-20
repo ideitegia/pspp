@@ -456,13 +456,10 @@ static gboolean gtk_sheet_cell_isvisible  (GtkSheet *sheet,
 					   gint row, gint column);
 /* Drawing Routines */
 
-/* draw cell background and frame */
-static void gtk_sheet_cell_draw_bg 	 (GtkSheet *sheet,
+/* draw cell */
+static void gtk_sheet_cell_draw 		 (GtkSheet *sheet,
 						  gint row, gint column);
 
-/* draw cell contents */
-static void gtk_sheet_cell_draw_label 		 (GtkSheet *sheet,
-						  gint row, gint column);
 
 /* draw visible part of range. If range == NULL then draw the whole screen */
 static void gtk_sheet_range_draw (GtkSheet *sheet,
@@ -2162,8 +2159,14 @@ gtk_sheet_unmap (GtkWidget *widget)
 
 
 static void
-gtk_sheet_cell_draw_bg (GtkSheet *sheet, gint row, gint col)
+gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint col)
 {
+  PangoLayout *layout;
+  PangoRectangle text;
+  gint font_height;
+
+  gchar *label;
+
   GtkSheetCellAttr attributes;
   GdkRectangle area;
 
@@ -2200,46 +2203,14 @@ gtk_sheet_cell_draw_bg (GtkSheet *sheet, gint row, gint col)
 			  area.x, area.y,
 			  area.width, area.height);
     }
-}
 
+  //  gtk_sheet_cell_draw_label (sheet, row, col);
 
-static void
-gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
-{
-  GtkWidget *widget;
-  GdkRectangle area;
-  GtkSheetCellAttr attributes;
-  PangoLayout *layout;
-  PangoRectangle text;
-  gint font_height;
-
-  gchar *label;
-
-  g_return_if_fail (sheet != NULL);
-
-  if (!GTK_WIDGET_DRAWABLE (sheet))
-    return;
 
   label = gtk_sheet_cell_get_text (sheet, row, col);
-  if (!label)
+  if (NULL == label)
     return;
 
-  if (row < 0 || row >= g_sheet_row_get_row_count (sheet->row_geometry))
-    return;
-
-  if (col < 0 ||
-      col >= g_sheet_column_get_column_count (sheet->column_geometry))
-    return;
-
-  widget = GTK_WIDGET (sheet);
-
-  gtk_sheet_get_attributes (sheet, row, col, &attributes);
-
-  /* select GC for background rectangle */
-  gdk_gc_set_foreground (sheet->fg_gc, &attributes.foreground);
-  gdk_gc_set_foreground (sheet->bg_gc, &attributes.background);
-
-  rectangle_from_cell (sheet, row, col, &area);
 
   layout = gtk_widget_create_pango_layout (GTK_WIDGET (sheet), label);
   dispose_string (sheet, label);
@@ -2282,6 +2253,8 @@ gtk_sheet_cell_draw_label (GtkSheet *sheet, gint row, gint col)
   gdk_gc_set_clip_rectangle (sheet->fg_gc, NULL);
   g_object_unref (layout);
 }
+
+
 
 static void
 gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
@@ -2328,8 +2301,7 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
   for (i = drawing_range.row0; i <= drawing_range.rowi; i++)
     for (j = drawing_range.col0; j <= drawing_range.coli; j++)
       {
-	gtk_sheet_cell_draw_bg (sheet, i, j);
-	gtk_sheet_cell_draw_label (sheet, i, j);
+	gtk_sheet_cell_draw (sheet, i, j);
       }
 
   if (sheet->state != GTK_SHEET_NORMAL &&
@@ -2785,11 +2757,8 @@ gtk_sheet_hide_active_cell (GtkSheet *sheet)
 		      area.x, area.y,
 		      area.width, area.height);
 
-  gtk_sheet_cell_draw_bg (sheet, sheet->active_cell.row,
+  gtk_sheet_cell_draw (sheet, sheet->active_cell.row,
 			       sheet->active_cell.col);
-
-  gtk_sheet_cell_draw_label (sheet, sheet->active_cell.row,
-			     sheet->active_cell.col);
 
   GTK_WIDGET_UNSET_FLAGS (GTK_WIDGET (sheet->entry_widget), GTK_VISIBLE);
 }
