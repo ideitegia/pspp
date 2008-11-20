@@ -493,7 +493,10 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
 
 /* Update the data_ref_entry with the reference of the active cell */
 static gint
-update_data_ref_entry (const GtkSheet *sheet, gint row, gint col, gpointer data)
+update_data_ref_entry (const GtkSheet *sheet,
+		       gint row, gint col,
+		       gint old_row, gint old_col,
+		       gpointer data)
 {
   PsppireDataEditor *de = data;
 
@@ -567,7 +570,6 @@ datum_entry_activate (GtkEntry *entry, gpointer data)
 }
 
 static void on_activate (PsppireDataEditor *de);
-static void on_deactivate (PsppireDataEditor *de);
 static gboolean on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p, gint pagenum, gpointer data);
 static void on_select_range (PsppireDataEditor *de);
 
@@ -723,10 +725,6 @@ psppire_data_editor_init (PsppireDataEditor *de)
 
   g_signal_connect_swapped (de->data_sheet[0], "activate",
 			    G_CALLBACK (on_activate),
-			    de);
-
-  g_signal_connect_swapped (de->data_sheet[0], "deactivate",
-			    G_CALLBACK (on_deactivate),
 			    de);
 
   g_signal_connect_swapped (de->data_sheet[0], "select-range",
@@ -1144,12 +1142,6 @@ on_activate (PsppireDataEditor *de)
   emit_selected_signal (de);
 }
 
-
-static void
-on_deactivate (PsppireDataEditor *de)
-{
-  emit_selected_signal (de);
-}
 
 static void
 on_select_range (PsppireDataEditor *de)

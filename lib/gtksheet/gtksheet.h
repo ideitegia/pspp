@@ -222,9 +222,6 @@ struct _GtkSheetClass
                          	gint row, gint column,
                          	gint *new_row, gint *new_column);
 
- gboolean (*deactivate)	 	(GtkSheet *sheet,
-	                  	gint row, gint column);
-
  gboolean (*activate) 		(GtkSheet *sheet,
 	                	gint row, gint column);
 

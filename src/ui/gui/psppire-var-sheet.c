@@ -1,4 +1,3 @@
-
 /* PSPPIRE - a graphical user interface for PSPP.
    Copyright (C) 2008 Free Software Foundation, Inc.
 
@@ -33,7 +32,7 @@
 static void psppire_var_sheet_class_init  (PsppireVarSheetClass *klass);
 static void psppire_var_sheet_init        (PsppireVarSheet      *vs);
 
-enum 
+enum
   {
     PSPPIRE_VAR_SHEET_MAY_CREATE_VARS = 1
   };
@@ -266,6 +265,7 @@ traverse_cell_callback (GtkSheet *sheet,
   if (*new_row >= n_vars && !var_sheet->may_create_vars)
     return TRUE;
 
+
   if ( row == n_vars && *new_row >= n_vars)
     {
       GtkEntry *entry = GTK_ENTRY (gtk_sheet_get_entry (sheet));
@@ -280,6 +280,7 @@ traverse_cell_callback (GtkSheet *sheet,
       return FALSE;
     }
 
+
   /* If the destination cell is outside the current  variables, then
      automatically create variables for the new rows.
   */
@@ -291,49 +292,41 @@ traverse_cell_callback (GtkSheet *sheet,
 	psppire_dict_insert_variable (var_store->dict, i, NULL);
     }
 
+
+
   return FALSE;
 }
 
 
 
-/*
-   Callback whenever the pointer leaves a cell on the var sheet.
-*/
-static gboolean
-var_sheet_cell_entry_leave (GtkSheet * sheet, gint row, gint column,
-			    gpointer data)
-{
-  gtk_sheet_change_entry (sheet, GTK_TYPE_ENTRY);
-  return TRUE;
-}
-
 
 /*
-   Callback whenever the pointer enters a cell on the var sheet.
+   Callback whenever the active cell changes on the var sheet.
 */
-static gboolean
-var_sheet_cell_entry_enter (PsppireVarSheet *vs, gint row, gint column,
-			    gpointer data)
+static void
+var_sheet_change_active_cell (PsppireVarSheet *vs,
+			      gint row, gint column,
+			      gint oldrow, gint oldcolumn,
+			      gpointer data)
 {
   GtkSheetCellAttr attributes;
-  PsppireVarStore *var_store ;
+  PsppireVarStore *var_store;
   PsppireVarSheetClass *vs_class =
     PSPPIRE_VAR_SHEET_CLASS(G_OBJECT_GET_CLASS (vs));
 
   struct variable *var ;
   GtkSheet *sheet = GTK_SHEET (vs);
 
-  g_return_val_if_fail (sheet != NULL, FALSE);
+  g_return_if_fail (sheet != NULL);
 
   var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
 
   g_assert (var_store);
 
-  if ( row >= psppire_var_store_get_var_cnt (var_store))
-    return TRUE;
+  g_return_if_fail (oldcolumn == PSPPIRE_VAR_STORE_COL_NAME ||
+		    row < psppire_var_store_get_var_cnt (var_store));
 
   gtk_sheet_get_attributes (sheet, row, column, &attributes);
-
 
   var = psppire_var_store_get_var (var_store, row);
 
@@ -503,9 +496,6 @@ var_sheet_cell_entry_enter (PsppireVarSheet *vs, gint row, gint column,
       gtk_sheet_change_entry (sheet, GTK_TYPE_ENTRY);
       break;
     }
-
-
-  return TRUE;
 }
 
 
@@ -538,13 +528,8 @@ psppire_var_sheet_init (PsppireVarSheet *vs)
 
   g_object_set (vs, "column-geometry", geo, NULL);
 
-
   g_signal_connect (vs, "activate",
-		    G_CALLBACK (var_sheet_cell_entry_enter),
-		    NULL);
-
-  g_signal_connect (vs, "deactivate",
-		    G_CALLBACK (var_sheet_cell_entry_leave),
+		    G_CALLBACK (var_sheet_change_active_cell),
 		    NULL);
 
   g_signal_connect (vs, "traverse",

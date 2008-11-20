@@ -62,7 +62,6 @@
 /* sheet flags */
 enum
   {
-    GTK_SHEET_REDRAW_PENDING = 1 << 0,
     GTK_SHEET_IN_XDRAG = 1 << 1,
     GTK_SHEET_IN_YDRAG = 1 << 2,
     GTK_SHEET_IN_DRAG = 1 << 3,
@@ -79,7 +78,6 @@ enum
 #define GTK_SHEET_IN_DRAG(sheet) (GTK_SHEET_FLAGS (sheet) & GTK_SHEET_IN_DRAG)
 #define GTK_SHEET_IN_SELECTION(sheet) (GTK_SHEET_FLAGS (sheet) & GTK_SHEET_IN_SELECTION)
 #define GTK_SHEET_IN_RESIZE(sheet) (GTK_SHEET_FLAGS (sheet) & GTK_SHEET_IN_RESIZE)
-#define GTK_SHEET_REDRAW_PENDING(sheet) (GTK_SHEET_FLAGS (sheet) & GTK_SHEET_REDRAW_PENDING)
 
 #define CELL_SPACING 1
 
@@ -487,7 +485,6 @@ static void gtk_sheet_draw_border 		 (GtkSheet *sheet,
 
 static void gtk_sheet_entry_changed		 (GtkWidget *widget,
 						  gpointer data);
-static void deactivate_cell	 (GtkSheet *sheet);
 static void gtk_sheet_hide_active_cell		 (GtkSheet *sheet);
 static void activate_cell		 (GtkSheet *sheet,
 					  gint row, gint col);
@@ -565,7 +562,6 @@ enum
     RESIZE_RANGE,
     MOVE_RANGE,
     TRAVERSE,
-    DEACTIVATE,
     ACTIVATE,
     CHANGED,
     LAST_SIGNAL
@@ -909,23 +905,16 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_TYPE_POINTER, G_TYPE_POINTER);
 
 
-  sheet_signals[DEACTIVATE] =
-    g_signal_new ("deactivate",
-		  G_TYPE_FROM_CLASS (object_class),
-		  G_SIGNAL_RUN_LAST,
-		  offsetof (GtkSheetClass, deactivate),
-		  NULL, NULL,
-		  gtkextra_VOID__INT_INT,
-		  G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_INT);
-
   sheet_signals[ACTIVATE] =
     g_signal_new ("activate",
 		  G_TYPE_FROM_CLASS (object_class),
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, activate),
 		  NULL, NULL,
-		  gtkextra_VOID__INT_INT,
-		  G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_INT);
+		  gtkextra_VOID__INT_INT_INT_INT,
+		  G_TYPE_NONE, 4,
+		  G_TYPE_INT, G_TYPE_INT,
+		  G_TYPE_INT, G_TYPE_INT);
 
   sheet_signals[CHANGED] =
     g_signal_new ("changed",
@@ -1013,7 +1002,6 @@ gtk_sheet_class_init (GtkSheetClass *klass)
   klass->resize_range = NULL;
   klass->move_range = NULL;
   klass->traverse = NULL;
-  klass->deactivate = NULL;
   klass->activate = NULL;
   klass->changed = NULL;
 }
@@ -1404,7 +1392,6 @@ gtk_sheet_autoresize_column (GtkSheet *sheet, gint column)
   if (text_width > g_sheet_column_get_width (sheet->column_geometry, column) )
     {
       gtk_sheet_set_column_width (sheet, column, text_width);
-      GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_REDRAW_PENDING);
     }
 }
 
@@ -1584,8 +1571,6 @@ gtk_sheet_select_row (GtkSheet *sheet, gint row)
 
   if (sheet->state != GTK_SHEET_NORMAL)
     gtk_sheet_real_unselect_range (sheet, NULL);
-  else
-    deactivate_cell (sheet);
 
   sheet->state = GTK_SHEET_ROW_SELECTED;
   sheet->range.row0 = row;
@@ -1611,9 +1596,6 @@ gtk_sheet_select_column (GtkSheet *sheet, gint column)
 
   if (sheet->state != GTK_SHEET_NORMAL)
     gtk_sheet_real_unselect_range (sheet, NULL);
-  else
-    deactivate_cell (sheet);
-
 
   sheet->state = GTK_SHEET_COLUMN_SELECTED;
   sheet->range.row0 = 0;
@@ -2572,8 +2554,6 @@ gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint col)
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     return;
 
-  deactivate_cell (sheet);
-
   if ( row == -1 || col == -1)
     {
       gtk_sheet_hide_active_cell (sheet);
@@ -2633,54 +2613,6 @@ gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
 
 
 static void
-deactivate_cell (GtkSheet *sheet)
-{
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-
-  if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return ;
-  if (sheet->state != GTK_SHEET_NORMAL) return ;
-
-
-  if ( sheet->active_cell.row == -1 || sheet->active_cell.col == -1 )
-    return ;
-
-  /*
-  g_print ("%s\n", __FUNCTION__);
-
-
-  GtkSheetRange r;
-  r.col0 = r.coli = sheet->active_cell.col;
-  r.row0 = r.rowi = sheet->active_cell.row;
-  gtk_sheet_range_draw (sheet, &r);
-  */
-
-
-  g_signal_emit (sheet, sheet_signals[DEACTIVATE], 0,
-		 sheet->active_cell.row,
-		 sheet->active_cell.col);
-
-
-  g_signal_handlers_disconnect_by_func (gtk_sheet_get_entry (sheet),
-					G_CALLBACK (gtk_sheet_entry_changed),
-					sheet);
-
-  gtk_sheet_hide_active_cell (sheet);
-  sheet->active_cell.row = -1;
-  sheet->active_cell.col = -1;
-
-#if 0
-  if (GTK_SHEET_REDRAW_PENDING (sheet))
-    {
-      GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_REDRAW_PENDING);
-      gtk_sheet_range_draw (sheet, NULL);
-    }
-#endif
-}
-
-
-
-static void
 gtk_sheet_hide_active_cell (GtkSheet *sheet)
 {
   GdkRectangle area;
@@ -2713,6 +2645,7 @@ gtk_sheet_hide_active_cell (GtkSheet *sheet)
 static void
 activate_cell (GtkSheet *sheet, gint row, gint col)
 {
+  gint old_row, old_col;
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
@@ -2728,6 +2661,9 @@ activate_cell (GtkSheet *sheet, gint row, gint col)
       sheet->state = GTK_SHEET_NORMAL;
       gtk_sheet_real_unselect_range (sheet, NULL);
     }
+
+  old_row = sheet->active_cell.row;
+  old_col = sheet->active_cell.col;
 
   sheet->range.row0 = row;
   sheet->range.col0 = col;
@@ -2747,7 +2683,8 @@ activate_cell (GtkSheet *sheet, gint row, gint col)
 		    G_CALLBACK (gtk_sheet_entry_changed),
 		    sheet);
 
-  g_signal_emit (sheet, sheet_signals [ACTIVATE], 0, row, col);
+  g_signal_emit (sheet, sheet_signals [ACTIVATE], 0,
+		 row, col, old_row, old_col);
 }
 
 static void
@@ -3156,8 +3093,6 @@ gtk_sheet_select_range (GtkSheet *sheet, const GtkSheetRange *range)
 
   if (sheet->state != GTK_SHEET_NORMAL)
     gtk_sheet_real_unselect_range (sheet, NULL);
-  else
-    deactivate_cell (sheet);
 
   sheet->range.row0 = range->row0;
   sheet->range.rowi = range->rowi;
@@ -3445,7 +3380,6 @@ gtk_sheet_button_press (GtkWidget *widget,
 	    {
 	      row = sheet->active_cell.row;
 	      column = sheet->active_cell.col;
-	      deactivate_cell (sheet);
 	      sheet->active_cell.row = row;
 	      sheet->active_cell.col = column;
 	      sheet->drag_range = sheet->range;
@@ -3473,7 +3407,6 @@ gtk_sheet_button_press (GtkWidget *widget,
 	    {
 	      row = sheet->active_cell.row;
 	      column = sheet->active_cell.col;
-	      deactivate_cell (sheet);
 	      sheet->active_cell.row = row;
 	      sheet->active_cell.col = column;
 	      sheet->drag_range = sheet->range;
@@ -3598,7 +3531,6 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
     }
   else
     {
-      deactivate_cell (sheet);
       activate_cell (sheet, row, column);
     }
 
@@ -4358,27 +4290,41 @@ page_vertical (GtkSheet *sheet, GtkScrollType dir)
 
 
 static void
-step_horizontal (GtkSheet *sheet, GtkScrollType dir)
+step_sheet (GtkSheet *sheet, GtkScrollType dir)
 {
+  gint current_row = sheet->active_cell.row;
+  gint current_col = sheet->active_cell.col;
+  gint new_row = current_row;
+  gint new_col = current_col;
+  gboolean forbidden = FALSE;
+
   switch ( dir)
     {
+    case GTK_SCROLL_STEP_DOWN:
+      new_row++;
+      break;
+    case GTK_SCROLL_STEP_UP:
+      new_row--;
+      break;
     case GTK_SCROLL_STEP_RIGHT:
-
-      activate_cell (sheet,
-			       sheet->active_cell.row,
-			       sheet->active_cell.col + 1);
+      new_col++;
       break;
     case GTK_SCROLL_STEP_LEFT:
-
-      activate_cell (sheet,
-			       sheet->active_cell.row,
-			       sheet->active_cell.col - 1);
+      new_col--;
       break;
-
     default:
       g_assert_not_reached ();
       break;
     }
+
+  g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
+		 current_row, current_col,
+		 &new_row, &new_col, &forbidden);
+
+  if (forbidden)
+    return;
+
+  activate_cell (sheet, new_row, new_col);
 
   if ( sheet->active_cell.col >= max_visible_column (sheet))
     {
@@ -4401,6 +4347,7 @@ step_horizontal (GtkSheet *sheet, GtkScrollType dir)
     }
 }
 
+
 static gboolean
 gtk_sheet_key_press (GtkWidget *widget,
 		     GdkEventKey *key)
@@ -4413,33 +4360,18 @@ gtk_sheet_key_press (GtkWidget *widget,
     {
     case GDK_Tab:
     case GDK_Right:
-      step_horizontal (sheet, GTK_SCROLL_STEP_RIGHT);
+      step_sheet (sheet, GTK_SCROLL_STEP_RIGHT);
       break;
     case GDK_ISO_Left_Tab:
     case GDK_Left:
-      step_horizontal (sheet, GTK_SCROLL_STEP_LEFT);
+      step_sheet (sheet, GTK_SCROLL_STEP_LEFT);
       break;
-
     case GDK_Return:
     case GDK_Down:
-      activate_cell (sheet,
-			       sheet->active_cell.row + ROWS_PER_STEP,
-			       sheet->active_cell.col);
-
-      if ( sheet->active_cell.row >= max_visible_row (sheet))
-	gtk_adjustment_set_value (sheet->vadjustment,
-				  sheet->vadjustment->value +
-				  sheet->vadjustment->step_increment);
+      step_sheet (sheet, GTK_SCROLL_STEP_DOWN);
       break;
     case GDK_Up:
-      activate_cell (sheet,
-			       sheet->active_cell.row - ROWS_PER_STEP,
-			       sheet->active_cell.col);
-
-      if ( sheet->active_cell.row < min_visible_row (sheet))
-	gtk_adjustment_set_value (sheet->vadjustment,
-				  sheet->vadjustment->value -
-				  sheet->vadjustment->step_increment);
+      step_sheet (sheet, GTK_SCROLL_STEP_UP);
       break;
 
     case GDK_Page_Down:
