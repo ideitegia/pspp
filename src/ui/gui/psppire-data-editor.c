@@ -157,7 +157,7 @@ on_var_row_clicked (PsppireDataEditor *de, gint row, gpointer data)
   if ( row < visible_range.col0 || row > visible_range.coli)
     {
       gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]),
-			current_row, row, 0, 0);
+			-1, row, 0, 0);
     }
 
   return FALSE;
@@ -240,12 +240,12 @@ psppire_data_editor_set_property (GObject         *object,
 	  case PSPPIRE_DATA_EDITOR_DATA_VIEW:
 	    gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &col);
 	    gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet[0]), row, var);
-	    gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]), row, var, 0.5, 0.5);
+	    gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]), -1, var, 0.5, 0.5);
 	    break;
 	  case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
 	    gtk_sheet_get_active_cell (GTK_SHEET (de->var_sheet), &row, &col);
 	    gtk_sheet_set_active_cell (GTK_SHEET (de->var_sheet), var, col);
-	    gtk_sheet_moveto (GTK_SHEET (de->var_sheet), var, col,  0.5, 0.5);
+	    gtk_sheet_moveto (GTK_SHEET (de->var_sheet), var, -1,  0.5, 0.5);
 	    break;
 	  default:
 	    g_assert_not_reached ();
@@ -259,7 +259,7 @@ psppire_data_editor_set_property (GObject         *object,
 	gint case_num = g_value_get_long (value);
 	gtk_sheet_get_active_cell (GTK_SHEET (de->data_sheet[0]), &row, &col);
 	gtk_sheet_set_active_cell (GTK_SHEET (de->data_sheet[0]), case_num, col);
-	gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]), case_num, col, 0.5, 0.5);
+	gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]), case_num, -1, 0.5, 0.5);
       }
       break;
     case PROP_VALUE_LABELS:

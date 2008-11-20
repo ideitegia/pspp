@@ -1506,105 +1506,50 @@ gtk_sheet_hide_row_titles (GtkSheet *sheet)
 }
 
 
+/* Scroll the sheet so that the cell ROW, COLUMN is visible.
+   If {ROW,COL}_ALIGN is zero, then the cell will be placed
+   at the {top,left} of the sheet.  If it's 1, then it'll
+   be placed at the {bottom,right}.
+   ROW or COL may be -1, in which case scrolling in that dimension
+   does not occur.
+ */
 void
 gtk_sheet_moveto (GtkSheet *sheet,
 		  gint row,
-		  gint column,
+		  gint col,
 		  gfloat row_align,
 		  gfloat col_align)
 {
-  gint x, y;
   gint width, height;
-  gint adjust;
-  gint min_row, min_col;
 
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-  g_return_if_fail (sheet->hadjustment != NULL);
-  g_return_if_fail (sheet->vadjustment != NULL);
+  g_return_if_fail (row_align >= 0);
+  g_return_if_fail (col_align >= 0);
 
-  if (row < 0 || row >= g_sheet_row_get_row_count (sheet->row_geometry))
-    return;
-  if (column < 0 || column >= g_sheet_column_get_column_count (sheet->column_geometry))
-    return;
+  g_return_if_fail (row_align <= 1);
+  g_return_if_fail (col_align <= 1);
+
+  g_return_if_fail (col <
+		    g_sheet_column_get_column_count (sheet->column_geometry));
+  g_return_if_fail (row <
+		    g_sheet_row_get_row_count (sheet->row_geometry));
 
   gdk_drawable_get_size (sheet->sheet_window, &width, &height);
 
-  /* adjust vertical scrollbar */
-  if (row >= 0 && row_align >= 0.0)
-    {
-      y = g_sheet_row_start_pixel (sheet->row_geometry, row)
-	- (gint) ( row_align * height + (1.0 - row_align)
-		   * g_sheet_row_get_height (sheet->row_geometry, row));
 
-      /* This forces the sheet to scroll when you don't see the entire cell */
-      min_row = row;
-      adjust = 0;
-      if (row_align >= 1.0)
-	{
-	  while (min_row >= 0 && min_row > min_visible_row (sheet))
-	    {
-	      adjust += g_sheet_row_get_height (sheet->row_geometry, min_row);
+  if (row >= 0)
+  {
+    gint y =  g_sheet_row_start_pixel (sheet->row_geometry, row);
 
-	      if (adjust >= height)
-		{
-		  break;
-		}
-	      min_row--;
-	    }
-	  min_row = MAX (min_row, 0);
+    gtk_adjustment_set_value (sheet->vadjustment, y - height * row_align);
+  }
 
-	  min_row ++;
 
-	  y = g_sheet_row_start_pixel (sheet->row_geometry, min_row) +
-	    g_sheet_row_get_height (sheet->row_geometry, min_row) - 1;
-	}
+  if (col >= 0)
+  {
+    gint x =  g_sheet_column_start_pixel (sheet->column_geometry, col);
 
-      if (y < 0)
-	sheet->vadjustment->value = 0.0;
-      else
-	sheet->vadjustment->value = y;
-
-      g_signal_emit_by_name (sheet->vadjustment,
-			     "value_changed");
-
-    }
-
-  /* adjust horizontal scrollbar */
-  if (column >= 0 && col_align >= 0.0)
-    {
-      x = g_sheet_column_start_pixel (sheet->column_geometry, column)
-	- (gint) ( col_align*width + (1.0 - col_align)*
-		   g_sheet_column_get_width (sheet->column_geometry, column));
-
-      /* This forces the sheet to scroll when you don't see the entire cell */
-      min_col = column;
-      adjust = 0;
-      if (col_align == 1.0)
-	{
-	  while (min_col >= 0 && min_col > min_visible_column (sheet))
-	    {
-	      adjust += g_sheet_column_get_width (sheet->column_geometry, min_col);
-
-	      if (adjust >= width)
-		{
-		  break;
-		}
-	      min_col--;
-	    }
-	  min_col = MAX (min_col, 0);
-	  x = g_sheet_column_start_pixel (sheet->column_geometry, min_col) +
-	    g_sheet_column_get_width (sheet->column_geometry, min_col) - 1;
-	}
-
-      if (x < 0)
-	sheet->hadjustment->value = 0.0;
-      else
-	sheet->hadjustment->value = x;
-
-      g_signal_emit_by_name (sheet->hadjustment,
-			     "value_changed");
-    }
+    gtk_adjustment_set_value (sheet->hadjustment, x - width * col_align);
+  }
 }
 
 
