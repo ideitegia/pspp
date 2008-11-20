@@ -4782,13 +4782,10 @@ size_allocate_row_title_buttons (GtkSheet *sheet)
 static void
 gtk_sheet_size_allocate_entry (GtkSheet *sheet)
 {
-  GtkAllocation shentry_allocation;
+  GtkAllocation entry_alloc;
   GtkSheetCellAttr attributes = { 0 };
   GtkEntry *sheet_entry;
-  GtkStyle *style = NULL, *previous_style = NULL;
-  gint row, col;
-  gint size, max_size, text_size;
-  const gchar *text;
+
 
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
   if (!GTK_WIDGET_MAPPED (GTK_WIDGET (sheet))) return;
@@ -4804,9 +4801,8 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
 
   if ( GTK_WIDGET_REALIZED (sheet->entry_widget) )
     {
-      previous_style = GTK_WIDGET (sheet_entry)->style;
+      GtkStyle *style = GTK_WIDGET (sheet_entry)->style;
 
-      style = gtk_style_copy (previous_style);
       style->bg[GTK_STATE_NORMAL] = attributes.background;
       style->fg[GTK_STATE_NORMAL] = attributes.foreground;
       style->text[GTK_STATE_NORMAL] = attributes.foreground;
@@ -4817,41 +4813,14 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
       pango_font_description_free (style->font_desc);
       g_assert (attributes.font_desc);
       style->font_desc = pango_font_description_copy (attributes.font_desc);
-
-      GTK_WIDGET (sheet_entry)->style = style;
-      gtk_widget_size_request (sheet->entry_widget, NULL);
-      GTK_WIDGET (sheet_entry)->style = previous_style;
-
-      if (style != previous_style)
-	{
-	  style->bg[GTK_STATE_NORMAL] = previous_style->bg[GTK_STATE_NORMAL];
-	  style->fg[GTK_STATE_NORMAL] = previous_style->fg[GTK_STATE_NORMAL];
-	  style->bg[GTK_STATE_ACTIVE] = previous_style->bg[GTK_STATE_ACTIVE];
-	  style->fg[GTK_STATE_ACTIVE] = previous_style->fg[GTK_STATE_ACTIVE];
-	  gtk_widget_set_style (GTK_WIDGET (sheet_entry), style);
-          g_object_unref (style);
-	}
     }
 
-  max_size = 0;
+  rectangle_from_cell (sheet, sheet->active_cell.row,
+		       sheet->active_cell.col, &entry_alloc);
 
-  text_size = 0;
-  text = gtk_entry_get_text (GTK_ENTRY (sheet_entry));
-  if (text && strlen (text) > 0)
-    text_size = STRING_WIDTH (GTK_WIDGET (sheet), attributes.font_desc, text);
-
-  row = sheet->active_cell.row;
-  col = sheet->active_cell.col;
-
-  rectangle_from_cell (sheet, row, col, &shentry_allocation);
-
-  size = MIN (text_size, max_size);
-  size = MAX (size, shentry_allocation.width - 2 * COLUMN_TITLES_HEIGHT);
-
-
-  gtk_widget_size_allocate (sheet->entry_widget, &shentry_allocation);
-
-  if (previous_style == style) g_object_unref (previous_style);
+  gtk_widget_set_size_request (sheet->entry_widget, entry_alloc.width,
+			       entry_alloc.height);
+  gtk_widget_size_allocate (sheet->entry_widget, &entry_alloc);
 }
 
 
