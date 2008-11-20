@@ -457,8 +457,7 @@ static gboolean gtk_sheet_cell_isvisible  (GtkSheet *sheet,
 /* Drawing Routines */
 
 /* draw cell */
-static void gtk_sheet_cell_draw 		 (GtkSheet *sheet,
-						  gint row, gint column);
+static void gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint column);
 
 
 /* draw visible part of range. If range == NULL then draw the whole screen */
@@ -531,8 +530,8 @@ static void gtk_sheet_size_allocate_entry	 (GtkSheet *sheet);
 
 /* Sheet button gadgets */
 
-static void size_allocate_column_title_buttons 	 (GtkSheet *sheet);
-static void size_allocate_row_title_buttons 	 (GtkSheet *sheet);
+static void draw_column_title_buttons 	 (GtkSheet *sheet);
+static void draw_row_title_buttons 	 (GtkSheet *sheet);
 
 
 static void size_allocate_global_button 	 (GtkSheet *sheet);
@@ -2000,8 +1999,8 @@ gtk_sheet_realize (GtkWidget *widget)
 
   sheet->hover_window = create_hover_window ();
 
-  size_allocate_row_title_buttons (sheet);
-  size_allocate_column_title_buttons (sheet);
+  draw_row_title_buttons (sheet);
+  draw_column_title_buttons (sheet);
 
   gtk_sheet_update_primary_selection (sheet);
 }
@@ -2097,12 +2096,12 @@ gtk_sheet_map (GtkWidget *widget)
 
       if (sheet->column_titles_visible)
 	{
-	  size_allocate_column_title_buttons (sheet);
+	  draw_column_title_buttons (sheet);
 	  gdk_window_show (sheet->column_title_window);
 	}
       if (sheet->row_titles_visible)
 	{
-	  size_allocate_row_title_buttons (sheet);
+	  draw_row_title_buttons (sheet);
 	  gdk_window_show (sheet->row_title_window);
 	}
 
@@ -2291,6 +2290,7 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
 
       rectangle_from_range (sheet, &drawing_range, &area);
     }
+
 
   gdk_draw_rectangle (sheet->sheet_window,
 		      GTK_WIDGET (sheet)->style->white_gc,
@@ -4627,7 +4627,7 @@ gtk_sheet_size_allocate (GtkWidget *widget,
 
 
   /* column button allocation */
-  size_allocate_column_title_buttons (sheet);
+  draw_column_title_buttons (sheet);
 
   /* position the window which holds the row title buttons */
   sheet->row_title_area.x = 0;
@@ -4649,15 +4649,15 @@ gtk_sheet_size_allocate (GtkWidget *widget,
 
 
   /* row button allocation */
-  size_allocate_row_title_buttons (sheet);
-  size_allocate_column_title_buttons (sheet);
+  draw_row_title_buttons (sheet);
+  draw_column_title_buttons (sheet);
 
   /* set the scrollbars adjustments */
   adjust_scrollbars (sheet);
 }
 
 static void
-size_allocate_column_title_buttons (GtkSheet *sheet)
+draw_column_title_buttons (GtkSheet *sheet)
 {
   gint i;
   gint x, width;
@@ -4701,7 +4701,7 @@ size_allocate_column_title_buttons (GtkSheet *sheet)
 }
 
 static void
-size_allocate_row_title_buttons (GtkSheet *sheet)
+draw_row_title_buttons (GtkSheet *sheet)
 {
   gint i;
   gint y = 0;
@@ -5159,16 +5159,27 @@ static void
 vadjustment_value_changed (GtkAdjustment *adjustment,
 			   gpointer data)
 {
+  GdkRegion *region;
   GtkSheet *sheet = GTK_SHEET (data);
 
   g_return_if_fail (adjustment != NULL);
 
   if ( ! GTK_WIDGET_REALIZED (sheet)) return;
 
+
   gtk_widget_hide (sheet->entry_widget);
+
+  region =
+    gdk_drawable_get_visible_region (GDK_DRAWABLE (sheet->sheet_window));
+
+  gdk_window_begin_paint_region (sheet->sheet_window, region);
+
+
   gtk_sheet_range_draw (sheet, NULL);
-  size_allocate_row_title_buttons (sheet);
+  draw_row_title_buttons (sheet);
   //  size_allocate_global_button (sheet);
+
+  gdk_window_end_paint (sheet->sheet_window);
 }
 
 
@@ -5176,6 +5187,7 @@ static void
 hadjustment_value_changed (GtkAdjustment *adjustment,
 			   gpointer data)
 {
+  GdkRegion *region;
   GtkSheet *sheet = GTK_SHEET (data);
 
   g_return_if_fail (adjustment != NULL);
@@ -5183,9 +5195,18 @@ hadjustment_value_changed (GtkAdjustment *adjustment,
   if ( ! GTK_WIDGET_REALIZED (sheet)) return;
 
   gtk_widget_hide (sheet->entry_widget);
+
+
+  region =
+    gdk_drawable_get_visible_region (GDK_DRAWABLE (sheet->sheet_window));
+
+  gdk_window_begin_paint_region (sheet->sheet_window, region);
+
   gtk_sheet_range_draw (sheet, NULL);
-  size_allocate_column_title_buttons (sheet);
+  draw_column_title_buttons (sheet);
   //  size_allocate_global_button (sheet);
+
+  gdk_window_end_paint (sheet->sheet_window);
 }
 
 
@@ -5310,7 +5331,7 @@ new_column_width (GtkSheet *sheet, gint column, gint *x)
 
   g_sheet_column_set_width (sheet->column_geometry, column, width);
 
-  size_allocate_column_title_buttons (sheet);
+  draw_column_title_buttons (sheet);
 
   return width;
 }
@@ -5341,7 +5362,7 @@ new_row_height (GtkSheet *sheet, gint row, gint *y)
     height = min_height;
 
   g_sheet_row_set_height (sheet->row_geometry, row, height);
-  size_allocate_row_title_buttons (sheet);
+  draw_row_title_buttons (sheet);
 
   return height;
 }
@@ -5366,7 +5387,7 @@ gtk_sheet_set_column_width (GtkSheet *sheet,
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     {
-      size_allocate_column_title_buttons (sheet);
+      draw_column_title_buttons (sheet);
       adjust_scrollbars (sheet);
       gtk_sheet_size_allocate_entry (sheet);
       gtk_sheet_range_draw (sheet, NULL);
@@ -5397,7 +5418,7 @@ gtk_sheet_set_row_height (GtkSheet *sheet,
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)) )
     {
-      size_allocate_row_title_buttons (sheet);
+      draw_row_title_buttons (sheet);
       adjust_scrollbars (sheet);
       gtk_sheet_size_allocate_entry (sheet);
       gtk_sheet_range_draw (sheet, NULL);
