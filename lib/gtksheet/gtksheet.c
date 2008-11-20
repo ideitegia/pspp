@@ -487,10 +487,10 @@ static void gtk_sheet_draw_border 		 (GtkSheet *sheet,
 
 static void gtk_sheet_entry_changed		 (GtkWidget *widget,
 						  gpointer data);
-static void gtk_sheet_deactivate_cell	 (GtkSheet *sheet);
+static void deactivate_cell	 (GtkSheet *sheet);
 static void gtk_sheet_hide_active_cell		 (GtkSheet *sheet);
-static void gtk_sheet_activate_cell		 (GtkSheet *sheet,
-						  gint row, gint col);
+static void activate_cell		 (GtkSheet *sheet,
+					  gint row, gint col);
 static void gtk_sheet_draw_active_cell		 (GtkSheet *sheet);
 static void gtk_sheet_show_active_cell		 (GtkSheet *sheet);
 static gboolean gtk_sheet_click_cell		 (GtkSheet *sheet,
@@ -1118,7 +1118,7 @@ columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
   adjust_scrollbars (sheet);
 
   if (sheet->active_cell.col >= model_columns)
-    gtk_sheet_activate_cell (sheet, sheet->active_cell.row, model_columns - 1);
+    activate_cell (sheet, sheet->active_cell.row, model_columns - 1);
 
   for (i = first_column; i <= max_visible_column (sheet); i++)
     gtk_sheet_column_title_button_draw (sheet, i);
@@ -1150,7 +1150,7 @@ rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
   adjust_scrollbars (sheet);
 
   if (sheet->active_cell.row >= model_rows)
-    gtk_sheet_activate_cell (sheet, model_rows - 1, sheet->active_cell.col);
+    activate_cell (sheet, model_rows - 1, sheet->active_cell.col);
 
   for (i = first_row; i <= max_visible_row (sheet); i++)
     gtk_sheet_row_title_button_draw (sheet, i);
@@ -1585,7 +1585,7 @@ gtk_sheet_select_row (GtkSheet *sheet, gint row)
   if (sheet->state != GTK_SHEET_NORMAL)
     gtk_sheet_real_unselect_range (sheet, NULL);
   else
-    gtk_sheet_deactivate_cell (sheet);
+    deactivate_cell (sheet);
 
   sheet->state = GTK_SHEET_ROW_SELECTED;
   sheet->range.row0 = row;
@@ -1612,7 +1612,7 @@ gtk_sheet_select_column (GtkSheet *sheet, gint column)
   if (sheet->state != GTK_SHEET_NORMAL)
     gtk_sheet_real_unselect_range (sheet, NULL);
   else
-    gtk_sheet_deactivate_cell (sheet);
+    deactivate_cell (sheet);
 
 
   sheet->state = GTK_SHEET_COLUMN_SELECTED;
@@ -2071,9 +2071,9 @@ gtk_sheet_map (GtkWidget *widget)
 	  gtk_widget_map (GTK_BIN (sheet->button)->child);
 
       gtk_sheet_range_draw (sheet, NULL);
-      gtk_sheet_activate_cell (sheet,
-			       sheet->active_cell.row,
-			       sheet->active_cell.col);
+      activate_cell (sheet,
+		     sheet->active_cell.row,
+		     sheet->active_cell.col);
     }
 }
 
@@ -2572,7 +2572,7 @@ gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint col)
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     return;
 
-  gtk_sheet_deactivate_cell (sheet);
+  deactivate_cell (sheet);
 
   if ( row == -1 || col == -1)
     {
@@ -2580,7 +2580,7 @@ gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint col)
       return;
     }
 
-  gtk_sheet_activate_cell (sheet, row, col);
+  activate_cell (sheet, row, col);
 }
 
 void
@@ -2633,7 +2633,7 @@ gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
 
 
 static void
-gtk_sheet_deactivate_cell (GtkSheet *sheet)
+deactivate_cell (GtkSheet *sheet)
 {
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
@@ -2711,7 +2711,7 @@ gtk_sheet_hide_active_cell (GtkSheet *sheet)
 }
 
 static void
-gtk_sheet_activate_cell (GtkSheet *sheet, gint row, gint col)
+activate_cell (GtkSheet *sheet, gint row, gint col)
 {
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
@@ -3157,7 +3157,7 @@ gtk_sheet_select_range (GtkSheet *sheet, const GtkSheetRange *range)
   if (sheet->state != GTK_SHEET_NORMAL)
     gtk_sheet_real_unselect_range (sheet, NULL);
   else
-    gtk_sheet_deactivate_cell (sheet);
+    deactivate_cell (sheet);
 
   sheet->range.row0 = range->row0;
   sheet->range.rowi = range->rowi;
@@ -3181,8 +3181,8 @@ gtk_sheet_unselect_range (GtkSheet *sheet)
   gtk_sheet_real_unselect_range (sheet, NULL);
   sheet->state = GTK_STATE_NORMAL;
 
-  gtk_sheet_activate_cell (sheet,
-			   sheet->active_cell.row, sheet->active_cell.col);
+  activate_cell (sheet,
+		 sheet->active_cell.row, sheet->active_cell.col);
 }
 
 
@@ -3445,7 +3445,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 	    {
 	      row = sheet->active_cell.row;
 	      column = sheet->active_cell.col;
-	      gtk_sheet_deactivate_cell (sheet);
+	      deactivate_cell (sheet);
 	      sheet->active_cell.row = row;
 	      sheet->active_cell.col = column;
 	      sheet->drag_range = sheet->range;
@@ -3473,7 +3473,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 	    {
 	      row = sheet->active_cell.row;
 	      column = sheet->active_cell.col;
-	      gtk_sheet_deactivate_cell (sheet);
+	      deactivate_cell (sheet);
 	      sheet->active_cell.row = row;
 	      sheet->active_cell.col = column;
 	      sheet->drag_range = sheet->range;
@@ -3562,7 +3562,7 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
       row = sheet->active_cell.row;
       column = sheet->active_cell.col;
 
-      gtk_sheet_activate_cell (sheet, row, column);
+      activate_cell (sheet, row, column);
       return FALSE;
     }
 
@@ -3598,8 +3598,8 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
     }
   else
     {
-      gtk_sheet_deactivate_cell (sheet);
-      gtk_sheet_activate_cell (sheet, row, column);
+      deactivate_cell (sheet);
+      activate_cell (sheet, row, column);
     }
 
   sheet->active_cell.row = row;
@@ -3717,7 +3717,7 @@ gtk_sheet_button_release (GtkWidget *widget,
     {
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
       gdk_display_pointer_ungrab (display, event->time);
-      gtk_sheet_activate_cell (sheet, sheet->active_cell.row,
+      activate_cell (sheet, sheet->active_cell.row,
 			       sheet->active_cell.col);
     }
 
@@ -4352,7 +4352,7 @@ page_vertical (GtkSheet *sheet, GtkScrollType dir)
 
   new_row =  yyy_row_ypixel_to_row (sheet, vpixel);
 
-  gtk_sheet_activate_cell (sheet, new_row,
+  activate_cell (sheet, new_row,
 			   sheet->active_cell.col);
 }
 
@@ -4364,13 +4364,13 @@ step_horizontal (GtkSheet *sheet, GtkScrollType dir)
     {
     case GTK_SCROLL_STEP_RIGHT:
 
-      gtk_sheet_activate_cell (sheet,
+      activate_cell (sheet,
 			       sheet->active_cell.row,
 			       sheet->active_cell.col + 1);
       break;
     case GTK_SCROLL_STEP_LEFT:
 
-      gtk_sheet_activate_cell (sheet,
+      activate_cell (sheet,
 			       sheet->active_cell.row,
 			       sheet->active_cell.col - 1);
       break;
@@ -4422,7 +4422,7 @@ gtk_sheet_key_press (GtkWidget *widget,
 
     case GDK_Return:
     case GDK_Down:
-      gtk_sheet_activate_cell (sheet,
+      activate_cell (sheet,
 			       sheet->active_cell.row + ROWS_PER_STEP,
 			       sheet->active_cell.col);
 
@@ -4432,7 +4432,7 @@ gtk_sheet_key_press (GtkWidget *widget,
 				  sheet->vadjustment->step_increment);
       break;
     case GDK_Up:
-      gtk_sheet_activate_cell (sheet,
+      activate_cell (sheet,
 			       sheet->active_cell.row - ROWS_PER_STEP,
 			       sheet->active_cell.col);
 
@@ -4453,7 +4453,7 @@ gtk_sheet_key_press (GtkWidget *widget,
       gtk_adjustment_set_value (sheet->vadjustment,
 				sheet->vadjustment->lower);
 
-      gtk_sheet_activate_cell (sheet,  0,
+      activate_cell (sheet,  0,
 			       sheet->active_cell.col);
 
       break;
@@ -4465,7 +4465,7 @@ gtk_sheet_key_press (GtkWidget *widget,
 				sheet->vadjustment->page_increment);
 
       /*
-	gtk_sheet_activate_cell (sheet,
+	activate_cell (sheet,
 	g_sheet_row_get_row_count (sheet->row_geometry) - 1,
 	sheet->active_cell.col);
       */
