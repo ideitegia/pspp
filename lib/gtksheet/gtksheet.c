@@ -3329,10 +3329,12 @@ gtk_sheet_button_press (GtkWidget *widget,
 		     sheet_signals[BUTTON_EVENT_COLUMN], 0,
 		     column, event);
 
-      if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
-	g_signal_emit (sheet,
-		       sheet_signals[DOUBLE_CLICK_COLUMN], 0, column);
-
+      if (g_sheet_column_get_sensitivity (sheet->column_geometry, column))
+	{
+	  if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
+	    g_signal_emit (sheet,
+			   sheet_signals[DOUBLE_CLICK_COLUMN], 0, column);
+	}
     }
   else if (event->window == sheet->row_title_window)
     {
@@ -3340,11 +3342,14 @@ gtk_sheet_button_press (GtkWidget *widget,
 		     sheet_signals[BUTTON_EVENT_ROW], 0,
 		     row, event);
 
-      if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
-	g_signal_emit (sheet,
-		       sheet_signals[DOUBLE_CLICK_ROW], 0, row);
-    }
 
+      if (g_sheet_row_get_sensitivity (sheet->row_geometry, row))
+	{
+	  if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
+	    g_signal_emit (sheet,
+			   sheet_signals[DOUBLE_CLICK_ROW], 0, row);
+	}
+    }
 
   gdk_window_get_pointer (widget->window, NULL, NULL, &mods);
 
