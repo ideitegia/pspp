@@ -541,7 +541,7 @@ static void gtk_sheet_draw_border 		 (GtkSheet *sheet,
 static void gtk_sheet_entry_changed		 (GtkWidget *widget,
 						  gpointer data);
 static void gtk_sheet_hide_active_cell		 (GtkSheet *sheet);
-static void activate_cell		 (GtkSheet *sheet,
+static void change_active_cell		 (GtkSheet *sheet,
 					  gint row, gint col);
 static void gtk_sheet_draw_active_cell		 (GtkSheet *sheet);
 static void gtk_sheet_show_active_cell		 (GtkSheet *sheet);
@@ -1103,6 +1103,7 @@ gtk_sheet_init (GtkSheet *sheet)
   sheet->sheet_window = NULL;
   sheet->entry_widget = NULL;
   sheet->entry_container = NULL;
+  sheet->entry_handler_id = 0;
   sheet->button = NULL;
 
   sheet->hadjustment = NULL;
@@ -1161,7 +1162,7 @@ columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
   adjust_scrollbars (sheet);
 
   if (sheet->active_cell.col >= model_columns)
-    activate_cell (sheet, sheet->active_cell.row, model_columns - 1);
+    change_active_cell (sheet, sheet->active_cell.row, model_columns - 1);
 
   for (i = first_column; i <= max_visible_column (sheet); i++)
     gtk_sheet_column_title_button_draw (sheet, i);
@@ -1193,7 +1194,7 @@ rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
   adjust_scrollbars (sheet);
 
   if (sheet->active_cell.row >= model_rows)
-    activate_cell (sheet, model_rows - 1, sheet->active_cell.col);
+    change_active_cell (sheet, model_rows - 1, sheet->active_cell.col);
 
   for (i = first_row; i <= max_visible_row (sheet); i++)
     gtk_sheet_row_title_button_draw (sheet, i);
@@ -1370,11 +1371,8 @@ gtk_sheet_change_entry (GtkSheet *sheet, GtkType entry_type)
   if (state == GTK_SHEET_NORMAL)
     {
       gtk_sheet_show_active_cell (sheet);
-      g_signal_connect (gtk_sheet_get_entry (sheet),
-			"changed",
-			G_CALLBACK (gtk_sheet_entry_changed),
-			sheet);
     }
+
 }
 
 void
@@ -2108,7 +2106,7 @@ gtk_sheet_map (GtkWidget *widget)
 	  gtk_widget_map (GTK_BIN (sheet->button)->child);
 
       gtk_sheet_range_draw (sheet, NULL);
-      activate_cell (sheet,
+      change_active_cell (sheet,
 		     sheet->active_cell.row,
 		     sheet->active_cell.col);
     }
@@ -2398,7 +2396,9 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
   old_text = g_sheet_model_get_string (model, row, col);
 
   if (0 != safe_strcmp (old_text, text))
-    changed = g_sheet_model_set_string (model, text, row, col);
+    {
+      changed = g_sheet_model_set_string (model, text, row, col);
+    }
 
   if ( g_sheet_model_free_strings (model))
     g_free (old_text);
@@ -2615,7 +2615,7 @@ gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint col)
       return;
     }
 
-  activate_cell (sheet, row, col);
+  change_active_cell (sheet, row, col);
 }
 
 void
@@ -2698,10 +2698,11 @@ gtk_sheet_hide_active_cell (GtkSheet *sheet)
 }
 
 static void
-activate_cell (GtkSheet *sheet, gint row, gint col)
+change_active_cell (GtkSheet *sheet, gint row, gint col)
 {
   gint old_row, old_col;
-  g_return_if_fail (sheet != NULL);
+  glong old_handler_id = sheet->entry_handler_id;
+
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
   if (row < 0 || col < 0)
@@ -2716,6 +2717,8 @@ activate_cell (GtkSheet *sheet, gint row, gint col)
       sheet->state = GTK_SHEET_NORMAL;
       gtk_sheet_real_unselect_range (sheet, NULL);
     }
+
+  g_signal_handler_block   (sheet->entry_widget, sheet->entry_handler_id);
 
   old_row = sheet->active_cell.row;
   old_col = sheet->active_cell.col;
@@ -2733,13 +2736,12 @@ activate_cell (GtkSheet *sheet, gint row, gint col)
 
   gtk_sheet_show_active_cell (sheet);
 
-  g_signal_connect (gtk_sheet_get_entry (sheet),
-		    "changed",
-		    G_CALLBACK (gtk_sheet_entry_changed),
-		    sheet);
 
   g_signal_emit (sheet, sheet_signals [ACTIVATE], 0,
 		 row, col, old_row, old_col);
+
+  if ( old_handler_id == sheet->entry_handler_id)
+    g_signal_handler_unblock   (sheet->entry_widget, sheet->entry_handler_id);
 }
 
 static void
@@ -2806,6 +2808,7 @@ gtk_sheet_show_active_cell (GtkSheet *sheet)
   gtk_widget_grab_focus (GTK_WIDGET (sheet_entry));
 
   dispose_string (sheet, text);
+
 }
 
 static void
@@ -3171,7 +3174,7 @@ gtk_sheet_unselect_range (GtkSheet *sheet)
   gtk_sheet_real_unselect_range (sheet, NULL);
   sheet->state = GTK_STATE_NORMAL;
 
-  activate_cell (sheet,
+  change_active_cell (sheet,
 		 sheet->active_cell.row, sheet->active_cell.col);
 }
 
@@ -3555,7 +3558,7 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
       row = sheet->active_cell.row;
       column = sheet->active_cell.col;
 
-      activate_cell (sheet, row, column);
+      change_active_cell (sheet, row, column);
       return FALSE;
     }
 
@@ -3591,7 +3594,7 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
     }
   else
     {
-      activate_cell (sheet, row, column);
+      change_active_cell (sheet, row, column);
     }
 
   sheet->active_cell.row = row;
@@ -3709,7 +3712,7 @@ gtk_sheet_button_release (GtkWidget *widget,
     {
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
       gdk_display_pointer_ungrab (display, event->time);
-      activate_cell (sheet, sheet->active_cell.row,
+      change_active_cell (sheet, sheet->active_cell.row,
 			       sheet->active_cell.col);
     }
 
@@ -4344,7 +4347,7 @@ page_vertical (GtkSheet *sheet, GtkScrollType dir)
 
   new_row =  yyy_row_ypixel_to_row (sheet, vpixel);
 
-  activate_cell (sheet, new_row,
+  change_active_cell (sheet, new_row,
 			   sheet->active_cell.col);
 }
 
@@ -4394,7 +4397,7 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
   if (forbidden)
     return;
 
-  activate_cell (sheet, new_row, new_col);
+  change_active_cell (sheet, new_row, new_col);
 
   if ( new_col > max_fully_visible_column (sheet))
     {
@@ -4476,7 +4479,7 @@ gtk_sheet_key_press (GtkWidget *widget,
       gtk_adjustment_set_value (sheet->vadjustment,
 				sheet->vadjustment->lower);
 
-      activate_cell (sheet,  0,
+      change_active_cell (sheet,  0,
 			       sheet->active_cell.col);
 
       break;
@@ -4488,7 +4491,7 @@ gtk_sheet_key_press (GtkWidget *widget,
 				sheet->vadjustment->page_increment);
 
       /*
-	activate_cell (sheet,
+	change_active_cellx (sheet,
 	g_sheet_row_get_row_count (sheet->row_geometry) - 1,
 	sheet->active_cell.col);
       */
@@ -4803,6 +4806,12 @@ create_sheet_entry (GtkSheet *sheet)
   g_signal_connect_swapped (sheet->entry_widget, "key_press_event",
 			    G_CALLBACK (gtk_sheet_entry_key_press),
 			    sheet);
+
+  sheet->entry_handler_id =
+    g_signal_connect (sheet->entry_widget,
+		      "changed",
+		      G_CALLBACK (gtk_sheet_entry_changed),
+		      sheet);
 
   gtk_widget_show (sheet->entry_widget);
 }
