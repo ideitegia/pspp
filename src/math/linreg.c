@@ -24,7 +24,6 @@
 #include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/coefficient.h>
-#include <math/covariance-matrix.h>
 #include <math/design-matrix.h>
 #include <src/data/category.h>
 #include <src/data/variable.h>
@@ -661,15 +660,18 @@ void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *c, const struct var
   only variables in the model are in the covariance matrix. 
  */
 static struct design_matrix *
-rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache *c)
+rearrange_covariance_matrix (const struct covariance_matrix *cm, pspp_linreg_cache *c)
 {
   const struct variable **model_vars;
+  struct design_matrix *cov;
   struct design_matrix *result;
   size_t *permutation;
   size_t i;
   size_t j;
   size_t k;
 
+  assert (cm != NULL);
+  cov = covariance_to_design (cm);
   assert (cov != NULL);
   assert (c != NULL);
   assert (cov->m->size1 > 0);
@@ -720,7 +722,7 @@ rearrange_covariance_matrix (const struct design_matrix *cov, pspp_linreg_cache 
   set CACHE->N_COEFFS.
 */
 void
-pspp_linreg_with_cov (const struct design_matrix *full_cov, 
+pspp_linreg_with_cov (const struct covariance_matrix *full_cov, 
 		      pspp_linreg_cache * cache)
 {
   struct design_matrix *cov;
@@ -732,6 +734,6 @@ pspp_linreg_with_cov (const struct design_matrix *full_cov,
   cache_init (cache);
   reg_sweep (cov->m);
   post_sweep_computations (cache, cov, cov->m);  
-  covariance_matrix_destroy (cov);
+  design_matrix_destroy (cov);
 }
 
