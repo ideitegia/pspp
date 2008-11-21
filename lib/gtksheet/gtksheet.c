@@ -119,7 +119,8 @@ default_row_height (const GtkSheet *sheet)
 {
   GtkWidget *widget = GTK_WIDGET (sheet);
 
-  if (!widget->style->font_desc) return 25;
+  if (! GTK_WIDGET_REALIZED (widget) || !widget->style->font_desc)
+    return 25;
   else
     {
       PangoContext *context = gtk_widget_get_pango_context (widget);
