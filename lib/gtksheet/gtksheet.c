@@ -524,8 +524,6 @@ static void gtk_sheet_range_draw_selection	 (GtkSheet *sheet,
 
 /* Selection */
 
-static gboolean gtk_sheet_move_query   		 (GtkSheet *sheet,
-						  gint row, gint column);
 static void gtk_sheet_real_select_range 	 (GtkSheet *sheet,
 						  const GtkSheetRange *range);
 static void gtk_sheet_real_unselect_range 	 (GtkSheet *sheet,
@@ -1220,13 +1218,11 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
   range.rowi = rowi;
   range.coli = coli;
 
-  if ( max_visible_row (sheet) >
-       g_sheet_model_get_row_count (sheet->model)
+  if ( max_visible_row (sheet) > g_sheet_model_get_row_count (sheet->model)
        ||
-       max_visible_column (sheet) >
-       g_sheet_model_get_column_count (sheet->model))
+       max_visible_column (sheet) > g_sheet_model_get_column_count (sheet->model))
     {
-      gtk_sheet_move_query (sheet, 0, 0);
+      gtk_sheet_moveto (sheet, 0, 0, 0, 0);
     }
 
   if ( ( row0 < 0 && col0 < 0 ) || ( rowi < 0 && coli < 0 ) )
@@ -4179,71 +4175,6 @@ gtk_sheet_crossing_notify (GtkWidget *widget,
   return TRUE;
 }
 
-
-static gboolean
-gtk_sheet_move_query (GtkSheet *sheet, gint row, gint column)
-{
-  gint height, width;
-  gint new_row = row;
-  gint new_col = column;
-
-  gint row_move = FALSE;
-  gint column_move = FALSE;
-  gfloat row_align = -1.0;
-  gfloat col_align = -1.0;
-
-  if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
-    return FALSE;
-
-  gdk_drawable_get_size (sheet->sheet_window, &width, &height);
-
-  if (row >= max_visible_row (sheet) &&
-      sheet->state != GTK_SHEET_COLUMN_SELECTED)
-    {
-      row_align = 1.;
-      new_row = MIN (g_sheet_row_get_row_count (sheet->row_geometry) - 1, row + 1);
-      row_move = TRUE;
-      if (max_visible_row (sheet) == g_sheet_row_get_row_count (sheet->row_geometry) - 1 &&
-	  g_sheet_row_start_pixel (sheet->row_geometry, g_sheet_row_get_row_count (sheet->row_geometry) - 1) +
-	  g_sheet_row_get_height (sheet->row_geometry, g_sheet_row_get_row_count (sheet->row_geometry) - 1) < height)
-	{
-	  row_move = FALSE;
-	  row_align = -1.;
-	}
-    }
-
-  if (row < min_visible_row (sheet) && sheet->state != GTK_SHEET_COLUMN_SELECTED)
-    {
-      row_align= 0.;
-      row_move = TRUE;
-    }
-  if (column >= max_visible_column (sheet) && sheet->state != GTK_SHEET_ROW_SELECTED)
-    {
-      col_align = 1.;
-      new_col = MIN (g_sheet_column_get_column_count (sheet->column_geometry) - 1, column + 1);
-      column_move = TRUE;
-      if (max_visible_column (sheet) == (g_sheet_column_get_column_count (sheet->column_geometry) - 1) &&
-	  g_sheet_column_start_pixel (sheet->column_geometry, g_sheet_column_get_column_count (sheet->column_geometry) - 1) +
-	  g_sheet_column_get_width (sheet->column_geometry, g_sheet_column_get_column_count (sheet->column_geometry) - 1) < width)
-	{
-	  column_move = FALSE;
-	  col_align = -1.;
-	}
-    }
-  if (column < min_visible_column (sheet) && sheet->state != GTK_SHEET_ROW_SELECTED)
-    {
-      col_align = 0.0;
-      column_move = TRUE;
-    }
-
-  if (row_move || column_move)
-    {
-      gtk_sheet_moveto (sheet, new_row, new_col, row_align, col_align);
-    }
-
-  return (row_move || column_move);
-}
-
 static void
 gtk_sheet_extend_selection (GtkSheet *sheet, gint row, gint column)
 {
@@ -4256,7 +4187,6 @@ gtk_sheet_extend_selection (GtkSheet *sheet, gint row, gint column)
 
   if (sheet->selection_mode == GTK_SELECTION_SINGLE) return;
 
-  gtk_sheet_move_query (sheet, row, column);
   gtk_widget_grab_focus (GTK_WIDGET (sheet));
 
   if (GTK_SHEET_IN_DRAG (sheet)) return;
