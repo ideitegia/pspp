@@ -1,6 +1,3 @@
-#define GLIB_DISABLE_DEPRECATED 1
-#define GDK_DISABLE_DEPRECATED 1
-#define GTK_DISABLE_DEPRECATED 1
 /*
  * Copyright (C) 2006, 2008 Free Software Foundation
  *
@@ -59,6 +56,7 @@
 #include "gtkextra-marshal.h"
 #include "gsheetmodel.h"
 #include <libpspp/misc.h>
+#include <math.h>
 
 /* sheet flags */
 enum
@@ -426,14 +424,14 @@ rectangle_from_range (GtkSheet *sheet, const GtkSheetRange *range,
   g_return_val_if_fail (range, FALSE);
 
   r->x = g_sheet_column_start_pixel (sheet->column_geometry, range->col0);
-  r->x -= sheet->hadjustment->value;
+  r->x -= round (sheet->hadjustment->value);
 
   if ( sheet->row_titles_visible)
     r->x += sheet->row_title_area.width;
 
 
   r->y = g_sheet_row_start_pixel (sheet->row_geometry, range->row0);
-  r->y -= sheet->vadjustment->value;
+  r->y -= round (sheet->vadjustment->value);
 
   if ( sheet->column_titles_visible)
     r->y += sheet->column_title_area.height;
