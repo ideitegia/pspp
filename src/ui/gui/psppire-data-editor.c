@@ -136,6 +136,9 @@ on_data_column_clicked (PsppireDataEditor *de, gint col, gpointer data)
 }
 
 
+
+
+
 /* Callback which occurs when the var sheet's row title
    button is double clicked */
 static gboolean
@@ -163,6 +166,23 @@ on_var_row_clicked (PsppireDataEditor *de, gint row, gpointer data)
   return FALSE;
 }
 
+
+/* Moves the focus to a new cell.
+   Returns TRUE iff the move should be disallowed */
+static gboolean
+traverse_cell_callback (GtkSheet *sheet,
+			gint row, gint column,
+			gint *new_row, gint *new_column,
+			gpointer data)
+{
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+  const PsppireDict *dict = de->data_store->dict;
+
+  if ( *new_column >= psppire_dict_get_var_cnt (dict))
+    return TRUE;
+
+  return FALSE;
+}
 
 
 enum
@@ -603,6 +623,10 @@ init_sheet (PsppireDataEditor *de, int i,
 		NULL);
 
   gtk_container_add (GTK_CONTAINER (de->sheet_bin[i]), de->data_sheet[i]);
+
+
+  g_signal_connect (de->data_sheet[i], "traverse",
+		    G_CALLBACK (traverse_cell_callback), de);
 
   gtk_widget_show (de->sheet_bin[i]);
 }
