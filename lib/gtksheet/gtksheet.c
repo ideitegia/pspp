@@ -1218,6 +1218,9 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
   range.rowi = rowi;
   range.coli = coli;
 
+  if ( !GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
+    return;
+
   if ( max_visible_row (sheet) > g_sheet_model_get_row_count (sheet->model)
        ||
        max_visible_column (sheet) > g_sheet_model_get_column_count (sheet->model))
