@@ -3537,9 +3537,8 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
       return FALSE;
     }
 
-  
   g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
-		 sheet->active_cell, 
+		 &sheet->active_cell,
 		 &cell,
 		 &forbid_move);
 
