@@ -84,6 +84,7 @@ enum
 #define COLUMN_MIN_WIDTH 10
 #define COLUMN_TITLES_HEIGHT 4
 #define DEFAULT_COLUMN_WIDTH 80
+#define DEFAULT_ROW_HEIGHT 25
 
 static void gtk_sheet_update_primary_selection (GtkSheet *sheet);
 static void gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column);
@@ -110,30 +111,6 @@ dispose_string (const GtkSheet *sheet, gchar *text)
 
   if (g_sheet_model_free_strings (model))
     g_free (text);
-}
-
-static guint
-default_row_height (const GtkSheet *sheet)
-{
-  GtkWidget *widget = GTK_WIDGET (sheet);
-
-  if (! GTK_WIDGET_REALIZED (widget) || !widget->style->font_desc)
-    return 25;
-  else
-    {
-      PangoContext *context = gtk_widget_get_pango_context (widget);
-      PangoFontMetrics *metrics =
-	pango_context_get_metrics (context,
-				   widget->style->font_desc,
-				   pango_context_get_language (context));
-
-      guint val = pango_font_metrics_get_descent (metrics) +
-	pango_font_metrics_get_ascent (metrics);
-
-      pango_font_metrics_unref (metrics);
-
-      return PANGO_PIXELS (val) + 2 * COLUMN_TITLES_HEIGHT;
-    }
 }
 
 static
@@ -1076,7 +1053,7 @@ gtk_sheet_init (GtkSheet *sheet)
   sheet->column_title_area.x = 0;
   sheet->column_title_area.y = 0;
   sheet->column_title_area.width = 0;
-  sheet->column_title_area.height = default_row_height (sheet);
+  sheet->column_title_area.height = DEFAULT_ROW_HEIGHT;
 
   sheet->row_title_window = NULL;
   sheet->row_title_area.x = 0;
@@ -4452,7 +4429,7 @@ gtk_sheet_size_request (GtkWidget *widget,
   sheet = GTK_SHEET (widget);
 
   requisition->width = 3 * DEFAULT_COLUMN_WIDTH;
-  requisition->height = 3 * default_row_height (sheet);
+  requisition->height = 3 * DEFAULT_ROW_HEIGHT;
 
   /* compute the size of the column title area */
   if (sheet->column_titles_visible)
@@ -4851,7 +4828,7 @@ gtk_sheet_button_draw (GtkSheet *sheet, GdkWindow *window,
   if (button->label_visible)
     {
 
-      text_height = default_row_height (sheet) -
+      text_height = DEFAULT_ROW_HEIGHT - 
 	2 * COLUMN_TITLES_HEIGHT;
 
       gdk_gc_set_clip_rectangle (GTK_WIDGET (sheet)->style->fg_gc[button->state],
@@ -5405,10 +5382,10 @@ gtk_sheet_button_size_request	 (GtkSheet *sheet,
   GtkRequisition requisition;
   GtkRequisition label_requisition;
 
-  label_requisition.height = default_row_height (sheet);
+  label_requisition.height = DEFAULT_ROW_HEIGHT;
   label_requisition.width = COLUMN_MIN_WIDTH;
 
-  requisition.height = default_row_height (sheet);
+  requisition.height = DEFAULT_ROW_HEIGHT;
   requisition.width = COLUMN_MIN_WIDTH;
 
 
