@@ -628,6 +628,8 @@ gtk_sheet_get_type ()
   return sheet_type;
 }
 
+
+
 static GtkSheetRange*
 gtk_sheet_range_copy (const GtkSheetRange *range)
 {
@@ -666,6 +668,44 @@ gtk_sheet_range_get_type (void)
   return sheet_range_type;
 }
 
+static GtkSheetCell*
+gtk_sheet_cell_copy (const GtkSheetCell *cell)
+{
+  GtkSheetCell *new_cell;
+
+  g_return_val_if_fail (cell != NULL, NULL);
+
+  new_cell = g_new (GtkSheetCell, 1);
+
+  *new_cell = *cell;
+
+  return new_cell;
+}
+
+static void
+gtk_sheet_cell_free (GtkSheetCell *cell)
+{
+  g_return_if_fail (cell != NULL);
+
+  g_free (cell);
+}
+
+GType
+gtk_sheet_cell_get_type (void)
+{
+  static GType sheet_cell_type = 0;
+
+  if (!sheet_cell_type)
+    {
+      sheet_cell_type =
+	g_boxed_type_register_static ("GtkSheetCell",
+				      (GBoxedCopyFunc) gtk_sheet_cell_copy,
+				      (GBoxedFreeFunc) gtk_sheet_cell_free);
+    }
+
+  return sheet_cell_type;
+}
+
 
 static void column_titles_changed (GtkWidget *w, gint first, gint n_columns,
 				   gpointer data);
@@ -929,9 +969,10 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, traverse),
 		  NULL, NULL,
-		  gtkextra_BOOLEAN__INT_INT_POINTER_POINTER,
-		  G_TYPE_BOOLEAN, 4, G_TYPE_INT, G_TYPE_INT,
-		  G_TYPE_POINTER, G_TYPE_POINTER);
+		  gtkextra_BOOLEAN__BOXED_POINTER,
+		  G_TYPE_BOOLEAN, 2,
+		  GTK_TYPE_SHEET_CELL,
+		  G_TYPE_POINTER);
 
 
   sheet_signals[ACTIVATE] =
@@ -3513,7 +3554,11 @@ gtk_sheet_button_press (GtkWidget *widget,
 static gboolean
 gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
 {
+  GtkSheetCell cell;
   gboolean forbid_move;
+
+  cell.row = row;
+  cell.col = column;
 
   if (row >= g_sheet_row_get_row_count (sheet->row_geometry)
       || column >= g_sheet_column_get_column_count (sheet->column_geometry))
@@ -3521,9 +3566,11 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
       return FALSE;
     }
 
+  
   g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
-		 sheet->active_cell.row, sheet->active_cell.col,
-		 &row, &column, &forbid_move);
+		 sheet->active_cell, 
+		 &cell,
+		 &forbid_move);
 
   if (forbid_move)
     {
@@ -4266,23 +4313,25 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
 {
   gint current_row = sheet->active_cell.row;
   gint current_col = sheet->active_cell.col;
-  gint new_row = current_row;
-  gint new_col = current_col;
+  GtkSheetCell new_cell ;
   gboolean forbidden = FALSE;
+
+  new_cell.row = current_row;
+  new_cell.col = current_col;
 
   switch ( dir)
     {
     case GTK_SCROLL_STEP_DOWN:
-      new_row++;
+      new_cell.row++;
       break;
     case GTK_SCROLL_STEP_UP:
-      new_row--;
+      new_cell.row--;
       break;
     case GTK_SCROLL_STEP_RIGHT:
-      new_col++;
+      new_cell.col++;
       break;
     case GTK_SCROLL_STEP_LEFT:
-      new_col--;
+      new_cell.col--;
       break;
     default:
       g_assert_not_reached ();
@@ -4290,60 +4339,61 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
     }
 
 
-  maximize_int (&new_row, 0);
-  maximize_int (&new_col, 0);
+  maximize_int (&new_cell.row, 0);
+  maximize_int (&new_cell.col, 0);
 
-  minimize_int (&new_row,
+  minimize_int (&new_cell.row,
 		g_sheet_row_get_row_count (sheet->row_geometry) - 1);
 
-  minimize_int (&new_col,
+  minimize_int (&new_cell.col,
 		g_sheet_column_get_column_count (sheet->column_geometry) - 1);
 
   g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
-		 current_row, current_col,
-		 &new_row, &new_col, &forbidden);
+		 &sheet->active_cell,
+		 &new_cell,
+		&forbidden);
 
   if (forbidden)
     return;
 
-  change_active_cell (sheet, new_row, new_col);
+  change_active_cell (sheet, new_cell.row, new_cell.col);
 
-  if ( new_col > max_fully_visible_column (sheet))
+  if ( new_cell.col > max_fully_visible_column (sheet))
     {
       glong hpos  =
 	g_sheet_column_start_pixel (sheet->column_geometry,
-				    new_col + 1);
+				    new_cell.col + 1);
       hpos -= sheet->hadjustment->page_size;
 
       gtk_adjustment_set_value (sheet->hadjustment,
 				hpos);
     }
-  else if ( new_col < min_fully_visible_column (sheet))
+  else if ( new_cell.col < min_fully_visible_column (sheet))
     {
       glong hpos  =
 	g_sheet_column_start_pixel (sheet->column_geometry,
-				    new_col);
+				    new_cell.col);
 
       gtk_adjustment_set_value (sheet->hadjustment,
 				hpos);
     }
 
 
-  if ( new_row > max_fully_visible_row (sheet))
+  if ( new_cell.row > max_fully_visible_row (sheet))
     {
       glong vpos  =
 	g_sheet_row_start_pixel (sheet->row_geometry,
-				    new_row + 1);
+				    new_cell.row + 1);
       vpos -= sheet->vadjustment->page_size;
 
       gtk_adjustment_set_value (sheet->vadjustment,
 				vpos);
     }
-  else if ( new_row < min_fully_visible_row (sheet))
+  else if ( new_cell.row < min_fully_visible_row (sheet))
     {
       glong vpos  =
 	g_sheet_row_start_pixel (sheet->row_geometry,
-				    new_row);
+				    new_cell.row);
 
       gtk_adjustment_set_value (sheet->vadjustment,
 				vpos);

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyrigght (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 #include <config.h>
 #include <gtk/gtksignal.h>
 #include <gtk/gtk.h>
-#include <gtksheet/gtksheet.h>
+#include <gtksheet/gtkextra-sheet.h>
 #include "psppire-data-editor.h"
 #include "psppire-var-sheet.h"
 
@@ -171,14 +171,14 @@ on_var_row_clicked (PsppireDataEditor *de, gint row, gpointer data)
    Returns TRUE iff the move should be disallowed */
 static gboolean
 traverse_cell_callback (GtkSheet *sheet,
-			gint row, gint column,
-			gint *new_row, gint *new_column,
+			GtkSheetCell *existing_cell,
+			GtkSheetCell *new_cell,
 			gpointer data)
 {
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
   const PsppireDict *dict = de->data_store->dict;
 
-  if ( *new_column >= psppire_dict_get_var_cnt (dict))
+  if ( new_cell->col >= psppire_dict_get_var_cnt (dict))
     return TRUE;
 
   return FALSE;
@@ -623,7 +623,6 @@ init_sheet (PsppireDataEditor *de, int i,
 		NULL);
 
   gtk_container_add (GTK_CONTAINER (de->sheet_bin[i]), de->data_sheet[i]);
-
 
   g_signal_connect (de->data_sheet[i], "traverse",
 		    G_CALLBACK (traverse_cell_callback), de);

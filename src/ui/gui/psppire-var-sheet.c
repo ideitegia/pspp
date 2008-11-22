@@ -254,19 +254,18 @@ change_measure (GtkComboBox *cb,
    Returns TRUE iff the move should be disallowed */
 static gboolean
 traverse_cell_callback (GtkSheet *sheet,
-			gint row, gint column,
-			gint *new_row, gint *new_column)
+			const GtkSheetCell *existing_cell,
+			GtkSheetCell *new_cell)
 {
   PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (sheet);
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
 
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
 
-  if (*new_row >= n_vars && !var_sheet->may_create_vars)
+  if (new_cell->row >= n_vars && !var_sheet->may_create_vars)
     return TRUE;
 
-
-  if ( row == n_vars && *new_row >= n_vars)
+  if ( existing_cell->row == n_vars && new_cell->row >= n_vars)
     {
       GtkEntry *entry = GTK_ENTRY (gtk_sheet_get_entry (sheet));
 
@@ -275,7 +274,7 @@ traverse_cell_callback (GtkSheet *sheet,
       if (! psppire_dict_check_name (var_store->dict, name, TRUE))
 	return TRUE;
 
-      psppire_dict_insert_variable (var_store->dict, row, name);
+      psppire_dict_insert_variable (var_store->dict, existing_cell->row, name);
 
       return FALSE;
     }
@@ -284,15 +283,14 @@ traverse_cell_callback (GtkSheet *sheet,
   /* If the destination cell is outside the current  variables, then
      automatically create variables for the new rows.
   */
-  if ( ((*new_row > n_vars) ||
-        (*new_row == n_vars && *new_column != PSPPIRE_VAR_STORE_COL_NAME)) )
+  if ( ((new_cell->row > n_vars) ||
+        (new_cell->row == n_vars &&
+	 new_cell->col != PSPPIRE_VAR_STORE_COL_NAME)) )
     {
       gint i;
-      for ( i = n_vars ; i <= *new_row; ++i )
+      for ( i = n_vars ; i <= new_cell->row; ++i )
 	psppire_dict_insert_variable (var_store->dict, i, NULL);
     }
-
-
 
   return FALSE;
 }

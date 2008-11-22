@@ -23,8 +23,8 @@
  */
 
 
-#ifndef __GTK_EXTRA_SHEET_H__
-#define __GTK_EXTRA_SHEET_H__
+#ifndef GTK_EXTRA_SHEET_H__
+#define GTK_EXTRA_SHEET_H__
 
 
 struct _GtkSheet ;
@@ -42,15 +42,20 @@ struct _GtkSheetButton
   GtkJustification justification;
 };
 
+struct _GtkSheetCell
+{
+  gint row;
+  gint col;
+};
+
 typedef struct _GtkSheetButton GtkSheetButton;
-
-
+typedef struct _GtkSheetCell GtkSheetCell;
 
 GtkSheetButton * gtk_sheet_button_new (void);
 
 void gtk_sheet_button_free (GtkSheetButton *button);
 
 
-#endif /* __GTK_EXTRA_SHEET_H__ */
+#endif /* GTK_EXTRA_SHEET_H__ */
 
 

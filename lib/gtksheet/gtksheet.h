@@ -47,6 +47,7 @@ enum
 
 
 #define GTK_TYPE_SHEET_RANGE (gtk_sheet_range_get_type ())
+#define GTK_TYPE_SHEET_CELL (gtk_sheet_cell_get_type ())
 #define GTK_TYPE_SHEET (gtk_sheet_get_type ())
 
 #define GTK_SHEET(obj)          GTK_CHECK_CAST (obj, gtk_sheet_get_type (), GtkSheet)
@@ -56,7 +57,7 @@ enum
 
 typedef struct _GtkSheetClass GtkSheetClass;
 typedef struct _GtkSheetCellAttr     GtkSheetCellAttr;
-typedef struct _GtkSheetCell GtkSheetCell;
+
 typedef struct _GtkSheetHoverTitle GtkSheetHoverTitle;
 
 
@@ -70,13 +71,6 @@ struct _GtkSheetCellAttr
   gboolean is_editable;
   gboolean is_visible;
 };
-
-struct _GtkSheetCell
-{
-  gint row;
-  gint col;
-};
-
 
 struct _GtkSheetHoverTitle
 {
