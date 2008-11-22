@@ -592,7 +592,6 @@ enum
     MOVE_RANGE,
     TRAVERSE,
     ACTIVATE,
-    CHANGED,
     LAST_SIGNAL
   };
 
@@ -986,15 +985,6 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_TYPE_INT, G_TYPE_INT,
 		  G_TYPE_INT, G_TYPE_INT);
 
-  sheet_signals[CHANGED] =
-    g_signal_new ("changed",
-		  G_TYPE_FROM_CLASS (object_class),
-		  G_SIGNAL_RUN_LAST,
-		  offsetof (GtkSheetClass, changed),
-		  NULL, NULL,
-		  gtkextra_VOID__INT_INT,
-		  G_TYPE_NONE, 2, G_TYPE_INT, G_TYPE_INT);
-
   widget_class->set_scroll_adjustments_signal =
     g_signal_new ("set-scroll-adjustments",
 		  G_TYPE_FROM_CLASS (object_class),
@@ -1353,18 +1343,8 @@ column_titles_changed (GtkWidget *w, gint first, gint n_columns, gpointer data)
       n_columns = g_sheet_column_get_column_count (sheet->column_geometry) - 1 ;
     }
 
-  {
-    gint i;
-    for ( i = first ; i <= first + n_columns ; ++i )
-      {
-	gtk_sheet_column_title_button_draw (sheet, i);
-	g_signal_emit (sheet, sheet_signals[CHANGED], 0, -1, i);
-      }
-  }
-
   if ( extremity)
     gtk_sheet_column_title_button_draw (sheet, -1);
-
 }
 
 void
@@ -2395,7 +2375,6 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
 		    const gchar *text)
 {
   GSheetModel *model ;
-  gboolean changed = FALSE;
   gchar *old_text ;
 
   g_return_if_fail (sheet != NULL);
@@ -2411,16 +2390,8 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
 
   old_text = g_sheet_model_get_string (model, row, col);
 
-  if (0 != safe_strcmp (old_text, text))
-    {
-      changed = g_sheet_model_set_string (model, text, row, col);
-    }
-
   if ( g_sheet_model_free_strings (model))
     g_free (old_text);
-
-  if ( changed )
-    g_signal_emit (sheet, sheet_signals[CHANGED], 0, row, col);
 }
 
 
@@ -5326,8 +5297,6 @@ gtk_sheet_set_column_width (GtkSheet *sheet,
       gtk_sheet_size_allocate_entry (sheet);
       gtk_sheet_range_draw (sheet, NULL);
     }
-
-  g_signal_emit (sheet, sheet_signals[CHANGED], 0, -1, column);
 }
 
 
@@ -5357,8 +5326,6 @@ gtk_sheet_set_row_height (GtkSheet *sheet,
       gtk_sheet_size_allocate_entry (sheet);
       gtk_sheet_range_draw (sheet, NULL);
     }
-
-  g_signal_emit (sheet, sheet_signals[CHANGED], 0, row, - 1);
 }
 
 gboolean
