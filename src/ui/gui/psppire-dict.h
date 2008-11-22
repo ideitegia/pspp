@@ -96,7 +96,7 @@ void psppire_dict_resize_variable (PsppireDict *,
 gboolean psppire_dict_check_name (const PsppireDict *dict,
 			      const gchar *name, gboolean report);
 
-inline gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
+gint psppire_dict_get_next_value_idx (const PsppireDict *dict);
 
 gboolean psppire_dict_rename_var (PsppireDict *dict, struct variable *v,
 			      const gchar *text);

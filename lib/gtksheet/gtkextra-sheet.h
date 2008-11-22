@@ -46,9 +46,9 @@ typedef struct _GtkSheetButton GtkSheetButton;
 
 
 
-GtkSheetButton * gtk_sheet_button_new(void);
+GtkSheetButton * gtk_sheet_button_new (void);
 
-inline void gtk_sheet_button_free(GtkSheetButton *button);
+void gtk_sheet_button_free (GtkSheetButton *button);
 
 
 #endif /* __GTK_EXTRA_SHEET_H__ */

@@ -85,10 +85,10 @@ struct _GSheetModelIface
 				     glong row, glong n_rows);
 
   void         (* columns_inserted)    (GSheetModel *sheet_model,
-				     glong column, glong n_columns);
+					glong column, glong n_columns);
 
   void         (* columns_deleted)     (GSheetModel *sheet_model,
-				     glong column, glong n_columns);
+					glong column, glong n_columns);
 
 
 
@@ -96,7 +96,7 @@ struct _GSheetModelIface
   /* Virtual Table */
 
   gchar *      (* get_string)      (const GSheetModel *sheet_model,
-					       glong row, glong column);
+				    glong row, glong column);
 
   gboolean  (* set_string) (GSheetModel *sheet_model,
 			    const gchar *s, glong row, glong column);
@@ -108,10 +108,10 @@ struct _GSheetModelIface
   gboolean (* is_editable) (const GSheetModel *sheet_model, glong row, glong column);
 
   GdkColor *  (* get_foreground) (const GSheetModel *sheet_model,
-  			    glong row, glong column);
+				  glong row, glong column);
 
   GdkColor *  (* get_background) (const GSheetModel *sheet_model,
-				    glong row, glong column);
+				  glong row, glong column);
 
   const GtkJustification *  (* get_justification) (const GSheetModel *sheet_model,
 						   glong row, glong column);
@@ -134,63 +134,63 @@ struct _GSheetModelIface
 GType              g_sheet_model_get_type   (void) G_GNUC_CONST;
 
 
-inline  gchar * g_sheet_model_get_string (const GSheetModel *sheet_model,
-					       glong row, glong column);
+gchar * g_sheet_model_get_string (const GSheetModel *sheet_model,
+				  glong row, glong column);
 
-inline gboolean  g_sheet_model_set_string (GSheetModel *sheet_model,
-				      const gchar *s,
-				      glong row, glong column);
+gboolean  g_sheet_model_set_string (GSheetModel *sheet_model,
+				    const gchar *s,
+				    glong row, glong column);
 
-inline gboolean g_sheet_model_datum_clear    (GSheetModel *sheet_model,
-					 glong row, glong column);
-
-
-inline void g_sheet_model_range_changed (GSheetModel *sheet_model,
-				    glong row0, glong col0,
-				    glong rowi, glong coli);
-
-inline void g_sheet_model_rows_deleted (GSheetModel *sheet_model,
-				   glong row, glong n_rows);
-
-inline void g_sheet_model_rows_inserted (GSheetModel *sheet_model,
-				    glong row, glong n_rows);
-
-inline void g_sheet_model_columns_inserted (GSheetModel *sheet_model,
-					    glong column, glong n_columns);
-
-inline void g_sheet_model_columns_deleted (GSheetModel *sheet_model,
-					   glong column, glong n_columns);
+gboolean g_sheet_model_datum_clear    (GSheetModel *sheet_model,
+				       glong row, glong column);
 
 
-inline gboolean g_sheet_model_is_editable (const GSheetModel *model,
-				      glong row, glong column);
+void g_sheet_model_range_changed (GSheetModel *sheet_model,
+				  glong row0, glong col0,
+				  glong rowi, glong coli);
 
-inline gboolean g_sheet_model_is_visible
-                   (const GSheetModel *model, glong row, glong column);
+void g_sheet_model_rows_deleted (GSheetModel *sheet_model,
+				 glong row, glong n_rows);
+
+void g_sheet_model_rows_inserted (GSheetModel *sheet_model,
+				  glong row, glong n_rows);
+
+void g_sheet_model_columns_inserted (GSheetModel *sheet_model,
+				     glong column, glong n_columns);
+
+void g_sheet_model_columns_deleted (GSheetModel *sheet_model,
+				    glong column, glong n_columns);
 
 
-inline GdkColor *g_sheet_model_get_foreground
-             (const GSheetModel *model, glong row, glong column);
+gboolean g_sheet_model_is_editable (const GSheetModel *model,
+				    glong row, glong column);
 
-inline GdkColor *g_sheet_model_get_background
-                   (const GSheetModel *model, glong row, glong column);
-
-
-inline const GtkJustification *g_sheet_model_get_justification
-                   (const GSheetModel *model, glong row, glong column);
+gboolean g_sheet_model_is_visible
+ (const GSheetModel *model, glong row, glong column);
 
 
-inline const PangoFontDescription *g_sheet_model_get_font_desc
-                   (const GSheetModel *model, glong row, glong column);
+GdkColor *g_sheet_model_get_foreground
+ (const GSheetModel *model, glong row, glong column);
 
-inline const GtkSheetCellBorder * g_sheet_model_get_cell_border
-                   (const GSheetModel *model, glong row, glong column);
+GdkColor *g_sheet_model_get_background
+ (const GSheetModel *model, glong row, glong column);
 
-inline  gboolean g_sheet_model_free_strings (const GSheetModel *sheet_model);
 
-inline glong g_sheet_model_get_column_count (const GSheetModel *sheet_model);
+const GtkJustification *g_sheet_model_get_justification
+ (const GSheetModel *model, glong row, glong column);
 
-inline  gint g_sheet_model_get_row_count (const GSheetModel *sheet_model);
+
+const PangoFontDescription *g_sheet_model_get_font_desc
+ (const GSheetModel *model, glong row, glong column);
+
+const GtkSheetCellBorder * g_sheet_model_get_cell_border
+ (const GSheetModel *model, glong row, glong column);
+
+gboolean g_sheet_model_free_strings (const GSheetModel *sheet_model);
+
+glong g_sheet_model_get_column_count (const GSheetModel *sheet_model);
+
+gint g_sheet_model_get_row_count (const GSheetModel *sheet_model);
 
 G_END_DECLS
 

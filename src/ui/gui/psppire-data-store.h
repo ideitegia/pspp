@@ -110,7 +110,7 @@ struct _PsppireDataStoreClass
 };
 
 
-inline GType psppire_data_store_get_type (void) G_GNUC_CONST;
+GType psppire_data_store_get_type (void) G_GNUC_CONST;
 PsppireDataStore *psppire_data_store_new     (PsppireDict *dict);
 
 void psppire_data_store_set_case_file (PsppireDataStore *data_store,
@@ -142,7 +142,7 @@ gboolean psppire_data_store_set_string (PsppireDataStore *ds,
 					const gchar *text,
 					glong row, glong column);
 
-inline casenumber psppire_data_store_get_case_count (const PsppireDataStore *ds);
+casenumber psppire_data_store_get_case_count (const PsppireDataStore *ds);
 size_t psppire_data_store_get_value_count (const PsppireDataStore *ds);
 
 #ifdef __cplusplus
