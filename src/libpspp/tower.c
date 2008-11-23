@@ -30,11 +30,58 @@ static struct tower_node *next_node (const struct tower *,
                                      const struct tower_node *);
 static struct tower_node *prev_node (const struct tower *,
                                      const struct tower_node *);
-static unsigned long int get_subtree_height (const struct abt_node *);
+static unsigned long int get_subtree_size (const struct abt_node *);
+static unsigned long int get_subtree_count (const struct abt_node *);
 static void reaugment_tower_node (struct abt_node *,
                                   const struct abt_node *,
                                   const struct abt_node *,
                                   const void *aux);
+
+/* Returns the height of the bottom of the given tower NODE.
+
+   The performance of this function is O(lg n) in the number of
+   nodes in the tower.  It is often possible to avoid calling
+   this function, either by taking advantage of the NODE_START
+   parameter to tower_lookup or by incrementally keeping track of
+   height while iterating through a tower.  In the former case
+   the asymptotic performance is no different, since tower_lookup
+   is also O(lg n), but in the latter case performance improves
+   from O(lg n) to O(1). */
+unsigned long int
+tower_node_get_level (const struct tower_node *node)
+{
+  const struct abt_node *p = &node->abt_node;
+  unsigned long level = get_subtree_size (p->down[0]);
+  while (p->up != NULL) 
+    {
+      if (p == p->up->down[1])
+        level += (get_subtree_size (p->up->down[0]) 
+                  + abt_to_tower_node (p->up)->size);
+      p = p->up;
+    }
+  return level;
+}
+
+/* Returns the index of the given tower NODE.
+
+   The performance of this function is O(lg n) in the number of
+   nodes in the tower.  It is often possible to avoid calling
+   this function by keeping track of the index while iterating
+   through a tower.  Doing so when possible will improve
+   performance from O(lg n) to O(1). */
+unsigned long int
+tower_node_get_index (const struct tower_node *node)
+{
+  const struct abt_node *p = &node->abt_node;
+  unsigned long index = get_subtree_count (p->down[0]);
+  while (p->up != NULL) 
+    {
+      if (p == p->up->down[1])
+        index += get_subtree_count (p->up->down[0]) + 1;
+      p = p->up;
+    }
+  return index;
+}
 
 /* Initializes T as an empty tower. */
 void
@@ -51,21 +98,28 @@ tower_is_empty (const struct tower *t)
   return t->abt.root == NULL;
 }
 
+/* Returns the number of nodes in tower T. */
+unsigned long int
+tower_count (const struct tower *t)
+{
+  return get_subtree_count (t->abt.root);
+}
+
 /* Returns the total height of tower T. */
 unsigned long
 tower_height (const struct tower *t)
 {
-  return get_subtree_height (t->abt.root);
+  return get_subtree_size (t->abt.root);
 }
 
-/* Inserts node NEW with the specified HEIGHT into T just below
+/* Inserts node NEW with the specified SIZE into T just below
    node UNDER, or at the top of T if UNDER is a null pointer. */
 void
-tower_insert (struct tower *t, unsigned long height, struct tower_node *new,
+tower_insert (struct tower *t, unsigned long size, struct tower_node *new,
               struct tower_node *under)
 {
-  assert (height > 0);
-  new->height = height;
+  assert (size > 0);
+  new->size = size;
   abt_insert_before (&t->abt, under ? &under->abt_node : NULL,
                      &new->abt_node);
   t->cache_bottom = ULONG_MAX;
@@ -81,13 +135,13 @@ tower_delete (struct tower *t, struct tower_node *node)
   return next;
 }
 
-/* Changes the height of NODE in tower T to NEW_HEIGHT. */
+/* Changes the size of NODE in tower T to NEW_SIZE. */
 void
 tower_resize (struct tower *t, struct tower_node *node,
-              unsigned long new_height)
+              unsigned long new_size)
 {
-  assert (new_height > 0);
-  node->height = new_height;
+  assert (new_size > 0);
+  node->size = new_size;
   abt_reaugmented (&t->abt, &node->abt_node);
   t->cache_bottom = ULONG_MAX;
 }
@@ -135,7 +189,7 @@ tower_lookup (const struct tower *t_,
 
   assert (height < tower_height (t));
 
-  if (height >= t->cache_bottom && height - t->cache_bottom < t->cache->height)
+  if (height >= t->cache_bottom && height - t->cache_bottom < t->cache->size)
     {
       *node_start = t->cache_bottom;
       return t->cache;
@@ -145,8 +199,8 @@ tower_lookup (const struct tower *t_,
   p = t->abt.root;
   for (;;)
     {
-      unsigned long left_height = get_subtree_height (p->down[0]);
-      if (height < left_height)
+      unsigned long left_size = get_subtree_size (p->down[0]);
+      if (height < left_size)
         {
           /* Our goal height must lie within the left subtree. */
           p = p->down[0];
@@ -155,11 +209,11 @@ tower_lookup (const struct tower *t_,
         {
           /* Our goal height cannot be in the left subtree. */
           struct tower_node *node = abt_to_tower_node (p);
-          unsigned long int node_height = node->height;
+          unsigned long int node_size = node->size;
 
-          height -= left_height;
-          *node_start += left_height;
-          if (height < node_height)
+          height -= left_size;
+          *node_start += left_size;
+          if (height < node_size)
             {
               /* Our goal height is in P. */
               t->cache = node;
@@ -170,9 +224,36 @@ tower_lookup (const struct tower *t_,
             {
               /* Our goal height is in the right subtree. */
               p = p->down[1];
-              height -= node_height;
-              *node_start += node_height;
+              height -= node_size;
+              *node_start += node_size;
             }
+        }
+    }
+}
+
+/* Returns the node with the given 0-based INDEX, which must be
+   less than the number of nodes in T (as returned by
+   tower_count). */
+struct tower_node *
+tower_get (const struct tower *t_, unsigned long int index) 
+{
+  struct tower *t = (struct tower *) t_;
+  struct abt_node *p;
+
+  assert (index < tower_count (t));
+
+  p = t->abt.root;
+  for (;;)
+    {
+      unsigned long left_count = get_subtree_count (p->down[0]);
+      if (index < left_count)
+        p = p->down[0];
+      else if (index == left_count)
+        return abt_to_tower_node (p);
+      else
+        {
+          p = p->down[1];
+          index -= left_count + 1;
         }
     }
 }
@@ -253,16 +334,24 @@ prev_node (const struct tower *t, const struct tower_node *node)
   return abt_to_tower_node_null (abt_prev (&t->abt, &node->abt_node));
 }
 
-/* Returns the total height of the nodes in the subtree rooted at
+/* Returns the total size of the nodes in the subtree rooted at
    P, or 0 if P is null. */
 static unsigned long int
-get_subtree_height (const struct abt_node *p)
+get_subtree_size (const struct abt_node *p)
 {
-  return p != NULL ? abt_to_tower_node (p)->subtree_height : 0;
+  return p != NULL ? abt_to_tower_node (p)->subtree_size : 0;
 }
 
-/* Recalculates the subtree_height of NODE based on its LEFT and
-   RIGHT children's subtree_heights. */
+/* Returns the total number of nodes in the subtree rooted at P,
+   or 0 if P is null. */
+static unsigned long int
+get_subtree_count (const struct abt_node *p)
+{
+  return p != NULL ? abt_to_tower_node (p)->subtree_count : 0;
+}
+
+/* Recalculates the subtree_size of NODE based on its LEFT and
+   RIGHT children's subtree_sizes. */
 static void
 reaugment_tower_node (struct abt_node *node_,
                       const struct abt_node *left,
@@ -270,9 +359,18 @@ reaugment_tower_node (struct abt_node *node_,
                       const void *aux UNUSED)
 {
   struct tower_node *node = abt_to_tower_node (node_);
-  node->subtree_height = node->height;
-  if (left != NULL)
-    node->subtree_height += abt_to_tower_node (left)->subtree_height;
-  if (right != NULL)
-    node->subtree_height += abt_to_tower_node (right)->subtree_height;
+  node->subtree_size = node->size;
+  node->subtree_count = 1;
+  if (left != NULL) 
+    {
+      struct tower_node *left_node = abt_to_tower_node (left);
+      node->subtree_size += left_node->subtree_size;
+      node->subtree_count += left_node->subtree_count; 
+    }
+  if (right != NULL) 
+    {
+      struct tower_node *right_node = abt_to_tower_node (right);
+      node->subtree_size += right_node->subtree_size;
+      node->subtree_count += right_node->subtree_count; 
+    }
 }

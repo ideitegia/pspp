@@ -245,7 +245,7 @@ next_composition (int n, int *k, int parts[])
 /* A block expected to be found in a tower. */
 struct expected_block
   {
-    int height;         /* Expected height of bottom of block. */
+    int size;           /* Expected thickness of block. */
     int x;              /* Expected value for `x' member. */
   };
 
@@ -259,6 +259,7 @@ check_tower (struct tower *t,
   struct tower_node *node;
   size_t i;
 
+  check (tower_count (t) == block_cnt);
   check (tower_is_empty (t) == (block_cnt == 0));
 
   total_height = 0;
@@ -266,7 +267,7 @@ check_tower (struct tower *t,
     {
       unsigned long int level;
       for (level = total_height;
-           level < total_height + blocks[i].height;
+           level < total_height + blocks[i].size;
            level++)
         {
           struct tower_node *found;
@@ -275,8 +276,11 @@ check_tower (struct tower *t,
           check (found != NULL);
           check (tower_node_to_block (found)->x == blocks[i].x);
           check (block_start == total_height);
+          check (tower_node_get_level (found) == total_height);
+          check (tower_node_get_index (found) == i);
+          check (tower_get (t, i) == found);
         }
-      total_height += blocks[i].height;
+      total_height += blocks[i].size;
     }
   check (tower_height (t) == total_height);
 
@@ -284,7 +288,7 @@ check_tower (struct tower *t,
        node != NULL;
        node = tower_next (t, node), i++)
     {
-      check (tower_node_get_height (node) == blocks[i].height);
+      check (tower_node_get_size (node) == blocks[i].size);
       check (tower_node_to_block (node)->x == blocks[i].x);
     }
   check (i == block_cnt);
@@ -293,7 +297,7 @@ check_tower (struct tower *t,
        node != NULL;
        node = tower_prev (t, node), i--)
     {
-      check (tower_node_get_height (node) == blocks[i].height);
+      check (tower_node_get_size (node) == blocks[i].size);
       check (tower_node_to_block (node)->x == blocks[i].x);
     }
   check (i == SIZE_MAX);
@@ -312,19 +316,19 @@ test_insert (void)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
-      int *heights;
+      int *sizes;
       int block_cnt;
       int *order;
       struct block *blocks;
 
       expected = xnmalloc (cnt, sizeof *expected);
-      heights = xnmalloc (cnt, sizeof *heights);
+      sizes = xnmalloc (cnt, sizeof *sizes);
       order = xnmalloc (cnt, sizeof *order);
       blocks = xnmalloc (cnt, sizeof *blocks);
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights))
+      while (next_composition (cnt, &block_cnt, sizes))
         {
           int i, j;
           unsigned int permutation_cnt;
@@ -338,7 +342,7 @@ test_insert (void)
               struct tower t;
 
               /* Inserts the block_cnt blocks with the given
-                 heights[] into T in the order given by order[]. */
+                 sizes[] into T in the order given by order[]. */
               tower_init (&t);
               for (i = 0; i < block_cnt; i++)
                 {
@@ -354,14 +358,14 @@ test_insert (void)
                         && (under == NULL || under->x > order[j]))
                       under = &blocks[order[j]];
 
-                  tower_insert (&t, heights[idx], &blocks[idx].node,
+                  tower_insert (&t, sizes[idx], &blocks[idx].node,
                                 under != NULL ? &under->node : NULL);
                 }
 
               /* Check that the result is what we expect. */
               for (i = 0; i < block_cnt; i++)
                 {
-                  expected[i].height = heights[i];
+                  expected[i].size = sizes[i];
                   expected[i].x = i;
                 }
               check_tower (&t, expected, block_cnt);
@@ -375,14 +379,14 @@ test_insert (void)
       check (composition_cnt == 1 << (cnt - 1));
 
       free (expected);
-      free (heights);
+      free (sizes);
       free (order);
       free (blocks);
     }
 }
 
 /* Tests deleting blocks from towers that initially contain all
-   possible sets of block heights into a tower in all possible
+   possible sets of block sizes into a tower in all possible
    orders, up to a specified maximum tower height. */
 static void
 test_delete (void)
@@ -394,19 +398,19 @@ test_delete (void)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
-      int *heights;
+      int *sizes;
       int block_cnt;
       int *order;
       struct block *blocks;
 
       expected = xnmalloc (cnt, sizeof *expected);
-      heights = xnmalloc (cnt, sizeof *heights);
+      sizes = xnmalloc (cnt, sizeof *sizes);
       order = xnmalloc (cnt, sizeof *order);
       blocks = xnmalloc (cnt, sizeof *blocks);
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights))
+      while (next_composition (cnt, &block_cnt, sizes))
         {
           int i;
           unsigned int permutation_cnt;
@@ -424,9 +428,9 @@ test_delete (void)
               for (i = 0; i < block_cnt; i++)
                 {
                   blocks[i].x = i;
-                  tower_insert (&t, heights[i], &blocks[i].node, NULL);
+                  tower_insert (&t, sizes[i], &blocks[i].node, NULL);
                   expected[i].x = i;
-                  expected[i].height = heights[i];
+                  expected[i].size = sizes[i];
                 }
               check_tower (&t, expected, block_cnt);
 
@@ -459,14 +463,14 @@ test_delete (void)
       check (composition_cnt == 1 << (cnt - 1));
 
       free (expected);
-      free (heights);
+      free (sizes);
       free (order);
       free (blocks);
     }
 }
 
-/* Tests towers containing all possible block heights, resizing
-   the blocks to all possible heights that conserve the total
+/* Tests towers containing all possible block sizes, resizing
+   the blocks to all possible sizes that conserve the total
    tower height, up to a maximum total tower height. */
 static void
 test_resize (void)
@@ -478,27 +482,27 @@ test_resize (void)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
-      int *heights, *new_heights;
+      int *sizes, *new_sizes;
       int block_cnt;
       int *order;
       struct block *blocks;
 
       expected = xnmalloc (cnt, sizeof *expected);
-      heights = xnmalloc (cnt, sizeof *heights);
-      new_heights = xnmalloc (cnt, sizeof *new_heights);
+      sizes = xnmalloc (cnt, sizeof *sizes);
+      new_sizes = xnmalloc (cnt, sizeof *new_sizes);
       order = xnmalloc (cnt, sizeof *order);
       blocks = xnmalloc (cnt, sizeof *blocks);
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights))
+      while (next_composition (cnt, &block_cnt, sizes))
         {
           int i;
           unsigned int resizes = 0;
 
-          for (resizes = 0, first_k_composition (cnt, block_cnt, new_heights);
+          for (resizes = 0, first_k_composition (cnt, block_cnt, new_sizes);
                (resizes == 0
-                || next_k_composition (cnt, block_cnt, new_heights));
+                || next_k_composition (cnt, block_cnt, new_sizes));
                resizes++)
             {
               struct tower t;
@@ -508,18 +512,18 @@ test_resize (void)
               for (i = 0; i < block_cnt; i++)
                 {
                   blocks[i].x = i;
-                  tower_insert (&t, heights[i], &blocks[i].node, NULL);
+                  tower_insert (&t, sizes[i], &blocks[i].node, NULL);
                   expected[i].x = i;
-                  expected[i].height = heights[i];
+                  expected[i].size = sizes[i];
                 }
               check_tower (&t, expected, block_cnt);
 
               /* Resize all the blocks. */
               for (i = 0; i < block_cnt; i++)
                 {
-                  if (expected[i].height != new_heights[i] || rand () % 2)
-                    tower_resize (&t, &blocks[i].node, new_heights[i]);
-                  expected[i].height = new_heights[i];
+                  if (expected[i].size != new_sizes[i] || rand () % 2)
+                    tower_resize (&t, &blocks[i].node, new_sizes[i]);
+                  expected[i].size = new_sizes[i];
                 }
               check_tower (&t, expected, block_cnt);
             }
@@ -530,8 +534,8 @@ test_resize (void)
       check (composition_cnt == 1 << (cnt - 1));
 
       free (expected);
-      free (new_heights);
-      free (heights);
+      free (new_sizes);
+      free (sizes);
       free (order);
       free (blocks);
     }
@@ -549,20 +553,20 @@ test_splice_out (void)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
-      int *heights, *new_heights;
+      int *sizes, *new_sizes;
       int block_cnt;
       int *order;
       struct block *blocks;
 
       expected = xnmalloc (cnt, sizeof *expected);
-      heights = xnmalloc (cnt, sizeof *heights);
-      new_heights = xnmalloc (cnt, sizeof *new_heights);
+      sizes = xnmalloc (cnt, sizeof *sizes);
+      new_sizes = xnmalloc (cnt, sizeof *new_sizes);
       order = xnmalloc (cnt, sizeof *order);
       blocks = xnmalloc (cnt, sizeof *blocks);
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights))
+      while (next_composition (cnt, &block_cnt, sizes))
         {
           int i, j;
 
@@ -579,9 +583,9 @@ test_splice_out (void)
                 for (k = 0; k < block_cnt; k++)
                   {
                     blocks[k].x = k;
-                    tower_insert (&src, heights[k], &blocks[k].node, NULL);
+                    tower_insert (&src, sizes[k], &blocks[k].node, NULL);
                     expected[k].x = k;
-                    expected[k].height = heights[k];
+                    expected[k].size = sizes[k];
                   }
                 check_tower (&src, expected, block_cnt);
 
@@ -598,8 +602,8 @@ test_splice_out (void)
       check (composition_cnt == 1 << (cnt - 1));
 
       free (expected);
-      free (new_heights);
-      free (heights);
+      free (new_sizes);
+      free (sizes);
       free (order);
       free (blocks);
     }
@@ -617,20 +621,20 @@ test_splice_in (void)
     {
       unsigned int composition_cnt;
       struct expected_block *expected;
-      int *heights, *new_heights;
+      int *sizes, *new_sizes;
       int block_cnt;
       int *order;
       struct block *blocks;
 
       expected = xnmalloc (cnt, sizeof *expected);
-      heights = xnmalloc (cnt, sizeof *heights);
-      new_heights = xnmalloc (cnt, sizeof *new_heights);
+      sizes = xnmalloc (cnt, sizeof *sizes);
+      new_sizes = xnmalloc (cnt, sizeof *new_sizes);
       order = xnmalloc (cnt, sizeof *order);
       blocks = xnmalloc (cnt, sizeof *blocks);
 
       block_cnt = 0;
       composition_cnt = 0;
-      while (next_composition (cnt, &block_cnt, heights))
+      while (next_composition (cnt, &block_cnt, sizes))
         {
           int i, j;
 
@@ -648,9 +652,9 @@ test_splice_in (void)
                   {
                     blocks[k].x = k;
                     tower_insert (k >= i && k < j ? &src : &dst,
-                                  heights[k], &blocks[k].node, NULL);
+                                  sizes[k], &blocks[k].node, NULL);
                     expected[k].x = k;
-                    expected[k].height = heights[k];
+                    expected[k].size = sizes[k];
                   }
 
                 /* Splice SRC into DST. */
@@ -663,8 +667,8 @@ test_splice_in (void)
       check (composition_cnt == 1 << (cnt - 1));
 
       free (expected);
-      free (new_heights);
-      free (heights);
+      free (new_sizes);
+      free (sizes);
       free (order);
       free (blocks);
     }

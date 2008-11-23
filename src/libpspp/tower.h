@@ -33,14 +33,18 @@
 
    This is the analogy behind this data structure.  Each node in
    the data structure has a "thickness", which is actually called
-   the node's "height" because "thickness" is just too awkward a
+   the node's "size" because "thickness" is just too awkward a
    name.  The primary way to look up nodes is by a height from
    the bottom of the tower; any height within a node retrieves
    that node, not just the distance to the bottom of the node.
    You can insert a new node between any two existing nodes, or
    at either end, which shifts up the height of all the nodes
    above it.  You can also delete any node, which shifts down the
-   height of all the nodes above it. */
+   height of all the nodes above it.
+
+   The tower data structure also implements efficient access to
+   nodes by index, i.e. by 0-based count of nodes from the bottom
+   of the tower. */
 
 #ifndef LIBPSPP_TOWER_H
 #define LIBPSPP_TOWER_H
@@ -58,16 +62,20 @@
 struct tower_node
   {
     struct abt_node abt_node;         /* ABT node. */
-    unsigned long int subtree_height; /* Node's plus descendants' heights. */
-    unsigned long int height;         /* Height. */
+    unsigned long int subtree_size;   /* Node size plus descendants' sizes. */
+    unsigned long int size;           /* Size. */
+    unsigned long int subtree_count;  /* Number of descendants, plus 1. */
   };
 
-/* Returns the height of a tower node. */
+/* Returns the size of a tower node. */
 static inline unsigned long
-tower_node_get_height (const struct tower_node *node)
+tower_node_get_size (const struct tower_node *node)
 {
-  return node->height;
+  return node->size;
 }
+
+unsigned long int tower_node_get_level (const struct tower_node *);
+unsigned long int tower_node_get_index (const struct tower_node *);
 
 /* A tower. */
 struct tower
@@ -80,13 +88,14 @@ struct tower
 void tower_init (struct tower *);
 
 bool tower_is_empty (const struct tower *);
+unsigned long int tower_count (const struct tower *);
 unsigned long int tower_height (const struct tower *);
 
-void tower_insert (struct tower *, unsigned long int height,
+void tower_insert (struct tower *, unsigned long int size,
                    struct tower_node *new, struct tower_node *under);
 struct tower_node *tower_delete (struct tower *, struct tower_node *);
 void tower_resize (struct tower *, struct tower_node *,
-                   unsigned long int new_height);
+                   unsigned long int new_size);
 void tower_splice (struct tower *dst, struct tower_node *under,
                    struct tower *src,
                    struct tower_node *first, struct tower_node *last);
@@ -94,6 +103,7 @@ void tower_splice (struct tower *dst, struct tower_node *under,
 struct tower_node *tower_lookup (const struct tower *,
                                  unsigned long int level,
                                  unsigned long int *node_start);
+struct tower_node *tower_get (const struct tower *, unsigned long int index);
 struct tower_node *tower_first (const struct tower *);
 struct tower_node *tower_last (const struct tower *);
 struct tower_node *tower_next (const struct tower *,

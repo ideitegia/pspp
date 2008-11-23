@@ -693,7 +693,7 @@ axis_clone (const struct axis *old)
   for (node = tower_first (&old->log_to_phy); node != NULL;
        node = tower_next (&old->log_to_phy, node))
     {
-      unsigned long int size = tower_node_get_height (node);
+      unsigned long int size = tower_node_get_size (node);
       struct axis_group *group = tower_data (node, struct axis_group, logical);
       tower_insert (&new->log_to_phy, size, make_axis_group (group->phy_start),
                     NULL);
@@ -717,7 +717,7 @@ axis_hash (const struct axis *axis, struct md4_ctx *ctx)
     {
       struct axis_group *group = tower_data (tn, struct axis_group, logical);
       unsigned long int phy_start = group->phy_start;
-      unsigned long int size = tower_node_get_height (tn);
+      unsigned long int size = tower_node_get_size (tn);
 
       md4_process_bytes (&phy_start, sizeof phy_start, ctx);
       md4_process_bytes (&size, sizeof size, ctx);
@@ -921,7 +921,7 @@ split_axis (struct axis *axis, unsigned long int where)
   if (where > group_start)
     {
       unsigned long int size_1 = where - group_start;
-      unsigned long int size_2 = tower_node_get_height (group_node) - size_1;
+      unsigned long int size_2 = tower_node_get_size (group_node) - size_1;
       struct tower_node *next = tower_next (&axis->log_to_phy, group_node);
       struct tower_node *new = make_axis_group (group->phy_start + size_1);
       tower_resize (&axis->log_to_phy, group_node, size_1);
@@ -961,11 +961,11 @@ merge_axis_nodes (struct axis *axis, struct tower_node *node,
   if (next != NULL)
     {
       struct axis_group *next_group = axis_group_from_tower_node (next);
-      unsigned long this_height = tower_node_get_height (node);
+      unsigned long this_height = tower_node_get_size (node);
 
       if (group->phy_start + this_height == next_group->phy_start)
         {
-          unsigned long next_height = tower_node_get_height (next);
+          unsigned long next_height = tower_node_get_size (next);
           tower_resize (t, node, this_height + next_height);
           if (other_node != NULL && *other_node == next)
             *other_node = tower_next (t, *other_node);
@@ -979,11 +979,11 @@ merge_axis_nodes (struct axis *axis, struct tower_node *node,
   if (prev != NULL)
     {
       struct axis_group *prev_group = axis_group_from_tower_node (prev);
-      unsigned long prev_height = tower_node_get_height (prev);
+      unsigned long prev_height = tower_node_get_size (prev);
 
       if (prev_group->phy_start + prev_height == group->phy_start)
         {
-          unsigned long this_height = tower_node_get_height (node);
+          unsigned long this_height = tower_node_get_size (node);
           group->phy_start = prev_group->phy_start;
           tower_resize (t, node, this_height + prev_height);
           if (other_node != NULL && *other_node == prev)
@@ -1007,7 +1007,7 @@ check_axis_merged (const struct axis *axis UNUSED)
     if (prev != NULL)
       {
         struct axis_group *prev_group = axis_group_from_tower_node (prev);
-        unsigned long prev_height = tower_node_get_height (prev);
+        unsigned long prev_height = tower_node_get_size (prev);
         struct axis_group *node_group = axis_group_from_tower_node (node);
         assert (prev_group->phy_start + prev_height != node_group->phy_start);
       }
