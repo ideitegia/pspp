@@ -176,7 +176,7 @@ max_fully_visible_row (const GtkSheet *sheet)
   glong row = max_visible_row (sheet);
 
   if ( g_sheet_row_start_pixel (sheet->row_geometry, row)
-       + 
+       +
        g_sheet_row_get_height (sheet->row_geometry, row)
        > sheet->vadjustment->value)
     row--;
@@ -185,26 +185,11 @@ max_fully_visible_row (const GtkSheet *sheet)
 }
 
 
-/* returns the column index from a x pixel location */
+/* returns the column index from a pixel location */
 static inline gint
-column_from_xpixel (const GtkSheet *sheet, gint x)
+column_from_xpixel (const GtkSheet *sheet, gint pixel)
 {
-  gint i;
-  gint cx = 0;
-
-  if (x < 0) return -1;
-  for (i = 0;
-       i < g_sheet_column_get_column_count (sheet->column_geometry); i++)
-    {
-      if (x >= cx &&
-	  x <= (cx + g_sheet_column_get_width (sheet->column_geometry, i)))
-	return i;
-
-      cx += g_sheet_column_get_width (sheet->column_geometry, i);
-    }
-
-  /* no match */
-  return g_sheet_column_get_column_count (sheet->column_geometry) - 1;
+  return psppire_axis_get_unit_at_pixel (sheet->haxis, pixel);
 }
 
 
@@ -221,7 +206,7 @@ min_fully_visible_column (const GtkSheet *sheet)
 {
   glong col = min_visible_column (sheet);
 
-  if ( g_sheet_column_start_pixel (sheet->column_geometry, col) < sheet->hadjustment->value)
+  if ( psppire_axis_pixel_start (sheet->haxis, col) < sheet->hadjustment->value)
     col++;
 
   return col;
@@ -243,9 +228,9 @@ max_fully_visible_column (const GtkSheet *sheet)
 {
   glong col = max_visible_column (sheet);
 
-  if ( g_sheet_column_start_pixel (sheet->column_geometry, col)
+  if ( psppire_axis_pixel_start (sheet->haxis, col)
        + 
-       g_sheet_column_get_width (sheet->column_geometry, col)
+       psppire_axis_unit_size (sheet->haxis, col)
        > sheet->hadjustment->value)
     col--;
 
@@ -320,9 +305,9 @@ POSSIBLE_DRAG (const GtkSheet *sheet, gint x, gint y,
   *drag_column = column_from_xpixel (sheet, x);
   *drag_row = yyy_row_ypixel_to_row (sheet, y);
 
-  if (x >= g_sheet_column_start_pixel (sheet->column_geometry, sheet->range.col0) - DRAG_WIDTH / 2 &&
-      x <= g_sheet_column_start_pixel (sheet->column_geometry, sheet->range.coli) +
-      g_sheet_column_get_width (sheet->column_geometry, sheet->range.coli) + DRAG_WIDTH / 2)
+  if (x >= psppire_axis_pixel_start (sheet->haxis, sheet->range.col0) - DRAG_WIDTH / 2 &&
+      x <= psppire_axis_pixel_start (sheet->haxis, sheet->range.coli) +
+      psppire_axis_unit_size (sheet->haxis, sheet->range.coli) + DRAG_WIDTH / 2)
     {
       ydrag = g_sheet_row_start_pixel (sheet->row_geometry, sheet->range.row0);
       if (y >= ydrag - DRAG_WIDTH / 2 && y <= ydrag + DRAG_WIDTH / 2)
@@ -343,14 +328,14 @@ POSSIBLE_DRAG (const GtkSheet *sheet, gint x, gint y,
       y <= g_sheet_row_start_pixel (sheet->row_geometry, sheet->range.rowi) +
       g_sheet_row_get_height (sheet->row_geometry, sheet->range.rowi) + DRAG_WIDTH / 2)
     {
-      xdrag = g_sheet_column_start_pixel (sheet->column_geometry, sheet->range.col0);
+      xdrag = psppire_axis_pixel_start (sheet->haxis, sheet->range.col0);
       if (x >= xdrag - DRAG_WIDTH / 2 && x <= xdrag + DRAG_WIDTH / 2)
 	{
 	  *drag_column = sheet->range.col0;
 	  return TRUE;
 	}
-      xdrag = g_sheet_column_start_pixel (sheet->column_geometry, sheet->range.coli) +
-	g_sheet_column_get_width (sheet->column_geometry, sheet->range.coli);
+      xdrag = psppire_axis_pixel_start (sheet->haxis, sheet->range.coli) +
+	psppire_axis_unit_size (sheet->haxis, sheet->range.coli);
       if (x >= xdrag - DRAG_WIDTH / 2 && x <= xdrag + DRAG_WIDTH / 2)
 	{
 	  *drag_column = sheet->range.coli;
@@ -372,8 +357,8 @@ POSSIBLE_RESIZE (const GtkSheet *sheet, gint x, gint y,
        sheet->range.col0 < 0 || sheet->range.coli < 0 )
     return FALSE;
 
-  xdrag = g_sheet_column_start_pixel (sheet->column_geometry, sheet->range.coli)+
-    g_sheet_column_get_width (sheet->column_geometry, sheet->range.coli);
+  xdrag = psppire_axis_pixel_start (sheet->haxis, sheet->range.coli)+
+    psppire_axis_unit_size (sheet->haxis, sheet->range.coli);
 
   ydrag = g_sheet_row_start_pixel (sheet->row_geometry, sheet->range.rowi) +
     g_sheet_row_get_height (sheet->row_geometry, sheet->range.rowi);
@@ -382,7 +367,7 @@ POSSIBLE_RESIZE (const GtkSheet *sheet, gint x, gint y,
     ydrag = g_sheet_row_start_pixel (sheet->row_geometry, min_visible_row (sheet));
 
   if (sheet->state == GTK_SHEET_ROW_SELECTED)
-    xdrag = g_sheet_column_start_pixel (sheet->column_geometry, min_visible_column (sheet));
+    xdrag = psppire_axis_pixel_start (sheet->haxis, min_visible_column (sheet));
 
   *drag_column = column_from_xpixel (sheet, x);
   *drag_row = yyy_row_ypixel_to_row (sheet, y);
@@ -400,7 +385,7 @@ rectangle_from_range (GtkSheet *sheet, const GtkSheetRange *range,
 {
   g_return_val_if_fail (range, FALSE);
 
-  r->x = g_sheet_column_start_pixel (sheet->column_geometry, range->col0);
+  r->x = psppire_axis_pixel_start (sheet->haxis, range->col0);
   r->x -= round (sheet->hadjustment->value);
 
   if ( sheet->row_titles_visible)
@@ -413,9 +398,9 @@ rectangle_from_range (GtkSheet *sheet, const GtkSheetRange *range,
   if ( sheet->column_titles_visible)
     r->y += sheet->column_title_area.height;
 
-  r->width = g_sheet_column_start_pixel (sheet->column_geometry, range->coli) -
-    g_sheet_column_start_pixel (sheet->column_geometry, range->col0) +
-    g_sheet_column_get_width (sheet->column_geometry, range->coli);
+  r->width = psppire_axis_pixel_start (sheet->haxis, range->coli) -
+    psppire_axis_pixel_start (sheet->haxis, range->col0) +
+    psppire_axis_unit_size (sheet->haxis, range->coli);
 
   r->height = g_sheet_row_start_pixel (sheet->row_geometry, range->rowi) -
     g_sheet_row_start_pixel (sheet->row_geometry, range->row0) +
@@ -714,7 +699,7 @@ enum
   {
     PROP_0,
     PROP_ROW_GEO,
-    PROP_COL_GEO,
+    PROP_HAXIS,
     PROP_MODEL
   };
 
@@ -729,13 +714,15 @@ gtk_sheet_set_row_geometry (GtkSheet *sheet, GSheetRow *geo)
 }
 
 static void
-gtk_sheet_set_column_geometry (GtkSheet *sheet, GSheetColumn *geo)
+gtk_sheet_set_horizontal_axis (GtkSheet *sheet, PsppireAxis *a)
 {
-  if ( sheet->column_geometry ) g_object_unref (sheet->column_geometry);
+  if ( sheet->haxis )
+    g_object_unref (sheet->haxis);
 
-  sheet->column_geometry = geo;
+  sheet->haxis = a;
 
-  if ( sheet->column_geometry ) g_object_ref (sheet->column_geometry);
+  if ( sheet->haxis )
+    g_object_ref (sheet->haxis);
 }
 
 
@@ -753,11 +740,8 @@ gtk_sheet_set_property (GObject         *object,
     case PROP_ROW_GEO:
       gtk_sheet_set_row_geometry (sheet, g_value_get_pointer (value));
       break;
-    case PROP_COL_GEO:
-      gtk_sheet_set_column_geometry (sheet, g_value_get_pointer (value));
-      if ( sheet->column_geometry)
-	g_signal_connect (sheet->column_geometry, "columns_changed",
-			  G_CALLBACK (column_titles_changed), sheet);
+    case PROP_HAXIS:
+      gtk_sheet_set_horizontal_axis (sheet, g_value_get_pointer (value));
       break;
     case PROP_MODEL:
       gtk_sheet_set_model (sheet, g_value_get_pointer (value));
@@ -781,8 +765,8 @@ gtk_sheet_get_property (GObject         *object,
     case PROP_ROW_GEO:
       g_value_set_pointer (value, sheet->row_geometry);
       break;
-    case PROP_COL_GEO:
-      g_value_set_pointer (value, sheet->column_geometry);
+    case PROP_HAXIS:
+      g_value_set_pointer (value, sheet->haxis);
       break;
     case PROP_MODEL:
       g_value_set_pointer (value, sheet->model);
@@ -800,7 +784,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   GParamSpec *row_geo_spec ;
-  GParamSpec *col_geo_spec ;
+  GParamSpec *haxis_spec ;
   GParamSpec *model_spec ;
 
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -1009,10 +993,10 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 			  "A pointer to the model of the row geometry",
 			  G_PARAM_READABLE | G_PARAM_WRITABLE );
 
-  col_geo_spec =
-    g_param_spec_pointer ("column-geometry",
-			  "Column Geometry",
-			  "A pointer to the model of the column geometry",
+  haxis_spec =
+    g_param_spec_pointer ("horizontal-axis",
+			  "Horizontal Axis",
+			  "A pointer to the PsppireAxis object for the columns",
 			  G_PARAM_READABLE | G_PARAM_WRITABLE );
 
   model_spec =
@@ -1030,8 +1014,8 @@ gtk_sheet_class_init (GtkSheetClass *klass)
                                    row_geo_spec);
 
   g_object_class_install_property (object_class,
-                                   PROP_COL_GEO,
-                                   col_geo_spec);
+                                   PROP_HAXIS,
+                                   haxis_spec);
 
   g_object_class_install_property (object_class,
                                    PROP_MODEL,
@@ -1070,7 +1054,7 @@ static void
 gtk_sheet_init (GtkSheet *sheet)
 {
   sheet->model = NULL;
-  sheet->column_geometry = NULL;
+  sheet->haxis = NULL;
   sheet->row_geometry = NULL;
 
   sheet->flags = 0;
@@ -1161,7 +1145,7 @@ columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
    */
   range.col0 = first_column;
   range.row0 = 0;
-  range.coli = g_sheet_column_get_column_count (sheet->column_geometry) - 1;
+  range.coli = psppire_axis_unit_count (sheet->haxis) - 1;
   range.rowi = g_sheet_row_get_row_count (sheet->row_geometry) - 1;
 
   adjust_scrollbars (sheet);
@@ -1194,7 +1178,7 @@ rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
   range.row0 = first_row;
   range.col0 = 0;
   range.rowi = g_sheet_row_get_row_count (sheet->row_geometry) - 1;
-  range.coli = g_sheet_column_get_column_count (sheet->column_geometry) - 1;
+  range.coli = psppire_axis_unit_count (sheet->haxis) - 1;
 
   adjust_scrollbars (sheet);
 
@@ -1276,11 +1260,10 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
  * Returns: the new sheet widget
  */
 GtkWidget *
-gtk_sheet_new (GSheetRow *vgeo, GSheetColumn *hgeo, GSheetModel *model)
+gtk_sheet_new (GSheetRow *vgeo, void *hgeo, GSheetModel *model)
 {
   GtkWidget *widget = g_object_new (GTK_TYPE_SHEET,
 				    "row-geometry", vgeo,
-				    "column-geometry", hgeo,
 				    "model", model,
 				    NULL);
   return widget;
@@ -1340,7 +1323,7 @@ column_titles_changed (GtkWidget *w, gint first, gint n_columns, gpointer data)
   if ( n_columns == -1 )
     {
       extremity = TRUE;
-      n_columns = g_sheet_column_get_column_count (sheet->column_geometry) - 1 ;
+      n_columns = psppire_axis_unit_count (sheet->haxis) - 1 ;
     }
 
   if ( extremity)
@@ -1399,7 +1382,7 @@ gtk_sheet_get_columns_count (GtkSheet *sheet)
   g_return_val_if_fail (sheet != NULL, 0);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), 0);
 
-  return g_sheet_column_get_column_count (sheet->column_geometry);
+  return psppire_axis_unit_count (sheet->haxis);
 }
 
 static void
@@ -1416,7 +1399,7 @@ gtk_sheet_autoresize_column (GtkSheet *sheet, gint column)
 
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
-  if (column >= g_sheet_column_get_column_count (sheet->column_geometry) || column < 0) return;
+  if (column >= psppire_axis_unit_count (sheet->haxis) || column < 0) return;
 
   for (row = 0; row < g_sheet_row_get_row_count (sheet->row_geometry); row++)
     {
@@ -1438,7 +1421,7 @@ gtk_sheet_autoresize_column (GtkSheet *sheet, gint column)
       dispose_string (sheet, text);
     }
 
-  if (text_width > g_sheet_column_get_width (sheet->column_geometry, column) )
+  if (text_width > psppire_axis_unit_size (sheet->haxis, column) )
     {
       gtk_sheet_set_column_width (sheet, column, text_width);
     }
@@ -1565,7 +1548,7 @@ gtk_sheet_moveto (GtkSheet *sheet,
   g_return_if_fail (col_align <= 1);
 
   g_return_if_fail (col <
-		    g_sheet_column_get_column_count (sheet->column_geometry));
+		    psppire_axis_unit_count (sheet->haxis));
   g_return_if_fail (row <
 		    g_sheet_row_get_row_count (sheet->row_geometry));
 
@@ -1582,7 +1565,7 @@ gtk_sheet_moveto (GtkSheet *sheet,
 
   if (col >= 0)
   {
-    gint x =  g_sheet_column_start_pixel (sheet->column_geometry, col);
+    gint x =  psppire_axis_pixel_start (sheet->haxis, col);
 
     gtk_adjustment_set_value (sheet->hadjustment, x - width * col_align);
   }
@@ -1625,7 +1608,7 @@ gtk_sheet_select_row (GtkSheet *sheet, gint row)
   sheet->range.row0 = row;
   sheet->range.col0 = 0;
   sheet->range.rowi = row;
-  sheet->range.coli = g_sheet_column_get_column_count (sheet->column_geometry) - 1;
+  sheet->range.coli = psppire_axis_unit_count (sheet->haxis) - 1;
   sheet->active_cell.row = row;
   sheet->active_cell.col = 0;
 
@@ -1640,7 +1623,7 @@ gtk_sheet_select_column (GtkSheet *sheet, gint column)
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
-  if (column < 0 || column >= g_sheet_column_get_column_count (sheet->column_geometry))
+  if (column < 0 || column >= psppire_axis_unit_count (sheet->haxis))
     return;
 
   if (sheet->state != GTK_SHEET_NORMAL)
@@ -1673,10 +1656,10 @@ gtk_sheet_range_isvisible (const GtkSheet *sheet,
   if (range.rowi < 0 || range.rowi >= g_sheet_row_get_row_count (sheet->row_geometry))
     return FALSE;
 
-  if (range.col0 < 0 || range.col0 >= g_sheet_column_get_column_count (sheet->column_geometry))
+  if (range.col0 < 0 || range.col0 >= psppire_axis_unit_count (sheet->haxis))
     return FALSE;
 
-  if (range.coli < 0 || range.coli >= g_sheet_column_get_column_count (sheet->column_geometry))
+  if (range.coli < 0 || range.coli >= psppire_axis_unit_count (sheet->haxis))
     return FALSE;
 
   if (range.rowi < min_visible_row (sheet))
@@ -1781,7 +1764,7 @@ gtk_sheet_dispose  (GObject *object)
 
   if (sheet->model) g_object_unref (sheet->model);
   if (sheet->row_geometry) g_object_unref (sheet->row_geometry);
-  if (sheet->column_geometry) g_object_unref (sheet->column_geometry);
+  if (sheet->haxis) g_object_unref (sheet->haxis);
 
   g_object_unref (sheet->entry_container);
   sheet->entry_container = NULL;
@@ -2155,7 +2138,7 @@ gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint col)
     return;
 
   if (col < 0 ||
-      col >= g_sheet_column_get_column_count (sheet->column_geometry))
+      col >= psppire_axis_unit_count (sheet->haxis))
     return;
 
   gtk_sheet_get_attributes (sheet, row, col, &attributes);
@@ -2380,7 +2363,7 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
-  if (col >= g_sheet_column_get_column_count (sheet->column_geometry)
+  if (col >= psppire_axis_unit_count (sheet->haxis)
       || row >= g_sheet_row_get_row_count (sheet->row_geometry))
     return;
 
@@ -2402,7 +2385,7 @@ gtk_sheet_cell_clear (GtkSheet *sheet, gint row, gint column)
 
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
-  if (column >= g_sheet_column_get_column_count (sheet->column_geometry) ||
+  if (column >= psppire_axis_unit_count (sheet->haxis) ||
       row >= g_sheet_row_get_row_count (sheet->row_geometry)) return;
 
   if (column < 0 || row < 0) return;
@@ -2439,7 +2422,7 @@ gtk_sheet_cell_get_text (const GtkSheet *sheet, gint row, gint col)
   g_return_val_if_fail (sheet != NULL, NULL);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), NULL);
 
-  if (col >= g_sheet_column_get_column_count (sheet->column_geometry) || row >= g_sheet_row_get_row_count (sheet->row_geometry))
+  if (col >= psppire_axis_unit_count (sheet->haxis) || row >= g_sheet_row_get_row_count (sheet->row_geometry))
     return NULL;
   if (col < 0 || row < 0) return NULL;
 
@@ -2460,7 +2443,7 @@ gtk_sheet_cell_get_state (GtkSheet *sheet, gint row, gint col)
 
   g_return_val_if_fail (sheet != NULL, 0);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), 0);
-  if (col >= g_sheet_column_get_column_count (sheet->column_geometry) || row >= g_sheet_row_get_row_count (sheet->row_geometry)) return 0;
+  if (col >= psppire_axis_unit_count (sheet->haxis) || row >= g_sheet_row_get_row_count (sheet->row_geometry)) return 0;
   if (col < 0 || row < 0) return 0;
 
   state = sheet->state;
@@ -2543,7 +2526,7 @@ gtk_sheet_get_pixel_info (GtkSheet *sheet,
   else
     {
       tcol = column_from_xpixel (sheet, x);
-      if (tcol > g_sheet_column_get_column_count (sheet->column_geometry))
+      if (tcol > psppire_axis_unit_count (sheet->haxis))
 	return FALSE;
     }
 
@@ -2561,14 +2544,14 @@ gtk_sheet_get_cell_area (GtkSheet *sheet,
   g_return_val_if_fail (sheet != NULL, 0);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), 0);
 
-  if (row >= g_sheet_row_get_row_count (sheet->row_geometry) || column >= g_sheet_column_get_column_count (sheet->column_geometry))
+  if (row >= g_sheet_row_get_row_count (sheet->row_geometry) || column >= psppire_axis_unit_count (sheet->haxis))
     return FALSE;
 
-  area->x = (column == -1) ? 0 : g_sheet_column_start_pixel (sheet->column_geometry, column);
+  area->x = (column == -1) ? 0 : psppire_axis_pixel_start (sheet->haxis, column);
   area->y = (row == -1)    ? 0 : g_sheet_row_start_pixel (sheet->row_geometry, row);
 
   area->width= (column == -1) ? sheet->row_title_area.width
-    : g_sheet_column_get_width (sheet->column_geometry, column);
+    : psppire_axis_unit_size (sheet->haxis, column);
 
   area->height= (row == -1) ? sheet->column_title_area.height
     : g_sheet_row_get_height (sheet->row_geometry, row);
@@ -2587,7 +2570,7 @@ gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint col)
 
   if (row >= g_sheet_row_get_row_count (sheet->row_geometry)
       ||
-      col >= g_sheet_column_get_column_count (sheet->column_geometry))
+      col >= psppire_axis_unit_count (sheet->haxis))
     return;
 
   sheet->active_cell.row = row;
@@ -2696,7 +2679,7 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
     return;
 
   if ( row > g_sheet_row_get_row_count (sheet->row_geometry)
-       || col > g_sheet_column_get_column_count (sheet->column_geometry))
+       || col > psppire_axis_unit_count (sheet->haxis))
     return;
 
   if (sheet->state != GTK_SHEET_NORMAL)
@@ -2880,10 +2863,10 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 
 	      if (mask1 != mask2)
 		{
-		  x = g_sheet_column_start_pixel (sheet->column_geometry, j);
+		  x = psppire_axis_pixel_start (sheet->haxis, j);
 		  y = g_sheet_row_start_pixel (sheet->row_geometry, i);
-		  width = g_sheet_column_start_pixel (sheet->column_geometry, j)- x+
-		    g_sheet_column_get_width (sheet->column_geometry, j);
+		  width = psppire_axis_pixel_start (sheet->haxis, j)- x+
+		    psppire_axis_unit_size (sheet->haxis, j);
 		  height = g_sheet_row_start_pixel (sheet->row_geometry, i) - y + g_sheet_row_get_height (sheet->row_geometry, i);
 
 		  if (i == sheet->range.row0)
@@ -2901,10 +2884,10 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 
 		  if (i != sheet->active_cell.row || j != sheet->active_cell.col)
 		    {
-		      x = g_sheet_column_start_pixel (sheet->column_geometry, j);
+		      x = psppire_axis_pixel_start (sheet->haxis, j);
 		      y = g_sheet_row_start_pixel (sheet->row_geometry, i);
-		      width = g_sheet_column_start_pixel (sheet->column_geometry, j)- x+
-			g_sheet_column_get_width (sheet->column_geometry, j);
+		      width = psppire_axis_pixel_start (sheet->haxis, j)- x+
+			psppire_axis_unit_size (sheet->haxis, j);
 
 		      height = g_sheet_row_start_pixel (sheet->row_geometry, i) - y + g_sheet_row_get_height (sheet->row_geometry, i);
 
@@ -2944,9 +2927,9 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 	  if (state == GTK_STATE_SELECTED && !selected)
 	    {
 
-	      x = g_sheet_column_start_pixel (sheet->column_geometry, j);
+	      x = psppire_axis_pixel_start (sheet->haxis, j);
 	      y = g_sheet_row_start_pixel (sheet->row_geometry, i);
-	      width = g_sheet_column_start_pixel (sheet->column_geometry, j) - x + g_sheet_column_get_width (sheet->column_geometry, j);
+	      width = psppire_axis_pixel_start (sheet->haxis, j) - x + psppire_axis_unit_size (sheet->haxis, j);
 	      height = g_sheet_row_start_pixel (sheet->row_geometry, i) - y + g_sheet_row_get_height (sheet->row_geometry, i);
 
 	      if (i == sheet->range.row0)
@@ -2979,9 +2962,9 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 	      (i != sheet->active_cell.row || j != sheet->active_cell.col))
 	    {
 
-	      x = g_sheet_column_start_pixel (sheet->column_geometry, j);
+	      x = psppire_axis_pixel_start (sheet->haxis, j);
 	      y = g_sheet_row_start_pixel (sheet->row_geometry, i);
-	      width = g_sheet_column_start_pixel (sheet->column_geometry, j) - x + g_sheet_column_get_width (sheet->column_geometry, j);
+	      width = psppire_axis_pixel_start (sheet->haxis, j) - x + psppire_axis_unit_size (sheet->haxis, j);
 	      height = g_sheet_row_start_pixel (sheet->row_geometry, i) - y + g_sheet_row_get_height (sheet->row_geometry, i);
 
 	      if (i == new_range.row0)
@@ -3025,9 +3008,9 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
 	  mask2 = j == new_range.coli ? mask2 + 8 : mask2;
 	  if (mask2 != mask1 || (mask2 == mask1 && state != GTK_STATE_SELECTED))
 	    {
-	      x = g_sheet_column_start_pixel (sheet->column_geometry, j);
+	      x = psppire_axis_pixel_start (sheet->haxis, j);
 	      y = g_sheet_row_start_pixel (sheet->row_geometry, i);
-	      width = g_sheet_column_get_width (sheet->column_geometry, j);
+	      width = psppire_axis_unit_size (sheet->haxis, j);
 	      height = g_sheet_row_get_height (sheet->row_geometry, i);
 	      if (mask2 & 1)
 		gdk_draw_rectangle (sheet->sheet_window,
@@ -3319,7 +3302,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 		     sheet_signals[BUTTON_EVENT_COLUMN], 0,
 		     column, event);
 
-      if (g_sheet_column_get_sensitivity (sheet->column_geometry, column))
+      if (g_sheet_model_get_column_sensitivity (sheet->model, column))
 	{
 	  if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
 	    g_signal_emit (sheet,
@@ -3492,7 +3475,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 
       column = column_from_xpixel (sheet, x);
 
-      if (g_sheet_column_get_sensitivity (sheet->column_geometry, column))
+      if (g_sheet_model_get_column_sensitivity (sheet->model, column))
 	{
 	  veto = gtk_sheet_click_cell (sheet, -1, column);
 	  gtk_grab_add (GTK_WIDGET (sheet));
@@ -3532,7 +3515,7 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
   cell.col = column;
 
   if (row >= g_sheet_row_get_row_count (sheet->row_geometry)
-      || column >= g_sheet_column_get_column_count (sheet->column_geometry))
+      || column >= psppire_axis_unit_count (sheet->haxis))
     {
       return FALSE;
     }
@@ -3572,7 +3555,7 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
       sheet->range.col0 = 0;
       sheet->range.rowi = g_sheet_row_get_row_count (sheet->row_geometry) - 1;
       sheet->range.coli =
-	g_sheet_column_get_column_count (sheet->column_geometry) - 1;
+	psppire_axis_unit_count (sheet->haxis) - 1;
       sheet->active_cell.row = 0;
       sheet->active_cell.col = 0;
       gtk_sheet_select_range (sheet, NULL);
@@ -3843,9 +3826,7 @@ motion_timeout_callback (gpointer data)
       if (sheet->row_title_under)
 	{
 	  GSheetRow *row_geo = sheet->row_geometry;
-	  gchar *text;
-
-	  text = g_sheet_row_get_subtitle (row_geo, row);
+	  gchar *text = g_sheet_row_get_subtitle (row_geo, row);
 
 	  show_subtitle (sheet, row, -1, text);
 	  g_free (text);
@@ -3853,10 +3834,8 @@ motion_timeout_callback (gpointer data)
 
       if (sheet->column_title_under)
 	{
-	  GSheetColumn *col_geo = sheet->column_geometry;
-	  gchar *text;
-
-	  text = g_sheet_column_get_subtitle (col_geo, column);
+	  gchar *text = g_sheet_model_get_column_subtitle (sheet->model,
+							   column);
 
 	  show_subtitle (sheet, -1, column, text);
 
@@ -4054,7 +4033,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
       sheet->y_drag = y;
       aux = sheet->range;
       if (aux.row0 + row >= 0 && aux.rowi + row < g_sheet_row_get_row_count (sheet->row_geometry) &&
-	  aux.col0 + column >= 0 && aux.coli + column < g_sheet_column_get_column_count (sheet->column_geometry))
+	  aux.col0 + column >= 0 && aux.coli + column < psppire_axis_unit_count (sheet->haxis))
 	{
 	  aux = sheet->drag_range;
 	  sheet->drag_range.row0 = sheet->range.row0 + row;
@@ -4076,7 +4055,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
       GtkSheetRange aux;
       gint v_h, current_col, current_row, col_threshold, row_threshold;
       v_h = 1;
-      if (abs (x - g_sheet_column_start_pixel (sheet->column_geometry, sheet->drag_cell.col)) >
+      if (abs (x - psppire_axis_pixel_start (sheet->haxis, sheet->drag_cell.col)) >
 	  abs (y - g_sheet_row_start_pixel (sheet->row_geometry, sheet->drag_cell.row))) v_h = 2;
 
       current_col = column_from_xpixel (sheet, x);
@@ -4086,8 +4065,8 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 
       /*use half of column width resp. row height as threshold to
 	expand selection*/
-      col_threshold = g_sheet_column_start_pixel (sheet->column_geometry, current_col) +
-	g_sheet_column_get_width (sheet->column_geometry, current_col) / 2;
+      col_threshold = psppire_axis_pixel_start (sheet->haxis, current_col) +
+	psppire_axis_unit_size (sheet->haxis, current_col) / 2;
       if (column > 0)
 	{
 	  if (x < col_threshold)
@@ -4123,7 +4102,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	row = 0;
 
       if (aux.row0 + row >= 0 && aux.rowi + row < g_sheet_row_get_row_count (sheet->row_geometry) &&
-	  aux.col0 + column >= 0 && aux.coli + column < g_sheet_column_get_column_count (sheet->column_geometry))
+	  aux.col0 + column >= 0 && aux.coli + column < psppire_axis_unit_count (sheet->haxis))
 	{
 	  aux = sheet->drag_range;
 	  sheet->drag_range = sheet->range;
@@ -4191,7 +4170,7 @@ gtk_sheet_extend_selection (GtkSheet *sheet, gint row, gint column)
   switch (sheet->state)
     {
     case GTK_SHEET_ROW_SELECTED:
-      column = g_sheet_column_get_column_count (sheet->column_geometry) - 1;
+      column = psppire_axis_unit_count (sheet->haxis) - 1;
       break;
     case GTK_SHEET_COLUMN_SELECTED:
       row = g_sheet_row_get_row_count (sheet->row_geometry) - 1;
@@ -4316,7 +4295,7 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
 		g_sheet_row_get_row_count (sheet->row_geometry) - 1);
 
   minimize_int (&new_cell.col,
-		g_sheet_column_get_column_count (sheet->column_geometry) - 1);
+		psppire_axis_unit_count (sheet->haxis) - 1);
 
   g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
 		 &sheet->active_cell,
@@ -4331,7 +4310,7 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
   if ( new_cell.col > max_fully_visible_column (sheet))
     {
       glong hpos  =
-	g_sheet_column_start_pixel (sheet->column_geometry,
+	psppire_axis_pixel_start (sheet->haxis,
 				    new_cell.col + 1);
       hpos -= sheet->hadjustment->page_size;
 
@@ -4341,7 +4320,7 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
   else if ( new_cell.col < min_fully_visible_column (sheet))
     {
       glong hpos  =
-	g_sheet_column_start_pixel (sheet->column_geometry,
+	psppire_axis_pixel_start (sheet->haxis,
 				    new_cell.col);
 
       gtk_adjustment_set_value (sheet->hadjustment,
@@ -4584,7 +4563,7 @@ draw_column_title_buttons (GtkSheet *sheet)
     }
 
   if (max_visible_column (sheet) ==
-      g_sheet_column_get_column_count (sheet->column_geometry) - 1)
+      psppire_axis_unit_count (sheet->haxis) - 1)
     gdk_window_clear_area (sheet->column_title_window,
 			   0, 0,
 			   sheet->column_title_area.width,
@@ -4945,14 +4924,14 @@ gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column)
   if (column < min_visible_column (sheet)) return;
   if (column > max_visible_column (sheet)) return;
 
-  button = g_sheet_column_get_button (sheet->column_geometry, column);
+  button = g_sheet_model_get_column_button (sheet->model, column);
   allocation.y = 0;
-  allocation.x = g_sheet_column_start_pixel (sheet->column_geometry, column) + CELL_SPACING;
+  allocation.x = psppire_axis_pixel_start (sheet->haxis, column) + CELL_SPACING;
   allocation.x -= sheet->hadjustment->value;
 
   allocation.height = sheet->column_title_area.height;
-  allocation.width = g_sheet_column_get_width (sheet->column_geometry, column);
-  is_sensitive = g_sheet_column_get_sensitivity (sheet->column_geometry, column);
+  allocation.width = psppire_axis_unit_size (sheet->haxis, column);
+  is_sensitive = g_sheet_model_get_column_sensitivity (sheet->model, column);
 
   gtk_sheet_button_draw (sheet, sheet->column_title_window,
 			 button, is_sensitive, allocation);
@@ -5044,12 +5023,12 @@ adjust_scrollbars (GtkSheet *sheet)
 
       sheet->hadjustment->page_increment = width;
 
-      last_col = g_sheet_column_get_column_count (sheet->column_geometry) - 1;
+      last_col = psppire_axis_unit_count (sheet->haxis) - 1;
 
       sheet->hadjustment->upper =
-	g_sheet_column_start_pixel (sheet->column_geometry, last_col)
+	psppire_axis_pixel_start (sheet->haxis, last_col)
 	+
-	g_sheet_column_get_width (sheet->column_geometry, last_col)
+	psppire_axis_unit_size (sheet->haxis, last_col)
 	;
 
       sheet->hadjustment->lower = 0;
@@ -5164,10 +5143,10 @@ draw_xor_rectangle (GtkSheet *sheet, GtkSheetRange range)
   GdkRectangle clip_area, area;
   GdkGCValues values;
 
-  area.x = g_sheet_column_start_pixel (sheet->column_geometry, range.col0);
+  area.x = psppire_axis_pixel_start (sheet->haxis, range.col0);
   area.y = g_sheet_row_start_pixel (sheet->row_geometry, range.row0);
-  area.width = g_sheet_column_start_pixel (sheet->column_geometry, range.coli)- area.x+
-    g_sheet_column_get_width (sheet->column_geometry, range.coli);
+  area.width = psppire_axis_pixel_start (sheet->haxis, range.coli)- area.x+
+    psppire_axis_unit_size (sheet->haxis, range.coli);
   area.height = g_sheet_row_start_pixel (sheet->row_geometry, range.rowi)- area.y +
     g_sheet_row_get_height (sheet->row_geometry, range.rowi);
 
@@ -5222,7 +5201,7 @@ draw_xor_rectangle (GtkSheet *sheet, GtkSheetRange range)
 static guint
 new_column_width (GtkSheet *sheet, gint column, gint *x)
 {
-  gint left_pos = g_sheet_column_start_pixel (sheet->column_geometry, column)
+  gint left_pos = psppire_axis_pixel_start (sheet->haxis, column)
     - sheet->hadjustment->value;
 
   gint width = *x - left_pos;
@@ -5233,7 +5212,9 @@ new_column_width (GtkSheet *sheet, gint column, gint *x)
       *x = left_pos + width;
     }
 
+#if AXIS_TRANSITION
   g_sheet_column_set_width (sheet->column_geometry, column, width);
+#endif
 
   draw_column_title_buttons (sheet);
 
@@ -5281,13 +5262,15 @@ gtk_sheet_set_column_width (GtkSheet *sheet,
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
-  if (column < 0 || column >= g_sheet_column_get_column_count (sheet->column_geometry))
+  if (column < 0 || column >= psppire_axis_unit_count (sheet->haxis))
     return;
 
   gtk_sheet_column_size_request (sheet, column, &min_width);
   if (width < min_width) return;
 
+#if AXIS_TRANSITION
   g_sheet_column_set_width (sheet->column_geometry, column, width);
+#endif
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     {
@@ -5374,7 +5357,7 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
     }
 
   attr->justification =
-    g_sheet_column_get_justification (sheet->column_geometry, col);
+    g_sheet_model_get_column_justification (sheet->model, col);
 
   j = g_sheet_model_get_justification (sheet->model, row, col);
   if (j)
@@ -5434,7 +5417,7 @@ gtk_sheet_column_size_request (GtkSheet *sheet,
 {
   GtkRequisition button_requisition;
 
-  GtkSheetButton *button = g_sheet_column_get_button (sheet->column_geometry, col);
+  GtkSheetButton *button = g_sheet_model_get_column_button (sheet->model, col);
 
   gtk_sheet_button_size_request (sheet,
 				 button,
@@ -5497,7 +5480,6 @@ gtk_sheet_button_free (GtkSheetButton *button)
   g_free (button->label);
   g_free (button);
 }
-
 
 static void
 append_cell_text (GString *string, const GtkSheet *sheet, gint r, gint c)

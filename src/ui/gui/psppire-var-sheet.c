@@ -19,7 +19,7 @@
 
 #include <glade/glade.h>
 #include "helper.h"
-#include <gtksheet/gsheet-hetero-column.h>
+
 #include "customentry.h"
 #include <data/variable.h>
 #include "psppire-var-store.h"
@@ -94,20 +94,6 @@ struct column_parameters
   gchar label[20];
   gint width ;
 };
-
-static const struct column_parameters column_def[] = {
-  { N_("Name"),    80},
-  { N_("Type"),    100},
-  { N_("Width"),   57},
-  { N_("Decimals"),91},
-  { N_("Label"),   95},
-  { N_("Values"),  103},
-  { N_("Missing"), 95},
-  { N_("Columns"), 80},
-  { N_("Align"),   69},
-  { N_("Measure"), 99},
-};
-
 
 #define n_ALIGNMENTS 3
 
@@ -502,8 +488,7 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 static void
 psppire_var_sheet_init (PsppireVarSheet *vs)
 {
-  gint i;
-  GObject *geo = g_sheet_hetero_column_new (75, PSPPIRE_VAR_STORE_n_COLS);
+  // gint i;
   GladeXML *xml = XML_NEW ("data-editor.glade");
 
   vs->val_labs_dialog = val_labs_dialog_create (xml);
@@ -515,16 +500,13 @@ psppire_var_sheet_init (PsppireVarSheet *vs)
   vs->dispose_has_run = FALSE;
   vs->may_create_vars = TRUE;
 
+#if 0
   for (i = 0 ; i < PSPPIRE_VAR_STORE_n_COLS ; ++i )
     {
-      g_sheet_hetero_column_set_button_label (G_SHEET_HETERO_COLUMN (geo), i,
-					      gettext (column_def[i].label));
-
       g_sheet_hetero_column_set_width (G_SHEET_HETERO_COLUMN (geo), i,
 				       column_def[i].width);
     }
-
-  g_object_set (vs, "column-geometry", geo, NULL);
+#endif
 
   g_signal_connect (vs, "activate",
 		    G_CALLBACK (var_sheet_change_active_cell),
@@ -535,8 +517,32 @@ psppire_var_sheet_init (PsppireVarSheet *vs)
 }
 
 
+static const struct column_parameters column_def[] = {
+  { N_("Name"),    80},
+  { N_("Type"),    100},
+  { N_("Width"),   57},
+  { N_("Decimals"),91},
+  { N_("Label"),   95},
+  { N_("Values"),  103},
+  { N_("Missing"), 95},
+  { N_("Columns"), 80},
+  { N_("Align"),   69},
+  { N_("Measure"), 99},
+};
+
 GtkWidget*
 psppire_var_sheet_new (void)
 {
-  return GTK_WIDGET (g_object_new (psppire_var_sheet_get_type (), NULL));
+  gint i;
+  PsppireAxis *a = psppire_axis_new (-1);
+  GtkWidget *w = g_object_new (psppire_var_sheet_get_type (), NULL);
+
+  for (i = 0 ; i < 10 ; ++i)
+    psppire_axis_append (a, column_def[i].width);
+
+  g_object_set (w,
+		"horizontal-axis", a,
+		NULL);
+
+  return w;
 }

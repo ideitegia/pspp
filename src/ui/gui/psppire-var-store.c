@@ -329,7 +329,7 @@ psppire_var_store_get_font_desc (const GSheetModel *model,
 }
 
 
-
+static gchar *get_column_title (const GSheetModel *model, gint col);
 
 static void
 psppire_var_store_sheet_model_init (GSheetModelIface *iface)
@@ -347,9 +347,9 @@ psppire_var_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_font_desc = psppire_var_store_get_font_desc;
   iface->get_cell_border = NULL;
   iface->get_justification = NULL;
+
+  iface->get_column_title = get_column_title;
 }
-
-
 
 /**
  * psppire_var_store_new:
@@ -846,3 +846,27 @@ psppire_var_store_sheet_row_init (GSheetRowIface *iface)
   iface->get_button_label = geometry_get_button_label;
 }
 
+
+
+
+static const gchar *column_titles[] = {
+  N_("Name"),
+  N_("Type"),
+  N_("Width"),
+  N_("Decimals"),
+  N_("Label"),
+  N_("Values"),
+  N_("Missing"),
+  N_("Columns"),
+  N_("Align"),
+  N_("Measure"),
+};
+
+
+static gchar *
+get_column_title (const GSheetModel *model, gint col)
+{
+  if ( col >= 10)
+    return NULL;
+  return g_strdup (gettext (column_titles[col]));
+}

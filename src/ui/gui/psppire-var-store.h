@@ -17,7 +17,6 @@
 #ifndef __PSPPIRE_VAR_STORE_H__
 #define __PSPPIRE_VAR_STORE_H__
 
-#include <gtksheet/gsheetmodel.h>
 #include "psppire-dict.h"
 #include <gdk/gdk.h>
 

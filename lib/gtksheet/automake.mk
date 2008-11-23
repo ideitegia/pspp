@@ -6,16 +6,10 @@ lib_gtksheet_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 
 
 lib_gtksheet_libgtksheet_a_SOURCES = \
-	lib/gtksheet/gsheet-column-iface.c \
-	lib/gtksheet/gsheet-column-iface.h \
-	lib/gtksheet/gsheet-hetero-column.c \
-	lib/gtksheet/gsheet-hetero-column.h \
 	lib/gtksheet/gsheetmodel.c \
 	lib/gtksheet/gsheetmodel.h \
 	lib/gtksheet/gsheet-row-iface.c \
 	lib/gtksheet/gsheet-row-iface.h \
-	lib/gtksheet/gsheet-uniform-column.c \
-	lib/gtksheet/gsheet-uniform-column.h \
 	lib/gtksheet/gsheet-uniform-row.c \
 	lib/gtksheet/gsheet-uniform-row.h \
 	lib/gtksheet/gtkextrafeatures.h \
@@ -27,7 +21,10 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/gtksheet.c \
 	lib/gtksheet/gtksheet.h \
 	lib/gtksheet/gtkxpaned.c \
-	lib/gtksheet/gtkxpaned.h
+	lib/gtksheet/gtkxpaned.h \
+	lib/gtksheet/psppire-axis.c \
+	lib/gtksheet/psppire-axis.h
+
 
 EXTRA_DIST += lib/gtksheet/OChangeLog \
 	lib/gtksheet/README

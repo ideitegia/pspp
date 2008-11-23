@@ -26,7 +26,7 @@
 #include <glib-object.h>
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
-
+#include "gtkextra-sheet.h"
 
 G_BEGIN_DECLS
 
@@ -51,8 +51,8 @@ typedef struct _GtkSheetCellBorder     GtkSheetCellBorder;
 
 struct _GtkSheetRange
 {
-  glong row0,col0; /* upper-left cell */
-  glong rowi,coli; /* lower-right cell */
+  glong row0, col0; /* upper-left cell */
+  glong rowi, coli; /* lower-right cell */
 };
 
 struct _GtkSheetCellBorder
@@ -93,6 +93,8 @@ struct _GSheetModelIface
 
 
 
+
+
   /* Virtual Table */
 
   gchar *      (* get_string)      (const GSheetModel *sheet_model,
@@ -123,10 +125,20 @@ struct _GSheetModelIface
 						   glong row, glong column);
 
 
+
+  /* column related metadata */
+
+  gchar * (*get_column_title) (const GSheetModel *mode, gint col);
+  gchar * (*get_column_subtitle) (const GSheetModel *mode, gint col);
+  gboolean * (*get_column_sensitivity) (const GSheetModel *mode, gint col);
+  GtkJustification (*get_column_justification) (const GSheetModel *mode, gint col);
+  const GtkSheetButton * (* get_button) (const GSheetModel *model, gint col);
+
   glong (*get_column_count) (const GSheetModel *model);
 
-  glong (*get_row_count) (const GSheetModel *model);
 
+  /* row related metadata */
+  glong (*get_row_count) (const GSheetModel *model);
 };
 
 
@@ -191,6 +203,20 @@ gboolean g_sheet_model_free_strings (const GSheetModel *sheet_model);
 glong g_sheet_model_get_column_count (const GSheetModel *sheet_model);
 
 gint g_sheet_model_get_row_count (const GSheetModel *sheet_model);
+
+
+
+gboolean g_sheet_model_get_column_sensitivity (const GSheetModel *model,
+					       gint col);
+
+gchar * g_sheet_model_get_column_subtitle (const GSheetModel *model,
+					    gint col);
+
+GtkSheetButton * g_sheet_model_get_column_button (const GSheetModel *, gint);
+
+GtkJustification g_sheet_model_get_column_justification (const GSheetModel *,
+							 gint);
+
 
 G_END_DECLS
 

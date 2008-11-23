@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006  Free Software Foundation
+   Copyright (C) 2006, 2008  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@
 #include <data/variable.h>
 
 #include <gtksheet/gsheetmodel.h>
-#include <gtksheet/gsheet-column-iface.h>
 #include <gtksheet/gsheet-row-iface.h>
 
 #include <pango/pango-context.h>
@@ -45,7 +44,6 @@
 static void psppire_data_store_init            (PsppireDataStore      *data_store);
 static void psppire_data_store_class_init      (PsppireDataStoreClass *class);
 static void psppire_data_store_sheet_model_init (GSheetModelIface *iface);
-static void psppire_data_store_sheet_column_init (GSheetColumnIface *iface);
 static void psppire_data_store_sheet_row_init (GSheetRowIface *iface);
 
 static void psppire_data_store_finalize        (GObject           *object);
@@ -94,13 +92,6 @@ psppire_data_store_get_type (void)
 	NULL
       };
 
-      static const GInterfaceInfo sheet_column_info =
-      {
-	(GInterfaceInitFunc) psppire_data_store_sheet_column_init,
-	NULL,
-	NULL
-      };
-
       static const GInterfaceInfo sheet_row_info =
       {
 	(GInterfaceInitFunc) psppire_data_store_sheet_row_init,
@@ -115,10 +106,6 @@ psppire_data_store_get_type (void)
       g_type_add_interface_static (data_store_type,
 				   G_TYPE_SHEET_MODEL,
 				   &sheet_model_info);
-
-      g_type_add_interface_static (data_store_type,
-				   G_TYPE_SHEET_COLUMN,
-				   &sheet_column_info);
 
       g_type_add_interface_static (data_store_type,
 				   G_TYPE_SHEET_ROW,
@@ -217,6 +204,11 @@ psppire_data_store_set_string_wrapper (GSheetModel *model,
 
 
 
+static gchar * get_column_subtitle (const GSheetModel *model, gint col);
+static gchar * get_column_button_label (const GSheetModel *model, gint col);
+static gboolean get_column_sensitivity (const GSheetModel *model, gint col);
+static GtkJustification get_column_justification (const GSheetModel *model, gint col);
+
 
 static void
 psppire_data_store_sheet_model_init (GSheetModelIface *iface)
@@ -233,6 +225,11 @@ psppire_data_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_cell_border = NULL;
   iface->get_column_count = psppire_data_store_get_var_count;
   iface->get_row_count = psppire_data_store_get_case_count_wrapper;
+
+  iface->get_column_subtitle = get_column_subtitle;
+  iface->get_column_title = get_column_button_label;
+  iface->get_column_sensitivity = get_column_sensitivity;
+  iface->get_column_justification = get_column_justification;
 }
 
 static void
@@ -293,10 +290,12 @@ delete_variable_callback (GObject *obj, gint dict_index,
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
+#if AXIS_TRANSITION
   g_sheet_model_columns_deleted (G_SHEET_MODEL (store), dict_index, 1);
 
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
 				   dict_index, -1);
+#endif
 }
 
 
@@ -305,6 +304,7 @@ variable_changed_callback (GObject *obj, gint var_num, gpointer data)
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
+#if AXIS_TRANSITION
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
 				  var_num, 1);
 
@@ -312,6 +312,7 @@ variable_changed_callback (GObject *obj, gint var_num, gpointer data)
   g_sheet_model_range_changed (G_SHEET_MODEL (store),
 			       -1, var_num,
 			       -1, var_num);
+#endif
 }
 
 static void
@@ -340,8 +341,10 @@ insert_variable_callback (GObject *obj, gint var_num, gpointer data)
 
   psppire_case_file_insert_values (store->case_file, 1, posn);
 
+#if AXIS_TRANSITION
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
 				  var_num, 1);
+#endif
 
   g_sheet_model_columns_inserted (G_SHEET_MODEL (store), var_num, 1);
 }
@@ -485,8 +488,9 @@ psppire_data_store_set_dictionary (PsppireDataStore *data_store, PsppireDict *di
   /* The entire model has changed */
   g_sheet_model_range_changed (G_SHEET_MODEL (data_store), -1, -1, -1, -1);
 
+#if AXIS_TRANSITION
   g_sheet_column_columns_changed (G_SHEET_COLUMN (data_store), 0, -1);
-
+#endif
 
   if ( data_store->dict )
     for (i = 0 ; i < n_dict_signals; ++i )
@@ -760,6 +764,7 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
 
 /* Column related funcs */
 
+#if AXIS_TRANSITION
 static glong
 geometry_get_column_count (const GSheetColumn *geom)
 {
@@ -799,87 +804,10 @@ geometry_set_width (GSheetColumn *geom, glong unit, gint width)
   var_set_display_width (v, width / ds->width_of_m );
 }
 
-
-
-static GtkJustification
-geometry_get_justification (const GSheetColumn *geom, glong unit)
-{
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
-  const struct variable *pv ;
-
-
-  if ( unit >= psppire_dict_get_var_cnt (ds->dict) )
-    return GTK_JUSTIFY_LEFT;
-
-  pv = psppire_dict_get_variable (ds->dict, unit);
-
-  return (var_get_alignment (pv) == ALIGN_LEFT ? GTK_JUSTIFY_LEFT
-          : var_get_alignment (pv) == ALIGN_RIGHT ? GTK_JUSTIFY_RIGHT
-          : GTK_JUSTIFY_CENTER);
-}
+#endif
 
 
 static const gchar null_var_name[]=N_("var");
-
-static gchar *
-geometry_get_column_button_label (const GSheetColumn *geom, glong unit)
-{
-  gchar *text;
-  struct variable *pv ;
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
-
-  if ( unit >= psppire_dict_get_var_cnt (ds->dict) )
-    return g_locale_to_utf8 (null_var_name, -1, 0, 0, 0);
-
-  pv = psppire_dict_get_variable (ds->dict, unit);
-
-  text =  pspp_locale_to_utf8 (var_get_name (pv), -1, 0);
-
-  return text;
-}
-
-
-static gchar *
-geometry_get_column_subtitle (const GSheetColumn *geom, glong unit)
-{
-  gchar *text;
-  const struct variable *v ;
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
-
-  if ( unit >= psppire_dict_get_var_cnt (ds->dict) )
-    return NULL;
-
-  v = psppire_dict_get_variable (ds->dict, unit);
-
-  if ( ! var_has_label (v))
-    return NULL;
-
-  text =  pspp_locale_to_utf8 (var_get_label (v), -1, 0);
-
-  return text;
-}
-
-
-static gboolean
-geometry_get_sensitivity (const GSheetColumn *geom, glong unit)
-{
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (geom);
-
-  return (unit < psppire_dict_get_var_cnt (ds->dict));
-}
-
-
-static void
-psppire_data_store_sheet_column_init (GSheetColumnIface *iface)
-{
-  iface->get_column_count = geometry_get_column_count;
-  iface->get_width = geometry_get_width;
-  iface->set_width = geometry_set_width;
-  iface->get_sensitivity = geometry_get_sensitivity;
-  iface->get_justification = geometry_get_justification;
-  iface->get_button_label = geometry_get_column_button_label;
-  iface->get_subtitle = geometry_get_column_subtitle;
-}
 
 
 /* Row related funcs */
@@ -959,3 +887,73 @@ psppire_data_store_sheet_row_init (GSheetRowIface *iface)
   iface->pixel_to_row = geometry_pixel_to_row;
   iface->get_button_label = geometry_get_row_button_label;
 }
+
+
+
+
+/* Column related stuff */
+
+static gchar *
+get_column_subtitle (const GSheetModel *model, gint col)
+{
+  gchar *text;
+  const struct variable *v ;
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
+
+  if ( col >= psppire_dict_get_var_cnt (ds->dict) )
+    return NULL;
+
+  v = psppire_dict_get_variable (ds->dict, col);
+
+  if ( ! var_has_label (v))
+    return NULL;
+
+  text =  pspp_locale_to_utf8 (var_get_label (v), -1, 0);
+
+  return text;
+}
+
+static gchar *
+get_column_button_label (const GSheetModel *model, gint col)
+{
+  gchar *text;
+  struct variable *pv ;
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
+
+  if ( col >= psppire_dict_get_var_cnt (ds->dict) )
+    return g_locale_to_utf8 (null_var_name, -1, 0, 0, 0);
+
+  pv = psppire_dict_get_variable (ds->dict, col);
+
+  text =  pspp_locale_to_utf8 (var_get_name (pv), -1, 0);
+
+  return text;
+}
+
+static gboolean
+get_column_sensitivity (const GSheetModel *model, gint col)
+{
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
+
+  return (col < psppire_dict_get_var_cnt (ds->dict));
+}
+
+
+
+static GtkJustification
+get_column_justification (const GSheetModel *model, gint col)
+{
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
+  const struct variable *pv ;
+
+  if ( col >= psppire_dict_get_var_cnt (ds->dict) )
+    return GTK_JUSTIFY_LEFT;
+
+  pv = psppire_dict_get_variable (ds->dict, col);
+
+  return (var_get_alignment (pv) == ALIGN_LEFT ? GTK_JUSTIFY_LEFT
+          : var_get_alignment (pv) == ALIGN_RIGHT ? GTK_JUSTIFY_RIGHT
+          : GTK_JUSTIFY_CENTER);
+}
+
+

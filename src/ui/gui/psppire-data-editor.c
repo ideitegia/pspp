@@ -21,7 +21,6 @@
 #include "psppire-data-editor.h"
 #include "psppire-var-sheet.h"
 
-#include <gtksheet/gsheet-hetero-column.h>
 #include <language/syntax-string-source.h>
 #include "psppire-data-store.h"
 #include "helper.h"
@@ -221,7 +220,6 @@ psppire_data_editor_set_property (GObject         *object,
       for (i = 0 ; i < 4 ; ++i )
 	g_object_set (de->data_sheet[i],
 		      "row-geometry", de->data_store,
-		      "column-geometry", de->data_store,
 		      "model", de->data_store,
 		      NULL);
       break;
@@ -613,6 +611,7 @@ static void
 init_sheet (PsppireDataEditor *de, int i,
 	    GtkAdjustment *hadj, GtkAdjustment *vadj)
 {
+  PsppireAxis *haxis = psppire_axis_new (100);
   de->sheet_bin[i] = gtk_scrolled_window_new (hadj, vadj);
 
   de->data_sheet[i] = gtk_sheet_new (NULL, NULL, NULL);
@@ -620,6 +619,10 @@ init_sheet (PsppireDataEditor *de, int i,
   g_object_set (de->sheet_bin[i],
 		"border-width", 3,
 		"shadow-type",  GTK_SHADOW_ETCHED_IN,
+		NULL);
+
+  g_object_set (de->data_sheet[i],
+		"horizontal-axis", haxis,
 		NULL);
 
   gtk_container_add (GTK_CONTAINER (de->sheet_bin[i]), de->data_sheet[i]);

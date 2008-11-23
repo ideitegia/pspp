@@ -30,9 +30,8 @@
 
 #include "gtkextra-sheet.h"
 #include "gsheetmodel.h"
-#include "gsheet-column-iface.h"
 #include "gsheet-row-iface.h"
-
+#include "psppire-axis.h"
 
 G_BEGIN_DECLS
 
@@ -91,7 +90,10 @@ struct _GtkSheet
   GtkBin parent;
 
   gboolean dispose_has_run;
+  /* 
   GSheetColumn *column_geometry;
+  */
+  PsppireAxis *haxis;
   GSheetRow *row_geometry;
 
   guint16 flags;
@@ -231,18 +233,18 @@ GtkType gtk_sheet_range_get_type (void);
 
 
 /* create a new sheet */
-GtkWidget * gtk_sheet_new (GSheetRow *vgeo, GSheetColumn *hgeo,
+GtkWidget * gtk_sheet_new (GSheetRow *vgeo, void *hgeo,
 			   GSheetModel *model);
 
 /* create a new sheet with custom entry */
 GtkWidget *
 gtk_sheet_new_with_custom_entry 	(GSheetRow *vgeo,
-					 GSheetColumn *hgeo,
+					 void *hgeo,
                                  	 GtkType entry_type);
 void
 gtk_sheet_construct_with_custom_entry	(GtkSheet *sheet,
 					 GSheetRow *vgeo,
-					 GSheetColumn *hgeo,
+					 void *hgeo,
 					 GtkType entry_type);
 /* Change entry */
 void gtk_sheet_change_entry		(GtkSheet *sheet, GtkType entry_type);
