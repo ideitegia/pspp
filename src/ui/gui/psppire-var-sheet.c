@@ -534,7 +534,7 @@ GtkWidget*
 psppire_var_sheet_new (void)
 {
   gint i;
-  PsppireAxis *a = psppire_axis_new (-1);
+  PsppireAxis *a = psppire_axis_new ();
   GtkWidget *w = g_object_new (psppire_var_sheet_get_type (), NULL);
 
   for (i = 0 ; i < 10 ; ++i)

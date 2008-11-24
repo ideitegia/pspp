@@ -41,5 +41,6 @@ void var_clear_vardict (struct variable *);
 /* Called by variable.c, defined in dictionary.c. */
 void dict_var_changed (const struct variable *v);
 void dict_var_resized (const struct variable *v, int delta);
+void dict_var_display_width_changed (const struct variable *v);
 
 #endif /* data/vardict.h */

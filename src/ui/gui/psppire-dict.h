@@ -38,7 +38,6 @@ G_BEGIN_DECLS
 #define PSPPIRE_DICT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), G_TYPE_PSPPIRE_DICT, PsppireDictClass))
 
 
-
 /* --- typedefs & structures --- */
 typedef struct _PsppireDict	   PsppireDict;
 typedef struct _PsppireDictClass PsppireDictClass;
@@ -50,6 +49,7 @@ struct _PsppireDict
   GObject             parent;
   struct dictionary *dict;
 
+  gboolean disable_insert_signal;
   /* For GtkTreeModelIface */
   gint stamp;
 };

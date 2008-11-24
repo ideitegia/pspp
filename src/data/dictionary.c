@@ -1352,3 +1352,21 @@ dict_var_resized (const struct variable *v, int delta)
 	d->callbacks->var_resized (d, var_get_dict_index (v), delta, d->cb_data);
     }
 }
+
+/* Called from variable.c to notify the dictionary that the variable's display width
+   has changed */
+void
+dict_var_display_width_changed (const struct variable *v)
+{
+  if ( var_has_vardict (v))
+    {
+      const struct vardict_info *vdi = var_get_vardict (v);
+      struct dictionary *d;
+
+      d = vdi->dict;
+
+      if ( d->callbacks && d->callbacks->var_display_width_changed )
+	d->callbacks->var_display_width_changed (d, var_get_dict_index (v), d->cb_data);
+    }
+}
+

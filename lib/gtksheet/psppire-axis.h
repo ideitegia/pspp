@@ -41,13 +41,14 @@ G_BEGIN_DECLS
 typedef struct _PsppireAxis	   PsppireAxis;
 typedef struct _PsppireAxisClass PsppireAxisClass;
 
+struct pool;
 
 struct _PsppireAxis
 {
   GObject             parent;
-  gint width ;
 
   struct tower tower;
+  struct pool *pool;
 };
 
 struct _PsppireAxisClass
@@ -58,7 +59,7 @@ struct _PsppireAxisClass
 
 GType          psppire_axis_get_type (void);
 
-PsppireAxis*   psppire_axis_new (gint w);
+PsppireAxis*   psppire_axis_new (void);
 
 
 /* Interface between sheet and axis */
@@ -75,7 +76,16 @@ gint psppire_axis_get_unit_at_pixel (PsppireAxis *a, glong pixel);
 
 /* Interface between axis and model */
 
-void psppire_axis_append (PsppireAxis *a, gint width);
+void psppire_axis_clear (PsppireAxis *a);
+
+void psppire_axis_append (PsppireAxis *a, gint size);
+
+void psppire_axis_insert (PsppireAxis *a, gint size, gint posn);
+
+void psppire_axis_remove (PsppireAxis *a, gint posn);
+
+void psppire_axis_resize_unit (PsppireAxis *a, gint size, gint posn);
+
 
 G_END_DECLS
 

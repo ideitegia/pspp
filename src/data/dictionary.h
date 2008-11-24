@@ -157,6 +157,7 @@ struct dict_callbacks
   void (*weight_changed) (struct dictionary *, int, void *);
   void (*filter_changed) (struct dictionary *, int, void *);
   void (*split_changed) (struct dictionary *, void *);
+  void (*var_display_width_changed) (struct dictionary *, int, void *);
  };
 
 void dict_set_callbacks (struct dictionary *, const struct dict_callbacks *,

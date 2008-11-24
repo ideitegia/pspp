@@ -30,6 +30,23 @@
 #include "helper.h"
 #include "message-dialog.h"
 
+
+enum  {
+  BACKEND_CHANGED,
+
+  VARIABLE_CHANGED,
+  VARIABLE_RESIZED,
+  VARIABLE_INSERTED,
+  VARIABLE_DELETED,
+  VARIABLE_DISPLAY_WIDTH_CHANGED,
+
+  WEIGHT_CHANGED,
+  FILTER_CHANGED,
+  SPLIT_CHANGED,
+  n_SIGNALS
+};
+
+
 /* --- prototypes --- */
 static void psppire_dict_class_init	(PsppireDictClass	*class);
 static void psppire_dict_init	(PsppireDict		*dict);
@@ -40,20 +57,6 @@ static void dictionary_tree_model_init (GtkTreeModelIface *iface);
 
 /* --- variables --- */
 static GObjectClass     *parent_class = NULL;
-
-enum  {
-  BACKEND_CHANGED,
-
-  VARIABLE_CHANGED,
-  VARIABLE_RESIZED,
-  VARIABLE_INSERTED,
-  VARIABLE_DELETED,
-
-  WEIGHT_CHANGED,
-  FILTER_CHANGED,
-  SPLIT_CHANGED,
-  n_SIGNALS
-};
 
 static guint signals [n_SIGNALS];
 
@@ -93,8 +96,6 @@ psppire_dict_get_type (void)
 
       g_type_add_interface_static (object_type, GTK_TYPE_TREE_MODEL,
 				   &tree_model_info);
-
-
     }
 
   return object_type;
@@ -172,6 +173,17 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_TYPE_INT,
 		  G_TYPE_INT);
 
+  signals [VARIABLE_DISPLAY_WIDTH_CHANGED] =
+    g_signal_new ("variable-display-width-changed",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__INT,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_INT);
+
 
   signals [WEIGHT_CHANGED] =
     g_signal_new ("weight-changed",
@@ -223,7 +235,10 @@ psppire_dict_finalize (GObject *object)
 static void
 addcb (struct dictionary *d, int idx, void *pd)
 {
-  g_signal_emit (pd, signals [VARIABLE_INSERTED], 0, idx);
+  PsppireDict *dict = PSPPIRE_DICT (pd);
+
+  if ( ! dict->disable_insert_signal)
+    g_signal_emit (dict, signals [VARIABLE_INSERTED], 0, idx);
 }
 
 static void
@@ -264,6 +279,13 @@ split_changed_callback (struct dictionary *d, void *pd)
   g_signal_emit (pd, signals [SPLIT_CHANGED], 0);
 }
 
+static void
+variable_display_width_callback (struct dictionary *d, int idx, void *pd)
+{
+  g_signal_emit (pd, signals [VARIABLE_DISPLAY_WIDTH_CHANGED], 0, idx);
+}
+
+
 
 static const struct dict_callbacks gui_callbacks =
   {
@@ -273,13 +295,15 @@ static const struct dict_callbacks gui_callbacks =
     resize_cb,
     weight_changed_callback,
     filter_changed_callback,
-    split_changed_callback
+    split_changed_callback,
+    variable_display_width_callback
   };
 
 static void
 psppire_dict_init (PsppireDict *psppire_dict)
 {
   psppire_dict->stamp = g_random_int ();
+  psppire_dict->disable_insert_signal = FALSE;
 }
 
 /**
@@ -349,9 +373,15 @@ psppire_dict_insert_variable (PsppireDict *d, gint idx, const gchar *name)
   if ( ! name )
     name = auto_generate_var_name (d);
 
+  d->disable_insert_signal = TRUE;
+
   var = dict_create_var (d->dict, name, 0);
 
   dict_reorder_var (d->dict, var, idx);
+
+  d->disable_insert_signal = FALSE;
+
+  g_signal_emit (d, signals[VARIABLE_INSERTED], 0, idx);
 }
 
 /* Delete N variables beginning at FIRST */

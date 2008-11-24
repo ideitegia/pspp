@@ -198,6 +198,81 @@ enum
     PROP_SPLIT_WINDOW
   };
 
+
+#define WIDTH_OF_M 10
+
+static void
+new_variables_callback (PsppireDict *dict, gpointer data)
+{
+  gint v, i;
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  for (i = 0 ; i < 4 ; ++i)
+    {
+      PsppireAxis *haxis;
+      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
+
+      psppire_axis_clear (haxis);
+
+      for (v = 0 ; v < psppire_dict_get_var_cnt (dict); ++v)
+	{
+	  const struct variable *var = psppire_dict_get_variable (dict, v);
+
+	  psppire_axis_append (haxis, 10 * var_get_display_width (var));
+	}
+    }
+}
+
+static void
+insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
+{
+  gint i;
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  for (i = 0 ; i < 4 ; ++i)
+    {
+      const struct variable *var = psppire_dict_get_variable (dict, x);
+      PsppireAxis *haxis;
+      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
+
+      psppire_axis_insert (haxis, WIDTH_OF_M * var_get_display_width (var), x);
+    }
+}
+
+
+static void
+delete_variable_callback (PsppireDict *dict, gint posn, gint x UNUSED, gint y UNUSED, gpointer data)
+{
+  gint i;
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  for (i = 0 ; i < 4 ; ++i)
+    {
+      PsppireAxis *haxis;
+      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
+
+      psppire_axis_remove (haxis, posn);
+    }
+}
+
+
+static void
+rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
+{
+  gint i;
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  for (i = 0 ; i < 4 ; ++i)
+    {
+      const struct variable *var = psppire_dict_get_variable (dict, posn);
+      PsppireAxis *haxis;
+      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
+
+      psppire_axis_resize_unit (haxis, WIDTH_OF_M * var_get_display_width (var), posn);
+    }
+}
+
+
 static void
 psppire_data_editor_set_property (GObject         *object,
 				  guint            prop_id,
@@ -222,6 +297,12 @@ psppire_data_editor_set_property (GObject         *object,
 		      "row-geometry", de->data_store,
 		      "model", de->data_store,
 		      NULL);
+
+      g_signal_connect (de->data_store->dict, "backend-changed",   G_CALLBACK (new_variables_callback), de);
+      g_signal_connect (de->data_store->dict, "variable-inserted", G_CALLBACK (insert_variable_callback), de);
+      g_signal_connect (de->data_store->dict, "variable-deleted",  G_CALLBACK (delete_variable_callback), de);
+      //      g_signal_connect (de->data_store->dict, "variable-changed",  G_CALLBACK (alter_variable_callback), de);
+      g_signal_connect (de->data_store->dict, "variable-display-width-changed",  G_CALLBACK (rewidth_variable_callback), de);
       break;
     case PROP_VAR_STORE:
       if ( de->var_store) g_object_unref (de->var_store);
@@ -611,7 +692,7 @@ static void
 init_sheet (PsppireDataEditor *de, int i,
 	    GtkAdjustment *hadj, GtkAdjustment *vadj)
 {
-  PsppireAxis *haxis = psppire_axis_new (100);
+  PsppireAxis *haxis = psppire_axis_new ();
   de->sheet_bin[i] = gtk_scrolled_window_new (hadj, vadj);
 
   de->data_sheet[i] = gtk_sheet_new (NULL, NULL, NULL);
@@ -789,16 +870,10 @@ GtkWidget*
 psppire_data_editor_new (PsppireVarStore *var_store,
 			 PsppireDataStore *data_store)
 {
-  GtkWidget *widget;
-
-  widget =  g_object_new (PSPPIRE_DATA_EDITOR_TYPE,
-			  "var-store",  var_store,
-			  "data-store",  data_store,
-			  NULL);
-
-
-
-  return widget;
+  return  g_object_new (PSPPIRE_DATA_EDITOR_TYPE,
+				     "var-store",  var_store,
+				     "data-store",  data_store,
+				     NULL);
 }
 
 

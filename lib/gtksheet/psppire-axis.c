@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include <libpspp/tower.h>
+#include <libpspp/pool.h>
 #include "psppire-axis.h"
 #include <gtk/gtk.h>
 
@@ -78,13 +79,16 @@ psppire_axis_class_init (PsppireAxisClass *class)
 static void
 psppire_axis_init (PsppireAxis *axis)
 {
-  tower_init (&axis->tower);
+  axis->pool = NULL;
+  psppire_axis_clear (axis);
 }
 
 
 static void
 psppire_axis_finalize (GObject *object)
 {
+  PsppireAxis *a = PSPPIRE_AXIS (object);
+  pool_destroy (a->pool);
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
@@ -95,87 +99,106 @@ psppire_axis_finalize (GObject *object)
  * Creates a new #PsppireAxis.
  */
 PsppireAxis*
-psppire_axis_new (gint w)
+psppire_axis_new (void)
 {
-  PsppireAxis *new_axis = g_object_new (G_TYPE_PSPPIRE_AXIS, NULL);
-
-  new_axis->width = w;
-
-  return new_axis;
+  return g_object_new (G_TYPE_PSPPIRE_AXIS, NULL);
 }
 
 
 gint
 psppire_axis_unit_size (PsppireAxis *a, gint unit)
 {
-  if ( a->width == -1)
-    {
-      const struct tower_node *node;
-      if  (unit >= tower_count (&a->tower))
-	return 0;
+  const struct tower_node *node;
+  if  (unit >= tower_count (&a->tower))
+    return 0;
 
-      node = tower_get (&a->tower, unit);
+  node = tower_get (&a->tower, unit);
 
-      return tower_node_get_size (node);
-    }
-
-  return a->width;
+  return tower_node_get_size (node);
 }
 
 gint
 psppire_axis_unit_count (PsppireAxis *a)
 {
-  if (a->width == -1)
-    return tower_count (&a->tower);
-
-  return 600;
+  return tower_count (&a->tower);
 }
 
 glong
 psppire_axis_pixel_start (PsppireAxis *a, gint unit)
 {
-  if ( a->width == -1 )
-    {
-      const struct tower_node *node;
+  const struct tower_node *node;
 
-      if ( unit >= tower_count (&a->tower))
-	return tower_height (&a->tower);
+  if ( unit >= tower_count (&a->tower))
+    return tower_height (&a->tower);
 
-      node = tower_get (&a->tower, unit);
+  node = tower_get (&a->tower, unit);
 
-      return  tower_node_get_level (node);
-    }
-
-  return a->width * unit;
+  return  tower_node_get_level (node);
 }
 
 gint
 psppire_axis_get_unit_at_pixel (PsppireAxis *a, glong pixel)
 {
-  if (a->width == -1)
-    {
-      const struct tower_node *node;
-      unsigned long int node_start;
+  const struct tower_node *node;
+  unsigned long int node_start;
 
-      if (pixel >= tower_height (&a->tower))
-	return tower_count (&a->tower);
+  if (pixel >= tower_height (&a->tower))
+    return tower_count (&a->tower);
 
-      node = tower_lookup (&a->tower, pixel, &node_start);
+  node = tower_lookup (&a->tower, pixel, &node_start);
 
-      return tower_node_get_index (node);
-    }
-
-  return pixel / a->width;
+  return tower_node_get_index (node);
 }
 
 void
-psppire_axis_append (PsppireAxis *a, gint width)
+psppire_axis_append (PsppireAxis *a, gint size)
 {
-  struct tower_node *new = g_slice_alloc0 (sizeof *new);
-  tower_insert (&a->tower, width, new, NULL);
+  struct tower_node *new = pool_malloc (a->pool, sizeof *new);
+
+  tower_insert (&a->tower, size, new, NULL);
 }
 
 
 
+/* Insert a new unit of size SIZE before position POSN */
+void
+psppire_axis_insert (PsppireAxis *a, gint size, gint posn)
+{
+  struct tower_node *new = pool_malloc (a->pool, sizeof *new);
+
+  struct tower_node *before = tower_get (&a->tower, posn);
+
+  tower_insert (&a->tower, size, new, before);
+}
+
+
+void
+psppire_axis_remove (PsppireAxis *a, gint posn)
+{
+  struct tower_node *node = tower_get (&a->tower, posn);
+
+  tower_delete (&a->tower, node);
+
+  pool_free (a->pool, node);
+}
+
+
+void
+psppire_axis_resize_unit (PsppireAxis *a, gint size, gint posn)
+{
+  struct tower_node *node = tower_get (&a->tower, posn);
+
+  tower_resize (&a->tower, node, size);
+}
+
+
+
+void
+psppire_axis_clear (PsppireAxis *a)
+{
+  pool_destroy (a->pool);
+  a->pool = pool_create ();
+  tower_init (&a->tower);
+}
 
 
