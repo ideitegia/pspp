@@ -113,22 +113,6 @@ dispose_string (const GtkSheet *sheet, gchar *text)
     g_free (text);
 }
 
-static
-guint STRING_WIDTH (GtkWidget *widget,
-		    const PangoFontDescription *font, const gchar *text)
-{
-  PangoRectangle rect;
-  PangoLayout *layout;
-
-  layout = gtk_widget_create_pango_layout (widget, text);
-  pango_layout_set_font_description (layout, font);
-
-  pango_layout_get_extents (layout, NULL, &rect);
-
-  g_object_unref (layout);
-  return PANGO_PIXELS (rect.width);
-}
-
 /* Return the row containing pixel Y */
 static gint
 yyy_row_ypixel_to_row (const GtkSheet *sheet, gint y)
@@ -4776,15 +4760,17 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
 
       if (button->label && strlen (button->label)>0)
 	{
+	  PangoRectangle rect;
 	  gchar *line = button->label;
 
 	  PangoLayout *layout = NULL;
-	  gint real_x = allocation.x, real_y = allocation.y;
-
-
-	  text_width = STRING_WIDTH (GTK_WIDGET (sheet), GTK_WIDGET (sheet)->style->font_desc, line);
+	  gint real_x = allocation.x;
+	  gint real_y = allocation.y;
 
 	  layout = gtk_widget_create_pango_layout (GTK_WIDGET (sheet), line);
+	  pango_layout_get_extents (layout, NULL, &rect);
+
+	  text_width = PANGO_PIXELS (rect.width);
 	  switch (button->justification)
 	    {
 	    case GTK_JUSTIFY_LEFT:
@@ -4812,8 +4798,6 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
 			    real_x, real_y,
 			    layout);
 	  g_object_unref (layout);
-
-	  real_y += text_height + 2;
 	}
 
       gdk_gc_set_clip_rectangle (GTK_WIDGET (sheet)->style->fg_gc[button->state],
