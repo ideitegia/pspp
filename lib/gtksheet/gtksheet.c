@@ -1376,42 +1376,6 @@ gtk_sheet_set_column_width (GtkSheet *sheet,
 			    guint width);
 
 
-static void
-gtk_sheet_autoresize_column (GtkSheet *sheet, gint column)
-{
-  gint text_width = 0;
-  gint row;
-
-  g_return_if_fail (sheet != NULL);
-  g_return_if_fail (GTK_IS_SHEET (sheet));
-  if (column >= g_sheet_column_get_column_count (sheet->column_geometry) || column < 0) return;
-
-  for (row = 0; row < g_sheet_row_get_row_count (sheet->row_geometry); row++)
-    {
-      gchar *text = gtk_sheet_cell_get_text (sheet, row, column);
-      if (text && strlen (text) > 0)
-	{
-	  GtkSheetCellAttr attributes;
-
-	  gtk_sheet_get_attributes (sheet, row, column, &attributes);
-	  if (attributes.is_visible)
-	    {
-	      gint width = STRING_WIDTH (GTK_WIDGET (sheet),
-					 attributes.font_desc,
-					 text)
-		+ 2 * COLUMN_TITLES_HEIGHT + attributes.border.width;
-	      text_width = MAX (text_width, width);
-	    }
-	}
-      dispose_string (sheet, text);
-    }
-
-  if (text_width > g_sheet_column_get_width (sheet->column_geometry, column) )
-    {
-      gtk_sheet_set_column_width (sheet, column, text_width);
-    }
-}
-
 void
 gtk_sheet_show_column_titles (GtkSheet *sheet)
 {
@@ -3327,12 +3291,6 @@ gtk_sheet_button_press (GtkWidget *widget,
       if (on_column_boundary (sheet, sheet->x_drag, &sheet->drag_cell.col))
 	{
 	  guint req;
-	  if (event->type == GDK_2BUTTON_PRESS)
-	    {
-	      gtk_sheet_autoresize_column (sheet, sheet->drag_cell.col);
-	      GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_XDRAG);
-	      return TRUE;
-	    }
 	  gtk_sheet_column_size_request (sheet, sheet->drag_cell.col, &req);
 	  GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_XDRAG);
 	  gdk_pointer_grab (sheet->column_title_window, FALSE,
