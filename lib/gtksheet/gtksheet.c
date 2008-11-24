@@ -87,9 +87,9 @@ enum
 #define DEFAULT_ROW_HEIGHT 25
 
 static void gtk_sheet_update_primary_selection (GtkSheet *sheet);
-static void gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column);
+static void draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint n);
+static void draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint n);
 
-static void gtk_sheet_row_title_button_draw (GtkSheet *sheet, gint row);
 
 static void gtk_sheet_set_row_height (GtkSheet *sheet,
 				      gint row,
@@ -706,9 +706,6 @@ gtk_sheet_cell_get_type (void)
 }
 
 
-static void column_titles_changed (GtkWidget *w, gint first, gint n_columns,
-				   gpointer data);
-
 /* Properties */
 enum
   {
@@ -755,9 +752,6 @@ gtk_sheet_set_property (GObject         *object,
       break;
     case PROP_COL_GEO:
       gtk_sheet_set_column_geometry (sheet, g_value_get_pointer (value));
-      if ( sheet->column_geometry)
-	g_signal_connect (sheet->column_geometry, "columns_changed",
-			  G_CALLBACK (column_titles_changed), sheet);
       break;
     case PROP_MODEL:
       gtk_sheet_set_model (sheet, g_value_get_pointer (value));
@@ -1149,7 +1143,6 @@ columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
 				   gint n_columns,
 				   gpointer data)
 {
-  gint i;
   GtkSheet *sheet = GTK_SHEET (data);
 
   GtkSheetRange range;
@@ -1169,8 +1162,8 @@ columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
   if (sheet->active_cell.col >= model_columns)
     change_active_cell (sheet, sheet->active_cell.row, model_columns - 1);
 
-  for (i = first_column; i <= max_visible_column (sheet); i++)
-    gtk_sheet_column_title_button_draw (sheet, i);
+  draw_column_title_buttons_range (sheet,
+				   first_column, max_visible_column (sheet));
 
   gtk_sheet_range_draw (sheet, &range);
 }
@@ -1181,7 +1174,6 @@ static void
 rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
 				gint n_rows, gpointer data)
 {
-  gint i;
   GtkSheet *sheet = GTK_SHEET (data);
 
   GtkSheetRange range;
@@ -1201,8 +1193,7 @@ rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
   if (sheet->active_cell.row >= model_rows)
     change_active_cell (sheet, model_rows - 1, sheet->active_cell.col);
 
-  for (i = first_row; i <= max_visible_row (sheet); i++)
-    gtk_sheet_row_title_button_draw (sheet, i);
+  draw_row_title_buttons_range (sheet, first_row, max_visible_row (sheet));
 
   gtk_sheet_range_draw (sheet, &range);
 }
@@ -1236,16 +1227,14 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
 
   if ( ( row0 < 0 && col0 < 0 ) || ( rowi < 0 && coli < 0 ) )
     {
-      gint i;
       gtk_sheet_range_draw (sheet, NULL);
       adjust_scrollbars (sheet);
 
-      for (i = min_visible_row (sheet); i <= max_visible_row (sheet); i++)
-	gtk_sheet_row_title_button_draw (sheet, i);
+      draw_row_title_buttons_range (sheet, min_visible_row (sheet),
+				       max_visible_row (sheet));
 
-      for (i = min_visible_column (sheet);
-	   i <= max_visible_column (sheet); i++)
-	gtk_sheet_column_title_button_draw (sheet, i);
+      draw_column_title_buttons_range (sheet, min_visible_column (sheet),
+				       max_visible_column (sheet));
 
       return;
     }
@@ -1325,27 +1314,6 @@ gtk_sheet_set_model (GtkSheet *sheet, GSheetModel *model)
     }
 }
 
-
-/* Call back for when the column titles have changed.
-   FIRST is the first column changed.
-   N_COLUMNS is the number of columns which have changed, or -1, which
-   indicates that the column has changed to its right-most extremity
-*/
-static void
-column_titles_changed (GtkWidget *w, gint first, gint n_columns, gpointer data)
-{
-  GtkSheet *sheet = GTK_SHEET (data);
-  gboolean extremity = FALSE;
-
-  if ( n_columns == -1 )
-    {
-      extremity = TRUE;
-      n_columns = g_sheet_column_get_column_count (sheet->column_geometry) - 1 ;
-    }
-
-  if ( extremity)
-    gtk_sheet_column_title_button_draw (sheet, -1);
-}
 
 void
 gtk_sheet_change_entry (GtkSheet *sheet, GtkType entry_type)
@@ -3214,19 +3182,17 @@ gtk_sheet_expose (GtkWidget *widget,
   if (event->window == sheet->row_title_window &&
       sheet->row_titles_visible)
     {
-      gint i;
-      for (i = min_visible_row (sheet); i <= max_visible_row (sheet); i++)
-	gtk_sheet_row_title_button_draw (sheet, i);
+      draw_row_title_buttons_range (sheet,
+				    min_visible_row (sheet),
+				    max_visible_row (sheet));
     }
 
   if (event->window == sheet->column_title_window &&
       sheet->column_titles_visible)
     {
-      gint i;
-      for (i = min_visible_column (sheet);
-	   i <= max_visible_column (sheet);
-	   ++i)
-	gtk_sheet_column_title_button_draw (sheet, i);
+      draw_column_title_buttons_range (sheet,
+				       min_visible_column (sheet),
+				       max_visible_column (sheet));
     }
 
 
@@ -4557,7 +4523,6 @@ gtk_sheet_size_allocate (GtkWidget *widget,
 static void
 draw_column_title_buttons (GtkSheet *sheet)
 {
-  gint i;
   gint x, width;
 
   if (!sheet->column_titles_visible) return;
@@ -4594,14 +4559,13 @@ draw_column_title_buttons (GtkSheet *sheet)
 
   size_allocate_global_button (sheet);
 
-  for (i = min_visible_column (sheet); i <= max_visible_column (sheet); i++)
-    gtk_sheet_column_title_button_draw (sheet, i);
+  draw_column_title_buttons_range (sheet, min_visible_column (sheet), 
+				   max_visible_column (sheet));
 }
 
 static void
 draw_row_title_buttons (GtkSheet *sheet)
 {
-  gint i;
   gint y = 0;
   gint height;
 
@@ -4637,12 +4601,9 @@ draw_row_title_buttons (GtkSheet *sheet)
 
   size_allocate_global_button (sheet);
 
-  for (i = min_visible_row (sheet); i <= max_visible_row (sheet); i++)
-    {
-      if ( i >= g_sheet_row_get_row_count (sheet->row_geometry))
-	break;
-      gtk_sheet_row_title_button_draw (sheet, i);
-    }
+
+  draw_row_title_buttons_range (sheet, min_visible_row (sheet),
+				max_visible_row (sheet));
 }
 
 
@@ -4798,7 +4759,7 @@ gtk_sheet_get_entry_widget (GtkSheet *sheet)
 
 
 static void
-gtk_sheet_button_draw (GtkSheet *sheet, GdkWindow *window,
+draw_button (GtkSheet *sheet, GdkWindow *window,
 		       GtkSheetButton *button, gboolean is_sensitive,
 		       GdkRectangle allocation)
 {
@@ -4931,60 +4892,93 @@ gtk_sheet_button_draw (GtkSheet *sheet, GdkWindow *window,
   gtk_sheet_button_free (button);
 }
 
-static void
-gtk_sheet_column_title_button_draw (GtkSheet *sheet, gint column)
-{
-  GdkRectangle allocation;
-  GtkSheetButton *button = NULL;
-  gboolean is_sensitive = FALSE;
 
+/* Draw the column title buttons FIRST through to LAST */
+static void
+draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint last)
+{
+  GdkRegion *region;
+  gint col;
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
   if (!sheet->column_titles_visible) return;
 
-  if (column < min_visible_column (sheet)) return;
-  if (column > max_visible_column (sheet)) return;
+  g_return_if_fail (first >= min_visible_column (sheet));
+  g_return_if_fail (last <= max_visible_column (sheet));
 
-  button = g_sheet_column_get_button (sheet->column_geometry, column);
-  allocation.y = 0;
-  allocation.x = g_sheet_column_start_pixel (sheet->column_geometry, column) + CELL_SPACING;
-  allocation.x -= sheet->hadjustment->value;
+  region =
+    gdk_drawable_get_visible_region (GDK_DRAWABLE (sheet->column_title_window));
 
-  allocation.height = sheet->column_title_area.height;
-  allocation.width = g_sheet_column_get_width (sheet->column_geometry, column);
-  is_sensitive = g_sheet_column_get_sensitivity (sheet->column_geometry, column);
+  gdk_window_begin_paint_region (sheet->column_title_window, region);
 
-  gtk_sheet_button_draw (sheet, sheet->column_title_window,
-			 button, is_sensitive, allocation);
+  for (col = first ; col <= last ; ++col)
+    {
+      GdkRectangle allocation;
+      gboolean is_sensitive = FALSE;
+
+      GtkSheetButton *
+	button = g_sheet_column_get_button (sheet->column_geometry, col);
+      allocation.y = 0;
+      allocation.x =
+	g_sheet_column_start_pixel (sheet->column_geometry, col)
+	+ CELL_SPACING;
+      allocation.x -= sheet->hadjustment->value;
+
+      allocation.height = sheet->column_title_area.height;
+      allocation.width =
+	g_sheet_column_get_width (sheet->column_geometry, col);
+      is_sensitive =
+	g_sheet_column_get_sensitivity (sheet->column_geometry, col);
+
+      draw_button (sheet, sheet->column_title_window,
+		   button, is_sensitive, allocation);
+    }
+
+  gdk_window_end_paint (sheet->column_title_window);
 }
 
 
 static void
-gtk_sheet_row_title_button_draw (GtkSheet *sheet, gint row)
+draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint last)
 {
-  GdkRectangle allocation;
-  GtkSheetButton *button = NULL;
-  gboolean is_sensitive = FALSE;
-
-
+  GdkRegion *region;
+  gint row;
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
   if (!sheet->row_titles_visible) return;
 
-  if (row < min_visible_row (sheet)) return;
-  if (row > max_visible_row (sheet)) return;
+  g_return_if_fail (first >= min_visible_row (sheet));
+  g_return_if_fail (last <= max_visible_row (sheet));
 
-  button = g_sheet_row_get_button (sheet->row_geometry, row);
-  allocation.x = 0;
-  allocation.y = g_sheet_row_start_pixel (sheet->row_geometry, row) + CELL_SPACING;
-  allocation.y -= sheet->vadjustment->value;
 
-  allocation.width = sheet->row_title_area.width;
-  allocation.height = g_sheet_row_get_height (sheet->row_geometry, row);
-  is_sensitive = g_sheet_row_get_sensitivity (sheet->row_geometry, row);
+  region =
+    gdk_drawable_get_visible_region (GDK_DRAWABLE (sheet->row_title_window));
 
-  gtk_sheet_button_draw (sheet, sheet->row_title_window,
-			 button, is_sensitive, allocation);
+  gdk_window_begin_paint_region (sheet->row_title_window, region);
+
+
+  for (row = first; row <= last; ++row)
+    {
+      GdkRectangle allocation;
+
+      gboolean is_sensitive = FALSE;
+
+      GtkSheetButton *button =
+	g_sheet_row_get_button (sheet->row_geometry, row);
+      allocation.x = 0;
+      allocation.y = g_sheet_row_start_pixel (sheet->row_geometry, row)
+	+ CELL_SPACING;
+      allocation.y -= sheet->vadjustment->value;
+
+      allocation.width = sheet->row_title_area.width;
+      allocation.height = g_sheet_row_get_height (sheet->row_geometry, row);
+      is_sensitive = g_sheet_row_get_sensitivity (sheet->row_geometry, row);
+
+      draw_button (sheet, sheet->row_title_window,
+		   button, is_sensitive, allocation);
+    }
+
+  gdk_window_end_paint (sheet->row_title_window);
 }
 
 /* SCROLLBARS
