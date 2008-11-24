@@ -2711,7 +2711,6 @@ gtk_sheet_show_active_cell (GtkSheet *sheet)
   gtk_widget_grab_focus (GTK_WIDGET (sheet_entry));
 
   dispose_string (sheet, text);
-
 }
 
 static void
@@ -4432,9 +4431,6 @@ gtk_sheet_size_allocate (GtkWidget *widget,
 			    sheet->column_title_area.height);
 
 
-  /* column button allocation */
-  draw_column_title_buttons (sheet);
-
   /* position the window which holds the row title buttons */
   sheet->row_title_area.x = 0;
   sheet->row_title_area.y = 0;
@@ -4453,10 +4449,6 @@ gtk_sheet_size_allocate (GtkWidget *widget,
 			    sheet->row_title_area.width,
 			    sheet->row_title_area.height);
 
-
-  /* row button allocation */
-  draw_row_title_buttons (sheet);
-  draw_column_title_buttons (sheet);
 
   /* set the scrollbars adjustments */
   adjust_scrollbars (sheet);
