@@ -4728,8 +4728,6 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
   gboolean rtl ;
 
   gint state = 0;
-  gint len = 0;
-  gchar *line = 0;
 
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (button != NULL);
@@ -4766,8 +4764,7 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
 
   if (button->label_visible)
     {
-
-      text_height = DEFAULT_ROW_HEIGHT - 
+      text_height = DEFAULT_ROW_HEIGHT -
 	2 * COLUMN_TITLES_HEIGHT;
 
       gdk_gc_set_clip_rectangle (GTK_WIDGET (sheet)->style->fg_gc[button->state],
@@ -4777,68 +4774,46 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
 
       allocation.y += 2 * sheet->button->style->ythickness;
 
-
       if (button->label && strlen (button->label)>0)
 	{
-	  gchar *words = 0;
+	  gchar *line = button->label;
+
 	  PangoLayout *layout = NULL;
 	  gint real_x = allocation.x, real_y = allocation.y;
 
-	  words = button->label;
-	  line = g_new (gchar, 1);
-	  line[0]='\0';
 
-	  while (words && *words != '\0')
+	  text_width = STRING_WIDTH (GTK_WIDGET (sheet), GTK_WIDGET (sheet)->style->font_desc, line);
+
+	  layout = gtk_widget_create_pango_layout (GTK_WIDGET (sheet), line);
+	  switch (button->justification)
 	    {
-	      if (*words != '\n')
-		{
-		  len = strlen (line);
-		  line = g_realloc (line, len + 2);
-		  line[len]=*words;
-		  line[len + 1]='\0';
-		}
-	      if (*words == '\n' || * (words + 1) == '\0')
-		{
-		  text_width = STRING_WIDTH (GTK_WIDGET (sheet), GTK_WIDGET (sheet)->style->font_desc, line);
-
-		  layout = gtk_widget_create_pango_layout (GTK_WIDGET (sheet), line);
-		  switch (button->justification)
-		    {
-		    case GTK_JUSTIFY_LEFT:
-		      real_x = allocation.x + COLUMN_TITLES_HEIGHT;
-		      align = rtl ? PANGO_ALIGN_RIGHT : PANGO_ALIGN_LEFT;
-		      break;
-		    case GTK_JUSTIFY_RIGHT:
-		      real_x = allocation.x + allocation.width - text_width - COLUMN_TITLES_HEIGHT;
-		      align = rtl ? PANGO_ALIGN_LEFT : PANGO_ALIGN_RIGHT;
-		      break;
-		    case GTK_JUSTIFY_CENTER:
-		    default:
-		      real_x = allocation.x + (allocation.width - text_width)/2;
-		      align = rtl ? PANGO_ALIGN_RIGHT : PANGO_ALIGN_LEFT;
-		      pango_layout_set_justify (layout, TRUE);
-		    }
-		  pango_layout_set_alignment (layout, align);
-		  gtk_paint_layout (GTK_WIDGET (sheet)->style,
-				    window,
-				    state,
-				    FALSE,
-				    &allocation,
-				    GTK_WIDGET (sheet),
-				    "label",
-				    real_x, real_y,
-				    layout);
-		  g_object_unref (layout);
-
-		  real_y += text_height + 2;
-
-		  g_free (line);
-		  line = g_new (gchar, 1);
-		  line[0]='\0';
-		}
-	      words++;
+	    case GTK_JUSTIFY_LEFT:
+	      real_x = allocation.x + COLUMN_TITLES_HEIGHT;
+	      align = rtl ? PANGO_ALIGN_RIGHT : PANGO_ALIGN_LEFT;
+	      break;
+	    case GTK_JUSTIFY_RIGHT:
+	      real_x = allocation.x + allocation.width - text_width - COLUMN_TITLES_HEIGHT;
+	      align = rtl ? PANGO_ALIGN_LEFT : PANGO_ALIGN_RIGHT;
+	      break;
+	    case GTK_JUSTIFY_CENTER:
+	    default:
+	      real_x = allocation.x + (allocation.width - text_width)/2;
+	      align = rtl ? PANGO_ALIGN_RIGHT : PANGO_ALIGN_LEFT;
+	      pango_layout_set_justify (layout, TRUE);
 	    }
-	  g_free (line);
+	  pango_layout_set_alignment (layout, align);
+	  gtk_paint_layout (GTK_WIDGET (sheet)->style,
+			    window,
+			    state,
+			    FALSE,
+			    &allocation,
+			    GTK_WIDGET (sheet),
+			    "label",
+			    real_x, real_y,
+			    layout);
+	  g_object_unref (layout);
+
+	  real_y += text_height + 2;
 	}
 
       gdk_gc_set_clip_rectangle (GTK_WIDGET (sheet)->style->fg_gc[button->state],
