@@ -301,7 +301,6 @@ psppire_data_editor_set_property (GObject         *object,
       g_signal_connect (de->data_store->dict, "backend-changed",   G_CALLBACK (new_variables_callback), de);
       g_signal_connect (de->data_store->dict, "variable-inserted", G_CALLBACK (insert_variable_callback), de);
       g_signal_connect (de->data_store->dict, "variable-deleted",  G_CALLBACK (delete_variable_callback), de);
-      //      g_signal_connect (de->data_store->dict, "variable-changed",  G_CALLBACK (alter_variable_callback), de);
       g_signal_connect (de->data_store->dict, "variable-display-width-changed",  G_CALLBACK (rewidth_variable_callback), de);
       break;
     case PROP_VAR_STORE:

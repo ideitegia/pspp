@@ -166,7 +166,10 @@ psppire_axis_insert (PsppireAxis *a, gint size, gint posn)
 {
   struct tower_node *new = pool_malloc (a->pool, sizeof *new);
 
-  struct tower_node *before = tower_get (&a->tower, posn);
+  struct tower_node *before = NULL;
+
+  if ( posn != tower_count (&a->tower))
+    before = tower_get (&a->tower, posn);
 
   tower_insert (&a->tower, size, new, before);
 }
