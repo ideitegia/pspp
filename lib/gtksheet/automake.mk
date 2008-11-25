@@ -12,7 +12,6 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/gsheet-row-iface.h \
 	lib/gtksheet/gsheet-uniform-row.c \
 	lib/gtksheet/gsheet-uniform-row.h \
-	lib/gtksheet/gtkextrafeatures.h \
 	lib/gtksheet/gtkextra-marshal.c \
 	lib/gtksheet/gtkextra-marshal.h \
 	lib/gtksheet/gtkextra-sheet.h \
