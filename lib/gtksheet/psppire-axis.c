@@ -129,10 +129,12 @@ psppire_axis_class_init (PsppireAxisClass *class)
   object_class->get_property = psppire_axis_get_property;
 
   min_extent_spec =
-    g_param_spec_pointer ("minimum-extent",
-			  "Minimum Extent",
-			  "The smallest extent to which the axis will provide units (typically set to the height/width of the associated widget)",
-			  G_PARAM_WRITABLE | G_PARAM_READABLE );
+    g_param_spec_long ("minimum-extent",
+		       "Minimum Extent",
+		       "The smallest extent to which the axis will provide units (typically set to the height/width of the associated widget)",
+		       0, G_MAXLONG,
+		       800,
+		       G_PARAM_WRITABLE | G_PARAM_READABLE );
 
   g_object_class_install_property (object_class,
                                    PROP_MIN_EXTENT,

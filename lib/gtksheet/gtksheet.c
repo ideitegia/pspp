@@ -4432,6 +4432,23 @@ gtk_sheet_size_allocate (GtkWidget *widget,
 			    sheet->row_title_area.height);
 
 
+
+
+
+
+  if (sheet->haxis)
+    {
+      gint width = sheet->column_title_area.width;
+
+      if ( sheet->row_titles_visible)
+	width -= sheet->row_title_area.width;
+
+      g_object_set (sheet->haxis,
+		    "minimum-extent", width,
+		    NULL);
+    }
+
+
   /* set the scrollbars adjustments */
   adjust_scrollbars (sheet);
 }
