@@ -49,12 +49,14 @@ struct _PsppireAxis
 
   struct tower tower;
   struct pool *pool;
+
+  glong min_extent;
+  gint default_size;
 };
 
 struct _PsppireAxisClass
 {
   GObjectClass parent_class;
-
 };
 
 GType          psppire_axis_get_type (void);
