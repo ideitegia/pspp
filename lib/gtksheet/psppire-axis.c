@@ -239,7 +239,11 @@ psppire_axis_get_unit_at_pixel (PsppireAxis *a, glong pixel)
   if (pixel >= tower_height (&a->tower))
     {
       glong extra = pixel - tower_height (&a->tower);
-      return  tower_count (&a->tower) + extra / a->default_size;
+
+      if ( extra > a->min_extent - tower_height (&a->tower))
+	extra = a->min_extent - tower_height (&a->tower);
+
+      return tower_count (&a->tower) - 1 + extra / a->default_size;
     }
 
   node = tower_lookup (&a->tower, pixel, &node_start);
