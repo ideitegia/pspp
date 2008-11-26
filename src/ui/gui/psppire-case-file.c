@@ -20,7 +20,7 @@
 
 #include "psppire-case-file.h"
 
-#include <gtksheet/gtkextra-marshal.h>
+#include <gtksheet/psppire-marshal.h>
 
 #include <data/format.h>
 #include <data/case.h>
@@ -196,7 +196,7 @@ psppire_case_file_class_init (PsppireCaseFileClass *class)
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
-		  gtkextra_VOID__INT_INT,
+		  psppire_marshal_VOID__INT_INT,
 		  G_TYPE_NONE,
 		  2,
 		  G_TYPE_INT, G_TYPE_INT);

@@ -30,7 +30,7 @@
 *******************************************************************************/
 
 #include "gtkxpaned.h"
-#include "gtkmarshalers.h"
+#include <gtksheet/psppire-marshal.h>
 #include <gtk/gtkbindings.h>
 #include <gtk/gtksignal.h>
 #include <gdk/gdkkeysyms.h>
@@ -442,7 +442,7 @@ static void gtk_xpaned_class_init (GtkXPanedClass* class)
 												G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 												G_STRUCT_OFFSET (GtkXPanedClass, cycle_child_focus),
 												NULL, NULL,
-												gtk_marshal_BOOLEAN__BOOLEAN,
+												psppire_marshal_BOOLEAN__BOOLEAN,
 												G_TYPE_BOOLEAN, 1,
 												G_TYPE_BOOLEAN);
 
@@ -451,7 +451,7 @@ static void gtk_xpaned_class_init (GtkXPanedClass* class)
 												  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 												  G_STRUCT_OFFSET (GtkXPanedClass, toggle_handle_focus),
 												  NULL, NULL,
-												  gtk_marshal_BOOLEAN__VOID,
+												  psppire_marshal_BOOLEAN__VOID,
 												  G_TYPE_BOOLEAN, 0);
 
 	signals[MOVE_HANDLE] = g_signal_new ("move-handle",
@@ -459,7 +459,7 @@ static void gtk_xpaned_class_init (GtkXPanedClass* class)
 										 G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 										 G_STRUCT_OFFSET (GtkXPanedClass, move_handle),
 										 NULL, NULL,
-										 gtk_marshal_BOOLEAN__ENUM,
+										 psppire_marshal_BOOLEAN__ENUM,
 										 G_TYPE_BOOLEAN, 1,
 										 GTK_TYPE_SCROLL_TYPE);
 
@@ -468,7 +468,7 @@ static void gtk_xpaned_class_init (GtkXPanedClass* class)
 												 G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 												 G_STRUCT_OFFSET (GtkXPanedClass, cycle_handle_focus),
 												 NULL, NULL,
-												 gtk_marshal_BOOLEAN__BOOLEAN,
+												 psppire_marshal_BOOLEAN__BOOLEAN,
 												 G_TYPE_BOOLEAN, 1,
 												 G_TYPE_BOOLEAN);
 
@@ -477,7 +477,7 @@ static void gtk_xpaned_class_init (GtkXPanedClass* class)
 											  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 											  G_STRUCT_OFFSET (GtkXPanedClass, accept_position),
 											  NULL, NULL,
-											  gtk_marshal_BOOLEAN__VOID,
+											  psppire_marshal_BOOLEAN__VOID,
 											  G_TYPE_BOOLEAN, 0);
 
 	signals [CANCEL_POSITION] = g_signal_new ("cancel-position",
@@ -485,7 +485,7 @@ static void gtk_xpaned_class_init (GtkXPanedClass* class)
 											  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
 											  G_STRUCT_OFFSET (GtkXPanedClass, cancel_position),
 											  NULL, NULL,
-											  gtk_marshal_BOOLEAN__VOID,
+											  psppire_marshal_BOOLEAN__VOID,
 											  G_TYPE_BOOLEAN, 0);
 
 	binding_set = gtk_binding_set_by_class (class);

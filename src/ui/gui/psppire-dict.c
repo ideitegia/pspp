@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 #include <gtk/gtk.h>
-#include <gtksheet/gtkextra-marshal.h>
+#include <gtksheet/psppire-marshal.h>
 
 #include "psppire-dict.h"
 #include <data/dictionary.h>
@@ -167,7 +167,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
-		  gtkextra_VOID__INT_INT,
+		  psppire_marshal_VOID__INT_INT,
 		  G_TYPE_NONE,
 		  2,
 		  G_TYPE_INT,

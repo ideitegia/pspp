@@ -53,7 +53,7 @@
 #include <gtk/gtkcontainer.h>
 #include <pango/pango.h>
 #include "gtksheet.h"
-#include "gtkextra-marshal.h"
+#include <gtksheet/psppire-marshal.h>
 #include "gsheetmodel.h"
 #include <libpspp/misc.h>
 #include <math.h>
@@ -836,7 +836,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  0,
 		  NULL, NULL,
-		  gtkextra_VOID__INT_POINTER,
+		  psppire_marshal_VOID__INT_POINTER,
 		  G_TYPE_NONE,
 		  2,
 		  G_TYPE_INT,
@@ -857,7 +857,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  0,
 		  NULL, NULL,
-		  gtkextra_VOID__INT_POINTER,
+		  psppire_marshal_VOID__INT_POINTER,
 		  G_TYPE_NONE,
 		  2,
 		  G_TYPE_INT,
@@ -883,7 +883,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, resize_range),
 		  NULL, NULL,
-		  gtkextra_VOID__BOXED_BOXED,
+		  psppire_marshal_VOID__BOXED_BOXED,
 		  G_TYPE_NONE,
 		  2,
 		  GTK_TYPE_SHEET_RANGE, GTK_TYPE_SHEET_RANGE
@@ -895,7 +895,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, move_range),
 		  NULL, NULL,
-		  gtkextra_VOID__BOXED_BOXED,
+		  psppire_marshal_VOID__BOXED_BOXED,
 		  G_TYPE_NONE,
 		  2,
 		  GTK_TYPE_SHEET_RANGE, GTK_TYPE_SHEET_RANGE
@@ -907,7 +907,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, traverse),
 		  NULL, NULL,
-		  gtkextra_BOOLEAN__BOXED_POINTER,
+		  psppire_marshal_BOOLEAN__BOXED_POINTER,
 		  G_TYPE_BOOLEAN, 2,
 		  GTK_TYPE_SHEET_CELL,
 		  G_TYPE_POINTER);
@@ -919,7 +919,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, activate),
 		  NULL, NULL,
-		  gtkextra_VOID__INT_INT_INT_INT,
+		  psppire_marshal_VOID__INT_INT_INT_INT,
 		  G_TYPE_NONE, 4,
 		  G_TYPE_INT, G_TYPE_INT,
 		  G_TYPE_INT, G_TYPE_INT);
@@ -930,7 +930,7 @@ gtk_sheet_class_init (GtkSheetClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  offsetof (GtkSheetClass, set_scroll_adjustments),
 		  NULL, NULL,
-		  gtkextra_VOID__OBJECT_OBJECT,
+		  psppire_marshal_VOID__OBJECT_OBJECT,
 		  G_TYPE_NONE, 2, GTK_TYPE_ADJUSTMENT, GTK_TYPE_ADJUSTMENT);
 
 

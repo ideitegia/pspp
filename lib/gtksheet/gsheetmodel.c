@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include "gsheetmodel.h"
-#include "gtkextra-marshal.h"
+#include <gtksheet/psppire-marshal.h>
 
 enum {
   RANGE_CHANGED,
@@ -80,7 +80,7 @@ g_sheet_model_base_init (gpointer g_class)
 		      G_SIGNAL_RUN_LAST,
 		      G_STRUCT_OFFSET (GSheetModelIface, range_changed),
 		      NULL, NULL,
-		      gtkextra_VOID__INT_INT_INT_INT,
+		      psppire_marshal_VOID__INT_INT_INT_INT,
 		      G_TYPE_NONE, 4,
 		      G_TYPE_INT,
 		      G_TYPE_INT,
@@ -95,7 +95,7 @@ g_sheet_model_base_init (gpointer g_class)
 		      G_SIGNAL_RUN_LAST,
 		      G_STRUCT_OFFSET (GSheetModelIface, rows_inserted),
 		      NULL, NULL,
-		      gtkextra_VOID__INT_INT,
+		      psppire_marshal_VOID__INT_INT,
 		      G_TYPE_NONE, 2,
 		      G_TYPE_INT,
 		      G_TYPE_INT);
@@ -107,7 +107,7 @@ g_sheet_model_base_init (gpointer g_class)
 		      G_SIGNAL_RUN_LAST,
 		      G_STRUCT_OFFSET (GSheetModelIface, rows_deleted),
 		      NULL, NULL,
-		      gtkextra_VOID__INT_INT,
+		      psppire_marshal_VOID__INT_INT,
 		      G_TYPE_NONE, 2,
 		      G_TYPE_INT,
 		      G_TYPE_INT);
@@ -118,7 +118,7 @@ g_sheet_model_base_init (gpointer g_class)
 		      G_SIGNAL_RUN_LAST,
 		      G_STRUCT_OFFSET (GSheetModelIface, columns_inserted),
 		      NULL, NULL,
-		      gtkextra_VOID__INT_INT,
+		      psppire_marshal_VOID__INT_INT,
 		      G_TYPE_NONE, 2,
 		      G_TYPE_INT,
 		      G_TYPE_INT);
@@ -130,7 +130,7 @@ g_sheet_model_base_init (gpointer g_class)
 		      G_SIGNAL_RUN_LAST,
 		      G_STRUCT_OFFSET (GSheetModelIface, columns_deleted),
 		      NULL, NULL,
-		      gtkextra_VOID__INT_INT,
+		      psppire_marshal_VOID__INT_INT,
 		      G_TYPE_NONE, 2,
 		      G_TYPE_INT,
 		      G_TYPE_INT);
