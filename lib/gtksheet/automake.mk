@@ -2,6 +2,8 @@
 
 noinst_LIBRARIES += lib/gtksheet/libgtksheet.a
 
+AM_CPPFLAGS += -Ilib
+
 lib_gtksheet_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 
 lib_gtksheet_BUILT_SOURCES = \
