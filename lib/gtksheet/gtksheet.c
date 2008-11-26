@@ -2054,8 +2054,6 @@ gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint col)
 			  area.width, area.height);
     }
 
-  //  gtk_sheet_cell_draw_label (sheet, row, col);
-
 
   label = gtk_sheet_cell_get_text (sheet, row, col);
   if (NULL == label)
@@ -4525,7 +4523,6 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
   GtkSheetCellAttr attributes = { 0 };
   GtkEntry *sheet_entry;
 
-
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
   if (!GTK_WIDGET_MAPPED (GTK_WIDGET (sheet))) return;
 
@@ -4535,8 +4532,6 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
 				   sheet->active_cell.col,
 				   &attributes) )
     return ;
-
-  gtk_widget_ensure_style (GTK_WIDGET (sheet_entry));
 
   if ( GTK_WIDGET_REALIZED (sheet->entry_widget) )
     {
@@ -4548,10 +4543,6 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
       style->bg[GTK_STATE_ACTIVE] = attributes.background;
       style->fg[GTK_STATE_ACTIVE] = attributes.foreground;
       style->text[GTK_STATE_ACTIVE] = attributes.foreground;
-
-      pango_font_description_free (style->font_desc);
-      g_assert (attributes.font_desc);
-      style->font_desc = pango_font_description_copy (attributes.font_desc);
     }
 
   rectangle_from_cell (sheet, sheet->active_cell.row,
@@ -5226,7 +5217,6 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
   g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
 
   if (row < 0 || col < 0) return FALSE;
-
 
   attr->foreground = GTK_WIDGET (sheet)->style->black;
   attr->background = sheet->color[BG_COLOR];
