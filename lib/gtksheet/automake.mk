@@ -8,10 +8,6 @@ lib_gtksheet_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/gsheetmodel.c \
 	lib/gtksheet/gsheetmodel.h \
-	lib/gtksheet/gsheet-row-iface.c \
-	lib/gtksheet/gsheet-row-iface.h \
-	lib/gtksheet/gsheet-uniform-row.c \
-	lib/gtksheet/gsheet-uniform-row.h \
 	lib/gtksheet/gtkextra-marshal.c \
 	lib/gtksheet/gtkextra-marshal.h \
 	lib/gtksheet/gtkextra-sheet.h \
