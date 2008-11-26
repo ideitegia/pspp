@@ -128,9 +128,9 @@ struct _GSheetModelIface
 
   /* column related metadata */
 
-  gchar * (*get_column_title) (const GSheetModel *mode, gint col);
-  gchar * (*get_column_subtitle) (const GSheetModel *mode, gint col);
-  gboolean * (*get_column_sensitivity) (const GSheetModel *mode, gint col);
+  gchar * (*get_column_title) (const GSheetModel *, gint col);
+  gchar * (*get_column_subtitle) (const GSheetModel *, gint col);
+  gboolean (*get_column_sensitivity) (const GSheetModel *, gint col);
   GtkJustification (*get_column_justification) (const GSheetModel *mode, gint col);
   const GtkSheetButton * (* get_button) (const GSheetModel *model, gint col);
 
@@ -138,7 +138,10 @@ struct _GSheetModelIface
 
 
   /* row related metadata */
+  gchar * (*get_row_title) (const GSheetModel *, gint row);
+  gchar * (*get_row_subtitle) (const GSheetModel *, gint row);
   glong (*get_row_count) (const GSheetModel *model);
+  gboolean (*get_row_sensitivity) (const GSheetModel *, gint row);
 };
 
 
@@ -216,6 +219,20 @@ GtkSheetButton * g_sheet_model_get_column_button (const GSheetModel *, gint);
 
 GtkJustification g_sheet_model_get_column_justification (const GSheetModel *,
 							 gint);
+
+
+
+gboolean g_sheet_model_get_row_sensitivity (const GSheetModel *model,
+					    gint row);
+
+
+gchar * g_sheet_model_get_row_subtitle (const GSheetModel *model,
+					    gint row);
+
+
+GtkSheetButton * g_sheet_model_get_row_button (const GSheetModel *, gint);
+
+
 
 
 G_END_DECLS

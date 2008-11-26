@@ -27,6 +27,7 @@
 G_BEGIN_DECLS
 
 
+
 /* --- type macros --- */
 #define G_TYPE_PSPPIRE_AXIS              (psppire_axis_get_type ())
 #define PSPPIRE_AXIS(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), G_TYPE_PSPPIRE_AXIS, PsppireAxis))
@@ -36,19 +37,13 @@ G_BEGIN_DECLS
 #define PSPPIRE_AXIS_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), G_TYPE_PSPPIRE_AXIS, PsppireAxisClass))
 
 
-
 /* --- typedefs & structures --- */
 typedef struct _PsppireAxis	   PsppireAxis;
 typedef struct _PsppireAxisClass PsppireAxisClass;
 
-struct pool;
-
 struct _PsppireAxis
 {
   GObject             parent;
-
-  struct tower tower;
-  struct pool *pool;
 
   glong min_extent;
   gint default_size;
@@ -59,34 +54,46 @@ struct _PsppireAxisClass
   GObjectClass parent_class;
 };
 
+
 GType          psppire_axis_get_type (void);
 
-PsppireAxis*   psppire_axis_new (void);
 
 
+
+GType psppire_axis_iface_get_type (void);
+
+#define PSPPIRE_TYPE_AXIS_IFACE (psppire_axis_iface_get_type ())
+
+typedef struct _PsppireAxisIface PsppireAxisIface;
+
+struct _PsppireAxisIface
+{
+  GTypeInterface g_iface;
+
+
+  /* Virtual Table */
+
+  gint  (*unit_size) (const PsppireAxis *a, gint unit);
+
+  gint  (*unit_count) (const PsppireAxis *a);
+
+  glong (*pixel_start) (const PsppireAxis *a, gint unit);
+
+  gint  (*get_unit_at_pixel) (const PsppireAxis *a, glong pixel);
+
+  glong (*total_size ) (const PsppireAxis *a);
+};
+
+
 /* Interface between sheet and axis */
 
-gint psppire_axis_unit_size (PsppireAxis *a, gint unit);
+gint psppire_axis_unit_size (const PsppireAxis *a, gint unit);
 
-gint psppire_axis_unit_count (PsppireAxis *a);
+gint psppire_axis_unit_count (const PsppireAxis *a);
 
-glong psppire_axis_pixel_start (PsppireAxis *a, gint unit);
+glong psppire_axis_pixel_start (const PsppireAxis *a, gint unit);
 
-gint psppire_axis_get_unit_at_pixel (PsppireAxis *a, glong pixel);
-
-
-
-/* Interface between axis and model */
-
-void psppire_axis_clear (PsppireAxis *a);
-
-void psppire_axis_append (PsppireAxis *a, gint size);
-
-void psppire_axis_insert (PsppireAxis *a, gint size, gint posn);
-
-void psppire_axis_remove (PsppireAxis *a, gint posn);
-
-void psppire_axis_resize_unit (PsppireAxis *a, gint size, gint posn);
+gint psppire_axis_get_unit_at_pixel (const PsppireAxis *a, glong pixel);
 
 
 G_END_DECLS

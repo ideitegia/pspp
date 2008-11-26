@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include "psppire-var-sheet.h"
+#include <gtksheet/psppire-axis-hetero.h>
 
 #include <glade/glade.h>
 #include "helper.h"
@@ -483,12 +484,9 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 }
 
 
-
-
 static void
 psppire_var_sheet_init (PsppireVarSheet *vs)
 {
-  // gint i;
   GladeXML *xml = XML_NEW ("data-editor.glade");
 
   vs->val_labs_dialog = val_labs_dialog_create (xml);
@@ -499,14 +497,6 @@ psppire_var_sheet_init (PsppireVarSheet *vs)
 
   vs->dispose_has_run = FALSE;
   vs->may_create_vars = TRUE;
-
-#if 0
-  for (i = 0 ; i < PSPPIRE_VAR_STORE_n_COLS ; ++i )
-    {
-      g_sheet_hetero_column_set_width (G_SHEET_HETERO_COLUMN (geo), i,
-				       column_def[i].width);
-    }
-#endif
 
   g_signal_connect (vs, "activate",
 		    G_CALLBACK (var_sheet_change_active_cell),
@@ -534,14 +524,25 @@ GtkWidget*
 psppire_var_sheet_new (void)
 {
   gint i;
-  PsppireAxis *a = psppire_axis_new ();
+  PsppireAxisHetero *ha = psppire_axis_hetero_new ();
+  PsppireAxisHetero *va = psppire_axis_hetero_new ();
+
   GtkWidget *w = g_object_new (psppire_var_sheet_get_type (), NULL);
 
   for (i = 0 ; i < 10 ; ++i)
-    psppire_axis_append (a, column_def[i].width);
+    psppire_axis_hetero_append (ha, column_def[i].width);
+
+
+  g_object_set (va,
+		"default-size", 25,
+		NULL);
+
+  g_object_set (ha, "minimum-extent", 0,
+		NULL);
 
   g_object_set (w,
-		"horizontal-axis", a,
+		"horizontal-axis", ha,
+		"vertical-axis", va,
 		NULL);
 
   return w;

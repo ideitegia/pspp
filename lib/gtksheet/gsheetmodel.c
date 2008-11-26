@@ -511,7 +511,7 @@ g_sheet_model_get_row_count(const GSheetModel *model)
 
 
 
-/* New functions since AXIS_TRANSITION */
+/* Column related functions  */
 gboolean
 g_sheet_model_get_column_sensitivity (const GSheetModel *model, gint col)
 {
@@ -557,5 +557,45 @@ g_sheet_model_get_column_justification (const GSheetModel *model,
     return G_SHEET_MODEL_GET_IFACE (model)->get_column_justification (model, col);
 
   return GTK_JUSTIFY_LEFT;
+}
+
+
+
+gboolean
+g_sheet_model_get_row_sensitivity (const GSheetModel *model, gint row)
+{
+  if ( NULL == G_SHEET_MODEL_GET_IFACE (model)->get_row_sensitivity)
+    return TRUE;
+
+  return G_SHEET_MODEL_GET_IFACE (model)->get_row_sensitivity (model, row);
+}
+
+
+
+gchar *
+g_sheet_model_get_row_subtitle (const GSheetModel *model,
+				gint row)
+{
+  g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
+
+  if ( NULL == G_SHEET_MODEL_GET_IFACE (model)->get_row_subtitle)
+    return NULL;
+
+  return G_SHEET_MODEL_GET_IFACE (model)->get_row_subtitle (model, row);
+}
+
+
+GtkSheetButton *
+g_sheet_model_get_row_button (const GSheetModel *model,
+				 gint row)
+{
+  GtkSheetButton *button = gtk_sheet_button_new ();
+
+  g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
+
+  if ( G_SHEET_MODEL_GET_IFACE (model)->get_row_title)
+    button->label = G_SHEET_MODEL_GET_IFACE (model)->get_row_title (model, row);
+
+  return button;
 }
 

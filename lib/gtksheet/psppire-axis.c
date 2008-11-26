@@ -24,6 +24,41 @@
 #include <gtk/gtk.h>
 
 
+#define PSPPIRE_AXIS_GET_IFACE(obj) \
+  (G_TYPE_INSTANCE_GET_INTERFACE ((obj), PSPPIRE_TYPE_AXIS_IFACE, PsppireAxisIface))
+
+GType
+psppire_axis_iface_get_type (void)
+{
+  static GType psppire_axis_iface_type = 0;
+
+  if (! psppire_axis_iface_type)
+    {
+      static const GTypeInfo psppire_axis_iface_info =
+      {
+        sizeof (PsppireAxisIface), /* class_size */
+	NULL,           /* base init */
+	NULL,		/* base_finalize */
+	NULL,
+	NULL,		/* class_finalize */
+	NULL,		/* class_data */
+	0,
+	0,              /* n_preallocs */
+	NULL
+      };
+
+      psppire_axis_iface_type =
+	g_type_register_static (G_TYPE_INTERFACE, "PsppireAxisIface",
+				&psppire_axis_iface_info, 0);
+    }
+
+  return psppire_axis_iface_type;
+}
+
+G_DEFINE_ABSTRACT_TYPE(PsppireAxis, psppire_axis, G_TYPE_OBJECT);
+
+
+
 /* --- prototypes --- */
 static void psppire_axis_class_init (PsppireAxisClass	*class);
 static void psppire_axis_init	(PsppireAxis		*axis);
@@ -33,37 +68,7 @@ static void psppire_axis_finalize   (GObject		*object);
 /* --- variables --- */
 static GObjectClass     *parent_class = NULL;
 
-/* --- functions --- */
-/**
- * psppire_axis_get_type:
- * @returns: the type ID for accelerator groups.
- */
-GType
-psppire_axis_get_type (void)
-{
-  static GType object_type = 0;
 
-  if (!object_type)
-    {
-      static const GTypeInfo object_info = {
-	sizeof (PsppireAxisClass),
-	(GBaseInitFunc) NULL,
-	(GBaseFinalizeFunc) NULL,
-	(GClassInitFunc) psppire_axis_class_init,
-	NULL,   /* class_finalize */
-	NULL,   /* class_data */
-	sizeof (PsppireAxis),
-	0,      /* n_preallocs */
-	(GInstanceInitFunc) psppire_axis_init,
-      };
-
-      object_type = g_type_register_static (G_TYPE_OBJECT,
-					    "PsppireAxis",
-					    &object_info, 0);
-    }
-
-  return object_type;
-}
 
 enum
   {
@@ -131,10 +136,10 @@ psppire_axis_class_init (PsppireAxisClass *class)
   min_extent_spec =
     g_param_spec_long ("minimum-extent",
 		       "Minimum Extent",
-		       "The smallest extent to which the axis will provide units (typically set to the height/width of the associated widget)",
+		       "The smallest extent to which the axis will provide units (typically set to the height/width of the associated widget).",
 		       0, G_MAXLONG,
-		       800,
-		       G_PARAM_WRITABLE | G_PARAM_READABLE );
+		       0,
+		       G_PARAM_CONSTRUCT | G_PARAM_WRITABLE | G_PARAM_READABLE );
 
   g_object_class_install_property (object_class,
                                    PROP_MIN_EXTENT,
@@ -142,10 +147,12 @@ psppire_axis_class_init (PsppireAxisClass *class)
 
 
   default_size_spec =
-    g_param_spec_pointer ("default-size",
-			  "Default Size",
-			  "The size given to units which haven't been explicity inserted",
-			  G_PARAM_WRITABLE | G_PARAM_READABLE );
+    g_param_spec_int ("default-size",
+		      "Default Size",
+		      "The size given to units which haven't been explicity inserted",
+		      0, G_MAXINT,
+		      25,
+		      G_PARAM_CONSTRUCT | G_PARAM_WRITABLE | G_PARAM_READABLE );
 
 
   g_object_class_install_property (object_class,
@@ -161,149 +168,89 @@ psppire_axis_class_init (PsppireAxisClass *class)
 static void
 psppire_axis_init (PsppireAxis *axis)
 {
-  axis->min_extent = 800;
-  axis->default_size = 75;
-  axis->pool = NULL;
-  psppire_axis_clear (axis);
 }
 
 
 static void
 psppire_axis_finalize (GObject *object)
 {
-  PsppireAxis *a = PSPPIRE_AXIS (object);
-  pool_destroy (a->pool);
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
-/**
- * psppire_axis_new:
- * @returns: a new #PsppireAxis object
- *
- * Creates a new #PsppireAxis.
- */
-PsppireAxis*
-psppire_axis_new (void)
-{
-  return g_object_new (G_TYPE_PSPPIRE_AXIS, NULL);
-}
-
-
 gint
-psppire_axis_unit_size (PsppireAxis *a, gint unit)
+psppire_axis_unit_size (const PsppireAxis *a, gint unit)
 {
-  const struct tower_node *node;
-  if  (unit >= tower_count (&a->tower))
+  g_return_val_if_fail (PSPPIRE_IS_AXIS (a), -1);
+
+  g_return_val_if_fail (PSPPIRE_AXIS_GET_IFACE (a)->unit_size, -1);
+
+
+  if  (unit >= PSPPIRE_AXIS_GET_IFACE (a)->unit_count(a))
     return a->default_size;
 
-  node = tower_get (&a->tower, unit);
-
-  return tower_node_get_size (node);
+  return PSPPIRE_AXIS_GET_IFACE (a)->unit_size (a, unit);
 }
 
 gint
-psppire_axis_unit_count (PsppireAxis *a)
+psppire_axis_unit_count (const PsppireAxis *a)
 {
   glong padding = 0;
+  glong actual_size;
 
-  if ( tower_height (&a->tower) < a->min_extent )
-    padding = (a->min_extent - tower_height (&a->tower))
-      / a->default_size;
+  g_return_val_if_fail (PSPPIRE_IS_AXIS (a), -1);
+  g_return_val_if_fail (PSPPIRE_AXIS_GET_IFACE (a)->unit_count, -1);
 
-  return tower_count (&a->tower) + padding;
+  actual_size = PSPPIRE_AXIS_GET_IFACE (a)->total_size (a);
+
+  if ( actual_size < a->min_extent )
+    padding = (a->min_extent - actual_size) / a->default_size;
+
+  return PSPPIRE_AXIS_GET_IFACE (a)->unit_count (a) + padding;
 }
 
 
 /* Return the starting pixel of UNIT */
 glong
-psppire_axis_pixel_start (PsppireAxis *a, gint unit)
+psppire_axis_pixel_start (const PsppireAxis *a, gint unit)
 {
-  const struct tower_node *node;
+  gint the_count, total_size ;
+  g_return_val_if_fail (PSPPIRE_IS_AXIS (a), -1);
 
-  if ( unit >= tower_count (&a->tower))
+  the_count =  PSPPIRE_AXIS_GET_IFACE (a)->unit_count (a);
+  total_size = PSPPIRE_AXIS_GET_IFACE (a)->total_size (a);
+
+  if ( unit >= the_count)
     {
-      return  tower_height (&a->tower) +
-	(unit - tower_count (&a->tower)) * a->default_size;
+      return  total_size + (unit - the_count) * a->default_size;
     }
 
-  node = tower_get (&a->tower, unit);
-  return  tower_node_get_level (node);
+  //  g_print ("%s %d\n", __FUNCTION__, unit);
+
+  return PSPPIRE_AXIS_GET_IFACE (a)->pixel_start (a, unit);
 }
 
 
 /* Return the unit covered by PIXEL */
 gint
-psppire_axis_get_unit_at_pixel (PsppireAxis *a, glong pixel)
+psppire_axis_get_unit_at_pixel (const PsppireAxis *a, glong pixel)
 {
-  const struct tower_node *node;
-  unsigned long int node_start;
+  glong total_size;
 
-  if (pixel >= tower_height (&a->tower))
+  g_return_val_if_fail (PSPPIRE_IS_AXIS (a), -1);
+
+  g_return_val_if_fail (PSPPIRE_AXIS_GET_IFACE (a), -1);
+
+  g_return_val_if_fail (PSPPIRE_AXIS_GET_IFACE (a)->get_unit_at_pixel, -1);
+
+  total_size = PSPPIRE_AXIS_GET_IFACE (a)->total_size (a);
+
+  if (pixel >= total_size)
     {
-      glong extra = pixel - tower_height (&a->tower);
+      gint n_items = PSPPIRE_AXIS_GET_IFACE (a)->unit_count (a);
+      glong extra = pixel - total_size;
 
-      if ( extra > a->min_extent - tower_height (&a->tower))
-	extra = a->min_extent - tower_height (&a->tower);
-
-      return tower_count (&a->tower) - 1 + extra / a->default_size;
+      return n_items - 1 + extra / a->default_size;
     }
 
-  node = tower_lookup (&a->tower, pixel, &node_start);
-
-  return  tower_node_get_index (node);
+  return PSPPIRE_AXIS_GET_IFACE (a)->get_unit_at_pixel (a, pixel);
 }
-
-void
-psppire_axis_append (PsppireAxis *a, gint size)
-{
-  struct tower_node *new = pool_malloc (a->pool, sizeof *new);
-
-  tower_insert (&a->tower, size, new, NULL);
-}
-
-
-
-/* Insert a new unit of size SIZE before position POSN */
-void
-psppire_axis_insert (PsppireAxis *a, gint size, gint posn)
-{
-  struct tower_node *new = pool_malloc (a->pool, sizeof *new);
-
-  struct tower_node *before = NULL;
-
-  if ( posn != tower_count (&a->tower))
-    before = tower_get (&a->tower, posn);
-
-  tower_insert (&a->tower, size, new, before);
-}
-
-
-void
-psppire_axis_remove (PsppireAxis *a, gint posn)
-{
-  struct tower_node *node = tower_get (&a->tower, posn);
-
-  tower_delete (&a->tower, node);
-
-  pool_free (a->pool, node);
-}
-
-
-void
-psppire_axis_resize_unit (PsppireAxis *a, gint size, gint posn)
-{
-  struct tower_node *node = tower_get (&a->tower, posn);
-
-  tower_resize (&a->tower, node, size);
-}
-
-
-void
-psppire_axis_clear (PsppireAxis *a)
-{
-  pool_destroy (a->pool);
-  a->pool = pool_create ();
-  tower_init (&a->tower);
-}
-
-

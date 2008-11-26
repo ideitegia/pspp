@@ -28,7 +28,6 @@
 #include <gtksheet/gsheetmodel.h>
 
 #include "psppire-var-store.h"
-#include <gtksheet/gsheet-row-iface.h>
 #include "helper.h"
 
 #include <data/dictionary.h>
@@ -69,10 +68,6 @@ static glong psppire_var_store_get_row_count (const GSheetModel * model);
 static glong psppire_var_store_get_column_count (const GSheetModel * model);
 
 static gchar *text_for_column (const struct variable *pv, gint c, GError **err);
-
-
-static void psppire_var_store_sheet_row_init (GSheetRowIface *iface);
-
 
 
 static GObjectClass *parent_class = NULL;
@@ -128,24 +123,11 @@ psppire_var_store_get_type (void)
 	NULL
       };
 
-      static const GInterfaceInfo sheet_row_info =
-      {
-	(GInterfaceInitFunc) psppire_var_store_sheet_row_init,
-	NULL,
-	NULL
-      };
-
       var_store_type = g_type_register_static (G_TYPE_OBJECT, "PsppireVarStore", &var_store_info, 0);
 
       g_type_add_interface_static (var_store_type,
 				   G_TYPE_SHEET_MODEL,
 				   &sheet_model_info);
-
-      g_type_add_interface_static (var_store_type,
-				   G_TYPE_SHEET_ROW,
-				   &sheet_row_info);
-
-
     }
 
   return var_store_type;
@@ -328,8 +310,9 @@ psppire_var_store_get_font_desc (const GSheetModel *model,
   return store->font_desc;
 }
 
-
 static gchar *get_column_title (const GSheetModel *model, gint col);
+static gchar *get_row_title (const GSheetModel *model, gint row);
+static gboolean get_row_sensitivity (const GSheetModel *model, gint row);
 
 static void
 psppire_var_store_sheet_model_init (GSheetModelIface *iface)
@@ -349,6 +332,9 @@ psppire_var_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_justification = NULL;
 
   iface->get_column_title = get_column_title;
+
+  iface->get_row_title = get_row_title;
+  iface->get_row_sensitivity = get_row_sensitivity;
 }
 
 /**
@@ -793,33 +779,15 @@ psppire_var_store_get_column_count (const GSheetModel * model)
   return PSPPIRE_VAR_STORE_n_COLS ;
 }
 
+
 
 /* Row related funcs */
 
-static glong
-geometry_get_row_count (const GSheetRow *geom)
-{
-  gint rows = 0;
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (geom);
-
-  if (vs->dict)
-    rows =  psppire_dict_get_var_cnt (vs->dict);
-
-  return rows + vs->trailing_rows;
-}
-
-
-static gint
-geometry_get_height (const GSheetRow *geom, glong row)
-{
-  return 25;
-}
-
 
 static gboolean
-geometry_is_sensitive (const GSheetRow *geom, glong row)
+get_row_sensitivity (const GSheetModel *model, gint row)
 {
-  PsppireVarStore *vs = PSPPIRE_VAR_STORE (geom);
+  PsppireVarStore *vs = PSPPIRE_VAR_STORE (model);
 
   if ( ! vs->dict)
     return FALSE;
@@ -827,23 +795,11 @@ geometry_is_sensitive (const GSheetRow *geom, glong row)
   return  row < psppire_dict_get_var_cnt (vs->dict);
 }
 
+
 static gchar *
-geometry_get_button_label (const GSheetRow *geom, glong unit)
+get_row_title (const GSheetModel *model, gint unit)
 {
-  gchar *label = g_strdup_printf (_("%ld"), unit + 1);
-
-  return label;
-}
-
-static void
-psppire_var_store_sheet_row_init (GSheetRowIface *iface)
-{
-  iface->get_row_count =     geometry_get_row_count;
-  iface->get_height =        geometry_get_height;
-  iface->set_height =        NULL;
-  iface->get_sensitivity =   geometry_is_sensitive;
-
-  iface->get_button_label = geometry_get_button_label;
+  return g_strdup_printf (_("%d"), unit + 1);
 }
 
 
