@@ -4568,15 +4568,8 @@ create_sheet_entry (GtkSheet *sheet)
       gtk_widget_unparent (sheet->entry_widget);
     }
 
-  if (sheet->entry_type)
-    {
-      sheet->entry_widget = g_object_new (sheet->entry_type, NULL);
-      g_object_ref_sink (sheet->entry_widget);
-    }
-  else
-    {
-      sheet->entry_widget = gtk_entry_new ();
-    }
+  sheet->entry_widget = g_object_new (sheet->entry_type, NULL);
+  g_object_ref_sink (sheet->entry_widget);
 
   gtk_widget_size_request (sheet->entry_widget, NULL);
 
