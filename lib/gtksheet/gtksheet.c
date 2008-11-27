@@ -1046,7 +1046,6 @@ gtk_sheet_init (GtkSheet *sheet)
 
   sheet->sheet_window = NULL;
   sheet->entry_widget = NULL;
-  sheet->entry_container = NULL;
   sheet->entry_handler_id = 0;
   sheet->button = NULL;
 
@@ -1074,7 +1073,7 @@ gtk_sheet_init (GtkSheet *sheet)
 
 
   /* create sheet entry */
-  sheet->entry_type = 0;
+  sheet->entry_type = GTK_TYPE_ENTRY;
   create_sheet_entry (sheet);
 
   /* create global selection button */
@@ -1657,9 +1656,6 @@ gtk_sheet_dispose  (GObject *object)
   if (sheet->model) g_object_unref (sheet->model);
   if (sheet->vaxis) g_object_unref (sheet->vaxis);
   if (sheet->haxis) g_object_unref (sheet->haxis);
-
-  g_object_unref (sheet->entry_container);
-  sheet->entry_container = NULL;
 
   g_object_unref (sheet->button);
   sheet->button = NULL;
@@ -4573,26 +4569,12 @@ create_sheet_entry (GtkSheet *sheet)
 
   if (sheet->entry_type)
     {
-      sheet->entry_container = g_object_new (sheet->entry_type, NULL);
-      g_object_ref_sink (sheet->entry_container);
-      sheet->entry_widget = gtk_sheet_get_entry (sheet);
-
-      if  ( NULL == sheet->entry_widget)
-	{
-	  g_warning ("Entry type is %s. It must be GtkEntry subclass, or a widget containing one. "
-		     "Using default", g_type_name (sheet->entry_type));
-	  g_object_unref (sheet->entry_container);
-	  sheet->entry_widget = sheet->entry_container = gtk_entry_new ();
-	}
-      else
-	{
-	  sheet->entry_widget = sheet->entry_container ;
-	}
+      sheet->entry_widget = g_object_new (sheet->entry_type, NULL);
+      g_object_ref_sink (sheet->entry_widget);
     }
   else
     {
-      sheet->entry_widget = sheet->entry_container = gtk_entry_new ();
-      g_object_ref_sink (sheet->entry_container);
+      sheet->entry_widget = gtk_entry_new ();
     }
 
   gtk_widget_size_request (sheet->entry_widget, NULL);
@@ -4629,34 +4611,34 @@ find_entry (GtkWidget *w, gpointer user_data)
     }
 }
 
+
 GtkWidget *
 gtk_sheet_get_entry (GtkSheet *sheet)
 {
-  GtkWidget *parent;
-  GtkWidget *entry = NULL;
+  GtkWidget *w = sheet->entry_widget;
 
   g_return_val_if_fail (sheet != NULL, NULL);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), NULL);
   g_return_val_if_fail (sheet->entry_widget != NULL, NULL);
 
-  if (GTK_IS_ENTRY (sheet->entry_container))
-    return (sheet->entry_container);
-
-  parent = sheet->entry_container;
-
-  if (GTK_IS_CONTAINER (parent))
+  while (! GTK_IS_ENTRY (w))
     {
-      gtk_container_forall (GTK_CONTAINER (parent), find_entry, &entry);
+      GtkWidget *entry = NULL;
 
-      if (GTK_IS_ENTRY (entry))
-	return entry;
+      if (GTK_IS_CONTAINER (w))
+	{
+	  gtk_container_forall (GTK_CONTAINER (w), find_entry, &entry);
+
+	  if (NULL == entry)
+	    break;
+
+	  w = entry;
+	}
     }
 
-  if (!GTK_IS_ENTRY (entry)) return NULL;
-
-  return (entry);
-
+  return w;
 }
+
 
 GtkWidget *
 gtk_sheet_get_entry_widget (GtkSheet *sheet)
@@ -5346,8 +5328,8 @@ gtk_sheet_forall (GtkContainer *container,
   if (sheet->button && sheet->button->parent)
     (* callback) (sheet->button, callback_data);
 
-  if (sheet->entry_container && GTK_IS_CONTAINER (sheet->entry_container))
-    (* callback) (sheet->entry_container, callback_data);
+  if (sheet->entry_widget && GTK_IS_CONTAINER (sheet->entry_widget))
+    (* callback) (sheet->entry_widget, callback_data);
 }
 
 

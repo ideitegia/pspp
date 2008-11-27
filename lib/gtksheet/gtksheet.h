@@ -118,10 +118,6 @@ struct _GtkSheet
   /* The GtkEntry used for editing the cells */
   GtkWidget *entry_widget;
 
-  /* The widget containing entry_widget, or
-     entry_widget itself if no container */
-  GtkWidget *entry_container;
-
   /* The type of entry_widget */
   GtkType entry_type;
 
