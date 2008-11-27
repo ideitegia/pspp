@@ -735,7 +735,7 @@ init_sheet (PsppireDataEditor *de, int i,
   PsppireAxisUniform *vaxis = psppire_axis_uniform_new ();
   de->sheet_bin[i] = gtk_scrolled_window_new (hadj, vadj);
 
-  de->data_sheet[i] = gtk_sheet_new (NULL, NULL, NULL);
+  de->data_sheet[i] = gtk_sheet_new (NULL);
 
   g_object_set (de->sheet_bin[i],
 		"border-width", 3,

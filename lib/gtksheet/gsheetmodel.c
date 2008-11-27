@@ -505,7 +505,6 @@ g_sheet_model_get_row_count(const GSheetModel *model)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), -1);
 
-
   return G_SHEET_MODEL_GET_IFACE (model)->get_row_count (model);
 }
 
@@ -515,6 +514,8 @@ g_sheet_model_get_row_count(const GSheetModel *model)
 gboolean
 g_sheet_model_get_column_sensitivity (const GSheetModel *model, gint col)
 {
+  g_return_val_if_fail (G_IS_SHEET_MODEL (model), FALSE);
+
   if ( NULL == G_SHEET_MODEL_GET_IFACE (model)->get_column_sensitivity)
     return TRUE;
 
@@ -553,6 +554,8 @@ GtkJustification
 g_sheet_model_get_column_justification (const GSheetModel *model,
 					gint col)
 {
+  g_return_val_if_fail (G_IS_SHEET_MODEL (model), GTK_JUSTIFY_LEFT);
+
   if ( G_SHEET_MODEL_GET_IFACE (model)->get_column_justification)
     return G_SHEET_MODEL_GET_IFACE (model)->get_column_justification (model, col);
 
@@ -564,6 +567,8 @@ g_sheet_model_get_column_justification (const GSheetModel *model,
 gboolean
 g_sheet_model_get_row_sensitivity (const GSheetModel *model, gint row)
 {
+  g_return_val_if_fail (G_IS_SHEET_MODEL (model), FALSE);
+
   if ( NULL == G_SHEET_MODEL_GET_IFACE (model)->get_row_sensitivity)
     return TRUE;
 
