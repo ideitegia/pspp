@@ -1628,7 +1628,6 @@ prepare_formats_page (struct import_assistant *ia)
                 (void *) NULL);
   var_sheet = PSPPIRE_VAR_SHEET (psppire_var_sheet_new ());
   g_object_set (var_sheet,
-                "row-geometry", var_store,
                 "model", var_store,
                 "may-create-vars", FALSE,
                 (void *) NULL);
