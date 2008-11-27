@@ -254,7 +254,7 @@ traverse_cell_callback (GtkSheet *sheet,
 
   if ( existing_cell->row == n_vars && new_cell->row >= n_vars)
     {
-      GtkEntry *entry = GTK_ENTRY (gtk_sheet_get_entry (sheet));
+      GtkEntry *entry = gtk_sheet_get_entry (sheet);
 
       const gchar *name = gtk_entry_get_text (entry);
 
@@ -319,12 +319,12 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
     {
     case PSPPIRE_VAR_STORE_COL_ALIGN:
       {
+	GtkEntry *entry;
 	static GtkListStore *list_store = NULL;
 	GtkComboBoxEntry *cbe;
 	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
-	cbe =
-	  GTK_COMBO_BOX_ENTRY (gtk_sheet_get_entry (sheet)->parent);
-
+	entry = gtk_sheet_get_entry (sheet);
+	cbe = GTK_COMBO_BOX_ENTRY (GTK_WIDGET (entry)->parent);
 
 	if ( ! list_store) list_store = create_label_list (alignments);
 
@@ -340,12 +340,11 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 
     case PSPPIRE_VAR_STORE_COL_MEASURE:
       {
+	GtkEntry *entry;
 	GtkComboBoxEntry *cbe;
 	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
-	cbe =
-	  GTK_COMBO_BOX_ENTRY (gtk_sheet_get_entry (sheet)->parent);
-
-
+	entry = gtk_sheet_get_entry (sheet);
+	cbe = GTK_COMBO_BOX_ENTRY (GTK_WIDGET (entry)->parent);
 
 	gtk_combo_box_set_model (GTK_COMBO_BOX (cbe),
 				GTK_TREE_MODEL (vs_class->measure_list));

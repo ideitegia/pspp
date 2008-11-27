@@ -2509,9 +2509,7 @@ gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
   sheet->active_cell.row = -1;
   sheet->active_cell.col = -1;
 
-  text = gtk_entry_get_text (GTK_ENTRY (gtk_sheet_get_entry (sheet)));
-
-
+  text = gtk_entry_get_text (gtk_sheet_get_entry (sheet));
 
   if (text && strlen (text) > 0)
     {
@@ -2626,7 +2624,7 @@ gtk_sheet_show_active_cell (GtkSheet *sheet)
 
   GTK_WIDGET_SET_FLAGS (GTK_WIDGET (sheet->entry_widget), GTK_VISIBLE);
 
-  sheet_entry = GTK_ENTRY (gtk_sheet_get_entry (sheet));
+  sheet_entry = gtk_sheet_get_entry (sheet);
 
   gtk_sheet_get_attributes (sheet, row, col, &attributes);
 
@@ -4525,7 +4523,7 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
   if (!GTK_WIDGET_MAPPED (GTK_WIDGET (sheet))) return;
 
-  sheet_entry = GTK_ENTRY (gtk_sheet_get_entry (sheet));
+  sheet_entry = gtk_sheet_get_entry (sheet);
 
   if ( ! gtk_sheet_get_attributes (sheet, sheet->active_cell.row,
 				   sheet->active_cell.col,
@@ -4612,7 +4610,7 @@ find_entry (GtkWidget *w, gpointer user_data)
 }
 
 
-GtkWidget *
+GtkEntry *
 gtk_sheet_get_entry (GtkSheet *sheet)
 {
   GtkWidget *w = sheet->entry_widget;
@@ -4636,18 +4634,7 @@ gtk_sheet_get_entry (GtkSheet *sheet)
 	}
     }
 
-  return w;
-}
-
-
-GtkWidget *
-gtk_sheet_get_entry_widget (GtkSheet *sheet)
-{
-  g_return_val_if_fail (sheet != NULL, NULL);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), NULL);
-  g_return_val_if_fail (sheet->entry_widget != NULL, NULL);
-
-  return (sheet->entry_widget);
+  return GTK_ENTRY (w);
 }
 
 

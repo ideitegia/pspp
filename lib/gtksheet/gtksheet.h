@@ -234,7 +234,7 @@ gtk_sheet_new_with_custom_entry (GtkType entry_type);
 /* Change entry */
 void gtk_sheet_change_entry		(GtkSheet *sheet, GtkType entry_type);
 
-GtkWidget *gtk_sheet_get_entry    (GtkSheet *sheet);
+GtkEntry *gtk_sheet_get_entry    (GtkSheet *sheet);
 
 
 void gtk_sheet_get_selected_range (GtkSheet *sheet,
