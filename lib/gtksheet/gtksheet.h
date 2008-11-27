@@ -229,14 +229,12 @@ GtkType gtk_sheet_range_get_type (void);
 
 
 /* create a new sheet */
-GtkWidget * gtk_sheet_new (void *vgeo, void *hgeo,
-			   GSheetModel *model);
+GtkWidget * gtk_sheet_new (GSheetModel *model);
 
 /* create a new sheet with custom entry */
 GtkWidget *
-gtk_sheet_new_with_custom_entry 	(void *vgeo,
-					 void *hgeo,
-                                 	 GtkType entry_type);
+gtk_sheet_new_with_custom_entry (GtkType entry_type);
+
 /* Change entry */
 void gtk_sheet_change_entry		(GtkSheet *sheet, GtkType entry_type);
 

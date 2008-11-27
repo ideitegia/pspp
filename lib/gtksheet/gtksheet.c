@@ -1210,7 +1210,7 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
  * Returns: the new sheet widget
  */
 GtkWidget *
-gtk_sheet_new (void *vgeo, void *hgeo, GSheetModel *model)
+gtk_sheet_new (GSheetModel *model)
 {
   GtkWidget *widget = g_object_new (GTK_TYPE_SHEET,
 				    "model", model,
