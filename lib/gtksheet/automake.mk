@@ -6,7 +6,7 @@ AM_CPPFLAGS += -Ilib
 
 lib_gtksheet_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
 
-lib_gtksheet_BUILT_SOURCES = \
+nodist_lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/psppire-marshal.c \
 	lib/gtksheet/psppire-marshal.h
 
@@ -23,11 +23,8 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/psppire-axis-hetero.c \
 	lib/gtksheet/psppire-axis-hetero.h \
 	lib/gtksheet/psppire-axis-uniform.c \
-	lib/gtksheet/psppire-axis-uniform.h \
-	$(lib_gtksheet_BUILT_SOURCES)
+	lib/gtksheet/psppire-axis-uniform.h 
 
-
-CLEANFILES += $(lib_gtksheet_BUILT_SOURCES)
 
 EXTRA_DIST += lib/gtksheet/OChangeLog \
 	lib/gtksheet/marshaller-list \
@@ -38,3 +35,6 @@ lib/gtksheet/psppire-marshal.c: lib/gtksheet/marshaller-list
 
 lib/gtksheet/psppire-marshal.h: lib/gtksheet/marshaller-list
 	glib-genmarshal --header --prefix=psppire_marshal $< > $@
+
+BUILT_SOURCES += $(nodist_lib_gtksheet_libgtksheet_a_SOURCES)
+CLEANFILES += $(nodist_lib_gtksheet_libgtksheet_a_SOURCES)
