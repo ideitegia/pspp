@@ -2633,14 +2633,14 @@ gtk_sheet_show_active_cell (GtkSheet *sheet)
   if ( ! text )
     text = g_strdup ("");
 
-  gtk_entry_set_visibility (GTK_ENTRY (sheet_entry), attributes.is_visible);
+  gtk_entry_set_visibility (sheet_entry, attributes.is_visible);
 
 
   if ( GTK_IS_ENTRY (sheet_entry))
     {
       const gchar *old_text = gtk_entry_get_text (GTK_ENTRY (sheet_entry));
       if (strcmp (old_text, text) != 0)
-	gtk_entry_set_text (GTK_ENTRY (sheet_entry), text);
+	gtk_entry_set_text (sheet_entry, text);
 
       switch (attributes.justification)
 	{
@@ -2659,6 +2659,9 @@ gtk_sheet_show_active_cell (GtkSheet *sheet)
 
   gtk_sheet_size_allocate_entry (sheet);
 
+  gtk_widget_set_sensitive (GTK_WIDGET (sheet_entry),
+			    g_sheet_model_is_editable (sheet->model,
+						       row, col));
   gtk_widget_map (sheet->entry_widget);
 
   gtk_widget_grab_focus (GTK_WIDGET (sheet_entry));
