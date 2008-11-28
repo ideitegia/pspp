@@ -102,10 +102,6 @@ struct _GtkSheet
   GdkColor color[n_COLORS];
   gboolean show_grid;
 
-  /* allocation rectangle after the container_border_width
-     and the width of the shadow border */
-  GdkRectangle internal_allocation;
-
   gint16 column_requisition;
   gint16 row_requisition;
 

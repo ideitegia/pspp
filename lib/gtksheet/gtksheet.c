@@ -4347,14 +4347,6 @@ gtk_sheet_size_allocate (GtkWidget *widget,
 			    allocation->width - 2 * border_width,
 			    allocation->height - 2 * border_width);
 
-  /* use internal allocation structure for all the math
-   * because it's easier than always subtracting the container
-   * border width */
-  sheet->internal_allocation.x = 0;
-  sheet->internal_allocation.y = 0;
-  sheet->internal_allocation.width = allocation->width - 2 * border_width;
-  sheet->internal_allocation.height = allocation->height - 2 * border_width;
-
   sheet_allocation.x = 0;
   sheet_allocation.y = 0;
   sheet_allocation.width = allocation->width - 2 * border_width;
