@@ -1709,6 +1709,8 @@ gtk_sheet_style_set (GtkWidget *widget,
 
 }
 
+#define BORDER_WIDTH 4
+
 static void
 gtk_sheet_realize (GtkWidget *widget)
 {
@@ -1819,7 +1821,7 @@ gtk_sheet_realize (GtkWidget *widget)
   values.foreground = widget->style->white;
   values.function = GDK_INVERT;
   values.subwindow_mode = GDK_INCLUDE_INFERIORS;
-  values.line_width = 3;
+  values.line_width = BORDER_WIDTH;
 
   sheet->xor_gc = gdk_gc_new_with_values (widget->window,
 					  &values,
@@ -2934,6 +2936,8 @@ gtk_sheet_new_selection (GtkSheet *sheet, GtkSheetRange *range)
   *range = new_range;
 }
 
+
+
 static void
 gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
 {
@@ -2944,10 +2948,10 @@ gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
   gdk_draw_rectangle (sheet->sheet_window,
 		      sheet->xor_gc,
 		      FALSE,
-		      area.x + 1,
-		      area.y + 1,
-		      area.width - 2,
-		      area.height - 2);
+		      area.x - BORDER_WIDTH / 2,
+		      area.y - BORDER_WIDTH / 2,
+		      area.width + BORDER_WIDTH,
+		      area.height + BORDER_WIDTH);
 }
 
 
