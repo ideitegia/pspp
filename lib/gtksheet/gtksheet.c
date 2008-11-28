@@ -4904,6 +4904,7 @@ vadjustment_value_changed (GtkAdjustment *adjustment,
   gtk_sheet_range_draw (sheet, NULL);
   draw_row_title_buttons (sheet);
   //  size_allocate_global_button (sheet);
+  gtk_sheet_draw_active_cell (sheet);
 
   gdk_window_end_paint (sheet->sheet_window);
 }
@@ -4931,6 +4932,8 @@ hadjustment_value_changed (GtkAdjustment *adjustment,
   gtk_sheet_range_draw (sheet, NULL);
   draw_column_title_buttons (sheet);
   //  size_allocate_global_button (sheet);
+
+  gtk_sheet_draw_active_cell (sheet);
 
   gdk_window_end_paint (sheet->sheet_window);
 }
