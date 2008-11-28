@@ -2572,6 +2572,12 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
     r.row0 = old_row - 1;
     r.rowi = old_row + 1;
 
+    maximize_int (&r.row0, 0);
+    maximize_int (&r.col0, 0);
+    minimize_int (&r.rowi, psppire_axis_unit_count (sheet->vaxis) - 1);
+    minimize_int (&r.coli, psppire_axis_unit_count (sheet->haxis) - 1);
+
+
     if (  gtk_sheet_range_isvisible (sheet, &r))
       gtk_sheet_range_draw (sheet, &r);
   }
