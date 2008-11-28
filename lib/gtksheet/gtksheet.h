@@ -67,7 +67,6 @@ struct _GtkSheetCellAttr
   GdkColor background;
   GtkSheetCellBorder border;
   gboolean is_editable;
-  gboolean is_visible;
 };
 
 struct _GtkSheetHoverTitle

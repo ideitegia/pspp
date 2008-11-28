@@ -106,7 +106,6 @@ struct _GSheetModelIface
   gboolean  (* clear_datum) (GSheetModel *sheet_model,
 			     glong row, glong column);
 
-  gboolean (* is_visible) (const GSheetModel *sheet_model, glong row, glong column);
   gboolean (* is_editable) (const GSheetModel *sheet_model, glong row, glong column);
 
   GdkColor *  (* get_foreground) (const GSheetModel *sheet_model,

@@ -324,7 +324,6 @@ psppire_var_store_sheet_model_init (GSheetModelIface *iface)
   iface->set_string = psppire_var_store_set_string;
   iface->clear_datum = psppire_var_store_clear;
   iface->is_editable = psppire_var_store_is_editable;
-  iface->is_visible = NULL;
   iface->get_foreground = psppire_var_store_get_foreground;
   iface->get_background = NULL;
   iface->get_font_desc = psppire_var_store_get_font_desc;

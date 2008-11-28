@@ -2631,9 +2631,6 @@ gtk_sheet_show_active_cell (GtkSheet *sheet)
   if ( ! text )
     text = g_strdup ("");
 
-  gtk_entry_set_visibility (sheet_entry, attributes.is_visible);
-
-
   if ( GTK_IS_ENTRY (sheet_entry))
     {
       const gchar *old_text = gtk_entry_get_text (GTK_ENTRY (sheet_entry));
@@ -5189,8 +5186,6 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
   attr->font_desc = GTK_WIDGET (sheet)->style->font_desc;
 
   attr->is_editable = g_sheet_model_is_editable (sheet->model, row, col);
-  attr->is_visible = g_sheet_model_is_visible (sheet->model, row, col);
-
 
   colormap = gtk_widget_get_colormap (GTK_WIDGET (sheet));
   fg = g_sheet_model_get_foreground (sheet->model, row, col);

@@ -348,27 +348,6 @@ g_sheet_model_is_editable (const GSheetModel *model,
 							  row, column);
 }
 
-/**
- * g_sheet_model_is_visible:
- * @sheet_model: A #GSheetModel
- * @row: The row
- * @column: The column
- *
- * Returns: TRUE if the cell is visible, FALSE otherwise
- **/
-gboolean
-g_sheet_model_is_visible (const GSheetModel *model,
-			  glong row, glong column)
-{
-  g_return_val_if_fail (G_IS_SHEET_MODEL (model), TRUE);
-
-  if ( ! G_SHEET_MODEL_GET_IFACE (model)->is_visible )
-    return TRUE;
-
-  return G_SHEET_MODEL_GET_IFACE (model)->is_visible (model,
-							row, column);
-}
-
 
 /**
  * g_sheet_model_get_foreground:
