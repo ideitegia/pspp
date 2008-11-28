@@ -421,7 +421,7 @@ static void gtk_sheet_size_allocate 		 (GtkWidget *widget,
 /* Sheet queries */
 
 static gboolean gtk_sheet_range_isvisible (const GtkSheet *sheet,
-					   GtkSheetRange range);
+					   const GtkSheetRange *range);
 static gboolean gtk_sheet_cell_isvisible  (GtkSheet *sheet,
 					   gint row, gint column);
 /* Drawing Routines */
@@ -1537,32 +1537,32 @@ gtk_sheet_select_column (GtkSheet *sheet, gint column)
 
 static gboolean
 gtk_sheet_range_isvisible (const GtkSheet *sheet,
-			   GtkSheetRange range)
+			   const GtkSheetRange *range)
 {
   g_return_val_if_fail (sheet != NULL, FALSE);
 
-  if (range.row0 < 0 || range.row0 >= psppire_axis_unit_count (sheet->vaxis))
+  if (range->row0 < 0 || range->row0 >= psppire_axis_unit_count (sheet->vaxis))
     return FALSE;
 
-  if (range.rowi < 0 || range.rowi >= psppire_axis_unit_count (sheet->vaxis))
+  if (range->rowi < 0 || range->rowi >= psppire_axis_unit_count (sheet->vaxis))
     return FALSE;
 
-  if (range.col0 < 0 || range.col0 >= psppire_axis_unit_count (sheet->haxis))
+  if (range->col0 < 0 || range->col0 >= psppire_axis_unit_count (sheet->haxis))
     return FALSE;
 
-  if (range.coli < 0 || range.coli >= psppire_axis_unit_count (sheet->haxis))
+  if (range->coli < 0 || range->coli >= psppire_axis_unit_count (sheet->haxis))
     return FALSE;
 
-  if (range.rowi < min_visible_row (sheet))
+  if (range->rowi < min_visible_row (sheet))
     return FALSE;
 
-  if (range.row0 > max_visible_row (sheet))
+  if (range->row0 > max_visible_row (sheet))
     return FALSE;
 
-  if (range.coli < min_visible_column (sheet))
+  if (range->coli < min_visible_column (sheet))
     return FALSE;
 
-  if (range.col0 > max_visible_column (sheet))
+  if (range->col0 > max_visible_column (sheet))
     return FALSE;
 
   return TRUE;
@@ -1579,7 +1579,7 @@ gtk_sheet_cell_isvisible (GtkSheet *sheet,
   range.rowi = row;
   range.coli = column;
 
-  return gtk_sheet_range_isvisible (sheet, range);
+  return gtk_sheet_range_isvisible (sheet, &range);
 }
 
 void
@@ -2132,10 +2132,11 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
       drawing_range.rowi = MIN (range->rowi, max_visible_row (sheet));
       drawing_range.coli = MIN (range->coli, max_visible_column (sheet));
 
-
       rectangle_from_range (sheet, &drawing_range, &area);
     }
 
+  g_return_if_fail (drawing_range.rowi >= drawing_range.row0);
+  g_return_if_fail (drawing_range.coli >= drawing_range.col0);
 
   gdk_draw_rectangle (sheet->sheet_window,
 		      GTK_WIDGET (sheet)->style->white_gc,
@@ -2150,7 +2151,7 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
       }
 
   if (sheet->state != GTK_SHEET_NORMAL &&
-      gtk_sheet_range_isvisible (sheet, sheet->range))
+      gtk_sheet_range_isvisible (sheet, &sheet->range))
     gtk_sheet_range_draw_selection (sheet, drawing_range);
 
   if (sheet->state == GTK_STATE_NORMAL &&
@@ -2172,7 +2173,7 @@ gtk_sheet_range_draw_selection (GtkSheet *sheet, GtkSheetRange range)
       range.row0 > sheet->range.rowi || range.rowi < sheet->range.row0)
     return;
 
-  if (!gtk_sheet_range_isvisible (sheet, range)) return;
+  if (!gtk_sheet_range_isvisible (sheet, &range)) return;
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
   aux = range;
@@ -2524,8 +2525,6 @@ gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
 static void
 gtk_sheet_hide_entry_widget (GtkSheet *sheet)
 {
-  GdkRectangle area;
-
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     return;
 
@@ -2572,8 +2571,11 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
     r.coli = old_col + 1;
     r.row0 = old_row - 1;
     r.rowi = old_row + 1;
-    gtk_sheet_range_draw (sheet, &r);
+
+    if (  gtk_sheet_range_isvisible (sheet, &r))
+      gtk_sheet_range_draw (sheet, &r);
   }
+
 
 
   sheet->range.row0 = row;
@@ -3050,11 +3052,6 @@ gtk_sheet_real_unselect_range (GtkSheet *sheet,
   g_signal_emit (sheet, sheet_signals[SELECT_COLUMN], 0, -1);
   g_signal_emit (sheet, sheet_signals[SELECT_ROW], 0, -1);
 
-#if 0
-  if (gtk_sheet_range_isvisible (sheet, *range))
-    gtk_sheet_draw_backing_pixmap (sheet, *range);
-#endif
-
   sheet->range.row0 = -1;
   sheet->range.rowi = -1;
   sheet->range.col0 = -1;
@@ -3125,13 +3122,13 @@ gtk_sheet_expose (GtkWidget *widget,
 
       if (sheet->state != GTK_SHEET_NORMAL)
 	{
-	  if (gtk_sheet_range_isvisible (sheet, sheet->range))
+	  if (gtk_sheet_range_isvisible (sheet, &sheet->range))
 	    gtk_sheet_range_draw (sheet, &sheet->range);
 
 	  if (GTK_SHEET_IN_RESIZE (sheet) || GTK_SHEET_IN_DRAG (sheet))
 	    gtk_sheet_range_draw (sheet, &sheet->drag_range);
 
-	  if (gtk_sheet_range_isvisible (sheet, sheet->range))
+	  if (gtk_sheet_range_isvisible (sheet, &sheet->range))
 	    gtk_sheet_range_draw_selection (sheet, sheet->range);
 	  if (GTK_SHEET_IN_RESIZE (sheet) || GTK_SHEET_IN_DRAG (sheet))
 	    draw_xor_rectangle (sheet, sheet->drag_range);
@@ -5347,7 +5344,7 @@ range_to_text (const GtkSheet *sheet)
   gint r, c;
   GString *string;
 
-  if ( !gtk_sheet_range_isvisible (sheet, sheet->range))
+  if ( !gtk_sheet_range_isvisible (sheet, &sheet->range))
     return NULL;
 
   string = g_string_sized_new (80);
@@ -5373,7 +5370,7 @@ range_to_html (const GtkSheet *sheet)
   gint r, c;
   GString *string;
 
-  if ( !gtk_sheet_range_isvisible (sheet, sheet->range))
+  if ( !gtk_sheet_range_isvisible (sheet, &sheet->range))
     return NULL;
 
   string = g_string_sized_new (480);
@@ -5464,7 +5461,7 @@ gtk_sheet_update_primary_selection (GtkSheet *sheet)
   clipboard = gtk_widget_get_clipboard (GTK_WIDGET (sheet),
 					GDK_SELECTION_PRIMARY);
 
-  if (gtk_sheet_range_isvisible (sheet, sheet->range))
+  if (gtk_sheet_range_isvisible (sheet, &sheet->range))
     {
       if (!gtk_clipboard_set_with_owner (clipboard, targets,
 					 G_N_ELEMENTS (targets),

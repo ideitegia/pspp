@@ -51,8 +51,8 @@ typedef struct _GtkSheetCellBorder     GtkSheetCellBorder;
 
 struct _GtkSheetRange
 {
-  glong row0, col0; /* upper-left cell */
-  glong rowi, coli; /* lower-right cell */
+  gint row0, col0; /* upper-left cell */
+  gint rowi, coli; /* lower-right cell */
 };
 
 struct _GtkSheetCellBorder
