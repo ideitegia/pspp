@@ -1719,7 +1719,7 @@ gtk_sheet_realize (GtkWidget *widget)
   const gint attributes_mask =
     GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP | GDK_WA_CURSOR;
 
-  GdkGCValues values, auxvalues;
+  GdkGCValues values;
   GdkColormap *colormap;
   GdkDisplay *display;
 
@@ -1815,8 +1815,6 @@ gtk_sheet_realize (GtkWidget *widget)
   /* GCs */
   sheet->fg_gc = gdk_gc_new (widget->window);
   sheet->bg_gc = gdk_gc_new (widget->window);
-
-  gdk_gc_get_values (sheet->fg_gc, &auxvalues);
 
   values.foreground = widget->style->white;
   values.function = GDK_INVERT;
