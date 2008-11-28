@@ -4731,7 +4731,7 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
 static void
 draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint last)
 {
-  GdkRegion *region;
+  GdkRectangle rect;
   gint col;
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
@@ -4740,10 +4740,15 @@ draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint last)
   g_return_if_fail (first >= min_visible_column (sheet));
   g_return_if_fail (last <= max_visible_column (sheet));
 
-  region =
-    gdk_drawable_get_visible_region (GDK_DRAWABLE (sheet->column_title_window));
+  rect.y = 0;
+  rect.height = sheet->column_title_area.height;
+  rect.x = psppire_axis_pixel_start (sheet->haxis, first) + CELL_SPACING;
+  rect.width = psppire_axis_pixel_start (sheet->haxis, last) + CELL_SPACING
+    + psppire_axis_unit_size (sheet->haxis, last);
 
-  gdk_window_begin_paint_region (sheet->column_title_window, region);
+  rect.x -= sheet->hadjustment->value;
+
+  gdk_window_begin_paint_rect (sheet->column_title_window, &rect);
 
   for (col = first ; col <= last ; ++col)
     {
@@ -4772,7 +4777,7 @@ draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint last)
 static void
 draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint last)
 {
-  GdkRegion *region;
+  GdkRectangle rect;
   gint row;
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
@@ -4781,13 +4786,15 @@ draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint last)
   g_return_if_fail (first >= min_visible_row (sheet));
   g_return_if_fail (last <= max_visible_row (sheet));
 
+  rect.x = 0;
+  rect.width = sheet->row_title_area.width;
+  rect.y = psppire_axis_pixel_start (sheet->vaxis, first) + CELL_SPACING;
+  rect.height = psppire_axis_pixel_start (sheet->vaxis, last) + CELL_SPACING
+    + psppire_axis_unit_size (sheet->vaxis, last);
 
-  region =
-    gdk_drawable_get_visible_region (GDK_DRAWABLE (sheet->row_title_window));
+  rect.y -= sheet->vadjustment->value;
 
-  gdk_window_begin_paint_region (sheet->row_title_window, region);
-
-
+  gdk_window_begin_paint_rect (sheet->row_title_window, &rect);
   for (row = first; row <= last; ++row)
     {
       GdkRectangle allocation;
