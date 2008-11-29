@@ -4748,6 +4748,9 @@ draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint last)
 
   rect.x -= sheet->hadjustment->value;
 
+  minimize_int (&rect.width, sheet->column_title_area.width);
+  maximize_int (&rect.x, 0);
+
   gdk_window_begin_paint_rect (sheet->column_title_window, &rect);
 
   for (col = first ; col <= last ; ++col)
@@ -4793,6 +4796,9 @@ draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint last)
     + psppire_axis_unit_size (sheet->vaxis, last);
 
   rect.y -= sheet->vadjustment->value;
+
+  minimize_int (&rect.height, sheet->row_title_area.height);
+  maximize_int (&rect.y, 0);
 
   gdk_window_begin_paint_rect (sheet->row_title_window, &rect);
   for (row = first; row <= last; ++row)
