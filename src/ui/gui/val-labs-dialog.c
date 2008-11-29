@@ -270,6 +270,7 @@ on_change (GtkWidget *w, gpointer data)
   gtk_widget_set_sensitive (dialog->change_button, FALSE);
 
   repopulate_dialog (dialog);
+  gtk_widget_grab_focus (dialog->value_entry);
 
   return FALSE;
 }
@@ -296,6 +297,7 @@ on_add (GtkWidget *w, gpointer data)
   gtk_widget_set_sensitive (dialog->add_button, FALSE);
 
   repopulate_dialog (dialog);
+  gtk_widget_grab_focus (dialog->value_entry);
 
   return FALSE;
 }
@@ -311,6 +313,7 @@ on_remove (GtkWidget *w, gpointer data)
   val_labs_remove (dialog->labs, vl->value);
 
   repopulate_dialog (dialog);
+  gtk_widget_grab_focus (dialog->value_entry);
 
   gtk_widget_set_sensitive (dialog->remove_button, FALSE);
 
@@ -527,6 +530,8 @@ val_labs_dialog_show (struct val_labs_dialog *dialog)
   gtk_widget_set_sensitive (dialog->remove_button, FALSE);
   gtk_widget_set_sensitive (dialog->change_button, FALSE);
   gtk_widget_set_sensitive (dialog->add_button, FALSE);
+
+  gtk_widget_grab_focus (dialog->value_entry);
 
   repopulate_dialog (dialog);
   gtk_widget_show (dialog->window);
