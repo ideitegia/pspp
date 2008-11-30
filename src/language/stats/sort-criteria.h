@@ -22,10 +22,12 @@
 
 struct dictionary;
 struct lexer;
+struct variable;
+struct subcase;
 
-struct case_ordering *parse_case_ordering (struct lexer *,
-                                           const struct dictionary *,
-                                           bool *saw_direction);
+bool parse_sort_criteria (struct lexer *, const struct dictionary *,
+                          struct subcase *, const struct variable ***vars,
+                          bool *saw_direction);
 
 
-#endif /* SORT_PRS_H */
+#endif /* sort-criteria.h */

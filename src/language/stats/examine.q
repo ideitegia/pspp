@@ -34,9 +34,9 @@
 #include <data/casegrouper.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
-#include <data/case-ordering.h>
 #include <data/dictionary.h>
 #include <data/procedure.h>
+#include <data/subcase.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
 #include <language/command.h>
@@ -911,11 +911,11 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	{
 	  /* In this case, we need to sort the data, so we create a sorting
 	     casewriter */
-	  struct case_ordering *up_ordering = case_ordering_create ();
-
-	  case_ordering_add_var (up_ordering, dependent_vars[v], SRT_ASCEND);
-	  writer = sort_create_writer (up_ordering,
+	  struct subcase up_ordering;
+          subcase_init_var (&up_ordering, dependent_vars[v], SC_ASCEND);
+	  writer = sort_create_writer (&up_ordering,
 				       casereader_get_value_cnt (reader));
+          subcase_destroy (&up_ordering);
 	}
       else
 	{
@@ -1131,15 +1131,10 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
       struct casereader *group = NULL;
       struct casereader *level1;
       struct casegrouper *grouper1 = NULL;
-      struct case_ordering *ordering1 = case_ordering_create ();
-      case_ordering_add_var (ordering1, factor->indep_var[0], SRT_ASCEND);
 
       level1 = casereader_clone (input);
-
-      level1 = sort_execute (level1,
-			     case_ordering_clone (ordering1));
-      grouper1 = casegrouper_create_case_ordering (level1, ordering1);
-      case_ordering_destroy (ordering1);
+      level1 = sort_execute_1var (level1, factor->indep_var[0]);
+      grouper1 = casegrouper_create_vars (level1, &factor->indep_var[0], 1);
 
       while (casegrouper_get_next_group (grouper1, &group))
 	{
@@ -1152,16 +1147,12 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 	      int n_groups = 0;
 	      struct casereader *group2 = NULL;
 	      struct casegrouper *grouper2 = NULL;
-	      struct case_ordering *ordering2 = case_ordering_create ();
 
-	      case_ordering_add_var (ordering2,
-				     factor->indep_var[1], SRT_ASCEND);
-	      group_copy = sort_execute (group_copy,
-				     case_ordering_clone (ordering2));
-	      grouper2 =
-		casegrouper_create_case_ordering (group_copy, ordering2);
+	      group_copy = sort_execute_1var (group_copy,
+                                              factor->indep_var[1]);
 
-	      case_ordering_destroy (ordering2);
+	      grouper2 = casegrouper_create_vars (group_copy,
+                                                  &factor->indep_var[1], 1);
 
 	      while (casegrouper_get_next_group (grouper2, &group2))
 		{

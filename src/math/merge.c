@@ -21,10 +21,10 @@
 
 #include <math/merge.h>
 
-#include <data/case-ordering.h>
 #include <data/case.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
+#include <data/subcase.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/taint.h>
@@ -41,7 +41,7 @@ struct merge_input
 
 struct merge
   {
-    struct case_ordering *ordering;
+    struct subcase ordering;
     struct merge_input inputs[MAX_MERGE_ORDER];
     size_t input_cnt;
     size_t value_cnt;
@@ -50,10 +50,10 @@ struct merge
 static void do_merge (struct merge *m);
 
 struct merge *
-merge_create (const struct case_ordering *ordering, size_t value_cnt)
+merge_create (const struct subcase *ordering, size_t value_cnt)
 {
   struct merge *m = xmalloc (sizeof *m);
-  m->ordering = case_ordering_clone (ordering);
+  subcase_clone (&m->ordering, ordering);
   m->input_cnt = 0;
   m->value_cnt = value_cnt;
   return m;
@@ -66,7 +66,7 @@ merge_destroy (struct merge *m)
     {
       size_t i;
 
-      case_ordering_destroy (m->ordering);
+      subcase_destroy (&m->ordering);
       for (i = 0; i < m->input_cnt; i++)
         casereader_destroy (m->inputs[i].reader);
       free (m);
@@ -144,8 +144,8 @@ do_merge (struct merge *m)
 
       min = 0;
       for (i = 1; i < m->input_cnt; i++)
-        if (case_ordering_compare_cases (&m->inputs[i].c, &m->inputs[min].c,
-                                         m->ordering) < 0)
+        if (subcase_compare_3way (&m->ordering, &m->inputs[i].c,
+                                  &m->ordering, &m->inputs[min].c) < 0)
           min = i;
 
       casewriter_write (w, &m->inputs[min].c);

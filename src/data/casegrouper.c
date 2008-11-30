@@ -20,10 +20,10 @@
 
 #include <stdlib.h>
 
-#include <data/case-ordering.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
 #include <data/dictionary.h>
+#include <data/subcase.h>
 #include <libpspp/taint.h>
 
 #include "xalloc.h"
@@ -159,13 +159,6 @@ casegrouper_destroy (struct casegrouper *grouper)
 /* Casegrouper based on equal values of variables from case to
    case. */
 
-/* Casegrouper based on equal variables. */
-struct casegrouper_vars
-  {
-    const struct variable **vars; /* Variables to compare. */
-    size_t var_cnt;               /* Number of variables. */
-  };
-
 static bool casegrouper_vars_same_group (const struct ccase *,
                                          const struct ccase *,
                                          void *);
@@ -180,15 +173,12 @@ casegrouper_create_vars (struct casereader *reader,
                          const struct variable *const *vars,
                          size_t var_cnt)
 {
-  if (var_cnt > 0)
+  if (var_cnt > 0) 
     {
-      struct casegrouper_vars *cv = xmalloc (sizeof *cv);
-      cv->vars = xmemdup (vars, sizeof *vars * var_cnt);
-      cv->var_cnt = var_cnt;
-      return casegrouper_create_func (reader,
-                                      casegrouper_vars_same_group,
-                                      casegrouper_vars_destroy,
-                                      cv);
+      struct subcase *sc = xmalloc (sizeof *sc);
+      subcase_init_vars (sc, vars, var_cnt);
+      return casegrouper_create_func (reader, casegrouper_vars_same_group,
+                                      casegrouper_vars_destroy, sc); 
     }
   else
     return casegrouper_create_func (reader, NULL, NULL, NULL);
@@ -210,39 +200,41 @@ casegrouper_create_splits (struct casereader *reader,
 
 /* Creates and returns a casegrouper that reads data from READER
    and breaks it into contiguous groups of cases that have equal
-   values for the variables used for sorting in CO.  If CO is
-   empty (contains no sort keys), then all the cases will be put
+   values for the variables used for sorting in SC.  If SC is
+   empty (contains no fields), then all the cases will be put
    into a single group. */
 struct casegrouper *
-casegrouper_create_case_ordering (struct casereader *reader,
-                                  const struct case_ordering *co)
+casegrouper_create_subcase (struct casereader *reader,
+                            const struct subcase *sc)
 {
-  const struct variable **vars;
-  size_t var_cnt;
-  struct casegrouper *grouper;
-
-  case_ordering_get_vars (co, &vars, &var_cnt);
-  grouper = casegrouper_create_vars (reader, vars, var_cnt);
-  free (vars);
-
-  return grouper;
+  if (subcase_get_n_fields (sc) > 0) 
+    {
+      struct subcase *sc_copy = xmalloc (sizeof *sc);
+      subcase_clone (sc_copy, sc);
+      return casegrouper_create_func (reader, casegrouper_vars_same_group,
+                                      casegrouper_vars_destroy, sc_copy); 
+    }
+  else
+    return casegrouper_create_func (reader, NULL, NULL, NULL);
 }
 
 /* "same_group" function for an equal-variables casegrouper. */
 static bool
 casegrouper_vars_same_group (const struct ccase *a, const struct ccase *b,
-                             void *cv_)
+                             void *sc_)
 {
-  struct casegrouper_vars *cv = cv_;
-  return case_compare (a, b, cv->vars, cv->var_cnt) == 0;
+  struct subcase *sc = sc_;
+  return subcase_equal (sc, a, sc, b);
 }
 
 /* "destroy" for an equal-variables casegrouper. */
 static void
-casegrouper_vars_destroy (void *cv_)
+casegrouper_vars_destroy (void *sc_)
 {
-  struct casegrouper_vars *cv = cv_;
-  free (cv->vars);
-  free (cv);
+  struct subcase *sc = sc_;
+  if (sc != NULL) 
+    {
+      subcase_destroy (sc);
+      free (sc); 
+    }
 }
-

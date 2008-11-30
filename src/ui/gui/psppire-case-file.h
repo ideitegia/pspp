@@ -95,9 +95,9 @@ gboolean psppire_case_file_delete_cases (PsppireCaseFile *cf, casenumber n_rows,
 
 gboolean psppire_case_file_insert_values (PsppireCaseFile *cf, gint n_values, gint where);
 
-struct case_ordering;
+struct subcase;
 
-void psppire_case_file_sort (PsppireCaseFile *cf, struct case_ordering *);
+void psppire_case_file_sort (PsppireCaseFile *cf, const struct subcase *);
 
 gboolean psppire_case_file_get_case (const PsppireCaseFile *cf, 
 					casenumber casenum,

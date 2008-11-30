@@ -380,7 +380,7 @@ psppire_case_file_data_in (PsppireCaseFile *cf, casenumber casenum, gint idx,
 
 
 void
-psppire_case_file_sort (PsppireCaseFile *cf, struct case_ordering *ordering)
+psppire_case_file_sort (PsppireCaseFile *cf, const struct subcase *ordering)
 {
   struct casereader *sorted_data;
   gint c;

@@ -20,12 +20,16 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-struct case_ordering;
+struct subcase;
+struct variable;
 
 extern int min_buffers ;
 extern int max_buffers ;
 
-struct casewriter *sort_create_writer (struct case_ordering *, size_t value_cnt);
-struct casereader *sort_execute (struct casereader *, struct case_ordering *);
+struct casewriter *sort_create_writer (const struct subcase *,
+                                       size_t value_cnt);
+struct casereader *sort_execute (struct casereader *, const struct subcase *);
+struct casereader *sort_execute_1var (struct casereader *,
+                                      const struct variable *);
 
 #endif /* math/sort.h */

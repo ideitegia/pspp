@@ -16,8 +16,6 @@ src_data_libdata_la_SOURCES = \
 	src/data/calendar.h \
 	src/data/case-map.c \
 	src/data/case-map.h \
-	src/data/case-ordering.c \
-	src/data/case-ordering.h \
 	src/data/case.c \
 	src/data/casegrouper.c \
 	src/data/casegrouper.h \
@@ -88,6 +86,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/short-names.h \
 	src/data/sparse-cases.c \
 	src/data/sparse-cases.h \
+	src/data/subcase.c \
+	src/data/subcase.h \
 	src/data/sys-file-private.c \
 	src/data/sys-file-private.h \
 	src/data/sys-file-reader.c \

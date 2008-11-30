@@ -20,8 +20,8 @@
 
 #include <stdlib.h>
 
-#include <data/case-ordering.h>
 #include <data/dictionary.h>
+#include <data/subcase.h>
 #include <data/variable.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
@@ -30,40 +30,45 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* Parses a list of sort keys and returns a struct sort_criteria
-   based on it.  Returns a null pointer on error.
+/* Parses a list of sort fields and appends them to ORDERING,
+   which the caller must already have initialized.
+   Returns true if successful, false on error.
    If SAW_DIRECTION is nonnull, sets *SAW_DIRECTION to true if at
    least one parenthesized sort direction was specified, false
    otherwise. */
-struct case_ordering *
-parse_case_ordering (struct lexer *lexer, const struct dictionary *dict,
-                     bool *saw_direction)
+bool
+parse_sort_criteria (struct lexer *lexer, const struct dictionary *dict,
+                     struct subcase *ordering,
+                     const struct variable ***vars, bool *saw_direction)
 {
-  struct case_ordering *ordering = case_ordering_create ();
-  const struct variable **vars = NULL;
+  const struct variable **local_vars = NULL;
   size_t var_cnt = 0;
 
- if (saw_direction != NULL)
+  if (vars == NULL) 
+    vars = &local_vars;
+  *vars = NULL;
+
+  if (saw_direction != NULL)
     *saw_direction = false;
 
   do
     {
-      enum sort_direction direction;
+      size_t prev_var_cnt = var_cnt;
+      enum subcase_direction direction;
       size_t i;
 
       /* Variables. */
-      free (vars);
-      vars = NULL;
-      if (!parse_variables_const (lexer, dict, &vars, &var_cnt, PV_NO_SCRATCH))
+      if (!parse_variables_const (lexer, dict, vars, &var_cnt,
+                                  PV_APPEND | PV_NO_SCRATCH))
         goto error;
 
       /* Sort direction. */
       if (lex_match (lexer, '('))
 	{
 	  if (lex_match_id (lexer, "D") || lex_match_id (lexer, "DOWN"))
-	    direction = SRT_DESCEND;
+	    direction = SC_DESCEND;
 	  else if (lex_match_id (lexer, "A") || lex_match_id (lexer, "UP"))
-            direction = SRT_ASCEND;
+            direction = SC_ASCEND;
           else
 	    {
 	      msg (SE, _("`A' or `D' expected inside parentheses."));
@@ -78,21 +83,25 @@ parse_case_ordering (struct lexer *lexer, const struct dictionary *dict,
             *saw_direction = true;
 	}
       else
-        direction = SRT_ASCEND;
+        direction = SC_ASCEND;
 
-      for (i = 0; i < var_cnt; i++)
-        if (!case_ordering_add_var (ordering, vars[i], direction))
-          msg (SW, _("Variable %s specified twice in sort criteria."),
-               var_get_name (vars[i]));
+      for (i = prev_var_cnt; i < var_cnt; i++) 
+        {
+          const struct variable *var = (*vars)[i];
+          if (!subcase_add_var (ordering, var, direction))
+            msg (SW, _("Variable %s specified twice in sort criteria."),
+                 var_get_name (var)); 
+        }
     }
   while (lex_token (lexer) == T_ID
          && dict_lookup_var (dict, lex_tokid (lexer)) != NULL);
 
-  free (vars);
-  return ordering;
+  free (local_vars);
+  return true;
 
- error:
-  free (vars);
-  case_ordering_destroy (ordering);
-  return NULL;
+error:
+  free (local_vars);
+  if (vars)
+    *vars = NULL;
+  return false;
 }
