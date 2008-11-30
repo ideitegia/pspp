@@ -1623,7 +1623,6 @@ prepare_formats_page (struct import_assistant *ia)
      hold a reference via ia->formats.dict. */
   var_store = psppire_var_store_new (psppire_dict);
   g_object_set (var_store,
-                "trailing-rows", 1,
                 "format-type", PSPPIRE_VAR_STORE_INPUT_FORMATS,
                 (void *) NULL);
   var_sheet = PSPPIRE_VAR_SHEET (psppire_var_sheet_new ());

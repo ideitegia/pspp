@@ -43,7 +43,7 @@
 
 enum
   {
-    PSPPIRE_VAR_STORE_TRAILING_ROWS = 1,
+    PROP_0,
     PSPPIRE_VAR_STORE_FORMAT_TYPE
   };
 
@@ -143,10 +143,6 @@ psppire_var_store_set_property (GObject      *object,
 
   switch (property_id)
     {
-    case PSPPIRE_VAR_STORE_TRAILING_ROWS:
-      self->trailing_rows = g_value_get_int (value);
-      break;
-
     case PSPPIRE_VAR_STORE_FORMAT_TYPE:
       self->format_type = g_value_get_enum (value);
       break;
@@ -167,10 +163,6 @@ psppire_var_store_get_property (GObject      *object,
 
   switch (property_id)
     {
-    case PSPPIRE_VAR_STORE_TRAILING_ROWS:
-      g_value_set_int (value, self->trailing_rows);
-      break;
-
     case PSPPIRE_VAR_STORE_FORMAT_TYPE:
       g_value_set_enum (value, self->format_type);
       break;
@@ -195,20 +187,6 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
   object_class->set_property = psppire_var_store_set_property;
   object_class->get_property = psppire_var_store_get_property;
 
-  /* The minimum value for trailing-rows is 1 to prevent the
-     var-store from ever having 0 rows, which breaks invariants
-     in gtksheet. */
-  pspec = g_param_spec_int ("trailing-rows",
-                            "Trailing rows",
-                            "Number of rows displayed after last variable",
-                            1  /* minimum value */,
-                            100 /* maximum value */,
-                            40  /* default value */,
-                            G_PARAM_READWRITE);
-  g_object_class_install_property (object_class,
-                                   PSPPIRE_VAR_STORE_TRAILING_ROWS,
-                                   pspec);
-
   pspec = g_param_spec_enum ("format-type",
                              "Variable format type",
                              ("Whether variables have input or output "
@@ -216,6 +194,7 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
                              G_TYPE_PSPPIRE_VAR_STORE_FORMAT_TYPE,
                              PSPPIRE_VAR_STORE_OUTPUT_FORMATS,
                              G_PARAM_READWRITE);
+
   g_object_class_install_property (object_class,
                                    PSPPIRE_VAR_STORE_FORMAT_TYPE,
                                    pspec);
@@ -230,7 +209,6 @@ psppire_var_store_init (PsppireVarStore *var_store)
 	g_critical ("Could not parse color \"%s\"", DISABLED_COLOR);
 
   var_store->dict = 0;
-  var_store->trailing_rows = 40;
   var_store->format_type = PSPPIRE_VAR_STORE_OUTPUT_FORMATS;
 }
 
