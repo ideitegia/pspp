@@ -35,7 +35,7 @@ compare_group (const void *a_,
 {
   const struct group_statistics *a = a_;
   const struct group_statistics *b = b_;
-  return compare_values(&a->id, &b->id, var);
+  return compare_values_short (&a->id, &b->id, var);
 }
 
 
@@ -46,7 +46,7 @@ hash_group (const void *g_, const void *var)
   unsigned id_hash;
   const struct group_statistics *g = g_;;
 
-  id_hash = hash_value(&g->id, var);
+  id_hash = hash_value_short (&g->id, var);
 
   return id_hash;
 }

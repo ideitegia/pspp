@@ -186,8 +186,8 @@ pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs,
 	  if (val != NULL)
 	    {
 	      j = i;
-	      while (j < n_coef && compare_values (pspp_coeff_get_value (coefs[j], v),
-						   val, v) != 0)
+	      while (j < n_coef && compare_values_short (pspp_coeff_get_value (coefs[j], v),
+                                                         val, v) != 0)
 		{
 		  j++;
 		}

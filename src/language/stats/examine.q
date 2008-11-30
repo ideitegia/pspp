@@ -1337,8 +1337,8 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 	    {
 
 	      if ( last_value == NULL ||
-		   compare_values (last_value, result->value[0],
-				   fctr->indep_var[0]))
+		   compare_values_short (last_value, result->value[0],
+                                         fctr->indep_var[0]))
 		{
 		  struct string str;
 

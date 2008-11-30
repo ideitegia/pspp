@@ -47,21 +47,20 @@ value_create (int width)
    Only the short string portion of longer strings are
    compared. */
 int
-compare_values (const void *a_, const void *b_, const void *var_)
+compare_values_short (const void *a_, const void *b_, const void *var_) 
 {
   const union value *a = a_;
   const union value *b = b_;
   const struct variable *var = var_;
   int width = var_get_width (var);
-  return (width == 0
-          ? (a->f < b->f ? -1 : a->f > b->f)
-          : memcmp (a->s, b->s, MIN (MAX_SHORT_STRING, width)));
+  return value_compare_3way (a, b, MIN (width, MAX_SHORT_STRING));
 }
+
 
 /* Create a hash of V, which has the given WIDTH.
    Only the short string portion of a longer string is hashed. */
 unsigned
-hash_value (const void *v_, const void *var_)
+hash_value_short (const void *v_, const void *var_)
 {
   const union value *v = v_;
   const struct variable *var = var_;
@@ -121,4 +120,14 @@ value_resize (union value *value, int old_width, int new_width)
   assert (value_is_resizable (value, old_width, new_width));
   if (new_width > old_width)
     memset (&value->s[old_width], ' ', new_width - old_width);
+}
+
+/* Compares A and B, which both have the given WIDTH, and returns
+   a strcmp()-type result. */
+int
+value_compare_3way (const union value *a, const union value *b, int width)
+{
+  return (width == 0
+          ? (a->f < b->f ? -1 : a->f > b->f)
+          : memcmp (a->s, b->s, width));
 }

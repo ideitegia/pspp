@@ -1933,10 +1933,10 @@ short
 which_group (const struct group_statistics *g,
 	    const struct group_properties *p)
 {
-  if ( 0 == compare_values (&g->id, &p->v.g_value[0], p->indep_var))
+  if ( 0 == compare_values_short (&g->id, &p->v.g_value[0], p->indep_var))
     return 0;
 
-  if ( 0 == compare_values (&g->id, &p->v.g_value[1], p->indep_var))
+  if ( 0 == compare_values_short (&g->id, &p->v.g_value[1], p->indep_var))
     return 1;
 
   return 2;

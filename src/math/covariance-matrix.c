@@ -227,7 +227,7 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
       col += i;
       y = -1.0 * cat_get_category_count (i, v) / ssize;
       tmp_val = cat_subscript_to_value (i, v);
-      if (compare_values (tmp_val, val1, v))
+      if (compare_values_short (tmp_val, val1, v))
 	{
 	  y += -1.0;
 	}
@@ -262,7 +262,7 @@ covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 	  row += i;
 	  x = -1.0 * cat_get_category_count (i, v1) / ssize;
 	  tmp_val = cat_subscript_to_value (i, v1);
-	  if (compare_values (tmp_val, val1, v1))
+	  if (compare_values_short (tmp_val, val1, v1))
 	    {
 	      x += 1.0;
 	    }
@@ -399,23 +399,23 @@ match_nodes (const struct covariance_accumulator *c,
 	  }
 	if (var_is_numeric (v1) && var_is_alpha (v2))
 	  {
-	    if (compare_values (val2, c->val2, v2))
+	    if (compare_values_short (val2, c->val2, v2))
 	      {
 		return 0;
 	      }
 	  }
 	if (var_is_alpha (v1) && var_is_numeric (v2))
 	  {
-	    if (compare_values (val1, c->val1, v1))
+	    if (compare_values_short (val1, c->val1, v1))
 	      {
 		return 0;
 	      }
 	  }
 	if (var_is_alpha (v1) && var_is_alpha (v2))
 	  {
-	    if (compare_values (val1, c->val1, v1))
+	    if (compare_values_short (val1, c->val1, v1))
 	      {
-		if (compare_values (val2, c->val2, v2))
+		if (compare_values_short (val2, c->val2, v2))
 		  {
 		    return 0;
 		  }
@@ -689,7 +689,7 @@ covariance_matrix_insert (struct design_matrix *cov,
     {
       i = 0;
       tmp_val = cat_subscript_to_value (i, v1);
-      while (!compare_values (tmp_val, val1, v1))
+      while (!compare_values_short (tmp_val, val1, v1))
 	{
 	  i++;
 	  tmp_val = cat_subscript_to_value (i, v1);
@@ -704,7 +704,7 @@ covariance_matrix_insert (struct design_matrix *cov,
 	  col = design_matrix_var_to_column (cov, v2);
 	  i = 0;
 	  tmp_val = cat_subscript_to_value (i, v1);
-	  while (!compare_values (tmp_val, val1, v1))
+	  while (!compare_values_short (tmp_val, val1, v1))
 	    {
 	      i++;
 	      tmp_val = cat_subscript_to_value (i, v1);
