@@ -1175,14 +1175,26 @@ psppire_data_editor_sort_descending (PsppireDataEditor *de)
 void
 psppire_data_editor_insert_variable (PsppireDataEditor *de)
 {
-  glong posn = -1;
+  glong posn = 0;
 
-  if ( de->data_sheet[0]->state == GTK_SHEET_COLUMN_SELECTED )
-    posn = GTK_SHEET (de->data_sheet[0])->range.col0;
-  else
-    posn = GTK_SHEET (de->data_sheet[0])->active_cell.col;
-
-  if ( posn == -1 ) posn = 0;
+  switch (gtk_notebook_get_current_page (GTK_NOTEBOOK (de)))
+    {
+    case PSPPIRE_DATA_EDITOR_DATA_VIEW:
+      if ( de->data_sheet[0]->state == GTK_SHEET_COLUMN_SELECTED )
+	posn = GTK_SHEET (de->data_sheet[0])->range.col0;
+      else
+	posn = GTK_SHEET (de->data_sheet[0])->active_cell.col;
+      break;
+    case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
+      if ( de->var_sheet->state == GTK_SHEET_ROW_SELECTED )
+	posn = GTK_SHEET (de->var_sheet)->range.row0;
+      else
+	posn = GTK_SHEET (de->var_sheet)->active_cell.row;
+      break;
+    default:
+      g_assert_not_reached ();
+      break;
+    };
 
   psppire_dict_insert_variable (de->data_store->dict, posn, NULL);
 }
