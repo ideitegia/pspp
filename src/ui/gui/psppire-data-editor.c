@@ -123,21 +123,26 @@ static void popup_cases_menu (GtkSheet *sheet, gint row,
 static gboolean
 on_data_column_clicked (PsppireDataEditor *de, gint col, gpointer data)
 {
-
+  GtkSheetRange visible_range;
   gint current_row, current_column;
 
-  gtk_notebook_set_current_page (GTK_NOTEBOOK (de), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
+  gtk_notebook_set_current_page (GTK_NOTEBOOK (de),
+				 PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
 
   gtk_sheet_get_active_cell (GTK_SHEET (de->var_sheet),
 			     &current_row, &current_column);
 
   gtk_sheet_set_active_cell (GTK_SHEET (de->var_sheet), col, current_column);
 
+
+  gtk_sheet_get_visible_range (GTK_SHEET (de->var_sheet), &visible_range);
+
+  if ( col < visible_range.row0 || col > visible_range.rowi)
+    gtk_sheet_moveto (GTK_SHEET (de->var_sheet), col, current_column, 0.5, 0.5);
+
+
   return FALSE;
 }
-
-
-
 
 
 /* Callback which occurs when the var sheet's row title
@@ -159,10 +164,7 @@ on_var_row_clicked (PsppireDataEditor *de, gint row, gpointer data)
   gtk_sheet_get_visible_range (GTK_SHEET (de->data_sheet[0]), &visible_range);
 
   if ( row < visible_range.col0 || row > visible_range.coli)
-    {
-      gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]),
-			-1, row, 0, 0);
-    }
+    gtk_sheet_moveto (GTK_SHEET (de->data_sheet[0]), -1, row, 0.5, 0.5);
 
   return FALSE;
 }

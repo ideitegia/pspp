@@ -2582,8 +2582,6 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
       gtk_sheet_range_draw (sheet, &r);
   }
 
-
-
   sheet->range.row0 = row;
   sheet->range.col0 = col;
   sheet->range.rowi = row;
