@@ -130,7 +130,7 @@ elements numbered higher than the deleted element are shifted down,
 filling the vacated position.
 
 To associate custom attributes with particular variables, instead of
-with the entire active file, use @cmd{VARIABLE ATTRIBUTE} instead.
+with the entire active file, use @cmd{VARIABLE ATTRIBUTE} (@pxref{VARIABLE ATTRIBUTE}) instead.
 
 @cmd{DATAFILE ATTRIBUTE} takes effect immediately.  It is not affected
 by conditional and looping structures such as @cmd{DO IF} or
