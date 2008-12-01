@@ -54,7 +54,7 @@ static gboolean psppire_data_store_clear_datum (GSheetModel *model,
 static GObjectClass *parent_class = NULL;
 
 
-enum  {FONT_CHANGED,
+enum  {
        BACKEND_CHANGED,
        n_SIGNALS};
 
@@ -113,17 +113,6 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
   object_class->finalize = psppire_data_store_finalize;
   object_class->dispose = psppire_data_store_dispose;
 
-  signals [FONT_CHANGED] =
-    g_signal_new ("font_changed",
-		  G_TYPE_FROM_CLASS (class),
-		  G_SIGNAL_RUN_FIRST,
-		  0,
-		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
-		  G_TYPE_NONE,
-		  0);
-
-
   signals [BACKEND_CHANGED] =
     g_signal_new ("backend-changed",
 		  G_TYPE_FROM_CLASS (class),
@@ -173,15 +162,6 @@ psppire_data_store_init (PsppireDataStore *data_store)
   data_store->dispose_has_run = FALSE;
 }
 
-const PangoFontDescription *
-psppire_data_store_get_font_desc (const GSheetModel *model,
-			      glong row, glong column)
-{
-  PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
-
-  return store->font_desc;
-}
-
 static inline gchar *
 psppire_data_store_get_string_wrapper (const GSheetModel *model, glong row,
 				       glong column)
@@ -220,7 +200,6 @@ psppire_data_store_sheet_model_init (GSheetModelIface *iface)
   iface->is_editable = NULL;
   iface->get_foreground = NULL;
   iface->get_background = NULL;
-  iface->get_font_desc = psppire_data_store_get_font_desc;
   iface->get_cell_border = NULL;
   iface->get_column_count = psppire_data_store_get_var_count;
   iface->get_row_count = psppire_data_store_get_case_count_wrapper;
@@ -694,24 +673,6 @@ psppire_data_store_set_string (PsppireDataStore *store,
   return TRUE;
 }
 
-
-void
-psppire_data_store_set_font (PsppireDataStore *store,
-			    const PangoFontDescription *fd)
-{
-  g_return_if_fail (store);
-  g_return_if_fail (PSPPIRE_IS_DATA_STORE (store));
-
-  store->font_desc = fd;
-#if 0
-  store->width_of_m = calc_m_width (fd);
-#endif
-  g_signal_emit (store, signals [FONT_CHANGED], 0);
-
-
-  g_sheet_model_range_changed (G_SHEET_MODEL (store),
-				 -1, -1, -1, -1);
-}
 
 
 void

@@ -62,7 +62,6 @@ typedef struct _GtkSheetHoverTitle GtkSheetHoverTitle;
 struct _GtkSheetCellAttr
 {
   GtkJustification justification;
-  const PangoFontDescription *font_desc;
   GdkColor foreground;
   GdkColor background;
   GtkSheetCellBorder border;

@@ -65,7 +65,6 @@ struct _PsppireVarStore
   /*< private >*/
   PsppireDict *dict;
   GdkColor disabled;
-  const PangoFontDescription *font_desc;
   gint trailing_rows;
   PsppireVarStoreFormatType format_type;
 };

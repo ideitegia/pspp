@@ -1038,8 +1038,18 @@ static void
 fonts_activate (GtkMenuItem *menuitem, gpointer data)
 {
   struct data_editor *de = data;
+  PangoFontDescription *current_font;
+  gchar *font_name;
   GtkWidget *dialog =
     gtk_font_selection_dialog_new (_("Font Selection"));
+
+
+  current_font = GTK_WIDGET(de->data_editor)->style->font_desc;
+  font_name = pango_font_description_to_string (current_font);
+
+  gtk_font_selection_dialog_set_font_name (dialog, font_name);
+
+  g_free (font_name);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog),
 				GTK_WINDOW (get_widget_assert (de->xml,

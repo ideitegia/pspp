@@ -301,15 +301,6 @@ psppire_var_store_get_foreground (const GSheetModel *model, glong row, glong col
 }
 
 
-const PangoFontDescription *
-psppire_var_store_get_font_desc (const GSheetModel *model,
-			      glong row, glong column)
-{
-  PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
-
-  return store->font_desc;
-}
-
 static gchar *get_column_title (const GSheetModel *model, gint col);
 static gchar *get_row_title (const GSheetModel *model, gint row);
 static gboolean get_row_sensitivity (const GSheetModel *model, gint row);
@@ -326,7 +317,6 @@ psppire_var_store_sheet_model_init (GSheetModelIface *iface)
   iface->is_editable = psppire_var_store_is_editable;
   iface->get_foreground = psppire_var_store_get_foreground;
   iface->get_background = NULL;
-  iface->get_font_desc = psppire_var_store_get_font_desc;
   iface->get_cell_border = NULL;
   iface->get_justification = NULL;
 
@@ -745,18 +735,6 @@ gint
 psppire_var_store_get_var_cnt (PsppireVarStore  *store)
 {
   return psppire_dict_get_var_cnt (store->dict);
-}
-
-
-void
-psppire_var_store_set_font (PsppireVarStore *store, const PangoFontDescription *fd)
-{
-  g_return_if_fail (store);
-  g_return_if_fail (PSPPIRE_IS_VAR_STORE (store));
-
-  store->font_desc = fd;
-
-  g_sheet_model_range_changed (G_SHEET_MODEL (store), -1, -1, -1, -1);
 }
 
 

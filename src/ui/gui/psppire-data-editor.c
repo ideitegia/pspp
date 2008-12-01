@@ -1263,11 +1263,27 @@ psppire_data_editor_show_grid (PsppireDataEditor *de, gboolean grid_visible)
   gtk_sheet_show_grid (GTK_SHEET (de->data_sheet[0]), grid_visible);
 }
 
+
+static void
+set_font (GtkWidget *w, gpointer data)
+{
+  PangoFontDescription *font_desc = data;
+  GtkRcStyle *style = gtk_widget_get_modifier_style (w);
+
+  pango_font_description_free (style->font_desc);
+  style->font_desc = pango_font_description_copy (font_desc);
+
+  gtk_widget_modify_style (w, style);
+
+  if ( GTK_IS_CONTAINER (w))
+    gtk_container_foreach (w, set_font, font_desc);
+}
+
 void
 psppire_data_editor_set_font (PsppireDataEditor *de, PangoFontDescription *font_desc)
 {
-  psppire_data_store_set_font (de->data_store, font_desc);
-  psppire_var_store_set_font (de->var_store, font_desc);
+  set_font (de, font_desc);
+  gtk_container_foreach (GTK_CONTAINER (de), set_font, font_desc);
 }
 
 

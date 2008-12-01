@@ -416,27 +416,6 @@ g_sheet_model_get_justification (const GSheetModel *model,
 }
 
 /**
- * g_sheet_model_get_font_desc:
- * @sheet_model: A #GSheetModel
- * @row: The row
- * @column: The column
- *
- * Returns the font description of the cell at @row, @column
- * Returns: the font description, or NULL on error.
- **/
-const PangoFontDescription *
-g_sheet_model_get_font_desc(const GSheetModel *model,
-			      glong row, glong column)
-{
-  g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
-  if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_font_desc)
-    return NULL;
-
-  return G_SHEET_MODEL_GET_IFACE (model)->get_font_desc (model,
-							   row, column);
-}
-
-/**
  * g_sheet_model_get_cell_border:
  * @sheet_model: A #GSheetModel
  * @row: The row
