@@ -109,11 +109,16 @@ psppire_data_editor_finalize (GObject *obj)
 
 
 
-static void popup_variable_menu (GtkSheet *sheet, gint column,
-				 GdkEventButton *event, gpointer data);
+static void popup_variable_column_menu (GtkSheet *sheet, gint column,
+					GdkEventButton *event, gpointer data);
+
+static void popup_variable_row_menu (GtkSheet *sheet, gint row,
+				     GdkEventButton *event, gpointer data);
+
 
 static void popup_cases_menu (GtkSheet *sheet, gint row,
 			      GdkEventButton *event, gpointer data);
+
 
 
 
@@ -193,8 +198,9 @@ enum
     PROP_0,
     PROP_DATA_STORE,
     PROP_VAR_STORE,
-    PROP_COLUMN_MENU,
-    PROP_ROW_MENU,
+    PROP_VS_ROW_MENU,
+    PROP_DS_COLUMN_MENU,
+    PROP_DS_ROW_MENU,
     PROP_VALUE_LABELS,
     PROP_CURRENT_CASE,
     PROP_CURRENT_VAR,
@@ -203,7 +209,6 @@ enum
   };
 
 
-#define WIDTH_OF_M 10
 #define DEFAULT_ROW_HEIGHT 25
 
 static void
@@ -252,11 +257,30 @@ new_variables_callback (PsppireDict *dict, gpointer data)
     }
 }
 
+/* Return the width (in pixels) of an upper case M when rendered in the
+   current font of W
+*/
+static gint
+width_of_m (GtkWidget *w)
+{
+  PangoRectangle rect;
+  PangoLayout *layout = gtk_widget_create_pango_layout (w, "M");
+
+  pango_layout_get_pixel_extents (layout, NULL, &rect);
+
+  g_object_unref (layout);
+
+  return rect.width;
+}
+
 static void
 insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
 {
   gint i;
+
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  gint m_width  = width_of_m (GTK_WIDGET (de));
 
   PsppireAxisHetero *var_vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
@@ -269,7 +293,7 @@ insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
       PsppireAxisHetero *haxis;
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_hetero_insert (haxis, WIDTH_OF_M * var_get_display_width (var), x);
+      psppire_axis_hetero_insert (haxis, m_width * var_get_display_width (var), x);
     }
 }
 
@@ -301,6 +325,7 @@ rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
 {
   gint i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+  gint m_width = width_of_m (GTK_WIDGET (de));
 
   for (i = 0 ; i < 4 ; ++i)
     {
@@ -309,7 +334,7 @@ rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
       psppire_axis_hetero_resize_unit (haxis,
-				       WIDTH_OF_M *
+				       m_width *
 				       var_get_display_width (var), posn);
     }
 }
@@ -355,15 +380,23 @@ psppire_data_editor_set_property (GObject         *object,
 		    "model", de->var_store,
 		    NULL);
       break;
-    case PROP_COLUMN_MENU:
+    case PROP_VS_ROW_MENU:
+      {
+	GObject *menu = g_value_get_object (value);
+
+	g_signal_connect (de->var_sheet, "button-event-row",
+			  G_CALLBACK (popup_variable_row_menu), menu);
+      }
+      break;
+    case PROP_DS_COLUMN_MENU:
       {
 	GObject *menu = g_value_get_object (value);
 
 	g_signal_connect (de->data_sheet[0], "button-event-column",
-			  G_CALLBACK (popup_variable_menu), menu);
+			  G_CALLBACK (popup_variable_column_menu), menu);
       }
       break;
-    case PROP_ROW_MENU:
+    case PROP_DS_ROW_MENU:
       {
 	GObject *menu = g_value_get_object (value);
 
@@ -463,7 +496,8 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
   GParamSpec *data_store_spec ;
   GParamSpec *var_store_spec ;
   GParamSpec *column_menu_spec;
-  GParamSpec *row_menu_spec;
+  GParamSpec *ds_row_menu_spec;
+  GParamSpec *vs_row_menu_spec;
   GParamSpec *value_labels_spec;
   GParamSpec *current_case_spec;
   GParamSpec *current_var_spec;
@@ -500,27 +534,40 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
                                    var_store_spec);
 
   column_menu_spec =
-    g_param_spec_object ("column-menu",
-			 "Column Menu",
-			 "A menu to be displayed when button 3 is pressed in the column title buttons",
+    g_param_spec_object ("datasheet-column-menu",
+			 "Data Sheet Column Menu",
+			 "A menu to be displayed when button 3 is pressed in thedata sheet's column title buttons",
 			 GTK_TYPE_MENU,
 			 G_PARAM_WRITABLE);
 
   g_object_class_install_property (object_class,
-                                   PROP_COLUMN_MENU,
+                                   PROP_DS_COLUMN_MENU,
                                    column_menu_spec);
 
 
-  row_menu_spec =
-    g_param_spec_object ("row-menu",
-			 "Row Menu",
-			 "A menu to be displayed when button 3 is pressed in the row title buttons",
+  ds_row_menu_spec =
+    g_param_spec_object ("datasheet-row-menu",
+			 "Data Sheet Row Menu",
+			 "A menu to be displayed when button 3 is pressed in the data sheet's row title buttons",
 			 GTK_TYPE_MENU,
 			 G_PARAM_WRITABLE);
 
   g_object_class_install_property (object_class,
-                                   PROP_ROW_MENU,
-                                   row_menu_spec);
+                                   PROP_DS_ROW_MENU,
+                                   ds_row_menu_spec);
+
+
+  vs_row_menu_spec =
+    g_param_spec_object ("varsheet-row-menu",
+			 "Variable Sheet Row Menu",
+			 "A menu to be displayed when button 3 is pressed in the variable sheet's row title buttons",
+			 GTK_TYPE_MENU,
+			 G_PARAM_WRITABLE);
+
+  g_object_class_install_property (object_class,
+                                   PROP_VS_ROW_MENU,
+                                   vs_row_menu_spec);
+
 
   value_labels_spec =
     g_param_spec_boolean ("value-labels",
@@ -1077,7 +1124,7 @@ psppire_data_editor_clip_cut (PsppireDataEditor *de)
 /* Popup menu related stuff */
 
 static void
-popup_variable_menu (GtkSheet *sheet, gint column,
+popup_variable_column_menu (GtkSheet *sheet, gint column,
 		     GdkEventButton *event, gpointer data)
 {
   GtkMenu *menu = GTK_MENU (data);
@@ -1091,6 +1138,29 @@ popup_variable_menu (GtkSheet *sheet, gint column,
   if ( v && event->button == 3)
     {
       gtk_sheet_select_column (sheet, column);
+
+      gtk_menu_popup (menu,
+		      NULL, NULL, NULL, NULL,
+		      event->button, event->time);
+    }
+}
+
+
+static void
+popup_variable_row_menu (GtkSheet *sheet, gint row,
+		     GdkEventButton *event, gpointer data)
+{
+  GtkMenu *menu = GTK_MENU (data);
+
+  PsppireVarStore *var_store =
+    PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
+
+  const struct variable *v =
+    psppire_dict_get_variable (var_store->dict, row);
+
+  if ( v && event->button == 3)
+    {
+      gtk_sheet_select_row (sheet, row);
 
       gtk_menu_popup (menu,
 		      NULL, NULL, NULL, NULL,
@@ -1263,11 +1333,27 @@ psppire_data_editor_show_grid (PsppireDataEditor *de, gboolean grid_visible)
   gtk_sheet_show_grid (GTK_SHEET (de->data_sheet[0]), grid_visible);
 }
 
+
+static void
+set_font (GtkWidget *w, gpointer data)
+{
+  PangoFontDescription *font_desc = data;
+  GtkRcStyle *style = gtk_widget_get_modifier_style (w);
+
+  pango_font_description_free (style->font_desc);
+  style->font_desc = pango_font_description_copy (font_desc);
+
+  gtk_widget_modify_style (w, style);
+
+  if ( GTK_IS_CONTAINER (w))
+    gtk_container_foreach (GTK_CONTAINER (w), set_font, font_desc);
+}
+
 void
 psppire_data_editor_set_font (PsppireDataEditor *de, PangoFontDescription *font_desc)
 {
-  psppire_data_store_set_font (de->data_store, font_desc);
-  psppire_var_store_set_font (de->var_store, font_desc);
+  set_font (GTK_WIDGET (de), font_desc);
+  gtk_container_foreach (GTK_CONTAINER (de), set_font, font_desc);
 }
 
 

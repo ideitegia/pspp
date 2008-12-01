@@ -77,6 +77,8 @@ struct data_editor
   GtkMenu *data_sheet_variable_popup_menu;
   GtkMenu *data_sheet_cases_popup_menu;
 
+  GtkMenu *var_sheet_variable_popup_menu;
+
   PsppireDataEditor *data_editor;
 
   gboolean save_as_portable;

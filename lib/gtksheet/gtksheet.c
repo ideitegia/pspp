@@ -86,6 +86,8 @@ enum
 #define DEFAULT_COLUMN_WIDTH 80
 #define DEFAULT_ROW_HEIGHT 25
 
+static void set_entry_widget_font (GtkSheet *sheet);
+
 static void gtk_sheet_update_primary_selection (GtkSheet *sheet);
 static void draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint n);
 static void draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint n);
@@ -392,6 +394,7 @@ static void gtk_sheet_map 			 (GtkWidget *widget);
 static void gtk_sheet_unmap 			 (GtkWidget *widget);
 static gint gtk_sheet_expose 			 (GtkWidget *widget,
 						  GdkEventExpose *event);
+
 static void gtk_sheet_forall 			 (GtkContainer *container,
 						  gboolean include_internals,
 						  GtkCallback callback,
@@ -1707,6 +1710,7 @@ gtk_sheet_style_set (GtkWidget *widget,
       gtk_style_set_background (widget->style, widget->window, widget->state);
     }
 
+  set_entry_widget_font (sheet);
 }
 
 #define BORDER_WIDTH 2
@@ -2009,6 +2013,7 @@ gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint col)
 {
   PangoLayout *layout;
   PangoRectangle text;
+  PangoFontDescription *font_desc = GTK_WIDGET (sheet)->style->font_desc;
   gint font_height;
 
   gchar *label;
@@ -2058,15 +2063,16 @@ gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint col)
 
   layout = gtk_widget_create_pango_layout (GTK_WIDGET (sheet), label);
   dispose_string (sheet, label);
-  pango_layout_set_font_description (layout, attributes.font_desc);
 
+
+  pango_layout_set_font_description (layout, font_desc);
 
   pango_layout_get_pixel_extents (layout, NULL, &text);
 
   gdk_gc_set_clip_rectangle (sheet->fg_gc, &area);
 
-  font_height = pango_font_description_get_size (attributes.font_desc);
-  if ( !pango_font_description_get_size_is_absolute (attributes.font_desc))
+  font_height = pango_font_description_get_size (font_desc);
+  if ( !pango_font_description_get_size_is_absolute (font_desc))
     font_height /= PANGO_SCALE;
 
   /* Centre the text vertically */
@@ -4547,6 +4553,20 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
 }
 
 
+/* Copy the sheet's font to the entry widget */
+static void
+set_entry_widget_font (GtkSheet *sheet)
+{
+  GtkRcStyle *style = gtk_widget_get_modifier_style (sheet->entry_widget);
+
+  pango_font_description_free (style->font_desc);
+  style->font_desc = pango_font_description_copy (GTK_WIDGET (sheet)->style->font_desc);
+
+  gtk_widget_modify_style (sheet->entry_widget, style);
+}
+
+
+
 static void
 create_sheet_entry (GtkSheet *sheet)
 {
@@ -4583,6 +4603,8 @@ create_sheet_entry (GtkSheet *sheet)
 		      "changed",
 		      G_CALLBACK (gtk_sheet_entry_changed),
 		      sheet);
+
+  set_entry_widget_font (sheet);
 
   gtk_widget_show (sheet->entry_widget);
 }
@@ -5193,7 +5215,6 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
 {
   GdkColor *fg, *bg;
   const GtkJustification *j ;
-  const PangoFontDescription *font_desc ;
   const GtkSheetCellBorder *border ;
   GdkColormap *colormap;
 
@@ -5211,7 +5232,6 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
   attr->border.join_style = GDK_JOIN_MITER;
   attr->border.mask = 0;
   attr->border.color = GTK_WIDGET (sheet)->style->black;
-  attr->font_desc = GTK_WIDGET (sheet)->style->font_desc;
 
   attr->is_editable = g_sheet_model_is_editable (sheet->model, row, col);
 
@@ -5236,9 +5256,6 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
   j = g_sheet_model_get_justification (sheet->model, row, col);
   if (j)
     attr->justification = *j;
-
-  font_desc = g_sheet_model_get_font_desc (sheet->model, row, col);
-  if ( font_desc ) attr->font_desc = font_desc;
 
   border = g_sheet_model_get_cell_border (sheet->model, row, col);
 

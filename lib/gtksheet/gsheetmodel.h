@@ -117,9 +117,6 @@ struct _GSheetModelIface
   const GtkJustification *  (* get_justification) (const GSheetModel *sheet_model,
 						   glong row, glong column);
 
-  const PangoFontDescription *  (* get_font_desc) (const GSheetModel *sheet_model,
-						   glong row, glong column);
-
   const GtkSheetCellBorder *  (* get_cell_border) (const GSheetModel *sheet_model,
 						   glong row, glong column);
 
@@ -189,12 +186,7 @@ GdkColor *g_sheet_model_get_foreground
 GdkColor *g_sheet_model_get_background
  (const GSheetModel *model, glong row, glong column);
 
-
 const GtkJustification *g_sheet_model_get_justification
- (const GSheetModel *model, glong row, glong column);
-
-
-const PangoFontDescription *g_sheet_model_get_font_desc
  (const GSheetModel *model, glong row, glong column);
 
 const GtkSheetCellBorder * g_sheet_model_get_cell_border

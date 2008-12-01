@@ -83,10 +83,6 @@ struct _PsppireDataStore
   gboolean dispose_has_run ;
   PsppireDict *dict;
   PsppireCaseFile *case_file;
-  const PangoFontDescription *font_desc;
-
-  /* The width of an upper case 'M' rendered in the current font */
-  gint width_of_m ;
 
   gboolean show_labels;
 
@@ -117,9 +113,6 @@ void psppire_data_store_set_case_file (PsppireDataStore *data_store,
 
 void psppire_data_store_set_dictionary (PsppireDataStore *data_store,
 					PsppireDict *dict);
-
-void psppire_data_store_set_font (PsppireDataStore *store,
-				 const PangoFontDescription *fd);
 
 void psppire_data_store_show_labels (PsppireDataStore *store,
 				    gboolean show_labels);
