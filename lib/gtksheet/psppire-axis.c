@@ -20,6 +20,7 @@
 
 #include <libpspp/tower.h>
 #include <libpspp/pool.h>
+#include <libpspp/misc.h>
 #include "psppire-axis.h"
 #include <gtk/gtk.h>
 
@@ -203,7 +204,7 @@ psppire_axis_unit_count (const PsppireAxis *a)
   actual_size = PSPPIRE_AXIS_GET_IFACE (a)->total_size (a);
 
   if ( actual_size < a->min_extent )
-    padding = (a->min_extent - actual_size) / a->default_size;
+    padding = DIV_RND_UP (a->min_extent - actual_size, a->default_size);
 
   return PSPPIRE_AXIS_GET_IFACE (a)->unit_count (a) + padding;
 }
@@ -223,8 +224,6 @@ psppire_axis_pixel_start (const PsppireAxis *a, gint unit)
     {
       return  total_size + (unit - the_count) * a->default_size;
     }
-
-  //  g_print ("%s %d\n", __FUNCTION__, unit);
 
   return PSPPIRE_AXIS_GET_IFACE (a)->pixel_start (a, unit);
 }
@@ -249,7 +248,7 @@ psppire_axis_get_unit_at_pixel (const PsppireAxis *a, glong pixel)
       gint n_items = PSPPIRE_AXIS_GET_IFACE (a)->unit_count (a);
       glong extra = pixel - total_size;
 
-      return n_items - 1 + extra / a->default_size;
+      return n_items - 1 + DIV_RND_UP (extra,  a->default_size);
     }
 
   return PSPPIRE_AXIS_GET_IFACE (a)->get_unit_at_pixel (a, pixel);

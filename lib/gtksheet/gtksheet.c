@@ -154,9 +154,7 @@ min_fully_visible_row (const GtkSheet *sheet)
 static inline glong
 max_visible_row (const GtkSheet *sheet)
 {
-  return row_from_ypixel (sheet,
-			  sheet->vadjustment->value +
-			  sheet->vadjustment->page_size);
+  return row_from_ypixel (sheet, sheet->vadjustment->value + sheet->vadjustment->page_size);
 }
 
 
@@ -200,9 +198,7 @@ min_fully_visible_column (const GtkSheet *sheet)
 static inline glong
 max_visible_column (const GtkSheet *sheet)
 {
-  return column_from_xpixel (sheet,
-			     sheet->hadjustment->value +
-			     sheet->hadjustment->page_size);
+  return column_from_xpixel (sheet, sheet->hadjustment->value + sheet->hadjustment->page_size);
 }
 
 static inline glong
@@ -2144,7 +2140,6 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
   g_return_if_fail (drawing_range.rowi >= drawing_range.row0);
   g_return_if_fail (drawing_range.coli >= drawing_range.col0);
 
-
   gdk_window_begin_paint_rect (sheet->sheet_window, &area);
 
   for (i = drawing_range.row0; i <= drawing_range.rowi; i++)
@@ -3102,28 +3097,27 @@ gtk_sheet_expose (GtkWidget *widget,
     }
 
 
-  range.row0 =
-    row_from_ypixel (sheet,
-			   event->area.y + sheet->vadjustment->value);
-  range.row0--;
+  {
+    gint y = event->area.y + sheet->vadjustment->value;
+    gint x = event->area.x + sheet->hadjustment->value;
 
-  range.rowi =
-    row_from_ypixel (sheet,
-			   event->area.y +
-			   event->area.height + sheet->vadjustment->value);
-  range.rowi++;
+    if ( sheet->column_titles_visible)
+      y -= sheet->column_title_area.height;
 
-  range.col0 =
-    column_from_xpixel (sheet,
-			event->area.x + sheet->hadjustment->value);
-  range.col0--;
+    if ( sheet->row_titles_visible)
+      x -= sheet->row_title_area.width;
 
-  range.coli =
-    column_from_xpixel (sheet,
-			event->area.x + event->area.width +
-			sheet->hadjustment->value);
-  range.coli++;
+    maximize_int (&x, 0);
+    maximize_int (&y, 0);
 
+    range.row0 = row_from_ypixel (sheet, y);
+
+    range.rowi = row_from_ypixel (sheet, y + event->area.height);
+
+    range.col0 = column_from_xpixel (sheet, x);
+
+    range.coli = column_from_xpixel (sheet, x + event->area.width);
+  }
 
   if (event->window == sheet->sheet_window)
     {

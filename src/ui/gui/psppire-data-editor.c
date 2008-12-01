@@ -227,11 +227,28 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
     }
 }
 
+/* Return the width (in pixels) of an upper case M when rendered in the
+   current font of W
+*/
+static gint
+width_of_m (GtkWidget *w)
+{
+  PangoRectangle rect;
+  PangoLayout *layout = gtk_widget_create_pango_layout (w, "M");
+
+  pango_layout_get_pixel_extents (layout, NULL, &rect);
+
+  g_object_unref (layout);
+
+  return rect.width;
+}
+
 static void
 new_variables_callback (PsppireDict *dict, gpointer data)
 {
   gint v, i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+  gint m_width = width_of_m (GTK_WIDGET (de));
 
   PsppireAxisHetero *vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &vaxis, NULL);
@@ -252,25 +269,9 @@ new_variables_callback (PsppireDict *dict, gpointer data)
 	{
 	  const struct variable *var = psppire_dict_get_variable (dict, v);
 
-	  psppire_axis_hetero_append (haxis, 10 * var_get_display_width (var));
+	  psppire_axis_hetero_append (haxis, m_width * var_get_display_width (var));
 	}
     }
-}
-
-/* Return the width (in pixels) of an upper case M when rendered in the
-   current font of W
-*/
-static gint
-width_of_m (GtkWidget *w)
-{
-  PangoRectangle rect;
-  PangoLayout *layout = gtk_widget_create_pango_layout (w, "M");
-
-  pango_layout_get_pixel_extents (layout, NULL, &rect);
-
-  g_object_unref (layout);
-
-  return rect.width;
 }
 
 static void
