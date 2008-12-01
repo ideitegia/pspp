@@ -203,7 +203,6 @@ enum
   };
 
 
-#define WIDTH_OF_M 10
 #define DEFAULT_ROW_HEIGHT 25
 
 static void
@@ -252,11 +251,30 @@ new_variables_callback (PsppireDict *dict, gpointer data)
     }
 }
 
+/* Return the width (in pixels) of an upper case M when rendered in the
+   current font of W
+*/
+static gint
+width_of_m (GtkWidget *w)
+{
+  PangoRectangle rect;
+  PangoLayout *layout = gtk_widget_create_pango_layout (w, "M");
+
+  pango_layout_get_pixel_extents (layout, NULL, &rect);
+
+  g_object_unref (layout);
+
+  return rect.width;
+}
+
 static void
 insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
 {
   gint i;
+
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  gint m_width  = width_of_m (GTK_WIDGET (de));
 
   PsppireAxisHetero *var_vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
@@ -269,7 +287,7 @@ insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
       PsppireAxisHetero *haxis;
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_hetero_insert (haxis, WIDTH_OF_M * var_get_display_width (var), x);
+      psppire_axis_hetero_insert (haxis, m_width * var_get_display_width (var), x);
     }
 }
 
@@ -301,6 +319,7 @@ rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
 {
   gint i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+  gint m_width = width_of_m (GTK_WIDGET (de));
 
   for (i = 0 ; i < 4 ; ++i)
     {
@@ -309,7 +328,7 @@ rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
       psppire_axis_hetero_resize_unit (haxis,
-				       WIDTH_OF_M *
+				       m_width *
 				       var_get_display_width (var), posn);
     }
 }
@@ -1276,13 +1295,13 @@ set_font (GtkWidget *w, gpointer data)
   gtk_widget_modify_style (w, style);
 
   if ( GTK_IS_CONTAINER (w))
-    gtk_container_foreach (w, set_font, font_desc);
+    gtk_container_foreach (GTK_CONTAINER (w), set_font, font_desc);
 }
 
 void
 psppire_data_editor_set_font (PsppireDataEditor *de, PangoFontDescription *font_desc)
 {
-  set_font (de, font_desc);
+  set_font (GTK_WIDGET (de), font_desc);
   gtk_container_foreach (GTK_CONTAINER (de), set_font, font_desc);
 }
 
