@@ -109,11 +109,16 @@ psppire_data_editor_finalize (GObject *obj)
 
 
 
-static void popup_variable_menu (GtkSheet *sheet, gint column,
-				 GdkEventButton *event, gpointer data);
+static void popup_variable_column_menu (GtkSheet *sheet, gint column,
+					GdkEventButton *event, gpointer data);
+
+static void popup_variable_row_menu (GtkSheet *sheet, gint row,
+				     GdkEventButton *event, gpointer data);
+
 
 static void popup_cases_menu (GtkSheet *sheet, gint row,
 			      GdkEventButton *event, gpointer data);
+
 
 
 
@@ -193,6 +198,7 @@ enum
     PROP_0,
     PROP_DATA_STORE,
     PROP_VAR_STORE,
+    PROP_VS_ROW_MENU,
     PROP_DS_COLUMN_MENU,
     PROP_DS_ROW_MENU,
     PROP_VALUE_LABELS,
@@ -374,12 +380,20 @@ psppire_data_editor_set_property (GObject         *object,
 		    "model", de->var_store,
 		    NULL);
       break;
+    case PROP_VS_ROW_MENU:
+      {
+	GObject *menu = g_value_get_object (value);
+
+	g_signal_connect (de->var_sheet, "button-event-row",
+			  G_CALLBACK (popup_variable_row_menu), menu);
+      }
+      break;
     case PROP_DS_COLUMN_MENU:
       {
 	GObject *menu = g_value_get_object (value);
 
 	g_signal_connect (de->data_sheet[0], "button-event-column",
-			  G_CALLBACK (popup_variable_menu), menu);
+			  G_CALLBACK (popup_variable_column_menu), menu);
       }
       break;
     case PROP_DS_ROW_MENU:
@@ -482,7 +496,8 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
   GParamSpec *data_store_spec ;
   GParamSpec *var_store_spec ;
   GParamSpec *column_menu_spec;
-  GParamSpec *row_menu_spec;
+  GParamSpec *ds_row_menu_spec;
+  GParamSpec *vs_row_menu_spec;
   GParamSpec *value_labels_spec;
   GParamSpec *current_case_spec;
   GParamSpec *current_var_spec;
@@ -530,7 +545,7 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
                                    column_menu_spec);
 
 
-  row_menu_spec =
+  ds_row_menu_spec =
     g_param_spec_object ("datasheet-row-menu",
 			 "Data Sheet Row Menu",
 			 "A menu to be displayed when button 3 is pressed in the data sheet's row title buttons",
@@ -539,7 +554,20 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
 
   g_object_class_install_property (object_class,
                                    PROP_DS_ROW_MENU,
-                                   row_menu_spec);
+                                   ds_row_menu_spec);
+
+
+  vs_row_menu_spec =
+    g_param_spec_object ("varsheet-row-menu",
+			 "Variable Sheet Row Menu",
+			 "A menu to be displayed when button 3 is pressed in the variable sheet's row title buttons",
+			 GTK_TYPE_MENU,
+			 G_PARAM_WRITABLE);
+
+  g_object_class_install_property (object_class,
+                                   PROP_VS_ROW_MENU,
+                                   vs_row_menu_spec);
+
 
   value_labels_spec =
     g_param_spec_boolean ("value-labels",
@@ -1096,7 +1124,7 @@ psppire_data_editor_clip_cut (PsppireDataEditor *de)
 /* Popup menu related stuff */
 
 static void
-popup_variable_menu (GtkSheet *sheet, gint column,
+popup_variable_column_menu (GtkSheet *sheet, gint column,
 		     GdkEventButton *event, gpointer data)
 {
   GtkMenu *menu = GTK_MENU (data);
@@ -1110,6 +1138,29 @@ popup_variable_menu (GtkSheet *sheet, gint column,
   if ( v && event->button == 3)
     {
       gtk_sheet_select_column (sheet, column);
+
+      gtk_menu_popup (menu,
+		      NULL, NULL, NULL, NULL,
+		      event->button, event->time);
+    }
+}
+
+
+static void
+popup_variable_row_menu (GtkSheet *sheet, gint row,
+		     GdkEventButton *event, gpointer data)
+{
+  GtkMenu *menu = GTK_MENU (data);
+
+  PsppireVarStore *var_store =
+    PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
+
+  const struct variable *v =
+    psppire_dict_get_variable (var_store->dict, row);
+
+  if ( v && event->button == 3)
+    {
+      gtk_sheet_select_row (sheet, row);
 
       gtk_menu_popup (menu,
 		      NULL, NULL, NULL, NULL,

@@ -74,6 +74,9 @@ static void on_edit_paste (GtkAction *a, gpointer data);
 
 
 static GtkWidget * create_data_sheet_variable_popup_menu (struct data_editor *);
+
+static GtkWidget * create_var_sheet_variable_popup_menu (struct data_editor *);
+
 static GtkWidget * create_data_sheet_cases_popup_menu (struct data_editor *);
 
 static void register_data_editor_actions (struct data_editor *de);
@@ -933,16 +936,19 @@ new_data_editor (void)
   de->data_sheet_variable_popup_menu =
     GTK_MENU (create_data_sheet_variable_popup_menu (de));
 
+  de->var_sheet_variable_popup_menu =
+    GTK_MENU (create_var_sheet_variable_popup_menu (de));
+
   de->data_sheet_cases_popup_menu =
     GTK_MENU (create_data_sheet_cases_popup_menu (de));
 
 
   g_object_set (de->data_editor,
-		"datasheet-column-menu", de->data_sheet_variable_popup_menu, NULL);
+		"datasheet-column-menu", de->data_sheet_variable_popup_menu,
+		"datasheet-row-menu", de->data_sheet_cases_popup_menu,
+		"varsheet-row-menu", de->var_sheet_variable_popup_menu,
+		NULL);
 
-
-  g_object_set (de->data_editor,
-		"datasheet-row-menu", de->data_sheet_cases_popup_menu, NULL);
 
   return de;
 }
@@ -1625,6 +1631,43 @@ create_data_sheet_cases_popup_menu (struct data_editor *de)
 
   return menu;
 }
+
+
+static GtkWidget *
+create_var_sheet_variable_popup_menu (struct data_editor *de)
+{
+  GtkWidget *menu = gtk_menu_new ();
+
+  GtkWidget *insert_variable =
+    gtk_menu_item_new_with_label (_("Insert Variable"));
+
+  GtkWidget *delete_variable =
+    gtk_menu_item_new_with_label (_("Clear"));
+
+
+  gtk_action_connect_proxy (de->delete_variables,
+			    delete_variable);
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_variable);
+
+  g_signal_connect_swapped (G_OBJECT (insert_variable), "activate",
+			    G_CALLBACK (gtk_action_activate),
+			    de->insert_variable);
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu),
+			 gtk_separator_menu_item_new ());
+
+
+  gtk_menu_shell_append (GTK_MENU_SHELL (menu), delete_variable);
+
+
+  gtk_widget_show_all (menu);
+
+  return menu;
+}
+
 
 
 
