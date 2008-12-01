@@ -2144,11 +2144,8 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
   g_return_if_fail (drawing_range.rowi >= drawing_range.row0);
   g_return_if_fail (drawing_range.coli >= drawing_range.col0);
 
-  gdk_draw_rectangle (sheet->sheet_window,
-		      GTK_WIDGET (sheet)->style->white_gc,
-		      TRUE,
-		      area.x, area.y,
-		      area.width, area.height);
+
+  gdk_window_begin_paint_rect (sheet->sheet_window, &area);
 
   for (i = drawing_range.row0; i <= drawing_range.rowi; i++)
     for (j = drawing_range.col0; j <= drawing_range.coli; j++)
@@ -2166,6 +2163,8 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
       sheet->active_cell.col >= drawing_range.col0 &&
       sheet->active_cell.col <= drawing_range.coli)
     gtk_sheet_show_entry_widget (sheet);
+
+  gdk_window_end_paint (sheet->sheet_window);
 }
 
 static void
