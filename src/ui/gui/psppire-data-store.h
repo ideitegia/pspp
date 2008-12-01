@@ -23,9 +23,7 @@
 #define FIRST_CASE_NUMBER 1
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+G_BEGIN_DECLS
 
 #define GTK_TYPE_DATA_STORE	       (psppire_data_store_get_type ())
 
@@ -115,7 +113,7 @@ void psppire_data_store_set_dictionary (PsppireDataStore *data_store,
 					PsppireDict *dict);
 
 void psppire_data_store_show_labels (PsppireDataStore *store,
-				    gboolean show_labels);
+				     gboolean show_labels);
 
 void psppire_data_store_clear (PsppireDataStore *data_store);
 
@@ -137,9 +135,6 @@ gboolean psppire_data_store_set_string (PsppireDataStore *ds,
 casenumber psppire_data_store_get_case_count (const PsppireDataStore *ds);
 size_t psppire_data_store_get_value_count (const PsppireDataStore *ds);
 
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
-
+G_END_DECLS
 
 #endif /* __PSPPIRE_DATA_STORE_H__ */
