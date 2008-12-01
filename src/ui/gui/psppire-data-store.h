@@ -82,9 +82,6 @@ struct _PsppireDataStore
 
   gboolean show_labels;
 
-  /* Geometry */
-  gint margin_width;
-
   gint cf_handler_id [n_cf_signals];
   gint dict_handler_id [n_dict_signals];
 };

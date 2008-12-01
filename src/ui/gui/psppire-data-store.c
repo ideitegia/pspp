@@ -736,13 +736,11 @@ static const gchar null_var_name[]=N_("var");
 static gchar *
 get_row_button_label (const GSheetModel *model, gint unit)
 {
-  gchar *text;
-  gchar *s;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
-  s = g_strdup_printf (_("%d"), unit + 1);
+  gchar *s = g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
 
-  text =  pspp_locale_to_utf8 (s, -1, 0);
+  gchar *text =  pspp_locale_to_utf8 (s, -1, 0);
 
   g_free (s);
 
