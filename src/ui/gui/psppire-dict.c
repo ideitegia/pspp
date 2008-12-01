@@ -153,7 +153,7 @@ psppire_dict_class_init (PsppireDictClass *class)
 		  G_SIGNAL_RUN_FIRST,
 		  0,
 		  NULL, NULL,
-		  marshaller_VOID__INT_INT_INT,
+		  psppire_marshal_VOID__INT_INT_INT,
 		  G_TYPE_NONE,
 		  3,
 		  G_TYPE_INT,
