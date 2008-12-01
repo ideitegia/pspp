@@ -193,8 +193,8 @@ enum
     PROP_0,
     PROP_DATA_STORE,
     PROP_VAR_STORE,
-    PROP_COLUMN_MENU,
-    PROP_ROW_MENU,
+    PROP_DS_COLUMN_MENU,
+    PROP_DS_ROW_MENU,
     PROP_VALUE_LABELS,
     PROP_CURRENT_CASE,
     PROP_CURRENT_VAR,
@@ -374,7 +374,7 @@ psppire_data_editor_set_property (GObject         *object,
 		    "model", de->var_store,
 		    NULL);
       break;
-    case PROP_COLUMN_MENU:
+    case PROP_DS_COLUMN_MENU:
       {
 	GObject *menu = g_value_get_object (value);
 
@@ -382,7 +382,7 @@ psppire_data_editor_set_property (GObject         *object,
 			  G_CALLBACK (popup_variable_menu), menu);
       }
       break;
-    case PROP_ROW_MENU:
+    case PROP_DS_ROW_MENU:
       {
 	GObject *menu = g_value_get_object (value);
 
@@ -519,26 +519,26 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
                                    var_store_spec);
 
   column_menu_spec =
-    g_param_spec_object ("column-menu",
-			 "Column Menu",
-			 "A menu to be displayed when button 3 is pressed in the column title buttons",
+    g_param_spec_object ("datasheet-column-menu",
+			 "Data Sheet Column Menu",
+			 "A menu to be displayed when button 3 is pressed in thedata sheet's column title buttons",
 			 GTK_TYPE_MENU,
 			 G_PARAM_WRITABLE);
 
   g_object_class_install_property (object_class,
-                                   PROP_COLUMN_MENU,
+                                   PROP_DS_COLUMN_MENU,
                                    column_menu_spec);
 
 
   row_menu_spec =
-    g_param_spec_object ("row-menu",
-			 "Row Menu",
-			 "A menu to be displayed when button 3 is pressed in the row title buttons",
+    g_param_spec_object ("datasheet-row-menu",
+			 "Data Sheet Row Menu",
+			 "A menu to be displayed when button 3 is pressed in the data sheet's row title buttons",
 			 GTK_TYPE_MENU,
 			 G_PARAM_WRITABLE);
 
   g_object_class_install_property (object_class,
-                                   PROP_ROW_MENU,
+                                   PROP_DS_ROW_MENU,
                                    row_menu_spec);
 
   value_labels_spec =

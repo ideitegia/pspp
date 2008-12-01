@@ -938,11 +938,11 @@ new_data_editor (void)
 
 
   g_object_set (de->data_editor,
-		"column-menu", de->data_sheet_variable_popup_menu, NULL);
+		"datasheet-column-menu", de->data_sheet_variable_popup_menu, NULL);
 
 
   g_object_set (de->data_editor,
-		"row-menu", de->data_sheet_cases_popup_menu, NULL);
+		"datasheet-row-menu", de->data_sheet_cases_popup_menu, NULL);
 
   return de;
 }
