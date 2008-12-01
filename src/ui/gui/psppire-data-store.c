@@ -158,7 +158,6 @@ psppire_data_store_init (PsppireDataStore *data_store)
 {
   data_store->dict = 0;
   data_store->case_file = NULL;
-  data_store->width_of_m = 10;
   data_store->dispose_has_run = FALSE;
 }
 

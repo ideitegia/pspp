@@ -84,10 +84,6 @@ struct _PsppireDataStore
   PsppireDict *dict;
   PsppireCaseFile *case_file;
 
-
-  /* The width of an upper case 'M' rendered in the current font */
-  gint width_of_m ;
-
   gboolean show_labels;
 
   /* Geometry */
