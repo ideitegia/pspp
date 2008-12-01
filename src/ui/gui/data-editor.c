@@ -1047,7 +1047,7 @@ fonts_activate (GtkMenuItem *menuitem, gpointer data)
   current_font = GTK_WIDGET(de->data_editor)->style->font_desc;
   font_name = pango_font_description_to_string (current_font);
 
-  gtk_font_selection_dialog_set_font_name (dialog, font_name);
+  gtk_font_selection_dialog_set_font_name (GTK_FONT_SELECTION_DIALOG (dialog), font_name);
 
   g_free (font_name);
 
