@@ -4694,7 +4694,7 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
 
       allocation.y += 2 * sheet->button->style->ythickness;
 
-      if (button->label && strlen (button->label)>0)
+      if (button->label && strlen (button->label) > 0)
 	{
 	  PangoRectangle rect;
 	  gchar *line = button->label;
