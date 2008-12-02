@@ -647,6 +647,8 @@ psppire_data_store_clear_datum (GSheetModel *model,
   psppire_data_store_set_value (store, row, index, &v,
 				var_get_width (pv));
 
+  g_sheet_model_range_changed (model, row, col, row, col);
+
   return TRUE;
 }
 
@@ -674,6 +676,8 @@ psppire_data_store_set_string (PsppireDataStore *store,
   psppire_data_store_data_in (store, row,
 			      var_get_case_index (pv), ss_cstr (text),
 			      var_get_write_format (pv));
+
+  g_sheet_model_range_changed (G_SHEET_MODEL (store), row, col, row, col);
 
   return TRUE;
 }
@@ -945,6 +949,7 @@ psppire_data_store_set_value (PsppireDataStore *ds, casenumber casenum,
   ok = datasheet_put_value (ds->datasheet, casenum, idx, v, width);
   if (ok)
     g_signal_emit (ds, signals [CASE_CHANGED], 0, casenum);
+
   return ok;
 }
 
@@ -971,12 +976,12 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
         && data_in (input, LEGACY_NATIVE, fmt->type, 0, 0, 0, value, width)
         && datasheet_put_value (ds->datasheet, casenum, idx, value, width));
 
+  freea (value);
+
   if (ok)
     g_signal_emit (ds, signals [CASE_CHANGED], 0, casenum);
 
-  freea (value);
-
-  return TRUE;
+  return ok;
 }
 
 /* Resize the cases in the casefile, by inserting N_VALUES into every
