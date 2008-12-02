@@ -43,6 +43,15 @@
 #include "xalloc.h"
 #include "xmalloca.h"
 
+
+enum cf_signal_handler {
+  CASES_DELETED,
+  CASE_INSERTED,
+  CASE_CHANGED,
+  n_cf_signals
+};
+
+
 static void psppire_data_store_init            (PsppireDataStore      *data_store);
 static void psppire_data_store_class_init      (PsppireDataStoreClass *class);
 static void psppire_data_store_sheet_model_init (GSheetModelIface *iface);
@@ -405,6 +414,9 @@ psppire_data_store_set_reader (PsppireDataStore *ds,
 {
   gint i;
 
+  if ( ds->datasheet)
+    datasheet_destroy (ds->datasheet);
+
   ds->datasheet = datasheet_create (reader);
 
   g_sheet_model_range_changed (G_SHEET_MODEL (ds),
@@ -750,7 +762,12 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
 				ds->dict_handler_id[i]);
       }
 
-  return  datasheet_make_reader (ds->datasheet);
+  reader =   datasheet_make_reader (ds->datasheet);
+
+  /* We must not reference this again */
+  ds->datasheet = NULL;
+
+  return reader;
 }
 
 
@@ -907,6 +924,7 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
   case_clone (&tmp, cc);
   result = datasheet_insert_rows (ds->datasheet, posn, &tmp, 1);
 
+  g_debug ("Result %d.  Inserted case at posn %ld", result, posn);
   if ( result )
     g_signal_emit (ds, signals [CASE_INSERTED], 0, posn);
   else

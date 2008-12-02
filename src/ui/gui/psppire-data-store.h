@@ -53,14 +53,6 @@ typedef struct _PsppireDataStoreClass  PsppireDataStoreClass;
 struct dictionary;
 
 
-enum cf_signal_handler {
-  CASES_DELETED,
-  CASE_INSERTED,
-  CASE_CHANGED,
-  n_cf_signals
-};
-
-
 enum dict_signal_handler {
   VARIABLE_INSERTED,
   VARIABLE_CHANGED,
@@ -84,7 +76,7 @@ struct _PsppireDataStore
 
   gboolean show_labels;
 
-  gint cf_handler_id [n_cf_signals];
+  //  gint cf_handler_id [n_cf_signals];
   gint dict_handler_id [n_dict_signals];
 };
 
