@@ -219,7 +219,7 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
   for (i = 0 ; i < 4 ; ++i)
     {
       PsppireAxisUniform *vaxis;
-      casenumber n_cases =  psppire_case_file_get_case_count (ds->case_file);
+      casenumber n_cases =  psppire_data_store_get_case_count (ds);
 
       g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
 
@@ -1566,7 +1566,7 @@ data_sheet_set_clip (GtkSheet *sheet)
     {
       struct ccase old;
 
-      if (psppire_case_file_get_case (ds->case_file, i, &old))
+      if (psppire_data_store_get_case (ds, i, &old))
         {
           struct ccase new;
 

@@ -18,7 +18,6 @@
 #define __PSPPIRE_DATA_STORE_H__
 
 #include "psppire-dict.h"
-#include "psppire-case-file.h"
 
 #define FIRST_CASE_NUMBER 1
 
@@ -71,6 +70,9 @@ enum dict_signal_handler {
 };
 
 
+struct datasheet;
+struct casereader;
+
 struct _PsppireDataStore
 {
   GObject parent;
@@ -78,7 +80,7 @@ struct _PsppireDataStore
   /*< private >*/
   gboolean dispose_has_run ;
   PsppireDict *dict;
-  PsppireCaseFile *case_file;
+  struct datasheet *datasheet;
 
   gboolean show_labels;
 
@@ -95,8 +97,9 @@ struct _PsppireDataStoreClass
 GType psppire_data_store_get_type (void) G_GNUC_CONST;
 PsppireDataStore *psppire_data_store_new     (PsppireDict *dict);
 
-void psppire_data_store_set_case_file (PsppireDataStore *data_store,
-				       PsppireCaseFile *cf);
+
+void psppire_data_store_set_reader (PsppireDataStore *ds,
+				    struct casereader *reader);
 
 void psppire_data_store_set_dictionary (PsppireDataStore *data_store,
 					PsppireDict *dict);
@@ -123,6 +126,16 @@ gboolean psppire_data_store_set_string (PsppireDataStore *ds,
 
 casenumber psppire_data_store_get_case_count (const PsppireDataStore *ds);
 size_t psppire_data_store_get_value_count (const PsppireDataStore *ds);
+
+
+
+
+gboolean psppire_data_store_get_case (const PsppireDataStore *ds,
+				      casenumber casenum,
+				      struct ccase *c);
+
+
+
 
 G_END_DECLS
 

@@ -242,8 +242,7 @@ execute_syntax (struct getl_interface *sss)
 
   reader = proc_extract_active_file_data (the_dataset);
   if (!lazy_casereader_destroy (reader, lazy_serial))
-    psppire_data_store_set_case_file (the_data_store,
-                                      psppire_case_file_new (reader));
+    psppire_data_store_set_reader (the_data_store, reader);
 
   som_flush ();
 

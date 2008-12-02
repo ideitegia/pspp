@@ -72,9 +72,7 @@ struct dataset * the_dataset = NULL;
 static void
 replace_casereader (struct casereader *s)
 {
-  PsppireCaseFile *pcf = psppire_case_file_new (s);
-
-  psppire_data_store_set_case_file (the_data_store, pcf);
+  psppire_data_store_set_reader (the_data_store, s);
 }
 
 #define _(msgid) gettext (msgid)

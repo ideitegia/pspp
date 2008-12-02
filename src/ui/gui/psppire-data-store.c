@@ -30,7 +30,6 @@
 #include <pango/pango-context.h>
 
 #include "psppire-data-store.h"
-#include "psppire-case-file.h"
 #include "helper.h"
 
 #include <data/dictionary.h>
@@ -39,6 +38,10 @@
 #include <data/data-in.h>
 #include <data/format.h>
 
+#include <math/sort.h>
+
+#include "xalloc.h"
+#include "xmalloca.h"
 
 static void psppire_data_store_init            (PsppireDataStore      *data_store);
 static void psppire_data_store_class_init      (PsppireDataStoreClass *class);
@@ -49,6 +52,18 @@ static void psppire_data_store_dispose        (GObject           *object);
 
 static gboolean psppire_data_store_clear_datum (GSheetModel *model,
 					  glong row, glong column);
+
+
+static gboolean psppire_data_store_insert_case (PsppireDataStore *ds,
+						struct ccase *cc,
+						casenumber posn);
+
+
+static gboolean psppire_data_store_data_in (PsppireDataStore *ds,
+					    casenumber casenum, gint idx,
+					    struct substring input,
+					    const struct fmt_spec *fmt);
+
 
 
 static GObjectClass *parent_class = NULL;
@@ -126,6 +141,23 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
 
 
 
+static gboolean
+psppire_data_store_insert_values (PsppireDataStore *ds,
+				  gint n_values, gint where);
+
+static union value *
+psppire_data_store_get_value (const PsppireDataStore *ds,
+			      casenumber casenum, size_t idx,
+			      union value *value, int width);
+
+
+static gboolean
+psppire_data_store_set_value (PsppireDataStore *ds, casenumber casenum,
+			      gint idx, union value *v, gint width);
+
+
+
+
 static glong
 psppire_data_store_get_var_count (const GSheetModel *model)
 {
@@ -137,7 +169,7 @@ psppire_data_store_get_var_count (const GSheetModel *model)
 casenumber
 psppire_data_store_get_case_count (const PsppireDataStore *store)
 {
-  return psppire_case_file_get_case_count (store->case_file);
+  return datasheet_get_row_cnt (store->datasheet);
 }
 
 size_t
@@ -157,7 +189,7 @@ static void
 psppire_data_store_init (PsppireDataStore *data_store)
 {
   data_store->dict = 0;
-  data_store->case_file = NULL;
+  data_store->datasheet = NULL;
   data_store->dispose_has_run = FALSE;
 }
 
@@ -239,7 +271,7 @@ insert_case_callback (GtkWidget *w, casenumber casenum, gpointer data)
 
   g_sheet_model_range_changed (G_SHEET_MODEL (store),
 			       casenum, -1,
-			       psppire_case_file_get_case_count (store->case_file),
+			       psppire_data_store_get_case_count (store),
 			       -1);
 
   g_sheet_model_rows_inserted (G_SHEET_MODEL (store), casenum, 1);
@@ -319,7 +351,7 @@ insert_variable_callback (GObject *obj, gint var_num, gpointer data)
       posn = 0;
     }
 
-  psppire_case_file_insert_values (store->case_file, 1, posn);
+  psppire_data_store_insert_values (store, 1, posn);
 
 #if AXIS_TRANSITION
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
@@ -341,7 +373,7 @@ dict_size_change_callback (GObject *obj,
   const gint new_val_width = value_cnt_from_width (var_get_width (v));
 
   if ( adjustment > 0 )
-    psppire_case_file_insert_values (store->case_file, adjustment,
+    psppire_data_store_insert_values (store, adjustment,
 				     new_val_width - adjustment +
 				     var_get_case_index(v));
 }
@@ -367,25 +399,25 @@ psppire_data_store_new (PsppireDict *dict)
   return retval;
 }
 
-
 void
-psppire_data_store_set_case_file (PsppireDataStore *ds,
-				  PsppireCaseFile *cf)
+psppire_data_store_set_reader (PsppireDataStore *ds,
+			       struct casereader *reader)
 {
   gint i;
-  if ( ds->case_file)  g_object_unref (ds->case_file);
-  ds->case_file = cf;
+
+  ds->datasheet = datasheet_create (reader);
 
   g_sheet_model_range_changed (G_SHEET_MODEL (ds),
 			       -1, -1, -1, -1);
 
+#if 0
   for (i = 0 ; i < n_cf_signals ; ++i )
     {
       if ( ds->cf_handler_id [i] > 0 )
 	g_signal_handler_disconnect (ds->case_file,
 				     ds->cf_handler_id[i]);
     }
-
+#endif
 
   if ( ds->dict )
     for (i = 0 ; i < n_dict_signals; ++i )
@@ -397,6 +429,7 @@ psppire_data_store_set_case_file (PsppireDataStore *ds,
 	  }
       }
 
+#if 0
   ds->cf_handler_id [CASES_DELETED] =
     g_signal_connect (ds->case_file, "cases-deleted",
 		      G_CALLBACK (delete_cases_callback),
@@ -411,6 +444,7 @@ psppire_data_store_set_case_file (PsppireDataStore *ds,
     g_signal_connect (ds->case_file, "case-changed",
 		      G_CALLBACK (changed_case_callback),
 		      ds);
+#endif
 
   g_signal_emit (ds, signals[BACKEND_CHANGED], 0);
 }
@@ -500,22 +534,16 @@ psppire_data_store_dispose (GObject *object)
   if (ds->dispose_has_run)
     return;
 
-  if (ds->case_file) g_object_unref (ds->case_file);
+  if (ds->datasheet)
+    {
+      datasheet_destroy (ds->datasheet);
+      ds->datasheet = NULL;
+    }
 
   /* must chain up */
   (* parent_class->dispose) (object);
 
   ds->dispose_has_run = TRUE;
-}
-
-
-gboolean
-psppire_data_store_delete_cases (PsppireDataStore *ds,
-				 casenumber first, casenumber count)
-{
-  g_return_val_if_fail (ds, FALSE);
-
-  return psppire_case_file_delete_cases (ds->case_file, count, first);
 }
 
 
@@ -529,7 +557,7 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
   struct ccase cc;
   g_return_val_if_fail (ds, FALSE);
 
-  val_cnt = datasheet_get_column_cnt (ds->case_file->datasheet) ;
+  val_cnt = datasheet_get_column_cnt (ds->datasheet) ;
 
   g_return_val_if_fail (val_cnt > 0, FALSE);
 
@@ -548,7 +576,7 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
       case_data_rw (&cc, pv)->f = SYSMIS;
     }
 
-  result = psppire_case_file_insert_case (ds->case_file, &cc, posn);
+  result = psppire_data_store_insert_case (ds, &cc, posn);
 
   case_destroy (&cc);
 
@@ -567,12 +595,12 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
   GString *s;
 
   g_return_val_if_fail (store->dict, NULL);
-  g_return_val_if_fail (store->case_file, NULL);
+  g_return_val_if_fail (store->datasheet, NULL);
 
   if (column >= psppire_dict_get_var_cnt (store->dict))
     return NULL;
 
-  if ( row >= psppire_case_file_get_case_count (store->case_file))
+  if ( row >= psppire_data_store_get_case_count (store))
     return NULL;
 
   pv = psppire_dict_get_variable (store->dict, column);
@@ -583,7 +611,7 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
 
   g_assert (idx >= 0);
 
-  v = psppire_case_file_get_value (store->case_file, row, idx, NULL,
+  v = psppire_data_store_get_value (store, row, idx, NULL,
                                    var_get_width (pv));
 
   g_return_val_if_fail (v, NULL);
@@ -638,8 +666,8 @@ psppire_data_store_clear_datum (GSheetModel *model,
   else
     memcpy (v.s, "", MAX_SHORT_STRING);
 
-  psppire_case_file_set_value (store->case_file, row, index, &v,
-			      var_get_width (pv));
+  psppire_data_store_set_value (store, row, index, &v,
+				var_get_width (pv));
 
   return TRUE;
 }
@@ -665,9 +693,9 @@ psppire_data_store_set_string (PsppireDataStore *store,
   if (row == n_cases)
     psppire_data_store_insert_new_case (store, row);
 
-  psppire_case_file_data_in (store->case_file, row,
-                             var_get_case_index (pv), ss_cstr (text),
-                             var_get_write_format (pv));
+  psppire_data_store_data_in (store, row,
+			      var_get_case_index (pv), ss_cstr (text),
+			      var_get_write_format (pv));
 
   return TRUE;
 }
@@ -688,11 +716,14 @@ psppire_data_store_show_labels (PsppireDataStore *store, gboolean show_labels)
 
 
 void
-psppire_data_store_clear (PsppireDataStore *data_store)
+psppire_data_store_clear (PsppireDataStore *ds)
 {
-  psppire_case_file_clear (data_store->case_file);
+  datasheet_destroy (ds->datasheet);
+  ds->datasheet = NULL;
 
-  psppire_dict_clear (data_store->dict);
+  psppire_dict_clear (ds->dict);
+
+  g_signal_emit (ds, signals [CASES_DELETED], 0, 0, -1);
 }
 
 
@@ -704,11 +735,13 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
   int i;
   struct casereader *reader ;
 
+#if 0
   for (i = 0 ; i < n_cf_signals ; ++i )
     {
       g_signal_handler_disconnect (ds->case_file, ds->cf_handler_id[i]);
       ds->cf_handler_id[i] = 0 ;
     }
+#endif
 
   if ( ds->dict )
     for (i = 0 ; i < n_dict_signals; ++i )
@@ -717,9 +750,7 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
 				ds->dict_handler_id[i]);
       }
 
-  reader = psppire_case_file_make_reader (ds->case_file);
-
-  return reader;
+  return  datasheet_make_reader (ds->datasheet);
 }
 
 
@@ -736,8 +767,6 @@ static const gchar null_var_name[]=N_("var");
 static gchar *
 get_row_button_label (const GSheetModel *model, gint unit)
 {
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-
   gchar *s = g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
 
   gchar *text =  pspp_locale_to_utf8 (s, -1, 0);
@@ -753,7 +782,7 @@ get_row_sensitivity (const GSheetModel *model, gint unit)
 {
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
-  return (unit < psppire_case_file_get_case_count (ds->case_file));
+  return (unit < psppire_data_store_get_case_count (ds));
 }
 
 
@@ -825,3 +854,173 @@ get_column_justification (const GSheetModel *model, gint col)
 }
 
 
+
+
+
+
+/* Fills C with the CASENUMth case.
+   Returns true on success, false otherwise.
+ */
+gboolean
+psppire_data_store_get_case (const PsppireDataStore *ds,
+			     casenumber casenum,
+			     struct ccase *c)
+{
+  g_return_val_if_fail (ds, FALSE);
+  g_return_val_if_fail (ds->datasheet, FALSE);
+
+  return datasheet_get_row (ds->datasheet, casenum, c);
+}
+
+
+gboolean
+psppire_data_store_delete_cases (PsppireDataStore *ds, casenumber n_cases,
+				 casenumber first)
+{
+  g_return_val_if_fail (ds, FALSE);
+  g_return_val_if_fail (ds->datasheet, FALSE);
+
+  g_return_val_if_fail (first + n_cases <=
+			psppire_data_store_get_case_count (ds), FALSE);
+
+  datasheet_delete_rows (ds->datasheet, first, n_cases);
+
+  g_signal_emit (ds, signals [CASES_DELETED], 0, first, n_cases);
+
+  return TRUE;
+}
+
+
+
+/* Insert case CC into the case file before POSN */
+static gboolean
+psppire_data_store_insert_case (PsppireDataStore *ds,
+				struct ccase *cc,
+				casenumber posn)
+{
+  struct ccase tmp;
+  bool result ;
+
+  g_return_val_if_fail (ds, FALSE);
+  g_return_val_if_fail (ds->datasheet, FALSE);
+
+  case_clone (&tmp, cc);
+  result = datasheet_insert_rows (ds->datasheet, posn, &tmp, 1);
+
+  if ( result )
+    g_signal_emit (ds, signals [CASE_INSERTED], 0, posn);
+  else
+    g_warning ("Cannot insert case at position %ld\n", posn);
+
+  return result;
+}
+
+
+/* Copies the IDXth value from case CASENUM into VALUE.
+   If VALUE is null, then memory is allocated is allocated with
+   malloc.  Returns the value if successful, NULL on failure. */
+static union value *
+psppire_data_store_get_value (const PsppireDataStore *ds,
+			      casenumber casenum, size_t idx,
+			      union value *value, int width)
+{
+  bool allocated;
+
+  g_return_val_if_fail (ds, false);
+  g_return_val_if_fail (ds->datasheet, false);
+
+  g_return_val_if_fail (idx < datasheet_get_column_cnt (ds->datasheet), false);
+
+  if (value == NULL)
+    {
+      value = xnmalloc (value_cnt_from_width (width), sizeof *value);
+      allocated = true;
+    }
+  else
+    allocated = false;
+  if (!datasheet_get_value (ds->datasheet, casenum, idx, value, width))
+    {
+      if (allocated)
+        free (value);
+      value = NULL;
+    }
+  return value;
+}
+
+
+
+/* Set the IDXth value of case C to V.
+   Returns true if successful, false on I/O error. */
+static gboolean
+psppire_data_store_set_value (PsppireDataStore *ds, casenumber casenum,
+			      gint idx, union value *v, gint width)
+{
+  bool ok;
+
+  g_return_val_if_fail (ds, FALSE);
+  g_return_val_if_fail (ds->datasheet, FALSE);
+
+  g_return_val_if_fail (idx < datasheet_get_column_cnt (ds->datasheet), FALSE);
+
+  ok = datasheet_put_value (ds->datasheet, casenum, idx, v, width);
+  if (ok)
+    g_signal_emit (ds, signals [CASE_CHANGED], 0, casenum);
+  return ok;
+}
+
+
+
+
+/* Set the IDXth value of case C using D_IN */
+static gboolean
+psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
+			    struct substring input, const struct fmt_spec *fmt)
+{
+  union value *value = NULL;
+  int width;
+  bool ok;
+
+  g_return_val_if_fail (ds, FALSE);
+  g_return_val_if_fail (ds->datasheet, FALSE);
+
+  g_return_val_if_fail (idx < datasheet_get_column_cnt (ds->datasheet), FALSE);
+
+  width = fmt_var_width (fmt);
+  value = xmalloca (value_cnt_from_width (width) * sizeof *value);
+  ok = (datasheet_get_value (ds->datasheet, casenum, idx, value, width)
+        && data_in (input, LEGACY_NATIVE, fmt->type, 0, 0, 0, value, width)
+        && datasheet_put_value (ds->datasheet, casenum, idx, value, width));
+
+  if (ok)
+    g_signal_emit (ds, signals [CASE_CHANGED], 0, casenum);
+
+  freea (value);
+
+  return TRUE;
+}
+
+/* Resize the cases in the casefile, by inserting N_VALUES into every
+   one of them at the position immediately preceeding WHERE.
+*/
+static gboolean
+psppire_data_store_insert_values (PsppireDataStore *ds,
+				  gint n_values, gint where)
+{
+  g_return_val_if_fail (ds, FALSE);
+
+  if ( n_values == 0 )
+    return FALSE;
+
+  g_assert (n_values > 0);
+
+  if ( ! ds->datasheet )
+    ds->datasheet = datasheet_create (NULL);
+
+  {
+    union value *values = xcalloc (n_values, sizeof *values);
+    datasheet_insert_columns (ds->datasheet, values, n_values, where);
+    free (values);
+  }
+
+  return TRUE;
+}

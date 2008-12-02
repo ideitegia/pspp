@@ -221,7 +221,7 @@ find_dialog (GObject *o, gpointer data)
 		NULL);
 
   fd.dict = vs->dict;
-  fd.data = ds->case_file->datasheet;
+  fd.data = ds->datasheet;
 
   fd.variable_entry        = get_widget_assert (fd.xml, "find-variable-entry");
   fd.value_entry           = get_widget_assert (fd.xml, "find-value-entry");
