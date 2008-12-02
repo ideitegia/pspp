@@ -1881,7 +1881,6 @@ static void
 global_button_clicked (GtkWidget *widget, gpointer data)
 {
   gtk_sheet_click_cell (GTK_SHEET (data), -1, -1);
-  gtk_widget_grab_focus (GTK_WIDGET (data));
 }
 
 
@@ -2658,8 +2657,6 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
 						       row, col));
   gtk_widget_map (sheet->entry_widget);
 
-  gtk_widget_grab_focus (GTK_WIDGET (sheet_entry));
-
   dispose_string (sheet, text);
 }
 
@@ -3267,12 +3264,6 @@ gtk_sheet_button_press (GtkWidget *widget,
 			NULL, NULL, event->time);
       gtk_grab_add (GTK_WIDGET (sheet));
 
-      /* This seems to be a kludge to work around a problem where the sheet
-	 scrolls to another position.  The timeout scrolls it back to its
-	 original posn. 	 JMD 3 July 2007
-      */
-      gtk_widget_grab_focus (GTK_WIDGET (sheet));
-
       if (sheet->selection_mode != GTK_SELECTION_SINGLE &&
 	  sheet->selection_mode != GTK_SELECTION_NONE &&
 	  sheet->cursor_drag->type == GDK_SIZING &&
@@ -3348,7 +3339,6 @@ gtk_sheet_button_press (GtkWidget *widget,
 	{
 	  veto = gtk_sheet_click_cell (sheet, -1, column);
 	  gtk_grab_add (GTK_WIDGET (sheet));
-	  gtk_widget_grab_focus (GTK_WIDGET (sheet));
 	  GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 	}
     }
@@ -3366,7 +3356,6 @@ gtk_sheet_button_press (GtkWidget *widget,
 	{
 	  veto = gtk_sheet_click_cell (sheet, row, -1);
 	  gtk_grab_add (GTK_WIDGET (sheet));
-	  gtk_widget_grab_focus (GTK_WIDGET (sheet));
 	  GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 	}
     }
@@ -3451,7 +3440,11 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
   sheet->range.coli = column;
   sheet->state = GTK_SHEET_NORMAL;
   GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
+
   gtk_sheet_draw_active_cell (sheet);
+
+  gtk_widget_grab_focus (GTK_WIDGET (sheet->entry_widget));
+
   return TRUE;
 }
 
@@ -4177,6 +4170,7 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
 
   change_active_cell (sheet, new_cell.row, new_cell.col);
 
+
   if ( new_cell.col > max_fully_visible_column (sheet))
     {
       glong hpos  =
@@ -4217,6 +4211,8 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
       gtk_adjustment_set_value (sheet->vadjustment,
 				vpos);
     }
+
+  gtk_widget_grab_focus (GTK_WIDGET (sheet->entry_widget));
 }
 
 
