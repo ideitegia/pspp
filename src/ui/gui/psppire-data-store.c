@@ -299,8 +299,10 @@ delete_variable_callback (GObject *obj, gint dict_index,
 {
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
-#if AXIS_TRANSITION
+
   g_sheet_model_columns_deleted (G_SHEET_MODEL (store), dict_index, 1);
+#if AXIS_TRANSITION
+
 
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
 				   dict_index, -1);
@@ -352,6 +354,7 @@ insert_variable_callback (GObject *obj, gint var_num, gpointer data)
   psppire_data_store_insert_values (store, 1, posn);
 
 #if AXIS_TRANSITION
+
   g_sheet_column_columns_changed (G_SHEET_COLUMN (store),
 				  var_num, 1);
 #endif
@@ -859,6 +862,7 @@ psppire_data_store_delete_cases (PsppireDataStore *ds, casenumber first,
   datasheet_delete_rows (ds->datasheet, first, n_cases);
 
   g_signal_emit (ds, signals [CASES_DELETED], 0, first, n_cases);
+  g_sheet_model_rows_deleted (G_SHEET_MODEL (ds), first, n_cases);
 
   return TRUE;
 }
@@ -881,7 +885,10 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
   result = datasheet_insert_rows (ds->datasheet, posn, &tmp, 1);
 
   if ( result )
-    g_signal_emit (ds, signals [CASE_INSERTED], 0, posn);
+    {
+      g_signal_emit (ds, signals [CASE_INSERTED], 0, posn);
+      g_sheet_model_rows_inserted (G_SHEET_MODEL (ds), posn, 1);
+    }
   else
     g_warning ("Cannot insert case at position %ld\n", posn);
 
