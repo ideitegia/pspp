@@ -227,6 +227,45 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
     }
 }
 
+static void
+case_inserted_callback (PsppireDataStore *ds, gint before, gpointer data)
+{
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  gint i;
+
+  for (i = 0 ; i < 4 ; ++i)
+    {
+      PsppireAxisUniform *vaxis;
+      casenumber n_cases =  psppire_data_store_get_case_count (ds);
+
+      g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
+
+      psppire_axis_uniform_set_count (vaxis, n_cases + 1);
+    }
+}
+
+
+static void
+cases_deleted_callback (PsppireDataStore *ds, gint first, gint n_cases, gpointer data)
+{
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  gint i;
+
+  for (i = 0 ; i < 4 ; ++i)
+    {
+      PsppireAxisUniform *vaxis;
+      casenumber case_count =  psppire_data_store_get_case_count (ds);
+
+      g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
+
+      psppire_axis_uniform_set_count (vaxis, case_count - n_cases);
+    }
+}
+
+
+
 /* Return the width (in pixels) of an upper case M when rendered in the
    current font of W
 */
@@ -365,12 +404,27 @@ psppire_data_editor_set_property (GObject         *object,
 		      "model", de->data_store,
 		      NULL);
 
-      g_signal_connect (de->data_store->dict, "backend-changed",   G_CALLBACK (new_variables_callback), de);
-      g_signal_connect (de->data_store->dict, "variable-inserted", G_CALLBACK (insert_variable_callback), de);
-      g_signal_connect (de->data_store->dict, "variable-deleted",  G_CALLBACK (delete_variable_callback), de);
-      g_signal_connect (de->data_store->dict, "variable-display-width-changed",  G_CALLBACK (rewidth_variable_callback), de);
+      g_signal_connect (de->data_store->dict, "backend-changed",
+			G_CALLBACK (new_variables_callback), de);
 
-      g_signal_connect (de->data_store, "backend-changed", G_CALLBACK (new_data_callback), de);
+      g_signal_connect (de->data_store->dict, "variable-inserted",
+			G_CALLBACK (insert_variable_callback), de);
+
+      g_signal_connect (de->data_store->dict, "variable-deleted",
+			G_CALLBACK (delete_variable_callback), de);
+
+      g_signal_connect (de->data_store->dict, "variable-display-width-changed",
+			G_CALLBACK (rewidth_variable_callback), de);
+
+      g_signal_connect (de->data_store, "backend-changed",
+			G_CALLBACK (new_data_callback), de);
+
+      g_signal_connect (de->data_store, "case-inserted",
+			G_CALLBACK (case_inserted_callback), de);
+
+      g_signal_connect (de->data_store, "cases-deleted",
+			G_CALLBACK (cases_deleted_callback), de);
+
       break;
     case PROP_VAR_STORE:
       if ( de->var_store) g_object_unref (de->var_store);

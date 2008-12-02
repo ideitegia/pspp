@@ -26,6 +26,7 @@
 #include <data/variable.h>
 
 #include <gtksheet/gsheetmodel.h>
+#include <gtksheet/psppire-marshal.h>
 
 #include <pango/pango-context.h>
 
@@ -43,13 +44,6 @@
 #include "xalloc.h"
 #include "xmalloca.h"
 
-
-enum cf_signal_handler {
-  CASES_DELETED,
-  CASE_INSERTED,
-  CASE_CHANGED,
-  n_cf_signals
-};
 
 
 static void psppire_data_store_init            (PsppireDataStore      *data_store);
@@ -78,9 +72,14 @@ static gboolean psppire_data_store_data_in (PsppireDataStore *ds,
 static GObjectClass *parent_class = NULL;
 
 
-enum  {
-       BACKEND_CHANGED,
-       n_SIGNALS};
+enum
+  {
+    BACKEND_CHANGED,
+    CASES_DELETED,
+    CASE_INSERTED,
+    CASE_CHANGED,
+    n_SIGNALS
+  };
 
 static guint signals [n_SIGNALS];
 
@@ -113,7 +112,8 @@ psppire_data_store_get_type (void)
       };
 
 
-      data_store_type = g_type_register_static (G_TYPE_OBJECT, "PsppireDataStore",
+      data_store_type = g_type_register_static (G_TYPE_OBJECT,
+						"PsppireDataStore",
 						&data_store_info, 0);
 
       g_type_add_interface_static (data_store_type,
@@ -146,6 +146,41 @@ psppire_data_store_class_init (PsppireDataStoreClass *class)
 		  g_cclosure_marshal_VOID__VOID,
 		  G_TYPE_NONE,
 		  0);
+
+  signals [CASE_INSERTED] =
+    g_signal_new ("case-inserted",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__INT,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_INT);
+
+
+  signals [CASE_CHANGED] =
+    g_signal_new ("case-changed",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  g_cclosure_marshal_VOID__INT,
+		  G_TYPE_NONE,
+		  1,
+		  G_TYPE_INT);
+
+  signals [CASES_DELETED] =
+    g_signal_new ("cases-deleted",
+		  G_TYPE_FROM_CLASS (class),
+		  G_SIGNAL_RUN_FIRST,
+		  0,
+		  NULL, NULL,
+		  psppire_marshal_VOID__INT_INT,
+		  G_TYPE_NONE,
+		  2,
+		  G_TYPE_INT,
+		  G_TYPE_INT);
 }
 
 
@@ -253,53 +288,6 @@ psppire_data_store_sheet_model_init (GSheetModelIface *iface)
   iface->get_row_sensitivity = get_row_sensitivity;
 }
 
-static void
-delete_cases_callback (GtkWidget *w,
-	 casenumber first, casenumber n_cases, gpointer data)
-{
-  PsppireDataStore *store  ;
-
-  g_return_if_fail (data);
-
-  store  = PSPPIRE_DATA_STORE (data);
-
-  g_assert (first >= 0);
-
-  g_sheet_model_rows_deleted (G_SHEET_MODEL (store), first, n_cases);
-}
-
-
-static void
-insert_case_callback (GtkWidget *w, casenumber casenum, gpointer data)
-{
-  PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
-
-  g_return_if_fail (data);
-
-  g_print ("%s\n", __FUNCTION__);
-
-  g_sheet_model_range_changed (G_SHEET_MODEL (store),
-			       casenum, -1,
-			       psppire_data_store_get_case_count (store),
-			       -1);
-
-  g_sheet_model_rows_inserted (G_SHEET_MODEL (store), casenum, 1);
-}
-
-
-static void
-changed_case_callback (GtkWidget *w, gint casenum, gpointer data)
-{
-  PsppireDataStore *store  ;
-  g_return_if_fail (data);
-
-  store  = PSPPIRE_DATA_STORE (data);
-
-  g_sheet_model_range_changed (G_SHEET_MODEL (store),
-				 casenum, -1,
-				 casenum, -1);
-}
-
 
 /*
    A callback which occurs after a variable has been deleted.
@@ -318,6 +306,7 @@ delete_variable_callback (GObject *obj, gint dict_index,
 				   dict_index, -1);
 #endif
 }
+
 
 
 static void
@@ -422,15 +411,6 @@ psppire_data_store_set_reader (PsppireDataStore *ds,
   g_sheet_model_range_changed (G_SHEET_MODEL (ds),
 			       -1, -1, -1, -1);
 
-#if 0
-  for (i = 0 ; i < n_cf_signals ; ++i )
-    {
-      if ( ds->cf_handler_id [i] > 0 )
-	g_signal_handler_disconnect (ds->case_file,
-				     ds->cf_handler_id[i]);
-    }
-#endif
-
   if ( ds->dict )
     for (i = 0 ; i < n_dict_signals; ++i )
       {
@@ -440,23 +420,6 @@ psppire_data_store_set_reader (PsppireDataStore *ds,
 				      ds->dict_handler_id[i]);
 	  }
       }
-
-#if 0
-  ds->cf_handler_id [CASES_DELETED] =
-    g_signal_connect (ds->case_file, "cases-deleted",
-		      G_CALLBACK (delete_cases_callback),
-		      ds);
-
-  ds->cf_handler_id [CASE_INSERTED] =
-    g_signal_connect (ds->case_file, "case-inserted",
-		      G_CALLBACK (insert_case_callback),
-		      ds);
-
-  ds->cf_handler_id [CASE_CHANGED] =
-    g_signal_connect (ds->case_file, "case-changed",
-		      G_CALLBACK (changed_case_callback),
-		      ds);
-#endif
 
   g_signal_emit (ds, signals[BACKEND_CHANGED], 0);
 }
@@ -747,14 +710,6 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
   int i;
   struct casereader *reader ;
 
-#if 0
-  for (i = 0 ; i < n_cf_signals ; ++i )
-    {
-      g_signal_handler_disconnect (ds->case_file, ds->cf_handler_id[i]);
-      ds->cf_handler_id[i] = 0 ;
-    }
-#endif
-
   if ( ds->dict )
     for (i = 0 ; i < n_dict_signals; ++i )
       {
@@ -762,7 +717,7 @@ psppire_data_store_get_reader (PsppireDataStore *ds)
 				ds->dict_handler_id[i]);
       }
 
-  reader =   datasheet_make_reader (ds->datasheet);
+  reader = datasheet_make_reader (ds->datasheet);
 
   /* We must not reference this again */
   ds->datasheet = NULL;
@@ -891,14 +846,15 @@ psppire_data_store_get_case (const PsppireDataStore *ds,
 
 
 gboolean
-psppire_data_store_delete_cases (PsppireDataStore *ds, casenumber n_cases,
-				 casenumber first)
+psppire_data_store_delete_cases (PsppireDataStore *ds, casenumber first,
+				 casenumber n_cases)
 {
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
   g_return_val_if_fail (first + n_cases <=
 			psppire_data_store_get_case_count (ds), FALSE);
+
 
   datasheet_delete_rows (ds->datasheet, first, n_cases);
 
@@ -924,7 +880,6 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
   case_clone (&tmp, cc);
   result = datasheet_insert_rows (ds->datasheet, posn, &tmp, 1);
 
-  g_debug ("Result %d.  Inserted case at posn %ld", result, posn);
   if ( result )
     g_signal_emit (ds, signals [CASE_INSERTED], 0, posn);
   else
