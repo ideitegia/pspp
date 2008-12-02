@@ -1161,13 +1161,6 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
   if ( !GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     return;
 
-  if ( max_visible_row (sheet) > g_sheet_model_get_row_count (sheet->model)
-       ||
-       max_visible_column (sheet) > g_sheet_model_get_column_count (sheet->model))
-    {
-      gtk_sheet_moveto (sheet, 0, 0, 0, 0);
-    }
-
   if ( ( row0 < 0 && col0 < 0 ) || ( rowi < 0 && coli < 0 ) )
     {
       gtk_sheet_range_draw (sheet, NULL);
