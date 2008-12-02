@@ -222,7 +222,7 @@ psppire_data_store_get_value_count (const PsppireDataStore *store)
   return psppire_dict_get_value_cnt (store->dict);
 }
 
-casenumber
+static casenumber
 psppire_data_store_get_case_count_wrapper (const GSheetModel *model)
 {
   const PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
