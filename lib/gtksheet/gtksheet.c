@@ -4847,6 +4847,38 @@ draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint last)
  * vadjustment_value_changed
  * hadjustment_value_changed */
 
+
+static void
+update_adjustment (GtkAdjustment *adj, PsppireAxis *axis, gint page_size)
+{
+  double position =
+    (adj->value + adj->page_size)
+    /
+    (adj->upper - adj->lower);
+
+  const glong last_item = psppire_axis_unit_count (axis) - 1;
+
+  if (isnan (position) || position < 0)
+    position = 0;
+
+  adj->upper =
+    psppire_axis_pixel_start (axis, last_item)
+    +
+    psppire_axis_unit_size (axis, last_item)
+    ;
+
+  adj->lower = 0;
+  adj->page_size = page_size;
+
+  adj->value = position * (adj->upper - adj->lower) - adj->page_size;
+
+  if ( adj->value < adj->lower)
+    adj->value = adj->lower;
+
+  gtk_adjustment_changed (adj);
+}
+
+
 static void
 adjust_scrollbars (GtkSheet *sheet)
 {
@@ -4876,28 +4908,15 @@ adjust_scrollbars (GtkSheet *sheet)
 	sheet->column_title_area.height -
 	psppire_axis_unit_size (sheet->vaxis, last_row);
 
-
-
-      sheet->vadjustment->upper =
-	psppire_axis_pixel_start (sheet->vaxis, last_row)
-	+
-	psppire_axis_unit_size (sheet->vaxis, last_row)
-	;
-
-      sheet->vadjustment->lower = 0;
-      sheet->vadjustment->page_size = height;
-
-      g_signal_emit_by_name (sheet->vadjustment, "changed");
+      update_adjustment (sheet->vadjustment, sheet->vaxis, height);
     }
 
   if (sheet->hadjustment)
     {
-      gint last_col;
+      gint last_col = psppire_axis_unit_count (sheet->haxis) - 1;
       sheet->hadjustment->step_increment = 1;
 
       sheet->hadjustment->page_increment = width;
-
-      last_col = psppire_axis_unit_count (sheet->haxis) - 1;
 
       sheet->hadjustment->upper =
 	psppire_axis_pixel_start (sheet->haxis, last_col)
@@ -4905,10 +4924,7 @@ adjust_scrollbars (GtkSheet *sheet)
 	psppire_axis_unit_size (sheet->haxis, last_col)
 	;
 
-      sheet->hadjustment->lower = 0;
-      sheet->hadjustment->page_size = width;
-
-      g_signal_emit_by_name (sheet->hadjustment, "changed");
+      update_adjustment (sheet->hadjustment, sheet->haxis, width);
     }
 }
 
