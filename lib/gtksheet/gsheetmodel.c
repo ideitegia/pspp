@@ -415,28 +415,6 @@ g_sheet_model_get_justification (const GSheetModel *model,
 							       row, column);
 }
 
-/**
- * g_sheet_model_get_cell_border:
- * @sheet_model: A #GSheetModel
- * @row: The row
- * @column: The column
- *
- * Returns the cell border of the cell at @row, @column
- * Returns: the cell border, or NULL on error.
- **/
-const GtkSheetCellBorder *
-g_sheet_model_get_cell_border (const GSheetModel *model,
-				 glong row, glong column)
-{
-  g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
-  if ( ! G_SHEET_MODEL_GET_IFACE (model)->get_cell_border)
-    return NULL;
-
-  return G_SHEET_MODEL_GET_IFACE (model)->get_cell_border (model,
-							   row, column);
-}
-
-
 
 /**
  * g_sheet_model_get_column_count:

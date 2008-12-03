@@ -5213,7 +5213,6 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
 {
   GdkColor *fg, *bg;
   const GtkJustification *j ;
-  const GtkSheetCellBorder *border ;
   GdkColormap *colormap;
 
   g_return_val_if_fail (sheet != NULL, FALSE);
@@ -5254,10 +5253,6 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
   j = g_sheet_model_get_justification (sheet->model, row, col);
   if (j)
     attr->justification = *j;
-
-  border = g_sheet_model_get_cell_border (sheet->model, row, col);
-
-  if ( border ) attr->border = *border;
 
   return TRUE;
 }

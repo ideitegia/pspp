@@ -275,7 +275,6 @@ psppire_data_store_sheet_model_init (GSheetModelIface *iface)
   iface->is_editable = NULL;
   iface->get_foreground = NULL;
   iface->get_background = NULL;
-  iface->get_cell_border = NULL;
   iface->get_column_count = psppire_data_store_get_var_count;
   iface->get_row_count = psppire_data_store_get_case_count_wrapper;
 

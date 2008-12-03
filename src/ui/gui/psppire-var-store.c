@@ -295,7 +295,6 @@ psppire_var_store_sheet_model_init (GSheetModelIface *iface)
   iface->is_editable = psppire_var_store_is_editable;
   iface->get_foreground = psppire_var_store_get_foreground;
   iface->get_background = NULL;
-  iface->get_cell_border = NULL;
   iface->get_justification = NULL;
 
   iface->get_column_title = get_column_title;

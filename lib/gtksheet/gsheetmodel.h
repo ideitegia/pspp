@@ -117,11 +117,6 @@ struct _GSheetModelIface
   const GtkJustification *  (* get_justification) (const GSheetModel *sheet_model,
 						   glong row, glong column);
 
-  const GtkSheetCellBorder *  (* get_cell_border) (const GSheetModel *sheet_model,
-						   glong row, glong column);
-
-
-
   /* column related metadata */
 
   gchar * (*get_column_title) (const GSheetModel *, gint col);
