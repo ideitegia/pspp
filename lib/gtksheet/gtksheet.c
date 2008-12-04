@@ -457,7 +457,7 @@ static void gtk_sheet_entry_changed		 (GtkWidget *widget,
 static void gtk_sheet_hide_entry_widget		 (GtkSheet *sheet);
 static void change_active_cell		 (GtkSheet *sheet,
 					  gint row, gint col);
-static void gtk_sheet_draw_active_cell		 (GtkSheet *sheet);
+static gboolean gtk_sheet_draw_active_cell		 (GtkSheet *sheet);
 static void gtk_sheet_show_entry_widget		 (GtkSheet *sheet);
 static gboolean gtk_sheet_click_cell		 (GtkSheet *sheet,
 						  gint row,
@@ -1786,8 +1786,8 @@ gtk_sheet_realize (GtkWidget *widget)
   sheet->fg_gc = gdk_gc_new (widget->window);
   sheet->bg_gc = gdk_gc_new (widget->window);
 
-  values.foreground = widget->style->white;
-  values.function = GDK_INVERT;
+  values.foreground = widget->style->black;
+  values.function = GDK_COPY;
   values.subwindow_mode = GDK_INCLUDE_INFERIORS;
   values.line_width = BORDER_WIDTH;
 
@@ -2637,14 +2637,11 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
   dispose_string (sheet, text);
 }
 
-static void
+static gboolean
 gtk_sheet_draw_active_cell (GtkSheet *sheet)
 {
   gint row, col;
   GtkSheetRange range;
-
-  if (!GTK_WIDGET_DRAWABLE (GTK_WIDGET (sheet))) return;
-  if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
 
   row = sheet->active_cell.row;
   col = sheet->active_cell.col;
@@ -2658,6 +2655,8 @@ gtk_sheet_draw_active_cell (GtkSheet *sheet)
   range.row0 = range.rowi = row;
 
   gtk_sheet_draw_border (sheet, range);
+
+  return FALSE;
 }
 
 
@@ -3107,7 +3106,7 @@ gtk_sheet_expose (GtkWidget *widget,
       if ((!GTK_SHEET_IN_XDRAG (sheet)) && (!GTK_SHEET_IN_YDRAG (sheet)))
 	{
 	  if (sheet->state == GTK_SHEET_NORMAL)
-	    gtk_sheet_draw_active_cell (sheet);
+	    g_idle_add (gtk_sheet_draw_active_cell, sheet);
 	}
     }
 
