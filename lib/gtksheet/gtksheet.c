@@ -4125,6 +4125,15 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
     }
 
 
+  g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
+		 &sheet->active_cell,
+		 &new_cell,
+		 &forbidden);
+
+  if (forbidden)
+    return;
+
+
   maximize_int (&new_cell.row, 0);
   maximize_int (&new_cell.col, 0);
 
@@ -4133,14 +4142,6 @@ step_sheet (GtkSheet *sheet, GtkScrollType dir)
 
   minimize_int (&new_cell.col,
 		psppire_axis_unit_count (sheet->haxis) - 1);
-
-  g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
-		 &sheet->active_cell,
-		 &new_cell,
-		&forbidden);
-
-  if (forbidden)
-    return;
 
   change_active_cell (sheet, new_cell.row, new_cell.col);
 
@@ -4844,10 +4845,12 @@ update_adjustment (GtkAdjustment *adj, PsppireAxis *axis, gint page_size)
   adj->lower = 0;
   adj->page_size = page_size;
 
+#if 0
   adj->value = position * (adj->upper - adj->lower) - adj->page_size;
 
   if ( adj->value < adj->lower)
     adj->value = adj->lower;
+#endif
 
   gtk_adjustment_changed (adj);
 }

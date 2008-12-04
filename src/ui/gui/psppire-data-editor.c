@@ -294,7 +294,9 @@ new_variables_callback (PsppireDict *dict, gpointer data)
 
   psppire_axis_hetero_clear (vaxis);
 
-  for (v = 0 ; v < psppire_dict_get_var_cnt (dict); ++v)
+  /* NOTE: "<=" in the following line is correct.
+     There needs to be one more row than there are variables */
+  for (v = 0 ; v <= psppire_dict_get_var_cnt (dict); ++v)
     psppire_axis_hetero_append (vaxis, DEFAULT_ROW_HEIGHT);
 
   for (i = 0 ; i < 4 ; ++i)
