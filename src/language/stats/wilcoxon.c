@@ -21,7 +21,7 @@
 #include <data/variable.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
-#include <data/case-ordering.h>
+#include <data/subcase.h>
 #include <math/sort.h>
 #include <libpspp/message.h>
 #include <xalloc.h>
@@ -89,7 +89,7 @@ wilcoxon_execute (const struct dataset *ds,
       struct casereader *r = casereader_clone (input);
       struct casewriter *writer;
       struct ccase c;
-      struct case_ordering *ordering = case_ordering_create ();
+      struct subcase ordering;
       variable_pair *vp = &t2s->pairs[i];
 
       const int reader_width = weight ? 3 : 2;
@@ -97,14 +97,14 @@ wilcoxon_execute (const struct dataset *ds,
       ws[i].sign = var_create_internal (0);
       ws[i].absdiff = var_create_internal (1);
 
-      case_ordering_add_var (ordering, ws[i].absdiff, SRT_ASCEND);
-
-
       r = casereader_create_filter_missing (r, *vp, 2,
 					    exclude,
 					    NULL, NULL);
 
-      writer = sort_create_writer (ordering, reader_width);
+      subcase_init_var (&ordering, ws[i].absdiff, SC_ASCEND);
+      writer = sort_create_writer (&ordering, reader_width);
+      subcase_destroy (&ordering);
+
       while (casereader_read (r, &c))
 	{
 	  struct ccase output;

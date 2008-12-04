@@ -1,0 +1,336 @@
+@node Combining Data Files
+@chapter Combining Data Files
+
+This chapter describes commands that allow data from system files,
+portable file, scratch files, and the active file to be combined to
+form a new active file.  These commands can combine data files in the
+following ways:
+
+@itemize
+@item
+@cmd{ADD FILES} interleaves or appends the cases from each input file.
+It is used with input files that have variables in common, but
+distinct sets of cases.
+
+@item
+@cmd{MATCH FILES} adds the data together in cases that match across
+multiple input files.  It is used with input files that have cases in
+common, but different information about each case.
+
+@item
+@cmd{UPDATE} updates a master data file from data in a set of
+transaction files.  Each case in a transaction data file modifies a
+matching case in the primary data file, or it adds a new case if no
+matching case can be found.
+@end itemize
+
+These commands share the majority of their syntax, which is described
+in the following section, followed by one section for each command
+that describes its specific syntax and semantics.
+
+@menu
+* Combining Files Common Syntax::
+* ADD FILES::                   Interleave cases from multiple files.
+* MATCH FILES::                 Merge cases from multiple files.
+* UPDATE::                      Update cases using transactional data.
+@end menu
+
+@node Combining Files Common Syntax
+@section Common Syntax
+
+@display
+Per input file:
+        /FILE=@{*,'file-name'@}
+        [/RENAME=(src_names=target_names)@dots{}]
+        [/IN=var_name]
+        [/SORT]
+
+Once per command:
+        /BY var_list[(@{D|A@})] [var_list[(@{D|A@}]]@dots{}
+        [/DROP=var_list]
+        [/KEEP=var_list]
+        [/FIRST=var_name]
+        [/LAST=var_name]
+        [/MAP]
+@end display
+
+This section describes the syntactical features in common among the
+@cmd{ADD FILES}, @cmd{MATCH FILES}, and @cmd{UPDATE} commands.  The
+following sections describe details specific to each command.
+
+Each of these commands reads two or more input files and combines
+them.  The command's output becomes the new active file.  The input
+files are not changed on disk.
+
+The syntax of each command begins with a specification of the files to
+be read as input.  For each input file, specify FILE with a system,
+portable, or scratch file's name as a string or a file handle
+(@pxref{File Handles}), or specify an asterisk (@samp{*}) to use the
+active file as input.  Use of portable or scratch files on FILE is a
+PSPP extension.
+
+At least two FILE subcommands must be specified.  If the active file
+is used as an input source, then @cmd{TEMPORARY} must not be in
+effect.
+
+Each FILE subcommand may be followed by any number of RENAME
+subcommands that specify a parenthesized group or groups of variable
+names as they appear in the input file, followed by those variables'
+new names, separated by an equals sign (@samp{=}),
+e.g. @samp{/RENAME=(OLD1=NEW1)(OLD2=NEW2)}.  To rename a single
+variable, the parentheses may be omitted: @samp{/RENAME=OLD=NEW}.
+Within a parenthesized group, variables are renamed simultaneously, so
+that @samp{/RENAME=(A B=B A)} exchanges the names of variables A and
+B.  Otherwise, renaming occurs in left-to-right order.
+
+Each FILE subcommand may optionally be followed by a single IN
+subcommand, which creates a numeric variable with the specified name
+and format F1.0.  The IN variable takes value 1 in an output case if
+the given input file contributed to that output case, and 0 otherwise.
+The DROP, KEEP, and RENAME subcommands have no effect on IN variables.
+
+If BY is used (see below), the SORT keyword must be specified after a
+FILE if that input file is not already sorted on the BY variables.
+When SORT is specified, PSPP sorts the input file's data on the BY
+variables before it applies it to the command.  When SORT is used, BY
+is required.  SORT is a PSPP extension.
+
+PSPP merges the dictionaries of all of the input files to form the new
+active file dictionary, like so:
+
+@itemize @bullet
+@item
+The new active file's variables are the union of all the input files'
+variables, matched based on their name.  When a single input file
+contains a variable with a given name, the output file will contain
+exactly that variable.  When more than one input file contains a
+variable with a given name, those variables must all have the same
+type (numeric or string) and, for string variables, the same width.
+Variables are matched after renaming with the RENAME subcommand.
+Thus, RENAME can be used to resolve conflicts.
+
+@item
+The variable label for each output variable is taken from the first
+specified input file that has a variable label for that variable, and
+similarly for value labels and missing values.
+
+@item
+The new active file's file label (@pxref{FILE LABEL}) is that of the
+first specified FILE that has a file label.
+
+@item
+The new active file's documents (@pxref{DOCUMENT}) are the
+concatenation of all the input files' documents, in the order in which
+the FILE subcommands are specified.
+
+@item
+If all of the input files are weighted on the same variable, then the
+new active file is weighted on that variable.  Otherwise, the new
+active file is not weighted.
+@end itemize
+
+The remaining subcommands apply to the output file as a whole, rather
+than to individual input files.  They must be specified at the end of
+the command specification, following all of the FILE and related
+subcommands.  The most important of these subcommands is BY, which
+specifies a set of one or more variables that may be used to find
+corresponding cases in each of the input files.  The variables
+specified on BY must be present in all of the input files.
+Furthermore, if any of the input files are not sorted on the BY
+variables, then SORT must be specified for those input files.
+
+The variables listed on BY may include (A) or (D) annotations to
+specify ascending or descending sort order.  @xref{SORT CASES}, for
+more details on this notation.  Adding (A) or (D) to the BY subcommand
+specification is a PSPP extension.
+
+The DROP subcommand can be used to specify a list of variables to
+exclude from the output.  By contrast, the KEEP subcommand can be used
+to specify variables to include in the output; all variables not
+listed are dropped.  DROP and KEEP are executed in left-to-right order
+and may be repeated any number of times.  DROP and KEEP do not affect
+variables created by the IN, FIRST, and LAST subcommands, which are
+always included in the new active file, but they can be used to drop
+BY variables.
+
+The FIRST and LAST subcommands are optional.  They may only be
+specified on @cmd{MATCH FILES} and @cmd{ADD FILES}, and only when BY
+is used.  FIRST and LIST each adds a numeric variable to the new
+active file, with the name given as the subcommand's argument and F1.0
+print and write formats.  The value of the FIRST variable is 1 in the
+first output case with a given set of values for the BY variables, and
+0 in other cases.  Similarly, the LAST variable is 1 in the last case
+with a given of BY values, and 0 in other cases.
+
+When any of these commands creates an output case, variables that are
+only in files that are not present for the current case are set to the
+system-missing value for numeric variables or spaces for string
+variables.
+
+@node ADD FILES
+@section ADD FILES
+@vindex ADD FILES
+
+@display
+ADD FILES
+
+Per input file:
+        /FILE=@{*,'file-name'@}
+        [/RENAME=(src_names=target_names)@dots{}]
+        [/IN=var_name]
+        [/SORT]
+
+Once per command:
+        [/BY var_list[(@{D|A@})] [var_list[(@{D|A@})]@dots{}]]
+        [/DROP=var_list]
+        [/KEEP=var_list]
+        [/FIRST=var_name]
+        [/LAST=var_name]
+        [/MAP]
+@end display
+
+@cmd{ADD FILES} adds cases from multiple input files.  The output,
+which replaces the active file, consists all of the cases in all of
+the input files.
+
+ADD FILES shares the bulk of its syntax with other PSPP commands for
+combining multiple data files.  @xref{Combining Files Common Syntax},
+above, for an explanation of this common syntax.
+
+When BY is not used, the output of ADD FILES consists of all the cases
+from the first input file specified, followed by all the cases from
+the second file specified, and so on.  When BY is used, the output is
+additionally sorted on the BY variables.
+
+When ADD FILES creates an output case, variables that are not part of
+the input file from which the case was drawn are set to the
+system-missing value for numeric variables or spaces for string
+variables.
+
+@node MATCH FILES
+@section MATCH FILES
+@vindex MATCH FILES
+
+@display
+MATCH FILES
+
+Per input file:
+        /@{FILE,TABLE@}=@{*,'file-name'@}
+        [/RENAME=(src_names=target_names)@dots{}]
+        [/IN=var_name]
+        [/SORT]
+
+Once per command:
+        /BY var_list[(@{D|A@}] [var_list[(@{D|A@})]@dots{}]
+        [/DROP=var_list]
+        [/KEEP=var_list]
+        [/FIRST=var_name]
+        [/LAST=var_name]
+        [/MAP]
+@end display
+
+@cmd{MATCH FILES} merges sets of corresponding cases in multiple
+input files into single cases in the output, combining their data.
+
+MATCH FILES shares the bulk of its syntax with other PSPP commands for
+combining multiple data files.  @xref{Combining Files Common Syntax},
+above, for an explanation of this common syntax.
+
+How MATCH FILES matches up cases from the input files depends on
+whether BY is specified:
+
+@itemize @bullet
+@item
+If BY is not used, MATCH FILES combines the first case from each input
+file to produce the first output case, then the second case from each
+input file for the second output case, and so on.  If some input files
+have fewer cases than others, then the shorter files do not contribute
+to cases output after their input has been exhausted.
+
+@item
+If BY is used, MATCH FILES combines cases from each input file that
+have identical values for the BY variables.
+
+When BY is used, TABLE subcommands may be used to introduce @dfn{table
+lookup file}.  TABLE has same syntax as FILE, and the RENAME, IN, and
+SORT subcommands may follow a TABLE in the same way as a FILE.
+Regardless of the number of TABLEs, at least one FILE must specified.
+Table lookup files are treated in the same way as other input files
+for most purposes and, in particular, table lookup files must be
+sorted on the BY variables or the SORT subcommand must be specified
+for that TABLE.
+
+Cases in table lookup files are not consumed after they have been used
+once.  This means that data in table lookup files can correspond to
+any number of cases in FILE input files.  Table lookup files are
+analogous to lookup tables in traditional relational database systems.
+
+If a table lookup file contains more than one case with a given set of
+BY variables, only the first case is used.
+@end itemize
+
+When MATCH FILES creates an output case, variables that are only in
+files that are not present for the current case are set to the
+system-missing value for numeric variables or spaces for string
+variables.
+
+@node UPDATE
+@section UPDATE
+@vindex UPDATE
+
+@display
+UPDATE
+
+Per input file:
+        /FILE=@{*,'file-name'@}
+        [/RENAME=(src_names=target_names)@dots{}]
+        [/IN=var_name]
+        [/SORT]
+
+Once per command:
+        /BY var_list[(@{D|A@})] [var_list[(@{D|A@})]]@dots{}
+        [/DROP=var_list]
+        [/KEEP=var_list]
+        [/MAP]
+@end display
+
+@cmd{UPDATE} updates a @dfn{master file} by applying modifications
+from one or more @dfn{transaction files}.  
+
+UPDATE shares the bulk of its syntax with other PSPP commands for
+combining multiple data files.  @xref{Combining Files Common Syntax},
+above, for an explanation of this common syntax.
+
+At least two FILE subcommands must be specified.  The first FILE
+subcommand names the master file, and the rest name transaction files.
+Every input file must either be sorted on the variables named on the
+BY subcommand, or the SORT subcommand must be used just after the FILE
+subcommand for that input file.
+
+UPDATE uses the variables specified on the BY subcommand, which is
+required, to attempt to match each case in a transaction file with a
+case in the master file:
+
+@itemize @bullet
+@item
+When a match is found, then the values of the variables present in the
+transaction file replace those variable's values in the new active
+file.  If there are matching cases in more than more transaction file,
+PSPP applies the replacements from the first transaction file, then
+from the second transaction file, and so on.  Similarly, if a single
+transaction file has cases with duplicate BY values, then those are
+applied in order to the master file.
+
+When a variable in a transaction file has a missing value or a string
+variable's value is all blanks, that value is never used to update the
+master file.
+
+@item
+If a case in the master file has no matching case in any transaction
+file, then it is copied unchanged to the output.
+
+@item
+If a case in a transaction file has no matching case in the master
+file, then it causes a new case to be added to the output, initialized
+from the values in the transaction file.
+@end itemize

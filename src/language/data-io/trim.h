@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,20 +14,16 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef SORT_CRITERIA_H
-#define SORT_CRITERIA_H
+#ifndef LANGUAGE_DATA_IO_TRIM_H
+#define LANGUAGE_DATA_IO_TRIM_H
 
 #include <stdbool.h>
-#include <stddef.h>
 
-struct dictionary;
 struct lexer;
-struct variable;
-struct subcase;
+struct dictionary;
+bool parse_dict_trim (struct lexer *, struct dictionary *);
+bool parse_dict_rename (struct lexer *, struct dictionary *);
+bool parse_dict_drop (struct lexer *, struct dictionary *);
+bool parse_dict_keep (struct lexer *, struct dictionary *);
 
-bool parse_sort_criteria (struct lexer *, const struct dictionary *,
-                          struct subcase *, const struct variable ***vars,
-                          bool *saw_direction);
-
-
-#endif /* sort-criteria.h */
+#endif /* trim.c */

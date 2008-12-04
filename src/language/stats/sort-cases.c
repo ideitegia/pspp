@@ -27,7 +27,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/message.h>
-#include <data/case-ordering.h>
+#include <data/subcase.h>
 #include <math/sort.h>
 #include <sys/types.h>
 
@@ -41,15 +41,15 @@
 int
 cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
 {
-  struct case_ordering *ordering;
+  struct subcase ordering;
   struct casereader *output;
   bool ok = false;
 
   lex_match (lexer, T_BY);
 
   proc_cancel_temporary_transformations (ds);
-  ordering = parse_case_ordering (lexer, dataset_dict (ds), NULL);
-  if (ordering == NULL)
+  subcase_init_empty (&ordering);
+  if (!parse_sort_criteria (lexer, dataset_dict (ds), &ordering, NULL, NULL))
     return CMD_CASCADING_FAILURE;
 
   if (settings_get_testing_mode () && lex_match (lexer, '/'))
@@ -69,8 +69,7 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
     }
 
   proc_discard_output (ds);
-  output = sort_execute (proc_open (ds), ordering);
-  ordering = NULL;
+  output = sort_execute (proc_open (ds), &ordering);
   ok = proc_commit (ds);
   ok = proc_set_active_file_data (ds, output) && ok;
 
@@ -78,7 +77,7 @@ cmd_sort_cases (struct lexer *lexer, struct dataset *ds)
   min_buffers = 64;
   max_buffers = INT_MAX;
 
-  case_ordering_destroy (ordering);
+  subcase_destroy (&ordering);
   return ok ? lex_end_of_command (lexer) : CMD_CASCADING_FAILURE;
 }
 

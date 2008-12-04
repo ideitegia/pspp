@@ -19,7 +19,6 @@
 #include <limits.h>
 #include <math.h>
 
-#include <data/case-ordering.h>
 #include <data/case.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>
@@ -29,6 +28,7 @@
 #include <data/missing-values.h>
 #include <data/procedure.h>
 #include <data/short-names.h>
+#include <data/subcase.h>
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/stats/sort-criteria.h>
@@ -152,7 +152,7 @@ static enum mv_class exclude_values;
 static struct rank_spec *rank_specs;
 static size_t n_rank_specs;
 
-static struct case_ordering *sc;
+static struct subcase sc;
 
 static const struct variable **group_vars;
 static size_t n_group_vars;
@@ -233,14 +233,14 @@ create_var_label (struct variable *dest_var,
 
 
 static bool
-rank_cmd (struct dataset *ds, const struct case_ordering *sc,
+rank_cmd (struct dataset *ds, const struct subcase *sc,
 	  const struct rank_spec *rank_specs, int n_rank_specs)
 {
   struct dictionary *d = dataset_dict (ds);
   bool ok = true;
   int i;
 
-  for (i = 0 ; i < case_ordering_get_var_cnt (sc) ; ++i )
+  for (i = 0 ; i < subcase_get_n_fields (sc) ; ++i )
     {
       /* Rank variable at index I in SC. */
       struct casegrouper *split_grouper;
@@ -253,21 +253,18 @@ rank_cmd (struct dataset *ds, const struct case_ordering *sc,
 
       while (casegrouper_get_next_group (split_grouper, &split_group))
         {
-          struct case_ordering *ordering;
+          struct subcase ordering;
           struct casereader *ordered;
           struct casegrouper *by_grouper;
           struct casereader *by_group;
-          int j;
 
           /* Sort this split group by the BY variables as primary
              keys and the rank variable as secondary key. */
-          ordering = case_ordering_create ();
-          for (j = 0; j < n_group_vars; j++)
-            case_ordering_add_var (ordering, group_vars[j], SRT_ASCEND);
-          case_ordering_add_var (ordering,
-                                 case_ordering_get_var (sc, i),
-                                 case_ordering_get_direction (sc, i));
-          ordered = sort_execute (split_group, ordering);
+          subcase_init_vars (&ordering, group_vars, n_group_vars);
+          subcase_add_var (&ordering, src_vars[i],
+                           subcase_get_direction (sc, i));
+          ordered = sort_execute (split_group, &ordering);
+          subcase_destroy (&ordering);
 
           /* Rank the rank variable within this split group. */
           by_grouper = casegrouper_create_vars (ordered,
@@ -625,8 +622,7 @@ rank_cleanup(void)
   rank_specs = NULL;
   n_rank_specs = 0;
 
-  case_ordering_destroy (sc);
-  sc = NULL;
+  subcase_destroy (&sc);
 
   free (src_vars);
   src_vars = NULL;
@@ -641,6 +637,7 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   size_t i;
   n_rank_specs = 0;
 
+  subcase_init_empty (&sc);
   if ( !parse_rank (lexer, ds, &cmd, NULL) )
     {
       rank_cleanup ();
@@ -660,12 +657,12 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
       rank_specs = xmalloc (sizeof (*rank_specs));
       rank_specs[0].rfunc = RANK;
       rank_specs[0].destvars =
-	xcalloc (case_ordering_get_var_cnt (sc), sizeof (struct variable *));
+	xcalloc (subcase_get_n_fields (&sc), sizeof (struct variable *));
 
       n_rank_specs = 1;
     }
 
-  assert ( case_ordering_get_var_cnt (sc) == n_src_vars);
+  assert ( subcase_get_n_fields (&sc) == n_src_vars);
 
   /* Create variables for all rank destinations which haven't
      already been created with INTO.
@@ -773,17 +770,17 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
   add_transformation (ds, create_resort_key, 0, order);
 
   /* Do the ranking */
-  result = rank_cmd (ds, sc, rank_specs, n_rank_specs);
+  result = rank_cmd (ds, &sc, rank_specs, n_rank_specs);
 
   /* Put the active file back in its original order.  Delete
      our sort key, which we don't need anymore.  */
   {
-    struct case_ordering *ordering = case_ordering_create ();
     struct casereader *sorted;
-    case_ordering_add_var (ordering, order, SRT_ASCEND);
+
     /* FIXME: loses error conditions. */
+
     proc_discard_output (ds);
-    sorted = sort_execute (proc_open (ds), ordering);
+    sorted = sort_execute_1var (proc_open (ds), order);
     result = proc_commit (ds) && result;
 
     dict_delete_var (dataset_dict (ds), order);
@@ -808,10 +805,9 @@ rank_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_rank 
       && lex_token (lexer) != T_ALL)
       return 2;
 
-  sc = parse_case_ordering (lexer, dataset_dict (ds), NULL);
-  if (sc == NULL)
+  if (!parse_sort_criteria (lexer, dataset_dict (ds), &sc, &src_vars, NULL))
     return 0;
-  case_ordering_get_vars (sc, &src_vars, &n_src_vars);
+  n_src_vars = subcase_get_n_fields (&sc);
 
   if ( lex_match (lexer, T_BY)  )
     {
@@ -845,8 +841,7 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
   rank_specs[n_rank_specs - 1].destvars = NULL;
 
   rank_specs[n_rank_specs - 1].destvars =
-	    xcalloc (case_ordering_get_var_cnt (sc),
-                     sizeof (struct variable *));
+	    xcalloc (subcase_get_n_fields (&sc), sizeof (struct variable *));
 
   if (lex_match_id (lexer, "INTO"))
     {
@@ -860,7 +855,7 @@ parse_rank_function (struct lexer *lexer, struct dictionary *dict, struct cmd_ra
 	      msg(SE, _("Variable %s already exists."), lex_tokid (lexer));
 	      return 0;
 	    }
-	  if ( var_count >= case_ordering_get_var_cnt (sc) )
+	  if ( var_count >= subcase_get_n_fields (&sc) )
 	    {
 	      msg(SE, _("Too many variables in INTO clause."));
 	      return 0;

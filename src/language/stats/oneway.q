@@ -907,8 +907,8 @@ run_oneway (struct cmd_oneway *cmd,
   taint = taint_clone (casereader_get_taint (input));
 
   global_group_hash = hsh_create (4,
-				  compare_values,
-				  hash_value,
+				  compare_values_short,
+				  hash_value_short,
 				  free_value,
 				  indep_var);
 

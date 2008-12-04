@@ -20,10 +20,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-struct case_ordering;
+struct subcase;
 struct casereader;
 
-struct merge *merge_create (const struct case_ordering *, size_t);
+struct merge *merge_create (const struct subcase *, size_t);
 void merge_destroy (struct merge *);
 void merge_append (struct merge *, struct casereader *);
 struct casereader *merge_make_reader (struct merge *);

@@ -21,6 +21,7 @@
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_matrix.h>
 #include <src/math/coefficient.h>
+#include <math/covariance-matrix.h>
 
 enum
 {
@@ -220,5 +221,5 @@ void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *, const struct vari
 /*
   Regression using only the covariance matrix.
  */
-void pspp_linreg_with_cov (const struct design_matrix *, pspp_linreg_cache *);
+void pspp_linreg_with_cov (const struct covariance_matrix *, pspp_linreg_cache *);
 #endif

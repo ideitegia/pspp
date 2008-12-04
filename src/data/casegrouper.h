@@ -27,10 +27,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-struct case_ordering;
 struct casereader;
 struct ccase;
 struct dictionary;
+struct subcase;
 struct variable;
 
 struct casegrouper *
@@ -45,8 +45,8 @@ struct casegrouper *casegrouper_create_vars (struct casereader *,
                                              size_t var_cnt);
 struct casegrouper *casegrouper_create_splits (struct casereader *,
                                                const struct dictionary *);
-struct casegrouper *casegrouper_create_case_ordering (struct casereader *,
-                                                      const struct case_ordering *);
+struct casegrouper *casegrouper_create_subcase (struct casereader *,
+                                                const struct subcase *);
 bool casegrouper_get_next_group (struct casegrouper *, struct casereader **);
 bool casegrouper_destroy (struct casegrouper *);
 

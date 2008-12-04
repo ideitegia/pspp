@@ -42,11 +42,15 @@ union value *value_create (int width);
 int compare_values (const void *, const void *, const void *var);
 unsigned hash_value (const void *, const void *var);
 
+int compare_values_short (const void *, const void *, const void *var);
+unsigned hash_value_short (const void *, const void *var);
+
 static inline size_t value_cnt_from_width (int width);
 void value_copy (union value *, const union value *, int width);
 void value_set_missing (union value *, int width);
 bool value_is_resizable (const union value *, int old_width, int new_width);
 void value_resize (union value *, int old_width, int new_width);
+int value_compare_3way (const union value *, const union value *, int width);
 
 /* Number of "union value"s required for a variable of the given
    WIDTH. */

@@ -225,24 +225,24 @@ i18n_done (void)
 char
 get_system_decimal (void)
 {
-  char *radix_char = NULL;
+  char radix_char;
 
   char *ol = setlocale (LC_NUMERIC, NULL);
   setlocale (LC_NUMERIC, "");
 
 #if HAVE_NL_LANGINFO
-  radix_char = nl_langinfo (RADIXCHAR);
+  radix_char = nl_langinfo (RADIXCHAR)[0];
 #else
   {
-    char *buf = xmalloc (10);
-    snprintf (buf, 10, "%f", 2.5);
-    radix_char = &buf[1];
+    char buf[10];
+    snprintf (buf, sizeof buf, "%f", 2.5);
+    radix_char = buf[1];
   }
 #endif
 
   /* We MUST leave LC_NUMERIC untouched, since it would
      otherwise interfere with data_{in,out} */
   setlocale (LC_NUMERIC, ol);
-  return *radix_char;
+  return radix_char;
 }
 

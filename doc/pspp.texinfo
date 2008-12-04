@@ -70,7 +70,8 @@ modify this GNU manual.''
 * Expressions::                 Numeric and string expression syntax.
 
 * Data Input and Output::       Reading data from user files.
-* System and Portable Files::   Dealing with system & portable files.
+* System and Portable File IO:: Reading and writing system & portable files.
+* Combining Data Files::        Combining data from multiple files.
 * Variable Attributes::         Adjusting and examining variables.
 * Data Manipulation::           Simple operations on data.
 * Data Selection::              Select certain cases for analysis.
@@ -98,6 +99,7 @@ modify this GNU manual.''
 @include expressions.texi
 @include data-io.texi
 @include files.texi
+@include combining.texi
 @include variables.texi
 @include transformation.texi
 @include data-selection.texi

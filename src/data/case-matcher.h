@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,20 +14,20 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef SORT_CRITERIA_H
-#define SORT_CRITERIA_H
+#ifndef DATA_CASE_MATCHER_H
+#define DATA_CASE_MATCHER_H 1
 
 #include <stdbool.h>
-#include <stddef.h>
 
-struct dictionary;
-struct lexer;
-struct variable;
+struct ccase;
 struct subcase;
+union value;
 
-bool parse_sort_criteria (struct lexer *, const struct dictionary *,
-                          struct subcase *, const struct variable ***vars,
-                          bool *saw_direction);
+struct case_matcher *case_matcher_create (void);
+void case_matcher_add_input (struct case_matcher *, const struct subcase *,
+                             const struct ccase *, bool *is_minimal);
+void case_matcher_destroy (struct case_matcher *);
 
+bool case_matcher_match (struct case_matcher *, union value **by);
 
-#endif /* sort-criteria.h */
+#endif /* data/case-matcher.h */

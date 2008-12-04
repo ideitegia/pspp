@@ -19,7 +19,6 @@
 #include <stdlib.h>
 
 #include <data/any-writer.h>
-#include <data/case-ordering.h>
 #include <data/case.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>
@@ -29,6 +28,7 @@
 #include <data/format.h>
 #include <data/procedure.h>
 #include <data/settings.h>
+#include <data/subcase.h>
 #include <data/sys-file-writer.h>
 #include <data/variable.h>
 #include <language/command.h>
@@ -143,7 +143,7 @@ enum missing_treatment
 struct agr_proc
   {
     /* Break variables. */
-    struct case_ordering *sort;         /* Sort criteria (break variable). */
+    struct subcase sort;                /* Sort criteria (break variables). */
     const struct variable **break_vars;       /* Break variables. */
     size_t break_var_cnt;               /* Number of break variables. */
     struct ccase break_case;            /* Last values of break variables. */
@@ -191,6 +191,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 
   agr.dict = dict_create ();
   agr.src_dict = dict;
+  subcase_init_empty (&agr.sort);
   dict_set_label (agr.dict, dict_get_label (dict));
   dict_set_documents (agr.dict, dict_get_documents (dict));
 
@@ -229,13 +230,10 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
           int i;
 
 	  lex_match (lexer, '=');
-          agr.sort = parse_case_ordering (lexer, dict,
-
-                                          &saw_direction);
-          if (agr.sort == NULL)
+          if (!parse_sort_criteria (lexer, dict, &agr.sort, &agr.break_vars,
+                                    &saw_direction))
             goto error;
-          case_ordering_get_vars (agr.sort,
-                                  &agr.break_vars, &agr.break_var_cnt);
+          agr.break_var_cnt = subcase_get_n_fields (&agr.sort);
 
           for (i = 0; i < agr.break_var_cnt; i++)
             dict_clone_var_assert (agr.dict, agr.break_vars[i],
@@ -286,10 +284,10 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
     }
 
   input = proc_open (ds);
-  if (agr.sort != NULL && !presorted)
+  if (!subcase_is_empty (&agr.sort) && !presorted)
     {
-      input = sort_execute (input, agr.sort);
-      agr.sort = NULL;
+      input = sort_execute (input, &agr.sort);
+      subcase_clear (&agr.sort);
     }
 
   for (grouper = casegrouper_create_vars (input, agr.break_vars,
@@ -694,7 +692,7 @@ agr_destroy (struct agr_proc *agr)
 {
   struct agr_var *iter, *next;
 
-  case_ordering_destroy (agr->sort);
+  subcase_destroy (&agr->sort);
   free (agr->break_vars);
   case_destroy (&agr->break_case);
   for (iter = agr->agr_vars; iter; iter = next)
@@ -1102,7 +1100,7 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  break;
 	case MEDIAN:
 	  {
-	    struct case_ordering *ordering = case_ordering_create ();
+            struct subcase ordering;
 
 	    if ( ! iter->subject)
 	      iter->subject = var_create_internal (0);
@@ -1110,9 +1108,10 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	    if ( ! iter->weight)
 	      iter->weight = var_create_internal (1);
 
-	    case_ordering_add_var (ordering, iter->subject, SRT_ASCEND);
+            subcase_init_var (&ordering, iter->subject, SC_ASCEND);
+	    iter->writer = sort_create_writer (&ordering, 2);
+            subcase_destroy (&ordering);
 
-	    iter->writer = sort_create_writer (ordering, 2);
 	    iter->cc = 0;
 	  }
 	  break;

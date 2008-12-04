@@ -119,14 +119,14 @@ do_binomial (const struct dictionary *dict,
 	      cat1[v].value = value_dup (value, width);
 	      cat1[v].count = w;
 	    }
-	  else if ( 0 == compare_values (cat1[v].value, value, var))
+	  else if ( 0 == compare_values_short (cat1[v].value, value, var))
 	    cat1[v].count += w;
 	  else if ( NULL == cat2[v].value )
 	    {
 	      cat2[v].value = value_dup (value, width);
 	      cat2[v].count = w;
 	    }
-	  else if ( 0 == compare_values (cat2[v].value, value, var))
+	  else if ( 0 == compare_values_short (cat2[v].value, value, var))
 	    cat2[v].count += w;
 	  else if ( bst->category1 == SYSMIS)
 	    msg (ME, _("Variable %s is not dichotomous"), var_get_name (var));

@@ -20,12 +20,12 @@
 
 #include <stdio.h>
 
-#include <data/case-ordering.h>
 #include <data/case.h>
 #include <data/casereader.h>
 #include <data/casewriter.h>
 #include <data/casewriter-provider.h>
 #include <data/settings.h>
+#include <data/subcase.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <math/merge.h>
@@ -42,7 +42,7 @@ int max_buffers = INT_MAX;
 struct sort_writer
   {
     size_t value_cnt;
-    struct case_ordering *ordering;
+    struct subcase ordering;
     struct merge *merge;
     struct pqueue *pqueue;
 
@@ -53,7 +53,7 @@ struct sort_writer
 
 static struct casewriter_class sort_casewriter_class;
 
-static struct pqueue *pqueue_create (const struct case_ordering *, size_t);
+static struct pqueue *pqueue_create (const struct subcase *, size_t);
 static void pqueue_destroy (struct pqueue *);
 static bool pqueue_is_full (const struct pqueue *);
 static bool pqueue_is_empty (const struct pqueue *);
@@ -63,20 +63,18 @@ static void pqueue_pop (struct pqueue *, struct ccase *, casenumber *);
 static void output_record (struct sort_writer *);
 
 struct casewriter *
-sort_create_writer (struct case_ordering *ordering, size_t value_cnt)
+sort_create_writer (const struct subcase *ordering, size_t value_cnt)
 {
   struct sort_writer *sort;
 
   sort = xmalloc (sizeof *sort);
   sort->value_cnt = value_cnt;
-  sort->ordering = case_ordering_clone (ordering);
+  subcase_clone (&sort->ordering, ordering);
   sort->merge = merge_create (ordering, value_cnt);
   sort->pqueue = pqueue_create (ordering, value_cnt);
   sort->run = NULL;
   sort->run_id = 0;
   case_nullify (&sort->run_end);
-
-  case_ordering_destroy (ordering);
 
   return casewriter_create (value_cnt, &sort_casewriter_class, sort);
 }
@@ -92,8 +90,8 @@ sort_casewriter_write (struct casewriter *writer UNUSED, void *sort_,
     output_record (sort);
 
   next_run = (case_is_null (&sort->run_end)
-              || case_ordering_compare_cases (c, &sort->run_end,
-                                              sort->ordering) < 0);
+              || subcase_compare_3way (&sort->ordering, c,
+                                       &sort->ordering, &sort->run_end) < 0);
   pqueue_push (sort->pqueue, c, sort->run_id + (next_run ? 1 : 0));
 }
 
@@ -102,7 +100,7 @@ sort_casewriter_destroy (struct casewriter *writer UNUSED, void *sort_)
 {
   struct sort_writer *sort = sort_;
 
-  case_ordering_destroy (sort->ordering);
+  subcase_destroy (&sort->ordering);
   merge_destroy (sort->merge);
   pqueue_destroy (sort->pqueue);
   casewriter_destroy (sort->run);
@@ -169,21 +167,34 @@ static struct casewriter_class sort_casewriter_class =
   };
 
 /* Reads all the cases from INPUT.  Sorts the cases according to
-   ORDERING.  Returns the sorted cases in a new casereader, or a
-   null pointer if an I/O error occurs.  Both INPUT and ORDERING
-   are destroyed upon return, regardless of success. */
+   ORDERING.  Returns the sorted cases in a new casereader. */
 struct casereader *
-sort_execute (struct casereader *input, struct case_ordering *ordering)
+sort_execute (struct casereader *input, const struct subcase *ordering)
 {
   struct casewriter *output =
     sort_create_writer (ordering, casereader_get_value_cnt (input));
   casereader_transfer (input, output);
   return casewriter_make_reader (output);
 }
+
+/* Reads all the cases from INPUT.  Sorts the cases in ascending
+   order according to VARIABLE.  Returns the sorted cases in a
+   new casereader. */
+struct casereader *
+sort_execute_1var (struct casereader *input, const struct variable *var)
+{
+  struct subcase sc;
+  struct casereader *reader;
+
+  subcase_init_var (&sc, var, SC_ASCEND);
+  reader = sort_execute (input, &sc);
+  subcase_destroy (&sc);
+  return reader;
+}
 
 struct pqueue
   {
-    struct case_ordering *ordering;
+    struct subcase ordering;
     struct pqueue_record *records;
     size_t record_cnt;
     size_t record_cap;
@@ -201,12 +212,12 @@ static int compare_pqueue_records_minheap (const void *a, const void *b,
                                            const void *pq_);
 
 static struct pqueue *
-pqueue_create (const struct case_ordering *ordering, size_t value_cnt)
+pqueue_create (const struct subcase *ordering, size_t value_cnt)
 {
   struct pqueue *pq;
 
   pq = xmalloc (sizeof *pq);
-  pq->ordering = case_ordering_clone (ordering);
+  subcase_clone (&pq->ordering, ordering);
   pq->record_cap
     = settings_get_workspace_cases (value_cnt);
   if (pq->record_cap > max_buffers)
@@ -232,7 +243,7 @@ pqueue_destroy (struct pqueue *pq)
           pqueue_pop (pq, &c, &id);
           case_destroy (&c);
         }
-      case_ordering_destroy (pq->ordering);
+      subcase_destroy (&pq->ordering);
       free (pq->records);
       free (pq);
     }
@@ -292,7 +303,8 @@ compare_pqueue_records_minheap (const void *a_, const void *b_,
   const struct pqueue *pq = pq_;
   int result = a->id < b->id ? -1 : a->id > b->id;
   if (result == 0)
-    result = case_ordering_compare_cases (&a->c, &b->c, pq->ordering);
+    result = subcase_compare_3way (&pq->ordering, &a->c,
+                                   &pq->ordering, &b->c);
   if (result == 0)
     result = a->idx < b->idx ? -1 : a->idx > b->idx;
   return -result;
