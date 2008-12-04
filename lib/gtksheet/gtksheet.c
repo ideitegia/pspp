@@ -1679,7 +1679,7 @@ gtk_sheet_style_set (GtkWidget *widget,
   set_entry_widget_font (sheet);
 }
 
-#define BORDER_WIDTH 2
+#define BORDER_WIDTH 3
 
 static void
 gtk_sheet_realize (GtkWidget *widget)
@@ -2915,10 +2915,8 @@ gtk_sheet_draw_border (GtkSheet *sheet, GtkSheetRange new_range)
   gdk_draw_rectangle (sheet->sheet_window,
 		      sheet->xor_gc,
 		      FALSE,
-		      area.x,
-		      area.y,
-		      area.width + 1,
-		      area.height + 1);
+		      area.x, area.y,
+		      area.width, area.height);
 }
 
 
@@ -4497,10 +4495,10 @@ gtk_sheet_size_allocate_entry (GtkSheet *sheet)
   rectangle_from_cell (sheet, sheet->active_cell.row,
 		       sheet->active_cell.col, &entry_alloc);
 
-  entry_alloc.width -= BORDER_WIDTH;
-  entry_alloc.height -= BORDER_WIDTH;
-  entry_alloc.x += BORDER_WIDTH / 2;
-  entry_alloc.y += BORDER_WIDTH / 2;
+  entry_alloc.width -= BORDER_WIDTH ;
+  entry_alloc.height -= BORDER_WIDTH ;
+  entry_alloc.x += DIV_RND_UP (BORDER_WIDTH, 2);
+  entry_alloc.y += DIV_RND_UP (BORDER_WIDTH, 2);
 
 
   gtk_widget_set_size_request (sheet->entry_widget, entry_alloc.width,
