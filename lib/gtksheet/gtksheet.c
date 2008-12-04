@@ -1062,9 +1062,6 @@ gtk_sheet_init (GtkSheet *sheet)
 
   sheet->motion_timer = 0;
 
-  sheet->columns_resizable = TRUE;
-  sheet->rows_resizable = TRUE;
-
   sheet->row_titles_visible = TRUE;
   sheet->row_title_area.width = DEFAULT_COLUMN_WIDTH;
 
@@ -1452,26 +1449,6 @@ gtk_sheet_moveto (GtkSheet *sheet,
 
     gtk_adjustment_set_value (sheet->hadjustment, x - width * col_align);
   }
-}
-
-
-static gboolean
-gtk_sheet_columns_resizable (GtkSheet *sheet)
-{
-  g_return_val_if_fail (sheet != NULL, FALSE);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
-
-  return sheet->columns_resizable;
-}
-
-
-static gboolean
-gtk_sheet_rows_resizable (GtkSheet *sheet)
-{
-  g_return_val_if_fail (sheet != NULL, FALSE);
-  g_return_val_if_fail (GTK_IS_SHEET (sheet), FALSE);
-
-  return sheet->rows_resizable;
 }
 
 
@@ -3200,8 +3177,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 
 
   /* press on resize windows */
-  if (event->window == sheet->column_title_window &&
-      gtk_sheet_columns_resizable (sheet))
+  if (event->window == sheet->column_title_window)
     {
 #if 0
       gtk_widget_get_pointer (widget, &sheet->x_drag, NULL);
@@ -3227,7 +3203,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 	}
     }
 
-  if (event->window == sheet->row_title_window && gtk_sheet_rows_resizable (sheet))
+  if (event->window == sheet->row_title_window)
     {
       gtk_widget_get_pointer (widget, NULL, &sheet->y_drag);
 
@@ -3752,8 +3728,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	}
     }
 
-  if (event->window == sheet->column_title_window &&
-      gtk_sheet_columns_resizable (sheet))
+  if (event->window == sheet->column_title_window)
     {
       if (!GTK_SHEET_IN_SELECTION (sheet) &&
 	  on_column_boundary (sheet, x, &column))
@@ -3781,8 +3756,7 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	}
     }
 
-  if (event->window == sheet->row_title_window &&
-      gtk_sheet_rows_resizable (sheet))
+  if (event->window == sheet->row_title_window)
     {
 #if AXIS_TRANSITION
       if (!GTK_SHEET_IN_SELECTION (sheet) && POSSIBLE_YDRAG (sheet, y, &column))

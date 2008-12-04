@@ -103,9 +103,6 @@ struct _GtkSheet
   gint16 column_requisition;
   gint16 row_requisition;
 
-  gboolean rows_resizable;
-  gboolean columns_resizable;
-
   /* active cell */
   GtkSheetCell active_cell;
 
