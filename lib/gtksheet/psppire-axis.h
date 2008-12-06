@@ -75,9 +75,9 @@ struct _PsppireAxisIface
 
   gint  (*unit_count) (const PsppireAxis *a);
 
-  glong (*pixel_start) (const PsppireAxis *a, gint unit);
+  glong (*start_pixel) (const PsppireAxis *a, gint unit);
 
-  gint  (*get_unit_at_pixel) (const PsppireAxis *a, glong pixel);
+  gint  (*unit_at_pixel) (const PsppireAxis *a, glong pixel);
 
   glong (*total_size ) (const PsppireAxis *a);
 };
@@ -89,9 +89,9 @@ gint psppire_axis_unit_size (const PsppireAxis *a, gint unit);
 
 gint psppire_axis_unit_count (const PsppireAxis *a);
 
-glong psppire_axis_pixel_start (const PsppireAxis *a, gint unit);
+glong psppire_axis_start_pixel (const PsppireAxis *a, gint unit);
 
-gint psppire_axis_get_unit_at_pixel (const PsppireAxis *a, glong pixel);
+gint psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel);
 
 
 G_END_DECLS

@@ -212,7 +212,7 @@ psppire_axis_unit_count (const PsppireAxis *a)
 
 /* Return the starting pixel of UNIT */
 glong
-psppire_axis_pixel_start (const PsppireAxis *a, gint unit)
+psppire_axis_start_pixel (const PsppireAxis *a, gint unit)
 {
   gint the_count, total_size ;
   g_return_val_if_fail (PSPPIRE_IS_AXIS (a), -1);
@@ -225,13 +225,13 @@ psppire_axis_pixel_start (const PsppireAxis *a, gint unit)
       return  total_size + (unit - the_count) * a->default_size;
     }
 
-  return PSPPIRE_AXIS_GET_IFACE (a)->pixel_start (a, unit);
+  return PSPPIRE_AXIS_GET_IFACE (a)->start_pixel (a, unit);
 }
 
 
 /* Return the unit covered by PIXEL */
 gint
-psppire_axis_get_unit_at_pixel (const PsppireAxis *a, glong pixel)
+psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel)
 {
   glong total_size;
 
@@ -239,7 +239,7 @@ psppire_axis_get_unit_at_pixel (const PsppireAxis *a, glong pixel)
 
   g_return_val_if_fail (PSPPIRE_AXIS_GET_IFACE (a), -1);
 
-  g_return_val_if_fail (PSPPIRE_AXIS_GET_IFACE (a)->get_unit_at_pixel, -1);
+  g_return_val_if_fail (PSPPIRE_AXIS_GET_IFACE (a)->unit_at_pixel, -1);
 
   total_size = PSPPIRE_AXIS_GET_IFACE (a)->total_size (a);
 
@@ -251,5 +251,5 @@ psppire_axis_get_unit_at_pixel (const PsppireAxis *a, glong pixel)
       return n_items - 1 + DIV_RND_UP (extra,  a->default_size);
     }
 
-  return PSPPIRE_AXIS_GET_IFACE (a)->get_unit_at_pixel (a, pixel);
+  return PSPPIRE_AXIS_GET_IFACE (a)->unit_at_pixel (a, pixel);
 }

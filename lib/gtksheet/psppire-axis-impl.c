@@ -41,7 +41,7 @@ struct axis_node
 };
 
 static gint
-get_unit_at_pixel (const PsppireAxis *axis, glong pixel)
+unit_at_pixel (const PsppireAxis *axis, glong pixel)
 {
   PsppireAxisImpl *a = PSPPIRE_AXIS_IMPL (axis);
 
@@ -73,7 +73,7 @@ unit_count (const PsppireAxis *axis)
 
 /* Returns the pixel at the start of UNIT */
 static glong
-pixel_start (const PsppireAxis *axis, gint unit)
+start_pixel (const PsppireAxis *axis, gint unit)
 {
   gfloat fraction;
   PsppireAxisImpl *a = PSPPIRE_AXIS_IMPL (axis);
@@ -139,8 +139,8 @@ psppire_impl_iface_init (PsppireAxisIface *iface)
 {
   iface->unit_size = unit_size;
   iface->unit_count = unit_count;
-  iface->pixel_start = pixel_start;
-  iface->get_unit_at_pixel = get_unit_at_pixel;
+  iface->start_pixel = start_pixel;
+  iface->unit_at_pixel = unit_at_pixel;
   iface->total_size = total_size;
 }
 
