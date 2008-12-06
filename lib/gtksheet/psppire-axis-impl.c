@@ -266,9 +266,10 @@ split (PsppireAxisImpl *a, gint posn)
   struct tower_node *n;
   struct axis_node *existing_node;
 
+  g_return_if_fail (posn <= tower_height (&a->unit_tower));
 
   /* Nothing needs to be done */
-  if ( posn == 0)
+  if ( posn == 0 || posn  == tower_height (&a->unit_tower))
     return;
 
   n = tower_lookup (&a->unit_tower, posn, &start);
@@ -344,6 +345,9 @@ make_single (PsppireAxisImpl *a, gint posn)
 {
   unsigned long int start;
   struct tower_node *n;
+
+  g_return_val_if_fail (posn < tower_height (&a->unit_tower), NULL);
+
   n = tower_lookup (&a->unit_tower, posn, &start);
 
   if ( 1 != tower_node_get_size (n))
@@ -367,7 +371,15 @@ make_single (PsppireAxisImpl *a, gint posn)
 void
 psppire_axis_impl_resize (PsppireAxisImpl *a, gint posn, gint size)
 {
-  struct axis_node *an =  make_single (a, posn);
+  struct axis_node *an;
+  g_return_if_fail (posn >= 0);
+
+  /* Silently ignore this request if the position is greater than the number of
+     units in the axis */
+  if (posn >= tower_height (&a->unit_tower))
+    return ;
+
+  an = make_single (a, posn);
 
   tower_resize (&a->pixel_tower, &an->pixel_node, size);
 }
