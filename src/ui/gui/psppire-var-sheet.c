@@ -16,7 +16,7 @@
 
 #include <config.h>
 #include "psppire-var-sheet.h"
-#include <gtksheet/psppire-axis-hetero.h>
+#include <gtksheet/psppire-axis-impl.h>
 
 #include <glade/glade.h>
 #include "helper.h"
@@ -523,14 +523,13 @@ GtkWidget*
 psppire_var_sheet_new (void)
 {
   gint i;
-  PsppireAxisHetero *ha = psppire_axis_hetero_new ();
-  PsppireAxisHetero *va = psppire_axis_hetero_new ();
+  PsppireAxisImpl *ha = psppire_axis_impl_new ();
+  PsppireAxisImpl *va = psppire_axis_impl_new ();
 
   GtkWidget *w = g_object_new (psppire_var_sheet_get_type (), NULL);
 
   for (i = 0 ; i < 10 ; ++i)
-    psppire_axis_hetero_append (ha, column_def[i].width);
-
+    psppire_axis_impl_append (ha, column_def[i].width);
 
   g_object_set (va,
 		"default-size", 25,

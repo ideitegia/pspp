@@ -23,8 +23,7 @@
 
 #include <language/syntax-string-source.h>
 #include "psppire-data-store.h"
-#include <gtksheet/psppire-axis-hetero.h>
-#include <gtksheet/psppire-axis-uniform.h>
+#include <gtksheet/psppire-axis-impl.h>
 #include "helper.h"
 
 #include <gtksheet/gtkxpaned.h>
@@ -218,12 +217,13 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
   gint i;
   for (i = 0 ; i < 4 ; ++i)
     {
-      PsppireAxisUniform *vaxis;
+      PsppireAxisImpl *vaxis;
       casenumber n_cases =  psppire_data_store_get_case_count (ds);
 
       g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
 
-      psppire_axis_uniform_set_count (vaxis, n_cases);
+      psppire_axis_impl_clear (vaxis);
+      psppire_axis_impl_append_n (vaxis, n_cases, DEFAULT_ROW_HEIGHT);
     }
 }
 
@@ -236,12 +236,11 @@ case_inserted_callback (PsppireDataStore *ds, gint before, gpointer data)
 
   for (i = 0 ; i < 4 ; ++i)
     {
-      PsppireAxisUniform *vaxis;
-      casenumber n_cases =  psppire_data_store_get_case_count (ds);
+      PsppireAxisImpl *vaxis;
 
       g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
 
-      psppire_axis_uniform_set_count (vaxis, n_cases + 1);
+      psppire_axis_impl_insert (vaxis, before, DEFAULT_ROW_HEIGHT);
     }
 }
 
@@ -255,12 +254,11 @@ cases_deleted_callback (PsppireDataStore *ds, gint first, gint n_cases, gpointer
 
   for (i = 0 ; i < 4 ; ++i)
     {
-      PsppireAxisUniform *vaxis;
-      casenumber case_count =  psppire_data_store_get_case_count (ds);
+      PsppireAxisImpl *vaxis;
 
       g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
 
-      psppire_axis_uniform_set_count (vaxis, case_count - n_cases);
+      psppire_axis_impl_delete (vaxis, first, n_cases);
     }
 }
 
@@ -289,28 +287,24 @@ new_variables_callback (PsppireDict *dict, gpointer data)
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
   gint m_width = width_of_m (GTK_WIDGET (de));
 
-  PsppireAxisHetero *vaxis;
+  PsppireAxisImpl *vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &vaxis, NULL);
 
-  psppire_axis_hetero_clear (vaxis);
-
-  /* NOTE: "<=" in the following line is correct.
-     There needs to be one more row than there are variables */
-  for (v = 0 ; v <= psppire_dict_get_var_cnt (dict); ++v)
-    psppire_axis_hetero_append (vaxis, DEFAULT_ROW_HEIGHT);
+  psppire_axis_impl_clear (vaxis);
+  psppire_axis_impl_append_n (vaxis, 1 + psppire_dict_get_var_cnt (dict), DEFAULT_ROW_HEIGHT);
 
   for (i = 0 ; i < 4 ; ++i)
     {
-      PsppireAxisHetero *haxis;
+      PsppireAxisImpl *haxis;
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_hetero_clear (haxis);
+      psppire_axis_impl_clear (haxis);
 
       for (v = 0 ; v < psppire_dict_get_var_cnt (dict); ++v)
 	{
 	  const struct variable *var = psppire_dict_get_variable (dict, v);
 
-	  psppire_axis_hetero_append (haxis, m_width * var_get_display_width (var));
+	  psppire_axis_impl_append (haxis, m_width * var_get_display_width (var));
 	}
     }
 }
@@ -324,18 +318,18 @@ insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
 
   gint m_width  = width_of_m (GTK_WIDGET (de));
 
-  PsppireAxisHetero *var_vaxis;
+  PsppireAxisImpl *var_vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
 
-  psppire_axis_hetero_insert (var_vaxis, DEFAULT_ROW_HEIGHT, x);
+  psppire_axis_impl_insert (var_vaxis, x, DEFAULT_ROW_HEIGHT);
 
   for (i = 0 ; i < 4 ; ++i)
     {
       const struct variable *var = psppire_dict_get_variable (dict, x);
-      PsppireAxisHetero *haxis;
+      PsppireAxisImpl *haxis;
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_hetero_insert (haxis, m_width * var_get_display_width (var), x);
+      psppire_axis_impl_insert (haxis, x, m_width * var_get_display_width (var));
     }
 }
 
@@ -347,17 +341,17 @@ delete_variable_callback (PsppireDict *dict, gint posn,
   gint i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
-  PsppireAxisHetero *var_vaxis;
+  PsppireAxisImpl *var_vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
 
-  psppire_axis_hetero_remove (var_vaxis, posn);
+  psppire_axis_impl_delete (var_vaxis, posn, 1);
 
   for (i = 0 ; i < 4 ; ++i)
     {
-      PsppireAxisHetero *haxis;
+      PsppireAxisImpl *haxis;
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_hetero_remove (haxis, posn);
+      psppire_axis_impl_delete (haxis, posn, 1);
     }
 }
 
@@ -372,12 +366,11 @@ rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
   for (i = 0 ; i < 4 ; ++i)
     {
       const struct variable *var = psppire_dict_get_variable (dict, posn);
-      PsppireAxisHetero *haxis;
+      PsppireAxisImpl *haxis;
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_hetero_resize_unit (haxis,
-				       m_width *
-				       var_get_display_width (var), posn);
+      psppire_axis_impl_resize (haxis, posn, m_width *
+				  var_get_display_width (var));
     }
 }
 
@@ -837,8 +830,8 @@ static void
 init_sheet (PsppireDataEditor *de, int i,
 	    GtkAdjustment *hadj, GtkAdjustment *vadj)
 {
-  PsppireAxisHetero *haxis = psppire_axis_hetero_new ();
-  PsppireAxisUniform *vaxis = psppire_axis_uniform_new ();
+  PsppireAxisImpl *haxis = psppire_axis_impl_new ();
+  PsppireAxisImpl *vaxis = psppire_axis_impl_new ();
   de->sheet_bin[i] = gtk_scrolled_window_new (hadj, vadj);
 
   de->data_sheet[i] = gtk_sheet_new (NULL);

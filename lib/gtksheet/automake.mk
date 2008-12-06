@@ -20,10 +20,8 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/gtkxpaned.h \
 	lib/gtksheet/psppire-axis.c \
 	lib/gtksheet/psppire-axis.h \
-	lib/gtksheet/psppire-axis-hetero.c \
-	lib/gtksheet/psppire-axis-hetero.h \
-	lib/gtksheet/psppire-axis-uniform.c \
-	lib/gtksheet/psppire-axis-uniform.h 
+	lib/gtksheet/psppire-axis-impl.c \
+	lib/gtksheet/psppire-axis-impl.h 
 
 
 EXTRA_DIST += lib/gtksheet/OChangeLog \

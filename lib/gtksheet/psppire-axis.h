@@ -22,8 +22,6 @@
 #include <glib-object.h>
 #include <glib.h>
 
-#include <libpspp/tower.h>
-
 G_BEGIN_DECLS
 
 
