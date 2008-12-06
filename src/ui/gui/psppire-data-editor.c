@@ -828,10 +828,11 @@ on_map (GtkWidget *w)
 
 static void
 init_sheet (PsppireDataEditor *de, int i,
-	    GtkAdjustment *hadj, GtkAdjustment *vadj)
+	    GtkAdjustment *hadj, GtkAdjustment *vadj,
+	    PsppireAxisImpl *vaxis,
+	    PsppireAxisImpl *haxis
+	    )
 {
-  PsppireAxisImpl *haxis = psppire_axis_impl_new ();
-  PsppireAxisImpl *vaxis = psppire_axis_impl_new ();
   de->sheet_bin[i] = gtk_scrolled_window_new (hadj, vadj);
 
   de->data_sheet[i] = gtk_sheet_new (NULL);
@@ -861,38 +862,46 @@ init_sheet (PsppireDataEditor *de, int i,
 static void
 init_data_sheet (PsppireDataEditor *de)
 {
-  GtkAdjustment *va0, *ha0;
-  GtkAdjustment *va1, *ha1;
+  GtkAdjustment *vadj0, *hadj0;
+  GtkAdjustment *vadj1, *hadj1;
   GtkWidget *sheet ;
+
+  PsppireAxisImpl *vaxis0 = psppire_axis_impl_new ();
+  PsppireAxisImpl *vaxis1 = psppire_axis_impl_new ();
+
+  /* There's only one horizontal axis, since the
+     column widths are parameters of the variables */
+  PsppireAxisImpl *haxis = psppire_axis_impl_new ();
+
 
   de->split = TRUE;
   de->paned = gtk_xpaned_new ();
 
-  init_sheet (de, 0, NULL, NULL);
+  init_sheet (de, 0, NULL, NULL, vaxis0, haxis);
   gtk_widget_show (de->sheet_bin[0]);
-  va0 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
-  ha0 = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
+  vadj0 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
+  hadj0 = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
 
   g_object_set (de->sheet_bin[0], "vscrollbar-policy", GTK_POLICY_NEVER, NULL);
   g_object_set (de->sheet_bin[0], "hscrollbar-policy", GTK_POLICY_NEVER, NULL);
 
-  init_sheet (de, 1, NULL, va0);
+  init_sheet (de, 1, NULL, vadj0, vaxis0, haxis);
   gtk_widget_show (de->sheet_bin[1]);
   sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[1]));
   gtk_sheet_hide_row_titles (GTK_SHEET (sheet));
-  ha1 = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[1]));
+  hadj1 = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[1]));
   g_object_set (de->sheet_bin[1], "vscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
   g_object_set (de->sheet_bin[1], "hscrollbar-policy", GTK_POLICY_NEVER, NULL);
 
-  init_sheet (de, 2, ha0, NULL);
+  init_sheet (de, 2, hadj0, NULL, vaxis1, haxis);
   gtk_widget_show (de->sheet_bin[2]);
   sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[2]));
   gtk_sheet_hide_column_titles (GTK_SHEET (sheet));
   g_object_set (de->sheet_bin[2], "vscrollbar-policy", GTK_POLICY_NEVER, NULL);
   g_object_set (de->sheet_bin[2], "hscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
-  va1 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[2]));
+  vadj1 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[2]));
 
-  init_sheet (de, 3, ha1, va1);
+  init_sheet (de, 3, hadj1, vadj1, vaxis1, haxis);
   gtk_widget_show (de->sheet_bin[3]);
   sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[3]));
   gtk_sheet_hide_column_titles (GTK_SHEET (sheet));
