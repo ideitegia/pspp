@@ -243,8 +243,11 @@ psppire_axis_impl_append (PsppireAxisImpl *a, gint size)
 void
 psppire_axis_impl_append_n (PsppireAxisImpl *a, gint n_units, gint size)
 {
-  struct axis_node *node = pool_alloc (a->pool, sizeof *node);
+  struct axis_node *node;
 
+  g_return_if_fail (n_units > 0);
+
+  node = pool_alloc (a->pool, sizeof *node);
 
   tower_insert (&a->unit_tower, n_units, &node->unit_node, NULL);
   tower_insert (&a->pixel_tower, size * n_units, &node->pixel_node, NULL);
@@ -260,10 +263,17 @@ split (PsppireAxisImpl *a, gint posn)
   unsigned long int start;
   gfloat fraction;
   struct axis_node *new_node ;
-  struct tower_node *n = tower_lookup (&a->unit_tower, posn, &start);
+  struct tower_node *n;
+  struct axis_node *existing_node;
 
-  struct axis_node *existing_node =
-    tower_data (n, struct axis_node, unit_node);
+
+  /* Nothing needs to be done */
+  if ( posn == 0)
+    return;
+
+  n = tower_lookup (&a->unit_tower, posn, &start);
+
+  existing_node = tower_data (n, struct axis_node, unit_node);
 
   /* Nothing needs to be done, if the range element is already split here */
   if ( posn - start == 0)
@@ -298,28 +308,32 @@ split (PsppireAxisImpl *a, gint posn)
 void
 psppire_axis_impl_insert (PsppireAxisImpl *a, gint posn, gint size)
 {
-  struct tower_node *n;
-  unsigned long int start;
-  struct axis_node *before;
+  struct axis_node *before = NULL;
   struct axis_node *new_node = pool_alloc (a->pool, sizeof (*new_node));
 
-  split (a, posn);
+  if ( posn > 0)
+    {
+      unsigned long int start = 0;
+      struct tower_node *n;
 
-  n = tower_lookup (&a->unit_tower, posn, &start);
-  g_assert (posn == start);
+      split (a, posn);
 
-  before = tower_data (n, struct axis_node, unit_node);
+      n = tower_lookup (&a->unit_tower, posn, &start);
+      g_assert (posn == start);
+
+      before = tower_data (n, struct axis_node, unit_node);
+    }
 
   tower_insert (&a->unit_tower,
 		1,
 		&new_node->unit_node,
-		&before->unit_node);
+		before ? &before->unit_node : NULL);
 
 
   tower_insert (&a->pixel_tower,
 		size,
 		&new_node->pixel_node,
-		&before->pixel_node);
+		before ? &before->pixel_node : NULL);
 }
 
 
@@ -373,14 +387,16 @@ psppire_axis_impl_clear (PsppireAxisImpl *a)
 
 
 void
-psppire_axis_impl_delete (PsppireAxisImpl *a, gint first, gint n_cases)
+psppire_axis_impl_delete (PsppireAxisImpl *a, gint first, gint n_units)
 {
   gint i;
   g_warning ("%s FIXME: This is an inefficient implementation", __FUNCTION__);
 
-  for (i = first; i < first + n_cases; ++i)
+  g_return_if_fail (first + n_units < tower_height (&a->unit_tower));
+
+  for (i = first; i < first + n_units; ++i)
     {
-      struct axis_node *an = make_single (a, i);
+      struct axis_node *an = make_single (a, first);
 
       tower_delete (&a->unit_tower, &an->unit_node);
       tower_delete (&a->pixel_tower, &an->pixel_node);
