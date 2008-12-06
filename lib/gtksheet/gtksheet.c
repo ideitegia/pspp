@@ -93,9 +93,9 @@ static void draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint n
 static void draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint n);
 
 
-static void gtk_sheet_set_row_height (GtkSheet *sheet,
-				      gint row,
-				      guint height);
+static void set_row_height (GtkSheet *sheet,
+			    gint row,
+			    guint height);
 
 static void destroy_hover_window (GtkSheetHoverTitle *);
 static GtkSheetHoverTitle *create_hover_window (void);
@@ -207,7 +207,7 @@ max_fully_visible_column (const GtkSheet *sheet)
   glong col = max_visible_column (sheet);
 
   if ( psppire_axis_pixel_start (sheet->haxis, col)
-       + 
+       +
        psppire_axis_unit_size (sheet->haxis, col)
        > sheet->hadjustment->value)
     col--;
@@ -244,6 +244,31 @@ on_column_boundary (const GtkSheet *sheet, gint x, gint *column)
 
   return FALSE;
 }
+
+static gboolean
+on_row_boundary (const GtkSheet *sheet, gint y, gint *row)
+{
+  gint r;
+
+  y += sheet->vadjustment->value;
+
+  r = row_from_ypixel (sheet, y);
+
+  if ( row_from_ypixel (sheet, y - DRAG_WIDTH / 2) < r )
+    {
+      *row = r - 1;
+      return TRUE;
+    }
+
+  if  ( row_from_ypixel (sheet, y + DRAG_WIDTH / 2) > r )
+    {
+      *row = r;
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
 
 static inline gboolean
 POSSIBLE_DRAG (const GtkSheet *sheet, gint x, gint y,
@@ -1302,7 +1327,7 @@ gtk_sheet_get_columns_count (GtkSheet *sheet)
 }
 
 static void
-gtk_sheet_set_column_width (GtkSheet *sheet,
+set_column_width (GtkSheet *sheet,
 			    gint column,
 			    guint width);
 
@@ -2646,10 +2671,10 @@ gtk_sheet_draw_active_cell (GtkSheet *sheet)
   row = sheet->active_cell.row;
   col = sheet->active_cell.col;
 
-  if (row < 0 || col < 0) return;
+  if (row < 0 || col < 0) return FALSE;
 
   if (!gtk_sheet_cell_isvisible (sheet, row, col))
-    return;
+    return FALSE;
 
   range.col0 = range.coli = col;
   range.row0 = range.rowi = row;
@@ -3176,12 +3201,6 @@ gtk_sheet_button_press (GtkWidget *widget,
   /* press on resize windows */
   if (event->window == sheet->column_title_window)
     {
-#if 0
-      gtk_widget_get_pointer (widget, &sheet->x_drag, NULL);
-      if ( sheet->row_titles_visible)
-	sheet->x_drag -= sheet->row_title_area.width;
-#endif
-
       sheet->x_drag = event->x;
 
       if (on_column_boundary (sheet, sheet->x_drag, &sheet->drag_cell.col))
@@ -3202,10 +3221,9 @@ gtk_sheet_button_press (GtkWidget *widget,
 
   if (event->window == sheet->row_title_window)
     {
-      gtk_widget_get_pointer (widget, NULL, &sheet->y_drag);
+      sheet->y_drag = event->y;
 
-#if AXIS_TRANSITION
-      if (POSSIBLE_YDRAG (sheet, sheet->y_drag, &sheet->drag_cell.row))
+      if (on_row_boundary (sheet, sheet->y_drag, &sheet->drag_cell.row))
 	{
 	  guint req;
 	  gtk_sheet_row_size_request (sheet, sheet->drag_cell.row, &req);
@@ -3219,7 +3237,6 @@ gtk_sheet_button_press (GtkWidget *widget,
 	  draw_xor_hline (sheet);
 	  return TRUE;
 	}
-#endif
     }
 
   /* the sheet itself does not handle other than single click events */
@@ -3425,7 +3442,6 @@ static gint
 gtk_sheet_button_release (GtkWidget *widget,
 			  GdkEventButton *event)
 {
-  gint y;
   GdkDisplay *display = gtk_widget_get_display (widget);
 
   GtkSheet *sheet = GTK_SHEET (widget);
@@ -3443,24 +3459,24 @@ gtk_sheet_button_release (GtkWidget *widget,
 
       width = new_column_width (sheet, sheet->drag_cell.col, &xpos);
 
-      gtk_sheet_set_column_width (sheet, sheet->drag_cell.col, width);
+      set_column_width (sheet, sheet->drag_cell.col, width);
       return TRUE;
     }
 
   if (GTK_SHEET_IN_YDRAG (sheet))
     {
+      gint ypos = event->y;
+      gint height;
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_YDRAG);
       GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
-      gtk_widget_get_pointer (widget, NULL, &y);
+
       gdk_display_pointer_ungrab (display, event->time);
       draw_xor_hline (sheet);
 
-      gtk_sheet_set_row_height (sheet, sheet->drag_cell.row,
-				new_row_height (sheet, sheet->drag_cell.row, &y));
-      g_signal_emit_by_name (sheet->vadjustment, "value_changed");
+      height = new_row_height (sheet, sheet->drag_cell.row, &ypos);
+      set_row_height (sheet, sheet->drag_cell.row, height);
       return TRUE;
     }
-
 
   if (GTK_SHEET_IN_DRAG (sheet))
     {
@@ -3734,7 +3750,9 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	  if (new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_SB_H_DOUBLE_ARROW);
+	      sheet->cursor_drag =
+		gdk_cursor_new_for_display (display, new_cursor);
+
 	      gdk_window_set_cursor (sheet->column_title_window,
 				     sheet->cursor_drag);
 	    }
@@ -3746,36 +3764,39 @@ gtk_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	      new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_TOP_LEFT_ARROW);
+	      sheet->cursor_drag =
+		gdk_cursor_new_for_display (display, new_cursor);
 	      gdk_window_set_cursor (sheet->column_title_window,
 				     sheet->cursor_drag);
 	    }
 	}
     }
-
-  if (event->window == sheet->row_title_window)
+  else if (event->window == sheet->row_title_window)
     {
-#if AXIS_TRANSITION
-      if (!GTK_SHEET_IN_SELECTION (sheet) && POSSIBLE_YDRAG (sheet, y, &column))
+      if (!GTK_SHEET_IN_SELECTION (sheet) &&
+	  on_row_boundary (sheet, y, &row))
 	{
 	  new_cursor = GDK_SB_V_DOUBLE_ARROW;
 	  if (new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_SB_V_DOUBLE_ARROW);
-	      gdk_window_set_cursor (sheet->row_title_window, sheet->cursor_drag);
+	      sheet->cursor_drag =
+		gdk_cursor_new_for_display (display, new_cursor);
+	      gdk_window_set_cursor (sheet->row_title_window,
+				     sheet->cursor_drag);
 	    }
 	}
       else
-#endif
 	{
 	  new_cursor = GDK_TOP_LEFT_ARROW;
 	  if (!GTK_SHEET_IN_YDRAG (sheet) &&
 	      new_cursor != sheet->cursor_drag->type)
 	    {
 	      gdk_cursor_unref (sheet->cursor_drag);
-	      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_TOP_LEFT_ARROW);
-	      gdk_window_set_cursor (sheet->row_title_window, sheet->cursor_drag);
+	      sheet->cursor_drag =
+		gdk_cursor_new_for_display (display, new_cursor);
+	      gdk_window_set_cursor (sheet->row_title_window,
+				     sheet->cursor_drag);
 	    }
 	}
     }
@@ -5122,9 +5143,9 @@ new_row_height (GtkSheet *sheet, gint row, gint *y)
 }
 
 static void
-gtk_sheet_set_column_width (GtkSheet *sheet,
-			    gint column,
-			    guint width)
+set_column_width (GtkSheet *sheet,
+		  gint column,
+		  guint width)
 {
   guint min_width;
 
@@ -5137,9 +5158,7 @@ gtk_sheet_set_column_width (GtkSheet *sheet,
   gtk_sheet_column_size_request (sheet, column, &min_width);
   if (width < min_width) return;
 
-#if AXIS_TRANSITION
-  g_sheet_column_set_width (sheet->column_geometry, column, width);
-#endif
+  psppire_axis_impl_resize (sheet->haxis, column, width);
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     {
@@ -5151,11 +5170,10 @@ gtk_sheet_set_column_width (GtkSheet *sheet,
 }
 
 
-
 static void
-gtk_sheet_set_row_height (GtkSheet *sheet,
-			  gint row,
-			  guint height)
+set_row_height (GtkSheet *sheet,
+		gint row,
+		guint height)
 {
   guint min_height;
 
@@ -5168,9 +5186,7 @@ gtk_sheet_set_row_height (GtkSheet *sheet,
   gtk_sheet_row_size_request (sheet, row, &min_height);
   if (height < min_height) return;
 
-#if AXIS_TRANSITION
-  g_sheet_row_set_height (sheet->row_geometry, row, height);
-#endif
+  psppire_axis_impl_resize (sheet->vaxis, row, height);
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)) )
     {

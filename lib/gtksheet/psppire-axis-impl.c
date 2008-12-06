@@ -46,14 +46,19 @@ get_unit_at_pixel (const PsppireAxis *axis, glong pixel)
   PsppireAxisImpl *a = PSPPIRE_AXIS_IMPL (axis);
 
   unsigned long int start;
+  struct tower_node *n;
+  struct axis_node *an;
+  gfloat fraction;
 
-  struct tower_node *n = tower_lookup (&a->pixel_tower, pixel, &start);
+  g_return_val_if_fail (pixel >= 0, -1);
 
-  struct axis_node *an = tower_data (n, struct axis_node, pixel_node);
+  n = tower_lookup (&a->pixel_tower, pixel, &start);
+  an = tower_data (n, struct axis_node, pixel_node);
 
-  gfloat fraction = (pixel - start) / (gfloat) tower_node_get_size (&an->pixel_node);
+  fraction = (pixel - start) / (gfloat) tower_node_get_size (&an->pixel_node);
 
-  return  tower_node_get_level (&an->unit_node) + fraction * tower_node_get_size (&an->unit_node);
+  return  tower_node_get_level (&an->unit_node)
+    + fraction * tower_node_get_size (&an->unit_node);
 }
 
 
