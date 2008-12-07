@@ -5158,7 +5158,7 @@ set_column_width (GtkSheet *sheet,
   gtk_sheet_column_size_request (sheet, column, &min_width);
   if (width < min_width) return;
 
-  psppire_axis_impl_resize (sheet->haxis, column, width);
+  psppire_axis_resize (sheet->haxis, column, width);
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     {
@@ -5186,7 +5186,7 @@ set_row_height (GtkSheet *sheet,
   gtk_sheet_row_size_request (sheet, row, &min_height);
   if (height < min_height) return;
 
-  psppire_axis_impl_resize (sheet->vaxis, row, height);
+  psppire_axis_resize (sheet->vaxis, row, height);
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)) )
     {

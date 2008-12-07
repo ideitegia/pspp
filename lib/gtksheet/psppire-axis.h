@@ -79,7 +79,10 @@ struct _PsppireAxisIface
 
   gint  (*unit_at_pixel) (const PsppireAxis *a, glong pixel);
 
-  glong (*total_size ) (const PsppireAxis *a);
+  glong (*total_size) (const PsppireAxis *a);
+
+
+  void (*resize) (PsppireAxis *a, gint unit, glong pixels);
 };
 
 
@@ -93,6 +96,8 @@ glong psppire_axis_start_pixel (const PsppireAxis *a, gint unit);
 
 gint psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel);
 
+
+void psppire_axis_resize (PsppireAxis *a, gint unit, glong size);
 
 G_END_DECLS
 

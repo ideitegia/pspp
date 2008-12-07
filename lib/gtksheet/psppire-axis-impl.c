@@ -132,6 +132,8 @@ total_size (const PsppireAxis *axis)
 }
 
 
+static void resize (PsppireAxis *axis, gint posn, glong size);
+
 
 
 static void
@@ -142,6 +144,7 @@ psppire_impl_iface_init (PsppireAxisIface *iface)
   iface->start_pixel = start_pixel;
   iface->unit_at_pixel = unit_at_pixel;
   iface->total_size = total_size;
+  iface->resize = resize;
 }
 
 /* --- functions --- */
@@ -368,9 +371,11 @@ make_single (PsppireAxisImpl *a, gint posn)
   return tower_data (n, struct axis_node, unit_node);
 }
 
-void
-psppire_axis_impl_resize (PsppireAxisImpl *a, gint posn, gint size)
+static void
+resize (PsppireAxis *axis, gint posn, glong size)
 {
+  PsppireAxisImpl *a = PSPPIRE_AXIS_IMPL (axis);
+
   struct axis_node *an;
   g_return_if_fail (posn >= 0);
 
@@ -383,6 +388,14 @@ psppire_axis_impl_resize (PsppireAxisImpl *a, gint posn, gint size)
 
   tower_resize (&a->pixel_tower, &an->pixel_node, size);
 }
+
+
+void
+psppire_axis_impl_resize (PsppireAxisImpl *a, gint posn, gint size)
+{
+  resize (PSPPIRE_AXIS (a), posn, size);
+}
+
 
 
 

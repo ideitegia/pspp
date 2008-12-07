@@ -253,3 +253,18 @@ psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel)
 
   return PSPPIRE_AXIS_GET_IFACE (a)->unit_at_pixel (a, pixel);
 }
+
+
+/* Set UNIT to size SIZE */
+void
+psppire_axis_resize (PsppireAxis *a, gint unit, glong size)
+{
+  g_return_if_fail (PSPPIRE_IS_AXIS (a));
+
+  g_return_if_fail (PSPPIRE_AXIS_GET_IFACE (a));
+
+  if (PSPPIRE_AXIS_GET_IFACE (a)->resize)
+    PSPPIRE_AXIS_GET_IFACE (a)->resize (a, unit, size);
+}
+
+
