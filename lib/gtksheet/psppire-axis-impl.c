@@ -40,6 +40,24 @@ struct axis_node
   struct tower_node unit_node;
 };
 
+void
+psppire_axis_impl_dump (const PsppireAxisImpl *a)
+{
+  struct tower_node *n = tower_first (&a->unit_tower);
+
+  g_debug ("Axis %p", a);
+  while (n)
+    {
+      const struct axis_node *an = tower_data (n, struct axis_node, unit_node);
+      const struct tower_node *pn = &an->pixel_node;
+      g_debug ("%ld units of height %g",
+	       n->size, pn->size / (float) n->size);
+
+      n =  tower_next (&a->unit_tower, n);
+    }
+  g_debug ("\n");
+}
+
 static gint
 unit_at_pixel (const PsppireAxis *axis, glong pixel)
 {
@@ -419,16 +437,33 @@ psppire_axis_impl_clear (PsppireAxisImpl *a)
 void
 psppire_axis_impl_delete (PsppireAxisImpl *a, gint first, gint n_units)
 {
-  gint i;
-  g_warning ("%s FIXME: This is an inefficient implementation", __FUNCTION__);
-
+  gint units_to_delete = n_units;
+  unsigned long int start;
   g_return_if_fail (first + n_units < tower_height (&a->unit_tower));
 
-  for (i = first; i < first + n_units; ++i)
-    {
-      struct axis_node *an = make_single (a, first);
+  split (a, first);
+  split (a, first + n_units);
 
-      tower_delete (&a->unit_tower, &an->unit_node);
+  struct tower_node *unit_node = tower_lookup (&a->unit_tower, first, &start);
+  g_assert (start == first);
+
+  while (units_to_delete > 0)
+    {
+      struct tower_node *next_unit_node;
+      struct axis_node *an = tower_data (unit_node,
+					 struct axis_node, unit_node);
+
+      g_assert (unit_node == &an->unit_node);
+      g_assert (unit_node->size <= n_units);
+
+      units_to_delete -= unit_node->size;
+
+      next_unit_node = tower_next (&a->unit_tower, unit_node);
+
+      tower_delete (&a->unit_tower, unit_node);
       tower_delete (&a->pixel_tower, &an->pixel_node);
+
+
+      unit_node = next_unit_node;
     }
 }

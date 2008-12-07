@@ -361,13 +361,13 @@ delete_variable_callback (PsppireDict *dict, gint posn,
 
   psppire_axis_impl_delete (var_vaxis, posn, 1);
 
-  for (i = 0 ; i < 4 ; ++i)
-    {
-      PsppireAxisImpl *haxis;
-      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_impl_delete (haxis, posn, 1);
-    }
+  {
+    PsppireAxisImpl *haxis;
+    g_object_get (de->data_sheet[0], "horizontal-axis", &haxis, NULL);
+
+    psppire_axis_impl_delete (haxis, posn, 1);
+  }
 }
 
 
