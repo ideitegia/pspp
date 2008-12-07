@@ -280,6 +280,18 @@ width_of_m (GtkWidget *w)
   return rect.width;
 }
 
+/* Callback for the axis' resize signal.
+   Changes the variable's display width */
+static void
+rewidth_variable (PsppireDataEditor *de, gint unit, glong size)
+{
+  const PsppireDict *dict = de->data_store->dict;
+  struct variable *var = psppire_dict_get_variable (dict, unit);
+
+  var_set_display_width (var, size / (float) width_of_m (de));
+}
+
+
 static void
 new_variables_callback (PsppireDict *dict, gpointer data)
 {
@@ -297,6 +309,9 @@ new_variables_callback (PsppireDict *dict, gpointer data)
     {
       PsppireAxisImpl *haxis;
       g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
+
+      g_signal_connect_swapped (haxis, "resize-unit",
+				G_CALLBACK (rewidth_variable), de);
 
       psppire_axis_impl_clear (haxis);
 

@@ -22,7 +22,19 @@
 #include <libpspp/pool.h>
 #include <libpspp/misc.h>
 #include "psppire-axis.h"
+#include "psppire-marshal.h"
 #include <gtk/gtk.h>
+
+
+
+/* Signals */
+enum
+  {
+    RESIZE_UNIT,
+    n_signals
+  };
+
+static guint signals[n_signals] ;
 
 
 #define PSPPIRE_AXIS_GET_IFACE(obj) \
@@ -163,6 +175,20 @@ psppire_axis_class_init (PsppireAxisClass *class)
   parent_class = g_type_class_peek_parent (class);
 
   object_class->finalize = psppire_axis_finalize;
+
+
+  signals[RESIZE_UNIT] =
+    g_signal_new ("resize-unit",
+		  G_TYPE_FROM_CLASS (object_class),
+		  G_SIGNAL_RUN_LAST,
+		  0,
+		  NULL, NULL,
+		  psppire_marshal_VOID__INT_LONG,
+		  G_TYPE_NONE,
+		  2,
+		  G_TYPE_INT,
+		  G_TYPE_LONG
+		  );
 }
 
 
@@ -265,6 +291,9 @@ psppire_axis_resize (PsppireAxis *a, gint unit, glong size)
 
   if (PSPPIRE_AXIS_GET_IFACE (a)->resize)
     PSPPIRE_AXIS_GET_IFACE (a)->resize (a, unit, size);
+
+
+  g_signal_emit (a, signals [RESIZE_UNIT], 0, unit, size);
 }
 
 
