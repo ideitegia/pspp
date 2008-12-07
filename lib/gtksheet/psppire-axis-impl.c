@@ -313,7 +313,12 @@ void
 psppire_axis_impl_insert (PsppireAxisImpl *a, gint posn, gint size)
 {
   struct axis_node *before = NULL;
-  struct axis_node *new_node = pool_alloc (a->pool, sizeof (*new_node));
+  struct axis_node *new_node;
+
+  g_return_if_fail ( posn < tower_height (&a->unit_tower));
+  g_return_if_fail ( posn >= 0);
+
+  new_node = pool_alloc (a->pool, sizeof (*new_node));
 
   if ( posn > 0)
     {
