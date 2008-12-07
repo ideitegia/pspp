@@ -196,11 +196,9 @@ psppire_axis_impl_get_type (void)
 	NULL
       };
 
-
       object_type = g_type_register_static (G_TYPE_PSPPIRE_AXIS,
 					    "PsppireAxisImpl",
 					    &object_info, 0);
-
 
       g_type_add_interface_static (object_type,
 				   PSPPIRE_TYPE_AXIS_IFACE,
@@ -268,7 +266,7 @@ psppire_axis_impl_append_n (PsppireAxisImpl *a, gint n_units, gint size)
 
   g_return_if_fail (n_units > 0);
 
-  node = pool_alloc (a->pool, sizeof *node);
+  node = pool_malloc (a->pool, sizeof *node);
 
   tower_insert (&a->unit_tower, n_units, &node->unit_node, NULL);
   tower_insert (&a->pixel_tower, size * n_units, &node->pixel_node, NULL);
@@ -306,7 +304,7 @@ split (PsppireAxisImpl *a, gint posn)
 
   fraction = (posn - start) / (gfloat) existing_unit_size;
 
-  new_node = pool_alloc (a->pool, sizeof (*new_node));
+  new_node = pool_malloc (a->pool, sizeof (*new_node));
 
   tower_resize (&a->unit_tower, &existing_node->unit_node, posn - start);
 
@@ -336,7 +334,7 @@ psppire_axis_impl_insert (PsppireAxisImpl *a, gint posn, gint size)
   g_return_if_fail ( posn < tower_height (&a->unit_tower));
   g_return_if_fail ( posn >= 0);
 
-  new_node = pool_alloc (a->pool, sizeof (*new_node));
+  new_node = pool_malloc (a->pool, sizeof (*new_node));
 
   if ( posn > 0)
     {
@@ -355,7 +353,6 @@ psppire_axis_impl_insert (PsppireAxisImpl *a, gint posn, gint size)
 		1,
 		&new_node->unit_node,
 		before ? &before->unit_node : NULL);
-
 
   tower_insert (&a->pixel_tower,
 		size,
@@ -390,9 +387,9 @@ make_single (PsppireAxisImpl *a, gint posn)
 
   g_assert (1 == tower_node_get_size (n));
 
-
   return tower_data (n, struct axis_node, unit_node);
 }
+
 
 static void
 resize (PsppireAxis *axis, gint posn, glong size)
@@ -463,6 +460,7 @@ psppire_axis_impl_delete (PsppireAxisImpl *a, gint first, gint n_units)
       tower_delete (&a->unit_tower, unit_node);
       tower_delete (&a->pixel_tower, &an->pixel_node);
 
+      pool_free (a->pool, an);
 
       unit_node = next_unit_node;
     }
