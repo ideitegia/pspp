@@ -213,53 +213,37 @@ enum
 static void
 new_data_callback (PsppireDataStore *ds, gpointer data)
 {
-  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
   gint i;
-  for (i = 0 ; i < 4 ; ++i)
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
+
+  casenumber n_cases =  psppire_data_store_get_case_count (ds);
+
+  for (i = 0; i < 2; ++i)
     {
-      PsppireAxisImpl *vaxis;
-      casenumber n_cases =  psppire_data_store_get_case_count (ds);
-
-      g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
-
-      psppire_axis_impl_clear (vaxis);
-      psppire_axis_impl_append_n (vaxis, n_cases, DEFAULT_ROW_HEIGHT);
+      psppire_axis_impl_clear (de->vaxis[i]);
+      psppire_axis_impl_append_n (de->vaxis[i], n_cases, DEFAULT_ROW_HEIGHT);
     }
 }
 
 static void
 case_inserted_callback (PsppireDataStore *ds, gint before, gpointer data)
 {
+  gint i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
-  gint i;
-
-  for (i = 0 ; i < 4 ; ++i)
-    {
-      PsppireAxisImpl *vaxis;
-
-      g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
-
-      psppire_axis_impl_insert (vaxis, before, DEFAULT_ROW_HEIGHT);
-    }
+  for (i = 0; i < 2; ++i)
+    psppire_axis_impl_insert (de->vaxis[i], before, DEFAULT_ROW_HEIGHT);
 }
 
 
 static void
 cases_deleted_callback (PsppireDataStore *ds, gint first, gint n_cases, gpointer data)
 {
+  gint i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
-  gint i;
-
-  for (i = 0 ; i < 4 ; ++i)
-    {
-      PsppireAxisImpl *vaxis;
-
-      g_object_get (de->data_sheet[i], "vertical-axis", &vaxis, NULL);
-
-      psppire_axis_impl_delete (vaxis, first, n_cases);
-    }
+  for (i = 0; i < 2; ++i)
+    psppire_axis_impl_delete (de->vaxis[0], first, n_cases);
 }
 
 
@@ -283,19 +267,21 @@ width_of_m (GtkWidget *w)
 /* Callback for the axis' resize signal.
    Changes the variable's display width */
 static void
-rewidth_variable (PsppireDataEditor *de, gint unit, glong size)
+rewidth_variable (GtkWidget *w, gint unit, glong size)
 {
+  PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (w);
+
   const PsppireDict *dict = de->data_store->dict;
   struct variable *var = psppire_dict_get_variable (dict, unit);
 
-  var_set_display_width (var, size / (float) width_of_m (de));
+  var_set_display_width (var, size / (float) width_of_m (w));
 }
 
 
 static void
 new_variables_callback (PsppireDict *dict, gpointer data)
 {
-  gint v, i;
+  gint v;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
   gint m_width = width_of_m (GTK_WIDGET (de));
 
@@ -305,47 +291,36 @@ new_variables_callback (PsppireDict *dict, gpointer data)
   psppire_axis_impl_clear (vaxis);
   psppire_axis_impl_append_n (vaxis, 1 + psppire_dict_get_var_cnt (dict), DEFAULT_ROW_HEIGHT);
 
-  for (i = 0 ; i < 4 ; ++i)
+  g_signal_connect_swapped (de->haxis, "resize-unit",
+			    G_CALLBACK (rewidth_variable), de);
+
+  psppire_axis_impl_clear (de->haxis);
+
+  for (v = 0 ; v < psppire_dict_get_var_cnt (dict); ++v)
     {
-      PsppireAxisImpl *haxis;
-      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
+      const struct variable *var = psppire_dict_get_variable (dict, v);
 
-      g_signal_connect_swapped (haxis, "resize-unit",
-				G_CALLBACK (rewidth_variable), de);
-
-      psppire_axis_impl_clear (haxis);
-
-      for (v = 0 ; v < psppire_dict_get_var_cnt (dict); ++v)
-	{
-	  const struct variable *var = psppire_dict_get_variable (dict, v);
-
-	  psppire_axis_impl_append (haxis, m_width * var_get_display_width (var));
-	}
+      psppire_axis_impl_append (de->haxis, m_width * var_get_display_width (var));
     }
 }
 
 static void
 insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
 {
-  gint i;
-
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
   gint m_width  = width_of_m (GTK_WIDGET (de));
 
   PsppireAxisImpl *var_vaxis;
+
+  const struct variable *var = psppire_dict_get_variable (dict, x);
+
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
 
   psppire_axis_impl_insert (var_vaxis, x, DEFAULT_ROW_HEIGHT);
 
-  for (i = 0 ; i < 4 ; ++i)
-    {
-      const struct variable *var = psppire_dict_get_variable (dict, x);
-      PsppireAxisImpl *haxis;
-      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
 
-      psppire_axis_impl_insert (haxis, x, m_width * var_get_display_width (var));
-    }
+  psppire_axis_impl_insert (de->haxis, x, m_width * var_get_display_width (var));
 }
 
 
@@ -353,7 +328,6 @@ static void
 delete_variable_callback (PsppireDict *dict, gint posn,
 			  gint x UNUSED, gint y UNUSED, gpointer data)
 {
-  gint i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
   PsppireAxisImpl *var_vaxis;
@@ -361,32 +335,20 @@ delete_variable_callback (PsppireDict *dict, gint posn,
 
   psppire_axis_impl_delete (var_vaxis, posn, 1);
 
-
-  {
-    PsppireAxisImpl *haxis;
-    g_object_get (de->data_sheet[0], "horizontal-axis", &haxis, NULL);
-
-    psppire_axis_impl_delete (haxis, posn, 1);
-  }
+  psppire_axis_impl_delete (de->haxis, posn, 1);
 }
 
 
 static void
 rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
 {
-  gint i;
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
   gint m_width = width_of_m (GTK_WIDGET (de));
 
-  for (i = 0 ; i < 4 ; ++i)
-    {
-      const struct variable *var = psppire_dict_get_variable (dict, posn);
-      PsppireAxisImpl *haxis;
-      g_object_get (de->data_sheet[i], "horizontal-axis", &haxis, NULL);
+  const struct variable *var = psppire_dict_get_variable (dict, posn);
 
-      psppire_axis_impl_resize (haxis, posn, m_width *
-				  var_get_display_width (var));
-    }
+  psppire_axis_impl_resize (de->haxis, posn, m_width *
+			    var_get_display_width (var));
 }
 
 
@@ -881,18 +843,18 @@ init_data_sheet (PsppireDataEditor *de)
   GtkAdjustment *vadj1, *hadj1;
   GtkWidget *sheet ;
 
-  PsppireAxisImpl *vaxis0 = psppire_axis_impl_new ();
-  PsppireAxisImpl *vaxis1 = psppire_axis_impl_new ();
+  de->vaxis[0] = psppire_axis_impl_new ();
+  de->vaxis[1] = psppire_axis_impl_new ();
 
-  /* There's only one horizontal axis, since the
+  /* Txoxovhere's only one horizontal axis, since the
      column widths are parameters of the variables */
-  PsppireAxisImpl *haxis = psppire_axis_impl_new ();
+  de->haxis = psppire_axis_impl_new ();
 
 
   de->split = TRUE;
   de->paned = gtk_xpaned_new ();
 
-  init_sheet (de, 0, NULL, NULL, vaxis0, haxis);
+  init_sheet (de, 0, NULL, NULL, de->vaxis[0], de->haxis);
   gtk_widget_show (de->sheet_bin[0]);
   vadj0 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
   hadj0 = gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[0]));
@@ -900,7 +862,7 @@ init_data_sheet (PsppireDataEditor *de)
   g_object_set (de->sheet_bin[0], "vscrollbar-policy", GTK_POLICY_NEVER, NULL);
   g_object_set (de->sheet_bin[0], "hscrollbar-policy", GTK_POLICY_NEVER, NULL);
 
-  init_sheet (de, 1, NULL, vadj0, vaxis0, haxis);
+  init_sheet (de, 1, NULL, vadj0, de->vaxis[0], de->haxis);
   gtk_widget_show (de->sheet_bin[1]);
   sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[1]));
   gtk_sheet_hide_row_titles (GTK_SHEET (sheet));
@@ -908,7 +870,7 @@ init_data_sheet (PsppireDataEditor *de)
   g_object_set (de->sheet_bin[1], "vscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
   g_object_set (de->sheet_bin[1], "hscrollbar-policy", GTK_POLICY_NEVER, NULL);
 
-  init_sheet (de, 2, hadj0, NULL, vaxis1, haxis);
+  init_sheet (de, 2, hadj0, NULL, de->vaxis[1], de->haxis);
   gtk_widget_show (de->sheet_bin[2]);
   sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[2]));
   gtk_sheet_hide_column_titles (GTK_SHEET (sheet));
@@ -916,7 +878,7 @@ init_data_sheet (PsppireDataEditor *de)
   g_object_set (de->sheet_bin[2], "hscrollbar-policy", GTK_POLICY_ALWAYS, NULL);
   vadj1 = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (de->sheet_bin[2]));
 
-  init_sheet (de, 3, hadj1, vadj1, vaxis1, haxis);
+  init_sheet (de, 3, hadj1, vadj1, de->vaxis[1], de->haxis);
   gtk_widget_show (de->sheet_bin[3]);
   sheet = gtk_bin_get_child (GTK_BIN (de->sheet_bin[3]));
   gtk_sheet_hide_column_titles (GTK_SHEET (sheet));

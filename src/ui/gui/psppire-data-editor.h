@@ -22,6 +22,7 @@
 #include <glib-object.h>
 #include <gtk/gtknotebook.h>
 
+#include <lib/gtksheet/psppire-axis-impl.h>
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
 
@@ -57,6 +58,12 @@ struct _PsppireDataEditor
 
   GtkWidget *paned;
   gboolean split;
+
+  PsppireAxisImpl *vaxis[2];
+
+  /* There's only one horizontal axis, since the
+     column widths are parameters of the variables */
+  PsppireAxisImpl *haxis;
 };
 
 
