@@ -434,7 +434,9 @@ psppire_dict_set_name (PsppireDict* d, gint idx, const gchar *name)
 
 
 
-/* Return the IDXth variable */
+/* Return the IDXth variable.
+   Will return NULL if IDX  exceeds the number of variables in the dictionary.
+ */
 struct variable *
 psppire_dict_get_variable (const PsppireDict *d, gint idx)
 {

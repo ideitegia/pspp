@@ -274,6 +274,9 @@ rewidth_variable (GtkWidget *w, gint unit, glong size)
   const PsppireDict *dict = de->data_store->dict;
   struct variable *var = psppire_dict_get_variable (dict, unit);
 
+  if (NULL == var)
+    return;
+
   var_set_display_width (var, size / (float) width_of_m (w));
 }
 
