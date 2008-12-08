@@ -100,9 +100,6 @@ struct _GtkSheet
   GdkColor color[n_COLORS];
   gboolean show_grid;
 
-  gint16 column_requisition;
-  gint16 row_requisition;
-
   /* active cell */
   GtkSheetCell active_cell;
 
