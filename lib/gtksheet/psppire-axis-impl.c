@@ -398,6 +398,7 @@ resize (PsppireAxis *axis, gint posn, glong size)
 
   struct axis_node *an;
   g_return_if_fail (posn >= 0);
+  g_return_if_fail (size > 0);
 
   /* Silently ignore this request if the position is greater than the number of
      units in the axis */

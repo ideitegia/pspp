@@ -347,8 +347,13 @@ rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
 
   const struct variable *var = psppire_dict_get_variable (dict, posn);
 
-  psppire_axis_impl_resize (de->haxis, posn, m_width *
-			    var_get_display_width (var));
+  gint var_width = var_get_display_width (var);
+
+  /* Don't allow zero width */
+  if ( var_width < 1 )
+    var_width = 1;
+
+  psppire_axis_impl_resize (de->haxis, posn, m_width * var_width);
 }
 
 
