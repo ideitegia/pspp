@@ -95,7 +95,7 @@ static void draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint n);
 
 static void set_row_height (GtkSheet *sheet,
 			    gint row,
-			    guint height);
+			    gint height);
 
 static void destroy_hover_window (GtkSheetHoverTitle *);
 static GtkSheetHoverTitle *create_hover_window (void);
@@ -1319,7 +1319,7 @@ gtk_sheet_get_columns_count (GtkSheet *sheet)
 
 static void set_column_width (GtkSheet *sheet,
 			      gint column,
-			      guint width);
+			      gint width);
 
 
 void
@@ -3443,9 +3443,9 @@ gtk_sheet_button_release (GtkWidget *widget,
       gdk_display_pointer_ungrab (display, event->time);
       draw_xor_vline (sheet);
 
-      width = event->x - 
-	psppire_axis_start_pixel (sheet->haxis, sheet->drag_cell.col) -
-	sheet->hadjustment->value;
+      width = event->x -
+	psppire_axis_start_pixel (sheet->haxis, sheet->drag_cell.col)
+	+ sheet->hadjustment->value;
 
       set_column_width (sheet, sheet->drag_cell.col, width);
 
@@ -3462,7 +3462,7 @@ gtk_sheet_button_release (GtkWidget *widget,
       draw_xor_hline (sheet);
 
       height = event->y -
-	psppire_axis_start_pixel (sheet->vaxis, sheet->drag_cell.row) -
+	psppire_axis_start_pixel (sheet->vaxis, sheet->drag_cell.row) +
 	sheet->vadjustment->value;
 
       set_row_height (sheet, sheet->drag_cell.row, height);
@@ -5063,7 +5063,7 @@ draw_xor_rectangle (GtkSheet *sheet, GtkSheetRange range)
 static void
 set_column_width (GtkSheet *sheet,
 		  gint column,
-		  guint width)
+		  gint width)
 {
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
@@ -5085,7 +5085,7 @@ set_column_width (GtkSheet *sheet,
 static void
 set_row_height (GtkSheet *sheet,
 		gint row,
-		guint height)
+		gint height)
 {
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));

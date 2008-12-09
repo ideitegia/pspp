@@ -289,6 +289,8 @@ psppire_axis_resize (PsppireAxis *a, gint unit, glong size)
 
   g_return_if_fail (PSPPIRE_AXIS_GET_IFACE (a));
 
+  g_return_if_fail (size > 0);
+
   if (PSPPIRE_AXIS_GET_IFACE (a)->resize)
     PSPPIRE_AXIS_GET_IFACE (a)->resize (a, unit, size);
 
