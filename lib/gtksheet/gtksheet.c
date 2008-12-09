@@ -3116,14 +3116,18 @@ gtk_sheet_expose (GtkWidget *widget,
 	    draw_xor_rectangle (sheet, sheet->drag_range);
 	}
 
-      if ((!GTK_SHEET_IN_XDRAG (sheet)) && (!GTK_SHEET_IN_YDRAG (sheet)))
-	{
-	  if (sheet->state == GTK_SHEET_NORMAL)
-	    g_idle_add (gtk_sheet_draw_active_cell, sheet);
-	}
     }
 
   (* GTK_WIDGET_CLASS (parent_class)->expose_event) (widget, event);
+
+  if (event->window == sheet->sheet_window)
+    {
+      if ((!GTK_SHEET_IN_XDRAG (sheet)) && (!GTK_SHEET_IN_YDRAG (sheet)))
+	{
+	  if (sheet->state == GTK_SHEET_NORMAL)
+	    gtk_sheet_draw_active_cell (sheet);
+	}
+    }
 
   return FALSE;
 }
