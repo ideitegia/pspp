@@ -3075,33 +3075,31 @@ gtk_sheet_expose (GtkWidget *widget,
 				       max_visible_column (sheet));
     }
 
-
-  {
-    gint y = event->area.y + sheet->vadjustment->value;
-    gint x = event->area.x + sheet->hadjustment->value;
-
-    if ( sheet->column_titles_visible)
-      y -= sheet->column_title_area.height;
-
-    if ( sheet->row_titles_visible)
-      x -= sheet->row_title_area.width;
-
-    maximize_int (&x, 0);
-    maximize_int (&y, 0);
-
-    range.row0 = row_from_ypixel (sheet, y);
-
-    range.rowi = row_from_ypixel (sheet, y + event->area.height);
-
-    range.col0 = column_from_xpixel (sheet, x);
-
-    range.coli = column_from_xpixel (sheet, x + event->area.width);
-  }
-
   if (event->window == sheet->sheet_window)
     {
+      gint y = event->area.y + sheet->vadjustment->value;
+      gint x = event->area.x + sheet->hadjustment->value;
+
+      if ( sheet->column_titles_visible)
+	y -= sheet->column_title_area.height;
+
+      if ( sheet->row_titles_visible)
+	x -= sheet->row_title_area.width;
+
+      maximize_int (&x, 0);
+      maximize_int (&y, 0);
+
+      range.row0 = row_from_ypixel (sheet, y);
+
+      range.rowi = row_from_ypixel (sheet, y + event->area.height);
+
+      range.col0 = column_from_xpixel (sheet, x);
+
+      range.coli = column_from_xpixel (sheet, x + event->area.width);
+
       gtk_sheet_range_draw (sheet, &range);
 
+#if 0
       if (sheet->state != GTK_SHEET_NORMAL)
 	{
 	  if (gtk_sheet_range_isvisible (sheet, &sheet->range))
@@ -3115,7 +3113,7 @@ gtk_sheet_expose (GtkWidget *widget,
 	  if (GTK_SHEET_IN_RESIZE (sheet) || GTK_SHEET_IN_DRAG (sheet))
 	    draw_xor_rectangle (sheet, sheet->drag_range);
 	}
-
+#endif
     }
 
   (* GTK_WIDGET_CLASS (parent_class)->expose_event) (widget, event);
