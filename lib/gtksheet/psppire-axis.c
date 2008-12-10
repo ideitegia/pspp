@@ -22,7 +22,7 @@
 #include <libpspp/pool.h>
 #include <libpspp/misc.h>
 #include "psppire-axis.h"
-#include "psppire-marshal.h"
+#include <lib/gtksheet/psppire-marshal.h>
 #include <gtk/gtk.h>
 
 
