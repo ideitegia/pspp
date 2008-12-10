@@ -2166,6 +2166,7 @@ draw_sheet_region (GtkSheet *sheet, GdkRegion *region)
       gtk_sheet_range_isvisible (sheet, &sheet->range))
     gtk_sheet_range_draw_selection (sheet, drawing_range);
 
+
   if (sheet->state == GTK_STATE_NORMAL &&
       sheet->active_cell.row >= drawing_range.row0 &&
       sheet->active_cell.row <= drawing_range.rowi &&
@@ -2499,16 +2500,12 @@ gtk_sheet_get_active_cell (GtkSheet *sheet, gint *row, gint *column)
 static void
 gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
 {
-  GtkSheet *sheet;
+  GtkSheet *sheet = GTK_SHEET (data);
   gint row, col;
   const char *text;
   GtkJustification justification;
   GtkSheetCellAttr attributes;
 
-  g_return_if_fail (data != NULL);
-  g_return_if_fail (GTK_IS_SHEET (data));
-
-  sheet = GTK_SHEET (data);
 
   if (!GTK_WIDGET_VISIBLE (widget)) return;
   if (sheet->state != GTK_STATE_NORMAL) return;
@@ -2587,9 +2584,11 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
 
   GTK_SHEET_UNSET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
 
+  GTK_WIDGET_UNSET_FLAGS (sheet->entry_widget, GTK_HAS_FOCUS);
+
   gtk_sheet_draw_active_cell (sheet);
   gtk_sheet_show_entry_widget (sheet);
-
+  GTK_WIDGET_SET_FLAGS (sheet->entry_widget, GTK_HAS_FOCUS);
 
   g_signal_emit (sheet, sheet_signals [ACTIVATE], 0,
 		 row, col, old_row, old_col);
@@ -2601,10 +2600,9 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
 {
   GtkEntry *sheet_entry;
   GtkSheetCellAttr attributes;
-  gchar *text = NULL;
+
   gint row, col;
 
-  g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
   row = sheet->active_cell.row;
@@ -2624,14 +2622,14 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
 
   gtk_sheet_get_attributes (sheet, row, col, &attributes);
 
-
-  text = gtk_sheet_cell_get_text (sheet, row, col);
-  if ( ! text )
-    text = g_strdup ("");
-
-  if ( GTK_IS_ENTRY (sheet_entry))
+  if (GTK_IS_ENTRY (sheet_entry) && !GTK_WIDGET_HAS_FOCUS (sheet_entry))
     {
+      gchar *text = gtk_sheet_cell_get_text (sheet, row, col);
       const gchar *old_text = gtk_entry_get_text (GTK_ENTRY (sheet_entry));
+
+      if ( ! text )
+	text = g_strdup ("");
+
       if (strcmp (old_text, text) != 0)
 	gtk_entry_set_text (sheet_entry, text);
 
@@ -2648,6 +2646,7 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
 	  gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.0);
 	  break;
 	}
+      dispose_string (sheet, text);
     }
 
   gtk_sheet_size_allocate_entry (sheet);
@@ -2656,8 +2655,6 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
 			    g_sheet_model_is_editable (sheet->model,
 						       row, col));
   gtk_widget_map (sheet->entry_widget);
-
-  dispose_string (sheet, text);
 }
 
 static gboolean
