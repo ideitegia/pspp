@@ -454,9 +454,9 @@ static gboolean gtk_sheet_cell_isvisible  (GtkSheet *sheet,
 static void gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint column);
 
 
-/* draw visible part of range. If range == NULL then draw the whole screen */
-static void gtk_sheet_range_draw (GtkSheet *sheet,
-				  const GtkSheetRange *range);
+/* draw visible part of range. */
+static void draw_sheet_region (GtkSheet *sheet, GdkRegion *region);
+
 
 /* highlight the visible part of the selected range */
 static void gtk_sheet_range_draw_selection	 (GtkSheet *sheet,
@@ -1092,6 +1092,25 @@ gtk_sheet_init (GtkSheet *sheet)
 }
 
 
+/* Cause RANGE to be redrawn. If RANGE is null, then the
+   entire visible range will be redrawn.
+ */
+static void
+redraw_range (GtkSheet *sheet, GtkSheetRange *range)
+{
+  GdkRectangle rect;
+  if ( NULL != range )
+    rectangle_from_range (sheet, range, &rect);
+  else
+    {
+      GdkRegion *r = gdk_drawable_get_visible_region (sheet->sheet_window);
+      gdk_region_get_clipbox (r, &rect);
+    }
+
+  gdk_window_invalidate_rect (sheet->sheet_window, &rect, FALSE);
+}
+
+
 /* Callback which occurs whenever columns are inserted / deleted in the model */
 static void
 columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
@@ -1120,8 +1139,11 @@ columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
   draw_column_title_buttons_range (sheet,
 				   first_column, max_visible_column (sheet));
 
-  gtk_sheet_range_draw (sheet, &range);
+
+  redraw_range (sheet, &range);
 }
+
+
 
 
 /* Callback which occurs whenever rows are inserted / deleted in the model */
@@ -1150,7 +1172,7 @@ rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
 
   draw_row_title_buttons_range (sheet, first_row, max_visible_row (sheet));
 
-  gtk_sheet_range_draw (sheet, &range);
+  redraw_range (sheet, &range);
 }
 
 /*
@@ -1175,7 +1197,7 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
 
   if ( ( row0 < 0 && col0 < 0 ) || ( rowi < 0 && coli < 0 ) )
     {
-      gtk_sheet_range_draw (sheet, NULL);
+      redraw_range (sheet, NULL);
       adjust_scrollbars (sheet);
 
       draw_row_title_buttons_range (sheet, min_visible_row (sheet),
@@ -1197,7 +1219,7 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
       range.coli = max_visible_column (sheet);
     }
 
-  gtk_sheet_range_draw (sheet, &range);
+  redraw_range (sheet, &range);
 }
 
 
@@ -1295,7 +1317,7 @@ gtk_sheet_show_grid (GtkSheet *sheet, gboolean show)
 
   sheet->show_grid = show;
 
-  gtk_sheet_range_draw (sheet, NULL);
+  redraw_range (sheet, NULL);
 }
 
 gboolean
@@ -1955,7 +1977,7 @@ gtk_sheet_map (GtkWidget *widget)
 	    !GTK_WIDGET_MAPPED (GTK_BIN (sheet->button)->child))
 	  gtk_widget_map (GTK_BIN (sheet->button)->child);
 
-      gtk_sheet_range_draw (sheet, NULL);
+      redraw_range (sheet, NULL);
       change_active_cell (sheet,
 		     sheet->active_cell.row,
 		     sheet->active_cell.col);
@@ -2084,14 +2106,35 @@ gtk_sheet_cell_draw (GtkSheet *sheet, gint row, gint col)
 }
 
 
-
 static void
-gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
+draw_sheet_region (GtkSheet *sheet, GdkRegion *region)
 {
+  GtkSheetRange range;
+  GdkRectangle area;
+  gint y, x;
   gint i, j;
 
-  GdkRectangle area;
   GtkSheetRange drawing_range;
+
+  gdk_region_get_clipbox (region, &area);
+
+  y = area.y + sheet->vadjustment->value;
+  x = area.x + sheet->hadjustment->value;
+
+  if ( sheet->column_titles_visible)
+    y -= sheet->column_title_area.height;
+
+  if ( sheet->row_titles_visible)
+    x -= sheet->row_title_area.width;
+
+  maximize_int (&x, 0);
+  maximize_int (&y, 0);
+
+  range.row0 = row_from_ypixel (sheet, y);
+  range.rowi = row_from_ypixel (sheet, y + area.height);
+
+  range.col0 = column_from_xpixel (sheet, x);
+  range.coli = column_from_xpixel (sheet, x + area.width);
 
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_SHEET (sheet));
@@ -2100,36 +2143,20 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
   if (!GTK_WIDGET_MAPPED (GTK_WIDGET (sheet))) return;
 
-  if (range == NULL)
-    {
-      drawing_range.row0 = min_visible_row (sheet);
-      drawing_range.col0 = min_visible_column (sheet);
-      drawing_range.rowi = MIN (max_visible_row (sheet),
-				psppire_axis_unit_count (sheet->vaxis) - 1);
-      drawing_range.coli = max_visible_column (sheet);
-      gdk_drawable_get_size (sheet->sheet_window, &area.width, &area.height);
-      area.x = area.y = 0;
-    }
-  else
-    {
-      drawing_range.row0 = MAX (range->row0, min_visible_row (sheet));
-      drawing_range.col0 = MAX (range->col0, min_visible_column (sheet));
-      drawing_range.rowi = MIN (range->rowi, max_visible_row (sheet));
-      drawing_range.coli = MIN (range->coli, max_visible_column (sheet));
 
-      rectangle_from_range (sheet, &drawing_range, &area);
-    }
+  drawing_range.row0 = MAX (range.row0, min_visible_row (sheet));
+  drawing_range.col0 = MAX (range.col0, min_visible_column (sheet));
+  drawing_range.rowi = MIN (range.rowi, max_visible_row (sheet));
+  drawing_range.coli = MIN (range.coli, max_visible_column (sheet));
 
   g_return_if_fail (drawing_range.rowi >= drawing_range.row0);
   g_return_if_fail (drawing_range.coli >= drawing_range.col0);
 
-  //  gdk_window_begin_paint_rect (sheet->sheet_window, &area);
-
   for (i = drawing_range.row0; i <= drawing_range.rowi; i++)
-    for (j = drawing_range.col0; j <= drawing_range.coli; j++)
-      {
+    {
+      for (j = drawing_range.col0; j <= drawing_range.coli; j++)
 	gtk_sheet_cell_draw (sheet, i, j);
-      }
+    }
 
   if (sheet->state != GTK_SHEET_NORMAL &&
       gtk_sheet_range_isvisible (sheet, &sheet->range))
@@ -2141,9 +2168,8 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
       sheet->active_cell.col >= drawing_range.col0 &&
       sheet->active_cell.col <= drawing_range.coli)
     gtk_sheet_show_entry_widget (sheet);
-
-  //  gdk_window_end_paint (sheet->sheet_window);
 }
+
 
 static void
 gtk_sheet_range_draw_selection (GtkSheet *sheet, GtkSheetRange range)
@@ -2265,7 +2291,7 @@ gtk_sheet_cell_clear (GtkSheet *sheet, gint row, gint column)
 
   gtk_sheet_real_cell_clear (sheet, row, column);
 
-  gtk_sheet_range_draw (sheet, &range);
+  redraw_range (sheet, &range);
 }
 
 static void
@@ -3050,29 +3076,7 @@ gtk_sheet_expose (GtkWidget *widget,
 
   if (event->window == sheet->sheet_window)
     {
-      GtkSheetRange range;
-
-      gint y = event->area.y + sheet->vadjustment->value;
-      gint x = event->area.x + sheet->hadjustment->value;
-
-      if ( sheet->column_titles_visible)
-	y -= sheet->column_title_area.height;
-
-      if ( sheet->row_titles_visible)
-	x -= sheet->row_title_area.width;
-
-      maximize_int (&x, 0);
-      maximize_int (&y, 0);
-
-      range.row0 = row_from_ypixel (sheet, y);
-
-      range.rowi = row_from_ypixel (sheet, y + event->area.height);
-
-      range.col0 = column_from_xpixel (sheet, x);
-
-      range.coli = column_from_xpixel (sheet, x + event->area.width);
-
-      gtk_sheet_range_draw (sheet, &range);
+      draw_sheet_region (sheet, event->region);
 
 #if 0
       if (sheet->state != GTK_SHEET_NORMAL)
@@ -3092,10 +3096,15 @@ gtk_sheet_expose (GtkWidget *widget,
 
       if ((!GTK_SHEET_IN_XDRAG (sheet)) && (!GTK_SHEET_IN_YDRAG (sheet)))
 	{
-	  if (range.row0 <= sheet->active_cell.row &&
-	      range.rowi >= sheet->active_cell.row &&
-	      range.col0 <= sheet->active_cell.col &&
-	      range.coli >= sheet->active_cell.col)
+	  GdkRectangle rect;
+	  GtkSheetRange range;
+	  range.row0 = range.rowi =  sheet->active_cell.row;
+	  range.col0 = range.coli =  sheet->active_cell.col;
+
+	  rectangle_from_range (sheet, &range, &rect);
+
+	  if (GDK_OVERLAP_RECTANGLE_OUT !=
+	      gdk_region_rect_in (event->region, &rect))
 	    {
 	      gtk_sheet_draw_active_cell (sheet);
 	    }
@@ -4890,7 +4899,6 @@ vadjustment_value_changed (GtkAdjustment *adjustment,
 
   if ( ! GTK_WIDGET_REALIZED (sheet)) return;
 
-
   gtk_widget_hide (sheet->entry_widget);
 
   region =
@@ -4898,13 +4906,14 @@ vadjustment_value_changed (GtkAdjustment *adjustment,
 
   gdk_window_begin_paint_region (sheet->sheet_window, region);
 
+  draw_sheet_region (sheet, region);
 
-  gtk_sheet_range_draw (sheet, NULL);
   draw_row_title_buttons (sheet);
   //  size_allocate_global_button (sheet);
   gtk_sheet_draw_active_cell (sheet);
 
   gdk_window_end_paint (sheet->sheet_window);
+  gdk_region_destroy (region);
 }
 
 
@@ -4927,13 +4936,16 @@ hadjustment_value_changed (GtkAdjustment *adjustment,
 
   gdk_window_begin_paint_region (sheet->sheet_window, region);
 
-  gtk_sheet_range_draw (sheet, NULL);
+  draw_sheet_region (sheet, region);
+
   draw_column_title_buttons (sheet);
   //  size_allocate_global_button (sheet);
 
   gtk_sheet_draw_active_cell (sheet);
 
   gdk_window_end_paint (sheet->sheet_window);
+
+  gdk_region_destroy (region);
 }
 
 
@@ -5055,7 +5067,7 @@ set_column_width (GtkSheet *sheet,
       draw_column_title_buttons (sheet);
       adjust_scrollbars (sheet);
       gtk_sheet_size_allocate_entry (sheet);
-      gtk_sheet_range_draw (sheet, NULL);
+      redraw_range (sheet, NULL);
     }
 }
 
@@ -5077,7 +5089,7 @@ set_row_height (GtkSheet *sheet,
       draw_row_title_buttons (sheet);
       adjust_scrollbars (sheet);
       gtk_sheet_size_allocate_entry (sheet);
-      gtk_sheet_range_draw (sheet, NULL);
+      redraw_range (sheet, NULL);
     }
 }
 
