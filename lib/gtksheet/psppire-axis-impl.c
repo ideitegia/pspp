@@ -331,12 +331,10 @@ psppire_axis_impl_insert (PsppireAxisImpl *a, gint posn, gint size)
   struct axis_node *before = NULL;
   struct axis_node *new_node;
 
-  g_return_if_fail ( posn < tower_height (&a->unit_tower));
   g_return_if_fail ( posn >= 0);
+  g_return_if_fail ( posn <= tower_height (&a->unit_tower));
 
-  new_node = pool_malloc (a->pool, sizeof (*new_node));
-
-  if ( posn > 0)
+  if ( posn < tower_height (&a->unit_tower))
     {
       unsigned long int start = 0;
       struct tower_node *n;
@@ -348,6 +346,8 @@ psppire_axis_impl_insert (PsppireAxisImpl *a, gint posn, gint size)
 
       before = tower_data (n, struct axis_node, unit_node);
     }
+
+  new_node = pool_malloc (a->pool, sizeof (*new_node));
 
   tower_insert (&a->unit_tower,
 		1,
@@ -437,12 +437,13 @@ psppire_axis_impl_delete (PsppireAxisImpl *a, gint first, gint n_units)
 {
   gint units_to_delete = n_units;
   unsigned long int start;
+  struct tower_node *unit_node ;
   g_return_if_fail (first + n_units < tower_height (&a->unit_tower));
 
   split (a, first);
   split (a, first + n_units);
 
-  struct tower_node *unit_node = tower_lookup (&a->unit_tower, first, &start);
+  unit_node = tower_lookup (&a->unit_tower, first, &start);
   g_assert (start == first);
 
   while (units_to_delete > 0)

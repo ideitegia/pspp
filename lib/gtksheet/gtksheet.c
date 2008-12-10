@@ -1099,6 +1099,10 @@ static void
 redraw_range (GtkSheet *sheet, GtkSheetRange *range)
 {
   GdkRectangle rect;
+ 
+  if ( ! GTK_WIDGET_REALIZED (sheet))
+    return;
+
   if ( NULL != range )
     rectangle_from_range (sheet, range, &rect);
   else
