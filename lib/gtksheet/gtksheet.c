@@ -1061,7 +1061,6 @@ gtk_sheet_init (GtkSheet *sheet)
 
   sheet->sheet_window = NULL;
   sheet->entry_widget = NULL;
-  sheet->entry_handler_id = 0;
   sheet->button = NULL;
 
   sheet->hadjustment = NULL;
@@ -2124,7 +2123,7 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
   g_return_if_fail (drawing_range.rowi >= drawing_range.row0);
   g_return_if_fail (drawing_range.coli >= drawing_range.col0);
 
-  gdk_window_begin_paint_rect (sheet->sheet_window, &area);
+  //  gdk_window_begin_paint_rect (sheet->sheet_window, &area);
 
   for (i = drawing_range.row0; i <= drawing_range.rowi; i++)
     for (j = drawing_range.col0; j <= drawing_range.coli; j++)
@@ -2143,7 +2142,7 @@ gtk_sheet_range_draw (GtkSheet *sheet, const GtkSheetRange *range)
       sheet->active_cell.col <= drawing_range.coli)
     gtk_sheet_show_entry_widget (sheet);
 
-  gdk_window_end_paint (sheet->sheet_window);
+  //  gdk_window_end_paint (sheet->sheet_window);
 }
 
 static void
@@ -2525,7 +2524,6 @@ static void
 change_active_cell (GtkSheet *sheet, gint row, gint col)
 {
   gint old_row, old_col;
-  glong old_handler_id = sheet->entry_handler_id;
 
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
@@ -2542,29 +2540,11 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
       gtk_sheet_real_unselect_range (sheet, NULL);
     }
 
-
-  g_signal_handler_block   (sheet->entry_widget, sheet->entry_handler_id);
-
   old_row = sheet->active_cell.row;
   old_col = sheet->active_cell.col;
 
-  {
-    /* Redraw the neighbourhood of the old active cell */
-    GtkSheetRange r;
-    r.col0 = old_col - 1;
-    r.coli = old_col + 1;
-    r.row0 = old_row - 1;
-    r.rowi = old_row + 1;
-
-    maximize_int (&r.row0, 0);
-    maximize_int (&r.col0, 0);
-    minimize_int (&r.rowi, psppire_axis_unit_count (sheet->vaxis) - 1);
-    minimize_int (&r.coli, psppire_axis_unit_count (sheet->haxis) - 1);
-
-
-    if (  gtk_sheet_range_isvisible (sheet, &r))
-      gtk_sheet_range_draw (sheet, &r);
-  }
+  /* Erase the old cell */
+  gtk_sheet_draw_active_cell (sheet);
 
   sheet->range.row0 = row;
   sheet->range.col0 = col;
@@ -2584,8 +2564,6 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
   g_signal_emit (sheet, sheet_signals [ACTIVATE], 0,
 		 row, col, old_row, old_col);
 
-  if ( old_handler_id == sheet->entry_handler_id)
-    g_signal_handler_unblock   (sheet->entry_widget, sheet->entry_handler_id);
 }
 
 static void
@@ -3046,14 +3024,9 @@ static gint
 gtk_sheet_expose (GtkWidget *widget,
 		  GdkEventExpose *event)
 {
-  GtkSheet *sheet;
-  GtkSheetRange range;
+  GtkSheet *sheet = GTK_SHEET (widget);
 
-  g_return_val_if_fail (widget != NULL, FALSE);
-  g_return_val_if_fail (GTK_IS_SHEET (widget), FALSE);
   g_return_val_if_fail (event != NULL, FALSE);
-
-  sheet = GTK_SHEET (widget);
 
   if (!GTK_WIDGET_DRAWABLE (widget))
     return FALSE;
@@ -3077,6 +3050,8 @@ gtk_sheet_expose (GtkWidget *widget,
 
   if (event->window == sheet->sheet_window)
     {
+      GtkSheetRange range;
+
       gint y = event->area.y + sheet->vadjustment->value;
       gint x = event->area.x + sheet->hadjustment->value;
 
@@ -3114,18 +3089,21 @@ gtk_sheet_expose (GtkWidget *widget,
 	    draw_xor_rectangle (sheet, sheet->drag_range);
 	}
 #endif
+
+      if ((!GTK_SHEET_IN_XDRAG (sheet)) && (!GTK_SHEET_IN_YDRAG (sheet)))
+	{
+	  if (range.row0 <= sheet->active_cell.row &&
+	      range.rowi >= sheet->active_cell.row &&
+	      range.col0 <= sheet->active_cell.col &&
+	      range.coli >= sheet->active_cell.col)
+	    {
+	      gtk_sheet_draw_active_cell (sheet);
+	    }
+	}
+
     }
 
   (* GTK_WIDGET_CLASS (parent_class)->expose_event) (widget, event);
-
-  if (event->window == sheet->sheet_window)
-    {
-      if ((!GTK_SHEET_IN_XDRAG (sheet)) && (!GTK_SHEET_IN_YDRAG (sheet)))
-	{
-	  if (sheet->state == GTK_SHEET_NORMAL)
-	    gtk_sheet_draw_active_cell (sheet);
-	}
-    }
 
   return FALSE;
 }
@@ -3419,8 +3397,6 @@ gtk_sheet_click_cell (GtkSheet *sheet, gint row, gint column)
   sheet->range.coli = column;
   sheet->state = GTK_SHEET_NORMAL;
   GTK_SHEET_SET_FLAGS (sheet, GTK_SHEET_IN_SELECTION);
-
-  gtk_sheet_draw_active_cell (sheet);
 
   gtk_widget_grab_focus (GTK_WIDGET (sheet->entry_widget));
 
@@ -4554,8 +4530,7 @@ create_sheet_entry (GtkSheet *sheet)
 			    G_CALLBACK (gtk_sheet_entry_key_press),
 			    sheet);
 
-  sheet->entry_handler_id =
-    g_signal_connect (sheet->entry_widget,
+  g_signal_connect (sheet->entry_widget,
 		      "changed",
 		      G_CALLBACK (gtk_sheet_entry_changed),
 		      sheet);

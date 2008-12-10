@@ -109,9 +109,6 @@ struct _GtkSheet
   /* The type of entry_widget */
   GtkType entry_type;
 
-  /* Handler of the "changed" callback for the entry widget */
-  glong entry_handler_id;
-
   /* expanding selection */
   GtkSheetCell selection_cell;
 
