@@ -79,6 +79,7 @@ modify this GNU manual.''
 * Parsing Command Syntax::      How to parse command syntax.
 * Processing Data::             Data input, output, and processing.
 * Presenting Output::           Producing machine- and human-readable output.
+* Internationalisation::        Dealing with locale issues.
 
 * Function Index::              Index of PSPP functions.
 * Concept Index::               Index of concepts.
@@ -95,6 +96,7 @@ modify this GNU manual.''
 @include dev/syntax.texi
 @include dev/data.texi
 @include dev/output.texi
+@include dev/i18n.texi
 
 @include function-index.texi
 @include concept-index.texi
