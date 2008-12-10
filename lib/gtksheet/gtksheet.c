@@ -477,12 +477,9 @@ static void gtk_sheet_draw_border 		 (GtkSheet *sheet,
 
 /* Active Cell handling */
 
-static void gtk_sheet_entry_changed		 (GtkWidget *widget,
-						  gpointer data);
 static void gtk_sheet_hide_entry_widget		 (GtkSheet *sheet);
-static void change_active_cell		 (GtkSheet *sheet,
-					  gint row, gint col);
-static gboolean gtk_sheet_draw_active_cell		 (GtkSheet *sheet);
+static void change_active_cell  (GtkSheet *sheet, gint row, gint col);
+static gboolean gtk_sheet_draw_active_cell	 (GtkSheet *sheet);
 static void gtk_sheet_show_entry_widget		 (GtkSheet *sheet);
 static gboolean gtk_sheet_click_cell		 (GtkSheet *sheet,
 						  gint row,
@@ -1269,8 +1266,9 @@ gtk_sheet_set_model (GtkSheet *sheet, GSheetModel *model)
     {
       g_object_ref (model);
 
-      g_signal_connect (model, "range_changed",
-			G_CALLBACK (range_update_callback), sheet);
+      sheet->update_handler_id = g_signal_connect (model, "range_changed",
+						   G_CALLBACK (range_update_callback),
+						   sheet);
 
       g_signal_connect (model, "rows_inserted",
 			G_CALLBACK (rows_inserted_deleted_callback), sheet);
@@ -2270,7 +2268,11 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
   old_text = g_sheet_model_get_string (model, row, col);
 
   if (0 != safe_strcmp (old_text, text))
-    g_sheet_model_set_string (model, text, row, col);
+    {
+      g_signal_handler_block    (sheet->model, sheet->update_handler_id);
+      g_sheet_model_set_string (model, text, row, col);
+      g_signal_handler_unblock  (sheet->model, sheet->update_handler_id);
+    }
 
   if ( g_sheet_model_free_strings (model))
     g_free (old_text);
@@ -2498,25 +2500,20 @@ gtk_sheet_get_active_cell (GtkSheet *sheet, gint *row, gint *column)
 }
 
 static void
-gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
+entry_load_text (GtkSheet *sheet)
 {
-  GtkSheet *sheet = GTK_SHEET (data);
   gint row, col;
   const char *text;
   GtkJustification justification;
   GtkSheetCellAttr attributes;
 
-
-  if (!GTK_WIDGET_VISIBLE (widget)) return;
+  if (!GTK_WIDGET_VISIBLE (sheet->entry_widget)) return;
   if (sheet->state != GTK_STATE_NORMAL) return;
 
   row = sheet->active_cell.row;
   col = sheet->active_cell.col;
 
   if (row < 0 || col < 0) return;
-
-  sheet->active_cell.row = -1;
-  sheet->active_cell.col = -1;
 
   text = gtk_entry_get_text (gtk_sheet_get_entry (sheet));
 
@@ -2526,9 +2523,6 @@ gtk_sheet_entry_changed (GtkWidget *widget, gpointer data)
       justification = attributes.justification;
       gtk_sheet_set_cell (sheet, row, col, justification, text);
     }
-
-  sheet->active_cell.row = row;;
-  sheet->active_cell.col = col;
 }
 
 
@@ -2573,6 +2567,8 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
   /* Erase the old cell */
   gtk_sheet_draw_active_cell (sheet);
 
+  entry_load_text (sheet);
+
   sheet->range.row0 = row;
   sheet->range.col0 = col;
   sheet->range.rowi = row;
@@ -2588,6 +2584,7 @@ change_active_cell (GtkSheet *sheet, gint row, gint col)
 
   gtk_sheet_draw_active_cell (sheet);
   gtk_sheet_show_entry_widget (sheet);
+
   GTK_WIDGET_SET_FLAGS (sheet->entry_widget, GTK_HAS_FOCUS);
 
   g_signal_emit (sheet, sheet_signals [ACTIVATE], 0,
@@ -2622,7 +2619,7 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
 
   gtk_sheet_get_attributes (sheet, row, col, &attributes);
 
-  if (GTK_IS_ENTRY (sheet_entry) && !GTK_WIDGET_HAS_FOCUS (sheet_entry))
+  if (GTK_IS_ENTRY (sheet_entry))
     {
       gchar *text = gtk_sheet_cell_get_text (sheet, row, col);
       const gchar *old_text = gtk_entry_get_text (GTK_ENTRY (sheet_entry));
@@ -2632,21 +2629,24 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
 
       if (strcmp (old_text, text) != 0)
 	gtk_entry_set_text (sheet_entry, text);
-
-      switch (attributes.justification)
-	{
-	case GTK_JUSTIFY_RIGHT:
-	  gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 1.0);
-	  break;
-	case GTK_JUSTIFY_CENTER:
-	  gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.5);
-	  break;
-	case GTK_JUSTIFY_LEFT:
-	default:
-	  gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.0);
-	  break;
-	}
+      
       dispose_string (sheet, text);
+
+	{
+	  switch (attributes.justification)
+	    {
+	    case GTK_JUSTIFY_RIGHT:
+	      gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 1.0);
+	      break;
+	    case GTK_JUSTIFY_CENTER:
+	      gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.5);
+	      break;
+	    case GTK_JUSTIFY_LEFT:
+	    default:
+	      gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.0);
+	      break;
+	    }
+	}
     }
 
   gtk_sheet_size_allocate_entry (sheet);
@@ -4539,11 +4539,6 @@ create_sheet_entry (GtkSheet *sheet)
   g_signal_connect_swapped (sheet->entry_widget, "key_press_event",
 			    G_CALLBACK (gtk_sheet_entry_key_press),
 			    sheet);
-
-  g_signal_connect (sheet->entry_widget,
-		      "changed",
-		      G_CALLBACK (gtk_sheet_entry_changed),
-		      sheet);
 
   set_entry_widget_font (sheet);
 

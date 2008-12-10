@@ -170,6 +170,8 @@ struct _GtkSheet
   /* Used for the subtitle (popups) */
   gint motion_timer;
   GtkSheetHoverTitle *hover_window;
+
+  gulong update_handler_id;
 };
 
 struct _GtkSheetClass
