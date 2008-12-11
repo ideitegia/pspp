@@ -91,6 +91,7 @@ static void set_entry_widget_font (GtkSheet *sheet);
 static void gtk_sheet_update_primary_selection (GtkSheet *sheet);
 static void draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint n);
 static void draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint n);
+static void redraw_range (GtkSheet *sheet, GtkSheetRange *range);
 
 
 static void set_row_height (GtkSheet *sheet,
@@ -669,15 +670,45 @@ enum
   };
 
 static void
+resize_column (GtkSheet *sheet, gint unit, glong size)
+{
+  GtkSheetRange range;
+  range.col0 = unit;
+  range.coli = max_visible_column (sheet);
+  range.row0 = min_visible_row (sheet);
+  range.rowi = max_visible_row (sheet);
+
+  redraw_range (sheet, &range);
+
+  draw_column_title_buttons_range (sheet, range.col0, range.coli);
+}
+
+
+static void
 gtk_sheet_set_horizontal_axis (GtkSheet *sheet, PsppireAxis *a)
 {
   if ( sheet->haxis )
     g_object_unref (sheet->haxis);
 
   sheet->haxis = a;
+  g_signal_connect_swapped (a, "resize-unit", G_CALLBACK (resize_column), sheet);
 
   if ( sheet->haxis )
     g_object_ref (sheet->haxis);
+}
+
+static void
+resize_row (GtkSheet *sheet, gint unit, glong size)
+{
+  GtkSheetRange range;
+  range.col0 = min_visible_column (sheet);
+  range.coli = max_visible_column (sheet);
+  range.row0 = unit;
+  range.rowi = max_visible_row (sheet);
+
+  redraw_range (sheet, &range);
+
+  draw_row_title_buttons_range (sheet, range.row0, range.rowi);
 }
 
 static void
@@ -687,6 +718,8 @@ gtk_sheet_set_vertical_axis (GtkSheet *sheet, PsppireAxis *a)
     g_object_unref (sheet->vaxis);
 
   sheet->vaxis = a;
+
+  g_signal_connect_swapped (a, "resize-unit", G_CALLBACK (resize_row), sheet);
 
   if ( sheet->vaxis )
     g_object_ref (sheet->vaxis);
