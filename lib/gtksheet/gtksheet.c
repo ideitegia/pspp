@@ -226,12 +226,20 @@ static gboolean
 on_column_boundary (const GtkSheet *sheet, gint x, gint *column)
 {
   gint col;
+  gint pixel;
 
   x += sheet->hadjustment->value;
 
+  if ( x < 0)
+    return FALSE;
+
   col = column_from_xpixel (sheet, x);
 
-  if ( column_from_xpixel (sheet, x - DRAG_WIDTH / 2) < col )
+  pixel = x - DRAG_WIDTH / 2;
+  if (pixel < 0)
+    pixel = 0;
+
+  if ( column_from_xpixel (sheet, pixel) < col )
     {
       *column = col - 1;
       return TRUE;
@@ -250,12 +258,20 @@ static gboolean
 on_row_boundary (const GtkSheet *sheet, gint y, gint *row)
 {
   gint r;
+  gint pixel;
 
   y += sheet->vadjustment->value;
 
+  if ( y < 0)
+    return FALSE;
+
   r = row_from_ypixel (sheet, y);
 
-  if ( row_from_ypixel (sheet, y - DRAG_WIDTH / 2) < r )
+  pixel = y - DRAG_WIDTH / 2;
+  if (pixel < 0)
+    pixel = 0;
+
+  if ( row_from_ypixel (sheet, pixel) < r )
     {
       *row = r - 1;
       return TRUE;
@@ -5095,6 +5111,9 @@ set_column_width (GtkSheet *sheet,
   if (column < 0 || column >= psppire_axis_unit_count (sheet->haxis))
     return;
 
+  if ( width <= 0)
+    return;
+
   psppire_axis_resize (sheet->haxis, column, width);
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
@@ -5115,6 +5134,9 @@ set_row_height (GtkSheet *sheet,
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
   if (row < 0 || row >= psppire_axis_unit_count (sheet->vaxis))
+    return;
+
+  if (height <= 0)
     return;
 
   psppire_axis_resize (sheet->vaxis, row, height);
