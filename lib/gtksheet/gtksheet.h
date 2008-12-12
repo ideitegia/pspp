@@ -178,7 +178,7 @@ struct _GtkSheetClass
 {
   GtkBinClass parent_class;
 
- void (*set_scroll_adjustments) (GtkSheet *sheet,
+ gboolean (*set_scroll_adjustments) (GtkSheet *sheet,
 				 GtkAdjustment *hadjustment,
 				 GtkAdjustment *vadjustment);
 
