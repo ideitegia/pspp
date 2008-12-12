@@ -422,7 +422,7 @@ static void gtk_sheet_forall 			 (GtkContainer *container,
 						  GtkCallback callback,
 						  gpointer callback_data);
 
-static void gtk_sheet_set_scroll_adjustments	 (GtkSheet *sheet,
+static gboolean gtk_sheet_set_scroll_adjustments  (GtkSheet *sheet,
 						  GtkAdjustment *hadjustment,
 						  GtkAdjustment *vadjustment);
 
@@ -1636,7 +1636,7 @@ gtk_sheet_get_visible_range (GtkSheet *sheet, GtkSheetRange *range)
 }
 
 
-static void
+static gboolean
 gtk_sheet_set_scroll_adjustments (GtkSheet *sheet,
 				  GtkAdjustment *hadjustment,
 				  GtkAdjustment *vadjustment)
@@ -1646,24 +1646,34 @@ gtk_sheet_set_scroll_adjustments (GtkSheet *sheet,
       if (sheet->vadjustment)
 	g_object_unref (sheet->vadjustment);
       sheet->vadjustment = vadjustment;
-      g_object_ref (vadjustment);
 
-      g_signal_connect (sheet->vadjustment, "value_changed",
-			G_CALLBACK (vadjustment_value_changed),
-			sheet);
+      if ( vadjustment)
+	{
+	  g_object_ref (vadjustment);
+
+	  g_signal_connect (sheet->vadjustment, "value_changed",
+			    G_CALLBACK (vadjustment_value_changed),
+			    sheet);
+	}
     }
 
   if ( sheet->hadjustment != hadjustment )
     {
       if (sheet->hadjustment)
 	g_object_unref (sheet->hadjustment);
-      sheet->hadjustment = hadjustment;
-      g_object_ref (hadjustment);
 
-      g_signal_connect (sheet->hadjustment, "value_changed",
-			G_CALLBACK (hadjustment_value_changed),
-			sheet);
+      sheet->hadjustment = hadjustment;
+
+      if ( hadjustment)
+	{
+	  g_object_ref (hadjustment);
+
+	  g_signal_connect (sheet->hadjustment, "value_changed",
+			    G_CALLBACK (hadjustment_value_changed),
+			    sheet);
+	}
     }
+  return TRUE;
 }
 
 static void
@@ -1768,8 +1778,6 @@ gtk_sheet_realize (GtkWidget *widget)
   g_return_if_fail (GTK_IS_SHEET (widget));
 
   sheet = GTK_SHEET (widget);
-
-  GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
 
   colormap = gtk_widget_get_colormap (widget);
   display = gtk_widget_get_display (widget);
@@ -1891,6 +1899,9 @@ gtk_sheet_realize (GtkWidget *widget)
   draw_column_title_buttons (sheet);
 
   gtk_sheet_update_primary_selection (sheet);
+
+
+  GTK_WIDGET_SET_FLAGS (widget, GTK_REALIZED);
 }
 
 static void
