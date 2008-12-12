@@ -662,7 +662,8 @@ psppire_data_store_set_string (PsppireDataStore *store,
 {
   glong n_cases;
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
-  g_return_val_if_fail (pv, FALSE);
+  if ( NULL == pv)
+    return FALSE;
 
   n_cases = psppire_data_store_get_case_count (store);
 

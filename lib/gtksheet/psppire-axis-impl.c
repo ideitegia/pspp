@@ -264,7 +264,8 @@ psppire_axis_impl_append_n (PsppireAxisImpl *a, gint n_units, gint size)
 {
   struct axis_node *node;
 
-  g_return_if_fail (n_units > 0);
+  if  (n_units == 0)
+    return;
 
   node = pool_malloc (a->pool, sizeof *node);
 
@@ -438,7 +439,7 @@ psppire_axis_impl_delete (PsppireAxisImpl *a, gint first, gint n_units)
   gint units_to_delete = n_units;
   unsigned long int start;
   struct tower_node *unit_node ;
-  g_return_if_fail (first + n_units < tower_height (&a->unit_tower));
+  g_return_if_fail (first + n_units <= tower_height (&a->unit_tower));
 
   split (a, first);
   split (a, first + n_units);
