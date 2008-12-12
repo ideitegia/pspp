@@ -1541,7 +1541,6 @@ gtk_sheet_select_row (GtkSheet *sheet, gint row)
   sheet->range.rowi = row;
   sheet->range.coli = psppire_axis_unit_count (sheet->haxis) - 1;
   sheet->active_cell.row = row;
-  sheet->active_cell.col = 0;
 
   g_signal_emit (sheet, sheet_signals[SELECT_ROW], 0, row);
   gtk_sheet_real_select_range (sheet, NULL);
@@ -1565,7 +1564,6 @@ gtk_sheet_select_column (GtkSheet *sheet, gint column)
   sheet->range.col0 = column;
   sheet->range.rowi = psppire_axis_unit_count (sheet->vaxis) - 1;
   sheet->range.coli = column;
-  sheet->active_cell.row = 0;
   sheet->active_cell.col = column;
 
   g_signal_emit (sheet, sheet_signals[SELECT_COLUMN], 0, column);
@@ -2517,9 +2515,6 @@ gtk_sheet_set_active_cell (GtkSheet *sheet, gint row, gint col)
       ||
       col >= psppire_axis_unit_count (sheet->haxis))
     return;
-
-  sheet->active_cell.row = row;
-  sheet->active_cell.col = col;
 
   if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     return;
