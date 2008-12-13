@@ -4672,6 +4672,8 @@ draw_button (GtkSheet *sheet, GdkWindow *window,
 			 allocation.x, allocation.y,
 			 allocation.width, allocation.height);
 
+  gtk_widget_ensure_style (sheet->button);
+
   gtk_paint_box (sheet->button->style, window,
 		 GTK_STATE_NORMAL, GTK_SHADOW_OUT,
 		 &allocation, GTK_WIDGET (sheet->button),
