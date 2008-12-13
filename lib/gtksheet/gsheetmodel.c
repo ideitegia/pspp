@@ -464,6 +464,7 @@ g_sheet_model_get_column_subtitle (const GSheetModel *model,
 				   gint col)
 {
   g_return_val_if_fail (G_IS_SHEET_MODEL (model), NULL);
+  g_return_val_if_fail (col >= 0, NULL);
 
   if ( NULL == G_SHEET_MODEL_GET_IFACE (model)->get_column_subtitle)
     return NULL;
