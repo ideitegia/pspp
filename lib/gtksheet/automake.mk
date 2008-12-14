@@ -11,8 +11,8 @@ nodist_lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/psppire-marshal.h
 
 lib_gtksheet_libgtksheet_a_SOURCES = \
-	lib/gtksheet/gsheetmodel.c \
-	lib/gtksheet/gsheetmodel.h \
+	lib/gtksheet/psppire-sheetmodel.c \
+	lib/gtksheet/psppire-gsheetmodel.h \
 	lib/gtksheet/gtkextra-sheet.h \
 	lib/gtksheet/gtksheet.c \
 	lib/gtksheet/gtksheet.h \

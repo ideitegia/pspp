@@ -25,7 +25,7 @@
 
 #include <gobject/gvaluecollector.h>
 
-#include <gtksheet/gsheetmodel.h>
+#include <gtksheet/psppire-sheetmodel.h>
 
 #include "psppire-var-store.h"
 #include "helper.h"
@@ -49,23 +49,23 @@ enum
 
 static void         psppire_var_store_init            (PsppireVarStore      *var_store);
 static void         psppire_var_store_class_init      (PsppireVarStoreClass *class);
-static void         psppire_var_store_sheet_model_init (GSheetModelIface *iface);
+static void         psppire_var_store_sheet_model_init (PsppireSheetModelIface *iface);
 static void         psppire_var_store_finalize        (GObject           *object);
 
 
 gchar * missing_values_to_string (const struct variable *pv, GError **err);
 
 
-static gchar *psppire_var_store_get_string (const GSheetModel *sheet_model, glong row, glong column);
+static gchar *psppire_var_store_get_string (const PsppireSheetModel *sheet_model, glong row, glong column);
 
-static gboolean  psppire_var_store_clear (GSheetModel *model,  glong row, glong col);
+static gboolean  psppire_var_store_clear (PsppireSheetModel *model,  glong row, glong col);
 
 
-static gboolean psppire_var_store_set_string (GSheetModel *model,
+static gboolean psppire_var_store_set_string (PsppireSheetModel *model,
 					  const gchar *text, glong row, glong column);
 
-static glong psppire_var_store_get_row_count (const GSheetModel * model);
-static glong psppire_var_store_get_column_count (const GSheetModel * model);
+static glong psppire_var_store_get_row_count (const PsppireSheetModel * model);
+static glong psppire_var_store_get_column_count (const PsppireSheetModel * model);
 
 static gchar *text_for_column (const struct variable *pv, gint c, GError **err);
 
@@ -126,7 +126,7 @@ psppire_var_store_get_type (void)
       var_store_type = g_type_register_static (G_TYPE_OBJECT, "PsppireVarStore", &var_store_info, 0);
 
       g_type_add_interface_static (var_store_type,
-				   G_TYPE_SHEET_MODEL,
+				   PSPPIRE_TYPE_SHEET_MODEL,
 				   &sheet_model_info);
     }
 
@@ -260,7 +260,7 @@ psppire_var_store_get_var (PsppireVarStore *store, glong row)
 }
 
 static gboolean
-psppire_var_store_is_editable (const GSheetModel *model, glong row, glong column)
+psppire_var_store_is_editable (const PsppireSheetModel *model, glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
   return psppire_var_store_item_editable (store, row, column);
@@ -268,7 +268,7 @@ psppire_var_store_is_editable (const GSheetModel *model, glong row, glong column
 
 
 static GdkColor *
-psppire_var_store_get_foreground (const GSheetModel *model, glong row, glong column)
+psppire_var_store_get_foreground (const PsppireSheetModel *model, glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
@@ -279,12 +279,12 @@ psppire_var_store_get_foreground (const GSheetModel *model, glong row, glong col
 }
 
 
-static gchar *get_column_title (const GSheetModel *model, gint col);
-static gchar *get_row_title (const GSheetModel *model, gint row);
-static gboolean get_row_sensitivity (const GSheetModel *model, gint row);
+static gchar *get_column_title (const PsppireSheetModel *model, gint col);
+static gchar *get_row_title (const PsppireSheetModel *model, gint row);
+static gboolean get_row_sensitivity (const PsppireSheetModel *model, gint row);
 
 static void
-psppire_var_store_sheet_model_init (GSheetModelIface *iface)
+psppire_var_store_sheet_model_init (PsppireSheetModelIface *iface)
 {
   iface->get_row_count = psppire_var_store_get_row_count;
   iface->get_column_count = psppire_var_store_get_column_count;
@@ -325,9 +325,9 @@ psppire_var_store_new (PsppireDict *dict)
 static void
 var_change_callback (GtkWidget *w, gint n, gpointer data)
 {
-  GSheetModel *model = G_SHEET_MODEL (data);
+  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
 
-  g_sheet_model_range_changed (model,
+  psppire_sheet_model_range_changed (model,
 				 n, 0, n, PSPPIRE_VAR_STORE_n_COLS);
 }
 
@@ -335,9 +335,9 @@ var_change_callback (GtkWidget *w, gint n, gpointer data)
 static void
 var_delete_callback (GtkWidget *w, gint dict_idx, gint case_idx, gint val_cnt, gpointer data)
 {
-  GSheetModel *model = G_SHEET_MODEL (data);
+  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
 
-  g_sheet_model_rows_deleted (model, dict_idx, 1);
+  psppire_sheet_model_rows_deleted (model, dict_idx, 1);
 }
 
 
@@ -345,9 +345,9 @@ var_delete_callback (GtkWidget *w, gint dict_idx, gint case_idx, gint val_cnt, g
 static void
 var_insert_callback (GtkWidget *w, glong row, gpointer data)
 {
-  GSheetModel *model = G_SHEET_MODEL (data);
+  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
 
-  g_sheet_model_rows_inserted (model, row, 1);
+  psppire_sheet_model_rows_inserted (model, row, 1);
 }
 
 static void
@@ -355,7 +355,7 @@ refresh (PsppireDict  *d, gpointer data)
 {
   PsppireVarStore *vs = data;
 
-  g_sheet_model_range_changed (G_SHEET_MODEL (vs), -1, -1, -1, -1);
+  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (vs), -1, -1, -1, -1);
 }
 
 /**
@@ -386,7 +386,7 @@ psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict)
 		    var_store);
 
   /* The entire model has changed */
-  g_sheet_model_range_changed (G_SHEET_MODEL (var_store), -1, -1, -1, -1);
+  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (var_store), -1, -1, -1, -1);
 }
 
 static void
@@ -397,7 +397,7 @@ psppire_var_store_finalize (GObject *object)
 }
 
 static gchar *
-psppire_var_store_get_string (const GSheetModel *model, glong row, glong column)
+psppire_var_store_get_string (const PsppireSheetModel *model, glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
@@ -417,7 +417,7 @@ psppire_var_store_get_string (const GSheetModel *model, glong row, glong column)
    Returns true if anything was updated, false otherwise.
 */
 static gboolean
-psppire_var_store_clear (GSheetModel *model,  glong row, glong col)
+psppire_var_store_clear (PsppireSheetModel *model,  glong row, glong col)
 {
   struct variable *pv ;
 
@@ -447,7 +447,7 @@ psppire_var_store_clear (GSheetModel *model,  glong row, glong col)
    Returns true if anything was updated, false otherwise.
 */
 static gboolean
-psppire_var_store_set_string (GSheetModel *model,
+psppire_var_store_set_string (PsppireSheetModel *model,
 			  const gchar *text, glong row, glong col)
 {
   struct variable *pv ;
@@ -716,7 +716,7 @@ psppire_var_store_get_var_cnt (PsppireVarStore  *store)
 
 
 static glong
-psppire_var_store_get_row_count (const GSheetModel * model)
+psppire_var_store_get_row_count (const PsppireSheetModel * model)
 {
   gint rows = 0;
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (model);
@@ -728,7 +728,7 @@ psppire_var_store_get_row_count (const GSheetModel * model)
 }
 
 static glong
-psppire_var_store_get_column_count (const GSheetModel * model)
+psppire_var_store_get_column_count (const PsppireSheetModel * model)
 {
   return PSPPIRE_VAR_STORE_n_COLS ;
 }
@@ -739,7 +739,7 @@ psppire_var_store_get_column_count (const GSheetModel * model)
 
 
 static gboolean
-get_row_sensitivity (const GSheetModel *model, gint row)
+get_row_sensitivity (const PsppireSheetModel *model, gint row)
 {
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (model);
 
@@ -751,7 +751,7 @@ get_row_sensitivity (const GSheetModel *model, gint row)
 
 
 static gchar *
-get_row_title (const GSheetModel *model, gint unit)
+get_row_title (const PsppireSheetModel *model, gint unit)
 {
   return g_strdup_printf (_("%d"), unit + 1);
 }
@@ -774,7 +774,7 @@ static const gchar *column_titles[] = {
 
 
 static gchar *
-get_column_title (const GSheetModel *model, gint col)
+get_column_title (const PsppireSheetModel *model, gint col)
 {
   if ( col >= 10)
     return NULL;

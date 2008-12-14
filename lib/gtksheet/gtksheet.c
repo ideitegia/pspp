@@ -54,7 +54,7 @@
 #include <pango/pango.h>
 #include "gtksheet.h"
 #include <gtksheet/psppire-marshal.h>
-#include "gsheetmodel.h"
+#include "psppire-sheetmodel.h"
 #include <libpspp/misc.h>
 #include <math.h>
 
@@ -107,12 +107,12 @@ static GtkStateType gtk_sheet_cell_get_state (GtkSheet *sheet, gint row, gint co
 static inline  void
 dispose_string (const GtkSheet *sheet, gchar *text)
 {
-  GSheetModel *model = gtk_sheet_get_model (sheet);
+  PsppireSheetModel *model = gtk_sheet_get_model (sheet);
 
   if ( ! model )
     return;
 
-  if (g_sheet_model_free_strings (model))
+  if (psppire_sheet_model_free_strings (model))
     g_free (text);
 }
 
@@ -1173,14 +1173,14 @@ redraw_range (GtkSheet *sheet, GtkSheetRange *range)
 
 /* Callback which occurs whenever columns are inserted / deleted in the model */
 static void
-columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
+columns_inserted_deleted_callback (PsppireSheetModel *model, gint first_column,
 				   gint n_columns,
 				   gpointer data)
 {
   GtkSheet *sheet = GTK_SHEET (data);
 
   GtkSheetRange range;
-  gint model_columns = g_sheet_model_get_column_count (model);
+  gint model_columns = psppire_sheet_model_get_column_count (model);
 
 
   /* Need to update all the columns starting from the first column and onwards.
@@ -1208,14 +1208,14 @@ columns_inserted_deleted_callback (GSheetModel *model, gint first_column,
 
 /* Callback which occurs whenever rows are inserted / deleted in the model */
 static void
-rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
+rows_inserted_deleted_callback (PsppireSheetModel *model, gint first_row,
 				gint n_rows, gpointer data)
 {
   GtkSheet *sheet = GTK_SHEET (data);
 
   GtkSheetRange range;
 
-  gint model_rows = g_sheet_model_get_row_count (model);
+  gint model_rows = psppire_sheet_model_get_row_count (model);
 
   /* Need to update all the rows starting from the first row and onwards.
    * Previous rows are unchanged, so don't need to be updated.
@@ -1240,7 +1240,7 @@ rows_inserted_deleted_callback (GSheetModel *model, gint first_row,
   If col0 or coli are negative, then all columns will be updated.
 */
 static void
-range_update_callback (GSheetModel *m, gint row0, gint col0,
+range_update_callback (PsppireSheetModel *m, gint row0, gint col0,
 		       gint rowi, gint coli, gpointer data)
 {
   GtkSheet *sheet = GTK_SHEET (data);
@@ -1295,7 +1295,7 @@ range_update_callback (GSheetModel *m, gint row0, gint col0,
  * Returns: the new sheet widget
  */
 GtkWidget *
-gtk_sheet_new (GSheetModel *model)
+gtk_sheet_new (PsppireSheetModel *model)
 {
   GtkWidget *widget = g_object_new (GTK_TYPE_SHEET,
 				    "model", model,
@@ -1313,7 +1313,7 @@ gtk_sheet_new (GSheetModel *model)
  *
  */
 void
-gtk_sheet_set_model (GtkSheet *sheet, GSheetModel *model)
+gtk_sheet_set_model (GtkSheet *sheet, PsppireSheetModel *model)
 {
   g_return_if_fail (GTK_IS_SHEET (sheet));
 
@@ -2321,7 +2321,7 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
 		    GtkJustification justification,
 		    const gchar *text)
 {
-  GSheetModel *model ;
+  PsppireSheetModel *model ;
   gchar *old_text ;
 
   g_return_if_fail (sheet != NULL);
@@ -2335,16 +2335,16 @@ gtk_sheet_set_cell (GtkSheet *sheet, gint row, gint col,
 
   model = gtk_sheet_get_model (sheet);
 
-  old_text = g_sheet_model_get_string (model, row, col);
+  old_text = psppire_sheet_model_get_string (model, row, col);
 
   if (0 != safe_strcmp (old_text, text))
     {
       g_signal_handler_block    (sheet->model, sheet->update_handler_id);
-      g_sheet_model_set_string (model, text, row, col);
+      psppire_sheet_model_set_string (model, text, row, col);
       g_signal_handler_unblock  (sheet->model, sheet->update_handler_id);
     }
 
-  if ( g_sheet_model_free_strings (model))
+  if ( psppire_sheet_model_free_strings (model))
     g_free (old_text);
 }
 
@@ -2374,13 +2374,13 @@ gtk_sheet_cell_clear (GtkSheet *sheet, gint row, gint column)
 static void
 gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column)
 {
-  GSheetModel *model = gtk_sheet_get_model (sheet);
+  PsppireSheetModel *model = gtk_sheet_get_model (sheet);
 
   gchar *old_text = gtk_sheet_cell_get_text (sheet, row, column);
 
   if (old_text && strlen (old_text) > 0 )
     {
-      g_sheet_model_datum_clear (model, row, column);
+      psppire_sheet_model_datum_clear (model, row, column);
     }
 
   dispose_string (sheet, old_text);
@@ -2389,7 +2389,7 @@ gtk_sheet_real_cell_clear (GtkSheet *sheet, gint row, gint column)
 gchar *
 gtk_sheet_cell_get_text (const GtkSheet *sheet, gint row, gint col)
 {
-  GSheetModel *model;
+  PsppireSheetModel *model;
   g_return_val_if_fail (sheet != NULL, NULL);
   g_return_val_if_fail (GTK_IS_SHEET (sheet), NULL);
 
@@ -2402,7 +2402,7 @@ gtk_sheet_cell_get_text (const GtkSheet *sheet, gint row, gint col)
   if ( !model )
     return NULL;
 
-  return g_sheet_model_get_string (model, row, col);
+  return psppire_sheet_model_get_string (model, row, col);
 }
 
 
@@ -2719,7 +2719,7 @@ gtk_sheet_show_entry_widget (GtkSheet *sheet)
   gtk_sheet_size_allocate_entry (sheet);
 
   gtk_widget_set_sensitive (GTK_WIDGET (sheet_entry),
-			    g_sheet_model_is_editable (sheet->model,
+			    psppire_sheet_model_is_editable (sheet->model,
 						       row, col));
   gtk_widget_map (sheet->entry_widget);
 }
@@ -3220,7 +3220,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 		     sheet_signals[BUTTON_EVENT_COLUMN], 0,
 		     column, event);
 
-      if (g_sheet_model_get_column_sensitivity (sheet->model, column))
+      if (psppire_sheet_model_get_column_sensitivity (sheet->model, column))
 	{
 	  if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
 	    g_signal_emit (sheet,
@@ -3233,7 +3233,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 		     sheet_signals[BUTTON_EVENT_ROW], 0,
 		     row, event);
 
-      if (g_sheet_model_get_row_sensitivity (sheet->model, row))
+      if (psppire_sheet_model_get_row_sensitivity (sheet->model, row))
 	{
 	  if ( event->type == GDK_2BUTTON_PRESS && event->button == 1)
 	    g_signal_emit (sheet,
@@ -3369,7 +3369,7 @@ gtk_sheet_button_press (GtkWidget *widget,
 
       column = column_from_xpixel (sheet, x);
 
-      if (g_sheet_model_get_column_sensitivity (sheet->model, column))
+      if (psppire_sheet_model_get_column_sensitivity (sheet->model, column))
 	{
 	  veto = gtk_sheet_click_cell (sheet, -1, column);
 	  gtk_grab_add (GTK_WIDGET (sheet));
@@ -3386,7 +3386,7 @@ gtk_sheet_button_press (GtkWidget *widget,
       y += sheet->vadjustment->value;
 
       row = row_from_ypixel (sheet, y);
-      if (g_sheet_model_get_row_sensitivity (sheet->model, row))
+      if (psppire_sheet_model_get_row_sensitivity (sheet->model, row))
 	{
 	  veto = gtk_sheet_click_cell (sheet, row, -1);
 	  gtk_grab_add (GTK_WIDGET (sheet));
@@ -3723,7 +3723,7 @@ motion_timeout_callback (gpointer data)
     {
       if (sheet->row_title_under && row >= 0)
 	{
-	  gchar *text = g_sheet_model_get_row_subtitle (sheet->model, row);
+	  gchar *text = psppire_sheet_model_get_row_subtitle (sheet->model, row);
 
 	  show_subtitle (sheet, row, -1, text);
 	  g_free (text);
@@ -3731,7 +3731,7 @@ motion_timeout_callback (gpointer data)
 
       if (sheet->column_title_under && column >= 0)
 	{
-	  gchar *text = g_sheet_model_get_column_subtitle (sheet->model,
+	  gchar *text = psppire_sheet_model_get_column_subtitle (sheet->model,
 							   column);
 
 	  show_subtitle (sheet, -1, column, text);
@@ -4793,7 +4793,7 @@ draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint last)
       gboolean is_sensitive = FALSE;
 
       GtkSheetButton *
-	button = g_sheet_model_get_column_button (sheet->model, col);
+	button = psppire_sheet_model_get_column_button (sheet->model, col);
       allocation.y = 0;
       allocation.x = psppire_axis_start_pixel (sheet->haxis, col)
 	+ CELL_SPACING;
@@ -4801,7 +4801,7 @@ draw_column_title_buttons_range (GtkSheet *sheet, gint first, gint last)
 
       allocation.height = sheet->column_title_area.height;
       allocation.width = psppire_axis_unit_size (sheet->haxis, col);
-      is_sensitive = g_sheet_model_get_column_sensitivity (sheet->model, col);
+      is_sensitive = psppire_sheet_model_get_column_sensitivity (sheet->model, col);
 
       draw_button (sheet, sheet->column_title_window,
 		   button, is_sensitive, allocation);
@@ -4842,7 +4842,7 @@ draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint last)
       gboolean is_sensitive = FALSE;
 
       GtkSheetButton *button =
-	g_sheet_model_get_row_button (sheet->model, row);
+	psppire_sheet_model_get_row_button (sheet->model, row);
       allocation.x = 0;
       allocation.y = psppire_axis_start_pixel (sheet->vaxis, row)
 	+ CELL_SPACING;
@@ -4850,7 +4850,7 @@ draw_row_title_buttons_range (GtkSheet *sheet, gint first, gint last)
 
       allocation.width = sheet->row_title_area.width;
       allocation.height = psppire_axis_unit_size (sheet->vaxis, row);
-      is_sensitive = g_sheet_model_get_row_sensitivity (sheet->model, row);
+      is_sensitive = psppire_sheet_model_get_row_sensitivity (sheet->model, row);
 
       draw_button (sheet, sheet->row_title_window,
 		   button, is_sensitive, allocation);
@@ -5201,17 +5201,17 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
   attr->border.mask = 0;
   attr->border.color = GTK_WIDGET (sheet)->style->black;
 
-  attr->is_editable = g_sheet_model_is_editable (sheet->model, row, col);
+  attr->is_editable = psppire_sheet_model_is_editable (sheet->model, row, col);
 
   colormap = gtk_widget_get_colormap (GTK_WIDGET (sheet));
-  fg = g_sheet_model_get_foreground (sheet->model, row, col);
+  fg = psppire_sheet_model_get_foreground (sheet->model, row, col);
   if ( fg )
     {
       gdk_colormap_alloc_color (colormap, fg, TRUE, TRUE);
       attr->foreground = *fg;
     }
 
-  bg = g_sheet_model_get_background (sheet->model, row, col);
+  bg = psppire_sheet_model_get_background (sheet->model, row, col);
   if ( bg )
     {
       gdk_colormap_alloc_color (colormap, bg, TRUE, TRUE);
@@ -5219,9 +5219,9 @@ gtk_sheet_get_attributes (const GtkSheet *sheet, gint row, gint col,
     }
 
   attr->justification =
-    g_sheet_model_get_column_justification (sheet->model, col);
+    psppire_sheet_model_get_column_justification (sheet->model, col);
 
-  j = g_sheet_model_get_justification (sheet->model, row, col);
+  j = psppire_sheet_model_get_justification (sheet->model, row, col);
   if (j)
     attr->justification = *j;
 
@@ -5267,7 +5267,7 @@ gtk_sheet_forall (GtkContainer *container,
 }
 
 
-GSheetModel *
+PsppireSheetModel *
 gtk_sheet_get_model (const GtkSheet *sheet)
 {
   g_return_val_if_fail (GTK_IS_SHEET (sheet), NULL);

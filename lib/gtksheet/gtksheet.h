@@ -29,7 +29,7 @@
 #include <gtk/gtk.h>
 
 #include "gtkextra-sheet.h"
-#include "gsheetmodel.h"
+#include "psppire-sheetmodel.h"
 #include "psppire-axis.h"
 
 G_BEGIN_DECLS
@@ -92,7 +92,7 @@ struct _GtkSheet
 
   guint16 flags;
 
-  GSheetModel *model;
+  PsppireSheetModel *model;
 
   GtkSelectionMode selection_mode;
 
@@ -212,7 +212,7 @@ GtkType gtk_sheet_range_get_type (void);
 
 
 /* create a new sheet */
-GtkWidget * gtk_sheet_new (GSheetModel *model);
+GtkWidget * gtk_sheet_new (PsppireSheetModel *model);
 
 /* create a new sheet with custom entry */
 GtkWidget *
@@ -288,9 +288,9 @@ gboolean gtk_sheet_get_attributes       (const GtkSheet *sheet,
 					GtkSheetCellAttr *attributes);
 
 void gtk_sheet_set_model (GtkSheet *sheet,
-				   GSheetModel *model);
+				   PsppireSheetModel *model);
 
-GSheetModel * gtk_sheet_get_model (const GtkSheet *sheet);
+PsppireSheetModel * gtk_sheet_get_model (const GtkSheet *sheet);
 
 
 G_END_DECLS
