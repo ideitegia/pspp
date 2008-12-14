@@ -10,7 +10,6 @@ src_ui_gui_psppire_LDFLAGS = \
 	$(PG_LDFLAGS)
 
 
-
 if RELOCATABLE_VIA_LD
 src_ui_gui_psppire_LDFLAGS += `$(RELOCATABLE_LDFLAGS) $(bindir)`
 else
@@ -200,6 +199,13 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/window-manager.c \
 	src/ui/gui/window-manager.h
 
+nodist_src_ui_gui_psppire_SOURCES = \
+	src/ui/gui/psppire-marshal.c \
+	src/ui/gui/psppire-marshal.h
+
+
+
+
 yelp-check:
 	@if ! yelp --version > /dev/null 2>&1 ; then \
 		echo    ; \
@@ -211,4 +217,16 @@ yelp-check:
 	fi
 PHONY += yelp-check
 
-EXTRA_DIST += src/ui/gui/OChangeLog
+AM_CPPFLAGS += -Isrc
+
+src/ui/gui/psppire-marshal.c: src/ui/gui/marshaller-list
+	glib-genmarshal --body --prefix=psppire_marshal $< > $@
+
+src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
+	glib-genmarshal --header --prefix=psppire_marshal $< > $@
+
+EXTRA_DIST += src/ui/gui/OChangeLog\
+	src/ui/gui/marshaller-list
+
+BUILT_SOURCES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h
+CLEANFILES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h

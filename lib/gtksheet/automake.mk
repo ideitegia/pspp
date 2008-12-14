@@ -2,17 +2,11 @@
 
 noinst_LIBRARIES += lib/gtksheet/libgtksheet.a
 
-AM_CPPFLAGS += -Ilib
-
 lib_gtksheet_libgtksheet_a_CFLAGS = $(GTK_CFLAGS) -Wall -DGDK_MULTIHEAD_SAFE=1
-
-nodist_lib_gtksheet_libgtksheet_a_SOURCES = \
-	lib/gtksheet/psppire-marshal.c \
-	lib/gtksheet/psppire-marshal.h
 
 lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/psppire-sheetmodel.c \
-	lib/gtksheet/psppire-gsheetmodel.h \
+	lib/gtksheet/psppire-sheetmodel.h \
 	lib/gtksheet/gtkextra-sheet.h \
 	lib/gtksheet/psppire-sheet.c \
 	lib/gtksheet/psppire-sheet.h \
@@ -25,14 +19,5 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 
 
 EXTRA_DIST += lib/gtksheet/OChangeLog \
-	lib/gtksheet/marshaller-list \
 	lib/gtksheet/README
 
-lib/gtksheet/psppire-marshal.c: lib/gtksheet/marshaller-list
-	glib-genmarshal --body --prefix=psppire_marshal $< > $@
-
-lib/gtksheet/psppire-marshal.h: lib/gtksheet/marshaller-list
-	glib-genmarshal --header --prefix=psppire_marshal $< > $@
-
-BUILT_SOURCES += $(nodist_lib_gtksheet_libgtksheet_a_SOURCES)
-CLEANFILES += $(nodist_lib_gtksheet_libgtksheet_a_SOURCES)

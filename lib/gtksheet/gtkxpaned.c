@@ -30,7 +30,7 @@
 *******************************************************************************/
 
 #include "gtkxpaned.h"
-#include <gtksheet/psppire-marshal.h>
+#include <ui/gui/psppire-marshal.h>
 #include <gtk/gtkbindings.h>
 #include <gtk/gtksignal.h>
 #include <gdk/gdkkeysyms.h>

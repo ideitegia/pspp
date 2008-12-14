@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 #include <gtk/gtk.h>
-#include <gtksheet/psppire-marshal.h>
+#include <ui/gui/psppire-marshal.h>
 
 #include "psppire-dict.h"
 #include <data/dictionary.h>
