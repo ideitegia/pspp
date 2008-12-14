@@ -14,8 +14,8 @@ lib_gtksheet_libgtksheet_a_SOURCES = \
 	lib/gtksheet/psppire-sheetmodel.c \
 	lib/gtksheet/psppire-gsheetmodel.h \
 	lib/gtksheet/gtkextra-sheet.h \
-	lib/gtksheet/gtksheet.c \
-	lib/gtksheet/gtksheet.h \
+	lib/gtksheet/psppire-sheet.c \
+	lib/gtksheet/psppire-sheet.h \
 	lib/gtksheet/gtkxpaned.c \
 	lib/gtksheet/gtkxpaned.h \
 	lib/gtksheet/psppire-axis.c \

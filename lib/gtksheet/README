@@ -1,11 +1,10 @@
 This is not part of the GNU PSPP program, but is used with GNU PSPP.
 
-This directory contains a version of the GtkSheet widget from the gtk-extra 
-project at http://gtkextra.sourceforge.net  The version found here has 
-major modifications developed for the needs of PSPP.  Every effort has been
-made to keep GtkSheet application independent. Thus, it should be possible
-to use this modified software for other applications.  However, the API is
-substantially different from the original.
+This directory contains a version of the GtkXPaned widget.  It includes
+minor modifications. GtkXPaned is licensed under the GNU Lesser
+General Public License.  See COPYING.LESSER. 
 
-Files in this directory ONLY are licensed under the GNU Lesser General Public 
-License.  See COPYING.LGPL
+
+This directory also contains the PsppireSheet widget which is a very
+heavily modified version of GtkSheet widget.  This modified version if
+licensed under the GNU General Public License version 3 or later.

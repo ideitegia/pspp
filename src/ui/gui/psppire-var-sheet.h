@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtksheet/gtksheet.h>
+#include <gtksheet/psppire-sheet.h>
 #include "val-labs-dialog.h"
 #include "missing-val-dialog.h"
 #include "var-type-dialog.h"
@@ -40,7 +40,7 @@ typedef struct _PsppireVarSheetClass  PsppireVarSheetClass;
 
 struct _PsppireVarSheet
 {
-  GtkSheet parent;
+  PsppireSheet parent;
 
   gboolean dispose_has_run;
   gboolean may_create_vars;
@@ -53,7 +53,7 @@ struct _PsppireVarSheet
 
 struct _PsppireVarSheetClass
 {
-  GtkSheetClass parent_class;
+  PsppireSheetClass parent_class;
 
   GtkListStore *alignment_list;
   GtkListStore *measure_list;

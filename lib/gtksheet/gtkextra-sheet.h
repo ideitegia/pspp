@@ -23,16 +23,16 @@
  */
 
 
-#ifndef GTK_EXTRA_SHEET_H__
-#define GTK_EXTRA_SHEET_H__
+#ifndef PSPPIRE_EXTRA_SHEET_H__
+#define PSPPIRE_EXTRA_SHEET_H__
 
 
-struct _GtkSheet ;
+struct _PsppireSheet ;
 
-typedef struct _GtkSheet GtkSheet;
+typedef struct _PsppireSheet PsppireSheet;
 
 
-struct _GtkSheetButton
+struct _PsppireSheetButton
 {
   GtkStateType state;
   gchar *label;
@@ -42,20 +42,20 @@ struct _GtkSheetButton
   GtkJustification justification;
 };
 
-struct _GtkSheetCell
+struct _PsppireSheetCell
 {
   gint row;
   gint col;
 };
 
-typedef struct _GtkSheetButton GtkSheetButton;
-typedef struct _GtkSheetCell GtkSheetCell;
+typedef struct _PsppireSheetButton PsppireSheetButton;
+typedef struct _PsppireSheetCell PsppireSheetCell;
 
-GtkSheetButton * gtk_sheet_button_new (void);
+PsppireSheetButton * psppire_sheet_button_new (void);
 
-void gtk_sheet_button_free (GtkSheetButton *button);
+void psppire_sheet_button_free (PsppireSheetButton *button);
 
 
-#endif /* GTK_EXTRA_SHEET_H__ */
+#endif /* PSPPIRE_EXTRA_SHEET_H__ */
 
 

@@ -58,7 +58,7 @@ psppire_var_sheet_get_type (void)
 	(GInstanceInitFunc) psppire_var_sheet_init,
       };
 
-      vs_type = g_type_register_static (GTK_TYPE_SHEET, "PsppireVarSheet",
+      vs_type = g_type_register_static (PSPPIRE_TYPE_SHEET, "PsppireVarSheet",
 					&vs_info, 0);
     }
 
@@ -240,12 +240,12 @@ change_measure (GtkComboBox *cb,
 /* Moves the focus to a new cell.
    Returns TRUE iff the move should be disallowed */
 static gboolean
-traverse_cell_callback (GtkSheet *sheet,
-			const GtkSheetCell *existing_cell,
-			GtkSheetCell *new_cell)
+traverse_cell_callback (PsppireSheet *sheet,
+			const PsppireSheetCell *existing_cell,
+			PsppireSheetCell *new_cell)
 {
   PsppireVarSheet *var_sheet = PSPPIRE_VAR_SHEET (sheet);
-  PsppireVarStore *var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
+  PsppireVarStore *var_store = PSPPIRE_VAR_STORE (psppire_sheet_get_model (sheet));
 
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
 
@@ -254,7 +254,7 @@ traverse_cell_callback (GtkSheet *sheet,
 
   if ( existing_cell->row == n_vars && new_cell->row >= n_vars)
     {
-      GtkEntry *entry = gtk_sheet_get_entry (sheet);
+      GtkEntry *entry = psppire_sheet_get_entry (sheet);
 
       const gchar *name = gtk_entry_get_text (entry);
 
@@ -294,24 +294,24 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 			      gint oldrow, gint oldcolumn,
 			      gpointer data)
 {
-  GtkSheetCellAttr attributes;
+  PsppireSheetCellAttr attributes;
   PsppireVarStore *var_store;
   PsppireVarSheetClass *vs_class =
     PSPPIRE_VAR_SHEET_CLASS(G_OBJECT_GET_CLASS (vs));
 
   struct variable *var ;
-  GtkSheet *sheet = GTK_SHEET (vs);
+  PsppireSheet *sheet = PSPPIRE_SHEET (vs);
 
   g_return_if_fail (sheet != NULL);
 
-  var_store = PSPPIRE_VAR_STORE (gtk_sheet_get_model (sheet));
+  var_store = PSPPIRE_VAR_STORE (psppire_sheet_get_model (sheet));
 
   g_assert (var_store);
 
   g_return_if_fail (oldcolumn == PSPPIRE_VAR_STORE_COL_NAME ||
 		    row < psppire_var_store_get_var_cnt (var_store));
 
-  gtk_sheet_get_attributes (sheet, row, column, &attributes);
+  psppire_sheet_get_attributes (sheet, row, column, &attributes);
 
   var = psppire_var_store_get_var (var_store, row);
 
@@ -322,8 +322,8 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	GtkEntry *entry;
 	static GtkListStore *list_store = NULL;
 	GtkComboBoxEntry *cbe;
-	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
-	entry = gtk_sheet_get_entry (sheet);
+	psppire_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
+	entry = psppire_sheet_get_entry (sheet);
 	cbe = GTK_COMBO_BOX_ENTRY (GTK_WIDGET (entry)->parent);
 
 	if ( ! list_store) list_store = create_label_list (alignments);
@@ -342,8 +342,8 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
       {
 	GtkEntry *entry;
 	GtkComboBoxEntry *cbe;
-	gtk_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
-	entry = gtk_sheet_get_entry (sheet);
+	psppire_sheet_change_entry (sheet, GTK_TYPE_COMBO_BOX_ENTRY);
+	entry = psppire_sheet_get_entry (sheet);
 	cbe = GTK_COMBO_BOX_ENTRY (GTK_WIDGET (entry)->parent);
 
 	gtk_combo_box_set_model (GTK_COMBO_BOX (cbe),
@@ -360,10 +360,10 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
       {
 	PsppireCustomEntry *customEntry;
 
-	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
+	psppire_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
+	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
 
 	if ( var_is_long_string (var))
 	  g_object_set (customEntry,
@@ -383,10 +383,10 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
       {
 	PsppireCustomEntry *customEntry;
 
-	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
+	psppire_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
+	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
 
 	if ( var_is_long_string (var))
 	  g_object_set (customEntry,
@@ -408,10 +408,10 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
       {
 	PsppireCustomEntry *customEntry;
 
-	gtk_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
+	psppire_sheet_change_entry (sheet, PSPPIRE_CUSTOM_ENTRY_TYPE);
 
 	customEntry =
-	  PSPPIRE_CUSTOM_ENTRY (gtk_sheet_get_entry (sheet));
+	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
 
 
 	/* Popup the Variable Type dialog box */
@@ -432,7 +432,7 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	  {
 	    gint r_min, r_max;
 
-	    const gchar *s = gtk_sheet_cell_get_text (sheet, row, column);
+	    const gchar *s = psppire_sheet_cell_get_text (sheet, row, column);
 
 	    if (s)
 	      {
@@ -464,10 +464,10 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 					 1.0, 1.0, 1.0 /* steps */
 					 );
 
-		gtk_sheet_change_entry (sheet, GTK_TYPE_SPIN_BUTTON);
+		psppire_sheet_change_entry (sheet, GTK_TYPE_SPIN_BUTTON);
 
 		spinButton =
-		  GTK_SPIN_BUTTON (gtk_sheet_get_entry (sheet));
+		  GTK_SPIN_BUTTON (psppire_sheet_get_entry (sheet));
 
 		gtk_spin_button_set_adjustment (spinButton, GTK_ADJUSTMENT (adj));
 		gtk_spin_button_set_digits (spinButton, 0);
@@ -477,7 +477,7 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
       break;
 
     default:
-      gtk_sheet_change_entry (sheet, GTK_TYPE_ENTRY);
+      psppire_sheet_change_entry (sheet, GTK_TYPE_ENTRY);
       break;
     }
 }
