@@ -54,7 +54,7 @@ src_ui_gui_psppire_LDADD = \
 	-dlopen src/ui/gui/libpsppire.la \
 	src/ui/gui/libpsppwidgets.la \
         src/ui/gui/sheet/libsheet.la \
-	lib/gtksheet/libgtksheet.a \
+	lib/gtk-contrib/libgtksheet.a \
 	src/ui/libuicommon.la \
 	src/libpspp.la \
 	src/libpspp-core.la \

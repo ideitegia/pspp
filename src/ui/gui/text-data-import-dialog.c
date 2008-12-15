@@ -25,7 +25,7 @@
 
 #include <errno.h>
 
-#include <gtksheet/psppire-sheet.h>
+#include <gtk-contrib/psppire-sheet.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/stat.h>

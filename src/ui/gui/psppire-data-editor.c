@@ -17,7 +17,7 @@
 #include <config.h>
 #include <gtk/gtksignal.h>
 #include <gtk/gtk.h>
-#include <gtksheet/gtkextra-sheet.h>
+#include <gtk-contrib/gtkextra-sheet.h>
 #include "psppire-data-editor.h"
 #include "psppire-var-sheet.h"
 
@@ -26,7 +26,7 @@
 #include <ui/gui/sheet/psppire-axis-impl.h>
 #include "helper.h"
 
-#include <gtksheet/gtkxpaned.h>
+#include <gtk-contrib/gtkxpaned.h>
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid

@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtksheet/psppire-sheet.h>
+#include <gtk-contrib/psppire-sheet.h>
 #include "val-labs-dialog.h"
 #include "missing-val-dialog.h"
 #include "var-type-dialog.h"

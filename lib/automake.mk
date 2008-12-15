@@ -4,7 +4,7 @@ include $(top_srcdir)/lib/linreg/automake.mk
 include $(top_srcdir)/lib/misc/automake.mk
 
 if WITHGUI
-include $(top_srcdir)/lib/gtksheet/automake.mk
+include $(top_srcdir)/lib/gtk-contrib/automake.mk
 endif
 
 EXTRA_DIST += lib/OChangeLog
