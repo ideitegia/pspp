@@ -25,7 +25,7 @@
 
 #include <gobject/gvaluecollector.h>
 
-#include <gtksheet/psppire-sheetmodel.h>
+#include <ui/gui/sheet/psppire-sheetmodel.h>
 
 #include "psppire-var-store.h"
 #include "helper.h"

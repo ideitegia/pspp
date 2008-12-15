@@ -25,7 +25,7 @@
 #include <data/data-out.h>
 #include <data/variable.h>
 
-#include <gtksheet/psppire-sheetmodel.h>
+#include <ui/gui/sheet/psppire-sheetmodel.h>
 #include <ui/gui/psppire-marshal.h>
 
 #include <pango/pango-context.h>

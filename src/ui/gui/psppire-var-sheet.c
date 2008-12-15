@@ -16,7 +16,7 @@
 
 #include <config.h>
 #include "psppire-var-sheet.h"
-#include <gtksheet/psppire-axis-impl.h>
+#include <ui/gui/sheet/psppire-axis-impl.h>
 
 #include <glade/glade.h>
 #include "helper.h"

@@ -23,7 +23,7 @@
 
 #include <language/syntax-string-source.h>
 #include "psppire-data-store.h"
-#include <gtksheet/psppire-axis-impl.h>
+#include <ui/gui/sheet/psppire-axis-impl.h>
 #include "helper.h"
 
 #include <gtksheet/gtkxpaned.h>

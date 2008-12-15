@@ -24,7 +24,7 @@
 #include <glib-object.h>
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
-#include "gtkextra-sheet.h"
+#include <gtksheet/gtkextra-sheet.h>
 
 G_BEGIN_DECLS
 

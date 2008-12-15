@@ -68,7 +68,7 @@
 #include <pango/pango.h>
 #include "psppire-sheet.h"
 #include <ui/gui/psppire-marshal.h>
-#include "psppire-sheetmodel.h"
+#include <ui/gui/sheet/psppire-sheetmodel.h>
 #include <libpspp/misc.h>
 #include <math.h>
 

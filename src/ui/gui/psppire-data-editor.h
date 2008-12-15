@@ -22,7 +22,7 @@
 #include <glib-object.h>
 #include <gtk/gtknotebook.h>
 
-#include <lib/gtksheet/psppire-axis-impl.h>
+#include <ui/gui/sheet/psppire-axis-impl.h>
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
 

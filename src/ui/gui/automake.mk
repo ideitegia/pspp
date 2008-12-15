@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
+include $(top_srcdir)/src/ui/gui/sheet/automake.mk
+
 bin_PROGRAMS += src/ui/gui/psppire 
 
 src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall \
@@ -51,6 +53,7 @@ src_ui_gui_libpsppire_la_SOURCES = \
 src_ui_gui_psppire_LDADD = \
 	-dlopen src/ui/gui/libpsppire.la \
 	src/ui/gui/libpsppwidgets.la \
+        src/ui/gui/sheet/libsheet.la \
 	lib/gtksheet/libgtksheet.a \
 	src/ui/libuicommon.la \
 	src/libpspp.la \

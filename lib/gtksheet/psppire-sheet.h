@@ -48,8 +48,8 @@
 #include <gtk/gtk.h>
 
 #include "gtkextra-sheet.h"
-#include "psppire-sheetmodel.h"
-#include "psppire-axis.h"
+#include <ui/gui/sheet/psppire-sheetmodel.h>
+#include <ui/gui/sheet/psppire-axis.h>
 
 G_BEGIN_DECLS
 
