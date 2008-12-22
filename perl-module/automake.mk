@@ -2,7 +2,6 @@
 
 # PSPP
 
-
 module_sources = \
  perl-module/Changes \
  perl-module/COPYING \
@@ -15,7 +14,6 @@ module_sources = \
  perl-module/typemap \
  perl-module/lib/PSPP.pm \
  perl-module/t/Pspp.t
-
 
 perl-module/pspp-module-config: Makefile
 	target=`mktemp`;\
@@ -35,7 +33,11 @@ perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 module-make: perl-module/Makefile
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
-all-local:
+perl-module/lib/pspp-vers.pl: src/libpspp/version.c
+	mkdir -p perl-module/lib
+	$(GREP) '^\$$VERSION' $(top_builddir)/src/libpspp/version.c | $(SED) -e 's/VERSION/PSPP::VERSION/' > $@
+
+all-local: perl-module/lib/pspp-vers.pl
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
@@ -58,22 +60,11 @@ clean-local:
 	fi
 	$(RM) perl-module/Makefile.old
 
-#install-data-local:
-#	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) doc_install
-#
-#install-exec-local:
-#	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) pure_install
-#
-#uninstall-local:
-#	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) uninstall
-#
-
 
 CLEANFILES += \
 	perl-module/pspp-module-config \
+	perl-module/lib/pspp-vers.pl \
 	perl-module/const-c.inc \
 	perl-module/const-xs.inc 
-
-
 
 EXTRA_DIST +=  $(module_sources)

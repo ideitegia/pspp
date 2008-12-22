@@ -2,7 +2,7 @@ use 5.008008;
 use strict;
 use warnings;
 
-our $VERSION = '0.7.0';
+do 'pspp-vers.pl' || die "No version set";
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ None by default.
 =cut
 
 require XSLoader;
-XSLoader::load('PSPP', $VERSION);
+XSLoader::load('PSPP', $PSPP::VERSION);
 
 =pod
 
