@@ -13,6 +13,7 @@ do 'pspp-module-config' || do {
 
 WriteMakefile(
     NAME              => 'PSPP',
+    DISTNAME          => 'PSPP-Perl',
     VERSION_FROM      => "$Locations{BuildDir}/src/libpspp/version.c", 
     PREREQ_PM         => {POSIX=>0}, 
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
