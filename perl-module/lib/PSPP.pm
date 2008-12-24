@@ -87,9 +87,9 @@ sub new
 
 =pod
 
-=head3 get_var ()
+=head3 get_var ($idx)
 
-Returns a variable from a dictionary.
+Returns the C<idx>th variable from the dictionary.
 
 =cut
 
