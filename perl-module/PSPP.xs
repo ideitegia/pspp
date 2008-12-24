@@ -566,7 +566,7 @@ CODE:
  }
  RETVAL = casewriter_write (sfi->writer, &c);
  finish:
-// Case_destroy (&c);
+// case_destroy (&c);
  free (vv);
 OUTPUT:
  RETVAL

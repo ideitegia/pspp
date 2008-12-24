@@ -87,9 +87,9 @@ sub new
 
 =pod
 
-=head3 get_var
+=head3 get_var ()
 
-Returns a variable from a dictionary
+Returns a variable from a dictionary.
 
 =cut
 
@@ -333,8 +333,20 @@ sub set_value_labels
 Sets the missing values for the variable.  
 No more than three missing values may be specified.
 
-=cut
+=head3 get_name ()
 
+Returns the name of the variable.
+
+=head3 get_label ()
+
+Returns the label of the variable or undef if there is no label.
+
+=head3 get_value_labels ()
+
+Returns a reference to a hash containing the value labels for the variable.
+The hash is keyed by data values which correpond to the labels.
+
+=cut
 
 package PSPP::Sysfile;
 
@@ -395,6 +407,12 @@ The system file will be automatically closed when it goes out of scope.
 
 package PSPP::Reader;
 
+=pod
+
+=head2 PSPP::Reader
+
+=cut
+
 sub open
 {
     my $class = shift;
@@ -409,6 +427,17 @@ sub open
     return $self;
 }
 
+=pod
+
+=head3 open ($filename)
+
+Opens a system file for reading.
+
+Open is used to read data from an existing system file. 
+It creates and returns a PSPP::Reader object which can be used to read 
+data and dictionary information from <C>filename.
+
+=cut
 
 sub get_dict
 {
@@ -421,7 +450,42 @@ sub get_dict
     return $dict;
 }
 
+=pod
 
+=head3 get_dict ()
+
+Returns the dictionary associated with the reader.
+
+=head3 get_next_case ()
+
+Retrieves the next case from the reader.
+This method returns an array of scalars, each of which are the values of 
+the data in the system file.
+The first call to <C>get_next_case after <C>open has been called retrieves
+the first case in the system file.  Each subsequent call retrieves the next
+case.  If there are no more cases to be read, the function returns undef.
+
+If the case contains system missing values, these values are set to the 
+empty string.
+
+=head2 Miscellaneous subroutines
+
+The following subroutines provide (hopefully) useful information about the 
+values retrieved from a reader.
+
+=head3 PSPP::format_value ($value, $variable)
+
+Returns a scalar containing a string representing C<value> formatted accoring 
+to the print format of C<variable>.
+In the most common ussage,  C<value> should be a value of C<variable>.
+
+
+=head3 PSPP::value_is_missing ($value, $variable)
+
+Returns non-zero if C<value> is either system missing, or if it matches the 
+user missing criteria for C<variable>.
+
+=cut
 
 1;
 __END__
@@ -433,21 +497,19 @@ John Darrington, E<lt>john@darrington.wattle.id.auE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Free Software Foundation
+Copyright (C) 2007, 2008 by Free Software Foundation
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-   This program is distributed in the hope that it will be useful, but
-   WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-   02110-1301, USA.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 =cut
