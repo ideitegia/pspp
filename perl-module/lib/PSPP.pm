@@ -41,8 +41,9 @@ use POSIX ;
 
 use constant { SYSMIS => -(POSIX::DBL_MAX), 
 	       PERL_EPOCH => 12219379200 # Number of seconds between 
+                   # 14th October 1582
+		   # and 
 		   # 1st January 1970 
-		   # and 14th October 1582
 	       };
 
 
@@ -77,10 +78,32 @@ Sets the weighting variable to C<var>.
 sub new
 {
     my $class = shift;
-    my $self = _dict_new ();
+    my $self = pxs_dict_new ();
     bless ($self, $class);
     return $self;
 }
+
+=pod
+
+=head3 get_var
+
+Returns a variable from a dictionary
+
+=cut
+
+sub get_var
+{
+    my $dict = shift;
+    my $idx = shift;
+    my $var = pxs_get_variable ($dict, $idx);
+
+    if ( ref $var ) 
+    {
+	bless ($var, "PSPP::Var");
+    }
+    return $var;
+}
+
 
 package PSPP::Fmt;
 
@@ -161,7 +184,7 @@ sub new
     my $dict = shift;
     my $name = shift;
     my %format = @_;
-    my $self = _dict_create_var ($dict, $name, \%format);
+    my $self = pxs_dict_create_var ($dict, $name, \%format);
     if ( ref $self ) 
     {
 	bless ($self, $class);
@@ -208,7 +231,7 @@ sub set_write_format
 {
     my $var = shift;
     my %format = @_;
-    _set_write_format ($var, \%format);
+    pxs_set_write_format ($var, \%format);
 }
 
 =pod
@@ -224,7 +247,7 @@ sub set_print_format
 {
     my $var = shift;
     my %format = @_;
-    _set_print_format ($var, \%format);
+    pxs_set_print_format ($var, \%format);
 }
 
 =pod
@@ -242,7 +265,7 @@ sub set_output_format
 {
     my $var = shift;
     my %format = @_;
-    _set_output_format ($var, \%format);
+    pxs_set_output_format ($var, \%format);
 }
 
 =pod
@@ -347,7 +370,7 @@ sub new
     my $dict = shift;
     my $opts = shift;
 
-    my $self  = _create_sysfile ($filename, $dict, $opts);
+    my $self  = pxs_create_sysfile ($filename, $dict, $opts);
 
     if ( ref $self ) 
     {
@@ -367,6 +390,34 @@ further cases may be written once the file has been closed.
 The system file will be automatically closed when it goes out of scope.
 
 =cut
+
+package PSPP::Reader;
+
+sub open
+{
+    my $class = shift;
+    my $filename = shift;
+
+    my $self  = pxs_open_sysfile ($filename);
+
+    if ( ref $self ) 
+    {
+	bless ($self, $class);
+    }
+    return $self;
+}
+
+
+sub get_dict
+{
+    my $reader = shift;
+
+    my $dict = pxs_get_dict ($reader);
+
+    bless ($dict, "PSPP::Dict");
+
+    return $dict;
+}
 
 
 

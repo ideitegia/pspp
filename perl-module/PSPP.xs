@@ -1,5 +1,5 @@
 /* PSPP - computes sample statistics.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
@@ -34,7 +34,9 @@
 #include <data/variable.h>
 #include <data/file-handle-def.h>
 #include <data/sys-file-writer.h>
+#include <data/sys-file-reader.h>
 #include <data/value.h>
+#include <data/value-labels.h>
 #include <data/format.h>
 #include <data/data-in.h>
 #include <string.h>
@@ -46,7 +48,7 @@ typedef struct fmt_spec output_format ;
 /*  A thin wrapper around sfm_writer */
 struct sysfile_info
 {
-  bool opened; 
+  bool opened;
 
   /* A pointer to the writer. The writer is owned by the struct */
   struct casewriter *writer;
@@ -54,6 +56,20 @@ struct sysfile_info
   /* A pointer to the dictionary. Owned externally */
   const struct dictionary *dict;
 };
+
+
+/*  A thin wrapper around sfm_reader */
+struct sysreader_info
+{
+  struct sfm_read_info opts;
+
+  /* A pointer to the reader. The reader is owned by the struct */
+  struct casereader *reader;
+
+  /* A pointer to the dictionary. */
+  struct dictionary *dict;
+};
+
 
 
 /*  A message handler which writes messages to PSPP::errstr */
@@ -79,19 +95,54 @@ sysfile_close (struct sysfile_info *sfi)
 }
 
 static void
-scalar_to_value (union value *val, SV *scalar)
+scalar_to_value (union value *val, SV *scalar, const struct variable *var)
 {
-  if ( looks_like_number (scalar))
+  if ( var_is_numeric (var))
     {
-	val->f = SvNV (scalar);
+	if ( SvNOK (scalar) || SvIOK (scalar) )
+	   val->f = SvNV (scalar);
+	else
+	   val->f = SYSMIS;
     }
   else
     {
 	STRLEN len;
-	char *p = SvPV (scalar, len);
-	memset (val->s, ' ', MAX_SHORT_STRING);
+	const char *p = SvPV (scalar, len);
+	memset (val->s, ' ', var_get_width (var));
 	memcpy (val->s, p, len);
     }
+}
+
+
+static SV *
+value_to_scalar (const union value *val, const struct variable *var)
+{
+  if ( var_is_numeric (var))
+    {
+      if ( var_is_value_missing (var, val, MV_SYSTEM))
+	return newSVpvn ("", 0);
+
+      return newSVnv (val->f);
+    }
+  else
+    return newSVpvn (val->s, var_get_width (var));
+}
+
+
+static void
+var_set_input_format (struct variable *v, input_format ip_fmt)
+{
+  struct fmt_spec *if_copy = malloc (sizeof (*if_copy));
+  memcpy (if_copy, &ip_fmt, sizeof (ip_fmt));
+  var_attach_aux (v, if_copy, var_dtor_free);
+}
+
+static union value *
+make_value_from_scalar (SV *val, const struct variable *var)
+{
+ union value *uv = value_create (var_get_width (var));
+ scalar_to_value (uv, val, var);
+ return uv;
 }
 
 
@@ -103,10 +154,46 @@ BOOT:
  fh_init ();
 
 
+MODULE = PSPP		PACKAGE = PSPP
+
+SV *
+format_value (val, var)
+ SV *val
+ struct variable *var
+CODE:
+ SV *ret;
+ const struct fmt_spec *fmt = var_get_print_format (var);
+ union value *uv = make_value_from_scalar (val, var);
+ char *s;
+ s = malloc (fmt->w);
+ memset (s, '\0', fmt->w);
+ data_out (uv, fmt, s);
+ free (uv);
+ ret = newSVpv (s, fmt->w);
+ free (s);
+ RETVAL = ret;
+ OUTPUT:
+RETVAL
+ 
+
+int
+value_is_missing (val, var)
+ SV *val
+ struct variable *var
+CODE:
+ union value *uv = make_value_from_scalar (val, var);
+ int ret = var_is_value_missing (var, uv, MV_ANY);
+ free (uv);
+ RETVAL = ret;
+ OUTPUT:
+RETVAL
+
+
+
 MODULE = PSPP		PACKAGE = PSPP::Dict
 
 struct dictionary *
-_dict_new()
+pxs_dict_new()
 CODE:
  RETVAL = dict_create ();
 OUTPUT:
@@ -119,6 +206,14 @@ DESTROY (dict)
 CODE:
  dict_destroy (dict);
 
+
+int
+get_var_cnt (dict)
+ struct dictionary *dict
+CODE:
+ RETVAL = dict_get_var_cnt (dict);
+OUTPUT:
+RETVAL
 
 void
 set_label (dict, label)
@@ -158,11 +253,28 @@ CODE:
  dict_set_weight (dict, var);
 
 
+struct variable *
+pxs_get_variable (dict, idx)
+ struct dictionary *dict
+ SV *idx
+INIT:
+ SV *errstr = get_sv("PSPP::errstr", TRUE);
+ sv_setpv (errstr, "");
+ if ( SvIV (idx) >= dict_get_var_cnt (dict))
+  {
+    sv_setpv (errstr, "The dictionary doesn't have that many variables.");
+    XSRETURN_UNDEF;
+  }
+CODE:
+ RETVAL = dict_get_var (dict, SvIV (idx));
+ OUTPUT:
+RETVAL
 
 MODULE = PSPP		PACKAGE = PSPP::Var
 
+
 struct variable *
-_dict_create_var (dict, name, ip_fmt)
+pxs_dict_create_var (dict, name, ip_fmt)
  struct dictionary * dict
  char *name
  input_format ip_fmt
@@ -176,7 +288,7 @@ INIT:
   }
 CODE:
  struct fmt_spec op_fmt;
- struct fmt_spec *if_copy;
+
  struct variable *v;
  op_fmt = fmt_for_output_from_input (&ip_fmt);
  v = dict_create_var (dict, name,
@@ -187,9 +299,7 @@ CODE:
     XSRETURN_UNDEF;
   }
  var_set_both_formats (v, &op_fmt);
- if_copy = malloc (sizeof (*if_copy));
- memcpy (if_copy, &ip_fmt, sizeof (ip_fmt));
- var_attach_aux (v, if_copy, var_dtor_free);
+ var_set_input_format (v, ip_fmt);
  RETVAL = v;
 OUTPUT:
  RETVAL
@@ -207,7 +317,7 @@ INIT:
   croak ("No more than 3 missing values are permitted");
 
  for (i = 0; i < items - 1; ++i)
-   scalar_to_value (&val[i], ST(i+1));
+   scalar_to_value (&val[i], ST(i+1), var);
 CODE:
  struct missing_values mv;
  mv_init (&mv, var_get_width (var));
@@ -222,7 +332,7 @@ set_label (var, label)
  char *label
 CODE:
   var_set_label (var, label);
- 
+
 
 void
 clear_value_labels (var)
@@ -231,7 +341,7 @@ CODE:
  var_clear_value_labels (var);
 
 void
-_set_write_format (var, fmt)
+pxs_set_write_format (var, fmt)
  struct variable *var
  output_format fmt
 CODE:
@@ -239,14 +349,14 @@ CODE:
 
 
 void
-_set_print_format (var, fmt)
+pxs_set_print_format (var, fmt)
  struct variable *var
  output_format fmt
 CODE:
  var_set_print_format (var, &fmt);
 
 void
-_set_output_format (var, fmt)
+pxs_set_output_format (var, fmt)
  struct variable *var
  output_format fmt
 CODE:
@@ -291,13 +401,59 @@ CODE:
 
 
 
+const char *
+get_name (var)
+ struct variable * var
+CODE:
+ RETVAL = var_get_name (var);
+ OUTPUT:
+RETVAL
+
+
+const char *
+get_label (var)
+ struct variable * var
+CODE:
+ RETVAL = var_get_label (var);
+ OUTPUT:
+RETVAL
+
+
+SV *
+get_value_labels (var)
+ struct variable *var
+CODE:
+ HV *labelhash = (HV *) sv_2mortal ((SV *) newHV());
+ struct val_lab *vl;
+ struct val_labs_iterator *viter = NULL;
+ const struct val_labs *labels = var_get_value_labels (var);
+
+ if ( labels )
+   {
+     for (vl = val_labs_first (labels, &viter);
+	  vl;
+	  vl = val_labs_next (labels, &viter))
+       {
+	 SV *sv = value_to_scalar (&vl->value, var);
+	 STRLEN len;
+	 const char *s = SvPV (sv, len);
+	 hv_store (labelhash, s, len, newSVpv (vl->label, 0), 0);
+       }
+   }
+
+ RETVAL = newRV ((SV *) labelhash);
+ OUTPUT:
+RETVAL
+
+
+
 MODULE = PSPP		PACKAGE = PSPP::Sysfile
 
 
 struct sysfile_info *
-_create_sysfile (name, dict, opts_hr)
- char * name
- struct dictionary * dict
+pxs_create_sysfile (name, dict, opts_hr)
+ char *name
+ struct dictionary *dict
  SV *opts_hr
 INIT:
  struct sfm_write_options opts;
@@ -323,6 +479,7 @@ CODE:
  sfi->writer = sfm_open_writer (fh, dict, opts);
  sfi->dict = dict;
  sfi->opened = true;
+ 
  RETVAL = sfi;
  OUTPUT:
 RETVAL
@@ -360,6 +517,7 @@ CODE:
  const struct variable **vv;
  size_t nv;
  struct ccase c;
+ SV *sv;
 
  if ( av_len (av_case) >= dict_get_var_cnt (sfi->dict))
    XSRETURN_UNDEF;
@@ -368,20 +526,31 @@ CODE:
 
  dict_get_vars (sfi->dict, &vv, &nv, 1u << DC_ORDINARY | 1u << DC_SYSTEM);
 
- SV *sv ;
  for (sv = av_shift (av_case); SvOK (sv);  sv = av_shift (av_case))
  {
     const struct variable *v = vv[i++];
-    struct substring ss = ss_cstr (SvPV_nolen (sv));
-    struct fmt_spec *ifmt = var_get_aux (v);
+    const struct fmt_spec *ifmt = var_get_aux (v);
 
-    if ( ! data_in (ss, LEGACY_NATIVE, ifmt->type, 0, 0, 0, case_data_rw (&c, v),
-	var_get_width (v)) )
-     {
-	RETVAL = 0;
-	goto finish;
-     }
+    /* If an input format has been set, then use it.
+       Otherwise just convert the raw value.
+    */
+    if ( ifmt )
+      {
+	struct substring ss = ss_cstr (SvPV_nolen (sv));
+	if ( ! data_in (ss, LEGACY_NATIVE, ifmt->type, 0, 0, 0,
+			case_data_rw (&c, v),
+			var_get_width (v)) )
+	  {
+	    RETVAL = 0;
+	    goto finish;
+	  }
+      }
+    else
+      {
+	scalar_to_value (case_data_rw (&c, v), sv, v);
+      }
  }
+
  /* The remaining variables must be sysmis or blank string */
  while (i < dict_get_var_cnt (sfi->dict))
  {
@@ -394,7 +563,75 @@ CODE:
  }
  RETVAL = casewriter_write (sfi->writer, &c);
  finish:
- case_destroy (&c);
+// Case_destroy (&c);
  free (vv);
 OUTPUT:
  RETVAL
+
+
+
+
+MODULE = PSPP		PACKAGE = PSPP::Reader
+
+struct sysreader_info *
+pxs_open_sysfile (name)
+ char * name
+CODE:
+ struct casereader *reader;
+ struct sysreader_info *sri = NULL;
+ struct file_handle *fh =
+ 	 fh_create_file (NULL, name, fh_default_properties () );
+
+ sri = xmalloc (sizeof (*sri));
+ sri->reader = sfm_open_reader (fh, &sri->dict, &sri->opts);
+
+ if ( NULL == sri->reader)
+ {
+   free (sri);
+   sri = NULL;
+ }
+
+ RETVAL = sri;
+ OUTPUT:
+RETVAL
+
+
+struct dictionary *
+pxs_get_dict (reader)
+ struct sysreader_info *reader;
+CODE:
+ RETVAL = reader->dict;
+ OUTPUT:
+RETVAL
+
+
+SV *
+get_next_case (sfr)
+ struct sysreader_info *sfr;
+CODE:
+ struct ccase c;
+
+ if (! casereader_read (sfr->reader, &c))
+ {
+  RETVAL = 0;
+ }
+ else
+ {
+  int v;
+  AV *av_case = (AV *) sv_2mortal ((SV *) newAV());
+
+  for (v = 0; v < dict_get_var_cnt (sfr->dict); ++v )
+    {
+      const struct variable *var = dict_get_var (sfr->dict, v);
+      const union value *val = case_data (&c, var);
+
+      av_push (av_case, value_to_scalar (val, var));
+    }
+
+  case_destroy (&c);
+  RETVAL = newRV ((SV *) av_case);
+ }
+OUTPUT:
+ RETVAL
+
+

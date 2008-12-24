@@ -6,18 +6,25 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 19;
+use Test::More tests => 30;
 use Text::Diff;
 use File::Temp qw/ tempfile tempdir /;
 BEGIN { use_ok('PSPP') };
 
 #########################
 
+sub compare
+{
+    my $file = shift;
+    my $pattern = shift;
+    return ! diff ("$file", \$pattern);
+}
+
 sub run_pspp_syntax
 {
     my $tempdir = shift;
     my $syntax = shift;
-    my $result = shift;
+
     my $syntaxfile = "$tempdir/foo.sps";
 
     open (FH, ">$syntaxfile");
@@ -25,6 +32,16 @@ sub run_pspp_syntax
     close (FH);
 
     system ("cd $tempdir; pspp -o raw-ascii $syntaxfile");
+}
+
+sub run_pspp_syntax_cmp
+{
+    my $tempdir = shift;
+    my $syntax = shift;
+
+    my $result = shift;
+
+    run_pspp_syntax ($tempdir, $syntax);
 
     my $diff =  diff ("$tempdir/pspp.list", \$result);
 
@@ -37,7 +54,7 @@ sub run_pspp_syntax
 }
 
 
-# Insert your test code below, the Test::More module is use()ed here so read
+# Insert your test code below, the Test::More module is used here so read
 # its man page ( perldoc Test::More ) for help writing this test script.
 
 {
@@ -136,7 +153,7 @@ sub run_pspp_syntax
       }
       ok (-s "$tempfile", "existance2");
 
-    ok (run_pspp_syntax ($tempdir, <<SYNTAX, <<RESULT), "Check output");
+    ok (run_pspp_syntax_cmp ($tempdir, <<SYNTAX, <<RESULT), "Check output");
 
         GET FILE='$tempfile'.
 	DISPLAY DICTIONARY.
@@ -223,7 +240,7 @@ RESULT
 
       $sysfile->close ();
 
-      ok (run_pspp_syntax ($tempdir, <<SYNTAX, <<RESULT), "Check output 2");
+      ok (run_pspp_syntax_cmp ($tempdir, <<SYNTAX, <<RESULT), "Check output 2");
 GET FILE='$tempfile'.
 DISPLAY DICTIONARY.
 SYNTAX
@@ -263,4 +280,266 @@ RESULT
 
   }
 
+}
+
+sub generate_sav_file 
+{
+    my $filename = shift;
+    my $tempdir = shift;
+
+    run_pspp_syntax_cmp ($tempdir, <<SYNTAX, <<RESULT);
+data list notable list /string (a8) longstring (a12) numeric (f10) date (date11) dollar (dollar8.2) datetime (datetime17)
+begin data.
+1111 One   1 1/1/1 1   1/1/1+01:01
+2222 Two   2 2/2/2 2   2/2/2+02:02
+3333 Three 3 3/3/3 3   3/3/3+03:03
+.    .     . .         .
+5555 Five  5 5/5/5 5   5/5/5+05:05
+end data.
+
+
+variable labels string 'A Short String Variable'
+  /longstring 'A Long String Variable'
+  /numeric 'A Numeric Variable'
+  /date 'A Date Variable'
+  /dollar 'A Dollar Variable'
+  /datetime 'A Datetime Variable'.
+
+
+missing values numeric (9, 5, 999).
+
+missing values string ("3333").
+
+add value labels
+  /string '1111' 'ones' '2222' 'twos' '3333' 'threes'
+  /numeric 1 'Unity' 2 'Duality' 3 'Thripality'.
+
+save outfile='$filename'.
+SYNTAX
+
+RESULT
+
+}
+
+
+# Basic reader test
+{
+ my $tempdir = tempdir( CLEANUP => 1 );
+
+ generate_sav_file ("$tempdir/in.sav", "$tempdir");
+
+ my $sf = PSPP::Reader->open ("$tempdir/in.sav");
+
+ my $dict = $sf->get_dict ();
+
+ open (MYFILE, ">$tempdir/out.txt");
+ for ($v = 0 ; $v < $dict->get_var_cnt() ; $v++)
+ {
+    my $var = $dict->get_var ($v);
+    my $name = $var->get_name ();
+    my $label = $var->get_label ();
+
+    print MYFILE "Variable $v is \"$name\", label is \"$label\"\n";
+    
+    my $vl = $var->get_value_labels ();
+
+    print MYFILE "Value Labels:\n";
+    print MYFILE "$_ => $vl->{$_}\n" for keys %$vl;
+ }
+
+ while (my $c = $sf->get_next_case () )
+ {
+    for ($v = 0; $v < $dict->get_var_cnt(); $v++)
+    {
+	print MYFILE "val$v: \"@$c[$v]\"\n";
+    }
+    print MYFILE "\n";
+ }
+
+ close (MYFILE);
+
+ok (compare ("$tempdir/out.txt", <<EOF), "Basic reader operation");
+Variable 0 is "string", label is "A Short String Variable"
+Value Labels:
+3333     => threes
+1111     => ones
+2222     => twos
+Variable 1 is "longstring", label is "A Long String Variable"
+Value Labels:
+Variable 2 is "numeric", label is "A Numeric Variable"
+Value Labels:
+1 => Unity
+3 => Thripality
+2 => Duality
+Variable 3 is "date", label is "A Date Variable"
+Value Labels:
+Variable 4 is "dollar", label is "A Dollar Variable"
+Value Labels:
+Variable 5 is "datetime", label is "A Datetime Variable"
+Value Labels:
+val0: "1111    "
+val1: "One         "
+val2: "1"
+val3: "13197686400"
+val4: "1"
+val5: "13197690060"
+
+val0: "2222    "
+val1: "Two         "
+val2: "2"
+val3: "13231987200"
+val4: "2"
+val5: "13231994520"
+
+val0: "3333    "
+val1: "Three       "
+val2: "3"
+val3: "13266028800"
+val4: "3"
+val5: "13266039780"
+
+val0: ".       "
+val1: ".           "
+val2: ""
+val3: ""
+val4: ""
+val5: ""
+
+val0: "5555    "
+val1: "Five        "
+val2: "5"
+val3: "13334630400"
+val4: "5"
+val5: "13334648700"
+
+EOF
+
+}
+
+
+# Check that we can stream one file into another
+{
+ my $tempdir = tempdir( CLEANUP => 1 );
+
+ generate_sav_file ("$tempdir/in.sav", "$tempdir");
+
+ my $input = PSPP::Reader->open ("$tempdir/in.sav");
+
+ my $dict = $input->get_dict ();
+
+ my $output = PSPP::Sysfile->new ("$tempdir/out.sav", $dict);
+
+ while (my $c = $input->get_next_case () )
+ {
+   $output->append_case ($c);
+ }
+
+ $output->close ();
+
+
+ #Check the two files are the same (except for metadata)
+
+ run_pspp_syntax ($tempdir, <<SYNTAX);
+ get file='$tempdir/in.sav'.
+ display dictionary.
+ list.
+
+SYNTAX
+
+ system ("cp $tempdir/pspp.list $tempdir/in.txt");
+
+ run_pspp_syntax ($tempdir, <<SYNTAX);
+ get file='$tempdir/out.sav'.
+ display dictionary.
+ list.
+
+SYNTAX
+ 
+ ok (! diff ("$tempdir/pspp.list", "$tempdir/in.txt"), "Streaming of files");
+}
+
+
+
+# Check that the format_value function works properly
+{
+ my $tempdir = tempdir( CLEANUP => 1 );
+
+ run_pspp_syntax ($tempdir, <<SYNTAX);
+
+data list list /d (datetime17).
+begin data.
+11/9/2001+08:20
+end data.
+
+save outfile='$tempdir/dd.sav'.
+
+SYNTAX
+
+ my $sf = PSPP::Reader->open ("$tempdir/dd.sav");
+
+ my $dict = $sf->get_dict ();
+
+ my $c = $sf->get_next_case ();
+
+ my $var = $dict->get_var (0);
+ my $val = @$c[0];
+ my $formatted = PSPP::format_value ($val, $var);
+ my $str = gmtime ($val - PSPP::PERL_EPOCH);
+ print "Formatted string is \"$formatted\"\n";
+ ok ( $formatted eq "11-SEP-2001 08:20", "format_value function");
+ ok ( $str eq "Tue Sep 11 08:20:00 2001", "Perl representation of time");
+}
+
+
+# Check that attempting to open a non-existent file results in an error
+{
+  my $tempdir = tempdir( CLEANUP => 1 );
+
+  unlink ("$tempdir/no-such-file.sav");
+
+  my $sf = PSPP::Reader->open ("$tempdir/no-such-file.sav");
+
+  ok ( !ref $sf, "Returns undef on opening failure");
+
+  ok ("$PSPP::errstr" eq "Error opening \"$tempdir/no-such-file.sav\" for reading as a system file: No such file or directory.",
+      "Error string on open failure");
+}
+
+
+# Missing value tests. 
+{
+ my $tempdir = tempdir( CLEANUP => 1 );
+
+ generate_sav_file ("$tempdir/in.sav", "$tempdir");
+
+ my $sf = PSPP::Reader->open ("$tempdir/in.sav");
+
+ my $dict = $sf->get_dict ();
+
+
+ my $c = $sf->get_next_case ();
+
+ my $stringvar = $dict->get_var (0);
+ my $numericvar = $dict->get_var (2);
+ my $val = @$c[0];
+
+ ok ( !PSPP::value_is_missing ($val, $stringvar), "Missing Value Negative String");
+
+ $val = @$c[2];
+
+ ok ( !PSPP::value_is_missing ($val, $numericvar), "Missing Value Negative Num");
+
+ $c = $sf->get_next_case (); 
+ $c = $sf->get_next_case (); 
+
+ $val = @$c[0];
+ ok ( PSPP::value_is_missing ($val, $stringvar), "Missing Value Positive");
+
+ $c = $sf->get_next_case (); 
+ $val = @$c[2];
+ ok ( PSPP::value_is_missing ($val, $numericvar), "Missing Value Positive SYS");
+
+ $c = $sf->get_next_case (); 
+ $val = @$c[2];
+ ok ( PSPP::value_is_missing ($val, $numericvar), "Missing Value Positive Num");
 }
