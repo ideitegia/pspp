@@ -148,13 +148,16 @@ make_value_from_scalar (SV *val, const struct variable *var)
 
 MODULE = PSPP
 
-BOOT:
+MODULE = PSPP		PACKAGE = PSPP
+
+void
+onBoot (ver)
+ const char *ver
+CODE:
+ assert (0 == strcmp (ver, bare_version));
  msg_init (NULL, message_handler);
  settings_init (0, 0);
  fh_init ();
-
-
-MODULE = PSPP		PACKAGE = PSPP
 
 SV *
 format_value (val, var)
@@ -633,5 +636,4 @@ CODE:
  }
 OUTPUT:
  RETVAL
-
 

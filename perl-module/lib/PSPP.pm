@@ -2,8 +2,6 @@ use 5.008008;
 use strict;
 use warnings;
 
-do 'pspp-vers.pl' || die "No version set";
-
 =head1 NAME
 
 PSPP - Perl extension to PSPP
@@ -22,9 +20,13 @@ system files.
 None by default.
 
 =cut
+BEGIN {
+	do 'pspp-vers.pl' || die "No version set";
+	require XSLoader;
+	XSLoader::load('PSPP', $PSPP::VERSION);
+}
 
-require XSLoader;
-XSLoader::load('PSPP', $PSPP::VERSION);
+PSPP::onBoot($PSPP::VERSION);
 
 =pod
 
