@@ -5,8 +5,9 @@ use ExtUtils::MakeMaker;
 
 
 do 'pspp-module-config' || do {
-    my $src = prompt ("Enter the location of the full pspp source","../pspp");
-    my $build = prompt ("Enter the location of the pspp build directory", "$src" );
+    my $build = prompt ("Enter the location of the build directory of the configured pspp source:", "" );
+    do 'lib/pspp-vers.pl' || die "No version info";
+    my $src = $top_srcdir;
 
     %Locations = (SourceDir => "$src", BuildDir => "$build");
 };

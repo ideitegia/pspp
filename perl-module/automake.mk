@@ -33,9 +33,10 @@ perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 module-make: perl-module/Makefile
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
-perl-module/lib/pspp-vers.pl: src/libpspp/version.c
+perl-module/lib/pspp-vers.pl: src/libpspp/version.c Makefile
 	mkdir -p perl-module/lib
-	$(GREP) '^\$$VERSION' $(top_builddir)/src/libpspp/version.c | $(SED) -e 's/VERSION/PSPP::VERSION/' > $@
+	(cd $(top_srcdir) && echo "\$$top_srcdir='"`pwd`"';") > $@
+	$(GREP) '^\$$VERSION' $(top_builddir)/src/libpspp/version.c | $(SED) -e 's/VERSION/PSPP::VERSION/' >> $@
 
 all-local: perl-module/lib/pspp-vers.pl
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
