@@ -4,7 +4,7 @@ use warnings;
 
 =head1 NAME
 
-PSPP - Perl extension to PSPP
+PSPP-Perl - Perl extension to PSPP
 
 =head1 SYNOPSIS
 
@@ -12,8 +12,8 @@ PSPP - Perl extension to PSPP
 
 =head1 DESCRIPTION
 
-PSPP:: provides an interface to the libraries used by pspp to create
-system files.  
+PSPP-Perl provides an interface to the libraries used by pspp to read and
+write system files.  
 
 =head1 EXPORT
 
