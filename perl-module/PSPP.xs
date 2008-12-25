@@ -273,6 +273,23 @@ CODE:
  OUTPUT:
 RETVAL
 
+
+struct variable *
+pxs_get_var_by_name (dict, name)
+ struct dictionary *dict
+ const char *name
+INIT:
+ SV *errstr = get_sv("PSPP::errstr", TRUE);
+ sv_setpv (errstr, "");
+CODE:
+ struct variable *var = dict_lookup_var (dict, name);
+ if ( ! var )
+      sv_setpv (errstr, "No such variable.");
+ RETVAL = var;
+ OUTPUT:
+RETVAL
+
+
 MODULE = PSPP		PACKAGE = PSPP::Var
 
 

@@ -106,6 +106,28 @@ sub get_var
     return $var;
 }
 
+=pod
+
+=head3 get_var_by_name ($name)
+
+Returns the variable from the dictionary whose name is C<name>.
+If there is no such variable, a null reference will be returned.
+
+=cut
+
+sub get_var_by_name
+{
+    my $dict = shift;
+    my $name = shift;
+    my $var = pxs_get_var_by_name ($dict, $name);
+
+    if ( ref $var ) 
+    {
+	bless ($var, "PSPP::Var");
+    }
+    return $var;
+}
+
 
 package PSPP::Fmt;
 
