@@ -26,6 +26,22 @@
 
 G_BEGIN_DECLS
 
+typedef enum {
+  PSPPIRE_WINDOW_USAGE_SYNTAX,
+  PSPPIRE_WINDOW_USAGE_OUTPUT,
+  PSPPIRE_WINDOW_USAGE_DATA
+} PsppireWindowUsage;
+
+
+GType psppire_window_usage_get_type (void);
+
+
+#define G_TYPE_PSPPIRE_WINDOW_USAGE \
+  (psppire_window_usage_get_type())
+
+
+
+
 #define PSPPIRE_WINDOW_TYPE            (psppire_window_get_type ())
 #define PSPPIRE_WINDOW(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_WINDOW_TYPE, PsppireWindow))
 #define PSPPIRE_WINDOW_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), \
@@ -47,6 +63,7 @@ struct _PsppireWindow
   /* <private> */
   gchar *name;
   gboolean finalized;
+  PsppireWindowUsage usage;
 };
 
 struct _PsppireWindowClass
@@ -57,11 +74,13 @@ struct _PsppireWindowClass
 };
 
 GType      psppire_window_get_type        (void);
-GtkWidget* psppire_window_new             (void);
+GtkWidget* psppire_window_new             (PsppireWindowUsage usage);
 
 const gchar * psppire_window_get_filename (PsppireWindow *);
 
 void psppire_window_set_filename (PsppireWindow *w, const gchar *filename);
+
+void psppire_window_minimise_all (void);
 
 
 G_END_DECLS

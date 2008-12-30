@@ -34,6 +34,8 @@ static void psppire_window_class_init    (PsppireWindowClass *class);
 static void psppire_window_init          (PsppireWindow      *window);
 
 
+static PsppireWindowClass *the_class;
+
 
 GType
 psppire_window_get_type (void)
@@ -68,7 +70,8 @@ psppire_window_get_type (void)
 enum
 {
   PROP_0,
-  PROP_FILENAME
+  PROP_FILENAME,
+  PROP_USAGE
 };
 
 
@@ -77,6 +80,8 @@ uniquify (const gchar *str, int *x)
 {
   return g_strdup_printf ("%s%d", str, (*x)++);
 }
+
+
 
 static void
 psppire_window_set_property (GObject         *object,
@@ -87,9 +92,11 @@ psppire_window_set_property (GObject         *object,
   PsppireWindow *window = PSPPIRE_WINDOW (object);
 
   PsppireWindowClass *class = PSPPIRE_WINDOW_CLASS (G_OBJECT_GET_CLASS (object));
-  
   switch (prop_id)
     {
+    case PROP_USAGE:
+      window->usage = g_value_get_enum (value);
+      break;
     case PROP_FILENAME:
       {
 	gchar mdash[6] = {0,0,0,0,0,0};
@@ -107,7 +114,23 @@ psppire_window_set_property (GObject         *object,
 	basename = g_path_get_basename (candidate_name);
 	g_unichar_to_utf8 (0x2014, mdash);
 
-	title = g_strdup_printf ( _("%s %s PSPPIRE Syntax Editor"), basename, mdash);
+	switch (window->usage)
+	  {
+	  case PSPPIRE_WINDOW_USAGE_SYNTAX:
+	    title = g_strdup_printf ( _("%s %s PSPPIRE Syntax Editor"),
+				      basename, mdash);
+	    break;
+	  case PSPPIRE_WINDOW_USAGE_OUTPUT:
+	    title = g_strdup_printf ( _("%s %s PSPPIRE Output"),
+				      basename, mdash);
+	  case PSPPIRE_WINDOW_USAGE_DATA:
+	    title = g_strdup_printf ( _("%s %s PSPPIRE Data Editor"),
+				      basename, mdash);
+	    break;
+	  default:
+	    g_assert_not_reached ();
+	    break;
+	  }
 
 	gtk_window_set_title (GTK_WINDOW (window), title);
 
@@ -138,6 +161,9 @@ psppire_window_get_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_USAGE:
+      g_value_set_enum (value, window->usage);
+      break;
     case PROP_FILENAME:
       g_value_set_string (value, window->name);
       break;
@@ -175,8 +201,17 @@ psppire_window_finalize (GObject *object)
 static void
 psppire_window_class_init (PsppireWindowClass *class)
 {
- GObjectClass *object_class = G_OBJECT_CLASS (class);
- 
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+
+  GParamSpec *use_class_spec =
+    g_param_spec_enum ("usage",
+		       "Usage",
+		       "What the window is used for",
+		       G_TYPE_PSPPIRE_WINDOW_USAGE,
+		       PSPPIRE_WINDOW_USAGE_SYNTAX /* default value */,
+		       G_PARAM_CONSTRUCT_ONLY |G_PARAM_READABLE | G_PARAM_WRITABLE);
+
+
   GParamSpec *filename_spec =
     g_param_spec_string ("filename",
 		       "File name",
@@ -193,11 +228,16 @@ psppire_window_class_init (PsppireWindowClass *class)
                                    PROP_FILENAME,
                                    filename_spec);
 
+  g_object_class_install_property (object_class,
+                                   PROP_USAGE,
+                                   use_class_spec);
 
 
   class->name_table = g_hash_table_new (g_str_hash, g_str_equal);
 
   g_hash_table_insert (class->name_table, "Untitled", NULL);
+
+  the_class = class;
 }
 
 
@@ -207,7 +247,6 @@ psppire_window_base_init (PsppireWindowClass *class)
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
   object_class->finalize = psppire_window_finalize;
-  
 }
 
 
@@ -230,9 +269,12 @@ psppire_window_init (PsppireWindow *window)
 
 
 GtkWidget*
-psppire_window_new (void)
+psppire_window_new (PsppireWindowUsage usage)
 {
-  return GTK_WIDGET (g_object_new (psppire_window_get_type (), "type", GTK_WINDOW_TOPLEVEL, NULL));
+  return GTK_WIDGET (g_object_new (psppire_window_get_type (),
+				   "type", GTK_WINDOW_TOPLEVEL,
+				   "usage", usage,
+				   NULL));
 }
 
 
@@ -251,3 +293,51 @@ psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
   g_object_set (w, "filename", filename, NULL);
 }
 
+
+static void
+minimise_all  (gpointer key,
+	       gpointer value,
+	       gpointer user_data)
+{
+  PsppireWindow *w = PSPPIRE_WINDOW (value);
+
+  gtk_window_iconify (w);
+}
+
+
+
+void
+psppire_window_minimise_all (void)
+{
+  g_hash_table_foreach (the_class->name_table, minimise_all, NULL);
+}
+
+
+
+
+
+GType
+psppire_window_usage_get_type (void)
+{
+  static GType etype = 0;
+  if (etype == 0)
+    {
+      static const GEnumValue values[] = {
+	{ PSPPIRE_WINDOW_USAGE_SYNTAX, "PSPPIRE_WINDOW_USAGE_SYNTAX",
+	  "Syntax" },
+
+	{ PSPPIRE_WINDOW_USAGE_OUTPUT, "PSPPIRE_WINDOW_USAGE_OUTPUT",
+	  "Output" },
+
+	{ PSPPIRE_WINDOW_USAGE_DATA,   "PSPPIRE_WINDOW_USAGE_DATA",
+	  "Data" },
+
+	{ 0, NULL, NULL }
+      };
+
+      etype = g_enum_register_static
+	(g_intern_static_string ("PsppireWindowUsage"), values);
+    }
+
+  return etype;
+}

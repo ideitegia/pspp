@@ -576,12 +576,10 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    G_CALLBACK (on_run_to_end),
 		    window);
 
-#if 0
   g_signal_connect (get_widget_assert (xml,"windows_minimise_all"),
 		    "activate",
-		    G_CALLBACK (minimise_all_windows),
+		    G_CALLBACK (psppire_window_minimise_all),
 		    NULL);
-#endif
 
   g_object_unref (xml);
 
@@ -593,7 +591,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 GtkWidget*
 psppire_syntax_window_new (void)
 {
-  return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (), NULL));
+  return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (),
+				   "usage", PSPPIRE_WINDOW_USAGE_SYNTAX,
+				   NULL));
 }
 
 

@@ -249,12 +249,10 @@ psppire_output_window_init (PsppireOutputWindow *window)
 		    G_CALLBACK (reference_manual),
 		    NULL);
 
-#if 0
   g_signal_connect (get_widget_assert (xml,"windows_minimise-all"),
 		    "activate",
-		    G_CALLBACK (minimise_all_windows),
+		    G_CALLBACK (psppire_window_minimise_all),
 		    NULL);
-#endif
 
   g_object_unref (xml);
 
@@ -266,7 +264,9 @@ psppire_output_window_init (PsppireOutputWindow *window)
 GtkWidget*
 psppire_output_window_new (void)
 {
-  return GTK_WIDGET (g_object_new (psppire_output_window_get_type (), NULL));
+  return GTK_WIDGET (g_object_new (psppire_output_window_get_type (),
+				   "usage", PSPPIRE_WINDOW_USAGE_OUTPUT,
+				   NULL));
 }
 
 static void reload_viewer (PsppireOutputWindow *ow);
