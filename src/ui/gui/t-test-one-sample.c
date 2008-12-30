@@ -23,7 +23,7 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "dialog-common.h"
 #include "dict-display.h"
@@ -124,7 +124,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
 {
   struct tt_one_sample_dialog tt_d;
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 
@@ -145,9 +145,9 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
   tt_d.dict = vs->dict;
   tt_d.vars_treeview = get_widget_assert (xml, "one-sample-t-test-treeview1");
   tt_d.test_value_entry = get_widget_assert (xml, "test-value-entry");
-  tt_d.opt = tt_options_dialog_create (xml, de->parent.window);
+  tt_d.opt = tt_options_dialog_create (xml, GTK_WINDOW (de));
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
 				 vs->dict,

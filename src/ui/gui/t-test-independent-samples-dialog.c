@@ -23,7 +23,7 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "dialog-common.h"
 #include "dict-display.h"
@@ -392,7 +392,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 {
   struct tt_indep_samples_dialog tt_d;
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 
@@ -421,11 +421,11 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   tt_d.define_groups_button = get_widget_assert (xml, "define-groups-button");
   tt_d.groups_entry = get_widget_assert (xml, "indep-samples-t-test-entry");
-  tt_d.opts = tt_options_dialog_create (xml, de->parent.window);
-  tt_d.grps = tt_groups_dialog_create (xml, de->parent.window);
+  tt_d.opts = tt_options_dialog_create (xml, GTK_WINDOW (de));
+  tt_d.grps = tt_groups_dialog_create (xml, GTK_WINDOW (de));
 
 
-  gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
 				 vs->dict,

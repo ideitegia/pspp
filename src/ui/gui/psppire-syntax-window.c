@@ -27,7 +27,7 @@
 
 #include "psppire-syntax-window.h"
 
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "about.h"
 #include "psppire-syntax-window.h"
 #include "syntax-editor-source.h"
@@ -77,16 +77,12 @@ psppire_syntax_window_get_type (void)
 static void
 psppire_syntax_window_finalize (GObject *object)
 {
-  g_debug ("%s %p", __FUNCTION__, object);
-
   GObjectClass *class = G_OBJECT_GET_CLASS (object);
 
   GObjectClass *parent_class = g_type_class_peek_parent (class);
 
-
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
-
 }
 
 
@@ -527,7 +523,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect (get_widget_assert (xml,"file_new_data"),
 		    "activate",
-		    G_CALLBACK (new_data_window),
+		    G_CALLBACK (create_data_window),
 		    window);
 
   g_signal_connect (get_widget_assert (xml,"help_about"),

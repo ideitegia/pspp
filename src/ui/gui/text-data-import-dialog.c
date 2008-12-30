@@ -39,7 +39,7 @@
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <ui/syntax-gen.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
@@ -63,7 +63,7 @@ text_data_import_assistant (GObject *o, gpointer de_)
   struct data_editor *de = de_;
 
   GtkWidget *dialog =
-    gtk_message_dialog_new  (de->parent.window,
+    gtk_message_dialog_new  (GTK_WINDOW (de),
 			     GTK_DIALOG_MODAL,
 			     GTK_MESSAGE_WARNING,
 			     GTK_BUTTONS_CLOSE,
@@ -259,7 +259,7 @@ void
 text_data_import_assistant (GObject *o, gpointer de_)
 {
   struct data_editor *de = de_;
-  GtkWindow *parent_window = de->parent.window;
+  GtkWindow *parent_window = GTK_WINDOW (de);
   struct import_assistant *ia;
 
   ia = xzalloc (sizeof *ia);
@@ -2309,7 +2309,7 @@ pop_watch_cursor (struct import_assistant *ia)
 {
   if (--ia->asst.watch_cursor == 0)
     {
-      GtkWidget *widget = GTK_WIDGET (ia->asst.assistant);;
+      GtkWidget *widget = GTK_WIDGET (ia->asst.assistant);
       gdk_window_set_cursor (widget->window, NULL);
     }
 }

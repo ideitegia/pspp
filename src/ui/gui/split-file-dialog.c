@@ -20,7 +20,7 @@
 #include "psppire-selector.h"
 #include "psppire-dialog.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
 #include "psppire-syntax-window.h"
@@ -167,7 +167,7 @@ void
 split_file_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct split_file_dialog sfd;
   PsppireVarStore *vs ;
 
@@ -211,7 +211,7 @@ split_file_dialog (GObject *o, gpointer data)
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &sfd);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 

@@ -19,7 +19,7 @@
 #include "sort-cases-dialog.h"
 #include "helper.h"
 #include "psppire-dialog.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-var-store.h"
 #include "dialog-common.h"
 #include "dict-display.h"
@@ -91,7 +91,7 @@ void
 sort_cases_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct sort_cases_dialog scd;
 
@@ -108,7 +108,7 @@ sort_cases_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,

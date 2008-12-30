@@ -26,7 +26,7 @@
 #include <ui/command-line.h>
 #include "relocatable.h"
 
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire.h"
 
 #include <libpspp/getl.h>
@@ -141,7 +141,7 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   command_line_processor_parse (clp, argc, argv);
 
-  new_data_window (NULL, NULL);
+  create_data_window ();
 
   execute_syntax (create_syntax_string_source (""));
 }

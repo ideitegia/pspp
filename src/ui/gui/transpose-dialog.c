@@ -20,7 +20,7 @@
 #include "psppire-selector.h"
 #include "psppire-dialog.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
 #include "psppire-syntax-window.h"
@@ -80,7 +80,7 @@ void
 transpose_dialog (GObject *o, gpointer data)
 {
   gint response ;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   GladeXML *xml = XML_NEW ("psppire.glade");
 
@@ -117,7 +117,7 @@ transpose_dialog (GObject *o, gpointer data)
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  xml);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
 				      dialog_state_valid, xml);

@@ -115,8 +115,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/frequencies-dialog.h \
 	src/ui/gui/goto-case-dialog.c \
 	src/ui/gui/goto-case-dialog.h \
-	src/ui/gui/data-editor.c \
-	src/ui/gui/data-editor.h \
 	src/ui/gui/descriptives-dialog.c \
 	src/ui/gui/descriptives-dialog.h \
 	src/ui/gui/examine-dialog.c \
@@ -196,13 +194,14 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/weight-cases-dialog.h \
 	src/ui/gui/widget-io.c \
 	src/ui/gui/widget-io.h \
+	src/ui/gui/psppire-data-window.c \
+	src/ui/gui/psppire-data-window.h \
 	src/ui/gui/psppire-output-window.c \
 	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-window.c \
 	src/ui/gui/psppire-window.h \
 	src/ui/gui/psppire-syntax-window.c \
 	src/ui/gui/psppire-syntax-window.h \
-	src/ui/gui/window-manager.c \
 	src/ui/gui/window-manager.h
 
 nodist_src_ui_gui_psppire_SOURCES = \

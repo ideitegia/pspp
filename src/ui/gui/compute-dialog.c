@@ -20,7 +20,7 @@
 #include "helper.h"
 #include "psppire-dialog.h"
 #include "psppire-keypad.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-var-store.h"
 #include "dialog-common.h"
 #include "dict-display.h"
@@ -365,7 +365,7 @@ void
 compute_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = data;
 
   PsppireVarStore *vs = NULL;
   struct compute_dialog scd;
@@ -394,7 +394,7 @@ compute_dialog (GObject *o, gpointer data)
   g_signal_connect (expression, "toggled",
 		    G_CALLBACK(on_expression_toggle), &scd);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),

@@ -20,7 +20,7 @@
 #include "psppire-selector.h"
 #include "psppire-dialog.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
 #include "psppire-syntax-window.h"
@@ -104,7 +104,7 @@ void
 weight_cases_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct weight_cases_dialog wcd;
 
   GladeXML *xml = XML_NEW ("psppire.glade");
@@ -122,7 +122,7 @@ weight_cases_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs,  NULL);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_signal_connect (radiobutton1, "toggled", G_CALLBACK (on_toggle), entry);
   g_signal_connect (selector, "selected", G_CALLBACK (on_select),

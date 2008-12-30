@@ -21,7 +21,7 @@
 #include <glade/glade.h>
 #include "helper.h"
 #include "psppire-dialog.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "dialog-common.h"
 #include "dict-display.h"
 #include "widget-io.h"
@@ -241,7 +241,7 @@ select_cases_dialog (GObject *o, gpointer data)
   gint response;
   struct select_cases_dialog scd = {0,0,0,0,0,0};
   GtkWidget *dialog   ;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   GtkWidget *entry = NULL;
   GtkWidget *selector ;
   GtkWidget *button_range;
@@ -320,7 +320,7 @@ select_cases_dialog (GObject *o, gpointer data)
 
 
   dialog = get_widget_assert (scd.xml, "select-cases-dialog");
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   {
     GtkWidget *source = get_widget_assert   (scd.xml, "select-cases-treeview");

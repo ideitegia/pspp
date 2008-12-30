@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
@@ -236,7 +236,7 @@ void
 examine_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct examine_dialog ex_d;
 
@@ -277,9 +277,9 @@ examine_dialog (GObject *o, gpointer data)
   ex_d.percentiles_button = GTK_TOGGLE_BUTTON
     (get_widget_assert (xml, "percentiles-button"));
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (ex_d.stats_dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (ex_d.opts_dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (ex_d.stats_dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (ex_d.opts_dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,

@@ -24,7 +24,7 @@ which match particular strings */
 #include "psppire-selector.h"
 #include "psppire-dialog.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "dict-display.h"
 #include <data/value.h>
 #include <data/format.h>
@@ -55,7 +55,7 @@ struct find_dialog
   GladeXML *xml;
   PsppireDict *dict;
   struct datasheet *data;
-  struct data_editor *de;
+  PsppireDataWindow *de;
   GtkWidget *variable_entry;
   GtkWidget *value_entry;
   GtkWidget *value_labels_checkbox;
@@ -186,7 +186,7 @@ value_labels_toggled (GtkToggleButton *tb, gpointer data)
 void
 find_dialog (GObject *o, gpointer data)
 {
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct find_dialog fd;
 
@@ -239,7 +239,7 @@ find_dialog (GObject *o, gpointer data)
 
 
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),

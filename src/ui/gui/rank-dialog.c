@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
@@ -220,7 +220,7 @@ void
 rank_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct rank_dialog rd;
 
@@ -304,7 +304,7 @@ rank_dialog (GObject *o, gpointer data)
 		    G_CALLBACK (on_ntiles_toggle),
 		    rd.ntiles_entry);
 
-  gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (vars),
 				 vs->dict,

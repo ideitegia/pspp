@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
@@ -223,11 +223,11 @@ void
 regression_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
-
   struct regression_dialog rd;
 
   GladeXML *xml = XML_NEW ("regression.glade");
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
+
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "regression-dialog");
@@ -251,7 +251,7 @@ regression_dialog (GObject *o, gpointer data)
 				  stats
 				  );
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,
@@ -286,8 +286,8 @@ regression_dialog (GObject *o, gpointer data)
   rd.current_opts.pred = FALSE;
   rd.current_opts.resid = FALSE;
 
-  gtk_window_set_transient_for (GTK_WINDOW (rd.save_dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (rd.stat_dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (rd.save_dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (rd.stat_dialog), GTK_WINDOW (de));
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &rd);
 

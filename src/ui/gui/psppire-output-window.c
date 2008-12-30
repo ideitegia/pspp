@@ -79,8 +79,6 @@ psppire_output_window_get_type (void)
 static void
 psppire_output_window_finalize (GObject *object)
 {
-  g_debug ("%s %p", __FUNCTION__, object);
-
   GObjectClass *class = G_OBJECT_GET_CLASS (object);
 
   GObjectClass *parent_class = g_type_class_peek_parent (class);
@@ -283,7 +281,7 @@ psppire_output_window_reload (void)
   if ( NULL == the_output_viewer )
     {
       the_output_viewer = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
-      gtk_widget_show (the_output_viewer);
+      gtk_widget_show (GTK_WIDGET (the_output_viewer));
     }
 
   reload_viewer (the_output_viewer);

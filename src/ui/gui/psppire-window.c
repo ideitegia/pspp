@@ -301,7 +301,7 @@ minimise_all  (gpointer key,
 {
   PsppireWindow *w = PSPPIRE_WINDOW (value);
 
-  gtk_window_iconify (w);
+  gtk_window_iconify (GTK_WINDOW (w));
 }
 
 

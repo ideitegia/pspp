@@ -20,7 +20,7 @@
 #include <glade/glade.h>
 #include <language/syntax-string-source.h>
 
-#include "data-editor.h"
+#include "psppire-data-window.h"
 
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
@@ -183,7 +183,7 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
 {
   struct tt_paired_samples_dialog tt_d;
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 
@@ -203,9 +203,9 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
   tt_d.dict = vs->dict;
   tt_d.pairs_treeview =
    get_widget_assert (xml, "paired-samples-t-test-treeview2");
-  tt_d.opt = tt_options_dialog_create (xml, de->parent.window);
+  tt_d.opt = tt_options_dialog_create (xml, GTK_WINDOW (de));
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),

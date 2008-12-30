@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
@@ -307,7 +307,7 @@ void
 frequencies_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct frequencies_dialog fd;
 
@@ -331,7 +331,7 @@ frequencies_dialog (GObject *o, gpointer data)
 				  );
 
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,
@@ -369,7 +369,7 @@ frequencies_dialog (GObject *o, gpointer data)
   fd.current_opts.limit = 50;
 
 
-  gtk_window_set_transient_for (GTK_WINDOW (fd.format_dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (fd.format_dialog), GTK_WINDOW (de));
 
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &fd);

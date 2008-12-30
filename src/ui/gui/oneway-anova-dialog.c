@@ -23,7 +23,7 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "dialog-common.h"
 #include "dict-display.h"
@@ -126,7 +126,7 @@ void
 oneway_anova_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 
@@ -168,7 +168,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
   ow.dialog =
     GTK_WINDOW (get_widget_assert (xml, "oneway-anova-dialog"));
 
-  gtk_window_set_transient_for (ow.dialog, de->parent.window);
+  gtk_window_set_transient_for (ow.dialog, GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
 				 vs->dict,
@@ -222,7 +222,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
     psppire_acr_set_entry (cd->acr, entry);
 
     gtk_window_set_transient_for (GTK_WINDOW (cd->contrasts_dialog),
-				  de->parent.window);
+				  GTK_WINDOW (de));
   }
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (ow.dialog));
