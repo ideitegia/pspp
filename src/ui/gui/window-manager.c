@@ -22,7 +22,7 @@
 #include <glib.h>
 #include "psppire-syntax-window.h"
 #include "data-editor.h"
-#include "output-viewer.h"
+
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -90,7 +90,7 @@ window_create (enum window_type type, const gchar *name)
       e = (struct editor_window *) new_data_editor ();
       break;
     case WINDOW_OUTPUT:
-      e = (struct editor_window *) new_output_viewer ();
+      //e = (struct editor_window *) new_output_viewer ();
       break;
     default:
       g_assert_not_reached ();

@@ -45,7 +45,7 @@
 #include <language/lexer/lexer.h>
 #include "psppire-data-store.h"
 #include <output/manager.h>
-#include "output-viewer.h"
+#include "psppire-output-window.h"
 
 #include "xalloc.h"
 
@@ -246,7 +246,7 @@ execute_syntax (struct getl_interface *sss)
 
   som_flush ();
 
-  reload_the_viewer ();
+  psppire_output_window_reload ();
 
   return retval;
 }

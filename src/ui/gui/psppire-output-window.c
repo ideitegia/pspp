@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2008  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,38 +15,110 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <gtk/gtk.h>
-#include "window-manager.h"
-#include "output-viewer.h"
+
+#include <gtk/gtksignal.h>
+#include <gtk/gtkbox.h>
+#include <glade/glade.h>
 #include "helper.h"
+
+#include <libpspp/message.h>
+#include <stdlib.h>
+
 #include "about.h"
+
+#include "psppire-output-window.h"
+
+
+#include "xalloc.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <glade/glade.h>
-#include <ctype.h>
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
 
-#include "xalloc.h"
 
-struct output_viewer
+
+static void psppire_output_window_base_finalize (PsppireOutputWindowClass *, gpointer);
+static void psppire_output_window_base_init     (PsppireOutputWindowClass *class);
+static void psppire_output_window_class_init    (PsppireOutputWindowClass *class);
+static void psppire_output_window_init          (PsppireOutputWindow      *window);
+
+
+GType
+psppire_output_window_get_type (void)
 {
-  struct editor_window parent;
-  GtkTextBuffer *buffer;  /* The buffer which contains the text */
-  GtkWidget *textview ;
-  FILE *fp;               /* The file it's viewing */
-};
+  static GType psppire_output_window_type = 0;
 
+  if (!psppire_output_window_type)
+    {
+      static const GTypeInfo psppire_output_window_info =
+      {
+	sizeof (PsppireOutputWindowClass),
+	(GBaseInitFunc) psppire_output_window_base_init,
+        (GBaseFinalizeFunc) psppire_output_window_base_finalize,
+	(GClassInitFunc)psppire_output_window_class_init,
+	(GClassFinalizeFunc) NULL,
+	NULL,
+        sizeof (PsppireOutputWindow),
+	0,
+	(GInstanceInitFunc) psppire_output_window_init,
+      };
 
-static void
-cancel_urgency (GtkWindow *window,  gpointer data)
-{
-  gtk_window_set_urgency_hint (window, FALSE);
+      psppire_output_window_type =
+	g_type_register_static (PSPPIRE_WINDOW_TYPE, "PsppireOutputWindow",
+				&psppire_output_window_info, 0);
+    }
+
+  return psppire_output_window_type;
 }
 
 
-static struct output_viewer *the_output_viewer = NULL;
+static void
+psppire_output_window_finalize (GObject *object)
+{
+  g_debug ("%s %p", __FUNCTION__, object);
+
+  GObjectClass *class = G_OBJECT_GET_CLASS (object);
+
+  GObjectClass *parent_class = g_type_class_peek_parent (class);
+
+
+  if (G_OBJECT_CLASS (parent_class)->finalize)
+    (*G_OBJECT_CLASS (parent_class)->finalize) (object);
+
+}
+
+
+static void
+psppire_output_window_class_init (PsppireOutputWindowClass *class)
+{
+}
+
+
+static void
+psppire_output_window_base_init (PsppireOutputWindowClass *class)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+
+  object_class->finalize = psppire_output_window_finalize;
+}
+
+
+
+static void
+psppire_output_window_base_finalize (PsppireOutputWindowClass *class,
+				     gpointer class_data)
+{
+}
+
+
+
+
+static PsppireOutputWindow *the_output_viewer = NULL;
+
 
 int viewer_length = 16;
 int viewer_width = 59;
@@ -56,9 +128,9 @@ int viewer_width = 59;
 static gboolean
 on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 {
-  struct output_viewer *ov = user_data;
+  PsppireOutputWindow *ow = PSPPIRE_OUTPUT_WINDOW (user_data);
 
-  g_free (ov);
+  gtk_widget_destroy (GTK_WIDGET (ow));
 
   the_output_viewer = NULL;
 
@@ -68,6 +140,12 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 }
 
 
+
+static void
+cancel_urgency (GtkWindow *window,  gpointer data)
+{
+  gtk_window_set_urgency_hint (window, FALSE);
+}
 /* Sets width and length according to the new size
    of the output window */
 static void
@@ -107,30 +185,41 @@ on_textview_resize (GtkWidget     *widget,
 }
 
 
-
-/*
-  Create a new output viewer
-*/
-struct output_viewer *
-new_output_viewer (void)
+static void
+psppire_output_window_init (PsppireOutputWindow *window)
 {
   GladeXML *xml = XML_NEW ("output-viewer.glade");
 
-  struct output_viewer *ov ;
-  struct editor_window *e;
+  GtkWidget *box = gtk_vbox_new (FALSE, 0);
+
+  GtkWidget *sw = get_widget_assert (xml, "scrolledwindow1");
+
+  GtkWidget *menubar = get_widget_assert (xml, "menubar1");
+
+  window->textview = get_widget_assert (xml, "output-viewer-textview");
+
+
+  gtk_container_add (GTK_CONTAINER (window), box);
+
+
+  g_object_ref (menubar);
+  gtk_widget_unparent (menubar);
+
+  g_object_ref (sw);
+  gtk_widget_unparent (sw);
+
+
+  gtk_box_pack_start (GTK_BOX (box), menubar, FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (box), sw, TRUE, TRUE, 0);
+
+
+  gtk_widget_show_all (box);
 
   connect_help (xml);
 
-  ov = g_malloc (sizeof (*ov));
+  window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->textview));
 
-  e = (struct editor_window *)ov;
-
-
-  e->window = GTK_WINDOW (get_widget_assert (xml, "output-viewer-window"));
-  ov->textview = get_widget_assert (xml, "output-viewer-textview");
-  ov->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (ov->textview));
-
-  g_signal_connect (e->window,
+  g_signal_connect (window,
 		    "focus-in-event",
 		    G_CALLBACK (cancel_urgency),
 		    NULL);
@@ -141,42 +230,49 @@ new_output_viewer (void)
     PangoFontDescription *font_desc =
       pango_font_description_from_string ("monospace");
 
-    gtk_widget_modify_font (ov->textview, font_desc);
+    gtk_widget_modify_font (window->textview, font_desc);
     pango_font_description_free (font_desc);
   }
 
-  g_signal_connect (ov->textview, "size-allocate",
+  g_signal_connect (window->textview, "size-allocate",
 		    G_CALLBACK (on_textview_resize), NULL);
 
-  ov->fp = NULL;
+  window->fp = NULL;
 
   g_signal_connect (get_widget_assert (xml,"help_about"),
 		    "activate",
 		    G_CALLBACK (about_new),
-		    e->window);
+		    window);
 
   g_signal_connect (get_widget_assert (xml,"help_reference"),
 		    "activate",
 		    G_CALLBACK (reference_manual),
 		    NULL);
 
+#if 0
   g_signal_connect (get_widget_assert (xml,"windows_minimise-all"),
 		    "activate",
 		    G_CALLBACK (minimise_all_windows),
 		    NULL);
+#endif
 
   g_object_unref (xml);
 
-
-  g_signal_connect (e->window, "delete-event",
-		    G_CALLBACK (on_delete), ov);
-
-  return ov;
+  g_signal_connect (window, "delete-event",
+		    G_CALLBACK (on_delete), window);
 }
 
 
+GtkWidget*
+psppire_output_window_new (void)
+{
+  return GTK_WIDGET (g_object_new (psppire_output_window_get_type (), NULL));
+}
+
+static void reload_viewer (PsppireOutputWindow *ow);
+
 void
-reload_the_viewer (void)
+psppire_output_window_reload (void)
 {
   struct stat buf;
 
@@ -186,16 +282,17 @@ reload_the_viewer (void)
 
   if ( NULL == the_output_viewer )
     {
-      the_output_viewer =
-	(struct output_viewer *) window_create (WINDOW_OUTPUT, NULL);
+      the_output_viewer = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
+      gtk_widget_show (the_output_viewer);
     }
 
   reload_viewer (the_output_viewer);
+
 }
 
 
-void
-reload_viewer (struct output_viewer *ov)
+static void
+reload_viewer (PsppireOutputWindow *ow)
 {
   GtkTextIter end_iter;
   GtkTextMark *mark ;
@@ -204,12 +301,14 @@ reload_viewer (struct output_viewer *ov)
 
   gboolean chars_inserted = FALSE;
 
-  gtk_text_buffer_get_end_iter (ov->buffer, &end_iter);
+  gtk_text_buffer_get_end_iter (ow->buffer, &end_iter);
 
   line = xrealloc (line, sizeof (char) * (viewer_width + 1));
 
+  mark = gtk_text_buffer_create_mark (ow->buffer, NULL, &end_iter, TRUE);
 
-  mark = gtk_text_buffer_create_mark (ov->buffer, NULL, &end_iter, TRUE);
+
+  g_debug ("%s %p\n", __FUNCTION__, ow);
 
 #ifdef __CYGWIN__
   /*
@@ -246,10 +345,10 @@ reload_viewer (struct output_viewer *ov)
   }
 #else
   {
-    if ( ov->fp == NULL)
+    if ( ow->fp == NULL)
       {
-	ov->fp = fopen (OUTPUT_FILE_NAME, "r");
-	if ( ov->fp == NULL)
+	ow->fp = fopen (OUTPUT_FILE_NAME, "r");
+	if ( ow->fp == NULL)
 	  {
 	    g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
 	    return;
@@ -257,22 +356,22 @@ reload_viewer (struct output_viewer *ov)
       }
 
     /* Read in the next lot of text */
-    while (fgets (line, viewer_width + 1, ov->fp) != NULL)
+    while (fgets (line, viewer_width + 1, ow->fp) != NULL)
       {
 	chars_inserted = TRUE;
-	gtk_text_buffer_insert (ov->buffer, &end_iter, line, -1);
+	gtk_text_buffer_insert (ow->buffer, &end_iter, line, -1);
       }
   }
 #endif
 
   /* Scroll to where the start of this lot of text begins */
-  gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW (ov->textview),
+  gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW (ow->textview),
 				mark,
 				0.1, TRUE, 0.0, 0.0);
 
 
   if ( chars_inserted )
-    gtk_window_set_urgency_hint ( ((struct editor_window *)ov)->window, TRUE);
+    gtk_window_set_urgency_hint ( GTK_WINDOW (ow), TRUE);
 }
 
 

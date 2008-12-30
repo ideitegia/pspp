@@ -53,7 +53,8 @@
 #include "message-dialog.h"
 #include <ui/syntax-gen.h>
 
-#include "output-viewer.h"
+
+#include "psppire-output-window.h"
 
 #include <data/sys-file-reader.h>
 #include <data/por-file-reader.h>
