@@ -45,7 +45,7 @@
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-sheet.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/syntax-editor.h>
+#include <ui/gui/psppire-syntax-window.h>
 
 #include "error.h"
 #include "xalloc.h"
@@ -293,9 +293,13 @@ text_data_import_assistant (GObject *o, gpointer de_)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	char *syntax = generate_syntax (ia);
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+
+        GtkWidget *se = psppire_syntax_window_new ();
+
+	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
+
+	gtk_widget_show (se);
+
 	free (syntax);
       }
       break;

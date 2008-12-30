@@ -28,7 +28,7 @@
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/syntax-editor.h>
+#include <ui/gui/psppire-syntax-window.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -347,10 +347,11 @@ examine_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&ex_d);
 
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
+        GtkWidget *se = psppire_syntax_window_new ();
 
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
+
+	gtk_widget_show (se);
 
 	g_free (syntax);
       }

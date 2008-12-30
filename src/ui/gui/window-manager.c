@@ -20,7 +20,7 @@
 #include "relocatable.h"
 
 #include <glib.h>
-#include "syntax-editor.h"
+#include "psppire-syntax-window.h"
 #include "data-editor.h"
 #include "output-viewer.h"
 
@@ -84,7 +84,7 @@ window_create (enum window_type type, const gchar *name)
   switch (type)
     {
     case WINDOW_SYNTAX:
-      e = (struct editor_window *) new_syntax_editor ();
+      //e = (struct editor_window *) new_syntax_editor ();
       break;
     case WINDOW_DATA:
       e = (struct editor_window *) new_data_editor ();

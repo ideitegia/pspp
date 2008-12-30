@@ -59,7 +59,7 @@
 #define N_(msgid) msgid
 
 #include "data-editor.h"
-#include "syntax-editor.h"
+#include "psppire-syntax-window.h"
 #include <language/syntax-string-source.h>
 #include <language/command.h>
 #include <ui/syntax-gen.h>
@@ -208,7 +208,7 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 {
   gchar *file;
 
-  struct syntax_editor *se ;
+  GtkWidget *se ;
 
   gchar *uri =
     gtk_recent_chooser_get_current_uri (GTK_RECENT_CHOOSER (menushell));
@@ -217,10 +217,10 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
   g_free (uri);
 
-  se = (struct syntax_editor *)
-    window_create (WINDOW_SYNTAX, file);
+  se = psppire_syntax_window_new ();
 
-  load_editor_from_file (se, file, NULL);
+  psppire_syntax_window_load_from_file (PSPPIRE_SYNTAX_WINDOW (se), file, NULL);
+  gtk_widget_show (se);
 
   g_free (file);
 }
@@ -700,8 +700,8 @@ new_data_editor (void)
 
   g_signal_connect (get_widget_assert (de->xml,"file_new_syntax"),
 		    "activate",
-		    G_CALLBACK (new_syntax_window),
-		    e->window);
+		    G_CALLBACK (create_syntax_window),
+		    NULL);
 
   g_signal_connect (get_widget_assert (de->xml,"file_open_syntax"),
 		    "activate",

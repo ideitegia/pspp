@@ -26,14 +26,14 @@
 #include <gtk/gtk.h>
 
 #include "syntax-editor-source.h"
-#include "syntax-editor.h"
+#include "psppire-syntax-window.h"
 
 #include "xalloc.h"
 
 struct syntax_editor_source
   {
     struct getl_interface parent;
-    const struct syntax_editor *se;
+    GtkTextBuffer *buffer;
     GtkTextIter i;
     GtkTextIter end;
   };
@@ -49,10 +49,10 @@ always_false (const struct getl_interface *i UNUSED)
 static const char *
 name (const struct getl_interface *i)
 {
-  const struct syntax_editor_source *ses =
-    (const struct syntax_editor_source *) i;
+  //  const struct syntax_editor_source *ses =
+  //  (const struct syntax_editor_source *) i;
 
-  return window_name ((const struct editor_window *) ses->se);
+  return "I have no idea"; // window_name ((const struct editor_window *) ses->se);
 }
 
 
@@ -81,7 +81,7 @@ read_line_from_buffer (struct getl_interface *i,
   next_line = ses->i;
   gtk_text_iter_forward_line (&next_line);
 
-  text = gtk_text_buffer_get_text (ses->se->buffer,
+  text = gtk_text_buffer_get_text (ses->buffer,
 				   &ses->i, &next_line,
 				   FALSE);
   g_strchomp (text);
@@ -103,14 +103,14 @@ do_close (struct getl_interface *i )
 }
 
 struct getl_interface *
-create_syntax_editor_source (const struct syntax_editor *se,
+create_syntax_editor_source (GtkTextBuffer *buffer,
 			     GtkTextIter start,
 			     GtkTextIter stop
 			     )
 {
   struct syntax_editor_source *ses = xzalloc (sizeof *ses);
 
-  ses->se = se;
+  ses->buffer = buffer;
   ses->i = start;
   ses->end = stop;
 

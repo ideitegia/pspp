@@ -26,7 +26,7 @@
 #include "dict-display.h"
 #include "widget-io.h"
 #include <language/syntax-string-source.h>
-#include "syntax-editor.h"
+#include "psppire-syntax-window.h"
 
 
 #include <gettext.h>
@@ -364,10 +364,11 @@ select_cases_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&scd);
 
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
+        GtkWidget *se = psppire_syntax_window_new ();
 
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
+
+	gtk_widget_show (se);
 
 	g_free (syntax);
       }
