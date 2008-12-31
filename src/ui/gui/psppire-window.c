@@ -35,7 +35,7 @@ static void psppire_window_init          (PsppireWindow      *window);
 
 
 static PsppireWindowClass *the_class;
-
+static GObjectClass *parent_class;
 
 GType
 psppire_window_get_type (void)
@@ -181,20 +181,11 @@ psppire_window_finalize (GObject *object)
   PsppireWindow *window = PSPPIRE_WINDOW (object);
   PsppireWindowClass *class = PSPPIRE_WINDOW_CLASS (G_OBJECT_GET_CLASS (object));
 
-  GtkWindowClass *parent_class = g_type_class_peek_parent (class);
-
-  if ( window->finalized )
-    return;
-
-  window->finalized = TRUE;
-
-  g_debug ("%s %p", __FUNCTION__, object);
-
   g_hash_table_remove (class->name_table, window->name);
   free (window->name);
 
   if (G_OBJECT_CLASS (parent_class)->finalize)
-     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
+    G_OBJECT_CLASS (parent_class)->finalize (object);
 }
 
 
@@ -202,6 +193,8 @@ static void
 psppire_window_class_init (PsppireWindowClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
+
+
 
   GParamSpec *use_class_spec =
     g_param_spec_enum ("usage",
@@ -238,6 +231,7 @@ psppire_window_class_init (PsppireWindowClass *class)
   g_hash_table_insert (class->name_table, "Untitled", NULL);
 
   the_class = class;
+  parent_class = g_type_class_peek_parent (class);
 }
 
 
