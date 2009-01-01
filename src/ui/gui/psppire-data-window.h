@@ -114,8 +114,6 @@ struct _PsppireDataWindowClass
 GType      psppire_data_window_get_type        (void);
 GtkWidget* psppire_data_window_new             (void);
 
-void create_data_window (void);
-
 
 G_END_DECLS
 

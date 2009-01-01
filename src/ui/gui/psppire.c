@@ -69,6 +69,7 @@ static void create_icon_factory (void);
 struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
 
+static GtkWidget *the_data_window;
 
 static void
 replace_casereader (struct casereader *s)
@@ -118,8 +119,6 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
   the_data_store = psppire_data_store_new (dictionary);
   replace_casereader (NULL);
 
-
-
   create_icon_factory ();
 
   outp_configure_driver_line (
@@ -136,14 +135,16 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
   /* Ignore alarm clock signals */
   signal (SIGALRM, SIG_IGN);
 
+  the_data_window = psppire_data_window_new ();
+
   command_line_processor_replace_aux (clp, &post_init_argp, the_source_stream);
   command_line_processor_replace_aux (clp, &non_option_argp, the_source_stream);
 
   command_line_processor_parse (clp, argc, argv);
 
-  create_data_window ();
-
   execute_syntax (create_syntax_string_source (""));
+
+  gtk_widget_show (the_data_window);
 }
 
 
@@ -281,6 +282,9 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 			    ERRMODE_CONTINUE);
 
 	ds_destroy (&syntax);
+
+	psppire_window_set_filename (the_data_window, arg);
+
 	break;
       }
     default:

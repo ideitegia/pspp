@@ -519,11 +519,12 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    G_CALLBACK (open_syntax_window),
 		    window);
 
-
+#if 0
   g_signal_connect (get_widget_assert (xml,"file_new_data"),
 		    "activate",
 		    G_CALLBACK (create_data_window),
 		    window);
+#endif
 
   g_signal_connect (get_widget_assert (xml,"help_about"),
 		    "activate",

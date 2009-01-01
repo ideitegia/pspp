@@ -325,14 +325,12 @@ remove_menuitem (PsppireWindowRegister *reg, const gchar *key, gpointer data)
   PsppireWindow *window = PSPPIRE_WINDOW (data);
   GtkWidget *item ;
 
-  if ( !GTK_WIDGET_REALIZED (window))
-    return;
-
   item = g_hash_table_lookup (window->menuitem_table, key);
 
   g_hash_table_remove (window->menuitem_table, key);
 
-  gtk_container_remove (GTK_CONTAINER (window->menu), item);
+  if (GTK_IS_CONTAINER (window->menu))
+    gtk_container_remove (GTK_CONTAINER (window->menu), item);
 }
 
 static void

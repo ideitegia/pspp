@@ -1005,14 +1005,6 @@ on_switch_sheet (GtkNotebook *notebook,
 
 
 
-void
-create_data_window (void)
-{
-  GtkWidget *w = psppire_data_window_new ();
-  gtk_widget_show (w);
-}
-
-
 static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
