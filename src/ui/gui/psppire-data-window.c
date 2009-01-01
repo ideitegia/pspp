@@ -581,7 +581,7 @@ new_file (GtkAction *action, PsppireDataWindow *de)
   g_free (de->file_name);
   de->file_name = NULL;
 
-  //  default_window_name (de);
+  psppire_window_set_filename (PSPPIRE_WINDOW (de), NULL);
 }
 
 

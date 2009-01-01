@@ -99,13 +99,22 @@ psppire_window_set_property (GObject         *object,
       break;
     case PROP_FILENAME:
       {
+	PsppireWindowRegister *reg = psppire_window_register_new ();
 	gchar mdash[6] = {0,0,0,0,0,0};
 	gchar *basename, *title;
 	const gchar *name = g_value_get_string (value);
-	gchar *candidate_name = strdup (name);
 	int x = 0;
+	gchar *candidate_name ;
+	GValue def = {0};
+	g_value_init (&def, pspec->value_type);
 
-	PsppireWindowRegister *reg = psppire_window_register_new ();
+	if ( NULL == name)
+	  {
+	    g_param_value_set_default (pspec, &def);
+	    name = g_value_get_string (&def);
+	  }
+	
+        candidate_name = strdup (name);
 
 	while ( psppire_window_register_lookup (reg, candidate_name))
 	  {
@@ -115,6 +124,8 @@ psppire_window_set_property (GObject         *object,
 
 	basename = g_path_get_basename (candidate_name);
 	g_unichar_to_utf8 (0x2014, mdash);
+
+	g_value_unset (&def);
 
 	switch (window->usage)
 	  {
