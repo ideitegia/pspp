@@ -259,16 +259,41 @@ psppire_window_base_finalize (PsppireWindowClass *class,
 }
 
 static void
+menu_toggled (GtkCheckMenuItem *mi, gpointer data)
+{
+  /* Prohibit changes to the state */
+  mi->active = !mi->active;
+}
+
+
+/* Look up the window associated with this menuitem and present it to the user */
+static void
+menu_activate (GtkMenuItem *mi, gpointer data)
+{
+  const gchar *key = data;
+
+  PsppireWindowRegister *reg = psppire_window_register_new ();
+
+  PsppireWindow *window = psppire_window_register_lookup (reg, key);
+
+  gtk_window_present (GTK_WINDOW (window));
+}
+
+static void
 insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
 {
   GtkWidget *item = gtk_check_menu_item_new_with_label (key);
+
+  g_signal_connect (item, "toggled", G_CALLBACK (menu_toggled), NULL);
+  g_signal_connect (item, "activate", G_CALLBACK (menu_activate), key);
 
   gtk_widget_show (item);
   
   gtk_menu_shell_append (window->menu, item);
 
-  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (item),
-				  (psppire_window_register_lookup (psppire_window_register_new (), key) == window));
+  /* Set the state without emitting a signal */
+  GTK_CHECK_MENU_ITEM (item)->active =
+   (psppire_window_register_lookup (psppire_window_register_new (), key) == window);
 
   g_hash_table_insert (window->menuitem_table, key, item);
 }
