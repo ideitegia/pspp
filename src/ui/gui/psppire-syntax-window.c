@@ -106,10 +106,12 @@ psppire_syntax_window_base_finalize (PsppireSyntaxWindowClass *class,
 
 
 static void
-editor_execute_syntax (const PsppireSyntaxWindow *se, GtkTextIter start,
-		GtkTextIter stop)
+editor_execute_syntax (const PsppireSyntaxWindow *sw, GtkTextIter start,
+		       GtkTextIter stop)
 {
-  execute_syntax (create_syntax_editor_source (se->buffer, start, stop));
+  PsppireWindow *win = PSPPIRE_WINDOW (sw);
+  const gchar *name = psppire_window_get_filename (win);
+  execute_syntax (create_syntax_editor_source (sw->buffer, start, stop, name));
 }
 
 

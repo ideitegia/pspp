@@ -36,6 +36,7 @@ struct syntax_editor_source
     GtkTextBuffer *buffer;
     GtkTextIter i;
     GtkTextIter end;
+    const gchar *name;
   };
 
 
@@ -49,10 +50,8 @@ always_false (const struct getl_interface *i UNUSED)
 static const char *
 name (const struct getl_interface *i)
 {
-  //  const struct syntax_editor_source *ses =
-  //  (const struct syntax_editor_source *) i;
-
-  return "I have no idea"; // window_name ((const struct editor_window *) ses->se);
+  const struct syntax_editor_source *ses = (const struct syntax_editor_source *) i;
+  return ses->name;
 }
 
 
@@ -105,7 +104,8 @@ do_close (struct getl_interface *i )
 struct getl_interface *
 create_syntax_editor_source (GtkTextBuffer *buffer,
 			     GtkTextIter start,
-			     GtkTextIter stop
+			     GtkTextIter stop,
+			     const gchar *nm
 			     )
 {
   struct syntax_editor_source *ses = xzalloc (sizeof *ses);
@@ -113,6 +113,7 @@ create_syntax_editor_source (GtkTextBuffer *buffer,
   ses->buffer = buffer;
   ses->i = start;
   ses->end = stop;
+  ses->name = nm;
 
 
   ses->parent.interactive = always_false;

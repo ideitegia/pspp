@@ -25,7 +25,8 @@ struct syntax_editor;
 struct getl_interface *
 create_syntax_editor_source (GtkTextBuffer *buffer,
 			     GtkTextIter start,
-			     GtkTextIter stop
+			     GtkTextIter stop,
+			     const gchar *name
 			     );
 
 
