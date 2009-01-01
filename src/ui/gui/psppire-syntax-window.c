@@ -75,8 +75,6 @@ psppire_syntax_window_finalize (GObject *object)
 {
   GObjectClass *class = G_OBJECT_GET_CLASS (object);
 
-  PsppireSyntaxWindow *window = PSPPIRE_SYNTAX_WINDOW (object);
-
   GObjectClass *parent_class = g_type_class_peek_parent (class);
 
   if (G_OBJECT_CLASS (parent_class)->finalize)
@@ -575,8 +573,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all), NULL);
 
-  PSPPIRE_WINDOW (window)->menu = GTK_MENU (get_widget_assert (xml,"windows_menu"));
-  g_object_ref (PSPPIRE_WINDOW (window)->menu);
+  PSPPIRE_WINDOW (window)->menu = GTK_MENU_SHELL (get_widget_assert (xml,"windows_menu"));
 
   g_object_unref (xml);
 

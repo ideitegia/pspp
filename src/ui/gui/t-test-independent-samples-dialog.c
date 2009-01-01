@@ -32,7 +32,7 @@
 #include <ui/syntax-gen.h>
 
 #include <language/syntax-string-source.h>
-#include "psppire-syntax-window.h"
+#include "helper.h"
 
 #include <gl/xalloc.h>
 
@@ -475,6 +475,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&tt_d);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -484,13 +485,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&tt_d);
-
-        GtkWidget *se = psppire_syntax_window_new ();
-
-	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
-
-	gtk_widget_show (se);
-
+        paste_syntax_in_new_window (syntax);
 	g_free (syntax);
       }
       break;

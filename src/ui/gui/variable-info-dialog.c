@@ -29,7 +29,7 @@
 #include "helper.h"
 
 #include <language/syntax-string-source.h>
-#include "psppire-syntax-window.h"
+#include "helper.h"
 
 
 #include <gettext.h>
@@ -214,12 +214,7 @@ variable_info_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (GTK_TREE_VIEW (treeview));
-
-        GtkWidget *se = psppire_syntax_window_new ();
-
-	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
-
-	gtk_widget_show (se);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

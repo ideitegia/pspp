@@ -1705,8 +1705,7 @@ psppire_data_window_init (PsppireDataWindow *de)
   de->data_sheet_cases_popup_menu =
     GTK_MENU (create_data_sheet_cases_popup_menu (de));
 
-  PSPPIRE_WINDOW (de)->menu = GTK_MENU (get_widget_assert (de->xml,"Windows_menu"));
-  g_object_ref (PSPPIRE_WINDOW (de)->menu);
+  PSPPIRE_WINDOW (de)->menu = GTK_MENU_SHELL (get_widget_assert (de->xml,"Windows_menu"));
 
   g_object_set (de->data_editor,
 		"datasheet-column-menu", de->data_sheet_variable_popup_menu,

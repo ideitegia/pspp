@@ -20,6 +20,8 @@
 */
 #include <config.h>
 
+#include "psppire-syntax-window.h"
+
 #include	<glib-object.h>
 
 #include <glib.h>
@@ -297,3 +299,14 @@ clone_list_store (const GtkListStore *src)
 }
 
 
+
+
+void
+paste_syntax_in_new_window (const gchar *syntax)
+{
+  GtkWidget *se = psppire_syntax_window_new ();
+
+  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
+
+  gtk_widget_show (se);
+}

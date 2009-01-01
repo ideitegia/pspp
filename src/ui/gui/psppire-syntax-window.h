@@ -18,7 +18,6 @@
 #ifndef __PSPPIRE_SYNTAX_WINDOW_H__
 #define __PSPPIRE_SYNTAX_WINDOW_H__
 
-
 #include <glib.h>
 #include <glib-object.h>
 #include <gtk/gtkaction.h>

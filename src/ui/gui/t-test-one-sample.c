@@ -31,7 +31,6 @@
 
 #include "t-test-options.h"
 #include <language/syntax-string-source.h>
-#include "psppire-syntax-window.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -181,6 +180,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&tt_d);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -191,11 +191,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&tt_d);
 
-        GtkWidget *se = psppire_syntax_window_new ();
-
-	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
-
-	gtk_widget_show (se);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

@@ -26,6 +26,10 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
+
+
+void paste_syntax_in_new_window (const gchar *syntax);
+
 /*
    GtkRecentChooserMenu was added in 2.10.0
    but it didn't support GtkRecentFilters until

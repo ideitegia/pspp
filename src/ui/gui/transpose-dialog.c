@@ -23,7 +23,7 @@
 #include "psppire-data-window.h"
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
-#include "psppire-syntax-window.h"
+#include "helper.h"
 
 #include "dialog-common.h"
 
@@ -129,6 +129,7 @@ transpose_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (vs->dict, xml);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -138,12 +139,7 @@ transpose_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (vs->dict, xml);
-
-        GtkWidget *se = psppire_syntax_window_new ();
-
-	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
-
-	gtk_widget_show (se);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

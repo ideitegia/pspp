@@ -23,7 +23,7 @@
 #include "psppire-data-window.h"
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
-#include "psppire-syntax-window.h"
+#include "helper.h"
 
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -172,13 +172,7 @@ weight_cases_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&wcd);
-
-        GtkWidget *se = psppire_syntax_window_new ();
-
-	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
-
-	gtk_widget_show (se);
-
+        paste_syntax_in_new_window (syntax);
 	g_free (syntax);
       }
       break;

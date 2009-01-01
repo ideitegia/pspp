@@ -27,7 +27,7 @@
 
 #include <language/expressions/public.h>
 #include <language/syntax-string-source.h>
-#include "psppire-syntax-window.h"
+#include "helper.h"
 
 static void function_list_populate (GtkTreeView *tv);
 
@@ -447,6 +447,7 @@ compute_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&scd);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -457,11 +458,7 @@ compute_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&scd);
 
-        GtkWidget *se = psppire_syntax_window_new ();
-
-	gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
-
-	gtk_widget_show (se);
+	paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

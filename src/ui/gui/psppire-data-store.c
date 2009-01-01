@@ -308,8 +308,6 @@ delete_variable_callback (GObject *obj, gint dict_index,
 #endif
 }
 
-
-
 static void
 variable_changed_callback (GObject *obj, gint var_num, gpointer data)
 {
@@ -318,7 +316,6 @@ variable_changed_callback (GObject *obj, gint var_num, gpointer data)
 #if AXIS_TRANSITION
   psppire_sheet_column_columns_changed (PSPPIRE_SHEET_COLUMN (store),
 				  var_num, 1);
-
 
   psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store),
 			       -1, var_num,
