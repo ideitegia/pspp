@@ -24,10 +24,10 @@
 #include <libpspp/message.h>
 #include <stdlib.h>
 
-
 #include "psppire-syntax-window.h"
 
 #include "psppire-data-window.h"
+#include "psppire-window-register.h"
 #include "about.h"
 #include "psppire-syntax-window.h"
 #include "syntax-editor-source.h"
@@ -37,13 +37,10 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
-
 static void psppire_syntax_window_base_finalize (PsppireSyntaxWindowClass *, gpointer);
 static void psppire_syntax_window_base_init     (PsppireSyntaxWindowClass *class);
 static void psppire_syntax_window_class_init    (PsppireSyntaxWindowClass *class);
 static void psppire_syntax_window_init          (PsppireSyntaxWindow      *syntax_editor);
-
 
 GType
 psppire_syntax_window_get_type (void)
@@ -73,11 +70,12 @@ psppire_syntax_window_get_type (void)
   return psppire_syntax_window_type;
 }
 
-
 static void
 psppire_syntax_window_finalize (GObject *object)
 {
   GObjectClass *class = G_OBJECT_GET_CLASS (object);
+
+  PsppireSyntaxWindow *window = PSPPIRE_SYNTAX_WINDOW (object);
 
   GObjectClass *parent_class = g_type_class_peek_parent (class);
 
@@ -474,6 +472,7 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 }
 
 
+
 extern struct source_stream *the_source_stream ;
 
 static void
@@ -574,8 +573,10 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect (get_widget_assert (xml,"windows_minimise_all"),
 		    "activate",
-		    G_CALLBACK (psppire_window_minimise_all),
-		    NULL);
+		    G_CALLBACK (psppire_window_minimise_all), NULL);
+
+  PSPPIRE_WINDOW (window)->menu = GTK_MENU (get_widget_assert (xml,"windows_menu"));
+  g_object_ref (PSPPIRE_WINDOW (window)->menu);
 
   g_object_unref (xml);
 

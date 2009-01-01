@@ -200,6 +200,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-window.c \
 	src/ui/gui/psppire-window.h \
+	src/ui/gui/psppire-window-register.c \
+	src/ui/gui/psppire-window-register.h \
 	src/ui/gui/psppire-syntax-window.c \
 	src/ui/gui/psppire-syntax-window.h \
 	src/ui/gui/window-manager.h

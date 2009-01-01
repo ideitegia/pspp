@@ -18,6 +18,7 @@
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkwindow.h>
+#include <gtk/gtkcheckmenuitem.h>
 
 #include <stdlib.h>
 
@@ -26,7 +27,7 @@
 #define N_(msgid) msgid
 
 #include "psppire-window.h"
-
+#include "psppire-window-register.h"
 
 static void psppire_window_base_finalize (PsppireWindowClass *, gpointer);
 static void psppire_window_base_init     (PsppireWindowClass *class);
@@ -49,7 +50,7 @@ psppire_window_get_type (void)
 	sizeof (PsppireWindowClass),
 	(GBaseInitFunc) psppire_window_base_init,
         (GBaseFinalizeFunc) psppire_window_base_finalize,
-	(GClassInitFunc)psppire_window_class_init,
+	(GClassInitFunc) psppire_window_class_init,
 	(GClassFinalizeFunc) NULL,
 	NULL,
         sizeof (PsppireWindow),
@@ -91,7 +92,6 @@ psppire_window_set_property (GObject         *object,
 {
   PsppireWindow *window = PSPPIRE_WINDOW (object);
 
-  PsppireWindowClass *class = PSPPIRE_WINDOW_CLASS (G_OBJECT_GET_CLASS (object));
   switch (prop_id)
     {
     case PROP_USAGE:
@@ -105,7 +105,9 @@ psppire_window_set_property (GObject         *object,
 	gchar *candidate_name = strdup (name);
 	int x = 0;
 
-	while ( g_hash_table_lookup (class->name_table, candidate_name))
+	PsppireWindowRegister *reg = psppire_window_register_new ();
+
+	while ( psppire_window_register_lookup (reg, candidate_name))
 	  {
 	    free (candidate_name);
 	    candidate_name = uniquify (name, &x);
@@ -134,11 +136,13 @@ psppire_window_set_property (GObject         *object,
 
 	gtk_window_set_title (GTK_WINDOW (window), title);
 
+	if ( window->name)
+	  psppire_window_register_remove (reg, window->name);
+
 	free (window->name);
 	window->name = candidate_name;
 
-
-	g_hash_table_insert (class->name_table, window->name, window);
+	psppire_window_register_insert (reg, window, window->name);
 
 	free (basename);
 	free (title);
@@ -179,10 +183,19 @@ static void
 psppire_window_finalize (GObject *object)
 {
   PsppireWindow *window = PSPPIRE_WINDOW (object);
-  PsppireWindowClass *class = PSPPIRE_WINDOW_CLASS (G_OBJECT_GET_CLASS (object));
+  
+  PsppireWindowRegister *reg = psppire_window_register_new ();
 
-  g_hash_table_remove (class->name_table, window->name);
+  psppire_window_register_remove (reg, window->name);
   free (window->name);
+
+  g_signal_handler_disconnect (psppire_window_register_new (),
+			       window->remove_handler);
+
+  g_signal_handler_disconnect (psppire_window_register_new (),
+			       window->insert_handler);
+
+  g_hash_table_destroy (window->menuitem_table);
 
   if (G_OBJECT_CLASS (parent_class)->finalize)
     G_OBJECT_CLASS (parent_class)->finalize (object);
@@ -193,8 +206,6 @@ static void
 psppire_window_class_init (PsppireWindowClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
-
-
 
   GParamSpec *use_class_spec =
     g_param_spec_enum ("usage",
@@ -226,10 +237,6 @@ psppire_window_class_init (PsppireWindowClass *class)
                                    use_class_spec);
 
 
-  class->name_table = g_hash_table_new (g_str_hash, g_str_equal);
-
-  g_hash_table_insert (class->name_table, "Untitled", NULL);
-
   the_class = class;
   parent_class = g_type_class_peek_parent (class);
 }
@@ -249,16 +256,86 @@ static void
 psppire_window_base_finalize (PsppireWindowClass *class,
 				gpointer class_data)
 {
-  g_hash_table_destroy (class->name_table);
+}
+
+static void
+insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
+{
+  GtkWidget *item = gtk_check_menu_item_new_with_label (key);
+
+  gtk_widget_show (item);
+  
+  gtk_menu_shell_append (window->menu, item);
+
+  gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (item),
+				  (psppire_window_register_lookup (psppire_window_register_new (), key) == window));
+
+  g_hash_table_insert (window->menuitem_table, key, item);
+}
+
+static void
+insert_item (gpointer key, gpointer value, gpointer data)
+{
+  PsppireWindow *window = PSPPIRE_WINDOW (data);
+
+  if ( NULL != g_hash_table_lookup (window->menuitem_table, key))
+    return;
+
+  insert_menuitem_into_menu (window, key);
+}
+
+/* Insert a new item into the window menu */
+static void
+insert_menuitem (GObject *reg, const gchar *key, gpointer data)
+{
+  PsppireWindow *window = PSPPIRE_WINDOW (data);
+  
+  insert_menuitem_into_menu (window, (gpointer) key);
 }
 
 
+static void
+remove_menuitem (PsppireWindowRegister *reg, const gchar *key, gpointer data)
+{
+  PsppireWindow *window = PSPPIRE_WINDOW (data);
+  GtkWidget *item ;
+
+  if ( !GTK_WIDGET_REALIZED (window))
+    return;
+
+  item = g_hash_table_lookup (window->menuitem_table, key);
+
+  g_hash_table_remove (window->menuitem_table, key);
+
+  gtk_container_remove (GTK_CONTAINER (window->menu), item);
+}
+
+static void
+insert_existing_items (PsppireWindow *window)
+{
+  psppire_window_register_foreach (psppire_window_register_new (), insert_item, window);
+}
 
 static void
 psppire_window_init (PsppireWindow *window)
 {
   window->name = NULL;
-  window->finalized = FALSE;
+  window->menu = NULL;
+
+  window->menuitem_table  = g_hash_table_new (g_str_hash, g_str_equal);
+
+
+  g_signal_connect (window,  "realize", G_CALLBACK (insert_existing_items), NULL);
+
+  window->insert_handler = g_signal_connect (psppire_window_register_new (),
+					     "inserted",
+					     G_CALLBACK (insert_menuitem),
+					     window);
+
+  window->remove_handler = g_signal_connect (psppire_window_register_new (),
+					     "removed",
+					     G_CALLBACK (remove_menuitem),
+					     window);
 }
 
 
@@ -287,27 +364,6 @@ psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
   g_object_set (w, "filename", filename, NULL);
 }
 
-
-static void
-minimise_all  (gpointer key,
-	       gpointer value,
-	       gpointer user_data)
-{
-  PsppireWindow *w = PSPPIRE_WINDOW (value);
-
-  gtk_window_iconify (GTK_WINDOW (w));
-}
-
-
-
-void
-psppire_window_minimise_all (void)
-{
-  g_hash_table_foreach (the_class->name_table, minimise_all, NULL);
-}
-
-
-
 
 
 GType
@@ -329,9 +385,26 @@ psppire_window_usage_get_type (void)
 	{ 0, NULL, NULL }
       };
 
-      etype = g_enum_register_static
-	(g_intern_static_string ("PsppireWindowUsage"), values);
+      etype = g_enum_register_static (g_intern_static_string ("PsppireWindowUsage"),
+				      values);
     }
 
   return etype;
+}
+
+
+
+static void
+minimise_window (gpointer key, gpointer value, gpointer data)
+{
+  gtk_window_iconify (GTK_WINDOW (value));
+}
+
+
+void
+psppire_window_minimise_all (void)
+{
+  PsppireWindowRegister *reg = psppire_window_register_new ();
+
+  g_hash_table_foreach (reg->name_table, minimise_window, NULL);
 }

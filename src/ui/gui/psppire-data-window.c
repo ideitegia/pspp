@@ -337,7 +337,7 @@ open_data_file (const gchar *file_name, PsppireDataWindow *de)
 
   if (execute_syntax (sss) )
   {
-    //    window_set_name_from_filename ((struct editor_window *) de, file_name);
+    psppire_window_set_filename (PSPPIRE_WINDOW (de), file_name);
     add_most_recent (file_name);
   }
 }
@@ -544,7 +544,7 @@ data_save_as_dialog (GtkAction *action, PsppireDataWindow *de)
 
 	save_file (de);
 
-	//	window_set_name_from_filename (e, de->file_name);
+	psppire_window_set_filename (PSPPIRE_WINDOW (de), de->file_name);
       }
       break;
     default:
@@ -1705,6 +1705,8 @@ psppire_data_window_init (PsppireDataWindow *de)
   de->data_sheet_cases_popup_menu =
     GTK_MENU (create_data_sheet_cases_popup_menu (de));
 
+  PSPPIRE_WINDOW (de)->menu = GTK_MENU (get_widget_assert (de->xml,"Windows_menu"));
+  g_object_ref (PSPPIRE_WINDOW (de)->menu);
 
   g_object_set (de->data_editor,
 		"datasheet-column-menu", de->data_sheet_variable_popup_menu,
@@ -1712,7 +1714,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 		"varsheet-row-menu", de->var_sheet_variable_popup_menu,
 		NULL);
 
-  gtk_widget_show (de->data_editor);
+  gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);
 }
 

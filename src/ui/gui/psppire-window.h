@@ -23,6 +23,7 @@
 #include <glib-object.h>
 #include <gtk/gtkwindow.h>
 #include <gtk/gtkaction.h>
+#include <gtk/gtkmenushell.h>
 
 G_BEGIN_DECLS
 
@@ -62,15 +63,18 @@ struct _PsppireWindow
 
   /* <private> */
   gchar *name;
-  gboolean finalized;
   PsppireWindowUsage usage;
+
+  GHashTable *menuitem_table;
+  GtkMenuShell *menu;
+
+  guint insert_handler;
+  guint remove_handler;
 };
 
 struct _PsppireWindowClass
 {
   GtkWindowClass parent_class;
-
-  GHashTable *name_table;
 };
 
 GType      psppire_window_get_type        (void);
