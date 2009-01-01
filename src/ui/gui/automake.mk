@@ -136,7 +136,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/missing-val-dialog.h \
         src/ui/gui/oneway-anova-dialog.c \
         src/ui/gui/oneway-anova-dialog.h \
-	src/ui/gui/output-viewer.h \
 	src/ui/gui/psppire-acr.h \
 	src/ui/gui/psppire-buttonbox.h \
 	src/ui/gui/psppire-hbuttonbox.h \
@@ -203,8 +202,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-window-register.c \
 	src/ui/gui/psppire-window-register.h \
 	src/ui/gui/psppire-syntax-window.c \
-	src/ui/gui/psppire-syntax-window.h \
-	src/ui/gui/window-manager.h
+	src/ui/gui/psppire-syntax-window.h
 
 nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.c \
