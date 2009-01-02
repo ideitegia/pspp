@@ -252,6 +252,9 @@ psppire_output_window_init (PsppireOutputWindow *window)
 		    G_CALLBACK (psppire_window_minimise_all),
 		    NULL);
 
+  PSPPIRE_WINDOW (window)->menu = GTK_MENU_SHELL (get_widget_assert (xml,"windows_menu"));
+
+
   g_object_unref (xml);
 
   g_signal_connect (window, "delete-event",
@@ -304,9 +307,6 @@ reload_viewer (PsppireOutputWindow *ow)
   line = xrealloc (line, sizeof (char) * (viewer_width + 1));
 
   mark = gtk_text_buffer_create_mark (ow->buffer, NULL, &end_iter, TRUE);
-
-
-  g_debug ("%s %p\n", __FUNCTION__, ow);
 
 #ifdef __CYGWIN__
   /*
