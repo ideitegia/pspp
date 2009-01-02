@@ -80,9 +80,6 @@ static GObjectClass *parent_class;
 static void
 psppire_output_window_finalize (GObject *object)
 {
-  GObjectClass *class = G_OBJECT_GET_CLASS (object);
-
-
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
 }
