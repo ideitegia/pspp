@@ -100,18 +100,14 @@ psppire_data_window_get_type (void)
   return psppire_data_window_type;
 }
 
+static GObjectClass *parent_class ;
 
 static void
 psppire_data_window_finalize (GObject *object)
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (object);
 
-  GObjectClass *class = G_OBJECT_GET_CLASS (object);
-
-  GObjectClass *parent_class = g_type_class_peek_parent (class);
-
   g_object_unref (de->xml);
-
 
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
@@ -121,6 +117,7 @@ psppire_data_window_finalize (GObject *object)
 static void
 psppire_data_window_class_init (PsppireDataWindowClass *class)
 {
+  parent_class = g_type_class_peek_parent (class);
 }
 
 
