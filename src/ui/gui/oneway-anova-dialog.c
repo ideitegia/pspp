@@ -17,7 +17,6 @@
 
 
 #include <config.h>
-#include <glade/glade.h>
 #include <gtk/gtk.h>
 #include "oneway-anova-dialog.h"
 #include "psppire-dict.h"
@@ -121,6 +120,7 @@ refresh (struct oneway_anova_dialog *ow)
 }
 
 
+
 /* Pops up the dialog box */
 void
 oneway_anova_dialog (GObject *o, gpointer data)
@@ -130,43 +130,43 @@ oneway_anova_dialog (GObject *o, gpointer data)
 
   PsppireVarStore *vs = NULL;
 
-  GladeXML *xml = XML_NEW ("oneway.glade");
-
   struct oneway_anova_dialog ow;
 
+  GtkBuilder *builder = builder_new ("oneway.ui");
+
   GtkWidget *dict_view =
-    get_widget_assert (xml, "oneway-anova-treeview1");
+    get_widget_assert (builder, "oneway-anova-treeview1");
 
   GtkWidget *selector2 =
-    get_widget_assert (xml, "oneway-anova-selector2");
+    get_widget_assert (builder, "oneway-anova-selector2");
 
   GtkWidget *selector1 =
-    get_widget_assert (xml, "oneway-anova-selector1");
+    get_widget_assert (builder, "oneway-anova-selector1");
 
   GtkWidget *contrasts_button =
-    get_widget_assert (xml, "contrasts-button");
+    get_widget_assert (builder, "contrasts-button");
 
 
   g_signal_connect_swapped (contrasts_button, "clicked",
 		    G_CALLBACK (run_contrasts_dialog), &ow);
 
 
-  ow.factor_entry = get_widget_assert (xml, "oneway-anova-entry");
+  ow.factor_entry = get_widget_assert (builder, "oneway-anova-entry");
   ow.vars_treeview =
-    get_widget_assert (xml, "oneway-anova-treeview2");
+    get_widget_assert (builder, "oneway-anova-treeview2");
 
   ow.descriptives =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "checkbutton1"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "checkbutton1"));
 
   ow.homogeneity =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "checkbutton2"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "checkbutton2"));
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   ow.dict = vs->dict;
 
   ow.dialog =
-    GTK_WINDOW (get_widget_assert (xml, "oneway-anova-dialog"));
+    GTK_WINDOW (get_widget_assert (builder, "oneway-anova-dialog"));
 
   gtk_window_set_transient_for (ow.dialog, de->parent.window);
 
@@ -202,16 +202,16 @@ oneway_anova_dialog (GObject *o, gpointer data)
 
   {
     struct contrasts_subdialog *cd = &ow.contrasts;
-    GtkEntry *entry = GTK_ENTRY (get_widget_assert (xml, "entry1"));
+    GtkEntry *entry = GTK_ENTRY (get_widget_assert (builder, "entry1"));
 
-    cd->acr = PSPPIRE_ACR (get_widget_assert (xml, "psppire-acr1"));
-    cd->contrasts_dialog = get_widget_assert (xml, "contrasts-dialog");
+    cd->acr = PSPPIRE_ACR (get_widget_assert (builder, "psppire-acr1"));
+    cd->contrasts_dialog = get_widget_assert (builder, "contrasts-dialog");
 
-    cd->next = get_widget_assert (xml, "next-button");
-    cd->prev = get_widget_assert (xml, "prev-button");
-    cd->ctotal = get_widget_assert (xml, "entry2");
+    cd->next = get_widget_assert (builder, "next-button");
+    cd->prev = get_widget_assert (builder, "prev-button");
+    cd->ctotal = get_widget_assert (builder, "entry2");
 
-    cd->stack_label = get_widget_assert (xml, "contrast-stack-label");
+    cd->stack_label = get_widget_assert (builder, "contrast-stack-label");
 
     /* Contrasts */
     ow.contrasts_array = g_array_new (FALSE, FALSE, sizeof (GtkListStore *));
@@ -256,7 +256,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
 
   g_array_free (ow.contrasts_array, FALSE);
 
-  g_object_unref (xml);
+  g_object_unref (builder);
 }
 
 

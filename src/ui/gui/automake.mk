@@ -64,6 +64,12 @@ src_ui_gui_psppire_LDADD = \
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 
+nodist_src_ui_gui_psppire_DATA = \
+	$(top_srcdir)/src/ui/gui/oneway.ui
+
+EXTRA_DIST += \
+	$(top_srcdir)/src/ui/gui/oneway.glade
+
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
@@ -71,7 +77,6 @@ dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
 	$(top_srcdir)/src/ui/gui/frequencies.glade \
 	$(top_srcdir)/src/ui/gui/message-dialog.glade \
-	$(top_srcdir)/src/ui/gui/oneway.glade \
 	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
 	$(top_srcdir)/src/ui/gui/rank.glade \
@@ -207,8 +212,6 @@ nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.h
 
 
-
-
 yelp-check:
 	@if ! yelp --version > /dev/null 2>&1 ; then \
 		echo    ; \
@@ -227,6 +230,9 @@ src/ui/gui/psppire-marshal.c: src/ui/gui/marshaller-list
 
 src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
 	glib-genmarshal --header --prefix=psppire_marshal $< > $@
+
+.glade.ui:
+	gtk-builder-convert $< $@
 
 EXTRA_DIST += src/ui/gui/OChangeLog\
 	src/ui/gui/marshaller-list
