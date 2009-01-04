@@ -247,8 +247,11 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 
   if ( result )
     {
+      gchar *msg = g_strdup_printf (_("Saved file \"%s\""), filename);
+      gtk_statusbar_push (GTK_STATUSBAR (se->sb), se->text_context, msg);
       psppire_window_set_filename (PSPPIRE_WINDOW (se), filename);
       gtk_text_buffer_set_modified (buffer, FALSE);
+      g_free (msg);
     }
 
   return result;
@@ -260,7 +263,6 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 static void
 save_if_modified (PsppireSyntaxWindow *se)
 {
-
   if ( TRUE == gtk_text_buffer_get_modified (se->buffer))
     {
       gint response;
@@ -281,13 +283,14 @@ save_if_modified (PsppireSyntaxWindow *se)
       gtk_dialog_add_button  (GTK_DIALOG (dialog),
 			      GTK_STOCK_YES,
 			      GTK_RESPONSE_ACCEPT);
+
       gtk_dialog_add_button  (GTK_DIALOG (dialog),
 			      GTK_STOCK_NO,
 			      GTK_RESPONSE_REJECT);
+
       gtk_dialog_add_button  (GTK_DIALOG (dialog),
 			      GTK_STOCK_CANCEL,
 			      GTK_RESPONSE_CANCEL);
-
 
       response = gtk_dialog_run (GTK_DIALOG (dialog));
 
@@ -471,6 +474,11 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 }
 
 
+static void
+on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
+{
+  gtk_statusbar_pop (GTK_STATUSBAR (window->sb), window->text_context);
+}
 
 extern struct source_stream *the_source_stream ;
 
@@ -482,11 +490,16 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   
   GtkWidget *menubar = get_widget_assert (xml, "menubar2");
   GtkWidget *sw = get_widget_assert (xml, "scrolledwindow8");
-  GtkWidget *sb = get_widget_assert (xml, "statusbar2");
+
 
   GtkWidget *text_view = get_widget_assert (xml, "syntax_text_view");
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
   window->lexer = lex_create (the_source_stream);
+
+  window->sb = get_widget_assert (xml, "statusbar2");
+  window->text_context = gtk_statusbar_get_context_id (GTK_STATUSBAR (window->sb), "Text Context");
+
+  g_signal_connect (window->buffer, "changed", G_CALLBACK (on_text_changed), window);
 
   connect_help (xml);
 
@@ -496,12 +509,12 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_object_ref (sw);
 
-  g_object_ref (sb);
+  g_object_ref (window->sb);
 
 
   gtk_box_pack_start (GTK_BOX (box), menubar, FALSE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (box), sw, TRUE, TRUE, 0);
-  gtk_box_pack_start (GTK_BOX (box), sb, FALSE, TRUE, 0);
+  gtk_box_pack_start (GTK_BOX (box), window->sb, FALSE, TRUE, 0);
 
   gtk_widget_show_all (box);
 

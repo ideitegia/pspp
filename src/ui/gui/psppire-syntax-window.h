@@ -49,6 +49,8 @@ struct _PsppireSyntaxWindow
 
   GtkTextBuffer *buffer;  /* The buffer which contains the text */
   struct lexer *lexer;    /* Lexer to parse syntax */
+  GtkWidget *sb;
+  guint text_context;
 };
 
 struct _PsppireSyntaxWindowClass
