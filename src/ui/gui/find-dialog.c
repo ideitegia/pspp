@@ -37,7 +37,6 @@ which match particular strings */
 #include <libpspp/message.h>
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <stdlib.h>
 
 #include "xalloc.h"
@@ -52,7 +51,7 @@ which match particular strings */
 
 struct find_dialog
 {
-  GladeXML *xml;
+  GtkBuilder *xml;
   PsppireDict *dict;
   struct datasheet *data;
   PsppireDataWindow *de;
@@ -200,7 +199,7 @@ find_dialog (GObject *o, gpointer data)
   PsppireVarStore *vs ;
   PsppireDataStore *ds ;
 
-  fd.xml = XML_NEW ("psppire.glade");
+  fd.xml = builder_new ("psppire.ui");
   fd.de = de;
 
   find_button = gtk_button_new_from_stock  (GTK_STOCK_FIND);

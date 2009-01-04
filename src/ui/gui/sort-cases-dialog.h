@@ -19,8 +19,6 @@
 
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
-
 
 void sort_cases_dialog (GObject *o, gpointer data);
 

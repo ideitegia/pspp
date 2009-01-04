@@ -30,7 +30,6 @@
 #include "dialog-common.h"
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include <gettext.h>
 
@@ -40,7 +39,7 @@
 
 struct comment_dialog
 {
-  GladeXML *xml;
+  GtkBuilder *xml;
   PsppireDict *dict;
 };
 
@@ -99,7 +98,7 @@ comments_dialog (GObject *o, gpointer data)
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct comment_dialog cd;
 
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
 
   GtkWidget *dialog = get_widget_assert (xml, "comments-dialog");
   GtkWidget *textview = get_widget_assert (xml, "comments-textview1");

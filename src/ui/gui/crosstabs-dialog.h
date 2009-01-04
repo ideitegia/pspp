@@ -19,7 +19,6 @@
 
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 
 void crosstabs_dialog (GObject *o, gpointer data);

@@ -842,28 +842,27 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
   struct recode_dialog rd;
 
-  GladeXML *xml = XML_NEW ("recode.glade");
+  GtkBuilder *builder = builder_new ("recode.ui");
+
+  GtkWidget *selector = get_widget_assert (builder, "psppire-selector1");
+
+  GtkWidget *oldandnew = get_widget_assert (builder, "button1");
 
 
-  GtkWidget *selector = get_widget_assert (xml, "psppire-selector1");
-
-  GtkWidget *oldandnew = get_widget_assert (xml, "button1");
-
-
-  GtkWidget *output_variable_box = get_widget_assert (xml,"frame4");
+  GtkWidget *output_variable_box = get_widget_assert (builder,"frame4");
 
 
   PsppireVarStore *vs = NULL;
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  rd.change_button = get_widget_assert (xml, "change-button");
+  rd.change_button = get_widget_assert (builder, "change-button");
 
-  rd.dialog = get_widget_assert   (xml, "recode-dialog");
-  rd.dict_treeview = get_widget_assert (xml, "treeview1");
-  rd.variable_treeview =   get_widget_assert (xml, "treeview2");
-  rd.new_name_entry = get_widget_assert (xml, "dest-name-entry");
-  rd.new_label_entry = get_widget_assert (xml, "dest-label-entry");
+  rd.dialog = get_widget_assert   (builder, "recode-dialog");
+  rd.dict_treeview = get_widget_assert (builder, "treeview1");
+  rd.variable_treeview =   get_widget_assert (builder, "treeview2");
+  rd.new_name_entry = get_widget_assert (builder, "dest-name-entry");
+  rd.new_label_entry = get_widget_assert (builder, "dest-label-entry");
 
   rd.dict = vs->dict;
 
@@ -963,40 +962,40 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
   /* Set up the Old & New Values subdialog */
   {
-    rd.string_button = get_widget_assert (xml, "checkbutton1");
-    rd.width_entry   = get_widget_assert (xml, "spinbutton1");
+    rd.string_button = get_widget_assert (builder, "checkbutton1");
+    rd.width_entry   = get_widget_assert (builder, "spinbutton1");
 
-    rd.convert_button           = get_widget_assert (xml, "checkbutton2");
+    rd.convert_button           = get_widget_assert (builder, "checkbutton2");
 
-    rd.ov_range_lower_entry = get_widget_assert (xml, "entry5");
-    rd.ov_range_upper_entry  = get_widget_assert (xml, "entry3");
-    rd.ov_low_up_entry       = get_widget_assert (xml, "entry6");
-    rd.ov_high_down_entry    = get_widget_assert (xml, "entry7");
+    rd.ov_range_lower_entry = get_widget_assert (builder, "entry5");
+    rd.ov_range_upper_entry  = get_widget_assert (builder, "entry3");
+    rd.ov_low_up_entry       = get_widget_assert (builder, "entry6");
+    rd.ov_high_down_entry    = get_widget_assert (builder, "entry7");
 
-    rd.new_value_entry = get_widget_assert (xml, "entry1");
-    rd.ov_value_entry  = get_widget_assert (xml, "entry2");
+    rd.new_value_entry = get_widget_assert (builder, "entry1");
+    rd.ov_value_entry  = get_widget_assert (builder, "entry2");
 
-    rd.toggle[BUTTON_NEW_VALUE]  = get_widget_assert (xml, "radiobutton1");
-    rd.toggle[BUTTON_NEW_SYSMIS] = get_widget_assert (xml, "radiobutton2");
-    rd.toggle[BUTTON_NEW_COPY]   = get_widget_assert (xml, "radiobutton3");
-    rd.toggle[BUTTON_OLD_VALUE]  = get_widget_assert (xml, "radiobutton4");
-    rd.toggle[BUTTON_OLD_SYSMIS] = get_widget_assert (xml, "radiobutton6");
-    rd.toggle[BUTTON_OLD_MISSING]= get_widget_assert (xml, "radiobutton7");
-    rd.toggle[BUTTON_OLD_RANGE]  = get_widget_assert (xml, "radiobutton8");
-    rd.toggle[BUTTON_OLD_LOW_UP] = get_widget_assert (xml, "radiobutton10");
-    rd.toggle[BUTTON_OLD_HIGH_DOWN] = get_widget_assert (xml, "radiobutton5");
-    rd.toggle[BUTTON_OLD_ELSE]   = get_widget_assert (xml, "radiobutton11");
+    rd.toggle[BUTTON_NEW_VALUE]  = get_widget_assert (builder, "radiobutton1");
+    rd.toggle[BUTTON_NEW_SYSMIS] = get_widget_assert (builder, "radiobutton2");
+    rd.toggle[BUTTON_NEW_COPY]   = get_widget_assert (builder, "radiobutton3");
+    rd.toggle[BUTTON_OLD_VALUE]  = get_widget_assert (builder, "radiobutton4");
+    rd.toggle[BUTTON_OLD_SYSMIS] = get_widget_assert (builder, "radiobutton6");
+    rd.toggle[BUTTON_OLD_MISSING]= get_widget_assert (builder, "radiobutton7");
+    rd.toggle[BUTTON_OLD_RANGE]  = get_widget_assert (builder, "radiobutton8");
+    rd.toggle[BUTTON_OLD_LOW_UP] = get_widget_assert (builder, "radiobutton10");
+    rd.toggle[BUTTON_OLD_HIGH_DOWN] = get_widget_assert (builder, "radiobutton5");
+    rd.toggle[BUTTON_OLD_ELSE]   = get_widget_assert (builder, "radiobutton11");
 
-    rd.new_copy_label = get_widget_assert (xml, "label3");
-    rd.strings_box    = get_widget_assert (xml, "table3");
+    rd.new_copy_label = get_widget_assert (builder, "label3");
+    rd.strings_box    = get_widget_assert (builder, "table3");
 
     rd.old_and_new_dialog =
-      PSPPIRE_DIALOG (get_widget_assert (xml, "old-new-values-dialog"));
+      PSPPIRE_DIALOG (get_widget_assert (builder, "old-new-values-dialog"));
 
     gtk_window_set_transient_for (GTK_WINDOW (rd.old_and_new_dialog),
 				  GTK_WINDOW (de));
 
-    rd.acr = PSPPIRE_ACR (get_widget_assert (xml, "psppire-acr1"));
+    rd.acr = PSPPIRE_ACR (get_widget_assert (builder, "psppire-acr1"));
 
     g_signal_connect_swapped (rd.toggle[BUTTON_NEW_VALUE], "toggled",
 		      G_CALLBACK (set_acr), &rd);
@@ -1047,11 +1046,11 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
     g_signal_connect (rd.toggle[BUTTON_OLD_RANGE], "toggled",
 		      G_CALLBACK (toggle_sensitivity),
-		      get_widget_assert (xml, "entry3"));
+		      get_widget_assert (builder, "entry3"));
 
     g_signal_connect (rd.toggle[BUTTON_OLD_RANGE], "toggled",
 		      G_CALLBACK (toggle_sensitivity),
-		      get_widget_assert (xml, "entry5"));
+		      get_widget_assert (builder, "entry5"));
 
     g_signal_connect (rd.toggle[BUTTON_OLD_LOW_UP], "toggled",
 		      G_CALLBACK (toggle_sensitivity), rd.ov_low_up_entry);
@@ -1108,7 +1107,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
   gtk_list_store_clear (GTK_LIST_STORE (rd.value_map));
   g_object_unref (rd.value_map);
 
-  g_object_unref (xml);
+  g_object_unref (builder);
 }
 
 /* Initialise VAL to reflect the current status of RD */

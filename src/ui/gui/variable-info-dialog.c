@@ -16,7 +16,6 @@
 
 #include <config.h>
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "dict-display.h"
 #include "var-display.h"
@@ -168,7 +167,7 @@ variable_info_dialog (GObject *o, gpointer data)
 
   gint response ;
 
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
 
   GtkWidget *dialog = get_widget_assert (xml, "variable-info-dialog");
   GtkWidget *treeview = get_widget_assert (xml, "treeview2");

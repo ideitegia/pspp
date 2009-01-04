@@ -493,13 +493,10 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   gtk_container_add (GTK_CONTAINER (window), box);
 
   g_object_ref (menubar);
-  gtk_widget_unparent (menubar);
 
   g_object_ref (sw);
-  gtk_widget_unparent (sw);
 
   g_object_ref (sb);
-  gtk_widget_unparent (sb);
 
 
   gtk_box_pack_start (GTK_BOX (box), menubar, FALSE, TRUE, 0);

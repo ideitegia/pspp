@@ -46,9 +46,6 @@ AC_ARG_WITH(
   [AS_HELP_STRING([--without-gui], [don't build the PSPPIRE gui])])
 
 required_gtk_version=2.12
-if test x"$enable_anachronistic_dependencies" = x"yes"  ; then
-  required_gtk_version=2.8.20
-fi
 
 if test x"$with_gui" != x"no" ; then 
   PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $required_gtk_version,,

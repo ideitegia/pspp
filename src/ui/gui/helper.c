@@ -34,6 +34,7 @@
 #include <data/casereader-provider.h>
 #include <libpspp/message.h>
 
+#include <gtk/gtkbuilder.h>
 #include <libpspp/i18n.h>
 
 #include <ctype.h>
@@ -102,14 +103,35 @@ text_to_value (const gchar *text, union value *v,
 }
 
 
-GtkWidget *
-get_widget_assert (GladeXML *xml, const gchar *name)
+GtkBuilder *
+builder_new_real (const gchar *name)
 {
-  GtkWidget *w;
-  g_assert (xml);
+  GtkBuilder *builder = gtk_builder_new ();
+
+  GError *err = NULL;
+  if ( ! gtk_builder_add_from_file (builder, name,  &err))
+    {
+      g_critical ("Couldnt open user interface  file %s: %s", name, err->message);
+      g_clear_error (&err);
+    }
+
+  return builder;
+}
+
+
+
+GtkWidget *
+get_widget_assert (gpointer x, const gchar *name)
+{
+  GObject *obj = G_OBJECT (x);
+  GtkWidget *w = NULL;
   g_assert (name);
 
-  w = glade_xml_get_widget (xml, name);
+  if (GTK_IS_BUILDER (obj))
+    w = GTK_WIDGET (gtk_builder_get_object (GTK_BUILDER (obj), name));
+
+  if (GLADE_IS_XML (obj))
+    w = glade_xml_get_widget (GLADE_XML (obj), name);
 
   if ( !w )
     g_critical ("Widget \"%s\" could not be found\n", name);
@@ -297,8 +319,6 @@ clone_list_store (const GtkListStore *src)
 
   return dest;
 }
-
-
 
 
 void

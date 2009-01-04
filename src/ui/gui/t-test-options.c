@@ -52,7 +52,7 @@ struct tt_options_dialog
 };
 
 struct tt_options_dialog *
-tt_options_dialog_create (GladeXML *xml, GtkWindow *parent)
+tt_options_dialog_create (GtkBuilder *xml, GtkWindow *parent)
 {
   struct tt_options_dialog *tto = xmalloc (sizeof (*tto));
 
