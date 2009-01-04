@@ -16,7 +16,6 @@
 
 #include <config.h>
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include "dict-display.h"
 #include "var-display.h"
