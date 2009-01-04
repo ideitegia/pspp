@@ -227,7 +227,7 @@ regression_dialog (GObject *o, gpointer data)
 
   struct regression_dialog rd;
 
-  GladeXML *xml = XML_NEW ("regression.glade");
+  GtkBuilder *xml = builder_new ("regression.ui");
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "regression-dialog");
