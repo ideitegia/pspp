@@ -65,12 +65,14 @@ src_ui_gui_psppire_LDADD = \
 src_ui_gui_psppiredir = $(pkgdatadir)
 
 nodist_src_ui_gui_psppire_DATA = \
+	$(top_srcdir)/src/ui/gui/examine.ui \
 	$(top_srcdir)/src/ui/gui/frequencies.ui \
 	$(top_srcdir)/src/ui/gui/oneway.ui \
 	$(top_srcdir)/src/ui/gui/rank.ui \
 	$(top_srcdir)/src/ui/gui/recode.ui
 
 EXTRA_DIST += \
+	$(top_srcdir)/src/ui/gui/examine.glade \
 	$(top_srcdir)/src/ui/gui/frequencies.glade \
 	$(top_srcdir)/src/ui/gui/oneway.glade \
 	$(top_srcdir)/src/ui/gui/rank.glade \
@@ -79,7 +81,6 @@ EXTRA_DIST += \
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
-	$(top_srcdir)/src/ui/gui/examine.glade \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
 	$(top_srcdir)/src/ui/gui/message-dialog.glade \
 	$(top_srcdir)/src/ui/gui/output-viewer.glade \

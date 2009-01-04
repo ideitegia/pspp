@@ -240,9 +240,7 @@ examine_dialog (GObject *o, gpointer data)
 
   struct examine_dialog ex_d;
 
-
-  GladeXML *xml = XML_NEW ("examine.glade");
-
+  GtkBuilder *xml = builder_new ("examine.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "examine-dialog");
   GtkWidget *source = get_widget_assert   (xml, "treeview1");
