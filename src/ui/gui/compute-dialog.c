@@ -47,7 +47,7 @@ static void insert_source_row_into_text_view (GtkTreeIter iter,
 
 struct compute_dialog
 {
-  GladeXML *xml;  /* The xml that generated the widgets */
+  GtkBuilder *xml;  /* The xml that generated the widgets */
   PsppireDict *dict;
   gboolean use_type;
 };
@@ -370,7 +370,7 @@ compute_dialog (GObject *o, gpointer data)
   PsppireVarStore *vs = NULL;
   struct compute_dialog scd;
 
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "compute-variable-dialog");
 

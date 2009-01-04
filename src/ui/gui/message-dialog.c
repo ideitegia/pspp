@@ -48,7 +48,7 @@ static GQueue *late_queue;
 
 static int error_cnt, warning_cnt, note_cnt;
 
-static GladeXML *message_xml;
+static GtkBuilder *message_xml;
 static GtkWidget *message_dialog;
 
 void

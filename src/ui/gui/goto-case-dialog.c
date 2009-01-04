@@ -24,7 +24,7 @@
 
 
 static void
-refresh (const struct data_editor *de, GladeXML *xml)
+refresh (const struct data_editor *de, GtkBuilder *xml)
 {
   PsppireDataStore *ds = NULL;
   casenumber case_count ;
@@ -43,7 +43,7 @@ void
 goto_case_dialog (GObject *o, gpointer data)
 {
   gint response;
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
   struct data_editor *de = data;
 
   GtkWidget *dialog = get_widget_assert   (xml, "goto-case-dialog");

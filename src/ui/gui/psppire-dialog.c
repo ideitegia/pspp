@@ -501,7 +501,7 @@ get_internal_child    (GtkBuildable *buildable,
 {
   PsppireDialog *dialog = PSPPIRE_DIALOG (buildable);
 
-  if ( 0 == strcmp(childname, "hbox"))
+  if ( 0 == g_strcmp0 (childname, "hbox"))
     return G_OBJECT (dialog->box);
 
   return NULL;

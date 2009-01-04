@@ -27,7 +27,6 @@
 #include <data/dictionary.h>
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 
 #include "dialog-common.h"
@@ -39,7 +38,7 @@
 struct split_file_dialog
 {
   /* The XML that created the dialog */
-  GladeXML *xml;
+  GtkBuilder *xml;
 
   /* The dictionary to which this dialog pertains */
   PsppireDict *dict;
@@ -177,7 +176,7 @@ split_file_dialog (GObject *o, gpointer data)
   GtkWidget *selector ;
   GtkWidget *on_off   ;
 
-  sfd.xml = XML_NEW ("psppire.glade");
+  sfd.xml = builder_new ("psppire.ui");
 
   dialog = get_widget_assert   (sfd.xml, "split-file-dialog");
   source = get_widget_assert   (sfd.xml, "split-file-dict-treeview");
