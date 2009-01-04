@@ -26,7 +26,7 @@
 #include <ui/gui/data-editor.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
-#include <ui/gui/helper.h>
+#include "helper.h"
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
 #include <ui/gui/syntax-editor.h>
@@ -389,7 +389,7 @@ crosstabs_dialog (GObject *o, gpointer data)
 
   struct crosstabs_dialog cd;
 
-  GladeXML *xml = XML_NEW ("crosstabs.glade");
+  GtkBuilder *xml = builder_new ("crosstabs.ui");
   PsppireVarStore *vs = NULL;
 
   GtkWidget *dialog = get_widget_assert   (xml, "crosstabs-dialog");
