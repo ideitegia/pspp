@@ -108,7 +108,7 @@ static void
 on_off_toggled (GtkToggleButton *togglebutton,
 		gpointer         user_data)
 {
-  GladeXML *xml = user_data;
+  GtkBuilder *xml = user_data;
   GtkWidget *dest =   get_widget_assert (xml, "split-file-grouping-vars");
   GtkWidget *selector = get_widget_assert (xml, "split-file-selector");
   GtkWidget *source = get_widget_assert (xml, "split-file-dict-treeview");

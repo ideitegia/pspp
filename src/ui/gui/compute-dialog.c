@@ -113,7 +113,7 @@ erase_selection (GtkTextBuffer *buffer)
 static void
 on_keypad_button (PsppireKeypad *kp, const gchar *syntax, gpointer data)
 {
-  GladeXML *xml = data;
+  GtkBuilder *xml = data;
 
   GtkWidget *rhs = get_widget_assert (xml, "compute-textview1");
 
@@ -137,7 +137,7 @@ on_keypad_button (PsppireKeypad *kp, const gchar *syntax, gpointer data)
 static void
 erase (PsppireKeypad *kp, gpointer data)
 {
-  GladeXML *xml = data;
+  GtkBuilder *xml = data;
 
   GtkWidget *rhs = get_widget_assert (xml, "compute-textview1");
 

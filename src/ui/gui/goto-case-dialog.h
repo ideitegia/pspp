@@ -19,8 +19,6 @@
 
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
-
 
 void goto_case_dialog (GObject *o, gpointer data);
 
