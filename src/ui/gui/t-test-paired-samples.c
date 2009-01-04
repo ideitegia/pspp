@@ -17,7 +17,6 @@
 
 #include <config.h>
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <language/syntax-string-source.h>
 
 #include "data-editor.h"
@@ -187,7 +186,7 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
 
   PsppireVarStore *vs = NULL;
 
-  GladeXML *xml = XML_NEW ("t-test.glade");
+  GtkBuilder *xml = builder_new ("t-test.ui");
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "paired-samples-t-test-treeview1");
