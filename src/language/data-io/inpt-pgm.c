@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -180,35 +180,34 @@ is_valid_state (enum trns_result state)
           || state >= 0);
 }
 
-/* Reads one case into C.
-   Returns true if successful, false at end of file or if an
+/* Reads and returns one case.
+   Returns the case if successful, null at end of file or if an
    I/O error occurred. */
-static bool
-input_program_casereader_read (struct casereader *reader UNUSED, void *inp_,
-                               struct ccase *c)
+static struct ccase *
+input_program_casereader_read (struct casereader *reader UNUSED, void *inp_)
 {
   struct input_program_pgm *inp = inp_;
-
-  case_create (c, inp->value_cnt);
+  struct ccase *c = case_create (inp->value_cnt);
 
   do
     {
       assert (is_valid_state (inp->restart));
       if (inp->restart == TRNS_ERROR || inp->restart == TRNS_END_FILE)
         {
-          case_destroy (c);
-          return false;
+          case_unref (c);
+          return NULL;
         }
 
+      c = case_unshare (c);
       caseinit_init_vars (inp->init, c);
       inp->restart = trns_chain_execute (inp->trns_chain, inp->restart,
-                                         c, inp->case_nr);
+                                         &c, inp->case_nr);
       assert (is_valid_state (inp->restart));
       caseinit_update_left_vars (inp->init, c);
     }
   while (inp->restart < 0);
 
-  return true;
+  return c;
 }
 
 static void
@@ -251,7 +250,7 @@ cmd_end_case (struct lexer *lexer, struct dataset *ds UNUSED)
 
 /* Outputs the current case */
 int
-end_case_trns_proc (void *inp_, struct ccase *c UNUSED,
+end_case_trns_proc (void *inp_, struct ccase **c UNUSED,
                     casenumber case_nr UNUSED)
 {
   struct input_program_pgm *inp = inp_;
@@ -323,7 +322,7 @@ cmd_reread (struct lexer *lexer, struct dataset *ds)
 
 /* Executes a REREAD transformation. */
 static int
-reread_trns_proc (void *t_, struct ccase *c, casenumber case_num)
+reread_trns_proc (void *t_, struct ccase **c, casenumber case_num)
 {
   struct reread_trns *t = t_;
 
@@ -331,7 +330,7 @@ reread_trns_proc (void *t_, struct ccase *c, casenumber case_num)
     dfm_reread_record (t->reader, 1);
   else
     {
-      double column = expr_evaluate_num (t->column, c, case_num);
+      double column = expr_evaluate_num (t->column, *c, case_num);
       if (!isfinite (column) || column < 1)
 	{
 	  msg (SE, _("REREAD: Column numbers must be positive finite "
@@ -368,7 +367,7 @@ cmd_end_file (struct lexer *lexer, struct dataset *ds)
 
 /* Executes an END FILE transformation. */
 static int
-end_file_trns_proc (void *trns_ UNUSED, struct ccase *c UNUSED,
+end_file_trns_proc (void *trns_ UNUSED, struct ccase **c UNUSED,
                     casenumber case_num UNUSED)
 {
   return TRNS_END_FILE;

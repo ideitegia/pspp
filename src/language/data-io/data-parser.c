@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -364,14 +364,17 @@ static bool parse_delimited_no_span (const struct data_parser *,
 static bool parse_fixed (const struct data_parser *,
                          struct dfm_reader *, struct ccase *);
 
-/* Reads a case from DFM into C, parsing it with PARSER.
-   Returns true if successful, false at end of file or on I/O error. */
+/* Reads a case from DFM into C, parsing it with PARSER.  Returns
+   true if successful, false at end of file or on I/O error.
+
+   Case C must not be shared. */
 bool
 data_parser_parse (struct data_parser *parser, struct dfm_reader *reader,
                    struct ccase *c)
 {
   bool retval;
 
+  assert (!case_is_shared (c));
   assert (data_parser_any_fields (parser));
 
   /* Skip the requested number of records before reading the
@@ -746,18 +749,18 @@ data_parser_make_active_file (struct data_parser *parser, struct dataset *ds,
   proc_set_active_file (ds, casereader, dict);
 }
 
-static bool
-data_parser_casereader_read (struct casereader *reader UNUSED, void *r_,
-                           struct ccase *c)
+static struct ccase *
+data_parser_casereader_read (struct casereader *reader UNUSED, void *r_)
 {
   struct data_parser_casereader *r = r_;
-  bool ok;
-
-  case_create (c, r->value_cnt);
-  ok = data_parser_parse (r->parser, r->reader, c);
-  if (!ok)
-    case_destroy (c);
-  return ok;
+  struct ccase *c = case_create (r->value_cnt);
+  if (data_parser_parse (r->parser, r->reader, c))
+    return c;
+  else
+    {
+      case_unref (c);
+      return NULL;
+    }
 }
 
 static void

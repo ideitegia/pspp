@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -250,18 +250,19 @@ casewriter_window_convert_to_reader (struct casewriter *writer UNUSED,
   return reader;
 }
 
-/* Reads the case at the given 0-based OFFSET from the front of
-   WINDOW into C.  Returns true if successful, false if
-   OFFSET is beyond the end of file or upon I/O error. */
-static bool
+/* Reads and returns the case at the given 0-based OFFSET from
+   the front of WINDOW into C.  Returns a null pointer if OFFSET
+   is beyond the end of file or upon I/O error.  The caller must
+   call case_unref() on the returned case when it is no longer
+   needed.*/
+static struct ccase *
 casereader_window_read (struct casereader *reader UNUSED, void *window_,
-                        casenumber offset, struct ccase *c)
+                        casenumber offset)
 {
   struct casewindow *window = window_;
   if (offset >= casewindow_get_case_cnt (window))
-    return false;
-  else
-    return casewindow_get_case (window, offset, c);
+    return NULL;
+  return casewindow_get_case (window, offset);
 }
 
 /* Destroys casewindow reader WINDOW. */

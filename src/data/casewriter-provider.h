@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,8 @@ struct casewriter_class
   {
     /* Mandatory.
 
-       Writes case C to WRITER.  Destroys C before returning.
+       Writes case C to WRITER.  Ownership of C is transferred to
+       WRITER.
 
        If an I/O error occurs, this function should call
        casewriter_force_error on WRITER.  Some I/O error

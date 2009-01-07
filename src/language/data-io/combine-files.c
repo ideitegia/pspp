@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ struct comb_file
     struct file_handle *handle; /* Input file handle. */
     struct dictionary *dict;	/* Input file dictionary. */
     struct casereader *reader;  /* Input data source. */
-    struct ccase data;          /* The current input case. */
+    struct ccase *data;         /* The current input case. */
     bool is_minimal;            /* Does 'data' have minimum BY values across
                                    all input files? */
     bool is_sorted;             /* Is file presorted on the BY variables? */
@@ -98,8 +98,8 @@ struct comb_proc
        members used. */
     struct variable *first;     /* Variable specified on FIRST (if any). */
     struct variable *last;      /* Variable specified on LAST (if any). */
-    struct ccase buffered_case; /* Case ready for output except that we don't
-                                   know the value for the LAST variable yet. */
+    struct ccase *buffered_case; /* Case ready for output except that we don't
+                                    know the value for the LAST var yet. */
     union value *prev_BY;       /* Values of BY vars in buffered_case. */
   };
 
@@ -165,7 +165,7 @@ combine_files (enum comb_command_type command,
   subcase_init_empty (&proc.by_vars);
   proc.first = NULL;
   proc.last = NULL;
-  case_nullify (&proc.buffered_case);
+  proc.buffered_case = NULL;
   proc.prev_BY = NULL;
 
   dict_set_case_limit (proc.dict, dict_get_case_limit (dataset_dict (ds)));
@@ -198,7 +198,7 @@ combine_files (enum comb_command_type command,
       file->handle = NULL;
       file->dict = NULL;
       file->reader = NULL;
-      case_nullify (&file->data);
+      file->data = NULL;
       file->is_sorted = true;
       file->in_name[0] = '\0';
       file->in_var = NULL;
@@ -444,7 +444,7 @@ combine_files (enum comb_command_type command,
       if (!file->is_sorted)
         file->reader = sort_execute (file->reader, &file->by_vars);
       taint_propagate (casereader_get_taint (file->reader), taint);
-      casereader_read (file->reader, &file->data);
+      file->data = casereader_read (file->reader);
       if (file->type == COMB_FILE)
         case_matcher_add_input (proc.matcher, &file->by_vars,
                                 &file->data, &file->is_minimal);
@@ -605,7 +605,7 @@ close_all_comb_files (struct comb_proc *proc)
       fh_unref (file->handle);
       dict_destroy (file->dict);
       casereader_destroy (file->reader);
-      case_destroy (&file->data);
+      case_unref (file->data);
     }
   free (proc->files);
   proc->files = NULL;
@@ -621,12 +621,12 @@ free_comb_proc (struct comb_proc *proc)
   casewriter_destroy (proc->output);
   case_matcher_destroy (proc->matcher);
   subcase_destroy (&proc->by_vars);
-  case_destroy (&proc->buffered_case);
+  case_unref (proc->buffered_case);
   free (proc->prev_BY);
 }
 
 static bool scan_table (struct comb_file *, union value by[]);
-static void create_output_case (const struct comb_proc *, struct ccase *);
+static struct ccase *create_output_case (const struct comb_proc *);
 static void apply_case (const struct comb_file *, struct ccase *);
 static void apply_file_case_and_advance (struct comb_file *, struct ccase *,
                                          union value by[]);
@@ -641,7 +641,6 @@ execute_add_files (struct comb_proc *proc)
 
   while (case_matcher_match (proc->matcher, &by))
     {
-      struct ccase output;
       size_t i;
 
       for (i = 0; i < proc->n_files; i++)
@@ -649,9 +648,9 @@ execute_add_files (struct comb_proc *proc)
           struct comb_file *file = &proc->files[i];
           while (file->is_minimal)
             {
-              create_output_case (proc, &output);
-              apply_file_case_and_advance (file, &output, by);
-              output_case (proc, &output, by);
+              struct ccase *output = create_output_case (proc);
+              apply_file_case_and_advance (file, output, by);
+              output_case (proc, output, by);
             }
         }
     }
@@ -666,25 +665,25 @@ execute_match_files (struct comb_proc *proc)
 
   while (case_matcher_match (proc->matcher, &by))
     {
-      struct ccase output;
+      struct ccase *output;
       size_t i;
 
-      create_output_case (proc, &output);
+      output = create_output_case (proc);
       for (i = proc->n_files; i-- > 0; )
         {
           struct comb_file *file = &proc->files[i];
           if (file->type == COMB_FILE)
             {
               if (file->is_minimal)
-                apply_file_case_and_advance (file, &output, NULL);
+                apply_file_case_and_advance (file, output, NULL);
             }
           else
             {
               if (scan_table (file, by))
-                apply_case (file, &output);
+                apply_case (file, output);
             }
         }
-      output_case (proc, &output, by);
+      output_case (proc, output, by);
     }
   output_buffered_case (proc);
 }
@@ -699,15 +698,15 @@ execute_update (struct comb_proc *proc)
   while (case_matcher_match (proc->matcher, &by))
     {
       struct comb_file *first, *file;
-      struct ccase output;
+      struct ccase *output;
 
       /* Find first nonnull case in array and make an output case
          from it. */
-      create_output_case (proc, &output);
+      output = create_output_case (proc);
       for (first = &proc->files[0]; ; first++)
         if (first->is_minimal)
           break;
-      apply_file_case_and_advance (first, &output, by);
+      apply_file_case_and_advance (first, output, by);
 
       /* Read additional cases and update the output case from
          them.  (Don't update the output case from any duplicate
@@ -716,9 +715,9 @@ execute_update (struct comb_proc *proc)
            file < &proc->files[proc->n_files]; file++)
         {
           while (file->is_minimal)
-            apply_file_case_and_advance (file, &output, by);
+            apply_file_case_and_advance (file, output, by);
         }
-      casewriter_write (proc->output, &output);
+      casewriter_write (proc->output, output);
 
       /* Write duplicate cases in the master file directly to the
          output.  */
@@ -727,9 +726,9 @@ execute_update (struct comb_proc *proc)
           n_duplicates++;
           while (first->is_minimal)
             {
-              create_output_case (proc, &output);
-              apply_file_case_and_advance (first, &output, by);
-              casewriter_write (proc->output, &output);
+              output = create_output_case (proc);
+              apply_file_case_and_advance (first, output, by);
+              casewriter_write (proc->output, output);
             }
         }
     }
@@ -746,13 +745,13 @@ execute_update (struct comb_proc *proc)
 static bool
 scan_table (struct comb_file *file, union value by[])
 {
-  while (!case_is_null (&file->data))
+  while (file->data != NULL)
     {
-      int cmp = subcase_compare_3way_xc (&file->by_vars, by, &file->data);
+      int cmp = subcase_compare_3way_xc (&file->by_vars, by, file->data);
       if (cmp > 0)
         {
-          case_destroy (&file->data);
-          casereader_read (file->reader, &file->data);
+          case_unref (file->data);
+          file->data = casereader_read (file->reader);
         }
       else
         return cmp == 0;
@@ -760,16 +759,17 @@ scan_table (struct comb_file *file, union value by[])
   return false;
 }
 
-/* Creates OUTPUT as an output case for PROC, by initializing each of
-   its values to system-missing or blanks, except that the values
-   of IN variables are set to 0. */
-static void
-create_output_case (const struct comb_proc *proc, struct ccase *output)
+/* Creates and returns an output case for PROC, initializing each
+   of its values to system-missing or blanks, except that the
+   values of IN variables are set to 0. */
+static struct ccase *
+create_output_case (const struct comb_proc *proc)
 {
   size_t n_vars = dict_get_var_cnt (proc->dict);
+  struct ccase *output;
   size_t i;
 
-  case_create (output, dict_get_next_value_idx (proc->dict));
+  output = case_create (dict_get_next_value_idx (proc->dict));
   for (i = 0; i < n_vars; i++)
     {
       struct variable *v = dict_get_var (proc->dict, i);
@@ -781,6 +781,7 @@ create_output_case (const struct comb_proc *proc, struct ccase *output)
       if (file->in_var != NULL)
         case_data_rw (output, file->in_var)->f = false;
     }
+  return output;
 }
 
 /* Copies the data from FILE's case into output case OUTPUT.
@@ -788,7 +789,7 @@ create_output_case (const struct comb_proc *proc, struct ccase *output)
 static void
 apply_case (const struct comb_file *file, struct ccase *output)
 {
-  subcase_copy (&file->src, &file->data, &file->dst, output);
+  subcase_copy (&file->src, file->data, &file->dst, output);
   if (file->in_var != NULL)
     case_data_rw (output, file->in_var)->f = true;
 }
@@ -802,11 +803,11 @@ apply_file_case_and_advance (struct comb_file *file, struct ccase *output,
                              union value by[])
 {
   apply_case (file, output);
-  case_destroy (&file->data);
-  casereader_read (file->reader, &file->data);
+  case_unref (file->data);
+  file->data = casereader_read (file->reader);
   if (by)
-    file->is_minimal = (!case_is_null (&file->data)
-                        && subcase_equal_cx (&file->by_vars, &file->data, by));
+    file->is_minimal = (file->data != NULL
+                        && subcase_equal_cx (&file->by_vars, file->data, by));
 }
 
 /* Writes OUTPUT, whose BY values has been extracted into BY, to
@@ -828,15 +829,15 @@ output_case (struct comb_proc *proc, struct ccase *output, union value by[])
         {
           new_BY = !subcase_equal_xx (&proc->by_vars, proc->prev_BY, by);
           if (proc->last != NULL)
-            case_data_rw (&proc->buffered_case, proc->last)->f = new_BY;
-          casewriter_write (proc->output, &proc->buffered_case);
+            case_data_rw (proc->buffered_case, proc->last)->f = new_BY;
+          casewriter_write (proc->output, proc->buffered_case);
         }
       else
         new_BY = true;
 
-      case_move (&proc->buffered_case, output);
+      proc->buffered_case = output;
       if (proc->first != NULL)
-        case_data_rw (&proc->buffered_case, proc->first)->f = new_BY;
+        case_data_rw (proc->buffered_case, proc->first)->f = new_BY;
 
       if (new_BY)
         {
@@ -857,8 +858,8 @@ output_buffered_case (struct comb_proc *proc)
   if (proc->prev_BY != NULL)
     {
       if (proc->last != NULL)
-        case_data_rw (&proc->buffered_case, proc->last)->f = 1.0;
-      casewriter_write (proc->output, &proc->buffered_case);
-      case_nullify (&proc->buffered_case);
+        case_data_rw (proc->buffered_case, proc->last)->f = 1.0;
+      casewriter_write (proc->output, proc->buffered_case);
+      proc->buffered_case = NULL;
     }
 }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -463,7 +463,7 @@ por_file_casewriter_write (struct casewriter *writer, void *w_,
   else
     casewriter_force_error (writer);
 
-  case_destroy (c);
+  case_unref (c);
 }
 
 static void

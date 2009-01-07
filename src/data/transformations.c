@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -178,14 +178,15 @@ trns_chain_next (struct trns_chain *chain)
   return chain->trns_cnt;
 }
 
-/* Executes the given CHAIN of transformations on C,
+/* Executes the given CHAIN of transformations on *C,
    passing CASE_NR as the case number.
+   *C may be replaced by a new case.
    Returns the result code that caused the transformations to
    terminate, or TRNS_CONTINUE if the transformations finished
    due to "falling off the end" of the set of transformations. */
 enum trns_result
 trns_chain_execute (const struct trns_chain *chain, enum trns_result start,
-                    struct ccase *c, casenumber case_nr)
+                    struct ccase **c, casenumber case_nr)
 {
   size_t i;
 

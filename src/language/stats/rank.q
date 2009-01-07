@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -476,7 +476,7 @@ rank_sorted_file (struct casereader *input,
 {
   struct casereader *pass1, *pass2, *pass2_1;
   struct casegrouper *tie_grouper;
-  struct ccase c;
+  struct ccase *c;
   double w = 0.0;
   double cc = 0.0;
   int tie_group = 1;
@@ -489,8 +489,8 @@ rank_sorted_file (struct casereader *input,
   casereader_split (input, &pass1, &pass2);
 
   /* Pass 1: Get total group weight. */
-  for (; casereader_read (pass1, &c); case_destroy (&c))
-    w += dict_get_case_weight (dict, &c, NULL);
+  for (; (c = casereader_read (pass1)) != NULL; case_unref (c))
+    w += dict_get_case_weight (dict, c, NULL);
   casereader_destroy (pass1);
 
   /* Pass 2: Do ranking. */
@@ -507,21 +507,22 @@ rank_sorted_file (struct casereader *input,
                        casewriter_get_taint (output));
 
       /* Pass 2.1: Sum up weight for tied cases. */
-      for (; casereader_read (pass2_1, &c); case_destroy (&c))
-        tw += dict_get_case_weight (dict, &c, NULL);
+      for (; (c = casereader_read (pass2_1)) != NULL; case_unref (c))
+        tw += dict_get_case_weight (dict, c, NULL);
       cc += tw;
       casereader_destroy (pass2_1);
 
       /* Pass 2.2: Rank tied cases. */
-      while (casereader_read (pass2_2, &c))
+      while ((c = casereader_read (pass2_2)) != NULL)
         {
+          c = case_unshare (c);
           for (i = 0; i < n_rank_specs; ++i)
             {
               const struct variable *dst_var = rs[i].destvars[dest_idx];
-              double *dst_value = &case_data_rw (&c, dst_var)->f;
+              double *dst_value = &case_data_rw (c, dst_var)->f;
               *dst_value = rank_func[rs[i].rfunc] (tw, cc, cc_1, tie_group, w);
             }
-          casewriter_write (output, &c);
+          casewriter_write (output, c);
         }
       casereader_destroy (pass2_2);
 
@@ -532,11 +533,12 @@ rank_sorted_file (struct casereader *input,
 
 /* Transformation function to enumerate all the cases */
 static int
-create_resort_key (void *key_var_, struct ccase *cc, casenumber case_num)
+create_resort_key (void *key_var_, struct ccase **cc, casenumber case_num)
 {
   struct variable *key_var = key_var_;
 
-  case_data_rw(cc, key_var)->f = case_num;
+  *cc = case_unshare (*cc);
+  case_data_rw (*cc, key_var)->f = case_num;
 
   return TRNS_CONTINUE;
 }

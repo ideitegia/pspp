@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -75,8 +75,7 @@ psql_open_reader (struct psql_read_info *info UNUSED, struct dictionary **dict U
 
 static void psql_casereader_destroy (struct casereader *reader UNUSED, void *r_);
 
-static bool psql_casereader_read (struct casereader *, void *,
-				  struct ccase *);
+static struct ccase *psql_casereader_read (struct casereader *, void *);
 
 static const struct casereader_class psql_casereader_class =
   {
@@ -109,8 +108,7 @@ struct psql_reader
 };
 
 
-static bool set_value (struct psql_reader *r,
-		       struct ccase *cc);
+static struct ccase *set_value (struct psql_reader *r);
 
 
 
@@ -546,9 +544,8 @@ psql_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
 
 
-static bool
-psql_casereader_read (struct casereader *reader UNUSED, void *r_,
-		      struct ccase *cc)
+static struct ccase *
+psql_casereader_read (struct casereader *reader UNUSED, void *r_)
 {
   struct psql_reader *r = r_;
 
@@ -558,24 +555,24 @@ psql_casereader_read (struct casereader *reader UNUSED, void *r_,
 	return false;
     }
 
-  return set_value (r, cc);
+  return set_value (r);
 }
 
-static bool
-set_value (struct psql_reader *r,
-	   struct ccase *c)
+static struct ccase *
+set_value (struct psql_reader *r)
 {
-  int i;
+  struct ccase *c;
   int n_vars;
+  int i;
 
   assert (r->res);
 
   n_vars = PQnfields (r->res);
 
   if ( r->tuple >= PQntuples (r->res))
-    return false;
+    return NULL;
 
-  case_create (c, r->value_cnt);
+  c = case_create (r->value_cnt);
   memset (case_data_rw_idx (c, 0)->s, ' ', MAX_SHORT_STRING * r->value_cnt);
 
 
@@ -870,7 +867,7 @@ set_value (struct psql_reader *r,
 
   r->tuple++;
 
-  return true;
+  return c;
 }
 
 #endif

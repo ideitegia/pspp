@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -198,25 +198,23 @@ case_tmpfile_get_values (const struct case_tmpfile *ctf,
           && do_read (ctf, sizeof *values * value_cnt, values));
 }
 
-/* Reads the case numbered CASE_IDX from CTF into C.
-   Returns true if successful, false if CTF is tainted or an I/O
-   error occurs during the operation.
+/* Reads the case numbered CASE_IDX from CTF.
+   Returns the case if successful or a null pointer if CTF is
+   tainted or an I/O error occurs during the operation.
 
    The results of this function are undefined if the case read
    from CTF had not previously been written. */
-bool
-case_tmpfile_get_case (const struct case_tmpfile *ctf, casenumber case_idx,
-                       struct ccase *c)
+struct ccase *
+case_tmpfile_get_case (const struct case_tmpfile *ctf, casenumber case_idx)
 {
-  case_create (c, ctf->value_cnt);
+  struct ccase *c = case_create (ctf->value_cnt);
   if (case_tmpfile_get_values (ctf, case_idx, 0,
                                case_data_all_rw (c), ctf->value_cnt))
-    return true;
+    return c;
   else
     {
-      case_destroy (c);
-      case_nullify (c);
-      return false;
+      case_unref (c);
+      return NULL;
     }
 }
 
@@ -246,7 +244,7 @@ case_tmpfile_put_case (struct case_tmpfile *ctf, casenumber case_idx,
 {
   bool ok = case_tmpfile_put_values (ctf, case_idx, 0,
                                      case_data_all (c), ctf->value_cnt);
-  case_destroy (c);
+  case_unref (c);
   return ok;
 }
 

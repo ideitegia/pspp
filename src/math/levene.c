@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ levene(const struct dictionary *dict,
        enum mv_class exclude)
 {
   struct casereader *pass1, *pass2;
-  struct ccase c;
+  struct ccase *c;
   struct levene_info l;
 
   l.n_dep      = n_dep;
@@ -131,14 +131,14 @@ levene(const struct dictionary *dict,
   casereader_split (reader, &pass1, &pass2);
 
   levene_precalc (&l);
-  for (; casereader_read (pass1, &c); case_destroy (&c))
-    levene_calc (dict, &c, &l);
+  for (; (c = casereader_read (pass1)) != NULL; case_unref (c))
+    levene_calc (dict, c, &l);
   casereader_destroy (pass1);
   levene_postcalc (&l);
 
   levene2_precalc(&l);
-  for (; casereader_read (pass2, &c); case_destroy (&c))
-    levene2_calc (dict, &c, &l);
+  for (; (c = casereader_read (pass2)) != NULL; case_unref (c))
+    levene2_calc (dict, c, &l);
   casereader_destroy (pass2);
   levene2_postcalc (&l);
 

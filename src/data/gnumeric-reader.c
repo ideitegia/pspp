@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -60,8 +60,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
 static void gnm_file_casereader_destroy (struct casereader *, void *);
 
-static bool gnm_file_casereader_read (struct casereader *, void *,
-				      struct ccase *);
+static struct ccase *gnm_file_casereader_read (struct casereader *, void *);
 
 static const struct casereader_class gnm_file_casereader_class =
   {
@@ -172,7 +171,7 @@ struct gnumeric_reader
 
   size_t value_cnt;
   struct dictionary *dict;
-  struct ccase first_case;
+  struct ccase *first_case;
   bool used_first_case;
 };
 
@@ -193,7 +192,7 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
     xmlFreeTextReader (r->xtr);
 
   if ( ! r->used_first_case )
-    case_destroy (&r->first_case);
+    case_unref (r->first_case);
 
   free (r);
 }
@@ -537,15 +536,15 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
       goto error;
     }
 
-  case_create (&r->first_case, r->value_cnt);
-  memset (case_data_rw_idx (&r->first_case, 0)->s,
+  r->first_case = case_create (r->value_cnt);
+  memset (case_data_rw_idx (r->first_case, 0)->s,
 	  ' ', MAX_SHORT_STRING * r->value_cnt);
 
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
       const struct variable *var = dict_get_var (r->dict, i);
 
-      convert_xml_string_to_value (&r->first_case, var,
+      convert_xml_string_to_value (r->first_case, var,
 				   var_spec[i].first_value);
     }
 
@@ -580,12 +579,12 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 };
 
 
-/* Reads one case from READER's file into C.  Returns true only
-   if successful. */
-static bool
-gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_,
-                          struct ccase *c)
+/* Reads and returns one case from READER's file.  Returns a null
+   pointer on failure. */
+static struct ccase *
+gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 {
+  struct ccase *c;
   int ret = 0;
 
   struct gnumeric_reader *r = r_;
@@ -593,12 +592,11 @@ gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_,
 
   if ( !r->used_first_case )
     {
-      *c = r->first_case;
       r->used_first_case = true;
-      return true;
+      return r->first_case;
     }
 
-  case_create (c, r->value_cnt);
+  c = case_create (r->value_cnt);
 
   memset (case_data_rw_idx (c, 0)->s, ' ', MAX_SHORT_STRING * r->value_cnt);
 
@@ -632,7 +630,13 @@ gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_,
 
     }
 
-  return (ret == 1);
+  if (ret == 1)
+    return c;
+  else
+    {
+      case_unref (c);
+      return NULL;
+    }
 }
 
 

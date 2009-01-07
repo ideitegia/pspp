@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -389,21 +389,22 @@ datasheet_move_columns (struct datasheet *ds,
   axis_move (ds->columns, old_start, new_start, cnt);
 }
 
-/* Retrieves the contents of the given ROW in datasheet DS into
-   newly created case C.  Returns true if successful, false on
-   I/O error. */
-bool
-datasheet_get_row (const struct datasheet *ds, casenumber row, struct ccase *c)
+/* Retrieves and returns the contents of the given ROW in
+   datasheet DS.  The caller owns the returned case and must
+   unref it when it is no longer needed.  Returns a null pointer
+   on I/O error. */
+struct ccase *
+datasheet_get_row (const struct datasheet *ds, casenumber row)
 {
   size_t column_cnt = datasheet_get_column_cnt (ds);
-  case_create (c, column_cnt);
+  struct ccase *c = case_create (column_cnt);
   if (rw_case ((struct datasheet *) ds, OP_READ,
                row, 0, column_cnt, case_data_all_rw (c)))
-    return true;
+    return c;
   else
     {
-      case_destroy (c);
-      return false;
+      case_unref (c);
+      return NULL;
     }
 }
 
@@ -417,7 +418,7 @@ datasheet_put_row (struct datasheet *ds, casenumber row, struct ccase *c)
   size_t column_cnt = datasheet_get_column_cnt (ds);
   bool ok = rw_case (ds, OP_WRITE, row, 0, column_cnt,
                      (union value *) case_data_all (c));
-  case_destroy (c);
+  case_unref (c);
   return ok;
 }
 
@@ -445,13 +446,15 @@ datasheet_put_value (struct datasheet *ds, casenumber row, size_t column,
                   (union value *) value);
 }
 
-/* Inserts the CNT cases at C, which are destroyed, into
-   datasheet DS just before row BEFORE.  Returns true if
-   successful, false on I/O error.  On failure, datasheet DS is
-   not modified. */
+/* Inserts the CNT cases at C into datasheet DS just before row
+   BEFORE.  Returns true if successful, false on I/O error.  On
+   failure, datasheet DS is not modified.
+
+   Regardless of success, this function unrefs all of the cases
+   in C. */
 bool
 datasheet_insert_rows (struct datasheet *ds,
-                       casenumber before, struct ccase c[],
+                       casenumber before, struct ccase *c[],
                        casenumber cnt)
 {
   casenumber added = 0;
@@ -476,10 +479,10 @@ datasheet_insert_rows (struct datasheet *ds,
 
       /* Initialize the new rows. */
       for (i = 0; i < phy_cnt; i++)
-        if (!datasheet_put_row (ds, before + i, &c[i]))
+        if (!datasheet_put_row (ds, before + i, c[i]))
           {
             while (++i < cnt)
-              case_destroy (&c[i]);
+              case_unref (c[i]);
             datasheet_delete_rows (ds, before - added, phy_cnt + added);
             return false;
           }
@@ -540,20 +543,20 @@ datasheet_make_reader (struct datasheet *ds)
 }
 
 /* "read" function for the datasheet random casereader. */
-static bool
+static struct ccase *
 datasheet_reader_read (struct casereader *reader UNUSED, void *ds_,
-                       casenumber case_idx, struct ccase *c)
+                       casenumber case_idx)
 {
   struct datasheet *ds = ds_;
-  if (case_idx >= datasheet_get_row_cnt (ds))
-    return false;
-  else if (datasheet_get_row (ds, case_idx, c))
-    return true;
-  else
+  if (case_idx < datasheet_get_row_cnt (ds))
     {
-      taint_set_taint (ds->taint);
-      return false;
+      struct ccase *c = datasheet_get_row (ds, case_idx);
+      if (c == NULL)
+        taint_set_taint (ds->taint);
+      return c;
     }
+  else
+    return NULL;
 }
 
 /* "destroy" function for the datasheet random casereader. */
@@ -1136,15 +1139,12 @@ source_read (const struct source *source,
     return sparse_cases_read (source->data, row, column, values, value_cnt);
   else
     {
-      struct ccase c;
-      bool ok;
-
-      assert (source->backing != NULL);
-      ok = casereader_peek (source->backing, row, &c);
+      struct ccase *c = casereader_peek (source->backing, row);
+      bool ok = c != NULL;
       if (ok)
         {
-          case_copy_out (&c, column, values, value_cnt);
-          case_destroy (&c);
+          case_copy_out (c, column, values, value_cnt);
+          case_unref (c);
         }
       return ok;
     }
@@ -1169,9 +1169,10 @@ source_write (struct source *source,
     ok = sparse_cases_write (source->data, row, column, values, value_cnt);
   else
     {
-      struct ccase c;
+      struct ccase *c;
+
       if (row < source->backing_rows)
-        ok = casereader_peek (source->backing, row, &c);
+        c = case_unshare (casereader_peek (source->backing, row));
       else
         {
           /* It's not one of the backed rows.  Ideally, this
@@ -1182,15 +1183,16 @@ source_write (struct source *source,
              levels, so that we in fact usually write the full
              contents of new, unbacked rows in multiple calls to
              this function.  Make this work. */
-          case_create (&c, column_cnt);
-          ok = true;
+          c = case_create (column_cnt);
         }
+      ok = c != NULL;
+
       if (ok)
         {
-          case_copy_in (&c, column, values, value_cnt);
+          case_copy_in (c, column, values, value_cnt);
           ok = sparse_cases_write (source->data, row, 0,
-                                   case_data_all (&c), column_cnt);
-          case_destroy (&c);
+                                   case_data_all (c), column_cnt);
+          case_unref (c);
         }
     }
   return ok;

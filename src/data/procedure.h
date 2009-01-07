@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ struct dictionary *dataset_dict (const struct dataset *ds);
 const struct casereader *dataset_source (const struct dataset *ds);
 
 
-struct ccase *lagged_case (const struct dataset *ds, int n_before);
+const struct ccase *lagged_case (const struct dataset *ds, int n_before);
 void dataset_need_lag (struct dataset *ds, int n_before);
 
 #endif /* procedure.h */

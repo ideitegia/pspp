@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -304,21 +304,22 @@ loop_trns_finalize (void *do_if_ UNUSED)
 
 /* Sets up LOOP for the first pass. */
 static int
-loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num)
+loop_trns_proc (void *loop_, struct ccase **c, casenumber case_num)
 {
   struct loop_trns *loop = loop_;
 
   if (loop->index_var != NULL)
     {
       /* Evaluate loop index expressions. */
-      loop->cur = expr_evaluate_num (loop->first_expr, c, case_num);
+      loop->cur = expr_evaluate_num (loop->first_expr, *c, case_num);
       if (loop->by_expr != NULL)
-	loop->by = expr_evaluate_num (loop->by_expr, c, case_num);
-      loop->last = expr_evaluate_num (loop->last_expr, c, case_num);
+	loop->by = expr_evaluate_num (loop->by_expr, *c, case_num);
+      loop->last = expr_evaluate_num (loop->last_expr, *c, case_num);
 
       /* Even if the loop is never entered, set the index
          variable to the initial value. */
-      case_data_rw (c, loop->index_var)->f = loop->cur;
+      *c = case_unshare (*c);
+      case_data_rw (*c, loop->index_var)->f = loop->cur;
 
       /* Throw out pathological cases. */
       if (!isfinite (loop->cur) || !isfinite (loop->by)
@@ -336,7 +337,7 @@ loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num)
 
   /* Check condition. */
   if (loop->loop_condition != NULL
-      && expr_evaluate_num (loop->loop_condition, c, case_num) != 1.0)
+      && expr_evaluate_num (loop->loop_condition, *c, case_num) != 1.0)
     goto zero_pass;
 
   return loop->past_LOOP_index;
@@ -357,12 +358,12 @@ loop_trns_free (void *loop_)
 
 /* Finishes a pass through the loop and starts the next. */
 static int
-end_loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num UNUSED)
+end_loop_trns_proc (void *loop_, struct ccase **c, casenumber case_num UNUSED)
 {
   struct loop_trns *loop = loop_;
 
   if (loop->end_loop_condition != NULL
-      && expr_evaluate_num (loop->end_loop_condition, c, case_num) != 0.0)
+      && expr_evaluate_num (loop->end_loop_condition, *c, case_num) != 0.0)
     goto break_out;
 
   /* MXLOOPS limiter. */
@@ -380,11 +381,12 @@ end_loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num UNUSED)
       if ((loop->by > 0.0 && loop->cur > loop->last)
           || (loop->by < 0.0 && loop->cur < loop->last))
         goto break_out;
-      case_data_rw (c, loop->index_var)->f = loop->cur;
+      *c = case_unshare (*c);
+      case_data_rw (*c, loop->index_var)->f = loop->cur;
     }
 
   if (loop->loop_condition != NULL
-      && expr_evaluate_num (loop->loop_condition, c, case_num) != 1.0)
+      && expr_evaluate_num (loop->loop_condition, *c, case_num) != 1.0)
     goto break_out;
 
   return loop->past_LOOP_index;
@@ -395,7 +397,8 @@ end_loop_trns_proc (void *loop_, struct ccase *c, casenumber case_num UNUSED)
 
 /* Executes BREAK. */
 static int
-break_trns_proc (void *loop_, struct ccase *c UNUSED, casenumber case_num UNUSED)
+break_trns_proc (void *loop_, struct ccase **c UNUSED,
+                 casenumber case_num UNUSED)
 {
   struct loop_trns *loop = loop_;
 

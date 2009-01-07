@@ -1,5 +1,5 @@
 /* Pspp - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ wilcoxon_execute (const struct dataset *ds,
     {
       struct casereader *r = casereader_clone (input);
       struct casewriter *writer;
-      struct ccase c;
+      struct ccase *c;
       struct subcase ordering;
       variable_pair *vp = &t2s->pairs[i];
 
@@ -105,41 +105,37 @@ wilcoxon_execute (const struct dataset *ds,
       writer = sort_create_writer (&ordering, reader_width);
       subcase_destroy (&ordering);
 
-      while (casereader_read (r, &c))
+      for (; (c = casereader_read (r)) != NULL; case_unref (c))
 	{
-	  struct ccase output;
-	  double d = append_difference (&c, 0, vp);
-
-	  case_create (&output, reader_width);
+	  struct ccase *output = case_create (reader_width);
+	  double d = append_difference (c, 0, vp);
 
 	  if (d > 0)
 	    {
-	      case_data_rw (&output, ws[i].sign)->f = 1.0;
+	      case_data_rw (output, ws[i].sign)->f = 1.0;
 
 	    }
 	  else if (d < 0)
 	    {
-	      case_data_rw (&output, ws[i].sign)->f = -1.0;
+	      case_data_rw (output, ws[i].sign)->f = -1.0;
 	    }
 	  else
 	    {
 	      double w = 1.0;
 	      if (weight)
-		w = case_data (&c, weight)->f;
+		w = case_data (c, weight)->f;
 
 	      /* Central point values should be dropped */
 	      ws[i].n_zeros += w;
-	      case_destroy (&c);
-	      continue;
+              continue;
 	    }
 
-	  case_data_rw (&output, ws[i].absdiff)->f = fabs (d);
+	  case_data_rw (output, ws[i].absdiff)->f = fabs (d);
 
 	  if (weight)
-	   case_data_rw (&output, weightx)->f = case_data (&c, weight)->f;
+	   case_data_rw (output, weightx)->f = case_data (c, weight)->f;
 
-	  casewriter_write (writer, &output);
-	  case_destroy (&c);
+	  casewriter_write (writer, output);
 	}
       casereader_destroy (r);
       ws[i].reader = casewriter_make_reader (writer);
@@ -148,7 +144,7 @@ wilcoxon_execute (const struct dataset *ds,
   for (i = 0 ; i < t2s->n_pairs; ++i )
     {
       struct casereader *rr ;
-      struct ccase c;
+      struct ccase *c;
       enum rank_error err = 0;
 
       rr = casereader_create_append_rank (ws[i].reader, ws[i].absdiff,
@@ -156,13 +152,13 @@ wilcoxon_execute (const struct dataset *ds,
 					  distinct_callback, &ws[i]
 					  );
 
-      while (casereader_read (rr, &c))
+      for (; (c = casereader_read (rr)) != NULL; case_unref (c))
 	{
-	  double sign = case_data (&c, ws[i].sign)->f;
-	  double rank = case_data_idx (&c, weight ? 3 : 2)->f;
+	  double sign = case_data (c, ws[i].sign)->f;
+	  double rank = case_data_idx (c, weight ? 3 : 2)->f;
 	  double w = 1.0;
 	  if (weight)
-	    w = case_data (&c, weightx)->f;
+	    w = case_data (c, weightx)->f;
 
 	  if ( sign > 0 )
 	    {
@@ -176,8 +172,6 @@ wilcoxon_execute (const struct dataset *ds,
 	    }
 	  else
 	    NOT_REACHED ();
-
-	  case_destroy (&c);
 	}
 
       casereader_destroy (rr);

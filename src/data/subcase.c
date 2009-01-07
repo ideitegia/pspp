@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -168,7 +168,9 @@ subcase_inject (const struct subcase *sc,
 /* Copies the fields in SRC represented by SRC_SC into the
    corresponding fields in DST respresented by DST_SC.  SRC_SC
    and DST_SC must be conformable (as tested by
-   subcase_conformable()). */
+   subcase_conformable()).
+
+   DST must not be shared. */
 void
 subcase_copy (const struct subcase *src_sc, const struct ccase *src,
               const struct subcase *dst_sc, struct ccase *dst)

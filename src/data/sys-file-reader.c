@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1304,24 +1304,24 @@ static bool read_compressed_string (struct sfm_reader *, char *);
 static bool read_whole_strings (struct sfm_reader *, char *, size_t);
 static bool skip_whole_strings (struct sfm_reader *, size_t);
 
-/* Reads one case from READER's file into C.  Returns true only
-   if successful. */
-static bool
-sys_file_casereader_read (struct casereader *reader, void *r_,
-                          struct ccase *c)
+/* Reads and returns one case from READER's file.  Returns a null
+   pointer if not successful. */
+static struct ccase *
+sys_file_casereader_read (struct casereader *reader, void *r_)
 {
   struct sfm_reader *r = r_;
+  struct ccase *volatile c;
   int i;
 
   if (r->error)
-    return false;
+    return NULL;
 
-  case_create (c, r->value_cnt);
+  c = case_create (r->value_cnt);
   if (setjmp (r->bail_out))
     {
       casereader_force_error (reader);
-      case_destroy (c);
-      return false;
+      case_unref (c);
+      return NULL;
     }
 
   for (i = 0; i < r->sfm_var_cnt; i++)
@@ -1342,15 +1342,15 @@ sys_file_casereader_read (struct casereader *reader, void *r_,
             partial_record (r);
         }
     }
-  return true;
+  return c;
 
 eof:
-  case_destroy (c);
+  case_unref (c);
   if (i != 0)
     partial_record (r);
   if (r->case_cnt != -1)
     read_error (reader, r);
-  return false;
+  return NULL;
 }
 
 /* Issues an error that R ends in a partial record. */

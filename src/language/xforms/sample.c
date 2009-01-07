@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ cmd_sample (struct lexer *lexer, struct dataset *ds)
 
 /* Executes a SAMPLE transformation. */
 static int
-sample_trns_proc (void *t_, struct ccase *c UNUSED,
+sample_trns_proc (void *t_, struct ccase **c UNUSED,
                   casenumber case_num UNUSED)
 {
   struct sample_trns *t = t_;

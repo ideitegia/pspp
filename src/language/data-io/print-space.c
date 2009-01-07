@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ cmd_print_space (struct lexer *lexer, struct dataset *ds)
 
 /* Executes a PRINT SPACE transformation. */
 static int
-print_space_trns_proc (void *t_, struct ccase *c,
+print_space_trns_proc (void *t_, struct ccase **c,
                        casenumber case_num UNUSED)
 {
   struct print_space_trns *trns = t_;
@@ -111,7 +111,7 @@ print_space_trns_proc (void *t_, struct ccase *c,
   n = 1;
   if (trns->expr)
     {
-      double f = expr_evaluate_num (trns->expr, c, case_num);
+      double f = expr_evaluate_num (trns->expr, *c, case_num);
       if (f == SYSMIS)
         msg (SW, _("The expression on PRINT SPACE evaluated to the "
                    "system-missing value."));

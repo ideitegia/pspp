@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -268,8 +268,8 @@ parse_string_criteria (struct lexer *lexer, struct pool *pool, struct criteria *
 /* Transformation. */
 
 /* Counts the number of values in case C matching CRIT. */
-static inline int
-count_numeric (struct criteria *crit, struct ccase *c)
+static int
+count_numeric (struct criteria *crit, const struct ccase *c)
 {
   int counter = 0;
   size_t i;
@@ -302,8 +302,8 @@ count_numeric (struct criteria *crit, struct ccase *c)
 }
 
 /* Counts the number of values in case C matching CRIT. */
-static inline int
-count_string (struct criteria *crit, struct ccase *c)
+static int
+count_string (struct criteria *crit, const struct ccase *c)
 {
   int counter = 0;
   size_t i;
@@ -325,12 +325,13 @@ count_string (struct criteria *crit, struct ccase *c)
 
 /* Performs the COUNT transformation T on case C. */
 static int
-count_trns_proc (void *trns_, struct ccase *c,
+count_trns_proc (void *trns_, struct ccase **c,
                  casenumber case_num UNUSED)
 {
   struct count_trns *trns = trns_;
   struct dst_var *dv;
 
+  *c = case_unshare (*c);
   for (dv = trns->dst_vars; dv; dv = dv->next)
     {
       struct criteria *crit;
@@ -339,10 +340,10 @@ count_trns_proc (void *trns_, struct ccase *c,
       counter = 0;
       for (crit = dv->crit; crit; crit = crit->next)
 	if (var_is_numeric (crit->vars[0]))
-	  counter += count_numeric (crit, c);
+	  counter += count_numeric (crit, *c);
 	else
-	  counter += count_string (crit, c);
-      case_data_rw (c, dv->var)->f = counter;
+	  counter += count_string (crit, *c);
+      case_data_rw (*c, dv->var)->f = counter;
     }
   return TRNS_CONTINUE;
 }

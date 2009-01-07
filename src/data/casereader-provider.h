@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,20 +43,23 @@ struct casereader_class
   {
     /* Mandatory.
 
-       Reads the next case from READER into case C, which the
-       casereader must create and which the client is responsible
-       for destroying.  If successful, returns true and advances
-       READER to the next case, so that the next call to this
-       function will read the next case.  The case just read will
-       never be read again by a call to this function for READER.
+       Reads the next case from READER.  If successful, returns
+       the case and advances READER, so that the next call to
+       this function will read the following case.  The case just
+       read will never be read again by a call to this function
+       for READER.
 
-       At end of file or upon an I/O error, returns false.  After
-       false is returned once, this function will not be called
-       again for the given READER.
+       If a case is successfully returned, the client is
+       responsible for calling case_unref upon it when it is no
+       longer needed.
+
+       At end of file or upon an I/O error, returns a null
+       pointer.  After null is returned once, this function will
+       not be called again for the given READER.
 
        If an I/O error occurs, this function should call
        casereader_force_error on READER. */
-    bool (*read) (struct casereader *reader, void *aux, struct ccase *c);
+    struct ccase *(*read) (struct casereader *reader, void *aux);
 
     /* Mandatory.
 
@@ -88,22 +91,23 @@ struct casereader_class
        (But it might be easier to use the random-access
        casereader wrapper instead.)
 
-       Reads the case at 0-based offset IDX from the beginning of
-       READER into case C, which the casereader must create and
-       which the client is responsible for destroying.
+       Reads and returns the case at 0-based offset IDX from the
+       beginning of READER.  If a case is successfully returned,
+       the client is responsible for calling case_unref upon it
+       when it is no longer needed.
 
-       At end of file or upon an I/O error, returns false.  If
-       this function returns false, then it will never be called
-       again for an equal or greater value of IDX, and the "read"
-       member function will never be called to advance as far as
-       IDX cases further into the casereader.  That is, returning
-       false indicates that the casereader has fewer than IDX
-       cases left.
+       At end of file or upon an I/O error, returns a null
+       pointer.  If this function returns null, then it will
+       never be called again for an equal or greater value of
+       IDX, and the "read" member function will never be called
+       to advance as far as IDX cases further into the
+       casereader.  That is, returning null indicates that the
+       casereader has fewer than IDX cases left.
 
        If an I/O error occurs, this function should call
        casereader_force_error on READER. */
-    bool (*peek) (struct casereader *reader, void *aux, casenumber idx,
-                  struct ccase *c);
+    struct ccase *(*peek) (struct casereader *reader, void *aux,
+                           casenumber idx);
   };
 
 struct casereader *
@@ -119,21 +123,22 @@ struct casereader_random_class
     /* Mandatory.
 
        Reads the case at 0-based offset IDX from the beginning of
-       READER into case C, which the casereader must create and
-       which the client is responsible for destroying.
+       READER.  If a case is successfully returned, the client is
+       responsible for calling case_unref upon it when it is no
+       longer needed.
 
-       At end of file or upon an I/O error, returns false.  If
-       this function returns false, then it will never be called
-       again for an equal or greater value of IDX, and the "read"
-       member function will never be called to advance as far as
-       IDX cases further into the casereader.  That is, returning
-       false indicates that the casereader has fewer than IDX
-       cases.
+       At end of file or upon an I/O error, returns a null
+       pointer.  If this function returns null, then it will
+       never be called again for an equal or greater value of
+       IDX, and the "read" member function will never be called
+       to advance as far as IDX cases further into the
+       casereader.  That is, returning null indicates that the
+       casereader has fewer than IDX cases.
 
        If an I/O error occurs, this function should call
        casereader_force_error on READER. */
-    bool (*read) (struct casereader *reader, void *aux, casenumber idx,
-                  struct ccase *c);
+    struct ccase *(*read) (struct casereader *reader, void *aux,
+                           casenumber idx);
 
     /* Mandatory.
 
