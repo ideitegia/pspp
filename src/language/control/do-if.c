@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -240,7 +240,7 @@ do_if_finalize_func (void *do_if_ UNUSED)
    Checks each clause and jumps to the appropriate
    transformation. */
 static int
-do_if_trns_proc (void *do_if_, struct ccase *c, casenumber case_num UNUSED)
+do_if_trns_proc (void *do_if_, struct ccase **c, casenumber case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
   struct clause *clause;
@@ -250,7 +250,7 @@ do_if_trns_proc (void *do_if_, struct ccase *c, casenumber case_num UNUSED)
     {
       if (clause->condition != NULL)
         {
-          double boolean = expr_evaluate_num (clause->condition, c, case_num);
+          double boolean = expr_evaluate_num (clause->condition, *c, case_num);
           if (boolean == 1.0)
             return clause->target_index;
           else if (boolean == SYSMIS)
@@ -279,7 +279,8 @@ do_if_trns_free (void *do_if_)
 
 /* Breaks out of a DO IF construct. */
 static int
-break_trns_proc (void *do_if_, struct ccase *c UNUSED, casenumber case_num UNUSED)
+break_trns_proc (void *do_if_, struct ccase **c UNUSED,
+                 casenumber case_num UNUSED)
 {
   struct do_if_trns *do_if = do_if_;
 

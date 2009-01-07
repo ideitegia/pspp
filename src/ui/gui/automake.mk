@@ -64,22 +64,36 @@ src_ui_gui_psppire_LDADD = \
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 
-dist_src_ui_gui_psppire_DATA = \
-	$(top_srcdir)/src/ui/gui/data-editor.glade \
-	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
-	$(top_srcdir)/src/ui/gui/examine.glade \
+nodist_src_ui_gui_psppire_DATA = \
+	$(top_srcdir)/src/ui/gui/crosstabs.ui \
+	$(top_srcdir)/src/ui/gui/examine.ui \
+	$(top_srcdir)/src/ui/gui/frequencies.ui \
+	$(top_srcdir)/src/ui/gui/message-dialog.ui \
+	$(top_srcdir)/src/ui/gui/psppire.ui \
+	$(top_srcdir)/src/ui/gui/oneway.ui \
+	$(top_srcdir)/src/ui/gui/rank.ui \
+	$(top_srcdir)/src/ui/gui/recode.ui \
+	$(top_srcdir)/src/ui/gui/regression.ui \
+	$(top_srcdir)/src/ui/gui/t-test.ui
+
+EXTRA_DIST += \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
+	$(top_srcdir)/src/ui/gui/examine.glade \
 	$(top_srcdir)/src/ui/gui/frequencies.glade \
 	$(top_srcdir)/src/ui/gui/message-dialog.glade \
-	$(top_srcdir)/src/ui/gui/oneway.glade \
-	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
+	$(top_srcdir)/src/ui/gui/oneway.glade \
 	$(top_srcdir)/src/ui/gui/rank.glade \
 	$(top_srcdir)/src/ui/gui/recode.glade \
 	$(top_srcdir)/src/ui/gui/regression.glade \
+	$(top_srcdir)/src/ui/gui/t-test.glade
+
+dist_src_ui_gui_psppire_DATA = \
+	$(top_srcdir)/src/ui/gui/data-editor.glade \
+	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
+	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
 	$(top_srcdir)/src/ui/gui/text-data-import.glade \
-	$(top_srcdir)/src/ui/gui/t-test.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
@@ -207,8 +221,6 @@ nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.h
 
 
-
-
 yelp-check:
 	@if ! yelp --version > /dev/null 2>&1 ; then \
 		echo    ; \
@@ -227,6 +239,9 @@ src/ui/gui/psppire-marshal.c: src/ui/gui/marshaller-list
 
 src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
 	glib-genmarshal --header --prefix=psppire_marshal $< > $@
+
+.glade.ui:
+	gtk-builder-convert $< $@
 
 EXTRA_DIST += src/ui/gui/OChangeLog\
 	src/ui/gui/marshaller-list

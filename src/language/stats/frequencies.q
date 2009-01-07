@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -376,11 +376,11 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
   for (; casegrouper_get_next_group (grouper, &group);
        casereader_destroy (group))
     {
-      struct ccase c;
+      struct ccase *c;
 
       precalc (group, ds);
-      for (; casereader_read (group, &c); case_destroy (&c))
-        calc (&c, ds);
+      for (; (c = casereader_read (group)) != NULL; case_unref (c))
+        calc (c, ds);
       postcalc ();
     }
   ok = casegrouper_destroy (grouper);
@@ -535,13 +535,14 @@ calc (const struct ccase *c, const struct dataset *ds)
 static void
 precalc (struct casereader *input, struct dataset *ds)
 {
-  struct ccase c;
+  struct ccase *c;
   size_t i;
 
-  if (casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c != NULL)
     {
-      output_split_file_values (ds, &c);
-      case_destroy (&c);
+      output_split_file_values (ds, c);
+      case_unref (c);
     }
 
   pool_destroy (data_pool);

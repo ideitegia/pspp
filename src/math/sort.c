@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ struct sort_writer
 
     struct casewriter *run;
     casenumber run_id;
-    struct ccase run_end;
+    struct ccase *run_end;
   };
 
 static struct casewriter_class sort_casewriter_class;
@@ -58,7 +58,7 @@ static void pqueue_destroy (struct pqueue *);
 static bool pqueue_is_full (const struct pqueue *);
 static bool pqueue_is_empty (const struct pqueue *);
 static void pqueue_push (struct pqueue *, struct ccase *, casenumber);
-static void pqueue_pop (struct pqueue *, struct ccase *, casenumber *);
+static struct ccase *pqueue_pop (struct pqueue *, casenumber *);
 
 static void output_record (struct sort_writer *);
 
@@ -74,7 +74,7 @@ sort_create_writer (const struct subcase *ordering, size_t value_cnt)
   sort->pqueue = pqueue_create (ordering, value_cnt);
   sort->run = NULL;
   sort->run_id = 0;
-  case_nullify (&sort->run_end);
+  sort->run_end = NULL;
 
   return casewriter_create (value_cnt, &sort_casewriter_class, sort);
 }
@@ -89,9 +89,9 @@ sort_casewriter_write (struct casewriter *writer UNUSED, void *sort_,
   if (pqueue_is_full (sort->pqueue))
     output_record (sort);
 
-  next_run = (case_is_null (&sort->run_end)
+  next_run = (sort->run_end == NULL
               || subcase_compare_3way (&sort->ordering, c,
-                                       &sort->ordering, &sort->run_end) < 0);
+                                       &sort->ordering, sort->run_end) < 0);
   pqueue_push (sort->pqueue, c, sort->run_id + (next_run ? 1 : 0));
 }
 
@@ -104,7 +104,7 @@ sort_casewriter_destroy (struct casewriter *writer UNUSED, void *sort_)
   merge_destroy (sort->merge);
   pqueue_destroy (sort->pqueue);
   casewriter_destroy (sort->run);
-  case_destroy (&sort->run_end);
+  case_unref (sort->run_end);
   free (sort);
 }
 
@@ -134,12 +134,12 @@ sort_casewriter_convert_to_reader (struct casewriter *writer, void *sort_)
 static void
 output_record (struct sort_writer *sort)
 {
-  struct ccase min_case;
+  struct ccase *min_case;
   casenumber min_run_id;
 
-  pqueue_pop (sort->pqueue, &min_case, &min_run_id);
+  min_case = pqueue_pop (sort->pqueue, &min_run_id);
 #if 0
-  printf ("\toutput: %f to run %d\n", case_num_idx (&min_case, 0), min_run_id);
+  printf ("\toutput: %f to run %d\n", case_num_idx (min_case, 0), min_run_id);
 #endif
 
   if (sort->run_id != min_run_id && sort->run != NULL)
@@ -153,10 +153,9 @@ output_record (struct sort_writer *sort)
       sort->run_id = min_run_id;
     }
 
-  case_destroy (&sort->run_end);
-  case_clone (&sort->run_end, &min_case);
-
-  casewriter_write (sort->run, &min_case);
+  case_unref (sort->run_end);
+  sort->run_end = case_ref (min_case);
+  casewriter_write (sort->run, min_case);
 }
 
 static struct casewriter_class sort_casewriter_class =
@@ -204,7 +203,7 @@ struct pqueue
 struct pqueue_record
   {
     casenumber id;
-    struct ccase c;
+    struct ccase *c;
     casenumber idx;
   };
 
@@ -238,10 +237,9 @@ pqueue_destroy (struct pqueue *pq)
     {
       while (!pqueue_is_empty (pq))
         {
-          struct ccase c;
           casenumber id;
-          pqueue_pop (pq, &c, &id);
-          case_destroy (&c);
+          struct ccase *c = pqueue_pop (pq, &id);
+          case_unref (c);
         }
       subcase_destroy (&pq->ordering);
       free (pq->records);
@@ -270,15 +268,15 @@ pqueue_push (struct pqueue *pq, struct ccase *c, casenumber id)
 
   r = &pq->records[pq->record_cnt++];
   r->id = id;
-  case_move (&r->c, c);
+  r->c = c;
   r->idx = pq->idx++;
 
   push_heap (pq->records, pq->record_cnt, sizeof *pq->records,
              compare_pqueue_records_minheap, pq);
 }
 
-static void
-pqueue_pop (struct pqueue *pq, struct ccase *c, casenumber *id)
+static struct ccase *
+pqueue_pop (struct pqueue *pq, casenumber *id)
 {
   struct pqueue_record *r;
 
@@ -289,7 +287,7 @@ pqueue_pop (struct pqueue *pq, struct ccase *c, casenumber *id)
 
   r = &pq->records[pq->record_cnt];
   *id = r->id;
-  case_move (c, &r->c);
+  return r->c;
 }
 
 /* Compares record-run tuples A and B on id, then on case data,
@@ -303,8 +301,7 @@ compare_pqueue_records_minheap (const void *a_, const void *b_,
   const struct pqueue *pq = pq_;
   int result = a->id < b->id ? -1 : a->id > b->id;
   if (result == 0)
-    result = subcase_compare_3way (&pq->ordering, &a->c,
-                                   &pq->ordering, &b->c);
+    result = subcase_compare_3way (&pq->ordering, a->c, &pq->ordering, b->c);
   if (result == 0)
     result = a->idx < b->idx ? -1 : a->idx > b->idx;
   return -result;

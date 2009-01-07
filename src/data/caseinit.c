@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -247,7 +247,8 @@ caseinit_mark_for_init (struct caseinit *ci, const struct dictionary *d)
   init_list_mark (&ci->left_values, &ci->preinited_values, LEAVE_LEFT, d);
 }
 
-/* Initializes variables in C as described by CI. */
+/* Initializes variables in *C as described by CI.
+   C must not be shared. */
 void
 caseinit_init_vars (const struct caseinit *ci, struct ccase *c)
 {

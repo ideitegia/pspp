@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ struct casewriter_translator
   {
     struct casewriter *subwriter;
 
-    void (*translate) (struct ccase *input, struct ccase *output, void *aux);
+    struct ccase *(*translate) (struct ccase *, void *aux);
     bool (*destroy) (void *aux);
     void *aux;
   };
@@ -37,10 +37,15 @@ struct casewriter_translator
 static const struct casewriter_class casewriter_translator_class;
 
 /* Creates and returns a new casewriter whose cases are passed
-   through TRANSLATE, which must create case OUTPUT, with
-   OUTPUT_VALUE_CNT values, and populate it based on INPUT and
-   auxiliary data AUX.  The translated cases are then written to
-   SUBWRITER.  TRANSLATE must also destroy INPUT.
+   through TRANSLATE, which must return a case with
+   OUTPUT_VALUE_CNT values, based on INPUT and auxiliary data
+   AUX.  (TRANSLATE may also return a null pointer, in which case
+   no case is written to the output.)  The translated cases are
+   then written to SUBWRITER.
+
+   TRANSLATE takes ownership of each case passed to it.  Thus, it
+   should either unref each case and return a new case, or
+   (unshare and then) modify and return the same case.
 
    When the translating casewriter is destroyed, DESTROY will be
    called to allow any state maintained by TRANSLATE to be freed.
@@ -51,9 +56,8 @@ static const struct casewriter_class casewriter_translator_class;
 struct casewriter *
 casewriter_create_translator (struct casewriter *subwriter,
                               size_t translated_value_cnt,
-                              void (*translate) (struct ccase *input,
-                                                 struct ccase *output,
-                                                 void *aux),
+                              struct ccase *(*translate) (struct ccase *,
+                                                          void *aux),
                               bool (*destroy) (void *aux),
                               void *aux)
 {
@@ -75,10 +79,9 @@ casewriter_translator_write (struct casewriter *writer UNUSED,
                              void *ct_, struct ccase *c)
 {
   struct casewriter_translator *ct = ct_;
-  struct ccase tmp;
-
-  ct->translate (c, &tmp, ct->aux);
-  casewriter_write (ct->subwriter, &tmp);
+  c = ct->translate (c, ct->aux);
+  if (c != NULL)
+    casewriter_write (ct->subwriter, c);
 }
 
 static void

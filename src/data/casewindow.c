@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ struct casewindow_class
     void (*destroy) (void *aux);
     void (*push_head) (void *aux, struct ccase *);
     void (*pop_tail) (void *aux, casenumber cnt);
-    bool (*get_case) (void *aux, casenumber ofs, struct ccase *);
+    struct ccase *(*get_case) (void *aux, casenumber ofs);
     casenumber (*get_case_cnt) (const void *aux);
   };
 
@@ -120,11 +120,11 @@ casewindow_to_disk (struct casewindow *old)
   new = do_casewindow_create (taint_clone (old->taint), old->value_cnt, 0);
   while (casewindow_get_case_cnt (old) > 0 && !casewindow_error (new))
     {
-      struct ccase c;
-      if (!casewindow_get_case (old, 0, &c))
+      struct ccase *c = casewindow_get_case (old, 0);
+      if (c == NULL)
         break;
       casewindow_pop_tail (old, 1);
-      casewindow_push_head (new, &c);
+      casewindow_push_head (new, c);
     }
   casewindow_swap (old, new);
   casewindow_destroy (new);
@@ -147,7 +147,7 @@ casewindow_push_head (struct casewindow *cw, struct ccase *c)
         }
     }
   else
-    case_destroy (c);
+    case_unref (c);
 }
 
 /* Deletes CASE_CNT cases at the tail of casewindow CW. */
@@ -158,23 +158,19 @@ casewindow_pop_tail (struct casewindow *cw, casenumber case_cnt)
     cw->class->pop_tail (cw->aux, case_cnt);
 }
 
-/* Copies the case that is CASE_IDX cases away from CW's tail
-   into C.  Returns true if successful, false on an I/O error or
-   if CW is otherwise tainted.  On failure, nullifies case C. */
-bool
-casewindow_get_case (const struct casewindow *cw_, casenumber case_idx,
-                     struct ccase *c)
+/* Returns the case that is CASE_IDX cases away from CW's tail
+   into C, or a null pointer on an I/O error or if CW is
+   otherwise tainted.  The caller must call case_unref() on the
+   returned case when it is no longer needed. */
+struct ccase *
+casewindow_get_case (const struct casewindow *cw_, casenumber case_idx)
 {
   struct casewindow *cw = (struct casewindow *) cw_;
 
   assert (case_idx >= 0 && case_idx < casewindow_get_case_cnt (cw));
-  if (!casewindow_error (cw))
-    return cw->class->get_case (cw->aux, case_idx, c);
-  else
-    {
-      case_nullify (c);
-      return false;
-    }
+  if (casewindow_error (cw))
+    return NULL;
+  return cw->class->get_case (cw->aux, case_idx);
 }
 
 /* Returns the number of cases in casewindow CW. */
@@ -218,7 +214,7 @@ casewindow_get_taint (const struct casewindow *cw)
 struct casewindow_memory
   {
     struct deque deque;
-    struct ccase *cases;
+    struct ccase **cases;
   };
 
 static void *
@@ -234,7 +230,7 @@ casewindow_memory_destroy (void *cwm_)
 {
   struct casewindow_memory *cwm = cwm_;
   while (!deque_is_empty (&cwm->deque))
-    case_destroy (&cwm->cases[deque_pop_front (&cwm->deque)]);
+    case_unref (cwm->cases[deque_pop_front (&cwm->deque)]);
   free (cwm->cases);
   free (cwm);
 }
@@ -245,7 +241,7 @@ casewindow_memory_push_head (void *cwm_, struct ccase *c)
   struct casewindow_memory *cwm = cwm_;
   if (deque_is_full (&cwm->deque))
     cwm->cases = deque_expand (&cwm->deque, cwm->cases, sizeof *cwm->cases);
-  case_move (&cwm->cases[deque_push_back (&cwm->deque)], c);
+  cwm->cases[deque_push_back (&cwm->deque)] = c;
 }
 
 static void
@@ -254,15 +250,14 @@ casewindow_memory_pop_tail (void *cwm_, casenumber case_cnt)
   struct casewindow_memory *cwm = cwm_;
   assert (deque_count (&cwm->deque) >= case_cnt);
   while (case_cnt-- > 0)
-    case_destroy (&cwm->cases[deque_pop_front (&cwm->deque)]);
+    case_unref (cwm->cases[deque_pop_front (&cwm->deque)]);
 }
 
-static bool
-casewindow_memory_get_case (void *cwm_, casenumber ofs, struct ccase *c)
+static struct ccase *
+casewindow_memory_get_case (void *cwm_, casenumber ofs)
 {
   struct casewindow_memory *cwm = cwm_;
-  case_clone (c, &cwm->cases[deque_front (&cwm->deque, ofs)]);
-  return true;
+  return case_ref (cwm->cases[deque_front (&cwm->deque, ofs)]);
 }
 
 static casenumber
@@ -325,11 +320,11 @@ casewindow_file_pop_tail (void *cwf_, casenumber cnt)
     cwf->head = cwf->tail = 0;
 }
 
-static bool
-casewindow_file_get_case (void *cwf_, casenumber ofs, struct ccase *c)
+static struct ccase *
+casewindow_file_get_case (void *cwf_, casenumber ofs)
 {
   struct casewindow_file *cwf = cwf_;
-  return case_tmpfile_get_case (cwf->file, cwf->tail + ofs, c);
+  return case_tmpfile_get_case (cwf->file, cwf->tail + ofs);
 }
 
 static casenumber

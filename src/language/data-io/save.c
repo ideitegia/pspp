@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -326,14 +326,12 @@ parse_write_command (struct lexer *lexer, struct dataset *ds,
   return NULL;
 }
 
-/* Writes case C to the system file specified on XSAVE or XEXPORT. */
+/* Writes case *C to the system file specified on XSAVE or XEXPORT. */
 static int
-output_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
+output_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
 {
   struct output_trns *t = trns_;
-  struct ccase tmp;
-  case_clone (&tmp, c);
-  casewriter_write (t->writer, &tmp);
+  casewriter_write (t->writer, case_ref (*c));
   return TRNS_CONTINUE;
 }
 

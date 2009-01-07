@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@ struct sfm_write_options
 
 struct file_handle;
 struct dictionary;
-struct ccase;
 struct casewriter *sfm_open_writer (struct file_handle *, struct dictionary *,
                                     struct sfm_write_options);
 struct sfm_write_options sfm_writer_default_options (void);

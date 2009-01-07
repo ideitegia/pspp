@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ create_freq_hash_with_range (const struct dictionary *dict,
 {
   bool warn = true;
   float i_d;
-  struct ccase c;
+  struct ccase *c;
 
   struct hsh_table *freq_hash =
     hsh_create (4, compare_freq, hash_freq,
@@ -78,21 +78,21 @@ create_freq_hash_with_range (const struct dictionary *dict,
       hsh_insert (freq_hash, fr);
     }
 
-  while (casereader_read (input, &c))
+  while ((c = casereader_read (input)) != NULL)
     {
       union value obs_value;
       struct freq **existing_fr;
       struct freq *fr = xmalloc(sizeof  (*fr));
-      fr->value = case_data (&c, var);
+      fr->value = case_data (c, var);
 
-      fr->count = dict_get_case_weight (dict, &c, &warn);
+      fr->count = dict_get_case_weight (dict, c, &warn);
 
       obs_value.f = trunc (fr->value->f);
 
       if ( obs_value.f < lo || obs_value.f > hi)
 	{
 	  free (fr);
-	  case_destroy (&c);
+	  case_unref (c);
 	  continue;
 	}
 
@@ -107,7 +107,7 @@ create_freq_hash_with_range (const struct dictionary *dict,
       (*existing_fr)->count += fr->count;
       free (fr);
 
-      case_destroy (&c);
+      case_unref (c);
     }
   if (casereader_destroy (input))
     return freq_hash;
@@ -130,20 +130,20 @@ create_freq_hash (const struct dictionary *dict,
 		  const struct variable *var)
 {
   bool warn = true;
-  struct ccase c;
+  struct ccase *c;
 
   struct hsh_table *freq_hash =
     hsh_create (4, compare_freq, hash_freq,
 		free_freq_mutable_hash,
 		(void *) var);
 
-  for (; casereader_read (input, &c); case_destroy (&c))
+  for (; (c = casereader_read (input)) != NULL; case_unref (c))
     {
       struct freq **existing_fr;
       struct freq *fr = xmalloc(sizeof  (*fr));
-      fr->value = case_data (&c, var);
+      fr->value = case_data (c, var);
 
-      fr->count = dict_get_case_weight (dict, &c, &warn);
+      fr->count = dict_get_case_weight (dict, c, &warn);
 
       existing_fr = (struct freq **) hsh_probe (freq_hash, fr);
       if ( *existing_fr)

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ struct casereader_translator
   {
     struct casereader *subreader; /* Source of input cases. */
 
-    void (*translate) (struct ccase *input, struct ccase *output, void *aux);
+    struct ccase *(*translate) (struct ccase *input, void *aux);
     bool (*destroy) (void *aux);
     void *aux;
   };
@@ -41,9 +41,9 @@ static const struct casereader_class casereader_translator_class;
 
 /* Creates and returns a new casereader whose cases are produced
    by reading from SUBREADER and passing through TRANSLATE, which
-   must create case OUTPUT, with OUTPUT_VALUE_CNT values, and
-   populate it based on INPUT and auxiliary data AUX.  TRANSLATE
-   must also destroy INPUT.
+   must return the translated case, with OUTPUT_VALUE_CNT values,
+   and populate it based on INPUT and auxiliary data AUX.
+   TRANSLATE must destroy its input case.
 
    When the translating casereader is destroyed, DESTROY will be
    called to allow any state maintained by TRANSLATE to be freed.
@@ -54,9 +54,8 @@ static const struct casereader_class casereader_translator_class;
 struct casereader *
 casereader_create_translator (struct casereader *subreader,
                               size_t output_value_cnt,
-                              void (*translate) (struct ccase *input,
-                                                 struct ccase *output,
-                                                 void *aux),
+                              struct ccase *(*translate) (struct ccase *input,
+                                                          void *aux),
                               bool (*destroy) (void *aux),
                               void *aux)
 {
@@ -75,20 +74,15 @@ casereader_create_translator (struct casereader *subreader,
 }
 
 /* Internal read function for translating casereader. */
-static bool
+static struct ccase *
 casereader_translator_read (struct casereader *reader UNUSED,
-                            void *ct_, struct ccase *c)
+                            void *ct_)
 {
   struct casereader_translator *ct = ct_;
-  struct ccase tmp;
-
-  if (casereader_read (ct->subreader, &tmp))
-    {
-      ct->translate (&tmp, c, ct->aux);
-      return true;
-    }
-  else
-    return false;
+  struct ccase *tmp = casereader_read (ct->subreader);
+  if (tmp)
+    tmp = ct->translate (tmp, ct->aux);
+  return tmp;
 }
 
 /* Internal destroy function for translating casereader. */
@@ -123,8 +117,7 @@ struct casereader_append_numeric
 
 static bool can_destroy (void *can_);
 
-static void can_translate (struct ccase *input, struct ccase *output,
-			   void *can_);
+static struct ccase *can_translate (struct ccase *, void *can_);
 
 /* Creates and returns a new casereader whose cases are produced
    by reading from SUBREADER and appending an additional value,
@@ -152,15 +145,14 @@ casereader_create_append_numeric (struct casereader *subreader,
 }
 
 
-static void
-can_translate (struct ccase *input, struct ccase *output, void *can_)
+static struct ccase *
+can_translate (struct ccase *c, void *can_)
 {
   struct casereader_append_numeric *can = can_;
-  double new_value = can->func (input, can->n++, can->aux);
-  case_nullify (output);
-  case_move (output, input);
-  case_resize (output, can->value_ofs + 1);
-  case_data_rw_idx (output, can->value_ofs)->f = new_value;
+  double new_value = can->func (c, can->n++, can->aux);
+  c = case_unshare_and_resize (c, can->value_ofs + 1);
+  case_data_rw_idx (c, can->value_ofs)->f = new_value;
+  return c;
 }
 
 static bool
@@ -231,8 +223,7 @@ struct casereader_append_rank
 
 static bool car_destroy (void *car_);
 
-static void car_translate (struct ccase *input, struct ccase *output,
-			   void *car_);
+static struct ccase *car_translate (struct ccase *input, void *car_);
 
 /* Creates and returns a new casereader whose cases are produced
    by reading from SUBREADER and appending an additional value,
@@ -293,9 +284,8 @@ car_destroy (void *car_)
   return true;
 }
 
-
-static void
-car_translate (struct ccase *input, struct ccase *output,  void *car_)
+static struct ccase *
+car_translate (struct ccase *input, void *car_)
 {
   struct casereader_append_rank *car = car_;
 
@@ -321,16 +311,16 @@ car_translate (struct ccase *input, struct ccase *output,  void *car_)
 
       do
 	{
-	  struct ccase c;
-	  if ( ! casereader_peek (car->clone, car->n + ++k, &c))
+	  struct ccase *c = casereader_peek (car->clone, car->n + ++k);
+	  if (c == NULL)
 	    break;
-	  vxx = case_data (&c, car->var)->f;
+	  vxx = case_data (c, car->var)->f;
 
 	  if ( vxx == value)
 	    {
 	      if (car->weight)
 		{
-		  double w = case_data (&c, car->weight)->f;
+		  double w = case_data (c, car->weight)->f;
 
 		  if ( car->err && w < 0 )
 		    *car->err |= RANK_ERR_NEGATIVE_WEIGHT;
@@ -341,7 +331,7 @@ car_translate (struct ccase *input, struct ccase *output,  void *car_)
 		weight += 1.0;
 	      car->n_common++;
 	    }
-	  case_destroy (&c);
+          case_unref (c);
 	}
       while (vxx == value);
       car->mean_rank = car->cc + (weight + 1) / 2.0;
@@ -355,11 +345,10 @@ car_translate (struct ccase *input, struct ccase *output,  void *car_)
 
   car->n++;
 
-  case_nullify (output);
-  case_move (output, input);
-  case_resize (output, car->value_ofs + 1);
-  case_data_rw_idx (output, car->value_ofs)->f = car->mean_rank ;
+  input = case_unshare_and_resize (input, car->value_ofs + 1);
+  case_data_rw_idx (input, car->value_ofs)->f = car->mean_rank ;
   car->prev_value = value;
+  return input;
 }
 
 

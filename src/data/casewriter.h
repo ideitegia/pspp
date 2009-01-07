@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,9 +43,8 @@ struct casewriter *autopaging_writer_create (size_t value_cnt);
 
 struct casewriter *
 casewriter_create_translator (struct casewriter *, size_t translated_value_cnt,
-                              void (*translate) (struct ccase *input,
-                                                 struct ccase *output,
-                                                 void *aux),
+                              struct ccase *(*translate) (struct ccase *input,
+                                                          void *aux),
                               bool (*destroy) (void *aux),
                               void *aux);
 

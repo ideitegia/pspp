@@ -1,7 +1,7 @@
 // -*- c -*-
 //
 // PSPP - a program for statistical analysis.
-// Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+// Copyright (C) 2005, 2006, 2009 Free Software Foundation, Inc.
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -988,7 +988,7 @@ no_opt string operator STR_VAR ()
 no_opt perm_only function LAG (num_var v, pos_int n_before)
     dataset ds;
 {
-  struct ccase *c = lagged_case (ds, n_before);
+  const struct ccase *c = lagged_case (ds, n_before);
   if (c != NULL)
     {
       double x = case_num (c, v);
@@ -1001,7 +1001,7 @@ no_opt perm_only function LAG (num_var v, pos_int n_before)
 no_opt perm_only function LAG (num_var v)
     dataset ds;
 {
-  struct ccase *c = lagged_case (ds, 1);
+  const struct ccase *c = lagged_case (ds, 1);
   if (c != NULL)
     {
       double x = case_num (c, v);
@@ -1015,7 +1015,7 @@ no_opt perm_only string function LAG (str_var v, pos_int n_before)
      expression e;
      dataset ds;
 {
-  struct ccase *c = lagged_case (ds, n_before);
+  const struct ccase *c = lagged_case (ds, n_before);
   if (c != NULL)
     return copy_string (e, case_str (c, v), var_get_width (v));
   else
@@ -1026,7 +1026,7 @@ no_opt perm_only string function LAG (str_var v)
      expression e;
      dataset ds;
 {
-  struct ccase *c = lagged_case (ds, 1);
+  const struct ccase *c = lagged_case (ds, 1);
   if (c != NULL)
     return copy_string (e, case_str (c, v), var_get_width (v));
   else

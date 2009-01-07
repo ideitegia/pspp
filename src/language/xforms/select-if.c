@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,11 +70,11 @@ cmd_select_if (struct lexer *lexer, struct dataset *ds)
 
 /* Performs the SELECT IF transformation T on case C. */
 static int
-select_if_proc (void *t_, struct ccase *c,
+select_if_proc (void *t_, struct ccase **c,
                 casenumber case_num)
 {
   struct select_if_trns *t = t_;
-  return (expr_evaluate_num (t->e, c, case_num) == 1.0
+  return (expr_evaluate_num (t->e, *c, case_num) == 1.0
           ? TRNS_CONTINUE : TRNS_DROP_CASE);
 }
 

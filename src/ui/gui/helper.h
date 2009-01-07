@@ -43,7 +43,7 @@ gchar * value_to_text (union value v, struct fmt_spec format);
 gboolean text_to_value (const gchar *text, union value *v,
 		       struct fmt_spec format);
 
-GtkWidget * get_widget_assert (GladeXML *xml, const gchar *name);
+GtkWidget * get_widget_assert (gpointer x, const gchar *name);
 
 /* Converts a string in the pspp locale to utf-8 */
 char * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
@@ -60,12 +60,9 @@ gboolean execute_syntax (struct getl_interface *sss);
    glade_xml_new (relocate(PKGDATADIR "/" FILE), NULL, NULL)
 
 
-void marshaller_VOID__INT_INT_INT (GClosure     *closure,
-				   GValue       *return_value,
-				   guint         n_param_values,
-				   const GValue *param_values,
-				   gpointer      invocation_hint,
-				   gpointer      marshal_data);
+#define builder_new(NAME) builder_new_real (relocate (PKGDATADIR "/" NAME))
+
+GtkBuilder *builder_new_real (const gchar *name);
 
 
 /* Create a deep copy of SRC */

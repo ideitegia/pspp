@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ enum trns_result
 
 struct ccase;
 typedef void trns_finalize_func (void *);
-typedef int trns_proc_func (void *, struct ccase *, casenumber);
+typedef int trns_proc_func (void *, struct ccase **, casenumber);
 typedef bool trns_free_func (void *);
 
 /* Transformation chains. */
@@ -47,8 +47,9 @@ bool trns_chain_is_empty (const struct trns_chain *);
 void trns_chain_append (struct trns_chain *, trns_finalize_func *,
                         trns_proc_func *, trns_free_func *, void *);
 size_t trns_chain_next (struct trns_chain *);
-enum trns_result trns_chain_execute (const struct trns_chain *, enum trns_result,
-                                     struct ccase *, casenumber case_nr);
+enum trns_result trns_chain_execute (const struct trns_chain *,
+                                     enum trns_result, struct ccase **,
+                                     casenumber case_nr);
 
 void trns_chain_splice (struct trns_chain *, struct trns_chain *);
 

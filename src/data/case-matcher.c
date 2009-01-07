@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 struct case_matcher_input
   {
     struct subcase by_vars;
-    const struct ccase *data;
+    struct ccase **data;
     bool *is_minimal;
   };
 
@@ -55,13 +55,15 @@ case_matcher_create (void)
 
 /* Adds a new input file to case matcher CM.
    case_matcher_match() will compare the variables specified in
-   BY in case DATA and set *IS_MINIMAL appropriately.
+   BY in case *DATA and set *IS_MINIMAL appropriately.
+   (The caller may change the case that *DATA points to from one
+   call to the next.)
 
    All of the BY subcases provided to this function for a given
    CM must be conformable (see subcase_conformable()). */
 void
 case_matcher_add_input (struct case_matcher *cm, const struct subcase *by,
-                        const struct ccase *data, bool *is_minimal)
+                        struct ccase **data, bool *is_minimal)
 {
   struct case_matcher_input *input;
 
@@ -101,7 +103,7 @@ case_matcher_destroy (struct case_matcher *cm)
 static int
 compare_BY_3way (struct case_matcher_input *a, struct case_matcher_input *b)
 {
-  return subcase_compare_3way (&a->by_vars, a->data, &b->by_vars, b->data);
+  return subcase_compare_3way (&a->by_vars, *a->data, &b->by_vars, *b->data);
 }
 
 /* Compares the values of the BY variables in all of the nonnull
@@ -121,7 +123,7 @@ case_matcher_match (struct case_matcher *cm, union value **by)
 
   min = NULL;
   for (file = cm->inputs; file < &cm->inputs[cm->n_inputs]; file++)
-    if (!case_is_null (file->data))
+    if (*file->data != NULL)
       {
         int cmp = min != NULL ? compare_BY_3way (min, file) : 1;
         if (cmp < 0)
@@ -140,7 +142,7 @@ case_matcher_match (struct case_matcher *cm, union value **by)
     {
       for (file = cm->inputs; file < min; file++)
         *file->is_minimal = false;
-      subcase_extract (&min->by_vars, min->data, cm->by_values);
+      subcase_extract (&min->by_vars, *min->data, cm->by_values);
       *by = cm->by_values;
       return true;
     }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,14 +24,14 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 
-static int trns_fail (void *x, struct ccase *c, casenumber n);
+static int trns_fail (void *x, struct ccase **c, casenumber n);
 
 
 
 /* A transformation which is guaranteed to fail. */
 
 static int
-trns_fail (void *x UNUSED, struct ccase *c UNUSED,
+trns_fail (void *x UNUSED, struct ccase **c UNUSED,
 	   casenumber n UNUSED)
 {
   return TRNS_ERROR;

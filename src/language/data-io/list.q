@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ static unsigned n_chars_width (struct outp_driver *d);
 static void write_line (struct outp_driver *d, const char *s);
 
 /* Other functions. */
-static void list_case (struct ccase *, casenumber case_idx,
+static void list_case (const struct ccase *, casenumber case_idx,
                        const struct dataset *);
 static void determine_layout (void);
 static void clean_up (void);
@@ -236,15 +236,15 @@ cmd_list (struct lexer *lexer, struct dataset *ds)
        casegrouper_get_next_group (grouper, &group);
        casereader_destroy (group))
     {
-      struct ccase c;
+      struct ccase *c;
 
       write_all_headers (group, ds);
-      for (; casereader_read (group, &c); case_destroy (&c))
+      for (; (c = casereader_read (group)) != NULL; case_unref (c))
         {
           case_idx++;
           if (case_idx >= cmd.first && case_idx <= cmd.last
               && (case_idx - cmd.first) % cmd.step == 0)
-            list_case (&c, case_idx, ds);
+            list_case (c, case_idx, ds);
         }
     }
   ok = casegrouper_destroy (grouper);
@@ -265,12 +265,13 @@ static void
 write_all_headers (struct casereader *input, const struct dataset *ds)
 {
   struct outp_driver *d;
-  struct ccase c;
+  struct ccase *c;
 
-  if (!casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c == NULL)
     return;
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  output_split_file_values (ds, c);
+  case_unref (c);
 
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     {
@@ -649,7 +650,8 @@ determine_layout (void)
 
 /* Writes case C to output. */
 static void
-list_case (struct ccase *c, casenumber case_idx, const struct dataset *ds)
+list_case (const struct ccase *c, casenumber case_idx,
+           const struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
   struct outp_driver *d;

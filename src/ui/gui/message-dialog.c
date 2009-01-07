@@ -31,7 +31,6 @@
 
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <glib.h>
 
 #include "helper.h"
@@ -49,7 +48,7 @@ static GQueue *late_queue;
 
 static int error_cnt, warning_cnt, note_cnt;
 
-static GladeXML *message_xml;
+static GtkBuilder *message_xml;
 static GtkWidget *message_dialog;
 
 void
@@ -60,7 +59,7 @@ message_dialog_init (struct source_stream *ss)
   late_queue = g_queue_new ();
   error_cnt = warning_cnt = note_cnt = 0;
   msg_init (ss, enqueue_msg);
-  message_xml = XML_NEW ("message-dialog.glade");
+  message_xml = builder_new ("message-dialog.ui");
   message_dialog = get_widget_assert (message_xml, "message-dialog");
 }
 

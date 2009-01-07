@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006  Free Software Foundation
+   Copyright (C) 2006, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -122,9 +122,8 @@ size_t psppire_data_store_get_value_count (const PsppireDataStore *ds);
 
 
 
-gboolean psppire_data_store_get_case (const PsppireDataStore *ds,
-				      casenumber casenum,
-				      struct ccase *c);
+struct ccase *psppire_data_store_get_case (const PsppireDataStore *ds,
+                                           casenumber casenum);
 
 
 

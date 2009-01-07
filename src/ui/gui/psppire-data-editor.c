@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1607,16 +1607,9 @@ data_sheet_set_clip (PsppireSheet *sheet)
   writer = autopaging_writer_create (dict_get_next_value_idx (clip_dict));
   for (i = range.row0; i <= range.rowi ; ++i )
     {
-      struct ccase old;
-
-      if (psppire_data_store_get_case (ds, i, &old))
-        {
-          struct ccase new;
-
-          case_map_execute (map, &old, &new);
-          case_destroy (&old);
-          casewriter_write (writer, &new);
-        }
+      struct ccase *old = psppire_data_store_get_case (ds, i);
+      if (old != NULL)
+        casewriter_write (writer, case_map_execute (map, old));
       else
         casewriter_force_error (writer);
     }
@@ -1667,8 +1660,10 @@ clip_to_text (void)
   for (r = 0 ; r < case_cnt ; ++r )
     {
       int c;
-      struct ccase cc;
-      if ( !  casereader_peek (clip_datasheet, r, &cc))
+      struct ccase *cc;
+
+      cc = casereader_peek (clip_datasheet, r);
+      if (cc == NULL)
 	{
 	  g_warning ("Clipboard seems to have inexplicably shrunk");
 	  break;
@@ -1677,7 +1672,7 @@ clip_to_text (void)
       for (c = 0 ; c < var_cnt ; ++c)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
-	  data_out_g_string (string, v, &cc);
+	  data_out_g_string (string, v, cc);
 	  if ( c < val_cnt - 1 )
 	    g_string_append (string, "\t");
 	}
@@ -1685,7 +1680,7 @@ clip_to_text (void)
       if ( r < case_cnt)
 	g_string_append (string, "\n");
 
-      case_destroy (&cc);
+      case_unref (cc);
     }
 
   return string;
@@ -1710,8 +1705,8 @@ clip_to_html (void)
   for (r = 0 ; r < case_cnt ; ++r )
     {
       int c;
-      struct ccase cc;
-      if ( !  casereader_peek (clip_datasheet, r, &cc))
+      struct ccase *cc = casereader_peek (clip_datasheet, r);
+      if (cc == NULL)
 	{
 	  g_warning ("Clipboard seems to have inexplicably shrunk");
 	  break;
@@ -1722,13 +1717,13 @@ clip_to_html (void)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
 	  g_string_append (string, "<td>");
-	  data_out_g_string (string, v, &cc);
+	  data_out_g_string (string, v, cc);
 	  g_string_append (string, "</td>\n");
 	}
 
       g_string_append (string, "</tr>\n");
 
-      case_destroy (&cc);
+      case_unref (cc);
     }
   g_string_append (string, "</table>\n");
 

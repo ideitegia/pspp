@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1799,17 +1799,18 @@ calculate (struct cmd_t_test *cmd,
 
   struct casereader *pass1, *pass2, *pass3;
   struct taint *taint;
-  struct ccase c;
+  struct ccase *c;
 
   enum mv_class exclude = cmd->miss != TTS_INCLUDE ? MV_ANY : MV_SYSTEM;
 
-  if (!casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c == NULL)
     {
       casereader_destroy (input);
       return;
     }
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  output_split_file_values (ds, c);
+  case_unref (c);
 
   if ( cmd->miss == TTS_LISTWISE )
     input = casereader_create_filter_missing (input,
@@ -1823,8 +1824,8 @@ calculate (struct cmd_t_test *cmd,
   casereader_split (input, &pass1, &pass2);
 
   common_precalc (cmd);
-  for (; casereader_read (pass1, &c); case_destroy (&c))
-    common_calc (dict, &c, cmd, exclude);
+  for (; (c = casereader_read (pass1)) != NULL; case_unref (c))
+    common_calc (dict, c, cmd, exclude);
   casereader_destroy (pass1);
   common_postcalc (cmd);
 
@@ -1832,22 +1833,22 @@ calculate (struct cmd_t_test *cmd,
     {
     case T_1_SAMPLE:
       one_sample_precalc (cmd);
-      for (; casereader_read (pass2, &c); case_destroy (&c))
-        one_sample_calc (dict, &c, cmd, exclude);
+      for (; (c = casereader_read (pass2)) != NULL; case_unref (c))
+        one_sample_calc (dict, c, cmd, exclude);
       one_sample_postcalc (cmd);
       break;
     case T_PAIRED:
       paired_precalc (cmd);
-      for (; casereader_read (pass2, &c); case_destroy (&c))
-        paired_calc (dict, &c, cmd, exclude);
+      for (; (c = casereader_read (pass2)) != NULL; case_unref (c))
+        paired_calc (dict, c, cmd, exclude);
       paired_postcalc (cmd);
       break;
     case T_IND_SAMPLES:
       pass3 = casereader_clone (pass2);
 
       group_precalc (cmd);
-      for (; casereader_read (pass2, &c); case_destroy (&c))
-        group_calc (dict, &c, cmd, exclude);
+      for (; (c = casereader_read (pass2)) != NULL; case_unref (c))
+        group_calc (dict, c, cmd, exclude);
       group_postcalc (cmd);
 
       levene (dict, pass3, indep_var, cmd->n_variables, cmd->v_variables,

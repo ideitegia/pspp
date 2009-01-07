@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -146,7 +146,7 @@ struct agr_proc
     struct subcase sort;                /* Sort criteria (break variables). */
     const struct variable **break_vars;       /* Break variables. */
     size_t break_var_cnt;               /* Number of break variables. */
-    struct ccase break_case;            /* Last values of break variables. */
+    struct ccase *break_case;           /* Last values of break variables. */
 
     enum missing_treatment missing;     /* How to treat missing values. */
     struct agr_var *agr_vars;           /* First aggregate variable. */
@@ -187,7 +187,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
 
   memset(&agr, 0 , sizeof (agr));
   agr.missing = ITEMWISE;
-  case_nullify (&agr.break_case);
+  agr.break_case = NULL;
 
   agr.dict = dict_create ();
   agr.src_dict = dict;
@@ -295,18 +295,17 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
        casegrouper_get_next_group (grouper, &group);
        casereader_destroy (group))
     {
-      struct ccase c;
-
-      if (!casereader_peek (group, 0, &c))
+      struct ccase *c = casereader_peek (group, 0);
+      if (c == NULL)
         {
           casereader_destroy (group);
           continue;
         }
-      initialize_aggregate_info (&agr, &c);
-      case_destroy (&c);
+      initialize_aggregate_info (&agr, c);
+      case_unref (c);
 
-      for (; casereader_read (group, &c); case_destroy (&c))
-        accumulate_aggregate_info (&agr, &c);
+      for (; (c = casereader_read (group)) != NULL; case_unref (c))
+        accumulate_aggregate_info (&agr, c);
       dump_aggregate_info (&agr, output);
     }
   if (!casegrouper_destroy (grouper))
@@ -694,7 +693,7 @@ agr_destroy (struct agr_proc *agr)
 
   subcase_destroy (&agr->sort);
   free (agr->break_vars);
-  case_destroy (&agr->break_case);
+  case_unref (agr->break_case);
   for (iter = agr->agr_vars; iter; iter = next)
     {
       next = iter->next;
@@ -770,20 +769,18 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  case MEDIAN:
 	    {
 	      double wv ;
-	      struct ccase cout;
-	      case_create (&cout, 2);
+	      struct ccase *cout = case_create (2);
 
-	      case_data_rw (&cout, iter->subject)->f =
-		case_data (input, iter->src)->f;
+	      case_data_rw (cout, iter->subject)->f
+                = case_data (input, iter->src)->f;
 
 	      wv = dict_get_case_weight (agr->src_dict, input, NULL);
 
-	      case_data_rw (&cout, iter->weight)->f = wv;
+	      case_data_rw (cout, iter->weight)->f = wv;
 
 	      iter->cc += wv;
 
-	      casewriter_write (iter->writer, &cout);
-	      case_destroy (&cout);
+	      casewriter_write (iter->writer, cout);
 	    }
 	    break;
 	  case SD:
@@ -916,9 +913,7 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 static void
 dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 {
-  struct ccase c;
-
-  case_create (&c, dict_get_next_value_idx (agr->dict));
+  struct ccase *c = case_create (dict_get_next_value_idx (agr->dict));
 
   {
     int value_idx = 0;
@@ -928,8 +923,8 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
       {
         const struct variable *v = agr->break_vars[i];
         size_t value_cnt = var_get_value_cnt (v);
-        memcpy (case_data_rw_idx (&c, value_idx),
-                case_data (&agr->break_case, v),
+        memcpy (case_data_rw_idx (c, value_idx),
+                case_data (agr->break_case, v),
                 sizeof (union value) * value_cnt);
         value_idx += value_cnt;
       }
@@ -940,7 +935,7 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 
     for (i = agr->agr_vars; i; i = i->next)
       {
-	union value *v = case_data_rw (&c, i->dest);
+	union value *v = case_data_rw (c, i->dest);
 
 
 	if (agr->missing == COLUMNWISE && i->saw_missing
@@ -1067,7 +1062,7 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
       }
   }
 
-  casewriter_write (output, &c);
+  casewriter_write (output, c);
 }
 
 /* Resets the state for all the aggregate functions. */
@@ -1076,8 +1071,8 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 {
   struct agr_var *iter;
 
-  case_destroy (&agr->break_case);
-  case_clone (&agr->break_case, input);
+  case_unref (agr->break_case);
+  agr->break_case = case_ref (input);
 
   for (iter = agr->agr_vars; iter; iter = iter->next)
     {

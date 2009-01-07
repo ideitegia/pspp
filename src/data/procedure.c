@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ struct dataset {
   /* Cases just before ("lagging") the current one. */
   int n_lag;			/* Number of cases to lag. */
   struct deque lag;             /* Deque of lagged cases. */
-  struct ccase *lag_cases;      /* Lagged cases managed by deque. */
+  struct ccase **lag_cases;     /* Lagged cases managed by deque. */
 
   /* Procedure data. */
   enum
@@ -203,15 +203,15 @@ proc_is_open (const struct dataset *ds)
 }
 
 /* "read" function for procedure casereader. */
-static bool
-proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
-                      struct ccase *c)
+static struct ccase *
+proc_casereader_read (struct casereader *reader UNUSED, void *ds_)
 {
   struct dataset *ds = ds_;
   enum trns_result retval = TRNS_DROP_CASE;
+  struct ccase *c;
 
   assert (ds->proc_state == PROC_OPEN);
-  for (;;)
+  for (; ; case_unref (c))
     {
       casenumber case_nr;
 
@@ -219,58 +219,47 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_,
       if (retval == TRNS_ERROR)
         ds->ok = false;
       if (!ds->ok)
-        return false;
+        return NULL;
 
       /* Read a case from source. */
-      if (!casereader_read (ds->source, c))
-        return false;
-      case_resize (c, dict_get_next_value_idx (ds->dict));
+      c = casereader_read (ds->source);
+      if (c == NULL)
+        return NULL;
+      c = case_unshare_and_resize (c, dict_get_next_value_idx (ds->dict));
       caseinit_init_vars (ds->caseinit, c);
 
       /* Execute permanent transformations.  */
       case_nr = ds->cases_written + 1;
       retval = trns_chain_execute (ds->permanent_trns_chain, TRNS_CONTINUE,
-                                   c, case_nr);
+                                   &c, case_nr);
       caseinit_update_left_vars (ds->caseinit, c);
       if (retval != TRNS_CONTINUE)
-        {
-          case_destroy (c);
-          continue;
-        }
+        continue;
 
       /* Write case to collection of lagged cases. */
       if (ds->n_lag > 0)
         {
           while (deque_count (&ds->lag) >= ds->n_lag)
-            case_destroy (&ds->lag_cases[deque_pop_back (&ds->lag)]);
-          case_clone (&ds->lag_cases[deque_push_front (&ds->lag)], c);
+            case_unref (ds->lag_cases[deque_pop_back (&ds->lag)]);
+          ds->lag_cases[deque_push_front (&ds->lag)] = case_ref (c);
         }
 
       /* Write case to replacement active file. */
       ds->cases_written++;
       if (ds->sink != NULL)
-        {
-          struct ccase tmp;
-          if (ds->compactor != NULL)
-            case_map_execute (ds->compactor, c, &tmp);
-          else
-            case_clone (&tmp, c);
-          casewriter_write (ds->sink, &tmp);
-        }
+        casewriter_write (ds->sink,
+                          case_map_execute (ds->compactor, case_ref (c)));
 
       /* Execute temporary transformations. */
       if (ds->temporary_trns_chain != NULL)
         {
           retval = trns_chain_execute (ds->temporary_trns_chain, TRNS_CONTINUE,
-                                       c, ds->cases_written);
+                                       &c, ds->cases_written);
           if (retval != TRNS_CONTINUE)
-            {
-              case_destroy (c);
-              continue;
-            }
+            continue;
         }
 
-      return true;
+      return c;
     }
 }
 
@@ -279,13 +268,13 @@ static void
 proc_casereader_destroy (struct casereader *reader, void *ds_)
 {
   struct dataset *ds = ds_;
-  struct ccase c;
+  struct ccase *c;
 
   /* Make sure transformations happen for every input case, in
      case they have side effects, and ensure that the replacement
      active file gets all the cases it should. */
-  while (casereader_read (reader, &c))
-    case_destroy (&c);
+  while ((c = casereader_read (reader)) != NULL)
+    case_unref (c);
 
   ds->proc_state = PROC_CLOSED;
   ds->ok = casereader_destroy (ds->source) && ds->ok;
@@ -306,7 +295,7 @@ proc_commit (struct dataset *ds)
 
   /* Free memory for lagged cases. */
   while (!deque_is_empty (&ds->lag))
-    case_destroy (&ds->lag_cases[deque_pop_back (&ds->lag)]);
+    case_unref (ds->lag_cases[deque_pop_back (&ds->lag)]);
   free (ds->lag_cases);
 
   /* Dictionary from before TEMPORARY becomes permanent. */
@@ -361,14 +350,14 @@ update_last_proc_invocation (struct dataset *ds)
 
 /* Returns a pointer to the lagged case from N_BEFORE cases before the
    current one, or NULL if there haven't been that many cases yet. */
-struct ccase *
+const struct ccase *
 lagged_case (const struct dataset *ds, int n_before)
 {
   assert (n_before >= 1);
   assert (n_before <= ds->n_lag);
 
   if (n_before <= deque_count (&ds->lag))
-    return &ds->lag_cases[deque_front (&ds->lag, n_before - 1)];
+    return ds->lag_cases[deque_front (&ds->lag, n_before - 1)];
   else
     return NULL;
 }
@@ -679,7 +668,7 @@ add_case_limit_trns (struct dataset *ds)
    *CASES_REMAINING. */
 static int
 case_limit_trns_proc (void *cases_remaining_,
-                      struct ccase *c UNUSED, casenumber case_nr UNUSED)
+                      struct ccase **c UNUSED, casenumber case_nr UNUSED)
 {
   size_t *cases_remaining = cases_remaining_;
   if (*cases_remaining > 0)
@@ -718,11 +707,11 @@ add_filter_trns (struct dataset *ds)
 /* FILTER transformation. */
 static int
 filter_trns_proc (void *filter_var_,
-                  struct ccase *c UNUSED, casenumber case_nr UNUSED)
+                  struct ccase **c UNUSED, casenumber case_nr UNUSED)
 
 {
   struct variable *filter_var = filter_var_;
-  double f = case_num (c, filter_var);
+  double f = case_num (*c, filter_var);
   return (f != 0.0 && !var_is_num_missing (filter_var, f, MV_ANY)
           ? TRNS_CONTINUE : TRNS_DROP_CASE);
 }

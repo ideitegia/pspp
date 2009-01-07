@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,14 +80,15 @@ check_datasheet_casereader (struct mc *mc, struct casereader *reader,
               casereader_get_value_cnt (reader), column_cnt);
   else
     {
-      struct ccase c;
+      struct ccase *c;
       size_t row;
 
       for (row = 0; row < row_cnt; row++)
         {
           size_t col;
 
-          if (!casereader_read (reader, &c))
+          c = casereader_read (reader);
+          if (c == NULL)
             {
               mc_error (mc, "casereader_read failed reading row %zu of %zu "
                         "(%zu columns)", row, row_cnt, column_cnt);
@@ -95,16 +96,17 @@ check_datasheet_casereader (struct mc *mc, struct casereader *reader,
             }
 
           for (col = 0; col < column_cnt; col++)
-            if (case_num_idx (&c, col) != array[row][col])
+            if (case_num_idx (c, col) != array[row][col])
               mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
                         "%g != %g",
                         row, col, row_cnt, column_cnt,
-                        case_num_idx (&c, col), array[row][col]);
+                        case_num_idx (c, col), array[row][col]);
 
-	  case_destroy (&c);
+	  case_unref (c);
         }
 
-      if (casereader_read (reader, &c))
+      c = casereader_read (reader);
+      if (c != NULL)
         mc_error (mc, "casereader has extra cases (expected %zu)", row_cnt);
     }
 }
@@ -253,17 +255,17 @@ datasheet_mc_init (struct mc *mc)
       writer = mem_writer_create (params->backing_cols);
       for (row = 0; row < params->backing_rows; row++)
         {
-          struct ccase c;
+          struct ccase *c;
           int col;
 
-          case_create (&c, params->backing_cols);
+          c = case_create (params->backing_cols);
           for (col = 0; col < params->backing_cols; col++)
             {
               double value = params->next_value++;
               data[row][col] = value;
-              case_data_rw_idx (&c, col)->f = value;
+              case_data_rw_idx (c, col)->f = value;
             }
-          casewriter_write (writer, &c);
+          casewriter_write (writer, c);
         }
       reader = casewriter_make_reader (writer);
       assert (reader != NULL);
@@ -371,7 +373,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
-          struct ccase c[MAX_ROWS];
+          struct ccase *c[MAX_ROWS];
           size_t i, j;
 
           clone_model (ods, odata, &ds, data);
@@ -379,15 +381,15 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
 
           for (i = 0; i < cnt; i++)
             {
-              case_create (&c[i], column_cnt);
+              c[i] = case_create (column_cnt);
               for (j = 0; j < column_cnt; j++)
-                case_data_rw_idx (&c[i], j)->f = params->next_value++;
+                case_data_rw_idx (c[i], j)->f = params->next_value++;
             }
 
           insert_range (data, row_cnt, sizeof data[pos], pos, cnt);
           for (i = 0; i < cnt; i++)
             for (j = 0; j < column_cnt; j++)
-              data[i + pos][j] = case_num_idx (&c[i], j);
+              data[i + pos][j] = case_num_idx (c[i], j);
 
           if (!datasheet_insert_rows (ds, pos, c, cnt))
             mc_error (mc, "datasheet_insert_rows failed");

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ struct dictionary;
 struct casereader;
 struct casewriter;
 
-bool casereader_read (struct casereader *, struct ccase *);
+struct ccase *casereader_read (struct casereader *);
 bool casereader_destroy (struct casereader *);
 
 struct casereader *casereader_clone (const struct casereader *);
@@ -68,8 +68,7 @@ void casereader_split (struct casereader *,
 struct casereader *casereader_rename (struct casereader *);
 void casereader_swap (struct casereader *, struct casereader *);
 
-bool casereader_peek (struct casereader *, casenumber, struct ccase *)
-     WARN_UNUSED_RESULT;
+struct ccase *casereader_peek (struct casereader *, casenumber);
 bool casereader_is_empty (struct casereader *);
 
 bool casereader_error (const struct casereader *);
@@ -107,9 +106,8 @@ casereader_create_counter (struct casereader *, casenumber *counter,
 
 struct casereader *
 casereader_create_translator (struct casereader *, size_t output_value_cnt,
-                              void (*translate) (struct ccase *input,
-                                                 struct ccase *output,
-                                                 void *aux),
+                              struct ccase *(*translate) (struct ccase *,
+                                                          void *aux),
                               bool (*destroy) (void *aux),
                               void *aux);
 

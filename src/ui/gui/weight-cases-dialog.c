@@ -26,7 +26,6 @@
 #include "syntax-editor.h"
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
@@ -107,7 +106,7 @@ weight_cases_dialog (GObject *o, gpointer data)
   struct data_editor *de = data;
   struct weight_cases_dialog wcd;
 
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
 
   GtkWidget *dialog = get_widget_assert (xml, "weight-cases-dialog");
   GtkWidget *source = get_widget_assert (xml, "weight-cases-treeview");

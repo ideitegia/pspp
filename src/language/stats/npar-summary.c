@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ npar_summary_calc_descriptives (struct descriptives *desc,
       double maximum = -DBL_MAX;
       double var;
       struct moments1 *moments = moments1_create (MOMENT_VARIANCE);
-      struct ccase c;
+      struct ccase *c;
       const struct variable *v = *vv++;
       struct casereader *pass;
 
@@ -54,14 +54,14 @@ npar_summary_calc_descriptives (struct descriptives *desc,
                                                &v, 1,
                                                filter, NULL, NULL);
       pass = casereader_create_filter_weight (pass, dict, NULL, NULL);
-      while (casereader_read(pass, &c))
+      while ((c = casereader_read (pass)) != NULL)
 	{
-          double val = case_num (&c, v);
-          double w = dict_get_case_weight (dict, &c, NULL);
+          double val = case_num (c, v);
+          double w = dict_get_case_weight (dict, c, NULL);
           minimum = MIN (minimum, val);
           maximum = MAX (maximum, val);
           moments1_add (moments, val, w);
-	  case_destroy (&c);
+	  case_unref (c);
 	}
       casereader_destroy (pass);
 

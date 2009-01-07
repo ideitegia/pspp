@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -99,15 +99,8 @@ scratch_writer_casewriter_write (struct casewriter *w UNUSED, void *writer_,
                                  struct ccase *c)
 {
   struct scratch_writer *writer = writer_;
-  struct ccase tmp;
-  if (writer->compactor)
-    {
-      case_map_execute (writer->compactor, c, &tmp);
-      case_destroy (c);
-    }
-  else
-    case_move (&tmp, c);
-  casewriter_write (writer->subwriter, &tmp);
+  casewriter_write (writer->subwriter,
+                    case_map_execute (writer->compactor, c));
 }
 
 /* Closes WRITER. */

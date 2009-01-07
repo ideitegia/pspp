@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,8 +34,7 @@ struct dictionary;
 
 struct case_map *case_map_create (void);
 void case_map_destroy (struct case_map *);
-void case_map_execute (const struct case_map *,
-                       const struct ccase *, struct ccase *);
+struct ccase *case_map_execute (const struct case_map *, struct ccase *);
 
 size_t case_map_get_value_cnt (const struct case_map *);
 
