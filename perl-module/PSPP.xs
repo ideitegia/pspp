@@ -544,13 +544,13 @@ CODE:
 
  const struct variable **vv;
  size_t nv;
- struct ccase c;
+ struct ccase *c;
  SV *sv;
 
  if ( av_len (av_case) >= dict_get_var_cnt (sfi->dict))
    XSRETURN_UNDEF;
 
- case_create (&c, dict_get_next_value_idx (sfi->dict));
+ c =  case_create (dict_get_next_value_idx (sfi->dict));
 
  dict_get_vars (sfi->dict, &vv, &nv, 1u << DC_ORDINARY | 1u << DC_SYSTEM);
 
@@ -566,7 +566,7 @@ CODE:
       {
 	struct substring ss = ss_cstr (SvPV_nolen (sv));
 	if ( ! data_in (ss, LEGACY_NATIVE, ifmt->type, 0, 0, 0,
-			case_data_rw (&c, v),
+			case_data_rw (c, v),
 			var_get_width (v)) )
 	  {
 	    RETVAL = 0;
@@ -575,7 +575,7 @@ CODE:
       }
     else
       {
-	scalar_to_value (case_data_rw (&c, v), sv, v);
+	scalar_to_value (case_data_rw (c, v), sv, v);
       }
  }
 
@@ -583,15 +583,14 @@ CODE:
  while (i < dict_get_var_cnt (sfi->dict))
  {
    const struct variable *v = vv[i++];
-   union value *val = case_data_rw (&c, v);
+   union value *val = case_data_rw (c, v);
    if ( var_is_numeric (v))
 	val->f = SYSMIS;
    else
 	memset (val->s, ' ', var_get_width (v));
  }
- RETVAL = casewriter_write (sfi->writer, &c);
+ RETVAL = casewriter_write (sfi->writer, c);
  finish:
-// case_destroy (&c);
  free (vv);
 OUTPUT:
  RETVAL
@@ -637,9 +636,9 @@ SV *
 get_next_case (sfr)
  struct sysreader_info *sfr;
 CODE:
- struct ccase c;
+ struct ccase *c;
 
- if (! casereader_read (sfr->reader, &c))
+ if (! (c = casereader_read (sfr->reader)))
  {
   RETVAL = 0;
  }
@@ -651,12 +650,12 @@ CODE:
   for (v = 0; v < dict_get_var_cnt (sfr->dict); ++v )
     {
       const struct variable *var = dict_get_var (sfr->dict, v);
-      const union value *val = case_data (&c, var);
+      const union value *val = case_data (c, var);
 
       av_push (av_case, value_to_scalar (val, var));
     }
 
-  case_destroy (&c);
+  case_unref (c);
   RETVAL = newRV ((SV *) av_case);
  }
 OUTPUT:
