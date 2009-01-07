@@ -55,6 +55,9 @@ struct sysfile_info
 
   /* A pointer to the dictionary. Owned externally */
   const struct dictionary *dict;
+
+  /* The scalar containing the dictionary */
+  SV *dict_sv;
 };
 
 
@@ -471,11 +474,13 @@ MODULE = PSPP		PACKAGE = PSPP::Sysfile
 
 
 struct sysfile_info *
-pxs_create_sysfile (name, dict, opts_hr)
+pxs_create_sysfile (name, dict_ref, opts_hr)
  char *name
- struct dictionary *dict
+ SV *dict_ref
  SV *opts_hr
 INIT:
+ SV *dict_sv = SvRV (dict_ref);
+ struct dictionary *dict = (void *) SvIV (dict_sv);
  struct sfm_write_options opts;
  if (!SvROK (opts_hr))
   {
@@ -499,6 +504,8 @@ CODE:
  sfi->writer = sfm_open_writer (fh, dict, opts);
  sfi->dict = dict;
  sfi->opened = true;
+ sfi->dict_sv = dict_sv;
+ SvREFCNT_inc (sfi->dict_sv);
  
  RETVAL = sfi;
  OUTPUT:
@@ -517,6 +524,7 @@ DESTROY (sfi)
  struct sysfile_info *sfi
 CODE:
  sysfile_close (sfi);
+ SvREFCNT_dec (sfi->dict_sv);
  free (sfi);
 
 int

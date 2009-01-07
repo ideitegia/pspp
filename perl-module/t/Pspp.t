@@ -6,7 +6,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 30;
+use Test::More tests => 31;
 use Text::Diff;
 use File::Temp qw/ tempfile tempdir /;
 BEGIN { use_ok('PSPP') };
@@ -319,6 +319,33 @@ SYNTAX
 
 RESULT
 
+}
+
+
+# Test to make sure that the dictionary survives the sysfile.
+# Thanks to Rob Messer for reporting this problem
+{
+    my $tempdir = tempdir( CLEANUP => 1 );
+    my $tempfile = "$tempdir/testfile.sav";
+    my $sysfile ;
+
+    {
+	my $d = PSPP::Dict->new();
+
+	PSPP::Var->new ($d, "id",
+			(
+			 fmt=>PSPP::Fmt::F, 
+			 width=>2, 
+			 decimals=>0
+			 )
+			);
+
+	$sysfile = PSPP::Sysfile->new ("$tempfile", $d);
+    }
+
+    my $res = $sysfile->append_case ([3]);
+
+    ok ($res, "Dictionary survives sysfile");
 }
 
 
