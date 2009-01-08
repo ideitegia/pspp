@@ -355,6 +355,12 @@ sub set_value_labels
 Sets the missing values for the variable.  
 No more than three missing values may be specified.
 
+=head3 get_attributes()
+
+Returns a reference to a hash of the custom variable attributes.
+Each value of the hash is a reference to an array containing the 
+attribute values.
+
 =head3 get_name ()
 
 Returns the name of the variable.

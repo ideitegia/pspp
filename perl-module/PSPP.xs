@@ -31,7 +31,9 @@
 #include <gl/xalloc.h>
 #include <data/dictionary.h>
 #include <data/case.h>
+#include <data/casereader.h>
 #include <data/variable.h>
+#include <data/attributes.h>
 #include <data/file-handle-def.h>
 #include <data/sys-file-writer.h>
 #include <data/sys-file-reader.h>
@@ -180,7 +182,7 @@ CODE:
  RETVAL = ret;
  OUTPUT:
 RETVAL
- 
+
 
 int
 value_is_missing (val, var)
@@ -422,6 +424,43 @@ CODE:
  }
  XSRETURN_IV (1);
 
+
+SV *
+get_attributes (var)
+ struct variable *var
+CODE:
+ HV *attrhash = (HV *) sv_2mortal ((SV *) newHV());
+
+ struct attrset *as = var_get_attributes (var);
+
+ if ( as )
+   {
+     struct attrset_iterator iter;
+     struct attribute *attr;
+
+     for (attr = attrset_first (as, &iter);
+	  attr;
+	  attr = attrset_next (as, &iter))
+       {
+	 int i;
+	 const char *name = attribute_get_name (attr);
+
+	 AV *values = newAV ();
+
+	 for (i = 0 ; i < attribute_get_n_values (attr); ++i )
+	   {
+	     const char *value = attribute_get_value (attr, i);
+	     av_push (values, newSVpv (value, 0));
+	   }
+
+	 hv_store (attrhash, name, strlen (name),
+		   newRV_noinc ((SV*) values), 0);
+       }
+   }
+
+ RETVAL = newRV ((SV *) attrhash);
+ OUTPUT:
+RETVAL
 
 
 const char *

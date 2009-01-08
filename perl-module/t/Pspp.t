@@ -6,7 +6,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 31;
+use Test::More tests => 32;
 use Text::Diff;
 use File::Temp qw/ tempfile tempdir /;
 BEGIN { use_ok('PSPP') };
@@ -314,6 +314,12 @@ add value labels
   /string '1111' 'ones' '2222' 'twos' '3333' 'threes'
   /numeric 1 'Unity' 2 'Duality' 3 'Thripality'.
 
+variable attribute
+    variables = numeric
+    attribute=colour[1]('blue') colour[2]('pink') colour[3]('violet')
+    attribute=size('large') nationality('foreign').
+
+
 save outfile='$filename'.
 SYNTAX
 
@@ -569,4 +575,38 @@ SYNTAX
  $c = $sf->get_next_case (); 
  $val = @$c[2];
  ok ( PSPP::value_is_missing ($val, $numericvar), "Missing Value Positive Num");
+}
+
+
+#Test reading of custom attributes
+{
+    my $tempdir = tempdir( CLEANUP => 1 );
+
+    generate_sav_file ("$tempdir/in.sav", "$tempdir");
+
+    my $sf = PSPP::Reader->open ("$tempdir/in.sav");
+
+    my $dict = $sf->get_dict ();
+
+    my $var = $dict->get_var_by_name ("numeric");
+
+    my $attr = $var->get_attributes ();
+
+    open (MYFILE, ">$tempdir/out.txt");
+
+    foreach $k (keys %$attr)
+    {
+	my $ll = $attr->{$k};
+	print MYFILE "$k =>";
+	print MYFILE map "$_\n", join ', ', @$ll;
+    }
+
+    close (MYFILE);
+
+    ok (compare ("$tempdir/out.txt", <<EOF), "Custom Attributes");
+colour =>blue, pink, violet
+nationality =>foreign
+size =>large
+EOF
+
 }
