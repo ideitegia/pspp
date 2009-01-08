@@ -20,6 +20,13 @@ sub compare
     return ! diff ("$file", \$pattern);
 }
 
+my $pspp_cmd = $ENV{PSPP_TEST_CMD};
+
+if ( ! $pspp_cmd)
+{
+    $pspp_cmd="pspp";
+}
+
 sub run_pspp_syntax
 {
     my $tempdir = shift;
@@ -31,7 +38,7 @@ sub run_pspp_syntax
     print FH "$syntax";
     close (FH);
 
-    system ("cd $tempdir; pspp -o raw-ascii $syntaxfile");
+    system ("cd $tempdir; $pspp_cmd -o raw-ascii $syntaxfile");
 }
 
 sub run_pspp_syntax_cmp

@@ -13,6 +13,7 @@ do 'pspp-module-config' || do {
 };
 
 WriteMakefile(
+    FULLPERL          => "PSPP_TEST_CMD=\"$Locations{BuildDir}/src/ui/terminal/pspp -B $Locations{SourceDir}/config\" \$(PERL)",
     NAME              => 'PSPP',
     DISTNAME          => 'PSPP-Perl',
     VERSION_FROM      => "$Locations{BuildDir}/src/libpspp/version.c", 
@@ -21,7 +22,6 @@ WriteMakefile(
       (ABSTRACT_FROM  => 'lib/PSPP.pm', # retrieve abstract from module
        AUTHOR         => 'John Darrington <john@darrington.wattle.id.au>') : ()),
     INC       => "-I $Locations{SourceDir}  -I $Locations{SourceDir}/src -I $Locations{SourceDir}/gl -I $Locations{BuildDir}/gl -I $Locations{BuildDir}", 
-
     MYEXTLIB  => "$Locations{BuildDir}/src/.libs/libpspp-core\$(LIB_EXT)",
     MAN3PODS  => {"lib/PSPP.pm", "\$(INST_MAN3DIR)/PSPP.3pm",
 	    "Examples.pod", "\$(INST_MAN3DIR)/PSPP::Examples.3pm"}
