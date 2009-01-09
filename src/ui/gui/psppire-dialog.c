@@ -23,6 +23,7 @@
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
 #include "psppire-selector.h"
+#include <string.h>
 
 static void psppire_dialog_class_init          (PsppireDialogClass *);
 static void psppire_dialog_init                (PsppireDialog      *);
@@ -501,7 +502,7 @@ get_internal_child    (GtkBuildable *buildable,
 {
   PsppireDialog *dialog = PSPPIRE_DIALOG (buildable);
 
-  if ( 0 == g_strcmp0 (childname, "hbox"))
+  if ( 0 == strcmp (childname, "hbox"))
     return G_OBJECT (dialog->box);
 
   return NULL;
