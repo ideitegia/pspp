@@ -50,8 +50,10 @@ all-local: perl-module/lib/pspp-vers.pl
 	fi
 	$(MAKE) $(AM_MAKEFLAGS) module-make
 
+
 check-local:
-	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) test
+	loc=`pwd` ; cd $(top_builddir)/src/.libs ; llp=`pwd` ; cd $$loc ;  \
+	LD_LIBRARY_PATH=$$llp sh -c "cd perl-module && $(MAKE) $(AM_MAKEFLAGS) test "
 
 
 clean-local:

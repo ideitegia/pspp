@@ -22,7 +22,7 @@ WriteMakefile(
       (ABSTRACT_FROM  => 'lib/PSPP.pm', # retrieve abstract from module
        AUTHOR         => 'John Darrington <john@darrington.wattle.id.au>') : ()),
     INC       => "-I $Locations{SourceDir}  -I $Locations{SourceDir}/src -I $Locations{SourceDir}/gl -I $Locations{BuildDir}/gl -I $Locations{BuildDir}", 
-    MYEXTLIB  => "$Locations{BuildDir}/src/.libs/libpspp-core\$(LIB_EXT)",
+    MYEXTLIB  => "$Locations{BuildDir}/src/.libs/libpspp-core.\$(DLEXT)",
     MAN3PODS  => {"lib/PSPP.pm", "\$(INST_MAN3DIR)/PSPP.3pm",
 	    "Examples.pod", "\$(INST_MAN3DIR)/PSPP::Examples.3pm"}
 );
