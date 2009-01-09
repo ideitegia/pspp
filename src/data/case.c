@@ -123,7 +123,7 @@ case_copy (struct ccase *dst, size_t dst_idx,
 {
   assert (!case_is_shared (dst));
   assert (range_is_valid (dst, dst_idx, n_values));
-  assert (range_is_valid (src, dst_idx, n_values));
+  assert (range_is_valid (src, src_idx, n_values));
 
   if (dst != src || dst_idx != src_idx)
     memmove (dst->values + dst_idx, src->values + src_idx,
