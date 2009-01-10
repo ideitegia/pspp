@@ -65,16 +65,16 @@ src_ui_gui_psppire_LDADD = \
 src_ui_gui_psppiredir = $(pkgdatadir)
 
 nodist_src_ui_gui_psppire_DATA = \
-	$(top_srcdir)/src/ui/gui/crosstabs.ui \
-	$(top_srcdir)/src/ui/gui/examine.ui \
-	$(top_srcdir)/src/ui/gui/frequencies.ui \
-	$(top_srcdir)/src/ui/gui/message-dialog.ui \
-	$(top_srcdir)/src/ui/gui/psppire.ui \
-	$(top_srcdir)/src/ui/gui/oneway.ui \
-	$(top_srcdir)/src/ui/gui/rank.ui \
-	$(top_srcdir)/src/ui/gui/recode.ui \
-	$(top_srcdir)/src/ui/gui/regression.ui \
-	$(top_srcdir)/src/ui/gui/t-test.ui
+	$(top_builddir)/src/ui/gui/crosstabs.ui \
+	$(top_builddir)/src/ui/gui/examine.ui \
+	$(top_builddir)/src/ui/gui/frequencies.ui \
+	$(top_builddir)/src/ui/gui/message-dialog.ui \
+	$(top_builddir)/src/ui/gui/psppire.ui \
+	$(top_builddir)/src/ui/gui/oneway.ui \
+	$(top_builddir)/src/ui/gui/rank.ui \
+	$(top_builddir)/src/ui/gui/recode.ui \
+	$(top_builddir)/src/ui/gui/regression.ui \
+	$(top_builddir)/src/ui/gui/t-test.ui
 
 EXTRA_DIST += \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
@@ -247,4 +247,5 @@ EXTRA_DIST += src/ui/gui/OChangeLog\
 	src/ui/gui/marshaller-list
 
 BUILT_SOURCES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h
-CLEANFILES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h
+CLEANFILES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h \
+	$(nodist_src_ui_gui_psppire_DATA)
