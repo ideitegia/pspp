@@ -102,4 +102,45 @@ that it be correctly represented by pspp.
 	
 	$sysfile->close();
 
+=head2  Reading data
+
+Data can be read from a system file or other source:
+
+	use PSPP;
+
+	my $sf = PSPP::Reader->open ("foo.sav");
+
+	my $dict = $sf->get_dict ();
+
+
+Once opened, the dictionary can be used like any other.
+
+	for ($v = 0 ; $v < $dict->get_var_cnt() ; $v++)
+	{
+	    my $var = $dict->get_var ($v);
+
+	    # Print the variables
+	    my $name = $var->get_name ();
+	    my $label = $var->get_label ();
+	    print "Var: $name, Label: $label\n";
+
+	    # Retrieve and print the value labels
+	    my $vl = $var->get_value_labels ();
+	    print "$_: $vl->{$_}\n" for keys %$vl;
+	}
+
+
+Reading of data must be done sequentially using the C<get_next_case> method.
+
+	while (my $c = $sf->get_next_case () )
+	{
+	    my $v;
+	    for ($v = 0; $v < $dict->get_var_cnt(); $v++)
+	    {
+	        print "val$v: @$c[$v] ";
+	    }
+	    print "\n";
+	}
+
+
 =cut
