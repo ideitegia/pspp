@@ -1,12 +1,12 @@
-PSPP version 0.01
-=================
+PSPP version 0.7
+================
 
 This module provides an interface allowing perl programs to create pspp 
 system files.
 
 INSTALLATION
 
-To install you must have first installed and built pspp 0.4.4 or
+To install you must have first installed and built pspp 0.7.1 or
 later.  Pspp is not required to use this module, only to install
 it. 
 
@@ -29,7 +29,7 @@ required during installation, but are not needed to run the module.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2007 by Free Software Foundation
+Copyright (C) 2007, 2009 by Free Software Foundation
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as

@@ -525,7 +525,7 @@ John Darrington, E<lt>john@darrington.wattle.id.auE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007, 2008 by Free Software Foundation
+Copyright (C) 2007, 2008, 2009 by Free Software Foundation
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
