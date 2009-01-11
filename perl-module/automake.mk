@@ -30,6 +30,12 @@ perl-module/pspp-module-config: Makefile
 perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
+
+PSPP-Perl-$(VERSION).tar.gz:
+	cd perl-module && $(RM) $@
+	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
+
+.PHONY: module-make
 module-make: perl-module/Makefile
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
@@ -48,8 +54,7 @@ all-local: perl-module/lib/pspp-vers.pl
 	  fi ; \
 	 done \
 	fi
-	$(MAKE) $(AM_MAKEFLAGS) module-make
-
+	$(MAKE) $(AM_MAKEFLAGS) module-make PSPP-Perl-$(VERSION).tar.gz
 
 check-local:
 	loc=`pwd` ; cd $(top_builddir)/src/.libs ; llp=`pwd` ; cd $$loc ;  \
@@ -65,6 +70,7 @@ clean-local:
 
 
 CLEANFILES += \
+        perl-module/PSPP-Perl-$(VERSION).tar.gz \
 	perl-module/pspp-module-config \
 	perl-module/lib/pspp-vers.pl \
 	perl-module/const-c.inc \
