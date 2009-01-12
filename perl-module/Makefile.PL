@@ -18,6 +18,7 @@ WriteMakefile(
     DISTNAME          => 'PSPP-Perl',
     VERSION_FROM      => "$Locations{BuildDir}/src/libpspp/version.c", 
     PREREQ_PM         => {POSIX=>0}, 
+    PM                => {"lib/PSPP.pm", "\$(INST_LIBDIR)/PSPP.pm"},
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/PSPP.pm', # retrieve abstract from module
        AUTHOR         => 'John Darrington <john@darrington.wattle.id.au>') : ()),
