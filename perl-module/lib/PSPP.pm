@@ -463,7 +463,7 @@ Opens a system file for reading.
 
 Open is used to read data from an existing system file. 
 It creates and returns a PSPP::Reader object which can be used to read 
-data and dictionary information from <C>filename.
+data and dictionary information from C<filename>.
 
 =cut
 
@@ -489,7 +489,7 @@ Returns the dictionary associated with the reader.
 Retrieves the next case from the reader.
 This method returns an array of scalars, each of which are the values of 
 the data in the system file.
-The first call to <C>get_next_case after <C>open has been called retrieves
+The first call to C<get_next_case> after C<open> has been called retrieves
 the first case in the system file.  Each subsequent call retrieves the next
 case.  If there are no more cases to be read, the function returns undef.
 
