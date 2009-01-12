@@ -26,6 +26,7 @@
 #include <libpspp/hash.h>
 #include <libpspp/hash-functions.h>
 #include <math/covariance-matrix.h>
+#include <math/interaction.h>
 #include <math/moments.h>
 #include <string.h>
 #include <xalloc.h>
@@ -588,7 +589,7 @@ covariance_accumulate_pairwise (struct covariance_matrix *cov,
       if (!var_is_value_missing (v_variables[i], val1, cov->missing_value))
 	{
 	  cat_value_update (v_variables[i], val1);
-	  if (var_is_alpha (v_variables[i]))
+	  if (var_is_numeric (v_variables[i]))
 	    cov->update_moments (cov, i, val1->f);
 
 	  for (j = i; j < cov->n_variables; j++)
@@ -643,7 +644,7 @@ covariance_accumulate_listwise (struct covariance_matrix *cov,
     {
       val1 = case_data (ccase, v_variables[i]);
       cat_value_update (v_variables[i], val1);
-      if (var_is_alpha (v_variables[i]))
+      if (var_is_numeric (v_variables[i]))
 	cov->update_moments (cov, i, val1->f);
 
       for (j = i; j < cov->n_variables; j++)
