@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,80 +24,111 @@
   OBS_VALS member. If there are K categorical variables, each with
   N_1, N_2, ..., N_K categories, then the interaction will have
   N_1 * N_2 * N_3 *...* N_K - 1 entries.
+
+  When using these functions, make sure the orders of variables and
+  values match when appropriate.
  */
 
 #include <config.h>
 #include <assert.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
-#include <data/category.h>
+#include <data/value.h>
 #include <data/variable.h>
-#include "interaction.h"
+#include <math/interaction.h>
+#include <string.h>
+#include <xalloc.h>
 
-#include "xalloc.h"
-
-/*
-  Convert a list of values to a binary vector. The order of VALS must
-  correspond to the order of V.
- */
-gsl_vector *
-get_interaction (union value **vals, const struct variable **v, size_t n_vars)
+struct interaction_variable
 {
-  gsl_vector *result = NULL;
-  size_t *subs = NULL;
-  size_t length = 1;
+  int n_vars;
+  const struct variable **members;
+  struct variable *intr;
+};
+
+struct interaction_value
+{
+  const struct interaction_variable *intr;
+  union value *strings; /* Concatenation of the string values in this interaction's value. */
+  double f; /* Product of the numerical values in this interaction's value. */
+};
+
+struct interaction_variable *
+interaction_variable_create (const struct variable **vars, int n_vars)
+{
+  struct interaction_variable *result = NULL;
   size_t i;
-  size_t j;
-  double tmp = 1.0;
 
-  assert (n_vars > 0);
-  for (i = 0; i < n_vars; i++)
+  if (n_vars > 0)
     {
-      if (var_is_alpha (v[i]))
+      result = xmalloc (sizeof (*result));
+      result->members = xnmalloc (n_vars, sizeof (*result->members));
+      result->intr = var_create_internal (0);
+      result->n_vars = n_vars;
+      for (i = 0; i < n_vars; i++)
 	{
-	  length *= cat_get_n_categories (v[i]);
-	}
-      else
-	{
-	  length = (length > 0) ? length : 1;
-	}
-    }
-  if (length > 0)
-    {
-      length--;
-    }
-
-  result = gsl_vector_calloc (length);
-  subs = xnmalloc (n_vars, sizeof (*subs));
-  for (j = 0; j < n_vars; j++)
-    {
-      if (var_is_alpha (v[j]))
-	{
-	  subs[j] = cat_value_find (v[j], vals[j]);
+	  result->members[i] = vars[i];
 	}
     }
-  j = subs[0];
-  for (i = 1; i < n_vars; i++)
-    {
-      j = j * cat_get_n_categories (v[i]) + subs[i];
-    }
-  gsl_vector_set (result, j, 1.0);
-  /*
-     If any of the variables are numeric, the interaction of that
-     variable with another is just a scalar product.
-   */
-  for (i = 1; i < n_vars; i++)
-    {
-      if (var_is_numeric (v[i]))
-	{
-	  tmp *= vals[i]->f;
-	}
-    }
-  if (fabs (tmp - 1.0) > GSL_DBL_EPSILON)
-    {
-      gsl_vector_set (result, j, tmp);
-    }
-  free (subs);
-
   return result;
 }
+
+void interaction_variable_destroy (struct interaction_variable *iv)
+{
+  var_destroy (iv->intr);
+  free (iv->members);
+  free (iv);
+}
+
+size_t
+interaction_variable_get_n_vars (const struct interaction_variable *iv)
+{
+  return (iv == NULL) ? 0 : iv->n_vars;
+}
+
+/*
+  Given list of values, compute the value of the corresponding
+  interaction.  This "value" is not stored as the typical vector of
+  0's and one double, but rather the string values are concatenated to
+  make one big string value, and the numerical values are multiplied
+  together to give the non-zero entry of the corresponding vector.
+ */
+struct interaction_value *
+interaction_value_create (const struct interaction_variable *var, const union value **vals)
+{
+  struct interaction_value *result = NULL;
+  size_t i;
+  size_t n_vars;
+  
+  if (var != NULL)
+    {
+      result = xmalloc (sizeof (*result));
+      result->intr = var;
+      n_vars = interaction_variable_get_n_vars (var);
+      result->strings = value_create (n_vars * MAX_SHORT_STRING + 1);
+      result->f = 1.0;
+      for (i = 0; i < n_vars; i++)
+	{
+	  if (var_is_alpha (var->members[i]))
+	    {
+	      strncat (result->strings->s, vals[i]->s, MAX_SHORT_STRING);
+	    }
+	  else if (var_is_numeric (var->members[i]))
+	    {
+	      result->f *= vals[i]->f;
+	    }
+	}
+    }
+  return result;
+}
+
+void 
+interaction_value_destroy (struct interaction_value *val)
+{
+  if (val != NULL)
+    {
+      free (val->strings);
+      free (val);
+    }
+}
+
