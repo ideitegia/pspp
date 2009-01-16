@@ -240,8 +240,6 @@ static void calculate (struct cmd_t_test *,
 
 static  int mode;
 
-static struct cmd_t_test cmd;
-
 static int compare_group_binary (const struct group_statistics *a,
 				const struct group_statistics *b,
 				const struct group_properties *p);
@@ -255,6 +253,7 @@ static unsigned  hash_group_binary (const struct group_statistics *g,
 int
 cmd_t_test (struct lexer *lexer, struct dataset *ds)
 {
+  struct cmd_t_test cmd;
   struct casegrouper *grouper;
   struct casereader *group;
   bool ok;
