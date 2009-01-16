@@ -403,7 +403,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
 	}
     }
 
-  if (!parse_value (lexer, &gp.v.g_value[0], var_get_type (indep_var)))
+  if (!parse_value (lexer, &gp.v.g_value[0], var_get_width (indep_var)))
       return 0;
 
   lex_match (lexer, ',');
@@ -422,7 +422,7 @@ tts_custom_groups (struct lexer *lexer, struct dataset *ds, struct cmd_t_test *c
       return 1;
     }
 
-  if (!parse_value (lexer, &gp.v.g_value[1], var_get_type (indep_var)))
+  if (!parse_value (lexer, &gp.v.g_value[1], var_get_width (indep_var)))
     return 0;
 
   n_group_values = 2;
