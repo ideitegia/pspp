@@ -52,4 +52,6 @@ int fn_compare_file_identities (const struct file_identity *,
                                 const struct file_identity *);
 unsigned int fn_hash_identity (const struct file_identity *);
 
+const char * default_output_path (void);
+
 #endif /* file-name.h */

@@ -9,6 +9,7 @@ src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall \
 
 
 src_ui_gui_psppire_LDFLAGS = \
+	$(PSPPIRE_LDFLAGS) \
 	$(PG_LDFLAGS)
 
 

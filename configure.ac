@@ -41,6 +41,10 @@ PSPP_LC_PAPER
 AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
 
 
+AC_ARG_VAR([PSPP_LDFLAGS], [linker flags to be used for linking the pspp binary only])
+AC_ARG_VAR([PSPPIRE_LDFLAGS], [linker flags to be used for linking the psppire binary only])
+
+
 AC_ARG_WITH(
   gui, 
   [AS_HELP_STRING([--without-gui], [don't build the PSPPIRE gui])])

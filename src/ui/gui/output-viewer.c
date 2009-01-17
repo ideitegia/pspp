@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include <gtk/gtk.h>
+#include <data/file-name.h>
 #include "window-manager.h"
 #include "output-viewer.h"
 #include "helper.h"
@@ -62,7 +63,7 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 
   the_output_viewer = NULL;
 
-  unlink (OUTPUT_FILE_NAME);
+  unlink (output_file_name ());
 
   return FALSE;
 }
@@ -181,7 +182,7 @@ reload_the_viewer (void)
   struct stat buf;
 
   /* If there is no output, then don't do anything */
-  if (0 != stat (OUTPUT_FILE_NAME, &buf))
+  if (0 != stat (output_file_name (), &buf))
     return ;
 
   if ( NULL == the_output_viewer )
@@ -193,6 +194,7 @@ reload_the_viewer (void)
   reload_viewer (the_output_viewer);
 }
 
+#define OUTPUT_FILE_NAME "psppire.txt"
 
 void
 reload_viewer (struct output_viewer *ov)
@@ -248,10 +250,10 @@ reload_viewer (struct output_viewer *ov)
   {
     if ( ov->fp == NULL)
       {
-	ov->fp = fopen (OUTPUT_FILE_NAME, "r");
+	ov->fp = fopen (output_file_name (), "r");
 	if ( ov->fp == NULL)
 	  {
-	    g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
+	    g_print ("Cannot open %s\n", output_file_name ());
 	    return;
 	  }
       }
@@ -277,3 +279,16 @@ reload_viewer (struct output_viewer *ov)
 
 
 
+
+const char *
+output_file_name (void)
+{
+  const char *dir = default_output_path ();
+  static char *filename = NULL;
+
+  if ( NULL == filename )
+    filename = xasprintf ("%s%s", dir, OUTPUT_FILE_NAME);
+
+
+  return filename;
+}

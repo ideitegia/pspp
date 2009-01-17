@@ -452,3 +452,45 @@ fn_hash_identity (const struct file_identity *identity)
     hash ^= hsh_hash_string (identity->name);
   return hash;
 }
+
+
+
+#ifdef WINDOWS32
+
+/* Apparently windoze users like to see output dumped into their home directory,
+   not the current directory (!) */
+const char *
+default_output_path (void)
+{
+  static const char *home_dir = NULL;
+
+  /* Windows NT defines HOMEDRIVE and HOMEPATH.  But give preference
+     to HOME, because the user can change HOME.  */
+  if (home_dir == NULL)
+    {
+      const char *home_drive = getenv ("HOMEDRIVE");
+      const char *home_path = getenv ("HOMEPATH");
+
+      if (home_drive != NULL && home_path != NULL)
+	home_dir = xasprintf ("%s%s%c",
+			      home_drive, home_path, DIRECTORY_SEPARATOR);
+      else
+	home_dir = "c:/users/default/"; /* poor default */
+    }
+  return home_dir;
+}
+
+#else
+
+/* ... whereas the rest of the world just likes it to be
+   put "here" for easy access. */
+const char *
+default_output_path (void)
+{
+  static char current_dir[]  = "";
+
+  return current_dir;
+}
+
+#endif
+

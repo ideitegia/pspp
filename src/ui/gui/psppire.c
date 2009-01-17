@@ -121,13 +121,25 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   create_icon_factory ();
 
-  outp_configure_driver_line (
-    ss_cstr ("gui:ascii:screen:squeeze=on headers=off top-margin=0 "
-             "bottom-margin=0 paginate=off length=auto width=auto "
-	     "emphasis=none "
-             "output-file=\"" OUTPUT_FILE_NAME "\" append=yes"));
+  {
+    const char *filename = output_file_name ();
 
-  unlink (OUTPUT_FILE_NAME);
+    struct string config_string;
+
+    ds_init_empty (&config_string);
+
+    ds_put_format (&config_string,
+		   "gui:ascii:screen:squeeze=on headers=off top-margin=0 "
+		   "bottom-margin=0 paginate=off length=auto width=auto "
+		   "emphasis=none "
+		   "output-file=\"%s\" append=yes", filename);
+
+    outp_configure_driver_line (ds_ss (&config_string));
+
+    unlink (filename);
+
+    ds_destroy (&config_string);
+  }
 
   journal_enable ();
   textdomain (PACKAGE);

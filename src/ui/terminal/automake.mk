@@ -30,7 +30,7 @@ src_ui_terminal_pspp_LDADD = \
 	@LIBINTL@ @LIBREADLINE@
 
 
-src_ui_terminal_pspp_LDFLAGS = $(PG_LDFLAGS)
+src_ui_terminal_pspp_LDFLAGS = $(PSPP_LDFLAGS) $(PG_LDFLAGS)
 
 if RELOCATABLE_VIA_LD
 src_ui_terminal_pspp_LDFLAGS += `$(RELOCATABLE_LDFLAGS) $(bindir)`
