@@ -158,16 +158,20 @@ binomial_execute (const struct dataset *ds,
 
   if ( bst->category1 != SYSMIS )
     {
+      int i;
       union value v;
       v.f = bst->category1;
-      cat1->value = value_dup (&v, 0);
+      for (i = 0; i < ost->n_vars; i++)
+	cat1[i].value = value_dup (&v, 0);
     }
 
   if ( bst->category2 != SYSMIS )
     {
+      int i;
       union value v;
       v.f = bst->category2;
-      cat2->value = value_dup (&v, 0);
+      for (i = 0; i < ost->n_vars; i++)
+	cat2[i].value = value_dup (&v, 0);
     }
 
   if (do_binomial (dataset_dict(ds), input, bst, cat1, cat2, exclude))
