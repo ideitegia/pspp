@@ -400,14 +400,14 @@ match_nodes (const struct covariance_accumulator *c,
 	  }
 	if (var_is_numeric (v1) && var_is_alpha (v2))
 	  {
-	    if (compare_values_short (val2, c->val2, v2))
+	    if (!compare_values_short (val2, c->val2, v2))
 	      {
 		return 0;
 	      }
 	  }
 	if (var_is_alpha (v1) && var_is_numeric (v2))
 	  {
-	    if (compare_values_short (val1, c->val1, v1))
+	    if (!compare_values_short (val1, c->val1, v1))
 	      {
 		return 0;
 	      }
@@ -416,7 +416,7 @@ match_nodes (const struct covariance_accumulator *c,
 	  {
 	    if (compare_values_short (val1, c->val1, v1))
 	      {
-		if (compare_values_short (val2, c->val2, v2))
+		if (!compare_values_short (val2, c->val2, v2))
 		  {
 		    return 0;
 		  }
