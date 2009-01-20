@@ -112,7 +112,7 @@ do_binomial (const struct dictionary *dict,
           int width = var_get_width (var);
 
 	  if (var_is_value_missing (var, value, exclude))
-	    break;
+	    continue;
 
 	  if ( NULL == cat1[v].value )
 	    {
