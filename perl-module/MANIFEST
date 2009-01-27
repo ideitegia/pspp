@@ -4,7 +4,6 @@ const-xs.inc
 COPYING
 Examples.pod
 lib/PSPP.pm
-lib/pspp-vers.pl
 Makefile.PL
 MANIFEST
 ppport.h

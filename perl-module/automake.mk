@@ -39,12 +39,7 @@ PSPP-Perl-$(VERSION).tar.gz:
 module-make: perl-module/Makefile
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
-perl-module/lib/pspp-vers.pl: src/libpspp/version.c Makefile
-	mkdir -p perl-module/lib
-	(cd $(top_srcdir) && echo "\$$top_srcdir='"`pwd`"';") > $@
-	$(GREP) '^\$$VERSION' $(top_builddir)/src/libpspp/version.c | $(SED) -e 's/VERSION/PSPP::VERSION/' >> $@
-
-all-local: perl-module/lib/pspp-vers.pl
+all-local: 
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
@@ -58,7 +53,7 @@ all-local: perl-module/lib/pspp-vers.pl
 
 check-local:
 	loc=`pwd` ; cd $(top_builddir)/src/.libs ; llp=`pwd` ; cd $$loc ;  \
-	LD_LIBRARY_PATH=$$llp sh -c "cd perl-module && $(MAKE) $(AM_MAKEFLAGS) test "
+	LD_LIBRARY_PATH=$$llp sh -c "cd perl-module && $(MAKE) $(AM_MAKEFLAGS) test"
 
 
 clean-local:
@@ -72,7 +67,6 @@ clean-local:
 CLEANFILES += \
         perl-module/PSPP-Perl-$(VERSION).tar.gz \
 	perl-module/pspp-module-config \
-	perl-module/lib/pspp-vers.pl \
 	perl-module/const-c.inc \
 	perl-module/const-xs.inc 
 
