@@ -243,7 +243,7 @@ run_glm (struct casereader *input,
 	  /* 
 	     Accumulate the covariance matrix.
 	  */
-	  covariance_matrix_accumulate (cov, c);
+	  covariance_matrix_accumulate (cov, c, NULL, 0);
 	  n_data++;
 	}
       covariance_matrix_compute (cov);

@@ -26,7 +26,6 @@
 #include <libpspp/hash.h>
 #include <libpspp/hash-functions.h>
 #include <math/covariance-matrix.h>
-#include <math/interaction.h>
 #include <math/moments.h>
 #include <string.h>
 #include <xalloc.h>
@@ -65,9 +64,12 @@ struct covariance_matrix
   int n_pass;
   int missing_handling;
   enum mv_class missing_value;
-  void (*accumulate) (struct covariance_matrix *, const struct ccase *);
+  void (*accumulate) (struct covariance_matrix *, const struct ccase *,
+		      const struct interaction_variable **, size_t);
   void (*update_moments) (struct covariance_matrix *, size_t, double);
 };
+
+
 
 static struct hsh_table *covariance_hsh_create (size_t);
 static hsh_hash_func covariance_accumulator_hash;
@@ -94,9 +96,13 @@ static struct covariance_accumulator *get_new_covariance_accumulator (const
 								      value
 								      *);
 static void covariance_accumulate_listwise (struct covariance_matrix *,
-					    const struct ccase *);
+					    const struct ccase *,
+					    const struct interaction_variable **,
+					    size_t);
 static void covariance_accumulate_pairwise (struct covariance_matrix *,
-					    const struct ccase *);
+					    const struct ccase *,
+					    const struct interaction_variable **,
+					    size_t);
 
 struct covariance_matrix *
 covariance_matrix_init (size_t n_variables,
@@ -228,7 +234,7 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
       col += i;
       y = -1.0 * cat_get_category_count (i, v) / ssize;
       tmp_val = cat_subscript_to_value (i, v);
-      if (compare_values_short (tmp_val, val1, v))
+      if (!compare_values_short (tmp_val, val1, v))
 	{
 	  y += -1.0;
 	}
@@ -263,7 +269,7 @@ covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 	  row += i;
 	  x = -1.0 * cat_get_category_count (i, v1) / ssize;
 	  tmp_val = cat_subscript_to_value (i, v1);
-	  if (compare_values_short (tmp_val, val1, v1))
+	  if (!compare_values_short (tmp_val, val1, v1))
 	    {
 	      x += 1.0;
 	    }
@@ -414,7 +420,7 @@ match_nodes (const struct covariance_accumulator *c,
 	  }
 	if (var_is_alpha (v1) && var_is_alpha (v2))
 	  {
-	    if (compare_values_short (val1, c->val1, v1))
+	    if (!compare_values_short (val1, c->val1, v1))
 	      {
 		if (!compare_values_short (val2, c->val2, v2))
 		  {
@@ -491,13 +497,13 @@ update_product (const struct variable *v1, const struct variable *v2,
   return 0.0;
 }
 static double
-update_sum (const struct variable *var, const union value *val)
+update_sum (const struct variable *var, const union value *val, double weight)
 {
   assert (var != NULL);
   assert (val != NULL);
   if (var_is_alpha (var))
     {
-      return 1.0;
+      return weight;
     }
   return val->f;
 }
@@ -526,20 +532,27 @@ get_covariance_variables (const struct covariance_matrix *cov)
   return cov->v_variables;
 }
 
+
 static void
 update_hash_entry (struct hsh_table *c,
 		   const struct variable *v1,
 		   const struct variable *v2,
-		   const union value *val1, const union value *val2)
+		   const union value *val1, const union value *val2, 
+		   const struct interaction_value *i_val1,
+		   const struct interaction_value *i_val2)
 {
   struct covariance_accumulator *ca;
   struct covariance_accumulator *new_entry;
+  double iv_f1;
+  double iv_f2;
 
-
+  iv_f1 = interaction_value_get_nonzero_entry (i_val1);
+  iv_f2 = interaction_value_get_nonzero_entry (i_val2);
   ca = get_new_covariance_accumulator (v1, v2, val1, val2);
   ca->dot_product = update_product (ca->v1, ca->v2, ca->val1, ca->val2);
-  ca->sum1 = update_sum (ca->v1, ca->val1);
-  ca->sum2 = update_sum (ca->v2, ca->val2);
+  ca->dot_product *= iv_f1 * iv_f2;
+  ca->sum1 = update_sum (ca->v1, ca->val1, iv_f1);
+  ca->sum2 = update_sum (ca->v2, ca->val2, iv_f2);
   ca->ssize = 1.0;
   new_entry = hsh_insert (c, ca);
   if (new_entry != NULL)
@@ -569,13 +582,17 @@ update_hash_entry (struct hsh_table *c,
  */
 static void
 covariance_accumulate_pairwise (struct covariance_matrix *cov,
-				const struct ccase *ccase)
+				const struct ccase *ccase, 
+				const struct interaction_variable **i_var,
+				size_t n_intr)
 {
   size_t i;
   size_t j;
   const union value *val1;
   const union value *val2;
   const struct variable **v_variables;
+  struct interaction_value *i_val1 = NULL;
+  struct interaction_value *i_val2 = NULL;
 
   assert (cov != NULL);
   assert (ccase != NULL);
@@ -585,7 +602,15 @@ covariance_accumulate_pairwise (struct covariance_matrix *cov,
 
   for (i = 0; i < cov->n_variables; ++i)
     {
-      val1 = case_data (ccase, v_variables[i]);
+      if (is_interaction (v_variables[i], i_var, n_intr))
+	{
+	  i_val1 = interaction_case_data (ccase, v_variables[i], i_var, n_intr);
+	  val1 = interaction_value_get (i_val1);
+	}
+      else
+	{
+	  val1 = case_data (ccase, v_variables[i]);
+	}
       if (!var_is_value_missing (v_variables[i], val1, cov->missing_value))
 	{
 	  cat_value_update (v_variables[i], val1);
@@ -594,15 +619,23 @@ covariance_accumulate_pairwise (struct covariance_matrix *cov,
 
 	  for (j = i; j < cov->n_variables; j++)
 	    {
-	      val2 = case_data (ccase, v_variables[j]);
+	      if (is_interaction (v_variables[j], i_var, n_intr))
+		{
+		  i_val2 = interaction_case_data (ccase, v_variables[j], i_var, n_intr);
+		  val2 = interaction_value_get (i_val2);
+		}
+	      else
+		{
+		  val2 = case_data (ccase, v_variables[j]);
+		}
 	      if (!var_is_value_missing
 		  (v_variables[j], val2, cov->missing_value))
 		{
 		  update_hash_entry (cov->ca, v_variables[i], v_variables[j],
-				     val1, val2);
+				     val1, val2, i_val1, i_val2);
 		  if (j != i)
 		    update_hash_entry (cov->ca, v_variables[j],
-				       v_variables[i], val2, val1);
+				       v_variables[i], val2, val1, i_val2, i_val1);
 		}
 	    }
 	}
@@ -626,13 +659,17 @@ covariance_accumulate_pairwise (struct covariance_matrix *cov,
  */
 static void
 covariance_accumulate_listwise (struct covariance_matrix *cov,
-				const struct ccase *ccase)
+				const struct ccase *ccase,
+				const struct interaction_variable **i_var,
+				size_t n_intr)
 {
   size_t i;
   size_t j;
   const union value *val1;
   const union value *val2;
   const struct variable **v_variables;
+  struct interaction_value *i_val1 = NULL;
+  struct interaction_value *i_val2 = NULL;
 
   assert (cov != NULL);
   assert (ccase != NULL);
@@ -642,19 +679,35 @@ covariance_accumulate_listwise (struct covariance_matrix *cov,
 
   for (i = 0; i < cov->n_variables; ++i)
     {
-      val1 = case_data (ccase, v_variables[i]);
+      if (is_interaction (v_variables[i], i_var, n_intr))
+	{
+	  i_val1 = interaction_case_data (ccase, v_variables[i], i_var, n_intr);
+	  val1 = interaction_value_get (i_val1);
+	}
+      else
+	{
+	  val1 = case_data (ccase, v_variables[i]);
+	}
       cat_value_update (v_variables[i], val1);
       if (var_is_numeric (v_variables[i]))
 	cov->update_moments (cov, i, val1->f);
 
       for (j = i; j < cov->n_variables; j++)
 	{
-	  val2 = case_data (ccase, v_variables[j]);
+	  if (is_interaction (v_variables[j], i_var, n_intr))
+	    {
+	      i_val2 = interaction_case_data (ccase, v_variables[j], i_var, n_intr);
+	      val2 = interaction_value_get (i_val2);
+	    }
+	  else
+	    {
+	      val2 = case_data (ccase, v_variables[j]);
+	    }
 	  update_hash_entry (cov->ca, v_variables[i], v_variables[j],
-			     val1, val2);
+			     val1, val2, i_val1, i_val2);
 	  if (j != i)
 	    update_hash_entry (cov->ca, v_variables[j], v_variables[i],
-			       val2, val1);
+			       val2, val1, i_val2, i_val1);
 	}
     }
 }
@@ -663,13 +716,13 @@ covariance_accumulate_listwise (struct covariance_matrix *cov,
   Call this function during the data pass. Each case will be added to
   a hash containing all values of the covariance matrix. After the
   data have been passed, call covariance_matrix_compute to put the
-  values in the struct covariance_matrix.
+  values in the struct covariance_matrix. 
  */
 void
 covariance_matrix_accumulate (struct covariance_matrix *cov,
-			      const struct ccase *ccase)
+			      const struct ccase *ccase, void **aux, size_t n_intr)
 {
-  cov->accumulate (cov, ccase);
+  cov->accumulate (cov, ccase, (const struct interaction_variable **) aux, n_intr);
 }
 
 static void
@@ -690,7 +743,7 @@ covariance_matrix_insert (struct design_matrix *cov,
     {
       i = 0;
       tmp_val = cat_subscript_to_value (i, v1);
-      while (!compare_values_short (tmp_val, val1, v1))
+      while (compare_values_short (tmp_val, val1, v1))
 	{
 	  i++;
 	  tmp_val = cat_subscript_to_value (i, v1);
@@ -705,7 +758,7 @@ covariance_matrix_insert (struct design_matrix *cov,
 	  col = design_matrix_var_to_column (cov, v2);
 	  i = 0;
 	  tmp_val = cat_subscript_to_value (i, v1);
-	  while (!compare_values_short (tmp_val, val1, v1))
+	  while (compare_values_short (tmp_val, val1, v1))
 	    {
 	      i++;
 	      tmp_val = cat_subscript_to_value (i, v1);
