@@ -31,8 +31,8 @@ perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
 
-PSPP-Perl-$(VERSION).tar.gz:
-	cd perl-module && $(RM) $@
+perl-module/PSPP-Perl-$(VERSION).tar.gz: $(module_sources)
+	$(RM) $@
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
 .PHONY: module-make
@@ -46,10 +46,11 @@ all-local:
 	  mkdir -p $$destdir ;\
 	  if test "$(top_srcdir)/$$f" -nt "$(top_builddir)/$$f" ; then \
 		 cp $(top_srcdir)/$$f $$destdir ; \
+		 echo cp $(top_srcdir)/$$f $$destdir ; \
 	  fi ; \
 	 done \
 	fi
-	$(MAKE) $(AM_MAKEFLAGS) module-make PSPP-Perl-$(VERSION).tar.gz
+	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION).tar.gz
 
 check-local:
 	loc=`pwd` ; cd $(top_builddir)/src/.libs ; llp=`pwd` ; cd $$loc ;  \
