@@ -21,7 +21,7 @@ None by default.
 
 =cut
 BEGIN {
-	$PSPP::VERSION='0.7.0';
+	$PSPP::VERSION='0.7.1';
 	require XSLoader;
 	XSLoader::load('PSPP', $PSPP::VERSION);
 }
