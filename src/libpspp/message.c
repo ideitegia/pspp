@@ -99,9 +99,11 @@ msg_destroy(struct msg *m)
 void
 msg_emit (struct msg *m)
 {
-  get_msg_location (s_stream, &m->where);
+  if ( s_stream )
+    get_msg_location (s_stream, &m->where);
+
   if (!messages_disabled)
-    msg_handler (m);
+     msg_handler (m);
   free (m->text);
 }
 

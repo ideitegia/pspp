@@ -60,6 +60,8 @@ if WITH_GUI_TOOLS
 include $(top_srcdir)/glade/automake.mk
 endif
 
+include $(top_srcdir)/perl-module/automake.mk
+
 PHONY += $(DIST_HOOKS)
 dist-hook: $(DIST_HOOKS)
 .PHONY: $(PHONY)
