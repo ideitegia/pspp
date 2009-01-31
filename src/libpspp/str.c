@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1190,48 +1190,42 @@ ds_cstr (const struct string *st_)
   return st->ss.string;
 }
 
-/* Appends to ST a newline-terminated line read from STREAM, but
-   no more than MAX_LENGTH characters.
-   Newline is the last character of ST on return, if encountering
-   a newline was the reason for terminating.
-   Returns true if at least one character was read from STREAM
-   and appended to ST, false if no characters at all were read
-   before an I/O error or end of file was encountered (or
-   MAX_LENGTH was 0). */
+/* Reads characters from STREAM and appends them to ST, stopping
+   after MAX_LENGTH characters, after appending a newline, or
+   after an I/O error or end of file was encountered, whichever
+   comes first.  Returns true if at least one character was added
+   to ST, false if no characters were read before an I/O error or
+   end of file (or if MAX_LENGTH was 0).
+
+   This function accepts LF, CR LF, and CR sequences as new-line,
+   and translates each of them to a single '\n' new-line
+   character in ST. */
 bool
 ds_read_line (struct string *st, FILE *stream, size_t max_length)
 {
-  if (!st->ss.length && max_length == SIZE_MAX)
+  size_t length;
+
+  for (length = 0; length < max_length; length++)
     {
-      size_t capacity = st->capacity ? st->capacity + 1 : 0;
-      ssize_t n = getline (&st->ss.string, &capacity, stream);
-      if (capacity)
-        st->capacity = capacity - 1;
-      if (n > 0)
+      int c = getc (stream);
+      if (c == EOF)
+        break;
+
+      if (c == '\r')
         {
-          st->ss.length = n;
-          return true;
+          c = getc (stream);
+          if (c != '\n')
+            {
+              ungetc (c, stream);
+              c = '\n';
+            }
         }
-      else
-        return false;
+      ds_put_char (st, c);
+      if (c == '\n')
+        return true;
     }
-  else
-    {
-      size_t length;
 
-      for (length = 0; length < max_length; length++)
-        {
-          int c = getc (stream);
-          if (c == EOF)
-            break;
-
-          ds_put_char (st, c);
-          if (c == '\n')
-            return true;
-        }
-
-      return length > 0;
-    }
+  return length > 0;
 }
 
 /* Removes a comment introduced by `#' from ST,

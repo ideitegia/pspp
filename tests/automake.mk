@@ -35,6 +35,7 @@ dist_TESTS = \
 	tests/command/input-program.sh \
 	tests/command/insert.sh \
 	tests/command/lag.sh \
+	tests/command/line-ends.sh \
 	tests/command/list.sh \
 	tests/command/loop.sh \
 	tests/command/longvars.sh \
