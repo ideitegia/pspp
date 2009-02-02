@@ -87,6 +87,10 @@ sub new
 
 =pod
 
+=head3 get_var_cnt ()
+
+Returns the number of variables in the dictionary.
+
 =head3 get_var ($idx)
 
 Returns the C<idx>th variable from the dictionary.

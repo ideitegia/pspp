@@ -6,7 +6,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 32;
+use Test::More tests => 37;
 use Text::Diff;
 use File::Temp qw/ tempfile tempdir /;
 BEGIN { use_ok('PSPP') };
@@ -67,6 +67,7 @@ sub run_pspp_syntax_cmp
 {
   my $d = PSPP::Dict->new();
   ok (ref $d, "Dictionary Creation");
+  ok ($d->get_var_cnt () == 0);
 
   $d->set_label ("My Dictionary");
   $d->set_documents ("These Documents");
@@ -75,17 +76,21 @@ sub run_pspp_syntax_cmp
 
   my $var0 = PSPP::Var->new ($d, "le");
   ok (!ref $var0, "Trap illegal variable name");
+  ok ($d->get_var_cnt () == 0);
 
   $var0 = PSPP::Var->new ($d, "legal");
   ok (ref $var0, "Accept legal variable name");
+  ok ($d->get_var_cnt () == 1);
 
   my $var1 = PSPP::Var->new ($d, "legal");
   ok (!ref $var1, "Trap duplicate variable name");
+  ok ($d->get_var_cnt () == 1);
 
   $var1 = PSPP::Var->new ($d, "money", 
 			  (fmt=>PSPP::Fmt::DOLLAR, 
 			   width=>4, decimals=>2) );
   ok (ref $var1, "Accept valid format");
+  ok ($d->get_var_cnt () == 2);
 
   $d->set_weight ($var1);
 
