@@ -90,6 +90,8 @@ sub new
 =head3 get_var ($idx)
 
 Returns the C<idx>th variable from the dictionary.
+Returns undef if C<idx> is greater than or equal to the number
+of variables in the dictionary.
 
 =cut
 
