@@ -25,17 +25,14 @@ perl-module/pspp-module-config: Makefile
 	echo ');' >> $$target ;\
 	cp $$target $(top_builddir)/perl-module/pspp-module-config
 
-
-
 perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
-
 
 perl-module/PSPP-Perl-$(VERSION).tar.gz: $(module_sources)
 	$(RM) $@
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
-.PHONY: module-make
+PHONY += module-make
 module-make: perl-module/Makefile
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
@@ -63,7 +60,6 @@ clean-local:
 	  $(RM) $(module_sources) ; \
 	fi
 	$(RM) perl-module/Makefile.old
-
 
 CLEANFILES += \
         perl-module/PSPP-Perl-$(VERSION).tar.gz \
