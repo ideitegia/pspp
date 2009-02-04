@@ -152,8 +152,9 @@ release.
 
   4. Type `make install' to install the programs and any data files
      and documentation.  Ordinarily you will need root permissions to
-     do this; if you cannot get root permissions, see "Installation
-     Names", below.
+     do this.  The "su" and "sudo" commands are common ways to obtain
+     root permissions.  If you cannot get root permissions, see
+     "Installation Names", below.
 
   5. You can remove the program binaries and object files from the
      source code directory by typing `make clean'.  To also remove the
