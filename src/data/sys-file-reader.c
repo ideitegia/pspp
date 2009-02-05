@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -728,7 +728,11 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       break;
 
     case 7:
-      /* Unknown purpose. */
+      /* Used by the MRSETS command. */
+      break;
+
+    case 8:
+      /* Used by the SPSS Data Entry software. */
       break;
 
     case 11:
@@ -765,7 +769,8 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       break;
 
     default:
-      sys_warn (r, _("Unrecognized record type 7, subtype %d."), subtype);
+      sys_warn (r, _("Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s"),
+		subtype, PACKAGE_BUGREPORT);
       break;
     }
 
