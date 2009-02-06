@@ -14,7 +14,6 @@ noinst_LTLIBRARIES +=  src/language/liblanguage.la
 
 
 src_language_liblanguage_la_LIBADD = \
-	lib/misc/libmisc.la \
 	src/output/charts/libcharts.la
 
 src_language_liblanguage_la_SOURCES = \
