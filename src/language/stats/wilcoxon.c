@@ -34,9 +34,6 @@
 #include <signal.h>
 #include <libpspp/assertion.h>
 
-static double timed_wilcoxon_significance (double w, long int n, double timer);
-
-
 static double
 append_difference (const struct ccase *c, casenumber n UNUSED, void *aux)
 {
@@ -280,7 +277,7 @@ static void
 show_tests_box (const struct wilcoxon_state *ws,
 		const struct two_sample_test *t2s,
 		bool exact,
-		double timer
+		double timer UNUSED
 		)
 {
   size_t i;
@@ -342,14 +339,10 @@ show_tests_box (const struct wilcoxon_state *ws,
 
       if (exact)
 	{
-	  double p =
-	    timed_wilcoxon_significance (ws[i].positives.sum,
-					 n,
-					 timer );
-
-	  if ( p == SYSMIS)
+	  double p = LevelOfSignificanceWXMPSR (ws[i].positives.sum, n);
+	  if (p < 0)
 	    {
-	      msg (MW, _("Exact significance was not calculated after %.2f minutes. Skipping test."), timer);
+	      msg (MW, ("Too many pairs to calculate exact significance."));
 	    }
 	  else
 	    {
@@ -364,49 +357,4 @@ show_tests_box (const struct wilcoxon_state *ws,
 
 
   tab_submit (table);
-}
-
-
-
-#include <setjmp.h>
-
-static sigjmp_buf env;
-
-static void
-give_up_callback (int signal UNUSED)
-{
-  siglongjmp (env, 1);
-}
-
-static double
-timed_wilcoxon_significance (double w, long int n, double timer)
-{
-  double p = SYSMIS;
-
-  sigset_t set;
-
-  struct sigaction timeout_action;
-  struct sigaction old_action;
-
-  if (timer <= 0 )
-    return LevelOfSignificanceWXMPSR (w, n);
-
-  sigemptyset (&set);
-
-  timeout_action.sa_mask = set;
-  timeout_action.sa_flags = 0;
-
-  timeout_action.sa_handler = give_up_callback;
-
-  if ( 0 == sigsetjmp (env, 1))
-    {
-      sigaction (SIGALRM, &timeout_action, &old_action);
-      alarm (timer * 60.0);
-
-      p = LevelOfSignificanceWXMPSR (w, n);
-    }
-
-  sigaction (SIGALRM, &old_action, NULL);
-
-  return p;
 }

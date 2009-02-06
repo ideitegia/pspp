@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <libintl.h>
 #include <gsl/gsl_errno.h>
-#include <signal.h>
 
 #include <argp.h>
 #include <ui/command-line.h>
@@ -143,9 +142,6 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   journal_enable ();
   textdomain (PACKAGE);
-
-  /* Ignore alarm clock signals */
-  signal (SIGALRM, SIG_IGN);
 
   command_line_processor_replace_aux (clp, &post_init_argp, the_source_stream);
   command_line_processor_replace_aux (clp, &non_option_argp, the_source_stream);
