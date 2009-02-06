@@ -28,7 +28,7 @@
 #include <output/table.h>
 #include <data/procedure.h>
 #include <data/dictionary.h>
-#include <misc/wx-mp-sr.h>
+#include <math/wilcoxon-sig.h>
 #include <gsl/gsl_cdf.h>
 #include <unistd.h>
 #include <signal.h>
