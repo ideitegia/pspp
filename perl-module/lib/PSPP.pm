@@ -493,7 +493,8 @@ This method returns an array of scalars, each of which are the values of
 the data in the system file.
 The first call to C<get_next_case> after C<open> has been called retrieves
 the first case in the system file.  Each subsequent call retrieves the next
-case.  If there are no more cases to be read, the function returns undef.
+case.  If there are no more cases to be read, the function returns an empty
+list.
 
 If the case contains system missing values, these values are set to the 
 empty string.

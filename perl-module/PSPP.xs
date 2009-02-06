@@ -671,32 +671,24 @@ CODE:
 RETVAL
 
 
-SV *
+void
 get_next_case (sfr)
  struct sysreader_info *sfr;
-CODE:
+PPCODE:
  struct ccase *c;
 
- if (! (c = casereader_read (sfr->reader)))
- {
-  RETVAL = 0;
- }
- else
+ if (c = casereader_read (sfr->reader))
  {
   int v;
-  AV *av_case = (AV *) sv_2mortal ((SV *) newAV());
 
+  EXTEND (SP, dict_get_var_cnt (sfr->dict));
   for (v = 0; v < dict_get_var_cnt (sfr->dict); ++v )
     {
       const struct variable *var = dict_get_var (sfr->dict, v);
       const union value *val = case_data (c, var);
 
-      av_push (av_case, value_to_scalar (val, var));
+      PUSHs (sv_2mortal (value_to_scalar (val, var)));
     }
 
   case_unref (c);
-  RETVAL = newRV ((SV *) av_case);
  }
-OUTPUT:
- RETVAL
-

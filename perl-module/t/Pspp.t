@@ -387,11 +387,11 @@ RESULT
     print MYFILE "$_ => $vl->{$_}\n" for keys %$vl;
  }
 
- while (my $c = $sf->get_next_case () )
+ while (my @c = $sf->get_next_case () )
  {
     for ($v = 0; $v < $dict->get_var_cnt(); $v++)
     {
-	print MYFILE "val$v: \"@$c[$v]\"\n";
+	print MYFILE "val$v: \"$c[$v]\"\n";
     }
     print MYFILE "\n";
  }
@@ -469,9 +469,9 @@ EOF
 
  my $output = PSPP::Sysfile->new ("$tempdir/out.sav", $dict);
 
- while (my $c = $input->get_next_case () )
+ while (my (@c) = $input->get_next_case () )
  {
-   $output->append_case ($c);
+   $output->append_case (\@c);
  }
 
  $output->close ();
@@ -519,10 +519,10 @@ SYNTAX
 
  my $dict = $sf->get_dict ();
 
- my $c = $sf->get_next_case ();
+ my (@c) = $sf->get_next_case ();
 
  my $var = $dict->get_var (0);
- my $val = @$c[0];
+ my $val = $c[0];
  my $formatted = PSPP::format_value ($val, $var);
  my $str = gmtime ($val - PSPP::PERL_EPOCH);
  print "Formatted string is \"$formatted\"\n";
@@ -557,30 +557,30 @@ SYNTAX
  my $dict = $sf->get_dict ();
 
 
- my $c = $sf->get_next_case ();
+ my (@c) = $sf->get_next_case ();
 
  my $stringvar = $dict->get_var (0);
  my $numericvar = $dict->get_var (2);
- my $val = @$c[0];
+ my $val = $c[0];
 
  ok ( !PSPP::value_is_missing ($val, $stringvar), "Missing Value Negative String");
 
- $val = @$c[2];
+ $val = $c[2];
 
  ok ( !PSPP::value_is_missing ($val, $numericvar), "Missing Value Negative Num");
 
- $c = $sf->get_next_case (); 
- $c = $sf->get_next_case (); 
+ @c = $sf->get_next_case (); 
+ @c = $sf->get_next_case (); 
 
- $val = @$c[0];
+ $val = $c[0];
  ok ( PSPP::value_is_missing ($val, $stringvar), "Missing Value Positive");
 
- $c = $sf->get_next_case (); 
- $val = @$c[2];
+ @c = $sf->get_next_case (); 
+ $val = $c[2];
  ok ( PSPP::value_is_missing ($val, $numericvar), "Missing Value Positive SYS");
 
- $c = $sf->get_next_case (); 
- $val = @$c[2];
+ @c = $sf->get_next_case (); 
+ $val = $c[2];
  ok ( PSPP::value_is_missing ($val, $numericvar), "Missing Value Positive Num");
 }
 
