@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -217,5 +217,9 @@ void ds_put_vformat (struct string *st, const char *, va_list)
 void ds_put_format (struct string *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 char *ds_put_uninit (struct string *st, size_t incr);
+
+/* Other */
+/* calls relocate from gnulib on ST */
+void ds_relocate (struct string *st);
 
 #endif /* str_h */

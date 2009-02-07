@@ -26,6 +26,7 @@
 #include <libpspp/message.h>
 #include <libpspp/pool.h>
 
+#include <relocatable.h>
 #include "minmax.h"
 #include "xalloc.h"
 #include "xsize.h"
@@ -1395,4 +1396,21 @@ void
 ds_put_char_multiple (struct string *st, int ch, size_t cnt)
 {
   memset (ds_put_uninit (st, cnt), ch, cnt);
+}
+
+
+/* If relocation has been enabled, replace ST,
+   with its relocated version */
+void
+ds_relocate (struct string *st)
+{
+  const char *orig = ds_cstr (st);
+  const char *rel = relocate (orig);
+
+  if ( orig != rel)
+    {
+      ds_clear (st);
+      ds_put_cstr (st, rel);
+      free ((char *) rel);
+    }
 }
