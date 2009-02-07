@@ -298,7 +298,7 @@ tests_dissect_sysfile_SOURCES = \
 	src/libpspp/integer-format.c \
 	src/libpspp/float-format.c \
 	tests/dissect-sysfile.c
-tests_dissect_sysfile_LDADD = gl/libgl.la @LIBINTL@
+tests_dissect_sysfile_LDADD = gl/libgl.la @LIBINTL@ @LIB_CLOSE@
 tests_dissect_sysfile_CPPFLAGS = $(AM_CPPFLAGS) -DINSTALLDIR=\"$(bindir)\"
 
 EXTRA_DIST += \
