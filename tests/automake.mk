@@ -214,7 +214,7 @@ tests_libpspp_heap_test_SOURCES = \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
 	tests/libpspp/heap-test.c
-tests_libpspp_heap_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_heap_test_LDADD = gl/libgl.la @LIBINTL@ @LIB_CLOSE@
 tests_libpspp_heap_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_hmap_test_SOURCES = \
@@ -264,12 +264,12 @@ tests_libpspp_range_set_test_SOURCES = \
 	src/libpspp/range-set.c \
 	src/libpspp/range-set.h \
 	tests/libpspp/range-set-test.c
-tests_libpspp_range_set_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_range_set_test_LDADD = gl/libgl.la @LIBINTL@ @LIB_CLOSE@
 tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
-tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la @LIBINTL@
+tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la @LIBINTL@ @LIB_CLOSE@
 
 tests_libpspp_tower_test_SOURCES = \
 	src/libpspp/abt.c \
@@ -279,7 +279,7 @@ tests_libpspp_tower_test_SOURCES = \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
 	tests/libpspp/tower-test.c
-tests_libpspp_tower_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_tower_test_LDADD = gl/libgl.la @LIBINTL@ @LIB_CLOSE@
 tests_libpspp_tower_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_sparse_array_test_SOURCES = \
@@ -288,7 +288,7 @@ tests_libpspp_sparse_array_test_SOURCES = \
 	src/libpspp/pool.c \
 	src/libpspp/pool.h \
 	tests/libpspp/sparse-array-test.c
-tests_libpspp_sparse_array_test_LDADD = gl/libgl.la @LIBINTL@
+tests_libpspp_sparse_array_test_LDADD = gl/libgl.la @LIBINTL@ @LIB_CLOSE@
 tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
