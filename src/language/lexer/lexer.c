@@ -17,7 +17,8 @@
 #include <config.h>
 #include "lexer.h"
 #include <libpspp/message.h>
-#include <ctype.h>
+#include <c-ctype.h>
+#include <c-strtod.h>
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
@@ -187,7 +188,7 @@ lex_get (struct lexer *lexer)
   for (;;)
     {
       /* Skip whitespace. */
-	  while (isspace ((unsigned char) *lexer->prog))
+	  while (c_isspace ((unsigned char) *lexer->prog))
 	    lexer->prog++;
 
 	  if (*lexer->prog)
@@ -244,10 +245,10 @@ lex_get (struct lexer *lexer)
 	    if (*lexer->prog == '-')
 	      {
 		ds_put_char (&lexer->tokstr, *lexer->prog++);
-		while (isspace ((unsigned char) *lexer->prog))
+		while (c_isspace ((unsigned char) *lexer->prog))
 		  lexer->prog++;
 
-		if (!isdigit ((unsigned char) *lexer->prog) && *lexer->prog != '.')
+		if (!c_isdigit ((unsigned char) *lexer->prog) && *lexer->prog != '.')
 		  {
 		    lexer->token = '-';
 		    break;
@@ -258,12 +259,12 @@ lex_get (struct lexer *lexer)
               lexer->token = T_POS_NUM;
 
 	    /* Parse the number, copying it into tokstr. */
-	    while (isdigit ((unsigned char) *lexer->prog))
+	    while (c_isdigit ((unsigned char) *lexer->prog))
 	      ds_put_char (&lexer->tokstr, *lexer->prog++);
 	    if (*lexer->prog == '.')
 	      {
 		ds_put_char (&lexer->tokstr, *lexer->prog++);
-		while (isdigit ((unsigned char) *lexer->prog))
+		while (c_isdigit ((unsigned char) *lexer->prog))
 		  ds_put_char (&lexer->tokstr, *lexer->prog++);
 	      }
 	    if (*lexer->prog == 'e' || *lexer->prog == 'E')
@@ -271,12 +272,12 @@ lex_get (struct lexer *lexer)
 		ds_put_char (&lexer->tokstr, *lexer->prog++);
 		if (*lexer->prog == '+' || *lexer->prog == '-')
 		  ds_put_char (&lexer->tokstr, *lexer->prog++);
-		while (isdigit ((unsigned char) *lexer->prog))
+		while (c_isdigit ((unsigned char) *lexer->prog))
 		  ds_put_char (&lexer->tokstr, *lexer->prog++);
 	      }
 
 	    /* Parse as floating point. */
-	    lexer->tokval = strtod (ds_cstr (&lexer->tokstr), &tail);
+	    lexer->tokval = c_strtod (ds_cstr (&lexer->tokstr), &tail);
 	    if (*tail)
 	      {
 		msg (SE, _("%s does not form a valid number."),
@@ -383,7 +384,7 @@ lex_get (struct lexer *lexer)
             }
           else
             {
-              if (isgraph ((unsigned char) *lexer->prog))
+              if (c_isgraph ((unsigned char) *lexer->prog))
                 msg (SE, _("Bad character in input: `%c'."), *lexer->prog++);
               else
                 msg (SE, _("Bad character in input: `\\%o'."), *lexer->prog++);
@@ -691,7 +692,7 @@ lex_look_ahead (struct lexer *lexer)
 
       for (;;)
 	{
-	  while (isspace ((unsigned char) *lexer->prog))
+	  while (c_isspace ((unsigned char) *lexer->prog))
 	    lexer->prog++;
 	  if (*lexer->prog)
 	    break;
@@ -866,7 +867,7 @@ lex_preprocess_line (struct string *line,
   if (syntax == GETL_BATCH)
     {
       int first = ds_first (line);
-      *line_starts_command = !isspace (first);
+      *line_starts_command = !c_isspace (first);
       if (first == '+' || first == '-')
         *ds_data (line) = ' ';
     }
@@ -951,7 +952,7 @@ lex_token_representation (struct lexer *lexer)
 	char *sp, *dp;
 
 	for (sp = ds_cstr (&lexer->tokstr); sp < ds_end (&lexer->tokstr); sp++)
-	  if (!isprint ((unsigned char) *sp))
+	  if (!c_isprint ((unsigned char) *sp))
 	    {
 	      hexstring = 1;
 	      break;
@@ -1165,7 +1166,7 @@ parse_string (struct lexer *lexer, enum string_type type)
 	break;
       for (;;)
 	{
-	  while (isspace ((unsigned char) *lexer->prog))
+	  while (c_isspace ((unsigned char) *lexer->prog))
 	    lexer->prog++;
 	  if (*lexer->prog)
 	    break;
@@ -1187,7 +1188,7 @@ parse_string (struct lexer *lexer, enum string_type type)
 	break;
       for (;;)
 	{
-	  while (isspace ((unsigned char) *lexer->prog))
+	  while (c_isspace ((unsigned char) *lexer->prog))
 	    lexer->prog++;
 	  if (*lexer->prog)
 	    break;
