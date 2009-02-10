@@ -122,6 +122,9 @@ struct factor_metrics
   /* Sum of all weights, including those for missing values */
   double n;
 
+  /* Sum of weights of non_missing values */
+  double n_valid;
+
   double mean;
 
   double variance;
@@ -934,23 +937,27 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	      case_data_idx (c, casereader_get_value_cnt (reader) - 1)->f;
 
 	  const double weight = wv ? case_data (c, wv)->f : 1.0;
+	  const union value *value = case_data (c, dependent_vars[v]);
 
 	  if (weight != SYSMIS)
 	    minimize (&result->metrics[v].cmin, weight);
 
 	  moments1_add (result->metrics[v].moments,
-			case_data (c, dependent_vars[v])->f,
+			value->f,
 			weight);
 
 	  result->metrics[v].n += weight;
 
+	  if ( ! var_is_value_missing (dependent_vars[v], value, MV_ANY) )
+	    result->metrics[v].n_valid += weight;
+
 	  extrema_add (result->metrics[v].maxima,
-		       case_data (c, dependent_vars[v])->f,
+		       value->f,
 		       weight,
 		       loc);
 
 	  extrema_add (result->metrics[v].minima,
-		       case_data (c, dependent_vars[v])->f,
+		       value->f,
 		       weight,
 		       loc);
 
@@ -985,7 +992,7 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	  for (i = 0 ; i < metric->n_ptiles; ++i)
 	    {
 	      metric->ptl[i] = (struct percentile *)
-		percentile_create (percentile_list.data[i] / 100.0, metric->n);
+		percentile_create (percentile_list.data[i] / 100.0, metric->n_valid);
 
 	      if ( percentile_list.data[i] == 25)
 		metric->quartiles[0] = metric->ptl[i];
