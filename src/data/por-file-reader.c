@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -814,28 +814,30 @@ read_documents (struct pfm_reader *r, struct dictionary *dict)
     }
 }
 
-/* Reads one case from portable file R into C. */
-static bool
-por_file_casereader_read (struct casereader *reader, void *r_, struct ccase *c)
+/* Reads and returns one case from portable file R.  Returns a
+   null pointer on failure. */
+static struct ccase *
+por_file_casereader_read (struct casereader *reader, void *r_)
 {
   struct pfm_reader *r = r_;
+  struct ccase *volatile c;
   size_t i;
   size_t idx;
 
-  case_create (c, casereader_get_value_cnt (reader));
+  c = case_create (casereader_get_value_cnt (reader));
   setjmp (r->bail_out);
   if (!r->ok)
     {
       casereader_force_error (reader);
-      case_destroy (c);
-      return false;
+      case_unref (c);
+      return NULL;
     }
 
   /* Check for end of file. */
   if (r->cc == 'Z')
     {
-      case_destroy (c);
-      return false;
+      case_unref (c);
+      return NULL;
     }
 
   idx = 0;
@@ -857,7 +859,7 @@ por_file_casereader_read (struct casereader *reader, void *r_, struct ccase *c)
         }
     }
 
-  return true;
+  return c;
 }
 
 /* Returns true if FILE is an SPSS portable file,

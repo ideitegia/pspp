@@ -18,7 +18,6 @@
 #include <config.h>
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include <libpspp/copyleft.h>
 #include <libpspp/version.h>
@@ -31,7 +30,7 @@ const static gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
 void
 about_new (GtkMenuItem *m, GtkWindow *parent)
 {
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
 
   GtkWidget *about =  get_widget_assert (xml, "aboutdialog1");
 

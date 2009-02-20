@@ -17,7 +17,6 @@
 
 
 #include <config.h>
-#include <glade/glade.h>
 #include <gtk/gtk.h>
 #include "t-test-one-sample.h"
 #include "psppire-dict.h"
@@ -127,7 +126,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
 
   PsppireVarStore *vs = NULL;
 
-  GladeXML *xml = XML_NEW ("t-test.glade");
+  GtkBuilder *xml = builder_new ("t-test.ui");
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "one-sample-t-test-treeview2");

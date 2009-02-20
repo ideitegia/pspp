@@ -24,7 +24,7 @@ struct tt_options_dialog;
 
 void tt_options_dialog_run (struct tt_options_dialog *);
 
-struct tt_options_dialog * tt_options_dialog_create (GladeXML *, GtkWindow *);
+struct tt_options_dialog * tt_options_dialog_create (GtkBuilder *, GtkWindow *);
 
 void tt_options_dialog_destroy (struct tt_options_dialog *);
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,21 +98,21 @@ do_binomial (const struct dictionary *dict,
   bool warn = true;
 
   const struct one_sample_test *ost = (const struct one_sample_test *) bst;
-  struct ccase c;
+  struct ccase *c;
 
-  while (casereader_read(input, &c))
+  while ((c = casereader_read(input)) != NULL)
     {
       int v;
-      double w = dict_get_case_weight (dict, &c, &warn);
+      double w = dict_get_case_weight (dict, c, &warn);
 
       for (v = 0 ; v < ost->n_vars ; ++v )
 	{
 	  const struct variable *var = ost->vars[v];
-	  const union value *value = case_data (&c, var);
+	  const union value *value = case_data (c, var);
           int width = var_get_width (var);
 
 	  if (var_is_value_missing (var, value, exclude))
-	    break;
+	    continue;
 
 	  if ( NULL == cat1[v].value )
 	    {
@@ -132,7 +132,7 @@ do_binomial (const struct dictionary *dict,
 	    msg (ME, _("Variable %s is not dichotomous"), var_get_name (var));
 	}
 
-      case_destroy (&c);
+      case_unref (c);
     }
   return casereader_destroy (input);
 }
@@ -158,16 +158,20 @@ binomial_execute (const struct dataset *ds,
 
   if ( bst->category1 != SYSMIS )
     {
+      int i;
       union value v;
       v.f = bst->category1;
-      cat1->value = value_dup (&v, 0);
+      for (i = 0; i < ost->n_vars; i++)
+	cat1[i].value = value_dup (&v, 0);
     }
 
   if ( bst->category2 != SYSMIS )
     {
+      int i;
       union value v;
       v.f = bst->category2;
-      cat2->value = value_dup (&v, 0);
+      for (i = 0; i < ost->n_vars; i++)
+	cat2[i].value = value_dup (&v, 0);
     }
 
   if (do_binomial (dataset_dict(ds), input, bst, cat1, cat2, exclude))

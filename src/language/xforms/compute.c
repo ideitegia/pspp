@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -112,14 +112,17 @@ cmd_compute (struct lexer *lexer, struct dataset *ds)
 
 /* Handle COMPUTE or IF with numeric target variable. */
 static int
-compute_num (void *compute_, struct ccase *c, casenumber case_num)
+compute_num (void *compute_, struct ccase **c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
-    case_data_rw (c, compute->variable)->f
-      = expr_evaluate_num (compute->rvalue, c, case_num);
+      || expr_evaluate_num (compute->test, *c, case_num) == 1.0)
+    {
+      *c = case_unshare (*c);
+      case_data_rw (*c, compute->variable)->f
+        = expr_evaluate_num (compute->rvalue, *c, case_num);
+    }
 
   return TRNS_CONTINUE;
 }
@@ -127,17 +130,17 @@ compute_num (void *compute_, struct ccase *c, casenumber case_num)
 /* Handle COMPUTE or IF with numeric vector element target
    variable. */
 static int
-compute_num_vec (void *compute_, struct ccase *c, casenumber case_num)
+compute_num_vec (void *compute_, struct ccase **c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
+      || expr_evaluate_num (compute->test, *c, case_num) == 1.0)
     {
       double index;     /* Index into the vector. */
       int rindx;        /* Rounded index value. */
 
-      index = expr_evaluate_num (compute->element, c, case_num);
+      index = expr_evaluate_num (compute->element, *c, case_num);
       rindx = floor (index + EPSILON);
       if (index == SYSMIS
           || rindx < 1 || rindx > vector_get_var_cnt (compute->vector))
@@ -152,8 +155,10 @@ compute_num_vec (void *compute_, struct ccase *c, casenumber case_num)
                  index, vector_get_name (compute->vector));
           return TRNS_CONTINUE;
         }
-      case_data_rw (c, vector_get_var (compute->vector, rindx - 1))->f
-        = expr_evaluate_num (compute->rvalue, c, case_num);
+
+      *c = case_unshare (*c);
+      case_data_rw (*c, vector_get_var (compute->vector, rindx - 1))->f
+        = expr_evaluate_num (compute->rvalue, *c, case_num);
     }
 
   return TRNS_CONTINUE;
@@ -161,14 +166,18 @@ compute_num_vec (void *compute_, struct ccase *c, casenumber case_num)
 
 /* Handle COMPUTE or IF with string target variable. */
 static int
-compute_str (void *compute_, struct ccase *c, casenumber case_num)
+compute_str (void *compute_, struct ccase **c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
-    expr_evaluate_str (compute->rvalue, c, case_num,
-                       case_data_rw (c, compute->variable)->s, compute->width);
+      || expr_evaluate_num (compute->test, *c, case_num) == 1.0)
+    {
+      *c = case_unshare (*c);
+      expr_evaluate_str (compute->rvalue, *c, case_num,
+                         case_data_rw (*c, compute->variable)->s,
+                         compute->width);
+    }
 
   return TRNS_CONTINUE;
 }
@@ -176,18 +185,18 @@ compute_str (void *compute_, struct ccase *c, casenumber case_num)
 /* Handle COMPUTE or IF with string vector element target
    variable. */
 static int
-compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
+compute_str_vec (void *compute_, struct ccase **c, casenumber case_num)
 {
   struct compute_trns *compute = compute_;
 
   if (compute->test == NULL
-      || expr_evaluate_num (compute->test, c, case_num) == 1.0)
+      || expr_evaluate_num (compute->test, *c, case_num) == 1.0)
     {
       double index;             /* Index into the vector. */
       int rindx;                /* Rounded index value. */
       struct variable *vr;      /* Variable reference by indexed vector. */
 
-      index = expr_evaluate_num (compute->element, c, case_num);
+      index = expr_evaluate_num (compute->element, *c, case_num);
       rindx = floor (index + EPSILON);
       if (index == SYSMIS)
         {
@@ -205,8 +214,9 @@ compute_str_vec (void *compute_, struct ccase *c, casenumber case_num)
         }
 
       vr = vector_get_var (compute->vector, rindx - 1);
-      expr_evaluate_str (compute->rvalue, c, case_num,
-                         case_data_rw (c, vr)->s,
+      *c = case_unshare (*c);
+      expr_evaluate_str (compute->rvalue, *c, case_num,
+                         case_data_rw (*c, vr)->s,
                          var_get_width (vr));
     }
 

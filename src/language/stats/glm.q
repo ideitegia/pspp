@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -184,20 +184,21 @@ run_glm (struct casereader *input,
   int n_indep = 0;
   pspp_linreg_cache *model = NULL; 
   pspp_linreg_opts lopts;
-  struct ccase c;
+  struct ccase *c;
   size_t i;
   size_t n_all_vars;
   size_t n_data;		/* Number of valid cases. */
   struct casereader *reader;
   struct covariance_matrix *cov;
 
-  if (!casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c == NULL)
     {
       casereader_destroy (input);
       return true;
     }
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  output_split_file_values (ds, c);
+  case_unref (c);
 
   if (!v_dependent)
     {
@@ -237,12 +238,12 @@ run_glm (struct casereader *input,
       
       cov = covariance_matrix_init (n_all_vars, all_vars, ONE_PASS, PAIRWISE, MV_ANY);
       reader = casereader_create_counter (reader, &row, -1);
-      for (; casereader_read (reader, &c); case_destroy (&c))
+      for (; (c = casereader_read (reader)) != NULL; case_unref (c))
 	{
 	  /* 
 	     Accumulate the covariance matrix.
 	  */
-	  covariance_matrix_accumulate (cov, &c);
+	  covariance_matrix_accumulate (cov, c, NULL, 0);
 	  n_data++;
 	}
       covariance_matrix_compute (cov);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -894,15 +894,16 @@ run_oneway (struct cmd_oneway *cmd,
   struct dictionary *dict = dataset_dict (ds);
   enum mv_class exclude;
   struct casereader *reader;
-  struct ccase c;
+  struct ccase *c;
 
-  if (!casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c == NULL)
     {
       casereader_destroy (input);
       return;
     }
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  output_split_file_values (ds, c);
+  case_unref (c);
 
   taint = taint_clone (casereader_get_taint (input));
 
@@ -923,13 +924,13 @@ run_oneway (struct cmd_oneway *cmd,
   input = casereader_create_filter_weight (input, dict, NULL, NULL);
 
   reader = casereader_clone (input);
-  for (; casereader_read (reader, &c); case_destroy (&c))
+  for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
       size_t i;
 
-      const double weight = dict_get_case_weight (dict, &c, NULL);
+      const double weight = dict_get_case_weight (dict, c, NULL);
 
-      const union value *indep_val = case_data (&c, indep_var);
+      const union value *indep_val = case_data (c, indep_var);
       void **p = hsh_probe (global_group_hash, indep_val);
       if (*p == NULL)
         *p = value_dup (indep_val, var_get_width (indep_var));
@@ -938,7 +939,7 @@ run_oneway (struct cmd_oneway *cmd,
 	{
 	  const struct variable *v = vars[i];
 
-	  const union value *val = case_data (&c, v);
+	  const union value *val = case_data (c, v);
 
           struct group_proc *gp = group_proc_get (vars[i]);
 	  struct hsh_table *group_hash = gp->group_hash;

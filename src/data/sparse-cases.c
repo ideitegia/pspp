@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <data/case.h>
 #include <data/settings.h>
 #include <data/case-tmpfile.h>
 #include <libpspp/assertion.h>
@@ -49,7 +50,7 @@ sparse_cases_create (size_t column_cnt)
   sc->column_cnt = column_cnt;
   sc->default_columns = NULL;
   sc->max_memory_cases = settings_get_workspace_cases (column_cnt);
-  sc->memory = sparse_array_create (sizeof (struct ccase));
+  sc->memory = sparse_array_create (sizeof (struct ccase *));
   sc->disk = NULL;
   sc->disk_cases = NULL;
   return sc;
@@ -76,12 +77,15 @@ sparse_cases_clone (const struct sparse_cases *old)
   if (old->memory != NULL)
     {
       unsigned long int idx;
-      struct ccase *c;
+      struct ccase **cp;
 
-      new->memory = sparse_array_create (sizeof (struct ccase));
-      for (c = sparse_array_scan (old->memory, NULL, &idx); c != NULL;
-           c = sparse_array_scan (old->memory, &idx, &idx))
-        case_clone (sparse_array_insert (new->memory, idx), c);
+      new->memory = sparse_array_create (sizeof (struct ccase *));
+      for (cp = sparse_array_scan (old->memory, NULL, &idx); cp != NULL;
+           cp = sparse_array_scan (old->memory, &idx, &idx))
+        {
+          struct ccase **ncp = sparse_array_insert (new->memory, idx);
+          *ncp = case_ref (*cp);
+        }
     }
   else
     new->memory = NULL;
@@ -98,15 +102,16 @@ sparse_cases_clone (const struct sparse_cases *old)
           unsigned long int start = range_set_node_get_start (node);
           unsigned long int end = range_set_node_get_end (node);
           unsigned long int idx;
-          struct ccase c;
 
-          for (idx = start; idx < end; idx++)
-            if (!case_tmpfile_get_case (old->disk, idx, &c)
-                || !case_tmpfile_put_case (new->disk, idx, &c))
-              {
-                sparse_cases_destroy (new);
-                return NULL;
-              }
+          for (idx = start; idx < end; idx++) 
+            {
+              struct ccase *c = case_tmpfile_get_case (old->disk, idx);
+              if (c == NULL || !case_tmpfile_put_case (new->disk, idx, c))
+                {
+                  sparse_cases_destroy (new);
+                  return NULL;
+                }
+            }
         }
     }
   else
@@ -127,10 +132,10 @@ sparse_cases_destroy (struct sparse_cases *sc)
       if (sc->memory != NULL)
         {
           unsigned long int idx;
-          struct ccase *c;
-          for (c = sparse_array_scan (sc->memory, NULL, &idx); c != NULL;
-               c = sparse_array_scan (sc->memory, &idx, &idx))
-            case_destroy (c);
+          struct ccase **cp;
+          for (cp = sparse_array_scan (sc->memory, NULL, &idx); cp != NULL;
+               cp = sparse_array_scan (sc->memory, &idx, &idx))
+            case_unref (*cp);
           sparse_array_destroy (sc->memory);
         }
       free (sc->default_columns);
@@ -154,7 +159,7 @@ static bool
 dump_sparse_cases_to_disk (struct sparse_cases *sc)
 {
   unsigned long int idx;
-  struct ccase *c;
+  struct ccase **cp;
 
   assert (sc->memory != NULL);
   assert (sc->disk == NULL);
@@ -162,10 +167,10 @@ dump_sparse_cases_to_disk (struct sparse_cases *sc)
   sc->disk = case_tmpfile_create (sc->column_cnt);
   sc->disk_cases = range_set_create ();
 
-  for (c = sparse_array_scan (sc->memory, NULL, &idx); c != NULL;
-       c = sparse_array_scan (sc->memory, &idx, &idx))
+  for (cp = sparse_array_scan (sc->memory, NULL, &idx); cp != NULL;
+       cp = sparse_array_scan (sc->memory, &idx, &idx))
     {
-      if (!case_tmpfile_put_case (sc->disk, idx, c))
+      if (!case_tmpfile_put_case (sc->disk, idx, *cp))
         {
           case_tmpfile_destroy (sc->disk);
           sc->disk = NULL;
@@ -202,13 +207,20 @@ sparse_cases_read (struct sparse_cases *sc, casenumber row, size_t column,
 
   if (sparse_cases_contains_row (sc, row))
     {
-      struct ccase c;
+      struct ccase *c;
       if (sc->memory != NULL)
-        case_clone (&c, sparse_array_get (sc->memory, row));
-      else if (!case_tmpfile_get_case (sc->disk, row, &c))
-        return false;
-      case_copy_out (&c, column, values, value_cnt);
-      case_destroy (&c);
+        {
+          struct ccase **cp = sparse_array_get (sc->memory, row);
+          c = case_ref (*cp);
+        }
+      else
+        {
+          c = case_tmpfile_get_case (sc->disk, row);
+          if (c == NULL)
+            return false;
+        }
+      case_copy_out (c, column, values, value_cnt);
+      case_unref (c);
     }
   else
     {
@@ -225,20 +237,24 @@ static bool
 write_disk_case (struct sparse_cases *sc, casenumber row, size_t column,
                  const union value values[], size_t value_cnt)
 {
-  struct ccase c;
+  struct ccase *c;
   bool ok;
 
   /* Get current case data. */
   if (column == 0 && value_cnt == sc->column_cnt)
-    case_create (&c, sc->column_cnt);
-  else if (!case_tmpfile_get_case (sc->disk, row, &c))
-    return false;
+    c = case_create (sc->column_cnt);
+  else
+    {
+      c = case_tmpfile_get_case (sc->disk, row);
+      if (c == NULL)
+        return false;
+    }
 
   /* Copy in new data. */
-  case_copy_in (&c, column, values, value_cnt);
+  case_copy_in (c, column, values, value_cnt);
 
   /* Write new case. */
-  ok = case_tmpfile_put_case (sc->disk, row, &c);
+  ok = case_tmpfile_put_case (sc->disk, row, c);
   if (ok)
     range_set_insert (sc->disk_cases, row, 1);
 
@@ -255,8 +271,11 @@ sparse_cases_write (struct sparse_cases *sc, casenumber row, size_t column,
 {
   if (sc->memory != NULL)
     {
-      struct ccase *c = sparse_array_get (sc->memory, row);
-      if (c == NULL)
+      struct ccase *c, **cp;
+      cp = sparse_array_get (sc->memory, row);
+      if (cp != NULL)
+        c = *cp = case_unshare (*cp);
+      else
         {
           if (sparse_array_count (sc->memory) >= sc->max_memory_cases)
             {
@@ -265,8 +284,8 @@ sparse_cases_write (struct sparse_cases *sc, casenumber row, size_t column,
               return write_disk_case (sc, row, column, values, value_cnt);
             }
 
-          c = sparse_array_insert (sc->memory, row);
-          case_create (c, sc->column_cnt);
+          cp = sparse_array_insert (sc->memory, row);
+          c = *cp = case_create (sc->column_cnt);
           if (sc->default_columns != NULL
               && (column != 0 || value_cnt != sc->column_cnt))
             case_copy_in (c, 0, sc->default_columns, sc->column_cnt);
@@ -302,12 +321,15 @@ sparse_cases_write_columns (struct sparse_cases *sc, size_t start_column,
   /* Set individual rows. */
   if (sc->memory != NULL)
     {
-      struct ccase *c;
+      struct ccase **cp;
       unsigned long int idx;
 
-      for (c = sparse_array_scan (sc->memory, NULL, &idx); c != NULL;
-           c = sparse_array_scan (sc->memory, &idx, &idx))
-        case_copy_in (c, start_column, values, value_cnt);
+      for (cp = sparse_array_scan (sc->memory, NULL, &idx); cp != NULL;
+           cp = sparse_array_scan (sc->memory, &idx, &idx))
+        {
+          *cp = case_unshare (*cp);
+          case_copy_in (*cp, start_column, values, value_cnt);
+        }
     }
   else
     {

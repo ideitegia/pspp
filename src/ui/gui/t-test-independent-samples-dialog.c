@@ -17,7 +17,6 @@
 
 
 #include <config.h>
-#include <glade/glade.h>
 #include <gtk/gtk.h>
 #include "t-test-independent-samples-dialog.h"
 #include "psppire-dict.h"
@@ -91,7 +90,7 @@ tt_groups_dialog_destroy (struct tt_groups_dialog *grps)
 }
 
 static struct tt_groups_dialog *
-tt_groups_dialog_create (GladeXML *xml, GtkWindow *parent)
+tt_groups_dialog_create (GtkBuilder *xml, GtkWindow *parent)
 {
   struct tt_groups_dialog *grps = xmalloc (sizeof (*grps));
 
@@ -127,7 +126,7 @@ tt_groups_dialog_create (GladeXML *xml, GtkWindow *parent)
 
 struct tt_indep_samples_dialog
 {
-  GladeXML *xml;  /* The xml that generated the widgets */
+  GtkBuilder *xml;  /* The xml that generated the widgets */
   GtkWidget *dialog;
   PsppireDict *dict;
   GtkWidget *define_groups_button;
@@ -396,7 +395,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   PsppireVarStore *vs = NULL;
 
-  GladeXML *xml = XML_NEW ("t-test.glade");
+  GtkBuilder *xml = builder_new ("t-test.ui");
 
   GtkWidget *dict_view =
     get_widget_assert (xml, "indep-samples-t-test-treeview1");

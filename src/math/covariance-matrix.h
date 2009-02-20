@@ -22,6 +22,7 @@
 #define COVARIANCE_MATRIX_H
 
 #include <math/design-matrix.h>
+#include <math/interaction.h>
 
 struct moments1;
 struct ccase;
@@ -53,6 +54,6 @@ struct covariance_matrix *covariance_matrix_init (size_t,
 						  int, int, enum mv_class);
 void covariance_matrix_free (struct covariance_matrix *);
 void covariance_matrix_accumulate (struct covariance_matrix *,
-				   const struct ccase *);
+				   const struct ccase *, void **, size_t);
 struct design_matrix *covariance_to_design (const struct covariance_matrix *);
 #endif

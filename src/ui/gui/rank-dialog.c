@@ -224,73 +224,73 @@ rank_dialog (GObject *o, gpointer data)
 
   struct rank_dialog rd;
 
-  GladeXML *xml = XML_NEW ("rank.glade");
+  GtkBuilder * builder = builder_new ("rank.ui");
 
-  GtkWidget *vars = get_widget_assert   (xml, "dict-treeview");
-  GtkWidget *selector1 = get_widget_assert (xml, "psppire-selector1");
-  GtkWidget *selector2 = get_widget_assert (xml, "psppire-selector2");
+  GtkWidget *vars = get_widget_assert   (builder, "dict-treeview");
+  GtkWidget *selector1 = get_widget_assert (builder, "psppire-selector1");
+  GtkWidget *selector2 = get_widget_assert (builder, "psppire-selector2");
 
 
-  GtkWidget *types_button = get_widget_assert (xml, "button1");
-  GtkWidget *ties_button = get_widget_assert (xml, "button2");
+  GtkWidget *types_button = get_widget_assert (builder, "button1");
+  GtkWidget *ties_button = get_widget_assert (builder, "button2");
 
   PsppireVarStore *vs = NULL;
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   rd.dict = vs->dict;
-  rd.rank_vars =   get_widget_assert (xml, "variables-treeview");
-  rd.group_vars =  get_widget_assert (xml, "group-vars-treeview");
-  rd.dialog = get_widget_assert   (xml, "rank-dialog");
+  rd.rank_vars =   get_widget_assert (builder, "variables-treeview");
+  rd.group_vars =  get_widget_assert (builder, "group-vars-treeview");
+  rd.dialog = get_widget_assert   (builder, "rank-dialog");
   rd.ascending_togglebutton =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "radiobutton1"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "radiobutton1"));
 
   rd.summary_togglebutton =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "summary-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "summary-checkbutton"));
 
-  rd.types_dialog = get_widget_assert (xml, "rank-types-dialog");
+  rd.types_dialog = get_widget_assert (builder, "rank-types-dialog");
 
 
-  rd.ntiles_entry  = get_widget_assert (xml, "ntiles-entry");
+  rd.ntiles_entry  = get_widget_assert (builder, "ntiles-entry");
 
   rd.func_button[RANK]    =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "rank-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "rank-checkbutton"));
 
   rd.func_button[SAVAGE]  =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "savage-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "savage-checkbutton"));
 
   rd.func_button[RFRACTION] =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "rfrac-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "rfrac-checkbutton"));
 
   rd.func_button[PERCENT] =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "percent-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "percent-checkbutton"));
 
   rd.func_button[N]       =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "sum-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "sum-checkbutton"));
 
   rd.func_button[NTILES] =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "ntiles-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "ntiles-checkbutton"));
 
   rd.func_button[PROPORTION] =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "prop-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "prop-checkbutton"));
 
   rd.func_button[NORMAL] =
-    GTK_TOGGLE_BUTTON (get_widget_assert (xml, "normal-checkbutton"));
+    GTK_TOGGLE_BUTTON (get_widget_assert (builder, "normal-checkbutton"));
 
-  rd.formula_box = get_widget_assert (xml, "formula-frame");
+  rd.formula_box = get_widget_assert (builder, "formula-frame");
 
-  rd.blom = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "blom-button"));
-  rd.tukey = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "tukey-button"));
-  rd.rankit = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "rankit-button"));
-  rd.vw = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "vw-button"));
+  rd.blom = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "blom-button"));
+  rd.tukey = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "tukey-button"));
+  rd.rankit = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "rankit-button"));
+  rd.vw = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "vw-button"));
 
   /* Ties dialog */
-  rd.ties_dialog = PSPPIRE_DIALOG (get_widget_assert (xml, "ties-dialog"));
+  rd.ties_dialog = PSPPIRE_DIALOG (get_widget_assert (builder, "ties-dialog"));
 
-  rd.mean = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "mean-button"));
-  rd.low = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "low-button"));
-  rd.high = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "high-button"));
-  rd.condense = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "condense-button"));
+  rd.mean = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "mean-button"));
+  rd.low = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "low-button"));
+  rd.high = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "high-button"));
+  rd.condense = GTK_TOGGLE_BUTTON (get_widget_assert (builder, "condense-button"));
 
   g_signal_connect_swapped (rd.func_button[PROPORTION], "toggled",
 			    G_CALLBACK (set_sensitivity),
@@ -367,7 +367,7 @@ rank_dialog (GObject *o, gpointer data)
       break;
     }
 
-  g_object_unref (xml);
+  g_object_unref (builder);
 }
 
 

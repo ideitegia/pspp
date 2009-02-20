@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,11 +38,10 @@ bool case_tmpfile_error (const struct case_tmpfile *);
 void case_tmpfile_force_error (struct case_tmpfile *);
 const struct taint *case_tmpfile_get_taint (const struct case_tmpfile *);
 
-bool case_tmpfile_get_values (const struct case_tmpfile *,
+ bool case_tmpfile_get_values (const struct case_tmpfile *,
                               casenumber, size_t start_value,
                               union value[], size_t value_cnt);
-bool case_tmpfile_get_case (const struct case_tmpfile *,
-                            casenumber, struct ccase *);
+struct ccase *case_tmpfile_get_case (const struct case_tmpfile *, casenumber);
 
 bool case_tmpfile_put_values (struct case_tmpfile *,
                               casenumber, size_t start_value,

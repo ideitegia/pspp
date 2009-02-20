@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <data/file-name.h>
 #include <libpspp/str.h>
 
 #include "fwriteerror.h"
@@ -83,7 +84,10 @@ journal_write (bool prefix, const char *line)
   if (journal_file == NULL)
     {
       if (journal_file_name == NULL)
-        journal_file_name = xstrdup ("pspp.jnl");
+	{
+	  const char *output_path = default_output_path ();
+	  journal_file_name = xasprintf ("%s%s", output_path, "pspp.jnl");
+	}
       journal_file = fopen (journal_file_name, "w");
       if (journal_file == NULL)
         {

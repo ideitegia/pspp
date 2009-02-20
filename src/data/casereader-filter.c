@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -86,22 +86,22 @@ casereader_create_filter_func (struct casereader *subreader,
 }
 
 /* Internal read function for filtering casereader. */
-static bool
-casereader_filter_read (struct casereader *reader UNUSED, void *filter_,
-                        struct ccase *c)
+static struct ccase *
+casereader_filter_read (struct casereader *reader UNUSED, void *filter_)
 
 {
   struct casereader_filter *filter = filter_;
   for (;;)
     {
-      if (!casereader_read (filter->subreader, c))
-        return false;
+      struct ccase *c = casereader_read (filter->subreader);
+      if (c == NULL)
+        return NULL;
       else if (filter->include (c, filter->aux))
-        return true;
+        return c;
       else if (filter->exclude != NULL)
         casewriter_write (filter->exclude, c);
       else
-        case_destroy (c);
+        case_unref (c);
     }
 }
 
@@ -115,12 +115,12 @@ casereader_filter_destroy (struct casereader *reader, void *filter_)
      casewriter, if there is one. */
   if (filter->exclude != NULL)
     {
-      struct ccase c;
-      while (casereader_read (filter->subreader, &c))
-        if (filter->include (&c, filter->aux))
-          case_destroy (&c);
+      struct ccase *c;
+      while ((c = casereader_read (filter->subreader)) != NULL)
+        if (filter->include (c, filter->aux))
+          case_unref (c);
         else
-          casewriter_write (filter->exclude, &c);
+          casewriter_write (filter->exclude, c);
     }
 
   casereader_destroy (filter->subreader);

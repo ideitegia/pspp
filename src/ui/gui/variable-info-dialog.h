@@ -17,9 +17,7 @@
 #ifndef __VARIABLE_DIALOG_H
 #define __VARIABLE_DIALOG_H
 
-
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 void variable_info_dialog (GObject *o, gpointer data);
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -542,7 +542,7 @@ regression_trns_free (void *t_)
   Gets the predicted values.
  */
 static int
-regression_trns_pred_proc (void *t_, struct ccase *c,
+regression_trns_pred_proc (void *t_, struct ccase **c,
 			   casenumber case_idx UNUSED)
 {
   size_t i;
@@ -563,12 +563,12 @@ regression_trns_pred_proc (void *t_, struct ccase *c,
   n_vals = (*model->get_vars) (model, vars);
 
   vals = xnmalloc (n_vals, sizeof (*vals));
-  output = case_data_rw (c, model->pred);
-  assert (output != NULL);
+  *c = case_unshare (*c);
+  output = case_data_rw (*c, model->pred);
 
   for (i = 0; i < n_vals; i++)
     {
-      vals[i] = case_data (c, vars[i]);
+      vals[i] = case_data (*c, vars[i]);
     }
   output->f = (*model->predict) ((const struct variable **) vars,
 				 vals, model, n_vals);
@@ -581,7 +581,7 @@ regression_trns_pred_proc (void *t_, struct ccase *c,
   Gets the residuals.
  */
 static int
-regression_trns_resid_proc (void *t_, struct ccase *c,
+regression_trns_resid_proc (void *t_, struct ccase **c,
 			    casenumber case_idx UNUSED)
 {
   size_t i;
@@ -603,14 +603,15 @@ regression_trns_resid_proc (void *t_, struct ccase *c,
   n_vals = (*model->get_vars) (model, vars);
 
   vals = xnmalloc (n_vals, sizeof (*vals));
-  output = case_data_rw (c, model->resid);
+  *c = case_unshare (*c);
+  output = case_data_rw (*c, model->resid);
   assert (output != NULL);
 
   for (i = 0; i < n_vals; i++)
     {
-      vals[i] = case_data (c, vars[i]);
+      vals[i] = case_data (*c, vars[i]);
     }
-  obs = case_data (c, model->depvar);
+  obs = case_data (*c, model->depvar);
   output->f = (*model->residual) ((const struct variable **) vars,
 				  vals, obs, model, n_vals);
   free (vals);
@@ -688,17 +689,21 @@ subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
 
       for (lc = models; lc < models + cmd.n_dependent; lc++)
 	{
-	  assert (*lc != NULL);
-	  assert ((*lc)->depvar != NULL);
-	  if (cmd.a_save[REGRESSION_SV_RESID])
+	  if (*lc != NULL)
 	    {
-	      reg_save_var (ds, "RES", regression_trns_resid_proc, *lc,
-			    &(*lc)->resid, n_trns);
-	    }
-	  if (cmd.a_save[REGRESSION_SV_PRED])
-	    {
-	      reg_save_var (ds, "PRED", regression_trns_pred_proc, *lc,
-			    &(*lc)->pred, n_trns);
+	      if ((*lc)->depvar != NULL)
+		{
+		  if (cmd.a_save[REGRESSION_SV_RESID])
+		    {
+		      reg_save_var (ds, "RES", regression_trns_resid_proc, *lc,
+				    &(*lc)->resid, n_trns);
+		    }
+		  if (cmd.a_save[REGRESSION_SV_PRED])
+		    {
+		      reg_save_var (ds, "PRED", regression_trns_pred_proc, *lc,
+				    &(*lc)->pred, n_trns);
+		    }
+		}
 	    }
 	}
     }
@@ -821,7 +826,7 @@ prepare_categories (struct casereader *input,
 		    struct moments_var *mom)
 {
   int n_data;
-  struct ccase c;
+  struct ccase *c;
   size_t i;
 
   assert (vars != NULL);
@@ -832,7 +837,7 @@ prepare_categories (struct casereader *input,
       cat_stored_values_create (vars[i]);
 
   n_data = 0;
-  for (; casereader_read (input, &c); case_destroy (&c))
+  for (; (c = casereader_read (input)) != NULL; case_unref (c))
     {
       /*
          The second condition ensures the program will run even if
@@ -841,7 +846,7 @@ prepare_categories (struct casereader *input,
        */
       for (i = 0; i < n_vars; i++)
 	{
-	  const union value *val = case_data (&c, vars[i]);
+	  const union value *val = case_data (c, vars[i]);
 	  if (var_is_alpha (vars[i]))
 	    cat_value_update (vars[i], val);
 	  else
@@ -868,7 +873,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
   size_t i;
   int n_indep = 0;
   int k;
-  struct ccase c;
+  struct ccase *c;
   const struct variable **indep_vars;
   struct design_matrix *X;
   struct moments_var *mom;
@@ -878,13 +883,14 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 
   assert (models != NULL);
 
-  if (!casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c == NULL)
     {
       casereader_destroy (input);
       return true;
     }
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  output_split_file_values (ds, c);
+  case_unref (c);
 
   if (!v_variables)
     {
@@ -916,7 +922,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
       const struct variable *dep_var;
       struct casereader *reader;
       casenumber row;
-      struct ccase c;
+      struct ccase *c;
       size_t n_data;		/* Number of valid cases. */
 
       dep_var = cmd->v_dependent[k];
@@ -955,18 +961,18 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	     The second pass fills the design matrix.
 	   */
 	  reader = casereader_create_counter (reader, &row, -1);
-	  for (; casereader_read (reader, &c); case_destroy (&c))
+	  for (; (c = casereader_read (reader)) != NULL; case_unref (c))
 	    {
 	      for (i = 0; i < n_indep; ++i)
 		{
 		  const struct variable *v = indep_vars[i];
-		  const union value *val = case_data (&c, v);
+		  const union value *val = case_data (c, v);
 		  if (var_is_alpha (v))
 		    design_matrix_set_categorical (X, row, v, val);
 		  else
 		    design_matrix_set_numeric (X, row, v, val);
 		}
-	      gsl_vector_set (Y, row, case_num (&c, dep_var));
+	      gsl_vector_set (Y, row, case_num (c, dep_var));
 	    }
 	  /*
 	     Now that we know the number of coefficients, allocate space

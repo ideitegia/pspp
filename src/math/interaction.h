@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,5 +14,28 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-gsl_vector *
-get_interaction (union value **, const struct variable **, size_t);
+#ifndef INTERACTION_H
+#define INTERACTION_H
+#include <data/case.h>
+
+struct interaction_variable;
+struct interaction_value;
+
+struct interaction_variable * interaction_variable_create (const struct variable **, int);
+void interaction_variable_destroy (struct interaction_variable *);
+struct interaction_value * interaction_value_create (const struct interaction_variable *, const union value **);
+void interaction_value_destroy (struct interaction_value *);
+size_t interaction_variable_get_n_vars (const struct interaction_variable *);
+double interaction_value_get_nonzero_entry (const struct interaction_value *);
+union value * interaction_value_get (const struct interaction_value *);
+const struct variable * interaction_variable_get_var (const struct interaction_variable *);
+size_t interaction_get_n_numeric (const struct interaction_variable *);
+size_t interaction_get_n_alpha (const struct interaction_variable *);
+size_t interaction_get_n_vars (const struct interaction_variable *);
+const struct variable * interaction_variable_get_member (const struct interaction_variable *, size_t);
+bool is_interaction (const struct variable *, const struct interaction_variable **, size_t);
+struct interaction_value *
+interaction_case_data (const struct ccase *, const struct variable *, 
+		       const struct interaction_variable **, size_t);
+double interaction_value_get_nonzero_entry (const struct interaction_value *);
+#endif

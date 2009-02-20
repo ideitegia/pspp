@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   struct flip_pgm *flip;
   struct casereader *input, *reader;
   union value *output_buf;
-  struct ccase c;
+  struct ccase *c;
   size_t i;
   bool ok;
 
@@ -169,10 +169,10 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   proc_discard_output (ds);
 
   input = proc_open (ds);
-  while (casereader_read (input, &c))
+  while ((c = casereader_read (input)) != NULL)
     {
-      write_flip_case (flip, &c);
-      case_destroy (&c);
+      write_flip_case (flip, c);
+      case_unref (c);
     }
   ok = casereader_destroy (input);
   ok = proc_commit (ds) && ok;
@@ -464,26 +464,25 @@ flip_file (struct flip_pgm *flip)
   return true;
 }
 
-/* Reads one case into C.
-   Returns true if successful, false at end of file or if an
-   I/O error occurred. */
-static bool
-flip_casereader_read (struct casereader *reader UNUSED, void *flip_,
-                      struct ccase *c)
+/* Reads and returns one case.
+   Returns a null pointer at end of file or if an I/O error occurred. */
+static struct ccase *
+flip_casereader_read (struct casereader *reader UNUSED, void *flip_)
 {
   struct flip_pgm *flip = flip_;
+  struct ccase *c;
   size_t i;
 
   if (flip->error || flip->cases_read >= flip->var_cnt)
-    return false;
+    return NULL;
 
-  case_create (c, flip->case_cnt);
+  c = case_create (flip->case_cnt);
   for (i = 0; i < flip->case_cnt; i++)
     {
       double in;
       if (fread (&in, sizeof in, 1, flip->file) != 1)
         {
-          case_destroy (c);
+          case_unref (c);
           if (ferror (flip->file))
             msg (SE, _("Error reading FLIP temporary file: %s."),
                  strerror (errno));
@@ -492,14 +491,14 @@ flip_casereader_read (struct casereader *reader UNUSED, void *flip_,
           else
             NOT_REACHED ();
           flip->error = true;
-          return false;
+          return NULL;
         }
       case_data_rw_idx (c, i)->f = in;
     }
 
   flip->cases_read++;
 
-  return true;
+  return c;
 }
 
 /* Destroys the source.

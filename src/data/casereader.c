@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,18 +43,17 @@ struct casereader
 
 static void insert_shim (struct casereader *);
 
-/* Creates a new case in C and reads the next case from READER
-   into it.  The caller owns C and must destroy C when its data
-   is no longer needed.  Return true if successful, false when
-   cases have been exhausted or upon detection of an I/O error.
-   In the latter case, C is set to the null case.
+/* Reads and returns the next case from READER.  The caller owns
+   the returned case and must call case_unref on it when its data
+   is no longer needed.  Returns a null pointer if cases have
+   been exhausted or upon detection of an I/O error.
 
    The case returned is effectively consumed: it can never be
    read again through READER.  If this is inconvenient, READER
    may be cloned in advance with casereader_clone, or
    casereader_peek may be used instead. */
-bool
-casereader_read (struct casereader *reader, struct ccase *c)
+struct ccase *
+casereader_read (struct casereader *reader)
 {
   if (reader->case_cnt != 0)
     {
@@ -69,17 +68,18 @@ casereader_read (struct casereader *reader, struct ccase *c)
          case_cnt after calling ->read, then this would actually
          drop two cases from case_cnt instead of one, and we'd
          lose the last case in the casereader. */
+      struct ccase *c;
       if (reader->case_cnt != CASENUMBER_MAX)
         reader->case_cnt--;
-      if (reader->class->read (reader, reader->aux, c))
+      c = reader->class->read (reader, reader->aux);
+      if (c != NULL)
         {
           assert (case_get_value_cnt (c) >= reader->value_cnt);
-          return true;
+          return c;
         }
     }
   reader->case_cnt = 0;
-  case_nullify (c);
-  return false;
+  return NULL;
 }
 
 /* Destroys READER.
@@ -160,27 +160,27 @@ casereader_swap (struct casereader *a, struct casereader *b)
     }
 }
 
-/* Creates a new case in C and reads the (IDX + 1)'th case from
-   READER into it.  The caller owns C and must destroy C when its
-   data is no longer needed.  Return true if successful, false
-   when cases have been exhausted or upon detection of an I/O
-   error.  In the latter case, C is set to the null case. */
-bool
-casereader_peek (struct casereader *reader, casenumber idx, struct ccase *c)
+/* Reads and returns the (IDX + 1)'th case from READER.  The
+   caller owns the returned case and must call case_unref on it
+   when it is no longer needed.  Returns a null pointer if cases
+   have been exhausted or upon detection of an I/O error. */
+struct ccase *
+casereader_peek (struct casereader *reader, casenumber idx)
 {
   if (idx < reader->case_cnt)
     {
+      struct ccase *c;
       if (reader->class->peek == NULL)
         insert_shim (reader);
-      if (reader->class->peek (reader, reader->aux, idx, c))
-        return true;
+      c = reader->class->peek (reader, reader->aux, idx);
+      if (c != NULL)
+        return c;
       else if (casereader_error (reader))
         reader->case_cnt = 0;
     }
   if (reader->case_cnt > idx)
     reader->case_cnt = idx;
-  case_nullify (c);
-  return false;
+  return NULL;
 }
 
 /* Returns true if no cases remain to be read from READER, or if
@@ -191,13 +191,18 @@ casereader_peek (struct casereader *reader, casenumber idx, struct ccase *c)
 bool
 casereader_is_empty (struct casereader *reader)
 {
-  struct ccase c;
-  if (reader->case_cnt == 0 || !casereader_peek (reader, 0, &c))
+  if (reader->case_cnt == 0)
     return true;
   else
     {
-      case_destroy (&c);
-      return false;
+      struct ccase *c = casereader_peek (reader, 0);
+      if (c == NULL)
+        return true;
+      else
+        {
+          case_unref (c);
+          return false;
+        }
     }
 }
 
@@ -263,11 +268,11 @@ casereader_count_cases (struct casereader *reader)
   if (reader->case_cnt == CASENUMBER_MAX)
     {
       casenumber n_cases = 0;
-      struct ccase c;
+      struct ccase *c;
 
       struct casereader *clone = casereader_clone (reader);
 
-      for (; casereader_read (clone, &c); case_destroy (&c))
+      for (; (c = casereader_read (clone)) != NULL; case_unref (c))
         n_cases++;
 
       casereader_destroy (clone);
@@ -289,12 +294,12 @@ casereader_get_value_cnt (struct casereader *reader)
 void
 casereader_transfer (struct casereader *reader, struct casewriter *writer)
 {
-  struct ccase c;
+  struct ccase *c;
 
   taint_propagate (casereader_get_taint (reader),
                    casewriter_get_taint (writer));
-  while (casereader_read (reader, &c))
-    casewriter_write (writer, &c);
+  while ((c = casereader_read (reader)) != NULL)
+    casewriter_write (writer, c);
   casereader_destroy (reader);
 }
 
@@ -475,22 +480,20 @@ advance_random_reader (struct casereader *reader,
 }
 
 /* struct casereader_class "read" function for random reader. */
-static bool
-random_reader_read (struct casereader *reader, void *br_, struct ccase *c)
+static struct ccase *
+random_reader_read (struct casereader *reader, void *br_)
 {
   struct random_reader *br = br_;
   struct random_reader_shared *shared = br->shared;
-
-  if (shared->class->read (reader, shared->aux,
-                           br->offset - shared->min_offset, c))
+  struct ccase *c = shared->class->read (reader, shared->aux,
+                                         br->offset - shared->min_offset);
+  if (c != NULL)
     {
       br->offset++;
       heap_changed (shared->readers, &br->heap_node);
       advance_random_reader (reader, shared);
-      return true;
     }
-  else
-    return false;
+  return c;
 }
 
 /* struct casereader_class "destroy" function for random
@@ -529,15 +532,14 @@ random_reader_clone (struct casereader *reader, void *br_)
 }
 
 /* struct casereader_class "peek" function for random reader. */
-static bool
-random_reader_peek (struct casereader *reader, void *br_,
-                    casenumber idx, struct ccase *c)
+static struct ccase *
+random_reader_peek (struct casereader *reader, void *br_, casenumber idx)
 {
   struct random_reader *br = br_;
   struct random_reader_shared *shared = br->shared;
 
   return shared->class->read (reader, shared->aux,
-                              br->offset - shared->min_offset + idx, c);
+                              br->offset - shared->min_offset + idx);
 }
 
 /* Casereader class for random reader. */
@@ -607,24 +609,27 @@ prime_buffer (struct shim *b, casenumber case_cnt)
 {
   while (casewindow_get_case_cnt (b->window) < case_cnt)
     {
-      struct ccase tmp;
-      if (!casereader_read (b->subreader, &tmp))
+      struct ccase *tmp = casereader_read (b->subreader);
+      if (tmp == NULL)
         return false;
-      casewindow_push_head (b->window, &tmp);
+      casewindow_push_head (b->window, tmp);
     }
   return true;
 }
 
 /* Reads the case at the given 0-based OFFSET from the front of
-   the window into C.  Returns true if successful, false if
-   OFFSET is beyond the end of file or upon I/O error. */
-static bool
+   the window into C.  Returns the case if successful, or a null
+   pointer if OFFSET is beyond the end of file or upon I/O error.
+   The caller must call case_unref() on the returned case when it
+   is no longer needed. */
+static struct ccase *
 shim_read (struct casereader *reader UNUSED, void *b_,
-           casenumber offset, struct ccase *c)
+           casenumber offset)
 {
   struct shim *b = b_;
-  return (prime_buffer (b, offset + 1)
-          && casewindow_get_case (b->window, offset, c));
+  if (!prime_buffer (b, offset + 1))
+    return NULL;
+  return casewindow_get_case (b->window, offset);
 }
 
 /* Destroys B. */

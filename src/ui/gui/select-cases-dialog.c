@@ -18,7 +18,6 @@
 
 #include "select-cases-dialog.h"
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include "helper.h"
 #include "psppire-dialog.h"
 #include "psppire-data-window.h"
@@ -42,7 +41,7 @@
 struct select_cases_dialog
 {
   /* The XML that created the dialog */
-  GladeXML *xml;
+  GtkBuilder *xml;
 
   GtkWidget *spinbutton ;
   GtkWidget *spinbutton1 ;
@@ -247,7 +246,7 @@ select_cases_dialog (GObject *o, gpointer data)
   GtkWidget *button_range;
   GtkWidget *button_sample;
 
-  scd.xml = XML_NEW ("psppire.glade");
+  scd.xml = builder_new ("psppire.ui");
 
   g_object_get (de->data_editor, "data-store", &scd.data_store, NULL);
 

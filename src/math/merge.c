@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 struct merge_input
   {
     struct casereader *reader;
-    struct ccase c;
+    struct ccase *c;
   };
 
 struct merge
@@ -111,7 +111,8 @@ read_input_case (struct merge *m, size_t idx)
 {
   struct merge_input *i = &m->inputs[idx];
 
-  if (casereader_read (i->reader, &i->c))
+  i->c = casereader_read (i->reader);
+  if (i->c)
     return true;
   else
     {
@@ -144,11 +145,11 @@ do_merge (struct merge *m)
 
       min = 0;
       for (i = 1; i < m->input_cnt; i++)
-        if (subcase_compare_3way (&m->ordering, &m->inputs[i].c,
-                                  &m->ordering, &m->inputs[min].c) < 0)
+        if (subcase_compare_3way (&m->ordering, m->inputs[i].c,
+                                  &m->ordering, m->inputs[min].c) < 0)
           min = i;
 
-      casewriter_write (w, &m->inputs[min].c);
+      casewriter_write (w, m->inputs[min].c);
       read_input_case (m, min);
     }
 

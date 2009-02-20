@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ union value;
 
 struct case_matcher *case_matcher_create (void);
 void case_matcher_add_input (struct case_matcher *, const struct subcase *,
-                             const struct ccase *, bool *is_minimal);
+                             struct ccase **, bool *is_minimal);
 void case_matcher_destroy (struct case_matcher *);
 
 bool case_matcher_match (struct case_matcher *, union value **by);

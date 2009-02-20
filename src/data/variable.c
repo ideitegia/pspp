@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -148,17 +148,21 @@ var_clone (const struct variable *old_var)
   return new_var;
 }
 
-/* Create a variable to be used for internal calculations only */
+/* Create a variable to be used for internal calculations only.
+   The variable is assigned a unique dictionary index and a case
+   index of CASE_IDX. */
 struct variable *
 var_create_internal (int case_idx)
 {
   struct variable *v = var_create ("$internal", 0);
-
   struct vardict_info vdi;
+  static int counter = INT_MAX / 2;
 
   vdi.dict = NULL;
-  vdi.dict_index = 0;
   vdi.case_index = case_idx;
+  vdi.dict_index = counter++;
+  if (counter == INT_MAX)
+    counter = INT_MAX / 2;
 
   var_set_vardict (v, &vdi);
 

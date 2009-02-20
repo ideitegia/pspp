@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -117,13 +117,12 @@ instantiate_lazy_casereader (struct casereader *reader,
   casereader_destroy (subreader);
 }
 
-static bool
-lazy_casereader_read (struct casereader *reader, void *lc_,
-                      struct ccase *c)
+static struct ccase *
+lazy_casereader_read (struct casereader *reader, void *lc_)
 {
   struct lazy_casereader *lc = lc_;
   instantiate_lazy_casereader (reader, lc);
-  return casereader_read (reader, c);
+  return casereader_read (reader);
 }
 
 static void
@@ -143,13 +142,12 @@ lazy_casereader_clone (struct casereader *reader, void *lc_)
   return casereader_clone (reader);
 }
 
-static bool
-lazy_casereader_peek (struct casereader *reader, void *lc_,
-                      casenumber idx, struct ccase *c)
+static struct ccase *
+lazy_casereader_peek (struct casereader *reader, void *lc_, casenumber idx)
 {
   struct lazy_casereader *lc = lc_;
   instantiate_lazy_casereader (reader, lc);
-  return casereader_peek (reader, idx, c);
+  return casereader_peek (reader, idx);
 }
 
 static const struct casereader_class lazy_casereader_class =

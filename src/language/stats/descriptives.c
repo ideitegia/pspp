@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -583,7 +583,7 @@ dump_z_table (struct dsc_proc *dsc)
    (either system or user-missing values that weren't included).
 */
 static int
-descriptives_trns_proc (void *trns_, struct ccase * c,
+descriptives_trns_proc (void *trns_, struct ccase **c,
                         casenumber case_idx UNUSED)
 {
   struct dsc_trns *t = trns_;
@@ -596,7 +596,7 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
       assert(t->vars);
       for (vars = t->vars; vars < t->vars + t->var_cnt; vars++)
 	{
-	  double score = case_num (c, *vars);
+	  double score = case_num (*c, *vars);
 	  if (var_is_num_missing (*vars, score, t->exclude))
 	    {
 	      all_sysmis = 1;
@@ -605,10 +605,11 @@ descriptives_trns_proc (void *trns_, struct ccase * c,
 	}
     }
 
+  *c = case_unshare (*c);
   for (z = t->z_scores; z < t->z_scores + t->z_score_cnt; z++)
     {
-      double input = case_num (c, z->src_var);
-      double *output = &case_data_rw (c, z->z_var)->f;
+      double input = case_num (*c, z->src_var);
+      double *output = &case_data_rw (*c, z->z_var)->f;
 
       if (z->mean == SYSMIS || z->std_dev == SYSMIS || all_sysmis
           || var_is_num_missing (z->src_var, input, t->exclude))
@@ -695,16 +696,17 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
                    struct dataset *ds)
 {
   struct casereader *pass1, *pass2;
-  struct ccase c;
+  struct ccase *c;
   size_t i;
 
-  if (!casereader_peek (group, 0, &c))
+  c = casereader_peek (group, 0);
+  if (c == NULL)
     {
       casereader_destroy (group);
       return;
     }
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  output_split_file_values (ds, c);
+  case_unref (c);
 
   group = casereader_create_filter_weight (group, dataset_dict (ds),
                                            NULL, NULL);
@@ -726,12 +728,12 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
   dsc->valid = 0.;
 
   /* First pass to handle most of the work. */
-  for (; casereader_read (pass1, &c); case_destroy (&c))
+  for (; (c = casereader_read (pass1)) != NULL; case_unref (c))
     {
-      double weight = dict_get_case_weight (dataset_dict (ds), &c, NULL);
+      double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
 
       /* Check for missing values. */
-      if (listwise_missing (dsc, &c))
+      if (listwise_missing (dsc, c))
         {
           dsc->missing_listwise += weight;
           if (dsc->missing_type == DSC_LISTWISE)
@@ -742,7 +744,7 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
       for (i = 0; i < dsc->var_cnt; i++)
         {
           struct dsc_var *dv = &dsc->vars[i];
-          double x = case_num (&c, dv->v);
+          double x = case_num (c, dv->v);
 
           if (var_is_num_missing (dv->v, x, dsc->exclude))
             {
@@ -768,18 +770,18 @@ calc_descriptives (struct dsc_proc *dsc, struct casereader *group,
   /* Second pass for higher-order moments. */
   if (dsc->max_moment > MOMENT_MEAN)
     {
-      for (; casereader_read (pass2, &c); case_destroy (&c))
+      for (; (c = casereader_read (pass2)) != NULL; case_unref (c))
         {
-          double weight = dict_get_case_weight (dataset_dict (ds), &c, NULL);
+          double weight = dict_get_case_weight (dataset_dict (ds), c, NULL);
 
           /* Check for missing values. */
-          if (dsc->missing_type == DSC_LISTWISE && listwise_missing (dsc, &c))
+          if (dsc->missing_type == DSC_LISTWISE && listwise_missing (dsc, c))
             continue;
 
           for (i = 0; i < dsc->var_cnt; i++)
             {
               struct dsc_var *dv = &dsc->vars[i];
-              double x = case_num (&c, dv->v);
+              double x = case_num (c, dv->v);
 
               if (var_is_num_missing (dv->v, x, dsc->exclude))
                 continue;

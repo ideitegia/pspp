@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
 {
   struct autorecode_pgm arc;
   struct casereader *input;
-  struct ccase c;
+  struct ccase *c;
   size_t dst_cnt;
   size_t i;
   bool ok;
@@ -189,15 +189,15 @@ cmd_autorecode (struct lexer *lexer, struct dataset *ds)
    }
 
   input = proc_open (ds);
-  for (; casereader_read (input, &c); case_destroy (&c))
+  for (; (c = casereader_read (input)) != NULL; case_unref (c))
     for (i = 0; i < arc.var_cnt; i++)
       {
         union arc_value v, *vp, **vpp;
 
         if (var_is_numeric (arc.src_vars[i]))
-          v.f = case_num (&c, arc.src_vars[i]);
+          v.f = case_num (c, arc.src_vars[i]);
         else
-          v.c = (char *) case_str (&c, arc.src_vars[i]);
+          v.c = (char *) case_str (c, arc.src_vars[i]);
 
         vpp = (union arc_value **) hsh_probe (arc.src_values[i], &v);
         if (*vpp == NULL)
@@ -300,11 +300,13 @@ recode (struct dataset *ds, const struct autorecode_pgm *arc)
 
 /* Executes an AUTORECODE transformation. */
 static int
-autorecode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
+autorecode_trns_proc (void *trns_, struct ccase **c,
+                      casenumber case_idx UNUSED)
 {
   struct autorecode_trns *trns = trns_;
   size_t i;
 
+  *c = case_unshare (*c);
   for (i = 0; i < trns->spec_cnt; i++)
     {
       struct arc_spec *spec = &trns->specs[i];
@@ -312,12 +314,12 @@ autorecode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
       union arc_value v;
 
       if (var_is_numeric (spec->src))
-        v.f = case_num (c, spec->src);
+        v.f = case_num (*c, spec->src);
       else
-        v.c = (char *) case_str (c, spec->src);
+        v.c = (char *) case_str (*c, spec->src);
       item = hsh_force_find (spec->items, &v);
 
-      case_data_rw (c, spec->dest)->f = item->to;
+      case_data_rw (*c, spec->dest)->f = item->to;
     }
   return TRNS_CONTINUE;
 }

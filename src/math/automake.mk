@@ -32,4 +32,5 @@ src_math_libpspp_math_la_SOURCES = \
         src/math/statistic.h \
 	src/math/sort.c src/math/sort.h \
 	src/math/trimmed-mean.c src/math/trimmed-mean.h \
-	src/math/tukey-hinges.c src/math/tukey-hinges.h 
+	src/math/tukey-hinges.c src/math/tukey-hinges.h \
+	src/math/wilcoxon-sig.c src/math/wilcoxon-sig.h

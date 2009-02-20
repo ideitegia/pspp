@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -113,44 +113,42 @@ order_stats_accumulate (struct order_stats **os, size_t nos,
 			const struct variable *var,
 			enum mv_class exclude)
 {
-  struct ccase cx;
-  struct ccase prev_cx;
+  struct ccase *cx;
+  struct ccase *prev_cx = NULL;
   double prev_value = -DBL_MAX;
 
   double cc_i = 0;
   double c_i = 0;
 
-  case_nullify (&prev_cx);
-
-  for (; casereader_read (reader, &cx); case_destroy (&cx))
+  for (; (cx = casereader_read (reader)) != NULL; case_unref (cx))
     {
-      const double weight = wv ? case_data (&cx, wv)->f : 1.0;
-      const double this_value = case_data (&cx, var)->f;
+      const double weight = wv ? case_data (cx, wv)->f : 1.0;
+      const double this_value = case_data (cx, var)->f;
 
       /* The casereader MUST be sorted */
       assert (this_value >= prev_value);
 
-      if ( var_is_value_missing (var, case_data (&cx, var), exclude))
+      if ( var_is_value_missing (var, case_data (cx, var), exclude))
 	continue;
 
-      case_destroy (&prev_cx);
+      case_unref (prev_cx);
 
       if ( prev_value == -DBL_MAX || prev_value == this_value)
 	c_i += weight;
 
       if ( prev_value > -DBL_MAX && this_value > prev_value)
 	{
-	  update_k_values (&prev_cx, prev_value, c_i, cc_i, os, nos);
+	  update_k_values (prev_cx, prev_value, c_i, cc_i, os, nos);
 	  c_i = weight;
 	}
 
       cc_i += weight;
       prev_value = this_value;
-      case_clone (&prev_cx, &cx);
+      prev_cx = case_ref (cx);
     }
 
-  update_k_values (&prev_cx, prev_value, c_i, cc_i, os, nos);
-  case_destroy (&prev_cx);
+  update_k_values (prev_cx, prev_value, c_i, cc_i, os, nos);
+  case_unref (prev_cx);
 
   casereader_destroy (reader);
 }

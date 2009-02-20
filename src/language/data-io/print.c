@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -450,7 +450,7 @@ static void flush_records (struct print_trns *, int target_record,
 
 /* Performs the transformation inside print_trns T on case C. */
 static int
-print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
+print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
 {
   struct print_trns *trns = trns_;
   bool eject = trns->eject;
@@ -467,7 +467,7 @@ print_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
       ds_set_length (&trns->line, spec->first_column, encoded_space);
       if (spec->type == PRT_VAR)
         {
-          const union value *input = case_data (c, spec->var);
+          const union value *input = case_data (*c, spec->var);
           char *output = ds_put_uninit (&trns->line, spec->format.w);
           if (!spec->sysmis_as_spaces || input->f != SYSMIS)
             data_out_legacy (input, trns->encoding, &spec->format, output);

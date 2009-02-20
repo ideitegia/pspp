@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -121,6 +121,9 @@ struct factor_metrics
 
   /* Sum of all weights, including those for missing values */
   double n;
+
+  /* Sum of weights of non_missing values */
+  double n_valid;
 
   double mean;
 
@@ -369,14 +372,14 @@ np_plot (struct np *np, const char *label)
   chart_write_yscale (dnp_chart, np->dns_min, np->dns_max, 5);
 
   {
-    struct ccase c;
     struct casereader *reader = casewriter_make_reader (np->writer);
-    while (casereader_read (reader, &c))
+    struct ccase *c;
+    while ((c = casereader_read (reader)) != NULL)
       {
-      	chart_datum (np_chart, 0, case_data_idx (&c, NP_IDX_Y)->f, case_data_idx (&c, NP_IDX_NS)->f);
-	chart_datum (dnp_chart, 0, case_data_idx (&c, NP_IDX_Y)->f, case_data_idx (&c, NP_IDX_DNS)->f);
+      	chart_datum (np_chart, 0, case_data_idx (c, NP_IDX_Y)->f, case_data_idx (c, NP_IDX_NS)->f);
+	chart_datum (dnp_chart, 0, case_data_idx (c, NP_IDX_Y)->f, case_data_idx (c, NP_IDX_DNS)->f);
 
-	case_destroy (&c);
+	case_unref (c);
       }
     casereader_destroy (reader);
   }
@@ -866,7 +869,7 @@ static void
 examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	       const struct dictionary *dict, struct xfactor *factor)
 {
-  struct ccase c;
+  struct ccase *c;
   const struct variable *wv = dict_get_weight (dict);
   int v;
   int n_extrema = 1;
@@ -878,20 +881,21 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
     n_extrema = cmd->st_n;
 
 
-  if (casereader_peek (reader, 0, &c))
+  c = casereader_peek (reader, 0);
+  if (c != NULL)
     {
       if ( level > 0)
 	{
 	  result->value[0] =
-	    value_dup (case_data (&c, factor->indep_var[0]),
+	    value_dup (case_data (c, factor->indep_var[0]),
 		       var_get_width (factor->indep_var[0]));
 
 	  if ( level > 1)
 	    result->value[1] =
-	      value_dup (case_data (&c, factor->indep_var[1]),
+	      value_dup (case_data (c, factor->indep_var[1]),
 			 var_get_width (factor->indep_var[1]));
 	}
-      case_destroy (&c);
+      case_unref (c);
     }
 
   for (v = 0; v < n_dependent_vars; ++v)
@@ -927,33 +931,37 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 
 
       /* Sort or just iterate, whilst calculating moments etc */
-      while (casereader_read (input, &c))
+      while ((c = casereader_read (input)) != NULL)
 	{
 	  const casenumber loc =
-	      case_data_idx (&c, casereader_get_value_cnt (reader) - 1)->f;
+	      case_data_idx (c, casereader_get_value_cnt (reader) - 1)->f;
 
-	  const double weight = wv ? case_data (&c, wv)->f : 1.0;
+	  const double weight = wv ? case_data (c, wv)->f : 1.0;
+	  const union value *value = case_data (c, dependent_vars[v]);
 
 	  if (weight != SYSMIS)
 	    minimize (&result->metrics[v].cmin, weight);
 
 	  moments1_add (result->metrics[v].moments,
-			case_data (&c, dependent_vars[v])->f,
+			value->f,
 			weight);
 
 	  result->metrics[v].n += weight;
 
+	  if ( ! var_is_value_missing (dependent_vars[v], value, MV_ANY) )
+	    result->metrics[v].n_valid += weight;
+
 	  extrema_add (result->metrics[v].maxima,
-		       case_data (&c, dependent_vars[v])->f,
+		       value->f,
 		       weight,
 		       loc);
 
 	  extrema_add (result->metrics[v].minima,
-		       case_data (&c, dependent_vars[v])->f,
+		       value->f,
 		       weight,
 		       loc);
 
-	  casewriter_write (writer, &c);
+	  casewriter_write (writer, c);
 	}
       casereader_destroy (input);
       result->metrics[v].up_reader = casewriter_make_reader (writer);
@@ -984,7 +992,7 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	  for (i = 0 ; i < metric->n_ptiles; ++i)
 	    {
 	      metric->ptl[i] = (struct percentile *)
-		percentile_create (percentile_list.data[i] / 100.0, metric->n);
+		percentile_create (percentile_list.data[i] / 100.0, metric->n_valid);
 
 	      if ( percentile_list.data[i] == 25)
 		metric->quartiles[0] = metric->ptl[i];
@@ -1028,7 +1036,7 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
   /* FIXME: Do this in the above loop */
   if ( cmd->a_plot[XMN_PLT_HISTOGRAM] )
     {
-      struct ccase c;
+      struct ccase *c;
       struct casereader *input = casereader_clone (reader);
 
       for (v = 0; v < n_dependent_vars; ++v)
@@ -1059,18 +1067,18 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
       	  metric->histogram = histogram_create (10, min->value, max->value);
 	}
 
-      while (casereader_read (input, &c))
+      while ((c = casereader_read (input)) != NULL)
 	{
-	  const double weight = wv ? case_data (&c, wv)->f : 1.0;
+	  const double weight = wv ? case_data (c, wv)->f : 1.0;
 
 	  for (v = 0; v < n_dependent_vars; ++v)
 	    {
 	      struct factor_metrics *metric = &result->metrics[v];
 	      if ( metric->histogram)
 		histogram_add ((struct histogram *) metric->histogram,
-			       case_data (&c, dependent_vars[v])->f, weight);
+			       case_data (c, dependent_vars[v])->f, weight);
 	    }
-	  case_destroy (&c);
+	  case_unref (c);
 	}
       casereader_destroy (input);
     }
@@ -1106,17 +1114,18 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 {
   struct ll *ll;
   const struct dictionary *dict = dataset_dict (ds);
-  struct ccase c;
+  struct ccase *c;
   struct casereader *level0 = casereader_clone (input);
 
-  if (!casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c == NULL)
     {
       casereader_destroy (input);
       return;
     }
 
-  output_split_file_values (ds, &c);
-  case_destroy (&c);
+  output_split_file_values (ds, c);
+  case_unref (c);
 
   ll_init (&level0_factor.result_list);
 

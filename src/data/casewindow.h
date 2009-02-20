@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@ bool casewindow_destroy (struct casewindow *);
 
 void casewindow_push_head (struct casewindow *, struct ccase *);
 void casewindow_pop_tail (struct casewindow *, casenumber cnt);
-bool casewindow_get_case (const struct casewindow *, casenumber case_idx,
-                          struct ccase *);
+struct ccase *casewindow_get_case (const struct casewindow *,
+                                   casenumber case_idx);
 size_t casewindow_get_value_cnt (const struct casewindow *);
 casenumber casewindow_get_case_cnt (const struct casewindow *);
 

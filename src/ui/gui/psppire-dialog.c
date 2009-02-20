@@ -19,9 +19,11 @@
 
 #include <gtk/gtk.h>
 #include <gtk/gtksignal.h>
+#include <gtk/gtkbuildable.h>
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
 #include "psppire-selector.h"
+#include <string.h>
 
 static void psppire_dialog_class_init          (PsppireDialogClass *);
 static void psppire_dialog_init                (PsppireDialog      *);
@@ -32,6 +34,9 @@ enum  {DIALOG_REFRESH,
        n_SIGNALS};
 
 static guint signals [n_SIGNALS];
+
+
+static void psppire_dialog_buildable_init (GtkBuildableIface *iface);
 
 
 GType
@@ -54,8 +59,20 @@ psppire_dialog_get_type (void)
 	(GInstanceInitFunc) psppire_dialog_init,
       };
 
+      static const GInterfaceInfo buildable_info =
+      {
+	(GInterfaceInitFunc) psppire_dialog_buildable_init,
+	NULL,
+	NULL
+      };
+
       dialog_type = g_type_register_static (GTK_TYPE_WINDOW,
 					    "PsppireDialog", &dialog_info, 0);
+
+      g_type_add_interface_static (dialog_type,
+				   GTK_TYPE_BUILDABLE,
+				   &buildable_info);
+
     }
 
   return dialog_type;
@@ -475,3 +492,26 @@ psppire_dialog_set_valid_predicate (PsppireDialog *dialog,
 }
 
 
+
+
+
+static GObject *
+get_internal_child    (GtkBuildable *buildable,
+		       GtkBuilder *builder,
+		       const gchar *childname)
+{
+  PsppireDialog *dialog = PSPPIRE_DIALOG (buildable);
+
+  if ( 0 == strcmp (childname, "hbox"))
+    return G_OBJECT (dialog->box);
+
+  return NULL;
+}
+
+
+
+static void
+psppire_dialog_buildable_init (GtkBuildableIface *iface)
+{
+  iface->get_internal_child = get_internal_child;
+}

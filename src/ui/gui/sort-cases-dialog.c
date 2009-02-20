@@ -95,7 +95,7 @@ sort_cases_dialog (GObject *o, gpointer data)
 
   struct sort_cases_dialog scd;
 
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "sort-cases-dialog");
 

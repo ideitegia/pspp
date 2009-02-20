@@ -28,7 +28,6 @@
 #include "dialog-common.h"
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include <gettext.h>
 
@@ -40,12 +39,12 @@
 #include "psppire-var-store.h"
 
 
-static gchar * generate_syntax (PsppireDict *dict, GladeXML *xml);
+static gchar * generate_syntax (PsppireDict *dict, GtkBuilder *xml);
 
 static void
 refresh (PsppireDialog *dialog, gpointer data)
 {
-  GladeXML *xml = data;
+  GtkBuilder *xml = data;
   GtkWidget *dest = get_widget_assert (xml, "variables-treeview");
   GtkWidget *entry = get_widget_assert (xml, "new-name-entry");
   GtkTreeModel *dmodel = gtk_tree_view_get_model (GTK_TREE_VIEW (dest));
@@ -57,7 +56,7 @@ refresh (PsppireDialog *dialog, gpointer data)
 static gboolean
 dialog_state_valid (gpointer data)
 {
-  GladeXML *xml = data;
+  GtkBuilder *xml = data;
 
   GtkWidget *tv = get_widget_assert (xml, "variables-treeview");
   GtkWidget *entry = get_widget_assert (xml, "new-name-entry");
@@ -82,7 +81,7 @@ transpose_dialog (GObject *o, gpointer data)
   gint response ;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
-  GladeXML *xml = XML_NEW ("psppire.glade");
+  GtkBuilder *xml = builder_new ("psppire.ui");
 
   PsppireVarStore *vs = NULL;
 
@@ -156,7 +155,7 @@ transpose_dialog (GObject *o, gpointer data)
      FLIP /VARIABLES=var_list /NEWNAMES=var_name.
   */
 static gchar *
-generate_syntax (PsppireDict *dict, GladeXML *xml)
+generate_syntax (PsppireDict *dict, GtkBuilder *xml)
 {
   const gchar *text;
   GString *string = g_string_new ("FLIP");

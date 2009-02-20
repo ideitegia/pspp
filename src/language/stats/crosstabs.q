@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -177,8 +177,8 @@ static struct pool *pl_col;	/* For column data. */
 
 static int internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds);
 static void precalc (struct casereader *, const struct dataset *);
-static void calc_general (struct ccase *, const struct dataset *);
-static void calc_integer (struct ccase *, const struct dataset *);
+static void calc_general (const struct ccase *, const struct dataset *);
+static void calc_integer (const struct ccase *, const struct dataset *);
 static void postcalc (void);
 static void submit (struct tab_table *);
 
@@ -305,16 +305,16 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
   grouper = casegrouper_create_splits (input, dataset_dict (ds));
   while (casegrouper_get_next_group (grouper, &group))
     {
-      struct ccase c;
+      struct ccase *c;
 
       precalc (group, ds);
 
-      for (; casereader_read (group, &c); case_destroy (&c))
+      for (; (c = casereader_read (group)) != NULL; case_unref (c))
         {
           if (mode == GENERAL)
-            calc_general (&c, ds);
+            calc_general (c, ds);
           else
-            calc_integer (&c, ds);
+            calc_integer (c, ds);
         }
       casereader_destroy (group);
 
@@ -518,12 +518,13 @@ static unsigned hash_table_entry (const void *, const void *);
 static void
 precalc (struct casereader *input, const struct dataset *ds)
 {
-  struct ccase c;
+  struct ccase *c;
 
-  if (casereader_peek (input, 0, &c))
+  c = casereader_peek (input, 0);
+  if (c != NULL)
     {
-      output_split_file_values (ds, &c);
-      case_destroy (&c);
+      output_split_file_values (ds, c);
+      case_unref (c);
     }
 
   if (mode == GENERAL)
@@ -598,7 +599,7 @@ precalc (struct casereader *input, const struct dataset *ds)
 
 /* Form crosstabulations for general mode. */
 static void
-calc_general (struct ccase *c, const struct dataset *ds)
+calc_general (const struct ccase *c, const struct dataset *ds)
 {
   /* Missing values to exclude. */
   enum mv_class exclude = (cmd.miss == CRS_TABLE ? MV_ANY
@@ -672,7 +673,7 @@ calc_general (struct ccase *c, const struct dataset *ds)
 }
 
 static void
-calc_integer (struct ccase *c, const struct dataset *ds)
+calc_integer (const struct ccase *c, const struct dataset *ds)
 {
   bool bad_warn = true;
 
@@ -1674,7 +1675,7 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
 
   if (mode == GENERAL)
     {
-      int width = var_get_width (v);
+      int width = MIN (var_get_width (v), MAX_SHORT_STRING);
       int i;
 
       *values = xnmalloc (entry_cnt, sizeof **values);

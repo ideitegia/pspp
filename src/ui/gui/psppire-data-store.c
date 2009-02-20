@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006, 2008  Free Software Foundation
+   Copyright (C) 2006, 2008, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -528,7 +528,7 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
 {
   gboolean result;
   gint val_cnt, v;
-  struct ccase cc;
+  struct ccase *cc;
   g_return_val_if_fail (ds, FALSE);
 
   val_cnt = datasheet_get_column_cnt (ds->datasheet) ;
@@ -537,9 +537,9 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
 
   g_return_val_if_fail (posn <= psppire_data_store_get_case_count (ds), FALSE);
 
-  case_create (&cc, val_cnt);
+  cc = case_create (val_cnt);
 
-  memset ( case_data_rw_idx (&cc, 0), 0, val_cnt * MAX_SHORT_STRING);
+  memset ( case_data_rw_idx (cc, 0), 0, val_cnt * MAX_SHORT_STRING);
 
   for (v = 0 ; v < psppire_dict_get_var_cnt (ds->dict) ; ++v)
     {
@@ -547,12 +547,12 @@ psppire_data_store_insert_new_case (PsppireDataStore *ds, casenumber posn)
       if ( var_is_alpha (pv))
 	continue;
 
-      case_data_rw (&cc, pv)->f = SYSMIS;
+      case_data_rw (cc, pv)->f = SYSMIS;
     }
 
-  result = psppire_data_store_insert_case (ds, &cc, posn);
+  result = psppire_data_store_insert_case (ds, cc, posn);
 
-  case_destroy (&cc);
+  case_unref (cc);
 
   return result;
 }
@@ -834,18 +834,16 @@ get_column_justification (const PsppireSheetModel *model, gint col)
 
 
 
-/* Fills C with the CASENUMth case.
-   Returns true on success, false otherwise.
+/* Returns the CASENUMth case, or a null pointer on failure.
  */
-gboolean
+struct ccase *
 psppire_data_store_get_case (const PsppireDataStore *ds,
-			     casenumber casenum,
-			     struct ccase *c)
+			     casenumber casenum)
 {
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
-  return datasheet_get_row (ds->datasheet, casenum, c);
+  return datasheet_get_row (ds->datasheet, casenum);
 }
 
 
@@ -876,14 +874,13 @@ psppire_data_store_insert_case (PsppireDataStore *ds,
 				struct ccase *cc,
 				casenumber posn)
 {
-  struct ccase tmp;
   bool result ;
 
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
-  case_clone (&tmp, cc);
-  result = datasheet_insert_rows (ds->datasheet, posn, &tmp, 1);
+  case_ref (cc);
+  result = datasheet_insert_rows (ds->datasheet, posn, &cc, 1);
 
   if ( result )
     {

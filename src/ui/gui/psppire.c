@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <libintl.h>
 #include <gsl/gsl_errno.h>
-#include <signal.h>
 
 #include <argp.h>
 #include <ui/command-line.h>
@@ -80,6 +79,10 @@ replace_casereader (struct casereader *s)
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
+
+const char * output_file_name (void);
+
+
 void
 initialize (struct command_line_processor *clp, int argc, char **argv)
 {
@@ -121,19 +124,28 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   create_icon_factory ();
 
-  outp_configure_driver_line (
-    ss_cstr ("gui:ascii:screen:squeeze=on headers=off top-margin=0 "
-             "bottom-margin=0 paginate=off length=auto width=auto "
-	     "emphasis=none "
-             "output-file=\"" OUTPUT_FILE_NAME "\" append=yes"));
+  {
+    const char *filename = output_file_name ();
 
-  unlink (OUTPUT_FILE_NAME);
+    struct string config_string;
+
+    ds_init_empty (&config_string);
+
+    ds_put_format (&config_string,
+		   "gui:ascii:screen:squeeze=on headers=off top-margin=0 "
+		   "bottom-margin=0 paginate=off length=auto width=auto "
+		   "emphasis=none "
+		   "output-file=\"%s\" append=yes", filename);
+
+    outp_configure_driver_line (ds_ss (&config_string));
+
+    unlink (filename);
+
+    ds_destroy (&config_string);
+  }
 
   journal_enable ();
   textdomain (PACKAGE);
-
-  /* Ignore alarm clock signals */
-  signal (SIGALRM, SIG_IGN);
 
   the_data_window = psppire_data_window_new ();
 
@@ -295,3 +307,17 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 
 
 const struct argp non_option_argp = {NULL, parse_non_options, 0, 0, 0, 0, 0};
+
+
+const char *
+output_file_name (void)
+{
+  const char *dir = default_output_path ();
+  static char *filename = NULL;
+
+  if ( NULL == filename )
+    filename = xasprintf ("%s%s", dir, OUTPUT_FILE_NAME);
+
+
+  return filename;
+}

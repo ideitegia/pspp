@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -647,18 +647,19 @@ find_src_string (struct recode_trns *trns, const char *value, const struct varia
 
 /* Performs RECODE transformation. */
 static int
-recode_trns_proc (void *trns_, struct ccase *c, casenumber case_idx UNUSED)
+recode_trns_proc (void *trns_, struct ccase **c, casenumber case_idx UNUSED)
 {
   struct recode_trns *trns = trns_;
   size_t i;
 
+  *c = case_unshare (*c);
   for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable *src_var = trns->src_vars[i];
       const struct variable *dst_var = trns->dst_vars[i];
 
-      const union value *src_data = case_data (c, src_var);
-      union value *dst_data = case_data_rw (c, dst_var);
+      const union value *src_data = case_data (*c, src_var);
+      union value *dst_data = case_data_rw (*c, dst_var);
 
       const struct map_out *out;
 

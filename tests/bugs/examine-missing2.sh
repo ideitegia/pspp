@@ -59,7 +59,7 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-activity="create program"
+activity="create program 1"
 cat > $TESTFILE << EOF
 DATA LIST LIST /x * y *.
 BEGIN DATA.
@@ -77,7 +77,7 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-activity="run program"
+activity="run program 1"
 $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -114,5 +114,32 @@ diff -b  $TEMPDIR/pspp.list - <<EOF
 #==========#=#========#=#========#=#=======#
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
+
+
+#Make sure this doesn't interfere with percentiles operation.
+
+activity="create program 2"
+cat > $TESTFILE << EOF
+DATA LIST LIST /X *.
+BEGIN DATA.
+99
+99
+5.00
+END DATA.
+
+MISSING VALUE X (99).
+
+EXAMINE /x
+        /PERCENTILES=HAVERAGE.
+
+
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
+activity="run program 2"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then fail ; fi
+
 
 pass;

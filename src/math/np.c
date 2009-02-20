@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ static void
 acc (struct statistic *s, const struct ccase *cx UNUSED,
      double c, double cc, double y)
 {
-  struct ccase cp;
+  struct ccase *cp;
   struct np *np = (struct np *) s;
   double rank = np->prev_cc + (c + 1) / 2.0;
 
@@ -56,13 +56,11 @@ acc (struct statistic *s, const struct ccase *cx UNUSED,
   maximize (&np->y_max, y);
   minimize (&np->y_min, y);
 
-  case_create (&cp, n_NP_IDX);
-
-  case_data_rw_idx (&cp, NP_IDX_Y)->f = y;
-  case_data_rw_idx (&cp, NP_IDX_NS)->f = ns;
-  case_data_rw_idx (&cp, NP_IDX_DNS)->f = dns;
-
-  casewriter_write (np->writer, &cp);
+  cp = case_create (n_NP_IDX);
+  case_data_rw_idx (cp, NP_IDX_Y)->f = y;
+  case_data_rw_idx (cp, NP_IDX_NS)->f = ns;
+  case_data_rw_idx (cp, NP_IDX_DNS)->f = dns;
+  casewriter_write (np->writer, cp);
 
   np->prev_cc = cc;
 }

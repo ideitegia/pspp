@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ struct case_map
                            corresponding source index. */
   };
 
-static void translate_case (struct ccase *, struct ccase *, void *map_);
+static struct ccase *translate_case (struct ccase *, void *map_);
 static bool destroy_case_map (void *map_);
 
 /* Creates and returns an empty map. */
@@ -83,20 +83,30 @@ case_map_destroy (struct case_map *map)
     }
 }
 
-/* Maps from SRC to DST, applying case map MAP. */
-void
-case_map_execute (const struct case_map *map,
-                  const struct ccase *src, struct ccase *dst)
-{
-  size_t dst_idx;
+/* If MAP is nonnull, returns a new case that is the result of
+   applying case map MAP to SRC, and unrefs SRC.
 
-  case_create (dst, map->value_cnt);
-  for (dst_idx = 0; dst_idx < map->value_cnt; dst_idx++)
+   If MAP is null, returns SRC unchanged. */
+struct ccase *
+case_map_execute (const struct case_map *map, struct ccase *src)
+{
+  if (map != NULL)
     {
-      int src_idx = map->map[dst_idx];
-      if (src_idx != -1)
-        *case_data_rw_idx (dst, dst_idx) = *case_data_idx (src, src_idx);
+      struct ccase *dst;
+      size_t dst_idx;
+
+      dst = case_create (map->value_cnt);
+      for (dst_idx = 0; dst_idx < map->value_cnt; dst_idx++)
+        {
+          int src_idx = map->map[dst_idx];
+          if (src_idx != -1)
+            *case_data_rw_idx (dst, dst_idx) = *case_data_idx (src, src_idx);
+        }
+      case_unref (src);
+      return dst;
     }
+  else
+    return src;
 }
 
 /* Returns the number of `union value's in cases created by
@@ -147,12 +157,11 @@ case_map_create_output_translator (struct case_map *map,
 }
 
 /* Casereader/casewriter translation callback. */
-static void
-translate_case (struct ccase *input, struct ccase *output, void *map_)
+static struct ccase *
+translate_case (struct ccase *input, void *map_)
 {
   struct case_map *map = map_;
-  case_map_execute (map, input, output);
-  case_destroy (input);
+  return case_map_execute (map, input);
 }
 
 /* Casereader/casewriter destruction callback. */

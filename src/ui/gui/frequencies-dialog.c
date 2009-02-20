@@ -311,7 +311,7 @@ frequencies_dialog (GObject *o, gpointer data)
 
   struct frequencies_dialog fd;
 
-  GladeXML *xml = XML_NEW ("frequencies.glade");
+  GtkBuilder *xml = builder_new ("frequencies.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "frequencies-dialog");
   GtkWidget *source = get_widget_assert   (xml, "dict-treeview");

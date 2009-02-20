@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AC_PREREQ(2.60)
-AC_INIT([pspp],[0.7.0],[bug-gnu-pspp@gnu.org])
+AC_INIT([pspp],[0.7.2],[bug-gnu-pspp@gnu.org])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
@@ -41,14 +41,15 @@ PSPP_LC_PAPER
 AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
 
 
+AC_ARG_VAR([PSPP_LDFLAGS], [linker flags to be used for linking the pspp binary only])
+AC_ARG_VAR([PSPPIRE_LDFLAGS], [linker flags to be used for linking the psppire binary only])
+
+
 AC_ARG_WITH(
   gui, 
   [AS_HELP_STRING([--without-gui], [don't build the PSPPIRE gui])])
 
 required_gtk_version=2.12
-if test x"$enable_anachronistic_dependencies" = x"yes"  ; then
-  required_gtk_version=2.8.20
-fi
 
 if test x"$with_gui" != x"no" ; then 
   PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $required_gtk_version,,
@@ -127,6 +128,8 @@ if test x"$with_gui_tools" = x"yes" ; then
 	PKG_CHECK_MODULES(GLADE_UI, gladeui-1.0)
 fi
 AM_CONDITIONAL(WITH_GUI_TOOLS, test x"$with_gui_tools" = x"yes")
+
+AM_CONDITIONAL(WITH_PERL_MODULE, test x"$cross_compiling" != x"yes")
 
 AC_SEARCH_LIBS([cblas_dsdot], [gslcblas],,[PSPP_REQUIRED_PREREQ([libgslcblas])])
 AC_SEARCH_LIBS([gsl_cdf_binomial_P], [gsl],,[PSPP_REQUIRED_PREREQ([libgsl (version 1.8 or later)])])

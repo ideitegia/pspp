@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -304,7 +304,7 @@ run_reliability (struct casereader *input, struct dataset *ds UNUSED,
 {
   int i;
   int si;
-  struct ccase c;
+  struct ccase *c;
   casenumber n_missing ;
   casenumber n_valid = 0;
 
@@ -338,7 +338,7 @@ run_reliability (struct casereader *input, struct dataset *ds UNUSED,
 					  s, NULL);
     }
 
-  for (; casereader_read (input, &c); case_destroy (&c))
+  for (; (c = casereader_read (input)) != NULL; case_unref (c))
     {
       double weight = 1.0;
       n_valid ++;
@@ -348,9 +348,9 @@ run_reliability (struct casereader *input, struct dataset *ds UNUSED,
 	  struct cronbach *s = &rel->sc[si];
 
 	  for (i = 0 ; i < s->n_items ; ++i )
-	    moments1_add (s->m[i], case_data (&c, s->items[i])->f, weight);
+	    moments1_add (s->m[i], case_data (c, s->items[i])->f, weight);
 
-	  moments1_add (s->total, case_data_idx (&c, s->totals_idx)->f, weight);
+	  moments1_add (s->total, case_data_idx (c, s->totals_idx)->f, weight);
 	}
     }
   casereader_destroy (input);

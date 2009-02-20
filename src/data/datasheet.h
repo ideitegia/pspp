@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ void datasheet_move_columns (struct datasheet *,
 /* Rows. */
 casenumber datasheet_get_row_cnt (const struct datasheet *);
 bool datasheet_insert_rows (struct datasheet *,
-                            casenumber before, struct ccase[],
+                            casenumber before, struct ccase *[],
                             casenumber cnt);
 void datasheet_delete_rows (struct datasheet *,
                             casenumber first, casenumber cnt);
@@ -59,7 +59,7 @@ void datasheet_move_rows (struct datasheet *,
                           size_t cnt);
 
 /* Data. */
-bool datasheet_get_row (const struct datasheet *, casenumber, struct ccase *);
+struct ccase *datasheet_get_row (const struct datasheet *, casenumber);
 bool datasheet_put_row (struct datasheet *, casenumber, struct ccase *);
 bool datasheet_get_value (const struct datasheet *, casenumber, size_t column,
                           union value *, int width);

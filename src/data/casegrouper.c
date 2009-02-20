@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,28 +80,26 @@ casegrouper_get_next_group (struct casegrouper *grouper,
   if (grouper->same_group != NULL)
     {
       struct casewriter *writer;
-      struct ccase group_case, tmp;
+      struct ccase *group_case, *tmp;
 
-      if (!casereader_read (grouper->reader, &group_case))
+      group_case = casereader_read (grouper->reader);
+      if (group_case == NULL)
         {
           *reader = NULL;
           return false;
         }
 
       writer = autopaging_writer_create (casereader_get_value_cnt (grouper->reader));
-      case_clone (&tmp, &group_case);
-      casewriter_write (writer, &tmp);
+      case_ref (group_case);
+      casewriter_write (writer, group_case);
 
-      while (casereader_peek (grouper->reader, 0, &tmp)
-             && grouper->same_group (&group_case, &tmp, grouper->aux))
+      while ((tmp = casereader_peek (grouper->reader, 0)) != NULL
+             && grouper->same_group (group_case, tmp, grouper->aux))
         {
-          struct ccase discard;
-          casereader_read (grouper->reader, &discard);
-          case_destroy (&discard);
-          casewriter_write (writer, &tmp);
+          case_unref (casereader_read (grouper->reader));
+          casewriter_write (writer, tmp);
         }
-      case_destroy (&tmp);
-      case_destroy (&group_case);
+      case_unref (group_case);
 
       *reader = casewriter_make_reader (writer);
       return true;

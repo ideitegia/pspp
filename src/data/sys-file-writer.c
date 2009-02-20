@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -126,8 +126,9 @@ static void write_zeros (struct sfm_writer *, size_t);
 static void write_spaces (struct sfm_writer *, size_t);
 static void write_value (struct sfm_writer *, const union value *, int width);
 
-static void write_case_uncompressed (struct sfm_writer *, struct ccase *);
-static void write_case_compressed (struct sfm_writer *, struct ccase *);
+static void write_case_uncompressed (struct sfm_writer *,
+                                     const struct ccase *);
+static void write_case_compressed (struct sfm_writer *, const struct ccase *);
 static void flush_compressed (struct sfm_writer *);
 static void put_cmp_opcode (struct sfm_writer *, uint8_t);
 static void put_cmp_number (struct sfm_writer *, double);
@@ -747,7 +748,7 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
   if (ferror (w->file))
     {
       casewriter_force_error (writer);
-      case_destroy (c);
+      case_unref (c);
       return;
     }
 
@@ -758,7 +759,7 @@ sys_file_casewriter_write (struct casewriter *writer, void *w_,
   else
     write_case_compressed (w, c);
 
-  case_destroy (c);
+  case_unref (c);
 }
 
 /* Destroys system file writer W. */
@@ -836,7 +837,7 @@ static const struct casewriter_class sys_file_casewriter_class =
 
 /* Writes case C to system file W, without compressing it. */
 static void
-write_case_uncompressed (struct sfm_writer *w, struct ccase *c)
+write_case_uncompressed (struct sfm_writer *w, const struct ccase *c)
 {
   size_t i;
 
@@ -857,7 +858,7 @@ write_case_uncompressed (struct sfm_writer *w, struct ccase *c)
 
 /* Writes case C to system file W, with compression. */
 static void
-write_case_compressed (struct sfm_writer *w, struct ccase *c)
+write_case_compressed (struct sfm_writer *w, const struct ccase *c)
 {
   size_t i;
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -463,14 +463,15 @@ data_list_trns_free (void *trns_)
   return true;
 }
 
-/* Handle DATA LIST transformation TRNS, parsing data into C. */
+/* Handle DATA LIST transformation TRNS, parsing data into *C. */
 static int
-data_list_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
+data_list_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
 {
   struct data_list_trns *trns = trns_;
   int retval;
 
-  if (data_parser_parse (trns->parser, trns->reader, c))
+  *c = case_unshare (*c);
+  if (data_parser_parse (trns->parser, trns->reader, *c))
     retval = TRNS_CONTINUE;
   else if (dfm_reader_error (trns->reader) || dfm_eof (trns->reader) > 1)
     {
@@ -484,7 +485,7 @@ data_list_trns_proc (void *trns_, struct ccase *c, casenumber case_num UNUSED)
   /* If there was an END subcommand handle it. */
   if (trns->end != NULL)
     {
-      double *end = &case_data_rw (c, trns->end)->f;
+      double *end = &case_data_rw (*c, trns->end)->f;
       if (retval == TRNS_END_FILE)
         {
           *end = 1.0;
