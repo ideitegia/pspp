@@ -71,7 +71,7 @@ struct covariance_matrix
 
 
 
-static struct hsh_table *covariance_hsh_create (size_t);
+static struct hsh_table *covariance_hsh_create (size_t *);
 static hsh_hash_func covariance_accumulator_hash;
 static unsigned int hash_numeric_alpha (const struct variable *,
 					const struct variable *,
@@ -114,7 +114,8 @@ covariance_matrix_init (size_t n_variables,
 
   result = xmalloc (sizeof (*result));
   result->cov = NULL;
-  result->ca = covariance_hsh_create (n_variables);
+  result->n_variables = n_variables;
+  result->ca = covariance_hsh_create (&result->n_variables);
   result->m = NULL;
   result->m1 = NULL;
   result->missing_handling = missing_handling;
@@ -140,7 +141,7 @@ covariance_matrix_init (size_t n_variables,
 	}
     }
   result->v_variables = v_variables;
-  result->n_variables = n_variables;
+
   result->n_pass = n_pass;
 
   return result;
@@ -369,11 +370,11 @@ covariance_accumulator_hash (const void *h, const void *aux)
   in the data.
  */
 static struct hsh_table *
-covariance_hsh_create (size_t n_vars)
+covariance_hsh_create (size_t *n_vars)
 {
-  return hsh_create (n_vars * n_vars, covariance_accumulator_compare,
+  return hsh_create (*n_vars * *n_vars, covariance_accumulator_compare,
 		     covariance_accumulator_hash, covariance_accumulator_free,
-		     &n_vars);
+		     n_vars);
 }
 
 static void
@@ -555,6 +556,7 @@ update_hash_entry (struct hsh_table *c,
   ca->sum2 = update_sum (ca->v2, ca->val2, iv_f2);
   ca->ssize = 1.0;
   new_entry = hsh_insert (c, ca);
+
   if (new_entry != NULL)
     {
       new_entry->dot_product += ca->dot_product;
@@ -777,6 +779,7 @@ covariance_matrix_insert (struct design_matrix *cov,
 	  covariance_matrix_insert (cov, v2, v1, val2, val1, product);
 	}
     }
+
   gsl_matrix_set (cov->m, row, col, product);
 }
 
