@@ -321,7 +321,6 @@ clone_list_store (const GtkListStore *src)
 }
 
 
-
 void
 paste_syntax_in_new_window (const gchar *syntax)
 {

@@ -388,7 +388,6 @@ crosstabs_dialog (GObject *o, gpointer data)
   struct crosstabs_dialog cd;
 
   GtkBuilder *xml = builder_new ("crosstabs.ui");
-
   PsppireVarStore *vs = NULL;
 
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);

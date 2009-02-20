@@ -75,24 +75,20 @@ psppire_output_window_get_type (void)
   return psppire_output_window_type;
 }
 
+static GObjectClass *parent_class;
 
 static void
 psppire_output_window_finalize (GObject *object)
 {
-  GObjectClass *class = G_OBJECT_GET_CLASS (object);
-
-  GObjectClass *parent_class = g_type_class_peek_parent (class);
-
-
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
-
 }
 
 
 static void
 psppire_output_window_class_init (PsppireOutputWindowClass *class)
 {
+  parent_class = g_type_class_peek_parent (class);
 }
 
 

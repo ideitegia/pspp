@@ -295,7 +295,7 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 
 	ds_destroy (&syntax);
 
-	psppire_window_set_filename (the_data_window, arg);
+	psppire_window_set_filename (PSPPIRE_WINDOW (the_data_window), arg);
 
 	break;
       }
