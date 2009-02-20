@@ -76,6 +76,7 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/rank.ui \
 	$(top_builddir)/src/ui/gui/recode.ui \
 	$(top_builddir)/src/ui/gui/regression.ui \
+	$(top_builddir)/src/ui/gui/syntax-editor.ui
 	$(top_builddir)/src/ui/gui/t-test.ui
 
 EXTRA_DIST += \

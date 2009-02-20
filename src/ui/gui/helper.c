@@ -119,6 +119,19 @@ builder_new_real (const gchar *name)
 }
 
 
+GObject *
+get_object_assert (GtkBuilder *builder, const gchar *name)
+{
+  GObject *o = NULL;
+  g_assert (name);
+
+  o = gtk_builder_get_object (builder, name);
+
+  if ( !o )
+    g_critical ("Object \"%s\" could not be found\n", name);
+
+  return o;
+}
 
 GtkWidget *
 get_widget_assert (gpointer x, const gchar *name)

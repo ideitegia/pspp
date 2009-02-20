@@ -18,7 +18,6 @@
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbox.h>
-#include <glade/glade.h>
 #include "helper.h"
 
 #include <libpspp/message.h>
@@ -485,9 +484,9 @@ extern struct source_stream *the_source_stream ;
 static void
 psppire_syntax_window_init (PsppireSyntaxWindow *window)
 {
-  GladeXML *xml = XML_NEW ("syntax-editor.glade");
+  GtkBuilder *xml = builder_new ("syntax-editor.ui");
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
-  
+
   GtkWidget *menubar = get_widget_assert (xml, "menubar2");
   GtkWidget *sw = get_widget_assert (xml, "scrolledwindow8");
 
@@ -501,7 +500,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect (window->buffer, "changed", G_CALLBACK (on_text_changed), window);
 
-  connect_help (xml);
+  //  connect_help (xml);
 
   gtk_container_add (GTK_CONTAINER (window), box);
 
@@ -518,74 +517,78 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   gtk_widget_show_all (box);
 
-  g_signal_connect (get_widget_assert (xml,"file_new_syntax"),
+  g_signal_connect (get_object_assert (xml,"file_new_syntax"),
 		    "activate",
 		    G_CALLBACK (create_syntax_window),
 		    NULL);
 
-  g_signal_connect (get_widget_assert (xml,"file_open_syntax"),
+  g_signal_connect (get_object_assert (xml,"file_open_syntax"),
 		    "activate",
 		    G_CALLBACK (open_syntax_window),
 		    window);
 
 #if 0
-  g_signal_connect (get_widget_assert (xml,"file_new_data"),
+  g_signal_connect (get_object_assert (xml,"file_new_data"),
 		    "activate",
 		    G_CALLBACK (create_data_window),
 		    window);
 #endif
 
-  g_signal_connect (get_widget_assert (xml,"help_about"),
+  g_signal_connect (get_object_assert (xml,"help_about"),
 		    "activate",
 		    G_CALLBACK (about_new),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml,"help_reference"),
+  g_signal_connect (get_object_assert (xml,"help_reference"),
 		    "activate",
 		    G_CALLBACK (reference_manual),
 		    NULL);
 
-  g_signal_connect (get_widget_assert (xml, "file_save"),
+  g_signal_connect (get_object_assert (xml, "file_save"),
 		    "activate",
 		    G_CALLBACK (on_syntax_save),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml, "file_save_as"),
+  g_signal_connect (get_object_assert (xml, "file_save_as"),
 		    "activate",
 		    G_CALLBACK (on_syntax_save_as),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml,"file_quit"),
+  g_signal_connect (get_object_assert (xml,"file_quit"),
 		    "activate",
 		    G_CALLBACK (on_quit),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml,"run_all"),
+  g_signal_connect (get_object_assert (xml,"run_all"),
 		    "activate",
 		    G_CALLBACK (on_run_all),
 		    window);
 
 
-  g_signal_connect (get_widget_assert (xml,"run_selection"),
+  g_signal_connect (get_object_assert (xml,"run_selection"),
 		    "activate",
 		    G_CALLBACK (on_run_selection),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml,"run_current_line"),
+  g_signal_connect (get_object_assert (xml,"run_current_line"),
 		    "activate",
 		    G_CALLBACK (on_run_current_line),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml,"run_to_end"),
+  g_signal_connect (get_object_assert (xml,"run_to_end"),
 		    "activate",
 		    G_CALLBACK (on_run_to_end),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml,"windows_minimise_all"),
+  g_signal_connect (get_object_assert (xml,"windows_minimise_all"),
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all), NULL);
 
-  PSPPIRE_WINDOW (window)->menu = GTK_MENU_SHELL (get_widget_assert (xml,"windows_menu"));
+  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
+
+  PSPPIRE_WINDOW (window)->menu =
+    GTK_MENU_SHELL (GTK_WIDGET (gtk_ui_manager_get_widget (uim,"/ui/menubar2/windows/windows_minimise_all"))->parent);
+
 
   g_object_unref (xml);
 

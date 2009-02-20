@@ -47,6 +47,7 @@ gchar * value_to_text (union value v, struct fmt_spec format);
 gboolean text_to_value (const gchar *text, union value *v,
 		       struct fmt_spec format);
 
+GObject * get_object_assert (GtkBuilder *builder, const gchar *name);
 GtkWidget * get_widget_assert (gpointer x, const gchar *name);
 
 /* Converts a string in the pspp locale to utf-8 */
