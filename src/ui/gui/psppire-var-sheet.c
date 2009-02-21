@@ -18,7 +18,6 @@
 #include "psppire-var-sheet.h"
 #include <ui/gui/sheet/psppire-axis-impl.h>
 
-#include <glade/glade.h>
 #include "helper.h"
 
 #include "customentry.h"
@@ -486,13 +485,13 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 static void
 psppire_var_sheet_init (PsppireVarSheet *vs)
 {
-  GladeXML *xml = XML_NEW ("data-editor.glade");
+  GtkBuilder *builder = builder_new ("data-editor.ui");
 
-  vs->val_labs_dialog = val_labs_dialog_create (xml);
-  vs->missing_val_dialog = missing_val_dialog_create (xml);
-  vs->var_type_dialog = var_type_dialog_create (xml);
+  vs->val_labs_dialog = val_labs_dialog_create (builder);
+  vs->missing_val_dialog = missing_val_dialog_create (builder);
+  vs->var_type_dialog = var_type_dialog_create (builder);
 
-  g_object_unref (xml);
+  g_object_unref (builder);
 
   vs->dispose_has_run = FALSE;
   vs->may_create_vars = TRUE;

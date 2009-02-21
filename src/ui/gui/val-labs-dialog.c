@@ -364,7 +364,7 @@ on_select_row                  (GtkTreeView *treeview,
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GladeXML *xml)
+val_labs_dialog_create (GtkBuilder *xml)
 {
   GtkTreeViewColumn *column;
 
@@ -372,7 +372,7 @@ val_labs_dialog_create (GladeXML *xml)
 
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
-  connect_help (xml);
+  //  connect_help (xml);
 
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");

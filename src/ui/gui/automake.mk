@@ -68,6 +68,7 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/crosstabs.ui \
+	$(top_builddir)/src/ui/gui/data-editor.ui \
 	$(top_builddir)/src/ui/gui/examine.ui \
 	$(top_builddir)/src/ui/gui/frequencies.ui \
 	$(top_builddir)/src/ui/gui/message-dialog.ui \

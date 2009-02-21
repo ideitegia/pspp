@@ -84,7 +84,7 @@ struct var_type_dialog
 };
 
 
-struct var_type_dialog * var_type_dialog_create (GladeXML *xml);
+struct var_type_dialog * var_type_dialog_create (GtkBuilder *xml);
 
 
 void var_type_dialog_set_variable (struct var_type_dialog *dialog,

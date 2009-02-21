@@ -32,7 +32,7 @@
 struct val_labs;
 
 
-struct val_labs_dialog * val_labs_dialog_create (GladeXML *);
+struct val_labs_dialog * val_labs_dialog_create (GtkBuilder *);
 
 void val_labs_dialog_show (struct val_labs_dialog *);
 
