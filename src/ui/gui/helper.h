@@ -54,7 +54,7 @@ GtkWidget * get_widget_assert (gpointer x, const gchar *name);
 char * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
 
 
-void connect_help (GladeXML *);
+void connect_help (gpointer *);
 
 void reference_manual (GtkMenuItem *, gpointer);
 

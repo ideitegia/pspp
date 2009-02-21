@@ -208,7 +208,7 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   gtk_widget_show_all (box);
 
-  //  connect_help (xml);
+  connect_help (xml);
 
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->textview));
 

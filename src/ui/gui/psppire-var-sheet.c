@@ -491,6 +491,8 @@ psppire_var_sheet_init (PsppireVarSheet *vs)
   vs->missing_val_dialog = missing_val_dialog_create (builder);
   vs->var_type_dialog = var_type_dialog_create (builder);
 
+  connect_help (builder);
+
   g_object_unref (builder);
 
   vs->dispose_has_run = FALSE;

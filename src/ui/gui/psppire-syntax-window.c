@@ -500,7 +500,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   g_signal_connect (window->buffer, "changed", G_CALLBACK (on_text_changed), window);
 
-  //  connect_help (xml);
+  connect_help (xml);
 
   gtk_container_add (GTK_CONTAINER (window), box);
 
