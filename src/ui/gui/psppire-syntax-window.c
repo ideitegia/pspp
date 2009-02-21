@@ -587,7 +587,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
 
   PSPPIRE_WINDOW (window)->menu =
-    GTK_MENU_SHELL (GTK_WIDGET (gtk_ui_manager_get_widget (uim,"/ui/menubar2/windows/windows_minimise_all"))->parent);
+    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar2/windows/windows_minimise_all")->parent);
 
 
   g_object_unref (xml);

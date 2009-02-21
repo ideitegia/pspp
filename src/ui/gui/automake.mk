@@ -73,6 +73,7 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/message-dialog.ui \
 	$(top_builddir)/src/ui/gui/psppire.ui \
 	$(top_builddir)/src/ui/gui/oneway.ui \
+	$(top_builddir)/src/ui/gui/output-viewer.ui \
 	$(top_builddir)/src/ui/gui/rank.ui \
 	$(top_builddir)/src/ui/gui/recode.ui \
 	$(top_builddir)/src/ui/gui/regression.ui \

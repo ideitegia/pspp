@@ -18,7 +18,6 @@
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbox.h>
-#include <glade/glade.h>
 #include "helper.h"
 
 #include <libpspp/message.h>
@@ -182,7 +181,7 @@ on_textview_resize (GtkWidget     *widget,
 static void
 psppire_output_window_init (PsppireOutputWindow *window)
 {
-  GladeXML *xml = XML_NEW ("output-viewer.glade");
+  GtkBuilder *xml = builder_new ("output-viewer.ui");
 
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
 
@@ -209,7 +208,7 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   gtk_widget_show_all (box);
 
-  connect_help (xml);
+  //  connect_help (xml);
 
   window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->textview));
 
@@ -233,23 +232,25 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   window->fp = NULL;
 
-  g_signal_connect (get_widget_assert (xml,"help_about"),
+  g_signal_connect (get_object_assert (xml,"help_about"),
 		    "activate",
 		    G_CALLBACK (about_new),
 		    window);
 
-  g_signal_connect (get_widget_assert (xml,"help_reference"),
+  g_signal_connect (get_object_assert (xml,"help_reference"),
 		    "activate",
 		    G_CALLBACK (reference_manual),
 		    NULL);
 
-  g_signal_connect (get_widget_assert (xml,"windows_minimise-all"),
+  g_signal_connect (get_object_assert (xml,"windows_minimise-all"),
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all),
 		    NULL);
 
-  PSPPIRE_WINDOW (window)->menu = GTK_MENU_SHELL (get_widget_assert (xml,"windows_menu"));
+  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
 
+  PSPPIRE_WINDOW (window)->menu =
+    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar1/windows_menuitem/windows_minimise-all")->parent);
 
   g_object_unref (xml);
 
