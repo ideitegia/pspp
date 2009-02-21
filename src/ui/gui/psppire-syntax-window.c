@@ -602,6 +602,7 @@ psppire_syntax_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (),
 				   "usage", PSPPIRE_WINDOW_USAGE_SYNTAX,
+				   "filename", "Syntax",
 				   NULL));
 }
 
