@@ -78,7 +78,7 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/rank.ui \
 	$(top_builddir)/src/ui/gui/recode.ui \
 	$(top_builddir)/src/ui/gui/regression.ui \
-	$(top_builddir)/src/ui/gui/syntax-editor.ui
+	$(top_builddir)/src/ui/gui/syntax-editor.ui \
 	$(top_builddir)/src/ui/gui/t-test.ui
 
 EXTRA_DIST += \
@@ -159,8 +159,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-buttonbox.h \
 	src/ui/gui/psppire-hbuttonbox.h \
 	src/ui/gui/psppire-vbuttonbox.h \
-	src/ui/gui/psppire-data-editor.c \
-	src/ui/gui/psppire-data-editor.h \
 	src/ui/gui/psppire-data-store.c \
 	src/ui/gui/psppire-data-store.h \
 	src/ui/gui/psppire-dialog.h \
@@ -212,6 +210,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/weight-cases-dialog.h \
 	src/ui/gui/widget-io.c \
 	src/ui/gui/widget-io.h \
+	src/ui/gui/psppire-data-editor.c \
+	src/ui/gui/psppire-data-editor.h \
 	src/ui/gui/psppire-data-window.c \
 	src/ui/gui/psppire-data-window.h \
 	src/ui/gui/psppire-output-window.c \

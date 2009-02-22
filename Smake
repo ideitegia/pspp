@@ -112,6 +112,7 @@ gettextize:
 po/POTFILES.in:
 	for f in `find src \( -name \*.[qc] -o -name \*.glade \) ! -name .\* -print` ; do \
 		if test $$f = src/libpspp/version.c; then continue; fi;	  \
+		if test $$f = src/ui/gui/psppire-marshal.c; then continue; fi; \
 		if test -e `dirname $$f`/`basename $$f .c`.q ; then continue; fi; \
 		echo $$f ; \
 	done | sort | uniq > $@.tmp
