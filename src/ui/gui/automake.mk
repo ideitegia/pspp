@@ -122,56 +122,68 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/about.h \
 	src/ui/gui/checkbox-treeview.c \
 	src/ui/gui/checkbox-treeview.h \
-	src/ui/gui/compute-dialog.c \
-	src/ui/gui/compute-dialog.h \
 	src/ui/gui/comments-dialog.c \
 	src/ui/gui/comments-dialog.h \
+	src/ui/gui/compute-dialog.c \
+	src/ui/gui/compute-dialog.h \
 	src/ui/gui/crosstabs-dialog.c \
 	src/ui/gui/crosstabs-dialog.h \
 	src/ui/gui/customentry.c \
 	src/ui/gui/customentry.h \
-	src/ui/gui/frequencies-dialog.c \
-	src/ui/gui/frequencies-dialog.h \
-	src/ui/gui/goto-case-dialog.c \
-	src/ui/gui/goto-case-dialog.h \
 	src/ui/gui/descriptives-dialog.c \
 	src/ui/gui/descriptives-dialog.h \
-	src/ui/gui/examine-dialog.c \
-	src/ui/gui/examine-dialog.h \
-	src/ui/gui/find-dialog.c \
-	src/ui/gui/find-dialog.h \
 	src/ui/gui/dialog-common.c \
 	src/ui/gui/dialog-common.h \
 	src/ui/gui/dict-display.c \
 	src/ui/gui/dict-display.h \
+	src/ui/gui/examine-dialog.c \
+	src/ui/gui/examine-dialog.h \
+	src/ui/gui/find-dialog.c \
+	src/ui/gui/find-dialog.h \
+	src/ui/gui/frequencies-dialog.c \
+	src/ui/gui/frequencies-dialog.h \
+	src/ui/gui/goto-case-dialog.c \
+	src/ui/gui/goto-case-dialog.h \
+	src/ui/gui/helper.c \
+	src/ui/gui/helper.h \
 	src/ui/gui/main.c \
 	src/ui/gui/message-dialog.c \
 	src/ui/gui/message-dialog.h \
-	src/ui/gui/psppire.c \
-	src/ui/gui/psppire.h \
-	src/ui/gui/helper.c \
-	src/ui/gui/helper.h \
 	src/ui/gui/missing-val-dialog.c \
 	src/ui/gui/missing-val-dialog.h \
         src/ui/gui/oneway-anova-dialog.c \
         src/ui/gui/oneway-anova-dialog.h \
+	src/ui/gui/psppire.c \
+	src/ui/gui/psppire.h \
 	src/ui/gui/psppire-acr.h \
 	src/ui/gui/psppire-buttonbox.h \
-	src/ui/gui/psppire-hbuttonbox.h \
-	src/ui/gui/psppire-vbuttonbox.h \
+	src/ui/gui/psppire-data-editor.c \
+	src/ui/gui/psppire-data-editor.h \
 	src/ui/gui/psppire-data-store.c \
 	src/ui/gui/psppire-data-store.h \
+	src/ui/gui/psppire-data-window.c \
+	src/ui/gui/psppire-data-window.h \
 	src/ui/gui/psppire-dialog.h \
 	src/ui/gui/psppire-dict.c \
 	src/ui/gui/psppire-dict.h \
+	src/ui/gui/psppire-hbuttonbox.h \
 	src/ui/gui/psppire-keypad.h \
+	src/ui/gui/psppire-output-window.c \
+	src/ui/gui/psppire-output-window.h \
 	src/ui/gui/psppire-selector.h \
+	src/ui/gui/psppire-syntax-window.c \
+	src/ui/gui/psppire-syntax-window.h \
 	src/ui/gui/psppire-var-ptr.c \
 	src/ui/gui/psppire-var-ptr.h \
 	src/ui/gui/psppire-var-sheet.c \
 	src/ui/gui/psppire-var-sheet.h \
 	src/ui/gui/psppire-var-store.c \
 	src/ui/gui/psppire-var-store.h \
+	src/ui/gui/psppire-vbuttonbox.h \
+	src/ui/gui/psppire-window.c \
+	src/ui/gui/psppire-window.h \
+	src/ui/gui/psppire-window-register.c \
+	src/ui/gui/psppire-window-register.h \
 	src/ui/gui/rank-dialog.c \
 	src/ui/gui/rank-dialog.h \
 	src/ui/gui/recode-dialog.c \
@@ -202,26 +214,14 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/val-labs-dialog.h \
 	src/ui/gui/var-display.c \
 	src/ui/gui/var-display.h \
-	src/ui/gui/var-type-dialog.c \
-	src/ui/gui/var-type-dialog.h \
 	src/ui/gui/variable-info-dialog.c \
 	src/ui/gui/variable-info-dialog.h \
+	src/ui/gui/var-type-dialog.c \
+	src/ui/gui/var-type-dialog.h \
 	src/ui/gui/weight-cases-dialog.c \
 	src/ui/gui/weight-cases-dialog.h \
 	src/ui/gui/widget-io.c \
-	src/ui/gui/widget-io.h \
-	src/ui/gui/psppire-data-editor.c \
-	src/ui/gui/psppire-data-editor.h \
-	src/ui/gui/psppire-data-window.c \
-	src/ui/gui/psppire-data-window.h \
-	src/ui/gui/psppire-output-window.c \
-	src/ui/gui/psppire-output-window.h \
-	src/ui/gui/psppire-window.c \
-	src/ui/gui/psppire-window.h \
-	src/ui/gui/psppire-window-register.c \
-	src/ui/gui/psppire-window-register.h \
-	src/ui/gui/psppire-syntax-window.c \
-	src/ui/gui/psppire-syntax-window.h
+	src/ui/gui/widget-io.h 
 
 nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.c \
