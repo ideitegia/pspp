@@ -562,6 +562,19 @@ on_map (GtkWidget *w)
   g_signal_connect (clip, "owner-change", G_CALLBACK (on_owner_change), w);
 }
 
+static gboolean
+traverse_cell_callback (GtkSheet *sheet,
+			gint row, gint column,
+			gint *new_row, gint *new_column,
+			gpointer data)
+{
+  PsppireDataStore *data_store = PSPPIRE_DATA_STORE (data);
+
+  if ( *new_column >= psppire_dict_get_var_cnt (data_store->dict))
+    return FALSE;
+
+  return TRUE;
+}
 
 static void
 psppire_data_editor_init (PsppireDataEditor *de)
@@ -669,6 +682,9 @@ psppire_data_editor_new (PsppireVarStore *var_store,
 			  "var-store",  var_store,
 			  "data-store",  data_store,
 			  NULL);
+
+  g_signal_connect (PSPPIRE_DATA_EDITOR(widget)->data_sheet, "traverse",
+		    G_CALLBACK (traverse_cell_callback), data_store);
 
   return widget;
 }
