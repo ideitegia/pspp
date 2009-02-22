@@ -248,7 +248,6 @@ save_editor_to_file (PsppireSyntaxWindow *se,
     {
       gchar *msg = g_strdup_printf (_("Saved file \"%s\""), filename);
       gtk_statusbar_push (GTK_STATUSBAR (se->sb), se->text_context, msg);
-      psppire_window_set_filename (PSPPIRE_WINDOW (se), filename);
       gtk_text_buffer_set_modified (buffer, FALSE);
       g_free (msg);
     }
@@ -304,6 +303,7 @@ save_if_modified (PsppireSyntaxWindow *se)
 	      msg (ME, err->message);
 	      g_error_free (err);
 	    }
+	  psppire_window_set_filename (PSPPIRE_WINDOW (se), filename);
 	}
 
       if ( response == GTK_RESPONSE_CANCEL )
@@ -601,8 +601,8 @@ GtkWidget*
 psppire_syntax_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_syntax_window_get_type (),
-				   "usage", PSPPIRE_WINDOW_USAGE_SYNTAX,
 				   "filename", "Syntax",
+				   "description", _("Syntax Editor"),
 				   NULL));
 }
 

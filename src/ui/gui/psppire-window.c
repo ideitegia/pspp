@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ enum
 {
   PROP_0,
   PROP_FILENAME,
-  PROP_USAGE
+  PROP_DESCRIPTION
 };
 
 
@@ -82,7 +82,19 @@ uniquify (const gchar *str, int *x)
   return g_strdup_printf ("%s%d", str, (*x)++);
 }
 
+static gchar mdash[6] = {0,0,0,0,0,0};
 
+static void
+psppire_window_set_title (PsppireWindow *window)
+{
+  gchar *title =
+    g_strdup_printf ( _("%s %s PSPPIRE %s"),
+		      window->basename, mdash, window->description);
+
+  gtk_window_set_title (GTK_WINDOW (window), title);
+
+  free (title);
+}
 
 static void
 psppire_window_set_property (GObject         *object,
@@ -94,58 +106,42 @@ psppire_window_set_property (GObject         *object,
 
   switch (prop_id)
     {
-    case PROP_USAGE:
-      window->usage = g_value_get_enum (value);
+    case PROP_DESCRIPTION:
+      window->description = g_value_dup_string (value);
+      psppire_window_set_title (window);
       break;
     case PROP_FILENAME:
       {
 	PsppireWindowRegister *reg = psppire_window_register_new ();
-	gchar mdash[6] = {0,0,0,0,0,0};
-	gchar *basename, *title;
-	const gchar *name = g_value_get_string (value);
-	int x = 0;
+
 	gchar *candidate_name ;
-	GValue def = {0};
-	g_value_init (&def, pspec->value_type);
 
-	if ( NULL == name)
-	  {
-	    g_param_value_set_default (pspec, &def);
-	    name = g_value_get_string (&def);
-	  }
-	
-        candidate_name = strdup (name);
+	{
+	  const gchar *name = g_value_get_string (value);
+	  int x = 0;
+	  GValue def = {0};
+	  g_value_init (&def, pspec->value_type);
 
-	while ( psppire_window_register_lookup (reg, candidate_name))
-	  {
-	    free (candidate_name);
-	    candidate_name = uniquify (name, &x);
-	  }
+	  if ( NULL == name)
+	    {
+	      g_param_value_set_default (pspec, &def);
+	      name = g_value_get_string (&def);
+	    }
 
-	basename = g_path_get_basename (candidate_name);
-	g_unichar_to_utf8 (0x2014, mdash);
+	  candidate_name = strdup (name);
 
-	g_value_unset (&def);
+	  while ( psppire_window_register_lookup (reg, candidate_name))
+	    {
+	      free (candidate_name);
+	      candidate_name = uniquify (name, &x);
+	    }
 
-	switch (window->usage)
-	  {
-	  case PSPPIRE_WINDOW_USAGE_SYNTAX:
-	    title = g_strdup_printf ( _("%s %s PSPPIRE Syntax Editor"),
-				      basename, mdash);
-	    break;
-	  case PSPPIRE_WINDOW_USAGE_OUTPUT:
-	    title = g_strdup_printf ( _("%s %s PSPPIRE Output"),
-				      basename, mdash);
-	  case PSPPIRE_WINDOW_USAGE_DATA:
-	    title = g_strdup_printf ( _("%s %s PSPPIRE Data Editor"),
-				      basename, mdash);
-	    break;
-	  default:
-	    g_assert_not_reached ();
-	    break;
-	  }
+	  window->basename = g_path_get_basename (candidate_name);
 
-	gtk_window_set_title (GTK_WINDOW (window), title);
+	  g_value_unset (&def);
+	}
+
+	psppire_window_set_title (window);
 
 	if ( window->name)
 	  psppire_window_register_remove (reg, window->name);
@@ -154,9 +150,6 @@ psppire_window_set_property (GObject         *object,
 	window->name = candidate_name;
 
 	psppire_window_register_insert (reg, window, window->name);
-
-	free (basename);
-	free (title);
       }
       break;
     default:
@@ -176,11 +169,11 @@ psppire_window_get_property (GObject         *object,
 
   switch (prop_id)
     {
-    case PROP_USAGE:
-      g_value_set_enum (value, window->usage);
-      break;
     case PROP_FILENAME:
       g_value_set_string (value, window->name);
+      break;
+    case PROP_DESCRIPTION:
+      g_value_set_string (value, window->description);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -194,11 +187,12 @@ static void
 psppire_window_finalize (GObject *object)
 {
   PsppireWindow *window = PSPPIRE_WINDOW (object);
-  
+
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
   psppire_window_register_remove (reg, window->name);
   free (window->name);
+  free (window->description);
 
   g_signal_handler_disconnect (psppire_window_register_new (),
 			       window->remove_handler);
@@ -218,35 +212,32 @@ psppire_window_class_init (PsppireWindowClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-  GParamSpec *use_class_spec =
-    g_param_spec_enum ("usage",
-		       "Usage",
-		       "What the window is used for",
-		       G_TYPE_PSPPIRE_WINDOW_USAGE,
-		       PSPPIRE_WINDOW_USAGE_SYNTAX /* default value */,
-		       G_PARAM_CONSTRUCT_ONLY |G_PARAM_READABLE | G_PARAM_WRITABLE);
-
+  GParamSpec *description_spec =
+    g_param_spec_string ("description",
+		       "Description",
+		       "A string describing the usage of the window",
+			 "??????", /*Should be overridden by derived classes */
+		       G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
 
   GParamSpec *filename_spec =
     g_param_spec_string ("filename",
 		       "File name",
 		       "The name of the file associated with this window, if any",
 			 "Untitled",
-			 G_PARAM_READABLE | G_PARAM_WRITABLE | G_PARAM_CONSTRUCT
-			 );
+			 G_PARAM_CONSTRUCT | G_PARAM_READWRITE);
 
+  g_unichar_to_utf8 (0x2014, mdash);
 
   object_class->set_property = psppire_window_set_property;
   object_class->get_property = psppire_window_get_property;
 
   g_object_class_install_property (object_class,
-                                   PROP_FILENAME,
-                                   filename_spec);
+                                   PROP_DESCRIPTION,
+                                   description_spec);
 
   g_object_class_install_property (object_class,
-                                   PROP_USAGE,
-                                   use_class_spec);
-
+                                   PROP_FILENAME,
+                                   filename_spec);
 
   the_class = class;
   parent_class = g_type_class_peek_parent (class);
@@ -374,11 +365,10 @@ psppire_window_init (PsppireWindow *window)
 
 
 GtkWidget*
-psppire_window_new (PsppireWindowUsage usage)
+psppire_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_window_get_type (),
 				   "type", GTK_WINDOW_TOPLEVEL,
-				   "usage", usage,
 				   NULL));
 }
 
@@ -399,33 +389,6 @@ psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
 }
 
 
-
-GType
-psppire_window_usage_get_type (void)
-{
-  static GType etype = 0;
-  if (etype == 0)
-    {
-      static const GEnumValue values[] = {
-	{ PSPPIRE_WINDOW_USAGE_SYNTAX, "PSPPIRE_WINDOW_USAGE_SYNTAX",
-	  "Syntax" },
-
-	{ PSPPIRE_WINDOW_USAGE_OUTPUT, "PSPPIRE_WINDOW_USAGE_OUTPUT",
-	  "Output" },
-
-	{ PSPPIRE_WINDOW_USAGE_DATA,   "PSPPIRE_WINDOW_USAGE_DATA",
-	  "Data" },
-
-	{ 0, NULL, NULL }
-      };
-
-      etype = g_enum_register_static (g_intern_static_string ("PsppireWindowUsage"),
-				      values);
-    }
-
-  return etype;
-}
-
 
 
 static void

@@ -263,8 +263,8 @@ GtkWidget*
 psppire_output_window_new (void)
 {
   return GTK_WIDGET (g_object_new (psppire_output_window_get_type (),
-				   "usage", PSPPIRE_WINDOW_USAGE_OUTPUT,
 				   "filename", "Output",
+				   "description", _("Output Viewer"),
 				   NULL));
 }
 
