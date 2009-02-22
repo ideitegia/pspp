@@ -223,7 +223,7 @@ connect_help_glade (GladeXML *xml)
 
 
 void
-connect_help (gpointer *xml)
+connect_help (gpointer xml)
 {
   if (GTK_IS_BUILDER (xml))
     connect_help_builder (GTK_BUILDER (xml));
