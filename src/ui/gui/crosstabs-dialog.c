@@ -23,13 +23,13 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include "helper.h"
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/syntax-editor.h>
+#include <ui/gui/helper.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -385,12 +385,13 @@ void
 crosstabs_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
-
   struct crosstabs_dialog cd;
 
   GtkBuilder *xml = builder_new ("crosstabs.ui");
   PsppireVarStore *vs = NULL;
+
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
+
 
   GtkWidget *dialog = get_widget_assert   (xml, "crosstabs-dialog");
   GtkWidget *source = get_widget_assert   (xml, "dict-treeview");
@@ -419,7 +420,7 @@ crosstabs_dialog (GObject *o, gpointer data)
 				  cells
 				  );
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,
@@ -461,9 +462,9 @@ crosstabs_dialog (GObject *o, gpointer data)
   cd.current_opts.table = TRUE;
   cd.current_opts.pivot = TRUE;
 
-  gtk_window_set_transient_for (GTK_WINDOW (cd.format_dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (cd.cell_dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (cd.stat_dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (cd.format_dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (cd.cell_dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (cd.stat_dialog), GTK_WINDOW (de));
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &cd);
 
@@ -485,6 +486,7 @@ crosstabs_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&cd);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -495,10 +497,7 @@ crosstabs_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&cd);
 
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+	paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

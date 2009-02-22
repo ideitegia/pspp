@@ -23,13 +23,13 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/syntax-editor.h>
+#include <ui/gui/helper.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -223,11 +223,10 @@ void
 regression_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
-
   struct regression_dialog rd;
 
   GtkBuilder *xml = builder_new ("regression.ui");
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   PsppireVarStore *vs;
 
   GtkWidget *dialog = get_widget_assert   (xml, "regression-dialog");
@@ -251,7 +250,7 @@ regression_dialog (GObject *o, gpointer data)
 				  stats
 				  );
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,
@@ -286,8 +285,8 @@ regression_dialog (GObject *o, gpointer data)
   rd.current_opts.pred = FALSE;
   rd.current_opts.resid = FALSE;
 
-  gtk_window_set_transient_for (GTK_WINDOW (rd.save_dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (rd.stat_dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (rd.save_dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (rd.stat_dialog), GTK_WINDOW (de));
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &rd);
 
@@ -307,6 +306,7 @@ regression_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&rd);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -316,11 +316,7 @@ regression_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

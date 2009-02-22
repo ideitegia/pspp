@@ -19,12 +19,12 @@
 #include "goto-case-dialog.h"
 #include "helper.h"
 #include "psppire-dialog.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-data-store.h"
 
 
 static void
-refresh (const struct data_editor *de, GtkBuilder *xml)
+refresh (const PsppireDataWindow *de, GtkBuilder *xml)
 {
   PsppireDataStore *ds = NULL;
   casenumber case_count ;
@@ -44,12 +44,12 @@ goto_case_dialog (GObject *o, gpointer data)
 {
   gint response;
   GtkBuilder *xml = builder_new ("psppire.ui");
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   GtkWidget *dialog = get_widget_assert   (xml, "goto-case-dialog");
 
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   refresh (de, xml);
 

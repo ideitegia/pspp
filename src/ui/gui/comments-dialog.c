@@ -18,9 +18,10 @@
 
 #include "psppire-dialog.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
+#include "psppire-data-editor.h"
 #include <language/syntax-string-source.h>
-#include "syntax-editor.h"
+#include "helper.h"
 #include "psppire-var-store.h"
 #include <ui/syntax-gen.h>
 
@@ -94,7 +95,7 @@ comments_dialog (GObject *o, gpointer data)
 {
   GtkTextIter iter;
   gint response ;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct comment_dialog cd;
 
   GtkBuilder *xml = builder_new ("psppire.ui");
@@ -108,7 +109,7 @@ comments_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   {
     PangoContext * context ;
@@ -166,6 +167,7 @@ comments_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&cd);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -176,10 +178,7 @@ comments_dialog (GObject *o, gpointer data)
       {
 	gchar *syntax = generate_syntax (&cd);
 
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+	paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

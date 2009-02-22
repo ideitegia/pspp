@@ -20,6 +20,8 @@
 */
 #include <config.h>
 
+#include "psppire-syntax-window.h"
+
 #include	<glib-object.h>
 
 #include <glib.h>
@@ -46,7 +48,7 @@
 #include <language/lexer/lexer.h>
 #include "psppire-data-store.h"
 #include <output/manager.h>
-#include "output-viewer.h"
+#include "psppire-output-window.h"
 
 #include "xalloc.h"
 
@@ -117,6 +119,19 @@ builder_new_real (const gchar *name)
 }
 
 
+GObject *
+get_object_assert (GtkBuilder *builder, const gchar *name)
+{
+  GObject *o = NULL;
+  g_assert (name);
+
+  o = gtk_builder_get_object (builder, name);
+
+  if ( !o )
+    g_critical ("Object \"%s\" could not be found\n", name);
+
+  return o;
+}
 
 GtkWidget *
 get_widget_assert (gpointer x, const gchar *name)
@@ -164,8 +179,38 @@ give_help (void)
   gtk_widget_destroy (dialog);
 }
 
-void
-connect_help (GladeXML *xml)
+static void
+connect_help_builder (GtkBuilder *xml)
+{
+  GSList *helps = gtk_builder_get_objects (xml);
+
+  GSList *i;
+  for ( i = helps; i ; i = g_slist_next (i))
+    {
+      GObject *o = i->data;
+      if ( GTK_IS_WIDGET (o) )
+	{
+	  gchar *name = NULL;
+	  gchar s[12] = {0};
+	  g_object_get (o, "name", &name, NULL);
+
+	  if ( name)
+	    strncpy (s, name, 11);
+	  s[11] = '\0';
+
+
+	  if ( 0 == strcmp ("help_button", s))
+	    {
+	    g_signal_connect (GTK_WIDGET (o), "clicked", give_help, 0);
+	    }
+	}
+    }
+
+  g_slist_free (helps);
+}
+
+static void
+connect_help_glade (GladeXML *xml)
 {
   GList *helps = glade_xml_get_widget_prefix (xml, "help_button_");
 
@@ -174,6 +219,22 @@ connect_help (GladeXML *xml)
     g_signal_connect (GTK_WIDGET (i->data), "clicked", give_help, 0);
 
   g_list_free (helps);
+}
+
+
+void
+connect_help (gpointer xml)
+{
+  if (GTK_IS_BUILDER (xml))
+    connect_help_builder (GTK_BUILDER (xml));
+
+  else if (GLADE_IS_XML (xml))
+    connect_help_glade (GLADE_XML (xml));
+
+  else
+    {
+      g_error ("XML of type %s", G_OBJECT_TYPE_NAME (xml));
+    }
 }
 
 
@@ -268,7 +329,7 @@ execute_syntax (struct getl_interface *sss)
 
   som_flush ();
 
-  reload_the_viewer ();
+  psppire_output_window_reload ();
 
   return retval;
 }
@@ -319,4 +380,12 @@ clone_list_store (const GtkListStore *src)
 }
 
 
+void
+paste_syntax_in_new_window (const gchar *syntax)
+{
+  GtkWidget *se = psppire_syntax_window_new ();
 
+  gtk_text_buffer_insert_at_cursor (PSPPIRE_SYNTAX_WINDOW (se)->buffer, syntax, -1);
+
+  gtk_widget_show (se);
+}

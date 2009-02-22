@@ -32,7 +32,6 @@
 
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 
 #include <string.h>
 
@@ -221,11 +220,9 @@ on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
 
 /* Creates the dialog structure from the xml */
 struct missing_val_dialog *
-missing_val_dialog_create (GladeXML *xml)
+missing_val_dialog_create (GtkBuilder *xml)
 {
   struct missing_val_dialog *dialog = g_malloc (sizeof (*dialog));
-
-  connect_help (xml);
 
   dialog->window = get_widget_assert (xml, "missing_values_dialog");
 

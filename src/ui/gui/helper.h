@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004  Free Software Foundation
+   Copyright (C) 2004, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,6 +26,10 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
+
+
+void paste_syntax_in_new_window (const gchar *syntax);
+
 /*
    GtkRecentChooserMenu was added in 2.10.0
    but it didn't support GtkRecentFilters until
@@ -43,13 +47,14 @@ gchar * value_to_text (union value v, struct fmt_spec format);
 gboolean text_to_value (const gchar *text, union value *v,
 		       struct fmt_spec format);
 
+GObject * get_object_assert (GtkBuilder *builder, const gchar *name);
 GtkWidget * get_widget_assert (gpointer x, const gchar *name);
 
 /* Converts a string in the pspp locale to utf-8 */
 char * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
 
 
-void connect_help (GladeXML *);
+void connect_help (gpointer);
 
 void reference_manual (GtkMenuItem *, gpointer);
 

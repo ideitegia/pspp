@@ -22,13 +22,13 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/syntax-editor.h>
+#include <ui/gui/helper.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -220,7 +220,7 @@ void
 rank_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct rank_dialog rd;
 
@@ -304,7 +304,7 @@ rank_dialog (GObject *o, gpointer data)
 		    G_CALLBACK (on_ntiles_toggle),
 		    rd.ntiles_entry);
 
-  gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (vars),
 				 vs->dict,
@@ -349,6 +349,7 @@ rank_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&rd);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -358,12 +359,7 @@ rank_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
-
+	paste_syntax_in_new_window (syntax);
 	g_free (syntax);
       }
       break;

@@ -20,10 +20,10 @@
 #include "psppire-selector.h"
 #include "psppire-dialog.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
-#include "syntax-editor.h"
+#include "helper.h"
 #include <data/dictionary.h>
 
 #include <gtk/gtk.h>
@@ -166,7 +166,7 @@ void
 split_file_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct split_file_dialog sfd;
   PsppireVarStore *vs ;
 
@@ -210,7 +210,7 @@ split_file_dialog (GObject *o, gpointer data)
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &sfd);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
@@ -220,6 +220,7 @@ split_file_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&sfd);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -229,11 +230,7 @@ split_file_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&sfd);
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

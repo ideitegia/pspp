@@ -25,7 +25,7 @@
 #include <ui/command-line.h>
 #include "relocatable.h"
 
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire.h"
 
 #include <libpspp/getl.h>
@@ -52,7 +52,8 @@
 #include "message-dialog.h"
 #include <ui/syntax-gen.h>
 
-#include "output-viewer.h"
+
+#include "psppire-output-window.h"
 
 #include <data/sys-file-reader.h>
 #include <data/por-file-reader.h>
@@ -67,6 +68,7 @@ static void create_icon_factory (void);
 struct source_stream *the_source_stream ;
 struct dataset * the_dataset = NULL;
 
+static GtkWidget *the_data_window;
 
 static void
 replace_casereader (struct casereader *s)
@@ -76,6 +78,10 @@ replace_casereader (struct casereader *s)
 
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
+
+
+const char * output_file_name (void);
+
 
 void
 initialize (struct command_line_processor *clp, int argc, char **argv)
@@ -116,8 +122,6 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
   the_data_store = psppire_data_store_new (dictionary);
   replace_casereader (NULL);
 
-
-
   create_icon_factory ();
 
   {
@@ -143,14 +147,16 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
   journal_enable ();
   textdomain (PACKAGE);
 
+  the_data_window = psppire_data_window_new ();
+
   command_line_processor_replace_aux (clp, &post_init_argp, the_source_stream);
   command_line_processor_replace_aux (clp, &non_option_argp, the_source_stream);
 
   command_line_processor_parse (clp, argc, argv);
 
-  new_data_window (NULL, NULL);
-
   execute_syntax (create_syntax_string_source (""));
+
+  gtk_widget_show (the_data_window);
 }
 
 
@@ -288,6 +294,9 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 			    ERRMODE_CONTINUE);
 
 	ds_destroy (&syntax);
+
+	psppire_window_set_filename (PSPPIRE_WINDOW (the_data_window), arg);
+
 	break;
       }
     default:
@@ -298,3 +307,17 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 
 
 const struct argp non_option_argp = {NULL, parse_non_options, 0, 0, 0, 0, 0};
+
+
+const char *
+output_file_name (void)
+{
+  const char *dir = default_output_path ();
+  static char *filename = NULL;
+
+  if ( NULL == filename )
+    filename = xasprintf ("%s%s", dir, OUTPUT_FILE_NAME);
+
+
+  return filename;
+}

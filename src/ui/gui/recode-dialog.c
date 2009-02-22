@@ -27,13 +27,13 @@
 #include <gtk/gtk.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/syntax-editor.h>
+#include <ui/gui/helper.h>
 #include <ui/syntax-gen.h>
 
 #include "psppire-acr.h"
@@ -470,14 +470,14 @@ toggle_sensitivity (GtkToggleButton *button, GtkWidget *target)
   gtk_widget_set_sensitive (target, state);
 }
 
-static void recode_dialog (struct data_editor *de, gboolean diff);
+static void recode_dialog (PsppireDataWindow *de, gboolean diff);
 
 
 /* Pops up the Recode Same version of the dialog box */
 void
 recode_same_dialog (GObject *o, gpointer data)
 {
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   recode_dialog (de, FALSE);
 }
@@ -486,7 +486,7 @@ recode_same_dialog (GObject *o, gpointer data)
 void
 recode_different_dialog (GObject *o, gpointer data)
 {
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   recode_dialog (de, TRUE);
 }
@@ -836,7 +836,7 @@ set_acr (struct recode_dialog *rd)
 }
 
 static void
-recode_dialog (struct data_editor *de, gboolean diff)
+recode_dialog (PsppireDataWindow *de, gboolean diff)
 {
   gint response;
 
@@ -882,7 +882,7 @@ recode_dialog (struct data_editor *de, gboolean diff)
 
   rd.different = diff;
 
-  gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (rd.dict_treeview),
@@ -993,7 +993,7 @@ recode_dialog (struct data_editor *de, gboolean diff)
       PSPPIRE_DIALOG (get_widget_assert (builder, "old-new-values-dialog"));
 
     gtk_window_set_transient_for (GTK_WINDOW (rd.old_and_new_dialog),
-				  de->parent.window);
+				  GTK_WINDOW (de));
 
     rd.acr = PSPPIRE_ACR (get_widget_assert (builder, "psppire-acr1"));
 
@@ -1084,6 +1084,7 @@ recode_dialog (struct data_editor *de, gboolean diff)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&rd);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -1093,11 +1094,7 @@ recode_dialog (struct data_editor *de, gboolean diff)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&rd);
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

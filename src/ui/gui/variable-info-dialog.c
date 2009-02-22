@@ -22,13 +22,13 @@
 #include <data/variable.h>
 #include <data/format.h>
 #include <data/value-labels.h>
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "psppire-var-store.h"
 #include "helper.h"
 
 #include <language/syntax-string-source.h>
-#include "syntax-editor.h"
+#include "helper.h"
 
 
 #include <gettext.h>
@@ -163,7 +163,7 @@ static gchar * generate_syntax (GtkTreeView *treeview);
 void
 variable_info_dialog (GObject *o, gpointer data)
 {
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   gint response ;
 
@@ -177,7 +177,7 @@ variable_info_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (treeview),
 				 vs->dict,
@@ -213,11 +213,7 @@ variable_info_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (GTK_TREE_VIEW (treeview));
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

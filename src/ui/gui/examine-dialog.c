@@ -22,13 +22,13 @@
 #include <stdlib.h>
 
 #include <language/syntax-string-source.h>
-#include <ui/gui/data-editor.h>
+#include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/syntax-editor.h>
+#include <ui/gui/helper.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -236,7 +236,7 @@ void
 examine_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   struct examine_dialog ex_d;
 
@@ -275,9 +275,9 @@ examine_dialog (GObject *o, gpointer data)
   ex_d.percentiles_button = GTK_TOGGLE_BUTTON
     (get_widget_assert (xml, "percentiles-button"));
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (ex_d.stats_dialog), de->parent.window);
-  gtk_window_set_transient_for (GTK_WINDOW (ex_d.opts_dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (ex_d.stats_dialog), GTK_WINDOW (de));
+  gtk_window_set_transient_for (GTK_WINDOW (ex_d.opts_dialog), GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
 				 vs->dict,
@@ -344,12 +344,7 @@ examine_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&ex_d);
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
-
+	paste_syntax_in_new_window (syntax);
 	g_free (syntax);
       }
       break;

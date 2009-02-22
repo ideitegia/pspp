@@ -68,14 +68,17 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/crosstabs.ui \
+	$(top_builddir)/src/ui/gui/data-editor.ui \
 	$(top_builddir)/src/ui/gui/examine.ui \
 	$(top_builddir)/src/ui/gui/frequencies.ui \
 	$(top_builddir)/src/ui/gui/message-dialog.ui \
 	$(top_builddir)/src/ui/gui/psppire.ui \
 	$(top_builddir)/src/ui/gui/oneway.ui \
+	$(top_builddir)/src/ui/gui/output-viewer.ui \
 	$(top_builddir)/src/ui/gui/rank.ui \
 	$(top_builddir)/src/ui/gui/recode.ui \
 	$(top_builddir)/src/ui/gui/regression.ui \
+	$(top_builddir)/src/ui/gui/syntax-editor.ui \
 	$(top_builddir)/src/ui/gui/t-test.ui
 
 EXTRA_DIST += \
@@ -131,8 +134,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/frequencies-dialog.h \
 	src/ui/gui/goto-case-dialog.c \
 	src/ui/gui/goto-case-dialog.h \
-	src/ui/gui/data-editor.c \
-	src/ui/gui/data-editor.h \
 	src/ui/gui/descriptives-dialog.c \
 	src/ui/gui/descriptives-dialog.h \
 	src/ui/gui/examine-dialog.c \
@@ -154,14 +155,10 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/missing-val-dialog.h \
         src/ui/gui/oneway-anova-dialog.c \
         src/ui/gui/oneway-anova-dialog.h \
-	src/ui/gui/output-viewer.c \
-	src/ui/gui/output-viewer.h \
 	src/ui/gui/psppire-acr.h \
 	src/ui/gui/psppire-buttonbox.h \
 	src/ui/gui/psppire-hbuttonbox.h \
 	src/ui/gui/psppire-vbuttonbox.h \
-	src/ui/gui/psppire-data-editor.c \
-	src/ui/gui/psppire-data-editor.h \
 	src/ui/gui/psppire-data-store.c \
 	src/ui/gui/psppire-data-store.h \
 	src/ui/gui/psppire-dialog.h \
@@ -187,8 +184,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/sort-cases-dialog.h \
 	src/ui/gui/split-file-dialog.c \
 	src/ui/gui/split-file-dialog.h \
-	src/ui/gui/syntax-editor.c \
-	src/ui/gui/syntax-editor.h \
 	src/ui/gui/syntax-editor-source.c \
 	src/ui/gui/syntax-editor-source.h \
 	src/ui/gui/text-data-import-dialog.c \
@@ -215,8 +210,18 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/weight-cases-dialog.h \
 	src/ui/gui/widget-io.c \
 	src/ui/gui/widget-io.h \
-	src/ui/gui/window-manager.c \
-	src/ui/gui/window-manager.h
+	src/ui/gui/psppire-data-editor.c \
+	src/ui/gui/psppire-data-editor.h \
+	src/ui/gui/psppire-data-window.c \
+	src/ui/gui/psppire-data-window.h \
+	src/ui/gui/psppire-output-window.c \
+	src/ui/gui/psppire-output-window.h \
+	src/ui/gui/psppire-window.c \
+	src/ui/gui/psppire-window.h \
+	src/ui/gui/psppire-window-register.c \
+	src/ui/gui/psppire-window-register.h \
+	src/ui/gui/psppire-syntax-window.c \
+	src/ui/gui/psppire-syntax-window.h
 
 nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.c \

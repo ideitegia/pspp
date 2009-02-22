@@ -22,7 +22,7 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "dialog-common.h"
 #include "dict-display.h"
@@ -30,7 +30,7 @@
 
 
 #include <language/syntax-string-source.h>
-#include "syntax-editor.h"
+#include "helper.h"
 
 
 #include "gettext.h"
@@ -126,7 +126,7 @@ void
 oneway_anova_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   PsppireVarStore *vs = NULL;
 
@@ -168,7 +168,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
   ow.dialog =
     GTK_WINDOW (get_widget_assert (builder, "oneway-anova-dialog"));
 
-  gtk_window_set_transient_for (ow.dialog, de->parent.window);
+  gtk_window_set_transient_for (ow.dialog, GTK_WINDOW (de));
 
   attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
 				 vs->dict,
@@ -222,7 +222,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
     psppire_acr_set_entry (cd->acr, entry);
 
     gtk_window_set_transient_for (GTK_WINDOW (cd->contrasts_dialog),
-				  de->parent.window);
+				  GTK_WINDOW (de));
   }
 
   response = psppire_dialog_run (PSPPIRE_DIALOG (ow.dialog));
@@ -232,6 +232,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
     case GTK_RESPONSE_OK:
       {
 	gchar *syntax = generate_syntax (&ow);
+
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
 
@@ -241,11 +242,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&ow);
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
+        paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
       }

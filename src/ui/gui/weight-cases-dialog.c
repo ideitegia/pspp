@@ -20,10 +20,10 @@
 #include "psppire-selector.h"
 #include "psppire-dialog.h"
 #include "helper.h"
-#include "data-editor.h"
+#include "psppire-data-window.h"
 #include "dict-display.h"
 #include <language/syntax-string-source.h>
-#include "syntax-editor.h"
+#include "helper.h"
 
 #include <gtk/gtk.h>
 
@@ -103,7 +103,7 @@ void
 weight_cases_dialog (GObject *o, gpointer data)
 {
   gint response;
-  struct data_editor *de = data;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
   struct weight_cases_dialog wcd;
 
   GtkBuilder *xml = builder_new ("psppire.ui");
@@ -121,7 +121,7 @@ weight_cases_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs,  NULL);
 
-  gtk_window_set_transient_for (GTK_WINDOW (dialog), de->parent.window);
+  gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_signal_connect (radiobutton1, "toggled", G_CALLBACK (on_toggle), entry);
   g_signal_connect (selector, "selected", G_CALLBACK (on_select),
@@ -171,12 +171,7 @@ weight_cases_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_PASTE:
       {
 	gchar *syntax = generate_syntax (&wcd);
-
-	struct syntax_editor *se =
-	  (struct syntax_editor *) window_create (WINDOW_SYNTAX, NULL);
-
-	gtk_text_buffer_insert_at_cursor (se->buffer, syntax, -1);
-
+        paste_syntax_in_new_window (syntax);
 	g_free (syntax);
       }
       break;
