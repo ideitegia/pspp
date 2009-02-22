@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@ struct _PsppireWindow
 
   guint insert_handler;
   guint remove_handler;
+  gboolean unsaved;
 };
 
 struct _PsppireWindowClass
@@ -72,6 +73,7 @@ void psppire_window_set_filename (PsppireWindow *w, const gchar *filename);
 
 void psppire_window_minimise_all (void);
 
+void psppire_window_set_unsaved (PsppireWindow *, gboolean );
 
 G_END_DECLS
 

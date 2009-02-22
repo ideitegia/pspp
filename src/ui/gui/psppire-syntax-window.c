@@ -479,6 +479,13 @@ on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
   gtk_statusbar_pop (GTK_STATUSBAR (window->sb), window->text_context);
 }
 
+static void
+on_modified_changed (GtkTextBuffer *buffer, PsppireWindow *window)
+{
+  psppire_window_set_unsaved (window, gtk_text_buffer_get_modified (buffer));
+}
+
+
 extern struct source_stream *the_source_stream ;
 
 static void
@@ -499,6 +506,9 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
   window->text_context = gtk_statusbar_get_context_id (GTK_STATUSBAR (window->sb), "Text Context");
 
   g_signal_connect (window->buffer, "changed", G_CALLBACK (on_text_changed), window);
+
+  g_signal_connect (window->buffer, "modified-changed",
+		    G_CALLBACK (on_modified_changed), window);
 
   connect_help (xml);
 

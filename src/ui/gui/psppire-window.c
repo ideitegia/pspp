@@ -87,13 +87,17 @@ static gchar mdash[6] = {0,0,0,0,0,0};
 static void
 psppire_window_set_title (PsppireWindow *window)
 {
-  gchar *title =
-    g_strdup_printf ( _("%s %s PSPPIRE %s"),
-		      window->basename, mdash, window->description);
+  GString *title = g_string_sized_new (80);
 
-  gtk_window_set_title (GTK_WINDOW (window), title);
+  g_string_printf (title, _("%s %s PSPPIRE %s"),
+		    window->basename, mdash, window->description);
 
-  free (title);
+  if ( window->unsaved)
+    g_string_prepend_c (title, '*');
+
+  gtk_window_set_title (GTK_WINDOW (window), title->str);
+
+  g_string_free (title, TRUE);
 }
 
 static void
@@ -290,7 +294,7 @@ insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
   g_signal_connect (item, "activate", G_CALLBACK (menu_activate), key);
 
   gtk_widget_show (item);
-  
+
   gtk_menu_shell_append (window->menu, item);
 
   /* Set the state without emitting a signal */
@@ -361,6 +365,8 @@ psppire_window_init (PsppireWindow *window)
 					     "removed",
 					     G_CALLBACK (remove_menuitem),
 					     window);
+
+  window->unsaved = FALSE;
 }
 
 
@@ -386,6 +392,14 @@ void
 psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
 {
   g_object_set (w, "filename", filename, NULL);
+}
+
+void
+psppire_window_set_unsaved (PsppireWindow *w, gboolean unsaved)
+{
+  w->unsaved = unsaved;
+
+  psppire_window_set_title (w);
 }
 
 
