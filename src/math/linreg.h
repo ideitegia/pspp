@@ -214,4 +214,5 @@ void pspp_linreg_set_indep_variable_sd (pspp_linreg_cache *, const struct variab
  */
 double pspp_linreg_get_indep_variable_mean (pspp_linreg_cache *, const struct variable *);
 void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *, const struct variable *, double);
+double pspp_linreg_mse (const pspp_linreg_cache *);
 #endif
