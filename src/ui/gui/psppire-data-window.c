@@ -340,6 +340,8 @@ psppire_data_window_load_file (PsppireDataWindow *de,
   }
 
   psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
+  free (de->file_name);
+  de->file_name = g_strdup (file_name);
 }
 
 
@@ -563,7 +565,7 @@ data_save_as_dialog (GtkAction *action, PsppireDataWindow *de)
 static void
 data_save (GtkAction *action, PsppireDataWindow *de)
 {
-  if ( de->file_name)
+  if (de->file_name)
     save_file (de);
   else
     data_save_as_dialog (action, de);
