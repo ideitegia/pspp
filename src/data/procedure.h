@@ -85,4 +85,6 @@ const struct casereader *dataset_source (const struct dataset *ds);
 const struct ccase *lagged_case (const struct dataset *ds, int n_before);
 void dataset_need_lag (struct dataset *ds, int n_before);
 
+void dataset_set_callback (struct dataset *ds, void (*cb) (void *), void *);
+
 #endif /* procedure.h */

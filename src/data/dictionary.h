@@ -164,6 +164,11 @@ void dict_set_callbacks (struct dictionary *, const struct dict_callbacks *,
 			 void *);
 void dict_copy_callbacks (struct dictionary *, const struct dictionary *);
 
+void dict_set_change_callback (struct dictionary *d,
+			       void (*changed) (struct dictionary *, void*),
+			       void *data);
+
+
 /* Debug use only. */
 void dict_dump (const struct dictionary *);
 

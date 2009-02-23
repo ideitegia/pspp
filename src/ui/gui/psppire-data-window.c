@@ -337,6 +337,8 @@ open_data_file (const gchar *file_name, PsppireDataWindow *de)
     psppire_window_set_filename (PSPPIRE_WINDOW (de), file_name);
     add_most_recent (file_name);
   }
+
+  psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
 }
 
 
@@ -454,6 +456,8 @@ save_file (PsppireDataWindow *de)
   ds_destroy (&file_name);
 
   execute_syntax (sss);
+
+  psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
 }
 
 
@@ -1000,7 +1004,11 @@ on_switch_sheet (GtkNotebook *notebook,
 }
 
 
-
+static void
+set_unsaved (gpointer w)
+{
+  psppire_window_set_unsaved (PSPPIRE_WINDOW (w), TRUE);
+}
 
 static void
 psppire_data_window_init (PsppireDataWindow *de)
@@ -1020,6 +1028,17 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   de->data_editor =
     PSPPIRE_DATA_EDITOR (psppire_data_editor_new (the_var_store, the_data_store));
+
+  g_signal_connect_swapped (the_data_store, "case-changed",
+		    G_CALLBACK (set_unsaved), de);
+
+  g_signal_connect_swapped (the_data_store, "case-inserted",
+		    G_CALLBACK (set_unsaved), de);
+
+  g_signal_connect_swapped (the_data_store, "cases-deleted",
+		    G_CALLBACK (set_unsaved), de);
+
+  dataset_set_callback (the_dataset, set_unsaved, de);
 
   connect_help (de->xml);
 

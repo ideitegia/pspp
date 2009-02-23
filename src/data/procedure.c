@@ -92,6 +92,10 @@ struct dataset {
   proc_state;
   casenumber cases_written;       /* Cases output so far. */
   bool ok;                    /* Error status. */
+
+  void (*callback) (void *); /* Callback for when the dataset changes */
+  void *cb_data;
+
 }; /* struct dataset */
 
 
@@ -99,8 +103,23 @@ static void add_case_limit_trns (struct dataset *ds);
 static void add_filter_trns (struct dataset *ds);
 
 static void update_last_proc_invocation (struct dataset *ds);
+
+static void
+dataset_set_unsaved (const struct dataset *ds)
+{
+  if (ds->callback) ds->callback (ds->cb_data);
+}
+
 
 /* Public functions. */
+
+void
+dataset_set_callback (struct dataset *ds, void (*cb) (void *), void *cb_data)
+{
+  ds->callback = cb;
+  ds->cb_data = cb_data;
+}
+
 
 /* Returns the last time the data was read. */
 time_t
@@ -292,6 +311,8 @@ proc_commit (struct dataset *ds)
 {
   assert (ds->proc_state == PROC_CLOSED);
   ds->proc_state = PROC_COMMITTED;
+
+  dataset_set_unsaved (ds);
 
   /* Free memory for lagged cases. */
   while (!deque_is_empty (&ds->lag))
@@ -510,12 +531,23 @@ proc_cancel_all_transformations (struct dataset *ds)
   return ok;
 }
 
+
+static void
+dict_callback (struct dictionary *d UNUSED, void *ds_)
+{
+  struct dataset *ds = ds_;
+  dataset_set_unsaved (ds);
+}
+
 /* Initializes procedure handling. */
 struct dataset *
 create_dataset (void)
 {
   struct dataset *ds = xzalloc (sizeof(*ds));
   ds->dict = dict_create ();
+
+  dict_set_change_callback (ds->dict, dict_callback, ds);
+
   ds->caseinit = caseinit_create ();
   proc_cancel_all_transformations (ds);
   return ds;
@@ -585,6 +617,7 @@ proc_set_active_file (struct dataset *ds,
 
   dict_destroy (ds->dict);
   ds->dict = dict;
+  dict_set_change_callback (ds->dict, dict_callback, ds);
 
   proc_set_active_file_data (ds, source);
 }

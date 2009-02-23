@@ -66,7 +66,20 @@ struct dictionary
     const struct dict_callbacks *callbacks; /* Callbacks on dictionary
 					       modification */
     void *cb_data ;                  /* Data passed to callbacks */
+
+    void (*changed) (struct dictionary *, void *); /* Generic change callback */
+    void *changed_data;
   };
+
+void
+dict_set_change_callback (struct dictionary *d,
+			  void (*changed) (struct dictionary *, void*),
+			  void *data)
+{
+  d->changed = changed;
+  d->changed_data = data;
+}
+
 
 /* Print a representation of dictionary D to stdout, for
    debugging purposes. */
@@ -334,6 +347,7 @@ add_var (struct dictionary *d, struct variable *v)
   d->var[d->var_cnt++] = v;
   hsh_force_insert (d->name_tab, v);
 
+  if ( d->changed ) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->var_added )
     d->callbacks->var_added (d, var_get_dict_index (v), d->cb_data);
 
@@ -461,6 +475,7 @@ set_var_dict_index (struct variable *v, int dict_index)
   vdi.dict_index = dict_index;
   var_set_vardict (v, &vdi);
 
+  if ( d->changed ) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->var_changed )
     d->callbacks->var_changed (d, dict_index, d->cb_data);
 }
@@ -535,7 +550,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   var_clear_vardict (v);
   var_destroy (v);
 
-
+  if ( d->changed ) d->changed (d, d->changed_data);
   if (d->callbacks &&  d->callbacks->var_deleted )
     d->callbacks->var_deleted (d, dict_index, case_index, val_cnt, d->cb_data);
 }
@@ -666,6 +681,7 @@ dict_rename_var (struct dictionary *d, struct variable *v,
   if (settings_get_algorithm () == ENHANCED)
     var_clear_short_names (v);
 
+  if ( d->changed ) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->var_changed )
     d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
 }
@@ -905,6 +921,7 @@ dict_set_weight (struct dictionary *d, struct variable *v)
 
   d->weight = v;
 
+  if (d->changed) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->weight_changed )
     d->callbacks->weight_changed (d,
 				  v ? var_get_dict_index (v) : -1,
@@ -933,6 +950,7 @@ dict_set_filter (struct dictionary *d, struct variable *v)
 
   d->filter = v;
 
+  if (d->changed) d->changed (d, d->changed_data);
   if ( d->callbacks && d->callbacks->filter_changed )
     d->callbacks->filter_changed (d,
 				  v ? var_get_dict_index (v) : -1,
@@ -1087,6 +1105,7 @@ dict_unset_split_var (struct dictionary *d, struct variable *v)
                                &v, compare_var_ptrs, NULL);
   if (orig_count != d->split_cnt)
     {
+      if (d->changed) d->changed (d, d->changed_data);
       /* We changed the set of split variables so invoke the
          callback. */
       if (d->callbacks &&  d->callbacks->split_changed)
@@ -1114,6 +1133,7 @@ dict_set_split_vars (struct dictionary *d,
     d->split = NULL;
    }
 
+  if (d->changed) d->changed (d, d->changed_data);
   if ( d->callbacks &&  d->callbacks->split_changed )
     d->callbacks->split_changed (d, d->cb_data);
 }
@@ -1328,6 +1348,7 @@ dict_var_changed (const struct variable *v)
       const struct vardict_info *vdi = var_get_vardict (v);
       struct dictionary *d = vdi->dict;
 
+      if (d->changed ) d->changed (d, d->changed_data);
       if ( d->callbacks && d->callbacks->var_changed )
 	d->callbacks->var_changed (d, var_get_dict_index (v), d->cb_data);
     }
@@ -1348,6 +1369,7 @@ dict_var_resized (const struct variable *v, int delta)
 
       dict_pad_values (d, var_get_case_index(v) + 1, delta);
 
+      if (d->changed) d->changed (d, d->changed_data);
       if ( d->callbacks && d->callbacks->var_resized )
 	d->callbacks->var_resized (d, var_get_dict_index (v), delta, d->cb_data);
     }
@@ -1365,6 +1387,7 @@ dict_var_display_width_changed (const struct variable *v)
 
       d = vdi->dict;
 
+      if (d->changed) d->changed (d, d->changed_data);
       if ( d->callbacks && d->callbacks->var_display_width_changed )
 	d->callbacks->var_display_width_changed (d, var_get_dict_index (v), d->cb_data);
     }
