@@ -350,15 +350,10 @@ covariance_accumulator_hash (const void *h, const void *aux)
     }
   if (var_is_alpha (v_max) && var_is_alpha (v_min))
     {
-      unsigned int tmp;
-      char *x =
-	xnmalloc (1 + var_get_width (v_max) + var_get_width (v_min),
-		  sizeof (*x));
-      strncpy (x, val_max->s, var_get_width (v_max));
-      strncat (x, val_min->s, var_get_width (v_min));
-      tmp = *n_vars * (*n_vars + 1 + idx_max) + idx_min + hsh_hash_string (x);
-      free (x);
-      return tmp;
+      unsigned tmp = hsh_hash_bytes (val_max, var_get_width (v_max));
+      tmp ^= hsh_hash_bytes (val_min, var_get_width (v_min));
+      tmp += *n_vars * (*n_vars + 1 + idx_max) + idx_min;
+      return (size_t) tmp;
     }
   return -1u;
 }
