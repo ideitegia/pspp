@@ -148,7 +148,7 @@ reg_stats_r (pspp_linreg_cache * c)
   assert (c != NULL);
   rsq = c->ssm / c->sst;
   adjrsq = 1.0 - (1.0 - rsq) * (c->n_obs - 1.0) / (c->n_obs - c->n_indeps);
-  std_error = sqrt ((c->n_indeps - 1.0) / (c->n_obs - 1.0));
+  std_error = sqrt (pspp_linreg_mse (c));
   t = tab_create (n_cols, n_rows, 0);
   tab_dim (t, tab_natural_dimensions);
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
@@ -281,7 +281,7 @@ reg_stats_anova (pspp_linreg_cache * c)
   int n_cols = 7;
   int n_rows = 4;
   const double msm = c->ssm / c->dfm;
-  const double mse = c->sse / c->dfe;
+  const double mse = pspp_linreg_mse (c);
   const double F = msm / mse;
   const double pval = gsl_cdf_fdist_Q (F, c->dfm, c->dfe);
 
@@ -689,21 +689,17 @@ subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
 
       for (lc = models; lc < models + cmd.n_dependent; lc++)
 	{
-	  if (*lc != NULL)
+	  assert (*lc != NULL);
+	  assert ((*lc)->depvar != NULL);
+	  if (cmd.a_save[REGRESSION_SV_RESID])
 	    {
-	      if ((*lc)->depvar != NULL)
-		{
-		  if (cmd.a_save[REGRESSION_SV_RESID])
-		    {
-		      reg_save_var (ds, "RES", regression_trns_resid_proc, *lc,
-				    &(*lc)->resid, n_trns);
-		    }
-		  if (cmd.a_save[REGRESSION_SV_PRED])
-		    {
-		      reg_save_var (ds, "PRED", regression_trns_pred_proc, *lc,
-				    &(*lc)->pred, n_trns);
-		    }
-		}
+	      reg_save_var (ds, "RES", regression_trns_resid_proc, *lc,
+			    &(*lc)->resid, n_trns);
+	    }
+	  if (cmd.a_save[REGRESSION_SV_PRED])
+	    {
+	      reg_save_var (ds, "PRED", regression_trns_pred_proc, *lc,
+			    &(*lc)->pred, n_trns);
 	    }
 	}
     }
