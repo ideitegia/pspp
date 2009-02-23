@@ -24,7 +24,6 @@
 #include <gtk/gtkaction.h>
 #include "psppire-window.h"
 #include "psppire-data-editor.h"
-#include <glade/glade.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
@@ -49,41 +48,10 @@ struct _PsppireDataWindow
 
   /* <private> */
   PsppireDataEditor *data_editor;
-  GladeXML *xml;
   GtkBuilder *builder;
-  GtkAction *action_data_new;
-  GtkAction *action_data_open;
-  GtkAction *action_data_save_as;
-  GtkAction *action_data_save;
 
-  GtkAction *invoke_text_import_assistant;
 
-  /* Actions which invoke dialog boxes */
-  GtkAction *invoke_weight_cases_dialog;
-  GtkAction *invoke_transpose_dialog;
-  GtkAction *invoke_split_file_dialog;
-  GtkAction *invoke_sort_cases_dialog;
-  GtkAction *invoke_compute_dialog;
-  GtkAction *invoke_comments_dialog;
-  GtkAction *invoke_select_cases_dialog;
   GtkAction *invoke_goto_dialog;
-  GtkAction *invoke_variable_info_dialog;
-  GtkAction *invoke_find_dialog;
-  GtkAction *invoke_rank_dialog;
-  GtkAction *invoke_recode_same_dialog;
-  GtkAction *invoke_recode_different_dialog;
-
-  GtkAction *invoke_crosstabs_dialog;
-  GtkAction *invoke_descriptives_dialog;
-  GtkAction *invoke_frequencies_dialog;
-  GtkAction *invoke_examine_dialog;
-  GtkAction *invoke_regression_dialog;
-
-  GtkAction *invoke_t_test_independent_samples_dialog;
-  GtkAction *invoke_t_test_paired_samples_dialog;
-  GtkAction *invoke_oneway_anova_dialog;
-  GtkAction *invoke_t_test_one_sample_dialog;
-
 
   GtkAction *insert_variable;
   GtkAction *insert_case;

@@ -25,7 +25,6 @@
 
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <data/variable.h>
 
 
