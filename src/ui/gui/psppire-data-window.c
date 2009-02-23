@@ -107,7 +107,7 @@ psppire_data_window_finalize (GObject *object)
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (object);
 
-  g_object_unref (de->xml);
+  g_object_unref (de->builder);
 
   if (G_OBJECT_CLASS (parent_class)->finalize)
     (*G_OBJECT_CLASS (parent_class)->finalize) (object);
@@ -151,7 +151,7 @@ update_paste_menuitems (GtkWidget *w, gboolean x, gpointer data)
 {
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
 
-  GtkWidget * edit_paste = get_widget_assert (de->xml, "edit_paste");
+  GtkWidget *edit_paste = get_widget_assert (de->xml, "edit_paste");
 
   gtk_widget_set_sensitive (edit_paste, x);
 }
@@ -161,8 +161,8 @@ update_cut_copy_menuitems (GtkWidget *w, gboolean x, gpointer data)
 {
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
 
-  GtkWidget * edit_copy = get_widget_assert (de->xml, "edit_copy");
-  GtkWidget * edit_cut = get_widget_assert (de->xml, "edit_cut");
+  GtkWidget *edit_copy = get_widget_assert (de->xml, "edit_copy");
+  GtkWidget *edit_cut = get_widget_assert (de->xml, "edit_cut");
 
   gtk_widget_set_sensitive (edit_copy, x);
   gtk_widget_set_sensitive (edit_cut, x);
@@ -183,10 +183,14 @@ transformation_change_callback (bool transformations_pending,
 {
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
 
+  GtkUIManager *uim =
+    GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1"));
+
   GtkWidget *menuitem =
-    get_widget_assert (de->xml, "transform_run-pending");
+    gtk_ui_manager_get_widget (uim,"/ui/menubar/transform/transform_run-pending");
+
   GtkWidget *status_label  =
-    get_widget_assert (de->xml, "case-counter-area");
+    get_widget_assert (de->builder, "case-counter-area");
 
   gtk_widget_set_sensitive (menuitem, transformations_pending);
 
@@ -205,7 +209,7 @@ on_filter_change (GObject *o, gint filter_index, gpointer data)
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
 
   GtkWidget *filter_status_area =
-    get_widget_assert (de->xml, "filter-use-status-area");
+    get_widget_assert (de->builder, "filter-use-status-area");
 
   if ( filter_index == -1 )
     {
@@ -238,7 +242,7 @@ on_split_change (PsppireDict *dict, gpointer data)
   size_t n_split_vars = dict_get_split_cnt (dict->dict);
 
   GtkWidget *split_status_area =
-    get_widget_assert (de->xml, "split-file-status-area");
+    get_widget_assert (de->builder, "split-file-status-area");
 
   if ( n_split_vars == 0 )
     {
@@ -275,7 +279,7 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
 
   GtkWidget *weight_status_area =
-    get_widget_assert (de->xml, "weight-status-area");
+    get_widget_assert (de->builder, "weight-status-area");
 
   if ( weight_index == -1 )
     {
@@ -341,6 +345,7 @@ psppire_data_window_load_file (PsppireDataWindow *de,
 
   psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
   free (de->file_name);
+
   de->file_name = g_strdup (file_name);
 }
 
@@ -388,11 +393,12 @@ open_data_dialog (GtkAction *action, PsppireDataWindow *de)
     {
     case GTK_RESPONSE_ACCEPT:
       {
-	g_free (de->file_name);
-	de->file_name =
+	gchar *name = 
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	psppire_data_window_load_file (de, de->file_name);
+	psppire_data_window_load_file (de, name);
+
+	g_free (name);
       }
       break;
     default:
@@ -590,55 +596,6 @@ new_file (GtkAction *action, PsppireDataWindow *de)
 
 
 
-/* Create the GtkActions and connect to their signals */
-static void
-register_data_editor_actions (PsppireDataWindow *de)
-{
-  de->action_data_open =
-    gtk_action_new ("data-open-dialog",
-		    _("Open"),
-		    _("Open a data file"),
-		    "gtk-open");
-
-  g_signal_connect (de->action_data_open, "activate",
-		    G_CALLBACK (open_data_dialog), de);
-
-
-  de->action_data_save = gtk_action_new ("data-save",
-					    _("Save"),
-					    _("Save data to file"),
-					    "gtk-save");
-
-  g_signal_connect (de->action_data_save, "activate",
-		    G_CALLBACK (data_save), de);
-
-
-  de->action_data_save_as = gtk_action_new ("data-save-as-dialog",
-					    _("Save As"),
-					    _("Save data to file"),
-					    "gtk-save");
-
-  g_signal_connect (de->action_data_save_as, "activate",
-		    G_CALLBACK (data_save_as_dialog), de);
-
-  de->action_data_new =
-    gtk_action_new ("data-new",
-		    _("New"),
-		    _("New data file"),
-		    NULL);
-
-  g_signal_connect (de->action_data_new, "activate",
-		    G_CALLBACK (new_file), de);
-
-  de->invoke_text_import_assistant =
-    gtk_action_new ("file_import-text",
-		    _("_Import Text Data"),
-		    _("Import text data file"),
-		    "");
-
-  g_signal_connect (de->invoke_text_import_assistant, "activate",
-		    G_CALLBACK (text_data_import_assistant), de);
-}
 
 static void
 on_edit_paste (GtkAction *a, gpointer data)
@@ -668,12 +625,12 @@ on_edit_cut (GtkMenuItem *m, gpointer data)
 
 
 static void
-status_bar_activate (GtkCheckMenuItem *menuitem, gpointer data)
+status_bar_activate (GtkToggleAction *action, gpointer data)
 {
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
-  GtkWidget *statusbar = get_widget_assert (de->xml, "status-bar");
+  GtkWidget *statusbar = get_widget_assert (de->builder, "status-bar");
 
-  if ( gtk_check_menu_item_get_active (menuitem) )
+  if ( gtk_toggle_action_get_active (action) )
     gtk_widget_show (statusbar);
   else
     gtk_widget_hide (statusbar);
@@ -681,15 +638,13 @@ status_bar_activate (GtkCheckMenuItem *menuitem, gpointer data)
 
 
 static void
-grid_lines_activate (GtkCheckMenuItem *menuitem, gpointer data)
+grid_lines_activate (GtkToggleAction *action, gpointer data)
 {
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
-  const gboolean grid_visible = gtk_check_menu_item_get_active (menuitem);
+  const gboolean grid_visible = gtk_toggle_action_get_active (action);
 
   psppire_data_editor_show_grid (de->data_editor, grid_visible);
 }
-
-
 
 static void
 data_view_activate (GtkCheckMenuItem *menuitem, gpointer data)
@@ -727,7 +682,7 @@ fonts_activate (GtkMenuItem *menuitem, gpointer data)
   g_free (font_name);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog),
-				GTK_WINDOW (get_widget_assert (de->xml,
+				GTK_WINDOW (get_widget_assert (de->builder,
 							       "data_editor")));
   if ( GTK_RESPONSE_OK == gtk_dialog_run (GTK_DIALOG (dialog)) )
     {
@@ -782,10 +737,16 @@ create_data_sheet_variable_popup_menu (PsppireDataWindow *de)
   GtkWidget *menu = gtk_menu_new ();
 
   GtkWidget *sort_ascending =
-    gtk_menu_item_new_with_label (_("Sort Ascending"));
+    gtk_action_create_menu_item (gtk_action_new ("sort-up",
+						 _("Sort Ascending"),
+						 NULL,
+						 "gtk-sort-ascending"));
 
   GtkWidget *sort_descending =
-    gtk_menu_item_new_with_label (_("Sort Descending"));
+    gtk_action_create_menu_item (gtk_action_new ("sort-down",
+						_("Sort Descending"),
+						NULL,
+						 "gtk-sort-descending"));
 
   GtkWidget *insert_variable =
     gtk_menu_item_new_with_label (_("Insert Variable"));
@@ -978,8 +939,14 @@ on_switch_sheet (GtkNotebook *notebook,
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (user_data);
 
-  GtkWidget *view_data = get_widget_assert (de->xml, "view_data");
-  GtkWidget *view_variables = get_widget_assert (de->xml, "view_variables");
+  GtkUIManager *uim =
+    GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1"));
+
+  GtkWidget *view_data =
+    gtk_ui_manager_get_widget (uim,"/ui/menubar/view/view_data");
+
+  GtkWidget *view_variables =
+    gtk_ui_manager_get_widget (uim,"/ui/menubar/view/view_variables");
 
   switch (page_num)
     {
@@ -1007,6 +974,26 @@ on_switch_sheet (GtkNotebook *notebook,
 }
 
 
+static GtkAction *
+resolve_action (GtkBuilder *builder, const gchar *action, const gchar *proxy)
+{
+  GObject *pr = NULL;
+  GObject *act = get_object_assert (builder, action);
+  g_assert (GTK_IS_ACTION (act));
+
+  if ( proxy )
+    {
+      pr = get_object_assert (builder, proxy);
+      g_assert (GTK_IS_WIDGET (pr));
+    }
+
+  if ( pr )
+    gtk_action_connect_proxy (GTK_ACTION (act), GTK_WIDGET (pr));
+
+  return GTK_ACTION (act);
+}
+
+
 static void
 set_unsaved (gpointer w)
 {
@@ -1022,12 +1009,17 @@ psppire_data_window_init (PsppireDataWindow *de)
   GtkWidget *hb ;
   GtkWidget *sb ;
 
+  GtkUIManager *uim;
+
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
   de->xml = XML_NEW ("data-editor.glade");
+  de->builder = builder_new ("data-editor.ui");
 
-  menubar = get_widget_assert (de->xml, "menubar");
-  hb = get_widget_assert (de->xml, "handlebox1");
-  sb = get_widget_assert (de->xml, "status-bar");
+  menubar = get_widget_assert (de->builder, "menubar");
+  hb = get_widget_assert (de->builder, "handlebox1");
+  sb = get_widget_assert (de->builder, "status-bar");
+
+  de->file_name = NULL;
 
   de->data_editor =
     PSPPIRE_DATA_EDITOR (psppire_data_editor_new (the_var_store, the_data_store));
@@ -1043,7 +1035,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   dataset_set_callback (the_dataset, set_unsaved, de);
 
-  connect_help (de->xml);
+  connect_help (de->builder);
 
   g_object_ref (menubar);
   gtk_widget_unparent (menubar);
@@ -1098,138 +1090,207 @@ psppire_data_window_init (PsppireDataWindow *de)
 		    G_CALLBACK (on_edit_cut), de);
 
 
-  register_data_editor_actions (de);
-
-  de->toggle_value_labels =
-    gtk_toggle_action_new ("toggle-value-labels",
-			   _("_Labels"),
-			   _("Show/hide value labels"),
-			   "pspp-value-labels");
-
-  g_signal_connect (de->toggle_value_labels, "toggled",
-		    G_CALLBACK (toggle_value_labels), de);
 
 
-  gtk_action_connect_proxy (GTK_ACTION (de->toggle_value_labels),
-			    get_widget_assert (de->xml,
-					       "togglebutton-value-labels"));
+  de->action_data_open =
+    resolve_action (de->builder, "file_open_data", "button-open");
 
+  g_object_set (de->action_data_open,
+		"tooltip",  _("Open a data file"),
+		"stock-id", "gtk-open",
+		NULL);
 
-  gtk_action_connect_proxy (GTK_ACTION (de->toggle_value_labels),
-			    get_widget_assert (de->xml,
-					       "view_value-labels"));
+  g_signal_connect (de->action_data_open, "activate",
+		    G_CALLBACK (open_data_dialog), de);
 
 
 
-  de->delete_cases =
-    gtk_action_new ("clear-cases",
-		    _("Clear"),
-		    _("Delete the cases at the selected position(s)"),
-		    "pspp-clear-cases");
 
-  g_signal_connect_swapped (de->delete_cases, "activate",
-		    G_CALLBACK (psppire_data_editor_delete_cases),
-		    de->data_editor);
+  de->action_data_new =
+    resolve_action (de->builder, "file_new_data", NULL);
 
-  gtk_action_connect_proxy (de->delete_cases,
-			    get_widget_assert (de->xml, "edit_clear-cases"));
+  g_object_set (de->action_data_new,
+		"tooltip", _("New data file"),
+		"stock-id", "gtk-new",
+		NULL);
+
+  g_signal_connect (de->action_data_new, "activate",
+		    G_CALLBACK (new_file), de);
+
+
+
+
+
+  de->invoke_text_import_assistant =
+    resolve_action (de->builder, "file_import-text", NULL);
+
+  g_object_set (de->invoke_text_import_assistant,
+		"tooltip",  _("Import text data file"),
+		"stock-id", "gtk-convert",
+		NULL);
+
+  g_signal_connect (de->invoke_text_import_assistant, "activate",
+		    G_CALLBACK (text_data_import_assistant), de);
+
+
+
+
+
+  de->action_data_save =
+    resolve_action (de->builder, "file_save", "button-save");
+
+
+  g_object_set (de->action_data_save,
+		"tooltip", _("Save data to file"),
+		"stock-id", "gtk-save",
+		NULL);
+
+  g_signal_connect (de->action_data_save, "activate",
+		    G_CALLBACK (data_save), de);
+
+
+
+
+
+  de->action_data_save_as =
+    resolve_action (de->builder, "file_save_as", NULL);
+
+  g_object_set (de->action_data_save_as,
+		"label", _("Save As"),
+		"tooltip", _("Save data to file"),
+		"stock-id", "gtk-save-as",
+		NULL);
+
+  g_signal_connect (de->action_data_save_as, "activate",
+		    G_CALLBACK (data_save_as_dialog), de);
+
+
+
+  {
+    GObject *value_labels_action =
+      resolve_action (de->builder,
+		      "view_value-labels", "togglebutton-value-labels");
+
+    g_object_set (value_labels_action,
+		  "tooltip",  _("Show/hide value labels"),
+		  "stock-id", "pspp-value-labels",
+		  NULL);
+
+    g_signal_connect (value_labels_action, "toggled",
+		      G_CALLBACK (toggle_value_labels), de);
+  }
+
 
   g_signal_connect (get_widget_assert (de->xml, "edit_paste"), "activate",
-		    G_CALLBACK (on_edit_paste),
-		    de);
+		      G_CALLBACK (on_edit_paste),
+		      de);
 
-  gtk_action_set_visible (de->delete_cases, FALSE);
+  {
+    de->delete_cases =
+      resolve_action (de->builder, "edit_clear-cases", NULL);
 
-  de->delete_variables =
-    gtk_action_new ("clear-variables",
-		    _("Clear"),
-		    _("Delete the variables at the selected position(s)"),
-		    "pspp-clear-variables");
 
-  g_signal_connect_swapped (de->delete_variables, "activate",
-			    G_CALLBACK (psppire_data_editor_delete_variables),
-			    de->data_editor);
+    g_object_set (de->delete_cases,
+		  "label", _("Clear"),
+		  "tooltip", _("Delete the cases at the selected position(s)"),
+		  "stock-id", "gtk-clear",
+		  NULL);
 
-  gtk_action_connect_proxy (de->delete_variables,
-			    get_widget_assert (de->xml, "edit_clear-variables")
-			    );
+    g_signal_connect_swapped (de->delete_cases, "activate",
+			      G_CALLBACK (psppire_data_editor_delete_cases),
+			      de->data_editor);
 
-  gtk_action_set_visible (de->delete_variables, FALSE);
+    gtk_action_set_visible (de->delete_cases, FALSE);
+  }
+
+
+  {
+    de->delete_variables =
+      resolve_action (de->builder, "edit_clear-variables", NULL);
+
+    g_object_set (de->delete_variables,
+		  "label", _("Clear"),
+		  "tooltip", _("Delete the variables at the selected position(s)"),
+		  "stock-id", "gtk-clear",
+		  NULL);
+
+
+    g_signal_connect_swapped (de->delete_variables, "activate",
+			      G_CALLBACK (psppire_data_editor_delete_variables),
+			      de->data_editor);
+
+    gtk_action_set_visible (de->delete_variables, FALSE);
+  }
+
 
   de->insert_variable =
-    gtk_action_new ("insert-variable",
-		    _("Insert _Variable"),
-		    _("Create a new variable at the current position"),
-		    "pspp-insert-variable");
+    resolve_action (de->builder, "edit_insert-variable",
+		    "button-insert-variable");
+
+  g_object_set (de->insert_variable,
+		"tooltip", _("Create a new variable at the current position"),
+		"stock-id", "pspp-insert-variable",
+		NULL);
 
   g_signal_connect (de->insert_variable, "activate",
 		    G_CALLBACK (on_insert_variable), de->data_editor);
 
 
-  gtk_action_connect_proxy (de->insert_variable,
-			    get_widget_assert (de->xml, "button-insert-variable")
-			    );
 
-  gtk_action_connect_proxy (de->insert_variable,
-			    get_widget_assert (de->xml, "edit_insert-variable")
-			    );
 
 
   de->insert_case =
-    gtk_action_new ("insert-case",
-		    _("Insert Ca_se"),
-		    _("Create a new case at the current position"),
-		    "pspp-insert-case");
+    resolve_action (de->builder, "edit_insert-case", "button-insert-case");
+
+  g_object_set (de->insert_case,
+		"tooltip", _("Create a new case at the current position"),
+		"stock-id", "pspp-insert-case",
+		NULL);
 
   g_signal_connect (de->insert_case, "activate",
 		    G_CALLBACK (insert_case), de);
 
 
-  gtk_action_connect_proxy (de->insert_case,
-			    get_widget_assert (de->xml, "button-insert-case")
-			    );
 
-
-  gtk_action_connect_proxy (de->insert_case,
-			    get_widget_assert (de->xml, "edit_insert-case")
-			    );
 
 
   de->invoke_goto_dialog =
-    gtk_action_new ("goto-case-dialog",
-		    _("_Goto Case"),
-		    _("Jump to a Case in the Data Sheet"),
-		    "gtk-jump-to");
+    resolve_action (de->builder, "edit_goto-case", "button-goto-case");
 
 
-  gtk_action_connect_proxy (de->invoke_goto_dialog,
-			    get_widget_assert (de->xml, "button-goto-case")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_goto_dialog,
-			    get_widget_assert (de->xml, "edit_goto-case")
-			    );
-
+  g_object_set (de->invoke_goto_dialog,
+		"tooltip", _("Jump to a Case in the Data Sheet"),
+		"stock-id", "gtk-jump-to",
+		NULL);
 
   g_signal_connect (de->invoke_goto_dialog, "activate",
 		    G_CALLBACK (goto_case_dialog), de);
 
+
+
+
   de->invoke_weight_cases_dialog =
-    gtk_action_new ("weight-cases-dialog",
-		    _("_Weights"),
-		    _("Weight cases by variable"),
-		    "pspp-weight-cases");
+    resolve_action (de->builder, "data_weight-cases", "button-weight-cases");
+
+
+  g_object_set (de->invoke_weight_cases_dialog,
+		"stock-id", "pspp-weight-cases",
+		"tooltip", _("Weight cases by variable"),
+		NULL);
 
   g_signal_connect (de->invoke_weight_cases_dialog, "activate",
 		    G_CALLBACK (weight_cases_dialog), de);
 
 
-  de->invoke_transpose_dialog =
-    gtk_action_new ("transpose-dialog",
-		    _("_Transpose"),
-		    _("Transpose the cases with the variables"),
-		    NULL);
 
+  de->invoke_transpose_dialog =
+    resolve_action (de->builder, "data_transpose", NULL);
+
+
+  g_object_set (de->invoke_transpose_dialog,
+		"tooltip", _("Transpose the cases with the variables"),
+		"stock-id", "pspp-transpose",
+		NULL);
 
   g_signal_connect (de->invoke_transpose_dialog, "activate",
 		    G_CALLBACK (transpose_dialog), de);
@@ -1237,205 +1298,276 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
   de->invoke_split_file_dialog =
-    gtk_action_new ("split-file-dialog",
-		    _("S_plit"),
-		    _("Split the active file"),
-		    "pspp-split-file");
+    resolve_action (de->builder, "data_split-file", "button-split-file");
+
+  g_object_set (de->invoke_split_file_dialog,
+		"tooltip", _("Split the active file"),
+		"stock-id", "pspp-split-file",
+		NULL);
 
   g_signal_connect (de->invoke_split_file_dialog, "activate",
 		    G_CALLBACK (split_file_dialog), de);
 
 
 
+
   de->invoke_sort_cases_dialog =
-    gtk_action_new ("sort-cases-dialog",
-		    _("_Sort"),
-		    _("Sort cases in the active file"),
-		    "pspp-sort-cases");
+    resolve_action (de->builder, "data_sort-cases", NULL);
+
+
+  g_object_set (de->invoke_sort_cases_dialog,
+		"tooltip", _("Sort cases in the active file"),
+		"stock-id", "gtk-sort-ascending",
+		NULL);
 
   g_signal_connect (de->invoke_sort_cases_dialog, "activate",
 		    G_CALLBACK (sort_cases_dialog), de);
 
+
+
+
   de->invoke_select_cases_dialog =
-    gtk_action_new ("select-cases-dialog",
-		    _("Select _Cases"),
-		    _("Select cases from the active file"),
-		    "pspp-select-cases");
+    resolve_action (de->builder, "data_select-cases", "button-select-cases");
+
+  g_object_set (de->invoke_select_cases_dialog,
+		"tooltip", _("Select cases from the active file"),
+		"stock-id", "pspp-select-cases",
+		NULL);
 
   g_signal_connect (de->invoke_select_cases_dialog, "activate",
 		    G_CALLBACK (select_cases_dialog), de);
 
 
+
+
   de->invoke_compute_dialog =
-    gtk_action_new ("compute-dialog",
-		    _("_Compute"),
-		    _("Compute new values for a variable"),
-		    "pspp-compute");
+    resolve_action (de->builder, "transform_compute", NULL);
+
+  g_object_set (de->invoke_compute_dialog,
+		"tooltip", _("Compute new values for a variable"),
+		"stock-id", "pspp-compute",
+		NULL);
 
   g_signal_connect (de->invoke_compute_dialog, "activate",
 		    G_CALLBACK (compute_dialog), de);
 
+
+
+
   de->invoke_oneway_anova_dialog =
-    gtk_action_new ("oneway-anova",
-		    _("Oneway _ANOVA"),
-		    _("Perform one way analysis of variance"),
-		    NULL);
+    resolve_action (de->builder, "oneway-anova", NULL);
+
+  g_object_set (de->invoke_oneway_anova_dialog,
+		"tooltip", _("Perform one way analysis of variance"),
+		NULL);
 
   g_signal_connect (de->invoke_oneway_anova_dialog, "activate",
 		    G_CALLBACK (oneway_anova_dialog), de);
 
+
+
+
   de->invoke_t_test_independent_samples_dialog =
-    gtk_action_new ("t-test-independent-samples",
-		    _("_Independent Samples T Test"),
-		    _("Calculate T Test for samples from independent groups"),
-		    NULL);
+    resolve_action (de->builder, "indep-t-test", NULL);
+
+
+  g_object_set (de->invoke_t_test_independent_samples_dialog,
+		"tooltip",
+		_("Calculate T Test for samples from independent groups"),
+		NULL);
 
   g_signal_connect (de->invoke_t_test_independent_samples_dialog, "activate",
 		    G_CALLBACK (t_test_independent_samples_dialog), de);
 
 
+
+
   de->invoke_t_test_paired_samples_dialog =
-    gtk_action_new ("t-test-paired-samples",
-		    _("_Paired Samples T Test"),
-		    _("Calculate T Test for paired samples"),
-		    NULL);
+    resolve_action (de->builder, "paired-t-test", NULL);
+
+  g_object_set (de->invoke_t_test_paired_samples_dialog,
+		"tooltip",
+		_("Calculate T Test for paired samples"),
+		NULL);
 
   g_signal_connect (de->invoke_t_test_paired_samples_dialog, "activate",
 		    G_CALLBACK (t_test_paired_samples_dialog), de);
 
 
+
+
   de->invoke_t_test_one_sample_dialog =
-    gtk_action_new ("t-test-one-sample",
-		    _("One _Sample T Test"),
-		    _("Calculate T Test for sample from a single distribution"),
-		    NULL);
+    resolve_action (de->builder, "one-sample-t-test", NULL);
+
+  g_object_set (de->invoke_t_test_one_sample_dialog,
+		"tooltip",
+		_("Calculate T Test for sample from a single distribution"),
+		NULL);
 
   g_signal_connect (de->invoke_t_test_one_sample_dialog, "activate",
 		    G_CALLBACK (t_test_one_sample_dialog), de);
 
 
+
+
   de->invoke_comments_dialog =
-    gtk_action_new ("commments-dialog",
-		    _("Data File _Comments"),
-		    _("Commentary text for the data file"),
-		    NULL);
+    resolve_action (de->builder, "utilities_comments", NULL);
+
+
+  g_object_set (de->invoke_comments_dialog,
+		"tooltip",
+		_("Commentary text for the data file"),
+		NULL);
 
   g_signal_connect (de->invoke_comments_dialog, "activate",
 		    G_CALLBACK (comments_dialog), de);
 
-  de->invoke_find_dialog  =
-    gtk_action_new ("find-dialog",
-		    _("_Find"),
-		    _("Find Case"),
-		    "gtk-find");
+
+
+
+
+  de->invoke_find_dialog =
+    resolve_action (de->builder, "edit_find", "button-find");
+
+  g_object_set (de->invoke_find_dialog, "stock-id", "gtk-find", NULL);
 
   g_signal_connect (de->invoke_find_dialog, "activate",
 		    G_CALLBACK (find_dialog), de);
 
 
-  de->invoke_rank_dialog  =
-    gtk_action_new ("rank-dialog",
-		    _("Ran_k Cases"),
-		    _("Rank Cases"),
-		    "pspp-rank-cases");
+  de->invoke_rank_dialog =
+    resolve_action (de->builder, "transform_rank", NULL);
+
+  g_object_set (de->invoke_rank_dialog,
+		"stock-id", "pspp-rank-cases",
+		"tooltip", _("Rank Cases"),
+		NULL);
 
   g_signal_connect (de->invoke_rank_dialog, "activate",
 		    G_CALLBACK (rank_dialog), de);
 
 
-  de->invoke_recode_same_dialog  =
-    gtk_action_new ("recode-same-dialog",
-		    _("Recode into _Same Variables"),
-		    _("Recode values into the same Variables"),
-		    "pspp-recode-same");
+
+
+  de->invoke_recode_same_dialog =
+    resolve_action (de->builder, "transform_recode-same", NULL);
+
+  g_object_set (de->invoke_recode_same_dialog,
+		"stock-id", "pspp-recode-same",
+		"tooltip", _("Recode values into the same variables"),
+		NULL);
 
   g_signal_connect (de->invoke_recode_same_dialog, "activate",
 		    G_CALLBACK (recode_same_dialog), de);
 
 
+
+
   de->invoke_recode_different_dialog  =
-    gtk_action_new ("recode-different-dialog",
-		    _("Recode into _Different Variables"),
-		    _("Recode values into different Variables"),
-		    "pspp-recode-different");
+    resolve_action (de->builder, "transform_recode-different", NULL);
+
+  g_object_set (de->invoke_recode_same_dialog,
+		"stock-id", "pspp-recode-different",
+		"tooltip", _("Recode values into different variables"),
+		NULL);
 
   g_signal_connect (de->invoke_recode_different_dialog, "activate",
 		    G_CALLBACK (recode_different_dialog), de);
 
 
+
+
   de->invoke_variable_info_dialog  =
-    gtk_action_new ("variable-info-dialog",
-		    _("_Variables"),
-		    _("Jump to Variable"),
-		    "pspp-goto-variable");
+    resolve_action (de->builder, "utilities_variables", "button-goto-variable");
+
+  g_object_set (de->invoke_variable_info_dialog,
+		"stock-id", "pspp-goto-variable",
+		"tooltip", _("Jump to variable"),
+		NULL);
 
   g_signal_connect (de->invoke_variable_info_dialog, "activate",
 		    G_CALLBACK (variable_info_dialog), de);
 
+
+
+
   de->invoke_descriptives_dialog =
-    gtk_action_new ("descriptives-dialog",
-		    _("_Descriptives"),
-		    _("Calculate descriptive statistics (mean, variance, ...)"),
-		    "pspp-descriptives");
+    resolve_action (de->builder,  "analyze_descriptives", NULL);
+
+  g_object_set (de->invoke_descriptives_dialog,
+		"tooltip", _("Calculate descriptive statistics (mean, variance, ...)"),
+		"stock-id", "pspp-descriptives",
+		NULL);
 
   g_signal_connect (de->invoke_descriptives_dialog, "activate",
 		    G_CALLBACK (descriptives_dialog), de);
 
 
+
+
   de->invoke_frequencies_dialog =
-    gtk_action_new ("frequencies-dialog",
-		    _("_Frequencies"),
-		    _("Generate frequency statistics"),
-		    "pspp-frequencies");
+    resolve_action (de->builder,  "analyze_frequencies", NULL);
+
+  g_object_set (de->invoke_frequencies_dialog,
+		"tooltip", _("Generate frequency statistics"),
+		"stock-id", "pspp-frequencies",
+		NULL);
 
   g_signal_connect (de->invoke_frequencies_dialog, "activate",
 		    G_CALLBACK (frequencies_dialog), de);
 
+
+
   de->invoke_crosstabs_dialog =
-    gtk_action_new ("crosstabs-dialog",
-		    _("_Crosstabs"),
-		    _("Generate crosstabulations"),
-		    "pspp-crosstabs");
+    resolve_action (de->builder, "crosstabs", NULL);
+
+  g_object_set (de->invoke_crosstabs_dialog,
+		"tooltip", _("Generate crosstabulations"),
+		"stock-id", "pspp-crosstabs",
+		NULL);
 
   g_signal_connect (de->invoke_crosstabs_dialog, "activate",
 		    G_CALLBACK (crosstabs_dialog), de);
 
 
+
+
+
   de->invoke_examine_dialog =
-    gtk_action_new ("examine-dialog",
-		    _("_Explore"),
-		    _("Examine Data by Factors"),
-		    "pspp-examine");
+    resolve_action (de->builder, "analyze_explore", NULL);
+
+  g_object_set (de->invoke_examine_dialog,
+		"tooltip", _("Examine Data by Factors"),
+		"stock-id", "pspp-examine",
+		NULL);
 
   g_signal_connect (de->invoke_examine_dialog, "activate",
 		    G_CALLBACK (examine_dialog), de);
 
 
+
+
   de->invoke_regression_dialog =
-    gtk_action_new ("regression-dialog",
-		    _("Linear _Regression"),
-		    _("Estimate parameters of the linear model"),
-		    "pspp-regression");
+    resolve_action (de->builder, "linear-regression", NULL);
+
+  g_object_set (de->invoke_regression_dialog,
+		"tooltip", _("Estimate parameters of the linear model"),
+		"stock-id", "pspp-regression",
+		NULL
+		);
 
   g_signal_connect (de->invoke_regression_dialog, "activate",
 		    G_CALLBACK (regression_dialog), de);
 
-  g_signal_connect_swapped (get_widget_assert (de->xml,"file_new_data"),
-			    "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->action_data_new);
 
-  g_signal_connect_swapped (get_widget_assert (de->xml,"file_open_data"),
-			    "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->action_data_open);
 
-#if RECENT_LISTS_AVAILABLE
+
+#if RECENT_LISTS_AVAILABLE && 0
   {
     GtkRecentManager *rm = gtk_recent_manager_get_default ();
-    GtkWidget *recent_data = get_widget_assert (de->xml, "file_recent-data");
-    GtkWidget *recent_files = get_widget_assert (de->xml, "file_recent-files");
-    GtkWidget *recent_separator = get_widget_assert (de->xml, "file_separator1");
+    GtkWidget *recent_data = get_object_assert (de->builder, "file_recent-data");
+    GtkWidget *recent_files = get_object_assert (de->builder, "file_recent-files");
+    GtkWidget *recent_separator = get_object_assert (de->builder, "file_separator1");
 
     GtkWidget *menu = gtk_recent_chooser_menu_new_for_manager (rm);
 
@@ -1473,137 +1605,27 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 #endif
 
-  g_signal_connect (get_widget_assert (de->xml,"file_new_syntax"),
+  g_signal_connect (get_object_assert (de->builder,"file_new_syntax"),
 		    "activate",
 		    G_CALLBACK (create_syntax_window),
 		    NULL);
 
-  g_signal_connect (get_widget_assert (de->xml,"file_open_syntax"),
+  g_signal_connect (get_object_assert (de->builder,"file_open_syntax"),
 		    "activate",
 		    G_CALLBACK (open_syntax_window),
 		    de);
 
-  g_signal_connect_swapped (get_widget_assert (de->xml,"file_import-text"),
-			    "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->invoke_text_import_assistant);
-
-  g_signal_connect_swapped (get_widget_assert (de->xml,"file_save"),
-			    "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->action_data_save);
-
-  g_signal_connect_swapped (get_widget_assert (de->xml,"file_save_as"),
-			    "activate",
-			    G_CALLBACK (gtk_action_activate),
-			    de->action_data_save_as);
-
-  gtk_action_connect_proxy (de->invoke_find_dialog,
-			    get_widget_assert (de->xml, "edit_find")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_find_dialog,
-			    get_widget_assert (de->xml, "button-find")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_rank_dialog,
-			    get_widget_assert (de->xml, "transform_rank")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_recode_same_dialog,
-			    get_widget_assert (de->xml,
-					       "transform_recode-same")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_recode_different_dialog,
-			    get_widget_assert (de->xml,
-					       "transform_recode-different")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
-			    get_widget_assert (de->xml, "data_weight-cases")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_transpose_dialog,
-			    get_widget_assert (de->xml, "data_transpose")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_split_file_dialog,
-			    get_widget_assert (de->xml, "data_split-file")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_sort_cases_dialog,
-			    get_widget_assert (de->xml, "data_sort-cases")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_select_cases_dialog,
-			    get_widget_assert (de->xml, "data_select-cases")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_compute_dialog,
-			    get_widget_assert (de->xml, "transform_compute")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_t_test_independent_samples_dialog,
-			    get_widget_assert (de->xml,
-					       "indep-t-test")
-			    );
+  {
+    GObject *abt = get_object_assert (de->builder, "help_about");
+    g_object_set (abt, "stock-id", "gtk-about", NULL);
+    g_signal_connect (abt,
+		      "activate",
+		      G_CALLBACK (about_new),
+		      de);
+  }
 
 
-  gtk_action_connect_proxy (de->invoke_t_test_paired_samples_dialog,
-			    get_widget_assert (de->xml,
-					       "paired-t-test")
-			    );
-
-
-  gtk_action_connect_proxy (de->invoke_t_test_one_sample_dialog,
-			    get_widget_assert (de->xml,
-					       "one-sample-t-test")
-			    );
-
-
-  gtk_action_connect_proxy (de->invoke_oneway_anova_dialog,
-			    get_widget_assert (de->xml,
-					       "oneway-anova")
-			    );
-
-
-  gtk_action_connect_proxy (de->invoke_comments_dialog,
-			    get_widget_assert (de->xml, "utilities_comments")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_variable_info_dialog,
-			    get_widget_assert (de->xml, "utilities_variables")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_descriptives_dialog,
-			    get_widget_assert (de->xml, "analyze_descriptives")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_crosstabs_dialog,
-			    get_widget_assert (de->xml, "crosstabs")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_frequencies_dialog,
-			    get_widget_assert (de->xml, "analyze_frequencies")
-			    );
-
-
-  gtk_action_connect_proxy (de->invoke_examine_dialog,
-			    get_widget_assert (de->xml, "analyze_explore")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_regression_dialog,
-			    get_widget_assert (de->xml, "linear-regression")
-			    );
-
-  g_signal_connect (get_widget_assert (de->xml,"help_about"),
-		    "activate",
-		    G_CALLBACK (about_new),
-		    de);
-
-
-  g_signal_connect (get_widget_assert (de->xml,"help_reference"),
+  g_signal_connect (get_object_assert (de->builder,"help_reference"),
 		    "activate",
 		    G_CALLBACK (reference_manual),
 		    de);
@@ -1627,85 +1649,68 @@ psppire_data_window_init (PsppireDataWindow *de)
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
-  g_signal_connect (get_widget_assert (de->xml, "view_statusbar"),
+  g_signal_connect (get_object_assert (de->builder, "view_statusbar"),
 		    "activate",
 		    G_CALLBACK (status_bar_activate), de);
 
 
-  g_signal_connect (get_widget_assert (de->xml, "view_gridlines"),
+  g_signal_connect (get_object_assert (de->builder, "view_gridlines"),
 		    "activate",
 		    G_CALLBACK (grid_lines_activate), de);
 
 
 
-  g_signal_connect (get_widget_assert (de->xml, "view_data"),
+  g_signal_connect (get_object_assert (de->builder, "view_data"),
 		    "activate",
 		    G_CALLBACK (data_view_activate), de);
 
-  g_signal_connect (get_widget_assert (de->xml, "view_variables"),
+  g_signal_connect (get_object_assert (de->builder, "view_variables"),
 		    "activate",
 		    G_CALLBACK (variable_view_activate), de);
 
 
+  {
+    GtkAction *font_action =
+      resolve_action (de->builder, "view_fonts", NULL);
 
-  g_signal_connect (get_widget_assert (de->xml, "view_fonts"),
-		    "activate",
-		    G_CALLBACK (fonts_activate), de);
+    g_object_set (font_action,
+		  "stock-id", "gtk-select-font",
+		  NULL);
 
-
-
-
-  gtk_action_connect_proxy (de->action_data_open,
-			    get_widget_assert (de->xml, "button-open")
-			    );
-
-  gtk_action_connect_proxy (de->action_data_save,
-			    get_widget_assert (de->xml, "button-save")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_variable_info_dialog,
-			    get_widget_assert (de->xml, "button-goto-variable")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_weight_cases_dialog,
-			    get_widget_assert (de->xml, "button-weight-cases")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_split_file_dialog,
-			    get_widget_assert (de->xml, "button-split-file")
-			    );
-
-  gtk_action_connect_proxy (de->invoke_select_cases_dialog,
-			    get_widget_assert (de->xml, "button-select-cases")
-			    );
+    g_signal_connect (font_action,
+		      "activate",
+		      G_CALLBACK (fonts_activate), de);
+  }
 
 
-  g_signal_connect (get_widget_assert (de->xml, "file_quit"),
+
+  g_signal_connect (get_object_assert (de->builder, "file_quit"),
 		    "activate",
 		    G_CALLBACK (file_quit), de);
 
-  g_signal_connect (get_widget_assert (de->xml, "transform_run-pending"),
+  g_signal_connect (get_object_assert (de->builder, "transform_run-pending"),
 		    "activate",
 		    G_CALLBACK (execute), de);
 
 
-  g_signal_connect (get_widget_assert (de->xml, "windows_minimise_all"),
+  g_signal_connect (get_object_assert (de->builder, "windows_minimise_all"),
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all), NULL);
 
-  de->toggle_split_window =
-    gtk_toggle_action_new ("toggle-split-window",
-			   _("_Split Window"),
-			   _("Split the window vertically and horizontally"),
-			   "pspp-split-window");
 
-  g_signal_connect (de->toggle_split_window, "toggled",
-		    G_CALLBACK (toggle_split_window),
-		    de);
+  {
+    GtkAction *split_window_action =
+      resolve_action (de->builder, "windows_split", NULL);
 
-  gtk_action_connect_proxy (GTK_ACTION (de->toggle_split_window),
-			    get_widget_assert (de->xml,
-					       "windows_split"));
+    g_object_set (split_window_action,
+		  "tooltip", _("Split the window vertically and horizontally"),
+		  "stock-id", "pspp-split-window",
+		  NULL);
+
+    g_signal_connect (split_window_action, "toggled",
+		      G_CALLBACK (toggle_split_window),
+		      de);
+  }
 
   de->data_sheet_variable_popup_menu =
     GTK_MENU (create_data_sheet_variable_popup_menu (de));
@@ -1716,7 +1721,11 @@ psppire_data_window_init (PsppireDataWindow *de)
   de->data_sheet_cases_popup_menu =
     GTK_MENU (create_data_sheet_cases_popup_menu (de));
 
-  PSPPIRE_WINDOW (de)->menu = GTK_MENU_SHELL (get_widget_assert (de->xml,"Windows_menu"));
+  uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1"));
+
+  PSPPIRE_WINDOW (de)->menu =
+    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
+
 
   g_object_set (de->data_editor,
 		"datasheet-column-menu", de->data_sheet_variable_popup_menu,

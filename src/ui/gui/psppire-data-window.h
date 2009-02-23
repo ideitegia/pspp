@@ -50,6 +50,7 @@ struct _PsppireDataWindow
   /* <private> */
   PsppireDataEditor *data_editor;
   GladeXML *xml;
+  GtkBuilder *builder;
   GtkAction *action_data_new;
   GtkAction *action_data_open;
   GtkAction *action_data_save_as;
@@ -82,9 +83,6 @@ struct _PsppireDataWindow
   GtkAction *invoke_t_test_paired_samples_dialog;
   GtkAction *invoke_oneway_anova_dialog;
   GtkAction *invoke_t_test_one_sample_dialog;
-
-  GtkToggleAction *toggle_split_window;
-  GtkToggleAction *toggle_value_labels;
 
 
   GtkAction *insert_variable;

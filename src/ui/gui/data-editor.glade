@@ -772,7 +772,6 @@
                 <child>
                   <widget class="GtkToolButton" id="button-find">
                     <property name="visible">True</property>
-                    <property name="sensitive">False</property>
                     <property name="tooltip" translatable="yes">Find</property>
                     <property name="stock_id">gtk-find</property>
                   </widget>
