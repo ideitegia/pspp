@@ -257,46 +257,8 @@ parse_non_options (int key, char *arg, struct argp_state *state)
     {
     case ARGP_KEY_ARG:
       {
-	struct string syntax;
-	FILE *fp = fopen (arg, "r");
-	if (NULL == fp)
-	  {
-	    const int errnum = errno;
-	    fprintf (state->err_stream, _("Cannot open %s: %s.\n"),
-		     arg, strerror (errnum));
-	    return 0;
-	  }
-	if ( sfm_detect (fp))
-	  {
-	    ds_init_cstr (&syntax, "GET FILE=");
-	    goto close;
-	  }
-	rewind (fp);
-	if (pfm_detect (fp))
-	  {
-	    ds_init_cstr (&syntax, "IMPORT FILE=");
-	    goto close;
-	  }
-
-	fclose (fp);
-	msg (ME, _("%s is neither a system nor portable file"), arg);
-	break;
-
-      close:
-	fclose (fp);
-
-	syntax_gen_string (&syntax, ss_cstr (arg));
-	ds_put_cstr (&syntax, ".");
-
-	getl_append_source (ss,
-			    create_syntax_string_source (ds_cstr (&syntax)),
-			    GETL_BATCH,
-			    ERRMODE_CONTINUE);
-
-	ds_destroy (&syntax);
-
-	psppire_window_set_filename (PSPPIRE_WINDOW (the_data_window), arg);
-
+	psppire_data_window_load_file (PSPPIRE_DATA_WINDOW (the_data_window),
+				       arg);
 	break;
       }
     default:

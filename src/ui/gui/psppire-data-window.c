@@ -319,8 +319,9 @@ add_most_recent (const char *file_name)
 #endif
 }
 
-static void
-open_data_file (const gchar *file_name, PsppireDataWindow *de)
+void
+psppire_data_window_load_file (PsppireDataWindow *de,
+				    const gchar *file_name)
 {
   struct getl_interface *sss;
   struct string filename;
@@ -389,7 +390,7 @@ open_data_dialog (GtkAction *action, PsppireDataWindow *de)
 	de->file_name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	open_data_file (de->file_name, de);
+	psppire_data_window_load_file (de, de->file_name);
       }
       break;
     default:
@@ -920,7 +921,7 @@ on_recent_data_select (GtkMenuShell *menushell,   gpointer user_data)
 
   g_free (uri);
 
-  open_data_file (file, de);
+  psppire_data_window_load_file (de, file);
 
   g_free (file);
 }
