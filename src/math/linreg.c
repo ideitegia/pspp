@@ -737,3 +737,9 @@ pspp_linreg_with_cov (const struct covariance_matrix *full_cov,
   design_matrix_destroy (cov);
 }
 
+double pspp_linreg_mse (const pspp_linreg_cache *c)
+{
+  assert (c != NULL);
+  return (c->sse / c->dfe);
+}
+
