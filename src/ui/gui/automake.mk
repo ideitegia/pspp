@@ -83,22 +83,22 @@ nodist_src_ui_gui_psppire_DATA = \
 
 EXTRA_DIST += \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
+	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/examine.glade \
 	$(top_srcdir)/src/ui/gui/frequencies.glade \
 	$(top_srcdir)/src/ui/gui/message-dialog.glade \
 	$(top_srcdir)/src/ui/gui/psppire.glade \
 	$(top_srcdir)/src/ui/gui/oneway.glade \
+	$(top_srcdir)/src/ui/gui/output-viewer.glade \
 	$(top_srcdir)/src/ui/gui/rank.glade \
 	$(top_srcdir)/src/ui/gui/recode.glade \
 	$(top_srcdir)/src/ui/gui/regression.glade \
+	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
 	$(top_srcdir)/src/ui/gui/t-test.glade
 
 dist_src_ui_gui_psppire_DATA = \
-	$(top_srcdir)/src/ui/gui/data-editor.glade \
-	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
-	$(top_srcdir)/src/ui/gui/output-viewer.glade \
-	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
 	$(top_srcdir)/src/ui/gui/text-data-import.glade \
+	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
