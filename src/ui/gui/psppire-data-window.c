@@ -148,19 +148,19 @@ extern PsppireDataStore *the_data_store ;
 static void
 set_paste_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 {
-  GtkAction *edit_paste = get_object_assert (de->builder, "edit_paste");
+  GObject *edit_paste = get_object_assert (de->builder, "edit_paste");
 
-  gtk_action_set_sensitive (edit_paste, x);
+  gtk_action_set_sensitive (GTK_ACTION (edit_paste), x);
 }
 
 static void
 set_cut_copy_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 {
-  GtkAction *edit_copy = get_object_assert (de->builder, "edit_copy");
-  GtkAction *edit_cut = get_object_assert (de->builder, "edit_cut");
+  GObject *edit_copy = get_object_assert (de->builder, "edit_copy");
+  GObject *edit_cut = get_object_assert (de->builder, "edit_cut");
 
-  gtk_action_set_sensitive (edit_copy, x);
-  gtk_action_set_sensitive (edit_cut, x);
+  gtk_action_set_sensitive (GTK_ACTION (edit_copy), x);
+  gtk_action_set_sensitive (GTK_ACTION (edit_cut), x);
 }
 
 /* Run the EXECUTE command. */
@@ -388,7 +388,7 @@ open_data_dialog (GtkAction *action, PsppireDataWindow *de)
     {
     case GTK_RESPONSE_ACCEPT:
       {
-	gchar *name = 
+	gchar *name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
 	psppire_data_window_load_file (de, name);
