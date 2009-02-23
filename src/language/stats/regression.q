@@ -689,17 +689,21 @@ subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
 
       for (lc = models; lc < models + cmd.n_dependent; lc++)
 	{
-	  assert (*lc != NULL);
-	  assert ((*lc)->depvar != NULL);
-	  if (cmd.a_save[REGRESSION_SV_RESID])
+	  if (*lc != NULL)
 	    {
-	      reg_save_var (ds, "RES", regression_trns_resid_proc, *lc,
-			    &(*lc)->resid, n_trns);
-	    }
-	  if (cmd.a_save[REGRESSION_SV_PRED])
-	    {
-	      reg_save_var (ds, "PRED", regression_trns_pred_proc, *lc,
-			    &(*lc)->pred, n_trns);
+	      if ((*lc)->depvar != NULL)
+		{
+		  if (cmd.a_save[REGRESSION_SV_RESID])
+		    {
+		      reg_save_var (ds, "RES", regression_trns_resid_proc, *lc,
+				    &(*lc)->resid, n_trns);
+		    }
+		  if (cmd.a_save[REGRESSION_SV_PRED])
+		    {
+		      reg_save_var (ds, "PRED", regression_trns_pred_proc, *lc,
+				    &(*lc)->pred, n_trns);
+		    }
+		}
 	    }
 	}
     }
