@@ -60,7 +60,7 @@ psppire_window_get_type (void)
 
       psppire_window_type =
 	g_type_register_static (GTK_TYPE_WINDOW, "PsppireWindow",
-				&psppire_window_info, 0);
+				&psppire_window_info, G_TYPE_FLAG_ABSTRACT);
     }
 
   return psppire_window_type;
@@ -367,15 +367,6 @@ psppire_window_init (PsppireWindow *window)
 					     window);
 
   window->unsaved = FALSE;
-}
-
-
-GtkWidget*
-psppire_window_new (void)
-{
-  return GTK_WIDGET (g_object_new (psppire_window_get_type (),
-				   "type", GTK_WINDOW_TOPLEVEL,
-				   NULL));
 }
 
 

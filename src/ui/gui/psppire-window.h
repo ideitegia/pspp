@@ -65,7 +65,6 @@ struct _PsppireWindowClass
 };
 
 GType      psppire_window_get_type        (void);
-GtkWidget* psppire_window_new             (void);
 
 const gchar * psppire_window_get_filename (PsppireWindow *);
 
