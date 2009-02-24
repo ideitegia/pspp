@@ -27,6 +27,7 @@
 
 #include "psppire-data-window.h"
 #include "psppire.h"
+#include "widgets.h"
 
 #include <libpspp/getl.h>
 #include <unistd.h>
@@ -93,6 +94,8 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   bindtextdomain (PACKAGE, locale_dir);
 
+
+  preregister_widgets ();
 
   gsl_set_error_handler_off ();
   fn_init ();

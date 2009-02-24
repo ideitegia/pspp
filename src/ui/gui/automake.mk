@@ -50,22 +50,6 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/text-data-import.ui \
 	$(top_builddir)/src/ui/gui/t-test.ui
 
-EXTRA_DIST += \
-	$(top_srcdir)/src/ui/gui/crosstabs.glade \
-	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
-	$(top_srcdir)/src/ui/gui/data-editor.glade \
-	$(top_srcdir)/src/ui/gui/examine.glade \
-	$(top_srcdir)/src/ui/gui/frequencies.glade \
-	$(top_srcdir)/src/ui/gui/message-dialog.glade \
-	$(top_srcdir)/src/ui/gui/psppire.glade \
-	$(top_srcdir)/src/ui/gui/oneway.glade \
-	$(top_srcdir)/src/ui/gui/output-viewer.glade \
-	$(top_srcdir)/src/ui/gui/rank.glade \
-	$(top_srcdir)/src/ui/gui/recode.glade \
-	$(top_srcdir)/src/ui/gui/regression.glade \
-	$(top_srcdir)/src/ui/gui/syntax-editor.glade \
-	$(top_srcdir)/src/ui/gui/t-test.glade
-
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/text-data-import.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
@@ -197,7 +181,24 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/weight-cases-dialog.c \
 	src/ui/gui/weight-cases-dialog.h \
 	src/ui/gui/widget-io.c \
-	src/ui/gui/widget-io.h 
+	src/ui/gui/widget-io.h \
+	src/ui/gui/widgets.c \
+	src/ui/gui/widgets.h \
+	src/ui/gui/crosstabs.glade \
+	src/ui/gui/descriptives-dialog.glade \
+	src/ui/gui/data-editor.glade \
+	src/ui/gui/examine.glade \
+	src/ui/gui/frequencies.glade \
+	src/ui/gui/message-dialog.glade \
+	src/ui/gui/psppire.glade \
+	src/ui/gui/oneway.glade \
+	src/ui/gui/output-viewer.glade \
+	src/ui/gui/rank.glade \
+	src/ui/gui/recode.glade \
+	src/ui/gui/regression.glade \
+	src/ui/gui/syntax-editor.glade \
+	src/ui/gui/t-test.glade
+
 
 nodist_src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-marshal.c \
