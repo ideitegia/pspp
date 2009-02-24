@@ -345,6 +345,22 @@ insert_existing_items (PsppireWindow *window)
   psppire_window_register_foreach (psppire_window_register_new (), insert_item, window);
 }
 
+
+static gboolean
+on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
+{
+  PsppireWindow *dw = PSPPIRE_WINDOW (user_data);
+
+  PsppireWindowRegister *reg = psppire_window_register_new ();
+
+
+  if ( 1 == psppire_window_register_n_items (reg))
+    gtk_main_quit ();
+
+  return FALSE;
+}
+
+
 static void
 psppire_window_init (PsppireWindow *window)
 {
@@ -367,6 +383,8 @@ psppire_window_init (PsppireWindow *window)
 					     window);
 
   window->unsaved = FALSE;
+
+  g_signal_connect (window, "delete-event", G_CALLBACK (on_delete), window);
 }
 
 
@@ -392,6 +410,13 @@ psppire_window_set_unsaved (PsppireWindow *w, gboolean unsaved)
 
   psppire_window_set_title (w);
 }
+
+gboolean
+psppire_window_get_unsaved (PsppireWindow *w)
+{
+  return w->unsaved;
+}
+
 
 
 

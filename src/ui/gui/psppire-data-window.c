@@ -483,7 +483,7 @@ on_insert_variable (GtkAction *action, gpointer data)
 
 /* Callback for data_save_as action. Prompt for a filename and save */
 static void
-data_save_as_dialog (GtkAction *action, PsppireDataWindow *de)
+data_save_as_dialog (PsppireDataWindow *de)
 {
   GtkWidget *button_sys;
   GtkWidget *dialog =
@@ -564,12 +564,12 @@ data_save_as_dialog (GtkAction *action, PsppireDataWindow *de)
    If there's an existing file name, then just save,
    otherwise prompt for a file name, then save */
 static void
-data_save (GtkAction *action, PsppireDataWindow *de)
+data_save (PsppireDataWindow *de)
 {
   if (de->file_name)
     save_file (de);
   else
-    data_save_as_dialog (action, de);
+    data_save_as_dialog (de);
 }
 
 
@@ -994,6 +994,17 @@ set_unsaved (gpointer w)
   psppire_window_set_unsaved (PSPPIRE_WINDOW (w), TRUE);
 }
 
+/* Callback for the "delete" action (clicking the x on the top right
+   hand corner of the window) */
+static gboolean
+on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
+{
+  PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (user_data);
+
+  return FALSE;
+}
+
+
 static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
@@ -1144,8 +1155,8 @@ psppire_data_window_init (PsppireDataWindow *de)
 		  "stock-id", "gtk-save",
 		  NULL);
 
-    g_signal_connect (action_data_save, "activate",
-		      G_CALLBACK (data_save), de);
+    g_signal_connect_swapped (action_data_save, "activate",
+			      G_CALLBACK (data_save), de);
   }
 
 
@@ -1161,7 +1172,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 		  "stock-id", "gtk-save-as",
 		  NULL);
 
-    g_signal_connect (action_data_save_as, "activate",
+    g_signal_connect_swapped (action_data_save_as, "activate",
 		      G_CALLBACK (data_save_as_dialog), de);
   }
 
@@ -1738,6 +1749,9 @@ psppire_data_window_init (PsppireDataWindow *de)
 		"datasheet-row-menu", de->data_sheet_cases_popup_menu,
 		"varsheet-row-menu", de->var_sheet_variable_popup_menu,
 		NULL);
+
+  g_signal_connect (de, "delete-event", G_CALLBACK (on_delete), de);
+
 
   gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);

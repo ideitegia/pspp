@@ -187,3 +187,10 @@ psppire_window_register_new (void)
 {
   return g_object_new (psppire_window_register_get_type (), NULL);
 }
+
+
+gint
+psppire_window_register_n_items (PsppireWindowRegister *wr)
+{
+  return g_hash_table_size (wr->name_table);
+}

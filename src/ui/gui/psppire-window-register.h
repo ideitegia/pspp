@@ -86,6 +86,8 @@ void psppire_window_register_foreach (PsppireWindowRegister *wr, GHFunc func, Ps
 
 void psppire_window_register_minimise_all (PsppireWindowRegister *wr);
 
+gint psppire_window_register_n_items (PsppireWindowRegister *wr);
+
 
 G_END_DECLS
 

@@ -259,14 +259,17 @@ save_editor_to_file (PsppireSyntaxWindow *se,
    Otherwise just close the window.
 */
 static void
-save_if_modified (PsppireSyntaxWindow *se)
+save_if_modified (PsppireWindow *se)
 {
-  if ( TRUE == gtk_text_buffer_get_modified (se->buffer))
+  if ( TRUE == psppire_window_get_unsaved (se))
     {
       gint response;
       GtkWidget *dialog;
 
-      const gchar *filename = psppire_window_get_filename (PSPPIRE_WINDOW (se));
+      const gchar *description;
+      const gchar *filename = psppire_window_get_filename (se);
+
+      g_object_get (se, "description", &description, NULL);
 
       g_return_if_fail (filename != NULL);
 
@@ -275,7 +278,8 @@ save_if_modified (PsppireSyntaxWindow *se)
 				GTK_DIALOG_MODAL,
 				GTK_MESSAGE_QUESTION,
 				GTK_BUTTONS_NONE,
-				_("Save contents of syntax editor to %s?"),
+				_("Save contents of %s to \"%s\"?"),
+				description,
 				filename);
 
       gtk_dialog_add_button  (GTK_DIALOG (dialog),
@@ -303,7 +307,7 @@ save_if_modified (PsppireSyntaxWindow *se)
 	      msg (ME, err->message);
 	      g_error_free (err);
 	    }
-	  psppire_window_set_filename (PSPPIRE_WINDOW (se), filename);
+	  psppire_window_set_filename (se, filename);
 	}
 
       if ( response == GTK_RESPONSE_CANCEL )
@@ -405,7 +409,7 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
   PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
 
   save_if_modified (se);
-  return TRUE;
+  return FALSE;
 }
 
 

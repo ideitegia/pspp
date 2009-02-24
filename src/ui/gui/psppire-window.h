@@ -74,6 +74,8 @@ void psppire_window_minimise_all (void);
 
 void psppire_window_set_unsaved (PsppireWindow *, gboolean );
 
+gboolean psppire_window_get_unsaved (PsppireWindow *);
+
 G_END_DECLS
 
 #endif /* __PSPPIRE_WINDOW_H__ */
