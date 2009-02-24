@@ -206,7 +206,7 @@ descriptives_dialog (GObject *o, gpointer data)
 
   struct descriptives_dialog scd;
 
-  GladeXML *xml = XML_NEW ("descriptives-dialog.glade");
+  GtkBuilder *xml = builder_new ("descriptives-dialog.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "descriptives-dialog");
 
@@ -228,6 +228,7 @@ descriptives_dialog (GObject *o, gpointer data)
 				 GTK_SELECTION_MULTIPLE, var_is_numeric);
 
   set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
+
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 source,

@@ -68,6 +68,7 @@ src_ui_gui_psppiredir = $(pkgdatadir)
 
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/crosstabs.ui \
+	$(top_builddir)/src/ui/gui/descriptives-dialog.ui \
 	$(top_builddir)/src/ui/gui/data-editor.ui \
 	$(top_builddir)/src/ui/gui/examine.ui \
 	$(top_builddir)/src/ui/gui/frequencies.ui \
@@ -83,6 +84,7 @@ nodist_src_ui_gui_psppire_DATA = \
 
 EXTRA_DIST += \
 	$(top_srcdir)/src/ui/gui/crosstabs.glade \
+	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
 	$(top_srcdir)/src/ui/gui/data-editor.glade \
 	$(top_srcdir)/src/ui/gui/examine.glade \
 	$(top_srcdir)/src/ui/gui/frequencies.glade \
@@ -98,7 +100,6 @@ EXTRA_DIST += \
 
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/text-data-import.glade \
-	$(top_srcdir)/src/ui/gui/descriptives-dialog.glade \
 	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
