@@ -56,7 +56,7 @@ psppire_button_box_get_type (void)
       };
 
       button_box_type = g_type_register_static (GTK_TYPE_BUTTON_BOX,
-					    "PsppireButtonBox", &button_box_info, 0);
+					    "PsppireButtonBox", &button_box_info, G_TYPE_FLAG_ABSTRACT);
     }
 
   return button_box_type;
