@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1018,6 +1018,31 @@ static const struct separator separators[] =
   };
 #define SEPARATOR_CNT (sizeof separators / sizeof *separators)
 
+static void
+set_quote_list (GtkComboBoxEntry *cb)
+{
+  GtkListStore *list =  gtk_list_store_new (1, G_TYPE_STRING);
+  GtkTreeIter iter;
+  gint i;
+  const gchar *seperator[3] = {"'\"", "\'", "\""};
+
+  for (i = 0; i < 3; i++)
+    {
+      const gchar *s = seperator[i];
+
+      /* Add a new row to the model */
+      gtk_list_store_append (list, &iter);
+      gtk_list_store_set (list, &iter,
+                          0, s,
+                          -1);
+
+    }
+
+  gtk_combo_box_set_model (GTK_COMBO_BOX (cb), GTK_TREE_MODEL (list));
+
+  gtk_combo_box_entry_set_text_column (cb, 0);
+}
+
 /* Initializes IA's separators substructure. */
 static void
 init_separators_page (struct import_assistant *ia)
@@ -1038,6 +1063,7 @@ init_separators_page (struct import_assistant *ia)
   p->escape_cb = get_widget_assert (builder, "escape");
 
   set_separators (ia);
+  set_quote_list (GTK_COMBO_BOX_ENTRY (p->quote_combo));
   p->fields_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "fields"));
   g_signal_connect (GTK_COMBO_BOX (p->quote_combo), "changed",
                     G_CALLBACK (on_quote_combo_change), ia);
@@ -1370,6 +1396,7 @@ set_separators (struct import_assistant *ia)
   ds_destroy (&custom);
 
   any_quotes = !ds_is_empty (&s->quotes);
+
   gtk_entry_set_text (s->quote_entry,
                       any_quotes ? ds_cstr (&s->quotes) : "\"");
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (s->quote_cb),
