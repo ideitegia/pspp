@@ -20,40 +20,7 @@ src_ui_gui_psppire_LDFLAGS += -rpath $(pkglibdir)
 endif
 
 
-# The library libpsppire contains a single function to register our custom widgets with libglade.
-# This library is dynamically loaded by libglade.   On w32 platforms, dynamic libraries simply 
-# can't be created unless all of the symbols can be resolved at link time.  Thus, all the custom 
-# widgets have to be available.  
-# But they can't appear in the library AND the binary, otherwise glib complains about them already
-# existing (and its a waste of space).  So we have a seperate shared library (statically loaded) 
-# libpsppwidgets which contains our custom widgets.
-
-pkglib_LTLIBRARIES = src/ui/gui/libpsppwidgets.la src/ui/gui/libpsppire.la 
-
-src_ui_gui_libpsppwidgets_la_CFLAGS = $(GTK_CFLAGS)
-src_ui_gui_libpsppwidgets_la_LDFLAGS = -no-undefined
-src_ui_gui_libpsppwidgets_la_LIBADD = $(GTK_LIBS)
-
-src_ui_gui_libpsppwidgets_la_SOURCES = \
-	src/ui/gui/psppire-dialog.c \
-	src/ui/gui/psppire-keypad.c \
-	src/ui/gui/psppire-selector.c \
-	src/ui/gui/psppire-buttonbox.c \
-	src/ui/gui/psppire-hbuttonbox.c \
-	src/ui/gui/psppire-vbuttonbox.c \
-	src/ui/gui/psppire-acr.c 
-
-
-src_ui_gui_libpsppire_la_CFLAGS = $(GLADE_CFLAGS) 
-src_ui_gui_libpsppire_la_LDFLAGS = -no-undefined
-src_ui_gui_libpsppire_la_LIBADD = $(GLADE_LIBS) src/ui/gui/libpsppwidgets.la
-
-src_ui_gui_libpsppire_la_SOURCES = \
-	src/ui/gui/glade-register.c
-
 src_ui_gui_psppire_LDADD = \
-	-dlopen src/ui/gui/libpsppire.la \
-	src/ui/gui/libpsppwidgets.la \
         src/ui/gui/sheet/libsheet.la \
 	lib/gtk-contrib/libgtksheet.a \
 	src/ui/libuicommon.la \
@@ -80,6 +47,7 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/recode.ui \
 	$(top_builddir)/src/ui/gui/regression.ui \
 	$(top_builddir)/src/ui/gui/syntax-editor.ui \
+	$(top_builddir)/src/ui/gui/text-data-import.ui \
 	$(top_builddir)/src/ui/gui/t-test.ui
 
 EXTRA_DIST += \
@@ -119,6 +87,13 @@ dist_src_ui_gui_psppire_DATA = \
 
 
 src_ui_gui_psppire_SOURCES = \
+	src/ui/gui/psppire-dialog.c \
+	src/ui/gui/psppire-keypad.c \
+	src/ui/gui/psppire-selector.c \
+	src/ui/gui/psppire-buttonbox.c \
+	src/ui/gui/psppire-hbuttonbox.c \
+	src/ui/gui/psppire-vbuttonbox.c \
+	src/ui/gui/psppire-acr.c \
 	src/ui/gui/about.c \
 	src/ui/gui/about.h \
 	src/ui/gui/checkbox-treeview.c \

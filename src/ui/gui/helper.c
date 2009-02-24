@@ -143,9 +143,6 @@ get_widget_assert (gpointer x, const gchar *name)
   if (GTK_IS_BUILDER (obj))
     w = GTK_WIDGET (gtk_builder_get_object (GTK_BUILDER (obj), name));
 
-  if (GLADE_IS_XML (obj))
-    w = glade_xml_get_widget (GLADE_XML (obj), name);
-
   if ( !w )
     g_critical ("Widget \"%s\" could not be found\n", name);
 

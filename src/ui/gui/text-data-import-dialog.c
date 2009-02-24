@@ -111,7 +111,7 @@ static void destroy_file (struct import_assistant *);
 /* The main body of the GTK+ assistant and related data. */
 struct assistant
   {
-    GladeXML *xml;
+    GtkBuilder *builder;
     GtkAssistant *assistant;
     GMainLoop *main_loop;
     GtkWidget *paste_button;
@@ -600,7 +600,7 @@ init_assistant (struct import_assistant *ia, GtkWindow *parent_window)
 {
   struct assistant *a = &ia->asst;
 
-  a->xml = XML_NEW ("text-data-import.glade");
+  a->builder = builder_new ("text-data-import.ui");
   a->assistant = GTK_ASSISTANT (gtk_assistant_new ());
   g_signal_connect (a->assistant, "prepare", G_CALLBACK (on_prepare), ia);
   g_signal_connect (a->assistant, "cancel", G_CALLBACK (on_cancel), ia);
@@ -632,7 +632,7 @@ destroy_assistant (struct import_assistant *ia)
 
   g_object_unref (a->prop_renderer);
   g_object_unref (a->fixed_renderer);
-  g_object_unref (a->xml);
+  g_object_unref (a->builder);
 }
 
 /* Appends a page of the given TYPE, with PAGE as its content, to
@@ -744,17 +744,17 @@ static void on_intro_amount_changed (GtkToggleButton *button,
 static void
 init_intro_page (struct import_assistant *ia)
 {
-  GladeXML *xml = ia->asst.xml;
+  GtkBuilder *builder = ia->asst.builder;
   struct intro_page *p = &ia->intro;
   struct string s;
 
-  p->page = add_page_to_assistant (ia, get_widget_assert (xml, "Intro"),
+  p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Intro"),
                                    GTK_ASSISTANT_PAGE_INTRO);
-  p->all_cases_button = get_widget_assert (xml, "import-all-cases");
-  p->n_cases_button = get_widget_assert (xml, "import-n-cases");
-  p->n_cases_spin = get_widget_assert (xml, "n-cases-spin");
-  p->percent_button = get_widget_assert (xml, "import-percent");
-  p->percent_spin = get_widget_assert (xml, "percent-spin");
+  p->all_cases_button = get_widget_assert (builder, "import-all-cases");
+  p->n_cases_button = get_widget_assert (builder, "import-n-cases");
+  p->n_cases_spin = get_widget_assert (builder, "n-cases-spin");
+  p->percent_button = get_widget_assert (builder, "import-percent");
+  p->percent_spin = get_widget_assert (builder, "percent-spin");
   g_signal_connect (p->all_cases_button, "toggled",
                     G_CALLBACK (on_intro_amount_changed), ia);
   g_signal_connect (p->n_cases_button, "toggled",
@@ -792,7 +792,7 @@ init_intro_page (struct import_assistant *ia)
     }
   ds_put_cstr (&s, _("You may choose below how much of the file should "
                      "actually be imported."));
-  gtk_label_set_text (GTK_LABEL (get_widget_assert (xml, "intro-label")),
+  gtk_label_set_text (GTK_LABEL (get_widget_assert (builder, "intro-label")),
                       ds_cstr (&s));
   ds_destroy (&s);
 }
@@ -837,14 +837,14 @@ static void
 init_first_line_page (struct import_assistant *ia)
 {
   struct first_line_page *p = &ia->first_line;
-  GladeXML *xml = ia->asst.xml;
+  GtkBuilder *builder = ia->asst.builder;
 
-  p->page = add_page_to_assistant (ia, get_widget_assert (xml, "FirstLine"),
+  p->page = add_page_to_assistant (ia, get_widget_assert (builder, "FirstLine"),
                                    GTK_ASSISTANT_PAGE_CONTENT);
-  gtk_widget_destroy (get_widget_assert (xml, "first-line"));
+  gtk_widget_destroy (get_widget_assert (builder, "first-line"));
   p->tree_view = create_lines_tree_view (
-    GTK_CONTAINER (get_widget_assert (xml, "first-line-scroller")), ia);
-  p->variable_names_cb = get_widget_assert (xml, "variable-names");
+    GTK_CONTAINER (get_widget_assert (builder, "first-line-scroller")), ia);
+  p->variable_names_cb = get_widget_assert (builder, "variable-names");
   gtk_tree_selection_set_mode (
     gtk_tree_view_get_selection (GTK_TREE_VIEW (p->tree_view)),
     GTK_SELECTION_BROWSE);
@@ -1022,23 +1022,23 @@ static const struct separator separators[] =
 static void
 init_separators_page (struct import_assistant *ia)
 {
-  GladeXML *xml = ia->asst.xml;
+  GtkBuilder *builder = ia->asst.builder;
   struct separators_page *p = &ia->separators;
   size_t i;
 
   choose_likely_separators (ia);
 
-  p->page = add_page_to_assistant (ia, get_widget_assert (xml, "Separators"),
+  p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Separators"),
                                    GTK_ASSISTANT_PAGE_CONTENT);
-  p->custom_cb = get_widget_assert (xml, "custom-cb");
-  p->custom_entry = get_widget_assert (xml, "custom-entry");
-  p->quote_combo = get_widget_assert (xml, "quote-combo");
+  p->custom_cb = get_widget_assert (builder, "custom-cb");
+  p->custom_entry = get_widget_assert (builder, "custom-entry");
+  p->quote_combo = get_widget_assert (builder, "quote-combo");
   p->quote_entry = GTK_ENTRY (gtk_bin_get_child (GTK_BIN (p->quote_combo)));
-  p->quote_cb = get_widget_assert (xml, "quote-cb");
-  p->escape_cb = get_widget_assert (xml, "escape");
+  p->quote_cb = get_widget_assert (builder, "quote-cb");
+  p->escape_cb = get_widget_assert (builder, "escape");
 
   set_separators (ia);
-  p->fields_tree_view = GTK_TREE_VIEW (get_widget_assert (xml, "fields"));
+  p->fields_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "fields"));
   g_signal_connect (GTK_COMBO_BOX (p->quote_combo), "changed",
                     G_CALLBACK (on_quote_combo_change), ia);
   g_signal_connect (p->quote_cb, "toggled",
@@ -1048,7 +1048,7 @@ init_separators_page (struct import_assistant *ia)
   g_signal_connect (p->custom_cb, "toggled",
                     G_CALLBACK (on_separators_custom_cb_toggle), ia);
   for (i = 0; i < SEPARATOR_CNT; i++)
-    g_signal_connect (get_widget_assert (xml, separators[i].name),
+    g_signal_connect (get_widget_assert (builder, separators[i].name),
                       "toggled", G_CALLBACK (on_separator_toggle), ia);
   g_signal_connect (p->escape_cb, "toggled",
                     G_CALLBACK (on_separator_toggle), ia);
@@ -1317,7 +1317,7 @@ revise_fields_preview (struct import_assistant *ia)
   choose_column_names (ia);
   ia->separators.fields_tree_view = create_data_tree_view (
     true,
-    GTK_CONTAINER (get_widget_assert (ia->asst.xml, "fields-scroller")),
+    GTK_CONTAINER (get_widget_assert (ia->asst.builder, "fields-scroller")),
     ia);
 
   pop_watch_cursor (ia);
@@ -1358,7 +1358,7 @@ set_separators (struct import_assistant *ia)
   for (i = 0; i < SEPARATOR_CNT; i++)
     {
       const struct separator *s = &separators[i];
-      GtkWidget *button = get_widget_assert (ia->asst.xml, s->name);
+      GtkWidget *button = get_widget_assert (ia->asst.builder, s->name);
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button),
                                     (seps & (1u << i)) != 0);
     }
@@ -1391,7 +1391,7 @@ get_separators (struct import_assistant *ia)
   for (i = 0; i < SEPARATOR_CNT; i++)
     {
       const struct separator *sep = &separators[i];
-      GtkWidget *button = get_widget_assert (ia->asst.xml, sep->name);
+      GtkWidget *button = get_widget_assert (ia->asst.builder, sep->name);
       if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button)))
         ds_put_char (&s->separators, sep->c);
     }
@@ -1525,12 +1525,12 @@ static void clear_modified_vars (struct import_assistant *);
 static void
 init_formats_page (struct import_assistant *ia)
 {
-  GladeXML *xml = ia->asst.xml;
+  GtkBuilder *builder = ia->asst.builder;
   struct formats_page *p = &ia->formats;
 
-  p->page = add_page_to_assistant (ia, get_widget_assert (xml, "Formats"),
+  p->page = add_page_to_assistant (ia, get_widget_assert (builder, "Formats"),
                                    GTK_ASSISTANT_PAGE_CONFIRM);
-  p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (xml, "data"));
+  p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "data"));
   p->modified_vars = NULL;
   p->modified_var_cnt = 0;
 }
@@ -1629,7 +1629,7 @@ prepare_formats_page (struct import_assistant *ia)
                 "may-create-vars", FALSE,
                 (void *) NULL);
 
-  vars_scroller = GTK_BIN (get_widget_assert (ia->asst.xml, "vars-scroller"));
+  vars_scroller = GTK_BIN (get_widget_assert (ia->asst.builder, "vars-scroller"));
   old_var_sheet = gtk_bin_get_child (vars_scroller);
   if (old_var_sheet != NULL)
     gtk_widget_destroy (old_var_sheet);
@@ -1639,7 +1639,7 @@ prepare_formats_page (struct import_assistant *ia)
   gtk_widget_destroy (GTK_WIDGET (ia->formats.data_tree_view));
   ia->formats.data_tree_view = create_data_tree_view (
     false,
-    GTK_CONTAINER (get_widget_assert (ia->asst.xml, "data-scroller")),
+    GTK_CONTAINER (get_widget_assert (ia->asst.builder, "data-scroller")),
     ia);
 
   pop_watch_cursor (ia);

@@ -44,7 +44,6 @@
 #include <language/syntax-string-source.h>
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
@@ -94,8 +93,6 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   bindtextdomain (PACKAGE, locale_dir);
 
-
-  glade_init ();
 
   gsl_set_error_handler_off ();
   fn_init ();
