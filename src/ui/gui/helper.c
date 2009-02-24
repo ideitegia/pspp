@@ -179,8 +179,8 @@ give_help (void)
   gtk_widget_destroy (dialog);
 }
 
-static void
-connect_help_builder (GtkBuilder *xml)
+void
+connect_help (GtkBuilder *xml)
 {
   GSList *helps = gtk_builder_get_objects (xml);
 
@@ -208,35 +208,6 @@ connect_help_builder (GtkBuilder *xml)
 
   g_slist_free (helps);
 }
-
-static void
-connect_help_glade (GladeXML *xml)
-{
-  GList *helps = glade_xml_get_widget_prefix (xml, "help_button_");
-
-  GList *i;
-  for ( i = g_list_first (helps); i ; i = g_list_next (i))
-    g_signal_connect (GTK_WIDGET (i->data), "clicked", give_help, 0);
-
-  g_list_free (helps);
-}
-
-
-void
-connect_help (gpointer xml)
-{
-  if (GTK_IS_BUILDER (xml))
-    connect_help_builder (GTK_BUILDER (xml));
-
-  else if (GLADE_IS_XML (xml))
-    connect_help_glade (GLADE_XML (xml));
-
-  else
-    {
-      g_error ("XML of type %s", G_OBJECT_TYPE_NAME (xml));
-    }
-}
-
 
 
 void
