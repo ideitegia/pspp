@@ -162,9 +162,10 @@ psppire_window_register_lookup (PsppireWindowRegister *wr, const gchar *name)
 }
 
 void
-psppire_window_register_foreach (PsppireWindowRegister *wr, GHFunc func, PsppireWindow *win)
+psppire_window_register_foreach (PsppireWindowRegister *wr,
+				 GHFunc func, gpointer data)
 {
-  g_hash_table_foreach (wr->name_table, func, win);
+  g_hash_table_foreach (wr->name_table, func, data);
 }
 
 static void

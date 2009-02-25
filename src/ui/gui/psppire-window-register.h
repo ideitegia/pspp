@@ -82,7 +82,8 @@ void psppire_window_register_remove (PsppireWindowRegister *wr, const gchar *nam
 PsppireWindow *psppire_window_register_lookup (PsppireWindowRegister *wr, const gchar *name);
 
 
-void psppire_window_register_foreach (PsppireWindowRegister *wr, GHFunc func, PsppireWindow *);
+void psppire_window_register_foreach (PsppireWindowRegister *wr, GHFunc func,
+				      gpointer);
 
 void psppire_window_register_minimise_all (PsppireWindowRegister *wr);
 
