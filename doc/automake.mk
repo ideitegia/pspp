@@ -46,22 +46,19 @@ doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc
 	@PERL@ $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
 
-# It seems that recent versions of yelp, upon which the gui relies to display the reference
-# manual, are broken.  It only works on compressed info files.  So we must compress them.
-if WITHGUI
-YELP_CHECK = yelp-check
-else
-YELP_CHECK =
-endif
-install-data-hook:: $(YELP_CHECK)
-	for ifile in $(DESTDIR)$(infodir)/pspp.info-[0-9] \
-		$(DESTDIR)$(infodir)/pspp.info  ; do \
-	  gzip -f $$ifile ; \
-	done
 
-uninstall-hook::
-	rm -f $(DESTDIR)$(infodir)/pspp.info-[0-9].gz
-	rm -f $(DESTDIR)$(infodir)/pspp.info.gz
+install-info-file:
+	for ifile in $(DESTDIR)$(infodir)/pspp.info-[0-9] $(DESTDIR)$(infodir)/pspp.info  ; do \
+	  gzip -f $$ifile ; \
+	done 
+
+INSTALL_DATA_HOOKS += install-info-file
+
+uninstall-info-file:
+	$(RM) $(DESTDIR)$(infodir)/pspp.info-[0-9].gz ; \
+	$(RM) $(DESTDIR)$(infodir)/pspp.info.gz ;
+
+UNINSTALL_DATA_HOOKS += uninstall-info-file
 
 EXTRA_DIST += doc/OChangeLog
 CLEANFILES += pspp-dev.dvi

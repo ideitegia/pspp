@@ -33,6 +33,29 @@ src_ui_gui_psppire_LDADD = \
 
 src_ui_gui_psppiredir = $(pkgdatadir)
 
+
+themedir = $(DESTDIR)$(datadir)/icons/hicolor
+context = apps
+
+
+install-icons:
+	for size in 16x16 ; do \
+	  $(MKDIR_P) $(themedir)/$$size/$(context) ; \
+          $(INSTALL) $(top_srcdir)/src/ui/gui/psppicon.png $(themedir)/$$size/$(context) ; \
+	done 
+	gtk-update-icon-cache --ignore-theme-index $(themedir)
+
+INSTALL_DATA_HOOKS += install-icons
+
+uninstall-icons:
+	for size in 16x16 ; do \
+          $(RM) $(themedir)/$$size/$(context)/psppicon.png ; \
+	done 
+	gtk-update-icon-cache --ignore-theme-index $(themedir)
+
+UNINSTALL_DATA_HOOKS += uninstall-icons
+
+
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/crosstabs.ui \
 	$(top_builddir)/src/ui/gui/descriptives-dialog.ui \
@@ -52,7 +75,6 @@ nodist_src_ui_gui_psppire_DATA = \
 
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/text-data-import.glade \
-	$(top_srcdir)/src/ui/gui/psppicon.png \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
 	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\
@@ -214,6 +236,7 @@ yelp-check:
 		echo '    Yelp is available from the GNOME project.  ftp://ftp.gnome.org/pub/gnome/sources/yelp' ; \
 		echo ; \
 	fi
+
 PHONY += yelp-check
 
 AM_CPPFLAGS += -Isrc
@@ -228,6 +251,7 @@ src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
 	gtk-builder-convert $< $@
 
 EXTRA_DIST += src/ui/gui/OChangeLog\
+	src/ui/gui/psppicon.png \
 	src/ui/gui/marshaller-list
 
 BUILT_SOURCES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h

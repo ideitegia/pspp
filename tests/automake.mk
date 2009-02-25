@@ -341,11 +341,12 @@ EXTRA_DIST += \
 
 CLEANFILES += *.save pspp.* foo*
 
-DIST_HOOKS += check-for-export-var-val
 check-for-export-var-val:
 	@if grep -q 'export .*=' $(dist_TESTS) ; then \
 	 echo 'One or more tests contain non-portable "export VAR=val" syntax' ; \
 	 false ; \
 	fi
+
+DIST_HOOKS += check-for-export-var-val
 
 EXTRA_DIST += tests/OChangeLog

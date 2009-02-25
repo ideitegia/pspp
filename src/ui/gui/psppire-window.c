@@ -387,6 +387,8 @@ psppire_window_init (PsppireWindow *window)
   window->unsaved = FALSE;
 
   g_signal_connect (window, "delete-event", G_CALLBACK (on_delete), window);
+
+  g_object_set (window, "icon-name", "psppicon", NULL);
 }
 
 

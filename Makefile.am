@@ -37,9 +37,10 @@ noinst_PROGRAMS=
 check_PROGRAMS=
 bin_PROGRAMS=
 DIST_HOOKS =
+INSTALL_DATA_HOOKS = 
+UNINSTALL_DATA_HOOKS =
 PHONY =
 
-DIST_HOOKS += generate-changelog
 generate-changelog:
 	if test -d $(top_srcdir)/.git; then			\
 	  $(top_srcdir)/gitlog-to-changelog --since=2008-07-27	\
@@ -47,6 +48,9 @@ generate-changelog:
 	  rm -f $(distdir)/ChangeLog;				\
 	  mv $(distdir)/cl-t $(distdir)/ChangeLog;		\
 	fi
+
+DIST_HOOKS += generate-changelog
+
 
 include $(top_srcdir)/lib/automake.mk
 include $(top_srcdir)/doc/automake.mk
@@ -64,6 +68,15 @@ if WITH_PERL_MODULE
 include $(top_srcdir)/perl-module/automake.mk
 endif
 
-PHONY += $(DIST_HOOKS)
-dist-hook: $(DIST_HOOKS)
+PHONY += $(DIST_HOOKS) $(INSTALL_DATA_HOOKS) $(UNINSTALL_DATA_HOOKS)
+
 .PHONY: $(PHONY)
+
+dist-hook: $(DIST_HOOKS)
+
+install-data-hook: $(INSTALL_DATA_HOOKS)
+
+uninstall-hook: $(UNINSTALL_DATA_HOOKS)
+
+
+
