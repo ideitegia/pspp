@@ -255,67 +255,6 @@ save_editor_to_file (PsppireSyntaxWindow *se,
   return result;
 }
 
-/* If the buffer's modified flag is set, then save it, and close the window.
-   Otherwise just close the window.
-*/
-static void
-save_if_modified (PsppireWindow *se)
-{
-  if ( TRUE == psppire_window_get_unsaved (se))
-    {
-      gint response;
-      GtkWidget *dialog;
-
-      const gchar *description;
-      const gchar *filename = psppire_window_get_filename (se);
-
-      g_object_get (se, "description", &description, NULL);
-
-      g_return_if_fail (filename != NULL);
-
-      dialog =
-	gtk_message_dialog_new (GTK_WINDOW (se),
-				GTK_DIALOG_MODAL,
-				GTK_MESSAGE_QUESTION,
-				GTK_BUTTONS_NONE,
-				_("Save contents of %s to \"%s\"?"),
-				description,
-				filename);
-
-      gtk_dialog_add_button  (GTK_DIALOG (dialog),
-			      GTK_STOCK_YES,
-			      GTK_RESPONSE_ACCEPT);
-
-      gtk_dialog_add_button  (GTK_DIALOG (dialog),
-			      GTK_STOCK_NO,
-			      GTK_RESPONSE_REJECT);
-
-      gtk_dialog_add_button  (GTK_DIALOG (dialog),
-			      GTK_STOCK_CANCEL,
-			      GTK_RESPONSE_CANCEL);
-
-      response = gtk_dialog_run (GTK_DIALOG (dialog));
-
-      gtk_widget_destroy (dialog);
-
-      if ( response == GTK_RESPONSE_ACCEPT )
-	{
-	  GError *err = NULL;
-
-	  if ( ! save_editor_to_file (se, filename, &err) )
-	    {
-	      msg (ME, err->message);
-	      g_error_free (err);
-	    }
-	  psppire_window_set_filename (se, filename);
-	}
-
-      if ( response == GTK_RESPONSE_CANCEL )
-	return ;
-    }
-
-  gtk_widget_destroy (GTK_WIDGET (se));
-}
 
 /* Callback for the File->SaveAs menuitem */
 static void
@@ -395,8 +334,8 @@ on_syntax_save (GtkMenuItem *menuitem, gpointer user_data)
 static gboolean
 on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 {
-  PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
-  save_if_modified (se);
+  PsppireWindow *se = PSPPIRE_WINDOW (user_data);
+
   return FALSE;
 }
 
@@ -406,9 +345,22 @@ on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 static gboolean
 on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 {
-  PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
+  PsppireWindow *se = PSPPIRE_WINDOW (user_data);
 
-  save_if_modified (se);
+  if ( psppire_window_query_save (se) )
+    {
+      gchar *filename = NULL;
+      GError *err = NULL;
+
+      g_object_get (se, "filename", &filename, NULL);
+
+      if ( ! save_editor_to_file (se, filename, &err) )
+	{
+	  msg (ME, err->message);
+	  g_error_free (err);
+	}
+    }
+
   return FALSE;
 }
 

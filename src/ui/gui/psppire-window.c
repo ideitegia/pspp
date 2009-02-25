@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include <gtk/gtkstock.h>
+#include <gtk/gtkmessagedialog.h>
 #include <gtk/gtksignal.h>
 #include <gtk/gtkwindow.h>
 #include <gtk/gtkcheckmenuitem.h>
@@ -385,6 +387,60 @@ psppire_window_init (PsppireWindow *window)
   window->unsaved = FALSE;
 
   g_signal_connect (window, "delete-event", G_CALLBACK (on_delete), window);
+}
+
+
+/* If the buffer's modified flag is set,
+   ask the user if the buffer should be saved.
+   Return TRUE if is should.
+*/
+gboolean
+psppire_window_query_save (PsppireWindow *se)
+{
+  gint response;
+  GtkWidget *dialog;
+
+  const gchar *description;
+  const gchar *filename = psppire_window_get_filename (se);
+
+  if ( ! psppire_window_get_unsaved (se))
+    return FALSE;
+
+  g_object_get (se, "description", &description, NULL);
+
+  g_return_val_if_fail (filename != NULL, FALSE);
+
+  dialog =
+    gtk_message_dialog_new (GTK_WINDOW (se),
+			    GTK_DIALOG_MODAL,
+			    GTK_MESSAGE_QUESTION,
+			    GTK_BUTTONS_NONE,
+			    _("Save contents of %s to \"%s\"?"),
+			    description,
+			    filename);
+
+  gtk_dialog_add_button  (GTK_DIALOG (dialog),
+			  GTK_STOCK_YES,
+			  GTK_RESPONSE_ACCEPT);
+
+  gtk_dialog_add_button  (GTK_DIALOG (dialog),
+			  GTK_STOCK_NO,
+			  GTK_RESPONSE_REJECT);
+
+  gtk_dialog_add_button  (GTK_DIALOG (dialog),
+			  GTK_STOCK_CANCEL,
+			  GTK_RESPONSE_CANCEL);
+
+  response = gtk_dialog_run (GTK_DIALOG (dialog));
+
+  gtk_widget_destroy (dialog);
+
+  if ( response == GTK_RESPONSE_ACCEPT )
+    {
+      return TRUE;
+    }
+
+  return FALSE;
 }
 
 

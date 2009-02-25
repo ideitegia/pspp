@@ -76,6 +76,10 @@ void psppire_window_set_unsaved (PsppireWindow *, gboolean );
 
 gboolean psppire_window_get_unsaved (PsppireWindow *);
 
+
+gboolean psppire_window_query_save (PsppireWindow *);
+
+
 G_END_DECLS
 
 #endif /* __PSPPIRE_WINDOW_H__ */

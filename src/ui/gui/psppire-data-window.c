@@ -339,9 +339,6 @@ psppire_data_window_load_file (PsppireDataWindow *de,
     }
 
   psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
-  free (de->file_name);
-
-  de->file_name = g_strdup (file_name);
 }
 
 
@@ -376,13 +373,16 @@ open_data_dialog (GtkAction *action, PsppireDataWindow *de)
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
 
-  if (de->file_name)
-    {
-      gchar *dir_name = g_path_get_dirname (de->file_name);
-      gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
-					   dir_name);
-      free (dir_name);
-    }
+  {
+    gchar *dir_name;
+    gchar *filename = NULL;
+    g_object_get (de, "filename", &filename, NULL);
+
+    dir_name = g_path_get_dirname (filename);
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
+					 dir_name);
+    free (dir_name);
+  }
 
   switch (gtk_dialog_run (GTK_DIALOG (dialog)))
     {
@@ -420,39 +420,38 @@ name_has_suffix (const gchar *name)
 }
 
 
-/* Append SUFFIX to the filename of DE */
-static void
-append_filename_suffix (PsppireDataWindow *de, const gchar *suffix)
-{
-  if ( ! name_has_suffix (de->file_name))
-    {
-      gchar *s = de->file_name;
-      de->file_name = g_strconcat (de->file_name, suffix, NULL);
-      g_free (s);
-    }
-}
-
 /* Save DE to file */
 static void
 save_file (PsppireDataWindow *de)
 {
+  gchar *fn = NULL;
+  GString *fnx;
   struct getl_interface *sss;
   struct string file_name ;
 
-  g_assert (de->file_name);
+  g_object_get (de, "filename", &fn, NULL);
+
+  fnx = g_string_new (fn);
+
+  if ( ! name_has_suffix (fnx->str))
+    {
+      if ( de->save_as_portable)
+	g_string_append (fnx, ".por");
+      else
+	g_string_append (fnx, ".sav");
+    }
 
   ds_init_empty (&file_name);
-  syntax_gen_string (&file_name, ss_cstr (de->file_name));
+  syntax_gen_string (&file_name, ss_cstr (fnx->str));
+  g_string_free (fnx, FALSE);
 
   if ( de->save_as_portable )
     {
-      append_filename_suffix (de, ".por");
       sss = create_syntax_string_source ("EXPORT OUTFILE=%s.",
 					 ds_cstr (&file_name));
     }
   else
     {
-      append_filename_suffix (de, ".sav");
       sss = create_syntax_string_source ("SAVE OUTFILE=%s.",
 					 ds_cstr (&file_name));
     }
@@ -534,22 +533,28 @@ data_save_as_dialog (PsppireDataWindow *de)
     {
     case GTK_RESPONSE_ACCEPT:
       {
-	g_free (de->file_name);
-
-	de->file_name =
-	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+	GString *filename =
+	  g_string_new
+	  (
+	   gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog))
+	   );
 
 	de->save_as_portable =
 	  ! gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_sys));
 
-	if ( de->save_as_portable)
-	  append_filename_suffix (de, ".por");
-	else
-	  append_filename_suffix (de, ".sav");
+	if ( ! name_has_suffix (filename->str))
+	  {
+	    if ( de->save_as_portable)
+	      g_string_append (filename, ".por");
+	    else
+	      g_string_append (filename, ".sav");
+	  }
+
+	psppire_window_set_filename (PSPPIRE_WINDOW (de), filename->str);
 
 	save_file (de);
 
-	psppire_window_set_filename (PSPPIRE_WINDOW (de), de->file_name);
+	g_string_free (filename, TRUE);
       }
       break;
     default:
@@ -561,12 +566,13 @@ data_save_as_dialog (PsppireDataWindow *de)
 
 
 /* Callback for data_save action.
-   If there's an existing file name, then just save,
-   otherwise prompt for a file name, then save */
+ */
 static void
 data_save (PsppireDataWindow *de)
 {
-  if (de->file_name)
+  const gchar *fn = psppire_window_get_filename (PSPPIRE_WINDOW (de));
+
+  if ( NULL != fn)
     save_file (de);
   else
     data_save_as_dialog (de);
@@ -582,9 +588,6 @@ new_file (GtkAction *action, PsppireDataWindow *de)
     create_syntax_string_source ("NEW FILE.");
 
   execute_syntax (sss);
-
-  g_free (de->file_name);
-  de->file_name = NULL;
 
   psppire_window_set_filename (PSPPIRE_WINDOW (de), NULL);
 }
@@ -1001,6 +1004,11 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 {
   PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (user_data);
 
+  if (psppire_window_query_save (PSPPIRE_WINDOW (dw)))
+    {
+      data_save (dw);
+    }
+
   return FALSE;
 }
 
@@ -1022,8 +1030,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   menubar = get_widget_assert (de->builder, "menubar");
   hb = get_widget_assert (de->builder, "handlebox1");
   sb = get_widget_assert (de->builder, "status-bar");
-
-  de->file_name = NULL;
 
   de->data_editor =
     PSPPIRE_DATA_EDITOR (psppire_data_editor_new (the_var_store, the_data_store));
