@@ -92,7 +92,8 @@ psppire_window_set_title (PsppireWindow *window)
   GString *title = g_string_sized_new (80);
 
   g_string_printf (title, _("%s %s PSPPIRE %s"),
-		    window->basename, mdash, window->description);
+		   window->basename ? window->basename : "",
+		   mdash, window->description);
 
   if ( window->unsaved)
     g_string_prepend_c (title, '*');
