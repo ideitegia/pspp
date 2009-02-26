@@ -4,7 +4,7 @@ include $(top_srcdir)/src/ui/gui/sheet/automake.mk
 
 bin_PROGRAMS += src/ui/gui/psppire 
 
-src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) $(GLADE_CFLAGS) -Wall \
+src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) -Wall \
 	-DINSTALLDIR=\"$(bindir)\" -DGDK_MULTIHEAD_SAFE=1
 
 
@@ -27,7 +27,6 @@ src_ui_gui_psppire_LDADD = \
 	src/libpspp.la \
 	src/libpspp-core.la \
 	$(GTK_LIBS) \
-	$(GLADE_LIBS) \
 	@LIBINTL@ \
 	$(LIB_CLOSE)
 
@@ -74,7 +73,6 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/t-test.ui
 
 dist_src_ui_gui_psppire_DATA = \
-	$(top_srcdir)/src/ui/gui/text-data-import.glade \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
 	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\
@@ -219,6 +217,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/recode.glade \
 	src/ui/gui/regression.glade \
 	src/ui/gui/syntax-editor.glade \
+	src/ui/gui/text-data-import.glade \
 	src/ui/gui/t-test.glade
 
 

@@ -50,9 +50,6 @@ use the GUI, you must run `configure' with --without-gui.
 
     * GTK+ (http://www.gtk.org/), version 2.12.0 or later.
 
-    * libglade (http://www.jamesh.id.au/software/libglade/), version
-      2.6 or later.
-
 Installing the following packages will allow your PSPP binary to read
 Gnumeric files.
 

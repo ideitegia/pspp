@@ -54,8 +54,6 @@ required_gtk_version=2.12
 if test x"$with_gui" != x"no" ; then 
   PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $required_gtk_version,,
     [PSPP_REQUIRED_PREREQ([gtk+ 2.0 v$required_gtk_version or later (or use --without-gui)])])
-  PKG_CHECK_MODULES(GLADE, libglade-2.0 >= 2.6.0,,
-    [PSPP_REQUIRED_PREREQ([libglade 2.0 v2.6.0 or later (or use --without-gui)])])
 fi
 AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
