@@ -23,6 +23,7 @@
 #include <libpspp/message.h>
 #include <stdlib.h>
 
+#include "psppire.h"
 #include "psppire-syntax-window.h"
 
 #include "psppire-data-window.h"
@@ -40,6 +41,10 @@ static void psppire_syntax_window_base_finalize (PsppireSyntaxWindowClass *, gpo
 static void psppire_syntax_window_base_init     (PsppireSyntaxWindowClass *class);
 static void psppire_syntax_window_class_init    (PsppireSyntaxWindowClass *class);
 static void psppire_syntax_window_init          (PsppireSyntaxWindow      *syntax_editor);
+
+
+static void psppire_syntax_window_iface_init (PsppireWindowIface *iface);
+
 
 GType
 psppire_syntax_window_get_type (void)
@@ -61,9 +66,20 @@ psppire_syntax_window_get_type (void)
 	(GInstanceInitFunc) psppire_syntax_window_init,
       };
 
+      static const GInterfaceInfo window_interface_info =
+	{
+	  (GInterfaceInitFunc) psppire_syntax_window_iface_init,
+	  NULL,
+	  NULL
+	};
+
       psppire_syntax_window_type =
-	g_type_register_static (PSPPIRE_WINDOW_TYPE, "PsppireSyntaxWindow",
+	g_type_register_static (PSPPIRE_TYPE_WINDOW, "PsppireSyntaxWindow",
 				&psppire_syntax_window_info, 0);
+
+      g_type_add_interface_static (psppire_syntax_window_type,
+				   PSPPIRE_TYPE_WINDOW_MODEL,
+				   &window_interface_info);
     }
 
   return psppire_syntax_window_type;
@@ -258,12 +274,10 @@ save_editor_to_file (PsppireSyntaxWindow *se,
 
 /* Callback for the File->SaveAs menuitem */
 static void
-on_syntax_save_as (GtkMenuItem *menuitem, gpointer user_data)
+syntax_save_as (PsppireWindow *se)
 {
   GtkFileFilter *filter;
   gint response;
-
-  PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
 
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Save Syntax"),
@@ -294,7 +308,7 @@ on_syntax_save_as (GtkMenuItem *menuitem, gpointer user_data)
       char *filename =
 	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog) );
 
-      if ( ! save_editor_to_file (se, filename, &err) )
+      if ( ! save_editor_to_file (PSPPIRE_SYNTAX_WINDOW (se), filename, &err) )
 	{
 	  msg ( ME, err->message );
 	  g_error_free (err);
@@ -309,18 +323,16 @@ on_syntax_save_as (GtkMenuItem *menuitem, gpointer user_data)
 
 /* Callback for the File->Save menuitem */
 static void
-on_syntax_save (GtkMenuItem *menuitem, gpointer user_data)
+syntax_save (PsppireWindow *se)
 {
-  PsppireSyntaxWindow *se = PSPPIRE_SYNTAX_WINDOW (user_data);
-  const gchar *filename = psppire_window_get_filename (PSPPIRE_WINDOW (se));
-
+  const gchar *filename = psppire_window_get_filename (se);
 
   if ( filename == NULL )
-    on_syntax_save_as (menuitem, se);
+    syntax_save_as (se);
   else
     {
       GError *err = NULL;
-      save_editor_to_file (se, filename, &err);
+      save_editor_to_file (PSPPIRE_SYNTAX_WINDOW (se), filename, &err);
       if ( err )
 	{
 	  msg (ME, err->message);
@@ -334,32 +346,7 @@ on_syntax_save (GtkMenuItem *menuitem, gpointer user_data)
 static gboolean
 on_quit (GtkMenuItem *menuitem, gpointer    user_data)
 {
-  PsppireWindow *se = PSPPIRE_WINDOW (user_data);
-
-  return FALSE;
-}
-
-
-/* Callback for the "delete" action (clicking the x on the top right
-   hand corner of the window) */
-static gboolean
-on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
-{
-  PsppireWindow *se = PSPPIRE_WINDOW (user_data);
-
-  if ( psppire_window_query_save (se) )
-    {
-      gchar *filename = NULL;
-      GError *err = NULL;
-
-      g_object_get (se, "filename", &filename, NULL);
-
-      if ( ! save_editor_to_file (se, filename, &err) )
-	{
-	  msg (ME, err->message);
-	  g_error_free (err);
-	}
-    }
+  psppire_quit ();
 
   return FALSE;
 }
@@ -510,14 +497,14 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    G_CALLBACK (reference_manual),
 		    NULL);
 
-  g_signal_connect (get_object_assert (xml, "file_save"),
+  g_signal_connect_swapped (get_object_assert (xml, "file_save"),
 		    "activate",
-		    G_CALLBACK (on_syntax_save),
+		    G_CALLBACK (syntax_save),
 		    window);
 
-  g_signal_connect (get_object_assert (xml, "file_save_as"),
+  g_signal_connect_swapped (get_object_assert (xml, "file_save_as"),
 		    "activate",
-		    G_CALLBACK (on_syntax_save_as),
+		    G_CALLBACK (syntax_save_as),
 		    window);
 
   g_signal_connect (get_object_assert (xml,"file_quit"),
@@ -550,16 +537,15 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all), NULL);
 
+
+  {
   GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
 
   PSPPIRE_WINDOW (window)->menu =
     GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar2/windows/windows_minimise_all")->parent);
-
+  }
 
   g_object_unref (xml);
-
-  g_signal_connect (window, "delete-event",
-		    G_CALLBACK (on_delete), window);
 }
 
 
@@ -608,3 +594,10 @@ psppire_syntax_window_load_from_file (PsppireSyntaxWindow *se,
   return TRUE;
 }
 
+
+
+static void
+psppire_syntax_window_iface_init (PsppireWindowIface *iface)
+{
+  iface->save = syntax_save;
+}

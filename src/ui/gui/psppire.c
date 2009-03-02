@@ -52,7 +52,7 @@
 #include "message-dialog.h"
 #include <ui/syntax-gen.h>
 
-
+#include "psppire-window-register.h"
 #include "psppire-output-window.h"
 
 #include <data/sys-file-reader.h>
@@ -169,6 +169,24 @@ de_initialize (void)
   outp_done ();
 }
 
+
+static void
+func (gpointer key, gpointer value, gpointer data)
+{
+  gboolean rv;
+  PsppireWindow *window = PSPPIRE_WINDOW (value);
+
+  g_signal_emit_by_name (window, "delete-event", 0, &rv);
+}
+
+void
+psppire_quit (void)
+{
+  PsppireWindowRegister *reg = psppire_window_register_new ();
+  psppire_window_register_foreach (reg, func, NULL);
+
+  gtk_main_quit ();
+}
 
 
 struct icon_info

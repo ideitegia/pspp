@@ -30,6 +30,8 @@
 
 #include <data/procedure.h>
 
+#include "psppire.h"
+#include "psppire-window.h"
 #include "psppire-data-window.h"
 #include "psppire-syntax-window.h"
 
@@ -71,6 +73,9 @@ static void psppire_data_window_class_init    (PsppireDataWindowClass *class);
 static void psppire_data_window_init          (PsppireDataWindow      *data_editor);
 
 
+static void psppire_data_window_iface_init (PsppireWindowIface *iface);
+
+
 GType
 psppire_data_window_get_type (void)
 {
@@ -91,9 +96,21 @@ psppire_data_window_get_type (void)
 	  (GInstanceInitFunc) psppire_data_window_init,
 	};
 
+      static const GInterfaceInfo window_interface_info =
+	{
+	  (GInterfaceInitFunc) psppire_data_window_iface_init,
+	  NULL,
+	  NULL
+	};
+
       psppire_data_window_type =
-	g_type_register_static (PSPPIRE_WINDOW_TYPE, "PsppireDataWindow",
+	g_type_register_static (PSPPIRE_TYPE_WINDOW, "PsppireDataWindow",
 				&psppire_data_window_info, 0);
+
+      
+      g_type_add_interface_static (psppire_data_window_type,
+				   PSPPIRE_TYPE_WINDOW_MODEL,
+				   &window_interface_info);
     }
 
   return psppire_data_window_type;
@@ -568,14 +585,14 @@ data_save_as_dialog (PsppireDataWindow *de)
 /* Callback for data_save action.
  */
 static void
-data_save (PsppireDataWindow *de)
+data_save (PsppireWindow *de)
 {
-  const gchar *fn = psppire_window_get_filename (PSPPIRE_WINDOW (de));
+  const gchar *fn = psppire_window_get_filename (de);
 
   if ( NULL != fn)
-    save_file (de);
+    save_file (PSPPIRE_DATA_WINDOW (de));
   else
-    data_save_as_dialog (de);
+    data_save_as_dialog (PSPPIRE_DATA_WINDOW (de));
 }
 
 
@@ -723,7 +740,8 @@ file_quit (GtkCheckMenuItem *menuitem, gpointer data)
      Give the user the opportunity to save any unsaved data.
   */
   g_object_unref (the_data_store);
-  gtk_main_quit ();
+
+  psppire_quit ();
 }
 
 
@@ -866,7 +884,7 @@ create_var_sheet_variable_popup_menu (PsppireDataWindow *de)
 }
 
 
-#if RECENT_LISTS_AVAILABLE
+#if RECENT_LISTS_AVAILABLE && 0
 
 static void
 on_recent_data_select (GtkMenuShell *menushell,   gpointer user_data)
@@ -996,22 +1014,6 @@ set_unsaved (gpointer w)
 {
   psppire_window_set_unsaved (PSPPIRE_WINDOW (w), TRUE);
 }
-
-/* Callback for the "delete" action (clicking the x on the top right
-   hand corner of the window) */
-static gboolean
-on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
-{
-  PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (user_data);
-
-  if (psppire_window_query_save (PSPPIRE_WINDOW (dw)))
-    {
-      data_save (dw);
-    }
-
-  return FALSE;
-}
-
 
 static void
 psppire_data_window_init (PsppireDataWindow *de)
@@ -1756,9 +1758,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 		"varsheet-row-menu", de->var_sheet_variable_popup_menu,
 		NULL);
 
-  g_signal_connect (de, "delete-event", G_CALLBACK (on_delete), de);
-
-
   gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);
 }
@@ -1772,3 +1771,13 @@ psppire_data_window_new (void)
 				   NULL));
 }
 
+
+
+
+
+
+static void
+psppire_data_window_iface_init (PsppireWindowIface *iface)
+{
+  iface->save = data_save;
+}

@@ -28,18 +28,33 @@
 G_BEGIN_DECLS
 
 
-#define PSPPIRE_WINDOW_TYPE            (psppire_window_get_type ())
-#define PSPPIRE_WINDOW(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_WINDOW_TYPE, PsppireWindow))
+#define PSPPIRE_TYPE_WINDOW            (psppire_window_get_type ())
+
+#define PSPPIRE_WINDOW(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), \
+    PSPPIRE_TYPE_WINDOW, PsppireWindow))
+
 #define PSPPIRE_WINDOW_CLASS(class)    (G_TYPE_CHECK_CLASS_CAST ((class), \
-    PSPPIRE_WINDOW_TYPE, PsppireWindowClass))
+    PSPPIRE_TYPE_WINDOW, PsppireWindowClass))
+
 #define PSPPIRE_IS_WINDOW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), \
-    PSPPIRE_WINDOW_TYPE))
+    PSPPIRE_TYPE_WINDOW))
+
 #define PSPPIRE_IS_WINDOW_CLASS(class) (G_TYPE_CHECK_CLASS_TYPE ((class), \
-    PSPPIRE_WINDOW_TYPE))
+    PSPPIRE_TYPE_WINDOW))
+
+
+
+#define PSPPIRE_TYPE_WINDOW_MODEL            (psppire_window_model_get_type ())
+
+#define PSPPIRE_IS_WINDOW_MODEL(obj)	       (G_TYPE_CHECK_INSTANCE_TYPE ((obj), PSPPIRE_TYPE_WINDOW_MODEL))
+
+#define PSPPIRE_WINDOW_MODEL_GET_IFACE(obj) \
+   (G_TYPE_INSTANCE_GET_INTERFACE ((obj), PSPPIRE_TYPE_WINDOW_MODEL, PsppireWindowIface))
 
 
 typedef struct _PsppireWindow       PsppireWindow;
 typedef struct _PsppireWindowClass  PsppireWindowClass;
+typedef struct _PsppireWindowIface  PsppireWindowIface;
 
 
 struct _PsppireWindow
@@ -59,12 +74,23 @@ struct _PsppireWindow
   gboolean unsaved;
 };
 
+
 struct _PsppireWindowClass
 {
   GtkWindowClass parent_class;
 };
 
+
+struct _PsppireWindowIface
+{
+  GTypeInterface g_iface;
+
+  void (*save) (PsppireWindow *w);
+};
+
+
 GType      psppire_window_get_type        (void);
+GType      psppire_window_model_get_type        (void);
 
 const gchar * psppire_window_get_filename (PsppireWindow *);
 
@@ -76,9 +102,9 @@ void psppire_window_set_unsaved (PsppireWindow *, gboolean );
 
 gboolean psppire_window_get_unsaved (PsppireWindow *);
 
+gint psppire_window_query_save (PsppireWindow *);
 
-gboolean psppire_window_query_save (PsppireWindow *);
-
+void psppire_window_save (PsppireWindow *w);
 
 G_END_DECLS
 

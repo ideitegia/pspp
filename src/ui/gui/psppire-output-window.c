@@ -67,7 +67,7 @@ psppire_output_window_get_type (void)
       };
 
       psppire_output_window_type =
-	g_type_register_static (PSPPIRE_WINDOW_TYPE, "PsppireOutputWindow",
+	g_type_register_static (PSPPIRE_TYPE_WINDOW, "PsppireOutputWindow",
 				&psppire_output_window_info, 0);
     }
 
@@ -247,10 +247,12 @@ psppire_output_window_init (PsppireOutputWindow *window)
 		    G_CALLBACK (psppire_window_minimise_all),
 		    NULL);
 
-  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
+  {
+    GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
 
-  PSPPIRE_WINDOW (window)->menu =
-    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar1/windows_menuitem/windows_minimise-all")->parent);
+    PSPPIRE_WINDOW (window)->menu =
+      GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar1/windows_menuitem/windows_minimise-all")->parent);
+  }
 
   g_object_unref (xml);
 

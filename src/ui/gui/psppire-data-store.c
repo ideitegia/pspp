@@ -311,9 +311,9 @@ delete_variable_callback (GObject *obj, gint dict_index,
 static void
 variable_changed_callback (GObject *obj, gint var_num, gpointer data)
 {
+#if AXIS_TRANSITION
   PsppireDataStore *store  = PSPPIRE_DATA_STORE (data);
 
-#if AXIS_TRANSITION
   psppire_sheet_column_columns_changed (PSPPIRE_SHEET_COLUMN (store),
 				  var_num, 1);
 

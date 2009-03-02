@@ -350,12 +350,22 @@ insert_existing_items (PsppireWindow *window)
 
 
 static gboolean
-on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
+on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 {
-  PsppireWindow *dw = PSPPIRE_WINDOW (user_data);
-
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
+  if ( w->unsaved )
+    {
+      gint response = psppire_window_query_save (w);
+
+      if ( response == GTK_RESPONSE_CANCEL)
+	return TRUE;
+
+      if ( response == GTK_RESPONSE_ACCEPT)
+	{
+	  psppire_window_save (w);
+	}
+    }
 
   if ( 1 == psppire_window_register_n_items (reg))
     gtk_main_quit ();
@@ -387,17 +397,18 @@ psppire_window_init (PsppireWindow *window)
 
   window->unsaved = FALSE;
 
-  g_signal_connect (window, "delete-event", G_CALLBACK (on_delete), window);
+  g_signal_connect_swapped (window, "delete-event", G_CALLBACK (on_delete), window);
 
   g_object_set (window, "icon-name", "psppicon", NULL);
+
 }
 
 
-/* If the buffer's modified flag is set,
-   ask the user if the buffer should be saved.
-   Return TRUE if is should.
+/* 
+   Ask the user if the buffer should be saved.
+   Return the response.
 */
-gboolean
+gint
 psppire_window_query_save (PsppireWindow *se)
 {
   gint response;
@@ -406,12 +417,9 @@ psppire_window_query_save (PsppireWindow *se)
   const gchar *description;
   const gchar *filename = psppire_window_get_filename (se);
 
-  if ( ! psppire_window_get_unsaved (se))
-    return FALSE;
-
   g_object_get (se, "description", &description, NULL);
 
-  g_return_val_if_fail (filename != NULL, FALSE);
+  g_return_val_if_fail (filename != NULL, GTK_RESPONSE_NONE);
 
   dialog =
     gtk_message_dialog_new (GTK_WINDOW (se),
@@ -438,12 +446,7 @@ psppire_window_query_save (PsppireWindow *se)
 
   gtk_widget_destroy (dialog);
 
-  if ( response == GTK_RESPONSE_ACCEPT )
-    {
-      return TRUE;
-    }
-
-  return FALSE;
+  return response;
 }
 
 
@@ -493,4 +496,52 @@ psppire_window_minimise_all (void)
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
   g_hash_table_foreach (reg->name_table, minimise_window, NULL);
+}
+
+
+
+
+GType
+psppire_window_model_get_type (void)
+{
+  static GType window_model_type = 0;
+
+  if (! window_model_type)
+    {
+      static const GTypeInfo window_model_info =
+      {
+        sizeof (PsppireWindowIface), /* class_size */
+	NULL,           /* base_init */
+	NULL,		/* base_finalize */
+	NULL,
+	NULL,		/* class_finalize */
+	NULL,		/* class_data */
+	0,
+	0,              /* n_preallocs */
+	NULL
+      };
+
+      window_model_type =
+	g_type_register_static (G_TYPE_INTERFACE, "PsppireWindowModel",
+				&window_model_info, 0);
+
+      g_type_interface_add_prerequisite (window_model_type, G_TYPE_OBJECT);
+    }
+
+  return window_model_type;
+}
+
+
+void
+psppire_window_save (PsppireWindow *w)
+{
+  PsppireWindowIface *i = PSPPIRE_WINDOW_MODEL_GET_IFACE (w);
+
+  g_assert (PSPPIRE_IS_WINDOW_MODEL (w));
+
+  g_assert (i);
+
+  g_return_if_fail (i->save);
+
+  i->save (w);
 }

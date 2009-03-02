@@ -25,5 +25,7 @@ extern const struct argp non_option_argp ;
 
 void initialize (struct command_line_processor *, int argc, char **argv);
 void de_initialize (void);
+void psppire_quit (void);
+
 
 #endif /* PSPPIRE_H */
