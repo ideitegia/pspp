@@ -233,10 +233,8 @@ static void pop_watch_cursor (struct import_assistant *);
 
 /* Pops up the Text Data Import assistant. */
 void
-text_data_import_assistant (GObject *o, gpointer de_)
+text_data_import_assistant (GObject *o, GtkWindow *parent_window)
 {
-  struct data_editor *de = de_;
-  GtkWindow *parent_window = GTK_WINDOW (de);
   struct import_assistant *ia;
 
   ia = xzalloc (sizeof *ia);
