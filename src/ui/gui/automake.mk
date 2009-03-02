@@ -249,10 +249,16 @@ src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
 .glade.ui:
 	gtk-builder-convert $< $@
 
+desktopdir = $(datadir)/applications
+desktop_DATA = src/ui/gui/pspp.desktop
+
 EXTRA_DIST += src/ui/gui/OChangeLog\
 	src/ui/gui/psppicon.png \
-	src/ui/gui/marshaller-list
+	src/ui/gui/marshaller-list \
+	$(desktop_DATA)
 
 BUILT_SOURCES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h
 CLEANFILES += src/ui/gui/psppire-marshal.c src/ui/gui/psppire-marshal.h \
 	$(nodist_src_ui_gui_psppire_DATA)
+
+
