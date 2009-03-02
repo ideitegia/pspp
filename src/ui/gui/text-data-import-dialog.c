@@ -589,6 +589,7 @@ init_assistant (struct import_assistant *ia, GtkWindow *parent_window)
   gtk_window_set_title (GTK_WINDOW (a->assistant),
                         _("Importing Delimited Text Data"));
   gtk_window_set_transient_for (GTK_WINDOW (a->assistant), parent_window);
+  gtk_window_set_icon_name (GTK_WINDOW (a->assistant), "psppicon");
 
   a->prop_renderer = gtk_cell_renderer_text_new ();
   g_object_ref_sink (a->prop_renderer);
