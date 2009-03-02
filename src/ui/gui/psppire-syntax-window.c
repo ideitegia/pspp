@@ -478,10 +478,15 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 		    window);
 #endif
 
-  g_signal_connect (get_action_assert (xml,"help_about"),
-		    "activate",
-		    G_CALLBACK (about_new),
-		    window);
+  {
+    GtkAction *abt = get_action_assert (xml, "help_about");
+    g_object_set (abt, "stock-id", "gtk-about", NULL);
+
+    g_signal_connect (abt,
+		      "activate",
+		      G_CALLBACK (about_new),
+		      window);
+  }
 
   g_signal_connect (get_action_assert (xml,"help_reference"),
 		    "activate",
