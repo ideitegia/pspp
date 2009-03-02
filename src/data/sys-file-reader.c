@@ -744,7 +744,11 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       break;
 
     case 7:
-      /* Unknown purpose. */
+      /* Used by the MRSETS command. */
+      break;
+
+    case 8:
+      /* Used by the SPSS Data Entry software. */
       break;
 
     case 11:
@@ -784,7 +788,8 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       break;
 
     default:
-      sys_warn (r, _("Unrecognized record type 7, subtype %d."), subtype);
+      sys_warn (r, _("Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s"),
+		subtype, PACKAGE_BUGREPORT);
       break;
     }
 

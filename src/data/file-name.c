@@ -138,6 +138,7 @@ fn_search_path (const char *base_name, const char *path_)
       if (!ds_is_empty (&file) && !ISSLASH (ds_last (&file)))
 	ds_put_char (&file, '/');
       ds_put_cstr (&file, base_name);
+      ds_relocate (&file);
 
       /* Check whether file exists. */
       if (fn_exists (ds_cstr (&file)))
