@@ -29,13 +29,6 @@
 
 void paste_syntax_in_new_window (const gchar *syntax);
 
-/*
-   GtkRecentChooserMenu was added in 2.10.0
-   but it didn't support GtkRecentFilters until
-   2.10.2
-*/
-#define RECENT_LISTS_AVAILABLE GTK_CHECK_VERSION (2, 10, 2)
-
 struct fmt_spec;
 
 /* Formats a value according to FORMAT
@@ -46,8 +39,9 @@ gchar * value_to_text (union value v, struct fmt_spec format);
 gboolean text_to_value (const gchar *text, union value *v,
 		       struct fmt_spec format);
 
-GObject * get_object_assert (GtkBuilder *builder, const gchar *name);
-GtkWidget * get_widget_assert (gpointer x, const gchar *name);
+GObject *get_object_assert (GtkBuilder *builder, const gchar *name, GType type);
+GtkAction * get_action_assert (GtkBuilder *builder, const gchar *name);
+GtkWidget * get_widget_assert (GtkBuilder *builder, const gchar *name);
 
 /* Converts a string in the pspp locale to utf-8 */
 char * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);

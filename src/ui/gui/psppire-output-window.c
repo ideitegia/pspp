@@ -232,23 +232,23 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   window->fp = NULL;
 
-  g_signal_connect (get_object_assert (xml,"help_about"),
+  g_signal_connect (get_action_assert (xml,"help_about"),
 		    "activate",
 		    G_CALLBACK (about_new),
 		    window);
 
-  g_signal_connect (get_object_assert (xml,"help_reference"),
+  g_signal_connect (get_action_assert (xml,"help_reference"),
 		    "activate",
 		    G_CALLBACK (reference_manual),
 		    NULL);
 
-  g_signal_connect (get_object_assert (xml,"windows_minimise-all"),
+  g_signal_connect (get_action_assert (xml,"windows_minimise-all"),
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all),
 		    NULL);
 
   {
-    GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
+    GtkUIManager *uim = GTK_UI_MANAGER (get_action_assert (xml, "uimanager1"));
 
     PSPPIRE_WINDOW (window)->menu =
       GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar1/windows_menuitem/windows_minimise-all")->parent);

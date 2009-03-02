@@ -120,7 +120,7 @@ builder_new_real (const gchar *name)
 
 
 GObject *
-get_object_assert (GtkBuilder *builder, const gchar *name)
+get_object_assert (GtkBuilder *builder, const gchar *name, GType type)
 {
   GObject *o = NULL;
   g_assert (name);
@@ -130,23 +130,26 @@ get_object_assert (GtkBuilder *builder, const gchar *name)
   if ( !o )
     g_critical ("Object \"%s\" could not be found\n", name);
 
+  if ( ! g_type_is_a (G_OBJECT_TYPE (o), type))
+   {
+     g_critical ("Object \"%s\" was expected to have type %s, but in fact has type %s", 
+	name, g_type_name (type), G_OBJECT_TYPE_NAME (o));
+   }
+
   return o;
 }
 
-GtkWidget *
-get_widget_assert (gpointer x, const gchar *name)
+
+GtkAction *
+get_action_assert (GtkBuilder *builder, const gchar *name)
 {
-  GObject *obj = G_OBJECT (x);
-  GtkWidget *w = NULL;
-  g_assert (name);
+  return GTK_ACTION (get_object_assert (builder, name, GTK_TYPE_ACTION));
+}
 
-  if (GTK_IS_BUILDER (obj))
-    w = GTK_WIDGET (gtk_builder_get_object (GTK_BUILDER (obj), name));
-
-  if ( !w )
-    g_critical ("Widget \"%s\" could not be found\n", name);
-
-  return w;
+GtkWidget *
+get_widget_assert (GtkBuilder *builder, const gchar *name)
+{
+  return GTK_WIDGET (get_object_assert (builder, name, GTK_TYPE_WIDGET));
 }
 
 /* Converts a string in the pspp locale to utf-8.

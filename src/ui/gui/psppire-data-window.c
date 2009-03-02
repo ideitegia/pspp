@@ -165,19 +165,19 @@ extern PsppireDataStore *the_data_store ;
 static void
 set_paste_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 {
-  GObject *edit_paste = get_object_assert (de->builder, "edit_paste");
+  GtkAction *edit_paste = get_action_assert (de->builder, "edit_paste");
 
-  gtk_action_set_sensitive (GTK_ACTION (edit_paste), x);
+  gtk_action_set_sensitive (edit_paste, x);
 }
 
 static void
 set_cut_copy_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
 {
-  GObject *edit_copy = get_object_assert (de->builder, "edit_copy");
-  GObject *edit_cut = get_object_assert (de->builder, "edit_cut");
+  GtkAction *edit_copy = get_action_assert (de->builder, "edit_copy");
+  GtkAction *edit_cut = get_action_assert (de->builder, "edit_cut");
 
-  gtk_action_set_sensitive (GTK_ACTION (edit_copy), x);
-  gtk_action_set_sensitive (GTK_ACTION (edit_cut), x);
+  gtk_action_set_sensitive (edit_copy, x);
+  gtk_action_set_sensitive (edit_cut, x);
 }
 
 /* Run the EXECUTE command. */
@@ -195,8 +195,7 @@ transformation_change_callback (bool transformations_pending,
 {
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
 
-  GtkUIManager *uim =
-    GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1"));
+  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
   GtkWidget *menuitem =
     gtk_ui_manager_get_widget (uim,"/ui/menubar/transform/transform_run-pending");
@@ -321,18 +320,6 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
 static void
 add_most_recent (const char *file_name)
 {
-#if RECENT_LISTS_AVAILABLE
-
-  GtkRecentManager *manager = gtk_recent_manager_get_default();
-  gchar *uri = g_filename_to_uri (file_name, NULL, NULL);
-
-  gtk_recent_manager_remove_item (manager, uri, NULL);
-
-  if ( ! gtk_recent_manager_add_item (manager, uri))
-    g_warning ("Could not add item %s to recent list\n",uri);
-
-  g_free (uri);
-#endif
 }
 
 void
@@ -884,8 +871,6 @@ create_var_sheet_variable_popup_menu (PsppireDataWindow *de)
 }
 
 
-#if RECENT_LISTS_AVAILABLE && 0
-
 static void
 on_recent_data_select (GtkMenuShell *menushell,   gpointer user_data)
 {
@@ -926,7 +911,6 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
   g_free (file);
 }
 
-#endif
 
 static void
 enable_delete_cases (GtkWidget *w, gint case_num, gpointer data)
@@ -954,8 +938,7 @@ on_switch_sheet (GtkNotebook *notebook,
 {
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (user_data);
 
-  GtkUIManager *uim =
-    GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1"));
+  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
   GtkWidget *view_data =
     gtk_ui_manager_get_widget (uim,"/ui/menubar/view/view_data");
@@ -992,20 +975,17 @@ on_switch_sheet (GtkNotebook *notebook,
 static GtkAction *
 resolve_action (GtkBuilder *builder, const gchar *action, const gchar *proxy)
 {
-  GObject *pr = NULL;
-  GObject *act = get_object_assert (builder, action);
+  GtkWidget *pr = NULL;
+  GtkAction *act = get_action_assert (builder, action);
   g_assert (GTK_IS_ACTION (act));
 
   if ( proxy )
-    {
-      pr = get_object_assert (builder, proxy);
-      g_assert (GTK_IS_WIDGET (pr));
-    }
+    pr = get_widget_assert (builder, proxy);
 
   if ( pr )
-    gtk_action_connect_proxy (GTK_ACTION (act), GTK_WIDGET (pr));
+    gtk_action_connect_proxy (act, pr);
 
-  return GTK_ACTION (act);
+  return act;
 }
 
 
@@ -1023,8 +1003,6 @@ psppire_data_window_init (PsppireDataWindow *de)
   GtkWidget *menubar;
   GtkWidget *hb ;
   GtkWidget *sb ;
-
-  GtkUIManager *uim;
 
   GtkWidget *box = gtk_vbox_new (FALSE, 0);
   de->builder = builder_new ("data-editor.ui");
@@ -1098,11 +1076,11 @@ psppire_data_window_init (PsppireDataWindow *de)
 		    de);
 
 
-  g_signal_connect (get_object_assert (de->builder, "edit_copy"),
+  g_signal_connect (get_action_assert (de->builder, "edit_copy"),
 		    "activate",
 		    G_CALLBACK (on_edit_copy), de);
 
-  g_signal_connect (get_object_assert (de->builder, "edit_cut"),
+  g_signal_connect (get_action_assert (de->builder, "edit_cut"),
 		    "activate",
 		    G_CALLBACK (on_edit_cut), de);
 
@@ -1201,7 +1179,7 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
 
-  g_signal_connect (get_object_assert (de->builder, "edit_paste"), "activate",
+  g_signal_connect (get_action_assert (de->builder, "edit_paste"), "activate",
 		    G_CALLBACK (on_edit_paste),
 		    de);
 
@@ -1586,28 +1564,31 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
 
-
-#if RECENT_LISTS_AVAILABLE && 0
+#if 0
   {
     GtkRecentManager *rm = gtk_recent_manager_get_default ();
-    GtkWidget *recent_data = get_object_assert (de->builder, "file_recent-data");
-    GtkWidget *recent_files = get_object_assert (de->builder, "file_recent-files");
-    GtkWidget *recent_separator = get_object_assert (de->builder, "file_separator1");
+    GtkAction *recent_data = get_action_assert (de->builder, "file_recent-data");
+    GtkAction *recent_files = get_action_assert (de->builder, "file_recent-files");
+#if 0
+    GtkWidget *recent_separator = get_widget_assert (de->builder, "file_separator1");
+#endif
 
     GtkWidget *menu = gtk_recent_chooser_menu_new_for_manager (rm);
 
     GtkRecentFilter *filter = gtk_recent_filter_new ();
 
+#if 0
     gtk_widget_show (recent_data);
     gtk_widget_show (recent_files);
     gtk_widget_show (recent_separator);
+#endif
 
     gtk_recent_filter_add_pattern (filter, "*.sav");
     gtk_recent_filter_add_pattern (filter, "*.SAV");
 
     gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu), filter);
 
-    gtk_widget_set_sensitive (recent_data, TRUE);
+    gtk_action_set_sensitive (recent_data, TRUE);
     g_signal_connect (menu, "selection-done",
 		      G_CALLBACK (on_recent_data_select), de);
 
@@ -1630,18 +1611,18 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 #endif
 
-  g_signal_connect (get_object_assert (de->builder,"file_new_syntax"),
+  g_signal_connect (get_action_assert (de->builder,"file_new_syntax"),
 		    "activate",
 		    G_CALLBACK (create_syntax_window),
 		    NULL);
 
-  g_signal_connect (get_object_assert (de->builder,"file_open_syntax"),
+  g_signal_connect (get_action_assert (de->builder,"file_open_syntax"),
 		    "activate",
 		    G_CALLBACK (open_syntax_window),
 		    de);
 
   {
-    GObject *abt = get_object_assert (de->builder, "help_about");
+    GtkAction *abt = get_action_assert (de->builder, "help_about");
     g_object_set (abt, "stock-id", "gtk-about", NULL);
     g_signal_connect (abt,
 		      "activate",
@@ -1650,7 +1631,7 @@ psppire_data_window_init (PsppireDataWindow *de)
   }
 
 
-  g_signal_connect (get_object_assert (de->builder,"help_reference"),
+  g_signal_connect (get_action_assert (de->builder,"help_reference"),
 		    "activate",
 		    G_CALLBACK (reference_manual),
 		    de);
@@ -1674,22 +1655,22 @@ psppire_data_window_init (PsppireDataWindow *de)
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_VARIABLE_VIEW);
   gtk_notebook_set_current_page (GTK_NOTEBOOK (de->data_editor), PSPPIRE_DATA_EDITOR_DATA_VIEW);
 
-  g_signal_connect (get_object_assert (de->builder, "view_statusbar"),
+  g_signal_connect (get_action_assert (de->builder, "view_statusbar"),
 		    "activate",
 		    G_CALLBACK (status_bar_activate), de);
 
 
-  g_signal_connect (get_object_assert (de->builder, "view_gridlines"),
+  g_signal_connect (get_action_assert (de->builder, "view_gridlines"),
 		    "activate",
 		    G_CALLBACK (grid_lines_activate), de);
 
 
 
-  g_signal_connect (get_object_assert (de->builder, "view_data"),
+  g_signal_connect (get_action_assert (de->builder, "view_data"),
 		    "activate",
 		    G_CALLBACK (data_view_activate), de);
 
-  g_signal_connect (get_object_assert (de->builder, "view_variables"),
+  g_signal_connect (get_action_assert (de->builder, "view_variables"),
 		    "activate",
 		    G_CALLBACK (variable_view_activate), de);
 
@@ -1709,16 +1690,16 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
 
-  g_signal_connect (get_object_assert (de->builder, "file_quit"),
+  g_signal_connect (get_action_assert (de->builder, "file_quit"),
 		    "activate",
 		    G_CALLBACK (file_quit), de);
 
-  g_signal_connect (get_object_assert (de->builder, "transform_run-pending"),
+  g_signal_connect (get_action_assert (de->builder, "transform_run-pending"),
 		    "activate",
 		    G_CALLBACK (execute), de);
 
 
-  g_signal_connect (get_object_assert (de->builder, "windows_minimise_all"),
+  g_signal_connect (get_action_assert (de->builder, "windows_minimise_all"),
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all), NULL);
 
@@ -1746,10 +1727,12 @@ psppire_data_window_init (PsppireDataWindow *de)
   de->data_sheet_cases_popup_menu =
     GTK_MENU (create_data_sheet_cases_popup_menu (de));
 
-  uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1"));
+  {
+  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
   PSPPIRE_WINDOW (de)->menu =
     GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
+  }
 
 
   g_object_set (de->data_editor,

@@ -395,20 +395,8 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
       GtkWidget *se = psppire_syntax_window_new ();
 
       if ( psppire_syntax_window_load_from_file (PSPPIRE_SYNTAX_WINDOW (se), file_name, NULL) )
-#if RECENT_LISTS_AVAILABLE
-      {
-	GtkRecentManager *manager = gtk_recent_manager_get_default();
-	gchar *uri = g_filename_to_uri (file_name, NULL, NULL);
+	;
 
-	gtk_recent_manager_remove_item (manager, uri, NULL);
-	if ( ! gtk_recent_manager_add_item (manager, uri))
-	  g_warning ("Could not add item %s to recent list\n",uri);
-
-	g_free (uri);
-      }
-#else
-      ;
-#endif
       gtk_widget_show (se);
     }
 
@@ -470,76 +458,76 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
   gtk_widget_show_all (box);
 
-  g_signal_connect (get_object_assert (xml,"file_new_syntax"),
+  g_signal_connect (get_action_assert (xml,"file_new_syntax"),
 		    "activate",
 		    G_CALLBACK (create_syntax_window),
 		    NULL);
 
-  g_signal_connect (get_object_assert (xml,"file_open_syntax"),
+  g_signal_connect (get_action_assert (xml,"file_open_syntax"),
 		    "activate",
 		    G_CALLBACK (open_syntax_window),
 		    window);
 
 #if 0
-  g_signal_connect (get_object_assert (xml,"file_new_data"),
+  g_signal_connect (get_action_assert (xml,"file_new_data"),
 		    "activate",
 		    G_CALLBACK (create_data_window),
 		    window);
 #endif
 
-  g_signal_connect (get_object_assert (xml,"help_about"),
+  g_signal_connect (get_action_assert (xml,"help_about"),
 		    "activate",
 		    G_CALLBACK (about_new),
 		    window);
 
-  g_signal_connect (get_object_assert (xml,"help_reference"),
+  g_signal_connect (get_action_assert (xml,"help_reference"),
 		    "activate",
 		    G_CALLBACK (reference_manual),
 		    NULL);
 
-  g_signal_connect_swapped (get_object_assert (xml, "file_save"),
+  g_signal_connect_swapped (get_action_assert (xml, "file_save"),
 		    "activate",
 		    G_CALLBACK (syntax_save),
 		    window);
 
-  g_signal_connect_swapped (get_object_assert (xml, "file_save_as"),
+  g_signal_connect_swapped (get_action_assert (xml, "file_save_as"),
 		    "activate",
 		    G_CALLBACK (syntax_save_as),
 		    window);
 
-  g_signal_connect (get_object_assert (xml,"file_quit"),
+  g_signal_connect (get_action_assert (xml,"file_quit"),
 		    "activate",
 		    G_CALLBACK (on_quit),
 		    window);
 
-  g_signal_connect (get_object_assert (xml,"run_all"),
+  g_signal_connect (get_action_assert (xml,"run_all"),
 		    "activate",
 		    G_CALLBACK (on_run_all),
 		    window);
 
 
-  g_signal_connect (get_object_assert (xml,"run_selection"),
+  g_signal_connect (get_action_assert (xml,"run_selection"),
 		    "activate",
 		    G_CALLBACK (on_run_selection),
 		    window);
 
-  g_signal_connect (get_object_assert (xml,"run_current_line"),
+  g_signal_connect (get_action_assert (xml,"run_current_line"),
 		    "activate",
 		    G_CALLBACK (on_run_current_line),
 		    window);
 
-  g_signal_connect (get_object_assert (xml,"run_to_end"),
+  g_signal_connect (get_action_assert (xml,"run_to_end"),
 		    "activate",
 		    G_CALLBACK (on_run_to_end),
 		    window);
 
-  g_signal_connect (get_object_assert (xml,"windows_minimise_all"),
+  g_signal_connect (get_action_assert (xml,"windows_minimise_all"),
 		    "activate",
 		    G_CALLBACK (psppire_window_minimise_all), NULL);
 
 
   {
-  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1"));
+  GtkUIManager *uim = GTK_UI_MANAGER (get_action_assert (xml, "uimanager1"));
 
   PSPPIRE_WINDOW (window)->menu =
     GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar2/windows/windows_minimise_all")->parent);
