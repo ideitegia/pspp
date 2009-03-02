@@ -314,13 +314,34 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
     }
 }
 
-/* Puts FILE_NAME into the recent list.
-   If it's already in the list, it moves it to the top
-*/
+#if 0
 static void
-add_most_recent (const char *file_name)
+dump_rm (GtkRecentManager *rm)
 {
+  GList *items = gtk_recent_manager_get_items (rm);
+
+  GList *i;
+
+  g_print ("Recent Items:\n");
+  for (i = items; i; i = i->next)
+    {
+      GtkRecentInfo *ri = i->data;
+
+      g_print ("Item: %s (Mime: %s) (Desc: %s) (URI: %s)\n",
+	       gtk_recent_info_get_short_name (ri),
+	       gtk_recent_info_get_mime_type (ri),
+	       gtk_recent_info_get_description (ri),
+	       gtk_recent_info_get_uri (ri)
+	       );
+
+
+      gtk_recent_info_unref (ri);
+    }
+
+  g_list_free (items);
 }
+#endif
+
 
 void
 psppire_data_window_load_file (PsppireDataWindow *de,
@@ -339,7 +360,7 @@ psppire_data_window_load_file (PsppireDataWindow *de,
   if (execute_syntax (sss) )
     {
       psppire_window_set_filename (PSPPIRE_WINDOW (de), file_name);
-      add_most_recent (file_name);
+      add_most_recent (file_name, the_recent_mgr);
     }
 
   psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
@@ -872,7 +893,8 @@ create_var_sheet_variable_popup_menu (PsppireDataWindow *de)
 
 
 static void
-on_recent_data_select (GtkMenuShell *menushell,   gpointer user_data)
+on_recent_data_select (GtkMenuShell *menushell,
+		       gpointer user_data)
 {
   gchar *file;
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (user_data);
@@ -1563,53 +1585,56 @@ psppire_data_window_init (PsppireDataWindow *de)
 		      G_CALLBACK (regression_dialog), de);
   }
 
-
-#if 0
   {
-    GtkRecentManager *rm = gtk_recent_manager_get_default ();
-    GtkAction *recent_data = get_action_assert (de->builder, "file_recent-data");
-    GtkAction *recent_files = get_action_assert (de->builder, "file_recent-files");
-#if 0
-    GtkWidget *recent_separator = get_widget_assert (de->builder, "file_separator1");
-#endif
+    GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
-    GtkWidget *menu = gtk_recent_chooser_menu_new_for_manager (rm);
+    GtkWidget *recent_data =
+      gtk_ui_manager_get_widget (uim,"/ui/menubar/file/file_recent-data");
 
-    GtkRecentFilter *filter = gtk_recent_filter_new ();
-
-#if 0
-    gtk_widget_show (recent_data);
-    gtk_widget_show (recent_files);
-    gtk_widget_show (recent_separator);
-#endif
-
-    gtk_recent_filter_add_pattern (filter, "*.sav");
-    gtk_recent_filter_add_pattern (filter, "*.SAV");
-
-    gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu), filter);
-
-    gtk_action_set_sensitive (recent_data, TRUE);
-    g_signal_connect (menu, "selection-done",
-		      G_CALLBACK (on_recent_data_select), de);
-
-    gtk_menu_item_set_submenu (GTK_MENU_ITEM (recent_data), menu);
+    GtkWidget *recent_files =
+      gtk_ui_manager_get_widget (uim,"/ui/menubar/file/file_recent-files");
 
 
-    filter = gtk_recent_filter_new ();
-    menu = gtk_recent_chooser_menu_new_for_manager (rm);
+    GtkWidget *menu_data =
+      gtk_recent_chooser_menu_new_for_manager (the_recent_mgr);
 
-    gtk_recent_filter_add_pattern (filter, "*.sps");
-    gtk_recent_filter_add_pattern (filter, "*.SPS");
+    GtkWidget *menu_files =
+      gtk_recent_chooser_menu_new_for_manager (the_recent_mgr);
 
-    gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu), filter);
+    {
+      GtkRecentFilter *filter = gtk_recent_filter_new ();
 
-    gtk_widget_set_sensitive (recent_files, TRUE);
-    g_signal_connect (menu, "selection-done",
-		      G_CALLBACK (on_recent_files_select), de);
+      gtk_recent_filter_add_pattern (filter, "*.sav");
+      gtk_recent_filter_add_pattern (filter, "*.SAV");
+      gtk_recent_filter_add_pattern (filter, "*.por");
+      gtk_recent_filter_add_pattern (filter, "*.POR");
 
-    gtk_menu_item_set_submenu (GTK_MENU_ITEM (recent_files), menu);
+      gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu_data), filter);
+    }
+
+    gtk_menu_item_set_submenu (GTK_MENU_ITEM (recent_data), menu_data);
+
+
+    g_signal_connect (menu_data, "selection-done",
+		      G_CALLBACK (on_recent_data_select),
+		      de);
+
+    {
+      GtkRecentFilter *filter = gtk_recent_filter_new ();
+
+      gtk_recent_filter_add_pattern (filter, "*.sps");
+      gtk_recent_filter_add_pattern (filter, "*.SPS");
+
+      gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu_files), filter);
+    }
+
+    gtk_menu_item_set_submenu (GTK_MENU_ITEM (recent_files), menu_files);
+
+    g_signal_connect (menu_files, "selection-done",
+		      G_CALLBACK (on_recent_files_select),
+		      de);
+
   }
-#endif
 
   g_signal_connect (get_action_assert (de->builder,"file_new_syntax"),
 		    "activate",

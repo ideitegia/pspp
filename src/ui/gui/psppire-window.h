@@ -24,6 +24,7 @@
 #include <gtk/gtkwindow.h>
 #include <gtk/gtkaction.h>
 #include <gtk/gtkmenushell.h>
+#include <gtk/gtkrecentmanager.h>
 
 G_BEGIN_DECLS
 
@@ -105,6 +106,9 @@ gboolean psppire_window_get_unsaved (PsppireWindow *);
 gint psppire_window_query_save (PsppireWindow *);
 
 void psppire_window_save (PsppireWindow *w);
+
+void add_most_recent (const char *file_name, GtkRecentManager *rm);
+
 
 G_END_DECLS
 

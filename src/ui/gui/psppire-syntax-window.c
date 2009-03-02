@@ -28,6 +28,7 @@
 
 #include "psppire-data-window.h"
 #include "psppire-window-register.h"
+#include "psppire.h"
 #include "about.h"
 #include "psppire-syntax-window.h"
 #include "syntax-editor-source.h"
@@ -395,7 +396,9 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
       GtkWidget *se = psppire_syntax_window_new ();
 
       if ( psppire_syntax_window_load_from_file (PSPPIRE_SYNTAX_WINDOW (se), file_name, NULL) )
-	;
+	{
+	  add_most_recent (file_name, the_recent_mgr);
+	}
 
       gtk_widget_show (se);
     }
@@ -527,7 +530,7 @@ psppire_syntax_window_init (PsppireSyntaxWindow *window)
 
 
   {
-  GtkUIManager *uim = GTK_UI_MANAGER (get_action_assert (xml, "uimanager1"));
+  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (xml, "uimanager1", GTK_TYPE_UI_MANAGER));
 
   PSPPIRE_WINDOW (window)->menu =
     GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar2/windows/windows_minimise_all")->parent);

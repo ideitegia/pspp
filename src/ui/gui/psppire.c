@@ -60,6 +60,7 @@
 
 #include <ui/source-init-opts.h>
 
+GtkRecentManager *the_recent_mgr = 0;
 PsppireDataStore *the_data_store = 0;
 PsppireVarStore *the_var_store = 0;
 
@@ -146,6 +147,9 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   journal_enable ();
   textdomain (PACKAGE);
+
+
+  the_recent_mgr = gtk_recent_manager_get_default ();
 
   the_data_window = psppire_data_window_new ();
 

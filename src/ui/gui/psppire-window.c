@@ -21,6 +21,7 @@
 #include <gtk/gtksignal.h>
 #include <gtk/gtkwindow.h>
 #include <gtk/gtkcheckmenuitem.h>
+#include <gtk/gtkmain.h>
 
 #include <stdlib.h>
 
@@ -545,3 +546,19 @@ psppire_window_save (PsppireWindow *w)
 
   i->save (w);
 }
+
+
+/* Puts FILE_NAME into the recent list.
+   If it's already in the list, it moves it to the top
+*/
+void
+add_most_recent (const char *file_name, GtkRecentManager *rm)
+{
+  gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
+
+  if ( uri )
+    gtk_recent_manager_add_item (rm, uri);
+
+  g_free (uri);
+}
+
