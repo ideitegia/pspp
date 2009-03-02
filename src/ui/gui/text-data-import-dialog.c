@@ -55,29 +55,6 @@
 #define N_(msgid) msgid
 
 
-#if !GTK_CHECK_VERSION (2, 10, 0)
-
-void
-text_data_import_assistant (GObject *o, gpointer de_)
-{
-  struct data_editor *de = de_;
-
-  GtkWidget *dialog =
-    gtk_message_dialog_new  (GTK_WINDOW (de),
-			     GTK_DIALOG_MODAL,
-			     GTK_MESSAGE_WARNING,
-			     GTK_BUTTONS_CLOSE,
-			     _("The text import assistant has not been "
-			       "compiled into this build of PSPPIRE, because "
-			       "GTK+ version 2.10.0 or later was not available."));
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-
-  gtk_widget_destroy (dialog);
-}
-
-#else
-
 /* TextImportModel, a GtkTreeModel used by the text data import
    dialog. */
 enum
@@ -2334,5 +2311,3 @@ pop_watch_cursor (struct import_assistant *ia)
       gdk_window_set_cursor (widget->window, NULL);
     }
 }
-
-#endif
