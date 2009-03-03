@@ -31,6 +31,7 @@
 
 #include "psppire-window.h"
 #include "psppire-window-register.h"
+#include "psppire-conf.h"
 
 static void psppire_window_base_finalize (PsppireWindowClass *, gpointer);
 static void psppire_window_base_init     (PsppireWindowClass *class);
@@ -189,6 +190,49 @@ psppire_window_get_property (GObject         *object,
     };
 }
 
+
+static void
+on_realize (GtkWindow *window, gpointer data)
+{
+  gint height, width;
+  gint x, y;
+
+  PsppireConf *conf = psppire_conf_new ();
+
+  const gchar *base = G_OBJECT_TYPE_NAME (window);
+
+  if (psppire_conf_get_int (conf, base, "height", &height)
+      &&
+      psppire_conf_get_int (conf, base, "width", &width) )
+    {
+      gtk_window_set_default_size (window, width, height);
+    }
+
+
+  if ( psppire_conf_get_int (conf, base, "x", &x)
+       &&
+       psppire_conf_get_int (conf, base, "x", &y) )
+    {
+      gtk_window_move (window, x, y);
+    }
+
+}
+
+
+static gboolean
+on_configure (GtkWidget *w, GdkEventConfigure *event, gpointer data)
+{
+  const gchar *base = G_OBJECT_TYPE_NAME (w);
+
+  PsppireConf *conf = psppire_conf_new ();
+
+  psppire_conf_set_int (conf, base, "height", event->height);
+  psppire_conf_set_int (conf, base, "width", event->width);
+  psppire_conf_set_int (conf, base, "x", event->x);
+  psppire_conf_set_int (conf, base, "y", event->y);
+
+  return FALSE;
+}
 
 
 static void
@@ -401,6 +445,12 @@ psppire_window_init (PsppireWindow *window)
   g_signal_connect_swapped (window, "delete-event", G_CALLBACK (on_delete), window);
 
   g_object_set (window, "icon-name", "psppicon", NULL);
+
+  g_signal_connect (window, "configure-event",
+		    G_CALLBACK (on_configure), window);
+
+  g_signal_connect (window, "realize",
+		    G_CALLBACK (on_realize), window);
 
 }
 

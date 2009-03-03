@@ -137,6 +137,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire.h \
 	src/ui/gui/psppire-acr.h \
 	src/ui/gui/psppire-buttonbox.h \
+	src/ui/gui/psppire-conf.c \
+	src/ui/gui/psppire-conf.h \
 	src/ui/gui/psppire-data-editor.c \
 	src/ui/gui/psppire-data-editor.h \
 	src/ui/gui/psppire-data-store.c \
