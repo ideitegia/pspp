@@ -23,6 +23,7 @@
 #include "psppire-dialog.h"
 #include "psppire-buttonbox.h"
 #include "psppire-selector.h"
+#include "psppire-conf.h"
 #include <string.h>
 
 static void psppire_dialog_class_init          (PsppireDialogClass *);
@@ -264,6 +265,39 @@ delete_event_callback (GtkWidget *w, GdkEvent *e, gpointer data)
 }
 
 
+static gboolean
+configure_event_callback (GtkDialog *dialog,
+			  GdkEventConfigure *event, gpointer data)
+{
+  gchar *base = NULL;
+
+  PsppireConf *conf = psppire_conf_new ();
+
+  if ( ! GTK_WIDGET_MAPPED (dialog))
+    return FALSE;
+
+  g_object_get (dialog, "name", &base, NULL);
+
+  psppire_conf_save_window_geometry (conf, base, event);
+
+  return FALSE;
+}
+
+
+static void
+on_realize (GtkWindow *dialog, gpointer data)
+{
+  PsppireConf *conf = psppire_conf_new ();
+
+  const gchar *base = NULL;
+
+  g_object_get (dialog, "name", &base, NULL);
+
+  psppire_conf_set_window_geometry (conf, base, dialog);
+}
+
+
+
 static void
 psppire_dialog_init (PsppireDialog *dialog)
 {
@@ -282,9 +316,18 @@ psppire_dialog_init (PsppireDialog *dialog)
 
   g_value_unset (&value);
 
-  g_signal_connect (G_OBJECT (dialog), "delete-event",
+  g_signal_connect (dialog, "delete-event",
 		    G_CALLBACK (delete_event_callback),
 		    dialog);
+
+  g_signal_connect (dialog, "configure-event",
+		    G_CALLBACK (configure_event_callback),
+		    dialog);
+
+  g_signal_connect (dialog, "realize",
+		    G_CALLBACK (on_realize),
+		    dialog);
+
 
   gtk_window_set_type_hint (GTK_WINDOW (dialog),
 	GDK_WINDOW_TYPE_HINT_DIALOG);
