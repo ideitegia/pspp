@@ -185,3 +185,49 @@ psppire_conf_set_int (PsppireConf *conf,
   conf_write (conf);
 }
 
+
+
+/*
+  A convenience function to set the geometry of a
+  window from from a saved config
+*/
+void
+psppire_conf_set_window_geometry (PsppireConf *conf,
+				  const gchar *base,
+				  GtkWindow *window)
+{
+  gint height, width;
+  gint x, y;
+
+  if (psppire_conf_get_int (conf, base, "height", &height)
+      &&
+      psppire_conf_get_int (conf, base, "width", &width) )
+    {
+      gtk_window_set_default_size (window, width, height);
+    }
+
+  if ( psppire_conf_get_int (conf, base, "x", &x)
+       &&
+       psppire_conf_get_int (conf, base, "y", &y) )
+    {
+      gtk_window_move (window, x, y);
+    }
+}
+
+
+/*
+   A convenience function to save the window geometry.
+   This should typically be called from a window's
+   "configure-event" signal handler
+ */
+void
+psppire_conf_save_window_geometry (PsppireConf *conf,
+				   const gchar *base,
+				   GdkEventConfigure *event)
+{
+  psppire_conf_set_int (conf, base, "height", event->height);
+  psppire_conf_set_int (conf, base, "width", event->width);
+
+  psppire_conf_set_int (conf, base, "x", event->x);
+  psppire_conf_set_int (conf, base, "y", event->y);
+}

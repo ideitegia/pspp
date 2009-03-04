@@ -194,42 +194,22 @@ psppire_window_get_property (GObject         *object,
 static void
 on_realize (GtkWindow *window, gpointer data)
 {
-  gint height, width;
-  gint x, y;
-
   PsppireConf *conf = psppire_conf_new ();
 
   const gchar *base = G_OBJECT_TYPE_NAME (window);
 
-  if (psppire_conf_get_int (conf, base, "height", &height)
-      &&
-      psppire_conf_get_int (conf, base, "width", &width) )
-    {
-      gtk_window_set_default_size (window, width, height);
-    }
-
-
-  if ( psppire_conf_get_int (conf, base, "x", &x)
-       &&
-       psppire_conf_get_int (conf, base, "x", &y) )
-    {
-      gtk_window_move (window, x, y);
-    }
-
+  psppire_conf_set_window_geometry (conf, base, window);
 }
 
 
 static gboolean
-on_configure (GtkWidget *w, GdkEventConfigure *event, gpointer data)
+on_configure (GtkWidget *window, GdkEventConfigure *event, gpointer data)
 {
-  const gchar *base = G_OBJECT_TYPE_NAME (w);
+  const gchar *base = G_OBJECT_TYPE_NAME (window);
 
   PsppireConf *conf = psppire_conf_new ();
 
-  psppire_conf_set_int (conf, base, "height", event->height);
-  psppire_conf_set_int (conf, base, "width", event->width);
-  psppire_conf_set_int (conf, base, "x", event->x);
-  psppire_conf_set_int (conf, base, "y", event->y);
+  psppire_conf_save_window_geometry (conf, base, event);
 
   return FALSE;
 }

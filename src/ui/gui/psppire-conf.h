@@ -18,6 +18,8 @@
 #include <glib-object.h>
 #include <glib.h>
 
+#include <gtk/gtkwindow.h>
+
 #ifndef __PSPPIRE_CONF_H__
 #define __PSPPIRE_CONF_H__
 
@@ -79,6 +81,14 @@ gboolean psppire_conf_get_int (PsppireConf *,
 void psppire_conf_set_int (PsppireConf *conf,
 			   const gchar *base, const gchar *name,
 			   gint value);
+
+void psppire_conf_set_window_geometry (PsppireConf *conf,
+				       const gchar *base,
+				       GtkWindow *window);
+
+void psppire_conf_save_window_geometry (PsppireConf *,
+					const gchar *,
+					GdkEventConfigure *);
 
 
 G_END_DECLS
