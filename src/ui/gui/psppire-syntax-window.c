@@ -399,6 +399,10 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 	{
 	  add_most_recent (file_name, the_recent_mgr);
 	}
+      else
+	{
+	  delete_recent (file_name, the_recent_mgr);
+	}
 
       gtk_widget_show (se);
     }

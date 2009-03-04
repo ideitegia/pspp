@@ -362,6 +362,10 @@ psppire_data_window_load_file (PsppireDataWindow *de,
       psppire_window_set_filename (PSPPIRE_WINDOW (de), file_name);
       add_most_recent (file_name, the_recent_mgr);
     }
+  else
+    {
+      delete_recent (file_name, the_recent_mgr);
+    }
 
   psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
 }
@@ -1585,7 +1589,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 		      G_CALLBACK (regression_dialog), de);
   }
 
-  {
+  { 
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
     GtkWidget *recent_data =
@@ -1609,6 +1613,8 @@ psppire_data_window_init (PsppireDataWindow *de)
       gtk_recent_filter_add_pattern (filter, "*.por");
       gtk_recent_filter_add_pattern (filter, "*.POR");
 
+      gtk_recent_chooser_set_sort_type (GTK_RECENT_CHOOSER (menu_data), GTK_RECENT_SORT_MRU);
+
       gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu_data), filter);
     }
 
@@ -1624,6 +1630,8 @@ psppire_data_window_init (PsppireDataWindow *de)
 
       gtk_recent_filter_add_pattern (filter, "*.sps");
       gtk_recent_filter_add_pattern (filter, "*.SPS");
+
+      gtk_recent_chooser_set_sort_type (GTK_RECENT_CHOOSER (menu_files), GTK_RECENT_SORT_MRU);
 
       gtk_recent_chooser_add_filter (GTK_RECENT_CHOOSER (menu_files), filter);
     }

@@ -108,6 +108,7 @@ gint psppire_window_query_save (PsppireWindow *);
 void psppire_window_save (PsppireWindow *w);
 
 void add_most_recent (const char *file_name, GtkRecentManager *rm);
+void delete_recent (const char *file_name, GtkRecentManager *rm);
 
 
 G_END_DECLS

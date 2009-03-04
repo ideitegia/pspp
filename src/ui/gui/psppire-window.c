@@ -592,3 +592,20 @@ add_most_recent (const char *file_name, GtkRecentManager *rm)
   g_free (uri);
 }
 
+
+
+/* 
+   If FILE_NAME exists in the recent list, then  delete it.
+ */
+void
+delete_recent (const char *file_name, GtkRecentManager *rm)
+{
+  gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
+
+  if ( uri )
+    gtk_recent_manager_remove_item (rm, uri, NULL);
+
+  g_free (uri);
+  
+}
+
