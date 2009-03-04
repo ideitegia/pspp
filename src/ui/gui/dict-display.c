@@ -197,7 +197,13 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
   if ( ! var_has_label (var))
     return FALSE;
 
-  gtk_tooltip_set_text (tooltip, var_get_name (var));
+  {
+    char *name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+
+    gtk_tooltip_set_text (tooltip, name);
+
+    g_free (name);
+  }
 
   return TRUE;
 }
