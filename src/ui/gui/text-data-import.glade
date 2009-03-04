@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Tue Feb 24 10:54:54 2009 -->
+<!--Generated with glade3 3.4.5 on Thu Dec 18 20:39:52 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="Intro">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+    <property name="border_width">12</property>
     <property name="title" translatable="yes">Importing Textual Data</property>
     <child>
       <widget class="GtkVBox" id="vbox3">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="spacing">12</property>
         <child>
           <widget class="GtkLabel" id="intro-label">
             <property name="visible">True</property>
@@ -39,6 +41,7 @@ The selected file contains N lines of text.  Only the first M of these will be s
                       <widget class="GtkVBox" id="vbox1">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="spacing">6</property>
                         <child>
                           <widget class="GtkRadioButton" id="import-all-cases">
                             <property name="visible">True</property>
@@ -54,6 +57,7 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           <widget class="GtkHBox" id="hbox1">
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="spacing">6</property>
                             <child>
                               <widget class="GtkRadioButton" id="import-n-cases">
                                 <property name="visible">True</property>
@@ -109,6 +113,7 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           <widget class="GtkHBox" id="hbox3">
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="spacing">6</property>
                             <child>
                               <widget class="GtkRadioButton" id="import-percent">
                                 <property name="visible">True</property>
@@ -186,11 +191,13 @@ The selected file contains N lines of text.  Only the first M of these will be s
   </widget>
   <widget class="GtkWindow" id="FirstLine">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+    <property name="border_width">12</property>
     <property name="title" translatable="yes">Select Data to Import</property>
     <child>
       <widget class="GtkVBox" id="vbox2">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="spacing">6</property>
         <child>
           <widget class="GtkLabel" id="label3">
             <property name="visible">True</property>
@@ -199,20 +206,6 @@ The selected file contains N lines of text.  Only the first M of these will be s
           </widget>
           <packing>
             <property name="expand">False</property>
-          </packing>
-        </child>
-        <child>
-          <widget class="GtkCheckButton" id="variable-names">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-            <property name="label" translatable="yes">Line above selected line contains variable names</property>
-            <property name="response_id">0</property>
-            <property name="draw_indicator">True</property>
-          </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="position">1</property>
           </packing>
         </child>
         <child>
@@ -232,6 +225,20 @@ The selected file contains N lines of text.  Only the first M of these will be s
             </child>
           </widget>
           <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkCheckButton" id="variable-names">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="label" translatable="yes">Line above selected line contains variable names</property>
+            <property name="response_id">0</property>
+            <property name="draw_indicator">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
             <property name="position">2</property>
           </packing>
         </child>
@@ -240,15 +247,18 @@ The selected file contains N lines of text.  Only the first M of these will be s
   </widget>
   <widget class="GtkWindow" id="Separators">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+    <property name="border_width">12</property>
     <property name="title" translatable="yes">Choose Separators</property>
     <child>
       <widget class="GtkVBox" id="vbox4">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="spacing">12</property>
         <child>
           <widget class="GtkHBox" id="hbox2">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="spacing">12</property>
             <child>
               <widget class="GtkFrame" id="foo">
                 <property name="visible">True</property>
@@ -266,6 +276,8 @@ The selected file contains N lines of text.  Only the first M of these will be s
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="n_rows">4</property>
                         <property name="n_columns">3</property>
+                        <property name="column_spacing">6</property>
+                        <property name="row_spacing">6</property>
                         <child>
                           <widget class="GtkEntry" id="custom-entry">
                             <property name="visible">True</property>
@@ -467,6 +479,8 @@ The selected file contains N lines of text.  Only the first M of these will be s
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="n_rows">2</property>
                         <property name="n_columns">2</property>
+                        <property name="column_spacing">6</property>
+                        <property name="row_spacing">6</property>
                         <child>
                           <widget class="GtkCheckButton" id="escape">
                             <property name="visible">True</property>
@@ -594,11 +608,13 @@ The selected file contains N lines of text.  Only the first M of these will be s
   </widget>
   <widget class="GtkWindow" id="Formats">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+    <property name="border_width">12</property>
     <property name="title" translatable="yes">Adjust Variable Formats</property>
     <child>
       <widget class="GtkVBox" id="vbox5">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="spacing">12</property>
         <child>
           <widget class="GtkLabel" id="label12">
             <property name="visible">True</property>
