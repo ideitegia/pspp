@@ -395,16 +395,10 @@ open_syntax_window (GtkMenuItem *menuitem, gpointer parent)
 
       GtkWidget *se = psppire_syntax_window_new ();
 
-      if ( psppire_syntax_window_load_from_file (PSPPIRE_SYNTAX_WINDOW (se), file_name, NULL) )
-	{
-	  add_most_recent (file_name, the_recent_mgr);
-	}
+      if ( psppire_window_load (PSPPIRE_WINDOW (se), file_name) ) 
+	gtk_widget_show (se);
       else
-	{
-	  delete_recent (file_name, the_recent_mgr);
-	}
-
-      gtk_widget_show (se);
+	gtk_widget_destroy (se);
     }
 
   gtk_widget_destroy (dialog);
@@ -562,34 +556,34 @@ psppire_syntax_window_new (void)
 /*
   Loads the buffer from the file called FILENAME
 */
-gboolean
-psppire_syntax_window_load_from_file (PsppireSyntaxWindow *se,
-				      const gchar *filename,
-				      GError **err)
+static gboolean
+syntax_load (PsppireWindow *window, const gchar *filename)
 {
   gchar *text;
   GtkTextIter iter;
+  PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
 
-  gchar *glibfilename = g_filename_from_utf8 (filename, -1, 0, 0, err);
+  gchar *glibfilename = g_filename_from_utf8 (filename, -1, 0, 0, NULL);
 
   if ( ! glibfilename )
     return FALSE;
 
   /* FIXME: What if it's a very big file ? */
-  if ( ! g_file_get_contents (glibfilename, &text, NULL, err) )
+  if ( ! g_file_get_contents (glibfilename, &text, NULL, NULL) )
     {
       g_free (glibfilename);
       return FALSE;
     }
+
   g_free (glibfilename);
 
-  gtk_text_buffer_get_iter_at_line (se->buffer, &iter, 0);
+  gtk_text_buffer_get_iter_at_line (sw->buffer, &iter, 0);
 
-  gtk_text_buffer_insert (se->buffer, &iter, text, -1);
+  gtk_text_buffer_insert (sw->buffer, &iter, text, -1);
 
-  psppire_window_set_filename (PSPPIRE_WINDOW (se), filename);
+  psppire_window_set_filename (window, filename);
 
-  gtk_text_buffer_set_modified (se->buffer, FALSE);
+  gtk_text_buffer_set_modified (sw->buffer, FALSE);
 
   return TRUE;
 }
@@ -600,4 +594,5 @@ static void
 psppire_syntax_window_iface_init (PsppireWindowIface *iface)
 {
   iface->save = syntax_save;
+  iface->load = syntax_load;
 }

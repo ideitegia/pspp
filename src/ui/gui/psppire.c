@@ -279,8 +279,7 @@ parse_non_options (int key, char *arg, struct argp_state *state)
     {
     case ARGP_KEY_ARG:
       {
-	psppire_data_window_load_file (PSPPIRE_DATA_WINDOW (the_data_window),
-				       arg);
+	psppire_window_load (PSPPIRE_WINDOW (the_data_window), arg);
 	break;
       }
     default:

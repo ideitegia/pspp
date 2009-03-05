@@ -161,6 +161,7 @@ extern PsppireVarStore *the_var_store;
 extern struct dataset *the_dataset;
 extern PsppireDataStore *the_data_store ;
 
+extern GtkRecentManager *the_recent_mgr;
 
 static void
 set_paste_menuitem_sensitivity (PsppireDataWindow *de, gboolean x)
@@ -343,9 +344,8 @@ dump_rm (GtkRecentManager *rm)
 #endif
 
 
-void
-psppire_data_window_load_file (PsppireDataWindow *de,
-			       const gchar *file_name)
+static gboolean
+load_file (PsppireWindow *de, const gchar *file_name)
 {
   struct getl_interface *sss;
   struct string filename;
@@ -355,26 +355,23 @@ psppire_data_window_load_file (PsppireDataWindow *de,
 
   sss = create_syntax_string_source ("GET FILE=%s.",
 				     ds_cstr (&filename));
+
   ds_destroy (&filename);
 
   if (execute_syntax (sss) )
     {
-      psppire_window_set_filename (PSPPIRE_WINDOW (de), file_name);
-      add_most_recent (file_name, the_recent_mgr);
-    }
-  else
-    {
-      delete_recent (file_name, the_recent_mgr);
+      psppire_window_set_filename (de, file_name);
+      return TRUE;
     }
 
-  psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
+  return FALSE;
 }
 
 
 /* Callback for the data_open action.
    Prompts for a filename and opens it */
 static void
-open_data_dialog (GtkAction *action, PsppireDataWindow *de)
+open_data_dialog (GtkAction *action, PsppireWindow *de)
 {
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Open"),
@@ -420,7 +417,7 @@ open_data_dialog (GtkAction *action, PsppireDataWindow *de)
 	gchar *name =
 	  gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
 
-	psppire_data_window_load_file (de, name);
+	psppire_window_load (de, name);
 
 	g_free (name);
       }
@@ -898,10 +895,9 @@ create_var_sheet_variable_popup_menu (PsppireDataWindow *de)
 
 static void
 on_recent_data_select (GtkMenuShell *menushell,
-		       gpointer user_data)
+		       PsppireWindow *window)
 {
   gchar *file;
-  PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (user_data);
 
   gchar *uri =
     gtk_recent_chooser_get_current_uri (GTK_RECENT_CHOOSER (menushell));
@@ -910,7 +906,7 @@ on_recent_data_select (GtkMenuShell *menushell,
 
   g_free (uri);
 
-  psppire_data_window_load_file (de, file);
+  psppire_window_load (window, file);
 
   g_free (file);
 }
@@ -931,8 +927,10 @@ on_recent_files_select (GtkMenuShell *menushell,   gpointer user_data)
 
   se = psppire_syntax_window_new ();
 
-  psppire_syntax_window_load_from_file (PSPPIRE_SYNTAX_WINDOW (se), file, NULL);
-  gtk_widget_show (se);
+  if ( psppire_window_load (PSPPIRE_WINDOW (se), file) ) 
+    gtk_widget_show (se);
+  else
+    gtk_widget_destroy (se);
 
   g_free (file);
 }
@@ -1796,4 +1794,5 @@ static void
 psppire_data_window_iface_init (PsppireWindowIface *iface)
 {
   iface->save = data_save;
+  iface->load = load_file;
 }

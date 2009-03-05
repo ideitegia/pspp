@@ -87,6 +87,7 @@ struct _PsppireWindowIface
   GTypeInterface g_iface;
 
   void (*save) (PsppireWindow *w);
+  gboolean (*load) (PsppireWindow *w, const gchar *);
 };
 
 
@@ -106,9 +107,7 @@ gboolean psppire_window_get_unsaved (PsppireWindow *);
 gint psppire_window_query_save (PsppireWindow *);
 
 void psppire_window_save (PsppireWindow *w);
-
-void add_most_recent (const char *file_name, GtkRecentManager *rm);
-void delete_recent (const char *file_name, GtkRecentManager *rm);
+gboolean psppire_window_load (PsppireWindow *w, const gchar *file);
 
 
 G_END_DECLS

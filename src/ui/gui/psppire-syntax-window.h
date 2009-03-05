@@ -62,10 +62,6 @@ struct _PsppireSyntaxWindowClass
 GType      psppire_syntax_window_get_type        (void);
 GtkWidget* psppire_syntax_window_new             (void);
 
-gboolean   psppire_syntax_window_load_from_file (PsppireSyntaxWindow *se,
-							const gchar *filename,
-							GError **err);
-
 void open_syntax_window (GtkMenuItem *menuitem, gpointer parent);
 void create_syntax_window (void);
 

@@ -22,8 +22,6 @@
 struct command_line_processor ;
 extern const struct argp non_option_argp ;
 
-extern GtkRecentManager *the_recent_mgr;
-
 void initialize (struct command_line_processor *, int argc, char **argv);
 void de_initialize (void);
 void psppire_quit (void);

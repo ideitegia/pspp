@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+
 #include <gtk/gtkstock.h>
 #include <gtk/gtkmessagedialog.h>
 #include <gtk/gtksignal.h>
@@ -577,11 +578,40 @@ psppire_window_save (PsppireWindow *w)
   i->save (w);
 }
 
+extern GtkRecentManager *the_recent_mgr;
+
+static void add_most_recent (const char *file_name, GtkRecentManager *rm);
+static void delete_recent (const char *file_name, GtkRecentManager *rm);
+
+gboolean
+psppire_window_load (PsppireWindow *w, const gchar *file)
+{
+  gboolean ok;
+  PsppireWindowIface *i = PSPPIRE_WINDOW_MODEL_GET_IFACE (w);
+
+  g_assert (PSPPIRE_IS_WINDOW_MODEL (w));
+
+  g_assert (i);
+
+  g_return_val_if_fail (i->load, FALSE);
+
+  ok =  i->load (w, file);
+
+  if ( ok )
+    add_most_recent (file, the_recent_mgr);
+  else
+    delete_recent (file, the_recent_mgr);
+
+  psppire_window_set_unsaved (w, FALSE);
+
+  return ok;
+}
+
 
 /* Puts FILE_NAME into the recent list.
    If it's already in the list, it moves it to the top
 */
-void
+static void
 add_most_recent (const char *file_name, GtkRecentManager *rm)
 {
   gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
@@ -597,7 +627,7 @@ add_most_recent (const char *file_name, GtkRecentManager *rm)
 /* 
    If FILE_NAME exists in the recent list, then  delete it.
  */
-void
+static void
 delete_recent (const char *file_name, GtkRecentManager *rm)
 {
   gchar *uri = g_filename_to_uri  (file_name, NULL, NULL);
