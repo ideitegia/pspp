@@ -548,6 +548,8 @@ psppire_data_editor_class_init (PsppireDataEditorClass *klass)
   object_class->set_property = psppire_data_editor_set_property;
   object_class->get_property = psppire_data_editor_get_property;
 
+  
+
   data_store_spec =
     g_param_spec_pointer ("data-store",
 			  "Data Store",
@@ -990,9 +992,9 @@ psppire_data_editor_init (PsppireDataEditor *de)
 		    G_CALLBACK (on_switch_page),
 		    NULL);
 
+  g_object_set (de, "can-focus", FALSE, NULL);
 
   g_signal_connect (de, "map", G_CALLBACK (on_map), NULL);
-
 
 
   //     psppire_sheet_hide_column_titles (de->var_sheet);
@@ -1884,5 +1886,3 @@ on_owner_change (GtkClipboard *clip, GdkEventOwnerChange *event, gpointer data)
   g_signal_emit (de, data_editor_signals[DATA_AVAILABLE_CHANGED], 0,
 		 compatible_target);
 }
-
-

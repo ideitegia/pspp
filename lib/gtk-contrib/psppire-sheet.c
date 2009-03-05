@@ -476,6 +476,11 @@ static void psppire_sheet_size_request 		 (GtkWidget *widget,
 static void psppire_sheet_size_allocate 		 (GtkWidget *widget,
 						  GtkAllocation *allocation);
 
+static gboolean psppire_sheet_focus_in               (GtkWidget     *widget,
+						      GdkEventFocus *event,
+						      gpointer       user_data);
+
+
 /* Sheet queries */
 
 static gboolean psppire_sheet_range_isvisible (const PsppireSheet *sheet,
@@ -1064,7 +1069,7 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   widget_class->expose_event = psppire_sheet_expose;
   widget_class->size_request = psppire_sheet_size_request;
   widget_class->size_allocate = psppire_sheet_size_allocate;
-  widget_class->focus_in_event = NULL;
+  widget_class->focus_in_event = psppire_sheet_focus_in;
   widget_class->focus_out_event = NULL;
 
   klass->set_scroll_adjustments = psppire_sheet_set_scroll_adjustments;
@@ -4052,6 +4057,20 @@ psppire_sheet_crossing_notify (GtkWidget *widget,
   return TRUE;
 }
 
+
+static gboolean
+psppire_sheet_focus_in (GtkWidget     *w,
+			GdkEventFocus *event,
+			gpointer       user_data)
+{
+  PsppireSheet *sheet = PSPPIRE_SHEET (w);
+
+  gtk_widget_grab_focus (sheet->entry_widget);
+
+  return TRUE;
+}
+
+
 static void
 psppire_sheet_extend_selection (PsppireSheet *sheet, gint row, gint column)
 {
@@ -4583,8 +4602,6 @@ set_entry_widget_font (PsppireSheet *sheet)
 
   gtk_widget_modify_style (sheet->entry_widget, style);
 }
-
-
 
 static void
 create_sheet_entry (PsppireSheet *sheet)
