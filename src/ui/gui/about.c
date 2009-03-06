@@ -25,7 +25,7 @@
 #include "helper.h"
 
 
-const static gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
+static const gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
 
 void
 about_new (GtkMenuItem *m, GtkWindow *parent)

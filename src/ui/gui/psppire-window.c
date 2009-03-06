@@ -40,7 +40,6 @@ static void psppire_window_class_init    (PsppireWindowClass *class);
 static void psppire_window_init          (PsppireWindow      *window);
 
 
-static PsppireWindowClass *the_class;
 static GObjectClass *parent_class;
 
 GType
@@ -272,7 +271,6 @@ psppire_window_class_init (PsppireWindowClass *class)
                                    PROP_FILENAME,
                                    filename_spec);
 
-  the_class = class;
   parent_class = g_type_class_peek_parent (class);
 }
 

@@ -11,7 +11,7 @@
 
 #include "helper.h"
 
-const static gchar none[] = N_("None");
+static const gchar none[] = N_("None");
 
 gchar *
 name_to_string (const struct variable *var, GError **err)

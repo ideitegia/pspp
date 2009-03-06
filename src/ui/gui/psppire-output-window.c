@@ -298,7 +298,7 @@ reload_viewer (PsppireOutputWindow *ow)
   GtkTextIter end_iter;
   GtkTextMark *mark ;
 
-  static char *line = NULL;
+  char *line = NULL;
 
   gboolean chars_inserted = FALSE;
 

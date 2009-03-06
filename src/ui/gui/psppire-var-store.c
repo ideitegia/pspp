@@ -540,7 +540,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
 }
 
 
-const static gchar none[] = N_("None");
+static const gchar none[] = N_("None");
 
 static  gchar *
 text_for_column (const struct variable *pv, gint c, GError **err)

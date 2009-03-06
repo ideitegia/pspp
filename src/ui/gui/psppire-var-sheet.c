@@ -121,9 +121,7 @@ create_label_list (const gchar *const *labels)
   gint i = 0;
   GtkTreeIter iter;
 
-  GtkListStore *list_store;
-  list_store = gtk_list_store_new (1, G_TYPE_STRING);
-
+  GtkListStore *list_store = gtk_list_store_new (1, G_TYPE_STRING);
 
   while ( (s = labels[i++]))
     {

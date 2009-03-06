@@ -301,6 +301,5 @@ output_file_name (void)
   if ( NULL == filename )
     filename = xasprintf ("%s%s", dir, OUTPUT_FILE_NAME);
 
-
   return filename;
 }
