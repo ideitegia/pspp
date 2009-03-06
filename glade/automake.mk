@@ -14,6 +14,7 @@ libglade_psppire_la_SOURCES = \
 	glade/bbox.c \
 	glade/selector.c \
 	glade/acr.c \
+	src/ui/gui/psppire-conf.c \
 	src/ui/gui/psppire-acr.c \
 	src/ui/gui/psppire-buttonbox.c \
 	src/ui/gui/psppire-hbuttonbox.c \
