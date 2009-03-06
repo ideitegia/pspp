@@ -259,10 +259,10 @@ missing_val_dialog_create (GtkBuilder *xml)
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "range_missing"));
 
 
-  g_signal_connect (G_OBJECT (dialog->button_discrete), "toggled",
+  g_signal_connect (dialog->button_discrete, "toggled",
 		   G_CALLBACK (discrete), dialog);
 
-  g_signal_connect (G_OBJECT (dialog->button_range), "toggled",
+  g_signal_connect (dialog->button_range, "toggled",
 		   G_CALLBACK (range), dialog);
 
   return dialog;

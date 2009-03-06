@@ -85,9 +85,7 @@ treeview_checkbox_populate (GtkTreeView *treeview)
 
   gtk_tree_view_column_add_attribute  (col, renderer, "active", CHECKBOX_COLUMN_SELECTED);
 
-  g_signal_connect (GTK_CELL_RENDERER_TOGGLE (renderer),
-                    "toggled", G_CALLBACK (toggle), treeview);
-
+  g_signal_connect (renderer, "toggled", G_CALLBACK (toggle), treeview);
 
   /* Label column. */
   col = gtk_tree_view_column_new ();

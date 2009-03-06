@@ -330,7 +330,7 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 
 	gtk_combo_box_entry_set_text_column (cbe, 0);
 
-	g_signal_connect (G_OBJECT (cbe),"changed",
+	g_signal_connect (cbe, "changed",
 			 G_CALLBACK (change_alignment), var);
       }
       break;
@@ -348,7 +348,7 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 
 	gtk_combo_box_entry_set_text_column (cbe, 0);
 
-	g_signal_connect (G_OBJECT (cbe),"changed",
+	g_signal_connect (cbe, "changed",
 			  G_CALLBACK (change_measure), var);
       }
       break;

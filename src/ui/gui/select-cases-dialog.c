@@ -109,7 +109,7 @@ sample_subdialog (GtkButton *b, gpointer data)
       gtk_table_attach_defaults (GTK_TABLE (table),
 				 scd->hbox1, 1, 2, 0, 1);
 
-      g_signal_connect (G_OBJECT (percent), "toggled",
+      g_signal_connect (percent, "toggled",
 			G_CALLBACK (set_sensitivity_from_toggle), scd->hbox1);
 
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (percent), TRUE);
@@ -133,7 +133,7 @@ sample_subdialog (GtkButton *b, gpointer data)
       gtk_table_attach_defaults (GTK_TABLE (table),
 				 scd->hbox2, 1, 2, 1, 2);
 
-      g_signal_connect (G_OBJECT (sample_n_cases), "toggled",
+      g_signal_connect (sample_n_cases, "toggled",
 			G_CALLBACK (set_sensitivity_from_toggle), scd->hbox2);
 
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (sample_n_cases), FALSE);

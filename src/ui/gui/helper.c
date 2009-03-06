@@ -201,7 +201,7 @@ connect_help (GtkBuilder *xml)
 
 	  if ( 0 == strcmp ("help_button", s))
 	    {
-	    g_signal_connect (GTK_WIDGET (o), "clicked", give_help, 0);
+	    g_signal_connect (o, "clicked", give_help, 0);
 	    }
 	}
     }

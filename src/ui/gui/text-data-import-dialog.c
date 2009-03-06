@@ -1041,11 +1041,11 @@ init_separators_page (struct import_assistant *ia)
   set_separators (ia);
   set_quote_list (GTK_COMBO_BOX_ENTRY (p->quote_combo));
   p->fields_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "fields"));
-  g_signal_connect (GTK_COMBO_BOX (p->quote_combo), "changed",
+  g_signal_connect (p->quote_combo, "changed",
                     G_CALLBACK (on_quote_combo_change), ia);
   g_signal_connect (p->quote_cb, "toggled",
                     G_CALLBACK (on_quote_cb_toggle), ia);
-  g_signal_connect (GTK_ENTRY (p->custom_entry), "notify::text",
+  g_signal_connect (p->custom_entry, "notify::text",
                     G_CALLBACK (on_separators_custom_entry_notify), ia);
   g_signal_connect (p->custom_cb, "toggled",
                     G_CALLBACK (on_separators_custom_cb_toggle), ia);

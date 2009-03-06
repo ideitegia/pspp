@@ -800,15 +800,15 @@ create_data_sheet_variable_popup_menu (PsppireDataWindow *de)
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), sort_ascending);
 
 
-  g_signal_connect_swapped (G_OBJECT (sort_ascending), "activate",
+  g_signal_connect_swapped (sort_ascending, "activate",
 			    G_CALLBACK (psppire_data_editor_sort_ascending),
 			    de->data_editor);
 
-  g_signal_connect_swapped (G_OBJECT (sort_descending), "activate",
+  g_signal_connect_swapped (sort_descending, "activate",
 			    G_CALLBACK (psppire_data_editor_sort_descending),
 			    de->data_editor);
 
-  g_signal_connect_swapped (G_OBJECT (insert_variable), "activate",
+  g_signal_connect_swapped (insert_variable, "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->insert_variable);
 
@@ -839,7 +839,7 @@ create_data_sheet_cases_popup_menu (PsppireDataWindow *de)
 
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_case);
 
-  g_signal_connect_swapped (G_OBJECT (insert_case), "activate",
+  g_signal_connect_swapped (insert_case, "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->insert_case);
 
@@ -875,7 +875,7 @@ create_var_sheet_variable_popup_menu (PsppireDataWindow *de)
 
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), insert_variable);
 
-  g_signal_connect_swapped (G_OBJECT (insert_variable), "activate",
+  g_signal_connect_swapped (insert_variable, "activate",
 			    G_CALLBACK (gtk_action_activate),
 			    de->insert_variable);
 
@@ -1679,7 +1679,7 @@ psppire_data_window_init (PsppireDataWindow *de)
 		    de);
 
 
-  g_signal_connect (GTK_NOTEBOOK (de->data_editor),
+  g_signal_connect (de->data_editor,
 		    "switch-page",
 		    G_CALLBACK (on_switch_sheet), de);
 
