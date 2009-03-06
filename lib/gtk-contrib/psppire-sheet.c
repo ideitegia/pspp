@@ -4204,11 +4204,28 @@ step_sheet (PsppireSheet *sheet, GtkScrollType dir)
     case GTK_SCROLL_STEP_LEFT:
       new_cell.col--;
       break;
+    case GTK_SCROLL_STEP_FORWARD:
+      new_cell.col++;
+      if (new_cell.col >=
+	  psppire_sheet_model_get_column_count (sheet->model))
+	{
+	  new_cell.col = 0;
+	  new_cell.row++;
+	}
+      break;
+    case GTK_SCROLL_STEP_BACKWARD:
+      new_cell.col--;
+      if (new_cell.col < 0)
+	{
+	  new_cell.col =
+	    psppire_sheet_model_get_column_count (sheet->model) - 1;
+	  new_cell.row--;
+	}
+      break;
     default:
       g_assert_not_reached ();
       break;
     }
-
 
   g_signal_emit (sheet, sheet_signals[TRAVERSE], 0,
 		 &sheet->active_cell,
@@ -4287,10 +4304,14 @@ psppire_sheet_key_press (GtkWidget *widget,
   switch (key->keyval)
     {
     case GDK_Tab:
+      step_sheet (sheet, GTK_SCROLL_STEP_FORWARD);
+      break;
     case GDK_Right:
       step_sheet (sheet, GTK_SCROLL_STEP_RIGHT);
       break;
     case GDK_ISO_Left_Tab:
+      step_sheet (sheet, GTK_SCROLL_STEP_BACKWARD);
+      break;
     case GDK_Left:
       step_sheet (sheet, GTK_SCROLL_STEP_LEFT);
       break;
