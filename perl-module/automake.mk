@@ -33,7 +33,7 @@ perl-module/PSPP-Perl-$(VERSION).tar.gz: $(module_sources)
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
 PHONY += module-make
-module-make: perl-module/Makefile
+module-make: perl-module/Makefile src/libpspp-core.la
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
 all-local: 
