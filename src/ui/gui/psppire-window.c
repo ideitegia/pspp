@@ -382,12 +382,17 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
     {
       gint response = psppire_window_query_save (w);
 
-      if ( response == GTK_RESPONSE_CANCEL)
-	return TRUE;
-
-      if ( response == GTK_RESPONSE_ACCEPT)
+      switch (response)
 	{
+	case GTK_RESPONSE_CANCEL:
+	  return TRUE;
+	  break;
+	case GTK_RESPONSE_APPLY:
 	  psppire_window_save (w);
+	  break;
+	case GTK_RESPONSE_REJECT:
+	default:
+	  break;
 	}
     }
 
@@ -433,8 +438,7 @@ psppire_window_init (PsppireWindow *window)
 
 }
 
-
-/* 
+/*
    Ask the user if the buffer should be saved.
    Return the response.
 */
@@ -443,34 +447,47 @@ psppire_window_query_save (PsppireWindow *se)
 {
   gint response;
   GtkWidget *dialog;
+  GtkWidget *cancel_button;
 
   const gchar *description;
   const gchar *filename = psppire_window_get_filename (se);
+
+  GTimeVal time;
+
+  g_get_current_time (&time);
 
   g_object_get (se, "description", &description, NULL);
 
   g_return_val_if_fail (filename != NULL, GTK_RESPONSE_NONE);
 
+
   dialog =
     gtk_message_dialog_new (GTK_WINDOW (se),
 			    GTK_DIALOG_MODAL,
-			    GTK_MESSAGE_QUESTION,
+			    GTK_MESSAGE_WARNING,
 			    GTK_BUTTONS_NONE,
-			    _("Save contents of %s to \"%s\"?"),
-			    description,
+			    _("Save the changes to \"%s\" before closing?"),
 			    filename);
 
-  gtk_dialog_add_button  (GTK_DIALOG (dialog),
-			  GTK_STOCK_YES,
-			  GTK_RESPONSE_ACCEPT);
+  g_object_set (dialog, "icon-name", "psppicon", NULL);
+
+  gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
+					    _("If you don't save, changes from the last %ld seconds will be permanently lost."),
+					    time.tv_sec - se->savetime.tv_sec);
 
   gtk_dialog_add_button  (GTK_DIALOG (dialog),
-			  GTK_STOCK_NO,
+			  _("Close _without saving"),
 			  GTK_RESPONSE_REJECT);
 
+  cancel_button = gtk_dialog_add_button  (GTK_DIALOG (dialog),
+					  GTK_STOCK_CANCEL,
+					  GTK_RESPONSE_CANCEL);
+
   gtk_dialog_add_button  (GTK_DIALOG (dialog),
-			  GTK_STOCK_CANCEL,
-			  GTK_RESPONSE_CANCEL);
+			  GTK_STOCK_SAVE,
+			  GTK_RESPONSE_APPLY);
+
+  gtk_widget_grab_focus (cancel_button);
 
   response = gtk_dialog_run (GTK_DIALOG (dialog));
 
@@ -478,6 +495,7 @@ psppire_window_query_save (PsppireWindow *se)
 
   return response;
 }
+
 
 
 const gchar *
@@ -498,9 +516,10 @@ psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
 void
 psppire_window_set_unsaved (PsppireWindow *w)
 {
-  w->dirty = TRUE;
+  if ( w->dirty == FALSE)
+    g_get_current_time (&w->savetime);
 
-  g_get_current_time (&w->savetime);
+  w->dirty = TRUE;
 
   psppire_window_set_title (w);
 }
@@ -576,6 +595,9 @@ psppire_window_save (PsppireWindow *w)
   g_return_if_fail (i->save);
 
   i->save (w);
+
+  w->dirty = FALSE;
+  psppire_window_set_title (w);
 }
 
 extern GtkRecentManager *the_recent_mgr;
@@ -627,7 +649,7 @@ add_most_recent (const char *file_name, GtkRecentManager *rm)
 
 
 
-/* 
+/*
    If FILE_NAME exists in the recent list, then  delete it.
  */
 static void
@@ -639,6 +661,5 @@ delete_recent (const char *file_name, GtkRecentManager *rm)
     gtk_recent_manager_remove_item (rm, uri, NULL);
 
   g_free (uri);
-  
 }
 

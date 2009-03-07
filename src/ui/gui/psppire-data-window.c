@@ -448,14 +448,15 @@ name_has_suffix (const gchar *name)
 
 /* Save DE to file */
 static void
-save_file (PsppireDataWindow *de)
+save_file (PsppireWindow *w)
 {
   gchar *fn = NULL;
   GString *fnx;
   struct getl_interface *sss;
   struct string file_name ;
+  PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (w);
 
-  g_object_get (de, "filename", &fn, NULL);
+  g_object_get (w, "filename", &fn, NULL);
 
   fnx = g_string_new (fn);
 
@@ -576,7 +577,7 @@ data_save_as_dialog (PsppireDataWindow *de)
 
 	psppire_window_set_filename (PSPPIRE_WINDOW (de), filename->str);
 
-	save_file (de);
+	save_file (PSPPIRE_WINDOW (de));
 
 	g_string_free (filename, TRUE);
       }
@@ -597,7 +598,7 @@ data_save (PsppireWindow *de)
   const gchar *fn = psppire_window_get_filename (de);
 
   if ( NULL != fn)
-    save_file (PSPPIRE_DATA_WINDOW (de));
+    psppire_window_save (de);
   else
     data_save_as_dialog (PSPPIRE_DATA_WINDOW (de));
 }
@@ -1791,6 +1792,6 @@ psppire_data_window_new (void)
 static void
 psppire_data_window_iface_init (PsppireWindowIface *iface)
 {
-  iface->save = data_save;
+  iface->save = save_file;
   iface->load = load_file;
 }
