@@ -72,7 +72,9 @@ struct _PsppireWindow
 
   guint insert_handler;
   guint remove_handler;
-  gboolean unsaved;
+
+  gboolean dirty;
+  GTimeVal savetime;
 };
 
 

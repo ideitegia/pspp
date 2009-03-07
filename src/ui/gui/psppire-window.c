@@ -97,7 +97,7 @@ psppire_window_set_title (PsppireWindow *window)
 		   window->basename ? window->basename : "",
 		   mdash, window->description);
 
-  if (window->unsaved)
+  if (window->dirty)
     g_string_prepend_c (title, '*');
 
   gtk_window_set_title (GTK_WINDOW (window), title->str);
@@ -378,7 +378,7 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 {
   PsppireWindowRegister *reg = psppire_window_register_new ();
 
-  if ( w->unsaved )
+  if ( w->dirty )
     {
       gint response = psppire_window_query_save (w);
 
@@ -419,7 +419,7 @@ psppire_window_init (PsppireWindow *window)
 					     G_CALLBACK (remove_menuitem),
 					     window);
 
-  window->unsaved = FALSE;
+  window->dirty = FALSE;
 
   g_signal_connect_swapped (window, "delete-event", G_CALLBACK (on_delete), window);
 
@@ -498,7 +498,9 @@ psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
 void
 psppire_window_set_unsaved (PsppireWindow *w)
 {
-  w->unsaved = TRUE;
+  w->dirty = TRUE;
+
+  g_get_current_time (&w->savetime);
 
   psppire_window_set_title (w);
 }
@@ -506,7 +508,7 @@ psppire_window_set_unsaved (PsppireWindow *w)
 gboolean
 psppire_window_get_unsaved (PsppireWindow *w)
 {
-  return w->unsaved;
+  return w->dirty;
 }
 
 
@@ -598,7 +600,7 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
   if ( ok )
     {
       add_most_recent (file, the_recent_mgr);
-      w->unsaved = FALSE;
+      w->dirty = FALSE;
     }
   else
     delete_recent (file, the_recent_mgr);
