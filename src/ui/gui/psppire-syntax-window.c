@@ -414,9 +414,9 @@ on_text_changed (GtkTextBuffer *buffer, PsppireSyntaxWindow *window)
 static void
 on_modified_changed (GtkTextBuffer *buffer, PsppireWindow *window)
 {
-  psppire_window_set_unsaved (window, gtk_text_buffer_get_modified (buffer));
+  if (gtk_text_buffer_get_modified (buffer))
+    psppire_window_set_unsaved (window);
 }
-
 
 extern struct source_stream *the_source_stream ;
 

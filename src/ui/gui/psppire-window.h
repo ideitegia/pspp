@@ -100,7 +100,7 @@ void psppire_window_set_filename (PsppireWindow *w, const gchar *filename);
 
 void psppire_window_minimise_all (void);
 
-void psppire_window_set_unsaved (PsppireWindow *, gboolean );
+void psppire_window_set_unsaved (PsppireWindow *);
 
 gboolean psppire_window_get_unsaved (PsppireWindow *);
 

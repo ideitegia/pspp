@@ -485,8 +485,6 @@ save_file (PsppireDataWindow *de)
   ds_destroy (&file_name);
 
   execute_syntax (sss);
-
-  psppire_window_set_unsaved (PSPPIRE_WINDOW (de), FALSE);
 }
 
 
@@ -1016,7 +1014,7 @@ resolve_action (GtkBuilder *builder, const gchar *action, const gchar *proxy)
 static void
 set_unsaved (gpointer w)
 {
-  psppire_window_set_unsaved (PSPPIRE_WINDOW (w), TRUE);
+  psppire_window_set_unsaved (PSPPIRE_WINDOW (w));
 }
 
 static void

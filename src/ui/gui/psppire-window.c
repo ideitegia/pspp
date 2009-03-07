@@ -97,7 +97,7 @@ psppire_window_set_title (PsppireWindow *window)
 		   window->basename ? window->basename : "",
 		   mdash, window->description);
 
-  if ( window->unsaved)
+  if (window->unsaved)
     g_string_prepend_c (title, '*');
 
   gtk_window_set_title (GTK_WINDOW (window), title->str);
@@ -496,9 +496,9 @@ psppire_window_set_filename (PsppireWindow *w, const gchar *filename)
 }
 
 void
-psppire_window_set_unsaved (PsppireWindow *w, gboolean unsaved)
+psppire_window_set_unsaved (PsppireWindow *w)
 {
-  w->unsaved = unsaved;
+  w->unsaved = TRUE;
 
   psppire_window_set_title (w);
 }
@@ -593,14 +593,17 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
 
   g_return_val_if_fail (i->load, FALSE);
 
-  ok =  i->load (w, file);
+  ok = i->load (w, file);
 
   if ( ok )
-    add_most_recent (file, the_recent_mgr);
+    {
+      add_most_recent (file, the_recent_mgr);
+      w->unsaved = FALSE;
+    }
   else
     delete_recent (file, the_recent_mgr);
 
-  psppire_window_set_unsaved (w, FALSE);
+  psppire_window_set_title (w);
 
   return ok;
 }
