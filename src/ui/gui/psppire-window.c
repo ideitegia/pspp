@@ -384,6 +384,7 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 
       switch (response)
 	{
+	default:
 	case GTK_RESPONSE_CANCEL:
 	  return TRUE;
 	  break;
@@ -391,7 +392,6 @@ on_delete (PsppireWindow *w, GdkEvent *event, gpointer user_data)
 	  psppire_window_save (w);
 	  break;
 	case GTK_RESPONSE_REJECT:
-	default:
 	  break;
 	}
     }
