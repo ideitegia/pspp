@@ -442,6 +442,10 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 	  break;
 	}
 
+      if ( width == 0 && fmt_is_string (fmt.type))
+	fmt.w = width = MAX_SHORT_STRING;
+
+
       var = create_var (r, &fmt, width, PQfname (qres, i), i);
       if ( type == NUMERICOID && n_tuples > 0)
 	{
