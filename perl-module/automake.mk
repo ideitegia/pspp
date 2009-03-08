@@ -55,7 +55,7 @@ check-local:
 
 
 clean-local:
-	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) clean
+	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) clean || true
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	  $(RM) $(module_sources) ; \
 	fi
