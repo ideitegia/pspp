@@ -51,7 +51,7 @@ psppire_axis_impl_dump (const PsppireAxisImpl *a)
       const struct axis_node *an = tower_data (n, struct axis_node, unit_node);
       const struct tower_node *pn = &an->pixel_node;
       g_debug ("%ld units of height %g",
-	       n->size, pn->size / (float) n->size);
+	       n->size, pn->size / (gdouble) n->size);
 
       n =  tower_next (&a->unit_tower, n);
     }
@@ -66,14 +66,14 @@ unit_at_pixel (const PsppireAxis *axis, glong pixel)
   unsigned long int start;
   struct tower_node *n;
   struct axis_node *an;
-  gfloat fraction;
+  gdouble fraction;
 
   g_return_val_if_fail (pixel >= 0, -1);
 
   n = tower_lookup (&a->pixel_tower, pixel, &start);
   an = tower_data (n, struct axis_node, pixel_node);
 
-  fraction = (pixel - start) / (gfloat) tower_node_get_size (&an->pixel_node);
+  fraction = (pixel - start) / (gdouble) tower_node_get_size (&an->pixel_node);
 
   return  tower_node_get_level (&an->unit_node)
     + fraction * tower_node_get_size (&an->unit_node);
@@ -93,7 +93,7 @@ unit_count (const PsppireAxis *axis)
 static glong
 start_pixel (const PsppireAxis *axis, gint unit)
 {
-  gfloat fraction;
+  gdouble fraction;
   PsppireAxisImpl *a = PSPPIRE_AXIS_IMPL (axis);
   struct tower_node *n ;
   struct axis_node *an;
@@ -110,10 +110,10 @@ start_pixel (const PsppireAxis *axis, gint unit)
 
   an = tower_data (n, struct axis_node, unit_node);
 
-  fraction = (unit - start) / (gfloat) tower_node_get_size (&an->unit_node);
+  fraction = (unit - start) / (gdouble) tower_node_get_size (&an->unit_node);
 
   return  tower_node_get_level (&an->pixel_node) +
-    nearbyintf (fraction * tower_node_get_size (&an->pixel_node));
+    nearbyint (fraction * tower_node_get_size (&an->pixel_node));
 }
 
 
@@ -136,8 +136,8 @@ unit_size (const PsppireAxis *axis, gint unit)
 
   an = tower_data (n, struct axis_node, unit_node);
 
-  return nearbyintf (tower_node_get_size (&an->pixel_node)
-		     / (float) tower_node_get_size (&an->unit_node));
+  return nearbyint (tower_node_get_size (&an->pixel_node)
+		     / (gdouble) tower_node_get_size (&an->unit_node));
 }
 
 
@@ -281,7 +281,7 @@ split (PsppireAxisImpl *a, gint posn)
   unsigned long int existing_unit_size;
   unsigned long int existing_pixel_size;
   unsigned long int start;
-  gfloat fraction;
+  gdouble fraction;
   struct axis_node *new_node ;
   struct tower_node *n;
   struct axis_node *existing_node;
@@ -303,7 +303,7 @@ split (PsppireAxisImpl *a, gint posn)
   existing_unit_size = tower_node_get_size (&existing_node->unit_node);
   existing_pixel_size = tower_node_get_size (&existing_node->pixel_node);
 
-  fraction = (posn - start) / (gfloat) existing_unit_size;
+  fraction = (posn - start) / (gdouble) existing_unit_size;
 
   new_node = pool_malloc (a->pool, sizeof (*new_node));
 
