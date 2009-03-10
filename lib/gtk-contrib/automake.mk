@@ -12,5 +12,6 @@ lib_gtk_contrib_libgtksheet_a_SOURCES = \
 	lib/gtk-contrib/gtkxpaned.h
 
 EXTRA_DIST += lib/gtk-contrib/OChangeLog \
-	lib/gtk-contrib/README
+	lib/gtk-contrib/README \
+	lib/gtk-contrib/gtk-builder-convert
 

@@ -249,7 +249,7 @@ src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
 	glib-genmarshal --header --prefix=psppire_marshal $< > $@
 
 .glade.ui:
-	gtk-builder-convert $< $@
+	$(top_srcdir)/lib/gtk-contrib/gtk-builder-convert $< $@
 
 desktopdir = $(datadir)/applications
 desktop_DATA = src/ui/gui/pspp.desktop
