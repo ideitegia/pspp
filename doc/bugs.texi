@@ -19,4 +19,3 @@ sent by email to
 For known bugs in individual language features, see the documentation
 for that feature.
 
-@setfilename ignored

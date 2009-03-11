@@ -264,4 +264,3 @@ the next procedure (@pxref{TEMPORARY}).
 
 @cmd{WEIGHT} does not cause cases in the active file to be replicated in
 memory.
-@setfilename ignored

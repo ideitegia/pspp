@@ -1,4 +1,3 @@
 @node Command Index
 @chapter Command Index
 @printindex vr
-@setfilename ignored

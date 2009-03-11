@@ -1494,4 +1494,3 @@ The first nonterminal defined in a set of productions is called the
 @dfn{start symbol}.  The start symbol defines the entire syntax for
 that command.
 @end itemize
-@setfilename ignored

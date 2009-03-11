@@ -110,4 +110,3 @@ list.
 regression /variables=v0 v1 v2 /statistics defaults /dependent=v2 
            /save pred resid /method=enter.
 @end example
-@setfilename ignored

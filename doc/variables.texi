@@ -555,4 +555,3 @@ variables
 to the specified format specification.  Its syntax is identical to
 that of FORMATS (@pxref{FORMATS}), but @cmd{WRITE FORMATS} sets only
 write formats, not print formats.
-@setfilename ignored

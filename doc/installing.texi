@@ -56,4 +56,3 @@ but only if that directory already exists.
 (optional) Type @samp{make clean} to delete the PSPP binaries
 from the source tree.
 @end enumerate
-@setfilename ignored

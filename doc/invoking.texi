@@ -224,4 +224,3 @@ Individual directories included in file searches.
 Each verbosity level also includes messages from lower verbosity levels.
 
 @end table
-@setfilename ignored

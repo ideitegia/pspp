@@ -31,4 +31,3 @@ The author hopes to fully support all features in the products
 that PSPP replaces, eventually.  The author welcomes questions,
 comments, donations, and code submissions.  @xref{Bugs,,Submitting Bug
 Reports}, for instructions on contacting the author.
-@setfilename ignored

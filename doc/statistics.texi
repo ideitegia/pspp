@@ -814,7 +814,6 @@ If the total sum of the coefficients are not zero, then PSPP will
 display a warning, but will proceed with the analysis.
 The @code{CONTRAST} subcommand may be given up to 10 times in order
 to specify different contrast tests.
-@setfilename ignored
 
 @node RANK
 @comment  node-name,  next,  previous,  up

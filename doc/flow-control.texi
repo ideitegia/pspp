@@ -170,4 +170,3 @@ variable as the loop index.
 When @cmd{LOOP} or @cmd{END LOOP} is specified following @cmd{TEMPORARY}
 (@pxref{TEMPORARY}), the @cmd{LAG} function may not be used
 (@pxref{LAG}).
-@setfilename ignored

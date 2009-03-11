@@ -1142,4 +1142,3 @@ specified output format, whereas @cmd{WRITE} outputs the
 system-missing value as a field filled with spaces.  Binary formats
 are an exception.
 @end itemize
-@setfilename ignored

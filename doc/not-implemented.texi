@@ -9,4 +9,3 @@ implemented.
 
 @include doc/ni.texi
 
-@setfilename ignored

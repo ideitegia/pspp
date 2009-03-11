@@ -1,4 +1,3 @@
 @node Function Index
 @chapter Function Index
 @printindex fn
-@setfilename ignored

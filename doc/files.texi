@@ -800,4 +800,3 @@ the data is read by a procedure or procedure-like command.
 @end itemize
 
 @xref{SAVE}, for more information.
-@setfilename ignored

@@ -787,4 +787,3 @@ on the output device.
 Specify a title as a string in quotes.  The alternate syntax that did
 not require quotes is now obsolete.  If it is used then the title is
 converted to all uppercase.
-@setfilename ignored

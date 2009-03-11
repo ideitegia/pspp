@@ -1516,4 +1516,3 @@ subtraction.
 @item
 @code{AND  NOT  OR}
 @end enumerate
-@setfilename ignored

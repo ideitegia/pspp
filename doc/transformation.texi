@@ -553,4 +553,3 @@ If workspace is exhausted, it falls back to a merge sort algorithm that
 involves creates numerous temporary files.
 
 @cmd{SORT CASES} may not be specified following TEMPORARY.  
-@setfilename ignored
