@@ -49,8 +49,7 @@ doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	@$(MKDIR_P)  doc
 	$(MAKEINFO) --docbook -I $(top_srcdir) $< -o $@
-	$(SED) -i -e 's/Time-&-Date/Time-\&amp;-Date/g' \
-	-e 's%below:<table label=""></para>%below:</para><table label="">%' $@
+	$(SED) -i -e 's/Time-&-Date/Time-\&amp;-Date/g' $@
 
 docbookdir = $(docdir)
 docbook_DATA = doc/pspp.xml

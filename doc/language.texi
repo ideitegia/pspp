@@ -1172,6 +1172,7 @@ trailing white space.
 The maximum width for time and date formats is 40 columns.  Minimum
 input and output width for each of the time and date formats is shown
 below:
+
 @float
 @multitable {DATETIME} {Min. Input Width} {Min. Output Width} {4-digit year}
 @headitem Format @tab Min. Input Width @tab Min. Output Width @tab Option 
