@@ -5,7 +5,9 @@ include $(top_srcdir)/src/ui/gui/sheet/automake.mk
 bin_PROGRAMS += src/ui/gui/psppire 
 
 src_ui_gui_psppire_CFLAGS = $(GTK_CFLAGS) -Wall \
-	-DINSTALLDIR=\"$(bindir)\" -DGDK_MULTIHEAD_SAFE=1
+	-DINSTALLDIR=\"$(bindir)\"  \
+	-DDOCDIR=\"$(docdir)\"  \
+	-DGDK_MULTIHEAD_SAFE=1
 
 
 src_ui_gui_psppire_LDFLAGS = \

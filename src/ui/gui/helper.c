@@ -214,10 +214,14 @@ void
 reference_manual (GtkMenuItem *menu, gpointer data)
 {
   GError *err = NULL;
-  if ( ! g_spawn_command_line_async ("yelp info:pspp", &err) )
+  gchar *cmd = g_strdup_printf ("yelp file://%s", relocate (DOCDIR "/pspp.xml"));
+
+  if ( ! g_spawn_command_line_async (cmd, &err) )
     {
       msg (ME, _("Cannot open reference manual: %s"), err->message);
     }
+
+  g_free (cmd);
   g_clear_error (&err);
 }
 
