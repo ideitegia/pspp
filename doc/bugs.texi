@@ -8,13 +8,7 @@ visit PSPP's project webpage at
 @uref{https://savannah.gnu.org/projects/pspp}.  You can also submit
 your own bug report there: click on ``Bugs,'' then on ``Submit a
 Bug,'' and fill out the form.  Alternatively, PSPP bug reports may be
-sent by email to
-@ifinfo
-<bug-gnu-pspp@@gnu.org>.
-@end ifinfo
-@iftex
-@code{<bug-gnu-pspp@@gnu.org>}.
-@end iftex
+sent by email to @email{bug-gnu-pspp@@gnu.org}.
 
 For known bugs in individual language features, see the documentation
 for that feature.
