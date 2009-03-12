@@ -364,11 +364,13 @@ on_select_row                  (GtkTreeView *treeview,
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GtkBuilder *xml)
+val_labs_dialog_create (GtkWindow *toplevel)
 {
   GtkTreeViewColumn *column;
 
   GtkCellRenderer *renderer ;
+
+  GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
 
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
@@ -377,8 +379,7 @@ val_labs_dialog_create (GtkBuilder *xml)
   dialog->label_entry = get_widget_assert (xml,"label_entry");
 
   gtk_window_set_transient_for
-    (GTK_WINDOW (dialog->window),
-     GTK_WINDOW (get_widget_assert (xml, "data_editor")));
+    (GTK_WINDOW (dialog->window), toplevel);
 
   dialog->add_button = get_widget_assert (xml, "val_labs_add");
   dialog->remove_button = get_widget_assert (xml, "val_labs_remove");
@@ -434,6 +435,8 @@ val_labs_dialog_create (GtkBuilder *xml)
 		   GTK_SIGNAL_FUNC (on_add), dialog);
 
   dialog->labs = 0;
+
+  g_object_unref (xml);
 
   return dialog;
 }

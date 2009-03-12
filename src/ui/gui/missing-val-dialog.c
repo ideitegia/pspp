@@ -218,18 +218,18 @@ on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
 }
 
 
-/* Creates the dialog structure from the xml */
+/* Creates the dialog structure */
 struct missing_val_dialog *
-missing_val_dialog_create (GtkBuilder *xml)
+missing_val_dialog_create (GtkWindow *toplevel)
 {
+  GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
+
   struct missing_val_dialog *dialog = g_malloc (sizeof (*dialog));
 
   dialog->window = get_widget_assert (xml, "missing_values_dialog");
 
   gtk_window_set_transient_for
-    (GTK_WINDOW (dialog->window),
-     GTK_WINDOW (get_widget_assert (xml, "data_editor")));
-
+    (GTK_WINDOW (dialog->window), toplevel);
 
   g_signal_connect_swapped (get_widget_assert (xml, "missing_val_cancel"),
 		   "clicked", G_CALLBACK (gtk_widget_hide), dialog->window);
@@ -264,6 +264,8 @@ missing_val_dialog_create (GtkBuilder *xml)
 
   g_signal_connect (dialog->button_range, "toggled",
 		   G_CALLBACK (range), dialog);
+
+  g_object_unref (xml);
 
   return dialog;
 }

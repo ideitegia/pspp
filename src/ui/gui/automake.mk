@@ -72,7 +72,9 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/regression.ui \
 	$(top_builddir)/src/ui/gui/syntax-editor.ui \
 	$(top_builddir)/src/ui/gui/text-data-import.ui \
-	$(top_builddir)/src/ui/gui/t-test.ui
+	$(top_builddir)/src/ui/gui/t-test.ui \
+	$(top_builddir)/src/ui/gui/var-sheet-dialogs.ui
+
 
 dist_src_ui_gui_psppire_DATA = \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
@@ -222,7 +224,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/regression.glade \
 	src/ui/gui/syntax-editor.glade \
 	src/ui/gui/text-data-import.glade \
-	src/ui/gui/t-test.glade
+	src/ui/gui/t-test.glade \
+	src/ui/gui/var-sheet-dialogs.glade
 
 
 nodist_src_ui_gui_psppire_SOURCES = \

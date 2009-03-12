@@ -321,14 +321,14 @@ set_format_type_from_treeview (GtkTreeView *treeview, gpointer data)
 
 
 
-/* Create the structure from the XML definitions */
+/* Create the structure */
 struct var_type_dialog *
-var_type_dialog_create (GtkBuilder *xml)
+var_type_dialog_create (GtkWindow *toplevel)
 {
   gint i;
   struct var_type_dialog *dialog = g_malloc (sizeof (struct var_type_dialog));
 
-  g_assert (xml);
+  GtkBuilder *xml = builder_new ("var-sheet-dialogs.ui");
 
   dialog->window = get_widget_assert (xml,"var_type_dialog");
   dialog->active_button = -1;
@@ -338,7 +338,7 @@ var_type_dialog_create (GtkBuilder *xml)
 		    G_CALLBACK (gtk_widget_hide_on_delete), NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog->window),
-			       GTK_WINDOW (get_widget_assert (xml, "data_editor")));
+				toplevel);
 
   dialog->radioButton[BUTTON_NUMERIC] =
     get_widget_assert (xml,"radiobutton1");
@@ -554,9 +554,9 @@ var_type_dialog_create (GtkBuilder *xml)
   g_signal_connect (get_widget_assert (xml, "var_type_cancel") , "clicked",
 		    G_CALLBACK (hide_dialog),
 		    dialog);
-
-
   }
+
+  g_object_unref (xml);
 
   return dialog;
 }

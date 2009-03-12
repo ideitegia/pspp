@@ -31,6 +31,9 @@
 
 static void psppire_var_sheet_class_init  (PsppireVarSheetClass *klass);
 static void psppire_var_sheet_init        (PsppireVarSheet      *vs);
+static void psppire_var_sheet_realize     (GtkWidget *w);
+static void psppire_var_sheet_unrealize   (GtkWidget *w);
+
 
 enum
   {
@@ -176,17 +179,19 @@ psppire_var_sheet_get_property (GObject      *object,
 }
 
 
-
 static void
 psppire_var_sheet_class_init (PsppireVarSheetClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GParamSpec *pspec;
 
   parent_class = g_type_class_peek_parent (klass);
 
   object_class->dispose = psppire_var_sheet_dispose;
   object_class->finalize = psppire_var_sheet_finalize;
+  widget_class->realize = psppire_var_sheet_realize;
+  widget_class->unrealize = psppire_var_sheet_unrealize;
   object_class->set_property = psppire_var_sheet_set_property;
   object_class->get_property = psppire_var_sheet_get_property;
 
@@ -481,13 +486,39 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 
 
 static void
+psppire_var_sheet_realize (GtkWidget *w)
+{
+  PsppireVarSheet *vs = PSPPIRE_VAR_SHEET (w);
+
+  GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (vs));
+
+  vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel));
+  vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
+  vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel));
+
+  /* Chain up to the parent class */
+  GTK_WIDGET_CLASS (parent_class)->realize (w);
+}
+
+static void
+psppire_var_sheet_unrealize (GtkWidget *w)
+{
+  PsppireVarSheet *vs = PSPPIRE_VAR_SHEET (w);
+
+  g_free (vs->val_labs_dialog);
+  g_free (vs->missing_val_dialog);
+  g_free (vs->var_type_dialog);
+
+  /* Chain up to the parent class */
+  GTK_WIDGET_CLASS (parent_class)->unrealize (w);
+}
+
+
+
+static void
 psppire_var_sheet_init (PsppireVarSheet *vs)
 {
   GtkBuilder *builder = builder_new ("data-editor.ui");
-
-  vs->val_labs_dialog = val_labs_dialog_create (builder);
-  vs->missing_val_dialog = missing_val_dialog_create (builder);
-  vs->var_type_dialog = var_type_dialog_create (builder);
 
   connect_help (builder);
 
