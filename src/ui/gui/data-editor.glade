@@ -2,14 +2,6 @@
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
 <!--*- mode: xml -*-->
 <glade-interface>
-  <widget class="GtkWindow" id="data_editor">
-    <property name="title">Psppire Data Editor</property>
-    <property name="default_width">975</property>
-    <property name="default_height">480</property>
-    <child>
-      <widget class="GtkVBox" id="vbox1">
-        <property name="visible">True</property>
-        <child>
           <widget class="GtkMenuBar" id="menubar">
             <property name="visible">True</property>
             <child>
@@ -666,12 +658,8 @@
               </widget>
             </child>
           </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-          </packing>
-        </child>
-        <child>
+
+
           <widget class="GtkHandleBox" id="handlebox1">
             <property name="visible">True</property>
             <property name="shadow_type">GTK_SHADOW_OUT</property>
@@ -906,16 +894,8 @@
               </widget>
             </child>
           </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-        <child>
+
+
           <widget class="GtkHBox" id="status-bar">
             <property name="visible">True</property>
             <property name="spacing">6</property>
@@ -1067,13 +1047,4 @@
               </packing>
             </child>
           </widget>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="position">4</property>
-          </packing>
-        </child>
-      </widget>
-    </child>
-  </widget>
 </glade-interface>

@@ -1050,15 +1050,6 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   connect_help (de->builder);
 
-  g_object_ref (menubar);
-  gtk_widget_unparent (menubar);
-
-  g_object_ref (hb);
-  gtk_widget_unparent (hb);
-
-  g_object_ref (sb);
-  gtk_widget_unparent (sb);
-
   gtk_box_pack_start (GTK_BOX (box), menubar, FALSE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (box), hb, FALSE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (de->data_editor), TRUE, TRUE, 0);
