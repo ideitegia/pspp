@@ -690,6 +690,7 @@ static void
 fonts_activate (GtkMenuItem *menuitem, gpointer data)
 {
   PsppireDataWindow  *de = PSPPIRE_DATA_WINDOW (data);
+  GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (de));
   PangoFontDescription *current_font;
   gchar *font_name;
   GtkWidget *dialog =
@@ -704,8 +705,8 @@ fonts_activate (GtkMenuItem *menuitem, gpointer data)
   g_free (font_name);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog),
-				GTK_WINDOW (get_widget_assert (de->builder,
-							       "data_editor")));
+				GTK_WINDOW (toplevel));
+
   if ( GTK_RESPONSE_OK == gtk_dialog_run (GTK_DIALOG (dialog)) )
     {
       const gchar *font = gtk_font_selection_dialog_get_font_name
