@@ -1101,8 +1101,10 @@ psppire_data_window_init (PsppireDataWindow *de)
 
 
   {
+    GtkWidget *toolbarbutton = get_widget_assert (de->builder, "button-open");
+
     GtkAction *action_data_open =
-      resolve_action (de->builder, "file_open_data", "button-open");
+      resolve_action (de->builder, "file_open_data", NULL);
 
     g_object_set (action_data_open,
 		  "tooltip",  _("Open a data file"),
@@ -1111,6 +1113,9 @@ psppire_data_window_init (PsppireDataWindow *de)
 
     g_signal_connect (action_data_open, "activate",
 		      G_CALLBACK (open_data_dialog), de);
+
+    g_signal_connect_swapped (toolbarbutton, "clicked",
+		      G_CALLBACK (gtk_action_activate), action_data_open);
   }
 
 
