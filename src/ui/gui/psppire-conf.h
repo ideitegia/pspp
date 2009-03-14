@@ -78,9 +78,17 @@ PsppireConf * psppire_conf_new (void);
 gboolean psppire_conf_get_int (PsppireConf *,
 			       const gchar *, const gchar *, int *);
 
+gboolean psppire_conf_get_boolean (PsppireConf *,
+				   const gchar *, const gchar *, gboolean *);
+
 void psppire_conf_set_int (PsppireConf *conf,
 			   const gchar *base, const gchar *name,
 			   gint value);
+
+void psppire_conf_set_boolean (PsppireConf *conf,
+			       const gchar *base, const gchar *name,
+			       gboolean value);
+
 
 void psppire_conf_set_window_geometry (PsppireConf *conf,
 				       const gchar *base,
@@ -88,7 +96,7 @@ void psppire_conf_set_window_geometry (PsppireConf *conf,
 
 void psppire_conf_save_window_geometry (PsppireConf *,
 					const gchar *,
-					GdkEventConfigure *);
+					GdkEvent *);
 
 
 G_END_DECLS

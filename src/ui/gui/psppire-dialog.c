@@ -267,7 +267,7 @@ delete_event_callback (GtkWidget *w, GdkEvent *e, gpointer data)
 
 static gboolean
 configure_event_callback (GtkDialog *dialog,
-			  GdkEventConfigure *event, gpointer data)
+			  GdkEvent *event, gpointer data)
 {
   gchar *base = NULL;
 

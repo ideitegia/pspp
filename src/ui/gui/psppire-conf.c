@@ -176,6 +176,25 @@ psppire_conf_get_int (PsppireConf *conf, const gchar *base,
   return ok;
 }
 
+gboolean
+psppire_conf_get_boolean (PsppireConf *conf, const gchar *base,
+			  const gchar *name, gboolean *value)
+{
+  gboolean ok;
+  GError *err = NULL;
+  conf_read (conf);
+  *value = g_key_file_get_boolean (conf->keyfile,
+				   base,
+				   name, &err);
+
+  ok = (err == NULL);
+  if ( err != NULL )
+    g_error_free (err);
+
+  return ok;
+}
+
+
 void
 psppire_conf_set_int (PsppireConf *conf,
 		      const gchar *base, const gchar *name,
@@ -185,7 +204,14 @@ psppire_conf_set_int (PsppireConf *conf,
   conf_write (conf);
 }
 
-
+void
+psppire_conf_set_boolean (PsppireConf *conf,
+			  const gchar *base, const gchar *name,
+			  gboolean value)
+{
+  g_key_file_set_boolean (conf->keyfile, base, name, value);
+  conf_write (conf);
+}
 
 /*
   A convenience function to set the geometry of a
@@ -198,6 +224,7 @@ psppire_conf_set_window_geometry (PsppireConf *conf,
 {
   gint height, width;
   gint x, y;
+  gboolean maximize;
 
   if (psppire_conf_get_int (conf, base, "height", &height)
       &&
@@ -212,22 +239,57 @@ psppire_conf_set_window_geometry (PsppireConf *conf,
     {
       gtk_window_move (window, x, y);
     }
+
+  if ( psppire_conf_get_boolean (conf, base, "maximize", &maximize))
+    {
+      if (maximize)
+	gtk_window_maximize (window);
+      else
+	gtk_window_unmaximize (window);
+    }
 }
 
 
 /*
    A convenience function to save the window geometry.
    This should typically be called from a window's
-   "configure-event" signal handler
+   "configure-event" and "window-state-event" signal handlers
  */
 void
 psppire_conf_save_window_geometry (PsppireConf *conf,
 				   const gchar *base,
-				   GdkEventConfigure *event)
+				   GdkEvent *e)
 {
-  psppire_conf_set_int (conf, base, "height", event->height);
-  psppire_conf_set_int (conf, base, "width", event->width);
+  switch (e->type)
+    {
+    case GDK_CONFIGURE:
+      {
+	GdkEventConfigure *event = &e->configure;
 
-  psppire_conf_set_int (conf, base, "x", event->x);
-  psppire_conf_set_int (conf, base, "y", event->y);
+	if ( gdk_window_get_state (event->window) &
+	     GDK_WINDOW_STATE_MAXIMIZED )
+	  return;
+
+	if ( event->send_event )
+	  return;
+
+	psppire_conf_set_int (conf, base, "height", event->height);
+	psppire_conf_set_int (conf, base, "width", event->width);
+
+	psppire_conf_set_int (conf, base, "x", event->x);
+	psppire_conf_set_int (conf, base, "y", event->y);
+      }
+      break;
+    case GDK_WINDOW_STATE:
+      {
+	GdkEventWindowState *event = &e->window_state;
+
+	psppire_conf_set_boolean (conf, base, "maximize",
+				  event->new_window_state &
+				  GDK_WINDOW_STATE_MAXIMIZED );
+      }
+      break;
+    default:
+      break;
+    };
 }

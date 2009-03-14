@@ -203,7 +203,7 @@ on_realize (GtkWindow *window, gpointer data)
 
 
 static gboolean
-on_configure (GtkWidget *window, GdkEventConfigure *event, gpointer data)
+save_geometry (GtkWidget *window, GdkEvent *event, gpointer data)
 {
   const gchar *base = G_OBJECT_TYPE_NAME (window);
 
@@ -431,7 +431,10 @@ psppire_window_init (PsppireWindow *window)
   g_object_set (window, "icon-name", "psppicon", NULL);
 
   g_signal_connect (window, "configure-event",
-		    G_CALLBACK (on_configure), window);
+		    G_CALLBACK (save_geometry), window);
+
+  g_signal_connect (window, "window-state-event",
+		    G_CALLBACK (save_geometry), window);
 
   g_signal_connect (window, "realize",
 		    G_CALLBACK (on_realize), window);
