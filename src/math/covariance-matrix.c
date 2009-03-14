@@ -528,7 +528,6 @@ get_covariance_variables (const struct covariance_matrix *cov)
   return cov->v_variables;
 }
 
-
 static void
 update_hash_entry (struct hsh_table *c,
 		   const struct variable *v1,
@@ -551,7 +550,7 @@ update_hash_entry (struct hsh_table *c,
   ca->sum2 = update_sum (ca->v2, ca->val2, iv_f2);
   ca->ssize = 1.0;
   new_entry = hsh_insert (c, ca);
-
+  
   if (new_entry != NULL)
     {
       new_entry->dot_product += ca->dot_product;
@@ -559,11 +558,11 @@ update_hash_entry (struct hsh_table *c,
       new_entry->sum1 += ca->sum1;
       new_entry->sum2 += ca->sum2;
       /*
-         If DOT_PRODUCT is null, CA was not already in the hash
-         hable, so we don't free it because it was just inserted.
-         If DOT_PRODUCT was not null, CA is already in the hash table.
-         Unnecessary now, it must be freed here.
-       */
+	If DOT_PRODUCT is null, CA was not already in the hash
+	hable, so we don't free it because it was just inserted.
+	If DOT_PRODUCT was not null, CA is already in the hash table.
+	Unnecessary now, it must be freed here.
+      */
       free (ca);
     }
 }
@@ -721,6 +720,44 @@ covariance_matrix_accumulate (struct covariance_matrix *cov,
 {
   cov->accumulate (cov, ccase, (const struct interaction_variable **) aux, n_intr);
 }
+/*
+  If VAR is categorical with d categories, its first category should
+  correspond to the origin in d-dimensional Euclidean space.
+ */
+static bool
+is_origin (const struct variable *var, const union value *val)
+{
+  if (cat_value_find (var, val) == 0)
+    {
+      return true;
+    }
+  return false;
+}
+
+/*
+  Return the subscript of the column of the design matrix
+  corresponding to VAL. If VAR is categorical with d categories, its
+  first category should correspond to the origin in d-dimensional
+  Euclidean space, so there is no subscript for this value.
+ */
+static size_t
+get_exact_subscript (const struct design_matrix *dm, const struct variable *var,
+		     const union value *val)
+{
+  size_t result;
+
+  if (is_origin (var, val))
+    {
+      return -1u;
+    }
+
+  result = design_matrix_var_to_column (dm, var);
+  if (var_is_alpha (var))
+    {
+      result += cat_value_find (var, val) - 1;
+    }
+  return result;
+}
 
 static void
 covariance_matrix_insert (struct design_matrix *cov,
@@ -735,52 +772,49 @@ covariance_matrix_insert (struct design_matrix *cov,
 
   assert (cov != NULL);
 
-  row = design_matrix_var_to_column (cov, v1);
-  if (var_is_alpha (v1))
+  row = get_exact_subscript (cov, v1, val1);
+  col = get_exact_subscript (cov, v2, val2);
+  if (row != -1u && col != -1u)
     {
-      i = 0;
-      tmp_val = cat_subscript_to_value (i, v1);
-      while (compare_values_short (tmp_val, val1, v1))
-	{
-	  i++;
-	  tmp_val = cat_subscript_to_value (i, v1);
-	}
-      row += i;
-      if (var_is_numeric (v2))
-	{
-	  col = design_matrix_var_to_column (cov, v2);
-	}
-      else
-	{
-	  col = design_matrix_var_to_column (cov, v2);
-	  i = 0;
-	  tmp_val = cat_subscript_to_value (i, v1);
-	  while (compare_values_short (tmp_val, val1, v1))
-	    {
-	      i++;
-	      tmp_val = cat_subscript_to_value (i, v1);
-	    }
-	  col += i;
-	}
+      gsl_matrix_set (cov->m, row, col, product);
     }
-  else
-    {
-      if (var_is_numeric (v2))
-	{
-	  col = design_matrix_var_to_column (cov, v2);
-	}
-      else
-	{
-	  covariance_matrix_insert (cov, v2, v1, val2, val1, product);
-	}
-    }
-
-  gsl_matrix_set (cov->m, row, col, product);
 }
 
+
+static bool
+is_covariance_contributor (const struct covariance_accumulator *ca, const struct design_matrix *dm,
+			   size_t i, size_t j)
+{
+  size_t k;
+  const struct variable *v1;
+  const struct variable *v2;
+
+  assert (dm != NULL);
+  v1 = design_matrix_col_to_var (dm, i);
+  if (var_get_dict_index (v1) == var_get_dict_index(ca->v1))
+    {
+      v2 = design_matrix_col_to_var (dm, j);
+      if (var_get_dict_index (v2) == var_get_dict_index (ca->v2))
+	{
+	  k = get_exact_subscript (dm, v1, ca->val1);
+	  if (k == i)
+	    {
+	      k = get_exact_subscript (dm, v2, ca->val2);
+	      if (k == j)
+		{
+		  return true;
+		}
+	    }
+	}
+    }
+  return false;
+}
+  
 static struct design_matrix *
 covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 {
+  size_t i;
+  size_t j;
   double tmp;
   struct covariance_accumulator *entry;
   struct design_matrix *result = NULL;
@@ -788,17 +822,26 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 
   result = covariance_matrix_create (cov->n_variables, cov->v_variables);
 
-  entry = hsh_first (cov->ca, &iter);
-
-  while (entry != NULL)
+  for (i = 0; i < design_matrix_get_n_cols (result); i++)
     {
-      /*
-         We compute the centered, un-normalized covariance matrix.
-       */
-      tmp = entry->dot_product - entry->sum1 * entry->sum2 / entry->ssize;
-      covariance_matrix_insert (result, entry->v1, entry->v2, entry->val1,
-				entry->val2, tmp);
-      entry = hsh_next (cov->ca, &iter);
+      for (j = i; j < design_matrix_get_n_cols (result); j++)
+	{
+	  entry = hsh_first (cov->ca, &iter);
+	  
+	  while (entry != NULL)
+	    {
+	      /*
+		We compute the centered, un-normalized covariance matrix.
+	      */
+	      if (is_covariance_contributor (entry, result, i, j))
+		{
+		  tmp = entry->dot_product - entry->sum1 * entry->sum2 / entry->ssize;		  
+		  covariance_matrix_insert (result, entry->v1, entry->v2, entry->val1,
+					    entry->val2, tmp);
+		}
+	      entry = hsh_next (cov->ca, &iter);
+	    }
+	} 
     }
   return result;
 }

@@ -258,4 +258,16 @@ design_matrix_get_case_count (const struct design_matrix *dm, const struct varia
   return dm->n_cases[i];
 }
 
-  
+size_t
+design_matrix_get_n_cols (const struct design_matrix *d)
+{
+  return d->m->size2;
+}
+
+size_t
+design_matrix_get_n_rows (const struct design_matrix *d)
+{
+  return d->m->size1;
+}
+
+
