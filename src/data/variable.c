@@ -720,8 +720,8 @@ var_set_label (struct variable *v, const char *label)
       ss_truncate (&s, 255);
       if (!ss_is_empty (s))
         v->label = ss_xstrdup (s);
-      dict_var_changed (v);
     }
+  dict_var_changed (v);
 }
 
 /* Removes any variable label from V. */
