@@ -19,6 +19,7 @@
 #include <gettext.h>
 #include <gtk/gtk.h>
 
+#include "psppire-conf.h"
 #include "dict-display.h"
 
 #include "psppire-dict.h"
@@ -124,7 +125,12 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
   struct variable *var;
   GtkTreeIter iter;
   GtkTreeModel *model;
+  gboolean prefer_labels = FALSE;
 
+  PsppireConf *conf = psppire_conf_new ();
+
+  psppire_conf_get_boolean (conf, "dialog-boxes", "prefer-labels",
+			    &prefer_labels);
 
   get_base_model (top_model, top_iter, &model, &iter);
 
@@ -134,12 +140,11 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
   gtk_tree_model_get (model,
 		      &iter, DICT_TVM_COL_VAR, &var, -1);
 
-  if ( var_has_label (var))
+  if ( var_has_label (var) && prefer_labels)
     {
       gchar *text = g_strdup_printf (
 				     "<span stretch=\"condensed\">%s</span>",
 				     var_get_label (var));
-
 
       char *utf8 = pspp_locale_to_utf8 (text, -1, NULL);
 
@@ -149,12 +154,13 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
     }
   else
     {
-      g_object_set (cell, "text", var_get_name (var), NULL);
+      char *name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+      g_object_set (cell, "text", name, NULL);
+      g_free (name);
     }
 }
 
 
-#if GTK_CHECK_VERSION (2, 12, 0)
 /* Sets the tooltip to be the name of the variable under the cursor */
 static gboolean
 set_tooltip_for_variable (GtkTreeView  *treeview,
@@ -198,16 +204,26 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
     return FALSE;
 
   {
-    char *name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+    gchar *tip ;
+    gboolean prefer_labels = FALSE;
 
-    gtk_tooltip_set_text (tooltip, name);
+    PsppireConf *conf = psppire_conf_new ();
 
-    g_free (name);
+    psppire_conf_get_boolean (conf, "dialog-boxes", "prefer-labels",
+			      &prefer_labels);
+
+    if ( prefer_labels )
+      tip = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+    else
+      tip = pspp_locale_to_utf8 (var_get_label (var), -1, NULL);
+
+    gtk_tooltip_set_text (tooltip, tip);
+
+    g_free (tip);
   }
 
   return TRUE;
 }
-#endif
 
    /* Sets up TREEVIEW to display the variables of DICT.
    MODE is the selection mode for TREEVIEW.
