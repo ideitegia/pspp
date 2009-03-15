@@ -1457,13 +1457,19 @@ static gboolean
 on_switch_page (PsppireDataEditor *de, GtkNotebookPage *p,
 		gint pagenum, gpointer data)
 {
-  if ( pagenum != PSPPIRE_DATA_EDITOR_DATA_VIEW )
+  switch (pagenum)
     {
+    case PSPPIRE_DATA_EDITOR_DATA_VIEW:
+      gtk_widget_grab_focus (de->data_vbox);
+      on_select_range (de);
+      break;
+    case PSPPIRE_DATA_EDITOR_VARIABLE_VIEW:
+      gtk_widget_grab_focus (de->var_sheet);
       emit_selected_signal (de);
-      return TRUE;
-    }
-
-  on_select_range (de);
+      break;
+    default:
+      break;
+    };
 
   return TRUE;
 }
