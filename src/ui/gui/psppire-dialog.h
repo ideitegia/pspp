@@ -42,6 +42,14 @@ typedef struct _PsppireDialogClass  PsppireDialogClass;
 
 typedef gboolean (*ContentsAreValid) (gpointer);
 
+typedef enum
+  {
+    PSPPIRE_HORIZONTAL,
+    PSPPIRE_VERTICAL,
+    PSPPIRE_TABULAR
+  } PsppireOrientation;
+
+
 
 struct _PsppireDialog
 {
@@ -54,6 +62,8 @@ struct _PsppireDialog
 
   ContentsAreValid contents_are_valid;
   gpointer validity_data;
+  gboolean slidable;
+  PsppireOrientation orientation;
 };
 
 struct _PsppireDialogClass
@@ -76,13 +86,6 @@ void           psppire_dialog_notify_change (PsppireDialog *);
 
 GType psppire_orientation_get_type (void);
 
-
-typedef enum
-  {
-    PSPPIRE_HORIZONTAL,
-    PSPPIRE_VERTICAL,
-    PSPPIRE_TABULAR
-  } PsppireOrientation;
 
 #define G_TYPE_PSPPIRE_ORIENTATION (psppire_orientation_get_type ())
 
