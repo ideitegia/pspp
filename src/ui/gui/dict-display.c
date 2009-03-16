@@ -294,9 +294,7 @@ attach_dictionary_to_treeview (GtkTreeView *treeview, PsppireDict *dict,
 
   g_object_set (treeview, "has-tooltip", TRUE, NULL);
 
-#if GTK_CHECK_VERSION (2, 12, 0)
   g_signal_connect (treeview, "query-tooltip", G_CALLBACK (set_tooltip_for_variable), NULL);
-#endif
 }
 
 
