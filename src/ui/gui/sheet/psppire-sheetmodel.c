@@ -1,5 +1,5 @@
 /* PsppireSheetModel --- an abstract model for the PsppireSheet widget.
- * Copyright (C) 2006, 2008 Free Software Foundation
+   Copyright (C) 2006, 2008 Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -482,6 +482,8 @@ psppire_sheet_model_get_column_button (const PsppireSheetModel *model,
   if ( PSPPIRE_SHEET_MODEL_GET_IFACE (model)->get_column_title)
     button->label = PSPPIRE_SHEET_MODEL_GET_IFACE (model)->get_column_title (model, col);
 
+  button->overstruck = FALSE;
+
   return button;
 }
 
@@ -534,7 +536,12 @@ psppire_sheet_model_get_row_button (const PsppireSheetModel *model,
   g_return_val_if_fail (PSPPIRE_IS_SHEET_MODEL (model), NULL);
 
   if ( PSPPIRE_SHEET_MODEL_GET_IFACE (model)->get_row_title)
-    button->label = PSPPIRE_SHEET_MODEL_GET_IFACE (model)->get_row_title (model, row);
+    button->label =
+      PSPPIRE_SHEET_MODEL_GET_IFACE (model)->get_row_title (model, row);
+
+  if ( PSPPIRE_SHEET_MODEL_GET_IFACE (model)->get_row_overstrike)
+    button->overstruck =
+      PSPPIRE_SHEET_MODEL_GET_IFACE (model)->get_row_overstrike (model, row);
 
   return button;
 }

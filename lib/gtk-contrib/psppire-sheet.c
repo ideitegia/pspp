@@ -4747,6 +4747,26 @@ draw_button (PsppireSheet *sheet, GdkWindow *window,
 		   allocation.x, allocation.y,
 		   allocation.width, allocation.height);
 
+  if ( button->overstruck)
+    {
+      GdkPoint points[2] = {
+	{allocation.x,  allocation.y},
+	{allocation.x + allocation.width,
+	 allocation.y + allocation.height}
+      };
+
+      gtk_paint_polygon (sheet->button->style,
+			 window,
+			 button->state,
+			 shadow_type,
+			 NULL,
+			 GTK_WIDGET (sheet),
+			 "button",
+			 points,
+			 2,
+			 TRUE);
+    }
+
   if (button->label_visible)
     {
       text_height = DEFAULT_ROW_HEIGHT -
@@ -5335,6 +5355,7 @@ psppire_sheet_button_new (void)
   button->label = NULL;
   button->label_visible = TRUE;
   button->justification = GTK_JUSTIFY_FILL;
+  button->overstruck = FALSE;
 
   return button;
 }

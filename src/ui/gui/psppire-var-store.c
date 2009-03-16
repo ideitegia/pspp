@@ -301,6 +301,8 @@ psppire_var_store_sheet_model_init (PsppireSheetModelIface *iface)
 
   iface->get_row_title = get_row_title;
   iface->get_row_sensitivity = get_row_sensitivity;
+
+  iface->get_row_overstrike = NULL;
 }
 
 /**

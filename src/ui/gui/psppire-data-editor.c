@@ -380,9 +380,15 @@ psppire_data_editor_set_property (GObject         *object,
       g_object_ref (de->data_store);
 
       for (i = 0 ; i < 4 ; ++i )
-	g_object_set (de->data_sheet[i],
-		      "model", de->data_store,
-		      NULL);
+	{
+	  g_object_set (de->data_sheet[i],
+			"model", de->data_store,
+			NULL);
+
+	  g_signal_connect_swapped (de->data_store->dict, "filter-changed",
+				    G_CALLBACK (gtk_widget_queue_draw),
+				    de->data_sheet[i]);
+	}
 
       g_signal_connect (de->data_store->dict, "backend-changed",
 			G_CALLBACK (new_variables_callback), de);

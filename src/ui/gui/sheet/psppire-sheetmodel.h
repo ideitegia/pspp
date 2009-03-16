@@ -128,6 +128,8 @@ struct _PsppireSheetModelIface
   gchar * (*get_row_subtitle) (const PsppireSheetModel *, gint row);
   glong (*get_row_count) (const PsppireSheetModel *model);
   gboolean (*get_row_sensitivity) (const PsppireSheetModel *, gint row);
+
+  gboolean (*get_row_overstrike) (const PsppireSheetModel *, gint row);
 };
 
 

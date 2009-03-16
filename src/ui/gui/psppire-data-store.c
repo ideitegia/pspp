@@ -263,6 +263,7 @@ static GtkJustification get_column_justification (const PsppireSheetModel *model
 
 static gchar * get_row_button_label (const PsppireSheetModel *model, gint row);
 static gboolean get_row_sensitivity (const PsppireSheetModel *model, gint row);
+static gboolean get_row_overstrike (const PsppireSheetModel *model, gint row);
 
 
 static void
@@ -285,6 +286,7 @@ psppire_data_store_sheet_model_init (PsppireSheetModelIface *iface)
 
   iface->get_row_title = get_row_button_label;
   iface->get_row_sensitivity = get_row_sensitivity;
+  iface->get_row_overstrike = get_row_overstrike;
 }
 
 
@@ -1002,4 +1004,31 @@ psppire_data_store_insert_values (PsppireDataStore *ds,
   }
 
   return TRUE;
+}
+
+static gboolean
+get_row_overstrike (const PsppireSheetModel *model, gint row)
+{
+  union value val;
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
+
+  const struct dictionary *dict = ds->dict->dict;
+
+  const struct variable *filter = dict_get_filter (dict);
+
+  if ( row < 0 || row >= datasheet_get_row_cnt (ds->datasheet))
+    return FALSE;
+
+  if ( ! filter)
+    return FALSE;
+
+  g_assert (var_is_numeric (filter));
+
+  if ( ! datasheet_get_value (ds->datasheet, row,
+			      var_get_case_index (filter),
+			      &val, 0) )
+    return FALSE;
+
+
+  return (val.f == 0.0);
 }

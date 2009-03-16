@@ -40,6 +40,7 @@ struct _PsppireSheetButton
   gboolean label_visible;
 
   GtkJustification justification;
+  gboolean overstruck;
 };
 
 struct _PsppireSheetCell
