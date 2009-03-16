@@ -84,7 +84,6 @@ struct _PsppireSheetCellAttr
   GdkColor foreground;
   GdkColor background;
   PsppireSheetCellBorder border;
-  gboolean is_editable;
 };
 
 struct _PsppireSheetHoverTitle
@@ -299,12 +298,6 @@ void psppire_sheet_get_active_cell (PsppireSheet *sheet,
 /* get cell contents */
 gchar *psppire_sheet_cell_get_text (const PsppireSheet *sheet, gint row, gint col);
 
-
-/* get cell attributes of the given cell */
-/* TRUE means that the cell is currently allocated */
-gboolean psppire_sheet_get_attributes       (const PsppireSheet *sheet,
-					gint row, gint col,
-					PsppireSheetCellAttr *attributes);
 
 void psppire_sheet_set_model (PsppireSheet *sheet,
 				   PsppireSheetModel *model);

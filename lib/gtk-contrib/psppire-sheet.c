@@ -2098,6 +2098,13 @@ psppire_sheet_unmap (GtkWidget *widget)
     gtk_widget_unmap (sheet->button);
 }
 
+/* get cell attributes of the given cell */
+/* TRUE means that the cell is currently allocated */
+static gboolean psppire_sheet_get_attributes (const PsppireSheet *sheet,
+					      gint row, gint col,
+					      PsppireSheetCellAttr *attributes);
+
+
 
 static void
 psppire_sheet_cell_draw (PsppireSheet *sheet, gint row, gint col)
@@ -5248,7 +5255,7 @@ set_row_height (PsppireSheet *sheet,
     }
 }
 
-gboolean
+static gboolean
 psppire_sheet_get_attributes (const PsppireSheet *sheet, gint row, gint col,
 			  PsppireSheetCellAttr *attr)
 {
@@ -5270,8 +5277,6 @@ psppire_sheet_get_attributes (const PsppireSheet *sheet, gint row, gint col,
   attr->border.join_style = GDK_JOIN_MITER;
   attr->border.mask = 0;
   attr->border.color = GTK_WIDGET (sheet)->style->black;
-
-  attr->is_editable = psppire_sheet_model_is_editable (sheet->model, row, col);
 
   colormap = gtk_widget_get_colormap (GTK_WIDGET (sheet));
   fg = psppire_sheet_model_get_foreground (sheet->model, row, col);

@@ -286,7 +286,6 @@ traverse_cell_callback (PsppireSheet *sheet,
 
 
 
-
 /*
    Callback whenever the active cell changes on the var sheet.
 */
@@ -296,7 +295,6 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 			      gint oldrow, gint oldcolumn,
 			      gpointer data)
 {
-  PsppireSheetCellAttr attributes;
   PsppireVarStore *var_store;
   PsppireVarSheetClass *vs_class =
     PSPPIRE_VAR_SHEET_CLASS(G_OBJECT_GET_CLASS (vs));
@@ -312,8 +310,6 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 
   g_return_if_fail (oldcolumn == PSPPIRE_VAR_STORE_COL_NAME ||
 		    row < psppire_var_store_get_var_cnt (var_store));
-
-  psppire_sheet_get_attributes (sheet, row, column, &attributes);
 
   var = psppire_var_store_get_var (var_store, row);
 
@@ -430,7 +426,8 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
     case PSPPIRE_VAR_STORE_COL_DECIMALS:
     case PSPPIRE_VAR_STORE_COL_COLUMNS:
       {
-	if ( attributes.is_editable)
+	if ( psppire_sheet_model_is_editable (PSPPIRE_SHEET_MODEL(var_store),
+					      row, column))
 	  {
 	    gint r_min, r_max;
 
