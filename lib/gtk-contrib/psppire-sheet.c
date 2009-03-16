@@ -477,9 +477,7 @@ static void psppire_sheet_size_allocate 		 (GtkWidget *widget,
 						  GtkAllocation *allocation);
 
 static gboolean psppire_sheet_focus_in               (GtkWidget     *widget,
-						      GdkEventFocus *event,
-						      gpointer       user_data);
-
+						      GdkEventFocus *event);
 
 /* Sheet queries */
 
@@ -1015,6 +1013,7 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   container_class->add = NULL;
   container_class->remove = NULL;
   container_class->forall = psppire_sheet_forall;
+  container_class->set_focus_child = NULL;
 
   object_class->dispose = psppire_sheet_dispose;
   object_class->finalize = psppire_sheet_finalize;
@@ -4060,8 +4059,7 @@ psppire_sheet_crossing_notify (GtkWidget *widget,
 
 static gboolean
 psppire_sheet_focus_in (GtkWidget     *w,
-			GdkEventFocus *event,
-			gpointer       user_data)
+			GdkEventFocus *event)
 {
   PsppireSheet *sheet = PSPPIRE_SHEET (w);
 
