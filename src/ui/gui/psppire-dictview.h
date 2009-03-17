@@ -49,6 +49,8 @@ struct _PsppireDictView
 
   PsppireDict *dict;
   var_predicate_func *predicate;
+  GtkWidget *menu;
+  gboolean prefer_labels;
 };
 
 struct _PsppireDictViewClass

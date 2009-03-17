@@ -181,15 +181,19 @@ psppire_conf_get_boolean (PsppireConf *conf, const gchar *base,
 			  const gchar *name, gboolean *value)
 {
   gboolean ok;
+  gboolean b;
   GError *err = NULL;
   conf_read (conf);
-  *value = g_key_file_get_boolean (conf->keyfile,
-				   base,
-				   name, &err);
+  b = g_key_file_get_boolean (conf->keyfile,
+			      base,
+			      name, &err);
 
   ok = (err == NULL);
   if ( err != NULL )
     g_error_free (err);
+
+  if (ok)
+    *value = b;
 
   return ok;
 }

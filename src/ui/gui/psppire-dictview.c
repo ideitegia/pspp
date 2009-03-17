@@ -65,6 +65,9 @@ psppire_dict_view_get_type (void)
 static void
 psppire_dict_view_finalize (GObject *object)
 {
+  PsppireDictView *dict_view = PSPPIRE_DICT_VIEW (object);
+
+  g_object_unref (dict_view->menu);
 }
 
 /* Properties */
@@ -242,8 +245,8 @@ psppire_dict_view_base_init (PsppireDictViewClass *class)
 
 
 static void
-psppire_dict_view_base_finalize(PsppireDictViewClass *class,
-				gpointer class_data)
+psppire_dict_view_base_finalize (PsppireDictViewClass *class,
+				 gpointer class_data)
 {
 
 }
@@ -282,25 +285,20 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
 				GtkTreeIter *top_iter,
 				gpointer data)
 {
+  PsppireDictView *dv = PSPPIRE_DICT_VIEW (data);
   struct variable *var;
   GtkTreeIter iter;
   GtkTreeModel *model;
-  gboolean prefer_labels = FALSE;
 
-  PsppireConf *conf = psppire_conf_new ();
-
-  psppire_conf_get_boolean (conf, "dialog-boxes", "prefer-labels",
-			    &prefer_labels);
 
   dv_get_base_model (top_model, top_iter, &model, &iter);
 
   g_assert (PSPPIRE_IS_DICT (model));
 
-
   gtk_tree_model_get (model,
 		      &iter, DICT_TVM_COL_VAR, &var, -1);
 
-  if ( var_has_label (var) && prefer_labels)
+  if ( var_has_label (var) && dv->prefer_labels)
     {
       gchar *text = g_strdup_printf (
 				     "<span stretch=\"condensed\">%s</span>",
@@ -371,7 +369,6 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
 			  gboolean    keyboard_mode,
 			  GtkTooltip *tooltip,
 			  gpointer    user_data)
-
 {
   gint bx, by;
   GtkTreeIter iter;
@@ -407,14 +404,8 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
 
   {
     gchar *tip ;
-    gboolean prefer_labels = FALSE;
 
-    PsppireConf *conf = psppire_conf_new ();
-
-    psppire_conf_get_boolean (conf, "dialog-boxes", "prefer-labels",
-			      &prefer_labels);
-
-    if ( prefer_labels )
+    if ( PSPPIRE_DICT_VIEW (treeview)->prefer_labels )
       tip = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
     else
       tip = pspp_locale_to_utf8 (var_get_label (var), -1, NULL);
@@ -427,30 +418,54 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
   return TRUE;
 }
 
+static gboolean
+show_menu (PsppireDictView *dv, GdkEventButton *event, gpointer data)
+{
+  if (event->button != 3)
+    return FALSE;
+
+  gtk_menu_popup (GTK_MENU (dv->menu), NULL, NULL, NULL, NULL,
+		  event->button, event->time);
+
+  return TRUE;
+}
+
+static void
+toggle_label_preference (GtkCheckMenuItem *checkbox, gpointer data)
+{
+  PsppireDictView *dv = PSPPIRE_DICT_VIEW (data);
+
+  dv->prefer_labels = gtk_check_menu_item_get_active (checkbox);
+
+  gtk_widget_queue_draw (GTK_WIDGET (dv));
+}
 
 static void
 psppire_dict_view_init (PsppireDictView *dict_view)
 {
-  GtkTreeViewColumn *col;
+  GtkTreeViewColumn *col = gtk_tree_view_column_new ();
 
-  GtkCellRenderer *renderer;
+  GtkCellRenderer *renderer = gtk_cell_renderer_pixbuf_new ();
 
-  col = gtk_tree_view_column_new ();
+  dict_view->prefer_labels = TRUE;
+
+  psppire_conf_get_boolean (psppire_conf_new (),
+			    "dialog-boxes", "prefer-labels",
+			    &dict_view->prefer_labels);
+
   gtk_tree_view_column_set_title (col, _("Variable"));
 
-  renderer = gtk_cell_renderer_pixbuf_new ();
   gtk_tree_view_column_pack_start (col, renderer, FALSE);
 
   gtk_tree_view_column_set_cell_data_func (col, renderer,
 					   var_icon_cell_data_func,
 					   NULL, NULL);
 
-
   renderer = gtk_cell_renderer_text_new ();
   gtk_tree_view_column_pack_start (col, renderer, TRUE);
   gtk_tree_view_column_set_cell_data_func (col, renderer,
 					   var_description_cell_data_func,
-					   NULL, NULL);
+					   dict_view, NULL);
 
   g_object_set (renderer, "ellipsize-set", TRUE, NULL);
   g_object_set (renderer, "ellipsize", PANGO_ELLIPSIZE_MIDDLE, NULL);
@@ -466,6 +481,29 @@ psppire_dict_view_init (PsppireDictView *dict_view)
 
   g_signal_connect (dict_view, "query-tooltip",
 		    G_CALLBACK (set_tooltip_for_variable), NULL);
+
+  dict_view->menu = gtk_menu_new ();
+
+
+  {
+    GtkWidget *checkbox =
+      gtk_check_menu_item_new_with_label  (_("Prefer variable labels"));
+
+    gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (checkbox),
+				    dict_view->prefer_labels);
+
+    g_signal_connect (checkbox, "toggled",
+		      G_CALLBACK (toggle_label_preference), dict_view);
+
+
+    gtk_menu_shell_append (GTK_MENU_SHELL (dict_view->menu), checkbox);
+
+  }
+
+  gtk_widget_show_all (dict_view->menu);
+
+  g_signal_connect (dict_view, "button-press-event",
+		    G_CALLBACK (show_menu), NULL);
 }
 
 
@@ -492,9 +530,7 @@ psppire_dict_view_get_selected_variable (PsppireDictView *treeview)
 
   if (! gtk_tree_selection_get_selected (selection,
 					 &top_model, &top_iter))
-    {
-      return NULL;
-    }
+    return NULL;
 
   dv_get_base_model (top_model, &top_iter, &model, &iter);
 
