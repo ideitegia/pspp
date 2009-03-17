@@ -862,10 +862,9 @@ init_data_sheet (PsppireDataEditor *de)
   de->vaxis[0] = psppire_axis_impl_new ();
   de->vaxis[1] = psppire_axis_impl_new ();
 
-  /* Txoxovhere's only one horizontal axis, since the
+  /* There's only one horizontal axis, since the
      column widths are parameters of the variables */
   de->haxis = psppire_axis_impl_new ();
-
 
   de->split = TRUE;
   de->paned = gtk_xpaned_new ();
