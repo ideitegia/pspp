@@ -274,9 +274,6 @@ psppire_conf_save_window_geometry (PsppireConf *conf,
 	     GDK_WINDOW_STATE_MAXIMIZED )
 	  return;
 
-	if ( event->send_event )
-	  return;
-
 	psppire_conf_set_int (conf, base, "height", event->height);
 	psppire_conf_set_int (conf, base, "width", event->width);
 
@@ -296,4 +293,5 @@ psppire_conf_save_window_geometry (PsppireConf *conf,
     default:
       break;
     };
+
 }
