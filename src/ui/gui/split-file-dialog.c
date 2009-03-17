@@ -191,9 +191,8 @@ split_file_dialog (GObject *o, gpointer data)
   sfd.selector  = PSPPIRE_SELECTOR (
 				    get_widget_assert   (sfd.xml, "split-file-selector"));
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
-				 vs->dict,
-				 GTK_SELECTION_MULTIPLE, NULL);
+  g_object_set (source, "model",
+				 vs->dict, NULL);
 
 
   g_signal_connect (on_off, "toggled", G_CALLBACK(on_off_toggled),  sfd.xml);

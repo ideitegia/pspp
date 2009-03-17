@@ -205,10 +205,10 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
+  g_object_set (dict_view, "model",
 				 vs->dict,
-				 GTK_SELECTION_MULTIPLE,
-				 var_is_numeric);
+				 "predicate",
+				 var_is_numeric, NULL);
 
   {
     tt_d.list_store =

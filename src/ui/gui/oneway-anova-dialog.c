@@ -170,9 +170,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (ow.dialog, GTK_WINDOW (de));
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
-				 vs->dict,
-				 GTK_SELECTION_MULTIPLE, NULL);
+  g_object_set (dict_view, "model", vs->dict, NULL);
 
   set_dest_model (GTK_TREE_VIEW (ow.vars_treeview), vs->dict);
 

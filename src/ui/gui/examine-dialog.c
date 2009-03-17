@@ -279,10 +279,7 @@ examine_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (ex_d.stats_dialog), GTK_WINDOW (de));
   gtk_window_set_transient_for (GTK_WINDOW (ex_d.opts_dialog), GTK_WINDOW (de));
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
-				 vs->dict,
-				 GTK_SELECTION_MULTIPLE, NULL);
-
+  g_object_set (source, "model", vs->dict, NULL);
 
   set_dest_model (GTK_TREE_VIEW (ex_d.dep_list), vs->dict);
   ex_d.dict = vs->dict;

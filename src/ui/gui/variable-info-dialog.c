@@ -17,7 +17,7 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
-#include "dict-display.h"
+//#include "dict-display.h"
 #include "var-display.h"
 #include <data/variable.h>
 #include <data/format.h>
@@ -25,6 +25,7 @@
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "psppire-var-store.h"
+#include "psppire-dictview.h"
 #include "helper.h"
 
 #include <language/syntax-string-source.h>
@@ -36,44 +37,17 @@
 #define N_(msgid) msgid
 
 
-static struct variable *
-get_selected_variable (GtkTreeView *treeview)
-{
-  struct variable *var;
-  GtkTreeModel *top_model;
-  GtkTreeIter top_iter;
-
-  GtkTreeModel *model;
-  GtkTreeIter iter;
-
-  GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
-
-  if (! gtk_tree_selection_get_selected (selection,
-					 &top_model, &top_iter))
-    {
-      return NULL;
-    }
-
-  get_base_model (top_model, &top_iter, &model, &iter);
-
-  g_assert (PSPPIRE_IS_DICT (model));
-
-  gtk_tree_model_get (model,
-		      &iter, DICT_TVM_COL_VAR, &var, -1);
-
-  return var;
-}
-
-
 
 static void
-populate_text (GtkTreeView *treeview, gpointer data)
+populate_text (PsppireDictView *treeview, gpointer data)
 {
   gchar *text = 0;
   GString *gstring;
 
   GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(data));
-  const struct variable *var = get_selected_variable (treeview);
+  const struct variable *var =
+    psppire_dict_view_get_selected_variable (treeview);
+
   if ( var == NULL)
     return;
 
@@ -157,7 +131,7 @@ treeview_item_selected (gpointer data)
 }
 
 
-static gchar * generate_syntax (GtkTreeView *treeview);
+static gchar * generate_syntax (PsppireDictView *treeview);
 
 
 void
@@ -179,11 +153,10 @@ variable_info_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (treeview),
-				 vs->dict,
-				 GTK_SELECTION_SINGLE,
-				 NULL );
-
+  g_object_set (treeview,
+		"model", vs->dict,
+		"selection-mode", GTK_SELECTION_SINGLE,
+		NULL);
 
   g_signal_connect (treeview, "cursor-changed", G_CALLBACK (populate_text),
 		    textview);
@@ -201,18 +174,20 @@ variable_info_dialog (GObject *o, gpointer data)
     case PSPPIRE_RESPONSE_GOTO:
       {
 	const struct variable *var =
-	  get_selected_variable (GTK_TREE_VIEW (treeview));
+	  psppire_dict_view_get_selected_variable (PSPPIRE_DICT_VIEW (treeview));
 
 	if ( NULL == var)
 	  goto done;
 
-	g_object_set (de->data_editor, "current-variable",  var_get_dict_index (var), NULL);
+	g_object_set (de->data_editor,
+		      "current-variable", var_get_dict_index (var),
+		      NULL);
       }
 
       break;
     case PSPPIRE_RESPONSE_PASTE:
       {
-	gchar *syntax = generate_syntax (GTK_TREE_VIEW (treeview));
+	gchar *syntax = generate_syntax (PSPPIRE_DICT_VIEW (treeview));
         paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);
@@ -227,9 +202,10 @@ variable_info_dialog (GObject *o, gpointer data)
 }
 
 static gchar *
-generate_syntax (GtkTreeView *treeview)
+generate_syntax (PsppireDictView *treeview)
 {
-  const struct variable *var = get_selected_variable (treeview);
+  const struct variable *var =
+    psppire_dict_view_get_selected_variable (treeview);
 
   if ( NULL == var)
     return g_strdup ("");

@@ -111,7 +111,7 @@
                 <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                 <property name="shadow_type">GTK_SHADOW_ETCHED_IN</property>
                 <child>
-                  <widget class="GtkTreeView" id="dict-treeview">
+                  <widget class="PsppireDictView" id="dict-treeview">
                     <property name="visible">True</property>
                     <property name="headers_visible">False</property>
                   </widget>

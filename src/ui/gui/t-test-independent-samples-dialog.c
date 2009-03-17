@@ -426,9 +426,9 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), GTK_WINDOW (de));
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (dict_view),
+  g_object_set (dict_view, "model", 
 				 vs->dict,
-				 GTK_SELECTION_MULTIPLE, NULL);
+				 NULL);
 
   set_dest_model (GTK_TREE_VIEW (test_variables_treeview), vs->dict);
 

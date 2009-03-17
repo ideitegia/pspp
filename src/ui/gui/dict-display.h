@@ -22,18 +22,6 @@
 #include <gtk/gtk.h>
 
 #include "psppire-selector.h"
-#include "psppire-dict.h"
-#include <data/variable.h>
-
-/* Sets up TREEVIEW to display the variables of DICT.
-   MODE is the selection mode for TREEVIEW.
-   PREDICATE determines which variables should be visible, or NULL if
-   all are to be visible.
- */
-void attach_dictionary_to_treeview (GtkTreeView *treeview, PsppireDict *dict,
-				    GtkSelectionMode mode,
-				    var_predicate_func *predicate
-				    );
 
 
 /* A SelectItemsFunc function for GtkTreeView widgets */
@@ -58,6 +46,3 @@ gboolean is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 				PsppireSelector *selector);
 
 
-void get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
-		     GtkTreeModel **model, GtkTreeIter *iter
-		     );

@@ -47,7 +47,7 @@
                 <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                 <property name="shadow_type">GTK_SHADOW_ETCHED_IN</property>
                 <child>
-                  <widget class="GtkTreeView" id="weight-cases-treeview">
+                  <widget class="PsppireDictView" id="weight-cases-treeview">
                     <property name="visible">True</property>
                     <property name="headers_visible">False</property>
                     <property name="fixed_height_mode">True</property>
@@ -212,7 +212,7 @@
                     <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
                     <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                     <child>
-                      <widget class="GtkTreeView" id="source-treeview">
+                      <widget class="PsppireDictView" id="source-treeview">
                         <property name="visible">True</property>
                         <property name="headers_visible">False</property>
                       </widget>
@@ -394,7 +394,7 @@
                         <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
                         <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                         <child>
-                          <widget class="GtkTreeView" id="split-file-dict-treeview">
+                          <widget class="PsppireDictView" id="split-file-dict-treeview">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -680,7 +680,7 @@
                 <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                 <property name="shadow_type">GTK_SHADOW_ETCHED_IN</property>
                 <child>
-                  <widget class="GtkTreeView" id="sort-cases-treeview1">
+                  <widget class="PsppireDictView" id="sort-cases-treeview1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -924,7 +924,7 @@
                         <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                         <property name="shadow_type">GTK_SHADOW_IN</property>
                         <child>
-                          <widget class="GtkTreeView" id="compute-treeview1">
+                          <widget class="PsppireDictView" id="compute-treeview1">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -1187,7 +1187,7 @@
                     <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                     <property name="shadow_type">GTK_SHADOW_IN</property>
                     <child>
-                      <widget class="GtkTreeView" id="select-cases-treeview">
+                      <widget class="PsppireDictView" id="select-cases-treeview">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>

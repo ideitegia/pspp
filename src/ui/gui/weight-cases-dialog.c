@@ -130,11 +130,10 @@ weight_cases_dialog (GObject *o, gpointer data)
   g_signal_connect (selector, "de-selected", G_CALLBACK (on_deselect),
 		    radiobutton1);
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
-				 vs->dict,
-				 GTK_SELECTION_SINGLE,
-				 var_is_numeric
-				 );
+  g_object_set (source, "model", vs->dict,
+				 "selection-mode", GTK_SELECTION_SINGLE,
+				 "predicate", var_is_numeric,
+				 NULL);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 source,

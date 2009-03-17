@@ -241,10 +241,9 @@ find_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
-  attach_dictionary_to_treeview (GTK_TREE_VIEW (source),
-				 fd.dict,
-				 GTK_SELECTION_SINGLE,
-				 NULL);
+  g_object_set (source, "model", fd.dict, 
+	"selection-mode", GTK_SELECTION_SINGLE,
+	NULL);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 source,
