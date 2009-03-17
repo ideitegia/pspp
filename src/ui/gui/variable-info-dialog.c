@@ -17,7 +17,6 @@
 #include <config.h>
 #include <gtk/gtk.h>
 
-//#include "dict-display.h"
 #include "var-display.h"
 #include <data/variable.h>
 #include <data/format.h>

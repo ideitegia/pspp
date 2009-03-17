@@ -20,13 +20,13 @@
 #include <language/syntax-string-source.h>
 
 #include "psppire-data-window.h"
+#include "psppire-selector.h"
 
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "t-test-paired-samples.h"
 #include "t-test-options.h"
 
-#include "dict-display.h"
 #include "dialog-common.h"
 #include "psppire-dialog.h"
 

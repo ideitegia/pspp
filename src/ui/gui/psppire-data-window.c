@@ -53,7 +53,6 @@
 #include "crosstabs-dialog.h"
 #include "frequencies-dialog.h"
 #include "examine-dialog.h"
-#include "dict-display.h"
 #include "regression-dialog.h"
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"

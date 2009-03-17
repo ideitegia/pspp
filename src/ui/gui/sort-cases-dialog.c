@@ -22,6 +22,7 @@
 #include "psppire-data-window.h"
 #include "psppire-var-store.h"
 #include "dialog-common.h"
+#include "psppire-selector.h"
 #include "dict-display.h"
 
 #include <language/syntax-string-source.h>

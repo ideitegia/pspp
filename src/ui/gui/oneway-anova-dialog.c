@@ -25,8 +25,9 @@
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "dialog-common.h"
-#include "dict-display.h"
 #include "psppire-acr.h"
+#include "psppire-selector.h"
+#include "dict-display.h"
 
 
 #include <language/syntax-string-source.h>

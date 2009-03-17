@@ -22,8 +22,8 @@
 #include "psppire-keypad.h"
 #include "psppire-data-window.h"
 #include "psppire-var-store.h"
+#include "psppire-selector.h"
 #include "dialog-common.h"
-#include "dict-display.h"
 
 #include <language/expressions/public.h>
 #include <language/syntax-string-source.h>

@@ -21,8 +21,9 @@
 #include "helper.h"
 #include "psppire-dialog.h"
 #include "psppire-data-window.h"
-#include "dialog-common.h"
+#include "psppire-selector.h"
 #include "dict-display.h"
+#include "dialog-common.h"
 #include "widget-io.h"
 #include <language/syntax-string-source.h>
 #include "helper.h"
