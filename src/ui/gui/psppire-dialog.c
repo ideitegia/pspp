@@ -213,7 +213,7 @@ psppire_dialog_class_init (PsppireDialogClass *class)
     g_param_spec_enum ("orientation",
 		       "Orientation",
 		       "Which way widgets are packed",
-		       G_TYPE_PSPPIRE_ORIENTATION,
+		       PSPPIRE_TYPE_ORIENTATION,
 		       PSPPIRE_HORIZONTAL /* default value */,
 		       G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
 

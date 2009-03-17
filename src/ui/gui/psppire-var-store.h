@@ -34,7 +34,7 @@ typedef enum
   }
 PsppireVarStoreFormatType;
 
-#define G_TYPE_PSPPIRE_VAR_STORE_FORMAT_TYPE \
+#define PSPPIRE_TYPE_VAR_STORE_FORMAT_TYPE \
         (psppire_var_store_format_type_get_type ())
 
 /* PSPPIRE variable store. */

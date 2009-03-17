@@ -130,7 +130,7 @@ typedef enum {
   PSPPIRE_SELECT_SOURCE_BELOW_DEST
 } PsppireSelectorOrientation;
 
-#define G_TYPE_PSPPIRE_SELECTOR_ORIENTATION \
+#define PSPPIRE_TYPE_SELECTOR_ORIENTATION \
   (psppire_selector_orientation_get_type())
 
 

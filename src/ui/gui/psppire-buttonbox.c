@@ -142,7 +142,7 @@ psppire_button_box_class_init (PsppireButtonBoxClass *class)
     g_param_spec_flags ("buttons",
 			_("Buttons"),
 			_("The mask that decides what buttons appear in the button box"),
-			G_TYPE_PSPPIRE_BUTTON_MASK,
+			PSPPIRE_TYPE_BUTTON_MASK,
 			PSPPIRE_BUTTON_OK_MASK |
 			PSPPIRE_BUTTON_CANCEL_MASK |
 			PSPPIRE_BUTTON_RESET_MASK |

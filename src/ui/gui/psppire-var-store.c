@@ -191,7 +191,7 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
                              "Variable format type",
                              ("Whether variables have input or output "
                               "formats"),
-                             G_TYPE_PSPPIRE_VAR_STORE_FORMAT_TYPE,
+                             PSPPIRE_TYPE_VAR_STORE_FORMAT_TYPE,
                              PSPPIRE_VAR_STORE_OUTPUT_FORMATS,
                              G_PARAM_READWRITE);
 

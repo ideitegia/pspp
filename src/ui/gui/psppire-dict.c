@@ -315,7 +315,7 @@ psppire_dict_init (PsppireDict *psppire_dict)
 PsppireDict*
 psppire_dict_new_from_dict (struct dictionary *d)
 {
-  PsppireDict *new_dict = g_object_new (G_TYPE_PSPPIRE_DICT, NULL);
+  PsppireDict *new_dict = g_object_new (PSPPIRE_TYPE_DICT, NULL);
   new_dict->dict = d;
 
   dict_set_callbacks (new_dict->dict, &gui_callbacks, new_dict);

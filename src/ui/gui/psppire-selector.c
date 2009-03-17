@@ -179,7 +179,7 @@ psppire_selector_class_init (PsppireSelectorClass *class)
     g_param_spec_enum ("orientation",
 		       "Orientation",
 		       "Where the selector is relative to its subjects",
-		       G_TYPE_PSPPIRE_SELECTOR_ORIENTATION,
+		       PSPPIRE_TYPE_SELECTOR_ORIENTATION,
 		       PSPPIRE_SELECT_SOURCE_BEFORE_DEST /* default value */,
 		       G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
 

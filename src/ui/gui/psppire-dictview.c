@@ -195,7 +195,7 @@ psppire_dict_view_class_init (PsppireDictViewClass *class)
     g_param_spec_object ("model",
 			 "Model",
 			 _("The dictionary to be displayed by this widget"),
-			 G_TYPE_PSPPIRE_DICT,
+			 PSPPIRE_TYPE_DICT,
 			 G_PARAM_READABLE | G_PARAM_WRITABLE);
 
   GParamSpec *predicate_spec =

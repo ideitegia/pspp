@@ -71,7 +71,7 @@ _psppire_button_box_child_requisition (GtkWidget *widget,
 				       int       *width,
 
 
-#define G_TYPE_PSPPIRE_BUTTON_MASK \
+#define PSPPIRE_TYPE_BUTTON_MASK \
   (psppire_button_flags_get_type())
 				       int       *height);
 

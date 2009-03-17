@@ -30,12 +30,12 @@ G_BEGIN_DECLS
 
 
 /* --- type macros --- */
-#define G_TYPE_PSPPIRE_DICT              (psppire_dict_get_type ())
-#define PSPPIRE_DICT(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), G_TYPE_PSPPIRE_DICT, PsppireDict))
-#define PSPPIRE_DICT_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), G_TYPE_PSPPIRE_DICT, PsppireDictClass))
-#define PSPPIRE_IS_DICT(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), G_TYPE_PSPPIRE_DICT))
-#define PSPPIRE_IS_DICT_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), G_TYPE_PSPPIRE_DICT))
-#define PSPPIRE_DICT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), G_TYPE_PSPPIRE_DICT, PsppireDictClass))
+#define PSPPIRE_TYPE_DICT              (psppire_dict_get_type ())
+#define PSPPIRE_DICT(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), PSPPIRE_TYPE_DICT, PsppireDict))
+#define PSPPIRE_DICT_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), PSPPIRE_TYPE_DICT, PsppireDictClass))
+#define PSPPIRE_IS_DICT(object)        (G_TYPE_CHECK_INSTANCE_TYPE ((object), PSPPIRE_TYPE_DICT))
+#define PSPPIRE_IS_DICT_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), PSPPIRE_TYPE_DICT))
+#define PSPPIRE_DICT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), PSPPIRE_TYPE_DICT, PsppireDictClass))
 
 
 /* --- typedefs & structures --- */

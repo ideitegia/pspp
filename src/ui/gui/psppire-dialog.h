@@ -87,7 +87,7 @@ void           psppire_dialog_notify_change (PsppireDialog *);
 GType psppire_orientation_get_type (void);
 
 
-#define G_TYPE_PSPPIRE_ORIENTATION (psppire_orientation_get_type ())
+#define PSPPIRE_TYPE_ORIENTATION (psppire_orientation_get_type ())
 
 
 G_END_DECLS
