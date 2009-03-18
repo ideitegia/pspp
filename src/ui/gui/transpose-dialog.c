@@ -94,7 +94,7 @@ transpose_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  g_object_set (source, "model", vs->dict, NULL);
+  g_object_set (source, "dictionary", vs->dict, NULL);
 
   set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
 

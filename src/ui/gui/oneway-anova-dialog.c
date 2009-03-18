@@ -171,7 +171,7 @@ oneway_anova_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (ow.dialog, GTK_WINDOW (de));
 
-  g_object_set (dict_view, "model", vs->dict, NULL);
+  g_object_set (dict_view, "dictionary", vs->dict, NULL);
 
   set_dest_model (GTK_TREE_VIEW (ow.vars_treeview), vs->dict);
 

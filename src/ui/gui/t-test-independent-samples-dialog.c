@@ -426,7 +426,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), GTK_WINDOW (de));
 
-  g_object_set (dict_view, "model", 
+  g_object_set (dict_view, "dictionary", 
 				 vs->dict,
 				 NULL);
 

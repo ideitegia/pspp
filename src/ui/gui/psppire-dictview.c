@@ -75,6 +75,7 @@ enum
 {
   PROP_0,
   PROP_MODEL,
+  PROP_DICTIONARY,
   PROP_PREDICATE,
   PROP_SELECTION_MODE
 };
@@ -132,8 +133,13 @@ psppire_dict_view_set_property (GObject         *object,
 
   switch (prop_id)
     {
-    case PROP_MODEL:
+    case PROP_DICTIONARY:
       dict_view->dict = g_value_get_object (value);
+      break;
+    case PROP_MODEL:
+      g_critical ("Don't set the \"model\" property on %s. "
+		  "Use the \"dictionary\" property instead.",
+		  G_OBJECT_TYPE_NAME (dict_view));
       break;
     case PROP_PREDICATE:
       dict_view->predicate = g_value_get_pointer (value);
@@ -168,7 +174,7 @@ psppire_dict_view_get_property (GObject         *object,
 
   switch (prop_id)
     {
-    case PROP_MODEL:
+    case PROP_DICTIONARY:
       g_value_set_object (value, dict_view->dict);
       break;
     case PROP_PREDICATE:
@@ -194,9 +200,9 @@ psppire_dict_view_class_init (PsppireDictViewClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-  GParamSpec *model_spec =
-    g_param_spec_object ("model",
-			 "Model",
+  GParamSpec *dictionary_spec =
+    g_param_spec_object ("dictionary",
+			 "Dictionary",
 			 _("The dictionary to be displayed by this widget"),
 			 PSPPIRE_TYPE_DICT,
 			 G_PARAM_READABLE | G_PARAM_WRITABLE);
@@ -217,12 +223,22 @@ psppire_dict_view_class_init (PsppireDictViewClass *class)
 		       G_PARAM_CONSTRUCT | G_PARAM_READABLE | G_PARAM_WRITABLE);
 
 
+  GParamSpec *dummy_spec =
+    g_param_spec_pointer ("model",
+			  "Model",
+			  "Don't set the property",
+			  G_PARAM_WRITABLE);
+
   object_class->set_property = psppire_dict_view_set_property;
   object_class->get_property = psppire_dict_view_get_property;
 
   g_object_class_install_property (object_class,
                                    PROP_MODEL,
-                                   model_spec);
+                                   dummy_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_DICTIONARY,
+                                   dictionary_spec);
 
   g_object_class_install_property (object_class,
                                    PROP_PREDICATE,
@@ -259,19 +275,32 @@ dv_get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
 {
   *model = top_model;
   *iter = *top_iter;
-  while (GTK_IS_TREE_MODEL_FILTER (*model))
+
+  while ( ! PSPPIRE_IS_DICT (*model))
     {
       GtkTreeIter parent_iter = *iter;
-      GtkTreeModelFilter *parent_model = GTK_TREE_MODEL_FILTER (*model);
 
-      *model = gtk_tree_model_filter_get_model (parent_model);
+      if ( GTK_IS_TREE_MODEL_FILTER (*model))
+	{
+	  GtkTreeModelFilter *parent_model = GTK_TREE_MODEL_FILTER (*model);
 
-      gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
-							iter,
-							&parent_iter);
+	  *model = gtk_tree_model_filter_get_model (parent_model);
+
+	  gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
+							    iter,
+							    &parent_iter);
+	}
+      else if (GTK_IS_TREE_MODEL_SORT (*model))
+	{
+	  GtkTreeModelSort *parent_model = GTK_TREE_MODEL_SORT (*model);
+
+	  *model = gtk_tree_model_sort_get_model (parent_model);
+
+	  gtk_tree_model_sort_convert_iter_to_child_iter (parent_model,
+							  iter,
+							  &parent_iter);
+	}
     }
-
-  g_assert (PSPPIRE_IS_DICT (*model));
 }
 
 
@@ -439,6 +468,8 @@ toggle_label_preference (GtkCheckMenuItem *checkbox, gpointer data)
 
   gtk_widget_queue_draw (GTK_WIDGET (dv));
 }
+
+
 
 static void
 psppire_dict_view_init (PsppireDictView *dict_view)

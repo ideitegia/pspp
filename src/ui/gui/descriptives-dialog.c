@@ -223,7 +223,7 @@ descriptives_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "model", vs->dict,
+  g_object_set (source, "dictionary", vs->dict,
 	"predicate", var_is_numeric, NULL);
 
   set_dest_model (GTK_TREE_VIEW (dest), vs->dict);

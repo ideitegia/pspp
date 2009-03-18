@@ -191,7 +191,7 @@ split_file_dialog (GObject *o, gpointer data)
   sfd.selector  = PSPPIRE_SELECTOR (
 				    get_widget_assert   (sfd.xml, "split-file-selector"));
 
-  g_object_set (source, "model",
+  g_object_set (source, "dictionary",
 				 vs->dict, NULL);
 
 

@@ -885,7 +885,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
   gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
 
-  g_object_set (rd.dict_treeview, "model", vs->dict, NULL);
+  g_object_set (rd.dict_treeview, "dictionary", vs->dict, NULL);
 
   if ( ! rd.different )
     {

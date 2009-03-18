@@ -130,7 +130,7 @@ weight_cases_dialog (GObject *o, gpointer data)
   g_signal_connect (selector, "de-selected", G_CALLBACK (on_deselect),
 		    radiobutton1);
 
-  g_object_set (source, "model", vs->dict,
+  g_object_set (source, "dictionary", vs->dict,
 				 "selection-mode", GTK_SELECTION_SINGLE,
 				 "predicate", var_is_numeric,
 				 NULL);

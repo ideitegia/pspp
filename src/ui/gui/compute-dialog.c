@@ -397,7 +397,7 @@ compute_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_set (dict_view,
-		"model", vs->dict,
+		"dictionary", vs->dict,
 		"selection-mode", GTK_SELECTION_SINGLE,
 		NULL);
 

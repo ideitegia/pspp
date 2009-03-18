@@ -306,7 +306,7 @@ rank_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
-  g_object_set (vars, "model", vs->dict, NULL);
+  g_object_set (vars, "dictionary", vs->dict, NULL);
 
   set_dest_model (GTK_TREE_VIEW (rd.rank_vars), vs->dict);
 
