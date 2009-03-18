@@ -481,7 +481,8 @@ psppire_dict_view_init (PsppireDictView *dict_view)
   dict_view->prefer_labels = TRUE;
 
   psppire_conf_get_boolean (psppire_conf_new (),
-			    "dialog-boxes", "prefer-labels",
+			    G_OBJECT_TYPE_NAME (dict_view),
+			    "prefer-labels",
 			    &dict_view->prefer_labels);
 
   gtk_tree_view_column_set_title (col, _("Variable"));
