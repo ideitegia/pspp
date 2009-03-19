@@ -29,6 +29,7 @@
 **
 *******************************************************************************/
 
+#include <config.h>
 #include "gtkxpaned.h"
 #include <ui/gui/psppire-marshal.h>
 #include <gtk/gtkbindings.h>
