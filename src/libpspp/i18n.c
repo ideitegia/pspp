@@ -227,7 +227,7 @@ get_system_decimal (void)
 {
   char radix_char;
 
-  char *ol = setlocale (LC_NUMERIC, NULL);
+  char *ol = strdup (setlocale (LC_NUMERIC, NULL));
   setlocale (LC_NUMERIC, "");
 
 #if HAVE_NL_LANGINFO
@@ -243,6 +243,7 @@ get_system_decimal (void)
   /* We MUST leave LC_NUMERIC untouched, since it would
      otherwise interfere with data_{in,out} */
   setlocale (LC_NUMERIC, ol);
+  free (ol);
   return radix_char;
 }
 
