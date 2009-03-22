@@ -35,8 +35,8 @@
 #endif
 
 
-static char *locale = 0;
-static const char *charset;
+static char *locale;
+static char *charset;
 
 
 static iconv_t convertor[n_CONV];
@@ -165,16 +165,17 @@ void
 set_pspp_locale (const char *l)
 {
   char *current_locale;
-  const char *current_charset;
+  char *current_charset;
 
   free(locale);
   locale = strdup(l);
 
-  current_locale = setlocale (LC_CTYPE, 0);
-  current_charset = locale_charset ();
+  current_locale = strdup (setlocale (LC_CTYPE, 0));
+  current_charset = strdup (locale_charset ());
   setlocale (LC_CTYPE, locale);
 
-  charset = locale_charset ();
+  free (charset);
+  charset = strdup (locale_charset ());
   setlocale (LC_CTYPE, current_locale);
 
   iconv_close (convertor[CONV_PSPP_TO_UTF8]);
@@ -185,6 +186,9 @@ set_pspp_locale (const char *l)
 
   iconv_close (convertor[CONV_UTF8_TO_PSPP]);
   convertor[CONV_UTF8_TO_PSPP] = create_iconv (charset, "UTF-8");
+
+  free (current_locale);
+  free (current_charset);
 }
 
 void
@@ -194,7 +198,9 @@ i18n_init (void)
   locale = strdup (setlocale (LC_CTYPE, NULL));
 
   setlocale (LC_CTYPE, locale);
-  charset = locale_charset ();
+
+  free (charset);
+  charset = strdup (locale_charset ());
 
   convertor[CONV_PSPP_TO_UTF8]   = create_iconv ("UTF-8", charset);
   convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, charset);
