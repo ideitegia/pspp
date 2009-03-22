@@ -44,7 +44,8 @@ GtkAction * get_action_assert (GtkBuilder *builder, const gchar *name);
 GtkWidget * get_widget_assert (GtkBuilder *builder, const gchar *name);
 
 /* Converts a string in the pspp locale to utf-8 */
-char * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
+gchar * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
+gchar * utf8_to_pspp_locale (const gchar *text, gssize len, GError **err);
 
 
 void connect_help (GtkBuilder *);

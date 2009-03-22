@@ -160,6 +160,13 @@ pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err)
   return recode_string (CONV_PSPP_TO_UTF8, text, len);
 }
 
+gchar *
+utf8_to_pspp_locale (const gchar *text, gssize len, GError **err)
+{
+  return recode_string (CONV_UTF8_TO_PSPP, text, len);
+}
+
+
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 

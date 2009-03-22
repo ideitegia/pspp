@@ -659,6 +659,7 @@ gboolean
 psppire_data_store_set_string (PsppireDataStore *store,
 			       const gchar *text, glong row, glong col)
 {
+  gchar *s;
   glong n_cases;
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
   if ( NULL == pv)
@@ -672,9 +673,12 @@ psppire_data_store_set_string (PsppireDataStore *store,
   if (row == n_cases)
     psppire_data_store_insert_new_case (store, row);
 
+  s = utf8_to_pspp_locale (text, -1, NULL);
+
   psppire_data_store_data_in (store, row,
-			      var_get_case_index (pv), ss_cstr (text),
+			      var_get_case_index (pv), ss_cstr (s),
 			      var_get_write_format (pv));
+  free (s);
 
   psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store), row, col, row, col);
 

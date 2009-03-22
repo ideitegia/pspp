@@ -467,8 +467,16 @@ psppire_var_store_set_string (PsppireSheetModel *model,
   switch (col)
     {
     case PSPPIRE_VAR_STORE_COL_NAME:
-      return psppire_dict_rename_var (var_store->dict, pv, text);
-      break;
+      {
+	int i;
+	/* Until non-ascii in variable names is better managed,
+	   simply refuse to allow them to be entered. */
+	for (i = 0 ; i < strlen (text) ; ++i )
+	  if (!g_ascii_isprint (text[i]))
+	    return FALSE;
+	return psppire_dict_rename_var (var_store->dict, pv, text);
+	break;
+      }
     case PSPPIRE_VAR_STORE_COL_COLUMNS:
       if ( ! text) return FALSE;
       var_set_display_width (pv, atoi (text));
@@ -522,8 +530,12 @@ psppire_var_store_set_string (PsppireSheetModel *model,
       }
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
-      var_set_label (pv, text);
-      return TRUE;
+      {
+	gchar *s = utf8_to_pspp_locale (text, -1, NULL);
+	var_set_label (pv, s);
+	free (s);
+	return TRUE;
+      }
       break;
     case PSPPIRE_VAR_STORE_COL_TYPE:
     case PSPPIRE_VAR_STORE_COL_VALUES:
