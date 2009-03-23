@@ -452,6 +452,7 @@ psppire_window_init (PsppireWindow *window)
 gint
 psppire_window_query_save (PsppireWindow *se)
 {
+  gchar *fn;
   gint response;
   GtkWidget *dialog;
   GtkWidget *cancel_button;
@@ -468,13 +469,16 @@ psppire_window_query_save (PsppireWindow *se)
   g_return_val_if_fail (filename != NULL, GTK_RESPONSE_NONE);
 
 
+  fn = g_filename_display_basename (filename);
+
   dialog =
     gtk_message_dialog_new (GTK_WINDOW (se),
 			    GTK_DIALOG_MODAL,
 			    GTK_MESSAGE_WARNING,
 			    GTK_BUTTONS_NONE,
 			    _("Save the changes to \"%s\" before closing?"),
-			    filename);
+			    fn);
+  g_free (fn);
 
   g_object_set (dialog, "icon-name", "psppicon", NULL);
 
