@@ -552,6 +552,30 @@ psppire_syntax_window_new (void)
 				   NULL));
 }
 
+static void
+error_dialog (GtkWindow *w, const gchar *filename,  GError *err)
+{
+  gchar *fn = g_filename_display_basename (filename);
+
+  GtkWidget *dialog =
+    gtk_message_dialog_new (w,
+			    GTK_DIALOG_DESTROY_WITH_PARENT,
+			    GTK_MESSAGE_ERROR,
+			    GTK_BUTTONS_CLOSE,
+			    _("Cannot load syntax file '%s'"),
+			    fn);
+
+  g_free (fn);
+
+  g_object_set (dialog, "icon-name", "psppicon", NULL);
+
+  gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
+					    err->message);
+
+  gtk_dialog_run (GTK_DIALOG (dialog));
+
+  gtk_widget_destroy (dialog);
+}
 
 /*
   Loads the buffer from the file called FILENAME
@@ -559,13 +583,18 @@ psppire_syntax_window_new (void)
 static gboolean
 syntax_load (PsppireWindow *window, const gchar *filename)
 {
+  GError *err = NULL;
   gchar *text;
   GtkTextIter iter;
   PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
 
   /* FIXME: What if it's a very big file ? */
-  if ( ! g_file_get_contents (filename, &text, NULL, NULL) )
-    return FALSE;
+  if ( ! g_file_get_contents (filename, &text, NULL, &err) )
+    {
+      error_dialog (GTK_WINDOW (window), filename, err);
+      g_clear_error (&err);
+      return FALSE;
+    }
 
   gtk_text_buffer_get_iter_at_line (sw->buffer, &iter, 0);
 
