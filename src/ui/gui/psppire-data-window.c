@@ -346,11 +346,18 @@ dump_rm (GtkRecentManager *rm)
 static gboolean
 load_file (PsppireWindow *de, const gchar *file_name)
 {
+  gchar *native_file_name;
   struct getl_interface *sss;
   struct string filename;
 
   ds_init_empty (&filename);
-  syntax_gen_string (&filename, ss_cstr (file_name));
+
+  native_file_name =
+    convert_glib_filename_to_system_filename (file_name, NULL);
+
+  syntax_gen_string (&filename, ss_cstr (native_file_name));
+
+  g_free (native_file_name);
 
   sss = create_syntax_string_source ("GET FILE=%s.",
 				     ds_cstr (&filename));
@@ -358,10 +365,7 @@ load_file (PsppireWindow *de, const gchar *file_name)
   ds_destroy (&filename);
 
   if (execute_syntax (sss) )
-    {
-      psppire_window_set_filename (de, file_name);
-      return TRUE;
-    }
+    return TRUE;
 
   return FALSE;
 }

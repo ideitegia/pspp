@@ -145,7 +145,7 @@ psppire_window_set_property (GObject         *object,
 	      candidate_name = uniquify (name, &x);
 	    }
 
-	  window->basename = g_path_get_basename (candidate_name);
+	  window->basename = g_filename_display_basename (candidate_name);
 
 	  g_value_unset (&def);
 	}
@@ -315,7 +315,10 @@ menu_activate (GtkMenuItem *mi, gpointer data)
 static void
 insert_menuitem_into_menu (PsppireWindow *window, gpointer key)
 {
-  GtkWidget *item = gtk_check_menu_item_new_with_label (key);
+  gchar *filename = g_filename_display_name (key);
+  GtkWidget *item = gtk_check_menu_item_new_with_label (filename);
+
+  g_free (filename);
 
   g_signal_connect (item, "toggled", G_CALLBACK (menu_toggled), NULL);
   g_signal_connect (item, "activate", G_CALLBACK (menu_activate), key);
@@ -625,6 +628,7 @@ psppire_window_load (PsppireWindow *w, const gchar *file)
 
   if ( ok )
     {
+      psppire_window_set_filename (w, file);
       add_most_recent (file, the_recent_mgr);
       w->dirty = FALSE;
     }

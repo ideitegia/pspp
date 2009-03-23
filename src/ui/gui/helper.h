@@ -47,6 +47,9 @@ GtkWidget * get_widget_assert (GtkBuilder *builder, const gchar *name);
 gchar * pspp_locale_to_utf8 (const gchar *text, gssize len, GError **err);
 gchar * utf8_to_pspp_locale (const gchar *text, gssize len, GError **err);
 
+gchar * convert_glib_filename_to_system_filename (const gchar *fname,
+						  GError **err);
+
 
 void connect_help (GtkBuilder *);
 

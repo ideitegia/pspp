@@ -563,25 +563,13 @@ syntax_load (PsppireWindow *window, const gchar *filename)
   GtkTextIter iter;
   PsppireSyntaxWindow *sw = PSPPIRE_SYNTAX_WINDOW (window);
 
-  gchar *glibfilename = g_filename_from_utf8 (filename, -1, 0, 0, NULL);
-
-  if ( ! glibfilename )
-    return FALSE;
-
   /* FIXME: What if it's a very big file ? */
-  if ( ! g_file_get_contents (glibfilename, &text, NULL, NULL) )
-    {
-      g_free (glibfilename);
-      return FALSE;
-    }
-
-  g_free (glibfilename);
+  if ( ! g_file_get_contents (filename, &text, NULL, NULL) )
+    return FALSE;
 
   gtk_text_buffer_get_iter_at_line (sw->buffer, &iter, 0);
 
   gtk_text_buffer_insert (sw->buffer, &iter, text, -1);
-
-  psppire_window_set_filename (window, filename);
 
   gtk_text_buffer_set_modified (sw->buffer, FALSE);
 
