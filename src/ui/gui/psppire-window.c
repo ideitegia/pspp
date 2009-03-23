@@ -408,6 +408,7 @@ psppire_window_init (PsppireWindow *window)
 {
   window->name = NULL;
   window->menu = NULL;
+  window->description = strdup ("");
 
   window->menuitem_table  = g_hash_table_new (g_str_hash, g_str_equal);
 
