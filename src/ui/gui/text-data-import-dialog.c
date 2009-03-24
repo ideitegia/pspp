@@ -649,6 +649,13 @@ static void
 on_prepare (GtkAssistant *assistant, GtkWidget *page,
             struct import_assistant *ia)
 {
+
+  if (gtk_assistant_get_page_type (assistant, page)
+      == GTK_ASSISTANT_PAGE_CONFIRM)
+    gtk_widget_grab_focus (assistant->apply);
+  else
+    gtk_widget_grab_focus (assistant->forward);
+
   if (page == ia->separators.page)
     prepare_separators_page (ia);
   else if (page == ia->formats.page)
