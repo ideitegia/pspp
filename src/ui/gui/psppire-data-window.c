@@ -370,15 +370,12 @@ load_file (PsppireWindow *de, const gchar *file_name)
   return FALSE;
 }
 
-
-/* Callback for the data_open action.
-   Prompts for a filename and opens it */
-static void
-open_data_dialog (GtkAction *action, PsppireWindow *de)
+static GtkWidget *
+sysfile_chooser_dialog (PsppireWindow *toplevel)
 {
   GtkWidget *dialog =
     gtk_file_chooser_dialog_new (_("Open"),
-				 GTK_WINDOW (de),
+				 GTK_WINDOW (toplevel),
 				 GTK_FILE_CHOOSER_ACTION_OPEN,
 				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 				 GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
@@ -401,17 +398,26 @@ open_data_dialog (GtkAction *action, PsppireWindow *de)
   gtk_file_filter_add_pattern (filter, "*");
   gtk_file_chooser_add_filter (GTK_FILE_CHOOSER (dialog), filter);
 
-
   {
     gchar *dir_name;
     gchar *filename = NULL;
-    g_object_get (de, "filename", &filename, NULL);
+    g_object_get (toplevel, "filename", &filename, NULL);
 
     dir_name = g_path_get_dirname (filename);
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
 					 dir_name);
     free (dir_name);
   }
+
+  return dialog;
+}
+
+/* Callback for the data_open action.
+   Prompts for a filename and opens it */
+static void
+open_data_dialog (GtkAction *action, PsppireWindow *de)
+{
+  GtkWidget *dialog = sysfile_chooser_dialog (de);
 
   switch (gtk_dialog_run (GTK_DIALOG (dialog)))
     {
@@ -505,6 +511,46 @@ on_insert_variable (GtkAction *action, gpointer data)
 {
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
   psppire_data_editor_insert_variable (de);
+}
+
+
+static void
+display_dict (PsppireDataWindow *de)
+{
+
+  struct getl_interface *sss =
+    create_syntax_string_source ("DISPLAY DICTIONARY.");
+
+  execute_syntax (sss);
+}
+
+static void
+sysfile_info (PsppireDataWindow *de)
+{
+  GtkWidget *dialog = sysfile_chooser_dialog (PSPPIRE_WINDOW (de));
+
+  if  ( GTK_RESPONSE_ACCEPT == gtk_dialog_run (GTK_DIALOG (dialog)))
+    {
+      struct string filename;
+      struct getl_interface *sss;
+      gchar *file_name =
+	gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+
+      gchar *native_file_name =
+	convert_glib_filename_to_system_filename (file_name, NULL);
+
+      ds_init_empty (&filename);
+
+      syntax_gen_string (&filename, ss_cstr (native_file_name));
+
+      g_free (native_file_name);
+
+      sss = create_syntax_string_source ("SYSFILE INFO %s.",
+					 ds_cstr (&filename));
+      execute_syntax (sss);
+    }
+
+  gtk_widget_destroy (dialog);
 }
 
 
@@ -1183,6 +1229,28 @@ psppire_data_window_init (PsppireDataWindow *de)
 
     g_signal_connect_swapped (action_data_save_as, "activate",
 		      G_CALLBACK (data_save_as_dialog), de);
+  }
+
+
+  {
+    GtkAction *action_info_working_file =
+      resolve_action (de->builder,
+		      "file_information_working-file", NULL);
+
+
+    g_signal_connect_swapped (action_info_working_file, "activate",
+		      G_CALLBACK (display_dict), de);
+  }
+
+
+  {
+    GtkAction *action_info_external_file =
+      resolve_action (de->builder,
+		      "file_information_external-file", NULL);
+
+
+    g_signal_connect_swapped (action_info_external_file, "activate",
+		      G_CALLBACK (sysfile_info), de);
   }
 
 
