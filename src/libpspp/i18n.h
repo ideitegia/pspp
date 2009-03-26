@@ -27,7 +27,6 @@ void  i18n_init (void);
 enum conv_id
   {
     CONV_PSPP_TO_UTF8,
-    CONV_SYSTEM_TO_PSPP,
     CONV_UTF8_TO_PSPP,
     n_CONV
   };

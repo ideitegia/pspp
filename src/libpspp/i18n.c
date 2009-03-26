@@ -160,36 +160,6 @@ get_pspp_locale (void)
   return locale;
 }
 
-/* Set the PSPP locale */
-void
-set_pspp_locale (const char *l)
-{
-  char *current_locale;
-  char *current_charset;
-
-  free(locale);
-  locale = strdup(l);
-
-  current_locale = strdup (setlocale (LC_CTYPE, 0));
-  current_charset = strdup (locale_charset ());
-  setlocale (LC_CTYPE, locale);
-
-  free (charset);
-  charset = strdup (locale_charset ());
-  setlocale (LC_CTYPE, current_locale);
-
-  iconv_close (convertor[CONV_PSPP_TO_UTF8]);
-  convertor[CONV_PSPP_TO_UTF8] = create_iconv ("UTF-8", charset);
-
-  iconv_close (convertor[CONV_SYSTEM_TO_PSPP]);
-  convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, current_charset);
-
-  iconv_close (convertor[CONV_UTF8_TO_PSPP]);
-  convertor[CONV_UTF8_TO_PSPP] = create_iconv (charset, "UTF-8");
-
-  free (current_locale);
-  free (current_charset);
-}
 
 void
 i18n_init (void)
@@ -203,7 +173,6 @@ i18n_init (void)
   charset = strdup (locale_charset ());
 
   convertor[CONV_PSPP_TO_UTF8]   = create_iconv ("UTF-8", charset);
-  convertor[CONV_SYSTEM_TO_PSPP] = create_iconv (charset, charset);
   convertor[CONV_UTF8_TO_PSPP]   = create_iconv (charset, "UTF-8");
 }
 
