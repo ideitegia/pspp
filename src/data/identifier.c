@@ -35,7 +35,7 @@ bool
 lex_is_id1 (char c_)
 {
   unsigned char c = c_;
-  return isalpha (c) || c == '@' || c == '#' || c == '$';
+  return isalpha (c) || c == '@' || c == '#' || c == '$' || c >= 128;
 }
 
 
@@ -45,7 +45,7 @@ bool
 lex_is_idn (char c_)
 {
   unsigned char c = c_;
-  return lex_is_id1 (c) || isdigit (c) || c == '.' || c == '_';
+  return lex_is_id1 (c) || isdigit (c) || c == '.' || c == '_' || c >= 128;
 }
 
 /* Returns the length of the longest prefix of STRING that forms
