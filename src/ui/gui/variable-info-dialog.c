@@ -28,6 +28,7 @@
 #include "helper.h"
 
 #include <language/syntax-string-source.h>
+#include <libpspp/i18n.h>
 #include "helper.h"
 
 
@@ -36,12 +37,38 @@
 #define N_(msgid) msgid
 
 
+static const gchar none[] = N_("None");
+
+
+static gchar *
+name_to_string (const struct variable *var, PsppireDict *dict)
+{
+  const char *name = var_get_name (var);
+  g_assert (name);
+
+  return recode_string (UTF8, psppire_dict_encoding (dict),
+			name, -1);
+}
+
+
+static gchar *
+label_to_string (const struct variable *var, PsppireDict *dict)
+{
+  const char *label = var_get_label (var);
+
+  if (! label) return g_strdup (none);
+
+  return recode_string (UTF8, psppire_dict_encoding (dict),
+			label, -1);
+}
+
 
 static void
 populate_text (PsppireDictView *treeview, gpointer data)
 {
   gchar *text = 0;
   GString *gstring;
+  PsppireDict *dict;
 
   GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(data));
   const struct variable *var =
@@ -49,6 +76,10 @@ populate_text (PsppireDictView *treeview, gpointer data)
 
   if ( var == NULL)
     return;
+
+  g_object_get (treeview,
+		"dictionary", &dict,
+		NULL);
 
   gstring = g_string_sized_new (200);
   text = name_to_string (var, NULL);
@@ -70,7 +101,7 @@ populate_text (PsppireDictView *treeview, gpointer data)
     g_string_append_printf (gstring, _("Type: %s\n"), buffer);
   }
 
-  text = missing_values_to_string (var, NULL);
+  text = missing_values_to_string (dict, var, NULL);
   g_string_append_printf (gstring, _("Missing Values: %s\n"),
 			  text);
   g_free (text);
@@ -92,7 +123,6 @@ populate_text (PsppireDictView *treeview, gpointer data)
       g_string_append (gstring, "\n");
       g_string_append (gstring, _("Value Labels:\n"));
 
-#if 1
       for (vl = val_labs_first_sorted (labs, &vli);
 	   vl;
 	   vl = val_labs_next (labs, &vli))
@@ -100,14 +130,15 @@ populate_text (PsppireDictView *treeview, gpointer data)
 	  gchar *const vstr  =
 	    value_to_text (vl->value,  *var_get_print_format (var));
 
-	  text = pspp_locale_to_utf8 (vl->label, -1, NULL);
+
+	  text = recode_string (UTF8, psppire_dict_encoding (dict),
+				vl->label, -1);
 
 	  g_string_append_printf (gstring, _("%s %s\n"), vstr, text);
 
 	  g_free (text);
 	  g_free (vstr);
 	}
-#endif
     }
 
   gtk_text_buffer_set_text (textbuffer, gstring->str, gstring->len);

@@ -34,12 +34,7 @@
 #include <langinfo.h>
 #endif
 
-
-static char *locale;
-static char *charset;
-
-
-static iconv_t convertor[n_CONV];
+static char *default_encoding;
 
 
 /* A wrapper around iconv_open */
@@ -66,7 +61,8 @@ create_iconv (const char* tocode, const char* fromcode)
    The returned string must be freed when no longer required.
 */
 char *
-recode_string (enum conv_id how,  const char *text, int length)
+recode_string (const char *to, const char *from,
+	       const char *text, int length)
 {
   char *outbuf = 0;
   size_t outbufferlength;
@@ -74,6 +70,7 @@ recode_string (enum conv_id how,  const char *text, int length)
   char *op ;
   size_t inbytes = 0;
   size_t outbytes ;
+  iconv_t conv ;
 
   /* FIXME: Need to ensure that this char is valid in the target encoding */
   const char fallbackchar = '?';
@@ -84,9 +81,17 @@ recode_string (enum conv_id how,  const char *text, int length)
   if ( length == -1 )
      length = strlen(text);
 
-  assert (how < n_CONV);
 
-  if (convertor[how] == (iconv_t) -1)
+  if (to == NULL)
+    to = default_encoding;
+
+  if (from == NULL)
+    from = default_encoding;
+
+
+  fprintf (stderr, "from: %s; to %s\n", from, to);
+
+  if ( 0 == strcmp (to, from))
     return xstrndup (text, length);
 
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
@@ -99,9 +104,12 @@ recode_string (enum conv_id how,  const char *text, int length)
   outbytes = outbufferlength;
   inbytes = length;
 
+
+  conv = create_iconv (to, from);
+
   do {
     const char *ip = text;
-    result = iconv (convertor[how], (ICONV_CONST char **) &text, &inbytes,
+    result = iconv (conv, (ICONV_CONST char **) &text, &inbytes,
 		   &op, &outbytes);
 
     if ( -1 == result )
@@ -138,6 +146,9 @@ recode_string (enum conv_id how,  const char *text, int length)
       }
   } while ( -1 == result );
 
+
+  iconv_close (conv);
+
   if (outbytes == 0 )
     {
       char *const oldaddr = outbuf;
@@ -152,44 +163,21 @@ recode_string (enum conv_id how,  const char *text, int length)
 }
 
 
-/* Returns the current PSPP locale */
-const char *
-get_pspp_locale (void)
-{
-  assert (locale);
-  return locale;
-}
 
 
 void
 i18n_init (void)
 {
-  assert (!locale) ;
-  locale = strdup (setlocale (LC_CTYPE, NULL));
-
-  setlocale (LC_CTYPE, locale);
-
-  free (charset);
-  charset = strdup (locale_charset ());
-
-  convertor[CONV_PSPP_TO_UTF8]   = create_iconv ("UTF-8", charset);
-  convertor[CONV_UTF8_TO_PSPP]   = create_iconv (charset, "UTF-8");
+  free (default_encoding);
+  default_encoding = strdup (locale_charset ());
 }
 
 
 void
 i18n_done (void)
 {
-  int i;
-  free (locale);
-  locale = 0;
-
-  for(i = 0 ; i < n_CONV; ++i )
-    {
-      if ( (iconv_t) -1 == convertor[i] )
-	continue;
-      iconv_close (convertor[i]);
-    }
+  free (default_encoding);
+  default_encoding = NULL;
 }
 
 

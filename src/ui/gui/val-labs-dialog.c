@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005  Free Software Foundation
+   Copyright (C) 2005, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,11 +26,15 @@
 #include "val-labs-dialog.h"
 #include <data/value-labels.h>
 #include <data/format.h>
-
+#include "psppire-var-sheet.h"
+#include "psppire-var-store.h"
+#include <libpspp/i18n.h>
 
 struct val_labs_dialog
 {
   GtkWidget *window;
+
+  PsppireSheet *vs;
 
   /* The variable to be updated */
   struct variable *pv;
@@ -325,8 +329,7 @@ on_remove (GtkWidget *w, gpointer data)
 /* Callback which occurs when a line item is selected in the list of
    value--label pairs.*/
 static void
-on_select_row                  (GtkTreeView *treeview,
-				gpointer data)
+on_select_row (GtkTreeView *treeview, gpointer data)
 {
   gchar *labeltext;
   struct val_labs_dialog *dialog = data;
@@ -335,6 +338,9 @@ on_select_row                  (GtkTreeView *treeview,
 
   gchar *const text = value_to_text (vl->value,
 				    *var_get_write_format (dialog->pv));
+
+  PsppireVarStore *var_store =
+    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -348,7 +354,10 @@ on_select_row                  (GtkTreeView *treeview,
   g_signal_handler_block (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
 
-  labeltext = pspp_locale_to_utf8 (vl->label, -1, 0);
+
+  labeltext = recode_string (UTF8, psppire_dict_encoding (var_store->dict),
+			     vl->label, -1);
+
   gtk_entry_set_text (GTK_ENTRY (dialog->label_entry),
 		     labeltext);
   g_free (labeltext);
@@ -364,7 +373,7 @@ on_select_row                  (GtkTreeView *treeview,
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GtkWindow *toplevel)
+val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
 {
   GtkTreeViewColumn *column;
 
@@ -377,6 +386,7 @@ val_labs_dialog_create (GtkWindow *toplevel)
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
+  dialog->vs = sheet;
 
   gtk_window_set_transient_for
     (GTK_WINDOW (dialog->window), toplevel);
@@ -461,6 +471,9 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 
   GtkTreeIter iter;
 
+  PsppireVarStore *var_store =
+    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
+
   GtkListStore *list_store = gtk_list_store_new (2,
 						 G_TYPE_STRING,
 						 G_TYPE_DOUBLE);
@@ -489,11 +502,12 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 		      *var_get_write_format (dialog->pv));
 
       gchar *labeltext =
-	pspp_locale_to_utf8 (vl->label, -1, 0);
+	recode_string (UTF8,
+		       psppire_dict_encoding (var_store->dict),
+		       vl->label, -1);
 
       gchar *const text = g_strdup_printf ("%s = \"%s\"",
-					  vstr, labeltext);
-
+					   vstr, labeltext);
 
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,

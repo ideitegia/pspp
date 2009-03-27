@@ -14,8 +14,6 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-
-
 #ifndef __PSPPIRE_VAL_LABS_DIALOG_H
 #define __PSPPIRE_VAL_LABS_DIALOG_H
 
@@ -26,12 +24,13 @@
 
 #include <gtk/gtk.h>
 #include <data/variable.h>
+#include <gtk-contrib/psppire-sheet.h>
 
 
 struct val_labs;
 
 
-struct val_labs_dialog * val_labs_dialog_create (GtkWindow *);
+struct val_labs_dialog * val_labs_dialog_create (GtkWindow *, PsppireSheet *);
 
 void val_labs_dialog_show (struct val_labs_dialog *);
 

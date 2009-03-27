@@ -17,22 +17,14 @@
 #ifndef I18N_H
 #define I18N_H
 
-const char * get_pspp_locale (void);
-void set_pspp_locale (const char *locale);
-const char * get_pspp_charset (void);
-
 void  i18n_done (void);
 void  i18n_init (void);
 
-enum conv_id
-  {
-    CONV_PSPP_TO_UTF8,
-    CONV_UTF8_TO_PSPP,
-    n_CONV
-  };
 
+#define UTF8 "UTF-8"
 
-char * recode_string (enum conv_id how,  const char *text, int len);
+char * recode_string (const char *to, const char *from,
+		      const char *text, int len);
 
 
 /* Return the decimal separator according to the

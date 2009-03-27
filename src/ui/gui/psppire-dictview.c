@@ -21,6 +21,7 @@
 #include "psppire-dict.h"
 #include "psppire-conf.h"
 #include <data/format.h>
+#include <libpspp/i18n.h>
 #include "helper.h"
 
 #include <gettext.h>
@@ -274,11 +275,15 @@ dv_get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
 		)
 {
   *model = top_model;
-  *iter = *top_iter;
+
+  if ( iter)
+    *iter = *top_iter;
 
   while ( ! PSPPIRE_IS_DICT (*model))
     {
-      GtkTreeIter parent_iter = *iter;
+      GtkTreeIter parent_iter;
+      if (iter)
+	parent_iter = *iter;
 
       if ( GTK_IS_TREE_MODEL_FILTER (*model))
 	{
@@ -286,9 +291,10 @@ dv_get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
 
 	  *model = gtk_tree_model_filter_get_model (parent_model);
 
-	  gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
-							    iter,
-							    &parent_iter);
+	  if (iter)
+	    gtk_tree_model_filter_convert_iter_to_child_iter (parent_model,
+							      iter,
+							      &parent_iter);
 	}
       else if (GTK_IS_TREE_MODEL_SORT (*model))
 	{
@@ -296,9 +302,10 @@ dv_get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
 
 	  *model = gtk_tree_model_sort_get_model (parent_model);
 
-	  gtk_tree_model_sort_convert_iter_to_child_iter (parent_model,
-							  iter,
-							  &parent_iter);
+	  if (iter)
+	    gtk_tree_model_sort_convert_iter_to_child_iter (parent_model,
+							    iter,
+							    &parent_iter);
 	}
     }
 }
@@ -318,11 +325,11 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
   struct variable *var;
   GtkTreeIter iter;
   GtkTreeModel *model;
-
+  PsppireDict *dict;
 
   dv_get_base_model (top_model, top_iter, &model, &iter);
 
-  g_assert (PSPPIRE_IS_DICT (model));
+  dict = PSPPIRE_DICT (model);
 
   gtk_tree_model_get (model,
 		      &iter, DICT_TVM_COL_VAR, &var, -1);
@@ -333,7 +340,8 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
 				     "<span stretch=\"condensed\">%s</span>",
 				     var_get_label (var));
 
-      char *utf8 = pspp_locale_to_utf8 (text, -1, NULL);
+      char *utf8 = recode_string (UTF8, psppire_dict_encoding (dict),
+				  text, -1);
 
       g_free (text);
       g_object_set (cell, "markup", utf8, NULL);
@@ -341,7 +349,8 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
     }
   else
     {
-      char *name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+      char *name = recode_string (UTF8, psppire_dict_encoding (dict),
+				  var_get_name (var), -1);
       g_object_set (cell, "text", name, NULL);
       g_free (name);
     }
@@ -406,7 +415,6 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
   struct variable *var = NULL;
   gboolean ok;
 
-
   gtk_tree_view_convert_widget_to_bin_window_coords (treeview,
                                                      x, y, &bx, &by);
 
@@ -415,7 +423,6 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
     return FALSE;
 
   tree_model = gtk_tree_view_get_model (treeview);
-
 
   gtk_tree_view_set_tooltip_row (treeview, tooltip, path);
 
@@ -433,11 +440,18 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
 
   {
     gchar *tip ;
+    GtkTreeModel *m;
+    PsppireDict *dict;
+
+    dv_get_base_model (tree_model, NULL, &m, NULL);
+    dict = PSPPIRE_DICT (m);
 
     if ( PSPPIRE_DICT_VIEW (treeview)->prefer_labels )
-      tip = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+      tip = recode_string (UTF8, psppire_dict_encoding (dict),
+			   var_get_name (var), -1);
     else
-      tip = pspp_locale_to_utf8 (var_get_label (var), -1, NULL);
+      tip = recode_string (UTF8, psppire_dict_encoding (dict),
+			   var_get_label (var), -1);
 
     gtk_tooltip_set_text (tooltip, tip);
 

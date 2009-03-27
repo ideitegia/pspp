@@ -26,6 +26,7 @@
 #include <data/missing-values.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <libpspp/i18n.h>
 
 #include "helper.h"
 #include "message-dialog.h"
@@ -752,10 +753,11 @@ tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
     {
     case DICT_TVM_COL_NAME:
       {
-      gchar *name = pspp_locale_to_utf8(var_get_name (var), -1, NULL);
-      g_value_init (value, G_TYPE_STRING);
-      g_value_set_string (value, name);
-      g_free (name);
+	gchar *name = recode_string (UTF8, psppire_dict_encoding (dict),
+				     var_get_name (var), -1);
+	g_value_init (value, G_TYPE_STRING);
+	g_value_set_string (value, name);
+	g_free (name);
       }
       break;
     case DICT_TVM_COL_VAR:
@@ -859,3 +861,12 @@ psppire_dict_dump (const PsppireDict *dict)
     }
 }
 #endif
+
+
+
+
+const gchar *
+psppire_dict_encoding (const PsppireDict *dict)
+{
+  return NULL;
+}

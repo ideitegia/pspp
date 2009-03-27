@@ -24,6 +24,7 @@
 #include <language/syntax-string-source.h>
 #include "psppire-data-store.h"
 #include <ui/gui/sheet/psppire-axis-impl.h>
+#include <libpspp/i18n.h>
 #include "helper.h"
 
 #include <gtk-contrib/gtkxpaned.h>
@@ -743,7 +744,9 @@ update_data_ref_entry (const PsppireSheet *sheet,
 	  gchar *text = g_strdup_printf ("%d: %s", row + FIRST_CASE_NUMBER,
 					 var_get_name (var));
 
-	  gchar *s = pspp_locale_to_utf8 (text, -1, 0);
+	  gchar *s = recode_string (UTF8,
+				    psppire_dict_encoding (data_store->dict),
+				    text, -1);
 
 	  g_free (text);
 

@@ -23,6 +23,7 @@
 #include "dict-display.h"
 
 #include "psppire-dict.h"
+#include <libpspp/i18n.h>
 #include "helper.h"
 #include <data/variable.h>
 #include <data/format.h>
@@ -80,7 +81,8 @@ insert_source_row_into_entry (GtkTreeIter iter,
 
   gtk_tree_path_free (path);
 
-  name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+  name = recode_string (UTF8, psppire_dict_encoding (PSPPIRE_DICT (dict)),
+			var_get_name (var), -1);
   gtk_entry_set_text (GTK_ENTRY (dest),  name);
   g_free (name);
 }
@@ -142,7 +144,8 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 
   gtk_tree_path_free (path);
 
-  name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+  name = recode_string (UTF8, psppire_dict_encoding (PSPPIRE_DICT (dict)),
+			var_get_name (var), -1);
   result = ( 0 == strcmp (text, name));
   g_free (name);
 

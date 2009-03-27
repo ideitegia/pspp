@@ -109,6 +109,8 @@ struct variable * psppire_dict_get_weight_variable (const PsppireDict *);
 void psppire_dict_dump (const PsppireDict *);
 #endif
 
+const gchar *psppire_dict_encoding (const PsppireDict *);
+
 G_END_DECLS
 
 #endif /* __PSPPIRE_DICT_H__ */

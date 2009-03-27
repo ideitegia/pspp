@@ -21,7 +21,7 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
+#include <libpspp/i18n.h>
 
 #include <gobject/gvaluecollector.h>
 
@@ -53,9 +53,6 @@ static void         psppire_var_store_sheet_model_init (PsppireSheetModelIface *
 static void         psppire_var_store_finalize        (GObject           *object);
 
 
-gchar * missing_values_to_string (const struct variable *pv, GError **err);
-
-
 static gchar *psppire_var_store_get_string (const PsppireSheetModel *sheet_model, glong row, glong column);
 
 static gboolean  psppire_var_store_clear (PsppireSheetModel *model,  glong row, glong col);
@@ -67,7 +64,8 @@ static gboolean psppire_var_store_set_string (PsppireSheetModel *model,
 static glong psppire_var_store_get_row_count (const PsppireSheetModel * model);
 static glong psppire_var_store_get_column_count (const PsppireSheetModel * model);
 
-static gchar *text_for_column (const struct variable *pv, gint c, GError **err);
+static gchar *text_for_column (PsppireVarStore *vs, const struct variable *pv,
+			       gint c, GError **err);
 
 
 static GObjectClass *parent_class = NULL;
@@ -399,7 +397,8 @@ psppire_var_store_finalize (GObject *object)
 }
 
 static gchar *
-psppire_var_store_get_string (const PsppireSheetModel *model, glong row, glong column)
+psppire_var_store_get_string (const PsppireSheetModel *model,
+			      glong row, glong column)
 {
   PsppireVarStore *store = PSPPIRE_VAR_STORE (model);
 
@@ -410,7 +409,7 @@ psppire_var_store_get_string (const PsppireSheetModel *model, glong row, glong c
 
   pv = psppire_dict_get_variable (store->dict, row);
 
-  return text_for_column (pv, column, 0);
+  return text_for_column (store, pv, column, 0);
 }
 
 
@@ -531,7 +530,9 @@ psppire_var_store_set_string (PsppireSheetModel *model,
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
       {
-	gchar *s = utf8_to_pspp_locale (text, -1, NULL);
+	gchar *s = recode_string (psppire_dict_encoding (var_store->dict),
+				  UTF8,
+				  text, -1);
 	var_set_label (pv, s);
 	free (s);
 	return TRUE;
@@ -557,8 +558,10 @@ psppire_var_store_set_string (PsppireSheetModel *model,
 static const gchar none[] = N_("None");
 
 static  gchar *
-text_for_column (const struct variable *pv, gint c, GError **err)
+text_for_column (PsppireVarStore *vs,
+		 const struct variable *pv, gint c, GError **err)
 {
+  PsppireDict *dict = vs->dict;
   static const gchar *const type_label[] =
     {
       N_("Numeric"),
@@ -578,7 +581,8 @@ text_for_column (const struct variable *pv, gint c, GError **err)
   switch (c)
     {
     case PSPPIRE_VAR_STORE_COL_NAME:
-      return pspp_locale_to_utf8 ( var_get_name (pv), -1, err);
+      return recode_string (UTF8, psppire_dict_encoding (dict),
+			    var_get_name (pv), -1);
       break;
     case PSPPIRE_VAR_STORE_COL_TYPE:
       {
@@ -665,12 +669,13 @@ text_for_column (const struct variable *pv, gint c, GError **err)
       }
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
-      return pspp_locale_to_utf8 (var_get_label (pv), -1, err);
+      return recode_string (UTF8, psppire_dict_encoding (dict),
+			    var_get_label (pv), -1);
       break;
 
     case PSPPIRE_VAR_STORE_COL_MISSING:
       {
-	return missing_values_to_string (pv, err);
+	return missing_values_to_string (dict, pv, err);
       }
       break;
     case PSPPIRE_VAR_STORE_COL_VALUES:
@@ -696,7 +701,8 @@ text_for_column (const struct variable *pv, gint c, GError **err)
 
 	    val_labs_done (&ip);
 
-	    ss = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
+	    ss = recode_string (UTF8, psppire_dict_encoding (dict),
+				gstr->str, gstr->len);
 	    g_string_free (gstr, TRUE);
 	    return ss;
 	  }

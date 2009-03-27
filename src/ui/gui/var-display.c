@@ -4,34 +4,17 @@
 #include <data/variable.h>
 #include <data/format.h>
 #include <stdlib.h>
+#include "psppire-dict.h"
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
 #include "helper.h"
+#include <libpspp/i18n.h>
 
 static const gchar none[] = N_("None");
 
-gchar *
-name_to_string (const struct variable *var, GError **err)
-{
-  const char *name = var_get_name (var);
-  g_assert (name);
-
-  return pspp_locale_to_utf8 (name, -1, err);
-}
-
-
-gchar *
-label_to_string (const struct variable *var, GError **err)
-{
-  const char *label = var_get_label (var);
-
-  if ( ! label ) return g_strdup (none);
-
-  return pspp_locale_to_utf8 (label, -1, err);
-}
 
 gchar *
 measure_to_string (const struct variable *var, GError **err)
@@ -45,7 +28,7 @@ measure_to_string (const struct variable *var, GError **err)
 
 
 gchar *
-missing_values_to_string (const struct variable *pv, GError **err)
+missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GError **err)
 {
   const struct fmt_spec *fmt =  var_get_print_format (pv);
   gchar *s;
@@ -70,7 +53,8 @@ missing_values_to_string (const struct variable *pv, GError **err)
 	      g_string_append (gstr, mv[i]);
 	      g_free (mv[i]);
 	    }
-	  s = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
+	  s = recode_string (UTF8, psppire_dict_encoding (dict),
+			     gstr->str, gstr->len);
 	  g_string_free (gstr, TRUE);
 	}
       else
@@ -99,7 +83,8 @@ missing_values_to_string (const struct variable *pv, GError **err)
 	      g_string_append (gstr, ss);
 	      free (ss);
 	    }
-	  s = pspp_locale_to_utf8 (gstr->str, gstr->len, err);
+	  s = recode_string (UTF8, psppire_dict_encoding (dict),
+			     gstr->str, gstr->len);
 	  g_string_free (gstr, TRUE);
 	}
 

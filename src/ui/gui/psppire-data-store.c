@@ -31,6 +31,7 @@
 #include <pango/pango-context.h>
 
 #include "psppire-data-store.h"
+#include <libpspp/i18n.h>
 #include "helper.h"
 
 #include <data/dictionary.h>
@@ -598,7 +599,8 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
       if (label)
         {
           free (v);
-	  return pspp_locale_to_utf8 (label, -1, 0);
+	  return recode_string (UTF8, psppire_dict_encoding (store->dict),
+				label, -1);
         }
     }
 
@@ -616,7 +618,8 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
      FP.  No null terminator is appended to the buffer.  */
   data_out (v, fp, s->str);
 
-  text = pspp_locale_to_utf8 (s->str, fp->w, 0);
+  text = recode_string (UTF8, psppire_dict_encoding (store->dict),
+			s->str, fp->w);
   g_string_free (s, TRUE);
 
   g_strchomp (text);
@@ -673,7 +676,7 @@ psppire_data_store_set_string (PsppireDataStore *store,
   if (row == n_cases)
     psppire_data_store_insert_new_case (store, row);
 
-  s = utf8_to_pspp_locale (text, -1, NULL);
+  s = recode_string (psppire_dict_encoding (store->dict), UTF8, text, -1);
 
   psppire_data_store_data_in (store, row,
 			      var_get_case_index (pv), ss_cstr (s),
@@ -749,9 +752,11 @@ static const gchar null_var_name[]=N_("var");
 static gchar *
 get_row_button_label (const PsppireSheetModel *model, gint unit)
 {
+  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
   gchar *s = g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
 
-  gchar *text =  pspp_locale_to_utf8 (s, -1, 0);
+  gchar *text =  recode_string (UTF8, psppire_dict_encoding (ds->dict),
+				s, -1);
 
   g_free (s);
 
@@ -787,7 +792,8 @@ get_column_subtitle (const PsppireSheetModel *model, gint col)
   if ( ! var_has_label (v))
     return NULL;
 
-  text =  pspp_locale_to_utf8 (var_get_label (v), -1, 0);
+  text =  recode_string (UTF8, psppire_dict_encoding (ds->dict),
+			 var_get_label (v), -1);
 
   return text;
 }
@@ -804,7 +810,8 @@ get_column_button_label (const PsppireSheetModel *model, gint col)
 
   pv = psppire_dict_get_variable (ds->dict, col);
 
-  text =  pspp_locale_to_utf8 (var_get_name (pv), -1, 0);
+  text = recode_string (UTF8, psppire_dict_encoding (ds->dict),
+			var_get_name (pv), -1);
 
   return text;
 }

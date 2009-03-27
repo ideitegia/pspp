@@ -24,6 +24,7 @@
 #include "psppire-var-store.h"
 #include "psppire-selector.h"
 #include "dialog-common.h"
+#include <libpspp/i18n.h>
 
 #include <language/expressions/public.h>
 #include <language/syntax-string-source.h>
@@ -631,7 +632,9 @@ insert_source_row_into_text_view (GtkTreeIter iter,
 
   gtk_tree_path_free (path);
 
-  name = pspp_locale_to_utf8 (var_get_name (var), -1, NULL);
+  name = recode_string (UTF8, psppire_dict_encoding (dict),
+			var_get_name (var),
+			-1);
 
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (dest));
 

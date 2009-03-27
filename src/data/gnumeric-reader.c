@@ -314,11 +314,10 @@ static void
 convert_xml_string_to_value (struct ccase *c, const struct variable *var,
 			     const xmlChar *xv)
 {
-  char *text;
   int n_bytes = 0;
   union value *v = case_data_rw (c, var);
 
-  text = recode_string (CONV_UTF8_TO_PSPP, (const char *) xv, -1);
+  const char *text = (const char *) xv;
 
   if ( text)
     n_bytes = MIN (var_get_width (var), strlen (text));
@@ -335,8 +334,6 @@ convert_xml_string_to_value (struct ccase *c, const struct variable *var,
       if ( errno != 0 || endptr == text)
 	v->f = SYSMIS;
     }
-
-  free (text);
 }
 
 struct var_spec
@@ -459,10 +456,8 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
       if ( r->node_type == XML_READER_TYPE_TEXT )
 	{
-	  char *text ;
 	  xmlChar *value = xmlTextReaderValue (r->xtr);
-
-	  text = recode_string (CONV_UTF8_TO_PSPP, (const char *) value, -1);
+	  const char *text  = (const char *) value;
 
 	  if ( r->row < r->start_row)
 	    {
@@ -481,7 +476,6 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 	    }
 
 	  free (value);
-	  free (text);
 	}
       else if ( r->node_type == XML_READER_TYPE_ELEMENT
 		&& r->state == STATE_CELL)

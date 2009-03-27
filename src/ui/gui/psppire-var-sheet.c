@@ -489,7 +489,8 @@ psppire_var_sheet_realize (GtkWidget *w)
 
   GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (vs));
 
-  vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel));
+  vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel),
+						PSPPIRE_SHEET (vs));
   vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
   vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel));
 
