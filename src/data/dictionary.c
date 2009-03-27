@@ -63,6 +63,9 @@ struct dictionary
     struct vector **vector;     /* Vectors of variables. */
     size_t vector_cnt;          /* Number of vectors. */
     struct attrset attributes;  /* Custom attributes. */
+
+    char *encoding;             /* Character encoding of string data */
+
     const struct dict_callbacks *callbacks; /* Callbacks on dictionary
 					       modification */
     void *cb_data ;                  /* Data passed to callbacks */
@@ -70,6 +73,20 @@ struct dictionary
     void (*changed) (struct dictionary *, void *); /* Generic change callback */
     void *changed_data;
   };
+
+
+void
+dict_set_encoding (struct dictionary *d, const char *enc)
+{
+  d->encoding = strdup (enc);
+}
+
+const char *
+dict_get_encoding (const struct dictionary *d)
+{
+  return d->encoding ;
+}
+
 
 void
 dict_set_change_callback (struct dictionary *d,
@@ -193,6 +210,8 @@ dict_clone (const struct dictionary *s)
   d->vector = xnmalloc (d->vector_cnt, sizeof *d->vector);
   for (i = 0; i < s->vector_cnt; i++)
     d->vector[i] = vector_clone (s->vector[i], s, d);
+
+  d->encoding = strdup (s->encoding);
 
   dict_set_attributes (d, dict_get_attributes (s));
 

@@ -868,5 +868,5 @@ psppire_dict_dump (const PsppireDict *dict)
 const gchar *
 psppire_dict_encoding (const PsppireDict *dict)
 {
-  return NULL;
+  return dict_get_encoding (dict->dict);
 }

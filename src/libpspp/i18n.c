@@ -88,9 +88,6 @@ recode_string (const char *to, const char *from,
   if (from == NULL)
     from = default_encoding;
 
-
-  fprintf (stderr, "from: %s; to %s\n", from, to);
-
   if ( 0 == strcmp (to, from))
     return xstrndup (text, length);
 
