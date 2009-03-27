@@ -211,7 +211,8 @@ dict_clone (const struct dictionary *s)
   for (i = 0; i < s->vector_cnt; i++)
     d->vector[i] = vector_clone (s->vector[i], s, d);
 
-  d->encoding = strdup (s->encoding);
+  if ( s->encoding)
+    d->encoding = strdup (s->encoding);
 
   dict_set_attributes (d, dict_get_attributes (s));
 
