@@ -99,6 +99,7 @@ Cases:          3
 Type:           System File.
 Weight:         Not weighted.
 Mode:           Compression on.
+Charset:        Unknown
 +--------+-------------+---+
 |Variable|Description  |Pos|
 |        |             |iti|

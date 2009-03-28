@@ -108,7 +108,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   casereader_destroy (reader);
 
-  t = tab_create (2, 10, 0);
+  t = tab_create (2, 11, 0);
   tab_vline (t, TAL_GAP, 1, 0, 8);
   tab_text (t, 0, 0, TAB_LEFT, _("File:"));
   tab_text (t, 1, 0, TAB_LEFT, fh_get_file_name (h));
@@ -153,6 +153,13 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   tab_text (t, 0, 9, TAB_LEFT, _("Mode:"));
   tab_text (t, 1, 9, TAB_LEFT | TAT_PRINTF,
 		_("Compression %s."), info.compressed ? _("on") : _("off"));
+
+
+  tab_text (t, 0, 10, TAB_LEFT, _("Charset:"));
+  tab_text (t, 1, 10, TAB_LEFT | TAT_PRINTF,
+	    dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
+
+
   tab_dim (t, tab_natural_dimensions);
   tab_submit (t);
 
