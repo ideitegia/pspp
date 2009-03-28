@@ -70,7 +70,7 @@ populate_text (PsppireDictView *treeview, gpointer data)
   GString *gstring;
   PsppireDict *dict;
 
-  GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(data));
+  GtkTextBuffer *textbuffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (data));
   const struct variable *var =
     psppire_dict_view_get_selected_variable (treeview);
 
@@ -82,13 +82,13 @@ populate_text (PsppireDictView *treeview, gpointer data)
 		NULL);
 
   gstring = g_string_sized_new (200);
-  text = name_to_string (var, NULL);
+  text = name_to_string (var, dict);
   g_string_assign (gstring, text);
   g_free (text);
   g_string_append (gstring, "\n");
 
 
-  text = label_to_string (var, NULL);
+  text = label_to_string (var, dict);
   g_string_append_printf (gstring, _("Label: %s\n"), text);
   g_free (text);
 
