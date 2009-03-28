@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -87,9 +87,6 @@ recode_string (const char *to, const char *from,
 
   if (from == NULL)
     from = default_encoding;
-
-  if ( 0 == strcmp (to, from))
-    return xstrndup (text, length);
 
   for ( outbufferlength = 1 ; outbufferlength != 0; outbufferlength <<= 1 )
     if ( outbufferlength > length)
