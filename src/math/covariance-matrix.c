@@ -811,6 +811,37 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
     }
   return false;
 }
+static double
+get_sum (const struct covariance_matrix *cov, size_t i)
+{
+  size_t k;
+  const struct variable *var;
+  const union value *val = NULL;
+  struct covariance_accumulator ca;
+  struct covariance_accumulator *c;
+
+  assert ( cov != NULL);
+  var = design_matrix_col_to_var (cov->cov, i);
+  if (var != NULL)
+    {
+      if (var_is_alpha (var))
+	{
+	  k = design_matrix_var_to_column (cov->cov, var);
+	  i -= k;
+	  val = cat_subscript_to_value (i, var);
+	}
+      ca.v1 = var;
+      ca.v2 = var;
+      ca.val1 = val;
+      ca.val2 = val;
+      c = (struct covariance_accumulator *) hsh_find (cov->ca, &ca);
+      if (c != NULL)
+	{
+	  return c->sum1;
+	}
+    }
+  return 0.0;
+}
 static void
 update_ssize (struct design_matrix *dm, size_t i, size_t j, struct covariance_accumulator *ca)
 {
@@ -833,7 +864,9 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 {
   size_t i;
   size_t j;
-  double tmp;
+  double sum_i = 0.0;
+  double sum_j = 0.0;
+  double tmp = 0.0;
   struct covariance_accumulator *entry;
   struct hsh_iterator iter;
 
@@ -842,29 +875,30 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
   cov->means = covariance_matrix_create (cov->n_variables, cov->v_variables);
   for (i = 0; i < design_matrix_get_n_cols (cov->cov); i++)
     {
+      sum_i = get_sum (cov, i);
       for (j = i; j < design_matrix_get_n_cols (cov->cov); j++)
 	{
+	  sum_j = get_sum (cov, j);
 	  entry = hsh_first (cov->ca, &iter);
 	  
 	  while (entry != NULL)
 	    {
 	      update_ssize (cov->ssize, i, j, entry);
-
 	      /*
 		We compute the centered, un-normalized covariance matrix.
 	      */
 	      if (is_covariance_contributor (entry, cov->cov, i, j))
 		{
+
 		  covariance_matrix_insert (cov->cov, entry->v1, entry->v2, entry->val1,
 					    entry->val2, entry->dot_product);
-		  covariance_matrix_insert (cov->cov, entry->v1, entry->v2, entry->val1,
-					    entry->val2, entry->sum1 * entry->sum2);
 		}
 	      entry = hsh_next (cov->ca, &iter);
 	    }
 	  tmp = gsl_matrix_get (cov->cov->m, i, j);
 	  tmp -= gsl_matrix_get (cov->means->m, i, j) / gsl_matrix_get (cov->ssize->m, i, j);
 	  gsl_matrix_set (cov->cov->m, i, j, tmp);
+
 	} 
     }
 }
