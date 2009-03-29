@@ -103,6 +103,9 @@ static void write_float_info_record (struct sfm_writer *);
 static void write_longvar_table (struct sfm_writer *w,
                                  const struct dictionary *dict);
 
+static void write_encoding_record (struct sfm_writer *w,
+				   const struct dictionary *);
+
 static void write_vls_length_table (struct sfm_writer *w,
 			      const struct dictionary *dict);
 
@@ -245,6 +248,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   if (attrset_count (dict_get_attributes (d)))
     write_data_file_attributes (w, d);
   write_variable_attributes (w, d);
+
+  write_encoding_record (w, d);
 
   /* Write end-of-headers record. */
   write_int (w, 999);
@@ -660,6 +665,24 @@ write_vls_length_table (struct sfm_writer *w,
   ds_destroy (&map);
 }
 
+
+static void
+write_encoding_record (struct sfm_writer *w,
+		       const struct dictionary *d)
+{
+  const char *enc = dict_get_encoding (d);
+
+  if ( NULL == enc)
+    return;
+
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 20);            /* Record subtype. */
+  write_int (w, 1);             /* Data item (char) size. */
+  write_int (w, strlen (enc));  /* Number of data items. */
+  write_string (w, enc, strlen (enc));
+}
+
+
 /* Writes the long variable name table. */
 static void
 write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
@@ -1019,7 +1042,7 @@ write_value (struct sfm_writer *w, const union value *value, int width)
 }
 
 /* Writes null-terminated STRING in a field of the given WIDTH to
-   W.  If WIDTH is longer than WIDTH, it is truncated; if WIDTH
+   W.  If STRING is longer than WIDTH, it is truncated; if WIDTH
    is narrowed, it is padded on the right with spaces. */
 static void
 write_string (struct sfm_writer *w, const char *string, size_t width)
