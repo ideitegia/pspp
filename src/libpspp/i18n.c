@@ -24,6 +24,8 @@
 #include <iconv.h>
 #include <errno.h>
 #include "assertion.h"
+#include "hmapx.h"
+#include "hash-functions.h"
 
 #include "i18n.h"
 
@@ -35,22 +37,45 @@
 #endif
 
 static char *default_encoding;
-
+static struct hmapx map;
 
 /* A wrapper around iconv_open */
 static iconv_t
 create_iconv (const char* tocode, const char* fromcode)
 {
-  iconv_t conv = iconv_open (tocode, fromcode);
+  iconv_t conv;
+  struct hmapx_node *node;
+  size_t hash ;
+  char *key = alloca (strlen (tocode) + strlen (fromcode) + 2);
 
-  /* I don't think it's safe to translate this string or to use messaging
-     as the convertors have not yet been set up */
-  if ( (iconv_t) -1 == conv && 0 != strcmp (tocode, fromcode))
+  strcpy (key, tocode);
+  strcat (key, "\n"); /* hopefully no encoding names contain '\n' */
+  strcat (key, fromcode);
+
+  hash = hsh_hash_string (key);
+
+  node = hmapx_first_with_hash (&map, hash);
+
+  if (!node)
     {
-      const int err = errno;
-      fprintf (stderr,
-	"Warning: cannot create a convertor for \"%s\" to \"%s\": %s\n",
-	fromcode, tocode, strerror (err));
+      conv = iconv_open (tocode, fromcode);
+
+      /* I don't think it's safe to translate this string or to use messaging
+	 as the convertors have not yet been set up */
+      if ( (iconv_t) -1 == conv && 0 != strcmp (tocode, fromcode))
+	{
+	  const int err = errno;
+	  fprintf (stderr,
+		   "Warning: "
+		   "cannot create a convertor for \"%s\" to \"%s\": %s\n",
+		   fromcode, tocode, strerror (err));
+	}
+
+      hmapx_insert (&map, conv, hash);
+    }
+  else
+    {
+      conv = hmapx_node_data (node);
     }
 
   return conv;
@@ -140,9 +165,6 @@ recode_string (const char *to, const char *from,
       }
   } while ( -1 == result );
 
-
-  iconv_close (conv);
-
   if (outbytes == 0 )
     {
       char *const oldaddr = outbuf;
@@ -157,19 +179,26 @@ recode_string (const char *to, const char *from,
 }
 
 
-
-
 void
 i18n_init (void)
 {
   free (default_encoding);
   default_encoding = strdup (locale_charset ());
+
+  hmapx_init (&map);
 }
 
 
 void
 i18n_done (void)
 {
+  struct hmapx_node *node;
+  iconv_t conv;
+  HMAPX_FOR_EACH (conv, node, &map)
+    iconv_close (conv);
+
+  hmapx_destroy (&map);
+
   free (default_encoding);
   default_encoding = NULL;
 }
