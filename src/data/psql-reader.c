@@ -288,10 +288,22 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
   /* Create the dictionary and populate it */
   *dict = r->dict = dict_create ();
 
+  {
+    const int enc = PQclientEncoding (r->conn);
+
+    /* According to section 22.2 of the Postgresql manual
+       a value of zero (SQL_ASCII) indicates
+       "a declaration of ignorance about the encoding".
+       Accordingly, we don't set the dictionary's encoding
+       if we find this value.
+    */
+    if ( enc != 0 )
+      dict_set_encoding (r->dict, pg_encoding_to_char (enc));
+  }
+
   /*
     select count (*) from (select * from medium) stupid_sql_standard;
   */
-
   ds_init_cstr (&query,
 		"BEGIN READ ONLY ISOLATION LEVEL SERIALIZABLE; "
 		"DECLARE  pspp BINARY CURSOR FOR ");
