@@ -66,6 +66,9 @@ static void read_datafile_attributes (struct sfm_reader *r,
                                       size_t size, size_t count);
 static void read_variable_attributes (struct sfm_reader *r,
                                       size_t size, size_t count);
+static void read_character_encoding (struct sfm_reader *r,
+				       size_t size, size_t count);
+
 
 static struct text_record *open_text_record (
   struct sfm_reader *, size_t size);
@@ -510,6 +513,10 @@ read_extension_record (struct sfm_reader *r)
       read_variable_attributes (r, size, count);
       return;
 
+    case 20:
+      read_character_encoding (r, size, count);
+      return;
+
     default:
       sys_warn (r, _("Unrecognized record type 7, subtype %d."), subtype);
       break;
@@ -711,6 +718,17 @@ read_datafile_attributes (struct sfm_reader *r, size_t size, size_t count)
   read_attributes (r, text, "datafile");
   close_text_record (text);
 }
+
+static void
+read_character_encoding (struct sfm_reader *r, size_t size, size_t count)
+{
+  const unsigned long int posn =  ftell (r->file);
+  char *encoding = calloc (size, count + 1);
+  read_string (r, encoding, count + 1);
+
+  printf ("%08lx: Character Encoding: %s\n", posn, encoding);
+}
+
 
 static void
 read_variable_attributes (struct sfm_reader *r, size_t size, size_t count) 
