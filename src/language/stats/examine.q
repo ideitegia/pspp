@@ -198,7 +198,7 @@ factor_destroy (struct xfactor *fctr)
 }
 
 static struct xfactor level0_factor;
-static struct ll_list factor_list = LL_INITIALIZER (factor_list);
+static struct ll_list factor_list;
 
 /* Parse the clause specifying the factors */
 static int examine_parse_independent_vars (struct lexer *lexer,
@@ -267,6 +267,8 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 
   subc_list_double_create (&percentile_list);
   percentile_algorithm = PC_HAVERAGE;
+
+  ll_init (&factor_list);
 
   if ( !parse_examine (lexer, ds, &cmd, NULL) )
     {
