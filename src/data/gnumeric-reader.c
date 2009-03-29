@@ -497,6 +497,8 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
   /* Create the dictionary and populate it */
   *dict = r->dict = dict_create ();
 
+  dict_set_encoding (r->dict, (const char *) xmlTextReaderConstEncoding (r->xtr));
+  
   r->value_cnt = 0;
 
   for (i = 0 ; i < n_var_specs ; ++i )
