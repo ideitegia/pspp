@@ -566,7 +566,7 @@ values.
 If more than two distinct, non-missing values for a variable
 under test are encountered then an error occurs.
 
-If the test proportion is equal to 0.5, then a one tailed test is
+If the test proportion is equal to 0.5, then a two tailed test is
 reported.   For any other test proportion, a one tailed test is
 reported.   
 For one tailed tests, if the test proportion is less than
