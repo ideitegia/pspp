@@ -3,7 +3,6 @@
 AM_CPPFLAGS += -I$(top_srcdir)/src/language/stats
 
 src_language_stats_built_sources = \
-	src/language/stats/correlations.c \
 	src/language/stats/crosstabs.c \
 	src/language/stats/examine.c \
 	src/language/stats/frequencies.c \
