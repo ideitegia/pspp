@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include <locale.h>
+#include <libpspp/i18n.h>
 #include <assert.h>
 #include <libintl.h>
 #include <gsl/gsl_errno.h>
@@ -89,12 +89,8 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 {
   PsppireDict *dictionary = 0;
 
-  /* gtk_init messes with the locale.
-     So unset the bits we want to control ourselves */
-  setlocale (LC_NUMERIC, "C");
 
-  bindtextdomain (PACKAGE, locale_dir);
-
+  i18n_init ();
 
   preregister_widgets ();
 
@@ -171,6 +167,7 @@ de_initialize (void)
   message_dialog_done ();
   settings_done ();
   outp_done ();
+  i18n_done ();
 }
 
 

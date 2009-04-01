@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <libintl.h>
 #include <iconv.h>
 #include <errno.h>
 #include "assertion.h"
@@ -28,6 +29,8 @@
 #include "hash-functions.h"
 
 #include "i18n.h"
+
+#include "version.h"
 
 #include <localcharset.h>
 #include "xstrndup.h"
@@ -182,7 +185,19 @@ recode_string (const char *to, const char *from,
 void
 i18n_init (void)
 {
-  free (default_encoding);
+#if ENABLE_NLS
+  setlocale (LC_CTYPE, "");
+#if HAVE_LC_MESSAGES
+  setlocale (LC_MESSAGES, "");
+#endif
+#if HAVE_LC_PAPER
+  setlocale (LC_PAPER, "");
+#endif
+  bindtextdomain (PACKAGE, locale_dir);
+  textdomain (PACKAGE);
+#endif /* ENABLE_NLS */
+
+  assert (default_encoding == NULL);
   default_encoding = strdup (locale_charset ());
 
   hmapx_init (&map);

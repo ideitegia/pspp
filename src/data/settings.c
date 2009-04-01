@@ -22,7 +22,6 @@
 #include "format.h"
 #include "value.h"
 #include "xalloc.h"
-#include <libpspp/i18n.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
 
@@ -147,7 +146,6 @@ settings_init (int *width, int *length)
 {
   init_viewport (width, length);
   settings_set_epoch (-1);
-  i18n_init ();
   the_settings.styles = fmt_create ();
 
   settings_set_decimal_char (get_system_decimal ());
@@ -157,7 +155,6 @@ void
 settings_done (void)
 {
   fmt_done (the_settings.styles);
-  i18n_done ();
 }
 
 /* Returns the floating-point format used for RB and RBHEX

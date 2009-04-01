@@ -16,7 +16,6 @@
 
 #include <config.h>
 
-#include <locale.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,6 +29,8 @@
 #include <ieeefp.h>
 #endif
 
+
+#include <libpspp/i18n.h>
 #include <data/dictionary.h>
 #include <data/file-handle-def.h>
 #include <libpspp/getl.h>
@@ -61,7 +62,6 @@
 #define _(msgid) gettext (msgid)
 
 
-static void i18n_init (void);
 static void fpu_init (void);
 static void clean_up (void);
 
@@ -167,21 +167,6 @@ main (int argc, char **argv)
 }
 
 static void
-i18n_init (void)
-{
-#if ENABLE_NLS
-#if HAVE_LC_MESSAGES
-  setlocale (LC_MESSAGES, "");
-#endif
-#if HAVE_LC_PAPER
-  setlocale (LC_PAPER, "");
-#endif
-  bindtextdomain (PACKAGE, locale_dir);
-  textdomain (PACKAGE);
-#endif /* ENABLE_NLS */
-}
-
-static void
 fpu_init (void)
 {
 #if HAVE_FEHOLDEXCEPT
@@ -234,5 +219,6 @@ clean_up (void)
       readln_uninitialize ();
       outp_done ();
       msg_ui_done ();
+      i18n_done ();
     }
 }

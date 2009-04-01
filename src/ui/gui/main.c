@@ -142,6 +142,8 @@ main (int argc, char *argv[])
 
   set_program_name (argv[0]);
 
+  gtk_disable_setlocale ();
+
   if ( ! gtk_parse_args (&argc, &argv) )
     {
       perror ("Error parsing arguments");
