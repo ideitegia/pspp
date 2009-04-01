@@ -276,7 +276,59 @@ parse_non_options (int key, char *arg, struct argp_state *state)
     {
     case ARGP_KEY_ARG:
       {
-	psppire_window_load (PSPPIRE_WINDOW (the_data_window), arg);
+	gchar *filename = NULL;
+	gchar *utf8 = NULL;
+	const gchar *local_encoding = NULL;
+	gsize written = -1;
+	const gboolean local_is_utf8 = g_get_charset (&local_encoding);
+
+	/* There seems to be no Glib function to convert from local encoding
+	   to filename encoding.  Therefore it has to be done in two steps:
+	   the intermediate encoding is UTF8.
+
+	   Either step could fail.  However, in many cases the file can still
+	   be loaded even if the conversion fails. So in those cases, after showing
+	   a warning, we simply copy the locally encoded filename to the destination
+	   and hope for the best.
+	*/
+
+	if ( local_is_utf8)
+	  {
+	    utf8 = strdup (arg);
+	  }
+	else
+	  {
+	    GError *err = NULL;
+	    utf8 = g_locale_to_utf8 (arg, -1, NULL, &written, &err);
+	    if ( NULL == utf8)
+	      {
+		g_warning ("Cannot convert filename from local encoding \"%s\" to UTF-8: %s",
+			   local_encoding,
+			   err->message);
+		g_clear_error (&err);
+	      }
+	  }
+
+	if ( NULL != utf8)
+	  {
+	    GError *err = NULL;
+	    filename = g_filename_from_utf8 (utf8, written, NULL, NULL, &err);
+	    if ( NULL == filename)
+	      {
+		g_warning ("Cannot convert filename from UTF8 to filename encoding: %s",
+			   err->message);
+		g_clear_error (&err);
+	      }
+	  }
+
+	g_free (utf8);
+
+	if ( filename == NULL)
+	  filename = strdup (arg);
+
+	psppire_window_load (PSPPIRE_WINDOW (the_data_window), filename);
+
+	g_free (filename);
 	break;
       }
     default:

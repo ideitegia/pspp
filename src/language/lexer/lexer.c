@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -384,10 +384,11 @@ lex_get (struct lexer *lexer)
             }
           else
             {
-              if (c_isgraph ((unsigned char) *lexer->prog))
-                msg (SE, _("Bad character in input: `%c'."), *lexer->prog++);
+              unsigned char c = *lexer->prog++;
+              if (c_isgraph (c))
+                msg (SE, _("Bad character in input: `%c'."), c);
               else
-                msg (SE, _("Bad character in input: `\\%o'."), *lexer->prog++);
+                msg (SE, _("Bad character in input: `\\%o'."), c);
               continue;
             }
         }

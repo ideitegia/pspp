@@ -124,6 +124,7 @@ wilcoxon_execute (const struct dataset *ds,
 
 	      /* Central point values should be dropped */
 	      ws[i].n_zeros += w;
+              case_unref (output);
               continue;
 	    }
 

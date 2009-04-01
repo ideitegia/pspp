@@ -57,7 +57,7 @@ struct covariance_matrix
 {
   struct design_matrix *cov;
   struct design_matrix *ssize;
-  struct design_matrix *means;
+  struct design_matrix *sums;
   struct hsh_table *ca;
   struct moments1 **m1;
   struct moments **m;
@@ -182,7 +182,7 @@ covariance_matrix_destroy (struct covariance_matrix *cov)
   assert (cov != NULL);
   design_matrix_destroy (cov->cov);
   design_matrix_destroy (cov->ssize);
-  design_matrix_destroy (cov->means);
+  design_matrix_destroy (cov->sums);
   hsh_destroy (cov->ca);
   if (cov->n_pass == ONE_PASS)
     {
@@ -219,9 +219,9 @@ covariance_update_categorical_numeric (struct design_matrix *cov, double mean,
 
   col = design_matrix_var_to_column (cov, v2);
   assert (val2 != NULL);
-  tmp = gsl_matrix_get (cov->m, row, col);
-  gsl_matrix_set (cov->m, row, col, (val2->f - mean) * x + tmp);
-  gsl_matrix_set (cov->m, col, row, (val2->f - mean) * x + tmp);
+  tmp = design_matrix_get_element (cov, row, col);
+  design_matrix_set_element (cov, row, col, (val2->f - mean) * x + tmp);
+  design_matrix_set_element (cov, col, row, (val2->f - mean) * x + tmp);
 }
 static void
 column_iterate (struct design_matrix *cov, const struct variable *v,
@@ -243,9 +243,9 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
 	{
 	  y += -1.0;
 	}
-      tmp = gsl_matrix_get (cov->m, row, col);
-      gsl_matrix_set (cov->m, row, col, x * y + tmp);
-      gsl_matrix_set (cov->m, col, row, x * y + tmp);
+      tmp = design_matrix_get_element (cov, row, col);
+      design_matrix_set_element (cov, row, col, x * y + tmp);
+      design_matrix_set_element (cov, col, row, x * y + tmp);
     }
 }
 
@@ -306,9 +306,9 @@ covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
       row = design_matrix_var_to_column (cov, v1);
       col = design_matrix_var_to_column (cov, v2);
       x = (val1->f - mean1) * (val2->f - mean2);
-      x += gsl_matrix_get (cov->m, col, row);
-      gsl_matrix_set (cov->m, row, col, x);
-      gsl_matrix_set (cov->m, col, row, x);
+      x += design_matrix_get_element (cov, col, row);
+      design_matrix_set_element (cov, row, col, x);
+      design_matrix_set_element (cov, col, row, x);
     }
 }
 
@@ -778,7 +778,7 @@ covariance_matrix_insert (struct design_matrix *cov,
   col = get_exact_subscript (cov, v2, val2);
   if (row != -1u && col != -1u)
     {
-      gsl_matrix_set (cov->m, row, col, product);
+      design_matrix_set_element (cov, row, col, product);
     }
 }
 
@@ -811,6 +811,37 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
     }
   return false;
 }
+static double
+get_sum (const struct covariance_matrix *cov, size_t i)
+{
+  size_t k;
+  const struct variable *var;
+  const union value *val = NULL;
+  struct covariance_accumulator ca;
+  struct covariance_accumulator *c;
+
+  assert ( cov != NULL);
+  var = design_matrix_col_to_var (cov->cov, i);
+  if (var != NULL)
+    {
+      if (var_is_alpha (var))
+	{
+	  k = design_matrix_var_to_column (cov->cov, var);
+	  i -= k;
+	  val = cat_subscript_to_value (i, var);
+	}
+      ca.v1 = var;
+      ca.v2 = var;
+      ca.val1 = val;
+      ca.val2 = val;
+      c = (struct covariance_accumulator *) hsh_find (cov->ca, &ca);
+      if (c != NULL)
+	{
+	  return c->sum1;
+	}
+    }
+  return 0.0;
+}
 static void
 update_ssize (struct design_matrix *dm, size_t i, size_t j, struct covariance_accumulator *ca)
 {
@@ -822,9 +853,9 @@ update_ssize (struct design_matrix *dm, size_t i, size_t j, struct covariance_ac
       var = design_matrix_col_to_var (dm, j);
       if (var_get_dict_index (ca->v2) == var_get_dict_index (var))
 	{
-	  tmp = gsl_matrix_get (dm->m, i, j);
+	  tmp = design_matrix_get_element (dm, i, j);
 	  tmp += ca->ssize;
-	  gsl_matrix_set (dm->m, i, j, tmp);
+	  design_matrix_set_element (dm, i, j, tmp);
 	}
     }
 }
@@ -833,23 +864,26 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 {
   size_t i;
   size_t j;
-  double tmp;
+  double sum_i = 0.0;
+  double sum_j = 0.0;
+  double tmp = 0.0;
   struct covariance_accumulator *entry;
   struct hsh_iterator iter;
 
   cov->cov = covariance_matrix_create (cov->n_variables, cov->v_variables);
   cov->ssize = covariance_matrix_create (cov->n_variables, cov->v_variables);
-  cov->means = covariance_matrix_create (cov->n_variables, cov->v_variables);
+  cov->sums = covariance_matrix_create (cov->n_variables, cov->v_variables);
   for (i = 0; i < design_matrix_get_n_cols (cov->cov); i++)
     {
+      sum_i = get_sum (cov, i);
       for (j = i; j < design_matrix_get_n_cols (cov->cov); j++)
 	{
+	  sum_j = get_sum (cov, j);
 	  entry = hsh_first (cov->ca, &iter);
-	  
+	  design_matrix_set_element (cov->sums, i, j, sum_i);	  
 	  while (entry != NULL)
 	    {
 	      update_ssize (cov->ssize, i, j, entry);
-
 	      /*
 		We compute the centered, un-normalized covariance matrix.
 	      */
@@ -857,14 +891,12 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 		{
 		  covariance_matrix_insert (cov->cov, entry->v1, entry->v2, entry->val1,
 					    entry->val2, entry->dot_product);
-		  covariance_matrix_insert (cov->cov, entry->v1, entry->v2, entry->val1,
-					    entry->val2, entry->sum1 * entry->sum2);
 		}
 	      entry = hsh_next (cov->ca, &iter);
 	    }
-	  tmp = gsl_matrix_get (cov->cov->m, i, j);
-	  tmp -= gsl_matrix_get (cov->means->m, i, j) / gsl_matrix_get (cov->ssize->m, i, j);
-	  gsl_matrix_set (cov->cov->m, i, j, tmp);
+	  tmp = design_matrix_get_element (cov->cov, i, j);
+	  tmp -= sum_i * sum_j / design_matrix_get_element (cov->ssize, i, j);
+	  design_matrix_set_element (cov->cov, i, j, tmp);
 	} 
     }
 }
@@ -891,3 +923,10 @@ covariance_to_design (const struct covariance_matrix *c)
     }
   return NULL;
 }
+
+double 
+covariance_matrix_get_element (const struct covariance_matrix *c, size_t row, size_t col)
+{
+  return (design_matrix_get_element (c->cov, row, col));
+}
+
