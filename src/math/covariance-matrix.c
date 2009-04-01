@@ -148,7 +148,25 @@ covariance_matrix_init (size_t n_variables,
 
   return result;
 }
-
+static size_t 
+get_n_rows (size_t n_variables, size_t *v_variables[])
+{
+  size_t i;
+  size_t result = 0;
+  for (i = 0; i < n_variables; i++)
+    {
+      if (var_is_numeric (v_variables[i]))
+	{
+	  result++;
+	}
+      else if (var_is_alpha (v_variables[i]))
+	{
+	  size_t n_categories = cat_get_n_categories (v_variables[i]);
+	  result += n_categories - 1;
+	}
+    }
+  return result;
+}
 /*
   The covariances are stored in a DESIGN_MATRIX structure.
  */
@@ -156,8 +174,8 @@ struct design_matrix *
 covariance_matrix_create (size_t n_variables,
 			  const struct variable *v_variables[])
 {
-  return design_matrix_create (n_variables, v_variables,
-			       (size_t) n_variables);
+  size_t n_rows = get_n_rows (n_variables, v_variables);
+  return design_matrix_create (n_variables, v_variables, n_rows);
 }
 
 static void
