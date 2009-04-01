@@ -38,6 +38,7 @@
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
+#include <libpspp/i18n.h>
 #include <math/random.h>
 #include <output/journal.h>
 #include <output/output.h>
@@ -86,6 +87,7 @@ int tgetnum (const char *);
      journal=custom;
      log=custom;
      length=custom;
+     locale=custom;
      listing=custom;
      lowres=lores:auto/on/off;
      lpi=integer "x>0" "%s must be greater than 0";
@@ -362,6 +364,41 @@ stc_custom_length (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_se
 }
 
 static int
+stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
+		   struct cmd_set *cmd UNUSED, void *aux UNUSED)
+{
+  const struct string *s;
+
+  lex_match (lexer, '=');
+
+  if ( !lex_force_string (lexer))
+    return 0;
+
+  s = lex_tokstr (lexer);
+
+  lex_get (lexer);
+
+  /* First try this string as an encoding name */
+  if ( valid_encoding (ds_cstr (s)))
+    set_default_encoding (ds_cstr (s));
+
+  /* Now try as a locale name (or alias) */
+  else if (set_encoding_from_locale (ds_cstr (s)))
+    {
+    }
+  else
+    {
+      msg (ME, _("%s is not a recognised encoding or locale name"),
+	   ds_cstr (s));
+      return 0;
+    }
+
+  return 1;
+}
+
+
+
+static int
 stc_custom_seed (struct lexer *lexer, struct dataset *ds UNUSED, struct cmd_set *cmd UNUSED, void *aux UNUSED)
 {
   lex_match (lexer, '=');
@@ -590,6 +627,12 @@ show_length (const struct dataset *ds UNUSED)
 }
 
 static void
+show_locale (const struct dataset *ds UNUSED)
+{
+  msg (SN, _("LOCALE is %s"), get_default_encoding ());
+}
+
+static void
 show_mxerrs (const struct dataset *ds UNUSED)
 {
   msg (SN, _("MXERRS is %d."), settings_get_mxerrs ());
@@ -744,6 +787,7 @@ const struct show_sbc show_table[] =
     {"ERRORS", show_errors},
     {"FORMAT", show_format},
     {"LENGTH", show_length},
+    {"LOCALE", show_locale},
     {"MXERRS", show_mxerrs},
     {"MXLOOPS", show_mxloops},
     {"MXWARNS", show_mxwarns},

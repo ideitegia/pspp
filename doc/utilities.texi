@@ -374,8 +374,10 @@ SET
         /COMPRESSION=@{ON,OFF@}
         /SCOMPRESSION=@{ON,OFF@}
 
-(security)
+(miscellaneous)
         /SAFER=ON
+        /LOCALE='string'
+
 
 (obsolete settings accepted for compatibility, but ignored)
         /BOXSTRING=@{'xxx','xxxxxxxxxxx'@}
@@ -701,6 +703,37 @@ Be aware that this setting does not guarantee safety (commands can still
 overwrite files, for instance) but it is an improvement.
 When set, this setting cannot be reset during the same session, for
 obvious security reasons.
+
+@item LOCALE
+@cindex locale
+@cindex encoding, characters
+This item is used to set the default character encoding.
+The encoding may be specified either as an encoding name or alias
+(see @url{http://www.iana.org/assignments/character-sets}), or
+as a locale name.
+If given as a locale name, only the character encoding of the 
+locale is relevant.
+
+System files written by PSPP will use this encoding.
+System files read by PSPP, for which the encoding is unknown, will be
+interpreted using this encoding.
+
+The full list of valid encodings and locale names/alias are operating system
+dependent.
+The following are all examples of acceptable syntax on common GNU/Linux
+systems.
+@example
+
+SET LOCALE='iso-8859-1'.
+
+SET LOCALE='ru_RU.cp1251'.
+
+SET LOCALE='japanese'.
+
+@end example
+
+Contrary to the intuition, this command does not affect any aspect 
+of the system's locale.
 @end table
 
 @node SHOW

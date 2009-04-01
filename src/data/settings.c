@@ -24,6 +24,7 @@
 #include "xalloc.h"
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
+#include <libpspp/i18n.h>
 
 #include "error.h"
 
