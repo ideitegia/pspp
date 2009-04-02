@@ -427,4 +427,44 @@ diff -b  $TEMPDIR/pspp.list - << 'EOF'
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
+
+
+# Check for a bug caused by having string variables in the database,
+# all of which are null.
+
+activity="populate database 4"
+$pgpath/psql  -h $TEMPDIR -p $port  $dbase > /dev/null << EOF
+
+-- a table which has a text field containing only null, or zero
+-- length entries.
+
+CREATE TABLE foo (int4  int4, text text);
+
+INSERT INTO foo VALUES ('12', '');
+
+INSERT INTO foo VALUES (null, '');
+
+EOF
+if [ $? -ne 0 ] ; then fail ; fi
+
+
+activity="create program 4"
+cat > $TESTFILE <<EOF
+GET DATA /TYPE=psql 
+	/CONNECT="host=$TEMPDIR port=$port dbname=$dbase"
+	/UNENCRYPTED
+	/SQL="select * from foo".
+
+DISPLAY DICTIONARY.
+
+LIST.
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
+activity="run program 4"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
 pass;

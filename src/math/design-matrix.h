@@ -92,4 +92,6 @@ void design_matrix_set_case_count (struct design_matrix *, const struct variable
 size_t design_matrix_get_case_count (const struct design_matrix *, const struct variable *);
 size_t design_matrix_get_n_cols (const struct design_matrix *);
 size_t design_matrix_get_n_rows (const struct design_matrix *);
+double design_matrix_get_element (const struct design_matrix *, size_t, size_t);
+void design_matrix_set_element (const struct design_matrix *, size_t, size_t, double);
 #endif

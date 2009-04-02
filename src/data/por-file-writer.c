@@ -215,7 +215,8 @@ write_float (struct pfm_writer *w, double d)
   char buffer[64];
   format_trig_double (d, floor (d) == d ? DBL_DIG : w->digits, buffer);
   buf_write (w, buffer, strlen (buffer));
-  buf_write (w, "/", 1);
+  if (d != SYSMIS)
+    buf_write (w, "/", 1);
 }
 
 /* Write N to the portable file as an integer field. */

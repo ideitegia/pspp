@@ -270,4 +270,14 @@ design_matrix_get_n_rows (const struct design_matrix *d)
   return d->m->size1;
 }
 
+double
+design_matrix_get_element (const struct design_matrix *d, size_t row, size_t col)
+{
+  return (gsl_matrix_get (d->m, row, col));
+}
 
+void
+design_matrix_set_element (const struct design_matrix *d, size_t row, size_t col, double x)
+{
+  gsl_matrix_set (d->m, row, col, x);
+}
