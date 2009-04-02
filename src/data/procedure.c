@@ -36,6 +36,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <libpspp/taint.h>
+#include <libpspp/i18n.h>
 
 #include "xalloc.h"
 
@@ -547,6 +548,8 @@ create_dataset (void)
   ds->dict = dict_create ();
 
   dict_set_change_callback (ds->dict, dict_callback, ds);
+
+  dict_set_encoding (ds->dict, get_default_encoding ());
 
   ds->caseinit = caseinit_create ();
   proc_cancel_all_transformations (ds);
