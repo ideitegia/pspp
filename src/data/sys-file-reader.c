@@ -162,7 +162,9 @@ static void read_extension_record (struct sfm_reader *, struct dictionary *,
                                    struct sfm_read_info *);
 static void read_machine_integer_info (struct sfm_reader *,
                                        size_t size, size_t count,
-                                       struct sfm_read_info *);
+                                       struct sfm_read_info *,
+				       struct dictionary *
+				       );
 static void read_machine_float_info (struct sfm_reader *,
                                      size_t size, size_t count);
 static void read_display_parameters (struct sfm_reader *,
@@ -725,7 +727,7 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
   switch (subtype)
     {
     case 3:
-      read_machine_integer_info (r, size, count, info);
+      read_machine_integer_info (r, size, count, info, dict);
       return;
 
     case 4:
@@ -804,7 +806,8 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
 /* Read record type 7, subtype 3. */
 static void
 read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count,
-                           struct sfm_read_info *info)
+                           struct sfm_read_info *info,
+			   struct dictionary *dict)
 {
   int version_major = read_int (r);
   int version_minor = read_int (r);
@@ -813,7 +816,7 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count,
   int float_representation = read_int (r);
   int compression_code UNUSED = read_int (r);
   int integer_representation = read_int (r);
-  int character_code UNUSED = read_int (r);
+  int character_code = read_int (r);
 
   int expected_float_format;
   int expected_integer_format;
@@ -857,6 +860,47 @@ read_machine_integer_info (struct sfm_reader *r, size_t size, size_t count,
                      "differs from expected (%s)."),
                 gettext (endian[integer_representation == 1]),
                 gettext (endian[expected_integer_format == 1]));
+    }
+
+
+  /*
+    Record 7 (20) provides a much more reliable way of
+    setting the encoding.
+    The character_code is used as a fallback only.
+  */
+  if ( NULL == dict_get_encoding (dict))
+    {
+      switch (character_code)
+	{
+	case 1:
+	  dict_set_encoding (dict, "EBCDIC-US");
+	  break;
+	case 2:
+	case 3:
+	  /* These ostensibly mean "7-bit ASCII" and "8-bit ASCII"[sic]
+	     respectively.   However, there are known to be many files
+	     in the wild with character code 2, yet have data which are
+	     clearly not ascii.
+	     Therefore we ignore these values.
+	  */
+	  return;
+	case 4:
+	  dict_set_encoding (dict, "MS_KANJI");
+	  break;
+	case 65000:
+	  dict_set_encoding (dict, "UTF-7");
+	  break;
+	case 65001:
+	  dict_set_encoding (dict, "UTF-8");
+	  break;
+	default:
+	  {
+	    char enc[100];
+	    snprintf (enc, 100, "CP%d", character_code);
+	    dict_set_encoding (dict, enc);
+	  }
+	  break;
+	};
     }
 }
 
