@@ -467,14 +467,15 @@ psppire_var_store_set_string (PsppireSheetModel *model,
     {
     case PSPPIRE_VAR_STORE_COL_NAME:
       {
-	int i;
-	/* Until non-ascii in variable names is better managed,
-	   simply refuse to allow them to be entered. */
-	for (i = 0 ; i < strlen (text) ; ++i )
-	  if (!g_ascii_isprint (text[i]))
-	    return FALSE;
-	return psppire_dict_rename_var (var_store->dict, pv, text);
-	break;
+	gboolean ok;
+	char *s = recode_string (psppire_dict_encoding (var_store->dict),
+				 UTF8,
+				 text, -1);
+
+	ok =  psppire_dict_rename_var (var_store->dict, pv, s);
+
+	free (s);
+	return ok;
       }
     case PSPPIRE_VAR_STORE_COL_COLUMNS:
       if ( ! text) return FALSE;
