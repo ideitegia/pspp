@@ -69,6 +69,7 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/rank.ui \
 	$(top_builddir)/src/ui/gui/recode.ui \
 	$(top_builddir)/src/ui/gui/regression.ui \
+	$(top_builddir)/src/ui/gui/reliability.ui \
 	$(top_builddir)/src/ui/gui/syntax-editor.ui \
 	$(top_builddir)/src/ui/gui/text-data-import.ui \
 	$(top_builddir)/src/ui/gui/t-test.ui \
@@ -178,6 +179,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/recode-dialog.h \
 	src/ui/gui/regression-dialog.c \
 	src/ui/gui/regression-dialog.h \
+	src/ui/gui/reliability-dialog.c \
+	src/ui/gui/reliability-dialog.h \
 	src/ui/gui/select-cases-dialog.c \
 	src/ui/gui/select-cases-dialog.h \
 	src/ui/gui/sort-cases-dialog.c \
@@ -224,6 +227,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/rank.glade \
 	src/ui/gui/recode.glade \
 	src/ui/gui/regression.glade \
+	src/ui/gui/reliability.glade \
 	src/ui/gui/syntax-editor.glade \
 	src/ui/gui/text-data-import.glade \
 	src/ui/gui/t-test.glade \

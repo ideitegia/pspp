@@ -54,6 +54,7 @@
 #include "frequencies-dialog.h"
 #include "examine-dialog.h"
 #include "regression-dialog.h"
+#include "reliability-dialog.h"
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
 #include "t-test-one-sample.h"
@@ -1654,7 +1655,22 @@ psppire_data_window_init (PsppireDataWindow *de)
 		      G_CALLBACK (regression_dialog), de);
   }
 
-  { 
+  {
+    GtkAction *invoke_reliability_dialog =
+      resolve_action (de->builder, "reliability", NULL);
+
+    g_object_set (invoke_reliability_dialog,
+		  "tooltip", _("Reliability Analysis"),
+		  "stock-id", "pspp-reliability",
+		  NULL
+		  );
+
+    g_signal_connect (invoke_reliability_dialog, "activate",
+		      G_CALLBACK (reliability_dialog), de);
+  }
+
+
+  {
     GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
     GtkWidget *recent_data =
