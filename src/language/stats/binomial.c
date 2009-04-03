@@ -114,22 +114,32 @@ do_binomial (const struct dictionary *dict,
 	  if (var_is_value_missing (var, value, exclude))
 	    continue;
 
-	  if ( NULL == cat1[v].value )
+	  if (bst->cutpoint != SYSMIS)
 	    {
-	      cat1[v].value = value_dup (value, width);
-	      cat1[v].count = w;
+	      if ( compare_values_short (cat1[v].value, value, var) >= 0 )
+		  cat1[v].count  += w;
+	      else
+		  cat2[v].count += w;
 	    }
-	  else if ( 0 == compare_values_short (cat1[v].value, value, var))
-	    cat1[v].count += w;
-	  else if ( NULL == cat2[v].value )
+	  else
 	    {
-	      cat2[v].value = value_dup (value, width);
-	      cat2[v].count = w;
+	      if ( NULL == cat1[v].value )
+		{
+		  cat1[v].value = value_dup (value, width);
+		  cat1[v].count = w;
+		}
+	      else if ( 0 == compare_values_short (cat1[v].value, value, var))
+		cat1[v].count += w;
+	      else if ( NULL == cat2[v].value )
+		{
+		  cat2[v].value = value_dup (value, width);
+		  cat2[v].count = w;
+		}
+	      else if ( 0 == compare_values_short (cat2[v].value, value, var))
+		cat2[v].count += w;
+	      else if ( bst->category1 == SYSMIS)
+		msg (ME, _("Variable %s is not dichotomous"), var_get_name (var));
 	    }
-	  else if ( 0 == compare_values_short (cat2[v].value, value, var))
-	    cat2[v].count += w;
-	  else if ( bst->category1 == SYSMIS)
-	    msg (ME, _("Variable %s is not dichotomous"), var_get_name (var));
 	}
 
       case_unref (c);
@@ -154,9 +164,17 @@ binomial_execute (const struct dataset *ds,
   struct freq_mutable *cat1 = xzalloc (sizeof (*cat1) * ost->n_vars);
   struct freq_mutable *cat2 = xzalloc (sizeof (*cat1) * ost->n_vars);
 
-  assert ((bst->category1 == SYSMIS) == (bst->category2 == SYSMIS) );
+  assert ((bst->category1 == SYSMIS) == (bst->category2 == SYSMIS) || bst->cutpoint != SYSMIS);
 
-  if ( bst->category1 != SYSMIS )
+  if ( bst->cutpoint != SYSMIS )
+    {
+      int i;
+      union value v;
+      v.f = bst->cutpoint;
+      for (i = 0; i < ost->n_vars; i++)
+	cat1[i].value = value_dup (&v, 0);
+    }
+  else  if ( bst->category1 != SYSMIS )
     {
       int i;
       union value v;
@@ -197,8 +215,15 @@ binomial_execute (const struct dataset *ds,
 	  ds_init_empty (&catstr1);
 	  ds_init_empty (&catstr2);
 
-	  var_append_value_name (var, cat1[v].value, &catstr1);
-	  var_append_value_name (var, cat2[v].value, &catstr2);
+	  if ( bst->cutpoint != SYSMIS)
+	    {
+	      ds_put_format (&catstr1, "<= %g", bst->cutpoint);
+	    }
+	  else
+	    {
+	      var_append_value_name (var, cat1[v].value, &catstr1);
+	      var_append_value_name (var, cat2[v].value, &catstr2);
+	    }
 
           tab_hline (table, TAL_1, 0, tab_nc (table) -1, 1 + v * 3);
 

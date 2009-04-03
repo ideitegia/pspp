@@ -208,6 +208,36 @@ WEIGHT BY w.
 NPAR TESTS
 	/BINOMIAL(0.5) = x
 	.
+
+ECHO 'P == 0.5; N1/N2 == 1 Cutpoint' .
+
+DATA LIST LIST NOTABLE /x * w *.
+BEGIN DATA.
+9    3
+10   7
+11   16
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.5) = x (10)
+	.
+
+ECHO 'P == 0.5; N1/N2 == 1 Named values' .
+
+DATA LIST LIST NOTABLE /x * w *.
+BEGIN DATA.
+10   10
+15   45
+20   13
+END DATA.
+
+WEIGHT BY w.
+
+NPAR TESTS
+	/BINOMIAL(0.5) = x (10, 20)
+	.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
@@ -299,6 +329,24 @@ P == 0.5; N1/N2 == 1
 |x|Group1#    1.00|10|          .500|      .500|                1.000|
 | |Group2#    2.00|10|          .500|          |                     |
 | |Total #        |20|          1.00|          |                     |
++-+------#--------+--+--------------+----------+---------------------+
+P == 0.5; N1/N2 == 1 Cutpoint
+10.1 NPAR TESTS.  Binomial Test
++-+------#--------+--+--------------+----------+---------------------+
+| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (2-tailed)|
++-+------#--------+--+--------------+----------+---------------------+
+|x|Group1#   <= 10|10|          .385|      .500|                 .327|
+| |Group2#        |16|          .615|          |                     |
+| |Total #        |26|          1.00|          |                     |
++-+------#--------+--+--------------+----------+---------------------+
+P == 0.5; N1/N2 == 1 Named values
+11.1 NPAR TESTS.  Binomial Test
++-+------#--------+--+--------------+----------+---------------------+
+| |      #Category| N|Observed Prop.|Test Prop.|Exact Sig. (2-tailed)|
++-+------#--------+--+--------------+----------+---------------------+
+|x|Group1#   10.00|10|          .435|      .500|                 .678|
+| |Group2#   20.00|13|          .565|          |                     |
+| |Total #        |23|          1.00|          |                     |
 +-+------#--------+--+--------------+----------+---------------------+
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
