@@ -509,7 +509,10 @@ psppire_dict_view_init (PsppireDictView *dict_view)
 
   gtk_tree_view_append_column (GTK_TREE_VIEW (dict_view), col);
 
-  g_object_set (dict_view, "has-tooltip", TRUE, NULL);
+  g_object_set (dict_view,
+		"has-tooltip", TRUE,
+		"headers-visible", FALSE,
+		NULL);
 
   g_signal_connect (dict_view, "query-tooltip",
 		    G_CALLBACK (set_tooltip_for_variable), NULL);
