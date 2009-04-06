@@ -23,7 +23,7 @@
 
 #include <language/syntax-string-source.h>
 #include "psppire-data-store.h"
-#include <ui/gui/sheet/psppire-axis-impl.h>
+#include <ui/gui/sheet/psppire-axis.h>
 #include "helper.h"
 
 #include <gtk-contrib/gtkxpaned.h>
@@ -220,8 +220,8 @@ new_data_callback (PsppireDataStore *ds, gpointer data)
 
   for (i = 0; i < 2; ++i)
     {
-      psppire_axis_impl_clear (de->vaxis[i]);
-      psppire_axis_impl_append_n (de->vaxis[i], n_cases, DEFAULT_ROW_HEIGHT);
+      psppire_axis_clear (de->vaxis[i]);
+      psppire_axis_append_n (de->vaxis[i], n_cases, DEFAULT_ROW_HEIGHT);
     }
 }
 
@@ -232,7 +232,7 @@ case_inserted_callback (PsppireDataStore *ds, gint before, gpointer data)
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
   for (i = 0; i < 2; ++i)
-    psppire_axis_impl_insert (de->vaxis[i], before, DEFAULT_ROW_HEIGHT);
+    psppire_axis_insert (de->vaxis[i], before, DEFAULT_ROW_HEIGHT);
 }
 
 
@@ -243,7 +243,7 @@ cases_deleted_callback (PsppireDataStore *ds, gint first, gint n_cases, gpointer
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
   for (i = 0; i < 2; ++i)
-    psppire_axis_impl_delete (de->vaxis[0], first, n_cases);
+    psppire_axis_delete (de->vaxis[0], first, n_cases);
 }
 
 
@@ -288,22 +288,22 @@ new_variables_callback (PsppireDict *dict, gpointer data)
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
   gint m_width = width_of_m (GTK_WIDGET (de));
 
-  PsppireAxisImpl *vaxis;
+  PsppireAxis *vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &vaxis, NULL);
 
-  psppire_axis_impl_clear (vaxis);
-  psppire_axis_impl_append_n (vaxis, 1 + psppire_dict_get_var_cnt (dict), DEFAULT_ROW_HEIGHT);
+  psppire_axis_clear (vaxis);
+  psppire_axis_append_n (vaxis, 1 + psppire_dict_get_var_cnt (dict), DEFAULT_ROW_HEIGHT);
 
   g_signal_connect_swapped (de->haxis, "resize-unit",
 			    G_CALLBACK (rewidth_variable), de);
 
-  psppire_axis_impl_clear (de->haxis);
+  psppire_axis_clear (de->haxis);
 
   for (v = 0 ; v < psppire_dict_get_var_cnt (dict); ++v)
     {
       const struct variable *var = psppire_dict_get_variable (dict, v);
 
-      psppire_axis_impl_append (de->haxis, m_width * var_get_display_width (var));
+      psppire_axis_append (de->haxis, m_width * var_get_display_width (var));
     }
 }
 
@@ -314,16 +314,16 @@ insert_variable_callback (PsppireDict *dict, gint x, gpointer data)
 
   gint m_width  = width_of_m (GTK_WIDGET (de));
 
-  PsppireAxisImpl *var_vaxis;
+  PsppireAxis *var_vaxis;
 
   const struct variable *var = psppire_dict_get_variable (dict, x);
 
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
 
-  psppire_axis_impl_insert (var_vaxis, x, DEFAULT_ROW_HEIGHT);
+  psppire_axis_insert (var_vaxis, x, DEFAULT_ROW_HEIGHT);
 
 
-  psppire_axis_impl_insert (de->haxis, x, m_width * var_get_display_width (var));
+  psppire_axis_insert (de->haxis, x, m_width * var_get_display_width (var));
 }
 
 
@@ -333,12 +333,12 @@ delete_variable_callback (PsppireDict *dict, gint posn,
 {
   PsppireDataEditor *de = PSPPIRE_DATA_EDITOR (data);
 
-  PsppireAxisImpl *var_vaxis;
+  PsppireAxis *var_vaxis;
   g_object_get (de->var_sheet, "vertical-axis", &var_vaxis, NULL);
 
-  psppire_axis_impl_delete (var_vaxis, posn, 1);
+  psppire_axis_delete (var_vaxis, posn, 1);
 
-  psppire_axis_impl_delete (de->haxis, posn, 1);
+  psppire_axis_delete (de->haxis, posn, 1);
 }
 
 
@@ -356,7 +356,7 @@ rewidth_variable_callback (PsppireDict *dict, gint posn, gpointer data)
   if ( var_width < 1 )
     var_width = 1;
 
-  psppire_axis_impl_resize (de->haxis, posn, m_width * var_width);
+  psppire_axis_resize (de->haxis, posn, m_width * var_width);
 }
 
 
@@ -822,8 +822,8 @@ on_map (GtkWidget *w)
 static void
 init_sheet (PsppireDataEditor *de, int i,
 	    GtkAdjustment *hadj, GtkAdjustment *vadj,
-	    PsppireAxisImpl *vaxis,
-	    PsppireAxisImpl *haxis
+	    PsppireAxis *vaxis,
+	    PsppireAxis *haxis
 	    )
 {
   de->sheet_bin[i] = gtk_scrolled_window_new (hadj, vadj);
@@ -859,12 +859,12 @@ init_data_sheet (PsppireDataEditor *de)
   GtkAdjustment *vadj1, *hadj1;
   GtkWidget *sheet ;
 
-  de->vaxis[0] = psppire_axis_impl_new ();
-  de->vaxis[1] = psppire_axis_impl_new ();
+  de->vaxis[0] = psppire_axis_new ();
+  de->vaxis[1] = psppire_axis_new ();
 
   /* There's only one horizontal axis, since the
      column widths are parameters of the variables */
-  de->haxis = psppire_axis_impl_new ();
+  de->haxis = psppire_axis_new ();
 
   de->split = TRUE;
   de->paned = gtk_xpaned_new ();

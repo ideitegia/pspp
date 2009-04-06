@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2006, 2008 Free Software Foundation
+   Copyright (C) 2006, 2008, 2009 Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -69,7 +69,9 @@
 #include "psppire-sheet.h"
 #include <ui/gui/psppire-marshal.h>
 #include <ui/gui/sheet/psppire-sheetmodel.h>
+#include <ui/gui/sheet/psppire-axis.h>
 #include <libpspp/misc.h>
+
 #include <math.h>
 
 /* sheet flags */
