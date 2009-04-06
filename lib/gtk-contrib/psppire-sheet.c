@@ -699,6 +699,7 @@ enum
     PROP_0,
     PROP_VAXIS,
     PROP_HAXIS,
+    PROP_CELL_PADDING,
     PROP_MODEL
   };
 
@@ -758,6 +759,7 @@ psppire_sheet_set_vertical_axis (PsppireSheet *sheet, PsppireAxis *a)
     g_object_ref (sheet->vaxis);
 }
 
+static const GtkBorder default_cell_padding = { 3, 3, 2, 2 };
 
 static void
 psppire_sheet_set_property (GObject         *object,
@@ -770,11 +772,37 @@ psppire_sheet_set_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_CELL_PADDING:
+      if ( sheet->cell_padding)
+	g_boxed_free (GTK_TYPE_BORDER, sheet->cell_padding);
+
+      sheet->cell_padding = g_value_dup_boxed (value);
+
+     if (NULL == sheet->cell_padding)
+       sheet->cell_padding = g_boxed_copy (GTK_TYPE_BORDER,
+					   &default_cell_padding);
+
+     if (sheet->vaxis)
+       g_object_set (sheet->vaxis, "padding",
+		     sheet->cell_padding->top + sheet->cell_padding->bottom,
+		     NULL);
+
+     if (sheet->haxis)
+       g_object_set (sheet->haxis, "padding",
+		     sheet->cell_padding->left + sheet->cell_padding->right,
+		     NULL);
+      break;
     case PROP_VAXIS:
       psppire_sheet_set_vertical_axis (sheet, g_value_get_pointer (value));
+      g_object_set (sheet->vaxis, "padding",
+		    sheet->cell_padding->top + sheet->cell_padding->bottom,
+		    NULL);
       break;
     case PROP_HAXIS:
       psppire_sheet_set_horizontal_axis (sheet, g_value_get_pointer (value));
+      g_object_set (sheet->haxis, "padding",
+		    sheet->cell_padding->left + sheet->cell_padding->right,
+		    NULL);
       break;
     case PROP_MODEL:
       psppire_sheet_set_model (sheet, g_value_get_pointer (value));
@@ -795,6 +823,9 @@ psppire_sheet_get_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_CELL_PADDING:
+      g_value_set_boxed (value, sheet->cell_padding);
+      break;
     case PROP_VAXIS:
       g_value_set_pointer (value, sheet->vaxis);
       break;
@@ -819,6 +850,7 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   GParamSpec *haxis_spec ;
   GParamSpec *vaxis_spec ;
   GParamSpec *model_spec ;
+  GParamSpec *cell_padding_spec ;
 
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
@@ -1020,6 +1052,12 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   object_class->dispose = psppire_sheet_dispose;
   object_class->finalize = psppire_sheet_finalize;
 
+  cell_padding_spec =
+    g_param_spec_boxed ("cell-padding",
+			"Cell Padding",
+			"The space between a cell's contents and its border",
+			GTK_TYPE_BORDER,
+			G_PARAM_CONSTRUCT | G_PARAM_READABLE | G_PARAM_WRITABLE);
 
   vaxis_spec =
     g_param_spec_pointer ("vertical-axis",
@@ -1050,6 +1088,10 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   g_object_class_install_property (object_class,
                                    PROP_HAXIS,
                                    haxis_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_CELL_PADDING,
+                                   cell_padding_spec);
 
   g_object_class_install_property (object_class,
                                    PROP_MODEL,
@@ -1754,6 +1796,9 @@ psppire_sheet_dispose  (GObject *object)
 
   sheet->dispose_has_run = TRUE;
 
+  if ( sheet->cell_padding)
+    g_boxed_free (GTK_TYPE_BORDER, sheet->cell_padding);
+
   if (sheet->model) g_object_unref (sheet->model);
   if (sheet->vaxis) g_object_unref (sheet->vaxis);
   if (sheet->haxis) g_object_unref (sheet->haxis);
@@ -2174,6 +2219,19 @@ psppire_sheet_cell_draw (PsppireSheet *sheet, gint row, gint col)
   font_height = pango_font_description_get_size (font_desc);
   if ( !pango_font_description_get_size_is_absolute (font_desc))
     font_height /= PANGO_SCALE;
+
+
+  if ( sheet->cell_padding )
+    {
+      area.x += sheet->cell_padding->left;
+      area.width -= sheet->cell_padding->right
+	+ sheet->cell_padding->left;
+
+      area.y += sheet->cell_padding->top;
+      area.height -= sheet->cell_padding->bottom
+	+
+	sheet->cell_padding->top;
+    }
 
   /* Centre the text vertically */
   area.y += (area.height - font_height) / 2.0;
@@ -5221,7 +5279,9 @@ set_column_width (PsppireSheet *sheet,
   if ( width <= 0)
     return;
 
-  psppire_axis_resize (sheet->haxis, column, width);
+  psppire_axis_resize (sheet->haxis, column,
+		       width - sheet->cell_padding->left -
+		       sheet->cell_padding->right);
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)))
     {
@@ -5246,7 +5306,9 @@ set_row_height (PsppireSheet *sheet,
   if (height <= 0)
     return;
 
-  psppire_axis_resize (sheet->vaxis, row, height);
+  psppire_axis_resize (sheet->vaxis, row,
+		       height - sheet->cell_padding->top -
+		       sheet->cell_padding->bottom);
 
   if (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)) )
     {

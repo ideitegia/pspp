@@ -53,6 +53,7 @@ struct _PsppireAxis
 
   glong min_extent;
   gint default_size;
+  gint padding;
 };
 
 struct _PsppireAxisClass
@@ -70,7 +71,6 @@ PsppireAxis*   psppire_axis_new (void);
 void psppire_axis_insert (PsppireAxis *a, gint posn, gint size);
 
 void psppire_axis_append (PsppireAxis *a, gint size);
-
 
 void psppire_axis_append_n (PsppireAxis *a, gint n_units, gint size);
 

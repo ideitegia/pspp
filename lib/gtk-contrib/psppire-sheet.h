@@ -139,6 +139,9 @@ struct _PsppireSheet
   /* selected range */
   PsppireSheetRange range;
 
+  /* The space between a cell's contents and its border */
+  GtkBorder *cell_padding;
+
   /* the scrolling window and its height and width to
    * make things a little speedier */
   GdkWindow *sheet_window;

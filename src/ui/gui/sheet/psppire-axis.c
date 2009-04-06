@@ -69,6 +69,29 @@ psppire_axis_dump (const PsppireAxis *a)
   g_debug ("\n");
 }
 
+/* Increment the size of every unit by INC.
+   Note that INC is signed. So if INC is negative,
+   then size will end up smaller.
+*/
+static void
+axis_increment (PsppireAxis *axis, gint inc)
+{
+  struct tower_node *n = tower_first (&axis->pixel_tower);
+
+  while (n)
+    {
+      struct axis_node *an = tower_data (n, struct axis_node, pixel_node);
+      struct tower_node *pn = &an->pixel_node;
+      const gint existing_size = tower_node_get_size (pn);
+
+      tower_resize (&axis->pixel_tower, pn, existing_size + inc *
+		    tower_node_get_size (&an->unit_node));
+
+      n = tower_next (&axis->pixel_tower, n);
+    }
+}
+
+
 /* Return the unit covered by PIXEL */
 gint
 psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel)
@@ -104,15 +127,15 @@ psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel)
 gint
 psppire_axis_unit_count (const PsppireAxis *a)
 {
-  glong padding = 0;
+  glong filler = 0;
   glong actual_size;
 
   actual_size = tower_height (&a->pixel_tower);
 
   if ( actual_size < a->min_extent )
-    padding = DIV_RND_UP (a->min_extent - actual_size, a->default_size);
+    filler = DIV_RND_UP (a->min_extent - actual_size, a->default_size);
 
-  return tower_height (&a->unit_tower) + padding;
+  return tower_height (&a->unit_tower) + filler;
 }
 
 
@@ -216,7 +239,8 @@ enum
   {
     PROP_0,
     PROP_MIN_EXTENT,
-    PROP_DEFAULT_SIZE
+    PROP_DEFAULT_SIZE,
+    PROP_PADDING
   };
 
 
@@ -230,6 +254,9 @@ psppire_axis_get_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_PADDING:
+      g_value_set_int (value, axis->padding);
+      break;
     case PROP_MIN_EXTENT:
       g_value_set_long (value, axis->min_extent);
       break;
@@ -253,6 +280,13 @@ psppire_axis_set_property (GObject         *object,
 
   switch (prop_id)
     {
+    case PROP_PADDING:
+      {
+	const gint old_value = axis->padding;
+	axis->padding = g_value_get_int (value);
+	axis_increment (axis, axis->padding - old_value);
+      }
+      break;
     case PROP_MIN_EXTENT:
       axis->min_extent = g_value_get_long (value);
       break;
@@ -271,7 +305,7 @@ psppire_axis_class_init (PsppireAxisClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-
+  GParamSpec *padding_spec;
   GParamSpec *min_extent_spec;
   GParamSpec *default_size_spec;
 
@@ -307,6 +341,20 @@ psppire_axis_class_init (PsppireAxisClass *class)
                                    PROP_DEFAULT_SIZE,
                                    default_size_spec);
 
+  padding_spec =
+    g_param_spec_int ("padding",
+		      "Padding",
+		      "Extra space implicitly added to each unit",
+		      0, G_MAXINT,
+		      0,
+		      G_PARAM_CONSTRUCT | G_PARAM_WRITABLE | G_PARAM_READABLE );
+
+
+  g_object_class_install_property (object_class,
+                                   PROP_PADDING,
+                                   padding_spec);
+
+
 
   signals[RESIZE_UNIT] =
     g_signal_new ("resize-unit",
@@ -333,6 +381,7 @@ psppire_axis_init (PsppireAxis *axis)
   tower_init (&axis->unit_tower);
 
   axis->pool = pool_create ();
+  axis->padding = 0;
 }
 
 
@@ -367,6 +416,10 @@ psppire_axis_append (PsppireAxis *a, gint size)
 }
 
 
+/* Append N_UNITS of size SIZE to A.
+   The value of the "padding" property will be added to SIZE
+   unit before appending.
+*/
 void
 psppire_axis_append_n (PsppireAxis *a, gint n_units, gint size)
 {
@@ -378,7 +431,8 @@ psppire_axis_append_n (PsppireAxis *a, gint n_units, gint size)
   node = pool_malloc (a->pool, sizeof *node);
 
   tower_insert (&a->unit_tower, n_units, &node->unit_node, NULL);
-  tower_insert (&a->pixel_tower, size * n_units, &node->pixel_node, NULL);
+  tower_insert (&a->pixel_tower, (size + a->padding) * n_units,
+    &node->pixel_node, NULL);
 }
 
 
@@ -433,7 +487,10 @@ split (PsppireAxis *a, gint posn)
 }
 
 
-/* Insert a new unit of size SIZE before POSN */
+/* Insert a new unit of size SIZE before POSN.
+   The value of the "padding" property will be added to SIZE before
+   the unit is inserted.
+ */
 void
 psppire_axis_insert (PsppireAxis *a, gint posn, gint size)
 {
@@ -464,7 +521,7 @@ psppire_axis_insert (PsppireAxis *a, gint posn, gint size)
 		before ? &before->unit_node : NULL);
 
   tower_insert (&a->pixel_tower,
-		size,
+		size + a->padding,
 		&new_node->pixel_node,
 		before ? &before->pixel_node : NULL);
 }
@@ -500,6 +557,10 @@ make_single (PsppireAxis *a, gint posn)
 }
 
 
+/*
+  Set the size of the unit at POSN to be SIZE plus the
+  current value of "padding"
+ */
 void
 psppire_axis_resize (PsppireAxis *axis, gint posn, glong size)
 {
@@ -514,9 +575,9 @@ psppire_axis_resize (PsppireAxis *axis, gint posn, glong size)
 
   an = make_single (axis, posn);
 
-  tower_resize (&axis->pixel_tower, &an->pixel_node, size);
+  tower_resize (&axis->pixel_tower, &an->pixel_node, size + axis->padding);
 
-  g_signal_emit (axis, signals[RESIZE_UNIT], 0, posn, size);
+  g_signal_emit (axis, signals[RESIZE_UNIT], 0, posn, size + axis->padding);
 }
 
 
