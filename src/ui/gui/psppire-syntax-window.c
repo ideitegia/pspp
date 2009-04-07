@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -229,7 +229,8 @@ append_suffix (const gchar *filename)
 
 /*
   Save BUFFER to the file called FILENAME.
-  If successful, clears the buffer's modified flag
+  FILENAME must be encoded in Glib filename encoding.
+  If successful, clears the buffer's modified flag.
 */
 static gboolean
 save_editor_to_file (PsppireSyntaxWindow *se,
@@ -242,28 +243,24 @@ save_editor_to_file (PsppireSyntaxWindow *se,
   gchar *text;
 
   gchar *suffixedname;
-  gchar *glibfilename;
   g_assert (filename);
 
   suffixedname = append_suffix (filename);
-
-  glibfilename = g_filename_from_utf8 (suffixedname, -1, 0, 0, err);
-
-  g_free ( suffixedname);
-
-  if ( ! glibfilename )
-    return FALSE;
 
   gtk_text_buffer_get_iter_at_line (buffer, &start, 0);
   gtk_text_buffer_get_iter_at_offset (buffer, &stop, -1);
 
   text = gtk_text_buffer_get_text (buffer, &start, &stop, FALSE);
 
-  result =  g_file_set_contents (glibfilename, text, -1, err);
+  result =  g_file_set_contents (suffixedname, text, -1, err);
+
+  g_free (suffixedname);
 
   if ( result )
     {
-      gchar *msg = g_strdup_printf (_("Saved file \"%s\""), filename);
+      char *fn = g_filename_display_name (filename);
+      gchar *msg = g_strdup_printf (_("Saved file \"%s\""), fn);
+      g_free (fn);
       gtk_statusbar_push (GTK_STATUSBAR (se->sb), se->text_context, msg);
       gtk_text_buffer_set_modified (buffer, FALSE);
       g_free (msg);
