@@ -978,3 +978,5 @@ get_fmt_desc (enum fmt_type type)
   assert (is_fmt_type (type));
   return &formats[type];
 }
+
+const struct fmt_spec F_8_0 = {FMT_F, 8, 0};

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include <data/procedure.h>
 #include <data/value-labels.h>
 #include <data/variable.h>
+#include <data/format.h>
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
@@ -114,12 +115,13 @@ static int examine_parse_independent_vars (struct lexer *lexer, const struct dic
 
 /* Output functions */
 static void show_summary (const struct variable **dependent_var, int n_dep_var,
-			 const struct factor *f);
+			  const struct dictionary *dict,
+			  const struct factor *f);
 
 static void show_extremes (const struct variable **dependent_var,
-			  int n_dep_var,
-			  const struct factor *factor,
-			  int n_extremities);
+			   int n_dep_var,
+			   const struct factor *factor,
+			   int n_extremities);
 
 static void show_descriptives (const struct variable **dependent_var,
 			      int n_dep_var,
@@ -152,7 +154,7 @@ void box_plot_variables (const struct factor *fctr,
 static void run_examine (struct cmd_examine *, struct casereader *,
                          struct dataset *);
 
-static void output_examine (void);
+static void output_examine (const struct dictionary *dict);
 
 
 void factor_calc (const struct ccase *c, int case_no,
@@ -260,14 +262,14 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 
 /* Show all the appropriate tables */
 static void
-output_examine (void)
+output_examine (const struct dictionary *dict)
 {
   struct factor *fctr;
 
   /* Show totals if appropriate */
   if ( ! cmd.sbc_nototal || factors == 0 )
     {
-      show_summary (dependent_vars, n_dependent_vars, 0);
+      show_summary (dependent_vars, n_dependent_vars, dict, 0);
 
       if ( cmd.sbc_statistics )
 	{
@@ -334,7 +336,7 @@ output_examine (void)
   fctr = factors;
   while ( fctr )
     {
-      show_summary (dependent_vars, n_dependent_vars, fctr);
+      show_summary (dependent_vars, n_dependent_vars, dict, fctr);
 
       if ( cmd.sbc_statistics )
 	{
@@ -621,17 +623,20 @@ examine_parse_independent_vars (struct lexer *lexer, const struct dictionary *di
 
 
 
-void populate_percentiles (struct tab_table *tbl, int col, int row,
-			  const struct metrics *m);
+static void populate_percentiles (struct tab_table *tbl, int col, int row,
+				  const struct metrics *m);
 
-void populate_descriptives (struct tab_table *t, int col, int row,
-			   const struct metrics *fs);
+static void populate_descriptives (struct tab_table *t, int col, int row,
+				   const struct variable *,
+				   const struct metrics *fs);
 
-void populate_extremes (struct tab_table *t, int col, int row, int n,
-		       const struct metrics *m);
+static void populate_extremes (struct tab_table *t, int col, int row, int n,
+			       const struct variable *var,
+			       const struct metrics *m);
 
-void populate_summary (struct tab_table *t, int col, int row,
-		      const struct metrics *m);
+static void populate_summary (struct tab_table *t, int col, int row,
+			      const struct dictionary *dict,
+			      const struct metrics *m);
 
 
 
@@ -893,7 +898,7 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
     }
 
   if (ok)
-    output_examine ();
+    output_examine (dict);
 
 
   if ( totals )
@@ -909,7 +914,8 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 
 static void
 show_summary (const struct variable **dependent_var, int n_dep_var,
-	     const struct factor *fctr)
+	      const struct dictionary *dict,
+	      const struct factor *fctr)
 {
   static const char *subtitle[]=
     {
@@ -1039,6 +1045,7 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
       if ( !fctr )
 	populate_summary (tbl, heading_columns,
 			 (i * n_factors) + heading_rows,
+			  dict,
 			 &totals[i]);
       else
 	{
@@ -1093,6 +1100,7 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 	      populate_summary (tbl, heading_columns,
 				(i * n_factors) + count
 				+ heading_rows,
+				dict,
 				& (*fs)->m[i]);
 
 	      count++ ;
@@ -1105,16 +1113,22 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 }
 
 
-void
+static void
 populate_summary (struct tab_table *t, int col, int row,
-		 const struct metrics *m)
+		  const struct dictionary *dict,
+		  const struct metrics *m)
 
 {
   const double total = m->n + m->n_missing ;
 
-  tab_float (t, col + 0, row + 0, TAB_RIGHT, m->n, 8, 0);
-  tab_float (t, col + 2, row + 0, TAB_RIGHT, m->n_missing, 8, 0);
-  tab_float (t, col + 4, row + 0, TAB_RIGHT, total, 8, 0);
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
+  tab_double (t, col + 0, row + 0, TAB_RIGHT, m->n, wfmt);
+
+  tab_double (t, col + 2, row + 0, TAB_RIGHT, m->n_missing, wfmt);
+
+  tab_double (t, col + 4, row + 0, TAB_RIGHT, total, wfmt);
 
 
   if ( total > 0 ) {
@@ -1134,13 +1148,16 @@ populate_summary (struct tab_table *t, int col, int row,
 
 static void
 show_extremes (const struct variable **dependent_var, int n_dep_var,
-	      const struct factor *fctr, int n_extremities)
+	       const struct factor *fctr,
+	       int n_extremities)
 {
   int i;
   int heading_columns ;
   int n_cols;
   const int heading_rows = 1;
   struct tab_table *tbl;
+
+
 
   int n_factors = 1;
   int n_rows ;
@@ -1214,9 +1231,10 @@ show_extremes (const struct variable **dependent_var, int n_dep_var,
 
       if ( !fctr )
 	populate_extremes (tbl, heading_columns - 2,
-			  i * 2 * n_extremities * n_factors  + heading_rows,
-			  n_extremities, &totals[i]);
-
+			   i * 2 * n_extremities * n_factors  + heading_rows,
+			   n_extremities,
+			   dependent_var[i],
+			   &totals[i]);
       else
 	{
 	  struct factor_statistics **fs = fctr->fs;
@@ -1269,8 +1287,9 @@ show_extremes (const struct variable **dependent_var, int n_dep_var,
 		}
 
 	      populate_extremes (tbl, heading_columns - 2,
-				row, n_extremities,
-				& (*fs)->m[i]);
+				 row, n_extremities,
+				 dependent_var[i],
+				 & (*fs)->m[i]);
 
 	      count++ ;
 	      fs++;
@@ -1284,13 +1303,14 @@ show_extremes (const struct variable **dependent_var, int n_dep_var,
 
 
 /* Fill in the extremities table */
-void
+static void
 populate_extremes (struct tab_table *t,
-		  int col, int row, int n, const struct metrics *m)
+		   int col, int row, int n,
+		   const struct variable *var,
+		   const struct metrics *m)
 {
   int extremity;
   int idx=0;
-
 
   tab_text (t, col, row,
 	   TAB_RIGHT | TAT_TITLE ,
@@ -1308,13 +1328,13 @@ populate_extremes (struct tab_table *t,
   for (extremity = 0; extremity < n ; ++extremity )
     {
       /* Highest */
-      tab_float (t, col + 1, row + extremity,
+      tab_fixed (t, col + 1, row + extremity,
 		TAB_RIGHT,
 		extremity + 1, 8, 0);
 
 
       /* Lowest */
-      tab_float (t, col + 1, row + extremity + n,
+      tab_fixed (t, col + 1, row + extremity + n,
 		TAB_RIGHT,
 		extremity + 1, 8, 0);
 
@@ -1334,13 +1354,13 @@ populate_extremes (struct tab_table *t,
 	  if ( extremity + j >= n )
 	    break ;
 
-	  tab_float (t, col + 3, row + extremity + j  + n,
-		    TAB_RIGHT,
-		    wv->v.f, 8, 2);
+	  tab_value (t, col + 3, row + extremity + j  + n,
+		     TAB_RIGHT,
+		     &wv->v, var_get_print_format (var));
 
-	  tab_float (t, col + 2, row + extremity + j  + n,
-		    TAB_RIGHT,
-		    cn->num, 8, 0);
+	  tab_fixed (t, col + 2, row + extremity + j  + n,
+		      TAB_RIGHT,
+		      cn->num, 10, 0);
 
 	  if ( cn->next )
 	    cn = cn->next;
@@ -1363,13 +1383,13 @@ populate_extremes (struct tab_table *t,
 	  if ( extremity + j >= n )
 	    break ;
 
-	  tab_float (t, col + 3, row + extremity + j,
-		    TAB_RIGHT,
-		    wv->v.f, 8, 2);
+	  tab_value (t, col + 3, row + extremity + j,
+		     TAB_RIGHT,
+		     &wv->v, var_get_print_format (var));
 
-	  tab_float (t, col + 2, row + extremity + j,
+	  tab_fixed (t, col + 2, row + extremity + j,
 		    TAB_RIGHT,
-		    cn->num, 8, 0);
+		      cn->num, 10, 0);
 
 	  if ( cn->next )
 	    cn = cn->next;
@@ -1520,7 +1540,9 @@ show_descriptives (const struct variable **dependent_var,
 		}
 
 	      populate_descriptives (tbl, heading_columns - 2,
-				    row, & (*fs)->m[i]);
+				     row,
+				     dependent_var[i],
+				     & (*fs)->m[i]);
 
 	      count++ ;
 	      fs++;
@@ -1532,40 +1554,41 @@ show_descriptives (const struct variable **dependent_var,
 	{
 
 	  populate_descriptives (tbl, heading_columns - 2,
-				i * n_stat_rows * n_factors  + heading_rows,
-				&totals[i]);
+				 i * n_stat_rows * n_factors  + heading_rows,
+				 dependent_var[i],
+				 &totals[i]);
 	}
     }
 
   tab_submit (tbl);
-
 }
 
 
 /* Fill in the descriptives data */
-void
+static void
 populate_descriptives (struct tab_table *tbl, int col, int row,
-		      const struct metrics *m)
+		       const struct variable *var,
+		       const struct metrics *m)
 {
   const double t = gsl_cdf_tdist_Qinv ((1 - cmd.n_cinterval[0] / 100.0)/2.0,
-				      m->n -1);
+				       m->n -1);
 
   tab_text (tbl, col,
 	    row,
 	    TAB_LEFT | TAT_TITLE,
 	    _ ("Mean"));
 
-  tab_float (tbl, col + 2,
-	     row,
-	     TAB_CENTER,
-	     m->mean,
-	     8,2);
+  tab_double (tbl, col + 2,
+	      row,
+	      TAB_CENTER,
+	      m->mean,
+	      NULL);
 
-  tab_float (tbl, col + 3,
-	     row,
-	     TAB_CENTER,
-	     m->se_mean,
-	     8,3);
+  tab_double (tbl, col + 3,
+	      row,
+	      TAB_CENTER,
+	      m->se_mean,
+	      NULL);
 
 
   tab_text (tbl, col,
@@ -1579,11 +1602,11 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    TAB_LEFT | TAT_TITLE,
 	    _ ("Lower Bound"));
 
-  tab_float (tbl, col + 2,
-	     row + 1,
-	     TAB_CENTER,
-	     m->mean - t * m->se_mean,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 1,
+	      TAB_CENTER,
+	      m->mean - t * m->se_mean,
+	      NULL);
 
   tab_text (tbl, col + 1,
 	    row + 2,
@@ -1591,22 +1614,22 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    _ ("Upper Bound"));
 
 
-  tab_float (tbl, col + 2,
-	     row + 2,
-	     TAB_CENTER,
-	     m->mean + t * m->se_mean,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 2,
+	      TAB_CENTER,
+	      m->mean + t * m->se_mean,
+	      NULL);
 
   tab_text (tbl, col,
 	    row + 3,
 	    TAB_LEFT | TAT_TITLE | TAT_PRINTF,
 	    _ ("5%% Trimmed Mean"));
 
-  tab_float (tbl, col + 2,
-	     row + 3,
-	     TAB_CENTER,
-	     m->trimmed_mean,
-	     8,2);
+  tab_double (tbl, col + 2,
+	      row + 3,
+	      TAB_CENTER,
+	      m->trimmed_mean,
+	      NULL);
 
   tab_text (tbl, col,
 	    row + 4,
@@ -1622,11 +1645,11 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
     assert (p);
 
 
-    tab_float (tbl, col + 2,
-	       row + 4,
-	       TAB_CENTER,
-	       p->v,
-	       8, 2);
+    tab_double (tbl, col + 2,
+		row + 4,
+		TAB_CENTER,
+		p->v,
+		NULL);
   }
 
 
@@ -1635,11 +1658,11 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    TAB_LEFT | TAT_TITLE,
 	    _ ("Variance"));
 
-  tab_float (tbl, col + 2,
-	     row + 5,
-	     TAB_CENTER,
-	     m->var,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 5,
+	      TAB_CENTER,
+	      m->var,
+	      NULL);
 
 
   tab_text (tbl, col,
@@ -1648,11 +1671,11 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    _ ("Std. Deviation"));
 
 
-  tab_float (tbl, col + 2,
-	     row + 6,
-	     TAB_CENTER,
-	     m->stddev,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 6,
+	      TAB_CENTER,
+	      m->stddev,
+	      NULL);
 
 
   tab_text (tbl, col,
@@ -1660,23 +1683,20 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    TAB_LEFT | TAT_TITLE,
 	    _ ("Minimum"));
 
-  tab_float (tbl, col + 2,
-	     row + 7,
-	     TAB_CENTER,
-	     m->min,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 7,
+	      TAB_CENTER,
+	      m->min, var_get_print_format (var));
 
   tab_text (tbl, col,
 	    row + 8,
 	    TAB_LEFT | TAT_TITLE,
 	    _ ("Maximum"));
 
-  tab_float (tbl, col + 2,
-	     row + 8,
-	     TAB_CENTER,
-	     m->max,
-	     8,3);
-
+  tab_double (tbl, col + 2,
+	      row + 8,
+	      TAB_CENTER,
+	      m->max, var_get_print_format (var));
 
   tab_text (tbl, col,
 	    row + 9,
@@ -1684,11 +1704,11 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    _ ("Range"));
 
 
-  tab_float (tbl, col + 2,
-	     row + 9,
-	     TAB_CENTER,
-	     m->max - m->min,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 9,
+	      TAB_CENTER,
+	      m->max - m->min,
+	      NULL);
 
   tab_text (tbl, col,
 	    row + 10,
@@ -1708,14 +1728,12 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
     assert (p1);
     assert (p2);
 
-    tab_float (tbl, col + 2,
-	       row + 10,
-	       TAB_CENTER,
-	       p1->v - p2->v,
-	       8, 2);
+    tab_double (tbl, col + 2,
+		row + 10,
+		TAB_CENTER,
+		p1->v - p2->v,
+		NULL);
   }
-
-
 
   tab_text (tbl, col,
 	    row + 11,
@@ -1723,19 +1741,18 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    _ ("Skewness"));
 
 
-  tab_float (tbl, col + 2,
-	     row + 11,
-	     TAB_CENTER,
-	     m->skewness,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 11,
+	      TAB_CENTER,
+	      m->skewness,
+	      NULL);
 
   /* stderr of skewness */
-  tab_float (tbl, col + 3,
-	     row + 11,
-	     TAB_CENTER,
-	     calc_seskew (m->n),
-	     8,3);
-
+  tab_double (tbl, col + 3,
+	      row + 11,
+	      TAB_CENTER,
+	      calc_seskew (m->n),
+	      NULL);
 
   tab_text (tbl, col,
 	    row + 12,
@@ -1743,20 +1760,18 @@ populate_descriptives (struct tab_table *tbl, int col, int row,
 	    _ ("Kurtosis"));
 
 
-  tab_float (tbl, col + 2,
-	     row + 12,
-	     TAB_CENTER,
-	     m->kurtosis,
-	     8,3);
+  tab_double (tbl, col + 2,
+	      row + 12,
+	      TAB_CENTER,
+	      m->kurtosis,
+	      NULL);
 
   /* stderr of kurtosis */
-  tab_float (tbl, col + 3,
-	     row + 12,
-	     TAB_CENTER,
-	     calc_sekurt (m->n),
-	     8,3);
-
-
+  tab_double (tbl, col + 3,
+	      row + 12,
+	      TAB_CENTER,
+	      calc_sekurt (m->n),
+	      NULL);
 }
 
 
@@ -2076,10 +2091,10 @@ show_percentiles (const struct variable **dependent_var,
     i = 0;
     while ( (*p)  )
       {
-	tab_float (tbl, n_heading_columns + i++ , 1,
-		  TAB_CENTER,
-		  (*p)->p, 8, 0);
-
+	tab_fixed (tbl, n_heading_columns + i++ , 1,
+		    TAB_CENTER,
+		    (*p)->p,
+		    8, 0);
 	p++;
       }
 
@@ -2162,7 +2177,8 @@ show_percentiles (const struct variable **dependent_var,
 
 
 	      populate_percentiles (tbl, n_heading_columns - 1,
-				   row, & (*fs)->m[i]);
+				    row,
+				    & (*fs)->m[i]);
 
 
 	      count++ ;
@@ -2174,25 +2190,21 @@ show_percentiles (const struct variable **dependent_var,
       else
 	{
 	  populate_percentiles (tbl, n_heading_columns - 1,
-			       i * n_stat_rows * n_factors  + n_heading_rows,
-			       &totals[i]);
+				i * n_stat_rows * n_factors  + n_heading_rows,
+				&totals[i]);
 	}
-
-
     }
 
 
   tab_submit (tbl);
-
-
 }
 
 
 
 
-void
+static void
 populate_percentiles (struct tab_table *tbl, int col, int row,
-		     const struct metrics *m)
+		      const struct metrics *m)
 {
   int i;
 
@@ -2214,30 +2226,32 @@ populate_percentiles (struct tab_table *tbl, int col, int row,
   i = 0;
   while ( (*p)  )
     {
-      tab_float (tbl, col + i + 1 , row,
-		TAB_CENTER,
-		 (*p)->v, 8, 2);
-      if ( (*p)->p == 25 )
-	tab_float (tbl, col + i + 1 , row + 1,
+      tab_double (tbl, col + i + 1 , row,
 		  TAB_CENTER,
-		  m->hinge[0], 8, 2);
+		  (*p)->v,
+		  NULL);
+
+      if ( (*p)->p == 25 )
+	tab_double (tbl, col + i + 1 , row + 1,
+		    TAB_CENTER,
+		    m->hinge[0],
+		    NULL);
 
       if ( (*p)->p == 50 )
-	tab_float (tbl, col + i + 1 , row + 1,
-		  TAB_CENTER,
-		  m->hinge[1], 8, 2);
+	tab_double (tbl, col + i + 1 , row + 1,
+		    TAB_CENTER,
+		    m->hinge[1],
+		    NULL);
+
 
       if ( (*p)->p == 75 )
-	tab_float (tbl, col + i + 1 , row + 1,
-		  TAB_CENTER,
-		  m->hinge[2], 8, 2);
-
-
+	tab_double (tbl, col + i + 1 , row + 1,
+		    TAB_CENTER,
+		    m->hinge[2],
+		    NULL);
       i++;
-
       p++;
     }
-
 }
 
 static void

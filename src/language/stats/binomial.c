@@ -18,6 +18,7 @@
 #include <libpspp/compiler.h>
 #include <output/table.h>
 
+#include <data/format.h>
 #include <data/case.h>
 #include <data/casereader.h>
 #include <data/dictionary.h>
@@ -146,6 +147,7 @@ binomial_execute (const struct dataset *ds,
 		  const struct npar_test *test)
 {
   int v;
+  const struct dictionary *dict = dataset_dict (ds);
   const struct binomial_test *bst = (const struct binomial_test *) test;
   const struct one_sample_test *ost = (const struct one_sample_test*) test;
 
@@ -168,8 +170,12 @@ binomial_execute (const struct dataset *ds,
       cat2->value = value_dup (&v, 0);
     }
 
-  if (do_binomial (dataset_dict(ds), input, bst, cat1, cat2, exclude))
+  if (do_binomial (dict, input, bst, cat1, cat2, exclude))
     {
+      const struct variable *wvar = dict_get_weight (dict);
+      const struct fmt_spec *wfmt = wvar ?
+	var_get_print_format (wvar) : & F_8_0;
+
       struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1, 0);
 
       tab_dim (table, tab_natural_dimensions);
@@ -203,30 +209,31 @@ binomial_execute (const struct dataset *ds,
           tab_text (table, 1, 3 + v * 3, TAB_LEFT, _("Total"));
 
           /* Test Prop */
-          tab_float (table, 5, 1 + v * 3, TAB_NONE, bst->p, 8, 3);
+          tab_double (table, 5, 1 + v * 3, TAB_NONE, bst->p, NULL);
 
           /* Category labels */
           tab_text (table, 2, 1 + v * 3, TAB_NONE, ds_cstr (&catstr1));
 	  tab_text (table, 2, 2 + v * 3, TAB_NONE, ds_cstr (&catstr2));
 
           /* Observed N */
-          tab_float (table, 3, 1 + v * 3, TAB_NONE, cat1[v].count, 8, 0);
-          tab_float (table, 3, 2 + v * 3, TAB_NONE, cat2[v].count, 8, 0);
+          tab_double (table, 3, 1 + v * 3, TAB_NONE, cat1[v].count, wfmt);
+          tab_double (table, 3, 2 + v * 3, TAB_NONE, cat2[v].count, wfmt);
 
           n_total = cat1[v].count + cat2[v].count;
-          tab_float (table, 3, 3 + v * 3, TAB_NONE, n_total, 8, 0);
+          tab_double (table, 3, 3 + v * 3, TAB_NONE, n_total, wfmt);
 
           /* Observed Proportions */
-          tab_float (table, 4, 1 + v * 3, TAB_NONE,
-                     cat1[v].count / n_total, 8, 3);
-          tab_float (table, 4, 2 + v * 3, TAB_NONE,
-                     cat2[v].count / n_total, 8, 3);
-          tab_float (table, 4, 3 + v * 3, TAB_NONE,
-                     (cat1[v].count + cat2[v].count) / n_total, 8, 2);
+          tab_double (table, 4, 1 + v * 3, TAB_NONE,
+                     cat1[v].count / n_total, NULL);
+          tab_double (table, 4, 2 + v * 3, TAB_NONE,
+                     cat2[v].count / n_total, NULL);
+
+          tab_double (table, 4, 3 + v * 3, TAB_NONE,
+                     (cat1[v].count + cat2[v].count) / n_total, wfmt);
 
           /* Significance */
           sig = calculate_binomial (cat1[v].count, cat2[v].count, bst->p);
-          tab_float (table, 6, 1 + v * 3, TAB_NONE, sig, 8, 3);
+          tab_double (table, 6, 1 + v * 3, TAB_NONE, sig, NULL);
 
 	  ds_destroy (&catstr1);
 	  ds_destroy (&catstr2);

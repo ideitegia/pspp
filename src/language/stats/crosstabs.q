@@ -179,7 +179,7 @@ static int internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds);
 static void precalc (struct casereader *, const struct dataset *);
 static void calc_general (struct ccase *, const struct dataset *);
 static void calc_integer (struct ccase *, const struct dataset *);
-static void postcalc (void);
+static void postcalc (const struct dataset *);
 static void submit (struct tab_table *);
 
 static void format_short (char *s, const struct fmt_spec *fp,
@@ -318,7 +318,7 @@ internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds)
         }
       casereader_destroy (group);
 
-      postcalc ();
+      postcalc (ds);
     }
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
@@ -788,12 +788,13 @@ static void enum_var_values (struct table_entry **entries, int entry_cnt,
                              int var_idx,
                              union value **values, int *value_cnt);
 static void output_pivot_table (struct table_entry **, struct table_entry **,
+				const struct dictionary *,
 				double **, double **, double **,
 				int *, int *, int *);
-static void make_summary_table (void);
+static void make_summary_table (const struct dictionary *);
 
 static void
-postcalc (void)
+postcalc (const struct dataset *ds)
 {
   if (mode == GENERAL)
     {
@@ -801,7 +802,7 @@ postcalc (void)
       sorted_tab = (struct table_entry **) hsh_sort (gen_tab);
     }
 
-  make_summary_table ();
+  make_summary_table (dataset_dict (ds));
 
   /* Identify all the individual crosstabulation tables, and deal with
      them. */
@@ -818,7 +819,8 @@ postcalc (void)
 	if (pe == NULL)
 	  break;
 
-	output_pivot_table (pb, pe, &mat, &row_tot, &col_tot,
+	output_pivot_table (pb, pe, dataset_dict (ds),
+			    &mat, &row_tot, &col_tot,
 			    &maxrows, &maxcols, &maxcells);
 
 	pb = pe;
@@ -841,11 +843,13 @@ postcalc (void)
     }
 }
 
-static void insert_summary (struct tab_table *, int tab_index, double valid);
+static void insert_summary (struct tab_table *, int tab_index,
+			    const struct dictionary *,
+			    double valid);
 
 /* Output a table summarizing the cases processed. */
 static void
-make_summary_table (void)
+make_summary_table (const struct dictionary *dict)
 {
   struct tab_table *summary;
 
@@ -884,7 +888,7 @@ make_summary_table (void)
 	break;
 
       while (cur_tab < (*pb)->table)
-	insert_summary (summary, cur_tab++, 0.);
+	insert_summary (summary, cur_tab++, dict, 0.);
 
       if (mode == GENERAL)
 	for (valid = 0.; pb < pe; pb++)
@@ -905,13 +909,13 @@ make_summary_table (void)
 		valid += *data++;
 	    }
 	}
-      insert_summary (summary, cur_tab++, valid);
+      insert_summary (summary, cur_tab++, dict, valid);
 
       pb = pe;
     }
 
   while (cur_tab < nxtab)
-    insert_summary (summary, cur_tab++, 0.);
+    insert_summary (summary, cur_tab++, dict, 0.);
 
   submit (summary);
 }
@@ -919,9 +923,14 @@ make_summary_table (void)
 /* Inserts a line into T describing the crosstabulation at index
    TAB_INDEX, which has VALID valid observations. */
 static void
-insert_summary (struct tab_table *t, int tab_index, double valid)
+insert_summary (struct tab_table *t, int tab_index,
+		const struct dictionary *dict,
+		double valid)
 {
   struct crosstab *x = xtab[tab_index];
+
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
 
   tab_hline (t, TAL_1, 0, 6, 0);
 
@@ -955,7 +964,7 @@ insert_summary (struct tab_table *t, int tab_index, double valid)
 
     for (i = 0; i < 3; i++)
       {
-	tab_float (t, i * 2 + 1, 0, TAB_RIGHT, n[i], 8, 0);
+	tab_double (t, i * 2 + 1, 0, TAB_RIGHT, n[i], wfmt);
 	tab_text (t, i * 2 + 2, 0, TAB_RIGHT | TAT_PRINTF, "%.1f%%",
 		  n[i] / n[2] * 100.);
       }
@@ -1004,9 +1013,9 @@ static double W;		/* Grand total. */
 static void display_dimensions (struct tab_table *, int first_difference,
 				struct table_entry *);
 static void display_crosstabulation (void);
-static void display_chisq (void);
-static void display_symmetric (void);
-static void display_risk (void);
+static void display_chisq (const struct dictionary *);
+static void display_symmetric (const struct dictionary *);
+static void display_risk (const struct dictionary *);
 static void display_directional (void);
 static void crosstabs_dim (struct tab_table *, struct outp_driver *);
 static void table_value_missing (struct tab_table *table, int c, int r,
@@ -1019,6 +1028,7 @@ static void delete_missing (void);
    hold *MAXROWS entries. */
 static void
 output_pivot_table (struct table_entry **pb, struct table_entry **pe,
+		    const struct dictionary *dict,
 		    double **matp, double **row_totp, double **col_totp,
 		    int *maxrows, int *maxcols, int *maxcells)
 {
@@ -1425,11 +1435,11 @@ output_pivot_table (struct table_entry **pb, struct table_entry **pe,
       if (cmd.miss == CRS_REPORT)
 	delete_missing ();
       if (chisq)
-	display_chisq ();
+	display_chisq (dict);
       if (sym)
-	display_symmetric ();
+	display_symmetric (dict);
       if (risk)
-	display_risk ();
+	display_risk (dict);
       if (direct)
 	display_directional ();
 
@@ -1969,8 +1979,11 @@ static void calc_chisq (double[N_CHISQ], int[N_CHISQ], double *, double *);
 
 /* Display chi-square statistics. */
 static void
-display_chisq (void)
+display_chisq (const struct dictionary *dict)
 {
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   static const char *chisq_stats[N_CHISQ] =
     {
       N_("Pearson Chi-Square"),
@@ -2000,22 +2013,22 @@ display_chisq (void)
       tab_text (chisq, 0, 0, TAB_LEFT, gettext (chisq_stats[i]));
       if (i != 2)
 	{
-	  tab_float (chisq, 1, 0, TAB_RIGHT, chisq_v[i], 8, 3);
-	  tab_float (chisq, 2, 0, TAB_RIGHT, df[i], 8, 0);
-	  tab_float (chisq, 3, 0, TAB_RIGHT,
-		     gsl_cdf_chisq_Q (chisq_v[i], df[i]), 8, 3);
+	  tab_double (chisq, 1, 0, TAB_RIGHT, chisq_v[i], NULL);
+	  tab_double (chisq, 2, 0, TAB_RIGHT, df[i], wfmt);
+	  tab_double (chisq, 3, 0, TAB_RIGHT,
+		     gsl_cdf_chisq_Q (chisq_v[i], df[i]), NULL);
 	}
       else
 	{
 	  chisq_fisher = 1;
-	  tab_float (chisq, 4, 0, TAB_RIGHT, fisher2, 8, 3);
-	  tab_float (chisq, 5, 0, TAB_RIGHT, fisher1, 8, 3);
+	  tab_double (chisq, 4, 0, TAB_RIGHT, fisher2, NULL);
+	  tab_double (chisq, 5, 0, TAB_RIGHT, fisher1, NULL);
 	}
       tab_next_row (chisq);
     }
 
   tab_text (chisq, 0, 0, TAB_LEFT, _("N of Valid Cases"));
-  tab_float (chisq, 1, 0, TAB_RIGHT, W, 8, 0);
+  tab_double (chisq, 1, 0, TAB_RIGHT, W, wfmt);
   tab_next_row (chisq);
 
   tab_offset (chisq, 0, -1);
@@ -2026,8 +2039,11 @@ static int calc_symmetric (double[N_SYMMETRIC], double[N_SYMMETRIC],
 
 /* Display symmetric measures. */
 static void
-display_symmetric (void)
+display_symmetric (const struct dictionary *dict)
 {
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   static const char *categories[] =
     {
       N_("Nominal by Nominal"),
@@ -2075,17 +2091,17 @@ display_symmetric (void)
 	}
 
       tab_text (sym, 1, 0, TAB_LEFT, gettext (stats[i]));
-      tab_float (sym, 2, 0, TAB_RIGHT, sym_v[i], 8, 3);
+      tab_double (sym, 2, 0, TAB_RIGHT, sym_v[i], NULL);
       if (sym_ase[i] != SYSMIS)
-	tab_float (sym, 3, 0, TAB_RIGHT, sym_ase[i], 8, 3);
+	tab_double (sym, 3, 0, TAB_RIGHT, sym_ase[i], NULL);
       if (sym_t[i] != SYSMIS)
-	tab_float (sym, 4, 0, TAB_RIGHT, sym_t[i], 8, 3);
-      /*tab_float (sym, 5, 0, TAB_RIGHT, normal_sig (sym_v[i]), 8, 3);*/
+	tab_double (sym, 4, 0, TAB_RIGHT, sym_t[i], NULL);
+      /*tab_double (sym, 5, 0, TAB_RIGHT, normal_sig (sym_v[i]), NULL);*/
       tab_next_row (sym);
     }
 
   tab_text (sym, 0, 0, TAB_LEFT, _("N of Valid Cases"));
-  tab_float (sym, 2, 0, TAB_RIGHT, W, 8, 0);
+  tab_double (sym, 2, 0, TAB_RIGHT, W, wfmt);
   tab_next_row (sym);
 
   tab_offset (sym, 0, -1);
@@ -2095,8 +2111,11 @@ static int calc_risk (double[], double[], double[], union value *);
 
 /* Display risk estimate. */
 static void
-display_risk (void)
+display_risk (const struct dictionary *dict)
 {
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   char buf[256];
   double risk_v[3], lower[3], upper[3];
   union value c[2];
@@ -2137,14 +2156,14 @@ display_risk (void)
 	}
 
       tab_text (risk, 0, 0, TAB_LEFT, buf);
-      tab_float (risk, 1, 0, TAB_RIGHT, risk_v[i], 8, 3);
-      tab_float (risk, 2, 0, TAB_RIGHT, lower[i], 8, 3);
-      tab_float (risk, 3, 0, TAB_RIGHT, upper[i], 8, 3);
+      tab_double (risk, 1, 0, TAB_RIGHT, risk_v[i], NULL);
+      tab_double (risk, 2, 0, TAB_RIGHT, lower[i],  NULL);
+      tab_double (risk, 3, 0, TAB_RIGHT, upper[i],  NULL);
       tab_next_row (risk);
     }
 
   tab_text (risk, 0, 0, TAB_LEFT, _("N of Valid Cases"));
-  tab_float (risk, 1, 0, TAB_RIGHT, W, 8, 0);
+  tab_double (risk, 1, 0, TAB_RIGHT, W, wfmt);
   tab_next_row (risk);
 
   tab_offset (risk, 0, -1);
@@ -2257,12 +2276,12 @@ display_directional (void)
 	    }
       }
 
-      tab_float (direct, 3, 0, TAB_RIGHT, direct_v[i], 8, 3);
+      tab_double (direct, 3, 0, TAB_RIGHT, direct_v[i], NULL);
       if (direct_ase[i] != SYSMIS)
-	tab_float (direct, 4, 0, TAB_RIGHT, direct_ase[i], 8, 3);
+	tab_double (direct, 4, 0, TAB_RIGHT, direct_ase[i], NULL);
       if (direct_t[i] != SYSMIS)
-	tab_float (direct, 5, 0, TAB_RIGHT, direct_t[i], 8, 3);
-      /*tab_float (direct, 6, 0, TAB_RIGHT, normal_sig (direct_v[i]), 8, 3);*/
+	tab_double (direct, 5, 0, TAB_RIGHT, direct_t[i], NULL);
+      /*tab_double (direct, 6, 0, TAB_RIGHT, normal_sig (direct_v[i]), NULL);*/
       tab_next_row (direct);
     }
 

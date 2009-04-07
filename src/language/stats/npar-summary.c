@@ -15,6 +15,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+
+#include <data/format.h>
 #include <output/table.h>
 #include <data/casereader.h>
 #include <libpspp/hash.h>
@@ -84,6 +86,11 @@ npar_summary_calc_descriptives (struct descriptives *desc,
 }
 
 
+void
+do_summary_box (const struct descriptives *desc,
+		const struct variable *const *vv,
+		int n_vars);
+
 
 void
 do_summary_box (const struct descriptives *desc,
@@ -96,7 +103,6 @@ do_summary_box (const struct descriptives *desc,
   int col;
   int columns = 1 ;
   struct tab_table *table ;
-
 
   if ( desc ) columns += 5;
   if ( quartiles ) columns += 3;
@@ -152,15 +158,19 @@ do_summary_box (const struct descriptives *desc,
       col++;
     }
 
+
   for ( v = 0 ; v < n_vars ; ++v )
     {
-      tab_text (table, 0, 2 + v, TAT_NONE, var_to_string (vv[v]));
+      const struct variable *var = vv[v];
+      const struct fmt_spec *fmt = var_get_print_format (var);
 
-      tab_float (table, 1, 2 + v, TAT_NONE, desc[v].n, 8, 0);
-      tab_float (table, 2, 2 + v, TAT_NONE, desc[v].mean, 8, 3);
-      tab_float (table, 3, 2 + v, TAT_NONE, desc[v].std_dev, 8, 3);
-      tab_float (table, 4, 2 + v, TAT_NONE, desc[v].min, 8, 3);
-      tab_float (table, 5, 2 + v, TAT_NONE, desc[v].max, 8, 3);
+      tab_text (table, 0, 2 + v, TAT_NONE, var_to_string (var));
+
+      tab_double (table, 1, 2 + v, TAT_NONE, desc[v].n, fmt);
+      tab_double (table, 2, 2 + v, TAT_NONE, desc[v].mean, fmt);
+      tab_double (table, 3, 2 + v, TAT_NONE, desc[v].std_dev, fmt);
+      tab_double (table, 4, 2 + v, TAT_NONE, desc[v].min, fmt);
+      tab_double (table, 5, 2 + v, TAT_NONE, desc[v].max, fmt);
     }
 
 
