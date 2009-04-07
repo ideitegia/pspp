@@ -75,8 +75,9 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   struct dictionary *dict;
   struct data_parser *parser;
   struct dfm_reader *reader;
-  struct variable *end;
-  struct file_handle *fh;
+  struct variable *end = NULL;
+  struct file_handle *fh = NULL;
+  struct string encoding = DS_EMPTY_INITIALIZER;
 
   int table;
   enum data_parser_type type;
@@ -87,8 +88,6 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   dict = in_input_program () ? dataset_dict (ds) : dict_create ();
   parser = data_parser_create ();
   reader = NULL;
-  end = NULL;
-  fh = NULL;
 
   table = -1;                /* Print table if nonzero, -1=undecided. */
   has_type = false;
@@ -102,6 +101,16 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	  fh = fh_parse (lexer, FH_REF_FILE | FH_REF_INLINE);
 	  if (fh == NULL)
 	    goto error;
+	}
+      else if (lex_match_id (lexer, "ENCODING"))
+	{
+	  lex_match (lexer, '=');
+	  if (!lex_force_string (lexer))
+	    goto error;
+
+	  ds_init_string (&encoding, lex_tokstr (lexer));
+
+	  lex_get (lexer);
 	}
       else if (lex_match_id (lexer, "RECORDS"))
 	{
@@ -227,6 +236,14 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
 	}
     }
   type = data_parser_get_type (parser);
+
+  if (! ds_is_empty (&encoding))
+    {
+      if ( NULL == fh)
+	msg (MW, _("Encoding should not be specified for inline data. It will be ignored."));
+      else
+	dict_set_encoding (dict, ds_cstr (&encoding));
+    }
 
   if (fh == NULL)
     fh = fh_inline_file ();

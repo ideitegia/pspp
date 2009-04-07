@@ -178,7 +178,7 @@ situations.
 @display
 DATA LIST [FIXED]
         @{TABLE,NOTABLE@}
-        [FILE='file-name']
+        [FILE='file-name' [ENCODING='encoding']]
         [RECORDS=record_count]
         [END=end_var]
         [SKIP=record_count]
@@ -198,6 +198,8 @@ external file.  It may be used to specify a file name as a string or a
 file handle (@pxref{File Handles}).  If the FILE subcommand is not used,
 then input is assumed to be specified within the command file using
 @cmd{BEGIN DATA}@dots{}@cmd{END DATA} (@pxref{BEGIN DATA}).
+The ENCODING subcommand may only be used if the FILE subcommand is also used.
+It specifies the character encoding of the file.
 
 The optional RECORDS subcommand, which takes a single integer as an
 argument, is used to specify the number of lines per record.  If RECORDS
@@ -391,7 +393,7 @@ This example shows keywords abbreviated to their first 3 letters.
 DATA LIST FREE
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        [FILE='file-name']
+        [FILE='file-name' [ENCODING='encoding']]
         [SKIP=record_cnt]
         /var_spec@dots{}
 
@@ -443,7 +445,7 @@ on field width apply, but they are honored on output.
 DATA LIST LIST
         [(@{TAB,'c'@}, @dots{})]
         [@{NOTABLE,TABLE@}]
-        [FILE='file-name']
+        [FILE='file-name' [ENCODING='encoding']]
         [SKIP=record_count]
         /var_spec@dots{}
 
