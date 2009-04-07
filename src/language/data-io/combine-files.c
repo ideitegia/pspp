@@ -488,12 +488,29 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
   struct dictionary *d = f->dict;
   const char *d_docs, *m_docs;
   int i;
+  const char *file_encoding;
 
   if (dict_get_label (m) == NULL)
     dict_set_label (m, dict_get_label (d));
 
   d_docs = dict_get_documents (d);
   m_docs = dict_get_documents (m);
+
+
+  /* If the input files have different encodings, then
+   */
+  file_encoding = dict_get_encoding (f->dict);
+  if ( file_encoding != NULL)
+    {
+      if ( dict_get_encoding (m) == NULL)
+	dict_set_encoding (m, file_encoding);
+      else if ( 0 != strcmp (file_encoding, dict_get_encoding (m)))
+	{
+	  msg (MW,
+	       _("Combining files with incompatible encodings. String data may not be represented correctly."));
+	}
+    }
+
   if (d_docs != NULL)
     {
       if (m_docs == NULL)
