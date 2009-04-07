@@ -58,6 +58,8 @@ cd $TEMPDIR
 
 activity="create program"
 cat > $TEMPDIR/descript.stat <<EOF
+SET FORMAT F8.3.
+
 data list notable / X 1.
 begin data.
 0

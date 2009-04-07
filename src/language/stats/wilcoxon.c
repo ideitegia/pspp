@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <libpspp/assertion.h>
+#include <data/format.h>
 
 static double
 append_difference (const struct ccase *c, casenumber n UNUSED, void *aux)
@@ -43,7 +44,8 @@ append_difference (const struct ccase *c, casenumber n UNUSED, void *aux)
 }
 
 static void show_ranks_box (const struct wilcoxon_state *,
-			    const struct two_sample_test *);
+			    const struct two_sample_test *,
+			    const struct dictionary *);
 
 static void show_tests_box (const struct wilcoxon_state *,
 			    const struct two_sample_test *,
@@ -179,7 +181,7 @@ wilcoxon_execute (const struct dataset *ds,
 
   var_destroy (weightx);
 
-  show_ranks_box (ws, t2s);
+  show_ranks_box (ws, t2s, dict);
   show_tests_box (ws, t2s, exact, timer);
 
   for (i = 0 ; i < t2s->n_pairs; ++i )
@@ -198,9 +200,15 @@ wilcoxon_execute (const struct dataset *ds,
 #define _(msgid) gettext (msgid)
 
 static void
-show_ranks_box (const struct wilcoxon_state *ws, const struct two_sample_test *t2s)
+show_ranks_box (const struct wilcoxon_state *ws,
+		const struct two_sample_test *t2s,
+		const struct dictionary *dict)
 {
   size_t i;
+
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   struct tab_table *table = tab_create (5, 1 + 4 * t2s->n_pairs, 0);
 
   tab_dim (table, tab_natural_dimensions);
@@ -245,24 +253,24 @@ show_ranks_box (const struct wilcoxon_state *ws, const struct two_sample_test *t
 
 
       /* N */
-      tab_float (table, 2, 1 + i * 4, TAB_RIGHT, ws[i].negatives.n, 8, 0);
-      tab_float (table, 2, 2 + i * 4, TAB_RIGHT, ws[i].positives.n, 8, 0);
-      tab_float (table, 2, 3 + i * 4, TAB_RIGHT, ws[i].n_zeros, 8, 0);
+      tab_double (table, 2, 1 + i * 4, TAB_RIGHT, ws[i].negatives.n, wfmt);
+      tab_double (table, 2, 2 + i * 4, TAB_RIGHT, ws[i].positives.n, wfmt);
+      tab_double (table, 2, 3 + i * 4, TAB_RIGHT, ws[i].n_zeros, wfmt);
 
-      tab_float (table, 2, 4 + i * 4, TAB_RIGHT,
-		 ws[i].n_zeros + ws[i].positives.n + ws[i].negatives.n, 8, 0);
+      tab_double (table, 2, 4 + i * 4, TAB_RIGHT,
+		 ws[i].n_zeros + ws[i].positives.n + ws[i].negatives.n, wfmt);
 
       /* Sums */
-      tab_float (table, 4, 1 + i * 4, TAB_RIGHT, ws[i].negatives.sum, 8, 2);
-      tab_float (table, 4, 2 + i * 4, TAB_RIGHT, ws[i].positives.sum, 8, 2);
+      tab_double (table, 4, 1 + i * 4, TAB_RIGHT, ws[i].negatives.sum, NULL);
+      tab_double (table, 4, 2 + i * 4, TAB_RIGHT, ws[i].positives.sum, NULL);
 
 
       /* Means */
-      tab_float (table, 3, 1 + i * 4, TAB_RIGHT,
-		 ws[i].negatives.sum / (double) ws[i].negatives.n, 8, 2);
+      tab_double (table, 3, 1 + i * 4, TAB_RIGHT,
+		 ws[i].negatives.sum / (double) ws[i].negatives.n, NULL);
 
-      tab_float (table, 3, 2 + i * 4, TAB_RIGHT,
-		 ws[i].positives.sum / (double) ws[i].positives.n, 8, 2);
+      tab_double (table, 3, 2 + i * 4, TAB_RIGHT,
+		 ws[i].positives.sum / (double) ws[i].positives.n, NULL);
 
     }
 
@@ -332,11 +340,11 @@ show_tests_box (const struct wilcoxon_state *ws,
 
       z /= sqrt (n * (n + 1) * (2*n + 1)/24.0 - ws[i].tiebreaker / 48.0);
 
-      tab_float (table, 1 + i, 1, TAB_RIGHT, z, 8, 3);
+      tab_double (table, 1 + i, 1, TAB_RIGHT, z, NULL);
 
-      tab_float (table, 1 + i, 2, TAB_RIGHT,
+      tab_double (table, 1 + i, 2, TAB_RIGHT,
 		 2.0 * gsl_cdf_ugaussian_P (z),
-		 8, 3);
+		 NULL);
 
       if (exact)
 	{
@@ -347,8 +355,8 @@ show_tests_box (const struct wilcoxon_state *ws,
 	    }
 	  else
 	    {
-	      tab_float (table, 1 + i, 3, TAB_RIGHT, p, 8, 3);
-	      tab_float (table, 1 + i, 4, TAB_RIGHT, p / 2.0, 8, 3);
+	      tab_double (table, 1 + i, 3, TAB_RIGHT, p, NULL);
+	      tab_double (table, 1 + i, 4, TAB_RIGHT, p / 2.0, NULL);
 	    }
 	}
     }

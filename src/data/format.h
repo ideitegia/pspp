@@ -164,4 +164,6 @@ int fmt_grouping_char (const struct fmt_number_style *, enum fmt_type);
 
 void fmt_set_decimal (struct fmt_number_style *, char);
 
+extern const struct fmt_spec F_8_0 ;
+
 #endif /* data/format.h */

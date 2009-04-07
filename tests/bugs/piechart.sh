@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# This program tests for a bug which caused UNIFORM(x) to always return zero.
+# This program tests for a bug which crashed pspp when a
+# piechart with too many segments was requested.
 
 
 TEMPDIR=/tmp/pspp-tst-$$
@@ -26,6 +27,7 @@ cleanup()
 	return ; 
      fi
      cd /
+     chmod u+w $TEMPDIR
      rm -rf $TEMPDIR
 }
 
@@ -57,47 +59,34 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-activity="create program"
+activity="create test syntax"
 cat > $TESTFILE <<EOF
-data list list /ID * ABC *.
+data list list /x * w *.
 begin data.
-1 3.5
-2 2.0
-3 2.0
-4 3.5
-5 3.0
-6 4.0
-7 5.0
+1  4
+34 10
+-9 15
+232 6
+11  4
+134 1
+9  5
+32 16
+-2 6
+2  16
+20  6
 end data.
 
-TEMPORARY.
-SELECT IF id < 7 .
+weight by w.
 
-DESCRIPTIVES
-        /VAR=abc.
+frequencies /x
+	/piechart.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
-$SUPERVISOR $PSPP --testing-mode $TESTFILE
-if [ $? -ne 0 ] ; then no_result ; fi
 
-
-perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-diff -b  -w $TEMPDIR/pspp.list - << EOF
-1.1 DATA LIST.  Reading free-form data from INLINE.
-+--------+------+
-|Variable|Format|
-#========#======#
-|ID      |F8.0  |
-|ABC     |F8.0  |
-+--------+------+
-2.1 DESCRIPTIVES.  Valid cases = 6; cases with missing value(s) = 0.
-+--------#-+----+-------+-------+-------+
-|Variable#N|Mean|Std Dev|Minimum|Maximum|
-#========#=#====#=======#=======#=======#
-|ABC     #6|3.00|    .84|   2.00|   4.00|
-+--------#-+----+-------+-------+-------+
-EOF
+activity="run program 1"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then fail ; fi
+
 
 pass;

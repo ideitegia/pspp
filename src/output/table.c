@@ -34,6 +34,8 @@
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 
+#include <data/settings.h>
+
 #include "minmax.h"
 #include "xalloc.h"
 
@@ -543,7 +545,7 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
 /* Sets cell (C,R) in TABLE, with options OPT, to have value VAL
    with NDEC decimal places. */
 void
-tab_float (struct tab_table *table, int c, int r, unsigned char opt,
+tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 	   double val, int w, int d)
 {
   char *contents;
@@ -566,7 +568,7 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
       || c + table->col_ofs >= table->nc
       || r + table->row_ofs >= table->nr)
     {
-      printf ("tab_float(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
+      printf ("tab_fixed(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
 	      "(%d,%d)\n",
 	      c, table->col_ofs, c + table->col_ofs,
 	      r, table->row_ofs, r + table->row_ofs,
@@ -588,6 +590,61 @@ tab_float (struct tab_table *table, int c, int r, unsigned char opt,
   table->ct[c + r * table->cf] = opt;
   memcpy (contents, cp, f.w);
 }
+
+/* Sets cell (C,R) in TABLE, with options OPT, to have value VAL as
+   formatted by FMT.
+   If FMT is null, then the default print format will be used.
+*/
+void
+tab_double (struct tab_table *table, int c, int r, unsigned char opt,
+	   double val, const struct fmt_spec *fmt)
+{
+  int w;
+  char *contents;
+  char buf[40], *cp;
+
+  union value double_value;
+
+  assert (table != NULL);
+
+  assert (c >= 0);
+  assert (c < table->nc);
+  assert (r >= 0);
+  assert (r < table->nr);
+
+  if ( fmt == NULL)
+    fmt = settings_get_format ();
+
+  fmt_check_output (fmt);
+
+#if DEBUGGING
+  if (c + table->col_ofs < 0 || r + table->row_ofs < 0
+      || c + table->col_ofs >= table->nc
+      || r + table->row_ofs >= table->nr)
+    {
+      printf ("tab_double(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
+	      "(%d,%d)\n",
+	      c, table->col_ofs, c + table->col_ofs,
+	      r, table->row_ofs, r + table->row_ofs,
+	      table->nc, table->nr);
+      return;
+    }
+#endif
+
+  double_value.f = val;
+  data_out (&double_value, fmt, buf);
+
+  cp = buf;
+  while (isspace ((unsigned char) *cp) && cp < &buf[fmt->w])
+    cp++;
+  w = fmt->w - (cp - buf);
+
+  contents = pool_alloc (table->container, w);
+  table->cc[c + r * table->cf] = ss_buffer (contents, w);
+  table->ct[c + r * table->cf] = opt;
+  memcpy (contents, cp, w);
+}
+
 
 /* Sets cell (C,R) in TABLE, with options OPT, to have text value
    TEXT. */
@@ -712,7 +769,7 @@ tab_raw (struct tab_table *table, int c, int r, unsigned opt,
       || c + table->col_ofs >= table->nc
       || r + table->row_ofs >= table->nr)
     {
-      printf ("tab_float(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
+      printf ("tab_raw(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
 	      "(%d,%d)\n",
 	      c, table->col_ofs, c + table->col_ofs,
 	      r, table->row_ofs, r + table->row_ofs,

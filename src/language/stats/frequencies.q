@@ -251,12 +251,12 @@ static void calc_stats (const struct variable *v, double d[frq_n_stats]);
 
 static void precalc (struct casereader *, struct dataset *);
 static void calc (const struct ccase *, const struct dataset *);
-static void postcalc (void);
+static void postcalc (const struct dataset *);
 
 static void postprocess_freq_tab (const struct variable *);
-static void dump_full (const struct variable *);
-static void dump_condensed (const struct variable *);
-static void dump_statistics (const struct variable *, int show_varname);
+static void dump_full ( const struct variable *, const struct variable *);
+static void dump_condensed (const struct variable *, const struct variable *);
+static void dump_statistics (const struct variable *, bool show_varname, const struct variable *);
 static void cleanup_freq_tab (const struct variable *);
 
 static hsh_compare_func compare_value_numeric_a, compare_value_alpha_a;
@@ -381,7 +381,7 @@ internal_cmd_frequencies (struct lexer *lexer, struct dataset *ds)
       precalc (group, ds);
       for (; (c = casereader_read (group)) != NULL; case_unref (c))
         calc (c, ds);
-      postcalc ();
+      postcalc (ds);
     }
   ok = casegrouper_destroy (grouper);
   ok = proc_commit (ds) && ok;
@@ -560,8 +560,10 @@ precalc (struct casereader *input, struct dataset *ds)
 /* Finishes up with the variables after frequencies have been
    calculated.  Displays statistics, percentiles, ... */
 static void
-postcalc (void)
+postcalc (const struct dataset *ds)
 {
+  const struct dictionary *dict = dataset_dict (ds);
+  const struct variable *wv = dict_get_weight (dict);
   size_t i;
 
   for (i = 0; i < n_variables; i++)
@@ -581,16 +583,16 @@ postcalc (void)
 	switch (cmd.cond)
 	  {
 	  case FRQ_CONDENSE:
-	    dump_condensed (v);
+	    dump_condensed (v, wv);
 	    break;
 	  case FRQ_STANDARD:
-	    dump_full (v);
+	    dump_full (v, wv);
 	    break;
 	  case FRQ_ONEPAGE:
 	    if (n_categories > cmd.onepage_limit)
-	      dump_condensed (v);
+	      dump_condensed (v, wv);
 	    else
-	      dump_full (v);
+	      dump_full (v, wv);
 	    break;
 	  default:
             NOT_REACHED ();
@@ -600,7 +602,7 @@ postcalc (void)
 
       /* Statistics. */
       if (n_stats)
-	dump_statistics (v, !dumped_freq_tab);
+	dump_statistics (v, !dumped_freq_tab, wv);
 
 
 
@@ -1030,8 +1032,9 @@ full_dim (struct tab_table *t, struct outp_driver *d)
 
 /* Displays a full frequency table for variable V. */
 static void
-dump_full (const struct variable *v)
+dump_full (const struct variable *v, const struct variable *wv)
 {
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
   int n_categories;
   struct var_freqs *vf;
   struct freq_tab *ft;
@@ -1100,10 +1103,10 @@ dump_full (const struct variable *v)
 	}
 
       tab_value (t, 0 + lab, r, TAB_NONE, f->value, &vf->print);
-      tab_float (t, 1 + lab, r, TAB_NONE, f->count, 8, 0);
-      tab_float (t, 2 + lab, r, TAB_NONE, percent, 5, 1);
-      tab_float (t, 3 + lab, r, TAB_NONE, valid_percent, 5, 1);
-      tab_float (t, 4 + lab, r, TAB_NONE, cum_total, 5, 1);
+      tab_double (t, 1 + lab, r, TAB_NONE, f->count, wfmt);
+      tab_double (t, 2 + lab, r, TAB_NONE, percent, NULL);
+      tab_double (t, 3 + lab, r, TAB_NONE, valid_percent, NULL);
+      tab_double (t, 4 + lab, r, TAB_NONE, cum_total, NULL);
       r++;
     }
   for (; f < &ft->valid[n_categories]; f++)
@@ -1118,9 +1121,9 @@ dump_full (const struct variable *v)
 	}
 
       tab_value (t, 0 + lab, r, TAB_NONE, f->value, &vf->print);
-      tab_float (t, 1 + lab, r, TAB_NONE, f->count, 8, 0);
-      tab_float (t, 2 + lab, r, TAB_NONE,
-		     f->count / ft->total_cases * 100.0, 5, 1);
+      tab_double (t, 1 + lab, r, TAB_NONE, f->count, wfmt);
+      tab_double (t, 2 + lab, r, TAB_NONE,
+		     f->count / ft->total_cases * 100.0, NULL);
       tab_text (t, 3 + lab, r, TAB_NONE, _("Missing"));
       r++;
     }
@@ -1132,9 +1135,9 @@ dump_full (const struct variable *v)
   tab_hline (t, TAL_2, 0, 4 + lab, r);
   tab_joint_text (t, 0, r, 0 + lab, r, TAB_RIGHT | TAT_TITLE, _("Total"));
   tab_vline (t, TAL_0, 1, r, r);
-  tab_float (t, 1 + lab, r, TAB_NONE, cum_freq, 8, 0);
-  tab_float (t, 2 + lab, r, TAB_NONE, 100.0, 5, 1);
-  tab_float (t, 3 + lab, r, TAB_NONE, 100.0, 5, 1);
+  tab_double (t, 1 + lab, r, TAB_NONE, cum_freq, wfmt);
+  tab_fixed (t, 2 + lab, r, TAB_NONE, 100.0, 5, 1);
+  tab_fixed (t, 3 + lab, r, TAB_NONE, 100.0, 5, 1);
 
   tab_title (t, "%s", var_to_string (v));
   tab_submit (t);
@@ -1161,8 +1164,9 @@ condensed_dim (struct tab_table *t, struct outp_driver *d)
 
 /* Display condensed frequency table for variable V. */
 static void
-dump_condensed (const struct variable *v)
+dump_condensed (const struct variable *v, const struct variable *wv)
 {
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
   int n_categories;
   struct var_freqs *vf;
   struct freq_tab *ft;
@@ -1193,17 +1197,17 @@ dump_condensed (const struct variable *v)
       cum_total += f->count / ft->valid_cases * 100.0;
 
       tab_value (t, 0, r, TAB_NONE, f->value, &vf->print);
-      tab_float (t, 1, r, TAB_NONE, f->count, 8, 0);
-      tab_float (t, 2, r, TAB_NONE, percent, 3, 0);
-      tab_float (t, 3, r, TAB_NONE, cum_total, 3, 0);
+      tab_double (t, 1, r, TAB_NONE, f->count, wfmt);
+      tab_double (t, 2, r, TAB_NONE, percent, NULL);
+      tab_double (t, 3, r, TAB_NONE, cum_total, NULL);
       r++;
     }
   for (; f < &ft->valid[n_categories]; f++)
     {
       tab_value (t, 0, r, TAB_NONE, f->value, &vf->print);
-      tab_float (t, 1, r, TAB_NONE, f->count, 8, 0);
-      tab_float (t, 2, r, TAB_NONE,
-		 f->count / ft->total_cases * 100.0, 3, 0);
+      tab_double (t, 1, r, TAB_NONE, f->count, wfmt);
+      tab_double (t, 2, r, TAB_NONE,
+		 f->count / ft->total_cases * 100.0, NULL);
       r++;
     }
 
@@ -1360,8 +1364,10 @@ calc_stats (const struct variable *v, double d[frq_n_stats])
 
 /* Displays a table of all the statistics requested for variable V. */
 static void
-dump_statistics (const struct variable *v, int show_varname)
+dump_statistics (const struct variable *v, bool show_varname,
+		 const struct variable *wv)
 {
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : &F_8_0;
   struct freq_tab *ft;
   double stat_value[frq_n_stats];
   struct tab_table *t;
@@ -1394,7 +1400,7 @@ dump_statistics (const struct variable *v, int show_varname)
       {
 	tab_text (t, 0, r, TAB_LEFT | TAT_TITLE,
 		      gettext (st_name[i].s10));
-	tab_float (t, 2, r, TAB_NONE, stat_value[i], 11, 3);
+	tab_double (t, 2, r, TAB_NONE, stat_value[i], NULL);
 	r++;
       }
 
@@ -1402,9 +1408,8 @@ dump_statistics (const struct variable *v, int show_varname)
   tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Valid"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("Missing"));
 
-  tab_float(t, 2, 0, TAB_NONE, ft->valid_cases, 11, 0);
-  tab_float(t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, 11, 0);
-
+  tab_double (t, 2, 0, TAB_NONE, ft->valid_cases, wfmt);
+  tab_double (t, 2, 1, TAB_NONE, ft->total_cases - ft->valid_cases, wfmt);
 
   for (i = 0; i < n_percentiles; i++, r++)
     {
@@ -1416,9 +1421,9 @@ dump_statistics (const struct variable *v, int show_varname)
       if (percentiles[i].p == 0.5)
         tab_text (t, 1, r, TAB_LEFT, _("50 (Median)"));
       else
-        tab_float (t, 1, r, TAB_LEFT, percentiles[i].p * 100, 3, 0);
-      tab_float (t, 2, r, TAB_NONE, percentiles[i].value, 11, 3);
-
+        tab_fixed (t, 1, r, TAB_LEFT, percentiles[i].p * 100, 3, 0);
+      tab_double (t, 2, r, TAB_NONE, percentiles[i].value,
+		  var_get_print_format (v));
     }
 
   tab_columns (t, SOM_COL_DOWN, 1);

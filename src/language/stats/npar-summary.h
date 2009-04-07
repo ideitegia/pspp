@@ -37,11 +37,4 @@ void npar_summary_calc_descriptives (struct descriptives *desc,
 				     int n_vars,
                                      enum mv_class filter);
 
-
-void do_summary_box (const struct descriptives *desc,
-		     const struct variable *const *vv,
-		     int n_vars);
-
-
-
 #endif

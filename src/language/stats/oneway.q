@@ -43,6 +43,7 @@
 #include <output/manager.h>
 #include <output/table.h>
 #include "sort-criteria.h"
+#include <data/format.h>
 
 #include "xalloc.h"
 
@@ -88,9 +89,9 @@ static void run_oneway (struct cmd_oneway *, struct casereader *,
 
 
 /* Routines to show the output tables */
-static void show_anova_table (void);
-static void show_descriptives (void);
-static void show_homogeneity (void);
+static void show_anova_table(void);
+static void show_descriptives (const struct dictionary *dict);
+static void show_homogeneity(void);
 
 static void show_contrast_coeffs (short *);
 static void show_contrast_tests (short *);
@@ -100,7 +101,7 @@ enum stat_table_t {STAT_DESC = 1, STAT_HOMO = 2};
 
 static enum stat_table_t stat_tables;
 
-void output_oneway (void);
+static void output_oneway (const struct dictionary *dict);
 
 
 int
@@ -148,8 +149,8 @@ cmd_oneway (struct lexer *lexer, struct dataset *ds)
 }
 
 
-void
-output_oneway (void)
+static void
+output_oneway (const struct dictionary *dict)
 {
   size_t i;
   short *bad_contrast;
@@ -180,7 +181,7 @@ output_oneway (void)
     }
 
   if ( stat_tables & STAT_DESC )
-    show_descriptives ();
+    show_descriptives (dict);
 
   if ( stat_tables & STAT_HOMO )
     show_homogeneity ();
@@ -317,28 +318,28 @@ show_anova_table (void)
 
 
 	/* Sums of Squares */
-	tab_float (t, 2, i * 3 + 1, 0, ssa, 10, 2);
-	tab_float (t, 2, i * 3 + 3, 0, sst, 10, 2);
-	tab_float (t, 2, i * 3 + 2, 0, sst - ssa, 10, 2);
+	tab_double (t, 2, i * 3 + 1, 0, ssa, NULL);
+	tab_double (t, 2, i * 3 + 3, 0, sst, NULL);
+	tab_double (t, 2, i * 3 + 2, 0, sst - ssa, NULL);
 
 
 	/* Degrees of freedom */
-	tab_float (t, 3, i * 3 + 1, 0, df1, 4, 0);
-	tab_float (t, 3, i * 3 + 2, 0, df2, 4, 0);
-	tab_float (t, 3, i * 3 + 3, 0, totals->n - 1, 4, 0);
+	tab_fixed (t, 3, i * 3 + 1, 0, df1, 4, 0);
+	tab_fixed (t, 3, i * 3 + 2, 0, df2, 4, 0);
+	tab_fixed (t, 3, i * 3 + 3, 0, totals->n - 1, 4, 0);
 
 	/* Mean Squares */
-	tab_float (t, 4, i * 3 + 1, TAB_RIGHT, msa, 8, 3);
-	tab_float (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, 8, 3);
+	tab_double (t, 4, i * 3 + 1, TAB_RIGHT, msa, NULL);
+	tab_double (t, 4, i * 3 + 2, TAB_RIGHT, gp->mse, NULL);
 
 	{
-	  const double F = msa/gp->mse;
+	  const double F = msa / gp->mse ;
 
 	  /* The F value */
-	  tab_float (t, 5, i * 3 + 1, 0,  F, 8, 3);
+	  tab_double (t, 5, i * 3 + 1, 0,  F, NULL);
 
 	  /* The significance */
-	  tab_float (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), 8, 3);
+	  tab_double (t, 6, i * 3 + 1, 0, gsl_cdf_fdist_Q (F, df1, df2), NULL);
 	}
       }
     }
@@ -351,16 +352,18 @@ show_anova_table (void)
 
 /* Show the descriptives table */
 static void
-show_descriptives (void)
+show_descriptives (const struct dictionary *dict)
 {
   size_t v;
-  int n_cols =10;
+  int n_cols = 10;
   struct tab_table *t;
   int row;
 
   const double confidence = 0.95;
   const double q = (1.0 - confidence) / 2.0;
 
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
 
   int n_rows = 2;
 
@@ -416,6 +419,7 @@ show_descriptives (void)
       struct group_statistics *totals = &gp->ugs;
 
       const char *s = var_to_string (vars[v]);
+      const struct fmt_spec *fmt = var_get_print_format (vars[v]);
 
       struct group_statistics *const *gs_array =
 	(struct group_statistics *const *) hsh_sort (gp->group_hash);
@@ -441,57 +445,59 @@ show_descriptives (void)
 
 	  /* Now fill in the numbers ... */
 
-	  tab_float (t, 2, row + count, 0, gs->n, 8, 0);
+	  tab_fixed (t, 2, row + count, 0, gs->n, 8, 0);
 
-	  tab_float (t, 3, row + count, 0, gs->mean, 8, 2);
+	  tab_double (t, 3, row + count, 0, gs->mean, NULL);
 
-	  tab_float (t, 4, row + count, 0, gs->std_dev, 8, 2);
+	  tab_double (t, 4, row + count, 0, gs->std_dev, NULL);
 
-	  std_error = gs->std_dev/sqrt (gs->n);
-	  tab_float (t, 5, row + count, 0,
-		     std_error, 8, 2);
+	  std_error = gs->std_dev / sqrt (gs->n) ;
+	  tab_double (t, 5, row + count, 0,
+		     std_error, NULL);
 
 	  /* Now the confidence interval */
 
 	  T = gsl_cdf_tdist_Qinv (q, gs->n - 1);
 
-	  tab_float (t, 6, row + count, 0,
-		     gs->mean - T * std_error, 8, 2);
+	  tab_double (t, 6, row + count, 0,
+		    gs->mean - T * std_error, NULL);
 
-	  tab_float (t, 7, row + count, 0,
-		     gs->mean + T * std_error, 8, 2);
+	  tab_double (t, 7, row + count, 0,
+		    gs->mean + T * std_error, NULL);
 
 	  /* Min and Max */
-	  tab_float (t, 8, row + count, 0,  gs->minimum, 8, 2);
-	  tab_float (t, 9, row + count, 0,  gs->maximum, 8, 2);
+
+	  tab_double (t, 8, row + count, 0,  gs->minimum, fmt);
+	  tab_double (t, 9, row + count, 0,  gs->maximum, fmt);
 	}
 
       tab_text (t, 1, row + count,
 		TAB_LEFT | TAT_TITLE, _("Total"));
 
-      tab_float (t, 2, row + count, 0, totals->n, 8, 0);
+      tab_double (t, 2, row + count, 0, totals->n, wfmt);
 
-      tab_float (t, 3, row + count, 0, totals->mean, 8, 2);
+      tab_double (t, 3, row + count, 0, totals->mean, NULL);
 
-      tab_float (t, 4, row + count, 0, totals->std_dev, 8, 2);
+      tab_double (t, 4, row + count, 0, totals->std_dev, NULL);
 
-      std_error = totals->std_dev/sqrt (totals->n);
+      std_error = totals->std_dev / sqrt (totals->n) ;
 
-      tab_float (t, 5, row + count, 0, std_error, 8, 2);
+      tab_double (t, 5, row + count, 0, std_error, NULL);
 
       /* Now the confidence interval */
 
       T = gsl_cdf_tdist_Qinv (q, totals->n - 1);
 
-      tab_float (t, 6, row + count, 0,
-		 totals->mean - T * std_error, 8, 2);
+      tab_double (t, 6, row + count, 0,
+		  totals->mean - T * std_error, NULL);
 
-      tab_float (t, 7, row + count, 0,
-		 totals->mean + T * std_error, 8, 2);
+      tab_double (t, 7, row + count, 0,
+		  totals->mean + T * std_error, NULL);
 
       /* Min and Max */
-      tab_float (t, 8, row + count, 0,  totals->minimum, 8, 2);
-      tab_float (t, 9, row + count, 0,  totals->maximum, 8, 2);
+
+      tab_double (t, 8, row + count, 0,  totals->minimum, fmt);
+      tab_double (t, 9, row + count, 0,  totals->maximum, fmt);
 
       row += gp->n_groups + 1;
     }
@@ -547,12 +553,12 @@ show_homogeneity (void)
       tab_text (t, 0, v + 1, TAB_LEFT | TAT_TITLE, s);
 
       F = gp->levene;
-      tab_float (t, 1, v + 1, TAB_RIGHT, F, 8, 3);
-      tab_float (t, 2, v + 1, TAB_RIGHT, df1, 8, 0);
-      tab_float (t, 3, v + 1, TAB_RIGHT, df2, 8, 0);
+      tab_double (t, 1, v + 1, TAB_RIGHT, F, NULL);
+      tab_fixed (t, 2, v + 1, TAB_RIGHT, df1, 8, 0);
+      tab_fixed (t, 3, v + 1, TAB_RIGHT, df2, 8, 0);
 
       /* Now the significance */
-      tab_float (t, 4, v + 1, TAB_RIGHT, gsl_cdf_fdist_Q (F, df1, df2), 8, 3);
+      tab_double (t, 4, v + 1, TAB_RIGHT,gsl_cdf_fdist_Q (F, df1, df2), NULL);
     }
 
   tab_submit (t);
@@ -763,74 +769,69 @@ show_contrast_tests (short *bad_contrast)
 	    }
 	  sec_vneq = sqrt (sec_vneq);
 
-	  df_numerator = pow2(df_numerator);
+	  df_numerator = pow2 (df_numerator);
 
-	  tab_float (t,  3, (v * lines_per_variable) + i + 1,
-		     TAB_RIGHT, contrast_value, 8, 2);
+	  tab_double (t,  3, (v * lines_per_variable) + i + 1,
+		     TAB_RIGHT, contrast_value, NULL);
 
-	  tab_float (t,  3, (v * lines_per_variable) + i + 1 +
+	  tab_double (t,  3, (v * lines_per_variable) + i + 1 +
 		     cmd.sbc_contrast,
-		     TAB_RIGHT, contrast_value, 8, 2);
+		     TAB_RIGHT, contrast_value, NULL);
 
 	  std_error_contrast = sqrt (grp_data->mse * coef_msq);
 
 	  /* Std. Error */
-	  tab_float (t,  4, (v * lines_per_variable) + i + 1,
+	  tab_double (t,  4, (v * lines_per_variable) + i + 1,
 		     TAB_RIGHT, std_error_contrast,
-		     8, 3);
+		     NULL);
 
 	  T = fabs (contrast_value / std_error_contrast);
 
 	  /* T Statistic */
 
-	  tab_float (t,  5, (v * lines_per_variable) + i + 1,
+	  tab_double (t,  5, (v * lines_per_variable) + i + 1,
 		     TAB_RIGHT, T,
-		     8, 3);
+		     NULL);
 
 	  df = grp_data->ugs.n - grp_data->n_groups;
 
 	  /* Degrees of Freedom */
-	  tab_float (t,  6, (v * lines_per_variable) + i + 1,
+	  tab_fixed (t,  6, (v * lines_per_variable) + i + 1,
 		     TAB_RIGHT,  df,
 		     8, 0);
 
 
 	  /* Significance TWO TAILED !!*/
-	  tab_float (t,  7, (v * lines_per_variable) + i + 1,
+	  tab_double (t,  7, (v * lines_per_variable) + i + 1,
 		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q (T, df),
-		     8, 3);
-
+		     NULL);
 
 	  /* Now for the Variances NOT Equal case */
 
 	  /* Std. Error */
-	  tab_float (t,  4,
+	  tab_double (t,  4,
 		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
 		     TAB_RIGHT, sec_vneq,
-		     8, 3);
-
+		     NULL);
 
 	  T = contrast_value / sec_vneq;
-	  tab_float (t,  5,
+	  tab_double (t,  5,
 		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
 		     TAB_RIGHT, T,
-		     8, 3);
-
+		     NULL);
 
 	  df = df_numerator / df_denominator;
 
-	  tab_float (t,  6,
+	  tab_double (t,  6,
 		     (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
 		     TAB_RIGHT, df,
-		     8, 3);
+		     NULL);
 
 	  /* The Significance */
 
-	  tab_float (t, 7, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
-		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q (T, df),
-		     8, 3);
-
-
+	  tab_double (t, 7, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
+		     TAB_RIGHT,  2 * gsl_cdf_tdist_Q (T,df),
+		     NULL);
 	}
 
       if ( v > 0 )
@@ -838,7 +839,6 @@ show_contrast_tests (short *bad_contrast)
     }
 
   tab_submit (t);
-
 }
 
 
@@ -1004,7 +1004,8 @@ run_oneway (struct cmd_oneway *cmd,
   ostensible_number_of_groups = hsh_count (global_group_hash);
 
   if (!taint_has_tainted_successor (taint))
-    output_oneway ();
+    output_oneway (dict);
+
   taint_destroy (taint);
 }
 

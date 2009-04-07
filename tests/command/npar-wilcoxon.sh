@@ -59,7 +59,7 @@ cd $TEMPDIR
 
 activity="create program 1"
 cat > $TESTFILE <<  EOF
-data list notable list /foo * bar * w *.
+data list notable list /foo * bar * w (f8.0).
 begin data.
 1.00     1.00   1
 1.00     2.00   1
@@ -94,7 +94,6 @@ activity="run program 1"
 $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-
 activity="generate results"
 cat > $TEMPDIR/results.txt <<EOF
 1.1 NPAR TESTS.  Ranks
@@ -111,10 +110,10 @@ cat > $TEMPDIR/results.txt <<EOF
 #=====================#==============#
 #                     #second - first#
 #=====================#==============#
-#Z                    #         -.175#
-#Asymp. Sig (2-tailed)#          .861#
-#Exact Sig (2-tailed) #          .893#
-#Exact Sig (1-tailed) #          .446#
+#Z                    #          -.18#
+#Asymp. Sig (2-tailed)#           .86#
+#Exact Sig (2-tailed) #           .89#
+#Exact Sig (1-tailed) #           .45#
 #=====================#==============#
 
 EOF
@@ -124,6 +123,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare output 1"
 diff pspp.list $TEMPDIR/results.txt
 if [ $? -ne 0 ] ; then fail ; fi
+
 
 
 # No weights this time. But some missing values
@@ -163,7 +163,6 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="run program 2"
 $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
-
 
 activity="compare output 2"
 diff pspp.list $TEMPDIR/results.txt
