@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -376,8 +376,6 @@ stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
 
   s = lex_tokstr (lexer);
 
-  lex_get (lexer);
-
   /* First try this string as an encoding name */
   if ( valid_encoding (ds_cstr (s)))
     set_default_encoding (ds_cstr (s));
@@ -392,6 +390,8 @@ stc_custom_locale (struct lexer *lexer, struct dataset *ds UNUSED,
 	   ds_cstr (s));
       return 0;
     }
+
+  lex_get (lexer);
 
   return 1;
 }
