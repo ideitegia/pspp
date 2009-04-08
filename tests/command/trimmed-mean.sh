@@ -96,32 +96,32 @@ diff -b  $TEMPDIR/pspp.list - << EOF
 |C       |F8.0  |
 +--------+------+
 2.1 EXAMINE.  Case Processing Summary
-#=#===============================#
-# #             Cases             #
-# #----------+---------+----------#
-# #   Valid  | Missing |   Total  #
-# #--+-------+-+-------+--+-------#
-# # N|Percent|N|Percent| N|Percent#
-#=#==#=======#=#=======#==#=======#
-#X#52|   100%|0|     0%|52|   100%#
-#=#==#=======#=#=======#==#=======#
+#=#=======================================#
+# #                 Cases                 #
+# #-------------+-----------+-------------#
+# #    Valid    |  Missing  |    Total    #
+# #-----+-------+---+-------+-----+-------#
+# #  N  |Percent| N |Percent|  N  |Percent#
+#=#=====#=======#===#=======#=====#=======#
+#X#52.00|   100%|.00|     0%|52.00|   100%#
+#=#=====#=======#===#=======#=====#=======#
 2.2 EXAMINE.  Descriptives
 #==============================================#=========#==========#
 #                                              #Statistic|Std. Error#
 #==============================================#=========#==========#
-#X Mean                                        #   2.02  |   .034   #
-#  95% Confidence Interval for Mean Lower Bound#  1.952  |          #
-#                                   Upper Bound#  2.087  |          #
+#X Mean                                        #   2.02  |    .03   #
+#  95% Confidence Interval for Mean Lower Bound#   1.95  |          #
+#                                   Upper Bound#   2.09  |          #
 #  5% Trimmed Mean                             #   2.00  |          #
 #  Median                                      #   2.00  |          #
-#  Variance                                    #   .058  |          #
-#  Std. Deviation                              #   .242  |          #
-#  Minimum                                     #  1.000  |          #
-#  Maximum                                     #  3.000  |          #
-#  Range                                       #  2.000  |          #
+#  Variance                                    #   .06   |          #
+#  Std. Deviation                              #   .24   |          #
+#  Minimum                                     #   1.00  |          #
+#  Maximum                                     #   3.00  |          #
+#  Range                                       #   2.00  |          #
 #  Interquartile Range                         #   .00   |          #
-#  Skewness                                    #  1.194  |   .330   #
-#  Kurtosis                                    #  15.732 |   .650   #
+#  Skewness                                    #   1.19  |    .33   #
+#  Kurtosis                                    #  15.73  |    .65   #
 #==============================================#=========#==========#
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

@@ -197,6 +197,24 @@
 
     </glade-widget-class>
 
+
+
+    <glade-widget-class name="PsppireDictView" generic-name="psppire-dictview" title="Dictionary Treeview">
+
+      <post-create-function>glade_psppire_dictview_post_create</post-create-function>
+      <get-children-function>glade_psppire_dictview_get_children</get-children-function>
+      <get-internal-child-function>glade_psppire_dictview_get_internal_child</get-internal-child-function>
+
+
+    <properties>
+      <property id="child"                disabled="True" />
+      <property id="homogeneous"          disabled="True" />
+      <property id="visible" ignore="True" default="True" />
+    </properties>
+
+    </glade-widget-class>
+
+
   </glade-widget-classes>
  
 
@@ -204,8 +222,9 @@
   <glade-widget-class-ref name="PsppireDialog"/>
   <glade-widget-class-ref name="PsppireHButtonBox"/>
   <glade-widget-class-ref name="PsppireVButtonBox"/>
-  <glade-widget-class-ref name="PsppireKeypad"/>
+  <glade-widget-class-ref name="PsppireDictView"/>
   <glade-widget-class-ref name="PsppireSelector"/>
+  <glade-widget-class-ref name="PsppireKeypad"/>
   <glade-widget-class-ref name="PsppireAcr"/>
  </glade-widget-group>
 

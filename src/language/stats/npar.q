@@ -356,26 +356,23 @@ npar_custom_binomial (struct lexer *lexer, struct dataset *ds,
 	    {
 	      lex_force_num (lexer);
 	      btp->category1 = lex_number (lexer);
-	      lex_get (lexer);
-	      if ( ! lex_force_match (lexer, ',')) return 2;
-	      if ( ! lex_force_num (lexer) ) return 2;
-	      btp->category2 = lex_number (lexer);
-	      lex_get (lexer);
+      	      lex_get (lexer);
+	      if ( lex_match (lexer, ','))
+		{
+		  if ( ! lex_force_num (lexer) ) return 2;
+		  btp->category2 = lex_number (lexer);
+		  lex_get (lexer);
+		}
+	      else
+		{
+      		  btp->cutpoint = btp->category1;
+		}
+
 	      lex_force_match (lexer, ')');
 	    }
 	}
       else
 	return 2;
-    }
-  else
-    {
-      if ( lex_match (lexer, '(') )
-	{
-	  lex_force_num (lexer);
-	  btp->cutpoint = lex_number (lexer);
-	  lex_get (lexer);
-	  lex_force_match (lexer, ')');
-	}
     }
 
   specs->n_tests++;

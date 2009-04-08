@@ -160,10 +160,10 @@ reg_stats_r (pspp_linreg_cache * c)
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("R Square"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Adjusted R Square"));
   tab_text (t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Error of the Estimate"));
-  tab_float (t, 1, 1, TAB_RIGHT, sqrt (rsq), 10, 2);
-  tab_float (t, 2, 1, TAB_RIGHT, rsq, 10, 2);
-  tab_float (t, 3, 1, TAB_RIGHT, adjrsq, 10, 2);
-  tab_float (t, 4, 1, TAB_RIGHT, std_error, 10, 2);
+  tab_double (t, 1, 1, TAB_RIGHT, sqrt (rsq), NULL);
+  tab_double (t, 2, 1, TAB_RIGHT, rsq, NULL);
+  tab_double (t, 3, 1, TAB_RIGHT, adjrsq, NULL);
+  tab_double (t, 4, 1, TAB_RIGHT, std_error, NULL);
   tab_title (t, _("Model Summary"));
   tab_submit (t);
 }
@@ -205,14 +205,14 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("(Constant)"));
-  tab_float (t, 2, 1, 0, c->intercept, 10, 2);
+  tab_double (t, 2, 1, 0, c->intercept, NULL);
   std_err = sqrt (gsl_matrix_get (c->cov, 0, 0));
-  tab_float (t, 3, 1, 0, std_err, 10, 2);
-  tab_float (t, 4, 1, 0, 0.0, 10, 2);
+  tab_double (t, 3, 1, 0, std_err, NULL);
+  tab_double (t, 4, 1, 0, 0.0, NULL);
   t_stat = c->intercept / std_err;
-  tab_float (t, 5, 1, 0, t_stat, 10, 2);
+  tab_double (t, 5, 1, 0, t_stat, NULL);
   pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
-  tab_float (t, 6, 1, 0, pval, 10, 2);
+  tab_double (t, 6, 1, 0, pval, NULL);
   for (j = 0; j < c->n_coeffs; j++)
     {
       struct string tstr;
@@ -240,32 +240,32 @@ reg_stats_coeff (pspp_linreg_cache * c)
       /*
          Regression coefficients.
        */
-      tab_float (t, 2, this_row, 0, c->coeff[j]->estimate, 10, 2);
+      tab_double (t, 2, this_row, 0, c->coeff[j]->estimate, NULL);
       /*
          Standard error of the coefficients.
        */
       std_err = sqrt (gsl_matrix_get (c->cov, j + 1, j + 1));
-      tab_float (t, 3, this_row, 0, std_err, 10, 2);
+      tab_double (t, 3, this_row, 0, std_err, NULL);
       /*
          Standardized coefficient, i.e., regression coefficient
          if all variables had unit variance.
        */
       beta = pspp_coeff_get_sd (c->coeff[j]);
       beta *= c->coeff[j]->estimate / c->depvar_std;
-      tab_float (t, 4, this_row, 0, beta, 10, 2);
+      tab_double (t, 4, this_row, 0, beta, NULL);
 
       /*
          Test statistic for H0: coefficient is 0.
        */
       t_stat = c->coeff[j]->estimate / std_err;
-      tab_float (t, 5, this_row, 0, t_stat, 10, 2);
+      tab_double (t, 5, this_row, 0, t_stat, NULL);
       /*
          P values for the test statistic above.
        */
       pval =
 	2 * gsl_cdf_tdist_Q (fabs (t_stat),
 			     (double) (c->n_obs - c->n_coeffs));
-      tab_float (t, 6, this_row, 0, pval, 10, 2);
+      tab_double (t, 6, this_row, 0, pval, NULL);
       ds_destroy (&tstr);
     }
   tab_title (t, _("Coefficients"));
@@ -309,9 +309,9 @@ reg_stats_anova (pspp_linreg_cache * c)
   tab_text (t, 1, 3, TAB_LEFT | TAT_TITLE, _("Total"));
 
   /* Sums of Squares */
-  tab_float (t, 2, 1, 0, c->ssm, 10, 2);
-  tab_float (t, 2, 3, 0, c->sst, 10, 2);
-  tab_float (t, 2, 2, 0, c->sse, 10, 2);
+  tab_double (t, 2, 1, 0, c->ssm, NULL);
+  tab_double (t, 2, 3, 0, c->sst, NULL);
+  tab_double (t, 2, 2, 0, c->sse, NULL);
 
 
   /* Degrees of freedom */
@@ -320,12 +320,12 @@ reg_stats_anova (pspp_linreg_cache * c)
   tab_text (t, 3, 3, TAB_RIGHT | TAT_PRINTF, "%g", c->dft);
 
   /* Mean Squares */
-  tab_float (t, 4, 1, TAB_RIGHT, msm, 8, 3);
-  tab_float (t, 4, 2, TAB_RIGHT, mse, 8, 3);
+  tab_double (t, 4, 1, TAB_RIGHT, msm, NULL);
+  tab_double (t, 4, 2, TAB_RIGHT, mse, NULL);
 
-  tab_float (t, 5, 1, 0, F, 8, 3);
+  tab_double (t, 5, 1, 0, F, NULL);
 
-  tab_float (t, 6, 1, 0, pval, 8, 3);
+  tab_double (t, 6, 1, 0, pval, NULL);
 
   tab_title (t, _("ANOVA"));
   tab_submit (t);
@@ -398,8 +398,8 @@ reg_stats_bcov (pspp_linreg_cache * c)
 	{
 	  col = (i <= k) ? k : i;
 	  row = (i <= k) ? i : k;
-	  tab_float (t, k + 2, i, TAB_CENTER,
-		     gsl_matrix_get (c->cov, row, col), 8, 3);
+	  tab_double (t, k + 2, i, TAB_CENTER,
+		     gsl_matrix_get (c->cov, row, col), NULL);
 	}
     }
   tab_title (t, _("Coefficient Correlations"));

@@ -7,8 +7,6 @@ src_ui_gui_sheet_libsheet_la_CFLAGS = $(GTK_CFLAGS)
 src_ui_gui_sheet_libsheet_la_SOURCES = \
 	src/ui/gui/sheet/psppire-axis.c \
 	src/ui/gui/sheet/psppire-axis.h \
-	src/ui/gui/sheet/psppire-axis-impl.c \
-	src/ui/gui/sheet/psppire-axis-impl.h \
 	src/ui/gui/sheet/psppire-sheetmodel.c \
 	src/ui/gui/sheet/psppire-sheetmodel.h
 

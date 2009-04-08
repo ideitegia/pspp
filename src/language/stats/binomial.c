@@ -18,6 +18,7 @@
 #include <libpspp/compiler.h>
 #include <output/table.h>
 
+#include <data/format.h>
 #include <data/case.h>
 #include <data/casereader.h>
 #include <data/dictionary.h>
@@ -114,22 +115,32 @@ do_binomial (const struct dictionary *dict,
 	  if (var_is_value_missing (var, value, exclude))
 	    continue;
 
-	  if ( NULL == cat1[v].value )
+	  if (bst->cutpoint != SYSMIS)
 	    {
-	      cat1[v].value = value_dup (value, width);
-	      cat1[v].count = w;
+	      if ( compare_values_short (cat1[v].value, value, var) >= 0 )
+		  cat1[v].count  += w;
+	      else
+		  cat2[v].count += w;
 	    }
-	  else if ( 0 == compare_values_short (cat1[v].value, value, var))
-	    cat1[v].count += w;
-	  else if ( NULL == cat2[v].value )
+	  else
 	    {
-	      cat2[v].value = value_dup (value, width);
-	      cat2[v].count = w;
+	      if ( NULL == cat1[v].value )
+		{
+		  cat1[v].value = value_dup (value, width);
+		  cat1[v].count = w;
+		}
+	      else if ( 0 == compare_values_short (cat1[v].value, value, var))
+		cat1[v].count += w;
+	      else if ( NULL == cat2[v].value )
+		{
+		  cat2[v].value = value_dup (value, width);
+		  cat2[v].count = w;
+		}
+	      else if ( 0 == compare_values_short (cat2[v].value, value, var))
+		cat2[v].count += w;
+	      else if ( bst->category1 == SYSMIS)
+		msg (ME, _("Variable %s is not dichotomous"), var_get_name (var));
 	    }
-	  else if ( 0 == compare_values_short (cat2[v].value, value, var))
-	    cat2[v].count += w;
-	  else if ( bst->category1 == SYSMIS)
-	    msg (ME, _("Variable %s is not dichotomous"), var_get_name (var));
 	}
 
       case_unref (c);
@@ -148,15 +159,24 @@ binomial_execute (const struct dataset *ds,
 		  double timer UNUSED)
 {
   int v;
+  const struct dictionary *dict = dataset_dict (ds);
   const struct binomial_test *bst = (const struct binomial_test *) test;
   const struct one_sample_test *ost = (const struct one_sample_test*) test;
 
   struct freq_mutable *cat1 = xzalloc (sizeof (*cat1) * ost->n_vars);
   struct freq_mutable *cat2 = xzalloc (sizeof (*cat1) * ost->n_vars);
 
-  assert ((bst->category1 == SYSMIS) == (bst->category2 == SYSMIS) );
+  assert ((bst->category1 == SYSMIS) == (bst->category2 == SYSMIS) || bst->cutpoint != SYSMIS);
 
-  if ( bst->category1 != SYSMIS )
+  if ( bst->cutpoint != SYSMIS )
+    {
+      int i;
+      union value v;
+      v.f = bst->cutpoint;
+      for (i = 0; i < ost->n_vars; i++)
+	cat1[i].value = value_dup (&v, 0);
+    }
+  else  if ( bst->category1 != SYSMIS )
     {
       int i;
       union value v;
@@ -174,8 +194,12 @@ binomial_execute (const struct dataset *ds,
 	cat2[i].value = value_dup (&v, 0);
     }
 
-  if (do_binomial (dataset_dict(ds), input, bst, cat1, cat2, exclude))
+  if (do_binomial (dict, input, bst, cat1, cat2, exclude))
     {
+      const struct variable *wvar = dict_get_weight (dict);
+      const struct fmt_spec *wfmt = wvar ?
+	var_get_print_format (wvar) : & F_8_0;
+
       struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1, 0);
 
       tab_dim (table, tab_natural_dimensions);
@@ -197,8 +221,15 @@ binomial_execute (const struct dataset *ds,
 	  ds_init_empty (&catstr1);
 	  ds_init_empty (&catstr2);
 
-	  var_append_value_name (var, cat1[v].value, &catstr1);
-	  var_append_value_name (var, cat2[v].value, &catstr2);
+	  if ( bst->cutpoint != SYSMIS)
+	    {
+	      ds_put_format (&catstr1, "<= %g", bst->cutpoint);
+	    }
+	  else
+	    {
+	      var_append_value_name (var, cat1[v].value, &catstr1);
+	      var_append_value_name (var, cat2[v].value, &catstr2);
+	    }
 
           tab_hline (table, TAL_1, 0, tab_nc (table) -1, 1 + v * 3);
 
@@ -209,30 +240,31 @@ binomial_execute (const struct dataset *ds,
           tab_text (table, 1, 3 + v * 3, TAB_LEFT, _("Total"));
 
           /* Test Prop */
-          tab_float (table, 5, 1 + v * 3, TAB_NONE, bst->p, 8, 3);
+          tab_double (table, 5, 1 + v * 3, TAB_NONE, bst->p, NULL);
 
           /* Category labels */
           tab_text (table, 2, 1 + v * 3, TAB_NONE, ds_cstr (&catstr1));
 	  tab_text (table, 2, 2 + v * 3, TAB_NONE, ds_cstr (&catstr2));
 
           /* Observed N */
-          tab_float (table, 3, 1 + v * 3, TAB_NONE, cat1[v].count, 8, 0);
-          tab_float (table, 3, 2 + v * 3, TAB_NONE, cat2[v].count, 8, 0);
+          tab_double (table, 3, 1 + v * 3, TAB_NONE, cat1[v].count, wfmt);
+          tab_double (table, 3, 2 + v * 3, TAB_NONE, cat2[v].count, wfmt);
 
           n_total = cat1[v].count + cat2[v].count;
-          tab_float (table, 3, 3 + v * 3, TAB_NONE, n_total, 8, 0);
+          tab_double (table, 3, 3 + v * 3, TAB_NONE, n_total, wfmt);
 
           /* Observed Proportions */
-          tab_float (table, 4, 1 + v * 3, TAB_NONE,
-                     cat1[v].count / n_total, 8, 3);
-          tab_float (table, 4, 2 + v * 3, TAB_NONE,
-                     cat2[v].count / n_total, 8, 3);
-          tab_float (table, 4, 3 + v * 3, TAB_NONE,
-                     (cat1[v].count + cat2[v].count) / n_total, 8, 2);
+          tab_double (table, 4, 1 + v * 3, TAB_NONE,
+                     cat1[v].count / n_total, NULL);
+          tab_double (table, 4, 2 + v * 3, TAB_NONE,
+                     cat2[v].count / n_total, NULL);
+
+          tab_double (table, 4, 3 + v * 3, TAB_NONE,
+                     (cat1[v].count + cat2[v].count) / n_total, NULL);
 
           /* Significance */
           sig = calculate_binomial (cat1[v].count, cat2[v].count, bst->p);
-          tab_float (table, 6, 1 + v * 3, TAB_NONE, sig, 8, 3);
+          tab_double (table, 6, 1 + v * 3, TAB_NONE, sig, NULL);
 
 	  ds_destroy (&catstr1);
 	  ds_destroy (&catstr2);

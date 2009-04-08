@@ -185,7 +185,7 @@ replace_file_start (const char *file_name, const char *mode,
         }
 
       /* Create file by that name. */
-      fd = open (rf->tmp_name, O_WRONLY | O_CREAT | O_EXCL, permissions);
+      fd = open (rf->tmp_name, O_WRONLY | O_CREAT | O_EXCL | O_BINARY, permissions);
       if (fd >= 0)
         break;
       if (errno != EEXIST)

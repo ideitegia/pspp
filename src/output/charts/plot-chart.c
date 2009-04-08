@@ -38,17 +38,18 @@
 
 #include "xalloc.h"
 
-const char *const data_colour[] = {
-  "brown",
-  "red",
-  "orange",
-  "yellow",
-  "green",
-  "blue",
-  "violet",
-  "grey",
-  "pink"
-};
+const char *const data_colour[N_CHART_COLOURS] =
+  {
+    "brown",
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "blue",
+    "violet",
+    "grey",
+    "pink"
+  };
 
 
 

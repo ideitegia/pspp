@@ -96,7 +96,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
       draw_segment(ch,
 		   centre_x, centre_y, radius,
 		   angle, segment_angle,
-		   data_colour[i]);
+		   data_colour[i % N_CHART_COLOURS]);
 
       /* Now add the labels */
       if ( label_x < centre_x )

@@ -148,7 +148,7 @@ draw_barchart(struct chart *ch, const char *title,
 	{
 
 	  pl_savestate_r(ch->lp);
-	  pl_fillcolorname_r(ch->lp,data_colour[sc]);
+	  pl_fillcolorname_r(ch->lp,data_colour[sc % N_CHART_COLOURS]);
 
 	  switch ( opt )
 	    {

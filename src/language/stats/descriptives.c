@@ -908,9 +908,10 @@ display (struct dsc_proc *dsc)
       tab_text (t, nc++, i + 1, TAT_PRINTF, "%g", dv->valid);
       if (dsc->format == DSC_SERIAL)
 	tab_text (t, nc++, i + 1, TAT_PRINTF, "%g", dv->missing);
+
       for (j = 0; j < DSC_N_STATS; j++)
 	if (dsc->show_stats & (1ul << j))
-	  tab_float (t, nc++, i + 1, TAB_NONE, dv->stats[j], 10, 3);
+	  tab_double (t, nc++, i + 1, TAB_NONE, dv->stats[j], NULL);
     }
 
   tab_title (t, _("Valid cases = %g; cases with missing value(s) = %g."),

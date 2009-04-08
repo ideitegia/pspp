@@ -35,13 +35,14 @@
 #ifndef PLOT_CHART_H
 #define PLOT_CHART_H
 
-
+#define N_CHART_COLOURS 9
 extern const char *const data_colour[];
 
-enum tick_orientation {
-  TICK_ABSCISSA=0,
-  TICK_ORDINATE
-};
+enum tick_orientation
+  {
+    TICK_ABSCISSA=0,
+    TICK_ORDINATE
+  };
 
 
 /* Draw a tick mark at position

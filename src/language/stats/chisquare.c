@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <data/format.h>
 #include <data/case.h>
 #include <data/casereader.h>
 #include <data/dictionary.h>
@@ -269,8 +270,8 @@ create_combo_frequency_table (const struct chisquare_test *test)
     }
 
   for ( i = test->lo ; i <= test->hi ; ++i )
-    tab_float (table, 0, 2 + i - test->lo,
-	       TAB_LEFT, 1 + i - test->lo, 8, 0);
+    tab_fixed (table, 0, 2 + i - test->lo,
+		TAB_LEFT, 1 + i - test->lo, 8, 0);
 
   tab_headers (table, 1, 0, 2, 0);
 
@@ -330,6 +331,9 @@ chisquare_execute (const struct dataset *ds,
   struct chisquare_test *cst = (struct chisquare_test *) test;
   int n_cells = 0;
   double total_expected = 0.0;
+  const struct variable *wvar = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wvar ?
+    var_get_print_format (wvar) : & F_8_0;
 
   double *df = xzalloc (sizeof (*df) * ost->n_vars);
   double *xsq = xzalloc (sizeof (*df) * ost->n_vars);
@@ -378,28 +382,28 @@ chisquare_execute (const struct dataset *ds,
 
 
 	      /* The observed N */
-	      tab_float (freq_table, 1, i + 1, TAB_NONE,
-			 ff[i]->count, 8, 0);
+	      tab_double (freq_table, 1, i + 1, TAB_NONE,
+			 ff[i]->count, wfmt);
 
 	      if ( cst->n_expected > 0 )
 		exp = cst->expected[i] * total_obs / total_expected ;
 	      else
 		exp = total_obs / (double) n_cells;
 
-	      tab_float (freq_table, 2, i + 1, TAB_NONE,
-			 exp, 8, 2);
+	      tab_double (freq_table, 2, i + 1, TAB_NONE,
+			 exp, NULL);
 
 	      /* The residual */
-	      tab_float (freq_table, 3, i + 1, TAB_NONE,
-			 ff[i]->count - exp, 8, 2);
+	      tab_double (freq_table, 3, i + 1, TAB_NONE,
+			 ff[i]->count - exp, NULL);
 
 	      xsq[v] += (ff[i]->count - exp) * (ff[i]->count - exp) / exp;
 	    }
 
 	  df[v] = n_cells - 1.0;
 
-	  tab_float (freq_table, 1, i + 1, TAB_NONE,
-		     total_obs, 8, 0);
+	  tab_double (freq_table, 1, i + 1, TAB_NONE,
+		     total_obs, wfmt);
 
 	  tab_submit (freq_table);
 
@@ -450,8 +454,8 @@ chisquare_execute (const struct dataset *ds,
 	      ds_destroy (&str);
 
 	      /* The observed N */
-	      tab_float (freq_table, v * 4 + 2, i + 2 , TAB_NONE,
-			 ff[i]->count, 8, 0);
+	      tab_double (freq_table, v * 4 + 2, i + 2 , TAB_NONE,
+			 ff[i]->count, wfmt);
 
 	      if ( cst->n_expected > 0 )
 		exp = cst->expected[i] * total_obs / total_expected ;
@@ -459,19 +463,19 @@ chisquare_execute (const struct dataset *ds,
 		exp = total_obs / (double) hsh_count (freq_hash);
 
 	      /* The expected N */
-	      tab_float (freq_table, v * 4 + 3, i + 2 , TAB_NONE,
-			 exp, 8, 2);
+	      tab_double (freq_table, v * 4 + 3, i + 2 , TAB_NONE,
+			 exp, NULL);
 
 	      /* The residual */
-	      tab_float (freq_table, v * 4 + 4, i + 2 , TAB_NONE,
-			 ff[i]->count - exp, 8, 2);
+	      tab_double (freq_table, v * 4 + 4, i + 2 , TAB_NONE,
+			 ff[i]->count - exp, NULL);
 
 	      xsq[v] += (ff[i]->count - exp) * (ff[i]->count - exp) / exp;
 	    }
 
 
-	  tab_float (freq_table, v * 4 + 2, tab_nr (freq_table) - 1, TAB_NONE,
-		     total_obs, 8, 0);
+	  tab_double (freq_table, v * 4 + 2, tab_nr (freq_table) - 1, TAB_NONE,
+		     total_obs, wfmt);
 
 	  df[v] = n_cells - 1.0;
 
@@ -494,11 +498,11 @@ chisquare_execute (const struct dataset *ds,
 
           tab_text (stats_table, 1 + v, 0, TAB_CENTER, var_get_name (var));
 
-          tab_float (stats_table, 1 + v, 1, TAB_NONE, xsq[v], 8,3);
-          tab_float (stats_table, 1 + v, 2, TAB_NONE, df[v], 8,0);
+          tab_double (stats_table, 1 + v, 1, TAB_NONE, xsq[v], NULL);
+          tab_fixed (stats_table, 1 + v, 2, TAB_NONE, df[v], 8, 0);
 
-          tab_float (stats_table, 1 + v, 3, TAB_NONE,
-                     gsl_cdf_chisq_Q (xsq[v], df[v]), 8,3);
+          tab_double (stats_table, 1 + v, 3, TAB_NONE,
+                     gsl_cdf_chisq_Q (xsq[v], df[v]), NULL);
         }
       tab_submit (stats_table);
     }

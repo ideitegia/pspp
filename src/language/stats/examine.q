@@ -207,6 +207,7 @@ static int examine_parse_independent_vars (struct lexer *lexer,
 
 /* Output functions */
 static void show_summary (const struct variable **dependent_var, int n_dep_var,
+			  const struct dictionary *dict,
 			  const struct xfactor *f);
 
 
@@ -231,7 +232,7 @@ static void show_extremes (const struct variable **dependent_var,
 static void run_examine (struct cmd_examine *, struct casereader *,
                          struct dataset *);
 
-static void output_examine (void);
+static void output_examine (const struct dictionary *dict);
 
 
 void factor_calc (const struct ccase *c, int case_no,
@@ -628,11 +629,11 @@ show_boxplot_variables (const struct variable **dependent_var,
 
 /* Show all the appropriate tables */
 static void
-output_examine (void)
+output_examine (const struct dictionary *dict)
 {
   struct ll *ll;
 
-  show_summary (dependent_vars, n_dependent_vars, &level0_factor);
+  show_summary (dependent_vars, n_dependent_vars, dict, &level0_factor);
 
   if ( cmd.a_statistics[XMN_ST_EXTREME] )
     show_extremes (dependent_vars, n_dependent_vars, &level0_factor);
@@ -659,7 +660,7 @@ output_examine (void)
        ll != ll_null (&factor_list); ll = ll_next (ll))
     {
       struct xfactor *factor = ll_data (ll, struct xfactor, ll);
-      show_summary (dependent_vars, n_dependent_vars, factor);
+      show_summary (dependent_vars, n_dependent_vars, dict, factor);
 
       if ( cmd.a_statistics[XMN_ST_EXTREME] )
 	show_extremes (dependent_vars, n_dependent_vars, factor);
@@ -1180,7 +1181,7 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 
   casereader_destroy (input);
 
-  output_examine ();
+  output_examine (dict);
 
   factor_destroy (&level0_factor);
 
@@ -1200,8 +1201,12 @@ run_examine (struct cmd_examine *cmd, struct casereader *input,
 
 static void
 show_summary (const struct variable **dependent_var, int n_dep_var,
+	      const struct dictionary *dict,
 	      const struct xfactor *fctr)
 {
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   static const char *subtitle[]=
     {
       N_("Valid"),
@@ -1393,10 +1398,10 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 	  result->metrics[v].se_mean = sqrt (result->metrics[v].variance / n) ;
 
 	  /* Total Valid */
-	  tab_float (tbl, heading_columns,
+	  tab_double (tbl, heading_columns,
 		     heading_rows + j + v * ll_count (&fctr->result_list),
 		     TAB_LEFT,
-		     n, 8, 0);
+		     n, wfmt);
 
 	  tab_text (tbl, heading_columns + 1,
 		    heading_rows + j + v * ll_count (&fctr->result_list),
@@ -1404,11 +1409,11 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		    "%g%%", n * 100.0 / result->metrics[v].n);
 
 	  /* Total Missing */
-	  tab_float (tbl, heading_columns + 2,
+	  tab_double (tbl, heading_columns + 2,
 		     heading_rows + j + v * ll_count (&fctr->result_list),
 		     TAB_LEFT,
 		     result->metrics[v].n - n,
-		     8, 0);
+		     wfmt);
 
 	  tab_text (tbl, heading_columns + 3,
 		    heading_rows + j + v * ll_count (&fctr->result_list),
@@ -1418,11 +1423,11 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		    );
 
 	  /* Total Valid + Missing */
-	  tab_float (tbl, heading_columns + 4,
+	  tab_double (tbl, heading_columns + 4,
 		     heading_rows + j + v * ll_count (&fctr->result_list),
 		     TAB_LEFT,
 		     result->metrics[v].n,
-		     8, 0);
+		     wfmt);
 
 	  tab_text (tbl, heading_columns + 5,
 		    heading_rows + j + v * ll_count (&fctr->result_list),
@@ -1621,93 +1626,93 @@ show_descriptives (const struct variable **dependent_var,
 
 	  /* Now the statistics ... */
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		    heading_rows + row_var_start + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     result->metrics[v].mean,
-		     8, 2);
+		     NULL);
 
-	  tab_float (tbl, n_cols - 1,
+	  tab_double (tbl, n_cols - 1,
 		    heading_rows + row_var_start + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     result->metrics[v].se_mean,
-		     8, 3);
+		     NULL);
 
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 1 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     result->metrics[v].mean - t *
 		      result->metrics[v].se_mean,
-		     8, 3);
+		     NULL);
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 2 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     result->metrics[v].mean + t *
 		      result->metrics[v].se_mean,
-		     8, 3);
+		     NULL);
 
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 3 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     trimmed_mean_calculate ((struct trimmed_mean *) result->metrics[v].trimmed_mean),
-		     8, 2);
+		     NULL);
 
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 4 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     percentile_calculate (result->metrics[v].quartiles[1], percentile_algorithm),
-		     8, 2);
+		     NULL);
 
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 5 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     result->metrics[v].variance,
-		     8, 3);
+		     NULL);
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 6 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     sqrt (result->metrics[v].variance),
-		     8, 3);
+		     NULL);
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 10 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     percentile_calculate (result->metrics[v].quartiles[2],
 					   percentile_algorithm) -
 		     percentile_calculate (result->metrics[v].quartiles[0],
 					   percentile_algorithm),
-		     8, 2);
+		     NULL);
 
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 11 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     result->metrics[v].skewness,
-		     8, 3);
+		     NULL);
 
-	  tab_float (tbl, n_cols - 2,
+	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 12 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     result->metrics[v].kurtosis,
-		     8, 3);
+		     NULL);
 
-	  tab_float (tbl, n_cols - 1,
+	  tab_double (tbl, n_cols - 1,
 		     heading_rows + row_var_start + 11 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     calc_seskew (result->metrics[v].n),
-		     8, 3);
+		     NULL);
 
-	  tab_float (tbl, n_cols - 1,
+	  tab_double (tbl, n_cols - 1,
 		     heading_rows + row_var_start + 12 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
 		     calc_sekurt (result->metrics[v].n),
-		     8, 3);
+		     NULL);
 
 	  {
 	    struct extremum *minimum, *maximum ;
@@ -1718,23 +1723,23 @@ show_descriptives (const struct variable **dependent_var,
 	    maximum = ll_data (max_ll, struct extremum, ll);
 	    minimum = ll_data (min_ll, struct extremum, ll);
 
-	    tab_float (tbl, n_cols - 2,
+	    tab_double (tbl, n_cols - 2,
 		       heading_rows + row_var_start + 7 + i * DESCRIPTIVE_ROWS,
 		       TAB_CENTER,
 		       minimum->value,
-		       8, 3);
+		       NULL);
 
-	    tab_float (tbl, n_cols - 2,
+	    tab_double (tbl, n_cols - 2,
 		       heading_rows + row_var_start + 8 + i * DESCRIPTIVE_ROWS,
 		       TAB_CENTER,
 		       maximum->value,
-		       8, 3);
+		       NULL);
 
-	    tab_float (tbl, n_cols - 2,
+	    tab_double (tbl, n_cols - 2,
 		       heading_rows + row_var_start + 9 + i * DESCRIPTIVE_ROWS,
 		       TAB_CENTER,
 		       maximum->value - minimum->value,
-		       8, 3);
+		       NULL);
 	  }
 	}
     }
@@ -1861,18 +1866,19 @@ show_extremes (const struct variable **dependent_var,
 
 	      while (weight-- > 0 && e < cmd.st_n)
 		{
-		  tab_float (tbl, n_cols - 1,
+		  tab_double (tbl, n_cols - 1,
 			     heading_rows + row_var_start + row_result_start + cmd.st_n + e,
 			     TAB_RIGHT,
 			     minimum->value,
-			     8, 2);
+			     NULL);
 
 
-		  tab_float (tbl, n_cols - 2,
-			     heading_rows + row_var_start + row_result_start + cmd.st_n + e,
+		  tab_fixed (tbl, n_cols - 2,
+			     heading_rows + row_var_start +
+			     row_result_start + cmd.st_n + e,
 			     TAB_RIGHT,
 			     minimum->location,
-			     8, 0);
+			     10, 0);
 		  ++e;
 		}
 
@@ -1888,18 +1894,20 @@ show_extremes (const struct variable **dependent_var,
 
 	      while (weight-- > 0 && e < cmd.st_n)
 		{
-		  tab_float (tbl, n_cols - 1,
-			     heading_rows + row_var_start + row_result_start + e,
+		  tab_double (tbl, n_cols - 1,
+			     heading_rows + row_var_start +
+			      row_result_start + e,
 			     TAB_RIGHT,
 			     maximum->value,
-			     8, 2);
+			     NULL);
 
 
-		  tab_float (tbl, n_cols - 2,
-			     heading_rows + row_var_start + row_result_start + e,
+		  tab_fixed (tbl, n_cols - 2,
+			     heading_rows + row_var_start +
+			     row_result_start + e,
 			     TAB_RIGHT,
 			     maximum->location,
-			     8, 0);
+			     10, 0);
 		  ++e;
 		}
 
@@ -2076,12 +2084,12 @@ show_percentiles (const struct variable **dependent_var,
 	  for (j = 0; j < n_percentiles; ++j)
 	    {
 	      double hinge = SYSMIS;
-	      tab_float (tbl, n_cols - n_percentiles + j,
+	      tab_double (tbl, n_cols - n_percentiles + j,
 			 heading_rows + row_var_start + i * PERCENTILE_ROWS,
 			 TAB_CENTER,
 			 percentile_calculate (result->metrics[v].ptl[j],
 					       percentile_algorithm),
-			 8, 2
+			 NULL
 			 );
 
 	      if ( result->metrics[v].ptl[j]->ptile == 0.5)
@@ -2092,11 +2100,11 @@ show_percentiles (const struct variable **dependent_var,
 		hinge = hinges[2];
 
 	      if ( hinge != SYSMIS)
-		tab_float (tbl, n_cols - n_percentiles + j,
+		tab_double (tbl, n_cols - n_percentiles + j,
 			   heading_rows + row_var_start + 1 + i * PERCENTILE_ROWS,
 			   TAB_CENTER,
 			   hinge,
-			   8, 2
+			   NULL
 			   );
 
 	    }

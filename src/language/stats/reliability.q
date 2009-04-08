@@ -100,6 +100,7 @@ enum model
 
 struct reliability
 {
+  const struct dictionary *dict;
   const struct variable **variables;
   int n_variables;
   enum mv_class exclude;
@@ -142,7 +143,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
   struct casereader *group;
   struct cmd_reliability cmd;
 
-  struct reliability rel = {
+  struct reliability rel = {NULL,
     NULL, 0, MV_ANY, NULL, 0, -1,
     DS_EMPTY_INITIALIZER,
     MODEL_ALPHA, 0};
@@ -154,6 +155,7 @@ cmd_reliability (struct lexer *lexer, struct dataset *ds)
       goto done;
     }
 
+  rel.dict = dataset_dict (ds);
   rel.variables = cmd.v_variables;
   rel.n_variables = cmd.n_variables;
   rel.exclude = MV_ANY;
@@ -296,10 +298,11 @@ append_sum (const struct ccase *c, casenumber n UNUSED, void *aux)
 };
 
 
-static void case_processing_summary (casenumber n_valid, casenumber n_missing);
+static void case_processing_summary (casenumber n_valid, casenumber n_missing, 
+				     const struct dictionary *dict);
 
 static void
-run_reliability (struct casereader *input, struct dataset *ds UNUSED,
+run_reliability (struct casereader *input, struct dataset *ds,
 		 struct reliability *rel)
 {
   int i;
@@ -388,7 +391,7 @@ run_reliability (struct casereader *input, struct dataset *ds UNUSED,
   }
 
 
-  case_processing_summary (n_valid, n_missing);
+  case_processing_summary (n_valid, n_missing, dataset_dict (ds));
 }
 
 
@@ -404,7 +407,7 @@ struct reliability_output_table
   int n_rows;
   int heading_cols;
   int heading_rows;
-  void (*populate)(struct tab_table *, const struct reliability *);
+  void (*populate) (struct tab_table *, const struct reliability *);
 };
 
 static struct reliability_output_table rol[2] =
@@ -514,14 +517,14 @@ reliability_summary_total (const struct reliability *rel)
 
       moments1_calculate (s->total, &weight, &mean, &var, 0, 0);
 
-      tab_float (tbl, 1, heading_rows + i, TAB_RIGHT,
-		 mean, 8, 3);
+      tab_double (tbl, 1, heading_rows + i, TAB_RIGHT,
+		 mean, NULL);
 
-      tab_float (tbl, 2, heading_rows + i, TAB_RIGHT,
-		 s->variance_of_sums, 8, 3);
+      tab_double (tbl, 2, heading_rows + i, TAB_RIGHT,
+		 s->variance_of_sums, NULL);
 
-      tab_float (tbl, 4, heading_rows + i, TAB_RIGHT,
-		 s->alpha, 8, 3);
+      tab_double (tbl, 4, heading_rows + i, TAB_RIGHT,
+		 s->alpha, NULL);
 
 
       moments1_calculate (rel->sc[0].m[i], &weight, &mean, &var, 0,0);
@@ -531,8 +534,8 @@ reliability_summary_total (const struct reliability *rel)
       item_to_total_r = (cov - var) / (sqrt(var) * sqrt (s->variance_of_sums));
 
 
-      tab_float (tbl, 3, heading_rows + i, TAB_RIGHT,
-		 item_to_total_r, 8, 3);
+      tab_double (tbl, 3, heading_rows + i, TAB_RIGHT,
+		 item_to_total_r, NULL);
     }
 
 
@@ -544,6 +547,9 @@ static void
 reliability_statistics_model_alpha (struct tab_table *tbl,
 				    const struct reliability *rel)
 {
+  const struct variable *wv = dict_get_weight (rel->dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   const struct cronbach *s = &rel->sc[0];
 
   tab_text (tbl, 0, 0, TAB_CENTER | TAT_TITLE,
@@ -552,9 +558,9 @@ reliability_statistics_model_alpha (struct tab_table *tbl,
   tab_text (tbl, 1, 0, TAB_CENTER | TAT_TITLE,
 		_("N of items"));
 
-  tab_float (tbl, 0, 1, TAB_RIGHT, s->alpha, 8, 3);
+  tab_double (tbl, 0, 1, TAB_RIGHT, s->alpha, NULL);
 
-  tab_float (tbl, 1, 1, TAB_RIGHT, s->n_items, 8, 0);
+  tab_double (tbl, 1, 1, TAB_RIGHT, s->n_items, wfmt);
 }
 
 
@@ -562,6 +568,9 @@ static void
 reliability_statistics_model_split (struct tab_table *tbl,
 				    const struct reliability *rel)
 {
+  const struct variable *wv = dict_get_weight (rel->dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   tab_text (tbl, 0, 0, TAB_LEFT,
 	    _("Cronbach's Alpha"));
 
@@ -609,14 +618,14 @@ reliability_statistics_model_split (struct tab_table *tbl,
 
 
 
-  tab_float (tbl, 3, 0, TAB_RIGHT, rel->sc[1].alpha, 8, 3);
-  tab_float (tbl, 3, 2, TAB_RIGHT, rel->sc[2].alpha, 8, 3);
+  tab_double (tbl, 3, 0, TAB_RIGHT, rel->sc[1].alpha, NULL);
+  tab_double (tbl, 3, 2, TAB_RIGHT, rel->sc[2].alpha, NULL);
 
-  tab_float (tbl, 3, 1, TAB_RIGHT, rel->sc[1].n_items, 8, 0);
-  tab_float (tbl, 3, 3, TAB_RIGHT, rel->sc[2].n_items, 8, 0);
+  tab_double (tbl, 3, 1, TAB_RIGHT, rel->sc[1].n_items, wfmt);
+  tab_double (tbl, 3, 3, TAB_RIGHT, rel->sc[2].n_items, wfmt);
 
-  tab_float (tbl, 3, 4, TAB_RIGHT,
-	     rel->sc[1].n_items + rel->sc[2].n_items, 8, 0);
+  tab_double (tbl, 3, 4, TAB_RIGHT,
+	     rel->sc[1].n_items + rel->sc[2].n_items, wfmt);
 
   {
     /* R is the correlation between the two parts */
@@ -635,12 +644,12 @@ reliability_statistics_model_split (struct tab_table *tbl,
     r /= sqrt (rel->sc[2].variance_of_sums);
     r /= 2.0;
 
-    tab_float (tbl, 3, 5, TAB_RIGHT, r, 8, 3);
+    tab_double (tbl, 3, 5, TAB_RIGHT, r, NULL);
 
     /* Equal length Spearman-Brown Coefficient */
-    tab_float (tbl, 3, 6, TAB_RIGHT, 2 * r / (1.0 + r), 8, 3);
+    tab_double (tbl, 3, 6, TAB_RIGHT, 2 * r / (1.0 + r), NULL);
 
-    tab_float (tbl, 3, 8, TAB_RIGHT, g, 8, 3);
+    tab_double (tbl, 3, 8, TAB_RIGHT, g, NULL);
 
     tmp = (1.0 - r*r) * rel->sc[1].n_items * rel->sc[2].n_items /
       pow2 (rel->sc[0].n_items);
@@ -649,16 +658,19 @@ reliability_statistics_model_split (struct tab_table *tbl,
     uly -= pow2 (r);
     uly /= 2 * tmp;
 
-    tab_float (tbl, 3, 7, TAB_RIGHT, uly, 8, 3);
-
+    tab_double (tbl, 3, 7, TAB_RIGHT, uly, NULL);
   }
 }
 
 
 
 static void
-case_processing_summary (casenumber n_valid, casenumber n_missing)
+case_processing_summary (casenumber n_valid, casenumber n_missing,
+			 const struct dictionary *dict)
 {
+  const struct variable *wv = dict_get_weight (dict);
+  const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
+
   casenumber total;
   int n_cols = 4;
   int n_rows = 4;
@@ -712,28 +724,28 @@ case_processing_summary (casenumber n_valid, casenumber n_missing)
 
   total = n_missing + n_valid;
 
-  tab_float (tbl, 2, heading_rows, TAB_RIGHT,
-	     n_valid, 8, 0);
+  tab_double (tbl, 2, heading_rows, TAB_RIGHT,
+	     n_valid, wfmt);
 
 
-  tab_float (tbl, 2, heading_rows + 1, TAB_RIGHT,
-	     n_missing, 8, 0);
+  tab_double (tbl, 2, heading_rows + 1, TAB_RIGHT,
+	     n_missing, wfmt);
 
 
-  tab_float (tbl, 2, heading_rows + 2, TAB_RIGHT,
-	     total, 8, 0);
+  tab_double (tbl, 2, heading_rows + 2, TAB_RIGHT,
+	     total, wfmt);
 
 
-  tab_float (tbl, 3, heading_rows, TAB_RIGHT,
-	     100 * n_valid / (double) total, 8, 1);
+  tab_double (tbl, 3, heading_rows, TAB_RIGHT,
+	     100 * n_valid / (double) total, NULL);
 
 
-  tab_float (tbl, 3, heading_rows + 1, TAB_RIGHT,
-	     100 * n_missing / (double) total, 8, 1);
+  tab_double (tbl, 3, heading_rows + 1, TAB_RIGHT,
+	     100 * n_missing / (double) total, NULL);
 
 
-  tab_float (tbl, 3, heading_rows + 2, TAB_RIGHT,
-	     100 * total / (double) total, 8, 1);
+  tab_double (tbl, 3, heading_rows + 2, TAB_RIGHT,
+	     100 * total / (double) total, NULL);
 
 
   tab_submit (tbl);

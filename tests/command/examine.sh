@@ -116,32 +116,32 @@ diff -b  $TEMPDIR/pspp.list - << EOF
 +--------+------+
 Case#  QUALITY        W    BRAND
 ----- -------- -------- --------
-    1     3.00     1.00     1.00
-    2     2.00     2.00     1.00
-    3     1.00     2.00     1.00
-    4     1.00     1.00     1.00
-    5     4.00     1.00     1.00
-    6     4.00     1.00     1.00
-    7     5.00     1.00     2.00
-    8     2.00     1.00     2.00
-    9     4.00     4.00     2.00
-   10     2.00     1.00     2.00
-   11     3.00     1.00     2.00
-   12     7.00     1.00     3.00
-   13     4.00     2.00     3.00
-   14     5.00     3.00     3.00
-   15     3.00     1.00     3.00
-   16     6.00     1.00     3.00
+    1     3.00     1.00     1.00 
+    2     2.00     2.00     1.00 
+    3     1.00     2.00     1.00 
+    4     1.00     1.00     1.00 
+    5     4.00     1.00     1.00 
+    6     4.00     1.00     1.00 
+    7     5.00     1.00     2.00 
+    8     2.00     1.00     2.00 
+    9     4.00     4.00     2.00 
+   10     2.00     1.00     2.00 
+   11     3.00     1.00     2.00 
+   12     7.00     1.00     3.00 
+   13     4.00     2.00     3.00 
+   14     5.00     3.00     3.00 
+   15     3.00     1.00     3.00 
+   16     6.00     1.00     3.00 
 2.1 EXAMINE.  Case Processing Summary
-#===============#===============================#
-#               #             Cases             #
-#               #----------+---------+----------#
-#               #   Valid  | Missing |   Total  #
-#               #--+-------+-+-------+--+-------#
-#               # N|Percent|N|Percent| N|Percent#
-#===============#==#=======#=#=======#==#=======#
-#Breaking Strain#24|   100%|0|     0%|24|   100%#
-#===============#==#=======#=#=======#==#=======#
+#===============#=======================================#
+#               #                 Cases                 #
+#               #-------------+-----------+-------------#
+#               #    Valid    |  Missing  |    Total    #
+#               #-----+-------+---+-------+-----+-------#
+#               #  N  |Percent| N |Percent|  N  |Percent#
+#===============#=====#=======#===#=======#=====#=======#
+#Breaking Strain#24.00|   100%|.00|     0%|24.00|   100%#
+#===============#=====#=======#===#=======#=====#=======#
 2.2 EXAMINE.  Extreme Values
 #=========================#===========#=====#
 #                         #Case Number|Value#
@@ -158,32 +158,32 @@ Case#  QUALITY        W    BRAND
 #============================================================#=========#==========#
 #                                                            #Statistic|Std. Error#
 #============================================================#=========#==========#
-#Breaking Strain Mean                                        #   3.54  |   .324   #
-#                95% Confidence Interval for Mean Lower Bound#  2.871  |          #
-#                                                 Upper Bound#  4.212  |          #
+#Breaking Strain Mean                                        #   3.54  |    .32   #
+#                95% Confidence Interval for Mean Lower Bound#   2.87  |          #
+#                                                 Upper Bound#   4.21  |          #
 #                5% Trimmed Mean                             #   3.50  |          #
 #                Median                                      #   4.00  |          #
-#                Variance                                    #  2.520  |          #
-#                Std. Deviation                              #  1.587  |          #
-#                Minimum                                     #  1.000  |          #
-#                Maximum                                     #  7.000  |          #
-#                Range                                       #  6.000  |          #
+#                Variance                                    #   2.52  |          #
+#                Std. Deviation                              #   1.59  |          #
+#                Minimum                                     #   1.00  |          #
+#                Maximum                                     #   7.00  |          #
+#                Range                                       #   6.00  |          #
 #                Interquartile Range                         #   2.75  |          #
-#                Skewness                                    #   .059  |   .472   #
-#                Kurtosis                                    #  -.358  |   .918   #
+#                Skewness                                    #   .06   |    .47   #
+#                Kurtosis                                    #   -.36  |    .92   #
 #============================================================#=========#==========#
 2.4 EXAMINE.  Case Processing Summary
-#============================#=============================#
-#                            #            Cases            #
-#                            #---------+---------+---------#
-#                            #  Valid  | Missing |  Total  #
-#                            #-+-------+-+-------+-+-------#
-#                Manufacturer#N|Percent|N|Percent|N|Percent#
-#============================#=#=======#=#=======#=#=======#
-#Breaking Strain Aspeger     #8|   100%|0|     0%|8|   100%#
-#                Bloggs      #8|   100%|0|     0%|8|   100%#
-#                Charlies    #8|   100%|0|     0%|8|   100%#
-#============================#=#=======#=#=======#=#=======#
+#============================#=====================================#
+#                            #                Cases                #
+#                            #------------+-----------+------------#
+#                            #    Valid   |  Missing  |    Total   #
+#                            #----+-------+---+-------+----+-------#
+#                Manufacturer#  N |Percent| N |Percent|  N |Percent#
+#============================#====#=======#===#=======#====#=======#
+#Breaking Strain Aspeger     #8.00|   100%|.00|     0%|8.00|   100%#
+#                Bloggs      #8.00|   100%|.00|     0%|8.00|   100%#
+#                Charlies    #8.00|   100%|.00|     0%|8.00|   100%#
+#============================#====#=======#===#=======#====#=======#
 2.5 EXAMINE.  Extreme Values
 #======================================#===========#=====#
 #                Manufacturer          #Case Number|Value#
@@ -214,49 +214,49 @@ Case#  QUALITY        W    BRAND
 #======================================#===========#=====#
 2.6 EXAMINE.  Descriptives
 #=========================================================================#=========#==========#
-#                Manufacturer                                            #Statistic|Std. Error#
+#                Manufacturer                                             #Statistic|Std. Error#
 #=========================================================================#=========#==========#
-#Breaking Strain Aspeger      Mean                                        #   2.25  |   .453   #
-#                             95% Confidence Interval for Mean Lower Bound#  1.178  |          #
-#                                                              Upper Bound#  3.322  |          #
+#Breaking Strain Aspeger      Mean                                        #   2.25  |    .45   #
+#                             95% Confidence Interval for Mean Lower Bound#   1.18  |          #
+#                                                              Upper Bound#   3.32  |          #
 #                             5% Trimmed Mean                             #   2.22  |          #
 #                             Median                                      #   2.00  |          #
-#                             Variance                                    #  1.643  |          #
-#                             Std. Deviation                              #  1.282  |          #
-#                             Minimum                                     #  1.000  |          #
-#                             Maximum                                     #  4.000  |          #
-#                             Range                                       #  3.000  |          #
+#                             Variance                                    #   1.64  |          #
+#                             Std. Deviation                              #   1.28  |          #
+#                             Minimum                                     #   1.00  |          #
+#                             Maximum                                     #   4.00  |          #
+#                             Range                                       #   3.00  |          #
 #                             Interquartile Range                         #   2.75  |          #
-#                             Skewness                                    #   .475  |   .752   #
-#                             Kurtosis                                    #  -1.546 |   1.481  #
+#                             Skewness                                    #   .47   |    .75   #
+#                             Kurtosis                                    #  -1.55  |   1.48   #
 #               ----------------------------------------------------------#---------+----------#
-#                Bloggs       Mean                                        #   3.50  |   .378   #
-#                             95% Confidence Interval for Mean Lower Bound#  2.606  |          #
-#                                                              Upper Bound#  4.394  |          #
+#                Bloggs       Mean                                        #   3.50  |    .38   #
+#                             95% Confidence Interval for Mean Lower Bound#   2.61  |          #
+#                                                              Upper Bound#   4.39  |          #
 #                             5% Trimmed Mean                             #   3.50  |          #
 #                             Median                                      #   4.00  |          #
-#                             Variance                                    #  1.143  |          #
-#                             Std. Deviation                              #  1.069  |          #
-#                             Minimum                                     #  2.000  |          #
-#                             Maximum                                     #  5.000  |          #
-#                             Range                                       #  3.000  |          #
+#                             Variance                                    #   1.14  |          #
+#                             Std. Deviation                              #   1.07  |          #
+#                             Minimum                                     #   2.00  |          #
+#                             Maximum                                     #   5.00  |          #
+#                             Range                                       #   3.00  |          #
 #                             Interquartile Range                         #   1.75  |          #
-#                             Skewness                                    #  -.468  |   .752   #
-#                             Kurtosis                                    #  -.831  |   1.481  #
+#                             Skewness                                    #   -.47  |    .75   #
+#                             Kurtosis                                    #   -.83  |   1.48   #
 #               ----------------------------------------------------------#---------+----------#
-#                Charlies     Mean                                        #   4.88  |   .441   #
-#                             95% Confidence Interval for Mean Lower Bound#  3.833  |          #
-#                                                              Upper Bound#  5.917  |          #
+#                Charlies     Mean                                        #   4.88  |    .44   #
+#                             95% Confidence Interval for Mean Lower Bound#   3.83  |          #
+#                                                              Upper Bound#   5.92  |          #
 #                             5% Trimmed Mean                             #   4.86  |          #
 #                             Median                                      #   5.00  |          #
-#                             Variance                                    #  1.554  |          #
-#                             Std. Deviation                              #  1.246  |          #
-#                             Minimum                                     #  3.000  |          #
-#                             Maximum                                     #  7.000  |          #
-#                             Range                                       #  4.000  |          #
+#                             Variance                                    #   1.55  |          #
+#                             Std. Deviation                              #   1.25  |          #
+#                             Minimum                                     #   3.00  |          #
+#                             Maximum                                     #   7.00  |          #
+#                             Range                                       #   4.00  |          #
 #                             Interquartile Range                         #   1.75  |          #
-#                             Skewness                                    #   .304  |   .752   #
-#                             Kurtosis                                    #   .146  |   1.481  #
+#                             Skewness                                    #   .30   |    .75   #
+#                             Kurtosis                                    #   .15   |   1.48   #
 #=========================================================================#=========#==========#
 EOF
 if [ $? -ne 0 ] ; then fail ; fi

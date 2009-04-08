@@ -155,8 +155,13 @@ struct fmt_spec;
 union value;
 void tab_value (struct tab_table *, int c, int r, unsigned char opt,
 		const union value *, const struct fmt_spec *);
-void tab_float (struct tab_table *, int c, int r, unsigned char opt,
+
+void tab_fixed (struct tab_table *, int c, int r, unsigned char opt,
 		double v, int w, int d);
+
+void tab_double (struct tab_table *, int c, int r, unsigned char opt,
+		double v, const struct fmt_spec *);
+
 void tab_text (struct tab_table *, int c, int r, unsigned opt,
 	       const char *, ...)
      PRINTF_FORMAT (5, 6);

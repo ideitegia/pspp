@@ -214,7 +214,7 @@ dialog_state_valid (gpointer data)
 
   GtkTreeIter notused;
 
-  return (gtk_tree_model_get_iter_first (dep_vars, &notused) 
+  return (gtk_tree_model_get_iter_first (dep_vars, &notused)
     && gtk_tree_model_get_iter_first (indep_vars, &notused));
 }
 
