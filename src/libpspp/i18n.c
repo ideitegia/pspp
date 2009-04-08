@@ -39,6 +39,13 @@
 #include <langinfo.h>
 #endif
 
+struct converter
+  {
+    const char *tocode;
+    const char *fromcode;
+    iconv_t conv;
+  };
+
 static char *default_encoding;
 static struct hmapx map;
 
@@ -46,42 +53,34 @@ static struct hmapx map;
 static iconv_t
 create_iconv (const char* tocode, const char* fromcode)
 {
-  iconv_t conv;
+  size_t hash;
   struct hmapx_node *node;
-  size_t hash ;
-  char *key = alloca (strlen (tocode) + strlen (fromcode) + 2);
+  struct converter *converter;
 
-  strcpy (key, tocode);
-  strcat (key, "\n"); /* hopefully no encoding names contain '\n' */
-  strcat (key, fromcode);
+  hash = hsh_hash_string (tocode) ^ hsh_hash_string (fromcode);
+  HMAPX_FOR_EACH_WITH_HASH (converter, node, hash, &map)
+    if (!strcmp (tocode, converter->tocode)
+        && !strcmp (fromcode, converter->fromcode))
+      return converter->conv;
 
-  hash = hsh_hash_string (key);
-
-  node = hmapx_first_with_hash (&map, hash);
-
-  if (!node)
+  converter = xmalloc (sizeof *converter);
+  converter->tocode = xstrdup (tocode);
+  converter->fromcode = xstrdup (fromcode);
+  converter->conv = iconv_open (tocode, fromcode);
+  hmapx_insert (&map, converter, hash);
+  
+  /* I don't think it's safe to translate this string or to use messaging
+     as the convertors have not yet been set up */
+  if ( (iconv_t) -1 == converter->conv && 0 != strcmp (tocode, fromcode))
     {
-      conv = iconv_open (tocode, fromcode);
-
-      /* I don't think it's safe to translate this string or to use messaging
-	 as the convertors have not yet been set up */
-      if ( (iconv_t) -1 == conv && 0 != strcmp (tocode, fromcode))
-	{
-	  const int err = errno;
-	  fprintf (stderr,
-		   "Warning: "
-		   "cannot create a convertor for \"%s\" to \"%s\": %s\n",
-		   fromcode, tocode, strerror (err));
-	}
-
-      hmapx_insert (&map, conv, hash);
-    }
-  else
-    {
-      conv = hmapx_node_data (node);
+      const int err = errno;
+      fprintf (stderr,
+               "Warning: "
+               "cannot create a convertor for \"%s\" to \"%s\": %s\n",
+               fromcode, tocode, strerror (err));
     }
 
-  return conv;
+  return converter->conv;
 }
 
 /* Return a string based on TEXT converted according to HOW.
