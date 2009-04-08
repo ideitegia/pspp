@@ -50,6 +50,7 @@ GNULIB_MODULES = \
 	progname \
 	regex \
 	relocatable-prog \
+	rename \
 	round \
 	snprintf \
 	snprintf-posix \
