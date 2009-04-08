@@ -294,6 +294,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
     data_parser_make_active_file (parser, ds, reader, dict);
 
   fh_unref (fh);
+  ds_destroy (&encoding);
 
   return CMD_SUCCESS;
 
@@ -302,6 +303,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   if (!in_input_program ())
     dict_destroy (dict);
   fh_unref (fh);
+  ds_destroy (&encoding);
   return CMD_CASCADING_FAILURE;
 }
 
