@@ -459,15 +459,16 @@ name_has_suffix (const gchar *name)
 static void
 save_file (PsppireWindow *w)
 {
-  gchar *fn = NULL;
+  gchar *native_file_name = NULL;
+  gchar *file_name = NULL;
   GString *fnx;
   struct getl_interface *sss;
-  struct string file_name ;
+  struct string filename ;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (w);
 
-  g_object_get (w, "filename", &fn, NULL);
+  g_object_get (w, "filename", &file_name, NULL);
 
-  fnx = g_string_new (fn);
+  fnx = g_string_new (file_name);
 
   if ( ! name_has_suffix (fnx->str))
     {
@@ -477,22 +478,28 @@ save_file (PsppireWindow *w)
 	g_string_append (fnx, ".sav");
     }
 
-  ds_init_empty (&file_name);
-  syntax_gen_string (&file_name, ss_cstr (fnx->str));
-  g_string_free (fnx, FALSE);
+  ds_init_empty (&filename);
+
+  native_file_name =
+    convert_glib_filename_to_system_filename (fnx->str, NULL);
+
+  g_string_free (fnx, TRUE);
+
+  syntax_gen_string (&filename, ss_cstr (native_file_name));
+  g_free (native_file_name);
 
   if ( de->save_as_portable )
     {
       sss = create_syntax_string_source ("EXPORT OUTFILE=%s.",
-					 ds_cstr (&file_name));
+					 ds_cstr (&filename));
     }
   else
     {
       sss = create_syntax_string_source ("SAVE OUTFILE=%s.",
-					 ds_cstr (&file_name));
+					 ds_cstr (&filename));
     }
 
-  ds_destroy (&file_name);
+  ds_destroy (&filename);
 
   execute_syntax (sss);
 }
