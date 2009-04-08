@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
 #include <libpspp/hmap.h>
 #include <assert.h>
 #include <stdlib.h>
+
+#include "xalloc.h"
 
 static size_t capacity_to_mask (size_t capacity);
 
@@ -75,7 +77,7 @@ hmap_rehash (struct hmap *map, size_t new_mask)
 
   assert ((new_mask & (new_mask + 1)) == 0);
   if (new_mask)
-    new_buckets = calloc (new_mask + 1, sizeof *new_buckets);
+    new_buckets = xcalloc (new_mask + 1, sizeof *new_buckets);
   else 
     {
       new_buckets = &map->one;

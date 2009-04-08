@@ -137,7 +137,7 @@ psppire_window_set_property (GObject         *object,
 	      name = g_value_get_string (&def);
 	    }
 
-	  candidate_name = strdup (name);
+	  candidate_name = xstrdup (name);
 
 	  while ( psppire_window_register_lookup (reg, candidate_name))
 	    {
@@ -411,7 +411,7 @@ psppire_window_init (PsppireWindow *window)
 {
   window->name = NULL;
   window->menu = NULL;
-  window->description = strdup ("");
+  window->description = xstrdup ("");
 
   window->menuitem_table  = g_hash_table_new (g_str_hash, g_str_equal);
 

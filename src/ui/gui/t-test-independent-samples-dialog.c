@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -117,8 +117,8 @@ tt_groups_dialog_create (GtkBuilder *xml, GtkWindow *parent)
 
   gtk_window_set_transient_for (GTK_WINDOW (grps->dialog), parent);
 
-  grps->val[0] = strdup ("");
-  grps->val[1] = strdup ("");
+  grps->val[0] = xstrdup ("");
+  grps->val[1] = xstrdup ("");
 
   return grps;
 }
@@ -340,10 +340,10 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
 	  grps->group_defn = GROUPS_VALUES;
 
 	  grps->val[0] =
-	    strdup (gtk_entry_get_text (GTK_ENTRY (grps->grp_entry[0])));
+	    xstrdup (gtk_entry_get_text (GTK_ENTRY (grps->grp_entry[0])));
 
 	  grps->val[1] =
-	    strdup (gtk_entry_get_text (GTK_ENTRY (grps->grp_entry[1])));
+	    xstrdup (gtk_entry_get_text (GTK_ENTRY (grps->grp_entry[1])));
 	}
       else
 	{
@@ -352,7 +352,7 @@ run_define_groups (struct tt_indep_samples_dialog *ttd)
 	  grps->val[1] = NULL;
 
 	  grps->val[0] =
-	    strdup (gtk_entry_get_text (GTK_ENTRY (grps->cut_point_entry)));
+	    xstrdup (gtk_entry_get_text (GTK_ENTRY (grps->cut_point_entry)));
 	}
 
       psppire_dialog_notify_change (PSPPIRE_DIALOG (ttd->dialog));

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -170,7 +170,7 @@ convert_glib_filename_to_system_filename (const gchar *fname, GError **err)
   output_name = g_convert (fname, -1, target_encoding,
 			"UTF-8", NULL, NULL, err);
 #else
-  output_name = strdup (fname);
+  output_name = xstrdup (fname);
 #endif
 
   return output_name;

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ new_value_copy (struct new_value *nv)
   struct new_value *copy = g_memdup (nv, sizeof (*copy));
 
   if ( nv->type == NV_STRING )
-    copy->v.s = strdup (nv->v.s);
+    copy->v.s = xstrdup (nv->v.s);
 
   return copy;
 }

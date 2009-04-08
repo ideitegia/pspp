@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ void
 dict_set_encoding (struct dictionary *d, const char *enc)
 {
   if (enc)
-    d->encoding = strdup (enc);
+    d->encoding = xstrdup (enc);
 }
 
 const char *
@@ -213,7 +213,7 @@ dict_clone (const struct dictionary *s)
     d->vector[i] = vector_clone (s->vector[i], s, d);
 
   if ( s->encoding)
-    d->encoding = strdup (s->encoding);
+    d->encoding = xstrdup (s->encoding);
 
   dict_set_attributes (d, dict_get_attributes (s));
 

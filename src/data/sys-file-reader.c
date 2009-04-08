@@ -781,7 +781,7 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
       /* New in SPSS 16.  Contains a single string that describes
          the character encoding, e.g. "windows-1252". */
       {
-	char *encoding = calloc (size, count + 1);
+	char *encoding = xcalloc (size, count + 1);
 	read_string (r, encoding, count + 1);
 	dict_set_encoding (dict, encoding);
 	return;

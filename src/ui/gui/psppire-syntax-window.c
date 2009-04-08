@@ -34,6 +34,8 @@
 #include "syntax-editor-source.h"
 #include <language/lexer/lexer.h>
 
+#include "xalloc.h"
+
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -224,7 +226,7 @@ append_suffix (const gchar *filename)
       return g_strdup_printf ("%s.sps", filename);
     }
 
-  return strdup (filename);
+  return xstrdup (filename);
 }
 
 /*

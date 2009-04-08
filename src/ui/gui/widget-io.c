@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 #include <gl/gettext.h>
 
+#include "xalloc.h"
 
 /* Create a GtkLabel and pack it into BOX.
    The label is created using part of the string at S, and the directives
@@ -90,7 +91,7 @@ widget_printf (const gchar *fmt, ...)
   if ( 0 !=  printf_parse (fmt, &d, &a) )
     return NULL;
 
-  widgets = calloc (sizeof (*widgets), d.count);
+  widgets = xcalloc (sizeof (*widgets), d.count);
   va_start (ap, fmt);
   for (i = 0 ; i < d.count ; ++i )
     {

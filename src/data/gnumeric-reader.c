@@ -448,7 +448,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
       if ( idx  >= n_var_specs )
 	{
 	  n_var_specs =  idx + 1 ;
-	  var_spec = realloc (var_spec, sizeof (*var_spec) * n_var_specs);
+	  var_spec = xrealloc (var_spec, sizeof (*var_spec) * n_var_specs);
 	  var_spec [idx].name = NULL;
 	  var_spec [idx].width = -1;
 	  var_spec [idx].first_value = NULL;
@@ -463,7 +463,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 	    {
 	      if ( gri->read_names )
 		{
-		  var_spec [idx].name = strdup (text);
+		  var_spec [idx].name = xstrdup (text);
 		}
 	    }
 	  else

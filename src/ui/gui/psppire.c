@@ -294,7 +294,7 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 
 	if ( local_is_utf8)
 	  {
-	    utf8 = strdup (arg);
+	    utf8 = xstrdup (arg);
 	  }
 	else
 	  {
@@ -324,7 +324,7 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 	g_free (utf8);
 
 	if ( filename == NULL)
-	  filename = strdup (arg);
+	  filename = xstrdup (arg);
 
 	psppire_window_load (PSPPIRE_WINDOW (the_data_window), filename);
 

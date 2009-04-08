@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -723,7 +723,7 @@ static void
 read_character_encoding (struct sfm_reader *r, size_t size, size_t count)
 {
   const unsigned long int posn =  ftell (r->file);
-  char *encoding = calloc (size, count + 1);
+  char *encoding = xcalloc (size, count + 1);
   read_string (r, encoding, count + 1);
 
   printf ("%08lx: Character Encoding: %s\n", posn, encoding);

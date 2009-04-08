@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -388,7 +388,7 @@ generate_syntax (const struct select_cases_dialog *scd)
        (GTK_TOGGLE_BUTTON (get_widget_assert (scd->xml,
 					      "radiobutton-all"))))
     {
-      return strdup ("\n");
+      return xstrdup ("\n");
     }
 
   string = g_string_new ("");

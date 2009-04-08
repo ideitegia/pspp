@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@
 #include <language/lexer/format-parser.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/message.h>
+
+#include "xalloc.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -83,7 +85,7 @@ parse_get_psql (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_string (lexer))
     goto error;
 
-  psql.conninfo = strdup (ds_cstr (lex_tokstr (lexer)));
+  psql.conninfo = xstrdup (ds_cstr (lex_tokstr (lexer)));
 
   lex_get (lexer);
 
@@ -151,7 +153,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
   if (!lex_force_string (lexer))
     goto error;
 
-  gri.file_name = strdup (ds_cstr (lex_tokstr (lexer)));
+  gri.file_name = xstrdup (ds_cstr (lex_tokstr (lexer)));
 
   lex_get (lexer);
 
@@ -170,7 +172,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      gri.sheet_name = strdup (ds_cstr (lex_tokstr (lexer)));
+	      gri.sheet_name = xstrdup (ds_cstr (lex_tokstr (lexer)));
 	      gri.sheet_index = -1;
 	    }
 	  else if (lex_match_id (lexer, "INDEX"))
@@ -194,7 +196,7 @@ parse_get_gnm (struct lexer *lexer, struct dataset *ds)
 	      if ( ! lex_force_string (lexer) )
 		goto error;
 
-	      gri.cell_range = strdup (ds_cstr (lex_tokstr (lexer)));
+	      gri.cell_range = xstrdup (ds_cstr (lex_tokstr (lexer)));
 	    }
 	  else
 	    goto error;

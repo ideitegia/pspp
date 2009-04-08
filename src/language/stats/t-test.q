@@ -749,15 +749,15 @@ ssbox_independent_samples_populate (struct ssbox *ssb,
       const char *s;
 
       s = var_lookup_value_label (indep_var, &gp.v.g_value[0]);
-      val_lab[0] = s ? strdup (s) : NULL;
+      val_lab[0] = s ? xstrdup (s) : NULL;
 
       s = var_lookup_value_label (indep_var, &gp.v.g_value[1]);
-      val_lab[1] = s ? strdup (s) : NULL;
+      val_lab[1] = s ? xstrdup (s) : NULL;
     }
   else
     {
-      val_lab[0] = calloc (sizeof (char), MAX_SHORT_STRING + 1);
-      val_lab[1] = calloc (sizeof (char), MAX_SHORT_STRING + 1);
+      val_lab[0] = xcalloc (sizeof (char), MAX_SHORT_STRING + 1);
+      val_lab[1] = xcalloc (sizeof (char), MAX_SHORT_STRING + 1);
       memcpy (val_lab[0], gp.v.g_value[0].s, MAX_SHORT_STRING);
       memcpy (val_lab[1], gp.v.g_value[1].s, MAX_SHORT_STRING);
     }

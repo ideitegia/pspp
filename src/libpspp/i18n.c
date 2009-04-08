@@ -198,7 +198,7 @@ i18n_init (void)
 #endif /* ENABLE_NLS */
 
   assert (default_encoding == NULL);
-  default_encoding = strdup (locale_charset ());
+  default_encoding = xstrdup (locale_charset ());
 
   hmapx_init (&map);
 }
@@ -214,7 +214,7 @@ void
 set_default_encoding (const char *enc)
 {
   free (default_encoding);
-  default_encoding = strdup (enc);
+  default_encoding = xstrdup (enc);
 }
 
 
@@ -228,13 +228,13 @@ set_encoding_from_locale (const char *loc)
   bool ok = true;
   char *c_encoding;
   char *loc_encoding;
-  char *tmp = strdup (setlocale (LC_CTYPE, NULL));
+  char *tmp = xstrdup (setlocale (LC_CTYPE, NULL));
 
   setlocale (LC_CTYPE, "C");
-  c_encoding = strdup (locale_charset ());
+  c_encoding = xstrdup (locale_charset ());
 
   setlocale (LC_CTYPE, loc);
-  loc_encoding = strdup (locale_charset ());
+  loc_encoding = xstrdup (locale_charset ());
 
 
   if ( 0 == strcmp (loc_encoding, c_encoding))
@@ -297,7 +297,7 @@ get_system_decimal (void)
 {
   char radix_char;
 
-  char *ol = strdup (setlocale (LC_NUMERIC, NULL));
+  char *ol = xstrdup (setlocale (LC_NUMERIC, NULL));
   setlocale (LC_NUMERIC, "");
 
 #if HAVE_NL_LANGINFO
