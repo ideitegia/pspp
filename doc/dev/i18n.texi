@@ -11,9 +11,9 @@ in which they are addressed.
 Pspp has three ``working'' locales:
 
 @itemize
-@item The local of the user interface.
-@item The local of the output.
-@item The local of the data. Only the character encoding is relevant.
+@item The locale of the user interface.
+@item The locale of the output.
+@item The locale of the data. Only the character encoding is relevant.
 @end itemize
 
 Each of these locales may, at different times take 
@@ -71,7 +71,7 @@ remains unset.
 @section GUI
 The psppire graphic user interface is written using the Gtk+ api, for which 
 all strings must be encoded in UTF8.
-All strings passed to the Gtk+/Glib library functions (except for filenames)
+All strings passed to the GTK+/GLib library functions (except for filenames)
 must be UTF-8 encoded otherwise errors will occur.
 Thus, for the purposes of the programming psppire, the user interface locale 
 should be assumed to be UTF8, even if setlocale and/or nl_langinfo
@@ -81,12 +81,12 @@ indicates otherwise.
 The GLib API has some special functions for dealing with filenames.
 Strings returned from functions like gtk_file_chooser_dialog_get_name are not, 
 in general, encoded in UTF8, but in ``filename'' encoding.
-If that filename is passed to another Glib function which expects a filename, 
+If that filename is passed to another GLib function which expects a filename, 
 no conversion is necessary.
 If it's passed to a function for the purposes of displaying it (eg. in a 
 window's title-bar) it must be converted to UTF8 --- there is a special 
 function for this: g_filename_display_name or g_filename_basename.
-If however, a filename needs to be passed outside of Gtk/Glib (for example to fopen) it must be converted to the local system encoding.
+If however, a filename needs to be passed outside of GTK+/GLib (for example to fopen) it must be converted to the local system encoding.
 
 
 @section Existing locale handling functions
