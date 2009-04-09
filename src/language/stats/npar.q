@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis. -*-c-*-
-   Copyright (C) 2006, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -160,7 +160,7 @@ cmd_npar_tests (struct lexer *lexer, struct dataset *ds)
       test->insert_variables (test, var_hash);
     }
 
-  npar_specs.vv = (const struct variable **) const_hsh_data (var_hash);
+  npar_specs.vv = (const struct variable **) const_hsh_sort (var_hash);
   npar_specs.n_vars = const_hsh_count (var_hash);
 
   if ( cmd.sbc_statistics )
