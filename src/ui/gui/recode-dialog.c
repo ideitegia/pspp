@@ -26,6 +26,7 @@
 
 #include <gtk/gtk.h>
 
+#include <xalloc.h>
 #include <language/syntax-string-source.h>
 #include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>

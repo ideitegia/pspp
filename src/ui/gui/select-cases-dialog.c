@@ -27,6 +27,7 @@
 #include "widget-io.h"
 #include <language/syntax-string-source.h>
 #include "helper.h"
+#include <xalloc.h>
 
 
 #include <gettext.h>

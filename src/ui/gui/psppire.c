@@ -21,6 +21,7 @@
 #include <libintl.h>
 #include <gsl/gsl_errno.h>
 
+#include <xalloc.h>
 #include <argp.h>
 #include <ui/command-line.h>
 #include "relocatable.h"

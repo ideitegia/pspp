@@ -25,6 +25,7 @@
 #include <gtk/gtkmain.h>
 
 #include <stdlib.h>
+#include <xalloc.h>
 
 #include <gettext.h>
 #define _(msgid) gettext (msgid)
