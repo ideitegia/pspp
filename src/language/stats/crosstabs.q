@@ -777,7 +777,7 @@ hash_table_entry (const void *a_, const void *aux UNUSED)
 
   hash = a->table;
   for (i = 0; i < xtab[a->table]->nvar; i++)
-    hash ^= hsh_hash_bytes (&a->values[i], sizeof a->values[i]);
+    hash = hash_bytes (&a->values[i], sizeof a->values[i], hash);
 
   return hash;
 }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
 
 #include <stddef.h>
 
-unsigned hsh_hash_bytes (const void *, size_t);
-unsigned hsh_hash_string (const char *);
-unsigned hsh_hash_case_string (const char *);
-unsigned hsh_hash_int (int);
-unsigned hsh_hash_double (double);
+unsigned int hash_bytes (const void *, size_t, unsigned int basis);
+unsigned int hash_string (const char *, unsigned int basis);
+unsigned int hash_case_string (const char *, unsigned int basis);
+unsigned int hash_int (int, unsigned int basis);
+unsigned int hash_double (double, unsigned int basis);
 
 #endif /* libpspp/hash-functions.h */

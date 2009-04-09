@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -448,9 +448,9 @@ fn_compare_file_identities (const struct file_identity *a,
 unsigned int
 fn_hash_identity (const struct file_identity *identity)
 {
-  unsigned int hash = identity->device ^ identity->inode;
+  unsigned int hash = hash_int (identity->device, identity->inode);
   if (identity->name != NULL)
-    hash ^= hsh_hash_string (identity->name);
+    hash = hash_string (identity->name, hash);
   return hash;
 }
 

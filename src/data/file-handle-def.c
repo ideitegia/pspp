@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -592,10 +592,12 @@ static unsigned int
 hash_fh_lock (const void *lock_, const void *aux UNUSED)
 {
   const struct fh_lock *lock = lock_;
-  unsigned int hash = hsh_hash_int ((lock->referent << 3) | lock->access);
+  unsigned int basis;
   if (lock->referent == FH_REF_FILE)
-    hash ^= fn_hash_identity (lock->u.file);
+    basis = fn_hash_identity (lock->u.file);
   else if (lock->referent == FH_REF_SCRATCH)
-    hash ^= hsh_hash_int (lock->u.unique_id);
-  return hash;
+    basis = lock->u.unique_id;
+  else
+    basis = 0;
+  return hash_int ((lock->referent << 3) | lock->access, basis);
 }

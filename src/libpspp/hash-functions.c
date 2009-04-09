@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2008 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,72 +19,156 @@
 #include <assert.h>
 #include <ctype.h>
 #include <math.h>
+#include <stdint.h>
+#include <string.h>
 
-/* Fowler-Noll-Vo hash constants, for 32-bit word sizes. */
-#define FNV_32_PRIME 16777619u
-#define FNV_32_BASIS 2166136261u
+/* Based on http://burtleburtle.net/bob/c/lookup3.c, by Bob
+   Jenkins <bob_jenkins@burtleburtle.net>, as retrieved on April
+   8, 2009.  The license information there says the following:
+   "You can use this free for any purpose.  It's in the public
+   domain.  It has no warranty." and "You may use this code any
+   way you wish, private, educational, or commercial.  It's
+   free." */
 
-/* Fowler-Noll-Vo 32-bit hash, for bytes. */
-unsigned
-hsh_hash_bytes (const void *buf_, size_t size)
+#define HASH_ROT(x, k) (((x) << (k)) | ((x) >> (32 - (k))))
+
+#define HASH_MIX(a, b, c)                               \
+        do                                              \
+          {                                             \
+            a -= c;  a ^= HASH_ROT (c,  4);  c += b;    \
+            b -= a;  b ^= HASH_ROT (a,  6);  a += c;    \
+            c -= b;  c ^= HASH_ROT (b,  8);  b += a;    \
+            a -= c;  a ^= HASH_ROT (c, 16);  c += b;    \
+            b -= a;  b ^= HASH_ROT (a, 19);  a += c;    \
+            c -= b;  c ^= HASH_ROT (b,  4);  b += a;    \
+          }                                             \
+        while (0)
+
+#define HASH_FINAL(a, b, c)                     \
+        do                                      \
+          {                                     \
+            c ^= b; c -= HASH_ROT (b, 14);      \
+            a ^= c; a -= HASH_ROT (c, 11);      \
+            b ^= a; b -= HASH_ROT (a, 25);      \
+            c ^= b; c -= HASH_ROT (b, 16);      \
+            a ^= c; a -= HASH_ROT (c, 4);       \
+            b ^= a; b -= HASH_ROT (a, 14);      \
+            c ^= b; c -= HASH_ROT (b, 24);      \
+          }                                     \
+        while (0)
+
+/* Returns a hash value for the N bytes starting at P, starting
+   from BASIS. */
+unsigned int
+hash_bytes (const void *p_, size_t n, unsigned int basis)
 {
-  const unsigned char *buf = (const unsigned char *) buf_;
-  unsigned hash;
+  const uint8_t *p = p_;
+  uint32_t a, b, c;
+  uint32_t tmp[3];
 
-  assert (buf != NULL);
+  a = b = c = 0xdeadbeef + n + basis;
 
-  hash = FNV_32_BASIS;
-  while (size-- > 0)
-    hash = (hash * FNV_32_PRIME) ^ *buf++;
+  while (n >= 12)
+    {
+      memcpy (tmp, p, 12);
+      a += tmp[0];
+      b += tmp[1];
+      c += tmp[2];
+      HASH_MIX (a, b, c);
+      n -= 12;
+      p += 12;
+    }
 
-  return hash;
+  if (n > 0)
+    {
+      memset (tmp, 0, 12);
+      memcpy (tmp, p, n);
+      a += tmp[0];
+      b += tmp[1];
+      c += tmp[2];
+    }
+
+  HASH_FINAL (a, b, c);
+  return c;
 }
 
-/* Fowler-Noll-Vo 32-bit hash, for strings. */
-unsigned
-hsh_hash_string (const char *s_)
+/* Returns a hash value for null-terminated string S, starting
+   from BASIS. */
+unsigned int
+hash_string (const char *s, unsigned int basis)
 {
-  const unsigned char *s = (const unsigned char *) s_;
-  unsigned hash;
-
-  assert (s != NULL);
-
-  hash = FNV_32_BASIS;
-  while (*s != '\0')
-    hash = (hash * FNV_32_PRIME) ^ *s++;
-
-  return hash;
+  return hash_bytes (s, strlen (s), basis);
 }
 
-/* Fowler-Noll-Vo 32-bit hash, for case-insensitive strings. */
-unsigned
-hsh_hash_case_string (const char *s_)
+/* Returns a hash value for null-terminated string S, with
+   lowercase and uppercase letters treated as equal, starting
+   from BASIS. */
+unsigned int
+hash_case_string (const char *s, unsigned int basis)
 {
-  const unsigned char *s = (const unsigned char *) s_;
-  unsigned hash;
+  size_t n = strlen (s);
+  uint32_t a, b, c;
+  uint32_t tmp[3];
+  int i;
 
-  assert (s != NULL);
+  a = b = c = 0xdeadbeef + n + basis;
 
-  hash = FNV_32_BASIS;
-  while (*s != '\0')
-    hash = (hash * FNV_32_PRIME) ^ toupper (*s++);
+  while (n >= 12)
+    {
+      for (i = 0; i < 12; i++)
+        ((unsigned char *)tmp)[i] = toupper ((unsigned char) s[i]);
+      a += tmp[0];
+      b += tmp[1];
+      c += tmp[2];
+      HASH_MIX (a, b, c);
+      n -= 12;
+      s += 12;
+    }
 
-  return hash;
+  if (n > 0)
+    {
+      memset (tmp, 0, 12);
+      for (i = 0; i < n; i++)
+        ((unsigned char *)tmp)[i] = toupper ((unsigned char) s[i]);
+      a += tmp[0];
+      b += tmp[1];
+      c += tmp[2];
+    }
+
+  HASH_FINAL (a, b, c);
+  return c;
 }
 
-/* Hash for ints. */
-unsigned
-hsh_hash_int (int i)
+/* Returns a hash value for integer X, starting from BASIS. */
+unsigned int
+hash_int (int x, unsigned int basis)
 {
-  return hsh_hash_bytes (&i, sizeof i);
+  x -= x << 6;
+  x ^= x >> 17;
+  x -= x << 9;
+  x ^= x << 4;
+  x -= x << 3;
+  x ^= x << 10;
+  x ^= x >> 15;
+  return x + basis;
 }
 
-/* Hash for double. */
-unsigned
-hsh_hash_double (double d)
+/* Returns a hash value for double D, starting from BASIS. */
+unsigned int
+hash_double (double d, unsigned int basis)
 {
-  if (!isnan (d))
-    return hsh_hash_bytes (&d, sizeof d);
-  else
-    return 0;
+#if SIZEOF_DOUBLE == 8
+  uint32_t tmp[2];
+  uint32_t a, b, c;
+
+  a = b = c = 0xdeadbeef + 8 + basis;
+
+  memcpy (tmp, &d, 8);
+  a += tmp[0];
+  b += tmp[1];
+  HASH_FINAL (a, b, c);
+  return c;
+#else /* SIZEOF_DOUBLE != 8 */
+  return hash_bytes (&d, sizeof d, basis);
+#endif /* SIZEOF_DOUBLE != 8 */
 }

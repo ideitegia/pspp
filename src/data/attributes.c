@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -220,7 +220,7 @@ attrset_lookup (struct attrset *set, const char *name)
 {
   struct attribute *attr;
   HMAP_FOR_EACH_WITH_HASH (attr, struct attribute, node,
-                           hsh_hash_case_string (name), &set->map)
+                           hash_case_string (name, 0), &set->map)
     if (!strcasecmp (attribute_get_name (attr), name))
       break;
   return attr;
@@ -234,7 +234,7 @@ attrset_add (struct attrset *set, struct attribute *attr)
 {
   const char *name = attribute_get_name (attr);
   assert (attrset_lookup (set, name) == NULL);
-  hmap_insert (&set->map, &attr->node, hsh_hash_case_string (name));
+  hmap_insert (&set->map, &attr->node, hash_case_string (name, 0));
 }
 
 /* Deletes any attribute from SET that matches NAME

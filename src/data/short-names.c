@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,9 +39,9 @@ compare_strings (const void *a, const void *b, const void *aux UNUSED)
 
 /* Hashes a string. */
 static unsigned
-hash_string (const void *s, const void *aux UNUSED)
+do_hash_string (const void *s, const void *aux UNUSED)
 {
-  return hsh_hash_string (s);
+  return hash_string (s, 0);
 }
 
 /* Sets V's short name to BASE, followed by a suffix of the form
@@ -128,7 +128,7 @@ short_names_assign (struct dictionary *d)
      the hash table point to strings owned by dictionary
      variables, not by us, so we don't need to provide a free
      function. */
-  short_names = hsh_create (var_cnt, compare_strings, hash_string,
+  short_names = hsh_create (var_cnt, compare_strings, do_hash_string,
                             NULL, NULL);
 
   /* Clear short names that conflict with a variable name. */

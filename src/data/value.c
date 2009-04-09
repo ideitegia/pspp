@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -65,9 +65,7 @@ hash_value_short (const void *v_, const void *var_)
   const union value *v = v_;
   const struct variable *var = var_;
   int width = var_get_width (var);
-  return (width == 0
-          ? hsh_hash_double (v->f)
-	  : hsh_hash_bytes (v->s, width));
+  return width == 0 ? hash_double (v->f, 0) : hash_bytes (v->s, width, 0);
 }
 
 

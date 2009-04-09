@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -383,9 +383,9 @@ hash_int_val_lab (const void *vl_, const void *vls_)
   const struct val_labs *vls = vls_;
 
   if (vls->width == 0)
-    return hsh_hash_double (vl->value.f);
+    return hash_double (vl->value.f, 0);
   else
-    return hsh_hash_bytes (vl->value.s, vls->width);
+    return hash_bytes (vl->value.s, vls->width, 0);
 }
 
 /* Free a value label. */
@@ -491,7 +491,7 @@ hash_atom (const void *atom_, const void *aux UNUSED)
 {
   const struct atom *atom = atom_;
 
-  return hsh_hash_string (atom->string);
+  return hash_string (atom->string, 0);
 }
 
 /* A hsh_free_func that destroys ATOM. */

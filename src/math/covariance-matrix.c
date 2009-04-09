@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -372,10 +372,9 @@ covariance_accumulator_hash (const void *h, const void *aux)
     }
   if (var_is_alpha (v_max) && var_is_alpha (v_min))
     {
-      unsigned tmp = hsh_hash_bytes (val_max, var_get_width (v_max));
-      tmp ^= hsh_hash_bytes (val_min, var_get_width (v_min));
-      tmp += *n_vars * (*n_vars + 1 + idx_max) + idx_min;
-      return (size_t) tmp;
+      unsigned hash = hash_bytes (val_max, var_get_width (v_max), 0);
+      hash = hash_bytes (val_min, var_get_width (v_min), hash);
+      return hash_int (*n_vars * (*n_vars + 1 + idx_max) + idx_min, hash);
     }
   return -1u;
 }
@@ -478,7 +477,7 @@ hash_numeric_alpha (const struct variable *v1, const struct variable *v2,
   if (var_is_numeric (v1) && var_is_alpha (v2))
     {
       result = n_vars * ((n_vars + 1) + var_get_dict_index (v1))
-	+ var_get_dict_index (v2) + hsh_hash_string (val->s);
+	+ var_get_dict_index (v2) + hash_string (val->s, 0);
     }
   else if (var_is_alpha (v1) && var_is_numeric (v2))
     {

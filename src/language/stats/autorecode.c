@@ -355,7 +355,7 @@ hash_alpha_value (const void *a_, const void *v_)
   const union arc_value *a = a_;
   const struct variable *v = v_;
 
-  return hsh_hash_bytes (a->c, var_get_width (v));
+  return hash_bytes (a->c, var_get_width (v), 0);
 }
 
 static int
@@ -372,5 +372,5 @@ hash_numeric_value (const void *a_, const void *aux UNUSED)
 {
   const union arc_value *a = a_;
 
-  return hsh_hash_double (a->f);
+  return hash_double (a->f, 0);
 }
