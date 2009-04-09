@@ -532,6 +532,7 @@ is used.
 * BINOMIAL::                Binomial Test
 * CHISQUARE::               Chisquare Test
 * WILCOXON::                Wilcoxon Signed Ranks Test
+* SIGN::                    The Sign Test
 @end menu
 
 
@@ -544,7 +545,7 @@ is used.
      [ /BINOMIAL[(p)]=var_list[(value1[, value2)] ] ]
 @end display 
 
-The binomial test compares the observed distribution of a dichotomous 
+The /BINOMIAL subcommand compares the observed distribution of a dichotomous 
 variable with that of a binomial distribution.
 The variable @var{p} specifies the test proportion of the binomial 
 distribution.  
@@ -584,7 +585,7 @@ even for very large sample sizes.
 
 
 @node    CHISQUARE
-@subsection Chisquare test
+@subsection Chisquare Test
 @vindex CHISQUARE
 @cindex chisquare test
 
@@ -594,7 +595,7 @@ even for very large sample sizes.
 @end display 
 
 
-The chisquare test produces a chi-square statistic for the differences 
+The /CHISQUARE subcommand produces a chi-square statistic for the differences 
 between the expected and observed frequencies of the categories of a variable. 
 Optionally, a range of values may appear after the variable list.  
 If a range is given, then non integer values are truncated, and values
@@ -612,7 +613,7 @@ If no /EXPECTED subcommand is given, then then equal frequencies
 are expected.
 
 @node WILCOXON
-@subsection Wilcoxon
+@subsection Wilcoxon Matched Pairs Signed Ranks Test
 @comment  node-name,  next,  previous,  up
 @vindex WILCOXON
 @cindex wilcoxon matched pairs signed ranks test
@@ -621,9 +622,10 @@ are expected.
      [ /WILCOXON varlist [ WITH varlist [ (PAIRED) ]]]
 @end display
 
-The wilcoxon subcommand tests for differences between means of the 
-variables listed.  The test does not make any assumptions about the
-variances of the samples.
+The /WILCOXON subcommand tests for differences between medians of the 
+variables listed.
+The test does not make any assumptions about the variances of the samples.
+It does however assume that the distribution is symetrical.
 
 If the @code{WITH} keyword is omitted, then tests for all
 combinations of the listed variables are performed.
@@ -637,8 +639,32 @@ If the @code{WITH} keyword is given, but the
 of variable preceding @code{WITH} against variable following
 @code{WITH} are performed.
 
-If the number of observations is large, and exact tests have been
-requested. then the test may take a very long time to complete.
+
+@node SIGN
+@subsection Sign Test
+@vindex SIGN
+@cindex sign test
+
+@display
+     [ /SIGN varlist [ WITH varlist [ (PAIRED) ]]]
+@end display
+
+The /SIGN subcommand tests for differences between medians of the 
+variables listed.
+The test does not make any assumptions about the
+distribution of the data.
+
+If the @code{WITH} keyword is omitted, then tests for all
+combinations of the listed variables are performed.
+If the @code{WITH} keyword is given, and the @code{(PAIRED)} keyword
+is also given, then the number of variables preceding @code{WITH}
+must be the same as the number following it.
+In this case, tests for each respective pair of variables are
+performed.
+If the @code{WITH} keyword is given, but the
+@code{(PAIRED)} keyword is omitted, then tests for each combination
+of variable preceding @code{WITH} against variable following
+@code{WITH} are performed.
 
 @node T-TEST
 @comment  node-name,  next,  previous,  up

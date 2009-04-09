@@ -46,6 +46,7 @@ dist_TESTS = \
 	tests/command/npar-binomial.sh \
 	tests/command/npar-chisquare.sh \
 	tests/command/npar-wilcoxon.sh \
+	tests/command/npar-sign.sh \
 	tests/command/oneway.sh \
 	tests/command/oneway-missing.sh \
 	tests/command/oneway-with-splits.sh \

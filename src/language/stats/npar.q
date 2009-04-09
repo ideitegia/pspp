@@ -31,6 +31,7 @@
 #include <language/stats/binomial.h>
 #include <language/stats/chisquare.h>
 #include <language/stats/wilcoxon.h>
+#include <language/stats/sign.h>
 #include <libpspp/hash.h>
 #include <libpspp/pool.h>
 #include <libpspp/taint.h>
@@ -557,8 +558,7 @@ npar_custom_sign (struct lexer *lexer, struct dataset *ds,
   struct npar_specs *specs = aux;
 
   struct two_sample_test *tp = pool_alloc(specs->pool, sizeof(*tp));
-  ((struct npar_test *)tp)->execute = NULL;
-
+  ((struct npar_test *) tp)->execute = sign_execute;
 
   if (!parse_two_sample_related_test (lexer, dataset_dict (ds), cmd,
 				      tp, specs->pool) )
