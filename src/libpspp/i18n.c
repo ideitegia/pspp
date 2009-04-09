@@ -263,9 +263,12 @@ void
 i18n_done (void)
 {
   struct hmapx_node *node;
-  iconv_t conv;
-  HMAPX_FOR_EACH (conv, node, &map)
-    iconv_close (conv);
+  struct converter *cvtr;
+  HMAPX_FOR_EACH (cvtr, node, &map)
+    {
+      iconv_close (cvtr->conv);
+      free (cvtr);
+    }
 
   hmapx_destroy (&map);
 
