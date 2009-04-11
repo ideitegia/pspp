@@ -194,7 +194,7 @@ reload_the_viewer (void)
   reload_viewer (the_output_viewer);
 }
 
-#define OUTPUT_FILE_NAME "psppire.txt"
+
 
 void
 reload_viewer (struct output_viewer *ov)
@@ -224,10 +224,10 @@ reload_viewer (struct output_viewer *ov)
   */
   {
     GtkTextIter start_iter;
-    FILE *fp = fopen (OUTPUT_FILE_NAME, "r");
+    FILE *fp = fopen (output_file_name (), "r");
     if ( !fp)
       {
-	g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
+	g_warning ("Cannot open %s\n", output_file_name ());
 	return;
       }
 
@@ -253,7 +253,7 @@ reload_viewer (struct output_viewer *ov)
 	ov->fp = fopen (output_file_name (), "r");
 	if ( ov->fp == NULL)
 	  {
-	    g_print ("Cannot open %s\n", output_file_name ());
+	    g_warning ("Cannot open %s\n", output_file_name ());
 	    return;
 	  }
       }
@@ -278,7 +278,7 @@ reload_viewer (struct output_viewer *ov)
 }
 
 
-
+#define OUTPUT_FILE_NAME "psppire.txt"
 
 const char *
 output_file_name (void)
