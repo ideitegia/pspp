@@ -128,6 +128,9 @@ recode_string (const char *to, const char *from,
 
   conv = create_iconv (to, from);
 
+  if ( (iconv_t) -1 == conv )
+	return xstrdup (text);
+
   do {
     const char *ip = text;
     result = iconv (conv, (ICONV_CONST char **) &text, &inbytes,
@@ -161,6 +164,7 @@ recode_string (const char *to, const char *from,
 	    break;
 	  default:
 	    /* should never happen */
+            fprintf (stderr, "Character conversion error: %s\n", strerror (the_error));
 	    NOT_REACHED ();
 	    break;
 	  }
