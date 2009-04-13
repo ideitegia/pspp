@@ -199,7 +199,7 @@ find_dialog (GObject *o, gpointer data)
   PsppireVarStore *vs ;
   PsppireDataStore *ds ;
 
-  fd.xml = builder_new ("psppire.ui");
+  fd.xml = builder_new ("find.ui");
   fd.de = de;
 
   find_button = gtk_button_new_from_stock  (GTK_STOCK_FIND);
@@ -241,7 +241,7 @@ find_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
-  g_object_set (source, "dictionary", fd.dict, 
+  g_object_set (source, "dictionary", fd.dict,
 	"selection-mode", GTK_SELECTION_SINGLE,
 	NULL);
 

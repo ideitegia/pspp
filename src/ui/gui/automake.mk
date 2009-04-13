@@ -61,6 +61,7 @@ nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/descriptives-dialog.ui \
 	$(top_builddir)/src/ui/gui/data-editor.ui \
 	$(top_builddir)/src/ui/gui/examine.ui \
+	$(top_builddir)/src/ui/gui/find.ui \
 	$(top_builddir)/src/ui/gui/frequencies.ui \
 	$(top_builddir)/src/ui/gui/message-dialog.ui \
 	$(top_builddir)/src/ui/gui/psppire.ui \
@@ -219,6 +220,7 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/descriptives-dialog.glade \
 	src/ui/gui/data-editor.glade \
 	src/ui/gui/examine.glade \
+	src/ui/gui/find.glade \
 	src/ui/gui/frequencies.glade \
 	src/ui/gui/message-dialog.glade \
 	src/ui/gui/psppire.glade \
