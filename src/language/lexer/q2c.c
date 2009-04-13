@@ -379,7 +379,7 @@ id_cpy (char **cp)
 static char *
 unmunge (const char *s)
 {
-  char *dest = xmalloc (strlen (s));
+  char *dest = xmalloc (strlen (s) + 1);
   char *d = dest;
 
   while (*s)
@@ -391,6 +391,7 @@ unmunge (const char *s)
       s++;
       d++;
     }
+  *d = '\0';
 
   return dest;
 }
