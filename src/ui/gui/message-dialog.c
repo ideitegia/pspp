@@ -192,6 +192,8 @@ popup_messages (gpointer unused UNUSED)
   struct string msg = DS_EMPTY_INITIALIZER;
   int message_cnt;
 
+  gdk_threads_enter ();
+
   /* Set up the dialog. */
   if (message_xml == NULL || message_dialog == NULL)
     goto use_fallback;
@@ -204,6 +206,7 @@ popup_messages (gpointer unused UNUSED)
     {
       ds_destroy (&lead);
       ds_destroy (&msg);
+      gdk_threads_leave ();
       return TRUE;
     }
 
@@ -266,6 +269,7 @@ popup_messages (gpointer unused UNUSED)
   ds_destroy (&lead);
   ds_destroy (&msg);
 
+  gdk_threads_leave ();
   return FALSE;
 
 use_fallback:
@@ -274,6 +278,7 @@ use_fallback:
   fputs (ds_cstr (&msg), stderr);
   ds_destroy (&lead);
   ds_destroy (&msg);
+  gdk_threads_leave ();
   return FALSE;
 }
 

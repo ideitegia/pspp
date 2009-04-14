@@ -513,7 +513,9 @@ psppire_dialog_run (PsppireDialog *dialog)
 
   g_signal_emit (dialog, signals [DIALOG_REFRESH], 0);
 
+  gdk_threads_leave ();
   g_main_loop_run (dialog->loop);
+  gdk_threads_enter ();
 
   g_main_loop_unref (dialog->loop);
 
