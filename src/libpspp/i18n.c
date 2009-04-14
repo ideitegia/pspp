@@ -190,7 +190,7 @@ i18n_init (void)
 {
 #if ENABLE_NLS
   setlocale (LC_CTYPE, "");
-#if HAVE_LC_MESSAGES
+#ifdef LC_MESSAGES
   setlocale (LC_MESSAGES, "");
 #endif
 #if HAVE_LC_PAPER
