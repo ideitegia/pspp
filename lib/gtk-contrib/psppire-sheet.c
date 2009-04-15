@@ -3802,6 +3802,8 @@ motion_timeout_callback (gpointer data)
   PsppireSheet *sheet = PSPPIRE_SHEET (data);
   gint x, y;
   gint row, column;
+
+  gdk_threads_enter ();
   gtk_widget_get_pointer (GTK_WIDGET (sheet), &x, &y);
 
   if ( psppire_sheet_get_pixel_info (sheet, x, y, &row, &column) )
@@ -3825,6 +3827,7 @@ motion_timeout_callback (gpointer data)
 	}
     }
 
+  gdk_threads_leave ();
   return FALSE;
 }
 
