@@ -404,7 +404,17 @@ sysfile_chooser_dialog (PsppireWindow *toplevel)
     gchar *filename = NULL;
     g_object_get (toplevel, "filename", &filename, NULL);
 
-    dir_name = g_path_get_dirname (filename);
+    if ( ! g_path_is_absolute (filename))
+      {
+	gchar *path =
+	  g_build_filename (g_get_current_dir (), filename, NULL);
+	dir_name = g_path_get_dirname (path);
+	g_free (path);
+      }
+    else
+      {
+	dir_name = g_path_get_dirname (filename);
+      }
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog),
 					 dir_name);
     free (dir_name);
