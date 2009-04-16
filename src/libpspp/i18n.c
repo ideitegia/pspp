@@ -68,7 +68,7 @@ create_iconv (const char* tocode, const char* fromcode)
   converter->fromcode = xstrdup (fromcode);
   converter->conv = iconv_open (tocode, fromcode);
   hmapx_insert (&map, converter, hash);
-  
+
   /* I don't think it's safe to translate this string or to use messaging
      as the convertors have not yet been set up */
   if ( (iconv_t) -1 == converter->conv && 0 != strcmp (tocode, fromcode))

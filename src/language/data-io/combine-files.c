@@ -497,7 +497,10 @@ merge_dictionary (struct dictionary *const m, struct comb_file *f)
   m_docs = dict_get_documents (m);
 
 
-  /* If the input files have different encodings, then
+  /* FIXME: If the input files have different encodings, then
+     the result is undefined.
+     The correct thing to do would be to convert to an encoding
+     which can cope with all the input files (eg UTF-8).
    */
   file_encoding = dict_get_encoding (f->dict);
   if ( file_encoding != NULL)
