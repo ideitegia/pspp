@@ -3753,7 +3753,8 @@ create_hover_window (void)
 #define HOVER_WINDOW_Y_OFFSET 2
 
 static void
-show_subtitle (PsppireSheet *sheet, gint row, gint column, const gchar *subtitle)
+show_subtitle (PsppireSheet *sheet, gint row, gint column,
+	       const gchar *subtitle)
 {
   gint x, y;
   gint px, py;
@@ -4123,6 +4124,9 @@ psppire_sheet_crossing_notify (GtkWidget *widget,
     sheet->column_title_under = event->type == GDK_ENTER_NOTIFY;
   else if (event->window == sheet->row_title_window)
     sheet->row_title_under = event->type == GDK_ENTER_NOTIFY;
+
+  if (event->type == GDK_LEAVE_NOTIFY)
+    gtk_widget_hide (sheet->hover_window->window);
 
   return TRUE;
 }
