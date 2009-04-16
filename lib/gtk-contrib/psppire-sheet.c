@@ -2143,6 +2143,7 @@ psppire_sheet_unmap (GtkWidget *widget)
 
   gtk_widget_unmap (sheet->entry_widget);
   gtk_widget_unmap (sheet->button);
+  gtk_widget_unmap (sheet->hover_window->window);
 }
 
 /* get cell attributes of the given cell */
