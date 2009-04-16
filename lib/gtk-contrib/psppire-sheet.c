@@ -1981,6 +1981,9 @@ psppire_sheet_realize (GtkWidget *widget)
   gtk_widget_set_parent_window (sheet->button, sheet->sheet_window);
   gtk_widget_set_parent (sheet->button, GTK_WIDGET (sheet));
 
+  sheet->button->style = gtk_style_attach (sheet->button->style,
+                                          sheet->sheet_window);
+
 
   sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_PLUS);
 
@@ -4796,8 +4799,9 @@ draw_button (PsppireSheet *sheet, GdkWindow *window,
 
   gtk_paint_box (sheet->button->style, window,
 		 GTK_STATE_NORMAL, GTK_SHADOW_OUT,
-		 &allocation, GTK_WIDGET (sheet->button),
-		 "buttondefault",
+		 &allocation,
+		 GTK_WIDGET (sheet->button),
+		 NULL,
 		 allocation.x, allocation.y,
 		 allocation.width, allocation.height);
 
@@ -4813,7 +4817,7 @@ draw_button (PsppireSheet *sheet, GdkWindow *window,
     gtk_paint_box (sheet->button->style, window,
 		   button->state, shadow_type,
 		   &allocation, GTK_WIDGET (sheet->button),
-		   "button",
+		   NULL,
 		   allocation.x, allocation.y,
 		   allocation.width, allocation.height);
 
@@ -4831,7 +4835,7 @@ draw_button (PsppireSheet *sheet, GdkWindow *window,
 			 shadow_type,
 			 NULL,
 			 GTK_WIDGET (sheet),
-			 "button",
+			 NULL,
 			 points,
 			 2,
 			 TRUE);
