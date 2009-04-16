@@ -272,6 +272,12 @@ psppire_button_box_init (PsppireButtonBox *bb)
   bb->button[PSPPIRE_BUTTON_CONTINUE] =
     gtk_button_new_with_mnemonic (_("Continue"));
 
+  GTK_WIDGET_SET_FLAGS (bb->button[PSPPIRE_BUTTON_CONTINUE],
+			GTK_CAN_DEFAULT);
+
+  g_signal_connect (bb->button[PSPPIRE_BUTTON_CONTINUE], "realize",
+	 G_CALLBACK (gtk_widget_grab_default), NULL);
+
   gtk_box_pack_start_defaults (GTK_BOX (bb),
 			       bb->button[PSPPIRE_BUTTON_CONTINUE]);
   g_signal_connect (bb->button[PSPPIRE_BUTTON_CONTINUE], "clicked",
