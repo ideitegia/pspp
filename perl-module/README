@@ -14,9 +14,14 @@ To install this module type the following:
 
    perl Makefile.PL
    make
-   make test
    make install
+   make test
 
+For "make test" to succeed, Perl must be able to find
+libpspp-core-$VERSION.so.  It can do so if "make install" has been run
+(as shown above), or if LD_LIBRARY_PATH points to it (e.g. in
+src/.libs).  Running "make check" from the top-level build directory
+will automatically set LD_LIBRARY_PATH.
 
 
 DEPENDENCIES

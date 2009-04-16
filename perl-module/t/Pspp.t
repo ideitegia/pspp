@@ -1,6 +1,8 @@
 # -*-perl-*-
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl PSPP.t'
+# Before `make install' is performed this script should be runnable
+# with `make test' as long as libpspp-core-$VERSION.so is in
+# LD_LIBRARY_PATH.  After `make install' it should work as `perl
+# PSPP.t'
 
 #########################
 
