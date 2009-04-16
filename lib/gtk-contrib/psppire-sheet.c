@@ -2141,11 +2141,8 @@ psppire_sheet_unmap (GtkWidget *widget)
     gdk_window_hide (sheet->row_title_window);
   gdk_window_hide (widget->window);
 
-  if (GTK_WIDGET_MAPPED (sheet->entry_widget))
-    gtk_widget_unmap (sheet->entry_widget);
-
-  if (GTK_WIDGET_MAPPED (sheet->button))
-    gtk_widget_unmap (sheet->button);
+  gtk_widget_unmap (sheet->entry_widget);
+  gtk_widget_unmap (sheet->button);
 }
 
 /* get cell attributes of the given cell */
