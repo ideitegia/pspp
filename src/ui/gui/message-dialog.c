@@ -61,6 +61,10 @@ message_dialog_init (struct source_stream *ss)
   msg_init (ss, enqueue_msg);
   message_xml = builder_new ("message-dialog.ui");
   message_dialog = get_widget_assert (message_xml, "message-dialog");
+
+  GTK_WIDGET_SET_FLAGS (get_widget_assert (message_xml, "close-button"),
+			GTK_CAN_DEFAULT);
+
 }
 
 void
@@ -262,6 +266,7 @@ popup_messages (gpointer unused UNUSED)
     goto use_fallback;
   gtk_text_view_set_buffer (text_view, text_buffer);
 
+  gtk_widget_grab_default (get_widget_assert (message_xml, "close-button"));
   gtk_widget_grab_focus (get_widget_assert (message_xml, "close-button"));
   gtk_dialog_run ( GTK_DIALOG (message_dialog));
   gtk_widget_hide (message_dialog);
