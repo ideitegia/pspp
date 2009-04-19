@@ -47,8 +47,8 @@ static bool axis_allocate (struct axis *, unsigned long int request,
                            unsigned long int *start,
                            unsigned long int *width);
 static void axis_make_available (struct axis *,
-                                unsigned long int start,
-                                unsigned long int width);
+				 unsigned long int start,
+				 unsigned long int width);
 static unsigned long int axis_extend (struct axis *, unsigned long int width);
 
 static unsigned long int axis_map (const struct axis *, unsigned long log_pos);
@@ -105,31 +105,31 @@ static bool source_in_use (const struct source *);
 
 /* A datasheet. */
 struct datasheet
-  {
-    /* Mappings from logical to physical columns/rows. */
-    struct axis *columns;
-    struct axis *rows;
+{
+  /* Mappings from logical to physical columns/rows. */
+  struct axis *columns;
+  struct axis *rows;
 
-    /* Mapping from physical columns to "source_info"s. */
-    struct range_map sources;
+  /* Mapping from physical columns to "source_info"s. */
+  struct range_map sources;
 
-    /* Minimum number of columns to put in a new source when we
-       need new columns and none are free.  We double it whenever
-       we add a new source to keep the number of file descriptors
-       needed by the datasheet to a minimum, reducing the
-       likelihood of running out. */
-    unsigned column_min_alloc;
+  /* Minimum number of columns to put in a new source when we
+     need new columns and none are free.  We double it whenever
+     we add a new source to keep the number of file descriptors
+     needed by the datasheet to a minimum, reducing the
+     likelihood of running out. */
+  unsigned column_min_alloc;
 
-    /* Indicates corrupted data in the datasheet. */
-    struct taint *taint;
-  };
+  /* Indicates corrupted data in the datasheet. */
+  struct taint *taint;
+};
 
 /* Maps from a range of physical columns to a source. */
 struct source_info
-  {
-    struct range_map_node column_range;
-    struct source *source;
-  };
+{
+  struct range_map_node column_range;
+  struct source *source;
+};
 
 /* Is this operation a read or a write? */
 enum rw_op
@@ -140,7 +140,7 @@ enum rw_op
 
 static void free_source_info (struct datasheet *, struct source_info *);
 static struct source_info *source_info_from_range_map (
-  struct range_map_node *);
+						       struct range_map_node *);
 static bool rw_case (struct datasheet *ds, enum rw_op op,
                      casenumber lrow, size_t start_column, size_t column_cnt,
                      union value data[]);
@@ -176,17 +176,17 @@ datasheet_create (struct casereader *reader)
       if ( column_cnt > 0 )
 	{
 	  unsigned long int column_start;
-      column_start = axis_extend (ds->columns, column_cnt);
-      axis_insert (ds->columns, 0, column_start, column_cnt);
-      range_map_insert (&ds->sources, column_start, column_cnt,
-                        &si->column_range);
+	  column_start = axis_extend (ds->columns, column_cnt);
+	  axis_insert (ds->columns, 0, column_start, column_cnt);
+	  range_map_insert (&ds->sources, column_start, column_cnt,
+			    &si->column_range);
 	}
 
       if ( row_cnt > 0 )
 	{
 	  unsigned long int row_start;
-      row_start = axis_extend (ds->rows, row_cnt);
-      axis_insert (ds->rows, 0, row_start, row_cnt);
+	  row_start = axis_extend (ds->rows, row_cnt);
+	  axis_insert (ds->rows, 0, row_start, row_cnt);
 	}
     }
 
@@ -646,19 +646,19 @@ rw_case (struct datasheet *ds, enum rw_op op,
    axis_make_available, and axis_extend functions affect the set
    of available ordinates. */
 struct axis
-  {
-    struct tower log_to_phy;     /* Map from logical to physical ordinates;
-                                    contains "struct axis_group"s. */
-    struct range_set *available; /* Set of unused, available ordinates. */
-    unsigned long int phy_size;  /* Current physical length of axis. */
-  };
+{
+  struct tower log_to_phy;     /* Map from logical to physical ordinates;
+				  contains "struct axis_group"s. */
+  struct range_set *available; /* Set of unused, available ordinates. */
+  unsigned long int phy_size;  /* Current physical length of axis. */
+};
 
 /* A mapping from logical to physical ordinates. */
 struct axis_group
-  {
-    struct tower_node logical;  /* Range of logical ordinates. */
-    unsigned long phy_start;    /* First corresponding physical ordinate. */
-  };
+{
+  struct tower_node logical;  /* Range of logical ordinates. */
+  unsigned long phy_start;    /* First corresponding physical ordinate. */
+};
 
 static struct axis_group *axis_group_from_tower_node (struct tower_node *);
 static struct tower_node *make_axis_group (unsigned long int phy_start);
@@ -1019,12 +1019,12 @@ check_axis_merged (const struct axis *axis UNUSED)
 
 /* A source. */
 struct source
-  {
-    size_t columns_used;        /* Number of columns in use by client. */
-    struct sparse_cases *data;  /* Data at top level, atop the backing. */
-    struct casereader *backing; /* Backing casereader (or null). */
-    casenumber backing_rows;    /* Number of rows in backing (if nonnull). */
-  };
+{
+  size_t columns_used;        /* Number of columns in use by client. */
+  struct sparse_cases *data;  /* Data at top level, atop the backing. */
+  struct casereader *backing; /* Backing casereader (or null). */
+  casenumber backing_rows;    /* Number of rows in backing (if nonnull). */
+};
 
 /* Creates and returns an empty, unbacked source with COLUMN_CNT
    columns and an initial "columns_used" of 0. */
@@ -1284,10 +1284,8 @@ hash_datasheet (const struct datasheet *ds)
       md4_process_bytes (&end, sizeof end, &ctx);
     }
   md4_process_bytes (&ds->column_min_alloc, sizeof ds->column_min_alloc,
-                      &ctx);
+		     &ctx);
   md4_finish_ctx (&ctx, hash);
   return hash[0];
 }
-
-
 
