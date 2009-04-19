@@ -100,17 +100,22 @@ psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel)
   struct tower_node *n;
   struct axis_node *an;
   gdouble fraction;
-
-  glong size = tower_height (&a->pixel_tower);
+  gint unit;
+  glong size;
 
   g_return_val_if_fail (pixel >= 0, -1);
+
+  g_mutex_lock (a->mutex);
+
+  size = tower_height (&a->pixel_tower);
 
   if (pixel >= size)
     {
       gint n_items = tower_height (&a->unit_tower);
       glong extra = pixel - size;
 
-      return n_items - 1 + DIV_RND_UP (extra,  a->default_size);
+      unit = n_items - 1 + DIV_RND_UP (extra,  a->default_size);
+      goto finish;
     }
 
 
@@ -119,8 +124,14 @@ psppire_axis_unit_at_pixel (const PsppireAxis *a, glong pixel)
 
   fraction = (pixel - start) / (gdouble) tower_node_get_size (&an->pixel_node);
 
-  return  tower_node_get_level (&an->unit_node)
+  unit = tower_node_get_level (&an->unit_node)
     + fraction * tower_node_get_size (&an->unit_node);
+
+ finish:
+
+  g_mutex_unlock (a->mutex);
+
+  return unit;
 }
 
 
@@ -129,13 +140,20 @@ psppire_axis_unit_count (const PsppireAxis *a)
 {
   glong filler = 0;
   glong actual_size;
+  gint n_units;
+
+  g_mutex_lock (a->mutex);
 
   actual_size = tower_height (&a->pixel_tower);
 
   if ( actual_size < a->min_extent )
     filler = DIV_RND_UP (a->min_extent - actual_size, a->default_size);
 
-  return tower_height (&a->unit_tower) + filler;
+  n_units = tower_height (&a->unit_tower) + filler;
+
+  g_mutex_unlock (a->mutex);
+
+  return n_units;
 }
 
 
@@ -146,24 +164,28 @@ psppire_axis_start_pixel (const PsppireAxis *a, gint unit)
   gdouble fraction;
   struct tower_node *n ;
   struct axis_node *an;
+  glong pixel ;
 
   unsigned long int start;
 
   gint the_count, size ;
+
+  g_mutex_lock (a->mutex);
 
   the_count =  tower_height (&a->unit_tower);
   size = tower_height (&a->pixel_tower);
 
   if ( unit >= the_count)
     {
-      return  size + (unit - the_count) * a->default_size;
+      pixel = size + (unit - the_count) * a->default_size;
+      goto finish;
     }
 
   if ( unit < 0)
-    return -1;
+    goto error;
 
   if ( unit >= tower_height (&a->unit_tower))
-    return -1;
+    goto error;
 
   n = tower_lookup (&a->unit_tower, unit, &start);
 
@@ -171,8 +193,16 @@ psppire_axis_start_pixel (const PsppireAxis *a, gint unit)
 
   fraction = (unit - start) / (gdouble) tower_node_get_size (&an->unit_node);
 
-  return  tower_node_get_level (&an->pixel_node) +
+  pixel =  tower_node_get_level (&an->pixel_node) +
     nearbyint (fraction * tower_node_get_size (&an->pixel_node));
+
+ finish:
+  g_mutex_unlock (a->mutex);
+  return pixel;
+
+ error:
+  g_mutex_unlock (a->mutex);
+  return  -1;
 }
 
 gint
@@ -180,24 +210,39 @@ psppire_axis_unit_size (const PsppireAxis *axis, gint unit)
 {
   struct tower_node *n ;
   struct axis_node *an;
+  gint size;
 
   unsigned long int start;
 
+  g_mutex_lock (axis->mutex);
+
   if  (unit >= tower_height (&axis->unit_tower))
-    return axis->default_size;
+    {
+      size = axis->default_size;
+      goto finish;
+    }
 
   if ( unit < 0)
-    return 0;
+    {
+      size = 0;
+      goto finish;
+    }
 
   if ( unit >= tower_height (&axis->unit_tower))
-    return 0;
+    {
+      size = 0;
+      goto finish;
+    }
 
   n = tower_lookup (&axis->unit_tower, unit, &start);
 
   an = tower_data (n, struct axis_node, unit_node);
 
-  return nearbyint (tower_node_get_size (&an->pixel_node)
-		     / (gdouble) tower_node_get_size (&an->unit_node));
+  size = nearbyint (tower_node_get_size (&an->pixel_node)
+		    / (gdouble) tower_node_get_size (&an->unit_node));
+ finish:
+  g_mutex_unlock (axis->mutex);
+  return size;
 }
 
 
@@ -377,6 +422,7 @@ psppire_axis_class_init (PsppireAxisClass *class)
 static void
 psppire_axis_init (PsppireAxis *axis)
 {
+  axis->mutex = g_mutex_new ();
   tower_init (&axis->pixel_tower);
   tower_init (&axis->unit_tower);
 
@@ -390,6 +436,7 @@ psppire_axis_finalize (GObject *object)
 {
   PsppireAxis *a = PSPPIRE_AXIS (object);
   pool_destroy (a->pool);
+  g_mutex_free (a->mutex);
 
   G_OBJECT_CLASS (parent_class)->finalize (object);
 }
@@ -425,14 +472,20 @@ psppire_axis_append_n (PsppireAxis *a, gint n_units, gint size)
 {
   struct axis_node *node;
 
+  g_mutex_lock (a->mutex);
+
   if  (n_units == 0)
-    return;
+    goto finish;
 
   node = pool_malloc (a->pool, sizeof *node);
 
   tower_insert (&a->unit_tower, n_units, &node->unit_node, NULL);
   tower_insert (&a->pixel_tower, (size + a->padding) * n_units,
     &node->pixel_node, NULL);
+
+ finish:
+  g_mutex_unlock (a->mutex);
+  return;
 }
 
 
@@ -500,6 +553,8 @@ psppire_axis_insert (PsppireAxis *a, gint posn, gint size)
   g_return_if_fail ( posn >= 0);
   g_return_if_fail ( posn <= tower_height (&a->unit_tower));
 
+  g_mutex_lock (a->mutex);
+
   if ( posn < tower_height (&a->unit_tower))
     {
       unsigned long int start = 0;
@@ -524,6 +579,8 @@ psppire_axis_insert (PsppireAxis *a, gint posn, gint size)
 		size + a->padding,
 		&new_node->pixel_node,
 		before ? &before->pixel_node : NULL);
+
+  g_mutex_unlock (a->mutex);
 }
 
 
@@ -568,16 +625,25 @@ psppire_axis_resize (PsppireAxis *axis, gint posn, glong size)
   g_return_if_fail (posn >= 0);
   g_return_if_fail (size > 0);
 
+  g_mutex_lock (axis->mutex);
+
   /* Silently ignore this request if the position is greater than the number of
      units in the axis */
   if (posn >= tower_height (&axis->unit_tower))
-    return ;
+    goto error;
 
   an = make_single (axis, posn);
 
   tower_resize (&axis->pixel_tower, &an->pixel_node, size + axis->padding);
 
+ finish:
+  g_mutex_unlock (axis->mutex);
   g_signal_emit (axis, signals[RESIZE_UNIT], 0, posn, size + axis->padding);
+  return;
+
+ error:
+  g_mutex_unlock (axis->mutex);
+  return;
 }
 
 
@@ -588,11 +654,13 @@ psppire_axis_resize (PsppireAxis *axis, gint posn, glong size)
 void
 psppire_axis_clear (PsppireAxis *a)
 {
+  g_mutex_lock (a->mutex);
   pool_destroy (a->pool);
   a->pool = pool_create ();
 
   tower_init (&a->pixel_tower);
   tower_init (&a->unit_tower);
+  g_mutex_unlock (a->mutex);
 }
 
 
@@ -604,6 +672,8 @@ psppire_axis_delete (PsppireAxis *a, gint first, gint n_units)
   unsigned long int start;
   struct tower_node *unit_node ;
   g_return_if_fail (first + n_units <= tower_height (&a->unit_tower));
+
+  g_mutex_lock (a->mutex);
 
   split (a, first);
   split (a, first + n_units);
@@ -631,4 +701,5 @@ psppire_axis_delete (PsppireAxis *a, gint first, gint n_units)
 
       unit_node = next_unit_node;
     }
+  g_mutex_unlock (a->mutex);
 }
