@@ -95,6 +95,7 @@ static void
 psppire_conf_finalize (GObject *object)
 {
   PsppireConf *conf = PSPPIRE_CONF (object);
+  g_mutex_free (conf->mutex);
   g_key_file_free (conf->keyfile);
   g_free (conf->filename);
 }
@@ -133,7 +134,6 @@ psppire_conf_class_init (PsppireConfClass *class)
   object_class->finalize = psppire_conf_finalize;
   object_class->dispose = psppire_conf_dispose;
   object_class->constructor = psppire_conf_construct;
-
 }
 
 
@@ -141,6 +141,8 @@ static void
 psppire_conf_init (PsppireConf *conf)
 {
   const gchar *dirname = g_get_user_config_dir ();
+
+  conf->mutex = g_mutex_new ();
 
   conf->filename = g_strdup_printf ("%s/%s", dirname, "psppirerc");
 
@@ -164,6 +166,8 @@ psppire_conf_get_int (PsppireConf *conf, const gchar *base,
 {
   gboolean ok;
   GError *err = NULL;
+
+  g_mutex_lock (conf->mutex);
   conf_read (conf);
   *value = g_key_file_get_integer (conf->keyfile,
 				   base,
@@ -172,6 +176,9 @@ psppire_conf_get_int (PsppireConf *conf, const gchar *base,
   ok = (err == NULL);
   if ( err != NULL )
     g_error_free (err);
+
+
+  g_mutex_unlock (conf->mutex);
 
   return ok;
 }
@@ -183,6 +190,8 @@ psppire_conf_get_boolean (PsppireConf *conf, const gchar *base,
   gboolean ok;
   gboolean b;
   GError *err = NULL;
+  g_mutex_lock (conf->mutex);
+
   conf_read (conf);
   b = g_key_file_get_boolean (conf->keyfile,
 			      base,
@@ -195,6 +204,8 @@ psppire_conf_get_boolean (PsppireConf *conf, const gchar *base,
   if (ok)
     *value = b;
 
+  g_mutex_unlock (conf->mutex);
+
   return ok;
 }
 
@@ -204,8 +215,10 @@ psppire_conf_set_int (PsppireConf *conf,
 		      const gchar *base, const gchar *name,
 		      gint value)
 {
+  g_mutex_lock (conf->mutex);
   g_key_file_set_integer (conf->keyfile, base, name, value);
   conf_write (conf);
+  g_mutex_unlock (conf->mutex);
 }
 
 void
@@ -213,8 +226,10 @@ psppire_conf_set_boolean (PsppireConf *conf,
 			  const gchar *base, const gchar *name,
 			  gboolean value)
 {
+  g_mutex_lock (conf->mutex);
   g_key_file_set_boolean (conf->keyfile, base, name, value);
   conf_write (conf);
+  g_mutex_unlock (conf->mutex);
 }
 
 /*
