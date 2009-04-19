@@ -45,7 +45,7 @@
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-sheet.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/helper.h>
+#include "executor.h"
 
 #include "error.h"
 #include "xalloc.h"

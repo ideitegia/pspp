@@ -27,6 +27,7 @@
 #include "dialog-common.h"
 #include "dict-display.h"
 #include "widget-io.h"
+#include "executor.h"
 
 #include "t-test-options.h"
 #include <language/syntax-string-source.h>

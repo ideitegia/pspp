@@ -26,7 +26,7 @@
 #include <ui/gui/psppire-data-window.h>
 #include <ui/gui/dialog-common.h>
 #include <ui/gui/dict-display.h>
-#include "helper.h"
+#include "executor.h"
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
 #include <ui/gui/helper.h>

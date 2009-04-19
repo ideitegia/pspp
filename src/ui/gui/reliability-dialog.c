@@ -25,6 +25,7 @@
 
 #include "psppire-data-window.h"
 
+#include "executor.h"
 #include "helper.h"
 
 #include <gtk/gtk.h>

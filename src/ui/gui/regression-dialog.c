@@ -18,6 +18,7 @@
 
 #include "checkbox-treeview.h"
 #include "regression-dialog.h"
+#include "executor.h"
 
 #include <gtk/gtk.h>
 #include <stdlib.h>
@@ -29,7 +30,7 @@
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/helper.h>
+
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

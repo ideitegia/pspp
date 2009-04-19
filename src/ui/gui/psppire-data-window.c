@@ -18,6 +18,7 @@
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbox.h>
+#include "executor.h"
 #include "helper.h"
 
 #include "text-data-import-dialog.h"

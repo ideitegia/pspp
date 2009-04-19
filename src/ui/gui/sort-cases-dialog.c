@@ -17,7 +17,7 @@
 #include <config.h>
 #include <gtk/gtk.h>
 #include "sort-cases-dialog.h"
-#include "helper.h"
+#include "executor.h"
 #include "psppire-dialog.h"
 #include "psppire-data-window.h"
 #include "psppire-var-store.h"

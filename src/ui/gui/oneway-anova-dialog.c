@@ -31,7 +31,7 @@
 
 
 #include <language/syntax-string-source.h>
-#include "helper.h"
+#include "executor.h"
 
 
 #include "gettext.h"

@@ -28,7 +28,7 @@
 
 #include <language/expressions/public.h>
 #include <language/syntax-string-source.h>
-#include "helper.h"
+#include "executor.h"
 
 static void function_list_populate (GtkTreeView *tv);
 

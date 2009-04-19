@@ -30,6 +30,8 @@
 #include "dialog-common.h"
 #include "psppire-dialog.h"
 
+#include "executor.h"
+
 #include "helper.h"
 
 #include "psppire-var-ptr.h"

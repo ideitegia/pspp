@@ -24,6 +24,8 @@
 
 #include "recode-dialog.h"
 
+#include "executor.h"
+
 #include <gtk/gtk.h>
 
 #include <xalloc.h>
@@ -34,7 +36,7 @@
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/helper.h>
+
 #include <ui/syntax-gen.h>
 
 #include "psppire-acr.h"

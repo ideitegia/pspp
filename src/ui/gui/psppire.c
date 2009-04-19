@@ -49,7 +49,7 @@
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
-#include "helper.h"
+#include "executor.h"
 #include "message-dialog.h"
 #include <ui/syntax-gen.h>
 

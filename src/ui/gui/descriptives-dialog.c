@@ -29,7 +29,7 @@
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
-#include <ui/gui/helper.h>
+#include "executor.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)

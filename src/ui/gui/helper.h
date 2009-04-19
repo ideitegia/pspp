@@ -50,10 +50,6 @@ void connect_help (GtkBuilder *);
 
 void reference_manual (GtkMenuItem *, gpointer);
 
-struct getl_interface;
-gboolean execute_syntax (struct getl_interface *sss);
-
-
 #define builder_new(NAME) builder_new_real (relocate (PKGDATADIR "/" NAME))
 
 GtkBuilder *builder_new_real (const gchar *name);

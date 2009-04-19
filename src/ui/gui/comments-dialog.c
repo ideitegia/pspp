@@ -21,7 +21,7 @@
 #include "psppire-data-window.h"
 #include "psppire-data-editor.h"
 #include <language/syntax-string-source.h>
-#include "helper.h"
+#include "executor.h"
 #include "psppire-var-store.h"
 #include <ui/syntax-gen.h>
 

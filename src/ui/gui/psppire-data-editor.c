@@ -25,7 +25,7 @@
 #include "psppire-data-store.h"
 #include <libpspp/i18n.h>
 #include <ui/gui/sheet/psppire-axis.h>
-#include "helper.h"
+#include "executor.h"
 
 #include <gtk-contrib/gtkxpaned.h>
 #include <gettext.h>

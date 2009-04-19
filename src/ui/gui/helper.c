@@ -20,8 +20,6 @@
 */
 #include <config.h>
 
-#include "psppire-syntax-window.h"
-
 #include	<glib-object.h>
 
 #include <glib.h>
@@ -33,7 +31,7 @@
 #include <data/dictionary.h>
 #include <data/casereader-provider.h>
 #include <libpspp/message.h>
-
+#include "psppire-syntax-window.h"
 #include <gtk/gtkbuilder.h>
 #include <libpspp/i18n.h>
 
@@ -42,13 +40,7 @@
 #include <stdlib.h>
 #include <data/settings.h>
 
-#include <language/command.h>
-#include <data/lazy-casereader.h>
-#include <data/procedure.h>
-#include <language/lexer/lexer.h>
 #include "psppire-data-store.h"
-#include <output/manager.h>
-#include "psppire-output-window.h"
 
 #include "xalloc.h"
 
@@ -242,91 +234,6 @@ reference_manual (GtkMenuItem *menu, gpointer data)
   g_free (cmd);
   g_clear_error (&err);
 }
-
-
-extern struct dataset *the_dataset;
-extern struct source_stream *the_source_stream;
-extern PsppireDataStore *the_data_store;
-
-/* Lazy casereader callback function used by execute_syntax. */
-static struct casereader *
-create_casereader_from_data_store (void *data_store_)
-{
-  PsppireDataStore *data_store = data_store_;
-  return psppire_data_store_get_reader (data_store);
-}
-
-gboolean
-execute_syntax (struct getl_interface *sss)
-{
-  struct lexer *lexer;
-  gboolean retval = TRUE;
-
-  struct casereader *reader;
-  size_t value_cnt;
-  casenumber case_cnt;
-  unsigned long int lazy_serial;
-
-  /* When the user executes a number of snippets of syntax in a
-     row, none of which read from the active file, the GUI becomes
-     progressively less responsive.  The reason is that each syntax
-     execution encapsulates the active file data in another
-     datasheet layer.  The cumulative effect of having a number of
-     layers of datasheets wastes time and space.
-
-     To solve the problem, we use a "lazy casereader", a wrapper
-     around the casereader obtained from the data store, that
-     only actually instantiates that casereader when it is
-     needed.  If the data store casereader is never needed, then
-     it is reused the next time syntax is run, without wrapping
-     it in another layer. */
-  value_cnt = psppire_data_store_get_value_count (the_data_store);
-  case_cnt = psppire_data_store_get_case_count (the_data_store);
-  reader = lazy_casereader_create (value_cnt, case_cnt,
-                                   create_casereader_from_data_store,
-                                   the_data_store, &lazy_serial);
-  proc_set_active_file_data (the_dataset, reader);
-
-  g_return_val_if_fail (proc_has_active_file (the_dataset), FALSE);
-
-  lexer = lex_create (the_source_stream);
-
-  getl_append_source (the_source_stream, sss, GETL_BATCH, ERRMODE_CONTINUE);
-
-  for (;;)
-    {
-      enum cmd_result result = cmd_parse (lexer, the_dataset);
-
-      if ( cmd_result_is_failure (result))
-	{
-	  retval = FALSE;
-	  if ( source_stream_current_error_mode (the_source_stream)
-	       == ERRMODE_STOP )
-	    break;
-	}
-
-      if ( result == CMD_EOF || result == CMD_FINISH)
-	break;
-    }
-
-  getl_abort_noninteractive (the_source_stream);
-
-  lex_destroy (lexer);
-
-  psppire_dict_replace_dictionary (the_data_store->dict,
-				   dataset_dict (the_dataset));
-
-  reader = proc_extract_active_file_data (the_dataset);
-  if (!lazy_casereader_destroy (reader, lazy_serial))
-    psppire_data_store_set_reader (the_data_store, reader);
-
-  som_flush ();
-
-  psppire_output_window_reload ();
-
-  return retval;
-}
-
 
 
 /* Create a deep copy of SRC */

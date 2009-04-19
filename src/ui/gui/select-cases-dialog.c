@@ -18,7 +18,7 @@
 
 #include "select-cases-dialog.h"
 #include <gtk/gtk.h>
-#include "helper.h"
+#include "executor.h"
 #include "psppire-dialog.h"
 #include "psppire-data-window.h"
 #include "psppire-selector.h"

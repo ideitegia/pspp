@@ -21,7 +21,7 @@
 #include "t-test-independent-samples-dialog.h"
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
-#include "helper.h"
+#include "executor.h"
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
 #include "dialog-common.h"
