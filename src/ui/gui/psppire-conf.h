@@ -61,7 +61,6 @@ struct _PsppireConf
   gboolean dispose_has_run ;
 
   GKeyFile *keyfile;
-  GMutex *mutex;
   gchar *filename;
 };
 
