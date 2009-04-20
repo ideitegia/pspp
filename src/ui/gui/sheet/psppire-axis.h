@@ -54,7 +54,6 @@ struct _PsppireAxis
   glong min_extent;
   gint default_size;
   gint padding;
-  GMutex *mutex;
 };
 
 struct _PsppireAxisClass
