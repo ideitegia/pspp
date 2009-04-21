@@ -27,6 +27,7 @@
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
+#include <glthread/lock.h>
 
 #include "xalloc.h"
 
@@ -413,12 +414,21 @@ static hsh_free_func free_atom;
 
 /* Hash table of atoms. */
 static struct hsh_table *atoms;
+gl_once_define (static, atom_once);
 
 static void
 destroy_atoms (void)
 {
   hsh_destroy (atoms);
 }
+
+static void
+initialize_atom_hash (void)
+{
+  atoms = hsh_create (8, compare_atoms, hash_atom, free_atom, NULL);
+  atexit (destroy_atoms);
+}
+
 
 /* Creates and returns an atom for STRING. */
 static struct atom *
@@ -429,11 +439,7 @@ atom_create (const char *string)
 
   assert (string != NULL);
 
-  if (atoms == NULL)
-    {
-      atoms = hsh_create (8, compare_atoms, hash_atom, free_atom, NULL);
-      atexit (destroy_atoms);
-    }
+  gl_once (atom_once, initialize_atom_hash);
 
   a.string = (char *) string;
   app = hsh_probe (atoms, &a);
