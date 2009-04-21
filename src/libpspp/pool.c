@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <libpspp/assertion.h>
+#include <glthread/lock.h>
 #include "message.h"
 #include "str.h"
 
@@ -121,6 +122,7 @@ union align
 
 /* Serial number used to keep track of gizmos for mark/release. */
 static long serial = 0;
+gl_lock_define_initialized (static, serial_mutex);
 
 /* Prototypes. */
 static void add_gizmo (struct pool *, struct pool_gizmo *);
@@ -898,7 +900,9 @@ add_gizmo (struct pool *pool, struct pool_gizmo *gizmo)
     pool->gizmos->prev = gizmo;
   pool->gizmos = gizmo;
 
+  glthread_lock_lock (&serial_mutex);
   gizmo->serial = serial++;
+  glthread_lock_unlock (&serial_mutex);
 
   check_gizmo (pool, gizmo);
 }

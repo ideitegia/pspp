@@ -37,6 +37,7 @@ GNULIB_MODULES = \
 	intprops \
 	inttostr \
 	localcharset \
+        lock \
         mbchar \
 	memcasecmp \
 	memchr \

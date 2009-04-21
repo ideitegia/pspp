@@ -9,7 +9,7 @@ AM_INIT_AUTOMAKE
 dnl Checks for programs.
 AC_GNU_SOURCE
 AC_PROG_CC
-gl_EARLY
+gl_LOCK_EARLY
 AM_PROG_CC_C_O
 AC_LIBTOOL_WIN32_DLL
 AC_LIBTOOL_DLOPEN
@@ -177,6 +177,7 @@ dnl Checks for header files.
 AC_CHECK_HEADERS([sys/wait.h fpu_control.h ieeefp.h fenv.h])
 
 # For gnulib.
+gl_THREADLIB
 gl_INIT
 
 AC_C_INLINE
