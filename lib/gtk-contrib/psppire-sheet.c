@@ -759,7 +759,7 @@ psppire_sheet_set_vertical_axis (PsppireSheet *sheet, PsppireAxis *a)
     g_object_ref (sheet->vaxis);
 }
 
-static const GtkBorder default_cell_padding = { 3, 3, 2, 2 };
+static const GtkBorder default_cell_padding = {3, 3, 3, 3};
 
 static void
 psppire_sheet_set_property (GObject         *object,
@@ -1856,7 +1856,6 @@ psppire_sheet_style_set (GtkWidget *widget,
   set_entry_widget_font (sheet);
 }
 
-#define BORDER_WIDTH 3
 
 static void
 psppire_sheet_realize (GtkWidget *widget)
@@ -1964,7 +1963,10 @@ psppire_sheet_realize (GtkWidget *widget)
   values.foreground = widget->style->white;
   values.function = GDK_INVERT;
   values.subwindow_mode = GDK_INCLUDE_INFERIORS;
-  values.line_width = BORDER_WIDTH;
+  values.line_width = MAX (sheet->cell_padding->left,
+			   MAX (sheet->cell_padding->right,
+				MAX (sheet->cell_padding->top,
+				     sheet->cell_padding->bottom)));
 
   sheet->xor_gc = gdk_gc_new_with_values (widget->window,
 					  &values,
@@ -1973,7 +1975,6 @@ psppire_sheet_realize (GtkWidget *widget)
 					  GDK_GC_SUBWINDOW |
 					  GDK_GC_LINE_WIDTH
 					  );
-
 
   gtk_widget_set_parent_window (sheet->entry_widget, sheet->sheet_window);
   gtk_widget_set_parent (sheet->entry_widget, GTK_WIDGET (sheet));
@@ -3085,11 +3086,20 @@ psppire_sheet_draw_border (PsppireSheet *sheet, PsppireSheetRange new_range)
 
   rectangle_from_range (sheet, &new_range, &area);
 
-  gdk_draw_rectangle (sheet->sheet_window,
-		      sheet->xor_gc,
+
+  gdk_gc_set_clip_rectangle (sheet->xor_gc, &area);
+
+  area.x += sheet->cell_padding->left / 2;
+  area.y += sheet->cell_padding->top / 2;
+  area.width -= (sheet->cell_padding->left + sheet->cell_padding->right ) / 2;
+  area.height -= (sheet->cell_padding->top + sheet->cell_padding->bottom ) / 2;
+
+  gdk_draw_rectangle (sheet->sheet_window,  sheet->xor_gc,
 		      FALSE,
-		      area.x, area.y,
-		      area.width, area.height);
+		      area.x,
+		      area.y,
+		      area.width,
+		      area.height);
 }
 
 
@@ -4673,10 +4683,10 @@ psppire_sheet_size_allocate_entry (PsppireSheet *sheet)
   rectangle_from_cell (sheet, sheet->active_cell.row,
 		       sheet->active_cell.col, &entry_alloc);
 
-  entry_alloc.width -= BORDER_WIDTH ;
-  entry_alloc.height -= BORDER_WIDTH ;
-  entry_alloc.x += DIV_RND_UP (BORDER_WIDTH, 2);
-  entry_alloc.y += DIV_RND_UP (BORDER_WIDTH, 2);
+  entry_alloc.x += sheet->cell_padding->left;
+  entry_alloc.y += sheet->cell_padding->right;
+  entry_alloc.width -= sheet->cell_padding->left + sheet->cell_padding->right;
+  entry_alloc.height -= sheet->cell_padding->top + sheet->cell_padding->bottom;
 
 
   gtk_widget_set_size_request (sheet->entry_widget, entry_alloc.width,
