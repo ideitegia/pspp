@@ -3102,6 +3102,8 @@ psppire_sheet_draw_border (PsppireSheet *sheet, PsppireSheetRange new_range)
 		      area.y,
 		      area.width,
 		      area.height);
+
+  gdk_gc_set_clip_rectangle (sheet->xor_gc, NULL);
 }
 
 
