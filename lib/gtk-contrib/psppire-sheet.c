@@ -1635,7 +1635,6 @@ psppire_sheet_select_row (PsppireSheet *sheet, gint row)
   sheet->range.col0 = 0;
   sheet->range.rowi = row;
   sheet->range.coli = psppire_axis_unit_count (sheet->haxis) - 1;
-  sheet->active_cell.row = row;
 
   g_signal_emit (sheet, sheet_signals[SELECT_ROW], 0, row);
   psppire_sheet_real_select_range (sheet, NULL);
@@ -1659,7 +1658,6 @@ psppire_sheet_select_column (PsppireSheet *sheet, gint column)
   sheet->range.col0 = column;
   sheet->range.rowi = psppire_axis_unit_count (sheet->vaxis) - 1;
   sheet->range.coli = column;
-  sheet->active_cell.col = column;
 
   g_signal_emit (sheet, sheet_signals[SELECT_COLUMN], 0, column);
   psppire_sheet_real_select_range (sheet, NULL);
@@ -2718,10 +2716,10 @@ change_active_cell (PsppireSheet *sheet, gint row, gint col)
   old_row = sheet->active_cell.row;
   old_col = sheet->active_cell.col;
 
-  /* Erase the old cell */
-  psppire_sheet_draw_active_cell (sheet);
-
   entry_load_text (sheet);
+
+  /* Erase the old cell border */
+  psppire_sheet_draw_active_cell (sheet);
 
   sheet->range.row0 = row;
   sheet->range.col0 = col;
@@ -3168,8 +3166,6 @@ psppire_sheet_select_range (PsppireSheet *sheet, const PsppireSheetRange *range)
   sheet->range.rowi = range->rowi;
   sheet->range.col0 = range->col0;
   sheet->range.coli = range->coli;
-  sheet->active_cell.row = range->row0;
-  sheet->active_cell.col = range->col0;
   sheet->selection_cell.row = range->rowi;
   sheet->selection_cell.col = range->coli;
 
@@ -3489,8 +3485,6 @@ psppire_sheet_click_cell (PsppireSheet *sheet, gint row, gint column)
       sheet->range.rowi = psppire_axis_unit_count (sheet->vaxis) - 1;
       sheet->range.coli =
 	psppire_axis_unit_count (sheet->haxis) - 1;
-      sheet->active_cell.row = 0;
-      sheet->active_cell.col = 0;
       psppire_sheet_select_range (sheet, NULL);
       return TRUE;
     }
@@ -3505,8 +3499,6 @@ psppire_sheet_click_cell (PsppireSheet *sheet, gint row, gint column)
       change_active_cell (sheet, row, column);
     }
 
-  sheet->active_cell.row = row;
-  sheet->active_cell.col = column;
   sheet->selection_cell.row = row;
   sheet->selection_cell.col = column;
   sheet->range.row0 = row;
@@ -3575,10 +3567,6 @@ psppire_sheet_button_release (GtkWidget *widget,
 
       psppire_sheet_real_unselect_range (sheet, NULL);
 
-      sheet->active_cell.row = sheet->active_cell.row +
-	(sheet->drag_range.row0 - sheet->range.row0);
-      sheet->active_cell.col = sheet->active_cell.col +
-	(sheet->drag_range.col0 - sheet->range.col0);
       sheet->selection_cell.row = sheet->selection_cell.row +
 	(sheet->drag_range.row0 - sheet->range.row0);
       sheet->selection_cell.col = sheet->selection_cell.col +
@@ -3600,10 +3588,6 @@ psppire_sheet_button_release (GtkWidget *widget,
 
       psppire_sheet_real_unselect_range (sheet, NULL);
 
-      sheet->active_cell.row = sheet->active_cell.row +
-	(sheet->drag_range.row0 - sheet->range.row0);
-      sheet->active_cell.col = sheet->active_cell.col +
-	(sheet->drag_range.col0 - sheet->range.col0);
       if (sheet->drag_range.row0 < sheet->range.row0)
 	sheet->selection_cell.row = sheet->drag_range.row0;
       if (sheet->drag_range.rowi >= sheet->range.rowi)
