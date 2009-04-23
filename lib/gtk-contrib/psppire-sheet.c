@@ -3294,7 +3294,7 @@ psppire_sheet_button_press (GtkWidget *widget,
   GdkModifierType mods;
   gint x, y;
   gint  row, column;
-  gboolean veto;
+
 
   g_return_val_if_fail (widget != NULL, FALSE);
   g_return_val_if_fail (PSPPIRE_IS_SHEET (widget), FALSE);
@@ -3398,65 +3398,8 @@ psppire_sheet_button_press (GtkWidget *widget,
 			NULL, NULL, event->time);
       gtk_grab_add (GTK_WIDGET (sheet));
 
-      if (sheet->selection_mode != GTK_SELECTION_SINGLE &&
-	  sheet->selection_mode != GTK_SELECTION_NONE &&
-	  sheet->cursor_drag->type == GDK_SIZING &&
-	  !PSPPIRE_SHEET_IN_SELECTION (sheet) && !PSPPIRE_SHEET_IN_RESIZE (sheet))
-	{
-	  if (sheet->state == GTK_STATE_NORMAL)
-	    {
-	      row = sheet->active_cell.row;
-	      column = sheet->active_cell.col;
-	      sheet->active_cell.row = row;
-	      sheet->active_cell.col = column;
-	      sheet->drag_range = sheet->range;
-	      sheet->state = PSPPIRE_SHEET_RANGE_SELECTED;
-	      psppire_sheet_select_range (sheet, &sheet->drag_range);
-	    }
-	  sheet->x_drag = x;
-	  sheet->y_drag = y;
-	  if (row > sheet->range.rowi) row--;
-	  if (column > sheet->range.coli) column--;
-	  sheet->drag_cell.row = row;
-	  sheet->drag_cell.col = column;
-	  sheet->drag_range = sheet->range;
-	  draw_xor_rectangle (sheet, sheet->drag_range);
-	  PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_RESIZE);
-	}
-      else if (sheet->cursor_drag->type == GDK_TOP_LEFT_ARROW &&
-	       !PSPPIRE_SHEET_IN_SELECTION (sheet)
-	       && ! PSPPIRE_SHEET_IN_DRAG (sheet)
-	       && sheet->active_cell.row >= 0
-	       && sheet->active_cell.col >= 0
-	       )
-	{
-	  if (sheet->state == GTK_STATE_NORMAL)
-	    {
-	      row = sheet->active_cell.row;
-	      column = sheet->active_cell.col;
-	      sheet->active_cell.row = row;
-	      sheet->active_cell.col = column;
-	      sheet->drag_range = sheet->range;
-	      sheet->state = PSPPIRE_SHEET_RANGE_SELECTED;
-	      psppire_sheet_select_range (sheet, &sheet->drag_range);
-	    }
-	  sheet->x_drag = x;
-	  sheet->y_drag = y;
-	  if (row < sheet->range.row0) row++;
-	  if (row > sheet->range.rowi) row--;
-	  if (column < sheet->range.col0) column++;
-	  if (column > sheet->range.coli) column--;
-	  sheet->drag_cell.row = row;
-	  sheet->drag_cell.col = column;
-	  sheet->drag_range = sheet->range;
-	  draw_xor_rectangle (sheet, sheet->drag_range);
-	  PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_DRAG);
-	}
-      else
-	{
-	  veto = psppire_sheet_click_cell (sheet, row, column);
-	  if (veto) PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
-	}
+      if (psppire_sheet_click_cell (sheet, row, column))
+	PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
     }
 
   if (event->window == sheet->column_title_window)
@@ -3471,7 +3414,6 @@ psppire_sheet_button_press (GtkWidget *widget,
 
       if (psppire_sheet_model_get_column_sensitivity (sheet->model, column))
 	{
-	  veto = psppire_sheet_click_cell (sheet, -1, column);
 	  gtk_grab_add (GTK_WIDGET (sheet));
 	  PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
 	}
@@ -3488,7 +3430,6 @@ psppire_sheet_button_press (GtkWidget *widget,
       row = row_from_ypixel (sheet, y);
       if (psppire_sheet_model_get_row_sensitivity (sheet->model, row))
 	{
-	  veto = psppire_sheet_click_cell (sheet, row, -1);
 	  gtk_grab_add (GTK_WIDGET (sheet));
 	  PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
 	}
