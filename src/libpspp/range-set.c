@@ -29,39 +29,15 @@
 #include <stdlib.h>
 
 #include <libpspp/assertion.h>
-#include <libpspp/bt.h>
 #include <libpspp/compiler.h>
 #include <libpspp/pool.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 
-/* A set of ranges. */
-struct range_set
-  {
-    struct pool *pool;                  /* Pool for freeing range_set. */
-    struct bt bt;                       /* Tree of range_set_nodes. */
-
-    /* Cache. */
-    unsigned long int cache_start;      /* Start of region. */
-    unsigned long int cache_end;        /* One past end of region. */
-    bool cache_value;                   /* Is the region in the set? */
-  };
-
-/* A node in the range set. */
-struct range_set_node
-  {
-    struct bt_node bt_node;             /* Binary tree node. */
-    unsigned long int start;            /* Start of region. */
-    unsigned long int end;              /* One past end of region. */
-  };
-
-static struct range_set_node *bt_to_rs_node (const struct bt_node *);
 static int compare_range_set_nodes (const struct bt_node *,
                                     const struct bt_node *,
                                     const void *aux);
-static struct range_set_node *first_node (const struct range_set *);
-static struct range_set_node *next_node (const struct range_set *,
-                                         const struct range_set_node *);
 static void delete_node (struct range_set *, struct range_set_node *);
 static struct range_set_node *delete_node_get_next (struct range_set *,
                                                     struct range_set_node *);
@@ -107,7 +83,8 @@ range_set_clone (const struct range_set *old, struct pool *pool)
   struct range_set_node *node;
 
   new = range_set_create_pool (pool);
-  for (node = first_node (old); node != NULL; node = next_node (old, node))
+  for (node = range_set_first__ (old); node != NULL;
+       node = range_set_next__ (old, node))
     insert_node (new, node->start, node->end);
   return new;
 }
@@ -121,7 +98,7 @@ range_set_destroy (struct range_set *rs)
       if (rs->pool != NULL)
         pool_unregister (rs->pool, rs);
       while (!range_set_is_empty (rs))
-        delete_node (rs, first_node (rs));
+        delete_node (rs, range_set_first__ (rs));
       free (rs);
     }
 }
@@ -150,7 +127,7 @@ range_set_insert (struct range_set *rs,
         {
           /* New region does not overlap NODE, but it might
              overlap the next node. */
-          insert_just_before (rs, start, end, next_node (rs, node));
+          insert_just_before (rs, start, end, range_set_next__ (rs, node));
         }
       else if (end > node->end)
         {
@@ -171,7 +148,7 @@ range_set_insert (struct range_set *rs,
     {
       /* New region starts before any existing region, but it
          might overlap the first region. */
-      insert_just_before (rs, start, end, first_node (rs));
+      insert_just_before (rs, start, end, range_set_first__ (rs));
     }
 }
 
@@ -194,7 +171,7 @@ range_set_delete (struct range_set *rs,
 
   node = find_node_le (rs, start);
   if (node == NULL)
-    node = first_node (rs);
+    node = range_set_first__ (rs);
 
   while (node != NULL && end > node->start)
     {
@@ -228,11 +205,11 @@ range_set_delete (struct range_set *rs,
               /* Region to delete covers only right part of
                  node. */
               node->end = start;
-              node = next_node (rs, node);
+              node = range_set_next__ (rs, node);
             }
         }
       else
-        node = next_node (rs, node);
+        node = range_set_next__ (rs, node);
     }
 }
 
@@ -252,7 +229,7 @@ range_set_allocate (struct range_set *rs, unsigned long int request,
 
   assert (request > 0);
 
-  node = first_node (rs);
+  node = range_set_first__ (rs);
   if (node == NULL)
     return false;
   node_width = node->end - node->start;
@@ -287,7 +264,8 @@ range_set_allocate_fully (struct range_set *rs, unsigned long int request,
 
   assert (request > 0);
 
-  for (node = first_node (rs); node != NULL; node = next_node (rs, node))
+  for (node = range_set_first__ (rs); node != NULL;
+       node = range_set_next__ (rs, node))
     {
       unsigned long int node_width = node->end - node->start;
       if (node_width >= request)
@@ -326,7 +304,7 @@ range_set_contains (const struct range_set *rs_, unsigned long int position)
             }
           else
             {
-              struct range_set_node *next = next_node (rs, node);
+              struct range_set_node *next = range_set_next__ (rs, node);
               rs->cache_start = node->end;
               rs->cache_end = next != NULL ? next->start : ULONG_MAX;
               rs->cache_value = false;
@@ -335,7 +313,7 @@ range_set_contains (const struct range_set *rs_, unsigned long int position)
         }
       else
         {
-          node = first_node (rs);
+          node = range_set_first__ (rs);
           rs->cache_start = 0;
           rs->cache_end = node != NULL ? node->start : ULONG_MAX;
           rs->cache_value = false;
@@ -343,68 +321,7 @@ range_set_contains (const struct range_set *rs_, unsigned long int position)
         }
     }
 }
-
-/* Returns true if RS contains no 1-bits, false otherwise. */
-bool
-range_set_is_empty (const struct range_set *rs)
-{
-  return bt_count (&rs->bt) == 0;
-}
-
-/* Returns the node representing the first contiguous region of
-   1-bits in RS, or a null pointer if RS is empty.
-   Any call to range_set_insert, range_set_delete, or
-   range_set_allocate invalidates the returned node. */
-const struct range_set_node *
-range_set_first (const struct range_set *rs)
-{
-  return first_node (rs);
-}
-
-/* If NODE is nonnull, returns the node representing the next
-   contiguous region of 1-bits in RS following NODE, or a null
-   pointer if NODE is the last region in RS.
-   If NODE is null, returns the first region in RS, as for
-   range_set_first.
-   Any call to range_set_insert, range_set_delete, or
-   range_set_allocate invalidates the returned node. */
-const struct range_set_node *
-range_set_next (const struct range_set *rs, const struct range_set_node *node)
-{
-  return (node != NULL
-          ? next_node (rs, (struct range_set_node *) node)
-          : first_node (rs));
-}
-
-/* Returns the position of the first 1-bit in NODE. */
-unsigned long int
-range_set_node_get_start (const struct range_set_node *node)
-{
-  return node->start;
-}
-
-/* Returns one past the position of the last 1-bit in NODE. */
-unsigned long int
-range_set_node_get_end (const struct range_set_node *node)
-{
-  return node->end;
-}
-
-/* Returns the number of contiguous 1-bits in NODE. */
-unsigned long int
-range_set_node_get_width (const struct range_set_node *node)
-{
-  return node->end - node->start;
-}
 
-/* Returns the range_set_node corresponding to the given
-   BT_NODE.  Returns a null pointer if BT_NODE is null. */
-static struct range_set_node *
-bt_to_rs_node (const struct bt_node *bt_node)
-{
-  return bt_node ? bt_data (bt_node, struct range_set_node, bt_node) : NULL;
-}
-
 /* Compares `range_set_node's A and B and returns a strcmp-like
    return value. */
 static int
@@ -412,26 +329,10 @@ compare_range_set_nodes (const struct bt_node *a_,
                          const struct bt_node *b_,
                          const void *aux UNUSED)
 {
-  const struct range_set_node *a = bt_to_rs_node (a_);
-  const struct range_set_node *b = bt_to_rs_node (b_);
+  const struct range_set_node *a = range_set_node_from_bt__ (a_);
+  const struct range_set_node *b = range_set_node_from_bt__ (b_);
 
   return a->start < b->start ? -1 : a->start > b->start;
-}
-
-/* Returns the first range_set_node in RS,
-   or a null pointer if RS is empty. */
-static struct range_set_node *
-first_node (const struct range_set *rs)
-{
-  return bt_to_rs_node (bt_first (&rs->bt));
-}
-
-/* Returns the next range_set_node in RS after NODE,
-   or a null pointer if NODE is the last node in RS. */
-static struct range_set_node *
-next_node (const struct range_set *rs, const struct range_set_node *node)
-{
-  return bt_to_rs_node (bt_next (&rs->bt, &node->bt_node));
 }
 
 /* Deletes NODE from RS and frees it. */
@@ -447,7 +348,7 @@ delete_node (struct range_set *rs, struct range_set_node *node)
 static struct range_set_node *
 delete_node_get_next (struct range_set *rs, struct range_set_node *node)
 {
-  struct range_set_node *next = next_node (rs, node);
+  struct range_set_node *next = range_set_next__ (rs, node);
   delete_node (rs, node);
   return next;
 }
@@ -462,7 +363,7 @@ find_node_le (const struct range_set *rs, unsigned long int position)
 {
   struct range_set_node tmp;
   tmp.start = position;
-  return bt_to_rs_node (bt_find_le (&rs->bt, &tmp.bt_node));
+  return range_set_node_from_bt__ (bt_find_le (&rs->bt, &tmp.bt_node));
 }
 
 /* Creates a new region with the given START and END, inserts the
@@ -515,7 +416,8 @@ merge_node_with_successors (struct range_set *rs, struct range_set_node *node)
 {
   struct range_set_node *next;
 
-  while ((next = next_node (rs, node)) != NULL && node->end >= next->start)
+  while ((next = range_set_next__ (rs, node)) != NULL
+         && node->end >= next->start)
     {
       if (next->end > node->end)
         node->end = next->end;

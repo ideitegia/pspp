@@ -25,8 +25,27 @@
 #define LIBPSPP_RANGE_SET_H
 
 #include <stdbool.h>
+#include <libpspp/bt.h>
 
-struct pool;
+/* A set of ranges. */
+struct range_set
+  {
+    struct pool *pool;                  /* Pool for freeing range_set. */
+    struct bt bt;                       /* Tree of range_set_nodes. */
+
+    /* Cache. */
+    unsigned long int cache_start;      /* Start of region. */
+    unsigned long int cache_end;        /* One past end of region. */
+    bool cache_value;                   /* Is the region in the set? */
+  };
+
+/* A node in the range set. */
+struct range_set_node
+  {
+    struct bt_node bt_node;             /* Binary tree node. */
+    unsigned long int start;            /* Start of region. */
+    unsigned long int end;              /* One past end of region. */
+  };
 
 struct range_set *range_set_create (void);
 struct range_set *range_set_create_pool (struct pool *);
@@ -43,13 +62,106 @@ bool range_set_allocate_fully (struct range_set *, unsigned long int request,
                                unsigned long int *start);
 bool range_set_contains (const struct range_set *, unsigned long int position);
 
-bool range_set_is_empty (const struct range_set *);
+static inline bool range_set_is_empty (const struct range_set *);
 
-const struct range_set_node *range_set_first (const struct range_set *);
-const struct range_set_node *range_set_next (const struct range_set *,
-                                             const struct range_set_node *);
-unsigned long int range_set_node_get_start (const struct range_set_node *);
-unsigned long int range_set_node_get_end (const struct range_set_node *);
-unsigned long int range_set_node_get_width (const struct range_set_node *);
+static inline const struct range_set_node *range_set_first (
+  const struct range_set *);
+static inline const struct range_set_node *range_set_next (
+  const struct range_set *, const struct range_set_node *);
+static inline unsigned long int range_set_node_get_start (
+  const struct range_set_node *);
+static inline unsigned long int range_set_node_get_end (
+  const struct range_set_node *);
+static inline unsigned long int range_set_node_get_width (
+  const struct range_set_node *);
+
+/* Inline functions. */
+
+static inline struct range_set_node *range_set_node_from_bt__ (
+  const struct bt_node *);
+static inline struct range_set_node *range_set_next__ (
+  const struct range_set *, const struct range_set_node *);
+static inline struct range_set_node *range_set_first__ (
+  const struct range_set *);
+
+/* Returns true if RS contains no 1-bits, false otherwise. */
+static inline bool
+range_set_is_empty (const struct range_set *rs)
+{
+  return bt_count (&rs->bt) == 0;
+}
+
+/* Returns the node representing the first contiguous region of
+   1-bits in RS, or a null pointer if RS is empty.
+   Any call to range_set_insert, range_set_delete, or
+   range_set_allocate invalidates the returned node. */
+static inline const struct range_set_node *
+range_set_first (const struct range_set *rs)
+{
+  return range_set_first__ (rs);
+}
+
+/* If NODE is nonnull, returns the node representing the next
+   contiguous region of 1-bits in RS following NODE, or a null
+   pointer if NODE is the last region in RS.
+   If NODE is null, returns the first region in RS, as for
+   range_set_first.
+   Any call to range_set_insert, range_set_delete, or
+   range_set_allocate invalidates the returned node. */
+static inline const struct range_set_node *
+range_set_next (const struct range_set *rs, const struct range_set_node *node)
+{
+  return (node != NULL
+          ? range_set_next__ (rs, (struct range_set_node *) node)
+          : range_set_first__ (rs));
+}
+
+/* Returns the position of the first 1-bit in NODE. */
+static inline unsigned long int
+range_set_node_get_start (const struct range_set_node *node)
+{
+  return node->start;
+}
+
+/* Returns one past the position of the last 1-bit in NODE. */
+static inline unsigned long int
+range_set_node_get_end (const struct range_set_node *node)
+{
+  return node->end;
+}
+
+/* Returns the number of contiguous 1-bits in NODE. */
+static inline unsigned long int
+range_set_node_get_width (const struct range_set_node *node)
+{
+  return node->end - node->start;
+}
+
+/* Internal helper functions. */
+
+/* Returns the range_set_node corresponding to the given
+   BT_NODE.  Returns a null pointer if BT_NODE is null. */
+static inline struct range_set_node *
+range_set_node_from_bt__ (const struct bt_node *bt_node)
+{
+  return bt_node ? bt_data (bt_node, struct range_set_node, bt_node) : NULL;
+}
+
+/* Returns the next range_set_node in RS after NODE,
+   or a null pointer if NODE is the last node in RS. */
+static inline struct range_set_node *
+range_set_next__ (const struct range_set *rs,
+                  const struct range_set_node *node)
+{
+  return range_set_node_from_bt__ (bt_next (&rs->bt, &node->bt_node));
+}
+
+/* Returns the first range_set_node in RS,
+   or a null pointer if RS is empty. */
+static inline struct range_set_node *
+range_set_first__ (const struct range_set *rs)
+{
+  return range_set_node_from_bt__ (bt_first (&rs->bt));
+}
 
 #endif /* libpspp/range-set.h */
