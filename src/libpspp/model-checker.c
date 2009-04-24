@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 
 #include <config.h>
 
-#include "model-checker.h"
+#include <libpspp/model-checker.h>
 
 #include <limits.h>
 #include <signal.h>
@@ -26,12 +26,11 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include <data/val-type.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
 #include <libpspp/deque.h>
+#include <libpspp/misc.h>
 #include <libpspp/str.h>
-#include <math/moments.h>
 
 #include "error.h"
 #include "minmax.h"
@@ -620,7 +619,8 @@ struct mc_results
 
     /* Depth statistics. */
     int max_depth_reached;              /* Max depth state examined. */
-    struct moments1 *depth_moments;     /* Enables reporting mean depth. */
+    unsigned long int depth_sum;        /* Sum of depths. */
+    int n_depths;                       /* Number of depths in depth_sum. */
 
     /* If error_count > 0, path to the last error reported. */
     struct mc_path error_path;
@@ -646,7 +646,6 @@ mc_results_create (void)
 {
   struct mc_results *results = xcalloc (1, sizeof (struct mc_results));
   results->stop_reason = MC_CONTINUING;
-  results->depth_moments = moments1_create (MOMENT_MEAN);
   gettimeofday (&results->start, NULL);
   return results;
 }
@@ -657,7 +656,6 @@ mc_results_destroy (struct mc_results *results)
 {
   if (results != NULL)
     {
-      moments1_destroy (results->depth_moments);
       mc_path_destroy (&results->error_path);
       free (results);
     }
@@ -726,9 +724,9 @@ mc_results_get_max_depth_reached (const struct mc_results *results)
 double
 mc_results_get_mean_depth_reached (const struct mc_results *results)
 {
-  double mean;
-  moments1_calculate (results->depth_moments, NULL, &mean, NULL, NULL, NULL);
-  return mean != SYSMIS ? mean : 0.0;
+  return (results->n_depths == 0
+          ? 0
+          : (double) results->depth_sum / results->n_depths);
 }
 
 /* Returns the path traversed to obtain the last error
@@ -1200,7 +1198,8 @@ enqueue_state (struct mc *mc, struct mc_state *new)
 
   if (new->path.length > mc->results->max_depth_reached)
     mc->results->max_depth_reached = new->path.length;
-  moments1_add (mc->results->depth_moments, new->path.length, 1.0);
+  mc->results->depth_sum += new->path.length;
+  mc->results->n_depths++;
 
   if (deque_count (&mc->queue_deque) < mc->options->queue_limit)
     {

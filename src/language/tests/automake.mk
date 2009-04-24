@@ -11,8 +11,6 @@ language_tests_sources = \
 	src/language/tests/format-guesser-test.c \
 	src/language/tests/float-format.c \
 	src/language/tests/moments-test.c \
-	src/language/tests/model-checker.c \
-	src/language/tests/model-checker.h \
 	src/language/tests/paper-size.c \
 	src/language/tests/pool-test.c 
 

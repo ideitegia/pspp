@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
 
 #include <errno.h>
 
-#include <language/tests/model-checker.h>
 #include <language/lexer/lexer.h>
+#include <libpspp/model-checker.h>
 
 #include "error.h"
 #include "fwriteerror.h"

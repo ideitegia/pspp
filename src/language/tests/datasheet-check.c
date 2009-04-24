@@ -18,7 +18,6 @@
 
 #include <data/datasheet.h>
 #include "datasheet-check.h"
-#include "model-checker.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -30,6 +29,7 @@
 #include <data/sparse-cases.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
+#include <libpspp/model-checker.h>
 #include <libpspp/range-map.h>
 #include <libpspp/range-set.h>
 #include <libpspp/taint.h>
