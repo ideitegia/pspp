@@ -119,6 +119,18 @@ next_region (unsigned int pattern, unsigned int offset,
   return false;
 }
 
+/* Searches the bits in PATTERN from right to left starting from
+   bit OFFSET.  Returns the bit index of the first 1-bit found,
+   or ULONG_MAX if none is found. */
+static unsigned long int
+next_1bit (unsigned int pattern, unsigned int offset)
+{
+  for (; offset < UINT_BIT; offset++)
+    if (pattern & (1u << offset))
+      return offset;
+  return ULONG_MAX;
+}
+
 /* Prints the regions in RS to stdout. */
 static void UNUSED
 print_regions (const struct range_set *rs)
@@ -139,6 +151,7 @@ check_pattern (const struct range_set *rs, unsigned int pattern)
 {
   const struct range_set_node *node;
   unsigned long int start, width;
+  unsigned long int s1, s2;
   int i;
 
   for (node = rand () % 2 ? range_set_first (rs) : range_set_next (rs, NULL),
@@ -152,6 +165,40 @@ check_pattern (const struct range_set *rs, unsigned int pattern)
       check (range_set_node_get_width (node) == width);
     }
   check (node == NULL);
+
+  /* Scan from all possible positions, resetting the cache each
+     time, to ensure that we get the correct answers without
+     caching. */
+  for (start = 0; start <= 32; start++)
+    {
+      struct range_set *nonconst_rs = (struct range_set *) rs;
+      nonconst_rs->cache_end = 0;
+      s1 = range_set_scan (rs, start);
+      s2 = next_1bit (pattern, start);
+      check (s1 == s2);
+    }
+
+  /* Scan in forward order to exercise expected cache behavior. */
+  for (s1 = range_set_scan (rs, 0), s2 = next_1bit (pattern, 0); ;
+       s1 = range_set_scan (rs, s1 + 1), s2 = next_1bit (pattern, s2 + 1))
+    {
+      check (s1 == s2);
+      if (s1 == ULONG_MAX)
+        break;
+    }
+
+  /* Scan in random order to frustrate cache. */
+  for (i = 0; i < 32; i++)
+    {
+      start = rand () % 32;
+      s1 = range_set_scan (rs, start);
+      s2 = next_1bit (pattern, start);
+      check (s1 == s2);
+    }
+
+  /* Test range_set_scan() with negative cache. */
+  check (!range_set_contains (rs, 999));
+  check (range_set_scan (rs, 1111) == ULONG_MAX);
 
   for (i = 0; i < UINT_BIT; i++)
     check (range_set_contains (rs, i) == ((pattern & (1u << i)) != 0));

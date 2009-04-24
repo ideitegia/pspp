@@ -61,6 +61,8 @@ bool range_set_allocate (struct range_set *, unsigned long int request,
 bool range_set_allocate_fully (struct range_set *, unsigned long int request,
                                unsigned long int *start);
 bool range_set_contains (const struct range_set *, unsigned long int position);
+unsigned long int range_set_scan (const struct range_set *,
+                                  unsigned long int start);
 
 static inline bool range_set_is_empty (const struct range_set *);
 

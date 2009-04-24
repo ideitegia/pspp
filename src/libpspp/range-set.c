@@ -321,6 +321,40 @@ range_set_contains (const struct range_set *rs_, unsigned long int position)
         }
     }
 }
+
+/* Returns the smallest position of a 1-bit greater than or
+   equal to START.  Returns ULONG_MAX if there is no 1-bit with
+   position greater than or equal to START. */
+unsigned long int
+range_set_scan (const struct range_set *rs_, unsigned long int start)
+{
+  struct range_set *rs = (struct range_set *) rs_;
+  unsigned long int retval = ULONG_MAX;
+  struct bt_node *bt_node;
+
+  if (start < rs->cache_end && start >= rs->cache_start && rs->cache_value)
+    return start;
+  bt_node = rs->bt.root;
+  while (bt_node != NULL)
+    {
+      struct range_set_node *node = range_set_node_from_bt__ (bt_node);
+      if (start < node->start)
+        {
+          retval = node->start;
+          bt_node = node->bt_node.down[0];
+        }
+      else if (start >= node->end)
+        bt_node = node->bt_node.down[1];
+      else
+        {
+          rs->cache_start = node->start;
+          rs->cache_end = node->end;
+          rs->cache_value = true;
+          return start;
+        }
+    }
+  return retval;
+}
 
 /* Compares `range_set_node's A and B and returns a strcmp-like
    return value. */
