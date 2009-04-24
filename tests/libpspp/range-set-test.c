@@ -364,6 +364,13 @@ test_pool (void)
   range_set_insert (rs, 1, 10);
   pool_destroy (pool);
 }
+
+/* Tests range_set_destroy(NULL). */
+static void
+test_destroy_null (void)
+{
+  range_set_destroy (NULL);
+}
 
 /* Main program. */
 
@@ -385,6 +392,7 @@ main (void)
   run_test (test_allocate, "allocate");
   run_test (test_allocate_fully, "allocate_fully");
   run_test (test_pool, "pool");
+  run_test (test_destroy_null, "destroy null");
   putchar ('\n');
 
   return 0;
