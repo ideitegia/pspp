@@ -327,16 +327,16 @@ reload_viewer (PsppireOutputWindow *ow)
       }
 
     /* Delete all the entire buffer */
-    gtk_text_buffer_get_start_iter (ov->buffer, &start_iter);
-    gtk_text_buffer_delete (ov->buffer, &start_iter, &end_iter);
+    gtk_text_buffer_get_start_iter (ow->buffer, &start_iter);
+    gtk_text_buffer_delete (ow->buffer, &start_iter, &end_iter);
 
 
-    gtk_text_buffer_get_start_iter (ov->buffer, &start_iter);
+    gtk_text_buffer_get_start_iter (ow->buffer, &start_iter);
     /* Read in the next lot of text */
     while (fgets (line, viewer_width + 1, fp) != NULL)
       {
 	chars_inserted = TRUE;
-	gtk_text_buffer_insert (ov->buffer, &start_iter, line, -1);
+	gtk_text_buffer_insert (ow->buffer, &start_iter, line, -1);
       }
 
     fclose (fp);
