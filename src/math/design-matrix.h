@@ -94,4 +94,7 @@ size_t design_matrix_get_n_cols (const struct design_matrix *);
 size_t design_matrix_get_n_rows (const struct design_matrix *);
 double design_matrix_get_element (const struct design_matrix *, size_t, size_t);
 void design_matrix_set_element (const struct design_matrix *, size_t, size_t, double);
+size_t dm_get_exact_subscript (const struct design_matrix *, const struct variable *,
+				   const union value *);
+
 #endif

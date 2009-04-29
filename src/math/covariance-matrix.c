@@ -735,47 +735,6 @@ covariance_matrix_accumulate (struct covariance_matrix *cov,
 {
   cov->accumulate (cov, ccase, (const struct interaction_variable **) aux, n_intr);
 }
-/*
-  If VAR is categorical with d categories, its first category should
-  correspond to the origin in d-dimensional Euclidean space.
- */
-static bool
-is_origin (const struct variable *var, const union value *val)
-{
-  if (var_is_numeric (var))
-    {
-      return false;
-    }
-  if (cat_value_find (var, val) == 0)
-    {
-      return true;
-    }
-  return false;
-}
-
-/*
-  Return the subscript of the column of the design matrix
-  corresponding to VAL. If VAR is categorical with d categories, its
-  first category should correspond to the origin in d-dimensional
-  Euclidean space, so there is no subscript for this value.
- */
-static size_t
-get_exact_subscript (const struct design_matrix *dm, const struct variable *var,
-		     const union value *val)
-{
-  size_t result;
-
-  result = design_matrix_var_to_column (dm, var);
-  if (var_is_alpha (var))
-    {
-      if (is_origin (var, val))
-	{
-	  return -1u;
-	}
-      result += cat_value_find (var, val) - 1;
-    }
-  return result;
-}
 
 /*
   Return the value corresponding to subscript TARGET. If that value corresponds
@@ -796,7 +755,7 @@ get_value_from_subscript (const struct design_matrix *dm, size_t target)
   for (i = 0; i < cat_get_n_categories (var); i++)
     {
       result = cat_subscript_to_value (i, var);
-      if (get_exact_subscript (dm, var, result) == target)
+      if (dm_get_exact_subscript (dm, var, result) == target)
 	{
 	  return result;
 	}
@@ -819,10 +778,10 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
     {
       if (var_get_dict_index (v2) == var_get_dict_index (ca->v2))
 	{
-	  k = get_exact_subscript (dm, v1, ca->val1);
+	  k = dm_get_exact_subscript (dm, v1, ca->val1);
 	  if (k == i)
 	    {
-	      k = get_exact_subscript (dm, v2, ca->val2);
+	      k = dm_get_exact_subscript (dm, v2, ca->val2);
 	      if (k == j)
 		{
 		  return true;
@@ -834,10 +793,10 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
     {
       if (var_get_dict_index (v2) == var_get_dict_index (ca->v1))
 	{
-	  k = get_exact_subscript (dm, v1, ca->val2);
+	  k = dm_get_exact_subscript (dm, v1, ca->val2);
 	  if (k == i)
 	    {
-	      k = get_exact_subscript (dm, v2, ca->val1);
+	      k = dm_get_exact_subscript (dm, v2, ca->val1);
 	      if (k == j)
 		{
 		  return true;
