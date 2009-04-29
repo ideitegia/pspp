@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+   Copyright (C) 2008 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -57,7 +57,6 @@ struct covariance_matrix
 {
   struct design_matrix *cov;
   struct design_matrix *ssize;
-  struct design_matrix *sums;
   struct hsh_table *ca;
   struct moments1 **m1;
   struct moments **m;
@@ -200,7 +199,6 @@ covariance_matrix_destroy (struct covariance_matrix *cov)
   assert (cov != NULL);
   design_matrix_destroy (cov->cov);
   design_matrix_destroy (cov->ssize);
-  design_matrix_destroy (cov->sums);
   hsh_destroy (cov->ca);
   if (cov->n_pass == ONE_PASS)
     {
@@ -372,9 +370,10 @@ covariance_accumulator_hash (const void *h, const void *aux)
     }
   if (var_is_alpha (v_max) && var_is_alpha (v_min))
     {
-      unsigned hash = hash_bytes (val_max, var_get_width (v_max), 0);
-      hash = hash_bytes (val_min, var_get_width (v_min), hash);
-      return hash_int (*n_vars * (*n_vars + 1 + idx_max) + idx_min, hash);
+      unsigned tmp = hash_bytes (val_max, var_get_width (v_max), 0);
+      tmp ^= hash_bytes (val_min, var_get_width (v_min), 0);
+      tmp += *n_vars * (*n_vars + 1 + idx_max) + idx_min;
+      return (size_t) tmp;
     }
   return -1u;
 }
@@ -401,6 +400,31 @@ covariance_accumulator_free (void *c_, const void *aux UNUSED)
   free (c);
 }
 
+static int 
+ordered_match_nodes (const struct covariance_accumulator *c, const struct variable *v1,
+		     const struct variable *v2, const union value *val1, const union value *val2)
+{
+  size_t result;
+  size_t m;
+
+  result = var_get_dict_index (v1) ^ var_get_dict_index (c->v1);
+  m = var_get_dict_index (v2) ^ var_get_dict_index (c->v2);
+  result = result|m;
+  if (var_is_alpha (v1))
+    {
+      result |= compare_values_short (val1, c->val1, v1);
+      if (var_is_alpha (v2))
+	{
+	  result |= compare_values_short (val2, c->val2, v2);
+	}
+    }
+  else if (var_is_alpha (v2))
+    {
+      result |= compare_values_short (val2, c->val2, v2);
+    }
+  return result;
+}
+  
 /*
   Hash comparison. Returns 0 for a match, or a non-zero int
   otherwise. The sign of a non-zero return value *should* indicate the
@@ -414,39 +438,12 @@ match_nodes (const struct covariance_accumulator *c,
 	     const struct variable *v1, const struct variable *v2,
 	     const union value *val1, const union value *val2)
 {
-  if (var_get_dict_index (v1) == var_get_dict_index (c->v1))
-    if (var_get_dict_index (v2) == var_get_dict_index (c->v2))
-      {
-	if (var_is_numeric (v1) && var_is_numeric (v2))
-	  {
-	    return 0;
-	  }
-	if (var_is_numeric (v1) && var_is_alpha (v2))
-	  {
-	    if (!compare_values_short (val2, c->val2, v2))
-	      {
-		return 0;
-	      }
-	  }
-	if (var_is_alpha (v1) && var_is_numeric (v2))
-	  {
-	    if (!compare_values_short (val1, c->val1, v1))
-	      {
-		return 0;
-	      }
-	  }
-	if (var_is_alpha (v1) && var_is_alpha (v2))
-	  {
-	    if (!compare_values_short (val1, c->val1, v1))
-	      {
-		if (!compare_values_short (val2, c->val2, v2))
-		  {
-		    return 0;
-		  }
-	      }
-	  }
-      }
-  return 1;
+  size_t n;
+  size_t m;
+
+  n = ordered_match_nodes (c, v1, v2, val1, val2);
+  m = ordered_match_nodes (c, v2, v1, val2, val1);
+  return (n & m);
 }
 
 /*
@@ -465,7 +462,7 @@ covariance_accumulator_compare (const void *a1_, const void *a2_,
 
   if (a1 == NULL || a2 == NULL)
     return 1;
-
+  
   return match_nodes (a1, a2->v1, a2->v2, a2->val1, a2->val2);
 }
 
@@ -477,7 +474,7 @@ hash_numeric_alpha (const struct variable *v1, const struct variable *v2,
   if (var_is_numeric (v1) && var_is_alpha (v2))
     {
       result = n_vars * ((n_vars + 1) + var_get_dict_index (v1))
-	+ var_get_dict_index (v2) + hash_string (val->s, 0);
+	+ var_get_dict_index (v2) + hash_value_short (val, v2);
     }
   else if (var_is_alpha (v1) && var_is_numeric (v2))
     {
@@ -505,13 +502,16 @@ update_product (const struct variable *v1, const struct variable *v2,
     }
   if (var_is_numeric (v1) && var_is_alpha (v2))
     {
-      return (val1->f);
+      return val1->f;
     }
   if (var_is_numeric (v2) && var_is_alpha (v1))
     {
-      update_product (v2, v1, val2, val1);
+      return val2->f;
     }
-  return 0.0;
+  else
+    {
+      return 0.0;
+    }
 }
 static double
 update_sum (const struct variable *var, const union value *val, double weight)
@@ -571,7 +571,7 @@ update_hash_entry (struct hsh_table *c,
   ca->sum2 = update_sum (ca->v2, ca->val2, iv_f2);
   ca->ssize = 1.0;
   new_entry = hsh_insert (c, ca);
-  
+
   if (new_entry != NULL)
     {
       new_entry->dot_product += ca->dot_product;
@@ -650,9 +650,6 @@ covariance_accumulate_pairwise (struct covariance_matrix *cov,
 		{
 		  update_hash_entry (cov->ca, v_variables[i], v_variables[j],
 				     val1, val2, i_val1, i_val2);
-		  if (j != i)
-		    update_hash_entry (cov->ca, v_variables[j],
-				       v_variables[i], val2, val1, i_val2, i_val1);
 		}
 	    }
 	}
@@ -722,9 +719,6 @@ covariance_accumulate_listwise (struct covariance_matrix *cov,
 	    }
 	  update_hash_entry (cov->ca, v_variables[i], v_variables[j],
 			     val1, val2, i_val1, i_val2);
-	  if (j != i)
-	    update_hash_entry (cov->ca, v_variables[j], v_variables[i],
-			       val2, val1, i_val2, i_val1);
 	}
     }
 }
@@ -748,6 +742,10 @@ covariance_matrix_accumulate (struct covariance_matrix *cov,
 static bool
 is_origin (const struct variable *var, const union value *val)
 {
+  if (var_is_numeric (var))
+    {
+      return false;
+    }
   if (cat_value_find (var, val) == 0)
     {
       return true;
@@ -767,38 +765,44 @@ get_exact_subscript (const struct design_matrix *dm, const struct variable *var,
 {
   size_t result;
 
-  if (is_origin (var, val))
-    {
-      return -1u;
-    }
-
   result = design_matrix_var_to_column (dm, var);
   if (var_is_alpha (var))
     {
+      if (is_origin (var, val))
+	{
+	  return -1u;
+	}
       result += cat_value_find (var, val) - 1;
     }
   return result;
 }
 
-static void
-covariance_matrix_insert (struct design_matrix *cov,
-			  const struct variable *v1,
-			  const struct variable *v2, const union value *val1,
-			  const union value *val2, double product)
+/*
+  Return the value corresponding to subscript TARGET. If that value corresponds
+  to the origin, return NULL.
+ */
+static const union value *
+get_value_from_subscript (const struct design_matrix *dm, size_t target)
 {
-  size_t row;
-  size_t col;
-
-  assert (cov != NULL);
-
-  row = get_exact_subscript (cov, v1, val1);
-  col = get_exact_subscript (cov, v2, val2);
-  if (row != -1u && col != -1u)
+  const union value *result = NULL;
+  const struct variable *var;
+  size_t i;
+  
+  var = design_matrix_col_to_var (dm, target);
+  if (var_is_numeric (var))
     {
-      design_matrix_set_element (cov, row, col, product);
+      return NULL;
     }
+  for (i = 0; i < cat_get_n_categories (var); i++)
+    {
+      result = cat_subscript_to_value (i, var);
+      if (get_exact_subscript (dm, var, result) == target)
+	{
+	  return result;
+	}
+    }
+  return NULL;
 }
-
 
 static bool
 is_covariance_contributor (const struct covariance_accumulator *ca, const struct design_matrix *dm,
@@ -807,12 +811,12 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
   size_t k;
   const struct variable *v1;
   const struct variable *v2;
-
+  
   assert (dm != NULL);
   v1 = design_matrix_col_to_var (dm, i);
+  v2 = design_matrix_col_to_var (dm, j);
   if (var_get_dict_index (v1) == var_get_dict_index(ca->v1))
     {
-      v2 = design_matrix_col_to_var (dm, j);
       if (var_get_dict_index (v2) == var_get_dict_index (ca->v2))
 	{
 	  k = get_exact_subscript (dm, v1, ca->val1);
@@ -826,16 +830,32 @@ is_covariance_contributor (const struct covariance_accumulator *ca, const struct
 	    }
 	}
     }
+  else if (var_get_dict_index (v1) == var_get_dict_index (ca->v2))
+    {
+      if (var_get_dict_index (v2) == var_get_dict_index (ca->v1))
+	{
+	  k = get_exact_subscript (dm, v1, ca->val2);
+	  if (k == i)
+	    {
+	      k = get_exact_subscript (dm, v2, ca->val1);
+	      if (k == j)
+		{
+		  return true;
+		}
+	    }
+	}
+    }
+  
   return false;
 }
 static double
 get_sum (const struct covariance_matrix *cov, size_t i)
 {
   size_t k;
+  double mean;
+  double n;
   const struct variable *var;
   const union value *val = NULL;
-  struct covariance_accumulator ca;
-  struct covariance_accumulator *c;
 
   assert ( cov != NULL);
   var = design_matrix_col_to_var (cov->cov, i);
@@ -843,20 +863,22 @@ get_sum (const struct covariance_matrix *cov, size_t i)
     {
       if (var_is_alpha (var))
 	{
-	  k = design_matrix_var_to_column (cov->cov, var);
-	  i -= k;
-	  val = cat_subscript_to_value (i, var);
+	  val = get_value_from_subscript (cov->cov, i);
+	  k = cat_value_find (var, val);
+	  return cat_get_category_count (k, var);
 	}
-      ca.v1 = var;
-      ca.v2 = var;
-      ca.val1 = val;
-      ca.val2 = val;
-      c = (struct covariance_accumulator *) hsh_find (cov->ca, &ca);
-      if (c != NULL)
+      else
 	{
-	  return c->sum1;
+	  k = 0;
+	  while (var_get_dict_index (cov->v_variables[k]) != var_get_dict_index (var))
+	    {
+	      k++;
+	    }
+	  moments1_calculate (cov->m1[k], &n, &mean, NULL, NULL, NULL);
+	  return mean * n;
 	}
     }
+
   return 0.0;
 }
 static void
@@ -889,7 +911,12 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 
   cov->cov = covariance_matrix_create (cov->n_variables, cov->v_variables);
   cov->ssize = covariance_matrix_create (cov->n_variables, cov->v_variables);
-  cov->sums = covariance_matrix_create (cov->n_variables, cov->v_variables);
+  entry = hsh_first (cov->ca, &iter);
+  while (entry != NULL)
+    {
+      entry = hsh_next (cov->ca, &iter);
+    }
+
   for (i = 0; i < design_matrix_get_n_cols (cov->cov); i++)
     {
       sum_i = get_sum (cov, i);
@@ -897,7 +924,6 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 	{
 	  sum_j = get_sum (cov, j);
 	  entry = hsh_first (cov->ca, &iter);
-	  design_matrix_set_element (cov->sums, i, j, sum_i);	  
 	  while (entry != NULL)
 	    {
 	      update_ssize (cov->ssize, i, j, entry);
@@ -906,14 +932,14 @@ covariance_accumulator_to_matrix (struct covariance_matrix *cov)
 	      */
 	      if (is_covariance_contributor (entry, cov->cov, i, j))
 		{
-		  covariance_matrix_insert (cov->cov, entry->v1, entry->v2, entry->val1,
-					    entry->val2, entry->dot_product);
+		  design_matrix_set_element (cov->cov, i, j, entry->dot_product);
 		}
 	      entry = hsh_next (cov->ca, &iter);
 	    }
 	  tmp = design_matrix_get_element (cov->cov, i, j);
 	  tmp -= sum_i * sum_j / design_matrix_get_element (cov->ssize, i, j);
 	  design_matrix_set_element (cov->cov, i, j, tmp);
+	  design_matrix_set_element (cov->cov, j, i, tmp);
 	} 
     }
 }
@@ -939,6 +965,11 @@ covariance_to_design (const struct covariance_matrix *c)
       return c->cov;
     }
   return NULL;
+}
+size_t
+covariance_matrix_get_n_rows (const struct covariance_matrix *c)
+{
+  return design_matrix_get_n_rows (c->cov);
 }
 
 double 
