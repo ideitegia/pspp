@@ -669,6 +669,7 @@ rearrange_covariance_matrix (const struct covariance_matrix *cm, pspp_linreg_cac
   size_t i;
   size_t j;
   size_t k;
+  size_t n_coeffs = 0;
 
   assert (cm != NULL);
   cov = covariance_to_design (cm);
@@ -676,11 +677,11 @@ rearrange_covariance_matrix (const struct covariance_matrix *cm, pspp_linreg_cac
   assert (c != NULL);
   assert (cov->m->size1 > 0);
   assert (cov->m->size2 == cov->m->size1);
-  permutation = xnmalloc (1 + c->n_indeps, sizeof (*permutation));
   model_vars = xnmalloc (1 + c->n_indeps, sizeof (*model_vars));
 
   /*
     Put the model variables in the right order in MODEL_VARS.
+    Count the number of coefficients.
    */
   for (i = 0; i < c->n_indeps; i++)
     {
@@ -688,6 +689,8 @@ rearrange_covariance_matrix (const struct covariance_matrix *cm, pspp_linreg_cac
     }
   model_vars[i] = c->depvar;
   result = covariance_matrix_create (1 + c->n_indeps, model_vars);
+  permutation = xnmalloc (design_matrix_get_n_cols (result), sizeof (*permutation));
+
   for (j = 0; j < cov->m->size2; j++)
     {
       k = 0;
