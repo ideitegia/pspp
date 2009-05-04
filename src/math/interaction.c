@@ -73,7 +73,6 @@ interaction_variable_create (const struct variable **vars, int n_vars)
       result = xmalloc (sizeof (*result));
       result->n_alpha = 0;
       result->members = xnmalloc (n_vars, sizeof (*result->members));
-      result->intr = var_create_internal (0);
       result->n_vars = n_vars;
       for (i = 0; i < n_vars; i++)
 	{
@@ -84,10 +83,7 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 	    }
 	}
     }
-  /*
-    VAR_SET_WIDTH sets the type of the variable.
-   */
-  var_set_width (result->intr, MAX_SHORT_STRING * result->n_alpha + 1);
+  result->intr = var_create_internal (0);
 
   return result;
 }
