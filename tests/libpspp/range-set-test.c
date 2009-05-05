@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -288,6 +288,60 @@ test_allocate (void)
       }
 }
 
+/* Tests all possible full allocations in all possible range sets
+   (up to a small maximum number of bits). */
+static void
+test_allocate_fully (void)
+{
+  const int positions = 9;
+  unsigned int init_pat;
+  int request;
+
+  for (init_pat = 0; init_pat < (1u << positions); init_pat++)
+    for (request = 1; request <= positions + 1; request++)
+      {
+        struct range_set *rs;
+        unsigned long int start, expect_start;
+        bool success, expect_success;
+        unsigned int final_pat;
+        int i;
+
+        /* Figure out expected results. */
+        expect_success = false;
+        expect_start = 0;
+        final_pat = init_pat;
+        for (i = 0; i < positions - request + 1; i++)
+          {
+            int j;
+
+            final_pat = init_pat;
+            for (j = i; j < i + request; j++)
+              {
+                if (!(init_pat & (1u << j)))
+                  goto next;
+                final_pat &= ~(1u << j);
+              }
+
+            expect_success = true;
+            expect_start = i;
+            break;
+          next:
+            final_pat = init_pat;
+          }
+
+        /* Test. */
+        rs = make_pattern (init_pat);
+        success = range_set_allocate_fully (rs, request, &start);
+        check_pattern (rs, final_pat);
+        range_set_destroy (rs);
+
+        /* Check results. */
+        check (success == expect_success);
+        if (expect_success)
+          check (start == expect_start);
+      }
+}
+
 /* Tests freeing a range set through a pool. */
 static void
 test_pool (void)
@@ -329,6 +383,7 @@ main (void)
   run_test (test_insert, "insert");
   run_test (test_delete, "delete");
   run_test (test_allocate, "allocate");
+  run_test (test_allocate_fully, "allocate_fully");
   run_test (test_pool, "pool");
   putchar ('\n');
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -272,6 +272,36 @@ range_set_allocate (struct range_set *rs, unsigned long int request,
   rs->cache_end = 0;
 
   return true;
+}
+
+/* Scans RS for and deletes the first contiguous run of REQUEST
+   1-bits.  If successful, sets *START to the position of the
+   first 1-bit deleted and returns true If RS does not contain a
+   run of REQUEST or more contiguous 1-bits, returns false and
+   does not modify RS. */
+bool
+range_set_allocate_fully (struct range_set *rs, unsigned long int request,
+                          unsigned long int *start)
+{
+  struct range_set_node *node;
+
+  assert (request > 0);
+
+  for (node = first_node (rs); node != NULL; node = next_node (rs, node))
+    {
+      unsigned long int node_width = node->end - node->start;
+      if (node_width >= request)
+        {
+          *start = node->start;
+          if (node_width > request)
+            node->start += request;
+          else
+            delete_node (rs, node);
+          rs->cache_end = 0;
+          return true;
+        }
+    }
+  return false;
 }
 
 /* Returns true if there is a 1-bit at the given POSITION in RS,

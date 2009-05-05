@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ void range_set_delete (struct range_set *,
                        unsigned long int start, unsigned long int width);
 bool range_set_allocate (struct range_set *, unsigned long int request,
                          unsigned long int *start, unsigned long int *width);
+bool range_set_allocate_fully (struct range_set *, unsigned long int request,
+                               unsigned long int *start);
 bool range_set_contains (const struct range_set *, unsigned long int position);
 
 bool range_set_is_empty (const struct range_set *);
