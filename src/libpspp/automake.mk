@@ -6,6 +6,8 @@ noinst_LTLIBRARIES += src/libpspp/libpspp.la
 src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/abt.c \
 	src/libpspp/abt.h \
+	src/libpspp/argv-parser.c \
+	src/libpspp/argv-parser.h \
 	src/libpspp/array.c \
 	src/libpspp/array.h \
 	src/libpspp/assertion.h \
