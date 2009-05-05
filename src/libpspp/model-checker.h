@@ -460,4 +460,6 @@ struct timeval mc_results_get_start (const struct mc_results *);
 struct timeval mc_results_get_end (const struct mc_results *);
 double mc_results_get_duration (const struct mc_results *);
 
+void mc_results_print (const struct mc_results *, FILE *);
+
 #endif /* libpspp/model-checker.h */

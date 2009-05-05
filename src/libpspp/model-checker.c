@@ -855,6 +855,48 @@ mc_results_get_duration (const struct mc_results *results)
   assert (results->stop_reason != MC_CONTINUING);
   return timeval_subtract (results->end, results->start);
 }
+
+/* Prints a description of RESULTS to stream F. */
+void
+mc_results_print (const struct mc_results *results, FILE *f)
+{
+  enum mc_stop_reason reason = mc_results_get_stop_reason (results);
+
+  if (reason != MC_CONTINUING)
+    fprintf (f, "Stopped by: %s\n",
+             reason == MC_SUCCESS ? "state space exhaustion"
+             : reason == MC_MAX_UNIQUE_STATES ? "reaching max unique states"
+             : reason == MC_MAX_ERROR_COUNT ? "reaching max error count"
+             : reason == MC_END_OF_PATH ? "reached end of specified path"
+             : reason == MC_TIMEOUT ? "reaching time limit"
+             : reason == MC_INTERRUPTED ? "user interruption"
+             : "unknown reason");
+  fprintf (f, "Errors found: %d\n\n", mc_results_get_error_count (results));
+
+  fprintf (f, "Unique states checked: %d\n",
+           mc_results_get_unique_state_count (results));
+  fprintf (f, "Maximum depth reached: %d\n",
+           mc_results_get_max_depth_reached (results));
+  fprintf (f, "Mean depth reached: %.2f\n\n",
+           mc_results_get_mean_depth_reached (results));
+
+  fprintf (f, "Dropped duplicate states: %d\n",
+           mc_results_get_duplicate_dropped_states (results));
+  fprintf (f, "Dropped off-path states: %d\n",
+           mc_results_get_off_path_dropped_states (results));
+  fprintf (f, "Dropped too-deep states: %d\n",
+           mc_results_get_depth_dropped_states (results));
+  fprintf (f, "Dropped queue-overflow states: %d\n",
+           mc_results_get_queue_dropped_states (results));
+  fprintf (f, "Checked states still queued when stopped: %d\n",
+           mc_results_get_queued_unprocessed_states (results));
+  fprintf (f, "Maximum queue length reached: %d\n",
+           mc_results_get_max_queue_length (results));
+
+  if (reason != MC_CONTINUING)
+    fprintf (f, "\nRuntime: %.2f seconds\n",
+             mc_results_get_duration (results));
+}
 
 /* An active model checking run. */
 struct mc

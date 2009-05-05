@@ -54,7 +54,6 @@
 /* (functions) */
 
 static struct mc_options *parse_options (struct lexer *);
-static void print_results (const struct mc_results *, FILE *);
 
 /* Parses a syntax description of model checker options from
    LEXER and passes them, along with AUX, to the CHECKER
@@ -80,7 +79,7 @@ check_model (struct lexer *lexer,
 
   results = checker (options, aux);
 
-  print_results (results, output_file);
+  mc_results_print (results, output_file);
 
   if (output_file != stdout && output_file != stderr)
     {
@@ -218,52 +217,6 @@ parse_options (struct lexer *lexer)
   free_check_model (&cmd);
 
   return options;
-}
-
-/* Prints a description of RESULTS to stream F. */
-static void
-print_results (const struct mc_results *results, FILE *f)
-{
-  enum mc_stop_reason reason = mc_results_get_stop_reason (results);
-
-  fputs ("\n"
-         "MODEL CHECKING SUMMARY\n"
-         "----------------------\n\n", f);
-
-  fprintf (f, "Stopped by: %s\n",
-           reason == MC_SUCCESS ? "state space exhaustion"
-           : reason == MC_MAX_UNIQUE_STATES ? "reaching max unique states"
-           : reason == MC_MAX_ERROR_COUNT ? "reaching max error count"
-           : reason == MC_END_OF_PATH ? "reached end of specified path"
-           : reason == MC_TIMEOUT ? "reaching time limit"
-           : reason == MC_INTERRUPTED ? "user interruption"
-           : "unknown reason");
-  fprintf (f, "Errors found: %d\n\n", mc_results_get_error_count (results));
-
-  fprintf (f, "Unique states checked: %d\n",
-           mc_results_get_unique_state_count (results));
-  fprintf (f, "Maximum depth reached: %d\n",
-           mc_results_get_max_depth_reached (results));
-  fprintf (f, "Mean depth reached: %.2f\n\n",
-           mc_results_get_mean_depth_reached (results));
-
-  fprintf (f, "Dropped duplicate states: %d\n",
-           mc_results_get_duplicate_dropped_states (results));
-  fprintf (f, "Dropped off-path states: %d\n",
-           mc_results_get_off_path_dropped_states (results));
-  fprintf (f, "Dropped too-deep states: %d\n",
-           mc_results_get_depth_dropped_states (results));
-  fprintf (f, "Dropped queue-overflow states: %d\n",
-           mc_results_get_queue_dropped_states (results));
-  fprintf (f, "Checked states still queued when stopped: %d\n",
-           mc_results_get_queued_unprocessed_states (results));
-  fprintf (f, "Maximum queue length reached: %d\n\n",
-           mc_results_get_max_queue_length (results));
-
-  fprintf (f, "Runtime: %.2f seconds\n",
-           mc_results_get_duration (results));
-
-  putc ('\n', f);
 }
 
 /*
