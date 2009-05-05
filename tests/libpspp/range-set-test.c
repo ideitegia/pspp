@@ -119,6 +119,35 @@ next_region (unsigned int pattern, unsigned int offset,
   return false;
 }
 
+/* Searches the bits in PATTERN from left to right starting from
+   just beyond bit OFFSET for one or more 1-bits.  If any are
+   found, sets *START to the bit index of the first and *WIDTH to
+   the number of contiguous 1-bits and returns true.  Otherwise,
+   returns false.
+   This implementation is designed to be obviously correct, not
+   to be efficient. */
+static bool
+prev_region (unsigned int pattern, unsigned int offset,
+             unsigned long int *start, unsigned long int *width)
+{
+  unsigned int i;
+
+  assert (offset <= UINT_BIT);
+  for (i = offset; i-- > 0; )
+    if (pattern & (1u << i))
+      {
+        *start = i;
+        *width = 1;
+        while (i-- > 0 && pattern & (1u << i))
+          {
+            ++*width;
+            --*start;
+          }
+        return true;
+      }
+  return false;
+}
+
 /* Searches the bits in PATTERN from right to left starting from
    bit OFFSET.  Returns the bit index of the first 1-bit found,
    or ULONG_MAX if none is found. */
@@ -158,6 +187,18 @@ check_pattern (const struct range_set *rs, unsigned int pattern)
          start = width = 0;
        next_region (pattern, start + width, &start, &width);
        node = range_set_next (rs, node))
+    {
+      check (node != NULL);
+      check (range_set_node_get_start (node) == start);
+      check (range_set_node_get_end (node) == start + width);
+      check (range_set_node_get_width (node) == width);
+    }
+  check (node == NULL);
+
+  for (node = rand () % 2 ? range_set_last (rs) : range_set_prev (rs, NULL),
+         start = UINT_BIT;
+       prev_region (pattern, start, &start, &width);
+       node = range_set_prev (rs, node))
     {
       check (node != NULL);
       check (range_set_node_get_start (node) == start);

@@ -70,6 +70,10 @@ static inline const struct range_set_node *range_set_first (
   const struct range_set *);
 static inline const struct range_set_node *range_set_next (
   const struct range_set *, const struct range_set_node *);
+static inline const struct range_set_node *range_set_last (
+  const struct range_set *);
+static inline const struct range_set_node *range_set_prev (
+  const struct range_set *, const struct range_set_node *);
 static inline unsigned long int range_set_node_get_start (
   const struct range_set_node *);
 static inline unsigned long int range_set_node_get_end (
@@ -84,6 +88,10 @@ static inline struct range_set_node *range_set_node_from_bt__ (
 static inline struct range_set_node *range_set_next__ (
   const struct range_set *, const struct range_set_node *);
 static inline struct range_set_node *range_set_first__ (
+  const struct range_set *);
+static inline struct range_set_node *range_set_prev__ (
+  const struct range_set *, const struct range_set_node *);
+static inline struct range_set_node *range_set_last__ (
   const struct range_set *);
 
 /* Returns true if RS contains no 1-bits, false otherwise. */
@@ -116,6 +124,31 @@ range_set_next (const struct range_set *rs, const struct range_set_node *node)
   return (node != NULL
           ? range_set_next__ (rs, (struct range_set_node *) node)
           : range_set_first__ (rs));
+}
+
+/* Returns the node representing the last contiguous region of
+   1-bits in RS, or a null pointer if RS is empty.
+   Any call to range_set_insert, range_set_delete, or
+   range_set_allocate invalidates the returned node. */
+static inline const struct range_set_node *
+range_set_last (const struct range_set *rs)
+{
+  return range_set_last__ (rs);
+}
+
+/* If NODE is nonnull, returns the node representing the previous
+   contiguous region of 1-bits in RS following NODE, or a null
+   pointer if NODE is the first region in RS.
+   If NODE is null, returns the last region in RS, as for
+   range_set_last.
+   Any call to range_set_insert, range_set_delete, or
+   range_set_allocate invalidates the returned node. */
+static inline const struct range_set_node *
+range_set_prev (const struct range_set *rs, const struct range_set_node *node)
+{
+  return (node != NULL
+          ? range_set_prev__ (rs, (struct range_set_node *) node)
+          : range_set_last__ (rs));
 }
 
 /* Returns the position of the first 1-bit in NODE. */
@@ -164,6 +197,23 @@ static inline struct range_set_node *
 range_set_first__ (const struct range_set *rs)
 {
   return range_set_node_from_bt__ (bt_first (&rs->bt));
+}
+
+/* Returns the previous range_set_node in RS after NODE,
+   or a null pointer if NODE is the first node in RS. */
+static inline struct range_set_node *
+range_set_prev__ (const struct range_set *rs,
+                  const struct range_set_node *node)
+{
+  return range_set_node_from_bt__ (bt_prev (&rs->bt, &node->bt_node));
+}
+
+/* Returns the last range_set_node in RS,
+   or a null pointer if RS is empty. */
+static inline struct range_set_node *
+range_set_last__ (const struct range_set *rs)
+{
+  return range_set_node_from_bt__ (bt_last (&rs->bt));
 }
 
 #endif /* libpspp/range-set.h */
