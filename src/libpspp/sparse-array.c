@@ -447,6 +447,9 @@ unset_in_use (struct leaf_node *leaf, unsigned int key)
 static inline int
 count_trailing_zeros (unsigned long int x)
 {
+#if __GNUC__ >= 4
+  return __builtin_ctzl (x);
+#else /* not GCC 4+ */
   /* This algorithm is from _Hacker's Delight_ section 5.4. */
   int n = 1;
 
@@ -469,6 +472,7 @@ count_trailing_zeros (unsigned long int x)
   COUNT_STEP (2);
 
   return n - (x & 1);
+#endif /* not GCC 4+ */
 }
 
 /* Returns the least index of the in-use element in LEAF greater
