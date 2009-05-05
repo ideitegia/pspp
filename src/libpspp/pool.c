@@ -364,6 +364,19 @@ pool_strdup (struct pool *pool, const char *string)
   return pool_clone_unaligned (pool, string, strlen (string) + 1);
 }
 
+/* Duplicates the SIZE bytes of STRING, plus a trailing 0 byte,
+   and returns a pointer to the duplicate.  For use only with
+   strings, because the returned pointere may not be aligned
+   properly for other types. */
+char *
+pool_strdup0 (struct pool *pool, const char *string, size_t size)
+{
+  char *new_string = pool_alloc_unaligned (pool, size + 1);
+  memcpy (new_string, string, size);
+  new_string[size] = '\0';
+  return new_string;
+}
+
 /* Formats FORMAT with the given ARGS in memory allocated from
    POOL and returns the formatted string. */
 char *

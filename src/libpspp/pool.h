@@ -62,6 +62,7 @@ void *pool_clone (struct pool *, const void *, size_t) MALLOC_LIKE;
 void *pool_alloc_unaligned (struct pool *, size_t) MALLOC_LIKE;
 void *pool_clone_unaligned (struct pool *, const void *, size_t) MALLOC_LIKE;
 char *pool_strdup (struct pool *, const char *) MALLOC_LIKE;
+char *pool_strdup0 (struct pool *, const char *, size_t) MALLOC_LIKE;
 char *pool_vasprintf (struct pool *, const char *, va_list)
      MALLOC_LIKE PRINTF_FORMAT (2, 0);
 char *pool_asprintf (struct pool *, const char *, ...)
