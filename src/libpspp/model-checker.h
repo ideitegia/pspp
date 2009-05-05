@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -418,6 +418,10 @@ FILE *mc_options_get_output_file (const struct mc_options *);
 void mc_options_set_output_file (struct mc_options *, FILE *);
 
 typedef bool mc_progress_func (struct mc *);
+mc_progress_func mc_progress_dots;
+mc_progress_func mc_progress_fancy;
+mc_progress_func mc_progress_verbose;
+
 int mc_options_get_progress_usec (const struct mc_options *);
 void mc_options_set_progress_usec (struct mc_options *, int progress_usec);
 mc_progress_func *mc_options_get_progress_func (const struct mc_options *);

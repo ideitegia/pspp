@@ -45,7 +45,7 @@
     stop=:states(n:max_unique_states,"%s>0"),
          :errors(n:max_errors),
          :timeout(d:time_limit,"%s>0");
-    progress=progress:none/dots/fancy;
+    progress=progress:none/dots/fancy/verbose;
     output=:verbosity(n:verbosity),
            :errverbosity(n:err_verbosity),
            :file(s:output_file).
@@ -95,22 +95,6 @@ check_model (struct lexer *lexer,
   mc_results_destroy (results);
 
   return ok;
-}
-
-/* Fancy progress function for mc_options_set_progress_func. */
-static bool
-fancy_progress (struct mc *mc)
-{
-  const struct mc_results *results = mc_get_results (mc);
-  if (mc_results_get_stop_reason (results) == MC_CONTINUING)
-    fprintf (stderr, "Processed %d unique states, max depth %d, "
-             "dropped %d duplicates...\r",
-             mc_results_get_unique_state_count (results),
-             mc_results_get_max_depth_reached (results),
-             mc_results_get_duplicate_dropped_states (results));
-  else
-    putc ('\n', stderr);
-  return true;
 }
 
 /* Parses options from LEXER and returns a corresponding
@@ -193,11 +177,11 @@ parse_options (struct lexer *lexer)
       if (cmd.progress == CHM_NONE)
         mc_options_set_progress_usec (options, 0);
       else if (cmd.progress == CHM_DOTS)
-        {
-          /* Nothing to do: that's the default anyway. */
-        }
+        mc_options_set_progress_func (options, mc_progress_dots);
       else if (cmd.progress == CHM_FANCY)
-        mc_options_set_progress_func (options, fancy_progress);
+        mc_options_set_progress_func (options, mc_progress_fancy);
+      else if (cmd.progress == CHM_VERBOSE)
+        mc_options_set_progress_func (options, mc_progress_verbose);
     }
   if (cmd.output_file != NULL)
     {

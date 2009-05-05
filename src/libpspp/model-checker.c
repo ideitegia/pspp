@@ -161,13 +161,46 @@ struct mc_options
   };
 
 /* Default progress function. */
-static bool
-default_progress (struct mc *mc)
+bool
+mc_progress_dots (struct mc *mc)
 {
   if (mc_results_get_stop_reason (mc_get_results (mc)) == MC_CONTINUING)
     putc ('.', stderr);
   else
     putc ('\n', stderr);
+  return true;
+}
+
+/* Progress function that prints a one-line summary of the
+   current state on stderr. */
+bool
+mc_progress_fancy (struct mc *mc)
+{
+  const struct mc_results *results = mc_get_results (mc);
+  if (mc_results_get_stop_reason (results) == MC_CONTINUING)
+    fprintf (stderr, "Processed %d unique states, max depth %d, "
+             "dropped %d duplicates...\r",
+             mc_results_get_unique_state_count (results),
+             mc_results_get_max_depth_reached (results),
+             mc_results_get_duplicate_dropped_states (results));
+  else
+    putc ('\n', stderr);
+  return true;
+}
+
+/* Progress function that displays a detailed summary of the
+   current state on stderr. */
+bool
+mc_progress_verbose (struct mc *mc)
+{
+  const struct mc_results *results = mc_get_results (mc);
+
+  /* VT100 clear screen and home cursor. */
+  fprintf (stderr, "\033[H\033[2J");
+
+  if (mc_results_get_stop_reason (results) == MC_CONTINUING)
+    mc_results_print (results, stderr);
+
   return true;
 }
 
@@ -202,7 +235,7 @@ mc_options_create (void)
   options->failure_verbosity = 2;
   options->output_file = stdout;
   options->progress_usec = 250000;
-  options->progress_func = default_progress;
+  options->progress_func = mc_progress_dots;
 
   options->aux = NULL;
 
