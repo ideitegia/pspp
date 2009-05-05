@@ -36,7 +36,6 @@
 #include <libpspp/tower.h>
 
 #include "minmax.h"
-#include "md4.h"
 #include "xalloc.h"
 
 
