@@ -150,14 +150,12 @@
                   mc_name_operation (mc, "do operation %s", ...);
                   clone = clone_foo (state);
                   do_operation (clone);
-                  if (!mc_discard_dup_state (mc, hash_foo (clone)))
-                    {
-                      if (!state_is_consistent (clone))
-                        mc_error (mc, "inconsistent state");
-                      mc_add_state (mc, clone);
-                    }
-                  else
+                  if (!state_is_consistent (clone))
+                    mc_error (mc, "inconsistent state");
+                  if (mc_discard_dup_state (mc, hash_foo (clone)))
                     destroy_foo (clone);
+                  else
+                    mc_add_state (mc, clone);
                 }
           }
 
@@ -204,10 +202,10 @@
             the metadata.
 
             mc_discard_dup_state may be called before or after
-            checking for consistency, but calling it first avoids
-            wasting time checking duplicate states for
-            consistency, which again can be a significant
-            performance boost.
+            checking for consistency.  Calling it after checking
+            may make checking a given number of unique states
+            take longer, but it also ensures that all paths to a
+            given state produce correct results.
 
           - The mc_error function reports errors.  It may be
             called as many times as desired to report each kind
