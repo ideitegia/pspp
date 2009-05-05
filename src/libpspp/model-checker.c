@@ -1057,7 +1057,7 @@ mc_include_state (struct mc *mc)
 bool
 mc_discard_dup_state (struct mc *mc, unsigned int hash)
 {
-  if (mc->options->hash_bits > 0)
+  if (!mc->state_error && mc->options->hash_bits > 0)
     {
       hash &= (1u << mc->options->hash_bits) - 1;
       if (TEST_BIT (mc->hash, hash))
