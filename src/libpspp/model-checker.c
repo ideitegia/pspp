@@ -26,6 +26,7 @@
 #include <string.h>
 #include <sys/time.h>
 
+#include <libpspp/argv-parser.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
 #include <libpspp/deque.h>
@@ -640,6 +641,214 @@ void
 mc_options_set_aux (struct mc_options *options, void *aux)
 {
   options->aux = aux;
+}
+
+/* Options command-line parser. */
+
+enum
+  {
+    /* Search strategies. */
+    OPT_STRATEGY,
+    OPT_PATH,
+    OPT_MAX_DEPTH,
+    OPT_HASH_BITS,
+    OPT_SEED,
+
+    /* Queuing. */
+    OPT_QUEUE_LIMIT,
+    OPT_QUEUE_DROP,
+
+    /* Stop conditions. */
+    OPT_MAX_STATES,
+    OPT_MAX_ERRORS,
+    OPT_TIME_LIMIT,
+
+    /* User interface. */
+    OPT_PROGRESS,
+    OPT_VERBOSITY,
+    OPT_FAILURE_VERBOSITY,
+  };
+
+static const struct argv_option mc_argv_options[] =
+  {
+    {"strategy", 0, required_argument, OPT_STRATEGY},
+    {"max-depth", 0, required_argument, OPT_MAX_DEPTH},
+    {"hash-bits", 0, required_argument, OPT_HASH_BITS},
+    {"path", 0, required_argument, OPT_PATH},
+    {"queue-limit", 0, required_argument, OPT_QUEUE_LIMIT},
+    {"queue-drop", 0, required_argument, OPT_QUEUE_DROP},
+    {"seed", 0, required_argument, OPT_SEED},
+    {"max-states", 0, required_argument, OPT_MAX_STATES},
+    {"max-errors", 0, required_argument, OPT_MAX_ERRORS},
+    {"time-limit", 0, required_argument, OPT_TIME_LIMIT},
+    {"progress", 0, required_argument, OPT_PROGRESS},
+    {"verbosity", 0, required_argument, OPT_VERBOSITY},
+    {"failure-verbosity", 0, required_argument, OPT_FAILURE_VERBOSITY},
+  };
+enum { N_MC_ARGV_OPTIONS = sizeof mc_argv_options / sizeof *mc_argv_options };
+
+/* Called by argv_parser_run to indicate that option ID has been
+   parsed. */
+static void
+mc_parser_option_callback (int id, void *mc_options_)
+{
+  struct mc_options *options = mc_options_;
+  switch (id)
+    {
+    case OPT_STRATEGY:
+      if (mc_options_get_strategy (options) == MC_PATH)
+        error (1, 0, "--strategy and --path are mutually exclusive");
+
+      if (!strcmp (optarg, "broad"))
+        mc_options_set_strategy (options, MC_BROAD);
+      else if (!strcmp (optarg, "deep"))
+        mc_options_set_strategy (options, MC_DEEP);
+      else if (!strcmp (optarg, "random"))
+        mc_options_set_strategy (options, MC_RANDOM);
+      else
+        error (1, 0,
+               "strategy must be \"broad\", \"deep\", or \"random\"");
+      break;
+
+    case OPT_MAX_DEPTH:
+      mc_options_set_max_depth (options, atoi (optarg));
+      break;
+
+    case OPT_HASH_BITS:
+      {
+        int requested_hash_bits = atoi (optarg);
+        int hash_bits;
+        mc_options_set_hash_bits (options, requested_hash_bits);
+        hash_bits = mc_options_get_hash_bits (options);
+        if (hash_bits != requested_hash_bits)
+          error (0, 0, "hash bits adjusted to %d.", hash_bits);
+      }
+      break;
+
+    case OPT_PATH:
+      {
+        struct mc_path path;
+        char *op;
+
+        if (mc_options_get_strategy (options) != MC_BROAD)
+          error (1, 0, "--strategy and --path are mutually exclusive");
+
+        mc_path_init (&path);
+        for (op = strtok (optarg, ":, \t"); op != NULL;
+             op = strtok (NULL, ":, \t"))
+          mc_path_push (&path, atoi (op));
+        if (mc_path_get_length (&path) == 0)
+          error (1, 0, "at least one value must be specified on --path");
+        mc_options_set_follow_path (options, &path);
+        mc_path_destroy (&path);
+      }
+      break;
+
+    case OPT_QUEUE_LIMIT:
+      mc_options_set_queue_limit (options, atoi (optarg));
+      break;
+
+    case OPT_QUEUE_DROP:
+      if (!strcmp (optarg, "newest"))
+        mc_options_set_queue_limit_strategy (options, MC_DROP_NEWEST);
+      else if (!strcmp (optarg, "oldest"))
+        mc_options_set_queue_limit_strategy (options, MC_DROP_OLDEST);
+      else if (!strcmp (optarg, "random"))
+        mc_options_set_queue_limit_strategy (options, MC_DROP_RANDOM);
+      else
+        error (1, 0, "--queue-drop argument must be \"newest\", "
+               "\"oldest\", or \"random\"");
+      break;
+
+    case OPT_SEED:
+      mc_options_set_seed (options, atoi (optarg));
+      break;
+
+    case OPT_MAX_STATES:
+      mc_options_set_max_unique_states (options, atoi (optarg));
+      break;
+
+    case OPT_MAX_ERRORS:
+      mc_options_set_max_errors (options, atoi (optarg));
+      break;
+
+    case OPT_TIME_LIMIT:
+      mc_options_set_time_limit (options, atof (optarg));
+      break;
+
+    case OPT_PROGRESS:
+      if (!strcmp (optarg, "none"))
+        mc_options_set_progress_usec (options, 0);
+      else if (!strcmp (optarg, "dots"))
+        mc_options_set_progress_func (options, mc_progress_dots);
+      else if (!strcmp (optarg, "fancy"))
+        mc_options_set_progress_func (options, mc_progress_fancy);
+      else if (!strcmp (optarg, "verbose"))
+        mc_options_set_progress_func (options, mc_progress_verbose);
+      break;
+
+    case OPT_VERBOSITY:
+      mc_options_set_verbosity (options, atoi (optarg));
+      break;
+
+    case OPT_FAILURE_VERBOSITY:
+      mc_options_set_failure_verbosity (options, atoi (optarg));
+      break;
+
+    default:
+      NOT_REACHED ();
+    }
+}
+
+/* Adds the model checker command line options to the specified
+   command line PARSER.  Model checker options parsed from the
+   command line will be applied to OPTIONS. */
+void
+mc_options_register_argv_parser (struct mc_options *options,
+                                 struct argv_parser *parser)
+{
+  argv_parser_add_options (parser, mc_argv_options, N_MC_ARGV_OPTIONS,
+                           mc_parser_option_callback, options);
+}
+
+/* Prints a reference for the model checker command line options
+   to stdout. */
+void
+mc_options_usage (void)
+{
+  fputs (
+    "\nModel checker search algorithm options:\n"
+    "  --strategy=STRATEGY  Basic search strategy.  One of:\n"
+    "                         broad: breadth-first search (default)\n"
+    "                         deep: depth-first search\n"
+    "                         random: randomly ordered search\n"
+    "  --path=#[,#]...      Fixes the exact search path to follow;\n"
+    "                       mutually exclusive with --strategy\n"
+    "  --max-depth=MAX      Limits search depth to MAX.  The initial\n"
+    "                       states are at depth 1.\n"
+    "  --hash-bits=BITS     Use 2**BITS size hash table to avoid\n"
+    "                       duplicate states (0 will disable hashing)\n"
+    "  --seed=SEED          Sets the random number seed\n"
+    "\nModel checker queuing options:\n"
+    "  --queue-limit=N      Limit queue to N states (default: 10000)\n"
+    "  --queue-drop=TYPE    How to drop states when queue overflows:\n"
+    "                         newest: drop most recently added state\n"
+    "                         oldest: drop least recently added state\n"
+    "                         random (default): drop a random state\n"
+    "\nModel checker stop condition options:\n"
+    "  --max-states=N       Stop after visiting N unique states\n"
+    "  --max-errors=N       Stop after N errors (default: 1)\n"
+    "  --time-limit=SECS    Stop after SECS seconds\n"
+    "\nModel checker user interface options:\n"
+    "  --progress=TYPE      Show progress according to TYPE.  One of:\n"
+    "                         none: Do not output progress message\n"
+    "                         dots (default): Output lines of dots\n"
+    "                         fancy: Show a few stats\n"
+    "                         verbose: Show all available stats\n"
+    "  --verbosity=LEVEL    Verbosity level before an error (default: 1)\n"
+    "  --failure-verbosity=LEVEL  Verbosity level for replaying failure\n"
+    "                       cases (default: 2)\n",
+    stdout);
 }
 
 /* Results of a model checking run. */

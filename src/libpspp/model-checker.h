@@ -427,6 +427,11 @@ void mc_options_set_progress_func (struct mc_options *, mc_progress_func *);
 
 void *mc_options_get_aux (const struct mc_options *);
 void mc_options_set_aux (struct mc_options *, void *aux);
+
+struct argv_parser;
+void mc_options_register_argv_parser (struct mc_options *,
+                                      struct argv_parser *);
+void mc_options_usage (void);
 
 /* Reason that a model checking run terminated. */
 enum mc_stop_reason
