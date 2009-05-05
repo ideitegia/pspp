@@ -294,12 +294,9 @@ sparse_array_insert (struct sparse_array *spar, unsigned long int key)
 void *
 sparse_array_get (const struct sparse_array *spar, unsigned long int key)
 {
-  if (index_in_range (spar, key))
-    {
-      struct leaf_node *leaf = find_leaf_node (spar, key);
-      if (leaf != NULL && is_in_use (leaf, key))
-        return leaf_element (spar, leaf, key);
-    }
+  struct leaf_node *leaf = find_leaf_node (spar, key);
+  if (leaf != NULL && is_in_use (leaf, key))
+    return leaf_element (spar, leaf, key);
   return NULL;
 }
 
@@ -318,9 +315,6 @@ sparse_array_remove (struct sparse_array *spar, unsigned long int key)
   struct leaf_node *leaf;
   union pointer *p;
   int level;
-
-  if (!index_in_range (spar, key))
-    return false;
 
   /* Find and free element in leaf. */
   leaf = find_leaf_node (spar, key);
@@ -587,11 +581,12 @@ find_leaf_node (const struct sparse_array *spar_, unsigned long int key)
   const union pointer *p;
   int level;
 
-  assert (index_in_range (spar, key));
-
   /* Check the cache first. */
   if (key >> BITS_PER_LEVEL == spar->cache_ofs)
     return spar->cache;
+
+  if (!index_in_range (spar, key))
+    return NULL;
 
   /* Descend through internal nodes. */
   p = &spar->root;
