@@ -152,6 +152,7 @@ dist_TESTS = \
 	tests/bugs/temp-freq.sh \
 	tests/bugs/print-crash.sh \
 	tests/bugs/keep-all.sh \
+	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
 	tests/xforms/recode.sh \
 	tests/stats/descript-basic.sh \
@@ -194,7 +195,8 @@ TESTS = $(dist_TESTS) $(nodist_TESTS)
 
 check_PROGRAMS += \
 	$(nodist_TESTS) \
-	tests/formats/inexactify
+	tests/formats/inexactify \
+	tests/libpspp/sparse-xarray-test
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
@@ -294,6 +296,21 @@ tests_libpspp_sparse_array_test_SOURCES = \
 	tests/libpspp/sparse-array-test.c
 tests_libpspp_sparse_array_test_LDADD = gl/libgl.la @LIBINTL@ 
 tests_libpspp_sparse_array_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
+
+tests_libpspp_sparse_xarray_test_SOURCES = \
+	src/libpspp/argv-parser.c \
+	src/libpspp/bt.c \
+	src/libpspp/deque.c \
+	src/libpspp/model-checker.c \
+	src/libpspp/range-set.c \
+	src/libpspp/sparse-array.c \
+	src/libpspp/sparse-xarray.c \
+	src/libpspp/str.c \
+	src/libpspp/pool.c \
+	src/libpspp/tmpfile.c \
+	tests/libpspp/sparse-xarray-test.c
+tests_libpspp_sparse_xarray_test_LDADD = gl/libgl.la @LIBINTL@ 
+tests_libpspp_sparse_xarray_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_formats_inexactify_SOURCES = tests/formats/inexactify.c
 
