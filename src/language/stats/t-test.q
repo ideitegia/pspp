@@ -671,7 +671,7 @@ ssbox_base_init (struct ssbox *this, int cols,int rows)
   tab_headers (this->t,0,0,1,0);
   tab_box (this->t, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols -1, rows -1 );
   tab_hline (this->t, TAL_2,0,cols-1,1);
-  tab_dim (this->t, tab_natural_dimensions);
+  tab_dim (this->t, tab_natural_dimensions, NULL);
 }
 
 void  ssbox_one_sample_populate (struct ssbox *ssb,
@@ -1380,7 +1380,7 @@ trbox_base_init (struct trbox *self, size_t data_rows, int cols)
   tab_headers (self->t,0,0,3,0);
   tab_box (self->t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols -1, rows -1);
   tab_hline (self->t, TAL_2,0,cols-1,3);
-  tab_dim (self->t, tab_natural_dimensions);
+  tab_dim (self->t, tab_natural_dimensions, NULL);
 }
 
 
@@ -1412,7 +1412,7 @@ pscbox (const struct dictionary *dict)
   tab_box (table, TAL_2, TAL_2, TAL_0, TAL_1, 0, 0, cols -1, rows -1 );
   tab_hline (table, TAL_2, 0, cols - 1, 1);
   tab_vline (table, TAL_2, 2, 0, rows - 1);
-  tab_dim (table, tab_natural_dimensions);
+  tab_dim (table, tab_natural_dimensions, NULL);
   tab_title (table, _ ("Paired Samples Correlations"));
 
   /* column headings */

@@ -1011,7 +1011,7 @@ compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-full_dim (struct tab_table *t, struct outp_driver *d)
+full_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
 {
   int i = 0;
   int columns = 5;
@@ -1075,7 +1075,7 @@ dump_full (const struct variable *v, const struct variable *wv)
   n_categories = ft->n_valid + ft->n_missing;
   t = tab_create (5 + lab, n_categories + 3, 0);
   tab_headers (t, 0, 0, 2, 0);
-  tab_dim (t, full_dim);
+  tab_dim (t, full_dim, NULL);
 
   if (lab)
     tab_text (t, 0, 1, TAB_CENTER | TAT_TITLE, _("Value Label"));
@@ -1146,7 +1146,7 @@ dump_full (const struct variable *v, const struct variable *wv)
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-condensed_dim (struct tab_table *t, struct outp_driver *d)
+condensed_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
 {
   int cum_w = MAX (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
 		   MAX (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
@@ -1186,7 +1186,7 @@ dump_condensed (const struct variable *v, const struct variable *wv)
   tab_text (t, 2, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Cum"));
   tab_text (t, 3, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
-  tab_dim (t, condensed_dim);
+  tab_dim (t, condensed_dim, NULL);
 
   r = 2;
   for (f = ft->valid; f < ft->missing; f++)
@@ -1385,7 +1385,7 @@ dump_statistics (const struct variable *v, bool show_varname,
   calc_stats (v, stat_value);
 
   t = tab_create (3, n_stats + n_percentiles + 2, 0);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 

@@ -104,7 +104,7 @@ do_summary_box (const struct descriptives *desc,
 
   table = tab_create (columns, 2 + n_vars, 0);
 
-  tab_dim (table, tab_natural_dimensions);
+  tab_dim (table, tab_natural_dimensions, NULL);
 
   tab_title (table, _("Descriptive Statistics"));
 

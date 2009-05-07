@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
     return;
 
   t = tab_create (3, split_cnt + 1, 0);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
   tab_vline (t, TAL_GAP, 1, 0, split_cnt);
   tab_vline (t, TAL_GAP, 2, 0, split_cnt);
   tab_text (t, 0, 0, TAB_NONE, _("Variable"));

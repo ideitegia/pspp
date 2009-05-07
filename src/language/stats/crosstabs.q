@@ -1019,7 +1019,7 @@ static void display_chisq (const struct dictionary *);
 static void display_symmetric (const struct dictionary *);
 static void display_risk (const struct dictionary *);
 static void display_directional (void);
-static void crosstabs_dim (struct tab_table *, struct outp_driver *);
+static void crosstabs_dim (struct tab_table *, struct outp_driver *, void *);
 static void table_value_missing (struct tab_table *table, int c, int r,
 				 unsigned char opt, const union value *v,
 				 const struct variable *var);
@@ -1525,14 +1525,14 @@ submit (struct tab_table *t)
   tab_box (t, -1, -1, -1, TAL_GAP, 0, tab_t (t), tab_l (t) - 1,
 	   tab_nr (t) - 1);
   tab_vline (t, TAL_2, tab_l (t), 0, tab_nr (t) - 1);
-  tab_dim (t, crosstabs_dim);
+  tab_dim (t, crosstabs_dim, NULL);
   tab_submit (t);
 }
 
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-crosstabs_dim (struct tab_table *t, struct outp_driver *d)
+crosstabs_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
 {
   int i;
 

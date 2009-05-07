@@ -560,7 +560,7 @@ dump_z_table (struct dsc_proc *dsc)
   tab_hline (t, TAL_2, 0, 1, 1);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Source"));
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Target"));
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   {
     size_t i, y;
@@ -879,7 +879,7 @@ display (struct dsc_proc *dsc)
   tab_box (t, -1, -1, -1, TAL_1, 1, 0, nc - 1, dsc->var_cnt);
   tab_hline (t, TAL_2, 0, nc - 1, 1);
   tab_vline (t, TAL_2, 1, 0, dsc->var_cnt);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   nc = 0;
   tab_text (t, nc++, 0, TAB_LEFT | TAT_TITLE, _("Variable"));

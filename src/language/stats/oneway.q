@@ -261,7 +261,7 @@ show_anova_table (void)
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 1, 0);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
 
   tab_box (t,
@@ -372,7 +372,7 @@ show_descriptives (const struct dictionary *dict)
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 2, 0);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
 
   /* Put a frame around the entire box, and vertical lines inside */
@@ -518,7 +518,7 @@ show_homogeneity (void)
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 1, 0, 1, 0);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   /* Put a frame around the entire box, and vertical lines inside */
   tab_box (t,
@@ -579,7 +579,7 @@ show_contrast_coeffs (short *bad_contrast)
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 2, 0, 2, 0);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   /* Put a frame around the entire box, and vertical lines inside */
   tab_box (t,
@@ -661,7 +661,7 @@ show_contrast_tests (short *bad_contrast)
 
   t = tab_create (n_cols, n_rows, 0);
   tab_headers (t, 3, 0, 1, 0);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   /* Put a frame around the entire box, and vertical lines inside */
   tab_box (t,

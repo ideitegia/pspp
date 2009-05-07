@@ -202,7 +202,7 @@ binomial_execute (const struct dataset *ds,
 
       struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1, 0);
 
-      tab_dim (table, tab_natural_dimensions);
+      tab_dim (table, tab_natural_dimensions, NULL);
 
       tab_title (table, _("Binomial Test"));
 

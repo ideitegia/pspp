@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -67,7 +67,8 @@ struct tab_joined_cell
 
 struct outp_driver;
 struct tab_table;
-typedef void tab_dim_func (struct tab_table *, struct outp_driver *);
+typedef void tab_dim_func (struct tab_table *, struct outp_driver *,
+                           void *aux);
 
 /* A table. */
 struct tab_table
@@ -87,6 +88,7 @@ struct tab_table
     unsigned char *rh;		/* Horiz rules; unsigned char[nr+1][nc]. */
     unsigned char *rv;		/* Vert rules; unsigned char[nr][nc+1]. */
     tab_dim_func *dim;		/* Calculates cell widths and heights. */
+    void *dim_aux;              /* Auxiliary data for dim function. */
 
     /* Calculated during output. */
     int *w;			/* Column widths; [nc]. */
@@ -133,7 +135,7 @@ void tab_submit (struct tab_table *);
 tab_dim_func tab_natural_dimensions;
 int tab_natural_width (struct tab_table *t, struct outp_driver *d, int c);
 int tab_natural_height (struct tab_table *t, struct outp_driver *d, int r);
-void tab_dim (struct tab_table *, tab_dim_func *);
+void tab_dim (struct tab_table *, tab_dim_func *, void *aux);
 
 /* Rules. */
 void tab_hline (struct tab_table *, int style, int x1, int x2, int y);

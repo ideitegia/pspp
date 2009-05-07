@@ -211,7 +211,7 @@ show_ranks_box (const struct wilcoxon_state *ws,
 
   struct tab_table *table = tab_create (5, 1 + 4 * t2s->n_pairs, 0);
 
-  tab_dim (table, tab_natural_dimensions);
+  tab_dim (table, tab_natural_dimensions, NULL);
 
   tab_title (table, _("Ranks"));
 
@@ -292,7 +292,7 @@ show_tests_box (const struct wilcoxon_state *ws,
   size_t i;
   struct tab_table *table = tab_create (1 + t2s->n_pairs, exact ? 5 : 3, 0);
 
-  tab_dim (table, tab_natural_dimensions);
+  tab_dim (table, tab_natural_dimensions, NULL);
 
   tab_title (table, _("Test Statistics"));
 

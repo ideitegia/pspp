@@ -647,7 +647,7 @@ dump_fixed_table (const struct data_parser *parser,
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Format"));
   tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 3, parser->field_cnt);
   tab_hline (t, TAL_2, 0, 3, 1);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   for (i = 0; i < parser->field_cnt; i++)
     {
@@ -686,7 +686,7 @@ dump_delimited_table (const struct data_parser *parser,
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Format"));
   tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 1, parser->field_cnt);
   tab_hline (t, TAL_2, 0, 1, 1);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
 
   for (i = 0; i < parser->field_cnt; i++)
     {

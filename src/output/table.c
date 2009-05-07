@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -399,10 +399,11 @@ tab_title (struct tab_table *t, const char *title, ...)
 
 /* Set DIM_FUNC as the dimension function for table T. */
 void
-tab_dim (struct tab_table *t, tab_dim_func *dim_func)
+tab_dim (struct tab_table *t, tab_dim_func *dim_func, void *aux)
 {
   assert (t != NULL && t->dim == NULL);
   t->dim = dim_func;
+  t->dim_aux = aux;
 }
 
 /* Returns the natural width of column C in table T for driver D, that
@@ -496,7 +497,8 @@ tab_natural_height (struct tab_table *t, struct outp_driver *d, int r)
 /* Callback function to set all columns and rows to their natural
    dimensions.  Not really meant to be called directly.  */
 void
-tab_natural_dimensions (struct tab_table *t, struct outp_driver *d)
+tab_natural_dimensions (struct tab_table *t, struct outp_driver *d,
+                        void *aux UNUSED)
 {
   int i;
 
@@ -787,7 +789,7 @@ tab_raw (struct tab_table *table, int c, int r, unsigned opt,
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-nowrap_dim (struct tab_table *t, struct outp_driver *d)
+nowrap_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
 {
   t->w[0] = tab_natural_width (t, d, 0);
   t->h[0] = d->font_height;
@@ -796,7 +798,7 @@ nowrap_dim (struct tab_table *t, struct outp_driver *d)
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-wrap_dim (struct tab_table *t, struct outp_driver *d)
+wrap_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
 {
   t->w[0] = tab_natural_width (t, d, 0);
   t->h[0] = tab_natural_height (t, d, 0);
@@ -822,7 +824,7 @@ tab_output_text (int options, const char *buf, ...)
 
   tab_text (t, 0, 0, options & ~TAT_PRINTF, buf);
   tab_flags (t, SOMF_NO_TITLE | SOMF_NO_SPACING);
-  tab_dim (t, options & TAT_NOWRAP ? nowrap_dim : wrap_dim);
+  tab_dim (t, options & TAT_NOWRAP ? nowrap_dim : wrap_dim, NULL);
   tab_submit (t);
 
   free (tmp_buf);
@@ -982,7 +984,7 @@ tabi_driver (struct outp_driver *driver)
 #endif
 
   assert (t->dim != NULL);
-  t->dim (t, d);
+  t->dim (t, d, t->dim_aux);
 
 #if DEBUGGING
   {

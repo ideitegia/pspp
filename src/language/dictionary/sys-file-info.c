@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ static int describe_variable (const struct variable *v, struct tab_table *t,
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-sysfile_info_dim (struct tab_table *t, struct outp_driver *d)
+sysfile_info_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
 {
   static const int max[] = {20, 5, 35, 3, 0};
   const int *p;
@@ -160,11 +160,11 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 	    dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
 
 
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
   tab_submit (t);
 
   t = tab_create (4, 1 + 2 * dict_get_var_cnt (d), 1);
-  tab_dim (t, sysfile_info_dim);
+  tab_dim (t, sysfile_info_dim, NULL);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Variable"));
   tab_joint_text (t, 1, 0, 2, 0, TAB_LEFT | TAT_TITLE, _("Description"));
@@ -344,7 +344,7 @@ static int _flags;
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-variables_dim (struct tab_table *t, struct outp_driver *d)
+variables_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
 {
   int pc;
   int i;
@@ -397,7 +397,7 @@ display_variables (const struct variable **vl, size_t n, int flags)
                      ? _("Description") : _("Label")));
   if (flags & DF_DICT_INDEX)
     tab_text (t, pc, 0, TAB_LEFT | TAT_TITLE, _("Position"));
-  tab_dim (t, variables_dim);
+  tab_dim (t, variables_dim, NULL);
 
   r = 1;
   for (i = 0; i < n; i++)
@@ -487,7 +487,7 @@ display_data_file_attributes (struct attrset *set, int flags)
   tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Value"));
   display_attributes (t, set, flags, 0, 1);
   tab_columns (t, TAB_COL_DOWN, 1);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
   tab_title (t, "Custom data file attributes.");
   tab_submit (t);
 }
@@ -707,7 +707,7 @@ display_vectors (const struct dictionary *dict, int sorted)
   t = tab_create (4, nrow + 1, 0);
   tab_headers (t, 0, 0, 1, 0);
   tab_columns (t, TAB_COL_DOWN, 1);
-  tab_dim (t, tab_natural_dimensions);
+  tab_dim (t, tab_natural_dimensions, NULL);
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 3, nrow);
   tab_box (t, -1, -1, -1, TAL_1, 0, 0, 3, nrow);
   tab_hline (t, TAL_2, 0, 3, 1);
