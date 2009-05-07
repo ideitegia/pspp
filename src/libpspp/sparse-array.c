@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,9 @@
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 
+#include "count-one-bits.h"
+#include "minmax.h"
+
 /* Sparse array data structure.
 
    The sparse array is implemented in terms of a "radix tree", a
@@ -48,6 +51,7 @@
 
 /* Maximum height. */
 #define LONG_BITS (sizeof (unsigned long int) * CHAR_BIT)
+#define LONG_MASK ((unsigned long int) LONG_BITS - 1)
 #define MAX_HEIGHT DIV_RND_UP (LONG_BITS, BITS_PER_LEVEL)
 
 /* Bit-mask for index. */
@@ -113,7 +117,6 @@ static inline bool is_in_use (const struct leaf_node *, unsigned int);
 static inline bool any_in_use (const struct leaf_node *);
 static inline void set_in_use (struct leaf_node *, unsigned int);
 static inline void unset_in_use (struct leaf_node *, unsigned int);
-static inline int scan_in_use (struct leaf_node *, unsigned int);
 static inline void *leaf_element (const struct sparse_array *,
                                   struct leaf_node *, unsigned int);
 static inline size_t leaf_size (const struct sparse_array *);
@@ -121,10 +124,20 @@ static inline size_t leaf_size (const struct sparse_array *);
 static struct leaf_node *find_leaf_node (const struct sparse_array *,
                                          unsigned long int);
 static void decrease_height (struct sparse_array *);
-static void *scan_leaf (struct sparse_array *, struct leaf_node *,
-                        unsigned long int, unsigned long int *);
-static void *do_scan (struct sparse_array *, union pointer *, int,
-                      unsigned long int, unsigned long int *);
+
+static int scan_in_use_forward (struct leaf_node *, unsigned int);
+static void *do_scan_forward (struct sparse_array *, union pointer *, int,
+                              unsigned long int, unsigned long int *);
+static void *scan_forward (const struct sparse_array *,
+                           unsigned long int start,
+                           unsigned long int *found);
+
+static int scan_in_use_reverse (struct leaf_node *, unsigned int);
+static void *do_scan_reverse (struct sparse_array *, union pointer *, int,
+                              unsigned long int, unsigned long int *);
+static void *scan_reverse (const struct sparse_array *,
+                           unsigned long int start,
+                           unsigned long int *found);
 
 /* Creates and returns a new sparse array that will contain
    elements that are ELEM_SIZE bytes in size. */
@@ -355,46 +368,46 @@ sparse_array_remove (struct sparse_array *spar, unsigned long int key)
   return true;
 }
 
-/* Scans SPAR in increasing order of keys for in-use elements.
-   If SKIP is NULL, the scan starts from key 0;
-   otherwise, it starts just after key *SKIP.
-   If an element is found, returns it and stores the element's
-   key into *FOUND; otherwise, returns a null pointer and does
-   not modify *FOUND. */
+/* Returns a pointer to the in-use element with the smallest
+   index and sets *IDXP to its index or, if SPAR has no in-use
+   elements, returns NULL without modifying *IDXP. */
 void *
-sparse_array_scan (const struct sparse_array *spar_, unsigned long int *skip,
-                   unsigned long int *found)
+sparse_array_first (const struct sparse_array *spar, unsigned long int *idxp)
 {
-  struct sparse_array *spar = (struct sparse_array *) spar_;
-  unsigned long int start;
-
-  /* Find our starting point. */
-  if (skip != NULL)
-    {
-      start = *skip + 1;
-      if (start == 0)
-        return NULL;
-    }
-  else
-    start = 0;
-
-  /* Check the cache. */
-  if (start >> BITS_PER_LEVEL == spar->cache_ofs)
-    {
-      void *p = scan_leaf (spar, spar->cache, start, found);
-      if (p)
-        return p;
-      start &= ~LEVEL_MASK;
-      start += PTRS_PER_LEVEL;
-      if (start == 0)
-        return NULL;
-    }
-
-  /* Do the scan. */
-  if (!index_in_range (spar, start))
-    return NULL;
-  return do_scan (spar, &spar->root, spar->height - 1, start, found);
+  return scan_forward (spar, 0, idxp);
 }
+
+/* Returns a pointer to the in-use element with the smallest
+   index greater than SKIP and sets *IDXP to its index or, if
+   SPAR has no in-use elements with index greater than SKIP,
+   returns NULL without modifying *IDXP. */
+void *
+sparse_array_next (const struct sparse_array *spar, unsigned long int skip,
+                   unsigned long int *idxp)
+{
+  return skip < ULONG_MAX ? scan_forward (spar, skip + 1, idxp) : NULL;
+}
+
+/* Returns a pointer to the in-use element with the greatest
+   index and sets *IDXP to its index or, if SPAR has no in-use
+   elements, returns NULL without modifying *IDXP. */
+void *
+sparse_array_last (const struct sparse_array *spar, unsigned long int *idxp)
+{
+  return scan_reverse (spar, ULONG_MAX, idxp);
+}
+
+/* Returns a pointer to the in-use element with the greatest
+   index less than SKIP and sets *IDXP to its index or, if SPAR
+   has no in-use elements with index less than SKIP, returns NULL
+   without modifying *IDXP. */
+void *
+sparse_array_prev (const struct sparse_array *spar, unsigned long int skip,
+                   unsigned long int *idxp)
+{
+  return skip > 0 ? scan_reverse (spar, skip - 1, idxp) : NULL;
+}
+
 
 /* Returns true iff KEY is in the range of keys currently
    represented by SPAR. */
@@ -476,19 +489,63 @@ count_trailing_zeros (unsigned long int x)
 }
 
 /* Returns the least index of the in-use element in LEAF greater
-   than or equal to IDX. */
-static inline int
-scan_in_use (struct leaf_node *leaf, unsigned int idx)
+   than or equal to IDX.  Bits in IDX not in LEVEL_MASK are
+   considered to have value 0. */
+static int
+scan_in_use_forward (struct leaf_node *leaf, unsigned int idx)
 {
-  for (; idx < PTRS_PER_LEVEL; idx = (idx & ~(LONG_BITS - 1)) + LONG_BITS)
+  idx &= LEVEL_MASK;
+  for (; idx < PTRS_PER_LEVEL; idx = (idx & ~LONG_MASK) + LONG_BITS)
     {
       int ofs = idx % LONG_BITS;
       unsigned long int in_use = leaf->in_use[idx / LONG_BITS] >> ofs;
       if (!in_use)
         continue;
-      return count_trailing_zeros (in_use) + idx;
+      return idx + count_trailing_zeros (in_use);
     }
   return -1;
+}
+
+/* Returns the number of leading 0-bits in X.
+   Undefined if X is zero. */
+static inline int
+count_leading_zeros (unsigned long int x)
+{
+#if __GNUC__ >= 4
+  return __builtin_clzl (x);
+#else
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+#if ULONG_MAX >> 31 >> 1
+  x |= x >> 32;
+#endif
+#if ULONG_MAX >> 31 >> 31 >> 2
+  x |= x >> 64;
+#endif
+  return LONG_BITS - count_one_bits_l (x);
+#endif
+}
+
+/* Returns the greatest index of the in-use element in LEAF less
+   than or equal to IDX.  Bits in IDX not in LEVEL_MASK are
+   considered to have value 0. */
+static int
+scan_in_use_reverse (struct leaf_node *leaf, unsigned int idx)
+{
+  idx &= LEVEL_MASK;
+  for (;;)
+    {
+      int ofs = idx % LONG_BITS;
+      unsigned long int in_use = leaf->in_use[idx / LONG_BITS] << (31 - ofs);
+      if (in_use)
+        return idx - count_leading_zeros (in_use);
+      if (idx < LONG_BITS)
+        return -1;
+      idx = (idx | LONG_MASK) - LONG_BITS;
+    }
 }
 
 /* Returns the address of element with the given KEY in LEAF,
@@ -499,6 +556,18 @@ leaf_element (const struct sparse_array *spar, struct leaf_node *leaf,
 {
   key &= LEVEL_MASK;
   return (char *) leaf + SIZEOF_ALIGNED (*leaf) + (spar->elem_size * key);
+}
+
+/* As leaf_element, returns the address of element with the given
+   KEY in LEAF, which is a node in SPAR.  Also, updates SPAR's
+   cache to contain LEAF. */
+static void *
+cache_leaf_element (struct sparse_array *spar, struct leaf_node *leaf,
+                    unsigned long int key)
+{
+  spar->cache = leaf;
+  spar->cache_ofs = key >> BITS_PER_LEVEL;
+  return leaf_element (spar, leaf, key);
 }
 
 /* Returns the size of a leaf node in SPAR. */
@@ -557,36 +626,16 @@ decrease_height (struct sparse_array *spar)
     }
 }
 
-/* Scans leaf node LEAF, which is in SPAR, for the in-use element
-   with the least key greater than or equal to START.  If such an
-   element is found, returns a pointer to it and stores its key
-   in *FOUND; otherwise, returns a null pointer and does not
-   modify *FOUND. */
-static void *
-scan_leaf (struct sparse_array *spar, struct leaf_node *leaf,
-           unsigned long int start, unsigned long int *found)
-{
-  int idx = scan_in_use (leaf, start & LEVEL_MASK);
-  if (idx >= 0)
-    {
-      *found = (start & ~LEVEL_MASK) | idx;
-      spar->cache = leaf;
-      spar->cache_ofs = *found >> BITS_PER_LEVEL;
-      return leaf_element (spar, leaf, idx);
-    }
-
-  return NULL;
-}
-
 /* Scans P, which is at LEVEL and within SPAR, and its subnodes,
    for the in-use element with the least key greater than or
    equal to START.  If such an element is found, returns a
    pointer to it and stores its key in *FOUND; otherwise, returns
    a null pointer and does not modify *FOUND. */
 static inline void *
-scan_internal_node (struct sparse_array *spar, struct internal_node *node,
-                    int level, unsigned long int start,
-                    unsigned long int *found)
+scan_internal_node_forward (struct sparse_array *spar,
+                            struct internal_node *node,
+                            int level, unsigned long int start,
+                            unsigned long int *found)
 {
   int shift = level * BITS_PER_LEVEL;
   int count = node->count;
@@ -597,7 +646,7 @@ scan_internal_node (struct sparse_array *spar, struct internal_node *node,
       union pointer *q = &node->down[i];
       if (level > 1 ? q->internal != NULL : q->leaf != NULL)
         {
-          void *element = do_scan (spar, q, level - 1, start, found);
+          void *element = do_scan_forward (spar, q, level - 1, start, found);
           if (element)
             return element;
           if (--count == 0)
@@ -616,11 +665,133 @@ scan_internal_node (struct sparse_array *spar, struct internal_node *node,
    pointer to it and stores its key in *FOUND; otherwise, returns
    a null pointer and does not modify *FOUND. */
 static void *
-do_scan (struct sparse_array *spar, union pointer *p, int level,
-         unsigned long int start, unsigned long int *found)
+do_scan_forward (struct sparse_array *spar, union pointer *p, int level,
+                 unsigned long int start, unsigned long int *found)
 {
-  return (level == 0
-          ? scan_leaf (spar, p->leaf, start, found)
-          : scan_internal_node (spar, p->internal, level, start, found));
+  if (level == 0)
+    {
+      int idx = scan_in_use_forward (p->leaf, start);
+      if (idx >= 0)
+        {
+          unsigned long int key = *found = (start & ~LEVEL_MASK) | idx;
+          return cache_leaf_element (spar, p->leaf, key);
+        }
+    }
+  return scan_internal_node_forward (spar, p->internal, level, start, found);
 }
 
+static void *
+scan_forward (const struct sparse_array *spar_, unsigned long int start,
+              unsigned long int *found)
+{
+  struct sparse_array *spar = (struct sparse_array *) spar_;
+
+  /* Check the cache. */
+  if (start >> BITS_PER_LEVEL == spar->cache_ofs)
+    {
+      int idx = scan_in_use_forward (spar->cache, start);
+      if (idx >= 0)
+        {
+          *found = (start & ~LEVEL_MASK) | idx;
+          return leaf_element (spar, spar->cache, idx);
+        }
+      start = (start & ~LEVEL_MASK) + PTRS_PER_LEVEL;
+      if (start == 0)
+        return NULL;
+    }
+
+  /* Do the scan. */
+  if (!index_in_range (spar, start))
+    return NULL;
+  return do_scan_forward (spar, &spar->root, spar->height - 1, start, found);
+}
+
+/* Scans P, which is at LEVEL and within SPAR, and its subnodes,
+   for the in-use element with the greatest key less than or
+   equal to START.  If such an element is found, returns a
+   pointer to it and stores its key in *FOUND; otherwise, returns
+   a null pointer and does not modify *FOUND. */
+static inline void *
+scan_internal_node_reverse (struct sparse_array *spar,
+                            struct internal_node *node,
+                            int level, unsigned long int start,
+                            unsigned long int *found)
+{
+  int shift = level * BITS_PER_LEVEL;
+  int count = node->count;
+  int i;
+
+  for (i = (start >> shift) & LEVEL_MASK; i >= 0; i--)
+    {
+      union pointer *q = &node->down[i];
+      if (level > 1 ? q->internal != NULL : q->leaf != NULL)
+        {
+          void *element = do_scan_reverse (spar, q, level - 1, start, found);
+          if (element)
+            return element;
+          if (--count == 0)
+            return NULL;
+        }
+
+      start |= (1ul << shift) - 1;
+      start -= 1ul << shift;
+    }
+  return NULL;
+}
+
+/* Scans P, which is at LEVEL and within SPAR, and its subnodes,
+   for the in-use element with the greatest key less than or
+   equal to START.  If such an element is found, returns a
+   pointer to it and stores its key in *FOUND; otherwise, returns
+   a null pointer and does not modify *FOUND. */
+static void *
+do_scan_reverse (struct sparse_array *spar, union pointer *p, int level,
+                 unsigned long int start, unsigned long int *found)
+{
+  if (level == 0)
+    {
+      int idx = scan_in_use_reverse (p->leaf, start);
+      if (idx >= 0)
+        {
+          unsigned long int key = *found = (start & ~LEVEL_MASK) | idx;
+          return cache_leaf_element (spar, p->leaf, key);
+        }
+      else
+        return NULL;
+    }
+  return scan_internal_node_reverse (spar, p->internal, level, start, found);
+}
+
+static void *
+scan_reverse (const struct sparse_array *spar_, unsigned long int start,
+              unsigned long int *found)
+{
+  struct sparse_array *spar = (struct sparse_array *) spar_;
+
+  /* Check the cache. */
+  if (start >> BITS_PER_LEVEL == spar->cache_ofs)
+    {
+      int idx = scan_in_use_reverse (spar->cache, start);
+      if (idx >= 0)
+        {
+          *found = (start & ~LEVEL_MASK) | idx;
+          return leaf_element (spar, spar->cache, idx);
+        }
+      start |= LEVEL_MASK;
+      if (start < PTRS_PER_LEVEL)
+        return NULL;
+      start -= PTRS_PER_LEVEL;
+    }
+  else
+    {
+      if (spar->height == 0)
+        return NULL;
+      else if (spar->height < MAX_HEIGHT)
+        {
+          unsigned long int max_key;
+          max_key = (1ul << (spar->height * BITS_PER_LEVEL)) - 1;
+          start = MIN (start, max_key);
+        }
+    }
+  return do_scan_reverse (spar, &spar->root, spar->height - 1, start, found);
+}

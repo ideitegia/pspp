@@ -11,6 +11,7 @@ GNULIB_MODULES = \
 	c-ctype \
 	c-strtod \
 	close \
+	count-one-bits \
 	crypto/md4 \
 	dirname \
 	environ \

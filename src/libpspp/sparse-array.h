@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,8 +49,13 @@ void *sparse_array_insert (struct sparse_array *, unsigned long int key);
 void *sparse_array_get (const struct sparse_array *, unsigned long int key);
 bool sparse_array_remove (struct sparse_array *, unsigned long int key);
 
-void *sparse_array_scan (const struct sparse_array *,
-                         unsigned long int *skip,
-                         unsigned long int *key);
+void *sparse_array_first (const struct sparse_array *,
+                          unsigned long int *idxp);
+void *sparse_array_next (const struct sparse_array *,
+                         unsigned long int skip, unsigned long int *idxp);
+void *sparse_array_last (const struct sparse_array *,
+                          unsigned long int *idxp);
+void *sparse_array_prev (const struct sparse_array *,
+                         unsigned long int skip, unsigned long int *idxp);
 
 #endif /* libpspp/sparse-array.h */

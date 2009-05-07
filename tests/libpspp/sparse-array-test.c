@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@
    in sparse-array.c.  This test program aims to be as
    comprehensive as possible.  "gcov -b" should report 100%
    coverage of lines and branches in sparse-array.c when compiled
-   with -DNDEBUG.  "valgrind --leak-check=yes
+   with -DNDEBUG and BITS_PER_LEVEL is greater than the number of
+   bits in a long.  "valgrind --leak-check=yes
    --show-reachable=yes" should give a clean report. */
 
 #ifdef HAVE_CONFIG_H
@@ -164,12 +165,21 @@ check_sparse_array (struct sparse_array *spar,
       check (!sparse_array_remove (spar, order[cnt - 1] + 1));
     }
 
-  for (i = 0, p = sparse_array_scan (spar, NULL, &idx); i < cnt;
-       i++, p = sparse_array_scan (spar, &idx, &idx))
+  for (i = 0, p = sparse_array_first (spar, &idx); i < cnt;
+       i++, p = sparse_array_next (spar, idx, &idx))
     {
       check (p != NULL);
       check (idx == order[i]);
       check (*p == order[i]);
+    }
+  check (p == NULL);
+
+  for (i = 0, p = sparse_array_last (spar, &idx); i < cnt;
+       i++, p = sparse_array_prev (spar, idx, &idx))
+    {
+      check (p != NULL);
+      check (idx == order[cnt - i - 1]);
+      check (*p == order[cnt - i - 1]);
     }
   check (p == NULL);
 

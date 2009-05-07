@@ -80,8 +80,8 @@ sparse_cases_clone (const struct sparse_cases *old)
       struct ccase **cp;
 
       new->memory = sparse_array_create (sizeof (struct ccase *));
-      for (cp = sparse_array_scan (old->memory, NULL, &idx); cp != NULL;
-           cp = sparse_array_scan (old->memory, &idx, &idx))
+      for (cp = sparse_array_first (old->memory, &idx); cp != NULL;
+           cp = sparse_array_next (old->memory, idx, &idx))
         {
           struct ccase **ncp = sparse_array_insert (new->memory, idx);
           *ncp = case_ref (*cp);
@@ -133,8 +133,8 @@ sparse_cases_destroy (struct sparse_cases *sc)
         {
           unsigned long int idx;
           struct ccase **cp;
-          for (cp = sparse_array_scan (sc->memory, NULL, &idx); cp != NULL;
-               cp = sparse_array_scan (sc->memory, &idx, &idx))
+          for (cp = sparse_array_first (sc->memory, &idx); cp != NULL;
+               cp = sparse_array_next (sc->memory, idx, &idx))
             case_unref (*cp);
           sparse_array_destroy (sc->memory);
         }
@@ -167,8 +167,8 @@ dump_sparse_cases_to_disk (struct sparse_cases *sc)
   sc->disk = case_tmpfile_create (sc->column_cnt);
   sc->disk_cases = range_set_create ();
 
-  for (cp = sparse_array_scan (sc->memory, NULL, &idx); cp != NULL;
-       cp = sparse_array_scan (sc->memory, &idx, &idx))
+  for (cp = sparse_array_first (sc->memory, &idx); cp != NULL;
+       cp = sparse_array_next (sc->memory, idx, &idx))
     {
       if (!case_tmpfile_put_case (sc->disk, idx, *cp))
         {
@@ -324,8 +324,8 @@ sparse_cases_write_columns (struct sparse_cases *sc, size_t start_column,
       struct ccase **cp;
       unsigned long int idx;
 
-      for (cp = sparse_array_scan (sc->memory, NULL, &idx); cp != NULL;
-           cp = sparse_array_scan (sc->memory, &idx, &idx))
+      for (cp = sparse_array_first (sc->memory, &idx); cp != NULL;
+           cp = sparse_array_next (sc->memory, idx, &idx))
         {
           *cp = case_unshare (*cp);
           case_copy_in (*cp, start_column, values, value_cnt);
