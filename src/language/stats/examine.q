@@ -1005,8 +1005,8 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 		metric->quartiles[2] = metric->ptl[i];
 	    }
 
-	  metric->tukey_hinges = tukey_hinges_create (metric->n, metric->cmin);
-	  metric->trimmed_mean = trimmed_mean_create (metric->n, 0.05);
+	  metric->tukey_hinges = tukey_hinges_create (metric->n_valid, metric->cmin);
+	  metric->trimmed_mean = trimmed_mean_create (metric->n_valid, 0.05);
 
 	  n_os = metric->n_ptiles + 2;
 
