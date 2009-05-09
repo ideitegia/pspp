@@ -43,12 +43,12 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
   char **v;
   size_t nv;
 
-  /* Format spec for variables to create.  f.type==-1 if default is to
-     be used. */
-  struct fmt_spec f;
-
   do
     {
+      /* Format spec for variables to create.  f.type==-1 if default is to
+	 be used. */
+      struct fmt_spec f;
+
       if (!parse_DATA_LIST_vars (lexer, &v, &nv, PV_NONE))
 	return CMD_FAILURE;
 
@@ -57,6 +57,10 @@ cmd_numeric (struct lexer *lexer, struct dataset *ds)
 	{
 	  if (!parse_format_specifier (lexer, &f))
 	    goto fail;
+
+	  if ( ! fmt_check_output (&f))
+	    goto fail;
+
 	  if (fmt_is_string (f.type))
 	    {
               char str[FMT_STRING_LEN_MAX + 1];
