@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
+#include <gl/xalloc.h>
 #include <gtk/gtk.h>
 #include "psppire.h"
 #include "progname.h"
@@ -130,6 +131,15 @@ run_inner_loop (gpointer data)
 }
 
 
+static GMemVTable vtable =
+  {
+    xmalloc,
+    xrealloc,
+    free,
+    xcalloc,
+    malloc,
+    realloc
+  };
 
 int
 main (int argc, char *argv[])
@@ -142,7 +152,10 @@ main (int argc, char *argv[])
 
   set_program_name (argv[0]);
 
+  g_mem_set_vtable (&vtable);
+
   gtk_disable_setlocale ();
+
 
   if ( ! gtk_parse_args (&argc, &argv) )
     {
