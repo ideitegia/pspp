@@ -484,10 +484,19 @@ psppire_var_store_set_string (PsppireSheetModel *model,
       break;
     case PSPPIRE_VAR_STORE_COL_WIDTH:
       {
-	int width = atoi (text);
-	if ( ! text) return FALSE;
+	const int width = atoi (text);
+	if ( ! text)
+	  return FALSE;
+
+	if (width < 0)
+	  return FALSE;
+
 	if ( var_is_alpha (pv))
+	  {
+	    if ( width > MAX_STRING )
+	      return FALSE;
 	    var_set_width (pv, width);
+	  }
 	else
 	  {
             bool for_input
