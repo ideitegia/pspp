@@ -348,9 +348,7 @@ is present, the VARIABLES subcommand must precede the TABLES
 subcommand.
 
 In general mode, numeric and string variables may be specified on
-TABLES.  Although long string variables are allowed, only their
-initial short-string parts are used.  In integer mode, only numeric
-variables are allowed.
+TABLES.  In integer mode, only numeric variables are allowed.
 
 The MISSING subcommand determines the handling of user-missing values.
 When set to TABLE, the default, missing values are dropped on a table by

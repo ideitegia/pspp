@@ -45,6 +45,7 @@
 #include <libpspp/str.h>
 #include <libpspp/version.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -172,7 +173,7 @@ pfm_open_writer (struct file_handle *fh, struct dictionary *dict,
   buf_write (w, "F", 1);
   if (ferror (w->file))
     goto error;
-  return casewriter_create (dict_get_next_value_idx (dict),
+  return casewriter_create (dict_get_proto (dict),
                             &por_file_casewriter_class, w);
 
 error:
@@ -308,7 +309,7 @@ write_format (struct pfm_writer *w, struct fmt_spec f, int width)
 
 /* Write value V for variable VV to file H. */
 static void
-write_value (struct pfm_writer *w, union value *v, struct variable *vv)
+write_value (struct pfm_writer *w, const union value *v, struct variable *vv)
 {
   if (var_is_numeric (vv))
     write_float (w, v->f);
@@ -316,7 +317,7 @@ write_value (struct pfm_writer *w, union value *v, struct variable *vv)
     {
       int width = MIN (var_get_width (vv), MAX_POR_WIDTH);
       write_int (w, width);
-      buf_write (w, v->s, width);
+      buf_write (w, value_str (v, width), width);
     }
 }
 
@@ -398,12 +399,12 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
 
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
-      struct val_labs_iterator *j;
       struct variable *v = dict_get_var (dict, i);
       const struct val_labs *val_labs = var_get_value_labels (v);
-      struct val_lab *vl;
+      size_t n_labels = val_labs_count (val_labs);
+      const struct val_lab **labels;
 
-      if (val_labs == NULL)
+      if (n_labels == 0)
 	continue;
 
       buf_write (w, "D", 1);
@@ -411,12 +412,15 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
       write_string (w, var_get_short_name (v, 0));
       write_int (w, val_labs_count (val_labs));
 
-      for (vl = val_labs_first_sorted (val_labs, &j); vl != NULL;
-           vl = val_labs_next (val_labs, &j))
+      n_labels = val_labs_count (val_labs);
+      labels = val_labs_sorted (val_labs);
+      for (i = 0; i < n_labels; i++)
         {
-          write_value (w, &vl->value, v);
-          write_string (w, vl->label);
+          const struct val_lab *vl = labels[i];
+          write_value (w, val_lab_get_value (vl), v);
+          write_string (w, val_lab_get_label (vl));
         }
+      free (labels);
     }
 }
 

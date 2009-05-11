@@ -16,25 +16,26 @@
 
 #include <config.h>
 
+#include <math.h>
+
+#include <data/case.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
+#include <data/dictionary.h>
+#include <data/procedure.h>
+#include <data/variable.h>
+#include <language/command.h>
+#include <libpspp/misc.h>
+#include <math/moments.h>
+#include <output/manager.h>
+#include <output/table.h>
+
 #include "xalloc.h"
 #include "xmalloca.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
-#include <data/variable.h>
-#include <data/dictionary.h>
-#include <data/procedure.h>
-#include <data/casereader.h>
-#include <data/casegrouper.h>
-#include <math/moments.h>
-#include <data/case.h>
-
-#include <language/command.h>
-
-#include <output/manager.h>
-#include <output/table.h>
 
 /* (headers) */
 
@@ -335,7 +336,7 @@ run_reliability (struct casereader *input, struct dataset *ds,
       struct cronbach *s = &rel->sc[si];
 
 
-      s->totals_idx = casereader_get_value_cnt (input);
+      s->totals_idx = caseproto_get_n_widths (casereader_get_proto (input));
       input =
 	casereader_create_append_numeric (input, append_sum,
 					  s, NULL);

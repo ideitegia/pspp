@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <data/value.h>
 #include <data/variable.h>
 #include <libpspp/assertion.h>
+#include <libpspp/misc.h>
 
 #include "minmax.h"
 #include "xalloc.h"
@@ -228,7 +229,8 @@ sfm_dictionary_to_sfm_vars (const struct dictionary *dict,
           if (used_bytes != 0)
             {
               sv = &(*sfm_vars)[(*sfm_var_cnt)++];
-              sv->width = width == 0 ? 0 : used_bytes;
+              sv->var_width = width;
+              sv->segment_width = width == 0 ? 0 : used_bytes;
               sv->case_index = var_get_case_index (dv);
               sv->offset = sfm_segment_offset (width, j);
               sv->padding = padding;
@@ -236,13 +238,11 @@ sfm_dictionary_to_sfm_vars (const struct dictionary *dict,
           else
             {
               /* Segment is all padding.  Just add it to the
-                 previous segment.  (Otherwise we'd have an
-                 ambiguity whether ->width of 0 indicates a
-                 numeric variable or an all-padding segment.) */
+                 previous segment. */
               sv = &(*sfm_vars)[*sfm_var_cnt - 1];
               sv->padding += padding;
             }
-          assert ((sv->width + sv->padding) % 8 == 0);
+          assert ((sv->segment_width + sv->padding) % 8 == 0);
         }
     }
 

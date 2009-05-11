@@ -447,12 +447,8 @@ Numeric or string.
 @item Width
 (string variables only) String variables with a width of 8 characters or
 fewer are called @dfn{short string variables}.  Short string variables
-can be used in many procedures where @dfn{long string variables} (those
+may be used in a few contexts where @dfn{long string variables} (those
 with widths greater than 8) are not allowed.
-
-Certain systems may consider strings longer than 8
-characters to be short strings.  Eight characters represents a minimum
-figure for the maximum length of a short string.
 
 @item Position
 Variables in the dictionary are arranged in a specific order.

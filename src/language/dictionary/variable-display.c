@@ -27,6 +27,7 @@
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 
 #include "gettext.h"

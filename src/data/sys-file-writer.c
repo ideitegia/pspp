@@ -261,8 +261,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
       return NULL;
     }
 
-  return casewriter_create (dict_get_next_value_idx (d),
-                            &sys_file_casewriter_class, w);
+  return casewriter_create (dict_get_proto (d), &sys_file_casewriter_class, w);
 
 error:
   close_writer (w);
@@ -498,26 +497,31 @@ static void
 write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 {
   const struct val_labs *val_labs;
-  struct val_labs_iterator *i;
-  struct val_lab *vl;
+  const struct val_lab **labels;
+  size_t n_labels;
+  size_t i;
 
   val_labs = var_get_value_labels (v);
-  if (val_labs == NULL)
+  n_labels = val_labs_count (val_labs);
+  if (n_labels == 0)
     return;
 
   /* Value label record. */
   write_int (w, 3);             /* Record type. */
   write_int (w, val_labs_count (val_labs));
-  for (vl = val_labs_first_sorted (val_labs, &i); vl != NULL;
-       vl = val_labs_next (val_labs, &i))
+  labels = val_labs_sorted (val_labs);
+  for (i = 0; i < n_labels; i++)
     {
-      uint8_t len = MIN (strlen (vl->label), 255);
+      const struct val_lab *vl = labels[i];
+      const char *label = val_lab_get_label (vl);
+      uint8_t len = MIN (strlen (label), 255);
 
-      write_value (w, &vl->value, var_get_width (v));
+      write_value (w, val_lab_get_value (vl), var_get_width (v));
       write_bytes (w, &len, 1);
-      write_bytes (w, vl->label, len);
+      write_bytes (w, label, len);
       write_zeros (w, REM_RND_UP (len + 1, 8));
     }
+  free (labels);
 
   /* Value label variable record. */
   write_int (w, 4);             /* Record type. */
@@ -868,12 +872,12 @@ write_case_uncompressed (struct sfm_writer *w, const struct ccase *c)
     {
       struct sfm_var *v = &w->sfm_vars[i];
 
-      if (v->width == 0)
+      if (v->var_width == 0)
         write_float (w, case_num_idx (c, v->case_index));
       else
         {
           write_bytes (w, case_str_idx (c, v->case_index) + v->offset,
-                       v->width);
+                       v->segment_width);
           write_spaces (w, v->padding);
         }
     }
@@ -889,7 +893,7 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
     {
       struct sfm_var *v = &w->sfm_vars[i];
 
-      if (v->width == 0)
+      if (v->var_width == 0)
         {
           double d = case_num_idx (c, v->case_index);
           if (d == SYSMIS)
@@ -913,7 +917,7 @@ write_case_compressed (struct sfm_writer *w, const struct ccase *c)
              multiple of 8, by ensuring that the final partial
              oct (8 byte unit) is treated as padded with spaces
              on the right. */
-          for (width = v->width; width > 0; width -= 8, offset += 8)
+          for (width = v->segment_width; width > 0; width -= 8, offset += 8)
             {
               const void *data = case_str_idx (c, v->case_index) + offset;
               int chunk_size = MIN (width, 8);
@@ -1036,7 +1040,7 @@ write_value (struct sfm_writer *w, const union value *value, int width)
     write_float (w, value->f);
   else
     {
-      write_bytes (w, value->s, width);
+      write_bytes (w, value_str (value, width), width);
       write_zeros (w, 8 - width);
     }
 }

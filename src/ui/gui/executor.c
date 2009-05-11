@@ -45,7 +45,7 @@ execute_syntax (struct getl_interface *sss)
   gboolean retval = TRUE;
 
   struct casereader *reader;
-  size_t value_cnt;
+  const struct caseproto *proto;
   casenumber case_cnt;
   unsigned long int lazy_serial;
 
@@ -62,9 +62,9 @@ execute_syntax (struct getl_interface *sss)
      needed.  If the data store casereader is never needed, then
      it is reused the next time syntax is run, without wrapping
      it in another layer. */
-  value_cnt = psppire_data_store_get_value_count (the_data_store);
+  proto = psppire_data_store_get_proto (the_data_store);
   case_cnt = psppire_data_store_get_case_count (the_data_store);
-  reader = lazy_casereader_create (value_cnt, case_cnt,
+  reader = lazy_casereader_create (proto, case_cnt,
                                    create_casereader_from_data_store,
                                    the_data_store, &lazy_serial);
   proc_set_active_file_data (the_dataset, reader);

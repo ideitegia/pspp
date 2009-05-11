@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -147,6 +147,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
     {
       union value value;
       struct string label;
+      int width;
       size_t i;
 
       /* Set value. */
@@ -157,7 +158,10 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
               lex_error (lexer, _("expecting string"));
 	      return 0;
 	    }
-	  buf_copy_str_rpad (value.s, MAX_SHORT_STRING, ds_cstr (lex_tokstr (lexer)));
+          width = MAX_SHORT_STRING;
+          value_init (&value, width);
+	  buf_copy_str_rpad (value_str_rw (&value, width), width,
+                             ds_cstr (lex_tokstr (lexer)), ' ');
 	}
       else
 	{
@@ -166,6 +170,8 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
 	      lex_error (lexer, _("expecting number"));
 	      return 0;
 	    }
+          width = 0;
+          value_init (&value, width);
 	  value.f = lex_tokval (lexer);
 	}
       lex_get (lexer);
@@ -173,7 +179,10 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
 
       /* Set label. */
       if (!lex_force_string (lexer))
-	return 0;
+        {
+          value_destroy (&value, width);
+          return 0;
+        }
 
       ds_init_string (&label, lex_tokstr (lexer));
 
@@ -187,6 +196,7 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
         var_replace_value_label (vars[i], &value, ds_cstr (&label));
 
       ds_destroy (&label);
+      value_destroy (&value, width);
 
       lex_get (lexer);
       lex_match (lexer, ',');

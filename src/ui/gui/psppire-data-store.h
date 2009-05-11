@@ -123,7 +123,7 @@ gboolean psppire_data_store_filtered (PsppireDataStore *ds,
 
 casenumber psppire_data_store_get_case_count (const PsppireDataStore *ds);
 size_t psppire_data_store_get_value_count (const PsppireDataStore *ds);
-
+const struct caseproto *psppire_data_store_get_proto (const PsppireDataStore *);
 
 
 

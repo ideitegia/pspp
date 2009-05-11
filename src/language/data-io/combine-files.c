@@ -289,7 +289,7 @@ combine_files (enum comb_command_type command,
               struct comb_file *file = &proc.files[i];
               size_t j;
 
-              for (j = 0; j < subcase_get_n_values (&proc.by_vars); j++)
+              for (j = 0; j < subcase_get_n_fields (&proc.by_vars); j++)
                 {
                   const char *name = var_get_name (by_vars[j]);
                   struct variable *var = dict_lookup_var (file->dict, name);
@@ -423,7 +423,7 @@ combine_files (enum comb_command_type command,
         }
     }
 
-  proc.output = autopaging_writer_create (dict_get_next_value_idx (proc.dict));
+  proc.output = autopaging_writer_create (dict_get_proto (proc.dict));
   taint = taint_clone (casewriter_get_taint (proc.output));
 
   /* Set up case matcher. */
@@ -640,9 +640,14 @@ free_comb_proc (struct comb_proc *proc)
   dict_destroy (proc->dict);
   casewriter_destroy (proc->output);
   case_matcher_destroy (proc->matcher);
+  if (proc->prev_BY)
+    {
+      caseproto_destroy_values (subcase_get_proto (&proc->by_vars),
+                                proc->prev_BY);
+      free (proc->prev_BY);
+    }
   subcase_destroy (&proc->by_vars);
   case_unref (proc->buffered_case);
-  free (proc->prev_BY);
 }
 
 static bool scan_table (struct comb_file *, union value by[]);
@@ -789,7 +794,7 @@ create_output_case (const struct comb_proc *proc)
   struct ccase *output;
   size_t i;
 
-  output = case_create (dict_get_next_value_idx (proc->dict));
+  output = case_create (dict_get_proto (proc->dict));
   for (i = 0; i < n_vars; i++)
     {
       struct variable *v = dict_get_var (proc->dict, i);
@@ -861,11 +866,15 @@ output_case (struct comb_proc *proc, struct ccase *output, union value by[])
 
       if (new_BY)
         {
-          size_t n = (subcase_get_n_values (&proc->by_vars)
-                      * sizeof (union value));
+          size_t n_values = subcase_get_n_fields (&proc->by_vars);
+          const struct caseproto *proto = subcase_get_proto (&proc->by_vars);
           if (proc->prev_BY == NULL)
-            proc->prev_BY = xmalloc (n);
-          memcpy (proc->prev_BY, by, n);
+            {
+              proc->prev_BY = xmalloc (n_values * sizeof *proc->prev_BY);
+              caseproto_init_values (proto, proc->prev_BY);
+            }
+          caseproto_copy (subcase_get_proto (&proc->by_vars), 0, n_values,
+                          proc->prev_BY, by);
         }
     }
 }

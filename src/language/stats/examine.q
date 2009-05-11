@@ -143,7 +143,7 @@ struct factor_result
 {
   struct ll ll;
 
-  union value *value[2];
+  union value value[2];
 
   /* An array of factor metrics, one for each variable */
   struct factor_metrics *metrics;
@@ -171,6 +171,7 @@ factor_destroy (struct xfactor *fctr)
       int v;
       struct factor_result *result =
 	ll_data (ll, struct factor_result, ll);
+      int i;
 
       for (v = 0; v < n_dependent_vars; ++v)
 	{
@@ -189,8 +190,10 @@ factor_destroy (struct xfactor *fctr)
 	  casereader_destroy (result->metrics[v].up_reader);
 	}
 
-      free (result->value[0]);
-      free (result->value[1]);
+      for (i = 0; i < 2; i++)
+        if (fctr->indep_var[i])
+          value_destroy (&result->value[i],
+                         var_get_width (fctr->indep_var[i]));
       free (result->metrics);
       ll = ll_next (ll);
       free (result);
@@ -600,7 +603,7 @@ show_boxplot_variables (const struct variable **dependent_var,
 
 #if 0
       ds_put_format (&title, "%s = ", var_get_name (fctr->indep_var[0]));
-      var_append_value_name (fctr->indep_var[0], result->value[0], &title);
+      var_append_value_name (fctr->indep_var[0], &result->value[0], &title);
 #endif
 
       chart_write_title (ch, ds_cstr (&title));
@@ -877,6 +880,11 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
   int v;
   int n_extrema = 1;
   struct factor_result *result = xzalloc (sizeof (*result));
+  int i;
+
+  for (i = 0; i < 2; i++)
+    if (factor->indep_var[i])
+      value_init (&result->value[i], var_get_width (factor->indep_var[i]));
 
   result->metrics = xcalloc (n_dependent_vars, sizeof (*result->metrics));
 
@@ -888,16 +896,10 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
   if (c != NULL)
     {
       if ( level > 0)
-	{
-	  result->value[0] =
-	    value_dup (case_data (c, factor->indep_var[0]),
-		       var_get_width (factor->indep_var[0]));
-
-	  if ( level > 1)
-	    result->value[1] =
-	      value_dup (case_data (c, factor->indep_var[1]),
-			 var_get_width (factor->indep_var[1]));
-	}
+        for (i = 0; i < 2; i++)
+          if (factor->indep_var[i])
+            value_copy (&result->value[i], case_data (c, factor->indep_var[i]),
+                        var_get_width (factor->indep_var[i]));
       case_unref (c);
     }
 
@@ -921,7 +923,7 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	  struct subcase up_ordering;
           subcase_init_var (&up_ordering, dependent_vars[v], SC_ASCEND);
 	  writer = sort_create_writer (&up_ordering,
-				       casereader_get_value_cnt (reader));
+				       casereader_get_proto (reader));
           subcase_destroy (&up_ordering);
 	}
       else
@@ -929,15 +931,15 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	  /* but in this case, sorting is unnecessary, so an ordinary
 	     casewriter is sufficient */
 	  writer =
-	    autopaging_writer_create (casereader_get_value_cnt (reader));
+	    autopaging_writer_create (casereader_get_proto (reader));
 	}
 
 
       /* Sort or just iterate, whilst calculating moments etc */
       while ((c = casereader_read (input)) != NULL)
 	{
-	  const casenumber loc =
-	      case_data_idx (c, casereader_get_value_cnt (reader) - 1)->f;
+          int n_vals = caseproto_get_n_widths (casereader_get_proto (reader));
+	  const casenumber loc = case_data_idx (c, n_vals - 1)->f;
 
 	  const double weight = wv ? case_data (c, wv)->f : 1.0;
 	  const union value *value = case_data (c, dependent_vars[v]);
@@ -1092,12 +1094,12 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
       for (v = 0; v < n_dependent_vars; ++v)
 	{
 	  struct factor_metrics *metric = &result->metrics[v];
+          int n_vals = caseproto_get_n_widths (casereader_get_proto (
+                                                 metric->up_reader));
 
 	  metric->box_whisker =
 	    box_whisker_create ((struct tukey_hinges *) metric->tukey_hinges,
-				cmd->v_id,
-				casereader_get_value_cnt (metric->up_reader)
-				- 1);
+				cmd->v_id, n_vals - 1);
 
 	  order_stats_accumulate ((struct order_stats **) &metric->box_whisker,
 				  1,
@@ -1318,7 +1320,7 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
     {
       int j = 0;
       struct ll *ll;
-      union value *last_value = NULL;
+      const union value *last_value = NULL;
 
       if ( v > 0 )
 	tab_hline (tbl, TAL_1, 0, n_cols -1 ,
@@ -1344,15 +1346,15 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 	    {
 
 	      if ( last_value == NULL ||
-		   compare_values_short (last_value, result->value[0],
-                                         fctr->indep_var[0]))
+		   !value_equal (last_value, &result->value[0],
+                                 var_get_width (fctr->indep_var[0])))
 		{
 		  struct string str;
 
-		  last_value = result->value[0];
+		  last_value = &result->value[0];
 		  ds_init_empty (&str);
 
-		  var_append_value_name (fctr->indep_var[0], result->value[0],
+		  var_append_value_name (fctr->indep_var[0], &result->value[0],
 					 &str);
 
 		  tab_text (tbl, 1,
@@ -1376,7 +1378,7 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		  ds_init_empty (&str);
 
 		  var_append_value_name (fctr->indep_var[1],
-					 result->value[1], &str);
+					 &result->value[1], &str);
 
 		  tab_text (tbl, 2,
 			    heading_rows + j +
@@ -1539,7 +1541,7 @@ show_descriptives (const struct variable **dependent_var,
 	      struct string vstr;
 	      ds_init_empty (&vstr);
 	      var_append_value_name (fctr->indep_var[0],
-				     result->value[0], &vstr);
+				     &result->value[0], &vstr);
 
 	      tab_text (tbl, 1,
 			heading_rows + row_var_start + i * DESCRIPTIVE_ROWS,
@@ -1920,7 +1922,7 @@ show_extremes (const struct variable **dependent_var,
 	      struct string vstr;
 	      ds_init_empty (&vstr);
 	      var_append_value_name (fctr->indep_var[0],
-				     result->value[0], &vstr);
+				     &result->value[0], &vstr);
 
 	      tab_text (tbl, 1,
 			heading_rows + row_var_start + row_result_start,
@@ -2052,7 +2054,7 @@ show_percentiles (const struct variable **dependent_var,
 	      struct string vstr;
 	      ds_init_empty (&vstr);
 	      var_append_value_name (fctr->indep_var[0],
-				     result->value[0], &vstr);
+				     &result->value[0], &vstr);
 
 	      tab_text (tbl, 1,
 			heading_rows + row_var_start + i * PERCENTILE_ROWS,
@@ -2155,13 +2157,13 @@ factor_to_string_concise (const struct xfactor *fctr,
 {
   if (fctr->indep_var[0])
     {
-      var_append_value_name (fctr->indep_var[0], result->value[0], str);
+      var_append_value_name (fctr->indep_var[0], &result->value[0], str);
 
       if ( fctr->indep_var[1] )
 	{
 	  ds_put_cstr (str, ",");
 
-	  var_append_value_name (fctr->indep_var[1], result->value[1], str);
+	  var_append_value_name (fctr->indep_var[1], &result->value[1], str);
 
 	  ds_put_cstr (str, ")");
 	}
@@ -2179,14 +2181,14 @@ factor_to_string (const struct xfactor *fctr,
     {
       ds_put_format (str, "(%s = ", var_get_name (fctr->indep_var[0]));
 
-      var_append_value_name (fctr->indep_var[0], result->value[0], str);
+      var_append_value_name (fctr->indep_var[0], &result->value[0], str);
 
       if ( fctr->indep_var[1] )
 	{
 	  ds_put_cstr (str, ",");
 	  ds_put_format (str, "%s = ", var_get_name (fctr->indep_var[1]));
 
-	  var_append_value_name (fctr->indep_var[1], result->value[1], str);
+	  var_append_value_name (fctr->indep_var[1], &result->value[1], str);
 	}
       ds_put_cstr (str, ")");
     }

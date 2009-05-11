@@ -77,7 +77,7 @@ const struct taint *casereader_get_taint (const struct casereader *);
 
 casenumber casereader_get_case_cnt (struct casereader *);
 casenumber casereader_count_cases (struct casereader *);
-size_t casereader_get_value_cnt (struct casereader *);
+const struct caseproto *casereader_get_proto (const struct casereader *);
 
 void casereader_transfer (struct casereader *, struct casewriter *);
 
@@ -105,7 +105,8 @@ casereader_create_counter (struct casereader *, casenumber *counter,
                            casenumber initial_value);
 
 struct casereader *
-casereader_create_translator (struct casereader *, size_t output_value_cnt,
+casereader_create_translator (struct casereader *,
+                              const struct caseproto *output_proto,
                               struct ccase *(*translate) (struct ccase *,
                                                           void *aux),
                               bool (*destroy) (void *aux),

@@ -113,8 +113,9 @@ scalar_to_value (union value *val, SV *scalar, const struct variable *var)
     {
 	STRLEN len;
 	const char *p = SvPV (scalar, len);
-	memset (val->s, ' ', var_get_width (var));
-	memcpy (val->s, p, len);
+	int width = var_get_width (var);
+	value_set_missing (val, width);
+	memcpy (value_str_rw (val, width), p, len);
     }
 }
 
@@ -130,7 +131,10 @@ value_to_scalar (const union value *val, const struct variable *var)
       return newSVnv (val->f);
     }
   else
-    return newSVpvn (val->s, var_get_width (var));
+    {
+      int width = var_get_width (var);
+      return newSVpvn (value_str (val, width), width);
+    }
 }
 
 
@@ -142,12 +146,11 @@ var_set_input_format (struct variable *v, input_format ip_fmt)
   var_attach_aux (v, if_copy, var_dtor_free);
 }
 
-static union value *
-make_value_from_scalar (SV *val, const struct variable *var)
+static void
+make_value_from_scalar (union value *uv, SV *val, const struct variable *var)
 {
- union value *uv = value_create (var_get_width (var));
+ value_init (uv, var_get_width (var));
  scalar_to_value (uv, val, var);
- return uv;
 }
 
 
@@ -171,12 +174,13 @@ format_value (val, var)
 CODE:
  SV *ret;
  const struct fmt_spec *fmt = var_get_print_format (var);
- union value *uv = make_value_from_scalar (val, var);
+ union value uv;
  char *s;
+ make_value_from_scalar (&uv, val, var);
  s = malloc (fmt->w);
  memset (s, '\0', fmt->w);
- data_out (uv, fmt, s);
- free (uv);
+ data_out (&uv, fmt, s);
+ value_destroy (&uv, var_get_width (var));
  ret = newSVpv (s, fmt->w);
  free (s);
  RETVAL = ret;
@@ -189,9 +193,11 @@ value_is_missing (val, var)
  SV *val
  struct variable *var
 CODE:
- union value *uv = make_value_from_scalar (val, var);
- int ret = var_is_value_missing (var, uv, MV_ANY);
- free (uv);
+ union value uv;
+ int ret;
+ make_value_from_scalar (&uv, val, var);
+ ret = var_is_value_missing (var, &uv, MV_ANY);
+ value_destroy (&uv, var_get_width (var));
  RETVAL = ret;
  OUTPUT:
 RETVAL
@@ -415,7 +421,7 @@ CODE:
       sv_setpv (errstr, "Cannot add label to a long string variable");
       XSRETURN_IV (0);
      }
-  strncpy (the_value.s, SvPV_nolen(key), MAX_SHORT_STRING);
+  strncpy (the_value.short_string, SvPV_nolen(key), MAX_SHORT_STRING);
  }
  if (! var_add_value_label (var, &the_value, label) )
  {
@@ -486,20 +492,20 @@ get_value_labels (var)
  struct variable *var
 CODE:
  HV *labelhash = (HV *) sv_2mortal ((SV *) newHV());
- struct val_lab *vl;
+ const struct val_lab *vl;
  struct val_labs_iterator *viter = NULL;
  const struct val_labs *labels = var_get_value_labels (var);
 
  if ( labels )
    {
-     for (vl = val_labs_first (labels, &viter);
+     for (vl = val_labs_first (labels);
 	  vl;
-	  vl = val_labs_next (labels, &viter))
+	  vl = val_labs_next (labels, vl))
        {
 	 SV *sv = value_to_scalar (&vl->value, var);
 	 STRLEN len;
 	 const char *s = SvPV (sv, len);
-	 hv_store (labelhash, s, len, newSVpv (vl->label, 0), 0);
+	 hv_store (labelhash, s, len, newSVpv (val_lab_get_label (vl), 0), 0);
        }
    }
 
@@ -589,7 +595,7 @@ CODE:
  if ( av_len (av_case) >= dict_get_var_cnt (sfi->dict))
    XSRETURN_UNDEF;
 
- c =  case_create (dict_get_next_value_idx (sfi->dict));
+ c =  case_create (dict_get_proto (sfi->dict));
 
  dict_get_vars (sfi->dict, &vv, &nv, 1u << DC_ORDINARY | 1u << DC_SYSTEM);
 
@@ -623,10 +629,7 @@ CODE:
  {
    const struct variable *v = vv[i++];
    union value *val = case_data_rw (c, v);
-   if ( var_is_numeric (v))
-	val->f = SYSMIS;
-   else
-	memset (val->s, ' ', var_get_width (v));
+   value_set_missing (val, var_get_width (v));
  }
  RETVAL = casewriter_write (sfi->writer, c);
  finish:

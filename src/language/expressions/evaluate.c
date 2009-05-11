@@ -15,13 +15,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "private.h"
+#include "evaluate.h"
 
 #include <ctype.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
-#include "helpers.h"
-#include "evaluate.h"
+#include <language/expressions/helpers.h>
+#include <language/expressions/private.h>
 #include <libpspp/pool.h>
 
 #include "xalloc.h"
@@ -98,7 +98,7 @@ expr_evaluate_str (struct expression *e, const struct ccase *c, int case_idx,
   assert ((dst == NULL) == (dst_size == 0));
   expr_evaluate (e, c, case_idx, &s);
 
-  buf_copy_rpad (dst, dst_size, s.string, s.length);
+  buf_copy_rpad (dst, dst_size, s.string, s.length, ' ');
 }
 
 #include <language/lexer/lexer.h>
@@ -170,14 +170,14 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
             }
 
           if (c == NULL)
-            c = case_create (dict_get_next_value_idx (d));
+            c = case_create (dict_get_proto (d));
           else
-            c = case_resize (c, dict_get_next_value_idx (d));
+            c = case_unshare_and_resize (c, dict_get_proto (d));
 
           if (lex_is_number (lexer))
             case_data_rw (c, v)->f = lex_tokval (lexer);
           else
-            memcpy (case_data_rw (c, v)->s, ds_data (lex_tokstr (lexer)),
+            memcpy (case_str_rw (c, v), ds_data (lex_tokstr (lexer)),
                     var_get_width (v));
           lex_get (lexer);
 

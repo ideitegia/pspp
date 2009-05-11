@@ -43,8 +43,8 @@ static const struct casereader_class lazy_casereader_class;
    to a "serial number" that uniquely identifies the new lazy
    casereader, for use with lazy_casereader_destroy.
 
-   VALUE_CNT must be the number of struct values per case read
-   from the casereader.
+   PROTO must be the format of the cases to be read from the
+   casereader.
 
    CASE_CNT is an upper limit on the number of cases that
    casereader_read will return from the casereader in successive
@@ -52,7 +52,7 @@ static const struct casereader_class lazy_casereader_class;
    data source or CASENUMBER_MAX if the number of cases cannot be
    predicted in advance. */
 struct casereader *
-lazy_casereader_create (size_t value_cnt, casenumber case_cnt,
+lazy_casereader_create (const struct caseproto *proto, casenumber case_cnt,
                         struct casereader *(*callback) (void *aux), void *aux,
                         unsigned long int *serial)
 {
@@ -63,7 +63,7 @@ lazy_casereader_create (size_t value_cnt, casenumber case_cnt,
   *serial = lc->serial = next_serial++;
   lc->callback = callback;
   lc->aux = aux;
-  return casereader_create_sequential (NULL, value_cnt, case_cnt,
+  return casereader_create_sequential (NULL, proto, case_cnt,
                                        &lazy_casereader_class, lc);
 }
 

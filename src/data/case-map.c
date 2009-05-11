@@ -33,43 +33,41 @@
 /* A case map. */
 struct case_map
   {
-    size_t value_cnt;   /* Number of values in map. */
-    int *map;           /* For each destination index, the
-                           corresponding source index. */
+    struct caseproto *proto;   /* Prototype for output cases. */
+    int *map;                  /* For each destination index, the
+                                  corresponding source index. */
   };
 
 static struct ccase *translate_case (struct ccase *, void *map_);
 static bool destroy_case_map (void *map_);
 
-/* Creates and returns an empty map. */
+/* Creates and returns an empty map that outputs cases matching
+   PROTO. */
 static struct case_map *
-create_case_map (size_t n)
+create_case_map (const struct caseproto *proto)
 {
+  size_t n_values = caseproto_get_n_widths (proto);
   struct case_map *map;
   size_t i;
 
   map = xmalloc (sizeof *map);
-  map->value_cnt = n;
-  map->map = xnmalloc (n, sizeof *map->map);
-  for (i = 0; i < map->value_cnt; i++)
+  map->proto = caseproto_ref (proto);
+  map->map = xnmalloc (n_values, sizeof *map->map);
+  for (i = 0; i < n_values; i++)
     map->map[i] = -1;
 
   return map;
 }
 
-/* Inserts into MAP a mapping of the CNT values starting at FROM
-   to the CNT values starting at TO. */
+/* Inserts into MAP a mapping of the value at index FROM in the
+   source case to the value at index TO in the destination
+   case. */
 static void
-insert_mapping (struct case_map *map, size_t from, size_t to, size_t cnt)
+insert_mapping (struct case_map *map, size_t from, size_t to)
 {
-  size_t i;
-
-  assert (to + cnt <= map->value_cnt);
-  for (i = 0; i < cnt; i++)
-    {
-      assert (map->map[to + i] == -1);
-      map->map[to + i] = from + i;
-    }
+  assert (to < caseproto_get_n_widths (map->proto));
+  assert (map->map[to] == -1);
+  map->map[to] = from;
 }
 
 /* Destroys case map MAP. */
@@ -78,6 +76,7 @@ case_map_destroy (struct case_map *map)
 {
   if (map != NULL)
     {
+      caseproto_unref (map->proto);
       free (map->map);
       free (map);
     }
@@ -92,11 +91,12 @@ case_map_execute (const struct case_map *map, struct ccase *src)
 {
   if (map != NULL)
     {
+      size_t n_values = caseproto_get_n_widths (map->proto);
       struct ccase *dst;
       size_t dst_idx;
 
-      dst = case_create (map->value_cnt);
-      for (dst_idx = 0; dst_idx < map->value_cnt; dst_idx++)
+      dst = case_create (map->proto);
+      for (dst_idx = 0; dst_idx < n_values; dst_idx++)
         {
           int src_idx = map->map[dst_idx];
           if (src_idx != -1)
@@ -109,12 +109,12 @@ case_map_execute (const struct case_map *map, struct ccase *src)
     return src;
 }
 
-/* Returns the number of `union value's in cases created by
-   MAP. */
-size_t
-case_map_get_value_cnt (const struct case_map *map)
+/* Returns the prototype for output cases created by MAP.  The
+   caller must not unref the returned case prototype. */
+const struct caseproto *
+case_map_get_proto (const struct case_map *map)
 {
-  return map->value_cnt;
+  return map->proto;
 }
 
 /* Creates and returns a new casereader whose cases are produced
@@ -130,7 +130,7 @@ case_map_create_input_translator (struct case_map *map,
                                   struct casereader *subreader) 
 {
     return casereader_create_translator (subreader,
-                                         case_map_get_value_cnt (map),
+                                         case_map_get_proto (map),
                                          translate_case,
                                          destroy_case_map,
                                          map);
@@ -150,7 +150,7 @@ case_map_create_output_translator (struct case_map *map,
                                    struct casewriter *subwriter) 
 {
     return casewriter_create_translator (subwriter,
-                                         case_map_get_value_cnt (map),
+                                         case_map_get_proto (map),
                                          translate_case,
                                          destroy_case_map,
                                          map);
@@ -187,31 +187,25 @@ struct case_map *
 case_map_to_compact_dict (const struct dictionary *d,
                           unsigned int exclude_classes)
 {
-  size_t var_cnt;
+  size_t n_vars = dict_get_var_cnt (d);
+  struct caseproto *proto;
   struct case_map *map;
-  size_t value_idx;
+  size_t n_values;
   size_t i;
 
-  assert ((exclude_classes & ~((1u << DC_ORDINARY)
-                               | (1u << DC_SYSTEM)
-                               | (1u << DC_SCRATCH))) == 0);
+  /* Create the case mapping. */
+  proto = dict_get_compacted_proto (d, exclude_classes);
+  map = create_case_map (proto);
+  caseproto_unref (proto);
 
-  map = create_case_map (dict_count_values (d, exclude_classes));
-  var_cnt = dict_get_var_cnt (d);
-  value_idx = 0;
-  for (i = 0; i < var_cnt; i++)
+  /* Add the values to the case mapping. */
+  n_values = 0;
+  for (i = 0; i < n_vars; i++)
     {
       struct variable *v = dict_get_var (d, i);
-      enum dict_class class = dict_class_from_id (var_get_name (v));
-
-      if (!(exclude_classes & (1u << class)))
-        {
-          size_t value_cnt = var_get_value_cnt (v);
-          insert_mapping (map, var_get_case_index (v), value_idx, value_cnt);
-          value_idx += value_cnt;
-        }
+      if (!(exclude_classes & (1u << var_get_dict_class (v))))
+        insert_mapping (map, var_get_case_index (v), n_values++);
     }
-  assert (value_idx == map->value_cnt);
 
   return map;
 }
@@ -250,20 +244,20 @@ case_map_from_dict (const struct dictionary *d)
 {
   struct case_map *map;
   size_t var_cnt = dict_get_var_cnt (d);
+  size_t n_values;
   size_t i;
   bool identity_map = true;
 
-  map = create_case_map (dict_get_next_value_idx (d));
+  map = create_case_map (dict_get_proto (d));
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
-      size_t value_cnt = var_get_value_cnt (v);
-      int *src_fv = (int *) var_detach_aux (v);
+      int *src_fv = var_detach_aux (v);
 
       if (var_get_case_index (v) != *src_fv)
         identity_map = false;
 
-      insert_mapping (map, *src_fv, var_get_case_index (v), value_cnt);
+      insert_mapping (map, *src_fv, var_get_case_index (v));
 
       free (src_fv);
     }
@@ -274,8 +268,9 @@ case_map_from_dict (const struct dictionary *d)
       return NULL;
     }
 
-  while (map->value_cnt > 0 && map->map[map->value_cnt - 1] == -1)
-    map->value_cnt--;
+  n_values = caseproto_get_n_widths (map->proto);
+  while (n_values > 0 && caseproto_get_width (map->proto, n_values - 1) == -1)
+    map->proto = caseproto_remove_widths (map->proto, --n_values, 1);
 
   return map;
 }
@@ -292,14 +287,13 @@ case_map_by_name (const struct dictionary *old,
   size_t var_cnt = dict_get_var_cnt (new);
   size_t i;
 
-  map = create_case_map (dict_get_next_value_idx (new));
+  map = create_case_map (dict_get_proto (new));
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *nv = dict_get_var (new, i);
       struct variable *ov = dict_lookup_var_assert (old, var_get_name (nv));
       assert (var_get_width (nv) == var_get_width (ov));
-      insert_mapping (map, var_get_case_index (ov), var_get_case_index (nv),
-                      var_get_value_cnt (ov));
+      insert_mapping (map, var_get_case_index (ov), var_get_case_index (nv));
     }
   return map;
 }
@@ -310,6 +304,6 @@ void
 case_map_dump (const struct case_map *cm)
 {
   int i;
-  for (i = 0 ; i < cm->value_cnt; ++i )
+  for (i = 0 ; i < caseproto_get_n_widths (cm->proto); ++i )
     printf ("%d -> %d\n", i, cm->map[i]);
 }

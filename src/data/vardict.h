@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ void var_clear_vardict (struct variable *);
 
 /* Called by variable.c, defined in dictionary.c. */
 void dict_var_changed (const struct variable *v);
-void dict_var_resized (const struct variable *v, int delta);
+void dict_var_resized (const struct variable *v, int old_width);
 void dict_var_display_width_changed (const struct variable *v);
 
 #endif /* data/vardict.h */

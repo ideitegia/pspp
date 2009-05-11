@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -285,7 +285,7 @@ forward (casenumber *i, struct datasheet *data UNUSED)
 static void
 forward_wrap (casenumber *i, struct datasheet *data)
 {
-  if ( ++*i >=  datasheet_get_row_cnt (data) ) *i = 0;
+  if ( ++*i >=  datasheet_get_n_rows (data) ) *i = 0;
 }
 
 static void
@@ -299,7 +299,7 @@ static void
 backward_wrap (casenumber *i, struct datasheet *data)
 {
   if ( --*i < 0 )
-    *i = datasheet_get_row_cnt (data) - 1;
+    *i = datasheet_get_n_rows (data) - 1;
 }
 
 
@@ -344,7 +344,7 @@ cm1c (casenumber current, struct datasheet *data)
 static casenumber
 last (casenumber current, struct datasheet *data)
 {
-  return datasheet_get_row_cnt (data) ;
+  return datasheet_get_n_rows (data) ;
 }
 
 static casenumber
@@ -439,7 +439,7 @@ struct comparator
 struct value_comparator
 {
   struct comparator parent;
-  union value *pattern;
+  union value pattern;
 };
 
 /* A comparator which matches string values or parts thereof */
@@ -462,7 +462,7 @@ value_compare (const struct comparator *cmptr,
 	       const union value *v)
 {
   const struct value_comparator *vc = (const struct value_comparator *) cmptr;
-  return 0 == value_compare_3way (v, vc->pattern, var_get_width (cmptr->var));
+  return 0 == value_compare_3way (v, &vc->pattern, var_get_width (cmptr->var));
 }
 
 
@@ -495,8 +495,8 @@ string_value_compare (const struct comparator *cmptr,
   const struct string_comparator *ssc =
     (const struct string_comparator *) cmptr;
 
-  const char *text = val->s;
   int width = var_get_width (cmptr->var);
+  const char *text = value_str (val, width);
 
   assert ( ! (cmptr->flags & STR_CMP_LABELS));
 
@@ -528,7 +528,7 @@ regexp_value_compare (const struct comparator *cmptr,
 
   /* We must remove trailing whitespace, otherwise $ will not match where
      one would expect */
-  text = g_strndup (val->s, width);
+  text = g_strndup (value_str (val, width), width);
   g_strchomp (text);
 
   retval = (0 == regexec (&rec->re, text, 0, 0, 0));
@@ -570,10 +570,10 @@ regexp_destroy (struct comparator *cmptr)
 }
 
 static void
-value_destroy (struct comparator *cmptr)
+cmptr_value_destroy (struct comparator *cmptr)
 {
   struct value_comparator *vc = (struct value_comparator *) cmptr;
-  free (vc->pattern);
+  value_destroy (&vc->pattern, var_get_width (cmptr->var));
 }
 
 
@@ -588,19 +588,20 @@ value_comparator_create (const struct variable *var, const char *target)
   cmptr->flags = 0;
   cmptr->var = var;
   cmptr->compare  = value_compare ;
-  cmptr->destroy = value_destroy;
+  cmptr->destroy = cmptr_value_destroy;
 
   width = var_get_width (var);
   fmt = var_get_write_format (var);
 
-  vc->pattern = value_create (width);
+  value_init (&vc->pattern, width);
 
   if ( ! data_in (ss_cstr (target),
                   LEGACY_NATIVE,
 		  fmt->type,
 		  0, 0, 0,
-		  vc->pattern, width) )
+		  &vc->pattern, width) )
     {
+      value_destroy (&vc->pattern, width);
       free (vc);
       return NULL;
     }
@@ -739,12 +740,13 @@ find_value (const struct find_dialog *fd, casenumber current_row,
     flags |= STR_CMP_LABELS;
 
   {
-    union value *val = value_create (width);
+    union value val;
     casenumber i;
     const struct casenum_iterator *ip = get_iteration_params (fd);
     struct comparator *cmptr =
       comparator_factory (var, target_string, flags);
 
+    value_init (&val, width);
     if ( ! cmptr)
       goto finish;
 
@@ -752,10 +754,9 @@ find_value (const struct find_dialog *fd, casenumber current_row,
 	 i != ip->end (current_row, fd->data);
 	 ip->next (&i, fd->data))
       {
-	datasheet_get_value (fd->data, i, var_get_case_index (var),
-			     val, width);
+	datasheet_get_value (fd->data, i, var_get_case_index (var), &val);
 
-	if ( comparator_compare (cmptr, val))
+	if ( comparator_compare (cmptr, &val))
 	  {
 	    *row = i;
 	    break;
@@ -764,6 +765,6 @@ find_value (const struct find_dialog *fd, casenumber current_row,
 
   finish:
     comparator_destroy (cmptr);
-    free (val);
+    value_destroy (&val, width);
   }
 }

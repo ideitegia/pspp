@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,29 +116,31 @@ populate_text (PsppireDictView *treeview, gpointer data)
   /* Value Labels */
   if ( var_has_value_labels (var))
     {
-      struct val_labs_iterator *vli = 0;
-      struct val_lab *vl;
-      const struct val_labs *labs = var_get_value_labels (var);
+      const struct val_labs *vls = var_get_value_labels (var);
+      const struct val_lab **labels;
+      size_t n_labels;
+      size_t i;
 
       g_string_append (gstring, "\n");
       g_string_append (gstring, _("Value Labels:\n"));
 
-      for (vl = val_labs_first_sorted (labs, &vli);
-	   vl;
-	   vl = val_labs_next (labs, &vli))
-	{
+      labels = val_labs_sorted (vls);
+      n_labels = val_labs_count (vls);
+      for (i = 0; i < n_labels; i++)
+        {
+          const struct val_lab *vl = labels[i];
 	  gchar *const vstr  =
 	    value_to_text (vl->value,  *var_get_print_format (var));
 
-
 	  text = recode_string (UTF8, psppire_dict_encoding (dict),
-				vl->label, -1);
+				val_lab_get_label (vl), -1);
 
 	  g_string_append_printf (gstring, _("%s %s\n"), vstr, text);
 
 	  g_free (text);
 	  g_free (vstr);
 	}
+      free (labels);
     }
 
   gtk_text_buffer_set_text (textbuffer, gstring->str, gstring->len);

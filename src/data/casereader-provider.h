@@ -112,7 +112,7 @@ struct casereader_class
 
 struct casereader *
 casereader_create_sequential (const struct taint *,
-                              size_t value_cnt, casenumber case_cnt,
+                              const struct caseproto *, casenumber case_cnt,
                               const struct casereader_class *, void *);
 
 void *casereader_dynamic_cast (struct casereader *, const struct casereader_class *);
@@ -160,7 +160,7 @@ struct casereader_random_class
   };
 
 struct casereader *
-casereader_create_random (size_t value_cnt, casenumber case_cnt,
+casereader_create_random (const struct caseproto *, casenumber case_cnt,
                           const struct casereader_random_class *, void *aux);
 
 #endif /* data/casereader-provider.h */

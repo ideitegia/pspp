@@ -23,61 +23,52 @@
 #include <data/data-out.h>
 #include <data/value.h>
 #include <data/variable.h>
+#include <libpspp/array.h>
 #include <libpspp/compiler.h>
-#include <libpspp/hash.h>
+#include <libpspp/hash-functions.h>
+#include <libpspp/hmap.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
 #include "xalloc.h"
 
-static hsh_compare_func compare_int_val_lab;
-static hsh_hash_func hash_int_val_lab;
-static hsh_free_func free_int_val_lab;
-
-struct atom;
 static struct atom *atom_create (const char *string);
 static void atom_destroy (struct atom *);
-static char *atom_to_string (const struct atom *);
+static const char *atom_to_string (const struct atom *);
 
-/* A set of value labels. */
-struct val_labs
-  {
-    int width;                  /* 0=numeric, otherwise string width. */
-    struct hsh_table *labels;   /* Hash table of `struct int_val_lab's. */
-  };
+/* Returns the label in VL.  The caller must not modify or free
+   the returned value. */
+const char *
+val_lab_get_label (const struct val_lab *vl)
+{
+  return atom_to_string (vl->label);
+}
 
 /* Creates and returns a new, empty set of value labels with the
-   given WIDTH.  To actually add any value labels, WIDTH must be
-   a numeric or short string width. */
+   given WIDTH. */
 struct val_labs *
 val_labs_create (int width)
 {
-  struct val_labs *vls;
-
-  assert (width >= 0);
-
-  vls = xmalloc (sizeof *vls);
+  struct val_labs *vls = xmalloc (sizeof *vls);
   vls->width = width;
-  vls->labels = NULL;
+  hmap_init (&vls->labels);
   return vls;
 }
 
 /* Creates and returns a new set of value labels identical to
-   VLS. */
+   VLS.  Returns a null pointer if VLS is null. */
 struct val_labs *
 val_labs_clone (const struct val_labs *vls)
 {
   struct val_labs *copy;
-  struct val_labs_iterator *i;
-  struct val_lab *vl;
+  struct val_lab *label;
 
   if (vls == NULL)
     return NULL;
 
   copy = val_labs_create (vls->width);
-  for (vl = val_labs_first (vls, &i); vl != NULL;
-       vl = val_labs_next (vls, &i))
-    val_labs_add (copy, vl->value, vl->label);
+  HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
+    val_labs_add (copy, &label->value, atom_to_string (label->label));
   return copy;
 }
 
@@ -86,32 +77,28 @@ val_labs_clone (const struct val_labs *vls)
 bool
 val_labs_can_set_width (const struct val_labs *vls, int new_width)
 {
-  struct val_labs_iterator *i;
-  struct val_lab *lab;
+  struct val_lab *label;
 
-  for (lab = val_labs_first (vls, &i); lab != NULL;
-       lab = val_labs_next (vls, &i))
-    if (!value_is_resizable (&lab->value, vls->width, new_width))
-      {
-        val_labs_done (&i);
-        return false;
-      }
+  HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
+    if (!value_is_resizable (&label->value, vls->width, new_width))
+      return false;
 
   return true;
 }
 
 /* Changes the width of VLS to NEW_WIDTH.  The original and new
-   width must be both numeric or both string.  If the new width
-   is a long string width, then any value labels in VLS are
-   deleted. */
+   width must be both numeric or both string. */
 void
 val_labs_set_width (struct val_labs *vls, int new_width)
 {
   assert (val_labs_can_set_width (vls, new_width));
-
+  if (value_needs_resize (vls->width, new_width))
+    {
+      struct val_lab *label;
+      HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
+        value_resize (&label->value, vls->width, new_width);
+    }
   vls->width = new_width;
-  if (new_width > MAX_SHORT_STRING)
-    val_labs_clear (vls);
 }
 
 /* Destroys VLS. */
@@ -120,7 +107,8 @@ val_labs_destroy (struct val_labs *vls)
 {
   if (vls != NULL)
     {
-      hsh_destroy (vls->labels);
+      val_labs_clear (vls);
+      hmap_destroy (&vls->labels);
       free (vls);
     }
 }
@@ -129,328 +117,205 @@ val_labs_destroy (struct val_labs *vls)
 void
 val_labs_clear (struct val_labs *vls)
 {
-  assert (vls != NULL);
+  struct val_lab *label, *next;
 
-  hsh_destroy (vls->labels);
-  vls->labels = NULL;
+  HMAP_FOR_EACH_SAFE (label, next, struct val_lab, node, &vls->labels)
+    {
+      hmap_delete (&vls->labels, &label->node);
+      value_destroy (&label->value, vls->width);
+      atom_destroy (label->label);
+      free (label);
+    }
 }
 
-/* Returns the number of value labels in VLS. */
+/* Returns the number of value labels in VLS.
+   Returns 0 if VLS is null. */
 size_t
 val_labs_count (const struct val_labs *vls)
 {
-  return vls == NULL || vls->labels == NULL ? 0 : hsh_count (vls->labels);
+  return vls == NULL ? 0 : hmap_count (&vls->labels);
 }
 
-/* One value label in internal format. */
-struct int_val_lab
-  {
-    union value value;          /* The value being labeled. */
-    struct atom *label;         /* A ref-counted string. */
-  };
-
-/* Creates and returns an int_val_lab based on VALUE and
-   LABEL. */
-static struct int_val_lab *
-create_int_val_lab (struct val_labs *vls, union value value, const char *label)
+static void
+do_add_val_lab (struct val_labs *vls, const union value *value,
+                const char *label)
 {
-  struct int_val_lab *ivl;
-
-  assert (label != NULL);
-  assert (vls->width <= MAX_SHORT_STRING);
-
-  ivl = xmalloc (sizeof *ivl);
-  ivl->value = value;
-  if (vls->width > 0)
-    memset (ivl->value.s + vls->width, ' ', MAX_SHORT_STRING - vls->width);
-  ivl->label = atom_create (label);
-
-  return ivl;
+  struct val_lab *lab = xmalloc (sizeof *lab);
+  value_init (&lab->value, vls->width);
+  value_copy (&lab->value, value, vls->width);
+  lab->label = atom_create (label);
+  hmap_insert (&vls->labels, &lab->node, value_hash (value, vls->width, 0));
 }
 
-/* If VLS does not already contain a value label for VALUE (and
-   VLS represents a numeric or short string set of value labels),
-   adds LABEL for it and returns true.  Otherwise, returns
-   false. */
+/* If VLS does not already contain a value label for VALUE, adds
+   LABEL for it and returns true.  Otherwise, returns false. */
 bool
-val_labs_add (struct val_labs *vls, union value value, const char *label)
+val_labs_add (struct val_labs *vls, const union value *value,
+              const char *label)
 {
-  assert (label != NULL);
-  if (vls->width < MIN_LONG_STRING)
+  const struct val_lab *lab = val_labs_lookup (vls, value);
+  if (lab == NULL)
     {
-      struct int_val_lab *ivl;
-      void **vlpp;
-
-      if (vls->labels == NULL)
-        vls->labels = hsh_create (8, compare_int_val_lab, hash_int_val_lab,
-                                  free_int_val_lab, vls);
-
-      ivl = create_int_val_lab (vls, value, label);
-      vlpp = hsh_probe (vls->labels, ivl);
-      if (*vlpp == NULL)
-        {
-          *vlpp = ivl;
-          return true;
-        }
-      free_int_val_lab (ivl, vls);
-    }
-  return false;
-}
-
-/* Sets LABEL as the value label for VALUE in VLS, replacing any
-   existing label for VALUE.  Has no effect if VLS has a long
-   string width. */
-void
-val_labs_replace (struct val_labs *vls, union value value, const char *label)
-{
-  if (vls->width < MIN_LONG_STRING)
-    {
-      if (vls->labels != NULL)
-        {
-          struct int_val_lab *new = create_int_val_lab (vls, value, label);
-          struct int_val_lab *old = hsh_replace (vls->labels, new);
-          if (old != NULL)
-            free_int_val_lab (old, vls);
-        }
-      else
-        val_labs_add (vls, value, label);
-    }
-}
-
-/* Removes any value label for VALUE within VLS.  Returns true
-   if a value label was removed. */
-bool
-val_labs_remove (struct val_labs *vls, union value value)
-{
-  if (vls->width < MIN_LONG_STRING && vls->labels != NULL)
-    {
-      struct int_val_lab *ivl = create_int_val_lab (vls, value, "");
-      int deleted = hsh_delete (vls->labels, ivl);
-      free (ivl);
-      return deleted;
+      do_add_val_lab (vls, value, label);
+      return true;
     }
   else
     return false;
 }
 
-/* Searches VLS for a value label for VALUE.  If successful,
-   returns the label; otherwise, returns a null pointer.  If
-   VLS's width is greater than MAX_SHORT_STRING, always returns a
-   null pointer. */
-char *
-val_labs_find (const struct val_labs *vls, union value value)
+/* Sets LABEL as the value label for VALUE in VLS, replacing any
+   existing label for VALUE. */
+void
+val_labs_replace (struct val_labs *vls, const union value *value,
+                  const char *label)
 {
-  if (vls != NULL
-      && vls->width <= MAX_SHORT_STRING
-      && vls->labels != NULL)
+  struct val_lab *vl = (struct val_lab *) val_labs_lookup (vls, value);
+  if (vl != NULL)
     {
-      struct int_val_lab ivl, *vlp;
+      atom_destroy (vl->label);
+      vl->label = atom_create (label);
+    }
+  else
+    do_add_val_lab (vls, value, label);
+}
 
-      ivl.value = value;
-      vlp = hsh_find (vls->labels, &ivl);
-      if (vlp != NULL)
-        return atom_to_string (vlp->label);
+/* Removes LABEL from VLS. */
+void
+val_labs_remove (struct val_labs *vls, const struct val_lab *label_)
+{
+  struct val_lab *label = (struct val_lab *) label_;
+  hmap_delete (&vls->labels, &label->node);
+  value_destroy (&label->value, vls->width);
+  atom_destroy (label->label);
+  free (label);
+}
+
+/* Searches VLS for a value label for VALUE.  If successful,
+   returns the string used as the label; otherwise, returns a
+   null pointer.  Returns a null pointer if VLS is null. */
+const char *
+val_labs_find (const struct val_labs *vls, const union value *value)
+{
+  const struct val_lab *label = val_labs_lookup (vls, value);
+  return label ? atom_to_string (label->label) : NULL;
+}
+
+/* Searches VLS for a value label for VALUE.  If successful,
+   returns the value label; otherwise, returns a null pointer.
+   Returns a null pointer if VLS is null. */
+const struct val_lab *
+val_labs_lookup (const struct val_labs *vls, const union value *value)
+{
+  if (vls != NULL)
+    {
+      struct val_lab *label;
+      HMAP_FOR_EACH_WITH_HASH (label, struct val_lab, node,
+                               value_hash (value, vls->width, 0), &vls->labels)
+        if (value_equal (&label->value, value, vls->width))
+          return label;
     }
   return NULL;
 }
 
-/* A value labels iterator. */
-struct val_labs_iterator
-  {
-    void **labels;              /* The labels, in order. */
-    void **lp;                  /* Current label. */
-    struct val_lab vl;          /* Structure presented to caller. */
-  };
-
-/* Sets up *IP for iterating through the value labels in VLS in
-   no particular order.  Returns the first value label or a null
-   pointer if VLS is empty.  If the return value is non-null,
-   then val_labs_next() may be used to continue iterating or
-   val_labs_done() to free up the iterator.  Otherwise, neither
-   function may be called for *IP. */
-struct val_lab *
-val_labs_first (const struct val_labs *vls, struct val_labs_iterator **ip)
+/* Returns the first value label in VLS, in arbitrary order, or a
+   null pointer if VLS is empty or if VLS is a null pointer.  If
+   the return value is non-null, then val_labs_next() may be used
+   to continue iterating. */
+const struct val_lab *
+val_labs_first (const struct val_labs *vls)
 {
-  struct val_labs_iterator *i;
-
-  assert (vls != NULL);
-  assert (ip != NULL);
-
-  if (vls->labels == NULL || vls->width > MAX_SHORT_STRING)
-    {
-      *ip = NULL;
-      return NULL;
-    }
-
-  i = *ip = xmalloc (sizeof *i);
-  i->labels = hsh_data_copy (vls->labels);
-  i->lp = i->labels;
-  return val_labs_next (vls, ip);
-}
-
-/* Sets up *IP for iterating through the value labels in VLS in
-   sorted order of values.  Returns the first value label or a
-   null pointer if VLS is empty.  If the return value is
-   non-null, then val_labs_next() may be used to continue
-   iterating or val_labs_done() to free up the iterator.
-   Otherwise, neither function may be called for *IP. */
-struct val_lab *
-val_labs_first_sorted (const struct val_labs *vls,
-                       struct val_labs_iterator **ip)
-{
-  struct val_labs_iterator *i;
-
-  assert (vls != NULL);
-  assert (ip != NULL);
-
-  if (vls->labels == NULL || vls->width > MAX_SHORT_STRING)
-    {
-      *ip = NULL;
-      return NULL;
-    }
-
-  i = *ip = xmalloc (sizeof *i);
-  i->lp = i->labels = hsh_sort_copy (vls->labels);
-  return val_labs_next (vls, ip);
+  return vls ? HMAP_FIRST (struct val_lab, node, &vls->labels) : NULL;
 }
 
 /* Returns the next value label in an iteration begun by
-   val_labs_first() or val_labs_first_sorted().  If the return
-   value is non-null, then val_labs_next() may be used to
-   continue iterating or val_labs_done() to free up the iterator.
-   Otherwise, neither function may be called for *IP. */
-struct val_lab *
-val_labs_next (const struct val_labs *vls, struct val_labs_iterator **ip)
+   val_labs_first().  If the return value is non-null, then
+   val_labs_next() may be used to continue iterating. */
+const struct val_lab *
+val_labs_next (const struct val_labs *vls, const struct val_lab *label)
 {
-  struct val_labs_iterator *i;
-  struct int_val_lab *ivl;
-
-  assert (vls != NULL);
-  assert (vls->width <= MAX_SHORT_STRING);
-  assert (ip != NULL);
-  assert (*ip != NULL);
-
-  i = *ip;
-  ivl = *i->lp++;
-  if (ivl != NULL)
-    {
-      i->vl.value = ivl->value;
-      i->vl.label = atom_to_string (ivl->label);
-      return &i->vl;
-    }
-  else
-    {
-      free (i->labels);
-      free (i);
-      *ip = NULL;
-      return NULL;
-    }
+  return HMAP_NEXT (label, struct val_lab, node, &vls->labels);
 }
 
-/* Discards the state for an incomplete iteration begun by
-   val_labs_first() or val_labs_first_sorted(). */
-void
-val_labs_done (struct val_labs_iterator **ip)
+static int
+compare_labels_by_value_3way (const void *a_, const void *b_, const void *vls_)
 {
-  if (*ip != NULL)
+  const struct val_lab *const *a = a_;
+  const struct val_lab *const *b = b_;
+  const struct val_labs *vls = vls_;
+  return value_compare_3way (&(*a)->value, &(*b)->value, vls->width);
+}
+
+/* Allocates and returns an array of pointers to value labels
+   that is sorted in increasing order by value.  The array has
+   val_labs_count(VLS) elements.  The caller is responsible for
+   freeing the array. */
+const struct val_lab **
+val_labs_sorted (const struct val_labs *vls)
+{
+  if (vls != NULL)
     {
-      struct val_labs_iterator *i = *ip;
-      free (i->labels);
-      free (i);
-      *ip = NULL;
+      const struct val_lab *label;
+      const struct val_lab **labels;
+      size_t i;
+
+      labels = xmalloc (val_labs_count (vls) * sizeof *labels);
+      i = 0;
+      HMAP_FOR_EACH (label, struct val_lab, node, &vls->labels)
+        labels[i++] = label;
+      assert (i == val_labs_count (vls));
+      sort (labels, val_labs_count (vls), sizeof *labels,
+            compare_labels_by_value_3way, vls);
+      return labels;
     }
+  else
+    return NULL;
 }
 
-/* Compares two value labels and returns a strcmp()-type result. */
-int
-compare_int_val_lab (const void *a_, const void *b_, const void *vls_)
-{
-  const struct int_val_lab *a = a_;
-  const struct int_val_lab *b = b_;
-  const struct val_labs *vls = vls_;
-
-  if (vls->width == 0)
-    return a->value.f < b->value.f ? -1 : a->value.f > b->value.f;
-  else
-    return memcmp (a->value.s, b->value.s, vls->width);
-}
-
-/* Hash a value label. */
-unsigned
-hash_int_val_lab (const void *vl_, const void *vls_)
-{
-  const struct int_val_lab *vl = vl_;
-  const struct val_labs *vls = vls_;
-
-  if (vls->width == 0)
-    return hash_double (vl->value.f, 0);
-  else
-    return hash_bytes (vl->value.s, vls->width, 0);
-}
-
-/* Free a value label. */
-void
-free_int_val_lab (void *vl_, const void *vls_ UNUSED)
-{
-  struct int_val_lab *vl = vl_;
-
-  atom_destroy (vl->label);
-  free (vl);
-}
-
-/* Atoms. */
+/* Atoms: reference-counted constant strings. */
 
 /* An atom. */
 struct atom
   {
+    struct hmap_node node;      /* Hash map node. */
     char *string;               /* String value. */
     unsigned ref_count;         /* Number of references. */
   };
 
-static hsh_compare_func compare_atoms;
-static hsh_hash_func hash_atom;
-static hsh_free_func free_atom;
-
 /* Hash table of atoms. */
-static struct hsh_table *atoms;
+static struct hmap atoms = HMAP_INITIALIZER (atoms);
 
-static void
-destroy_atoms (void)
-{
-  hsh_destroy (atoms);
-}
+static void free_atom (struct atom *atom);
+static void free_all_atoms (void);
 
 /* Creates and returns an atom for STRING. */
 static struct atom *
 atom_create (const char *string)
 {
-  struct atom a;
-  void **app;
+  static bool initialized;
+  struct atom *atom;
+  size_t hash;
 
   assert (string != NULL);
 
-  if (atoms == NULL)
+  if (!initialized)
     {
-      atoms = hsh_create (8, compare_atoms, hash_atom, free_atom, NULL);
-      atexit (destroy_atoms);
+      initialized = true;
+      atexit (free_all_atoms);
     }
 
-  a.string = (char *) string;
-  app = hsh_probe (atoms, &a);
-  if (*app != NULL)
-    {
-      struct atom *ap = *app;
-      ap->ref_count++;
-      return ap;
-    }
-  else
-    {
-      struct atom *ap = xmalloc (sizeof *ap);
-      ap->string = xstrdup (string);
-      ap->ref_count = 1;
-      *app = ap;
-      return ap;
-    }
+  hash = hash_string (string, 0);
+  HMAP_FOR_EACH_WITH_HASH (atom, struct atom, node, hash, &atoms)
+    if (!strcmp (atom->string, string))
+      {
+        atom->ref_count++;
+        return atom;
+      }
+
+  atom = xmalloc (sizeof *atom);
+  atom->string = xstrdup (string);
+  atom->ref_count = 1;
+  hmap_insert (&atoms, &atom->node, hash);
+  return atom;
 }
 
 /* Destroys ATOM. */
@@ -462,44 +327,32 @@ atom_destroy (struct atom *atom)
       assert (atom->ref_count > 0);
       atom->ref_count--;
       if (atom->ref_count == 0)
-        hsh_force_delete (atoms, atom);
+        {
+          hmap_delete (&atoms, &atom->node);
+          free_atom (atom);
+        }
     }
 }
 
 /* Returns the string associated with ATOM. */
-static  char *
+static const char *
 atom_to_string (const struct atom *atom)
 {
-  assert (atom != NULL);
-
   return atom->string;
 }
 
-/* A hsh_compare_func that compares A and B. */
-static int
-compare_atoms (const void *a_, const void *b_, const void *aux UNUSED)
-{
-  const struct atom *a = a_;
-  const struct atom *b = b_;
-
-  return strcmp (a->string, b->string);
-}
-
-/* A hsh_hash_func that hashes ATOM. */
-static unsigned
-hash_atom (const void *atom_, const void *aux UNUSED)
-{
-  const struct atom *atom = atom_;
-
-  return hash_string (atom->string, 0);
-}
-
-/* A hsh_free_func that destroys ATOM. */
 static void
-free_atom (void *atom_, const void *aux UNUSED)
+free_atom (struct atom *atom)
 {
-  struct atom *atom = atom_;
-
   free (atom->string);
   free (atom);
+}
+
+static void
+free_all_atoms (void)
+{
+  struct atom *atom, *next;
+
+  HMAP_FOR_EACH_SAFE (atom, next, struct atom, node, &atoms)
+    free_atom (atom);
 }

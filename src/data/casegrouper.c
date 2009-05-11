@@ -89,7 +89,8 @@ casegrouper_get_next_group (struct casegrouper *grouper,
           return false;
         }
 
-      writer = autopaging_writer_create (casereader_get_value_cnt (grouper->reader));
+      writer = autopaging_writer_create (
+        casereader_get_proto (grouper->reader));
       case_ref (group_case);
       casewriter_write (writer, group_case);
 

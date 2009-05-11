@@ -324,8 +324,7 @@ is_num_user_missing (const struct missing_values *mv, double d)
    MV must be a set of string missing values.
    S[] must contain exactly as many characters as MV's width. */
 static bool
-is_str_user_missing (const struct missing_values *mv,
-                        const char s[])
+is_str_user_missing (const struct missing_values *mv, const char s[])
 {
   const union value *v = mv->values;
   assert (mv->width > 0);
@@ -334,14 +333,14 @@ is_str_user_missing (const struct missing_values *mv,
     case MVT_NONE:
       return false;
     case MVT_1:
-      return !memcmp (v[0].s, s, mv->width);
+      return !memcmp (v[0].short_string, s, mv->width);
     case MVT_2:
-      return (!memcmp (v[0].s, s, mv->width)
-              || !memcmp (v[1].s, s, mv->width));
+      return (!memcmp (v[0].short_string, s, mv->width)
+              || !memcmp (v[1].short_string, s, mv->width));
     case MVT_3:
-      return (!memcmp (v[0].s, s, mv->width)
-              || !memcmp (v[1].s, s, mv->width)
-              || !memcmp (v[2].s, s, mv->width));
+      return (!memcmp (v[0].short_string, s, mv->width)
+              || !memcmp (v[1].short_string, s, mv->width)
+              || !memcmp (v[2].short_string, s, mv->width));
     case MVT_RANGE:
     case MVT_RANGE_1:
       NOT_REACHED ();
@@ -357,7 +356,7 @@ mv_is_value_missing (const struct missing_values *mv, const union value *v,
 {
   return (mv->width == 0
           ? mv_is_num_missing (mv, v->f, class)
-          : mv_is_str_missing (mv, v->s, class));
+          : mv_is_str_missing (mv, v->short_string, class));
 }
 
 /* Returns true if D is a missing value in the given CLASS in MV,

@@ -36,6 +36,7 @@
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -383,6 +384,9 @@ var_set_width (struct variable *v, int new_width)
 {
   const int old_width = v->width;
 
+  if (old_width == new_width)
+    return;
+
   if (mv_is_resizable (&v->miss, new_width))
     mv_resize (&v->miss, new_width);
   else
@@ -403,15 +407,7 @@ var_set_width (struct variable *v, int new_width)
   fmt_resize (&v->write, new_width);
 
   v->width = new_width;
-
-  {
-    const int old_val_count = value_cnt_from_width (old_width);
-    const int new_val_count = value_cnt_from_width (new_width);
-
-    if ( old_val_count != new_val_count)
-	 dict_var_resized (v, new_val_count - old_val_count);
-  }
-
+  dict_var_resized (v, old_width);
   dict_var_changed (v);
 }
 
@@ -444,14 +440,6 @@ bool
 var_is_long_string (const struct variable *v)
 {
   return v->width > MAX_SHORT_STRING;
-}
-
-/* Returns the number of "union value"s need to store a value of
-   variable V. */
-size_t
-var_get_value_cnt (const struct variable *v)
-{
-  return value_cnt_from_width (v->width);
 }
 
 /* Returns variable V's missing values. */
@@ -575,7 +563,7 @@ var_add_value_label (struct variable *v,
                      const union value *value, const char *label)
 {
   alloc_value_labels (v);
-  return val_labs_add (v->val_labs, *value, label);
+  return val_labs_add (v->val_labs, value, label);
 }
 
 /* Adds or replaces a value label with the given VALUE and LABEL
@@ -586,7 +574,7 @@ var_replace_value_label (struct variable *v,
                          const union value *value, const char *label)
 {
   alloc_value_labels (v);
-  val_labs_replace (v->val_labs, *value, label);
+  val_labs_replace (v->val_labs, value, label);
 }
 
 /* Removes V's value labels, if any. */
@@ -601,7 +589,7 @@ var_clear_value_labels (struct variable *v)
 const char *
 var_lookup_value_label (const struct variable *v, const union value *value)
 {
-  return val_labs_find (v->val_labs, *value);
+  return val_labs_find (v->val_labs, value);
 }
 
 /* Append STR with a string representing VALUE for variable V.

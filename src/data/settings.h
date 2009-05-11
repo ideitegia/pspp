@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
 #include <libpspp/float-format.h>
 #include <libpspp/integer-format.h>
 
+struct caseproto;
 struct settings;
-
 
 void settings_init (int *, int *);
 void settings_done (void);
@@ -107,7 +107,7 @@ char settings_get_endcmd (void);
 void settings_set_endcmd (char);
 
 size_t settings_get_workspace (void);
-size_t settings_get_workspace_cases (size_t value_cnt);
+size_t settings_get_workspace_cases (const struct caseproto *);
 void settings_set_workspace (size_t);
 
 const struct fmt_spec *settings_get_format (void);

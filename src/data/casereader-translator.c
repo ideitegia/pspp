@@ -41,9 +41,11 @@ static const struct casereader_class casereader_translator_class;
 
 /* Creates and returns a new casereader whose cases are produced
    by reading from SUBREADER and passing through TRANSLATE, which
-   must return the translated case, with OUTPUT_VALUE_CNT values,
-   and populate it based on INPUT and auxiliary data AUX.
-   TRANSLATE must destroy its input case.
+   must return the translated case, and populate it based on
+   INPUT and auxiliary data AUX.  TRANSLATE must destroy its
+   input case.
+
+   The cases returned by TRANSLATE must match OUTPUT_PROTO.
 
    When the translating casereader is destroyed, DESTROY will be
    called to allow any state maintained by TRANSLATE to be freed.
@@ -53,7 +55,7 @@ static const struct casereader_class casereader_translator_class;
    when the translating casereader is destroyed. */
 struct casereader *
 casereader_create_translator (struct casereader *subreader,
-                              size_t output_value_cnt,
+                              const struct caseproto *output_proto,
                               struct ccase *(*translate) (struct ccase *input,
                                                           void *aux),
                               bool (*destroy) (void *aux),
@@ -66,7 +68,7 @@ casereader_create_translator (struct casereader *subreader,
   ct->destroy = destroy;
   ct->aux = aux;
   reader = casereader_create_sequential (
-    NULL, output_value_cnt, casereader_get_case_cnt (ct->subreader),
+    NULL, output_proto, casereader_get_case_cnt (ct->subreader),
     &casereader_translator_class, ct);
   taint_propagate (casereader_get_taint (ct->subreader),
                    casereader_get_taint (reader));
@@ -108,7 +110,7 @@ static const struct casereader_class casereader_translator_class =
 
 struct casereader_append_numeric
 {
-  int value_ofs;
+  struct caseproto *proto;
   casenumber n;
   new_value_func *func;
   void *aux;
@@ -135,12 +137,13 @@ casereader_create_append_numeric (struct casereader *subreader,
 				  void (*destroy) (void *aux))
 {
   struct casereader_append_numeric *can = xmalloc (sizeof *can);
-  can->value_ofs = casereader_get_value_cnt (subreader);
+  can->proto = caseproto_ref (casereader_get_proto (subreader));
+  can->proto = caseproto_add_width (can->proto, 0);
   can->n = 0;
   can->aux = aux;
   can->func = func;
   can->destroy = destroy;
-  return casereader_create_translator (subreader, can->value_ofs + 1,
+  return casereader_create_translator (subreader, can->proto,
                                        can_translate, can_destroy, can);
 }
 
@@ -150,8 +153,8 @@ can_translate (struct ccase *c, void *can_)
 {
   struct casereader_append_numeric *can = can_;
   double new_value = can->func (c, can->n++, can->aux);
-  c = case_unshare_and_resize (c, can->value_ofs + 1);
-  case_data_rw_idx (c, can->value_ofs)->f = new_value;
+  c = case_unshare_and_resize (c, can->proto);
+  case_data_rw_idx (c, caseproto_get_n_widths (can->proto) - 1)->f = new_value;
   return c;
 }
 
@@ -161,6 +164,7 @@ can_destroy (void *can_)
   struct casereader_append_numeric *can = can_;
   if (can->destroy)
     can->destroy (can->aux);
+  caseproto_unref (can->proto);
   free (can);
   return true;
 }
@@ -211,7 +215,7 @@ struct casereader_append_rank
   casenumber n;
   const struct variable *var;
   const struct variable *weight;
-  int value_ofs;
+  struct caseproto *proto;
   casenumber n_common;
   double mean_rank;
   double cc;
@@ -258,7 +262,8 @@ casereader_create_append_rank (struct casereader *subreader,
 			       )
 {
   struct casereader_append_rank *car = xmalloc (sizeof *car);
-  car->value_ofs = casereader_get_value_cnt (subreader);
+  car->proto = caseproto_ref (casereader_get_proto (subreader));
+  car->proto = caseproto_add_width (car->proto, 0);
   car->weight = w;
   car->var = v;
   car->n = 0;
@@ -270,7 +275,7 @@ casereader_create_append_rank (struct casereader *subreader,
   car->err = err;
   car->prev_value = SYSMIS;
 
-  return casereader_create_translator (subreader, car->value_ofs + 1,
+  return casereader_create_translator (subreader, car->proto,
                                        car_translate, car_destroy, car);
 }
 
@@ -280,6 +285,7 @@ car_destroy (void *car_)
 {
   struct casereader_append_rank *car = car_;
   casereader_destroy (car->clone);
+  caseproto_unref (car->proto);
   free (car);
   return true;
 }
@@ -345,8 +351,9 @@ car_translate (struct ccase *input, void *car_)
 
   car->n++;
 
-  input = case_unshare_and_resize (input, car->value_ofs + 1);
-  case_data_rw_idx (input, car->value_ofs)->f = car->mean_rank ;
+  input = case_unshare_and_resize (input, car->proto);
+  case_data_rw_idx (input, caseproto_get_n_widths (car->proto) - 1)->f
+    = car->mean_rank;
   car->prev_value = value;
   return input;
 }

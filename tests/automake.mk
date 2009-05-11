@@ -32,7 +32,6 @@ dist_TESTS = \
 	tests/command/get-data-txt-examples.sh \
 	tests/command/get-data-txt-importcases.sh \
 	tests/command/import-export.sh \
-	tests/command/input-program.sh \
 	tests/command/insert.sh \
 	tests/command/lag.sh \
 	tests/command/line-ends.sh \

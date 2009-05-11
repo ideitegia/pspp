@@ -50,10 +50,10 @@ struct interaction_variable
 struct interaction_value
 {
   const struct interaction_variable *intr;
-  union value *val; /* Concatenation of the string values in this
-		       interaction's value, or the product of a bunch
-		       of numeric values for a purely numeric
-		       interaction.
+  union value val; /* Concatenation of the string values in this
+                      interaction's value, or the product of a bunch
+                      of numeric values for a purely numeric
+                      interaction.
 		    */
   double f; /* Product of the numerical values in this interaction's value. */
 };
@@ -146,10 +146,16 @@ interaction_value_create (const struct interaction_variable *var, const union va
   
   if (var != NULL)
     {
+      int val_width;
+      char *val;
+
       result = xmalloc (sizeof (*result));
       result->intr = var;
       n_vars = interaction_get_n_vars (var);
-      result->val = value_create (n_vars * MAX_SHORT_STRING + 1);
+      val_width = n_vars * MAX_SHORT_STRING + 1;
+      value_init (&result->val, val_width);
+      val = value_str_rw (&result->val, val_width);
+      val[0] = '\0';
       result->f = 1.0;
       for (i = 0; i < n_vars; i++)
 	{
@@ -157,7 +163,7 @@ interaction_value_create (const struct interaction_variable *var, const union va
 
 	  if (var_is_value_missing (member, vals[i], MV_ANY))
 	    {
-	      value_set_missing (result->val, MAX_SHORT_STRING);
+	      value_set_missing (&result->val, MAX_SHORT_STRING);
 	      result->f = SYSMIS;
 	      break;
 	    }
@@ -165,7 +171,8 @@ interaction_value_create (const struct interaction_variable *var, const union va
 	    {
 	      if (var_is_alpha (var->members[i]))
 		{
-		  strncat (result->val->s, vals[i]->s, MAX_SHORT_STRING);
+                  int w = var_get_width (var->members[i]);
+		  strncat (val, value_str (vals[i], w), MAX_SHORT_STRING);
 		}
 	      else if (var_is_numeric (var->members[i]))
 		{
@@ -188,17 +195,17 @@ interaction_value_create (const struct interaction_variable *var, const union va
 	    avoid the error, we set result->f to 1.0 for numeric
 	    interactions.
 	   */
-	  result->val->f = result->f;
+	  result->val.f = result->f;
 	  result->f = 1.0;
 	}
     }
   return result;
 }
 
-union value *
+const union value *
 interaction_value_get (const struct interaction_value *val)
 {
-  return val->val;
+  return &val->val;
 }
 
 /*
@@ -220,7 +227,10 @@ interaction_value_destroy (struct interaction_value *val)
 {
   if (val != NULL)
     {
-      free (val->val);
+      size_t n_vars = interaction_get_n_vars (val->intr);
+      int val_width = n_vars * MAX_SHORT_STRING + 1;
+
+      value_destroy (&val->val, val_width);
       free (val);
     }
 }
@@ -234,7 +244,7 @@ interaction_case_data (const struct ccase *ccase, const struct variable *var,
 {
   size_t i;
   size_t n_vars;
-  const struct interaction_variable *iv;
+  const struct interaction_variable *iv = NULL;
   const struct variable *intr;
   const struct variable *member;
   const union value **vals = NULL;

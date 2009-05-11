@@ -75,7 +75,7 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
 		*var_get_write_format (dialog->pv));
 
 
-  if ( val_labs_find (dialog->labs, v) )
+  if (val_labs_find (dialog->labs, &v))
     {
       gtk_widget_set_sensitive (dialog->change_button, TRUE);
       gtk_widget_set_sensitive (dialog->add_button, FALSE);
@@ -134,7 +134,7 @@ select_treeview_from_value (GtkTreeView *treeview, union value *val)
 static void
 on_value_entry_change (GtkEntry *entry, gpointer data)
 {
-  char *s;
+  const char *s;
 
   struct val_labs_dialog *dialog = data;
 
@@ -151,7 +151,7 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
   gtk_entry_set_text (GTK_ENTRY (dialog->label_entry),"");
 
 
-  if ( (s = val_labs_find (dialog->labs, v)) )
+  if ( (s = val_labs_find (dialog->labs, &v)) )
     {
       gtk_entry_set_text (GTK_ENTRY (dialog->label_entry), s);
       gtk_widget_set_sensitive (dialog->add_button, FALSE);
@@ -227,14 +227,15 @@ on_delete (GtkWidget *w, GdkEvent *e, gpointer data)
 
 
 /* Return the value-label pair currently selected in the dialog box  */
-static struct val_lab *
-get_selected_tuple (struct val_labs_dialog *dialog)
+static void
+get_selected_tuple (struct val_labs_dialog *dialog,
+                    union value *valuep, const char **label)
 {
   GtkTreeView *treeview = GTK_TREE_VIEW (dialog->treeview);
-  static struct val_lab vl;
 
   GtkTreeIter iter ;
   GValue the_value = {0};
+  union value value;
 
   GtkTreeSelection* sel =  gtk_tree_view_get_selection (treeview);
 
@@ -244,12 +245,13 @@ get_selected_tuple (struct val_labs_dialog *dialog)
 
   gtk_tree_model_get_value (model, &iter, 1, &the_value);
 
-  vl.value.f = g_value_get_double (&the_value);
+  value.f = g_value_get_double (&the_value);
   g_value_unset (&the_value);
 
-  vl.label = val_labs_find (dialog->labs, vl.value);
-
-  return &vl;
+  if (valuep != NULL)
+    *valuep = value;
+  if (label != NULL)
+    *label = val_labs_find (dialog->labs, &value);
 }
 
 
@@ -268,7 +270,7 @@ on_change (GtkWidget *w, gpointer data)
   text_to_value (val_text, &v,
 		*var_get_write_format (dialog->pv));
 
-  val_labs_replace (dialog->labs, v,
+  val_labs_replace (dialog->labs, &v,
 		    gtk_entry_get_text (GTK_ENTRY (dialog->label_entry)));
 
   gtk_widget_set_sensitive (dialog->change_button, FALSE);
@@ -293,7 +295,7 @@ on_add (GtkWidget *w, gpointer data)
 		*var_get_write_format (dialog->pv));
 
 
-  if ( ! val_labs_add (dialog->labs, v,
+  if ( ! val_labs_add (dialog->labs, &v,
 		       gtk_entry_get_text
 		       ( GTK_ENTRY (dialog->label_entry)) ) )
     return FALSE;
@@ -312,9 +314,13 @@ on_remove (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
 
-  struct val_lab *vl = get_selected_tuple (dialog);
+  union value value;
+  const struct val_lab *vl;
 
-  val_labs_remove (dialog->labs, vl->value);
+  get_selected_tuple (dialog, &value, NULL);
+  vl = val_labs_lookup (dialog->labs, &value);
+  if (vl != NULL)
+    val_labs_remove (dialog->labs, vl);
 
   repopulate_dialog (dialog);
   gtk_widget_grab_focus (dialog->value_entry);
@@ -334,13 +340,16 @@ on_select_row (GtkTreeView *treeview, gpointer data)
   gchar *labeltext;
   struct val_labs_dialog *dialog = data;
 
-  struct val_lab * vl  = get_selected_tuple (dialog);
+  union value value;
+  const char *label;
 
-  gchar *const text = value_to_text (vl->value,
-				    *var_get_write_format (dialog->pv));
+  gchar *text;
 
   PsppireVarStore *var_store =
     PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
+
+  get_selected_tuple (dialog, &value, &label);
+  text = value_to_text (value, *var_get_write_format (dialog->pv));
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -356,7 +365,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 
 
   labeltext = recode_string (UTF8, psppire_dict_encoding (var_store->dict),
-			     vl->label, -1);
+			     label, -1);
 
   gtk_entry_set_text (GTK_ENTRY (dialog->label_entry),
 		     labeltext);
@@ -466,8 +475,9 @@ val_labs_dialog_set_target_variable (struct val_labs_dialog *dialog,
 static void
 repopulate_dialog (struct val_labs_dialog *dialog)
 {
-  struct val_labs_iterator *vli = 0;
-  struct val_lab *vl;
+  const struct val_lab **labels;
+  size_t n_labels;
+  size_t i;
 
   GtkTreeIter iter;
 
@@ -491,11 +501,11 @@ repopulate_dialog (struct val_labs_dialog *dialog)
   g_signal_handler_unblock (GTK_ENTRY (dialog->label_entry),
 			   dialog->change_handler_id);
 
-
-  for (vl = val_labs_first_sorted (dialog->labs, &vli);
-      vl;
-      vl = val_labs_next (dialog->labs, &vli))
+  labels = val_labs_sorted (dialog->labs);
+  n_labels = val_labs_count (dialog->labs);
+  for (i = 0; i < n_labels; i++)
     {
+      const struct val_lab *vl = labels[i];
 
       gchar *const vstr  =
 	value_to_text (vl->value,
@@ -504,7 +514,7 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       gchar *labeltext =
 	recode_string (UTF8,
 		       psppire_dict_encoding (var_store->dict),
-		       vl->label, -1);
+		       val_lab_get_label (vl), -1);
 
       gchar *const text = g_strdup_printf ("%s = \"%s\"",
 					   vstr, labeltext);
@@ -519,6 +529,7 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       g_free (text);
       g_free (vstr);
     }
+  free (labels);
 
   gtk_tree_view_set_model (GTK_TREE_VIEW (dialog->treeview),
 			  GTK_TREE_MODEL (list_store));

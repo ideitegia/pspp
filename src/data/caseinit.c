@@ -38,8 +38,9 @@
 /* Binds a value with a place to put it. */
 struct init_value
   {
-    union value value;
     size_t case_index;
+    int width;
+    union value value;
   };
 
 /* A set of values to initialize in a case. */
@@ -68,6 +69,10 @@ init_list_create (struct init_list *list)
 static void
 init_list_destroy (struct init_list *list)
 {
+  struct init_value *iv;
+
+  for (iv = &list->values[0]; iv < &list->values[list->cnt]; iv++)
+    value_destroy (&iv->value, iv->width);
   free (list->values);
 }
 
@@ -111,14 +116,13 @@ init_list_mark (struct init_list *list, const struct init_list *exclude,
   size_t i;
 
   assert (list != exclude);
-  list->values = xnrealloc (list->values,
-                            list->cnt + dict_get_next_value_idx (d),
+  list->values = xnrealloc (list->values, list->cnt + dict_get_var_cnt (d),
                             sizeof *list->values);
   for (i = 0; i < var_cnt; i++)
     {
       struct variable *v = dict_get_var (d, i);
       size_t case_index = var_get_case_index (v);
-      int offset;
+      struct init_value *iv;
 
       /* Only include the correct class. */
       if (!(include & (var_get_leave (v) ? LEAVE_LEFT : LEAVE_REINIT)))
@@ -128,19 +132,14 @@ init_list_mark (struct init_list *list, const struct init_list *exclude,
       if (exclude != NULL && init_list_includes (exclude, case_index))
         continue;
 
-      offset = 0;
-      do
-        {
-          struct init_value *iv = &list->values[list->cnt++];
-          iv->case_index = case_index++;
-          if (var_is_numeric (v))
-            iv->value.f = var_get_leave (v) ? 0 : SYSMIS;
-          else
-            memset (iv->value.s, ' ', sizeof iv->value.s);
-
-          offset += sizeof iv->value.s;
-        }
-      while (offset < var_get_width (v));
+      iv = &list->values[list->cnt++];
+      iv->case_index = case_index;
+      iv->width = var_get_width (v);
+      value_init (&iv->value, iv->width);
+      if (var_is_numeric (v) && var_get_leave (v))
+        iv->value.f = 0;
+      else
+        value_set_missing (&iv->value, iv->width);
     }
 
   /* Drop duplicates. */
@@ -153,13 +152,10 @@ init_list_mark (struct init_list *list, const struct init_list *exclude,
 static void
 init_list_init (const struct init_list *list, struct ccase *c)
 {
-  size_t i;
+  const struct init_value *iv;
 
-  for (i = 0; i < list->cnt; i++)
-    {
-      const struct init_value *value = &list->values[i];
-      *case_data_rw_idx (c, value->case_index) = value->value;
-    }
+  for (iv = &list->values[0]; iv < &list->values[list->cnt]; iv++)
+    value_copy (case_data_rw_idx (c, iv->case_index), &iv->value, iv->width);
 }
 
 /* Updates the values in the initializer LIST from the data in
@@ -167,13 +163,10 @@ init_list_init (const struct init_list *list, struct ccase *c)
 static void
 init_list_update (const struct init_list *list, const struct ccase *c)
 {
-  size_t i;
+  struct init_value *iv;
 
-  for (i = 0; i < list->cnt; i++)
-    {
-      struct init_value *value = &list->values[i];
-      value->value = *case_data_idx (c, value->case_index);
-    }
+  for (iv = &list->values[0]; iv < &list->values[list->cnt]; iv++)
+    value_copy (&iv->value, case_data_idx (c, iv->case_index), iv->width);
 }
 
 /* A case initializer. */

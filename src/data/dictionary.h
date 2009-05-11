@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -99,6 +99,7 @@ casenumber dict_get_case_limit (const struct dictionary *);
 void dict_set_case_limit (struct dictionary *, casenumber);
 
 /* Size of cases for this dictionary. */
+const struct caseproto *dict_get_proto (const struct dictionary *);
 int dict_get_next_value_idx (const struct dictionary *);
 size_t dict_get_case_size (const struct dictionary *);
 
@@ -107,6 +108,8 @@ size_t dict_get_case_size (const struct dictionary *);
 size_t dict_count_values (const struct dictionary *,
                           unsigned int exclude_classes);
 void dict_compact_values (struct dictionary *);
+struct caseproto *dict_get_compacted_proto (const struct dictionary *,
+                                            unsigned int exclude_classes);
 
 /* SPLIT FILE variables. */
 const struct variable *const *dict_get_split_vars (const struct dictionary *);

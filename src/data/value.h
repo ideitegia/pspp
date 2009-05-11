@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,47 +17,163 @@
 #ifndef DATA_VALUE_H
 #define DATA_VALUE_H 1
 
-#include <libpspp/misc.h>
+#include <assert.h>
 #include <stdbool.h>
-#include <stddef.h>
-#include "minmax.h"
-
-/* "Short" strings, which are generally those no more than 8
-   characters wide, can participate in more operations than
-   longer strings. */
-#define MAX_SHORT_STRING (MAX (ROUND_UP (SIZEOF_DOUBLE, 2), 8))
+#include <stdlib.h>
+#include <string.h>
+#include "xalloc.h"
+
+#define MAX_SHORT_STRING 8
 #define MIN_LONG_STRING (MAX_SHORT_STRING + 1)
 
-/* A numeric or short string value.
-   Multiple consecutive values represent a long string. */
+/* A numeric or string value.
+
+   The client is responsible for keeping track of the value's
+   width.
+
+   This structure is semi-opaque:
+
+       - If the value is a number, clients may access the 'f'
+         member directly.
+
+       - Clients should not access other members directly.
+*/
 union value
   {
     double f;
-    char s[MAX_SHORT_STRING];
+    char short_string[MAX_SHORT_STRING];
+    char *long_string;
   };
 
-union value *value_dup (const union value *, int width);
-union value *value_create (int width);
+static inline void value_init (union value *, int width);
+static inline bool value_needs_init (int width);
+static inline bool value_try_init (union value *, int width);
+static inline void value_destroy (union value *, int width);
+
+static inline double value_num (const union value *);
+static inline const char *value_str (const union value *, int width);
+static inline char *value_str_rw (union value *, int width);
 
 int compare_values (const void *, const void *, const void *var);
 unsigned hash_value (const void *, const void *var);
 
-int compare_values_short (const void *, const void *, const void *var);
-unsigned hash_value_short (const void *, const void *var);
-
-static inline size_t value_cnt_from_width (int width);
-void value_copy (union value *, const union value *, int width);
+static inline void value_copy (union value *, const union value *, int width);
+void value_copy_rpad (union value *, int dst_width,
+                      const union value *, int src_width,
+                      char pad);
+void value_copy_str_rpad (union value *, int dst_width, const char *,
+                          char pad);
+void value_copy_buf_rpad (union value *dst, int dst_width,
+                          const char *src, size_t src_len, char pad);
 void value_set_missing (union value *, int width);
-bool value_is_resizable (const union value *, int old_width, int new_width);
-void value_resize (union value *, int old_width, int new_width);
 int value_compare_3way (const union value *, const union value *, int width);
+bool value_equal (const union value *, const union value *, int width);
+size_t value_hash (const union value *, int width, unsigned int basis);
 
-/* Number of "union value"s required for a variable of the given
-   WIDTH. */
-static inline size_t
-value_cnt_from_width (int width)
+bool value_is_resizable (const union value *, int old_width, int new_width);
+bool value_needs_resize (int old_width, int new_width);
+void value_resize (union value *, int old_width, int new_width);
+
+struct pool;
+void value_init_pool (struct pool *, union value *, int width);
+void value_resize_pool (struct pool *, union value *,
+                        int old_width, int new_width);
+
+/* Initializes V as a value of the given WIDTH, where 0
+   represents a numeric value and a positive integer represents a
+   string value WIDTH bytes long.
+
+   A WIDTH of -1 is ignored.
+
+   The contents of value V are indeterminate after
+   initialization. */
+static inline void
+value_init (union value *v, int width)
 {
-  return width == 0 ? 1 : DIV_RND_UP (width, MAX_SHORT_STRING);
+  if (width > MAX_SHORT_STRING)
+    v->long_string = xmalloc (width);
+}
+
+/* Returns true if a value of the given WIDTH actually needs to
+   have the value_init and value_destroy functions called, false
+   if those functions are no-ops for values of the given WIDTH.
+
+   Using this function is only a valuable optimization if a large
+   number of values of the given WIDTH are to be initialized*/
+static inline bool
+value_needs_init (int width)
+{
+  return width > MAX_SHORT_STRING;
+}
+
+/* Same as value_init, except that failure to allocate memory
+   causes it to return false instead of terminating the
+   program.  On success, returns true. */
+static inline bool
+value_try_init (union value *v, int width)
+{
+  if (width > MAX_SHORT_STRING)
+    {
+      v->long_string = malloc (width);
+      return v->long_string != NULL;
+    }
+  else
+    return true;
+}
+
+/* Frees any memory allocated by value_init for V, which must
+   have the given WIDTH. */
+static inline void
+value_destroy (union value *v, int width)
+{
+  if (width > MAX_SHORT_STRING)
+    free (v->long_string);
+}
+
+/* Returns the numeric value in V, which must have width 0. */
+static inline double
+value_num (const union value *v)
+{
+  return v->f;
+}
+
+/* Returns the string value in V, which must have width WIDTH.
+
+   The returned value is not null-terminated.
+
+   It is important that WIDTH be the actual value that was passed
+   to value_init.  Passing, e.g., a smaller value because only
+   that number of bytes will be accessed will not always work. */
+static inline const char *
+value_str (const union value *v, int width)
+{
+  assert (width > 0);
+  return (width >= MIN_LONG_STRING ? v->long_string : v->short_string);
+}
+
+/* Returns the string value in V, which must have width WIDTH.
+
+   The returned value is not null-terminated.
+
+   It is important that WIDTH be the actual value that was passed
+   to value_init.  Passing, e.g., a smaller value because only
+   that number of bytes will be accessed will not always work. */
+static inline char *
+value_str_rw (union value *v, int width)
+{
+  assert (width > 0);
+  return (width >= MIN_LONG_STRING ? v->long_string : v->short_string);
+}
+
+/* Copies SRC to DST, given that they both contain data of the
+   given WIDTH. */
+static inline void
+value_copy (union value *dst, const union value *src, int width)
+{
+  if (width <= MAX_SHORT_STRING)
+    *dst = *src;
+  else if (dst != src)
+    memcpy (dst->long_string, src->long_string, width);
 }
 
 #endif /* data/value.h */

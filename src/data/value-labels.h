@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,12 +28,37 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <data/value.h>
+#include <libpspp/hmap.h>
 
-/* One value label. */
+/* One value label.
+
+   A value label is normally part of a struct val_labs (see
+   below). */
 struct val_lab
   {
-    union value value;
-    const char *label;
+    struct hmap_node node;      /* Node in hash map. */
+    union value value;          /* The value being labeled. */
+    struct atom *label;         /* A ref-counted string. */
+  };
+
+/* Returns the value in VL.  The caller must not modify or free
+   the returned value.
+
+   The width of the returned value cannot be determined directly
+   from VL.  It may be obtained by calling val_labs_get_width on
+   the val_labs struct that VL is in. */
+static inline const union value *val_lab_get_value (const struct val_lab *vl)
+{
+  return &vl->value;
+}
+
+const char *val_lab_get_label (const struct val_lab *);
+
+/* A set of value labels. */
+struct val_labs
+  {
+    int width;                  /* 0=numeric, otherwise string width. */
+    struct hmap labels;         /* Hash table of `struct int_val_lab's. */
   };
 
 /* Creating and destroying sets of value labels. */
@@ -41,28 +66,28 @@ struct val_labs *val_labs_create (int width);
 struct val_labs *val_labs_clone (const struct val_labs *);
 void val_labs_clear (struct val_labs *);
 void val_labs_destroy (struct val_labs *);
+size_t val_labs_count (const struct val_labs *);
 
 /* Looking up value labels. */
-char *val_labs_find (const struct val_labs *, union value);
+const char *val_labs_find (const struct val_labs *, const union value *);
+const struct val_lab *val_labs_lookup (const struct val_labs *,
+                                       const union value *);
 
 /* Basic properties. */
 size_t val_labs_count (const struct val_labs *);
+int val_labs_get_width (const struct val_labs *);
 bool val_labs_can_set_width (const struct val_labs *, int new_width);
 void val_labs_set_width (struct val_labs *, int new_width);
 
 /* Adding value labels. */
-bool val_labs_add (struct val_labs *, union value, const char *);
-void val_labs_replace (struct val_labs *, union value, const char *);
-bool val_labs_remove (struct val_labs *, union value);
+bool val_labs_add (struct val_labs *, const union value *, const char *);
+void val_labs_replace (struct val_labs *, const union value *, const char *);
+void val_labs_remove (struct val_labs *, const struct val_lab *);
 
 /* Iterating through value labels. */
-struct val_labs_iterator;
-struct val_lab *val_labs_first (const struct val_labs *,
-                                struct val_labs_iterator **);
-struct val_lab *val_labs_first_sorted (const struct val_labs *,
-                                       struct val_labs_iterator **);
-struct val_lab *val_labs_next (const struct val_labs *,
-                               struct val_labs_iterator **);
-void val_labs_done (struct val_labs_iterator **);
+const struct val_lab *val_labs_first (const struct val_labs *);
+const struct val_lab *val_labs_next (const struct val_labs *,
+                                     const struct val_lab *);
+const struct val_lab **val_labs_sorted (const struct val_labs *);
 
 #endif /* data/value-labels.h */

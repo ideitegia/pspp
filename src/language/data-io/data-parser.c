@@ -721,7 +721,7 @@ struct data_parser_casereader
   {
     struct data_parser *parser; /* Parser. */
     struct dfm_reader *reader;  /* Data file reader. */
-    size_t value_cnt;           /* Number of `union value's in case. */
+    struct caseproto *proto;    /* Format of cases. */
   };
 
 static const struct casereader_class data_parser_casereader_class;
@@ -742,8 +742,8 @@ data_parser_make_active_file (struct data_parser *parser, struct dataset *ds,
   r = xmalloc (sizeof *r);
   r->parser = parser;
   r->reader = reader;
-  r->value_cnt = dict_get_next_value_idx (dict);
-  casereader = casereader_create_sequential (NULL, r->value_cnt,
+  r->proto = caseproto_ref (dict_get_proto (dict));
+  casereader = casereader_create_sequential (NULL, r->proto,
                                              CASENUMBER_MAX,
                                              &data_parser_casereader_class, r);
   proc_set_active_file (ds, casereader, dict);
@@ -753,7 +753,7 @@ static struct ccase *
 data_parser_casereader_read (struct casereader *reader UNUSED, void *r_)
 {
   struct data_parser_casereader *r = r_;
-  struct ccase *c = case_create (r->value_cnt);
+  struct ccase *c = case_create (r->proto);
   if (data_parser_parse (r->parser, r->reader, c))
     return c;
   else
@@ -771,6 +771,7 @@ data_parser_casereader_destroy (struct casereader *reader UNUSED, void *r_)
     casereader_force_error (reader);
   data_parser_destroy (r->parser);
   dfm_close_reader (r->reader);
+  caseproto_unref (r->proto);
   free (r);
 }
 

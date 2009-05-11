@@ -70,7 +70,7 @@ struct input_program_pgm
     casenumber case_nr;             /* Incremented by END CASE transformation. */
 
     struct caseinit *init;
-    size_t value_cnt;
+    struct caseproto *proto;
   };
 
 static void destroy_input_program (struct input_program_pgm *);
@@ -111,6 +111,7 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   inp = xmalloc (sizeof *inp);
   inp->trns_chain = NULL;
   inp->init = NULL;
+  inp->proto = NULL;
 
   inside_input_program = true;
   for (;;)
@@ -153,10 +154,10 @@ cmd_input_program (struct lexer *lexer, struct dataset *ds)
   /* Figure out how to initialize each input case. */
   inp->init = caseinit_create ();
   caseinit_mark_for_init (inp->init, dataset_dict (ds));
-  inp->value_cnt = dict_get_next_value_idx (dataset_dict (ds));
+  inp->proto = caseproto_ref (dict_get_proto (dataset_dict (ds)));
 
   proc_set_active_file_data (
-    ds, casereader_create_sequential (NULL, inp->value_cnt, CASENUMBER_MAX,
+    ds, casereader_create_sequential (NULL, inp->proto, CASENUMBER_MAX,
                                       &input_program_casereader_class, inp));
 
   return CMD_SUCCESS;
@@ -187,7 +188,7 @@ static struct ccase *
 input_program_casereader_read (struct casereader *reader UNUSED, void *inp_)
 {
   struct input_program_pgm *inp = inp_;
-  struct ccase *c = case_create (inp->value_cnt);
+  struct ccase *c = case_create (inp->proto);
 
   do
     {
@@ -217,6 +218,7 @@ destroy_input_program (struct input_program_pgm *pgm)
     {
       trns_chain_destroy (pgm->trns_chain);
       caseinit_destroy (pgm->init);
+      caseproto_unref (pgm->proto);
       free (pgm);
     }
 }

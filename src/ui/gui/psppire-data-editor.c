@@ -1622,7 +1622,7 @@ data_sheet_set_clip (PsppireSheet *sheet)
 
   /* Construct clip data. */
   map = case_map_by_name (ds->dict->dict, clip_dict);
-  writer = autopaging_writer_create (dict_get_next_value_idx (clip_dict));
+  writer = autopaging_writer_create (dict_get_proto (clip_dict));
   for (i = range.row0; i <= range.rowi ; ++i )
     {
       struct ccase *old = psppire_data_store_get_case (ds, i);
@@ -1669,7 +1669,7 @@ clip_to_text (void)
   casenumber r;
   GString *string;
 
-  const size_t val_cnt = casereader_get_value_cnt (clip_datasheet);
+  const size_t val_cnt = caseproto_get_n_widths (casereader_get_proto (clip_datasheet));
   const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
   const size_t var_cnt = dict_get_var_cnt (clip_dict);
 
@@ -1711,7 +1711,7 @@ clip_to_html (void)
   casenumber r;
   GString *string;
 
-  const size_t val_cnt = casereader_get_value_cnt (clip_datasheet);
+  const size_t val_cnt = caseproto_get_n_widths (casereader_get_proto (clip_datasheet));
   const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
   const size_t var_cnt = dict_get_var_cnt (clip_dict);
 

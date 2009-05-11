@@ -18,44 +18,37 @@
 
 #include <data/case.h>
 
-#include <assert.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdlib.h>
 
 #include <data/value.h>
 #include <data/variable.h>
+#include <libpspp/assertion.h>
 #include <libpspp/str.h>
 
 #include "minmax.h"
 #include "xalloc.h"
 
-/* Returns the number of bytes needed by a case with N_VALUES
-   values. */
-static size_t
-case_size (size_t n_values)
-{
-  return offsetof (struct ccase, values) + n_values * sizeof (union value);
-}
+static size_t case_size (const struct caseproto *);
+static bool variable_matches_case (const struct ccase *,
+                                   const struct variable *);
+static void copy_forward (struct ccase *dst, size_t dst_idx,
+                          const struct ccase *src, size_t src_idx,
+                          size_t n_values);
+static void copy_backward (struct ccase *dst, size_t dst_idx,
+                           const struct ccase *src, size_t src_idx,
+                           size_t n_values);
 
-/* Returns true if case C contains COUNT cases starting at index
-   OFS, false if any of those values are out of range for case
-   C. */
-static inline bool UNUSED
-range_is_valid (const struct ccase *c, size_t ofs, size_t count)
-{
-  return (count <= c->n_values
-          && ofs <= c->n_values
-          && ofs + count <= c->n_values);
-}
+/* Creates and returns a new case that stores data of the form
+   specified by PROTO.  The data in the case have indeterminate
+   contents until explicitly written.
 
-/* Creates and returns a new case that can store N_VALUES values.
-   The values have indeterminate contents until explicitly
-   written. */
+   The caller retains ownership of PROTO. */
 struct ccase *
-case_create (size_t n_values)
+case_create (const struct caseproto *proto)
 {
-  struct ccase *c = case_try_create (n_values);
+  struct ccase *c = case_try_create (proto);
   if (c == NULL)
     xalloc_die ();
   return c;
@@ -64,56 +57,119 @@ case_create (size_t n_values)
 /* Like case_create, but returns a null pointer if not enough
    memory is available. */
 struct ccase *
-case_try_create (size_t n_values)
+case_try_create (const struct caseproto *proto)
 {
-  struct ccase *c = malloc (case_size (n_values));
-  if (c)
+  struct ccase *c = malloc (case_size (proto));
+  if (c != NULL)
     {
-      c->n_values = n_values;
-      c->ref_cnt = 1;
+      if (caseproto_try_init_values (proto, c->values))
+        {
+          c->proto = caseproto_ref (proto);
+          c->ref_cnt = 1;
+          return c;
+        }
+      free (c);
     }
+  return NULL;
+}
+
+/* Creates and returns an unshared copy of case C. */
+struct ccase *
+case_clone (const struct ccase *c)
+{
+  return case_unshare (case_ref (c));
+}
+
+/* Returns an estimate of the number of bytes of memory that
+   would be consumed in creating a case based on PROTO.  The
+   estimate includes typical overhead from malloc() in addition
+   to the actual size of data. */
+size_t
+case_get_cost (const struct caseproto *proto)
+{
+  /* FIXME: improve approximation? */
+  return (1 + caseproto_get_n_widths (proto)
+          + 3 * caseproto_get_n_long_strings (proto)) * sizeof (union value);
+}
+
+/* Changes the prototype for case C, which must not be shared.
+   The new PROTO must be conformable with C's current prototype
+   (as defined by caseproto_is_conformable).
+
+   Any new values created by this function have indeterminate
+   content that the caller is responsible for initializing.
+
+   The caller retains ownership of PROTO.
+
+   Returns a new case that replaces C, which is freed. */
+struct ccase *
+case_resize (struct ccase *c, const struct caseproto *new_proto)
+{
+  struct caseproto *old_proto = c->proto;
+  size_t old_n_widths = caseproto_get_n_widths (old_proto);
+  size_t new_n_widths = caseproto_get_n_widths (new_proto);
+
+  assert (!case_is_shared (c));
+  expensive_assert (caseproto_is_conformable (old_proto, new_proto));
+
+  if (old_n_widths != new_n_widths)
+    {
+      if (new_n_widths < old_n_widths)
+        caseproto_reinit_values (old_proto, new_proto, c->values);
+      c = xrealloc (c, case_size (new_proto));
+      if (new_n_widths > old_n_widths)
+        caseproto_reinit_values (old_proto, new_proto, c->values);
+
+      caseproto_unref (old_proto);
+      c->proto = caseproto_ref (new_proto);
+    }
+
   return c;
 }
 
-/* Resizes case C, which must not be shared, to N_VALUES union
-   values.  If N_VALUES is greater than the current size of case
-   C, then the newly added values have indeterminate content that
-   the caller is responsible for initializing.  Returns the new
-   case. */
-struct ccase *
-case_resize (struct ccase *c, size_t n_values)
-{
-  assert (!case_is_shared (c));
-  if (n_values != c->n_values)
-    {
-      c->n_values = n_values;
-      return xrealloc (c, case_size (n_values));
-    }
-  else
-    return c;
-}
+/* case_unshare_and_resize(C, PROTO) is equivalent to
+   case_resize(case_unshare(C), PROTO), but it is faster if case
+   C is shared.
 
-/* case_unshare_and_resize(C, N) is equivalent to
-   case_resize(case_unshare(C), N), but it is faster if case C is
-   shared.
+   Any new values created by this function have indeterminate
+   content that the caller is responsible for initializing.
 
-   Returns the new case.*/
+   The caller retains ownership of PROTO.
+
+   Returns the new case that replaces C, which is freed. */
 struct ccase *
-case_unshare_and_resize (struct ccase *c, size_t n_values)
+case_unshare_and_resize (struct ccase *c, const struct caseproto *proto)
 {
   if (!case_is_shared (c))
-    return case_resize (c, n_values);
+    return case_resize (c, proto);
   else
     {
-      struct ccase *new = case_create (n_values);
-      case_copy (new, 0, c, 0, MIN (n_values, c->n_values));
+      struct ccase *new = case_create (proto);
+      size_t old_n_values = caseproto_get_n_widths (c->proto);
+      size_t new_n_values = caseproto_get_n_widths (proto);
+      case_copy (new, 0, c, 0, MIN (old_n_values, new_n_values));
       c->ref_cnt--;
       return new;
     }
 }
 
+/* Sets all of the numeric values in case C to the system-missing
+   value, and all of the string values to spaces. */
+void
+case_set_missing (struct ccase *c)
+{
+  size_t i;
+
+  assert (!case_is_shared (c));
+  for (i = 0; i < caseproto_get_n_widths (c->proto); i++)
+    value_set_missing (&c->values[i], caseproto_get_width (c->proto, i));
+}
+
 /* Copies N_VALUES values from SRC (starting at SRC_IDX) to DST
-   (starting at DST_IDX).
+   (starting at DST_IDX).  Each value that is copied into must
+   have the same width as the value that it is copied from.
+
+   Properly handles overlapping ranges when DST == SRC.
 
    DST must not be shared. */
 void
@@ -122,12 +178,29 @@ case_copy (struct ccase *dst, size_t dst_idx,
            size_t n_values)
 {
   assert (!case_is_shared (dst));
-  assert (range_is_valid (dst, dst_idx, n_values));
-  assert (range_is_valid (src, src_idx, n_values));
+  assert (caseproto_range_is_valid (dst->proto, dst_idx, n_values));
+  assert (caseproto_range_is_valid (src->proto, src_idx, n_values));
+  assert (caseproto_equal (dst->proto, dst_idx, src->proto, src_idx,
+                           n_values));
 
-  if (dst != src || dst_idx != src_idx)
-    memmove (dst->values + dst_idx, src->values + src_idx,
-             sizeof *dst->values * n_values);
+  if (dst != src)
+    {
+      if (!dst->proto->n_long_strings || !src->proto->n_long_strings)
+        memcpy (&dst->values[dst_idx], &src->values[src_idx],
+                sizeof dst->values[0] * n_values);
+      else
+        copy_forward (dst, dst_idx, src, src_idx, n_values);
+    }
+  else if (dst_idx != src_idx)
+    {
+      if (!dst->proto->n_long_strings)
+        memmove (&dst->values[dst_idx], &src->values[src_idx],
+                 sizeof dst->values[0] * n_values);
+      else if (dst_idx < src_idx)
+        copy_forward (dst, dst_idx, src, src_idx, n_values);
+      else /* dst_idx > src_idx */
+        copy_backward (dst, dst_idx, src, src_idx, n_values);
+    }
 }
 
 /* Copies N_VALUES values out of case C to VALUES, starting at
@@ -136,8 +209,13 @@ void
 case_copy_out (const struct ccase *c,
                size_t start_idx, union value *values, size_t n_values)
 {
-  assert (range_is_valid (c, start_idx, n_values));
-  memcpy (values, c->values + start_idx, n_values * sizeof *values);
+  size_t i;
+
+  assert (caseproto_range_is_valid (c->proto, start_idx, n_values));
+
+  for (i = 0; i < n_values; i++)
+    value_copy (&values[i], &c->values[start_idx + i],
+                caseproto_get_width (c->proto, start_idx + i));
 }
 
 /* Copies N_VALUES values from VALUES into case C, starting at
@@ -148,9 +226,14 @@ void
 case_copy_in (struct ccase *c,
               size_t start_idx, const union value *values, size_t n_values)
 {
+  size_t i;
+
   assert (!case_is_shared (c));
-  assert (range_is_valid (c, start_idx, n_values));
-  memcpy (c->values + start_idx, values, n_values * sizeof *values);
+  assert (caseproto_range_is_valid (c->proto, start_idx, n_values));
+
+  for (i = 0; i < n_values; i++)
+    value_copy (&c->values[start_idx + i], &values[i],
+                caseproto_get_width (c->proto, start_idx + i));
 }
 
 /* Returns a pointer to the `union value' used for the
@@ -160,7 +243,8 @@ case_copy_in (struct ccase *c,
 const union value *
 case_data (const struct ccase *c, const struct variable *v)
 {
-  return case_data_idx (c, var_get_case_index (v));
+  assert (variable_matches_case (c, v));
+  return &c->values[var_get_case_index (v)];
 }
 
 /* Returns a pointer to the `union value' used for the element of
@@ -169,7 +253,7 @@ case_data (const struct ccase *c, const struct variable *v)
 const union value *
 case_data_idx (const struct ccase *c, size_t idx)
 {
-  assert (idx < c->n_values);
+  assert (idx < c->proto->n_widths);
   return &c->values[idx];
 }
 
@@ -181,7 +265,9 @@ case_data_idx (const struct ccase *c, size_t idx)
 union value *
 case_data_rw (struct ccase *c, const struct variable *v)
 {
-  return case_data_rw_idx (c, var_get_case_index (v));
+  assert (variable_matches_case (c, v));
+  assert (!case_is_shared (c));
+  return &c->values[var_get_case_index (v)];
 }
 
 /* Returns a pointer to the `union value' used for the
@@ -192,8 +278,8 @@ case_data_rw (struct ccase *c, const struct variable *v)
 union value *
 case_data_rw_idx (struct ccase *c, size_t idx)
 {
+  assert (idx < c->proto->n_widths);
   assert (!case_is_shared (c));
-  assert (idx < c->n_values);
   return &c->values[idx];
 }
 
@@ -203,7 +289,8 @@ case_data_rw_idx (struct ccase *c, size_t idx)
 double
 case_num (const struct ccase *c, const struct variable *v)
 {
-  return case_num_idx (c, var_get_case_index (v));
+  assert (variable_matches_case (c, v));
+  return c->values[var_get_case_index (v)].f;
 }
 
 /* Returns the numeric value of the `union value' in C numbered
@@ -211,7 +298,7 @@ case_num (const struct ccase *c, const struct variable *v)
 double
 case_num_idx (const struct ccase *c, size_t idx)
 {
-  assert (idx < c->n_values);
+  assert (idx < c->proto->n_widths);
   return c->values[idx].f;
 }
 
@@ -219,24 +306,58 @@ case_num_idx (const struct ccase *c, size_t idx)
    variable V.  Case C must be drawn from V's dictionary.  The
    caller must not modify the return value.
 
-   Like all "union value"s, the return value is not
-   null-terminated. */
+   Like the strings embedded in all "union value"s, the return
+   value is not null-terminated. */
 const char *
 case_str (const struct ccase *c, const struct variable *v)
 {
-  return case_str_idx (c, var_get_case_index (v));
+  size_t idx = var_get_case_index (v);
+  assert (variable_matches_case (c, v));
+  return value_str (&c->values[idx], caseproto_get_width (c->proto, idx));
 }
 
 /* Returns the string value of the `union value' in C numbered
    IDX.  The caller must not modify the return value.
 
-   Like all "union value"s, the return value is not
-   null-terminated. */
+   Like the strings embedded in all "union value"s, the return
+   value is not null-terminated. */
 const char *
 case_str_idx (const struct ccase *c, size_t idx)
 {
-  assert (idx < c->n_values);
-  return c->values[idx].s;
+  assert (idx < c->proto->n_widths);
+  return value_str (&c->values[idx], caseproto_get_width (c->proto, idx));
+}
+
+/* Returns the string value of the `union value' in C for
+   variable V.  Case C must be drawn from V's dictionary.  The
+   caller may modify the return value.
+
+   Case C must not be shared.
+
+   Like the strings embedded in all "union value"s, the return
+   value is not null-terminated. */
+char *
+case_str_rw (struct ccase *c, const struct variable *v)
+{
+  size_t idx = var_get_case_index (v);
+  assert (variable_matches_case (c, v));
+  assert (!case_is_shared (c));
+  return value_str_rw (&c->values[idx], caseproto_get_width (c->proto, idx));
+}
+
+/* Returns the string value of the `union value' in C numbered
+   IDX.  The caller may modify the return value.
+
+   Case C must not be shared.
+
+   Like the strings embedded in all "union value"s, the return
+   value is not null-terminated. */
+char *
+case_str_rw_idx (struct ccase *c, size_t idx)
+{
+  assert (idx < c->proto->n_widths);
+  assert (!case_is_shared (c));
+  return value_str_rw (&c->values[idx], caseproto_get_width (c->proto, idx));
 }
 
 /* Compares the values of the N_VARS variables in VP
@@ -257,32 +378,15 @@ case_compare_2dict (const struct ccase *ca, const struct ccase *cb,
                     const struct variable *const *vbp,
                     size_t n_vars)
 {
-  for (; n_vars-- > 0; vap++, vbp++)
+  int cmp = 0;
+  for (; !cmp && n_vars-- > 0; vap++, vbp++)
     {
-      const struct variable *va = *vap;
-      const struct variable *vb = *vbp;
-
-      assert (var_get_width (va) == var_get_width (vb));
-
-      if (var_get_width (va) == 0)
-        {
-          double af = case_num (ca, va);
-          double bf = case_num (cb, vb);
-
-          if (af != bf)
-            return af > bf ? 1 : -1;
-        }
-      else
-        {
-          const char *as = case_str (ca, va);
-          const char *bs = case_str (cb, vb);
-          int cmp = memcmp (as, bs, var_get_width (va));
-
-          if (cmp != 0)
-            return cmp;
-        }
+      const union value *va = case_data (ca, *vap);
+      const union value *vb = case_data (cb, *vbp);
+      assert (var_get_width (*vap) == var_get_width (*vbp));
+      cmp = value_compare_3way (va, vb, var_get_width (*vap)); 
     }
-  return 0;
+  return cmp;
 }
 
 /* Returns a pointer to the array of `union value's used for C.
@@ -314,8 +418,66 @@ case_data_all_rw (struct ccase *c)
 struct ccase *
 case_unshare__ (struct ccase *old)
 {
-  struct ccase *new = case_create (old->n_values);
-  memcpy (new->values, old->values, old->n_values * sizeof old->values[0]);
+  struct ccase *new = case_create (old->proto);
+  case_copy (new, 0, old, 0, caseproto_get_n_widths (new->proto));
   --old->ref_cnt;
   return new;
 }
+
+/* Internal helper function for case_unref. */
+void
+case_unref__ (struct ccase *c)
+{
+  caseproto_destroy_values (c->proto, c->values);
+  caseproto_unref (c->proto);
+  free (c);
+}
+
+/* Returns the number of bytes needed by a case for case
+   prototype PROTO. */
+static size_t
+case_size (const struct caseproto *proto)
+{
+  return (offsetof (struct ccase, values)
+          + caseproto_get_n_widths (proto) * sizeof (union value));
+}
+
+/* Returns true if C contains a value at V's case index with the
+   same width as V; that is, if V may plausibly be used to read
+   or write data in C.
+
+   Useful in assertions. */
+static bool UNUSED
+variable_matches_case (const struct ccase *c, const struct variable *v)
+{
+  size_t case_idx = var_get_case_index (v);
+  return (case_idx < caseproto_get_n_widths (c->proto)
+          && caseproto_get_width (c->proto, case_idx) == var_get_width (v));
+}
+
+/* Internal helper function for case_copy(). */
+static void
+copy_forward (struct ccase *dst, size_t dst_idx,
+              const struct ccase *src, size_t src_idx,
+              size_t n_values)
+{
+  size_t i;
+
+  for (i = 0; i < n_values; i++)
+    value_copy (&dst->values[dst_idx + i], &src->values[src_idx + i],
+                caseproto_get_width (dst->proto, dst_idx + i));
+}
+
+/* Internal helper function for case_copy(). */
+static void
+copy_backward (struct ccase *dst, size_t dst_idx,
+               const struct ccase *src, size_t src_idx,
+               size_t n_values)
+{
+  size_t i;
+
+  for (i = n_values; i-- != 0; )
+    value_copy (&dst->values[dst_idx + i], &src->values[src_idx + i],
+                caseproto_get_width (dst->proto, dst_idx + i));
+}
+

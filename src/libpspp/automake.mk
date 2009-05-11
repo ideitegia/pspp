@@ -61,12 +61,16 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/range-set.h \
 	src/libpspp/sparse-array.c \
 	src/libpspp/sparse-array.h \
+	src/libpspp/sparse-xarray.c \
+	src/libpspp/sparse-xarray.h \
 	src/libpspp/start-date.c \
 	src/libpspp/start-date.h \
 	src/libpspp/str.c \
 	src/libpspp/str.h \
 	src/libpspp/taint.c \
 	src/libpspp/taint.h \
+	src/libpspp/tmpfile.c \
+	src/libpspp/tmpfile.h \
 	src/libpspp/tower.c \
 	src/libpspp/tower.h \
 	src/libpspp/verbose-msg.c \

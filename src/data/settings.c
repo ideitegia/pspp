@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,11 +22,13 @@
 #include "format.h"
 #include "value.h"
 #include "xalloc.h"
+#include <data/case.h>
+#include <libpspp/i18n.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
-#include <libpspp/i18n.h>
 
 #include "error.h"
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -515,13 +517,12 @@ settings_get_workspace (void)
 }
 
 /* Approximate maximum number of cases to allocate in-core, given
-   that each case contains VALUE_CNT values. */
+   that each case has the format given in PROTO. */
 size_t
-settings_get_workspace_cases (size_t value_cnt)
+settings_get_workspace_cases (const struct caseproto *proto)
 {
-  size_t case_size = sizeof (union value) * value_cnt + 4 * sizeof (void *);
-  size_t case_cnt = MAX (settings_get_workspace () / case_size, 4);
-  return case_cnt;
+  size_t n_cases = settings_get_workspace () / case_get_cost (proto);
+  return MAX (n_cases, 4);
 }
 
 /* Set approximate maximum amount of memory to use for cases, in

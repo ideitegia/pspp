@@ -17,23 +17,33 @@
 
 
 #include <config.h>
+
 #include "wilcoxon.h"
-#include <data/variable.h>
+
+#include <gsl/gsl_cdf.h>
+#include <math.h>
+#include <signal.h>
+#include <unistd.h>
+
 #include <data/casereader.h>
 #include <data/casewriter.h>
-#include <data/subcase.h>
-#include <math/sort.h>
-#include <libpspp/message.h>
-#include <xalloc.h>
-#include <output/table.h>
-#include <data/procedure.h>
 #include <data/dictionary.h>
-#include <math/wilcoxon-sig.h>
-#include <gsl/gsl_cdf.h>
-#include <unistd.h>
-#include <signal.h>
-#include <libpspp/assertion.h>
 #include <data/format.h>
+#include <data/procedure.h>
+#include <data/subcase.h>
+#include <data/variable.h>
+#include <gsl/gsl_cdf.h>
+#include <libpspp/assertion.h>
+#include <libpspp/message.h>
+#include <libpspp/misc.h>
+#include <math/sort.h>
+#include <math/wilcoxon-sig.h>
+#include <output/table.h>
+#include <signal.h>
+#include <unistd.h>
+
+#include "minmax.h"
+#include "xalloc.h"
 
 static double
 append_difference (const struct ccase *c, casenumber n UNUSED, void *aux)
@@ -79,9 +89,16 @@ wilcoxon_execute (const struct dataset *ds,
   struct wilcoxon_state *ws = xcalloc (sizeof (*ws), t2s->n_pairs);
   const struct variable *weight = dict_get_weight (dict);
   struct variable *weightx = var_create_internal (WEIGHT_IDX);
+  struct caseproto *proto;
 
   input =
     casereader_create_filter_weight (input, dict, &warn, NULL);
+
+  proto = caseproto_create ();
+  proto = caseproto_add_width (proto, 0);
+  proto = caseproto_add_width (proto, 0);
+  if (weight != NULL)
+    proto = caseproto_add_width (proto, 0);
 
   for (i = 0 ; i < t2s->n_pairs; ++i )
     {
@@ -91,8 +108,6 @@ wilcoxon_execute (const struct dataset *ds,
       struct subcase ordering;
       variable_pair *vp = &t2s->pairs[i];
 
-      const int reader_width = weight ? 3 : 2;
-
       ws[i].sign = var_create_internal (0);
       ws[i].absdiff = var_create_internal (1);
 
@@ -101,12 +116,12 @@ wilcoxon_execute (const struct dataset *ds,
 					    NULL, NULL);
 
       subcase_init_var (&ordering, ws[i].absdiff, SC_ASCEND);
-      writer = sort_create_writer (&ordering, reader_width);
+      writer = sort_create_writer (&ordering, proto);
       subcase_destroy (&ordering);
 
       for (; (c = casereader_read (r)) != NULL; case_unref (c))
 	{
-	  struct ccase *output = case_create (reader_width);
+	  struct ccase *output = case_create (proto);
 	  double d = append_difference (c, 0, vp);
 
 	  if (d > 0)
@@ -140,6 +155,7 @@ wilcoxon_execute (const struct dataset *ds,
       casereader_destroy (r);
       ws[i].reader = casewriter_make_reader (writer);
     }
+  caseproto_unref (proto);
 
   for (i = 0 ; i < t2s->n_pairs; ++i )
     {

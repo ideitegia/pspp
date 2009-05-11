@@ -571,7 +571,6 @@ show_contrast_coeffs (short *bad_contrast)
 {
   int n_cols = 2 + ostensible_number_of_groups;
   int n_rows = 2 + cmd.sbc_contrast;
-  union value *group_value;
   int count = 0;
   void *const *group_values;
 
@@ -618,13 +617,16 @@ show_contrast_coeffs (short *bad_contrast)
        count < hsh_count (global_group_hash);
        ++count)
     {
+      double *group_value_p;
+      union value group_value;
       int i;
       struct string vstr;
-      group_value = group_values[count];
 
       ds_init_empty (&vstr);
 
-      var_append_value_name (indep_var, group_value, &vstr);
+      group_value_p = group_values[count];
+      group_value.f = *group_value_p;
+      var_append_value_name (indep_var, &group_value, &vstr);
 
       tab_text (t, count + 2, 1, TAB_CENTER | TAT_TITLE,
 		ds_cstr (&vstr));
@@ -878,10 +880,25 @@ precalc (struct cmd_oneway *cmd UNUSED)
     }
 }
 
-static void
-free_value (void *value_, const void *aux UNUSED)
+static int
+compare_double_3way (const void *a_, const void *b_, const void *aux UNUSED)
 {
-  union value *value = value_;
+  const double *a = a_;
+  const double *b = b_;
+  return *a < *b ? -1 : *a > *b;
+}
+
+static unsigned
+do_hash_double (const void *value_, const void *aux UNUSED)
+{
+  const double *value = value_;
+  return hash_double (*value, 0);
+}
+
+static void
+free_double (void *value_, const void *aux UNUSED)
+{
+  double *value = value_;
   free (value);
 }
 
@@ -908,9 +925,9 @@ run_oneway (struct cmd_oneway *cmd,
   taint = taint_clone (casereader_get_taint (input));
 
   global_group_hash = hsh_create (4,
-				  compare_values_short,
-				  hash_value_short,
-				  free_value,
+				  compare_double_3way,
+				  do_hash_double,
+				  free_double,
 				  indep_var);
 
   precalc (cmd);
@@ -931,9 +948,12 @@ run_oneway (struct cmd_oneway *cmd,
       const double weight = dict_get_case_weight (dict, c, NULL);
 
       const union value *indep_val = case_data (c, indep_var);
-      void **p = hsh_probe (global_group_hash, indep_val);
+      void **p = hsh_probe (global_group_hash, &indep_val->f);
       if (*p == NULL)
-        *p = value_dup (indep_val, var_get_width (indep_var));
+        {
+          double *value = *p = xmalloc (sizeof *value);
+          *value = indep_val->f;
+        }
 
       for (i = 0; i < n_vars; ++i)
 	{

@@ -175,7 +175,7 @@ compute_str (void *compute_, struct ccase **c, casenumber case_num)
     {
       *c = case_unshare (*c);
       expr_evaluate_str (compute->rvalue, *c, case_num,
-                         case_data_rw (*c, compute->variable)->s,
+                         case_str_rw (*c, compute->variable),
                          compute->width);
     }
 
@@ -216,8 +216,7 @@ compute_str_vec (void *compute_, struct ccase **c, casenumber case_num)
       vr = vector_get_var (compute->vector, rindx - 1);
       *c = case_unshare (*c);
       expr_evaluate_str (compute->rvalue, *c, case_num,
-                         case_data_rw (*c, vr)->s,
-                         var_get_width (vr));
+                         case_str_rw (*c, vr), var_get_width (vr));
     }
 
   return TRNS_CONTINUE;

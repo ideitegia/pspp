@@ -44,18 +44,18 @@ struct merge
     struct subcase ordering;
     struct merge_input inputs[MAX_MERGE_ORDER];
     size_t input_cnt;
-    size_t value_cnt;
+    struct caseproto *proto;
   };
 
 static void do_merge (struct merge *m);
 
 struct merge *
-merge_create (const struct subcase *ordering, size_t value_cnt)
+merge_create (const struct subcase *ordering, const struct caseproto *proto)
 {
   struct merge *m = xmalloc (sizeof *m);
   subcase_clone (&m->ordering, ordering);
   m->input_cnt = 0;
-  m->value_cnt = value_cnt;
+  m->proto = caseproto_ref (proto);
   return m;
 }
 
@@ -69,6 +69,7 @@ merge_destroy (struct merge *m)
       subcase_destroy (&m->ordering);
       for (i = 0; i < m->input_cnt; i++)
         casereader_destroy (m->inputs[i].reader);
+      caseproto_unref (m->proto);
       free (m);
     }
 }
@@ -97,7 +98,7 @@ merge_make_reader (struct merge *m)
     }
   else if (m->input_cnt == 0)
     {
-      struct casewriter *writer = mem_writer_create (m->value_cnt);
+      struct casewriter *writer = mem_writer_create (m->proto);
       r = casewriter_make_reader (writer);
     }
   else
@@ -131,7 +132,7 @@ do_merge (struct merge *m)
 
   assert (m->input_cnt > 1);
 
-  w = tmpfile_writer_create (m->value_cnt);
+  w = tmpfile_writer_create (m->proto);
   for (i = 0; i < m->input_cnt; i++)
     taint_propagate (casereader_get_taint (m->inputs[i].reader),
                      casewriter_get_taint (w));

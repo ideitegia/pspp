@@ -34,7 +34,7 @@
 struct casereader
   {
     struct taint *taint;                  /* Corrupted? */
-    size_t value_cnt;                     /* Values per case. */
+    struct caseproto *proto;              /* Format of contained cases. */
     casenumber case_cnt;                  /* Number of cases,
                                              CASENUMBER_MAX if unknown. */
     const struct casereader_class *class; /* Class. */
@@ -74,7 +74,10 @@ casereader_read (struct casereader *reader)
       c = reader->class->read (reader, reader->aux);
       if (c != NULL)
         {
-          assert (case_get_value_cnt (c) >= reader->value_cnt);
+          size_t n_widths UNUSED = caseproto_get_n_widths (reader->proto);
+          assert (case_get_value_cnt (c) >= n_widths);
+          expensive_assert (caseproto_equal (case_get_proto (c), 0,
+                                             reader->proto, 0, n_widths));
           return c;
         }
     }
@@ -93,6 +96,7 @@ casereader_destroy (struct casereader *reader)
     {
       reader->class->destroy (reader, reader->aux);
       ok = taint_destroy (reader->taint);
+      caseproto_unref (reader->proto);
       free (reader);
     }
   return ok;
@@ -282,11 +286,12 @@ casereader_count_cases (struct casereader *reader)
   return reader->case_cnt;
 }
 
-/* Returns the number of struct values in each case in READER. */
-size_t
-casereader_get_value_cnt (struct casereader *reader)
+/* Returns the prototype for the cases in READER.  The caller
+   must not unref the returned prototype. */
+const struct caseproto *
+casereader_get_proto (const struct casereader *reader)
 {
-  return reader->value_cnt;
+  return reader->proto;
 }
 
 /* Copies all the cases in READER to WRITER, propagating errors
@@ -320,8 +325,9 @@ casereader_transfer (struct casereader *reader, struct casewriter *writer)
    function, in which case the cloned casereader should have the
    same taint object as the original casereader.)
 
-   VALUE_CNT must be the number of struct values per case read
-   from the casereader.
+   PROTO must be the prototype for the cases that may be read
+   from the casereader.  The caller retains its reference to
+   PROTO.
 
    CASE_CNT is an upper limit on the number of cases that
    casereader_read will return from the casereader in successive
@@ -334,12 +340,13 @@ casereader_transfer (struct casereader *reader, struct casewriter *writer)
    functions, respectively. */
 struct casereader *
 casereader_create_sequential (const struct taint *taint,
-                              size_t value_cnt, casenumber case_cnt,
+                              const struct caseproto *proto,
+                              casenumber case_cnt,
                               const struct casereader_class *class, void *aux)
 {
   struct casereader *reader = xmalloc (sizeof *reader);
   reader->taint = taint != NULL ? taint_clone (taint) : taint_create ();
-  reader->value_cnt = value_cnt;
+  reader->proto = caseproto_ref (proto);
   reader->case_cnt = case_cnt;
   reader->class = class;
   reader->aux = aux;
@@ -434,8 +441,9 @@ compare_random_readers_by_offset (const struct heap_node *a_,
    casereader_create_sequential is more appropriate for a data
    source that is naturally sequential.
 
-   VALUE_CNT must be the number of struct values per case read
-   from the casereader.
+   PROTO must be the prototype for the cases that may be read
+   from the casereader.  The caller retains its reference to
+   PROTO.
 
    CASE_CNT is an upper limit on the number of cases that
    casereader_read will return from the casereader in successive
@@ -447,7 +455,7 @@ compare_random_readers_by_offset (const struct heap_node *a_,
    member functions and auxiliary data to pass to those member
    functions, respectively. */
 struct casereader *
-casereader_create_random (size_t value_cnt, casenumber case_cnt,
+casereader_create_random (const struct caseproto *proto, casenumber case_cnt,
                           const struct casereader_random_class *class,
                           void *aux)
 {
@@ -456,7 +464,7 @@ casereader_create_random (size_t value_cnt, casenumber case_cnt,
   shared->class = class;
   shared->aux = aux;
   shared->min_offset = 0;
-  return casereader_create_sequential (NULL, value_cnt, case_cnt,
+  return casereader_create_sequential (NULL, proto, case_cnt,
                                        &random_reader_casereader_class,
                                        make_random_reader (shared, 0));
 }
@@ -524,7 +532,7 @@ random_reader_clone (struct casereader *reader, void *br_)
   struct random_reader *br = br_;
   struct random_reader_shared *shared = br->shared;
   return casereader_create_sequential (casereader_get_taint (reader),
-                                       casereader_get_value_cnt (reader),
+                                       reader->proto,
                                        casereader_get_case_cnt (reader),
                                        &random_reader_casereader_class,
                                        make_random_reader (shared,
@@ -588,12 +596,11 @@ static const struct casereader_random_class shim_class;
 static void
 insert_shim (struct casereader *reader)
 {
-  size_t value_cnt = casereader_get_value_cnt (reader);
+  const struct caseproto *proto = casereader_get_proto (reader);
   casenumber case_cnt = casereader_get_case_cnt (reader);
   struct shim *b = xmalloc (sizeof *b);
-  b->window = casewindow_create (value_cnt, settings_get_workspace_cases (value_cnt));
-  b->subreader = casereader_create_random (value_cnt, case_cnt,
-                                           &shim_class, b);
+  b->window = casewindow_create (proto, settings_get_workspace_cases (proto));
+  b->subreader = casereader_create_random (proto, case_cnt, &shim_class, b);
   casereader_swap (reader, b->subreader);
   taint_propagate (casewindow_get_taint (b->window),
                    casereader_get_taint (reader));

@@ -86,6 +86,7 @@ GNULIB_MODULES = \
 	xalloc \
 	xalloc-die \
 	xmalloca \
+	xmemdup0 \
 	xsize \
 	xstrndup \
 	xvasprintf

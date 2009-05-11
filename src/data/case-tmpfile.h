@@ -31,14 +31,16 @@
 
 #include <data/case.h>
 
-struct case_tmpfile *case_tmpfile_create (size_t value_cnt);
+struct caseproto;
+
+struct case_tmpfile *case_tmpfile_create (const struct caseproto *);
 bool case_tmpfile_destroy (struct case_tmpfile *);
 
 bool case_tmpfile_error (const struct case_tmpfile *);
 void case_tmpfile_force_error (struct case_tmpfile *);
 const struct taint *case_tmpfile_get_taint (const struct case_tmpfile *);
 
- bool case_tmpfile_get_values (const struct case_tmpfile *,
+bool case_tmpfile_get_values (const struct case_tmpfile *,
                               casenumber, size_t start_value,
                               union value[], size_t value_cnt);
 struct ccase *case_tmpfile_get_case (const struct case_tmpfile *, casenumber);

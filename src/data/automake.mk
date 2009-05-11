@@ -1,4 +1,3 @@
-
 noinst_LTLIBRARIES += src/data/libdata.la
 
 src_data_libdata_la_CPPFLAGS = $(LIBXML2_CFLAGS) $(PG_CFLAGS) $(AM_CPPFLAGS) 
@@ -18,6 +17,8 @@ src_data_libdata_la_SOURCES = \
 	src/data/case-map.h \
 	src/data/case-matcher.c \
 	src/data/case-matcher.h \
+	src/data/caseproto.c \
+	src/data/caseproto.h \
 	src/data/case.c \
 	src/data/casegrouper.c \
 	src/data/casegrouper.h \
@@ -86,8 +87,6 @@ src_data_libdata_la_SOURCES = \
 	src/data/settings.h \
 	src/data/short-names.c \
 	src/data/short-names.h \
-	src/data/sparse-cases.c \
-	src/data/sparse-cases.h \
 	src/data/subcase.c \
 	src/data/subcase.h \
 	src/data/sys-file-private.c \

@@ -117,76 +117,88 @@ case when it processes it later.
 @subsection Runtime Typed Values
 
 When a value's type is only known at runtime, it is often represented
-as a @union{value}, defined in @file{data/value.h}.  @union{value} has
-two members: a @code{double} named @samp{f} to store a numeric value
-and an array of @code{char} named @samp{s} to a store a string value.
-A @union{value} does not identify the type or width of the data it
-contains.  Code that works with @union{values}s must therefore have
-external knowledge of its content, often through the type and width of
-a @struct{variable} (@pxref{Variables}).
+as a @union{value}, defined in @file{data/value.h}.  A @union{value}
+does not identify the type or width of the data it contains.  Code
+that works with @union{values}s must therefore have external knowledge
+of its content, often through the type and width of a
+@struct{variable} (@pxref{Variables}).
 
-@cindex MAX_SHORT_STRING
-@cindex short string
-@cindex long string
-@cindex string value
-The array of @code{char} in @union{value} has only a small, fixed
-capacity of @code{MAX_SHORT_STRING} bytes.  A value that
-fits within this capacity is called a @dfn{short string}.  Any wider
-string value, which must be represented by more than one
-@union{value}, is called a @dfn{long string}.
+@union{value} has one member that clients are permitted to access
+directly, a @code{double} named @samp{f} that stores the content of a
+numeric @union{value}.  It has other members that store the content of
+string @union{value}, but client code should use accessor functions
+instead of referring to these directly.
 
-@deftypefn Macro int MAX_SHORT_STRING
-Maximum width of a short string value, never less than 8 bytes.  It is
-wider than 8 bytes on systems where @code{double} is either larger
-than 8 bytes or has stricter alignment than 8 bytes.
-@end deftypefn
-
-@deftypefn Macro int MIN_LONG_STRING
-Minimum width of a long string value, that is, @code{MAX_SHORT_STRING
-+ 1}.
-@end deftypefn
-
-Long string variables are slightly harder to work with than short
-string values, because they cannot be conveniently and efficiently
-allocated as block scope variables or structure members.  The PSPP
-language exposes this inconvenience to the user: there are many
-circumstances in PSPP syntax where short strings are allowed but not
-long strings.  Short string variables, for example, may have
-user-missing values, but long string variables may not (@pxref{Missing
-Observations,,,pspp, PSPP Users Guide}).
-
-PSPP provides a few functions for working with @union{value}s.  The
+PSPP provides some functions for working with @union{value}s.  The
 most useful are described below.  To use these functions, recall that
 a numeric value has a width of 0.
 
-@deftypefun size_t value_cnt_from_width (int @var{width})
-Returns the number of consecutive @union{value}s that must be
-allocated to store a value of the given @var{width}.  For a numeric or
-short string value, the return value is 1; for long string
-variables, it is greater than 1.
+@deftypefun void value_init (union value *@var{value}, int @var{width})
+Initializes @var{value} as a value of the given @var{width}.  After
+initialization, the data in @var{value} are indeterminate; the caller
+is responsible for storing initial data in it.
+@end deftypefun
+
+@deftypefun void value_destroy (union value *@var{value}, int @var{width})
+Frees auxiliary storage associated with @var{value}, which must have
+the given @var{width}.
+@end deftypefun
+
+@deftypefun bool value_needs_init (int @var{width})
+For some widths, @func{value_init} and @func{value_destroy} do not
+actually do anything, because no additional storage is needed beyond
+the size of @union{value}.  This function returns true if @var{width}
+is such a width, which case there is no actual need to call those
+functions.  This can be a useful optimization if a large number of
+@union{value}s of such a width are to be initialized or destroyed.
+
+This function returns false if @func{value_init} and
+@func{value_destroy} are actually required for the given @var{width}.
+@end deftypefun
+
+@deftypefun double value_num (const union value *@var{value})
+Returns the numeric value in @var{value}, which must have been
+initialized as a numeric value.  Equivalent to @code{@var{value}->f}.
+@end deftypefun
+
+@deftypefun {const char *} value_str (const union value *@var{value}, int @var{width})
+@deftypefunx {char *} value_str_rw (union value *@var{value}, int @var{width})
+Returns the string value in @var{value}, which must have been
+initialized with positive width @var{width}.  The string returned is
+not null-terminated.  Only @var{width} bytes of returned data may be
+accessed.
+
+The two different functions exist only for @code{const}-correctness.
+Otherwise they are identical.
+
+It is important that @var{width} be the correct value that was passed
+to @func{value_init}.  Passing a smaller or larger value (e.g.@:
+because that number of bytes will be accessed) will not always work
+and should be avoided.
 @end deftypefun
 
 @deftypefun void value_copy (union value *@var{dst}, @
                              const union value *@var{src}, @
                              int @var{width})
-Copies a value of the given @var{width} from the @union{value} array
-starting at @var{src} to the one starting at @var{dst}.  The two
-arrays must not overlap.
+Copies the contents of @union{value} @var{src} to @var{dst}.  Both
+@var{dst} and @var{src} must have been initialized with the specified
+@var{width}.
 @end deftypefun
 
 @deftypefun void value_set_missing (union value *@var{value}, int @var{width})
 Sets @var{value} to @code{SYSMIS} if it is numeric or to all spaces if
-it is alphanumeric, according to @var{width}.  @var{value} must point
-to the start of a @union{value} array of the given @var{width}.
+it is alphanumeric, according to @var{width}.  @var{value} must have
+been initialized with the specified @var{width}.
 @end deftypefun
 
 @anchor{value_is_resizable}
 @deftypefun bool value_is_resizable (const union value *@var{value}, int @var{old_width}, int @var{new_width})
-Determines whether @var{value} may be resized from @var{old_width} to
-@var{new_width}.  Resizing is possible if the following criteria are
-met.  First, @var{old_width} and @var{new_width} must be both numeric
-or both string widths.  Second, if @var{new_width} is a short string
-width and less than @var{old_width}, resizing is allowed only if bytes
+Determines whether @var{value}, which must have been initialized with
+the specified @var{old_width}, may be resized to @var{new_width}.
+Resizing is possible if the following criteria are met.  First,
+@var{old_width} and @var{new_width} must be both numeric or both
+string widths.  Second, if @var{new_width} is a short string width and
+less than @var{old_width}, resizing is allowed only if bytes
 @var{new_width} through @var{old_width} in @var{value} contain only
 spaces.
 
@@ -196,9 +208,36 @@ These rules are part of those used by @func{mv_is_resizable} and
 
 @deftypefun void value_resize (union value *@var{value}, int @var{old_width}, int @var{new_width})
 Resizes @var{value} from @var{old_width} to @var{new_width}, which
-must be allowed by the rules stated above.  This has an effect only if
-@var{new_width} is greater than @var{old_width}, in which case the
-bytes newly added to @var{value} are cleared to spaces.
+must be allowed by the rules stated above.  @var{value} must have been
+initialized with the specified @var{old_width} before calling this
+function.  After resizing, @var{value} has width @var{new_width}.
+
+If @var{new_width} is greater than @var{old_width}, @var{value} will
+be padded on the right with spaces to the new width.  If
+@var{new_width} is less than @var{old_width}, the rightmost bytes of
+@var{value} are truncated.
+@end deftypefun
+
+@deftypefun bool value_equal (const union value *@var{a}, const union value *@var{b}, int @var{width})
+Compares of @var{a} and @var{b}, which must both have width
+@var{width}.  Returns true if their contents are the same, false if
+they differ.
+@end deftypefun
+
+@deftypefun int value_compare_3way (const union value *@var{a}, const union value *@var{b}, int @var{width})
+Compares of @var{a} and @var{b}, which must both have width
+@var{width}.  Returns -1 if @var{a} is less than @var{b}, 0 if they
+are equal, or 1 if @var{a} is greater than @var{b}.
+
+Numeric values are compared numerically, with @code{SYSMIS} comparing
+less than any real number.  String values are compared
+lexicographically byte-by-byte.
+@end deftypefun
+
+@deftypefun size_t value_hash (const union value *@var{value}, int @var{width}, unsigned int @var{basis})
+Computes and returns a hash of @var{value}, which must have the
+specified @var{width}.  The value in @var{basis} is folded into the
+hash.
 @end deftypefun
 
 @node Input and Output Formats
@@ -617,8 +656,9 @@ These functions provide the ability to convert data fields into
 
 @deftypefun bool data_in (struct substring @var{input}, enum legacy_encoding @var{legacy_encoding}, enum fmt_type @var{type}, int @var{implied_decimals}, int @var{first_column}, union value *@var{output}, int @var{width})
 Parses @var{input} as a field containing data in the given format
-@var{type}.  The resulting value is stored in @var{output}, which has
-the given @var{width}.  For consistency, @var{width} must be 0 if
+@var{type}.  The resulting value is stored in @var{output}, which the
+caller must have initialized with the given @var{width}.  For
+consistency, @var{width} must be 0 if
 @var{type} is a numeric format type and greater than 0 if @var{type}
 is a string format type.
 
@@ -1088,75 +1128,65 @@ was removed, false otherwise.
 @subsection Iterating through Value Labels
 
 These functions allow iteration through the set of value labels
-represented by a @struct{val_labs} object.  They are usually used in
-the context of a @code{for} loop:
+represented by a @struct{val_labs} object.  They may be used in the
+context of a @code{for} loop:
 
 @example
 struct val_labs val_labs;
-struct val_labs_iterator *i;
-struct val_lab *vl;
+const struct val_lab *vl;
 
 @dots{}
 
-for (vl = val_labs_first (val_labs, &i); vl != NULL;
-     vl = val_labs_next (val_labs, &i))
+for (vl = val_labs_first (val_labs); vl != NULL;
+     vl = val_labs_next (val_labs, vl))
   @{
     @dots{}@r{do something with @code{vl}}@dots{}
   @}
 @end example
 
-The value labels in a @struct{val_labs} must not be modified as it is
-undergoing iteration.
+Value labels should not be added or deleted from a @struct{val_labs}
+as it is undergoing iteration.
 
-@deftp {Structure} {struct val_lab}
-Represents a value label for iteration purposes, with two
-client-visible members:
-
-@table @code
-@item union value value
-Value being labeled, of the same width as the @struct{val_labs} being
-iterated.
-
-@item const char *label
-The label, as a null-terminated string.
-@end table
-@end deftp
-
-@deftp {Structure} {struct val_labs_iterator}
-Opaque object that represents the current state of iteration through a
-set of value value labels.  Automatically destroyed by successful
-completion of iteration.  Must be destroyed manually in other
-circumstances, by calling @func{val_labs_done}.
-@end deftp
-
-@deftypefun {struct val_lab *} val_labs_first (const struct val_labs *@var{val_labs}, struct val_labs_iterator **@var{iterator})
-If @var{val_labs} contains at least one value label, starts an
-iteration through @var{val_labs}, initializes @code{*@var{iterator}}
-to point to a newly allocated iterator, and returns the first value
-label in @var{val_labs}.  If @var{val_labs} is empty, sets
-@code{*@var{iterator}} to null and returns a null pointer.
-
-This function creates iterators that traverse sets of value labels in
-no particular order.
+@deftypefun {const struct val_lab *} val_labs_first (const struct val_labs *@var{val_labs})
+Returns the first value label in @var{var_labs}, if it contains at
+least one value label, or a null pointer if it does not contain any
+value labels.
 @end deftypefun
 
-@deftypefun {struct val_lab *} val_labs_first_sorted (const struct val_labs *@var{val_labs}, struct val_labs_iterator **@var{iterator})
-Same as @func{val_labs_first}, except that the created iterator
-traverses the set of value labels in ascending order of value.
+@deftypefun {const struct val_lab *} val_labs_next (const struct val_labs *@var{val_labs}, const struct val_labs_iterator **@var{vl})
+Returns the value label in @var{var_labs} following @var{vl}, if
+@var{vl} is not the last value label in @var{val_labs}, or a null
+pointer if there are no value labels following @var{vl}.
 @end deftypefun
 
-@deftypefun {struct val_lab *} val_labs_next (const struct val_labs *@var{val_labs}, struct val_labs_iterator **@var{iterator})
-Advances an iterator created with @func{val_labs_first} or
-@func{val_labs_first_sorted} to the next value label, which is
-returned.  If the set of value labels is exhausted, returns a null
-pointer after freeing @code{*@var{iterator}} and setting it to a null
-pointer.
+@deftypefun {const struct val_lab **} val_labs_sorted (const struct val_labs *@var{val_labs})
+Allocates and returns an array of pointers to value labels, which are
+sorted in increasing order by value.  The array has
+@code{val_labs_count (@var{val_labs})} elements.  The caller is
+responsible for freeing the array with @func{free} (but must not free
+any of the @struct{val_lab} elements that the array points to).
 @end deftypefun
 
-@deftypefun void val_labs_done (struct val_labs_iterator **@var{iterator})
-Frees @code{*@var{iterator}} and sets it to a null pointer.  Does
-not need to be called explicitly if @func{val_labs_next} returns a
-null pointer, indicating that all value labels have been visited.
+The iteration functions above work with pointers to @struct{val_lab}
+which is an opaque data structure that users of @struct{val_labs} must
+not modify or free directly.  The following functions work with
+objects of this type:
+
+@deftypefun {const union value *} val_lab_get_value (const struct val_lab *@var{vl})
+Returns the value of value label @var{vl}.  The caller must not modify
+or free the returned value.  (To achieve a similar result, remove the
+value label with @func{val_labs_remove}, then add the new value with
+@func{val_labs_add}.)
+
+The width of the returned value cannot be determined directly from
+@var{vl}.  It may be obtained by calling @func{val_labs_get_width} on
+the @struct{val_labs} that @var{vl} is in.
+@end deftypefun
+
+@deftypefun {const char *} val_lab_get_label (const struct val_lab *@var{vl})
+Returns the label in @var{vl} as a null-terminated string.  The caller
+must not modify or free the returned string.  (Use
+@func{val_labs_replace} to change a value label.)
 @end deftypefun
 
 @node Variables
@@ -1290,12 +1320,6 @@ Returns true if @var{var} is a string variable of width greater than
 @code{MAX_SHORT_STRING}, false otherwise.
 @end deftypefun
 
-@deftypefun size_t var_get_value_cnt (const struct variable *@var{var})
-Returns the number of @union{value}s needed to hold an instance of
-variable @var{var}.  @code{var_get_value_cnt (var)} is equivalent to
-@code{value_cnt_from_width (var_get_width (var))}.
-@end deftypefun
-
 @node Variable Missing Values
 @subsection Variable Missing Values
 
@@ -1313,8 +1337,8 @@ Tests whether @var{value} is a missing value of the given @var{class}
 for variable @var{var} and returns true if so, false otherwise.
 @func{var_is_num_missing} may only be applied to numeric variables;
 @func{var_is_str_missing} may only be applied to string variables.
-For string variables, @var{value} must contain exactly as many
-characters as @var{var}'s width.
+@var{value} must have been initialized with the same width as
+@var{var}.
 
 @code{var_is_@var{type}_missing (@var{var}, @var{value}, @var{class})}
 is equivalent to @code{mv_is_@var{type}_missing
@@ -1339,7 +1363,7 @@ resizable to @var{var}'s width (@pxref{mv_resize}).  The caller
 retains ownership of @var{miss}.
 @end deftypefun
 
-b@deftypefun void var_clear_missing_values (struct variable *@var{var})
+@deftypefun void var_clear_missing_values (struct variable *@var{var})
 Clears @var{var}'s missing values.  Equivalent to
 @code{var_set_missing_values (@var{var}, NULL)}.
 @end deftypefun
@@ -1360,11 +1384,13 @@ value:
 
 @deftypefun {const char *} var_lookup_value_label (const struct variable *@var{var}, const union value *@var{value})
 Looks for a label for @var{value} in @var{var}'s set of value labels.
-Returns the label if one exists, otherwise a null pointer.
+@var{value} must have the same width as @var{var}.  Returns the label
+if one exists, otherwise a null pointer.
 @end deftypefun
 
 @deftypefun void var_append_value_name (const struct variable *@var{var}, const union value *@var{value}, struct string *@var{str})
 Looks for a label for @var{value} in @var{var}'s set of value labels.
+@var{value} must have the same width as @var{var}.
 If a label exists, it will be appended to the string pointed to by @var{str}.
 Otherwise, it formats @var{value}
 using @var{var}'s print format (@pxref{Input and Output Formats}) 
@@ -1406,7 +1432,8 @@ the variable (making a second copy):
 
 @deftypefun bool var_add_value_label (struct variable *@var{var}, const union value *@var{value}, const char *@var{label})
 Attempts to add a copy of @var{label} as a label for @var{value} for
-the given @var{var}.  If @var{value} already has a label, then the old
+the given @var{var}.  @var{value} must have the same width as
+@var{var}.  If @var{value} already has a label, then the old
 label is retained.  Returns true if a label is added, false if there
 was an existing label for @var{value} or if @var{var} is a long string
 variable.  Either way, the caller retains ownership of @var{value} and
@@ -1415,7 +1442,8 @@ variable.  Either way, the caller retains ownership of @var{value} and
 
 @deftypefun void var_replace_value_label (struct variable *@var{var}, const union value *@var{value}, const char *@var{label})
 Attempts to add a copy of @var{label} as a label for @var{value} for
-the given @var{var}.  If @var{value} already has a label, then
+the given @var{var}.  @var{value} must have the same width as
+@var{var}.  If @var{value} already has a label, then
 @var{label} replaces the old label.  Either way, the caller retains
 ownership of @var{value} and @var{label}.
 

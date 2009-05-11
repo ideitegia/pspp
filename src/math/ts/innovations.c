@@ -26,10 +26,14 @@
  */
 
 #include <config.h>
+
+#include <math.h>
+#include <stdlib.h>
+
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
-#include <stdlib.h>
 #include <libpspp/compiler.h>
+#include <libpspp/misc.h>
 #include <math/coefficient.h>
 #include <math/ts/innovations.h>
 

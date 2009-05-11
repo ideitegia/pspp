@@ -71,7 +71,7 @@ struct sfm_reader
     struct fh_lock *lock;       /* Mutual exclusion for file handle. */
     FILE *file;                 /* File stream. */
     bool error;                 /* I/O or corruption error? */
-    size_t value_cnt;           /* Number of "union value"s in struct case. */
+    struct caseproto *proto;    /* Format of output cases. */
 
     /* File format. */
     enum integer_format integer_format; /* On-disk integer format. */
@@ -319,11 +319,11 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
      dictionary and may destroy or modify its variables. */
   sfm_dictionary_to_sfm_vars (*dict, &r->sfm_vars, &r->sfm_var_cnt);
   pool_register (r->pool, free, r->sfm_vars);
+  r->proto = caseproto_ref_pool (dict_get_proto (*dict), r->pool);
 
   pool_free (r->pool, var_by_value_idx);
-  r->value_cnt = dict_get_next_value_idx (*dict);
   return casereader_create_sequential
-    (NULL, r->value_cnt,
+    (NULL, r->proto,
      r->case_cnt == -1 ? CASENUMBER_MAX: r->case_cnt,
                                        &sys_file_casereader_class, r);
 
@@ -1138,6 +1138,7 @@ read_value_labels (struct sfm_reader *r,
 
   struct variable **var = NULL;	/* Associated variables. */
   int var_cnt;			/* Number of associated variables. */
+  int max_width;                /* Maximum width of string variables. */
 
   int i;
 
@@ -1196,12 +1197,14 @@ read_value_labels (struct sfm_reader *r,
 
   /* Read the list of variables. */
   var = pool_nalloc (subpool, var_cnt, sizeof *var);
+  max_width = 0;
   for (i = 0; i < var_cnt; i++)
     {
       var[i] = lookup_var_by_value_idx (r, var_by_value_idx, read_int (r));
       if (var_is_long_string (var[i]))
         sys_error (r, _("Value labels are not allowed on long string "
                         "variables (%s)."), var_get_name (var[i]));
+      max_width = MAX (max_width, var_get_width (var[i]));
     }
 
   /* Type check the variables. */
@@ -1220,9 +1223,10 @@ read_value_labels (struct sfm_reader *r,
     {
       struct label *label = labels + i;
 
+      value_init_pool (subpool, &label->value, max_width);
       if (var_is_alpha (var[0]))
-        buf_copy_rpad (label->value.s, sizeof label->value.s,
-                       label->raw_value, sizeof label->raw_value);
+        buf_copy_rpad (value_str_rw (&label->value, max_width), max_width,
+                       label->raw_value, sizeof label->raw_value, ' ');
       else
         label->value.f = float_get_double (r->float_format, label->raw_value);
     }
@@ -1244,7 +1248,7 @@ read_value_labels (struct sfm_reader *r,
                           label->value.f, var_get_name (v));
               else
                 sys_warn (r, _("Duplicate value label for \"%.*s\" on %s."),
-                          var_get_width (v), label->value.s,
+                          max_width, value_str (&label->value, max_width),
                           var_get_name (v));
             }
 	}
@@ -1370,7 +1374,7 @@ sys_file_casereader_read (struct casereader *reader, void *r_)
   if (r->error)
     return NULL;
 
-  c = case_create (r->value_cnt);
+  c = case_create (r->proto);
   if (setjmp (r->bail_out))
     {
       casereader_force_error (reader);
@@ -1383,14 +1387,15 @@ sys_file_casereader_read (struct casereader *reader, void *r_)
       struct sfm_var *sv = &r->sfm_vars[i];
       union value *v = case_data_rw_idx (c, sv->case_index);
 
-      if (sv->width == 0)
+      if (sv->var_width == 0)
         {
           if (!read_case_number (r, &v->f))
             goto eof;
         }
       else
         {
-          if (!read_case_string (r, v->s + sv->offset, sv->width))
+          char *s = value_str_rw (v, sv->var_width);
+          if (!read_case_string (r, s + sv->offset, sv->segment_width))
             goto eof;
           if (!skip_whole_strings (r, ROUND_DOWN (sv->padding, 8)))
             partial_record (r);

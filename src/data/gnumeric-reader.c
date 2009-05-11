@@ -19,6 +19,9 @@
 #include <config.h>
 
 #include <libpspp/message.h>
+#include <libpspp/misc.h>
+
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -168,8 +171,7 @@ struct gnumeric_reader
   int stop_row;
   int stop_col;
 
-
-  size_t value_cnt;
+  struct caseproto *proto;
   struct dictionary *dict;
   struct ccase *first_case;
   bool used_first_case;
@@ -193,6 +195,8 @@ gnm_file_casereader_destroy (struct casereader *reader UNUSED, void *r_)
 
   if ( ! r->used_first_case )
     case_unref (r->first_case);
+
+  caseproto_unref (r->proto);
 
   free (r);
 }
@@ -324,7 +328,7 @@ convert_xml_string_to_value (struct ccase *c, const struct variable *var,
 
   if ( var_is_alpha (var))
     {
-      memcpy (v->s, text, n_bytes);
+      memcpy (value_str_rw (v, var_get_width (var)), text, n_bytes);
     }
   else
     {
@@ -498,8 +502,6 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
   *dict = r->dict = dict_create ();
 
   dict_set_encoding (r->dict, (const char *) xmlTextReaderConstEncoding (r->xtr));
-  
-  r->value_cnt = 0;
 
   for (i = 0 ; i < n_var_specs ; ++i )
     {
@@ -509,8 +511,6 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 	 default width */
       if ( var_spec[i].width == -1 )
 	var_spec[i].width = MAX_SHORT_STRING;
-
-      r->value_cnt += value_cnt_from_width (var_spec[i].width);
 
       if  ( ! dict_make_unique_var_name (r->dict, var_spec[i].name,
 					 &vstart, name))
@@ -532,9 +532,9 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
       goto error;
     }
 
-  r->first_case = case_create (r->value_cnt);
-  memset (case_data_rw_idx (r->first_case, 0)->s,
-	  ' ', MAX_SHORT_STRING * r->value_cnt);
+  r->proto = caseproto_ref (dict_get_proto (r->dict));
+  r->first_case = case_create (r->proto);
+  case_set_missing (r->first_case);
 
   for ( i = 0 ; i < n_var_specs ; ++i )
     {
@@ -554,7 +554,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
   return casereader_create_sequential
     (NULL,
-     r->value_cnt,
+     r->proto,
      n_cases,
      &gnm_file_casereader_class, r);
 
@@ -592,9 +592,8 @@ gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_)
       return r->first_case;
     }
 
-  c = case_create (r->value_cnt);
-
-  memset (case_data_rw_idx (c, 0)->s, ' ', MAX_SHORT_STRING * r->value_cnt);
+  c = case_create (r->proto);
+  case_set_missing (c);
 
   while ((r->state == STATE_CELL || r->state == STATE_CELLS_START )
 	 && r->row == current_row && (ret = xmlTextReaderRead (r->xtr)))
@@ -605,7 +604,7 @@ gnm_file_casereader_read (struct casereader *reader UNUSED, void *r_)
 				     r->col > r->stop_col))
 	continue;
 
-      if ( r->col - r->start_col >= r->value_cnt)
+      if ( r->col - r->start_col >= caseproto_get_n_widths (r->proto))
 	continue;
 
       if ( r->stop_row != -1 && r->row > r->stop_row)

@@ -16,14 +16,18 @@
 
 #include <config.h>
 #include "np.h"
-#include <math/moments.h>
-#include <gl/xalloc.h>
-#include <stdlib.h>
-#include <math.h>
+
 #include <gsl/gsl_cdf.h>
-#include <libpspp/compiler.h>
+#include <math.h>
+#include <stdlib.h>
+
 #include <data/case.h>
 #include <data/casewriter.h>
+#include <libpspp/compiler.h>
+#include <libpspp/misc.h>
+#include <math/moments.h>
+
+#include "xalloc.h"
 
 static void
 destroy (struct statistic *stat)
@@ -56,7 +60,7 @@ acc (struct statistic *s, const struct ccase *cx UNUSED,
   maximize (&np->y_max, y);
   minimize (&np->y_min, y);
 
-  cp = case_create (n_NP_IDX);
+  cp = case_create (casewriter_get_proto (np->writer));
   case_data_rw_idx (cp, NP_IDX_Y)->f = y;
   case_data_rw_idx (cp, NP_IDX_NS)->f = ns;
   case_data_rw_idx (cp, NP_IDX_DNS)->f = dns;
@@ -72,6 +76,8 @@ np_create (const struct moments1 *m)
   struct np *np = xzalloc (sizeof (*np));
   struct statistic *stat = (struct statistic *) np;
   struct order_stats *os = (struct order_stats *) np;
+  struct caseproto *proto;
+  int i;
 
   np->prev_cc = 0;
 
@@ -82,7 +88,11 @@ np_create (const struct moments1 *m)
   np->y_min = np->ns_min = np->dns_min = DBL_MAX;
   np->y_max = np->ns_max = np->dns_max = -DBL_MAX;
 
-  np->writer = autopaging_writer_create (n_NP_IDX);
+  proto = caseproto_create ();
+  for (i = 0; i < n_NP_IDX; i++)
+    proto = caseproto_add_width (proto, 0);
+  np->writer = autopaging_writer_create (proto);
+  caseproto_unref (proto);
 
   os->k = 0;
   stat->destroy = destroy;

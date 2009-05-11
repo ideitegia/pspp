@@ -330,18 +330,20 @@ apply_dict (const struct dictionary *dict, struct string *s)
       if (var_has_value_labels (var))
         {
           const struct val_labs *vls = var_get_value_labels (var);
-          struct val_labs_iterator *iter;
-          struct val_lab *vl;
+          const struct val_lab **labels = val_labs_sorted (vls);
+          size_t n_labels = val_labs_count (vls);
+          size_t i;
 
           syntax_gen_pspp (s, "VALUE LABELS %ss", name);
-          for (vl = val_labs_first_sorted (vls, &iter); vl != NULL;
-               vl = val_labs_next (vls, &iter))
+          for (i = 0; i < n_labels; i++)
             {
+              const struct val_lab *vl = labels[i];
               ds_put_cstr (s, "\n  ");
               syntax_gen_value (s, &vl->value, width, format);
               ds_put_char (s, ' ');
-              syntax_gen_string (s, ss_cstr (vl->label));
+              syntax_gen_string (s, ss_cstr (val_lab_get_label (vl)));
             }
+          free (labels);
           ds_put_cstr (s, ".\n");
         }
       if (var_has_label (var))
@@ -1732,7 +1734,7 @@ parse_field (struct import_assistant *ia,
              char **outputp, char **tooltipp)
 {
   struct substring field;
-  union value *val;
+  union value val;
   struct variable *var;
   const struct fmt_spec *in;
   struct fmt_spec out;
@@ -1741,7 +1743,7 @@ parse_field (struct import_assistant *ia,
 
   field = ia->separators.columns[column].contents[row];
   var = dict_get_var (ia->formats.dict, column);
-  val = value_create (var_get_width (var));
+  value_init (&val, var_get_width (var));
   in = var_get_print_format (var);
   out = fmt_for_output_from_input (in);
   tooltip = NULL;
@@ -1749,7 +1751,7 @@ parse_field (struct import_assistant *ia,
     {
       msg_disable ();
       if (!data_in (field, LEGACY_NATIVE, in->type, 0, 0, 0,
-                    val, var_get_width (var)))
+                    &val, var_get_width (var)))
         {
           char fmt_string[FMT_STRING_LEN_MAX + 1];
           fmt_to_string (in, fmt_string);
@@ -1764,16 +1766,16 @@ parse_field (struct import_assistant *ia,
     {
       tooltip = xstrdup (_("This input line has too few separators "
                            "to fill in this field."));
-      value_set_missing (val, var_get_width (var));
+      value_set_missing (&val, var_get_width (var));
     }
   if (outputp != NULL)
     {
       char *output = xmalloc (out.w + 1);
-      data_out (val, &out, output);
+      data_out (&val, &out, output);
       output[out.w] = '\0';
       *outputp = output;
     }
-  free (val);
+  value_destroy (&val, var_get_width (var));
 
   ok = tooltip == NULL;
   if (tooltipp != NULL)

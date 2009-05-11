@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -85,8 +85,9 @@ static int hexit_value (int c);
 
 /* Parses the characters in INPUT, which are encoded in the given
    ENCODING, according to FORMAT.  Stores the parsed
-   representation in OUTPUT, which has the given WIDTH (0 for
-   a numeric field, otherwise the string width).
+   representation in OUTPUT, which the caller must have
+   initialized with the given WIDTH (0 for a numeric field,
+   otherwise the string width).
 
    If no decimal point is included in a numeric format, then
    IMPLIED_DECIMALS decimal places are implied.  Specify 0 if no
@@ -607,7 +608,7 @@ parse_A (struct data_in *i)
 {
   /* This is equivalent to buf_copy_rpad, except that we posibly
      do a character set recoding in the middle. */
-  char *dst = i->output->s;
+  char *dst = value_str_rw (i->output, i->width);
   size_t dst_size = i->width;
   const char *src = ss_data (i->input);
   size_t src_size = ss_length (i->input);
@@ -623,6 +624,7 @@ parse_A (struct data_in *i)
 static bool
 parse_AHEX (struct data_in *i)
 {
+  char *s = value_str_rw (i->output, i->width);
   size_t j;
 
   for (j = 0; ; j++)
@@ -649,10 +651,10 @@ parse_AHEX (struct data_in *i)
 	}
 
       if (j < i->width)
-        i->output->s[j] = hexit_value (hi) * 16 + hexit_value (lo);
+        s[j] = hexit_value (hi) * 16 + hexit_value (lo);
     }
 
-  memset (i->output->s + j, ' ', i->width - j);
+  memset (&s[j], ' ', i->width - j);
 
   return true;
 }
@@ -1220,7 +1222,7 @@ static void
 default_result (struct data_in *i)
 {
   if (fmt_is_string (i->format))
-    memset (i->output->s, ' ', i->width);
+    memset (value_str_rw (i->output, i->width), ' ', i->width);
   else
     i->output->f = settings_get_blanks ();
 }

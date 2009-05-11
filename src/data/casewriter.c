@@ -26,6 +26,7 @@
 #include <data/casereader-provider.h>
 #include <data/casewindow.h>
 #include <data/settings.h>
+#include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/taint.h>
 
@@ -35,20 +36,24 @@
 struct casewriter
   {
     struct taint *taint;
-    size_t value_cnt;
+    struct caseproto *proto;
     casenumber case_cnt;
     const struct casewriter_class *class;
     void *aux;
   };
 
-static struct casewriter *create_casewriter_window (size_t value_cnt,
+static struct casewriter *create_casewriter_window (const struct caseproto *,
                                                     casenumber max_in_core);
 
-/* Writes case C to WRITER. */
+/* Writes case C to WRITER.  Ownership of C is transferred to
+   WRITER. */
 void
 casewriter_write (struct casewriter *writer, struct ccase *c)
 {
-  assert (case_get_value_cnt (c) >= writer->value_cnt);
+  size_t n_widths UNUSED = caseproto_get_n_widths (writer->proto);
+  assert (case_get_value_cnt (c) >= n_widths);
+  expensive_assert (caseproto_equal (case_get_proto (c), 0,
+                                     writer->proto, 0, n_widths));
   writer->class->write (writer, writer->aux, c);
 }
 
@@ -64,17 +69,18 @@ casewriter_destroy (struct casewriter *writer)
     {
       writer->class->destroy (writer, writer->aux);
       ok = taint_destroy (writer->taint);
+      caseproto_unref (writer->proto);
       free (writer);
     }
   return ok;
 }
 
-/* Returns the number of `union value's in each case written to
-   WRITER. */
-size_t
-casewriter_get_value_cnt (const struct casewriter *writer)
+/* Returns the prototype for that cases written to WRITER must
+   follow. */
+const struct caseproto *
+casewriter_get_proto (const struct casewriter *writer)
 {
-  return writer->value_cnt;
+  return writer->proto;
 }
 
 /* Destroys WRITER and in its place returns a casereader that can
@@ -142,23 +148,24 @@ casewriter_get_taint (const struct casewriter *writer)
 }
 
 /* Creates and returns a new casewriter with the given CLASS and
-   auxiliary data AUX.  The casewriter accepts cases with
-   VALUE_CNT `union value's. */
+   auxiliary data AUX.  The casewriter accepts cases that match
+   case prototype PROTO, of which the caller retains
+   ownership. */
 struct casewriter *
-casewriter_create (size_t value_cnt,
+casewriter_create (const struct caseproto *proto,
                    const struct casewriter_class *class, void *aux)
 {
   struct casewriter *writer = xmalloc (sizeof *writer);
   writer->taint = taint_create ();
-  writer->value_cnt = value_cnt;
+  writer->proto = caseproto_ref (proto);
   writer->case_cnt = 0;
   writer->class = class;
   writer->aux = aux;
   return writer;
 }
 
-/* Returns a casewriter for cases with VALUE_CNT struct values
-   per case.  The cases written to the casewriter will be kept in
+/* Returns a casewriter for cases that match case prototype
+   PROTO.  The cases written to the casewriter will be kept in
    memory, unless the amount of memory used grows too large, in
    which case they will be written to disk.
 
@@ -167,33 +174,34 @@ casewriter_create (size_t value_cnt,
 
    This is usually the right kind of casewriter to use. */
 struct casewriter *
-autopaging_writer_create (size_t value_cnt)
+autopaging_writer_create (const struct caseproto *proto)
 {
-  return create_casewriter_window (value_cnt, settings_get_workspace_cases (value_cnt));
+  return create_casewriter_window (proto,
+                                   settings_get_workspace_cases (proto));
 }
 
-/* Returns a casewriter for cases with VALUE_CNT struct values
-   per case.  The cases written to the casewriter will be kept in
+/* Returns a casewriter for cases that match case prototype
+   PROTO.  The cases written to the casewriter will be kept in
    memory.
 
    A casewriter created with this function may be passed to
    casewriter_make_reader. */
 struct casewriter *
-mem_writer_create (size_t value_cnt)
+mem_writer_create (const struct caseproto *proto)
 {
-  return create_casewriter_window (value_cnt, CASENUMBER_MAX);
+  return create_casewriter_window (proto, CASENUMBER_MAX);
 }
 
-/* Returns a casewriter for cases with VALUE_CNT struct values
-   per case.  The cases written to the casewriter will be written
+/* Returns a casewriter for cases that match case prototype
+   PROTO.  The cases written to the casewriter will be written
    to disk.
 
    A casewriter created with this function may be passed to
    casewriter_make_reader. */
 struct casewriter *
-tmpfile_writer_create (size_t value_cnt)
+tmpfile_writer_create (const struct caseproto *proto)
 {
-  return create_casewriter_window (value_cnt, 0);
+  return create_casewriter_window (proto, 0);
 }
 
 static const struct casewriter_class casewriter_window_class;
@@ -205,10 +213,11 @@ static const struct casereader_random_class casereader_window_class;
    memory until MAX_IN_CORE_CASES have been written, at which
    point they will be written to disk. */
 static struct casewriter *
-create_casewriter_window (size_t value_cnt, casenumber max_in_core_cases)
+create_casewriter_window (const struct caseproto *proto,
+                          casenumber max_in_core_cases)
 {
-  struct casewindow *window = casewindow_create (value_cnt, max_in_core_cases);
-  struct casewriter *writer = casewriter_create (value_cnt,
+  struct casewindow *window = casewindow_create (proto, max_in_core_cases);
+  struct casewriter *writer = casewriter_create (proto,
                                                  &casewriter_window_class,
                                                  window);
   taint_propagate (casewindow_get_taint (window),
@@ -241,7 +250,7 @@ casewriter_window_convert_to_reader (struct casewriter *writer UNUSED,
 {
   struct casewindow *window = window_;
   struct casereader *reader =
-    casereader_create_random (casewindow_get_value_cnt (window),
+    casereader_create_random (casewindow_get_proto (window),
 			      casewindow_get_case_cnt (window),
 			      &casereader_window_class, window);
 

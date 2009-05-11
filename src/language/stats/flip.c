@@ -49,26 +49,27 @@
 #define _(msgid) gettext (msgid)
 
 /* List of variable names. */
-struct varname
+struct var_names
   {
-    struct varname *next;
-    char name[SHORT_NAME_LEN + 1];
+    const char **names;
+    size_t n_names, allocated_names;
   };
+
+static void var_names_init (struct var_names *);
+static void var_names_add (struct pool *, struct var_names *, const char *);
 
 /* Represents a FLIP input program. */
 struct flip_pgm
   {
     struct pool *pool;          /* Pool containing FLIP data. */
-    const struct variable **var;      /* Variables to transpose. */
-    size_t var_cnt;             /* Number of elements in `var'. */
-    int case_cnt;               /* Pre-flip case count. */
+    size_t n_vars;              /* Pre-flip number of variables. */
+    int n_cases;                /* Pre-flip number of cases. */
 
-    struct variable *new_names; /* Variable containing new variable names. */
-    struct varname *new_names_head; /* First new variable. */
-    struct varname *new_names_tail; /* Last new variable. */
+    struct variable *new_names_var; /* Variable with new variable names. */
+    struct var_names old_names; /* Variable names before FLIP. */
+    struct var_names new_names; /* Variable names after FLIP. */
 
     FILE *file;                 /* Temporary file containing data. */
-    union value *input_buf;     /* Input buffer for temporary file. */
     size_t cases_read;          /* Number of cases already read. */
     bool error;                 /* Error reading temporary file? */
   };
@@ -77,17 +78,16 @@ static const struct casereader_class flip_casereader_class;
 
 static void destroy_flip_pgm (struct flip_pgm *);
 static bool flip_file (struct flip_pgm *);
-static bool build_dictionary (struct dictionary *, struct flip_pgm *);
-static bool write_flip_case (struct flip_pgm *, const struct ccase *);
+static void make_new_var (struct dictionary *, const char *name);
 
 /* Parses and executes FLIP. */
 int
 cmd_flip (struct lexer *lexer, struct dataset *ds)
 {
   struct dictionary *dict = dataset_dict (ds);
+  const struct variable **vars;
   struct flip_pgm *flip;
   struct casereader *input, *reader;
-  union value *output_buf;
   struct ccase *c;
   size_t i;
   bool ok;
@@ -97,14 +97,12 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
                "Temporary transformations will be made permanent."));
 
   flip = pool_create_container (struct flip_pgm, pool);
-  flip->var = NULL;
-  flip->var_cnt = 0;
-  flip->case_cnt = 0;
-  flip->new_names = NULL;
-  flip->new_names_head = NULL;
-  flip->new_names_tail = NULL;
+  flip->n_vars = 0;
+  flip->n_cases = 0;
+  flip->new_names_var = NULL;
+  var_names_init (&flip->old_names);
+  var_names_init (&flip->new_names);
   flip->file = NULL;
-  flip->input_buf = NULL;
   flip->cases_read = 0;
   flip->error = false;
 
@@ -112,38 +110,36 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   if (lex_match_id (lexer, "VARIABLES"))
     {
       lex_match (lexer, '=');
-      if (!parse_variables_const (lexer, dict, &flip->var, &flip->var_cnt,
+      if (!parse_variables_const (lexer, dict, &vars, &flip->n_vars,
                                   PV_NO_DUPLICATE))
 	goto error;
       lex_match (lexer, '/');
     }
   else
-    dict_get_vars (dict, &flip->var, &flip->var_cnt, DC_SYSTEM);
-  pool_register (flip->pool, free, flip->var);
+    dict_get_vars (dict, &vars, &flip->n_vars, DC_SYSTEM);
+  pool_register (flip->pool, free, vars);
 
   lex_match (lexer, '/');
   if (lex_match_id (lexer, "NEWNAMES"))
     {
       lex_match (lexer, '=');
-      flip->new_names = parse_variable (lexer, dict);
-      if (!flip->new_names)
+      flip->new_names_var = parse_variable (lexer, dict);
+      if (!flip->new_names_var)
         goto error;
     }
   else
-    flip->new_names = dict_lookup_var (dict, "CASE_LBL");
+    flip->new_names_var = dict_lookup_var (dict, "CASE_LBL");
 
-  if (flip->new_names)
+  if (flip->new_names_var)
     {
-      for (i = 0; i < flip->var_cnt; i++)
-	if (flip->var[i] == flip->new_names)
+      for (i = 0; i < flip->n_vars; i++)
+	if (vars[i] == flip->new_names_var)
 	  {
-            remove_element (flip->var, flip->var_cnt, sizeof *flip->var, i);
-	    flip->var_cnt--;
+            remove_element (vars, flip->n_vars, sizeof *vars, i);
+	    flip->n_vars--;
 	    break;
 	  }
     }
-
-  output_buf = pool_nalloc (flip->pool, flip->var_cnt, sizeof *output_buf);
 
   flip->file = pool_tmpfile (flip->pool);
   if (flip->file == NULL)
@@ -152,18 +148,11 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
       goto error;
     }
 
-  /* Write variable names as first case. */
-  for (i = 0; i < flip->var_cnt; i++)
-    buf_copy_str_rpad (output_buf[i].s, MAX_SHORT_STRING,
-                       var_get_name (flip->var[i]));
-  if (fwrite (output_buf, sizeof *output_buf,
-              flip->var_cnt, flip->file) != (size_t) flip->var_cnt)
-    {
-      msg (SE, _("Error writing FLIP file: %s."), strerror (errno));
-      goto error;
-    }
-
-  flip->case_cnt = 1;
+  /* Save old variable names for use as values of CASE_LBL
+     variable in flipped file. */
+  for (i = 0; i < flip->n_vars; i++)
+    var_names_add (flip->pool, &flip->old_names,
+                   pool_strdup (flip->pool, var_get_name (vars[i])));
 
   /* Read the active file into a flip_sink. */
   proc_discard_output (ds);
@@ -171,7 +160,33 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   input = proc_open (ds);
   while ((c = casereader_read (input)) != NULL)
     {
-      write_flip_case (flip, c);
+      flip->n_cases++;
+      for (i = 0; i < flip->n_vars; i++)
+        {
+          const struct variable *v = vars[i];
+          double out = var_is_numeric (v) ? case_num (c, v) : SYSMIS;
+          fwrite (&out, sizeof out, 1, flip->file);
+        }
+      if (flip->new_names_var != NULL)
+        {
+          const union value *value = case_data (c, flip->new_names_var);
+          const char *name;
+          if (var_is_numeric (flip->new_names_var))
+            {
+              double f = value->f;
+              name = (f == SYSMIS ? "VSYSMIS"
+                      : f < INT_MIN ? "VNEGINF"
+                      : f > INT_MAX ? "VPOSINF"
+                      : pool_asprintf (flip->pool, "V%d", (int) f));
+            }
+          else
+            {
+              int width = var_get_width (flip->new_names_var);
+              name = pool_strdup0 (flip->pool,
+                                   value_str (value, width), width);
+            }
+          var_names_add (flip->pool, &flip->new_names, name);
+        }
       case_unref (c);
     }
   ok = casereader_destroy (input);
@@ -186,15 +201,20 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
 
   /* Flip the dictionary. */
   dict_clear (dict);
-  if (!build_dictionary (dict, flip))
-    {
-      proc_discard_active_file (ds);
-      goto error;
-    }
+  dict_create_var_assert (dict, "CASE_LBL", 8);
+  for (i = 0; i < flip->n_cases; i++)
+    if (flip->new_names.n_names)
+      make_new_var (dict, flip->new_names.names[i]);
+    else
+      {
+        char s[VAR_NAME_LEN + 1];
+        sprintf (s, "VAR%03d", i);
+        dict_create_var_assert (dict, s, 0);
+      }
 
   /* Set up flipped data for reading. */
-  reader = casereader_create_sequential (NULL, dict_get_next_value_idx (dict),
-                                         flip->var_cnt,
+  reader = casereader_create_sequential (NULL, dict_get_proto (dict),
+                                         flip->n_vars,
                                          &flip_casereader_class, flip);
   proc_set_active_file_data (ds, reader);
   return lex_end_of_command (lexer);
@@ -213,10 +233,11 @@ destroy_flip_pgm (struct flip_pgm *flip)
 }
 
 /* Make a new variable with base name NAME, which is bowdlerized and
-   mangled until acceptable, and returns success. */
-static int
-make_new_var (struct dictionary *dict, char name[])
+   mangled until acceptable. */
+static void
+make_new_var (struct dictionary *dict, const char *name_)
 {
+  char *name = xstrdup (name_);
   char *cp;
 
   /* Trim trailing spaces. */
@@ -225,7 +246,7 @@ make_new_var (struct dictionary *dict, char name[])
     *--cp = '\0';
 
   /* Fix invalid characters. */
-  for (cp = name; *cp && cp < name + SHORT_NAME_LEN; cp++)
+  for (cp = name; *cp && cp < name + VAR_NAME_LEN; cp++)
     if (cp == name)
       {
         if (!lex_is_id1 (*cp) || *cp == '$')
@@ -239,115 +260,24 @@ make_new_var (struct dictionary *dict, char name[])
   *cp = '\0';
   str_uppercase (name);
 
-  if (dict_create_var (dict, name, 0))
-    return 1;
-
-  /* Add numeric extensions until acceptable. */
-  {
-    const int len = (int) strlen (name);
-    char n[SHORT_NAME_LEN + 1];
-    int i;
-
-    for (i = 1; i < 10000000; i++)
-      {
-	int ofs = MIN (7 - intlog10 (i), len);
-	memcpy (n, name, ofs);
-	sprintf (&n[ofs], "%d", i);
-
-	if (dict_create_var (dict, n, 0))
-	  return 1;
-      }
-  }
-
-  msg (SE, _("Could not create acceptable variant for variable %s."), name);
-  return 0;
-}
-
-/* Make a new dictionary for all the new variable names. */
-static bool
-build_dictionary (struct dictionary *dict, struct flip_pgm *flip)
-{
-  dict_create_var_assert (dict, "CASE_LBL", 8);
-
-  if (flip->new_names_head == NULL)
+  /* Use the mangled name, if it is available, or add numeric
+     extensions until we find one that is. */
+  if (!dict_create_var (dict, name, 0))
     {
+      int len = strlen (name);
       int i;
-
-      if (flip->case_cnt > 99999)
-	{
-	  msg (SE, _("Cannot create more than 99999 variable names."));
-	  return false;
-	}
-
-      for (i = 0; i < flip->case_cnt - 1; i++)
-	{
-          struct variable *v;
-	  char s[SHORT_NAME_LEN + 1];
-
-	  sprintf (s, "VAR%03d", i);
-	  v = dict_create_var_assert (dict, s, 0);
-	}
-    }
-  else
-    {
-      struct varname *v;
-
-      for (v = flip->new_names_head; v; v = v->next)
-        if (!make_new_var (dict, v->name))
-          return false;
-    }
-
-  return true;
-}
-
-/* Writes case C to the FLIP sink.
-   Returns true if successful, false if an I/O error occurred. */
-static bool
-write_flip_case (struct flip_pgm *flip, const struct ccase *c)
-{
-  size_t i;
-
-  flip->case_cnt++;
-
-  if (flip->new_names != NULL)
-    {
-      struct varname *v = pool_alloc (flip->pool, sizeof *v);
-      v->next = NULL;
-      if (var_is_numeric (flip->new_names))
+      for (i = 1; ; i++)
         {
-          double f = case_num (c, flip->new_names);
+          char n[VAR_NAME_LEN + 1];
+          int ofs = MIN (VAR_NAME_LEN - 1 - intlog10 (i), len);
+          memcpy (n, name, ofs);
+          sprintf (&n[ofs], "%d", i);
 
-          if (f == SYSMIS)
-            strcpy (v->name, "VSYSMIS");
-          else if (f < INT_MIN)
-            strcpy (v->name, "VNEGINF");
-          else if (f > INT_MAX)
-            strcpy (v->name, "VPOSINF");
-          else
-            snprintf (v->name, sizeof v->name, "V%d", (int) f);
+          if (dict_create_var (dict, n, 0))
+            break;
         }
-      else
-	{
-	  int width = MIN (var_get_width (flip->new_names), MAX_SHORT_STRING);
-	  memcpy (v->name, case_str (c, flip->new_names), width);
-	  v->name[width] = 0;
-	}
-
-      if (flip->new_names_head == NULL)
-	flip->new_names_head = v;
-      else
-	flip->new_names_tail->next = v;
-      flip->new_names_tail = v;
     }
-
-  /* Write to external file. */
-  for (i = 0; i < flip->var_cnt; i++)
-    {
-      const struct variable *v = flip->var[i];
-      double out = var_is_numeric (v) ? case_num (c, v) : SYSMIS;
-      fwrite (&out, sizeof out, 1, flip->file);
-    }
-  return true;
+  free (name);
 }
 
 /* Transposes the external file into a new file. */
@@ -357,14 +287,14 @@ flip_file (struct flip_pgm *flip)
   size_t case_bytes;
   size_t case_capacity;
   size_t case_idx;
-  union value *input_buf, *output_buf;
+  double *input_buf, *output_buf;
   FILE *input_file, *output_file;
 
   /* Allocate memory for many cases. */
-  case_bytes = flip->var_cnt * sizeof *input_buf;
+  case_bytes = flip->n_vars * sizeof *input_buf;
   case_capacity = settings_get_workspace () / case_bytes;
-  if (case_capacity > flip->case_cnt * 2)
-    case_capacity = flip->case_cnt * 2;
+  if (case_capacity > flip->n_cases * 2)
+    case_capacity = flip->n_cases * 2;
   if (case_capacity < 2)
     case_capacity = 2;
   for (;;)
@@ -386,7 +316,7 @@ flip_file (struct flip_pgm *flip)
   /* Use half the allocated memory for input_buf, half for
      output_buf. */
   case_capacity /= 2;
-  output_buf = input_buf + flip->var_cnt * case_capacity;
+  output_buf = input_buf + flip->n_vars * case_capacity;
 
   input_file = flip->file;
   if (fseek (input_file, 0, SEEK_SET) != 0)
@@ -402,9 +332,9 @@ flip_file (struct flip_pgm *flip)
       return false;
     }
 
-  for (case_idx = 0; case_idx < flip->case_cnt; )
+  for (case_idx = 0; case_idx < flip->n_cases; )
     {
-      unsigned long read_cases = MIN (flip->case_cnt - case_idx,
+      unsigned long read_cases = MIN (flip->n_cases - case_idx,
                                       case_capacity);
       size_t i;
 
@@ -417,16 +347,16 @@ flip_file (struct flip_pgm *flip)
           return false;
         }
 
-      for (i = 0; i < flip->var_cnt; i++)
+      for (i = 0; i < flip->n_vars; i++)
 	{
 	  unsigned long j;
 
 	  for (j = 0; j < read_cases; j++)
-	    output_buf[j] = input_buf[i + j * flip->var_cnt];
+	    output_buf[j] = input_buf[i + j * flip->n_vars];
 
 	  if (fseeko (output_file,
                       sizeof *input_buf * (case_idx
-                                           + (off_t) i * flip->case_cnt),
+                                           + (off_t) i * flip->n_cases),
                       SEEK_SET) != 0)
             {
               msg (SE, _("Error seeking FLIP source file: %s."),
@@ -467,17 +397,19 @@ flip_file (struct flip_pgm *flip)
 /* Reads and returns one case.
    Returns a null pointer at end of file or if an I/O error occurred. */
 static struct ccase *
-flip_casereader_read (struct casereader *reader UNUSED, void *flip_)
+flip_casereader_read (struct casereader *reader, void *flip_)
 {
   struct flip_pgm *flip = flip_;
   struct ccase *c;
   size_t i;
 
-  if (flip->error || flip->cases_read >= flip->var_cnt)
-    return NULL;
+  if (flip->error || flip->cases_read >= flip->n_vars)
+    return false;
 
-  c = case_create (flip->case_cnt);
-  for (i = 0; i < flip->case_cnt; i++)
+  c = case_create (casereader_get_proto (reader));
+  value_copy_str_rpad (case_data_rw_idx (c, 0), 8,
+                       flip->old_names.names[flip->cases_read], ' ');
+  for (i = 0; i < flip->n_cases; i++)
     {
       double in;
       if (fread (&in, sizeof in, 1, flip->file) != 1)
@@ -493,7 +425,7 @@ flip_casereader_read (struct casereader *reader UNUSED, void *flip_)
           flip->error = true;
           return NULL;
         }
-      case_data_rw_idx (c, i)->f = in;
+      case_data_rw_idx (c, i + 1)->f = in;
     }
 
   flip->cases_read++;
@@ -520,3 +452,21 @@ static const struct casereader_class flip_casereader_class =
     NULL,
     NULL,
   };
+
+static void
+var_names_init (struct var_names *vn)
+{
+  vn->names = NULL;
+  vn->n_names = 0;
+  vn->allocated_names = 0;
+}
+
+static void
+var_names_add (struct pool *pool, struct var_names *vn, const char *name)
+{
+  if (vn->n_names >= vn->allocated_names)
+    vn->names = pool_2nrealloc (pool, vn->names, &vn->allocated_names,
+                                sizeof *vn->names);
+  vn->names[vn->n_names++] = name;
+}
+

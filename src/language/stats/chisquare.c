@@ -68,47 +68,22 @@ create_freq_hash_with_range (const struct dictionary *dict,
   /* Populate the hash with zero entries */
   for (i_d = trunc (lo); i_d <= trunc (hi); i_d += 1.0 )
     {
-      union value the_value;
       struct freq_mutable *fr = xmalloc (sizeof (*fr));
-
-      the_value.f = i_d;
-
-      fr->value = value_dup (&the_value, 0);
+      value_init (&fr->value, 0);
+      fr->value.f = i_d;
       fr->count = 0;
-
       hsh_insert (freq_hash, fr);
     }
 
-  while ((c = casereader_read (input)) != NULL)
+  for (; (c = casereader_read (input)) != NULL; case_unref (c))
     {
-      union value obs_value;
-      struct freq **existing_fr;
-      struct freq *fr = xmalloc(sizeof  (*fr));
-      fr->value = case_data (c, var);
-
-      fr->count = dict_get_case_weight (dict, c, &warn);
-
-      obs_value.f = trunc (fr->value->f);
-
-      if ( obs_value.f < lo || obs_value.f > hi)
-	{
-	  free (fr);
-	  case_unref (c);
-	  continue;
-	}
-
-      fr->value = &obs_value;
-
-      existing_fr = (struct freq **) hsh_probe (freq_hash, fr);
-
-      /* This must exist in the hash, because we previously populated it
-	 with zero counts */
-      assert (*existing_fr);
-
-      (*existing_fr)->count += fr->count;
-      free (fr);
-
-      case_unref (c);
+      struct freq_mutable fr;
+      fr.value.f = trunc (case_num (c, var));
+      if (fr.value.f >= lo && fr.value.f <= hi)
+        {
+          struct freq_mutable *existing_fr = hsh_force_find (freq_hash, &fr);
+          existing_fr->count += dict_get_case_weight (dict, c, &warn);
+        }
     }
   if (casereader_destroy (input))
     return freq_hash;
@@ -130,6 +105,7 @@ create_freq_hash (const struct dictionary *dict,
 		  struct casereader *input,
 		  const struct variable *var)
 {
+  int width = var_get_width (var);
   bool warn = true;
   struct ccase *c;
 
@@ -140,23 +116,25 @@ create_freq_hash (const struct dictionary *dict,
 
   for (; (c = casereader_read (input)) != NULL; case_unref (c))
     {
-      struct freq **existing_fr;
-      struct freq *fr = xmalloc(sizeof  (*fr));
-      fr->value = case_data (c, var);
+      struct freq_mutable fr;
+      void **p;
 
-      fr->count = dict_get_case_weight (dict, c, &warn);
+      fr.value = *case_data (c, var);
+      fr.count = dict_get_case_weight (dict, c, &warn);
 
-      existing_fr = (struct freq **) hsh_probe (freq_hash, fr);
-      if ( *existing_fr)
-	{
-	  (*existing_fr)->count += fr->count;
-	  free (fr);
-	}
+      p = hsh_probe (freq_hash, &fr);
+      if (*p == NULL)
+        {
+          struct freq_mutable *new_fr = *p = xmalloc (sizeof *new_fr);
+          value_init (&new_fr->value, width);
+          value_copy (&new_fr->value, &fr.value, width);
+          new_fr->count = fr.count;
+        }
       else
-	{
-          *existing_fr = fr;
-          fr->value = value_dup (fr->value, var_get_width (var));
-	}
+        {
+          struct freq *existing_fr = *p;
+          existing_fr->count += fr.count;
+        }
     }
   if (casereader_destroy (input))
     return freq_hash;
@@ -371,7 +349,7 @@ chisquare_execute (const struct dataset *ds,
 	    {
 	      struct string str;
 	      double exp;
-	      const union value *observed_value = ff[i]->value;
+	      const union value *observed_value = &ff[i]->value;
 
 	      ds_init_empty (&str);
 	      var_append_value_name (ost->vars[v], observed_value, &str);
@@ -444,7 +422,7 @@ chisquare_execute (const struct dataset *ds,
 	      struct string str;
 	      double exp;
 
-	      const union value *observed_value = ff[i]->value;
+	      const union value *observed_value = &ff[i]->value;
 
 	      ds_init_empty (&str);
 	      var_append_value_name (ost->vars[v], observed_value, &str);

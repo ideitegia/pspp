@@ -125,9 +125,9 @@ str_compare_rpad (const char *a, const char *b)
 
 /* Copies string SRC to buffer DST, of size DST_SIZE bytes.
    DST is truncated to DST_SIZE bytes or padded on the right with
-   spaces as needed. */
+   copies of PAD as needed. */
 void
-buf_copy_str_rpad (char *dst, size_t dst_size, const char *src)
+buf_copy_str_rpad (char *dst, size_t dst_size, const char *src, char pad)
 {
   size_t src_len = strlen (src);
   if (src_len >= dst_size)
@@ -135,15 +135,15 @@ buf_copy_str_rpad (char *dst, size_t dst_size, const char *src)
   else
     {
       memcpy (dst, src, src_len);
-      memset (&dst[src_len], ' ', dst_size - src_len);
+      memset (&dst[src_len], pad, dst_size - src_len);
     }
 }
 
 /* Copies string SRC to buffer DST, of size DST_SIZE bytes.
    DST is truncated to DST_SIZE bytes or padded on the left with
-   spaces as needed. */
+   copies of PAD as needed. */
 void
-buf_copy_str_lpad (char *dst, size_t dst_size, const char *src)
+buf_copy_str_lpad (char *dst, size_t dst_size, const char *src, char pad)
 {
   size_t src_len = strlen (src);
   if (src_len >= dst_size)
@@ -151,40 +151,42 @@ buf_copy_str_lpad (char *dst, size_t dst_size, const char *src)
   else
     {
       size_t pad_cnt = dst_size - src_len;
-      memset (&dst[0], ' ', pad_cnt);
+      memset (&dst[0], pad, pad_cnt);
       memcpy (dst + pad_cnt, src, src_len);
     }
 }
 
 /* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
    DST is truncated to DST_SIZE bytes or padded on the left with
-   spaces as needed. */
+   copies of PAD as needed. */
 void
 buf_copy_lpad (char *dst, size_t dst_size,
-               const char *src, size_t src_size)
+               const char *src, size_t src_size,
+               char pad)
 {
   if (src_size >= dst_size)
     memmove (dst, src, dst_size);
   else
     {
-      memset (dst, ' ', dst_size - src_size);
+      memset (dst, pad, dst_size - src_size);
       memmove (&dst[dst_size - src_size], src, src_size);
     }
 }
 
 /* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
    DST is truncated to DST_SIZE bytes or padded on the right with
-   spaces as needed. */
+   copies of PAD as needed. */
 void
 buf_copy_rpad (char *dst, size_t dst_size,
-               const char *src, size_t src_size)
+               const char *src, size_t src_size,
+               char pad)
 {
   if (src_size >= dst_size)
     memmove (dst, src, dst_size);
   else
     {
       memmove (dst, src, src_size);
-      memset (&dst[src_size], ' ', dst_size - src_size);
+      memset (&dst[src_size], pad, dst_size - src_size);
     }
 }
 

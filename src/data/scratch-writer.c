@@ -59,7 +59,6 @@ scratch_writer_open (struct file_handle *fh,
   struct scratch_writer *writer;
   struct casewriter *casewriter;
   struct fh_lock *lock;
-  size_t dict_value_cnt;
 
   /* Get exclusive write access to handle. */
   /* TRANSLATORS: this fragment will be interpolated into
@@ -83,10 +82,9 @@ scratch_writer_open (struct file_handle *fh,
     }
   else
     writer->compactor = NULL;
-  dict_value_cnt = dict_get_next_value_idx (writer->dict);
-  writer->subwriter = autopaging_writer_create (dict_value_cnt);
+  writer->subwriter = autopaging_writer_create (dict_get_proto (writer->dict));
 
-  casewriter = casewriter_create (dict_value_cnt,
+  casewriter = casewriter_create (dict_get_proto (writer->dict),
                                   &scratch_writer_casewriter_class, writer);
   taint_propagate (casewriter_get_taint (writer->subwriter),
                    casewriter_get_taint (casewriter));

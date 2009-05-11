@@ -22,7 +22,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <libpspp/compiler.h>
-#include "value.h"
+#include <data/caseproto.h>
 
 struct variable;
 
@@ -51,13 +51,14 @@ typedef long int casenumber;
    shared case. */
 struct ccase
   {
-    size_t n_values;            /* Number of values. */
+    struct caseproto *proto;    /* Case prototype. */
     size_t ref_cnt;             /* Reference count. */
     union value values[1];      /* Values. */
   };
 
-struct ccase *case_create (size_t n_values) MALLOC_LIKE;
-struct ccase *case_try_create (size_t n_values) MALLOC_LIKE;
+struct ccase *case_create (const struct caseproto *) MALLOC_LIKE;
+struct ccase *case_try_create (const struct caseproto *) MALLOC_LIKE;
+struct ccase *case_clone (const struct ccase *) MALLOC_LIKE;
 
 static inline struct ccase *case_unshare (struct ccase *) WARN_UNUSED_RESULT;
 static inline struct ccase *case_ref (const struct ccase *);
@@ -65,15 +66,21 @@ static inline void case_unref (struct ccase *);
 static inline bool case_is_shared (const struct ccase *);
 
 static inline size_t case_get_value_cnt (const struct ccase *);
+static inline const struct caseproto *case_get_proto (const struct ccase *);
 
-struct ccase *case_resize (struct ccase *, size_t new_cnt) WARN_UNUSED_RESULT;
-struct ccase *case_unshare_and_resize (struct ccase *, size_t new_cnt)
+size_t case_get_cost (const struct caseproto *);
+
+struct ccase *case_resize (struct ccase *, const struct caseproto *)
   WARN_UNUSED_RESULT;
+struct ccase *case_unshare_and_resize (struct ccase *,
+                                       const struct caseproto *)
+  WARN_UNUSED_RESULT;
+
+void case_set_missing (struct ccase *);
 
 void case_copy (struct ccase *dst, size_t dst_idx,
                 const struct ccase *src, size_t src_idx,
                 size_t cnt);
-
 void case_copy_out (const struct ccase *,
                     size_t start_idx, union value *, size_t n_values);
 void case_copy_in (struct ccase *,
@@ -89,6 +96,8 @@ double case_num_idx (const struct ccase *, size_t idx);
 
 const char *case_str (const struct ccase *, const struct variable *);
 const char *case_str_idx (const struct ccase *, size_t idx);
+char *case_str_rw (struct ccase *, const struct variable *);
+char *case_str_rw_idx (struct ccase *, size_t idx);
 
 int case_compare (const struct ccase *, const struct ccase *,
                   const struct variable *const *, size_t n_vars);
@@ -101,6 +110,7 @@ const union value *case_data_all (const struct ccase *);
 union value *case_data_all_rw (struct ccase *);
 
 struct ccase *case_unshare__ (struct ccase *);
+void case_unref__ (struct ccase *);
 
 /* If C is a shared case, that is, if it has a reference count
    greater than 1, makes a new unshared copy and returns it,
@@ -138,7 +148,7 @@ static inline void
 case_unref (struct ccase *c)
 {
   if (c != NULL && !--c->ref_cnt)
-    free (c);
+    case_unref__ (c);
 }
 
 /* Returns true if case C is shared.  A case that is shared
@@ -154,7 +164,15 @@ case_is_shared (const struct ccase *c)
 static inline size_t
 case_get_value_cnt (const struct ccase *c)
 {
-  return c->n_values;
+  return caseproto_get_n_widths (c->proto);
+}
+
+/* Returns the prototype that describes the format of case C.
+   The caller must not unref the returned prototype. */
+static inline const struct caseproto *
+case_get_proto (const struct ccase *c)
+{
+  return c->proto;
 }
 
 #endif /* data/case.h */

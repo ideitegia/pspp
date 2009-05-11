@@ -249,7 +249,7 @@ rank_cmd (struct dataset *ds, const struct subcase *sc,
 
       proc_discard_output (ds);
       split_grouper = casegrouper_create_splits (proc_open (ds), d);
-      output = autopaging_writer_create (dict_get_next_value_idx (d));
+      output = autopaging_writer_create (dict_get_proto (d));
 
       while (casegrouper_get_next_group (split_grouper, &split_group))
         {

@@ -20,6 +20,7 @@
 #include <libpspp/message.h>
 #include <gl/xalloc.h>
 #include <data/dictionary.h>
+#include <math.h>
 #include <stdlib.h>
 
 #include "psql-reader.h"
@@ -28,7 +29,10 @@
 #include "calendar.h"
 
 #include <inttypes.h>
+#include <libpspp/misc.h>
 #include <libpspp/str.h>
+
+#include "minmax.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -95,7 +99,7 @@ struct psql_reader
 
   double postgres_epoch;
 
-  size_t value_cnt;
+  struct caseproto *proto;
   struct dictionary *dict;
 
   /* An array of ints, which maps psql column numbers into
@@ -174,8 +178,6 @@ create_var (struct psql_reader *r, const struct fmt_spec *fmt,
   unsigned long int vx = 0;
   struct variable *var;
   char name[VAR_NAME_LEN + 1];
-
-  r->value_cnt += value_cnt_from_width (width);
 
   if ( ! dict_make_unique_var_name (r->dict, suggested_name, &vx, name))
     {
@@ -357,7 +359,7 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
   n_tuples = PQntuples (qres);
   n_fields = PQnfields (qres);
 
-  r->value_cnt = 0;
+  r->proto = NULL;
   r->vmap = NULL;
   r->vmapsize = 0;
 
@@ -528,10 +530,11 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
   ds_put_format (&r->fetch_cmd,  "FETCH FORWARD %d FROM pspp", r->cache_size);
 
   reload_cache (r);
+  r->proto = caseproto_ref (dict_get_proto (*dict));
 
   return casereader_create_sequential
     (NULL,
-     r->value_cnt,
+     r->proto,
      n_cases,
      &psql_casereader_class, r);
 
@@ -554,6 +557,7 @@ psql_casereader_destroy (struct casereader *reader UNUSED, void *r_)
   free (r->vmap);
   if (r->res) PQclear (r->res);
   PQfinish (r->conn);
+  caseproto_unref (r->proto);
 
   free (r);
 }
@@ -588,8 +592,8 @@ set_value (struct psql_reader *r)
   if ( r->tuple >= PQntuples (r->res))
     return NULL;
 
-  c = case_create (r->value_cnt);
-  memset (case_data_rw_idx (c, 0)->s, ' ', MAX_SHORT_STRING * r->value_cnt);
+  c = case_create (r->proto);
+  case_set_missing (c);
 
 
   for (i = 0 ; i < n_vars ; ++i )
@@ -831,7 +835,8 @@ set_value (struct psql_reader *r)
 	    case VARCHAROID:
 	    case BPCHAROID:
 	    case BYTEAOID:
-	      memcpy (val->s, (char *) vptr, MIN (length, var_width));
+	      memcpy (value_str_rw (val, var_width), (char *) vptr,
+                      MIN (length, var_width));
 	      break;
 
 	    case NUMERICOID:

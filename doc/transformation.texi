@@ -85,7 +85,7 @@ variables.  Each aggregation variable receives the results of applying
 the specified aggregation function to the corresponding source
 variable.  The MEAN, MEDIAN, SD, and SUM aggregation functions may only be
 applied to numeric variables.  All the rest may be applied to numeric
-and short and long string variables.
+and string variables.
 
 The available aggregation functions are as follows:
 
@@ -239,7 +239,7 @@ COMPUTE vector(index) = expression.
 
 @cmd{COMPUTE} assigns the value of an expression to a target
 variable.  For each case, the expression is evaluated and its value
-assigned to the target variable.  Numeric and short and long string
+assigned to the target variable.  Numeric and string
 variables may be assigned.  When a string expression's width differs
 from the target variable's width, the string result of the expression
 is truncated or padded with spaces on the right as necessary.  The
@@ -290,7 +290,7 @@ one or more @dfn{test} variables for each case.
 
 The target variable values are always nonnegative integers.  They are
 never missing.  The target variable is assigned an F8.2 output format.
-@xref{Input and Output Formats}.  Any variables, including long and short
+@xref{Input and Output Formats}.  Any variables, including
 string variables, may be test variables.
 
 User-missing values of test variables are treated just like any other
@@ -435,7 +435,7 @@ Specify a boolean-valued expression (@pxref{Expressions}) to be tested
 following the IF keyword.  This expression is evaluated for each case.
 If the value is true, then the value of the expression is computed and
 assigned to the specified variable.  If the value is false or missing,
-nothing is done.  Numeric and short and long string variables may be
+nothing is done.  Numeric and string variables may be
 assigned.  When a string expression's width differs from the target
 variable's width, the string result of the expression is truncated or
 padded with spaces on the right as necessary.  The expression and
@@ -481,7 +481,7 @@ dest_value may take the following forms:
 
 @cmd{RECODE} translates data from one range of values to
 another, via flexible user-specified mappings.  Data may be remapped
-in-place or copied to new variables.  Numeric, short string, and long
+in-place or copied to new variables.  Numeric and
 string data can be recoded.
 
 Specify the list of source variables, followed by one or more mapping

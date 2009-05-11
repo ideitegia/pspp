@@ -18,7 +18,6 @@
 #define DATA_CASEWRITER_H 1
 
 #include <stdbool.h>
-#include <stddef.h>
 #include <data/transformations.h>
 #include <libpspp/compiler.h>
 
@@ -27,7 +26,7 @@ struct casewriter;
 void casewriter_write (struct casewriter *, struct ccase *);
 bool casewriter_destroy (struct casewriter *);
 
-size_t casewriter_get_value_cnt (const struct casewriter *);
+const struct caseproto *casewriter_get_proto (const struct casewriter *);
 
 struct casereader *casewriter_make_reader (struct casewriter *);
 
@@ -37,12 +36,13 @@ bool casewriter_error (const struct casewriter *);
 void casewriter_force_error (struct casewriter *);
 const struct taint *casewriter_get_taint (const struct casewriter *);
 
-struct casewriter *mem_writer_create (size_t value_cnt);
-struct casewriter *tmpfile_writer_create (size_t value_cnt);
-struct casewriter *autopaging_writer_create (size_t value_cnt);
+struct casewriter *mem_writer_create (const struct caseproto *);
+struct casewriter *tmpfile_writer_create (const struct caseproto *);
+struct casewriter *autopaging_writer_create (const struct caseproto *);
 
 struct casewriter *
-casewriter_create_translator (struct casewriter *, size_t translated_value_cnt,
+casewriter_create_translator (struct casewriter *,
+                              const struct caseproto *translated_proto,
                               struct ccase *(*translate) (struct ccase *input,
                                                           void *aux),
                               bool (*destroy) (void *aux),

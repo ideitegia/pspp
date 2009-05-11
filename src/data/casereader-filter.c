@@ -78,7 +78,7 @@ casereader_create_filter_func (struct casereader *subreader,
   filter->aux = aux;
   filter->exclude = exclude;
   reader = casereader_create_sequential (
-    NULL, casereader_get_value_cnt (filter->subreader), CASENUMBER_MAX,
+    NULL, casereader_get_proto (filter->subreader), CASENUMBER_MAX,
     &casereader_filter_class, filter);
   taint_propagate (casereader_get_taint (filter->subreader),
                    casereader_get_taint (reader));

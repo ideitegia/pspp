@@ -51,6 +51,8 @@ struct dictionary
   {
     struct variable **var;	/* Variables. */
     size_t var_cnt, var_cap;    /* Number of variables, capacity. */
+    struct caseproto *proto;    /* Prototype for dictionary cases
+                                   (updated lazily). */
     struct hsh_table *name_tab;	/* Variable index by name. */
     int next_value_idx;         /* Index of next `union value' to allocate. */
     const struct variable **split;    /* SPLIT FILE vars. */
@@ -98,6 +100,14 @@ dict_set_change_callback (struct dictionary *d,
   d->changed_data = data;
 }
 
+/* Discards dictionary D's caseproto.  (It will be regenerated
+   lazily, on demand.) */
+static void
+invalidate_proto (struct dictionary *d)
+{
+  caseproto_unref (d->proto);
+  d->proto = NULL;
+}
 
 /* Print a representation of dictionary D to stdout, for
    debugging purposes. */
@@ -237,6 +247,7 @@ dict_clear (struct dictionary *d)
   free (d->var);
   d->var = NULL;
   d->var_cnt = d->var_cap = 0;
+  invalidate_proto (d);
   hsh_clear (d->name_tab);
   d->next_value_idx = 0;
   dict_set_split_vars (d, NULL, 0);
@@ -372,7 +383,8 @@ add_var (struct dictionary *d, struct variable *v)
   if ( d->callbacks &&  d->callbacks->var_added )
     d->callbacks->var_added (d, var_get_dict_index (v), d->cb_data);
 
-  d->next_value_idx += var_get_value_cnt (v);
+  d->next_value_idx++;
+  invalidate_proto (d);
 
   return v;
 }
@@ -539,7 +551,7 @@ dict_delete_var (struct dictionary *d, struct variable *v)
 {
   int dict_index = var_get_dict_index (v);
   const int case_index = var_get_case_index (v);
-  const int val_cnt = var_get_value_cnt (v);
+  const int width = var_get_width (v);
 
   assert (dict_contains_var (d, v));
 
@@ -572,8 +584,10 @@ dict_delete_var (struct dictionary *d, struct variable *v)
   var_destroy (v);
 
   if ( d->changed ) d->changed (d, d->changed_data);
+
+  invalidate_proto (d);
   if (d->callbacks &&  d->callbacks->var_deleted )
-    d->callbacks->var_deleted (d, dict_index, case_index, val_cnt, d->cb_data);
+    d->callbacks->var_deleted (d, dict_index, case_index, width, d->cb_data);
 }
 
 /* Deletes the COUNT variables listed in VARS from D.  This is
@@ -998,6 +1012,25 @@ dict_set_case_limit (struct dictionary *d, casenumber case_limit)
   d->case_limit = case_limit;
 }
 
+/* Returns the prototype used for cases created by dictionary D. */
+const struct caseproto *
+dict_get_proto (const struct dictionary *d_)
+{
+  struct dictionary *d = (struct dictionary *) d_;
+  if (d->proto == NULL)
+    {
+      size_t i;
+
+      d->proto = caseproto_create ();
+      d->proto = caseproto_reserve (d->proto, d->var_cnt);
+      for (i = 0; i < d->var_cnt; i++)
+        d->proto = caseproto_set_width (d->proto,
+                                        var_get_case_index (d->var[i]),
+                                        var_get_width (d->var[i]));
+    }
+  return d->proto;
+}
+
 /* Returns the case index of the next value to be added to D.
    This value is the number of `union value's that need to be
    allocated to store a case for dictionary D. */
@@ -1030,36 +1063,10 @@ dict_compact_values (struct dictionary *d)
   for (i = 0; i < d->var_cnt; i++)
     {
       struct variable *v = d->var[i];
-      set_var_case_index (v, d->next_value_idx);
-      d->next_value_idx += var_get_value_cnt (v);
+      set_var_case_index (v, d->next_value_idx++);
     }
+  invalidate_proto (d);
 }
-
-/*
-   Reassigns case indices for D, increasing each index above START by
-   the value PADDING.
-*/
-static void
-dict_pad_values (struct dictionary *d, int start, int padding)
-{
-  size_t i;
-
-  if ( padding <= 0 ) 
-	return;
-
-  for (i = 0; i < d->var_cnt; ++i)
-    {
-      struct variable *v = d->var[i];
-
-      int index = var_get_case_index (v);
-
-      if ( index >= start)
-	set_var_case_index (v, index + padding);
-    }
-
-  d->next_value_idx += padding;
-}
-
 
 /* Returns the number of values occupied by the variables in
    dictionary D.  All variables are considered if EXCLUDE_CLASSES
@@ -1086,9 +1093,37 @@ dict_count_values (const struct dictionary *d, unsigned int exclude_classes)
     {
       enum dict_class class = var_get_dict_class (d->var[i]);
       if (!(exclude_classes & (1u << class)))
-        cnt += var_get_value_cnt (d->var[i]);
+        cnt++;
     }
   return cnt;
+}
+
+/* Returns the case prototype that would result after deleting
+   all variables from D that are not in one of the
+   EXCLUDE_CLASSES and compacting the dictionary with
+   dict_compact().
+
+   The caller must unref the returned caseproto when it is no
+   longer needed. */
+struct caseproto *
+dict_get_compacted_proto (const struct dictionary *d,
+                          unsigned int exclude_classes)
+{
+  struct caseproto *proto;
+  size_t i;
+
+  assert ((exclude_classes & ~((1u << DC_ORDINARY)
+                               | (1u << DC_SYSTEM)
+                               | (1u << DC_SCRATCH))) == 0);
+
+  proto = caseproto_create ();
+  for (i = 0; i < d->var_cnt; i++)
+    {
+      struct variable *v = d->var[i];
+      if (!(exclude_classes & (1u << var_get_dict_class (v))))
+        proto = caseproto_add_width (proto, var_get_width (v));
+    }
+  return proto;
 }
 
 /* Returns the SPLIT FILE vars (see cmd_split_file()).  Call
@@ -1228,7 +1263,7 @@ dict_add_document_line (struct dictionary *d, const char *line)
       msg (SW, _("Truncating document line to %d bytes."), DOC_LINE_LENGTH);
     }
   buf_copy_str_rpad (ds_put_uninit (&d->documents, DOC_LINE_LENGTH),
-                     DOC_LINE_LENGTH, line);
+                     DOC_LINE_LENGTH, line, ' ');
 }
 
 /* Returns the number of document lines in dictionary D. */
@@ -1382,7 +1417,7 @@ dict_var_changed (const struct variable *v)
 /* Called from variable.c to notify the dictionary that the variable's width
    has changed */
 void
-dict_var_resized (const struct variable *v, int delta)
+dict_var_resized (const struct variable *v, int old_width)
 {
   if ( var_has_vardict (v))
     {
@@ -1391,11 +1426,12 @@ dict_var_resized (const struct variable *v, int delta)
 
       d = vdi->dict;
 
-      dict_pad_values (d, var_get_case_index(v) + 1, delta);
-
       if (d->changed) d->changed (d, d->changed_data);
+
+      invalidate_proto (d);
       if ( d->callbacks && d->callbacks->var_resized )
-	d->callbacks->var_resized (d, var_get_dict_index (v), delta, d->cb_data);
+	d->callbacks->var_resized (d, var_get_dict_index (v), old_width,
+                                   d->cb_data);
     }
 }
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ compare_freq ( const void *_f1, const void *_f2, const void *_var)
   const struct freq *f2 = _f2;
   const struct variable *var = _var;
 
-  return  compare_values_short (f1->value, f2->value, var );
+  return value_compare_3way (&f1->value, &f2->value, var_get_width (var));
 }
 
 unsigned int
@@ -38,15 +38,16 @@ hash_freq (const void *_f, const void *var)
 {
   const struct freq *f = _f;
 
-  return hash_value_short (f->value, var);
+  return value_hash (&f->value, var_get_width (var), 0);
 }
 
 /* Free function to be used on FR whose value parameter has been copied */
 void
-free_freq_mutable_hash (void *fr, const void *var UNUSED)
+free_freq_mutable_hash (void *fr, const void *var_)
 {
+  const struct variable *var = var_;
   struct freq_mutable *freq = fr;
-  free (freq->value);
+  value_destroy (&freq->value, var_get_width (var));
   free (freq);
 }
 

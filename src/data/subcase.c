@@ -23,13 +23,15 @@
 
 #include "xalloc.h"
 
+static void invalidate_proto (struct subcase *sc);
+
 /* Initializes SC as a subcase that contains no fields. */
 void
 subcase_init_empty (struct subcase *sc)
 {
   sc->fields = NULL;
   sc->n_fields = 0;
-  sc->n_values = 0;
+  sc->proto = NULL;
 }
 
 /* Initializes SC as a subcase with fields extracted from the
@@ -42,14 +44,13 @@ subcase_init_vars (struct subcase *sc,
 
   sc->fields = xnmalloc (n_vars, sizeof *sc->fields);
   sc->n_fields = n_vars;
-  sc->n_values = 0;
+  sc->proto = NULL;
   for (i = 0; i < n_vars; i++)
     {
       struct subcase_field *field = &sc->fields[i];
       field->case_index = var_get_case_index (vars[i]);
       field->width = var_get_width (vars[i]);
       field->direction = SC_ASCEND;
-      sc->n_values += value_cnt_from_width (field->width);
     }
 }
 
@@ -68,7 +69,7 @@ void
 subcase_clear (struct subcase *sc)
 {
   sc->n_fields = 0;
-  sc->n_values = 0;
+  invalidate_proto (sc);
 }
 
 /* Initializes SC with the same fields as ORIG. */
@@ -77,7 +78,7 @@ subcase_clone (struct subcase *sc, const struct subcase *orig)
 {
   sc->fields = xmemdup (orig->fields, orig->n_fields * sizeof *orig->fields);
   sc->n_fields = orig->n_fields;
-  sc->n_values = orig->n_values;
+  sc->proto = orig->proto ? caseproto_ref (orig->proto) : NULL;
 }
 
 /* Frees the memory owned by SC (but not SC itself). */
@@ -85,6 +86,7 @@ void
 subcase_destroy (struct subcase *sc)
 {
   free (sc->fields);
+  caseproto_unref (sc->proto);
 }
 
 /* Add a field for VAR to SC, with DIRECTION as the sort order.
@@ -107,8 +109,26 @@ subcase_add_var (struct subcase *sc, const struct variable *var,
   field->case_index = case_index;
   field->width = var_get_width (var);
   field->direction = direction;
-  sc->n_values += value_cnt_from_width (field->width);
+  invalidate_proto (sc);
   return true;
+}
+
+/* Obtains a caseproto for a case described by SC.  The caller
+   must not modify or unref the returned case prototype. */
+const struct caseproto *
+subcase_get_proto (const struct subcase *sc_)
+{
+  struct subcase *sc = (struct subcase *) sc_;
+
+  if (sc->proto == NULL)
+    {
+      size_t i;
+
+      sc->proto = caseproto_create ();
+      for (i = 0; i < sc->n_fields; i++)
+        sc->proto = caseproto_add_width (sc->proto, sc->fields[i].width);
+    }
+  return sc->proto;
 }
 
 /* Returns true if and only if A and B are conformable, which
@@ -121,7 +141,7 @@ subcase_conformable (const struct subcase *a, const struct subcase *b)
 
   if (a == b)
     return true;
-  if (a->n_values != b->n_values || a->n_fields != b->n_fields)
+  if (a->n_fields != b->n_fields)
     return false;
   for (i = 0; i < a->n_fields; i++)
     if (a->fields[i].width != b->fields[i].width)
@@ -130,7 +150,7 @@ subcase_conformable (const struct subcase *a, const struct subcase *b)
 }
 
 /* Copies the fields represented by SC from C into VALUES.
-   VALUES must have space for at least subcase_get_n_values(SC)
+   VALUES must have space for at least subcase_get_n_fields(SC)
    array elements. */
 void
 subcase_extract (const struct subcase *sc, const struct ccase *c,
@@ -141,13 +161,13 @@ subcase_extract (const struct subcase *sc, const struct ccase *c,
   for (i = 0; i < sc->n_fields; i++)
     {
       const struct subcase_field *field = &sc->fields[i];
-      value_copy (values, case_data_idx (c, field->case_index), field->width);
-      values += value_cnt_from_width (field->width);
+      union value *value = &values[i];
+      value_copy (value, case_data_idx (c, field->case_index), field->width);
     }
 }
 
 /* Copies the data in VALUES into the fields in C represented by
-   SC.  VALUES must have at least subcase_get_n_values(SC) array
+   SC.  VALUES must have at least subcase_get_n_fields(SC) array
    elements, and C must be large enough to contain all the fields
    in SC. */
 void
@@ -159,9 +179,9 @@ subcase_inject (const struct subcase *sc,
   for (i = 0; i < sc->n_fields; i++)
     {
       const struct subcase_field *field = &sc->fields[i];
-      value_copy (case_data_rw_idx (c, field->case_index), values,
+      const union value *value = &values[i];
+      value_copy (case_data_rw_idx (c, field->case_index), value,
                   field->width);
-      values += value_cnt_from_width (field->width);
     }
 }
 
@@ -228,11 +248,11 @@ subcase_compare_3way_xc (const struct subcase *sc,
   for (i = 0; i < sc->n_fields; i++)
     {
       const struct subcase_field *field = &sc->fields[i];
-      int cmp = value_compare_3way (a, case_data_idx (b, field->case_index),
+      int cmp = value_compare_3way (&a[i],
+                                    case_data_idx (b, field->case_index),
                                     field->width);
       if (cmp != 0)
         return field->direction == SC_ASCEND ? cmp : -cmp;
-      a += value_cnt_from_width (field->width);
     }
   return 0;
 }
@@ -261,16 +281,9 @@ subcase_compare_3way_xx (const struct subcase *sc,
   for (i = 0; i < sc->n_fields; i++)
     {
       const struct subcase_field *field = &sc->fields[i];
-      size_t n_values;
-      int cmp;
-
-      cmp = value_compare_3way (a, b, field->width);
+      int cmp = value_compare_3way (a++, b++, field->width);
       if (cmp != 0)
         return field->direction == SC_ASCEND ? cmp : -cmp;
-
-      n_values = value_cnt_from_width (field->width);
-      a += n_values;
-      b += n_values;
     }
   return 0;
 }
@@ -318,3 +331,11 @@ subcase_equal_xx (const struct subcase *sc,
   return subcase_compare_3way_xx (sc, a, b) == 0;
 }
 
+/* Discards SC's case prototype.  (It will be recreated if needed
+   again later.) */
+static void
+invalidate_proto (struct subcase *sc)
+{
+  caseproto_unref (sc->proto);
+  sc->proto = NULL;
+}

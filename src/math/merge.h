@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,13 +17,11 @@
 #ifndef MATH_MERGE_H
 #define MATH_MERGE_H 1
 
-#include <stdbool.h>
-#include <stddef.h>
-
-struct subcase;
+struct caseproto;
 struct casereader;
+struct subcase;
 
-struct merge *merge_create (const struct subcase *, size_t);
+struct merge *merge_create (const struct subcase *, const struct caseproto *);
 void merge_destroy (struct merge *);
 void merge_append (struct merge *, struct casereader *);
 struct casereader *merge_make_reader (struct merge *);

@@ -36,7 +36,7 @@
 struct casewindow
   {
     /* Common data. */
-    size_t value_cnt;             /* Number of values per case. */
+    struct caseproto *proto;      /* Prototype of cases in window. */
     casenumber max_in_core_cases; /* Max cases before dumping to disk. */
     struct taint *taint;          /* Taint status. */
 
@@ -48,7 +48,7 @@ struct casewindow
 /* Implementation of a casewindow. */
 struct casewindow_class
   {
-    void *(*create) (struct taint *, size_t value_cnt);
+    void *(*create) (struct taint *, const struct caseproto *);
     void (*destroy) (void *aux);
     void (*push_head) (void *aux, struct ccase *);
     void (*pop_tail) (void *aux, casenumber cnt);
@@ -63,28 +63,30 @@ static const struct casewindow_class casewindow_file_class;
 /* Creates and returns a new casewindow using the given
    parameters. */
 static struct casewindow *
-do_casewindow_create (struct taint *taint,
-                      size_t value_cnt, casenumber max_in_core_cases)
+do_casewindow_create (struct taint *taint, const struct caseproto *proto,
+                      casenumber max_in_core_cases)
 {
   struct casewindow *cw = xmalloc (sizeof *cw);
   cw->class = (max_in_core_cases
               ? &casewindow_memory_class
               : &casewindow_file_class);
-  cw->aux = cw->class->create (taint, value_cnt);
-  cw->value_cnt = value_cnt;
+  cw->aux = cw->class->create (taint, proto);
+  cw->proto = caseproto_ref (proto);
   cw->max_in_core_cases = max_in_core_cases;
   cw->taint = taint;
   return cw;
 }
 
-/* Creates and returns a new casewindow for cases with VALUE_CNT
-   values each.  If the casewindow holds more than
+/* Creates and returns a new casewindow for cases that take the
+   form specified by PROTO.  If the casewindow holds more than
    MAX_IN_CORE_CASES cases at any time, its cases will be dumped
-   to disk; otherwise, its cases will be held in memory. */
+   to disk; otherwise, its cases will be held in memory.
+
+   The caller retains its reference to PROTO. */
 struct casewindow *
-casewindow_create (size_t value_cnt, casenumber max_in_core_cases)
+casewindow_create (const struct caseproto *proto, casenumber max_in_core_cases)
 {
-  return do_casewindow_create (taint_create (), value_cnt, max_in_core_cases);
+  return do_casewindow_create (taint_create (), proto, max_in_core_cases);
 }
 
 /* Destroys casewindow CW.
@@ -98,6 +100,7 @@ casewindow_destroy (struct casewindow *cw)
     {
       cw->class->destroy (cw->aux);
       ok = taint_destroy (cw->taint);
+      caseproto_unref (cw->proto);
       free (cw);
     }
   return ok;
@@ -117,7 +120,7 @@ static void
 casewindow_to_disk (struct casewindow *old)
 {
   struct casewindow *new;
-  new = do_casewindow_create (taint_clone (old->taint), old->value_cnt, 0);
+  new = do_casewindow_create (taint_clone (old->taint), old->proto, 0);
   while (casewindow_get_case_cnt (old) > 0 && !casewindow_error (new))
     {
       struct ccase *c = casewindow_get_case (old, 0);
@@ -180,11 +183,12 @@ casewindow_get_case_cnt (const struct casewindow *cw)
   return cw->class->get_case_cnt (cw->aux);
 }
 
-/* Returns the number of values per case in casewindow CW. */
-size_t
-casewindow_get_value_cnt (const struct casewindow *cw)
+/* Returns the case prototype for the cases in casewindow CW.
+   The caller must not unref the returned prototype. */
+const struct caseproto *
+casewindow_get_proto (const struct casewindow *cw)
 {
-  return cw->value_cnt;
+  return cw->proto;
 }
 
 /* Returns true if casewindow CW is tainted.
@@ -218,7 +222,8 @@ struct casewindow_memory
   };
 
 static void *
-casewindow_memory_create (struct taint *taint UNUSED, size_t value_cnt UNUSED)
+casewindow_memory_create (struct taint *taint UNUSED,
+                          const struct caseproto *proto UNUSED)
 {
   struct casewindow_memory *cwm = xmalloc (sizeof *cwm);
   cwm->cases = deque_init (&cwm->deque, 4, sizeof *cwm->cases);
@@ -285,10 +290,10 @@ struct casewindow_file
   };
 
 static void *
-casewindow_file_create (struct taint *taint, size_t value_cnt)
+casewindow_file_create (struct taint *taint, const struct caseproto *proto)
 {
   struct casewindow_file *cwf = xmalloc (sizeof *cwf);
-  cwf->file = case_tmpfile_create (value_cnt);
+  cwf->file = case_tmpfile_create (proto);
   cwf->head = cwf->tail = 0;
   taint_propagate (case_tmpfile_get_taint (cwf->file), taint);
   return cwf;

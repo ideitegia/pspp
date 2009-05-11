@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2006, 2007  Free Software Foundation
+   Copyright (C) 2004, 2006, 2007, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -243,11 +243,10 @@ addcb (struct dictionary *d, int idx, void *pd)
 }
 
 static void
-delcb (struct dictionary *d, int dict_idx, int case_idx, int value_cnt,
-       void *pd)
+delcb (struct dictionary *d, int dict_idx, int case_idx, int width, void *pd)
 {
   g_signal_emit (pd, signals [VARIABLE_DELETED], 0,
-		 dict_idx, case_idx, value_cnt );
+                 dict_idx, case_idx, width );
 }
 
 static void
@@ -257,9 +256,9 @@ mutcb (struct dictionary *d, int idx, void *pd)
 }
 
 static void
-resize_cb (struct dictionary *d, int idx, int delta, void *pd)
+resize_cb (struct dictionary *d, int idx, int old_width, void *pd)
 {
-  g_signal_emit (pd, signals [VARIABLE_RESIZED], 0, idx, delta);
+  g_signal_emit (pd, signals [VARIABLE_RESIZED], 0, idx, old_width);
 }
 
 static void
@@ -473,6 +472,17 @@ psppire_dict_get_value_cnt (const PsppireDict *d)
 }
 
 
+/* Returns the prototype for the cases that match the dictionary */
+const struct caseproto *
+psppire_dict_get_proto (const PsppireDict *d)
+{
+  g_return_val_if_fail (d, NULL);
+  g_return_val_if_fail (d->dict, NULL);
+
+  return dict_get_proto (d->dict);
+}
+
+
 /* Return a variable by name.
    Return NULL if it doesn't exist
 */
@@ -531,17 +541,14 @@ void
 psppire_dict_resize_variable (PsppireDict *d, const struct variable *pv,
 			      gint old_size, gint new_size)
 {
-  gint fv;
   g_return_if_fail (d);
   g_return_if_fail (d->dict);
 
   if ( old_size == new_size )
     return ;
 
-  fv = var_get_case_index (pv);
-
   g_signal_emit (d, signals [VARIABLE_RESIZED], 0,
-		 fv + old_size,
+		 var_get_dict_index (pv),
 		 new_size - old_size );
 }
 

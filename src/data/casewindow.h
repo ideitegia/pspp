@@ -28,10 +28,11 @@
 #ifndef DATA_CASEWINDOW_H
 #define DATA_CASEWINDOW_H 1
 
-#include <stddef.h>
 #include <data/case.h>
 
-struct casewindow *casewindow_create (size_t value_cnt,
+struct caseproto;
+
+struct casewindow *casewindow_create (const struct caseproto *,
                                       casenumber max_in_core_cases);
 bool casewindow_destroy (struct casewindow *);
 
@@ -39,7 +40,7 @@ void casewindow_push_head (struct casewindow *, struct ccase *);
 void casewindow_pop_tail (struct casewindow *, casenumber cnt);
 struct ccase *casewindow_get_case (const struct casewindow *,
                                    casenumber case_idx);
-size_t casewindow_get_value_cnt (const struct casewindow *);
+const struct caseproto *casewindow_get_proto (const struct casewindow *);
 casenumber casewindow_get_case_cnt (const struct casewindow *);
 
 bool casewindow_error (const struct casewindow *);

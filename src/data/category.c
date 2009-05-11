@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -106,7 +106,7 @@ cat_value_find (const struct variable *v, const union value *val)
     {
       candidate = obs_vals->vals + i;
       assert (candidate != NULL);
-      if (!compare_values_short (candidate, val, v))
+      if (value_equal (candidate, val, var_get_width (v)))
 	{
 	  return i;
 	}

@@ -41,7 +41,7 @@ int max_buffers = INT_MAX;
 
 struct sort_writer
   {
-    size_t value_cnt;
+    struct caseproto *proto;
     struct subcase ordering;
     struct merge *merge;
     struct pqueue *pqueue;
@@ -53,7 +53,8 @@ struct sort_writer
 
 static struct casewriter_class sort_casewriter_class;
 
-static struct pqueue *pqueue_create (const struct subcase *, size_t);
+static struct pqueue *pqueue_create (const struct subcase *,
+                                     const struct caseproto *);
 static void pqueue_destroy (struct pqueue *);
 static bool pqueue_is_full (const struct pqueue *);
 static bool pqueue_is_empty (const struct pqueue *);
@@ -63,20 +64,21 @@ static struct ccase *pqueue_pop (struct pqueue *, casenumber *);
 static void output_record (struct sort_writer *);
 
 struct casewriter *
-sort_create_writer (const struct subcase *ordering, size_t value_cnt)
+sort_create_writer (const struct subcase *ordering,
+                    const struct caseproto *proto)
 {
   struct sort_writer *sort;
 
   sort = xmalloc (sizeof *sort);
-  sort->value_cnt = value_cnt;
+  sort->proto = caseproto_ref (proto);
   subcase_clone (&sort->ordering, ordering);
-  sort->merge = merge_create (ordering, value_cnt);
-  sort->pqueue = pqueue_create (ordering, value_cnt);
+  sort->merge = merge_create (ordering, proto);
+  sort->pqueue = pqueue_create (ordering, proto);
   sort->run = NULL;
   sort->run_id = 0;
   sort->run_end = NULL;
 
-  return casewriter_create (value_cnt, &sort_casewriter_class, sort);
+  return casewriter_create (proto, &sort_casewriter_class, sort);
 }
 
 static void
@@ -105,6 +107,7 @@ sort_casewriter_destroy (struct casewriter *writer UNUSED, void *sort_)
   pqueue_destroy (sort->pqueue);
   casewriter_destroy (sort->run);
   case_unref (sort->run_end);
+  caseproto_unref (sort->proto);
   free (sort);
 }
 
@@ -117,7 +120,7 @@ sort_casewriter_convert_to_reader (struct casewriter *writer, void *sort_)
   if (sort->run == NULL && sort->run_id == 0)
     {
       /* In-core sort. */
-      sort->run = mem_writer_create (casewriter_get_value_cnt (writer));
+      sort->run = mem_writer_create (sort->proto);
       sort->run_id = 1;
     }
   while (!pqueue_is_empty (sort->pqueue))
@@ -149,7 +152,7 @@ output_record (struct sort_writer *sort)
     }
   if (sort->run == NULL)
     {
-      sort->run = tmpfile_writer_create (sort->value_cnt);
+      sort->run = tmpfile_writer_create (sort->proto);
       sort->run_id = min_run_id;
     }
 
@@ -171,7 +174,7 @@ struct casereader *
 sort_execute (struct casereader *input, const struct subcase *ordering)
 {
   struct casewriter *output =
-    sort_create_writer (ordering, casereader_get_value_cnt (input));
+    sort_create_writer (ordering, casereader_get_proto (input));
   casereader_transfer (input, output);
   return casewriter_make_reader (output);
 }
@@ -211,14 +214,13 @@ static int compare_pqueue_records_minheap (const void *a, const void *b,
                                            const void *pq_);
 
 static struct pqueue *
-pqueue_create (const struct subcase *ordering, size_t value_cnt)
+pqueue_create (const struct subcase *ordering, const struct caseproto *proto)
 {
   struct pqueue *pq;
 
   pq = xmalloc (sizeof *pq);
   subcase_clone (&pq->ordering, ordering);
-  pq->record_cap
-    = settings_get_workspace_cases (value_cnt);
+  pq->record_cap = settings_get_workspace_cases (proto);
   if (pq->record_cap > max_buffers)
     pq->record_cap = max_buffers;
   else if (pq->record_cap < min_buffers)

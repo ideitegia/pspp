@@ -613,11 +613,13 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
           else
             {
               *cp++ = '"';
-	      memcpy (cp, value.s, var_get_width (v));
+	      memcpy (cp, value_str (&value, var_get_width (v)),
+                      var_get_width (v));
 	      cp += var_get_width (v);
 	      *cp++ = '"';
               *cp = '\0';
             }
+          value_destroy (&value, var_get_width (v));
         }
 
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT, buf);
@@ -628,9 +630,10 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
   if (flags & DF_VALUE_LABELS && var_has_value_labels (v))
     {
       const struct val_labs *val_labs = var_get_value_labels (v);
-      struct val_labs_iterator *i;
-      struct val_lab *vl;
+      size_t n_labels = val_labs_count (val_labs);
+      const struct val_lab **labels;
       int orig_r = r;
+      size_t i;
 
 #if 0
       tab_text (t, 1, r, TAB_LEFT, _("Value"));
@@ -639,23 +642,27 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
 #endif
 
       tab_hline (t, TAL_1, 1, 2, r);
-      for (vl = val_labs_first_sorted (val_labs, &i); vl != NULL;
-           vl = val_labs_next (val_labs, &i))
+
+      labels = val_labs_sorted (val_labs);
+      for (i = 0; i < n_labels; i++)
         {
-	  char buf[128];
+          const struct val_lab *vl = labels[i];
+	  char buf[MAX_STRING + 1];
 
 	  if (var_is_alpha (v))
 	    {
-	      memcpy (buf, vl->value.s, var_get_width (v));
-	      buf[var_get_width (v)] = 0;
+              int width = var_get_width (v);
+	      memcpy (buf, value_str (&vl->value, width), width);
+	      buf[width] = 0;
 	    }
 	  else
 	    sprintf (buf, "%g", vl->value.f);
 
 	  tab_text (t, 1, r, TAB_NONE, buf);
-	  tab_text (t, 2, r, TAB_LEFT, vl->label);
+	  tab_text (t, 2, r, TAB_LEFT, val_lab_get_label (vl));
 	  r++;
 	}
+      free (labels);
 
       tab_vline (t, TAL_1, 2, orig_r, r - 1);
     }

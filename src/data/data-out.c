@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -83,11 +83,8 @@ static void output_binary_integer (uint64_t, int bytes, enum integer_format,
                                    char *);
 static void output_hex (const void *, size_t bytes, char *);
 
-/* Converts the INPUT value into printable form in the exactly
-   FORMAT->W characters in OUTPUT according to format
-   specification FORMAT.  The output is recoded from native form
-   into the given legacy character ENCODING.  No null terminator
-   is appended to the buffer.  */
+/* Same as data_out, and additionally recodes the output from
+   native form into the given legacy character ENCODING. */
 void
 data_out_legacy (const union value *input, enum legacy_encoding encoding,
                  const struct fmt_spec *format, char *output)
@@ -106,12 +103,18 @@ data_out_legacy (const union value *input, enum legacy_encoding encoding,
     legacy_recode (LEGACY_NATIVE, output, encoding, output, format->w);
 }
 
-/* Same as data_out_legacy with ENCODING set to LEGACY_NATIVE.  */
+/* Converts the INPUT value into printable form in the exactly
+   FORMAT->W characters in OUTPUT according to format
+   specification FORMAT. No null terminator is appended to the
+   buffer.
+
+   VALUE must be the correct width for FORMAT, that is, its
+   width must be fmt_var_width(FORMAT). */
 void
-data_out (const union value *value, const struct fmt_spec *format,
+data_out (const union value *input, const struct fmt_spec *format,
           char *output)
 {
-  return data_out_legacy (value, LEGACY_NATIVE, format, output);
+  return data_out_legacy (input, LEGACY_NATIVE, format, output);
 }
 
 
@@ -415,7 +418,7 @@ output_date (const union value *input, const struct fmt_spec *format,
         }
     }
 
-  buf_copy_lpad (output, format->w, tmp, p - tmp);
+  buf_copy_lpad (output, format->w, tmp, p - tmp, ' ');
   return;
 
  overflow:
@@ -439,7 +442,7 @@ output_WKDAY (const union value *input, const struct fmt_spec *format,
     };
 
   if (input->f >= 1 && input->f < 8)
-    buf_copy_str_rpad (output, format->w, weekdays[(int) input->f - 1]);
+    buf_copy_str_rpad (output, format->w, weekdays[(int) input->f - 1], ' ');
   else
     {
       if (input->f != SYSMIS)
@@ -460,7 +463,7 @@ output_MONTH (const union value *input, const struct fmt_spec *format,
     };
 
   if (input->f >= 1 && input->f < 13)
-    buf_copy_str_rpad (output, format->w, months[(int) input->f - 1]);
+    buf_copy_str_rpad (output, format->w, months[(int) input->f - 1], ' ');
   else
     {
       if (input->f != SYSMIS)
@@ -474,7 +477,7 @@ static void
 output_A (const union value *input, const struct fmt_spec *format,
           char *output)
 {
-  memcpy (output, input->s, format->w);
+  memcpy (output, value_str (input, format->w), format->w);
 }
 
 /* Outputs AHEX format. */
@@ -482,7 +485,7 @@ static void
 output_AHEX (const union value *input, const struct fmt_spec *format,
              char *output)
 {
-  output_hex (input->s, format->w / 2, output);
+  output_hex (value_str (input, format->w), format->w / 2, output);
 }
 
 /* Decimal and scientific formatting. */
@@ -934,7 +937,7 @@ output_infinite (double number, const struct fmt_spec *format, char *output)
       else
         s = "Unknown";
 
-      buf_copy_str_lpad (output, format->w, s);
+      buf_copy_str_lpad (output, format->w, s, ' ');
     }
   else
     output_overflow (format, output);

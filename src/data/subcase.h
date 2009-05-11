@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,8 @@ struct subcase
   {
     struct subcase_field *fields;
     size_t n_fields;
-    size_t n_values;
+
+    struct caseproto *proto;    /* Created lazily. */
   };
 
 void subcase_init_empty (struct subcase *);
@@ -59,9 +60,10 @@ void subcase_destroy (struct subcase *);
 bool subcase_add_var (struct subcase *, const struct variable *,
                       enum subcase_direction);
 
+const struct caseproto *subcase_get_proto (const struct subcase *);
+
 static inline bool subcase_is_empty (const struct subcase *);
 static inline size_t subcase_get_n_fields (const struct subcase *);
-static inline size_t subcase_get_n_values (const struct subcase *);
 
 static inline enum subcase_direction subcase_get_direction (
   const struct subcase *, size_t idx);
@@ -108,12 +110,6 @@ static inline size_t
 subcase_get_n_fields (const struct subcase *sc)
 {
   return sc->n_fields;
-}
-
-static inline size_t
-subcase_get_n_values (const struct subcase *sc)
-{
-  return sc->n_values;
 }
 
 #endif /* data/subcase.h */

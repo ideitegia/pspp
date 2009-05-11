@@ -26,12 +26,13 @@
 #include <data/casereader.h>
 #include <data/casewriter.h>
 #include <data/lazy-casereader.h>
-#include <data/sparse-cases.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
+#include <libpspp/hash-functions.h>
 #include <libpspp/model-checker.h>
 #include <libpspp/range-map.h>
 #include <libpspp/range-set.h>
+#include <libpspp/str.h>
 #include <libpspp/taint.h>
 #include <libpspp/tower.h>
 
@@ -55,34 +56,65 @@ lazy_callback (void *ds_)
 #define MAX_COLS 5
 
 
-/* Checks that READER contains the ROW_CNT rows and COLUMN_CNT
+static bool
+check_caseproto (struct mc *mc, const struct caseproto *benchmark,
+                 const struct caseproto *test, const char *test_name)
+{
+  size_t n_columns = caseproto_get_n_widths (benchmark);
+  size_t col;
+  bool ok;
+
+  if (n_columns != caseproto_get_n_widths (test))
+    {
+      mc_error (mc, "%s column count (%zu) does not match expected (%zu)",
+                test_name, caseproto_get_n_widths (test), n_columns);
+      return false;
+    }
+
+  ok = true;
+  for (col = 0; col < n_columns; col++)
+    {
+      int benchmark_width = caseproto_get_width (benchmark, col);
+      int test_width = caseproto_get_width (test, col);
+      if (benchmark_width != test_width)
+        {
+          mc_error (mc, "%s column %zu width (%d) differs from expected (%d)",
+                    test_name, col, test_width, benchmark_width);
+          ok = false;
+        }
+    }
+  return ok;
+}
+
+/* Checks that READER contains the N_ROWS rows and N_COLUMNS
    columns of data in ARRAY, reporting any errors via MC. */
 static void
 check_datasheet_casereader (struct mc *mc, struct casereader *reader,
-                            double array[MAX_ROWS][MAX_COLS],
-                            size_t row_cnt, size_t column_cnt)
+                            union value array[MAX_ROWS][MAX_COLS],
+                            size_t n_rows, const struct caseproto *proto)
 {
-  if (casereader_get_case_cnt (reader) != row_cnt)
+  size_t n_columns = caseproto_get_n_widths (proto);
+
+  if (!check_caseproto (mc, proto, casereader_get_proto (reader),
+                        "casereader"))
+    return;
+  else if (casereader_get_case_cnt (reader) != n_rows)
     {
       if (casereader_get_case_cnt (reader) == CASENUMBER_MAX
-          && casereader_count_cases (reader) == row_cnt)
+          && casereader_count_cases (reader) == n_rows)
         mc_error (mc, "datasheet casereader has unknown case count");
       else
         mc_error (mc, "casereader row count (%lu) does not match "
                   "expected (%zu)",
                   (unsigned long int) casereader_get_case_cnt (reader),
-                  row_cnt);
+                  n_rows);
     }
-  else if (casereader_get_value_cnt (reader) != column_cnt)
-    mc_error (mc, "casereader column count (%zu) does not match "
-              "expected (%zu)",
-              casereader_get_value_cnt (reader), column_cnt);
   else
     {
       struct ccase *c;
       size_t row;
 
-      for (row = 0; row < row_cnt; row++)
+      for (row = 0; row < n_rows; row++)
         {
           size_t col;
 
@@ -90,40 +122,54 @@ check_datasheet_casereader (struct mc *mc, struct casereader *reader,
           if (c == NULL)
             {
               mc_error (mc, "casereader_read failed reading row %zu of %zu "
-                        "(%zu columns)", row, row_cnt, column_cnt);
+                        "(%zu columns)", row, n_rows, n_columns);
               return;
             }
 
-          for (col = 0; col < column_cnt; col++)
-            if (case_num_idx (c, col) != array[row][col])
-              mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
-                        "%g != %g",
-                        row, col, row_cnt, column_cnt,
-                        case_num_idx (c, col), array[row][col]);
+          for (col = 0; col < n_columns; col++)
+            {
+              int width = caseproto_get_width (proto, col);
+              if (!value_equal (case_data_idx (c, col), &array[row][col],
+                                width))
+                {
+                  if (width == 0)
+                    mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
+                              "%g != %g",
+                              row, col, n_rows, n_columns,
+                              case_num_idx (c, col), array[row][col].f);
+                  else
+                    mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
+                              "'%.*s' != '%.*s'",
+                              row, col, n_rows, n_columns,
+                              width, case_str_idx (c, col),
+                              width, value_str (&array[row][col], width));
+                }
+            }
 
 	  case_unref (c);
         }
 
       c = casereader_read (reader);
       if (c != NULL)
-        mc_error (mc, "casereader has extra cases (expected %zu)", row_cnt);
+        mc_error (mc, "casereader has extra cases (expected %zu)", n_rows);
     }
 }
 
-/* Checks that datasheet DS contains has ROW_CNT rows, COLUMN_CNT
+/* Checks that datasheet DS contains has N_ROWS rows, N_COLUMNS
    columns, and the same contents as ARRAY, reporting any
    mismatches via mc_error.  Then, adds DS to MC as a new state. */
 static void
 check_datasheet (struct mc *mc, struct datasheet *ds,
-                 double array[MAX_ROWS][MAX_COLS],
-                 size_t row_cnt, size_t column_cnt)
+                 union value array[MAX_ROWS][MAX_COLS],
+                 size_t n_rows, const struct caseproto *proto)
 {
+  size_t n_columns = caseproto_get_n_widths (proto);
   struct datasheet *ds2;
   struct casereader *reader;
   unsigned long int serial = 0;
 
-  assert (row_cnt < MAX_ROWS);
-  assert (column_cnt < MAX_COLS);
+  assert (n_rows < MAX_ROWS);
+  assert (n_columns < MAX_COLS);
 
   /* If it is a duplicate hash, discard the state before checking
      its consistency, to save time. */
@@ -134,33 +180,93 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
     }
 
   /* Check contents of datasheet via datasheet functions. */
-  if (row_cnt != datasheet_get_row_cnt (ds))
+  if (!check_caseproto (mc, proto, datasheet_get_proto (ds), "datasheet"))
+    {
+      /* check_caseproto emitted errors already. */
+    }
+  else if (n_rows != datasheet_get_n_rows (ds))
     mc_error (mc, "row count (%lu) does not match expected (%zu)",
-              (unsigned long int) datasheet_get_row_cnt (ds), row_cnt);
-  else if (column_cnt != datasheet_get_column_cnt (ds))
-    mc_error (mc, "column count (%zu) does not match expected (%zu)",
-              datasheet_get_column_cnt (ds), column_cnt);
+              (unsigned long int) datasheet_get_n_rows (ds), n_rows);
   else
     {
       size_t row, col;
+      bool difference = false;
 
-      for (row = 0; row < row_cnt; row++)
-        for (col = 0; col < column_cnt; col++)
+      for (row = 0; row < n_rows; row++)
+        for (col = 0; col < n_columns; col++)
           {
+            int width = caseproto_get_width (proto, col);
+            union value *av = &array[row][col];
             union value v;
-            if (!datasheet_get_value (ds, row, col, &v, 1))
+
+            value_init (&v, width);
+            if (!datasheet_get_value (ds, row, col, &v))
               NOT_REACHED ();
-            if (v.f != array[row][col])
-              mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: %g != %g",
-                        row, col, row_cnt, column_cnt, v.f, array[row][col]);
+            if (!value_equal (&v, av, width))
+              {
+                if (width == 0)
+                  mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
+                            "%g != %g", row, col, n_rows, n_columns,
+                            v.f, av->f);
+                else
+                  mc_error (mc, "element %zu,%zu (of %zu,%zu) differs: "
+                            "'%.*s' != '%.*s'",
+                            row, col, n_rows, n_columns,
+                            width, value_str (&v, width),
+                            width, value_str (av, width));
+                difference = true;
+              }
+            value_destroy (&v, width);
           }
+
+      if (difference)
+        {
+          struct string s;
+
+          mc_error (mc, "expected:");
+          ds_init_empty (&s);
+          for (row = 0; row < n_rows; row++)
+            {
+              ds_clear (&s);
+              ds_put_format (&s, "row %zu:", row);
+              for (col = 0; col < n_columns; col++)
+                {
+                  const union value *v = &array[row][col];
+                  int width = caseproto_get_width (proto, col);
+                  if (width == 0)
+                    ds_put_format (&s, " %g", v->f);
+                  else
+                    ds_put_format (&s, " '%.*s'", width, value_str (v, width));
+                }
+              mc_error (mc, "%s", ds_cstr (&s));
+            }
+
+          mc_error (mc, "actual:");
+          ds_init_empty (&s);
+          for (row = 0; row < n_rows; row++)
+            {
+              ds_clear (&s);
+              ds_put_format (&s, "row %zu:", row);
+              for (col = 0; col < n_columns; col++)
+                {
+                  union value v;
+                  value_init (&v, 0);
+                  if (!datasheet_get_value (ds, row, col, &v))
+                    NOT_REACHED ();
+                  ds_put_format (&s, " %g", v.f);
+                }
+              mc_error (mc, "%s", ds_cstr (&s));
+            }
+
+          ds_destroy (&s);
+        }
     }
 
   /* Check that datasheet contents are correct when read through
      casereader. */
   ds2 = clone_datasheet (ds);
   reader = datasheet_make_reader (ds2);
-  check_datasheet_casereader (mc, reader, array, row_cnt, column_cnt);
+  check_datasheet_casereader (mc, reader, array, n_rows, proto);
   casereader_destroy (reader);
 
   /* Check that datasheet contents are correct when read through
@@ -168,18 +274,18 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
      valuable because otherwise there is no non-GUI code that
      uses the lazy_casereader. */
   ds2 = clone_datasheet (ds);
-  reader = lazy_casereader_create (column_cnt, row_cnt,
+  reader = lazy_casereader_create (datasheet_get_proto (ds2), n_rows,
                                    lazy_callback, ds2, &serial);
-  check_datasheet_casereader (mc, reader, array, row_cnt, column_cnt);
+  check_datasheet_casereader (mc, reader, array, n_rows, proto);
   if (lazy_casereader_destroy (reader, serial))
     {
       /* Lazy casereader was never instantiated.  This will
          only happen if there are no rows (because in that case
          casereader_read never gets called). */
       datasheet_destroy (ds2);
-      if (row_cnt != 0)
+      if (n_rows != 0)
         mc_error (mc, "lazy casereader not instantiated, but should "
-                  "have been (size %zu,%zu)", row_cnt, column_cnt);
+                  "have been (size %zu,%zu)", n_rows, n_columns);
     }
   else
     {
@@ -188,9 +294,9 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
          (casereader_read in this case) was performed on the
          lazy casereader. */
       casereader_destroy (reader);
-      if (row_cnt == 0)
+      if (n_rows == 0)
         mc_error (mc, "lazy casereader instantiated, but should not "
-                  "have been (size %zu,%zu)", row_cnt, column_cnt);
+                  "have been (size %zu,%zu)", n_rows, n_columns);
     }
 
   mc_add_state (mc, ds);
@@ -198,32 +304,78 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
 
 /* Extracts the contents of DS into DATA. */
 static void
-extract_data (const struct datasheet *ds, double data[MAX_ROWS][MAX_COLS])
+extract_data (const struct datasheet *ds, union value data[MAX_ROWS][MAX_COLS])
 {
-  size_t column_cnt = datasheet_get_column_cnt (ds);
-  size_t row_cnt = datasheet_get_row_cnt (ds);
+  const struct caseproto *proto = datasheet_get_proto (ds);
+  size_t n_columns = datasheet_get_n_columns (ds);
+  size_t n_rows = datasheet_get_n_rows (ds);
   size_t row, col;
 
-  assert (row_cnt < MAX_ROWS);
-  assert (column_cnt < MAX_COLS);
-  for (row = 0; row < row_cnt; row++)
-    for (col = 0; col < column_cnt; col++)
+  assert (n_rows < MAX_ROWS);
+  assert (n_columns < MAX_COLS);
+  for (row = 0; row < n_rows; row++)
+    for (col = 0; col < n_columns; col++)
       {
-        union value v;
-        if (!datasheet_get_value (ds, row, col, &v, 1))
+        int width = caseproto_get_width (proto, col);
+        union value *v = &data[row][col];
+        value_init (v, width);
+        if (!datasheet_get_value (ds, row, col, v))
           NOT_REACHED ();
-        data[row][col] = v.f;
       }
+}
+
+/* Copies the contents of ODATA into DATA.  Each of the N_ROWS
+   rows of ODATA and DATA must have prototype PROTO. */
+static void
+clone_data (size_t n_rows, const struct caseproto *proto,
+            union value odata[MAX_ROWS][MAX_COLS],
+            union value data[MAX_ROWS][MAX_COLS])
+{
+  size_t n_columns = caseproto_get_n_widths (proto);
+  size_t row, col;
+
+  assert (n_rows < MAX_ROWS);
+  assert (n_columns < MAX_COLS);
+  for (row = 0; row < n_rows; row++)
+    for (col = 0; col < n_columns; col++)
+      {
+        int width = caseproto_get_width (proto, col);
+        const union value *ov = &odata[row][col];
+        union value *v = &data[row][col];
+        value_init (v, width);
+        value_copy (v, ov, width);
+      }
+}
+
+static void
+release_data (size_t n_rows, const struct caseproto *proto,
+              union value data[MAX_ROWS][MAX_COLS])
+{
+  size_t n_columns = caseproto_get_n_widths (proto);
+  size_t row, col;
+
+  assert (n_rows < MAX_ROWS);
+  assert (n_columns < MAX_COLS);
+  for (col = 0; col < n_columns; col++)
+    {
+      int width = caseproto_get_width (proto, col);
+      if (value_needs_init (width))
+        for (row = 0; row < n_rows; row++)
+          value_destroy (&data[row][col], width);
+    }
 }
 
 /* Clones the structure and contents of ODS into *DS,
    and the contents of ODATA into DATA. */
 static void
-clone_model (const struct datasheet *ods, double odata[MAX_ROWS][MAX_COLS],
-             struct datasheet **ds, double data[MAX_ROWS][MAX_COLS])
+clone_model (const struct datasheet *ods,
+             union value odata[MAX_ROWS][MAX_COLS],
+             struct datasheet **ds,
+             union value data[MAX_ROWS][MAX_COLS])
 {
   *ds = clone_datasheet (ods);
-  memcpy (data, odata, MAX_ROWS * MAX_COLS * sizeof **data);
+  clone_data (datasheet_get_n_rows (ods), datasheet_get_proto (ods),
+              odata, data);
 }
 
 /* "init" function for struct mc_class. */
@@ -238,34 +390,41 @@ datasheet_mc_init (struct mc *mc)
       /* Create unbacked datasheet. */
       ds = datasheet_create (NULL);
       mc_name_operation (mc, "empty datasheet");
-      check_datasheet (mc, ds, NULL, 0, 0);
+      check_datasheet (mc, ds, NULL, 0, caseproto_create ());
     }
   else
     {
       /* Create datasheet with backing. */
       struct casewriter *writer;
       struct casereader *reader;
-      double data[MAX_ROWS][MAX_COLS];
-      int row;
+      union value data[MAX_ROWS][MAX_COLS];
+      struct caseproto *proto;
+      int row, col;
 
       assert (params->backing_rows > 0 && params->backing_rows <= MAX_ROWS);
       assert (params->backing_cols > 0 && params->backing_cols <= MAX_COLS);
 
-      writer = mem_writer_create (params->backing_cols);
+      /* XXX support different backing column widths */
+      proto = caseproto_create ();
+      for (col = 0; col < params->backing_cols; col++)
+        proto = caseproto_add_width (proto, 0);
+
+      writer = mem_writer_create (proto);
       for (row = 0; row < params->backing_rows; row++)
         {
           struct ccase *c;
-          int col;
 
-          c = case_create (params->backing_cols);
+          c = case_create (proto);
           for (col = 0; col < params->backing_cols; col++)
             {
               double value = params->next_value++;
-              data[row][col] = value;
+              data[row][col].f = value;
               case_data_rw_idx (c, col)->f = value;
             }
           casewriter_write (writer, c);
         }
+      caseproto_unref (proto);
+
       reader = casewriter_make_reader (writer);
       assert (reader != NULL);
 
@@ -273,7 +432,24 @@ datasheet_mc_init (struct mc *mc)
       mc_name_operation (mc, "datasheet with (%d,%d) backing",
                          params->backing_rows, params->backing_cols);
       check_datasheet (mc, ds, data,
-                       params->backing_rows, params->backing_cols);
+                       params->backing_rows, proto);
+    }
+}
+
+static void
+value_from_param (union value *value, int width, int idx)
+{
+  if (width == 0)
+    value->f = idx;
+  else
+    {
+      unsigned int hash = hash_int (idx, 0);
+      char *string = value_str_rw (value, width);
+      int offset;
+
+      assert (width < 32);
+      for (offset = 0; offset < width; offset++)
+        string[offset] = "ABCDEFGHIJ"[(hash >> offset) % 10];
     }
 }
 
@@ -283,92 +459,119 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
 {
   struct datasheet_test_params *params = mc_get_aux (mc);
 
+  static const int widths[] = {0, 1, 11};
+  const size_t n_widths = sizeof widths / sizeof *widths;
+
   const struct datasheet *ods = ods_;
-  double odata[MAX_ROWS][MAX_COLS];
-  double data[MAX_ROWS][MAX_COLS];
-  size_t column_cnt = datasheet_get_column_cnt (ods);
-  size_t row_cnt = datasheet_get_row_cnt (ods);
-  size_t pos, new_pos, cnt;
+  union value odata[MAX_ROWS][MAX_COLS];
+  union value data[MAX_ROWS][MAX_COLS];
+  const struct caseproto *oproto = datasheet_get_proto (ods);
+  size_t n_columns = datasheet_get_n_columns (ods);
+  size_t n_rows = datasheet_get_n_rows (ods);
+  size_t pos, new_pos, cnt, width_idx;
 
   extract_data (ods, odata);
 
-  /* Insert all possible numbers of columns in all possible
-     positions. */
-  for (pos = 0; pos <= column_cnt; pos++)
-    for (cnt = 0; cnt <= params->max_cols - column_cnt; cnt++)
-      if (mc_include_state (mc))
-        {
-          struct datasheet *ds;
-          union value new[MAX_COLS];
-          size_t i, j;
+  /* Insert a column in each possible position. */
+  if (n_columns < params->max_cols)
+    for (pos = 0; pos <= n_columns; pos++)
+      for (width_idx = 0; width_idx < n_widths; width_idx++)
+        if (mc_include_state (mc))
+          {
+            int width = widths[width_idx];
+            struct caseproto *proto;
+            struct datasheet *ds;
+            union value new;
+            size_t i;
 
-          mc_name_operation (mc, "insert %zu columns at %zu", cnt, pos);
-          clone_model (ods, odata, &ds, data);
+            mc_name_operation (mc, "insert column at %zu "
+                               "(from %zu to %zu columns)",
+                               pos, n_columns, n_columns + 1);
+            clone_model (ods, odata, &ds, data);
 
-          for (i = 0; i < cnt; i++)
-            new[i].f = params->next_value++;
+            value_init (&new, width);
+            value_from_param (&new, width, params->next_value++);
+            if (!datasheet_insert_column (ds, &new, width, pos))
+              mc_error (mc, "datasheet_insert_column failed");
+            proto = caseproto_insert_width (caseproto_ref (oproto),
+                                            pos, width);
 
-          if (!datasheet_insert_columns (ds, new, cnt, pos))
-            mc_error (mc, "datasheet_insert_columns failed");
+            for (i = 0; i < n_rows; i++)
+              {
+                insert_element (&data[i][0], n_columns, sizeof data[i][0],
+                                pos);
+                value_init (&data[i][pos], width);
+                value_copy (&data[i][pos], &new, width);
+              }
+            value_destroy (&new, width);
 
-          for (i = 0; i < row_cnt; i++)
-            {
-              insert_range (&data[i][0], column_cnt, sizeof data[i][0],
-                            pos, cnt);
-              for (j = 0; j < cnt; j++)
-                data[i][pos + j] = new[j].f;
-            }
-
-          check_datasheet (mc, ds, data, row_cnt, column_cnt + cnt);
-        }
+            check_datasheet (mc, ds, data, n_rows, proto);
+            release_data (n_rows, proto, data);
+            caseproto_unref (proto);
+          }
 
   /* Delete all possible numbers of columns from all possible
      positions. */
-  for (pos = 0; pos < column_cnt; pos++)
-    for (cnt = 0; cnt < column_cnt - pos; cnt++)
+  for (pos = 0; pos < n_columns; pos++)
+    for (cnt = 0; cnt < n_columns - pos; cnt++)
       if (mc_include_state (mc))
         {
+          struct caseproto *proto;
           struct datasheet *ds;
-          size_t i;
+          size_t i, j;
 
-          mc_name_operation (mc, "delete %zu columns at %zu", cnt, pos);
+          mc_name_operation (mc, "delete %zu columns at %zu "
+                             "(from %zu to %zu columns)",
+                             cnt, pos, n_columns, n_columns - cnt);
           clone_model (ods, odata, &ds, data);
 
           datasheet_delete_columns (ds, pos, cnt);
+          proto = caseproto_remove_widths (caseproto_ref (oproto), pos, cnt);
 
-          for (i = 0; i < row_cnt; i++)
-            remove_range (&data[i], column_cnt, sizeof *data[i], pos, cnt);
+          for (i = 0; i < n_rows; i++)
+            {
+              for (j = pos; j < pos + cnt; j++)
+                value_destroy (&data[i][j], caseproto_get_width (oproto, j));
+              remove_range (&data[i], n_columns, sizeof *data[i], pos, cnt);
+            }
 
-          check_datasheet (mc, ds, data, row_cnt, column_cnt - cnt);
+          check_datasheet (mc, ds, data, n_rows, proto);
+          release_data (n_rows, proto, data);
+          caseproto_unref (proto);
         }
 
   /* Move all possible numbers of columns from all possible
      existing positions to all possible new positions. */
-  for (pos = 0; pos < column_cnt; pos++)
-    for (cnt = 0; cnt < column_cnt - pos; cnt++)
-      for (new_pos = 0; new_pos < column_cnt - cnt; new_pos++)
+  for (pos = 0; pos < n_columns; pos++)
+    for (cnt = 0; cnt < n_columns - pos; cnt++)
+      for (new_pos = 0; new_pos < n_columns - cnt; new_pos++)
         if (mc_include_state (mc))
           {
+            struct caseproto *proto;
             struct datasheet *ds;
             size_t i;
 
             clone_model (ods, odata, &ds, data);
-            mc_name_operation (mc, "move %zu columns from %zu to %zu",
-                               cnt, pos, new_pos);
+            mc_name_operation (mc, "move %zu columns (of %zu) from %zu to %zu",
+                               cnt, n_columns, pos, new_pos);
 
             datasheet_move_columns (ds, pos, new_pos, cnt);
 
-            for (i = 0; i < row_cnt; i++)
-              move_range (&data[i], column_cnt, sizeof data[i][0],
+            for (i = 0; i < n_rows; i++)
+              move_range (&data[i], n_columns, sizeof data[i][0],
                           pos, new_pos, cnt);
+            proto = caseproto_move_widths (caseproto_ref (oproto),
+                                           pos, new_pos, cnt);
 
-            check_datasheet (mc, ds, data, row_cnt, column_cnt);
+            check_datasheet (mc, ds, data, n_rows, proto);
+            release_data (n_rows, proto, data);
+            caseproto_unref (proto);
           }
 
   /* Insert all possible numbers of rows in all possible
      positions. */
-  for (pos = 0; pos <= row_cnt; pos++)
-    for (cnt = 0; cnt <= params->max_rows - row_cnt; cnt++)
+  for (pos = 0; pos <= n_rows; pos++)
+    for (cnt = 0; cnt <= params->max_rows - n_rows; cnt++)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
@@ -376,64 +579,80 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
           size_t i, j;
 
           clone_model (ods, odata, &ds, data);
-          mc_name_operation (mc, "insert %zu rows at %zu", cnt, pos);
+          mc_name_operation (mc, "insert %zu rows at %zu "
+                             "(from %zu to %zu rows)",
+                             cnt, pos, n_rows, n_rows + cnt);
 
           for (i = 0; i < cnt; i++)
             {
-              c[i] = case_create (column_cnt);
-              for (j = 0; j < column_cnt; j++)
-                case_data_rw_idx (c[i], j)->f = params->next_value++;
+              c[i] = case_create (oproto);
+              for (j = 0; j < n_columns; j++)
+                value_from_param (case_data_rw_idx (c[i], j),
+                                  caseproto_get_width (oproto, j),
+                                  params->next_value++);
             }
 
-          insert_range (data, row_cnt, sizeof data[pos], pos, cnt);
+          insert_range (data, n_rows, sizeof data[pos], pos, cnt);
           for (i = 0; i < cnt; i++)
-            for (j = 0; j < column_cnt; j++)
-              data[i + pos][j] = case_num_idx (c[i], j);
+            for (j = 0; j < n_columns; j++)
+              {
+                int width = caseproto_get_width (oproto, j);
+                value_init (&data[i + pos][j], width);
+                value_copy (&data[i + pos][j], case_data_idx (c[i], j), width);
+              }
 
           if (!datasheet_insert_rows (ds, pos, c, cnt))
             mc_error (mc, "datasheet_insert_rows failed");
 
-          check_datasheet (mc, ds, data, row_cnt + cnt, column_cnt);
+          check_datasheet (mc, ds, data, n_rows + cnt, oproto);
+          release_data (n_rows + cnt, oproto, data);
         }
 
   /* Delete all possible numbers of rows from all possible
      positions. */
-  for (pos = 0; pos < row_cnt; pos++)
-    for (cnt = 0; cnt < row_cnt - pos; cnt++)
+  for (pos = 0; pos < n_rows; pos++)
+    for (cnt = 0; cnt < n_rows - pos; cnt++)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
 
           clone_model (ods, odata, &ds, data);
-          mc_name_operation (mc, "delete %zu rows at %zu", cnt, pos);
+          mc_name_operation (mc, "delete %zu rows at %zu "
+                             "(from %zu to %zu rows)",
+                             cnt, pos, n_rows, n_rows - cnt);
 
           datasheet_delete_rows (ds, pos, cnt);
 
-          remove_range (&data[0], row_cnt, sizeof data[0], pos, cnt);
+          release_data (cnt, oproto, &data[pos]);
+          remove_range (&data[0], n_rows, sizeof data[0], pos, cnt);
 
-          check_datasheet (mc, ds, data, row_cnt - cnt, column_cnt);
+          check_datasheet (mc, ds, data, n_rows - cnt, oproto);
+          release_data (n_rows - cnt, oproto, data);
         }
 
   /* Move all possible numbers of rows from all possible existing
      positions to all possible new positions. */
-  for (pos = 0; pos < row_cnt; pos++)
-    for (cnt = 0; cnt < row_cnt - pos; cnt++)
-      for (new_pos = 0; new_pos < row_cnt - cnt; new_pos++)
+  for (pos = 0; pos < n_rows; pos++)
+    for (cnt = 0; cnt < n_rows - pos; cnt++)
+      for (new_pos = 0; new_pos < n_rows - cnt; new_pos++)
         if (mc_include_state (mc))
           {
             struct datasheet *ds;
 
             clone_model (ods, odata, &ds, data);
-            mc_name_operation (mc, "move %zu rows from %zu to %zu",
-                               cnt, pos, new_pos);
+            mc_name_operation (mc, "move %zu rows (of %zu) from %zu to %zu",
+                               cnt, n_rows, pos, new_pos);
 
             datasheet_move_rows (ds, pos, new_pos, cnt);
 
-            move_range (&data[0], row_cnt, sizeof data[0],
+            move_range (&data[0], n_rows, sizeof data[0],
                         pos, new_pos, cnt);
 
-            check_datasheet (mc, ds, data, row_cnt, column_cnt);
+            check_datasheet (mc, ds, data, n_rows, oproto);
+            release_data (n_rows, oproto, data);
           }
+
+  release_data (n_rows, oproto, odata);
 }
 
 /* "destroy" function for struct mc_class. */
@@ -452,7 +671,7 @@ datasheet_mc_destroy (const struct mc *mc UNUSED, void *ds_)
 
    Returns the results of the model checking run. */
 struct mc_results *
-datasheet_test (struct mc_options *options, void *params_)
+datasheet_test (struct mc_options *options UNUSED, void *params_ UNUSED)
 {
   struct datasheet_test_params *params = params_;
   static const struct mc_class datasheet_mc_class =

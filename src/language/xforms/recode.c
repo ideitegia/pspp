@@ -55,25 +55,18 @@ enum map_in_type
     MAP_CONVERT			/* "123" => 123. */
   };
 
-/* A value involved in a RECODE mapping. */
-union recode_value
-  {
-    double f;                   /* Numeric. */
-    char *c;                    /* Short or long string. */
-  };
-
 /* Describes input values to be mapped. */
 struct map_in
   {
     enum map_in_type type;      /* One of MAP_*. */
-    union recode_value x, y;    /* Source values. */
+    union value x, y;           /* Source values. */
   };
 
 /* Describes the value used as output from a mapping. */
 struct map_out
   {
     bool copy_input;            /* If true, copy input to output. */
-    union recode_value value;   /* If copy_input false, recoded value. */
+    union value value;          /* If copy_input false, recoded value. */
     int width;                  /* If copy_input false, output value width. */
   };
 
@@ -103,6 +96,8 @@ struct recode_trns
     /* Mappings. */
     struct mapping *mappings;   /* Value mappings. */
     size_t map_cnt;             /* Number of mappings. */
+    int max_src_width;          /* Maximum width of src_vars[*]. */
+    int max_dst_width;          /* Maximum width of any map_out in mappings. */
   };
 
 static bool parse_src_vars (struct lexer *, struct recode_trns *, const struct dictionary *dict);
@@ -193,18 +188,17 @@ parse_src_vars (struct lexer *lexer,
 static bool
 parse_mappings (struct lexer *lexer, struct recode_trns *trns)
 {
-  size_t max_src_width;
   size_t map_allocated;
   bool have_dst_type;
   size_t i;
 
   /* Find length of longest source variable. */
-  max_src_width = var_get_width (trns->src_vars[0]);
+  trns->max_src_width = var_get_width (trns->src_vars[0]);
   for (i = 1; i < trns->var_cnt; i++)
     {
       size_t var_width = var_get_width (trns->src_vars[i]);
-      if (var_width > max_src_width)
-        max_src_width = var_width;
+      if (var_width > trns->max_src_width)
+        trns->max_src_width = var_width;
     }
 
   /* Parse the mappings in parentheses. */
@@ -232,7 +226,7 @@ parse_mappings (struct lexer *lexer, struct recode_trns *trns)
               struct map_in in;
 
               if (!parse_map_in (lexer, &in, trns->pool,
-                                 trns->src_type, max_src_width))
+                                 trns->src_type, trns->max_src_width))
                 return false;
               add_mapping (trns, &map_allocated, &in);
               lex_match (lexer, ',');
@@ -296,9 +290,7 @@ parse_map_in (struct lexer *lexer, struct map_in *in, struct pool *pool,
 {
 
   if (lex_match_id (lexer, "ELSE"))
-    {
     set_map_in_generic (in, MAP_ELSE);
-    }
   else if (src_type == VAL_NUMERIC)
     {
       if (lex_match_id (lexer, "MISSING"))
@@ -376,8 +368,9 @@ set_map_in_str (struct map_in *in, struct pool *pool,
                 const struct string *string, size_t width)
 {
   in->type = MAP_SINGLE;
-  in->x.c = pool_alloc_unaligned (pool, width);
-  buf_copy_rpad (in->x.c, width, ds_data (string), ds_length (string));
+  value_init_pool (pool, &in->x, width);
+  value_copy_buf_rpad (&in->x, width,
+                       ds_data (string), ds_length (string), ' ');
 }
 
 /* Parses a mapping output value into OUT, allocating memory from
@@ -427,9 +420,17 @@ set_map_out_str (struct map_out *out, struct pool *pool,
   const char *string = ds_data (value);
   size_t length = ds_length (value);
 
+  if (length == 0)
+    {
+      /* A length of 0 will yield a numeric value, which is not
+         what we want. */
+      string = " ";
+      length = 1;
+    }
+
   out->copy_input = false;
-  out->value.c = pool_alloc_unaligned (pool, length);
-  memcpy (out->value.c, string, length);
+  value_init_pool (pool, &out->value, length);
+  memcpy (value_str_rw (&out->value, length), string, length);
   out->width = length;
 }
 
@@ -514,26 +515,22 @@ parse_dst_vars (struct lexer *lexer, struct recode_trns *trns,
 static void
 enlarge_dst_widths (struct recode_trns *trns)
 {
-  size_t max_dst_width;
   size_t i;
 
-  max_dst_width = 0;
+  trns->max_dst_width = 0;
   for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable *v = trns->dst_vars[i];
-      if (var_get_width (v) > max_dst_width)
-        max_dst_width = var_get_width (v);
+      if (var_get_width (v) > trns->max_dst_width)
+        trns->max_dst_width = var_get_width (v);
     }
 
   for (i = 0; i < trns->map_cnt; i++)
     {
       struct map_out *out = &trns->mappings[i].out;
-      if (!out->copy_input && out->width < max_dst_width)
-        {
-          char *s = pool_alloc_unaligned (trns->pool, max_dst_width + 1);
-          buf_copy_rpad (s, max_dst_width + 1, out->value.c, out->width);
-          out->value.c = s;
-        }
+      if (!out->copy_input)
+        value_resize_pool (trns->pool, &out->value,
+                           out->width, trns->max_dst_width);
     }
 }
 
@@ -601,7 +598,8 @@ find_src_numeric (struct recode_trns *trns, double value, const struct variable 
 /* Returns the output mapping in TRNS for an input of VALUE with
    the given WIDTH, or a null pointer if there is no mapping. */
 static const struct map_out *
-find_src_string (struct recode_trns *trns, const char *value, const struct variable *src_var)
+find_src_string (struct recode_trns *trns, const char *value,
+                 const struct variable *src_var)
 {
   struct mapping *m;
   int width = var_get_width (src_var);
@@ -615,7 +613,8 @@ find_src_string (struct recode_trns *trns, const char *value, const struct varia
       switch (in->type)
         {
         case MAP_SINGLE:
-          match = !memcmp (value, in->x.c, width);
+          match = !memcmp (value, value_str (&in->x, trns->max_src_width),
+                           width);
           break;
         case MAP_ELSE:
           match = true;
@@ -657,36 +656,39 @@ recode_trns_proc (void *trns_, struct ccase **c, casenumber case_idx UNUSED)
     {
       const struct variable *src_var = trns->src_vars[i];
       const struct variable *dst_var = trns->dst_vars[i];
-
-      const union value *src_data = case_data (*c, src_var);
-      union value *dst_data = case_data_rw (*c, dst_var);
-
       const struct map_out *out;
 
       if (trns->src_type == VAL_NUMERIC)
-        out = find_src_numeric (trns, src_data->f, src_var);
+        out = find_src_numeric (trns, case_num (*c, src_var), src_var);
       else
-        out = find_src_string (trns, src_data->s, src_var);
+        out = find_src_string (trns, case_str (*c, src_var), src_var);
 
       if (trns->dst_type == VAL_NUMERIC)
         {
+          double *dst = &case_data_rw (*c, dst_var)->f;
           if (out != NULL)
-            dst_data->f = !out->copy_input ? out->value.f : src_data->f;
+            *dst = !out->copy_input ? out->value.f : case_num (*c, src_var);
           else if (trns->src_vars != trns->dst_vars)
-            dst_data->f = SYSMIS;
+            *dst = SYSMIS;
         }
       else
         {
+          char *dst = case_str_rw (*c, dst_var);
           if (out != NULL)
             {
               if (!out->copy_input)
-                memcpy (dst_data->s, out->value.c, var_get_width (dst_var));
+                memcpy (dst, value_str (&out->value, trns->max_dst_width),
+                        var_get_width (dst_var));
               else if (trns->src_vars != trns->dst_vars)
-                buf_copy_rpad (dst_data->s, var_get_width (dst_var),
-                               src_data->s, var_get_width (src_var));
+                {
+                  union value *dst_data = case_data_rw (*c, dst_var);
+                  const union value *src_data = case_data (*c, src_var);
+                  value_copy_rpad (dst_data, var_get_width (dst_var),
+                                   src_data, var_get_width (src_var), ' ');
+                }
             }
           else if (trns->src_vars != trns->dst_vars)
-            memset (dst_data->s, ' ', var_get_width (dst_var));
+            memset (dst, ' ', var_get_width (dst_var));
         }
     }
 

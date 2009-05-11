@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,17 +17,15 @@
 #ifndef MATH_SORT_H
 #define MATH_SORT_H 1
 
-#include <stddef.h>
-#include <stdbool.h>
-
 struct subcase;
+struct caseproto;
 struct variable;
 
 extern int min_buffers ;
 extern int max_buffers ;
 
 struct casewriter *sort_create_writer (const struct subcase *,
-                                       size_t value_cnt);
+                                       const struct caseproto *);
 struct casereader *sort_execute (struct casereader *, const struct subcase *);
 struct casereader *sort_execute_1var (struct casereader *,
                                       const struct variable *);

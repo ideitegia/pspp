@@ -318,7 +318,7 @@ Defines the following variables:
 
 @itemize @bullet
 @item
-@code{NAME}, a 10-character-wide long string variable, in columns 1
+@code{NAME}, a 10-character-wide string variable, in columns 1
 through 10.
 
 @item
@@ -359,15 +359,15 @@ Defines the following variables:
 @code{ID}, a numeric variable, in columns 1-5 of the first record.
 
 @item
-@code{NAME}, a 30-character long string variable, in columns 7-36 of the
+@code{NAME}, a 30-character string variable, in columns 7-36 of the
 first record.
 
 @item
-@code{SURNAME}, a 30-character long string variable, in columns 38-67 of
+@code{SURNAME}, a 30-character string variable, in columns 38-67 of
 the first record.
 
 @item
-@code{MINITIAL}, a 1-character short string variable, in column 69 of
+@code{MINITIAL}, a 1-character string variable, in column 69 of
 the first record.
 
 @item

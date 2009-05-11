@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -185,9 +185,12 @@ pspp_coeff_var_to_coeff (const struct variable *v, struct pspp_coeff **coefs,
 	   */
 	  if (val != NULL)
 	    {
+              int width = var_get_width (v);
+
 	      j = i;
-	      while (j < n_coef && compare_values_short (pspp_coeff_get_value (coefs[j], v),
-                                                         val, v) != 0)
+	      while (j < n_coef
+                     && value_compare_3way (pspp_coeff_get_value (coefs[j], v),
+                                            val, width) != 0)
 		{
 		  j++;
 		}

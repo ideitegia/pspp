@@ -74,8 +74,7 @@ struct pfm_reader
     char *trans;                /* 256-byte character set translation table. */
     int var_cnt;                /* Number of variables. */
     int weight_index;		/* 0-based index of weight variable, or -1. */
-    int *widths;                /* Variable widths, 0 for numeric. */
-    size_t value_cnt;		/* Number of `value's per case. */
+    struct caseproto *proto;    /* Format of output cases. */
     bool ok;                    /* Set false on I/O error. */
   };
 
@@ -256,8 +255,7 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->weight_index = -1;
   r->trans = NULL;
   r->var_cnt = 0;
-  r->widths = NULL;
-  r->value_cnt = 0;
+  r->proto = NULL;
   r->ok = true;
   if (setjmp (r->bail_out))
     goto error;
@@ -296,8 +294,8 @@ pfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   if (!match (r, 'F'))
     error (r, _("Data record expected."));
 
-  r->value_cnt = dict_get_next_value_idx (*dict);
-  return casereader_create_sequential (NULL, r->value_cnt, CASENUMBER_MAX,
+  r->proto = caseproto_ref_pool (dict_get_proto (*dict), r->pool);
+  return casereader_create_sequential (NULL, r->proto, CASENUMBER_MAX,
                                        &por_file_casereader_class, r);
 
  error:
@@ -608,7 +606,8 @@ assign_default:
   return fmt_default_for_width (var_get_width (v));
 }
 
-static union value parse_value (struct pfm_reader *, struct variable *);
+static void parse_value (struct pfm_reader *, struct variable *,
+                         union value *);
 
 /* Read information on all the variables.  */
 static void
@@ -623,7 +622,6 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
   r->var_cnt = read_int (r);
   if (r->var_cnt <= 0)
     error (r, _("Invalid number of variables %d."), r->var_cnt);
-  r->widths = pool_nalloc (r->pool, r->var_cnt, sizeof *r->widths);
 
   /* Purpose of this value is unknown.  It is typically 161. */
   read_int (r);
@@ -652,7 +650,6 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       width = read_int (r);
       if (width < 0)
 	error (r, _("Invalid variable width %d."), width);
-      r->widths[i] = width;
 
       read_string (r, name);
       for (j = 0; j < 6; j++)
@@ -704,8 +701,10 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       /* Single missing values. */
       while (match (r, '8'))
         {
-          union value value = parse_value (r, v);
+          union value value;
+          parse_value (r, v, &value);
           mv_add_value (&miss, &value);
+          value_destroy (&value, var_get_width (v));
         }
 
       var_set_missing_values (v, &miss);
@@ -730,21 +729,18 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
 }
 
 /* Parse a value for variable VV into value V. */
-static union value
-parse_value (struct pfm_reader *r, struct variable *vv)
+static void
+parse_value (struct pfm_reader *r, struct variable *vv, union value *v)
 {
-  union value v;
-
+  value_init (v, var_get_width (vv));
   if (var_is_alpha (vv))
     {
       char string[256];
       read_string (r, string);
-      buf_copy_str_rpad (v.s, 8, string);
+      buf_copy_str_rpad (value_str_rw (v, 8), 8, string, ' ');
     }
   else
-    v.f = read_float (r);
-
-  return v;
+    v->f = read_float (r);
 }
 
 /* Parse a value label record and return success. */
@@ -784,7 +780,7 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
       char label[256];
       int j;
 
-      val = parse_value (r, v[0]);
+      parse_value (r, v[0], &val);
       read_string (r, label);
 
       /* Assign the value label to each variable. */
@@ -795,6 +791,8 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
 	  if (!var_is_long_string (var))
             var_replace_value_label (var, &val, label);
 	}
+
+      value_destroy (&val, var_get_width (v[0]));
     }
 }
 
@@ -824,7 +822,7 @@ por_file_casereader_read (struct casereader *reader, void *r_)
   size_t i;
   size_t idx;
 
-  c = case_create (casereader_get_value_cnt (reader));
+  c = case_create (r->proto);
   setjmp (r->bail_out);
   if (!r->ok)
     {
@@ -843,7 +841,7 @@ por_file_casereader_read (struct casereader *reader, void *r_)
   idx = 0;
   for (i = 0; i < r->var_cnt; i++)
     {
-      int width = r->widths[i];
+      int width = caseproto_get_width (r->proto, i);
 
       if (width == 0)
         {
@@ -854,7 +852,7 @@ por_file_casereader_read (struct casereader *reader, void *r_)
         {
           char string[256];
           read_string (r, string);
-          buf_copy_str_rpad (case_data_rw_idx (c, idx)->s, width, string);
+          buf_copy_str_rpad (case_str_rw_idx (c, idx), width, string, ' ');
           idx += DIV_RND_UP (width, MAX_SHORT_STRING);
         }
     }

@@ -68,8 +68,11 @@ case_matcher_add_input (struct case_matcher *cm, const struct subcase *by,
   struct case_matcher_input *input;
 
   if (cm->n_inputs == 0)
-    cm->by_values = xmalloc (subcase_get_n_values (by)
-                             * sizeof *cm->by_values);
+    {
+      cm->by_values = xmalloc (sizeof *cm->by_values
+                               * subcase_get_n_fields (by));
+      caseproto_init_values (subcase_get_proto (by), cm->by_values);
+    }
   else
     assert (subcase_conformable (by, &cm->inputs[0].by_vars));
 
@@ -90,6 +93,12 @@ case_matcher_destroy (struct case_matcher *cm)
     {
       size_t i;
 
+      if (cm->by_values != NULL)
+        {
+          caseproto_destroy_values (subcase_get_proto (&cm->inputs[0].by_vars),
+                                    cm->by_values);
+          free (cm->by_values);
+        }
       for (i = 0; i < cm->n_inputs; i++)
         {
           struct case_matcher_input *input = &cm->inputs[i];

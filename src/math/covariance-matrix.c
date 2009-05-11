@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ covariance_matrix_init (size_t n_variables,
   return result;
 }
 static size_t 
-get_n_rows (size_t n_variables, size_t *v_variables[])
+get_n_rows (size_t n_variables, const struct variable *v_variables[])
 {
   size_t i;
   size_t result = 0;
@@ -243,6 +243,7 @@ static void
 column_iterate (struct design_matrix *cov, const struct variable *v,
 		double ssize, double x, const union value *val1, size_t row)
 {
+  int width = var_get_width (v);
   size_t col;
   size_t i;
   double y;
@@ -255,7 +256,7 @@ column_iterate (struct design_matrix *cov, const struct variable *v,
       col += i;
       y = -1.0 * cat_get_category_count (i, v) / ssize;
       tmp_val = cat_subscript_to_value (i, v);
-      if (!compare_values_short (tmp_val, val1, v))
+      if (!value_equal (tmp_val, val1, width))
 	{
 	  y += -1.0;
 	}
@@ -290,7 +291,7 @@ covariance_pass_two (struct design_matrix *cov, double mean1, double mean2,
 	  row += i;
 	  x = -1.0 * cat_get_category_count (i, v1) / ssize;
 	  tmp_val = cat_subscript_to_value (i, v1);
-	  if (!compare_values_short (tmp_val, val1, v1))
+	  if (!value_equal (tmp_val, val1, var_get_width (v1)))
 	    {
 	      x += 1.0;
 	    }
@@ -370,10 +371,9 @@ covariance_accumulator_hash (const void *h, const void *aux)
     }
   if (var_is_alpha (v_max) && var_is_alpha (v_min))
     {
-      unsigned tmp = hash_bytes (val_max, var_get_width (v_max), 0);
-      tmp ^= hash_bytes (val_min, var_get_width (v_min), 0);
-      tmp += *n_vars * (*n_vars + 1 + idx_max) + idx_min;
-      return (size_t) tmp;
+      unsigned hash = value_hash (val_max, var_get_width (v_max), 0);
+      hash = value_hash (val_min, var_get_width (v_min), hash);
+      return hash_int (*n_vars * (*n_vars + 1 + idx_max) + idx_min, hash);
     }
   return -1u;
 }
@@ -412,15 +412,15 @@ ordered_match_nodes (const struct covariance_accumulator *c, const struct variab
   result = result|m;
   if (var_is_alpha (v1))
     {
-      result |= compare_values_short (val1, c->val1, v1);
+      result |= value_compare_3way (val1, c->val1, var_get_width (v1));
       if (var_is_alpha (v2))
 	{
-	  result |= compare_values_short (val2, c->val2, v2);
+	  result |= value_compare_3way (val2, c->val2, var_get_width (v2));
 	}
     }
   else if (var_is_alpha (v2))
     {
-      result |= compare_values_short (val2, c->val2, v2);
+      result |= value_compare_3way (val2, c->val2, var_get_width (v2));
     }
   return result;
 }
@@ -474,7 +474,7 @@ hash_numeric_alpha (const struct variable *v1, const struct variable *v2,
   if (var_is_numeric (v1) && var_is_alpha (v2))
     {
       result = n_vars * ((n_vars + 1) + var_get_dict_index (v1))
-	+ var_get_dict_index (v2) + hash_value_short (val, v2);
+	+ var_get_dict_index (v2) + value_hash (val, var_get_width (v2), 0);
     }
   else if (var_is_alpha (v1) && var_is_numeric (v2))
     {
@@ -843,7 +843,7 @@ get_sum (const struct covariance_matrix *cov, size_t i)
 static void
 update_ssize (struct design_matrix *dm, size_t i, size_t j, struct covariance_accumulator *ca)
 {
-  struct variable *var;
+  const struct variable *var;
   double tmp;
   var = design_matrix_col_to_var (dm, i);
   if (var_get_dict_index (ca->v1) == var_get_dict_index (var))

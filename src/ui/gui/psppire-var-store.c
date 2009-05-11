@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006  Free Software Foundation
+   Copyright (C) 2006, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -688,19 +688,19 @@ text_for_column (PsppireVarStore *vs,
 	    gchar *ss;
 	    GString *gstr = g_string_sized_new (10);
 	    const struct val_labs *vls = var_get_value_labels (pv);
-	    struct val_labs_iterator *ip = 0;
-	    struct val_lab *vl = val_labs_first_sorted (vls, &ip);
+            const struct val_lab **labels = val_labs_sorted (vls);
+	    const struct val_lab *vl = labels[0];
+            free (labels);
 
 	    g_assert (vl);
 
 	    {
 	      gchar *const vstr = value_to_text (vl->value, *write_spec);
 
-	      g_string_printf (gstr, "{%s,\"%s\"}_", vstr, vl->label);
+	      g_string_printf (gstr, "{%s,\"%s\"}_",
+                               vstr, val_lab_get_label (vl));
 	      g_free (vstr);
 	    }
-
-	    val_labs_done (&ip);
 
 	    ss = recode_string (UTF8, psppire_dict_encoding (dict),
 				gstr->str, gstr->len);

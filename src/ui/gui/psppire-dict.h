@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004  Free Software Foundation
+   Copyright (C) 2004, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -71,6 +71,9 @@ gint psppire_dict_get_var_cnt (const PsppireDict *d);
 
 /* Return the number of `union value's in the dictionary */
 size_t psppire_dict_get_value_cnt (const PsppireDict *d);
+
+/* Returns the prototype for the cases that match the dictionary */
+const struct caseproto *psppire_dict_get_proto (const PsppireDict *d);
 
 /* Return a variable by name.
    Return NULL if it doesn't exist

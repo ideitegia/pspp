@@ -38,6 +38,7 @@
 #include <libpspp/taint.h>
 #include <libpspp/i18n.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 
 struct dataset {
@@ -186,11 +187,19 @@ proc_open (struct dataset *ds)
     {
       struct dictionary *pd = ds->permanent_dict;
       size_t compacted_value_cnt = dict_count_values (pd, 1u << DC_SCRATCH);
-      bool should_compact = compacted_value_cnt < dict_get_next_value_idx (pd);
-      ds->compactor = (should_compact
-                       ? case_map_to_compact_dict (pd, 1u << DC_SCRATCH)
-                       : NULL);
-      ds->sink = autopaging_writer_create (compacted_value_cnt);
+      if (compacted_value_cnt < dict_get_next_value_idx (pd))
+        {
+          struct caseproto *compacted_proto;
+          compacted_proto = dict_get_compacted_proto (pd, 1u << DC_SCRATCH);
+          ds->compactor = case_map_to_compact_dict (pd, 1u << DC_SCRATCH);
+          ds->sink = autopaging_writer_create (compacted_proto);
+          caseproto_unref (compacted_proto);
+        }
+      else
+        {
+          ds->compactor = NULL;
+          ds->sink = autopaging_writer_create (dict_get_proto (pd));
+        }
     }
   else
     {
@@ -208,8 +217,7 @@ proc_open (struct dataset *ds)
   /* FIXME: use taint in dataset in place of `ok'? */
   /* FIXME: for trivial cases we can just return a clone of
      ds->source? */
-  return casereader_create_sequential (NULL,
-                                       dict_get_next_value_idx (ds->dict),
+  return casereader_create_sequential (NULL, dict_get_proto (ds->dict),
                                        CASENUMBER_MAX,
                                        &proc_casereader_class, ds);
 }
@@ -245,7 +253,7 @@ proc_casereader_read (struct casereader *reader UNUSED, void *ds_)
       c = casereader_read (ds->source);
       if (c == NULL)
         return NULL;
-      c = case_unshare_and_resize (c, dict_get_next_value_idx (ds->dict));
+      c = case_unshare_and_resize (c, dict_get_proto (ds->dict));
       caseinit_init_vars (ds->caseinit, c);
 
       /* Execute permanent transformations.  */

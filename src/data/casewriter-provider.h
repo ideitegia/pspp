@@ -57,7 +57,7 @@ struct casewriter_class
     struct casereader *(*convert_to_reader) (struct casewriter *, void *aux);
   };
 
-struct casewriter *casewriter_create (size_t value_cnt,
+struct casewriter *casewriter_create (const struct caseproto *,
                                       const struct casewriter_class *, void *);
 
 #endif /* data/casewriter-provider.h */

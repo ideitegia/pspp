@@ -21,14 +21,14 @@ union value ;
 /* Frequency table entry. */
 struct freq
   {
-    const union value *value;	/* The value. */
+    const union value value;	/* The value. */
     double count;		/* The number of occurrences of the value. */
   };
 
 /* Non const version of frequency table entry. */
 struct freq_mutable
   {
-    union value *value;	        /* The value. */
+    union value value;	        /* The value. */
     double count;		/* The number of occurrences of the value. */
   };
 

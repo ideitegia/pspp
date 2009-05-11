@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,8 +61,6 @@ bool var_is_numeric (const struct variable *);
 bool var_is_alpha (const struct variable *);
 bool var_is_short_string (const struct variable *);
 bool var_is_long_string (const struct variable *);
-
-size_t var_get_value_cnt (const struct variable *);
 
 /* Variables' missing values. */
 const struct missing_values *var_get_missing_values (const struct variable *);

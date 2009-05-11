@@ -274,7 +274,7 @@ cmd_aggregate (struct lexer *lexer, struct dataset *ds)
          so TEMPORARY is moot. */
       proc_cancel_temporary_transformations (ds);
       proc_discard_output (ds);
-      output = autopaging_writer_create (dict_get_next_value_idx (agr.dict));
+      output = autopaging_writer_create (dict_get_proto (agr.dict));
     }
   else
     {
@@ -769,7 +769,9 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  case MEDIAN:
 	    {
 	      double wv ;
-	      struct ccase *cout = case_create (2);
+	      struct ccase *cout;
+
+              cout = case_create (casewriter_get_proto (iter->writer));
 
 	      case_data_rw (cout, iter->subject)->f
                 = case_data (input, iter->src)->f;
@@ -791,8 +793,8 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	    iter->int1 = 1;
 	    break;
 	  case MAX | FSTRING:
-	    if (memcmp (iter->string, v->s, src_width) < 0)
-	      memcpy (iter->string, v->s, src_width);
+	    if (memcmp (iter->string, value_str (v, src_width), src_width) < 0)
+	      memcpy (iter->string, value_str (v, src_width), src_width);
 	    iter->int1 = 1;
 	    break;
 	  case MIN:
@@ -800,8 +802,8 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	    iter->int1 = 1;
 	    break;
 	  case MIN | FSTRING:
-	    if (memcmp (iter->string, v->s, src_width) > 0)
-	      memcpy (iter->string, v->s, src_width);
+	    if (memcmp (iter->string, value_str (v, src_width), src_width) > 0)
+	      memcpy (iter->string, value_str (v, src_width), src_width);
 	    iter->int1 = 1;
 	    break;
 	  case FGT:
@@ -812,7 +814,8 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
             break;
 	  case FGT | FSTRING:
 	  case PGT | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, src_width) < 0)
+            if (memcmp (iter->arg[0].c,
+                        value_str (v, src_width), src_width) < 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -824,7 +827,8 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
             break;
 	  case FLT | FSTRING:
 	  case PLT | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, src_width) > 0)
+            if (memcmp (iter->arg[0].c,
+                        value_str (v, src_width), src_width) > 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -836,8 +840,10 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
             break;
 	  case FIN | FSTRING:
 	  case PIN | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, src_width) <= 0
-                && memcmp (iter->arg[1].c, v->s, src_width) >= 0)
+            if (memcmp (iter->arg[0].c,
+                        value_str (v, src_width), src_width) <= 0
+                && memcmp (iter->arg[1].c,
+                           value_str (v, src_width), src_width) >= 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -849,8 +855,10 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
             break;
 	  case FOUT | FSTRING:
 	  case POUT | FSTRING:
-            if (memcmp (iter->arg[0].c, v->s, src_width) > 0
-                || memcmp (iter->arg[1].c, v->s, src_width) < 0)
+            if (memcmp (iter->arg[0].c,
+                        value_str (v, src_width), src_width) > 0
+                || memcmp (iter->arg[1].c,
+                           value_str (v, src_width), src_width) < 0)
               iter->dbl[0] += weight;
             iter->dbl[1] += weight;
             break;
@@ -872,7 +880,7 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  case FIRST | FSTRING:
 	    if (iter->int1 == 0)
 	      {
-		memcpy (iter->string, v->s, src_width);
+		memcpy (iter->string, value_str (v, src_width), src_width);
 		iter->int1 = 1;
 	      }
 	    break;
@@ -881,7 +889,7 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	    iter->int1 = 1;
 	    break;
 	  case LAST | FSTRING:
-	    memcpy (iter->string, v->s, src_width);
+	    memcpy (iter->string, value_str (v, src_width), src_width);
 	    iter->int1 = 1;
 	    break;
           case NMISS:
@@ -913,7 +921,7 @@ accumulate_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 static void
 dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 {
-  struct ccase *c = case_create (dict_get_next_value_idx (agr->dict));
+  struct ccase *c = case_create (dict_get_proto (agr->dict));
 
   {
     int value_idx = 0;
@@ -922,11 +930,10 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
     for (i = 0; i < agr->break_var_cnt; i++)
       {
         const struct variable *v = agr->break_vars[i];
-        size_t value_cnt = var_get_value_cnt (v);
-        memcpy (case_data_rw_idx (c, value_idx),
-                case_data (agr->break_case, v),
-                sizeof (union value) * value_cnt);
-        value_idx += value_cnt;
+        value_copy (case_data_rw_idx (c, value_idx),
+                    case_data (agr->break_case, v),
+                    var_get_width (v));
+        value_idx++;
       }
   }
 
@@ -936,19 +943,14 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
     for (i = agr->agr_vars; i; i = i->next)
       {
 	union value *v = case_data_rw (c, i->dest);
-
+        int width = var_get_width (i->dest);
 
 	if (agr->missing == COLUMNWISE && i->saw_missing
 	    && (i->function & FUNC) != N && (i->function & FUNC) != NU
 	    && (i->function & FUNC) != NMISS && (i->function & FUNC) != NUMISS)
 	  {
-	    if (var_is_alpha (i->dest))
-	      memset (v->s, ' ', var_get_width (i->dest));
-	    else
-	      v->f = SYSMIS;
-
+            value_set_missing (v, width);
 	    casewriter_destroy (i->writer);
-
 	    continue;
 	  }
 
@@ -999,9 +1001,9 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 	  case MAX | FSTRING:
 	  case MIN | FSTRING:
 	    if (i->int1)
-	      memcpy (v->s, i->string, var_get_width (i->dest));
+	      memcpy (value_str_rw (v, width), i->string, width);
 	    else
-	      memset (v->s, ' ', var_get_width (i->dest));
+              value_set_missing (v, width);
 	    break;
 	  case FGT:
 	  case FGT | FSTRING:
@@ -1038,9 +1040,9 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 	  case FIRST | FSTRING:
 	  case LAST | FSTRING:
 	    if (i->int1)
-	      memcpy (v->s, i->string, var_get_width (i->dest));
+	      memcpy (value_str_rw (v, width), i->string, width);
 	    else
-	      memset (v->s, ' ', var_get_width (i->dest));
+              value_set_missing (v, width);
 	    break;
 	  case N_NO_VARS:
 	    v->f = i->dbl[0];
@@ -1095,7 +1097,12 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	  break;
 	case MEDIAN:
 	  {
+            struct caseproto *proto;
             struct subcase ordering;
+
+            proto = caseproto_create ();
+            proto = caseproto_add_width (proto, 0);
+            proto = caseproto_add_width (proto, 0);
 
 	    if ( ! iter->subject)
 	      iter->subject = var_create_internal (0);
@@ -1104,8 +1111,9 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
 	      iter->weight = var_create_internal (1);
 
             subcase_init_var (&ordering, iter->subject, SC_ASCEND);
-	    iter->writer = sort_create_writer (&ordering, 2);
+	    iter->writer = sort_create_writer (&ordering, proto);
             subcase_destroy (&ordering);
+            caseproto_unref (proto);
 
 	    iter->cc = 0;
 	  }

@@ -36,7 +36,7 @@ struct case_map *case_map_create (void);
 void case_map_destroy (struct case_map *);
 struct ccase *case_map_execute (const struct case_map *, struct ccase *);
 
-size_t case_map_get_value_cnt (const struct case_map *);
+const struct caseproto *case_map_get_proto (const struct case_map *);
 
 struct casereader *case_map_create_input_translator (struct case_map *,
                                                     struct casereader *);

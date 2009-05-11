@@ -37,11 +37,12 @@ struct casewriter_translator
 static const struct casewriter_class casewriter_translator_class;
 
 /* Creates and returns a new casewriter whose cases are passed
-   through TRANSLATE, which must return a case with
-   OUTPUT_VALUE_CNT values, based on INPUT and auxiliary data
-   AUX.  (TRANSLATE may also return a null pointer, in which case
-   no case is written to the output.)  The translated cases are
-   then written to SUBWRITER.
+   through TRANSLATE, based on INPUT and auxiliary data AUX.
+   (TRANSLATE may also return a null pointer, in which case no
+   case is written to the output.)  The translated cases are then
+   written to SUBWRITER.
+
+   The cases returned by TRANSLATE must match OUTPUT_PROTO.
 
    TRANSLATE takes ownership of each case passed to it.  Thus, it
    should either unref each case and return a new case, or
@@ -55,7 +56,7 @@ static const struct casewriter_class casewriter_translator_class;
    when the translating casewriter is destroyed. */
 struct casewriter *
 casewriter_create_translator (struct casewriter *subwriter,
-                              size_t translated_value_cnt,
+                              const struct caseproto *translated_proto,
                               struct ccase *(*translate) (struct ccase *,
                                                           void *aux),
                               bool (*destroy) (void *aux),
@@ -67,7 +68,7 @@ casewriter_create_translator (struct casewriter *subwriter,
   ct->translate = translate;
   ct->destroy = destroy;
   ct->aux = aux;
-  writer = casewriter_create (translated_value_cnt,
+  writer = casewriter_create (translated_proto,
                               &casewriter_translator_class, ct);
   taint_propagate (casewriter_get_taint (ct->subwriter),
                    casewriter_get_taint (writer));
