@@ -347,7 +347,6 @@ insert_variable_callback (GObject *obj, gint var_num, gpointer data)
 
   variable = psppire_dict_get_variable (store->dict, var_num);
   posn = var_get_case_index (variable);
-  printf ("insert var_num=%d, posn=%d\n", var_num, posn);
   psppire_data_store_insert_value (store, var_get_width (variable), posn);
 
 #if AXIS_TRANSITION
@@ -1017,7 +1016,6 @@ psppire_data_store_insert_value (PsppireDataStore *ds,
   else
     value_set_missing (&value, width);
 
-  printf("insert column width=%d\n", width);
   datasheet_insert_column (ds->datasheet, &value, width, where);
 
   return TRUE;
