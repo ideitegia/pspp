@@ -653,12 +653,11 @@ psppire_data_store_clear_datum (PsppireSheetModel *model,
   PsppireDataStore *store = PSPPIRE_DATA_STORE (model);
 
   union value v;
-  int width;
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
+  int width = var_get_width (pv);
 
   const gint index = var_get_case_index (pv) ;
 
-  width = var_is_numeric (pv) ? 0 : MAX_SHORT_STRING;
   value_init (&v, width);
   value_set_missing (&v, width);
   psppire_data_store_set_value (store, row, index, &v);
