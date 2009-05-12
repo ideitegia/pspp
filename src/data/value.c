@@ -91,10 +91,13 @@ value_copy_buf_rpad (union value *dst, int dst_width,
 void
 value_set_missing (union value *v, int width)
 {
-  if (width == 0)
-    v->f = SYSMIS;
-  else
-    memset (value_str_rw (v, width), ' ', width);
+  if (width != -1)
+    {
+      if (width == 0)
+        v->f = SYSMIS;
+      else
+        memset (value_str_rw (v, width), ' ', width);
+    }
 }
 
 /* Compares A and B, which both have the given WIDTH, and returns
@@ -102,8 +105,8 @@ value_set_missing (union value *v, int width)
 int
 value_compare_3way (const union value *a, const union value *b, int width)
 {
-  return (width == 0
-          ? (a->f < b->f ? -1 : a->f > b->f)
+  return (width == -1 ? 0
+          : width == 0 ? (a->f < b->f ? -1 : a->f > b->f)
           : memcmp (value_str (a, width), value_str (b, width), width));
 }
 
@@ -112,8 +115,8 @@ value_compare_3way (const union value *a, const union value *b, int width)
 bool
 value_equal (const union value *a, const union value *b, int width)
 {
-  return (width == 0
-          ? a->f == b->f
+  return (width == -1 ? true
+          : width == 0 ? a->f == b->f
           : !memcmp (value_str (a, width), value_str (b, width), width));
 }
 
@@ -122,8 +125,8 @@ value_equal (const union value *a, const union value *b, int width)
 unsigned int
 value_hash (const union value *value, int width, unsigned int basis)
 {
-  return (width == 0
-          ? hash_double (value->f, basis)
+  return (width == -1 ? basis
+          : width == 0 ? hash_double (value->f, basis)
           : hash_bytes (value_str (value, width), width, basis));
 }
 
