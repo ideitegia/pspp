@@ -205,12 +205,13 @@ boundaries of the data set divided into the specified number of ranges.
 For instance, @code{/NTILES=4} would cause quartiles to be reported.
 
 The HISTOGRAM subcommand causes the output to include a histogram for
-each specified variable.  The X axis by default ranges from the
+each specified numeric variable.  The X axis by default ranges from the
 minimum to the maximum value observed in the data, but the MINIMUM and
 MAXIMUM keywords can set an explicit range.  The Y axis by default is
 labeled in frequencies; use the PERCENT keyword to causes it to be
 labeled in percent of the total observed count.  Specify NORMAL to
 superimpose a normal curve on the histogram.
+Histograms are not created for string variables.
 
 The PIECHART adds a pie chart for each variable to the data.  Each
 slice represents one value, with the size of the slice proportional to

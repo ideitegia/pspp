@@ -606,7 +606,7 @@ postcalc (const struct dataset *ds)
 
 
 
-      if ( chart == GFT_HIST)
+      if ( chart == GFT_HIST && var_is_numeric (v) )
 	{
 	  double d[frq_n_stats];
 	  struct histogram *hist ;
