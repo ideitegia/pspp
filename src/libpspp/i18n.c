@@ -24,6 +24,7 @@
 #include <libintl.h>
 #include <iconv.h>
 #include <errno.h>
+#include <relocatable.h>
 #include "assertion.h"
 #include "hmapx.h"
 #include "hash-functions.h"
@@ -196,7 +197,7 @@ i18n_init (void)
 #if HAVE_LC_PAPER
   setlocale (LC_PAPER, "");
 #endif
-  bindtextdomain (PACKAGE, locale_dir);
+  bindtextdomain (PACKAGE, relocate(locale_dir));
   textdomain (PACKAGE);
 #endif /* ENABLE_NLS */
 
