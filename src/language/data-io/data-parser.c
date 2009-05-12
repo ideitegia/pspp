@@ -480,7 +480,8 @@ cut_field (const struct data_parser *parser, struct dfm_reader *reader,
       /* Regular field. */
       ss_get_chars (&p, ss_cspan (p, ds_ss (&parser->any_sep)), field);
       *last_column = dfm_column_start (reader);
-      if (!ss_ltrim (&p, parser->soft_seps) || ss_is_empty (p))
+      if (!ss_ltrim (&p, parser->soft_seps) || ss_is_empty (p)
+          || ss_find_char (parser->hard_seps, p.string[0]) != SIZE_MAX)
         {
           /* Advance past a trailing hard separator,
              regardless of whether one actually existed.  If
