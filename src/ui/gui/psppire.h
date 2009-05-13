@@ -26,5 +26,7 @@ void initialize (struct command_line_processor *, int argc, char **argv);
 void de_initialize (void);
 void psppire_quit (void);
 
+const char * output_file_name (void);
+
 
 #endif /* PSPPIRE_H */

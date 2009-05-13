@@ -82,7 +82,6 @@ replace_casereader (struct casereader *s)
 #define N_(msgid) msgid
 
 
-const char * output_file_name (void);
 
 
 void

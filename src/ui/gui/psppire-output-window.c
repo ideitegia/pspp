@@ -127,7 +127,7 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 
   the_output_viewer = NULL;
 
-  unlink (OUTPUT_FILE_NAME);
+  unlink (output_file_name());
 
   return FALSE;
 }
@@ -278,7 +278,7 @@ psppire_output_window_reload (void)
   struct stat buf;
 
   /* If there is no output, then don't do anything */
-  if (0 != stat (OUTPUT_FILE_NAME, &buf))
+  if (0 != stat (output_file_name(), &buf))
     return ;
 
   if ( NULL == the_output_viewer )
@@ -319,10 +319,10 @@ reload_viewer (PsppireOutputWindow *ow)
   */
   {
     GtkTextIter start_iter;
-    FILE *fp = fopen (OUTPUT_FILE_NAME, "r");
+    FILE *fp = fopen (output_file_name(), "r");
     if ( !fp)
       {
-	g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
+	g_critical ("Cannot open %s\n", output_file_name());
 	return;
       }
 
@@ -345,10 +345,10 @@ reload_viewer (PsppireOutputWindow *ow)
   {
     if ( ow->fp == NULL)
       {
-	ow->fp = fopen (OUTPUT_FILE_NAME, "r");
+	ow->fp = fopen (output_file_name(), "r");
 	if ( ow->fp == NULL)
 	  {
-	    g_print ("Cannot open %s\n", OUTPUT_FILE_NAME);
+	    g_critical ("Cannot open %s\n", output_file_name());
 	    return;
 	  }
       }
