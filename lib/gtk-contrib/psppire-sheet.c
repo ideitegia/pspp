@@ -3181,9 +3181,6 @@ psppire_sheet_unselect_range (PsppireSheet *sheet)
 
   psppire_sheet_real_unselect_range (sheet, NULL);
   sheet->state = GTK_STATE_NORMAL;
-
-  change_active_cell (sheet,
-		 sheet->active_cell.row, sheet->active_cell.col);
 }
 
 
