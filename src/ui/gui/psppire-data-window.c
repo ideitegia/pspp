@@ -1850,28 +1850,29 @@ psppire_data_window_init (PsppireDataWindow *de)
 		      de);
   }
 
-  de->data_sheet_variable_popup_menu =
-    GTK_MENU (create_data_sheet_variable_popup_menu (de));
-
-  de->var_sheet_variable_popup_menu =
-    GTK_MENU (create_var_sheet_variable_popup_menu (de));
-
-  de->data_sheet_cases_popup_menu =
-    GTK_MENU (create_data_sheet_cases_popup_menu (de));
-
   {
-  GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
+    GtkUIManager *uim = GTK_UI_MANAGER (get_object_assert (de->builder, "uimanager1", GTK_TYPE_UI_MANAGER));
 
-  PSPPIRE_WINDOW (de)->menu =
-    GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
+    PSPPIRE_WINDOW (de)->menu =
+      GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar/windows/windows_minimise_all")->parent);
   }
 
+  {
+    GtkMenu *data_sheet_variable_popup_menu =
+      GTK_MENU (create_data_sheet_variable_popup_menu (de));
 
-  g_object_set (de->data_editor,
-		"datasheet-column-menu", de->data_sheet_variable_popup_menu,
-		"datasheet-row-menu", de->data_sheet_cases_popup_menu,
-		"varsheet-row-menu", de->var_sheet_variable_popup_menu,
-		NULL);
+    GtkMenu *var_sheet_variable_popup_menu =
+      GTK_MENU (create_var_sheet_variable_popup_menu (de));
+
+    GtkMenu *data_sheet_cases_popup_menu =
+      GTK_MENU (create_data_sheet_cases_popup_menu (de));
+
+    g_object_set (de->data_editor,
+		  "datasheet-column-menu", data_sheet_variable_popup_menu,
+		  "datasheet-row-menu", data_sheet_cases_popup_menu,
+		  "varsheet-row-menu", var_sheet_variable_popup_menu,
+		  NULL);
+  }
 
   gtk_widget_show (GTK_WIDGET (de->data_editor));
   gtk_widget_show (box);

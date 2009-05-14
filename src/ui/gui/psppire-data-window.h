@@ -59,10 +59,11 @@ struct _PsppireDataWindow
   GtkAction *delete_cases;
 
 
+#if 0
   GtkMenu *data_sheet_variable_popup_menu;
   GtkMenu *data_sheet_cases_popup_menu;
   GtkMenu *var_sheet_variable_popup_menu;
-
+#endif
 
   gboolean save_as_portable;
 };
