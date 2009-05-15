@@ -119,7 +119,7 @@ main (int argc, char **argv)
 				      _("Options affecting input and output locations:"), the_source_stream);
 
   command_line_processor_add_options (clp, &test_argp,
-				      _("Diagnositic options:"), the_source_stream);
+				      _("Diagnostic options:"), the_source_stream);
 
   command_line_processor_add_options (clp, &post_init_argp,
 				      _("Options affecting syntax and behavior:"), the_source_stream);
