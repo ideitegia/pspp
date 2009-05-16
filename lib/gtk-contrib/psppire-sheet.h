@@ -53,7 +53,7 @@
 
 G_BEGIN_DECLS
 
-/* sheet->state */
+/* sheet->select_status */
 enum
 {
   PSPPIRE_SHEET_NORMAL,
@@ -134,7 +134,7 @@ struct _PsppireSheet
   GtkWidget *button;
 
   /* sheet state */
-  gint state;
+  gint select_status;
 
   /* selected range */
   PsppireSheetRange range;
