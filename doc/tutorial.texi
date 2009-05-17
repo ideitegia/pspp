@@ -128,6 +128,11 @@ There are several things to note about this example.
 The words @samp{data list list} are an example of the @cmd{DATA LIST}
 command. @xref{DATA LIST}.
 It tells PSPP to prepare for reading data.
+The word @samp{list} intentionally appears twice.
+The first occurrence is part of the @cmd{DATA LIST} call,
+whilst the second
+tells PSPP that the data is to be read as free format data with
+one record per line.
 
 @item
 The @samp{/} character is important. It marks the start of the list of
