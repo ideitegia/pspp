@@ -33,7 +33,7 @@ should type.
 
 Throughout this chapter reference is made to a number of sample data files.
 So that you can try the examples for yourself,
-you should have received these files along with your copy of PSPP.
+you should have received these files along with your copy of PSPP.@c
 @footnote{These files contain purely fictitious data.  They should not be used
 for research purposes.}
 @note{Normally these files are installed in the directory
@@ -647,7 +647,7 @@ This section presents just some of the possible tests that PSPP offers.
 The researcher starts by making a @dfn{null hypothesis}.
 Often this is a hypothesis which he suspects to be false.
 For example, if he suspects that @var{A} is greater than @var{B} he will 
-state the null hypothesis as @math{ @var{A} = @var{B}}.
+state the null hypothesis as @math{ @var{A} = @var{B}}.@c
 @footnote{This example assumes that is it already proven that @var{B} is
 not greater than @var{A}.}
 
