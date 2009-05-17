@@ -105,7 +105,7 @@ and reads data into them by manual input.
 @float Example, data-list
 @cartouche
 @example
-@prompt{PSPP>} data list list /forename (A12) height *.
+@prompt{PSPP>} data list list /forename (A12) height.
 @prompt{PSPP>} begin data.
 @prompt{data>} Ahmed 188
 @prompt{data>} Bertram 167
@@ -142,13 +142,8 @@ variables which you wish to define.
 The text @samp{forename} is the name of the first variable,
 and @samp{(A12)} says that the variable @var{forename} is a string
 variable and that its maximum length is 12 bytes.
-The second variable's name is specified by the text @samp{height}
-and the @samp{*}
-means that this variable has the default format.
-Instead of typing @samp{*} you could also have typed @samp{(F8.2)},
-however since @samp{F8.2} is the default format (unless you changed it
-with the @cmd{SET} command (@pxref{SET})), it's quicker to simply type
-@samp{*}.
+The second variable's name is specified by the text @samp{height}.
+Since no format is given, this variable has the default format.
 For more information on data formats, @pxref{Input and Output Formats}.
 
 
@@ -220,7 +215,7 @@ Zachariah      113.02
 You can can tell the @cmd{DATA LIST} command to read the data directly from
 this file instead of by manual entry, with a command like:
 @example
-@prompt{PSPP>} data list file='mydata.dat' list /forename (A12) height *.
+@prompt{PSPP>} data list file='mydata.dat' list /forename (A12) height.
 @end example
 @noindent
 Notice however, that it is still necessary to specify the names of the
