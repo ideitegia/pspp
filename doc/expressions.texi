@@ -15,14 +15,14 @@ strings or numbers as operands.  With few exceptions, operands may be
 full-fledged expressions in themselves.
 
 @menu
-* Boolean Values::              Boolean values.
-* Missing Values in Expressions::  Using missing values in expressions.
-* Grouping Operators::          parentheses
-* Arithmetic Operators::        add sub mul div pow
-* Logical Operators::           AND NOT OR
-* Relational Operators::        EQ GE GT LE LT NE
-* Functions::                   More-sophisticated operators.
-* Order of Operations::         Operator precedence.
+* Boolean Values::                 Boolean values
+* Missing Values in Expressions::  Using missing values in expressions
+* Grouping Operators::             parentheses
+* Arithmetic Operators::           add sub mul div pow
+* Logical Operators::              AND NOT OR
+* Relational Operators::           EQ GE GT LE LT NE
+* Functions::                      More-sophisticated operators
+* Order of Operations::            Operator precedence
 @end menu
 
 @node Boolean Values
@@ -259,7 +259,7 @@ The sections below describe each function in detail.
 * Statistical Functions::       CFVAR MAX MEAN MIN SD SUM VARIANCE
 * String Functions::            CONCAT INDEX LENGTH LOWER LPAD LTRIM NUMBER 
                                 RINDEX RPAD RTRIM STRING SUBSTR UPCASE
-* Time and Date::                 CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
+* Time and Date::               CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
                                 DATEDIFF DATESUM
 * Miscellaneous Functions::     LAG YRMODA VALUELABEL
 * Statistical Distribution Functions::  PDF CDF SIG IDF RV NPDF NCDF
@@ -702,14 +702,14 @@ For compatibility, PSPP considers dates before 15 Oct 1582 invalid.
 Most time and date functions will not accept earlier dates.
 
 @menu
-* Time and Date Concepts::        How times & dates are defined and represented
+* Time and Date Concepts::      How times & dates are defined and represented
 * Time Construction::           TIME.@{DAYS HMS@}
 * Time Extraction::             CTIME.@{DAYS HOURS MINUTES SECONDS@}
 * Date Construction::           DATE.@{DMY MDY MOYR QYR WKYR YRDAY@}
 * Date Extraction::             XDATE.@{DATE HOUR JDAY MDAY MINUTE MONTH
                                        QUARTER SECOND TDAY TIME WEEK
                                        WKDAY YEAR@}
-* Time and Date Arithmetic::      DATEDIFF DATESUM
+* Time and Date Arithmetic::    DATEDIFF DATESUM
 @end menu
 
 @node Time and Date Concepts
