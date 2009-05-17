@@ -639,7 +639,8 @@ is hypothesis testing.
 Researchers commonly need to test hypotheses about a set of data.
 For example, she might want to test whether one set of data comes from
 the same distribution as another,
-or does the mean of a dataset significantly differ from a particular
+or
+whether the mean of a dataset significantly differs from a particular
 value.
 This section presents just some of the possible tests that PSPP offers.
 
