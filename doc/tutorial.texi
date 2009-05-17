@@ -71,9 +71,9 @@ There are two aspects of data:
 For example, a data set which has the variables @var{height}, @var{weight}, and
 @var{name}, might have the observations:
 @example
-188 89 Ahmed
-119 107 Frank
-123 67 Julie
+1881 89.2 Ahmed
+1192 107.01 Frank
+1230 67 Julie
 @end example
 @noindent
 The following sections explain how to define a dataset.
