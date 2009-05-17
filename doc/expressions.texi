@@ -259,7 +259,7 @@ The sections below describe each function in detail.
 * Statistical Functions::       CFVAR MAX MEAN MIN SD SUM VARIANCE
 * String Functions::            CONCAT INDEX LENGTH LOWER LPAD LTRIM NUMBER 
                                 RINDEX RPAD RTRIM STRING SUBSTR UPCASE
-* Time & Date::                 CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
+* Time and Date::                 CTIME.xxx DATE.xxx TIME.xxx XDATE.xxx
                                 DATEDIFF DATESUM
 * Miscellaneous Functions::     LAG YRMODA VALUELABEL
 * Statistical Distribution Functions::  PDF CDF SIG IDF RV NPDF NCDF
@@ -691,7 +691,7 @@ has value @code{"cd"}; @code{SUBSTR("nonsense", 4, 10)} has the value
 Returns @var{string}, changing lowercase letters to uppercase letters.
 @end deftypefn
 
-@node Time & Date
+@node Time and Date
 @subsection Time & Date Functions
 @cindex functions, time & date
 @cindex times
@@ -702,17 +702,17 @@ For compatibility, PSPP considers dates before 15 Oct 1582 invalid.
 Most time and date functions will not accept earlier dates.
 
 @menu
-* Time & Date Concepts::        How times & dates are defined and represented
+* Time and Date Concepts::        How times & dates are defined and represented
 * Time Construction::           TIME.@{DAYS HMS@}
 * Time Extraction::             CTIME.@{DAYS HOURS MINUTES SECONDS@}
 * Date Construction::           DATE.@{DMY MDY MOYR QYR WKYR YRDAY@}
 * Date Extraction::             XDATE.@{DATE HOUR JDAY MDAY MINUTE MONTH
                                        QUARTER SECOND TDAY TIME WEEK
                                        WKDAY YEAR@}
-* Time & Date Arithmetic::      DATEDIFF DATESUM
+* Time and Date Arithmetic::      DATEDIFF DATESUM
 @end menu
 
-@node Time & Date Concepts
+@node Time and Date Concepts
 @subsubsection How times & dates are defined and represented
 
 @cindex time, concepts
@@ -1001,7 +1001,7 @@ Returns the year (as an integer 1582 or greater) corresponding to
 @var{date}.
 @end deftypefn
 
-@node Time & Date Arithmetic
+@node Time and Date Arithmetic
 @subsubsection Time and Date Arithmetic
 
 @cindex time, mathematical properties of

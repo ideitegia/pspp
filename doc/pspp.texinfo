@@ -6,6 +6,13 @@
 @c @setchapternewpage odd
 @c %**end of header
 
+
+@macro note{param1}
+@quotation
+@strong{Please note:} \param1\
+@end quotation
+@end macro
+
 @include version.texi
 
 @macro cmd{CMDNAME}
@@ -25,7 +32,7 @@
 This manual is for GNU PSPP version @value{VERSION},
 software for statistical analysis.
 
-Copyright @copyright{} 1997, 1998, 2004, 2005 Free Software Foundation, Inc.
+Copyright @copyright{} 1997, 1998, 2004, 2005, 2009 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -51,6 +58,14 @@ modify this GNU manual.''
 @insertcopying
 @end titlepage
 
+@chapheading Acknowledgements
+The authors wish to thank
+Network Theory Ltd 
+@url{http://www.network-theory.co.uk}
+for their financial support 
+in the production of this manual.
+
+
 @contents
 
 
@@ -66,6 +81,7 @@ modify this GNU manual.''
 * License::                     Your rights and obligations.
 
 * Invocation::                  Starting and running PSPP.
+* Using PSPP::                  How to use PSPP --- A brief tutorial.
 * Language::                    Basics of the PSPP command language.
 * Expressions::                 Numeric and string expression syntax.
 
@@ -95,6 +111,7 @@ modify this GNU manual.''
 @include license.texi
 
 @include invoking.texi
+@include tutorial.texi
 @include language.texi
 @include expressions.texi
 @include data-io.texi

@@ -1,10 +1,38 @@
 @node Invocation
-@chapter Invoking PSPP
+
+@chapter Starting PSPP
 @cindex invocation
 @cindex PSPP, invoking
 
+There are two separate user interfaces for PSPP.
+There is the command line interface, which responds to commands
+typed by the user.
+The command line interface is generally available on more platforms
+than the graphic user interface and since it doesn't require a
+graphics device it can be used from a remote terminal.
+Platforms which have a windowing system may also be able to support
+the graphic user interface.
+The graphic user interface can perform all functionality of the
+command line interface.
+In addition it gives an instantaneous view of the data, variables and
+statistical output.
+
+Whichever interface you choose, a basic understanding of the concepts
+used by PSPP is necessary before effective use of the system can be achieved.
+
+
+@menu
+* The command line user interface::  
+* The graphic user interface::  
+@end menu
+
+
+@node The command line user interface
+@section The command line user interface
+
 @cindex command line, options
 @cindex options, command-line
+
 @example
 pspp [ -B @var{dir} | --config-dir=@var{dir} ] [ -o @var{device} | --device=@var{device} ]
        [ -a @{compatible|enhanced@} | --algorithm=@{compatible|enhanced@}]
@@ -26,7 +54,7 @@ pspp [ -B @var{dir} | --config-dir=@var{dir} ] [ -o @var{device} | --device=@var
 @end menu
 
 @node Non-option Arguments
-@section Non-option Arguments
+@subsection Non-option Arguments
 
 Syntax files and output device substitutions can be specified on
 PSPP's command line:
@@ -64,7 +92,7 @@ typing its name.  You can include any options on the command line as
 usual.  PSPP entirely ignores any lines beginning with @samp{#!}.
 
 @node Configuration Options
-@section Configuration Options
+@subsection Configuration Options
 
 Configuration options are used to change PSPP's configuration for the
 current run.  The configuration options are:
@@ -95,7 +123,7 @@ option disables all devices besides those mentioned on the command line.
 @end table
 
 @node Input and output options
-@section Input and output options
+@subsection Input and output options
 
 Input and output options affect how PSPP reads input and writes
 output.  These are the input and output options:
@@ -121,7 +149,7 @@ check} and similar scripts.
 @end table
 
 @node Language control options
-@section Language control options
+@subsection Language control options
 
 Language control options control how PSPP syntax files are parsed and
 interpreted.  The available language control options are:
@@ -152,7 +180,7 @@ HOST commands, as well as use of pipes as input and output files.
 @end table
 
 @node Informational options
-@section Informational options
+@subsection Informational options
 
 Informational options cause information about PSPP to be written to
 the terminal.  Here are the available options:
@@ -224,3 +252,19 @@ Individual directories included in file searches.
 Each verbosity level also includes messages from lower verbosity levels.
 
 @end table
+
+
+@node The graphic user interface
+@section The graphic user interface
+
+@cindex Graphic user interface
+@cindex PSPPIRE
+
+The graphic user interface can be started by typing @command{psppire} at a 
+command prompt.
+Alternatively many systems have a system of interactive menus or buttons 
+from which @command{psppire} can be started by a series of mouse clicks.
+
+Once the principles of the PSPP system are understood, 
+the graphic user interface is designed to be largely intuitive, and
+for this reason is covered only very briefly by this manual.

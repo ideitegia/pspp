@@ -1,0 +1,857 @@
+@alias prompt = sansserif
+
+@include doc/tut.texi
+
+@node Using PSPP
+@chapter Using PSPP
+
+PSPP is a tool for the statistical analysis of sampled data.
+You can use it to discover patterns in the data,
+to explain differences in one subset of data in terms of another subset
+and to find out
+whether certain beliefs about the data are justified.
+This chapter does not attempt to introduce the theory behind the 
+statistical analysis,
+but it shows how such analysis can be performed using PSPP.
+
+For the purposes of this tutorial, it is assumed that you are using PSPP in its 
+interactive mode from the command line.
+However, the example commands can also be typed into a file and executed in 
+a post-hoc mode by typing @samp{pspp @var{filename}} at a shell prompt,
+where @var{filename} is the name of the file containing the commands.
+Alternatively, from the graphical interface, you can select
+@clicksequence{File @click{} New @click{} Syntax} to open a new syntax window
+and use the @clicksequence{Run} menu when a syntax fragment is ready to be 
+executed.
+Whichever method you choose, the syntax is identical.
+
+When using the interactive method, PSPP tells you that it's waiting for your
+data with a string like @prompt{PSPP>} or @prompt{data>}.
+In the examples of this chapter, whenever you see text like this, it
+indicates the prompt displayed by PSPP, @emph{not} something that you 
+should type.
+
+Throughout this chapter reference is made to a number of sample data files.
+So that you can try the examples for yourself,
+you should have received these files along with your copy of PSPP.
+@footnote{These files contain purely fictitious data.  They should not be used
+for research purposes.}
+@note{Normally these files are installed in the directory
+@file{@value{example-dir}}.
+If however your system administrator or operating system vendor has
+chosen to install them in a different location, you will have to adjust
+the examples accordingly.}
+
+
+@menu
+* Preparation of Data Files::   
+* Data Screening and Transformation::  
+* Hypothesis Testing::          
+@end menu
+
+@node Preparation of Data Files
+@section Preparation of Data Files
+
+
+Before analysis can commence,  the data must be loaded into PSPP and
+arranged such that both PSPP and humans can understand what
+the data represents.
+There are two aspects of data:
+
+@itemize @bullet
+@item The variables --- these are the parameters of a quantity
+ which has been measured or estimated in some way.
+ For example height, weight and geographic location are all variables.
+@item The observations (also called `cases') of the variables ---
+ each observation represents an instance when the variables were measured
+ or observed. 
+@end itemize
+
+@noindent
+For example, a data set which has the variables @var{height}, @var{weight}, and
+@var{name}, might have the observations:
+@example
+188 89 Ahmed
+119 107 Frank
+123 67 Julie
+@end example
+@noindent
+The following sections explain how to define a dataset.
+
+@menu
+* Defining Variables::          
+* Listing the data::            
+* Reading data from a text file::  
+* Reading data from a pre-prepared PSPP file::  
+* Saving data to a PSPP file.::  
+* Reading data from other sources::  
+@end menu
+
+@node Defining Variables
+@subsection Defining Variables
+@cindex variables
+
+Variables come in two basic types, @i{viz}: @dfn{numeric} and @dfn{string}.
+Variables such as age, height and satisfaction are numeric,
+whereas name is a string variable.
+String variables are best reserved for commentary data to assist the 
+human observer.
+However they can also be used for nominal or categorical data.
+
+
+@ref{data-list} defines two variables @var{forename} and @var{height},
+and reads data into them by manual input. 
+
+@float Example, data-list
+@cartouche
+@example
+@prompt{PSPP>} data list list /forename (A12) height *.
+@prompt{PSPP>} begin data.
+@prompt{data>} Ahmed 188
+@prompt{data>} Bertram 167
+@prompt{data>} Catherine 134.231
+@prompt{data>} David 109.1
+@prompt{data>} end data
+@prompt{PSPP>}
+@end example
+@end cartouche
+@caption{Manual entry of data using the @cmd{DATA LIST} command.
+Two variables
+@var{forename} and @var{height} are defined and subsequently filled
+with  manually entered data.}
+@end float
+
+There are several things to note about this example.
+
+@itemize @bullet
+@item
+The words @samp{data list list} are an example of the @cmd{DATA LIST}
+command. @xref{DATA LIST}.
+It tells PSPP to prepare for reading data.
+
+@item
+The @samp{/} character is important. It marks the start of the list of
+variables which you wish to define.
+
+@item
+The text @samp{forename} is the name of the first variable,
+and @samp{(A12)} says that the variable @var{forename} is a string
+variable and that its maximum length is 12 bytes.
+The second variable's name is specified by the text @samp{height}
+and the @samp{*}
+means that this variable has the default format.
+Instead of typing @samp{*} you could also have typed @samp{(F8.2)},
+however since @samp{F8.2} is the default format (unless you changed it
+with the @cmd{SET} command (@pxref{SET})), it's quicker to simply type
+@samp{*}.
+For more information on data formats, @pxref{Input and Output Formats}.
+
+
+@item
+Normally, PSPP displays the  prompt @prompt{PSPP>} whenever it's
+expecting a command.
+However, when it's expecting data, the prompt changes to @prompt{data>}
+so that you know to enter data and not a command.
+
+@item
+At the end of every command there is a terminating @samp{.} which tells
+PSPP that the end of a command has been encountered.
+You should not enter @samp{.} when data is expected (@i{ie.} when 
+the @prompt{data>} prompt is current) since it is appropriate only for
+terminating commands.
+@end itemize
+
+@node Listing the data
+@subsection Listing the data
+@vindex LIST
+
+Once the data has been entered,
+you could type
+@example
+@prompt{PSPP>} list /format=numbered.
+@end example
+@noindent
+to list the data.
+The optional text @samp{/format=numbered} requests the case numbers to be 
+shown along with the data.
+It should show the following output:
+@example
+@group
+Case#     forename   height
+----- ------------ --------
+    1 Ahmed          188.00 
+    2 Bertram        167.00 
+    3 Catherine      134.23 
+    4 David          109.10 
+@end group
+@end example
+@noindent
+Note that the numeric variable @var{height} is displayed to 2 decimal 
+places, because the format for that variable is @samp{F8.2}.
+For a complete description of the @cmd{LIST} command, @pxref{LIST}.
+
+@node Reading data from a text file
+@subsection Reading data from a text file
+@cindex reading data
+
+The previous example showed how to define a set of variables and to 
+manually enter the data for those variables.
+Manual entering of data is tedious work, and often
+a file containing the data will be have been previously 
+prepared.
+Let us assume that you have a file called @file{mydata.dat} containing the
+ascii encoded data:
+@example
+Ahmed          188.00 
+Bertram        167.00 
+Catherine      134.23 
+David          109.10 
+@              .
+@              .
+@              .
+Zachariah      113.02
+@end example
+@noindent
+You can can tell the @cmd{DATA LIST} command to read the data directly from
+this file instead of by manual entry, with a command like:
+@example
+@prompt{PSPP>} data list file='mydata.dat' list /forename (A12) height *.
+@end example
+@noindent
+Notice however, that it is still necessary to specify the names of the
+variables and their formats, since this information is not contained
+in the file.
+It is also possible to specify the file's character encoding and other 
+parameters.
+For full details refer to @pxref{DATA LIST}.
+
+@node Reading data from a pre-prepared PSPP file
+@subsection Reading data from a pre-prepared PSPP file
+@cindex system files
+@vindex GET
+
+When working with other PSPP users, or users of other software which
+uses the PSPP data format, you may be given the data in
+a pre-prepared PSPP file.
+Such files contain not only the data, but the variable definitions,
+along with their formats, labels and other meta-data.
+Conventionally, these files (sometimes called ``system'' files) 
+have the suffix @file{.sav}, but that is
+not mandatory.
+The following syntax loads a file called @file{my-file.sav}.
+@example
+@prompt{PSPP>} get file='my-file.sav'.
+@end example
+@noindent
+You will encounter several instances of this in future examples.
+
+
+@node Saving data to a PSPP file.
+@subsection Saving data to a PSPP file.
+@cindex saving
+@vindex SAVE
+
+If you want to save your data, along with the variable definitions so
+that you or other PSPP users can use it later, you can do this with
+the @cmd{SAVE} command.
+
+The following syntax will save the existing data and variables to a
+file called @file{my-new-file.sav}.
+@example
+@prompt{PSPP>} save outfile='my-new-file.sav'.
+@end example
+@noindent
+If @file{my-new-file.sav} already exists, then it will be overwritten.
+Otherwise it will be created.
+
+
+@node Reading data from other sources
+@subsection Reading data from other sources
+@cindex comma separated values
+@cindex spreadsheets
+@cindex databases
+
+Sometimes it's useful to be able to read data from comma 
+separated text, from spreadsheets, databases or other sources.
+In these instances you should
+use the @cmd{GET DATA} command (@pxref{GET DATA}).
+
+  
+@node Data Screening and Transformation
+@section Data Screening and Transformation
+
+@cindex screening
+@cindex transformation
+
+Once data has been entered, it is often desirable, or even necessary,
+to transform it in some way before performing analysis upon it.
+At the very least, it's good practice to check for errors.
+
+@menu
+* Identifying incorrect data::  
+* Dealing with suspicious data::  
+* Inverting negatively coded variables::  
+* Testing data consistency::    
+* Testing for normality ::      
+@end menu
+
+@node Identifying incorrect data
+@subsection Identifying incorrect data
+@cindex erroneous data
+@cindex errors, in data
+
+Data from real sources is rarely error free.
+PSPP has a number of procedures which can be used to help 
+identify data which might be incorrect.
+
+The @cmd{DESCRIPTIVES} command (@pxref{DESCRIPTIVES}) is used to generate
+simple linear statistics for a dataset.  It is also useful for
+identifying potential problems in the data.
+The example file @file{physiology.sav} contains a number of physiological
+measurements of a sample of healthy adults selected at random.
+However, the data entry clerk made a number of mistakes when entering
+the data.
+@ref{descriptives} illustrates the use of @cmd{DESCRIPTIVES} to screen this
+data and identify the erroneous values.
+
+@float Example, descriptives
+@cartouche
+@example
+@prompt{PSPP>} get file='@value{example-dir}/physiology.sav'.
+@prompt{PSPP>} descriptives sex, weight, height.
+@end example
+
+Output:
+@example
+DESCRIPTIVES.  Valid cases = 40; cases with missing value(s) = 0.
++--------#--+-------+-------+-------+-------+
+|Variable# N|  Mean |Std Dev|Minimum|Maximum|
+#========#==#=======#=======#=======#=======#
+|sex     #40|    .45|    .50|    .00|   1.00|
+|height  #40|1677.12| 262.87| 179.00|1903.00|
+|weight  #40|  72.12|  26.70| -55.60|  92.07|
++--------#--+-------+-------+-------+-------+
+@end example
+@end cartouche
+@caption{Using the @cmd{DESCRIPTIVES} command to display simple 
+summary information about the data.
+In this case, the results show unexpectedly low values in the Minimum
+column, suggesting incorrect data entry.}
+@end float
+
+In the output of @ref{descriptives},
+the most interesting column is the minimum value.
+The @var{weight} variable has a minimum value of less than zero,
+which is clearly erroneous.
+Similarly, the @var{height} variable's minimum value seems to be very low.
+In fact, it is more than 5 standard deviations from the mean, and is a 
+seemingly bizarre height for an adult person.
+We can examine the data in more detail with the @cmd{EXAMINE}
+command (@pxref{EXAMINE}):
+
+In @ref{examine} you can see that the lowest value of @var{height} is
+179 (which we suspect to be erroneous), but the second lowest is 1598
+which
+we know from the @cmd{DESCRIPTIVES} command 
+is within 1 standard deviation from the mean.
+Similarly the @var{weight} variable has a lowest value which is
+negative but a plausible value for the second lowest value.
+This suggests that the two extreme values are outliers and probably 
+represent data entry errors. 
+
+@float Example, examine
+@cartouche
+[@dots{} continue from @ref{descriptives}]
+@example
+@prompt{PSPP>} examine height, weight /statistics=extreme(3).    
+@end example
+
+Output:
+@example
+#===============================#===========#=======#
+#                               #Case Number| Value #
+#===============================#===========#=======#
+#Height in millimetres Highest 1#         14|1903.00#
+#                              2#         15|1884.00#
+#                              3#         12|1801.65#
+#                     ----------#-----------+-------#
+#                       Lowest 1#         30| 179.00#
+#                              2#         31|1598.00#
+#                              3#         28|1601.00#
+#                     ----------#-----------+-------#
+#Weight in kilograms   Highest 1#         13|  92.07#
+#                              2#          5|  92.07#
+#                              3#         17|  91.74#
+#                     ----------#-----------+-------#
+#                       Lowest 1#         38| -55.60#
+#                              2#         39|  54.48#
+#                              3#         33|  55.45#
+#===============================#===========#=======#
+@end example
+@end cartouche
+@caption{Using the @cmd{EXAMINE} command to see the extremities of the data
+for different variables.  Cases 30 and 38 seem to contain values
+very much lower than the rest of the data.
+They are possibly erroneous.}
+@end float
+
+@node Dealing with suspicious data
+@subsection Dealing with suspicious data
+
+@cindex SYSMIS
+@cindex recoding data
+If possible, suspect data should be checked and re-measured.
+However, this may not always be feasible, in which case the researcher may
+decide to disregard these values.
+PSPP has a feature whereby data can assume the special value `SYSMIS', and
+will be disregarded in future analysis. @xref{Missing Observations}.
+You can set the two suspect values to the `SYSMIS' value using the @cmd{RECODE}
+command.
+@example
+PSPP> recode height (179 = SYSMIS).
+PSPP> recode weight (LOWEST THRU 0 = SYSMIS).
+@end example
+@noindent
+The first command says that for any observation which has a
+@var{height} value of 179, that value should be changed to the SYSMIS
+value.
+The second command says that any @var{weight} values of zero or less
+should be changed to SYSMIS.
+From now on, they will be ignored in analysis.
+For detailed information about the @cmd{RECODE} command @pxref{RECODE}.
+
+If you now re-run the @cmd{DESCRIPTIVES} or @cmd{EXAMINE} commands in
+@ref{descriptives} and @ref{examine} you
+will see a data summary with more plausible parameters.
+You will also notice that the data summaries indicate the two missing values.
+
+@node Inverting negatively coded variables
+@subsection Inverting negatively coded variables
+
+@cindex Likert scale
+@cindex Inverting data
+Data entry errors are not the only reason for wanting to recode data.
+The sample file @file{hotel.sav} comprises data gathered from a 
+customer satisfaction survey of clients at a particular hotel.
+In @ref{reliability}, this file is loaded for analysis.
+The line @code{display dictionary.} tells PSPP to display the
+variables and associated data.
+The output from this command has been omitted from the example for the sake of clarity, but
+you will notice that each of the variables
+@var{v1}, @var{v2} @dots{} @var{v5}  are measured on a 5 point Likert scale,
+with 1 meaning ``Strongly disagree'' and 5 meaning ``Strongly agree''.
+Whilst variables @var{v1}, @var{v2} and @var{v4} record responses
+to a positively posed question, variables @var{v3} and @var{v5} are 
+responses to negatively worded questions.
+In order to perform meaningful analysis, we need to recode the variables so
+that they all measure in the same direction.
+We could use the @cmd{RECODE} command, with syntax such as:
+@example
+recode v3 (1 = 5) (2 = 4) (4 = 2) (5 = 1).
+@end example
+@noindent
+However an easier and more elegant way uses the @cmd{COMPUTE}
+command (@pxref{COMPUTE}).
+Since the variables are Likert variables in the range (1 @dots{} 5),
+subtracting their value  from 6 has the effect of inverting them:
+@example
+compute @var{var} = 6 - @var{var}.
+@end example
+@noindent
+@ref{reliability} uses this technique to recode the variables 
+@var{v3} and @var{v5}.
+After applying  @cmd{COMPUTE} for both variables,
+all subsequent commands will use the inverted values.
+
+
+@node Testing data consistency
+@subsection Testing data consistency
+
+@cindex reliability
+@cindex consistency
+
+A sensible check to perform on survey data is the calculation of
+reliability.
+This gives the statistician some confidence that the questionnaires have been 
+completed thoughtfully.
+If you examine the labels of variables @var{v1},  @var{v3} and @var{v5},
+you will notice that they ask very similar questions.
+One would therefore expect the values of these variables (after recoding) 
+to closely follow one another, and we can test that with the @cmd{RELIABILITY} 
+command (@pxref{RELIABILITY}).
+@ref{reliability} shows a PSPP session where the user (after recoding
+negatively scaled variables) requests reliability statistics for
+@var{v1}, @var{v3} and @var{v5}.
+
+@float Example, reliability
+@cartouche
+@example
+@prompt{PSPP>} get file='@value{example-dir}/hotel.sav'.
+@prompt{PSPP>} display dictionary.
+@prompt{PSPP>} * recode negatively worded questions.
+@prompt{PSPP>} compute v3 = 6 - v3.
+@prompt{PSPP>} compute v5 = 6 - v5.
+@prompt{PSPP>} reliability v1, v3, v5.
+@end example
+
+Output (dictionary information omitted for clarity):
+@example
+1.1 RELIABILITY.  Case Processing Summary
+#==============#==#======#
+#              # N|   %  #
+#==============#==#======#
+#Cases Valid   #17|100.00#
+#      Excluded# 0|   .00#
+#      Total   #17|100.00#
+#==============#==#======#
+
+1.2 RELIABILITY.  Reliability Statistics
+#================#==========#
+#Cronbach's Alpha#N of items#
+#================#==========#
+#             .86#         3#
+#================#==========#
+@end example
+@end cartouche
+@caption{Recoding negatively scaled variables, and testing for
+reliability with the @cmd{RELIABILITY} command. The Cronbach Alpha
+coefficient suggests a high degree of reliability among variables
+@var{v1}, @var{v2} and @var{v5}.}
+@end float
+
+As a rule of thumb, many statisticians consider a value of Cronbach's Alpha of 
+0.7 or higher to indicate reliable data.
+Here, the value is 0.86 so the data and the recoding that we performed 
+are vindicated.
+
+
+@node Testing for normality 
+@subsection Testing for normality
+@cindex normality, testing 
+
+Many statistical tests rely upon certain properties of the data.
+One common property, upon which many linear tests depend, is that of
+normality --- the data must have been drawn from a normal distribution.
+It is necessary then to ensure normality before deciding upon the
+test procedure to use.  One way to do this uses the @cmd{EXAMINE} command.
+
+In @ref{normality}, a researcher was examining the failure rates
+of equipment produced by an engineering company.
+The file @file{repairs.sav} contains the mean time between
+failures (@var{mtbf}) of some items of equipment subject to the study.
+Before performing linear analysis on the data, 
+the researcher wanted to ascertain that the data is normally distributed.
+
+A normal distribution has a skewness and kurtosis of zero.
+Looking at the skewness of @var{mtbf} in @ref{normality} it is clear
+that the mtbf figures have a lot of positive skew and are therefore
+not drawn from a normally distributed variable.
+Positive skew can often be compensated for by applying a logarithmic 
+transformation.
+This is done with the @cmd{COMPUTE} command in the line
+@example
+compute mtbf_ln = ln (mtbf).
+@end example
+@noindent
+Rather than redefining the existing variable, this use of @cmd{COMPUTE}
+defines a new variable @var{mtbf_ln} which is
+the natural logarithm of @var{mtbf}.
+The final command in this example calls @cmd{EXAMINE} on this new variable,
+and it can be seen from the results that both the skewness and
+kurtosis for @var{mtbf_ln} are very close to zero.
+This provides some confidence that the @var{mtbf_ln} variable is 
+normally distributed and thus safe for linear analysis.
+In the event that no suitable transformation can be found,
+then it would be worth considering 
+an appropriate non-parametric test instead of a linear one.
+@xref{NPAR TESTS}, for information about non-parametric tests.
+
+@float Example, normality
+@cartouche
+@example
+@prompt{PSPP>} get file='@value{example-dir}/repairs.sav'.
+@prompt{PSPP>} examine mtbf 
+                /statistics=descriptives.
+@prompt{PSPP>} compute mtbf_ln = ln (mtbf).
+@prompt{PSPP>} examine mtbf_ln
+                /statistics=descriptives.
+@end example
+
+Output:
+@example
+1.2 EXAMINE.  Descriptives
+#====================================================#=========#==========#
+#                                                    #Statistic|Std. Error#
+#====================================================#=========#==========#
+#mtbf    Mean                                        #   8.32  |   1.62   #
+#        95% Confidence Interval for Mean Lower Bound#   4.85  |          #
+#                                         Upper Bound#  11.79  |          #
+#        5% Trimmed Mean                             #   7.69  |          #
+#        Median                                      #   8.12  |          #
+#        Variance                                    #  39.21  |          #
+#        Std. Deviation                              #   6.26  |          #
+#        Minimum                                     #   1.63  |          #
+#        Maximum                                     #  26.47  |          #
+#        Range                                       #  24.84  |          #
+#        Interquartile Range                         #   5.83  |          #
+#        Skewness                                    #   1.85  |    .58   #
+#        Kurtosis                                    #   4.49  |   1.12   #
+#====================================================#=========#==========#
+
+2.2 EXAMINE.  Descriptives
+#====================================================#=========#==========#
+#                                                    #Statistic|Std. Error#
+#====================================================#=========#==========#
+#mtbf_ln Mean                                        #   1.88  |    .19   #
+#        95% Confidence Interval for Mean Lower Bound#   1.47  |          #
+#                                         Upper Bound#   2.29  |          #
+#        5% Trimmed Mean                             #   1.88  |          #
+#        Median                                      #   2.09  |          #
+#        Variance                                    #   .54   |          #
+#        Std. Deviation                              #   .74   |          #
+#        Minimum                                     #   .49   |          #
+#        Maximum                                     #   3.28  |          #
+#        Range                                       #   2.79  |          #
+#        Interquartile Range                         #   .92   |          #
+#        Skewness                                    #   -.16  |    .58   #
+#        Kurtosis                                    #   -.09  |   1.12   #
+#====================================================#=========#==========#
+@end example
+@end cartouche
+@caption{Testing for normality using the @cmd{EXAMINE} command and applying
+a logarithmic transformation.
+The @var{mtbf} variable has a large positive skew and is therefore
+unsuitable for linear statistical analysis.
+However the transformed variable (@var{mtbf_ln}) is close to normal and
+would appear to be more suitable.}
+@end float
+
+
+@node Hypothesis Testing
+@section Hypothesis Testing
+
+@cindex Hypothesis testing
+@cindex p-value
+@cindex null hypothesis
+
+One of the most fundamental purposes of statistical analysis
+is hypothesis testing.
+Researchers commonly need to test hypotheses about a set of data.
+For example, she might want to test whether one set of data comes from
+the same distribution as another,
+or does the mean of a dataset significantly differ from a particular
+value.
+This section presents just some of the possible tests that PSPP offers.
+
+The researcher starts by making a @dfn{null hypothesis}.
+Often this is a hypothesis which he suspects to be false.
+For example, if he suspects that @var{A} is greater than @var{B} he will 
+state the null hypothesis as @math{ @var{A} = @var{B}}.
+@footnote{This example assumes that is it already proven that @var{B} is
+not greater than @var{A}.}
+
+The @dfn{p-value} is a recurring concept in hypothesis testing.
+It is the highest acceptable probability that the evidence implying a
+null hypothesis is false, could have been obtained when the null
+hypothesis is in fact true.
+Note that this is not the same as ``the probability of making an
+error'' nor is it the same as ``the probability of rejecting a
+hypothesis when it is true''.
+
+
+
+@menu
+* Testing for differences of means::  
+* Linear Regression::           
+@end menu
+
+@node Testing for differences of means
+@subsection Testing for differences of means
+
+@cindex T-test
+@vindex T-TEST
+
+A common statistical test involves hypotheses about means.
+The @cmd{T-TEST} command is used to find out whether or not two separate 
+subsets have the same mean.
+
+@ref{t-test} uses the file @file{physiology.sav} previously
+encountered.
+A researcher suspected that the heights and core body 
+temperature of persons might be different depending upon their sex.
+To investigate this, he posed two null hypotheses: 
+@itemize @bullet
+@item The mean heights of males and females in the population are equal.
+@item The mean body temperature of males and
+      females in the population are equal.
+@end itemize
+@noindent
+For the purposes of the investigation the researcher
+decided to use a  p-value of 0.05.
+
+In addition to the T-test, the @cmd{T-TEST} command also performs the 
+Levene test for equal variances.
+If the variances are equal, then a more powerful form of the T-test can be used.
+However if it is unsafe to assume equal variances,
+then an alternative calculation is necessary.
+PSPP performs both calculations.
+
+For the @var{height} variable, the output shows the significance of the 
+Levene test to be 0.33 which means there is a 
+33% probability that the  
+Levene test produces this outcome when the variances are unequal.
+Such a probability is too high
+to assume that the variances are equal so the row
+for unequal variances should be used.
+Examining this row, the two tailed significance for the @var{height} t-test 
+is less than 0.05, so it is safe to reject the null hypothesis and conclude
+that the mean heights of males and females are unequal.
+
+For the @var{temperature} variable, the significance of the Levene test 
+is 0.58 so again, it is unsafe to use the row for equal variances.
+The unequal variances row indicates that the two tailed significance for
+@var{temperature} is 0.19.  Since this is greater than 0.05 we must reject
+the null hypothesis and conclude that there is insufficient evidence to 
+suggest that the body temperature of male and female persons are different.
+
+@float Example, t-test
+@cartouche
+@example
+@prompt{PSPP>} get file='@value{example-dir}/physiology.sav'.
+@prompt{PSPP>} recode height (179 = SYSMIS).
+@prompt{PSPP>} t-test group=sex(0,1) /variables = height temperature.
+@end example
+Output:
+@example
+1.1 T-TEST.  Group Statistics
+#==================#==#=======#==============#========#
+#              sex | N|  Mean |Std. Deviation|SE. Mean#
+#==================#==#=======#==============#========#
+#height      Male  |22|1796.49|         49.71|   10.60#
+#            Female|17|1610.77|         25.43|    6.17#
+#temperature Male  |22|  36.68|          1.95|     .42#
+#            Female|18|  37.43|          1.61|     .38#
+#==================#==#=======#==============#========#
+1.2 T-TEST.  Independent Samples Test
+#===========================#=========#===============================   =#
+#                           # Levene's| t-test for Equality of Means      #
+#                           #----+----+------+-----+------+---------+-   -#
+#                           #    |    |      |     |      |         |     #
+#                           #    |    |      |     |Sig. 2|         |     #
+#                           #  F |Sig.|   t  |  df |tailed|Mean Diff|     #
+#===========================#====#====#======#=====#======#=========#=   =#
+#height      Equal variances# .97| .33| 14.02|37.00|   .00|   185.72| ... #
+#          Unequal variances#    |    | 15.15|32.71|   .00|   185.72| ... #
+#temperature Equal variances# .31| .58| -1.31|38.00|   .20|     -.75| ... #
+#          Unequal variances#    |    | -1.33|37.99|   .19|     -.75| ... #
+#===========================#====#====#======#=====#======#=========#=   =#
+@end example                                                          
+@end cartouche
+@caption{The @cmd{T-TEST} command tests for differences of means. 
+Here, the @var{height} variable's two tailed significance is less than
+0.05, so the null hypothesis can be rejected.
+Thus, the evidence suggests there is a difference between the heights of
+male and female persons. 
+However the significance of the test for the @var{temperature}
+variable is greater than 0.05 so the null hypothesis cannot be
+rejected, and there is insufficient evidence to suggest a difference
+in body temperature.}
+@end float
+
+@node Linear Regression
+@subsection Linear Regression
+@cindex linear regression
+@vindex REGRESSION
+
+Linear regression is a technique used to investigate if and how a variable 
+is linearly related to others.
+If a variable is found to be linearly related, then this can be used to 
+predict future values of that variable.
+
+In example @ref{regression}, the service department of the company wanted to
+be able to predict the time to repair equipment, in order to improve
+the accuracy of their quotations.
+It was suggested that the time to repair might be related to the time
+between failures and the duty cycle of the equipment.
+The p-value of 0.1 was chosen for this investigation.
+In order to investigate this hypothesis, the @cmd{REGRESSION} command
+was used.
+This command not only tests if the variables are related, but also
+identifies the potential linear relationship. @xref{REGRESSION}.
+
+
+@float Example, regression 
+@cartouche
+@example
+@prompt{PSPP>} get file='@value{example-dir}/repairs.sav'.
+@prompt{PSPP>} regression /variables = mtbf duty_cycle /dependent = mttr.
+@prompt{PSPP>} regression /variables = mtbf /dependent = mttr.
+@end example
+Output:
+@example
+1.3(1) REGRESSION.  Coefficients
+#=============================================#====#==========#====#=====#
+#                                             #  B |Std. Error|Beta|  t  #
+#========#====================================#====#==========#====#=====#
+#        |(Constant)                          #9.81|      1.50| .00| 6.54#
+#        |Mean time between failures (months) #3.10|       .10| .99|32.43#
+#        |Ratio of working to non-working time#1.09|      1.78| .02|  .61#
+#        |                                    #    |          |    |     #
+#========#====================================#====#==========#====#=====#
+
+1.3(2) REGRESSION.  Coefficients
+#=============================================#============#
+#                                             #Significance#
+#========#====================================#============#
+#        |(Constant)                          #         .10#
+#        |Mean time between failures (months) #         .00#
+#        |Ratio of working to non-working time#         .55#
+#        |                                    #            #
+#========#====================================#============#
+2.3(1) REGRESSION.  Coefficients
+#============================================#=====#==========#====#=====#
+#                                            #  B  |Std. Error|Beta|  t  #
+#========#===================================#=====#==========#====#=====#
+#        |(Constant)                         #10.50|       .96| .00|10.96#
+#        |Mean time between failures (months)# 3.11|       .09| .99|33.39#
+#        |                                   #     |          |    |     #
+#========#===================================#=====#==========#====#=====#
+
+2.3(2) REGRESSION.  Coefficients
+#============================================#============#
+#                                            #Significance#
+#========#===================================#============#
+#        |(Constant)                         #         .06#
+#        |Mean time between failures (months)#         .00#
+#        |                                   #            #
+#========#===================================#============#
+@end example
+@end cartouche
+@caption{Linear regression analysis to find a predictor for
+@var{mttr}.
+The first attempt, including @var{duty_cycle}, produces some
+unacceptable high significance values.
+However the second attempt, which excludes @var{duty_cycle}, produces
+significance values no higher than 0.06.
+This suggests that @var{mtbf} alone may be a suitable predictor
+for @var{mttr}.}
+@end float
+
+The coefficients in the first table suggest that the formula
+@math{@var{mttr} = 9.81 + 3.1 \times @var{mtbf} + 1.09 \times @var{duty_cycle}}
+can be used to predict the time to repair.
+However, the significance value for the @var{duty_cycle} coefficient
+is very high, which would make this an unsafe predictor.
+For this reason, the test was repeated, but omitting the
+@var{duty_cycle} variable.
+This time, the significance of all coefficients no higher than 0.06,
+suggesting that at the 0.06 level, the formula
+@math{@var{mttr} = 10.5 + 3.11 \times @var{mtbf}} is a reliable
+predictor of the time to repair.
+
+
+@c  LocalWords:  PSPP dir itemize noindent var cindex dfn cartouche samp xref
+@c  LocalWords:  pxref ie sav Std Dev kilograms SYSMIS sansserif pre pspp emph
+@c  LocalWords:  Likert Cronbach's Cronbach mtbf npplot ln myfile cmd NPAR Sig
+@c  LocalWords:  vindex Levene Levene's df Diff clicksequence mydata dat ascii
+@c  LocalWords:  mttr outfile
