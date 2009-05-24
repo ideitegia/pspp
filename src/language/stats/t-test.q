@@ -32,6 +32,7 @@
 #include <language/command.h>
 #include <language/dictionary/split-file.h>
 #include <language/lexer/lexer.h>
+#include <language/lexer/value-parser.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
@@ -125,8 +126,6 @@ struct t_test_proc
     double critical_value;      /* CMP_LE only: Grouping threshold value. */
     union value g_value[2];     /* CMP_EQ only: Per-group indep var values. */
   };
-
-static int parse_value (struct lexer *, union value *, int width);
 
 /* Statistics Summary Box */
 struct ssbox
@@ -419,29 +418,6 @@ tts_custom_pairs (struct lexer *lexer, struct dataset *ds,
 
   free (vars1);
   free (vars2);
-  return 1;
-}
-
-/* Parses the current token (numeric or string, depending on type)
-   value v and returns success. */
-static int
-parse_value (struct lexer *lexer, union value *v, int width)
-{
-  if (width == 0)
-    {
-      if (!lex_force_num (lexer))
-	return 0;
-      v->f = lex_tokval (lexer);
-    }
-  else
-    {
-      if (!lex_force_string (lexer))
-	return 0;
-      value_copy_str_rpad (v, width, ds_cstr (lex_tokstr (lexer)), ' ');
-    }
-
-  lex_get (lexer);
-
   return 1;
 }
 

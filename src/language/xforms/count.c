@@ -25,7 +25,7 @@
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
-#include <language/lexer/range-parser.h>
+#include <language/lexer/value-parser.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>

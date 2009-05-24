@@ -22,6 +22,7 @@
 #include <libpspp/message.h>
 #include <language/expressions/helpers.h>
 #include <language/expressions/private.h>
+#include <language/lexer/value-parser.h>
 #include <libpspp/pool.h>
 
 #include "xalloc.h"
@@ -174,11 +175,8 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
           else
             c = case_unshare_and_resize (c, dict_get_proto (d));
 
-          if (lex_is_number (lexer))
-            case_data_rw (c, v)->f = lex_tokval (lexer);
-          else
-            memcpy (case_str_rw (c, v), ds_data (lex_tokstr (lexer)),
-                    var_get_width (v));
+          if (!parse_value (lexer, case_data_rw (c, v), var_get_width (v)))
+            NOT_REACHED ();
           lex_get (lexer);
 
           if (!lex_force_match (lexer, ')'))

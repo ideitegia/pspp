@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,14 +14,16 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef RANGE_PRS_H
-#define RANGE_PRS_H 1
+#ifndef VALUE_PARSER_H
+#define VALUE_PARSER_H 1
 
 #include <stdbool.h>
 
 struct lexer;
 enum fmt_type;
+union value;
 bool parse_num_range (struct lexer *,
                       double *x, double *y, const enum fmt_type *fmt);
+bool parse_value (struct lexer *, union value *, int width);
 
-#endif /* range-prs.h */
+#endif /* value-parser.h */
