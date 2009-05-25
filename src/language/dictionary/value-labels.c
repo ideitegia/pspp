@@ -24,6 +24,7 @@
 #include <data/variable.h>
 #include <language/command.h>
 #include <language/lexer/lexer.h>
+#include <language/lexer/value-parser.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
@@ -38,7 +39,6 @@
 
 static int do_value_labels (struct lexer *,
 			    const struct dictionary *dict, bool);
-static int verify_val_labs (struct variable **vars, size_t var_cnt);
 static void erase_labels (struct variable **vars, size_t var_cnt);
 static int get_label (struct lexer *, struct variable **vars, size_t var_cnt);
 
@@ -70,14 +70,12 @@ do_value_labels (struct lexer *lexer, const struct dictionary *dict, bool erase)
   while (lex_token (lexer) != '.')
     {
       parse_err = !parse_variables (lexer, dict, &vars, &var_cnt,
-				    PV_SAME_TYPE) ;
+				    PV_SAME_WIDTH);
       if (var_cnt < 1)
 	{
 	  free(vars);
 	  return CMD_FAILURE;
 	}
-      if (!verify_val_labs (vars, var_cnt))
-        goto lossage;
       if (erase)
         erase_labels (vars, var_cnt);
       while (lex_token (lexer) != '/' && lex_token (lexer) != '.')
@@ -105,27 +103,6 @@ do_value_labels (struct lexer *lexer, const struct dictionary *dict, bool erase)
   return CMD_FAILURE;
 }
 
-/* Verifies that none of the VAR_CNT variables in VARS are long
-   string variables. */
-static int
-verify_val_labs (struct variable **vars, size_t var_cnt)
-{
-  size_t i;
-
-  for (i = 0; i < var_cnt; i++)
-    {
-      const struct variable *vp = vars[i];
-
-      if (var_is_long_string (vp))
-	{
-	  msg (SE, _("It is not possible to assign value labels to long "
-		     "string variables such as %s."), var_get_name (vp));
-	  return 0;
-	}
-    }
-  return 1;
-}
-
 /* Erases all the labels for the VAR_CNT variables in VARS. */
 static void
 erase_labels (struct variable **vars, size_t var_cnt)
@@ -145,40 +122,22 @@ get_label (struct lexer *lexer, struct variable **vars, size_t var_cnt)
   /* Parse all the labels and add them to the variables. */
   do
     {
+      int width = var_get_width (vars[0]);
       union value value;
       struct string label;
-      int width;
       size_t i;
 
       /* Set value. */
-      if (var_is_alpha (vars[0]))
-	{
-	  if (lex_token (lexer) != T_STRING)
-	    {
-              lex_error (lexer, _("expecting string"));
-	      return 0;
-	    }
-          width = MAX_SHORT_STRING;
-          value_init (&value, width);
-	  buf_copy_str_rpad (value_str_rw (&value, width), width,
-                             ds_cstr (lex_tokstr (lexer)), ' ');
-	}
-      else
-	{
-	  if (!lex_is_number (lexer))
-	    {
-	      lex_error (lexer, _("expecting number"));
-	      return 0;
-	    }
-          width = 0;
-          value_init (&value, width);
-	  value.f = lex_tokval (lexer);
-	}
-      lex_get (lexer);
+      value_init (&value, width);
+      if (!parse_value (lexer, &value, width))
+        {
+          value_destroy (&value, width);
+          return 0;
+        }
       lex_match (lexer, ',');
 
       /* Set label. */
-      if (!lex_force_string (lexer))
+      if (lex_token (lexer) != T_ID && !lex_force_string (lexer))
         {
           value_destroy (&value, width);
           return 0;

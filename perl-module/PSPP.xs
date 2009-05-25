@@ -404,26 +404,27 @@ INIT:
  sv_setpv (errstr, "");
 CODE:
  union value the_value;
+ int width = var_get_width (var);
+ int ok;
 
+ value_init (&the_value, width);
  if ( var_is_numeric (var))
  {
   if ( ! looks_like_number (key))
     {
       sv_setpv (errstr, "Cannot add label with string key to a numeric variable");
+      value_destroy (&the_value, width);
       XSRETURN_IV (0);
     }
   the_value.f = SvNV (key);
  }
  else
  {
-   if ( var_is_long_string (var) )
-     {
-      sv_setpv (errstr, "Cannot add label to a long string variable");
-      XSRETURN_IV (0);
-     }
-  strncpy (the_value.short_string, SvPV_nolen(key), MAX_SHORT_STRING);
+  value_copy_str_rpad (&the_value, width, SvPV_nolen(key), ' ');
  }
- if (! var_add_value_label (var, &the_value, label) )
+ ok = var_add_value_label (var, &the_value, label);
+ value_destroy (&the_value, width);
+ if (!ok)
  {
    sv_setpv (errstr, "Something went wrong");
    XSRETURN_IV (0);

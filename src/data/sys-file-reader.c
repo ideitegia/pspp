@@ -182,6 +182,9 @@ static void read_data_file_attributes (struct sfm_reader *,
 static void read_variable_attributes (struct sfm_reader *,
                                       size_t size, size_t count,
                                       struct dictionary *);
+static void read_long_string_value_labels (struct sfm_reader *,
+					   size_t size, size_t count,
+					   struct dictionary *);
 
 /* Opens the system file designated by file handle FH for
    reading.  Reads the system file's dictionary into *DICT.
@@ -790,9 +793,8 @@ read_extension_record (struct sfm_reader *r, struct dictionary *dict,
     case 21:
       /* New in SPSS 16.  Encodes value labels for long string
          variables. */
-      sys_warn (r, _("Ignoring value labels for long string variables, "
-                     "which PSPP does not yet support."));
-      break;
+      read_long_string_value_labels (r, size, count, dict);
+      return;
 
     default:
       sys_warn (r, _("Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s"),
@@ -1202,8 +1204,9 @@ read_value_labels (struct sfm_reader *r,
     {
       var[i] = lookup_var_by_value_idx (r, var_by_value_idx, read_int (r));
       if (var_is_long_string (var[i]))
-        sys_error (r, _("Value labels are not allowed on long string "
-                        "variables (%s)."), var_get_name (var[i]));
+        sys_error (r, _("Value labels may not be added to long string "
+                        "variables (e.g. %s) using records types 3 and 4."),
+                   var_get_name (var[i]));
       max_width = MAX (max_width, var_get_width (var[i]));
     }
 
@@ -1327,6 +1330,113 @@ read_data_file_attributes (struct sfm_reader *r,
   read_attributes (r, text, dict_get_attributes (dict));
   close_text_record (r, text);
 }
+
+static void
+skip_long_string_value_labels (struct sfm_reader *r, size_t n_labels)
+{
+  size_t i;
+
+  for (i = 0; i < n_labels; i++)
+    {
+      size_t value_length, label_length;
+
+      value_length = read_int (r);
+      skip_bytes (r, value_length);
+      label_length = read_int (r);
+      skip_bytes (r, label_length);
+    }
+}
+
+static void
+read_long_string_value_labels (struct sfm_reader *r,
+			       size_t size, size_t count,
+			       struct dictionary *d)
+{
+  const off_t start = ftello (r->file);
+  while (ftello (r->file) - start < size * count)
+    {
+      char var_name[VAR_NAME_LEN + 1];
+      size_t n_labels, i;
+      struct variable *v;
+      union value value;
+      int var_name_len;
+      int width;
+
+      /* Read header. */
+      var_name_len = read_int (r);
+      if (var_name_len > VAR_NAME_LEN)
+        sys_error (r, _("Variable name length in long string value label "
+                        "record (%d) exceeds %d-byte limit."),
+                   var_name_len, VAR_NAME_LEN);
+      read_string (r, var_name, var_name_len + 1);
+      width = read_int (r);
+      n_labels = read_int (r);
+
+      v = dict_lookup_var (d, var_name);
+      if (v == NULL)
+        {
+          sys_warn (r, _("Ignoring long string value record for "
+                         "unknown variable %s."), var_name);
+          skip_long_string_value_labels (r, n_labels);
+          continue;
+        }
+      if (var_is_numeric (v))
+        {
+          sys_warn (r, _("Ignoring long string value record for "
+                         "numeric variable %s."), var_name);
+          skip_long_string_value_labels (r, n_labels);
+          continue;
+        }
+      if (width != var_get_width (v))
+        {
+          sys_warn (r, _("Ignoring long string value record for variable %s "
+                         "because the record's width (%d) does not match the "
+                         "variable's width (%d)"),
+                    var_name, width, var_get_width (v));
+          skip_long_string_value_labels (r, n_labels);
+          continue;
+        }
+
+      /* Read values. */
+      value_init_pool (r->pool, &value, width);
+      for (i = 0; i < n_labels; i++)
+	{
+          size_t value_length, label_length;
+          char label[256];
+          bool skip = false;
+
+          /* Read value. */
+          value_length = read_int (r);
+          if (value_length == width)
+            read_string (r, value_str_rw (&value, width), width + 1);
+          else
+            {
+              sys_warn (r, _("Ignoring long string value %zu for variable %s, "
+                             "with width %d, that has bad value width %zu."),
+                        i, var_get_name (v), width, value_length);
+              skip_bytes (r, value_length);
+              skip = true;
+            }
+
+          /* Read label. */
+          label_length = read_int (r);
+          read_string (r, label, MIN (sizeof label, label_length + 1));
+          if (label_length >= sizeof label)
+            {
+              /* Skip and silently ignore label text after the
+                 first 255 bytes.  The maximum documented length
+                 of a label is 120 bytes so this is more than
+                 generous. */
+              skip_bytes (r, sizeof label - (label_length + 1));
+            }
+
+          if (!skip && !var_add_value_label (v, &value, label))
+            sys_warn (r, _("Duplicate value label for \"%.*s\" on %s."),
+                      width, value_str (&value, width), var_get_name (v));
+        }
+    }
+}
+
 
 /* Reads record type 7, subtype 18, which lists custom
    attributes on individual variables.  */

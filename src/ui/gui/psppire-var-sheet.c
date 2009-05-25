@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -362,11 +362,6 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 
 	customEntry =
 	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
-
-	if ( var_is_long_string (var))
-	  g_object_set (customEntry,
-			"editable", FALSE,
-			NULL);
 
 	val_labs_dialog_set_target_variable (vs->val_labs_dialog, var);
 

@@ -785,12 +785,7 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
 
       /* Assign the value label to each variable. */
       for (j = 0; j < nv; j++)
-	{
-	  struct variable *var = v[j];
-
-	  if (!var_is_long_string (var))
-            var_replace_value_label (var, &val, label);
-	}
+        var_replace_value_label (v[j], &val, label);
 
       value_destroy (&val, var_get_width (v[0]));
     }

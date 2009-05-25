@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -89,16 +89,9 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 
       if (var_has_value_labels (s))
         {
-          if (!var_is_long_string (t))
-            {
-              const struct val_labs *value_labels = var_get_value_labels (s);
-              if (val_labs_can_set_width (value_labels, var_get_width (t)))
-                var_set_value_labels (s, value_labels);
-            }
-          else
-            msg (SW, _("Cannot add value labels from source file to "
-                       "long string variable %s."),
-                 var_get_name (s));
+          const struct val_labs *value_labels = var_get_value_labels (s);
+          if (val_labs_can_set_width (value_labels, var_get_width (t)))
+            var_set_value_labels (s, value_labels);
         }
 
       if (var_has_missing_values (s))

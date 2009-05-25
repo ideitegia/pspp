@@ -550,7 +550,6 @@ var_set_value_labels (struct variable *v, const struct val_labs *vls)
 static void
 alloc_value_labels (struct variable *v)
 {
-  assert (!var_is_long_string (v));
   if (v->val_labs == NULL)
     v->val_labs = val_labs_create (v->width);
 }

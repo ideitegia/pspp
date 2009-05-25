@@ -109,6 +109,8 @@ static void write_encoding_record (struct sfm_writer *w,
 static void write_vls_length_table (struct sfm_writer *w,
 			      const struct dictionary *dict);
 
+static void write_long_string_value_labels (struct sfm_writer *,
+                                            const struct dictionary *);
 
 static void write_variable_display_parameters (struct sfm_writer *w,
                                                const struct dictionary *dict);
@@ -244,6 +246,8 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     write_longvar_table (w, d);
 
   write_vls_length_table (w, d);
+
+  write_long_string_value_labels (w, d);
 
   if (attrset_count (dict_get_attributes (d)))
     write_data_file_attributes (w, d);
@@ -492,7 +496,10 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 }
 
 /* Writes the value labels for variable V having system file
-   variable index IDX to system file W. */
+   variable index IDX to system file W.
+
+   Value labels for long string variables are written separately,
+   by write_long_string_value_labels. */
 static void
 write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 {
@@ -503,7 +510,7 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
 
   val_labs = var_get_value_labels (v);
   n_labels = val_labs_count (val_labs);
-  if (n_labels == 0)
+  if (n_labels == 0 || var_get_width (v) > 8)
     return;
 
   /* Value label record. */
@@ -669,6 +676,71 @@ write_vls_length_table (struct sfm_writer *w,
   ds_destroy (&map);
 }
 
+
+static void
+write_long_string_value_labels (struct sfm_writer *w,
+                                const struct dictionary *dict)
+{
+  size_t n_vars = dict_get_var_cnt (dict);
+  size_t size, i;
+  off_t start UNUSED;
+
+  /* Figure out the size in advance. */
+  size = 0;
+  for (i = 0; i < n_vars; i++)
+    {
+      struct variable *var = dict_get_var (dict, i);
+      const struct val_labs *val_labs = var_get_value_labels (var);
+      int width = var_get_width (var);
+      const struct val_lab *val_lab;
+
+      if (val_labs_count (val_labs) == 0 || width < 9)
+        continue;
+
+      size += 12 + strlen (var_get_name (var));
+      for (val_lab = val_labs_first (val_labs); val_lab != NULL;
+           val_lab = val_labs_next (val_labs, val_lab))
+        size += 8 + width + strlen (val_lab_get_label (val_lab));
+    }
+  if (size == 0)
+    return;
+
+  write_int (w, 7);             /* Record type. */
+  write_int (w, 21);            /* Record subtype */
+  write_int (w, 1);             /* Data item (byte) size. */
+  write_int (w, size);          /* Number of data items. */
+
+  start = ftello (w->file);
+  for (i = 0; i < n_vars; i++)
+    {
+      struct variable *var = dict_get_var (dict, i);
+      const struct val_labs *val_labs = var_get_value_labels (var);
+      const char *var_name = var_get_name (var);
+      int width = var_get_width (var);
+      const struct val_lab *val_lab;
+
+      if (val_labs_count (val_labs) == 0 || width < 9)
+        continue;
+
+      write_int (w, strlen (var_name));
+      write_bytes (w, var_name, strlen (var_name));
+      write_int (w, width);
+      write_int (w, val_labs_count (val_labs));
+      for (val_lab = val_labs_first (val_labs); val_lab != NULL;
+           val_lab = val_labs_next (val_labs, val_lab))
+        {
+          const char *label = val_lab_get_label (val_lab);
+          size_t label_length = strlen (label);
+
+          write_int (w, width);
+          write_bytes (w, value_str (val_lab_get_value (val_lab), width),
+                       width);
+          write_int (w, label_length);
+          write_bytes (w, label, label_length);
+        }
+    }
+  assert (ftello (w->file) == start + size);
+}
 
 static void
 write_encoding_record (struct sfm_writer *w,

@@ -8,7 +8,7 @@
 
 # change 'tests => 1' to 'tests => last_test_to_print';
 
-use Test::More tests => 37;
+use Test::More tests => 36;
 use Text::Diff;
 use File::Temp qw/ tempfile tempdir /;
 BEGIN { use_ok('PSPP') };
@@ -243,9 +243,7 @@ RESULT
 
       $longstr->set_label ("My Long String");
       my $re = $longstr->add_value_label ("xxx", "xfoo");
-      ok (($re == 0), "Long strings cant have labels");
-
-      ok ($PSPP::errstr eq "Cannot add label to a long string variable", "Error msg");
+      ok ($re, "Value label for long string");
 
       $int->set_missing_values (9, 99);
 
@@ -259,36 +257,38 @@ GET FILE='$tempfile'.
 DISPLAY DICTIONARY.
 SYNTAX
 1.1 DISPLAY.  
-+----------+-----------------------------------------+--------+
-|Variable  |Description                              |Position|
-#==========#=========================================#========#
-|integer   |My Integer                               |       1|
-|          |Format: F8.0                             |        |
-|          |Measure: Scale                           |        |
-|          |Display Alignment: Right                 |        |
-|          |Display Width: 8                         |        |
-|          |Missing Values: 9; 99                    |        |
-|          +-----+-----------------------------------+        |
-|          |    0|Zero                               |        |
-|          |    1|Unity                              |        |
-|          |    2|Duality                            |        |
-+----------+-----+-----------------------------------+--------+
-|string    |My String                                |       2|
-|          |Format: A8                               |        |
-|          |Measure: Nominal                         |        |
-|          |Display Alignment: Left                  |        |
-|          |Display Width: 8                         |        |
-|          |Missing Values: "this    "; "that    "   |        |
-|          +-----+-----------------------------------+        |
-|          |   xx|foo                                |        |
-|          |   yy|bar                                |        |
-+----------+-----+-----------------------------------+--------+
-|longstring|My Long String                           |       3|
-|          |Format: A9                               |        |
-|          |Measure: Nominal                         |        |
-|          |Display Alignment: Left                  |        |
-|          |Display Width: 9                         |        |
-+----------+-----------------------------------------+--------+
++----------+---------------------------------------------+--------+
+|Variable  |Description                                  |Position|
+#==========#=============================================#========#
+|integer   |My Integer                                   |       1|
+|          |Format: F8.0                                 |        |
+|          |Measure: Scale                               |        |
+|          |Display Alignment: Right                     |        |
+|          |Display Width: 8                             |        |
+|          |Missing Values: 9; 99                        |        |
+|          +---------+-----------------------------------+        |
+|          |        0|Zero                               |        |
+|          |        1|Unity                              |        |
+|          |        2|Duality                            |        |
++----------+---------+-----------------------------------+--------+
+|string    |My String                                    |       2|
+|          |Format: A8                                   |        |
+|          |Measure: Nominal                             |        |
+|          |Display Alignment: Left                      |        |
+|          |Display Width: 8                             |        |
+|          |Missing Values: "this    "; "that    "       |        |
+|          +---------+-----------------------------------+        |
+|          | xx      |foo                                |        |
+|          | yy      |bar                                |        |
++----------+---------+-----------------------------------+--------+
+|longstring|My Long String                               |       3|
+|          |Format: A9                                   |        |
+|          |Measure: Nominal                             |        |
+|          |Display Alignment: Left                      |        |
+|          |Display Width: 9                             |        |
+|          +---------+-----------------------------------+        |
+|          |xxx      |xfoo                               |        |
++----------+---------+-----------------------------------+--------+
 
 RESULT
 

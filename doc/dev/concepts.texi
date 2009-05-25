@@ -1005,12 +1005,7 @@ All of the values in a set of value labels have the same width, which
 for a set of value labels owned by a variable (the common case) is the
 same as its variable.
 
-Numeric and short string sets of value labels may contain any number
-of entries.  Long string sets of value labels may not contain any
-value labels at all, due to a corresponding restriction in SPSS.  In
-PSPP we could easily eliminate this restriction, but doing so would
-also require us to extend the system file format in an incompatible
-way, which we consider a bad tradeoff.
+Sets of value labels may contain any number of entries.
 
 It is rarely necessary to interact directly with a @struct{val_labs}
 object.  Instead, the most common operation, looking up the label for
@@ -1091,31 +1086,24 @@ value in it may be resized to that width, as determined by
 Changes the width of @var{val_labs}'s values to @var{new_width}, which
 must be a valid new width as determined by
 @func{val_labs_can_set_width}.
-
-If @var{new_width} is a long string width, this function deletes all
-value labels from @var{val_labs}.
 @end deftypefun
 
 @node Value Labels Adding and Removing Labels
 @subsection Adding and Removing Labels
 
 These functions add and remove value labels from a @struct{val_labs}
-object.  These functions apply only to numeric and short string sets
-of value labels.  They have no effect on long string sets of value
-labels, since these sets are always empty.
+object.
 
 @deftypefun bool val_labs_add (struct val_labs *@var{val_labs}, union value @var{value}, const char *@var{label})
 Adds @var{label} to in @var{var_labs} as a label for @var{value},
 which must have the same width as the set of value labels.  Returns
-true if successful, false if @var{value} already has a label or if
-@var{val_labs} has long string width.
+true if successful, false if @var{value} already has a label.
 @end deftypefun
 
 @deftypefun void val_labs_replace (struct val_labs *@var{val_labs}, union value @var{value}, const char *@var{label})
 Adds @var{label} to in @var{var_labs} as a label for @var{value},
 which must have the same width as the set of value labels.  If
 @var{value} already has a label in @var{var_labs}, it is replaced.
-Has no effect if @var{var_labs} has long string width.
 @end deftypefun
 
 @deftypefun bool val_labs_remove (struct val_labs *@var{val_labs}, union value @var{value})
@@ -1433,11 +1421,10 @@ the variable (making a second copy):
 @deftypefun bool var_add_value_label (struct variable *@var{var}, const union value *@var{value}, const char *@var{label})
 Attempts to add a copy of @var{label} as a label for @var{value} for
 the given @var{var}.  @var{value} must have the same width as
-@var{var}.  If @var{value} already has a label, then the old
-label is retained.  Returns true if a label is added, false if there
-was an existing label for @var{value} or if @var{var} is a long string
-variable.  Either way, the caller retains ownership of @var{value} and
-@var{label}.
+@var{var}.  If @var{value} already has a label, then the old label is
+retained.  Returns true if a label is added, false if there was an
+existing label for @var{value}.  Either way, the caller retains
+ownership of @var{value} and @var{label}.
 @end deftypefun
 
 @deftypefun void var_replace_value_label (struct variable *@var{var}, const union value *@var{value}, const char *@var{label})
@@ -1446,8 +1433,6 @@ the given @var{var}.  @var{value} must have the same width as
 @var{var}.  If @var{value} already has a label, then
 @var{label} replaces the old label.  Either way, the caller retains
 ownership of @var{value} and @var{label}.
-
-If @var{var} is a long string variable, this function has no effect.
 @end deftypefun
 
 @node Variable Print and Write Formats

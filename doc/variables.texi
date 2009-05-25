@@ -342,8 +342,7 @@ stand for a long value.
 
 To set up value labels for a set of variables, specify the
 variable names after a slash (@samp{/}), followed by a list of values
-and their associated labels, separated by spaces.  Long string
-variables may not be specified.
+and their associated labels, separated by spaces.
 
 Before @cmd{VALUE LABELS} is executed, any existing value labels
 are cleared from the variables specified.  Use @cmd{ADD VALUE LABELS}

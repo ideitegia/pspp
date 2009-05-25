@@ -36,6 +36,8 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+#define VAR_NAME_LEN 64
+
 struct sfm_reader
   {
     const char *file_name;
@@ -68,7 +70,8 @@ static void read_variable_attributes (struct sfm_reader *r,
                                       size_t size, size_t count);
 static void read_character_encoding (struct sfm_reader *r,
 				       size_t size, size_t count);
-
+static void read_long_string_value_labels (struct sfm_reader *r,
+                                           size_t size, size_t count);
 
 static struct text_record *open_text_record (
   struct sfm_reader *, size_t size);
@@ -517,6 +520,10 @@ read_extension_record (struct sfm_reader *r)
       read_character_encoding (r, size, count);
       return;
 
+    case 21:
+      read_long_string_value_labels (r, size, count);
+      return;
+
     default:
       sys_warn (r, _("Unrecognized record type 7, subtype %d."), subtype);
       break;
@@ -729,6 +736,65 @@ read_character_encoding (struct sfm_reader *r, size_t size, size_t count)
   printf ("%08lx: Character Encoding: %s\n", posn, encoding);
 }
 
+static void
+read_long_string_value_labels (struct sfm_reader *r, size_t size, size_t count)
+{
+  const long start = ftell (r->file);
+
+  printf ("%08lx: long string value labels\n", start);
+  while (ftell (r->file) - start < size * count)
+    {
+      long posn = ftell (r->file);
+      char var_name[VAR_NAME_LEN + 1];
+      int var_name_len;
+      int n_values;
+      int width;
+      int i;
+
+      /* Read variable name. */
+      var_name_len = read_int (r);
+      if (var_name_len > VAR_NAME_LEN)
+        sys_error (r, _("Variable name length in long string value label "
+                        "record (%d) exceeds %d-byte limit."),
+                   var_name_len, VAR_NAME_LEN);
+      read_string (r, var_name, var_name_len + 1);
+
+      /* Read width, number of values. */
+      width = read_int (r);
+      n_values = read_int (r);
+
+      printf ("\t%08lx: %s, width %d, %d values\n",
+              posn, var_name, width, n_values);
+
+      /* Read values. */
+      for (i = 0; i < n_values; i++)
+	{
+          char *value;
+          int value_length;
+
+          char *label;
+	  int label_length;
+
+          posn = ftell (r->file);
+
+          /* Read value. */
+          value_length = read_int (r);
+          value = xmalloc (value_length + 1);
+          read_string (r, value, value_length + 1);
+
+          /* Read label. */
+          label_length = read_int (r);
+          label = xmalloc (label_length + 1);
+          read_string (r, label, label_length + 1);
+
+          printf ("\t\t%08lx: \"%s\" (%d bytes) => \"%s\" (%d bytes)\n",
+                  posn, value, value_length, label, label_length);
+
+          free (value);
+          free (label);
+	}
+    }
+}
 
 static void
 read_variable_attributes (struct sfm_reader *r, size_t size, size_t count) 
