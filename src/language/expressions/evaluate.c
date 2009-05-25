@@ -177,7 +177,6 @@ cmd_debug_evaluate (struct lexer *lexer, struct dataset *dsother UNUSED)
 
           if (!parse_value (lexer, case_data_rw (c, v), var_get_width (v)))
             NOT_REACHED ();
-          lex_get (lexer);
 
           if (!lex_force_match (lexer, ')'))
             goto done;
