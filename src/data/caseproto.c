@@ -330,7 +330,7 @@ caseproto_refresh_long_string_cache__ (const struct caseproto *proto_)
                                  * sizeof *proto->long_strings);
   n = 0;
   for (i = 0; i < proto->n_widths; i++)
-    if (proto->widths[i] >= MIN_LONG_STRING)
+    if (proto->widths[i] > MAX_SHORT_STRING)
       proto->long_strings[n++] = i;
   assert (n == proto->n_long_strings);
 }
@@ -406,6 +406,6 @@ count_long_strings (const struct caseproto *proto, size_t idx, size_t count)
 
   n = 0;
   for (i = 0; i < count; i++)
-    n += proto->widths[idx + i] >= MIN_LONG_STRING;
+    n += proto->widths[idx + i] > MAX_SHORT_STRING;
   return n;
 }

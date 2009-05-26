@@ -24,7 +24,6 @@
 #include "xalloc.h"
 
 #define MAX_SHORT_STRING 8
-#define MIN_LONG_STRING (MAX_SHORT_STRING + 1)
 
 /* A numeric or string value.
 
@@ -148,7 +147,7 @@ static inline const char *
 value_str (const union value *v, int width)
 {
   assert (width > 0);
-  return (width >= MIN_LONG_STRING ? v->long_string : v->short_string);
+  return (width > MAX_SHORT_STRING ? v->long_string : v->short_string);
 }
 
 /* Returns the string value in V, which must have width WIDTH.
@@ -162,7 +161,7 @@ static inline char *
 value_str_rw (union value *v, int width)
 {
   assert (width > 0);
-  return (width >= MIN_LONG_STRING ? v->long_string : v->short_string);
+  return (width > MAX_SHORT_STRING ? v->long_string : v->short_string);
 }
 
 /* Copies SRC to DST, given that they both contain data of the

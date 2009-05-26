@@ -192,8 +192,8 @@ value_needs_resize (int old_width, int new_width)
      anyway in hopes of saving memory.) */
   return (old_width != new_width
            && (new_width > old_width
-               || old_width >= MIN_LONG_STRING
-               || new_width >= MIN_LONG_STRING));
+               || old_width > MAX_SHORT_STRING
+               || new_width > MAX_SHORT_STRING));
 }
 
 /* Same as value_init, except that memory for VALUE (if

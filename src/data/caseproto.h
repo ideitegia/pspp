@@ -183,8 +183,8 @@ caseproto_get_n_widths (const struct caseproto *proto)
 void caseproto_refresh_long_string_cache__ (const struct caseproto *);
 
 /* Returns the number of long string widths in PROTO; that is,
-   the number of widths in PROTO that are greater than or equal
-   to MIN_LONG_STRING. */
+   the number of widths in PROTO that are greater than to
+   MAX_SHORT_STRING. */
 static inline size_t
 caseproto_get_n_long_strings (const struct caseproto *proto)
 {
@@ -193,7 +193,7 @@ caseproto_get_n_long_strings (const struct caseproto *proto)
 
 /* Given long string width IDX1, returns a value IDX2 for which
    caseproto_get_width(PROTO, IDX2) will return a value greater
-   than or equal to MIN_LONG_STRING.  IDX1 must be less than
+   than MAX_SHORT_STRING.  IDX1 must be less than
    caseproto_get_n_long_strings(PROTO), and IDX2 will be less
    than caseproto_get_n_widths(PROTO). */
 static inline size_t
