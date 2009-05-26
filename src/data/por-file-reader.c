@@ -819,7 +819,6 @@ por_file_casereader_read (struct casereader *reader, void *r_)
   struct pfm_reader *r = r_;
   struct ccase *volatile c;
   size_t i;
-  size_t idx;
 
   c = case_create (r->proto);
   setjmp (r->bail_out);
@@ -837,22 +836,17 @@ por_file_casereader_read (struct casereader *reader, void *r_)
       return NULL;
     }
 
-  idx = 0;
   for (i = 0; i < r->var_cnt; i++)
     {
       int width = caseproto_get_width (r->proto, i);
 
       if (width == 0)
-        {
-          case_data_rw_idx (c, idx)->f = read_float (r);
-          idx++;
-        }
+        case_data_rw_idx (c, i)->f = read_float (r);
       else
         {
           char string[256];
           read_string (r, string);
-          buf_copy_str_rpad (case_str_rw_idx (c, idx), width, string, ' ');
-          idx += DIV_RND_UP (width, MAX_SHORT_STRING);
+          buf_copy_str_rpad (case_str_rw_idx (c, i), width, string, ' ');
         }
     }
 
