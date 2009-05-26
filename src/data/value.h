@@ -23,6 +23,11 @@
 #include <string.h>
 #include "xalloc.h"
 
+/* Maximum length of a "short" string, that is represented in
+   "union value" without a separate pointer.
+
+   This is an implementation detail of the "union value" code.
+   There is little reason for client code to use it. */
 #define MAX_SHORT_STRING 8
 
 /* A numeric or string value.
