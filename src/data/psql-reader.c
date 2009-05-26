@@ -54,6 +54,9 @@ psql_open_reader (struct psql_read_info *info UNUSED, struct dictionary **dict U
 #include <libpq-fe.h>
 
 
+/* Default width of string variables. */
+#define PSQL_DEFAULT_WIDTH 8
+
 /* These macros  must be the same as in catalog/pg_types.h from the postgres source */
 #define BOOLOID            16
 #define BYTEAOID           17
@@ -376,7 +379,7 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
       if ( n_tuples > 0 )
 	length = PQgetlength (qres, 0, i);
       else 
-	length = MAX_SHORT_STRING;
+	length = PSQL_DEFAULT_WIDTH;
 
       switch (type)
 	{
@@ -403,13 +406,13 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 	case BPCHAROID:
 	  fmt.type = FMT_A;
 	  width = (info->str_width == -1) ?
-	    ROUND_UP (length, MAX_SHORT_STRING) : info->str_width;
+	    ROUND_UP (length, PSQL_DEFAULT_WIDTH) : info->str_width;
 	  fmt.w = width;
 	  fmt.d = 0;
           break;
 	case BYTEAOID:
 	  fmt.type = FMT_AHEX;
-	  width = length > 0 ? length : MAX_SHORT_STRING;
+	  width = length > 0 ? length : PSQL_DEFAULT_WIDTH;
 	  fmt.w = width * 2;
 	  fmt.d = 0;
 	  break;
@@ -448,14 +451,14 @@ psql_open_reader (struct psql_read_info *info, struct dictionary **dict)
 	default:
           msg (MW, _("Unsupported OID %d.  SYSMIS values will be inserted."), type);
 	  fmt.type = FMT_A;
-	  width = length > 0 ? length : MAX_SHORT_STRING;
+	  width = length > 0 ? length : PSQL_DEFAULT_WIDTH;
 	  fmt.w = width ;
 	  fmt.d = 0;
 	  break;
 	}
 
       if ( width == 0 && fmt_is_string (fmt.type))
-	fmt.w = width = MAX_SHORT_STRING;
+	fmt.w = width = PSQL_DEFAULT_WIDTH;
 
 
       var = create_var (r, &fmt, width, PQfname (qres, i), i);

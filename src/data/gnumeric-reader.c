@@ -60,6 +60,8 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 #include <data/identifier.h>
 #include <assert.h>
 
+/* Default width of string variables. */
+#define GNUMERIC_DEFAULT_WIDTH 8
 
 static void gnm_file_casereader_destroy (struct casereader *, void *);
 
@@ -476,7 +478,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
 	      if (-1 ==  var_spec [idx].width )
 		var_spec [idx].width = (gri->asw == -1) ?
-		  ROUND_UP (strlen(text), MAX_SHORT_STRING) : gri->asw;
+		  ROUND_UP (strlen(text), GNUMERIC_DEFAULT_WIDTH) : gri->asw;
 	    }
 
 	  free (value);
@@ -510,7 +512,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
       /* Probably no data exists for this variable, so allocate a
 	 default width */
       if ( var_spec[i].width == -1 )
-	var_spec[i].width = MAX_SHORT_STRING;
+	var_spec[i].width = GNUMERIC_DEFAULT_WIDTH;
 
       if  ( ! dict_make_unique_var_name (r->dict, var_spec[i].name,
 					 &vstart, name))
