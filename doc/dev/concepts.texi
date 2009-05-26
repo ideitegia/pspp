@@ -743,28 +743,7 @@ variable, is most conveniently executed through functions on
 A @struct{missing_values} is essentially a set of @union{value}s that
 have a common value width (@pxref{Values}).  For a set of
 missing values associated with a variable (the common case), the set's
-width is the same as the variable's width.  The contents of a set of
-missing values is subject to some restrictions.  Regardless of width,
-a set of missing values is allowed to be empty.  Otherwise, its
-possible contents depend on its width:
-
-@table @asis
-@item 0 (numeric values)
-Up to three discrete numeric values, or a range of numeric values
-(which includes both ends of the range), or a range plus one discrete
-numeric value.
-
-@item 1@dots{}@t{MAX_SHORT_STRING} - 1 (short string values)
-Up to three discrete string values (with the same width as the set).
-
-@item @t{MAX_SHORT_STRING}@dots{}@t{MAX_STRING} (long string values)
-Always empty.
-@end table
-
-These somewhat arbitrary restrictions are the same as those imposed by
-SPSS.  In PSPP we could easily eliminate these restrictions, but doing
-so would also require us to extend the system file format in an
-incompatible way, which we consider a bad tradeoff.
+width is the same as the variable's width.
 
 Function prototypes and other declarations related to missing values
 are declared in @file{data/missing-values.h}.
@@ -773,18 +752,37 @@ are declared in @file{data/missing-values.h}.
 Opaque type that represents a set of missing values.
 @end deftp
 
+The contents of a set of missing values is subject to some
+restrictions.  Regardless of width, a set of missing values is allowed
+to be empty.  A set of numeric missing values may contain up to three
+discrete numeric values, or a range of numeric values (which includes
+both ends of the range), or a range plus one discrete numeric value.
+A set of string missing values may contain up to three discrete string
+values (with the same width as the set), but ranges are not supported.
+
+In addition, values in string missing values wider than
+@code{MV_MAX_STRING} bytes may contain non-space characters only in
+their first @code{MV_MAX_STRING} bytes; all the bytes after the first
+@code{MV_MAX_STRING} must be spaces.  @xref{mv_is_acceptable}, for a
+function that tests a value against these constraints.
+
+@deftypefn Macro int MV_MAX_STRING
+Number of bytes in a string missing value that are not required to be
+spaces.  The current value is 8, a value which is fixed by the system
+file format.  In PSPP we could easily eliminate this restriction, but
+doing so would also require us to extend the system file format in an
+incompatible way, which we consider a bad tradeoff.
+@end deftypefn
+
 The most often useful functions for missing values are those for
 testing whether a given value is missing, described in the following
 section.  Several other functions for creating, inspecting, and
 modifying @struct{missing_values} objects are described afterward, but
-these functions are much more rarely useful.  No function for
-destroying a @struct{missing_values} is provided, because
-@struct{missing_values} does not contain any pointers or other
-references to resources that need deallocation.
+these functions are much more rarely useful.
 
 @menu
 * Testing for Missing Values::
-* Initializing User-Missing Value Sets::
+* Creating and Destroying User-Missing Values::
 * Changing User-Missing Value Set Width::
 * Inspecting User-Missing Value Sets::
 * Modifying User-Missing Value Sets::
@@ -836,13 +834,19 @@ missing.
 @end deftp
 @end deftypefun
 
-@node Initializing User-Missing Value Sets
-@subsection Initializing User-Missing Value Sets
+@node Creating and Destroying User-Missing Values
+@subsection Creation and Destruction
+
+These functions create and destroy @struct{missing_values} objects.
 
 @deftypefun void mv_init (struct missing_values *@var{mv}, int @var{width})
 Initializes @var{mv} as a set of user-missing values.  The set is
 initially empty.  Any values added to it must have the specified
 @var{width}.
+@end deftypefun
+
+@deftypefun void mv_destroy (struct missing_values *@var{mv})
+Destroys @var{mv}, which must not be referred to again.
 @end deftypefun
 
 @deftypefun void mv_copy (struct missing_values *@var{mv}, const struct missing_values *@var{old})
@@ -874,11 +878,9 @@ the required width, may be used instead.
 Tests whether @var{mv}'s width may be changed to @var{new_width} using
 @func{mv_resize}.  Returns true if it is allowed, false otherwise.
 
-If @var{new_width} is a long string width, @var{mv} may be resized
-only if it is empty.  Otherwise, if @var{mv} contains any missing
-values, then it may be resized only if each missing value may be
-resized, as determined by @func{value_is_resizable}
-(@pxref{value_is_resizable}).
+If @var{mv} contains any missing values, then it may be resized only
+if each missing value may be resized, as determined by
+@func{value_is_resizable} (@pxref{value_is_resizable}).
 @end deftypefun
 
 @anchor{mv_resize}
@@ -897,8 +899,8 @@ width.
 These functions inspect the properties and contents of
 @struct{missing_values} objects.
 
-The first set of functions inspects the discrete values that numeric
-and short string sets of user-missing values may contain:
+The first set of functions inspects the discrete values that sets of
+user-missing values may contain:
 
 @deftypefun bool mv_is_empty (const struct missing_values *@var{mv})
 Returns true if @var{mv} contains no user-missing values, false if it
@@ -923,11 +925,12 @@ values, that is, if @func{mv_n_values} would return nonzero for
 @var{mv}.
 @end deftypefun
 
-@deftypefun void mv_get_value (const struct missing_values *@var{mv}, union value *@var{value}, int @var{index})
-Copies the discrete user-missing value in @var{mv} with the given
-@var{index} into @var{value}.  The index must be less than the number
-of discrete user-missing values in @var{mv}, as reported by
-@func{mv_n_values}.
+@deftypefun {const union value *} mv_get_value (const struct missing_values *@var{mv}, int @var{index})
+Returns the discrete user-missing value in @var{mv} with the given
+@var{index}.  The caller must not modify or free the returned value or
+refer to it after modifying or freeing @var{mv}.  The index must be
+less than the number of discrete user-missing values in @var{mv}, as
+reported by @func{mv_n_values}.
 @end deftypefun
 
 The second set of functions inspects the single range of values that
@@ -949,7 +952,7 @@ include a range.
 These functions modify the contents of @struct{missing_values}
 objects.
 
-The first set of functions applies to all sets of user-missing values:
+The next set of functions applies to all sets of user-missing values:
 
 @deftypefun bool mv_add_value (struct missing_values *@var{mv}, const union value *@var{value})
 @deftypefunx bool mv_add_str (struct missing_values *@var{mv}, const char @var{value}[])
@@ -957,8 +960,8 @@ The first set of functions applies to all sets of user-missing values:
 Attempts to add the given discrete @var{value} to set of user-missing
 values @var{mv}.  @var{value} must have the same width as @var{mv}.
 Returns true if @var{value} was successfully added, false if the set
-could not accept any more discrete values.  (Always returns false if
-@var{mv} is a set of long string user-missing values.)
+could not accept any more discrete values or if @var{value} is not an
+acceptable user-missing value (see @func{mv_is_acceptable} below).
 
 These functions are equivalent, except for the form in which
 @var{value} is provided, so you may use whichever function is most
@@ -970,10 +973,22 @@ Removes a discrete value from @var{mv} (which must contain at least
 one discrete value) and stores it in @var{value}.
 @end deftypefun
 
-@deftypefun void mv_replace_value (struct missing_values *@var{mv}, const union value *@var{value}, int @var{index})
-Replaces the discrete value with the given @var{index} in @var{mv}
-(which must contain at least @var{index} + 1 discrete values) with
-@var{value}.
+@deftypefun bool mv_replace_value (struct missing_values *@var{mv}, const union value *@var{value}, int @var{index})
+Attempts to replace the discrete value with the given @var{index} in
+@var{mv} (which must contain at least @var{index} + 1 discrete values)
+by @var{value}.  Returns true if successful, false if @var{value} is
+not an acceptable user-missing value (see @func{mv_is_acceptable}
+below).
+@end deftypefun
+
+@deftypefun bool mv_is_acceptable (const union value *@var{value}, int @var{width})
+@anchor{mv_is_acceptable}
+Returns true if @var{value}, which must have the specified
+@var{width}, may be added to a missing value set of the same
+@var{width}, false if it cannot.  As described above, all numeric
+values and string values of width @code{MV_MAX_STRING} or less may be
+added, but string value of greater width may be added only if bytes
+beyond the first @code{MV_MAX_STRING} are all spaces.
 @end deftypefun
 
 The second set of functions applies only to numeric sets of
@@ -1296,16 +1311,6 @@ Returns true if @var{var} is a numeric variable, false otherwise.
 @deftypefun bool var_is_alpha (const struct variable *@var{var})
 Returns true if @var{var} is an alphanumeric (string) variable, false
 otherwise.
-@end deftypefun
-
-@deftypefun bool var_is_short_string (const struct variable *@var{var})
-Returns true if @var{var} is a string variable of width
-@code{MAX_SHORT_STRING} or less, false otherwise.
-@end deftypefun
-
-@deftypefun bool var_is_long_string (const struct variable *@var{var})
-Returns true if @var{var} is a string variable of width greater than
-@code{MAX_SHORT_STRING}, false otherwise.
 @end deftypefun
 
 @node Variable Missing Values

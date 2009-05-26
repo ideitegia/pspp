@@ -212,9 +212,10 @@ As part of a range, LO or LOWEST may take the place of num1;
 HI or HIGHEST may take the place of num2.
 @end display
 
-@cmd{MISSING VALUES} sets user-missing values for numeric and
-short string variables.  Long string variables may not have missing
-values.
+@cmd{MISSING VALUES} sets user-missing values for numeric and string
+variables.  Long string variables may have missing values, but
+characters after the first 8 bytes of the missing value must be
+spaces.
 
 Specify a list of variables, followed by a list of their user-missing
 values in parentheses.  Up to three discrete values may be given, or,

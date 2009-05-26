@@ -59,8 +59,6 @@ void var_set_width (struct variable *, int width);
 
 bool var_is_numeric (const struct variable *);
 bool var_is_alpha (const struct variable *);
-bool var_is_short_string (const struct variable *);
-bool var_is_long_string (const struct variable *);
 
 /* Variables' missing values. */
 const struct missing_values *var_get_missing_values (const struct variable *);

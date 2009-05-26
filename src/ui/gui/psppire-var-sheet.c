@@ -381,12 +381,6 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	customEntry =
 	  PSPPIRE_CUSTOM_ENTRY (psppire_sheet_get_entry (sheet));
 
-	if ( var_is_long_string (var))
-	  g_object_set (customEntry,
-			"editable", FALSE,
-			NULL);
-
-
 	vs->missing_val_dialog->pv =
 	  psppire_var_store_get_var (var_store, row);
 

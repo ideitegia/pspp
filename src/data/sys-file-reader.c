@@ -552,7 +552,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
       struct missing_values mv;
       int i;
 
-      mv_init (&mv, var_get_width (var));
+      mv_init_pool (r->pool, &mv, var_get_width (var));
       if (var_is_numeric (var))
         {
           if (missing_value_code < -3 || missing_value_code > 3
@@ -571,21 +571,24 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
         }
       else
         {
+          int mv_width = MAX (width, 8);
+          union value value;
+
           if (missing_value_code < 1 || missing_value_code > 3)
             sys_error (r, _("String missing value indicator field is not "
                             "0, 1, 2, or 3."));
-          if (var_is_long_string (var))
-            sys_warn (r, _("Ignoring missing values on long string variable "
-                           "%s, which PSPP does not yet support."), name);
+
+          value_init (&value, mv_width);
+          value_set_missing (&value, mv_width);
           for (i = 0; i < missing_value_code; i++)
             {
-              char string[9];
-              read_string (r, string, sizeof string);
-              mv_add_str (&mv, string);
+              char *s = value_str_rw (&value, mv_width);
+              read_bytes (r, s, 8);
+              mv_add_str (&mv, s);
             }
+          value_destroy (&value, mv_width);
         }
-      if (!var_is_long_string (var))
-        var_set_missing_values (var, &mv);
+      var_set_missing_values (var, &mv);
     }
 
   /* Set formats. */
@@ -1203,7 +1206,7 @@ read_value_labels (struct sfm_reader *r,
   for (i = 0; i < var_cnt; i++)
     {
       var[i] = lookup_var_by_value_idx (r, var_by_value_idx, read_int (r));
-      if (var_is_long_string (var[i]))
+      if (var_get_width (var[i]) > 8)
         sys_error (r, _("Value labels may not be added to long string "
                         "variables (e.g. %s) using records types 3 and 4."),
                    var_get_name (var[i]));

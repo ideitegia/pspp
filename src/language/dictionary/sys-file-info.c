@@ -582,18 +582,18 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
   /* Missing values if any. */
   if (flags & DF_MISSING_VALUES && var_has_missing_values (v))
     {
+      const struct missing_values *mv = var_get_missing_values (v);
       char buf[128];
       char *cp;
-      struct missing_values mv;
       int cnt = 0;
+      int i;
 
       cp = stpcpy (buf, _("Missing Values: "));
 
-      mv_copy (&mv, var_get_missing_values (v));
-      if (mv_has_range (&mv))
+      if (mv_has_range (mv))
         {
           double x, y;
-          mv_pop_range (&mv, &x, &y);
+          mv_get_range (mv, &x, &y);
           if (x == LOWEST)
             cp += sprintf (cp, "LOWEST THRU %g", y);
           else if (y == HIGHEST)
@@ -602,24 +602,24 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
             cp += sprintf (cp, "%g THRU %g", x, y);
           cnt++;
         }
-      while (mv_has_value (&mv))
+      for (i = 0; i < mv_n_values (mv); i++)
         {
-          union value value;
-          mv_pop_value (&mv, &value);
+          const union value *value = mv_get_value (mv, i);
           if (cnt++ > 0)
             cp += sprintf (cp, "; ");
           if (var_is_numeric (v))
-            cp += sprintf (cp, "%g", value.f);
+            cp += sprintf (cp, "%g", value->f);
           else
             {
+              int width = var_get_width (v);
+              int mv_width = MIN (width, MV_MAX_STRING);
+
               *cp++ = '"';
-	      memcpy (cp, value_str (&value, var_get_width (v)),
-                      var_get_width (v));
-	      cp += var_get_width (v);
+	      memcpy (cp, value_str (value, width), mv_width);
+	      cp += mv_width;
 	      *cp++ = '"';
               *cp = '\0';
             }
-          value_destroy (&value, var_get_width (v));
         }
 
       tab_joint_text (t, 1, r, 2, r, TAB_LEFT, buf);

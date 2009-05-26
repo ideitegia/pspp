@@ -98,32 +98,31 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
             }
           else
             {
-	      struct string value;
-
-              mv_init (&mv, MAX_SHORT_STRING);
+              mv_init (&mv, MV_MAX_STRING);
               while (!lex_match (lexer, ')'))
                 {
+                  char value[MV_MAX_STRING];
+                  size_t length;
+
                   if (!lex_force_string (lexer))
                     {
                       deferred_errors = true;
                       break;
                     }
 
-		  ds_init_string (&value, lex_tokstr (lexer));
-
-                  if (ds_length (&value) > MAX_SHORT_STRING)
+                  length = ds_length (lex_tokstr (lexer));
+                  if (length > MV_MAX_STRING)
                     {
-                      ds_truncate (&value, MAX_SHORT_STRING);
-                      msg (SE, _("Truncating missing value to short string "
-                                 "length (%d characters)."),
-                           MAX_SHORT_STRING);
+                      msg (SE, _("Truncating missing value to maximum "
+                                 "acceptable length (%d bytes)."),
+                           MV_MAX_STRING);
+                      length = MV_MAX_STRING;
                     }
-                  else
-                    ds_rpad (&value, MAX_SHORT_STRING, ' ');
+                  memset (value, ' ', MV_MAX_STRING);
+                  memcpy (value, ds_data (lex_tokstr (lexer)), length);
 
-                  if (!mv_add_str (&mv, ds_data (&value)))
+                  if (!mv_add_str (&mv, value))
                     deferred_errors = true;
-		  ds_destroy (&value);
 
                   lex_get (lexer);
                   lex_match (lexer, ',');
@@ -142,6 +141,8 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
                   deferred_errors = true;
                 }
             }
+
+          mv_destroy (&mv);
         }
 
       lex_match (lexer, '/');

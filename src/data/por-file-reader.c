@@ -43,6 +43,7 @@
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -606,8 +607,7 @@ assign_default:
   return fmt_default_for_width (var_get_width (v));
 }
 
-static void parse_value (struct pfm_reader *, struct variable *,
-                         union value *);
+static void parse_value (struct pfm_reader *, int width, union value *);
 
 /* Read information on all the variables.  */
 static void
@@ -686,7 +686,7 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       var_set_write_format (v, &write);
 
       /* Range missing values. */
-      mv_init (&miss, var_get_width (v));
+      mv_init (&miss, width);
       if (match (r, 'B'))
         {
           double x = read_float (r);
@@ -701,13 +701,17 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
       /* Single missing values. */
       while (match (r, '8'))
         {
+          int mv_width = MIN (width, 8);
           union value value;
-          parse_value (r, v, &value);
+
+          parse_value (r, mv_width, &value);
+          value_resize (&value, mv_width, width);
           mv_add_value (&miss, &value);
-          value_destroy (&value, var_get_width (v));
+          value_destroy (&value, width);
         }
 
       var_set_missing_values (v, &miss);
+      mv_destroy (&miss);
 
       if (match (r, 'C'))
         {
@@ -728,16 +732,16 @@ read_variables (struct pfm_reader *r, struct dictionary *dict)
     }
 }
 
-/* Parse a value for variable VV into value V. */
+/* Parse a value of with WIDTH into value V. */
 static void
-parse_value (struct pfm_reader *r, struct variable *vv, union value *v)
+parse_value (struct pfm_reader *r, int width, union value *v)
 {
-  value_init (v, var_get_width (vv));
-  if (var_is_alpha (vv))
+  value_init (v, width);
+  if (width > 0)
     {
       char string[256];
       read_string (r, string);
-      buf_copy_str_rpad (value_str_rw (v, 8), 8, string, ' ');
+      value_copy_str_rpad (v, width, string, ' ');
     }
   else
     v->f = read_float (r);
@@ -780,7 +784,7 @@ read_value_label (struct pfm_reader *r, struct dictionary *dict)
       char label[256];
       int j;
 
-      parse_value (r, v[0], &val);
+      parse_value (r, var_get_width (v[0]), &val);
       read_string (r, label);
 
       /* Assign the value label to each variable. */

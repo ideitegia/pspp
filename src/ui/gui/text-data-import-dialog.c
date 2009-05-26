@@ -310,11 +310,9 @@ apply_dict (const struct dictionary *dict, struct string *s)
           syntax_gen_pspp (s, "MISSING VALUES %ss (", name);
           for (j = 0; j < mv_n_values (mv); j++)
             {
-              union value value;
               if (j)
                 ds_put_cstr (s, ", ");
-              mv_get_value (mv, &value, j);
-              syntax_gen_value (s, &value, width, format);
+              syntax_gen_value (s, mv_get_value (mv, j), width, format);
             }
 
           if (mv_has_range (mv))

@@ -307,15 +307,15 @@ write_format (struct pfm_writer *w, struct fmt_spec f, int width)
   write_int (w, f.d);
 }
 
-/* Write value V for variable VV to file H. */
+/* Write value V with width WIDTH to file H. */
 static void
-write_value (struct pfm_writer *w, const union value *v, struct variable *vv)
+write_value (struct pfm_writer *w, const union value *v, int width)
 {
-  if (var_is_numeric (vv))
+  if (width == 0)
     write_float (w, v->f);
   else
     {
-      int width = MIN (var_get_width (vv), MAX_POR_WIDTH);
+      width = MIN (width, MAX_POR_WIDTH);
       write_int (w, width);
       buf_write (w, value_str (v, width), width);
     }
@@ -344,6 +344,7 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
       struct variable *v = dict_get_var (dict, i);
       struct missing_values mv;
       int width = MIN (var_get_width (v), MAX_POR_WIDTH);
+      int j;
 
       buf_write (w, "7", 1);
       write_int (w, width);
@@ -353,10 +354,12 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
 
       /* Write missing values. */
       mv_copy (&mv, var_get_missing_values (v));
-      while (mv_has_range (&mv))
+      if (var_get_width (v) > 8)
+        mv_resize (&mv, 8);
+      if (mv_has_range (&mv))
         {
           double x, y;
-          mv_pop_range (&mv, &x, &y);
+          mv_get_range (&mv, &x, &y);
           if (x == LOWEST)
             {
               buf_write (w, "9", 1);
@@ -374,13 +377,12 @@ write_variables (struct pfm_writer *w, struct dictionary *dict)
               write_float (w, y);
             }
         }
-      while (mv_has_value (&mv))
+      for (j = 0; j < mv_n_values (&mv); j++)
         {
-          union value value;
-          mv_pop_value (&mv, &value);
           buf_write (w, "8", 1);
-          write_value (w, &value, v);
+          write_value (w, mv_get_value (&mv, j), mv_get_width (&mv));
         }
+      mv_destroy (&mv);
 
       /* Write variable label. */
       if (var_get_label (v) != NULL)
@@ -417,7 +419,7 @@ write_value_labels (struct pfm_writer *w, const struct dictionary *dict)
       for (i = 0; i < n_labels; i++)
         {
           const struct val_lab *vl = labels[i];
-          write_value (w, val_lab_get_value (vl), v);
+          write_value (w, val_lab_get_value (vl), var_get_width (v));
           write_string (w, val_lab_get_label (vl));
         }
       free (labels);

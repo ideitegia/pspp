@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2005, 2006  Free Software Foundation
+   Copyright (C) 2005, 2006, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -320,9 +320,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       if ( mv_has_value (&dialog->mvl))
 	{
 	  gchar *text;
-	  union value value;
-	  mv_get_value (&dialog->mvl, &value, 0);
-	  text = value_to_text (value, *write_spec);
+	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), *write_spec);
 	  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), text);
 	  g_free (text);
 	}
@@ -342,10 +340,9 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	  if ( i < n)
 	    {
 	      gchar *text ;
-	      union value value;
 
-	      mv_get_value (&dialog->mvl, &value, i);
-	      text = value_to_text (value, *write_spec);
+	      text = value_to_text (*mv_get_value (&dialog->mvl, i),
+                                    *write_spec);
 	      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), text);
 	      g_free (text);
 	    }

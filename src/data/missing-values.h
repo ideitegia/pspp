@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,17 +24,23 @@
           user-missing values, or a range of numeric values, or a
           range plus one discrete value.
 
-        - Short string variables may have up to 3 discrete string
-          user-missing values.
-
-        - Long string variables may not have user-missing
-          values. */
+        - String variables may have up to 3 discrete string
+          user-missing values.  (However, for long string
+          variables all bytes after the first MV_MAX_STRING must
+          be spaces.)
+*/
 
 #ifndef DATA_MISSING_VALUES_H
 #define DATA_MISSING_VALUES_H 1
 
 #include <stdbool.h>
 #include "data/value.h"
+
+struct pool;
+
+/* Missing values for long string variables after the first
+   MV_MAX_STRING bytes must be all spaces. */
+#define MV_MAX_STRING 8
 
 /* Missing values.
    Opaque--use access functions defined below. */
@@ -63,6 +69,8 @@ bool mv_is_str_missing (const struct missing_values *, const char[],
 
 /* Initializing missing value sets. */
 void mv_init (struct missing_values *, int width);
+void mv_init_pool (struct pool *pool, struct missing_values *, int width);
+void mv_destroy (struct missing_values *);
 void mv_copy (struct missing_values *, const struct missing_values *);
 void mv_clear (struct missing_values *);
 
@@ -71,13 +79,14 @@ bool mv_is_resizable (const struct missing_values *, int width);
 void mv_resize (struct missing_values *, int width);
 
 /* Basic property inspection. */
+bool mv_is_acceptable (const union value *, int width);
 bool mv_is_empty (const struct missing_values *);
 int mv_get_width (const struct missing_values *);
 
 /* Inspecting discrete values. */
 int mv_n_values (const struct missing_values *);
 bool mv_has_value (const struct missing_values *);
-void mv_get_value (const struct missing_values *, union value *, int idx);
+const union value *mv_get_value (const struct missing_values *, int idx);
 
 /* Inspecting ranges. */
 bool mv_has_range (const struct missing_values *);
@@ -88,7 +97,7 @@ bool mv_add_value (struct missing_values *, const union value *);
 bool mv_add_str (struct missing_values *, const char[]);
 bool mv_add_num (struct missing_values *, double);
 void mv_pop_value (struct missing_values *, union value *);
-void mv_replace_value (struct missing_values *, const union value *, int idx);
+bool mv_replace_value (struct missing_values *, const union value *, int idx);
 
 /* Adding and modifying ranges. */
 bool mv_add_range (struct missing_values *, double low, double high);

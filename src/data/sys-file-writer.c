@@ -425,7 +425,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   int width = var_get_width (v);
   int segment_cnt = sfm_width_to_segments (width);
   int seg0_width = sfm_segment_alloc_width (width, 0);
-  const struct missing_values *mv = var_get_missing_values (v);
+  struct missing_values mv;
   int i;
 
   /* Record type. */
@@ -440,7 +440,13 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   /* Number of missing values.  If there is a range, then the
      range counts as 2 missing values and causes the number to be
      negated. */
-  write_int (w, mv_has_range (mv) ? -2 - mv_n_values (mv) : mv_n_values (mv));
+  mv_copy (&mv, var_get_missing_values (v));
+  if (mv_get_width (&mv) > 8)
+    mv_resize (&mv, 8);
+  if (mv_has_range (&mv))
+    write_int (w, -2 - mv_n_values (&mv));
+  else
+    write_int (w, mv_n_values (&mv));
 
   /* Print and write formats. */
   write_format (w, *var_get_print_format (v), seg0_width);
@@ -461,19 +467,15 @@ write_variable (struct sfm_writer *w, const struct variable *v)
     }
 
   /* Write the missing values, if any, range first. */
-  if (mv_has_range (mv))
+  if (mv_has_range (&mv))
     {
       double x, y;
-      mv_get_range (mv, &x, &y);
+      mv_get_range (&mv, &x, &y);
       write_float (w, x);
       write_float (w, y);
     }
-  for (i = 0; i < mv_n_values (mv); i++)
-    {
-      union value value;
-      mv_get_value (mv, &value, i);
-      write_value (w, &value, seg0_width);
-    }
+  for (i = 0; i < mv_n_values (&mv); i++)
+    write_value (w, mv_get_value (&mv, i), mv_get_width (&mv));
 
   write_variable_continuation_records (w, seg0_width);
 
@@ -493,6 +495,8 @@ write_variable (struct sfm_writer *w, const struct variable *v)
 
       write_variable_continuation_records (w, seg_width);
     }
+
+  mv_destroy (&mv);
 }
 
 /* Writes the value labels for variable V having system file

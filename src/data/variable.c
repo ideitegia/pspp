@@ -183,6 +183,7 @@ var_destroy (struct variable *v)
 	  const struct vardict_info *vdi = var_get_vardict (v);
 	  assert (vdi->dict == NULL);
 	}
+      mv_destroy (&v->miss);
       cat_stored_values_destroy (v->obs_vals);
       var_clear_short_names (v);
       var_clear_aux (v);
@@ -390,7 +391,10 @@ var_set_width (struct variable *v, int new_width)
   if (mv_is_resizable (&v->miss, new_width))
     mv_resize (&v->miss, new_width);
   else
-    mv_init (&v->miss, new_width);
+    {
+      mv_destroy (&v->miss);
+      mv_init (&v->miss, new_width);
+    }
 
   if (v->val_labs != NULL)
     {
@@ -425,22 +429,6 @@ var_is_alpha (const struct variable *v)
 {
   return var_get_type (v) == VAL_STRING;
 }
-
-/* Returns true if variable V is a short string variable, false
-   otherwise. */
-bool
-var_is_short_string (const struct variable *v)
-{
-  return v->width > 0 && v->width <= MAX_SHORT_STRING;
-}
-
-/* Returns true if variable V is a long string variable, false
-   otherwise. */
-bool
-var_is_long_string (const struct variable *v)
-{
-  return v->width > MAX_SHORT_STRING;
-}
 
 /* Returns variable V's missing values. */
 const struct missing_values *
@@ -459,11 +447,12 @@ var_set_missing_values (struct variable *v, const struct missing_values *miss)
   if (miss != NULL)
     {
       assert (mv_is_resizable (miss, v->width));
+      mv_destroy (&v->miss);
       mv_copy (&v->miss, miss);
       mv_resize (&v->miss, v->width);
     }
   else
-    mv_init (&v->miss, v->width);
+    mv_clear (&v->miss);
 
   dict_var_changed (v);
 }

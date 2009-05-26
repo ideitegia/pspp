@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2009-05-24 16:40:48 blp>
+Time-stamp: <2009-05-24 22:25:04 blp>
 Copyright (C) 1996-9, 2000, 2008, 2009 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -10,6 +10,8 @@ Changes from 0.7.1 to 0.7.2:
  * Updated Perl module interface.
 
  * Value labels for long string variables are now supported.
+
+ * Missing values for long string variables are now supported.
 
 Changes from 0.7.0 to 0.7.1:
 

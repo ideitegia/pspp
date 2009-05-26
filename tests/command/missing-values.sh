@@ -66,7 +66,8 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create program"
 cat > $TEMPDIR/missing-values.stat << foobar
-DATA LIST NOTABLE/str1 1-5 (A) str2 6-8 (A) date1 9-19 (DATE) num1 20-25.
+DATA LIST NOTABLE/str1 1-5 (A) str2 6-8 (A) date1 9-19 (DATE) num1 20-25
+                  longstr 26-36 (A).
 
 /* Valid: numeric missing values.
 MISSING VALUES date1 num1 (1).
@@ -96,10 +97,13 @@ MISSING VALUES num1 (1 THRU HI, -1).
 MISSING VALUES num1 (1 THRU HIGHEST, -1).
 
 /* Valid: string missing values.
-MISSING VALUES str1 str2 ('abc  ','def').
+MISSING VALUES str1 str2 longstr ('abc  ','def').
 
 /* Invalid: too long for str2.
-MISSING VALUES str1 str2 ('abcde').
+MISSING VALUES str1 str2 longstr ('abcde').
+
+/* Invalid: long string missing value longer than 8 bytes.
+MISSING VALUES longstr ('abcdefghijk').
 
 /* Invalid: no string ranges.
 MISSING VALUES str1 ('a' THRU 'z').
@@ -120,11 +124,12 @@ $SUPERVISOR $PSPP --testing-mode --error-file=$TEMPDIR/errs $TEMPDIR/missing-val
 if [ $? -eq 0 ] ; then fail ; fi
 
 activity="compare error messages"
-diff -w $TEMPDIR/errs - <<EOF
-$TEMPDIR/missing-values.stat:34: error: MISSING VALUES: Missing values provided are too long to assign to variable of width 3.
-$TEMPDIR/missing-values.stat:37: error: MISSING VALUES: Syntax error expecting string at \`THRU'.
-$TEMPDIR/missing-values.stat:37: error: MISSING VALUES: THRU is not a variable name.
-$TEMPDIR/missing-values.stat:40: error: MISSING VALUES: Cannot mix numeric variables (e.g. num1) and string variables (e.g. str1) within a single list.
+diff -u -w $TEMPDIR/errs - <<EOF
+$TEMPDIR/missing-values.stat:35: error: MISSING VALUES: Missing values provided are too long to assign to variable of width 3.
+$TEMPDIR/missing-values.stat:38: error: MISSING VALUES: Truncating missing value to maximum acceptable length (8 bytes).
+$TEMPDIR/missing-values.stat:41: error: MISSING VALUES: Syntax error expecting string at \`THRU'.
+$TEMPDIR/missing-values.stat:41: error: MISSING VALUES: THRU is not a variable name.
+$TEMPDIR/missing-values.stat:44: error: MISSING VALUES: Cannot mix numeric variables (e.g. num1) and string variables (e.g. str1) within a single list.
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 

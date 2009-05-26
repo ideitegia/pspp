@@ -96,16 +96,9 @@ cmd_apply_dictionary (struct lexer *lexer, struct dataset *ds)
 
       if (var_has_missing_values (s))
         {
-          if (!var_is_long_string (t))
-            {
-              const struct missing_values *miss = var_get_missing_values (s);
-              if (mv_is_resizable (miss, var_get_width (t)))
-                var_set_missing_values (t, miss);
-            }
-          else
-            msg (SW, _("Cannot apply missing values from source file to "
-                       "long string variable %s."),
-                 var_get_name (s));
+          const struct missing_values *miss = var_get_missing_values (s);
+          if (mv_is_resizable (miss, var_get_width (t)))
+            var_set_missing_values (t, miss);
         }
 
       if (var_is_numeric (s))

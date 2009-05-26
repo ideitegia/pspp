@@ -379,9 +379,7 @@ spaces.
 Variables, whether numeric or string, can have designated
 @dfn{user-missing values}.  Every user-missing value is an actual value
 for that variable.  However, most of the time user-missing values are
-treated in the same way as the system-missing value.  String variables
-that are wider than a certain width, usually 8 characters (depending on
-computer architecture), cannot have user-missing values.
+treated in the same way as the system-missing value.
 
 For more information on missing values, see the following sections:
 @ref{Variables}, @ref{MISSING VALUES}, @ref{Expressions}.  See also the

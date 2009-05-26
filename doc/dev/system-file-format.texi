@@ -289,15 +289,20 @@ length @code{label_len}, rounded up to the nearest multiple of 32 bits.
 The first @code{label_len} characters are the variable's variable label.
 
 @item flt64 missing_values[];
-This field is present only if @code{n_missing_values} is not 0.  It has
-the same number of elements as the absolute value of
-@code{n_missing_values}.  For discrete missing values, each element
-represents one missing value.  When a range is present, the first
-element denotes the minimum value in the range, and the second element
-denotes the maximum value in the range.  When a range plus a value are
-present, the third element denotes the additional discrete missing
-value.  HIGHEST and LOWEST are indicated as described in the chapter
-introduction.
+This field is present only if @code{n_missing_values} is nonzero.  It
+has the same number of 8-byte elements as the absolute value of
+@code{n_missing_values}.  Each element is interpreted as a number for
+numeric variables (with HIGHEST and LOWEST indicated as described in
+the chapter introduction).  For string variables of width less than 8
+bytes, elements are right-padded with spaces; for string variables
+wider than 8 bytes, only the first 8 bytes of each missing value are
+specified, with the remainder implicitly all spaces.
+
+For discrete missing values, each element represents one missing
+value.  When a range is present, the first element denotes the minimum
+value in the range, and the second element denotes the maximum value
+in the range.  When a range plus a value are present, the third
+element denotes the additional discrete missing value.
 @end table
 
 The @code{print} and @code{write} members of sysfile_variable are output
