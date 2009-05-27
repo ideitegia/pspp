@@ -16,7 +16,6 @@ dist_TESTS = \
 	tests/command/beg-data.sh \
 	tests/command/bignum.sh \
 	tests/command/count.sh \
-	tests/command/datasheet.sh \
 	tests/command/data-list.sh \
 	tests/command/do-if.sh \
 	tests/command/do-repeat.sh \
@@ -151,6 +150,7 @@ dist_TESTS = \
 	tests/bugs/temp-freq.sh \
 	tests/bugs/print-crash.sh \
 	tests/bugs/keep-all.sh \
+	tests/data/datasheet-test.sh \
 	tests/libpspp/sparse-xarray-test.sh \
 	tests/output/paper-size.sh \
 	tests/xforms/recode.sh \
@@ -194,8 +194,13 @@ TESTS = $(dist_TESTS) $(nodist_TESTS)
 
 check_PROGRAMS += \
 	$(nodist_TESTS) \
+	tests/data/datasheet-test \
 	tests/formats/inexactify \
 	tests/libpspp/sparse-xarray-test
+
+tests_data_datasheet_test_SOURCES = \
+	tests/data/datasheet-test.c
+tests_data_datasheet_test_LDADD = src/libpspp-core.la @LIBINTL@ 
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \

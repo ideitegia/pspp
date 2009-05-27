@@ -17,7 +17,6 @@
 #include <config.h>
 
 #include <data/datasheet.h>
-#include "datasheet-check.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +25,7 @@
 #include <data/casereader.h>
 #include <data/casewriter.h>
 #include <data/lazy-casereader.h>
+#include <libpspp/argv-parser.h>
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
 #include <libpspp/hash-functions.h>
@@ -37,8 +37,8 @@
 #include <libpspp/tower.h>
 
 #include "minmax.h"
+#include "progname.h"
 #include "xalloc.h"
-
 
 /* lazy_casereader callback function to instantiate a casereader
    from the datasheet. */
@@ -55,6 +55,18 @@ lazy_callback (void *ds_)
 #define MAX_ROWS 5
 #define MAX_COLS 5
 
+/* Test params. */
+struct datasheet_test_params
+  {
+    /* Parameters. */
+    int max_rows;               /* Maximum number of rows. */
+    int max_cols;               /* Maximum number of columns. */
+    int backing_rows;           /* Number of rows of backing store. */
+    int backing_cols;           /* Number of columns of backing store. */
+
+    /* State. */
+    int next_value;
+  };
 
 static bool
 check_caseproto (struct mc *mc, const struct caseproto *benchmark,
@@ -662,18 +674,81 @@ datasheet_mc_destroy (const struct mc *mc UNUSED, void *ds_)
   struct datasheet *ds = ds_;
   datasheet_destroy (ds);
 }
+
+enum
+  {
+    OPT_MAX_ROWS,
+    OPT_MAX_COLUMNS,
+    OPT_BACKING_ROWS,
+    OPT_BACKING_COLUMNS,
+    OPT_HELP,
+    N_DATASHEET_OPTIONS
+  };
 
-/* Executes the model checker on the datasheet test driver with
-   the given OPTIONS and passing in the given PARAMS, which must
-   point to a modifiable "struct datasheet_test_params".  If any
-   value in PARAMS is out of range, it will be adjusted into the
-   valid range before running the test.
+static struct argv_option datasheet_argv_options[N_DATASHEET_OPTIONS] =
+  {
+    {"max-rows", 0, required_argument, OPT_MAX_ROWS},
+    {"max-columns", 0, required_argument, OPT_MAX_COLUMNS},
+    {"backing-rows", 0, required_argument, OPT_BACKING_ROWS},
+    {"backing-columns", 0, required_argument, OPT_BACKING_COLUMNS},
+    {"help", 'h', no_argument, OPT_HELP},
+  };
 
-   Returns the results of the model checking run. */
-struct mc_results *
-datasheet_test (struct mc_options *options UNUSED, void *params_ UNUSED)
+static void usage (void);
+
+static void
+datasheet_option_callback (int id, void *params_)
 {
   struct datasheet_test_params *params = params_;
+  switch (id)
+    {
+    case OPT_MAX_ROWS:
+      params->max_rows = atoi (optarg);
+      break;
+
+    case OPT_MAX_COLUMNS:
+      params->max_cols = atoi (optarg);
+      break;
+
+    case OPT_BACKING_ROWS:
+      params->backing_rows = atoi (optarg);
+      break;
+
+    case OPT_BACKING_COLUMNS:
+      params->backing_cols = atoi (optarg);
+      break;
+
+    case OPT_HELP:
+      usage ();
+      break;
+
+    default:
+      NOT_REACHED ();
+    }
+}
+
+static void
+usage (void)
+{
+  printf ("%s, for testing the datasheet implementation.\n"
+          "Usage: %s [OPTION]...\n"
+          "\nTest state space parameters (min...max, default):\n"
+          "  --max-rows=N         Maximum number of rows (0...5, 3)\n"
+          "  --max-rows=N         Maximum number of columns (0...5, 3)\n"
+          "  --backing-rows=N     Rows of backing store (0...max_rows, 0)\n"
+          "  --backing-columns=N  Columns of backing store (0...max_cols, 0)\n",
+          program_name, program_name);
+  mc_options_usage ();
+  fputs ("\nOther options:\n"
+         "  --help               Display this help message\n"
+         "\nReport bugs to <bug-gnu-pspp@gnu.org>\n",
+         stdout);
+  exit (0);
+}
+
+int
+main (int argc, char *argv[])
+{
   static const struct mc_class datasheet_mc_class =
     {
       datasheet_mc_init,
@@ -681,12 +756,54 @@ datasheet_test (struct mc_options *options UNUSED, void *params_ UNUSED)
       datasheet_mc_destroy,
     };
 
-  params->next_value = 1;
-  params->max_rows = MIN (params->max_rows, MAX_ROWS);
-  params->max_cols = MIN (params->max_cols, MAX_COLS);
-  params->backing_rows = MIN (params->backing_rows, params->max_rows);
-  params->backing_cols = MIN (params->backing_cols, params->max_cols);
+  struct datasheet_test_params params;
+  struct mc_options *options;
+  struct mc_results *results;
+  struct argv_parser *parser;
+  int verbosity;
+  bool success;
 
-  mc_options_set_aux (options, params);
-  return mc_run (&datasheet_mc_class, options);
+  set_program_name (argv[0]);
+
+  /* Default parameters. */
+  params.max_rows = 3;
+  params.max_cols = 3;
+  params.backing_rows = 0;
+  params.backing_cols = 0;
+  params.next_value = 1;
+
+  /* Parse comand line. */
+  parser = argv_parser_create ();
+  options = mc_options_create ();
+  mc_options_register_argv_parser (options, parser);
+  argv_parser_add_options (parser, datasheet_argv_options, N_DATASHEET_OPTIONS,
+                           datasheet_option_callback, &params);
+  if (!argv_parser_run (parser, argc, argv))
+    exit (EXIT_FAILURE);
+  argv_parser_destroy (parser);
+  verbosity = mc_options_get_verbosity (options);
+
+  /* Force parameters into allowed ranges. */
+  params.max_rows = MIN (params.max_rows, MAX_ROWS);
+  params.max_cols = MIN (params.max_cols, MAX_COLS);
+  params.backing_rows = MIN (params.backing_rows, params.max_rows);
+  params.backing_cols = MIN (params.backing_cols, params.max_cols);
+  mc_options_set_aux (options, &params);
+  results = mc_run (&datasheet_mc_class, options);
+
+  /* Output results. */
+  success = (mc_results_get_stop_reason (results) != MC_MAX_ERROR_COUNT
+             && mc_results_get_stop_reason (results) != MC_INTERRUPTED);
+  if (verbosity > 0 || !success)
+    {
+      printf ("Parameters: "
+              "--max-rows=%d --max-columns=%d "
+              "--backing-rows=%d --backing-columns=%d\n\n",
+              params.max_rows, params.max_cols,
+              params.backing_rows, params.backing_cols);
+      mc_results_print (results, stdout);
+    }
+  mc_results_destroy (results);
+
+  return success ? 0 : EXIT_FAILURE;
 }

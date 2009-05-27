@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -132,7 +132,6 @@ DEF_CMD (S_INPUT_PROGRAM, 0, "END INPUT PROGRAM", cmd_end_input_program)
 DEF_CMD (S_INPUT_PROGRAM, 0, "REREAD", cmd_reread)
 
 /* Commands for testing PSPP. */
-DEF_CMD (S_ANY, F_TESTING, "DEBUG DATASHEET", cmd_debug_datasheet)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG EVALUATE", cmd_debug_evaluate)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG FORMAT GUESSER", cmd_debug_format_guesser)
 DEF_CMD (S_ANY, F_TESTING, "DEBUG MOMENTS", cmd_debug_moments)
