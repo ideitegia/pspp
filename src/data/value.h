@@ -78,6 +78,8 @@ bool value_is_resizable (const union value *, int old_width, int new_width);
 bool value_needs_resize (int old_width, int new_width);
 void value_resize (union value *, int old_width, int new_width);
 
+static inline void value_swap (union value *, union value *);
+
 struct pool;
 void value_init_pool (struct pool *, union value *, int width);
 void value_resize_pool (struct pool *, union value *,
@@ -178,6 +180,15 @@ value_copy (union value *dst, const union value *src, int width)
     *dst = *src;
   else if (dst != src)
     memcpy (dst->long_string, src->long_string, width);
+}
+
+/* Exchanges the contents of A and B. */
+static inline void
+value_swap (union value *a, union value *b)
+{
+  union value tmp = *a;
+  *a = *b;
+  *b = tmp;
 }
 
 #endif /* data/value.h */
