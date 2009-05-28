@@ -18,6 +18,7 @@
 
 #include <data/datasheet.h>
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -36,6 +37,7 @@
 #include <libpspp/taint.h>
 #include <libpspp/tower.h>
 
+#include "error.h"
 #include "minmax.h"
 #include "progname.h"
 #include "xalloc.h"
@@ -54,6 +56,7 @@ lazy_callback (void *ds_)
    purposes. */
 #define MAX_ROWS 5
 #define MAX_COLS 5
+#define MAX_WIDTHS 5
 
 /* Test params. */
 struct datasheet_test_params
@@ -63,6 +66,8 @@ struct datasheet_test_params
     int max_cols;               /* Maximum number of columns. */
     int backing_rows;           /* Number of rows of backing store. */
     int backing_cols;           /* Number of columns of backing store. */
+    int widths[MAX_WIDTHS];     /* Allowed column widths. */
+    int n_widths;
 
     /* State. */
     int next_value;
@@ -471,9 +476,6 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
 {
   struct datasheet_test_params *params = mc_get_aux (mc);
 
-  static const int widths[] = {0, 1, 11};
-  const size_t n_widths = sizeof widths / sizeof *widths;
-
   const struct datasheet *ods = ods_;
   union value odata[MAX_ROWS][MAX_COLS];
   union value data[MAX_ROWS][MAX_COLS];
@@ -487,10 +489,10 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Insert a column in each possible position. */
   if (n_columns < params->max_cols)
     for (pos = 0; pos <= n_columns; pos++)
-      for (width_idx = 0; width_idx < n_widths; width_idx++)
+      for (width_idx = 0; width_idx < params->n_widths; width_idx++)
         if (mc_include_state (mc))
           {
-            int width = widths[width_idx];
+            int width = params->widths[width_idx];
             struct caseproto *proto;
             struct datasheet *ds;
             union value new;
@@ -681,6 +683,7 @@ enum
     OPT_MAX_COLUMNS,
     OPT_BACKING_ROWS,
     OPT_BACKING_COLUMNS,
+    OPT_WIDTHS,
     OPT_HELP,
     N_DATASHEET_OPTIONS
   };
@@ -691,6 +694,7 @@ static struct argv_option datasheet_argv_options[N_DATASHEET_OPTIONS] =
     {"max-columns", 0, required_argument, OPT_MAX_COLUMNS},
     {"backing-rows", 0, required_argument, OPT_BACKING_ROWS},
     {"backing-columns", 0, required_argument, OPT_BACKING_COLUMNS},
+    {"widths", 0, required_argument, OPT_WIDTHS},
     {"help", 'h', no_argument, OPT_HELP},
   };
 
@@ -718,6 +722,37 @@ datasheet_option_callback (int id, void *params_)
       params->backing_cols = atoi (optarg);
       break;
 
+    case OPT_WIDTHS:
+      {
+        int last = -1;
+        char *w;
+
+        params->n_widths = 0;
+        for (w = strtok (optarg, ", "); w != NULL; w = strtok (NULL, ", "))
+          {
+            int value = atoi (w);
+
+            if (params->n_widths >= MAX_WIDTHS)
+              error (1, 0, "Too many widths on --widths (only %d are allowed)",
+                     MAX_WIDTHS);
+            if (!isdigit (w[0]) || value < 0 || value > 31)
+              error (1, 0, "--widths argument must be a list of 1 to %d "
+                     "integers between 0 and 31 in increasing order",
+                     MAX_WIDTHS);
+
+            /* This is an artificial requirement merely to ensure
+               that there are no duplicates.  Duplicates aren't a
+               real problem but they would waste time. */
+            if (value <= last)
+              error (1, 0, "--widths arguments must be in increasing order");
+
+            params->widths[params->n_widths++] = value;
+          }
+        if (params->n_widths == 0)
+          error (1, 0, "at least one value must be specified on --widths");
+      }
+      break;
+
     case OPT_HELP:
       usage ();
       break;
@@ -736,7 +771,9 @@ usage (void)
           "  --max-rows=N         Maximum number of rows (0...5, 3)\n"
           "  --max-rows=N         Maximum number of columns (0...5, 3)\n"
           "  --backing-rows=N     Rows of backing store (0...max_rows, 0)\n"
-          "  --backing-columns=N  Columns of backing store (0...max_cols, 0)\n",
+          "  --backing-columns=N  Columns of backing store (0...max_cols, 0)\n"
+          "  --widths=W[,W]...    Column widths to test, where 0=numeric,\n"
+          "                       other values are string widths (0,1,11)\n",
           program_name, program_name);
   mc_options_usage ();
   fputs ("\nOther options:\n"
@@ -770,6 +807,10 @@ main (int argc, char *argv[])
   params.max_cols = 3;
   params.backing_rows = 0;
   params.backing_cols = 0;
+  params.widths[0] = 0;
+  params.widths[1] = 1;
+  params.widths[2] = 11;
+  params.n_widths = 3;
   params.next_value = 1;
 
   /* Parse comand line. */
@@ -796,11 +837,21 @@ main (int argc, char *argv[])
              && mc_results_get_stop_reason (results) != MC_INTERRUPTED);
   if (verbosity > 0 || !success)
     {
+      int i;
+
       printf ("Parameters: "
               "--max-rows=%d --max-columns=%d "
-              "--backing-rows=%d --backing-columns=%d\n\n",
+              "--backing-rows=%d --backing-columns=%d ",
               params.max_rows, params.max_cols,
               params.backing_rows, params.backing_cols);
+      printf ("--widths=");
+      for (i = 0; i < params.n_widths; i++)
+        {
+          if (i > 0)
+            printf (",");
+          printf ("%d", params.widths[i]);
+        }
+      printf ("\n\n");
       mc_results_print (results, stdout);
     }
   mc_results_destroy (results);
