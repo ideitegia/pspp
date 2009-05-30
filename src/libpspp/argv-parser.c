@@ -78,6 +78,7 @@ argv_parser_add_options (struct argv_parser *ap,
         ap->options = x2nrealloc (ap->options, &ap->allocated_options,
                                   sizeof *ap->options);
 
+      assert (src->long_name != NULL || src->short_name != 0);
       dst = &ap->options[ap->n_options++];
       dst->base = *src;
       dst->cb = cb;
