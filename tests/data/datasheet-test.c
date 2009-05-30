@@ -188,14 +188,6 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
   assert (n_rows < MAX_ROWS);
   assert (n_columns < MAX_COLS);
 
-  /* If it is a duplicate hash, discard the state before checking
-     its consistency, to save time. */
-  if (mc_discard_dup_state (mc, hash_datasheet (ds)))
-    {
-      datasheet_destroy (ds);
-      return;
-    }
-
   /* Check contents of datasheet via datasheet functions. */
   if (!check_caseproto (mc, proto, datasheet_get_proto (ds), "datasheet"))
     {
@@ -316,7 +308,10 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
                   "have been (size %zu,%zu)", n_rows, n_columns);
     }
 
-  mc_add_state (mc, ds);
+  if (mc_discard_dup_state (mc, hash_datasheet (ds)))
+    datasheet_destroy (ds);
+  else
+    mc_add_state (mc, ds);
 }
 
 /* Extracts the contents of DS into DATA. */
