@@ -258,11 +258,16 @@ check_datasheet (struct mc *mc, struct datasheet *ds,
               ds_put_format (&s, "row %zu:", row);
               for (col = 0; col < n_columns; col++)
                 {
+                  int width = caseproto_get_width (proto, col);
                   union value v;
-                  value_init (&v, 0);
+                  value_init (&v, width);
                   if (!datasheet_get_value (ds, row, col, &v))
                     NOT_REACHED ();
-                  ds_put_format (&s, " %g", v.f);
+                  if (width == 0)
+                    ds_put_format (&s, " %g", v.f);
+                  else
+                    ds_put_format (&s, " '%.*s'",
+                                   width, value_str (&v, width));
                 }
               mc_error (mc, "%s", ds_cstr (&s));
             }
