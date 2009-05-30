@@ -456,7 +456,6 @@ datasheet_resize_column (struct datasheet *ds, size_t column, int new_width,
                                             union value *, void *aux),
                          void *resize_cb_aux)
 {
-  /* XXX needs a test. */
   struct column old_col;
   struct column *col;
   int old_width;
@@ -467,15 +466,13 @@ datasheet_resize_column (struct datasheet *ds, size_t column, int new_width,
   old_col = *col;
   old_width = old_col.width;
 
-  if (old_width == new_width)
+  if (new_width == -1)
     {
-      /* FIXME: for consistency, we should call resize_cb() on
-         each row. */
-    }
-  else if (new_width == -1)
-    {
-      datasheet_delete_columns (ds, column, 1);
-      datasheet_insert_column (ds, NULL, -1, column);
+      if (old_width != -1)
+        {
+          datasheet_delete_columns (ds, column, 1);
+          datasheet_insert_column (ds, NULL, -1, column);
+        }
     }
   else if (old_width == -1)
     {
@@ -491,23 +488,24 @@ datasheet_resize_column (struct datasheet *ds, size_t column, int new_width,
   else if (source_has_backing (col->source))
     {
       unsigned long int n_rows = axis_get_size (ds->rows);
+      unsigned long int lrow;
       union value src, dst;
-      size_t row;
 
       source_release_column (col->source, col->byte_ofs, col->width);
       allocate_column (ds, new_width, col);
 
       value_init (&src, old_width);
       value_init (&dst, new_width);
-      for (row = 0; row < n_rows; row++)
+      for (lrow = 0; lrow < n_rows; lrow++)
         {
-          if (!source_read (&old_col, row, &src))
+          unsigned long int prow = axis_map (ds->rows, lrow);
+          if (!source_read (&old_col, prow, &src))
             {
               /* FIXME: back out col changes. */
               return false;
             }
           resize_cb (&src, &dst, resize_cb_aux);
-          if (!source_write (col, row, &dst))
+          if (!source_write (col, prow, &dst))
             {
               /* FIXME: back out col changes. */
               return false;
