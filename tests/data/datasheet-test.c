@@ -525,7 +525,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Delete all possible numbers of columns from all possible
      positions. */
   for (pos = 0; pos < n_columns; pos++)
-    for (cnt = 0; cnt < n_columns - pos; cnt++)
+    for (cnt = 1; cnt < n_columns - pos; cnt++)
       if (mc_include_state (mc))
         {
           struct caseproto *proto;
@@ -555,7 +555,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Move all possible numbers of columns from all possible
      existing positions to all possible new positions. */
   for (pos = 0; pos < n_columns; pos++)
-    for (cnt = 0; cnt < n_columns - pos; cnt++)
+    for (cnt = 1; cnt < n_columns - pos; cnt++)
       for (new_pos = 0; new_pos < n_columns - cnt; new_pos++)
         if (mc_include_state (mc))
           {
@@ -583,7 +583,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Insert all possible numbers of rows in all possible
      positions. */
   for (pos = 0; pos <= n_rows; pos++)
-    for (cnt = 0; cnt <= params->max_rows - n_rows; cnt++)
+    for (cnt = 1; cnt <= params->max_rows - n_rows; cnt++)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
@@ -623,7 +623,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Delete all possible numbers of rows from all possible
      positions. */
   for (pos = 0; pos < n_rows; pos++)
-    for (cnt = 0; cnt < n_rows - pos; cnt++)
+    for (cnt = 1; cnt < n_rows - pos; cnt++)
       if (mc_include_state (mc))
         {
           struct datasheet *ds;
@@ -645,7 +645,7 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
   /* Move all possible numbers of rows from all possible existing
      positions to all possible new positions. */
   for (pos = 0; pos < n_rows; pos++)
-    for (cnt = 0; cnt < n_rows - pos; cnt++)
+    for (cnt = 1; cnt < n_rows - pos; cnt++)
       for (new_pos = 0; new_pos < n_rows - cnt; new_pos++)
         if (mc_include_state (mc))
           {
