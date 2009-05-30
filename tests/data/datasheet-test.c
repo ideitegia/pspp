@@ -70,7 +70,7 @@ struct datasheet_test_params
     int n_widths;
 
     /* State. */
-    int next_value;
+    unsigned int next_value;
   };
 
 static bool
@@ -454,10 +454,10 @@ datasheet_mc_init (struct mc *mc)
 }
 
 static void
-value_from_param (union value *value, int width, int idx)
+value_from_param (union value *value, int width, unsigned int idx)
 {
   if (width == 0)
-    value->f = idx;
+    value->f = idx & 0xffff;
   else
     {
       unsigned int hash = hash_int (idx, 0);
@@ -468,6 +468,21 @@ value_from_param (union value *value, int width, int idx)
       for (offset = 0; offset < width; offset++)
         string[offset] = "ABCDEFGHIJ"[(hash >> offset) % 10];
     }
+}
+
+struct resize_cb_aux
+  {
+    int old_width;
+    int new_width;
+  };
+
+static void
+resize_cb (const union value *old_value, union value *new_value, void *aux_)
+{
+  struct resize_cb_aux *aux = aux_;
+
+  value_from_param (new_value, aux->new_width,
+                    value_hash (old_value, aux->old_width, 0));
 }
 
 /* "mutate" function for struct mc_class. */
@@ -523,6 +538,46 @@ datasheet_mc_mutate (struct mc *mc, const void *ods_)
             release_data (n_rows, proto, data);
             caseproto_unref (proto);
           }
+
+  /* Resize each column to each possible new size. */
+  for (pos = 0; pos < n_columns; pos++)
+    for (width_idx = 0; width_idx < params->n_widths; width_idx++)
+      {
+        int owidth = caseproto_get_width (oproto, pos);
+        int width = params->widths[width_idx];
+        if (mc_include_state (mc))
+          {
+            struct resize_cb_aux aux;
+            struct caseproto *proto;
+            struct datasheet *ds;
+            size_t i;
+
+            mc_name_operation (mc, "resize column %zu (of %zu) "
+                               "from width %d to %d",
+                               pos, n_columns, owidth, width);
+            clone_model (ods, odata, &ds, data);
+
+            aux.old_width = owidth;
+            aux.new_width = width;
+            if (!datasheet_resize_column (ds, pos, width, resize_cb, &aux))
+              NOT_REACHED ();
+            proto = caseproto_set_width (caseproto_ref (oproto), pos, width);
+
+            for (i = 0; i < n_rows; i++)
+              {
+                union value *old_value = &data[i][pos];
+                union value new_value;
+                value_init (&new_value, width);
+                resize_cb (old_value, &new_value, &aux);
+                value_swap (old_value, &new_value);
+                value_destroy (&new_value, owidth);
+              }
+
+            check_datasheet (mc, ds, data, n_rows, proto);
+            release_data (n_rows, proto, data);
+            caseproto_unref (proto);
+          }
+      }
 
   /* Delete all possible numbers of columns from all possible
      positions. */
