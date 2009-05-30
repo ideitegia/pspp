@@ -15,17 +15,12 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 /* This is a test program for the sparse array routines defined
-   in sparse-xarray.c.  This test program aims to be as
-   comprehensive as possible.  "gcov -b" should report 100%
-   coverage of lines and branches in sparse-xarray.c when
-   compiled with -DNDEBUG.  "valgrind --leak-check=yes
-   --show-reachable=yes" should give a clean report. */
+   in sparse-xarray.c. */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-#include <getopt.h>
 #include <assert.h>
 #include <limits.h>
 #include <stdint.h>
@@ -40,7 +35,6 @@
 #include <libpspp/sparse-xarray.h>
 #include <libpspp/str.h>
 
-#include "error.h"
 #include "minmax.h"
 #include "progname.h"
 #include "xalloc.h"
@@ -495,10 +489,11 @@ enum
     OPT_NO_WRITE_ROWS,
     OPT_NO_WRITE_COLUMNS,
     OPT_NO_COPY_COLUMNS,
-    OPT_HELP
+    OPT_HELP,
+    N_SPARSE_XARRAY_OPTIONS
   };
 
-static struct argv_option sparse_xarray_argv_options[] =
+static struct argv_option sparse_xarray_argv_options[N_SPARSE_XARRAY_OPTIONS] =
   {
     {"columns", 0, required_argument, OPT_COLUMNS},
     {"max-rows", 0, required_argument, OPT_MAX_ROWS},
@@ -511,8 +506,6 @@ static struct argv_option sparse_xarray_argv_options[] =
     {"no-copy-columns", 0, no_argument, OPT_NO_COPY_COLUMNS},
     {"help", 'h', no_argument, OPT_HELP},
   };
-enum { N_SPARSE_XARRAY_ARGV_OPTIONS = (sizeof sparse_xarray_argv_options
-                                       / sizeof *sparse_xarray_argv_options) };
 
 static void
 sparse_xarray_option_callback (int id, void *params_)
@@ -600,7 +593,7 @@ main (int argc, char *argv[])
   options = mc_options_create ();
   mc_options_register_argv_parser (options, parser);
   argv_parser_add_options (parser, sparse_xarray_argv_options,
-                           N_SPARSE_XARRAY_ARGV_OPTIONS,
+                           N_SPARSE_XARRAY_OPTIONS,
                            sparse_xarray_option_callback, &params);
   if (!argv_parser_run (parser, argc, argv))
     exit (EXIT_FAILURE);
