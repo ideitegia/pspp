@@ -65,7 +65,8 @@ struct datasheet_test_params
     int max_rows;               /* Maximum number of rows. */
     int max_cols;               /* Maximum number of columns. */
     int backing_rows;           /* Number of rows of backing store. */
-    int backing_cols;           /* Number of columns of backing store. */
+    int backing_widths[MAX_COLS]; /* Widths of columns of backing store. */
+    int n_backing_cols;           /* Number of columns of backing store. */
     int widths[MAX_WIDTHS];     /* Allowed column widths. */
     int n_widths;
 
@@ -395,6 +396,23 @@ clone_model (const struct datasheet *ods,
               odata, data);
 }
 
+static void
+value_from_param (union value *value, int width, unsigned int idx)
+{
+  if (width == 0)
+    value->f = idx & 0xffff;
+  else
+    {
+      unsigned int hash = hash_int (idx, 0);
+      char *string = value_str_rw (value, width);
+      int offset;
+
+      assert (width < 32);
+      for (offset = 0; offset < width; offset++)
+        string[offset] = "ABCDEFGHIJ"[(hash >> offset) % 10];
+    }
+}
+
 /* "init" function for struct mc_class. */
 static void
 datasheet_mc_init (struct mc *mc)
@@ -402,7 +420,7 @@ datasheet_mc_init (struct mc *mc)
   struct datasheet_test_params *params = mc_get_aux (mc);
   struct datasheet *ds;
 
-  if (params->backing_rows == 0 && params->backing_cols == 0)
+  if (params->backing_rows == 0 && params->n_backing_cols == 0)
     {
       /* Create unbacked datasheet. */
       ds = datasheet_create (NULL);
@@ -419,12 +437,12 @@ datasheet_mc_init (struct mc *mc)
       int row, col;
 
       assert (params->backing_rows > 0 && params->backing_rows <= MAX_ROWS);
-      assert (params->backing_cols > 0 && params->backing_cols <= MAX_COLS);
+      assert (params->n_backing_cols > 0
+              && params->n_backing_cols <= MAX_COLS);
 
-      /* XXX support different backing column widths */
       proto = caseproto_create ();
-      for (col = 0; col < params->backing_cols; col++)
-        proto = caseproto_add_width (proto, 0);
+      for (col = 0; col < params->n_backing_cols; col++)
+        proto = caseproto_add_width (proto, params->backing_widths[col]);
 
       writer = mem_writer_create (proto);
       for (row = 0; row < params->backing_rows; row++)
@@ -432,41 +450,27 @@ datasheet_mc_init (struct mc *mc)
           struct ccase *c;
 
           c = case_create (proto);
-          for (col = 0; col < params->backing_cols; col++)
+          for (col = 0; col < params->n_backing_cols; col++)
             {
-              double value = params->next_value++;
-              data[row][col].f = value;
-              case_data_rw_idx (c, col)->f = value;
+              int width = params->backing_widths[col];
+              union value *value = &data[row][col];
+              value_init (value, width);
+              value_from_param (value, width, params->next_value++);
+              value_copy (case_data_rw_idx (c, col), value, width);
             }
           casewriter_write (writer, c);
         }
-      caseproto_unref (proto);
 
       reader = casewriter_make_reader (writer);
       assert (reader != NULL);
 
       ds = datasheet_create (reader);
       mc_name_operation (mc, "datasheet with (%d,%d) backing",
-                         params->backing_rows, params->backing_cols);
+                         params->backing_rows, params->n_backing_cols);
       check_datasheet (mc, ds, data,
                        params->backing_rows, proto);
-    }
-}
-
-static void
-value_from_param (union value *value, int width, unsigned int idx)
-{
-  if (width == 0)
-    value->f = idx & 0xffff;
-  else
-    {
-      unsigned int hash = hash_int (idx, 0);
-      char *string = value_str_rw (value, width);
-      int offset;
-
-      assert (width < 32);
-      for (offset = 0; offset < width; offset++)
-        string[offset] = "ABCDEFGHIJ"[(hash >> offset) % 10];
+      release_data (params->backing_rows, proto, data);
+      caseproto_unref (proto);
     }
 }
 
@@ -737,7 +741,7 @@ enum
     OPT_MAX_ROWS,
     OPT_MAX_COLUMNS,
     OPT_BACKING_ROWS,
-    OPT_BACKING_COLUMNS,
+    OPT_BACKING_WIDTHS,
     OPT_WIDTHS,
     OPT_HELP,
     N_DATASHEET_OPTIONS
@@ -748,7 +752,7 @@ static struct argv_option datasheet_argv_options[N_DATASHEET_OPTIONS] =
     {"max-rows", 0, required_argument, OPT_MAX_ROWS},
     {"max-columns", 0, required_argument, OPT_MAX_COLUMNS},
     {"backing-rows", 0, required_argument, OPT_BACKING_ROWS},
-    {"backing-columns", 0, required_argument, OPT_BACKING_COLUMNS},
+    {"backing-widths", 0, required_argument, OPT_BACKING_WIDTHS},
     {"widths", 0, required_argument, OPT_WIDTHS},
     {"help", 'h', no_argument, OPT_HELP},
   };
@@ -773,8 +777,25 @@ datasheet_option_callback (int id, void *params_)
       params->backing_rows = atoi (optarg);
       break;
 
-    case OPT_BACKING_COLUMNS:
-      params->backing_cols = atoi (optarg);
+    case OPT_BACKING_WIDTHS:
+      {
+        char *w;
+
+        params->n_backing_cols = 0;
+        for (w = strtok (optarg, ", "); w != NULL; w = strtok (NULL, ", "))
+          {
+            int value = atoi (w);
+
+            if (params->n_backing_cols >= MAX_COLS)
+              error (1, 0, "Too many widths on --backing-widths "
+                     "(only %d are allowed)", MAX_COLS);
+            if (!isdigit (w[0]) || value < 0 || value > 31)
+              error (1, 0, "--backing-widths argument must be a list of 1 to "
+                     "%d integers between 0 and 31 in increasing order",
+                     MAX_COLS);
+            params->backing_widths[params->n_backing_cols++] = value;
+          }
+      }
       break;
 
     case OPT_WIDTHS:
@@ -826,7 +847,7 @@ usage (void)
           "  --max-rows=N         Maximum number of rows (0...5, 3)\n"
           "  --max-rows=N         Maximum number of columns (0...5, 3)\n"
           "  --backing-rows=N     Rows of backing store (0...max_rows, 0)\n"
-          "  --backing-columns=N  Columns of backing store (0...max_cols, 0)\n"
+          "  --backing-widths=W[,W]...  Backing store widths to test (0=num)\n"
           "  --widths=W[,W]...    Column widths to test, where 0=numeric,\n"
           "                       other values are string widths (0,1,11)\n",
           program_name, program_name);
@@ -861,7 +882,7 @@ main (int argc, char *argv[])
   params.max_rows = 3;
   params.max_cols = 3;
   params.backing_rows = 0;
-  params.backing_cols = 0;
+  params.n_backing_cols = 0;
   params.widths[0] = 0;
   params.widths[1] = 1;
   params.widths[2] = 11;
@@ -883,7 +904,7 @@ main (int argc, char *argv[])
   params.max_rows = MIN (params.max_rows, MAX_ROWS);
   params.max_cols = MIN (params.max_cols, MAX_COLS);
   params.backing_rows = MIN (params.backing_rows, params.max_rows);
-  params.backing_cols = MIN (params.backing_cols, params.max_cols);
+  params.n_backing_cols = MIN (params.n_backing_cols, params.max_cols);
   mc_options_set_aux (options, &params);
   results = mc_run (&datasheet_mc_class, options);
 
@@ -894,11 +915,18 @@ main (int argc, char *argv[])
     {
       int i;
 
-      printf ("Parameters: "
-              "--max-rows=%d --max-columns=%d "
-              "--backing-rows=%d --backing-columns=%d ",
-              params.max_rows, params.max_cols,
-              params.backing_rows, params.backing_cols);
+      printf ("Parameters: --max-rows=%d --max-columns=%d --backing-rows=%d ",
+              params.max_rows, params.max_cols, params.backing_rows);
+
+      printf ("--backing-widths=");
+      for (i = 0; i < params.n_backing_cols; i++)
+        {
+          if (i > 0)
+            printf (",");
+          printf ("%d", params.backing_widths[i]);
+        }
+      printf (" ");
+
       printf ("--widths=");
       for (i = 0; i < params.n_widths; i++)
         {
