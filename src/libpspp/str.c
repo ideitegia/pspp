@@ -1071,6 +1071,34 @@ ds_set_length (struct string *st, size_t new_length, char pad)
     st->ss.length = new_length;
 }
 
+/* Removes N characters from ST starting at offset START. */
+void
+ds_remove (struct string *st, size_t start, size_t n)
+{
+  if (n > 0 && start < st->ss.length)
+    {
+      if (st->ss.length - start <= n)
+        {
+          /* All characters at or beyond START are deleted. */
+          st->ss.length = start;
+        }
+      else
+        {
+          /* Some characters remain and must be shifted into
+             position. */
+          memmove (st->ss.string + st->ss.length,
+                   st->ss.string + st->ss.length + n,
+                   st->ss.length - start - n);
+          st->ss.length -= n;
+        }
+    }
+  else
+    {
+      /* There are no characters to delete or no characters at or
+         beyond START, hence deletion is a no-op. */
+    }
+}
+
 /* Returns true if ST is empty, false otherwise. */
 bool
 ds_is_empty (const struct string *st)

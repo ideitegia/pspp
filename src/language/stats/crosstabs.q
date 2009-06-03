@@ -1218,10 +1218,17 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   for (i = 0; i < pt->n_consts; i++)
     {
       const struct variable *var = pt->const_vars[i];
+      size_t ofs;
+
       ds_put_format (&title, ", %s=", var_get_name (var));
+
+      /* Insert the formatted value of the variable, then trim
+         leading spaces in what was just inserted. */
+      ofs = ds_length (&title);
       data_out (&pt->const_values[i], var_get_print_format (var),
                 ds_put_uninit (&title, var_get_width (var)));
-      /* XXX remove any leading space in what was just inserted.  */
+      ds_remove (&title, ofs, ss_cspan (ds_substr (&title, ofs, SIZE_MAX),
+                                        ss_cstr (" ")));
     }
 
   ds_put_cstr (&title, " [");

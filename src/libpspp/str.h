@@ -177,6 +177,7 @@ bool ds_tokenize (const struct string *src, struct substring delimiters,
                   size_t *save_idx, struct substring *token);
 void ds_rpad (struct string *, size_t length, char pad);
 void ds_set_length (struct string *, size_t new_length, char pad);
+void ds_remove (struct string *, size_t start, size_t n);
 
 /* Extracting substrings. */
 struct substring ds_ss (const struct string *);
