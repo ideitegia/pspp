@@ -281,23 +281,6 @@ design_matrix_set_element (const struct design_matrix *d, size_t row, size_t col
 {
   gsl_matrix_set (d->m, row, col, x);
 }
-/*
-  If VAR is categorical with d categories, its first category should
-  correspond to the origin in d-dimensional Euclidean space.
- */
-static bool
-is_origin (const struct variable *var, const union value *val)
-{
-  if (var_is_numeric (var))
-    {
-      return false;
-    }
-  if (cat_value_find (var, val) == 0)
-    {
-      return true;
-    }
-  return false;
-}
 
 /*
   Return the subscript of the column of the design matrix
@@ -314,7 +297,7 @@ dm_get_exact_subscript (const struct design_matrix *dm, const struct variable *v
   result = design_matrix_var_to_column (dm, var);
   if (var_is_alpha (var))
     {
-      if (is_origin (var, val))
+      if (cat_is_origin (var, val))
 	{
 	  return -1u;
 	}

@@ -31,15 +31,13 @@
 #include <config.h>
 
 #include <assert.h>
+#include <data/category.h>
+#include <data/value.h>
+#include <data/variable.h>
+#include <gl/xalloc.h>
+#include <libpspp/message.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <libpspp/message.h>
-#include "category.h"
-#include "value.h"
-#include "variable.h"
-
-#include "xalloc.h"
 
 #define CAT_VALUE_NOT_FOUND -1
 
@@ -182,3 +180,20 @@ cat_get_n_categories (const struct variable *v)
   return var_get_obs_vals (v)->n_categories;
 }
 
+/*
+  If VAR is categorical with d categories, its first category should
+  correspond to the origin in d-dimensional Euclidean space.
+ */
+bool
+cat_is_origin (const struct variable *var, const union value *val)
+{
+  if (var_is_numeric (var))
+    {
+      return false;
+    }
+  if (cat_value_find (var, val) == 0)
+    {
+      return true;
+    }
+  return false;
+}

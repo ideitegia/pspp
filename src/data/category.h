@@ -32,7 +32,7 @@
 
 #ifndef CATEGORY_H
 #define CATEGORY_H
-
+#include <stdbool.h>
 #include <stddef.h>
 
 struct cat_vals;
@@ -61,5 +61,9 @@ cat_get_category_count (const size_t, const struct variable *);
  */
 size_t  cat_get_n_categories (const struct variable *v);
 
-
+/*
+  If VAR is categorical with d categories, its first category should
+  correspond to the origin in d-dimensional Euclidean space.
+ */
+bool cat_is_origin (const struct variable *, const union value *);
 #endif
