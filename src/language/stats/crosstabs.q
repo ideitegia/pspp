@@ -248,9 +248,23 @@ init_proc (struct crosstabs_proc *proc, struct dataset *ds)
 }
 
 static void
-free_proc (struct crosstabs_proc *proc UNUSED)
+free_proc (struct crosstabs_proc *proc)
 {
-  /* XXX */
+  struct pivot_table *pt;
+
+  free (proc->variables);
+  for (pt = &proc->pivots[0]; pt < &proc->pivots[proc->n_pivots]; pt++)
+    {
+      free (pt->vars);
+      free (pt->const_vars);
+      /* We must not call value_destroy on const_values because
+         it is a wild pointer; it never pointed to anything owned
+         by the pivot_table.
+
+         The rest of the data was allocated and destroyed at a
+         lower level already. */
+      free (pt);
+    }
 }
 
 static int internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds,
@@ -740,7 +754,23 @@ postcalc (struct crosstabs_proc *proc)
         }
     }
 
-  /* XXX clear output and prepare for next split file. */
+  /* Free output and prepare for next split file. */
+  for (pt = &proc->pivots[0]; pt < &proc->pivots[proc->n_pivots]; pt++)
+    {
+      size_t i;
+
+      pt->missing = 0.0;
+
+      /* Free only the members that were allocated in this
+         function.  The other pointer members are either both
+         allocated and destroyed at a lower level (in
+         output_pivot_table), or both allocated and destroyed at
+         a higher level (in crs_custom_tables and free_proc,
+         respectively). */
+      for (i = 0; i < pt->n_entries; i++)
+        free (pt->entries[i]);
+      free (pt->entries);
+    }
 }
 
 static void
@@ -1016,8 +1046,14 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
           display_directional (proc, pt, direct);
         }
 
-      /* XXX Free data in x. */
+      /* Free the parts of x that are not owned by pt.  In
+         particular we must not free x.cols, which is the same as
+         pt->cols, which is freed at the end of this function. */
       free (x.rows);
+
+      free (x.mat);
+      free (x.row_tot);
+      free (x.col_tot);
     }
 
   submit (proc, NULL, table);
