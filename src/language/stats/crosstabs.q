@@ -1815,7 +1815,6 @@ display_chisq (struct pivot_table *pt, struct tab_table *chisq,
   double chisq_v[N_CHISQ];
   double fisher1, fisher2;
   int df[N_CHISQ];
-  int s = 0;
 
   int i;
 
@@ -1828,7 +1827,6 @@ display_chisq (struct pivot_table *pt, struct tab_table *chisq,
       if ((i != 2 && chisq_v[i] == SYSMIS)
 	  || (i == 2 && fisher1 == SYSMIS))
 	continue;
-      s = 1;
 
       tab_text (chisq, 0, 0, TAB_LEFT, gettext (chisq_stats[i]));
       if (i != 2)
