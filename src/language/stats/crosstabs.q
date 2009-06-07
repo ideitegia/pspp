@@ -993,22 +993,22 @@ output_pivot_table (struct crosstabs_proc *proc, struct pivot_table *pt)
       if (chisq)
         {
           display_dimensions (proc, &x, chisq, first_difference);
-          display_chisq (pt, chisq, &showed_fisher);
+          display_chisq (&x, chisq, &showed_fisher);
         }
       if (sym)
         {
           display_dimensions (proc, &x, sym, first_difference);
-          display_symmetric (proc, pt, sym);
+          display_symmetric (proc, &x, sym);
         }
       if (risk)
         {
           display_dimensions (proc, &x, risk, first_difference);
-          display_risk (pt, risk);
+          display_risk (&x, risk);
         }
       if (direct)
         {
           display_dimensions (proc, &x, direct, first_difference);
-          display_directional (proc, pt, direct);
+          display_directional (proc, &x, direct);
         }
 
       /* Free the parts of x that are not owned by pt.  In

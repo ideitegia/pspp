@@ -107,6 +107,7 @@ dist_TESTS = \
 	tests/bugs/compute-fmt.sh \
 	tests/bugs/compression.sh \
 	tests/bugs/crosstabs.sh \
+	tests/bugs/crosstabs2.sh \
 	tests/bugs/crosstabs-crash.sh \
 	tests/bugs/crosstabs-crash2.sh \
 	tests/bugs/curtailed.sh \
