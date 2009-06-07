@@ -1271,7 +1271,6 @@ create_chisq_table (struct pivot_table *pt)
             _("Exact. Sig. (2-sided)"));
   tab_text (chisq, 5, 0, TAB_RIGHT | TAT_TITLE,
             _("Exact. Sig. (1-sided)"));
-  chisq = 0;
   tab_offset (chisq, 0, 1);
 
   return chisq;
