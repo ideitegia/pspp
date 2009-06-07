@@ -161,41 +161,6 @@ struct pivot_table
     double total;		/* Grand total. */
   };
 
-/* A crosstabulation of exactly 2 variables, conditional on zero
-   or more other variables having given values. */
-struct crosstab
-  {
-    /* Case counts. */
-    double missing;
-
-    /* Variables. */
-    int n_vars;			/* Number of variables (at least 2). */
-    const struct variable **vars;
-    union value *values;       /* Values of variables beyond 2. */
-
-    /* Data. */
-    struct table_entry **entries;
-    size_t n_entries;
-
-    /* Column values, number of columns. */
-    union value *cols;
-    int n_cols;
-
-    /* Row values, number of rows. */
-    union value *rows;
-    int n_rows;
-
-    /* Number of statistically interesting columns/rows
-       (columns/rows with data in them). */
-    int ns_cols, ns_rows;
-
-    /* Matrix contents. */
-    double *mat;		/* Matrix proper. */
-    double *row_tot;		/* Row totals. */
-    double *col_tot;		/* Column totals. */
-    double total;		/* Grand total. */
-  };
-
 /* Integer mode variable info. */
 struct var_range
   {
