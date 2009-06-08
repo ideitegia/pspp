@@ -5,7 +5,7 @@ include $(top_srcdir)/src/output/charts/automake.mk
 
 noinst_LTLIBRARIES += src/output/liboutput.la 
 
-output_sources = \
+src_output_liboutput_la_SOURCES = \
 	src/output/afm.c \
 	src/output/afm.h \
 	src/output/ascii.c \
@@ -19,17 +19,15 @@ output_sources = \
 	src/output/manager.c \
 	src/output/manager.h \
 	src/output/chart.h \
-	src/output/table.c src/output/table.h
-
-
+	src/output/table.c \
+	src/output/table.h
+if HAVE_CAIRO
+src_output_liboutput_la_SOURCES += src/output/cairo.c
+endif
 if WITHCHARTS
-src_output_liboutput_la_SOURCES = $(output_sources) src/output/chart.c
-
-EXTRA_DIST += src/output/dummy-chart.c
+src_output_liboutput_la_SOURCES += src/output/chart.c
 else
-src_output_liboutput_la_SOURCES = $(output_sources) src/output/dummy-chart.c
-
-EXTRA_DIST += src/output/chart.c
+src_output_liboutput_la_SOURCES += src/output/dummy-chart.c
 endif
 
 EXTRA_DIST += src/output/OChangeLog

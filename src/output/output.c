@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -230,12 +230,18 @@ outp_init (void)
 {
   extern struct outp_class ascii_class;
   extern struct outp_class postscript_class;
+#ifdef HAVE_CAIRO
+  extern struct outp_class cairo_class;
+#endif
 
   char def[] = "default";
 
   add_class (&html_class);
   add_class (&postscript_class);
   add_class (&ascii_class);
+#ifdef HAVE_CAIRO
+  add_class (&cairo_class);
+#endif
 
   add_name (def, &def[strlen (def)], OUTP_S_INIT_FILE);
 }

@@ -25,6 +25,7 @@ src_ui_terminal_pspp_LDADD = \
 	src/ui/libuicommon.la \
 	src/libpspp.la \
 	src/libpspp-core.la \
+	$(CAIRO_LIBS) \
 	$(NCURSES_LIBS) \
 	$(LIBICONV) \
 	@LIBINTL@ @LIBREADLINE@
