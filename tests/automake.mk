@@ -134,6 +134,7 @@ dist_TESTS = \
 	tests/bugs/overwrite-special-file.sh \
 	tests/bugs/piechart.sh \
 	tests/bugs/random.sh \
+	tests/bugs/shbang.sh \
 	tests/bugs/signals.sh \
 	tests/bugs/t-test-with-temp.sh \
 	tests/bugs/t-test.sh \
