@@ -650,10 +650,9 @@ draw_headers (struct outp_driver *this)
   x1 = this->width - this->prop_em_width;
 
   /* Draw box. */
-  /* XXX coordinates below might not be right, both in terms of
-     the Y transformation and width/height versus x2/y2. */
-  cairo_rectangle (ext->cairo, 0, y,
-                   this->width, 2 * this->font_height + ext->line_gutter);
+  cairo_rectangle (ext->cairo, 0, y, this->width,
+                   2 * (this->font_height
+                        + ext->line_width + ext->line_gutter));
   cairo_save (ext->cairo);
   cairo_set_source_rgb (ext->cairo, 0.9, 0.9, 0.9);
   cairo_fill_preserve (ext->cairo);
