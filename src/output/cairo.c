@@ -199,6 +199,7 @@ xr_open_driver (struct outp_driver *this, struct substring options)
 
   cairo_scale (x->cairo, 1.0 / PANGO_SCALE, 1.0 / PANGO_SCALE);
   cairo_translate (x->cairo, x->left_margin, x->top_margin);
+  cairo_set_line_width (x->cairo, x->line_width);
 
   for (i = 0; i < OUTP_FONT_CNT; i++)
     if (!load_font (this, &x->fonts[i]))
