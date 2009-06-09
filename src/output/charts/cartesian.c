@@ -27,26 +27,26 @@
 #include <libpspp/compiler.h>
 
 
-
-struct dataset
+/* Start a new vector called NAME */
+void
+chart_vector_start (struct chart *ch, const char *name)
 {
-  int n_data;
-  const char *label;
-};
+  if ( ! ch )
+    return ;
 
+  pl_savestate_r (ch->lp);
 
-#define DATASETS 2
+  pl_colorname_r (ch->lp, data_colour [ch->n_datasets % N_CHART_COLOURS]);
 
-static const struct dataset dataset[DATASETS] =
-  {
-    { 13, "male"},
-    { 11, "female"},
-  };
+  ch->n_datasets++;
+  ch->dataset = xrealloc (ch->dataset, ch->n_datasets * sizeof (*ch->dataset));
 
+  ch->dataset[ch->n_datasets - 1] = strdup (name);
+}
 
 /* Plot a data point */
 void
-chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
+chart_datum (struct chart *ch, int dataset UNUSED, double x, double y)
 {
   if ( ! ch )
     return ;
@@ -66,13 +66,48 @@ chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
   }
 }
 
+void
+chart_vector_end (struct chart *ch)
+{
+  pl_endpath_r (ch->lp);
+  pl_colorname_r (ch->lp, "black");
+  ch->in_path = false;
+  pl_restorestate_r (ch->lp);
+}
+
+/* Plot a data point */
+void
+chart_vector (struct chart *ch, double x, double y)
+{
+  if ( ! ch )
+    return ;
+
+  {
+    const double x_pos =
+      (x - ch->x_min) * ch->abscissa_scale + ch->data_left ;
+
+    const double y_pos =
+      (y - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
+
+    if ( ch->in_path)
+      pl_fcont_r (ch->lp, x_pos, y_pos);
+    else
+      {
+	pl_fmove_r (ch->lp, x_pos, y_pos);
+	ch->in_path = true;
+      }
+  }
+}
+
+
+
 /* Draw a line with slope SLOPE and intercept INTERCEPT.
    between the points limit1 and limit2.
    If lim_dim is CHART_DIM_Y then the limit{1,2} are on the
    y axis otherwise the x axis
 */
 void
-chart_line(struct chart *ch, double slope, double intercept,
+chart_line (struct chart *ch, double slope, double intercept,
 	   double limit1, double limit2, enum CHART_DIM lim_dim)
 {
   double x1, y1;
@@ -107,5 +142,4 @@ chart_line(struct chart *ch, double slope, double intercept,
   pl_fline_r(ch->lp, x1, y1, x2, y2);
 
   pl_restorestate_r(ch->lp);
-
 }

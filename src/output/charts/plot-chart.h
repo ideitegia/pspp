@@ -70,4 +70,6 @@ void chart_write_xlabel(struct chart *ch, const char *label) ;
 /* Write the ordinate label */
 void  chart_write_ylabel(struct chart *ch, const char *label);
 
+void chart_write_legend (struct chart *ch);
+
 #endif
