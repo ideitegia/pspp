@@ -521,7 +521,6 @@ static void
 insert_case (GtkAction *action, gpointer data)
 {
   PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (data);
-
   psppire_data_editor_insert_case (dw->data_editor);
 }
 

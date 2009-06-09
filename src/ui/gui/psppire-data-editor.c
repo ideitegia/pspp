@@ -1331,10 +1331,14 @@ psppire_data_editor_insert_case (PsppireDataEditor *de)
 {
   glong posn = -1;
 
-  if ( de->data_sheet[0]->state == PSPPIRE_SHEET_ROW_SELECTED )
-    posn = PSPPIRE_SHEET (de->data_sheet[0])->range.row0;
+  if ( PSPPIRE_SHEET (de->data_sheet[0])->select_status == PSPPIRE_SHEET_ROW_SELECTED )
+    {
+      posn = PSPPIRE_SHEET (de->data_sheet[0])->range.row0;
+    }
   else
-    posn = PSPPIRE_SHEET (de->data_sheet[0])->active_cell.row;
+    {
+      posn = PSPPIRE_SHEET (de->data_sheet[0])->active_cell.row;
+    }
 
   if ( posn == -1 ) posn = 0;
 
