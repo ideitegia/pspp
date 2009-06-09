@@ -101,23 +101,15 @@ struct tab_table
     int col_ofs, row_ofs;	/* X and Y offsets. */
   };
 
-/* Number of rows in TABLE. */
-#define tab_nr(TABLE) ((TABLE)->nr)
+/* Number of rows or columns in TABLE. */
+static inline int tab_nr (const struct tab_table *table) { return table->nr; }
+static inline int tab_nc (const struct tab_table *table) { return table->nc; }
 
-/* Number of columns in TABLE. */
-#define tab_nc(TABLE) ((TABLE)->nc)
-
-/* Number of left header columns in TABLE. */
-#define tab_l(TABLE) ((TABLE)->l)
-
-/* Number of right header columns in TABLE. */
-#define tab_r(TABLE) ((TABLE)->r)
-
-/* Number of top header rows in TABLE. */
-#define tab_t(TABLE) ((TABLE)->t)
-
-/* Number of bottom header rows in TABLE. */
-#define tab_b(TABLE) ((TABLE)->b)
+/* Number of left/right/top/bottom header columns/rows in TABLE. */
+static inline int tab_l (const struct tab_table *table) { return table->l; }
+static inline int tab_r (const struct tab_table *table) { return table->r; }
+static inline int tab_t (const struct tab_table *table) { return table->t; }
+static inline int tab_b (const struct tab_table *table) { return table->b; }
 
 /* Tables. */
 struct tab_table *tab_create (int nc, int nr, int reallocable);
