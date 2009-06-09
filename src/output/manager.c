@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -68,30 +68,9 @@ som_blank_line (void)
       d->cp_y += d->font_height;
 }
 
-/* Driver. */
-static struct outp_driver *d = 0;
-
-/* Table. */
-static struct som_entity *t = 0;
-
-/* Flags. */
-static unsigned flags;
-
-/* Number of columns, rows. */
-static int nc, nr;
-
-/* Number of columns or rows in left, right, top, bottom headers. */
-static int hl, hr, ht, hb;
-
-/* Column style. */
-static int cs;
-
-/* Table height, width. */
-static int th, tw;
-
-static void render_columns (void);
-static void render_simple (void);
-static void render_segments (void);
+static void render_columns (struct outp_driver *, struct som_entity *);
+static void render_simple (struct outp_driver *, struct som_entity *);
+static void render_segments (struct outp_driver *, struct som_entity *);
 
 static void output_entity (struct outp_driver *, struct som_entity *);
 
@@ -99,71 +78,76 @@ static void output_entity (struct outp_driver *, struct som_entity *);
 void
 som_submit (struct som_entity *t)
 {
+  struct outp_driver *d;
+
 #if DEBUGGING
   static int entry;
 
   assert (entry++ == 0);
 #endif
 
-  if ( t->type == SOM_TABLE)
+  if (t->type == SOM_TABLE)
     {
-      t->class->table (t);
+      unsigned int flags;
+      int hl, hr, ht, hb;
+      int nc, nr;
+
+      /* Set up to render the table. */
       t->class->flags (&flags);
-      t->class->count (&nc, &nr);
-      t->class->headers (&hl, &hr, &ht, &hb);
-
-
-#if DEBUGGING
-      if (hl + hr > nc || ht + hb > nr)
-	{
-	  printf ("headers: (l,r)=(%d,%d), (t,b)=(%d,%d) in table size (%d,%d)\n",
-		  hl, hr, ht, hb, nc, nr);
-	  NOT_REACHED ();
-	}
-      else if (hl + hr == nc)
-	printf ("warning: headers (l,r)=(%d,%d) in table width %d\n", hl, hr, nc);
-      else if (ht + hb == nr)
-	printf ("warning: headers (t,b)=(%d,%d) in table height %d\n", ht, hb, nr);
-#endif
-
-      t->class->columns (&cs);
-
       if (!(flags & SOMF_NO_TITLE))
 	subtable_num++;
 
+      /* Do some basic error checking. */
+      t->class->count (&nc, &nr);
+      t->class->headers (&hl, &hr, &ht, &hb);
+      if (hl + hr > nc || ht + hb > nr)
+	{
+	  fprintf (stderr, "headers: (l,r)=(%d,%d), (t,b)=(%d,%d) "
+                   "in table size (%d,%d)\n",
+                   hl, hr, ht, hb, nc, nr);
+	  NOT_REACHED ();
+	}
+      else if (hl + hr == nc)
+	fprintf (stderr, "warning: headers (l,r)=(%d,%d) in table width %d\n",
+                hl, hr, nc);
+      else if (ht + hb == nr)
+	fprintf (stderr, "warning: headers (t,b)=(%d,%d) in table height %d\n",
+                ht, hb, nr);
     }
 
-  {
-    struct outp_driver *d;
-
-    for (d = outp_drivers (NULL); d; d = outp_drivers (d))
-	output_entity (d, t);
-
-  }
+  for (d = outp_drivers (NULL); d; d = outp_drivers (d))
+    output_entity (d, t);
 
 #if DEBUGGING
   assert (--entry == 0);
 #endif
 }
 
-/* Output entity ENTITY to driver DRIVER. */
+/* Output entity T to driver D. */
 static void
-output_entity (struct outp_driver *driver, struct som_entity *entity)
+output_entity (struct outp_driver *d, struct som_entity *t)
 {
   bool fits_width, fits_length;
-  d = driver;
+  unsigned int flags;
+  int hl, hr, ht, hb;
+  int tw, th;
+  int nc, nr;
+  int cs;
 
   outp_open_page (d);
-  if (d->class->special || entity->type == SOM_CHART)
+  if (d->class->special || t->type == SOM_CHART)
     {
-      driver->class->submit (d, entity);
+      d->class->submit (d, t);
       return;
     }
 
-  t = entity;
-
   t->class->driver (d);
   t->class->area (&tw, &th);
+  t->class->count (&nc, &nr);
+  t->class->headers (&hl, &hr, &ht, &hb);
+  t->class->columns (&cs);
+  t->class->flags (&flags);
+
   fits_width = t->class->fits_width (d->width);
   fits_length = t->class->fits_length (d->length);
   if (!fits_width || !fits_length)
@@ -184,22 +168,31 @@ output_entity (struct outp_driver *driver, struct som_entity *entity)
   if (cs != SOM_COL_NONE
       && 2 * (tw + d->prop_em_width) <= d->width
       && nr - (ht + hb) > 5)
-    render_columns ();
+    render_columns (d, t);
   else if (tw < d->width && th + d->cp_y < d->length)
-    render_simple ();
+    render_simple (d, t);
   else
-    render_segments ();
+    render_segments (d, t);
 
   t->class->set_headers (hl, hr, ht, hb);
 }
 
 /* Render the table into multiple columns. */
 static void
-render_columns (void)
+render_columns (struct outp_driver *d, struct som_entity *t)
 {
   int y0, y1;
   int max_len = 0;
   int index = 0;
+  int hl, hr, ht, hb;
+  int tw, th;
+  int nc, nr;
+  int cs;
+
+  t->class->area (&tw, &th);
+  t->class->count (&nc, &nr);
+  t->class->headers (&hl, &hr, &ht, &hb);
+  t->class->columns (&cs);
 
   assert (cs == SOM_COL_DOWN);
   assert (d->cp_x == 0);
@@ -242,8 +235,16 @@ render_columns (void)
 
 /* Render the table by itself on the current page. */
 static void
-render_simple (void)
+render_simple (struct outp_driver *d, struct som_entity *t)
 {
+  int hl, hr, ht, hb;
+  int tw, th;
+  int nc, nr;
+
+  t->class->area (&tw, &th);
+  t->class->count (&nc, &nr);
+  t->class->headers (&hl, &hr, &ht, &hb);
+
   assert (d->cp_x == 0);
   assert (tw < d->width && th + d->cp_y < d->length);
 
@@ -254,15 +255,20 @@ render_simple (void)
 
 /* General table breaking routine. */
 static void
-render_segments (void)
+render_segments (struct outp_driver *d, struct som_entity *t)
 {
   int count = 0;
 
   int x_index;
   int x0, x1;
 
+  int hl, hr, ht, hb;
+  int nc, nr;
+
   assert (d->cp_x == 0);
 
+  t->class->count (&nc, &nr);
+  t->class->headers (&hl, &hr, &ht, &hb);
   for (x_index = 0, x0 = hl; x0 < nc - hr; x0 = x1, x_index++)
     {
       int y_index;
