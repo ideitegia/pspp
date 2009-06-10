@@ -324,6 +324,9 @@ struct roc_state
 
   double n1;
   double n2;
+
+  double q1hat;
+  double q2hat;
 };
 
 
@@ -440,9 +443,6 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 
   for (i = 0 ; i < roc->n_vars; ++i)
     {
-      double q1hat = 0;
-      double q2hat = 0;
-
       struct ccase *cpos;
       struct casereader *n_neg ;
       const struct variable *var = roc->vars[i];
@@ -484,8 +484,10 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 	      double n_neg_lt = case_data_idx (cneg, N_PRED)->f;
 
 	      rs[i].auc += n_pos_gt * n_neg_eq + (n_pos_eq * n_neg_eq) / 2.0;
-	      q1hat += n_neg_eq * ( pow2 (n_pos_gt) + n_pos_gt * n_pos_eq + pow2 (n_pos_eq) / 3.0);
-	      q2hat += n_pos_eq * ( pow2 (n_neg_lt) + n_neg_lt * n_neg_eq + pow2 (n_neg_eq) / 3.0);
+	      rs[i].q1hat +=
+		n_neg_eq * ( pow2 (n_pos_gt) + n_pos_gt * n_pos_eq + pow2 (n_pos_eq) / 3.0);
+	      rs[i].q2hat +=
+		n_pos_eq * ( pow2 (n_neg_lt) + n_neg_lt * n_neg_eq + pow2 (n_neg_eq) / 3.0);
 	    }
 
 	  if ( cneg )
@@ -496,7 +498,16 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
       if ( roc->invert ) 
 	rs[i].auc = 1 - rs[i].auc;
 
-
+      if ( roc->bi_neg_exp )
+	{
+	  rs[i].q1hat = rs[i].auc / ( 2 - rs[i].auc);
+	  rs[i].q2hat = 2 * pow2 (rs[i].auc) / ( 1 + rs[i].auc);
+	}
+      else
+	{
+	  rs[i].q1hat /= rs[i].n2 * pow2 (rs[i].n1);
+	  rs[i].q2hat /= rs[i].n1 * pow2 (rs[i].n2);
+	}
     }
 
   casereader_destroy (positives);
@@ -576,11 +587,8 @@ show_auc  (struct roc_state *rs, const struct cmd_roc *roc)
 	  double ci ;
 	  double yy ;
 
-	  double q1 = rs[i].auc / ( 2 - rs[i].auc);
-	  double q2 = 2 * pow2 (rs[i].auc) / ( 1 + rs[i].auc);
-
-	  se = rs[i].auc * (1 - rs[i].auc) + (rs[i].n1 - 1) * (q1 - pow2 (rs[i].auc)) +
-	    (rs[i].n2 - 1) * (q2 - pow2 (rs[i].auc));
+	  se = rs[i].auc * (1 - rs[i].auc) + (rs[i].n1 - 1) * (rs[i].q1hat - pow2 (rs[i].auc)) +
+	    (rs[i].n2 - 1) * (rs[i].q2hat - pow2 (rs[i].auc));
 
 	  se /= rs[i].n1 * rs[i].n2;
 
