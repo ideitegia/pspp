@@ -474,6 +474,8 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 		case_unref (cneg);
 
 	      cneg = casereader_read (n_neg);
+	      if ( ! cneg )
+		break;
 	      dneg = case_data_idx (cneg, VALUE)->f;
 	    }
 	
