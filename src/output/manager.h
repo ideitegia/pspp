@@ -59,8 +59,8 @@ enum
 /* Cumulation types. */
 enum
   {
-    SOM_ROWS, SOM_ROW = SOM_ROWS,	/* Rows. */
-    SOM_COLUMNS, SOM_COLUMN = SOM_COLUMNS	/* Columns. */
+    SOM_ROWS,                   /* Rows. */
+    SOM_COLUMNS                 /* Columns. */
   };
 
 /* Flags. */
