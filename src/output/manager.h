@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -82,20 +82,14 @@ struct som_table_class
     /* Query columns and rows. */
     void (*count) (int *n_columns, int *n_rows);
     void (*area) (int *horiz, int *vert);
-    void (*width) (int *columns);
-    void (*height) (int *rows);
     void (*columns) (int *style);
-    int (*breakable) (int row);				/* ? */
     void (*headers) (int *l, int *r, int *t, int *b);
-    void (*join) (int *(column[2]), int *(row[2]));	/* ? */
     void (*cumulate) (int cumtype, int start, int *end, int max, int *actual);
     void (*flags) (unsigned *);
     bool (*fits_width) (int width);
     bool (*fits_length) (int length);
 
     /* Set columns and rows. */
-    void (*set_width) (int column, int width);		/* ? */
-    void (*set_height) (int row, int height);		/* ? */
     void (*set_headers) (int l, int r, int t, int b);
 
     /* Rendering. */

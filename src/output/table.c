@@ -1287,19 +1287,13 @@ const struct som_table_class tab_table_class =
 
     tabi_count,
     tabi_area,
-    NULL,
-    NULL,
     tabi_columns,
-    NULL,
     tabi_headers,
-    NULL,
     tabi_cumulate,
     tabi_flags,
     tabi_fits_width,
     tabi_fits_length,
 
-    NULL,
-    NULL,
     tabi_set_headers,
 
     tabi_title,
