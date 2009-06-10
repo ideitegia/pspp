@@ -22,6 +22,9 @@
 #include <language/lexer/value-parser.h>
 #include <language/lexer/lexer.h>
 
+#include <data/casegrouper.h>
+#include <data/casereader.h>
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -52,6 +55,7 @@ struct cmd_roc
 
 };
 
+static int run_roc (struct dataset *ds, struct cmd_roc *roc);
 
 int
 cmd_roc (struct lexer *lexer, struct dataset *ds)
@@ -242,7 +246,40 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
+  run_roc (ds, &roc);
 
   return 1;
+}
+
+
+
+
+static void
+do_roc (struct cmd_roc *roc, struct casereader *group, struct dictionary *dict);
+
+
+static int
+run_roc (struct dataset *ds, struct cmd_roc *roc)
+{
+  struct dictionary *dict = dataset_dict (ds);
+  bool ok;
+  struct casereader *group;
+
+  struct casegrouper *grouper = casegrouper_create_splits (proc_open (ds), dict);
+  while (casegrouper_get_next_group (grouper, &group))
+    {
+      do_roc (roc, group, dataset_dict (ds));
+      casereader_destroy (group);
+    }
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
+
+  return ok;
+}
+
+
+static void
+do_roc (struct cmd_roc *roc, struct casereader *group, struct dictionary *dict)
+{
 }
 
