@@ -26,6 +26,7 @@
 #include <data/casereader.h>
 #include <data/casewriter.h>
 #include <data/dictionary.h>
+#include <data/format.h>
 #include <math/sort.h>
 
 #include <libpspp/misc.h>
@@ -619,13 +620,65 @@ show_auc  (struct roc_state *rs, const struct cmd_roc *roc)
 }
 
 
+static void
+show_summary (const struct cmd_roc *roc)
+{
+  const int n_cols = 3;
+  const int n_rows = 4;
+  struct tab_table *tbl = tab_create (n_cols, n_rows, 0);
+
+  tab_title (tbl, _("Case Summary"));
+
+  tab_headers (tbl, 1, 0, 2, 0);
+
+  tab_dim (tbl, tab_natural_dimensions, NULL);
+
+  tab_box (tbl,
+	   TAL_2, TAL_2,
+	   -1, -1,
+	   0, 0,
+	   n_cols - 1,
+	   n_rows - 1);
+
+  tab_hline (tbl, TAL_2, 0, n_cols - 1, 2);
+  tab_vline (tbl, TAL_2, 1, 0, n_rows - 1);
+
+
+  tab_hline (tbl, TAL_2, 1, n_cols - 1, 1);
+  tab_vline (tbl, TAL_1, 2, 1, n_rows - 1);
+
+
+  tab_text (tbl, 0, 1, TAT_TITLE | TAB_LEFT, var_to_string (roc->state_var));
+  tab_text (tbl, 1, 1, TAT_TITLE, _("Unweighted"));
+  tab_text (tbl, 2, 1, TAT_TITLE, _("Weighted"));
+
+  tab_joint_text (tbl, 1, 0, 2, 0,
+		  TAT_TITLE | TAB_CENTER,
+		  _("Valid N (listwise)"));
+
+
+  tab_text (tbl, 0, 2, TAB_LEFT, _("Positive"));
+  tab_text (tbl, 0, 3, TAB_LEFT, _("Negative"));
+
+
+#if 0
+  tab_double (tbl, 1, 2, 0, roc->pos, &F_8_0);
+  tab_double (tbl, 1, 3, 0, roc->neg, &F_8_0);
+
+  tab_double (tbl, 2, 2, 0, roc->pos_weighted, 0);
+  tab_double (tbl, 2, 3, 0, roc->neg_weighted, 0);
+#endif
+
+  tab_submit (tbl);
+}
 
 
 static void
 output_roc (struct roc_state *rs, const struct cmd_roc *roc)
 {
-#if 0
   show_summary (roc);
+
+#if 0
 
   if ( roc->curve )
     draw_roc (rs, roc);
