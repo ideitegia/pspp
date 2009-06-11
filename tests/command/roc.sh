@@ -95,6 +95,7 @@ activity="run program"
 $SUPERVISOR $PSPP --testing-mode $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
+
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - << EOF
@@ -159,7 +160,7 @@ See pspp-1.png for a chart.
 #            y#                                .000|      1.000|          1.000#
 #             #                               1.500|       .960|           .900#
 #             #                               2.500|       .680|           .340#
-#             #                               3.000|       .600|           .300#
+#             #                               3.000|       .600|           .340#
 #             #                               3.500|       .600|           .300#
 #             #                               4.500|       .200|           .020#
 #             #                               6.000|       .000|           .000#
