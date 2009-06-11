@@ -19,6 +19,7 @@
 #include <data/casereader.h>
 #include <stdlib.h>
 
+#include <data/variable.h>
 #include <data/casereader-provider.h>
 #include <libpspp/taint.h>
 
@@ -371,6 +372,7 @@ struct consolodator
   casenumber n;
   struct casereader *clone;
   struct caseproto *proto;
+  int direction;
 };
 
 static bool
@@ -381,17 +383,23 @@ uniquify (const struct ccase *c, void *aux)
   const int key_width = var_get_width (cdr->key);
   const double weight = cdr->weight ? case_data (c, cdr->weight)->f : 1.0;
   const struct ccase *next_case = casereader_peek (cdr->clone, cdr->n + 1);
+  int dir = 0;
 
   cdr->n ++;
   cdr->cc += weight;
 
   if ( NULL == next_case)
       goto end;
-    
-  if ( 0 != value_compare_3way (case_data (next_case, cdr->key),
-				current_value, key_width))
-    goto end;
-
+  
+  dir = value_compare_3way (case_data (next_case, cdr->key),
+			    current_value, key_width);
+  if ( dir != 0 )
+    {
+      /* Insist that the data are sorted */
+      assert (cdr->direction == 0 || dir == cdr->direction);
+      cdr->direction = dir;
+      goto end;
+    }
   
   return false;
 
@@ -449,7 +457,7 @@ casereader_create_distinct (struct casereader *input,
 {
   struct casereader *u ;
   struct casereader *ud ;
-  struct caseproto *output_proto = casereader_get_proto (input);
+  const struct caseproto *output_proto = casereader_get_proto (input);
 
   struct consolodator *cdr = xmalloc (sizeof (*cdr));
   cdr->n = 0;
@@ -457,6 +465,7 @@ casereader_create_distinct (struct casereader *input,
   cdr->weight = weight;
   cdr->cc = 0;
   cdr->clone = casereader_clone (input);
+  cdr->direction = 0;
 
   if ( NULL == cdr->weight )
     output_proto = caseproto_add_width (output_proto, 0);
