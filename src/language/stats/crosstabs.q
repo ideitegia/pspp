@@ -912,8 +912,7 @@ static void display_symmetric (struct crosstabs_proc *, struct pivot_table *,
 static void display_risk (struct pivot_table *, struct tab_table *);
 static void display_directional (struct crosstabs_proc *, struct pivot_table *,
                                  struct tab_table *);
-static void crosstabs_dim (struct tab_table *, struct outp_driver *,
-                           void *proc);
+static void crosstabs_dim (struct tab_rendering *, void *proc);
 static void table_value_missing (struct crosstabs_proc *proc,
                                  struct tab_table *table, int c, int r,
 				 unsigned char opt, const union value *v,
@@ -1373,8 +1372,10 @@ submit (struct crosstabs_proc *proc, struct pivot_table *pt,
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-crosstabs_dim (struct tab_table *t, struct outp_driver *d, void *proc_)
+crosstabs_dim (struct tab_rendering *r, void *proc_)
 {
+  const struct tab_table *t = r->table;
+  struct outp_driver *d = r->driver;
   struct crosstabs_proc *proc = proc_;
   int i;
 
@@ -1391,7 +1392,7 @@ crosstabs_dim (struct tab_table *t, struct outp_driver *d, void *proc_)
 
       w = d->width - c * (t->nc - t->l);
       for (i = 0; i <= t->nc; i++)
-        w -= t->wrv[i];
+        w -= r->wrv[i];
       w /= t->l;
 
       if (w < d->prop_em_width * 8)
@@ -1401,14 +1402,14 @@ crosstabs_dim (struct tab_table *t, struct outp_driver *d, void *proc_)
 	w = d->prop_em_width * 15;
 
       for (i = 0; i < t->l; i++)
-	t->w[i] = w;
+	r->w[i] = w;
     }
 
   for (i = t->l; i < t->nc; i++)
-    t->w[i] = c;
+    r->w[i] = c;
 
   for (i = 0; i < t->nr; i++)
-    t->h[i] = tab_natural_height (t, d, i);
+    r->h[i] = tab_natural_height (r, i);
 }
 
 static bool

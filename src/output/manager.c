@@ -68,9 +68,16 @@ som_blank_line (void)
       d->cp_y += d->font_height;
 }
 
-static void render_columns (struct outp_driver *, struct som_entity *);
-static void render_simple (struct outp_driver *, struct som_entity *);
-static void render_segments (struct outp_driver *, struct som_entity *);
+static void render_columns (void *r, struct outp_driver *, struct som_entity *,
+                            int tw, int th,
+                            int hl, int hr, int ht, int hb);
+static void render_simple (void *r, struct outp_driver *, struct som_entity *,
+                           int tw, int th,
+                           int hl, int hr, int ht, int hb);
+static void render_segments (void *r, struct outp_driver *,
+                             struct som_entity *,
+                             int tw, int th,
+                             int hl, int hr, int ht, int hb);
 
 static void output_entity (struct outp_driver *, struct som_entity *);
 
@@ -93,13 +100,13 @@ som_submit (struct som_entity *t)
       int nc, nr;
 
       /* Set up to render the table. */
-      t->class->flags (&flags);
+      t->class->flags (t, &flags);
       if (!(flags & SOMF_NO_TITLE))
 	subtable_num++;
 
       /* Do some basic error checking. */
-      t->class->count (&nc, &nr);
-      t->class->headers (&hl, &hr, &ht, &hb);
+      t->class->count (t, &nc, &nr);
+      t->class->headers (t, &hl, &hr, &ht, &hb);
       if (hl + hr > nc || ht + hb > nr)
 	{
 	  fprintf (stderr, "headers: (l,r)=(%d,%d), (t,b)=(%d,%d) "
@@ -123,6 +130,46 @@ som_submit (struct som_entity *t)
 #endif
 }
 
+static bool
+check_fits_width (struct som_entity *t, const struct outp_driver *d, void *r)
+{
+  int hl, hr, ht, hb;
+  int nc, nr;
+  int i;
+
+  t->class->headers (t, &hl, &hr, &ht, &hb);
+  t->class->count (t, &nc, &nr);
+  for (i = hl; i < nc - hr; i++)
+    {
+      int end, actual;
+      t->class->cumulate (r, SOM_COLUMNS, i, &end, d->width, &actual);
+      if (end == i)
+        return false;
+    }
+
+  return true;
+}
+
+static bool
+check_fits_length (struct som_entity *t, const struct outp_driver *d, void *r)
+{
+  int hl, hr, ht, hb;
+  int nc, nr;
+  int i;
+
+  t->class->headers (t, &hl, &hr, &ht, &hb);
+  t->class->count (t, &nc, &nr);
+  for (i = ht; i < nr - hb; i++)
+    {
+      int end, actual;
+      t->class->cumulate (r, SOM_ROWS, i, &end, d->length, &actual);
+      if (end == i)
+        return false;
+    }
+
+  return true;
+}
+
 /* Output entity T to driver D. */
 static void
 output_entity (struct outp_driver *d, struct som_entity *t)
@@ -133,6 +180,7 @@ output_entity (struct outp_driver *d, struct som_entity *t)
   int tw, th;
   int nc, nr;
   int cs;
+  void *r;
 
   outp_open_page (d);
   if (d->class->special || t->type == SOM_CHART)
@@ -141,26 +189,27 @@ output_entity (struct outp_driver *d, struct som_entity *t)
       return;
     }
 
-  t->class->driver (d);
-  t->class->area (&tw, &th);
-  t->class->count (&nc, &nr);
-  t->class->headers (&hl, &hr, &ht, &hb);
-  t->class->columns (&cs);
-  t->class->flags (&flags);
+  t->class->headers (t, &hl, &hr, &ht, &hb);
+  t->class->count (t, &nc, &nr);
+  t->class->columns (t, &cs);
+  t->class->flags (t, &flags);
 
-  fits_width = t->class->fits_width (d->width);
-  fits_length = t->class->fits_length (d->length);
+  r = t->class->render_init (t, d, hl, hr, ht, hb);
+
+  fits_width = check_fits_width (t, d, r);
+  fits_length = check_fits_length (t, d, r);
   if (!fits_width || !fits_length)
     {
-      int tl, tr, tt, tb;
-      tl = fits_width ? hl : 0;
-      tr = fits_width ? hr : 0;
-      tt = fits_length ? ht : 0;
-      tb = fits_length ? hb : 0;
-      t->class->set_headers (tl, tr, tt, tb);
-      t->class->driver (d);
-      t->class->area (&tw, &th);
+      t->class->render_free (r);
+
+      if (!fits_width)
+        hl = hr = 0;
+      if (!fits_length)
+        ht = hb = 0;
+
+      r = t->class->render_init (t, d, hl, hr, ht, hb);
     }
+  t->class->area (r, &tw, &th);
 
   if (!(flags & SOMF_NO_SPACING) && d->cp_y != 0)
     d->cp_y += d->font_height;
@@ -168,31 +217,29 @@ output_entity (struct outp_driver *d, struct som_entity *t)
   if (cs != SOM_COL_NONE
       && 2 * (tw + d->prop_em_width) <= d->width
       && nr - (ht + hb) > 5)
-    render_columns (d, t);
+    render_columns (r, d, t, tw, th, hl, hr, ht, hb);
   else if (tw < d->width && th + d->cp_y < d->length)
-    render_simple (d, t);
+    render_simple (r, d, t, tw, th, hl, hr, ht, hb);
   else
-    render_segments (d, t);
+    render_segments (r, d, t, tw, th, hl, hr, ht, hb);
 
-  t->class->set_headers (hl, hr, ht, hb);
+  t->class->render_free (r);
 }
 
 /* Render the table into multiple columns. */
 static void
-render_columns (struct outp_driver *d, struct som_entity *t)
+render_columns (void *r, struct outp_driver *d, struct som_entity *t,
+                int tw, int th UNUSED,
+                int hl UNUSED, int hr UNUSED, int ht, int hb)
 {
   int y0, y1;
   int max_len = 0;
   int index = 0;
-  int hl, hr, ht, hb;
-  int tw, th;
   int nc, nr;
   int cs;
 
-  t->class->area (&tw, &th);
-  t->class->count (&nc, &nr);
-  t->class->headers (&hl, &hr, &ht, &hb);
-  t->class->columns (&cs);
+  t->class->count (t, &nc, &nr);
+  t->class->columns (t, &cs);
 
   assert (cs == SOM_COL_DOWN);
   assert (d->cp_x == 0);
@@ -201,7 +248,7 @@ render_columns (struct outp_driver *d, struct som_entity *t)
     {
       int len;
 
-      t->class->cumulate (SOM_ROWS, y0, &y1, d->length - d->cp_y, &len);
+      t->class->cumulate (r, SOM_ROWS, y0, &y1, d->length - d->cp_y, &len);
 
       if (y0 == y1)
 	{
@@ -213,8 +260,8 @@ render_columns (struct outp_driver *d, struct som_entity *t)
 	  if (len > max_len)
 	    max_len = len;
 
-	  t->class->title (index++, 0);
-	  t->class->render (0, y0, nc, y1);
+	  t->class->title (r, index++, 0);
+	  t->class->render (r, 0, y0, nc, y1);
 
 	  d->cp_x += tw + 2 * d->prop_em_width;
 	  if (d->cp_x + tw > d->width)
@@ -235,46 +282,44 @@ render_columns (struct outp_driver *d, struct som_entity *t)
 
 /* Render the table by itself on the current page. */
 static void
-render_simple (struct outp_driver *d, struct som_entity *t)
+render_simple (void *r, struct outp_driver *d, struct som_entity *t,
+               int tw, int th,
+               int hl, int hr, int ht, int hb)
 {
-  int hl, hr, ht, hb;
-  int tw, th;
   int nc, nr;
 
-  t->class->area (&tw, &th);
-  t->class->count (&nc, &nr);
-  t->class->headers (&hl, &hr, &ht, &hb);
+  t->class->count (t, &nc, &nr);
 
   assert (d->cp_x == 0);
   assert (tw < d->width && th + d->cp_y < d->length);
 
-  t->class->title (0, 0);
-  t->class->render (hl, ht, nc - hr, nr - hb);
+  t->class->title (r, 0, 0);
+  t->class->render (r, hl, ht, nc - hr, nr - hb);
   d->cp_y += th;
 }
 
 /* General table breaking routine. */
 static void
-render_segments (struct outp_driver *d, struct som_entity *t)
+render_segments (void *r, struct outp_driver *d, struct som_entity *t,
+                 int tw UNUSED, int th UNUSED,
+                 int hl, int hr, int ht, int hb)
 {
   int count = 0;
 
   int x_index;
   int x0, x1;
 
-  int hl, hr, ht, hb;
   int nc, nr;
 
   assert (d->cp_x == 0);
 
-  t->class->count (&nc, &nr);
-  t->class->headers (&hl, &hr, &ht, &hb);
+  t->class->count (t, &nc, &nr);
   for (x_index = 0, x0 = hl; x0 < nc - hr; x0 = x1, x_index++)
     {
       int y_index;
       int y0, y1;
 
-      t->class->cumulate (SOM_COLUMNS, x0, &x1, d->width, NULL);
+      t->class->cumulate (r, SOM_COLUMNS, x0, &x1, d->width, NULL);
       if (x_index == 0 && x1 != nc - hr)
 	x_index++;
 
@@ -285,7 +330,7 @@ render_segments (struct outp_driver *d, struct som_entity *t)
 	  if (count++ != 0 && d->cp_y != 0)
 	    d->cp_y += d->font_height;
 
-	  t->class->cumulate (SOM_ROWS, y0, &y1, d->length - d->cp_y, &len);
+	  t->class->cumulate (r, SOM_ROWS, y0, &y1, d->length - d->cp_y, &len);
 	  if (y_index == 0 && y1 != nr - hb)
 	    y_index++;
 
@@ -296,9 +341,9 @@ render_segments (struct outp_driver *d, struct som_entity *t)
 	    }
           else
             {
-	      t->class->title (x_index ? x_index : y_index,
+	      t->class->title (r, x_index ? x_index : y_index,
 			       x_index ? y_index : 0);
-	      t->class->render (x0, y0, x1, y1);
+	      t->class->render (r, x0, y0, x1, y1);
 
 	      d->cp_y += len;
 	    }

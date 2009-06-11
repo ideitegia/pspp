@@ -67,8 +67,9 @@ struct tab_joined_cell
 
 struct outp_driver;
 struct tab_table;
-typedef void tab_dim_func (struct tab_table *, struct outp_driver *,
-                           void *aux);
+struct tab_rendering;
+
+typedef void tab_dim_func (struct tab_rendering *, void *aux);
 
 /* A table. */
 struct tab_table
@@ -90,13 +91,6 @@ struct tab_table
     tab_dim_func *dim;		/* Calculates cell widths and heights. */
     void *dim_aux;              /* Auxiliary data for dim function. */
 
-    /* Calculated during output. */
-    int *w;			/* Column widths; [nc]. */
-    int *h;			/* Row heights; [nr]. */
-    int *hrh;			/* Heights of horizontal rules; [nr+1]. */
-    int *wrv;			/* Widths of vertical rules; [nc+1]. */
-    int wl, wr, ht, hb;		/* Width/height of header rows/columns. */
-
     /* Editing info. */
     int col_ofs, row_ofs;	/* X and Y offsets. */
   };
@@ -110,6 +104,23 @@ static inline int tab_l (const struct tab_table *table) { return table->l; }
 static inline int tab_r (const struct tab_table *table) { return table->r; }
 static inline int tab_t (const struct tab_table *table) { return table->t; }
 static inline int tab_b (const struct tab_table *table) { return table->b; }
+
+struct tab_rendering
+  {
+    const struct tab_table *table;
+    struct outp_driver *driver;
+
+    int *w;			/* Column widths; [nc]. */
+    int *h;			/* Row heights; [nr]. */
+    int *hrh;			/* Heights of horizontal rules; [nr+1]. */
+    int *wrv;			/* Widths of vertical rules; [nc+1]. */
+
+    /* These fields would be redundant with those in struct tab_table, except
+       that a table will be rendered with fewer header rows or columns than
+       requested when we are pressed for space. */
+    int l, r, t, b;		/* Number of header rows/columns. */
+    int wl, wr, ht, hb;		/* Width/height of header rows/columns. */
+  };
 
 /* Tables. */
 struct tab_table *tab_create (int nc, int nr, int reallocable);
@@ -125,8 +136,8 @@ void tab_submit (struct tab_table *);
 
 /* Dimensioning. */
 tab_dim_func tab_natural_dimensions;
-int tab_natural_width (struct tab_table *t, struct outp_driver *d, int c);
-int tab_natural_height (struct tab_table *t, struct outp_driver *d, int r);
+int tab_natural_width (const struct tab_rendering *, int c);
+int tab_natural_height (const struct tab_rendering *, int r);
 void tab_dim (struct tab_table *, tab_dim_func *, void *aux);
 
 /* Rules. */

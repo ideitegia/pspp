@@ -69,17 +69,18 @@ static int describe_variable (const struct variable *v, struct tab_table *t,
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-sysfile_info_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
+sysfile_info_dim (struct tab_rendering *r, void *aux UNUSED)
 {
+  const struct tab_table *t = r->table;
   static const int max[] = {20, 5, 35, 3, 0};
   const int *p;
   int i;
 
   for (p = max; *p; p++)
-    t->w[p - max] = MIN (tab_natural_width (t, d, p - max),
-			 *p * d->prop_em_width);
+    r->w[p - max] = MIN (tab_natural_width (r, p - max),
+                         *p * r->driver->prop_em_width);
   for (i = 0; i < t->nr; i++)
-    t->h[i] = tab_natural_height (t, d, i);
+    r->h[i] = tab_natural_height (r, i);
 }
 
 /* SYSFILE INFO utility. */
@@ -344,26 +345,17 @@ static int _flags;
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-variables_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
+variables_dim (struct tab_rendering *r, void *aux UNUSED)
 {
-  int pc;
-  int i;
+  const struct outp_driver *d = r->driver;
 
-  t->w[0] = tab_natural_width (t, d, 0);
+  tab_natural_dimensions (r, NULL);
   if (_flags & (DF_VALUE_LABELS | DF_VARIABLE_LABELS | DF_MISSING_VALUES
                 | DF_AT_ATTRIBUTES | DF_ATTRIBUTES))
     {
-      t->w[1] = MAX (tab_natural_width (t, d, 1), d->prop_em_width * 5);
-      t->w[2] = MAX (tab_natural_width (t, d, 2), d->prop_em_width * 35);
-      pc = 3;
+      r->w[1] = MAX (r->w[1], d->prop_em_width * 5);
+      r->w[2] = MAX (r->w[2], d->prop_em_width * 35);
     }
-  else
-    pc = 1;
-  if (_flags & DF_DICT_INDEX)
-    t->w[pc] = tab_natural_width (t, d, pc);
-
-  for (i = 0; i < t->nr; i++)
-    t->h[i] = tab_natural_height (t, d, i);
 }
 
 static void

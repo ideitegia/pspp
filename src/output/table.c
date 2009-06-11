@@ -36,6 +36,7 @@
 
 #include <data/settings.h>
 
+#include "error.h"
 #include "minmax.h"
 #include "xalloc.h"
 
@@ -80,7 +81,6 @@ tab_create (int nc, int nr, int reallocable UNUSED)
   memset (t->rv, UCHAR_MAX, nr * (nc + 1));
 
   t->dim = NULL;
-  t->w = t->h = NULL;
   t->col_ofs = t->row_ofs = 0;
 
   return t;
@@ -411,85 +411,76 @@ tab_dim (struct tab_table *t, tab_dim_func *dim_func, void *aux)
    wrapping.  The width will be no larger than the page width minus
    left and right rule widths. */
 int
-tab_natural_width (struct tab_table *t, struct outp_driver *d, int c)
+tab_natural_width (const struct tab_rendering *r, int col)
 {
-  int width;
+  const struct tab_table *t = r->table;
+  int width, row, max_width;
 
-  assert (t != NULL && c >= 0 && c < t->nc);
-  {
-    int r;
+  assert (col >= 0 && col < t->nc);
 
-    for (width = r = 0; r < t->nr; r++)
-      {
-	struct outp_text text;
-	unsigned char opt = t->ct[c + r * t->cf];
-        int w;
+  width = 0;
+  for (row = 0; row < t->nr; row++)
+    {
+      struct outp_text text;
+      unsigned char opt = t->ct[col + row * t->cf];
+      int w;
 
-	if (opt & (TAB_JOIN | TAB_EMPTY))
-	  continue;
+      if (opt & (TAB_JOIN | TAB_EMPTY))
+        continue;
 
-	text.string = t->cc[c + r * t->cf];
-	text.justification = OUTP_LEFT;
-        text.font = options_to_font (opt);
-        text.h = text.v = INT_MAX;
+      text.string = t->cc[col + row * t->cf];
+      text.justification = OUTP_LEFT;
+      text.font = options_to_font (opt);
+      text.h = text.v = INT_MAX;
 
-	d->class->text_metrics (d, &text, &w, NULL);
-	if (w > width)
-	  width = w;
-      }
-  }
+      r->driver->class->text_metrics (r->driver, &text, &w, NULL);
+      if (w > width)
+        width = w;
+    }
 
   if (width == 0)
     {
       /* FIXME: This is an ugly kluge to compensate for the fact
          that we don't let joined cells contribute to column
          widths. */
-      width = d->prop_em_width * 8;
+      width = r->driver->prop_em_width * 8;
     }
 
-  {
-    const int clamp = d->width - t->wrv[0] - t->wrv[t->nc];
-
-    if (width > clamp)
-      width = clamp;
-  }
-
-  return width;
+  max_width = r->driver->width - r->wrv[0] - r->wrv[t->nc];
+  return MIN (width, max_width);
 }
 
 /* Returns the natural height of row R in table T for driver D, that
    is, the minimum height necessary to display the information in the
    cell at the widths set for each column. */
 int
-tab_natural_height (struct tab_table *t, struct outp_driver *d, int r)
+tab_natural_height (const struct tab_rendering *r, int row)
 {
-  int height;
+  const struct tab_table *t = r->table;
+  int height, col;
 
-  assert (t != NULL && r >= 0 && r < t->nr);
+  assert (row >= 0 && row < t->nr);
 
-  {
-    int c;
+  height = r->driver->font_height;
+  for (col = 0; col < t->nc; col++)
+    {
+      struct outp_text text;
+      unsigned char opt = t->ct[col + row * t->cf];
+      int h;
 
-    for (height = d->font_height, c = 0; c < t->nc; c++)
-      {
-	struct outp_text text;
-	unsigned char opt = t->ct[c + r * t->cf];
-        int h;
+      if (opt & (TAB_JOIN | TAB_EMPTY))
+        continue;
 
-	if (opt & (TAB_JOIN | TAB_EMPTY))
-	  continue;
+      text.string = t->cc[col + row * t->cf];
+      text.justification = OUTP_LEFT;
+      text.font = options_to_font (opt);
+      text.h = r->w[col];
+      text.v = INT_MAX;
+      r->driver->class->text_metrics (r->driver, &text, NULL, &h);
 
-	text.string = t->cc[c + r * t->cf];
-        text.justification = OUTP_LEFT;
-        text.font = options_to_font (opt);
-	text.h = t->w[c];
-        text.v = INT_MAX;
-	d->class->text_metrics (d, &text, NULL, &h);
-
-	if (h > height)
-	  height = h;
-      }
-  }
+      if (h > height)
+        height = h;
+    }
 
   return height;
 }
@@ -497,18 +488,16 @@ tab_natural_height (struct tab_table *t, struct outp_driver *d, int r)
 /* Callback function to set all columns and rows to their natural
    dimensions.  Not really meant to be called directly.  */
 void
-tab_natural_dimensions (struct tab_table *t, struct outp_driver *d,
-                        void *aux UNUSED)
+tab_natural_dimensions (struct tab_rendering *r, void *aux UNUSED)
 {
+  const struct tab_table *t = r->table;
   int i;
 
-  assert (t != NULL);
-
   for (i = 0; i < t->nc; i++)
-    t->w[i] = tab_natural_width (t, d, i);
+    r->w[i] = tab_natural_width (r, i);
 
   for (i = 0; i < t->nr; i++)
-    t->h[i] = tab_natural_height (t, d, i);
+    r->h[i] = tab_natural_height (r, i);
 }
 
 
@@ -789,19 +778,19 @@ tab_raw (struct tab_table *table, int c, int r, unsigned opt,
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-nowrap_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
+nowrap_dim (struct tab_rendering *r, void *aux UNUSED)
 {
-  t->w[0] = tab_natural_width (t, d, 0);
-  t->h[0] = d->font_height;
+  r->w[0] = tab_natural_width (r, 0);
+  r->h[0] = r->driver->font_height;
 }
 
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-wrap_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
+wrap_dim (struct tab_rendering *r, void *aux UNUSED)
 {
-  t->w[0] = tab_natural_width (t, d, 0);
-  t->h[0] = tab_natural_height (t, d, 0);
+  r->w[0] = tab_natural_width (r, 0);
+  r->h[0] = tab_natural_height (r, 0);
 }
 
 /* Outputs text BUF as a table with a single cell having cell options
@@ -896,25 +885,42 @@ tab_next_row (struct tab_table *t)
     tab_realloc (t, -1, t->nr * 4 / 3);
 }
 
-static struct tab_table *t;
-static struct outp_driver *d;
-static int tab_hit;
-
-/* Set the current table to TABLE. */
+/* Return the number of columns and rows in the table into N_COLUMNS
+   and N_ROWS, respectively. */
 static void
-tabi_table (struct som_entity *table)
+tabi_count (struct som_entity *t_, int *n_columns, int *n_rows)
 {
-  assert (table != NULL);
-  assert (table->type == SOM_TABLE);
+  struct tab_table *t = t_->ext;
+  *n_columns = t->nc;
+  *n_rows = t->nr;
+}
 
-  t = table->ext;
-  tab_offset (t, 0, 0);
+/* Return the column style for this table into STYLE. */
+static void
+tabi_columns (struct som_entity *t_, int *style)
+{
+  struct tab_table *t = t_->ext;
+  *style = t->col_style;
+}
 
-  assert (t->w == NULL && t->h == NULL);
-  t->w = pool_nalloc (t->container, t->nc, sizeof *t->w);
-  t->h = pool_nalloc (t->container, t->nr, sizeof *t->h);
-  t->hrh = pool_nmalloc (t->container, t->nr + 1, sizeof *t->hrh);
-  t->wrv = pool_nmalloc (t->container, t->nc + 1, sizeof *t->wrv);
+/* Return the number of header rows/columns on the left, right, top,
+   and bottom sides into HL, HR, HT, and HB, respectively. */
+static void
+tabi_headers (struct som_entity *t_, int *hl, int *hr, int *ht, int *hb)
+{
+  struct tab_table *t = t_->ext;
+  *hl = t->l;
+  *hr = t->r;
+  *ht = t->t;
+  *hb = t->b;
+}
+
+/* Return flags set for the current table into FLAGS. */
+static void
+tabi_flags (struct som_entity *t_, unsigned *flags)
+{
+  struct tab_table *t = t_->ext;
+  *flags = t->flags;
 }
 
 /* Returns the line style to use for spacing purposes for a rule
@@ -936,153 +942,125 @@ rule_to_spacing_type (unsigned char type)
     }
 }
 
-/* Set the current output device to DRIVER. */
-static void
-tabi_driver (struct outp_driver *driver)
+static void *
+tabi_render_init (struct som_entity *t_, struct outp_driver *driver,
+                  int hl, int hr, int ht, int hb)
 {
-  int c, r;
+  const struct tab_table *t = t_->ext;
+  struct tab_rendering *r;
+  int col, row;
   int i;
 
-  assert (driver != NULL);
-  d = driver;
+  tab_offset (t_->ext, 0, 0);
+
+  r = xmalloc (sizeof *r);
+  r->table = t;
+  r->driver = driver;
+  r->w = xnmalloc (t->nc, sizeof *r->w);
+  r->h = xnmalloc (t->nr, sizeof *r->h);
+  r->hrh = xnmalloc (t->nr + 1, sizeof *r->hrh);
+  r->wrv = xnmalloc (t->nc + 1, sizeof *r->wrv);
+  r->l = hl;
+  r->r = hr;
+  r->t = ht;
+  r->b = hb;
 
   /* Figure out sizes of rules. */
-  for (r = 0; r <= t->nr; r++)
+  for (row = 0; row <= t->nr; row++)
     {
       int width = 0;
-      for (c = 0; c < t->nc; c++)
+      for (col = 0; col < t->nc; col++)
         {
-          unsigned char rh = t->rh[c + r * t->cf];
+          unsigned char rh = t->rh[col + row * t->cf];
           int w = driver->horiz_line_width[rule_to_spacing_type (rh)];
           if (w > width)
             width = w;
         }
-      t->hrh[r] = width;
+      r->hrh[row] = width;
     }
 
-  for (c = 0; c <= t->nc; c++)
+  for (col = 0; col <= t->nc; col++)
     {
       int width = 0;
-      for (r = 0; r < t->nr; r++)
+      for (row = 0; row < t->nr; row++)
         {
-          unsigned char *rv = &t->rv[c + r * (t->cf + 1)];
+          unsigned char *rv = &t->rv[col + row * (t->cf + 1)];
           int w;
           if (*rv == UCHAR_MAX)
-            *rv = c != 0 && c != t->nc ? TAL_GAP : TAL_0;
+            *rv = col != 0 && col != t->nc ? TAL_GAP : TAL_0;
           w = driver->vert_line_width[rule_to_spacing_type (*rv)];
           if (w > width)
             width = w;
         }
-      t->wrv[c] = width;
+      r->wrv[col] = width;
     }
 
-#if DEBUGGING
+  /* Determine row heights and columns widths. */
   for (i = 0; i < t->nr; i++)
-    t->h[i] = -1;
+    r->h[i] = -1;
   for (i = 0; i < t->nc; i++)
-    t->w[i] = -1;
-#endif
+    r->w[i] = -1;
 
-  assert (t->dim != NULL);
-  t->dim (t, d, t->dim_aux);
+  t->dim (r, t->dim_aux);
 
-#if DEBUGGING
-  {
-    int error = 0;
-
-    for (i = 0; i < t->nr; i++)
-      {
-	if (t->h[i] == -1)
-	  {
-	    printf ("Table row %d height not initialized.\n", i);
-	    error = 1;
-	  }
-	assert (t->h[i] > 0);
-      }
-
-    for (i = 0; i < t->nc; i++)
-      {
-	if (t->w[i] == -1)
-	  {
-	    printf ("Table column %d width not initialized.\n", i);
-	    error = 1;
-	  }
-	assert (t->w[i] > 0);
-      }
-  }
-#endif
+  for (i = 0; i < t->nr; i++)
+    if (r->h[i] < 0)
+      error (0, 0, "height of table row %d not initialized", i);
+  for (i = 0; i < t->nc; i++)
+    if (r->w[i] < 0)
+      error (0, 0, "width of table column %d not initialized", i);
 
   /* Add up header sizes. */
-  for (i = 0, t->wl = t->wrv[0]; i < t->l; i++)
-    t->wl += t->w[i] + t->wrv[i + 1];
-  for (i = 0, t->ht = t->hrh[0]; i < t->t; i++)
-    t->ht += t->h[i] + t->hrh[i + 1];
-  for (i = t->nc - t->r, t->wr = t->wrv[i]; i < t->nc; i++)
-    t->wr += t->w[i] + t->wrv[i + 1];
-  for (i = t->nr - t->b, t->hb = t->hrh[i]; i < t->nr; i++)
-    t->hb += t->h[i] + t->hrh[i + 1];
+  for (i = 0, r->wl = r->wrv[0]; i < r->l; i++)
+    r->wl += r->w[i] + r->wrv[i + 1];
+  for (i = 0, r->ht = r->hrh[0]; i < r->t; i++)
+    r->ht += r->h[i] + r->hrh[i + 1];
+  for (i = t->nc - r->r, r->wr = r->wrv[i]; i < t->nc; i++)
+    r->wr += r->w[i] + r->wrv[i + 1];
+  for (i = t->nr - r->b, r->hb = r->hrh[i]; i < t->nr; i++)
+    r->hb += r->h[i] + r->hrh[i + 1];
 
   /* Title. */
   if (!(t->flags & SOMF_NO_TITLE))
-    t->ht += d->font_height;
+    r->ht += driver->font_height;
+
+  return r;
 }
 
-/* Return the number of columns and rows in the table into N_COLUMNS
-   and N_ROWS, respectively. */
 static void
-tabi_count (int *n_columns, int *n_rows)
+tabi_render_free (void *r_)
 {
-  assert (n_columns != NULL && n_rows != NULL);
-  *n_columns = t->nc;
-  *n_rows = t->nr;
-}
+  struct tab_rendering *r = r_;
 
-static void tabi_cumulate (int cumtype, int start, int *end, int max, int *actual);
+  free (r->w);
+  free (r->h);
+  free (r->hrh);
+  free (r->wrv);
+  free (r);
+}
 
 /* Return the horizontal and vertical size of the entire table,
    including headers, for the current output device, into HORIZ and
    VERT. */
 static void
-tabi_area (int *horiz, int *vert)
+tabi_area (void *r_, int *horiz, int *vert)
 {
-  assert (horiz != NULL && vert != NULL);
+  struct tab_rendering *r = r_;
+  const struct tab_table *t = r->table;
+  int width, col;
+  int height, row;
 
-  {
-    int w, c;
+  width = 0;
+  for (col = r->l + 1, width = r->wl + r->wr + r->w[t->l];
+       col < t->nc - r->r; col++)
+    width += r->w[col] + r->wrv[col];
+  *horiz = width;
 
-    for (c = t->l + 1, w = t->wl + t->wr + t->w[t->l];
-	 c < t->nc - t->r; c++)
-      w += t->w[c] + t->wrv[c];
-    *horiz = w;
-  }
-
-  {
-    int h, r;
-    for (r = t->t + 1, h = t->ht + t->hb + t->h[t->t];
-	 r < t->nr - t->b; r++)
-      h += t->h[r] + t->hrh[r];
-    *vert = h;
-  }
-}
-
-/* Return the column style for this table into STYLE. */
-static void
-tabi_columns (int *style)
-{
-  assert (style != NULL);
-  *style = t->col_style;
-}
-
-/* Return the number of header rows/columns on the left, right, top,
-   and bottom sides into HL, HR, HT, and HB, respectively. */
-static void
-tabi_headers (int *hl, int *hr, int *ht, int *hb)
-{
-  assert (hl != NULL && hr != NULL && ht != NULL && hb != NULL);
-  *hl = t->l;
-  *hr = t->r;
-  *ht = t->t;
-  *hb = t->b;
+  height = 0;
+  for (row = r->t + 1, height = r->ht + r->hb + r->h[t->t];
+       row < t->nr - t->b; row++)
+    height += r->h[row] + r->hrh[row];
+  *vert = height;
 }
 
 /* Determines the number of rows or columns (including appropriate
@@ -1093,32 +1071,35 @@ tabi_headers (int *hl, int *hr, int *ht, int *hb)
    space the selected rows/columns (including appropriate headers)
    filled. */
 static void
-tabi_cumulate (int cumtype, int start, int *end, int max, int *actual)
+tabi_cumulate (void *r_, int cumtype, int start, int *end,
+               int max, int *actual)
 {
-  int n;
-  int *d;
-  int *r;
+  const struct tab_rendering *r = r_;
+  const struct tab_table *t = r->table;
+  int limit;
+  int *cells, *rules;
   int total;
+  int idx;
 
   assert (end != NULL && (cumtype == SOM_ROWS || cumtype == SOM_COLUMNS));
   if (cumtype == SOM_ROWS)
     {
       assert (start >= 0 && start < t->nr);
-      n = t->nr - t->b;
-      d = &t->h[start];
-      r = &t->hrh[start + 1];
-      total = t->ht + t->hb;
+      limit = t->nr - r->b;
+      cells = &r->h[start];
+      rules = &r->hrh[start + 1];
+      total = r->ht + r->hb;
     }
   else
     {
       assert (start >= 0 && start < t->nc);
-      n = t->nc - t->r;
-      d = &t->w[start];
-      r = &t->wrv[start + 1];
-      total = t->wl + t->wr;
+      limit = t->nc - t->r;
+      cells = &r->w[start];
+      rules = &r->wrv[start + 1];
+      total = r->wl + r->wr;
     }
 
-  total += *d++;
+  total += *cells++;
   if (total > max)
     {
       if (end)
@@ -1128,82 +1109,34 @@ tabi_cumulate (int cumtype, int start, int *end, int max, int *actual)
       return;
     }
 
-  {
-    int x;
+  for (idx = start + 1; idx < limit; idx++)
+    {
+      int amt = *cells++ + *rules++;
 
-    for (x = start + 1; x < n; x++)
-      {
-	int amt = *d++ + *r++;
+      total += amt;
+      if (total > max)
+        {
+          total -= amt;
+          break;
+        }
+    }
 
-	total += amt;
-	if (total > max)
-	  {
-	    total -= amt;
-	    break;
-	  }
-      }
+  if (end)
+    *end = idx;
 
-    if (end)
-      *end = x;
-
-    if (actual)
-      *actual = total;
-  }
-}
-
-/* Return flags set for the current table into FLAGS. */
-static void
-tabi_flags (unsigned *flags)
-{
-  assert (flags != NULL);
-  *flags = t->flags;
-}
-
-/* Returns true if the table will fit in the given page WIDTH,
-   false otherwise. */
-static bool
-tabi_fits_width (int width)
-{
-  int i;
-
-  for (i = t->l; i < t->nc - t->r; i++)
-    if (t->wl + t->wr + t->w[i] > width)
-      return false;
-
-  return true;
-}
-
-/* Returns true if the table will fit in the given page LENGTH,
-   false otherwise. */
-static bool
-tabi_fits_length (int length)
-{
-  int i;
-
-  for (i = t->t; i < t->nr - t->b; i++)
-    if (t->ht + t->hb + t->h[i] > length)
-      return false;
-
-  return true;
-}
-
-/* Sets the number of header rows/columns on the left, right, top,
-   and bottom sides to HL, HR, HT, and HB, respectively. */
-static void
-tabi_set_headers (int hl, int hr, int ht, int hb)
-{
-  t->l = hl;
-  t->r = hr;
-  t->t = ht;
-  t->b = hb;
+  if (actual)
+    *actual = total;
 }
 
 /* Render title for current table, with major index X and minor index
    Y.  Y may be zero, or X and Y may be zero, but X should be nonzero
    if Y is nonzero. */
 static void
-tabi_title (int x, int y)
+tabi_title (void *r_, int x, int y)
 {
+  const struct tab_rendering *r = r_;
+  const struct tab_table *t = r->table;
+  struct outp_text text;
   char buf[1024];
   char *cp;
 
@@ -1226,76 +1159,90 @@ tabi_title (int x, int y)
     }
   *cp = 0;
 
-  {
-    struct outp_text text;
-
-    text.font = OUTP_PROPORTIONAL;
-    text.justification = OUTP_LEFT;
-    text.string = ss_buffer (buf, cp - buf);
-    text.h = d->width;
-    text.v = d->font_height;
-    text.x = 0;
-    text.y = d->cp_y;
-    d->class->text_draw (d, &text);
-  }
+  text.font = OUTP_PROPORTIONAL;
+  text.justification = OUTP_LEFT;
+  text.string = ss_buffer (buf, cp - buf);
+  text.h = r->driver->width;
+  text.v = r->driver->font_height;
+  text.x = 0;
+  text.y = r->driver->cp_y;
+  r->driver->class->text_draw (r->driver, &text);
 }
 
-static int render_strip (int x, int y, int r, int c1, int c2, int r1, int r2);
+static int render_strip (const struct tab_rendering *,
+                         int x, int y, int r, int c1, int c2, int r1, int r2);
 
-/* Renders columns C0...C1, plus headers, of rows R0...R1,
-   at the given vertical position Y.
-   C0 and C1 count vertical rules as columns,
-   but R0 and R1 do not count horizontal rules as rows.
-   Returns the vertical position after rendering. */
-static int
-render_rows (int y, int c0, int c1, int r0, int r1)
+static void
+add_range (int ranges[][2], int *np, int start, int end)
 {
-  int r;
-  for (r = r0; r < r1; r++)
+  int n = *np;
+  if (n == 0 || start > ranges[n - 1][1])
     {
-      int x = d->cp_x;
-      x = render_strip (x, y, r, 0, t->l * 2 + 1, r0, r1);
-      x = render_strip (x, y, r, c0 * 2 + 1, c1 * 2, r0, r1);
-      x = render_strip (x, y, r, (t->nc - t->r) * 2, t->nc * 2 + 1, r0, r1);
-      y += (r & 1) ? t->h[r / 2] : t->hrh[r / 2];
+      ranges[n][0] = start;
+      ranges[n][1] = end;
+      ++*np;
     }
-  return y;
+  else
+    ranges[n - 1][1] = end;
 }
 
 /* Draws table region (C0,R0)-(C1,R1), plus headers, at the
    current position on the current output device.  */
 static void
-tabi_render (int c0, int r0, int c1, int r1)
+tabi_render (void *r_, int c0, int r0, int c1, int r1)
 {
-  int y;
+  const struct tab_rendering *r = r_;
+  const struct tab_table *t = r->table;
+  int rows[3][2], cols[3][2];
+  int n_row_ranges, n_col_ranges;
+  int y, i;
 
-  tab_hit++;
+  /* Rows to render, counting horizontal rules as rows.  */
+  n_row_ranges = 0;
+  add_range (rows, &n_row_ranges, 0, t->t * 2 + 1);
+  add_range (rows, &n_row_ranges, r0 * 2 + 1, r1 * 2);
+  add_range (rows, &n_row_ranges, (t->nr - t->b) * 2, t->nr * 2 + 1);
 
-  y = d->cp_y;
+  /* Columns to render, counting vertical rules as columns. */
+  n_col_ranges = 0;
+  add_range (cols, &n_col_ranges, 0, r->l * 2 + 1);
+  add_range (cols, &n_col_ranges, c0 * 2 + 1, c1 * 2);
+  add_range (cols, &n_col_ranges, (t->nc - r->r) * 2, t->nc * 2 + 1);
+
+  y = r->driver->cp_y;
   if (!(t->flags & SOMF_NO_TITLE))
-    y += d->font_height;
+    y += r->driver->font_height;
+  for (i = 0; i < n_row_ranges; i++)
+    {
+      int row;
 
-  y = render_rows (y, c0, c1, 0, t->t * 2 + 1);
-  y = render_rows (y, c0, c1, r0 * 2 + 1, r1 * 2);
-  y = render_rows (y, c0, c1, (t->nr - t->b) * 2, t->nr * 2 + 1);
+      for (row = rows[i][0]; row < rows[i][1]; row++)
+        {
+          int x, j;
+
+          x = r->driver->cp_x;
+          for (j = 0; j < n_col_ranges; j++)
+            x = render_strip (r, x, y, row,
+                              cols[j][0], cols[j][1],
+                              rows[i][0], rows[i][1]);
+
+          y += (row & 1) ? r->h[row / 2] : r->hrh[row / 2];
+        }
+    }
 }
 
 const struct som_table_class tab_table_class =
   {
-    tabi_table,
-    tabi_driver,
-
     tabi_count,
-    tabi_area,
     tabi_columns,
     tabi_headers,
-    tabi_cumulate,
     tabi_flags,
-    tabi_fits_width,
-    tabi_fits_length,
 
-    tabi_set_headers,
+    tabi_render_init,
+    tabi_render_free,
 
+    tabi_area,
+    tabi_cumulate,
     tabi_title,
     tabi_render,
   };
@@ -1337,56 +1284,63 @@ rule_to_draw_type (unsigned char type)
 
 /* Returns the horizontal rule at the given column and row. */
 static int
-get_hrule (int c, int r)
+get_hrule (const struct tab_table *t, int col, int row)
 {
-  return t->rh[c + r * t->cf];
+  return t->rh[col + row * t->cf];
 }
 
 /* Returns the vertical rule at the given column and row. */
 static int
-get_vrule (int c, int r)
+get_vrule (const struct tab_table *t, int col, int row)
 {
-  return t->rv[c + r * (t->cf + 1)];
+  return t->rv[col + row * (t->cf + 1)];
 }
 
 /* Renders the horizontal rule at the given column and row
    at (X,Y) on the page. */
 static void
-render_horz_rule (int x, int y, int c, int r)
+render_horz_rule (const struct tab_rendering *r,
+                  int x, int y, int col, int row)
 {
-  enum outp_line_style style = rule_to_draw_type (get_hrule (c, r));
+  enum outp_line_style style;
+  style = rule_to_draw_type (get_hrule (r->table, col, row));
   if (style != OUTP_L_NONE)
-    d->class->line (d, x, y, x + t->w[c], y + t->hrh[r],
-                    OUTP_L_NONE, style, OUTP_L_NONE, style);
+    r->driver->class->line (r->driver, x, y, x + r->w[col], y + r->hrh[row],
+                            OUTP_L_NONE, style, OUTP_L_NONE, style);
 }
 
 /* Renders the vertical rule at the given column and row
    at (X,Y) on the page. */
 static void
-render_vert_rule (int x, int y, int c, int r)
+render_vert_rule (const struct tab_rendering *r,
+                  int x, int y, int col, int row)
 {
-  enum outp_line_style style = rule_to_draw_type (get_vrule (c, r));
+  enum outp_line_style style;
+  style = rule_to_draw_type (get_vrule (r->table, col, row));
   if (style != OUTP_L_NONE)
-    d->class->line (d, x, y, x + t->wrv[c], y + t->h[r],
-                    style, OUTP_L_NONE, style, OUTP_L_NONE);
+    r->driver->class->line (r->driver, x, y, x + r->wrv[col], y + r->h[row],
+                            style, OUTP_L_NONE, style, OUTP_L_NONE);
 }
 
 /* Renders the rule intersection at the given column and row
    at (X,Y) on the page. */
 static void
-render_rule_intersection (int x, int y, int c, int r)
+render_rule_intersection (const struct tab_rendering *r,
+                          int x, int y, int col, int row)
 {
+  const struct tab_table *t = r->table;
+
   /* Bounds of intersection. */
   int x0 = x;
   int y0 = y;
-  int x1 = x + t->wrv[c];
-  int y1 = y + t->hrh[r];
+  int x1 = x + r->wrv[col];
+  int y1 = y + r->hrh[row];
 
   /* Lines on each side of intersection. */
-  int top = r > 0 ? get_vrule (c, r - 1) : TAL_0;
-  int left = c > 0 ? get_hrule (c - 1, r) : TAL_0;
-  int bottom = r < t->nr ? get_vrule (c, r) : TAL_0;
-  int right = c < t->nc ? get_hrule (c, r) : TAL_0;
+  int top = row > 0 ? get_vrule (t, col, row - 1) : TAL_0;
+  int left = col > 0 ? get_hrule (t, col - 1, row) : TAL_0;
+  int bottom = row < t->nr ? get_vrule (t, col, row) : TAL_0;
+  int right = col < t->nc ? get_hrule (t, col, row) : TAL_0;
 
   /* Output style for each line. */
   enum outp_line_style o_top = rule_to_draw_type (top);
@@ -1396,36 +1350,37 @@ render_rule_intersection (int x, int y, int c, int r)
 
   if (o_top != OUTP_L_NONE || o_left != OUTP_L_NONE
       || o_bottom != OUTP_L_NONE || o_right != OUTP_L_NONE)
-    d->class->line (d, x0, y0, x1, y1, o_top, o_left, o_bottom, o_right);
+    r->driver->class->line (r->driver, x0, y0, x1, y1,
+                            o_top, o_left, o_bottom, o_right);
 }
 
 /* Returns the width of columns C1...C2 exclusive,
    including interior but not exterior rules. */
 static int
-strip_width (int c1, int c2)
+strip_width (const struct tab_rendering *r, int c1, int c2)
 {
   int width = 0;
   int c;
 
   for (c = c1; c < c2; c++)
-    width += t->w[c] + t->wrv[c + 1];
+    width += r->w[c] + r->wrv[c + 1];
   if (c1 < c2)
-    width -= t->wrv[c2];
+    width -= r->wrv[c2];
   return width;
 }
 
 /* Returns the height of rows R1...R2 exclusive,
    including interior but not exterior rules. */
 static int
-strip_height (int r1, int r2)
+strip_height (const struct tab_rendering *r, int r1, int r2)
 {
   int height = 0;
-  int r;
+  int row;
 
-  for (r = r1; r < r2; r++)
-    height += t->h[r] + t->hrh[r + 1];
+  for (row = r1; row < r2; row++)
+    height += r->h[row] + r->hrh[row + 1];
   if (r1 < r2)
-    height -= t->hrh[r2];
+    height -= r->hrh[r2];
   return height;
 }
 
@@ -1433,9 +1388,11 @@ strip_height (int r1, int r2)
    page.  Also renders joined cells that extend as far to the
    right as C1 and as far down as R1. */
 static void
-render_cell (int x, int y, int c, int r, int c1, int r1)
+render_cell (const struct tab_rendering *r,
+             int x, int y, int col, int row, int c1, int r1)
 {
-  const int index = c + (r * t->cf);
+  const struct tab_table *t = r->table;
+  const int index = col + (row * t->cf);
   unsigned char type = t->ct[index];
   struct substring *content = &t->cc[index];
 
@@ -1447,11 +1404,11 @@ render_cell (int x, int y, int c, int r, int c1, int r1)
           text.font = options_to_font (type);
           text.justification = translate_justification (type);
           text.string = *content;
-          text.h = t->w[c];
-          text.v = t->h[r];
+          text.h = r->w[col];
+          text.v = r->h[row];
           text.x = x;
           text.y = y;
-          d->class->text_draw (d, &text);
+          r->driver->class->text_draw (r->driver, &text);
         }
     }
   else
@@ -1459,53 +1416,49 @@ render_cell (int x, int y, int c, int r, int c1, int r1)
       struct tab_joined_cell *j
         = (struct tab_joined_cell *) ss_data (*content);
 
-      if (j->hit != tab_hit)
+      if (j->x1 == col && j->y1 == row)
         {
-          j->hit = tab_hit;
-
-          if (j->x1 == c && j->y1 == r)
-            {
-              struct outp_text text;
-              text.font = options_to_font (type);
-              text.justification = translate_justification (type);
-              text.string = j->contents;
-              text.x = x;
-              text.y = y;
-              text.h = strip_width (j->x1, MIN (j->x2, c1));
-              text.v = strip_height (j->y1, MIN (j->y2, r1));
-              d->class->text_draw (d, &text);
-            }
+          struct outp_text text;
+          text.font = options_to_font (type);
+          text.justification = translate_justification (type);
+          text.string = j->contents;
+          text.x = x;
+          text.y = y;
+          text.h = strip_width (r, j->x1, MIN (j->x2, c1));
+          text.v = strip_height (r, j->y1, MIN (j->y2, r1));
+          r->driver->class->text_draw (r->driver, &text);
         }
     }
 }
 
 /* Render contiguous strip consisting of columns C0...C1, exclusive,
-   on row R, at (X,Y).  Returns X position after rendering.
+   on row ROW, at (X,Y).  Returns X position after rendering.
    Also renders joined cells that extend beyond that strip,
    cropping them to lie within rendering region (C0,R0)-(C1,R1).
    C0 and C1 count vertical rules as columns.
-   R counts horizontal rules as rows, but R0 and R1 do not. */
+   ROW counts horizontal rules as rows, but R0 and R1 do not. */
 static int
-render_strip (int x, int y, int r, int c0, int c1, int r0 UNUSED, int r1)
+render_strip (const struct tab_rendering *r,
+              int x, int y, int row, int c0, int c1, int r0 UNUSED, int r1)
 {
-  int c;
+  int col;
 
-  for (c = c0; c < c1; c++)
-    if (c & 1)
+  for (col = c0; col < c1; col++)
+    if (col & 1)
       {
-        if (r & 1)
-          render_cell (x, y, c / 2, r / 2, c1 / 2, r1);
+        if (row & 1)
+          render_cell (r, x, y, col / 2, row / 2, c1 / 2, r1);
         else
-          render_horz_rule (x, y, c / 2, r / 2);
-        x += t->w[c / 2];
+          render_horz_rule (r, x, y, col / 2, row / 2);
+        x += r->w[col / 2];
       }
     else
       {
-        if (r & 1)
-          render_vert_rule (x, y, c / 2, r / 2);
+        if (row & 1)
+          render_vert_rule (r, x, y, col / 2, row / 2);
         else
-          render_rule_intersection (x, y, c / 2, r / 2);
-        x += t->wrv[c / 2];
+          render_rule_intersection (r, x, y, col / 2, row / 2);
+        x += r->wrv[col / 2];
       }
 
   return x;

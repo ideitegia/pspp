@@ -1000,23 +1000,23 @@ compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-full_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
+full_dim (struct tab_rendering *r, void *aux UNUSED)
 {
-  int i = 0;
-  int columns = 5;
+  const struct outp_driver *d = r->driver;
+  const struct tab_table *t = r->table;
+  int i;
 
-  if (cmd.labels == FRQ_LABELS)
+  for (i = 0; i < t->nc; i++)
     {
-    t->w[0] = MIN (tab_natural_width (t, d, 0), d->prop_em_width * 15);
-      i = 1;
-      columns ++;
+      r->w[i] = tab_natural_width (r, i);
+      if (cmd.labels == FRQ_LABELS && i == 0)
+        r->w[i] = MIN (r->w[i], d->prop_em_width * 15);
+      else
+        r->w[i] = MAX (r->w[i], d->prop_em_width * 8);
     }
 
-  for (;i < columns; i++)
-    t->w[i] = MAX (tab_natural_width (t, d, i), d->prop_em_width * 8);
-
   for (i = 0; i < t->nr; i++)
-    t->h[i] = d->font_height;
+    r->h[i] = d->font_height;
 }
 
 /* Displays a full frequency table for variable V. */
@@ -1135,20 +1135,26 @@ dump_full (const struct variable *v, const struct variable *wv)
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-condensed_dim (struct tab_table *t, struct outp_driver *d, void *aux UNUSED)
+condensed_dim (struct tab_rendering *r, void *aux UNUSED)
 {
-  int cum_w = MAX (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
-		   MAX (outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL),
-			outp_string_width (d, "000", OUTP_PROPORTIONAL)));
+  struct outp_driver *d = r->driver;
+  const struct tab_table *t = r->table;
+
+  int cum_width = outp_string_width (d, _("Cum"), OUTP_PROPORTIONAL);
+  int zeros_width = outp_string_width (d, "000", OUTP_PROPORTIONAL);
+  int max_width = MAX (cum_width, zeros_width);
 
   int i;
 
   for (i = 0; i < 2; i++)
-    t->w[i] = MAX (tab_natural_width (t, d, i), d->prop_em_width * 8);
+    {
+      r->w[i] = tab_natural_width (r, i);
+      r->w[i] = MAX (r->w[i], d->prop_em_width * 8);
+    }
   for (i = 2; i < 4; i++)
-    t->w[i] = cum_w;
+    r->w[i] = max_width;
   for (i = 0; i < t->nr; i++)
-    t->h[i] = d->font_height;
+    r->h[i] = d->font_height;
 }
 
 /* Display condensed frequency table for variable V. */

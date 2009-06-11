@@ -46,7 +46,7 @@ struct som_entity
   {
     const struct som_table_class *class;	/* Table class. */
     enum som_type type;                 /* Table or Chart */
-    void *ext;				/* Owned by */
+    void *ext;				/* Owned by table or chart class. */
   };
 
 /* Group styles. */
@@ -75,26 +75,23 @@ enum
 struct outp_driver;
 struct som_table_class
   {
-    /* Set table, driver. */
-    void (*table) (struct som_entity *);
-    void (*driver) (struct outp_driver *);
+    /* Operations on tables. */
+    void (*count) (struct som_entity *, int *n_columns, int *n_rows);
+    void (*columns) (struct som_entity *, int *style);
+    void (*headers) (struct som_entity *, int *l, int *r, int *t, int *b);
+    void (*flags) (struct som_entity *, unsigned *);
 
-    /* Query columns and rows. */
-    void (*count) (int *n_columns, int *n_rows);
-    void (*area) (int *horiz, int *vert);
-    void (*columns) (int *style);
-    void (*headers) (int *l, int *r, int *t, int *b);
-    void (*cumulate) (int cumtype, int start, int *end, int max, int *actual);
-    void (*flags) (unsigned *);
-    bool (*fits_width) (int width);
-    bool (*fits_length) (int length);
+    /* Creating and freeing driver-specific table rendering data. */
+    void *(*render_init) (struct som_entity *, struct outp_driver *,
+                          int l, int r, int t, int b);
+    void (*render_free) (void *);
 
-    /* Set columns and rows. */
-    void (*set_headers) (int l, int r, int t, int b);
-
-    /* Rendering. */
-    void (*title) (int x, int y);
-    void (*render) (int x1, int y1, int x2, int y2);
+    /* Rendering operations. */
+    void (*area) (void *, int *horiz, int *vert);
+    void (*cumulate) (void *, int cumtype, int start, int *end,
+                      int max, int *actual);
+    void (*title) (void *, int x, int y);
+    void (*render) (void *, int x1, int y1, int x2, int y2);
   };
 
 /* Table indexes. */
