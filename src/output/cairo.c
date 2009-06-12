@@ -117,6 +117,7 @@ static void draw_headers (struct outp_driver *this);
 
 static bool load_font (struct outp_driver *this, struct xr_font *);
 static void free_font (struct xr_font *);
+static int text_width (struct outp_driver *, const char *, enum outp_font);
 
 /* Driver initialization. */
 
@@ -215,10 +216,8 @@ xr_open_driver (struct outp_driver *this, struct substring options)
       goto error;
     }
 
-  this->fixed_width = pango_font_metrics_get_approximate_char_width (
-    x->fonts[OUTP_FIXED].metrics);
-  this->prop_em_width = pango_font_metrics_get_approximate_char_width (
-      x->fonts[OUTP_PROPORTIONAL].metrics);
+  this->fixed_width = text_width (this, "0", OUTP_FIXED);
+  this->prop_em_width = text_width (this, "0", OUTP_PROPORTIONAL);
 
   this->horiz_line_width[OUTP_L_NONE] = 0;
   this->horiz_line_width[OUTP_L_SINGLE] = 2 * x->line_gutter + x->line_width;
@@ -621,6 +620,25 @@ draw_text (struct outp_driver *this,
   return width;
 }
 
+/* Writes STRING at location (X,Y) trimmed to the given MAX_WIDTH
+   and with the given JUSTIFICATION for THIS driver. */
+static int
+text_width (struct outp_driver *this, const char *string, enum outp_font font)
+{
+  struct outp_text text;
+  int width;
+
+  text.font = font;
+  text.justification = OUTP_LEFT;
+  text.string = ss_cstr (string);
+  text.h = INT_MAX;
+  text.v = this->font_height;
+  text.x = 0;
+  text.y = 0;
+  this->class->text_metrics (this, &text, &width, NULL);
+  return width;
+}
+
 /* Writes LEFT left-justified and RIGHT right-justified within
    (X0...X1) at Y.  LEFT or RIGHT or both may be null. */
 static void
@@ -780,11 +798,11 @@ load_font (struct outp_driver *this, struct xr_font *font)
       error (0, 0, _("\"%s\": bad font specification"), font->string);
       return false;
     }
-  pango_font_description_set_size (font->desc, this->font_height * 5 / 6);
+  pango_font_description_set_absolute_size (font->desc, this->font_height);
 
   font->layout = pango_cairo_create_layout (x->cairo);
+      pango_cairo_update_layout (x->cairo, font->layout);
   pango_layout_set_font_description (font->layout, font->desc);
-  pango_layout_set_spacing (font->layout, this->font_height / 6);
 
   language = pango_language_get_default ();
   context = pango_layout_get_context (font->layout);
