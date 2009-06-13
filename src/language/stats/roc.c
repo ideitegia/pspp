@@ -36,6 +36,9 @@
 #include <gsl/gsl_cdf.h>
 #include <output/table.h>
 
+#include <output/charts/plot-chart.h>
+#include <output/charts/cartesian.h>
+
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
@@ -936,17 +939,64 @@ show_coords (struct roc_state *rs, const struct cmd_roc *roc)
 }
 
 
+static void
+draw_roc (struct roc_state *rs, const struct cmd_roc *roc)
+{
+  int i;
+
+  struct chart *roc_chart = chart_create ();
+
+  chart_write_title (roc_chart, _("ROC Curve"));
+  chart_write_xlabel (roc_chart, _("1 - Specificity"));
+  chart_write_ylabel (roc_chart, _("Sensitivity"));
+
+  chart_write_xscale (roc_chart, 0, 1, 5);
+  chart_write_yscale (roc_chart, 0, 1, 5);
+
+  if ( roc->reference )
+    {
+      chart_line (roc_chart, 1.0, 0,
+		  0.0, 1.0,
+		  CHART_DIM_X);
+    }
+
+  for (i = 0; i < roc->n_vars; ++i)
+    {
+      struct ccase *cc;
+      struct casereader *r = casereader_clone (rs[i].cutpoint_rdr);
+
+      chart_vector_start (roc_chart, var_get_name (roc->vars[i]));
+      for (; (cc = casereader_read (r)) != NULL;
+	   case_unref (cc))
+	{
+	  double se = case_data_idx (cc, TP)->f;
+	  double sp = case_data_idx (cc, TN)->f;
+
+	  se /= case_data_idx (cc, FN)->f +
+	    case_data_idx (cc, TP)->f ;
+
+	  sp /= case_data_idx (cc, TN)->f +
+	    case_data_idx (cc, FP)->f ;
+
+	  chart_vector (roc_chart, 1 - sp, se);
+	}
+      chart_vector_end (roc_chart);
+      casereader_destroy (r);
+    }
+
+  chart_write_legend (roc_chart);
+
+  chart_submit (roc_chart);
+}
+
 
 static void
 output_roc (struct roc_state *rs, const struct cmd_roc *roc)
 {
   show_summary (roc);
 
-#if 0
-
   if ( roc->curve )
     draw_roc (rs, roc);
-#endif
 
   show_auc (rs, roc);
 
