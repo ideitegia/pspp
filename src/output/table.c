@@ -1137,36 +1137,33 @@ tabi_title (void *r_, int x, int y)
   const struct tab_rendering *r = r_;
   const struct tab_table *t = r->table;
   struct outp_text text;
-  char buf[1024];
-  char *cp;
+  struct string title;
 
   if (t->flags & SOMF_NO_TITLE)
     return;
 
-  cp = spprintf (buf, "%d.%d", table_num, subtable_num);
+  ds_init_empty (&title);
+  ds_put_format (&title,"%d.%d", table_num, subtable_num);
   if (x && y)
-    cp = spprintf (cp, "(%d:%d)", x, y);
+    ds_put_format (&title, "(%d:%d)", x, y);
   else if (x)
-    cp = spprintf (cp, "(%d)", x);
+    ds_put_format (&title, "(%d)", x);
   if (command_name != NULL)
-    cp = spprintf (cp, " %s", command_name);
-  cp = stpcpy (cp, ".  ");
+    ds_put_format (&title, " %s", command_name);
+  ds_put_cstr (&title, ".  ");
   if (t->title != NULL)
-    {
-      size_t length = strlen (t->title);
-      memcpy (cp, t->title, length);
-      cp += length;
-    }
-  *cp = 0;
+    ds_put_cstr (&title, t->title);
 
   text.font = OUTP_PROPORTIONAL;
   text.justification = OUTP_LEFT;
-  text.string = ss_buffer (buf, cp - buf);
+  text.string = ds_ss (&title);
   text.h = r->driver->width;
   text.v = r->driver->font_height;
   text.x = 0;
   text.y = r->driver->cp_y;
   r->driver->class->text_draw (r->driver, &text);
+
+  ds_destroy (&title);
 }
 
 static int render_strip (const struct tab_rendering *,
