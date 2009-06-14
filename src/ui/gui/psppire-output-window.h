@@ -24,6 +24,7 @@
 #include <gtk/gtkaction.h>
 #include <gtk/gtktextbuffer.h>
 #include "psppire-window.h"
+#include "psppire.h"
 #include <gtk/gtk.h>
 
 extern int viewer_length;
