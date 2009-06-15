@@ -1105,10 +1105,10 @@ initialize_aggregate_info (struct agr_proc *agr, const struct ccase *input)
             proto = caseproto_add_width (proto, 0);
 
 	    if ( ! iter->subject)
-	      iter->subject = var_create_internal (0);
+	      iter->subject = var_create_internal (0, 0);
 
 	    if ( ! iter->weight)
-	      iter->weight = var_create_internal (1);
+	      iter->weight = var_create_internal (1, 0);
 
             subcase_init_var (&ordering, iter->subject, SC_ASCEND);
 	    iter->writer = sort_create_writer (&ordering, proto);

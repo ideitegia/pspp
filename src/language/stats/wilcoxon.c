@@ -88,7 +88,7 @@ wilcoxon_execute (const struct dataset *ds,
 
   struct wilcoxon_state *ws = xcalloc (sizeof (*ws), t2s->n_pairs);
   const struct variable *weight = dict_get_weight (dict);
-  struct variable *weightx = var_create_internal (WEIGHT_IDX);
+  struct variable *weightx = var_create_internal (WEIGHT_IDX, 0);
   struct caseproto *proto;
 
   input =
@@ -108,8 +108,8 @@ wilcoxon_execute (const struct dataset *ds,
       struct subcase ordering;
       variable_pair *vp = &t2s->pairs[i];
 
-      ws[i].sign = var_create_internal (0);
-      ws[i].absdiff = var_create_internal (1);
+      ws[i].sign = var_create_internal (0, 0);
+      ws[i].absdiff = var_create_internal (1, 0);
 
       r = casereader_create_filter_missing (r, *vp, 2,
 					    exclude,

@@ -83,7 +83,7 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 	    }
 	}
     }
-  result->intr = var_create_internal (0);
+  result->intr = var_create_internal (0, 0);
 
   return result;
 }

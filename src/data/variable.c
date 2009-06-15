@@ -149,13 +149,13 @@ var_clone (const struct variable *old_var)
   return new_var;
 }
 
-/* Create a variable to be used for internal calculations only.
-   The variable is assigned a unique dictionary index and a case
-   index of CASE_IDX. */
+/* Create a variable of the specified WIDTH to be used for
+   internal calculations only.  The variable is assigned a unique
+   dictionary index and a case index of CASE_IDX. */
 struct variable *
-var_create_internal (int case_idx)
+var_create_internal (int case_idx, int width)
 {
-  struct variable *v = var_create ("$internal", 0);
+  struct variable *v = var_create ("$internal", width);
   struct vardict_info vdi;
   static int counter = INT_MAX / 2;
 
