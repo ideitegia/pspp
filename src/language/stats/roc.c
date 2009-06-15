@@ -560,8 +560,7 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
     struct caseproto *proto = caseproto_create ();
 
     struct subcase ordering;
-    struct variable *iv = var_create_internal (CUTPOINT);
-    subcase_init_var (&ordering, iv, SC_ASCEND);
+    subcase_init (&ordering, CUTPOINT, 0, SC_ASCEND);
 
 
     proto = caseproto_add_width (proto, 0); /* cutpoint */
