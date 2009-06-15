@@ -91,6 +91,8 @@ void
 tab_destroy (struct tab_table *t)
 {
   assert (t != NULL);
+  if (t->dim_free != NULL)
+    t->dim_free (t->dim_aux);
   free (t->title);
   pool_destroy (t->container);
 }
@@ -397,12 +399,22 @@ tab_title (struct tab_table *t, const char *title, ...)
   va_end (args);
 }
 
-/* Set DIM_FUNC as the dimension function for table T. */
+/* Set DIM_FUNC, which will be passed auxiliary data AUX, as the
+   dimension function for table T.
+
+   DIM_FUNC must not assume that it is called from the same
+   context as tab_dim; for example, table T might be kept in
+   memory and, thus, DIM_FUNC might be called after the currently
+   running command completes.  If it is non-null, FREE_FUNC is
+   called when the table is destroyed, to allow any data
+   allocated for use by DIM_FUNC to be freed.  */
 void
-tab_dim (struct tab_table *t, tab_dim_func *dim_func, void *aux)
+tab_dim (struct tab_table *t,
+         tab_dim_func *dim_func, tab_dim_free_func *free_func, void *aux)
 {
-  assert (t != NULL && t->dim == NULL);
+  assert (t->dim == NULL);
   t->dim = dim_func;
+  t->dim_free = free_func;
   t->dim_aux = aux;
 }
 
@@ -813,7 +825,7 @@ tab_output_text (int options, const char *buf, ...)
 
   tab_text (t, 0, 0, options & ~TAT_PRINTF, buf);
   tab_flags (t, SOMF_NO_TITLE | SOMF_NO_SPACING);
-  tab_dim (t, options & TAT_NOWRAP ? nowrap_dim : wrap_dim, NULL);
+  tab_dim (t, options & TAT_NOWRAP ? nowrap_dim : wrap_dim, NULL, NULL);
   tab_submit (t);
 
   free (tmp_buf);

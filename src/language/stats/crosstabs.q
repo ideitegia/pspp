@@ -200,6 +200,12 @@ struct crosstabs_proc
     unsigned int statistics;    /* Bit k is 1 if statistic k is requested. */
   };
 
+/* Auxiliary data structure for tab_dim. */
+struct crosstabs_dim_aux
+  {
+    enum mv_class exclude;
+  };
+
 static void
 init_proc (struct crosstabs_proc *proc, struct dataset *ds)
 {
@@ -912,7 +918,8 @@ static void display_symmetric (struct crosstabs_proc *, struct pivot_table *,
 static void display_risk (struct pivot_table *, struct tab_table *);
 static void display_directional (struct crosstabs_proc *, struct pivot_table *,
                                  struct tab_table *);
-static void crosstabs_dim (struct tab_rendering *, void *proc);
+static void crosstabs_dim (struct tab_rendering *, void *aux);
+static void crosstabs_dim_free (void *aux);
 static void table_value_missing (struct crosstabs_proc *proc,
                                  struct tab_table *table, int c, int r,
 				 unsigned char opt, const union value *v,
@@ -1343,6 +1350,7 @@ static void
 submit (struct crosstabs_proc *proc, struct pivot_table *pt,
         struct tab_table *t)
 {
+  struct crosstabs_dim_aux *aux;
   int i;
 
   if (t == NULL)
@@ -1365,23 +1373,27 @@ submit (struct crosstabs_proc *proc, struct pivot_table *pt,
   tab_box (t, -1, -1, -1, TAL_GAP, 0, tab_t (t), tab_l (t) - 1,
 	   tab_nr (t) - 1);
   tab_vline (t, TAL_2, tab_l (t), 0, tab_nr (t) - 1);
-  tab_dim (t, crosstabs_dim, proc);
+
+  aux = xmalloc (sizeof *aux);
+  aux->exclude = proc->exclude;
+  tab_dim (t, crosstabs_dim, crosstabs_dim_free, aux);
+
   tab_submit (t);
 }
 
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-crosstabs_dim (struct tab_rendering *r, void *proc_)
+crosstabs_dim (struct tab_rendering *r, void *aux_)
 {
   const struct tab_table *t = r->table;
   struct outp_driver *d = r->driver;
-  struct crosstabs_proc *proc = proc_;
+  struct crosstabs_dim_aux *aux = aux_;
   int i;
 
   /* Width of a numerical column. */
   int c = outp_string_width (d, "0.000000", OUTP_PROPORTIONAL);
-  if (proc->exclude == MV_NEVER)
+  if (aux->exclude == MV_NEVER)
     c += outp_string_width (d, "M", OUTP_PROPORTIONAL);
 
   /* Set width for header columns. */
@@ -1410,6 +1422,13 @@ crosstabs_dim (struct tab_rendering *r, void *proc_)
 
   for (i = 0; i < t->nr; i++)
     r->h[i] = tab_natural_height (r, i);
+}
+
+static void
+crosstabs_dim_free (void *aux_)
+{
+  struct crosstabs_dim_aux *aux = aux_;
+  free (aux);
 }
 
 static bool

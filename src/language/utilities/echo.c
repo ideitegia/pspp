@@ -35,7 +35,7 @@ cmd_echo (struct lexer *lexer, struct dataset *ds UNUSED)
 
   tab = tab_create(1, 1, 0);
 
-  tab_dim (tab, tab_natural_dimensions, NULL);
+  tab_dim (tab, tab_natural_dimensions, NULL, NULL);
   tab_flags (tab, SOMF_NO_TITLE );
 
   tab_text(tab, 0, 0, 0, ds_cstr (lex_tokstr (lexer)));

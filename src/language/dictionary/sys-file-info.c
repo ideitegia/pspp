@@ -161,11 +161,11 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
 	    dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
 
 
-  tab_dim (t, tab_natural_dimensions, NULL);
+  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_submit (t);
 
   t = tab_create (4, 1 + 2 * dict_get_var_cnt (d), 1);
-  tab_dim (t, sysfile_info_dim, NULL);
+  tab_dim (t, sysfile_info_dim, NULL, NULL);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Variable"));
   tab_joint_text (t, 1, 0, 2, 0, TAB_LEFT | TAT_TITLE, _("Description"));
@@ -340,18 +340,22 @@ display_documents (const struct dictionary *dict)
     }
 }
 
-static int _flags;
+struct variables_dim_aux
+  {
+    int flags;
+  };
 
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-variables_dim (struct tab_rendering *r, void *aux UNUSED)
+variables_dim (struct tab_rendering *r, void *aux_)
 {
   const struct outp_driver *d = r->driver;
+  struct variables_dim_aux *aux = aux_;
 
   tab_natural_dimensions (r, NULL);
-  if (_flags & (DF_VALUE_LABELS | DF_VARIABLE_LABELS | DF_MISSING_VALUES
-                | DF_AT_ATTRIBUTES | DF_ATTRIBUTES))
+  if (aux->flags & (DF_VALUE_LABELS | DF_VARIABLE_LABELS | DF_MISSING_VALUES
+                    | DF_AT_ATTRIBUTES | DF_ATTRIBUTES))
     {
       r->w[1] = MAX (r->w[1], d->prop_em_width * 5);
       r->w[2] = MAX (r->w[2], d->prop_em_width * 35);
@@ -359,15 +363,21 @@ variables_dim (struct tab_rendering *r, void *aux UNUSED)
 }
 
 static void
+variables_dim_free (void *aux_)
+{
+  struct variables_dim_aux *aux = aux_;
+  free (aux);
+}
+
+static void
 display_variables (const struct variable **vl, size_t n, int flags)
 {
   struct tab_table *t;
+  struct variables_dim_aux *aux;
   int nc;			/* Number of columns. */
   int pc;			/* `Position column' */
   int r;			/* Current row. */
   size_t i;
-
-  _flags = flags;
 
   /* One column for the name,
      two columns for general description,
@@ -389,7 +399,10 @@ display_variables (const struct variable **vl, size_t n, int flags)
                      ? _("Description") : _("Label")));
   if (flags & DF_DICT_INDEX)
     tab_text (t, pc, 0, TAB_LEFT | TAT_TITLE, _("Position"));
-  tab_dim (t, variables_dim, NULL);
+
+  aux = xmalloc (sizeof *aux);
+  aux->flags = flags;
+  tab_dim (t, variables_dim, variables_dim_free, aux);
 
   r = 1;
   for (i = 0; i < n; i++)
@@ -479,7 +492,7 @@ display_data_file_attributes (struct attrset *set, int flags)
   tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Value"));
   display_attributes (t, set, flags, 0, 1);
   tab_columns (t, TAB_COL_DOWN, 1);
-  tab_dim (t, tab_natural_dimensions, NULL);
+  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_title (t, "Custom data file attributes.");
   tab_submit (t);
 }
@@ -706,7 +719,7 @@ display_vectors (const struct dictionary *dict, int sorted)
   t = tab_create (4, nrow + 1, 0);
   tab_headers (t, 0, 0, 1, 0);
   tab_columns (t, TAB_COL_DOWN, 1);
-  tab_dim (t, tab_natural_dimensions, NULL);
+  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 3, nrow);
   tab_box (t, -1, -1, -1, TAL_1, 0, 0, 3, nrow);
   tab_hline (t, TAL_2, 0, 3, 1);

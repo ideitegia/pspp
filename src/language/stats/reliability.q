@@ -383,7 +383,7 @@ run_reliability (struct casereader *input, struct dataset *ds,
   {
     struct tab_table *tab = tab_create(1, 1, 0);
 
-    tab_dim (tab, tab_natural_dimensions, NULL);
+    tab_dim (tab, tab_natural_dimensions, NULL, NULL);
     tab_flags (tab, SOMF_NO_TITLE );
 
     tab_text(tab, 0, 0, TAT_PRINTF, "Scale: %s", ds_cstr (&rel->scale_name));
@@ -428,7 +428,7 @@ reliability_statistics (const struct reliability *rel)
   struct tab_table *tbl = tab_create (n_cols, n_rows, 0);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
-  tab_dim (tbl, tab_natural_dimensions, NULL);
+  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_title (tbl, _("Reliability Statistics"));
 
@@ -471,7 +471,7 @@ reliability_summary_total (const struct reliability *rel)
   struct tab_table *tbl = tab_create (n_cols, n_rows, 0);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
-  tab_dim (tbl, tab_natural_dimensions, NULL);
+  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_title (tbl, _("Item-Total Statistics"));
 
@@ -681,7 +681,7 @@ case_processing_summary (casenumber n_valid, casenumber n_missing,
   tbl = tab_create (n_cols, n_rows, 0);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
-  tab_dim (tbl, tab_natural_dimensions, NULL);
+  tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
 
   tab_title (tbl, _("Case Processing Summary"));
 

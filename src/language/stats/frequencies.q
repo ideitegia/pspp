@@ -997,19 +997,25 @@ compare_freq_alpha_d (const void *a_, const void *b_, const void *v_)
 
 /* Frequency table display. */
 
+struct full_dim_aux
+  {
+    bool show_labels;
+  };
+
 /* Sets the widths of all the columns and heights of all the rows in
    table T for driver D. */
 static void
-full_dim (struct tab_rendering *r, void *aux UNUSED)
+full_dim (struct tab_rendering *r, void *aux_)
 {
   const struct outp_driver *d = r->driver;
   const struct tab_table *t = r->table;
+  const struct full_dim_aux *aux = aux_;
   int i;
 
   for (i = 0; i < t->nc; i++)
     {
       r->w[i] = tab_natural_width (r, i);
-      if (cmd.labels == FRQ_LABELS && i == 0)
+      if (aux->show_labels && i == 0)
         r->w[i] = MIN (r->w[i], d->prop_em_width * 15);
       else
         r->w[i] = MAX (r->w[i], d->prop_em_width * 8);
@@ -1017,6 +1023,13 @@ full_dim (struct tab_rendering *r, void *aux UNUSED)
 
   for (i = 0; i < t->nr; i++)
     r->h[i] = d->font_height;
+}
+
+static void
+full_dim_free (void *aux_)
+{
+  struct full_dim_aux *aux = aux_;
+  free (aux);
 }
 
 /* Displays a full frequency table for variable V. */
@@ -1059,12 +1072,17 @@ dump_full (const struct variable *v, const struct variable *wv)
 
   const bool lab = (cmd.labels == FRQ_LABELS);
 
+  struct full_dim_aux *aux;
+
   vf = get_var_freqs (v);
   ft = &vf->tab;
   n_categories = ft->n_valid + ft->n_missing;
   t = tab_create (5 + lab, n_categories + 3, 0);
   tab_headers (t, 0, 0, 2, 0);
-  tab_dim (t, full_dim, NULL);
+
+  aux = xmalloc (sizeof *aux);
+  aux->show_labels = lab;
+  tab_dim (t, full_dim, full_dim_free, aux);
 
   if (lab)
     tab_text (t, 0, 1, TAB_CENTER | TAT_TITLE, _("Value Label"));
@@ -1181,7 +1199,7 @@ dump_condensed (const struct variable *v, const struct variable *wv)
   tab_text (t, 2, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Cum"));
   tab_text (t, 3, 1, TAB_CENTER | TAT_TITLE, _("Pct"));
-  tab_dim (t, condensed_dim, NULL);
+  tab_dim (t, condensed_dim, NULL, NULL);
 
   r = 2;
   for (f = ft->valid; f < ft->missing; f++)
@@ -1380,7 +1398,7 @@ dump_statistics (const struct variable *v, bool show_varname,
   calc_stats (v, stat_value);
 
   t = tab_create (3, n_stats + n_percentiles + 2, 0);
-  tab_dim (t, tab_natural_dimensions, NULL);
+  tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;
 

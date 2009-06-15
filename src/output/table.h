@@ -70,6 +70,7 @@ struct tab_table;
 struct tab_rendering;
 
 typedef void tab_dim_func (struct tab_rendering *, void *aux);
+typedef void tab_dim_free_func (void *aux);
 
 /* A table. */
 struct tab_table
@@ -88,7 +89,10 @@ struct tab_table
     unsigned char *ct;		/* Cell types; unsigned char[nr][nc]. */
     unsigned char *rh;		/* Horiz rules; unsigned char[nr+1][nc]. */
     unsigned char *rv;		/* Vert rules; unsigned char[nr][nc+1]. */
+
+    /* Calculating row and column dimensions. */
     tab_dim_func *dim;		/* Calculates cell widths and heights. */
+    tab_dim_free_func *dim_free; /* Frees space allocated for dim function. */
     void *dim_aux;              /* Auxiliary data for dim function. */
 
     /* Editing info. */
@@ -138,7 +142,8 @@ void tab_submit (struct tab_table *);
 tab_dim_func tab_natural_dimensions;
 int tab_natural_width (const struct tab_rendering *, int c);
 int tab_natural_height (const struct tab_rendering *, int r);
-void tab_dim (struct tab_table *, tab_dim_func *, void *aux);
+void tab_dim (struct tab_table *,
+              tab_dim_func *, tab_dim_free_func *, void *aux);
 
 /* Rules. */
 void tab_hline (struct tab_table *, int style, int x1, int x2, int y);

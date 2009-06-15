@@ -180,7 +180,7 @@ create_variable_frequency_table (const struct dictionary *dict,
     }
 
   table = tab_create(4, n_cells + 2, 0);
-  tab_dim (table, tab_natural_dimensions, NULL);
+  tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
   tab_title (table, var_to_string(var));
   tab_text (table, 1, 0, TAB_LEFT, _("Observed N"));
@@ -216,7 +216,7 @@ create_combo_frequency_table (const struct chisquare_test *test)
   int n_cells = test->hi - test->lo + 1;
 
   table = tab_create(1 + ost->n_vars * 4, n_cells + 3, 0);
-  tab_dim (table, tab_natural_dimensions, NULL);
+  tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
   tab_title (table, _("Frequencies"));
   for ( i = 0 ; i < ost->n_vars ; ++i )
@@ -272,7 +272,7 @@ create_stats_table (const struct chisquare_test *test)
 
   struct tab_table *table;
   table = tab_create (1 + ost->n_vars, 4, 0);
-  tab_dim (table, tab_natural_dimensions, NULL);
+  tab_dim (table, tab_natural_dimensions, NULL, NULL);
   tab_title (table, _("Test Statistics"));
   tab_headers (table, 1, 0, 1, 0);
 

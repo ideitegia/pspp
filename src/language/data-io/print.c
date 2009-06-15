@@ -404,7 +404,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Record"));
   tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("Columns"));
   tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("Format"));
-  tab_dim (t, tab_natural_dimensions, NULL);
+  tab_dim (t, tab_natural_dimensions, NULL, NULL);
   row = 1;
   ll_for_each (spec, struct prt_out_spec, ll, &trns->specs)
     {
