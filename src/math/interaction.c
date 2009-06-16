@@ -67,6 +67,7 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 {
   struct interaction_variable *result = NULL;
   size_t i;
+  int width = 0;
 
   if (n_vars > 0)
     {
@@ -80,10 +81,11 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 	  if (var_is_alpha (vars[i]))
 	    {
 	      result->n_alpha++;
+	      width = 1;
 	    }
 	}
     }
-  result->intr = var_create_internal (0, 0);
+  result->intr = var_create_internal (0, width);
 
   return result;
 }
@@ -98,7 +100,7 @@ void interaction_variable_destroy (struct interaction_variable *iv)
   Get one of the member variables.
  */
 const struct variable *
-interaction_variable_get_member (const struct interaction_variable *iv, size_t i)
+interaction_get_member (const struct interaction_variable *iv, size_t i)
 {
   return iv->members[i];
 }
@@ -122,10 +124,10 @@ interaction_get_n_numeric (const struct interaction_variable *iv)
 }
 
 /*
-  Get the interaction varibale itself.
+  Get the interaction variable itself.
  */
 const struct variable *
-interaction_variable_get_var (const struct interaction_variable *iv)
+interaction_get_variable (const struct interaction_variable *iv)
 {
   return iv->intr;
 }
@@ -146,20 +148,19 @@ interaction_value_create (const struct interaction_variable *var, const union va
   
   if (var != NULL)
     {
-      int val_width;
+      int val_width = 1;
       char *val;
 
       result = xmalloc (sizeof (*result));
       result->intr = var;
       n_vars = interaction_get_n_vars (var);
-      val_width = n_vars * MAX_SHORT_STRING + 1;
       value_init (&result->val, val_width);
       val = value_str_rw (&result->val, val_width);
       val[0] = '\0';
       result->f = 1.0;
       for (i = 0; i < n_vars; i++)
 	{
-	  member = interaction_variable_get_member (var, i);
+	  member = interaction_get_member (var, i);
 
 	  if (var_is_value_missing (member, vals[i], MV_ANY))
 	    {
@@ -172,7 +173,9 @@ interaction_value_create (const struct interaction_variable *var, const union va
 	      if (var_is_alpha (var->members[i]))
 		{
                   int w = var_get_width (var->members[i]);
-		  strncat (val, value_str (vals[i], w), MAX_SHORT_STRING);
+		  value_resize (result, val_width, val_width + w);
+		  strncat (val, value_str (vals[i], w), w);
+		  val = value_str_rw (&result->val, val_width);
 		}
 	      else if (var_is_numeric (var->members[i]))
 		{
@@ -239,32 +242,24 @@ interaction_value_destroy (struct interaction_value *val)
   Return a value from a variable that is an interaction. 
  */
 struct interaction_value *
-interaction_case_data (const struct ccase *ccase, const struct variable *var, 
-		       const struct interaction_variable **intr_vars, size_t n_intr)
+interaction_case_data (const struct ccase *ccase, const struct interaction_variable *iv)
 {
   size_t i;
   size_t n_vars;
-  const struct interaction_variable *iv = NULL;
   const struct variable *intr;
   const struct variable *member;
   const union value **vals = NULL;
 
-  for (i = 0; i < n_intr; i++)
-    {
-      iv = intr_vars[i];
-      intr = interaction_variable_get_var (iv);
-      if (var_get_dict_index (intr) == var_get_dict_index (var))
-	{
-	  break;
-	}
-    }
   n_vars = interaction_get_n_vars (iv);
+  intr = interaction_get_variable (iv);
   vals = xnmalloc (n_vars, sizeof (*vals));
+
   for (i = 0; i < n_vars; i++)
-    {
-      member = interaction_variable_get_member (iv, i);
-      vals[i] = case_data (ccase, member);
-    }
+	{
+	  member = interaction_get_member (iv, i);
+	  vals[i] = case_data (ccase, member);
+	}
+
   return interaction_value_create (iv, vals);
 }
 
@@ -276,7 +271,7 @@ is_interaction (const struct variable *var, const struct interaction_variable **
   
   for (i = 0; i < n_intr; i++)
     {
-      intr = interaction_variable_get_var (iv[i]);
+      intr = interaction_get_variable (iv[i]);
       if (var_get_dict_index (intr) == var_get_dict_index (var))
 	{
 	  return true;

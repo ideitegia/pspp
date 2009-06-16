@@ -40,10 +40,9 @@ enum
 { LISTWISE,
   PAIRWISE
 };
-struct design_matrix *covariance_matrix_create (size_t,
-						const struct variable *[]);
+struct design_matrix *covariance_matrix_create (size_t, const struct variable *[]);
 
-void covariance_matrix_destroy (struct covariance_matrix *cov);
+void covariance_matrix_destroy (struct covariance_matrix *);
 void covariance_pass_two (struct design_matrix *, double,
 			  double, double, const struct variable *,
 			  const struct variable *, const union value *,
@@ -57,4 +56,6 @@ void covariance_matrix_accumulate (struct covariance_matrix *,
 				   const struct ccase *, void **, size_t);
 struct design_matrix *covariance_to_design (const struct covariance_matrix *);
 double covariance_matrix_get_element (const struct covariance_matrix *, size_t, size_t);
+void covariance_interaction_set (struct covariance_matrix *, 
+				 const struct interaction_variable **, size_t);
 #endif
