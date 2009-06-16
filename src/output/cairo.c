@@ -65,9 +65,22 @@
    line-width=0.5pt
  */
 
-/* Measurements.  We use the same scale as Pango, for simplicity. */
+/* Measurements as we present to the rest of PSPP. */
 #define XR_POINT PANGO_SCALE
 #define XR_INCH (XR_POINT * 72)
+
+/* Conversions to and from points. */
+static double
+xr_to_pt (int x)
+{
+  return x / (double) XR_POINT;
+}
+
+static int
+pt_to_xr (double x)
+{
+  return x * XR_POINT + 0.5;
+}
 
 /* Output types. */
 enum xr_output_type
@@ -160,23 +173,23 @@ xr_open_driver (struct outp_driver *this, struct substring options)
 
   outp_parse_options (options, handle_option, this);
 
+  width_pt = x->paper_width / 1000.0;
+  length_pt = x->paper_length / 1000.0;
   if (x->portrait)
     {
-      this->width = x->paper_width;
-      this->length = x->paper_length;
+      this->width = pt_to_xr (width_pt);
+      this->length = pt_to_xr (length_pt);
     }
   else
     {
-      this->width = x->paper_length;
-      this->length = x->paper_width;
+      this->width = pt_to_xr (width_pt);
+      this->length = pt_to_xr (length_pt);
     }
   if (x->draw_headers)
     x->top_margin += 3 * this->font_height;
   this->width -= x->left_margin + x->right_margin;
   this->length -= x->top_margin + x->bottom_margin;
 
-  width_pt = x->paper_width / (double) XR_POINT;
-  length_pt = x->paper_length / (double) XR_POINT;
   if (x->file_type == XR_PDF)
     surface = cairo_pdf_surface_create (x->file_name, width_pt, length_pt);
   else if (x->file_type == XR_PS)
@@ -198,9 +211,10 @@ xr_open_driver (struct outp_driver *this, struct substring options)
   x->cairo = cairo_create (surface);
   cairo_surface_destroy (surface);
 
-  cairo_scale (x->cairo, 1.0 / PANGO_SCALE, 1.0 / PANGO_SCALE);
-  cairo_translate (x->cairo, x->left_margin, x->top_margin);
-  cairo_set_line_width (x->cairo, x->line_width);
+  cairo_translate (x->cairo,
+                   xr_to_pt (x->left_margin),
+                   xr_to_pt (x->top_margin));
+  cairo_set_line_width (x->cairo, xr_to_pt (x->line_width));
 
   for (i = 0; i < OUTP_FONT_CNT; i++)
     if (!load_font (this, &x->fonts[i]))
@@ -442,8 +456,8 @@ dump_line (struct outp_driver *this, int x0, int y0, int x1, int y1)
 {
   struct xr_driver_ext *x = this->ext;
   cairo_new_path (x->cairo);
-  cairo_move_to (x->cairo, x0, y0);
-  cairo_line_to (x->cairo, x1, y1);
+  cairo_move_to (x->cairo, xr_to_pt (x0), xr_to_pt (y0));
+  cairo_line_to (x->cairo, xr_to_pt (x1), xr_to_pt (y1));
   cairo_stroke (x->cairo);
 }
 
@@ -668,9 +682,9 @@ draw_headers (struct outp_driver *this)
   x1 = this->width - this->prop_em_width;
 
   /* Draw box. */
-  cairo_rectangle (ext->cairo, 0, y, this->width,
-                   2 * (this->font_height
-                        + ext->line_width + ext->line_gutter));
+  cairo_rectangle (ext->cairo, 0, xr_to_pt (y), xr_to_pt (this->width),
+                   xr_to_pt (2 * (this->font_height
+                                  + ext->line_width + ext->line_gutter)));
   cairo_save (ext->cairo);
   cairo_set_source_rgb (ext->cairo, 0.9, 0.9, 0.9);
   cairo_fill_preserve (ext->cairo);
@@ -732,11 +746,9 @@ text (struct outp_driver *this, const struct outp_text *text, bool draw,
             }
         }
       cairo_save (ext->cairo);
-      cairo_translate (ext->cairo, text->x, text->y);
-      cairo_scale (ext->cairo, PANGO_SCALE, PANGO_SCALE);
+      cairo_translate (ext->cairo, xr_to_pt (text->x), xr_to_pt (text->y));
       pango_cairo_show_layout (ext->cairo, font->layout);
       cairo_restore (ext->cairo);
-      pango_cairo_update_layout (ext->cairo, font->layout);
     }
 
   if (width != NULL || height != NULL)
@@ -801,7 +813,6 @@ load_font (struct outp_driver *this, struct xr_font *font)
   pango_font_description_set_absolute_size (font->desc, this->font_height);
 
   font->layout = pango_cairo_create_layout (x->cairo);
-      pango_cairo_update_layout (x->cairo, font->layout);
   pango_layout_set_font_description (font->layout, font->desc);
 
   language = pango_language_get_default ();
