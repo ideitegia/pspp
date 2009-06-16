@@ -47,6 +47,8 @@ struct som_entity
     const struct som_table_class *class;	/* Table class. */
     enum som_type type;                 /* Table or Chart */
     void *ext;				/* Owned by table or chart class. */
+    int table_num;                      /* Table number. */
+    int subtable_num;                   /* Sub-table number. */
   };
 
 /* Group styles. */
@@ -90,13 +92,9 @@ struct som_table_class
     void (*area) (void *, int *horiz, int *vert);
     void (*cumulate) (void *, int cumtype, int start, int *end,
                       int max, int *actual);
-    void (*title) (void *, int x, int y);
+    void (*title) (void *, int x, int y, int table_num, int subtable_num);
     void (*render) (void *, int x1, int y1, int x2, int y2);
   };
-
-/* Table indexes. */
-extern int table_num;
-extern int subtable_num;
 
 /* Submission. */
 void som_new_series (void);

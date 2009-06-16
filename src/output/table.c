@@ -1144,7 +1144,7 @@ tabi_cumulate (void *r_, int cumtype, int start, int *end,
    Y.  Y may be zero, or X and Y may be zero, but X should be nonzero
    if Y is nonzero. */
 static void
-tabi_title (void *r_, int x, int y)
+tabi_title (void *r_, int x, int y, int table_num, int subtable_num)
 {
   const struct tab_rendering *r = r_;
   const struct tab_table *t = r->table;
