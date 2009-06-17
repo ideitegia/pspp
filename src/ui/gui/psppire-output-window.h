@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,10 +30,6 @@ extern int viewer_length;
 extern int viewer_width ;
 
 
-#define OUTPUT_FILE_NAME "psppire.txt"
-
-
-
 G_BEGIN_DECLS
 
 #define PSPPIRE_OUTPUT_WINDOW_TYPE            (psppire_output_window_get_type ())
@@ -55,9 +51,8 @@ struct _PsppireOutputWindow
   PsppireWindow parent;
 
   /* <private> */
-  GtkTextBuffer *buffer;  /* The buffer which contains the text */
-  GtkWidget *textview ;
-  FILE *fp;               /* The file it's viewing */
+  GtkLayout *output;
+  int y;
 };
 
 struct _PsppireOutputWindowClass
@@ -69,9 +64,7 @@ struct _PsppireOutputWindowClass
 GType      psppire_output_window_get_type        (void);
 GtkWidget* psppire_output_window_new             (void);
 
-
-void psppire_output_window_reload (void);
-
+void psppire_output_window_setup (void);
 
 G_END_DECLS
 

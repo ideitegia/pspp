@@ -104,7 +104,5 @@ execute_syntax (struct getl_interface *sss)
 
   som_flush ();
 
-  psppire_output_window_reload ();
-
   return retval;
 }

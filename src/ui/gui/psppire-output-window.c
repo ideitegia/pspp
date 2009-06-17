@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2008  Free Software Foundation
+   Copyright (C) 2008, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,10 @@
 #include "helper.h"
 
 #include <libpspp/message.h>
+#include <output/cairo.h>
+#include <output/manager.h>
+#include <output/output.h>
+#include <output/table.h>
 #include <stdlib.h>
 
 #include "about.h"
@@ -106,13 +110,104 @@ psppire_output_window_base_finalize (PsppireOutputWindowClass *class,
 				     gpointer class_data)
 {
 }
-
-
 
+/* Output driver class. */
 
 static PsppireOutputWindow *the_output_viewer = NULL;
 
+static gboolean
+expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
+{
+  struct som_entity *entity = g_object_get_data (G_OBJECT (widget), "entity");
+  GdkWindow *window = widget->window;
+  cairo_t *cairo = gdk_cairo_create (GDK_DRAWABLE (window));
+  struct outp_driver *driver = xr_create_driver (cairo); /* XXX can fail */
+  struct tab_table *t = entity->ext;
+  void *rendering;
 
+  rendering = entity->class->render_init (entity, driver, tab_l (t),
+                                          tab_r (t), tab_t (t), tab_b (t));
+
+  entity->class->title (rendering, 0, 0,
+                        entity->table_num, entity->subtable_num);
+  entity->class->render (rendering, tab_l (t), tab_t (t),
+                         tab_nc (t) - tab_r (t),
+                         tab_nr (t) - tab_b (t));
+
+  entity->class->render_free (rendering);
+  driver->class->close_driver (driver);
+  outp_free_driver (driver);
+  return TRUE;
+}
+
+static void
+psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
+{
+  if (the_output_viewer == NULL)
+    {
+      the_output_viewer = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
+      gtk_widget_show_now (GTK_WIDGET (the_output_viewer));
+    }
+
+  if (entity->type == SOM_TABLE)
+    {
+      GdkWindow *window = GTK_WIDGET (the_output_viewer)->window;
+      cairo_t *cairo = gdk_cairo_create (GDK_DRAWABLE (window));
+      struct outp_driver *driver = xr_create_driver (cairo); /* XXX can fail */
+      struct tab_table *t = entity->ext;
+      GtkWidget *drawing_area;
+      void *rendering;
+      int tw, th;
+
+      tab_ref (t);
+      rendering = entity->class->render_init (entity, driver, tab_l (t),
+                                              tab_r (t), tab_t (t), tab_b (t));
+      entity->class->area (rendering, &tw, &th);
+
+      drawing_area = gtk_drawing_area_new ();
+      g_object_set_data (G_OBJECT (drawing_area),
+                         "entity", xmemdup (entity, sizeof *entity));
+      gtk_widget_set_size_request (drawing_area, tw / 1024, th / 1024);
+      gtk_layout_put (the_output_viewer->output, drawing_area,
+                      0, the_output_viewer->y);
+      gtk_widget_show (drawing_area);
+      g_signal_connect (G_OBJECT (drawing_area), "expose_event",
+                        G_CALLBACK (expose_event_callback), NULL);
+
+      entity->class->render_free (rendering);
+      driver->class->close_driver (driver);
+      outp_free_driver (driver);
+
+      the_output_viewer->y += th / 1024;
+    }
+
+  gtk_window_set_urgency_hint (GTK_WINDOW (the_output_viewer), TRUE);
+}
+
+static struct outp_class psppire_output_class =
+  {
+    "PSPPIRE",                  /* name */
+    true,                       /* special */
+    NULL,                       /* open_driver */
+    NULL,                       /* close_driver */
+    NULL,                       /* open_page */
+    NULL,                       /* close_page */
+    NULL,                       /* flush */
+    psppire_output_submit,      /* submit */
+    NULL,                       /* line */
+    NULL,                       /* text_metrics */
+    NULL,                       /* text_draw */
+    NULL,                       /* initialise_chart */
+    NULL,                       /* finalise_chart */
+  };
+
+void
+psppire_output_window_setup (void)
+{
+  outp_register_driver (outp_allocate_driver (&psppire_output_class,
+                                              "PSPPIRE", 0));
+}
+
 int viewer_length = 16;
 int viewer_width = 59;
 
@@ -127,8 +222,6 @@ on_delete (GtkWidget *w, GdkEvent *event, gpointer user_data)
 
   the_output_viewer = NULL;
 
-  unlink (output_file_name());
-
   return FALSE;
 }
 
@@ -139,43 +232,6 @@ cancel_urgency (GtkWindow *window,  gpointer data)
 {
   gtk_window_set_urgency_hint (window, FALSE);
 }
-/* Sets width and length according to the new size
-   of the output window */
-static void
-on_textview_resize (GtkWidget     *widget,
-		    GtkAllocation *allocation,
-		    gpointer       user_data)
-{
-  PangoContext * context ;
-  PangoLayout *layout ;
-  PangoRectangle logical;
-  GtkStyle *style;
-  gint right_margin, left_margin;
-  GtkTextView *text_view = GTK_TEXT_VIEW (widget);
-
-  context = gtk_widget_create_pango_context (widget);
-  layout = pango_layout_new (context);
-
-  style = gtk_widget_get_style (widget);
-
-  pango_layout_set_font_description (layout, style->font_desc);
-
-  /* Find the width of one character.  We can use any character, because
-     the textview has a monospaced font */
-  pango_layout_set_text (layout, "M", 1);
-
-  pango_layout_get_extents (layout,  NULL, &logical);
-
-  left_margin = gtk_text_view_get_left_margin (text_view);
-  right_margin = gtk_text_view_get_right_margin (text_view);
-
-  viewer_length = allocation->height / PANGO_PIXELS (logical.height);
-  viewer_width = (allocation->width - right_margin - left_margin)
-    / PANGO_PIXELS (logical.width);
-
-  g_object_unref (G_OBJECT (layout));
-  g_object_unref (G_OBJECT (context));
-}
 
 
 static void
@@ -183,54 +239,17 @@ psppire_output_window_init (PsppireOutputWindow *window)
 {
   GtkBuilder *xml = builder_new ("output-viewer.ui");
 
-  GtkWidget *box = gtk_vbox_new (FALSE, 0);
+  gtk_widget_reparent (get_widget_assert (xml, "vbox1"), GTK_WIDGET (window));
 
-  GtkWidget *sw = get_widget_assert (xml, "scrolledwindow1");
-
-  GtkWidget *menubar = get_widget_assert (xml, "menubar1");
-
-  window->textview = get_widget_assert (xml, "output-viewer-textview");
-
-
-  gtk_container_add (GTK_CONTAINER (window), box);
-
-
-  g_object_ref (menubar);
-  gtk_widget_unparent (menubar);
-
-  g_object_ref (sw);
-  gtk_widget_unparent (sw);
-
-
-  gtk_box_pack_start (GTK_BOX (box), menubar, FALSE, TRUE, 0);
-  gtk_box_pack_start (GTK_BOX (box), sw, TRUE, TRUE, 0);
-
-
-  gtk_widget_show_all (box);
+  window->output = GTK_LAYOUT (get_widget_assert (xml, "output"));
+  window->y = 0;
 
   connect_help (xml);
-
-  window->buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (window->textview));
 
   g_signal_connect (window,
 		    "focus-in-event",
 		    G_CALLBACK (cancel_urgency),
 		    NULL);
-
-  {
-    /* Output uses ascii characters for tabular material.
-       So we need a monospaced font otherwise it'll look silly */
-    PangoFontDescription *font_desc =
-      pango_font_description_from_string ("monospace");
-
-    gtk_widget_modify_font (window->textview, font_desc);
-    pango_font_description_free (font_desc);
-  }
-
-  g_signal_connect (window->textview, "size-allocate",
-		    G_CALLBACK (on_textview_resize), NULL);
-
-  window->fp = NULL;
 
   g_signal_connect (get_action_assert (xml,"help_about"),
 		    "activate",
@@ -269,108 +288,3 @@ psppire_output_window_new (void)
 				   "description", _("Output Viewer"),
 				   NULL));
 }
-
-static void reload_viewer (PsppireOutputWindow *ow);
-
-void
-psppire_output_window_reload (void)
-{
-  struct stat buf;
-
-  /* If there is no output, then don't do anything */
-  if (0 != stat (output_file_name(), &buf))
-    return ;
-
-  if ( NULL == the_output_viewer )
-    {
-      the_output_viewer = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
-      gtk_widget_show (GTK_WIDGET (the_output_viewer));
-    }
-
-  reload_viewer (the_output_viewer);
-
-}
-
-
-static void
-reload_viewer (PsppireOutputWindow *ow)
-{
-  GtkTextIter end_iter;
-  GtkTextMark *mark ;
-
-  char *line = NULL;
-
-  gboolean chars_inserted = FALSE;
-
-  gtk_text_buffer_get_end_iter (ow->buffer, &end_iter);
-
-  line = xrealloc (line, sizeof (char) * (viewer_width + 1));
-
-  mark = gtk_text_buffer_create_mark (ow->buffer, NULL, &end_iter, TRUE);
-
-#ifdef __CYGWIN__
-  /*
-    Apparently Windoze is not capabale of writing to a file whilst
-    another (or the same) process is reading from it.   Therefore, we
-    must close the file after reading it, and clear the entire buffer
-    before writing to it.
-    This will be slower for large buffers, but should work
-    (in so far as anything ever works on windows).
-  */
-  {
-    GtkTextIter start_iter;
-    FILE *fp = fopen (output_file_name(), "r");
-    if ( !fp)
-      {
-	g_critical ("Cannot open %s\n", output_file_name());
-	return;
-      }
-
-    /* Delete all the entire buffer */
-    gtk_text_buffer_get_start_iter (ow->buffer, &start_iter);
-    gtk_text_buffer_delete (ow->buffer, &start_iter, &end_iter);
-
-
-    gtk_text_buffer_get_start_iter (ow->buffer, &start_iter);
-    /* Read in the next lot of text */
-    while (fgets (line, viewer_width + 1, fp) != NULL)
-      {
-	chars_inserted = TRUE;
-	gtk_text_buffer_insert (ow->buffer, &start_iter, line, -1);
-      }
-
-    fclose (fp);
-  }
-#else
-  {
-    if ( ow->fp == NULL)
-      {
-	ow->fp = fopen (output_file_name(), "r");
-	if ( ow->fp == NULL)
-	  {
-	    g_critical ("Cannot open %s\n", output_file_name());
-	    return;
-	  }
-      }
-
-    /* Read in the next lot of text */
-    while (fgets (line, viewer_width + 1, ow->fp) != NULL)
-      {
-	chars_inserted = TRUE;
-	gtk_text_buffer_insert (ow->buffer, &end_iter, line, -1);
-      }
-  }
-#endif
-
-  /* Scroll to where the start of this lot of text begins */
-  gtk_text_view_scroll_to_mark (GTK_TEXT_VIEW (ow->textview),
-				mark,
-				0.1, TRUE, 0.0, 0.0);
-
-
-  if ( chars_inserted )
-    gtk_window_set_urgency_hint ( GTK_WINDOW (ow), TRUE);
-}
-
-
-

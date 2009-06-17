@@ -121,25 +121,7 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
   create_icon_factory ();
 
-  {
-    const char *filename = output_file_name ();
-
-    struct string config_string;
-
-    ds_init_empty (&config_string);
-
-    ds_put_format (&config_string,
-		   "gui:ascii:screen:squeeze=on headers=off top-margin=0 "
-		   "bottom-margin=0 paginate=off length=auto width=auto "
-		   "emphasis=none "
-		   "output-file=\"%s\" append=yes", filename);
-
-    outp_configure_driver_line (ds_ss (&config_string));
-
-    unlink (filename);
-
-    ds_destroy (&config_string);
-  }
+  psppire_output_window_setup ();
 
   journal_enable ();
   textdomain (PACKAGE);
@@ -339,16 +321,3 @@ parse_non_options (int key, char *arg, struct argp_state *state)
 
 
 const struct argp non_option_argp = {NULL, parse_non_options, 0, 0, 0, 0, 0};
-
-
-const char *
-output_file_name (void)
-{
-  const char *dir = default_output_path ();
-  static char *filename = NULL;
-
-  if ( NULL == filename )
-    filename = xasprintf ("%s%s", dir, OUTPUT_FILE_NAME);
-
-  return filename;
-}

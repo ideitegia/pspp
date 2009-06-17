@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include <output/cairo.h>
+
 #include <libpspp/assertion.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
@@ -102,29 +104,36 @@ struct xr_font
 /* Cairo output driver extension record. */
 struct xr_driver_ext
   {
-    char *file_name;            /* Output file name. */
-    enum xr_output_type file_type; /* Type of output file. */
     cairo_t *cairo;
+    struct xr_font fonts[OUTP_FONT_CNT];
 
     bool draw_headers;          /* Draw headers at top of page? */
     int page_number;		/* Current page number. */
 
+    int line_gutter;		/* Space around lines. */
+    int line_space;		/* Space between lines. */
+    int line_width;		/* Width of lines. */
+  };
+
+struct xr_driver_options
+  {
+    struct outp_driver *driver;
+
+    char *file_name;            /* Output file name. */
+    enum xr_output_type file_type; /* Type of output file. */
+
+
     bool portrait;              /* Portrait mode? */
+
     int paper_width;            /* Width of paper before dropping margins. */
     int paper_length;           /* Length of paper before dropping margins. */
     int left_margin;		/* Left margin in XR units. */
     int right_margin;		/* Right margin in XR units. */
     int top_margin;		/* Top margin in XR units. */
     int bottom_margin;		/* Bottom margin in XR units. */
-
-    int line_gutter;		/* Space around lines. */
-    int line_space;		/* Space between lines. */
-    int line_width;		/* Width of lines. */
-
-    struct xr_font fonts[OUTP_FONT_CNT];
   };
 
-static bool handle_option (void *this, const char *key,
+static bool handle_option (void *options, const char *key,
                            const struct string *val);
 static void draw_headers (struct outp_driver *this);
 
@@ -134,34 +143,18 @@ static int text_width (struct outp_driver *, const char *, enum outp_font);
 
 /* Driver initialization. */
 
-static bool
-xr_open_driver (const char *name, int types, struct substring options)
+static struct outp_driver *
+xr_allocate (const char *name, int types)
 {
-  cairo_surface_t *surface;
-  cairo_status_t status;
   struct outp_driver *this;
   struct xr_driver_ext *x;
-  double width_pt, length_pt;
   size_t i;
 
   this = outp_allocate_driver (&cairo_class, name, types);
   this->width = this->length = 0;
   this->font_height = XR_POINT * 10;
-
-  this->ext = x = xmalloc (sizeof *x);
-  x->file_name = xstrdup ("pspp.pdf");
-  x->file_type = XR_PDF;
-  x->draw_headers = true;
-  x->page_number = 0;
-  x->portrait = true;
-  outp_get_paper_size ("", &x->paper_width, &x->paper_length);
-  x->left_margin = XR_INCH / 2;
-  x->right_margin = XR_INCH / 2;
-  x->top_margin = XR_INCH / 2;
-  x->bottom_margin = XR_INCH / 2;
-  x->line_gutter = XR_POINT;
-  x->line_space = XR_POINT;
-  x->line_width = XR_POINT / 2;
+  this->ext = x = xzalloc (sizeof *x);
+  x->cairo = NULL;
   x->fonts[OUTP_FIXED].string = xstrdup ("monospace");
   x->fonts[OUTP_PROPORTIONAL].string = xstrdup ("serif");
   x->fonts[OUTP_EMPHASIS].string = xstrdup ("serif italic");
@@ -172,65 +165,28 @@ xr_open_driver (const char *name, int types, struct substring options)
       font->metrics = NULL;
       font->layout = NULL;
     }
+  x->draw_headers = true;
+  x->page_number = 0;
+  x->line_gutter = XR_POINT;
+  x->line_space = XR_POINT;
+  x->line_width = XR_POINT / 2;
 
-  outp_parse_options (name, options, handle_option, this);
+  return this;
+}
 
-  width_pt = x->paper_width / 1000.0;
-  length_pt = x->paper_length / 1000.0;
-  if (x->portrait)
-    {
-      this->width = pt_to_xr (width_pt);
-      this->length = pt_to_xr (length_pt);
-    }
-  else
-    {
-      this->width = pt_to_xr (width_pt);
-      this->length = pt_to_xr (length_pt);
-    }
-  if (x->draw_headers)
-    x->top_margin += 3 * this->font_height;
-  this->width -= x->left_margin + x->right_margin;
-  this->length -= x->top_margin + x->bottom_margin;
+static bool
+xr_set_cairo (struct outp_driver *this, cairo_t *cairo)
+{
+  struct xr_driver_ext *x = this->ext;
+  int i;
 
-  if (x->file_type == XR_PDF)
-    surface = cairo_pdf_surface_create (x->file_name, width_pt, length_pt);
-  else if (x->file_type == XR_PS)
-    surface = cairo_ps_surface_create (x->file_name, width_pt, length_pt);
-  else if (x->file_type == XR_SVG)
-    surface = cairo_svg_surface_create (x->file_name, width_pt, length_pt);
-  else
-    NOT_REACHED ();
+  x->cairo = cairo;
 
-  status = cairo_surface_status (surface);
-  if (status != CAIRO_STATUS_SUCCESS)
-    {
-      error (0, 0, _("opening output file \"%s\": %s"),
-             x->file_name, cairo_status_to_string (status));
-      cairo_surface_destroy (surface);
-      goto error;
-    }
-
-  x->cairo = cairo_create (surface);
-  cairo_surface_destroy (surface);
-
-  cairo_translate (x->cairo,
-                   xr_to_pt (x->left_margin),
-                   xr_to_pt (x->top_margin));
   cairo_set_line_width (x->cairo, xr_to_pt (x->line_width));
 
   for (i = 0; i < OUTP_FONT_CNT; i++)
     if (!load_font (this, &x->fonts[i]))
-      goto error;
-
-  if (this->length / this->font_height < 15)
-    {
-      error (0, 0, _("The defined page is not long "
-                     "enough to hold margins and headers, plus least 15 "
-                     "lines of the default fonts.  In fact, there's only "
-                     "room for %d lines."),
-             this->length / this->font_height);
-      goto error;
-    }
+      return false;
 
   this->fixed_width = text_width (this, "0", OUTP_FIXED);
   this->prop_em_width = text_width (this, "0", OUTP_PROPORTIONAL);
@@ -242,12 +198,116 @@ xr_open_driver (const char *name, int types, struct substring options)
   memcpy (this->vert_line_width, this->horiz_line_width,
           sizeof this->vert_line_width);
 
+  return true;
+}
+
+struct outp_driver *
+xr_create_driver (cairo_t *cairo)
+{
+  struct outp_driver *this;
+
+  this = xr_allocate ("cairo", 0);
+  this->width = INT_MAX / 8;
+  this->length = INT_MAX / 8;
+  if (!xr_set_cairo (this, cairo))
+    {
+      this->class->close_driver (this);
+      outp_free_driver (this);
+      return NULL;
+    }
+  return this;
+}
+
+static bool
+xr_open_driver (const char *name, int types, struct substring option_string)
+{
+  struct outp_driver *this;
+  struct xr_driver_ext *x;
+  struct xr_driver_options options;
+  cairo_surface_t *surface;
+  cairo_status_t status;
+  double width_pt, length_pt;
+
+  this = xr_allocate (name, types);
+  x = this->ext;
+
+  options.driver = this;
+  options.file_name = xstrdup ("pspp.pdf");
+  options.file_type = XR_PDF;
+  options.portrait = true;
+  outp_get_paper_size ("", &options.paper_width, &options.paper_length);
+  options.left_margin = XR_INCH / 2;
+  options.right_margin = XR_INCH / 2;
+  options.top_margin = XR_INCH / 2;
+  options.bottom_margin = XR_INCH / 2;
+
+  outp_parse_options (this->name, option_string, handle_option, &options);
+
+  width_pt = options.paper_width / 1000.0;
+  length_pt = options.paper_length / 1000.0;
+  if (options.portrait)
+    {
+      this->width = pt_to_xr (width_pt);
+      this->length = pt_to_xr (length_pt);
+    }
+  else
+    {
+      this->width = pt_to_xr (width_pt);
+      this->length = pt_to_xr (length_pt);
+    }
+  if (x->draw_headers)
+    options.top_margin += 3 * this->font_height;
+  this->width -= options.left_margin + options.right_margin;
+  this->length -= options.top_margin + options.bottom_margin;
+
+  if (options.file_type == XR_PDF)
+    surface = cairo_pdf_surface_create (options.file_name,
+                                        width_pt, length_pt);
+  else if (options.file_type == XR_PS)
+    surface = cairo_ps_surface_create (options.file_name, width_pt, length_pt);
+  else if (options.file_type == XR_SVG)
+    surface = cairo_svg_surface_create (options.file_name,
+                                        width_pt, length_pt);
+  else
+    NOT_REACHED ();
+
+  status = cairo_surface_status (surface);
+  if (status != CAIRO_STATUS_SUCCESS)
+    {
+      error (0, 0, _("opening output file \"%s\": %s"),
+             options.file_name, cairo_status_to_string (status));
+      cairo_surface_destroy (surface);
+      goto error;
+    }
+
+  x->cairo = cairo_create (surface);
+  cairo_surface_destroy (surface);
+
+  cairo_translate (x->cairo,
+                   xr_to_pt (options.left_margin),
+                   xr_to_pt (options.top_margin));
+
+  if (this->length / this->font_height < 15)
+    {
+      error (0, 0, _("The defined page is not long "
+                     "enough to hold margins and headers, plus least 15 "
+                     "lines of the default fonts.  In fact, there's only "
+                     "room for %d lines."),
+             this->length / this->font_height);
+      goto error;
+    }
+
+  if (!xr_set_cairo (this, x->cairo))
+    goto error;
+
   outp_register_driver (this);
+  free (options.file_name);
   return true;
 
  error:
   this->class->close_driver (this);
   outp_free_driver (this);
+  free (options.file_name);
   return false;
 }
 
@@ -265,12 +325,11 @@ xr_close_driver (struct outp_driver *this)
       cairo_surface_finish (cairo_get_target (x->cairo));
       status = cairo_status (x->cairo);
       if (status != CAIRO_STATUS_SUCCESS)
-        error (0, 0, _("writing output file \"%s\": %s"),
-               x->file_name, cairo_status_to_string (status));
+        error (0, 0, _("error writing output file for %s driver: %s"),
+               this->name, cairo_status_to_string (status));
       cairo_destroy (x->cairo);
     }
 
-  free (x->file_name);
   for (i = 0; i < OUTP_FONT_CNT; i++)
     free_font (&x->fonts[i]);
   free (x);
@@ -318,10 +377,10 @@ static const struct outp_option option_tab[] =
 };
 
 static bool
-handle_option (void *this_, const char *key,
-               const struct string *val)
+handle_option (void *options_, const char *key, const struct string *val)
 {
-  struct outp_driver *this = this_;
+  struct xr_driver_options *options = options_;
+  struct outp_driver *this = options->driver;
   struct xr_driver_ext *x = this->ext;
   int subcat;
   char *value = ds_cstr (val);
@@ -334,16 +393,16 @@ handle_option (void *this_, const char *key,
                "driver"), key);
       break;
     case output_file_arg:
-      free (x->file_name);
-      x->file_name = xstrdup (value);
+      free (options->file_name);
+      options->file_name = xstrdup (value);
       break;
     case output_type_arg:
       if (!strcmp (value, "pdf"))
-        x->file_type = XR_PDF;
+        options->file_type = XR_PDF;
       else if (!strcmp (value, "ps"))
-        x->file_type = XR_PS;
+        options->file_type = XR_PS;
       else if (!strcmp (value, "svg"))
-        x->file_type = XR_SVG;
+        options->file_type = XR_SVG;
       else
         {
           error (0, 0, _("unknown Cairo output type \"%s\""), value);
@@ -351,13 +410,14 @@ handle_option (void *this_, const char *key,
         }
       break;
     case paper_size_arg:
-      outp_get_paper_size (value, &x->paper_width, &x->paper_length);
+      outp_get_paper_size (value,
+                           &options->paper_width, &options->paper_length);
       break;
     case orientation_arg:
       if (!strcmp (value, "portrait"))
-	x->portrait = true;
+	options->portrait = true;
       else if (!strcmp (value, "landscape"))
-	x->portrait = false;
+	options->portrait = false;
       else
 	error (0, 0, _("unknown orientation `%s' (valid orientations are "
                        "`portrait' and `landscape')"), value);
@@ -384,16 +444,16 @@ handle_option (void *this_, const char *key,
 	switch (subcat)
 	  {
 	  case 0:
-	    x->left_margin = dimension;
+	    options->left_margin = dimension;
 	    break;
 	  case 1:
-	    x->right_margin = dimension;
+	    options->right_margin = dimension;
 	    break;
 	  case 2:
-	    x->top_margin = dimension;
+	    options->top_margin = dimension;
 	    break;
 	  case 3:
-	    x->bottom_margin = dimension;
+	    options->bottom_margin = dimension;
 	    break;
 	  case 4:
 	    this->font_height = dimension;
@@ -777,7 +837,6 @@ xr_text_metrics (struct outp_driver *this, const struct outp_text *t,
 static void
 xr_text_draw (struct outp_driver *this, const struct outp_text *t)
 {
-  assert (this->page_open);
   text (this, t, true, NULL, NULL);
 }
 
