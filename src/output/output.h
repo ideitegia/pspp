@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 #ifndef OUTPUT_OUTPUT_H
 #define OUTPUT_OUTPUT_H 1
 
+#include <libpspp/ll.h>
 #include <libpspp/str.h>
-
 
 /* Line styles.  */
 enum outp_line_style
@@ -65,7 +65,8 @@ struct outp_class
     const char *name;		/* Name of this driver class. */
     int special;		/* Boolean value. */
 
-    bool (*open_driver) (struct outp_driver *, struct substring options);
+    bool (*open_driver) (const char *name, int types,
+                         struct substring options);
     bool (*close_driver) (struct outp_driver *);
 
     void (*open_page) (struct outp_driver *);
@@ -99,7 +100,7 @@ enum
 /* Defines the configuration of an output driver. */
 struct outp_driver
   {
-    struct outp_driver *next, *prev; /* List of drivers. */
+    struct ll node;             /* Node in list of drivers. */
     const struct outp_class *class;	/* Driver class. */
     char *name;			/* Name of this driver. */
     bool page_open;		/* 1=page is open, 0=page is closed. */
@@ -131,9 +132,15 @@ extern char *outp_title;
 extern char *outp_subtitle;
 
 void outp_init (void);
+void outp_done (void);
 void outp_read_devices (void);
 void outp_configure_driver_line (struct substring);
-void outp_done (void);
+
+struct outp_driver *outp_allocate_driver (const struct outp_class *class,
+                                          const char *name, int types);
+void outp_free_driver (struct outp_driver *);
+void outp_register_driver (struct outp_driver *);
+void outp_unregister_driver (struct outp_driver *);
 
 void outp_configure_clear (void);
 void outp_configure_add (char *);
@@ -162,5 +169,12 @@ int outp_string_width (struct outp_driver *, const char *, enum outp_font);
 
 /* Imported from som-frnt.c. */
 void som_destroy_driver (struct outp_driver *);
+
+/* Common drivers. */
+extern const struct outp_class ascii_class;
+extern const struct outp_class postscript_class;
+#ifdef HAVE_CAIRO
+extern const struct outp_class cairo_class;
+#endif
 
 #endif /* output/output.h */

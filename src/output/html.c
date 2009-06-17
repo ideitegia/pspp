@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -53,10 +53,12 @@ static void print_title_tag (FILE *file, const char *name,
                              const char *content);
 
 static bool
-html_open_driver (struct outp_driver *this, struct substring options)
+html_open_driver (const char *name, int types, struct substring options)
 {
+  struct outp_driver *this;
   struct html_driver_ext *x;
 
+  this = outp_allocate_driver (&html_class, name, types);
   this->ext = x = xmalloc (sizeof *x);
   x->file_name = xstrdup ("pspp.html");
   x->chart_file_name = xstrdup ("pspp-#.png");
@@ -89,10 +91,12 @@ html_open_driver (struct outp_driver *this, struct substring options)
   print_title_tag (x->file, "H1", outp_title);
   print_title_tag (x->file, "H2", outp_subtitle);
 
+  outp_register_driver (this);
   return true;
 
  error:
   this->class->close_driver (this);
+  outp_free_driver (this);
   return false;
 }
 

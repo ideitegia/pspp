@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -137,11 +137,13 @@ static bool handle_option (struct outp_driver *this, const char *key,
                            const struct string *val);
 
 static bool
-ascii_open_driver (struct outp_driver *this, struct substring options)
+ascii_open_driver (const char *name, int types, struct substring options)
 {
+  struct outp_driver *this;
   struct ascii_driver_ext *x;
   int i;
 
+  this = outp_allocate_driver (&ascii_class, name, types);
   this->width = 79;
   this->font_height = 1;
   this->prop_em_width = 1;
@@ -189,10 +191,13 @@ ascii_open_driver (struct outp_driver *this, struct substring options)
         x->box[i] = pool_strdup (x->pool, s);
       }
 
+  outp_register_driver (this);
+
   return true;
 
  error:
   pool_destroy (x->pool);
+  outp_free_driver (this);
   return false;
 }
 

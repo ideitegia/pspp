@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -125,11 +125,13 @@ static void setup_font (struct outp_driver *this, struct font *, int index);
 /* Driver initialization. */
 
 static bool
-ps_open_driver (struct outp_driver *this, struct substring options)
+ps_open_driver (const char *name, int types, struct substring options)
 {
+  struct outp_driver *this;
   struct ps_driver_ext *x;
   size_t i;
 
+  this = outp_allocate_driver (&postscript_class, name, types);
   this->width = this->length = 0;
   this->font_height = PSUS * 10 / 72;
 
@@ -219,10 +221,12 @@ ps_open_driver (struct outp_driver *this, struct substring options)
 
   write_ps_prologue (this);
 
+  outp_register_driver (this);
   return true;
 
  error:
   this->class->close_driver (this);
+  outp_free_driver (this);
   return false;
 }
 

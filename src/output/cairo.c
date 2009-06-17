@@ -135,14 +135,16 @@ static int text_width (struct outp_driver *, const char *, enum outp_font);
 /* Driver initialization. */
 
 static bool
-xr_open_driver (struct outp_driver *this, struct substring options)
+xr_open_driver (const char *name, int types, struct substring options)
 {
   cairo_surface_t *surface;
   cairo_status_t status;
+  struct outp_driver *this;
   struct xr_driver_ext *x;
   double width_pt, length_pt;
   size_t i;
 
+  this = outp_allocate_driver (&cairo_class, name, types);
   this->width = this->length = 0;
   this->font_height = XR_POINT * 10;
 
@@ -240,10 +242,12 @@ xr_open_driver (struct outp_driver *this, struct substring options)
   memcpy (this->vert_line_width, this->horiz_line_width,
           sizeof this->vert_line_width);
 
+  outp_register_driver (this);
   return true;
 
  error:
   this->class->close_driver (this);
+  outp_free_driver (this);
   return false;
 }
 

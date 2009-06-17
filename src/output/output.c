@@ -39,12 +39,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
-/* FIXME? Should the output configuration format be changed to
-   drivername:classname:devicetype:options, where devicetype is zero
-   or more of screen, printer, listing? */
-
-/* FIXME: Have the reentrancy problems been solved? */
-
 /* Where the output driver name came from. */
 enum
   {
@@ -79,7 +73,7 @@ struct outp_driver_class_list
   };
 
 static struct outp_driver_class_list *outp_class_list;
-static struct outp_driver *outp_driver_list;
+static struct ll_list outp_driver_list = LL_INITIALIZER (outp_driver_list);
 
 char *outp_title;
 char *outp_subtitle;
@@ -228,12 +222,6 @@ find_defn_value (const char *key)
 void
 outp_init (void)
 {
-  extern struct outp_class ascii_class;
-  extern struct outp_class postscript_class;
-#ifdef HAVE_CAIRO
-  extern struct outp_class cairo_class;
-#endif
-
   char def[] = "default";
 
   add_class (&html_class);
@@ -351,13 +339,13 @@ exit:
 
   if (result)
     {
-      if (outp_driver_list == NULL)
+      if (ll_is_empty (&outp_driver_list))
         error (0, 0, _("no active output drivers"));
     }
   else
     error (0, 0, _("error reading device definition file"));
 
-  if (!result || outp_driver_list == NULL)
+  if (!result || ll_is_empty (&outp_driver_list))
     init_default_drivers ();
 }
 
@@ -427,29 +415,18 @@ outp_configure_macro (char *bp)
   outp_macros = d;
 }
 
-/* Destroys all the drivers in driver list *DL and sets *DL to
-   NULL. */
-static void
-destroy_list (struct outp_driver ** dl)
-{
-  struct outp_driver *d, *next;
-
-  for (d = *dl; d; d = next)
-    {
-      destroy_driver (d);
-      next = d->next;
-      free (d);
-    }
-  *dl = NULL;
-}
-
 /* Closes all the output drivers. */
 void
 outp_done (void)
 {
   struct outp_driver_class_list *n = outp_class_list ;
   outp_configure_clear ();
-  destroy_list (&outp_driver_list);
+  while (!ll_is_empty (&outp_driver_list))
+    {
+      struct outp_driver *d = ll_data (ll_head (&outp_driver_list),
+                                       struct outp_driver, node);
+      destroy_driver (d);
+    }
 
   while (n)
     {
@@ -664,8 +641,7 @@ static struct outp_driver *
 find_driver (char *name)
 {
   struct outp_driver *d;
-
-  for (d = outp_driver_list; d; d = d->next)
+  ll_for_each (d, struct outp_driver, node, &outp_driver_list)
     if (!strcmp (d->name, name))
       return d;
   return NULL;
@@ -677,11 +653,10 @@ static void
 configure_driver (struct substring driver_name, struct substring class_name,
                   struct substring device_type, struct substring options)
 {
-  struct outp_driver *d, *iter;
   struct outp_driver_class_list *c;
-
   struct substring token;
   size_t save_idx = 0;
+  char *name;
   int device;
 
   /* Find class. */
@@ -708,38 +683,68 @@ configure_driver (struct substring driver_name, struct substring class_name,
       error (0, 0, _("unknown device type `%.*s'"),
              (int) ss_length (token), ss_data (token));
 
-  /* Open the device. */
-  d = xmalloc (sizeof *d);
-  d->next = d->prev = NULL;
-  d->class = c->class;
-  d->name = ss_xstrdup (driver_name);
+  /* Open driver. */
+  name = ss_xstrdup (driver_name);
+  if (!c->class->open_driver (name, device, options))
+    error (0, 0, _("cannot initialize output driver `%s' of class `%s'"),
+           name, c->class->name);
+  free (name);
+}
+
+/* Allocates and returns a new outp_driver for a device with the
+   given NAME and CLASS and the OUTP_DEV_* type(s) in TYPES
+
+   This function is intended to be used by output drivers, not
+   by their clients. */
+struct outp_driver *
+outp_allocate_driver (const struct outp_class *class,
+                      const char *name, int types)
+{
+  struct outp_driver *d = xmalloc (sizeof *d);
+  d->class = class;
+  d->name = xstrdup (name);
   d->page_open = false;
-  d->device = device;
+  d->device = types;
   d->cp_x = d->cp_y = 0;
   d->ext = NULL;
   d->prc = NULL;
+  return d;
+}
 
-  /* Open driver. */
-  if (!d->class->open_driver (d, options))
-    {
-      error (0, 0, _("cannot initialize output driver `%s' of class `%s'"),
-             d->name, d->class->name);
-      free (d->name);
-      free (d);
-      return;
-    }
+/* Frees driver D and the data that it owns directly.  The
+   driver's class must already have unregistered D (if it was
+   registered) and freed data private to its class.
+
+   This function is intended to be used by output drivers, not
+   by their clients. */
+void
+outp_free_driver (struct outp_driver *d)
+{
+  free (d->name);
+  free (d);
+}
+
+/* Adds D to the list of drivers that will be used for output. */
+void
+outp_register_driver (struct outp_driver *d)
+{
+  struct outp_driver *victim;
 
   /* Find like-named driver and delete. */
-  iter = find_driver (d->name);
-  if (iter != NULL)
-    destroy_driver (iter);
+  victim = find_driver (d->name);
+  if (victim != NULL)
+    destroy_driver (victim);
 
-  /* Add to list. */
-  d->next = outp_driver_list;
-  d->prev = NULL;
-  if (outp_driver_list != NULL)
-    outp_driver_list->prev = d;
-  outp_driver_list = d;
+  /* Add D to list. */
+  ll_push_tail (&outp_driver_list, &d->node);
+}
+
+/* Remove driver D from the list of drivers that will be used for
+   output. */
+void
+outp_unregister_driver (struct outp_driver *d)
+{
+  ll_remove (&d->node);
 }
 
 /* String LINE is in format:
@@ -778,26 +783,10 @@ static void
 destroy_driver (struct outp_driver *d)
 {
   outp_close_page (d);
-  if (d->class)
-    {
-      struct outp_driver_class_list *c;
-
-      d->class->close_driver (d);
-
-      for (c = outp_class_list; c; c = c->next)
-	if (c->class == d->class)
-	  break;
-      assert (c != NULL);
-    }
-  free (d->name);
-
-  /* Remove this driver from the global driver list. */
-  if (d->prev)
-    d->prev->next = d->next;
-  if (d->next)
-    d->next->prev = d->prev;
-  if (d == outp_driver_list)
-    outp_driver_list = d->next;
+  if (d->class && d->class->close_driver)
+    d->class->close_driver (d);
+  outp_unregister_driver (d);
+  outp_free_driver (d);
 }
 
 /* Tries to match S as one of the keywords in TAB, with
@@ -1093,17 +1082,17 @@ outp_get_paper_size (const char *size, int *h, int *v)
 struct outp_driver *
 outp_drivers (struct outp_driver *d)
 {
-  for (;;)
+  do
     {
-      if (d == NULL)
-	d = outp_driver_list;
-      else
-	d = d->next;
+      struct ll *next;
 
-      if (d == NULL
-	  || (d->device == 0 || (d->device & disabled_devices) != d->device))
-	break;
+      next = d == NULL ? ll_head (&outp_driver_list) : ll_next (&d->node);
+      if (next == ll_null (&outp_driver_list))
+        return NULL;
+
+      d = ll_data (next, struct outp_driver, node);
     }
+  while (d->device != 0 && (d->device & disabled_devices) == d->device);
 
   return d;
 }
