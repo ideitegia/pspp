@@ -120,6 +120,89 @@ tty-ibmpc:ascii:screen:length=$viewlength width=$viewwidth ${ibmpc-graphics} \
 list-ibmpc:ascii:listing:length=66 width=79 output-file=${list-output-file} \
   ${ibmpc-graphics}
 
+# Devices that support Unicode line-drawing characters in UTF-8 encoding.
+# PSPP doesn't support a \u escape but if it did then this is how these
+# would appear:
+#
+#     define utf8-graphics \
+#       box[0000]='\u0020' box[1000]='\u2576' box[2000]='\u2550' \
+#       box[0100]='\u2577' box[1100]='\u256D' box[2100]='\u2552' \
+#       box[0200]='\u2551' box[1200]='\u2553' box[2200]='\u2554' \
+#       box[0010]='\u2574' box[1010]='\u2500' box[2010]='\u2550' \
+#       box[0110]='\u256E' box[1110]='\u252C' box[2110]='\u2564' \
+#       box[0210]='\u2556' box[1210]='\u2565' box[2210]='\u2566' \
+#       box[0020]='\u2550' box[1020]='\u2550' box[2020]='\u2550' \
+#       box[0120]='\u2555' box[1120]='\u2564' box[2120]='\u2564' \
+#       box[0220]='\u2557' box[1220]='\u2566' box[2220]='\u2566' \
+#       box[0001]='\u2575' box[1001]='\u2570' box[2001]='\u2558' \
+#       box[0101]='\u2502' box[1101]='\u251C' box[2101]='\u255E' \
+#       box[0201]='\u2551' box[1201]='\u255F' box[2201]='\u2560' \
+#       box[0011]='\u256F' box[1011]='\u2534' box[2011]='\u2567' \
+#       box[0111]='\u2524' box[1111]='\u253C' box[2111]='\u256A' \
+#       box[0211]='\u2562' box[1211]='\u256B' box[2211]='\u256C' \
+#       box[0021]='\u255B' box[1021]='\u2567' box[2021]='\u2567' \
+#       box[0121]='\u2561' box[1121]='\u256A' box[2121]='\u256A' \
+#       box[0221]='\u2563' box[1221]='\u256C' box[2221]='\u256C' \
+#       box[0002]='\u2551' box[1002]='\u2559' box[2002]='\u255A' \
+#       box[0102]='\u2551' box[1102]='\u255F' box[2102]='\u2560' \
+#       box[0202]='\u2551' box[1202]='\u255F' box[2202]='\u2560' \
+#       box[0012]='\u255C' box[1012]='\u2568' box[2012]='\u2569' \
+#       box[0112]='\u2562' box[1112]='\u256A' box[2112]='\u256C' \
+#       box[0212]='\u2562' box[1212]='\u256B' box[2212]='\u256C' \
+#       box[0022]='\u255D' box[1022]='\u2569' box[2022]='\u2569' \
+#       box[0122]='\u2563' box[1122]='\u256C' box[2122]='\u256C' \
+#       box[0222]='\u2563' box[1222]='\u256C' box[2222]='\u256C'
+#
+# Instead, we encode them in UTF-8 by hand below.
+#
+# Here is a little Perl program that I used to do this translation:
+#
+#     sub utf8_encode {
+#         my $val = hex($_[0]);
+#         my $d0 = 0xe0 | ($val >> 12);
+#         my $d1 = 0x80 | (($val >> 6) & 0x3f);
+#         my $d2 = 0x80 | ($val & 0x3f);
+#         return sprintf('\x%02x\x%02x\x%02x', $d0, $d1, $d2);
+#     }
+#     while (<>) {
+#         s/\\u(....)/utf8_encode($1)/ge;
+#         print $_;
+#     }
+#
+define utf8-graphics \
+  box[0000]='\xe0\x80\xa0' box[1000]='\xe2\x95\xb6' box[2000]='\xe2\x95\x90' \
+  box[0100]='\xe2\x95\xb7' box[1100]='\xe2\x95\xad' box[2100]='\xe2\x95\x92' \
+  box[0200]='\xe2\x95\x91' box[1200]='\xe2\x95\x93' box[2200]='\xe2\x95\x94' \
+  box[0010]='\xe2\x95\xb4' box[1010]='\xe2\x94\x80' box[2010]='\xe2\x95\x90' \
+  box[0110]='\xe2\x95\xae' box[1110]='\xe2\x94\xac' box[2110]='\xe2\x95\xa4' \
+  box[0210]='\xe2\x95\x96' box[1210]='\xe2\x95\xa5' box[2210]='\xe2\x95\xa6' \
+  box[0020]='\xe2\x95\x90' box[1020]='\xe2\x95\x90' box[2020]='\xe2\x95\x90' \
+  box[0120]='\xe2\x95\x95' box[1120]='\xe2\x95\xa4' box[2120]='\xe2\x95\xa4' \
+  box[0220]='\xe2\x95\x97' box[1220]='\xe2\x95\xa6' box[2220]='\xe2\x95\xa6' \
+  box[0001]='\xe2\x95\xb5' box[1001]='\xe2\x95\xb0' box[2001]='\xe2\x95\x98' \
+  box[0101]='\xe2\x94\x82' box[1101]='\xe2\x94\x9c' box[2101]='\xe2\x95\x9e' \
+  box[0201]='\xe2\x95\x91' box[1201]='\xe2\x95\x9f' box[2201]='\xe2\x95\xa0' \
+  box[0011]='\xe2\x95\xaf' box[1011]='\xe2\x94\xb4' box[2011]='\xe2\x95\xa7' \
+  box[0111]='\xe2\x94\xa4' box[1111]='\xe2\x94\xbc' box[2111]='\xe2\x95\xaa' \
+  box[0211]='\xe2\x95\xa2' box[1211]='\xe2\x95\xab' box[2211]='\xe2\x95\xac' \
+  box[0021]='\xe2\x95\x9b' box[1021]='\xe2\x95\xa7' box[2021]='\xe2\x95\xa7' \
+  box[0121]='\xe2\x95\xa1' box[1121]='\xe2\x95\xaa' box[2121]='\xe2\x95\xaa' \
+  box[0221]='\xe2\x95\xa3' box[1221]='\xe2\x95\xac' box[2221]='\xe2\x95\xac' \
+  box[0002]='\xe2\x95\x91' box[1002]='\xe2\x95\x99' box[2002]='\xe2\x95\x9a' \
+  box[0102]='\xe2\x95\x91' box[1102]='\xe2\x95\x9f' box[2102]='\xe2\x95\xa0' \
+  box[0202]='\xe2\x95\x91' box[1202]='\xe2\x95\x9f' box[2202]='\xe2\x95\xa0' \
+  box[0012]='\xe2\x95\x9c' box[1012]='\xe2\x95\xa8' box[2012]='\xe2\x95\xa9' \
+  box[0112]='\xe2\x95\xa2' box[1112]='\xe2\x95\xaa' box[2112]='\xe2\x95\xac' \
+  box[0212]='\xe2\x95\xa2' box[1212]='\xe2\x95\xab' box[2212]='\xe2\x95\xac' \
+  box[0022]='\xe2\x95\x9d' box[1022]='\xe2\x95\xa9' box[2022]='\xe2\x95\xa9' \
+  box[0122]='\xe2\x95\xa3' box[1122]='\xe2\x95\xac' box[2122]='\xe2\x95\xac' \
+  box[0222]='\xe2\x95\xa3' box[1222]='\xe2\x95\xac' box[2222]='\xe2\x95\xac'
+
+tty-utf8:ascii:screen:length=$viewlength width=$viewwidth ${utf8-graphics} \
+  output-file=${tty-output-file}
+list-utf8:ascii:listing:length=66 width=79 output-file=${list-output-file} \
+  ${utf8-graphics}
+
 # Local Variables:
 # fill-prefix: "# "
 # End:
