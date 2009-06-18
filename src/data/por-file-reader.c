@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -867,17 +867,30 @@ pfm_detect (FILE *file)
 {
   unsigned char header[464];
   char trans[256];
-  int cooked_cnt, raw_cnt;
+  int cooked_cnt, raw_cnt, line_len;
   int i;
 
   cooked_cnt = raw_cnt = 0;
+  line_len = 0;
   while (cooked_cnt < sizeof header)
     {
       int c = getc (file);
       if (c == EOF || raw_cnt++ > 512)
         return false;
-      else if (c != '\n' && c != '\r')
-        header[cooked_cnt++] = c;
+      else if (c == '\n')
+        {
+          while (line_len < 80 && cooked_cnt < sizeof header)
+            {
+              header[cooked_cnt++] = ' ';
+              line_len++;
+            }
+          line_len = 0;
+        }
+      else if (c != '\r')
+        {
+          header[cooked_cnt++] = c;
+          line_len++;
+        }
     }
 
   memset (trans, 0, 256);
