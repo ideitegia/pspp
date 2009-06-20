@@ -199,9 +199,9 @@ define utf8-graphics \
   box[0222]='\xe2\x95\xa3' box[1222]='\xe2\x95\xac' box[2222]='\xe2\x95\xac'
 
 tty-utf8:ascii:screen:length=$viewlength width=$viewwidth ${utf8-graphics} \
-  output-file=${tty-output-file}
+  output-file=${tty-output-file} emphasis=none
 list-utf8:ascii:listing:length=66 width=79 output-file=${list-output-file} \
-  ${utf8-graphics}
+  ${utf8-graphics} emphasis=none
 
 # Local Variables:
 # fill-prefix: "# "
