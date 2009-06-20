@@ -110,7 +110,7 @@ struct ps_driver_ext
 /* Transform logical y-ordinate Y into a page ordinate. */
 #define YT(Y) (this->length - (Y))
 
-static bool handle_option (struct outp_driver *this, const char *key,
+static bool handle_option (void *this, const char *key,
                            const struct string *val);
 static void draw_headers (struct outp_driver *this);
 
@@ -152,7 +152,7 @@ ps_open_driver (const char *name, int types, struct substring options)
   for (i = 0; i < OUTP_FONT_CNT; i++)
     x->fonts[i] = NULL;
 
-  outp_parse_options (options, handle_option, this);
+  outp_parse_options (this->name, options, handle_option, this);
 
   x->file = fn_open (x->file_name, "w");
   if (x->file == NULL)
@@ -299,9 +299,10 @@ static const struct outp_option option_tab[] =
 };
 
 static bool
-handle_option (struct outp_driver *this, const char *key,
+handle_option (void *this_, const char *key,
                const struct string *val)
 {
+  struct outp_driver *this = this_;
   struct ps_driver_ext *x = this->ext;
   int subcat;
   char *value = ds_cstr (val);

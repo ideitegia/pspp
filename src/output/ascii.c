@@ -133,7 +133,7 @@ struct ascii_driver_ext
 static void ascii_flush (struct outp_driver *);
 static int get_default_box_char (size_t idx);
 static bool update_page_size (struct outp_driver *, bool issue_error);
-static bool handle_option (struct outp_driver *this, const char *key,
+static bool handle_option (void *this, const char *key,
                            const struct string *val);
 
 static bool
@@ -176,7 +176,7 @@ ascii_open_driver (const char *name, int types, struct substring options)
   x->line_cap = 0;
   x->chart_cnt = 0;
 
-  if (!outp_parse_options (options, handle_option, this))
+  if (!outp_parse_options (this->name, options, handle_option, this))
     goto error;
 
   if (!update_page_size (this, true))
@@ -317,9 +317,10 @@ static const struct outp_option option_tab[] =
   };
 
 static bool
-handle_option (struct outp_driver *this, const char *key,
+handle_option (void *this_, const char *key,
                const struct string *val)
 {
+  struct outp_driver *this = this_;
   struct ascii_driver_ext *x = this->ext;
   int subcat;
   const char *value;

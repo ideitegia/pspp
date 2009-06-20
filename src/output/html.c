@@ -47,7 +47,7 @@
 static void escape_string (FILE *file,
                            const char *text, size_t length,
                            const char *space);
-static bool handle_option (struct outp_driver *this,
+static bool handle_option (void *this,
                            const char *key, const struct string *val);
 static void print_title_tag (FILE *file, const char *name,
                              const char *content);
@@ -65,7 +65,7 @@ html_open_driver (const char *name, int types, struct substring options)
   x->file = NULL;
   x->chart_cnt = 0;
 
-  outp_parse_options (options, handle_option, this);
+  outp_parse_options (name, options, handle_option, this);
 
   x->file = fn_open (x->file_name, "w");
   if (x->file == NULL)
@@ -161,9 +161,9 @@ static const struct outp_option option_tab[] =
   };
 
 static bool
-handle_option (struct outp_driver *this,
-               const char *key, const struct string *val)
+handle_option (void *this_, const char *key, const struct string *val)
 {
+  struct outp_driver *this = this_;
   struct html_driver_ext *x = this->ext;
   int subcat;
 

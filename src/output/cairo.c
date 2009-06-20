@@ -124,7 +124,7 @@ struct xr_driver_ext
     struct xr_font fonts[OUTP_FONT_CNT];
   };
 
-static bool handle_option (struct outp_driver *this, const char *key,
+static bool handle_option (void *this, const char *key,
                            const struct string *val);
 static void draw_headers (struct outp_driver *this);
 
@@ -173,7 +173,7 @@ xr_open_driver (const char *name, int types, struct substring options)
       font->layout = NULL;
     }
 
-  outp_parse_options (options, handle_option, this);
+  outp_parse_options (name, options, handle_option, this);
 
   width_pt = x->paper_width / 1000.0;
   length_pt = x->paper_length / 1000.0;
@@ -318,9 +318,10 @@ static const struct outp_option option_tab[] =
 };
 
 static bool
-handle_option (struct outp_driver *this, const char *key,
+handle_option (void *this_, const char *key,
                const struct string *val)
 {
+  struct outp_driver *this = this_;
   struct xr_driver_ext *x = this->ext;
   int subcat;
   char *value = ds_cstr (val);

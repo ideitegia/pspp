@@ -594,10 +594,9 @@ get_option_token (struct substring *s, const char *driver_name,
 }
 
 bool
-outp_parse_options (struct substring options,
-                    bool (*callback) (struct outp_driver *, const char *key,
-                                      const struct string *value),
-                    struct outp_driver *driver)
+outp_parse_options (const char *driver_name, struct substring options,
+                    bool (*callback) (void *aux, const char *key,
+                                      const struct string *value), void *aux)
 {
   struct string key = DS_EMPTY_INITIALIZER;
   struct string value = DS_EMPTY_INITIALIZER;
@@ -610,7 +609,7 @@ outp_parse_options (struct substring options,
       if (ss_is_empty (left))
         break;
 
-      if (!get_option_token (&left, driver->name, &key))
+      if (!get_option_token (&left, driver_name, &key))
         break;
 
       ss_ltrim (&left, ss_cstr (CC_SPACES));
@@ -618,15 +617,15 @@ outp_parse_options (struct substring options,
 	{
 	  error (0, 0, _("syntax error expecting `=' "
                          "parsing options for driver \"%s\""),
-                 driver->name);
+                 driver_name);
 	  break;
 	}
 
       ss_ltrim (&left, ss_cstr (CC_SPACES));
-      if (!get_option_token (&left, driver->name, &value))
+      if (!get_option_token (&left, driver_name, &value))
         break;
 
-      ok = callback (driver, ds_cstr (&key), &value);
+      ok = callback (aux, ds_cstr (&key), &value);
     }
   while (ok);
 

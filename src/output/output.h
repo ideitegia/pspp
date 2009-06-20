@@ -151,10 +151,10 @@ void outp_list_classes (void);
 void outp_enable_device (bool enable, int device);
 struct outp_driver *outp_drivers (struct outp_driver *);
 
-bool outp_parse_options (struct substring options,
-                         bool (*) (struct outp_driver *, const char *key,
-                                   const struct string *value),
-                         struct outp_driver *);
+bool outp_parse_options (const char *driver_name, struct substring options,
+                         bool (*callback) (void *aux, const char *key,
+                                           const struct string *value),
+                         void *aux);
 int outp_match_keyword (const char *, const struct outp_option *, int *);
 
 int outp_evaluate_dimension (const char *);
