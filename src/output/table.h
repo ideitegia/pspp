@@ -76,6 +76,7 @@ typedef void tab_dim_free_func (void *aux);
 struct tab_table
   {
     struct pool *container;
+    int ref_cnt;                /* Reference count. */
 
     /* Contents. */
     int col_style;		/* Columns: One of TAB_COL_*. */
@@ -129,6 +130,7 @@ struct tab_rendering
 /* Tables. */
 struct tab_table *tab_create (int nc, int nr, int reallocable);
 void tab_destroy (struct tab_table *);
+void tab_ref (struct tab_table *);
 void tab_resize (struct tab_table *, int nc, int nr);
 void tab_realloc (struct tab_table *, int nc, int nr);
 void tab_headers (struct tab_table *, int l, int r, int t, int b);

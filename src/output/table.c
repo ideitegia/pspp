@@ -62,6 +62,7 @@ tab_create (int nc, int nr, int reallocable UNUSED)
   struct tab_table *t;
 
   t = pool_create_container (struct tab_table, container);
+  t->ref_cnt = 1;
   t->col_style = TAB_COL_NONE;
   t->col_group = 0;
   t->title = NULL;
@@ -86,15 +87,26 @@ tab_create (int nc, int nr, int reallocable UNUSED)
   return t;
 }
 
-/* Destroys table T. */
+/* Increases T's reference count and, if this causes T's
+   reference count to reach 0, destroys T. */
 void
 tab_destroy (struct tab_table *t)
 {
-  assert (t != NULL);
+  assert (t->ref_cnt > 0);
+  if (--t->ref_cnt > 0)
+    return;
   if (t->dim_free != NULL)
     t->dim_free (t->dim_aux);
   free (t->title);
   pool_destroy (t->container);
+}
+
+/* Increases T's reference count. */
+void
+tab_ref (struct tab_table *t)
+{
+  assert (t->ref_cnt > 0);
+  t->ref_cnt++;
 }
 
 /* Sets the width and height of a table, in columns and rows,
