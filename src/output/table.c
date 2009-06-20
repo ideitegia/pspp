@@ -1017,10 +1017,12 @@ tabi_render_init (struct som_entity *t_, struct outp_driver *driver,
 
   for (i = 0; i < t->nr; i++)
     if (r->h[i] < 0)
-      error (0, 0, "height of table row %d not initialized", i);
+      error (0, 0, "height of table row %d is %d (not initialized?)",
+             i, r->h[i]);
   for (i = 0; i < t->nc; i++)
     if (r->w[i] < 0)
-      error (0, 0, "width of table column %d not initialized", i);
+      error (0, 0, "width of table column %d is %d (not initialized?)",
+             i, r->w[i]);
 
   /* Add up header sizes. */
   for (i = 0, r->wl = r->wrv[0]; i < r->l; i++)
