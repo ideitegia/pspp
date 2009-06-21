@@ -146,7 +146,7 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
   if (the_output_viewer == NULL)
     {
       the_output_viewer = PSPPIRE_OUTPUT_WINDOW (psppire_output_window_new ());
-      gtk_widget_show_now (GTK_WIDGET (the_output_viewer));
+      gtk_widget_show_all (GTK_WIDGET (the_output_viewer));
     }
 
   if (entity->type == SOM_TABLE)
