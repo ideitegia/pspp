@@ -165,6 +165,8 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
       entity->class->area (rendering, &tw, &th);
 
       drawing_area = gtk_drawing_area_new ();
+      gtk_widget_modify_bg (GTK_WIDGET (drawing_area), GTK_STATE_NORMAL,
+                            &gtk_widget_get_style (drawing_area)->base[GTK_STATE_NORMAL]);
       g_object_set_data (G_OBJECT (drawing_area),
                          "entity", xmemdup (entity, sizeof *entity));
       gtk_widget_set_size_request (drawing_area, tw / 1024, th / 1024);
@@ -248,6 +250,9 @@ psppire_output_window_init (PsppireOutputWindow *window)
 
   window->output = GTK_LAYOUT (get_widget_assert (xml, "output"));
   window->y = 0;
+
+  gtk_widget_modify_bg (GTK_WIDGET (window->output), GTK_STATE_NORMAL,
+                        &gtk_widget_get_style (GTK_WIDGET (window->output))->base[GTK_STATE_NORMAL]);
 
   connect_help (xml);
 
