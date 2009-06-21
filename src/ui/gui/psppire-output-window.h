@@ -52,6 +52,7 @@ struct _PsppireOutputWindow
 
   /* <private> */
   GtkLayout *output;
+  int max_width;
   int y;
 };
 

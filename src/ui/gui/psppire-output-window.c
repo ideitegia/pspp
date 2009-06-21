@@ -178,7 +178,12 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
       driver->class->close_driver (driver);
       outp_free_driver (driver);
 
+      if (tw / 1024 > the_output_viewer->max_width)
+        the_output_viewer->max_width = tw / 1024;
       the_output_viewer->y += th / 1024;
+
+      gtk_layout_set_size (the_output_viewer->output,
+                           the_output_viewer->max_width, the_output_viewer->y);
     }
 
   gtk_window_set_urgency_hint (GTK_WINDOW (the_output_viewer), TRUE);
