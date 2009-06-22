@@ -234,8 +234,8 @@ free_proc (struct crosstabs_proc *proc)
 
          The rest of the data was allocated and destroyed at a
          lower level already. */
-      free (pt);
     }
+  free (proc->pivots);
 }
 
 static int internal_cmd_crosstabs (struct lexer *lexer, struct dataset *ds,
