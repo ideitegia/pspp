@@ -198,8 +198,5 @@ void tab_next_row (struct tab_table *);
 void tab_output_text (int options, const char *string, ...)
      PRINTF_FORMAT (2, 3);
 
-/* Embedding the command name in the output. */
-void tab_set_command_name (const char *);
-
 #endif /* tab_h */
 

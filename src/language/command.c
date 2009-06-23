@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <output/manager.h>
-#include <output/table.h>
 #include <libpspp/getl.h>
 
 #if HAVE_SYS_WAIT_H
@@ -231,9 +230,9 @@ do_parse_command (struct lexer *lexer,
 
   /* Execute command. */
   msg_set_command_name (command->name);
-  tab_set_command_name (command->name);
+  som_set_command_name (command->name);
   result = command->function (lexer, ds);
-  tab_set_command_name (NULL);
+  som_set_command_name (NULL);
   msg_set_command_name (NULL);
 
   assert (cmd_result_is_valid (result));

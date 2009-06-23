@@ -49,7 +49,11 @@ struct som_entity
     void *ext;				/* Owned by table or chart class. */
     int table_num;                      /* Table number. */
     int subtable_num;                   /* Sub-table number. */
+    char *command_name;                 /* Command that yielded this output. */
   };
+
+struct som_entity *som_entity_clone (struct som_entity *);
+void som_entity_destroy (struct som_entity *);
 
 /* Group styles. */
 enum
@@ -92,12 +96,14 @@ struct som_table_class
     void (*area) (void *, int *horiz, int *vert);
     void (*cumulate) (void *, int cumtype, int start, int *end,
                       int max, int *actual);
-    void (*title) (void *, int x, int y, int table_num, int subtable_num);
+    void (*title) (void *, int x, int y, int table_num, int subtable_num,
+                   const char *command_name);
     void (*render) (void *, int x1, int y1, int x2, int y2);
   };
 
 /* Submission. */
 void som_new_series (void);
+void som_set_command_name (const char *);
 void som_submit (struct som_entity *t);
 
 /* Miscellaneous. */

@@ -44,7 +44,6 @@
 #define _(msgid) gettext (msgid)
 
 const struct som_table_class tab_table_class;
-static char *command_name;
 
 /* Returns the font to use for a cell with the given OPTIONS. */
 static enum outp_font
@@ -1158,7 +1157,8 @@ tabi_cumulate (void *r_, int cumtype, int start, int *end,
    Y.  Y may be zero, or X and Y may be zero, but X should be nonzero
    if Y is nonzero. */
 static void
-tabi_title (void *r_, int x, int y, int table_num, int subtable_num)
+tabi_title (void *r_, int x, int y, int table_num, int subtable_num,
+            const char *command_name)
 {
   const struct tab_rendering *r = r_;
   const struct tab_table *t = r->table;
@@ -1485,13 +1485,4 @@ render_strip (const struct tab_rendering *r,
       }
 
   return x;
-}
-
-/* Sets COMMAND_NAME as the name of the current command,
-   for embedding in output. */
-void
-tab_set_command_name (const char *command_name_)
-{
-  free (command_name);
-  command_name = command_name_ ? xstrdup (command_name_) : NULL;
 }

@@ -129,7 +129,8 @@ expose_event_callback (GtkWidget *widget, GdkEventExpose *event, gpointer data)
                                           tab_r (t), tab_t (t), tab_b (t));
 
   entity->class->title (rendering, 0, 0,
-                        entity->table_num, entity->subtable_num);
+                        entity->table_num, entity->subtable_num,
+                        entity->command_name);
   entity->class->render (rendering, tab_l (t), tab_t (t),
                          tab_nc (t) - tab_r (t),
                          tab_nr (t) - tab_b (t));
@@ -168,7 +169,7 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
       gtk_widget_modify_bg (GTK_WIDGET (drawing_area), GTK_STATE_NORMAL,
                             &gtk_widget_get_style (drawing_area)->base[GTK_STATE_NORMAL]);
       g_object_set_data (G_OBJECT (drawing_area),
-                         "entity", xmemdup (entity, sizeof *entity));
+                         "entity", som_entity_clone (entity));
       gtk_widget_set_size_request (drawing_area, tw / 1024, th / 1024);
       gtk_layout_put (the_output_viewer->output, drawing_area,
                       0, the_output_viewer->y);

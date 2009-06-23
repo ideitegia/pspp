@@ -15,16 +15,42 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include "manager.h"
+
+#include <output/manager.h>
+
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <libpspp/assertion.h>
-#include "output.h"
+#include <output/output.h>
+
+#include "gl/xalloc.h"
 
 /* Table. */
 static int table_num = 1;
 static int subtable_num;
+
+/* Name of PSPP's current command, or NULL if outside a command. */
+static char *command_name;
 
+struct som_entity *
+som_entity_clone (struct som_entity *entity)
+{
+  struct som_entity *copy = xmemdup (entity, sizeof *entity);
+  copy->command_name = xstrdup (entity->command_name);
+  return copy;
+}
+
+void
+som_entity_destroy (struct som_entity *entity)
+{
+  if (entity != NULL)
+    {
+      free (entity->command_name);
+      free (entity);
+    }
+}
+
 /* Increments table_num so different procedures' output can be
    distinguished. */
 void
@@ -35,6 +61,15 @@ som_new_series (void)
       table_num++;
       subtable_num = 0;
     }
+}
+
+/* Sets COMMAND_NAME as the name of the current command,
+   for embedding in output. */
+void
+som_set_command_name (const char *command_name_)
+{
+  free (command_name);
+  command_name = command_name_ ? xstrdup (command_name_) : NULL;
 }
 
 /* Ejects the paper for all active devices. */
@@ -86,6 +121,7 @@ void
 som_submit (struct som_entity *t)
 {
   struct outp_driver *d;
+  unsigned int flags;
 
 #if DEBUGGING
   static int entry;
@@ -93,17 +129,17 @@ som_submit (struct som_entity *t)
   assert (entry++ == 0);
 #endif
 
+  t->class->flags (t, &flags);
+  if (!(flags & SOMF_NO_TITLE))
+    subtable_num++;
+  t->table_num = table_num;
+  t->subtable_num = subtable_num;
+  t->command_name = xstrdup (command_name);
+
   if (t->type == SOM_TABLE)
     {
-      unsigned int flags;
       int hl, hr, ht, hb;
       int nc, nr;
-
-      t->class->flags (t, &flags);
-      if (!(flags & SOMF_NO_TITLE))
-	subtable_num++;
-      t->table_num = table_num;
-      t->subtable_num = subtable_num;
 
       t->class->count (t, &nc, &nr);
       t->class->headers (t, &hl, &hr, &ht, &hb);
@@ -260,7 +296,8 @@ render_columns (void *r, struct outp_driver *d, struct som_entity *t,
 	  if (len > max_len)
 	    max_len = len;
 
-	  t->class->title (r, index++, 0, t->table_num, t->subtable_num);
+	  t->class->title (r, index++, 0, t->table_num, t->subtable_num,
+                           t->command_name);
 	  t->class->render (r, 0, y0, nc, y1);
 
 	  d->cp_x += tw + 2 * d->prop_em_width;
@@ -293,7 +330,7 @@ render_simple (void *r, struct outp_driver *d, struct som_entity *t,
   assert (d->cp_x == 0);
   assert (tw < d->width && th + d->cp_y < d->length);
 
-  t->class->title (r, 0, 0, t->table_num, t->subtable_num);
+  t->class->title (r, 0, 0, t->table_num, t->subtable_num, t->command_name);
   t->class->render (r, hl, ht, nc - hr, nr - hb);
   d->cp_y += th;
 }
@@ -343,7 +380,7 @@ render_segments (void *r, struct outp_driver *d, struct som_entity *t,
             {
 	      t->class->title (r, x_index ? x_index : y_index,
 			       x_index ? y_index : 0,
-                               t->table_num, t->subtable_num);
+                               t->table_num, t->subtable_num, t->command_name);
 	      t->class->render (r, x0, y0, x1, y1);
 
 	      d->cp_y += len;
