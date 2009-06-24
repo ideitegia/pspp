@@ -640,6 +640,13 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
       n_neg = process_negative_group (var, neg, dict, &rs[i]);
 
 
+      printf ("Positives:\n");
+      dump_casereader (n_pos);
+
+      printf ("Negatives:\n");
+      dump_casereader (n_neg);
+
+#if 0
       /* Simple join on VALUE */
       for ( ; (cpos = casereader_read (n_pos) ); case_unref (cpos))
 	{
@@ -690,6 +697,7 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 	  rs[i].q2hat /= rs[i].n1 * pow2 (rs[i].n2);
 	}
     }
+#endif
 
   casereader_destroy (positives);
   casereader_destroy (negatives);
