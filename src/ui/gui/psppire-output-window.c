@@ -42,7 +42,11 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-
+enum
+  {
+    COL_TITLE,                  /* Table title. */
+    N_COLS
+  };
 
 static void psppire_output_window_base_finalize (PsppireOutputWindowClass *, gpointer);
 static void psppire_output_window_base_init     (PsppireOutputWindowClass *class);
@@ -156,6 +160,9 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
       cairo_t *cairo = gdk_cairo_create (GDK_DRAWABLE (window));
       struct outp_driver *driver = xr_create_driver (cairo); /* XXX can fail */
       struct tab_table *t = entity->ext;
+      GtkTreeStore *store;
+      GtkTreeIter item;
+      GtkTreePath *path;
       GtkWidget *drawing_area;
       void *rendering;
       int tw, th;
@@ -187,6 +194,28 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
 
       gtk_layout_set_size (the_output_viewer->output,
                            the_output_viewer->max_width, the_output_viewer->y);
+
+      store = GTK_TREE_STORE (gtk_tree_view_get_model (
+                                the_output_viewer->overview));
+      if (entity->table_num != the_output_viewer->last_table_num)
+        {
+          gtk_tree_store_append (store, &item, NULL);
+          gtk_tree_store_set (store, &item, COL_TITLE, entity->command_name,
+                              -1);
+
+          /* XXX shouldn't save a GtkTreeIter */
+          the_output_viewer->last_table_num = entity->table_num;
+          the_output_viewer->last_top_level = item;
+        }
+      gtk_tree_store_append (store, &item,
+                             &the_output_viewer->last_top_level);
+      gtk_tree_store_set (store, &item, COL_TITLE,
+                          t->title ? t->title : "(unnamed)", -1);
+
+      path = gtk_tree_model_get_path (GTK_TREE_MODEL (store),
+                                      &the_output_viewer->last_top_level);
+      gtk_tree_view_expand_row (the_output_viewer->overview, path, TRUE);
+      gtk_tree_path_free (path);
     }
 
   gtk_window_set_urgency_hint (GTK_WINDOW (the_output_viewer), TRUE);
@@ -245,12 +274,29 @@ cancel_urgency (GtkWindow *window,  gpointer data)
 static void
 psppire_output_window_init (PsppireOutputWindow *window)
 {
-  GtkBuilder *xml = builder_new ("output-viewer.ui");
+  GtkTreeViewColumn *column;
+  GtkCellRenderer *renderer;
+  GtkBuilder *xml;
+
+  xml = builder_new ("output-viewer.ui");
 
   gtk_widget_reparent (get_widget_assert (xml, "vbox1"), GTK_WIDGET (window));
 
   window->output = GTK_LAYOUT (get_widget_assert (xml, "output"));
   window->y = 0;
+
+  window->overview = GTK_TREE_VIEW (get_widget_assert (xml, "overview"));
+  gtk_tree_view_set_model (window->overview,
+                           GTK_TREE_MODEL (gtk_tree_store_new (
+                                             N_COLS,
+                                             G_TYPE_STRING))); /* COL_TITLE */
+  window->last_table_num = -1;
+
+  column = gtk_tree_view_column_new ();
+  gtk_tree_view_append_column (GTK_TREE_VIEW (window->overview), column);
+  renderer = gtk_cell_renderer_text_new ();
+  gtk_tree_view_column_pack_start (column, renderer, TRUE);
+  gtk_tree_view_column_add_attribute (column, renderer, "text", COL_TITLE);
 
   gtk_widget_modify_bg (GTK_WIDGET (window->output), GTK_STATE_NORMAL,
                         &gtk_widget_get_style (GTK_WIDGET (window->output))->base[GTK_STATE_NORMAL]);

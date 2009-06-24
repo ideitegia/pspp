@@ -54,6 +54,10 @@ struct _PsppireOutputWindow
   GtkLayout *output;
   int max_width;
   int y;
+
+  GtkTreeView *overview;
+  int last_table_num;
+  GtkTreeIter last_top_level;
 };
 
 struct _PsppireOutputWindowClass
