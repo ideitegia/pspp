@@ -289,7 +289,7 @@ run_roc (struct dataset *ds, struct cmd_roc *roc)
   return ok;
 }
 
-
+#if 0
 static void
 dump_casereader (struct casereader *reader)
 {
@@ -308,6 +308,7 @@ dump_casereader (struct casereader *reader)
 
   casereader_destroy (r);
 }
+#endif
 
 static bool
 match_positives (const struct ccase *c, void *aux)
@@ -315,8 +316,8 @@ match_positives (const struct ccase *c, void *aux)
   struct cmd_roc *roc = aux;
 
   return 0 == value_compare_3way (case_data (c, roc->state_var),
-				 &roc->state_value,
-				 var_get_width (roc->state_var));
+				  &roc->state_value,
+				  var_get_width (roc->state_var));
 }
 
 
@@ -432,6 +433,7 @@ process_group (const struct variable *var, struct casereader *reader,
 
   for ( ; (c1 = casereader_read (r1) ); case_unref (c1))
     {
+      struct ccase *new_case = case_create (proto);
       struct ccase *c2;
       struct casereader *r2 = casereader_clone (rclone);
 
@@ -441,10 +443,8 @@ process_group (const struct variable *var, struct casereader *reader,
       double n_pred = 0.0;
 
       *cutpoint_rdr = accumulate_counts (*cutpoint_rdr, d1, weight1,
-					pos_cond,
-					true_index, false_index);
-
-      struct ccase *new_case = case_create (proto);
+					 pos_cond,
+					 true_index, false_index);
 
       *cc += weight1;
 
@@ -552,6 +552,10 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
   struct casereader *negatives = NULL;
   struct casereader *positives = NULL;
 
+  struct caseproto *n_proto = caseproto_create ();
+
+  struct subcase up_ordering;
+  struct subcase down_ordering;
 
   /* Prepare the cutpoints */
   {
@@ -561,7 +565,6 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 
     struct subcase ordering;
     subcase_init (&ordering, CUTPOINT, 0, SC_ASCEND);
-
 
     proto = caseproto_add_width (proto, 0); /* cutpoint */
     proto = caseproto_add_width (proto, 0); /* TP */
@@ -580,7 +583,6 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 
     for (; (c = casereader_read (r)) != NULL; case_unref (c))
       {
-	const double weight = dict_get_case_weight (dict, c, NULL);
 	for (i = 0 ; i < roc->n_vars; ++i)
 	  {
 	    const double result = case_data (c, roc->vars[i])->f;
@@ -610,16 +612,31 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
       }
   }
 
- positives = 
+  positives = 
     casereader_create_filter_func (input,
 				   match_positives,
 				   NULL,
 				   roc,
 				   neg_wtr);
 
+  n_proto = caseproto_create ();
+      
+  n_proto = caseproto_add_width (n_proto, 0);
+  n_proto = caseproto_add_width (n_proto, 0);
+  n_proto = caseproto_add_width (n_proto, 0);
+  n_proto = caseproto_add_width (n_proto, 0);
+  n_proto = caseproto_add_width (n_proto, 0);
+
+  subcase_init (&up_ordering, VALUE, 0, SC_ASCEND);
+  subcase_init (&down_ordering, VALUE, 0, SC_DESCEND);
 
   for (i = 0 ; i < roc->n_vars; ++i)
     {
+      struct casewriter *w = NULL;
+      struct casereader *r = NULL;
+
+      struct ccase *c;
+
       struct ccase *cpos;
       struct casereader *n_neg ;
       const struct variable *var = roc->vars[i];
@@ -639,65 +656,147 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 
       n_neg = process_negative_group (var, neg, dict, &rs[i]);
 
-
-      printf ("Positives:\n");
-      dump_casereader (n_pos);
-
-      printf ("Negatives:\n");
-      dump_casereader (n_neg);
-
-#if 0
-      /* Simple join on VALUE */
+      w = sort_create_writer (&up_ordering, n_proto);
       for ( ; (cpos = casereader_read (n_pos) ); case_unref (cpos))
 	{
-	  struct ccase *cneg = NULL;
-	  double dneg = -DBL_MAX;
-	  const double dpos = case_data_idx (cpos, VALUE)->f;
-	  while (dneg < dpos)
-	    {
-	      if ( cneg )
-		case_unref (cneg);
+	  struct ccase *pos_case = case_create (n_proto);
+	  struct ccase *cneg;
+	  const double jpos = case_data_idx (cpos, VALUE)->f;
 
-	      cneg = casereader_read (n_neg);
-	      if ( ! cneg )
+	  while ((cneg = casereader_read (n_neg)))
+	    {
+	      struct ccase *nc = case_create (n_proto);
+
+	      const double jneg = case_data_idx (cneg, VALUE)->f;
+
+	      case_data_rw_idx (nc, VALUE)->f = jneg;
+	      case_data_rw_idx (nc, N_EQ)->f = 0;
+
+	      case_data_rw_idx (nc, N_PRED)->f = SYSMIS;
+
+	      *case_data_rw_idx (nc, 3) = *case_data_idx (cneg, N_EQ);
+	      *case_data_rw_idx (nc, 4) = *case_data_idx (cneg, N_PRED);
+
+	      casewriter_write (w, nc);
+
+	      case_unref (cneg);
+	      if ( jneg > jpos)
 		break;
-	      dneg = case_data_idx (cneg, VALUE)->f;
-	    }
-	
-	  if ( dpos == dneg )
-	    {
-	      double n_pos_eq = case_data_idx (cpos, N_EQ)->f;
-	      double n_neg_eq = case_data_idx (cneg, N_EQ)->f;
-	      double n_pos_gt = case_data_idx (cpos, N_PRED)->f;
-	      double n_neg_lt = case_data_idx (cneg, N_PRED)->f;
-
-	      rs[i].auc += n_pos_gt * n_neg_eq + (n_pos_eq * n_neg_eq) / 2.0;
-	      rs[i].q1hat +=
-		n_neg_eq * ( pow2 (n_pos_gt) + n_pos_gt * n_pos_eq + pow2 (n_pos_eq) / 3.0);
-	      rs[i].q2hat +=
-		n_pos_eq * ( pow2 (n_neg_lt) + n_neg_lt * n_neg_eq + pow2 (n_neg_eq) / 3.0);
 	    }
 
-	  if ( cneg )
-	    case_unref (cneg);
+	  case_data_rw_idx (pos_case, VALUE)->f = jpos;
+	  *case_data_rw_idx (pos_case, N_EQ) = *case_data_idx (cpos, N_EQ);
+	  *case_data_rw_idx (pos_case, N_PRED) = *case_data_idx (cpos, N_PRED);
+	  case_data_rw_idx (pos_case, 3)->f = 0;
+	  case_data_rw_idx (pos_case, 4)->f = SYSMIS;
+
+	  casewriter_write (w, pos_case);
 	}
 
-      rs[i].auc /=  rs[i].n1 * rs[i].n2; 
-      if ( roc->invert ) 
-	rs[i].auc = 1 - rs[i].auc;
+      r = casewriter_make_reader (w);
 
-      if ( roc->bi_neg_exp )
-	{
-	  rs[i].q1hat = rs[i].auc / ( 2 - rs[i].auc);
-	  rs[i].q2hat = 2 * pow2 (rs[i].auc) / ( 1 + rs[i].auc);
-	}
-      else
-	{
-	  rs[i].q1hat /= rs[i].n2 * pow2 (rs[i].n1);
-	  rs[i].q2hat /= rs[i].n1 * pow2 (rs[i].n2);
-	}
+      {
+	double prev_pos_gt = rs[i].n1;
+	w = sort_create_writer (&down_ordering, n_proto);
+
+	for ( ; (c = casereader_read (r) ); case_unref (c))
+	  {
+	    double n_pos_gt = case_data_idx (c, N_PRED)->f;
+	    struct ccase *nc = case_clone (c);
+
+	    if ( n_pos_gt == SYSMIS)
+	      {
+		n_pos_gt = prev_pos_gt;
+		case_data_rw_idx (nc, N_PRED)->f = n_pos_gt;
+	      }
+	    
+	    casewriter_write (w, nc);
+	    prev_pos_gt = n_pos_gt;
+	  }
+
+	r = casewriter_make_reader (w);
+      }
+
+      {
+	double prev_neg_lt = rs[i].n2;
+	w = sort_create_writer (&up_ordering, n_proto);
+
+	for ( ; (c = casereader_read (r) ); case_unref (c))
+	  {
+	    double n_neg_lt = case_data_idx (c, 4)->f;
+	    struct ccase *nc = case_clone (c);
+
+	    if ( n_neg_lt == SYSMIS)
+	      {
+		n_neg_lt = prev_neg_lt;
+		case_data_rw_idx (nc, 4)->f = n_neg_lt;
+	      }
+	    
+	    casewriter_write (w, nc);
+	    prev_neg_lt = n_neg_lt;
+	  }
+
+	r = casewriter_make_reader (w);
+      }
+
+      {
+	struct ccase *prev_case = NULL;
+	for ( ; (c = casereader_read (r) ); case_unref (c))
+	  {
+	    const struct ccase *next_case = casereader_peek (r, 0);
+
+	    const double j = case_data_idx (c, VALUE)->f;
+	    double n_pos_eq = case_data_idx (c, N_EQ)->f;
+	    double n_pos_gt = case_data_idx (c, N_PRED)->f;
+	    double n_neg_eq = case_data_idx (c, 3)->f;
+	    double n_neg_lt = case_data_idx (c, 4)->f;
+
+	    if ( prev_case && j == case_data_idx (prev_case, VALUE)->f)
+	      {
+		if ( 0 ==  case_data_idx (c, N_EQ)->f)
+		  {
+		    n_pos_eq = case_data_idx (prev_case, N_EQ)->f;
+		    n_pos_gt = case_data_idx (prev_case, N_PRED)->f;
+		  }
+
+		if ( 0 ==  case_data_idx (c, 3)->f)
+		  {
+		    n_neg_eq = case_data_idx (prev_case, 3)->f;
+		    n_neg_lt = case_data_idx (prev_case, 4)->f;
+		  }
+	      }
+
+	    if ( NULL == next_case || j != case_data_idx (next_case, VALUE)->f)
+	      {
+		rs[i].auc += n_pos_gt * n_neg_eq + (n_pos_eq * n_neg_eq) / 2.0;
+
+		rs[i].q1hat +=
+		  n_neg_eq * ( pow2 (n_pos_gt) + n_pos_gt * n_pos_eq + pow2 (n_pos_eq) / 3.0);
+		rs[i].q2hat +=
+		  n_pos_eq * ( pow2 (n_neg_lt) + n_neg_lt * n_neg_eq + pow2 (n_neg_eq) / 3.0);
+
+	      }
+
+	    case_unref (prev_case);
+	    prev_case = case_clone (c);
+	  }
+
+	rs[i].auc /=  rs[i].n1 * rs[i].n2; 
+	if ( roc->invert ) 
+	  rs[i].auc = 1 - rs[i].auc;
+
+	if ( roc->bi_neg_exp )
+	  {
+	    rs[i].q1hat = rs[i].auc / ( 2 - rs[i].auc);
+	    rs[i].q2hat = 2 * pow2 (rs[i].auc) / ( 1 + rs[i].auc);
+	  }
+	else
+	  {
+	    rs[i].q1hat /= rs[i].n2 * pow2 (rs[i].n1);
+	    rs[i].q2hat /= rs[i].n1 * pow2 (rs[i].n2);
+	  }
+      }
     }
-#endif
 
   casereader_destroy (positives);
   casereader_destroy (negatives);
@@ -706,9 +805,6 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 
   free (rs);
 }
-
-
-
 
 static void
 show_auc  (struct roc_state *rs, const struct cmd_roc *roc)

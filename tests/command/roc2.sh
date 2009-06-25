@@ -62,23 +62,26 @@ activity="create program"
 cat > $TESTFILE <<EOF
 set format F10.3.
 data list notable list /x * a *.
-
 begin data.
+0 1
 0 0
 1 1
 2 0
 3 1
 4 0
+4 1
 5 1
 6 0
 7 1
 8 0
-9 1
 9 0
 9 1
 end data.
 
-roc x by a (1).
+roc x by a (1)
+	/plot none
+	print = se 
+	.
 EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
