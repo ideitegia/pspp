@@ -165,6 +165,7 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
       GtkTreePath *path;
       GtkWidget *drawing_area;
       void *rendering;
+      struct string title;
       int tw, th;
 
       tab_ref (t);
@@ -197,20 +198,29 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
 
       store = GTK_TREE_STORE (gtk_tree_view_get_model (
                                 the_output_viewer->overview));
+
+      ds_init_empty (&title);
       if (entity->table_num != the_output_viewer->last_table_num)
         {
           gtk_tree_store_append (store, &item, NULL);
-          gtk_tree_store_set (store, &item, COL_TITLE, entity->command_name,
-                              -1);
+
+          ds_put_format (&title, "%d %s",
+                         entity->table_num, entity->command_name);
+          gtk_tree_store_set (store, &item, COL_TITLE, ds_cstr (&title), -1);
 
           /* XXX shouldn't save a GtkTreeIter */
           the_output_viewer->last_table_num = entity->table_num;
           the_output_viewer->last_top_level = item;
         }
+
       gtk_tree_store_append (store, &item,
                              &the_output_viewer->last_top_level);
-      gtk_tree_store_set (store, &item, COL_TITLE,
-                          t->title ? t->title : "(unnamed)", -1);
+      ds_clear (&title);
+      ds_put_format (&title, "%d.%d %s",
+                     entity->table_num, entity->subtable_num,
+                     t->title ? t->title : entity->command_name);
+      gtk_tree_store_set (store, &item, COL_TITLE, ds_cstr (&title), -1);
+      ds_destroy (&title);
 
       path = gtk_tree_model_get_path (GTK_TREE_MODEL (store),
                                       &the_output_viewer->last_top_level);
