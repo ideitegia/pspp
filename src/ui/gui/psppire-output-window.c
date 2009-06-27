@@ -45,6 +45,7 @@
 enum
   {
     COL_TITLE,                  /* Table title. */
+    COL_Y,                      /* Y position of top of title. */
     N_COLS
   };
 
@@ -189,13 +190,6 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
       driver->class->close_driver (driver);
       outp_free_driver (driver);
 
-      if (tw / 1024 > the_output_viewer->max_width)
-        the_output_viewer->max_width = tw / 1024;
-      the_output_viewer->y += th / 1024;
-
-      gtk_layout_set_size (the_output_viewer->output,
-                           the_output_viewer->max_width, the_output_viewer->y);
-
       store = GTK_TREE_STORE (gtk_tree_view_get_model (
                                 the_output_viewer->overview));
 
@@ -206,7 +200,10 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
 
           ds_put_format (&title, "%d %s",
                          entity->table_num, entity->command_name);
-          gtk_tree_store_set (store, &item, COL_TITLE, ds_cstr (&title), -1);
+          gtk_tree_store_set (store, &item,
+                              COL_TITLE, ds_cstr (&title),
+                              COL_Y, the_output_viewer->y,
+                              -1);
 
           /* XXX shouldn't save a GtkTreeIter */
           the_output_viewer->last_table_num = entity->table_num;
@@ -219,13 +216,23 @@ psppire_output_submit (struct outp_driver *this, struct som_entity *entity)
       ds_put_format (&title, "%d.%d %s",
                      entity->table_num, entity->subtable_num,
                      t->title ? t->title : entity->command_name);
-      gtk_tree_store_set (store, &item, COL_TITLE, ds_cstr (&title), -1);
+      gtk_tree_store_set (store, &item,
+                          COL_TITLE, ds_cstr (&title),
+                          COL_Y, the_output_viewer->y,
+                          -1);
       ds_destroy (&title);
 
       path = gtk_tree_model_get_path (GTK_TREE_MODEL (store),
                                       &the_output_viewer->last_top_level);
       gtk_tree_view_expand_row (the_output_viewer->overview, path, TRUE);
       gtk_tree_path_free (path);
+
+      if (tw / 1024 > the_output_viewer->max_width)
+        the_output_viewer->max_width = tw / 1024;
+      the_output_viewer->y += th / 1024;
+
+      gtk_layout_set_size (the_output_viewer->output,
+                           the_output_viewer->max_width, the_output_viewer->y);
     }
 
   gtk_window_set_urgency_hint (GTK_WINDOW (the_output_viewer), TRUE);
@@ -280,6 +287,35 @@ cancel_urgency (GtkWindow *window,  gpointer data)
   gtk_window_set_urgency_hint (window, FALSE);
 }
 
+static void
+on_row_activate (GtkTreeView *overview,
+                 GtkTreePath *path,
+                 GtkTreeViewColumn *column,
+                 PsppireOutputWindow *window)
+{
+  GtkTreeModel *model;
+  GtkTreeIter iter;
+  GtkAdjustment *vadj;
+  GValue value = {0};
+  double y, min, max;
+
+  model = gtk_tree_view_get_model (overview);
+  if (!gtk_tree_model_get_iter (model, &iter, path))
+    return;
+
+  gtk_tree_model_get_value (model, &iter, COL_Y, &value);
+  y = g_value_get_long (&value);
+  g_value_unset (&value);
+
+  vadj = gtk_layout_get_vadjustment (window->output);
+  min = gtk_adjustment_get_lower (vadj);
+  max = gtk_adjustment_get_upper (vadj) - gtk_adjustment_get_page_size (vadj);
+  if (y < min)
+    y = min;
+  else if (y > max)
+    y = max;
+  gtk_adjustment_set_value (vadj, y);
+}
 
 static void
 psppire_output_window_init (PsppireOutputWindow *window)
@@ -299,7 +335,8 @@ psppire_output_window_init (PsppireOutputWindow *window)
   gtk_tree_view_set_model (window->overview,
                            GTK_TREE_MODEL (gtk_tree_store_new (
                                              N_COLS,
-                                             G_TYPE_STRING))); /* COL_TITLE */
+                                             G_TYPE_STRING, /* COL_TITLE */
+                                             G_TYPE_LONG))); /* COL_Y */
   window->last_table_num = -1;
 
   column = gtk_tree_view_column_new ();
@@ -307,6 +344,9 @@ psppire_output_window_init (PsppireOutputWindow *window)
   renderer = gtk_cell_renderer_text_new ();
   gtk_tree_view_column_pack_start (column, renderer, TRUE);
   gtk_tree_view_column_add_attribute (column, renderer, "text", COL_TITLE);
+
+  g_signal_connect (GTK_TREE_VIEW (window->overview),
+                    "row-activated", G_CALLBACK (on_row_activate), window);
 
   gtk_widget_modify_bg (GTK_WIDGET (window->output), GTK_STATE_NORMAL,
                         &gtk_widget_get_style (GTK_WIDGET (window->output))->base[GTK_STATE_NORMAL]);
