@@ -308,8 +308,8 @@ on_row_activate (GtkTreeView *overview,
   g_value_unset (&value);
 
   vadj = gtk_layout_get_vadjustment (window->output);
-  min = gtk_adjustment_get_lower (vadj);
-  max = gtk_adjustment_get_upper (vadj) - gtk_adjustment_get_page_size (vadj);
+  min = vadj->lower;
+  max = vadj->upper - vadj->page_size;
   if (y < min)
     y = min;
   else if (y > max)
