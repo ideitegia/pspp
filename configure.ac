@@ -58,14 +58,14 @@ fi
 AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
 
-PKG_CHECK_MODULES([CAIRO], [cairo >= 1.8 pango pangocairo], 
+PKG_CHECK_MODULES([CAIRO], [cairo >= 1.5 pango pangocairo], 
    [HAVE_CAIRO=yes
     CPPFLAGS="$CPPFLAGS $CAIRO_CFLAGS"
     LIBS="$LIBPLOT_LIBS $LIBS"
     AC_DEFINE([HAVE_CAIRO], 1,
               [Define to 1 if Cairo and Pango are available.])],
    [HAVE_CAIRO=no
-    PSPP_OPTIONAL_PREREQ([cairo 1.8 or later])])
+    PSPP_OPTIONAL_PREREQ([cairo 1.5 or later])])
 AM_CONDITIONAL([HAVE_CAIRO], [test $HAVE_CAIRO = yes])
 
 dnl Checks needed for psql reader
