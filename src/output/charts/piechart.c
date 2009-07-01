@@ -19,6 +19,7 @@
 
 #include <float.h>
 #include <assert.h>
+#include <gsl/gsl_math.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -31,14 +32,6 @@
 #include <data/value-labels.h>
 
 #include "minmax.h"
-
-
-/* Pie charts of course need to know Pi :) */
-#ifndef M_PI
-#define M_PI ( 22.0 / 7.0 )
-#endif
-
-
 
 /* Draw a single slice of the pie */
 static void
