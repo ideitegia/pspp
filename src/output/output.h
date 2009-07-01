@@ -115,7 +115,6 @@ struct outp_driver
     int vert_line_width[OUTP_L_COUNT];	/* Width of vertical lines. */
 
     void *ext;			/* Private extension record. */
-    void *prc;			/* Per-procedure extension record. */
   };
 
 /* Option structure for the keyword recognizer. */

@@ -706,7 +706,6 @@ outp_allocate_driver (const struct outp_class *class,
   d->device = types;
   d->cp_x = d->cp_y = 0;
   d->ext = NULL;
-  d->prc = NULL;
   return d;
 }
 
