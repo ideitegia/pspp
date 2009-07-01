@@ -448,15 +448,18 @@ show_histogram (const struct variable **dependent_var,
 	  struct string str;
 	  const struct factor_result *result =
 	    ll_data (ll, struct factor_result, ll);
+          double mean, var, n;
 
 	  ds_init_empty (&str);
 	  ds_put_format (&str, "%s ", var_get_name (dependent_var[v]));
 
 	  factor_to_string (fctr, result, &str);
 
+          moments1_calculate ((struct moments1 *) result->metrics[v].moments,
+                              &n, &mean, &var, NULL,  NULL);
 	  histogram_plot ((struct histogram *) result->metrics[v].histogram,
 			  ds_cstr (&str),
-			  (struct moments1 *) result->metrics[v].moments);
+			  n, mean, sqrt (var), false);
 
 	  ds_destroy (&str);
 	}

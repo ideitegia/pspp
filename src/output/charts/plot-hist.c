@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright  (C) 2004 Free Software Foundation, Inc.
+   Copyright  (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,24 +40,37 @@
 static void
 histogram_write_legend (struct chart *ch, double n, double mean, double stddev)
 {
+  double y;
   char buf[100];
 
   if (!ch)
     return ;
 
+  y = ch->data_bottom;
   pl_savestate_r (ch->lp);
 
-  sprintf (buf, "N = %.2f", n);
-  pl_move_r (ch->lp, ch->legend_left, ch->data_bottom);
-  pl_alabel_r (ch->lp, 0, 'b', buf);
+  if (n != SYSMIS)
+    {
+      sprintf (buf, "N = %.2f", n);
+      pl_move_r (ch->lp, ch->legend_left, y);
+      pl_alabel_r (ch->lp, 0, 'b', buf);
+      y += ch->font_size * 1.5;
+    }
 
-  sprintf (buf, "Mean = %.1f", mean);
-  pl_fmove_r (ch->lp,ch->legend_left,ch->data_bottom + ch->font_size * 1.5);
-  pl_alabel_r (ch->lp, 0, 'b', buf);
+  if (mean != SYSMIS)
+    {
+      sprintf (buf, "Mean = %.1f", mean);
+      pl_fmove_r (ch->lp,ch->legend_left, y);
+      pl_alabel_r (ch->lp, 0, 'b', buf);
+      y += ch->font_size * 1.5;
+    }
 
-  sprintf (buf, "Std. Dev = %.2f", stddev);
-  pl_fmove_r (ch->lp, ch->legend_left, ch->data_bottom + ch->font_size * 1.5 * 2);
-  pl_alabel_r (ch->lp, 0, 'b', buf);
+  if (stddev != SYSMIS)
+    {
+      sprintf (buf, "Std. Dev = %.2f", stddev);
+      pl_fmove_r (ch->lp, ch->legend_left, y);
+      pl_alabel_r (ch->lp, 0, 'b', buf);
+    }
 
   pl_restorestate_r (ch->lp);
 }
@@ -110,25 +123,15 @@ hist_draw_bar (struct chart *ch, const struct histogram *hist, int bar)
 
 
 
+/* Plots a histogram of the data in HIST with the given LABEL.
+   Labels the histogram with each of N, MEAN, and STDDEV that is
+   not SYSMIS.  If all three are not SYSMIS and SHOW_NORMAL is
+   true, also draws a normal curve on the histogram. */
 void
 histogram_plot (const struct histogram *hist,
-		const char *label,
-		const struct moments1 *m)
-{
-  double mean, var, n;
-
-  moments1_calculate (m, &n, &mean, &var, NULL,  NULL);
-
-  histogram_plot_n (hist, label, n, mean, sqrt(var), m);
-}
-
-
-/* This function is deprecated.  Don't use it in new code */
-void
-histogram_plot_n (const struct histogram *hist,
-		  const char *label,
-		  double n, double mean, double stddev,
-		  bool show_normal)
+                const char *label,
+                double n, double mean, double stddev,
+                bool show_normal)
 {
   int i;
   int bins;
@@ -157,7 +160,7 @@ histogram_plot_n (const struct histogram *hist,
 
   histogram_write_legend (ch, n, mean, stddev);
 
-  if (show_normal)
+  if (show_normal && n != SYSMIS && mean != SYSMIS && stddev != SYSMIS)
     {
       /* Draw the normal curve */
 

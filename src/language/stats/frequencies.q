@@ -610,7 +610,7 @@ postcalc (const struct dataset *ds)
 
 	  hist = freq_tab_to_hist (ft,v);
 
-	  histogram_plot_n (hist, var_to_string(v),
+	  histogram_plot (hist, var_to_string(v),
 			  vf->tab.valid_cases,
 			  d[frq_mean],
 			  d[frq_stddev],

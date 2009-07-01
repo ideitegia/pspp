@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,17 +23,14 @@ struct chart;
 struct moments1;
 struct histogram;
 
-/* Plot M onto histogram HIST and label it with LABEL */
-void histogram_plot (const struct histogram *hist,
-		     const char *label,  const struct moments1 *m);
-
-
-/* A wrapper aroud histogram_plot.
-   Don't use this function.  It's legacy only */
-void histogram_plot_n (const struct histogram *hist,
-		       const char *label,
-		       double n, double mean, double var,
-		       bool show_normal);
-
+/* Plots a histogram of the data in HIST with the given LABEL.
+   Labels the histogram with each of N, MEAN, and STDDEV that is
+   not SYSMIS.  If all three are not SYSMIS and SHOW_NORMAL is
+   true, also draws a normal curve on the histogram. */
+void
+histogram_plot (const struct histogram *hist,
+                const char *label,
+                double n, double mean, double stddev,
+                bool show_normal);
 
 #endif

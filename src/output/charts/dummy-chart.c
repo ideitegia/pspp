@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -80,16 +80,9 @@ chart_datum (struct chart *ch UNUSED, int dataset UNUSED UNUSED,
 
 void
 histogram_plot (const struct histogram *hist UNUSED,
-		const char *label UNUSED,
-		const struct moments1 *m UNUSED)
-{
-}
-
-void
-histogram_plot_n (const struct histogram *hist UNUSED,
-		  const char *label UNUSED,
-		  double n UNUSED, double mean UNUSED, double stddev UNUSED,
-		  bool show_normal UNUSED)
+                const char *label UNUSED,
+                double n UNUSED, double mean UNUSED, double stddev UNUSED,
+                bool show_normal UNUSED)
 {
 }
 
