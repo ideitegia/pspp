@@ -48,7 +48,7 @@ void
 piechart_plot(const char *title, const struct slice *slices, int n_slices)
 {
   int i;
-  double total_magnetude=0;
+  double total_magnitude=0;
 
   struct chart *ch = chart_create();
 
@@ -70,14 +70,14 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
   chart_write_title(ch, title);
 
   for (i = 0 ; i < n_slices ; ++i )
-    total_magnetude += slices[i].magnetude;
+    total_magnitude += slices[i].magnitude;
 
   for (i = 0 ; i < n_slices ; ++i )
     {
       static double angle=0.0;
 
       const double segment_angle =
-	slices[i].magnetude / total_magnetude * 2 * M_PI ;
+	slices[i].magnitude / total_magnitude * 2 * M_PI ;
 
       const double label_x = centre_x -
 	radius * sin(angle + segment_angle/2.0);

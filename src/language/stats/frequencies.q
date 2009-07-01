@@ -1515,7 +1515,7 @@ freq_tab_to_slice_array(const struct freq_tab *frq_tab,
 
       ds_init_empty (&slices[i].label);
       var_append_value_name (var, &frq->value, &slices[i].label);
-      slices[i].magnetude = frq->count;
+      slices[i].magnitude = frq->count;
     }
 
   return slices;
