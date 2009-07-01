@@ -134,7 +134,7 @@ som_submit (struct som_entity *t)
     subtable_num++;
   t->table_num = table_num;
   t->subtable_num = subtable_num;
-  t->command_name = xstrdup (command_name);
+  t->command_name = command_name ? xstrdup (command_name) : NULL;
 
   if (t->type == SOM_TABLE)
     {
