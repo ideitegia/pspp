@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -147,7 +147,7 @@ boxplot_draw_boxplot (struct chart *ch,
     }
 
   /* Draw  tick  mark on x axis */
-  draw_tick(ch, TICK_ABSCISSA, box_centre - ch->data_left, name);
+  draw_tick(ch, TICK_ABSCISSA, box_centre - ch->data_left, "%s", name);
 
   pl_restorestate_r(ch->lp);
 }

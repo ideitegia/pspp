@@ -141,7 +141,7 @@ draw_barchart(struct chart *ch, const char *title,
 
       pl_savestate_r(ch->lp);
 
-      draw_tick (ch, TICK_ABSCISSA, x + (interval_size/2 ),
+      draw_tick (ch, TICK_ABSCISSA, x + (interval_size/2 ), "%s",
 		 cat_labels[i]);
 
       for(sc = 0 ; sc < SUB_CATAGORIES ; ++sc )
