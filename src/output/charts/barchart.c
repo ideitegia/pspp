@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@ draw_barchart(struct chart *ch, const char *title,
   pl_restorestate_r(ch->lp);
 
 
-  chart_write_title(ch, title);
+  chart_write_title(ch, "%s", title);
 
   write_legend(ch);
 

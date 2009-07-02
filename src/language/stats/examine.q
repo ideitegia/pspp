@@ -609,7 +609,7 @@ show_boxplot_variables (const struct variable **dependent_var,
       var_append_value_name (fctr->indep_var[0], &result->value[0], &title);
 #endif
 
-      chart_write_title (ch, ds_cstr (&title));
+      chart_write_title (ch, "%s", ds_cstr (&title));
       ds_destroy (&title);
 
       for (v = 0; v < n_dep_var; ++v)
