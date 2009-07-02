@@ -52,7 +52,8 @@ enum tick_orientation
 void draw_tick(struct chart *chart,
 	  enum tick_orientation orientation,
 	  double position,
-	       const char *label, ...);
+	       const char *label, ...)
+  PRINTF_FORMAT (4, 5);
 
 
 /* Write the title on a chart*/

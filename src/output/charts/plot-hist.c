@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,12 +98,8 @@ hist_draw_bar(struct chart *ch, const gsl_histogram *hist, int bar)
 
     pl_restorestate_r(ch->lp);
 
-    {
-      char buf[5];
-      snprintf(buf,5,"%g",(upper + lower) / 2.0);
-      draw_tick(ch, TICK_ABSCISSA,
-		x_pos + width / 2.0, buf);
-    }
+    draw_tick (ch, TICK_ABSCISSA,
+               x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
   }
 }
 
