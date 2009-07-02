@@ -1,9 +1,81 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2008-10-09 21:32:07 blp>
-Copyright (C) 1996-9, 2000, 2008 Free Software Foundation, Inc.
+Time-stamp: <2009-07-02 09:53:19 blp>
+Copyright (C) 1996-9, 2000, 2008, 2009 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send PSPP bug reports to bug-gnu-pspp@gnu.org.
+
+Changes from 0.6.1 to 0.6.1-20090702:
+
+  * Statistical bug fixes:
+
+    - Report correct standard error of the estimate in REGRESSION
+      output (bug #25677).
+
+  * Build fixes and changes:
+
+    - Make running "make" after running "configure" with different
+      settings reliably rebuild version.c.
+
+    - Cygwin and MinGW build fixes.
+
+    - Fixes for building with recent gnulib.
+
+    - The Makefile now honors two new variables, PSPP_LDFLAGS and
+      PSPPIRE_LDFLAGS, that affect linking of the PSPP and PSPPIRE
+      binaries, respectively.  This makes building easier for some
+      packagers.
+
+    - Fixes for "configure --enable-relocatable" (bug #25508).
+
+  * Data file bug fixes and changes:
+
+    - Fix reading text data files that contain a mix of white space
+      and commas.  Now "a ,b" is treated as two fields containing "a"
+      and "b"; previously it was treated as three, with an empty field
+      in the middle.
+
+    - Fix writing corrupted .sav files on Windows.
+
+    - Fix writing corrupted .por files (bug #26034).
+
+    - Fix reading .por files whose initial lines are not padded out
+      with spaces as expected.
+
+    - PSPP will no longer issue warnings about some .sav file records
+      or values that it does not understand.  These warnings were
+      harmless, but needlessly alarmed some users.
+
+    - Fix crash reading empty string fields from PostgreSQL databases.
+
+  * Bug fixes that affect PSPP and PSPPIRE:
+
+    - Users may now control precision of output statistics.  Instead
+      of hard coding the width and decimals of output numbers, respect
+      the default format in most instances.  Counts are now normally
+      displayed with the format of the weight variable, if any.
+
+    - Fix crash when an INSERT command specifies the name of a file
+      that does not exist (bug #24569).
+
+    - Fix crash when CROSSTABS specifies a long-string variable (bug
+      #24557).
+
+    - Fix crash drawing pie charts with many segments.
+
+    - Fix crash when NUMERIC specifies an invalid format.
+
+  * PSPPIRE bug fixes and changes:
+
+    - On Windows, write the output file to the user's home directory
+      instead of the current directory, to better match user
+      expectations.
+
+    - Some data editor fixes.
+
+  * Documentation:
+
+    - Fix typo in BINOMIAL section of user manual (bug #25892).
 
 Changes from 0.6.0 to 0.6.1:
 
@@ -644,8 +716,6 @@ Changes for version 0.1.0:
 
 ----------------------------------------------------------------------
 Copyright information:
-
-Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that
