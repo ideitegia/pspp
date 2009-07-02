@@ -74,7 +74,7 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 			    );
 
 
-  chart_write_title(ch, title);
+  chart_write_title(ch, "%s", title);
 
   for (i = 0 ; i < n_slices ; ++i )
     total_magnetude += slices[i].magnetude;

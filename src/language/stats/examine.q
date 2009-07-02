@@ -1800,7 +1800,7 @@ box_plot_variables (const struct factor *fctr,
       ds_init_empty (&str);
       factor_to_string (fctr, *fs, 0, &str );
 
-      chart_write_title (ch, ds_cstr (&str));
+      chart_write_title (ch, "%s", ds_cstr (&str));
 
       for ( i = 0 ; i < n_vars ; ++i )
 	{
