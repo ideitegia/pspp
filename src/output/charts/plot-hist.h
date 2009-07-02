@@ -14,23 +14,22 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef PLOT_HIST_H
-#define PLOT_HIST_H
+#ifndef OUTPUT_PLOT_HIST_H
+#define OUTPUT_PLOT_HIST_H
 
 #include <stdbool.h>
 
 struct chart;
-struct moments1;
 struct histogram;
 
-/* Plots a histogram of the data in HIST with the given LABEL.
-   Labels the histogram with each of N, MEAN, and STDDEV that is
-   not SYSMIS.  If all three are not SYSMIS and SHOW_NORMAL is
-   true, also draws a normal curve on the histogram. */
-void
-histogram_plot (const struct histogram *hist,
-                const char *label,
-                double n, double mean, double stddev,
-                bool show_normal);
+/* Creates and returns a new chart that depicts a histogram of
+   the data in HIST with the given LABEL.  Labels the histogram
+   with each of N, MEAN, and STDDEV that is not SYSMIS.  If all
+   three are not SYSMIS and SHOW_NORMAL is true, also draws a
+   normal curve on the histogram. */
+struct chart *histogram_chart_create (const struct histogram *hist,
+                                      const char *label,
+                                      double n, double mean, double stddev,
+                                      bool show_normal);
 
-#endif
+#endif /* output/plot-hist.h */

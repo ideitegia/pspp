@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,82 +14,20 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
-#include <float.h>
-#include <assert.h>
-#include <math.h>
-
-#include <math/chart-geometry.h>
-#include <libpspp/str.h>
-#include "manager.h"
-#include "output.h"
-
-#include "xalloc.h"
-
-#ifndef CHART_H
-#define CHART_H
+#ifndef OUTPUT_CHART_H
+#define OUTPUT_CHART_H 1
 
 #ifndef NO_CHARTS
+#include <stdio.h>              /* Required by <plot.h>. */
 #include <plot.h>
 #endif
 
-struct chart {
+struct chart;
 
-#ifndef NO_CHARTS
-  plPlotter *lp ;
-  plPlotterParams *pl_params;
-#else
-  void *lp;
-#endif
-  char *file_name;
-  FILE *file;
+void chart_draw (const struct chart *, plPlotter *);
+struct chart *chart_ref (const struct chart *);
+void chart_unref (struct chart *);
 
-  /* The geometry of the chart
-     See diagram at the foot of this file.
-   */
+void chart_submit (struct chart *);
 
-  int data_top   ;
-  int data_right ;
-  int data_bottom;
-  int data_left  ;
-
-  int abscissa_top;
-
-  int ordinate_right ;
-
-  int title_bottom ;
-
-  int legend_left ;
-  int legend_right ;
-
-
-  /* Default font size for the plot (if zero, then use plotter default) */
-  int font_size;
-
-  char fill_colour[10];
-
-  /* Stuff Particular to Cartesians (and Boxplots ) */
-  double ordinate_scale;
-  double abscissa_scale;
-  double x_min;
-  double x_max;
-  double y_min;
-  double y_max;
-};
-
-
-
-struct chart * chart_create(void);
-void chart_submit(struct chart *ch);
-
-/* Helper functions for output drivers that put each chart into a
-   separate file. */
-void chart_init_separate (struct chart *, const char *type,
-                          const char *file_name_tmpl, int number);
-
-void chart_finalise_separate (struct chart *);
-
-#endif
+#endif /* output/chart.h */

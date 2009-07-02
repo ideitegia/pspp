@@ -3,10 +3,6 @@
 noinst_LTLIBRARIES += src/output/charts/libcharts.la
 
 chart_sources = \
-	src/output/charts/barchart.c \
-	src/output/charts/barchart.h \
-	src/output/charts/box-whisker.c \
-	src/output/charts/box-whisker.h \
 	src/output/charts/cartesian.c \
 	src/output/charts/cartesian.h \
 	src/output/charts/piechart.c \

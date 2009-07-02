@@ -48,6 +48,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <math/moments.h>
+#include <output/chart-provider.h>
 #include <output/charts/box-whisker.h>
 #include <output/charts/cartesian.h>
 #include <output/manager.h>
@@ -320,26 +321,32 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 };
 
 
+struct np_plot_chart
+  {
+    struct chart chart;
+    char *label;
+    struct casereader *data;
+
+    /* Copied directly from struct np. */
+    double y_min, y_max;
+    double dns_min, dns_max;
+
+    /* Calculated. */
+    double slope, intercept;
+    double y_first, y_last;
+    double x_lower, x_upper;
+    double slack;
+  };
+
+static const struct chart_class np_plot_chart_class;
+static const struct chart_class dnp_plot_chart_class;
+
 /* Plot the normal and detrended normal plots for RESULT.
    Label the plots with LABEL */
 static void
 np_plot (struct np *np, const char *label)
 {
-  double yfirst = 0, ylast = 0;
-
-  double x_lower;
-  double x_upper;
-  double slack;
-
-  /* Normal Plot */
-  struct chart *np_chart;
-
-  /* Detrended Normal Plot */
-  struct chart *dnp_chart;
-
-  /* The slope and intercept of the ideal normal probability line */
-  const double slope = 1.0 / np->stddev;
-  const double intercept = -np->mean / np->stddev;
+  struct np_plot_chart *np_plot, *dnp_plot;
 
   if ( np->n < 1.0 )
     {
@@ -347,55 +354,117 @@ np_plot (struct np *np, const char *label)
       return ;
     }
 
-  np_chart = chart_create ();
-  dnp_chart = chart_create ();
+  np_plot = xmalloc (sizeof *np_plot);
+  chart_init (&np_plot->chart, &np_plot_chart_class);
+  np_plot->label = xstrdup (label);
+  np_plot->data = casewriter_make_reader (np->writer);
+  np_plot->y_min = np->y_min;
+  np_plot->y_max = np->y_max;
+  np_plot->dns_min = np->dns_min;
+  np_plot->dns_max = np->dns_max;
 
-  if ( !np_chart || ! dnp_chart )
-    return ;
+  /* Slope and intercept of the ideal normal probability line. */
+  np_plot->slope = 1.0 / np->stddev;
+  np_plot->intercept = -np->mean / np->stddev;
 
-  chart_write_title (np_chart, _("Normal Q-Q Plot of %s"), label);
-  chart_write_xlabel (np_chart, _("Observed Value"));
-  chart_write_ylabel (np_chart, _("Expected Normal"));
-
-  chart_write_title (dnp_chart, _("Detrended Normal Q-Q Plot of %s"),
-		     label);
-  chart_write_xlabel (dnp_chart, _("Observed Value"));
-  chart_write_ylabel (dnp_chart, _("Dev from Normal"));
-
-  yfirst = gsl_cdf_ugaussian_Pinv (1 / (np->n + 1));
-  ylast = gsl_cdf_ugaussian_Pinv (np->n / (np->n + 1));
+  np_plot->y_first = gsl_cdf_ugaussian_Pinv (1 / (np->n + 1));
+  np_plot->y_last = gsl_cdf_ugaussian_Pinv (np->n / (np->n + 1));
 
   /* Need to make sure that both the scatter plot and the ideal fit into the
      plot */
-  x_lower = MIN (np->y_min, (yfirst - intercept) / slope) ;
-  x_upper = MAX (np->y_max, (ylast  - intercept) / slope) ;
-  slack = (x_upper - x_lower)  * 0.05 ;
+  np_plot->x_lower = MIN (
+    np->y_min, (np_plot->y_first - np_plot->intercept) / np_plot->slope);
+  np_plot->x_upper = MAX (
+    np->y_max, (np_plot->y_last  - np_plot->intercept) / np_plot->slope) ;
+  np_plot->slack = (np_plot->x_upper - np_plot->x_lower) * 0.05 ;
 
-  chart_write_xscale (np_chart, x_lower - slack, x_upper + slack, 5);
-  chart_write_xscale (dnp_chart, np->y_min, np->y_max, 5);
+  dnp_plot = xmemdup (np_plot, sizeof *np_plot);
+  chart_init (&dnp_plot->chart, &dnp_plot_chart_class);
+  dnp_plot->label = xstrdup (dnp_plot->label);
+  dnp_plot->data = casereader_clone (dnp_plot->data);
 
-  chart_write_yscale (np_chart, yfirst, ylast, 5);
-  chart_write_yscale (dnp_chart, np->dns_min, np->dns_max, 5);
-
-  {
-    struct casereader *reader = casewriter_make_reader (np->writer);
-    struct ccase *c;
-    while ((c = casereader_read (reader)) != NULL)
-      {
-      	chart_datum (np_chart, 0, case_data_idx (c, NP_IDX_Y)->f, case_data_idx (c, NP_IDX_NS)->f);
-	chart_datum (dnp_chart, 0, case_data_idx (c, NP_IDX_Y)->f, case_data_idx (c, NP_IDX_DNS)->f);
-
-	case_unref (c);
-      }
-    casereader_destroy (reader);
-  }
-
-  chart_line (dnp_chart, 0, 0, np->y_min, np->y_max , CHART_DIM_X);
-  chart_line (np_chart, slope, intercept, yfirst, ylast , CHART_DIM_Y);
-
-  chart_submit (np_chart);
-  chart_submit (dnp_chart);
+  chart_submit (&np_plot->chart);
+  chart_submit (&dnp_plot->chart);
 }
+
+static void
+np_plot_chart_draw (const struct chart *chart, plPlotter *lp)
+{
+  const struct np_plot_chart *plot = (struct np_plot_chart *) chart;
+  struct chart_geometry geom;
+  struct casereader *data;
+  struct ccase *c;
+
+  chart_geometry_init (lp, &geom);
+  chart_write_title (lp, &geom, _("Normal Q-Q Plot of %s"), plot->label);
+  chart_write_xlabel (lp, &geom, _("Observed Value"));
+  chart_write_ylabel (lp, &geom, _("Expected Normal"));
+  chart_write_xscale (lp, &geom,
+                      plot->x_lower - plot->slack,
+                      plot->x_upper + plot->slack, 5);
+  chart_write_yscale (lp, &geom, plot->y_first, plot->y_last, 5);
+
+  data = casereader_clone (plot->data);
+  for (; (c = casereader_read (data)) != NULL; case_unref (c))
+    chart_datum (lp, &geom, 0,
+                 case_data_idx (c, NP_IDX_Y)->f,
+                 case_data_idx (c, NP_IDX_NS)->f);
+  casereader_destroy (data);
+
+  chart_line (lp, &geom, plot->slope, plot->intercept,
+              plot->y_first, plot->y_last, CHART_DIM_Y);
+
+  chart_geometry_free (lp);
+}
+
+static void
+dnp_plot_chart_draw (const struct chart *chart, plPlotter *lp)
+{
+  const struct np_plot_chart *plot = (struct np_plot_chart *) chart;
+  struct chart_geometry geom;
+  struct casereader *data;
+  struct ccase *c;
+
+  chart_geometry_init (lp, &geom);
+  chart_write_title (lp, &geom, _("Detrended Normal Q-Q Plot of %s"),
+                     plot->label);
+  chart_write_xlabel (lp, &geom, _("Observed Value"));
+  chart_write_ylabel (lp, &geom, _("Dev from Normal"));
+  chart_write_xscale (lp, &geom, plot->y_min, plot->y_max, 5);
+  chart_write_yscale (lp, &geom, plot->dns_min, plot->dns_max, 5);
+
+  data = casereader_clone (plot->data);
+  for (; (c = casereader_read (data)) != NULL; case_unref (c))
+    chart_datum (lp, &geom, 0, case_data_idx (c, NP_IDX_Y)->f,
+                 case_data_idx (c, NP_IDX_DNS)->f);
+  casereader_destroy (data);
+
+  chart_line (lp, &geom, 0, 0, plot->y_min, plot->y_max, CHART_DIM_X);
+
+  chart_geometry_free (lp);
+}
+
+static void
+np_plot_chart_destroy (struct chart *chart)
+{
+  struct np_plot_chart *plot = (struct np_plot_chart *) chart;
+
+  casereader_destroy (plot->data);
+  free (plot->label);
+  free (plot);
+}
+
+static const struct chart_class np_plot_chart_class =
+  {
+    np_plot_chart_draw,
+    np_plot_chart_destroy
+  };
+
+static const struct chart_class dnp_plot_chart_class =
+  {
+    dnp_plot_chart_draw,
+    np_plot_chart_destroy
+  };
 
 
 static void
@@ -448,7 +517,15 @@ show_histogram (const struct variable **dependent_var,
 	  struct string str;
 	  const struct factor_result *result =
 	    ll_data (ll, struct factor_result, ll);
+          struct histogram *histogram;
           double mean, var, n;
+
+          histogram = (struct histogram *) result->metrics[v].histogram;
+          if (histogram == NULL)
+            {
+              /* Probably all values are SYSMIS. */
+              continue;
+            }
 
 	  ds_init_empty (&str);
 	  ds_put_format (&str, "%s ", var_get_name (dependent_var[v]));
@@ -457,9 +534,8 @@ show_histogram (const struct variable **dependent_var,
 
           moments1_calculate ((struct moments1 *) result->metrics[v].moments,
                               &n, &mean, &var, NULL,  NULL);
-	  histogram_plot ((struct histogram *) result->metrics[v].histogram,
-			  ds_cstr (&str),
-			  n, mean, sqrt (var), false);
+          chart_submit (histogram_chart_create (histogram, ds_cstr (&str),
+                                                n, mean, sqrt (var), false));
 
 	  ds_destroy (&str);
 	}
@@ -473,6 +549,7 @@ show_boxplot_groups (const struct variable **dependent_var,
 		     int n_dep_var,
 		     const struct xfactor *fctr)
 {
+#if 0
   int v;
 
   for (v = 0; v < n_dep_var; ++v)
@@ -550,6 +627,7 @@ show_boxplot_groups (const struct variable **dependent_var,
 
       chart_submit (ch);
     }
+#endif
 }
 
 
@@ -561,6 +639,7 @@ show_boxplot_variables (const struct variable **dependent_var,
 			)
 
 {
+#if 0
   int v;
   struct ll *ll;
   const struct ll_list *result_list = &fctr->result_list;
@@ -630,6 +709,7 @@ show_boxplot_variables (const struct variable **dependent_var,
 
       chart_submit (ch);
     }
+#endif
 }
 
 

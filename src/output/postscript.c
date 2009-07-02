@@ -24,6 +24,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <data/file-name.h>
 #include <libpspp/assertion.h>
 #include <libpspp/bit-vector.h>
 #include <libpspp/compiler.h>
@@ -32,15 +33,13 @@
 #include <libpspp/misc.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
+#include <output/afm.h>
+#include <output/chart-provider.h>
+#include <output/chart.h>
+#include <output/manager.h>
+#include <output/output.h>
 
-#include <data/file-name.h>
-
-#include "afm.h"
-#include "chart.h"
 #include "error.h"
-#include "manager.h"
-#include "output.h"
-
 #include "intprops.h"
 #include "minmax.h"
 #include "xalloc.h"
@@ -105,6 +104,8 @@ struct ps_driver_ext
 
     struct font *fonts[OUTP_FONT_CNT];
     int last_font;              /* Index of last font set with setfont. */
+
+    int doc_num;                /* %%DocumentNumber counter. */
   };
 
 /* Transform logical y-ordinate Y into a page ordinate. */
@@ -151,6 +152,7 @@ ps_open_driver (const char *name, int types, struct substring options)
   x->line_width = PSUS / 144;
   for (i = 0; i < OUTP_FONT_CNT; i++)
     x->fonts[i] = NULL;
+  x->doc_num = 0;
 
   outp_parse_options (this->name, options, handle_option, this);
 
@@ -602,12 +604,81 @@ ps_close_page (struct outp_driver *this)
 }
 
 static void
+ps_output_chart (struct outp_driver *this, const struct chart *chart)
+{
+  struct ps_driver_ext *x = this->ext;
+  plPlotterParams *params;
+  int x_origin, y_origin;
+  char buf[BUFSIZ];
+  char *page_size;
+  plPlotter *lp;
+  FILE *file;
+  int size;
+
+  /* Create temporary file for chart. */
+  file = tmpfile ();
+  if (file == NULL)
+    {
+      error (0, errno, _("failed to create temporary file"));
+      return;
+    }
+
+  /* Create plotter for chart. */
+  size = this->width < this->length ? this->width : this->length;
+  x_origin = x->left_margin + (size - this->width) / 2;
+  y_origin = x->bottom_margin + (size - this->length) / 2;
+  page_size = xasprintf ("a,xsize=%.3f,ysize=%.3f,xorigin=%.3f,yorigin=%.3f",
+                         (double) size / PSUS, (double) size / PSUS,
+                         (double) x_origin / PSUS, (double) y_origin / PSUS);
+
+  params = pl_newplparams ();
+  pl_setplparam (params, "PAGESIZE", page_size);
+  free (page_size);
+  lp = pl_newpl_r ("ps", 0, file, stderr, params);
+  pl_deleteplparams (params);
+
+  if (lp == NULL)
+    {
+      fclose (file);
+      return;
+    }
+
+  /* Draw chart and free plotter. */
+  chart_draw (chart, lp);
+  pl_deletepl_r (lp);
+
+  /* Write prologue for chart. */
+  outp_eject_page (this);
+  fprintf (x->file,
+           "/sp save def\n"
+           "%d %d translate 1000 dup scale\n"
+           "userdict begin\n"
+           "/showpage { } def\n"
+           "0 setgray 0 setlinecap 1 setlinewidth\n"
+           "0 setlinejoin 10 setmiterlimit [ ] 0 setdash newpath clear\n"
+           "%%%%BeginDocument: %d\n",
+           -x->left_margin, -x->bottom_margin,
+           x->doc_num++);
+
+  /* Copy chart into output file. */
+  rewind (file);
+  while (fwrite (buf, 1, fread (buf, 1, sizeof buf, file), x->file))
+    continue;
+  fclose (file);
+
+  /* Write epilogue for chart. */
+  fputs ("%%EndDocument\n"
+         "end\n"
+         "sp restore\n",
+         x->file);
+  outp_close_page (this);
+}
+
+static void
 ps_submit (struct outp_driver *this UNUSED, struct som_entity *s)
 {
   switch (s->type)
     {
-    case SOM_CHART:
-      break;
     default:
       NOT_REACHED ();
     }
@@ -1087,72 +1158,6 @@ ps_text_draw (struct outp_driver *this, const struct outp_text *t)
   text (this, t, true, NULL, NULL);
 }
 
-static void
-ps_chart_initialise (struct outp_driver *this UNUSED, struct chart *ch)
-{
-#ifdef NO_CHARTS
-  ch->lp = NULL;
-#else
-  struct ps_driver_ext *x = this->ext;
-  char page_size[128];
-  int size;
-  int x_origin, y_origin;
-
-  ch->file = tmpfile ();
-  if (ch->file == NULL)
-    {
-      ch->lp = NULL;
-      return;
-    }
-
-  size = this->width < this->length ? this->width : this->length;
-  x_origin = x->left_margin + (size - this->width) / 2;
-  y_origin = x->bottom_margin + (size - this->length) / 2;
-
-  snprintf (page_size, sizeof page_size,
-            "a,xsize=%.3f,ysize=%.3f,xorigin=%.3f,yorigin=%.3f",
-            (double) size / PSUS, (double) size / PSUS,
-            (double) x_origin / PSUS, (double) y_origin / PSUS);
-
-  ch->pl_params = pl_newplparams ();
-  pl_setplparam (ch->pl_params, "PAGESIZE", page_size);
-  ch->lp = pl_newpl_r ("ps", NULL, ch->file, stderr, ch->pl_params);
-#endif
-}
-
-static void
-ps_chart_finalise (struct outp_driver *this UNUSED, struct chart *ch UNUSED)
-{
-#ifndef NO_CHARTS
-  struct ps_driver_ext *x = this->ext;
-  char buf[BUFSIZ];
-  static int doc_num = 0;
-
-  outp_eject_page (this);
-  fprintf (x->file,
-           "/sp save def\n"
-           "%d %d translate 1000 dup scale\n"
-           "userdict begin\n"
-           "/showpage { } def\n"
-           "0 setgray 0 setlinecap 1 setlinewidth\n"
-           "0 setlinejoin 10 setmiterlimit [ ] 0 setdash newpath clear\n"
-           "%%%%BeginDocument: %d\n",
-           -x->left_margin, -x->bottom_margin,
-           doc_num++);
-
-  rewind (ch->file);
-  while (fwrite (buf, 1, fread (buf, 1, sizeof buf, ch->file), x->file))
-    continue;
-  fclose (ch->file);
-
-  fputs ("%%EndDocument\n"
-         "end\n"
-         "sp restore\n",
-         x->file);
-  outp_close_page (this);
-#endif
-}
-
 static void embed_font (struct outp_driver *this, struct font *font);
 static void reencode_font (struct outp_driver *this, struct font *font);
 
@@ -1440,12 +1445,11 @@ const struct outp_class postscript_class =
   ps_close_page,
   NULL,
 
+  ps_output_chart,
+
   ps_submit,
 
   ps_line,
   ps_text_metrics,
   ps_text_draw,
-
-  ps_chart_initialise,
-  ps_chart_finalise
 };

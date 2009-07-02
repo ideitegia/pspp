@@ -24,9 +24,8 @@ struct slice {
   double magnitude;
 };
 
-/* Draw a piechart */
-void piechart_plot(const char *title,
-		   const struct slice *slices, int n_slices);
+struct chart *piechart_create (const char *title,
+                               const struct slice *, int n_slices);
 
 #endif
 

@@ -29,11 +29,12 @@
 #include <libpspp/pool.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
+#include <output/chart-provider.h>
+#include <output/chart.h>
+#include <output/output.h>
 
-#include "chart.h"
 #include "error.h"
 #include "minmax.h"
-#include "output.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -174,7 +175,7 @@ ascii_open_driver (const char *name, int types, struct substring options)
   x->page_number = 0;
   x->lines = NULL;
   x->line_cap = 0;
-  x->chart_cnt = 0;
+  x->chart_cnt = 1;
 
   if (!outp_parse_options (this->name, options, handle_option, this))
     goto error;
@@ -610,15 +611,6 @@ ascii_line (struct outp_driver *this,
 }
 
 static void
-ascii_submit (struct outp_driver *this UNUSED, struct som_entity *s)
-{
-  extern struct som_table_class tab_table_class;
-
-  assert (s->class == &tab_table_class);
-  assert (s->type == SOM_CHART);
-}
-
-static void
 text_draw (struct outp_driver *this,
            enum outp_font font,
            int x, int y,
@@ -872,19 +864,24 @@ ascii_flush (struct outp_driver *this)
 }
 
 static void
-ascii_chart_initialise (struct outp_driver *this, struct chart *ch)
+ascii_output_chart (struct outp_driver *this, const struct chart *chart)
 {
   struct ascii_driver_ext *x = this->ext;
   struct outp_text t;
+  char *file_name;
+  plPlotter *lp;
   char *text;
 
   if (x->chart_type == NULL)
     return;
 
-  /* Initialize chart. */
-  chart_init_separate (ch, x->chart_type, x->chart_file_name, ++x->chart_cnt);
-  if (ch->file_name == NULL)
+  /* Draw chart in separate file. */
+  if (!chart_create_file (x->chart_type, x->chart_file_name, x->chart_cnt,
+                          NULL, &file_name, &lp))
     return;
+  x->chart_cnt++;
+  chart_draw (chart, lp);
+  pl_deletepl_r (lp);
 
   /* Mention chart in output.
      First advance current position. */
@@ -901,7 +898,7 @@ ascii_chart_initialise (struct outp_driver *this, struct chart *ch)
     }
 
   /* Then write the text. */
-  text = xasprintf ("See %s for a chart.", ch->file_name);
+  text = xasprintf ("See %s for a chart.", file_name);
   t.font = OUTP_FIXED;
   t.justification = OUTP_LEFT;
   t.string = ss_cstr (text);
@@ -912,15 +909,8 @@ ascii_chart_initialise (struct outp_driver *this, struct chart *ch)
   ascii_text_draw (this, &t);
   this->cp_y++;
 
+  free (file_name);
   free (text);
-}
-
-static void
-ascii_chart_finalise (struct outp_driver *this, struct chart *ch)
-{
-  struct ascii_driver_ext *x = this->ext;
-  if (x->chart_type != NULL)
-    chart_finalise_separate (ch);
 }
 
 const struct outp_class ascii_class =
@@ -935,12 +925,11 @@ const struct outp_class ascii_class =
   ascii_close_page,
   ascii_flush,
 
-  ascii_submit,
+  ascii_output_chart,
+
+  NULL,                         /* submit */
 
   ascii_line,
   ascii_text_metrics,
   ascii_text_draw,
-
-  ascii_chart_initialise,
-  ascii_chart_finalise
 };

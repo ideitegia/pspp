@@ -610,11 +610,12 @@ postcalc (const struct dataset *ds)
 
 	  hist = freq_tab_to_hist (ft,v);
 
-	  histogram_plot (hist, var_to_string(v),
+          chart_submit (histogram_chart_create (
+                          hist, var_to_string(v),
 			  vf->tab.valid_cases,
 			  d[frq_mean],
 			  d[frq_stddev],
-			  normal);
+			  normal));
 
 	  statistic_destroy ((struct statistic *)hist);
 	}
@@ -1532,14 +1533,12 @@ do_piechart(const struct variable *var, const struct freq_tab *frq_tab)
 
   slices = freq_tab_to_slice_array(frq_tab, var, &n_slices);
 
-  piechart_plot(var_to_string(var), slices, n_slices);
+  chart_submit (piechart_create (var_to_string(var), slices, n_slices));
 
   for (i = 0 ; i < n_slices ; ++i )
-    {
-      ds_destroy (&slices[i].label);
-    }
+    ds_destroy (&slices[i].label);
 
-  free(slices);
+  free (slices);
 }
 
 

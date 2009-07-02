@@ -26,6 +26,7 @@
 
 #include <output/charts/plot-hist.h>
 #include <output/charts/plot-chart.h>
+#include <output/chart-provider.h>
 
 #include <data/variable.h>
 #include <libpspp/hash.h>
@@ -36,160 +37,192 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 
+static const struct chart_class histogram_chart_class;
+
 /* Write the legend of the chart */
 static void
-histogram_write_legend (struct chart *ch, double n, double mean, double stddev)
+histogram_write_legend (plPlotter *lp, const struct chart_geometry *geom,
+                        double n, double mean, double stddev)
 {
-  double y;
-  char buf[100];
-
-  if (!ch)
-    return ;
-
-  y = ch->data_bottom;
-  pl_savestate_r (ch->lp);
+  double y = geom->data_bottom;
+  pl_savestate_r (lp);
 
   if (n != SYSMIS)
     {
-      sprintf (buf, "N = %.2f", n);
-      pl_move_r (ch->lp, ch->legend_left, y);
-      pl_alabel_r (ch->lp, 0, 'b', buf);
-      y += ch->font_size * 1.5;
+      char *buf = xasprintf ("N = %.2f", n);
+      pl_move_r (lp, geom->legend_left, y);
+      pl_alabel_r (lp, 0, 'b', buf);
+      y += geom->font_size * 1.5;
+      free (buf);
     }
 
   if (mean != SYSMIS)
     {
-      sprintf (buf, "Mean = %.1f", mean);
-      pl_fmove_r (ch->lp,ch->legend_left, y);
-      pl_alabel_r (ch->lp, 0, 'b', buf);
-      y += ch->font_size * 1.5;
+      char *buf = xasprintf ("Mean = %.1f", mean);
+      pl_fmove_r (lp,geom->legend_left, y);
+      pl_alabel_r (lp, 0, 'b', buf);
+      y += geom->font_size * 1.5;
+      free (buf);
     }
 
   if (stddev != SYSMIS)
     {
-      sprintf (buf, "Std. Dev = %.2f", stddev);
-      pl_fmove_r (ch->lp, ch->legend_left, y);
-      pl_alabel_r (ch->lp, 0, 'b', buf);
+      char *buf = xasprintf ("Std. Dev = %.2f", stddev);
+      pl_fmove_r (lp, geom->legend_left, y);
+      pl_alabel_r (lp, 0, 'b', buf);
+      free (buf);
     }
 
-  pl_restorestate_r (ch->lp);
+  pl_restorestate_r (lp);
 }
-
-static void hist_draw_bar (struct chart *ch, const struct histogram *hist, int bar);
-
 
 static void
-hist_draw_bar (struct chart *ch, const struct histogram *hist, int bar)
+hist_draw_bar (plPlotter *lp, const struct chart_geometry *geom,
+               const gsl_histogram *h, int bar)
 {
-  if (!ch)
-    return ;
+  double upper;
+  double lower;
+  double height;
 
-  {
-    double upper;
-    double lower;
-    double height;
+  const size_t bins = gsl_histogram_bins (h);
+  const double x_pos = (geom->data_right - geom->data_left) * bar / (double) bins ;
+  const double width = (geom->data_right - geom->data_left) / (double) bins ;
 
-    const size_t bins = gsl_histogram_bins (hist->gsl_hist);
-    const double x_pos = (ch->data_right - ch->data_left) * bar / (double) bins ;
-    const double width = (ch->data_right - ch->data_left) / (double) bins ;
+  assert ( 0 == gsl_histogram_get_range (h, bar, &lower, &upper));
 
-    assert ( 0 == gsl_histogram_get_range (hist->gsl_hist, bar, &lower, &upper));
+  assert ( upper >= lower);
 
-    assert ( upper >= lower);
+  height = gsl_histogram_get (h, bar) *
+    (geom->data_top - geom->data_bottom) / gsl_histogram_max_val (h);
 
-    height = gsl_histogram_get (hist->gsl_hist, bar) *
-     (ch->data_top - ch->data_bottom) / gsl_histogram_max_val (hist->gsl_hist);
-
-    pl_savestate_r (ch->lp);
-    pl_move_r (ch->lp,ch->data_left, ch->data_bottom);
-    pl_fillcolorname_r (ch->lp, ch->fill_colour);
-    pl_filltype_r (ch->lp,1);
+  pl_savestate_r (lp);
+  pl_move_r (lp,geom->data_left, geom->data_bottom);
+  pl_fillcolorname_r (lp, geom->fill_colour);
+  pl_filltype_r (lp,1);
 
 
-    pl_fboxrel_r (ch->lp,
-		 x_pos, 0,
-		 x_pos + width, height);
+  pl_fboxrel_r (lp,
+                x_pos, 0,
+                x_pos + width, height);
 
-    pl_restorestate_r (ch->lp);
+  pl_restorestate_r (lp);
 
-    draw_tick (ch, TICK_ABSCISSA,
-               x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
-  }
+  draw_tick (lp, geom, TICK_ABSCISSA,
+             x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
 }
 
-
+struct histogram_chart
+  {
+    struct chart chart;
+    gsl_histogram *gsl_hist;
+    char *label;
+    double n;
+    double mean;
+    double stddev;
+    bool show_normal;
+  };
 
 /* Plots a histogram of the data in HIST with the given LABEL.
    Labels the histogram with each of N, MEAN, and STDDEV that is
    not SYSMIS.  If all three are not SYSMIS and SHOW_NORMAL is
    true, also draws a normal curve on the histogram. */
-void
-histogram_plot (const struct histogram *hist,
-                const char *label,
-                double n, double mean, double stddev,
-                bool show_normal)
+struct chart *
+histogram_chart_create (const struct histogram *hist, const char *label,
+                        double n, double mean, double stddev,
+                        bool show_normal)
 {
+  struct histogram_chart *h;
+
+  h = xmalloc (sizeof *h);
+  chart_init (&h->chart, &histogram_chart_class);
+  h->gsl_hist = hist->gsl_hist ? gsl_histogram_clone (hist->gsl_hist) : NULL;
+  h->label = xstrdup (label);
+  h->n = n;
+  h->mean = mean;
+  h->stddev = stddev;
+  h->show_normal = show_normal;
+  return &h->chart;
+}
+
+static void
+histogram_chart_draw (const struct chart *chart, plPlotter *lp)
+{
+  struct histogram_chart *h = (struct histogram_chart *) chart;
+  struct chart_geometry geom;
   int i;
   int bins;
 
-  struct chart *ch = chart_create ();
+  chart_geometry_init (lp, &geom);
 
-  chart_write_title (ch, _("HISTOGRAM"));
+  chart_write_title (lp, &geom, _("HISTOGRAM"));
 
-  chart_write_ylabel (ch, _("Frequency"));
-  chart_write_xlabel (ch, label);
+  chart_write_ylabel (lp, &geom, _("Frequency"));
+  chart_write_xlabel (lp, &geom, h->label);
 
-  if ( ! hist ) /* If this happens, probably all values are SYSMIS */
+  if (h->gsl_hist == NULL)
     {
-      chart_submit (ch);
+      /* Probably all values are SYSMIS. */
       return;
     }
-  else
-    {
-      bins = gsl_histogram_bins (hist->gsl_hist);
-    }
 
-  chart_write_yscale (ch, 0, gsl_histogram_max_val (hist->gsl_hist), 5);
+  bins = gsl_histogram_bins (h->gsl_hist);
 
-  for ( i = 0 ; i < bins ; ++i )
-    hist_draw_bar (ch, hist, i);
+  chart_write_yscale (lp, &geom, 0, gsl_histogram_max_val (h->gsl_hist), 5);
 
-  histogram_write_legend (ch, n, mean, stddev);
+  for (i = 0; i < bins; i++)
+    hist_draw_bar (lp, &geom, h->gsl_hist, i);
 
-  if (show_normal && n != SYSMIS && mean != SYSMIS && stddev != SYSMIS)
+  histogram_write_legend (lp, &geom, h->n, h->mean, h->stddev);
+
+  if (h->show_normal
+      && h->n != SYSMIS && h->mean != SYSMIS && h->stddev != SYSMIS)
     {
       /* Draw the normal curve */
+      double d;
+      double x_min, x_max, not_used;
+      double abscissa_scale;
+      double ordinate_scale;
+      double range;
 
-      double d ;
-      double x_min, x_max, not_used ;
-      double abscissa_scale ;
-      double ordinate_scale ;
-      double range ;
-
-      gsl_histogram_get_range (hist->gsl_hist, 0, &x_min, &not_used);
+      gsl_histogram_get_range (h->gsl_hist, 0, &x_min, &not_used);
       range = not_used - x_min;
-      gsl_histogram_get_range (hist->gsl_hist, bins - 1, &not_used, &x_max);
+      gsl_histogram_get_range (h->gsl_hist, bins - 1, &not_used, &x_max);
 
-      abscissa_scale = (ch->data_right - ch->data_left) / (x_max - x_min);
-      ordinate_scale = (ch->data_top - ch->data_bottom) /
-	gsl_histogram_max_val (hist->gsl_hist) ;
+      abscissa_scale = (geom.data_right - geom.data_left) / (x_max - x_min);
+      ordinate_scale = (geom.data_top - geom.data_bottom) /
+	gsl_histogram_max_val (h->gsl_hist);
 
-      pl_move_r (ch->lp, ch->data_left, ch->data_bottom);
-      for ( d = ch->data_left;
-	    d <= ch->data_right ;
-	    d += (ch->data_right - ch->data_left) / 100.0)
+      pl_move_r (lp, geom.data_left, geom.data_bottom);
+      for (d = geom.data_left;
+	   d <= geom.data_right;
+	   d += (geom.data_right - geom.data_left) / 100.0)
 	{
-	  const double x = (d - ch->data_left) / abscissa_scale + x_min ;
-	  const double y = n * range *
-	    gsl_ran_gaussian_pdf (x - mean, stddev);
+	  const double x = (d - geom.data_left) / abscissa_scale + x_min;
+	  const double y = h->n * range *
+	    gsl_ran_gaussian_pdf (x - h->mean, h->stddev);
 
-	  pl_fcont_r (ch->lp,  d,  ch->data_bottom  + y * ordinate_scale);
+	  pl_fcont_r (lp,  d,  geom.data_bottom  + y * ordinate_scale);
 
 	}
-      pl_endpath_r (ch->lp);
+      pl_endpath_r (lp);
     }
 
-  chart_submit (ch);
+  chart_geometry_free (lp);
 }
 
 
+static void
+histogram_chart_destroy (struct chart *chart)
+{
+  struct histogram_chart *h = (struct histogram_chart *) chart;
+  if (h->gsl_hist != NULL)
+    gsl_histogram_free (h->gsl_hist);
+  free (h->label);
+  free (h);
+}
+
+static const struct chart_class histogram_chart_class =
+  {
+    histogram_chart_draw,
+    histogram_chart_destroy
+  };

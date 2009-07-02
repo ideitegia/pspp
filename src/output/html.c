@@ -27,12 +27,13 @@
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <data/file-name.h>
-#include "error.h"
-#include "output.h"
-#include "manager.h"
-#include "table.h"
+#include <output/chart-provider.h>
+#include <output/output.h>
+#include <output/manager.h>
+#include <output/table.h>
 #include <libpspp/version.h>
 
+#include "error.h"
 #include "xalloc.h"
 
 #include "gettext.h"
@@ -63,7 +64,7 @@ html_open_driver (const char *name, int types, struct substring options)
   x->file_name = xstrdup ("pspp.html");
   x->chart_file_name = xstrdup ("pspp-#.png");
   x->file = NULL;
-  x->chart_cnt = 0;
+  x->chart_cnt = 1;
 
   outp_parse_options (name, options, handle_option, this);
 
@@ -204,10 +205,29 @@ handle_option (void *this_, const char *key, const struct string *val)
 static void output_tab_table (struct outp_driver *, struct tab_table *);
 
 static void
+html_output_chart (struct outp_driver *this, const struct chart *chart)
+{
+  struct html_driver_ext *x = this->ext;
+  char *file_name;
+  plPlotter *lp;
+
+  /* Draw chart in separate file. */
+  if (!chart_create_file ("png", x->chart_file_name, x->chart_cnt,
+                          NULL, &file_name, &lp))
+    return;
+  x->chart_cnt++;
+  chart_draw (chart, lp);
+  pl_deletepl_r (lp);
+
+  link_image (x->file, file_name);
+
+  free (file_name);
+}
+
+static void
 html_submit (struct outp_driver *this, struct som_entity *s)
 {
   extern struct som_table_class tab_table_class;
-  struct html_driver_ext *x = this->ext;
 
   assert (s->class == &tab_table_class ) ;
 
@@ -215,9 +235,6 @@ html_submit (struct outp_driver *this, struct som_entity *s)
     {
     case SOM_TABLE:
       output_tab_table ( this, (struct tab_table *) s->ext);
-      break;
-    case SOM_CHART:
-      link_image (x->file, ((struct chart *)s->ext)->file_name);
       break;
     default:
       NOT_REACHED ();
@@ -365,19 +382,6 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
   fputs ("</TABLE>\n\n", x->file);
 }
 
-static void
-html_initialise_chart (struct outp_driver *this UNUSED, struct chart *ch)
-{
-  struct html_driver_ext *x = this->ext;
-  chart_init_separate (ch, "png", x->chart_file_name, ++x->chart_cnt);
-}
-
-static void
-html_finalise_chart(struct outp_driver *d UNUSED, struct chart *ch)
-{
-  chart_finalise_separate (ch);
-}
-
 
 
 /* HTML driver class. */
@@ -393,11 +397,11 @@ const struct outp_class html_class =
     NULL,
     NULL,
 
+    html_output_chart,
+
     html_submit,
 
     NULL,
     NULL,
     NULL,
-    html_initialise_chart,
-    html_finalise_chart
   };

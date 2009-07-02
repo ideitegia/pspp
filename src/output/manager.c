@@ -219,7 +219,7 @@ output_entity (struct outp_driver *d, struct som_entity *t)
   void *r;
 
   outp_open_page (d);
-  if (d->class->special || t->type == SOM_CHART)
+  if (d->class->special)
     {
       d->class->submit (d, t);
       return;

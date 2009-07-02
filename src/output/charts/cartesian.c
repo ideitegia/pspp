@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,16 +17,15 @@
 
 #include <config.h>
 
+#include <output/charts/cartesian.h>
+
 #include <math.h>
 #include <assert.h>
 
 #include <output/chart.h>
-
+#include <output/chart-provider.h>
 #include <output/charts/plot-chart.h>
-#include <output/charts/cartesian.h>
 #include <libpspp/compiler.h>
-
-
 
 struct dataset
 {
@@ -46,24 +45,15 @@ static const struct dataset dataset[DATASETS] =
 
 /* Plot a data point */
 void
-chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
+chart_datum (plPlotter *lp, const struct chart_geometry *geom,
+             int dataset UNUSED, double x, double y)
 {
-  if ( ! ch )
-    return ;
+  double x_pos = (x - geom->x_min) * geom->abscissa_scale + geom->data_left;
+  double y_pos = (y - geom->y_min) * geom->ordinate_scale + geom->data_bottom;
 
-  {
-    const double x_pos =
-      (x - ch->x_min) * ch->abscissa_scale + ch->data_left ;
-
-    const double y_pos =
-      (y - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
-
-    pl_savestate_r(ch->lp);
-
-    pl_fmarker_r(ch->lp, x_pos, y_pos, 6, 15);
-
-    pl_restorestate_r(ch->lp);
-  }
+  pl_savestate_r (lp);
+  pl_fmarker_r (lp, x_pos, y_pos, 6, 15);
+  pl_restorestate_r (lp);
 }
 
 /* Draw a line with slope SLOPE and intercept INTERCEPT.
@@ -72,20 +62,17 @@ chart_datum(struct chart *ch, int dataset UNUSED, double x, double y)
    y axis otherwise the x axis
 */
 void
-chart_line(struct chart *ch, double slope, double intercept,
+chart_line(plPlotter *lp, const struct chart_geometry *geom,
+           double slope, double intercept,
 	   double limit1, double limit2, enum CHART_DIM lim_dim)
 {
   double x1, y1;
-  double x2, y2 ;
-
-  if ( ! ch )
-    return ;
-
+  double x2, y2;
 
   if ( lim_dim == CHART_DIM_Y )
     {
-      x1 = ( limit1 - intercept ) / slope ;
-      x2 = ( limit2 - intercept ) / slope ;
+      x1 = ( limit1 - intercept ) / slope;
+      x2 = ( limit2 - intercept ) / slope;
       y1 = limit1;
       y2 = limit2;
     }
@@ -97,15 +84,12 @@ chart_line(struct chart *ch, double slope, double intercept,
       y2 = slope * x2 + intercept;
     }
 
-  y1 = (y1 - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
-  y2 = (y2 - ch->y_min) * ch->ordinate_scale + ch->data_bottom ;
-  x1 = (x1 - ch->x_min) * ch->abscissa_scale + ch->data_left ;
-  x2 = (x2 - ch->x_min) * ch->abscissa_scale + ch->data_left ;
+  y1 = (y1 - geom->y_min) * geom->ordinate_scale + geom->data_bottom;
+  y2 = (y2 - geom->y_min) * geom->ordinate_scale + geom->data_bottom;
+  x1 = (x1 - geom->x_min) * geom->abscissa_scale + geom->data_left;
+  x2 = (x2 - geom->x_min) * geom->abscissa_scale + geom->data_left;
 
-  pl_savestate_r(ch->lp);
-
-  pl_fline_r(ch->lp, x1, y1, x2, y2);
-
-  pl_restorestate_r(ch->lp);
-
+  pl_savestate_r (lp);
+  pl_fline_r (lp, x1, y1, x2, y2);
+  pl_restorestate_r (lp);
 }

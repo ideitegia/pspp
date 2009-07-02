@@ -502,18 +502,6 @@ xr_close_page (struct outp_driver *this)
   struct xr_driver_ext *x = this->ext;
   cairo_show_page (x->cairo);
 }
-
-static void
-xr_submit (struct outp_driver *this UNUSED, struct som_entity *s)
-{
-  switch (s->type)
-    {
-    case SOM_CHART:
-      break;
-    default:
-      NOT_REACHED ();
-    }
-}
 
 /* Draws a line from (x0,y0) to (x1,y1). */
 static void
@@ -840,24 +828,6 @@ xr_text_draw (struct outp_driver *this, const struct outp_text *t)
   text (this, t, true, NULL, NULL);
 }
 
-static void
-xr_chart_initialise (struct outp_driver *this UNUSED, struct chart *ch UNUSED)
-{
-#ifdef NO_CHARTS
-  ch->lp = NULL;
-#else
-  /* XXX libplot doesn't support Cairo yet. */
-#endif
-}
-
-static void
-xr_chart_finalise (struct outp_driver *this UNUSED, struct chart *ch UNUSED)
-{
-#ifndef NO_CHARTS
-  /* XXX libplot doesn't support Cairo yet. */
-#endif
-}
-
 /* Attempts to load FONT, initializing its other members based on
    its 'string' member and the information in THIS.  Returns true
    if successful, otherwise false. */
@@ -910,12 +880,11 @@ const struct outp_class cairo_class =
   xr_close_page,
   NULL,
 
-  xr_submit,
+  NULL,
+
+  NULL,
 
   xr_line,
   xr_text_metrics,
   xr_text_draw,
-
-  xr_chart_initialise,
-  xr_chart_finalise
 };

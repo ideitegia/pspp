@@ -37,8 +37,7 @@
 
 enum som_type
   {
-    SOM_TABLE,
-    SOM_CHART
+    SOM_TABLE
   } ;
 
 /* Entity (Table or Chart) . */

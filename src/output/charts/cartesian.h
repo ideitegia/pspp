@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,6 +19,10 @@
 #ifndef CARTESIAN_H
 #define CARTESIAN_H
 
+#include <stdio.h>
+#include <plot.h>
+
+#include <libpspp/compiler.h>
 
 enum CHART_DIM
   {
@@ -26,17 +30,19 @@ enum CHART_DIM
     CHART_DIM_Y
   };
 
-
+struct chart_geometry;
 
 /* Plot a data point */
-void chart_datum(struct chart *ch, int dataset UNUSED, double x, double y);
+void chart_datum(plPlotter *, const struct chart_geometry *,
+                 int dataset UNUSED, double x, double y);
 
 /* Draw a line with slope SLOPE and intercept INTERCEPT.
    between the points limit1 and limit2.
    If lim_dim is CHART_DIM_Y then the limit{1,2} are on the
    y axis otherwise the x axis
 */
-void chart_line(struct chart *ch, double slope, double intercept,
+void chart_line(plPlotter *, const struct chart_geometry *,
+                double slope, double intercept,
 		double limit1, double limit2, enum CHART_DIM lim_dim);
 
 

@@ -74,6 +74,8 @@ struct outp_class
 
     void (*flush) (struct outp_driver *);
 
+    void (*output_chart) (struct outp_driver *, const struct chart *);
+
     /* special != 0 only. */
     void (*submit) (struct outp_driver *, struct som_entity *);
 
@@ -84,8 +86,6 @@ struct outp_class
     void (*text_metrics) (struct outp_driver *, const struct outp_text *,
                           int *width, int *height);
     void (*text_draw) (struct outp_driver *, const struct outp_text *);
-    void (*initialise_chart)(struct outp_driver *, struct chart *);
-    void (*finalise_chart)(struct outp_driver *, struct chart *);
   };
 
 /* Device types. */
