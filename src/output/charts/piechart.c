@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,16 +66,17 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
 			    1.0 / 4.0 * (ch->data_right - ch->data_left)
 			    );
 
+  double angle;
+
 
   chart_write_title(ch, title);
 
   for (i = 0 ; i < n_slices ; ++i )
     total_magnitude += slices[i].magnitude;
 
+  angle = 0.0;
   for (i = 0 ; i < n_slices ; ++i )
     {
-      static double angle=0.0;
-
       const double segment_angle =
 	slices[i].magnitude / total_magnitude * 2 * M_PI ;
 
