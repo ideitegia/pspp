@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@
 
 #include "fatal-signal.h"
 #include "progname.h"
+#include "relocatable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -150,7 +151,7 @@ i18n_init (void)
 #if HAVE_LC_PAPER
   setlocale (LC_PAPER, "");
 #endif
-  bindtextdomain (PACKAGE, locale_dir);
+  bindtextdomain (PACKAGE, relocate (locale_dir));
   textdomain (PACKAGE);
 #endif /* ENABLE_NLS */
 }

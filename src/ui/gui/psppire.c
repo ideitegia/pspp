@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2004, 2005, 2006  Free Software Foundation
+   Copyright (C) 2004, 2005, 2006, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,7 +79,7 @@ initialize (void)
      So unset the bits we want to control ourselves */
   setlocale (LC_NUMERIC, "C");
 
-  bindtextdomain (PACKAGE, locale_dir);
+  bindtextdomain (PACKAGE, relocate (locale_dir));
 
 
   glade_init ();
