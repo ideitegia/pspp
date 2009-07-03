@@ -117,6 +117,9 @@ histogram_plot(const gsl_histogram *hist,
   struct chart *ch;
 
   ch = chart_create();
+  if (ch == NULL)
+    return;
+
   chart_write_title(ch, _("HISTOGRAM"));
 
   chart_write_ylabel(ch, _("Frequency"));

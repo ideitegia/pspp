@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -57,22 +57,26 @@ piechart_plot(const char *title, const struct slice *slices, int n_slices)
   int i;
   double total_magnetude=0;
 
-  struct chart *ch = chart_create();
+  struct chart *ch;
 
-  const double left_label = ch->data_left +
-    (ch->data_right - ch->data_left)/10.0;
+  double left_label;
+  double right_label;
 
-  const double right_label = ch->data_right -
-    (ch->data_right - ch->data_left)/10.0;
+  double centre_x;
+  double centre_y;
 
-  const double centre_x = (ch->data_right + ch->data_left ) / 2.0 ;
-  const double centre_y = (ch->data_top + ch->data_bottom ) / 2.0 ;
+  double radius;
 
-  const double radius = MIN(
-			    5.0 / 12.0 * (ch->data_top - ch->data_bottom),
-			    1.0 / 4.0 * (ch->data_right - ch->data_left)
-			    );
+  ch = chart_create ();
+  if (ch == NULL)
+    return;
 
+  left_label = ch->data_left + (ch->data_right - ch->data_left)/10.0;
+  right_label = ch->data_right - (ch->data_right - ch->data_left)/10.0;
+  centre_x = (ch->data_right + ch->data_left ) / 2.0;
+  centre_y = (ch->data_top + ch->data_bottom ) / 2.0;
+  radius = MIN (5.0 / 12.0 * (ch->data_top - ch->data_bottom),
+                1.0 / 4.0 * (ch->data_right - ch->data_left));
 
   chart_write_title(ch, "%s", title);
 

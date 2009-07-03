@@ -1797,6 +1797,9 @@ box_plot_variables (const struct factor *fctr,
       double y_min = DBL_MAX;
       double y_max = -DBL_MAX;
       struct chart *ch = chart_create ();
+      if (ch == NULL)
+        break;
+
       ds_init_empty (&str);
       factor_to_string (fctr, *fs, 0, &str );
 
@@ -1852,6 +1855,8 @@ box_plot_group (const struct factor *fctr,
       struct chart *ch;
 
       ch = chart_create ();
+      if (ch == NULL)
+        break;
 
       boxplot_draw_yscale (ch, totals[i].max, totals[i].min);
 
