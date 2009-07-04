@@ -549,30 +549,22 @@ show_boxplot_groups (const struct variable **dependent_var,
 		     int n_dep_var,
 		     const struct xfactor *fctr)
 {
-#if 0
   int v;
 
   for (v = 0; v < n_dep_var; ++v)
     {
-      struct ll *ll;
-      int f = 0;
-      struct chart *ch = chart_create ();
+      const struct factor_result *result;
+      struct boxplot *boxplot;
       double y_min = DBL_MAX;
       double y_max = -DBL_MAX;
+      char *title;
 
-      for (ll = ll_head (&fctr->result_list);
-	   ll != ll_null (&fctr->result_list);
-	   ll = ll_next (ll))
+      ll_for_each (result, struct factor_result, ll, &fctr->result_list)
 	{
+          struct factor_metrics *metrics = &result->metrics[v];
+	  const struct ll_list *max_list = extrema_list (metrics->maxima);
+	  const struct ll_list *min_list = extrema_list (metrics->minima);
 	  const struct extremum  *max, *min;
-	  const struct factor_result *result =
-	    ll_data (ll, struct factor_result, ll);
-
-	  const struct ll_list *max_list =
-	    extrema_list (result->metrics[v].maxima);
-
-	  const struct ll_list *min_list =
-	    extrema_list (result->metrics[v].minima);
 
 	  if ( ll_is_empty (max_list))
 	    {
@@ -580,54 +572,37 @@ show_boxplot_groups (const struct variable **dependent_var,
 	      continue;
 	    }
 
-	  max = (const struct extremum *)
-	    ll_data (ll_head(max_list), struct extremum, ll);
-
-          min = (const struct extremum *)
-	    ll_data (ll_head (min_list), struct extremum, ll);
+	  max = ll_data (ll_head(max_list), struct extremum, ll);
+          min = ll_data (ll_head (min_list), struct extremum, ll);
 
 	  y_max = MAX (y_max, max->value);
 	  y_min = MIN (y_min, min->value);
 	}
 
-      boxplot_draw_yscale (ch, y_max, y_min);
-
-      if ( fctr->indep_var[0])
-	chart_write_title (ch, _("Boxplot of %s vs. %s"),
+      if (fctr->indep_var[0])
+	title = xasprintf (_("Boxplot of %s vs. %s"),
 			   var_to_string (dependent_var[v]),
-			   var_to_string (fctr->indep_var[0]) );
+			   var_to_string (fctr->indep_var[0]));
       else
-	chart_write_title (ch, _("Boxplot of %s"),
-			   var_to_string (dependent_var[v]));
+	title = xasprintf (_("Boxplot of %s"),
+                           var_to_string (dependent_var[v]));
+      boxplot = boxplot_create (y_min, y_max, title);
+      free (title);
 
-      for (ll = ll_head (&fctr->result_list);
-	   ll != ll_null (&fctr->result_list);
-	   ll = ll_next (ll))
+      ll_for_each (result, struct factor_result, ll, &fctr->result_list)
 	{
-	  const struct factor_result *result =
-	    ll_data (ll, struct factor_result, ll);
-
-	  struct string str;
-	  const double box_width = (ch->data_right - ch->data_left)
-	    / (ll_count (&fctr->result_list) * 2.0 ) ;
-
-	  const double box_centre = (f++ * 2 + 1) * box_width + ch->data_left;
-
-	  ds_init_empty (&str);
+          struct factor_metrics *metrics = &result->metrics[v];
+	  struct string str = DS_EMPTY_INITIALIZER;
 	  factor_to_string_concise (fctr, result, &str);
-
-	  boxplot_draw_boxplot (ch,
-				box_centre, box_width,
-				(const struct box_whisker *)
-				 result->metrics[v].box_whisker,
-				ds_cstr (&str));
-
+          boxplot_add_box (boxplot,
+                           (struct box_whisker *) metrics->box_whisker,
+                           ds_cstr (&str));
+          metrics->box_whisker = NULL;
 	  ds_destroy (&str);
 	}
 
-      chart_submit (ch);
+      chart_submit (boxplot_get_chart (boxplot));
     }
-#endif
 }
 
 
@@ -639,77 +614,44 @@ show_boxplot_variables (const struct variable **dependent_var,
 			)
 
 {
-#if 0
+  const struct factor_result *result;
   int v;
-  struct ll *ll;
-  const struct ll_list *result_list = &fctr->result_list;
 
-  for (ll = ll_head (result_list);
-       ll != ll_null (result_list);
-       ll = ll_next (ll))
-
+  ll_for_each (result, struct factor_result, ll, &fctr->result_list)
     {
       struct string title;
-      struct chart *ch = chart_create ();
       double y_min = DBL_MAX;
       double y_max = -DBL_MAX;
-
-      const struct factor_result *result =
-	ll_data (ll, struct factor_result, ll);
-
-      const double box_width = (ch->data_right - ch->data_left)
-	/ (n_dep_var * 2.0 ) ;
+      struct boxplot *boxplot;
 
       for (v = 0; v < n_dep_var; ++v)
 	{
-	  const struct ll *max_ll =
-	    ll_head (extrema_list (result->metrics[v].maxima));
-	  const struct ll *min_ll =
-	    ll_head (extrema_list (result->metrics[v].minima));
-
-	  const struct extremum  *max =
-	    (const struct extremum *) ll_data (max_ll, struct extremum, ll);
-
-          const struct extremum  *min =
-	    (const struct extremum *) ll_data (min_ll, struct extremum, ll);
+          const struct factor_metrics *metrics = &result->metrics[v];
+	  const struct ll *max_ll = ll_head (extrema_list (metrics->maxima));
+	  const struct ll *min_ll = ll_head (extrema_list (metrics->minima));
+	  const struct extremum *max = ll_data (max_ll, struct extremum, ll);
+          const struct extremum *min = ll_data (min_ll, struct extremum, ll);
 
 	  y_max = MAX (y_max, max->value);
 	  y_min = MIN (y_min, min->value);
 	}
 
-
-      boxplot_draw_yscale (ch, y_max, y_min);
-
       ds_init_empty (&title);
       factor_to_string (fctr, result, &title);
-
-#if 0
-      ds_put_format (&title, "%s = ", var_get_name (fctr->indep_var[0]));
-      var_append_value_name (fctr->indep_var[0], &result->value[0], &title);
-#endif
-
-      chart_write_title (ch, "%s", ds_cstr (&title));
+      boxplot = boxplot_create (y_min, y_max, ds_cstr (&title));
       ds_destroy (&title);
 
       for (v = 0; v < n_dep_var; ++v)
 	{
-	  struct string str;
-	  const double box_centre = (v * 2 + 1) * box_width + ch->data_left;
-
-	  ds_init_empty (&str);
-	  ds_init_cstr (&str, var_get_name (dependent_var[v]));
-
-	  boxplot_draw_boxplot (ch,
-				box_centre, box_width,
-				(const struct box_whisker *) result->metrics[v].box_whisker,
-				ds_cstr (&str));
-
-	  ds_destroy (&str);
+          struct factor_metrics *metrics = &result->metrics[v];
+          boxplot_add_box (boxplot,
+                           (struct box_whisker *) metrics->box_whisker,
+                           var_get_name (dependent_var[v]));
+          metrics->box_whisker = NULL;
 	}
 
-      chart_submit (ch);
+      chart_submit (boxplot_get_chart (boxplot));
     }
-#endif
 }
 
 
@@ -757,16 +699,14 @@ output_examine (const struct dictionary *dict)
       if ( cmd.sbc_percentiles)
 	show_percentiles (dependent_vars, n_dependent_vars, factor);
 
-      if (cmd.a_plot[XMN_PLT_BOXPLOT] &&
-	  cmd.cmp == XMN_GROUPS)
-	show_boxplot_groups (dependent_vars, n_dependent_vars, factor);
-
-
-      if (cmd.a_plot[XMN_PLT_BOXPLOT] &&
-	  cmd.cmp == XMN_VARIABLES)
-	show_boxplot_variables (dependent_vars, n_dependent_vars,
-				factor);
-
+      if (cmd.a_plot[XMN_PLT_BOXPLOT])
+        {
+          if (cmd.cmp == XMN_GROUPS)
+            show_boxplot_groups (dependent_vars, n_dependent_vars, factor);
+          else if (cmd.cmp == XMN_VARIABLES)
+            show_boxplot_variables (dependent_vars, n_dependent_vars, factor);
+        }
+      
       if (cmd.a_plot[XMN_PLT_HISTOGRAM])
 	show_histogram (dependent_vars, n_dependent_vars, factor);
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,16 +17,11 @@
 #ifndef BOX_WHISKER_H
 #define BOX_WHISKER_H
 
-struct chart ;
 struct box_whisker;
 
-void boxplot_draw_boxplot (struct chart *ch,
-			   double box_centre,
-			   double box_width,
-			   const struct box_whisker *w,
-			   const char *name);
-
-
-void boxplot_draw_yscale (struct chart *ch , double y_max, double y_min);
+struct boxplot *boxplot_create (double y_min, double y_max, const char *title);
+void boxplot_add_box (struct boxplot *,
+                      struct box_whisker *, const char *label);
+struct chart *boxplot_get_chart (struct boxplot *);
 
 #endif
