@@ -83,7 +83,7 @@ struct print_trns
     struct pool *pool;          /* Stores related data. */
     bool eject;                 /* Eject page before printing? */
     bool include_prefix;        /* Prefix lines with space? */
-    enum legacy_encoding encoding; /* Encoding to use for output. */
+    const char *encoding;       /* Encoding to use for output. */
     struct dfm_writer *writer;	/* Output file, NULL=listing file. */
     struct ll_list specs;       /* List of struct prt_out_specs. */
     size_t record_cnt;          /* Number of records to write. */
@@ -479,7 +479,7 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
       else
         {
           ds_put_substring (&trns->line, ds_ss (&spec->string));
-          if (trns->encoding != LEGACY_NATIVE)
+          if (0 != strcmp (trns->encoding, LEGACY_NATIVE))
             {
               size_t length = ds_length (&spec->string);
               char *data = ss_data (ds_tail (&trns->line, length));

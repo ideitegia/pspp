@@ -24,16 +24,16 @@ static const char ascii_to_ebcdic[256];
 static const char ebcdic_to_ascii[256];
 
 void
-legacy_recode (enum legacy_encoding from, const char *src,
-             enum legacy_encoding to, char *dst,
+legacy_recode (const char *from, const char *src,
+             const char *to, char *dst,
              size_t size)
 {
-  if (from != to)
+  if (0 != strcmp (from, to))
     {
       const char *table;
       size_t i;
 
-      table = from == LEGACY_ASCII ? ascii_to_ebcdic : ebcdic_to_ascii;
+      table = (0 == strcmp (from, "PSPP-LEGACY-ASCII")) ? ascii_to_ebcdic : ebcdic_to_ascii;
       for (i = 0; i < size; i++)
         dst[i] = table[(unsigned char) src[i]];
     }
@@ -45,14 +45,14 @@ legacy_recode (enum legacy_encoding from, const char *src,
 }
 
 char
-legacy_to_native (enum legacy_encoding from, char c)
+legacy_to_native (const char *from, char c)
 {
   legacy_recode (from, &c, LEGACY_NATIVE, &c, 1);
   return c;
 }
 
 char
-legacy_from_native (enum legacy_encoding to, char c)
+legacy_from_native (const char *to, char c)
 {
   legacy_recode (LEGACY_NATIVE, &c, to, &c, 1);
   return c;

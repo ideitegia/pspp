@@ -27,7 +27,7 @@ union value;
 
 void data_out (const union value *, const struct fmt_spec *, char *);
 
-void data_out_legacy (const union value *, enum legacy_encoding,
+void data_out_legacy (const union value *, const char *encoding,
                       const struct fmt_spec *, char *);
 
 #endif /* data-out.h */

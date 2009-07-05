@@ -26,7 +26,7 @@
 
 enum fmt_type;
 union value;
-bool data_in (struct substring input, enum legacy_encoding,
+bool data_in (struct substring input, const char *encoding,
               enum fmt_type, int implied_decimals,
               int first_column, int last_column,
               union value *output, int width);

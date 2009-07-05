@@ -505,7 +505,7 @@ static bool
 parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
              struct ccase *c)
 {
-  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *encoding = dfm_reader_get_legacy_encoding (reader);
   struct field *f;
   int row;
 
@@ -547,7 +547,7 @@ static bool
 parse_delimited_span (const struct data_parser *parser,
                       struct dfm_reader *reader, struct ccase *c)
 {
-  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *encoding = dfm_reader_get_legacy_encoding (reader);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct field *f;
 
@@ -588,7 +588,7 @@ static bool
 parse_delimited_no_span (const struct data_parser *parser,
                          struct dfm_reader *reader, struct ccase *c)
 {
-  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *encoding = dfm_reader_get_legacy_encoding (reader);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct substring s;
   struct field *f;

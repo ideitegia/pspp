@@ -102,7 +102,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
           properties.mode = FH_MODE_VARIABLE;
           break;
         case FH_360:
-          properties.encoding = LEGACY_EBCDIC;
+          properties.encoding = "PSPP-LEGACY-EBCDIC";
           if (cmd.recform == FH_FIXED || cmd.recform == FH_F)
             properties.mode = FH_MODE_FIXED;
           else if (cmd.recform == FH_VARIABLE || cmd.recform == FH_V)

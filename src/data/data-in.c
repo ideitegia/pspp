@@ -53,7 +53,7 @@
 /* Information about parsing one data field. */
 struct data_in
   {
-    enum legacy_encoding encoding;/* Encoding of source. */
+    const char *encoding;       /* Encoding of source. */
     struct substring input;     /* Source. */
     enum fmt_type format;       /* Input format. */
     int implied_decimals;       /* Number of implied decimal places. */
@@ -100,7 +100,7 @@ static int hexit_value (int c);
    FIRST_COLUMN plus the length of the input because of the
    possibility of escaped quotes in strings, etc.) */
 bool
-data_in (struct substring input, enum legacy_encoding encoding,
+data_in (struct substring input, const char *encoding,
          enum fmt_type format, int implied_decimals,
          int first_column, int last_column, union value *output, int width)
 {
@@ -116,7 +116,7 @@ data_in (struct substring input, enum legacy_encoding encoding,
 
   assert ((width != 0) == fmt_is_string (format));
 
-  if (encoding == LEGACY_NATIVE
+  if (0 == strcmp (encoding, LEGACY_NATIVE)
       || fmt_get_category (format) & (FMT_CAT_BINARY | FMT_CAT_STRING))
     {
       i.input = input;
@@ -639,7 +639,7 @@ parse_AHEX (struct data_in *i)
           return false;
         }
 
-      if (i->encoding != LEGACY_NATIVE)
+      if (0 != strcmp (i->encoding, LEGACY_NATIVE))
         {
           hi = legacy_to_native (i->encoding, hi);
           lo = legacy_to_native (i->encoding, lo);

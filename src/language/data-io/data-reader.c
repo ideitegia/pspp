@@ -597,7 +597,7 @@ dfm_expand_tabs (struct dfm_reader *r)
 }
 
 /* Returns the legacy character encoding of data read from READER. */
-enum legacy_encoding
+const char *
 dfm_reader_get_legacy_encoding (const struct dfm_reader *reader)
 {
   return fh_get_legacy_encoding (reader->fh);
