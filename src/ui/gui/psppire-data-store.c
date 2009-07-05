@@ -795,7 +795,6 @@ get_row_sensitivity (const PsppireSheetModel *model, gint unit)
 static gchar *
 get_column_subtitle (const PsppireSheetModel *model, gint col)
 {
-  gchar *text;
   const struct variable *v ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
@@ -807,16 +806,12 @@ get_column_subtitle (const PsppireSheetModel *model, gint col)
   if ( ! var_has_label (v))
     return NULL;
 
-  text =  recode_string (UTF8, psppire_dict_encoding (ds->dict),
-			 var_get_label (v), -1);
-
-  return text;
+  return xstrdup (var_get_label (v));
 }
 
 static gchar *
 get_column_button_label (const PsppireSheetModel *model, gint col)
 {
-  gchar *text;
   struct variable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
@@ -825,10 +820,7 @@ get_column_button_label (const PsppireSheetModel *model, gint col)
 
   pv = psppire_dict_get_variable (ds->dict, col);
 
-  text = recode_string (UTF8, psppire_dict_encoding (ds->dict),
-			var_get_name (pv), -1);
-
-  return text;
+  return xstrdup (var_get_name (pv));
 }
 
 static gboolean

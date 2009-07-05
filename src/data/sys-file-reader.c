@@ -25,6 +25,7 @@
 #include <setjmp.h>
 #include <stdlib.h>
 
+#include <libpspp/i18n.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/compiler.h>
@@ -186,6 +187,52 @@ static void read_long_string_value_labels (struct sfm_reader *,
 					   size_t size, size_t count,
 					   struct dictionary *);
 
+/* Convert all the strings in DICT from the dict encoding to UTF8 */
+static void
+recode_strings (struct dictionary *dict)
+{
+  int i;
+
+  const char *enc = dict_get_encoding (dict);
+  if ( NULL == enc)
+	return;
+
+  for (i = 0 ; i < dict_get_var_cnt (dict); ++i)
+    {
+      /* Convert the long variable name */
+      struct variable *var = dict_get_var (dict, i);
+      char *utf8_name = recode_string (UTF8, enc, var_get_name (var), -1);
+      dict_rename_var (dict, var, utf8_name);
+      free (utf8_name);
+
+      /* Convert the variable label */
+      if (var_has_label (var))
+	{
+	  char *utf8_label = recode_string (UTF8, enc, var_get_label (var), -1);
+	  var_set_label (var, utf8_label);
+	  free (utf8_label);
+	}
+
+      if (var_has_value_labels (var))
+	{
+	  const struct val_lab *vl = NULL;
+	  const struct val_labs *vlabs = var_get_value_labels (var);
+
+	  for (vl = val_labs_first (vlabs); vl != NULL; vl = val_labs_next (vlabs, vl))
+	    {
+	      const union value *val = val_lab_get_value (vl);
+	      const char *label = val_lab_get_label (vl);
+	      char *new_label = NULL;
+
+	      new_label = recode_string (UTF8, enc, label, -1);
+
+	      var_replace_value_label (var, val, new_label);
+	      free (new_label);
+	    }
+	}
+    }
+}
+
 /* Opens the system file designated by file handle FH for
    reading.  Reads the system file's dictionary into *DICT.
    If INFO is non-null, then it receives additional info about the
@@ -302,6 +349,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
       r->has_long_var_names = true;
     }
+
+  recode_strings (*dict);
 
   /* Read record 999 data, which is just filler. */
   read_int (r);

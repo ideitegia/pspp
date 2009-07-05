@@ -57,6 +57,7 @@ create_iconv (const char* tocode, const char* fromcode)
   size_t hash;
   struct hmapx_node *node;
   struct converter *converter;
+  assert (fromcode);
 
   hash = hash_string (tocode, hash_string (fromcode, 0));
   HMAPX_FOR_EACH_WITH_HASH (converter, node, hash, &map)

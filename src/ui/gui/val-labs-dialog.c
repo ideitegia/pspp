@@ -337,16 +337,12 @@ on_remove (GtkWidget *w, gpointer data)
 static void
 on_select_row (GtkTreeView *treeview, gpointer data)
 {
-  gchar *labeltext;
   struct val_labs_dialog *dialog = data;
 
   union value value;
-  const char *label;
+  const char *label = NULL;
 
   gchar *text;
-
-  PsppireVarStore *var_store =
-    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
 
   get_selected_tuple (dialog, &value, &label);
   text = value_to_text (value, *var_get_write_format (dialog->pv));
@@ -364,12 +360,8 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 			 dialog->change_handler_id);
 
 
-  labeltext = recode_string (UTF8, psppire_dict_encoding (var_store->dict),
-			     label, -1);
-
   gtk_entry_set_text (GTK_ENTRY (dialog->label_entry),
-		     labeltext);
-  g_free (labeltext);
+		      label);
 
   g_signal_handler_unblock (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
@@ -481,9 +473,6 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 
   GtkTreeIter iter;
 
-  PsppireVarStore *var_store =
-    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
-
   GtkListStore *list_store = gtk_list_store_new (2,
 						 G_TYPE_STRING,
 						 G_TYPE_DOUBLE);
@@ -511,13 +500,8 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 	value_to_text (vl->value,
 		      *var_get_write_format (dialog->pv));
 
-      gchar *labeltext =
-	recode_string (UTF8,
-		       psppire_dict_encoding (var_store->dict),
-		       val_lab_get_label (vl), -1);
-
       gchar *const text = g_strdup_printf ("%s = \"%s\"",
-					   vstr, labeltext);
+					   vstr, val_lab_get_label (vl));
 
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
@@ -525,7 +509,6 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 			  1, vl->value.f,
 			  -1);
 
-      g_free (labeltext);
       g_free (text);
       g_free (vstr);
     }

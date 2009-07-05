@@ -744,15 +744,10 @@ update_data_ref_entry (const PsppireSheet *sheet,
 	  gchar *text = g_strdup_printf ("%d: %s", row + FIRST_CASE_NUMBER,
 					 var_get_name (var));
 
-	  gchar *s = recode_string (UTF8,
-				    psppire_dict_encoding (data_store->dict),
-				    text, -1);
+
+	  gtk_entry_set_text (GTK_ENTRY (de->cell_ref_entry), text);
 
 	  g_free (text);
-
-	  gtk_entry_set_text (GTK_ENTRY (de->cell_ref_entry), s);
-
-	  g_free (s);
 	}
       else
 	goto blank_entry;
