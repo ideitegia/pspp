@@ -1768,10 +1768,7 @@ parse_field (struct import_assistant *ia,
     }
   if (outputp != NULL)
     {
-      char *output = xmalloc (out.w + 1);
-      data_out (&val, &out, output);
-      output[out.w] = '\0';
-      *outputp = output;
+      *outputp = data_out (&val, &out);
     }
   value_destroy (&val, var_get_width (var));
 

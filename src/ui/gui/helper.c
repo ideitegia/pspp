@@ -53,9 +53,7 @@ value_to_text (union value v, struct fmt_spec format)
 {
   gchar *s = 0;
 
-  s = g_new (gchar, format.w + 1);
-  data_out (&v, &format, s);
-  s[format.w]='\0';
+  s = data_out (&v, &format);
   g_strchug (s);
 
   return s;

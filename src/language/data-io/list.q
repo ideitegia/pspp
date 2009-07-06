@@ -706,18 +706,21 @@ list_case (const struct ccase *c, casenumber case_idx,
             if (fmt_is_string (print->type)
                 || dict_contains_var (dict, v))
 	      {
-                data_out (case_data (c, v), print,
-                          ds_put_uninit (&line_buffer, print->w));
+		char *s = data_out (case_data (c, v), print);
+		ds_put_cstr (&line_buffer, s);
+		free (s);
 	      }
             else
               {
+		char *s;
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (&case_idx_value, print,
-                          ds_put_uninit (&line_buffer,print->w));
+                s = data_out (&case_idx_value, print);
+		ds_put_cstr (&line_buffer, s);
+		free (s);
               }
 
-	    ds_put_char(&line_buffer, ' ');
+	    ds_put_char (&line_buffer, ' ');
 	  }
 
 	if (!n_lines_remaining (d))
@@ -740,20 +743,21 @@ list_case (const struct ccase *c, casenumber case_idx,
 	  {
 	    const struct variable *v = cmd.v_variables[column];
             const struct fmt_spec *print = var_get_print_format (v);
-	    char buf[256];
+	    char *s = NULL;
 
             if (fmt_is_string (print->type)
                 || dict_contains_var (dict, v))
-	      data_out (case_data (c, v), print, buf);
+	      s = data_out (case_data (c, v), print);
             else
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                data_out (&case_idx_value, print, buf);
+                s = data_out (&case_idx_value, print);
               }
 
             fputs ("    <TD>", x->file);
-            html_put_cell_contents (d, TAB_FIX, ss_buffer (buf, print->w));
+            html_put_cell_contents (d, TAB_FIX, ss_buffer (s, print->w));
+	    free (s);
             fputs ("</TD>\n", x->file);
 	  }
 

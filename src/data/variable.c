@@ -592,8 +592,9 @@ var_append_value_name (const struct variable *v, const union value *value,
   const char *name = var_lookup_value_label (v, value);
   if (name == NULL)
     {
-      char *s = ds_put_uninit (str, v->print.w);
-      data_out (value, &v->print, s);
+      char *s = data_out (value, &v->print);
+      ds_put_cstr (str, s);
+      free (s);
     }
   else
     ds_put_cstr (str, name);

@@ -25,9 +25,11 @@
 struct fmt_spec;
 union value;
 
-void data_out (const union value *, const struct fmt_spec *, char *);
+char * data_out (const union value *, const struct fmt_spec *);
 
-void data_out_legacy (const union value *, const char *encoding,
-                      const struct fmt_spec *, char *);
+char * data_out_pool (const union value *, const struct fmt_spec *, struct pool *pool);
+
+void data_out_legacy (const union value *input, const char *encoding,
+		      const struct fmt_spec *format, char *output);
 
 #endif /* data-out.h */

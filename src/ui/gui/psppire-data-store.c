@@ -585,7 +585,6 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
   const struct variable *pv ;
   union value v;
   int width;
-  GString *s;
 
   g_return_val_if_fail (store->dict, NULL);
   g_return_val_if_fail (store->datasheet, NULL);
@@ -622,21 +621,10 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
 
   fp = var_get_write_format (pv);
 
-  s = g_string_sized_new (fp->w + 1);
-  g_string_set_size (s, fp->w);
-
-  memset (s->str, 0, fp->w);
-
-  g_assert (fp->w == s->len);
-
   /* Converts binary value V into printable form in the exactly
      FP->W character in buffer S according to format specification
      FP.  No null terminator is appended to the buffer.  */
-  data_out (&v, fp, s->str);
-
-  text = recode_string (UTF8, psppire_dict_encoding (store->dict),
-			s->str, fp->w);
-  g_string_free (s, TRUE);
+  text = data_out (&v, fp);
 
   g_strchomp (text);
 

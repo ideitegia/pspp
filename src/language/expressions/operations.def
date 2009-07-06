@@ -582,11 +582,15 @@ absorb_miss string function STRING (x, no_format f)
 {
   union value v;
   struct substring dst;
+  char *s;
 
   v.f = x;
-  dst = alloc_string (e, f->w);
+
   assert (!fmt_is_string (f->type));
-  data_out (&v, f, dst.string);
+  s = data_out (&v, f);
+  dst = alloc_string (e, strlen (s));
+  strcpy (dst.string, s);
+  free (s);
   return dst;
 }
 

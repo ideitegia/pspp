@@ -1649,17 +1649,14 @@ static void
 data_out_g_string (GString *string, const struct variable *v,
 		   const struct ccase *cc)
 {
-  char *buf ;
-
   const struct fmt_spec *fs = var_get_print_format (v);
   const union value *val = case_data (cc, v);
-  buf = xzalloc (fs->w);
 
-  data_out (val, fs, buf);
+  char *s = data_out (val, fs);
 
-  g_string_append_len (string, buf, fs->w);
+  g_string_append_len (string, s, fs->w);
 
-  g_free (buf);
+  g_free (s);
 }
 
 static GString *

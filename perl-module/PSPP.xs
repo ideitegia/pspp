@@ -177,9 +177,7 @@ CODE:
  union value uv;
  char *s;
  make_value_from_scalar (&uv, val, var);
- s = malloc (fmt->w);
- memset (s, '\0', fmt->w);
- data_out (&uv, fmt, s);
+ s = data_out (&uv, fmt);
  value_destroy (&uv, var_get_width (var));
  ret = newSVpv (s, fmt->w);
  free (s);

@@ -1184,14 +1184,16 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
     {
       const struct variable *var = pt->const_vars[i];
       size_t ofs;
+      char *s = NULL;
 
       ds_put_format (&title, ", %s=", var_get_name (var));
 
       /* Insert the formatted value of the variable, then trim
          leading spaces in what was just inserted. */
       ofs = ds_length (&title);
-      data_out (&pt->const_values[i], var_get_print_format (var),
-                ds_put_uninit (&title, var_get_width (var)));
+      s = data_out (&pt->const_values[i], var_get_print_format (var));
+      ds_put_cstr (&title, s);
+      free (s);
       ds_remove (&title, ofs, ss_cspan (ds_substr (&title, ofs, SIZE_MAX),
                                         ss_cstr (" ")));
     }
@@ -1510,6 +1512,7 @@ table_value_missing (struct crosstabs_proc *proc,
 		     const union value *v, const struct variable *var)
 {
   struct substring s;
+  char *ss;
   const struct fmt_spec *print = var_get_print_format (var);
 
   const char *label = var_lookup_value_label (var, v);
@@ -1520,7 +1523,9 @@ table_value_missing (struct crosstabs_proc *proc,
     }
 
   s.string = tab_alloc (table, print->w);
-  data_out (v, print, s.string);
+  ss = data_out (v, print);
+  strcpy (s.string, ss);
+  free (ss);
   s.length = print->w;
   if (proc->exclude == MV_NEVER && var_is_num_missing (var, v->f, MV_USER))
     s.string[s.length++] = 'M';
@@ -1559,11 +1564,14 @@ format_cell_entry (struct tab_table *table, int c, int r, double value,
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
   struct substring s;
+  char *ss;
 
   s.length = 10;
   s.string = tab_alloc (table, 16);
   v.f = value;
-  data_out (&v, &f, s.string);
+  ss = data_out (&v, &f);
+  strcpy (s.string, ss);
+  free (ss);
   while (*s.string == ' ')
     {
       s.length--;
