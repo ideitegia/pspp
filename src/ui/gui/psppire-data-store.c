@@ -801,6 +801,9 @@ get_column_button_label (const PsppireSheetModel *model, gint col)
 
   pv = psppire_dict_get_variable (ds->dict, col);
 
+  if (NULL == pv)
+    return NULL;
+
   return xstrdup (var_get_name (pv));
 }
 
