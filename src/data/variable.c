@@ -590,9 +590,10 @@ var_append_value_name (const struct variable *v, const union value *value,
 		       struct string *str)
 {
   const char *name = var_lookup_value_label (v, value);
+  const struct dictionary *dict = var_get_vardict (v)->dict;
   if (name == NULL)
     {
-      char *s = data_out (value, &v->print);
+      char *s = data_out (value, dict_get_encoding (dict), &v->print);
       ds_put_cstr (str, s);
       free (s);
     }

@@ -537,7 +537,7 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
     }
 #endif
 
-  contents = data_out_pool (v, f, table->container);
+  contents = data_out_pool (v, "FIXME", f, table->container);
 
   table->cc[c + r * table->cf] = ss_cstr (contents);
   table->ct[c + r * table->cf] = opt;
@@ -578,7 +578,7 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, &f, table->container);
+  s = data_out_pool (&double_value, "FIXME", &f, table->container);
 
   cp = s;
   while (isspace ((unsigned char) *cp) && cp < &s[w])
@@ -629,7 +629,7 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, fmt, table->container);
+  s = data_out_pool (&double_value, "FIXME", fmt, table->container);
 
   cp = s;
   while (isspace ((unsigned char) *cp) && cp < s + fmt->w)

@@ -24,7 +24,12 @@ void  i18n_init (void);
 
 #define UTF8 "UTF-8"
 
-char * recode_string (const char *to, const char *from,
+struct pool;
+
+char *recode_string_pool (const char *to, const char *from,
+			  const char *text, int length, struct pool *pool);
+
+char *recode_string (const char *to, const char *from,
 		      const char *text, int len);
 
 

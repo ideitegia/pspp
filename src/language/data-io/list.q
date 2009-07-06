@@ -706,7 +706,7 @@ list_case (const struct ccase *c, casenumber case_idx,
             if (fmt_is_string (print->type)
                 || dict_contains_var (dict, v))
 	      {
-		char *s = data_out (case_data (c, v), print);
+		char *s = data_out (case_data (c, v), dict_get_encoding (dict), print);
 		ds_put_cstr (&line_buffer, s);
 		free (s);
 	      }
@@ -715,7 +715,7 @@ list_case (const struct ccase *c, casenumber case_idx,
 		char *s;
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                s = data_out (&case_idx_value, print);
+                s = data_out (&case_idx_value, dict_get_encoding (dict), print);
 		ds_put_cstr (&line_buffer, s);
 		free (s);
               }
@@ -747,12 +747,12 @@ list_case (const struct ccase *c, casenumber case_idx,
 
             if (fmt_is_string (print->type)
                 || dict_contains_var (dict, v))
-	      s = data_out (case_data (c, v), print);
+	      s = data_out (case_data (c, v), dict_get_encoding (dict), print);
             else
               {
                 union value case_idx_value;
                 case_idx_value.f = case_idx;
-                s = data_out (&case_idx_value, print);
+                s = data_out (&case_idx_value, dict_get_encoding (dict), print);
               }
 
             fputs ("    <TD>", x->file);

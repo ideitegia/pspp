@@ -67,7 +67,6 @@ insert_source_row_into_entry (GtkTreeIter iter,
   gint *idx;
   struct variable *var;
   GtkTreeIter dict_iter;
-  gchar *name;
 
   g_return_if_fail (GTK_IS_ENTRY(dest));
 
@@ -81,10 +80,7 @@ insert_source_row_into_entry (GtkTreeIter iter,
 
   gtk_tree_path_free (path);
 
-  name = recode_string (UTF8, psppire_dict_encoding (PSPPIRE_DICT (dict)),
-			var_get_name (var), -1);
-  gtk_entry_set_text (GTK_ENTRY (dest),  name);
-  g_free (name);
+  gtk_entry_set_text (GTK_ENTRY (dest),  var_get_name (var));
 }
 
 
@@ -123,14 +119,13 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 		       PsppireSelector *selector)
 {
   gboolean result;
-  gchar *name;
   GtkTreeIter dict_iter;
   GtkTreeModel *dict;
   struct variable *var;
   gint dict_index;
   gint *indeces;
   GtkTreePath *path;
-  const gchar *text =   gtk_entry_get_text (GTK_ENTRY (selector->dest));
+  const gchar *text =  gtk_entry_get_text (GTK_ENTRY (selector->dest));
 
   get_base_model (model, iter, &dict, &dict_iter);
 
@@ -144,10 +139,7 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
 
   gtk_tree_path_free (path);
 
-  name = recode_string (UTF8, psppire_dict_encoding (PSPPIRE_DICT (dict)),
-			var_get_name (var), -1);
-  result = ( 0 == strcmp (text, name));
-  g_free (name);
+  result = ( 0 == strcmp (text, var_get_name (var) ));
 
   return result;
 }

@@ -583,11 +583,14 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
   char *text;
   const struct fmt_spec *fp ;
   const struct variable *pv ;
+  const struct dictionary *dict;
   union value v;
   int width;
 
   g_return_val_if_fail (store->dict, NULL);
   g_return_val_if_fail (store->datasheet, NULL);
+
+  dict = store->dict->dict;
 
   if (column >= psppire_dict_get_var_cnt (store->dict))
     return NULL;
@@ -614,17 +617,13 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
       if (label)
         {
           value_destroy (&v, width);
-	  return recode_string (UTF8, psppire_dict_encoding (store->dict),
-				label, -1);
+	  return g_strdup (label);
         }
     }
 
   fp = var_get_write_format (pv);
 
-  /* Converts binary value V into printable form in the exactly
-     FP->W character in buffer S according to format specification
-     FP.  No null terminator is appended to the buffer.  */
-  text = data_out (&v, fp);
+  text = data_out (&v, dict_get_encoding (dict), fp);
 
   g_strchomp (text);
 
@@ -755,15 +754,9 @@ static const gchar null_var_name[]=N_("var");
 static gchar *
 get_row_button_label (const PsppireSheetModel *model, gint unit)
 {
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-  gchar *s = g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
+  // PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
-  gchar *text =  recode_string (UTF8, psppire_dict_encoding (ds->dict),
-				s, -1);
-
-  g_free (s);
-
-  return text;
+  return g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
 }
 
 

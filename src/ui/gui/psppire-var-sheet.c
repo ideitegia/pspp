@@ -384,6 +384,8 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	vs->missing_val_dialog->pv =
 	  psppire_var_store_get_var (var_store, row);
 
+	vs->missing_val_dialog->dict = var_store->dict->dict;
+
 	g_signal_connect_swapped (customEntry,
 				  "clicked",
 				  G_CALLBACK (missing_val_dialog_show),

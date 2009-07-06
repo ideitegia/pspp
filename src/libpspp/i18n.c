@@ -28,6 +28,7 @@
 #include "assertion.h"
 #include "hmapx.h"
 #include "hash-functions.h"
+#include "pool.h"
 
 #include "i18n.h"
 
@@ -85,13 +86,21 @@ create_iconv (const char* tocode, const char* fromcode)
   return converter->conv;
 }
 
+char *
+recode_string (const char *to, const char *from,
+	       const char *text, int length)
+{
+  return recode_string_pool (to, from, text, length, NULL);
+}
+
+
 /* Return a string based on TEXT converted according to HOW.
    If length is not -1, then it must be the number of bytes in TEXT.
    The returned string must be freed when no longer required.
 */
 char *
-recode_string (const char *to, const char *from,
-	       const char *text, int length)
+recode_string_pool (const char *to, const char *from,
+	       const char *text, int length, struct pool *pool)
 {
   char *outbuf = 0;
   size_t outbufferlength;
@@ -121,7 +130,7 @@ recode_string (const char *to, const char *from,
     if ( outbufferlength > length)
       break;
 
-  outbuf = xmalloc(outbufferlength);
+  outbuf = pool_malloc (pool, outbufferlength);
   op = outbuf;
 
   outbytes = outbufferlength;
@@ -158,7 +167,7 @@ recode_string (const char *to, const char *from,
 	  case E2BIG:
 	    free (outbuf);
 	    outbufferlength <<= 1;
-	    outbuf = xmalloc (outbufferlength);
+	    outbuf = pool_malloc (pool, outbufferlength);
 	    op = outbuf;
 	    outbytes = outbufferlength;
 	    inbytes = length;
@@ -176,7 +185,7 @@ recode_string (const char *to, const char *from,
   if (outbytes == 0 )
     {
       char *const oldaddr = outbuf;
-      outbuf = xrealloc (outbuf, outbufferlength + 1);
+      outbuf = pool_realloc (pool, outbuf, outbufferlength + 1);
 
       op += (outbuf - oldaddr) ;
     }

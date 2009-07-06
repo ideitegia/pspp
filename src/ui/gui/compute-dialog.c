@@ -604,7 +604,6 @@ insert_source_row_into_text_view (GtkTreeIter iter,
   gint *idx;
   struct variable *var;
   GtkTreeIter dict_iter;
-  gchar *name;
   GtkTextBuffer *buffer;
 
   g_return_if_fail (GTK_IS_TEXT_VIEW (dest));
@@ -632,15 +631,10 @@ insert_source_row_into_text_view (GtkTreeIter iter,
 
   gtk_tree_path_free (path);
 
-  name = recode_string (UTF8, psppire_dict_encoding (dict),
-			var_get_name (var),
-			-1);
-
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (dest));
 
   erase_selection (buffer);
 
-  gtk_text_buffer_insert_at_cursor (buffer, name, -1);
+  gtk_text_buffer_insert_at_cursor (buffer, var_get_name (var), -1);
 
-  g_free (name);
 }

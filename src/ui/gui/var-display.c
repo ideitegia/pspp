@@ -45,15 +45,14 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	  gint i;
 	  for (i = 0 ; i < n; ++i )
 	    {
-	      mv[i] = value_to_text (*mv_get_value (miss, i), *fmt);
+	      mv[i] = value_to_text (*mv_get_value (miss, i), dict->dict, *fmt);
 	      if ( i > 0 )
 		g_string_append (gstr, ", ");
 	      g_string_append (gstr, mv[i]);
 	      g_free (mv[i]);
 	    }
-	  s = recode_string (UTF8, psppire_dict_encoding (dict),
-			     gstr->str, gstr->len);
-	  g_string_free (gstr, TRUE);
+	  s = gstr->str;
+	  g_string_free (gstr, FALSE);
 	}
       else
 	{
@@ -62,8 +61,8 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	  union value low, high;
 	  mv_get_range (miss, &low.f, &high.f);
 
-	  l = value_to_text (low, *fmt);
-	  h = value_to_text (high, *fmt);
+	  l = value_to_text (low, dict->dict, *fmt);
+	  h = value_to_text (high, dict->dict,*fmt);
 
 	  g_string_printf (gstr, "%s - %s", l, h);
 	  g_free (l);
@@ -73,15 +72,14 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	    {
 	      gchar *ss = 0;
 
-	      ss = value_to_text (*mv_get_value (miss, 0), *fmt);
+	      ss = value_to_text (*mv_get_value (miss, 0), dict->dict, *fmt);
 
 	      g_string_append (gstr, ", ");
 	      g_string_append (gstr, ss);
 	      free (ss);
 	    }
-	  s = recode_string (UTF8, psppire_dict_encoding (dict),
-			     gstr->str, gstr->len);
-	  g_string_free (gstr, TRUE);
+	  s = gstr->str;
+	  g_string_free (gstr, FALSE);
 	}
 
       return s;

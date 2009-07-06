@@ -37,6 +37,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <libpspp/pool.h>
+#include <libpspp/i18n.h>
 
 #include "minmax.h"
 
@@ -108,7 +109,7 @@ data_out_legacy (const union value *input, const char *encoding,
     legacy_recode (LEGACY_NATIVE, output, encoding, output, format->w);
 }
 
-/* Converts the INPUT value into printable form, according to format
+/* Converts the INPUT value into a UTF8 encoded string, according to format
    specification FORMAT. 
 
    VALUE must be the correct width for FORMAT, that is, its
@@ -119,21 +120,25 @@ data_out_legacy (const union value *input, const char *encoding,
    allocated on that pool.
 */
 char *
-data_out_pool (const union value *input, const struct fmt_spec *format,
+data_out_pool (const union value *input, const char *encoding, const struct fmt_spec *format,
 	  struct pool *pool)
 {
-  char *output = pool_malloc (pool, format->w + 1);
+  char *output = xmalloc (format->w + 1);
+  char *t ;
   assert (fmt_check_output (format));
 
   converters[format->type] (input, format, output);
   output[format->w] = '\0';
-  return output;
+
+  t =  recode_string_pool (UTF8, encoding, output, format->w, pool);
+  free (output);
+  return t;
 }
 
 char *
-data_out (const union value *input, const struct fmt_spec *format)
+data_out (const union value *input, const char *encoding, const struct fmt_spec *format)
 {
-  return data_out_pool (input, format, NULL);
+  return data_out_pool (input, encoding, format, NULL);
 }
 
 

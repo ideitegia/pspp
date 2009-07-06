@@ -94,7 +94,7 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
 
       tab_text (t, 0, i + 1, TAB_LEFT | TAT_PRINTF, "%s", var_get_name (v));
 
-      s = data_out (case_data (c, v), print);
+      s = data_out (case_data (c, v), dict_get_encoding (dict), print);
 
       tab_text (t, 1, i + 1, TAT_PRINTF, "%.*s", print->w, s);
       free (s);

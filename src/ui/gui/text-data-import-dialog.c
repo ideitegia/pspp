@@ -1768,7 +1768,7 @@ parse_field (struct import_assistant *ia,
     }
   if (outputp != NULL)
     {
-      *outputp = data_out (&val, &out);
+      *outputp = data_out (&val, dict_get_encoding (ia->formats.dict),  &out);
     }
   value_destroy (&val, var_get_width (var));
 

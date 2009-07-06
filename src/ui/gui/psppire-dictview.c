@@ -340,19 +340,12 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
 				     "<span stretch=\"condensed\">%s</span>",
 				     var_get_label (var));
 
-      char *utf8 = recode_string (UTF8, psppire_dict_encoding (dict),
-				  text, -1);
-
+      g_object_set (cell, "markup", text, NULL);
       g_free (text);
-      g_object_set (cell, "markup", utf8, NULL);
-      g_free (utf8);
     }
   else
     {
-      char *name = recode_string (UTF8, psppire_dict_encoding (dict),
-				  var_get_name (var), -1);
-      g_object_set (cell, "text", name, NULL);
-      g_free (name);
+      g_object_set (cell, "text", var_get_name (var), NULL);
     }
 }
 
@@ -439,7 +432,7 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
     return FALSE;
 
   {
-    gchar *tip ;
+    const gchar *tip ;
     GtkTreeModel *m;
     PsppireDict *dict;
 
@@ -447,15 +440,11 @@ set_tooltip_for_variable (GtkTreeView  *treeview,
     dict = PSPPIRE_DICT (m);
 
     if ( PSPPIRE_DICT_VIEW (treeview)->prefer_labels )
-      tip = recode_string (UTF8, psppire_dict_encoding (dict),
-			   var_get_name (var), -1);
+      tip = var_get_name (var);
     else
-      tip = recode_string (UTF8, psppire_dict_encoding (dict),
-			   var_get_label (var), -1);
+      tip = var_get_label (var);
 
     gtk_tooltip_set_text (tooltip, tip);
-
-    g_free (tip);
   }
 
   return TRUE;

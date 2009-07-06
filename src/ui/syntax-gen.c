@@ -150,7 +150,7 @@ syntax_gen_number (struct string *output,
       bool ok;
 
       v_in.f = number;
-      s = data_out (&v_in, format);
+      s = data_out (&v_in, "FIXME",  format);
       msg_disable ();
       ok = data_in (ss_cstr (s), LEGACY_NATIVE,
                     format->type, false, 0, 0, &v_out, 0);
