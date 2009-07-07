@@ -94,7 +94,8 @@ recode_string (const char *to, const char *from,
 }
 
 
-/* Return a string based on TEXT converted according to HOW.
+/* Return a string based on TEXT which must be encoded using FROM.
+   The returned string will be encoded in TO.
    If length is not -1, then it must be the number of bytes in TEXT.
    The returned string must be freed when no longer required.
 */
@@ -118,7 +119,6 @@ recode_string_pool (const char *to, const char *from,
 
   if ( length == -1 )
      length = strlen(text);
-
 
   if (to == NULL)
     to = default_encoding;
