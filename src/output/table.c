@@ -29,6 +29,7 @@
 #include <data/data-out.h>
 #include <data/format.h>
 #include <data/value.h>
+#include <data/dictionary.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/misc.h>
@@ -518,7 +519,8 @@ tab_natural_dimensions (struct tab_table *t, struct outp_driver *d,
    from V, displayed with format spec F. */
 void
 tab_value (struct tab_table *table, int c, int r, unsigned char opt,
-	   const union value *v, const struct fmt_spec *f)
+	   const union value *v, const struct dictionary *dict, 
+	   const struct fmt_spec *f)
 {
   char *contents;
 
@@ -537,7 +539,7 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
     }
 #endif
 
-  contents = data_out_pool (v, "FIXME", f, table->container);
+  contents = data_out_pool (v, dict_get_encoding (dict), f, table->container);
 
   table->cc[c + r * table->cf] = ss_cstr (contents);
   table->ct[c + r * table->cf] = opt;
@@ -578,7 +580,7 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, "FIXME", &f, table->container);
+  s = data_out_pool (&double_value, "FIXME-tab_fixed", &f, table->container);
 
   cp = s;
   while (isspace ((unsigned char) *cp) && cp < &s[w])
@@ -629,7 +631,7 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, "FIXME", fmt, table->container);
+  s = data_out_pool (&double_value, "FIXME-tab_double", fmt, table->container);
 
   cp = s;
   while (isspace ((unsigned char) *cp) && cp < s + fmt->w)
