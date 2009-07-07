@@ -106,7 +106,11 @@ data_out_legacy (const union value *input, const char *encoding,
   converters[format->type] (input, format, output);
   if (0 != strcmp (encoding, LEGACY_NATIVE)
       && fmt_get_category (format->type) != FMT_CAT_BINARY)
-    legacy_recode (LEGACY_NATIVE, output, encoding, output, format->w);
+    {
+      char *s  = recode_string (encoding, LEGACY_NATIVE, output, format->w );
+      memcpy (output, s, format->w);
+      free (s);
+    }
 }
 
 /* Converts the INPUT value into a UTF8 encoded string, according to format

@@ -580,7 +580,7 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, "FIXME-tab_fixed", &f, table->container);
+  s = data_out_pool (&double_value, LEGACY_NATIVE, &f, table->container);
 
   cp = s;
   while (isspace ((unsigned char) *cp) && cp < &s[w])
@@ -631,7 +631,7 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, "FIXME-tab_double", fmt, table->container);
+  s = data_out_pool (&double_value, LEGACY_NATIVE, fmt, table->container);
 
   cp = s;
   while (isspace ((unsigned char) *cp) && cp < s + fmt->w)

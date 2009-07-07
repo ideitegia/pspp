@@ -37,6 +37,7 @@
 
 #include <libpspp/assertion.h>
 #include <libpspp/legacy-encoding.h>
+#include <libpspp/i18n.h>
 #include <libpspp/compiler.h>
 #include <libpspp/integer-format.h>
 #include <libpspp/message.h>
@@ -124,9 +125,12 @@ data_in (struct substring input, const char *encoding,
     }
   else
     {
+      char *s;
       ss_alloc_uninit (&i.input, ss_length (input));
-      legacy_recode (encoding, ss_data (input), LEGACY_NATIVE,
-                     ss_data (i.input), ss_length (input));
+
+      s = recode_string (LEGACY_NATIVE, encoding, ss_data (input), ss_length (input));
+      memcpy (ss_data (i.input), s, ss_length (input));
+      free (s);
       i.encoding = LEGACY_NATIVE;
       copy = ss_data (i.input);
     }
@@ -613,7 +617,9 @@ parse_A (struct data_in *i)
   const char *src = ss_data (i->input);
   size_t src_size = ss_length (i->input);
 
-  legacy_recode (i->encoding, src, LEGACY_NATIVE, dst, MIN (src_size, dst_size));
+  char *s = recode_string (LEGACY_NATIVE, i->encoding, src, MIN (src_size, dst_size));
+  memcpy (dst, s, dst_size);
+  free (s);
   if (dst_size > src_size)
     memset (&dst[src_size], ' ', dst_size - src_size);
 

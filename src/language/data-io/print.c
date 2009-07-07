@@ -32,6 +32,7 @@
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
 #include <libpspp/assertion.h>
+#include <libpspp/i18n.h>
 #include <libpspp/compiler.h>
 #include <libpspp/ll.h>
 #include <libpspp/message.h>
@@ -483,8 +484,9 @@ print_trns_proc (void *trns_, struct ccase **c, casenumber case_num UNUSED)
             {
               size_t length = ds_length (&spec->string);
               char *data = ss_data (ds_tail (&trns->line, length));
-              legacy_recode (LEGACY_NATIVE, data,
-                             trns->encoding, data, length);
+	      char *s = recode_string (trns->encoding, LEGACY_NATIVE, data, length);
+	      memcpy (data, s, length);
+	      free (s);
             }
         }
     }

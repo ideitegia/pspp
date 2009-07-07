@@ -17,23 +17,18 @@
 #ifndef LIBPSPP_LEGACY_ENCODING
 #define LIBPSPP_LEGACY_ENCODING 1
 
-#include <stddef.h>
 #include <libpspp/compiler.h>
 
-
 #if 'A' == 0x41
-#define  LEGACY_NATIVE "PSPP-LEGACY-ASCII"
+#define  LEGACY_NATIVE "ASCII"
 #elif 'A' == 0xc1
-#define  LEGACY_NATIVE "PSPP-LEGACY-EBCDIC"
+#define  LEGACY_NATIVE "EBCDIC-US"
 #else
 #error Cannot detect native character set.
 #endif
 
-
-
-void legacy_recode (const char *from, const char *src,
-                    const char *to, char *dst, size_t);
 char legacy_to_native (const char *from, char) PURE_FUNCTION;
 char legacy_from_native (const char *to, char) PURE_FUNCTION;
+
 
 #endif /* libpspp/legacy-encoding.h */
