@@ -34,7 +34,7 @@ struct val_labs_dialog
 {
   GtkWidget *window;
 
-  PsppireSheet *vs;
+  PsppireVarStore *var_store;
 
   /* The variable to be updated */
   struct variable *pv;
@@ -345,7 +345,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
   gchar *text;
 
   get_selected_tuple (dialog, &value, &label);
-  text = value_to_text (value, NULL, *var_get_write_format (dialog->pv));
+  text = value_to_text (value, dialog->var_store->dict, *var_get_write_format (dialog->pv));
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -374,7 +374,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
+val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
 {
   GtkTreeViewColumn *column;
 
@@ -384,10 +384,10 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
 
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
+  dialog->var_store = var_store;
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
-  dialog->vs = sheet;
 
   gtk_window_set_transient_for
     (GTK_WINDOW (dialog->window), toplevel);
@@ -497,7 +497,7 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       const struct val_lab *vl = labels[i];
 
       gchar *const vstr  =
-	value_to_text (vl->value, NULL,
+	value_to_text (vl->value, dialog->var_store->dict,
 		      *var_get_write_format (dialog->pv));
 
       gchar *const text = g_strdup_printf ("%s = \"%s\"",
