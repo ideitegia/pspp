@@ -194,8 +194,9 @@ recode_strings (struct dictionary *dict)
   int i;
 
   const char *enc = dict_get_encoding (dict);
+
   if ( NULL == enc)
-	return;
+    enc = get_default_encoding ();
 
   for (i = 0 ; i < dict_get_var_cnt (dict); ++i)
     {
