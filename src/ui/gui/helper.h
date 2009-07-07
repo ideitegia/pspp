@@ -34,7 +34,7 @@ struct fmt_spec;
 
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
-gchar * value_to_text (union value v, PsppireDict *dict, struct fmt_spec format);
+gchar * value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format);
 
 
 gboolean text_to_value (const gchar *text, union value *v,

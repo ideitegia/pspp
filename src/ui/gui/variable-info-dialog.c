@@ -113,7 +113,7 @@ populate_text (PsppireDictView *treeview, gpointer data)
         {
           const struct val_lab *vl = labels[i];
 	  gchar *const vstr  =
-	    value_to_text (vl->value,  dict->dict, *var_get_print_format (var));
+	    value_to_text (vl->value,  dict, *var_get_print_format (var));
 
 	  g_string_append_printf (gstring, _("%s %s\n"), vstr, val_lab_get_label (vl));
 

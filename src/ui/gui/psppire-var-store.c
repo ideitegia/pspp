@@ -696,7 +696,7 @@ text_for_column (PsppireVarStore *vs,
 	    g_assert (vl);
 
 	    {
-	      gchar *const vstr = value_to_text (vl->value, dict->dict, *write_spec);
+	      gchar *const vstr = value_to_text (vl->value, dict, *write_spec);
 
 	      return g_strdup_printf ( "{%s,\"%s\"}_", vstr, val_lab_get_label (vl));
 	    }

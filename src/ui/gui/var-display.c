@@ -45,7 +45,7 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	  gint i;
 	  for (i = 0 ; i < n; ++i )
 	    {
-	      mv[i] = value_to_text (*mv_get_value (miss, i), dict->dict, *fmt);
+	      mv[i] = value_to_text (*mv_get_value (miss, i), dict, *fmt);
 	      if ( i > 0 )
 		g_string_append (gstr, ", ");
 	      g_string_append (gstr, mv[i]);
@@ -61,8 +61,8 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	  union value low, high;
 	  mv_get_range (miss, &low.f, &high.f);
 
-	  l = value_to_text (low, dict->dict, *fmt);
-	  h = value_to_text (high, dict->dict,*fmt);
+	  l = value_to_text (low, dict, *fmt);
+	  h = value_to_text (high, dict,*fmt);
 
 	  g_string_printf (gstr, "%s - %s", l, h);
 	  g_free (l);
@@ -72,7 +72,7 @@ missing_values_to_string (const PsppireDict *dict, const struct variable *pv, GE
 	    {
 	      gchar *ss = 0;
 
-	      ss = value_to_text (*mv_get_value (miss, 0), dict->dict, *fmt);
+	      ss = value_to_text (*mv_get_value (miss, 0), dict, *fmt);
 
 	      g_string_append (gstr, ", ");
 	      g_string_append (gstr, ss);
