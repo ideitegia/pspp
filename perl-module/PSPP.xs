@@ -181,7 +181,6 @@ CODE:
  union value uv;
  char *s;
  make_value_from_scalar (&uv, val, var);
- fprintf (stderr, "Encoding is %s\n", dict_get_encoding (dict));
  s = data_out (&uv, dict_get_encoding (dict), fmt);
  value_destroy (&uv, var_get_width (var));
  ret = newSVpv (s, fmt->w);
