@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -222,5 +223,11 @@ char *ds_put_uninit (struct string *st, size_t incr);
 /* Other */
 /* calls relocate from gnulib on ST */
 void ds_relocate (struct string *st);
+
+
+void u8_buf_copy_rpad (uint8_t *dst, size_t dst_size,
+		       const uint8_t *src, size_t src_size,
+		       char pad);
+
 
 #endif /* str_h */

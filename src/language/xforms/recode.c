@@ -598,7 +598,7 @@ find_src_numeric (struct recode_trns *trns, double value, const struct variable 
 /* Returns the output mapping in TRNS for an input of VALUE with
    the given WIDTH, or a null pointer if there is no mapping. */
 static const struct map_out *
-find_src_string (struct recode_trns *trns, const char *value,
+find_src_string (struct recode_trns *trns, const uint8_t *value,
                  const struct variable *src_var)
 {
   struct mapping *m;

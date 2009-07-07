@@ -76,6 +76,7 @@ GNULIB_MODULES = \
 	trunc \
 	unilbrk/ulc-width-linebreaks \
 	unistd \
+	unistr/u8-strlen \
 	unlocked-io \
 	vasprintf-posix \
 	vfprintf-posix \

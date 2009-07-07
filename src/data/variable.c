@@ -494,7 +494,7 @@ var_is_num_missing (const struct variable *v, double d, enum mv_class class)
    S[] must contain exactly as many characters as V's width.
    V must be a string variable. */
 bool
-var_is_str_missing (const struct variable *v, const char s[],
+var_is_str_missing (const struct variable *v, const uint8_t s[],
                     enum mv_class class)
 {
   return mv_is_str_missing (&v->miss, s, class);
