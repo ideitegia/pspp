@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -131,6 +131,13 @@ static inline struct var_range *
 get_var_range (const struct variable *v)
 {
   return var_get_aux (v);
+}
+
+static int
+get_var_trimmed_width (const struct variable *v)
+{
+  int width = var_get_width (v);
+  return MIN (width, MAX_SHORT_STRING);
 }
 
 /* Indexes into crosstab.v. */
@@ -637,14 +644,11 @@ calc_general (struct ccase *c, const struct dataset *ds)
 	      te->values[j].f = case_num (c, x->vars[j]);
 	    else
 	      {
-                size_t n = var_get_width (x->vars[j]);
-                if (n > MAX_SHORT_STRING)
-                  n = MAX_SHORT_STRING;
+                size_t n = get_var_trimmed_width (x->vars[j]);
 		memcpy (te->values[j].s, case_str (c, x->vars[j]), n);
 
 		/* Necessary in order to simplify comparisons. */
-		memset (&te->values[j].s[var_get_width (x->vars[j])], 0,
-			sizeof (union value) - n);
+		memset (&te->values[j].s[n], 0, sizeof (union value) - n);
 	      }
 	  }
       }
@@ -755,8 +759,8 @@ compare_table_entry (const void *a_, const void *b_, const void *aux UNUSED)
 	}
       else
         {
-          const int diffstr = strncmp (a->values[i].s, b->values[i].s,
-                                       var_get_width (x->vars[i]));
+          int width = get_var_trimmed_width (x->vars[i]);
+          const int diffstr = strncmp (a->values[i].s, b->values[i].s, width);
           if (diffstr)
             return diffstr;
         }
@@ -1684,7 +1688,7 @@ enum_var_values (struct table_entry **entries, int entry_cnt, int var_idx,
 
   if (mode == GENERAL)
     {
-      int width = MIN (var_get_width (v), MAX_SHORT_STRING);
+      int width = get_var_trimmed_width (v);
       int i;
 
       *values = xnmalloc (entry_cnt, sizeof **values);
@@ -2140,8 +2144,8 @@ display_risk (const struct dictionary *dict)
 	  else
 	    sprintf (buf, _("Odds Ratio for %s (%.*s / %.*s)"),
 		     var_get_name (x->vars[COL_VAR]),
-		     var_get_width (x->vars[COL_VAR]), c[0].s,
-		     var_get_width (x->vars[COL_VAR]), c[1].s);
+		     get_var_trimmed_width (x->vars[COL_VAR]), c[0].s,
+		     get_var_trimmed_width (x->vars[COL_VAR]), c[1].s);
 	  break;
 	case 1:
 	case 2:
@@ -2151,7 +2155,7 @@ display_risk (const struct dictionary *dict)
 	  else
 	    sprintf (buf, _("For cohort %s = %.*s"),
 		     var_get_name (x->vars[ROW_VAR]),
-		     var_get_width (x->vars[ROW_VAR]), rows[i - 1].s);
+		     get_var_trimmed_width (x->vars[ROW_VAR]), rows[i - 1].s);
 	  break;
 	}
 
