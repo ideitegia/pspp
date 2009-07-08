@@ -664,7 +664,6 @@ gboolean
 psppire_data_store_set_string (PsppireDataStore *store,
 			       const gchar *text, glong row, glong col)
 {
-  gchar *s;
   glong n_cases;
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
   if ( NULL == pv)
@@ -678,12 +677,9 @@ psppire_data_store_set_string (PsppireDataStore *store,
   if (row == n_cases)
     psppire_data_store_insert_new_case (store, row);
 
-  s = recode_string (psppire_dict_encoding (store->dict), UTF8, text, -1);
-
   psppire_data_store_data_in (store, row,
-			      var_get_case_index (pv), ss_cstr (s),
+			      var_get_case_index (pv), ss_cstr (text),
 			      var_get_write_format (pv));
-  free (s);
 
   psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store), row, col, row, col);
 
@@ -948,10 +944,14 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
   int width;
   bool ok;
 
+  PsppireDict *dict;
+
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
   g_return_val_if_fail (idx < datasheet_get_n_columns (ds->datasheet), FALSE);
+
+  dict = ds->dict;
 
   width = fmt_var_width (fmt);
   g_return_val_if_fail (caseproto_get_width (
@@ -959,7 +959,7 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
                         FALSE);
   value_init (&value, width);
   ok = (datasheet_get_value (ds->datasheet, casenum, idx, &value)
-        && data_in (input, LEGACY_NATIVE, fmt->type, 0, 0, 0, &value, width)
+        && data_in (input, dict_get_encoding (dict->dict), fmt->type, 0, 0, 0, &value, width)
         && datasheet_put_value (ds->datasheet, casenum, idx, &value));
   value_destroy (&value, width);
 
