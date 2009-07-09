@@ -278,6 +278,8 @@ reload_viewer (struct output_viewer *ov)
 }
 
 
+#define OUTPUT_FILE_NAME "psppire.txt"
+
 const char *
 output_file_name (void)
 {
@@ -285,7 +287,7 @@ output_file_name (void)
   static char *filename = NULL;
 
   if ( NULL == filename )
-    filename = xasprintf ("%s%s", dir, output_file_name ());
+    filename = xasprintf ("%s%s", dir, OUTPUT_FILE_NAME);
 
 
   return filename;
