@@ -17,7 +17,7 @@
 #ifndef OUTPUT_CHART_H
 #define OUTPUT_CHART_H 1
 
-#ifndef NO_CHARTS
+#ifdef HAVE_CHARTS
 #include <stdio.h>              /* Required by <plot.h>. */
 #include <plot.h>
 #endif

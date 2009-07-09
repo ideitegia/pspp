@@ -28,7 +28,7 @@
 #include <gsl/gsl_histogram.h>
 #include <libpspp/compiler.h>
 
-#ifndef NO_CHARTS
+#ifdef HAVE_CHARTS
 #error This file should be used only when compiling without charts.
 #endif
 
