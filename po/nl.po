@@ -1,5 +1,4 @@
-# translation of nl.po to Dutch
-# Dutch translations for PSPP
+# translation of pspp-0.6.1-pre1 to Dutch
 # Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 # This file is distributed under the same licence as the PSPP package.
 #
@@ -17,7 +16,7 @@
 #  Required   = vereist
 #  Ranking    = Ordenen
 #  Rename     = Hernoemd
-#  Range      = Range
+#  Range      = Bereik
 #  Rank       = Rang/Rangschik
 #  Specififed = Opgegeven
 #  Stream     = Stream
@@ -33,8 +32,8 @@ msgstr ""
 "Project-Id-Version: pspp-0.6.1-pre1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2009-07-02 09:53-0700\n"
-"PO-Revision-Date: 2009-07-03 01:24+0200\n"
-"Last-Translator:  Harry Thijssen <pspp@sjpaes.nl>\n"
+"PO-Revision-Date: 2009-07-08 21:11+0200\n"
+"Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -45,7 +44,7 @@ msgstr ""
 #: src/data/any-reader.c:57
 #, c-format
 msgid "An error occurred while opening \"%s\": %s."
-msgstr "Er is een fout opgetreden tijdens het openen van \"%s\": %s."
+msgstr "Fout opgetreden bij openen van \"%s\": %s."
 
 #: src/data/any-reader.c:93
 #, c-format
@@ -54,27 +53,27 @@ msgstr "\"%s\" is geen systeem of overdraagbaar (portable) bestand."
 
 #: src/data/any-reader.c:99 src/data/any-writer.c:63
 msgid "The inline file is not allowed here."
-msgstr "Het 'inline' bestand is hier niet toegestaan."
+msgstr "Het inline-bestand is hier niet toegestaan."
 
 #: src/data/calendar.c:81
 #, c-format
 msgid "Month %d is not in acceptable range of 0 to 13."
-msgstr "Maand %d valt niet in de acceptabele range van 0 tot 13."
+msgstr "Maand %d valt niet in het acceptabele bereik van 0 tot 13."
 
 #: src/data/calendar.c:89
 #, c-format
 msgid "Day %d is not in acceptable range of 0 to 31."
-msgstr "Dag %d valt niet in de acceptabele range van 0 tot 31."
+msgstr "Dag %d valt niet in het acceptabele bereik van 0 tot 31."
 
 #: src/data/calendar.c:96
 #, c-format
 msgid "Date %04d-%d-%d is before the earliest acceptable date of 1582-10-15."
-msgstr "Datum %04d-%d-%d is voor de eerste acceptabele datum van 1582-10-15."
+msgstr "Datum %04d-%d-%d ligt voor de eerste acceptabele datum van 1582-10-15."
 
 #: src/data/case-tmpfile.c:57
 #, c-format
 msgid "failed to create temporary file"
-msgstr "aanmaken van een tijdelijk bestand is mislukt"
+msgstr "aanmaken van tijdelijk bestand is mislukt"
 
 #: src/data/case-tmpfile.c:131
 #, c-format
@@ -89,7 +88,7 @@ msgstr "lezen tijdelijk bestand"
 #: src/data/case-tmpfile.c:155
 #, c-format
 msgid "unexpected end of file reading temporary file"
-msgstr "onverwacht einde bestand bij het lezen van tijdelijk bestand"
+msgstr "onverwacht einde-bestand bij het lezen van tijdelijk bestand"
 
 #: src/data/case-tmpfile.c:175
 #, c-format
@@ -98,11 +97,11 @@ msgstr "schrijven naar tijdelijk bestand"
 
 #: src/data/casereader-filter.c:221
 msgid "At least one case in the data read had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
-msgstr "Ten minste een case in de gelezen data heeft een gewicht waarde 'user-missing, system-missing, zero, of negatief.  Deze case(s) zijn genegeerd."
+msgstr "Tenminste een case in de gelezen gegevens heeft een gewichtwaarde 'user-missing, system-missing, zero, of negatief.  Deze case(s) zijn genegeerd."
 
 #: src/data/data-in.c:262 src/data/data-in.c:452
 msgid "Field contents are not numeric."
-msgstr "Veld inhoud is niet numeriek."
+msgstr "Veldinhoud is niet numeriek."
 
 #: src/data/data-in.c:264 src/data/data-in.c:454
 msgid "Number followed by garbage."
@@ -134,16 +133,16 @@ msgstr "Veld moet een even lengte hebben."
 
 #: src/data/data-in.c:367 src/data/data-in.c:647
 msgid "Field must contain only hex digits."
-msgstr "Veld mag alleen hex cijfers bevatten."
+msgstr "Veld mag alleen hexadecimale cijfers bevatten."
 
 #: src/data/data-in.c:686 src/data/data-in.c:733
 msgid "Syntax error in date field."
-msgstr "Syntax fout in datum veld."
+msgstr "Syntaxfout in datumveld."
 
 #: src/data/data-in.c:702
 #, c-format
 msgid "Day (%ld) must be between 1 and 31."
-msgstr "Dag (%ld) moet tussen 1 en 31 zijn."
+msgstr "Dag (%ld) moet tussen 1 en 31 liggen."
 
 #: src/data/data-in.c:749
 msgid "Delimiter expected between fields in date."
@@ -151,12 +150,12 @@ msgstr "Veldscheider verwacht tussen velden in datum."
 
 #: src/data/data-in.c:823
 msgid "Unrecognized month format.  Months may be specified as Arabic or Roman numerals or as at least 3 letters of their English names."
-msgstr "Niet herkend maand formaat.  Maanden mogen gespecificeerd zijn als Arabisch of Romeins numeriek of als tenminste de eerste 3 letters van hun Engelse naam."
+msgstr "Niet-herkend maand format.  Maanden mogen gespecificeerd zijn als Arabisch of Romeins numeriek of als tenminste de eerste 3 letters van hun Engelse naam."
 
 #: src/data/data-in.c:850
 #, c-format
 msgid "Year (%ld) must be between 1582 and 19999."
-msgstr "Jaar (%ld) moet tussen 1582 en 19999 zijn."
+msgstr "Jaar (%ld) moet tussen 1582 en 19999 liggen."
 
 #: src/data/data-in.c:862
 #, c-format
@@ -193,12 +192,12 @@ msgstr "Minuut (%ld) moet tussen 0 en 59 zijn."
 
 #: src/data/data-in.c:1000
 msgid "Unrecognized weekday name.  At least the first two letters of an English weekday name must be specified."
-msgstr "Niet herkende weekdag naam.  Tenminste de eerste 2 letters van een Engelse weekdag naam moeten opgegeven worden."
+msgstr "Niet-herkende weekdagnaam.  Tenminste de eerste 2 letters van een Engelse weekdagnaam moeten opgegeven worden."
 
 #: src/data/data-in.c:1138
 #, c-format
 msgid "`%c' expected in date field."
-msgstr "`%c' verwacht in datum veld."
+msgstr "`%c' verwacht in datumveld."
 
 #: src/data/data-in.c:1179
 #, c-format
@@ -218,12 +217,12 @@ msgstr "%s veld) "
 #: src/data/data-out.c:446
 #, c-format
 msgid "Weekday number %f is not between 1 and 7."
-msgstr "Weekdag nummer %f is niet tussen 1 en 7."
+msgstr "Weekdagnummer %f ligt niet tussen 1 en 7."
 
 #: src/data/data-out.c:467
 #, c-format
 msgid "Month number %f is not between 1 and 12."
-msgstr "Maand nummer %f is niet tussen 1 en 12."
+msgstr "Maandnummer %f is niet tussen 1 en 12."
 
 #: src/data/dict-class.c:52
 msgid "ordinary"
@@ -239,12 +238,12 @@ msgstr ""
 
 #: src/data/dictionary.c:882
 msgid "At least one case in the data file had a weight value that was user-missing, system-missing, zero, or negative.  These case(s) were ignored."
-msgstr "Op zijn minst een case in het data bestand heeft een gewicht waarde user-missing, system-missing, nul, of negatief.  Deze case(s) zijn genegeerd."
+msgstr "Op zijn minst een case in het gegevensbestand heeft een gewichtwaarde user-missing, system-missing, nul, of negatief.  Deze case(s) zijn genegeerd."
 
 #: src/data/dictionary.c:1180
 #, c-format
 msgid "Truncating document line to %d bytes."
-msgstr "Document regel afgekapt tot %d bytes."
+msgstr "Documentregel afgekapt tot %d bytes."
 
 #: src/data/file-handle-def.c:462
 #, c-format
@@ -282,16 +281,16 @@ msgstr ""
 
 #: src/data/format.c:235
 msgid "Input format"
-msgstr "Invoer formaat"
+msgstr "Invoer format"
 
 #: src/data/format.c:235
 msgid "Output format"
-msgstr "Uitvoer formaat"
+msgstr "Uitvoer-format"
 
 #: src/data/format.c:244
 #, c-format
 msgid "Format %s may not be used for input."
-msgstr "Formaat %s mag niet gebruikt worden voor invoer."
+msgstr "Format %s mag niet gebruikt worden voor invoer."
 
 #: src/data/format.c:251
 #, c-format
@@ -307,33 +306,33 @@ msgstr "%s %s specificeert breedte %d, maar %s vereist een breedte tussen %d en 
 #, c-format
 msgid "%s %s specifies %d decimal place, but %s does not allow any decimals."
 msgid_plural "%s %s specifies %d decimal places, but %s does not allow any decimals."
-msgstr[0] "%s %s specificeert %d decima(a)l(en), maar %s staat geen decimalen toe."
+msgstr[0] "%s %s specificeert %d decimaal, maar %s staat geen decimalen toe."
 msgstr[1] "%s %s specificeert %d decimalen, maar %s staat geen decimalen toe."
 
 #: src/data/format.c:280
 #, c-format
 msgid "%s %s specifies %d decimal place, but the given width allows at most %d decimals."
 msgid_plural "%s %s specifies %d decimal places, but the given width allows at most %d decimals."
-msgstr[0] "%s %s specificeert %d decimalen, maar de opgegeven breedte staat maximaal %d decimalentoe."
-msgstr[1] "%s %s specificeert %d decimalen, maar de opgegeven breedte staat maximaal %d toe."
+msgstr[0] "%s %s specificeert %d decimaal, maar de opgegeven breedte staat maximaal %d decimalen toe."
+msgstr[1] "%s %s specificeert %d decimalen, maar de opgegeven breedte staat maximaal %d decimalen toe."
 
 #: src/data/format.c:287
 #, c-format
 msgid "%s %s specifies %d decimal place, but the given width does not allow for any decimals."
 msgid_plural "%s %s specifies %d decimal places, but the given width does not allow for any decimals."
-msgstr[0] "%s %s specificeert %d decima(a)l(en), maar de opgegeven breedte staat geen decimalen toe."
+msgstr[0] "%s %s specificeert %d decimaal, maar de opgegeven breedte staat geen decimalen toe."
 msgstr[1] "%s %s specificeert %d decimalen, maar de opgegeven breedte staat geen decimalen toe."
 
 #: src/data/format.c:326
 #, c-format
 msgid "%s variables are not compatible with %s format %s."
-msgstr "%s variabelen zijn niet compatibel met %s formaat %s."
+msgstr "%s variabelen zijn niet overeenkomstig met %s format %s."
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:651
 #: src/ui/gui/data-editor.glade:1190 src/ui/gui/psppire-var-store.c:605
 #: src/ui/gui/psppire.glade:2176
 msgid "String"
-msgstr ""
+msgstr "Tekenreeks"
 
 #: src/data/format.c:327 src/data/sys-file-reader.c:651
 #: src/ui/gui/data-editor.glade:1079 src/ui/gui/psppire-var-store.c:598
@@ -357,36 +356,36 @@ msgstr "numeriek"
 #: src/language/xforms/recode.c:472 src/language/xforms/recode.c:473
 #: src/language/xforms/recode.c:485 src/language/xforms/recode.c:486
 msgid "string"
-msgstr ""
+msgstr "Tekenreeks"
 
 #: src/data/format.c:346
 #, c-format
 msgid "String variable with width %d is not compatible with format %s."
-msgstr "String variabele met breedte %d is niet compatibel met formaat %s."
+msgstr "Tekenreeksvariabele met breedte %d is niet overeenkomstig met format %s."
 
 #: src/data/gnumeric-reader.c:33
 msgid "Support for Gnumeric files was not compiled into this installation of PSPP"
-msgstr "Ondersteuning voor Gnumeric bestanden is niet gecompileerd in deze installatie van PSPP"
+msgstr "Ondersteuning voor Gnumeric-bestanden is niet gecompileerd in deze installatie van PSPP"
 
 #: src/data/gnumeric-reader.c:366
 #, c-format
 msgid "Error opening \"%s\" for reading as a gnumeric file: %s."
-msgstr "Fout bij het openen van \"%s\" voor het lezen als een gnumeric bestand: %s."
+msgstr "Fout bij het openen van \"%s\" voor het lezen als een Gnumeric-bestand: %s."
 
 #: src/data/gnumeric-reader.c:386
 #, c-format
 msgid "Invalid cell range \"%s\""
-msgstr "Ongeldige cel range \"%s\""
+msgstr "Ongeldig celbereik \"%s\""
 
 #: src/data/gnumeric-reader.c:523 src/data/psql-reader.c:184
 #, c-format
 msgid "Cannot create variable name from %s"
-msgstr "Kan geen variabele naam creëren van %s"
+msgstr "Kan geen variabelennaam creëren van %s"
 
 #: src/data/gnumeric-reader.c:535
 #, c-format
 msgid "Selected sheet or range of spreadsheet \"%s\" is empty."
-msgstr "Geselecteerd blad of range van werkblad \"%s\" is leeg."
+msgstr "Geselecteerd blad of bereik van werkblad \"%s\" is leeg."
 
 #: src/data/make-file.c:64
 #, c-format
@@ -436,12 +435,12 @@ msgstr "Verwijderen %s: %s."
 #: src/data/por-file-reader.c:99
 #, c-format
 msgid "portable file %s corrupt at offset 0x%lx: "
-msgstr "overdraagbaar (portable) bestand %s corrupt op offset 0x%lx: "
+msgstr "overdraagbaar (portable) bestand %s beschadigd op positie 0x%lx: "
 
 #: src/data/por-file-reader.c:128
 #, c-format
 msgid "reading portable file %s at offset 0x%lx: "
-msgstr "lezen overdraagbaar (portable) bestand %s op offset 0x%lx: "
+msgstr "lezen overdraagbaar (portable) bestand %s op positie 0x%lx: "
 
 #: src/data/por-file-reader.c:156
 #, c-format
@@ -450,7 +449,7 @@ msgstr "Fout bij het afsluiten van overdraagbaar (portable) bestand \"%s\": %s."
 
 #: src/data/por-file-reader.c:208
 msgid "unexpected end of file"
-msgstr "onverwacht einde bestand"
+msgstr "onverwacht einde-bestand"
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
@@ -461,11 +460,11 @@ msgstr "overdraagbaar (portable) bestand"
 #: src/data/por-file-reader.c:276
 #, c-format
 msgid "An error occurred while opening \"%s\" for reading as a portable file: %s."
-msgstr "Er is een fout opgetreden tijdens het openen van \"%s\" voor het lezen als overdraagbaar (portable) bestand: %s."
+msgstr "Fout opgetreden tijdens het openen van \"%s\" voor het lezen als overdraagbaar (portable) bestand: %s."
 
 #: src/data/por-file-reader.c:297
 msgid "Data record expected."
-msgstr "Data record verwacht."
+msgstr "Gegevensrecord verwacht."
 
 #: src/data/por-file-reader.c:379
 msgid "Number expected."
@@ -482,7 +481,7 @@ msgstr "Ongeldige integer."
 #: src/data/por-file-reader.c:441
 #, c-format
 msgid "Bad string length %d."
-msgstr "Foutieve string lengte %d."
+msgstr "Onjuiste tekenreekslengte %d."
 
 #: src/data/por-file-reader.c:502
 #, c-format
@@ -492,36 +491,36 @@ msgstr "%s: Geen overdraagbaar (portable) bestand."
 #: src/data/por-file-reader.c:519
 #, c-format
 msgid "Unrecognized version code `%c'."
-msgstr "Niet herkende versie code `%c'."
+msgstr "Niet-herkende versiecode `%c'."
 
 #: src/data/por-file-reader.c:528
 #, c-format
 msgid "Bad date string length %zu."
-msgstr "Foutieve datum string lengte %zu."
+msgstr "Onjuiste datum-tekenreekslengte %zu."
 
 #: src/data/por-file-reader.c:530
 #, c-format
 msgid "Bad time string length %zu."
-msgstr "Foutieve tijd string lengte %zu."
+msgstr "Onjuiste tijd-tekenreekslengte %zu."
 
 #: src/data/por-file-reader.c:572
 #, c-format
 msgid "%s: Bad format specifier byte (%d).  Variable will be assigned a default format."
-msgstr "%s: Foutief formaat specificatie byte (%d). Variabele krijgt een default formaat."
+msgstr "%s: Onjuist format-specificatie byte (%d). Variabele krijgt een verstek format."
 
 #: src/data/por-file-reader.c:593
 #, c-format
 msgid "Numeric variable %s has invalid format specifier %s."
-msgstr "Numerieke variabele %s heeft een ongeldige formaat specificatie %s."
+msgstr "Numerieke variabele %s heeft een ongeldig format-specificatie %s."
 
 #: src/data/por-file-reader.c:597
 #, c-format
 msgid "String variable %s with width %d has invalid format specifier %s."
-msgstr "String variabele %s met breedte %d heeft ongeldige formaat specificatie %s."
+msgstr "Tekenreeksvariabele %s met breedte %d heeft ongeldig format-specificatie %s."
 
 #: src/data/por-file-reader.c:621
 msgid "Expected variable count record."
-msgstr "Variabele teller record verwacht."
+msgstr "Variabelenteller record verwacht."
 
 #: src/data/por-file-reader.c:625
 #, c-format
@@ -531,7 +530,7 @@ msgstr "Ongeldig aantal variabelen %d."
 #: src/data/por-file-reader.c:635
 #, c-format
 msgid "Weight variable name (%s) truncated."
-msgstr "Weging variabele naam (%s) afgekapt."
+msgstr "Weging variabelennaam (%s) afgekapt."
 
 #: src/data/por-file-reader.c:650
 msgid "Expected variable record."
@@ -540,27 +539,27 @@ msgstr "Variabel record verwacht."
 #: src/data/por-file-reader.c:654
 #, c-format
 msgid "Invalid variable width %d."
-msgstr "Ongeldige variabele breedte %d."
+msgstr "Ongeldige variabelenbreedte %d."
 
 #: src/data/por-file-reader.c:662
 #, c-format
 msgid "Invalid variable name `%s' in position %d."
-msgstr "Ongeldige variabele naam '%s' in positie %d."
+msgstr "Ongeldige variabelennaam '%s' in positie %d."
 
 #: src/data/por-file-reader.c:666
 #, c-format
 msgid "Bad width %d for variable %s."
-msgstr "Foutieve breedte %d voor variabele %s."
+msgstr "Onjuiste breedte %d voor variabele %s."
 
 #: src/data/por-file-reader.c:681
 #, c-format
 msgid "Duplicate variable name %s in position %d."
-msgstr "Dubbele variabele naam %s in positie %d."
+msgstr "Dubbele variabelennaam %s in positie %d."
 
 #: src/data/por-file-reader.c:682
 #, c-format
 msgid "Duplicate variable name %s in position %d renamed to %s."
-msgstr "Dubbele variabele naam %s in positie %d hernoemd naar %s."
+msgstr "Dubbele variabelennaam %s in positie %d hernoemd naar %s."
 
 #: src/data/por-file-reader.c:725
 #, c-format
@@ -570,12 +569,12 @@ msgstr "Weging variabele %s niet aanwezig in woordenboek."
 #: src/data/por-file-reader.c:772
 #, c-format
 msgid "Unknown variable %s while parsing value labels."
-msgstr "Onbekende variabele %s tijdens het ontleden van waarde labels."
+msgstr "Onbekende variabele %s tijdens het ontleden van waardelabels."
 
 #: src/data/por-file-reader.c:775
 #, c-format
 msgid "Cannot assign value labels to %s and %s, which have different variable types."
-msgstr "Kan geen waarde labels toekennen aan %s en %s, die verschillende variabele types hebben."
+msgstr "Kan geen waardelabels toekennen aan %s en %s, die verschillende variabele types hebben."
 
 #: src/data/por-file-writer.c:140
 #, c-format
@@ -634,27 +633,27 @@ msgstr ""
 #. messages in fh_lock() that identify types of files.
 #: src/data/scratch-writer.c:67 src/language/data-io/file-handle.q:181
 msgid "scratch file"
-msgstr "scratch bestand"
+msgstr "scratchbestand"
 
 #: src/data/settings.c:685
 #, c-format
 msgid "%s: Custom currency string `%s' does not contain exactly three periods or commas (or it contains both)."
-msgstr "%s: Aangepaste waarde string `%s' bevat niet exact drie punten of komma's (of het bevat beiden). "
+msgstr "%s: Aangepaste waarde-tekenreeks `%s' bevat niet exact drie punten of komma's (of het bevat beiden). "
 
 #: src/data/short-names.c:66
 msgid "Variable suffix too large."
-msgstr "Variabele achtervoegsel te lang."
+msgstr "Variabelen-achtervoegsel te lang."
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
 #: src/data/sys-file-reader.c:198 src/data/sys-file-writer.c:190
 msgid "system file"
-msgstr "systeem bestand"
+msgstr "systeembestand"
 
 #: src/data/sys-file-reader.c:205
 #, c-format
 msgid "Error opening \"%s\" for reading as a system file: %s."
-msgstr "Fout bij het openen van \"%s\" voor het lezen als een systeem file: %s."
+msgstr "Fout bij het openen van \"%s\" voor het lezen als een systeembestand: %s."
 
 #: src/data/sys-file-reader.c:244
 msgid "Misplaced type 4 record."
@@ -663,21 +662,21 @@ msgstr "Verkeerd geplaatst type 4 record. "
 #: src/data/sys-file-reader.c:255
 #, c-format
 msgid "Unrecognized record type %d."
-msgstr "Niet herkend record type %d."
+msgstr "Niet-herkend recordtype %d."
 
 #: src/data/sys-file-reader.c:294
 #, c-format
 msgid "File header claims %d variable positions but %d were read from file."
-msgstr "Bestand kop claimt %d variabele posities maar er zijn er %d gelezen van het bestand."
+msgstr "Bestandskop claimt %d variabelenposities maar er zijn er %d gelezen van het bestand."
 
 #: src/data/sys-file-reader.c:334
 #, c-format
 msgid "Error closing system file \"%s\": %s."
-msgstr "Fout bij het sluiten van system file \"%s\": %s."
+msgstr "Fout bij het sluiten van systeembestand \"%s\": %s."
 
 #: src/data/sys-file-reader.c:399 src/data/sys-file-reader.c:409
 msgid "This is not an SPSS system file."
-msgstr "Dit is geen SPSS systeem bestand."
+msgstr "Dit is geen SPSS systeembestand."
 
 #: src/data/sys-file-reader.c:431
 msgid "Compression bias is not the usual value of 100, or system file uses unrecognized floating-point format."
@@ -686,21 +685,21 @@ msgstr ""
 #: src/data/sys-file-reader.c:508
 #, c-format
 msgid "Invalid variable name `%s'."
-msgstr "Ongeldige variabele naam '%s'."
+msgstr "Ongeldige variabelennaam '%s'."
 
 #: src/data/sys-file-reader.c:512
 #, c-format
 msgid "Bad variable width %d."
-msgstr "Foutieve variabele breedte %d."
+msgstr "Onjuiste variabelenbreedte %d."
 
 #: src/data/sys-file-reader.c:516
 #, c-format
 msgid "Duplicate variable name `%s' within system file."
-msgstr "Dubbele variabele naam '%s' binnen system file."
+msgstr "Dubbele variabelennaam '%s' binnen systeembestand."
 
 #: src/data/sys-file-reader.c:524
 msgid "Variable label indicator field is not 0 or 1."
-msgstr "Variabel label indicator veld is niet 0 of 1."
+msgstr "Variabelen-labelindicatorveld is niet 0 of 1."
 
 #: src/data/sys-file-reader.c:532
 #, c-format
@@ -709,30 +708,30 @@ msgstr "Variabele %s heeft label van ongeldige lengte %zu."
 
 #: src/data/sys-file-reader.c:551
 msgid "Numeric missing value indicator field is not -3, -2, 0, 1, 2, or 3."
-msgstr "Numeriek ontbrekende waarde indicator veld is niet -3, -2, 0, 1, 2, of 3."
+msgstr "Numeriek ontbrekende-waarde indicatorveld is niet -3, -2, 0, 1, 2, of 3."
 
 #: src/data/sys-file-reader.c:566
 msgid "String missing value indicator field is not 0, 1, 2, or 3."
-msgstr "String missing waarde indicator veld is niet 0, 1, 2, of 3."
+msgstr "Tekenreeks ontbrekende-waarde indicatorveld is niet 0, 1, 2, of 3."
 
 #: src/data/sys-file-reader.c:569
 #, c-format
 msgid "Ignoring missing values on long string variable %s, which PSPP does not yet support."
-msgstr "Negeren van missing values voor lange string variabele %s, wat PSPP nog niet ondersteunt."
+msgstr "Negeren van ontbrekende-waardes voor lange tekenreeksvariabele %s, wat PSPP nog niet ondersteunt."
 
 #: src/data/sys-file-reader.c:598
 msgid "Missing string continuation record."
-msgstr "Mis string continuering record."
+msgstr "Mis tekenreeks continuering record."
 
 #: src/data/sys-file-reader.c:632
 #, c-format
 msgid "Unknown variable format %<PRIu8>."
-msgstr "Onbekend variabele formaat %<PRIu8>."
+msgstr "Onbekend variabele format %<PRIu8>."
 
 #: src/data/sys-file-reader.c:650
 #, c-format
 msgid "%s variable %s has invalid %s format %s."
-msgstr "%s variabele %s heeft ongeldig %s formaat %s."
+msgstr "%s variabele %s heeft ongeldig %s format %s."
 
 #: src/data/sys-file-reader.c:653
 msgid "print"
@@ -744,7 +743,7 @@ msgstr "schrijf"
 
 #: src/data/sys-file-reader.c:657
 msgid "Suppressing further invalid format warnings."
-msgstr "Onderdrukt verdere ongeldige formaat waarschuwingen."
+msgstr "Onderdrukt verdere ongeldig format waarschuwingen."
 
 #: src/data/sys-file-reader.c:675
 msgid "Weighting variable must be numeric."
@@ -765,22 +764,22 @@ msgstr "Document regel bevat null byte."
 
 #: src/data/sys-file-reader.c:779
 msgid "Ignoring value labels for long string variables, which PSPP does not yet support."
-msgstr "Negeer waarde labels voor lange string variabelen, die door PSPP nog niet ondersteund worden."
+msgstr "Negeer waardelabels voor lange tekenreeksvariabelen, die door PSPP nog niet ondersteund worden."
 
 #: src/data/sys-file-reader.c:784
 #, c-format
 msgid "Unrecognized record type 7, subtype %d.  Please send a copy of this file, and the syntax which created it to %s"
-msgstr "Niet herkend type 7, subtype %d.  Stuur s.v.p. een kopie van dit bestand en de syntax waarmee het is aangemaakt naar %s "
+msgstr "Niet-herkend type 7, subtype %d.  Stuur s.v.p. een kopie van dit bestand en de syntax waarmee het is aangemaakt naar %s "
 
 #: src/data/sys-file-reader.c:810
 #, c-format
 msgid "Bad size (%zu) or count (%zu) field on record type 7, subtype 3."
-msgstr "Foutieve lengte (%zu) of aantal (%zu) veld in record type 7, subtype 3."
+msgstr "Onjuiste lengte (%zu) of aantal (%zu) veld in recordtype 7, subtype 3."
 
 #: src/data/sys-file-reader.c:830
 #, c-format
 msgid "Floating-point representation indicated by system file (%d) differs from expected (%d)."
-msgstr "Drijvende komma representatie aangegeven door systeem bestand %d verschilt van verwachting (%d)."
+msgstr "Drijvende komma representatie aangegeven door systeembestand %d verschilt van verwachting (%d)."
 
 #: src/data/sys-file-reader.c:843
 msgid "little-endian"
@@ -793,12 +792,12 @@ msgstr ""
 #: src/data/sys-file-reader.c:844
 #, c-format
 msgid "Integer format indicated by system file (%s) differs from expected (%s)."
-msgstr "Integer formaat aangegeven door systeem bestand (%s) verschilt van verwacht (%s). "
+msgstr "Integer format aangegeven door systeembestand (%s) verschilt van verwacht (%s). "
 
 #: src/data/sys-file-reader.c:860
 #, c-format
 msgid "Bad size (%zu) or count (%zu) on extension 4."
-msgstr "Foutieve lengte (%zu) of aantal (%zu) bij extensie 4."
+msgstr "Onjuiste lengte (%zu) of aantal (%zu) bij extensie 4."
 
 #: src/data/sys-file-reader.c:864
 #, c-format
@@ -818,7 +817,7 @@ msgstr "Bestand specificeert onverwachte waarde %g als LOWEST."
 #: src/data/sys-file-reader.c:884
 #, c-format
 msgid "Bad size %zu on extension 11."
-msgstr "Foutieve lengte %zu voor extensie 11."
+msgstr "Onjuiste lengte %zu voor extensie 11."
 
 #: src/data/sys-file-reader.c:896
 #, c-format
@@ -828,7 +827,7 @@ msgstr "Extensie 11 heeft een foutief aantal %zu (voor %zu variabelen)."
 #: src/data/sys-file-reader.c:917
 #, c-format
 msgid "Invalid variable display parameters for variable %zu (%s).  Default parameters substituted."
-msgstr "Ongeldige variabele toon parameters voor variabele %zu (%s).  Default parameters ingevuld."
+msgstr "Ongeldige variabele toon parameters voor variabele %zu (%s).  Verstek parameters ingevuld."
 
 #: src/data/sys-file-reader.c:963
 #, c-format
@@ -838,7 +837,7 @@ msgstr "Lange variabele afbeelding van %s tot ongeldige naam '%s'. "
 #: src/data/sys-file-reader.c:973
 #, c-format
 msgid "Duplicate long variable name `%s' within system file."
-msgstr "Dubbele lange variabele naam `%s' binnen systeem bestand."
+msgstr "Dubbele lange variabelennaam `%s' binnen systeembestand."
 
 #: src/data/sys-file-reader.c:1028
 #, c-format
@@ -848,17 +847,17 @@ msgstr ""
 #: src/data/sys-file-reader.c:1038
 #, c-format
 msgid "%s listed in very long string record with width %s, which requires only one segment."
-msgstr "%s vermeld in erg lang string record met breedte %s, dat slechts een segment vereist."
+msgstr "%s vermeld in erg lang tekenreeks-record met breedte %s, dat slechts een segment vereist."
 
 #: src/data/sys-file-reader.c:1044
 #, c-format
 msgid "Very long string %s overflows dictionary."
-msgstr "Erg lange string %s is te groot voor woordenboek."
+msgstr "Erg lange tekenreeks %s is te groot voor woordenboek."
 
 #: src/data/sys-file-reader.c:1058
 #, c-format
 msgid "Very long string with width %ld has segment %d of width %d (expected %d)"
-msgstr "Erg lange string met breedte %ld heeft segment %d van breedte %d (verwacht %d)"
+msgstr "Erg lange tekenreeks met breedte %ld heeft segment %d van breedte %d (verwacht %d)"
 
 #: src/data/sys-file-reader.c:1103
 #, c-format
@@ -867,32 +866,32 @@ msgstr "Ongeldig aantal labels: %d. Labels worden genegeerd."
 
 #: src/data/sys-file-reader.c:1134
 msgid "Variable index record (type 4) does not immediately follow value label record (type 3) as it should."
-msgstr "Variabele index record (type 4) volgt niet onmiddellijk waarde label record (type 3) zoals het moet."
+msgstr "Variabele index record (type 4) volgt niet onmiddellijk waardelabel record (type 3) zoals het moet."
 
 #: src/data/sys-file-reader.c:1141
 #, c-format
 msgid "Number of variables associated with a value label (%d) is not between 1 and the number of variables (%zu)."
-msgstr "Aantal variabelen geassocieerd aan waarde label (%d) is niet tussen 1 en het aantal variabelen (%zu)."
+msgstr "Aantal variabelen geassocieerd aan waardelabel (%d) is niet tussen 1 en het aantal variabelen (%zu)."
 
 #: src/data/sys-file-reader.c:1151
 #, c-format
 msgid "Value labels are not allowed on long string variables (%s)."
-msgstr "Waarde labels zijn niet toegestaan bij lange string variabelen (%s)."
+msgstr "Waardelabels zijn niet toegestaan bij lange tekenreeksvariabelen (%s)."
 
 #: src/data/sys-file-reader.c:1158
 #, c-format
 msgid "Variables associated with value label are not all of identical type.  Variable %s is %s, but variable %s is %s."
-msgstr "Variabelen geassocieerd met waarde label zijn niet allemaal van het identieke type.  Variabele %s is %s, maar variabele %s is %s."
+msgstr "Variabelen geassocieerd met waardelabel zijn niet allemaal van het identieke type.  Variabele %s is %s, maar variabele %s is %s."
 
 #: src/data/sys-file-reader.c:1191
 #, c-format
 msgid "Duplicate value label for %g on %s."
-msgstr "Dubbel waarde label voor %g op %s."
+msgstr "Dubbel waardelabel voor %g op %s."
 
 #: src/data/sys-file-reader.c:1194
 #, c-format
 msgid "Duplicate value label for \"%.*s\" on %s."
-msgstr "Dubbel waarde label voor \"%.*s\" on %s."
+msgstr "Dubbel waardelabel voor \"%.*s\" on %s."
 
 #: src/data/sys-file-reader.c:1272
 msgid "File ends in partial case."
@@ -905,22 +904,22 @@ msgstr "Fout tijdens lezen case van bestand %s."
 
 #: src/data/sys-file-reader.c:1377 src/data/sys-file-reader.c:1413
 msgid "Compressed data is corrupt."
-msgstr "Gecomprimeerde data is corrupt."
+msgstr "Gecomprimeerde gegevens zijn beschadigd."
 
 #: src/data/sys-file-reader.c:1500
 #, c-format
 msgid "Variable index %d not in valid range 1...%d."
-msgstr "Variabele index %d niet in geldige range 1...%d."
+msgstr "Variabele index %d niet in geldig bereik 1...%d."
 
 #: src/data/sys-file-reader.c:1505
 #, c-format
 msgid "Variable index %d refers to long string continuation."
-msgstr "Variabele index %d verwijst naar lange string voortzetting."
+msgstr "Variabele index %d verwijst naar lange tekenreeks voortzetting."
 
 #: src/data/sys-file-reader.c:1591
 #, c-format
 msgid "Suppressed %d additional variable map warnings."
-msgstr ""
+msgstr "Onderdrukt %d extra gerelateerde variabele map waarschuwingen."
 
 #: src/data/sys-file-reader.c:1604
 #, c-format
@@ -930,50 +929,50 @@ msgstr "Variabele afbeelding refereert aan onbekende variabele %s."
 #: src/data/sys-file-reader.c:1680
 #, c-format
 msgid "System error: %s."
-msgstr "Systeem fout: %s."
+msgstr "Systeemfout: %s."
 
 #: src/data/sys-file-reader.c:1682
 msgid "Unexpected end of file."
-msgstr "Onverwacht bestand einde."
+msgstr "Onverwacht einde-bestand."
 
 #: src/data/sys-file-writer.c:163
 #, c-format
 msgid "Unknown system file version %d. Treating as version %d."
-msgstr "Onbekende systeem bestand versie %d. Behandeld als versie %d."
+msgstr "Onbekende systeembestand versie %d. Behandeld als versie %d."
 
 #: src/data/sys-file-writer.c:202
 #, c-format
 msgid "Error opening \"%s\" for writing as a system file: %s."
-msgstr "Fout bij het openen van \"%s\" voor het schrijven als een systeem bestand: %s."
+msgstr "Fout bij het openen van \"%s\" voor het schrijven als een systeembestand: %s."
 
 #: src/data/sys-file-writer.c:737
 #, c-format
 msgid "An I/O error occurred writing system file \"%s\"."
-msgstr "Een I/O fout is opgetreden tijdens het schrijven van systeem bestand \"%s\"."
+msgstr "Een I/O fout is opgetreden tijdens het schrijven van systeembestand \"%s\"."
 
 #: src/data/variable.c:209
 #, c-format
 msgid "Character `%c' (in %s) may not appear as the first character in a variable name."
-msgstr "Karakter '%c' (in %s) mag niet als eerste karakter in een variabele naam voorkomen. "
+msgstr "Karakter '%c' (in %s) mag niet als eerste karakter in een variabelennaam voorkomen. "
 
 #: src/data/variable.c:221
 #, c-format
 msgid "Character `%c' (in %s) may not appear in a variable name."
-msgstr "Karakter '%c' (in %s) mag niet in een variabele naam voorkomen."
+msgstr "Karakter '%c' (in %s) mag niet in een variabelennaam voorkomen."
 
 #: src/data/variable.c:249
 msgid "Variable name cannot be empty string."
-msgstr "Variabele naam kan geen lege string zijn."
+msgstr "Variabelennaam kan geen lege tekenreeks zijn."
 
 #: src/data/variable.c:255
 #, c-format
 msgid "Variable name %s exceeds %d-character limit."
-msgstr "Variabele naam %s overschrijdt de limiet van %d-karakters."
+msgstr "Variabelennaam %s overschrijdt de limiet van %d-karakters."
 
 #: src/data/variable.c:263
 #, c-format
 msgid "`%s' may not be used as a variable name because it is a reserved word."
-msgstr "'%s' mag niet gebruikt worden als variabele naam omdat het een gereserveerd woord is."
+msgstr "'%s' mag niet gebruikt worden als variabelennaam omdat het een gereserveerd woord is."
 
 #: src/language/command.c:208
 #, c-format
@@ -983,12 +982,12 @@ msgstr "%s is niet geïmplementeerd."
 #: src/language/command.c:214
 #, c-format
 msgid "%s may be used only in testing mode."
-msgstr "%s mag alleen in test modus gebruikt worden."
+msgstr "%s mag alleen in testmodus gebruikt worden."
 
 #: src/language/command.c:220
 #, c-format
 msgid "%s may be used only in enhanced syntax mode."
-msgstr "%s mag alleen in uitgebreide syntax modus gebruikt worden."
+msgstr "%s mag alleen in uitgebreide syntaxmodus gebruikt worden."
 
 #: src/language/command.c:248
 msgid "Error encountered while ERROR=STOP is effective."
@@ -996,7 +995,7 @@ msgstr "Fout tegengekomen terwijl ERROR=STOP is actief."
 
 #: src/language/command.c:489
 msgid "expecting command name"
-msgstr "opdracht naam verwacht"
+msgstr "opdrachtnaam verwacht"
 
 #: src/language/command.c:503
 #, c-format
@@ -1089,7 +1088,7 @@ msgstr "Interactieve shell niet ondersteunt op dit platform."
 
 #: src/language/command.c:862
 msgid "Command shell not supported on this platform."
-msgstr "Opdracht shell niet ondersteunt op dit platform."
+msgstr "Opdracht-shell niet ondersteunt op dit platform."
 
 #: src/language/command.c:868
 #, c-format
@@ -1122,17 +1121,17 @@ msgstr "Slechts een index clausule mag gespecificeerd worden."
 #: src/language/control/repeat.c:171
 #, c-format
 msgid "Dummy variable name \"%s\" hides dictionary variable \"%s\"."
-msgstr "Dummy variabele naam \"%s\" verbergt woordenboek variabele \"%s\"."
+msgstr "Dummy variabelennaam \"%s\" verbergt woordenboek variabele \"%s\"."
 
 #: src/language/control/repeat.c:176
 #, c-format
 msgid "Dummy variable name \"%s\" is given twice."
-msgstr "Dummy variabele naam \"%s\"is 2 keer opgegeven."
+msgstr "Dummy variabelennaam \"%s\"is 2 keer opgegeven."
 
 #: src/language/control/repeat.c:222
 #, c-format
 msgid "Dummy variable \"%.*s\" had %d substitutions, so \"%.*s\" must also, but %d were specified."
-msgstr "Dummy variabele \"%.*s\" heeft %d substituties, dus \"%.*s\" moet dat ook, maar %d zijn er gespecificeerd."
+msgstr "Dummy variabele \"%.*s\" heeft %d vervangingen, dus \"%.*s\" moet dat ook, maar %d zijn er gespecificeerd."
 
 #: src/language/control/repeat.c:334
 msgid "DO REPEAT may not nest in compatibility mode."
@@ -1140,12 +1139,12 @@ msgstr "DO REPEAT mag niet nesten in compatibiliteit mode."
 
 #: src/language/control/repeat.c:436
 msgid "Ranges may only have integer bounds"
-msgstr "Ranges mogen alleen integer grenzen hebben"
+msgstr "Bereiken mogen alleen integer grenzen hebben"
 
 #: src/language/control/repeat.c:445
 #, c-format
 msgid "%g TO %g is an invalid range."
-msgstr "%g TO %g is een ongeldige range."
+msgstr "%g TO %g is een ongeldig bereik."
 
 #: src/language/control/repeat.c:480
 msgid "String expected."
@@ -1183,7 +1182,7 @@ msgstr "Tenminste 1 variabele moet gespecificeerd worden."
 #: src/language/data-io/get-data.c:528
 #, c-format
 msgid "%s is a duplicate variable name."
-msgstr "%s is een dubbele variabele naam."
+msgstr "%s is een dubbele variabelennaam."
 
 #: src/language/data-io/data-list.c:356
 #, c-format
@@ -1193,7 +1192,7 @@ msgstr "Er is al een variabele %s van een ander type."
 #: src/language/data-io/data-list.c:363
 #, c-format
 msgid "There is already a string variable %s of a different width."
-msgstr "Er is al een string variabele %s van een andere breedte."
+msgstr "Er is al een tekenreeksvariabele %s van een andere breedte."
 
 #: src/language/data-io/data-list.c:371
 #, c-format
@@ -1203,7 +1202,7 @@ msgstr "Kan variabele %s niet plaatsen in record %d als RECORDS=%d is gespecific
 #: src/language/data-io/data-parser.c:455
 #: src/language/data-io/data-parser.c:464
 msgid "Quoted string extends beyond end of line."
-msgstr "Geciteerde string loopt door na regeleinde."
+msgstr "Geciteerde tekenreeks loopt door na regeleinde."
 
 #: src/language/data-io/data-parser.c:520
 #, c-format
@@ -1218,11 +1217,11 @@ msgstr "Gedeeltelijke case overgeslagen. De eerste gemiste variabele was %s."
 #: src/language/data-io/data-parser.c:603
 #, c-format
 msgid "Missing value(s) for all variables from %s onward.  These will be filled with the system-missing value or blanks, as appropriate."
-msgstr "Missing value(s) voor alle variabelen vanaf %s. Deze worden gevuld met de geschikte system-missing waarde of spatie."
+msgstr "Ontbrekende-waarde(s) voor alle variabelen vanaf %s. Deze worden gevuld met de geschikte system-missing waarde of spatie."
 
 #: src/language/data-io/data-parser.c:622
 msgid "Record ends in data not part of any field."
-msgstr "Record eindigd in data die geen onderdeel is van een veld."
+msgstr "Record eindigt in gegeven dat geen onderdeel is van een veld."
 
 #: src/language/data-io/data-parser.c:642
 #: src/language/data-io/data-parser.c:683 src/language/data-io/print.c:403
@@ -1246,7 +1245,7 @@ msgstr "Kolommen"
 #: src/language/data-io/data-parser.c:645
 #: src/language/data-io/data-parser.c:684 src/language/data-io/print.c:406
 msgid "Format"
-msgstr "Formaat"
+msgstr ""
 
 #: src/language/data-io/data-parser.c:664
 #, c-format
@@ -1258,23 +1257,23 @@ msgstr[1] "Lezen %d records van %s."
 #: src/language/data-io/data-parser.c:700
 #, c-format
 msgid "Reading free-form data from %s."
-msgstr "Lezen vrij-formaat data van %s."
+msgstr "Lezen free-format gegeven van %s."
 
 #. TRANSLATORS: this fragment will be interpolated into
 #. messages in fh_lock() that identify types of files.
 #: src/language/data-io/data-reader.c:122
 #: src/language/data-io/data-writer.c:58
 msgid "data file"
-msgstr "data bestand"
+msgstr "gegevensbestand"
 
 #: src/language/data-io/data-reader.c:149
 #, c-format
 msgid "Could not open \"%s\" for reading as a data file: %s."
-msgstr "Kon \"%s\"niet openen voor het lezen als data bestand: %s."
+msgstr "Kon \"%s\" niet openen voor het lezen als gegevensbestand: %s."
 
 #: src/language/data-io/data-reader.c:191
 msgid "Unexpected end-of-file while reading data in BEGIN DATA.  This probably indicates a missing or misformatted END DATA command.  END DATA must appear by itself on a single line with exactly one space between words."
-msgstr "Onverwacht einde-bestand tijdens het lezen van data in BEGIN DATA. Dit geeft waarschijnlijk aan dat de END DATA opdracht ontbreekt of verkeerd geschreven is. END DATA dient alleen op 1 regel met precies 1 spatie tussen de woorden voor te komen."
+msgstr "Onverwacht einde-bestand tijdens het lezen van gegevens in BEGIN DATA. Dit geeft waarschijnlijk aan dat de END DATA opdracht ontbreekt of verkeerd geschreven is. END DATA dient alleen op 1 regel met precies 1 spatie tussen de woorden voor te komen."
 
 #: src/language/data-io/data-reader.c:216
 #, c-format
@@ -1321,22 +1320,22 @@ msgstr "Poging om te lezen na END DATA."
 
 #: src/language/data-io/data-reader.c:707
 msgid "This command is not valid here since the current input program does not access the inline file."
-msgstr "Deze opdracht is hier niet geldig omdat het huidige invoer programma het inline bestand niet benaderd."
+msgstr "Deze opdracht is hier niet geldig omdat het huidige invoerprogramma het inline-bestand niet benaderd."
 
 #: src/language/data-io/data-writer.c:74
 #, c-format
 msgid "An error occurred while opening \"%s\" for writing as a data file: %s."
-msgstr "Een fout is opgetreden tijdens het openen van \"%s\" voor schrijven als data bestand: %s."
+msgstr "Een fout is opgetreden tijdens het openen van \"%s\" voor schrijven als gegevensbestand: %s."
 
 #: src/language/data-io/data-writer.c:191
 #, c-format
 msgid "I/O error occurred writing data file \"%s\"."
-msgstr "I/O fout opgetreden tijdens schrijven data bestand \"%s\"."
+msgstr "I/O fout opgetreden tijdens schrijven gegevensbestand \"%s\"."
 
 #: src/language/data-io/file-handle.q:65
 #, c-format
 msgid "File handle %s is already defined.  Use CLOSE FILE HANDLE before redefining a file handle."
-msgstr "Bestand 'handle' %s is al gedefinieerd. Gebruik CLOSE FILE HANDLE voor het opnieuw definiëren van een bestand 'handle'."
+msgstr "Bestands-handle %s is al gedefinieerd. Gebruik CLOSE FILE HANDLE voor het opnieuw definiëren van een bestands-handle."
 
 #: src/language/data-io/file-handle.q:120
 msgid "RECFORM must be specified with MODE=360."
@@ -1358,16 +1357,16 @@ msgstr "bestand"
 
 #: src/language/data-io/file-handle.q:179
 msgid "inline file"
-msgstr "inline bestand"
+msgstr "inline-bestand"
 
 #: src/language/data-io/file-handle.q:205
 msgid "expecting a file name or handle name"
-msgstr "file naam of 'handle' naam verwacht"
+msgstr "file naam of handle-naam verwacht"
 
 #: src/language/data-io/file-handle.q:225
 #, c-format
 msgid "Handle for %s not allowed here."
-msgstr "'Handle' voor %s is hier niet toegestaan."
+msgstr "Handle voor %s is hier niet toegestaan."
 
 #: src/language/data-io/get-data.c:62
 #, c-format
@@ -1405,7 +1404,7 @@ msgstr "Waarde van PERCENT moet tussen 1 en 100 zijn."
 
 #: src/language/data-io/get-data.c:445
 msgid "In compatible syntax mode, the QUALIFIER string must contain exactly one character."
-msgstr "In compatibele syntax modus, the QUALIFIER string moet precies 1 karakter bevatten."
+msgstr "In compatible syntaxmodus, dient de QUALIFIER tekenreeks precies 1 karakter te bevatten."
 
 #: src/language/data-io/get-data.c:460
 msgid "expecting VARIABLES"
@@ -1415,12 +1414,12 @@ msgstr "VARIABLES verwacht"
 #: src/language/data-io/placement-parser.c:378
 #, c-format
 msgid "The record number specified, %ld, is at or before the previous record, %d.  Data fields must be listed in order of increasing record number."
-msgstr "Het opgegeven record nummer, %ld, is op of voor het huidige record, %d. Data velden dienen opgegeven te worden in oplopende recordnummer volgorde."
+msgstr "Het opgegeven recordnummer, %ld, is op of voor het huidige record, %d. Gegevens velden dienen opgegeven te worden in oplopende recordnummer volgorde."
 
 #: src/language/data-io/get-data.c:491
 #, c-format
 msgid "The record number specified, %ld, exceeds the number of records per case specified on FIXCASE, %d."
-msgstr "Het gespecificeerde record nummer, %ld, overschrijdt het aantal records per case zoals gespecificeerd in FIXCASE, %d."
+msgstr "Het gespecificeerde recordnummer, %ld, overschrijdt het aantal records per case zoals gespecificeerd in FIXCASE, %d."
 
 #: src/language/data-io/get.c:99
 msgid "expecting COMM or TAPE"
@@ -1443,7 +1442,7 @@ msgstr "Kan %s niet hernoemen naar  %s omdat er al een variabele met de naam %s 
 
 #: src/language/data-io/get.c:565
 msgid "`=' expected after variable list."
-msgstr "'=' verwacht na variabele lijst."
+msgstr "'=' verwacht na variabelenlijst."
 
 #: src/language/data-io/get.c:572
 #, c-format
@@ -1453,7 +1452,7 @@ msgstr "Aantal variabelen aan linker zijde van `=' (%zu) komt niet overeen met h
 #: src/language/data-io/get.c:585
 #, c-format
 msgid "Requested renaming duplicates variable name %s."
-msgstr "Gevraagde hernoeming dupliceert variabele naam %s."
+msgstr "Gevraagde hernoeming dupliceert variabelennaam %s."
 
 #: src/language/data-io/get.c:615
 msgid "Cannot DROP all variables from dictionary."
@@ -1483,7 +1482,7 @@ msgstr "Actief bestand mist BY variabele %s."
 
 #: src/language/data-io/get.c:946
 msgid "BY is required when TABLE is specified."
-msgstr "BY is noodzakelijk als TABLE is gespecificeerd."
+msgstr "BY is vereist als TABLE is gespecificeerd."
 
 #: src/language/data-io/get.c:951
 msgid "BY is required when IN is specified."
@@ -1492,7 +1491,7 @@ msgstr "BY is noodzakelijk als IN is gespecificeerd."
 #: src/language/data-io/get.c:1056
 #, c-format
 msgid "Variable name %s specified on %s subcommand duplicates an existing variable name."
-msgstr "Variabele naam %s gespecificeerd op %s subopdracht dupliceert een bestaande variabele naam."
+msgstr "Variabelennaam %s gespecificeerd op %s subopdracht dupliceert een bestaande variabelennaam."
 
 #: src/language/data-io/get.c:1303
 #, c-format
@@ -1505,7 +1504,7 @@ msgstr "Onverwacht einde-bestand binnen INPUT PROGRAM."
 
 #: src/language/data-io/inpt-pgm.c:142
 msgid "Input program did not create any variables."
-msgstr "Input program heeft geen variabelen gecreëerd."
+msgstr "Invoerprogramma heeft geen variabelen gecreëerd."
 
 #: src/language/data-io/inpt-pgm.c:287
 msgid "COLUMN subcommand multiply specified."
@@ -1513,7 +1512,7 @@ msgstr "COLUMN subopdracht meerdere keren gespecificeerd."
 
 #: src/language/data-io/inpt-pgm.c:337
 msgid "REREAD: Column numbers must be positive finite numbers.  Column set to 1."
-msgstr "REREAD: Kolom nummers moeten positieve eindige nummers zijn. Kolom is op 1 gezet."
+msgstr "REREAD: Kolomnummers moeten positieve eindige nummers zijn. Kolom is op 1 gezet."
 
 #: src/language/data-io/list.q:157 src/language/stats/descriptives.c:362
 msgid "No variables specified."
@@ -1541,7 +1540,7 @@ msgstr "De stap waarde %ld is kleiner dan 1. De waarde is op 1 gezet."
 
 #: src/language/data-io/list.q:211
 msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
-msgstr "'/FORMAT WEIGHT' gespecificeerd, maar weging is niet aan."
+msgstr "'/FORMAT WEIGHT' gespecificeerd, maar weging staat niet aan."
 
 #: src/language/data-io/list.q:467
 msgid "Line"
@@ -1550,11 +1549,11 @@ msgstr "Regel"
 #: src/language/data-io/placement-parser.c:87
 #, c-format
 msgid "Number of variables specified (%zu) differs from number of variable formats (%zu)."
-msgstr "Aantal gespecificeerde variabelen (%zu) verschilt van aantal variabele formaten (%zu)."
+msgstr "Aantal gespecificeerde variabelen (%zu) verschilt van aantal variabele formats (%zu)."
 
 #: src/language/data-io/placement-parser.c:97
 msgid "SPSS-like or Fortran-like format specification expected after variable names."
-msgstr "SPSS-achtig of Fortran-achtig formaat specificatie verwacht na variabele naam."
+msgstr "SPSS-achtig of Fortran-achtig format-specificatie verwacht na variabele naam."
 
 #: src/language/data-io/placement-parser.c:119
 #, c-format
@@ -1566,24 +1565,24 @@ msgstr "De %d kolommen %d-%d kunnen niet gelijk verdeeld worden in %zu velden."
 #: src/language/lexer/format-parser.c:126
 #, c-format
 msgid "Unknown format type \"%s\"."
-msgstr "Onbekend formaat type \"%s\"."
+msgstr "Onbekend format-type \"%s\"."
 
 #: src/language/data-io/placement-parser.c:305
 msgid "Column positions for fields must be positive."
-msgstr "Kolom posities voor velden moet positief zijn."
+msgstr "Kolomposities voor velden moet positief zijn."
 
 #: src/language/data-io/placement-parser.c:307
 msgid "Column positions for fields must not be negative."
-msgstr "Kolom posities voor velden mogen niet negatief zijn."
+msgstr "Kolomposities voor velden mogen niet negatief zijn."
 
 #: src/language/data-io/placement-parser.c:344
 msgid "The ending column for a field must be greater than the starting column."
-msgstr "De eind kolom van een veld moet groter zijn dan de start kolom."
+msgstr "De eindkolom van een veld moet groter zijn dan de startkolom."
 
 #: src/language/data-io/print-space.c:73 src/language/lexer/lexer.c:476
 #: src/language/stats/autorecode.c:154 src/language/xforms/select-if.c:60
 msgid "expecting end of command"
-msgstr "verwacht einde van opdracht "
+msgstr "verwacht einde-van-opdracht "
 
 #: src/language/data-io/print-space.c:116
 msgid "The expression on PRINT SPACE evaluated to the system-missing value."
@@ -1597,7 +1596,7 @@ msgstr "De expressie bij PRINT SPACE evalueerde tot %g."
 #: src/language/data-io/print.c:266
 #, c-format
 msgid "Output calls for %d records but %zu specified on RECORDS subcommand."
-msgstr "De output vraagt %d records maar %zu gespecificeerd bij RECORDS subopdracht. "
+msgstr "De uitvoer vraagt %d records maar %zu gespecificeerd bij RECORDS subopdracht. "
 
 #: src/language/data-io/print.c:436
 #, c-format
@@ -1616,21 +1615,21 @@ msgstr[1] "Schrijven van %d records."
 #: src/language/dictionary/apply-dictionary.c:75
 #, c-format
 msgid "Variable %s is %s in target file, but %s in source file."
-msgstr "Variabele %s is %s in doel bestand, maar %s in bron bestand."
+msgstr "Variabele %s is %s in doelbestand, maar %s in bronbestand."
 
 #: src/language/dictionary/apply-dictionary.c:99
 #, c-format
 msgid "Cannot add value labels from source file to long string variable %s."
-msgstr "Kan geen value labels van bron bestand toevoegen aan lange string variabele %s."
+msgstr "Kan geen waardelabels van bronbestand toevoegen aan lange tekenreeksvariabele %s."
 
 #: src/language/dictionary/apply-dictionary.c:113
 #, c-format
 msgid "Cannot apply missing values from source file to long string variable %s."
-msgstr "Kan missing values uit bron bestand niet toepassen op lange string variabele %s."
+msgstr "Kan ontbrekende-waardes uit bronbestand niet toepassen op lange tekenreeksvariabele %s."
 
 #: src/language/dictionary/apply-dictionary.c:126
 msgid "No matching variables found between the source and target files."
-msgstr "Geen overeenkomende variabelen gevonden tussen het bron en het doel bestand."
+msgstr "Geen overeenkomende variabelen gevonden tussen het bron- en het doelbestand."
 
 #: src/language/dictionary/delete-variables.c:40
 msgid "DELETE VARIABLES may not be used after TEMPORARY.  Temporary transformations will be made permanent."
@@ -1638,15 +1637,15 @@ msgstr "DELETE VARIABLES mag niet gebruikt worden na TEMPORARY. Tijdelijke trans
 
 #: src/language/dictionary/delete-variables.c:48
 msgid "DELETE VARIABLES may not be used to delete all variables from the active file dictionary.  Use NEW FILE instead."
-msgstr "DELETE VARIABLES mag niet gebruikt om alle variabelen van het actieve bestand woordenboek te verwijderen. Gebruik NEW FILE in de plaats."
+msgstr "DELETE VARIABLES mag niet gebruikt om alle variabelen van het actieve bestandwoordenboek te verwijderen. Gebruik NEW FILE in de plaats."
 
 #: src/language/dictionary/formats.c:90
 msgid "`(' expected after variable list."
-msgstr "'(' verwacht na variabele lijst."
+msgstr "'(' verwacht na variabelenlijst."
 
 #: src/language/dictionary/formats.c:100 src/language/dictionary/numeric.c:74
 msgid "`)' expected after output format."
-msgstr "')' verwacht na output formaat."
+msgstr "')' verwacht na uitvoer-format."
 
 #: src/language/dictionary/missing-values.c:56
 #: src/language/stats/aggregate.c:451
@@ -1656,17 +1655,17 @@ msgstr "'(' verwacht"
 #: src/language/dictionary/missing-values.c:72
 #, c-format
 msgid "Cannot mix numeric variables (e.g. %s) and string variables (e.g. %s) within a single list."
-msgstr "Kan numerieke variabelen (b.v. %s) en string variabelen (b.v. %s) niet mixen binnen een enkele lijst."
+msgstr "Kan numerieke variabelen (b.v. %s) en tekenreeksvariabelen (b.v. %s) niet mixen binnen een enkele lijst."
 
 #: src/language/dictionary/missing-values.c:117
 #, c-format
 msgid "Truncating missing value to short string length (%d characters)."
-msgstr "Afkappen missing value naar short string lengte (%d karakters)."
+msgstr "Afkappen ontbrekende-waarde naar korte tekenreekslengte (%d karakters)."
 
 #: src/language/dictionary/missing-values.c:139
 #, c-format
 msgid "Missing values provided are too long to assign to variable of width %d."
-msgstr "De opgegeven missing values zijn te lang om toe te kennen aan een variabele van breedte %d."
+msgstr "De opgegeven ontbrekende-waarde zijn te lang om toe te kennen aan een variabele van breedte %d."
 
 #: src/language/dictionary/modify-variables.c:92
 msgid "MODIFY VARS may not be used after TEMPORARY.  Temporary transformations will be made permanent."
@@ -1686,7 +1685,7 @@ msgstr "'(' verwacht bij REORDER subopdracht."
 
 #: src/language/dictionary/modify-variables.c:159
 msgid "`)' expected following variable names on REORDER subcommand."
-msgstr "')' verwacht achter variabele namen bij REORDER subopdracht."
+msgstr "')' verwacht achter variabelennamen bij REORDER subopdracht."
 
 #: src/language/dictionary/modify-variables.c:177
 msgid "RENAME subcommand may be given at most once."
@@ -1698,17 +1697,17 @@ msgstr "'(' verwacht bij RENAME subopdracht."
 
 #: src/language/dictionary/modify-variables.c:199
 msgid "`=' expected between lists of new and old variable names on RENAME subcommand."
-msgstr "'=' verwacht tussen lijst van nieuwe en oude variabele namen bij RENAME subopdracht. "
+msgstr "'=' verwacht tussen lijst van nieuwe en oude variabelennamen bij RENAME subopdracht. "
 
 #: src/language/dictionary/modify-variables.c:208
 #: src/language/dictionary/rename-variables.c:76
 #, c-format
 msgid "Differing number of variables in old name list (%zu) and in new name list (%zu)."
-msgstr "Verschillend aantal variabelen in oude naam lijst (%zu) en in de nieuwe naam lijst (%zu)."
+msgstr "Verschillend aantal variabelen in oude naamlijst (%zu) en in de nieuwe naam lijst (%zu)."
 
 #: src/language/dictionary/modify-variables.c:219
 msgid "`)' expected after variable lists on RENAME subcommand."
-msgstr "')' verwacht na variabele lijst bij RENAME subopdracht."
+msgstr "')' verwacht na variabelenlijst bij RENAME subopdracht."
 
 #: src/language/dictionary/modify-variables.c:233
 msgid "KEEP subcommand may be given at most once.  It may not be given in conjunction with the DROP subcommand."
@@ -1721,11 +1720,11 @@ msgstr "DROP subopdracht mag slechts eenmaal gegeven worden. Het mag niet gegeve
 #: src/language/dictionary/modify-variables.c:302
 #, c-format
 msgid "Unrecognized subcommand name `%s'."
-msgstr "Niet herkende subopdracht naam `%s'."
+msgstr "Niet-herkende subopdrachtnaam `%s'."
 
 #: src/language/dictionary/modify-variables.c:304
 msgid "Subcommand name expected."
-msgstr "Subopdracht naam verwacht."
+msgstr "Subopdrachtnaam verwacht."
 
 #: src/language/dictionary/modify-variables.c:312
 msgid "`/' or `.' expected."
@@ -1734,7 +1733,7 @@ msgstr "'/' of '.' verwacht."
 #: src/language/dictionary/numeric.c:67
 #, c-format
 msgid "Format type %s may not be used with a numeric variable."
-msgstr "Formaat type %s mag niet gebruikt worden met een numerieke variabele."
+msgstr "Format-type %s mag niet gebruikt worden met een numerieke variabele."
 
 #: src/language/dictionary/numeric.c:86 src/language/dictionary/numeric.c:155
 #, c-format
@@ -1744,7 +1743,7 @@ msgstr "Er bestaat al een variabele genaamd %s."
 #: src/language/dictionary/numeric.c:140
 #, c-format
 msgid "Format type %s may not be used with a string variable."
-msgstr "Formaat type %s mag niet gebruikt worden met een string variabele."
+msgstr "Format-type %s mag niet gebruikt worden met een tekenreeksvariabele."
 
 #: src/language/dictionary/rename-variables.c:49
 msgid "RENAME VARS may not be used after TEMPORARY.  Temporary transformations will be made permanent."
@@ -1756,16 +1755,16 @@ msgstr "'(' verwacht."
 
 #: src/language/dictionary/rename-variables.c:67
 msgid "`=' expected between lists of new and old variable names."
-msgstr "'=' verwacht tussen lijst met nieuwe en oude variabele namen."
+msgstr "'=' verwacht tussen lijst met nieuwe en oude variabelennamen."
 
 #: src/language/dictionary/rename-variables.c:87
 msgid "`)' expected after variable names."
-msgstr "')' verwacht achter variabele namen."
+msgstr "')' verwacht achter variabelennamen."
 
 #: src/language/dictionary/rename-variables.c:97
 #, c-format
 msgid "Renaming would duplicate variable name %s."
-msgstr "Hernoemen zou variabele naam %s dupliceren."
+msgstr "Hernoemen zou variabelennaam %s dupliceren."
 
 #: src/language/dictionary/split-file.c:85
 #: src/language/dictionary/sys-file-info.c:563
@@ -1802,7 +1801,7 @@ msgstr "Aangemaakt:"
 
 #: src/language/dictionary/sys-file-info.c:122
 msgid "Integer Format:"
-msgstr "Integer Formaat:"
+msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:124
 msgid "Big Endian."
@@ -1860,7 +1859,7 @@ msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:142
 msgid "System File."
-msgstr "Systeem Bestand."
+msgstr "Systeembestand."
 
 #: src/language/dictionary/sys-file-info.c:143
 msgid "Weight:"
@@ -1900,11 +1899,11 @@ msgstr "Positie"
 
 #: src/language/dictionary/sys-file-info.c:222
 msgid "The active file does not have a file label."
-msgstr "Het actieve bestand heeft geen bestand label."
+msgstr "Het actieve bestand heeft geen bestandlabel."
 
 #: src/language/dictionary/sys-file-info.c:225
 msgid "File label:"
-msgstr "Bestand label:"
+msgstr "Bestandlabel:"
 
 #: src/language/dictionary/sys-file-info.c:288
 msgid "No variables to display."
@@ -1912,11 +1911,11 @@ msgstr "Geen variabelen om te tonen."
 
 #: src/language/dictionary/sys-file-info.c:307
 msgid "Macros not supported."
-msgstr "Macros worden niet ondersteunt."
+msgstr "Macro's worden niet ondersteund."
 
 #: src/language/dictionary/sys-file-info.c:317
 msgid "The active file dictionary does not contain any documents."
-msgstr "Het actieve bestand woordenboek bevat geen documenten."
+msgstr "Het actieve bestandwoordenboek bevat geen documenten."
 
 #: src/language/dictionary/sys-file-info.c:325
 msgid "Documents in the active file:"
@@ -1925,17 +1924,17 @@ msgstr "Documenten in het actieve bestand:"
 #: src/language/dictionary/sys-file-info.c:477
 #, c-format
 msgid "Format: %s"
-msgstr "Formaat: %s"
+msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:485
 #, c-format
 msgid "Print Format: %s"
-msgstr "Print Formaat: %s"
+msgstr "Afdruk Format: %s"
 
 #: src/language/dictionary/sys-file-info.c:488
 #, c-format
 msgid "Write Format: %s"
-msgstr "Schrijf Formaat: %s"
+msgstr "Schrijf Format: %s"
 
 #: src/language/dictionary/sys-file-info.c:494
 #, c-format
@@ -1984,7 +1983,7 @@ msgstr "Toonbreedte: %d"
 
 #: src/language/dictionary/sys-file-info.c:517
 msgid "Missing Values: "
-msgstr "Ontbrekende Waardes:"
+msgstr "Ontbrekende-Waardes:"
 
 #: src/language/dictionary/sys-file-info.c:611
 msgid "No vectors defined."
@@ -1996,16 +1995,16 @@ msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:635
 msgid "Print Format"
-msgstr "Print Formaat"
+msgstr "Afdruk-Format"
 
 #: src/language/dictionary/value-labels.c:121
 #, c-format
 msgid "It is not possible to assign value labels to long string variables such as %s."
-msgstr "Het is niet mogelijk om waarde labels aan lange string variabelen als %s toe te kennen."
+msgstr "Het is niet mogelijk om waardelabels aan lange tekenreeksvariabelen als %s toe te kennen."
 
 #: src/language/dictionary/value-labels.c:157 src/language/lexer/lexer.c:629
 msgid "expecting string"
-msgstr "string verwacht"
+msgstr "tekenreeks verwacht"
 
 #: src/language/dictionary/value-labels.c:166 src/language/lexer/lexer.c:643
 msgid "expecting integer"
@@ -2018,7 +2017,7 @@ msgstr ""
 
 #: src/language/dictionary/value-labels.c:184
 msgid "Truncating value label to 60 characters."
-msgstr "Afkappen waarde label tot 60 karakters."
+msgstr "Afkappen waardelabel tot 60 karakters."
 
 #: src/language/dictionary/variable-display.c:119
 msgid "Variable display width must be a positive integer."
@@ -2026,11 +2025,11 @@ msgstr "Variabele toonbreedte moet een positieve integer zijn."
 
 #: src/language/dictionary/variable-label.c:51
 msgid "String expected for variable label."
-msgstr "String verwacht voor variabele label."
+msgstr "String verwacht voor variabelenlabel."
 
 #: src/language/dictionary/variable-label.c:59
 msgid "Truncating variable label to 255 characters."
-msgstr "Afkappen variabele label tot 255 karakters."
+msgstr "Afkappen variabelenlabel tot 255 karakters."
 
 #: src/language/dictionary/vector.c:64
 #, c-format
@@ -2048,7 +2047,7 @@ msgstr "Een '/' moet elke vector specificatie scheiden in VECTOR's lange vorm."
 
 #: src/language/dictionary/vector.c:129
 msgid "Vectors must have at least one element."
-msgstr "Vectoren moeten ten minste 1 element bevatten."
+msgstr "Vectoren moeten tenminste 1 element bevatten."
 
 #: src/language/dictionary/vector.c:150
 msgid "expecting vector length"
@@ -2057,12 +2056,12 @@ msgstr "vector lengte verwacht"
 #: src/language/dictionary/vector.c:166
 #, c-format
 msgid "%s is too long for a variable name."
-msgstr "%s is te lang voor een variabele naam."
+msgstr "%s is te lang voor een variabelennaam."
 
 #: src/language/dictionary/vector.c:171
 #, c-format
 msgid "%s is an existing variable name."
-msgstr "%s is een bestaande variabele naam."
+msgstr "%s is een bestaande variabelennaam."
 
 #: src/language/dictionary/weight.c:49
 msgid "The weighting variable must be numeric."
@@ -2074,12 +2073,12 @@ msgstr "De weging variabele mag geen scratch zijn."
 
 #: src/language/expressions/evaluate.c:154
 msgid "expecting number or string"
-msgstr "verwacht nummer of string"
+msgstr "verwacht nummer of tekenreeks"
 
 #: src/language/expressions/evaluate.c:168
 #, c-format
 msgid "Duplicate variable name %s."
-msgstr "Dubbele variabele naam %s."
+msgstr "Dubbele variabelennaam %s."
 
 #: src/language/expressions/helpers.c:51
 msgid "One of the arguments to a DATE function is not an integer.  The result will be system-missing."
@@ -2091,7 +2090,7 @@ msgstr "Het week argument voor DATE.WKYR is geen integer.  Het resultaat zal sys
 
 #: src/language/expressions/helpers.c:79
 msgid "The week argument to DATE.WKYR is outside the acceptable range of 1 to 53.  The result will be system-missing."
-msgstr "Het week argument voor DATE.WKYR is buiten de acceptabele range van 1 tot 53.  Het resultaat zal system-missing zijn."
+msgstr "Het week argument voor DATE.WKYR is buiten het acceptabele bereik van 1 tot 53.  Het resultaat zal system-missing zijn."
 
 #: src/language/expressions/helpers.c:101
 msgid "The day argument to DATE.YRDAY is not an integer.  The result will be system-missing."
@@ -2099,7 +2098,7 @@ msgstr "Het dag argument voor DATE.WKYR is geen integer.  Het resultaat zal syst
 
 #: src/language/expressions/helpers.c:107
 msgid "The day argument to DATE.YRDAY is outside the acceptable range of 1 to 366.  The result will be system-missing."
-msgstr "Het dag argument voor DATE.WKYR is buiten de acceptabele range van 1 tot 366.  Het resultaat zal system-missing zijn."
+msgstr "Het dag argument voor DATE.WKYR is buiten het acceptabele bereik van 1 tot 366.  Het resultaat zal system-missing zijn."
 
 #: src/language/expressions/helpers.c:129
 msgid "The year argument to YRMODA is greater than 47516.  The result will be system-missing."
@@ -2108,7 +2107,7 @@ msgstr "Het jaar argument voor YRMODA is groter dan 47516.  Het resultaat zal sy
 #: src/language/expressions/helpers.c:182
 #, c-format
 msgid "Unrecognized date unit \"%.*s\".  Valid date units are \"years\", \"quarters\", \"months\", \"weeks\", \"days\", \"hours\", \"minutes\", and \"seconds\"."
-msgstr "Niet herkende datum eenheid \"%.*s\".  Geldige datum eenheden zijn \"years\", \"quarters\", \"months\", \"weeks\", \"days\", \"hours\", \"minutes\", en \"seconds\"."
+msgstr "Niet-herkende datum eenheid \"%.*s\".  Geldige datum eenheden zijn \"years\", \"quarters\", \"months\", \"weeks\", \"days\", \"hours\", \"minutes\", en \"seconds\"."
 
 #: src/language/expressions/helpers.c:332
 msgid "Invalid DATESUM method.  Valid choices are \"closest\" and \"rollover\"."
@@ -2117,12 +2116,12 @@ msgstr "Ongeldige DATESUM methode. Geldige keuzes zijn \"closest\" en \"rollover
 #: src/language/expressions/parse.c:259
 #, c-format
 msgid "Type mismatch: expression has %s type, but a numeric value is required here."
-msgstr "Type ongelijk: expressie heeft type %s, maar een numerieke waarde is hier noodzakelijk."
+msgstr "Type ongelijk: expressie heeft type %s, maar een numerieke waarde is hier vereist."
 
 #: src/language/expressions/parse.c:271
 #, c-format
 msgid "Type mismatch: expression has %s type, but a string value is required here."
-msgstr "Type ongelijk: expressie heeft type %s, maar een string waarde is hier noodzakelijk."
+msgstr "Type ongelijk: expressie heeft type %s, maar een tekenreekswaarde is hier vereist."
 
 #: src/language/expressions/parse.c:427
 #, c-format
@@ -2140,7 +2139,7 @@ msgstr ""
 #: src/language/expressions/parse.c:809
 #, c-format
 msgid "Unknown system variable %s."
-msgstr "Onbekende systeem variabele %s."
+msgstr "Onbekende systeemvariabele %s."
 
 #: src/language/expressions/parse.c:857
 #, c-format
@@ -2226,11 +2225,11 @@ msgstr "%s mag niet voorkomen na TEMPORARY."
 
 #: src/language/lexer/format-parser.c:88
 msgid "expecting valid format specifier"
-msgstr "verwacht geldige formaat specificator"
+msgstr "verwacht geldige format-specificator"
 
 #: src/language/lexer/format-parser.c:121
 msgid "expecting format type"
-msgstr "verwacht formaat type"
+msgstr "verwacht format-type"
 
 #: src/language/lexer/lexer.c:282
 #, c-format
@@ -2240,12 +2239,12 @@ msgstr "%s vormt geen geldig nummer."
 #: src/language/lexer/lexer.c:386
 #, c-format
 msgid "Bad character in input: `%c'."
-msgstr "Fout karakter in input: '%c'."
+msgstr "Fout karakter in invoer: '%c'."
 
 #: src/language/lexer/lexer.c:388
 #, c-format
 msgid "Bad character in input: `\\%o'."
-msgstr "Fout karakter in input: '\\%o'."
+msgstr "Fout karakter in invoer: '\\%o'."
 
 #: src/language/lexer/lexer.c:424
 #, c-format
@@ -2255,17 +2254,17 @@ msgstr "Subopdracht %s mag slechts een keer gespecificeerd worden."
 #: src/language/lexer/lexer.c:432
 #, c-format
 msgid "missing required subcommand %s"
-msgstr "mis verplichte subopdracht %s"
+msgstr "mis vereiste subopdracht %s"
 
 #: src/language/lexer/lexer.c:461
 #, c-format
 msgid "Syntax error %s at %s."
-msgstr "Syntax fout %s op %s."
+msgstr "Syntaxfout %s op %s."
 
 #: src/language/lexer/lexer.c:464
 #, c-format
 msgid "Syntax error at %s."
-msgstr "Syntax fout op %s."
+msgstr "Syntaxfout op %s."
 
 #: src/language/lexer/lexer.c:598 src/language/lexer/lexer.c:615
 #, c-format
@@ -2290,12 +2289,12 @@ msgstr "octaal"
 
 #: src/language/lexer/lexer.c:1072
 msgid "hex"
-msgstr ""
+msgstr "hexadecimaal"
 
 #: src/language/lexer/lexer.c:1082
 #, c-format
 msgid "String of %s digits has %zu characters, which is not a multiple of %d."
-msgstr "String van %s cijfers heeft %zu karakters, wat geen meervoud van %d is."
+msgstr "String van %s cijfers heeft %zu karakters, dat geen meervoud van %d is."
 
 #: src/language/lexer/lexer.c:1111
 #, c-format
@@ -2304,11 +2303,11 @@ msgstr "'%c' is geen geldig %s cijfer."
 
 #: src/language/lexer/lexer.c:1145
 msgid "Unterminated string constant."
-msgstr "Geen einde aan string constante."
+msgstr "Geen einde aan tekenreeks constante."
 
 #: src/language/lexer/lexer.c:1199
 msgid "Unexpected end of file in string concatenation."
-msgstr "Onverwacht bestandseinde in string samenvoeging."
+msgstr "Onverwacht bestandseinde in tekenreeks samenvoeging."
 
 #: src/language/lexer/lexer.c:1207
 msgid "String expected following `+'."
@@ -2322,16 +2321,16 @@ msgstr "String overschrijdt de lengte van 255 karakters (%zu karakters)."
 #: src/language/lexer/range-parser.c:60
 #, c-format
 msgid "Low end of range (%g) is below high end (%g).  The range will be treated as reversed."
-msgstr "Ondergrens van range (%g) is lager dan bovengrens (%g). De range wordt behandeld als omgekeerd."
+msgstr "Ondergrens van bereik (%g) is lager dan bovengrens (%g). Het bereik wordt behandeld als omgekeerd."
 
 #: src/language/lexer/range-parser.c:68
 #, c-format
 msgid "Ends of range are equal (%g)."
-msgstr "Eindes van range zijn gelijk (%g)."
+msgstr "Eindes van bereik zijn gelijk (%g)."
 
 #: src/language/lexer/range-parser.c:76
 msgid "LO or LOWEST must be part of a range."
-msgstr "LO of LOWEST moet een onderdeel van een range zijn."
+msgstr "LO of LOWEST moet een onderdeel van een bereik zijn."
 
 #: src/language/lexer/range-parser.c:108
 msgid "System-missing value is not valid here."
@@ -2339,26 +2338,26 @@ msgstr "System-missing waarde is hier niet geldig."
 
 #: src/language/lexer/range-parser.c:116
 msgid "expecting number or data string"
-msgstr "nummer of data string verwacht"
+msgstr "nummer of gegevenstekenreeks verwacht"
 
 #: src/language/lexer/variable-parser.c:63
 msgid "expecting variable name"
-msgstr "variabele naam verwacht"
+msgstr "variabelennaam verwacht"
 
 #: src/language/lexer/variable-parser.c:73
 #, c-format
 msgid "%s is not a variable name."
-msgstr "%s is geen variabele naam."
+msgstr "%s is geen variabelennaam."
 
 #: src/language/lexer/variable-parser.c:176
 #, c-format
 msgid "%s is not a numeric variable.  It will not be included in the variable list."
-msgstr "%s is geen numerieke variabele. Het wordt niet opgenomen in de variabele lijst."
+msgstr "%s is geen numerieke variabele. Het wordt niet opgenomen in de variabelenlijst."
 
 #: src/language/lexer/variable-parser.c:179
 #, c-format
 msgid "%s is not a string variable.  It will not be included in the variable list."
-msgstr "%s is geen string variabele. Het wordt niet opgenomen in de variabele lijst."
+msgstr "%s is geen tekenreeksvariabele. Het wordt niet opgenomen in de variabelenlijst."
 
 #: src/language/lexer/variable-parser.c:183
 #, c-format
@@ -2378,7 +2377,7 @@ msgstr "%s en %s hebben verschillende breedtes. Alle variabelen in deze variabel
 #: src/language/lexer/variable-parser.c:198
 #, c-format
 msgid "Variable %s appears twice in variable list."
-msgstr "Variabele %s komt 2 keer in de variabele lijst voor."
+msgstr "Variabele %s komt 2 keer in de variabelenlijst voor."
 
 #: src/language/lexer/variable-parser.c:311
 #, c-format
@@ -2388,7 +2387,7 @@ msgstr "%s TO %s is geen geldige syntax omdat %s voor %s in het woordenboek staa
 #: src/language/lexer/variable-parser.c:319
 #, c-format
 msgid "When using the TO keyword to specify several variables, both variables must be from the same variable dictionaries, of either ordinary, scratch, or system variables.  %s is a %s variable, whereas %s is %s."
-msgstr "Wanneer het sleutelwoord TO wordt gebruikt om verscheidene variabelen te specificeren, moeten beide variabelen van het zelfde variabele woordenboeken, of gewone, scratch, of systeem variabelen zijn. %s is een %s variabele, terwijl %s %s. is. "
+msgstr "Wanneer het sleutelwoord TO wordt gebruikt om verscheidene variabelen te specificeren, moeten beide variabelen van het zelfde variabele woordenboeken, of gewone, scratch, of systeemvariabelen zijn. %s is een %s variabele, terwijl %s %s. is. "
 
 #: src/language/lexer/variable-parser.c:393
 msgid "incorrect use of TO convention"
@@ -2416,7 +2415,7 @@ msgstr "BREAK verwacht"
 
 #: src/language/stats/aggregate.c:245
 msgid "When PRESORTED is specified, specifying sorting directions with (A) or (D) has no effect.  Output data will be sorted the same way as the input data."
-msgstr "Als PRESORTED is gespecificeerd, heeft specificeren van sorteer volgorde met (A) of (D) geen effect. Uitvoer data is hetzelfde gesorteerd als de invoer data."
+msgstr "Als PRESORTED is gespecificeerd, heeft specificeren van sorteer volgorde met (A) of (D) geen effect. Uitvoergegevens zullen hetzelfde gesorteerd zijn als de invoergegevens."
 
 #: src/language/stats/aggregate.c:416
 msgid "expecting aggregation function"
@@ -2435,12 +2434,12 @@ msgstr "Missend argument %zu naar %s."
 #: src/language/stats/aggregate.c:499
 #, c-format
 msgid "Arguments to %s must be of same type as source variables."
-msgstr "Argumenten naar %s moeten van hetzelfde type zijn als bron variabelen."
+msgstr "Argumenten naar %s moeten van hetzelfde type zijn als bronvariabelen."
 
 #: src/language/stats/aggregate.c:521
 #, c-format
 msgid "Number of source variables (%zu) does not match number of target variables (%zu)."
-msgstr "Aantal bron variabelen (%zu) komt niet overeen met aantal doel variabelen (%zu)."
+msgstr "Aantal bronvariabelen (%zu) komt niet overeen met aantal doelvariabelen (%zu)."
 
 #: src/language/stats/aggregate.c:537
 #, c-format
@@ -2450,22 +2449,22 @@ msgstr "De volgorde van de geldige argumenten doorgegeven aan de %s functie klop
 #: src/language/stats/aggregate.c:607
 #, c-format
 msgid "Variable name %s is not unique within the aggregate file dictionary, which contains the aggregate variables and the break variables."
-msgstr "Variabele naam %s is niet uniek binnen het aggregate bestand woordenboek, dat de aggregate variabelen en de break variabelen bevat."
+msgstr "Variabelennaam %s is niet uniek binnen het aggregate bestandwoordenboek, dat de aggregate variabelen en de break variabelen bevat."
 
 #: src/language/stats/autorecode.c:136
 #, c-format
 msgid "Source variable count (%zu) does not match target variable count (%zu)."
-msgstr "Bron variabele teller (%zu) komt niet overeen met doel variabele teller (%zu)."
+msgstr "Bron-variabelenteller (%zu) komt niet overeen met doel-variabelenteller (%zu)."
 
 #: src/language/stats/autorecode.c:164
 #, c-format
 msgid "Target variable %s duplicates existing variable %s."
-msgstr "Doel variabele %s dupliceert bestaande variabele %s."
+msgstr "Doelvariabele %s dupliceert bestaande variabele %s."
 
 #: src/language/stats/autorecode.c:171
 #, c-format
 msgid "Duplicate variable name %s among target variables."
-msgstr "Dubbele variabele naam %s tussen doel variabelen."
+msgstr "Dubbele variabelennaam %s tussen doelvariabelen."
 
 #: src/language/stats/binomial.c:133
 #, c-format
@@ -2566,7 +2565,7 @@ msgstr "Missing modus REPORT niet toegestaan in algemene modus.  MISSING=TABLE a
 
 #: src/language/stats/crosstabs.q:287
 msgid "Write mode ALL not allowed in general mode.  Assuming WRITE=CELLS."
-msgstr "Write modus ALL niet toegestaan in algemen modus.  WRITE=CELLS aangenomen."
+msgstr "Write modus ALL niet toegestaan in algemene modus.  WRITE=CELLS aangenomen."
 
 #: src/language/stats/crosstabs.q:363
 msgid "Too many cross-tabulation variables or dimensions."
@@ -2650,7 +2649,7 @@ msgstr ""
 #: src/language/stats/crosstabs.q:1211 src/language/stats/crosstabs.q:1232
 #: src/language/stats/examine.q:1462 src/ui/gui/checkbox-treeview.c:94
 msgid "Statistic"
-msgstr ""
+msgstr "Statistiek"
 
 #: src/language/stats/crosstabs.q:1168
 msgid "Asymp. Sig. (2-sided)"
@@ -2885,7 +2884,7 @@ msgstr ""
 #: src/language/stats/frequencies.q:133 src/ui/gui/descriptives-dialog.c:43
 #: src/ui/gui/frequencies-dialog.c:48
 msgid "Range"
-msgstr ""
+msgstr "Bereik"
 
 #: src/language/stats/descriptives.c:111 src/language/stats/examine.q:1684
 #: src/language/stats/frequencies.q:134 src/language/stats/npar-summary.c:137
@@ -2909,11 +2908,11 @@ msgstr "Som"
 #: src/language/stats/descriptives.c:344
 #, c-format
 msgid "Z-score variable name %s would be a duplicate variable name."
-msgstr "Z-score variabele naam %s zou een dubbele variabele naam zijn."
+msgstr "Z-score variabelennaam %s zou een dubbele variabelennaam zijn."
 
 #: src/language/stats/descriptives.c:451
 msgid "expecting statistic name: reverting to default"
-msgstr "statistische naam verwacht: teruggezet op default"
+msgstr "statistische naam verwacht: teruggezet op verstek"
 
 #: src/language/stats/descriptives.c:524
 msgid "Ran out of generic names for Z-score variables.  There are only 126 generic names: ZSC001-ZSC0999, STDZ01-STDZ09, ZZZZ01-ZZZZ09, ZQZQ01-ZQZQ09."
@@ -2947,7 +2946,7 @@ msgstr ""
 #: src/language/stats/descriptives.c:915
 #, c-format
 msgid "Valid cases = %g; cases with missing value(s) = %g."
-msgstr "Geldige cases = %g; cases met missing value(s) = %g."
+msgstr "Geldige cases = %g; cases met ontbrekende-waarde(s) = %g."
 
 #: src/language/stats/examine.q:290 src/language/stats/examine.q:293
 #, c-format
@@ -3084,7 +3083,7 @@ msgstr "Kon geen acceptabele variant voor variabele %s creëren."
 
 #: src/language/stats/flip.c:278
 msgid "Cannot create more than 99999 variable names."
-msgstr "Kan niet meer dan 99999 variabele namen creëren."
+msgstr "Kan niet meer dan 99999 variabelennamen creëren."
 
 #: src/language/stats/flip.c:394
 #, c-format
@@ -3093,7 +3092,7 @@ msgstr "Fout tijdens terugdraaien FLIP bestand: %s."
 
 #: src/language/stats/flip.c:401
 msgid "Error creating FLIP source file."
-msgstr "Fout tijdens het creëren van FLIP bron bestand."
+msgstr "Fout tijdens het creëren van FLIP bronbestand."
 
 #: src/language/stats/flip.c:414
 #, c-format
@@ -3102,27 +3101,27 @@ msgstr "Fout tijdens lezen FLIP bestand: %s."
 
 #: src/language/stats/flip.c:416
 msgid "Unexpected end of file reading FLIP file."
-msgstr "Onverwacht einde bestand tijdens lezen FLIP bestand."
+msgstr "Onverwacht einde-bestand tijdens lezen FLIP bestand."
 
 #: src/language/stats/flip.c:432
 #, c-format
 msgid "Error seeking FLIP source file: %s."
-msgstr "Fout tijdens zoeken FLIP bron bestand: %s."
+msgstr "Fout tijdens zoeken FLIP bronbestand: %s."
 
 #: src/language/stats/flip.c:440
 #, c-format
 msgid "Error writing FLIP source file: %s."
-msgstr "Fout tijdens schrijven FLIP bron bestand: %s."
+msgstr "Fout tijdens schrijven FLIP bronbestand: %s."
 
 #: src/language/stats/flip.c:451
 #, c-format
 msgid "Error closing FLIP source file: %s."
-msgstr "Fout tijdens sluiten FLIP bron bestand: %s."
+msgstr "Fout tijdens sluiten FLIP bronbestand: %s."
 
 #: src/language/stats/flip.c:459
 #, c-format
 msgid "Error rewinding FLIP source file: %s."
-msgstr "Fout tijdens terugdraaien FLIP bron bestand: %s."
+msgstr "Fout tijdens terugdraaien FLIP bronbestand: %s."
 
 #: src/language/stats/flip.c:488
 #, c-format
@@ -3131,7 +3130,7 @@ msgstr "Fout tijdens lezen FLIP tijdelijk bestand: %s."
 
 #: src/language/stats/flip.c:491
 msgid "Unexpected end of file reading FLIP temporary file."
-msgstr "Onverwacht einde bestand tijdens lezen FLIP tijdelijk bestand."
+msgstr "Onverwacht einde-bestand tijdens lezen FLIP tijdelijk bestand."
 
 #: src/language/stats/frequencies.q:124
 msgid "S.E. Mean"
@@ -3188,7 +3187,7 @@ msgstr "Frequenties"
 
 #: src/language/stats/frequencies.q:1085
 msgid "Value Label"
-msgstr "Waarde Label"
+msgstr "WaardeLabel"
 
 #: src/language/stats/frequencies.q:1189
 msgid "Freq"
@@ -3201,7 +3200,7 @@ msgstr ""
 #: src/language/stats/frequencies.q:1385
 #, c-format
 msgid "No valid data for variable %s; statistics not displayed."
-msgstr "Geen geldige data voor variabele %s; statistieken worden niet getoond."
+msgstr "Geen geldige gegevens voor variabele %s; statistieken worden niet getoond."
 
 #: src/language/stats/frequencies.q:1426
 msgid "50 (Median)"
@@ -3213,11 +3212,11 @@ msgstr ""
 
 #: src/language/stats/glm.q:356 src/language/stats/regression.q:1026
 msgid "No valid data found. This command was skipped."
-msgstr "Geen geldige data gevonden. Deze opdracht is overgeslagen."
+msgstr "Geen geldige gegevens gevonden. Deze opdracht is overgeslagen."
 
 #: src/language/stats/means.q:100
 msgid "Missing required subcommand TABLES."
-msgstr "Missing vereist subopdracht TABLES."
+msgstr "Mis vereiste subopdracht TABLES."
 
 #: src/language/stats/means.q:134
 msgid "TABLES subcommand may not appear more than once."
@@ -3251,7 +3250,7 @@ msgstr "De opgegeven waarde van HI (%d) is lager dan de opgegeven waarde van LO 
 #: src/language/stats/npar.q:291
 #, c-format
 msgid "%d expected values were given, but the specified range (%d-%d) requires exactly %d values."
-msgstr "%d verwachte waardes waren opgegeven, maar de opgegeven range (%d-%d) vereist precies %d waardes."
+msgstr "%d verwachte waardes waren opgegeven, maar het opgegeven bereik (%d-%d) vereist precies %d waardes."
 
 #: src/language/stats/npar.q:425 src/language/stats/t-test.q:501
 #, c-format
@@ -3270,7 +3269,7 @@ msgstr ""
 #: src/language/stats/oneway.q:245
 #, c-format
 msgid "`%s' is not a variable name"
-msgstr "'%s' is geen variabele naam"
+msgstr "'%s' is geen variabelennaam"
 
 #: src/language/stats/oneway.q:279 src/language/stats/regression.q:301
 msgid "Sum of Squares"
@@ -3393,7 +3392,7 @@ msgstr "%s in %s(%s van %s)"
 
 #: src/language/stats/rank.q:767
 msgid "FRACTION has been specified, but NORMAL and PROPORTION rank functions have not been requested.  The FRACTION subcommand will be ignored."
-msgstr "FRACTION is gespecificeerd maar NORMAL en PROPORTION rangschik functies ziin niet gevraagd. De FRACTION subopdracht wordt genegeerd."
+msgstr "FRACTION is gespecificeerd maar NORMAL en PROPORTION rangschik functies zijn niet gevraagd. De FRACTION subopdracht wordt genegeerd."
 
 #: src/language/stats/rank.q:860
 #, c-format
@@ -3402,7 +3401,7 @@ msgstr "Variabele %s bestaat al."
 
 #: src/language/stats/rank.q:865
 msgid "Too many variables in INTO clause."
-msgstr "Te veel variabelen in INTO clause."
+msgstr "Te veel variabelen in INTO clausule."
 
 #: src/language/stats/regression.q:159 src/ui/gui/regression-dialog.c:41
 msgid "R"
@@ -3479,7 +3478,7 @@ msgstr "')' verwacht."
 #: src/language/stats/sort-criteria.c:85
 #, c-format
 msgid "Variable %s specified twice in sort criteria."
-msgstr "Variabele %s 2 keer opgegeven in sort criteria."
+msgstr "Variabele %s 2 keer opgegeven in sorteer criteria."
 
 #: src/language/stats/t-test.q:280
 msgid "TESTVAL, GROUPS and PAIRS subcommands are mutually exclusive."
@@ -3487,7 +3486,7 @@ msgstr "TESTVAL, GROUPS en PAIRS subopdracht zijn wederzijds uitsluitend."
 
 #: src/language/stats/t-test.q:298
 msgid "VARIABLES subcommand is not appropriate with PAIRS"
-msgstr "VARIABLES subprogramma is niet het juiste met PAIRS"
+msgstr "VARIABLES subcommando is niet geschikt met PAIRS"
 
 #: src/language/stats/t-test.q:336
 msgid "One or more VARIABLES must be specified."
@@ -3496,15 +3495,15 @@ msgstr "Een of meer VARIABLES moeten gespecificeerd zijn."
 #: src/language/stats/t-test.q:386
 #, c-format
 msgid "Long string variable %s is not valid here."
-msgstr "Lange string variabele %s is niet geldig hier."
+msgstr "Lange tekenreeksvariabele %s is niet geldig hier."
 
 #: src/language/stats/t-test.q:406 src/language/stats/t-test.q:420
 msgid "When applying GROUPS to a string variable, two values must be specified."
-msgstr "By het toepassen van GROUPS op een string variabele moeten twee waardes opgegeven zijn."
+msgstr "Bij het toepassen van GROUPS op een tekenreeksvariabele moeten twee waardes opgegeven zijn."
 
 #: src/language/stats/t-test.q:518
 msgid "At least two variables must be specified on PAIRS."
-msgstr "Ten minste 2 variabelen moeten opgegeven worden bij PAIRS."
+msgstr "Tenminste 2 variabelen moeten opgegeven worden bij PAIRS."
 
 #: src/language/stats/t-test.q:698
 msgid "One-Sample Statistics"
@@ -3604,7 +3603,7 @@ msgstr ""
 #: src/language/syntax-file.c:88
 #, c-format
 msgid "opening \"%s\" as syntax file"
-msgstr "openen \"%s\" als syntax bestand"
+msgstr "openen \"%s\" als syntaxbestand"
 
 #: src/language/syntax-file.c:93
 #, c-format
@@ -3642,7 +3641,7 @@ msgstr "fout bij openen \"%s\" voor schrijven"
 #: src/language/tests/float-format.c:124
 #, c-format
 msgid "%zu-byte string needed but %zu-byte string supplied."
-msgstr "%zu-byte string nodig maar %zu-byte string gegeven."
+msgstr "%zu-byte tekenreeks nodig maar %zu-byte tekenreeks gegeven."
 
 #: src/language/tests/float-format.c:136
 msgid "Hexadecimal floating constant too long."
@@ -3659,7 +3658,7 @@ msgstr "Te veel waardes in enkele opdracht."
 
 #: src/language/tests/moments-test.c:47
 msgid "expecting weight value"
-msgstr "verwacht weging waarde"
+msgstr "verwacht wegingwaarde"
 
 #: src/language/utilities/cd.c:41
 #, c-format
@@ -3714,7 +3713,7 @@ msgstr ""
 #: src/language/utilities/permissions.c:119
 #, c-format
 msgid "Cannot change mode of %s: %s"
-msgstr "Kan mode van %s niet veranderen: %s"
+msgstr "Kan modus van %s niet veranderen: %s"
 
 #: src/language/utilities/set.q:200
 msgid "WORKSPACE must be at least 1MB"
@@ -3757,7 +3756,7 @@ msgstr "WIDTH moet tenminste 40 zijn."
 #: src/language/utilities/set.q:418
 #, c-format
 msgid "FORMAT requires numeric output format as an argument.  Specified format %s is of type string."
-msgstr "FORMAT vereist numeriek uitvoer formaat als een argument. Opgegeven formaat %s is van het type string."
+msgstr "FORMAT vereist numeriek uitvoer-format als een argument. Opgegeven format %s is van het type tekenreeks."
 
 #: src/language/utilities/set.q:485
 msgid "BLANKS is SYSMIS."
@@ -3851,7 +3850,7 @@ msgstr "BREEDTE is %d."
 #: src/language/utilities/title.c:68
 #, c-format
 msgid "%s: `.' expected after string."
-msgstr "%s: `.' verwacht na string."
+msgstr "%s: `.' verwacht na tekenreeks."
 
 #: src/language/utilities/title.c:108
 #, c-format
@@ -3875,43 +3874,43 @@ msgstr "Er is geen vector genaamd %s."
 
 #: src/language/xforms/count.c:123
 msgid "Destination cannot be a string variable."
-msgstr "Bestemming kan geen string variabele zijn."
+msgstr "Bestemming kan geen tekenreeksvariabele zijn."
 
 #: src/language/xforms/recode.c:246
 msgid "Inconsistent target variable types.  Target variables must be all numeric or all string."
-msgstr "Inconsistent doel variabele types.  Doel variabelen moeten allemaal numeriek of allemaal string zijn. "
+msgstr "Inconsistent doelvariabelen types.  Doelvariabelen moeten allemaal numeriek of allemaal tekenreeks zijn. "
 
 #: src/language/xforms/recode.c:267
 msgid "CONVERT requires string input values and numeric output values."
-msgstr "CONVERT vereist string invoer waardes en numerieke uitvoer waardes."
+msgstr "CONVERT vereist tekenreeks invoerwaardes en numerieke uitvoerwaardes."
 
 #: src/language/xforms/recode.c:317
 msgid "THRU is not allowed with string variables."
-msgstr "THRU is niet toegestaan met string variabelen."
+msgstr "THRU is niet toegestaan met tekenreeks-variabelen."
 
 #: src/language/xforms/recode.c:391
 msgid "expecting output value"
-msgstr "verwacht uitvoer waarde"
+msgstr "verwacht uitvoerwaarde"
 
 #: src/language/xforms/recode.c:440
 #, c-format
 msgid "%zu variable(s) cannot be recoded into %zu variable(s).  Specify the same number of variables as source and target variables."
-msgstr "%zu variabel(en) kunnen niet gehercodeerd worden in %zu variabel(en).  Specificeer hetzelfde aantal variabelen als bron en als doel variabelen."
+msgstr "%zu variabel(en) kunnen niet gehercodeerd worden in %zu variabel(en).  Specificeer hetzelfde aantal variabelen als bron- en als doelvariabelen."
 
 #: src/language/xforms/recode.c:455
 #, c-format
 msgid "There is no variable named %s.  (All string variables specified on INTO must already exist.  Use the STRING command to create a string variable.)"
-msgstr "Er is geen variabele genaamd %s.  (Alle string variabelen gespecificeerd bij INTO dienen al te bestaan.  Gebruik de STRING opdracht om een string variabele aan te maken.)"
+msgstr "Er is geen variabele genaamd %s.  (Alle tekenreeksvariabelen gespecificeerd bij INTO dienen al te bestaan.  Gebruik de STRING opdracht om een tekenreeks variabele aan te maken.)"
 
 #: src/language/xforms/recode.c:470
 #, c-format
 msgid "INTO is required with %s input values and %s output values."
-msgstr "INTO is vereist met %s invoer waardes en %s uitvoer waardes."
+msgstr "INTO is vereist met %s invoerwaardes en %s uitvoerwaardes."
 
 #: src/language/xforms/recode.c:483
 #, c-format
 msgid "Type mismatch.  Cannot store %s data in %s variable %s."
-msgstr "Type fout. Kan %s data niet in %s variabele %s opslaan. "
+msgstr "Type fout. Kan %s gegevens niet in %s variabele %s opslaan. "
 
 #: src/language/xforms/sample.c:76
 msgid "The sampling factor must be between 0 and 1 exclusive."
@@ -3924,7 +3923,7 @@ msgstr "Kan niet %d observaties bemonsteren van een populatie van %d."
 
 #: src/language/xforms/select-if.c:100
 msgid "Syntax error expecting OFF or BY.  Turning off case filtering."
-msgstr "Syntax fout verwacht OFF of BY. Schakelt case filtering uit. "
+msgstr "Syntaxfout verwacht OFF of BY. Schakelt case filtering uit. "
 
 #: src/language/xforms/select-if.c:115
 msgid "The filter variable must be numeric."
@@ -3988,15 +3987,15 @@ msgstr "referentie naar onbekend karakter \"%s\""
 
 #: src/output/afm.c:593
 msgid "expected end of file"
-msgstr "einde bestand verwacht"
+msgstr "einde-bestand verwacht"
 
 #: src/output/afm.c:605
 msgid "syntax error expecting end of line"
-msgstr "syntax fout einde regel verwacht"
+msgstr "syntaxfout regeleinde verwacht"
 
 #: src/output/afm.c:623 src/output/afm.c:660
 msgid "number out of valid range"
-msgstr "nummer buiten geldige range"
+msgstr "nummer buiten geldig bereik"
 
 #: src/output/afm.c:625 src/output/afm.c:662
 msgid "invalid numeric syntax"
@@ -4004,27 +4003,27 @@ msgstr "ongeldige numerieke syntax"
 
 #: src/output/afm.c:641
 msgid "syntax error expecting integer"
-msgstr "syntax fout integer verwacht"
+msgstr "syntaxfout integer verwacht"
 
 #: src/output/afm.c:679
 msgid "syntax error expecting number"
-msgstr "syntax fout nummer verwacht"
+msgstr "syntaxfout nummer verwacht"
 
 #: src/output/afm.c:692
 msgid "syntax error in hex constant"
-msgstr "syntax fout in hex constante"
+msgstr "syntaxfout in hexadecimale constante"
 
 #: src/output/afm.c:707
 msgid "syntax error expecting hex constant"
-msgstr "syntax fout hex constante verwacht"
+msgstr "syntaxfout hexadecimale constante verwacht"
 
 #: src/output/afm.c:745
 msgid "unexpected end of line"
-msgstr "onverwacht regel einde"
+msgstr "onverwacht regeleinde"
 
 #: src/output/afm.c:795
 msgid "unexpected end of line expecting string"
-msgstr "onverwacht regeleinde string verwacht"
+msgstr "onverwacht regeleinde, tekenreeks verwacht"
 
 #: src/output/ascii.c:251
 #, c-format
@@ -4079,7 +4078,7 @@ msgstr "`chart-files' waarde moet `#' bevatten"
 #: src/output/ascii.c:524
 #, c-format
 msgid "ascii: opening output file \"%s\""
-msgstr "ascii: openen uitvoer bestand \"%s\""
+msgstr "ascii: openen uitvoerbestand \"%s\""
 
 #: src/output/ascii.c:587
 #, c-format
@@ -4094,7 +4093,7 @@ msgstr "%s - Pagina %d"
 #: src/output/ascii.c:861
 #, c-format
 msgid "ascii: closing output file \"%s\""
-msgstr "ascii: sluiten uitvoer bestand \"%s\""
+msgstr "ascii: sluiten uitvoerbestand \"%s\""
 
 #: src/output/chart.c:145
 #, c-format
@@ -4108,7 +4107,7 @@ msgstr ""
 #: src/output/html.c:71
 #, c-format
 msgid "opening HTML output file: %s"
-msgstr "openen HTML uitvoer bestand: %s"
+msgstr "openen HTML uitvoerbestand: %s"
 
 #: src/output/html.c:82
 msgid "PSPP Output"
@@ -4117,7 +4116,7 @@ msgstr "PSPP Uitvoer"
 #: src/output/html.c:170
 #, c-format
 msgid "unknown configuration parameter `%s' for HTML device driver"
-msgstr "onbekende configuratie parameter '%s' voor HTML device driver"
+msgstr "onbekende configuratie parameter '%s' voor HTML apparaat stuurprogramma"
 
 #: src/output/journal.c:69
 #, c-format
@@ -4132,17 +4131,17 @@ msgstr "fout bij aanmaken \"%s\""
 #: src/output/output.c:168
 #, c-format
 msgid "unknown output driver `%s'"
-msgstr "onbekende uitvoer driver %s"
+msgstr "onbekend uitvoer stuurprogramma %s"
 
 #: src/output/output.c:170
 #, c-format
 msgid "output driver `%s' referenced but never defined"
-msgstr "uitvoer driver '%s' gerefereerd maar nooit gedefinieerd"
+msgstr "uitvoer stuurprogramma '%s' gerefereerd maar nooit gedefinieerd"
 
 #: src/output/output.c:261
 #, c-format
 msgid "using default output driver configuration"
-msgstr "gebruik default uitvoer driver configuratie"
+msgstr "gebruik verstek uitvoer stuurprogramma configuratie"
 
 #: src/output/output.c:290
 #, c-format
@@ -4162,7 +4161,7 @@ msgstr "lezen \"%s\""
 #: src/output/output.c:332 src/ui/gui/message-dialog.c:97
 #, c-format
 msgid "syntax error"
-msgstr "syntax fout"
+msgstr "syntaxfout"
 
 #: src/output/output.c:341
 #, c-format
@@ -4172,12 +4171,12 @@ msgstr "fout bij sluiten \"%s\""
 #: src/output/output.c:349
 #, c-format
 msgid "no active output drivers"
-msgstr "geen actieve uitvoer drivers"
+msgstr "geen actieve uitvoer stuurprogramma's"
 
 #: src/output/output.c:352
 #, c-format
 msgid "error reading device definition file"
-msgstr "fout tijdens lezen device definitie bestand"
+msgstr "fout tijdens lezen apparaat definitie bestand"
 
 #: src/output/output.c:470
 #, c-format
@@ -4185,31 +4184,33 @@ msgid ""
 "Driver classes:\n"
 "\t"
 msgstr ""
+"Stuurprogramma klassen:\n"
+"\t"
 
 #: src/output/output.c:502
 #, c-format
 msgid "syntax error parsing options for \"%s\" driver"
-msgstr "syntax fout bij het ontleden van opties voor \"%s\" driver"
+msgstr "syntaxfout bij het ontleden van opties voor \"%s\" stuurprogramma"
 
 #: src/output/output.c:518
 #, c-format
 msgid "reached end of options inside quoted string parsing options for \"%s\" driver"
-msgstr "einde opties bereikt binnen geciteerde string tijdens ontleden van opties voor \"%s\" driver"
+msgstr "einde opties bereikt binnen geciteerde tekenreeks tijdens ontleden van opties voor \"%s\" stuurprogramma"
 
 #: src/output/output.c:588
 #, c-format
 msgid "syntax error in string constant parsing options for \"%s\" driver"
-msgstr "syntax fout in string constante tijdens ontleden opties voor \"%s\" driver"
+msgstr "syntaxfout in tekenreeks constante tijdens ontleden opties voor \"%s\" stuurprogramma"
 
 #: src/output/output.c:636
 #, c-format
 msgid "syntax error expecting `=' parsing options for driver \"%s\""
-msgstr "syntax fout verwacht `=' tijdens ontleden opties voor driver \"%s\""
+msgstr "syntaxfout verwacht `=' tijdens ontleden opties voor stuurprogramma \"%s\""
 
 #: src/output/output.c:687
 #, c-format
 msgid "unknown output driver class `%.*s'"
-msgstr "onbekende uitvoer driver class `%.*s'"
+msgstr "onbekende uitvoer stuurprogramma klasse `%.*s'"
 
 #: src/output/output.c:702
 #, c-format
@@ -4224,7 +4225,7 @@ msgstr ""
 #: src/output/output.c:765
 #, c-format
 msgid "driver definition line missing driver name or class name"
-msgstr "driver definitie regel mist driver naam of class naam"
+msgstr "stuurprogramma definitie regel mist stuurprogramma naam of klasse naam"
 
 #: src/output/output.c:868
 #, c-format
@@ -4254,32 +4255,32 @@ msgstr "papier grootte bestand \"%s\" geeft geen papier grootte aan"
 #: src/output/output.c:1066
 #, c-format
 msgid "syntax error in paper size `%s'"
-msgstr "syntax fout in papier grootte '%s' "
+msgstr "syntaxfout in papier grootte '%s' "
 
 #: src/output/postscript.c:158
 #, c-format
 msgid "opening PostScript output file \"%s\""
-msgstr "Openen PostScript uitvoer bestand \"%s\""
+msgstr "Openen PostScript uitvoerbestand \"%s\""
 
 #: src/output/postscript.c:196
 #, c-format
 msgid "The defined PostScript page is not long enough to hold margins and headers, plus least 15 lines of the default fonts.  In fact, there's only room for %d lines of each font at the default size of %d.%03d points."
-msgstr "De gedefinieerde PostScript pagina is niet lang genoeg om marges en koppen, plus tenminste 15 regels van het default font te bevatten.  In feite is er slechts plaats voor %d regels van elk font bij de default grootte van %d.%03d punten."
+msgstr "De gedefinieerde PostScript pagina is niet lang genoeg om marges en koppen, plus tenminste 15 regels van het verstek font te bevatten.  In feite is er slechts plaats voor %d regels van elk font bij de verstek grootte van %d.%03d punten."
 
 #: src/output/postscript.c:246
 #, c-format
 msgid "closing PostScript output file \"%s\""
-msgstr "sluiten PostScript uitvoer bestand \"%s\""
+msgstr "sluiten PostScript uitvoerbestand \"%s\""
 
 #: src/output/postscript.c:309
 #, c-format
 msgid "unknown configuration parameter `%s' for PostScript device driver"
-msgstr "onbekende configuratie parameter `%s' voor PostScript device driver"
+msgstr "onbekende configuratie parameter `%s' voor PostScript apparaat stuurprogramma"
 
 #: src/output/postscript.c:325
 #, c-format
 msgid "unknown orientation `%s' (valid orientations are `portrait' and `landscape')"
-msgstr "onbekende oriëntatie '%s' (geldige oriëntaties zijn 'portrait'en 'landscape')"
+msgstr "onbekende oriëntatie '%s' (geldige oriëntaties zijn 'portrait' en 'landscape')"
 
 #: src/output/postscript.c:337
 #, c-format
@@ -4294,7 +4295,7 @@ msgstr "positieve integer waarde vereist voor '%s'"
 #: src/output/postscript.c:355
 #, c-format
 msgid "default font size must be at least 1 point (value of 1000 for key `%s')"
-msgstr "default font grootte moet tenminste 1 punt zijn (waarde 1000 voor sleutel '%s')"
+msgstr "verstek font grootte moet tenminste 1 punt zijn (waarde 1000 voor sleutel '%s')"
 
 #: src/output/postscript.c:1176
 #, c-format
@@ -4334,7 +4335,7 @@ msgstr "kan font codering bestand \"%s\" niet openen"
 #: src/output/postscript.c:1399
 #, c-format
 msgid "invalid numeric format"
-msgstr "ongeldig numeriek formaat"
+msgstr "ongeldig numeriek format"
 
 #: src/output/postscript.c:1421
 #, c-format
@@ -4354,7 +4355,7 @@ msgstr ""
 #: src/ui/gui/comments-dialog.c:58
 #, c-format
 msgid "Column Number: %d"
-msgstr "Kolom Nummer: %d"
+msgstr "Kolomnummer: %d"
 
 #: src/ui/gui/crosstabs-dialog.c:40
 msgid "Chisq"
@@ -4424,7 +4425,7 @@ msgstr "Rijen"
 
 #: src/ui/gui/crosstabs.glade:131 src/ui/gui/frequencies.glade:185
 msgid "Format..."
-msgstr "Formaat..."
+msgstr ""
 
 #: src/ui/gui/crosstabs.glade:138 src/ui/gui/examine.glade:246
 #: src/ui/gui/regression.glade:31
@@ -4453,7 +4454,7 @@ msgstr "Geen label"
 
 #: src/ui/gui/crosstabs.glade:295
 msgid "Suppress value labels"
-msgstr "Onderdruk waarde labels"
+msgstr "Onderdruk waardelabels"
 
 #: src/ui/gui/crosstabs.glade:311
 msgid "Labeling"
@@ -4482,7 +4483,7 @@ msgstr "_Labels"
 
 #: src/ui/gui/data-editor.c:324
 msgid "Show/hide value labels"
-msgstr "Toon/verberg waarde labels"
+msgstr "Toon/verberg waardelabels"
 
 #: src/ui/gui/data-editor.c:342 src/ui/gui/data-editor.c:361
 #: src/ui/gui/data-editor.c:1512 src/ui/gui/data-editor.c:1566
@@ -4519,11 +4520,11 @@ msgstr "_Ga Naar Case"
 
 #: src/ui/gui/data-editor.c:418
 msgid "Jump to a Case in the Data Sheet"
-msgstr "Spring naar een Case in het Data Blad"
+msgstr "Spring naar een Case in het Gegevensblad"
 
 #: src/ui/gui/data-editor.c:437
 msgid "_Weights"
-msgstr "_Gewicht:"
+msgstr "Ge_wicht:"
 
 #: src/ui/gui/data-editor.c:438
 msgid "Weight cases by variable"
@@ -4603,11 +4604,11 @@ msgstr ""
 
 #: src/ui/gui/data-editor.c:537 src/ui/gui/data-editor.glade:593
 msgid "Data File _Comments"
-msgstr "Data Bestand _Commentaren"
+msgstr "Gegevensbestand _Commentaren"
 
 #: src/ui/gui/data-editor.c:538
 msgid "Commentary text for the data file"
-msgstr "Commentaar tekst voor het data bestand"
+msgstr "Commentaar tekst voor het gegevensbestand"
 
 #: src/ui/gui/data-editor.c:546 src/ui/gui/data-editor.glade:228
 msgid "_Find"
@@ -4644,7 +4645,7 @@ msgstr "Hercodeer waardes in andere Variabelen"
 #: src/ui/gui/data-editor.c:586 src/ui/gui/data-editor.glade:293
 #: src/ui/gui/data-editor.glade:584
 msgid "_Variables"
-msgstr "_Variabele"
+msgstr "_Variabelen"
 
 #: src/ui/gui/data-editor.c:587
 msgid "Jump to Variable"
@@ -4728,7 +4729,7 @@ msgstr ""
 
 #: src/ui/gui/data-editor.c:1199
 msgid "Open a data file"
-msgstr "Open een data bestand"
+msgstr "Open een gegevensbestand"
 
 #: src/ui/gui/data-editor.c:1207 src/ui/gui/data-editor.c:1323
 #: src/ui/gui/data-editor.glade:670
@@ -4737,7 +4738,7 @@ msgstr "Opslaan"
 
 #: src/ui/gui/data-editor.c:1208 src/ui/gui/data-editor.c:1218
 msgid "Save data to file"
-msgstr "Data opslaan als bestand"
+msgstr "Gegevens opslaan als bestand"
 
 #: src/ui/gui/data-editor.c:1217
 msgid "Save As"
@@ -4750,19 +4751,19 @@ msgstr "Nieuw"
 
 #: src/ui/gui/data-editor.c:1227
 msgid "New data file"
-msgstr "Nieuw data bestand"
+msgstr "Nieuw gegevensbestand"
 
 #: src/ui/gui/data-editor.c:1235
 msgid "_Import Text Data"
-msgstr "_Importeer Text Data"
+msgstr "_Importeer Delimited Tekst Gegevens"
 
 #: src/ui/gui/data-editor.c:1236
 msgid "Import text data file"
-msgstr "Importeer text data bestand"
+msgstr "Importeer tekstgegevens-bestand"
 
 #: src/ui/gui/data-editor.c:1331 src/ui/gui/data-editor.c:1453
 msgid "System Files (*.sav)"
-msgstr "Systeem Bestand (*.sav)"
+msgstr "Systeembestand (*.sav)"
 
 #: src/ui/gui/data-editor.c:1337 src/ui/gui/data-editor.c:1459
 msgid "Portable Files (*.por) "
@@ -4775,7 +4776,7 @@ msgstr "Alle bestanden"
 
 #: src/ui/gui/data-editor.c:1351
 msgid "System File"
-msgstr "Systeem Bestand"
+msgstr "Systeembestand"
 
 #: src/ui/gui/data-editor.c:1356
 msgid "Portable File"
@@ -4812,15 +4813,15 @@ msgstr ""
 #: src/ui/gui/data-editor.glade:286 src/ui/gui/data-editor.glade:304
 #: src/ui/gui/syntax-editor.glade:66 src/ui/gui/syntax-editor.glade:96
 msgid "_Data"
-msgstr ""
+msgstr "_Gegevens"
 
 #: src/ui/gui/data-editor.glade:78
 msgid "_Import Delimited Text Data"
-msgstr "_Importeer Delimited Text Data"
+msgstr "_Importeer Delimited Tekstgegevens"
 
 #: src/ui/gui/data-editor.glade:111
 msgid "Recently Used Da_ta"
-msgstr "Recent Gebruikte Da_ta"
+msgstr "Recent Gebruikte Ge_gevens"
 
 #: src/ui/gui/data-editor.glade:118
 msgid "Recently Used _Files"
@@ -4845,7 +4846,7 @@ msgstr "V_erwijder Variabelen"
 
 #: src/ui/gui/data-editor.glade:215
 msgid "_Clear Cases"
-msgstr "_Verwijder Cases"
+msgstr "Verwijder _Cases"
 
 #: src/ui/gui/data-editor.glade:239
 msgid "_View"
@@ -4865,7 +4866,7 @@ msgstr "_Grid Lijnen"
 
 #: src/ui/gui/data-editor.glade:274
 msgid "Value _Labels"
-msgstr "Waarde _Labels"
+msgstr "Waarde_labels"
 
 #: src/ui/gui/data-editor.glade:311
 msgid "_Sort Cases"
@@ -4885,7 +4886,7 @@ msgstr "_Transformeer"
 
 #: src/ui/gui/data-editor.glade:409
 msgid "_Run Pending Transforms"
-msgstr "_Run uitstaande Transformaties"
+msgstr "_Voer uitstaande Transformaties uit"
 
 #: src/ui/gui/data-editor.glade:422
 msgid "_Analyze"
@@ -4935,7 +4936,7 @@ msgstr "_Vensters"
 #: src/ui/gui/data-editor.glade:611 src/ui/gui/output-viewer.glade:88
 #: src/ui/gui/syntax-editor.glade:243
 msgid "_Minimize All Windows"
-msgstr "_Minimalizeer Alle Vensters"
+msgstr "_Minimaliseer Alle Vensters"
 
 #: src/ui/gui/data-editor.glade:622 src/ui/gui/output-viewer.glade:99
 #: src/ui/gui/syntax-editor.glade:254
@@ -4991,7 +4992,7 @@ msgstr "Selecteer Cases"
 #: src/ui/gui/data-editor.glade:864 src/ui/gui/data-editor.glade:1452
 #: src/ui/gui/data-editor.glade:1633
 msgid "Value Labels"
-msgstr "Waarde Labels"
+msgstr "Waardelabels"
 
 #: src/ui/gui/data-editor.glade:875
 msgid "Use Sets"
@@ -4999,31 +5000,31 @@ msgstr "Gebruik Sets"
 
 #: src/ui/gui/data-editor.glade:907
 msgid "Information Area"
-msgstr "Informatie Gebied"
+msgstr "Informatiegebied"
 
 #: src/ui/gui/data-editor.glade:926
 msgid "Processor Area"
-msgstr "Processor Gebied"
+msgstr "Processorgebied"
 
 #: src/ui/gui/data-editor.glade:951
 msgid "Case Counter Area"
-msgstr "Case Teller Gebied"
+msgstr "Case-Tellergebied"
 
 #: src/ui/gui/data-editor.glade:976
 msgid "Filter Use Status Area"
-msgstr "Filter Gebruik Status Gebied"
+msgstr "Filtergebruik Statusgebied"
 
 #: src/ui/gui/data-editor.glade:1002
 msgid "Weight Status Area"
-msgstr "Weging Status Gebied"
+msgstr "Weging Statusgebied"
 
 #: src/ui/gui/data-editor.glade:1028
 msgid "Split File Status Area"
-msgstr "Splits Bestand Status Gebied"
+msgstr "Splitsbestand Statusgebied"
 
 #: src/ui/gui/data-editor.glade:1058
 msgid "Variable Type"
-msgstr "Variabele Type"
+msgstr "Variabelentype"
 
 #: src/ui/gui/data-editor.glade:1094 src/ui/gui/psppire-var-store.c:599
 msgid "Comma"
@@ -5071,7 +5072,7 @@ msgstr "Decimalen:"
 
 #: src/ui/gui/data-editor.glade:1550
 msgid "Value Label:"
-msgstr "Waarde Label:"
+msgstr "Waardelabel:"
 
 #: src/ui/gui/data-editor.glade:1563 src/ui/gui/psppire.glade:2544
 #: src/ui/gui/recode.glade:185
@@ -5081,7 +5082,7 @@ msgstr "Waarde:"
 #: src/ui/gui/data-editor.glade:1700 src/ui/gui/examine.glade:423
 #: src/ui/gui/t-test.glade:460
 msgid "Missing Values"
-msgstr "Ontbrekende Waardes"
+msgstr "Ontbrekende-Waardes"
 
 #: src/ui/gui/data-editor.glade:1718
 msgid "_Range plus one optional discrete missing value"
@@ -5109,11 +5110,11 @@ msgstr ""
 
 #: src/ui/gui/descriptives-dialog.c:40 src/ui/gui/frequencies-dialog.c:41
 msgid "Standard deviation"
-msgstr "Standaard deviatie"
+msgstr "Standaarddeviatie"
 
 #: src/ui/gui/descriptives-dialog.c:45
 msgid "Standard error"
-msgstr "Standaard fout"
+msgstr "Standaardfout"
 
 #: src/ui/gui/descriptives-dialog.glade:122 src/ui/gui/frequencies.glade:139
 msgid "Statistics:"
@@ -5125,11 +5126,11 @@ msgstr "Sluit gehele case uit indien een geselecteerde variabele ontbreekt"
 
 #: src/ui/gui/descriptives-dialog.glade:194
 msgid "Include user-missing data in analysis"
-msgstr "Inclusief user-missing data in analyse"
+msgstr "Inclusief user-missing gegevens in analyse"
 
 #: src/ui/gui/descriptives-dialog.glade:207
 msgid "Save Z-scores of selected variables as new variables"
-msgstr "Sla Z_Scores van geselecteerde variabelen op als nieuwe variabelen"
+msgstr "Sla Z-Scores van geselecteerde variabelen op als nieuwe variabelen"
 
 #: src/ui/gui/descriptives-dialog.glade:223
 msgid "Options:"
@@ -5171,7 +5172,7 @@ msgstr "Herhaal waardes"
 #: src/ui/gui/find-dialog.c:659
 #, c-format
 msgid "Bad regular expression: %s"
-msgstr "Foutieve regulaire expressie: %s"
+msgstr "Onjuiste regulaire expressie: %s"
 
 #: src/ui/gui/frequencies-dialog.c:44
 msgid "Standard error of the mean"
@@ -5192,7 +5193,7 @@ msgstr "Variabele(n):"
 
 #: src/ui/gui/frequencies.glade:168
 msgid "Display Frequency Table"
-msgstr "Toon Frequentie Tabel"
+msgstr "Toon Frequentietabel"
 
 #: src/ui/gui/frequencies.glade:264
 msgid "Ascending Order"
@@ -5233,7 +5234,7 @@ msgstr "Kan de handleiding niet openen: %s"
 
 #: src/ui/gui/message-dialog.c:101
 msgid "data file error"
-msgstr "data bestand fout"
+msgstr "gegevensbestand fout"
 
 #: src/ui/gui/message-dialog.c:106
 msgid "PSPP error"
@@ -5245,7 +5246,7 @@ msgstr "syntax waarschuwing"
 
 #: src/ui/gui/message-dialog.c:118
 msgid "data file warning"
-msgstr "data bestand waarschuwing"
+msgstr "gegevensbestand waarschuwing"
 
 #: src/ui/gui/message-dialog.c:123
 msgid "PSPP warning"
@@ -5257,7 +5258,7 @@ msgstr "syntax informatie"
 
 #: src/ui/gui/message-dialog.c:136
 msgid "data file information"
-msgstr "data bestand informatie"
+msgstr "gegevensbestand informatie"
 
 #: src/ui/gui/message-dialog.c:141
 msgid "PSPP information"
@@ -5280,8 +5281,8 @@ msgstr[1] "De PSPP processor rapporteert %d meldingen."
 #, c-format
 msgid "%d of these messages are displayed below."
 msgid_plural "%d of these messages are displayed below."
-msgstr[0] "%d van deze meldingen worden hier onder getoond."
-msgstr[1] "%d van deze meldingen worden hier onder getoond."
+msgstr[0] "%d van deze meldingen worden hieronder getoond."
+msgstr[1] "%d van deze meldingen worden hieronder getoond."
 
 #: src/ui/gui/message-dialog.glade:8
 msgid "Messages Reported"
@@ -5289,7 +5290,7 @@ msgstr "Meldingen Gerapporteerd"
 
 #: src/ui/gui/message-dialog.glade:42
 msgid "The PSPP processor reported # errors.  The first # and last # are shown below:"
-msgstr "De PSPP processor rapporteerde # fouten.  De eerste # en de laatste # worden hier onder getoond:"
+msgstr "De PSPP processor rapporteerde # fouten.  De eerste # en de laatste # worden hieronder getoond:"
 
 #: src/ui/gui/message-dialog.glade:94
 msgid "gtk-close"
@@ -5297,11 +5298,11 @@ msgstr ""
 
 #: src/ui/gui/missing-val-dialog.c:115 src/ui/gui/missing-val-dialog.c:160
 msgid "Incorrect value for variable type"
-msgstr "Foutieve waarde voor variabele type"
+msgstr "Onjuiste waarde voor variabelentype"
 
 #: src/ui/gui/missing-val-dialog.c:136 src/ui/gui/missing-val-dialog.c:143
 msgid "Incorrect range specification"
-msgstr "Foutieve range specificatie"
+msgstr "Onjuiste bereik specificatie"
 
 #: src/ui/gui/oneway-anova-dialog.c:335
 #, c-format
@@ -5394,11 +5395,11 @@ msgstr "Plak"
 
 #: src/ui/gui/psppire-data-editor.c:617
 msgid "Data View"
-msgstr "Data Weergave"
+msgstr "Gegevensweergave"
 
 #: src/ui/gui/psppire-data-editor.c:620
 msgid "Variable View"
-msgstr "Variabele Weergave"
+msgstr "Variabelenweergave"
 
 #: src/ui/gui/psppire-data-store.c:828
 msgid "var"
@@ -5470,7 +5471,7 @@ msgstr "Weeg cases op"
 
 #: src/ui/gui/psppire.glade:107
 msgid "Frequency Variable"
-msgstr "Frequencie Variabele"
+msgstr "Frequentie Variabele"
 
 #: src/ui/gui/psppire.glade:147
 msgid "Current Status: "
@@ -5526,7 +5527,7 @@ msgstr "Sorteer Volgorde"
 
 #: src/ui/gui/psppire.glade:873
 msgid "Target Variable:"
-msgstr "Doel Variabele:"
+msgstr "Doelvariabele:"
 
 #: src/ui/gui/psppire.glade:904
 msgid "Type & Label"
@@ -5567,11 +5568,11 @@ msgstr "Steekproef..."
 
 #: src/ui/gui/psppire.glade:1343
 msgid "Based on time or case range"
-msgstr "Gebaseerd op tijd of case volgorde"
+msgstr "Gebaseerd op tijd of case bereik"
 
 #: src/ui/gui/psppire.glade:1356
 msgid "Range..."
-msgstr ""
+msgstr "Bereik..."
 
 #: src/ui/gui/psppire.glade:1394
 msgid "Use filter variable"
@@ -5603,7 +5604,7 @@ msgstr "Toon commentaren in uitvoer"
 
 #: src/ui/gui/psppire.glade:1734
 msgid "Column Number: 0"
-msgstr "Kolom Nummer: 0"
+msgstr "Kolomnummer: 0"
 
 #: src/ui/gui/psppire.glade:1810
 msgid "Variable Information:"
@@ -5653,7 +5654,7 @@ msgstr "Variabele:"
 
 #: src/ui/gui/psppire.glade:2570
 msgid "Search value labels"
-msgstr "Zoek waarde labels"
+msgstr "Zoek waardelabels"
 
 #: src/ui/gui/psppire.glade:2593
 msgid "Regular expression Match"
@@ -5661,7 +5662,7 @@ msgstr ""
 
 #: src/ui/gui/psppire.glade:2603
 msgid "Search substrings"
-msgstr "Zoek substrings"
+msgstr "Zoek subtekenreeksen"
 
 #: src/ui/gui/psppire.glade:2615
 msgid "Wrap around"
@@ -5765,7 +5766,7 @@ msgstr "_Hoog"
 
 #: src/ui/gui/rank.glade:660
 msgid "_Sequential ranks to unique values"
-msgstr "_Sequentiele rangen naar unieke waardes"
+msgstr "_Sequentiële rangen naar unieke waardes"
 
 #: src/ui/gui/rank.glade:680
 msgid "Rank Assigned to Ties"
@@ -5805,11 +5806,11 @@ msgstr "tot"
 
 #: src/ui/gui/recode.glade:283
 msgid "Range, LOWEST thru value"
-msgstr "Range, LAAGSTE tot waarde"
+msgstr "Bereik, LAAGSTE tot waarde"
 
 #: src/ui/gui/recode.glade:297
 msgid "Range, value thru HIGHEST"
-msgstr "Range, waarde tot HOOGSTE"
+msgstr "Bereik, waarde tot HOOGSTE"
 
 #: src/ui/gui/recode.glade:327
 msgid "All other values"
@@ -5817,7 +5818,7 @@ msgstr "Alle andere waardes"
 
 #: src/ui/gui/recode.glade:363
 msgid "Range:"
-msgstr ""
+msgstr "Bereik:"
 
 #: src/ui/gui/recode.glade:380
 msgid "Old Value"
@@ -5841,11 +5842,11 @@ msgstr "Nieuwe Waarde"
 
 #: src/ui/gui/recode.glade:590
 msgid "Convert numeric strings to numbers ('5' -> 5)"
-msgstr "Converteer numerieke strings naar nummers ('5' -> 5)"
+msgstr "Converteer numerieke tekenreeksen naar nummers ('5' -> 5)"
 
 #: src/ui/gui/recode.glade:608
 msgid "Output variables are strings"
-msgstr "Uitvoer variabelen zijn strings"
+msgstr "Uitvoervariabelen zijn tekenreeksen"
 
 #: src/ui/gui/recode.glade:620
 msgid "Width: "
@@ -5865,7 +5866,7 @@ msgstr "Wijzig"
 
 #: src/ui/gui/recode.glade:885
 msgid "Output Variable"
-msgstr "Uitvoer Variabele"
+msgstr "Uitvoervariabele"
 
 #: src/ui/gui/recode.glade:965
 msgid "Old and New Values"
@@ -5929,7 +5930,7 @@ msgstr "Sla Syntax op"
 
 #: src/ui/gui/syntax-editor.c:132 src/ui/gui/syntax-editor.c:516
 msgid "Syntax Files (*.sps) "
-msgstr "Syntax Bestand (*.sps)"
+msgstr "Syntaxbestand (*.sps)"
 
 #: src/ui/gui/syntax-editor.c:508
 msgid "Open Syntax"
@@ -5937,7 +5938,7 @@ msgstr ""
 
 #: src/ui/gui/syntax-editor.glade:10
 msgid "Psppire Syntax Editor"
-msgstr ""
+msgstr "Psppire Syntax Bewerker"
 
 #: src/ui/gui/syntax-editor.glade:188
 msgid "_Run"
@@ -6035,31 +6036,31 @@ msgstr "\"%s\" is leeg."
 
 #: src/ui/gui/text-data-import-dialog.c:566
 msgid "Import Delimited Text Data"
-msgstr "Importeer Delimited Text Data"
+msgstr "Importeer Delimited Tekstgegevens"
 
 #: src/ui/gui/text-data-import-dialog.c:617
 msgid "Importing Delimited Text Data"
-msgstr "Importeren Delimited Text Data"
+msgstr "Importeren Delimited Tekstgegevens"
 
 #: src/ui/gui/text-data-import-dialog.c:768
 msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
-msgstr "De assistent zal je begeleiden door het proces van het importeren van data in PSPP van een tekst bestand met 1 regel per case, waarin velden zijn gescheiden door tabs, kommas of andere scheidingstekens.\n"
+msgstr "De assistent zal je begeleiden door het proces van het importeren van gegevens in PSPP van een tekst bestand met 1 regel per case, waarin velden zijn gescheiden door tabs, komma's of andere scheidingstekens.\n"
 
 #: src/ui/gui/text-data-import-dialog.c:774
 #, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
-msgstr[0] "Het geselecteerde bestand bevat %zu regel text.  "
-msgstr[1] "Het geselecteerde bestand bevat %zu regels text. "
+msgstr[0] "Het geselecteerde bestand bevat %zu regel tekst.  "
+msgstr[1] "Het geselecteerde bestand bevat %zu regels tekst. "
 
 #: src/ui/gui/text-data-import-dialog.c:782
 #, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
-msgstr[0] "Het geselecteerde bestand bevat ongeveer %lu regel text. "
-msgstr[1] "Het geselecteerde bestand bevat ongeveer %lu regels text. "
+msgstr[0] "Het geselecteerde bestand bevat ongeveer %lu regel tekst. "
+msgstr[1] "Het geselecteerde bestand bevat ongeveer %lu regels tekst. "
 
 #: src/ui/gui/text-data-import-dialog.c:788
 #, c-format
@@ -6080,7 +6081,7 @@ msgstr "Deze invoer regel heeft te weinig scheidingstekens om dit veld te vullen
 #: src/ui/gui/text-data-import-dialog.c:1750
 #, c-format
 msgid "Field content \"%.*s\" cannot be parsed in format %s."
-msgstr "Veld inhoud \"%.*s\" kan niet ontleed worden in formaat %s."
+msgstr "Veldinhoud \"%.*s\" kan niet ontleed worden in format %s."
 
 #: src/ui/gui/text-data-import.glade:7
 msgid "Importing Textual Data"
@@ -6092,9 +6093,9 @@ msgid ""
 "\n"
 "The selected file contains N lines of text.  Only the first M of these will be shown for preview purposes in the following screens.  You may choose below how much of the file should actually be imported."
 msgstr ""
-"Deze assistant zal je assisteren bij het proces van het importeren van data in PSPP vanuit een text bestand met een regel per case en velden gescheiden met tabs, kommas of andere scheiders.\n"
+"Deze assistent zal je assisteren bij het proces van het importeren van gegevens in PSPP vanuit een tekstbestand met een regel per case en velden gescheiden met tabs, komma's of andere scheiders.\n"
 " \n"
-"Het geselecteerde bestand bevat N regels text.  Alleen de eerste  M hiervan zullen getoond worden voor voorbeeld doeleinden in de volgende schermen.  Je kunt hieronder kiezen hoeveel van het bestand daadwerkelijk geïmporteerd moet worden."
+"Het geselecteerde bestand bevat N regels tekst.  Alleen de eerste  M hiervan zullen getoond worden voor voorbeeld doeleinden in de volgende schermen.  Je kunt hieronder kiezen hoeveel van het bestand daadwerkelijk geïmporteerd moet worden."
 
 #: src/ui/gui/text-data-import.glade:47
 msgid "All cases"
@@ -6118,15 +6119,15 @@ msgstr "<b>Aantal te Importeren</b>"
 
 #: src/ui/gui/text-data-import.glade:189
 msgid "Select Data to Import"
-msgstr "Selecteer Data om te Importeren"
+msgstr "Selecteer Gegevens om te Importeren"
 
 #: src/ui/gui/text-data-import.glade:198
 msgid "Select the first line of the data file that contains data."
-msgstr "Selecteer de eerste regel van het data bestand die data bevat."
+msgstr "Selecteer de eerste regel van het gegevensbestand die gegevens bevat."
 
 #: src/ui/gui/text-data-import.glade:209
 msgid "Line above selected line contains variable names"
-msgstr "De regel boven de geselecteerde data regel bevat de variabele namen"
+msgstr "De regel boven de geselecteerde gegevens regel bevat de variabelennamen"
 
 #: src/ui/gui/text-data-import.glade:243
 msgid "Choose Separators"
@@ -6154,7 +6155,7 @@ msgstr "Ko_mma (,)"
 
 #: src/ui/gui/text-data-import.glade:347
 msgid "H_yphen (-)"
-msgstr ""
+msgstr "Streep (-)"
 
 #: src/ui/gui/text-data-import.glade:364
 msgid "P_ipe (|)"
@@ -6201,11 +6202,11 @@ msgstr "<b>Velden Voorbeeld</b>"
 
 #: src/ui/gui/text-data-import.glade:601
 msgid "Adjust Variable Formats"
-msgstr "Pas Variabele Formaat aan"
+msgstr "Pas Variabele Formats aan"
 
 #: src/ui/gui/text-data-import.glade:610
 msgid "Check the data formats displayed below and fix any that are incorrect.  You may set other variable properties now or later."
-msgstr "Controleer de data formaten hieronder en verbeter degene die foutief zijn. Je mag andere variabele opties nu of later zetten."
+msgstr "Controleer de gegevens formats hieronder en verbeter degene die foutief zijn. Je mag andere variabele opties nu of later zetten."
 
 #: src/ui/gui/text-data-import.glade:653
 msgid "<b>Variables</b>"
@@ -6213,7 +6214,7 @@ msgstr "<b>Variabelen</b>"
 
 #: src/ui/gui/text-data-import.glade:700
 msgid "<b>Data Preview</b>"
-msgstr "<b>Data Voorbeeld</b>"
+msgstr "<b>Gegevens Voorbeeld</b>"
 
 #: src/ui/gui/variable-info-dialog.c:89
 #, c-format
@@ -6228,7 +6229,7 @@ msgstr ""
 #: src/ui/gui/variable-info-dialog.c:102
 #, c-format
 msgid "Missing Values: %s\n"
-msgstr "Ontbrekende Waardes: %s\n"
+msgstr "Ontbrekende-Waardes: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:107
 #, c-format
@@ -6237,7 +6238,7 @@ msgstr "Meetniveau: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:121
 msgid "Value Labels:\n"
-msgstr "Waarde Labels:\n"
+msgstr "Waardelabels:\n"
 
 #: src/ui/gui/variable-info-dialog.c:133
 #, c-format
@@ -6252,12 +6253,12 @@ msgstr "Weeg cases by %s"
 #: src/ui/gui/window-manager.c:142
 #, c-format
 msgid "Syntax%d"
-msgstr "Syntax%d"
+msgstr ""
 
 #: src/ui/gui/window-manager.c:143 src/ui/gui/window-manager.c:178
 #, c-format
 msgid "%s --- PSPP Syntax Editor"
-msgstr ""
+msgstr "%s --- PSPP Syntax Bewerker"
 
 #: src/ui/gui/window-manager.c:146
 #, c-format
@@ -6267,7 +6268,7 @@ msgstr ""
 #: src/ui/gui/window-manager.c:147 src/ui/gui/window-manager.c:181
 #, c-format
 msgid "%s --- PSPP Data Editor"
-msgstr ""
+msgstr "%s --- PSPP Gegevens Bewerker"
 
 #: src/ui/gui/window-manager.c:150
 #, c-format
@@ -6333,7 +6334,7 @@ msgstr ""
 
 #: src/ui/terminal/main.c:130
 msgid "Stopping syntax file processing here to avoid a cascade of dependent command failures."
-msgstr "Stop syntax bestand uitvoering hier om een cascade van afhankelijke opdracht fouten te voorkomen."
+msgstr "Stop syntaxbestand uitvoering hier om een cascade van afhankelijke opdracht fouten te voorkomen."
 
 #: src/ui/terminal/msg-ui.c:67
 #, c-format
@@ -6342,7 +6343,7 @@ msgstr "Kan %s (%s) niet openen. Schrijf fouten naar stdout inplaats.\n"
 
 #: src/ui/terminal/msg-ui.c:94
 msgid "Terminating execution of syntax file due to error."
-msgstr "Breek uitvoering van syntax bestand af vanwege fout."
+msgstr "Breek uitvoering van syntaxbestand af vanwege fout."
 
 #: src/ui/terminal/msg-ui.c:96
 #, c-format
@@ -6373,32 +6374,44 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgid "Attribute value %s[%d] is not quoted: %s"
 #~ msgstr "Attribuut waarde %s[%d] is niet geciteerd: %s"
 
+#~ msgid "Suppressed %d additional related warnings."
+#~ msgstr "Onderdrukt %d extra gerelateerde waarschuwingen."
+
+#~ msgid "This command may not be used after TEMPORARY when the active file is an input source.  Temporary transformations will be made permanent."
+#~ msgstr "Deze opdracht mag niet gebruikt worden na TEMPORARY als het actieve bestand een invoer bron is. Tijdelijke transformaties zullen permanent worden."
+
 #~ msgid "The BY subcommand is required."
-#~ msgstr "De BY subopdracht is nodig."
+#~ msgstr "De BY subopdracht is vereist."
+
+#~ msgid "BY is required when SORT is specified."
+#~ msgstr "BY is vereist als SORT is gespecificeerd."
 
 #~ msgid "Combining files with incompatible encodings. String data may not be represented correctly."
-#~ msgstr "Combineren bestanden met incompatibele codering. String data wordt misschien niet correct weergegeven."
+#~ msgstr "Combineren bestanden met niet overeenkomstige codering. String gegeven wordt misschien niet correct weergegeven."
+
+#~ msgid "Variable %s in file %s has different type or width from the same variable in earlier file."
+#~ msgstr "Variabele %s in bestand %s heeft een ander type of breedte dan dezelfde variabele in eerder bestand."
 
 #~ msgid "In file %s, %s is numeric."
 #~ msgstr "In bestand %s, %s is numeriek."
 
 #~ msgid "In file %s, %s is a string variable with width %d."
-#~ msgstr "In bestand %s, %s is een string variabele met breedte %d."
+#~ msgstr "In bestand %s, %s is een tekenreeksvariabele met breedte %d."
 
 #~ msgid "In an earlier file, %s was numeric."
 #~ msgstr "In eerder bestand, %s was numeriek."
 
 #~ msgid "In an earlier file, %s was a string variable with width %d."
-#~ msgstr "In een eerder bestand, %s was een string variabele met breedte %d."
+#~ msgstr "In een eerder bestand, %s was een tekenreeksvariabele met breedte %d."
 
 #~ msgid "Encountered %zu sets of duplicate cases in the master file."
-#~ msgstr "Ontmoet %zu sets van dubbele cases in het master bestand. "
+#~ msgstr "Ontmoet %zu sets van dubbele cases in het master-bestand. "
 
 #~ msgid "Encoding should not be specified for inline data. It will be ignored."
-#~ msgstr "Coderen dient niet opgegeven te worden voor inline date. Het wordt genegeerd."
+#~ msgstr "Coderen dient niet opgegeven te worden voor inline-gegeven. Het wordt genegeerd."
 
 #~ msgid "Attribute array index must be between 1 and 65535."
-#~ msgstr "Attribuut array index moet tussen 1 en 65535 liggen."
+#~ msgstr "Attribuuttabel index moet tussen 1 en 65535 liggen."
 
 #~ msgid "expecting ATTRIBUTE= or DELETE="
 #~ msgstr "ATTRIBUTE= of DELETE= verwacht"
@@ -6410,7 +6423,7 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgstr "Attribuut"
 
 #~ msgid "Not creating plot because data set is empty."
-#~ msgstr "Er wordt geen plot aangemaakt omdat de data set leeg is."
+#~ msgstr "Er wordt geen plot aangemaakt omdat de gegevens set leeg is."
 
 #~ msgid "Part 1"
 #~ msgstr "Deel 1"
@@ -6452,16 +6465,19 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgstr "%s is geen herkende codering of lokale naam"
 
 #~ msgid "D_isplay Data File Information"
-#~ msgstr "_Toon Data Bestand Informatie"
+#~ msgstr "_Toon Gegevensbestand Informatie"
 
 #~ msgid "Working File"
-#~ msgstr "Werk Bestand"
+#~ msgstr "Werkbestand"
 
 #~ msgid "External File"
-#~ msgstr "Extern Bestand"
+#~ msgstr "Externbestand"
+
+#~ msgid "_Split"
+#~ msgstr "_Splits"
 
 #~ msgid "Don't show the splash screen"
-#~ msgstr "Toon het splash scherm niet"
+#~ msgstr "Toon het opstartscherm niet"
 
 #~ msgid "PSPPIRE --- A user interface for PSPP"
 #~ msgstr "PSPPIRE --- Een gebruikers interface voor PSPP"
@@ -6470,16 +6486,28 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgstr "Diverse opties:"
 
 #~ msgid "Options affecting syntax and behavior:"
-#~ msgstr "Opties die de syntax en het gedrag beinvloeden:"
+#~ msgstr "Opties die de syntax en het gedrag beïnvloeden:"
+
+#~ msgid "Recode values into the same variables"
+#~ msgstr "Hercodeer waardes in dezelfde Variabelen"
+
+#~ msgid "Recode values into different variables"
+#~ msgstr "Hercodeer waardes in andere Variabelen"
+
+#~ msgid "Jump to variable"
+#~ msgstr "Spring naar Variabele"
 
 #~ msgid "Split the window vertically and horizontally"
 #~ msgstr "Splits het venster verticaal en horizontaal"
+
+#~ msgid "Data Editor"
+#~ msgstr "Gegevensbewerker"
 
 #~ msgid "How many things can be selected"
 #~ msgstr "Hoeveel dingen kunnen worden geselecteerd"
 
 #~ msgid "Prefer variable labels"
-#~ msgstr "Prefereer variabele labels"
+#~ msgstr "Prefereer variabelenlabels"
 
 #~ msgid "Output Viewer"
 #~ msgstr "Uitvoer Viewer"
@@ -6487,8 +6515,11 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgid "Saved file \"%s\""
 #~ msgstr "Opgeslagen bestand \"%s\""
 
+#~ msgid "Syntax Editor"
+#~ msgstr "Syntaxbewerker"
+
 #~ msgid "Cannot load syntax file '%s'"
-#~ msgstr "Kan syntax bestand \"%s\" niet laden"
+#~ msgstr "Kan syntaxbestand \"%s\" niet laden"
 
 #~ msgid "Save the changes to \"%s\" before closing?"
 #~ msgstr "De veranderingen van \"%s\" opslaan voor afsluiten?"
@@ -6510,7 +6541,7 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgstr "Variabelen in eerste splits:"
 
 #~ msgid "set to `compatible' if you want output calculated from broken algorithms"
-#~ msgstr "zet op 'compatible' als je uitvoer wilt die door 'broken algorithms' wordt berekend"
+#~ msgstr "zet op 'compatible' als je uitvoer wilt die door gebroken algoritmen wordt berekend"
 
 #~ msgid "Append DIR to include path"
 #~ msgstr "Voeg DIR toe aan include pad"
@@ -6540,7 +6571,7 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgstr "PSPP -- Een programma voor statistische analyse"
 
 #~ msgid "Options affecting input and output locations:"
-#~ msgstr "Opties die invoer en uitvoer locaties beinvloeden:"
+#~ msgstr "Opties die invoer en uitvoer locaties beïnvloeden:"
 
 #~ msgid "Diagnositic options:"
 #~ msgstr "Diagnostische opties:"
@@ -6552,13 +6583,13 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 #~ msgstr "Stuur fout meldingen naar FILE (aanvullend)"
 
 #~ msgid "Select output driver DEVICE and disable defaults"
-#~ msgstr "Selecteer uitvoer driver DEVICE en schakel defaults uit"
+#~ msgstr "Selecteer uitvoer stuurprogramma DEVICE en schakel verstekwaardes uit"
 
 #~ msgid "Print a list of known driver classes, then exit"
-#~ msgstr "Print een lijst van bekende driver classes en eindig daarna"
+#~ msgstr "Print een lijst van bekende stuurprogramma klassen en eindig daarna"
 
 #~ msgid "Start an interactive session"
 #~ msgstr "Start een interactieve sessie"
 
 #~ msgid "Diagnostic options:"
-#~ msgstr "Diagnose opties:"
+#~ msgstr "Diagnoseopties:"
