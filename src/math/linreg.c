@@ -626,7 +626,7 @@ double pspp_linreg_get_indep_variable_mean (pspp_linreg_cache *c, const struct v
       coef = pspp_linreg_get_coeff (c, v, NULL);
       return pspp_coeff_get_mean (coef);
     }
-  return GSL_NAN;
+  return 0.0;
 }
 
 void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *c, const struct variable *v, 
