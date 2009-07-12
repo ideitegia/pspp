@@ -38,6 +38,7 @@ gchar * value_to_text (union value v, const PsppireDict *dict, struct fmt_spec f
 
 
 gboolean text_to_value (const gchar *text, union value *v,
+			const PsppireDict *dict,
 		       struct fmt_spec format);
 
 GObject *get_object_assert (GtkBuilder *builder, const gchar *name, GType type);

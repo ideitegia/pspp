@@ -63,6 +63,7 @@ value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
 
 gboolean
 text_to_value (const gchar *text, union value *v,
+	       const PsppireDict *dict,
 	      struct fmt_spec format)
 {
   bool ok;
@@ -86,6 +87,7 @@ text_to_value (const gchar *text, union value *v,
 
   msg_disable ();
   ok = data_in (ss_cstr (text), LEGACY_NATIVE, format.type, 0, 0, 0,
+		dict->dict,
                 v, fmt_var_width (&format));
   msg_enable ();
 

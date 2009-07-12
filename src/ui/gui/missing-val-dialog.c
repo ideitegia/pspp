@@ -100,7 +100,8 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	      continue;
 	    }
 
-	  if ( text_to_value (text, &v, *write_spec))
+	  if ( text_to_value (text, &v, 
+			      dialog->dict, *write_spec))
 	    {
 	      nvals++;
 	      mv_add_value (&dialog->mvl, &v);
@@ -126,9 +127,9 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       const gchar *low_text = gtk_entry_get_text (GTK_ENTRY (dialog->low));
       const gchar *high_text = gtk_entry_get_text (GTK_ENTRY (dialog->high));
 
-      if ( text_to_value (low_text, &low_val, *write_spec)
+      if ( text_to_value (low_text, &low_val, dialog->dict, *write_spec)
 	   &&
-	   text_to_value (high_text, &high_val, *write_spec) )
+	   text_to_value (high_text, &high_val, dialog->dict, *write_spec) )
 	{
 	  if ( low_val.f > high_val.f )
 	    {
@@ -154,6 +155,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	{
 	  union value discrete_val;
 	  if ( !text_to_value (discrete_text, &discrete_val,
+			       dialog->dict,
 			      *write_spec))
 	    {
 	      err_dialog (_("Incorrect value for variable type"),

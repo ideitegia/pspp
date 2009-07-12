@@ -599,6 +599,7 @@ value_comparator_create (const struct variable *var, const char *target)
                   LEGACY_NATIVE,
 		  fmt->type,
 		  0, 0, 0,
+		  NULL,
 		  &vc->pattern, width) )
     {
       value_destroy (&vc->pattern, width);

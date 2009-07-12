@@ -1748,7 +1748,9 @@ parse_field (struct import_assistant *ia,
   if (field.string != NULL)
     {
       msg_disable ();
+      /* FIXME: NULL should be replaced with the destination dictionary */
       if (!data_in (field, LEGACY_NATIVE, in->type, 0, 0, 0,
+		    NULL,
                     &val, var_get_width (var)))
         {
           char fmt_string[FMT_STRING_LEN_MAX + 1];

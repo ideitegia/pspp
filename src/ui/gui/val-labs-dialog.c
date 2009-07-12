@@ -72,6 +72,7 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
 
@@ -142,6 +143,7 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 
   union value v;
   text_to_value (text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
 
@@ -268,6 +270,7 @@ on_change (GtkWidget *w, gpointer data)
   union value v;
 
   text_to_value (val_text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
   val_labs_replace (dialog->labs, &v,
@@ -292,6 +295,7 @@ on_add (GtkWidget *w, gpointer data)
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
 

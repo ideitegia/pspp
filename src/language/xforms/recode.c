@@ -83,6 +83,8 @@ struct recode_trns
   {
     struct pool *pool;
 
+
+
     /* Variable types, for convenience. */
     enum val_type src_type;     /* src_vars[*] type. */
     enum val_type dst_type;     /* dst_vars[*] type. */
@@ -90,6 +92,7 @@ struct recode_trns
     /* Variables. */
     const struct variable **src_vars;	/* Source variables. */
     const struct variable **dst_vars;	/* Destination variables. */
+    const struct dictionary *dst_dict;  /* Dictionary of dst_vars */
     char **dst_names;		/* Name of dest variables, if they're new. */
     size_t var_cnt;             /* Number of variables. */
 
@@ -540,6 +543,8 @@ create_dst_vars (struct recode_trns *trns, struct dictionary *dict)
 {
   size_t i;
 
+  trns->dst_dict = dict;
+
   for (i = 0; i < trns->var_cnt; i++)
     {
       const struct variable **var = &trns->dst_vars[i];
@@ -625,7 +630,7 @@ find_src_string (struct recode_trns *trns, const uint8_t *value,
 
             msg_disable ();
             match = data_in (ss_buffer (value, width), LEGACY_NATIVE,
-                             FMT_F, 0, 0, 0, &uv, 0);
+                             FMT_F, 0, 0, 0, trns->dst_dict,  &uv, 0);
             msg_enable ();
             out->value.f = uv.f;
             break;

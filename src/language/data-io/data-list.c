@@ -86,7 +86,7 @@ cmd_data_list (struct lexer *lexer, struct dataset *ds)
   bool ok;
 
   dict = in_input_program () ? dataset_dict (ds) : dict_create ();
-  parser = data_parser_create ();
+  parser = data_parser_create (dict);
   reader = NULL;
 
   table = -1;                /* Print table if nonzero, -1=undecided. */

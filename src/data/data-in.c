@@ -34,6 +34,7 @@
 #include "settings.h"
 #include "value.h"
 #include "format.h"
+#include "dictionary.h"
 
 #include <libpspp/assertion.h>
 #include <libpspp/legacy-encoding.h>
@@ -54,7 +55,7 @@
 /* Information about parsing one data field. */
 struct data_in
   {
-    const char *encoding;       /* Encoding of source. */
+    const char *src_enc;        /* Encoding of source. */
     struct substring input;     /* Source. */
     enum fmt_type format;       /* Input format. */
     int implied_decimals;       /* Number of implied decimal places. */
@@ -89,6 +90,9 @@ static int hexit_value (int c);
    representation in OUTPUT, which the caller must have
    initialized with the given WIDTH (0 for a numeric field,
    otherwise the string width).
+   Iff FORMAT is a string format, then DICT must be a pointer
+   to the dictionary associated with OUTPUT.  Otherwise, DICT
+   may be null.
 
    If no decimal point is included in a numeric format, then
    IMPLIED_DECIMALS decimal places are implied.  Specify 0 if no
@@ -103,7 +107,9 @@ static int hexit_value (int c);
 bool
 data_in (struct substring input, const char *encoding,
          enum fmt_type format, int implied_decimals,
-         int first_column, int last_column, union value *output, int width)
+         int first_column, int last_column,
+	 const struct dictionary *dict,
+	 union value *output, int width)
 {
   static data_in_parser_func *const handlers[FMT_NUMBER_OF_FORMATS] =
     {
@@ -112,28 +118,11 @@ data_in (struct substring input, const char *encoding,
     };
 
   struct data_in i;
-  void *copy = NULL;
+
   bool ok;
 
   assert ((width != 0) == fmt_is_string (format));
 
-  if (0 == strcmp (encoding, LEGACY_NATIVE)
-      || fmt_get_category (format) & (FMT_CAT_BINARY | FMT_CAT_STRING))
-    {
-      i.input = input;
-      i.encoding = encoding;
-    }
-  else
-    {
-      char *s;
-      ss_alloc_uninit (&i.input, ss_length (input));
-
-      s = recode_string (LEGACY_NATIVE, encoding, ss_data (input), ss_length (input));
-      memcpy (ss_data (i.input), s, ss_length (input));
-      free (s);
-      i.encoding = LEGACY_NATIVE;
-      copy = ss_data (i.input);
-    }
   i.format = format;
   i.implied_decimals = implied_decimals;
 
@@ -142,21 +131,39 @@ data_in (struct substring input, const char *encoding,
 
   i.first_column = first_column;
   i.last_column = last_column;
+  i.src_enc = encoding;
 
-  if (!ss_is_empty (i.input))
+  if (ss_is_empty (input))
     {
-      ok = handlers[i.format] (&i);
-      if (!ok)
-        default_result (&i);
+      default_result (&i);
+      return true;
+    }
+
+  if (fmt_get_category (format) & ( FMT_CAT_BINARY | FMT_CAT_HEXADECIMAL | FMT_CAT_LEGACY))
+    {
+      i.input = input;
     }
   else
     {
-      default_result (&i);
-      ok = true;
+      const char *dest_encoding;
+      char *s = NULL;
+      if ( dict == NULL)
+	{
+	  assert (0 == (fmt_get_category (format) & (FMT_CAT_BINARY | FMT_CAT_STRING)));
+	  dest_encoding = LEGACY_NATIVE;
+	}
+      else
+	dest_encoding = dict_get_encoding (dict);
+
+      s = recode_string (dest_encoding, i.src_enc, ss_data (input), ss_length (input));
+      ss_alloc_uninit (&i.input, strlen (s));
+      memcpy (ss_data (i.input), s, ss_length (input));
+      free (s);
     }
 
-  if (copy)
-    free (copy);
+  ok = handlers[i.format] (&i);
+  if (!ok)
+    default_result (&i);
 
   return ok;
 }
@@ -617,9 +624,8 @@ parse_A (struct data_in *i)
   const char *src = ss_data (i->input);
   size_t src_size = ss_length (i->input);
 
-  char *s = recode_string (LEGACY_NATIVE, i->encoding, src, MIN (src_size, dst_size));
-  memcpy (dst, s, dst_size);
-  free (s);
+  memcpy (dst, src, MIN (src_size, dst_size));
+
   if (dst_size > src_size)
     memset (&dst[src_size], ' ', dst_size - src_size);
 
@@ -645,10 +651,10 @@ parse_AHEX (struct data_in *i)
           return false;
         }
 
-      if (0 != strcmp (i->encoding, LEGACY_NATIVE))
+      if (0 != strcmp (i->src_enc, LEGACY_NATIVE))
         {
-          hi = legacy_to_native (i->encoding, hi);
-          lo = legacy_to_native (i->encoding, lo);
+          hi = legacy_to_native (i->src_enc, hi);
+          lo = legacy_to_native (i->src_enc, lo);
         }
       if (!c_isxdigit (hi) || !c_isxdigit (lo))
 	{
