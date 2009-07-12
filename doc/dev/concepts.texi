@@ -654,19 +654,17 @@ Returns the name of the given format @var{type}.
 These functions provide the ability to convert data fields into
 @union{value}s and vice versa.
 
-@deftypefun bool data_in (struct substring @var{input}, enum legacy_encoding @var{legacy_encoding}, enum fmt_type @var{type}, int @var{implied_decimals}, int @var{first_column}, union value *@var{output}, int @var{width})
+@deftypefun bool data_in (struct substring @var{input}, const char *@var{encoding}, enum fmt_type @var{type}, int @var{implied_decimals}, int @var{first_column}, const struct dictionary *@var{dict}, union value *@var{output}, int @var{width})
 Parses @var{input} as a field containing data in the given format
 @var{type}.  The resulting value is stored in @var{output}, which the
 caller must have initialized with the given @var{width}.  For
 consistency, @var{width} must be 0 if
 @var{type} is a numeric format type and greater than 0 if @var{type}
 is a string format type.
-
-Ordinarily @var{legacy_encoding} should be @code{LEGACY_NATIVE},
-indicating that @var{input} is encoded in the character set
-conventionally used on the host machine.  It may be set to
-@code{LEGACY_EBCDIC} to cause @var{input} to be re-encoded from EBCDIC
-during data parsing.
+@var{encoding} should be set to indicate the character
+encoding of @var{input}.
+@var{dict} must be a pointer to the dictionary with which @var{output}
+is associated.
 
 If @var{input} is the empty string (with length 0), @var{output} is
 set to the value set on SET BLANKS (@pxref{SET BLANKS,,,pspp, PSPP
@@ -701,20 +699,14 @@ not propagated to the caller as errors.
 This function is declared in @file{data/data-in.h}.
 @end deftypefun
 
-@deftypefun void data_out (const union value *@var{input}, const struct fmt_spec *@var{format}, char *@var{output})
-@deftypefunx void data_out_legacy (const union value *@var{input}, enum legacy_encoding @var{legacy_encoding}, const struct fmt_spec *@var{format}, char *@var{output})
-Converts the data pointed to by @var{input} into a data field in
-@var{output} according to output format specifier @var{format}, which
-must be a valid output format.  Exactly @code{@var{format}->w} bytes
-are written to @var{output}.  The width of @var{input} is also
+@deftypefun char * data_out (const union value *@var{input}, const struct fmt_spec *@var{format})
+@deftypefunx char * data_out_legacy (const union value *@var{input}, const char *@var{encoding}, const struct fmt_spec *@var{format})
+Converts the data pointed to by @var{input} into a string value, which
+will be encoded in UTF-8,  according to output format specifier @var{format}.
+Format 
+must be a valid output format.   The width of @var{input} is
 inferred from @var{format} using an algorithm equivalent to
 @func{fmt_var_width}.
-
-If @func{data_out} is called, or @func{data_out_legacy} is called with
-@var{legacy_encoding} set to @code{LEGACY_NATIVE}, @var{output} will
-be encoded in the character set conventionally used on the host
-machine.  If @var{legacy_encoding} is set to @code{LEGACY_EBCDIC},
-@var{output} will be re-encoded from EBCDIC during data output.
 
 When @var{input} contains data that cannot be represented in the given
 @var{format}, @func{data_out} may output a message using @func{msg},

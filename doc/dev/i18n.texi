@@ -53,7 +53,6 @@ Any string data stored in a @union{value} will be encoded in the
 dictionary's character set.
 
 
-
 @section System files
 @file{*.sav} files contain a field which is supposed to identify the encoding
 of the data they contain (@pxref{Machine Integer Info Record}).  
@@ -103,25 +102,20 @@ It is the caller's responsibility to free the returned string when no
 longer required.
 @end deftypefun
 
+In order to minimise the number of conversions required, and to simplify 
+design, PSPP attempts to store all internal strings in UTF8 encoding.
+Thus, when reading system and portable files (or any other data source),
+the following items are immediately converted to UTF8 encoding:
+@itemize
+@item Variable names
+@item Variable labels
+@item Value labels
+@end itemize
+Conversely, when writing system files, these are converted back to the
+encoding of that system file.
 
-For example, in order to display a string variable's value in a label widget in the psppire gui one would use code similar to
-@example
-
-struct variable *var = /* assigned from somewhere */
-struct case c = /* from somewhere else */
-
-const union value *val = case_data (&c, var);
-
-char *utf8string = recode_string (UTF8, dict_get_encoding (dict), val->s,
-      var_get_width (var));
-
-GtkWidget *entry = gtk_entry_new();
-gtk_entry_set_text (entry, utf8string);
-gtk_widget_show (entry);
-
-free (utf8string);
-
-@end example
+String data stored in union values are left in their original encoding.
+These will be converted by the data_in/data_out functions.
 
 
 
