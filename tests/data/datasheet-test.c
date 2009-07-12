@@ -20,6 +20,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <data/casereader-provider.h>
@@ -404,7 +405,7 @@ value_from_param (union value *value, int width, unsigned int idx)
   else
     {
       unsigned int hash = hash_int (idx, 0);
-      char *string = value_str_rw (value, width);
+      uint8_t *string = value_str_rw (value, width);
       int offset;
 
       assert (width < 32);
