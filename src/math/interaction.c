@@ -246,12 +246,10 @@ interaction_case_data (const struct ccase *ccase, const struct interaction_varia
 {
   size_t i;
   size_t n_vars;
-  const struct variable *intr;
   const struct variable *member;
   const union value **vals = NULL;
 
   n_vars = interaction_get_n_vars (iv);
-  intr = interaction_get_variable (iv);
   vals = xnmalloc (n_vars, sizeof (*vals));
 
   for (i = 0; i < n_vars; i++)
