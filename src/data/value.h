@@ -58,9 +58,6 @@ static inline double value_num (const union value *);
 static inline const char *value_str (const union value *, int width);
 static inline char *value_str_rw (union value *, int width);
 
-int compare_values (const void *, const void *, const void *var);
-unsigned hash_value (const void *, const void *var);
-
 static inline void value_copy (union value *, const union value *, int width);
 void value_copy_rpad (union value *, int dst_width,
                       const union value *, int src_width,
