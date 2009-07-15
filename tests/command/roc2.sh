@@ -61,21 +61,36 @@ cd $TEMPDIR
 activity="create program"
 cat > $TESTFILE <<EOF
 set format F10.3.
-data list notable list /x * a *.
+data list notable list /x * a * comment (a20).
 begin data.
-0 1
-0 0
-1 1
-2 0
-3 1
-4 0
-4 1
-5 1
-6 0
-7 1
-8 0
-9 0
-9 1
+0  1 ""
+0  0 ""
+1  1 ""
+1  0 ""
+2  1 ""
+2  0 ""
+5  1 ""
+5  0 ""
+10 1 ""
+10 0 ""
+15 1 ""
+15 0 ""
+20 1 ""
+20 1 ""
+22 0 "here and"
+22 0 "here is the anomoly"
+25 1 ""
+25 0 ""
+30 1 ""
+30 0 ""
+35 1 ""
+35 0 ""
+38 1 ""
+38 0 ""
+39 1 ""
+39 0 ""
+40 1 ""
+40 0 ""
 end data.
 
 roc x by a (1)
@@ -93,6 +108,14 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - << EOF
+1.2 ROC.  Area Under the Curve (x)
+#====#==========#===============#=======================#
+#    |          |               | Asymp. 95% Confidence #
+#    |          |               +-----------+-----------#
+#Area|Std. Error|Asymptotic Sig.|Lower Bound|Upper Bound#
+#====#==========#===============#===========#===========#
+#.490|      .111|           .927|       .307|       .673#
+#====#==========#===============#===========#===========#
 EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
