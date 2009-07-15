@@ -540,6 +540,63 @@ append_cutpoint (struct casewriter *writer, double cutpoint)
 }
 
 
+/* Prepare the cutpoints */
+static void
+prepare_cutpoints (struct cmd_roc *roc, struct roc_state *rs, struct casereader *input)
+{
+  int i;
+  struct casereader *r = casereader_clone (input);
+  struct ccase *c;
+  struct caseproto *proto = caseproto_create ();
+
+  struct subcase ordering;
+  subcase_init (&ordering, CUTPOINT, 0, SC_ASCEND);
+
+  proto = caseproto_add_width (proto, 0); /* cutpoint */
+  proto = caseproto_add_width (proto, 0); /* TP */
+  proto = caseproto_add_width (proto, 0); /* FN */
+  proto = caseproto_add_width (proto, 0); /* TN */
+  proto = caseproto_add_width (proto, 0); /* FP */
+
+  for (i = 0 ; i < roc->n_vars; ++i)
+    {
+      rs[i].cutpoint_wtr = sort_create_writer (&ordering, proto);
+      rs[i].prev_result = SYSMIS;
+      rs[i].max = -DBL_MAX;
+      rs[i].min = DBL_MAX;
+    }
+
+  for (; (c = casereader_read (r)) != NULL; case_unref (c))
+    {
+      for (i = 0 ; i < roc->n_vars; ++i)
+	{
+	  const double result = case_data (c, roc->vars[i])->f;
+
+	  minimize (&rs[i].min, result);
+	  maximize (&rs[i].max, result);
+
+	  if ( rs[i].prev_result != SYSMIS && rs[i].prev_result != result )
+	    {
+	      const double mean = (result + rs[i].prev_result ) / 2.0;
+	      append_cutpoint (rs[i].cutpoint_wtr, mean);
+	    }
+
+	  rs[i].prev_result = result;
+	}
+    }
+  casereader_destroy (r);
+
+
+  /* Append the min and max cutpoints */
+  for (i = 0 ; i < roc->n_vars; ++i)
+    {
+      append_cutpoint (rs[i].cutpoint_wtr, rs[i].min - 1);
+      append_cutpoint (rs[i].cutpoint_wtr, rs[i].max + 1);
+
+      rs[i].cutpoint_rdr = casewriter_make_reader (rs[i].cutpoint_wtr);
+    }
+}
+
 static void
 do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 {
@@ -557,60 +614,7 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
   struct subcase up_ordering;
   struct subcase down_ordering;
 
-  /* Prepare the cutpoints */
-  {
-    struct casereader *r = casereader_clone (input);
-    struct ccase *c;
-    struct caseproto *proto = caseproto_create ();
-
-    struct subcase ordering;
-    subcase_init (&ordering, CUTPOINT, 0, SC_ASCEND);
-
-    proto = caseproto_add_width (proto, 0); /* cutpoint */
-    proto = caseproto_add_width (proto, 0); /* TP */
-    proto = caseproto_add_width (proto, 0); /* FN */
-    proto = caseproto_add_width (proto, 0); /* TN */
-    proto = caseproto_add_width (proto, 0); /* FP */
-
-
-    for (i = 0 ; i < roc->n_vars; ++i)
-      {
-	rs[i].cutpoint_wtr = sort_create_writer (&ordering, proto);
-	rs[i].prev_result = SYSMIS;
-	rs[i].max = -DBL_MAX;
-	rs[i].min = DBL_MAX;
-      }
-
-    for (; (c = casereader_read (r)) != NULL; case_unref (c))
-      {
-	for (i = 0 ; i < roc->n_vars; ++i)
-	  {
-	    const double result = case_data (c, roc->vars[i])->f;
-
-	    minimize (&rs[i].min, result);
-	    maximize (&rs[i].max, result);
-
-	    if ( rs[i].prev_result != SYSMIS && rs[i].prev_result != result )
-	      {
-		const double mean = (result + rs[i].prev_result ) / 2.0;
-		append_cutpoint (rs[i].cutpoint_wtr, mean);
-	      }
-
-	    rs[i].prev_result = result;
-	  }
-      }
-    casereader_destroy (r);
-
-
-    /* Append the min and max cutpoints */
-    for (i = 0 ; i < roc->n_vars; ++i)
-      {
-	append_cutpoint (rs[i].cutpoint_wtr, rs[i].min - 1);
-	append_cutpoint (rs[i].cutpoint_wtr, rs[i].max + 1);
-
-	rs[i].cutpoint_rdr = casewriter_make_reader (rs[i].cutpoint_wtr);
-      }
-  }
+  prepare_cutpoints (roc, rs, input);
 
   positives = 
     casereader_create_filter_func (input,
