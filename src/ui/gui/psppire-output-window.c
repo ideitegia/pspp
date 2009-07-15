@@ -247,12 +247,11 @@ static struct outp_class psppire_output_class =
     NULL,                       /* open_page */
     NULL,                       /* close_page */
     NULL,                       /* flush */
+    NULL,                       /* output_chart */
     psppire_output_submit,      /* submit */
     NULL,                       /* line */
     NULL,                       /* text_metrics */
     NULL,                       /* text_draw */
-    NULL,                       /* initialise_chart */
-    NULL,                       /* finalise_chart */
   };
 
 void
