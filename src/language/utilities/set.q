@@ -515,189 +515,183 @@ stc_custom_disk (struct lexer *lexer, struct dataset *ds, struct cmd_set *cmd UN
   return stc_custom_listing (lexer, ds, cmd, aux);
 }
 
-static void
+static char *
 show_blanks (const struct dataset *ds UNUSED)
 {
-  if (settings_get_blanks () == SYSMIS)
-    msg (SN, _("BLANKS is SYSMIS."));
-  else
-    msg (SN, _("BLANKS is %g."), settings_get_blanks ());
-
+  return (settings_get_blanks () == SYSMIS
+          ? xstrdup ("SYSMIS")
+          : xasprintf ("%g", settings_get_blanks ()));
 }
 
-static char *
-format_cc (struct substring in, char grouping, char *out)
+static void
+format_cc (struct string *out, struct substring in, char grouping)
 {
   while (!ss_is_empty (in))
     {
       char c = ss_get_char (&in);
       if (c == grouping || c == '\'')
-        *out++ = '\'';
+        ds_put_char (out, '\'');
       else if (c == '"')
-        *out++ = '"';
-      *out++ = c;
+        ds_put_char (out, '"');
+      ds_put_char (out, c);
     }
-  return out;
 }
 
-static void
+static char *
 show_cc (enum fmt_type type)
 {
   const struct fmt_number_style *cc = settings_get_style (type);
-  char cc_string[FMT_STYLE_AFFIX_MAX * 4 * 2 + 3 + 1];
-  char *out;
+  struct string out;
 
-  out = format_cc (cc->neg_prefix, cc->grouping, cc_string);
-  *out++ = cc->grouping;
-  out = format_cc (cc->prefix, cc->grouping, out);
-  *out++ = cc->grouping;
-  out = format_cc (cc->suffix, cc->grouping, out);
-  *out++ = cc->grouping;
-  out = format_cc (cc->neg_suffix, cc->grouping, out);
-  *out = '\0';
+  ds_init_empty (&out);
+  format_cc (&out, cc->neg_prefix, cc->grouping);
+  ds_put_char (&out, cc->grouping);
+  format_cc (&out, cc->prefix, cc->grouping);
+  ds_put_char (&out, cc->grouping);
+  format_cc (&out, cc->suffix, cc->grouping);
+  ds_put_char (&out, cc->grouping);
+  format_cc (&out, cc->neg_suffix, cc->grouping);
 
-  msg (SN, _("%s is \"%s\"."), fmt_name (type), cc_string);
+  return ds_cstr (&out);
 }
 
-static void
+static char *
 show_cca (const struct dataset *ds UNUSED)
 {
-  show_cc (FMT_CCA);
+  return show_cc (FMT_CCA);
 }
 
-static void
+static char *
 show_ccb (const struct dataset *ds UNUSED)
 {
-  show_cc (FMT_CCB);
+  return show_cc (FMT_CCB);
 }
 
-static void
+static char *
 show_ccc (const struct dataset *ds UNUSED)
 {
-  show_cc (FMT_CCC);
+  return show_cc (FMT_CCC);
 }
 
-static void
+static char *
 show_ccd (const struct dataset *ds UNUSED)
 {
-  show_cc (FMT_CCD);
+  return show_cc (FMT_CCD);
 }
 
-static void
+static char *
 show_cce (const struct dataset *ds UNUSED)
 {
-  show_cc (FMT_CCE);
+  return show_cc (FMT_CCE);
 }
 
-static void
+static char *
 show_decimals (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("DECIMAL is \"%c\"."), settings_get_decimal_char (FMT_F));
+  return xasprintf ("\"%c\"", settings_get_decimal_char (FMT_F));
 }
 
-static void
+static char *
 show_endcmd (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("ENDCMD is \"%c\"."), settings_get_endcmd ());
+  return xasprintf ("\"%c\"", settings_get_endcmd ());
 }
 
-static void
+static char *
 show_errors (const struct dataset *ds UNUSED)
 {
   bool terminal = settings_get_error_routing_to_terminal ();
   bool listing = settings_get_error_routing_to_listing ();
-  msg (SN, _("ERRORS is \"%s\"."),
-       terminal && listing ? "BOTH"
-       : terminal ? "TERMINAL"
-       : listing ? "LISTING"
-       : "NONE");
+  return xstrdup (terminal && listing ? "BOTH"
+                  : terminal ? "TERMINAL"
+                  : listing ? "LISTING"
+                  : "NONE");
 }
 
-static void
+static char *
 show_format (const struct dataset *ds UNUSED)
 {
   char str[FMT_STRING_LEN_MAX + 1];
-  msg (SN, _("FORMAT is %s."), fmt_to_string (settings_get_format (), str));
+  return xstrdup (fmt_to_string (settings_get_format (), str));
 }
 
-static void
+static char *
 show_length (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("LENGTH is %d."), settings_get_viewlength ());
+  return xasprintf ("%d", settings_get_viewlength ());
 }
 
-static void
+static char *
 show_locale (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("LOCALE is %s"), get_default_encoding ());
+  return xstrdup (get_default_encoding ());
 }
 
-static void
+static char *
 show_mxerrs (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("MXERRS is %d."), settings_get_mxerrs ());
+  return xasprintf ("%d", settings_get_mxerrs ());
 }
 
-static void
+static char *
 show_mxloops (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("MXLOOPS is %d."), settings_get_mxloops ());
+  return xasprintf ("%d", settings_get_mxloops ());
 }
 
-static void
+static char *
 show_mxwarns (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("MXWARNS is %d."), settings_get_mxwarns ());
+  return xasprintf ("%d", settings_get_mxwarns ());
 }
 
-/* Outputs that SETTING has the given INTEGER_FORMAT value. */
-static void
-show_integer_format (const char *setting, enum integer_format integer_format)
+/* Returns a name for the given INTEGER_FORMAT value. */
+static char *
+show_integer_format (enum integer_format integer_format)
 {
-  msg (SN, _("%s is %s (%s)."),
-       setting,
-       (integer_format == INTEGER_MSB_FIRST ? "MSBFIRST"
-        : integer_format == INTEGER_LSB_FIRST ? "LSBFIRST"
-        : "VAX"),
-       integer_format == INTEGER_NATIVE ? "NATIVE" : "nonnative");
+  return xasprintf ("%s (%s)",
+                    (integer_format == INTEGER_MSB_FIRST ? "MSBFIRST"
+                     : integer_format == INTEGER_LSB_FIRST ? "LSBFIRST"
+                     : "VAX"),
+                    integer_format == INTEGER_NATIVE ? "NATIVE" : "nonnative");
 }
 
-/* Outputs that SETTING has the given FLOAT_FORMAT value. */
-static void
-show_float_format (const char *setting, enum float_format float_format)
+/* Returns a name for the given FLOAT_FORMAT value. */
+static char *
+show_float_format (enum float_format float_format)
 {
   const char *format_name = "";
 
   switch (float_format)
     {
     case FLOAT_IEEE_SINGLE_LE:
-      format_name = "ISL (32-bit IEEE 754 single, little-endian)";
+      format_name = _("ISL (32-bit IEEE 754 single, little-endian)");
       break;
     case FLOAT_IEEE_SINGLE_BE:
-      format_name = "ISB (32-bit IEEE 754 single, big-endian)";
+      format_name = _("ISB (32-bit IEEE 754 single, big-endian)");
       break;
     case FLOAT_IEEE_DOUBLE_LE:
-      format_name = "IDL (64-bit IEEE 754 double, little-endian)";
+      format_name = _("IDL (64-bit IEEE 754 double, little-endian)");
       break;
     case FLOAT_IEEE_DOUBLE_BE:
-      format_name = "IDB (64-bit IEEE 754 double, big-endian)";
+      format_name = _("IDB (64-bit IEEE 754 double, big-endian)");
       break;
 
     case FLOAT_VAX_F:
-      format_name = "VF (32-bit VAX F, VAX-endian)";
+      format_name = _("VF (32-bit VAX F, VAX-endian)");
       break;
     case FLOAT_VAX_D:
-      format_name = "VD (64-bit VAX D, VAX-endian)";
+      format_name = _("VD (64-bit VAX D, VAX-endian)");
       break;
     case FLOAT_VAX_G:
-      format_name = "VG (64-bit VAX G, VAX-endian)";
+      format_name = _("VG (64-bit VAX G, VAX-endian)");
       break;
 
     case FLOAT_Z_SHORT:
-      format_name = "ZS (32-bit IBM Z hexadecimal short, big-endian)";
+      format_name = _("ZS (32-bit IBM Z hexadecimal short, big-endian)");
       break;
     case FLOAT_Z_LONG:
-      format_name = "ZL (64-bit IBM Z hexadecimal long, big-endian)";
+      format_name = _("ZL (64-bit IBM Z hexadecimal long, big-endian)");
       break;
 
     case FLOAT_FP:
@@ -705,73 +699,64 @@ show_float_format (const char *setting, enum float_format float_format)
       NOT_REACHED ();
     }
 
-  msg (SN, _("%s is %s (%s)."),
-       setting, format_name,
-       float_format == FLOAT_NATIVE_DOUBLE ? "NATIVE" : "nonnative");
+  return xasprintf ("%s (%s)", format_name,
+                    (float_format == FLOAT_NATIVE_DOUBLE
+                     ? "NATIVE" : "nonnative"));
 }
 
-static void
+static char *
 show_rib (const struct dataset *ds UNUSED)
 {
-  show_integer_format ("RIB", settings_get_input_integer_format ());
+  return show_integer_format (settings_get_input_integer_format ());
 }
 
-static void
+static char *
 show_rrb (const struct dataset *ds UNUSED)
 {
-  show_float_format ("RRB", settings_get_input_float_format ());
+  return show_float_format (settings_get_input_float_format ());
 }
 
-static void
+static char *
 show_scompression (const struct dataset *ds UNUSED)
 {
-  if (settings_get_scompression ())
-    msg (SN, _("SCOMPRESSION is ON."));
-  else
-    msg (SN, _("SCOMPRESSION is OFF."));
+  return xstrdup (settings_get_scompression () ? "ON" : "OFF");
 }
 
-static void
+static char *
 show_undefined (const struct dataset *ds UNUSED)
 {
-  if (settings_get_undefined ())
-    msg (SN, _("UNDEFINED is WARN."));
-  else
-    msg (SN, _("UNDEFINED is NOWARN."));
+  return xstrdup (settings_get_undefined () ? "WARN" : "NOWARN");
 }
 
-static void
+static char *
 show_weight (const struct dataset *ds)
 {
   const struct variable *var = dict_get_weight (dataset_dict (ds));
-  if (var == NULL)
-    msg (SN, _("WEIGHT is off."));
-  else
-    msg (SN, _("WEIGHT is variable %s."), var_get_name (var));
+  return xstrdup (var != NULL ? var_get_name (var) : "OFF");
 }
 
-static void
+static char *
 show_wib (const struct dataset *ds UNUSED)
 {
-  show_integer_format ("WIB", settings_get_output_integer_format ());
+  return show_integer_format (settings_get_output_integer_format ());
 }
 
-static void
+static char *
 show_wrb (const struct dataset *ds UNUSED)
 {
-  show_float_format ("WRB", settings_get_output_float_format ());
+  return show_float_format (settings_get_output_float_format ());
 }
 
-static void
+static char *
 show_width (const struct dataset *ds UNUSED)
 {
-  msg (SN, _("WIDTH is %d."), settings_get_viewwidth ());
+  return xasprintf ("%d", settings_get_viewwidth ());
 }
 
 struct show_sbc
   {
     const char *name;
-    void (*function) (const struct dataset *);
+    char *(*function) (const struct dataset *);
   };
 
 const struct show_sbc show_table[] =
@@ -802,21 +787,33 @@ const struct show_sbc show_table[] =
   };
 
 static void
+do_show (const struct dataset *ds, const struct show_sbc *sbc)
+{
+  char *value = sbc->function (ds);
+  msg (SN, _("%s is %s."), sbc->name, value);
+  free (value);
+}
+
+static void
 show_all (const struct dataset *ds)
 {
   size_t i;
 
   for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
-    show_table[i].function (ds);
+    do_show (ds, &show_table[i]);
 }
 
 static void
-show_all_cc (void)
+show_all_cc (const struct dataset *ds)
 {
   int i;
 
-  for (i = 0; i < 5; i++)
-    show_cc (i);
+  for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
+    {
+      const struct show_sbc *sbc = &show_table[i];
+      if (!strncmp (sbc->name, "CC", 2))
+        do_show (ds, sbc);
+    }
 }
 
 static void
@@ -845,7 +842,7 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
       if (lex_match (lexer, T_ALL))
         show_all (ds);
       else if (lex_match_id (lexer, "CC"))
-        show_all_cc ();
+        show_all_cc (ds);
       else if (lex_match_id (lexer, "WARRANTY"))
         show_warranty (ds);
       else if (lex_match_id (lexer, "COPYING"))
@@ -855,10 +852,13 @@ cmd_show (struct lexer *lexer, struct dataset *ds)
           int i;
 
           for (i = 0; i < sizeof show_table / sizeof *show_table; i++)
-            if (lex_match_id (lexer, show_table[i].name))
-              {
-                show_table[i].function (ds);
-                goto found;
+            {
+              const struct show_sbc *sbc = &show_table[i];
+              if (lex_match_id (lexer, sbc->name))
+                {
+                  do_show (ds, sbc);
+                  goto found;
+                }
               }
           lex_error (lexer, NULL);
           return CMD_FAILURE;
