@@ -518,7 +518,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
 
   /* Create variable. */
   if (width < 0 || width > 255)
-    sys_error (r, _("Bad variable width %d."), width);
+    sys_error (r, _("Bad width %d for variable %s."), width, name);
   var = dict_create_var (dict, name, width);
   if (var == NULL)
     sys_error (r,
