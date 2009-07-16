@@ -385,10 +385,9 @@ lex_get (struct lexer *lexer)
           else
             {
               unsigned char c = *lexer->prog++;
-              if (c_isgraph (c))
-                msg (SE, _("Bad character in input: `%c'."), c);
-              else
-                msg (SE, _("Bad character in input: `\\%o'."), c);
+              char *c_name = xasprintf (c_isgraph (c) ? "%c" : "\\%o", c);
+              msg (SE, _("Bad character in input: `%s'."), c_name);
+              free (c_name);
               continue;
             }
         }
