@@ -120,8 +120,8 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
     tab_text (t, 1, 1, TAB_LEFT, label);
   }
   tab_text (t, 0, 2, TAB_LEFT, _("Created:"));
-  tab_text (t, 1, 2, TAB_LEFT | TAT_PRINTF, "%s %s by %s",
-		info.creation_date, info.creation_time, info.product);
+  tab_text_format (t, 1, 2, TAB_LEFT, "%s %s by %s",
+                   info.creation_date, info.creation_time, info.product);
   tab_text (t, 0, 3, TAB_LEFT, _("Integer Format:"));
   tab_text (t, 1, 3, TAB_LEFT,
             info.integer_format == INTEGER_MSB_FIRST ? _("Big Endian.")
@@ -136,11 +136,11 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
             : info.float_format == FLOAT_Z_LONG ? _("IBM 390 Hex Long.")
             : _("Unknown."));
   tab_text (t, 0, 5, TAB_LEFT, _("Variables:"));
-  tab_text (t, 1, 5, TAB_LEFT | TAT_PRINTF, "%zu", dict_get_var_cnt (d));
+  tab_text_format (t, 1, 5, TAB_LEFT, "%zu", dict_get_var_cnt (d));
   tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
-  tab_text (t, 1, 6, TAB_LEFT | TAT_PRINTF,
-            info.case_cnt == -1 ? _("Unknown") : "%ld",
-            (long int) info.case_cnt);
+  tab_text_format (t, 1, 6, TAB_LEFT,
+                   info.case_cnt == -1 ? _("Unknown") : "%ld",
+                   (long int) info.case_cnt);
   tab_text (t, 0, 7, TAB_LEFT, _("Type:"));
   tab_text (t, 1, 7, TAB_LEFT, _("System File."));
   tab_text (t, 0, 8, TAB_LEFT, _("Weight:"));
@@ -151,13 +151,13 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
                ? var_get_name (weight_var) : _("Not weighted.")));
   }
   tab_text (t, 0, 9, TAB_LEFT, _("Mode:"));
-  tab_text (t, 1, 9, TAB_LEFT | TAT_PRINTF,
-		_("Compression %s."), info.compressed ? _("on") : _("off"));
+  tab_text_format (t, 1, 9, TAB_LEFT,
+                   _("Compression %s."), info.compressed ? _("on") : _("off"));
 
 
   tab_text (t, 0, 10, TAB_LEFT, _("Charset:"));
-  tab_text (t, 1, 10, TAB_LEFT | TAT_PRINTF,
-	    dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
+  tab_text_format (t, 1, 10, TAB_LEFT,
+                   dict_get_encoding(d) ? dict_get_encoding(d) : _("Unknown"));
 
 
   tab_dim (t, tab_natural_dimensions, NULL);
@@ -459,8 +459,7 @@ display_attributes (struct tab_table *t, const struct attrset *set, int flags,
       for (i = 0; i < n_values; i++)
         {
           if (n_values > 1)
-            tab_text (t, c, r, TAB_LEFT | TAT_PRINTF, "%s[%d]",
-                      name, i + 1);
+            tab_text_format (t, c, r, TAB_LEFT, "%s[%d]", name, i + 1);
           else
             tab_text (t, c, r, TAB_LEFT, name);
           tab_text (t, c + 1, r, TAB_LEFT, attribute_get_value (attr, i));
@@ -523,7 +522,7 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
   /* Put the name, var label, and position into the first row. */
   tab_text (t, 0, r, TAB_LEFT, var_get_name (v));
   if (flags & DF_DICT_INDEX)
-    tab_text (t, pc, r, TAT_PRINTF, "%zu", var_get_dict_index (v) + 1);
+    tab_text_format (t, pc, r, 0, "%zu", var_get_dict_index (v) + 1);
 
   if (flags & DF_VARIABLE_LABELS && var_has_label (v))
     {
@@ -540,18 +539,20 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
       if (fmt_equal (print, write))
         {
           char str[FMT_STRING_LEN_MAX + 1];
-          tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-                          _("Format: %s"), fmt_to_string (print, str));
+          tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                                 _("Format: %s"), fmt_to_string (print, str));
           r++;
         }
       else
         {
           char str[FMT_STRING_LEN_MAX + 1];
-          tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-                          _("Print Format: %s"), fmt_to_string (print, str));
+          tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                                 _("Print Format: %s"),
+                                 fmt_to_string (print, str));
           r++;
-          tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-                          _("Write Format: %s"), fmt_to_string (write, str));
+          tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                                 _("Write Format: %s"),
+                                 fmt_to_string (write, str));
           r++;
         }
     }
@@ -562,20 +563,21 @@ describe_variable (const struct variable *v, struct tab_table *t, int r,
       enum measure m = var_get_measure (v);
       enum alignment a = var_get_alignment (v);
 
-      tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-                      _("Measure: %s"),
-                      m == MEASURE_NOMINAL ? _("Nominal")
-                      : m == MEASURE_ORDINAL ? _("Ordinal")
-                      : _("Scale"));
+      tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                             _("Measure: %s"),
+                             m == MEASURE_NOMINAL ? _("Nominal")
+                             : m == MEASURE_ORDINAL ? _("Ordinal")
+                             : _("Scale"));
       r++;
-      tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-                      _("Display Alignment: %s"),
-                      a == ALIGN_LEFT ? _("Left")
-                      : a == ALIGN_CENTRE ? _("Center")
-                      : _("Right"));
+      tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                             _("Display Alignment: %s"),
+                             a == ALIGN_LEFT ? _("Left")
+                             : a == ALIGN_CENTRE ? _("Center")
+                             : _("Right"));
       r++;
-      tab_joint_text (t, 1, r, 2, r, TAB_LEFT | TAT_PRINTF,
-                      _("Display Width: %d"), var_get_display_width (v));
+      tab_joint_text_format (t, 1, r, 2, r, TAB_LEFT,
+                             _("Display Width: %d"),
+                             var_get_display_width (v));
       r++;
     }
   
@@ -739,7 +741,7 @@ display_vectors (const struct dictionary *dict, int sorted)
           char fmt_string[FMT_STRING_LEN_MAX + 1];
           fmt_to_string (var_get_print_format (var), fmt_string);
 
-          tab_text (t, 1, row, TAB_RIGHT | TAT_PRINTF, "%zu", j + 1);
+          tab_text_format (t, 1, row, TAB_RIGHT, "%zu", j + 1);
           tab_text (t, 2, row, TAB_LEFT, var_get_name (var));
           tab_text (t, 3, row, TAB_LEFT, fmt_string);
           row++;

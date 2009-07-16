@@ -714,48 +714,44 @@ cmd_rank (struct lexer *lexer, struct dataset *ds)
 
 		  if ( rank_specs[i].rfunc == NORMAL ||
 		       rank_specs[i].rfunc == PROPORTION )
-		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s using %s BY %s)"),
-				     var_get_name (src_vars[v]),
-				     var_get_name (rank_specs[i].destvars[v]),
-				     function_name[rank_specs[i].rfunc],
-				     var_get_name (src_vars[v]),
-				     fraction_name(),
-				     ds_cstr (&varlist)
-				     );
+		    tab_output_text_format (0,
+                                            _("%s into %s(%s of %s using %s BY %s)"),
+                                            var_get_name (src_vars[v]),
+                                            var_get_name (rank_specs[i].destvars[v]),
+                                            function_name[rank_specs[i].rfunc],
+                                            var_get_name (src_vars[v]),
+                                            fraction_name(),
+                                            ds_cstr (&varlist));
 
 		  else
-		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s BY %s)"),
-				     var_get_name (src_vars[v]),
-				     var_get_name (rank_specs[i].destvars[v]),
-				     function_name[rank_specs[i].rfunc],
-				     var_get_name (src_vars[v]),
-				     ds_cstr (&varlist)
-				     );
+		    tab_output_text_format (0,
+                                            _("%s into %s(%s of %s BY %s)"),
+                                            var_get_name (src_vars[v]),
+                                            var_get_name (rank_specs[i].destvars[v]),
+                                            function_name[rank_specs[i].rfunc],
+                                            var_get_name (src_vars[v]),
+                                            ds_cstr (&varlist));
 		  ds_destroy (&varlist);
 		}
 	      else
 		{
 		  if ( rank_specs[i].rfunc == NORMAL ||
 		       rank_specs[i].rfunc == PROPORTION )
-		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s using %s)"),
-				     var_get_name (src_vars[v]),
-				     var_get_name (rank_specs[i].destvars[v]),
-				     function_name[rank_specs[i].rfunc],
-				     var_get_name (src_vars[v]),
-				     fraction_name()
-				     );
+		    tab_output_text_format (0,
+                                            _("%s into %s(%s of %s using %s)"),
+                                            var_get_name (src_vars[v]),
+                                            var_get_name (rank_specs[i].destvars[v]),
+                                            function_name[rank_specs[i].rfunc],
+                                            var_get_name (src_vars[v]),
+                                            fraction_name());
 
 		  else
-		    tab_output_text (TAT_PRINTF,
-				     _("%s into %s(%s of %s)"),
-				     var_get_name (src_vars[v]),
-				     var_get_name (rank_specs[i].destvars[v]),
-				     function_name[rank_specs[i].rfunc],
-				     var_get_name (src_vars[v])
-				     );
+		    tab_output_text_format (0,
+                                            _("%s into %s(%s of %s)"),
+                                            var_get_name (src_vars[v]),
+                                            var_get_name (rank_specs[i].destvars[v]),
+                                            function_name[rank_specs[i].rfunc],
+                                            var_get_name (src_vars[v]));
 		}
 	    }
 	}

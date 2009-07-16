@@ -577,10 +577,10 @@ ssbox_independent_samples_populate (struct ssbox *ssb,
 
       tab_text (ssb->t, 0, i * 2 + 1, TAB_LEFT,
                 var_get_name (proc->vars[i]));
-      tab_text (ssb->t, 1, i * 2 + 1, TAB_LEFT | TAT_PRINTF,
-                "%s%s", prefix[0], val_lab[0]);
-      tab_text (ssb->t, 1, i * 2 + 1+ 1, TAB_LEFT | TAT_PRINTF,
-                "%s%s", prefix[1], val_lab[1]);
+      tab_text_format (ssb->t, 1, i * 2 + 1, TAB_LEFT,
+                       "%s%s", prefix[0], val_lab[0]);
+      tab_text_format (ssb->t, 1, i * 2 + 1+ 1, TAB_LEFT,
+                       "%s%s", prefix[1], val_lab[1]);
 
       /* Fill in the group statistics */
       for (count = 0; count < 2; count++)
@@ -639,7 +639,7 @@ ssbox_paired_populate (struct ssbox *ssb, struct t_test_proc *proc)
       struct pair *p = &proc->pairs[i];
       int j;
 
-      tab_text (ssb->t, 0, i * 2 + 1, TAB_LEFT | TAT_PRINTF, _("Pair %d"), i);
+      tab_text_format (ssb->t, 0, i * 2 + 1, TAB_LEFT, _("Pair %d"), i);
       for (j=0; j < 2; j++)
 	{
 	  /* Titles */
@@ -757,9 +757,9 @@ trbox_independent_samples_init (struct trbox *self,
   tab_text (self->t, 9, 2, TAB_CENTER | TAT_TITLE, _("Lower"));
   tab_text (self->t, 10, 2, TAB_CENTER | TAT_TITLE, _("Upper"));
 
-  tab_joint_text (self->t, 9, 1, 10, 1, TAB_CENTER | TAT_PRINTF,
-                  _("%g%% Confidence Interval of the Difference"),
-                  proc->criteria * 100.0);
+  tab_joint_text_format (self->t, 9, 1, 10, 1, TAB_CENTER,
+                         _("%g%% Confidence Interval of the Difference"),
+                         proc->criteria * 100.0);
 }
 
 /* Populate the independent samples trbox */
@@ -911,9 +911,9 @@ trbox_paired_init (struct trbox *self, struct t_test_proc *proc)
   tab_hline (self->t, TAL_1, 5, 6, 2);
   tab_vline (self->t, TAL_GAP, 6, 0, 1);
 
-  tab_joint_text (self->t, 5, 1, 6, 1, TAB_CENTER | TAT_PRINTF,
-                  _("%g%% Confidence Interval of the Difference"),
-                  proc->criteria*100.0);
+  tab_joint_text_format (self->t, 5, 1, 6, 1, TAB_CENTER,
+                         _("%g%% Confidence Interval of the Difference"),
+                         proc->criteria*100.0);
 
   tab_text (self->t, 2, 2, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (self->t, 3, 2, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
@@ -942,10 +942,10 @@ trbox_paired_populate (struct trbox *trb,
       double t;
       double df = n - 1;
 
-      tab_text (trb->t, 0, i + 3, TAB_LEFT | TAT_PRINTF, _("Pair %d"), i);
-      tab_text (trb->t, 1, i + 3, TAB_LEFT | TAT_PRINTF, "%s - %s",
-		var_get_name (pair->v[0]),
-                var_get_name (pair->v[1]));
+      tab_text_format (trb->t, 0, i + 3, TAB_LEFT, _("Pair %d"), i);
+      tab_text_format (trb->t, 1, i + 3, TAB_LEFT, "%s - %s",
+                       var_get_name (pair->v[0]),
+                       var_get_name (pair->v[1]));
       tab_double (trb->t, 2, i + 3, TAB_RIGHT, pair->mean_diff, NULL);
       tab_double (trb->t, 3, i + 3, TAB_RIGHT, pair->std_dev_diff, NULL);
 
@@ -995,15 +995,15 @@ trbox_one_sample_init (struct trbox *self, struct t_test_proc *proc)
   tab_hline (self->t, TAL_1, 1, hsize - 1, 1);
   tab_vline (self->t, TAL_2, 1, 0, vsize - 1);
 
-  tab_joint_text (self->t, 1, 0, hsize - 1, 0, TAB_CENTER | TAT_PRINTF,
-                  _("Test Value = %f"), proc->testval);
+  tab_joint_text_format (self->t, 1, 0, hsize - 1, 0, TAB_CENTER,
+                         _("Test Value = %f"), proc->testval);
 
   tab_box (self->t, -1, -1, -1, TAL_1, 1, 1, hsize - 1, vsize - 1);
 
 
-  tab_joint_text (self->t, 5, 1, 6, 1, TAB_CENTER  | TAT_PRINTF,
-                  _("%g%% Confidence Interval of the Difference"),
-                  proc->criteria * 100.0);
+  tab_joint_text_format (self->t, 5, 1, 6, 1, TAB_CENTER,
+                         _("%g%% Confidence Interval of the Difference"),
+                         proc->criteria * 100.0);
 
   tab_vline (self->t, TAL_GAP, 6, 1, 1);
   tab_hline (self->t, TAL_1, 5, 6, 2);
@@ -1115,12 +1115,12 @@ pscbox (struct t_test_proc *proc)
                               sqrt (1 - pow2 (pair->correlation)));
 
       /* row headings */
-      tab_text (table, 0, i + 1, TAB_LEFT | TAT_TITLE | TAT_PRINTF,
-                _("Pair %d"), i);
-      tab_text (table, 1, i + 1, TAB_LEFT | TAT_TITLE | TAT_PRINTF,
-                _("%s & %s"),
-                var_get_name (pair->v[0]),
-                var_get_name (pair->v[1]));
+      tab_text_format (table, 0, i + 1, TAB_LEFT | TAT_TITLE,
+                       _("Pair %d"), i);
+      tab_text_format (table, 1, i + 1, TAB_LEFT | TAT_TITLE,
+                       _("%s & %s"),
+                       var_get_name (pair->v[0]),
+                       var_get_name (pair->v[1]));
 
       /* row data */
       tab_double (table, 2, i + 1, TAB_RIGHT, pair->n, &proc->weight_format);

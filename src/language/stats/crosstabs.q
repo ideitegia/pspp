@@ -881,8 +881,8 @@ make_summary_table (struct crosstabs_proc *proc)
         {
           tab_double (summary, i * 2 + 1, 0, TAB_RIGHT, n[i],
                       &proc->weight_format);
-          tab_text (summary, i * 2 + 2, 0, TAB_RIGHT | TAT_PRINTF, "%.1f%%",
-                    n[i] / n[2] * 100.);
+          tab_text_format (summary, i * 2 + 2, 0, TAB_RIGHT, "%.1f%%",
+                           n[i] / n[2] * 100.);
         }
 
       tab_next_row (summary);
@@ -1276,8 +1276,8 @@ create_risk_table (struct pivot_table *pt)
   tab_title (risk, _("Risk estimate."));
 
   tab_offset (risk, pt->n_vars - 2, 0);
-  tab_joint_text (risk, 2, 0, 3, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF,
-                  _("95%% Confidence Interval"));
+  tab_joint_text_format (risk, 2, 0, 3, 0, TAB_CENTER | TAT_TITLE,
+                         _("95%% Confidence Interval"));
   tab_text (risk, 0, 1, TAB_LEFT | TAT_TITLE, _("Statistic"));
   tab_text (risk, 1, 1, TAB_RIGHT | TAT_TITLE, _("Value"));
   tab_text (risk, 2, 1, TAB_RIGHT | TAT_TITLE, _("Lower"));
@@ -2060,8 +2060,8 @@ display_directional (struct crosstabs_proc *proc, struct pivot_table *pt,
 		  else
 		    string = var_get_name (pt->vars[1]);
 
-		  tab_text (direct, j, 0, TAB_LEFT | TAT_PRINTF,
-			    gettext (stats_names[j][k]), string);
+		  tab_text_format (direct, j, 0, TAB_LEFT,
+                                   gettext (stats_names[j][k]), string);
 		}
 	    }
       }

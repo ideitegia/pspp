@@ -1405,10 +1405,10 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		     TAB_LEFT,
 		     n, wfmt);
 
-	  tab_text (tbl, heading_columns + 1,
-		    heading_rows + j + v * ll_count (&fctr->result_list),
-		    TAB_RIGHT | TAT_PRINTF,
-		    "%g%%", n * 100.0 / result->metrics[v].n);
+	  tab_text_format (tbl, heading_columns + 1,
+                           heading_rows + j + v * ll_count (&fctr->result_list),
+                           TAB_RIGHT,
+                           "%g%%", n * 100.0 / result->metrics[v].n);
 
 	  /* Total Missing */
 	  tab_double (tbl, heading_columns + 2,
@@ -1417,12 +1417,12 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		     result->metrics[v].n - n,
 		     wfmt);
 
-	  tab_text (tbl, heading_columns + 3,
-		    heading_rows + j + v * ll_count (&fctr->result_list),
-		    TAB_RIGHT | TAT_PRINTF,
-		    "%g%%",
-		    (result->metrics[v].n - n) * 100.0 / result->metrics[v].n
-		    );
+	  tab_text_format (tbl, heading_columns + 3,
+                           heading_rows + j + v * ll_count (&fctr->result_list),
+                           TAB_RIGHT,
+                           "%g%%",
+                           (result->metrics[v].n - n) * 100.0 / result->metrics[v].n
+                           );
 
 	  /* Total Valid + Missing */
 	  tab_double (tbl, heading_columns + 4,
@@ -1431,12 +1431,12 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 		     result->metrics[v].n,
 		     wfmt);
 
-	  tab_text (tbl, heading_columns + 5,
-		    heading_rows + j + v * ll_count (&fctr->result_list),
-		    TAB_RIGHT | TAT_PRINTF,
-		    "%g%%",
-		    (result->metrics[v].n) * 100.0 / result->metrics[v].n
-		    );
+	  tab_text_format (tbl, heading_columns + 5,
+                           heading_rows + j + v * ll_count (&fctr->result_list),
+                           TAB_RIGHT,
+                           "%g%%",
+                           ((result->metrics[v].n) * 100.0
+                            / result->metrics[v].n));
 
 	  ++j;
 	}
@@ -1558,11 +1558,11 @@ show_descriptives (const struct variable **dependent_var,
 		    TAB_LEFT,
 		    _("Mean"));
 
-	  tab_text (tbl, n_cols - 4,
-		    heading_rows + row_var_start + 1 + i * DESCRIPTIVE_ROWS,
-		    TAB_LEFT | TAT_PRINTF,
-		    _("%g%% Confidence Interval for Mean"),
-		    cmd.n_cinterval[0]);
+	  tab_text_format (tbl, n_cols - 4,
+                           heading_rows + row_var_start + 1 + i * DESCRIPTIVE_ROWS,
+                           TAB_LEFT,
+                           _("%g%% Confidence Interval for Mean"),
+                           cmd.n_cinterval[0]);
 
 	  tab_text (tbl, n_cols - 3,
 		    heading_rows + row_var_start + 1 + i * DESCRIPTIVE_ROWS,
@@ -1575,9 +1575,8 @@ show_descriptives (const struct variable **dependent_var,
 		    _("Upper Bound"));
 
 	  tab_text (tbl, n_cols - 4,
-		    heading_rows + row_var_start + 3 + i * DESCRIPTIVE_ROWS,
-		    TAB_LEFT | TAT_PRINTF,
-		    _("5%% Trimmed Mean"));
+                    heading_rows + row_var_start + 3 + i * DESCRIPTIVE_ROWS,
+                    TAB_LEFT, _("5% Trimmed Mean"));
 
 	  tab_text (tbl, n_cols - 4,
 		    heading_rows + row_var_start + 4 + i * DESCRIPTIVE_ROWS,
@@ -1848,15 +1847,15 @@ show_extremes (const struct variable **dependent_var,
 
 	  for ( e = 1; e <= cmd.st_n; ++e )
 	    {
-	      tab_text (tbl, n_cols - 3,
-			heading_rows + row_var_start + row_result_start + e - 1,
-			TAB_RIGHT | TAT_PRINTF,
-			_("%d"), e);
+	      tab_text_format (tbl, n_cols - 3,
+                               heading_rows + row_var_start + row_result_start + e - 1,
+                               TAB_RIGHT,
+                               "%d", e);
 
-	      tab_text (tbl, n_cols - 3,
-			heading_rows + row_var_start + row_result_start + cmd.st_n + e - 1,
-			TAB_RIGHT | TAT_PRINTF,
-			_("%d"), e);
+	      tab_text_format (tbl, n_cols - 3,
+                               heading_rows + row_var_start + row_result_start + cmd.st_n + e - 1,
+                               TAB_RIGHT,
+                               "%d", e);
 	    }
 
 
@@ -2120,11 +2119,10 @@ show_percentiles (const struct variable **dependent_var,
 
   for (i = 0 ; i < n_percentiles; ++i )
     {
-      tab_text (tbl, n_cols - n_percentiles + i, 1,
-		TAB_CENTER | TAT_TITLE | TAT_PRINTF,
-		_("%g"),
-		subc_list_double_at (&percentile_list, i)
-		);
+      tab_text_format (tbl, n_cols - n_percentiles + i, 1,
+                       TAB_CENTER | TAT_TITLE,
+                       _("%g"),
+                       subc_list_double_at (&percentile_list, i));
 
 
     }

@@ -261,9 +261,9 @@ binomial_execute (const struct dataset *ds,
       tab_text (table,  4, 0,  TAB_CENTER, _("Observed Prop."));
       tab_text (table,  5, 0,  TAB_CENTER, _("Test Prop."));
 
-      tab_text (table,  6, 0,  TAB_CENTER | TAT_PRINTF,
-                _("Exact Sig. (%d-tailed)"),
-                bst->p == 0.5 ? 2: 1);
+      tab_text_format (table,  6, 0,  TAB_CENTER,
+                       _("Exact Sig. (%d-tailed)"),
+                       bst->p == 0.5 ? 2 : 1);
 
       tab_vline (table, TAL_2, 2, 0, tab_nr (table) -1);
       tab_submit (table);
