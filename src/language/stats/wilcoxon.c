@@ -324,12 +324,12 @@ show_tests_box (const struct wilcoxon_state *ws,
 
 
   tab_text (table,  0, 1,  TAB_LEFT, _("Z"));
-  tab_text (table,  0, 2,  TAB_LEFT, _("Asymp. Sig (2-tailed)"));
+  tab_text (table,  0, 2,  TAB_LEFT, _("Asymp. Sig. (2-tailed)"));
 
   if ( exact )
     {
-      tab_text (table,  0, 3,  TAB_LEFT, _("Exact Sig (2-tailed)"));
-      tab_text (table,  0, 4,  TAB_LEFT, _("Exact Sig (1-tailed)"));
+      tab_text (table,  0, 3,  TAB_LEFT, _("Exact Sig. (2-tailed)"));
+      tab_text (table,  0, 4,  TAB_LEFT, _("Exact Sig. (1-tailed)"));
 
 #if 0
       tab_text (table,  0, 5,  TAB_LEFT, _("Point Probability"));
