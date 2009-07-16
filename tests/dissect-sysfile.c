@@ -583,13 +583,18 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
 
   printf ("\tsysmis: %g\n", sysmis);
   if (sysmis != SYSMIS)
-    sys_warn (r, _("File specifies unexpected value %g as SYSMIS."), sysmis);
+    sys_warn (r, _("File specifies unexpected value %g as %s."),
+              sysmis, "SYSMIS");
+
   printf ("\thighest: %g\n", highest);
   if (highest != HIGHEST)
-    sys_warn (r, _("File specifies unexpected value %g as HIGHEST."), highest);
+    sys_warn (r, _("File specifies unexpected value %g as %s."),
+              highest, "HIGHEST");
+
   printf ("\tlowest: %g\n", lowest);
   if (lowest != LOWEST)
-    sys_warn (r, _("File specifies unexpected value %g as LOWEST."), lowest);
+    sys_warn (r, _("File specifies unexpected value %g as %s."),
+              lowest, "LOWEST");
 }
 
 /* Read record type 7, subtype 11. */

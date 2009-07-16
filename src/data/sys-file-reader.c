@@ -922,11 +922,16 @@ read_machine_float_info (struct sfm_reader *r, size_t size, size_t count)
                size, count);
 
   if (sysmis != SYSMIS)
-    sys_warn (r, _("File specifies unexpected value %g as SYSMIS."), sysmis);
+    sys_warn (r, _("File specifies unexpected value %g as %s."),
+              sysmis, "SYSMIS");
+
   if (highest != HIGHEST)
-    sys_warn (r, _("File specifies unexpected value %g as HIGHEST."), highest);
+    sys_warn (r, _("File specifies unexpected value %g as %s."),
+              highest, "HIGHEST");
+
   if (lowest != LOWEST)
-    sys_warn (r, _("File specifies unexpected value %g as LOWEST."), lowest);
+    sys_warn (r, _("File specifies unexpected value %g as %s."),
+              lowest, "LOWEST");
 }
 
 /* Read record type 7, subtype 11, which specifies how variables
