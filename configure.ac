@@ -106,7 +106,7 @@ if test x"$with_libpq" != x"no" ; then
 fi
 AM_CONDITIONAL(PSQL_SUPPORT, test -n "$PG_CONFIG")
 
-dnl Checks needed for gnumeric reader
+dnl Checks needed for Gnumeric reader
 gnm_support=yes;
 PKG_CHECK_MODULES(LIBXML2, libxml-2.0,,
 			   [PSPP_OPTIONAL_PREREQ([libxml2]); gnm_support=no;]);

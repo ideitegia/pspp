@@ -6,9 +6,9 @@ most of the core libraries which ensure that PSPP runs with optimal
 speed are his work.
 
 * John Darrington wrote the graphical user interface, and the T-TEST,
-ONEWAY, EXAMINE, RANK and  NPAR TESTS commands, implemented support
-for long variable names, psql and gnumeric and made numerous revisions
-to other modules.   
+ONEWAY, EXAMINE, RANK and NPAR TESTS commands, implemented support for
+long variable names, PostgreSQL and Gnumeric and made numerous
+revisions to other modules.
 
 * Jason Stover contributed statistical and numerical functionality,
 including lib/gslextras and the linear regression features. Jason 
