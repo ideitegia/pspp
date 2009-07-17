@@ -1013,8 +1013,11 @@ The default is FREE.
 @item The CUTOFF parameter is for compatibility and is ignored.
 @end itemize
 
-
 The MISSING subcommand determines whether user missing values are to 
-be included or excluded in the analysis.  The default behaviour is to exclude them.
+be included or excluded in the analysis.  The default behaviour is to
+exclude them.
+Cases are excluded on a listwise basis; if any of the variables in @var{var_list} 
+or if the variable @var{state_var} is missing, then the entire case will be 
+excluded.
 
 
