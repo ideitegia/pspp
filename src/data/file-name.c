@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2006, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -485,7 +485,14 @@ default_output_path (void)
       if (home_dir == NULL)
 	home_dir = "c:/users/default"; /* poor default */
 
-      path = xasprintf ("%s%c", home_dir, '/');
+      /* Copy home_dir into path.  Add a slash at the end but
+         only if there isn't already one there, because Windows
+         treats // specially. */
+      if (home_dir[0] == '\0'
+          || strchr ("/\\", home_dir[strlen (home_dir) - 1]) != NULL)
+        path = xasprintf ("%s%c", home_dir, '/');
+      else
+        path = xstrdup (home_dir);
 
 
       for(i = 0; i < strlen (path); i++)
