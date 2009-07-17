@@ -49,7 +49,7 @@ struct cmd_roc
   const struct variable **vars;
   const struct dictionary *dict;
 
-  struct variable *state_var ;
+  const struct variable *state_var ;
   union value state_value;
 
   /* Plot the roc curve */
@@ -640,14 +640,21 @@ do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
   struct subcase up_ordering;
   struct subcase down_ordering;
 
+  struct casewriter *neg_wtr = NULL;
+
   struct casereader *input = casereader_create_filter_missing (reader,
 							       roc->vars, roc->n_vars,
 							       roc->exclude,
 							       NULL,
 							       NULL);
 
+  input = casereader_create_filter_missing (input,
+					    &roc->state_var, 1,
+					    roc->exclude,
+					    NULL,
+					    NULL);
 
-  struct casewriter *neg_wtr = autopaging_writer_create (casereader_get_proto (input));
+  neg_wtr = autopaging_writer_create (casereader_get_proto (input));
 
   prepare_cutpoints (roc, rs, input);
 
