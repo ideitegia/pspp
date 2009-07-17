@@ -489,7 +489,7 @@ default_output_path (void)
          only if there isn't already one there, because Windows
          treats // specially. */
       if (home_dir[0] == '\0'
-          || strchr ("/\\", home_dir[strlen (home_dir) - 1]) != NULL)
+          || strchr ("/\\", home_dir[strlen (home_dir) - 1]) == NULL)
         path = xasprintf ("%s%c", home_dir, '/');
       else
         path = xstrdup (home_dir);
