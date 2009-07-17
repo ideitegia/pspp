@@ -249,7 +249,7 @@ An integer denoting the number of decimal places for the format.
 
 =item width
 
-An integer denoting the number of width of the format.
+An integer denoting the width of the format.
 
 =back
 
@@ -510,7 +510,7 @@ values retrieved from a reader.
 
 =head3 PSPP::format_value ($value, $variable)
 
-Returns a scalar containing a string representing C<value> formatted accoring 
+Returns a scalar containing a string representing C<value> formatted according 
 to the print format of C<variable>.
 In the most common ussage,  C<value> should be a value of C<variable>.
 
