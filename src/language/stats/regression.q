@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -941,7 +941,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
     }
   lopts.get_depvar_mean_std = 1;
 
-  lopts.get_indep_mean_std = xnmalloc (n_variables, sizeof (int));
+
   indep_vars = xnmalloc (n_variables, sizeof *indep_vars);
 
   for (k = 0; k < cmd->n_dependent; k++)
@@ -969,6 +969,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 	    design_matrix_create (n_indep,
 				  (const struct variable **) indep_vars,
 				  n_data);
+	  lopts.get_indep_mean_std = xnmalloc (X->m->size2, sizeof (int));
 	  for (i = 0; i < X->m->size2; i++)
 	    {
 	      lopts.get_indep_mean_std[i] = 1;
@@ -1019,6 +1020,7 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
 
 	  gsl_vector_free (Y);
 	  design_matrix_destroy (X);
+	  free (lopts.get_indep_mean_std);
 	}
       else
 	{
@@ -1033,7 +1035,6 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
     }
   free (mom);
   free (indep_vars);
-  free (lopts.get_indep_mean_std);
   casereader_destroy (input);
 
   return true;
