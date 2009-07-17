@@ -47,6 +47,7 @@ struct cmd_roc
 {
   size_t n_vars;
   const struct variable **vars;
+  const struct dictionary *dict;
 
   struct variable *state_var ;
   union value state_value;
@@ -66,6 +67,11 @@ struct cmd_roc
 
   bool invert ; /* True iff a smaller test result variable indicates
 		   a positive result */
+
+  double pos;
+  double neg;
+  double pos_weighted;
+  double neg_weighted;
 };
 
 static int run_roc (struct dataset *ds, struct cmd_roc *roc);
@@ -86,6 +92,9 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
   roc.ci = 95;
   roc.bi_neg_exp = false;
   roc.invert = false;
+  roc.pos = roc.pos_weighted = 0;
+  roc.neg = roc.neg_weighted = 0;
+  roc.dict = dataset_dict (ds);
 
   if (!parse_variables_const (lexer, dict, &roc.vars, &roc.n_vars,
 			      PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
@@ -314,10 +323,25 @@ static bool
 match_positives (const struct ccase *c, void *aux)
 {
   struct cmd_roc *roc = aux;
+  const struct variable *wv = dict_get_weight (roc->dict);
+  const double weight = wv ? case_data (c, wv)->f : 1.0;
 
-  return 0 == value_compare_3way (case_data (c, roc->state_var),
+  bool positive = ( 0 == value_compare_3way (case_data (c, roc->state_var),
 				  &roc->state_value,
-				  var_get_width (roc->state_var));
+					     var_get_width (roc->state_var)));
+
+  if ( positive )
+    {
+      roc->pos++;
+      roc->pos_weighted += weight;
+    }
+  else
+    {
+      roc->neg++;
+      roc->neg_weighted += weight;
+    }
+
+  return positive;
 }
 
 
@@ -407,10 +431,10 @@ process_group (const struct variable *var, struct casereader *reader,
 	       struct casereader **cutpoint_rdr, 
 	       bool (*pos_cond) (double, double),
 	       int true_index,
-	       int false_index
-	       )
+	       int false_index)
 {
   const struct variable *w = dict_get_weight (dict);
+
   struct casereader *r1 =
     casereader_create_distinct (sort_execute_1var (reader, var), var, w);
 
@@ -570,7 +594,11 @@ prepare_cutpoints (struct cmd_roc *roc, struct roc_state *rs, struct casereader 
     {
       for (i = 0 ; i < roc->n_vars; ++i)
 	{
-	  const double result = case_data (c, roc->vars[i])->f;
+	  const union value *v = case_data (c, roc->vars[i]); 
+	  const double result = v->f;
+
+	  if ( mv_is_value_missing (var_get_missing_values (roc->vars[i]), v, roc->exclude))
+	    continue;
 
 	  minimize (&rs[i].min, result);
 	  maximize (&rs[i].max, result);
@@ -598,13 +626,11 @@ prepare_cutpoints (struct cmd_roc *roc, struct roc_state *rs, struct casereader 
 }
 
 static void
-do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
+do_roc (struct cmd_roc *roc, struct casereader *reader, struct dictionary *dict)
 {
   int i;
 
   struct roc_state *rs = xcalloc (roc->n_vars, sizeof *rs);
-
-  struct casewriter *neg_wtr = autopaging_writer_create (casereader_get_proto (input));
 
   struct casereader *negatives = NULL;
   struct casereader *positives = NULL;
@@ -613,6 +639,15 @@ do_roc (struct cmd_roc *roc, struct casereader *input, struct dictionary *dict)
 
   struct subcase up_ordering;
   struct subcase down_ordering;
+
+  struct casereader *input = casereader_create_filter_missing (reader,
+							       roc->vars, roc->n_vars,
+							       roc->exclude,
+							       NULL,
+							       NULL);
+
+
+  struct casewriter *neg_wtr = autopaging_writer_create (casereader_get_proto (input));
 
   prepare_cutpoints (roc, rs, input);
 
@@ -948,13 +983,11 @@ show_summary (const struct cmd_roc *roc)
   tab_text (tbl, 0, 3, TAB_LEFT, _("Negative"));
 
 
-#if 0
   tab_double (tbl, 1, 2, 0, roc->pos, &F_8_0);
   tab_double (tbl, 1, 3, 0, roc->neg, &F_8_0);
 
   tab_double (tbl, 2, 2, 0, roc->pos_weighted, 0);
   tab_double (tbl, 2, 3, 0, roc->neg_weighted, 0);
-#endif
 
   tab_submit (tbl);
 }

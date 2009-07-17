@@ -108,6 +108,15 @@ if [ $? -ne 0 ] ; then no_result ; fi
 activity="compare results"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
 diff -b  $TEMPDIR/pspp.list - << EOF
+1.1 ROC.  Case Summary
+#========#===================#
+#        # Valid N (listwise)#
+#        #==========#========#
+#a       #Unweighted|Weighted#
+#========#==========#========#
+#Positive#        14|  14.000#
+#Negative#        14|  14.000#
+#========#==========#========#
 1.2 ROC.  Area Under the Curve (x)
 #====#==========#===============#=======================#
 #    |          |               | Asymp. 95% Confidence #
