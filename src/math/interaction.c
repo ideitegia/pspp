@@ -38,6 +38,7 @@
 #include <math/interaction.h>
 #include <string.h>
 #include <xalloc.h>
+#include <unistr.h>
 
 struct interaction_variable
 {
@@ -148,8 +149,8 @@ interaction_value_create (const struct interaction_variable *var, const union va
   
   if (var != NULL)
     {
-      int val_width = 1;
       uint8_t *val;
+      int val_width = 1;
 
       result = xmalloc (sizeof (*result));
       result->intr = var;
@@ -174,7 +175,7 @@ interaction_value_create (const struct interaction_variable *var, const union va
 		{
                   int w = var_get_width (var->members[i]);
 		  value_resize (result, val_width, val_width + w);
-		  strncat (val, value_str (vals[i], w), w);
+		  u8_strncat (val, value_str (vals[i], w), w);
 		  val = value_str_rw (&result->val, val_width);
 		}
 	      else if (var_is_numeric (var->members[i]))
