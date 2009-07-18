@@ -1514,7 +1514,6 @@ table_value_missing (struct crosstabs_proc *proc,
 		     const union value *v, const struct variable *var)
 {
   struct substring s;
-  char *ss;
   const struct fmt_spec *print = var_get_print_format (var);
 
   const char *label = var_lookup_value_label (var, v);
@@ -1524,11 +1523,8 @@ table_value_missing (struct crosstabs_proc *proc,
       return;
     }
 
-  s.string = tab_alloc (table, print->w);
-  ss = data_out (v, dict_get_encoding (proc->dict), print);
-  strcpy (s.string, ss);
-  free (ss);
-  s.length = print->w;
+  s = ss_cstr (data_out_pool (v, dict_get_encoding (proc->dict), print,
+			     table->container));
   if (proc->exclude == MV_NEVER && var_is_num_missing (var, v->f, MV_USER))
     s.string[s.length++] = 'M';
   while (s.length && *s.string == ' ')
@@ -1566,14 +1562,10 @@ format_cell_entry (struct tab_table *table, int c, int r, double value,
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
   struct substring s;
-  char *ss;
 
-  s.length = 10;
-  s.string = tab_alloc (table, 16);
   v.f = value;
-  ss = data_out (&v, dict_get_encoding (dict), &f);
-  strcpy (s.string, ss);
-  free (ss);
+  s = ss_cstr (data_out_pool (&v, dict_get_encoding (dict), &f, table->container));
+
   while (*s.string == ' ')
     {
       s.length--;
