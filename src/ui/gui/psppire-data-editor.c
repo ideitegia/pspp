@@ -1646,7 +1646,8 @@ enum {
 
 /* Perform data_out for case CC, variable V, appending to STRING */
 static void
-data_out_g_string (GString *string, const struct dictionary *dict, const struct variable *v,
+data_out_g_string (GString *string, const struct dictionary *dict, 
+		   const struct variable *v,
 		   const struct ccase *cc)
 {
   const struct fmt_spec *fs = var_get_print_format (v);
@@ -1654,7 +1655,7 @@ data_out_g_string (GString *string, const struct dictionary *dict, const struct 
 
   char *s = data_out (val, dict_get_encoding (dict), fs);
 
-  g_string_append_len (string, s, fs->w);
+  g_string_append (string, s);
 
   g_free (s);
 }
