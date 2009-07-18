@@ -202,8 +202,17 @@ recode_strings (struct dictionary *dict)
     {
       /* Convert the long variable name */
       struct variable *var = dict_get_var (dict, i);
-      char *utf8_name = recode_string (UTF8, enc, var_get_name (var), -1);
-      dict_rename_var (dict, var, utf8_name);
+      const char *native_name = var_get_name (var);
+      char *utf8_name = recode_string (UTF8, enc, native_name, -1);
+      if ( 0 != strcmp (utf8_name, native_name))
+	{
+	  if ( NULL == dict_lookup_var (dict, utf8_name))
+	    dict_rename_var (dict, var, utf8_name);
+	  else
+	    msg (MW,
+	     _("Recoded variable name duplicates an existing `%s' within system file."), utf8_name);
+    }
+
       free (utf8_name);
 
       /* Convert the variable label */
