@@ -599,9 +599,7 @@ void
 tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 	   double val, const struct fmt_spec *fmt)
 {
-  int w;
-  char *s, *cp;
-
+  struct substring ss;
   union value double_value ;
 
   assert (table != NULL);
@@ -631,16 +629,11 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  s = data_out_pool (&double_value, LEGACY_NATIVE, fmt, table->container);
+  ss = ss_cstr (data_out_pool (&double_value, LEGACY_NATIVE, fmt, table->container));
 
-  cp = s;
-  while (isspace ((unsigned char) *cp) && cp < s + fmt->w)
-    {
-      cp++;
-    }
-  w = fmt->w - (cp - s);
-  
-  table->cc[c + r * table->cf] = ss_buffer (cp, w);
+  ss_ltrim (&ss, ss_cstr (" "));
+
+  table->cc[c + r * table->cf] = ss;
   table->ct[c + r * table->cf] = opt;
 }
 
