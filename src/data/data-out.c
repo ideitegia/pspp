@@ -113,19 +113,23 @@ data_out_legacy (const union value *input, const char *encoding,
     }
 }
 
-/* Converts the INPUT value into a UTF8 encoded string, according to format
-   specification FORMAT. 
+/* Converts the INPUT value into a UTF8 encoded string, according
+   to format specification FORMAT. 
 
    VALUE must be the correct width for FORMAT, that is, its
    width must be fmt_var_width(FORMAT).
+
+   ENCODING must be the encoding of INPUT.  Normally this can
+   be obtained by calling dict_get_encoding on the dictionary
+   with which INPUT is associated.
 
    The return value is dynamically allocated, and must be freed
    by the caller.  If POOL is non-null, then the return value is
    allocated on that pool.
 */
 char *
-data_out_pool (const union value *input, const char *encoding, const struct fmt_spec *format,
-	  struct pool *pool)
+data_out_pool (const union value *input, const char *encoding,
+	       const struct fmt_spec *format, struct pool *pool)
 {
   char *output = xmalloc (format->w + 1);
   char *t ;
