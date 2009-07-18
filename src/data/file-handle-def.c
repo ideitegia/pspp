@@ -49,7 +49,7 @@ struct file_handle
     /* FH_REF_FILE only. */
     char *file_name;		/* File name as provided by user. */
     enum fh_mode mode;  	/* File mode. */
-    enum legacy_encoding encoding;/* File encoding. */
+    const char *encoding;       /* File encoding. */
 
     /* FH_REF_FILE and FH_REF_INLINE only. */
     size_t record_width;        /* Length of fixed-format records. */
@@ -325,7 +325,7 @@ fh_get_tab_width (const struct file_handle *handle)
 }
 
 /* Returns the encoding of characters read from HANDLE. */
-enum legacy_encoding
+const char *
 fh_get_legacy_encoding (const struct file_handle *handle)
 {
   assert (handle->referent & (FH_REF_FILE | FH_REF_INLINE));

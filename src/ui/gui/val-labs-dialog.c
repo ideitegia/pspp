@@ -34,7 +34,7 @@ struct val_labs_dialog
 {
   GtkWidget *window;
 
-  PsppireSheet *vs;
+  PsppireVarStore *var_store;
 
   /* The variable to be updated */
   struct variable *pv;
@@ -72,6 +72,7 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
 
@@ -142,6 +143,7 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 
   union value v;
   text_to_value (text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
 
@@ -268,6 +270,7 @@ on_change (GtkWidget *w, gpointer data)
   union value v;
 
   text_to_value (val_text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
   val_labs_replace (dialog->labs, &v,
@@ -292,6 +295,7 @@ on_add (GtkWidget *w, gpointer data)
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text, &v,
+		 dialog->var_store->dict,
 		*var_get_write_format (dialog->pv));
 
 
@@ -337,19 +341,15 @@ on_remove (GtkWidget *w, gpointer data)
 static void
 on_select_row (GtkTreeView *treeview, gpointer data)
 {
-  gchar *labeltext;
   struct val_labs_dialog *dialog = data;
 
   union value value;
-  const char *label;
+  const char *label = NULL;
 
   gchar *text;
 
-  PsppireVarStore *var_store =
-    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
-
   get_selected_tuple (dialog, &value, &label);
-  text = value_to_text (value, *var_get_write_format (dialog->pv));
+  text = value_to_text (value, dialog->var_store->dict, *var_get_write_format (dialog->pv));
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -364,12 +364,8 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 			 dialog->change_handler_id);
 
 
-  labeltext = recode_string (UTF8, psppire_dict_encoding (var_store->dict),
-			     label, -1);
-
   gtk_entry_set_text (GTK_ENTRY (dialog->label_entry),
-		     labeltext);
-  g_free (labeltext);
+		      label);
 
   g_signal_handler_unblock (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
@@ -382,7 +378,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
+val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
 {
   GtkTreeViewColumn *column;
 
@@ -392,10 +388,10 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
 
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
+  dialog->var_store = var_store;
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
-  dialog->vs = sheet;
 
   gtk_window_set_transient_for
     (GTK_WINDOW (dialog->window), toplevel);
@@ -481,9 +477,6 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 
   GtkTreeIter iter;
 
-  PsppireVarStore *var_store =
-    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
-
   GtkListStore *list_store = gtk_list_store_new (2,
 						 G_TYPE_STRING,
 						 G_TYPE_DOUBLE);
@@ -508,16 +501,11 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       const struct val_lab *vl = labels[i];
 
       gchar *const vstr  =
-	value_to_text (vl->value,
+	value_to_text (vl->value, dialog->var_store->dict,
 		      *var_get_write_format (dialog->pv));
 
-      gchar *labeltext =
-	recode_string (UTF8,
-		       psppire_dict_encoding (var_store->dict),
-		       val_lab_get_label (vl), -1);
-
       gchar *const text = g_strdup_printf ("%s = \"%s\"",
-					   vstr, labeltext);
+					   vstr, val_lab_get_label (vl));
 
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
@@ -525,7 +513,6 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 			  1, vl->value.f,
 			  -1);
 
-      g_free (labeltext);
       g_free (text);
       g_free (vstr);
     }

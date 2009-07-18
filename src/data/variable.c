@@ -494,7 +494,7 @@ var_is_num_missing (const struct variable *v, double d, enum mv_class class)
    S[] must contain exactly as many characters as V's width.
    V must be a string variable. */
 bool
-var_is_str_missing (const struct variable *v, const char s[],
+var_is_str_missing (const struct variable *v, const uint8_t s[],
                     enum mv_class class)
 {
   return mv_is_str_missing (&v->miss, s, class);
@@ -590,10 +590,12 @@ var_append_value_name (const struct variable *v, const union value *value,
 		       struct string *str)
 {
   const char *name = var_lookup_value_label (v, value);
+  const struct dictionary *dict = var_get_vardict (v)->dict;
   if (name == NULL)
     {
-      char *s = ds_put_uninit (str, v->print.w);
-      data_out (value, &v->print, s);
+      char *s = data_out (value, dict_get_encoding (dict), &v->print);
+      ds_put_cstr (str, s);
+      free (s);
     }
   else
     ds_put_cstr (str, name);

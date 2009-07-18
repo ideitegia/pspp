@@ -146,20 +146,23 @@ syntax_gen_number (struct string *output,
           & (FMT_CAT_DATE | FMT_CAT_TIME | FMT_CAT_DATE_COMPONENT)))
     {
       union value v_in, v_out;
-      char buffer[FMT_MAX_NUMERIC_WIDTH];
+      char *s;
       bool ok;
 
       v_in.f = number;
-      data_out (&v_in, format, buffer);
+      s = data_out (&v_in, "FIXME",  format);
       msg_disable ();
-      ok = data_in (ss_buffer (buffer, format->w), LEGACY_NATIVE,
-                    format->type, false, 0, 0, &v_out, 0);
+      /* FIXME: UTF8 encoded strings will fail here */
+      ok = data_in (ss_cstr (s), LEGACY_NATIVE,
+                    format->type, false, 0, 0, NULL, &v_out, 0);
       msg_enable ();
       if (ok && v_out.f == number)
         {
-          syntax_gen_string (output, ss_buffer (buffer, format->w));
+          syntax_gen_string (output, ss_cstr (s));
+	  free (s);
           return;
         }
+      free (s);
     }
 
   if (number == SYSMIS)

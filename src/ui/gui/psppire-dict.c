@@ -760,11 +760,8 @@ tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
     {
     case DICT_TVM_COL_NAME:
       {
-	gchar *name = recode_string (UTF8, psppire_dict_encoding (dict),
-				     var_get_name (var), -1);
 	g_value_init (value, G_TYPE_STRING);
-	g_value_set_string (value, name);
-	g_free (name);
+	g_value_set_string (value, var_get_name (var));
       }
       break;
     case DICT_TVM_COL_VAR:

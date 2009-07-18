@@ -101,7 +101,7 @@ cmd_missing_values (struct lexer *lexer, struct dataset *ds)
               mv_init (&mv, MV_MAX_STRING);
               while (!lex_match (lexer, ')'))
                 {
-                  char value[MV_MAX_STRING];
+                  uint8_t value[MV_MAX_STRING];
                   size_t length;
 
                   if (!lex_force_string (lexer))

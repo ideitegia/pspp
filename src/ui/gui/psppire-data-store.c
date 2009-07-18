@@ -583,12 +583,14 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
   char *text;
   const struct fmt_spec *fp ;
   const struct variable *pv ;
+  const struct dictionary *dict;
   union value v;
   int width;
-  GString *s;
 
   g_return_val_if_fail (store->dict, NULL);
   g_return_val_if_fail (store->datasheet, NULL);
+
+  dict = store->dict->dict;
 
   if (column >= psppire_dict_get_var_cnt (store->dict))
     return NULL;
@@ -615,28 +617,13 @@ psppire_data_store_get_string (PsppireDataStore *store, glong row, glong column)
       if (label)
         {
           value_destroy (&v, width);
-	  return recode_string (UTF8, psppire_dict_encoding (store->dict),
-				label, -1);
+	  return g_strdup (label);
         }
     }
 
   fp = var_get_write_format (pv);
 
-  s = g_string_sized_new (fp->w + 1);
-  g_string_set_size (s, fp->w);
-
-  memset (s->str, 0, fp->w);
-
-  g_assert (fp->w == s->len);
-
-  /* Converts binary value V into printable form in the exactly
-     FP->W character in buffer S according to format specification
-     FP.  No null terminator is appended to the buffer.  */
-  data_out (&v, fp, s->str);
-
-  text = recode_string (UTF8, psppire_dict_encoding (store->dict),
-			s->str, fp->w);
-  g_string_free (s, TRUE);
+  text = data_out (&v, dict_get_encoding (dict), fp);
 
   g_strchomp (text);
 
@@ -677,7 +664,6 @@ gboolean
 psppire_data_store_set_string (PsppireDataStore *store,
 			       const gchar *text, glong row, glong col)
 {
-  gchar *s;
   glong n_cases;
   const struct variable *pv = psppire_dict_get_variable (store->dict, col);
   if ( NULL == pv)
@@ -691,12 +677,9 @@ psppire_data_store_set_string (PsppireDataStore *store,
   if (row == n_cases)
     psppire_data_store_insert_new_case (store, row);
 
-  s = recode_string (psppire_dict_encoding (store->dict), UTF8, text, -1);
-
   psppire_data_store_data_in (store, row,
-			      var_get_case_index (pv), ss_cstr (s),
+			      var_get_case_index (pv), ss_cstr (text),
 			      var_get_write_format (pv));
-  free (s);
 
   psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (store), row, col, row, col);
 
@@ -767,15 +750,9 @@ static const gchar null_var_name[]=N_("var");
 static gchar *
 get_row_button_label (const PsppireSheetModel *model, gint unit)
 {
-  PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
-  gchar *s = g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
+  // PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
-  gchar *text =  recode_string (UTF8, psppire_dict_encoding (ds->dict),
-				s, -1);
-
-  g_free (s);
-
-  return text;
+  return g_strdup_printf (_("%d"), unit + FIRST_CASE_NUMBER);
 }
 
 
@@ -795,7 +772,6 @@ get_row_sensitivity (const PsppireSheetModel *model, gint unit)
 static gchar *
 get_column_subtitle (const PsppireSheetModel *model, gint col)
 {
-  gchar *text;
   const struct variable *v ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
@@ -807,16 +783,12 @@ get_column_subtitle (const PsppireSheetModel *model, gint col)
   if ( ! var_has_label (v))
     return NULL;
 
-  text =  recode_string (UTF8, psppire_dict_encoding (ds->dict),
-			 var_get_label (v), -1);
-
-  return text;
+  return xstrdup (var_get_label (v));
 }
 
 static gchar *
 get_column_button_label (const PsppireSheetModel *model, gint col)
 {
-  gchar *text;
   struct variable *pv ;
   PsppireDataStore *ds = PSPPIRE_DATA_STORE (model);
 
@@ -825,10 +797,10 @@ get_column_button_label (const PsppireSheetModel *model, gint col)
 
   pv = psppire_dict_get_variable (ds->dict, col);
 
-  text = recode_string (UTF8, psppire_dict_encoding (ds->dict),
-			var_get_name (pv), -1);
+  if (NULL == pv)
+    return NULL;
 
-  return text;
+  return xstrdup (var_get_name (pv));
 }
 
 static gboolean
@@ -972,10 +944,14 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
   int width;
   bool ok;
 
+  PsppireDict *dict;
+
   g_return_val_if_fail (ds, FALSE);
   g_return_val_if_fail (ds->datasheet, FALSE);
 
   g_return_val_if_fail (idx < datasheet_get_n_columns (ds->datasheet), FALSE);
+
+  dict = ds->dict;
 
   width = fmt_var_width (fmt);
   g_return_val_if_fail (caseproto_get_width (
@@ -983,7 +959,8 @@ psppire_data_store_data_in (PsppireDataStore *ds, casenumber casenum, gint idx,
                         FALSE);
   value_init (&value, width);
   ok = (datasheet_get_value (ds->datasheet, casenum, idx, &value)
-        && data_in (input, LEGACY_NATIVE, fmt->type, 0, 0, 0, &value, width)
+        && data_in (input, UTF8, fmt->type, 0, 0, 0,
+		    dict->dict, &value, width)
         && datasheet_put_value (ds->datasheet, casenum, idx, &value));
   value_destroy (&value, width);
 

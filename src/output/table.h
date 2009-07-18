@@ -153,9 +153,11 @@ enum
 
 /* Cells. */
 struct fmt_spec;
+struct dictionary;
 union value;
 void tab_value (struct tab_table *, int c, int r, unsigned char opt,
-		const union value *, const struct fmt_spec *);
+		const union value *, const struct dictionary *dict,
+		const struct fmt_spec *);
 
 void tab_fixed (struct tab_table *, int c, int r, unsigned char opt,
 		double v, int w, int d);

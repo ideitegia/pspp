@@ -200,7 +200,7 @@ dfm_close_writer (struct dfm_writer *w)
 }
 
 /* Returns the legacy character encoding of data written to WRITER. */
-enum legacy_encoding
+const char *
 dfm_writer_get_legacy_encoding (const struct dfm_writer *writer)
 {
   return fh_get_legacy_encoding (writer->fh);

@@ -38,9 +38,11 @@
 #include <data/sys-file-writer.h>
 #include <data/sys-file-reader.h>
 #include <data/value.h>
+#include <data/vardict.h>
 #include <data/value-labels.h>
 #include <data/format.h>
 #include <data/data-in.h>
+#include <data/data-out.h>
 #include <string.h>
 
 typedef struct fmt_spec input_format ;
@@ -163,6 +165,7 @@ onBoot (ver)
  const char *ver
 CODE:
  assert (0 == strcmp (ver, bare_version));
+ i18n_init ();
  msg_init (NULL, message_handler);
  settings_init (0, 0);
  fh_init ();
@@ -174,12 +177,11 @@ format_value (val, var)
 CODE:
  SV *ret;
  const struct fmt_spec *fmt = var_get_print_format (var);
+ const struct dictionary *dict = var_get_vardict (var)->dict;
  union value uv;
  char *s;
  make_value_from_scalar (&uv, val, var);
- s = malloc (fmt->w);
- memset (s, '\0', fmt->w);
- data_out (&uv, fmt, s);
+ s = data_out (&uv, dict_get_encoding (dict), fmt);
  value_destroy (&uv, var_get_width (var));
  ret = newSVpv (s, fmt->w);
  free (s);
@@ -612,6 +614,7 @@ CODE:
       {
 	struct substring ss = ss_cstr (SvPV_nolen (sv));
 	if ( ! data_in (ss, LEGACY_NATIVE, ifmt->type, 0, 0, 0,
+			sfi->dict,
 			case_data_rw (c, v),
 			var_get_width (v)) )
 	  {

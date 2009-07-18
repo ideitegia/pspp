@@ -64,7 +64,7 @@ enum mv_class
 bool mv_is_value_missing (const struct missing_values *, const union value *,
                           enum mv_class);
 bool mv_is_num_missing (const struct missing_values *, double, enum mv_class);
-bool mv_is_str_missing (const struct missing_values *, const char[],
+bool mv_is_str_missing (const struct missing_values *, const uint8_t[],
                         enum mv_class);
 
 /* Initializing missing value sets. */
@@ -94,7 +94,7 @@ void mv_get_range (const struct missing_values *, double *low, double *high);
 
 /* Adding and modifying discrete values. */
 bool mv_add_value (struct missing_values *, const union value *);
-bool mv_add_str (struct missing_values *, const char[]);
+bool mv_add_str (struct missing_values *, const uint8_t[]);
 bool mv_add_num (struct missing_values *, double);
 void mv_pop_value (struct missing_values *, union value *);
 bool mv_replace_value (struct missing_values *, const union value *, int idx);

@@ -22,6 +22,7 @@
 #include <libpspp/hash.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
+#include <gl/unistr.h>
 
 #include "minmax.h"
 #include "xalloc.h"
@@ -44,7 +45,7 @@ value_copy_rpad (union value *dst, int dst_width,
                  const union value *src, int src_width,
                  char pad)
 {
-  buf_copy_rpad (value_str_rw (dst, dst_width), dst_width,
+  u8_buf_copy_rpad (value_str_rw (dst, dst_width), dst_width,
                  value_str (src, src_width), src_width,
                  pad);
 }
@@ -62,10 +63,10 @@ value_copy_rpad (union value *dst, int dst_width,
    DST was initialized.  Passing, e.g., a smaller value in order
    to modify only a prefix of DST will not work in every case. */
 void
-value_copy_str_rpad (union value *dst, int dst_width, const char *src,
+value_copy_str_rpad (union value *dst, int dst_width, const uint8_t *src,
                      char pad)
 {
-  value_copy_buf_rpad (dst, dst_width, src, strlen (src), pad);
+  value_copy_buf_rpad (dst, dst_width, src, u8_strlen (src), pad);
 }
 
 /* Copies the SRC_LEN bytes at SRC to string value DST with width
@@ -81,9 +82,9 @@ value_copy_str_rpad (union value *dst, int dst_width, const char *src,
    to modify only a prefix of DST will not work in every case. */
 void
 value_copy_buf_rpad (union value *dst, int dst_width,
-                     const char *src, size_t src_len, char pad)
+                     const uint8_t *src, size_t src_len, char pad)
 {
-  buf_copy_rpad (value_str_rw (dst, dst_width), dst_width, src, src_len, pad);
+  u8_buf_copy_rpad (value_str_rw (dst, dst_width), dst_width, src, src_len, pad);
 }
 
 /* Sets V to the system-missing value for data of the given
@@ -145,7 +146,7 @@ value_is_resizable (const union value *value, int old_width, int new_width)
     return false;
   else
     {
-      const char *str = value_str (value, old_width);
+      const uint8_t *str = value_str (value, old_width);
       int i;
 
       for (i = new_width; i < old_width; i++)
@@ -225,7 +226,7 @@ value_resize_pool (struct pool *pool, union value *value,
     {
       if (new_width > MAX_SHORT_STRING)
         {
-          char *new_long_string = pool_alloc_unaligned (pool, new_width);
+          uint8_t *new_long_string = pool_alloc_unaligned (pool, new_width);
           memcpy (new_long_string, value_str (value, old_width), old_width);
           value->long_string = new_long_string;
         }

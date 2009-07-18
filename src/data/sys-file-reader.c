@@ -25,6 +25,7 @@
 #include <setjmp.h>
 #include <stdlib.h>
 
+#include <libpspp/i18n.h>
 #include <libpspp/assertion.h>
 #include <libpspp/message.h>
 #include <libpspp/compiler.h>
@@ -186,6 +187,62 @@ static void read_long_string_value_labels (struct sfm_reader *,
 					   size_t size, size_t count,
 					   struct dictionary *);
 
+/* Convert all the strings in DICT from the dict encoding to UTF8 */
+static void
+recode_strings (struct dictionary *dict)
+{
+  int i;
+
+  const char *enc = dict_get_encoding (dict);
+
+  if ( NULL == enc)
+    enc = get_default_encoding ();
+
+  for (i = 0 ; i < dict_get_var_cnt (dict); ++i)
+    {
+      /* Convert the long variable name */
+      struct variable *var = dict_get_var (dict, i);
+      const char *native_name = var_get_name (var);
+      char *utf8_name = recode_string (UTF8, enc, native_name, -1);
+      if ( 0 != strcmp (utf8_name, native_name))
+	{
+	  if ( NULL == dict_lookup_var (dict, utf8_name))
+	    dict_rename_var (dict, var, utf8_name);
+	  else
+	    msg (MW,
+	     _("Recoded variable name duplicates an existing `%s' within system file."), utf8_name);
+    }
+
+      free (utf8_name);
+
+      /* Convert the variable label */
+      if (var_has_label (var))
+	{
+	  char *utf8_label = recode_string (UTF8, enc, var_get_label (var), -1);
+	  var_set_label (var, utf8_label);
+	  free (utf8_label);
+	}
+
+      if (var_has_value_labels (var))
+	{
+	  const struct val_lab *vl = NULL;
+	  const struct val_labs *vlabs = var_get_value_labels (var);
+
+	  for (vl = val_labs_first (vlabs); vl != NULL; vl = val_labs_next (vlabs, vl))
+	    {
+	      const union value *val = val_lab_get_value (vl);
+	      const char *label = val_lab_get_label (vl);
+	      char *new_label = NULL;
+
+	      new_label = recode_string (UTF8, enc, label, -1);
+
+	      var_replace_value_label (var, val, new_label);
+	      free (new_label);
+	    }
+	}
+    }
+}
+
 /* Opens the system file designated by file handle FH for
    reading.  Reads the system file's dictionary into *DICT.
    If INFO is non-null, then it receives additional info about the
@@ -302,6 +359,8 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
 
       r->has_long_var_names = true;
     }
+
+  recode_strings (*dict);
 
   /* Read record 999 data, which is just filler. */
   read_int (r);
@@ -582,7 +641,7 @@ read_variable_record (struct sfm_reader *r, struct dictionary *dict,
           value_set_missing (&value, mv_width);
           for (i = 0; i < missing_value_code; i++)
             {
-              char *s = value_str_rw (&value, mv_width);
+              uint8_t *s = value_str_rw (&value, mv_width);
               read_bytes (r, s, 8);
               mv_add_str (&mv, s);
             }
@@ -1138,7 +1197,7 @@ read_value_labels (struct sfm_reader *r,
 
   struct label
     {
-      char raw_value[8];        /* Value as uninterpreted bytes. */
+      uint8_t raw_value[8];        /* Value as uninterpreted bytes. */
       union value value;        /* Value. */
       char *label;              /* Null-terminated label string. */
     };
@@ -1236,7 +1295,7 @@ read_value_labels (struct sfm_reader *r,
 
       value_init_pool (subpool, &label->value, max_width);
       if (var_is_alpha (var[0]))
-        buf_copy_rpad (value_str_rw (&label->value, max_width), max_width,
+        u8_buf_copy_rpad (value_str_rw (&label->value, max_width), max_width,
                        label->raw_value, sizeof label->raw_value, ' ');
       else
         label->value.f = float_get_double (r->float_format, label->raw_value);
@@ -1416,7 +1475,7 @@ read_long_string_value_labels (struct sfm_reader *r,
           /* Read value. */
           value_length = read_int (r);
           if (value_length == width)
-            read_string (r, value_str_rw (&value, width), width + 1);
+            read_bytes (r, value_str_rw (&value, width), width);
           else
             {
               sys_warn (r, _("Ignoring long string value %zu for variable %s, "
@@ -1473,11 +1532,11 @@ static void partial_record (struct sfm_reader *r)
 static void read_error (struct casereader *, const struct sfm_reader *);
 
 static bool read_case_number (struct sfm_reader *, double *);
-static bool read_case_string (struct sfm_reader *, char *, size_t);
+static bool read_case_string (struct sfm_reader *, uint8_t *, size_t);
 static int read_opcode (struct sfm_reader *);
 static bool read_compressed_number (struct sfm_reader *, double *);
-static bool read_compressed_string (struct sfm_reader *, char *);
-static bool read_whole_strings (struct sfm_reader *, char *, size_t);
+static bool read_compressed_string (struct sfm_reader *, uint8_t *);
+static bool read_whole_strings (struct sfm_reader *, uint8_t *, size_t);
 static bool skip_whole_strings (struct sfm_reader *, size_t);
 
 /* Reads and returns one case from READER's file.  Returns a null
@@ -1512,7 +1571,7 @@ sys_file_casereader_read (struct casereader *reader, void *r_)
         }
       else
         {
-          char *s = value_str_rw (v, sv->var_width);
+          uint8_t *s = value_str_rw (v, sv->var_width);
           if (!read_case_string (r, s + sv->offset, sv->segment_width))
             goto eof;
           if (!skip_whole_strings (r, ROUND_DOWN (sv->padding, 8)))
@@ -1574,7 +1633,7 @@ read_case_number (struct sfm_reader *r, double *d)
    Returns true if successful, false if end of file is
    reached immediately. */
 static bool
-read_case_string (struct sfm_reader *r, char *s, size_t length)
+read_case_string (struct sfm_reader *r, uint8_t *s, size_t length)
 {
   size_t whole = ROUND_DOWN (length, 8);
   size_t partial = length % 8;
@@ -1587,7 +1646,7 @@ read_case_string (struct sfm_reader *r, char *s, size_t length)
 
   if (partial)
     {
-      char bounce[8];
+      uint8_t bounce[8];
       if (!read_whole_strings (r, bounce, sizeof bounce))
         {
           if (whole)
@@ -1658,7 +1717,7 @@ read_compressed_number (struct sfm_reader *r, double *d)
    Returns true if successful, false if end of file is
    reached immediately. */
 static bool
-read_compressed_string (struct sfm_reader *r, char *dst)
+read_compressed_string (struct sfm_reader *r, uint8_t *dst)
 {
   switch (read_opcode (r))
     {
@@ -1687,7 +1746,7 @@ read_compressed_string (struct sfm_reader *r, char *dst)
    Returns true if successful, false if end of file is
    reached immediately. */
 static bool
-read_whole_strings (struct sfm_reader *r, char *s, size_t length)
+read_whole_strings (struct sfm_reader *r, uint8_t *s, size_t length)
 {
   assert (length % 8 == 0);
   if (!r->compressed)
@@ -1715,7 +1774,7 @@ read_whole_strings (struct sfm_reader *r, char *s, size_t length)
 static bool
 skip_whole_strings (struct sfm_reader *r, size_t length)
 {
-  char buffer[1024];
+  uint8_t buffer[1024];
   assert (length < sizeof buffer);
   return read_whole_strings (r, buffer, length);
 }

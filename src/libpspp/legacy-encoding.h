@@ -17,30 +17,18 @@
 #ifndef LIBPSPP_LEGACY_ENCODING
 #define LIBPSPP_LEGACY_ENCODING 1
 
-#include <stddef.h>
 #include <libpspp/compiler.h>
 
-/* A legacy character encoding.
-   This exists only to handle the specific legacy EBCDIC-to-ASCII
-   recoding that MODE=360 file handles perform. */
-enum legacy_encoding
-  {
-    LEGACY_ASCII,         /* ASCII or similar character set. */
-    LEGACY_EBCDIC,        /* IBM EBCDIC character set. */
-
-    /* Native character set. */
 #if 'A' == 0x41
-    LEGACY_NATIVE = LEGACY_ASCII
+#define  LEGACY_NATIVE "ASCII"
 #elif 'A' == 0xc1
-    LEGACY_NATIVE = LEGACY_EBCDIC
+#define  LEGACY_NATIVE "EBCDIC-US"
 #else
 #error Cannot detect native character set.
 #endif
-  };
 
-void legacy_recode (enum legacy_encoding, const char *src,
-                    enum legacy_encoding, char *dst, size_t);
-char legacy_to_native (enum legacy_encoding from, char) PURE_FUNCTION;
-char legacy_from_native (enum legacy_encoding to, char) PURE_FUNCTION;
+char legacy_to_native (const char *from, char) PURE_FUNCTION;
+char legacy_from_native (const char *to, char) PURE_FUNCTION;
+
 
 #endif /* libpspp/legacy-encoding.h */

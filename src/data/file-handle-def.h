@@ -54,7 +54,7 @@ struct fh_properties
     enum fh_mode mode;          /* File mode. */
     size_t record_width;        /* Length of fixed-format records. */
     size_t tab_width;           /* Tab width, 0=do not expand tabs. */
-    enum legacy_encoding encoding;/* ASCII or EBCDIC? */
+    const char *encoding;       /* ASCII or EBCDIC? */
   };
 
 void fh_init (void);
@@ -89,7 +89,7 @@ enum fh_mode fh_get_mode (const struct file_handle *) ;
 /* Properties of FH_REF_FILE and FH_REF_INLINE file handles. */
 size_t fh_get_record_width (const struct file_handle *);
 size_t fh_get_tab_width (const struct file_handle *);
-enum legacy_encoding fh_get_legacy_encoding (const struct file_handle *);
+const char *fh_get_legacy_encoding (const struct file_handle *);
 
 /* Properties of FH_REF_SCRATCH file handles. */
 struct scratch_handle *fh_get_scratch_handle (const struct file_handle *);

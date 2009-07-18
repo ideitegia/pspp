@@ -160,7 +160,7 @@ mv_add_value (struct missing_values *mv, const union value *v)
    Returns true if successful, false if MV has no more room for
    missing values or if S is not an acceptable missing value. */
 bool
-mv_add_str (struct missing_values *mv, const char s[])
+mv_add_str (struct missing_values *mv, const uint8_t s[])
 {
   union value v;
   bool ok;
@@ -404,7 +404,7 @@ is_num_user_missing (const struct missing_values *mv, double d)
    MV must be a set of string missing values.
    S[] must contain exactly as many characters as MV's width. */
 static bool
-is_str_user_missing (const struct missing_values *mv, const char s[])
+is_str_user_missing (const struct missing_values *mv, const uint8_t s[])
 {
   const union value *v = mv->values;
   assert (mv->width > 0);
@@ -456,7 +456,7 @@ mv_is_num_missing (const struct missing_values *mv, double d,
    MV must be a set of string missing values.
    S[] must contain exactly as many characters as MV's width. */
 bool
-mv_is_str_missing (const struct missing_values *mv, const char s[],
+mv_is_str_missing (const struct missing_values *mv, const uint8_t s[],
                    enum mv_class class)
 {
   assert (mv->width > 0);

@@ -177,6 +177,7 @@ get_var_range (const struct variable *v)
 
 struct crosstabs_proc
   {
+    const struct dictionary *dict;
     enum { INTEGER, GENERAL } mode;
     enum mv_class exclude;
     bool pivot;
@@ -204,6 +205,7 @@ static void
 init_proc (struct crosstabs_proc *proc, struct dataset *ds)
 {
   const struct variable *wv = dict_get_weight (dataset_dict (ds));
+  proc->dict = dataset_dict (ds);
   proc->bad_warn = true;
   proc->variables = NULL;
   proc->n_variables = 0;
@@ -1184,14 +1186,16 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
     {
       const struct variable *var = pt->const_vars[i];
       size_t ofs;
+      char *s = NULL;
 
       ds_put_format (&title, ", %s=", var_get_name (var));
 
       /* Insert the formatted value of the variable, then trim
          leading spaces in what was just inserted. */
       ofs = ds_length (&title);
-      data_out (&pt->const_values[i], var_get_print_format (var),
-                ds_put_uninit (&title, var_get_width (var)));
+      s = data_out (&pt->const_values[i], dict_get_encoding (proc->dict), var_get_print_format (var));
+      ds_put_cstr (&title, s);
+      free (s);
       ds_remove (&title, ofs, ss_cspan (ds_substr (&title, ofs, SIZE_MAX),
                                         ss_cstr (" ")));
     }
@@ -1519,9 +1523,8 @@ table_value_missing (struct crosstabs_proc *proc,
       return;
     }
 
-  s.string = tab_alloc (table, print->w);
-  data_out (v, print, s.string);
-  s.length = print->w;
+  s = ss_cstr (data_out_pool (v, dict_get_encoding (proc->dict), print,
+			     table->container));
   if (proc->exclude == MV_NEVER && var_is_num_missing (var, v->f, MV_USER))
     s.string[s.length++] = 'M';
   while (s.length && *s.string == ' ')
@@ -1554,16 +1557,15 @@ display_dimensions (struct crosstabs_proc *proc, struct pivot_table *pt,
    additionally suffixed with a letter `M'. */
 static void
 format_cell_entry (struct tab_table *table, int c, int r, double value,
-                   char suffix, bool mark_missing)
+                   char suffix, bool mark_missing, const struct dictionary *dict)
 {
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
   struct substring s;
 
-  s.length = 10;
-  s.string = tab_alloc (table, 16);
   v.f = value;
-  data_out (&v, &f, s.string);
+  s = ss_cstr (data_out_pool (&v, dict_get_encoding (dict), &f, table->container));
+
   while (*s.string == ' ')
     {
       s.length--;
@@ -1649,7 +1651,7 @@ display_crosstabulation (struct crosstabs_proc *proc, struct pivot_table *pt,
                 default:
                   NOT_REACHED ();
                 }
-              format_cell_entry (table, c, i, v, suffix, mark_missing);
+              format_cell_entry (table, c, i, v, suffix, mark_missing, proc->dict);
             }
 
           mp++;
@@ -1700,7 +1702,7 @@ display_crosstabulation (struct crosstabs_proc *proc, struct pivot_table *pt,
               NOT_REACHED ();
             }
 
-          format_cell_entry (table, pt->n_cols, 0, v, suffix, mark_missing);
+          format_cell_entry (table, pt->n_cols, 0, v, suffix, mark_missing, proc->dict);
           tab_next_row (table);
         }
     }
@@ -1750,7 +1752,7 @@ display_crosstabulation (struct crosstabs_proc *proc, struct pivot_table *pt,
               NOT_REACHED ();
             }
 
-          format_cell_entry (table, c, i, v, suffix, mark_missing);
+          format_cell_entry (table, c, i, v, suffix, mark_missing, proc->dict);
         }
       last_row = i;
     }

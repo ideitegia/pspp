@@ -88,17 +88,17 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
   for (i = 0; i < split_cnt; i++)
     {
       const struct variable *v = split[i];
-      char temp_buf[80];
+      char *s;
       const char *val_lab;
       const struct fmt_spec *print = var_get_print_format (v);
 
       tab_text_format (t, 0, i + 1, TAB_LEFT, "%s", var_get_name (v));
 
-      data_out (case_data (c, v), print, temp_buf);
-      temp_buf[print->w] = 0;
+      s = data_out (case_data (c, v), dict_get_encoding (dict), print);
+      tab_text_format (t, 1, i + 1, 0, "%.*s", print->w, s);
 
-      tab_text_format (t, 1, i + 1, 0, "%.*s", print->w, temp_buf);
-
+      free (s);
+      
       val_lab = var_lookup_value_label (v, case_data (c, v));
       if (val_lab)
 	tab_text (t, 2, i + 1, TAB_LEFT, val_lab);

@@ -271,7 +271,7 @@ static int
 parse_get_txt (struct lexer *lexer, struct dataset *ds)
 {
   struct data_parser *parser = NULL;
-  struct dictionary *dict = NULL;
+  struct dictionary *dict = dict_create ();
   struct file_handle *fh = NULL;
   struct dfm_reader *reader = NULL;
 
@@ -288,7 +288,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
   if (fh == NULL)
     goto error;
 
-  parser = data_parser_create ();
+  parser = data_parser_create (dict);
   has_type = false;
   data_parser_set_type (parser, DP_DELIMITED);
   data_parser_set_span (parser, false);
@@ -465,7 +465,7 @@ parse_get_txt (struct lexer *lexer, struct dataset *ds)
     }
   lex_match (lexer, '=');
 
-  dict = dict_create ();
+
   record = 1;
   type = data_parser_get_type (parser);
   do

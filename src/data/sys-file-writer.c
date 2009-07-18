@@ -31,6 +31,7 @@
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <libpspp/i18n.h>
 #include <libpspp/version.h>
 
 #include <data/attributes.h>
@@ -94,9 +95,9 @@ struct sfm_writer
 static const struct casewriter_class sys_file_casewriter_class;
 
 static void write_header (struct sfm_writer *, const struct dictionary *);
-static void write_variable (struct sfm_writer *, const struct variable *);
+static void write_variable (struct sfm_writer *, const struct variable *, const struct dictionary *);
 static void write_value_labels (struct sfm_writer *,
-                                struct variable *, int idx);
+                                struct variable *, int idx, const struct dictionary *);
 static void write_integer_info_record (struct sfm_writer *);
 static void write_float_info_record (struct sfm_writer *);
 
@@ -222,7 +223,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
   /* Write basic variable info. */
   short_names_assign (d);
   for (i = 0; i < dict_get_var_cnt (d); i++)
-    write_variable (w, dict_get_var (d, i));
+    write_variable (w, dict_get_var (d, i), d);
 
   /* Write out value labels. */
   idx = 0;
@@ -230,7 +231,7 @@ sfm_open_writer (struct file_handle *fh, struct dictionary *d,
     {
       struct variable *v = dict_get_var (d, i);
 
-      write_value_labels (w, v, idx);
+      write_value_labels (w, v, idx, d);
       idx += sfm_width_to_octs (var_get_width (v));
     }
 
@@ -420,7 +421,7 @@ write_variable_continuation_records (struct sfm_writer *w, int width)
 /* Write the variable record(s) for variable V to system file
    W. */
 static void
-write_variable (struct sfm_writer *w, const struct variable *v)
+write_variable (struct sfm_writer *w, const struct variable *v, const struct dictionary *dict)
 {
   int width = var_get_width (v);
   int segment_cnt = sfm_width_to_segments (width);
@@ -461,9 +462,11 @@ write_variable (struct sfm_writer *w, const struct variable *v)
   if (var_has_label (v))
     {
       const char *label = var_get_label (v);
-      size_t padded_len = ROUND_UP (MIN (strlen (label), 255), 4);
+      char *l = recode_string (dict_get_encoding (dict), UTF8, label, -1);
+      size_t padded_len = ROUND_UP (MIN (strlen (l), 255), 4);
       write_int (w, padded_len);
-      write_string (w, label, padded_len);
+      write_string (w, l, padded_len);
+      free (l);
     }
 
   /* Write the missing values, if any, range first. */
@@ -505,7 +508,7 @@ write_variable (struct sfm_writer *w, const struct variable *v)
    Value labels for long string variables are written separately,
    by write_long_string_value_labels. */
 static void
-write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
+write_value_labels (struct sfm_writer *w, struct variable *v, int idx, const struct dictionary *dict)
 {
   const struct val_labs *val_labs;
   const struct val_lab **labels;
@@ -524,13 +527,14 @@ write_value_labels (struct sfm_writer *w, struct variable *v, int idx)
   for (i = 0; i < n_labels; i++)
     {
       const struct val_lab *vl = labels[i];
-      const char *label = val_lab_get_label (vl);
+      char *label = recode_string (dict_get_encoding (dict), UTF8, val_lab_get_label (vl), -1);
       uint8_t len = MIN (strlen (label), 255);
 
       write_value (w, val_lab_get_value (vl), var_get_width (v));
       write_bytes (w, &len, 1);
       write_bytes (w, label, len);
       write_zeros (w, REM_RND_UP (len + 1, 8));
+      free (label);
     }
   free (labels);
 
@@ -774,11 +778,13 @@ write_longvar_table (struct sfm_writer *w, const struct dictionary *dict)
   for (i = 0; i < dict_get_var_cnt (dict); i++)
     {
       struct variable *v = dict_get_var (dict, i);
+      char *longname = recode_string (dict_get_encoding (dict), UTF8, var_get_name (v), -1);
 
       if (i)
         ds_put_char (&map, '\t');
       ds_put_format (&map, "%s=%s",
-                     var_get_short_name (v, 0), var_get_name (v));
+                     var_get_short_name (v, 0), longname);
+      free (longname);
     }
 
   write_int (w, 7);             /* Record type. */

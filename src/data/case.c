@@ -308,7 +308,7 @@ case_num_idx (const struct ccase *c, size_t idx)
 
    Like the strings embedded in all "union value"s, the return
    value is not null-terminated. */
-const char *
+const uint8_t *
 case_str (const struct ccase *c, const struct variable *v)
 {
   size_t idx = var_get_case_index (v);
@@ -321,7 +321,7 @@ case_str (const struct ccase *c, const struct variable *v)
 
    Like the strings embedded in all "union value"s, the return
    value is not null-terminated. */
-const char *
+const uint8_t *
 case_str_idx (const struct ccase *c, size_t idx)
 {
   assert (idx < c->proto->n_widths);
@@ -336,7 +336,7 @@ case_str_idx (const struct ccase *c, size_t idx)
 
    Like the strings embedded in all "union value"s, the return
    value is not null-terminated. */
-char *
+uint8_t *
 case_str_rw (struct ccase *c, const struct variable *v)
 {
   size_t idx = var_get_case_index (v);
@@ -352,7 +352,7 @@ case_str_rw (struct ccase *c, const struct variable *v)
 
    Like the strings embedded in all "union value"s, the return
    value is not null-terminated. */
-char *
+uint8_t *
 case_str_rw_idx (struct ccase *c, size_t idx)
 {
   assert (idx < c->proto->n_widths);

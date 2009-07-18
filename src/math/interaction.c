@@ -149,7 +149,7 @@ interaction_value_create (const struct interaction_variable *var, const union va
   if (var != NULL)
     {
       int val_width = 1;
-      char *val;
+      uint8_t *val;
 
       result = xmalloc (sizeof (*result));
       result->intr = var;

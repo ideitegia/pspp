@@ -26,9 +26,11 @@
 
 enum fmt_type;
 union value;
-bool data_in (struct substring input, enum legacy_encoding,
+struct dictionary;
+bool data_in (struct substring input, const char *encoding,
               enum fmt_type, int implied_decimals,
               int first_column, int last_column,
+	      const struct dictionary *dict,
               union value *output, int width);
 
 #endif /* data/data-in.h */

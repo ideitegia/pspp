@@ -573,7 +573,7 @@ string function RTRIM (string s, string c)
 function NUMBER (string s, ni_format f)
 {
   union value out;
-  data_in (ss_head (s, f->w), LEGACY_NATIVE, f->type, f->d, 0, 0, &out, 0);
+  data_in (ss_head (s, f->w), LEGACY_NATIVE, f->type, f->d, 0, 0, NULL, &out, 0);
   return out.f;
 }
 
@@ -582,11 +582,15 @@ absorb_miss string function STRING (x, no_format f)
 {
   union value v;
   struct substring dst;
+  char *s;
 
   v.f = x;
-  dst = alloc_string (e, f->w);
+
   assert (!fmt_is_string (f->type));
-  data_out (&v, f, dst.string);
+  s = data_out (&v, LEGACY_NATIVE, f);
+  dst = alloc_string (e, strlen (s));
+  strcpy (dst.string, s);
+  free (s);
   return dst;
 }
 

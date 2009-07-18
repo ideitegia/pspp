@@ -744,15 +744,10 @@ update_data_ref_entry (const PsppireSheet *sheet,
 	  gchar *text = g_strdup_printf ("%d: %s", row + FIRST_CASE_NUMBER,
 					 var_get_name (var));
 
-	  gchar *s = recode_string (UTF8,
-				    psppire_dict_encoding (data_store->dict),
-				    text, -1);
+
+	  gtk_entry_set_text (GTK_ENTRY (de->cell_ref_entry), text);
 
 	  g_free (text);
-
-	  gtk_entry_set_text (GTK_ENTRY (de->cell_ref_entry), s);
-
-	  g_free (s);
 	}
       else
 	goto blank_entry;
@@ -1651,20 +1646,18 @@ enum {
 
 /* Perform data_out for case CC, variable V, appending to STRING */
 static void
-data_out_g_string (GString *string, const struct variable *v,
+data_out_g_string (GString *string, const struct dictionary *dict, 
+		   const struct variable *v,
 		   const struct ccase *cc)
 {
-  char *buf ;
-
   const struct fmt_spec *fs = var_get_print_format (v);
   const union value *val = case_data (cc, v);
-  buf = xzalloc (fs->w);
 
-  data_out (val, fs, buf);
+  char *s = data_out (val, dict_get_encoding (dict), fs);
 
-  g_string_append_len (string, buf, fs->w);
+  g_string_append (string, s);
 
-  g_free (buf);
+  g_free (s);
 }
 
 static GString *
@@ -1694,7 +1687,7 @@ clip_to_text (void)
       for (c = 0 ; c < var_cnt ; ++c)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
-	  data_out_g_string (string, v, cc);
+	  data_out_g_string (string, clip_dict, v, cc);
 	  if ( c < val_cnt - 1 )
 	    g_string_append (string, "\t");
 	}
@@ -1739,7 +1732,7 @@ clip_to_html (void)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
 	  g_string_append (string, "<td>");
-	  data_out_g_string (string, v, cc);
+	  data_out_g_string (string, clip_dict, v, cc);
 	  g_string_append (string, "</td>\n");
 	}
 

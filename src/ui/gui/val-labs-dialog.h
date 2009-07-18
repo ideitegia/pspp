@@ -24,13 +24,13 @@
 
 #include <gtk/gtk.h>
 #include <data/variable.h>
-#include <gtk-contrib/psppire-sheet.h>
-
+//#include <gtk-contrib/psppire-sheet.h>
+#include "psppire-var-store.h"
 
 struct val_labs;
 
 
-struct val_labs_dialog * val_labs_dialog_create (GtkWindow *, PsppireSheet *);
+struct val_labs_dialog * val_labs_dialog_create (GtkWindow *, PsppireVarStore *);
 
 void val_labs_dialog_show (struct val_labs_dialog *);
 

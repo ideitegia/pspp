@@ -25,18 +25,20 @@
 
 #include <gtk/gtk.h>
 
-
+#include "psppire-dict.h"
 
 void paste_syntax_in_new_window (const gchar *syntax);
 
 struct fmt_spec;
 
+
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
-gchar * value_to_text (union value v, struct fmt_spec format);
+gchar * value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format);
 
 
 gboolean text_to_value (const gchar *text, union value *v,
+			const PsppireDict *dict,
 		       struct fmt_spec format);
 
 GObject *get_object_assert (GtkBuilder *builder, const gchar *name, GType type);

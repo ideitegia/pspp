@@ -69,7 +69,7 @@ bool var_has_missing_values (const struct variable *);
 bool var_is_value_missing (const struct variable *, const union value *,
                            enum mv_class);
 bool var_is_num_missing (const struct variable *, double, enum mv_class);
-bool var_is_str_missing (const struct variable *, const char[], enum mv_class);
+bool var_is_str_missing (const struct variable *, const uint8_t[], enum mv_class);
 
 /* Value labels. */
 const char *var_lookup_value_label (const struct variable *,

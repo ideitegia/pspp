@@ -49,13 +49,11 @@
 /* Formats a value according to FORMAT
    The returned string must be freed when no longer required */
 gchar *
-value_to_text (union value v, struct fmt_spec format)
+value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
 {
   gchar *s = 0;
 
-  s = g_new (gchar, format.w + 1);
-  data_out (&v, &format, s);
-  s[format.w]='\0';
+  s = data_out (&v, dict_get_encoding (dict->dict),  &format);
   g_strchug (s);
 
   return s;
@@ -65,6 +63,7 @@ value_to_text (union value v, struct fmt_spec format)
 
 gboolean
 text_to_value (const gchar *text, union value *v,
+	       const PsppireDict *dict,
 	      struct fmt_spec format)
 {
   bool ok;
@@ -87,7 +86,8 @@ text_to_value (const gchar *text, union value *v,
     }
 
   msg_disable ();
-  ok = data_in (ss_cstr (text), LEGACY_NATIVE, format.type, 0, 0, 0,
+  ok = data_in (ss_cstr (text), UTF8, format.type, 0, 0, 0,
+		dict->dict,
                 v, fmt_var_width (&format));
   msg_enable ();
 

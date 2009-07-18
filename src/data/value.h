@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include "xalloc.h"
 
@@ -45,8 +46,8 @@
 union value
   {
     double f;
-    char short_string[MAX_SHORT_STRING];
-    char *long_string;
+    uint8_t short_string[MAX_SHORT_STRING];
+    uint8_t *long_string;
   };
 
 static inline void value_init (union value *, int width);
@@ -55,17 +56,17 @@ static inline bool value_try_init (union value *, int width);
 static inline void value_destroy (union value *, int width);
 
 static inline double value_num (const union value *);
-static inline const char *value_str (const union value *, int width);
-static inline char *value_str_rw (union value *, int width);
+static inline const uint8_t *value_str (const union value *, int width);
+static inline uint8_t *value_str_rw (union value *, int width);
 
 static inline void value_copy (union value *, const union value *, int width);
 void value_copy_rpad (union value *, int dst_width,
                       const union value *, int src_width,
                       char pad);
-void value_copy_str_rpad (union value *, int dst_width, const char *,
+void value_copy_str_rpad (union value *, int dst_width, const uint8_t *,
                           char pad);
 void value_copy_buf_rpad (union value *dst, int dst_width,
-                          const char *src, size_t src_len, char pad);
+                          const uint8_t *src, size_t src_len, char pad);
 void value_set_missing (union value *, int width);
 int value_compare_3way (const union value *, const union value *, int width);
 bool value_equal (const union value *, const union value *, int width);
@@ -147,7 +148,7 @@ value_num (const union value *v)
    It is important that WIDTH be the actual value that was passed
    to value_init.  Passing, e.g., a smaller value because only
    that number of bytes will be accessed will not always work. */
-static inline const char *
+static inline const uint8_t *
 value_str (const union value *v, int width)
 {
   assert (width > 0);
@@ -161,7 +162,7 @@ value_str (const union value *v, int width)
    It is important that WIDTH be the actual value that was passed
    to value_init.  Passing, e.g., a smaller value because only
    that number of bytes will be accessed will not always work. */
-static inline char *
+static inline uint8_t *
 value_str_rw (union value *v, int width)
 {
   assert (width > 0);

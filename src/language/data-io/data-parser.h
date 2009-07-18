@@ -38,7 +38,7 @@ enum data_parser_type
   };
 
 /* Creating and configuring any parser. */
-struct data_parser *data_parser_create (void);
+struct data_parser *data_parser_create (const struct dictionary *dict);
 void data_parser_destroy (struct data_parser *);
 
 enum data_parser_type data_parser_get_type (const struct data_parser *);

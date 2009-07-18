@@ -32,6 +32,9 @@ struct missing_val_dialog
   /* The variable whose missing values are to be updated */
   struct variable *pv;
 
+  /* The dictionary to which that value belongs */
+  PsppireDict *dict;
+
   /* local copy */
   struct missing_values mvl;
 

@@ -40,26 +40,14 @@
 static const gchar none[] = N_("None");
 
 
-static gchar *
-name_to_string (const struct variable *var, PsppireDict *dict)
-{
-  const char *name = var_get_name (var);
-  g_assert (name);
-
-  return recode_string (UTF8, psppire_dict_encoding (dict),
-			name, -1);
-}
-
-
-static gchar *
-label_to_string (const struct variable *var, PsppireDict *dict)
+static const gchar *
+label_to_string (const struct variable *var)
 {
   const char *label = var_get_label (var);
 
-  if (! label) return g_strdup (none);
+  if (NULL == label) return g_strdup (none);
 
-  return recode_string (UTF8, psppire_dict_encoding (dict),
-			label, -1);
+  return label;
 }
 
 
@@ -82,16 +70,11 @@ populate_text (PsppireDictView *treeview, gpointer data)
 		NULL);
 
   gstring = g_string_sized_new (200);
-  text = name_to_string (var, dict);
-  g_string_assign (gstring, text);
-  g_free (text);
+  g_string_assign (gstring, var_get_name (var));
   g_string_append (gstring, "\n");
 
 
-  text = label_to_string (var, dict);
-  g_string_append_printf (gstring, _("Label: %s\n"), text);
-  g_free (text);
-
+  g_string_append_printf (gstring, _("Label: %s\n"), label_to_string (var));
   {
     const struct fmt_spec *fmt = var_get_print_format (var);
     char buffer[FMT_STRING_LEN_MAX + 1];
@@ -130,14 +113,10 @@ populate_text (PsppireDictView *treeview, gpointer data)
         {
           const struct val_lab *vl = labels[i];
 	  gchar *const vstr  =
-	    value_to_text (vl->value,  *var_get_print_format (var));
+	    value_to_text (vl->value,  dict, *var_get_print_format (var));
 
-	  text = recode_string (UTF8, psppire_dict_encoding (dict),
-				val_lab_get_label (vl), -1);
+	  g_string_append_printf (gstring, _("%s %s\n"), vstr, val_lab_get_label (vl));
 
-	  g_string_append_printf (gstring, _("%s %s\n"), vstr, text);
-
-	  g_free (text);
 	  g_free (vstr);
 	}
       free (labels);

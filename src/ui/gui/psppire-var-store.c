@@ -435,7 +435,7 @@ psppire_var_store_clear (PsppireSheetModel *model,  glong row, glong col)
   switch (col)
     {
     case PSPPIRE_VAR_STORE_COL_LABEL:
-      var_set_label (pv, 0);
+      var_set_label (pv, NULL);
       return TRUE;
       break;
     }
@@ -468,13 +468,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
     case PSPPIRE_VAR_STORE_COL_NAME:
       {
 	gboolean ok;
-	char *s = recode_string (psppire_dict_encoding (var_store->dict),
-				 UTF8,
-				 text, -1);
-
-	ok =  psppire_dict_rename_var (var_store->dict, pv, s);
-
-	free (s);
+	ok =  psppire_dict_rename_var (var_store->dict, pv, text);
 	return ok;
       }
     case PSPPIRE_VAR_STORE_COL_COLUMNS:
@@ -540,11 +534,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
       {
-	gchar *s = recode_string (psppire_dict_encoding (var_store->dict),
-				  UTF8,
-				  text, -1);
-	var_set_label (pv, s);
-	free (s);
+	var_set_label (pv, text);
 	return TRUE;
       }
       break;
@@ -583,6 +573,7 @@ text_for_column (PsppireVarStore *vs,
       N_("Custom"),
       N_("String")
     };
+
   enum {VT_NUMERIC, VT_COMMA, VT_DOT, VT_SCIENTIFIC, VT_DATE, VT_DOLLAR,
 	VT_CUSTOM, VT_STRING};
 
@@ -591,8 +582,7 @@ text_for_column (PsppireVarStore *vs,
   switch (c)
     {
     case PSPPIRE_VAR_STORE_COL_NAME:
-      return recode_string (UTF8, psppire_dict_encoding (dict),
-			    var_get_name (pv), -1);
+      return xstrdup (var_get_name (pv));
       break;
     case PSPPIRE_VAR_STORE_COL_TYPE:
       {
@@ -679,8 +669,12 @@ text_for_column (PsppireVarStore *vs,
       }
       break;
     case PSPPIRE_VAR_STORE_COL_LABEL:
-      return recode_string (UTF8, psppire_dict_encoding (dict),
-			    var_get_label (pv), -1);
+      {
+	const char *label = var_get_label (pv);
+	if (label)
+	  return xstrdup (label);
+	return NULL;
+      }
       break;
 
     case PSPPIRE_VAR_STORE_COL_MISSING:
@@ -694,8 +688,6 @@ text_for_column (PsppireVarStore *vs,
 	  return g_locale_to_utf8 (gettext (none), -1, 0, 0, err);
 	else
 	  {
-	    gchar *ss;
-	    GString *gstr = g_string_sized_new (10);
 	    const struct val_labs *vls = var_get_value_labels (pv);
             const struct val_lab **labels = val_labs_sorted (vls);
 	    const struct val_lab *vl = labels[0];
@@ -704,17 +696,10 @@ text_for_column (PsppireVarStore *vs,
 	    g_assert (vl);
 
 	    {
-	      gchar *const vstr = value_to_text (vl->value, *write_spec);
+	      gchar *const vstr = value_to_text (vl->value, dict, *write_spec);
 
-	      g_string_printf (gstr, "{%s,\"%s\"}_",
-                               vstr, val_lab_get_label (vl));
-	      g_free (vstr);
+	      return g_strdup_printf ( "{%s,\"%s\"}_", vstr, val_lab_get_label (vl));
 	    }
-
-	    ss = recode_string (UTF8, psppire_dict_encoding (dict),
-				gstr->str, gstr->len);
-	    g_string_free (gstr, TRUE);
-	    return ss;
 	  }
       }
       break;

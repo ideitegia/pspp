@@ -41,6 +41,7 @@
 /* Data parser for textual data like that read by DATA LIST. */
 struct data_parser
   {
+    const struct dictionary *dict; /*Dictionary of destination */
     enum data_parser_type type; /* Type of data to parse. */
     int skip_records;           /* Records to skip before first real data. */
     casenumber max_cases;       /* Max number of cases to read. */
@@ -79,7 +80,7 @@ static void set_any_sep (struct data_parser *parser);
 
 /* Creates and returns a new data parser. */
 struct data_parser *
-data_parser_create (void)
+data_parser_create (const struct dictionary *dict)
 {
   struct data_parser *parser = xmalloc (sizeof *parser);
 
@@ -91,6 +92,7 @@ data_parser_create (void)
   parser->fields = NULL;
   parser->field_cnt = 0;
   parser->field_allocated = 0;
+  parser->dict = dict;
 
   parser->span = true;
   parser->empty_line_has_field = false;
@@ -505,7 +507,7 @@ static bool
 parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
              struct ccase *c)
 {
-  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *encoding = dfm_reader_get_legacy_encoding (reader);
   struct field *f;
   int row;
 
@@ -531,6 +533,7 @@ parse_fixed (const struct data_parser *parser, struct dfm_reader *reader,
                             f->format.w),
                  encoding, f->format.type, f->format.d,
                  f->first_column, f->first_column + f->format.w,
+		 parser->dict,
                  case_data_rw_idx (c, f->case_idx),
                  fmt_var_width (&f->format));
 
@@ -547,7 +550,7 @@ static bool
 parse_delimited_span (const struct data_parser *parser,
                       struct dfm_reader *reader, struct ccase *c)
 {
-  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *encoding = dfm_reader_get_legacy_encoding (reader);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct field *f;
 
@@ -574,6 +577,7 @@ parse_delimited_span (const struct data_parser *parser,
 
       data_in (s, encoding, f->format.type, 0,
                first_column, last_column,
+	       parser->dict,
                case_data_rw_idx (c, f->case_idx),
                fmt_var_width (&f->format));
     }
@@ -588,7 +592,7 @@ static bool
 parse_delimited_no_span (const struct data_parser *parser,
                          struct dfm_reader *reader, struct ccase *c)
 {
-  enum legacy_encoding encoding = dfm_reader_get_legacy_encoding (reader);
+  const char *encoding = dfm_reader_get_legacy_encoding (reader);
   struct string tmp = DS_EMPTY_INITIALIZER;
   struct substring s;
   struct field *f;
@@ -614,6 +618,7 @@ parse_delimited_no_span (const struct data_parser *parser,
 
       data_in (s, encoding, f->format.type, 0,
                first_column, last_column,
+	       parser->dict,
                case_data_rw_idx (c, f->case_idx),
                fmt_var_width (&f->format));
     }
