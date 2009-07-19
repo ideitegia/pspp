@@ -393,11 +393,12 @@ accumulate_counts (struct casereader *cutpoint_rdr,
   struct ccase *cpc;
   double prev_cp = SYSMIS;
 
-
   for ( ; (cpc = casereader_read (r) ); case_unref (cpc))
     {
       struct ccase *new_case;
       const double cp = case_data_idx (cpc, CUTPOINT)->f;
+
+      assert (cp != SYSMIS);
 
       /* We don't want duplicates here */
       if ( cp == prev_cp )
