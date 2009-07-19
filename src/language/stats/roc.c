@@ -16,10 +16,10 @@
 
 #include <config.h>
 
-#include "roc.h"
 #include <data/procedure.h>
 #include <language/lexer/variable-parser.h>
 #include <language/lexer/value-parser.h>
+#include <language/command.h>
 #include <language/lexer/lexer.h>
 
 #include <data/casegrouper.h>
@@ -98,18 +98,18 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 
   if (!parse_variables_const (lexer, dict, &roc.vars, &roc.n_vars,
 			      PV_APPEND | PV_NO_DUPLICATE | PV_NUMERIC))
-    return 2;
+    goto error;;
 
   if ( ! lex_force_match (lexer, T_BY))
     {
-      return 2;
+      goto error;;
     }
 
   roc.state_var = parse_variable (lexer, dict);
 
   if ( !lex_force_match (lexer, '('))
     {
-      return 2;
+      goto error;;
     }
 
   parse_value (lexer, &roc.state_value, var_get_width (roc.state_var));
@@ -117,7 +117,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 
   if ( !lex_force_match (lexer, ')'))
     {
-      return 2;
+      goto error;;
     }
 
 
@@ -140,7 +140,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	      else
 		{
                   lex_error (lexer, NULL);
-		  return 2;
+		  goto error;;
 		}
 	    }
 	}
@@ -164,7 +164,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	  else
 	    {
 	      lex_error (lexer, NULL);
-	      return 2;
+	      goto error;;
 	    }
 	}
       else if (lex_match_id (lexer, "PRINT"))
@@ -183,7 +183,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	      else
 		{
 		  lex_error (lexer, NULL);
-		  return 2;
+		  goto error;;
 		}
 	    }
 	}
@@ -206,7 +206,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 		  else
 		    {
 		      lex_error (lexer, NULL);
-		      return 2;
+		      goto error;;
 		    }
 		  lex_force_match (lexer, ')');
 		}
@@ -224,7 +224,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 		  else
 		    {
 		      lex_error (lexer, NULL);
-		      return 2;
+		      goto error;;
 		    }
 		  lex_force_match (lexer, ')');
 		}
@@ -250,14 +250,14 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 		  else
 		    {
 		      lex_error (lexer, NULL);
-		      return 2;
+		      goto error;;
 		    }
 		  lex_force_match (lexer, ')');
 		}
 	      else
 		{
 		  lex_error (lexer, NULL);
-		  return 2;
+		  goto error;;
 		}
 	    }
 	}
@@ -268,9 +268,14 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
 	}
     }
 
-  run_roc (ds, &roc);
+  if ( ! run_roc (ds, &roc)) 
+    goto error;;
 
-  return 1;
+  return CMD_SUCCESS;
+
+ error:
+  free (roc.vars);
+  return CMD_FAILURE;
 }
 
 
