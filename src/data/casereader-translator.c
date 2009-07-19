@@ -362,7 +362,7 @@ car_translate (struct ccase *input, void *car_)
 
 
 
-struct consolodator
+struct consolidator
 {
   const struct variable *key;
   const struct variable *weight;
@@ -378,7 +378,7 @@ struct consolodator
 static bool
 uniquify (const struct ccase *c, void *aux)
 {
-  struct consolodator *cdr = aux;
+  struct consolidator *cdr = aux;
   const union value *current_value = case_data (c, cdr->key);
   const int key_width = var_get_width (cdr->key);
   const double weight = cdr->weight ? case_data (c, cdr->weight)->f : 1.0;
@@ -414,7 +414,7 @@ uniquify (const struct ccase *c, void *aux)
 static struct ccase *
 consolodate_weight (struct ccase *input, void *aux)
 {
-  struct consolodator *cdr = aux;
+  struct consolidator *cdr = aux;
   struct ccase *c;
 
   c = case_unshare_and_resize (input, cdr->proto);
@@ -431,7 +431,7 @@ consolodate_weight (struct ccase *input, void *aux)
 static bool
 uniquify_destroy (void *aux)
 {
-  struct consolodator *cdr = aux;
+  struct consolidator *cdr = aux;
 
   casereader_destroy (cdr->clone);
   free (cdr);
@@ -459,7 +459,7 @@ casereader_create_distinct (struct casereader *input,
   struct casereader *ud ;
   const struct caseproto *output_proto = casereader_get_proto (input);
 
-  struct consolodator *cdr = xmalloc (sizeof (*cdr));
+  struct consolidator *cdr = xmalloc (sizeof (*cdr));
   cdr->n = 0;
   cdr->key = key;
   cdr->weight = weight;
