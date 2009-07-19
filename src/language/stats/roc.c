@@ -365,14 +365,16 @@ match_positives (const struct ccase *c, void *aux)
    standard error values */
 struct roc_state
 {
-  double auc;
+  double auc;  /* Area under the curve */
 
-  double n1;
-  double n2;
+  double n1;  /* total weight of positives */
+  double n2;  /* total weight of negatives */
 
-  double q1hat;
+  /* intermediates for standard error */
+  double q1hat; 
   double q2hat;
 
+  /* intermediates for cutpoints */
   struct casewriter *cutpoint_wtr;
   struct casereader *cutpoint_rdr;
   double prev_result;
@@ -440,7 +442,21 @@ accumulate_counts (struct casereader *cutpoint_rdr,
 
 static void output_roc (struct roc_state *rs, const struct cmd_roc *roc);
 
+/*
+  This function does 3 things:
 
+  1. Counts the number of cases which are equal to every other case in READER,
+  and those cases for which the relationship between it and every other case
+  satifies PRED (normally either > or <).  VAR is variable defining a case's value
+  for this purpose.
+
+  2. Counts the number of true and false cases in reader, and populates
+  CUTPOINT_RDR accordingly.  TRUE_INDEX and FALSE_INDEX are the indices
+  which receive these values.  POS_COND is the condition defining true
+  and false.
+  
+  3. CC is filled with the cumulative weight of all cases of READER.
+*/
 static struct casereader *
 process_group (const struct variable *var, struct casereader *reader,
 	       bool (*pred) (double, double),
