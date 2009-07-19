@@ -960,7 +960,7 @@ analysis tested against the totals.
 
 @display
 ROC     @var{var_list} BY @var{state_var} (@var{state_value})
-        /PLOT @{ CURVE [(REFERENCE)], NONE @}
+        /PLOT = @{ CURVE [(REFERENCE)], NONE @}
         /PRINT = [ SE ] [ COORDINATES ]
         /CRITERIA = [ CUTOFF(@{INCLUDE,EXCLUDE@}) ]
           [ TESTPOS (@{LARGE,SMALL@}) ]

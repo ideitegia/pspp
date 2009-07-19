@@ -94,7 +94,7 @@ begin data.
 end data.
 
 roc x by a (1)
-	/plot none
+	/plot = none
 	print = se 
 	.
 EOF
