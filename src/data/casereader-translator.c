@@ -417,12 +417,16 @@ consolodate_weight (struct ccase *input, void *aux)
   struct consolidator *cdr = aux;
   struct ccase *c;
 
-  c = case_unshare_and_resize (input, cdr->proto);
-
   if (cdr->weight)
-    case_data_rw (c, cdr->weight)->f = cdr->prev_cc;
+    {
+      c = case_unshare (input);
+      case_data_rw (c, cdr->weight)->f = cdr->prev_cc;
+    }
   else
-    case_data_rw_idx (c, caseproto_get_n_widths (cdr->proto) - 1)->f = cdr->prev_cc;    
+    {
+      c = case_unshare_and_resize (input, cdr->proto);
+      case_data_rw_idx (c, caseproto_get_n_widths (cdr->proto) - 1)->f = cdr->prev_cc;    
+    }
 
   return c;
 }
@@ -457,7 +461,7 @@ casereader_create_distinct (struct casereader *input,
 {
   struct casereader *u ;
   struct casereader *ud ;
-  const struct caseproto *output_proto = casereader_get_proto (input);
+  struct caseproto *output_proto = caseproto_clone (casereader_get_proto (input));
 
   struct consolidator *cdr = xmalloc (sizeof (*cdr));
   cdr->n = 0;
@@ -480,5 +484,7 @@ casereader_create_distinct (struct casereader *input,
 				     consolodate_weight,
 				     uniquify_destroy,
 				     cdr);
+
+  return ud;
 }
 
