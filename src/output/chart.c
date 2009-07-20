@@ -114,9 +114,12 @@ chart_ref (const struct chart *chart_)
 void
 chart_unref (struct chart *chart)
 {
-  assert (chart->ref_cnt > 0);
-  if (--chart->ref_cnt == 0)
-    chart->class->destroy (chart);
+  if (chart != NULL)
+    {
+      assert (chart->ref_cnt > 0);
+      if (--chart->ref_cnt == 0)
+        chart->class->destroy (chart);
+    }
 }
 
 void
