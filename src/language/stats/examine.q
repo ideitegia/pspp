@@ -48,9 +48,8 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <math/moments.h>
-#include <output/chart-provider.h>
 #include <output/charts/box-whisker.h>
-#include <output/charts/cartesian.h>
+#include <output/charts/np-plot.h>
 #include <output/manager.h>
 #include <output/table.h>
 
@@ -321,150 +320,6 @@ cmd_examine (struct lexer *lexer, struct dataset *ds)
 };
 
 
-struct np_plot_chart
-  {
-    struct chart chart;
-    char *label;
-    struct casereader *data;
-
-    /* Copied directly from struct np. */
-    double y_min, y_max;
-    double dns_min, dns_max;
-
-    /* Calculated. */
-    double slope, intercept;
-    double y_first, y_last;
-    double x_lower, x_upper;
-    double slack;
-  };
-
-static const struct chart_class np_plot_chart_class;
-static const struct chart_class dnp_plot_chart_class;
-
-/* Plot the normal and detrended normal plots for RESULT.
-   Label the plots with LABEL */
-static void
-np_plot (struct np *np, const char *label)
-{
-  struct np_plot_chart *np_plot, *dnp_plot;
-
-  if ( np->n < 1.0 )
-    {
-      msg (MW, _("Not creating plot because data set is empty."));
-      return ;
-    }
-
-  np_plot = xmalloc (sizeof *np_plot);
-  chart_init (&np_plot->chart, &np_plot_chart_class);
-  np_plot->label = xstrdup (label);
-  np_plot->data = casewriter_make_reader (np->writer);
-  np_plot->y_min = np->y_min;
-  np_plot->y_max = np->y_max;
-  np_plot->dns_min = np->dns_min;
-  np_plot->dns_max = np->dns_max;
-
-  /* Slope and intercept of the ideal normal probability line. */
-  np_plot->slope = 1.0 / np->stddev;
-  np_plot->intercept = -np->mean / np->stddev;
-
-  np_plot->y_first = gsl_cdf_ugaussian_Pinv (1 / (np->n + 1));
-  np_plot->y_last = gsl_cdf_ugaussian_Pinv (np->n / (np->n + 1));
-
-  /* Need to make sure that both the scatter plot and the ideal fit into the
-     plot */
-  np_plot->x_lower = MIN (
-    np->y_min, (np_plot->y_first - np_plot->intercept) / np_plot->slope);
-  np_plot->x_upper = MAX (
-    np->y_max, (np_plot->y_last  - np_plot->intercept) / np_plot->slope) ;
-  np_plot->slack = (np_plot->x_upper - np_plot->x_lower) * 0.05 ;
-
-  dnp_plot = xmemdup (np_plot, sizeof *np_plot);
-  chart_init (&dnp_plot->chart, &dnp_plot_chart_class);
-  dnp_plot->label = xstrdup (dnp_plot->label);
-  dnp_plot->data = casereader_clone (dnp_plot->data);
-
-  chart_submit (&np_plot->chart);
-  chart_submit (&dnp_plot->chart);
-}
-
-static void
-np_plot_chart_draw (const struct chart *chart, plPlotter *lp)
-{
-  const struct np_plot_chart *plot = (struct np_plot_chart *) chart;
-  struct chart_geometry geom;
-  struct casereader *data;
-  struct ccase *c;
-
-  chart_geometry_init (lp, &geom);
-  chart_write_title (lp, &geom, _("Normal Q-Q Plot of %s"), plot->label);
-  chart_write_xlabel (lp, &geom, _("Observed Value"));
-  chart_write_ylabel (lp, &geom, _("Expected Normal"));
-  chart_write_xscale (lp, &geom,
-                      plot->x_lower - plot->slack,
-                      plot->x_upper + plot->slack, 5);
-  chart_write_yscale (lp, &geom, plot->y_first, plot->y_last, 5);
-
-  data = casereader_clone (plot->data);
-  for (; (c = casereader_read (data)) != NULL; case_unref (c))
-    chart_datum (lp, &geom, 0,
-                 case_data_idx (c, NP_IDX_Y)->f,
-                 case_data_idx (c, NP_IDX_NS)->f);
-  casereader_destroy (data);
-
-  chart_line (lp, &geom, plot->slope, plot->intercept,
-              plot->y_first, plot->y_last, CHART_DIM_Y);
-
-  chart_geometry_free (lp);
-}
-
-static void
-dnp_plot_chart_draw (const struct chart *chart, plPlotter *lp)
-{
-  const struct np_plot_chart *plot = (struct np_plot_chart *) chart;
-  struct chart_geometry geom;
-  struct casereader *data;
-  struct ccase *c;
-
-  chart_geometry_init (lp, &geom);
-  chart_write_title (lp, &geom, _("Detrended Normal Q-Q Plot of %s"),
-                     plot->label);
-  chart_write_xlabel (lp, &geom, _("Observed Value"));
-  chart_write_ylabel (lp, &geom, _("Dev from Normal"));
-  chart_write_xscale (lp, &geom, plot->y_min, plot->y_max, 5);
-  chart_write_yscale (lp, &geom, plot->dns_min, plot->dns_max, 5);
-
-  data = casereader_clone (plot->data);
-  for (; (c = casereader_read (data)) != NULL; case_unref (c))
-    chart_datum (lp, &geom, 0, case_data_idx (c, NP_IDX_Y)->f,
-                 case_data_idx (c, NP_IDX_DNS)->f);
-  casereader_destroy (data);
-
-  chart_line (lp, &geom, 0, 0, plot->y_min, plot->y_max, CHART_DIM_X);
-
-  chart_geometry_free (lp);
-}
-
-static void
-np_plot_chart_destroy (struct chart *chart)
-{
-  struct np_plot_chart *plot = (struct np_plot_chart *) chart;
-
-  casereader_destroy (plot->data);
-  free (plot->label);
-  free (plot);
-}
-
-static const struct chart_class np_plot_chart_class =
-  {
-    np_plot_chart_draw,
-    np_plot_chart_destroy
-  };
-
-static const struct chart_class dnp_plot_chart_class =
-  {
-    dnp_plot_chart_draw,
-    np_plot_chart_destroy
-  };
 
 
 static void
@@ -481,20 +336,37 @@ show_npplot (const struct variable **dependent_var,
 	   ll != ll_null (&fctr->result_list);
 	   ll = ll_next (ll))
 	{
-	  struct string str;
+	  struct string label;
 	  const struct factor_result *result =
 	    ll_data (ll, struct factor_result, ll);
+          struct chart *npp, *dnpp;
+          struct casereader *reader;
+          struct np *np;
 
-	  ds_init_empty (&str);
-	  ds_put_format (&str, "%s ", var_get_name (dependent_var[v]));
+	  ds_init_empty (&label);
+	  ds_put_format (&label, "%s ", var_get_name (dependent_var[v]));
+	  factor_to_string (fctr, result, &label);
 
-	  factor_to_string (fctr, result, &str);
+          np = (struct np *) result->metrics[v].np;
+          reader = casewriter_make_reader (np->writer);
+          npp = np_plot_create (np, reader, ds_cstr (&label));
+          dnpp = dnp_plot_create (np, reader, ds_cstr (&label));
 
-	  np_plot ((struct np*) result->metrics[v].np, ds_cstr(&str));
+	  ds_destroy (&label);
 
-	  statistic_destroy ((struct statistic *)result->metrics[v].np);
+          if (npp == NULL || dnpp == NULL)
+            {
+              msg (MW, _("Not creating NP plot because data set is empty."));
+              chart_unref (npp);
+              chart_unref (dnpp);
+            }
+          else
+            {
+              chart_submit (npp);
+              chart_submit (dnpp);
+            }
 
-	  ds_destroy (&str);
+	  statistic_destroy (&np->parent.parent);
 	}
     }
 }
