@@ -438,6 +438,7 @@ uniquify_destroy (void *aux)
   struct consolidator *cdr = aux;
 
   casereader_destroy (cdr->clone);
+  caseproto_unref (cdr->proto);
   free (cdr);
 
   return true;
@@ -461,7 +462,7 @@ casereader_create_distinct (struct casereader *input,
 {
   struct casereader *u ;
   struct casereader *ud ;
-  struct caseproto *output_proto = caseproto_clone (casereader_get_proto (input));
+  struct caseproto *output_proto = caseproto_ref (casereader_get_proto (input));
 
   struct consolidator *cdr = xmalloc (sizeof (*cdr));
   cdr->n = 0;

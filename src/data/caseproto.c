@@ -59,26 +59,6 @@ caseproto_create (void)
   return proto;
 }
 
-
-struct caseproto *
-caseproto_clone (const struct caseproto *in)
-{
-  struct caseproto *proto = xmalloc (caseproto_size (in->n_widths));
-  proto->ref_cnt = 1;
-
-  proto->n_widths = in->n_widths;
-  proto->allocated_widths = in->allocated_widths;
-  
-  memcpy (proto->widths, in->widths, proto->n_widths *  sizeof *proto->widths);
-
-  proto->n_long_strings = in->n_long_strings;
-  proto->long_strings = NULL;
-  if ( proto->n_long_strings > 0)
-    caseproto_refresh_long_string_cache__ (proto);
-
-  return proto;
-}
-
 static void
 do_unref (void *proto_)
 {

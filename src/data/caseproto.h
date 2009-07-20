@@ -78,7 +78,6 @@ struct pool;
 
 /* Creation and destruction. */
 struct caseproto *caseproto_create (void) MALLOC_LIKE;
-struct caseproto *caseproto_clone (const struct caseproto *) ;
 static inline struct caseproto *caseproto_ref (const struct caseproto *);
 struct caseproto *caseproto_ref_pool (const struct caseproto *, struct pool *);
 static inline void caseproto_unref (struct caseproto *);
