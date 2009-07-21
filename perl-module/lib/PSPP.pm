@@ -282,6 +282,16 @@ sub set_print_format
 
 =pod
 
+
+=head3 get_write_format ()
+
+Returns a reference to a hash containing the write format for the variable.
+
+
+=head3 get_print_format ()
+
+Returns a reference to a hash containing the print format for the variable.
+
 =head3 set_output_format (%fmt)
 
 Sets the write and print formats to C<fmt>.  This is the same as

@@ -373,6 +373,37 @@ clear_value_labels (var)
 CODE:
  var_clear_value_labels (var);
 
+SV *
+get_write_format (var)
+ struct variable *var
+CODE:
+ HV *fmthash = (HV *) sv_2mortal ((SV *) newHV());
+ const struct fmt_spec *fmt = var_get_write_format (var);
+
+ hv_store (fmthash, "fmt", 3, newSVnv (fmt->type), 0);
+ hv_store (fmthash, "decimals", 8, newSVnv (fmt->d), 0);
+ hv_store (fmthash, "width", 5, newSVnv (fmt->w), 0);
+
+ RETVAL = newRV ((SV *) fmthash);
+ OUTPUT:
+RETVAL
+
+SV *
+get_print_format (var)
+ struct variable *var
+CODE:
+ HV *fmthash = (HV *) sv_2mortal ((SV *) newHV());
+ const struct fmt_spec *fmt = var_get_print_format (var);
+
+ hv_store (fmthash, "fmt", 3, newSVnv (fmt->type), 0);
+ hv_store (fmthash, "decimals", 8, newSVnv (fmt->d), 0);
+ hv_store (fmthash, "width", 5, newSVnv (fmt->w), 0);
+
+ RETVAL = newRV ((SV *) fmthash);
+ OUTPUT:
+RETVAL
+
+
 void
 pxs_set_write_format (var, fmt)
  struct variable *var
