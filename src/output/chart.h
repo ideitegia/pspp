@@ -17,9 +17,13 @@
 #ifndef OUTPUT_CHART_H
 #define OUTPUT_CHART_H 1
 
+/* <plot.h> requires <stdio.h> but doesn't #include it. */
+#include <stdio.h>
+
 #ifdef HAVE_CHARTS
-#include <stdio.h>              /* Required by <plot.h>. */
 #include <plot.h>
+#else
+#include <output/charts/libplot-dummy.h>
 #endif
 
 struct chart;

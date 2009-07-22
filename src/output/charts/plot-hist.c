@@ -18,7 +18,6 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <plot.h>
 #include <math.h>
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_randist.h>

@@ -19,10 +19,8 @@
 #ifndef CARTESIAN_H
 #define CARTESIAN_H
 
-#include <stdio.h>
-#include <plot.h>
-
 #include <libpspp/compiler.h>
+#include <output/chart.h>
 
 enum CHART_DIM
   {

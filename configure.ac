@@ -38,7 +38,6 @@ AC_SYS_LARGEFILE
 AC_SEARCH_LIBS([sin], [m])
 PSPP_LIBPLOT
 PSPP_LC_PAPER
-AM_CONDITIONAL(WITHCHARTS, test x"$with_libplot" != x"no")
 
 
 AC_ARG_VAR([PSPP_LDFLAGS], [linker flags to be used for linking the pspp binary only])

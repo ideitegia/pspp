@@ -1,33 +1,41 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-
-include $(top_srcdir)/src/output/charts/automake.mk
-
 noinst_LTLIBRARIES += src/output/liboutput.la 
 
 src_output_liboutput_la_SOURCES = \
 	src/output/afm.c \
 	src/output/afm.h \
 	src/output/ascii.c \
+	src/output/chart.c \
+	src/output/chart.h \
+	src/output/charts/box-whisker.c \
+	src/output/charts/box-whisker.h \
+	src/output/charts/cartesian.c \
+	src/output/charts/cartesian.h \
+	src/output/charts/libplot-dummy.c \
+	src/output/charts/libplot-dummy.h \
+	src/output/charts/libplot.h \
+	src/output/charts/np-plot.c \
+	src/output/charts/np-plot.h \
+	src/output/charts/piechart.c \
+	src/output/charts/piechart.h \
+	src/output/charts/plot-chart.c \
+	src/output/charts/plot-chart.h \
+	src/output/charts/plot-hist.c \
+	src/output/charts/plot-hist.h \
 	src/output/html.c \
 	src/output/htmlP.h \
 	src/output/journal.c \
 	src/output/journal.h \
+	src/output/manager.c \
+	src/output/manager.h \
 	src/output/output.c \
 	src/output/output.h \
 	src/output/postscript.c \
-	src/output/manager.c \
-	src/output/manager.h \
-	src/output/chart.h \
 	src/output/table.c \
 	src/output/table.h
 if HAVE_CAIRO
 src_output_liboutput_la_SOURCES += src/output/cairo.c
-endif
-if WITHCHARTS
-src_output_liboutput_la_SOURCES += src/output/chart.c
-else
-src_output_liboutput_la_SOURCES += src/output/dummy-chart.c
 endif
 
 EXTRA_DIST += src/output/OChangeLog

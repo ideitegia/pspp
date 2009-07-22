@@ -13,9 +13,6 @@ include $(top_srcdir)/src/language/expressions/automake.mk
 noinst_LTLIBRARIES +=  src/language/liblanguage.la
 
 
-src_language_liblanguage_la_LIBADD = \
-	src/output/charts/libcharts.la
-
 src_language_liblanguage_la_SOURCES = \
 	src/language/syntax-file.c \
 	src/language/syntax-file.h \

@@ -23,7 +23,6 @@
 #include <errno.h>
 #include <float.h>
 #include <math.h>
-#include <plot.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -125,11 +124,13 @@ chart_unref (struct chart *chart)
 void
 chart_submit (struct chart *chart)
 {
+#ifdef HAVE_LIBPLOT
   struct outp_driver *d;
 
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
     if (d->class->output_chart != NULL)
       d->class->output_chart (d, chart);
+#endif
 
   chart_unref (chart);
 }

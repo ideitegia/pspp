@@ -19,7 +19,6 @@
 #include <output/charts/plot-chart.h>
 
 #include <stdio.h>
-#include <plot.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
