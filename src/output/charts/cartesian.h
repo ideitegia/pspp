@@ -27,16 +27,19 @@ enum CHART_DIM
   };
 
 
+void chart_vector_start (struct chart *ch, const char *name);
+void chart_vector (struct chart *ch, double x, double y);
+void chart_vector_end (struct chart *ch);
 
 /* Plot a data point */
-void chart_datum(struct chart *ch, int dataset UNUSED, double x, double y);
+void chart_datum (struct chart *ch, int dataset UNUSED, double x, double y);
 
 /* Draw a line with slope SLOPE and intercept INTERCEPT.
    between the points limit1 and limit2.
    If lim_dim is CHART_DIM_Y then the limit{1,2} are on the
    y axis otherwise the x axis
 */
-void chart_line(struct chart *ch, double slope, double intercept,
+void chart_line (struct chart *ch, double slope, double intercept,
 		double limit1, double limit2, enum CHART_DIM lim_dim);
 
 

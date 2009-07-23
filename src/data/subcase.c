@@ -64,6 +64,16 @@ subcase_init_var (struct subcase *sc, const struct variable *var,
   subcase_add_var (sc, var, direction);
 }
 
+
+void
+subcase_init (struct subcase *sc, int index, int width,
+                  enum subcase_direction direction)
+{
+  subcase_init_empty (sc);
+  subcase_add (sc, index, width, direction);
+}
+
+
 /* Removes all the fields from SC. */
 void
 subcase_clear (struct subcase *sc)
@@ -89,6 +99,7 @@ subcase_destroy (struct subcase *sc)
   caseproto_unref (sc->proto);
 }
 
+
 /* Add a field for VAR to SC, with DIRECTION as the sort order.
    Returns true if successful, false if VAR already has a field
    in SC. */
@@ -96,7 +107,17 @@ bool
 subcase_add_var (struct subcase *sc, const struct variable *var,
                  enum subcase_direction direction)
 {
-  size_t case_index = var_get_case_index (var);
+  return subcase_add (sc, var_get_case_index (var),
+		      var_get_width (var), direction);
+}
+
+/* Add a field for CASE_INDEX, WIDTH to SC, with DIRECTION as the sort order.
+   Returns true if successful, false if CASE_INDEX already has a field
+   in SC. */
+bool
+subcase_add (struct subcase *sc, int case_index, int width,
+                 enum subcase_direction direction)
+{
   struct subcase_field *field;
   size_t i;
 
@@ -107,7 +128,7 @@ subcase_add_var (struct subcase *sc, const struct variable *var,
   sc->fields = xnrealloc (sc->fields, sc->n_fields + 1, sizeof *sc->fields);
   field = &sc->fields[sc->n_fields++];
   field->case_index = case_index;
-  field->width = var_get_width (var);
+  field->width = width;
   field->direction = direction;
   invalidate_proto (sc);
   return true;

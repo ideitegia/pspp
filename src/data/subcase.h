@@ -53,9 +53,15 @@ void subcase_init_vars (struct subcase *,
                         const struct variable *const *, size_t n_vars);
 void subcase_init_var (struct subcase *,
                        const struct variable *, enum subcase_direction);
+void subcase_init (struct subcase *, int index, int width,
+		   enum subcase_direction);
+
 void subcase_clone (struct subcase *, const struct subcase *);
 void subcase_clear (struct subcase *);
 void subcase_destroy (struct subcase *);
+
+bool subcase_add (struct subcase *sc, int index, int width,
+		  enum subcase_direction direction);
 
 bool subcase_add_var (struct subcase *, const struct variable *,
                       enum subcase_direction);

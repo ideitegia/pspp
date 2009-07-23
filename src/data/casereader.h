@@ -140,5 +140,10 @@ casereader_create_append_rank (struct casereader *,
 			       enum rank_error *err,
 			       distinct_func *distinct_callback, void *aux);
 
+struct casereader *
+casereader_create_distinct (struct casereader *input,
+			    const struct variable *key,
+			    const struct variable *weight);
+
 
 #endif /* data/casereader.h */

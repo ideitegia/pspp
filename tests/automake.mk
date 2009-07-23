@@ -56,6 +56,8 @@ dist_TESTS = \
 	tests/command/regression.sh \
 	tests/command/regression-qr.sh \
 	tests/command/reliability.sh \
+	tests/command/roc.sh \
+	tests/command/roc2.sh \
 	tests/command/sample.sh \
 	tests/command/sort.sh \
 	tests/command/sysfiles.sh \

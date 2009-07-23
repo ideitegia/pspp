@@ -64,6 +64,8 @@ struct chart {
 
   int legend_left ;
   int legend_right ;
+  const char **dataset;
+  int n_datasets;
 
 
   /* Default font size for the plot (if zero, then use plotter default) */
@@ -78,6 +80,7 @@ struct chart {
   double x_max;
   double y_min;
   double y_max;
+  bool in_path;
 };
 
 

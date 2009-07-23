@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -209,4 +209,48 @@ chart_write_ylabel(struct chart *ch, const char *label)
   pl_alabel_r(ch->lp, 0, 0, label);
 
   pl_restorestate_r(ch->lp);
+}
+
+
+void
+chart_write_legend (struct chart *ch)
+{
+  int i;
+  const int vstep = ch->font_size * 2;
+  const int xpad = 10;
+  const int ypad = 10;
+  const int swatch = 20;
+  const int legend_top = ch->data_top;
+  const int legend_bottom = legend_top -
+    (vstep * ch->n_datasets + 2 * ypad );
+
+  if ( ! ch )
+    return ;
+
+  pl_savestate_r (ch->lp);
+
+  pl_box_r (ch->lp, ch->legend_left, legend_top,
+	    ch->legend_right - xpad, legend_bottom);
+
+  for (i = 0 ; i < ch->n_datasets ; ++i )
+    {
+      const int ypos = vstep * (i + 1);
+      const int xpos = ch->legend_left + xpad;
+      pl_move_r (ch->lp, xpos, legend_top - ypos);
+
+      pl_savestate_r(ch->lp);
+       pl_fillcolorname_r (ch->lp, data_colour [ i % N_CHART_COLOURS]);
+
+       pl_pentype_r (ch->lp, 1);
+       pl_filltype_r (ch->lp, 1);
+       pl_boxrel_r (ch->lp, 0, 0, swatch, swatch);
+
+
+      pl_moverel_r (ch->lp, swatch, 0);
+      pl_alabel_r (ch->lp, 0, 0, ch->dataset[i]);
+
+      pl_restorestate_r (ch->lp);
+    }
+
+  pl_restorestate_r (ch->lp);
 }

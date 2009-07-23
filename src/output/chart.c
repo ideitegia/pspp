@@ -83,6 +83,9 @@ chart_create(void)
   chart->legend_left = 810;
   chart->legend_right = 1000;
   chart->font_size = 0;
+  chart->in_path = false;
+  chart->dataset = NULL;
+  chart->n_datasets = 0;
   strcpy(chart->fill_colour,"red");
 
   /* Get default font size */
@@ -100,6 +103,7 @@ chart_create(void)
 void
 chart_submit(struct chart *chart)
 {
+  int i;
   struct som_entity s;
   struct outp_driver *d;
 
@@ -124,6 +128,11 @@ chart_submit(struct chart *chart)
 
   d = outp_drivers (NULL);
   d->class->finalise_chart(d, chart);
+
+  for (i = 0 ; i < chart->n_datasets; ++i)
+    free (chart->dataset[i]);
+  free (chart->dataset);
+
   free(chart);
 }
 
