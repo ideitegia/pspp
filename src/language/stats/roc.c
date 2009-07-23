@@ -962,9 +962,9 @@ show_auc  (struct roc_state *rs, const struct cmd_roc *roc)
       tab_text (tbl, n_cols - 2, 1, TAT_TITLE, _("Lower Bound"));
       tab_text (tbl, n_cols - 1, 1, TAT_TITLE, _("Upper Bound"));
 
-      tab_joint_text (tbl, n_cols - 2, 0, 4, 0,
-		      TAT_TITLE | TAB_CENTER | TAT_PRINTF,
-		      _("Asymp. %g%% Confidence Interval"), roc->ci);
+      tab_joint_text_format (tbl, n_cols - 2, 0, 4, 0,
+			     TAT_TITLE | TAB_CENTER,
+			     _("Asymp. %g%% Confidence Interval"), roc->ci);
       tab_vline (tbl, 0, n_cols - 1, 0, 0);
       tab_hline (tbl, TAL_1, n_cols - 2, n_cols - 1, 1);
     }
