@@ -882,17 +882,30 @@ pfm_detect (FILE *file)
 {
   unsigned char header[464];
   char trans[256];
-  int cooked_cnt, raw_cnt;
+  int cooked_cnt, raw_cnt, line_len;
   int i;
 
   cooked_cnt = raw_cnt = 0;
+  line_len = 0;
   while (cooked_cnt < sizeof header)
     {
       int c = getc (file);
       if (c == EOF || raw_cnt++ > 512)
         return false;
-      else if (c != '\n' && c != '\r')
-        header[cooked_cnt++] = c;
+      else if (c == '\n')
+        {
+          while (line_len < 80 && cooked_cnt < sizeof header)
+            {
+              header[cooked_cnt++] = ' ';
+              line_len++;
+            }
+          line_len = 0;
+        }
+      else if (c != '\r')
+        {
+          header[cooked_cnt++] = c;
+          line_len++;
+        }
     }
 
   memset (trans, 0, 256);
