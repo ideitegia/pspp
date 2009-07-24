@@ -204,14 +204,12 @@ val_labs_cancel (struct val_labs_dialog *dialog)
 
 /* Callback for when the Value Labels dialog is closed using
    the Cancel button.*/
-static gint
+static void
 on_cancel (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
 
   val_labs_cancel (dialog);
-
-  return FALSE;
 }
 
 
@@ -260,7 +258,7 @@ get_selected_tuple (struct val_labs_dialog *dialog,
 static void repopulate_dialog (struct val_labs_dialog *dialog);
 
 /* Callback which occurs when the "Change" button is clicked */
-static gint
+static void
 on_change (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
@@ -280,12 +278,10 @@ on_change (GtkWidget *w, gpointer data)
 
   repopulate_dialog (dialog);
   gtk_widget_grab_focus (dialog->value_entry);
-
-  return FALSE;
 }
 
 /* Callback which occurs when the "Add" button is clicked */
-static gint
+static void
 on_add (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
@@ -302,18 +298,16 @@ on_add (GtkWidget *w, gpointer data)
   if ( ! val_labs_add (dialog->labs, &v,
 		       gtk_entry_get_text
 		       ( GTK_ENTRY (dialog->label_entry)) ) )
-    return FALSE;
+    return ;
 
   gtk_widget_set_sensitive (dialog->add_button, FALSE);
 
   repopulate_dialog (dialog);
   gtk_widget_grab_focus (dialog->value_entry);
-
-  return FALSE;
 }
 
 /* Callback which occurs when the "Remove" button is clicked */
-static gint
+static void
 on_remove (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
@@ -330,8 +324,6 @@ on_remove (GtkWidget *w, gpointer data)
   gtk_widget_grab_focus (dialog->value_entry);
 
   gtk_widget_set_sensitive (dialog->remove_button, FALSE);
-
-  return FALSE;
 }
 
 
@@ -416,38 +408,38 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
 
   g_signal_connect (get_widget_assert (xml, "val_labs_cancel"),
 		   "clicked",
-		   GTK_SIGNAL_FUNC (on_cancel), dialog);
+		   G_CALLBACK (on_cancel), dialog);
 
   g_signal_connect (dialog->window, "delete-event",
-		    GTK_SIGNAL_FUNC (on_delete), dialog);
+		    G_CALLBACK (on_delete), dialog);
 
   g_signal_connect (get_widget_assert (xml, "val_labs_ok"),
 		   "clicked",
-		   GTK_SIGNAL_FUNC (val_labs_ok), dialog);
+		   G_CALLBACK (val_labs_ok), dialog);
 
   dialog->change_handler_id =
     g_signal_connect (dialog->label_entry,
 		     "changed",
-		     GTK_SIGNAL_FUNC (on_label_entry_change), dialog);
+		     G_CALLBACK (on_label_entry_change), dialog);
 
   dialog->value_handler_id  =
     g_signal_connect (dialog->value_entry,
 		     "changed",
-		     GTK_SIGNAL_FUNC (on_value_entry_change), dialog);
+		     G_CALLBACK (on_value_entry_change), dialog);
 
   g_signal_connect (dialog->change_button,
 		   "clicked",
-		   GTK_SIGNAL_FUNC (on_change), dialog);
+		   G_CALLBACK (on_change), dialog);
 
 
   g_signal_connect (dialog->treeview, "cursor-changed",
-		   GTK_SIGNAL_FUNC (on_select_row), dialog);
+		   G_CALLBACK (on_select_row), dialog);
 
   g_signal_connect (dialog->remove_button, "clicked",
-		   GTK_SIGNAL_FUNC (on_remove), dialog);
+		   G_CALLBACK (on_remove), dialog);
 
   g_signal_connect (dialog->add_button, "clicked",
-		   GTK_SIGNAL_FUNC (on_add), dialog);
+		   G_CALLBACK (on_add), dialog);
 
   dialog->labs = 0;
 
