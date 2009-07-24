@@ -585,8 +585,6 @@ cmptr_value_destroy (struct comparator *cmptr)
 static struct comparator *
 value_comparator_create (const struct variable *var, const PsppireDict *dict, const char *target)
 {
-  const struct fmt_spec *fmt;
-  int width ;
   struct value_comparator *vc = xzalloc (sizeof (*vc));
   struct comparator *cmptr = (struct comparator *) vc;
 
@@ -596,12 +594,7 @@ value_comparator_create (const struct variable *var, const PsppireDict *dict, co
   cmptr->destroy = cmptr_value_destroy;
   cmptr->dict = dict;
 
-  width = var_get_width (var);
-  fmt = var_get_write_format (var);
-
-  value_init (&vc->pattern, width);
-
-  text_to_value (target, &vc->pattern, dict, *var_get_write_format (var) );
+  text_to_value (target, dict, var, &vc->pattern);
 
   return cmptr;
 }

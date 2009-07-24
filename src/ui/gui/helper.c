@@ -60,17 +60,27 @@ value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format)
 }
 
 
+/* Converts TEXT to a value.
 
-gboolean
-text_to_value (const gchar *text, union value *v,
+   VAL will be initialised and filled by this function.
+   It is the caller's responsibility to destroy VAL when no longer needed.
+   VAR and DICT must be the variable and dictionary with which VAL
+   is associated.
+
+   On success, VAL is returned, NULL otherwise.
+*/
+union value *
+text_to_value (const gchar *text,
 	       const PsppireDict *dict,
-	      struct fmt_spec format)
+	       const struct variable *var,
+	       union value *val)
 {
-  bool ok;
+  const struct fmt_spec *format = var_get_print_format (var);
+  int width = var_get_width (var);
 
-  if ( format.type != FMT_A)
+  if ( format->type != FMT_A)
     {
-      if ( ! text ) return FALSE;
+      if ( ! text ) return NULL;
 
       {
 	const gchar *s = text;
@@ -81,17 +91,18 @@ text_to_value (const gchar *text, union value *v,
 	    s++;
 	  }
 
-	if ( !*s) return FALSE;
+	if ( !*s) return NULL;
       }
     }
 
+  value_init (val, width);
   msg_disable ();
-  ok = data_in (ss_cstr (text), UTF8, format.type, 0, 0, 0,
+  data_in (ss_cstr (text), UTF8, format->type, 0, 0, 0,
 		dict->dict,
-                v, fmt_var_width (&format));
+                val, width);
   msg_enable ();
 
-  return ok;
+  return val;
 }
 
 

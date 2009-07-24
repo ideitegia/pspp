@@ -71,10 +71,10 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
 
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
-  text_to_value (text, &v,
+  text_to_value (text,
 		 dialog->var_store->dict,
-		*var_get_write_format (dialog->pv));
-
+		 dialog->pv,
+		 &v);
 
   if (val_labs_find (dialog->labs, &v))
     {
@@ -86,6 +86,8 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
       gtk_widget_set_sensitive (dialog->change_button, FALSE);
       gtk_widget_set_sensitive (dialog->add_button, TRUE);
     }
+
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 
@@ -142,9 +144,10 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   union value v;
-  text_to_value (text, &v,
+  text_to_value (text,
 		 dialog->var_store->dict,
-		*var_get_write_format (dialog->pv));
+		 dialog->pv,
+		 &v);
 
 
   g_signal_handler_block (GTK_ENTRY (dialog->label_entry),
@@ -168,6 +171,8 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 
   g_signal_handler_unblock (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
+
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 
@@ -267,9 +272,10 @@ on_change (GtkWidget *w, gpointer data)
 
   union value v;
 
-  text_to_value (val_text, &v,
+  text_to_value (val_text,
 		 dialog->var_store->dict,
-		*var_get_write_format (dialog->pv));
+		 dialog->pv,
+		 &v);
 
   val_labs_replace (dialog->labs, &v,
 		    gtk_entry_get_text (GTK_ENTRY (dialog->label_entry)));
@@ -278,6 +284,8 @@ on_change (GtkWidget *w, gpointer data)
 
   repopulate_dialog (dialog);
   gtk_widget_grab_focus (dialog->value_entry);
+
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 /* Callback which occurs when the "Add" button is clicked */
@@ -290,20 +298,22 @@ on_add (GtkWidget *w, gpointer data)
 
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
-  text_to_value (text, &v,
+  text_to_value (text,
 		 dialog->var_store->dict,
-		*var_get_write_format (dialog->pv));
+		 dialog->pv,
+		 &v);
 
+  if (val_labs_add (dialog->labs, &v,
+		    gtk_entry_get_text
+		    ( GTK_ENTRY (dialog->label_entry)) ) )
+    {
+      gtk_widget_set_sensitive (dialog->add_button, FALSE);
 
-  if ( ! val_labs_add (dialog->labs, &v,
-		       gtk_entry_get_text
-		       ( GTK_ENTRY (dialog->label_entry)) ) )
-    return ;
+      repopulate_dialog (dialog);
+      gtk_widget_grab_focus (dialog->value_entry);
+    }
 
-  gtk_widget_set_sensitive (dialog->add_button, FALSE);
-
-  repopulate_dialog (dialog);
-  gtk_widget_grab_focus (dialog->value_entry);
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 /* Callback which occurs when the "Remove" button is clicked */

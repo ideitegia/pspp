@@ -80,8 +80,6 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 {
   struct missing_val_dialog *dialog = data;
 
-  const struct fmt_spec *write_spec = var_get_write_format (dialog->pv);
-
   if ( gtk_toggle_button_get_active (dialog->button_discrete))
     {
       gint nvals = 0;
@@ -100,8 +98,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	      continue;
 	    }
 
-	  if ( text_to_value (text, &v, 
-			      dialog->dict, *write_spec))
+	  if ( text_to_value (text, dialog->dict, dialog->pv, &v))
 	    {
 	      nvals++;
 	      mv_add_value (&dialog->mvl, &v);
@@ -109,6 +106,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	  else
 	      badvals++;
 	  g_free (text);
+	  value_destroy (&v, var_get_width (dialog->pv));
 	}
       if ( nvals == 0 || badvals > 0 )
 	{
@@ -127,14 +125,16 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       const gchar *low_text = gtk_entry_get_text (GTK_ENTRY (dialog->low));
       const gchar *high_text = gtk_entry_get_text (GTK_ENTRY (dialog->high));
 
-      if ( text_to_value (low_text, &low_val, dialog->dict, *write_spec)
+      if ( text_to_value (low_text, dialog->dict, dialog->pv, &low_val)
 	   &&
-	   text_to_value (high_text, &high_val, dialog->dict, *write_spec) )
+	   text_to_value (high_text, dialog->dict, dialog->pv, &high_val))
 	{
 	  if ( low_val.f > high_val.f )
 	    {
 	      err_dialog (_("Incorrect range specification"),
 			  GTK_WINDOW (dialog->window));
+	      value_destroy (&low_val, var_get_width (dialog->pv));
+	      value_destroy (&high_val, var_get_width (dialog->pv));
 	      return ;
 	    }
 	}
@@ -142,6 +142,8 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	{
 	  err_dialog (_("Incorrect range specification"),
 		      GTK_WINDOW (dialog->window));
+	  value_destroy (&low_val, var_get_width (dialog->pv));
+	  value_destroy (&high_val, var_get_width (dialog->pv));
 	  return;
 	}
 
@@ -151,19 +153,25 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       mv_clear (&dialog->mvl);
       mv_add_range (&dialog->mvl, low_val.f, high_val.f);
 
+      value_destroy (&low_val, var_get_width (dialog->pv));
+      value_destroy (&high_val, var_get_width (dialog->pv));
+
       if ( discrete_text && strlen (g_strstrip (discrete_text)) > 0 )
 	{
 	  union value discrete_val;
-	  if ( !text_to_value (discrete_text, &discrete_val,
+	  if ( !text_to_value (discrete_text, 
 			       dialog->dict,
-			      *write_spec))
+			       dialog->pv,
+			       &discrete_val))
 	    {
 	      err_dialog (_("Incorrect value for variable type"),
 			 GTK_WINDOW (dialog->window) );
 	      g_free (discrete_text);
+	      value_destroy (&discrete_val, var_get_width (dialog->pv));
 	      return;
 	    }
 	  mv_add_value (&dialog->mvl, &discrete_val);
+	  value_destroy (&discrete_val, var_get_width (dialog->pv));
 	}
       g_free (discrete_text);
     }

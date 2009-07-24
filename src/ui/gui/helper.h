@@ -37,9 +37,11 @@ struct fmt_spec;
 gchar * value_to_text (union value v, const PsppireDict *dict, struct fmt_spec format);
 
 
-gboolean text_to_value (const gchar *text, union value *v,
-			const PsppireDict *dict,
-		       struct fmt_spec format);
+union value *
+text_to_value (const gchar *text,
+	       const PsppireDict *dict,
+	       const struct variable *var,
+	       union value *);
 
 GObject *get_object_assert (GtkBuilder *builder, const gchar *name, GType type);
 GtkAction * get_action_assert (GtkBuilder *builder, const gchar *name);
