@@ -4042,8 +4042,10 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
   if (sheet->select_status == PSPPIRE_SHEET_NORMAL && row == sheet->active_cell.row &&
       column == sheet->active_cell.col) return TRUE;
 
+#if 0
   if (PSPPIRE_SHEET_IN_SELECTION (sheet) && mods&GDK_BUTTON1_MASK)
     psppire_sheet_extend_selection (sheet, row, column);
+#endif
 
   return TRUE;
 }
