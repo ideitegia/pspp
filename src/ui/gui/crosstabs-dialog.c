@@ -389,6 +389,7 @@ crosstabs_dialog (GObject *o, gpointer data)
 
   GtkBuilder *xml = builder_new ("crosstabs.ui");
   PsppireVarStore *vs = NULL;
+  PsppireDict *dict = NULL;
 
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
@@ -422,10 +423,11 @@ crosstabs_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "dictionary", vs->dict, NULL);
+  g_object_get (vs, "dictionary", &dict, NULL);
+  g_object_set (source, "dictionary", dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (dest_rows), vs->dict);
-  set_dest_model (GTK_TREE_VIEW (dest_cols), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (dest_rows), dict);
+  set_dest_model (GTK_TREE_VIEW (dest_cols), dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (row_selector),
 				 source,
@@ -443,7 +445,7 @@ crosstabs_dialog (GObject *o, gpointer data)
 
   cd.row_vars = GTK_TREE_VIEW (dest_rows);
   cd.col_vars = GTK_TREE_VIEW (dest_cols);
-  cd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &cd.dict, NULL);
   cd.format_dialog = get_widget_assert (xml, "format-dialog");
   cd.table_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "print-tables"));
   cd.pivot_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "pivot"));

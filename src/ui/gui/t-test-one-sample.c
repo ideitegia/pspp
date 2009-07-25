@@ -141,7 +141,7 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  tt_d.dict = vs->dict;
+  g_object_get (vs, "dictionary", &tt_d.dict, NULL);
   tt_d.vars_treeview = get_widget_assert (xml, "one-sample-t-test-treeview1");
   tt_d.test_value_entry = get_widget_assert (xml, "test-value-entry");
   tt_d.opt = tt_options_dialog_create (xml, GTK_WINDOW (de));
@@ -149,11 +149,11 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_set (dict_view, "dictionary",
-				 vs->dict,
-	"predicate",
-				 var_is_numeric, NULL);
+		tt_d.dict,
+		"predicate",
+		var_is_numeric, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (tt_d.vars_treeview), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (tt_d.vars_treeview), tt_d.dict);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),

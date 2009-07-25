@@ -219,7 +219,8 @@ find_dialog (GObject *o, gpointer data)
 		"data-store", &ds,
 		NULL);
 
-  fd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &fd.dict, NULL);
+
   fd.data = ds->datasheet;
 
   fd.variable_entry        = get_widget_assert (fd.xml, "find-variable-entry");

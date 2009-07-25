@@ -41,16 +41,54 @@
 
 #include "var-display.h"
 
+static void
+var_change_callback (GtkWidget *w, gint n, gpointer data)
+{
+  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
+
+  psppire_sheet_model_range_changed (model,
+				 n, 0, n, PSPPIRE_VAR_STORE_n_COLS);
+}
+
+
+static void
+var_delete_callback (GtkWidget *w, gint dict_idx, gint case_idx, gint val_cnt, gpointer data)
+{
+  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
+
+  psppire_sheet_model_rows_deleted (model, dict_idx, 1);
+}
+
+
+
+static void
+var_insert_callback (GtkWidget *w, glong row, gpointer data)
+{
+  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
+
+  psppire_sheet_model_rows_inserted (model, row, 1);
+}
+
+static void
+refresh (PsppireDict  *d, gpointer data)
+{
+  PsppireVarStore *vs = data;
+
+  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (vs), -1, -1, -1, -1);
+}
+
 enum
   {
     PROP_0,
-    PSPPIRE_VAR_STORE_FORMAT_TYPE
+    PSPPIRE_VAR_STORE_FORMAT_TYPE,
+    PSPPIRE_VAR_STORE_DICT
   };
 
 static void         psppire_var_store_init            (PsppireVarStore      *var_store);
 static void         psppire_var_store_class_init      (PsppireVarStoreClass *class);
 static void         psppire_var_store_sheet_model_init (PsppireSheetModelIface *iface);
 static void         psppire_var_store_finalize        (GObject           *object);
+static void         psppire_var_store_dispose        (GObject           *object);
 
 
 static gchar *psppire_var_store_get_string (const PsppireSheetModel *sheet_model, glong row, glong column);
@@ -145,6 +183,27 @@ psppire_var_store_set_property (GObject      *object,
       self->format_type = g_value_get_enum (value);
       break;
 
+    case PSPPIRE_VAR_STORE_DICT:
+      if ( self->dictionary)
+	g_object_unref (self->dictionary);
+      self->dictionary = g_value_dup_object (value);
+      g_signal_connect (self->dictionary, "variable-changed", G_CALLBACK (var_change_callback),
+			self);
+
+      g_signal_connect (self->dictionary, "variable-deleted", G_CALLBACK (var_delete_callback),
+			self);
+
+      g_signal_connect (self->dictionary, "variable-inserted",
+			G_CALLBACK (var_insert_callback), self);
+
+      g_signal_connect (self->dictionary, "backend-changed", G_CALLBACK (refresh),
+			self);
+
+      /* The entire model has changed */
+      psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (self), -1, -1, -1, -1);
+
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
       break;
@@ -165,8 +224,12 @@ psppire_var_store_get_property (GObject      *object,
       g_value_set_enum (value, self->format_type);
       break;
 
+    case PSPPIRE_VAR_STORE_DICT:
+      g_value_take_object (value, self->dictionary);
+      break;
+
     default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
       break;
     }
 }
@@ -176,16 +239,18 @@ static void
 psppire_var_store_class_init (PsppireVarStoreClass *class)
 {
   GObjectClass *object_class;
-  GParamSpec *pspec;
+  GParamSpec *format_pspec;
+  GParamSpec *dict_pspec;
 
   parent_class = g_type_class_peek_parent (class);
   object_class = (GObjectClass*) class;
 
   object_class->finalize = psppire_var_store_finalize;
+  object_class->dispose = psppire_var_store_dispose;
   object_class->set_property = psppire_var_store_set_property;
   object_class->get_property = psppire_var_store_get_property;
 
-  pspec = g_param_spec_enum ("format-type",
+  format_pspec = g_param_spec_enum ("format-type",
                              "Variable format type",
                              ("Whether variables have input or output "
                               "formats"),
@@ -195,7 +260,17 @@ psppire_var_store_class_init (PsppireVarStoreClass *class)
 
   g_object_class_install_property (object_class,
                                    PSPPIRE_VAR_STORE_FORMAT_TYPE,
-                                   pspec);
+                                   format_pspec);
+
+  dict_pspec = g_param_spec_object ("dictionary",
+				    "Dictionary",
+				    "The PsppireDict represented by this var store",
+				    PSPPIRE_TYPE_DICT,
+				    G_PARAM_READWRITE | G_PARAM_CONSTRUCT);
+				    
+  g_object_class_install_property (object_class,
+                                   PSPPIRE_VAR_STORE_DICT,
+                                   dict_pspec);
 }
 
 #define DISABLED_COLOR "gray"
@@ -206,7 +281,7 @@ psppire_var_store_init (PsppireVarStore *var_store)
   if ( ! gdk_color_parse (DISABLED_COLOR, &var_store->disabled))
 	g_critical ("Could not parse color \"%s\"", DISABLED_COLOR);
 
-  var_store->dict = 0;
+  var_store->dictionary = NULL;
   var_store->format_type = PSPPIRE_VAR_STORE_OUTPUT_FORMATS;
 }
 
@@ -254,7 +329,7 @@ psppire_var_store_item_editable (PsppireVarStore *var_store, glong row, glong co
 struct variable *
 psppire_var_store_get_var (PsppireVarStore *store, glong row)
 {
-  return psppire_dict_get_variable (store->dict, row);
+  return psppire_dict_get_variable (store->dictionary, row);
 }
 
 static gboolean
@@ -315,49 +390,14 @@ psppire_var_store_new (PsppireDict *dict)
 {
   PsppireVarStore *retval;
 
-  retval = g_object_new (GTK_TYPE_VAR_STORE, NULL);
+  retval = g_object_new (GTK_TYPE_VAR_STORE, "dictionary", dict, NULL);
 
-  psppire_var_store_set_dictionary (retval, dict);
+  //  psppire_var_store_set_dictionary (retval, dict);
 
   return retval;
 }
 
-static void
-var_change_callback (GtkWidget *w, gint n, gpointer data)
-{
-  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
-
-  psppire_sheet_model_range_changed (model,
-				 n, 0, n, PSPPIRE_VAR_STORE_n_COLS);
-}
-
-
-static void
-var_delete_callback (GtkWidget *w, gint dict_idx, gint case_idx, gint val_cnt, gpointer data)
-{
-  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
-
-  psppire_sheet_model_rows_deleted (model, dict_idx, 1);
-}
-
-
-
-static void
-var_insert_callback (GtkWidget *w, glong row, gpointer data)
-{
-  PsppireSheetModel *model = PSPPIRE_SHEET_MODEL (data);
-
-  psppire_sheet_model_rows_inserted (model, row, 1);
-}
-
-static void
-refresh (PsppireDict  *d, gpointer data)
-{
-  PsppireVarStore *vs = data;
-
-  psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (vs), -1, -1, -1, -1);
-}
-
+#if 0
 /**
  * psppire_var_store_replace_set_dictionary:
  * @var_store: The variable store
@@ -388,6 +428,7 @@ psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict)
   /* The entire model has changed */
   psppire_sheet_model_range_changed (PSPPIRE_SHEET_MODEL (var_store), -1, -1, -1, -1);
 }
+#endif
 
 static void
 psppire_var_store_finalize (GObject *object)
@@ -395,6 +436,19 @@ psppire_var_store_finalize (GObject *object)
   /* must chain up */
   (* parent_class->finalize) (object);
 }
+
+static void
+psppire_var_store_dispose (GObject *object)
+{
+  PsppireVarStore *self = PSPPIRE_VAR_STORE (object);
+
+  if (self->dictionary)
+    g_object_unref (self->dictionary);
+
+  /* must chain up */
+  (* parent_class->finalize) (object);
+}
+
 
 static gchar *
 psppire_var_store_get_string (const PsppireSheetModel *model,
@@ -404,10 +458,10 @@ psppire_var_store_get_string (const PsppireSheetModel *model,
 
   struct variable *pv;
 
-  if ( row >= psppire_dict_get_var_cnt (store->dict))
+  if ( row >= psppire_dict_get_var_cnt (store->dictionary))
     return 0;
 
-  pv = psppire_dict_get_variable (store->dict, row);
+  pv = psppire_dict_get_variable (store->dictionary, row);
 
   return text_for_column (store, pv, column, 0);
 }
@@ -424,7 +478,7 @@ psppire_var_store_clear (PsppireSheetModel *model,  glong row, glong col)
 
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE (model);
 
-  if ( row >= psppire_dict_get_var_cnt (var_store->dict))
+  if ( row >= psppire_dict_get_var_cnt (var_store->dictionary))
       return FALSE;
 
   pv = psppire_var_store_get_var (var_store, row);
@@ -455,7 +509,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
 
   PsppireVarStore *var_store = PSPPIRE_VAR_STORE (model);
 
-  if ( row >= psppire_dict_get_var_cnt (var_store->dict))
+  if ( row >= psppire_dict_get_var_cnt (var_store->dictionary))
       return FALSE;
 
   pv = psppire_var_store_get_var (var_store, row);
@@ -468,7 +522,7 @@ psppire_var_store_set_string (PsppireSheetModel *model,
     case PSPPIRE_VAR_STORE_COL_NAME:
       {
 	gboolean ok;
-	ok =  psppire_dict_rename_var (var_store->dict, pv, text);
+	ok =  psppire_dict_rename_var (var_store->dictionary, pv, text);
 	return ok;
       }
     case PSPPIRE_VAR_STORE_COL_COLUMNS:
@@ -561,7 +615,7 @@ static  gchar *
 text_for_column (PsppireVarStore *vs,
 		 const struct variable *pv, gint c, GError **err)
 {
-  PsppireDict *dict = vs->dict;
+  PsppireDict *dict = vs->dictionary;
   static const gchar *const type_label[] =
     {
       N_("Numeric"),
@@ -726,7 +780,7 @@ text_for_column (PsppireVarStore *vs,
 gint
 psppire_var_store_get_var_cnt (PsppireVarStore  *store)
 {
-  return psppire_dict_get_var_cnt (store->dict);
+  return psppire_dict_get_var_cnt (store->dictionary);
 }
 
 
@@ -736,8 +790,8 @@ psppire_var_store_get_row_count (const PsppireSheetModel * model)
   gint rows = 0;
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (model);
 
-  if (vs->dict)
-    rows =  psppire_dict_get_var_cnt (vs->dict);
+  if (vs->dictionary)
+    rows =  psppire_dict_get_var_cnt (vs->dictionary);
 
   return rows ;
 }
@@ -758,10 +812,10 @@ get_row_sensitivity (const PsppireSheetModel *model, gint row)
 {
   PsppireVarStore *vs = PSPPIRE_VAR_STORE (model);
 
-  if ( ! vs->dict)
+  if ( ! vs->dictionary)
     return FALSE;
 
-  return  row < psppire_dict_get_var_cnt (vs->dict);
+  return  row < psppire_dict_get_var_cnt (vs->dictionary);
 }
 
 

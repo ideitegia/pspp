@@ -253,10 +253,11 @@ regression_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "dictionary", vs->dict, NULL);
+  g_object_get (vs, "dictionary", &rd.dict, NULL);
+  g_object_set (source, "dictionary", rd.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (dest_dep), vs->dict);
-  set_dest_model (GTK_TREE_VIEW (dest_indep), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (dest_dep), rd.dict);
+  set_dest_model (GTK_TREE_VIEW (dest_indep), rd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (dep_selector),
 				 source,
@@ -274,7 +275,8 @@ regression_dialog (GObject *o, gpointer data)
 
   rd.dep_vars = GTK_TREE_VIEW (dest_dep);
   rd.indep_vars = GTK_TREE_VIEW (dest_indep);
-  rd.dict = vs->dict;
+
+
   rd.save_dialog = get_widget_assert (xml, "save-dialog");
   rd.pred_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "pred-button"));
   rd.resid_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "resid-button"));

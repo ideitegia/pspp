@@ -186,19 +186,16 @@ split_file_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  sfd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &sfd.dict, NULL);
   sfd.tv = GTK_TREE_VIEW (dest);
   sfd.selector  = PSPPIRE_SELECTOR (
 				    get_widget_assert   (sfd.xml, "split-file-selector"));
 
-  g_object_set (source, "dictionary",
-				 vs->dict, NULL);
-
+  g_object_set (source, "dictionary", sfd.dict, NULL);
 
   g_signal_connect (on_off, "toggled", G_CALLBACK(on_off_toggled),  sfd.xml);
 
-
-  set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (dest), sfd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 source,

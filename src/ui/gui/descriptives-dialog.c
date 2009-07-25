@@ -218,16 +218,18 @@ descriptives_dialog (GObject *o, gpointer data)
   GtkWidget *stats_treeview = get_widget_assert    (xml, "statistics");
 
   PsppireVarStore *vs = NULL;
+  PsppireDict *dict;
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
+  g_object_get (vs, "dictionary", &dict, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "dictionary", vs->dict,
+
+  g_object_set (source, "dictionary", dict,
 	"predicate", var_is_numeric, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
-
+  set_dest_model (GTK_TREE_VIEW (dest), dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 source,
@@ -242,7 +244,9 @@ descriptives_dialog (GObject *o, gpointer data)
 
   scd.stat_vars = GTK_TREE_VIEW (dest);
   scd.stats = gtk_tree_view_get_model (GTK_TREE_VIEW (stats_treeview));
-  scd.dict = vs->dict;
+  
+  g_object_get (vs, "dictionary", &scd.dict, NULL);
+  
   scd.include_user_missing =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "include_user_missing"));
   scd.exclude_missing_listwise =

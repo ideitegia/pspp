@@ -260,10 +260,10 @@ traverse_cell_callback (PsppireSheet *sheet,
 
       const gchar *name = gtk_entry_get_text (entry);
 
-      if (! psppire_dict_check_name (var_store->dict, name, TRUE))
+      if (! psppire_dict_check_name (var_store->dictionary, name, TRUE))
 	return TRUE;
 
-      psppire_dict_insert_variable (var_store->dict, existing_cell->row, name);
+      psppire_dict_insert_variable (var_store->dictionary, existing_cell->row, name);
 
       return FALSE;
     }
@@ -278,7 +278,7 @@ traverse_cell_callback (PsppireSheet *sheet,
     {
       gint i;
       for ( i = n_vars ; i <= new_cell->row; ++i )
-	psppire_dict_insert_variable (var_store->dict, i, NULL);
+	psppire_dict_insert_variable (var_store->dictionary, i, NULL);
     }
 
   return FALSE;
@@ -384,7 +384,7 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	vs->missing_val_dialog->pv =
 	  psppire_var_store_get_var (var_store, row);
 
-	vs->missing_val_dialog->dict = var_store->dict;
+	vs->missing_val_dialog->dict = var_store->dictionary;
 
 	g_signal_connect_swapped (customEntry,
 				  "clicked",

@@ -238,7 +238,7 @@ rank_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  rd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &rd.dict, NULL);
   rd.rank_vars =   get_widget_assert (builder, "variables-treeview");
   rd.group_vars =  get_widget_assert (builder, "group-vars-treeview");
   rd.dialog = get_widget_assert   (builder, "rank-dialog");
@@ -306,9 +306,9 @@ rank_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
-  g_object_set (vars, "dictionary", vs->dict, NULL);
+  g_object_set (vars, "dictionary", rd.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (rd.rank_vars), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (rd.rank_vars), rd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
 				 vars,
@@ -317,7 +317,7 @@ rank_dialog (GObject *o, gpointer data)
 				 NULL,
 				 NULL);
 
-  set_dest_model (GTK_TREE_VIEW (rd.group_vars), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (rd.group_vars), rd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
 				 vars,

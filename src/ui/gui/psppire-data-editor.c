@@ -1203,9 +1203,13 @@ popup_variable_row_menu (PsppireSheet *sheet, gint row,
 
   PsppireVarStore *var_store =
     PSPPIRE_VAR_STORE (psppire_sheet_get_model (sheet));
+  
+  PsppireDict *dict;
+  const struct variable *v ;
 
-  const struct variable *v =
-    psppire_dict_get_variable (var_store->dict, row);
+  g_object_get (var_store, "dictionary", &dict, NULL);
+
+  v = psppire_dict_get_variable (dict, row);
 
   if ( v && event->button == 3)
     {
@@ -1357,6 +1361,7 @@ psppire_data_editor_delete_cases    (PsppireDataEditor *de)
 void
 psppire_data_editor_delete_variables (PsppireDataEditor *de)
 {
+  PsppireDict *dict = NULL;
   gint first, n;
 
   switch (gtk_notebook_get_current_page (GTK_NOTEBOOK (de)))
@@ -1374,7 +1379,9 @@ psppire_data_editor_delete_variables (PsppireDataEditor *de)
       break;
     }
 
-  psppire_dict_delete_variables (de->var_store->dict, first, n);
+  g_object_get (de->var_store, "dictionary", &dict, NULL);
+
+  psppire_dict_delete_variables (dict, first, n);
 
   psppire_sheet_unselect_range (PSPPIRE_SHEET (de->data_sheet[0]));
   psppire_sheet_unselect_range (PSPPIRE_SHEET (de->var_sheet));

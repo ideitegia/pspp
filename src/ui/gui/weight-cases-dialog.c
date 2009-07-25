@@ -120,6 +120,7 @@ weight_cases_dialog (GObject *o, gpointer data)
   PsppireVarStore *vs = NULL;
 
   g_object_get (de->data_editor, "var-store", &vs,  NULL);
+  g_object_get (vs, "dictionary", &wcd.dict, NULL);
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
@@ -130,7 +131,8 @@ weight_cases_dialog (GObject *o, gpointer data)
   g_signal_connect (selector, "de-selected", G_CALLBACK (on_deselect),
 		    radiobutton1);
 
-  g_object_set (source, "dictionary", vs->dict,
+  
+  g_object_set (source, "dictionary", wcd.dict,
 				 "selection-mode", GTK_SELECTION_SINGLE,
 				 "predicate", var_is_numeric,
 				 NULL);
@@ -144,7 +146,7 @@ weight_cases_dialog (GObject *o, gpointer data)
 				 );
 
 
-  wcd.dict = vs->dict;
+
   wcd.entry = GTK_ENTRY (entry);
   wcd.status = GTK_LABEL (status);
   wcd.off = GTK_TOGGLE_BUTTON (radiobutton1);

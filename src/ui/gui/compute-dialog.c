@@ -389,7 +389,7 @@ compute_dialog (GObject *o, gpointer data)
 
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
-  scd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &scd.dict, NULL);
   scd.use_type = FALSE;
 
   g_signal_connect (expression, "toggled",
@@ -397,8 +397,8 @@ compute_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (dict_view,
-		"dictionary", vs->dict,
+  
+  g_object_set (dict_view, "dictionary", scd.dict,
 		"selection-mode", GTK_SELECTION_SINGLE,
 		NULL);
 

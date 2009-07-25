@@ -80,6 +80,7 @@ transpose_dialog (GObject *o, gpointer data)
 {
   gint response ;
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
+  PsppireDict *dict = NULL;
 
   GtkBuilder *xml = builder_new ("psppire.ui");
 
@@ -94,9 +95,10 @@ transpose_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  g_object_set (source, "dictionary", vs->dict, NULL);
+  g_object_get (vs, "dictionary", &dict, NULL);
+  g_object_set (source, "dictionary", dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (dest), dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
 				 source, dest,
@@ -125,7 +127,7 @@ transpose_dialog (GObject *o, gpointer data)
     {
     case GTK_RESPONSE_OK:
       {
-	gchar *syntax = generate_syntax (vs->dict, xml);
+	gchar *syntax = generate_syntax (dict, xml);
 
 	struct getl_interface *sss = create_syntax_string_source (syntax);
 	execute_syntax (sss);
@@ -135,7 +137,7 @@ transpose_dialog (GObject *o, gpointer data)
       break;
     case PSPPIRE_RESPONSE_PASTE:
       {
-	gchar *syntax = generate_syntax (vs->dict, xml);
+	gchar *syntax = generate_syntax (dict, xml);
         paste_syntax_in_new_window (syntax);
 
 	g_free (syntax);

@@ -164,16 +164,16 @@ oneway_anova_dialog (GObject *o, gpointer data)
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
-  ow.dict = vs->dict;
+  g_object_get (vs, "dictionary", &ow.dict, NULL);
 
   ow.dialog =
     GTK_WINDOW (get_widget_assert (builder, "oneway-anova-dialog"));
 
   gtk_window_set_transient_for (ow.dialog, GTK_WINDOW (de));
 
-  g_object_set (dict_view, "dictionary", vs->dict, NULL);
+  g_object_set (dict_view, "dictionary", ow.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (ow.vars_treeview), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (ow.vars_treeview), ow.dict);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),

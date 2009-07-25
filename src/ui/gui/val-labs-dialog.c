@@ -35,6 +35,7 @@ struct val_labs_dialog
   GtkWidget *window;
 
   PsppireVarStore *var_store;
+  PsppireDict *dict;
 
   /* The variable to be updated */
   struct variable *pv;
@@ -72,7 +73,7 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text,
-		 dialog->var_store->dict,
+		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -145,7 +146,7 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 
   union value v;
   text_to_value (text,
-		 dialog->var_store->dict,
+		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -273,7 +274,7 @@ on_change (GtkWidget *w, gpointer data)
   union value v;
 
   text_to_value (val_text,
-		 dialog->var_store->dict,
+		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -299,7 +300,7 @@ on_add (GtkWidget *w, gpointer data)
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   text_to_value (text,
-		 dialog->var_store->dict,
+		 dialog->dict,
 		 dialog->pv,
 		 &v);
 
@@ -351,7 +352,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
   gchar *text;
 
   get_selected_tuple (dialog, &value, &label);
-  text = value_to_text (value, dialog->var_store->dict, *var_get_write_format (dialog->pv));
+  text = value_to_text (value, dialog->dict, *var_get_write_format (dialog->pv));
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -391,6 +392,7 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
   dialog->var_store = var_store;
+  g_object_get (var_store, "dictionary", &dialog->dict, NULL);
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
@@ -503,7 +505,7 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       const struct val_lab *vl = labels[i];
 
       gchar *const vstr  =
-	value_to_text (vl->value, dialog->var_store->dict,
+	value_to_text (vl->value, dialog->dict,
 		      *var_get_write_format (dialog->pv));
 
       gchar *const text = g_strdup_printf ("%s = \"%s\"",
