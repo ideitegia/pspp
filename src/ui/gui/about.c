@@ -66,11 +66,13 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_about_dialog_set_copyright (GTK_ABOUT_DIALOG (about),
 				  "Free Software Foundation");
 
-
-  /* TRANSLATORS: Use this string to list the people who have helped with
-     translation to your language. */
-  gtk_about_dialog_set_translator_credits (GTK_ABOUT_DIALOG (about),
-					   _("translator-credits"));
+  gtk_about_dialog_set_translator_credits 
+    (
+     GTK_ABOUT_DIALOG (about),
+     /* TRANSLATORS: Use this string to list the people who have helped with
+	translation to your language. */
+     _("translator-credits")
+     );
 
   gtk_window_set_transient_for (GTK_WINDOW (about), parent);
 
