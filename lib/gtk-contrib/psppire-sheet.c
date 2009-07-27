@@ -3056,7 +3056,13 @@ psppire_sheet_button_press (GtkWidget *widget, GdkEventButton *event)
 	    }
 	  else
 	    {
+	      GdkRectangle area;
 	      sheet->select_status = PSPPIRE_SHEET_NORMAL;
+
+	      rectangle_from_range (sheet, &sheet->range, &area);
+	      area.x++;
+	      area.y++;
+	      gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);	  
 	    }
 	}
     }
