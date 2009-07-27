@@ -1153,8 +1153,6 @@ psppire_sheet_init (PsppireSheet *sheet)
 
   sheet->active_cell.row = 0;
   sheet->active_cell.col = 0;
-  sheet->selection_cell.row = 0;
-  sheet->selection_cell.col = 0;
 
   sheet->range.row0 = 0;
   sheet->range.rowi = 0;
@@ -2652,8 +2650,6 @@ change_active_cell (PsppireSheet *sheet, gint row, gint col)
 
   sheet->active_cell.row = row;
   sheet->active_cell.col = col;
-  sheet->selection_cell.row = row;
-  sheet->selection_cell.col = col;
 
   PSPPIRE_SHEET_UNSET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
 
@@ -2835,8 +2831,6 @@ psppire_sheet_select_range (PsppireSheet *sheet, const PsppireSheetRange *range)
   sheet->range.rowi = range->rowi;
   sheet->range.col0 = range->col0;
   sheet->range.coli = range->coli;
-  sheet->selection_cell.row = range->rowi;
-  sheet->selection_cell.col = range->coli;
 
   sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
   psppire_sheet_real_select_range (sheet, NULL);
@@ -3180,8 +3174,6 @@ psppire_sheet_click_cell (PsppireSheet *sheet, gint row, gint column)
       change_active_cell (sheet, row, column);
     }
 
-  sheet->selection_cell.row = row;
-  sheet->selection_cell.col = column;
   sheet->range.row0 = row;
   sheet->range.col0 = column;
   sheet->range.rowi = row;
@@ -3248,10 +3240,6 @@ psppire_sheet_button_release (GtkWidget *widget,
 
       psppire_sheet_real_unselect_range (sheet, NULL);
 
-      sheet->selection_cell.row = sheet->selection_cell.row +
-	(sheet->drag_range.row0 - sheet->range.row0);
-      sheet->selection_cell.col = sheet->selection_cell.col +
-	(sheet->drag_range.col0 - sheet->range.col0);
       old_range = sheet->range;
       sheet->range = sheet->drag_range;
       sheet->drag_range = old_range;
@@ -3269,19 +3257,13 @@ psppire_sheet_button_release (GtkWidget *widget,
 
       psppire_sheet_real_unselect_range (sheet, NULL);
 
-      if (sheet->drag_range.row0 < sheet->range.row0)
-	sheet->selection_cell.row = sheet->drag_range.row0;
-      if (sheet->drag_range.rowi >= sheet->range.rowi)
-	sheet->selection_cell.row = sheet->drag_range.rowi;
-      if (sheet->drag_range.col0 < sheet->range.col0)
-	sheet->selection_cell.col = sheet->drag_range.col0;
-      if (sheet->drag_range.coli >= sheet->range.coli)
-	sheet->selection_cell.col = sheet->drag_range.coli;
       old_range = sheet->range;
       sheet->range = sheet->drag_range;
       sheet->drag_range = old_range;
 
-      if (sheet->select_status == GTK_STATE_NORMAL) sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
+      if (sheet->select_status == GTK_STATE_NORMAL) 
+	sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
+
       g_signal_emit (sheet, sheet_signals[RESIZE_RANGE], 0,
 		     &sheet->drag_range, &sheet->range);
       psppire_sheet_select_range (sheet, &sheet->range);

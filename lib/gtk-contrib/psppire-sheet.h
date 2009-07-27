@@ -127,9 +127,6 @@ struct _PsppireSheet
   /* The type of entry_widget */
   GtkType entry_type;
 
-  /* expanding selection */
-  PsppireSheetCell selection_cell;
-
   /* global selection button */
   GtkWidget *button;
 
