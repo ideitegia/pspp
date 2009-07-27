@@ -1,24 +1,24 @@
 /*
-   Copyright (C) 2006, 2008, 2009 Free Software Foundation
+  Copyright (C) 2006, 2008, 2009 Free Software Foundation
 
-   This program is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
- This file is derived from the gtksheet.c and extensively modified for the
- requirements of PSPPIRE.  The changes are copyright by the
- Free Software Foundation.  The copyright notice for the original work is
- below.
+  This file is derived from the gtksheet.c and extensively modified for the
+  requirements of PSPPIRE.  The changes are copyright by the
+  Free Software Foundation.  The copyright notice for the original work is
+  below.
 */
 
 /* GtkSheet widget for Gtk+.
@@ -456,33 +456,33 @@ static void psppire_sheet_unrealize 		 (GtkWidget *widget);
 static void psppire_sheet_map 			 (GtkWidget *widget);
 static void psppire_sheet_unmap 			 (GtkWidget *widget);
 static gint psppire_sheet_expose 			 (GtkWidget *widget,
-						  GdkEventExpose *event);
+							  GdkEventExpose *event);
 
 static void psppire_sheet_forall 			 (GtkContainer *container,
-						  gboolean include_internals,
-						  GtkCallback callback,
-						  gpointer callback_data);
+							  gboolean include_internals,
+							  GtkCallback callback,
+							  gpointer callback_data);
 
 static gboolean psppire_sheet_set_scroll_adjustments  (PsppireSheet *sheet,
-						  GtkAdjustment *hadjustment,
-						  GtkAdjustment *vadjustment);
+						       GtkAdjustment *hadjustment,
+						       GtkAdjustment *vadjustment);
 
 static gint psppire_sheet_button_press 		 (GtkWidget *widget,
 						  GdkEventButton *event);
 static gint psppire_sheet_button_release 		 (GtkWidget *widget,
-						  GdkEventButton *event);
+							  GdkEventButton *event);
 static gint psppire_sheet_motion 			 (GtkWidget *widget,
-						  GdkEventMotion *event);
+							  GdkEventMotion *event);
 static gboolean psppire_sheet_crossing_notify           (GtkWidget *widget,
-						     GdkEventCrossing *event);
+							 GdkEventCrossing *event);
 static gint psppire_sheet_entry_key_press		 (GtkWidget *widget,
-						  GdkEventKey *key);
+							  GdkEventKey *key);
 static gboolean psppire_sheet_key_press		 (GtkWidget *widget,
 						  GdkEventKey *key);
 static void psppire_sheet_size_request 		 (GtkWidget *widget,
 						  GtkRequisition *requisition);
 static void psppire_sheet_size_allocate 		 (GtkWidget *widget,
-						  GtkAllocation *allocation);
+							  GtkAllocation *allocation);
 
 static gboolean psppire_sheet_focus_in               (GtkWidget     *widget,
 						      GdkEventFocus *event);
@@ -490,9 +490,9 @@ static gboolean psppire_sheet_focus_in               (GtkWidget     *widget,
 /* Sheet queries */
 
 static gboolean psppire_sheet_range_isvisible (const PsppireSheet *sheet,
-					   const PsppireSheetRange *range);
+					       const PsppireSheetRange *range);
 static gboolean psppire_sheet_cell_isvisible  (PsppireSheet *sheet,
-					   gint row, gint column);
+					       gint row, gint column);
 /* Drawing Routines */
 
 /* draw cell */
@@ -519,8 +519,8 @@ static void change_active_cell  (PsppireSheet *sheet, gint row, gint col);
 static gboolean psppire_sheet_draw_active_cell	 (PsppireSheet *sheet);
 static void psppire_sheet_show_entry_widget		 (PsppireSheet *sheet);
 static gboolean psppire_sheet_click_cell		 (PsppireSheet *sheet,
-						  gint row,
-						  gint column);
+							  gint row,
+							  gint column);
 
 
 /* Scrollbars */
@@ -559,8 +559,8 @@ static void psppire_sheet_button_size_request	 (PsppireSheet *sheet,
 						  GtkRequisition *requisition);
 
 static void psppire_sheet_real_cell_clear 		 (PsppireSheet *sheet,
-						  gint row,
-						  gint column);
+							  gint row,
+							  gint column);
 
 
 /* Signals */
@@ -761,9 +761,9 @@ static const GtkBorder default_cell_padding = {3, 3, 3, 3};
 
 static void
 psppire_sheet_set_property (GObject         *object,
-			guint            prop_id,
-			const GValue    *value,
-			GParamSpec      *pspec)
+			    guint            prop_id,
+			    const GValue    *value,
+			    GParamSpec      *pspec)
 
 {
   PsppireSheet *sheet = PSPPIRE_SHEET (object);
@@ -776,19 +776,19 @@ psppire_sheet_set_property (GObject         *object,
 
       sheet->cell_padding = g_value_dup_boxed (value);
 
-     if (NULL == sheet->cell_padding)
-       sheet->cell_padding = g_boxed_copy (GTK_TYPE_BORDER,
-					   &default_cell_padding);
+      if (NULL == sheet->cell_padding)
+	sheet->cell_padding = g_boxed_copy (GTK_TYPE_BORDER,
+					    &default_cell_padding);
 
-     if (sheet->vaxis)
-       g_object_set (sheet->vaxis, "padding",
-		     sheet->cell_padding->top + sheet->cell_padding->bottom,
-		     NULL);
+      if (sheet->vaxis)
+	g_object_set (sheet->vaxis, "padding",
+		      sheet->cell_padding->top + sheet->cell_padding->bottom,
+		      NULL);
 
-     if (sheet->haxis)
-       g_object_set (sheet->haxis, "padding",
-		     sheet->cell_padding->left + sheet->cell_padding->right,
-		     NULL);
+      if (sheet->haxis)
+	g_object_set (sheet->haxis, "padding",
+		      sheet->cell_padding->left + sheet->cell_padding->right,
+		      NULL);
       break;
     case PROP_VAXIS:
       psppire_sheet_set_vertical_axis (sheet, g_value_get_pointer (value));
@@ -813,9 +813,9 @@ psppire_sheet_set_property (GObject         *object,
 
 static void
 psppire_sheet_get_property (GObject         *object,
-			guint            prop_id,
-			GValue          *value,
-			GParamSpec      *pspec)
+			    guint            prop_id,
+			    GValue          *value,
+			    GParamSpec      *pspec)
 {
   PsppireSheet *sheet = PSPPIRE_SHEET (object);
 
@@ -1194,7 +1194,7 @@ psppire_sheet_init (PsppireSheet *sheet)
 
 /* Cause RANGE to be redrawn. If RANGE is null, then the
    entire visible range will be redrawn.
- */
+*/
 static void
 redraw_range (PsppireSheet *sheet, PsppireSheetRange *range)
 {
@@ -1317,7 +1317,7 @@ range_update_callback (PsppireSheetModel *m, gint row0, gint col0,
       adjust_scrollbars (sheet);
 
       draw_row_title_buttons_range (sheet, min_visible_row (sheet),
-				       max_visible_row (sheet));
+				    max_visible_row (sheet));
 
       draw_column_title_buttons_range (sheet, min_visible_column (sheet),
 				       max_visible_column (sheet));
@@ -1571,13 +1571,13 @@ psppire_sheet_hide_row_titles (PsppireSheet *sheet)
    be placed at the {bottom,right}.
    ROW or COL may be -1, in which case scrolling in that dimension
    does not occur.
- */
+*/
 void
 psppire_sheet_moveto (PsppireSheet *sheet,
-		  gint row,
-		  gint col,
-		  gfloat row_align,
-		  gfloat col_align)
+		      gint row,
+		      gint col,
+		      gfloat row_align,
+		      gfloat col_align)
 {
   gint width, height;
 
@@ -1662,7 +1662,7 @@ psppire_sheet_select_column (PsppireSheet *sheet, gint column)
 
 static gboolean
 psppire_sheet_range_isvisible (const PsppireSheet *sheet,
-			   const PsppireSheetRange *range)
+			       const PsppireSheetRange *range)
 {
   g_return_val_if_fail (sheet != NULL, FALSE);
 
@@ -1695,7 +1695,7 @@ psppire_sheet_range_isvisible (const PsppireSheet *sheet,
 
 static gboolean
 psppire_sheet_cell_isvisible (PsppireSheet *sheet,
-			  gint row, gint column)
+			      gint row, gint column)
 {
   PsppireSheetRange range;
 
@@ -1723,8 +1723,8 @@ psppire_sheet_get_visible_range (PsppireSheet *sheet, PsppireSheetRange *range)
 
 static gboolean
 psppire_sheet_set_scroll_adjustments (PsppireSheet *sheet,
-				  GtkAdjustment *hadjustment,
-				  GtkAdjustment *vadjustment)
+				      GtkAdjustment *hadjustment,
+				      GtkAdjustment *vadjustment)
 {
   if ( sheet->vadjustment != vadjustment )
     {
@@ -1828,7 +1828,7 @@ psppire_sheet_dispose  (GObject *object)
 
 static void
 psppire_sheet_style_set (GtkWidget *widget,
-		     GtkStyle *previous_style)
+			 GtkStyle *previous_style)
 {
   PsppireSheet *sheet;
 
@@ -1975,7 +1975,7 @@ psppire_sheet_realize (GtkWidget *widget)
   gtk_widget_set_parent (sheet->button, GTK_WIDGET (sheet));
 
   sheet->button->style = gtk_style_attach (sheet->button->style,
-                                          sheet->sheet_window);
+					   sheet->sheet_window);
 
 
   sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_PLUS);
@@ -2112,8 +2112,8 @@ psppire_sheet_map (GtkWidget *widget)
 
       redraw_range (sheet, NULL);
       change_active_cell (sheet,
-		     sheet->active_cell.row,
-		     sheet->active_cell.col);
+			  sheet->active_cell.row,
+			  sheet->active_cell.col);
     }
 }
 
@@ -2243,7 +2243,7 @@ psppire_sheet_cell_draw (PsppireSheet *sheet, gint row, gint col)
       break;
     default:
       g_critical ("Unhandled justification %d in column %d\n",
-		 attributes.justification, col);
+		  attributes.justification, col);
       break;
     }
 
@@ -2330,8 +2330,8 @@ safe_strcmp (const gchar *s1, const gchar *s2)
 
 static void
 psppire_sheet_set_cell (PsppireSheet *sheet, gint row, gint col,
-		    GtkJustification justification,
-		    const gchar *text)
+			GtkJustification justification,
+			const gchar *text)
 {
   PsppireSheetModel *model ;
   gchar *old_text ;
@@ -2459,10 +2459,10 @@ psppire_sheet_cell_get_state (PsppireSheet *sheet, gint row, gint col)
 */
 static gboolean
 psppire_sheet_get_pixel_info (PsppireSheet *sheet,
-			  gint x,
-			  gint y,
-			  gint *row,
-			  gint *column)
+			      gint x,
+			      gint y,
+			      gint *row,
+			      gint *column)
 {
   gint trow, tcol;
   *row = -G_MAXINT;
@@ -2520,9 +2520,9 @@ psppire_sheet_get_pixel_info (PsppireSheet *sheet,
 
 gboolean
 psppire_sheet_get_cell_area (PsppireSheet *sheet,
-			 gint row,
-			 gint column,
-			 GdkRectangle *area)
+			     gint row,
+			     gint column,
+			     GdkRectangle *area)
 {
   g_return_val_if_fail (sheet != NULL, 0);
   g_return_val_if_fail (PSPPIRE_IS_SHEET (sheet), 0);
@@ -2634,12 +2634,6 @@ change_active_cell (PsppireSheet *sheet, gint row, gint col)
        || col > psppire_axis_unit_count (sheet->haxis))
     return;
 
-  if (sheet->select_status != PSPPIRE_SHEET_NORMAL)
-    {
-      sheet->select_status = PSPPIRE_SHEET_NORMAL;
-      psppire_sheet_real_unselect_range (sheet, NULL);
-    }
-
   old_row = sheet->active_cell.row;
   old_col = sheet->active_cell.col;
 
@@ -2705,28 +2699,28 @@ psppire_sheet_show_entry_widget (PsppireSheet *sheet)
       
       dispose_string (sheet, text);
 
-	{
-	  switch (attributes.justification)
-	    {
-	    case GTK_JUSTIFY_RIGHT:
-	      gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 1.0);
-	      break;
-	    case GTK_JUSTIFY_CENTER:
-	      gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.5);
-	      break;
-	    case GTK_JUSTIFY_LEFT:
-	    default:
-	      gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.0);
-	      break;
-	    }
-	}
+      {
+	switch (attributes.justification)
+	  {
+	  case GTK_JUSTIFY_RIGHT:
+	    gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 1.0);
+	    break;
+	  case GTK_JUSTIFY_CENTER:
+	    gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.5);
+	    break;
+	  case GTK_JUSTIFY_LEFT:
+	  default:
+	    gtk_entry_set_alignment (GTK_ENTRY (sheet_entry), 0.0);
+	    break;
+	  }
+      }
     }
 
   psppire_sheet_size_allocate_entry (sheet);
 
   gtk_widget_set_sensitive (GTK_WIDGET (sheet_entry),
 			    psppire_sheet_model_is_editable (sheet->model,
-						       row, col));
+							     row, col));
   gtk_widget_map (sheet->entry_widget);
 }
 
@@ -2784,7 +2778,7 @@ psppire_sheet_draw_border (PsppireSheet *sheet, PsppireSheetRange new_range)
 
 static void
 psppire_sheet_real_select_range (PsppireSheet *sheet,
-			     const PsppireSheetRange *range)
+				 const PsppireSheetRange *range)
 {
   gint state;
 
@@ -2849,7 +2843,7 @@ psppire_sheet_unselect_range (PsppireSheet *sheet)
 
 static void
 psppire_sheet_real_unselect_range (PsppireSheet *sheet,
-			       const PsppireSheetRange *range)
+				   const PsppireSheetRange *range)
 {
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (GTK_WIDGET_REALIZED (GTK_WIDGET (sheet)));
@@ -2958,8 +2952,7 @@ psppire_sheet_expose (GtkWidget *widget, GdkEventExpose *event)
 
 
 static gboolean
-psppire_sheet_button_press (GtkWidget *widget,
-			GdkEventButton *event)
+psppire_sheet_button_press (GtkWidget *widget, GdkEventButton *event)
 {
   PsppireSheet *sheet;
   GdkModifierType mods;
@@ -3070,7 +3063,17 @@ psppire_sheet_button_press (GtkWidget *widget,
       gtk_grab_add (GTK_WIDGET (sheet));
 
       if (psppire_sheet_click_cell (sheet, row, column))
-	PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
+	{
+	  if ( sheet->select_status == PSPPIRE_SHEET_NORMAL)
+	    {
+	      sheet->range.row0 = row;
+	      sheet->range.col0 = column;
+	    }
+	  else
+	    {
+	      sheet->select_status = PSPPIRE_SHEET_NORMAL;
+	    }
+	}
     }
 
   if (event->window == sheet->column_title_window)
@@ -3164,22 +3167,8 @@ psppire_sheet_click_cell (PsppireSheet *sheet, gint row, gint column)
       return TRUE;
     }
 
-  if (sheet->select_status != PSPPIRE_SHEET_NORMAL)
-    {
-      sheet->select_status = PSPPIRE_SHEET_NORMAL;
-      psppire_sheet_real_unselect_range (sheet, NULL);
-    }
-  else
-    {
-      change_active_cell (sheet, row, column);
-    }
-
-  sheet->range.row0 = row;
-  sheet->range.col0 = column;
-  sheet->range.rowi = row;
-  sheet->range.coli = column;
-  sheet->select_status = PSPPIRE_SHEET_NORMAL;
-  PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
+  if (sheet->select_status == PSPPIRE_SHEET_NORMAL)
+    change_active_cell (sheet, row, column);
 
   gtk_widget_grab_focus (GTK_WIDGET (sheet->entry_widget));
 
@@ -3188,7 +3177,7 @@ psppire_sheet_click_cell (PsppireSheet *sheet, gint row, gint column)
 
 static gint
 psppire_sheet_button_release (GtkWidget *widget,
-			  GdkEventButton *event)
+			      GdkEventButton *event)
 {
   GdkDisplay *display = gtk_widget_get_display (widget);
 
@@ -3269,16 +3258,16 @@ psppire_sheet_button_release (GtkWidget *widget,
       psppire_sheet_select_range (sheet, &sheet->range);
     }
 
-  if (sheet->select_status == PSPPIRE_SHEET_NORMAL && PSPPIRE_SHEET_IN_SELECTION (sheet))
+  if (PSPPIRE_SHEET_IN_SELECTION (sheet))
     {
       PSPPIRE_SHEET_UNSET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
-      gdk_display_pointer_ungrab (display, event->time);
+      sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
+
       change_active_cell (sheet, sheet->active_cell.row,
-			       sheet->active_cell.col);
+			  sheet->active_cell.col);
     }
 
-  if (PSPPIRE_SHEET_IN_SELECTION)
-    gdk_display_pointer_ungrab (display, event->time);
+  gdk_display_pointer_ungrab (display, event->time);
   gtk_grab_remove (GTK_WIDGET (sheet));
 
   PSPPIRE_SHEET_UNSET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
@@ -3423,7 +3412,7 @@ motion_timeout_callback (gpointer data)
       if (sheet->column_title_under && column >= 0)
 	{
 	  gchar *text = psppire_sheet_model_get_column_subtitle (sheet->model,
-							   column);
+								 column);
 
 	  show_subtitle (sheet, -1, column, text);
 
@@ -3710,15 +3699,22 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
   if (sheet->select_status == PSPPIRE_SHEET_NORMAL && row == sheet->active_cell.row &&
       column == sheet->active_cell.col) return TRUE;
 
-  if (PSPPIRE_SHEET_IN_SELECTION (sheet) && mods&GDK_BUTTON1_MASK)
+  if ( mods & GDK_BUTTON1_MASK)
     {
-      GdkRectangle area;
-      sheet->range.rowi = row;
-      sheet->range.coli = column;
-      sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
+      if (PSPPIRE_SHEET_IN_SELECTION (sheet) )
+	{
+	  GdkRectangle area;
+	  sheet->range.rowi = row;
+	  sheet->range.coli = column;
+	  sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
 
-      rectangle_from_range (sheet, &sheet->range, &area);
-      gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);
+	  rectangle_from_range (sheet, &sheet->range, &area);
+	  gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);
+	}
+      else
+	{
+	  PSPPIRE_SHEET_SET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
+	}
     }
 
   return TRUE;
@@ -3726,7 +3722,7 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 
 static gboolean
 psppire_sheet_crossing_notify (GtkWidget *widget,
-			   GdkEventCrossing *event)
+			       GdkEventCrossing *event)
 {
   PsppireSheet *sheet = PSPPIRE_SHEET (widget);
 
@@ -3757,7 +3753,7 @@ psppire_sheet_focus_in (GtkWidget     *w,
 
 static gint
 psppire_sheet_entry_key_press (GtkWidget *widget,
-			   GdkEventKey *key)
+			       GdkEventKey *key)
 {
   gboolean focus;
   g_signal_emit_by_name (widget, "key_press_event", key, &focus);
@@ -3778,7 +3774,7 @@ page_vertical (PsppireSheet *sheet, GtkScrollType dir)
   gint new_row;
 
   vpixel -= psppire_axis_start_pixel (sheet->vaxis,
-				     min_visible_row (sheet));
+				      min_visible_row (sheet));
 
   switch ( dir)
     {
@@ -3800,12 +3796,12 @@ page_vertical (PsppireSheet *sheet, GtkScrollType dir)
 
 
   vpixel += psppire_axis_start_pixel (sheet->vaxis,
-				     min_visible_row (sheet));
+				      min_visible_row (sheet));
 
   new_row =  row_from_ypixel (sheet, vpixel);
 
   change_active_cell (sheet, new_row,
-			   sheet->active_cell.col);
+		      sheet->active_cell.col);
 }
 
 
@@ -3882,7 +3878,7 @@ step_sheet (PsppireSheet *sheet, GtkScrollType dir)
     {
       glong hpos  =
 	psppire_axis_start_pixel (sheet->haxis,
-				    new_cell.col + 1);
+				  new_cell.col + 1);
       hpos -= sheet->hadjustment->page_size;
 
       gtk_adjustment_set_value (sheet->hadjustment,
@@ -3892,7 +3888,7 @@ step_sheet (PsppireSheet *sheet, GtkScrollType dir)
     {
       glong hpos  =
 	psppire_axis_start_pixel (sheet->haxis,
-				    new_cell.col);
+				  new_cell.col);
 
       gtk_adjustment_set_value (sheet->hadjustment,
 				hpos);
@@ -3903,7 +3899,7 @@ step_sheet (PsppireSheet *sheet, GtkScrollType dir)
     {
       glong vpos  =
 	psppire_axis_start_pixel (sheet->vaxis,
-				    new_cell.row + 1);
+				  new_cell.row + 1);
       vpos -= sheet->vadjustment->page_size;
 
       gtk_adjustment_set_value (sheet->vadjustment,
@@ -3913,7 +3909,7 @@ step_sheet (PsppireSheet *sheet, GtkScrollType dir)
     {
       glong vpos  =
 	psppire_axis_start_pixel (sheet->vaxis,
-				    new_cell.row);
+				  new_cell.row);
 
       gtk_adjustment_set_value (sheet->vadjustment,
 				vpos);
@@ -3925,7 +3921,7 @@ step_sheet (PsppireSheet *sheet, GtkScrollType dir)
 
 static gboolean
 psppire_sheet_key_press (GtkWidget *widget,
-		     GdkEventKey *key)
+			 GdkEventKey *key)
 {
   PsppireSheet *sheet = PSPPIRE_SHEET (widget);
 
@@ -3965,7 +3961,7 @@ psppire_sheet_key_press (GtkWidget *widget,
 				sheet->vadjustment->lower);
 
       change_active_cell (sheet,  0,
-			       sheet->active_cell.col);
+			  sheet->active_cell.col);
 
       break;
 
@@ -3994,7 +3990,7 @@ psppire_sheet_key_press (GtkWidget *widget,
 
 static void
 psppire_sheet_size_request (GtkWidget *widget,
-			GtkRequisition *requisition)
+			    GtkRequisition *requisition)
 {
   PsppireSheet *sheet;
 
@@ -4019,7 +4015,7 @@ psppire_sheet_size_request (GtkWidget *widget,
 
 static void
 psppire_sheet_size_allocate (GtkWidget *widget,
-			 GtkAllocation *allocation)
+			     GtkAllocation *allocation)
 {
   PsppireSheet *sheet;
   GtkAllocation sheet_allocation;
@@ -4211,8 +4207,8 @@ psppire_sheet_size_allocate_entry (PsppireSheet *sheet)
   sheet_entry = psppire_sheet_get_entry (sheet);
 
   if ( ! psppire_sheet_get_attributes (sheet, sheet->active_cell.row,
-				   sheet->active_cell.col,
-				   &attributes) )
+				       sheet->active_cell.col,
+				       &attributes) )
     return ;
 
   if ( GTK_WIDGET_REALIZED (sheet->entry_widget) )
@@ -4333,8 +4329,8 @@ psppire_sheet_get_entry (PsppireSheet *sheet)
 
 static void
 draw_button (PsppireSheet *sheet, GdkWindow *window,
-		       PsppireSheetButton *button, gboolean is_sensitive,
-		       GdkRectangle allocation)
+	     PsppireSheetButton *button, gboolean is_sensitive,
+	     GdkRectangle allocation)
 {
   GtkShadowType shadow_type;
   gint text_width = 0, text_height = 0;
@@ -4887,7 +4883,7 @@ set_row_height (PsppireSheet *sheet,
 
 static gboolean
 psppire_sheet_get_attributes (const PsppireSheet *sheet, gint row, gint col,
-			  PsppireSheetCellAttr *attr)
+			      PsppireSheetCellAttr *attr)
 {
   GdkColor *fg, *bg;
   const GtkJustification *j ;
@@ -4935,8 +4931,8 @@ psppire_sheet_get_attributes (const PsppireSheet *sheet, gint row, gint col,
 
 static void
 psppire_sheet_button_size_request	 (PsppireSheet *sheet,
-				  const PsppireSheetButton *button,
-				  GtkRequisition *button_requisition)
+					  const PsppireSheetButton *button,
+					  GtkRequisition *button_requisition)
 {
   GtkRequisition requisition;
   GtkRequisition label_requisition;
@@ -4956,9 +4952,9 @@ psppire_sheet_button_size_request	 (PsppireSheet *sheet,
 
 static void
 psppire_sheet_forall (GtkContainer *container,
-		  gboolean include_internals,
-		  GtkCallback callback,
-		  gpointer callback_data)
+		      gboolean include_internals,
+		      GtkCallback callback,
+		      gpointer callback_data)
 {
   PsppireSheet *sheet = PSPPIRE_SHEET (container);
 
