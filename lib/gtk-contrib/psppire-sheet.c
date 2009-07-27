@@ -2898,7 +2898,8 @@ psppire_sheet_button_press (GtkWidget *widget, GdkEventButton *event)
 			   sheet_signals[DOUBLE_CLICK_COLUMN], 0, column);
 	}
     }
-  else if (event->window == sheet->row_title_window)
+  
+  if (event->window == sheet->row_title_window)
     {
       g_signal_emit (sheet,
 		     sheet_signals[BUTTON_EVENT_ROW], 0,
@@ -2969,18 +2970,16 @@ psppire_sheet_button_press (GtkWidget *widget, GdkEventButton *event)
 			NULL, NULL, event->time);
       gtk_grab_add (GTK_WIDGET (sheet));
 
-      if (psppire_sheet_click_cell (sheet, row, column))
+      if ( sheet->select_status == PSPPIRE_SHEET_NORMAL)
 	{
-	  if ( sheet->select_status == PSPPIRE_SHEET_NORMAL)
-	    {
-	      sheet->range.row0 = row;
-	      sheet->range.col0 = column;
-	    }
-	  else
-	    {
-	      psppire_sheet_unselect_range (sheet);
-	    }
+	  sheet->range.row0 = row;
+	  sheet->range.col0 = column;
 	}
+      else
+	{
+	  psppire_sheet_unselect_range (sheet);
+	}
+      psppire_sheet_click_cell (sheet, row, column);
     }
 
   if (event->window == sheet->column_title_window)
