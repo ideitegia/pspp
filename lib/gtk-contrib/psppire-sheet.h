@@ -112,8 +112,6 @@ struct _PsppireSheet
 
   PsppireSheetModel *model;
 
-  GtkSelectionMode selection_mode;
-
   /* Component colors */
   GdkColor color[n_COLORS];
   gboolean show_grid;

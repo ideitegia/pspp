@@ -1129,7 +1129,6 @@ psppire_sheet_init (PsppireSheet *sheet)
   sheet->vaxis = NULL;
 
   sheet->flags = 0;
-  sheet->selection_mode = GTK_SELECTION_NONE;
   sheet->select_status = PSPPIRE_SHEET_NORMAL;
 
   GTK_WIDGET_UNSET_FLAGS (sheet, GTK_NO_WINDOW);
@@ -3456,20 +3455,6 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
       sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_TOP_LEFT_ARROW);
       gdk_window_set_cursor (sheet->sheet_window, sheet->cursor_drag);
     }
-
-  new_cursor = GDK_SIZING;
-  if ( event->window == sheet->sheet_window &&
-       sheet->selection_mode != GTK_SELECTION_NONE &&
-       !PSPPIRE_SHEET_IN_DRAG (sheet) &&
-       (POSSIBLE_RESIZE (sheet, x, y, &row, &column) ||
-	PSPPIRE_SHEET_IN_RESIZE (sheet)) &&
-       new_cursor != sheet->cursor_drag->type)
-    {
-      gdk_cursor_unref (sheet->cursor_drag);
-      sheet->cursor_drag = gdk_cursor_new_for_display (display, GDK_SIZING);
-      gdk_window_set_cursor (sheet->sheet_window, sheet->cursor_drag);
-    }
-
 
   gdk_window_get_pointer (widget->window, &x, &y, &mods);
   if (! (mods & GDK_BUTTON1_MASK)) return FALSE;
