@@ -85,9 +85,7 @@ enum
        of making a selection - ie while the mouse button is
        depressed.
     */
-    PSPPIRE_SHEET_IN_SELECTION = 1 << 4,
-
-    PSPPIRE_SHEET_IN_RESIZE = 1 << 5
+    PSPPIRE_SHEET_IN_SELECTION = 1 << 4
   };
 
 #define PSPPIRE_SHEET_FLAGS(sheet) (PSPPIRE_SHEET (sheet)->flags)
@@ -98,7 +96,6 @@ enum
 #define PSPPIRE_SHEET_IN_YDRAG(sheet) (PSPPIRE_SHEET_FLAGS (sheet) & PSPPIRE_SHEET_IN_YDRAG)
 #define PSPPIRE_SHEET_IN_DRAG(sheet) (PSPPIRE_SHEET_FLAGS (sheet) & PSPPIRE_SHEET_IN_DRAG)
 #define PSPPIRE_SHEET_IN_SELECTION(sheet) (PSPPIRE_SHEET_FLAGS (sheet) & PSPPIRE_SHEET_IN_SELECTION)
-#define PSPPIRE_SHEET_IN_RESIZE(sheet) (PSPPIRE_SHEET_FLAGS (sheet) & PSPPIRE_SHEET_IN_RESIZE)
 
 #define CELL_SPACING 1
 
@@ -3130,27 +3127,6 @@ psppire_sheet_button_release (GtkWidget *widget,
       psppire_sheet_select_range (sheet, &sheet->range);
     }
 
-  if (PSPPIRE_SHEET_IN_RESIZE (sheet))
-    {
-      PsppireSheetRange old_range;
-      draw_xor_rectangle (sheet, sheet->drag_range);
-      PSPPIRE_SHEET_UNSET_FLAGS (sheet, PSPPIRE_SHEET_IN_RESIZE);
-      gdk_display_pointer_ungrab (display, event->time);
-
-      psppire_sheet_unselect_range (sheet);
-
-      old_range = sheet->range;
-      sheet->range = sheet->drag_range;
-      sheet->drag_range = old_range;
-
-      if (sheet->select_status == PSPPIRE_SHEET_NORMAL) 
-	sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
-
-      g_signal_emit (sheet, sheet_signals[RESIZE_RANGE], 0,
-		     &sheet->drag_range, &sheet->range);
-      psppire_sheet_select_range (sheet, &sheet->range);
-    }
-
   if (PSPPIRE_SHEET_IN_SELECTION (sheet))
     {
       PSPPIRE_SHEET_UNSET_FLAGS (sheet, PSPPIRE_SHEET_IN_SELECTION);
@@ -3423,7 +3399,6 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
        !POSSIBLE_DRAG (sheet, x, y, &row, &column) &&
        !PSPPIRE_SHEET_IN_DRAG (sheet) &&
        !POSSIBLE_RESIZE (sheet, x, y, &row, &column) &&
-       !PSPPIRE_SHEET_IN_RESIZE (sheet) &&
        new_cursor != sheet->cursor_drag->type)
     {
       gdk_cursor_unref (sheet->cursor_drag);
@@ -3433,8 +3408,7 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 
   new_cursor = GDK_TOP_LEFT_ARROW;
   if ( event->window == sheet->sheet_window &&
-       ! (POSSIBLE_RESIZE (sheet, x, y, &row, &column) ||
-	  PSPPIRE_SHEET_IN_RESIZE (sheet)) &&
+       ! (POSSIBLE_RESIZE (sheet, x, y, &row, &column) ) &&
        (POSSIBLE_DRAG (sheet, x, y, &row, &column) ||
 	PSPPIRE_SHEET_IN_DRAG (sheet)) &&
        new_cursor != sheet->cursor_drag->type)
@@ -3491,80 +3465,6 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
 	  sheet->drag_range.coli = sheet->range.coli + column;
 	  if (aux.row0 != sheet->drag_range.row0 ||
 	      aux.col0 != sheet->drag_range.col0)
-	    {
-	      draw_xor_rectangle (sheet, aux);
-	      draw_xor_rectangle (sheet, sheet->drag_range);
-	    }
-	}
-      return TRUE;
-    }
-
-  if (PSPPIRE_SHEET_IN_RESIZE (sheet))
-    {
-      PsppireSheetRange aux;
-      gint v_h, current_col, current_row, col_threshold, row_threshold;
-      v_h = 1;
-      if (abs (x - psppire_axis_start_pixel (sheet->haxis, sheet->drag_cell.col)) >
-	  abs (y - psppire_axis_start_pixel (sheet->vaxis, sheet->drag_cell.row))) v_h = 2;
-
-      current_col = column_from_xpixel (sheet, x);
-      current_row = row_from_ypixel (sheet, y);
-      column = current_col - sheet->drag_cell.col;
-      row = current_row - sheet->drag_cell.row;
-
-      /*use half of column width resp. row height as threshold to
-	expand selection*/
-      col_threshold = psppire_axis_start_pixel (sheet->haxis, current_col) +
-	psppire_axis_unit_size (sheet->haxis, current_col) / 2;
-      if (column > 0)
-	{
-	  if (x < col_threshold)
-	    column -= 1;
-	}
-      else if (column < 0)
-	{
-	  if (x > col_threshold)
-	    column +=1;
-	}
-      row_threshold = psppire_axis_start_pixel (sheet->vaxis, current_row) +
-	psppire_axis_unit_size (sheet->vaxis, current_row)/2;
-      if (row > 0)
-	{
-	  if (y < row_threshold)
-	    row -= 1;
-	}
-      else if (row < 0)
-	{
-	  if (y > row_threshold)
-	    row +=1;
-	}
-
-      if (sheet->select_status == PSPPIRE_SHEET_COLUMN_SELECTED) row = 0;
-      if (sheet->select_status == PSPPIRE_SHEET_ROW_SELECTED) column = 0;
-      sheet->x_drag = x;
-      sheet->y_drag = y;
-      aux = sheet->range;
-
-      if (v_h == 1)
-	column = 0;
-      else
-	row = 0;
-
-      if (aux.row0 + row >= 0 && aux.rowi + row < psppire_axis_unit_count (sheet->vaxis) &&
-	  aux.col0 + column >= 0 && aux.coli + column < psppire_axis_unit_count (sheet->haxis))
-	{
-	  aux = sheet->drag_range;
-	  sheet->drag_range = sheet->range;
-
-	  if (row < 0) sheet->drag_range.row0 = sheet->range.row0 + row;
-	  if (row > 0) sheet->drag_range.rowi = sheet->range.rowi + row;
-	  if (column < 0) sheet->drag_range.col0 = sheet->range.col0 + column;
-	  if (column > 0) sheet->drag_range.coli = sheet->range.coli + column;
-
-	  if (aux.row0 != sheet->drag_range.row0 ||
-	      aux.rowi != sheet->drag_range.rowi ||
-	      aux.col0 != sheet->drag_range.col0 ||
-	      aux.coli != sheet->drag_range.coli)
 	    {
 	      draw_xor_rectangle (sheet, aux);
 	      draw_xor_rectangle (sheet, sheet->drag_range);
