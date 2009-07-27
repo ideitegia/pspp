@@ -251,6 +251,9 @@ traverse_cell_callback (PsppireSheet *sheet,
 
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
 
+  if (new_cell->col >=  PSPPIRE_VAR_STORE_n_COLS)
+    return TRUE;
+
   if (new_cell->row >= n_vars && !var_sheet->may_create_vars)
     return TRUE;
 
