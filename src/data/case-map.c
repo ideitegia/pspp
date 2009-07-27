@@ -100,7 +100,7 @@ case_map_execute (const struct case_map *map, struct ccase *src)
         {
           int src_idx = map->map[dst_idx];
           if (src_idx != -1)
-            *case_data_rw_idx (dst, dst_idx) = *case_data_idx (src, src_idx);
+	    value_copy (case_data_rw_idx (dst, dst_idx), case_data_idx (src, src_idx), caseproto_get_width (map->proto, dst_idx));
         }
       case_unref (src);
       return dst;
