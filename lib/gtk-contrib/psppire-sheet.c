@@ -1403,12 +1403,8 @@ psppire_sheet_set_model (PsppireSheet *sheet, PsppireSheetModel *model)
 void
 psppire_sheet_change_entry (PsppireSheet *sheet, GtkType entry_type)
 {
-  gint state;
-
   g_return_if_fail (sheet != NULL);
   g_return_if_fail (PSPPIRE_IS_SHEET (sheet));
-
-  state = sheet->select_status;
 
   if (sheet->select_status == PSPPIRE_SHEET_NORMAL)
     psppire_sheet_hide_entry_widget (sheet);
@@ -1417,11 +1413,8 @@ psppire_sheet_change_entry (PsppireSheet *sheet, GtkType entry_type)
 
   create_sheet_entry (sheet);
 
-  if (state == PSPPIRE_SHEET_NORMAL)
-    {
-      psppire_sheet_show_entry_widget (sheet);
-    }
-
+  if (sheet->select_status == PSPPIRE_SHEET_NORMAL)
+    psppire_sheet_show_entry_widget (sheet);
 }
 
 void
@@ -2421,7 +2414,6 @@ psppire_sheet_cell_get_text (const PsppireSheet *sheet, gint row, gint col)
 static GtkStateType
 psppire_sheet_cell_get_state (PsppireSheet *sheet, gint row, gint col)
 {
-  gint state;
   PsppireSheetRange *range;
 
   g_return_val_if_fail (sheet != NULL, 0);
@@ -2429,10 +2421,9 @@ psppire_sheet_cell_get_state (PsppireSheet *sheet, gint row, gint col)
   if (col >= psppire_axis_unit_count (sheet->haxis) || row >= psppire_axis_unit_count (sheet->vaxis)) return 0;
   if (col < 0 || row < 0) return 0;
 
-  state = sheet->select_status;
   range = &sheet->range;
 
-  switch (state)
+  switch (sheet->select_status)
     {
     case PSPPIRE_SHEET_NORMAL:
       return GTK_STATE_NORMAL;
@@ -2780,8 +2771,6 @@ static void
 psppire_sheet_real_select_range (PsppireSheet *sheet,
 				 const PsppireSheetRange *range)
 {
-  gint state;
-
   g_return_if_fail (sheet != NULL);
 
   if (range == NULL) range = &sheet->range;
@@ -2790,8 +2779,6 @@ psppire_sheet_real_select_range (PsppireSheet *sheet,
 
   if (range->row0 < 0 || range->rowi < 0) return;
   if (range->col0 < 0 || range->coli < 0) return;
-
-  state = sheet->select_status;
 
   psppire_sheet_update_primary_selection (sheet);
 
@@ -2895,7 +2882,6 @@ psppire_sheet_expose (GtkWidget *widget, GdkEventExpose *event)
     {
       draw_sheet_region (sheet, event->region);
 
-
       if (sheet->select_status != PSPPIRE_SHEET_NORMAL)
 	{
 #if 0
@@ -2917,7 +2903,6 @@ psppire_sheet_expose (GtkWidget *widget, GdkEventExpose *event)
 				  TRUE,
 				  area.x + 1, area.y + 1,
 				  area.width, area.height);
-
 	    }
 
 #if 0
