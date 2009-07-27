@@ -123,9 +123,6 @@ static void set_row_height (PsppireSheet *sheet,
 static void destroy_hover_window (PsppireSheetHoverTitle *);
 static PsppireSheetHoverTitle *create_hover_window (void);
 
-static GtkStateType psppire_sheet_cell_get_state (PsppireSheet *sheet, gint row, gint col);
-
-
 static inline  void
 dispose_string (const PsppireSheet *sheet, gchar *text)
 {
@@ -2410,40 +2407,6 @@ psppire_sheet_cell_get_text (const PsppireSheet *sheet, gint row, gint col)
   return psppire_sheet_model_get_string (model, row, col);
 }
 
-
-static GtkStateType
-psppire_sheet_cell_get_state (PsppireSheet *sheet, gint row, gint col)
-{
-  PsppireSheetRange *range;
-
-  g_return_val_if_fail (sheet != NULL, 0);
-  g_return_val_if_fail (PSPPIRE_IS_SHEET (sheet), 0);
-  if (col >= psppire_axis_unit_count (sheet->haxis) || row >= psppire_axis_unit_count (sheet->vaxis)) return 0;
-  if (col < 0 || row < 0) return 0;
-
-  range = &sheet->range;
-
-  switch (sheet->select_status)
-    {
-    case PSPPIRE_SHEET_NORMAL:
-      return GTK_STATE_NORMAL;
-      break;
-    case PSPPIRE_SHEET_ROW_SELECTED:
-      if (row >= range->row0 && row <= range->rowi)
-	return GTK_STATE_SELECTED;
-      break;
-    case PSPPIRE_SHEET_COLUMN_SELECTED:
-      if (col >= range->col0 && col <= range->coli)
-	return GTK_STATE_SELECTED;
-      break;
-    case PSPPIRE_SHEET_RANGE_SELECTED:
-      if (row >= range->row0 && row <= range->rowi && \
-	  col >= range->col0 && col <= range->coli)
-	return GTK_STATE_SELECTED;
-      break;
-    }
-  return GTK_STATE_NORMAL;
-}
 
 /* Convert X, Y (in pixels) to *ROW, *COLUMN
    If the function returns FALSE, then the results will be unreliable.
