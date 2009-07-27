@@ -3689,11 +3689,21 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
       if (PSPPIRE_SHEET_IN_SELECTION (sheet) )
 	{
 	  GdkRectangle area;
+
+	  /* Redraw the old range */
+	  rectangle_from_range (sheet, &sheet->range, &area);
+	  area.x++;
+	  area.y++;
+	  gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);	  
+
 	  sheet->range.rowi = row;
 	  sheet->range.coli = column;
 	  sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
 
+	  /* Redraw the new range */
 	  rectangle_from_range (sheet, &sheet->range, &area);
+	  area.x++;
+	  area.y++;
 	  gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);
 	}
       else
