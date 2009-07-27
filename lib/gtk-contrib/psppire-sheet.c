@@ -2746,25 +2746,6 @@ psppire_sheet_unselect_range (PsppireSheet *sheet)
   gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);	  
 }
 
-static void
-psppire_sheet_real_select_range (PsppireSheet *sheet,
-				 const PsppireSheetRange *range)
-{
-  g_return_if_fail (sheet != NULL);
-
-  if (range == NULL) range = &sheet->range;
-
-  memcpy (&sheet->range, range, sizeof (*range));
-
-  if (range->row0 < 0 || range->rowi < 0) return;
-  if (range->col0 < 0 || range->coli < 0) return;
-
-  psppire_sheet_update_primary_selection (sheet);
-
-  g_signal_emit (sheet, sheet_signals[SELECT_RANGE], 0, &sheet->range);
-}
-
-
 void
 psppire_sheet_get_selected_range (PsppireSheet *sheet, PsppireSheetRange *range)
 {
