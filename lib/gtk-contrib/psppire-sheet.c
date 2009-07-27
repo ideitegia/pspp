@@ -855,7 +855,7 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   /**
    * PsppireSheet::select-row
    * @sheet: the sheet widget that emitted the signal
-   * @row: the newly selected row index
+   * @row: the newly selected row index, or -1 if no row is selected.
    *
    * A row has been selected.
    */
@@ -874,7 +874,7 @@ psppire_sheet_class_init (PsppireSheetClass *klass)
   /**
    * PsppireSheet::select - column
    * @sheet: the sheet widget that emitted the signal
-   * @column: the newly selected column index
+   * @column: the newly selected column index, or -1 if no column is selected.
    *
    * A column has been selected.
    */
@@ -2700,6 +2700,8 @@ psppire_sheet_select_row (PsppireSheet *sheet,  gint row)
   area.y++;
 
   gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);
+
+  g_signal_emit (sheet, sheet_signals [SELECT_ROW], 0, row);
 }
 
 void
@@ -2716,6 +2718,8 @@ psppire_sheet_select_column (PsppireSheet *sheet,  gint column)
   area.y++;
 
   gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);
+
+  g_signal_emit (sheet, sheet_signals [SELECT_COLUMN], 0, column);
 }
 
 
@@ -2743,7 +2747,10 @@ psppire_sheet_unselect_range (PsppireSheet *sheet)
   rectangle_from_range (sheet, &sheet->range, &area);
   area.x++;
   area.y++;
-  gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);	  
+  gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);	
+
+  g_signal_emit (sheet, sheet_signals [SELECT_COLUMN], 0, -1);
+  g_signal_emit (sheet, sheet_signals [SELECT_ROW], 0, -1);  
 }
 
 void
