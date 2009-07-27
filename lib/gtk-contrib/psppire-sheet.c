@@ -2302,7 +2302,7 @@ draw_sheet_region (PsppireSheet *sheet, GdkRegion *region)
 	psppire_sheet_cell_draw (sheet, i, j);
     }
 
-  if (sheet->select_status == GTK_STATE_NORMAL &&
+  if (sheet->select_status == PSPPIRE_SHEET_NORMAL &&
       sheet->active_cell.row >= drawing_range.row0 &&
       sheet->active_cell.row <= drawing_range.rowi &&
       sheet->active_cell.col >= drawing_range.col0 &&
@@ -2578,7 +2578,7 @@ entry_load_text (PsppireSheet *sheet)
   PsppireSheetCellAttr attributes;
 
   if (!GTK_WIDGET_VISIBLE (sheet->entry_widget)) return;
-  if (sheet->select_status != GTK_STATE_NORMAL) return;
+  if (sheet->select_status != PSPPIRE_SHEET_NORMAL) return;
 
   row = sheet->active_cell.row;
   col = sheet->active_cell.col;
@@ -2824,7 +2824,7 @@ psppire_sheet_unselect_range (PsppireSheet *sheet)
     return;
 
   psppire_sheet_real_unselect_range (sheet, NULL);
-  sheet->select_status = GTK_STATE_NORMAL;
+  sheet->select_status = PSPPIRE_SHEET_NORMAL;
 }
 
 
@@ -3119,7 +3119,7 @@ psppire_sheet_click_cell (PsppireSheet *sheet, gint row, gint column)
 
   if (forbid_move)
     {
-      if (sheet->select_status == GTK_STATE_NORMAL)
+      if (sheet->select_status == PSPPIRE_SHEET_NORMAL)
 	return FALSE;
 
       row = sheet->active_cell.row;
@@ -3235,7 +3235,7 @@ psppire_sheet_button_release (GtkWidget *widget,
       sheet->range = sheet->drag_range;
       sheet->drag_range = old_range;
 
-      if (sheet->select_status == GTK_STATE_NORMAL) 
+      if (sheet->select_status == PSPPIRE_SHEET_NORMAL) 
 	sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
 
       g_signal_emit (sheet, sheet_signals[RESIZE_RANGE], 0,
