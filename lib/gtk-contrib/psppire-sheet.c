@@ -80,7 +80,13 @@ enum
     PSPPIRE_SHEET_IN_XDRAG = 1 << 1,
     PSPPIRE_SHEET_IN_YDRAG = 1 << 2,
     PSPPIRE_SHEET_IN_DRAG = 1 << 3,
+
+    /* This flag is set when the user is actually in the process
+       of making a selection - ie while the mouse button is
+       depressed.
+    */
     PSPPIRE_SHEET_IN_SELECTION = 1 << 4,
+
     PSPPIRE_SHEET_IN_RESIZE = 1 << 5
   };
 
@@ -497,20 +503,12 @@ static void psppire_sheet_cell_draw (PsppireSheet *sheet, gint row, gint column)
 static void draw_sheet_region (PsppireSheet *sheet, GdkRegion *region);
 
 
-/* highlight the visible part of the selected range */
-static void psppire_sheet_range_draw_selection	 (PsppireSheet *sheet,
-						  PsppireSheetRange range);
-
 /* Selection */
 
 static void psppire_sheet_real_select_range 	 (PsppireSheet *sheet,
 						  const PsppireSheetRange *range);
 static void psppire_sheet_real_unselect_range 	 (PsppireSheet *sheet,
 						  const PsppireSheetRange *range);
-static void psppire_sheet_extend_selection		 (PsppireSheet *sheet,
-						  gint row, gint column);
-static void psppire_sheet_new_selection		 (PsppireSheet *sheet,
-						  PsppireSheetRange *range);
 static void psppire_sheet_draw_border 		 (PsppireSheet *sheet,
 						  PsppireSheetRange range);
 
@@ -2313,11 +2311,6 @@ draw_sheet_region (PsppireSheet *sheet, GdkRegion *region)
 	psppire_sheet_cell_draw (sheet, i, j);
     }
 
-  if (sheet->select_status != PSPPIRE_SHEET_NORMAL &&
-      psppire_sheet_range_isvisible (sheet, &sheet->range))
-    psppire_sheet_range_draw_selection (sheet, drawing_range);
-
-
   if (sheet->select_status == GTK_STATE_NORMAL &&
       sheet->active_cell.row >= drawing_range.row0 &&
       sheet->active_cell.row <= drawing_range.rowi &&
@@ -2327,68 +2320,6 @@ draw_sheet_region (PsppireSheet *sheet, GdkRegion *region)
 }
 
 
-static void
-psppire_sheet_range_draw_selection (PsppireSheet *sheet, PsppireSheetRange range)
-{
-  GdkRectangle area;
-  gint i, j;
-  PsppireSheetRange aux;
-
-  if (range.col0 > sheet->range.coli || range.coli < sheet->range.col0 ||
-      range.row0 > sheet->range.rowi || range.rowi < sheet->range.row0)
-    return;
-
-  if (!psppire_sheet_range_isvisible (sheet, &range)) return;
-  if (!GTK_WIDGET_REALIZED (GTK_WIDGET (sheet))) return;
-
-  aux = range;
-
-  range.col0 = MAX (sheet->range.col0, range.col0);
-  range.coli = MIN (sheet->range.coli, range.coli);
-  range.row0 = MAX (sheet->range.row0, range.row0);
-  range.rowi = MIN (sheet->range.rowi, range.rowi);
-
-  range.col0 = MAX (range.col0, min_visible_column (sheet));
-  range.coli = MIN (range.coli, max_visible_column (sheet));
-  range.row0 = MAX (range.row0, min_visible_row (sheet));
-  range.rowi = MIN (range.rowi, max_visible_row (sheet));
-
-  for (i = range.row0; i <= range.rowi; i++)
-    {
-      for (j = range.col0; j <= range.coli; j++)
-	{
-	  if (psppire_sheet_cell_get_state (sheet, i, j) == GTK_STATE_SELECTED)
-	    {
-	      rectangle_from_cell (sheet, i, j, &area);
-
-	      if (i == sheet->range.row0)
-		{
-		  area.y = area.y + 2;
-		  area.height = area.height - 2;
-		}
-	      if (i == sheet->range.rowi) area.height = area.height - 3;
-	      if (j == sheet->range.col0)
-		{
-		  area.x = area.x + 2;
-		  area.width = area.width - 2;
-		}
-	      if (j == sheet->range.coli) area.width = area.width - 3;
-
-	      if (i != sheet->active_cell.row || j != sheet->active_cell.col)
-		{
-		  gdk_draw_rectangle (sheet->sheet_window,
-				      sheet->xor_gc,
-				      TRUE,
-				      area.x + 1, area.y + 1,
-				      area.width, area.height);
-		}
-	    }
-
-	}
-    }
-
-  psppire_sheet_draw_border (sheet, sheet->range);
-}
 
 static inline gint
 safe_strcmp (const gchar *s1, const gchar *s2)
@@ -2719,10 +2650,6 @@ change_active_cell (PsppireSheet *sheet, gint row, gint col)
   /* Erase the old cell border */
   psppire_sheet_draw_active_cell (sheet);
 
-  sheet->range.row0 = row;
-  sheet->range.col0 = col;
-  sheet->range.rowi = row;
-  sheet->range.coli = col;
   sheet->active_cell.row = row;
   sheet->active_cell.col = col;
   sheet->selection_cell.row = row;
@@ -2832,250 +2759,6 @@ psppire_sheet_draw_active_cell (PsppireSheet *sheet)
 
 
 static void
-psppire_sheet_new_selection (PsppireSheet *sheet, PsppireSheetRange *range)
-{
-  gint i, j, mask1, mask2;
-  gint state, selected;
-  gint x, y, width, height;
-  PsppireSheetRange new_range, aux_range;
-
-  g_return_if_fail (sheet != NULL);
-
-  if (range == NULL) range=&sheet->range;
-
-  new_range=*range;
-
-  range->row0 = MIN (range->row0, sheet->range.row0);
-  range->rowi = MAX (range->rowi, sheet->range.rowi);
-  range->col0 = MIN (range->col0, sheet->range.col0);
-  range->coli = MAX (range->coli, sheet->range.coli);
-
-  range->row0 = MAX (range->row0, min_visible_row (sheet));
-  range->rowi = MIN (range->rowi, max_visible_row (sheet));
-  range->col0 = MAX (range->col0, min_visible_column (sheet));
-  range->coli = MIN (range->coli, max_visible_column (sheet));
-
-  aux_range.row0 = MAX (new_range.row0, min_visible_row (sheet));
-  aux_range.rowi = MIN (new_range.rowi, max_visible_row (sheet));
-  aux_range.col0 = MAX (new_range.col0, min_visible_column (sheet));
-  aux_range.coli = MIN (new_range.coli, max_visible_column (sheet));
-
-  for (i = range->row0; i <= range->rowi; i++)
-    {
-      for (j = range->col0; j <= range->coli; j++)
-	{
-
-	  state = psppire_sheet_cell_get_state (sheet, i, j);
-	  selected= (i <= new_range.rowi && i >= new_range.row0 &&
-		     j <= new_range.coli && j >= new_range.col0) ? TRUE : FALSE;
-
-	  if (state == GTK_STATE_SELECTED && selected &&
-	      (i == sheet->range.row0 || i == sheet->range.rowi ||
-	       j == sheet->range.col0 || j == sheet->range.coli ||
-	       i == new_range.row0 || i == new_range.rowi ||
-	       j == new_range.col0 || j == new_range.coli))
-	    {
-
-	      mask1 = i == sheet->range.row0 ? 1 : 0;
-	      mask1 = i == sheet->range.rowi ? mask1 + 2 : mask1;
-	      mask1 = j == sheet->range.col0 ? mask1 + 4 : mask1;
-	      mask1 = j == sheet->range.coli ? mask1 + 8 : mask1;
-
-	      mask2 = i == new_range.row0 ? 1 : 0;
-	      mask2 = i == new_range.rowi ? mask2 + 2 : mask2;
-	      mask2 = j == new_range.col0 ? mask2 + 4 : mask2;
-	      mask2 = j == new_range.coli ? mask2 + 8 : mask2;
-
-	      if (mask1 != mask2)
-		{
-		  x = psppire_axis_start_pixel (sheet->haxis, j);
-		  y = psppire_axis_start_pixel (sheet->vaxis, i);
-		  width = psppire_axis_start_pixel (sheet->haxis, j)- x+
-		    psppire_axis_unit_size (sheet->haxis, j);
-		  height = psppire_axis_start_pixel (sheet->vaxis, i) - y + psppire_axis_unit_size (sheet->vaxis, i);
-
-		  if (i == sheet->range.row0)
-		    {
-		      y = y - 3;
-		      height = height + 3;
-		    }
-		  if (i == sheet->range.rowi) height = height + 3;
-		  if (j == sheet->range.col0)
-		    {
-		      x = x - 3;
-		      width = width + 3;
-		    }
-		  if (j == sheet->range.coli) width = width + 3;
-
-		  if (i != sheet->active_cell.row || j != sheet->active_cell.col)
-		    {
-		      x = psppire_axis_start_pixel (sheet->haxis, j);
-		      y = psppire_axis_start_pixel (sheet->vaxis, i);
-		      width = psppire_axis_start_pixel (sheet->haxis, j)- x+
-			psppire_axis_unit_size (sheet->haxis, j);
-
-		      height = psppire_axis_start_pixel (sheet->vaxis, i) - y + psppire_axis_unit_size (sheet->vaxis, i);
-
-		      if (i == new_range.row0)
-			{
-			  y = y+2;
-			  height = height - 2;
-			}
-		      if (i == new_range.rowi) height = height - 3;
-		      if (j == new_range.col0)
-			{
-			  x = x+2;
-			  width = width - 2;
-			}
-		      if (j == new_range.coli) width = width - 3;
-
-		      gdk_draw_rectangle (sheet->sheet_window,
-					  sheet->xor_gc,
-					  TRUE,
-					  x + 1, y + 1,
-					  width, height);
-		    }
-		}
-	    }
-	}
-    }
-
-  for (i = range->row0; i <= range->rowi; i++)
-    {
-      for (j = range->col0; j <= range->coli; j++)
-	{
-
-	  state = psppire_sheet_cell_get_state (sheet, i, j);
-	  selected= (i <= new_range.rowi && i >= new_range.row0 &&
-		     j <= new_range.coli && j >= new_range.col0) ? TRUE : FALSE;
-
-	  if (state == GTK_STATE_SELECTED && !selected)
-	    {
-
-	      x = psppire_axis_start_pixel (sheet->haxis, j);
-	      y = psppire_axis_start_pixel (sheet->vaxis, i);
-	      width = psppire_axis_start_pixel (sheet->haxis, j) - x + psppire_axis_unit_size (sheet->haxis, j);
-	      height = psppire_axis_start_pixel (sheet->vaxis, i) - y + psppire_axis_unit_size (sheet->vaxis, i);
-
-	      if (i == sheet->range.row0)
-		{
-		  y = y - 3;
-		  height = height + 3;
-		}
-	      if (i == sheet->range.rowi) height = height + 3;
-	      if (j == sheet->range.col0)
-		{
-		  x = x - 3;
-		  width = width + 3;
-		}
-	      if (j == sheet->range.coli) width = width + 3;
-
-	    }
-	}
-    }
-
-  for (i = range->row0; i <= range->rowi; i++)
-    {
-      for (j = range->col0; j <= range->coli; j++)
-	{
-
-	  state = psppire_sheet_cell_get_state (sheet, i, j);
-	  selected= (i <= new_range.rowi && i >= new_range.row0 &&
-		     j <= new_range.coli && j >= new_range.col0) ? TRUE : FALSE;
-
-	  if (state != GTK_STATE_SELECTED && selected &&
-	      (i != sheet->active_cell.row || j != sheet->active_cell.col))
-	    {
-
-	      x = psppire_axis_start_pixel (sheet->haxis, j);
-	      y = psppire_axis_start_pixel (sheet->vaxis, i);
-	      width = psppire_axis_start_pixel (sheet->haxis, j) - x + psppire_axis_unit_size (sheet->haxis, j);
-	      height = psppire_axis_start_pixel (sheet->vaxis, i) - y + psppire_axis_unit_size (sheet->vaxis, i);
-
-	      if (i == new_range.row0)
-		{
-		  y = y+2;
-		  height = height - 2;
-		}
-	      if (i == new_range.rowi) height = height - 3;
-	      if (j == new_range.col0)
-		{
-		  x = x+2;
-		  width = width - 2;
-		}
-	      if (j == new_range.coli) width = width - 3;
-
-	      gdk_draw_rectangle (sheet->sheet_window,
-				  sheet->xor_gc,
-				  TRUE,
-				  x + 1, y + 1,
-				  width, height);
-
-	    }
-
-	}
-    }
-
-  for (i = aux_range.row0; i <= aux_range.rowi; i++)
-    {
-      for (j = aux_range.col0; j <= aux_range.coli; j++)
-	{
-	  state = psppire_sheet_cell_get_state (sheet, i, j);
-
-	  mask1 = i == sheet->range.row0 ? 1 : 0;
-	  mask1 = i == sheet->range.rowi ? mask1 + 2 : mask1;
-	  mask1 = j == sheet->range.col0 ? mask1 + 4 : mask1;
-	  mask1 = j == sheet->range.coli ? mask1 + 8 : mask1;
-
-	  mask2 = i == new_range.row0 ? 1 : 0;
-	  mask2 = i == new_range.rowi ? mask2 + 2 : mask2;
-	  mask2 = j == new_range.col0 ? mask2 + 4 : mask2;
-	  mask2 = j == new_range.coli ? mask2 + 8 : mask2;
-	  if (mask2 != mask1 || (mask2 == mask1 && state != GTK_STATE_SELECTED))
-	    {
-	      x = psppire_axis_start_pixel (sheet->haxis, j);
-	      y = psppire_axis_start_pixel (sheet->vaxis, i);
-	      width = psppire_axis_unit_size (sheet->haxis, j);
-	      height = psppire_axis_unit_size (sheet->vaxis, i);
-	      if (mask2 & 1)
-		gdk_draw_rectangle (sheet->sheet_window,
-				    sheet->xor_gc,
-				    TRUE,
-				    x + 1, y - 1,
-				    width, 3);
-
-
-	      if (mask2 & 2)
-		gdk_draw_rectangle (sheet->sheet_window,
-				    sheet->xor_gc,
-				    TRUE,
-				    x + 1, y + height - 1,
-				    width, 3);
-
-	      if (mask2 & 4)
-		gdk_draw_rectangle (sheet->sheet_window,
-				    sheet->xor_gc,
-				    TRUE,
-				    x - 1, y + 1,
-				    3, height);
-
-
-	      if (mask2 & 8)
-		gdk_draw_rectangle (sheet->sheet_window,
-				    sheet->xor_gc,
-				    TRUE,
-				    x + width - 1, y + 1,
-				    3, height);
-	    }
-	}
-    }
-
-  *range = new_range;
-}
-
-
-
-static void
 psppire_sheet_draw_border (PsppireSheet *sheet, PsppireSheetRange new_range)
 {
   GdkRectangle area;
@@ -3119,18 +2802,6 @@ psppire_sheet_real_select_range (PsppireSheet *sheet,
   if (range->col0 < 0 || range->coli < 0) return;
 
   state = sheet->select_status;
-
-#if 0
-  if (range->coli != sheet->range.coli || range->col0 != sheet->range.col0 ||
-      range->rowi != sheet->range.rowi || range->row0 != sheet->range.row0)
-    {
-      psppire_sheet_new_selection (sheet, &sheet->range);
-    }
-  else
-    {
-      psppire_sheet_range_draw_selection (sheet, sheet->range);
-    }
-#endif
 
   psppire_sheet_update_primary_selection (sheet);
 
@@ -3206,8 +2877,7 @@ psppire_sheet_real_unselect_range (PsppireSheet *sheet,
 
 
 static gint
-psppire_sheet_expose (GtkWidget *widget,
-		  GdkEventExpose *event)
+psppire_sheet_expose (GtkWidget *widget, GdkEventExpose *event)
 {
   PsppireSheet *sheet = PSPPIRE_SHEET (widget);
 
@@ -3237,21 +2907,37 @@ psppire_sheet_expose (GtkWidget *widget,
     {
       draw_sheet_region (sheet, event->region);
 
-#if 0
+
       if (sheet->select_status != PSPPIRE_SHEET_NORMAL)
 	{
+#if 0
 	  if (psppire_sheet_range_isvisible (sheet, &sheet->range))
 	    psppire_sheet_range_draw (sheet, &sheet->range);
 
 	  if (PSPPIRE_SHEET_IN_RESIZE (sheet) || PSPPIRE_SHEET_IN_DRAG (sheet))
 	    psppire_sheet_range_draw (sheet, &sheet->drag_range);
+#endif
 
 	  if (psppire_sheet_range_isvisible (sheet, &sheet->range))
-	    psppire_sheet_range_draw_selection (sheet, sheet->range);
+	    {
+	      GdkRectangle area;
+
+	      rectangle_from_range (sheet, &sheet->range, &area);
+	      
+	      gdk_draw_rectangle (sheet->sheet_window,
+				  sheet->xor_gc,
+				  TRUE,
+				  area.x + 1, area.y + 1,
+				  area.width, area.height);
+
+	    }
+
+#if 0
 	  if (PSPPIRE_SHEET_IN_RESIZE (sheet) || PSPPIRE_SHEET_IN_DRAG (sheet))
 	    draw_xor_rectangle (sheet, sheet->drag_range);
-	}
 #endif
+	}
+
 
       if ((!PSPPIRE_SHEET_IN_XDRAG (sheet)) && (!PSPPIRE_SHEET_IN_YDRAG (sheet)))
 	{
@@ -4042,10 +3728,16 @@ psppire_sheet_motion (GtkWidget *widget,  GdkEventMotion *event)
   if (sheet->select_status == PSPPIRE_SHEET_NORMAL && row == sheet->active_cell.row &&
       column == sheet->active_cell.col) return TRUE;
 
-#if 0
   if (PSPPIRE_SHEET_IN_SELECTION (sheet) && mods&GDK_BUTTON1_MASK)
-    psppire_sheet_extend_selection (sheet, row, column);
-#endif
+    {
+      GdkRectangle area;
+      sheet->range.rowi = row;
+      sheet->range.coli = column;
+      sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
+
+      rectangle_from_range (sheet, &sheet->range, &area);
+      gdk_window_invalidate_rect (sheet->sheet_window, &area, FALSE);
+    }
 
   return TRUE;
 }
@@ -4080,59 +3772,6 @@ psppire_sheet_focus_in (GtkWidget     *w,
 }
 
 
-static void
-psppire_sheet_extend_selection (PsppireSheet *sheet, gint row, gint column)
-{
-  PsppireSheetRange range;
-  gint state;
-  gint r, c;
-
-  if (row == sheet->selection_cell.row && column == sheet->selection_cell.col)
-    return;
-
-  if (sheet->selection_mode == GTK_SELECTION_SINGLE) return;
-
-  gtk_widget_grab_focus (GTK_WIDGET (sheet));
-
-  if (PSPPIRE_SHEET_IN_DRAG (sheet)) return;
-
-  state = sheet->select_status;
-
-  switch (sheet->select_status)
-    {
-    case PSPPIRE_SHEET_ROW_SELECTED:
-      column = psppire_axis_unit_count (sheet->haxis) - 1;
-      break;
-    case PSPPIRE_SHEET_COLUMN_SELECTED:
-      row = psppire_axis_unit_count (sheet->vaxis) - 1;
-      break;
-    case PSPPIRE_SHEET_NORMAL:
-      sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
-      r = sheet->active_cell.row;
-      c = sheet->active_cell.col;
-      sheet->range.col0 = c;
-      sheet->range.row0 = r;
-      sheet->range.coli = c;
-      sheet->range.rowi = r;
-      psppire_sheet_range_draw_selection (sheet, sheet->range);
-    case PSPPIRE_SHEET_RANGE_SELECTED:
-      sheet->select_status = PSPPIRE_SHEET_RANGE_SELECTED;
-    }
-
-  sheet->selection_cell.row = row;
-  sheet->selection_cell.col = column;
-
-  range.col0 = MIN (column, sheet->active_cell.col);
-  range.coli = MAX (column, sheet->active_cell.col);
-  range.row0 = MIN (row, sheet->active_cell.row);
-  range.rowi = MAX (row, sheet->active_cell.row);
-
-  if (range.row0 != sheet->range.row0 || range.rowi != sheet->range.rowi ||
-      range.col0 != sheet->range.col0 || range.coli != sheet->range.coli ||
-      state == PSPPIRE_SHEET_NORMAL)
-    psppire_sheet_real_select_range (sheet, &range);
-
-}
 
 static gint
 psppire_sheet_entry_key_press (GtkWidget *widget,
