@@ -1620,6 +1620,7 @@ data_sheet_set_clip (PsppireSheet *sheet)
 
   /* Construct clip dictionary. */
   clip_dict = dict_create ();
+  dict_set_encoding (clip_dict, dict_get_encoding (ds->dict->dict));
   for (i = range.col0; i <= range.coli; i++)
     {
       const struct variable *old = dict_get_var (ds->dict->dict, i);
@@ -1719,9 +1720,11 @@ clip_to_html (void)
   const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
   const size_t var_cnt = dict_get_var_cnt (clip_dict);
 
-
   /* Guestimate the size needed */
-  string = g_string_sized_new (20 * val_cnt * case_cnt);
+  string = g_string_sized_new (80 + 20 * val_cnt * case_cnt);
+
+  g_string_append (string,
+		   "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n");
 
   g_string_append (string, "<table>\n");
   for (r = 0 ; r < case_cnt ; ++r )
