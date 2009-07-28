@@ -2777,30 +2777,15 @@ psppire_sheet_expose (GtkWidget *widget, GdkEventExpose *event)
 
       if (sheet->select_status != PSPPIRE_SHEET_NORMAL)
 	{
-#if 0
-	  if (psppire_sheet_range_isvisible (sheet, &sheet->range))
-	    psppire_sheet_range_draw (sheet, &sheet->range);
+	  GdkRectangle area;
 
-	  if (PSPPIRE_SHEET_IN_RESIZE (sheet) || PSPPIRE_SHEET_IN_DRAG (sheet))
-	    psppire_sheet_range_draw (sheet, &sheet->drag_range);
-#endif
-
-	    {
-	      GdkRectangle area;
-
-	      rectangle_from_range (sheet, &sheet->range, &area);
+	  rectangle_from_range (sheet, &sheet->range, &area);
 	      
-	      gdk_draw_rectangle (sheet->sheet_window,
-				  sheet->xor_gc,
-				  TRUE,
-				  area.x + 1, area.y + 1,
-				  area.width, area.height);
-	    }
-
-#if 0
-	  if (PSPPIRE_SHEET_IN_RESIZE (sheet) || PSPPIRE_SHEET_IN_DRAG (sheet))
-	    draw_xor_rectangle (sheet, sheet->drag_range);
-#endif
+	  gdk_draw_rectangle (sheet->sheet_window,
+			      sheet->xor_gc,
+			      TRUE,
+			      area.x + 1, area.y + 1,
+			      area.width, area.height);
 	}
 
 
