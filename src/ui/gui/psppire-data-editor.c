@@ -1568,42 +1568,44 @@ data_sheet_set_clip (PsppireSheet *sheet)
   struct case_map *map = NULL;
   casenumber max_rows;
   size_t max_columns;
+  gint row0, rowi;
+  gint col0, coli;
 
   ds = PSPPIRE_DATA_STORE (psppire_sheet_get_model (sheet));
 
   psppire_sheet_get_selected_range (sheet, &range);
 
+  col0 = MIN (range.col0, range.coli);
+  coli = MAX (range.col0, range.coli);
+  row0 = MIN (range.row0, range.rowi);
+  rowi = MAX (range.row0, range.rowi);
+
    /* If nothing selected, then use active cell */
-  if ( range.row0 < 0 || range.col0 < 0 )
+  if ( row0 < 0 || col0 < 0 )
     {
       gint row, col;
       psppire_sheet_get_active_cell (sheet, &row, &col);
 
-      range.row0 = range.rowi = row;
-      range.col0 = range.coli = col;
+      row0 = rowi = row;
+      col0 = coli = col;
     }
 
   /* The sheet range can include cells that do not include data.
      Exclude them from the range. */
   max_rows = psppire_data_store_get_case_count (ds);
-  if (range.rowi >= max_rows)
+  if (rowi >= max_rows)
     {
       if (max_rows == 0)
         return;
-      range.rowi = max_rows - 1;
+      rowi = max_rows - 1;
     }
   max_columns = dict_get_var_cnt (ds->dict->dict);
-  if (range.coli >= max_columns)
+  if (coli >= max_columns)
     {
       if (max_columns == 0)
         return;
-      range.coli = max_columns - 1;
+      coli = max_columns - 1;
     }
-
-  g_return_if_fail (range.rowi >= range.row0);
-  g_return_if_fail (range.row0 >= 0);
-  g_return_if_fail (range.coli >= range.col0);
-  g_return_if_fail (range.col0 >= 0);
 
   /* Destroy any existing clip */
   if ( clip_datasheet )
@@ -1621,7 +1623,7 @@ data_sheet_set_clip (PsppireSheet *sheet)
   /* Construct clip dictionary. */
   clip_dict = dict_create ();
   dict_set_encoding (clip_dict, dict_get_encoding (ds->dict->dict));
-  for (i = range.col0; i <= range.coli; i++)
+  for (i = col0; i <= coli; i++)
     {
       const struct variable *old = dict_get_var (ds->dict->dict, i);
       dict_clone_var_assert (clip_dict, old, var_get_name (old));
@@ -1630,7 +1632,7 @@ data_sheet_set_clip (PsppireSheet *sheet)
   /* Construct clip data. */
   map = case_map_by_name (ds->dict->dict, clip_dict);
   writer = autopaging_writer_create (dict_get_proto (clip_dict));
-  for (i = range.row0; i <= range.rowi ; ++i )
+  for (i = row0; i <= rowi ; ++i )
     {
       struct ccase *old = psppire_data_store_get_case (ds, i);
       if (old != NULL)

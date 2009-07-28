@@ -388,29 +388,32 @@ POSSIBLE_RESIZE (const PsppireSheet *sheet, gint x, gint y,
 
 
 static gboolean
-rectangle_from_range (PsppireSheet *sheet, const PsppireSheetRange *input,
+rectangle_from_range (PsppireSheet *sheet, const PsppireSheetRange *range,
 		      GdkRectangle *r)
 {
-  PsppireSheetRange range = *input;
+  gint col0 = MIN (range->col0, range->coli);
+  gint coli = MAX (range->col0, range->coli);
+  gint row0 = MIN (range->row0, range->rowi);
+  gint rowi = MAX (range->row0, range->rowi);
 
-  if ( range.row0 == -1 ) range.row0 = min_visible_row (sheet);
-  if ( range.rowi == -1 ) range.rowi = max_visible_row (sheet);
-  if ( range.col0 == -1 ) range.col0 = min_visible_column (sheet);
-  if ( range.coli == -1 ) range.coli = max_visible_column (sheet);
+  if ( row0 == -1 ) row0 = min_visible_row (sheet);
+  if ( rowi == -1 ) rowi = max_visible_row (sheet);
+  if ( col0 == -1 ) col0 = min_visible_column (sheet);
+  if ( coli == -1 ) coli = max_visible_column (sheet);
 
-  r->x = psppire_axis_start_pixel (sheet->haxis, range.col0);
+  r->x = psppire_axis_start_pixel (sheet->haxis, col0);
   r->x -= round (sheet->hadjustment->value);
 
-  r->y = psppire_axis_start_pixel (sheet->vaxis, range.row0);
+  r->y = psppire_axis_start_pixel (sheet->vaxis, row0);
   r->y -= round (sheet->vadjustment->value);
 
-  r->width = psppire_axis_start_pixel (sheet->haxis, range.coli) -
-    psppire_axis_start_pixel (sheet->haxis, range.col0) +
-    psppire_axis_unit_size (sheet->haxis, range.coli);
+  r->width = psppire_axis_start_pixel (sheet->haxis, coli) -
+    psppire_axis_start_pixel (sheet->haxis, col0) +
+    psppire_axis_unit_size (sheet->haxis, coli);
 
-  r->height = psppire_axis_start_pixel (sheet->vaxis, range.rowi) -
-    psppire_axis_start_pixel (sheet->vaxis, range.row0) +
-    psppire_axis_unit_size (sheet->vaxis, range.rowi);
+  r->height = psppire_axis_start_pixel (sheet->vaxis, rowi) -
+    psppire_axis_start_pixel (sheet->vaxis, row0) +
+    psppire_axis_unit_size (sheet->vaxis, rowi);
 
   if ( sheet->column_titles_visible)
     {
