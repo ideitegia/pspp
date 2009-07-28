@@ -54,8 +54,6 @@
 #include <config.h>
 
 #include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <glib.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
@@ -71,8 +69,6 @@
 #include <ui/gui/sheet/psppire-sheetmodel.h>
 #include <ui/gui/sheet/psppire-axis.h>
 #include <libpspp/misc.h>
-
-#include <math.h>
 
 /* sheet flags */
 enum
@@ -2257,17 +2253,6 @@ draw_sheet_region (PsppireSheet *sheet, GdkRegion *region)
     psppire_sheet_show_entry_widget (sheet);
 }
 
-
-
-static inline gint
-safe_strcmp (const gchar *s1, const gchar *s2)
-{
-  if ( !s1 && !s2) return 0;
-  if ( !s1) return -1;
-  if ( !s2) return +1;
-  return strcmp (s1, s2);
-}
-
 static void
 psppire_sheet_set_cell (PsppireSheet *sheet, gint row, gint col,
 			GtkJustification justification,
@@ -2289,7 +2274,7 @@ psppire_sheet_set_cell (PsppireSheet *sheet, gint row, gint col,
 
   old_text = psppire_sheet_model_get_string (model, row, col);
 
-  if (0 != safe_strcmp (old_text, text))
+  if (0 != g_strcmp0 (old_text, text))
     {
       g_signal_handler_block    (sheet->model, sheet->update_handler_id);
       psppire_sheet_model_set_string (model, text, row, col);
