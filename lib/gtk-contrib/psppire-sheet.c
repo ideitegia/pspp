@@ -387,7 +387,7 @@ POSSIBLE_RESIZE (const PsppireSheet *sheet, gint x, gint y,
 }
 
 
-static gboolean
+static void
 rectangle_from_range (PsppireSheet *sheet, const PsppireSheetRange *range,
 		      GdkRectangle *r)
 {
@@ -424,22 +424,20 @@ rectangle_from_range (PsppireSheet *sheet, const PsppireSheetRange *range,
     {
       r->x += sheet->row_title_area.width;
     }
-
-  return TRUE;
 }
 
-static gboolean
+static void
 rectangle_from_cell (PsppireSheet *sheet, gint row, gint col,
 		     GdkRectangle *r)
 {
   PsppireSheetRange range;
-  g_return_val_if_fail (row >= 0, FALSE);
-  g_return_val_if_fail (col >= 0, FALSE);
+  g_return_if_fail (row >= 0);
+  g_return_if_fail (col >= 0);
 
   range.row0 = range.rowi = row;
   range.col0 = range.coli = col;
 
-  return rectangle_from_range (sheet, &range, r);
+  rectangle_from_range (sheet, &range, r);
 }
 
 
