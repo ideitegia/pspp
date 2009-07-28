@@ -142,7 +142,10 @@ boxplot_draw_box (plPlotter *lp, const struct chart_geometry *geom,
 
   /* Draw the box */
   pl_savestate_r (lp);
-  pl_fillcolorname_r (lp, geom->fill_colour);
+  pl_fillcolor_r (lp,
+                  geom->fill_colour.red * 257,
+                  geom->fill_colour.green * 257,
+                  geom->fill_colour.blue * 257);
   pl_filltype_r (lp,1);
   pl_fbox_r (lp,
 	    box_left,

@@ -18,7 +18,15 @@
 #define OUTPUT_CHART_PROVIDER_H 1
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <output/chart.h>
+
+struct chart_colour
+  {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+  };
 
 struct chart_class
   {
@@ -57,7 +65,7 @@ struct chart_geometry
     /* Default font size for the plot (if zero, then use plotter default) */
     int font_size;
 
-    char fill_colour[10];
+    struct chart_colour fill_colour;
 
     /* Stuff Particular to Cartesians (and Boxplots ) */
     double ordinate_scale;

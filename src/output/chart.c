@@ -58,7 +58,7 @@ chart_geometry_init (plPlotter *lp, struct chart_geometry *geom)
 
   /* Set line thickness. */
   pl_flinewidth_r (lp, 0.25);
-  pl_pencolorname_r (lp, "black");
+  pl_pencolor_r (lp, 0, 0, 0);
 
   /* Erase graphics display. */
   pl_erase_r (lp);
@@ -77,7 +77,10 @@ chart_geometry_init (plPlotter *lp, struct chart_geometry *geom)
   geom->legend_left = 810;
   geom->legend_right = 1000;
   geom->font_size = 0;
-  strcpy (geom->fill_colour, "red");
+
+  geom->fill_colour.red = 255;
+  geom->fill_colour.green = 0;
+  geom->fill_colour.blue = 0;
 
   /* Get default font size */
   if (!geom->font_size)

@@ -14,6 +14,9 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+#ifndef PLOT_CHART_H
+#define PLOT_CHART_H
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -25,19 +28,15 @@
 
 #include <math/chart-geometry.h>
 #include <output/chart.h>
+#include <output/chart-provider.h>
 
 #include <libpspp/compiler.h>
 #include <libpspp/str.h>
 #include <output/manager.h>
 #include <output/output.h>
 
-#include "xalloc.h"
-
-#ifndef PLOT_CHART_H
-#define PLOT_CHART_H
-
 #define N_CHART_COLOURS 9
-extern const char *const data_colour[];
+extern const struct chart_colour data_colour[];
 
 enum tick_orientation
   {

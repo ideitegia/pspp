@@ -96,7 +96,10 @@ hist_draw_bar (plPlotter *lp, const struct chart_geometry *geom,
 
   pl_savestate_r (lp);
   pl_move_r (lp,geom->data_left, geom->data_bottom);
-  pl_fillcolorname_r (lp, geom->fill_colour);
+  pl_fillcolor_r (lp,
+                  geom->fill_colour.red * 257,
+                  geom->fill_colour.green * 257,
+                  geom->fill_colour.blue * 257);
   pl_filltype_r (lp,1);
 
 

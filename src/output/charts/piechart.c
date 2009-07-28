@@ -48,7 +48,7 @@ draw_segment(plPlotter *,
 	     double centre_x, double centre_y,
 	     double radius,
 	     double start_angle, double segment_angle,
-	     const char *colour) ;
+	     const struct chart_colour *) ;
 
 
 
@@ -121,7 +121,7 @@ piechart_draw (const struct chart *chart, plPlotter *lp)
       draw_segment (lp,
                     centre_x, centre_y, radius,
                     angle, segment_angle,
-                    data_colour[i % N_CHART_COLOURS]);
+                    &data_colour[i % N_CHART_COLOURS]);
 
       /* Now add the labels */
       if ( label_x < centre_x )
@@ -197,7 +197,7 @@ draw_segment(plPlotter *lp,
 	     double x0, double y0,
 	     double radius,
 	     double start_angle, double segment_angle,
-	     const char *colour)
+	     const struct chart_colour *colour)
 {
   const double start_x  = x0 - radius * sin(start_angle);
   const double start_y  = y0 + radius * cos(start_angle);
@@ -205,7 +205,7 @@ draw_segment(plPlotter *lp,
   pl_savestate_r(lp);
 
   pl_savestate_r(lp);
-  pl_colorname_r(lp, colour);
+  pl_color_r(lp, colour->red * 257, colour->green * 257, colour->blue * 257);
 
   pl_pentype_r(lp,1);
   pl_filltype_r(lp,1);

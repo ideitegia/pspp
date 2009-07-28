@@ -35,17 +35,17 @@
 
 #include "xalloc.h"
 
-const char *const data_colour[N_CHART_COLOURS] =
+const struct chart_colour data_colour[N_CHART_COLOURS] =
   {
-    "brown",
-    "red",
-    "orange",
-    "yellow",
-    "green",
-    "blue",
-    "violet",
-    "grey",
-    "pink"
+    { 165, 42, 42 },            /* brown */
+    { 255, 0, 0 },              /* red */
+    { 255, 165, 0 },            /* orange */
+    { 255, 255, 0 },            /* yellow */
+    { 0, 255, 0 },              /* green */
+    { 0, 0, 255 },              /* blue */
+    { 238, 130, 238 },          /* violet */
+    { 190, 190, 190 },          /* grey */
+    { 255, 192, 203 },          /* pink */
   };
 
 
