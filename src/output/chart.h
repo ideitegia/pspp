@@ -28,7 +28,6 @@
 
 struct chart;
 
-void chart_draw (const struct chart *, plPlotter *);
 struct chart *chart_ref (const struct chart *);
 void chart_unref (struct chart *);
 

@@ -233,26 +233,23 @@ boxplot_draw_yscale (plPlotter *lp, struct chart_geometry *geom,
 }
 
 static void
-boxplot_chart_draw (const struct chart *chart, plPlotter *lp)
+boxplot_chart_draw (const struct chart *chart, plPlotter *lp,
+                    struct chart_geometry *geom)
 {
   const struct boxplot *boxplot = (struct boxplot *) chart;
-  struct chart_geometry geom;
   double box_width;
   size_t i;
 
-  chart_geometry_init (lp, &geom);
-  boxplot_draw_yscale (lp, &geom, boxplot->y_max, boxplot->y_min);
-  chart_write_title (lp, &geom, "%s", boxplot->title);
+  boxplot_draw_yscale (lp, geom, boxplot->y_max, boxplot->y_min);
+  chart_write_title (lp, geom, "%s", boxplot->title);
 
-  box_width = (geom.data_right - geom.data_left) / boxplot->n_boxes / 2.0;
+  box_width = (geom->data_right - geom->data_left) / boxplot->n_boxes / 2.0;
   for (i = 0; i < boxplot->n_boxes; i++)
     {
       const struct box *box = &boxplot->boxes[i];
-      const double box_centre = (i * 2 + 1) * box_width + geom.data_left;
-      boxplot_draw_box (lp, &geom, box_centre, box_width, box->bw, box->label);
+      const double box_centre = (i * 2 + 1) * box_width + geom->data_left;
+      boxplot_draw_box (lp, geom, box_centre, box_width, box->bw, box->label);
     }
-
-  chart_geometry_free (lp);
 }
 
 static void

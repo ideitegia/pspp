@@ -867,6 +867,7 @@ static void
 ascii_output_chart (struct outp_driver *this, const struct chart *chart)
 {
   struct ascii_driver_ext *x = this->ext;
+  struct chart_geometry geom;
   struct outp_text t;
   char *file_name;
   plPlotter *lp;
@@ -880,7 +881,9 @@ ascii_output_chart (struct outp_driver *this, const struct chart *chart)
                           NULL, &file_name, &lp))
     return;
   x->chart_cnt++;
-  chart_draw (chart, lp);
+  chart_geometry_init (lp, &geom, 1000.0, 1000.0);
+  chart_draw (chart, lp, &geom);
+  chart_geometry_free (lp);
   pl_deletepl_r (lp);
 
   /* Mention chart in output.

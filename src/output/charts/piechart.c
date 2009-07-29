@@ -77,10 +77,10 @@ piechart_create (const char *title, const struct slice *slices, int n_slices)
 }
 
 static void
-piechart_draw (const struct chart *chart, plPlotter *lp)
+piechart_draw (const struct chart *chart, plPlotter *lp,
+               struct chart_geometry *geom)
 {
   struct piechart *pie = (struct piechart *) chart;
-  struct chart_geometry geom;
   double total_magnitude;
   double left_label, right_label;
   double centre_x, centre_y;
@@ -88,18 +88,16 @@ piechart_draw (const struct chart *chart, plPlotter *lp)
   double angle;
   int i;
 
-  chart_geometry_init (lp, &geom);
+  left_label = geom->data_left + (geom->data_right - geom->data_left)/10.0;
+  right_label = geom->data_right - (geom->data_right - geom->data_left)/10.0;
 
-  left_label = geom.data_left + (geom.data_right - geom.data_left)/10.0;
-  right_label = geom.data_right - (geom.data_right - geom.data_left)/10.0;
+  centre_x = (geom->data_right + geom->data_left) / 2.0 ;
+  centre_y = (geom->data_top + geom->data_bottom) / 2.0 ;
 
-  centre_x = (geom.data_right + geom.data_left) / 2.0 ;
-  centre_y = (geom.data_top + geom.data_bottom) / 2.0 ;
+  radius = MIN (5.0 / 12.0 * (geom->data_top - geom->data_bottom),
+                1.0 / 4.0 * (geom->data_right - geom->data_left));
 
-  radius = MIN (5.0 / 12.0 * (geom.data_top - geom.data_bottom),
-                1.0 / 4.0 * (geom.data_right - geom.data_left));
-
-  chart_write_title (lp, &geom, "%s", pie->title);
+  chart_write_title (lp, geom, "%s", pie->title);
 
   total_magnitude = 0.0;
   for (i = 0; i < pie->n_slices; i++)
@@ -143,8 +141,6 @@ piechart_draw (const struct chart *chart, plPlotter *lp)
   /* Draw an outline to the pie */
   pl_filltype_r (lp,0);
   pl_fcircle_r (lp, centre_x, centre_y, radius);
-
-  chart_geometry_free (lp);
 }
 
 /* Fill a segment with the current fill colour */

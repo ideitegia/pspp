@@ -48,13 +48,14 @@ chart_init (struct chart *chart, const struct chart_class *class)
 }
 
 void
-chart_geometry_init (plPlotter *lp, struct chart_geometry *geom)
+chart_geometry_init (plPlotter *lp, struct chart_geometry *geom,
+                     double width, double length)
 {
   /* Start output page. */
   pl_openpl_r (lp);
 
   /* Set coordinate system. */
-  pl_fspace_r (lp, 0.0, 0.0, 1000.0, 1000.0);
+  pl_fspace_r (lp, 0.0, 0.0, width, length);
 
   /* Set line thickness. */
   pl_flinewidth_r (lp, 0.25);
@@ -67,15 +68,15 @@ chart_geometry_init (plPlotter *lp, struct chart_geometry *geom)
   pl_savestate_r(lp);
 
   /* Set default chartetry. */
-  geom->data_top = 900;
-  geom->data_right = 800;
-  geom->data_bottom = 120;
-  geom->data_left = 150;
-  geom->abscissa_top = 70;
-  geom->ordinate_right = 120;
-  geom->title_bottom = 920;
-  geom->legend_left = 810;
-  geom->legend_right = 1000;
+  geom->data_top = 0.900 * length;
+  geom->data_right = 0.800 * width;
+  geom->data_bottom = 0.120 * length;
+  geom->data_left = 0.150 * width;
+  geom->abscissa_top = 0.070 * length;
+  geom->ordinate_right = 0.120 * width;
+  geom->title_bottom = 0.920 * length;
+  geom->legend_left = 0.810 * width;
+  geom->legend_right = width;
   geom->font_size = 0;
 
   geom->fill_colour.red = 255;
@@ -100,9 +101,10 @@ chart_geometry_free (plPlotter *lp)
 }
 
 void
-chart_draw (const struct chart *chart, plPlotter *lp)
+chart_draw (const struct chart *chart, plPlotter *lp,
+            struct chart_geometry *geom)
 {
-  chart->class->draw (chart, lp);
+  chart->class->draw (chart, lp, geom);
 }
 
 struct chart *

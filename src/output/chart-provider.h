@@ -28,23 +28,6 @@ struct chart_colour
     uint8_t blue;
   };
 
-struct chart_class
-  {
-    void (*draw) (const struct chart *, plPlotter *);
-    void (*destroy) (struct chart *);
-  };
-
-struct chart
-  {
-    const struct chart_class *class;
-    int ref_cnt;
-  };
-
-void chart_init (struct chart *, const struct chart_class *);
-bool chart_create_file (const char *type, const char *file_name_tmpl,
-                        int number, plPlotterParams *,
-                        char **file_namep, plPlotter **lpp);
-
 /* The geometry of a chart. */
 struct chart_geometry
   {
@@ -76,7 +59,27 @@ struct chart_geometry
     double y_max;
   };
 
-void chart_geometry_init (plPlotter *, struct chart_geometry *);
+struct chart_class
+  {
+    void (*draw) (const struct chart *, plPlotter *, struct chart_geometry *);
+    void (*destroy) (struct chart *);
+  };
+
+struct chart
+  {
+    const struct chart_class *class;
+    int ref_cnt;
+  };
+
+void chart_init (struct chart *, const struct chart_class *);
+bool chart_create_file (const char *type, const char *file_name_tmpl,
+                        int number, plPlotterParams *,
+                        char **file_namep, plPlotter **lpp);
+
+void chart_geometry_init (plPlotter *, struct chart_geometry *,
+                          double width, double length);
 void chart_geometry_free (plPlotter *);
+
+void chart_draw (const struct chart *, plPlotter *, struct chart_geometry *);
 
 #endif /* output/chart-provider.h */

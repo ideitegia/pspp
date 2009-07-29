@@ -147,19 +147,17 @@ histogram_chart_create (const struct histogram *hist, const char *label,
 }
 
 static void
-histogram_chart_draw (const struct chart *chart, plPlotter *lp)
+histogram_chart_draw (const struct chart *chart, plPlotter *lp,
+                      struct chart_geometry *geom)
 {
   struct histogram_chart *h = (struct histogram_chart *) chart;
-  struct chart_geometry geom;
   int i;
   int bins;
 
-  chart_geometry_init (lp, &geom);
+  chart_write_title (lp, geom, _("HISTOGRAM"));
 
-  chart_write_title (lp, &geom, _("HISTOGRAM"));
-
-  chart_write_ylabel (lp, &geom, _("Frequency"));
-  chart_write_xlabel (lp, &geom, h->label);
+  chart_write_ylabel (lp, geom, _("Frequency"));
+  chart_write_xlabel (lp, geom, h->label);
 
   if (h->gsl_hist == NULL)
     {
@@ -169,12 +167,12 @@ histogram_chart_draw (const struct chart *chart, plPlotter *lp)
 
   bins = gsl_histogram_bins (h->gsl_hist);
 
-  chart_write_yscale (lp, &geom, 0, gsl_histogram_max_val (h->gsl_hist), 5);
+  chart_write_yscale (lp, geom, 0, gsl_histogram_max_val (h->gsl_hist), 5);
 
   for (i = 0; i < bins; i++)
-    hist_draw_bar (lp, &geom, h->gsl_hist, i);
+    hist_draw_bar (lp, geom, h->gsl_hist, i);
 
-  histogram_write_legend (lp, &geom, h->n, h->mean, h->stddev);
+  histogram_write_legend (lp, geom, h->n, h->mean, h->stddev);
 
   if (h->show_normal
       && h->n != SYSMIS && h->mean != SYSMIS && h->stddev != SYSMIS)
@@ -190,26 +188,24 @@ histogram_chart_draw (const struct chart *chart, plPlotter *lp)
       range = not_used - x_min;
       gsl_histogram_get_range (h->gsl_hist, bins - 1, &not_used, &x_max);
 
-      abscissa_scale = (geom.data_right - geom.data_left) / (x_max - x_min);
-      ordinate_scale = (geom.data_top - geom.data_bottom) /
+      abscissa_scale = (geom->data_right - geom->data_left) / (x_max - x_min);
+      ordinate_scale = (geom->data_top - geom->data_bottom) /
 	gsl_histogram_max_val (h->gsl_hist);
 
-      pl_move_r (lp, geom.data_left, geom.data_bottom);
-      for (d = geom.data_left;
-	   d <= geom.data_right;
-	   d += (geom.data_right - geom.data_left) / 100.0)
+      pl_move_r (lp, geom->data_left, geom->data_bottom);
+      for (d = geom->data_left;
+	   d <= geom->data_right;
+	   d += (geom->data_right - geom->data_left) / 100.0)
 	{
-	  const double x = (d - geom.data_left) / abscissa_scale + x_min;
+	  const double x = (d - geom->data_left) / abscissa_scale + x_min;
 	  const double y = h->n * range *
 	    gsl_ran_gaussian_pdf (x - h->mean, h->stddev);
 
-	  pl_fcont_r (lp,  d,  geom.data_bottom  + y * ordinate_scale);
+	  pl_fcont_r (lp,  d,  geom->data_bottom  + y * ordinate_scale);
 
 	}
       pl_endpath_r (lp);
     }
-
-  chart_geometry_free (lp);
 }
 
 

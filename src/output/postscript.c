@@ -607,6 +607,7 @@ static void
 ps_output_chart (struct outp_driver *this, const struct chart *chart)
 {
   struct ps_driver_ext *x = this->ext;
+  struct chart_geometry geom;
   plPlotterParams *params;
   int x_origin, y_origin;
   char buf[BUFSIZ];
@@ -644,7 +645,9 @@ ps_output_chart (struct outp_driver *this, const struct chart *chart)
     }
 
   /* Draw chart and free plotter. */
-  chart_draw (chart, lp);
+  chart_geometry_init (lp, &geom, 1000.0, 1000.0);
+  chart_draw (chart, lp, &geom);
+  chart_geometry_free (lp);
   pl_deletepl_r (lp);
 
   /* Write prologue for chart. */
