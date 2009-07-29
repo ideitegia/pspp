@@ -38,7 +38,6 @@
 #include <math/interaction.h>
 #include <string.h>
 #include <xalloc.h>
-#include <unistr.h>
 
 struct interaction_variable
 {
@@ -68,10 +67,11 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 {
   struct interaction_variable *result = NULL;
   size_t i;
-  int width = 0;
 
   if (n_vars > 0)
     {
+      int width = 0;
+
       result = xmalloc (sizeof (*result));
       result->n_alpha = 0;
       result->members = xnmalloc (n_vars, sizeof (*result->members));
@@ -82,11 +82,11 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 	  if (var_is_alpha (vars[i]))
 	    {
 	      result->n_alpha++;
-	      width = 1;
+	      width += var_get_width (vars[i]);
 	    }
 	}
+      result->intr = var_create_internal (0, width);
     }
-  result->intr = var_create_internal (0, width);
 
   return result;
 }
@@ -149,15 +149,16 @@ interaction_value_create (const struct interaction_variable *var, const union va
   
   if (var != NULL)
     {
-      uint8_t *val;
-      int val_width = 1;
+      int val_width = var_get_width (interaction_get_variable (var));
+      int offset;
 
       result = xmalloc (sizeof (*result));
       result->intr = var;
       n_vars = interaction_get_n_vars (var);
+
       value_init (&result->val, val_width);
-      val = value_str_rw (&result->val, val_width);
-      val[0] = '\0';
+
+      offset = 0;
       result->f = 1.0;
       for (i = 0; i < n_vars; i++)
 	{
@@ -165,7 +166,7 @@ interaction_value_create (const struct interaction_variable *var, const union va
 
 	  if (var_is_value_missing (member, vals[i], MV_ANY))
 	    {
-	      value_set_missing (&result->val, MAX_SHORT_STRING);
+	      value_set_missing (&result->val, val_width);
 	      result->f = SYSMIS;
 	      break;
 	    }
@@ -173,10 +174,10 @@ interaction_value_create (const struct interaction_variable *var, const union va
 	    {
 	      if (var_is_alpha (var->members[i]))
 		{
+		  char *val = value_str_rw (&result->val, val_width);
                   int w = var_get_width (var->members[i]);
-		  value_resize (result, val_width, val_width + w);
-		  u8_strncat (val, value_str (vals[i], w), w);
-		  val = value_str_rw (&result->val, val_width);
+                  memcpy (val + offset, value_str (vals[i], w), w);
+                  offset += w;
 		}
 	      else if (var_is_numeric (var->members[i]))
 		{
@@ -215,7 +216,7 @@ interaction_value_get (const struct interaction_value *val)
 /*
   Returns the numeric value of the non-zero entry for the vector
   corresponding to this interaction.  Do not use this function to get
-  the numeric value of a purley numeric interaction. Instead, use the
+  the numeric value of a purely numeric interaction. Instead, use the
   union value * returned by interaction_value_get.
  */
 double 
@@ -231,8 +232,7 @@ interaction_value_destroy (struct interaction_value *val)
 {
   if (val != NULL)
     {
-      size_t n_vars = interaction_get_n_vars (val->intr);
-      int val_width = n_vars * MAX_SHORT_STRING + 1;
+      int val_width = var_get_width (interaction_get_variable (val->intr));
 
       value_destroy (&val->val, val_width);
       free (val);
