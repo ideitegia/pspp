@@ -59,7 +59,7 @@ void chart_draw_marker (cairo_t *, double x, double y, enum marker_type,
                         double size);
 
 void chart_label (cairo_t *, int horz_justify, int vert_justify,
-                  const char *);
+                  double font_size, const char *);
 
 /* Draw a tick mark at position
    If label is non zero, then print it at the tick mark

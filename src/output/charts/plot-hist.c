@@ -50,7 +50,7 @@ histogram_write_legend (cairo_t *cr, const struct chart_geometry *geom,
     {
       char *buf = xasprintf ("N = %.2f", n);
       cairo_move_to (cr, geom->legend_left, y);
-      chart_label (cr, 'l', 'b', buf);
+      chart_label (cr, 'l', 'b', geom->font_size, buf);
       y += geom->font_size * 1.5;
       free (buf);
     }
@@ -59,7 +59,7 @@ histogram_write_legend (cairo_t *cr, const struct chart_geometry *geom,
     {
       char *buf = xasprintf ("Mean = %.1f", mean);
       cairo_move_to (cr,geom->legend_left, y);
-      chart_label (cr, 'l', 'b', buf);
+      chart_label (cr, 'l', 'b', geom->font_size, buf);
       y += geom->font_size * 1.5;
       free (buf);
     }
@@ -68,7 +68,7 @@ histogram_write_legend (cairo_t *cr, const struct chart_geometry *geom,
     {
       char *buf = xasprintf ("Std. Dev = %.2f", stddev);
       cairo_move_to (cr, geom->legend_left, y);
-      chart_label (cr, 'l', 'b', buf);
+      chart_label (cr, 'l', 'b', geom->font_size, buf);
       free (buf);
     }
 

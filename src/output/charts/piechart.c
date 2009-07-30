@@ -131,7 +131,8 @@ piechart_draw (const struct chart *chart, cairo_t *cr,
           cairo_line_to (cr, left_label, label_y);
           cairo_stroke (cr);
 	  cairo_move_to (cr, left_label, label_y + 5);
-	  chart_label (cr, 'l', 'x', ds_cstr (&pie->slices[i].label));
+	  chart_label (cr, 'l', 'x', geom->font_size,
+                       ds_cstr (&pie->slices[i].label));
 	}
       else
 	{
@@ -139,7 +140,8 @@ piechart_draw (const struct chart *chart, cairo_t *cr,
           cairo_line_to (cr, right_label, label_y);
           cairo_stroke (cr);
 	  cairo_move_to (cr, right_label, label_y + 5);
-	  chart_label (cr, 'r', 'x', ds_cstr (&pie->slices[i].label));
+	  chart_label (cr, 'r', 'x', geom->font_size,
+                       ds_cstr (&pie->slices[i].label));
 	}
 
       angle += segment_angle;

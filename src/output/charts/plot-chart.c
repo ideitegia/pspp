@@ -86,7 +86,7 @@ chart_draw_marker (cairo_t *cr, double x, double y, enum marker_type marker,
 }
 
 void
-chart_label (cairo_t *cr, int horz_justify, int vert_justify,
+chart_label (cairo_t *cr, int horz_justify, int vert_justify, double font_size,
              const char *string)
 {
   PangoFontDescription *desc;
@@ -99,7 +99,7 @@ chart_label (cairo_t *cr, int horz_justify, int vert_justify,
       cairo_new_path (cr);
       return;
     }
-  pango_font_description_set_absolute_size (desc, 15 * PANGO_SCALE);
+  pango_font_description_set_absolute_size (desc, font_size * PANGO_SCALE);
 
   cairo_save (cr);
   cairo_get_current_point (cr, &x, &y);
@@ -190,12 +190,12 @@ draw_tick (cairo_t *cr, const struct chart_geometry *geom,
       va_start (ap, label);
       s = xvasprintf (label, ap);
       if (orientation == TICK_ABSCISSA)
-        chart_label (cr, 'c', 't', s);
+        chart_label (cr, 'c', 't', geom->font_size, s);
       else if (orientation == TICK_ORDINATE)
         {
           if (fabs (position) < DBL_EPSILON)
 	    cairo_rel_move_to (cr, 0, 10);
-          chart_label (cr, 'r', 'c', s);
+          chart_label (cr, 'r', 'c', geom->font_size, s);
         }
       free (s);
       va_end (ap);
@@ -212,12 +212,11 @@ chart_write_title (cairo_t *cr, const struct chart_geometry *geom,
   char *s;
 
   cairo_save (cr);
-  // pl_ffontsize_r (cr, geom->font_size * 1.5); /* XXX */
   cairo_move_to (cr, geom->data_left, geom->title_bottom);
 
   va_start(ap, title);
   s = xvasprintf (title, ap);
-  chart_label (cr, 'l', 'x', s);
+  chart_label (cr, 'l', 'x', geom->font_size * 1.5, s);
   free (s);
   va_end (ap);
 
@@ -274,7 +273,7 @@ chart_write_xlabel (cairo_t *cr, const struct chart_geometry *geom,
                     const char *label)
 {
   cairo_move_to (cr, geom->data_left, geom->abscissa_top);
-  chart_label (cr, 'l', 't', label);
+  chart_label (cr, 'l', 't', geom->font_size, label);
 }
 
 /* Write the ordinate label */
@@ -286,6 +285,6 @@ chart_write_ylabel (cairo_t *cr, const struct chart_geometry *geom,
   cairo_translate (cr, -geom->data_bottom, -geom->ordinate_right);
   cairo_move_to (cr, 0, 0);
   cairo_rotate (cr, M_PI / 2.0);
-  chart_label (cr, 'l', 'x', label);
+  chart_label (cr, 'l', 'x', geom->font_size, label);
   cairo_restore (cr);
 }

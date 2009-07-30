@@ -96,7 +96,7 @@ draw_case (cairo_t *cr, const struct chart_geometry *geom, double centreline,
                      20);
 
   cairo_move_to (cr, centreline + 10, y);
-  chart_label (cr, 'l', 'c', ds_cstr (&outlier->label));
+  chart_label (cr, 'l', 'c', geom->font_size, ds_cstr (&outlier->label));
 }
 
 static void

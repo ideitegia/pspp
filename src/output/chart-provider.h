@@ -47,7 +47,7 @@ struct chart_geometry
     int legend_right ;
 
     /* Default font size for the plot. */
-    int font_size;
+    double font_size;
 
     struct chart_colour fill_colour;
 

@@ -62,7 +62,7 @@ chart_geometry_init (cairo_t *cr, struct chart_geometry *geom,
   geom->title_bottom = 0.920 * length;
   geom->legend_left = 0.810 * width;
   geom->legend_right = width;
-  geom->font_size = 10;
+  geom->font_size = 15.0;
 
   geom->fill_colour.red = 255;
   geom->fill_colour.green = 0;
