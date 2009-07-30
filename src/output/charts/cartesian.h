@@ -19,6 +19,7 @@
 #ifndef CARTESIAN_H
 #define CARTESIAN_H
 
+#include <cairo/cairo.h>
 #include <libpspp/compiler.h>
 #include <output/chart.h>
 
@@ -31,7 +32,7 @@ enum CHART_DIM
 struct chart_geometry;
 
 /* Plot a data point */
-void chart_datum(plPlotter *, const struct chart_geometry *,
+void chart_datum(cairo_t *, const struct chart_geometry *,
                  int dataset UNUSED, double x, double y);
 
 /* Draw a line with slope SLOPE and intercept INTERCEPT.
@@ -39,7 +40,7 @@ void chart_datum(plPlotter *, const struct chart_geometry *,
    If lim_dim is CHART_DIM_Y then the limit{1,2} are on the
    y axis otherwise the x axis
 */
-void chart_line(plPlotter *, const struct chart_geometry *,
+void chart_line(cairo_t *, const struct chart_geometry *,
                 double slope, double intercept,
 		double limit1, double limit2, enum CHART_DIM lim_dim);
 

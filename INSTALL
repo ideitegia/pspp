@@ -33,12 +33,13 @@ The following packages are required to install PSPP:
       If you don't have a version already, you can install GNU
       libiconv (http://www.gnu.org/software/libiconv/).
 
-The following package is required to enable PSPP's graphing features.
-If you cannot arrange to install it, you must run `configure' with
---without-libplot.
+The following packages are required to enable PSPP's graphing
+features.  If you cannot arrange to install them, you must run
+`configure' with --without-cairo.
 
-    * libplot, from GNU plotutils
-      (http://www.gnu.org/software/plotutils/).
+    * Cairo (http://cairographics.org/), version 1.5 or later.
+
+    * Pango (http://www.pango.org/), version 1.22 or later.
 
 The following packages are required to enable PSPPIRE, the graphical
 user interface for PSPP.  If you cannot install them or do not wish to
@@ -209,13 +210,16 @@ suffix on their names by giving `configure' the  option
 Optional Features
 =================
 
-`--without-libplot'
-    Don't compile in support for charts (using libplot).  This is
-    useful if your system doesn't have the libplot library.
+`--without-cairo'
+    Don't compile in support for charts (using Cairo and Pango).  This
+    is useful if your system lacks these libraries.
 
 `--without-gui'
     Don't build the PSPPIRE gui.  Use this option if you only want to
     build the command line version of PSPP.
+
+    Cairo and Pango required to build the GUI, so --without-cairo
+    implies --without-gui.
 
 `--with-gui-tools'
     Build the gui developer tools.  There is no reason to use this

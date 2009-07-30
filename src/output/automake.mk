@@ -12,9 +12,6 @@ src_output_liboutput_la_SOURCES = \
 	src/output/charts/box-whisker.h \
 	src/output/charts/cartesian.c \
 	src/output/charts/cartesian.h \
-	src/output/charts/libplot-dummy.c \
-	src/output/charts/libplot-dummy.h \
-	src/output/charts/libplot.h \
 	src/output/charts/np-plot.c \
 	src/output/charts/np-plot.h \
 	src/output/charts/piechart.c \

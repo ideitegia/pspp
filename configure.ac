@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Initialize.
 AC_PREREQ(2.60)
-AC_INIT([pspp],[0.7.2],[bug-gnu-pspp@gnu.org])
+AC_INIT([pspp],[0.7.3],[bug-gnu-pspp@gnu.org])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
@@ -36,36 +36,39 @@ AM_GNU_GETTEXT_VERSION([0.17])
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
 AC_SEARCH_LIBS([sin], [m])
-PSPP_LIBPLOT
 PSPP_LC_PAPER
 
 
 AC_ARG_VAR([PSPP_LDFLAGS], [linker flags to be used for linking the pspp binary only])
 AC_ARG_VAR([PSPPIRE_LDFLAGS], [linker flags to be used for linking the psppire binary only])
 
-
-AC_ARG_WITH(
-  gui, 
-  [AS_HELP_STRING([--without-gui], [don't build the PSPPIRE gui])])
-
-required_gtk_version=2.12
-
-if test x"$with_gui" != x"no" ; then 
-  PKG_CHECK_MODULES(GTK, gtk+-2.0 >= $required_gtk_version,,
-    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 v$required_gtk_version or later (or use --without-gui)])])
+# Support for Cairo and Pango.
+AC_ARG_WITH([cairo],
+  [AS_HELP_STRING(
+    [--without-cairo], 
+    [Don't build support for charts (using Cairo and Pango);
+     implies --without-gui])],
+  [], [with_cairo=yes])
+AM_CONDITIONAL([HAVE_CAIRO], [test "$with_cairo" != no])
+if test "$with_cairo" != no; then
+  PKG_CHECK_MODULES([CAIRO], [cairo >= 1.5 pango >= 1.22 pangocairo], 
+    [CPPFLAGS="$CPPFLAGS $CAIRO_CFLAGS"
+     AC_DEFINE([HAVE_CAIRO], 1, 
+       [Define to 1 if Cairo and Pango are available.])],
+    [PSPP_REQUIRED_PREREQ([cairo 1.5 or later and pango 1.22 or later (or use --without-cairo)])])
 fi
-AM_CONDITIONAL(WITHGUI, test x"$with_gui" != x"no")
 
-
-PKG_CHECK_MODULES([CAIRO], [cairo >= 1.5 pango pangocairo], 
-   [HAVE_CAIRO=yes
-    CPPFLAGS="$CPPFLAGS $CAIRO_CFLAGS"
-    LIBS="$LIBPLOT_LIBS $LIBS"
-    AC_DEFINE([HAVE_CAIRO], 1,
-              [Define to 1 if Cairo and Pango are available.])],
-   [HAVE_CAIRO=no
-    PSPP_OPTIONAL_PREREQ([cairo 1.5 or later])])
-AM_CONDITIONAL([HAVE_CAIRO], [test $HAVE_CAIRO = yes])
+# Support for GUI.
+AC_ARG_WITH([gui], 
+  [AS_HELP_STRING([--without-gui], 
+                  [Don't build the PSPPIRE GUI (using GTK+)])],
+  [], [with_gui=yes])
+AM_CONDITIONAL([HAVE_GUI], 
+               [test "$with_cairo" != no && test "$with_gui" != "no"])
+if test "$with_cairo" != no && test "$with_gui" != "no"; then
+  PKG_CHECK_MODULES([GTK], [gtk+-2.0 >= 2.12], [],
+    [PSPP_REQUIRED_PREREQ([gtk+ 2.0 version 2.12 or later (or use --without-gui)])])
+fi
 
 dnl Checks needed for psql reader
 

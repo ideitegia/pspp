@@ -2,7 +2,7 @@
 
 include $(top_srcdir)/lib/linreg/automake.mk
 
-if WITHGUI
+if HAVE_GUI
 include $(top_srcdir)/lib/gtk-contrib/automake.mk
 endif
 

@@ -18,13 +18,17 @@
 
 #include <output/charts/plot-chart.h>
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <stdio.h>
-#include <float.h>
 #include <assert.h>
+#include <float.h>
 #include <math.h>
+#include <pango/pango-font.h>
+#include <pango/pango-layout.h>
+#include <pango/pango.h>
+#include <pango/pangocairo.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <libpspp/assertion.h>
 #include <libpspp/str.h>
@@ -48,77 +52,176 @@ const struct chart_colour data_colour[N_CHART_COLOURS] =
     { 255, 192, 203 },          /* pink */
   };
 
+void
+chart_draw_marker (cairo_t *cr, double x, double y, enum marker_type marker,
+                   double size)
+{
+  cairo_save (cr);
+  cairo_translate (cr, x, y);
+  cairo_scale (cr, size / 2.0, size / 2.0);
+  cairo_set_line_width (cr, cairo_get_line_width (cr) / (size / 2.0));
+  switch (marker)
+    {
+    case MARKER_CIRCLE:
+      cairo_arc (cr, 0, 0, 1.0, 0, 2 * M_PI);
+      cairo_stroke (cr);
+      break;
 
+    case MARKER_ASTERISK:
+      cairo_move_to (cr, 0, -1.0); /* | */
+      cairo_line_to (cr, 0, 1.0);
+      cairo_move_to (cr, -M_SQRT1_2, -M_SQRT1_2); /* / */
+      cairo_line_to (cr, M_SQRT1_2, M_SQRT1_2);
+      cairo_move_to (cr, -M_SQRT1_2, M_SQRT1_2); /* \ */
+      cairo_line_to (cr, M_SQRT1_2, -M_SQRT1_2);
+      cairo_stroke (cr);
+      break;
+
+    case MARKER_SQUARE:
+      cairo_rectangle (cr, -1.0, -1.0, 2.0, 2.0);
+      cairo_stroke (cr);
+      break;
+    }
+  cairo_restore (cr);
+}
+
+void
+chart_label (cairo_t *cr, int horz_justify, int vert_justify,
+             const char *string)
+{
+  PangoFontDescription *desc;
+  PangoLayout *layout;
+  double x, y;
+
+  desc = pango_font_description_from_string ("sans serif");
+  if (desc == NULL)
+    {
+      cairo_new_path (cr);
+      return;
+    }
+  pango_font_description_set_absolute_size (desc, 15 * PANGO_SCALE);
+
+  cairo_save (cr);
+  cairo_get_current_point (cr, &x, &y);
+  cairo_translate (cr, x, y);
+  cairo_move_to (cr, 0, 0);
+  cairo_scale (cr, 1.0, -1.0);
+
+  layout = pango_cairo_create_layout (cr);
+  pango_layout_set_font_description (layout, desc);
+  pango_layout_set_text (layout, string, -1);
+  if (horz_justify != 'l')
+    {
+      int width_pango;
+      double width;
+
+      pango_layout_get_size (layout, &width_pango, NULL);
+      width = (double) width_pango / PANGO_SCALE;
+      if (horz_justify == 'r')
+        cairo_rel_move_to (cr, -width, 0);
+      else
+        cairo_rel_move_to (cr, -width / 2.0, 0);
+    }
+  if (vert_justify != 't')
+    {
+      int height_pango;
+      double height;
+
+      pango_layout_get_size (layout, NULL, &height_pango);
+      height = (double) height_pango / PANGO_SCALE;
+      if (vert_justify == 'b' || vert_justify == 'x')
+        cairo_rel_move_to (cr, 0, -height);
+      else if (vert_justify == 'c')
+        cairo_rel_move_to (cr, 0, -height / 2.0);
+    }
+  pango_cairo_show_layout (cr, layout);
+  g_object_unref (layout);
+
+  cairo_restore (cr);
+
+  cairo_new_path (cr);
+
+  pango_font_description_free (desc);
+}
 
 /* Draw a tick mark at position
    If label is non zero, then print it at the tick mark
 */
 void
-draw_tick (plPlotter *lp, const struct chart_geometry *geom,
+draw_tick (cairo_t *cr, const struct chart_geometry *geom,
            enum tick_orientation orientation,
            double position,
            const char *label, ...)
 {
   const int tickSize = 10;
+  double x, y;
 
-  pl_savestate_r (lp);
-  pl_move_r (lp, geom->data_left, geom->data_bottom);
+  cairo_move_to (cr, geom->data_left, geom->data_bottom);
 
   if (orientation == TICK_ABSCISSA)
-    pl_flinerel_r (lp, position, 0, position, -tickSize);
+    {
+      cairo_rel_move_to (cr, position, 0);
+      cairo_rel_line_to (cr, 0, -tickSize);
+    }
   else if (orientation == TICK_ORDINATE)
-    pl_flinerel_r (lp, 0, position, -tickSize, position);
+    {
+      cairo_rel_move_to (cr, 0, position);
+      cairo_rel_line_to (cr, -tickSize, 0);
+    }
   else
     NOT_REACHED ();
+  cairo_get_current_point (cr, &x, &y);
+
+  cairo_stroke (cr);
 
   if (label != NULL)
     {
       va_list ap;
       char *s;
 
+      cairo_move_to (cr, x, y);
+
       va_start (ap, label);
       s = xvasprintf (label, ap);
       if (orientation == TICK_ABSCISSA)
-        pl_alabel_r (lp, 'c', 't', s);
+        chart_label (cr, 'c', 't', s);
       else if (orientation == TICK_ORDINATE)
         {
           if (fabs (position) < DBL_EPSILON)
-	    pl_moverel_r (lp, 0, 10);
-          pl_alabel_r (lp, 'r', 'c', s);
+	    cairo_rel_move_to (cr, 0, 10);
+          chart_label (cr, 'r', 'c', s);
         }
       free (s);
       va_end (ap);
     }
-
-  pl_restorestate_r (lp);
 }
 
 
 /* Write the title on a chart*/
 void
-chart_write_title (plPlotter *lp, const struct chart_geometry *geom,
+chart_write_title (cairo_t *cr, const struct chart_geometry *geom,
                    const char *title, ...)
 {
   va_list ap;
   char *s;
 
-  pl_savestate_r (lp);
-  pl_ffontsize_r (lp, geom->font_size * 1.5);
-  pl_move_r (lp, geom->data_left, geom->title_bottom);
+  cairo_save (cr);
+  // pl_ffontsize_r (cr, geom->font_size * 1.5); /* XXX */
+  cairo_move_to (cr, geom->data_left, geom->title_bottom);
 
   va_start(ap, title);
   s = xvasprintf (title, ap);
-  pl_alabel_r (lp, 0, 0, s);
+  chart_label (cr, 'l', 'x', s);
   free (s);
   va_end (ap);
 
-  pl_restorestate_r (lp);
+  cairo_restore (cr);
 }
 
 
 /* Set the scale for the abscissa */
 void
-chart_write_xscale (plPlotter *lp, struct chart_geometry *geom,
+chart_write_xscale (cairo_t *cr, struct chart_geometry *geom,
                     double min, double max, int ticks)
 {
   double x;
@@ -132,14 +235,14 @@ chart_write_xscale (plPlotter *lp, struct chart_geometry *geom,
     fabs(geom->x_max - geom->x_min);
 
   for (x = geom->x_min; x <= geom->x_max; x += tick_interval)
-    draw_tick (lp, geom, TICK_ABSCISSA,
+    draw_tick (cr, geom, TICK_ABSCISSA,
                (x - geom->x_min) * geom->abscissa_scale, "%g", x);
 }
 
 
 /* Set the scale for the ordinate */
 void
-chart_write_yscale (plPlotter *lp, struct chart_geometry *geom,
+chart_write_yscale (cairo_t *cr, struct chart_geometry *geom,
                     double smin, double smax, int ticks)
 {
   double y;
@@ -155,29 +258,28 @@ chart_write_yscale (plPlotter *lp, struct chart_geometry *geom,
      / fabs (geom->y_max - geom->y_min));
 
   for (y = geom->y_min; y <= geom->y_max; y += tick_interval)
-    draw_tick (lp, geom, TICK_ORDINATE,
+    draw_tick (cr, geom, TICK_ORDINATE,
 	       (y - geom->y_min) * geom->ordinate_scale, "%g", y);
 }
 
 /* Write the abscissa label */
 void
-chart_write_xlabel (plPlotter *lp, const struct chart_geometry *geom,
+chart_write_xlabel (cairo_t *cr, const struct chart_geometry *geom,
                     const char *label)
 {
-  pl_savestate_r (lp);
-  pl_move_r (lp, geom->data_left, geom->abscissa_top);
-  pl_alabel_r (lp, 0, 't', label);
-  pl_restorestate_r (lp);
+  cairo_move_to (cr, geom->data_left, geom->abscissa_top);
+  chart_label (cr, 'l', 't', label);
 }
 
 /* Write the ordinate label */
 void
-chart_write_ylabel (plPlotter *lp, const struct chart_geometry *geom,
+chart_write_ylabel (cairo_t *cr, const struct chart_geometry *geom,
                     const char *label)
 {
-  pl_savestate_r (lp);
-  pl_move_r (lp, geom->data_bottom, geom->ordinate_right);
-  pl_textangle_r (lp, 90);
-  pl_alabel_r (lp, 0, 0, label);
-  pl_restorestate_r(lp);
+  cairo_save (cr);
+  cairo_translate (cr, -geom->data_bottom, -geom->ordinate_right);
+  cairo_move_to (cr, 0, 0);
+  cairo_rotate (cr, M_PI / 2.0);
+  chart_label (cr, 'l', 'x', label);
+  cairo_restore (cr);
 }

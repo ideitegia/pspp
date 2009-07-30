@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include <assert.h>
+#include <cairo/cairo.h>
 
 #include <libpspp/misc.h>
 #include <math/chart-geometry.h>
@@ -86,26 +87,20 @@ boxplot_get_chart (struct boxplot *boxplot)
  * at CENTRELINE
  */
 static void
-draw_case (plPlotter *lp, const struct chart_geometry *geom, double centreline,
+draw_case (cairo_t *cr, const struct chart_geometry *geom, double centreline,
 	   const struct outlier *outlier)
 {
+  double y = geom->data_bottom + (outlier->value - geom->y_min) * geom->ordinate_scale;
+  chart_draw_marker (cr, centreline, y,
+                     outlier->extreme ? MARKER_ASTERISK : MARKER_CIRCLE,
+                     20);
 
-#define MARKER_CIRCLE 4
-#define MARKER_STAR 3
-
-  pl_fmarker_r(lp,
-	       centreline,
-	       geom->data_bottom + (outlier->value - geom->y_min) * geom->ordinate_scale,
-	       outlier->extreme ? MARKER_STAR : MARKER_CIRCLE,
-	       20);
-
-  pl_moverel_r(lp, 10,0);
-
-  pl_alabel_r(lp, 'l', 'c', ds_cstr (&outlier->label));
+  cairo_move_to (cr, centreline + 10, y);
+  chart_label (cr, 'l', 'c', ds_cstr (&outlier->label));
 }
 
 static void
-boxplot_draw_box (plPlotter *lp, const struct chart_geometry *geom,
+boxplot_draw_box (cairo_t *cr, const struct chart_geometry *geom,
                   double box_centre,
                   double box_width,
                   const struct box_whisker *bw,
@@ -138,75 +133,68 @@ boxplot_draw_box (plPlotter *lp, const struct chart_geometry *geom,
 
   top_whisker = geom->data_bottom + (whisker[1] - geom->y_min) * geom->ordinate_scale;
 
-  pl_savestate_r(lp);
-
   /* Draw the box */
-  pl_savestate_r (lp);
-  pl_fillcolor_r (lp,
-                  geom->fill_colour.red * 257,
-                  geom->fill_colour.green * 257,
-                  geom->fill_colour.blue * 257);
-  pl_filltype_r (lp,1);
-  pl_fbox_r (lp,
-	    box_left,
-	    box_bottom,
-	    box_right,
-	    box_top);
-
-  pl_restorestate_r (lp);
+  cairo_rectangle (cr,
+                   box_left,
+                   box_bottom,
+                   box_right - box_left,
+                   box_top - box_bottom);
+  cairo_save (cr);
+  cairo_set_source_rgb (cr,
+                        geom->fill_colour.red / 255.0,
+                        geom->fill_colour.green / 255.0,
+                        geom->fill_colour.blue / 255.0);
+  cairo_fill (cr);
+  cairo_restore (cr);
+  cairo_stroke (cr);
 
   /* Draw the median */
-  pl_savestate_r (lp);
-  pl_linewidth_r (lp, 5);
-  pl_fline_r (lp,
-	     box_left,
-	     geom->data_bottom + (hinge[1] - geom->y_min) * geom->ordinate_scale,
-	     box_right,
-	     geom->data_bottom + (hinge[1] - geom->y_min) * geom->ordinate_scale);
-  pl_restorestate_r (lp);
+  cairo_save (cr);
+  cairo_set_line_width (cr, cairo_get_line_width (cr) * 5);
+  cairo_move_to (cr,
+                 box_left,
+                 geom->data_bottom + (hinge[1] - geom->y_min) * geom->ordinate_scale);
+  cairo_line_to (cr,
+                 box_right,
+                 geom->data_bottom + (hinge[1] - geom->y_min) * geom->ordinate_scale);
+  cairo_stroke (cr);
+  cairo_restore (cr);
 
   /* Draw the bottom whisker */
-  pl_fline_r (lp,
-	     box_left,
-	     bottom_whisker,
-	     box_right,
-	     bottom_whisker);
+  cairo_move_to (cr, box_left, bottom_whisker);
+  cairo_line_to (cr, box_right, bottom_whisker);
+  cairo_stroke (cr);
 
   /* Draw top whisker */
-  pl_fline_r (lp,
-	     box_left,
-	     top_whisker,
-	     box_right,
-	     top_whisker);
-
+  cairo_move_to (cr, box_left, top_whisker);
+  cairo_line_to (cr, box_right, top_whisker);
+  cairo_stroke (cr);
 
   /* Draw centre line.
      (bottom half) */
-  pl_fline_r (lp,
-	     box_centre, bottom_whisker,
-	     box_centre, box_bottom);
+  cairo_move_to (cr, box_centre, bottom_whisker);
+  cairo_line_to (cr, box_centre, box_bottom);
+  cairo_stroke (cr);
 
   /* (top half) */
-  pl_fline_r (lp,
-	     box_centre, top_whisker,
-	     box_centre, box_top);
+  cairo_move_to (cr, box_centre, top_whisker);
+  cairo_line_to (cr, box_centre, box_top);
+  cairo_stroke (cr);
 
   outliers = box_whisker_outliers (bw);
   for (ll = ll_head (outliers);
        ll != ll_null (outliers); ll = ll_next (ll))
     {
       const struct outlier *outlier = ll_data (ll, struct outlier, ll);
-      draw_case (lp, geom, box_centre, outlier);
+      draw_case (cr, geom, box_centre, outlier);
     }
 
   /* Draw  tick  mark on x axis */
-  draw_tick(lp, geom, TICK_ABSCISSA, box_centre - geom->data_left, "%s", name);
-
-  pl_restorestate_r(lp);
+  draw_tick(cr, geom, TICK_ABSCISSA, box_centre - geom->data_left, "%s", name);
 }
 
 static void
-boxplot_draw_yscale (plPlotter *lp, struct chart_geometry *geom,
+boxplot_draw_yscale (cairo_t *cr, struct chart_geometry *geom,
                      double y_max, double y_min)
 {
   double y_tick;
@@ -224,31 +212,28 @@ boxplot_draw_yscale (plPlotter *lp, struct chart_geometry *geom,
   geom->ordinate_scale = (fabs (geom->data_top - geom->data_bottom)
                           / fabs (geom->y_max - geom->y_min));
 
-  /* Move to data bottom-left */
-  pl_move_r (lp, geom->data_left, geom->data_bottom);
-
   for (d = geom->y_min; d <= geom->y_max; d += y_tick)
-    draw_tick (lp, geom, TICK_ORDINATE,
+    draw_tick (cr, geom, TICK_ORDINATE,
                (d - geom->y_min) * geom->ordinate_scale, "%g", d);
 }
 
 static void
-boxplot_chart_draw (const struct chart *chart, plPlotter *lp,
+boxplot_chart_draw (const struct chart *chart, cairo_t *cr,
                     struct chart_geometry *geom)
 {
   const struct boxplot *boxplot = (struct boxplot *) chart;
   double box_width;
   size_t i;
 
-  boxplot_draw_yscale (lp, geom, boxplot->y_max, boxplot->y_min);
-  chart_write_title (lp, geom, "%s", boxplot->title);
+  boxplot_draw_yscale (cr, geom, boxplot->y_max, boxplot->y_min);
+  chart_write_title (cr, geom, "%s", boxplot->title);
 
   box_width = (geom->data_right - geom->data_left) / boxplot->n_boxes / 2.0;
   for (i = 0; i < boxplot->n_boxes; i++)
     {
       const struct box *box = &boxplot->boxes[i];
       const double box_centre = (i * 2 + 1) * box_width + geom->data_left;
-      boxplot_draw_box (lp, geom, box_centre, box_width, box->bw, box->label);
+      boxplot_draw_box (cr, geom, box_centre, box_width, box->bw, box->label);
     }
 }
 

@@ -1,4 +1,4 @@
-dnl Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+dnl Copyright (C) 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -33,40 +33,6 @@ AC_DEFUN([PSPP_PERL],
   AC_SUBST([PERL])dnl
   if test "$PERL" != no && $PERL -e 'require 5.005_03;'; then :; else
     PSPP_REQUIRED_PREREQ([Perl 5.005_03 (or later)])
-  fi
-])
-
-dnl Check that libplot is available.
-AC_DEFUN([PSPP_LIBPLOT],
-[
-  AC_ARG_WITH(
-    libplot, 
-    [AS_HELP_STRING([--without-libplot],
-                    [don't compile in support of charts (using libplot)])])
-
-  if test x"$with_libplot" != x"no" ; then 
-    # Check whether we can link against libplot without any extra libraries.
-    AC_CHECK_LIB(plot, pl_newpl_r, [LIBPLOT_LIBS="-lplot"])
-
-    # Check whether we can link against libplot if we also link X.
-    if test x"$LIBPLOT_LIBS" = x""; then
-      AC_PATH_XTRA
-      extra_libs="-lXaw -lXmu -lXt $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS -lm"
-      AC_CHECK_LIB(plot, pl_newpl_r,
-      		   [LIBPLOT_LIBS="-lplot $extra_libs"
-                    LDFLAGS="$LDFLAGS $X_LIBS"],,
-      		   [$extra_libs])
-    fi
-
-    # Still can't link?
-    if test x"$LIBPLOT_LIBS" = x""; then
-      PSPP_REQUIRED_PREREQ([libplot (or use --without-libplot)])
-    fi
-
-    # Set up to make everything work.
-    LIBS="$LIBPLOT_LIBS $LIBS"
-    AC_DEFINE(HAVE_LIBPLOT, 1,
-              [Define to 1 if you have the `libplot' library (-lplot).])
   fi
 ])
 

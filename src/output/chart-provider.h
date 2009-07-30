@@ -17,6 +17,7 @@
 #ifndef OUTPUT_CHART_PROVIDER_H
 #define OUTPUT_CHART_PROVIDER_H 1
 
+#include <cairo/cairo.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <output/chart.h>
@@ -45,7 +46,7 @@ struct chart_geometry
     int legend_left ;
     int legend_right ;
 
-    /* Default font size for the plot (if zero, then use plotter default) */
+    /* Default font size for the plot. */
     int font_size;
 
     struct chart_colour fill_colour;
@@ -61,7 +62,7 @@ struct chart_geometry
 
 struct chart_class
   {
-    void (*draw) (const struct chart *, plPlotter *, struct chart_geometry *);
+    void (*draw) (const struct chart *, cairo_t *, struct chart_geometry *);
     void (*destroy) (struct chart *);
   };
 
@@ -72,14 +73,13 @@ struct chart
   };
 
 void chart_init (struct chart *, const struct chart_class *);
-bool chart_create_file (const char *type, const char *file_name_tmpl,
-                        int number, plPlotterParams *,
-                        char **file_namep, plPlotter **lpp);
 
-void chart_geometry_init (plPlotter *, struct chart_geometry *,
+void chart_geometry_init (cairo_t *, struct chart_geometry *,
                           double width, double length);
-void chart_geometry_free (plPlotter *);
+void chart_geometry_free (cairo_t *);
 
-void chart_draw (const struct chart *, plPlotter *, struct chart_geometry *);
+void chart_draw (const struct chart *, cairo_t *, struct chart_geometry *);
+char *chart_draw_png (const struct chart *, const char *file_name_template,
+                      int number);
 
 #endif /* output/chart-provider.h */

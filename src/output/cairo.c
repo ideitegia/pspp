@@ -22,7 +22,7 @@
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
 #include <output/afm.h>
-#include <output/chart.h>
+#include <output/chart-provider.h>
 #include <output/manager.h>
 #include <output/output.h>
 
@@ -57,9 +57,9 @@
    top-margin=0.5in
    bottom-margin=0.5in
 
-   prop-font=Times-Roman
-   emph-font=Times-Italic
-   fixed-font=Courier
+   prop-font=serif
+   emph-font=serif italic
+   fixed-font=monospace
    font-size=10000
 
    line-gutter=1pt
@@ -502,6 +502,27 @@ xr_close_page (struct outp_driver *this)
   struct xr_driver_ext *x = this->ext;
   cairo_show_page (x->cairo);
 }
+
+static void
+xr_output_chart (struct outp_driver *this, const struct chart *chart)
+{
+  struct xr_driver_ext *x = this->ext;
+  struct chart_geometry geom;
+
+  outp_eject_page (this);
+  outp_open_page (this);
+
+  cairo_save (x->cairo);
+  cairo_translate (x->cairo, 0.0, xr_to_pt (this->length));
+  cairo_scale (x->cairo, 1.0, -1.0);
+  chart_geometry_init (x->cairo, &geom,
+                       xr_to_pt (this->width), xr_to_pt (this->length));
+  chart_draw (chart, x->cairo, &geom);
+  chart_geometry_free (x->cairo);
+  cairo_restore (x->cairo);
+
+  outp_close_page (this);
+}
 
 /* Draws a line from (x0,y0) to (x1,y1). */
 static void
@@ -880,7 +901,7 @@ const struct outp_class cairo_class =
   xr_close_page,
   NULL,
 
-  NULL,
+  xr_output_chart,
 
   NULL,
 

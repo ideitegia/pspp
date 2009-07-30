@@ -45,7 +45,7 @@
    output-file="pspp.list"
    append=no|yes                If output-file exists, append to it?
    chart-files="pspp-#.png"     Name used for charts.
-   chart-type=png               Format of charts (use "none" to disable).
+   chart-type=png|none
 
    paginate=on|off              Formfeeds are desired?
    tab-width=8                  Width of a tab; 0 to not use tabs.
@@ -109,7 +109,7 @@ struct ascii_driver_ext
     bool squeeze_blank_lines;   /* Squeeze multiple blank lines into one? */
     enum emphasis_style emphasis; /* How to emphasize text. */
     int tab_width;		/* Width of a tab; 0 not to use tabs. */
-    const char *chart_type;     /* Type of charts to output; NULL for none. */
+    bool enable_charts;         /* Enable charts? */
     const char *chart_file_name; /* Name of files used for charts. */
 
     bool auto_width;            /* Use viewwidth as page width? */
@@ -160,7 +160,7 @@ ascii_open_driver (const char *name, int types, struct substring options)
   x->emphasis = EMPH_BOLD;
   x->tab_width = 8;
   x->chart_file_name = pool_strdup (x->pool, "pspp-#.png");
-  x->chart_type = pool_strdup (x->pool, "png");
+  x->enable_charts = true;
   x->auto_width = false;
   x->auto_length = false;
   x->page_length = 66;
@@ -485,10 +485,16 @@ handle_option (void *this_, const char *key,
             error (0, 0, _("`chart-files' value must contain `#'"));
           break;
         case 2:
-          if (value[0] != '\0')
-            x->chart_type = pool_strdup (x->pool, value);
+          if (!strcmp (value, "png"))
+            x->enable_charts = true;
+          else if (!strcmp (value, "none"))
+            x->enable_charts = false;
           else
-            x->chart_type = NULL;
+            {
+              error (0, 0,
+                     _("ascii: `png' or `none' expected for `chart-type'"));
+              return false;
+            }
           break;
         case 3:
           x->init = pool_strdup (x->pool, value);
@@ -867,24 +873,12 @@ static void
 ascii_output_chart (struct outp_driver *this, const struct chart *chart)
 {
   struct ascii_driver_ext *x = this->ext;
-  struct chart_geometry geom;
   struct outp_text t;
   char *file_name;
-  plPlotter *lp;
   char *text;
 
-  if (x->chart_type == NULL)
-    return;
-
-  /* Draw chart in separate file. */
-  if (!chart_create_file (x->chart_type, x->chart_file_name, x->chart_cnt,
-                          NULL, &file_name, &lp))
-    return;
-  x->chart_cnt++;
-  chart_geometry_init (lp, &geom, 1000.0, 1000.0);
-  chart_draw (chart, lp, &geom);
-  chart_geometry_free (lp);
-  pl_deletepl_r (lp);
+  /* Draw chart into separate file */
+  file_name = chart_draw_png (chart, x->chart_file_name, x->chart_cnt++);
 
   /* Mention chart in output.
      First advance current position. */

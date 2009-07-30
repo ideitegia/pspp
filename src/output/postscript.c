@@ -604,80 +604,6 @@ ps_close_page (struct outp_driver *this)
 }
 
 static void
-ps_output_chart (struct outp_driver *this, const struct chart *chart)
-{
-  struct ps_driver_ext *x = this->ext;
-  struct chart_geometry geom;
-  plPlotterParams *params;
-  int x_origin, y_origin;
-  char buf[BUFSIZ];
-  char *page_size;
-  plPlotter *lp;
-  FILE *file;
-  int size;
-
-  /* Create temporary file for chart. */
-  file = tmpfile ();
-  if (file == NULL)
-    {
-      error (0, errno, _("failed to create temporary file"));
-      return;
-    }
-
-  /* Create plotter for chart. */
-  size = this->width < this->length ? this->width : this->length;
-  x_origin = x->left_margin + (size - this->width) / 2;
-  y_origin = x->bottom_margin + (size - this->length) / 2;
-  page_size = xasprintf ("a,xsize=%.3f,ysize=%.3f,xorigin=%.3f,yorigin=%.3f",
-                         (double) size / PSUS, (double) size / PSUS,
-                         (double) x_origin / PSUS, (double) y_origin / PSUS);
-
-  params = pl_newplparams ();
-  pl_setplparam (params, "PAGESIZE", page_size);
-  free (page_size);
-  lp = pl_newpl_r ("ps", 0, file, stderr, params);
-  pl_deleteplparams (params);
-
-  if (lp == NULL)
-    {
-      fclose (file);
-      return;
-    }
-
-  /* Draw chart and free plotter. */
-  chart_geometry_init (lp, &geom, 1000.0, 1000.0);
-  chart_draw (chart, lp, &geom);
-  chart_geometry_free (lp);
-  pl_deletepl_r (lp);
-
-  /* Write prologue for chart. */
-  outp_eject_page (this);
-  fprintf (x->file,
-           "/sp save def\n"
-           "%d %d translate 1000 dup scale\n"
-           "userdict begin\n"
-           "/showpage { } def\n"
-           "0 setgray 0 setlinecap 1 setlinewidth\n"
-           "0 setlinejoin 10 setmiterlimit [ ] 0 setdash newpath clear\n"
-           "%%%%BeginDocument: %d\n",
-           -x->left_margin, -x->bottom_margin,
-           x->doc_num++);
-
-  /* Copy chart into output file. */
-  rewind (file);
-  while (fwrite (buf, 1, fread (buf, 1, sizeof buf, file), x->file))
-    continue;
-  fclose (file);
-
-  /* Write epilogue for chart. */
-  fputs ("%%EndDocument\n"
-         "end\n"
-         "sp restore\n",
-         x->file);
-  outp_close_page (this);
-}
-
-static void
 ps_submit (struct outp_driver *this UNUSED, struct som_entity *s)
 {
   switch (s->type)
@@ -1448,7 +1374,7 @@ const struct outp_class postscript_class =
   ps_close_page,
   NULL,
 
-  ps_output_chart,
+  NULL,                         /* output_chart */
 
   ps_submit,
 

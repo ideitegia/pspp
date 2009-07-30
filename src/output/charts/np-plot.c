@@ -121,54 +121,54 @@ dnp_plot_create (const struct np *np, const struct casereader *reader,
 }
 
 static void
-np_plot_chart_draw (const struct chart *chart, plPlotter *lp,
+np_plot_chart_draw (const struct chart *chart, cairo_t *cr,
                     struct chart_geometry *geom)
 {
   const struct np_plot_chart *npp = (struct np_plot_chart *) chart;
   struct casereader *data;
   struct ccase *c;
 
-  chart_write_title (lp, geom, _("Normal Q-Q Plot of %s"), npp->label);
-  chart_write_xlabel (lp, geom, _("Observed Value"));
-  chart_write_ylabel (lp, geom, _("Expected Normal"));
-  chart_write_xscale (lp, geom,
+  chart_write_title (cr, geom, _("Normal Q-Q Plot of %s"), npp->label);
+  chart_write_xlabel (cr, geom, _("Observed Value"));
+  chart_write_ylabel (cr, geom, _("Expected Normal"));
+  chart_write_xscale (cr, geom,
                       npp->x_lower - npp->slack,
                       npp->x_upper + npp->slack, 5);
-  chart_write_yscale (lp, geom, npp->y_first, npp->y_last, 5);
+  chart_write_yscale (cr, geom, npp->y_first, npp->y_last, 5);
 
   data = casereader_clone (npp->data);
   for (; (c = casereader_read (data)) != NULL; case_unref (c))
-    chart_datum (lp, geom, 0,
+    chart_datum (cr, geom, 0,
                  case_data_idx (c, NP_IDX_Y)->f,
                  case_data_idx (c, NP_IDX_NS)->f);
   casereader_destroy (data);
 
-  chart_line (lp, geom, npp->slope, npp->intercept,
+  chart_line (cr, geom, npp->slope, npp->intercept,
               npp->y_first, npp->y_last, CHART_DIM_Y);
 }
 
 static void
-dnp_plot_chart_draw (const struct chart *chart, plPlotter *lp,
+dnp_plot_chart_draw (const struct chart *chart, cairo_t *cr,
                      struct chart_geometry *geom)
 {
   const struct np_plot_chart *dnpp = (struct np_plot_chart *) chart;
   struct casereader *data;
   struct ccase *c;
 
-  chart_write_title (lp, geom, _("Detrended Normal Q-Q Plot of %s"),
+  chart_write_title (cr, geom, _("Detrended Normal Q-Q Plot of %s"),
                      dnpp->label);
-  chart_write_xlabel (lp, geom, _("Observed Value"));
-  chart_write_ylabel (lp, geom, _("Dev from Normal"));
-  chart_write_xscale (lp, geom, dnpp->y_min, dnpp->y_max, 5);
-  chart_write_yscale (lp, geom, dnpp->dns_min, dnpp->dns_max, 5);
+  chart_write_xlabel (cr, geom, _("Observed Value"));
+  chart_write_ylabel (cr, geom, _("Dev from Normal"));
+  chart_write_xscale (cr, geom, dnpp->y_min, dnpp->y_max, 5);
+  chart_write_yscale (cr, geom, dnpp->dns_min, dnpp->dns_max, 5);
 
   data = casereader_clone (dnpp->data);
   for (; (c = casereader_read (data)) != NULL; case_unref (c))
-    chart_datum (lp, geom, 0, case_data_idx (c, NP_IDX_Y)->f,
+    chart_datum (cr, geom, 0, case_data_idx (c, NP_IDX_Y)->f,
                  case_data_idx (c, NP_IDX_DNS)->f);
   casereader_destroy (data);
 
-  chart_line (lp, geom, 0, 0, dnpp->y_min, dnpp->y_max, CHART_DIM_X);
+  chart_line (cr, geom, 0, 0, dnpp->y_min, dnpp->y_max, CHART_DIM_X);
 }
 
 static void

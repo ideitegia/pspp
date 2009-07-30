@@ -19,6 +19,7 @@
 
 #include <output/charts/cartesian.h>
 
+#include <cairo/cairo.h>
 #include <math.h>
 #include <assert.h>
 
@@ -45,15 +46,13 @@ static const struct dataset dataset[DATASETS] =
 
 /* Plot a data point */
 void
-chart_datum (plPlotter *lp, const struct chart_geometry *geom,
+chart_datum (cairo_t *cr, const struct chart_geometry *geom,
              int dataset UNUSED, double x, double y)
 {
   double x_pos = (x - geom->x_min) * geom->abscissa_scale + geom->data_left;
   double y_pos = (y - geom->y_min) * geom->ordinate_scale + geom->data_bottom;
 
-  pl_savestate_r (lp);
-  pl_fmarker_r (lp, x_pos, y_pos, 6, 15);
-  pl_restorestate_r (lp);
+  chart_draw_marker (cr, x_pos, y_pos, MARKER_SQUARE, 15);
 }
 
 /* Draw a line with slope SLOPE and intercept INTERCEPT.
@@ -62,7 +61,7 @@ chart_datum (plPlotter *lp, const struct chart_geometry *geom,
    y axis otherwise the x axis
 */
 void
-chart_line(plPlotter *lp, const struct chart_geometry *geom,
+chart_line(cairo_t *cr, const struct chart_geometry *geom,
            double slope, double intercept,
 	   double limit1, double limit2, enum CHART_DIM lim_dim)
 {
@@ -89,7 +88,7 @@ chart_line(plPlotter *lp, const struct chart_geometry *geom,
   x1 = (x1 - geom->x_min) * geom->abscissa_scale + geom->data_left;
   x2 = (x2 - geom->x_min) * geom->abscissa_scale + geom->data_left;
 
-  pl_savestate_r (lp);
-  pl_fline_r (lp, x1, y1, x2, y2);
-  pl_restorestate_r (lp);
+  cairo_move_to (cr, x1, y1);
+  cairo_line_to (cr, x2, y2);
+  cairo_stroke (cr);
 }

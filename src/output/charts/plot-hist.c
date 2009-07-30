@@ -40,17 +40,17 @@ static const struct chart_class histogram_chart_class;
 
 /* Write the legend of the chart */
 static void
-histogram_write_legend (plPlotter *lp, const struct chart_geometry *geom,
+histogram_write_legend (cairo_t *cr, const struct chart_geometry *geom,
                         double n, double mean, double stddev)
 {
   double y = geom->data_bottom;
-  pl_savestate_r (lp);
+  cairo_save (cr);
 
   if (n != SYSMIS)
     {
       char *buf = xasprintf ("N = %.2f", n);
-      pl_move_r (lp, geom->legend_left, y);
-      pl_alabel_r (lp, 0, 'b', buf);
+      cairo_move_to (cr, geom->legend_left, y);
+      chart_label (cr, 'l', 'b', buf);
       y += geom->font_size * 1.5;
       free (buf);
     }
@@ -58,8 +58,8 @@ histogram_write_legend (plPlotter *lp, const struct chart_geometry *geom,
   if (mean != SYSMIS)
     {
       char *buf = xasprintf ("Mean = %.1f", mean);
-      pl_fmove_r (lp,geom->legend_left, y);
-      pl_alabel_r (lp, 0, 'b', buf);
+      cairo_move_to (cr,geom->legend_left, y);
+      chart_label (cr, 'l', 'b', buf);
       y += geom->font_size * 1.5;
       free (buf);
     }
@@ -67,16 +67,16 @@ histogram_write_legend (plPlotter *lp, const struct chart_geometry *geom,
   if (stddev != SYSMIS)
     {
       char *buf = xasprintf ("Std. Dev = %.2f", stddev);
-      pl_fmove_r (lp, geom->legend_left, y);
-      pl_alabel_r (lp, 0, 'b', buf);
+      cairo_move_to (cr, geom->legend_left, y);
+      chart_label (cr, 'l', 'b', buf);
       free (buf);
     }
 
-  pl_restorestate_r (lp);
+  cairo_restore (cr);
 }
 
 static void
-hist_draw_bar (plPlotter *lp, const struct chart_geometry *geom,
+hist_draw_bar (cairo_t *cr, const struct chart_geometry *geom,
                const gsl_histogram *h, int bar)
 {
   double upper;
@@ -94,22 +94,18 @@ hist_draw_bar (plPlotter *lp, const struct chart_geometry *geom,
   height = gsl_histogram_get (h, bar) *
     (geom->data_top - geom->data_bottom) / gsl_histogram_max_val (h);
 
-  pl_savestate_r (lp);
-  pl_move_r (lp,geom->data_left, geom->data_bottom);
-  pl_fillcolor_r (lp,
-                  geom->fill_colour.red * 257,
-                  geom->fill_colour.green * 257,
-                  geom->fill_colour.blue * 257);
-  pl_filltype_r (lp,1);
+  cairo_rectangle (cr, geom->data_left + x_pos, geom->data_bottom,
+                   width, height);
+  cairo_save (cr);
+  cairo_set_source_rgb (cr,
+                        geom->fill_colour.red / 255.0,
+                        geom->fill_colour.green / 255.0,
+                        geom->fill_colour.blue / 255.0);
+  cairo_fill_preserve (cr);
+  cairo_restore (cr);
+  cairo_stroke (cr);
 
-
-  pl_fboxrel_r (lp,
-                x_pos, 0,
-                x_pos + width, height);
-
-  pl_restorestate_r (lp);
-
-  draw_tick (lp, geom, TICK_ABSCISSA,
+  draw_tick (cr, geom, TICK_ABSCISSA,
              x_pos + width / 2.0, "%g", (upper + lower) / 2.0);
 }
 
@@ -147,17 +143,17 @@ histogram_chart_create (const struct histogram *hist, const char *label,
 }
 
 static void
-histogram_chart_draw (const struct chart *chart, plPlotter *lp,
+histogram_chart_draw (const struct chart *chart, cairo_t *cr,
                       struct chart_geometry *geom)
 {
   struct histogram_chart *h = (struct histogram_chart *) chart;
   int i;
   int bins;
 
-  chart_write_title (lp, geom, _("HISTOGRAM"));
+  chart_write_title (cr, geom, _("HISTOGRAM"));
 
-  chart_write_ylabel (lp, geom, _("Frequency"));
-  chart_write_xlabel (lp, geom, h->label);
+  chart_write_ylabel (cr, geom, _("Frequency"));
+  chart_write_xlabel (cr, geom, h->label);
 
   if (h->gsl_hist == NULL)
     {
@@ -167,12 +163,12 @@ histogram_chart_draw (const struct chart *chart, plPlotter *lp,
 
   bins = gsl_histogram_bins (h->gsl_hist);
 
-  chart_write_yscale (lp, geom, 0, gsl_histogram_max_val (h->gsl_hist), 5);
+  chart_write_yscale (cr, geom, 0, gsl_histogram_max_val (h->gsl_hist), 5);
 
   for (i = 0; i < bins; i++)
-    hist_draw_bar (lp, geom, h->gsl_hist, i);
+    hist_draw_bar (cr, geom, h->gsl_hist, i);
 
-  histogram_write_legend (lp, geom, h->n, h->mean, h->stddev);
+  histogram_write_legend (cr, geom, h->n, h->mean, h->stddev);
 
   if (h->show_normal
       && h->n != SYSMIS && h->mean != SYSMIS && h->stddev != SYSMIS)
@@ -192,7 +188,7 @@ histogram_chart_draw (const struct chart *chart, plPlotter *lp,
       ordinate_scale = (geom->data_top - geom->data_bottom) /
 	gsl_histogram_max_val (h->gsl_hist);
 
-      pl_move_r (lp, geom->data_left, geom->data_bottom);
+      cairo_move_to (cr, geom->data_left, geom->data_bottom);
       for (d = geom->data_left;
 	   d <= geom->data_right;
 	   d += (geom->data_right - geom->data_left) / 100.0)
@@ -201,10 +197,10 @@ histogram_chart_draw (const struct chart *chart, plPlotter *lp,
 	  const double y = h->n * range *
 	    gsl_ran_gaussian_pdf (x - h->mean, h->stddev);
 
-	  pl_fcont_r (lp,  d,  geom->data_bottom  + y * ordinate_scale);
+          cairo_line_to (cr, d, geom->data_bottom  + y * ordinate_scale);
 
 	}
-      pl_endpath_r (lp);
+      cairo_stroke (cr);
     }
 }
 

@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
 include $(top_srcdir)/src/ui/terminal/automake.mk
-if WITHGUI
+if HAVE_GUI
 include $(top_srcdir)/src/ui/gui/automake.mk
 endif
 

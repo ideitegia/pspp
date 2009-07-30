@@ -17,6 +17,7 @@
 #ifndef PLOT_CHART_H
 #define PLOT_CHART_H
 
+#include <cairo/cairo.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -47,10 +48,23 @@ enum tick_orientation
 struct chart_geometry;
 
 
+enum marker_type
+  {
+    MARKER_CIRCLE,              /* Hollow circle. */
+    MARKER_ASTERISK,            /* Asterisk (*). */
+    MARKER_SQUARE               /* Hollow square. */
+  };
+
+void chart_draw_marker (cairo_t *, double x, double y, enum marker_type,
+                        double size);
+
+void chart_label (cairo_t *, int horz_justify, int vert_justify,
+                  const char *);
+
 /* Draw a tick mark at position
    If label is non zero, then print it at the tick mark
 */
-void draw_tick(plPlotter *, const struct chart_geometry *,
+void draw_tick(cairo_t *, const struct chart_geometry *,
 	  enum tick_orientation orientation,
 	  double position,
 	       const char *label, ...)
@@ -58,25 +72,25 @@ void draw_tick(plPlotter *, const struct chart_geometry *,
 
 
 /* Write the title on a chart*/
-void   chart_write_title(plPlotter *, const struct chart_geometry *,
+void   chart_write_title(cairo_t *, const struct chart_geometry *,
                          const char *title, ...)
   PRINTF_FORMAT (3, 4);
 
 
 /* Set the scale for the abscissa */
-void  chart_write_xscale(plPlotter *, struct chart_geometry *,
+void  chart_write_xscale(cairo_t *, struct chart_geometry *,
                          double min, double max, int ticks);
 
 
 /* Set the scale for the ordinate */
-void  chart_write_yscale(plPlotter *, struct chart_geometry *,
+void  chart_write_yscale(cairo_t *, struct chart_geometry *,
                          double smin, double smax, int ticks);
 
-void chart_write_xlabel(plPlotter *, const struct chart_geometry *,
+void chart_write_xlabel(cairo_t *, const struct chart_geometry *,
                         const char *label) ;
 
 /* Write the ordinate label */
-void  chart_write_ylabel(plPlotter *, const struct chart_geometry *,
+void  chart_write_ylabel(cairo_t *, const struct chart_geometry *,
                          const char *label);
 
 #endif

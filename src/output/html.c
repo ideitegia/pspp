@@ -138,14 +138,6 @@ html_close_driver (struct outp_driver *this)
   return ok;
 }
 
-/* Link the image contained in FILE_NAME to the
-   HTML stream in FILE. */
-static void
-link_image (FILE *file, char *file_name)
-{
-  fprintf (file, "<IMG SRC=\"%s\"/>", file_name);
- }
-
 /* Generic option types. */
 enum
   {
@@ -208,22 +200,10 @@ static void
 html_output_chart (struct outp_driver *this, const struct chart *chart)
 {
   struct html_driver_ext *x = this->ext;
-  struct chart_geometry geom;
   char *file_name;
-  plPlotter *lp;
 
-  /* Draw chart in separate file. */
-  if (!chart_create_file ("png", x->chart_file_name, x->chart_cnt,
-                          NULL, &file_name, &lp))
-    return;
-  x->chart_cnt++;
-  chart_geometry_init (lp, &geom, 1000.0, 1000.0);
-  chart_draw (chart, lp, &geom);
-  chart_geometry_free (lp);
-  pl_deletepl_r (lp);
-
-  link_image (x->file, file_name);
-
+  file_name = chart_draw_png (chart, x->chart_file_name, x->chart_cnt++);
+  fprintf (x->file, "<IMG SRC=\"%s\"/>", file_name);
   free (file_name);
 }
 

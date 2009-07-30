@@ -20,6 +20,7 @@
 #include <output/chart-provider.h>
 
 #include <assert.h>
+#include <cairo/cairo.h>
 #include <errno.h>
 #include <float.h>
 #include <math.h>
@@ -48,25 +49,9 @@ chart_init (struct chart *chart, const struct chart_class *class)
 }
 
 void
-chart_geometry_init (plPlotter *lp, struct chart_geometry *geom,
+chart_geometry_init (cairo_t *cr, struct chart_geometry *geom,
                      double width, double length)
 {
-  /* Start output page. */
-  pl_openpl_r (lp);
-
-  /* Set coordinate system. */
-  pl_fspace_r (lp, 0.0, 0.0, width, length);
-
-  /* Set line thickness. */
-  pl_flinewidth_r (lp, 0.25);
-  pl_pencolor_r (lp, 0, 0, 0);
-
-  /* Erase graphics display. */
-  pl_erase_r (lp);
-
-  pl_filltype_r (lp, 0);
-  pl_savestate_r(lp);
-
   /* Set default chartetry. */
   geom->data_top = 0.900 * length;
   geom->data_right = 0.800 * width;
@@ -77,35 +62,82 @@ chart_geometry_init (plPlotter *lp, struct chart_geometry *geom,
   geom->title_bottom = 0.920 * length;
   geom->legend_left = 0.810 * width;
   geom->legend_right = width;
-  geom->font_size = 0;
+  geom->font_size = 10;
 
   geom->fill_colour.red = 255;
   geom->fill_colour.green = 0;
   geom->fill_colour.blue = 0;
 
-  /* Get default font size */
-  if (!geom->font_size)
-    geom->font_size = pl_fontsize_r (lp, -1);
+  cairo_set_line_width (cr, 1.0);
 
-  /* Draw the data area */
-  pl_box_r (lp,
-	    geom->data_left, geom->data_bottom,
-	    geom->data_right, geom->data_top);
+  cairo_rectangle (cr, geom->data_left, geom->data_bottom,
+                   geom->data_right - geom->data_left,
+                   geom->data_top - geom->data_bottom);
+  cairo_stroke (cr);
 }
 
 void
-chart_geometry_free (plPlotter *lp)
+chart_geometry_free (cairo_t *cr UNUSED)
 {
-  if (pl_closepl_r (lp) < 0)
-    fprintf (stderr, "Couldn't close Plotter\n");
 }
 
 void
-chart_draw (const struct chart *chart, plPlotter *lp,
+chart_draw (const struct chart *chart, cairo_t *cr,
             struct chart_geometry *geom)
 {
-  chart->class->draw (chart, lp, geom);
+  chart->class->draw (chart, cr, geom);
 }
+
+char *
+chart_draw_png (const struct chart *chart, const char *file_name_template,
+                int number)
+{
+  const int width = 640;
+  const int length = 480;
+
+  struct chart_geometry geom;
+  cairo_surface_t *surface;
+  cairo_status_t status;
+  const char *number_pos;
+  char *file_name;
+  cairo_t *cr;
+
+  number_pos = strchr (file_name_template, '#');
+  if (number_pos != NULL)
+    file_name = xasprintf ("%.*s%d%s", (int) (number_pos - file_name_template),
+                           file_name_template, number, number_pos + 1);
+  else
+    file_name = xstrdup (file_name_template);
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, length);
+  cr = cairo_create (surface);
+
+  cairo_translate (cr, 0.0, length);
+  cairo_scale (cr, 1.0, -1.0);
+
+  cairo_save (cr);
+  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0);
+  cairo_rectangle (cr, 0, 0, width, length);
+  cairo_fill (cr);
+  cairo_restore (cr);
+
+  cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+
+  chart_geometry_init (cr, &geom, width, length);
+  chart_draw (chart, cr, &geom);
+  chart_geometry_free (cr);
+
+  status = cairo_surface_write_to_png (surface, file_name);
+  if (status != CAIRO_STATUS_SUCCESS)
+    error (0, 0, _("writing output file \"%s\": %s"),
+           file_name, cairo_status_to_string (status));
+
+  cairo_destroy (cr);
+  cairo_surface_destroy (surface);
+
+  return file_name;
+}
+
 
 struct chart *
 chart_ref (const struct chart *chart_)
@@ -129,7 +161,7 @@ chart_unref (struct chart *chart)
 void
 chart_submit (struct chart *chart)
 {
-#ifdef HAVE_LIBPLOT
+#ifdef HAVE_CAIRO
   struct outp_driver *d;
 
   for (d = outp_drivers (NULL); d; d = outp_drivers (d))
@@ -138,52 +170,4 @@ chart_submit (struct chart *chart)
 #endif
 
   chart_unref (chart);
-}
-
-bool
-chart_create_file (const char *type, const char *file_name_tmpl, int number,
-                   plPlotterParams *params, char **file_namep, plPlotter **lpp)
-{
-  char *file_name = NULL;
-  FILE *fp = NULL;
-  int number_pos;
-  plPlotter *lp;
-
-  number_pos = strchr (file_name_tmpl, '#') - file_name_tmpl;
-  file_name = xasprintf ("%.*s%d%s", number_pos, file_name_tmpl,
-                         number, file_name_tmpl + number_pos + 1);
-
-  fp = fopen (file_name, "wb");
-  if (fp == NULL)
-    {
-      error (0, errno, _("creating \"%s\""), file_name);
-      goto error;
-    }
-
-  if (params != NULL)
-    lp = pl_newpl_r (type, 0, fp, stderr, params);
-  else
-    {
-      params = pl_newplparams ();
-      lp = pl_newpl_r (type, 0, fp, stderr, params);
-      pl_deleteplparams (params);
-    }
-  if (lp == NULL)
-    goto error;
-
-  *file_namep = file_name;
-  *lpp = lp;
-  return true;
-
-error:
-  if (fp != NULL)
-    {
-      fclose (fp);
-      if (file_name != NULL)
-        unlink (file_name);
-    }
-  free (file_name);
-  *file_namep = NULL;
-  *lpp = NULL;
-  return false;
 }

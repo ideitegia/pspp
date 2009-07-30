@@ -44,7 +44,7 @@ static const struct chart_class piechart_class;
 
 /* Draw a single slice of the pie */
 static void
-draw_segment(plPlotter *,
+draw_segment(cairo_t *,
 	     double centre_x, double centre_y,
 	     double radius,
 	     double start_angle, double segment_angle,
@@ -77,7 +77,7 @@ piechart_create (const char *title, const struct slice *slices, int n_slices)
 }
 
 static void
-piechart_draw (const struct chart *chart, plPlotter *lp,
+piechart_draw (const struct chart *chart, cairo_t *cr,
                struct chart_geometry *geom)
 {
   struct piechart *pie = (struct piechart *) chart;
@@ -88,16 +88,19 @@ piechart_draw (const struct chart *chart, plPlotter *lp,
   double angle;
   int i;
 
-  left_label = geom->data_left + (geom->data_right - geom->data_left)/10.0;
-  right_label = geom->data_right - (geom->data_right - geom->data_left)/10.0;
-
   centre_x = (geom->data_right + geom->data_left) / 2.0 ;
   centre_y = (geom->data_top + geom->data_bottom) / 2.0 ;
+
+  left_label = geom->data_left + (geom->data_right - geom->data_left)/10.0;
+  right_label = geom->data_right - (geom->data_right - geom->data_left)/10.0;
 
   radius = MIN (5.0 / 12.0 * (geom->data_top - geom->data_bottom),
                 1.0 / 4.0 * (geom->data_right - geom->data_left));
 
-  chart_write_title (lp, geom, "%s", pie->title);
+  radius = MIN (5.0 / 12.0 * (geom->data_top - geom->data_bottom),
+                1.0 / 4.0 * (geom->data_right - geom->data_left));
+
+  chart_write_title (cr, geom, "%s", pie->title);
 
   total_magnitude = 0.0;
   for (i = 0; i < pie->n_slices; i++)
@@ -116,7 +119,7 @@ piechart_draw (const struct chart *chart, plPlotter *lp,
 	radius * cos(angle + segment_angle/2.0);
 
       /* Fill the segment */
-      draw_segment (lp,
+      draw_segment (cr,
                     centre_x, centre_y, radius,
                     angle, segment_angle,
                     &data_colour[i % N_CHART_COLOURS]);
@@ -124,97 +127,48 @@ piechart_draw (const struct chart *chart, plPlotter *lp,
       /* Now add the labels */
       if ( label_x < centre_x )
 	{
-	  pl_line_r (lp, label_x, label_y, left_label, label_y );
-	  pl_moverel_r (lp, 0, 5);
-	  pl_alabel_r (lp, 0, 0, ds_cstr (&pie->slices[i].label));
+          cairo_move_to (cr, label_x, label_y);
+          cairo_line_to (cr, left_label, label_y);
+          cairo_stroke (cr);
+	  cairo_move_to (cr, left_label, label_y + 5);
+	  chart_label (cr, 'l', 'x', ds_cstr (&pie->slices[i].label));
 	}
       else
 	{
-	  pl_line_r (lp, label_x, label_y, right_label, label_y);
-	  pl_moverel_r (lp, 0, 5);
-	  pl_alabel_r (lp, 'r', 0, ds_cstr (&pie->slices[i].label));
+	  cairo_move_to (cr, label_x, label_y);
+          cairo_line_to (cr, right_label, label_y);
+          cairo_stroke (cr);
+	  cairo_move_to (cr, right_label, label_y + 5);
+	  chart_label (cr, 'r', 'x', ds_cstr (&pie->slices[i].label));
 	}
 
       angle += segment_angle;
     }
 
   /* Draw an outline to the pie */
-  pl_filltype_r (lp,0);
-  pl_fcircle_r (lp, centre_x, centre_y, radius);
-}
-
-/* Fill a segment with the current fill colour */
-static void
-fill_segment(plPlotter *lp,
-	     double x0, double y0,
-	     double radius,
-	     double start_angle, double segment_angle)
-{
-
-  const double start_x  = x0 - radius * sin(start_angle);
-  const double start_y  = y0 + radius * cos(start_angle);
-
-  const double stop_x   =
-    x0 - radius * sin(start_angle + segment_angle);
-
-  const double stop_y   =
-    y0 + radius * cos(start_angle + segment_angle);
-
-  assert(segment_angle <= 2 * M_PI);
-  assert(segment_angle >= 0);
-
-  if ( segment_angle > M_PI )
-    {
-      /* Then we must draw it in two halves */
-      fill_segment(lp, x0, y0, radius, start_angle, segment_angle / 2.0 );
-      fill_segment(lp, x0, y0, radius, start_angle + segment_angle / 2.0,
-		   segment_angle / 2.0 );
-    }
-  else
-    {
-      pl_move_r(lp, x0, y0);
-
-      pl_cont_r(lp, stop_x, stop_y);
-      pl_cont_r(lp, start_x, start_y);
-
-      pl_arc_r(lp,
-	       x0, y0,
-	       stop_x, stop_y,
-	       start_x, start_y
-	       );
-
-      pl_endpath_r(lp);
-    }
+  cairo_arc (cr, centre_x, centre_y, radius, 0, 2 * M_PI);
+  cairo_stroke (cr);
 }
 
 /* Draw a single slice of the pie */
 static void
-draw_segment(plPlotter *lp,
+draw_segment(cairo_t *cr,
 	     double x0, double y0,
 	     double radius,
 	     double start_angle, double segment_angle,
 	     const struct chart_colour *colour)
 {
-  const double start_x  = x0 - radius * sin(start_angle);
-  const double start_y  = y0 + radius * cos(start_angle);
-
-  pl_savestate_r(lp);
-
-  pl_savestate_r(lp);
-  pl_color_r(lp, colour->red * 257, colour->green * 257, colour->blue * 257);
-
-  pl_pentype_r(lp,1);
-  pl_filltype_r(lp,1);
-
-  fill_segment(lp, x0, y0, radius, start_angle, segment_angle);
-  pl_restorestate_r(lp);
-
-  /* Draw line dividing segments */
-  pl_pentype_r(lp, 1);
-  pl_fline_r(lp, x0, y0, start_x, start_y);
-
-
-  pl_restorestate_r(lp);
+  cairo_move_to (cr, x0, y0);
+  cairo_arc (cr, x0, y0, radius, start_angle, start_angle + segment_angle);
+  cairo_line_to (cr, x0, y0);
+  cairo_save (cr);
+  cairo_set_source_rgb (cr,
+                        colour->red / 255.0,
+                        colour->green / 255.0,
+                        colour->blue / 255.0);
+  cairo_fill_preserve (cr);
+  cairo_restore (cr);
+  cairo_stroke (cr);
 }
 
 static void
