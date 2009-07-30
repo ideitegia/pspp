@@ -122,14 +122,20 @@ chart_label (cairo_t *cr, int horz_justify, int vert_justify,
       else
         cairo_rel_move_to (cr, -width / 2.0, 0);
     }
-  if (vert_justify != 't')
+  if (vert_justify == 'x')
+    {
+      int baseline_pango = pango_layout_get_baseline (layout);
+      double baseline = (double) baseline_pango / PANGO_SCALE;
+      cairo_rel_move_to (cr, 0, -baseline);
+    }
+  else if (vert_justify != 't')
     {
       int height_pango;
       double height;
 
       pango_layout_get_size (layout, NULL, &height_pango);
       height = (double) height_pango / PANGO_SCALE;
-      if (vert_justify == 'b' || vert_justify == 'x')
+      if (vert_justify == 'b')
         cairo_rel_move_to (cr, 0, -height);
       else if (vert_justify == 'c')
         cairo_rel_move_to (cr, 0, -height / 2.0);
