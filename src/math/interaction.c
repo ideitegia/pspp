@@ -143,26 +143,23 @@ struct interaction_value *
 interaction_value_create (const struct interaction_variable *var, const union value **vals)
 {
   struct interaction_value *result = NULL;
-  const struct variable *member;
-  size_t i;
-  size_t n_vars;
   
   if (var != NULL)
     {
+      size_t i;
       int val_width = var_get_width (interaction_get_variable (var));
-      int offset;
+      int offset = 0;
+      size_t n_vars = interaction_get_n_vars (var);
 
       result = xmalloc (sizeof (*result));
       result->intr = var;
-      n_vars = interaction_get_n_vars (var);
 
       value_init (&result->val, val_width);
 
-      offset = 0;
       result->f = 1.0;
       for (i = 0; i < n_vars; i++)
 	{
-	  member = interaction_get_member (var, i);
+          const struct variable *member = interaction_get_member (var, i);
 
 	  if (var_is_value_missing (member, vals[i], MV_ANY))
 	    {
@@ -174,9 +171,9 @@ interaction_value_create (const struct interaction_variable *var, const union va
 	    {
 	      if (var_is_alpha (var->members[i]))
 		{
-		  char *val = value_str_rw (&result->val, val_width);
+		  uint8_t *val = value_str_rw (&result->val, val_width);
                   int w = var_get_width (var->members[i]);
-                  memcpy (val + offset, value_str (vals[i], w), w);
+                  u8_cpy (val + offset, value_str (vals[i], w), w);
                   offset += w;
 		}
 	      else if (var_is_numeric (var->members[i]))
