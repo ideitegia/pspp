@@ -17,6 +17,8 @@
 #include <config.h>
 
 
+/* A driver for creating OpenDocument Format text files from PSPP's output */
+
 #include <libpspp/assertion.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
@@ -67,10 +69,12 @@ create_mimetype (const char *dirname)
   fp = fopen (ds_cstr (&filename), "w");
   ds_destroy (&filename);
 
+  assert (fp);
   fprintf (fp, "application/vnd.oasis.opendocument.text");
   fclose (fp);
 }
 
+/* Create a new XML file called FILENAME in the temp directory, and return a writer for it */
 static xmlTextWriterPtr
 create_writer (const struct odt_driver_ext *driver, const char *filename)
 {
@@ -108,10 +112,9 @@ odt_open_driver (const char *name, int types, struct substring option_string)
   x->dirname = xstrdup ("odt-XXXXXX");
   mkdtemp (x->dirname);
 
-  printf ("Dir name is \"%s\"\n", x->dirname);
-
   create_mimetype (x->dirname);
 
+  /* Create the manifest */
   x->manifest_wtr = create_writer (x, "META-INF/manifest.xml");
 
   xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:manifest"));
@@ -119,6 +122,7 @@ odt_open_driver (const char *name, int types, struct substring option_string)
 			       _xml("urn:oasis:names:tc:opendocument:xmlns:manifest:1.0"));
 
 
+  /* Add a manifest entry for the document as a whole */
   xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:file-entry"));
   xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:media-type"),  _xml("application/vnd.oasis.opendocument.text"));
   xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:full-path"),  _xml("/"));
@@ -127,12 +131,14 @@ odt_open_driver (const char *name, int types, struct substring option_string)
 
   x->content_wtr = create_writer (x, "content.xml");
 
+  /* Add a manifest entry for content.xml */
   xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:file-entry"));
   xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:media-type"),  _xml("text/xml"));
   xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:full-path"),  _xml("content.xml"));
   xmlTextWriterEndElement (x->manifest_wtr);
 
 
+  /* Some necessary junk at the start */
   xmlTextWriterStartElement (x->content_wtr, _xml("office:document-content"));
   xmlTextWriterWriteAttribute (x->content_wtr, _xml("xmlns:office"),
 			       _xml("urn:oasis:names:tc:opendocument:xmlns:office:1.0"));
@@ -149,6 +155,8 @@ odt_open_driver (const char *name, int types, struct substring option_string)
   xmlTextWriterStartElement (x->content_wtr, _xml("office:text"));
 
 
+
+  /* Close the manifest */
   xmlTextWriterEndElement (x->manifest_wtr);
   xmlTextWriterEndDocument (x->manifest_wtr);
   xmlFreeTextWriter (x->manifest_wtr);
@@ -159,28 +167,43 @@ odt_open_driver (const char *name, int types, struct substring option_string)
 static bool
 odt_close_driver (struct outp_driver *this)
 {
- struct odt_driver_ext *x = this->ext;
+  struct string zip_cmd;
+  struct string rm_cmd;
+  struct odt_driver_ext *x = this->ext;
 
- xmlTextWriterEndElement (x->content_wtr); /* office:text */
- xmlTextWriterEndElement (x->content_wtr); /* office:body */
- xmlTextWriterEndElement (x->content_wtr); /* office:document-content */
+  xmlTextWriterEndElement (x->content_wtr); /* office:text */
+  xmlTextWriterEndElement (x->content_wtr); /* office:body */
+  xmlTextWriterEndElement (x->content_wtr); /* office:document-content */
 
- xmlTextWriterEndDocument (x->content_wtr);
- xmlFreeTextWriter (x->content_wtr);
+  xmlTextWriterEndDocument (x->content_wtr);
+  xmlFreeTextWriter (x->content_wtr);
 
- return true;
+  /* Zip up the directory */
+  ds_init_empty (&zip_cmd);
+  ds_put_format (&zip_cmd, "cd %s ; zip -r ../pspp.odt . > /dev/null", x->dirname);
+  system (ds_cstr (&zip_cmd));
+  ds_destroy (&zip_cmd);
+
+  /* Remove the temp dir */
+  ds_init_empty (&rm_cmd);
+  ds_put_format (&rm_cmd, "rm -r %s", x->dirname);
+  system (ds_cstr (&rm_cmd));
+  ds_destroy (&rm_cmd);
+
+  free (x->dirname);
+  free (x);
+
+  return true;
 }
 
 static void
 odt_open_page (struct outp_driver *this)
 {
- printf ("%s\n", __FUNCTION__);
 }
 
 static void
 odt_close_page (struct outp_driver *this)
 {
- printf ("%s\n", __FUNCTION__);
 }
 
 static void
@@ -189,6 +212,8 @@ odt_output_chart (struct outp_driver *this, const struct chart *chart)
  printf ("%s\n", __FUNCTION__);
 }
 
+
+/* Submit a table to the ODT driver */
 static void
 odt_submit (struct outp_driver *this, struct som_entity *e)
 {
@@ -197,11 +222,14 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
   struct odt_driver_ext *x = this->ext;
   struct tab_table *tab = e->ext;
 
+
+  /* Write a heading for the table */
   xmlTextWriterStartElement (x->content_wtr, _xml("text:h"));
   xmlTextWriterWriteFormatAttribute (x->content_wtr, _xml("text:level"), "%d", e->subtable_num == 1 ? 2 : 3);
   xmlTextWriterWriteString (x->content_wtr, _xml (tab->title) );
   xmlTextWriterEndElement (x->content_wtr);
 
+  /* Start table */
   xmlTextWriterStartElement (x->content_wtr, _xml("table:table"));
   xmlTextWriterWriteFormatAttribute (x->content_wtr, _xml("table:name"), 
 				     "TABLE-%d.%d", e->table_num, e->subtable_num);
@@ -217,11 +245,14 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
   if ( tab->t > 0)
     xmlTextWriterStartElement (x->content_wtr, _xml("table:table-header-rows"));
     
+
+  /* Write all the rows */
   for (r = 0 ; r < tab->nr; ++r)
     {
       /* Start row definition */
       xmlTextWriterStartElement (x->content_wtr, _xml("table:table-row"));
 
+      /* Write all the columns */
       for (c = 0 ; c < tab->nc ; ++c)
 	{
 	  int opts = tab->ct[tab->nc * r + c];
@@ -248,7 +279,7 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
       xmlTextWriterEndElement (x->content_wtr); /* row */
 
       if ( tab->t > 0 && r == tab->t - 1)
-	xmlTextWriterEndElement (x->content_wtr);
+	xmlTextWriterEndElement (x->content_wtr); /* table-header-rows */
     }
 
   xmlTextWriterEndElement (x->content_wtr); /* table */
@@ -258,7 +289,7 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
 /* ODT driver class. */
 const struct outp_class odt_class =
 {
-  "odt",
+  "odf",
   1,
 
   odt_open_driver,
