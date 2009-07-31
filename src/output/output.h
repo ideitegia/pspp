@@ -175,5 +175,6 @@ extern const struct outp_class postscript_class;
 #ifdef HAVE_CAIRO
 extern const struct outp_class cairo_class;
 #endif
+extern const struct outp_class odt_class;
 
 #endif /* output/output.h */

@@ -2,6 +2,8 @@
 
 noinst_LTLIBRARIES += src/output/liboutput.la 
 
+src_output_liboutput_la_CPPFLAGS = $(LIBXML2_CFLAGS) $(AM_CPPFLAGS) 
+
 src_output_liboutput_la_SOURCES = \
 	src/output/afm.c \
 	src/output/afm.h \
@@ -26,6 +28,7 @@ src_output_liboutput_la_SOURCES = \
 	src/output/journal.h \
 	src/output/manager.c \
 	src/output/manager.h \
+	src/output/odt.c \
 	src/output/output.c \
 	src/output/output.h \
 	src/output/postscript.c \

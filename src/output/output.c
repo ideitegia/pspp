@@ -230,6 +230,7 @@ outp_init (void)
 #ifdef HAVE_CAIRO
   add_class (&cairo_class);
 #endif
+  add_class (&odt_class);
 
   add_name (def, &def[strlen (def)], OUTP_S_INIT_FILE);
 }

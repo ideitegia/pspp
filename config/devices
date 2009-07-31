@@ -85,6 +85,8 @@ pdf:cairo:listing:
 svg:cairo:listing:output-type=svg output-file="pspp.svg"
 ps-cairo:cairo:listing:output-type=ps output-file="pspp-cairo.ps"
 
+odt:odt:listing:
+
 # Devices that support the IBM PC line-drawing characters.
 define ibmpc-graphics \
   box[0000]='\x20' box[0001]='\xb3' box[0002]='\xba' \
