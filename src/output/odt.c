@@ -20,14 +20,14 @@
 /* A driver for creating OpenDocument Format text files from PSPP's output */
 
 #include <libpspp/assertion.h>
-#include <libpspp/start-date.h>
 #include <libpspp/version.h>
-#include <output/afm.h>
-#include <output/chart-provider.h>
+
 #include <output/manager.h>
 #include <output/output.h>
 #include <output/table.h>
 
+#include <time.h>
+#include <pwd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -35,11 +35,6 @@
 
 #include <libxml/xmlwriter.h>
 
-#include <stdlib.h>
-
-#include "error.h"
-#include "intprops.h"
-#include "minmax.h"
 #include "xalloc.h"
 
 #define _xml(X) (const xmlChar *)(X)
@@ -99,6 +94,70 @@ create_writer (const struct odt_driver_ext *driver, const char *filename)
   return w;
 }
 
+
+static void
+register_file (struct odt_driver_ext *x, const char *filename)
+{
+  assert (x->manifest_wtr);
+  xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:file-entry"));
+  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:media-type"),  _xml("text/xml"));
+  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:full-path"),  _xml (filename));
+  xmlTextWriterEndElement (x->manifest_wtr);
+}
+
+static void
+write_meta_data (struct odt_driver_ext *x)
+{
+  xmlTextWriterPtr w = create_writer (x, "meta.xml");
+  register_file (x, "meta.xml");
+
+  xmlTextWriterStartElement (w, _xml ("office:document-meta"));
+  xmlTextWriterWriteAttribute (w, _xml ("xmlns:office"), _xml ("urn:oasis:names:tc:opendocument:xmlns:office:1.0"));
+  xmlTextWriterWriteAttribute (w, _xml ("xmlns:dc"),  _xml ("http://purl.org/dc/elements/1.1/"));
+  xmlTextWriterWriteAttribute (w, _xml ("xmlns:meta"), _xml ("urn:oasis:names:tc:opendocument:xmlns:meta:1.0"));
+  xmlTextWriterWriteAttribute (w, _xml ("xmlns:ooo"), _xml("http://openoffice.org/2004/office"));
+  xmlTextWriterWriteAttribute (w, _xml ("office:version"),  _xml("1.1"));
+
+  xmlTextWriterStartElement (w, _xml ("office:meta"));
+  {
+    xmlTextWriterStartElement (w, _xml ("meta:generator"));
+    xmlTextWriterWriteString (w, _xml (stat_version));
+    xmlTextWriterEndElement (w);
+  }
+
+
+  {
+    char buf[30];
+    struct passwd *pw = getpwuid (getuid ());
+    time_t t = time (NULL);
+    struct tm *tm =  localtime (&t);
+
+    strftime (buf, 30, "%Y-%m-%dT%H:%M:%S", tm);
+
+    xmlTextWriterStartElement (w, _xml ("meta:initial-creator"));
+    xmlTextWriterWriteString (w, _xml (strtok (pw->pw_gecos, ",")));
+    xmlTextWriterEndElement (w);
+
+    xmlTextWriterStartElement (w, _xml ("meta:creation-date"));
+    xmlTextWriterWriteString (w, _xml (buf));
+    xmlTextWriterEndElement (w);
+
+    xmlTextWriterStartElement (w, _xml ("dc:creator"));
+    xmlTextWriterWriteString (w, _xml (strtok (pw->pw_gecos, ",")));
+
+    xmlTextWriterEndElement (w);
+
+    xmlTextWriterStartElement (w, _xml ("dc:date"));
+    xmlTextWriterWriteString (w, _xml (buf));
+    xmlTextWriterEndElement (w);
+  }
+
+  xmlTextWriterEndElement (w);
+  xmlTextWriterEndElement (w);
+  xmlTextWriterEndDocument (w);
+  xmlFreeTextWriter (w);
+}
+
 static bool
 odt_open_driver (const char *name, int types, struct substring option_string)
 {
@@ -129,13 +188,10 @@ odt_open_driver (const char *name, int types, struct substring option_string)
   xmlTextWriterEndElement (x->manifest_wtr);
 
 
-  x->content_wtr = create_writer (x, "content.xml");
+  write_meta_data (x);
 
-  /* Add a manifest entry for content.xml */
-  xmlTextWriterStartElement (x->manifest_wtr, _xml("manifest:file-entry"));
-  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:media-type"),  _xml("text/xml"));
-  xmlTextWriterWriteAttribute (x->manifest_wtr, _xml("manifest:full-path"),  _xml("content.xml"));
-  xmlTextWriterEndElement (x->manifest_wtr);
+  x->content_wtr = create_writer (x, "content.xml");
+  register_file (x, "content.xml");
 
 
   /* Some necessary junk at the start */
