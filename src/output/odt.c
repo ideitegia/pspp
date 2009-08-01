@@ -403,7 +403,6 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
       /* Start row definition */
       xmlTextWriterStartElement (x->content_wtr, _xml("table:table-row"));
 
-
       /* Write all the columns */
       for (c = 0 ; c < tab->nc ; ++c)
 	{
@@ -460,8 +459,9 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
 	    {
 	      xmlTextWriterStartElement (x->content_wtr, _xml("table:covered-table-cell"));
 	      xmlTextWriterEndElement (x->content_wtr);
-	      spanned_columns --;
 	    }
+	  if ( opts & TAB_JOIN )
+	    spanned_columns --;
 
 	  free (s);
 	}
