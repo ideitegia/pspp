@@ -46,6 +46,8 @@
 
 struct odf_driver_options
 {
+  struct outp_driver *driver;
+  
   char *file_name;            /* Output file name. */
   bool debug;
 };
@@ -283,6 +285,7 @@ static bool
 handle_option (void *options_, const char *key, const struct string *val)
 {
   struct odf_driver_options *options = options_;
+  struct outp_driver *this = options->driver;
   int subcat;
   char *value = ds_cstr (val);
 
@@ -290,8 +293,8 @@ handle_option (void *options_, const char *key, const struct string *val)
     {
     case -1:
       error (0, 0,
-             _("unknown configuration parameter `%s' for ODF device "
-               "driver"), key);
+             _("unknown configuration parameter `%s' for %s device "
+               "driver"), key, this->class->name);
       break;
     case output_file_arg:
       free (options->file_name);
@@ -327,6 +330,7 @@ odt_open_driver (const char *name, int types, struct substring option_string)
 
   this->ext = x = xmalloc (sizeof *x);
 
+  x->opts.driver = this;
   x->opts.file_name = xstrdup ("pspp.pdt");
   x->opts.debug = false;
 

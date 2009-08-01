@@ -389,8 +389,8 @@ handle_option (void *options_, const char *key, const struct string *val)
     {
     case -1:
       error (0, 0,
-             _("unknown configuration parameter `%s' for Cairo device "
-               "driver"), key);
+             _("unknown configuration parameter `%s' for %s device "
+               "driver"), key, this->class->name);
       break;
     case output_file_arg:
       free (options->file_name);
