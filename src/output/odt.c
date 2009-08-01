@@ -236,7 +236,7 @@ odt_close_driver (struct outp_driver *this)
 
   /* Zip up the directory */
   ds_init_empty (&zip_cmd);
-  ds_put_format (&zip_cmd, "cd %s ; zip -r ../pspp.odt . > /dev/null", x->dirname);
+  ds_put_format (&zip_cmd, "cd %s ; rm -f ../pspp.odt; zip -q -X ../pspp.odt mimetype; zip -q -X -u -r ../pspp.odt .", x->dirname);
   system (ds_cstr (&zip_cmd));
   ds_destroy (&zip_cmd);
 
