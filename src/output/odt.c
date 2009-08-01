@@ -106,6 +106,98 @@ register_file (struct odt_driver_ext *x, const char *filename)
 }
 
 static void
+write_style_data (struct odt_driver_ext *x)
+{
+  xmlTextWriterPtr w = create_writer (x, "styles.xml");
+  register_file (x, "styles.xml");
+
+  xmlTextWriterStartElement (w, _xml ("office:document-styles"));
+  xmlTextWriterWriteAttribute (w, _xml ("xmlns:office"),
+			       _xml ("urn:oasis:names:tc:opendocument:xmlns:office:1.0"));
+
+  xmlTextWriterWriteAttribute (w, _xml ("xmlns:style"),
+			       _xml ("urn:oasis:names:tc:opendocument:xmlns:style:1.0"));
+
+  xmlTextWriterWriteAttribute (w, _xml ("xmlns:fo"),
+			       _xml ("urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0") );
+
+  xmlTextWriterWriteAttribute (w, _xml ("office:version"),  _xml ("1.1"));
+			       
+
+
+  xmlTextWriterStartElement (w, _xml ("office:styles"));
+
+
+  {
+    xmlTextWriterStartElement (w, _xml ("style:style"));
+    xmlTextWriterWriteAttribute (w, _xml ("style:name"),
+				 _xml ("Standard"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:family"),
+				 _xml ("paragraph"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:class"),
+				 _xml ("text"));
+
+    xmlTextWriterEndElement (w); /* style:style */
+  }
+
+  {
+    xmlTextWriterStartElement (w, _xml ("style:style"));
+    xmlTextWriterWriteAttribute (w, _xml ("style:name"),
+				 _xml ("Table_20_Contents"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:display-name"),
+				 _xml ("Table Contents"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:family"),
+				 _xml ("paragraph"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:parent-style-name"),
+				 _xml ("Standard"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:class"),
+				 _xml ("extra"));
+
+    xmlTextWriterEndElement (w); /* style:style */
+  }
+
+  {
+    xmlTextWriterStartElement (w, _xml ("style:style"));
+    xmlTextWriterWriteAttribute (w, _xml ("style:name"),
+				 _xml ("Table_20_Heading"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:display-name"),
+				 _xml ("Table Heading"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:family"),
+				 _xml ("paragraph"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:parent-style-name"),
+				 _xml ("Table_20_Contents"));
+
+    xmlTextWriterWriteAttribute (w, _xml ("style:class"),
+				 _xml ("extra"));
+
+
+    xmlTextWriterStartElement (w, _xml ("style:text-properties"));
+    xmlTextWriterWriteAttribute (w, _xml ("fo:font-weight"), _xml ("bold"));
+    xmlTextWriterWriteAttribute (w, _xml ("style:font-weight-asian"), _xml ("bold"));
+    xmlTextWriterWriteAttribute (w, _xml ("style:font-weight-complex"), _xml ("bold"));
+    xmlTextWriterEndElement (w); /* style:text-properties */
+
+    xmlTextWriterEndElement (w); /* style:style */
+  }
+
+
+  xmlTextWriterEndElement (w); /* office:styles */
+  xmlTextWriterEndElement (w); /* office:document-styles */
+
+  xmlTextWriterEndDocument (w);
+  xmlFreeTextWriter (w);
+}
+
+static void
 write_meta_data (struct odt_driver_ext *x)
 {
   xmlTextWriterPtr w = create_writer (x, "meta.xml");
@@ -189,6 +281,7 @@ odt_open_driver (const char *name, int types, struct substring option_string)
 
 
   write_meta_data (x);
+  write_style_data (x);
 
   x->content_wtr = create_writer (x, "content.xml");
   register_file (x, "content.xml");
