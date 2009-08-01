@@ -240,6 +240,7 @@ odt_close_driver (struct outp_driver *this)
   system (ds_cstr (&zip_cmd));
   ds_destroy (&zip_cmd);
 
+
   /* Remove the temp dir */
   ds_init_empty (&rm_cmd);
   ds_put_format (&rm_cmd, "rm -r %s", x->dirname);
@@ -305,20 +306,53 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
   /* Write all the rows */
   for (r = 0 ; r < tab->nr; ++r)
     {
+      int spanned_columns = 0;
       /* Start row definition */
       xmlTextWriterStartElement (x->content_wtr, _xml("table:table-row"));
+
 
       /* Write all the columns */
       for (c = 0 ; c < tab->nc ; ++c)
 	{
-	  int opts = tab->ct[tab->nc * r + c];
-	  xmlTextWriterStartElement (x->content_wtr, _xml("table:table-cell"));
-	  xmlTextWriterWriteAttribute (x->content_wtr, _xml("office:value-type"), _xml("string"));
+	  char *s = NULL;
+	  unsigned int opts = tab->ct[tab->nc * r + c];
+	  struct substring ss = tab->cc[tab->nc * r + c];
 
-	  if (! (opts & TAB_EMPTY) ) 
+	  if (opts & TAB_EMPTY)
 	    {
-	      char *s = ss_xstrdup (tab->cc[tab->nc * r + c]);
+	      xmlTextWriterStartElement (x->content_wtr, _xml("table:table-cell"));
+	      xmlTextWriterEndElement (x->content_wtr);
+	      continue;
+	    }
+
+	  if ( opts & TAB_JOIN)
+	    {
+	      if ( spanned_columns == 0)
+		{
+		  struct tab_joined_cell *j = (struct tab_joined_cell*) ss_data (ss);
+		  s = ss_xstrdup (j->contents);
+		}
+	    }
+	  else
+	    s = ss_xstrdup (ss);
+
+	  if ( spanned_columns == 0 )
+	    {
+	      xmlTextWriterStartElement (x->content_wtr, _xml("table:table-cell"));
+	      xmlTextWriterWriteAttribute (x->content_wtr, _xml("office:value-type"), _xml("string"));
+
+	      if ( opts & TAB_JOIN )
+		{
+		  struct tab_joined_cell *j = (struct tab_joined_cell*) ss_data (ss);
+		  spanned_columns = j->x2 - j->x1;
+
+		  xmlTextWriterWriteFormatAttribute (x->content_wtr,
+						     _xml("table:number-columns-spanned"),
+						     "%d", spanned_columns);
+		}
+
 	      xmlTextWriterStartElement (x->content_wtr, _xml("text:p"));
+
 	      if ( r < tab->t || c < tab->l )
 		xmlTextWriterWriteAttribute (x->content_wtr, _xml("text:style-name"), _xml("Table_20_Heading"));
 	      else
@@ -326,10 +360,17 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
 
 	      xmlTextWriterWriteString (x->content_wtr, _xml (s));
 	  
-	      xmlTextWriterEndElement (x->content_wtr);
-	      free (s);
+	      xmlTextWriterEndElement (x->content_wtr); /* text:p */
+	      xmlTextWriterEndElement (x->content_wtr); /* table:table-cell */
 	    }
-	  xmlTextWriterEndElement (x->content_wtr);
+	  else
+	    {
+	      xmlTextWriterStartElement (x->content_wtr, _xml("table:covered-table-cell"));
+	      xmlTextWriterEndElement (x->content_wtr);
+	      spanned_columns --;
+	    }
+
+	  free (s);
 	}
   
       xmlTextWriterEndElement (x->content_wtr); /* row */
