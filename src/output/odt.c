@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
 
 /* A driver for creating OpenDocument Format text files from PSPP's output */
 
@@ -37,7 +39,17 @@
 
 #include "xalloc.h"
 
+#include "error.h"
+
 #define _xml(X) (const xmlChar *)(X)
+
+
+struct odf_driver_options
+{
+  char *file_name;            /* Output file name. */
+  bool debug;
+};
+
 
 struct odt_driver_ext 
 {
@@ -49,6 +61,8 @@ struct odt_driver_ext
 
   /* Writer fot the manifest.xml file */
   xmlTextWriterPtr manifest_wtr;
+
+  struct odf_driver_options opts;
 };
 
 
@@ -250,6 +264,61 @@ write_meta_data (struct odt_driver_ext *x)
   xmlFreeTextWriter (w);
 }
 
+enum
+{
+  output_file_arg,
+  boolean_arg,
+};
+
+static const struct outp_option option_tab[] =
+{
+  {"output-file",		output_file_arg,0},
+
+  {"debug",			boolean_arg,	1},
+
+  {NULL, 0, 0},
+};
+
+static bool
+handle_option (void *options_, const char *key, const struct string *val)
+{
+  struct odf_driver_options *options = options_;
+  int subcat;
+  char *value = ds_cstr (val);
+
+  switch (outp_match_keyword (key, option_tab, &subcat))
+    {
+    case -1:
+      error (0, 0,
+             _("unknown configuration parameter `%s' for ODF device "
+               "driver"), key);
+      break;
+    case output_file_arg:
+      free (options->file_name);
+      options->file_name = xstrdup (value);
+      break;
+    case boolean_arg:
+      if (!strcmp (value, "on") || !strcmp (value, "true")
+          || !strcmp (value, "yes") || atoi (value))
+        options->debug = true;
+      else if (!strcmp (value, "off") || !strcmp (value, "false")
+               || !strcmp (value, "no") || !strcmp (value, "0"))
+        options->debug = false;
+      else
+        {
+          error (0, 0, _("boolean value expected for %s"), key);
+          return false;
+        }
+      break;
+
+    default:
+      NOT_REACHED ();
+    }
+
+  return true;
+}
+
+
 static bool
 odt_open_driver (const char *name, int types, struct substring option_string)
 {
@@ -257,6 +326,11 @@ odt_open_driver (const char *name, int types, struct substring option_string)
   struct outp_driver *this = outp_allocate_driver (&odt_class, name, types);
 
   this->ext = x = xmalloc (sizeof *x);
+
+  x->opts.file_name = xstrdup ("pspp.pdt");
+  x->opts.debug = false;
+
+  outp_parse_options (this->name, option_string, handle_option, &x->opts);
 
   outp_register_driver (this);
 
@@ -329,16 +403,23 @@ odt_close_driver (struct outp_driver *this)
 
   /* Zip up the directory */
   ds_init_empty (&zip_cmd);
-  ds_put_format (&zip_cmd, "cd %s ; rm -f ../pspp.odt; zip -q -X ../pspp.odt mimetype; zip -q -X -u -r ../pspp.odt .", x->dirname);
+  ds_put_format (&zip_cmd,
+		 "cd %s ; rm -f ../%s; zip -q -X ../%s mimetype; zip -q -X -u -r ../pspp.odt .",
+		 x->dirname, x->opts.file_name, x->opts.file_name);
   system (ds_cstr (&zip_cmd));
   ds_destroy (&zip_cmd);
 
 
-  /* Remove the temp dir */
-  ds_init_empty (&rm_cmd);
-  ds_put_format (&rm_cmd, "rm -r %s", x->dirname);
-  system (ds_cstr (&rm_cmd));
-  ds_destroy (&rm_cmd);
+  if ( !x->opts.debug )
+    {
+      /* Remove the temp dir */
+      ds_init_empty (&rm_cmd);
+      ds_put_format (&rm_cmd, "rm -r %s", x->dirname);
+      system (ds_cstr (&rm_cmd));
+      ds_destroy (&rm_cmd);
+    }
+  else
+    fprintf (stderr, "Not removing directory %s\n", x->dirname);
 
   free (x->dirname);
   free (x);
