@@ -15,7 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 /*
-  An interaction is a gsl_vector containing a "product" of other
+  An interaction is a structure containing a "product" of other
   variables. The variables can be either categorical or numeric.
   If the variables are all numeric, the interaction is just the
   scalar product. If any of the variables are categorical, their
@@ -31,10 +31,9 @@
 
 #include <config.h>
 #include <assert.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_vector.h>
 #include <data/value.h>
 #include <data/variable.h>
+#include <gl/unistr.h>
 #include <math/interaction.h>
 #include <string.h>
 #include <xalloc.h>
