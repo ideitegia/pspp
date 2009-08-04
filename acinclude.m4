@@ -1,4 +1,4 @@
-dnl Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+dnl Copyright (C) 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -282,4 +282,26 @@ AC_DEFUN([PSPP_GSL_NEEDS_FGNU89_INLINE],
 	 CFLAGS="$CFLAGS -fgnu89-inline"
      fi])
 ])
-dnl acinclude.m4 ends here
+
+AC_DEFUN([PSPP_CHECK_CLICKSEQUENCE],
+  [AC_REQUIRE([AM_INIT_AUTOMAKE])  # Defines MAKEINFO
+   AC_CACHE_CHECK([whether makeinfo supports @clicksequence],
+     [pspp_cv_have_clicksequence],
+     [cat > conftest.texi  <<EOF
+@setfilename conftest.info
+@clicksequence{File @click{} Open}
+EOF
+      echo "configure:__oline__: running $MAKEINFO conftest.texi >&AS_MESSAGE_LOG_FD" >&AS_MESSAGE_LOG_FD
+      eval "$MAKEINFO conftest.texi >&AS_MESSAGE_LOG_FD 2>&1"
+      retval=$?
+      echo "configure:__oline__: \$? = $retval" >&AS_MESSAGE_LOG_FD
+      if test $retval = 0; then
+	pspp_cv_have_clicksequence=yes
+      else
+	pspp_cv_have_clicksequence=no
+      fi
+      rm -f conftest.texi conftest.info])
+   if test $pspp_cv_have_clicksequence = no; then
+       AM_MAKEINFOFLAGS="$AM_MAKEINFOFLAGS -DMISSING_CLICKSEQUENCE"
+       AC_SUBST([AM_MAKEINFOFLAGS])
+   fi])
