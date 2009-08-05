@@ -732,7 +732,6 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
   tab_box (table, -1, -1, TAL_0, TAL_0, x1, y1, x2, y2);
 
   j = pool_alloc (table->container, sizeof *j);
-  j->hit = 0;
   j->x1 = x1 + table->col_ofs;
   j->y1 = y1 + table->row_ofs;
   j->x2 = ++x2 + table->col_ofs;
