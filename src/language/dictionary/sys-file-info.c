@@ -418,7 +418,7 @@ display_variables (const struct variable **vl, size_t n, int flags)
   if (flags & ~DF_DICT_INDEX)
     tab_vline (t, TAL_1, nc - 1, 0, r - 1);
   tab_resize (t, -1, r);
-  tab_columns (t, TAB_COL_DOWN, 1);
+  tab_columns (t, TAB_COL_DOWN);
   tab_submit (t);
 }
 
@@ -491,7 +491,7 @@ display_data_file_attributes (struct attrset *set, int flags)
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Attribute"));
   tab_text (t, 1, 0, TAB_LEFT | TAT_TITLE, _("Value"));
   display_attributes (t, set, flags, 0, 1);
-  tab_columns (t, TAB_COL_DOWN, 1);
+  tab_columns (t, TAB_COL_DOWN);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_title (t, "Custom data file attributes.");
   tab_submit (t);
@@ -718,7 +718,7 @@ display_vectors (const struct dictionary *dict, int sorted)
 
   t = tab_create (4, nrow + 1, 0);
   tab_headers (t, 0, 0, 1, 0);
-  tab_columns (t, TAB_COL_DOWN, 1);
+  tab_columns (t, TAB_COL_DOWN);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, 3, nrow);
   tab_box (t, -1, -1, -1, TAL_1, 0, 0, 3, nrow);

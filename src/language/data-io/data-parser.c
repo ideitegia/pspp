@@ -639,7 +639,7 @@ dump_fixed_table (const struct data_parser *parser,
   size_t i;
 
   t = tab_create (4, parser->field_cnt + 1, 0);
-  tab_columns (t, TAB_COL_DOWN, 1);
+  tab_columns (t, TAB_COL_DOWN);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Variable"));
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Record"));
@@ -680,7 +680,7 @@ dump_delimited_table (const struct data_parser *parser,
   size_t i;
 
   t = tab_create (2, parser->field_cnt + 1, 0);
-  tab_columns (t, TAB_COL_DOWN, 1);
+  tab_columns (t, TAB_COL_DOWN);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Variable"));
   tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Format"));

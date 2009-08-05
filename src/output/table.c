@@ -63,7 +63,6 @@ tab_create (int nc, int nr, int reallocable UNUSED)
   t = pool_create_container (struct tab_table, container);
   t->ref_cnt = 1;
   t->col_style = TAB_COL_NONE;
-  t->col_group = 0;
   t->title = NULL;
   t->flags = SOMF_NONE;
   t->nr = nr;
@@ -222,14 +221,12 @@ tab_headers (struct tab_table *table, int l, int r, int t, int b)
 /* Set up table T so that, when it is an appropriate size, it will be
    displayed across the page in columns.
 
-   STYLE is a TAB_COL_* constant.  GROUP is the number of rows to take
-   as a unit. */
+   STYLE is a TAB_COL_* constant. */
 void
-tab_columns (struct tab_table *t, int style, int group)
+tab_columns (struct tab_table *t, int style)
 {
   assert (t != NULL);
   t->col_style = style;
-  t->col_group = group;
 }
 
 /* Rules. */

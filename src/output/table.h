@@ -79,7 +79,6 @@ struct tab_table
 
     /* Contents. */
     int col_style;		/* Columns: One of TAB_COL_*. */
-    int col_group;		/* Number of rows per column group. */
     char *title;                /* Table title. */
     unsigned flags;		/* SOMF_*. */
     int nc, nr;			/* Number of columns, rows. */
@@ -133,7 +132,7 @@ void tab_ref (struct tab_table *);
 void tab_resize (struct tab_table *, int nc, int nr);
 void tab_realloc (struct tab_table *, int nc, int nr);
 void tab_headers (struct tab_table *, int l, int r, int t, int b);
-void tab_columns (struct tab_table *, int style, int group);
+void tab_columns (struct tab_table *, int style);
 void tab_title (struct tab_table *, const char *, ...)
      PRINTF_FORMAT (2, 3);
 void tab_flags (struct tab_table *, unsigned);

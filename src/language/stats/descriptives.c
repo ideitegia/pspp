@@ -554,7 +554,7 @@ dump_z_table (struct dsc_proc *dsc)
 
   t = tab_create (2, cnt + 1, 0);
   tab_title (t, _("Mapping of variables to corresponding Z-scores."));
-  tab_columns (t, SOM_COL_DOWN, 1);
+  tab_columns (t, SOM_COL_DOWN);
   tab_headers (t, 0, 0, 1, 0);
   tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 1, cnt);
   tab_hline (t, TAL_2, 0, 1, 1);

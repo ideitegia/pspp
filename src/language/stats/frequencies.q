@@ -1230,7 +1230,7 @@ dump_condensed (const struct variable *v, const struct variable *wv)
 	   0, 0, 3, r - 1);
   tab_hline (t, TAL_2, 0, 3, 2);
   tab_title (t, "%s", var_to_string (v));
-  tab_columns (t, SOM_COL_DOWN, 1);
+  tab_columns (t, SOM_COL_DOWN);
   tab_submit (t);
 }
 
@@ -1440,7 +1440,7 @@ dump_statistics (const struct variable *v, bool show_varname,
 		  var_get_print_format (v));
     }
 
-  tab_columns (t, SOM_COL_DOWN, 1);
+  tab_columns (t, SOM_COL_DOWN);
   if (show_varname)
     tab_title (t, "%s", var_to_string (v));
   else
