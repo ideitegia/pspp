@@ -432,17 +432,17 @@ odt_close_driver (struct outp_driver *this)
 }
 
 static void
-odt_open_page (struct outp_driver *this)
+odt_open_page (struct outp_driver *this UNUSED)
 {
 }
 
 static void
-odt_close_page (struct outp_driver *this)
+odt_close_page (struct outp_driver *this UNUSED)
 {
 }
 
 static void
-odt_output_chart (struct outp_driver *this, const struct chart *chart)
+odt_output_chart (struct outp_driver *this UNUSED, const struct chart *chart UNUSED)
 {
  printf ("%s\n", __FUNCTION__);
 }
