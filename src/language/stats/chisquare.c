@@ -190,7 +190,7 @@ create_variable_frequency_table (const struct dictionary *dict,
   tab_headers (table, 1, 0, 1, 0);
 
   tab_box (table, TAL_1, TAL_1, -1, -1,
-	   0, 0, table->nc - 1, tab_nr(table) - 1 );
+	   0, 0, tab_nc (table) - 1, tab_nr(table) - 1 );
 
   tab_hline (table, TAL_1, 0, tab_nc(table) - 1, 1);
 
@@ -199,7 +199,7 @@ create_variable_frequency_table (const struct dictionary *dict,
     tab_vline (table, TAL_1, i, 0, tab_nr(table) - 1);
 
 
-  tab_text (table, 0, table->nr - 1, TAB_LEFT, _("Total"));
+  tab_text (table, 0, tab_nr (table) - 1, TAB_LEFT, _("Total"));
 
   return table;
 }
@@ -254,12 +254,12 @@ create_combo_frequency_table (const struct chisquare_test *test)
   tab_headers (table, 1, 0, 2, 0);
 
   tab_box (table, TAL_1, TAL_1, -1, -1,
-	   0, 0, table->nc - 1, tab_nr(table) - 1 );
+	   0, 0, tab_nc (table) - 1, tab_nr(table) - 1 );
 
   tab_hline (table, TAL_1, 1, tab_nc(table) - 1, 1);
   tab_hline (table, TAL_1, 0, tab_nc(table) - 1, 2);
 
-  tab_text (table, 0, table->nr - 1, TAB_LEFT, _("Total"));
+  tab_text (table, 0, tab_nr (table) - 1, TAB_LEFT, _("Total"));
 
   return table;
 }

@@ -196,7 +196,7 @@ binomial_execute (const struct dataset *ds,
       tab_headers (table, 2, 0, 1, 0);
 
       tab_box (table, TAL_1, TAL_1, -1, TAL_1,
-               0, 0, table->nc - 1, tab_nr(table) - 1 );
+               0, 0, tab_nc (table) - 1, tab_nr(table) - 1 );
 
       for (v = 0 ; v < ost->n_vars; ++v)
         {

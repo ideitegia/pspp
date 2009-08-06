@@ -472,28 +472,28 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
 
   /* Start column definitions */
   xmlTextWriterStartElement (x->content_wtr, _xml("table:table-column"));
-  xmlTextWriterWriteFormatAttribute (x->content_wtr, _xml("table:number-columns-repeated"), "%d", tab->nc);
+  xmlTextWriterWriteFormatAttribute (x->content_wtr, _xml("table:number-columns-repeated"), "%d", tab_nc (tab));
   xmlTextWriterEndElement (x->content_wtr);
 
 
   /* Deal with row headers */
-  if ( tab->t > 0)
+  if ( tab_t (tab) > 0)
     xmlTextWriterStartElement (x->content_wtr, _xml("table:table-header-rows"));
     
 
   /* Write all the rows */
-  for (r = 0 ; r < tab->nr; ++r)
+  for (r = 0 ; r < tab_nr (tab); ++r)
     {
       int spanned_columns = 0;
       /* Start row definition */
       xmlTextWriterStartElement (x->content_wtr, _xml("table:table-row"));
 
       /* Write all the columns */
-      for (c = 0 ; c < tab->nc ; ++c)
+      for (c = 0 ; c < tab_nc (tab) ; ++c)
 	{
 	  char *s = NULL;
-	  unsigned int opts = tab->ct[tab->nc * r + c];
-	  struct substring ss = tab->cc[tab->nc * r + c];
+	  unsigned int opts = tab->ct[tab_nc (tab) * r + c];
+	  struct substring ss = tab->cc[tab_nc (tab) * r + c];
 
 	  if (opts & TAB_EMPTY)
 	    {
@@ -530,7 +530,7 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
 
 	      xmlTextWriterStartElement (x->content_wtr, _xml("text:p"));
 
-	      if ( r < tab->t || c < tab->l )
+	      if ( r < tab_t (tab) || c < tab_l (tab) )
 		xmlTextWriterWriteAttribute (x->content_wtr, _xml("text:style-name"), _xml("Table_20_Heading"));
 	      else
 		xmlTextWriterWriteAttribute (x->content_wtr, _xml("text:style-name"), _xml("Table_20_Contents"));
@@ -553,7 +553,7 @@ odt_submit (struct outp_driver *this, struct som_entity *e)
   
       xmlTextWriterEndElement (x->content_wtr); /* row */
 
-      if ( tab->t > 0 && r == tab->t - 1)
+      if ( tab_t (tab) > 0 && r == tab_t (tab) - 1)
 	xmlTextWriterEndElement (x->content_wtr); /* table-header-rows */
     }
 

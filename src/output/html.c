@@ -293,7 +293,7 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
 {
   struct html_driver_ext *x = this->ext;
 
-  if (t->nr == 1 && t->nc == 1)
+  if (tab_nr (t) == 1 && tab_nc (t) == 1)
     {
       fputs ("<P>", x->file);
       html_put_cell_contents (this, t->ct[0], *t->cc);
@@ -315,18 +315,18 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
     int r;
     unsigned char *ct = t->ct;
 
-    for (r = 0; r < t->nr; r++)
+    for (r = 0; r < tab_nr (t); r++)
       {
 	int c;
 
 	fputs ("  <TR>\n", x->file);
-	for (c = 0; c < t->nc; c++, ct++)
+	for (c = 0; c < tab_nc (t); c++, ct++)
 	  {
             struct substring *cc;
             const char *tag;
             struct tab_joined_cell *j = NULL;
 
-            cc = t->cc + c + r * t->nc;
+            cc = t->cc + c + r * tab_nc (t);
 	    if (*ct & TAB_JOIN)
               {
                 j = (struct tab_joined_cell *) ss_data (*cc);
@@ -336,8 +336,8 @@ output_tab_table (struct outp_driver *this, struct tab_table *t)
               }
 
             /* Output <TD> or <TH> tag. */
-            tag = (r < t->t || r >= t->nr - t->b
-                   || c < t->l || c >= t->nc - t->r) ? "TH" : "TD";
+            tag = (r < tab_t (t) || r >= tab_nr (t) - tab_b (t)
+                   || c < tab_l (t) || c >= tab_nc (t) - tab_r (t)) ? "TH" : "TD";
             fprintf (x->file, "    <%s ALIGN=%s",
                      tag,
                      (*ct & TAB_ALIGN_MASK) == TAB_LEFT ? "LEFT"

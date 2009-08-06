@@ -121,7 +121,7 @@ tab_resize (struct tab_table *t, int nc, int nr)
     }
   if (nr != -1)
     {
-      assert (nr + t->row_ofs <= t->nr);
+      assert (nr + t->row_ofs <= tab_nr (t));
       t->nr = nr + t->row_ofs;
     }
 }
@@ -144,16 +144,16 @@ tab_realloc (struct tab_table *t, int nc, int nr)
     tab_offset (t, 0, 0);
 
   if (nc == -1)
-    nc = t->nc;
+    nc = tab_nc (t);
   if (nr == -1)
-    nr = t->nr;
+    nr = tab_nr (t);
 
-  assert (nc == t->nc);
+  assert (nc == tab_nc (t));
 
   if (nc > t->cf)
     {
-      int mr1 = MIN (nr, t->nr);
-      int mc1 = MIN (nc, t->nc);
+      int mr1 = MIN (nr, tab_nr (t));
+      int mc1 = MIN (nc, tab_nc (t));
 
       struct substring *new_cc;
       unsigned char *new_ct;
@@ -163,9 +163,9 @@ tab_realloc (struct tab_table *t, int nc, int nr)
       new_ct = pool_malloc (t->container, nr * nc);
       for (r = 0; r < mr1; r++)
 	{
-	  memcpy (&new_cc[r * nc], &t->cc[r * t->nc], mc1 * sizeof *t->cc);
-	  memcpy (&new_ct[r * nc], &t->ct[r * t->nc], mc1);
-	  memset (&new_ct[r * nc + t->nc], TAB_EMPTY, nc - t->nc);
+	  memcpy (&new_cc[r * nc], &t->cc[r * tab_nc (t)], mc1 * sizeof *t->cc);
+	  memcpy (&new_ct[r * nc], &t->ct[r * tab_nc (t)], mc1);
+	  memset (&new_ct[r * nc + tab_nc (t)], TAB_EMPTY, nc - tab_nc (t));
 	}
       pool_free (t->container, t->cc);
       pool_free (t->container, t->ct);
@@ -173,7 +173,7 @@ tab_realloc (struct tab_table *t, int nc, int nr)
       t->ct = new_ct;
       t->cf = nc;
     }
-  else if (nr != t->nr)
+  else if (nr != tab_nr (t))
     {
       t->cc = pool_nrealloc (t->container, t->cc, nr * nc, sizeof *t->cc);
       t->ct = pool_realloc (t->container, t->ct, nr * nc);
@@ -181,15 +181,15 @@ tab_realloc (struct tab_table *t, int nc, int nr)
       t->rh = pool_nrealloc (t->container, t->rh, nc, nr + 1);
       t->rv = pool_nrealloc (t->container, t->rv, nr, nc + 1);
 
-      if (nr > t->nr)
+      if (nr > tab_nr (t))
 	{
-	  memset (&t->rh[nc * (t->nr + 1)], TAL_0, (nr - t->nr) * nc);
-	  memset (&t->rv[(nc + 1) * t->nr], UCHAR_MAX,
-                  (nr - t->nr) * (nc + 1));
+	  memset (&t->rh[nc * (tab_nr (t) + 1)], TAL_0, (nr - tab_nr (t)) * nc);
+	  memset (&t->rv[(nc + 1) * tab_nr (t)], UCHAR_MAX,
+                  (nr - tab_nr (t)) * (nc + 1));
 	}
     }
 
-  memset (&t->ct[nc * t->nr], TAB_EMPTY, nc * (nr - t->nr));
+  memset (&t->ct[nc * tab_nr (t)], TAB_EMPTY, nc * (nr - tab_nr (t)));
 
   t->nr = nr;
   t->nc = nc;
@@ -239,16 +239,16 @@ tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
   assert (t != NULL);
 
 #if DEBUGGING
-  if (x + t->col_ofs < 0 || x + t->col_ofs > t->nc
-      || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= t->nr
-      || y2 + t->row_ofs < 0 || y2 + t->row_ofs >= t->nr)
+  if (x + t->col_ofs < 0 || x + t->col_ofs > tab_nc (t)
+      || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= tab_nr (t)
+      || y2 + t->row_ofs < 0 || y2 + t->row_ofs >= tab_nr (t))
     {
       printf (_("bad vline: x=%d+%d=%d y=(%d+%d=%d,%d+%d=%d) in "
 		"table size (%d,%d)\n"),
 	      x, t->col_ofs, x + t->col_ofs,
 	      y1, t->row_ofs, y1 + t->row_ofs,
 	      y2, t->row_ofs, y2 + t->row_ofs,
-	      t->nc, t->nr);
+	      tab_nc (t), tab_nr (t));
       return;
     }
 #endif
@@ -258,10 +258,10 @@ tab_vline (struct tab_table *t, int style, int x, int y1, int y2)
   y2 += t->row_ofs;
 
   assert (x  > 0);
-  assert (x  < t->nc);
+  assert (x  < tab_nc (t));
   assert (y1 >= 0);
   assert (y2 >= y1);
-  assert (y2 <=  t->nr);
+  assert (y2 <=  tab_nr (t));
 
   if (style != -1)
     {
@@ -283,10 +283,10 @@ tab_hline (struct tab_table * t, int style, int x1, int x2, int y)
   y += t->row_ofs;
 
   assert (y >= 0);
-  assert (y <= t->nr);
+  assert (y <= tab_nr (t));
   assert (x2 >= x1 );
   assert (x1 >= 0 );
-  assert (x2 < t->nc);
+  assert (x2 < tab_nc (t));
 
   if (style != -1)
     {
@@ -309,10 +309,10 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
   assert (t != NULL);
 
 #if DEBUGGING
-  if (x1 + t->col_ofs < 0 || x1 + t->col_ofs >= t->nc
-      || x2 + t->col_ofs < 0 || x2 + t->col_ofs >= t->nc
-      || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= t->nr
-      || y2 + t->row_ofs < 0 || y2 + t->row_ofs >= t->nr)
+  if (x1 + t->col_ofs < 0 || x1 + t->col_ofs >= tab_nc (t)
+      || x2 + t->col_ofs < 0 || x2 + t->col_ofs >= tab_nc (t)
+      || y1 + t->row_ofs < 0 || y1 + t->row_ofs >= tab_nr (t)
+      || y2 + t->row_ofs < 0 || y2 + t->row_ofs >= tab_nr (t))
     {
       printf (_("bad box: (%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) "
 		"in table size (%d,%d)\n"),
@@ -320,7 +320,7 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
 	      y1, t->row_ofs, y1 + t->row_ofs,
 	      x2, t->col_ofs, x2 + t->col_ofs,
 	      y2, t->row_ofs, y2 + t->row_ofs,
-	      t->nc, t->nr);
+	      tab_nc (t), tab_nr (t));
       NOT_REACHED ();
     }
 #endif
@@ -334,8 +334,8 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
   assert (y2 >= y1);
   assert (x1 >= 0);
   assert (y1 >= 0);
-  assert (x2 < t->nc);
-  assert (y2 < t->nr);
+  assert (x2 < tab_nc (t));
+  assert (y2 < tab_nr (t));
 
   if (f_h != -1)
     {
@@ -436,10 +436,10 @@ tab_natural_width (const struct tab_rendering *r, int col)
   const struct tab_table *t = r->table;
   int width, row, max_width;
 
-  assert (col >= 0 && col < t->nc);
+  assert (col >= 0 && col < tab_nc (t));
 
   width = 0;
-  for (row = 0; row < t->nr; row++)
+  for (row = 0; row < tab_nr (t); row++)
     {
       struct outp_text text;
       unsigned char opt = t->ct[col + row * t->cf];
@@ -466,7 +466,7 @@ tab_natural_width (const struct tab_rendering *r, int col)
       width = r->driver->prop_em_width * 8;
     }
 
-  max_width = r->driver->width - r->wrv[0] - r->wrv[t->nc];
+  max_width = r->driver->width - r->wrv[0] - r->wrv[tab_nc (t)];
   return MIN (width, max_width);
 }
 
@@ -479,10 +479,10 @@ tab_natural_height (const struct tab_rendering *r, int row)
   const struct tab_table *t = r->table;
   int height, col;
 
-  assert (row >= 0 && row < t->nr);
+  assert (row >= 0 && row < tab_nr (t));
 
   height = r->driver->font_height;
-  for (col = 0; col < t->nc; col++)
+  for (col = 0; col < tab_nc (t); col++)
     {
       struct outp_text text;
       unsigned char opt = t->ct[col + row * t->cf];
@@ -513,10 +513,10 @@ tab_natural_dimensions (struct tab_rendering *r, void *aux UNUSED)
   const struct tab_table *t = r->table;
   int i;
 
-  for (i = 0; i < t->nc; i++)
+  for (i = 0; i < tab_nc (t); i++)
     r->w[i] = tab_natural_width (r, i);
 
-  for (i = 0; i < t->nr; i++)
+  for (i = 0; i < tab_nr (t); i++)
     r->h[i] = tab_natural_height (r, i);
 }
 
@@ -534,14 +534,14 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
   assert (table != NULL && v != NULL && f != NULL);
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
-      || c + table->col_ofs >= table->nc
-      || r + table->row_ofs >= table->nr)
+      || c + table->col_ofs >= tab_nc (table)
+      || r + table->row_ofs >= tab_nr (table))
     {
       printf ("tab_value(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
 	      "(%d,%d)\n",
 	      c, table->col_ofs, c + table->col_ofs,
 	      r, table->row_ofs, r + table->row_ofs,
-	      table->nc, table->nr);
+	      tab_nc (table), tab_nr (table));
       return;
     }
 #endif
@@ -568,22 +568,22 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
   assert (table != NULL && w <= 40);
 
   assert (c >= 0);
-  assert (c < table->nc);
+  assert (c < tab_nc (table));
   assert (r >= 0);
-  assert (r < table->nr);
+  assert (r < tab_nr (table));
 
   f = fmt_for_output (FMT_F, w, d);
 
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
-      || c + table->col_ofs >= table->nc
-      || r + table->row_ofs >= table->nr)
+      || c + table->col_ofs >= tab_nc (table)
+      || r + table->row_ofs >= tab_nr (table))
     {
       printf ("tab_fixed(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
 	      "(%d,%d)\n",
 	      c, table->col_ofs, c + table->col_ofs,
 	      r, table->row_ofs, r + table->row_ofs,
-	      table->nc, table->nr);
+	      tab_nc (table), tab_nr (table));
       return;
     }
 #endif
@@ -619,9 +619,9 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
   assert (table != NULL);
 
   assert (c >= 0);
-  assert (c < table->nc);
+  assert (c < tab_nc (table));
   assert (r >= 0);
-  assert (r < table->nr);
+  assert (r < tab_nr (table));
 
   if ( fmt == NULL)
     fmt = settings_get_format ();
@@ -630,14 +630,14 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
-      || c + table->col_ofs >= table->nc
-      || r + table->row_ofs >= table->nr)
+      || c + table->col_ofs >= tab_nc (table)
+      || r + table->row_ofs >= tab_nr (table))
     {
       printf ("tab_double(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
 	      "(%d,%d)\n",
 	      c, table->col_ofs, c + table->col_ofs,
 	      r, table->row_ofs, r + table->row_ofs,
-	      table->nc, table->nr);
+	      tab_nc (table), tab_nr (table));
       return;
     }
 #endif
@@ -668,20 +668,20 @@ tab_text (struct tab_table *table, int c, int r, unsigned opt, const char *text,
 
   assert (c >= 0 );
   assert (r >= 0 );
-  assert (c < table->nc);
-  assert (r < table->nr);
+  assert (c < tab_nc (table));
+  assert (r < tab_nr (table));
 
 
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
-      || c + table->col_ofs >= table->nc
-      || r + table->row_ofs >= table->nr)
+      || c + table->col_ofs >= tab_nc (table)
+      || r + table->row_ofs >= tab_nr (table))
     {
       printf ("tab_text(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
 	      "(%d,%d)\n",
 	      c, table->col_ofs, c + table->col_ofs,
 	      r, table->row_ofs, r + table->row_ofs,
-	      table->nc, table->nr);
+	      tab_nc (table), tab_nr (table));
       return;
     }
 #endif
@@ -706,14 +706,14 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
   assert (y1 + table->row_ofs >= 0);
   assert (y2 >= y1);
   assert (x2 >= x1);
-  assert (y2 + table->row_ofs < table->nr);
-  assert (x2 + table->col_ofs < table->nc);
+  assert (y2 + table->row_ofs < tab_nr (table));
+  assert (x2 + table->col_ofs < tab_nc (table));
 
 #if DEBUGGING
-  if (x1 + table->col_ofs < 0 || x1 + table->col_ofs >= table->nc
-      || y1 + table->row_ofs < 0 || y1 + table->row_ofs >= table->nr
-      || x2 < x1 || x2 + table->col_ofs >= table->nc
-      || y2 < y2 || y2 + table->row_ofs >= table->nr)
+  if (x1 + table->col_ofs < 0 || x1 + table->col_ofs >= tab_nc (table)
+      || y1 + table->row_ofs < 0 || y1 + table->row_ofs >= tab_nr (table)
+      || x2 < x1 || x2 + table->col_ofs >= tab_nc (table)
+      || y2 < y2 || y2 + table->row_ofs >= tab_nr (table))
     {
       printf ("tab_joint_text(): bad cell "
 	      "(%d+%d=%d,%d+%d=%d)-(%d+%d=%d,%d+%d=%d) in table size (%d,%d)\n",
@@ -721,7 +721,7 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 	      y1, table->row_ofs, y1 + table->row_ofs,
 	      x2, table->col_ofs, x2 + table->col_ofs,
 	      y2, table->row_ofs, y2 + table->row_ofs,
-	      table->nc, table->nr);
+	      tab_nc (table), tab_nr (table));
       return;
     }
 #endif
@@ -776,14 +776,14 @@ tab_raw (struct tab_table *table, int c, int r, unsigned opt,
 
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
-      || c + table->col_ofs >= table->nc
-      || r + table->row_ofs >= table->nr)
+      || c + table->col_ofs >= tab_nc (table)
+      || r + table->row_ofs >= tab_nr (table))
     {
       printf ("tab_raw(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
 	      "(%d,%d)\n",
 	      c, table->col_ofs, c + table->col_ofs,
 	      r, table->row_ofs, r + table->row_ofs,
-	      table->nc, table->nr);
+	      tab_nc (table), tab_nr (table));
       return;
     }
 #endif
@@ -871,14 +871,14 @@ tab_offset (struct tab_table *t, int col, int row)
 
   assert (t != NULL);
 #if DEBUGGING
-  if (row < -1 || row > t->nr)
+  if (row < -1 || row > tab_nr (t))
     {
-      printf ("tab_offset(): row=%d in %d-row table\n", row, t->nr);
+      printf ("tab_offset(): row=%d in %d-row table\n", row, tab_nr (t));
       NOT_REACHED ();
     }
-  if (col < -1 || col > t->nc)
+  if (col < -1 || col > tab_nc (t))
     {
-      printf ("tab_offset(): col=%d in %d-column table\n", col, t->nc);
+      printf ("tab_offset(): col=%d in %d-column table\n", col, tab_nc (t));
       NOT_REACHED ();
     }
 #endif
@@ -900,8 +900,8 @@ tab_next_row (struct tab_table *t)
   assert (t != NULL);
   t->cc += t->cf;
   t->ct += t->cf;
-  if (++t->row_ofs >= t->nr)
-    tab_realloc (t, -1, t->nr * 4 / 3);
+  if (++t->row_ofs >= tab_nr (t))
+    tab_realloc (t, -1, tab_nr (t) * 4 / 3);
 }
 
 /* Return the number of columns and rows in the table into N_COLUMNS
@@ -975,20 +975,20 @@ tabi_render_init (struct som_entity *t_, struct outp_driver *driver,
   r = xmalloc (sizeof *r);
   r->table = t;
   r->driver = driver;
-  r->w = xnmalloc (t->nc, sizeof *r->w);
-  r->h = xnmalloc (t->nr, sizeof *r->h);
-  r->hrh = xnmalloc (t->nr + 1, sizeof *r->hrh);
-  r->wrv = xnmalloc (t->nc + 1, sizeof *r->wrv);
+  r->w = xnmalloc (tab_nc (t), sizeof *r->w);
+  r->h = xnmalloc (tab_nr (t), sizeof *r->h);
+  r->hrh = xnmalloc (tab_nr (t) + 1, sizeof *r->hrh);
+  r->wrv = xnmalloc (tab_nc (t) + 1, sizeof *r->wrv);
   r->l = hl;
   r->r = hr;
   r->t = ht;
   r->b = hb;
 
   /* Figure out sizes of rules. */
-  for (row = 0; row <= t->nr; row++)
+  for (row = 0; row <= tab_nr (t); row++)
     {
       int width = 0;
-      for (col = 0; col < t->nc; col++)
+      for (col = 0; col < tab_nc (t); col++)
         {
           unsigned char rh = t->rh[col + row * t->cf];
           int w = driver->horiz_line_width[rule_to_spacing_type (rh)];
@@ -998,15 +998,15 @@ tabi_render_init (struct som_entity *t_, struct outp_driver *driver,
       r->hrh[row] = width;
     }
 
-  for (col = 0; col <= t->nc; col++)
+  for (col = 0; col <= tab_nc (t); col++)
     {
       int width = 0;
-      for (row = 0; row < t->nr; row++)
+      for (row = 0; row < tab_nr (t); row++)
         {
           unsigned char *rv = &t->rv[col + row * (t->cf + 1)];
           int w;
           if (*rv == UCHAR_MAX)
-            *rv = col != 0 && col != t->nc ? TAL_GAP : TAL_0;
+            *rv = col != 0 && col != tab_nc (t) ? TAL_GAP : TAL_0;
           w = driver->vert_line_width[rule_to_spacing_type (*rv)];
           if (w > width)
             width = w;
@@ -1015,18 +1015,18 @@ tabi_render_init (struct som_entity *t_, struct outp_driver *driver,
     }
 
   /* Determine row heights and columns widths. */
-  for (i = 0; i < t->nr; i++)
+  for (i = 0; i < tab_nr (t); i++)
     r->h[i] = -1;
-  for (i = 0; i < t->nc; i++)
+  for (i = 0; i < tab_nc (t); i++)
     r->w[i] = -1;
 
   t->dim (r, t->dim_aux);
 
-  for (i = 0; i < t->nr; i++)
+  for (i = 0; i < tab_nr (t); i++)
     if (r->h[i] < 0)
       error (0, 0, "height of table row %d is %d (not initialized?)",
              i, r->h[i]);
-  for (i = 0; i < t->nc; i++)
+  for (i = 0; i < tab_nc (t); i++)
     if (r->w[i] < 0)
       error (0, 0, "width of table column %d is %d (not initialized?)",
              i, r->w[i]);
@@ -1036,9 +1036,9 @@ tabi_render_init (struct som_entity *t_, struct outp_driver *driver,
     r->wl += r->w[i] + r->wrv[i + 1];
   for (i = 0, r->ht = r->hrh[0]; i < r->t; i++)
     r->ht += r->h[i] + r->hrh[i + 1];
-  for (i = t->nc - r->r, r->wr = r->wrv[i]; i < t->nc; i++)
+  for (i = tab_nc (t) - r->r, r->wr = r->wrv[i]; i < tab_nc (t); i++)
     r->wr += r->w[i] + r->wrv[i + 1];
-  for (i = t->nr - r->b, r->hb = r->hrh[i]; i < t->nr; i++)
+  for (i = tab_nr (t) - r->b, r->hb = r->hrh[i]; i < tab_nr (t); i++)
     r->hb += r->h[i] + r->hrh[i + 1];
 
   /* Title. */
@@ -1072,14 +1072,14 @@ tabi_area (void *r_, int *horiz, int *vert)
   int height, row;
 
   width = 0;
-  for (col = r->l + 1, width = r->wl + r->wr + r->w[t->l];
-       col < t->nc - r->r; col++)
+  for (col = r->l + 1, width = r->wl + r->wr + r->w[tab_l (t)];
+       col < tab_nc (t) - r->r; col++)
     width += r->w[col] + r->wrv[col];
   *horiz = width;
 
   height = 0;
-  for (row = r->t + 1, height = r->ht + r->hb + r->h[t->t];
-       row < t->nr - t->b; row++)
+  for (row = r->t + 1, height = r->ht + r->hb + r->h[tab_t (t)];
+       row < tab_nr (t) - tab_b (t); row++)
     height += r->h[row] + r->hrh[row];
   *vert = height;
 }
@@ -1105,16 +1105,16 @@ tabi_cumulate (void *r_, int cumtype, int start, int *end,
   assert (end != NULL && (cumtype == SOM_ROWS || cumtype == SOM_COLUMNS));
   if (cumtype == SOM_ROWS)
     {
-      assert (start >= 0 && start < t->nr);
-      limit = t->nr - r->b;
+      assert (start >= 0 && start < tab_nr (t));
+      limit = tab_nr (t) - r->b;
       cells = &r->h[start];
       rules = &r->hrh[start + 1];
       total = r->ht + r->hb;
     }
   else
     {
-      assert (start >= 0 && start < t->nc);
-      limit = t->nc - t->r;
+      assert (start >= 0 && start < tab_nc (t));
+      limit = tab_nc (t) - tab_r (t);
       cells = &r->w[start];
       rules = &r->wrv[start + 1];
       total = r->wl + r->wr;
@@ -1218,15 +1218,16 @@ tabi_render (void *r_, int c0, int r0, int c1, int r1)
 
   /* Rows to render, counting horizontal rules as rows.  */
   n_row_ranges = 0;
-  add_range (rows, &n_row_ranges, 0, t->t * 2 + 1);
+  add_range (rows, &n_row_ranges, 0, tab_t (t) * 2 + 1);
   add_range (rows, &n_row_ranges, r0 * 2 + 1, r1 * 2);
-  add_range (rows, &n_row_ranges, (t->nr - t->b) * 2, t->nr * 2 + 1);
+  add_range (rows, &n_row_ranges, (tab_nr (t) - tab_b (t)) * 2,
+             tab_nr (t) * 2 + 1);
 
   /* Columns to render, counting vertical rules as columns. */
   n_col_ranges = 0;
   add_range (cols, &n_col_ranges, 0, r->l * 2 + 1);
   add_range (cols, &n_col_ranges, c0 * 2 + 1, c1 * 2);
-  add_range (cols, &n_col_ranges, (t->nc - r->r) * 2, t->nc * 2 + 1);
+  add_range (cols, &n_col_ranges, (tab_nc (t) - r->r) * 2, tab_nc (t) * 2 + 1);
 
   y = r->driver->cp_y;
   if (!(t->flags & SOMF_NO_TITLE))
@@ -1358,8 +1359,8 @@ render_rule_intersection (const struct tab_rendering *r,
   /* Lines on each side of intersection. */
   int top = row > 0 ? get_vrule (t, col, row - 1) : TAL_0;
   int left = col > 0 ? get_hrule (t, col - 1, row) : TAL_0;
-  int bottom = row < t->nr ? get_vrule (t, col, row) : TAL_0;
-  int right = col < t->nc ? get_hrule (t, col, row) : TAL_0;
+  int bottom = row < tab_nr (t) ? get_vrule (t, col, row) : TAL_0;
+  int right = col < tab_nc (t) ? get_hrule (t, col, row) : TAL_0;
 
   /* Output style for each line. */
   enum outp_line_style o_top = rule_to_draw_type (top);

@@ -1013,7 +1013,7 @@ full_dim (struct tab_rendering *r, void *aux_)
   const struct full_dim_aux *aux = aux_;
   int i;
 
-  for (i = 0; i < t->nc; i++)
+  for (i = 0; i < tab_nc (t); i++)
     {
       r->w[i] = tab_natural_width (r, i);
       if (aux->show_labels && i == 0)
@@ -1022,7 +1022,7 @@ full_dim (struct tab_rendering *r, void *aux_)
         r->w[i] = MAX (r->w[i], d->prop_em_width * 8);
     }
 
-  for (i = 0; i < t->nr; i++)
+  for (i = 0; i < tab_nr (t); i++)
     r->h[i] = d->font_height;
 }
 
@@ -1172,7 +1172,7 @@ condensed_dim (struct tab_rendering *r, void *aux UNUSED)
     }
   for (i = 2; i < 4; i++)
     r->w[i] = max_width;
-  for (i = 0; i < t->nr; i++)
+  for (i = 0; i < tab_nr (t); i++)
     r->h[i] = d->font_height;
 }
 

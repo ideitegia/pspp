@@ -1397,15 +1397,15 @@ crosstabs_dim (struct tab_rendering *r, void *aux_)
     c += outp_string_width (d, "M", OUTP_PROPORTIONAL);
 
   /* Set width for header columns. */
-  if (t->l != 0)
+  if (tab_l (t) != 0)
     {
       size_t i;
       int w;
 
-      w = d->width - c * (t->nc - t->l);
-      for (i = 0; i <= t->nc; i++)
+      w = d->width - c * (tab_nc (t) - tab_l (t));
+      for (i = 0; i <= tab_nc (t); i++)
         w -= r->wrv[i];
-      w /= t->l;
+      w /= tab_l (t);
 
       if (w < d->prop_em_width * 8)
 	w = d->prop_em_width * 8;
@@ -1413,14 +1413,14 @@ crosstabs_dim (struct tab_rendering *r, void *aux_)
       if (w > d->prop_em_width * 15)
 	w = d->prop_em_width * 15;
 
-      for (i = 0; i < t->l; i++)
+      for (i = 0; i < tab_l (t); i++)
 	r->w[i] = w;
     }
 
-  for (i = t->l; i < t->nc; i++)
+  for (i = tab_l (t); i < tab_nc (t); i++)
     r->w[i] = c;
 
-  for (i = 0; i < t->nr; i++)
+  for (i = 0; i < tab_nr (t); i++)
     r->h[i] = tab_natural_height (r, i);
 }
 

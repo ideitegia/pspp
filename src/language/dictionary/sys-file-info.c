@@ -79,7 +79,7 @@ sysfile_info_dim (struct tab_rendering *r, void *aux UNUSED)
   for (p = max; *p; p++)
     r->w[p - max] = MIN (tab_natural_width (r, p - max),
                          *p * r->driver->prop_em_width);
-  for (i = 0; i < t->nr; i++)
+  for (i = 0; i < tab_nr (t); i++)
     r->h[i] = tab_natural_height (r, i);
 }
 

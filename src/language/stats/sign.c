@@ -65,11 +65,11 @@ output_frequency_table (const struct two_sample_test *t2s,
 
   /* Vertical lines inside the box */
   tab_box (table, 0, 0, -1, TAL_1,
-	   1, 0, table->nc - 1, tab_nr (table) - 1 );
+	   1, 0, tab_nc (table) - 1, tab_nr (table) - 1 );
 
   /* Box around entire table */
   tab_box (table, TAL_2, TAL_2, -1, -1,
-	   0, 0, table->nc - 1, tab_nr (table) - 1 );
+	   0, 0, tab_nc (table) - 1, tab_nr (table) - 1 );
 
   tab_text (table,  2, 0,  TAB_CENTER, _("N"));
 
@@ -86,7 +86,7 @@ output_frequency_table (const struct two_sample_test *t2s,
 
       ds_destroy (&pair_name);
 
-      tab_hline (table, TAL_1, 0, table->nc - 1, 1 + i * 4);
+      tab_hline (table, TAL_1, 0, tab_nc (table) - 1, 1 + i * 4);
 
       tab_text (table,  1, 1 + i * 4,  TAB_LEFT, _("Negative Differences"));
       tab_text (table,  1, 2 + i * 4,  TAB_LEFT, _("Positive Differences"));
@@ -116,18 +116,18 @@ output_statistics_table (const struct two_sample_test *t2s,
 
   tab_headers (table, 0, 1,  0, 1);
 
-  tab_hline (table, TAL_2, 0, table->nc - 1, 1);
-  tab_vline (table, TAL_2, 1, 0, table->nr - 1);
+  tab_hline (table, TAL_2, 0, tab_nc (table) - 1, 1);
+  tab_vline (table, TAL_2, 1, 0, tab_nr (table) - 1);
 
 
   /* Vertical lines inside the box */
   tab_box (table, -1, -1, -1, TAL_1,
 	   0, 0,
-	   table->nc - 1, tab_nr (table) - 1);
+	   tab_nc (table) - 1, tab_nr (table) - 1);
 
   /* Box around entire table */
   tab_box (table, TAL_2, TAL_2, -1, -1,
-	   0, 0, table->nc - 1,
+	   0, 0, tab_nc (table) - 1,
 	   tab_nr (table) - 1);
 
   tab_text (table,  0, 1, TAT_TITLE | TAB_LEFT,

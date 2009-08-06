@@ -235,11 +235,11 @@ show_ranks_box (const struct wilcoxon_state *ws,
 
   /* Vertical lines inside the box */
   tab_box (table, 0, 0, -1, TAL_1,
-	   1, 0, table->nc - 1, tab_nr (table) - 1 );
+	   1, 0, tab_nc (table) - 1, tab_nr (table) - 1 );
 
   /* Box around entire table */
   tab_box (table, TAL_2, TAL_2, -1, -1,
-	   0, 0, table->nc - 1, tab_nr (table) - 1 );
+	   0, 0, tab_nc (table) - 1, tab_nr (table) - 1 );
 
 
   tab_text (table,  2, 0,  TAB_CENTER, _("N"));
@@ -261,7 +261,7 @@ show_ranks_box (const struct wilcoxon_state *ws,
       tab_text (table, 1, 3 + i * 4, TAB_LEFT, _("Ties"));
       tab_text (table, 1, 4 + i * 4, TAB_LEFT, _("Total"));
 
-      tab_hline (table, TAL_1, 0, table->nc - 1, 1 + i * 4);
+      tab_hline (table, TAL_1, 0, tab_nc (table) - 1, 1 + i * 4);
 
 
       tab_text (table, 0, 1 + i * 4, TAB_LEFT, ds_cstr (&pair_name));
@@ -290,8 +290,8 @@ show_ranks_box (const struct wilcoxon_state *ws,
 
     }
 
-  tab_hline (table, TAL_2, 0, table->nc - 1, 1);
-  tab_vline (table, TAL_2, 2, 0, table->nr - 1);
+  tab_hline (table, TAL_2, 0, tab_nc (table) - 1, 1);
+  tab_vline (table, TAL_2, 2, 0, tab_nr (table) - 1);
 
 
   tab_submit (table);
@@ -316,11 +316,11 @@ show_tests_box (const struct wilcoxon_state *ws,
 
   /* Vertical lines inside the box */
   tab_box (table, 0, 0, -1, TAL_1,
-	   0, 0, table->nc - 1, tab_nr (table) - 1 );
+	   0, 0, tab_nc (table) - 1, tab_nr (table) - 1 );
 
   /* Box around entire table */
   tab_box (table, TAL_2, TAL_2, -1, -1,
-	   0, 0, table->nc - 1, tab_nr (table) - 1 );
+	   0, 0, tab_nc (table) - 1, tab_nr (table) - 1 );
 
 
   tab_text (table,  0, 1,  TAB_LEFT, _("Z"));
@@ -377,8 +377,8 @@ show_tests_box (const struct wilcoxon_state *ws,
 	}
     }
 
-  tab_hline (table, TAL_2, 0, table->nc - 1, 1);
-  tab_vline (table, TAL_2, 1, 0, table->nr - 1);
+  tab_hline (table, TAL_2, 0, tab_nc (table) - 1, 1);
+  tab_vline (table, TAL_2, 1, 0, tab_nr (table) - 1);
 
 
   tab_submit (table);

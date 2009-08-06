@@ -111,7 +111,7 @@ do_summary_box (const struct descriptives *desc,
   tab_headers (table, 1, 0, 1, 0);
 
   tab_box (table, TAL_1, TAL_1, -1, TAL_1,
-	   0, 0, table->nc - 1, tab_nr(table) - 1 );
+	   0, 0, tab_nc (table) - 1, tab_nr(table) - 1 );
 
   tab_hline (table, TAL_2, 0, tab_nc (table) -1, 2);
   tab_vline (table, TAL_2, 1, 0, tab_nr (table) - 1);
