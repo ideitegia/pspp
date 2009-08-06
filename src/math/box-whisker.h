@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ struct box_whisker
   const struct variable *id_var;
 };
 
-struct statistic * box_whisker_create (const struct tukey_hinges *,
+struct box_whisker * box_whisker_create (const struct tukey_hinges *,
 					 const struct variable *, size_t);
 
 void box_whisker_whiskers (const struct box_whisker *bw, double whiskers[2]);

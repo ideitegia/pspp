@@ -104,11 +104,11 @@ struct factor_metrics
   struct percentile **ptl;
   size_t n_ptiles;
 
-  struct statistic *tukey_hinges;
-  struct statistic *box_whisker;
-  struct statistic *trimmed_mean;
-  struct statistic *histogram;
-  struct order_stats *np;
+  struct tukey_hinges *tukey_hinges;
+  struct box_whisker *box_whisker;
+  struct trimmed_mean *trimmed_mean;
+  struct histogram *histogram;
+  struct np *np;
 
   /* Three quartiles indexing into PTL */
   struct percentile **quartiles;
@@ -179,12 +179,12 @@ factor_destroy (struct xfactor *fctr)
 	  moments1_destroy (result->metrics[v].moments);
 	  extrema_destroy (result->metrics[v].minima);
 	  extrema_destroy (result->metrics[v].maxima);
-	  statistic_destroy (result->metrics[v].trimmed_mean);
-	  statistic_destroy (result->metrics[v].tukey_hinges);
-	  statistic_destroy (result->metrics[v].box_whisker);
-	  statistic_destroy (result->metrics[v].histogram);
+	  statistic_destroy (&result->metrics[v].trimmed_mean->parent.parent);
+	  statistic_destroy (&result->metrics[v].tukey_hinges->parent.parent);
+	  statistic_destroy (&result->metrics[v].box_whisker->parent.parent);
+	  statistic_destroy (&result->metrics[v].histogram->parent);
 	  for (i = 0 ; i < result->metrics[v].n_ptiles; ++i)
-	    statistic_destroy ((struct statistic *) result->metrics[v].ptl[i]);
+	    statistic_destroy (&result->metrics[v].ptl[i]->parent.parent);
 	  free (result->metrics[v].ptl);
 	  free (result->metrics[v].quartiles);
 	  casereader_destroy (result->metrics[v].up_reader);
@@ -347,7 +347,7 @@ show_npplot (const struct variable **dependent_var,
 	  ds_put_format (&label, "%s ", var_get_name (dependent_var[v]));
 	  factor_to_string (fctr, result, &label);
 
-          np = (struct np *) result->metrics[v].np;
+          np = result->metrics[v].np;
           reader = casewriter_make_reader (np->writer);
           npp = np_plot_create (np, reader, ds_cstr (&label));
           dnpp = dnp_plot_create (np, reader, ds_cstr (&label));
@@ -392,7 +392,7 @@ show_histogram (const struct variable **dependent_var,
           struct histogram *histogram;
           double mean, var, n;
 
-          histogram = (struct histogram *) result->metrics[v].histogram;
+          histogram = result->metrics[v].histogram;
           if (histogram == NULL)
             {
               /* Probably all values are SYSMIS. */
@@ -404,7 +404,7 @@ show_histogram (const struct variable **dependent_var,
 
 	  factor_to_string (fctr, result, &str);
 
-          moments1_calculate ((struct moments1 *) result->metrics[v].moments,
+          moments1_calculate (result->metrics[v].moments,
                               &n, &mean, &var, NULL,  NULL);
           chart_submit (histogram_chart_create (histogram, ds_cstr (&str),
                                                 n, mean, sqrt (var), false));
@@ -466,9 +466,7 @@ show_boxplot_groups (const struct variable **dependent_var,
           struct factor_metrics *metrics = &result->metrics[v];
 	  struct string str = DS_EMPTY_INITIALIZER;
 	  factor_to_string_concise (fctr, result, &str);
-          boxplot_add_box (boxplot,
-                           (struct box_whisker *) metrics->box_whisker,
-                           ds_cstr (&str));
+          boxplot_add_box (boxplot, metrics->box_whisker, ds_cstr (&str));
           metrics->box_whisker = NULL;
 	  ds_destroy (&str);
 	}
@@ -516,8 +514,7 @@ show_boxplot_variables (const struct variable **dependent_var,
       for (v = 0; v < n_dep_var; ++v)
 	{
           struct factor_metrics *metrics = &result->metrics[v];
-          boxplot_add_box (boxplot,
-                           (struct box_whisker *) metrics->box_whisker,
+          boxplot_add_box (boxplot, metrics->box_whisker,
                            var_get_name (dependent_var[v]));
           metrics->box_whisker = NULL;
 	}
@@ -884,15 +881,13 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 
 	  metric->n_ptiles = percentile_list.n_data;
 
-	  metric->ptl = xcalloc (metric->n_ptiles,
-				 sizeof (struct percentile *));
+	  metric->ptl = xcalloc (metric->n_ptiles, sizeof *metric->ptl);
 
 	  metric->quartiles = xcalloc (3, sizeof (*metric->quartiles));
 
 	  for (i = 0 ; i < metric->n_ptiles; ++i)
 	    {
-	      metric->ptl[i] = (struct percentile *)
-		percentile_create (percentile_list.data[i] / 100.0, metric->n_valid);
+	      metric->ptl[i] = percentile_create (percentile_list.data[i] / 100.0, metric->n_valid);
 
 	      if ( percentile_list.data[i] == 25)
 		metric->quartiles[0] = metric->ptl[i];
@@ -913,18 +908,18 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	      n_os ++;
 	    }
 
-	  os = xcalloc (sizeof (struct order_stats *), n_os);
+          os = xcalloc (n_os, sizeof *os);
 
 	  for (i = 0 ; i < metric->n_ptiles ; ++i )
 	    {
-	      os[i] = (struct order_stats *) metric->ptl[i];
+	      os[i] = &metric->ptl[i]->parent;
 	    }
 
-	  os[i] = (struct order_stats *) metric->tukey_hinges;
-	  os[i+1] = (struct order_stats *) metric->trimmed_mean;
+	  os[i] = &metric->tukey_hinges->parent;
+	  os[i+1] = &metric->trimmed_mean->parent;
 
 	  if (cmd->a_plot[XMN_PLT_NPPLOT])
-	    os[i+2] = metric->np;
+	    os[i+2] = &metric->np->parent;
 
 	  order_stats_accumulate (os, n_os,
 				  casereader_clone (metric->up_reader),
@@ -975,7 +970,7 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	    {
 	      struct factor_metrics *metric = &result->metrics[v];
 	      if ( metric->histogram)
-		histogram_add ((struct histogram *) metric->histogram,
+		histogram_add (metric->histogram,
 			       case_data (c, dependent_vars[v])->f, weight);
 	    }
 	  case_unref (c);
@@ -991,13 +986,12 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	  struct factor_metrics *metric = &result->metrics[v];
           int n_vals = caseproto_get_n_widths (casereader_get_proto (
                                                  metric->up_reader));
+          struct order_stats *os = &metric->box_whisker->parent;
 
 	  metric->box_whisker =
-	    box_whisker_create ((struct tukey_hinges *) metric->tukey_hinges,
-				cmd->v_id, n_vals - 1);
+	    box_whisker_create ( metric->tukey_hinges, cmd->v_id, n_vals - 1);
 
-	  order_stats_accumulate ((struct order_stats **) &metric->box_whisker,
-				  1,
+	  order_stats_accumulate ( &os, 1,
 				  casereader_clone (metric->up_reader),
 				  wv, dependent_vars[v], MV_ANY);
 	}
@@ -1554,7 +1548,7 @@ show_descriptives (const struct variable **dependent_var,
 	  tab_double (tbl, n_cols - 2,
 		     heading_rows + row_var_start + 3 + i * DESCRIPTIVE_ROWS,
 		     TAB_CENTER,
-		     trimmed_mean_calculate ((struct trimmed_mean *) result->metrics[v].trimmed_mean),
+		     trimmed_mean_calculate (result->metrics[v].trimmed_mean),
 		     NULL);
 
 
@@ -1975,8 +1969,7 @@ show_percentiles (const struct variable **dependent_var,
 
 	  tab_vline (tbl, TAL_1, n_cols - n_percentiles -1, heading_rows, n_rows - 1);
 
-	  tukey_hinges_calculate ((struct tukey_hinges *) result->metrics[v].tukey_hinges,
-				  hinges);
+	  tukey_hinges_calculate (result->metrics[v].tukey_hinges, hinges);
 
 	  for (j = 0; j < n_percentiles; ++j)
 	    {

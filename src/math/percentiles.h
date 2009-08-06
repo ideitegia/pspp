@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ struct percentile
 /* Create the Pth percentile.
    W is the total sum of weights in the data set
 */
-struct order_stats *percentile_create (double p, double W);
+struct percentile *percentile_create (double p, double W);
 
 /* Return the value of the percentile */
 double percentile_calculate (const struct percentile *ptl, enum pc_alg alg);

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ struct tukey_hinges
   struct order_stats parent;
 };
 
-struct statistic * tukey_hinges_create (double W, double c_min);
+struct tukey_hinges * tukey_hinges_create (double W, double c_min);
 
 
 void tukey_hinges_calculate (const struct tukey_hinges *h, double hinge[3]);

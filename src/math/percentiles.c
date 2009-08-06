@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -160,12 +160,12 @@ destroy (struct statistic *stat)
 }
 
 
-struct order_stats *
+struct percentile *
 percentile_create (double p, double W)
 {
   struct percentile *ptl = xzalloc (sizeof (*ptl));
-  struct order_stats *os = (struct order_stats *) ptl;
-  struct statistic *stat = (struct statistic *) ptl;
+  struct order_stats *os = &ptl->parent;
+  struct statistic *stat = &os->parent;
 
   assert (p >= 0);
   assert (p <= 1.0);
@@ -186,6 +186,6 @@ percentile_create (double p, double W)
 
   stat->destroy = destroy;
 
-  return os;
+  return ptl;
 }
 

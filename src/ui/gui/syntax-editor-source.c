@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2006  Free Software Foundation
+   Copyright (C) 2006, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -124,5 +124,5 @@ create_syntax_editor_source (GtkTextBuffer *buffer,
   ses->parent.location = location;
 
 
-  return (struct getl_interface *) ses;
+  return &ses->parent;
 }

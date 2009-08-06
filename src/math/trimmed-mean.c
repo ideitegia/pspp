@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ static void
 acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc, double y)
 {
   struct trimmed_mean *tm = (struct trimmed_mean *) s;
-  struct order_stats *os = (struct order_stats *) s;
+  struct order_stats *os = &tm->parent;
 
   if ( cc > os->k[0].tc && cc < os->k[1].tc)
       tm->sum += c * y;
@@ -45,12 +45,12 @@ destroy (struct statistic *s)
   free (s);
 }
 
-struct statistic *
+struct trimmed_mean *
 trimmed_mean_create (double W, double tail)
 {
   struct trimmed_mean *tm = xzalloc (sizeof (*tm));
-  struct order_stats *os = (struct order_stats *) tm;
-  struct statistic *stat = (struct statistic *) tm;
+  struct order_stats *os = &tm->parent;
+  struct statistic *stat = &os->parent;
 
   os->n_k = 2;
   os->k = xcalloc (sizeof (*os->k), 2);
@@ -68,7 +68,7 @@ trimmed_mean_create (double W, double tail)
   tm->w = W;
   tm->tail = tail;
 
-  return stat;
+  return tm;
 }
 
 

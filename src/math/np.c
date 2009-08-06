@@ -69,13 +69,13 @@ acc (struct statistic *s, const struct ccase *cx UNUSED,
   np->prev_cc = cc;
 }
 
-struct order_stats *
+struct np *
 np_create (const struct moments1 *m)
 {
   double variance;
   struct np *np = xzalloc (sizeof (*np));
-  struct statistic *stat = (struct statistic *) np;
-  struct order_stats *os = (struct order_stats *) np;
+  struct order_stats *os = &np->parent;
+  struct statistic *stat = &os->parent;
   struct caseproto *proto;
   int i;
 
@@ -98,5 +98,5 @@ np_create (const struct moments1 *m)
   stat->destroy = destroy;
   stat->accumulate = acc;
 
-  return os;
+  return np;
 }

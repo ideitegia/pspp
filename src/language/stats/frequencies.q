@@ -617,7 +617,7 @@ postcalc (const struct dataset *ds)
 			  d[frq_stddev],
 			  normal));
 
-	  statistic_destroy ((struct statistic *)hist);
+	  statistic_destroy (&hist->parent);
 	}
 
       if ( chart == GFT_PIE)
@@ -1459,7 +1459,7 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
   double x_min = DBL_MAX;
   double x_max = -DBL_MAX;
 
-  struct statistic *hist;
+  struct histogram *hist;
   const double bins = 11;
 
   struct hsh_iterator hi;
@@ -1481,10 +1481,10 @@ freq_tab_to_hist (const struct freq_tab *ft, const struct variable *var)
   for( i = 0 ; i < ft->n_valid ; ++i )
     {
       frq = &ft->valid[i];
-      histogram_add ((struct histogram *)hist, frq->value.f, frq->count);
+      histogram_add (hist, frq->value.f, frq->count);
     }
 
-  return (struct histogram *)hist;
+  return hist;
 }
 
 

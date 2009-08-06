@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -215,7 +215,7 @@ create_readln_source (void)
   rlns->parent.read = read_interactive;
   rlns->parent.close = readln_close;
 
-  return (struct getl_interface *) rlns;
+  return &rlns->parent;
 }
 
 

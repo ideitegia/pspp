@@ -305,8 +305,8 @@ chisquare_execute (const struct dataset *ds,
 {
   const struct dictionary *dict = dataset_dict (ds);
   int v, i;
-  struct one_sample_test *ost = (struct one_sample_test *) test;
   struct chisquare_test *cst = (struct chisquare_test *) test;
+  struct one_sample_test *ost = &cst->parent;
   int n_cells = 0;
   double total_expected = 0.0;
   const struct variable *wvar = dict_get_weight (dict);

@@ -223,10 +223,11 @@ npar_custom_chisquare (struct lexer *lexer, struct dataset *ds,
   struct npar_specs *specs = aux;
 
   struct chisquare_test *cstp = pool_alloc(specs->pool, sizeof(*cstp));
-  struct one_sample_test *tp = (struct one_sample_test *) cstp;
+  struct one_sample_test *tp = &cstp->parent;
+  struct npar_test *nt = &tp->parent;
 
-  ((struct npar_test *)tp)->execute = chisquare_execute;
-  ((struct npar_test *)tp)->insert_variables = one_sample_insert_variables;
+  nt->execute = chisquare_execute;
+  nt->insert_variables = one_sample_insert_variables;
 
   if (!parse_variables_const_pool (lexer, specs->pool, dataset_dict (ds),
 				   &tp->vars, &tp->n_vars,
@@ -316,7 +317,7 @@ npar_custom_chisquare (struct lexer *lexer, struct dataset *ds,
 			      specs->test,
 			      sizeof(*specs->test) * specs->n_tests);
 
-  specs->test[specs->n_tests - 1] = (struct npar_test *) tp;
+  specs->test[specs->n_tests - 1] = nt;
 
   return 1;
 }
@@ -328,10 +329,11 @@ npar_custom_binomial (struct lexer *lexer, struct dataset *ds,
 {
   struct npar_specs *specs = aux;
   struct binomial_test *btp = pool_alloc(specs->pool, sizeof(*btp));
-  struct one_sample_test *tp = (struct one_sample_test *) btp;
+  struct one_sample_test *tp = &btp->parent;
+  struct npar_test *nt = &tp->parent;
 
-  ((struct npar_test *)tp)->execute = binomial_execute;
-  ((struct npar_test *)tp)->insert_variables = one_sample_insert_variables;
+  nt->execute = binomial_execute;
+  nt->insert_variables = one_sample_insert_variables;
 
   btp->category1 = btp->category2 = btp->cutpoint = SYSMIS;
 
@@ -381,7 +383,7 @@ npar_custom_binomial (struct lexer *lexer, struct dataset *ds,
 			      specs->test,
 			      sizeof(*specs->test) * specs->n_tests);
 
-  specs->test[specs->n_tests - 1] = (struct npar_test *) tp;
+  specs->test[specs->n_tests - 1] = nt;
 
   return 1;
 }
@@ -412,7 +414,7 @@ parse_two_sample_related_test (struct lexer *lexer,
   const struct variable **vlist2;
   size_t n_vlist2;
 
-  ((struct npar_test *)test_parameters)->insert_variables = two_sample_insert_variables;
+  test_parameters->parent.insert_variables = two_sample_insert_variables;
 
   if (!parse_variables_const_pool (lexer, pool,
 				   dict,
@@ -512,7 +514,8 @@ npar_custom_wilcoxon (struct lexer *lexer,
   struct npar_specs *specs = aux;
 
   struct two_sample_test *tp = pool_alloc (specs->pool, sizeof(*tp));
-  ((struct npar_test *)tp)->execute = wilcoxon_execute;
+  struct npar_test *nt = &tp->parent;
+  nt->execute = wilcoxon_execute;
 
   if (!parse_two_sample_related_test (lexer, dataset_dict (ds), cmd,
 				      tp, specs->pool) )
@@ -522,7 +525,7 @@ npar_custom_wilcoxon (struct lexer *lexer,
   specs->test = pool_realloc (specs->pool,
 			      specs->test,
 			      sizeof(*specs->test) * specs->n_tests);
-  specs->test[specs->n_tests - 1] = (struct npar_test *) tp;
+  specs->test[specs->n_tests - 1] = nt;
 
   return 1;
 }
@@ -535,7 +538,8 @@ npar_custom_mcnemar (struct lexer *lexer,
   struct npar_specs *specs = aux;
 
   struct two_sample_test *tp = pool_alloc(specs->pool, sizeof(*tp));
-  ((struct npar_test *)tp)->execute = NULL;
+  struct npar_test *nt = &tp->parent;
+  nt->execute = NULL;
 
 
   if (!parse_two_sample_related_test (lexer, dataset_dict (ds),
@@ -546,7 +550,7 @@ npar_custom_mcnemar (struct lexer *lexer,
   specs->test = pool_realloc (specs->pool,
 			      specs->test,
 			      sizeof(*specs->test) * specs->n_tests);
-  specs->test[specs->n_tests - 1] = (struct npar_test *) tp;
+  specs->test[specs->n_tests - 1] = nt;
 
   return 1;
 }
@@ -558,7 +562,9 @@ npar_custom_sign (struct lexer *lexer, struct dataset *ds,
   struct npar_specs *specs = aux;
 
   struct two_sample_test *tp = pool_alloc(specs->pool, sizeof(*tp));
-  ((struct npar_test *) tp)->execute = sign_execute;
+  struct npar_test *nt = &tp->parent;
+
+  nt->execute = sign_execute;
 
   if (!parse_two_sample_related_test (lexer, dataset_dict (ds), cmd,
 				      tp, specs->pool) )
@@ -568,7 +574,7 @@ npar_custom_sign (struct lexer *lexer, struct dataset *ds,
   specs->test = pool_realloc (specs->pool,
 			      specs->test,
 			      sizeof(*specs->test) * specs->n_tests);
-  specs->test[specs->n_tests - 1] = (struct npar_test *) tp;
+  specs->test[specs->n_tests - 1] = nt;
 
   return 1;
 }

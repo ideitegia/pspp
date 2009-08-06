@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -110,7 +110,7 @@ box_whisker_outliers (const struct box_whisker *bw)
   return &bw->outliers;
 }
 
-struct statistic *
+struct box_whisker *
 box_whisker_create (const struct tukey_hinges *th,
 		    const struct variable *id_var,  size_t casenumber_idx)
 {
@@ -135,5 +135,5 @@ box_whisker_create (const struct tukey_hinges *th,
 
   ll_init (&w->outliers);
 
-  return stat;
+  return w;
 }

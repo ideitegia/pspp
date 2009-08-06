@@ -583,7 +583,7 @@ value_comparator_create (const struct variable *var, const char *target)
   const struct fmt_spec *fmt;
   int width ;
   struct value_comparator *vc = xzalloc (sizeof (*vc));
-  struct comparator *cmptr = (struct comparator *) vc;
+  struct comparator *cmptr = &vc->parent;
 
   cmptr->flags = 0;
   cmptr->var = var;
@@ -614,7 +614,7 @@ string_comparator_create (const struct variable *var, const char *target,
 			  enum string_cmp_flags flags)
 {
   struct string_comparator *ssc = xzalloc (sizeof (*ssc));
-  struct comparator *cmptr = (struct comparator *) ssc;
+  struct comparator *cmptr = &ssc->parent;
 
   cmptr->flags = flags;
   cmptr->var = var;
@@ -636,7 +636,7 @@ regexp_comparator_create (const struct variable *var, const char *target,
 {
   int code;
   struct regexp_comparator *rec = xzalloc (sizeof (*rec));
-  struct comparator *cmptr = (struct comparator *) rec;
+  struct comparator *cmptr = &rec->parent;
 
   cmptr->flags = flags;
   cmptr->var = var;

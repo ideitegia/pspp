@@ -90,7 +90,7 @@ update_k_values (const struct ccase *cx, double y_i, double c_i, double cc_i,
     {
       int k;
       struct order_stats *tos = os[j];
-      struct statistic  *stat = (struct statistic *) tos;
+      struct statistic  *stat = &tos->parent;
       for (k = 0 ; k < tos->n_k; ++k)
 	{
 	  struct k *myk = &tos->k[k];

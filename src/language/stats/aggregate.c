@@ -965,20 +965,20 @@ dump_aggregate_info (struct agr_proc *agr, struct casewriter *output)
 	  case MEDIAN:
 	    {
 	      struct casereader *sorted_reader;
-	      struct order_stats *median = percentile_create (0.5, i->cc);
+	      struct percentile *median = percentile_create (0.5, i->cc);
+              struct order_stats *os = &median->parent;
 
 	      sorted_reader = casewriter_make_reader (i->writer);
 
-	      order_stats_accumulate (&median, 1,
+	      order_stats_accumulate (&os, 1,
 				      sorted_reader,
 				      i->weight,
 				      i->subject,
 				      i->exclude);
 
-	      v->f = percentile_calculate ((struct percentile *) median,
-					   PC_HAVERAGE);
+	      v->f = percentile_calculate (median, PC_HAVERAGE);
 
-	      statistic_destroy ((struct statistic *) median);
+	      statistic_destroy (&median->parent.parent);
 	    }
 	    break;
 	  case SD:
