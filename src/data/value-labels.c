@@ -24,6 +24,7 @@
 #include <data/value.h>
 #include <data/variable.h>
 #include <libpspp/array.h>
+#include <libpspp/cast.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash-functions.h>
 #include <libpspp/hmap.h>
@@ -169,7 +170,8 @@ void
 val_labs_replace (struct val_labs *vls, const union value *value,
                   const char *label)
 {
-  struct val_lab *vl = (struct val_lab *) val_labs_lookup (vls, value);
+  struct val_lab *vl = CONST_CAST (struct val_lab *,
+                                   val_labs_lookup (vls, value));
   if (vl != NULL)
     {
       atom_destroy (vl->label);
@@ -183,7 +185,7 @@ val_labs_replace (struct val_labs *vls, const union value *value,
 void
 val_labs_remove (struct val_labs *vls, const struct val_lab *label_)
 {
-  struct val_lab *label = (struct val_lab *) label_;
+  struct val_lab *label = CONST_CAST (struct val_lab *, label_);
   hmap_delete (&vls->labels, &label->node);
   value_destroy (&label->value, vls->width);
   atom_destroy (label->label);

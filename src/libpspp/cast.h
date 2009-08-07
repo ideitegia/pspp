@@ -76,6 +76,13 @@
    above, can easily be devised. */
 #define CHECK_POINTER_COMPATIBILITY(A, B) ((void) sizeof ((A) == (B)))
 
+/* Equivalent to casting POINTER to TYPE, but also issues a
+   warning if the cast changes anything other than an outermost
+   "const" or "volatile" qualifier. */
+#define CONST_CAST(TYPE, POINTER)                       \
+        (CHECK_POINTER_HAS_TYPE (POINTER, TYPE),        \
+         (TYPE) (POINTER))
+
 /* Given POINTER, a pointer to the given MEMBER within structure
    STRUCT, returns the address of the STRUCT. */
 #define UP_CAST(POINTER, STRUCT, MEMBER)                                \

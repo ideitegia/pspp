@@ -52,6 +52,8 @@
 #include <stddef.h>
 #include <libpspp/cast.h>
 
+#include <libpspp/cast.h>
+
 /* Embedded, circular doubly linked list.
 
    Each list contains a single "null" element that separates the
@@ -380,7 +382,7 @@ ll_tail (const struct ll_list *list)
 static inline struct ll *
 ll_null (const struct ll_list *list)
 {
-  return (struct ll *) &list->null;
+  return CONST_CAST (struct ll *, &list->null);
 }
 
 /* Returns the node following LL in its list,

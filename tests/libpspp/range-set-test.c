@@ -212,7 +212,7 @@ check_pattern (const struct range_set *rs, unsigned int pattern)
      caching. */
   for (start = 0; start <= 32; start++)
     {
-      struct range_set *nonconst_rs = (struct range_set *) rs;
+      struct range_set *nonconst_rs = CONST_CAST (struct range_set *, rs);
       nonconst_rs->cache_end = 0;
       s1 = range_set_scan (rs, start);
       s2 = next_1bit (pattern, start);

@@ -275,7 +275,7 @@ datasheet_destroy (struct datasheet *ds)
 const struct caseproto *
 datasheet_get_proto (const struct datasheet *ds_)
 {
-  struct datasheet *ds = (struct datasheet *) ds_;
+  struct datasheet *ds = CONST_CAST (struct datasheet *, ds_);
   if (ds->proto == NULL)
     {
       size_t i;
@@ -548,7 +548,7 @@ datasheet_get_row (const struct datasheet *ds, casenumber row)
 {
   size_t n_columns = datasheet_get_n_columns (ds);
   struct ccase *c = case_create (datasheet_get_proto (ds));
-  if (rw_case ((struct datasheet *) ds, OP_READ,
+  if (rw_case (CONST_CAST (struct datasheet *, ds), OP_READ,
                row, 0, n_columns, case_data_all_rw (c)))
     return c;
   else
@@ -582,7 +582,8 @@ datasheet_get_value (const struct datasheet *ds, casenumber row,
                      size_t column, union value *value)
 {
   assert (row >= 0);
-  return rw_case ((struct datasheet *) ds, OP_READ, row, column, 1, value);
+  return rw_case (CONST_CAST (struct datasheet *, ds), OP_READ,
+                  row, column, 1, value);
 }
 
 /* Stores VALUE into DS in the given ROW and COLUMN.  VALUE must

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 #include <libpspp/array.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 
 #include "xalloc.h"
 
@@ -79,7 +80,7 @@ taint_create (void)
 struct taint *
 taint_clone (const struct taint *taint_)
 {
-  struct taint *taint = (struct taint *) taint_;
+  struct taint *taint = CONST_CAST (struct taint *, taint_);
 
   assert (taint->ref_cnt > 0);
   taint->ref_cnt++;
@@ -139,8 +140,8 @@ taint_destroy (struct taint *taint)
 void
 taint_propagate (const struct taint *from_, const struct taint *to_)
 {
-  struct taint *from = (struct taint *) from_;
-  struct taint *to = (struct taint *) to_;
+  struct taint *from = CONST_CAST (struct taint *, from_);
+  struct taint *to = CONST_CAST (struct taint *, to_);
 
   if (from != to)
     {
@@ -165,7 +166,7 @@ taint_is_tainted (const struct taint *taint)
 void
 taint_set_taint (const struct taint *taint_)
 {
-  struct taint *taint = (struct taint *) taint_;
+  struct taint *taint = CONST_CAST (struct taint *, taint_);
   if (!taint->tainted)
     recursively_set_taint (taint);
 }
@@ -186,7 +187,7 @@ taint_has_tainted_successor (const struct taint *taint)
 void
 taint_reset_successor_taint (const struct taint *taint_)
 {
-  struct taint *taint = (struct taint *) taint_;
+  struct taint *taint = CONST_CAST (struct taint *, taint_);
 
   if (taint->tainted_successor)
     {

@@ -682,7 +682,7 @@ dataset_end_of_command (struct dataset *ds)
       else
         {
           const struct taint *taint = casereader_get_taint (ds->source);
-          taint_reset_successor_taint ((struct taint *) taint);
+          taint_reset_successor_taint (CONST_CAST (struct taint *, taint));
           assert (!taint_has_tainted_successor (taint));
         }
     }

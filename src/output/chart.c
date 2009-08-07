@@ -142,7 +142,7 @@ chart_draw_png (const struct chart *chart, const char *file_name_template,
 struct chart *
 chart_ref (const struct chart *chart_)
 {
-  struct chart *chart = (struct chart *) chart_;
+  struct chart *chart = CONST_CAST (struct chart *, chart_);
   chart->ref_cnt++;
   return chart;
 }

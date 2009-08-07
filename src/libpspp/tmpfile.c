@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 
 #include "error.h"
 #include "xalloc.h"
@@ -81,7 +82,7 @@ tmpfile_destroy (struct tmpfile *tf)
 static bool
 do_seek (const struct tmpfile *tf_, off_t offset)
 {
-  struct tmpfile *tf = (struct tmpfile *) tf_;
+  struct tmpfile *tf = CONST_CAST (struct tmpfile *, tf_);
 
   if (!tmpfile_error (tf))
     {
@@ -106,7 +107,7 @@ do_seek (const struct tmpfile *tf_, off_t offset)
 static bool
 do_read (const struct tmpfile *tf_, void *buffer, size_t bytes)
 {
-  struct tmpfile *tf = (struct tmpfile *) tf_;
+  struct tmpfile *tf = CONST_CAST (struct tmpfile *, tf_);
 
   assert (!tmpfile_error (tf));
   if (bytes > 0 && fread (buffer, bytes, 1, tf->file) != 1)

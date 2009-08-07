@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 
@@ -577,7 +578,7 @@ leaf_size (const struct sparse_array *spar)
 static struct leaf_node *
 find_leaf_node (const struct sparse_array *spar_, unsigned long int key)
 {
-  struct sparse_array *spar = (struct sparse_array *) spar_;
+  struct sparse_array *spar = CONST_CAST (struct sparse_array *, spar_);
   const union pointer *p;
   int level;
 
@@ -679,7 +680,7 @@ static void *
 scan_forward (const struct sparse_array *spar_, unsigned long int start,
               unsigned long int *found)
 {
-  struct sparse_array *spar = (struct sparse_array *) spar_;
+  struct sparse_array *spar = CONST_CAST (struct sparse_array *, spar_);
 
   /* Check the cache. */
   if (start >> BITS_PER_LEVEL == spar->cache_ofs)
@@ -761,7 +762,7 @@ static void *
 scan_reverse (const struct sparse_array *spar_, unsigned long int start,
               unsigned long int *found)
 {
-  struct sparse_array *spar = (struct sparse_array *) spar_;
+  struct sparse_array *spar = CONST_CAST (struct sparse_array *, spar_);
 
   /* Check the cache. */
   if (start >> BITS_PER_LEVEL == spar->cache_ofs)

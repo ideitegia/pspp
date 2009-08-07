@@ -352,7 +352,7 @@ count_trns_proc (void *trns_, struct ccase **c,
 static bool
 count_trns_free (void *trns_)
 {
-  struct count_trns *trns = (struct count_trns *) trns_;
+  struct count_trns *trns = trns_;
   pool_destroy (trns->pool);
   return true;
 }

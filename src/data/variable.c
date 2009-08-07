@@ -955,7 +955,7 @@ void *
 var_attach_aux (const struct variable *v_,
                 void *aux, void (*aux_dtor) (struct variable *))
 {
-  struct variable *v = (struct variable *) v_ ; /* cast away const  */
+  struct variable *v = CONST_CAST (struct variable *, v_);
   assert (v->aux == NULL);
   assert (aux != NULL);
   v->aux = aux;
@@ -1013,7 +1013,7 @@ var_get_obs_vals (const struct variable *v)
 void
 var_set_obs_vals (const struct variable *v_, struct cat_vals *cat_vals)
 {
-  struct variable *v = (struct variable *) v_ ; /* cast away const */
+  struct variable *v = CONST_CAST (struct variable *, v_ );
   cat_stored_values_destroy (v->obs_vals);
   v->obs_vals = cat_vals;
 }
@@ -1033,7 +1033,7 @@ var_has_obs_vals (const struct variable *v)
 struct attrset *
 var_get_attributes (const struct variable *v) 
 {
-  return (struct attrset *) &v->attributes;
+  return CONST_CAST (struct attrset *, &v->attributes);
 }
 
 /* Replaces variable V's attributes set by a copy of ATTRS. */

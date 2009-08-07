@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <libpspp/cast.h>
 #include <libpspp/message.h>
 #include <libpspp/pool.h>
 
@@ -1214,7 +1215,7 @@ ds_capacity (const struct string *st)
 char *
 ds_cstr (const struct string *st_)
 {
-  struct string *st = (struct string *) st_;
+  struct string *st = CONST_CAST (struct string *, st_);
   if (st->ss.string == NULL)
     ds_extend (st, 1);
   st->ss.string[st->ss.length] = '\0';

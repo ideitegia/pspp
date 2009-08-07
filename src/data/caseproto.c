@@ -320,7 +320,7 @@ caseproto_free__ (struct caseproto *proto)
 void
 caseproto_refresh_long_string_cache__ (const struct caseproto *proto_)
 {
-  struct caseproto *proto = (struct caseproto *) proto_;
+  struct caseproto *proto = CONST_CAST (struct caseproto *, proto_);
   size_t n, i;
 
   assert (proto->long_strings == NULL);

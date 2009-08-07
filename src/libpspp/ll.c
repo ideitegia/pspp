@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ ll_find_equal (const struct ll *r0, const struct ll *r1,
   for (x = r0; x != r1; x = ll_next (x))
     if (compare (x, target, aux) == 0)
       break;
-  return (struct ll *) x;
+  return CONST_CAST (struct ll *, x);
 }
 
 /* Returns the first node in R0...R1 for which PREDICATE returns
@@ -185,7 +185,7 @@ ll_find_if (const struct ll *r0, const struct ll *r1,
   for (x = r0; x != r1; x = ll_next (x))
     if (predicate (x, aux))
       break;
-  return (struct ll *) x;
+  return CONST_CAST (struct ll *, x);
 }
 
 /* Compares each pair of adjacent nodes in R0...R1
@@ -203,10 +203,10 @@ ll_find_adjacent_equal (const struct ll *r0, const struct ll *r1,
 
       for (x = r0, y = ll_next (x); y != r1; x = y, y = ll_next (y))
         if (compare (x, y, aux) == 0)
-          return (struct ll *) x;
+          return CONST_CAST (struct ll *, x);
     }
 
-  return (struct ll *) r1;
+  return CONST_CAST (struct ll *, r1);
 }
 
 /* Returns the number of nodes in R0...R1.
@@ -272,7 +272,7 @@ ll_max (const struct ll *r0, const struct ll *r1,
         if (compare (x, max, aux) > 0)
           max = x;
     }
-  return (struct ll *) max;
+  return CONST_CAST (struct ll *, max);
 }
 
 /* Returns the least node in R0...R1 according to COMPARE given
@@ -291,7 +291,7 @@ ll_min (const struct ll *r0, const struct ll *r1,
         if (compare (x, min, aux) < 0)
           min = x;
     }
-  return (struct ll *) min;
+  return CONST_CAST (struct ll *, min);
 }
 
 /* Lexicographically compares A0...A1 to B0...B1.
@@ -474,7 +474,7 @@ ll_find_run (const struct ll *r0, const struct ll *r1,
       while (r0 != r1 && compare (ll_prev (r0), r0, aux) <= 0);
     }
 
-  return (struct ll *) r0;
+  return CONST_CAST (struct ll *, r0);
 }
 
 /* Merges B0...B1 into A0...A1 according to COMPARE given
@@ -681,6 +681,6 @@ ll_find_partition (const struct ll *r0, const struct ll *r1,
     if (predicate (x, aux))
       return NULL;
 
-  return (struct ll *) partition;
+  return CONST_CAST (struct ll *, partition);
 }
 

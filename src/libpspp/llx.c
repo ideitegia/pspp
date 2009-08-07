@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -232,7 +232,7 @@ llx_find_equal (const struct llx *r0, const struct llx *r1,
   for (x = r0; x != r1; x = llx_next (x))
     if (compare (llx_data (x), target, aux) == 0)
       break;
-  return (struct llx *) x;
+  return CONST_CAST (struct llx *, x);
 }
 
 /* Returns the first node in R0...R1 for which PREDICATE returns
@@ -248,7 +248,7 @@ llx_find_if (const struct llx *r0, const struct llx *r1,
   for (x = r0; x != r1; x = llx_next (x))
     if (predicate (llx_data (x), aux))
       break;
-  return (struct llx *) x;
+  return CONST_CAST (struct llx *, x);
 }
 
 /* Compares each pair of adjacent nodes in R0...R1
@@ -266,10 +266,10 @@ llx_find_adjacent_equal (const struct llx *r0, const struct llx *r1,
 
       for (x = r0, y = llx_next (x); y != r1; x = y, y = llx_next (y))
         if (compare (llx_data (x), llx_data (y), aux) == 0)
-          return (struct llx *) x;
+          return CONST_CAST (struct llx *, x);
     }
 
-  return (struct llx *) r1;
+  return CONST_CAST (struct llx *, r1);
 }
 
 /* Returns the number of nodes in R0...R1.
@@ -329,7 +329,7 @@ llx_max (const struct llx *r0, const struct llx *r1,
         if (compare (llx_data (x), llx_data (max), aux) > 0)
           max = x;
     }
-  return (struct llx *) max;
+  return CONST_CAST (struct llx *, max);
 }
 
 /* Returns the least node in R0...R1 according to COMPARE given
@@ -348,7 +348,7 @@ llx_min (const struct llx *r0, const struct llx *r1,
         if (compare (llx_data (x), llx_data (min), aux) < 0)
           min = x;
     }
-  return (struct llx *) min;
+  return CONST_CAST (struct llx *, min);
 }
 
 /* Lexicographically compares A0...A1 to B0...B1.
@@ -521,7 +521,7 @@ llx_find_run (const struct llx *r0, const struct llx *r1,
                                   llx_data (r0), aux) <= 0);
     }
 
-  return (struct llx *) r0;
+  return CONST_CAST (struct llx *, r0);
 }
 
 /* Merges B0...B1 into A0...A1 according to COMPARE given
@@ -734,7 +734,7 @@ llx_find_partition (const struct llx *r0, const struct llx *r1,
     if (predicate (llx_data (x), aux))
       return NULL;
 
-  return (struct llx *) partition;
+  return CONST_CAST (struct llx *, partition);
 }
 
 /* Allocates and returns a node using malloc. */

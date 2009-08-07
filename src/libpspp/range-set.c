@@ -287,7 +287,7 @@ range_set_allocate_fully (struct range_set *rs, unsigned long int request,
 bool
 range_set_contains (const struct range_set *rs_, unsigned long int position)
 {
-  struct range_set *rs = (struct range_set *) rs_;
+  struct range_set *rs = CONST_CAST (struct range_set *, rs_);
   if (position < rs->cache_end && position >= rs->cache_start)
     return rs->cache_value;
   else
@@ -328,7 +328,7 @@ range_set_contains (const struct range_set *rs_, unsigned long int position)
 unsigned long int
 range_set_scan (const struct range_set *rs_, unsigned long int start)
 {
-  struct range_set *rs = (struct range_set *) rs_;
+  struct range_set *rs = CONST_CAST (struct range_set *, rs_);
   unsigned long int retval = ULONG_MAX;
   struct bt_node *bt_node;
 

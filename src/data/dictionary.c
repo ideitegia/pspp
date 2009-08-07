@@ -1016,7 +1016,7 @@ dict_set_case_limit (struct dictionary *d, casenumber case_limit)
 const struct caseproto *
 dict_get_proto (const struct dictionary *d_)
 {
-  struct dictionary *d = (struct dictionary *) d_;
+  struct dictionary *d = CONST_CAST (struct dictionary *, d_);
   if (d->proto == NULL)
     {
       size_t i;
@@ -1375,7 +1375,7 @@ dict_clear_vectors (struct dictionary *d)
 struct attrset *
 dict_get_attributes (const struct dictionary *d) 
 {
-  return (struct attrset *) &d->attributes;
+  return CONST_CAST (struct attrset *, &d->attributes);
 }
 
 /* Replaces D's attributes set by a copy of ATTRS. */

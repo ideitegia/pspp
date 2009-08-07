@@ -118,7 +118,7 @@ subcase_add_var (struct subcase *sc, const struct variable *var,
 const struct caseproto *
 subcase_get_proto (const struct subcase *sc_)
 {
-  struct subcase *sc = (struct subcase *) sc_;
+  struct subcase *sc = CONST_CAST (struct subcase *, sc_);
 
   if (sc->proto == NULL)
     {

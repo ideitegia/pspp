@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #endif
 
 #include <libpspp/abt.h>
+#include <libpspp/cast.h>
 
 #include <stdbool.h>
 
@@ -145,8 +146,8 @@ insert_relative (struct abt *abt, const struct abt_node *p, bool after,
           p = p->down[dir];
           dir = !after;
         }
-      ((struct abt_node *) p)->down[dir] = node;
-      node->up = (struct abt_node *) p;
+      CONST_CAST (struct abt_node *, p)->down[dir] = node;
+      node->up = CONST_CAST (struct abt_node *, p);
       abt_reaugmented (abt, node);
     }
 
@@ -280,7 +281,7 @@ abt_find (const struct abt *abt, const struct abt_node *target)
     {
       cmp = abt->compare (target, p, abt->aux);
       if (cmp == 0)
-        return (struct abt_node *) p;
+        return CONST_CAST (struct abt_node *, p);
     }
 
   return NULL;
@@ -307,7 +308,7 @@ abt_next (const struct abt *abt, const struct abt_node *p)
       p = p->down[1];
       while (p->down[0] != NULL)
         p = p->down[0];
-      return (struct abt_node *) p;
+      return CONST_CAST (struct abt_node *, p);
     }
 }
 
@@ -332,7 +333,7 @@ abt_prev (const struct abt *abt, const struct abt_node *p)
       p = p->down[0];
       while (p->down[1] != NULL)
         p = p->down[1];
-      return (struct abt_node *) p;
+      return CONST_CAST (struct abt_node *, p);
     }
 }
 

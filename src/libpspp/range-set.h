@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 #include <libpspp/bt.h>
+#include <libpspp/cast.h>
 
 /* A set of ranges. */
 struct range_set
@@ -122,7 +123,7 @@ static inline const struct range_set_node *
 range_set_next (const struct range_set *rs, const struct range_set_node *node)
 {
   return (node != NULL
-          ? range_set_next__ (rs, (struct range_set_node *) node)
+          ? range_set_next__ (rs, CONST_CAST (struct range_set_node *, node))
           : range_set_first__ (rs));
 }
 
@@ -147,7 +148,7 @@ static inline const struct range_set_node *
 range_set_prev (const struct range_set *rs, const struct range_set_node *node)
 {
   return (node != NULL
-          ? range_set_prev__ (rs, (struct range_set_node *) node)
+          ? range_set_prev__ (rs, CONST_CAST (struct range_set_node *, node))
           : range_set_last__ (rs));
 }
 

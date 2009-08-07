@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -757,7 +757,7 @@ array_var_set_get_var (const struct var_set *vs, size_t idx)
 {
   struct array_var_set *avs = vs->aux;
 
-  return (struct variable *) avs->var[idx];
+  return CONST_CAST (struct variable *, avs->var[idx]);
 }
 
 /* If VS contains a variable named NAME, sets *IDX to its index

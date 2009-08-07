@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -66,6 +66,8 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#include <libpspp/cast.h>
 
 static void rebalance_subtree (struct bt *, struct bt_node *, size_t);
 
@@ -250,7 +252,7 @@ bt_find (const struct bt *bt, const struct bt_node *target)
     {
       cmp = bt->compare (target, p, bt->aux);
       if (cmp == 0)
-        return (struct bt_node *) p;
+        return CONST_CAST (struct bt_node *, p);
     }
 
   return NULL;
@@ -283,7 +285,7 @@ bt_find_ge (const struct bt *bt, const struct bt_node *target)
             break;
         }
     }
-  return (struct bt_node *) q;
+  return CONST_CAST (struct bt_node *, q);
 }
 
 /* Searches BT for, and returns, the last node in in-order whose
@@ -314,7 +316,7 @@ bt_find_le (const struct bt *bt, const struct bt_node *target)
             break;
         }
     }
-  return (struct bt_node *) q;
+  return CONST_CAST (struct bt_node *, q);
 }
 
 /* Returns the node in BT following P in in-order.
@@ -338,7 +340,7 @@ bt_next (const struct bt *bt, const struct bt_node *p)
       p = p->down[1];
       while (p->down[0] != NULL)
         p = p->down[0];
-      return (struct bt_node *) p;
+      return CONST_CAST (struct bt_node *, p);
     }
 }
 
@@ -363,7 +365,7 @@ bt_prev (const struct bt *bt, const struct bt_node *p)
       p = p->down[0];
       while (p->down[1] != NULL)
         p = p->down[1];
-      return (struct bt_node *) p;
+      return CONST_CAST (struct bt_node *, p);
     }
 }
 

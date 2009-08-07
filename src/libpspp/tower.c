@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <limits.h>
 
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <libpspp/compiler.h>
 
 static struct tower_node *abt_to_tower_node (const struct abt_node *);
@@ -184,7 +185,7 @@ tower_lookup (const struct tower *t_,
               unsigned long height,
               unsigned long *node_start)
 {
-  struct tower *t = (struct tower *) t_;
+  struct tower *t = CONST_CAST (struct tower *, t_);
   struct abt_node *p;
 
   assert (height < tower_height (t));
@@ -237,7 +238,7 @@ tower_lookup (const struct tower *t_,
 struct tower_node *
 tower_get (const struct tower *t_, unsigned long int index) 
 {
-  struct tower *t = (struct tower *) t_;
+  struct tower *t = CONST_CAST (struct tower *, t_);
   struct abt_node *p;
 
   assert (index < tower_count (t));

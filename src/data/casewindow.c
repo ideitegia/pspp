@@ -168,7 +168,7 @@ casewindow_pop_tail (struct casewindow *cw, casenumber case_cnt)
 struct ccase *
 casewindow_get_case (const struct casewindow *cw_, casenumber case_idx)
 {
-  struct casewindow *cw = (struct casewindow *) cw_;
+  struct casewindow *cw = CONST_CAST (struct casewindow *, cw_);
 
   assert (case_idx >= 0 && case_idx < casewindow_get_case_cnt (cw));
   if (casewindow_error (cw))

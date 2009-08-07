@@ -108,7 +108,7 @@ casereader_destroy (struct casereader *reader)
 struct casereader *
 casereader_clone (const struct casereader *reader_)
 {
-  struct casereader *reader = (struct casereader *) reader_;
+  struct casereader *reader = CONST_CAST (struct casereader *, reader_);
   struct casereader *clone;
   if ( reader == NULL ) 
     return NULL;

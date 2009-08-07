@@ -45,7 +45,7 @@ const char *const ptile_alg_desc[] = {
 double
 percentile_calculate (const struct percentile *ptl, enum pc_alg alg)
 {
-  struct percentile *mutable = (struct percentile *) ptl;
+  struct percentile *mutable = CONST_CAST (struct percentile *, ptl);
   const struct order_stats *os = &ptl->parent;
 
   assert (os->cc == ptl->w);

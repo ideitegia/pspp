@@ -22,6 +22,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <data/value.h>
+#include <libpspp/cast.h>
 #include <libpspp/compiler.h>
 
 /* Case prototype.
@@ -144,7 +145,7 @@ void caseproto_free__ (struct caseproto *);
 static inline struct caseproto *
 caseproto_ref (const struct caseproto *proto_)
 {
-  struct caseproto *proto = (struct caseproto *) proto_;
+  struct caseproto *proto = CONST_CAST (struct caseproto *, proto_);
   proto->ref_cnt++;
   return proto;
 }
