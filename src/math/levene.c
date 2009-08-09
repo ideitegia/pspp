@@ -246,9 +246,7 @@ levene2_precalc (struct levene_info *l)
       struct hsh_table *hash = group_proc_get (var)->group_hash;
 
 
-      for(g = (struct group_statistics *) hsh_first(hash,&hi);
-	  g != 0 ;
-	  g = (struct group_statistics *) hsh_next(hash,&hi) )
+      for (g = hsh_first(hash,&hi); g != 0; g = hsh_next(hash, &hi))
 	{
 	  g->lz_mean = g->lz_total / g->n ;
 	}
@@ -308,9 +306,7 @@ levene2_postcalc (struct levene_info *l)
       struct group_proc *gp = group_proc_get (var);
       struct hsh_table *hash = gp->group_hash;
 
-      for(g = (struct group_statistics *) hsh_first(hash,&hi);
-	  g != 0 ;
-	  g = (struct group_statistics *) hsh_next(hash,&hi) )
+      for (g = hsh_first(hash, &hi); g != 0; g = hsh_next(hash, &hi))
 	{
 	  lz_numerator += g->n * pow2(g->lz_mean - l->lz[v].grand_mean );
 	}
