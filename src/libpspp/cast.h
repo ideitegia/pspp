@@ -19,10 +19,61 @@
 
 #include <stddef.h>
 
+/* Expands to a void expression that checks that POINTER is an
+   expression whose type is a qualified or unqualified version of
+   a type compatible with TYPE (a pointer type) and, if not,
+   causes a compiler warning to be issued (on typical compilers).
+
+   Examples:
+
+   int *ip;
+   const int *cip;
+   const int **cipp;
+   int ***ippp;
+   double *dp;
+
+   // None of these causes a warning:
+   CHECK_POINTER_HAS_TYPE (ip, int *);
+   CHECK_POINTER_HAS_TYPE (ip, const int *);
+   CHECK_POINTER_HAS_TYPE (cip, int *);
+   CHECK_POINTER_HAS_TYPE (cip, const int *);
+   CHECK_POINTER_HAS_TYPE (dp, double *);
+   CHECK_POINTER_HAS_TYPE (dp, const double *);
+   CHECK_POINTER_HAS_TYPE (cipp, const int **);
+   CHECK_POINTER_HAS_TYPE (cipp, const int *const *);
+   CHECK_POINTER_HAS_TYPE (ippp, int ***);
+   CHECK_POINTER_HAS_TYPE (ippp, int **const *);
+
+   // None of these causes a warning either, although it is unusual to
+   // const-qualify a pointer like this (it's like declaring a "const int",
+   // for example).
+   CHECK_POINTER_HAS_TYPE (ip, int *const);
+   CHECK_POINTER_HAS_TYPE (ip, const int *const);
+   CHECK_POINTER_HAS_TYPE (cip, int *const);
+   CHECK_POINTER_HAS_TYPE (cip, const int *const);
+   CHECK_POINTER_HAS_TYPE (cipp, const int **const);
+   CHECK_POINTER_HAS_TYPE (cipp, const int *const *const);
+   CHECK_POINTER_HAS_TYPE (ippp, int ***const);
+   CHECK_POINTER_HAS_TYPE (ippp, int **const *const);
+
+   // Provokes a warning because "int" is not compatible with "double":
+   CHECK_POINTER_HAS_TYPE (dp, int *);
+
+   // Provoke warnings because C's type compatibility rules only allow
+   // adding a "const" qualifier to the outermost pointer:
+   CHECK_POINTER_HAS_TYPE (ippp, const int ***);
+   CHECK_POINTER_HAS_TYPE (ippp, int *const**);
+*/
+#define CHECK_POINTER_HAS_TYPE(POINTER, TYPE)           \
+        ((void) sizeof ((TYPE) (POINTER) == (POINTER)))
+
 /* Given expressions A and B, both of which have pointer type,
    expands to a void expression that causes a compiler warning if
    A and B are not pointers to qualified or unqualified versions
-   of compatible types. */
+   of compatible types.
+
+   Examples similar to those given for CHECK_POINTER_HAS_TYPE,
+   above, can easily be devised. */
 #define CHECK_POINTER_COMPATIBILITY(A, B) ((void) sizeof ((A) == (B)))
 
 /* Given POINTER, a pointer to the given MEMBER within structure

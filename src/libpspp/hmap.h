@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -116,12 +116,14 @@
    */
 
 #include <stddef.h>
+#include <libpspp/cast.h>
 
 /* Returns the data structure corresponding to the given NODE,
    assuming that NODE is embedded as the given MEMBER name in
    data type STRUCT.  NODE must not be a null pointer. */
 #define HMAP_DATA(NODE, STRUCT, MEMBER)                         \
-  ((STRUCT *) ((char *) (NODE) - offsetof (STRUCT, MEMBER)))
+        (CHECK_POINTER_HAS_TYPE (NODE, struct hmap_node *),     \
+         UP_CAST (NODE, STRUCT, MEMBER))
 
 /* Like HMAP_DATA, except that a null NODE yields a null pointer
    result. */

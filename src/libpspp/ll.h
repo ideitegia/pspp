@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <libpspp/cast.h>
 
 /* Embedded, circular doubly linked list.
 
@@ -108,8 +109,9 @@
 /* Returns the data structure corresponding to the given node LL,
    assuming that LL is embedded as the given MEMBER name in data
    type STRUCT. */
-#define ll_data(LL, STRUCT, MEMBER)                                    \
-        ((STRUCT *) ((char *) (LL) - offsetof (STRUCT, MEMBER)))
+#define ll_data(LL, STRUCT, MEMBER)                     \
+        (CHECK_POINTER_HAS_TYPE(LL, struct ll *),       \
+         UP_CAST(LL, STRUCT, MEMBER))
 
 /* Linked list node. */
 struct ll

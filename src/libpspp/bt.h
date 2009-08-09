@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,12 +24,14 @@
    fully encapsulated. */
 
 #include <stddef.h>
+#include <libpspp/cast.h>
 
 /* Returns the data structure corresponding to the given NODE,
    assuming that NODE is embedded as the given MEMBER name in
    data type STRUCT. */
-#define bt_data(NODE, STRUCT, MEMBER)                                  \
-        ((STRUCT *) ((char *) (NODE) - offsetof (STRUCT, MEMBER)))
+#define bt_data(NODE, STRUCT, MEMBER)                           \
+        (CHECK_POINTER_HAS_TYPE (NODE, struct bt_node *),       \
+         UP_CAST (NODE, STRUCT, MEMBER))
 
 /* Node in a balanced binary tree. */
 struct bt_node

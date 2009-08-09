@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -70,6 +70,7 @@
 #ifndef LIBPSPP_HEAP_H
 #define LIBPSPP_HEAP_H 1
 
+#include <libpspp/cast.h>
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -78,8 +79,9 @@ struct pool;
 /* Returns the data structure corresponding to the given heap
    NODE, assuming that NODE is embedded as the given MEMBER name
    in data type STRUCT. */
-#define heap_data(NODE, STRUCT, MEMBER)                                 \
-        ((STRUCT *) ((char *) (NODE) - offsetof (STRUCT, MEMBER)))
+#define heap_data(NODE, STRUCT, MEMBER)                         \
+        (CHECK_POINTER_HAS_TYPE (NODE, struct heap_node *),     \
+         UP_CAST (NODE, STRUCT, MEMBER))
 
 /* A node in a heap.  Opaque.
    One of these structures must be embedded in your heap node. */
