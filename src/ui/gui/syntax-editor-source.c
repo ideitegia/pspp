@@ -19,6 +19,7 @@
 
 #include <libpspp/getl.h>
 #include <libpspp/compiler.h>
+#include <libpspp/cast.h>
 #include <libpspp/str.h>
 
 #include <stdlib.h>
@@ -72,7 +73,8 @@ read_line_from_buffer (struct getl_interface *i,
   gchar *text;
   GtkTextIter next_line;
 
-  struct syntax_editor_source *ses = (struct syntax_editor_source *) i;
+  struct syntax_editor_source *ses
+    = UP_CAST (i, struct syntax_editor_source, parent);
 
   if ( gtk_text_iter_compare (&ses->i, &ses->end) >= 0)
     return false;

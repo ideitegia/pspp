@@ -26,6 +26,7 @@
 #include <stdio.h>
 
 #include <data/value-labels.h>
+#include <libpspp/cast.h>
 #include <libpspp/str.h>
 #include <output/charts/plot-chart.h>
 #include <output/chart-provider.h>
@@ -80,7 +81,7 @@ static void
 piechart_draw (const struct chart *chart, cairo_t *cr,
                struct chart_geometry *geom)
 {
-  struct piechart *pie = (struct piechart *) chart;
+  const struct piechart *pie = UP_CAST (chart, struct piechart, chart);
   double total_magnitude;
   double left_label, right_label;
   double centre_x, centre_y;
@@ -176,7 +177,7 @@ draw_segment(cairo_t *cr,
 static void
 piechart_destroy (struct chart *chart)
 {
-  struct piechart *pie = (struct piechart *) chart;
+  struct piechart *pie = UP_CAST (chart, struct piechart, chart);
   int i;
 
   free (pie->title);

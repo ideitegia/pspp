@@ -22,6 +22,7 @@
 
 #include <data/casereader.h>
 #include <data/casewriter.h>
+#include <libpspp/cast.h>
 #include <libpspp/message.h>
 #include <math/np.h>
 #include <output/chart-provider.h>
@@ -124,7 +125,8 @@ static void
 np_plot_chart_draw (const struct chart *chart, cairo_t *cr,
                     struct chart_geometry *geom)
 {
-  const struct np_plot_chart *npp = (struct np_plot_chart *) chart;
+  const struct np_plot_chart *npp = UP_CAST (chart, struct np_plot_chart,
+                                             chart);
   struct casereader *data;
   struct ccase *c;
 
@@ -151,7 +153,8 @@ static void
 dnp_plot_chart_draw (const struct chart *chart, cairo_t *cr,
                      struct chart_geometry *geom)
 {
-  const struct np_plot_chart *dnpp = (struct np_plot_chart *) chart;
+  const struct np_plot_chart *dnpp = UP_CAST (chart, struct np_plot_chart,
+                                              chart);
   struct casereader *data;
   struct ccase *c;
 
@@ -174,8 +177,7 @@ dnp_plot_chart_draw (const struct chart *chart, cairo_t *cr,
 static void
 np_plot_chart_destroy (struct chart *chart)
 {
-  struct np_plot_chart *npp = (struct np_plot_chart *) chart;
-
+  struct np_plot_chart *npp = UP_CAST (chart, struct np_plot_chart, chart);
   casereader_destroy (npp->data);
   free (npp->label);
   free (npp);

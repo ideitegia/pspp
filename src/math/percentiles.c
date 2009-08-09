@@ -24,6 +24,7 @@
 #define N_(msgid) msgid
 
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <data/val-type.h>
 #include <gl/xalloc.h>
 #include <data/variable.h>
@@ -154,9 +155,10 @@ percentile_calculate (const struct percentile *ptl, enum pc_alg alg)
 static void
 destroy (struct statistic *stat)
 {
-  struct order_stats *os = (struct order_stats *) stat;
+  struct percentile *ptl = UP_CAST (stat, struct percentile, parent.parent);
+  struct order_stats *os = &ptl->parent;
   free (os->k);
-  free (os);
+  free (ptl);
 }
 
 

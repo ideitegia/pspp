@@ -34,6 +34,7 @@ which match particular strings */
 #include <ctype.h>
 #include <sys/types.h>
 #include <regex.h>
+#include <libpspp/cast.h>
 #include <libpspp/message.h>
 
 #include <gtk/gtk.h>
@@ -564,7 +565,8 @@ regexp_label_compare (const struct comparator *cmptr,
 static void
 regexp_destroy (struct comparator *cmptr)
 {
-  struct regexp_comparator *rec = (struct regexp_comparator *) cmptr;
+  struct regexp_comparator *rec
+    = UP_CAST (cmptr, struct regexp_comparator, parent);
 
   regfree (&rec->re);
 }
@@ -572,7 +574,8 @@ regexp_destroy (struct comparator *cmptr)
 static void
 cmptr_value_destroy (struct comparator *cmptr)
 {
-  struct value_comparator *vc = (struct value_comparator *) cmptr;
+  struct value_comparator *vc
+    = UP_CAST (cmptr, struct value_comparator, parent);
   value_destroy (&vc->pattern, var_get_width (cmptr->var));
 }
 

@@ -20,6 +20,7 @@
 
 #include <gl/xalloc.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <math.h>
 #include <data/val-type.h>
 
@@ -27,7 +28,7 @@
 static void
 acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc, double y)
 {
-  struct trimmed_mean *tm = (struct trimmed_mean *) s;
+  struct trimmed_mean *tm = UP_CAST (s, struct trimmed_mean, parent.parent);
   struct order_stats *os = &tm->parent;
 
   if ( cc > os->k[0].tc && cc < os->k[1].tc)
@@ -40,9 +41,10 @@ acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc, do
 static void
 destroy (struct statistic *s)
 {
-  struct order_stats *os = (struct order_stats *) s;
+  struct trimmed_mean *tm = UP_CAST (s, struct trimmed_mean, parent.parent);
+  struct order_stats *os = &tm->parent;
   free (os->k);
-  free (s);
+  free (tm);
 }
 
 struct trimmed_mean *

@@ -31,6 +31,7 @@
 #include <language/stats/freq.h>
 #include <language/stats/npar.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
@@ -305,7 +306,8 @@ chisquare_execute (const struct dataset *ds,
 {
   const struct dictionary *dict = dataset_dict (ds);
   int v, i;
-  struct chisquare_test *cst = (struct chisquare_test *) test;
+  struct chisquare_test *cst = UP_CAST (test, struct chisquare_test,
+                                        parent.parent);
   struct one_sample_test *ost = &cst->parent;
   int n_cells = 0;
   double total_expected = 0.0;

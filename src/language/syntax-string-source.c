@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical interface for PSPP.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <libpspp/cast.h>
 #include <libpspp/getl.h>
 #include <libpspp/compiler.h>
 #include <libpspp/str.h>
@@ -60,7 +61,8 @@ location (const struct getl_interface *i UNUSED)
 static void
 do_close (struct getl_interface *i )
 {
-  struct syntax_string_source *sss = (struct syntax_string_source *) i;
+  struct syntax_string_source *sss = UP_CAST (i, struct syntax_string_source,
+                                              parent);
 
   ds_destroy (&sss->buffer);
 
@@ -73,7 +75,8 @@ static bool
 read_single_line (struct getl_interface *i,
 		  struct string *line)
 {
-  struct syntax_string_source *sss = (struct syntax_string_source *) i;
+  struct syntax_string_source *sss = UP_CAST (i, struct syntax_string_source,
+                                              parent);
 
   size_t next;
 
@@ -120,7 +123,7 @@ create_syntax_string_source (const char *format, ...)
   sss->parent.location = location;
 
 
-  return (struct getl_interface *) sss;
+  return &sss->parent;
 }
 
 /* Return the syntax currently contained in S.

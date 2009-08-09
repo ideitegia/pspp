@@ -31,6 +31,7 @@
 #include <data/file-name.h>
 #include <data/settings.h>
 #include <language/command.h>
+#include <libpspp/cast.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
 #include <libpspp/version.h>
@@ -107,8 +108,7 @@ static bool
 read_interactive (struct getl_interface *s,
                   struct string *line)
 {
-  struct readln_source *is  =
-    (struct readln_source *) s ;
+  struct readln_source *is  = UP_CAST (s, struct readln_source, parent);
 
   return is->interactive_func (line, prompt_get_style ());
 }

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <libpspp/message.h>
 #include <libpspp/message.h>
 #include <libpspp/str.h>
@@ -62,14 +63,16 @@ struct syntax_file_source
 static const char *
 name (const struct getl_interface *s)
 {
-  const struct syntax_file_source *sfs = (const struct syntax_file_source *) s;
+  const struct syntax_file_source *sfs = UP_CAST (s, struct syntax_file_source,
+                                                  parent);
   return sfs->fn;
 }
 
 static int
 line_number (const struct getl_interface *s)
 {
-  const struct syntax_file_source *sfs = (const struct syntax_file_source *) s;
+  const struct syntax_file_source *sfs = UP_CAST (s, struct syntax_file_source,
+                                                  parent);
   return sfs->ln;
 }
 
@@ -80,7 +83,8 @@ static bool
 read_syntax_file (struct getl_interface *s,
                   struct string *line)
 {
-  struct syntax_file_source *sfs = (struct syntax_file_source *) s;
+  struct syntax_file_source *sfs = UP_CAST (s, struct syntax_file_source,
+                                            parent);
 
   /* Open file, if not yet opened. */
   if (sfs->syntax_file == NULL)
@@ -120,7 +124,8 @@ read_syntax_file (struct getl_interface *s,
 static void
 syntax_close (struct getl_interface *s)
 {
-  struct syntax_file_source *sfs = (struct syntax_file_source *) s;
+  struct syntax_file_source *sfs = UP_CAST (s, struct syntax_file_source,
+                                            parent);
 
   if (sfs->syntax_file && EOF == fn_close (sfs->fn, sfs->syntax_file))
     msg (MW, _("Closing `%s': %s."), sfs->fn, strerror (errno));
@@ -150,6 +155,6 @@ create_syntax_file_source (const char *fn)
   ss->parent.name = name ;
   ss->parent.location = line_number;
 
-  return (struct getl_interface *) ss;
+  return &ss->parent;
 }
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2007, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #include <language/command.h>
 #include <language/lexer/lexer.h>
 #include <language/lexer/variable-parser.h>
+#include <libpspp/cast.h>
 #include <libpspp/ll.h>
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
@@ -512,10 +513,10 @@ find_substitution (struct repeat_block *block, struct substring name)
 /* Makes appropriate DO REPEAT macro substitutions within the
    repeated lines. */
 static void
-do_repeat_filter (struct getl_interface *block_,
-                  struct string *line)
+do_repeat_filter (struct getl_interface *interface, struct string *line)
 {
-  struct repeat_block *block = (struct repeat_block *) block_;
+  struct repeat_block *block
+    = UP_CAST (interface, struct repeat_block, parent);
   bool in_apos, in_quote, dot;
   struct substring input;
   struct string output;
@@ -557,7 +558,8 @@ do_repeat_filter (struct getl_interface *block_,
 static struct repeat_line *
 current_line (const struct getl_interface *interface)
 {
-  struct repeat_block *block = (struct repeat_block *) interface;
+  struct repeat_block *block
+    = UP_CAST (interface, struct repeat_block, parent);
   return (block->cur_line != ll_null (&block->lines)
           ? ll_data (block->cur_line, struct repeat_line, ll)
           : NULL);
@@ -570,7 +572,8 @@ static bool
 do_repeat_read  (struct getl_interface *interface,
                  struct string *output)
 {
-  struct repeat_block *block = (struct repeat_block *) interface;
+  struct repeat_block *block
+    = UP_CAST (interface, struct repeat_block, parent);
   struct repeat_line *line;
 
   block->cur_line = ll_next (block->cur_line);
@@ -591,9 +594,10 @@ do_repeat_read  (struct getl_interface *interface,
 /* Frees a DO REPEAT block.
    Called by getl to close out the DO REPEAT block. */
 static void
-do_repeat_close (struct getl_interface *block_)
+do_repeat_close (struct getl_interface *interface)
 {
-  struct repeat_block *block = (struct repeat_block *) block_;
+  struct repeat_block *block
+    = UP_CAST (interface, struct repeat_block, parent);
   pool_destroy (block->pool);
 }
 

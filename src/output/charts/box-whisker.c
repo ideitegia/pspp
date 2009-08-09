@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <cairo/cairo.h>
 
+#include <libpspp/cast.h>
 #include <libpspp/misc.h>
 #include <math/chart-geometry.h>
 #include <math/box-whisker.h>
@@ -221,7 +222,7 @@ static void
 boxplot_chart_draw (const struct chart *chart, cairo_t *cr,
                     struct chart_geometry *geom)
 {
-  const struct boxplot *boxplot = (struct boxplot *) chart;
+  const struct boxplot *boxplot = UP_CAST (chart, struct boxplot, chart);
   double box_width;
   size_t i;
 
@@ -240,7 +241,7 @@ boxplot_chart_draw (const struct chart *chart, cairo_t *cr,
 static void
 boxplot_chart_destroy (struct chart *chart)
 {
-  struct boxplot *boxplot = (struct boxplot *) chart;
+  struct boxplot *boxplot = UP_CAST (chart, struct boxplot, chart);
   size_t i;
 
   free (boxplot->title);

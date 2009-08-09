@@ -28,6 +28,7 @@
 #include <output/chart-provider.h>
 
 #include <data/variable.h>
+#include <libpspp/cast.h>
 #include <libpspp/hash.h>
 #include <output/chart.h>
 #include <math/histogram.h>
@@ -146,7 +147,7 @@ static void
 histogram_chart_draw (const struct chart *chart, cairo_t *cr,
                       struct chart_geometry *geom)
 {
-  struct histogram_chart *h = (struct histogram_chart *) chart;
+  struct histogram_chart *h = UP_CAST (chart, struct histogram_chart, chart);
   int i;
   int bins;
 
@@ -208,7 +209,7 @@ histogram_chart_draw (const struct chart *chart, cairo_t *cr,
 static void
 histogram_chart_destroy (struct chart *chart)
 {
-  struct histogram_chart *h = (struct histogram_chart *) chart;
+  struct histogram_chart *h = UP_CAST (chart, struct histogram_chart, chart);
   if (h->gsl_hist != NULL)
     gsl_histogram_free (h->gsl_hist);
   free (h->label);

@@ -19,6 +19,7 @@
 
 #include <gl/xalloc.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 
 #include <gsl/gsl_histogram.h>
 #include "chart-geometry.h"
@@ -37,7 +38,7 @@ histogram_add (struct histogram *h, double y, double c)
 static void
 acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc UNUSED, double y)
 {
-  struct histogram *hist = (struct histogram *) s;
+  struct histogram *hist = UP_CAST (s, struct histogram, parent);
 
   gsl_histogram_accumulate (hist->gsl_hist, y, c);
 }
@@ -46,7 +47,7 @@ acc (struct statistic *s, const struct ccase *cx UNUSED, double c, double cc UNU
 static void
 destroy (struct statistic *s)
 {
-  struct histogram *h = (struct histogram *) s;
+  struct histogram *h = UP_CAST (s, struct histogram, parent);
   gsl_histogram_free (h->gsl_hist);
   free (s);
 }

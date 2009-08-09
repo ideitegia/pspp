@@ -24,6 +24,7 @@
 #include <data/case.h>
 #include <data/casewriter.h>
 #include <libpspp/compiler.h>
+#include <libpspp/cast.h>
 #include <libpspp/misc.h>
 #include <math/moments.h>
 
@@ -32,8 +33,8 @@
 static void
 destroy (struct statistic *stat)
 {
-  struct order_stats *os = (struct order_stats *) stat;
-  free (os);
+  struct np *np = UP_CAST (stat, struct np, parent.parent);
+  free (np);
 }
 
 
@@ -42,7 +43,7 @@ acc (struct statistic *s, const struct ccase *cx UNUSED,
      double c, double cc, double y)
 {
   struct ccase *cp;
-  struct np *np = (struct np *) s;
+  struct np *np = UP_CAST (s, struct np, parent.parent);
   double rank = np->prev_cc + (c + 1) / 2.0;
 
   double ns = gsl_cdf_ugaussian_Pinv (rank / ( np->n + 1 ));

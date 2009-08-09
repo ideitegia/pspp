@@ -32,6 +32,7 @@
 #include <language/stats/chisquare.h>
 #include <language/stats/wilcoxon.h>
 #include <language/stats/sign.h>
+#include <libpspp/cast.h>
 #include <libpspp/hash.h>
 #include <libpspp/pool.h>
 #include <libpspp/taint.h>
@@ -585,7 +586,7 @@ one_sample_insert_variables (const struct npar_test *test,
 			     struct const_hsh_table *var_hash)
 {
   int i;
-  struct one_sample_test *ost = (struct one_sample_test *) test;
+  struct one_sample_test *ost = UP_CAST (test, struct one_sample_test, parent);
 
   for ( i = 0 ; i < ost->n_vars ; ++i )
     const_hsh_insert (var_hash, ost->vars[i]);

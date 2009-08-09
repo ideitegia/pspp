@@ -20,6 +20,7 @@
 
 #include <gl/xalloc.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <math.h>
 
 void
@@ -59,7 +60,8 @@ tukey_hinges_calculate (const struct tukey_hinges *th, double hinge[3])
 static void
 destroy (struct statistic *s)
 {
-  struct order_stats *os = (struct order_stats *) s;
+  struct tukey_hinges *th = UP_CAST (s, struct tukey_hinges, parent.parent);
+  struct order_stats *os = &th->parent;
 
   free (os->k);
   free (s);

@@ -20,6 +20,7 @@
 #include "tukey-hinges.h"
 #include <gl/xalloc.h>
 #include <libpspp/assertion.h>
+#include <libpspp/cast.h>
 #include <math.h>
 #include <float.h>
 #include <data/val-type.h>
@@ -30,8 +31,8 @@
 static void
 destroy (struct statistic *s)
 {
-  struct order_stats *os = (struct order_stats *) s;
-  struct box_whisker *bw = (struct box_whisker *) s;
+  struct box_whisker *bw = UP_CAST (s, struct box_whisker, parent.parent);
+  struct order_stats *os = &bw->parent;
   struct ll *ll;
 
   for (ll = ll_head (&bw->outliers); ll != ll_null (&bw->outliers); )
@@ -53,7 +54,7 @@ static void
 acc (struct statistic *s, const struct ccase *cx,
      double c UNUSED, double cc UNUSED, double y)
 {
-  struct box_whisker *bw = (struct box_whisker *) s;
+  struct box_whisker *bw = UP_CAST (s, struct box_whisker, parent.parent);
   bool extreme;
   struct outlier *o;
 
@@ -115,8 +116,8 @@ box_whisker_create (const struct tukey_hinges *th,
 		    const struct variable *id_var,  size_t casenumber_idx)
 {
   struct box_whisker *w = xzalloc (sizeof (*w));
-  struct order_stats *os = (struct order_stats *) w;
-  struct statistic *stat = (struct statistic *) w;
+  struct order_stats *os = &w->parent;
+  struct statistic *stat = &os->parent;
 
   os->n_k = 0;
 
