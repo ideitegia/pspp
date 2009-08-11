@@ -986,11 +986,12 @@ examine_group (struct cmd_examine *cmd, struct casereader *reader, int level,
 	  struct factor_metrics *metric = &result->metrics[v];
           int n_vals = caseproto_get_n_widths (casereader_get_proto (
                                                  metric->up_reader));
-          struct order_stats *os = &metric->box_whisker->parent;
+          struct order_stats *os;
 
 	  metric->box_whisker =
 	    box_whisker_create ( metric->tukey_hinges, cmd->v_id, n_vals - 1);
 
+          os = &metric->box_whisker->parent;
 	  order_stats_accumulate ( &os, 1,
 				  casereader_clone (metric->up_reader),
 				  wv, dependent_vars[v], MV_ANY);
