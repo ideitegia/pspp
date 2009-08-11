@@ -182,11 +182,6 @@ void tab_joint_text_format (struct tab_table *, int x1, int y1, int x2, int y2,
                             unsigned opt, const char *, ...)
      PRINTF_FORMAT (7, 8);
 
-/* Cell low-level access. */
-#define tab_alloc(TABLE, AMT) pool_alloc ((TABLE)->container, (AMT))
-void tab_raw (struct tab_table *, int c, int r, unsigned opt,
-	      struct substring *);
-
 /* Editing. */
 void tab_offset (struct tab_table *, int col, int row);
 void tab_next_row (struct tab_table *);

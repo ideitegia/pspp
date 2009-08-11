@@ -1526,27 +1526,22 @@ table_value_missing (struct crosstabs_proc *proc,
                      struct tab_table *table, int c, int r, unsigned char opt,
 		     const union value *v, const struct variable *var)
 {
-  struct substring s;
-  const struct fmt_spec *print = var_get_print_format (var);
-
   const char *label = var_lookup_value_label (var, v);
-  if (label)
+  if (label != NULL)
+    tab_text (table, c, r, TAB_LEFT, label);
+  else
     {
-      tab_text (table, c, r, TAB_LEFT, label);
-      return;
+      const struct fmt_spec *print = var_get_print_format (var);
+      if (proc->exclude == MV_NEVER && var_is_value_missing (var, v, MV_USER))
+        {
+          char *s = xmalloc (print->w + 2);
+          strcpy (&s[print->w], "M");
+          tab_text (table, c, r, opt, s + strspn (s, " "));
+          free (s);
+        }
+      else
+        tab_value (table, c, r, opt, v, print);
     }
-
-  s.string = tab_alloc (table, print->w);
-  data_out (v, print, s.string);
-  s.length = print->w;
-  if (proc->exclude == MV_NEVER && var_is_num_missing (var, v->f, MV_USER))
-    s.string[s.length++] = 'M';
-  while (s.length && *s.string == ' ')
-    {
-      s.length--;
-      s.string++;
-    }
-  tab_raw (table, c, r, opt, &s);
 }
 
 /* Draws a line across TABLE at the current row to indicate the most
@@ -1575,23 +1570,18 @@ format_cell_entry (struct tab_table *table, int c, int r, double value,
 {
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
-  struct substring s;
+  int len = 10;
+  char s[16];
 
-  s.length = 10;
-  s.string = tab_alloc (table, 16);
   v.f = value;
-  data_out (&v, &f, s.string);
-  while (*s.string == ' ')
-    {
-      s.length--;
-      s.string++;
-    }
+  data_out (&v, &f, s);
   if (suffix != 0)
-    s.string[s.length++] = suffix;
+    s[len++] = suffix;
   if (mark_missing)
-    s.string[s.length++] = 'M';
+    s[len++] = 'M';
+  s[len] = '\0';
 
-  tab_raw (table, c, r, TAB_RIGHT, &s);
+  tab_text (table, c, r, TAB_RIGHT, s + strspn (s, " "));
 }
 
 /* Displays the crosstabulation table. */

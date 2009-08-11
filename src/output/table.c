@@ -782,31 +782,6 @@ tab_joint_text_format (struct tab_table *table, int x1, int y1, int x2, int y2,
                      pool_vasprintf (table->container, format, args));
   va_end (args);
 }
-
-/* Sets cell (C,R) in TABLE, with options OPT, to contents STRING. */
-void
-tab_raw (struct tab_table *table, int c, int r, unsigned opt,
-	 struct substring *string)
-{
-  assert (table != NULL && string != NULL);
-
-#if DEBUGGING
-  if (c + table->col_ofs < 0 || r + table->row_ofs < 0
-      || c + table->col_ofs >= tab_nc (table)
-      || r + table->row_ofs >= tab_nr (table))
-    {
-      printf ("tab_raw(): bad cell (%d+%d=%d,%d+%d=%d) in table size "
-	      "(%d,%d)\n",
-	      c, table->col_ofs, c + table->col_ofs,
-	      r, table->row_ofs, r + table->row_ofs,
-	      tab_nc (table), tab_nr (table));
-      return;
-    }
-#endif
-
-  table->cc[c + r * table->cf] = *string;
-  table->ct[c + r * table->cf] = opt;
-}
 
 /* Miscellaneous. */
 
