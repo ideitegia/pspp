@@ -33,7 +33,7 @@ cmd_echo (struct lexer *lexer, struct dataset *ds UNUSED)
   if (lex_token (lexer) != T_STRING)
     return CMD_FAILURE;
 
-  tab = tab_create(1, 1, 0);
+  tab = tab_create(1, 1);
 
   tab_dim (tab, tab_natural_dimensions, NULL, NULL);
   tab_flags (tab, SOMF_NO_TITLE );

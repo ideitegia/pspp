@@ -395,7 +395,7 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
   int row;
 
   spec_cnt = ll_count (&trns->specs);
-  t = tab_create (4, spec_cnt + 1, 0);
+  t = tab_create (4, spec_cnt + 1);
   tab_columns (t, TAB_COL_DOWN);
   tab_box (t, TAL_1, TAL_1, TAL_0, TAL_1, 0, 0, 3, spec_cnt);
   tab_hline (t, TAL_2, 0, 3, 1);

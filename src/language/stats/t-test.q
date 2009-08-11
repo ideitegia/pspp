@@ -475,7 +475,7 @@ static void
 ssbox_base_init (struct ssbox *this, int cols, int rows)
 {
   this->finalize = ssbox_base_finalize;
-  this->t = tab_create (cols, rows, 0);
+  this->t = tab_create (cols, rows);
 
   tab_columns (this->t, SOM_COL_DOWN);
   tab_headers (this->t, 0, 0, 1, 0);
@@ -1067,7 +1067,7 @@ trbox_base_init (struct trbox *self, size_t data_rows, int cols)
   const size_t rows = 3 + data_rows;
 
   self->finalize = trbox_base_finalize;
-  self->t = tab_create (cols, rows, 0);
+  self->t = tab_create (cols, rows);
   tab_headers (self->t, 0, 0, 3, 0);
   tab_box (self->t, TAL_2, TAL_2, TAL_0, TAL_0, 0, 0, cols - 1, rows - 1);
   tab_hline (self->t, TAL_2, 0, cols- 1, 3);
@@ -1091,7 +1091,7 @@ pscbox (struct t_test_proc *proc)
 
   struct tab_table *table;
 
-  table = tab_create (cols, rows, 0);
+  table = tab_create (cols, rows);
 
   tab_columns (table, SOM_COL_DOWN);
   tab_headers (table, 0, 0, 1, 0);

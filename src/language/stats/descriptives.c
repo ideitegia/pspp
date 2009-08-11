@@ -552,7 +552,7 @@ dump_z_table (struct dsc_proc *dsc)
 	cnt++;
   }
 
-  t = tab_create (2, cnt + 1, 0);
+  t = tab_create (2, cnt + 1);
   tab_title (t, _("Mapping of variables to corresponding Z-scores."));
   tab_columns (t, SOM_COL_DOWN);
   tab_headers (t, 0, 0, 1, 0);
@@ -873,7 +873,7 @@ display (struct dsc_proc *dsc)
     sort (dsc->vars, dsc->var_cnt, sizeof *dsc->vars,
           descriptives_compare_dsc_vars, dsc);
 
-  t = tab_create (nc, dsc->var_cnt + 1, 0);
+  t = tab_create (nc, dsc->var_cnt + 1);
   tab_headers (t, 1, 0, 1, 0);
   tab_box (t, TAL_1, TAL_1, -1, -1, 0, 0, nc - 1, dsc->var_cnt);
   tab_box (t, -1, -1, -1, TAL_1, 1, 0, nc - 1, dsc->var_cnt);

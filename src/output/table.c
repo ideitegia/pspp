@@ -56,7 +56,7 @@ options_to_font (unsigned options)
 
 /* Creates a table with NC columns and NR rows. */
 struct tab_table *
-tab_create (int nc, int nr, int reallocable UNUSED)
+tab_create (int nc, int nr)
 {
   struct tab_table *t;
 
@@ -843,7 +843,7 @@ do_tab_output_text (struct tab_table *t, int options, char *text)
 void
 tab_output_text (int options, const char *text)
 {
-  struct tab_table *table = tab_create (1, 1, 0);
+  struct tab_table *table = tab_create (1, 1);
   do_tab_output_text (table, options, pool_strdup (table->container, text));
 }
 
@@ -857,7 +857,7 @@ tab_output_text_format (int options, const char *format, ...)
   struct tab_table *table;
   va_list args;
 
-  table = tab_create (1, 1, 0);
+  table = tab_create (1, 1);
 
   va_start (args, format);
   do_tab_output_text (table, options,

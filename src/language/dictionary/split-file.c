@@ -77,7 +77,7 @@ output_split_file_values (const struct dataset *ds, const struct ccase *c)
   if (split_cnt == 0)
     return;
 
-  t = tab_create (3, split_cnt + 1, 0);
+  t = tab_create (3, split_cnt + 1);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_vline (t, TAL_GAP, 1, 0, split_cnt);
   tab_vline (t, TAL_GAP, 2, 0, split_cnt);

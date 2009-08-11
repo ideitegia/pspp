@@ -840,7 +840,7 @@ make_summary_table (struct crosstabs_proc *proc)
   struct string name;
   int i;
 
-  summary = tab_create (7, 3 + proc->n_pivots, 1);
+  summary = tab_create (7, 3 + proc->n_pivots);
   tab_title (summary, _("Summary."));
   tab_headers (summary, 1, 0, 3, 0);
   tab_joint_text (summary, 1, 0, 6, 0, TAB_CENTER, _("Cases"));
@@ -1151,8 +1151,7 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
   int i;
 
   table = tab_create (pt->n_consts + 1 + pt->n_cols + 1,
-                      (pt->n_entries / pt->n_cols) * 3 / 2 * proc->n_cells + 10,
-                      true);
+                      (pt->n_entries / pt->n_cols) * 3 / 2 * proc->n_cells + 10);
   tab_headers (table, pt->n_consts + 1, 0, 2, 0);
 
   /* First header line. */
@@ -1226,8 +1225,7 @@ create_chisq_table (struct pivot_table *pt)
   struct tab_table *chisq;
 
   chisq = tab_create (6 + (pt->n_vars - 2),
-                      pt->n_entries / pt->n_cols * 3 / 2 * N_CHISQ + 10,
-                      1);
+                      pt->n_entries / pt->n_cols * 3 / 2 * N_CHISQ + 10);
   tab_headers (chisq, 1 + (pt->n_vars - 2), 0, 1, 0);
 
   tab_title (chisq, _("Chi-square tests."));
@@ -1254,7 +1252,7 @@ create_sym_table (struct pivot_table *pt)
   struct tab_table *sym;
 
   sym = tab_create (6 + (pt->n_vars - 2),
-                    pt->n_entries / pt->n_cols * 7 + 10, 1);
+                    pt->n_entries / pt->n_cols * 7 + 10);
   tab_headers (sym, 2 + (pt->n_vars - 2), 0, 1, 0);
   tab_title (sym, _("Symmetric measures."));
 
@@ -1276,8 +1274,7 @@ create_risk_table (struct pivot_table *pt)
 {
   struct tab_table *risk;
 
-  risk = tab_create (4 + (pt->n_vars - 2), pt->n_entries / pt->n_cols * 4 + 10,
-                     1);
+  risk = tab_create (4 + (pt->n_vars - 2), pt->n_entries / pt->n_cols * 4 + 10);
   tab_headers (risk, 1 + pt->n_vars - 2, 0, 2, 0);
   tab_title (risk, _("Risk estimate."));
 
@@ -1302,7 +1299,7 @@ create_direct_table (struct pivot_table *pt)
   struct tab_table *direct;
 
   direct = tab_create (7 + (pt->n_vars - 2),
-                       pt->n_entries / pt->n_cols * 7 + 10, 1);
+                       pt->n_entries / pt->n_cols * 7 + 10);
   tab_headers (direct, 3 + (pt->n_vars - 2), 0, 1, 0);
   tab_title (direct, _("Directional measures."));
 

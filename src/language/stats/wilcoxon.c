@@ -225,7 +225,7 @@ show_ranks_box (const struct wilcoxon_state *ws,
   const struct variable *wv = dict_get_weight (dict);
   const struct fmt_spec *wfmt = wv ? var_get_print_format (wv) : & F_8_0;
 
-  struct tab_table *table = tab_create (5, 1 + 4 * t2s->n_pairs, 0);
+  struct tab_table *table = tab_create (5, 1 + 4 * t2s->n_pairs);
 
   tab_dim (table, tab_natural_dimensions, NULL, NULL);
 
@@ -306,7 +306,7 @@ show_tests_box (const struct wilcoxon_state *ws,
 		)
 {
   size_t i;
-  struct tab_table *table = tab_create (1 + t2s->n_pairs, exact ? 5 : 3, 0);
+  struct tab_table *table = tab_create (1 + t2s->n_pairs, exact ? 5 : 3);
 
   tab_dim (table, tab_natural_dimensions, NULL, NULL);
 

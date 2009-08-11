@@ -126,7 +126,7 @@ struct tab_rendering
   };
 
 /* Tables. */
-struct tab_table *tab_create (int nc, int nr, int reallocable);
+struct tab_table *tab_create (int nc, int nr);
 void tab_destroy (struct tab_table *);
 void tab_ref (struct tab_table *);
 void tab_resize (struct tab_table *, int nc, int nr);

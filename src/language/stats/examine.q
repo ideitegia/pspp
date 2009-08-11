@@ -1131,7 +1131,7 @@ show_summary (const struct variable **dependent_var, int n_dep_var,
 
   n_cols = heading_columns + 6;
 
-  tbl = tab_create (n_cols, n_rows, 0);
+  tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
   tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
@@ -1368,7 +1368,7 @@ show_descriptives (const struct variable **dependent_var,
 
   n_cols = heading_columns + 2;
 
-  tbl = tab_create (n_cols, n_rows, 0);
+  tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
   tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
@@ -1680,7 +1680,7 @@ show_extremes (const struct variable **dependent_var,
 
   n_cols = heading_columns + 2;
 
-  tbl = tab_create (n_cols, n_rows, 0);
+  tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
   tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
@@ -1885,7 +1885,7 @@ show_percentiles (const struct variable **dependent_var,
 
   n_cols = heading_columns + n_percentiles;
 
-  tbl = tab_create (n_cols, n_rows, 0);
+  tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
   tab_dim (tbl, tab_natural_dimensions, NULL, NULL);

@@ -638,7 +638,7 @@ dump_fixed_table (const struct data_parser *parser,
   struct tab_table *t;
   size_t i;
 
-  t = tab_create (4, parser->field_cnt + 1, 0);
+  t = tab_create (4, parser->field_cnt + 1);
   tab_columns (t, TAB_COL_DOWN);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Variable"));
@@ -679,7 +679,7 @@ dump_delimited_table (const struct data_parser *parser,
   struct tab_table *t;
   size_t i;
 
-  t = tab_create (2, parser->field_cnt + 1, 0);
+  t = tab_create (2, parser->field_cnt + 1);
   tab_columns (t, TAB_COL_DOWN);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Variable"));

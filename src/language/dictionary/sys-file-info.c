@@ -109,7 +109,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
     }
   casereader_destroy (reader);
 
-  t = tab_create (2, 11, 0);
+  t = tab_create (2, 11);
   tab_vline (t, TAL_GAP, 1, 0, 8);
   tab_text (t, 0, 0, TAB_LEFT, _("File:"));
   tab_text (t, 1, 0, TAB_LEFT, fh_get_file_name (h));
@@ -164,7 +164,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
   tab_submit (t);
 
-  t = tab_create (4, 1 + 2 * dict_get_var_cnt (d), 1);
+  t = tab_create (4, 1 + 2 * dict_get_var_cnt (d));
   tab_dim (t, sysfile_info_dim, NULL, NULL);
   tab_headers (t, 0, 0, 1, 0);
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Variable"));
@@ -389,7 +389,7 @@ display_variables (const struct variable **vl, size_t n, int flags)
   if (flags & DF_DICT_INDEX)
     nc++;
 
-  t = tab_create (nc, n + 5, 1);
+  t = tab_create (nc, n + 5);
   tab_headers (t, 0, 0, 1, 0);
   tab_hline (t, TAL_2, 0, nc - 1, 1);
   tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Variable"));
@@ -483,7 +483,7 @@ display_data_file_attributes (struct attrset *set, int flags)
   if (!n_attrs)
     return;
 
-  t = tab_create (2, n_attrs + 1, 0);
+  t = tab_create (2, n_attrs + 1);
   tab_headers (t, 0, 0, 1, 0);
   tab_box (t, TAL_1, TAL_1, -1, TAL_1, 0, 0, tab_nc (t) - 1, tab_nr (t) - 1);
   tab_hline (t, TAL_2, 0, 1, 1); 
@@ -718,7 +718,7 @@ display_vectors (const struct dictionary *dict, int sorted)
   if (sorted)
     qsort (vl, nvec, sizeof *vl, compare_vector_ptrs_by_name);
 
-  t = tab_create (4, nrow + 1, 0);
+  t = tab_create (4, nrow + 1);
   tab_headers (t, 0, 0, 1, 0);
   tab_columns (t, TAB_COL_DOWN);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);

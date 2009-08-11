@@ -381,7 +381,7 @@ run_reliability (struct casereader *input, struct dataset *ds,
 
 
   {
-    struct tab_table *tab = tab_create(1, 1, 0);
+    struct tab_table *tab = tab_create(1, 1);
 
     tab_dim (tab, tab_natural_dimensions, NULL, NULL);
     tab_flags (tab, SOMF_NO_TITLE );
@@ -425,7 +425,7 @@ reliability_statistics (const struct reliability *rel)
   int heading_columns = rol[rel->model].heading_cols;
   int heading_rows = rol[rel->model].heading_rows;
 
-  struct tab_table *tbl = tab_create (n_cols, n_rows, 0);
+  struct tab_table *tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
   tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
@@ -468,7 +468,7 @@ reliability_summary_total (const struct reliability *rel)
   const int heading_rows = 1;
   const int n_rows = rel->sc[0].n_items + heading_rows ;
 
-  struct tab_table *tbl = tab_create (n_cols, n_rows, 0);
+  struct tab_table *tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
   tab_dim (tbl, tab_natural_dimensions, NULL, NULL);
@@ -678,7 +678,7 @@ case_processing_summary (casenumber n_valid, casenumber n_missing,
   int heading_columns = 2;
   int heading_rows = 1;
   struct tab_table *tbl;
-  tbl = tab_create (n_cols, n_rows, 0);
+  tbl = tab_create (n_cols, n_rows);
   tab_headers (tbl, heading_columns, 0, heading_rows, 0);
 
   tab_dim (tbl, tab_natural_dimensions, NULL, NULL);

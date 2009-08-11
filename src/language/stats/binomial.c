@@ -187,7 +187,7 @@ binomial_execute (const struct dataset *ds,
       const struct fmt_spec *wfmt = wvar ?
 	var_get_print_format (wvar) : & F_8_0;
 
-      struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1, 0);
+      struct tab_table *table = tab_create (7, ost->n_vars * 3 + 1);
 
       tab_dim (table, tab_natural_dimensions, NULL, NULL);
 

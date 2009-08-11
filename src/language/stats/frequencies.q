@@ -1078,7 +1078,7 @@ dump_full (const struct variable *v, const struct variable *wv)
   vf = get_var_freqs (v);
   ft = &vf->tab;
   n_categories = ft->n_valid + ft->n_missing;
-  t = tab_create (5 + lab, n_categories + 3, 0);
+  t = tab_create (5 + lab, n_categories + 3);
   tab_headers (t, 0, 0, 2, 0);
 
   aux = xmalloc (sizeof *aux);
@@ -1192,7 +1192,7 @@ dump_condensed (const struct variable *v, const struct variable *wv)
   vf = get_var_freqs (v);
   ft = &vf->tab;
   n_categories = ft->n_valid + ft->n_missing;
-  t = tab_create (4, n_categories + 2, 0);
+  t = tab_create (4, n_categories + 2);
 
   tab_headers (t, 0, 0, 2, 0);
   tab_text (t, 0, 1, TAB_CENTER | TAT_TITLE, _("Value"));
@@ -1398,7 +1398,7 @@ dump_statistics (const struct variable *v, bool show_varname,
     }
   calc_stats (v, stat_value);
 
-  t = tab_create (3, n_stats + n_percentiles + 2, 0);
+  t = tab_create (3, n_stats + n_percentiles + 2);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
   tab_box (t, TAL_1, TAL_1, -1, -1 , 0 , 0 , 2, tab_nr(t) - 1) ;

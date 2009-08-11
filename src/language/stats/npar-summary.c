@@ -102,7 +102,7 @@ do_summary_box (const struct descriptives *desc,
   if ( desc ) columns += 5;
   if ( quartiles ) columns += 3;
 
-  table = tab_create (columns, 2 + n_vars, 0);
+  table = tab_create (columns, 2 + n_vars);
 
   tab_dim (table, tab_natural_dimensions, NULL, NULL);
 

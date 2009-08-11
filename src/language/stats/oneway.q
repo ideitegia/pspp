@@ -259,7 +259,7 @@ show_anova_table (void)
   struct tab_table *t;
 
 
-  t = tab_create (n_cols, n_rows, 0);
+  t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 1, 0);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
@@ -370,7 +370,7 @@ show_descriptives (const struct dictionary *dict)
   for ( v = 0; v < n_vars; ++v )
     n_rows += group_proc_get (vars[v])->n_groups + 1;
 
-  t = tab_create (n_cols, n_rows, 0);
+  t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 2, 0);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
@@ -517,7 +517,7 @@ show_homogeneity (void)
   struct tab_table *t;
 
 
-  t = tab_create (n_cols, n_rows, 0);
+  t = tab_create (n_cols, n_rows);
   tab_headers (t, 1, 0, 1, 0);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
@@ -577,7 +577,7 @@ show_contrast_coeffs (short *bad_contrast)
 
   struct tab_table *t;
 
-  t = tab_create (n_cols, n_rows, 0);
+  t = tab_create (n_cols, n_rows);
   tab_headers (t, 2, 0, 2, 0);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
@@ -661,7 +661,7 @@ show_contrast_tests (short *bad_contrast)
 
   struct tab_table *t;
 
-  t = tab_create (n_cols, n_rows, 0);
+  t = tab_create (n_cols, n_rows);
   tab_headers (t, 3, 0, 1, 0);
   tab_dim (t, tab_natural_dimensions, NULL, NULL);
 
