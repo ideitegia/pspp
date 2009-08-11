@@ -760,11 +760,8 @@ tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
     {
     case DICT_TVM_COL_NAME:
       {
-	gchar *name = recode_string (UTF8, psppire_dict_encoding (dict),
-				     var_get_name (var), -1);
 	g_value_init (value, G_TYPE_STRING);
-	g_value_set_string (value, name);
-	g_free (name);
+	g_value_set_string (value, var_get_name (var));
       }
       break;
     case DICT_TVM_COL_VAR:
@@ -859,11 +856,10 @@ psppire_dict_dump (const PsppireDict *dict)
     {
       const struct variable *v = psppire_dict_get_variable (dict, i);
       int di = var_get_dict_index (v);
-      g_print ("\"%s\" idx=%d, fv=%d, size=%d\n",
+      g_print ("\"%s\" idx=%d, fv=%d\n",
 	       var_get_name(v),
 	       di,
-	       var_get_case_index(v),
-	       value_cnt_from_width(var_get_width(v)));
+	       var_get_case_index(v));
 
     }
 }

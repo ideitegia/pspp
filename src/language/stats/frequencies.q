@@ -207,6 +207,8 @@ struct freq_tab
     struct hsh_table *data;	/* Undifferentiated data. */
     struct freq_mutable *valid; /* Valid freqs. */
     int n_valid;		/* Number of total freqs. */
+    const struct dictionary *dict; /* The dict from whence entries in the table
+				      come */
 
     struct freq_mutable *missing; /* Missing freqs. */
     int n_missing;		/* Number of missing freqs. */
@@ -756,6 +758,7 @@ frq_custom_variables (struct lexer *lexer, struct dataset *ds, struct cmd_freque
 	}
       vf = var_attach_aux (v, xmalloc (sizeof *vf), var_dtor_free);
       vf->tab.valid = vf->tab.missing = NULL;
+      vf->tab.dict = dataset_dict (ds);
       vf->n_groups = 0;
       vf->groups = NULL;
       vf->width = var_get_width (v);
@@ -1110,7 +1113,7 @@ dump_full (const struct variable *v, const struct variable *wv)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
 
-      tab_value (t, 0 + lab, r, TAB_NONE, &f->value, &vf->print);
+      tab_value (t, 0 + lab, r, TAB_NONE, &f->value, ft->dict, &vf->print);
       tab_double (t, 1 + lab, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 2 + lab, r, TAB_NONE, percent, NULL);
       tab_double (t, 3 + lab, r, TAB_NONE, valid_percent, NULL);
@@ -1128,7 +1131,7 @@ dump_full (const struct variable *v, const struct variable *wv)
 	    tab_text (t, 0, r, TAB_LEFT, label);
 	}
 
-      tab_value (t, 0 + lab, r, TAB_NONE, &f->value, &vf->print);
+      tab_value (t, 0 + lab, r, TAB_NONE, &f->value, ft->dict, &vf->print);
       tab_double (t, 1 + lab, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 2 + lab, r, TAB_NONE,
 		     f->count / ft->total_cases * 100.0, NULL);
@@ -1210,7 +1213,7 @@ dump_condensed (const struct variable *v, const struct variable *wv)
       percent = f->count / ft->total_cases * 100.0;
       cum_total += f->count / ft->valid_cases * 100.0;
 
-      tab_value (t, 0, r, TAB_NONE, &f->value, &vf->print);
+      tab_value (t, 0, r, TAB_NONE, &f->value, ft->dict, &vf->print);
       tab_double (t, 1, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 2, r, TAB_NONE, percent, NULL);
       tab_double (t, 3, r, TAB_NONE, cum_total, NULL);
@@ -1218,7 +1221,7 @@ dump_condensed (const struct variable *v, const struct variable *wv)
     }
   for (; f < &ft->valid[n_categories]; f++)
     {
-      tab_value (t, 0, r, TAB_NONE, &f->value, &vf->print);
+      tab_value (t, 0, r, TAB_NONE, &f->value, ft->dict, &vf->print);
       tab_double (t, 1, r, TAB_NONE, f->count, wfmt);
       tab_double (t, 2, r, TAB_NONE,
 		 f->count / ft->total_cases * 100.0, NULL);

@@ -80,8 +80,6 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 {
   struct missing_val_dialog *dialog = data;
 
-  const struct fmt_spec *write_spec = var_get_write_format (dialog->pv);
-
   if ( gtk_toggle_button_get_active (dialog->button_discrete))
     {
       gint nvals = 0;
@@ -100,7 +98,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	      continue;
 	    }
 
-	  if ( text_to_value (text, &v, *write_spec))
+	  if ( text_to_value (text, dialog->dict, dialog->pv, &v))
 	    {
 	      nvals++;
 	      mv_add_value (&dialog->mvl, &v);
@@ -108,6 +106,7 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	  else
 	      badvals++;
 	  g_free (text);
+	  value_destroy (&v, var_get_width (dialog->pv));
 	}
       if ( nvals == 0 || badvals > 0 )
 	{
@@ -126,14 +125,16 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       const gchar *low_text = gtk_entry_get_text (GTK_ENTRY (dialog->low));
       const gchar *high_text = gtk_entry_get_text (GTK_ENTRY (dialog->high));
 
-      if ( text_to_value (low_text, &low_val, *write_spec)
+      if ( text_to_value (low_text, dialog->dict, dialog->pv, &low_val)
 	   &&
-	   text_to_value (high_text, &high_val, *write_spec) )
+	   text_to_value (high_text, dialog->dict, dialog->pv, &high_val))
 	{
 	  if ( low_val.f > high_val.f )
 	    {
 	      err_dialog (_("Incorrect range specification"),
 			  GTK_WINDOW (dialog->window));
+	      value_destroy (&low_val, var_get_width (dialog->pv));
+	      value_destroy (&high_val, var_get_width (dialog->pv));
 	      return ;
 	    }
 	}
@@ -141,6 +142,8 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
 	{
 	  err_dialog (_("Incorrect range specification"),
 		      GTK_WINDOW (dialog->window));
+	  value_destroy (&low_val, var_get_width (dialog->pv));
+	  value_destroy (&high_val, var_get_width (dialog->pv));
 	  return;
 	}
 
@@ -150,18 +153,25 @@ missing_val_dialog_accept (GtkWidget *w, gpointer data)
       mv_clear (&dialog->mvl);
       mv_add_range (&dialog->mvl, low_val.f, high_val.f);
 
+      value_destroy (&low_val, var_get_width (dialog->pv));
+      value_destroy (&high_val, var_get_width (dialog->pv));
+
       if ( discrete_text && strlen (g_strstrip (discrete_text)) > 0 )
 	{
 	  union value discrete_val;
-	  if ( !text_to_value (discrete_text, &discrete_val,
-			      *write_spec))
+	  if ( !text_to_value (discrete_text, 
+			       dialog->dict,
+			       dialog->pv,
+			       &discrete_val))
 	    {
 	      err_dialog (_("Incorrect value for variable type"),
 			 GTK_WINDOW (dialog->window) );
 	      g_free (discrete_text);
+	      value_destroy (&discrete_val, var_get_width (dialog->pv));
 	      return;
 	    }
 	  mv_add_value (&dialog->mvl, &discrete_val);
+	  value_destroy (&discrete_val, var_get_width (dialog->pv));
 	}
       g_free (discrete_text);
     }
@@ -309,8 +319,9 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       gchar *high_text;
       mv_get_range (&dialog->mvl, &low.f, &high.f);
 
-      low_text = value_to_text (low, *write_spec);
-      high_text = value_to_text (high, *write_spec);
+
+      low_text = value_to_text (low, dialog->dict, *write_spec);
+      high_text = value_to_text (high, dialog->dict,  *write_spec);
 
       gtk_entry_set_text (GTK_ENTRY (dialog->low), low_text);
       gtk_entry_set_text (GTK_ENTRY (dialog->high), high_text);
@@ -320,7 +331,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
       if ( mv_has_value (&dialog->mvl))
 	{
 	  gchar *text;
-	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), *write_spec);
+	  text = value_to_text (*mv_get_value (&dialog->mvl, 0), dialog->dict, *write_spec);
 	  gtk_entry_set_text (GTK_ENTRY (dialog->discrete), text);
 	  g_free (text);
 	}
@@ -341,7 +352,7 @@ missing_val_dialog_show (struct missing_val_dialog *dialog)
 	    {
 	      gchar *text ;
 
-	      text = value_to_text (*mv_get_value (&dialog->mvl, i),
+	      text = value_to_text (*mv_get_value (&dialog->mvl, i), dialog->dict,
                                     *write_spec);
 	      gtk_entry_set_text (GTK_ENTRY (dialog->mv[i]), text);
 	      g_free (text);

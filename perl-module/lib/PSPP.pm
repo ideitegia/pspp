@@ -249,7 +249,7 @@ An integer denoting the number of decimal places for the format.
 
 =item width
 
-An integer denoting the number of width of the format.
+An integer denoting the width of the format.
 
 =back
 
@@ -281,6 +281,16 @@ sub set_print_format
 }
 
 =pod
+
+
+=head3 get_write_format ()
+
+Returns a reference to a hash containing the write format for the variable.
+
+
+=head3 get_print_format ()
+
+Returns a reference to a hash containing the print format for the variable.
 
 =head3 set_output_format (%fmt)
 
@@ -510,7 +520,7 @@ values retrieved from a reader.
 
 =head3 PSPP::format_value ($value, $variable)
 
-Returns a scalar containing a string representing C<value> formatted accoring 
+Returns a scalar containing a string representing C<value> formatted according 
 to the print format of C<variable>.
 In the most common ussage,  C<value> should be a value of C<variable>.
 

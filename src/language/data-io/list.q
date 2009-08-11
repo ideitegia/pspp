@@ -665,6 +665,7 @@ list_case (const struct ccase *c, casenumber case_idx,
            const struct dataset *ds, struct ll_list *targets)
 {
   struct dictionary *dict = dataset_dict (ds);
+  const char *encoding = dict_get_encoding (dict);
   struct list_target *target;
 
   ll_for_each (target, struct list_target, ll, targets)
@@ -688,6 +689,7 @@ list_case (const struct ccase *c, casenumber case_idx,
               const struct variable *v = cmd.v_variables[column];
               const struct fmt_spec *print = var_get_print_format (v);
               int width;
+              char *s;
 
               if (target->type == 0 && column >= target->n_vertical)
                 {
@@ -716,20 +718,17 @@ list_case (const struct ccase *c, casenumber case_idx,
               if (width > print->w)
                 ds_put_char_multiple(&line_buffer, ' ', width - print->w);
 
-              if (fmt_is_string (print->type)
-                  || dict_contains_var (dict, v))
-                {
-                  data_out (case_data (c, v), print,
-                            ds_put_uninit (&line_buffer, print->w));
-                }
+              if (fmt_is_string (print->type) || dict_contains_var (dict, v))
+                s = data_out (case_data (c, v), encoding, print);
               else
                 {
                   union value case_idx_value;
                   case_idx_value.f = case_idx;
-                  data_out (&case_idx_value, print,
-                            ds_put_uninit (&line_buffer,print->w));
+                  s = data_out (&case_idx_value, encoding, print);
                 }
 
+              ds_put_cstr (&line_buffer, s);
+              free (s);
               ds_put_char(&line_buffer, ' ');
             }
 
@@ -753,21 +752,23 @@ list_case (const struct ccase *c, casenumber case_idx,
             {
               const struct variable *v = cmd.v_variables[column];
               const struct fmt_spec *print = var_get_print_format (v);
-              char buf[256];
+              char *s;
 
               if (fmt_is_string (print->type)
                   || dict_contains_var (dict, v))
-                data_out (case_data (c, v), print, buf);
+                s = data_out (case_data (c, v), encoding, print);
               else
                 {
                   union value case_idx_value;
                   case_idx_value.f = case_idx;
-                  data_out (&case_idx_value, print, buf);
+                  s = data_out (&case_idx_value, encoding, print);
                 }
 
               fputs ("    <TD>", x->file);
-              html_put_cell_contents (d, TAB_FIX, ss_buffer (buf, print->w));
+              html_put_cell_contents (d, TAB_FIX, ss_cstr (s));
               fputs ("</TD>\n", x->file);
+
+              free (s);
             }
 
           fputs ("  </TR>\n", x->file);

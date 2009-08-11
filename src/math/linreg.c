@@ -383,8 +383,8 @@ pspp_linreg (const gsl_vector * Y, const struct design_matrix *dm,
 	      gsl_matrix_set (design, j, i, tmp);
 	    }
 	}
-      sw = gsl_matrix_calloc (cache->n_indeps + 1, cache->n_indeps + 1);
-      xtx = gsl_matrix_submatrix (sw, 0, 0, cache->n_indeps, cache->n_indeps);
+      sw = gsl_matrix_calloc (cache->n_coeffs + 1, cache->n_coeffs + 1);
+      xtx = gsl_matrix_submatrix (sw, 0, 0, cache->n_coeffs, cache->n_coeffs);
 
       for (i = 0; i < xtx.matrix.size1; i++)
 	{
@@ -399,8 +399,8 @@ pspp_linreg (const gsl_vector * Y, const struct design_matrix *dm,
 	    }
 	}
 
-      gsl_matrix_set (sw, cache->n_indeps, cache->n_indeps, cache->sst);
-      xty = gsl_matrix_column (sw, cache->n_indeps);
+      gsl_matrix_set (sw, cache->n_coeffs, cache->n_coeffs, cache->sst);
+      xty = gsl_matrix_column (sw, cache->n_coeffs);
       /*
          This loop starts at 1, with i=0 outside the loop, so we can get
          the model sum of squares due to the first independent variable.
@@ -410,7 +410,7 @@ pspp_linreg (const gsl_vector * Y, const struct design_matrix *dm,
       gsl_vector_set (&(xty.vector), 0, tmp);
       tmp *= tmp / gsl_vector_get (cache->ssx, 0);
       gsl_vector_set (cache->ss_indeps, 0, tmp);
-      for (i = 1; i < cache->n_indeps; i++)
+      for (i = 1; i < cache->n_coeffs; i++)
 	{
 	  xi = gsl_matrix_column (design, i);
 	  gsl_blas_ddot (&(xi.vector), Y, &tmp);
@@ -641,7 +641,7 @@ double pspp_linreg_get_indep_variable_mean (pspp_linreg_cache *c, const struct v
       coef = pspp_linreg_get_coeff (c, v, NULL);
       return pspp_coeff_get_mean (coef);
     }
-  return GSL_NAN;
+  return 0.0;
 }
 
 void pspp_linreg_set_indep_variable_mean (pspp_linreg_cache *c, const struct variable *v, 

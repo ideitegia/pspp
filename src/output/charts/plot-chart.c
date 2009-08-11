@@ -288,3 +288,49 @@ chart_write_ylabel (cairo_t *cr, const struct chart_geometry *geom,
   chart_label (cr, 'l', 'x', geom->font_size, label);
   cairo_restore (cr);
 }
+
+
+void
+chart_write_legend (cairo_t *cr, const struct chart_geometry *geom)
+{
+  int i;
+  const int vstep = geom->font_size * 2;
+  const int xpad = 10;
+  const int ypad = 10;
+  const int swatch = 20;
+  const int legend_top = geom->data_top;
+  const int legend_bottom = legend_top -
+    (vstep * geom->n_datasets + 2 * ypad );
+
+  cairo_save (cr);
+
+  cairo_rectangle (cr, geom->legend_left, legend_top,
+                   geom->legend_right - xpad - geom->legend_left,
+                   legend_bottom - legend_top);
+  cairo_stroke (cr);
+
+  for (i = 0 ; i < geom->n_datasets ; ++i )
+    {
+      const int ypos = legend_top - vstep * (i + 1);
+      const int xpos = geom->legend_left + xpad;
+      const struct chart_colour *colour;
+
+      cairo_move_to (cr, xpos, ypos);
+
+      cairo_save (cr);
+      colour = &data_colour [ i % N_CHART_COLOURS];
+      cairo_set_source_rgb (cr,
+                            colour->red / 255.0,
+                            colour->green / 255.0,
+                            colour->blue / 255.0);
+      cairo_rectangle (cr, xpos, ypos, swatch, swatch);
+      cairo_fill_preserve (cr);
+      cairo_stroke (cr);
+      cairo_restore (cr);
+
+      cairo_move_to (cr, xpos + swatch * 1.5, ypos);
+      chart_label (cr, 'l', 'x', geom->font_size, geom->dataset[i]);
+    }
+
+  cairo_restore (cr);
+}

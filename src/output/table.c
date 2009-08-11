@@ -29,6 +29,7 @@
 #include <data/data-out.h>
 #include <data/format.h>
 #include <data/value.h>
+#include <data/dictionary.h>
 #include <libpspp/assertion.h>
 #include <libpspp/compiler.h>
 #include <libpspp/misc.h>
@@ -515,7 +516,8 @@ tab_natural_dimensions (struct tab_rendering *r, void *aux UNUSED)
    from V, displayed with format spec F. */
 void
 tab_value (struct tab_table *table, int c, int r, unsigned char opt,
-	   const union value *v, const struct fmt_spec *f)
+	   const union value *v, const struct dictionary *dict, 
+	   const struct fmt_spec *f)
 {
   char *contents;
 
@@ -534,11 +536,10 @@ tab_value (struct tab_table *table, int c, int r, unsigned char opt,
     }
 #endif
 
-  contents = pool_alloc (table->container, f->w);
-  table->cc[c + r * table->cf] = ss_buffer (contents, f->w);
-  table->ct[c + r * table->cf] = opt;
+  contents = data_out_pool (v, dict_get_encoding (dict), f, table->container);
 
-  data_out (v, f, contents);
+  table->cc[c + r * table->cf] = ss_cstr (contents);
+  table->ct[c + r * table->cf] = opt;
 }
 
 /* Sets cell (C,R) in TABLE, with options OPT, to have value VAL
@@ -547,8 +548,7 @@ void
 tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 	   double val, int w, int d)
 {
-  char *contents;
-  char buf[40], *cp;
+  char *s, *cp;
 
   struct fmt_spec f;
   union value double_value;
@@ -577,17 +577,15 @@ tab_fixed (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  data_out (&double_value, &f, buf);
+  s = data_out_pool (&double_value, LEGACY_NATIVE, &f, table->container);
 
-  cp = buf;
-  while (isspace ((unsigned char) *cp) && cp < &buf[w])
+  cp = s;
+  while (isspace ((unsigned char) *cp) && cp < &s[w])
     cp++;
-  f.w = w - (cp - buf);
+  f.w = w - (cp - s);
 
-  contents = pool_alloc (table->container, f.w);
-  table->cc[c + r * table->cf] = ss_buffer (contents, f.w);
+  table->cc[c + r * table->cf] = ss_buffer (cp, f.w);
   table->ct[c + r * table->cf] = opt;
-  memcpy (contents, cp, f.w);
 }
 
 /* Sets cell (C,R) in TABLE, with options OPT, to have value VAL as
@@ -598,11 +596,8 @@ void
 tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 	   double val, const struct fmt_spec *fmt)
 {
-  int w;
-  char *contents;
-  char buf[40], *cp;
-
-  union value double_value;
+  struct substring ss;
+  union value double_value ;
 
   assert (table != NULL);
 
@@ -631,17 +626,12 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 #endif
 
   double_value.f = val;
-  data_out (&double_value, fmt, buf);
+  ss = ss_cstr (data_out_pool (&double_value, LEGACY_NATIVE, fmt, table->container));
 
-  cp = buf;
-  while (isspace ((unsigned char) *cp) && cp < &buf[fmt->w])
-    cp++;
-  w = fmt->w - (cp - buf);
+  ss_ltrim (&ss, ss_cstr (" "));
 
-  contents = pool_alloc (table->container, w);
-  table->cc[c + r * table->cf] = ss_buffer (contents, w);
+  table->cc[c + r * table->cf] = ss;
   table->ct[c + r * table->cf] = opt;
-  memcpy (contents, cp, w);
 }
 
 

@@ -251,6 +251,9 @@ traverse_cell_callback (PsppireSheet *sheet,
 
   gint n_vars = psppire_var_store_get_var_cnt (var_store);
 
+  if (new_cell->col >=  PSPPIRE_VAR_STORE_n_COLS)
+    return TRUE;
+
   if (new_cell->row >= n_vars && !var_sheet->may_create_vars)
     return TRUE;
 
@@ -260,10 +263,10 @@ traverse_cell_callback (PsppireSheet *sheet,
 
       const gchar *name = gtk_entry_get_text (entry);
 
-      if (! psppire_dict_check_name (var_store->dict, name, TRUE))
+      if (! psppire_dict_check_name (var_store->dictionary, name, TRUE))
 	return TRUE;
 
-      psppire_dict_insert_variable (var_store->dict, existing_cell->row, name);
+      psppire_dict_insert_variable (var_store->dictionary, existing_cell->row, name);
 
       return FALSE;
     }
@@ -278,7 +281,7 @@ traverse_cell_callback (PsppireSheet *sheet,
     {
       gint i;
       for ( i = n_vars ; i <= new_cell->row; ++i )
-	psppire_dict_insert_variable (var_store->dict, i, NULL);
+	psppire_dict_insert_variable (var_store->dictionary, i, NULL);
     }
 
   return FALSE;
@@ -384,6 +387,8 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 	vs->missing_val_dialog->pv =
 	  psppire_var_store_get_var (var_store, row);
 
+	vs->missing_val_dialog->dict = var_store->dictionary;
+
 	g_signal_connect_swapped (customEntry,
 				  "clicked",
 				  G_CALLBACK (missing_val_dialog_show),
@@ -479,7 +484,8 @@ psppire_var_sheet_realize (GtkWidget *w)
   GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (vs));
 
   vs->val_labs_dialog = val_labs_dialog_create (GTK_WINDOW (toplevel),
-						PSPPIRE_SHEET (vs));
+						PSPPIRE_VAR_STORE (psppire_sheet_get_model (PSPPIRE_SHEET (vs))));
+
   vs->missing_val_dialog = missing_val_dialog_create (GTK_WINDOW (toplevel));
   vs->var_type_dialog = var_type_dialog_create (GTK_WINDOW (toplevel));
 

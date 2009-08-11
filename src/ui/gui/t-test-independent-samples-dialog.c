@@ -416,7 +416,7 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   tt_d.dialog = get_widget_assert (xml, "t-test-independent-samples-dialog");
   tt_d.xml = xml;
-  tt_d.dict = vs->dict;
+  g_object_get (vs, "dictionary", &tt_d.dict, NULL);
 
   tt_d.define_groups_button = get_widget_assert (xml, "define-groups-button");
   tt_d.groups_entry = get_widget_assert (xml, "indep-samples-t-test-entry");
@@ -426,11 +426,9 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (tt_d.dialog), GTK_WINDOW (de));
 
-  g_object_set (dict_view, "dictionary", 
-				 vs->dict,
-				 NULL);
+  g_object_set (dict_view, "dictionary", tt_d.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (test_variables_treeview), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (test_variables_treeview), tt_d.dict);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),

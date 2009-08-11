@@ -28,21 +28,28 @@
 #include <output/charts/plot-chart.h>
 #include <libpspp/compiler.h>
 
-struct dataset
+#include "xalloc.h"
+
+/* Start a new vector called NAME */
+void
+chart_vector_start (cairo_t *cr, struct chart_geometry *geom, const char *name)
 {
-  int n_data;
-  const char *label;
-};
+  const struct chart_colour *colour;
 
+  cairo_save (cr);
 
-#define DATASETS 2
+  colour = &data_colour[geom->n_datasets % N_CHART_COLOURS];
+  cairo_set_source_rgb (cr,
+                        colour->red / 255.0,
+                        colour->green / 255.0,
+                        colour->blue / 255.0);
 
-static const struct dataset dataset[DATASETS] =
-  {
-    { 13, "male"},
-    { 11, "female"},
-  };
+  geom->n_datasets++;
+  geom->dataset = xrealloc (geom->dataset,
+                            geom->n_datasets * sizeof (*geom->dataset));
 
+  geom->dataset[geom->n_datasets - 1] = strdup (name);
+}
 
 /* Plot a data point */
 void
@@ -54,6 +61,35 @@ chart_datum (cairo_t *cr, const struct chart_geometry *geom,
 
   chart_draw_marker (cr, x_pos, y_pos, MARKER_SQUARE, 15);
 }
+
+void
+chart_vector_end (cairo_t *cr, struct chart_geometry *geom)
+{
+  cairo_stroke (cr);
+  cairo_restore (cr);
+  geom->in_path = false;
+}
+
+/* Plot a data point */
+void
+chart_vector (cairo_t *cr, struct chart_geometry *geom, double x, double y)
+{
+  const double x_pos =
+    (x - geom->x_min) * geom->abscissa_scale + geom->data_left ;
+
+  const double y_pos =
+    (y - geom->y_min) * geom->ordinate_scale + geom->data_bottom ;
+
+  if (geom->in_path)
+    cairo_line_to (cr, x_pos, y_pos);
+  else
+    {
+      cairo_move_to (cr, x_pos, y_pos);
+      geom->in_path = true;
+    }
+}
+
+
 
 /* Draw a line with slope SLOPE and intercept INTERCEPT.
    between the points limit1 and limit2.

@@ -1543,6 +1543,7 @@ init_formats_page (struct import_assistant *ia)
   p->data_tree_view = GTK_TREE_VIEW (get_widget_assert (builder, "data"));
   p->modified_vars = NULL;
   p->modified_var_cnt = 0;
+  p->dict = NULL;
 }
 
 /* Frees IA's formats substructure. */
@@ -1748,7 +1749,9 @@ parse_field (struct import_assistant *ia,
   if (field.string != NULL)
     {
       msg_disable ();
+
       if (!data_in (field, LEGACY_NATIVE, in->type, 0, 0, 0,
+		    ia->formats.dict,
                     &val, var_get_width (var)))
         {
           char fmt_string[FMT_STRING_LEN_MAX + 1];
@@ -1768,10 +1771,7 @@ parse_field (struct import_assistant *ia,
     }
   if (outputp != NULL)
     {
-      char *output = xmalloc (out.w + 1);
-      data_out (&val, &out, output);
-      output[out.w] = '\0';
-      *outputp = output;
+      *outputp = data_out (&val, dict_get_encoding (ia->formats.dict),  &out);
     }
   value_destroy (&val, var_get_width (var));
 

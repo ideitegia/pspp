@@ -867,7 +867,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
   rd.new_name_entry = get_widget_assert (builder, "dest-name-entry");
   rd.new_label_entry = get_widget_assert (builder, "dest-label-entry");
 
-  rd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &rd.dict, NULL);
 
   rd.value_map = gtk_list_store_new (2,
 				     old_value_get_type (),
@@ -888,11 +888,11 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
   gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
 
-  g_object_set (rd.dict_treeview, "dictionary", vs->dict, NULL);
+  g_object_set (rd.dict_treeview, "dictionary", rd.dict, NULL);
 
   if ( ! rd.different )
     {
-      set_dest_model (GTK_TREE_VIEW (rd.variable_treeview), vs->dict);
+      set_dest_model (GTK_TREE_VIEW (rd.variable_treeview), rd.dict);
     }
   else
     {
@@ -916,7 +916,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
       gtk_tree_view_column_set_cell_data_func (col, renderer,
 					       cell_var_name,
-					       vs->dict, 0);
+					       rd.dict, 0);
 
 
       gtk_tree_view_append_column (GTK_TREE_VIEW (rd.variable_treeview), col);

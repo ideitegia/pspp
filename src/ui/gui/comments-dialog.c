@@ -145,7 +145,7 @@ comments_dialog (GObject *o, gpointer data)
   }
 
   cd.xml = xml;
-  cd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &cd.dict, NULL);
 
   g_signal_connect (buffer, "mark-set",
 		    G_CALLBACK (set_column_number), label);

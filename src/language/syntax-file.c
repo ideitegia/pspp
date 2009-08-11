@@ -104,6 +104,7 @@ read_syntax_file (struct getl_interface *s,
   do
     {
       sfs->ln++;
+      ds_clear (line);
       if (!ds_read_line (line, sfs->syntax_file, SIZE_MAX))
         {
           if (ferror (sfs->syntax_file))

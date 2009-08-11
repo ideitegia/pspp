@@ -94,10 +94,10 @@ union value *case_data_rw_idx (struct ccase *, size_t idx);
 double case_num (const struct ccase *, const struct variable *);
 double case_num_idx (const struct ccase *, size_t idx);
 
-const char *case_str (const struct ccase *, const struct variable *);
-const char *case_str_idx (const struct ccase *, size_t idx);
-char *case_str_rw (struct ccase *, const struct variable *);
-char *case_str_rw_idx (struct ccase *, size_t idx);
+const uint8_t *case_str (const struct ccase *, const struct variable *);
+const uint8_t *case_str_idx (const struct ccase *, size_t idx);
+uint8_t *case_str_rw (struct ccase *, const struct variable *);
+uint8_t *case_str_rw_idx (struct ccase *, size_t idx);
 
 int case_compare (const struct ccase *, const struct ccase *,
                   const struct variable *const *, size_t n_vars);

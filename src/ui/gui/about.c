@@ -24,15 +24,17 @@
 #include "about.h"
 #include "helper.h"
 
+#include <gettext.h>
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
 
 static const gchar *artists[] = { "Patrick Brunier", "Dondi Bogusky", NULL};
 
 void
 about_new (GtkMenuItem *m, GtkWindow *parent)
 {
-  GtkBuilder *xml = builder_new ("psppire.ui");
-
-  GtkWidget *about =  get_widget_assert (xml, "aboutdialog1");
+  GtkWidget *about =  gtk_about_dialog_new ();
 
   GdkPixbuf *pb =
     gdk_pixbuf_new_from_file_at_size (relocate (PKGDATADIR "/pspplogo.png"),
@@ -58,6 +60,19 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
   gtk_about_dialog_set_license (GTK_ABOUT_DIALOG (about),
 				copyleft);
 
+  gtk_about_dialog_set_comments (GTK_ABOUT_DIALOG (about),
+				 _("A program for the analysis of sampled data"));
+
+  gtk_about_dialog_set_copyright (GTK_ABOUT_DIALOG (about),
+				  "Free Software Foundation");
+
+  gtk_about_dialog_set_translator_credits 
+    (
+     GTK_ABOUT_DIALOG (about),
+     /* TRANSLATORS: Use this string to list the people who have helped with
+	translation to your language. */
+     _("translator-credits")
+     );
 
   gtk_window_set_transient_for (GTK_WINDOW (about), parent);
 

@@ -518,7 +518,7 @@ xr_output_chart (struct outp_driver *this, const struct chart *chart)
   chart_geometry_init (x->cairo, &geom,
                        xr_to_pt (this->width), xr_to_pt (this->length));
   chart_draw (chart, x->cairo, &geom);
-  chart_geometry_free (x->cairo);
+  chart_geometry_free (x->cairo, &geom);
   cairo_restore (x->cairo);
 
   outp_close_page (this);

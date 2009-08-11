@@ -111,9 +111,10 @@ sort_cases_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "dictionary", vs->dict, NULL);
+  g_object_get (vs, "dictionary", &scd.dict, NULL);
+  g_object_set (source, "dictionary", scd.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (dest), scd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 source,
@@ -125,7 +126,6 @@ sort_cases_dialog (GObject *o, gpointer data)
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  dest);
 
   scd.tv = GTK_TREE_VIEW (dest);
-  scd.dict = vs->dict;
   scd.ascending =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "sort-cases-radiobutton0"));
 

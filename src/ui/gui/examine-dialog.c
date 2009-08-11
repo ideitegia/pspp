@@ -279,10 +279,10 @@ examine_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (ex_d.stats_dialog), GTK_WINDOW (de));
   gtk_window_set_transient_for (GTK_WINDOW (ex_d.opts_dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "dictionary", vs->dict, NULL);
+  g_object_get (vs, "dictionary", &ex_d.dict, NULL);
+  g_object_set (source, "dictionary", ex_d.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (ex_d.dep_list), vs->dict);
-  ex_d.dict = vs->dict;
+  set_dest_model (GTK_TREE_VIEW (ex_d.dep_list), ex_d.dict);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (dep_selector),
@@ -294,7 +294,7 @@ examine_dialog (GObject *o, gpointer data)
   psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_selector),
 			      numeric_only);
 
-  set_dest_model (GTK_TREE_VIEW (ex_d.fct_list), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (ex_d.fct_list), ex_d.dict);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (fct_selector),

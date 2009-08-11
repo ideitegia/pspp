@@ -40,7 +40,8 @@
 #include <libpspp/misc.h>
 #include <libpspp/pool.h>
 #include <libpspp/str.h>
-
+#include <data/data-in.h>
+#include <data/data-out.h>
 #include "intprops.h"
 #include "minmax.h"
 #include "xalloc.h"
@@ -66,6 +67,7 @@ struct flip_pgm
     int n_cases;                /* Pre-flip number of cases. */
 
     struct variable *new_names_var; /* Variable with new variable names. */
+    struct dictionary *dict;     /* Dictionary of the names */
     struct var_names old_names; /* Variable names before FLIP. */
     struct var_names new_names; /* Variable names after FLIP. */
 
@@ -105,6 +107,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
   flip->file = NULL;
   flip->cases_read = 0;
   flip->error = false;
+  flip->dict = dict;
 
   lex_match (lexer, '/');
   if (lex_match_id (lexer, "VARIABLES"))
@@ -181,9 +184,9 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
             }
           else
             {
-              int width = var_get_width (flip->new_names_var);
-              name = pool_strdup0 (flip->pool,
-                                   value_str (value, width), width);
+              name = data_out_pool (value, dict_get_encoding (flip->dict), var_get_write_format (flip->new_names_var),
+		 flip->pool);
+	
             }
           var_names_add (flip->pool, &flip->new_names, name);
         }
@@ -270,7 +273,7 @@ make_new_var (struct dictionary *dict, const char *name_)
         {
           char n[VAR_NAME_LEN + 1];
           int ofs = MIN (VAR_NAME_LEN - 1 - intlog10 (i), len);
-          memcpy (n, name, ofs);
+          strncpy (n, name, ofs);
           sprintf (&n[ofs], "%d", i);
 
           if (dict_create_var (dict, n, 0))
@@ -407,8 +410,12 @@ flip_casereader_read (struct casereader *reader, void *flip_)
     return false;
 
   c = case_create (casereader_get_proto (reader));
-  value_copy_str_rpad (case_data_rw_idx (c, 0), 8,
-                       flip->old_names.names[flip->cases_read], ' ');
+  data_in (ss_cstr (flip->old_names.names[flip->cases_read]), dict_get_encoding (flip->dict), 
+	FMT_A, 0,
+	0, 0,
+	flip->dict, 
+	case_data_rw_idx (c, 0), 8);
+	
   for (i = 0; i < flip->n_cases; i++)
     {
       double in;

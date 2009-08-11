@@ -447,6 +447,28 @@ read_string (struct pfm_reader *r, char *buf)
   *buf = '\0';
 }
 
+
+/* Reads a string into BUF, which must have room for 256
+   characters.
+   Returns the number of bytes read.
+*/
+static size_t
+read_bytes (struct pfm_reader *r, uint8_t *buf)
+{
+  int n = read_int (r);
+  if (n < 0 || n > 255)
+    error (r, _("Bad string length %d."), n);
+
+  while (n-- > 0)
+    {
+      *buf++ = r->cc;
+      advance (r);
+    }
+  return n;
+}
+
+
+
 /* Reads a string and returns a copy of it allocated from R's
    pool. */
 static char *
@@ -739,9 +761,9 @@ parse_value (struct pfm_reader *r, int width, union value *v)
   value_init (v, width);
   if (width > 0)
     {
-      char string[256];
-      read_string (r, string);
-      value_copy_str_rpad (v, width, string, ' ');
+      uint8_t buf[256];
+      size_t n_bytes = read_bytes (r, buf);
+      value_copy_buf_rpad (v, width, buf, n_bytes, ' ');
     }
   else
     v->f = read_float (r);
@@ -844,9 +866,9 @@ por_file_casereader_read (struct casereader *reader, void *r_)
         case_data_rw_idx (c, i)->f = read_float (r);
       else
         {
-          char string[256];
-          read_string (r, string);
-          buf_copy_str_rpad (case_str_rw_idx (c, i), width, string, ' ');
+          uint8_t buf[256];
+          size_t n_bytes = read_bytes (r, buf);
+          u8_buf_copy_rpad (case_str_rw_idx (c, i), width, buf, n_bytes, ' ');
         }
     }
 
@@ -860,17 +882,30 @@ pfm_detect (FILE *file)
 {
   unsigned char header[464];
   char trans[256];
-  int cooked_cnt, raw_cnt;
+  int cooked_cnt, raw_cnt, line_len;
   int i;
 
   cooked_cnt = raw_cnt = 0;
+  line_len = 0;
   while (cooked_cnt < sizeof header)
     {
       int c = getc (file);
       if (c == EOF || raw_cnt++ > 512)
         return false;
-      else if (c != '\n' && c != '\r')
-        header[cooked_cnt++] = c;
+      else if (c == '\n')
+        {
+          while (line_len < 80 && cooked_cnt < sizeof header)
+            {
+              header[cooked_cnt++] = ' ';
+              line_len++;
+            }
+          line_len = 0;
+        }
+      else if (c != '\r')
+        {
+          header[cooked_cnt++] = c;
+          line_len++;
+        }
     }
 
   memset (trans, 0, 256);

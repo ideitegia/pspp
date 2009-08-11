@@ -63,6 +63,9 @@ chart_geometry_init (cairo_t *cr, struct chart_geometry *geom,
   geom->legend_left = 0.810 * width;
   geom->legend_right = width;
   geom->font_size = 15.0;
+  geom->in_path = false;
+  geom->dataset = NULL;
+  geom->n_datasets = 0;
 
   geom->fill_colour.red = 255;
   geom->fill_colour.green = 0;
@@ -77,8 +80,13 @@ chart_geometry_init (cairo_t *cr, struct chart_geometry *geom,
 }
 
 void
-chart_geometry_free (cairo_t *cr UNUSED)
+chart_geometry_free (cairo_t *cr UNUSED, struct chart_geometry *geom)
 {
+  int i;
+
+  for (i = 0 ; i < geom->n_datasets; ++i)
+    free (geom->dataset[i]);
+  free (geom->dataset);
 }
 
 void
@@ -125,7 +133,7 @@ chart_draw_png (const struct chart *chart, const char *file_name_template,
 
   chart_geometry_init (cr, &geom, width, length);
   chart_draw (chart, cr, &geom);
-  chart_geometry_free (cr);
+  chart_geometry_free (cr, &geom);
 
   status = cairo_surface_write_to_png (surface, file_name);
   if (status != CAIRO_STATUS_SUCCESS)

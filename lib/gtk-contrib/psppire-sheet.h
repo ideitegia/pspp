@@ -112,8 +112,6 @@ struct _PsppireSheet
 
   PsppireSheetModel *model;
 
-  GtkSelectionMode selection_mode;
-
   /* Component colors */
   GdkColor color[n_COLORS];
   gboolean show_grid;
@@ -126,9 +124,6 @@ struct _PsppireSheet
 
   /* The type of entry_widget */
   GtkType entry_type;
-
-  /* expanding selection */
-  PsppireSheetCell selection_cell;
 
   /* global selection button */
   GtkWidget *button;

@@ -15,6 +15,7 @@ far.
 * RANK::                        Compute rank scores.
 * REGRESSION::                  Linear regression.
 * RELIABILITY::                 Reliability analysis.
+* ROC::                         Receiver Operating Characteristic.
 @end menu
 
 @node DESCRIPTIVES
@@ -948,5 +949,75 @@ The SUMMARY subcommand determines the type of summary analysis to be performed.
 Currently there is only one type: SUMMARY=TOTAL, which displays per-item
 analysis tested against the totals.
 
+
+
+@node ROC
+@section ROC
+
+@vindex ROC
+@cindex Receiver Operating Characterstic
+@cindex Area under curve
+
+@display
+ROC     @var{var_list} BY @var{state_var} (@var{state_value})
+        /PLOT = @{ CURVE [(REFERENCE)], NONE @}
+        /PRINT = [ SE ] [ COORDINATES ]
+        /CRITERIA = [ CUTOFF(@{INCLUDE,EXCLUDE@}) ]
+          [ TESTPOS (@{LARGE,SMALL@}) ]
+          [ CI (@var{confidence}) ]
+          [ DISTRIBUTION (@{FREE, NEGEXPO @}) ]
+        /MISSING=@{EXCLUDE,INCLUDE@}
+@end display
+
+
+The @cmd{ROC} command is used to plot the receiver operating characteristic curve 
+of a dataset, and to estimate the area under the curve.
+This is useful for analysing the efficacy of a variable as a predictor of a state of nature.
+
+The mandatory @var{var_list} is the list of predictor variables.
+The variable @var{state_var} is the variable whose values represent the actual states, 
+and @var{state_value} is the value of this variable which represents the positive state.
+
+The optional subcommand PLOT is used to determine if and how the ROC curve is drawn.
+The keyword CURVE means that the ROC curve should be drawn, and the optional keyword REFERENCE,
+which should be enclosed in parentheses, says that the diagonal reference line should be drawn.
+If the keyword NONE is given, then no ROC curve is drawn.
+By default, the curve is drawn with no reference line.
+
+The optional subcommand PRINT determines which additional tables should be printed.
+Two additional tables are available. 
+The SE keyword says that standard error of the area under the curve should be printed as well as
+the area itself.
+In addition, a p-value under the null hypothesis that the area under the curve equals 0.5 will be
+printed.
+The COORDINATES keyword says that a table of coordinates of the ROC curve should be printed.
+
+The CRITERIA subcommand has four optional parameters:
+@itemize @bullet
+@item The TESTPOS parameter may be LARGE or SMALL.
+LARGE is the default, and says that larger values in the predictor variables are to be 
+considered positive.  SMALL indicates that smaller values should be considered positive.
+
+@item The CI parameter specifies the confidence interval that should be printed.
+It has no effect if the SE keyword in the PRINT subcommand has not been given.
+
+@item The DISTRIBUTION parameter determines the method to be used when estimating the area
+under the curve.  
+There are two possibilities, @i{viz}: FREE and NEGEXPO.
+The FREE method uses a non-parametric estimate, and the NEGEXPO method a bi-negative 
+exponential distribution estimate.
+The NEGEXPO method should only be used when the number of positive actual states is
+equal to the number of negative actual states.
+The default is FREE.
+
+@item The CUTOFF parameter is for compatibility and is ignored.
+@end itemize
+
+The MISSING subcommand determines whether user missing values are to 
+be included or excluded in the analysis.  The default behaviour is to
+exclude them.
+Cases are excluded on a listwise basis; if any of the variables in @var{var_list} 
+or if the variable @var{state_var} is missing, then the entire case will be 
+excluded.
 
 

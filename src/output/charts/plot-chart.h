@@ -93,4 +93,6 @@ void chart_write_xlabel(cairo_t *, const struct chart_geometry *,
 void  chart_write_ylabel(cairo_t *, const struct chart_geometry *,
                          const char *label);
 
+void chart_write_legend (cairo_t *, const struct chart_geometry *);
+
 #endif

@@ -114,15 +114,9 @@ cell_var_name (GtkTreeViewColumn *tree_column,
 	       gpointer data)
 {
   PsppireDict *dict = data;
-  struct variable *var;
-  gchar *name;
+  const struct variable *var = get_selected_variable (tree_model, iter, dict);
 
-  var = get_selected_variable (tree_model, iter, dict);
-
-  name = recode_string (UTF8, psppire_dict_encoding (dict),
-			var_get_name (var), -1);
-  g_object_set (cell, "text", name, NULL);
-  g_free (name);
+  g_object_set (cell, "text", var_get_name (var), NULL);
 }
 
 

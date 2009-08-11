@@ -34,7 +34,8 @@ struct val_labs_dialog
 {
   GtkWidget *window;
 
-  PsppireSheet *vs;
+  PsppireVarStore *var_store;
+  PsppireDict *dict;
 
   /* The variable to be updated */
   struct variable *pv;
@@ -71,9 +72,10 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
 
   text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
-  text_to_value (text, &v,
-		*var_get_write_format (dialog->pv));
-
+  text_to_value (text,
+		 dialog->dict,
+		 dialog->pv,
+		 &v);
 
   if (val_labs_find (dialog->labs, &v))
     {
@@ -85,6 +87,8 @@ on_label_entry_change (GtkEntry *entry, gpointer data)
       gtk_widget_set_sensitive (dialog->change_button, FALSE);
       gtk_widget_set_sensitive (dialog->add_button, TRUE);
     }
+
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 
@@ -141,8 +145,10 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
   union value v;
-  text_to_value (text, &v,
-		*var_get_write_format (dialog->pv));
+  text_to_value (text,
+		 dialog->dict,
+		 dialog->pv,
+		 &v);
 
 
   g_signal_handler_block (GTK_ENTRY (dialog->label_entry),
@@ -166,6 +172,8 @@ on_value_entry_change (GtkEntry *entry, gpointer data)
 
   g_signal_handler_unblock (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
+
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 
@@ -202,14 +210,12 @@ val_labs_cancel (struct val_labs_dialog *dialog)
 
 /* Callback for when the Value Labels dialog is closed using
    the Cancel button.*/
-static gint
+static void
 on_cancel (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
 
   val_labs_cancel (dialog);
-
-  return FALSE;
 }
 
 
@@ -258,7 +264,7 @@ get_selected_tuple (struct val_labs_dialog *dialog,
 static void repopulate_dialog (struct val_labs_dialog *dialog);
 
 /* Callback which occurs when the "Change" button is clicked */
-static gint
+static void
 on_change (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
@@ -267,8 +273,10 @@ on_change (GtkWidget *w, gpointer data)
 
   union value v;
 
-  text_to_value (val_text, &v,
-		*var_get_write_format (dialog->pv));
+  text_to_value (val_text,
+		 dialog->dict,
+		 dialog->pv,
+		 &v);
 
   val_labs_replace (dialog->labs, &v,
 		    gtk_entry_get_text (GTK_ENTRY (dialog->label_entry)));
@@ -278,11 +286,11 @@ on_change (GtkWidget *w, gpointer data)
   repopulate_dialog (dialog);
   gtk_widget_grab_focus (dialog->value_entry);
 
-  return FALSE;
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 /* Callback which occurs when the "Add" button is clicked */
-static gint
+static void
 on_add (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
@@ -291,25 +299,26 @@ on_add (GtkWidget *w, gpointer data)
 
   const gchar *text = gtk_entry_get_text (GTK_ENTRY (dialog->value_entry));
 
-  text_to_value (text, &v,
-		*var_get_write_format (dialog->pv));
+  text_to_value (text,
+		 dialog->dict,
+		 dialog->pv,
+		 &v);
 
+  if (val_labs_add (dialog->labs, &v,
+		    gtk_entry_get_text
+		    ( GTK_ENTRY (dialog->label_entry)) ) )
+    {
+      gtk_widget_set_sensitive (dialog->add_button, FALSE);
 
-  if ( ! val_labs_add (dialog->labs, &v,
-		       gtk_entry_get_text
-		       ( GTK_ENTRY (dialog->label_entry)) ) )
-    return FALSE;
+      repopulate_dialog (dialog);
+      gtk_widget_grab_focus (dialog->value_entry);
+    }
 
-  gtk_widget_set_sensitive (dialog->add_button, FALSE);
-
-  repopulate_dialog (dialog);
-  gtk_widget_grab_focus (dialog->value_entry);
-
-  return FALSE;
+  value_destroy (&v, var_get_width (dialog->pv));
 }
 
 /* Callback which occurs when the "Remove" button is clicked */
-static gint
+static void
 on_remove (GtkWidget *w, gpointer data)
 {
   struct val_labs_dialog *dialog = data;
@@ -326,8 +335,6 @@ on_remove (GtkWidget *w, gpointer data)
   gtk_widget_grab_focus (dialog->value_entry);
 
   gtk_widget_set_sensitive (dialog->remove_button, FALSE);
-
-  return FALSE;
 }
 
 
@@ -337,19 +344,15 @@ on_remove (GtkWidget *w, gpointer data)
 static void
 on_select_row (GtkTreeView *treeview, gpointer data)
 {
-  gchar *labeltext;
   struct val_labs_dialog *dialog = data;
 
   union value value;
-  const char *label;
+  const char *label = NULL;
 
   gchar *text;
 
-  PsppireVarStore *var_store =
-    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
-
   get_selected_tuple (dialog, &value, &label);
-  text = value_to_text (value, *var_get_write_format (dialog->pv));
+  text = value_to_text (value, dialog->dict, *var_get_write_format (dialog->pv));
 
   g_signal_handler_block (GTK_ENTRY (dialog->value_entry),
 			 dialog->value_handler_id);
@@ -364,12 +367,8 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 			 dialog->change_handler_id);
 
 
-  labeltext = recode_string (UTF8, psppire_dict_encoding (var_store->dict),
-			     label, -1);
-
   gtk_entry_set_text (GTK_ENTRY (dialog->label_entry),
-		     labeltext);
-  g_free (labeltext);
+		      label);
 
   g_signal_handler_unblock (GTK_ENTRY (dialog->label_entry),
 			 dialog->change_handler_id);
@@ -382,7 +381,7 @@ on_select_row (GtkTreeView *treeview, gpointer data)
 /* Create a new dialog box
    (there should  normally be only one)*/
 struct val_labs_dialog *
-val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
+val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
 {
   GtkTreeViewColumn *column;
 
@@ -392,10 +391,11 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
 
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
+  dialog->var_store = var_store;
+  g_object_get (var_store, "dictionary", &dialog->dict, NULL);
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
-  dialog->vs = sheet;
 
   gtk_window_set_transient_for
     (GTK_WINDOW (dialog->window), toplevel);
@@ -420,38 +420,38 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireSheet *sheet)
 
   g_signal_connect (get_widget_assert (xml, "val_labs_cancel"),
 		   "clicked",
-		   GTK_SIGNAL_FUNC (on_cancel), dialog);
+		   G_CALLBACK (on_cancel), dialog);
 
   g_signal_connect (dialog->window, "delete-event",
-		    GTK_SIGNAL_FUNC (on_delete), dialog);
+		    G_CALLBACK (on_delete), dialog);
 
   g_signal_connect (get_widget_assert (xml, "val_labs_ok"),
 		   "clicked",
-		   GTK_SIGNAL_FUNC (val_labs_ok), dialog);
+		   G_CALLBACK (val_labs_ok), dialog);
 
   dialog->change_handler_id =
     g_signal_connect (dialog->label_entry,
 		     "changed",
-		     GTK_SIGNAL_FUNC (on_label_entry_change), dialog);
+		     G_CALLBACK (on_label_entry_change), dialog);
 
   dialog->value_handler_id  =
     g_signal_connect (dialog->value_entry,
 		     "changed",
-		     GTK_SIGNAL_FUNC (on_value_entry_change), dialog);
+		     G_CALLBACK (on_value_entry_change), dialog);
 
   g_signal_connect (dialog->change_button,
 		   "clicked",
-		   GTK_SIGNAL_FUNC (on_change), dialog);
+		   G_CALLBACK (on_change), dialog);
 
 
   g_signal_connect (dialog->treeview, "cursor-changed",
-		   GTK_SIGNAL_FUNC (on_select_row), dialog);
+		   G_CALLBACK (on_select_row), dialog);
 
   g_signal_connect (dialog->remove_button, "clicked",
-		   GTK_SIGNAL_FUNC (on_remove), dialog);
+		   G_CALLBACK (on_remove), dialog);
 
   g_signal_connect (dialog->add_button, "clicked",
-		   GTK_SIGNAL_FUNC (on_add), dialog);
+		   G_CALLBACK (on_add), dialog);
 
   dialog->labs = 0;
 
@@ -481,9 +481,6 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 
   GtkTreeIter iter;
 
-  PsppireVarStore *var_store =
-    PSPPIRE_VAR_STORE (psppire_sheet_get_model (dialog->vs));
-
   GtkListStore *list_store = gtk_list_store_new (2,
 						 G_TYPE_STRING,
 						 G_TYPE_DOUBLE);
@@ -508,16 +505,11 @@ repopulate_dialog (struct val_labs_dialog *dialog)
       const struct val_lab *vl = labels[i];
 
       gchar *const vstr  =
-	value_to_text (vl->value,
+	value_to_text (vl->value, dialog->dict,
 		      *var_get_write_format (dialog->pv));
 
-      gchar *labeltext =
-	recode_string (UTF8,
-		       psppire_dict_encoding (var_store->dict),
-		       val_lab_get_label (vl), -1);
-
       gchar *const text = g_strdup_printf ("%s = \"%s\"",
-					   vstr, labeltext);
+					   vstr, val_lab_get_label (vl));
 
       gtk_list_store_append (list_store, &iter);
       gtk_list_store_set (list_store, &iter,
@@ -525,7 +517,6 @@ repopulate_dialog (struct val_labs_dialog *dialog)
 			  1, vl->value.f,
 			  -1);
 
-      g_free (labeltext);
       g_free (text);
       g_free (vstr);
     }

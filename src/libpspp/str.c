@@ -1442,3 +1442,25 @@ ds_relocate (struct string *st)
       free ((char *) rel);
     }
 }
+
+
+
+
+/* Operations on uint8_t "strings" */
+
+/* Copies buffer SRC, of SRC_SIZE bytes, to DST, of DST_SIZE bytes.
+   DST is truncated to DST_SIZE bytes or padded on the right with
+   copies of PAD as needed. */
+void
+u8_buf_copy_rpad (uint8_t *dst, size_t dst_size,
+		  const uint8_t *src, size_t src_size,
+		  char pad)
+{
+  if (src_size >= dst_size)
+    memmove (dst, src, dst_size);
+  else
+    {
+      memmove (dst, src, src_size);
+      memset (&dst[src_size], pad, dst_size - src_size);
+    }
+}

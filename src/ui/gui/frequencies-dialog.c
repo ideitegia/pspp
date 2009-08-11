@@ -333,9 +333,11 @@ frequencies_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "dictionary", vs->dict, NULL);
+  g_object_get (vs, "dictionary", &fd.dict, NULL);
+  g_object_set (source, "dictionary", fd.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (dest), vs->dict);
+
+  set_dest_model (GTK_TREE_VIEW (dest), fd.dict);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
@@ -347,7 +349,6 @@ frequencies_dialog (GObject *o, gpointer data)
 
 
   fd.stat_vars = GTK_TREE_VIEW (dest);
-  fd.dict = vs->dict;
   fd.table_button = get_widget_assert (xml, "checkbutton1");
   fd.format_dialog = get_widget_assert (xml, "format-dialog");
   fd.maximum_cats = get_widget_assert (xml, "hbox5");

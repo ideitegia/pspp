@@ -974,8 +974,8 @@ trbox_paired_populate (struct trbox *trb,
       /* Degrees of freedom */
       tab_double (trb->t, 8, i + 3, TAB_RIGHT, df, &proc->weight_format);
 
-      p = gsl_cdf_tdist_P (t, df);
-      q = gsl_cdf_tdist_P (t, df);
+      p = gsl_cdf_tdist_P (t,df);
+      q = gsl_cdf_tdist_Q (t,df);
 
       tab_double (trb->t, 9, i + 3, TAB_RIGHT, 2.0 * (t > 0 ? q : p), NULL);
     }

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This program tests that pspp can read gnumeric files
+# This program tests that pspp can read Gnumeric files
 
 TEMPDIR=/tmp/pspp-tst-$$
 TESTFILE=$TEMPDIR/`basename $0`.sps

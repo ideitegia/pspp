@@ -177,6 +177,7 @@ get_var_range (const struct variable *v)
 
 struct crosstabs_proc
   {
+    const struct dictionary *dict;
     enum { INTEGER, GENERAL } mode;
     enum mv_class exclude;
     bool pivot;
@@ -210,6 +211,7 @@ static void
 init_proc (struct crosstabs_proc *proc, struct dataset *ds)
 {
   const struct variable *wv = dict_get_weight (dataset_dict (ds));
+  proc->dict = dataset_dict (ds);
   proc->bad_warn = true;
   proc->variables = NULL;
   proc->n_variables = 0;
@@ -1189,14 +1191,16 @@ create_crosstab_table (struct crosstabs_proc *proc, struct pivot_table *pt)
     {
       const struct variable *var = pt->const_vars[i];
       size_t ofs;
+      char *s = NULL;
 
       ds_put_format (&title, ", %s=", var_get_name (var));
 
       /* Insert the formatted value of the variable, then trim
          leading spaces in what was just inserted. */
       ofs = ds_length (&title);
-      data_out (&pt->const_values[i], var_get_print_format (var),
-                ds_put_uninit (&title, var_get_width (var)));
+      s = data_out (&pt->const_values[i], dict_get_encoding (proc->dict), var_get_print_format (var));
+      ds_put_cstr (&title, s);
+      free (s);
       ds_remove (&title, ofs, ss_cspan (ds_substr (&title, ofs, SIZE_MAX),
                                         ss_cstr (" ")));
     }
@@ -1237,9 +1241,9 @@ create_chisq_table (struct pivot_table *pt)
   tab_text (chisq, 3, 0, TAB_RIGHT | TAT_TITLE,
             _("Asymp. Sig. (2-sided)"));
   tab_text (chisq, 4, 0, TAB_RIGHT | TAT_TITLE,
-            _("Exact. Sig. (2-sided)"));
+            _("Exact Sig. (2-sided)"));
   tab_text (chisq, 5, 0, TAB_RIGHT | TAT_TITLE,
-            _("Exact. Sig. (1-sided)"));
+            _("Exact Sig. (1-sided)"));
   tab_offset (chisq, 0, 1);
 
   return chisq;
@@ -1534,13 +1538,12 @@ table_value_missing (struct crosstabs_proc *proc,
       const struct fmt_spec *print = var_get_print_format (var);
       if (proc->exclude == MV_NEVER && var_is_value_missing (var, v, MV_USER))
         {
-          char *s = xmalloc (print->w + 2);
-          strcpy (&s[print->w], "M");
-          tab_text (table, c, r, opt, s + strspn (s, " "));
+          char *s = data_out (v, dict_get_encoding (proc->dict), print);
+          tab_text_format (table, c, r, opt, "%sM", s + strspn (s, " "));
           free (s);
         }
       else
-        tab_value (table, c, r, opt, v, print);
+        tab_value (table, c, r, opt, v, proc->dict, print);
     }
 }
 
@@ -1566,22 +1569,26 @@ display_dimensions (struct crosstabs_proc *proc, struct pivot_table *pt,
    additionally suffixed with a letter `M'. */
 static void
 format_cell_entry (struct tab_table *table, int c, int r, double value,
-                   char suffix, bool mark_missing)
+                   char suffix, bool mark_missing, const struct dictionary *dict)
 {
   const struct fmt_spec f = {FMT_F, 10, 1};
   union value v;
-  int len = 10;
-  char s[16];
+  char suffixes[3];
+  int suffix_len;
+  char *s;
 
   v.f = value;
-  data_out (&v, &f, s);
-  if (suffix != 0)
-    s[len++] = suffix;
-  if (mark_missing)
-    s[len++] = 'M';
-  s[len] = '\0';
+  s = data_out (&v, dict_get_encoding (dict), &f);
 
-  tab_text (table, c, r, TAB_RIGHT, s + strspn (s, " "));
+  suffix_len = 0;
+  if (suffix != 0)
+    suffixes[suffix_len++] = suffix;
+  if (mark_missing)
+    suffixes[suffix_len++] = 'M';
+  suffixes[suffix_len] = '\0';
+
+  tab_text_format (table, c, r, TAB_RIGHT, "%s%s",
+                   s + strspn (s, " "), suffixes);
 }
 
 /* Displays the crosstabulation table. */
@@ -1656,7 +1663,7 @@ display_crosstabulation (struct crosstabs_proc *proc, struct pivot_table *pt,
                 default:
                   NOT_REACHED ();
                 }
-              format_cell_entry (table, c, i, v, suffix, mark_missing);
+              format_cell_entry (table, c, i, v, suffix, mark_missing, proc->dict);
             }
 
           mp++;
@@ -1707,7 +1714,7 @@ display_crosstabulation (struct crosstabs_proc *proc, struct pivot_table *pt,
               NOT_REACHED ();
             }
 
-          format_cell_entry (table, pt->n_cols, 0, v, suffix, mark_missing);
+          format_cell_entry (table, pt->n_cols, 0, v, suffix, mark_missing, proc->dict);
           tab_next_row (table);
         }
     }
@@ -1757,7 +1764,7 @@ display_crosstabulation (struct crosstabs_proc *proc, struct pivot_table *pt,
               NOT_REACHED ();
             }
 
-          format_cell_entry (table, c, i, v, suffix, mark_missing);
+          format_cell_entry (table, c, i, v, suffix, mark_missing, proc->dict);
         }
       last_row = i;
     }

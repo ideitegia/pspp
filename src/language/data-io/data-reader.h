@@ -38,8 +38,7 @@ bool dfm_reader_error (const struct dfm_reader *);
 unsigned dfm_eof (struct dfm_reader *);
 struct substring dfm_get_record (struct dfm_reader *);
 void dfm_expand_tabs (struct dfm_reader *);
-enum legacy_encoding dfm_reader_get_legacy_encoding (
-  const struct dfm_reader *);
+const char *dfm_reader_get_legacy_encoding (const struct dfm_reader *);
 int dfm_get_percent_read (const struct dfm_reader *);
 
 /* Line control. */

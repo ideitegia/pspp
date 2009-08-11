@@ -389,7 +389,7 @@ compute_dialog (GObject *o, gpointer data)
 
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
-  scd.dict = vs->dict;
+  g_object_get (vs, "dictionary", &scd.dict, NULL);
   scd.use_type = FALSE;
 
   g_signal_connect (expression, "toggled",
@@ -397,8 +397,8 @@ compute_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (dict_view,
-		"dictionary", vs->dict,
+  
+  g_object_set (dict_view, "dictionary", scd.dict,
 		"selection-mode", GTK_SELECTION_SINGLE,
 		NULL);
 
@@ -604,7 +604,6 @@ insert_source_row_into_text_view (GtkTreeIter iter,
   gint *idx;
   struct variable *var;
   GtkTreeIter dict_iter;
-  gchar *name;
   GtkTextBuffer *buffer;
 
   g_return_if_fail (GTK_IS_TEXT_VIEW (dest));
@@ -632,15 +631,10 @@ insert_source_row_into_text_view (GtkTreeIter iter,
 
   gtk_tree_path_free (path);
 
-  name = recode_string (UTF8, psppire_dict_encoding (dict),
-			var_get_name (var),
-			-1);
-
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (dest));
 
   erase_selection (buffer);
 
-  gtk_text_buffer_insert_at_cursor (buffer, name, -1);
+  gtk_text_buffer_insert_at_cursor (buffer, var_get_name (var), -1);
 
-  g_free (name);
 }

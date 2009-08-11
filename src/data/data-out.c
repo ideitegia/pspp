@@ -36,6 +36,8 @@
 #include <libpspp/message.h>
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
+#include <libpspp/pool.h>
+#include <libpspp/i18n.h>
 
 #include "minmax.h"
 
@@ -83,38 +85,68 @@ static void output_binary_integer (uint64_t, int bytes, enum integer_format,
                                    char *);
 static void output_hex (const void *, size_t bytes, char *);
 
-/* Same as data_out, and additionally recodes the output from
-   native form into the given legacy character ENCODING. */
-void
-data_out_legacy (const union value *input, enum legacy_encoding encoding,
-                 const struct fmt_spec *format, char *output)
-{
-  static data_out_converter_func *const converters[FMT_NUMBER_OF_FORMATS] =
+
+static data_out_converter_func *const converters[FMT_NUMBER_OF_FORMATS] =
     {
 #define FMT(NAME, METHOD, IMIN, OMIN, IO, CATEGORY) output_##METHOD,
 #include "format.def"
     };
 
+/* Similar to data_out. Additionally recodes the output from
+   native form into the given legacy character ENCODING.
+   OUTPUT must be provided by the caller and must be at least
+   FORMAT->w long. No null terminator is appended to OUTPUT.
+*/
+void
+data_out_legacy (const union value *input, const char *encoding,
+                 const struct fmt_spec *format, char *output)
+{
   assert (fmt_check_output (format));
 
   converters[format->type] (input, format, output);
-  if (encoding != LEGACY_NATIVE
+  if (0 != strcmp (encoding, LEGACY_NATIVE)
       && fmt_get_category (format->type) != FMT_CAT_BINARY)
-    legacy_recode (LEGACY_NATIVE, output, encoding, output, format->w);
+    {
+      char *s  = recode_string (encoding, LEGACY_NATIVE, output, format->w );
+      memcpy (output, s, format->w);
+      free (s);
+    }
 }
 
-/* Converts the INPUT value into printable form in the exactly
-   FORMAT->W characters in OUTPUT according to format
-   specification FORMAT. No null terminator is appended to the
-   buffer.
+/* Converts the INPUT value into a UTF8 encoded string, according
+   to format specification FORMAT. 
 
    VALUE must be the correct width for FORMAT, that is, its
-   width must be fmt_var_width(FORMAT). */
-void
-data_out (const union value *input, const struct fmt_spec *format,
-          char *output)
+   width must be fmt_var_width(FORMAT).
+
+   ENCODING must be the encoding of INPUT.  Normally this can
+   be obtained by calling dict_get_encoding on the dictionary
+   with which INPUT is associated.
+
+   The return value is dynamically allocated, and must be freed
+   by the caller.  If POOL is non-null, then the return value is
+   allocated on that pool.
+*/
+char *
+data_out_pool (const union value *input, const char *encoding,
+	       const struct fmt_spec *format, struct pool *pool)
 {
-  return data_out_legacy (input, LEGACY_NATIVE, format, output);
+  char *output = xmalloc (format->w + 1);
+  char *t ;
+  assert (fmt_check_output (format));
+
+  converters[format->type] (input, format, output);
+  output[format->w] = '\0';
+
+  t =  recode_string_pool (UTF8, encoding, output, format->w, pool);
+  free (output);
+  return t;
+}
+
+char *
+data_out (const union value *input, const char *encoding, const struct fmt_spec *format)
+{
+  return data_out_pool (input, encoding, format, NULL);
 }
 
 

@@ -56,6 +56,8 @@ dist_TESTS = \
 	tests/command/regression.sh \
 	tests/command/regression-qr.sh \
 	tests/command/reliability.sh \
+	tests/command/roc.sh \
+	tests/command/roc2.sh \
 	tests/command/sample.sh \
 	tests/command/sort.sh \
 	tests/command/sysfiles.sh \
@@ -134,12 +136,14 @@ dist_TESTS = \
 	tests/bugs/overwrite-special-file.sh \
 	tests/bugs/piechart.sh \
 	tests/bugs/random.sh \
+	tests/bugs/shbang.sh \
 	tests/bugs/signals.sh \
 	tests/bugs/t-test-with-temp.sh \
 	tests/bugs/t-test.sh \
 	tests/bugs/t-test-alpha.sh \
 	tests/bugs/t-test-alpha2.sh \
 	tests/bugs/t-test-alpha3.sh \
+	tests/bugs/t-test-paired.sh \
 	tests/bugs/temporary.sh \
 	tests/bugs/unwritable-dir.sh \
 	tests/bugs/val-labs.sh \

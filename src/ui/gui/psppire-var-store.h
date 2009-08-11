@@ -63,7 +63,7 @@ struct _PsppireVarStore
   GObject parent;
 
   /*< private >*/
-  PsppireDict *dict;
+  PsppireDict *dictionary;
   GdkColor disabled;
   PsppireVarStoreFormatType format_type;
 };
@@ -83,9 +83,6 @@ struct _PsppireVarStoreClass
 GType         psppire_var_store_get_type         (void) G_GNUC_CONST;
 PsppireVarStore *psppire_var_store_new              (PsppireDict *dict);
 struct variable * psppire_var_store_get_var (PsppireVarStore *store, glong row);
-
-void psppire_var_store_set_dictionary (PsppireVarStore *var_store, PsppireDict *dict);
-
 
 /* Return the number of variables */
 gint psppire_var_store_get_var_cnt (PsppireVarStore      *var_store);

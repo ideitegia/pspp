@@ -744,15 +744,10 @@ update_data_ref_entry (const PsppireSheet *sheet,
 	  gchar *text = g_strdup_printf ("%d: %s", row + FIRST_CASE_NUMBER,
 					 var_get_name (var));
 
-	  gchar *s = recode_string (UTF8,
-				    psppire_dict_encoding (data_store->dict),
-				    text, -1);
+
+	  gtk_entry_set_text (GTK_ENTRY (de->cell_ref_entry), text);
 
 	  g_free (text);
-
-	  gtk_entry_set_text (GTK_ENTRY (de->cell_ref_entry), s);
-
-	  g_free (s);
 	}
       else
 	goto blank_entry;
@@ -1208,9 +1203,13 @@ popup_variable_row_menu (PsppireSheet *sheet, gint row,
 
   PsppireVarStore *var_store =
     PSPPIRE_VAR_STORE (psppire_sheet_get_model (sheet));
+  
+  PsppireDict *dict;
+  const struct variable *v ;
 
-  const struct variable *v =
-    psppire_dict_get_variable (var_store->dict, row);
+  g_object_get (var_store, "dictionary", &dict, NULL);
+
+  v = psppire_dict_get_variable (dict, row);
 
   if ( v && event->button == 3)
     {
@@ -1331,10 +1330,14 @@ psppire_data_editor_insert_case (PsppireDataEditor *de)
 {
   glong posn = -1;
 
-  if ( de->data_sheet[0]->state == PSPPIRE_SHEET_ROW_SELECTED )
-    posn = PSPPIRE_SHEET (de->data_sheet[0])->range.row0;
+  if ( PSPPIRE_SHEET (de->data_sheet[0])->select_status == PSPPIRE_SHEET_ROW_SELECTED )
+    {
+      posn = PSPPIRE_SHEET (de->data_sheet[0])->range.row0;
+    }
   else
-    posn = PSPPIRE_SHEET (de->data_sheet[0])->active_cell.row;
+    {
+      posn = PSPPIRE_SHEET (de->data_sheet[0])->active_cell.row;
+    }
 
   if ( posn == -1 ) posn = 0;
 
@@ -1358,6 +1361,7 @@ psppire_data_editor_delete_cases    (PsppireDataEditor *de)
 void
 psppire_data_editor_delete_variables (PsppireDataEditor *de)
 {
+  PsppireDict *dict = NULL;
   gint first, n;
 
   switch (gtk_notebook_get_current_page (GTK_NOTEBOOK (de)))
@@ -1375,7 +1379,9 @@ psppire_data_editor_delete_variables (PsppireDataEditor *de)
       break;
     }
 
-  psppire_dict_delete_variables (de->var_store->dict, first, n);
+  g_object_get (de->var_store, "dictionary", &dict, NULL);
+
+  psppire_dict_delete_variables (dict, first, n);
 
   psppire_sheet_unselect_range (PSPPIRE_SHEET (de->data_sheet[0]));
   psppire_sheet_unselect_range (PSPPIRE_SHEET (de->var_sheet));
@@ -1562,42 +1568,44 @@ data_sheet_set_clip (PsppireSheet *sheet)
   struct case_map *map = NULL;
   casenumber max_rows;
   size_t max_columns;
+  gint row0, rowi;
+  gint col0, coli;
 
   ds = PSPPIRE_DATA_STORE (psppire_sheet_get_model (sheet));
 
   psppire_sheet_get_selected_range (sheet, &range);
 
+  col0 = MIN (range.col0, range.coli);
+  coli = MAX (range.col0, range.coli);
+  row0 = MIN (range.row0, range.rowi);
+  rowi = MAX (range.row0, range.rowi);
+
    /* If nothing selected, then use active cell */
-  if ( range.row0 < 0 || range.col0 < 0 )
+  if ( row0 < 0 || col0 < 0 )
     {
       gint row, col;
       psppire_sheet_get_active_cell (sheet, &row, &col);
 
-      range.row0 = range.rowi = row;
-      range.col0 = range.coli = col;
+      row0 = rowi = row;
+      col0 = coli = col;
     }
 
   /* The sheet range can include cells that do not include data.
      Exclude them from the range. */
   max_rows = psppire_data_store_get_case_count (ds);
-  if (range.rowi >= max_rows)
+  if (rowi >= max_rows)
     {
       if (max_rows == 0)
         return;
-      range.rowi = max_rows - 1;
+      rowi = max_rows - 1;
     }
   max_columns = dict_get_var_cnt (ds->dict->dict);
-  if (range.coli >= max_columns)
+  if (coli >= max_columns)
     {
       if (max_columns == 0)
         return;
-      range.coli = max_columns - 1;
+      coli = max_columns - 1;
     }
-
-  g_return_if_fail (range.rowi >= range.row0);
-  g_return_if_fail (range.row0 >= 0);
-  g_return_if_fail (range.coli >= range.col0);
-  g_return_if_fail (range.col0 >= 0);
 
   /* Destroy any existing clip */
   if ( clip_datasheet )
@@ -1614,7 +1622,8 @@ data_sheet_set_clip (PsppireSheet *sheet)
 
   /* Construct clip dictionary. */
   clip_dict = dict_create ();
-  for (i = range.col0; i <= range.coli; i++)
+  dict_set_encoding (clip_dict, dict_get_encoding (ds->dict->dict));
+  for (i = col0; i <= coli; i++)
     {
       const struct variable *old = dict_get_var (ds->dict->dict, i);
       dict_clone_var_assert (clip_dict, old, var_get_name (old));
@@ -1623,7 +1632,7 @@ data_sheet_set_clip (PsppireSheet *sheet)
   /* Construct clip data. */
   map = case_map_by_name (ds->dict->dict, clip_dict);
   writer = autopaging_writer_create (dict_get_proto (clip_dict));
-  for (i = range.row0; i <= range.rowi ; ++i )
+  for (i = row0; i <= rowi ; ++i )
     {
       struct ccase *old = psppire_data_store_get_case (ds, i);
       if (old != NULL)
@@ -1647,20 +1656,18 @@ enum {
 
 /* Perform data_out for case CC, variable V, appending to STRING */
 static void
-data_out_g_string (GString *string, const struct variable *v,
+data_out_g_string (GString *string, const struct dictionary *dict, 
+		   const struct variable *v,
 		   const struct ccase *cc)
 {
-  char *buf ;
-
   const struct fmt_spec *fs = var_get_print_format (v);
   const union value *val = case_data (cc, v);
-  buf = xzalloc (fs->w);
 
-  data_out (val, fs, buf);
+  char *s = data_out (val, dict_get_encoding (dict), fs);
 
-  g_string_append_len (string, buf, fs->w);
+  g_string_append (string, s);
 
-  g_free (buf);
+  g_free (s);
 }
 
 static GString *
@@ -1690,7 +1697,7 @@ clip_to_text (void)
       for (c = 0 ; c < var_cnt ; ++c)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
-	  data_out_g_string (string, v, cc);
+	  data_out_g_string (string, clip_dict, v, cc);
 	  if ( c < val_cnt - 1 )
 	    g_string_append (string, "\t");
 	}
@@ -1715,9 +1722,11 @@ clip_to_html (void)
   const casenumber case_cnt = casereader_get_case_cnt (clip_datasheet);
   const size_t var_cnt = dict_get_var_cnt (clip_dict);
 
-
   /* Guestimate the size needed */
-  string = g_string_sized_new (20 * val_cnt * case_cnt);
+  string = g_string_sized_new (80 + 20 * val_cnt * case_cnt);
+
+  g_string_append (string,
+		   "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n");
 
   g_string_append (string, "<table>\n");
   for (r = 0 ; r < case_cnt ; ++r )
@@ -1735,7 +1744,7 @@ clip_to_html (void)
 	{
 	  const struct variable *v = dict_get_var (clip_dict, c);
 	  g_string_append (string, "<td>");
-	  data_out_g_string (string, v, cc);
+	  data_out_g_string (string, clip_dict, v, cc);
 	  g_string_append (string, "</td>\n");
 	}
 

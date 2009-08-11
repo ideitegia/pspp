@@ -365,7 +365,7 @@ gnumeric_open_reader (struct gnumeric_read_info *gri, struct dictionary **dict)
 
   if ( NULL == gz)
     {
-      msg (ME, _("Error opening \"%s\" for reading as a gnumeric file: %s."),
+      msg (ME, _("Error opening \"%s\" for reading as a Gnumeric file: %s."),
            gri->file_name, strerror (errno));
 
       goto error;

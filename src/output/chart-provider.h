@@ -43,8 +43,11 @@ struct chart_geometry
 
     int title_bottom ;
 
+    /* Legend. */
     int legend_left ;
     int legend_right ;
+    const char **dataset;
+    int n_datasets;
 
     /* Default font size for the plot. */
     double font_size;
@@ -58,6 +61,7 @@ struct chart_geometry
     double x_max;
     double y_min;
     double y_max;
+    bool in_path;
   };
 
 struct chart_class
@@ -76,7 +80,7 @@ void chart_init (struct chart *, const struct chart_class *);
 
 void chart_geometry_init (cairo_t *, struct chart_geometry *,
                           double width, double length);
-void chart_geometry_free (cairo_t *);
+void chart_geometry_free (cairo_t *, struct chart_geometry *);
 
 void chart_draw (const struct chart *, cairo_t *, struct chart_geometry *);
 char *chart_draw_png (const struct chart *, const char *file_name_template,

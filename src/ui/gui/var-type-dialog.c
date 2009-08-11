@@ -262,12 +262,12 @@ preview_custom (GtkWidget *w, gpointer data)
       union value v;
       v.f = 1234.56;
 
-      sample_text = value_to_text (v, dialog->fmt_l);
+      sample_text = value_to_text (v, NULL, dialog->fmt_l);
       gtk_label_set_text (GTK_LABEL (dialog->label_psample), sample_text);
       g_free (sample_text);
 
       v.f = -v.f;
-      sample_text = value_to_text (v, dialog->fmt_l);
+      sample_text = value_to_text (v, NULL, dialog->fmt_l);
       gtk_label_set_text (GTK_LABEL (dialog->label_nsample), sample_text);
       g_free (sample_text);
     }

@@ -137,11 +137,10 @@ reliability_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (source, "dictionary", vs->dict, NULL);
+  g_object_get (vs, "dictionary", &rd.dict, NULL);
+  g_object_set (source, "dictionary", rd.dict, NULL);
 
-  rd.dict = vs->dict;
-
-  set_dest_model (GTK_TREE_VIEW (rd.variables), vs->dict);
+  set_dest_model (GTK_TREE_VIEW (rd.variables), rd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
 				 source,

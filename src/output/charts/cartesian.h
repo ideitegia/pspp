@@ -31,6 +31,11 @@ enum CHART_DIM
 
 struct chart_geometry;
 
+void  chart_vector_start (cairo_t *, struct chart_geometry *,
+                          const char *name);
+void chart_vector_end (cairo_t *, struct chart_geometry *);
+void chart_vector (cairo_t *, struct chart_geometry *, double x, double y);
+
 /* Plot a data point */
 void chart_datum(cairo_t *, const struct chart_geometry *,
                  int dataset UNUSED, double x, double y);

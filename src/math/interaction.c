@@ -15,7 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 /*
-  An interaction is a gsl_vector containing a "product" of other
+  An interaction is a structure containing a "product" of other
   variables. The variables can be either categorical or numeric.
   If the variables are all numeric, the interaction is just the
   scalar product. If any of the variables are categorical, their
@@ -31,10 +31,9 @@
 
 #include <config.h>
 #include <assert.h>
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_vector.h>
 #include <data/value.h>
 #include <data/variable.h>
+#include <gl/unistr.h>
 #include <math/interaction.h>
 #include <string.h>
 #include <xalloc.h>
@@ -70,6 +69,8 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 
   if (n_vars > 0)
     {
+      int width = 0;
+
       result = xmalloc (sizeof (*result));
       result->n_alpha = 0;
       result->members = xnmalloc (n_vars, sizeof (*result->members));
@@ -80,10 +81,11 @@ interaction_variable_create (const struct variable **vars, int n_vars)
 	  if (var_is_alpha (vars[i]))
 	    {
 	      result->n_alpha++;
+	      width += var_get_width (vars[i]);
 	    }
 	}
+      result->intr = var_create_internal (0, width);
     }
-  result->intr = var_create_internal (0);
 
   return result;
 }
@@ -98,7 +100,7 @@ void interaction_variable_destroy (struct interaction_variable *iv)
   Get one of the member variables.
  */
 const struct variable *
-interaction_variable_get_member (const struct interaction_variable *iv, size_t i)
+interaction_get_member (const struct interaction_variable *iv, size_t i)
 {
   return iv->members[i];
 }
@@ -122,10 +124,10 @@ interaction_get_n_numeric (const struct interaction_variable *iv)
 }
 
 /*
-  Get the interaction varibale itself.
+  Get the interaction variable itself.
  */
 const struct variable *
-interaction_variable_get_var (const struct interaction_variable *iv)
+interaction_get_variable (const struct interaction_variable *iv)
 {
   return iv->intr;
 }
@@ -140,30 +142,27 @@ struct interaction_value *
 interaction_value_create (const struct interaction_variable *var, const union value **vals)
 {
   struct interaction_value *result = NULL;
-  const struct variable *member;
-  size_t i;
-  size_t n_vars;
   
   if (var != NULL)
     {
-      int val_width;
-      char *val;
+      size_t i;
+      int val_width = var_get_width (interaction_get_variable (var));
+      int offset = 0;
+      size_t n_vars = interaction_get_n_vars (var);
 
       result = xmalloc (sizeof (*result));
       result->intr = var;
-      n_vars = interaction_get_n_vars (var);
-      val_width = n_vars * MAX_SHORT_STRING + 1;
+
       value_init (&result->val, val_width);
-      val = value_str_rw (&result->val, val_width);
-      val[0] = '\0';
+
       result->f = 1.0;
       for (i = 0; i < n_vars; i++)
 	{
-	  member = interaction_variable_get_member (var, i);
+          const struct variable *member = interaction_get_member (var, i);
 
 	  if (var_is_value_missing (member, vals[i], MV_ANY))
 	    {
-	      value_set_missing (&result->val, MAX_SHORT_STRING);
+	      value_set_missing (&result->val, val_width);
 	      result->f = SYSMIS;
 	      break;
 	    }
@@ -171,8 +170,10 @@ interaction_value_create (const struct interaction_variable *var, const union va
 	    {
 	      if (var_is_alpha (var->members[i]))
 		{
+		  uint8_t *val = value_str_rw (&result->val, val_width);
                   int w = var_get_width (var->members[i]);
-		  strncat (val, value_str (vals[i], w), MAX_SHORT_STRING);
+                  u8_cpy (val + offset, value_str (vals[i], w), w);
+                  offset += w;
 		}
 	      else if (var_is_numeric (var->members[i]))
 		{
@@ -211,7 +212,7 @@ interaction_value_get (const struct interaction_value *val)
 /*
   Returns the numeric value of the non-zero entry for the vector
   corresponding to this interaction.  Do not use this function to get
-  the numeric value of a purley numeric interaction. Instead, use the
+  the numeric value of a purely numeric interaction. Instead, use the
   union value * returned by interaction_value_get.
  */
 double 
@@ -227,8 +228,7 @@ interaction_value_destroy (struct interaction_value *val)
 {
   if (val != NULL)
     {
-      size_t n_vars = interaction_get_n_vars (val->intr);
-      int val_width = n_vars * MAX_SHORT_STRING + 1;
+      int val_width = var_get_width (interaction_get_variable (val->intr));
 
       value_destroy (&val->val, val_width);
       free (val);
@@ -239,32 +239,22 @@ interaction_value_destroy (struct interaction_value *val)
   Return a value from a variable that is an interaction. 
  */
 struct interaction_value *
-interaction_case_data (const struct ccase *ccase, const struct variable *var, 
-		       const struct interaction_variable **intr_vars, size_t n_intr)
+interaction_case_data (const struct ccase *ccase, const struct interaction_variable *iv)
 {
   size_t i;
   size_t n_vars;
-  const struct interaction_variable *iv = NULL;
-  const struct variable *intr;
   const struct variable *member;
   const union value **vals = NULL;
 
-  for (i = 0; i < n_intr; i++)
-    {
-      iv = intr_vars[i];
-      intr = interaction_variable_get_var (iv);
-      if (var_get_dict_index (intr) == var_get_dict_index (var))
-	{
-	  break;
-	}
-    }
   n_vars = interaction_get_n_vars (iv);
   vals = xnmalloc (n_vars, sizeof (*vals));
+
   for (i = 0; i < n_vars; i++)
-    {
-      member = interaction_variable_get_member (iv, i);
-      vals[i] = case_data (ccase, member);
-    }
+	{
+	  member = interaction_get_member (iv, i);
+	  vals[i] = case_data (ccase, member);
+	}
+
   return interaction_value_create (iv, vals);
 }
 
@@ -276,7 +266,7 @@ is_interaction (const struct variable *var, const struct interaction_variable **
   
   for (i = 0; i < n_intr; i++)
     {
-      intr = interaction_variable_get_var (iv[i]);
+      intr = interaction_get_variable (iv[i]);
       if (var_get_dict_index (intr) == var_get_dict_index (var))
 	{
 	  return true;

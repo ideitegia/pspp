@@ -204,7 +204,7 @@ do_parse_command (struct lexer *lexer,
     }
   else if (command->function == NULL)
     {
-      msg (SE, _("%s is unimplemented."), command->name);
+      msg (SE, _("%s is not yet implemented."), command->name);
       result = CMD_NOT_IMPLEMENTED;
       goto finish;
     }

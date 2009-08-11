@@ -231,12 +231,14 @@ on_filter_change (GObject *o, gint filter_index, gpointer data)
   else
     {
       PsppireVarStore *vs = NULL;
+      PsppireDict *dict = NULL;
       struct variable *var ;
       gchar *text ;
 
       g_object_get (de->data_editor, "var-store", &vs, NULL);
+      g_object_get (vs, "dictionary", &dict, NULL);
 
-      var = psppire_dict_get_variable (vs->dict, filter_index);
+      var = psppire_dict_get_variable (dict, filter_index);
 
       text = g_strdup_printf (_("Filter by %s"), var_get_name (var));
 
@@ -302,11 +304,13 @@ on_weight_change (GObject *o, gint weight_index, gpointer data)
     {
       struct variable *var ;
       PsppireVarStore *vs = NULL;
+      PsppireDict *dict = NULL;
       gchar *text;
 
       g_object_get (de->data_editor, "var-store", &vs, NULL);
-
-      var = psppire_dict_get_variable (vs->dict, weight_index);
+      g_object_get (vs, "dictionary", &dict, NULL);
+      
+      var = psppire_dict_get_variable (dict, weight_index);
 
       text = g_strdup_printf (_("Weight by %s"), var_get_name (var));
 
@@ -521,7 +525,6 @@ static void
 insert_case (GtkAction *action, gpointer data)
 {
   PsppireDataWindow *dw = PSPPIRE_DATA_WINDOW (data);
-
   psppire_data_editor_insert_case (dw->data_editor);
 }
 
@@ -1091,6 +1094,7 @@ static void
 psppire_data_window_init (PsppireDataWindow *de)
 {
   PsppireVarStore *vs;
+  PsppireDict *dict = NULL;
 
   GtkWidget *menubar;
   GtkWidget *hb ;
@@ -1146,15 +1150,17 @@ psppire_data_window_init (PsppireDataWindow *de)
 
   g_assert(vs); /* Traps a possible bug in w32 build */
 
-  g_signal_connect (vs->dict, "weight-changed",
+  g_object_get (vs, "dictionary", &dict, NULL);
+
+  g_signal_connect (dict, "weight-changed",
 		    G_CALLBACK (on_weight_change),
 		    de);
 
-  g_signal_connect (vs->dict, "filter-changed",
+  g_signal_connect (dict, "filter-changed",
 		    G_CALLBACK (on_filter_change),
 		    de);
 
-  g_signal_connect (vs->dict, "split-changed",
+  g_signal_connect (dict, "split-changed",
 		    G_CALLBACK (on_split_change),
 		    de);
 
