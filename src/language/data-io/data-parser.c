@@ -656,9 +656,9 @@ dump_fixed_table (const struct data_parser *parser,
       int row = i + 1;
 
       tab_text (t, 0, row, TAB_LEFT, f->name);
-      tab_text (t, 1, row, TAT_PRINTF, "%d", f->record);
-      tab_text (t, 2, row, TAT_PRINTF, "%3d-%3d",
-                f->first_column, f->first_column + f->format.w - 1);
+      tab_text_format (t, 1, row, 0, "%d", f->record);
+      tab_text_format (t, 2, row, 0, "%3d-%3d",
+                       f->first_column, f->first_column + f->format.w - 1);
       tab_text (t, 3, row, TAB_LEFT | TAB_FIX,
                 fmt_to_string (&f->format, fmt_string));
     }

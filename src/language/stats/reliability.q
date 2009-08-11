@@ -386,7 +386,7 @@ run_reliability (struct casereader *input, struct dataset *ds,
     tab_dim (tab, tab_natural_dimensions, NULL, NULL);
     tab_flags (tab, SOMF_NO_TITLE );
 
-    tab_text(tab, 0, 0, TAT_PRINTF, "Scale: %s", ds_cstr (&rel->scale_name));
+    tab_text_format (tab, 0, 0, 0, "Scale: %s", ds_cstr (&rel->scale_name));
 
     tab_submit(tab);
   }
@@ -720,8 +720,7 @@ case_processing_summary (casenumber n_valid, casenumber n_missing,
   tab_text (tbl, heading_columns, 0, TAB_CENTER | TAT_TITLE,
 		_("N"));
 
-  tab_text (tbl, heading_columns + 1, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF,
-		_("%%"));
+  tab_text (tbl, heading_columns + 1, 0, TAB_CENTER | TAT_TITLE, _("%"));
 
   total = n_missing + n_valid;
 

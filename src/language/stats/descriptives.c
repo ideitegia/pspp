@@ -905,9 +905,9 @@ display (struct dsc_proc *dsc)
 
       nc = 0;
       tab_text (t, nc++, i + 1, TAB_LEFT, var_get_name (dv->v));
-      tab_text (t, nc++, i + 1, TAT_PRINTF, "%g", dv->valid);
+      tab_text_format (t, nc++, i + 1, 0, "%g", dv->valid);
       if (dsc->format == DSC_SERIAL)
-	tab_text (t, nc++, i + 1, TAT_PRINTF, "%g", dv->missing);
+	tab_text_format (t, nc++, i + 1, 0, "%g", dv->missing);
 
       for (j = 0; j < DSC_N_STATS; j++)
 	if (dsc->show_stats & (1ul << j))

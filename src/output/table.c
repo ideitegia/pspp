@@ -382,18 +382,6 @@ tab_box (struct tab_table *t, int f_h, int f_v, int i_h, int i_v,
     }
 }
 
-/* Formats text TEXT and arguments ARGS as indicated in OPT in
-   TABLE's pool and returns the resultant string. */
-static struct substring
-text_format (struct tab_table *table, int opt, const char *text, va_list args)
-{
-  assert (table != NULL && text != NULL);
-
-  return ss_cstr (opt & TAT_PRINTF
-                  ? pool_vasprintf (table->container, text, args)
-                  : pool_strdup (table->container, text));
-}
-
 /* Set the title of table T to TITLE, which is formatted as if
    passed to printf(). */
 void
@@ -657,20 +645,13 @@ tab_double (struct tab_table *table, int c, int r, unsigned char opt,
 }
 
 
-/* Sets cell (C,R) in TABLE, with options OPT, to have text value
-   TEXT. */
-void
-tab_text (struct tab_table *table, int c, int r, unsigned opt, const char *text, ...)
+static void
+do_tab_text (struct tab_table *table, int c, int r, unsigned opt, char *text)
 {
-  va_list args;
-
-  assert (table != NULL && text != NULL);
-
   assert (c >= 0 );
   assert (r >= 0 );
   assert (c < tab_nc (table));
   assert (r < tab_nr (table));
-
 
 #if DEBUGGING
   if (c + table->col_ofs < 0 || r + table->row_ofs < 0
@@ -686,21 +667,38 @@ tab_text (struct tab_table *table, int c, int r, unsigned opt, const char *text,
     }
 #endif
 
-  va_start (args, text);
-  table->cc[c + r * table->cf] = text_format (table, opt, text, args);
+  table->cc[c + r * table->cf] = ss_cstr (text);
   table->ct[c + r * table->cf] = opt;
+}
+
+/* Sets cell (C,R) in TABLE, with options OPT, to have text value
+   TEXT. */
+void
+tab_text (struct tab_table *table, int c, int r, unsigned opt,
+          const char *text)
+{
+  do_tab_text (table, c, r, opt, pool_strdup (table->container, text));
+}
+
+/* Sets cell (C,R) in TABLE, with options OPT, to have text value
+   FORMAT, which is formatted as if passed to printf. */
+void
+tab_text_format (struct tab_table *table, int c, int r, unsigned opt,
+                 const char *format, ...)
+{
+  va_list args;
+
+  va_start (args, format);
+  do_tab_text (table, c, r, opt,
+               pool_vasprintf (table->container, format, args));
   va_end (args);
 }
 
-/* Joins cells (X1,X2)-(Y1,Y2) inclusive in TABLE, and sets them with
-   options OPT to have text value TEXT. */
-void
-tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
-		unsigned opt, const char *text, ...)
+static void
+do_tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
+                   unsigned opt, char *text)
 {
   struct tab_joined_cell *j;
-
-  assert (table != NULL && text != NULL);
 
   assert (x1 + table->col_ofs >= 0);
   assert (y1 + table->row_ofs >= 0);
@@ -733,14 +731,7 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
   j->y1 = y1 + table->row_ofs;
   j->x2 = ++x2 + table->col_ofs;
   j->y2 = ++y2 + table->row_ofs;
-
-  {
-    va_list args;
-
-    va_start (args, text);
-    j->contents = text_format (table, opt, text, args);
-    va_end (args);
-  }
+  j->contents = ss_cstr (text);
 
   opt |= TAB_JOIN;
 
@@ -765,6 +756,31 @@ tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
 	ct += ofs;
       }
   }
+}
+
+/* Joins cells (X1,X2)-(Y1,Y2) inclusive in TABLE, and sets them with
+   options OPT to have text value TEXT. */
+void
+tab_joint_text (struct tab_table *table, int x1, int y1, int x2, int y2,
+                unsigned opt, const char *text)
+{
+  do_tab_joint_text (table, x1, y1, x2, y2, opt,
+                     pool_strdup (table->container, text));
+}
+
+/* Joins cells (X1,X2)-(Y1,Y2) inclusive in TABLE, and sets them
+   with options OPT to have text value FORMAT, which is formatted
+   as if passed to printf. */
+void
+tab_joint_text_format (struct tab_table *table, int x1, int y1, int x2, int y2,
+                       unsigned opt, const char *format, ...)
+{
+  va_list args;
+
+  va_start (args, format);
+  do_tab_joint_text (table, x1, y1, x2, y2, opt,
+                     pool_vasprintf (table->container, format, args));
+  va_end (args);
 }
 
 /* Sets cell (C,R) in TABLE, with options OPT, to contents STRING. */
@@ -812,30 +828,41 @@ wrap_dim (struct tab_rendering *r, void *aux UNUSED)
   r->h[0] = tab_natural_height (r, 0);
 }
 
-/* Outputs text BUF as a table with a single cell having cell options
-   OPTIONS, which is a combination of the TAB_* and TAT_*
-   constants. */
-void
-tab_output_text (int options, const char *buf, ...)
+static void
+do_tab_output_text (struct tab_table *t, int options, char *text)
 {
-  struct tab_table *t = tab_create (1, 1, 0);
-  char *tmp_buf = NULL;
-
-  if (options & TAT_PRINTF)
-    {
-      va_list args;
-
-      va_start (args, buf);
-      buf = tmp_buf = xvasprintf (buf, args);
-      va_end (args);
-    }
-
-  tab_text (t, 0, 0, options & ~TAT_PRINTF, buf);
+  do_tab_text (t, 0, 0, options, text);
   tab_flags (t, SOMF_NO_TITLE | SOMF_NO_SPACING);
   tab_dim (t, options & TAT_NOWRAP ? nowrap_dim : wrap_dim, NULL, NULL);
   tab_submit (t);
+}
 
-  free (tmp_buf);
+/* Outputs TEXT as a table with a single cell having cell options
+   OPTIONS, which is a combination of the TAB_* and TAT_*
+   constants.  */
+void
+tab_output_text (int options, const char *text)
+{
+  struct tab_table *table = tab_create (1, 1, 0);
+  do_tab_output_text (table, options, pool_strdup (table->container, text));
+}
+
+/* Outputs FORMAT as a table with a single cell having cell
+   options OPTIONS, which is a combination of the TAB_* and TAT_*
+   constants.  FORMAT is formatted as if it was passed through
+   printf. */
+void
+tab_output_text_format (int options, const char *format, ...)
+{
+  struct tab_table *table;
+  va_list args;
+
+  table = tab_create (1, 1, 0);
+
+  va_start (args, format);
+  do_tab_output_text (table, options,
+                      pool_vasprintf (table->container, format, args));
+  va_end (args);
 }
 
 /* Set table flags to FLAGS. */

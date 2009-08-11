@@ -394,8 +394,9 @@ show_descriptives (const struct dictionary *dict)
 
   tab_vline (t, TAL_0, 7, 0, 0);
   tab_hline (t, TAL_1, 6, 7, 1);
-  tab_joint_text (t, 6, 0, 7, 0, TAB_CENTER | TAT_TITLE | TAT_PRINTF,
-		  _("%g%% Confidence Interval for Mean"), confidence*100.0);
+  tab_joint_text_format (t, 6, 0, 7, 0, TAB_CENTER | TAT_TITLE,
+                         _("%g%% Confidence Interval for Mean"),
+                         confidence*100.0);
 
   tab_text (t, 6, 1, TAB_CENTER | TAT_TITLE, _("Lower Bound"));
   tab_text (t, 7, 1, TAB_CENTER | TAT_TITLE, _("Upper Bound"));
@@ -636,14 +637,13 @@ show_contrast_coeffs (short *bad_contrast)
 
       for (i = 0; i < cmd.sbc_contrast; ++i )
 	{
-	  tab_text (t, 1, i + 2, TAB_CENTER | TAT_PRINTF, "%d", i + 1);
+	  tab_text_format (t, 1, i + 2, TAB_CENTER, "%d", i + 1);
 
 	  if ( bad_contrast[i] )
 	    tab_text (t, count + 2, i + 2, TAB_RIGHT, "?" );
 	  else
-	    tab_text (t, count + 2, i + 2, TAB_RIGHT | TAT_PRINTF, "%g",
-		      subc_list_double_at (&cmd.dl_contrast[i], count)
-		      );
+	    tab_text_format (t, count + 2, i + 2, TAB_RIGHT, "%g",
+                             subc_list_double_at (&cmd.dl_contrast[i], count));
 	}
     }
 
@@ -740,12 +740,13 @@ show_contrast_tests (short *bad_contrast)
 			_("Does not assume equal"));
 	    }
 
-	  tab_text (t,  2, (v * lines_per_variable) + i + 1,
-		    TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%d", i + 1);
+	  tab_text_format (t,  2, (v * lines_per_variable) + i + 1,
+                           TAB_CENTER | TAT_TITLE, "%d", i + 1);
 
 
-	  tab_text (t,  2, (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
-		    TAB_CENTER | TAT_TITLE | TAT_PRINTF, "%d", i + 1);
+	  tab_text_format (t,  2,
+                           (v * lines_per_variable) + i + 1 + cmd.sbc_contrast,
+                           TAB_CENTER | TAT_TITLE, "%d", i + 1);
 
 
 	  if ( bad_contrast[i])

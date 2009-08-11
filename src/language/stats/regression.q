@@ -315,9 +315,9 @@ reg_stats_anova (pspp_linreg_cache * c)
 
 
   /* Degrees of freedom */
-  tab_text (t, 3, 1, TAB_RIGHT | TAT_PRINTF, "%g", c->dfm);
-  tab_text (t, 3, 2, TAB_RIGHT | TAT_PRINTF, "%g", c->dfe);
-  tab_text (t, 3, 3, TAB_RIGHT | TAT_PRINTF, "%g", c->dft);
+  tab_text_format (t, 3, 1, TAB_RIGHT, "%g", c->dfm);
+  tab_text_format (t, 3, 2, TAB_RIGHT, "%g", c->dfe);
+  tab_text_format (t, 3, 3, TAB_RIGHT, "%g", c->dft);
 
   /* Mean Squares */
   tab_double (t, 4, 1, TAB_RIGHT, msm, NULL);

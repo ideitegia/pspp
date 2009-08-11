@@ -413,8 +413,9 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
       switch (spec->type)
         {
         case PRT_LITERAL:
-          tab_text (t, 0, row, TAB_LEFT | TAB_FIX | TAT_PRINTF, "\"%.*s\"",
-                    (int) ds_length (&spec->string), ds_data (&spec->string));
+          tab_text_format (t, 0, row, TAB_LEFT | TAB_FIX, "\"%.*s\"",
+                           (int) ds_length (&spec->string),
+                           ds_data (&spec->string));
           width = ds_length (&spec->string);
           break;
         case PRT_VAR:
@@ -426,9 +427,9 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
         default:
           NOT_REACHED ();
 	}
-      tab_text (t, 1, row, TAT_PRINTF, "%d", spec->record);
-      tab_text (t, 2, row, TAT_PRINTF, "%3d-%3d",
-                spec->first_column, spec->first_column + width - 1);
+      tab_text_format (t, 1, row, 0, "%d", spec->record);
+      tab_text_format (t, 2, row, 0, "%3d-%3d",
+                       spec->first_column, spec->first_column + width - 1);
       row++;
     }
 

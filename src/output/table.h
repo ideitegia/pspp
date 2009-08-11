@@ -155,7 +155,6 @@ void tab_box (struct tab_table *, int f_h, int f_v, int i_h, int i_v,
 enum
   {
     TAT_NONE = 0,		/* No options. */
-    TAT_PRINTF = 0x0100,	/* Format the text string with sprintf. */
     TAT_TITLE = 0x0200 | TAB_EMPH, /* Title attributes. */
     TAT_NOWRAP = 0x0800         /* No text wrap (tab_output_text() only). */
   };
@@ -172,11 +171,15 @@ void tab_fixed (struct tab_table *, int c, int r, unsigned char opt,
 void tab_double (struct tab_table *, int c, int r, unsigned char opt,
 		double v, const struct fmt_spec *);
 
-void tab_text (struct tab_table *, int c, int r, unsigned opt,
-	       const char *, ...)
+void tab_text (struct tab_table *, int c, int r, unsigned opt, const char *);
+void tab_text_format (struct tab_table *, int c, int r, unsigned opt,
+                      const char *, ...)
      PRINTF_FORMAT (5, 6);
+
 void tab_joint_text (struct tab_table *, int x1, int y1, int x2, int y2,
-		     unsigned opt, const char *, ...)
+		     unsigned opt, const char *);
+void tab_joint_text_format (struct tab_table *, int x1, int y1, int x2, int y2,
+                            unsigned opt, const char *, ...)
      PRINTF_FORMAT (7, 8);
 
 /* Cell low-level access. */
@@ -193,7 +196,8 @@ void tab_next_row (struct tab_table *);
 #define tab_col(TABLE) ((TABLE)->col_ofs)
 
 /* Simple output. */
-void tab_output_text (int options, const char *string, ...)
+void tab_output_text (int options, const char *string);
+void tab_output_text_format (int options, const char *, ...)
      PRINTF_FORMAT (2, 3);
 
 #endif /* tab_h */
