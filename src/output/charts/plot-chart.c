@@ -39,6 +39,26 @@
 
 #include "xalloc.h"
 
+#if ! PANGO_VERSION_CHECK (2, 22, 0)
+int pango_layout_get_baseline (PangoLayout    *layout);
+
+/* Shamelessly copied from the pango source */
+int
+pango_layout_get_baseline (PangoLayout    *layout)
+{
+  int baseline;
+
+  /* XXX this is so inefficient */
+  PangoLayoutIter *iter = pango_layout_get_iter (layout);
+  baseline = pango_layout_iter_get_baseline (iter);
+  pango_layout_iter_free (iter);
+
+  return baseline;
+}
+#endif
+
+
+
 const struct chart_colour data_colour[N_CHART_COLOURS] =
   {
     { 165, 42, 42 },            /* brown */
