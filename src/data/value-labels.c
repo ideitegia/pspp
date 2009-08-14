@@ -170,8 +170,7 @@ void
 val_labs_replace (struct val_labs *vls, const union value *value,
                   const char *label)
 {
-  struct val_lab *vl = CONST_CAST (struct val_lab *,
-                                   val_labs_lookup (vls, value));
+  struct val_lab *vl = val_labs_lookup (vls, value);
   if (vl != NULL)
     {
       atom_destroy (vl->label);
@@ -183,9 +182,8 @@ val_labs_replace (struct val_labs *vls, const union value *value,
 
 /* Removes LABEL from VLS. */
 void
-val_labs_remove (struct val_labs *vls, const struct val_lab *label_)
+val_labs_remove (struct val_labs *vls, struct val_lab *label)
 {
-  struct val_lab *label = CONST_CAST (struct val_lab *, label_);
   hmap_delete (&vls->labels, &label->node);
   value_destroy (&label->value, vls->width);
   atom_destroy (label->label);
@@ -205,7 +203,7 @@ val_labs_find (const struct val_labs *vls, const union value *value)
 /* Searches VLS for a value label for VALUE.  If successful,
    returns the value label; otherwise, returns a null pointer.
    Returns a null pointer if VLS is null. */
-const struct val_lab *
+struct val_lab *
 val_labs_lookup (const struct val_labs *vls, const union value *value)
 {
   if (vls != NULL)

@@ -324,7 +324,7 @@ on_remove (GtkWidget *w, gpointer data)
   struct val_labs_dialog *dialog = data;
 
   union value value;
-  const struct val_lab *vl;
+  struct val_lab *vl;
 
   get_selected_tuple (dialog, &value, NULL);
   vl = val_labs_lookup (dialog->labs, &value);

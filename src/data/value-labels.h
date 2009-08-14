@@ -70,7 +70,7 @@ size_t val_labs_count (const struct val_labs *);
 
 /* Looking up value labels. */
 const char *val_labs_find (const struct val_labs *, const union value *);
-const struct val_lab *val_labs_lookup (const struct val_labs *,
+struct val_lab *val_labs_lookup (const struct val_labs *,
                                        const union value *);
 
 /* Basic properties. */
@@ -82,7 +82,7 @@ void val_labs_set_width (struct val_labs *, int new_width);
 /* Adding value labels. */
 bool val_labs_add (struct val_labs *, const union value *, const char *);
 void val_labs_replace (struct val_labs *, const union value *, const char *);
-void val_labs_remove (struct val_labs *, const struct val_lab *);
+void val_labs_remove (struct val_labs *, struct val_lab *);
 
 /* Iterating through value labels. */
 const struct val_lab *val_labs_first (const struct val_labs *);
