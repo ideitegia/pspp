@@ -1247,7 +1247,6 @@ psppire_data_window_init (PsppireDataWindow *de)
       resolve_action (de->builder, "file_save_as", NULL);
 
     g_object_set (action_data_save_as,
-		  "label", _("Save As"),
 		  "tooltip", _("Save data to file"),
 		  "stock-id", "gtk-save-as",
 		  NULL);
