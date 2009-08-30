@@ -30,6 +30,7 @@ pkgsysconfdir = $(sysconfdir)/@PACKAGE@
 EXTRA_DIST = OChangeLog ONEWS config.rpath pspp-mode.el
 
 CLEANFILES = 
+CLEAN_LOCAL =
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=
 noinst_LTLIBRARIES=
@@ -78,5 +79,4 @@ install-data-hook: $(INSTALL_DATA_HOOKS)
 
 uninstall-hook: $(UNINSTALL_DATA_HOOKS)
 
-
-
+clean-local: $(CLEAN_LOCAL)

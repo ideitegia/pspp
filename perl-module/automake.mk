@@ -54,12 +54,14 @@ check-local:
 	LANG=C LD_LIBRARY_PATH=$$llp sh -c "cd perl-module && $(MAKE) $(AM_MAKEFLAGS) test"
 
 
-clean-local:
+perl_module_CLEAN:
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) clean || true
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	  $(RM) $(module_sources) ; \
 	fi
 	$(RM) perl-module/Makefile.old
+
+CLEAN_LOCAL += perl_module_CLEAN
 
 CLEANFILES += \
         perl-module/PSPP-Perl-$(VERSION).tar.gz \

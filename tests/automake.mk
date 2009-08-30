@@ -205,7 +205,15 @@ check_PROGRAMS += \
 
 tests_data_datasheet_test_SOURCES = \
 	tests/data/datasheet-test.c
-tests_data_datasheet_test_LDADD = src/libpspp-core.la @LIBINTL@ 
+tests_data_datasheet_test_LDADD = gl/libgl.la src/libpspp-core.la @LIBINTL@ 
+tests_data_datasheet_test_CFLAGS = $(AM_CFLAGS)
+
+# This seems to be necessary as the libtool artifacts aren't removed
+# Automake bug ?
+tests_data_datasheet_test_CLEAN:
+	$(RM) -r tests/data
+
+CLEAN_LOCAL += tests_data_datasheet_test_CLEAN
 
 tests_libpspp_ll_test_SOURCES = \
 	src/libpspp/ll.c \
