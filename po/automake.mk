@@ -8,9 +8,11 @@ POFILES=po/en_GB.po po/nl.po
 
 POTFILE=po/$(DOMAIN).pot
 
-$(POTFILE): $(DIST_SOURCES)
+TRANSLATABLE_FILES = $(DIST_SOURCES) $(all_q_sources)
+
+$(POTFILE): $(TRANSLATABLE_FILES)
 	@$(MKDIR_P) po
-	$(XGETTEXT) --directory=$(top_srcdir) $(DIST_SOURCES) \
+	$(XGETTEXT) --directory=$(top_srcdir) $(TRANSLATABLE_FILES) \
 	$(XGETTEXT_OPTIONS) \
 	--copyright-holder="$(COPYRIGHT_HOLDER)" \
 	--package-name=$(PACKAGE) \
