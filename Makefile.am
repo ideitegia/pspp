@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = gnits 1.10 subdir-objects
 
-SUBDIRS = gl po
+SUBDIRS = gl
 DISTCLEANFILES = ./po/stamp-po xconfigure 
 BUILT_SOURCES =
 
@@ -53,6 +53,7 @@ generate-changelog:
 DIST_HOOKS += generate-changelog
 
 
+include $(top_srcdir)/po/automake.mk
 include $(top_srcdir)/lib/automake.mk
 include $(top_srcdir)/doc/automake.mk
 include $(top_srcdir)/config/automake.mk
