@@ -36,7 +36,7 @@ PHONY += module-make
 module-make: perl-module/Makefile src/libpspp-core.la
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
-all-local: 
+perl_module_tarball:
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
@@ -48,6 +48,8 @@ all-local:
 	 done \
 	fi
 	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION).tar.gz
+
+ALL_LOCAL += perl_module_tarball
 
 check-local:
 	loc=`pwd` ; cd $(top_builddir)/src/.libs ; llp=`pwd` ; cd $$loc ;  \

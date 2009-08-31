@@ -32,7 +32,7 @@ $(POFILES): $(POTFILE)
 
 GMOFILES = $(POFILES:.po=.gmo)
 
-all-hook: $(GMOFILES)
+ALL_LOCAL += $(GMOFILES)
 
 install-data-hook: $(GMOFILES)
 	for f in $(GMOFILES); do \
