@@ -105,7 +105,6 @@ all:
 	echo '*' > gl/.cvsignore
 	echo '*' > gl/m4/.cvsignore
 	libtoolize --force --automake
-	autopoint --force
 	aclocal -I m4 -I gl/m4
 	autoconf
 	autoheader

@@ -31,9 +31,8 @@ PSPP_PERL
 
 dnl Internationalization macros.
 AC_ARG_ENABLE(nls, [AS_HELP_STRING([--disable-nls], [do not use Native Language Support])])
-if test x"$enable_nls" != x"no"  ; then
-   AM_GNU_GETTEXT_VERSION([0.17])
-   AC_DEFINE(ENABLE_NLS, 1, [Define to 1 if translation of program messages to the user's native language is requested.])
+if  test x"$enable_nls" != x"no"  ; then
+ AC_DEFINE(ENABLE_NLS, 1, [Define to 1 if translation of program messages to the user's native language is requested.])
 fi
 
 
