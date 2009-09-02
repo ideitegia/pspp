@@ -53,12 +53,14 @@
 /* (specification)
    "GLM" (glm_):
    *dependent=custom;
+   design=custom;
    by=varlist;
    with=varlist.
 */
 /* (declarations) */
 /* (functions) */
 static struct cmd_glm cmd;
+
 
 /*
   Moments for each of the variables used.
@@ -83,14 +85,12 @@ static const struct variable **v_dependent;
  */
 static size_t n_dependent;
 
-#if 0
-/*
-  Return value for the procedure.
- */
-static int pspp_glm_rc = CMD_SUCCESS;
-#else
+size_t n_inter; /* Number of interactions. */
+size_t n_members; /* Number of memebr variables in an interaction. */ 
+
+struct interaction_variable **interactions;
+
 int cmd_glm (struct lexer *lexer, struct dataset *ds);
-#endif
 
 static bool run_glm (struct casereader *,
 		     struct cmd_glm *,
@@ -119,7 +119,60 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   free (v_dependent);
   return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
+static int
+parse_interactions (struct lexer *lexer, const struct variable **interaction_vars, int n_members,
+		    int max_members, struct dataset *ds)
+{
+  if (lex_match (lexer, '*'))
+    {
+      if (n_members > max_members)
+	{
+	  max_members *= 2;
+	  xnrealloc (interaction_vars, max_members, sizeof (*interaction_vars));
+	}
+      interaction_vars[n_members] = parse_variable (lexer, dataset_dict (ds));
+      parse_interactions (lexer, interaction_vars, n_members++, max_members, ds);
+    }
+  return n_members;
+}
+/* Parser for the design subcommand. */
+static int
+glm_custom_design (struct lexer *lexer, struct dataset *ds,
+		   struct cmd_glm *cmd UNUSED, void *aux UNUSED)
+{
+  size_t n_inter = 0;
+  size_t n_allocated = 2;
+  size_t n_members;
+  struct variable **interaction_vars;
+  struct variable *this_var;
 
+  interactions = xnmalloc (n_allocated, sizeof (*interactions));
+
+  while (lex_token (lexer) != T_STOP && lex_token (lexer) != '.')
+    {
+      this_var = parse_variable (lexer, dataset_dict (ds));
+      if (lex_match (lexer, '('))
+	{
+	  lex_force_match (lexer, ')');
+	}
+      else if (lex_match (lexer, '*'))
+	{
+	  n_members = 1;
+	  interaction_vars = xnmalloc (2 * n_inter, sizeof (*interaction_vars));
+	  n_members = parse_interactions (lexer, interaction_vars, 1, 2 * n_inter, ds);
+	  if (n_allocated < n_inter)
+	    {
+	      n_allocated *= 2;
+	      xnrealloc (interactions, n_allocated, sizeof (*interactions));
+	    }
+	  interactions [n_inter - 1] = 
+	    interaction_variable_create (interaction_vars, n_members);
+	  n_inter++;
+	  free (interaction_vars);
+	}
+    }
+  return 1;
+}
 /* Parser for the dependent sub command */
 static int
 glm_custom_dependent (struct lexer *lexer, struct dataset *ds,
@@ -237,17 +290,22 @@ run_glm (struct casereader *input,
 	  cat_stored_values_create (all_vars[i]);
       
       cov = covariance_matrix_init (n_all_vars, all_vars, ONE_PASS, PAIRWISE, MV_ANY);
+
       reader = casereader_create_counter (reader, &row, -1);
+
+      for (i = 0; i < n_inter; i++)
+	if (var_is_alpha (interaction_get_variable (interactions[i])))
+	  cat_stored_values_create (interaction_get_variable (interactions[i]));
+      covariance_interaction_set (cov, interactions, 1);
       for (; (c = casereader_read (reader)) != NULL; case_unref (c))
 	{
 	  /* 
 	     Accumulate the covariance matrix.
 	  */
-	  covariance_matrix_accumulate (cov, c, NULL, 0);
+	  covariance_matrix_accumulate (cov, c, interactions, 1);
 	  n_data++;
 	}
       covariance_matrix_compute (cov);
-
       for (i = 0; i < n_dependent; i++)
 	{
 	  model = fit_model (cov, v_dependent[i], indep_vars, n_data, n_indep);
