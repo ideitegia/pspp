@@ -1432,16 +1432,13 @@ pscbox (const struct dictionary *dict)
 
       double df = pairs[i].n -2;
 
-      /* pairs[i].correlation is a correlation, so mathematically it will
-         always be in the range [-1.0, 1.0].  Inaccurate calculations sometimes
-         cause it to be slightly greater than 1.0, however, which makes the
-         sqrt() below to come out as NaN instead of 0.  So force it to be 1.0
-         or less. */
-      double corr = MIN (1.0, pairs[i].correlation);
-
+      /* corr2 will mathematically always be in the range [0, 1.0].  Inaccurate
+         calculations sometimes cause it to be slightly greater than 1.0, so
+         force it into the correct range to avoid NaN from sqrt(). */
+      double corr2 = MIN (1.0, pow2 (pairs[i].correlation));
       double correlation_t =
 	pairs[i].correlation * sqrt (df) /
-	sqrt (1 - pow2 (corr));
+	sqrt (1 - corr2);
 
 
       /* row headings */
