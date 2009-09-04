@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 1997-9, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1997-9, 2000, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1432,9 +1432,16 @@ pscbox (const struct dictionary *dict)
 
       double df = pairs[i].n -2;
 
+      /* pairs[i].correlation is a correlation, so mathematically it will
+         always be in the range [-1.0, 1.0].  Inaccurate calculations sometimes
+         cause it to be slightly greater than 1.0, however, which makes the
+         sqrt() below to come out as NaN instead of 0.  So force it to be 1.0
+         or less. */
+      double corr = MIN (1.0, pairs[i].correlation);
+
       double correlation_t =
 	pairs[i].correlation * sqrt (df) /
-	sqrt (1 - pow2 (pairs[i].correlation));
+	sqrt (1 - pow2 (corr));
 
 
       /* row headings */
