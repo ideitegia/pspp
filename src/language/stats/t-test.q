@@ -506,7 +506,7 @@ ssbox_one_sample_init (struct ssbox *this, struct t_test_proc *proc)
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
-  tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+  tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("S.E. Mean"));
 }
 
 /* Initialize the independent samples ssbox */
@@ -526,7 +526,7 @@ ssbox_independent_samples_init (struct ssbox *this, struct t_test_proc *proc)
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
-  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("S.E. Mean"));
 }
 
 /* Populate the ssbox for independent samples */
@@ -625,7 +625,7 @@ ssbox_paired_init (struct ssbox *this, struct t_test_proc *proc)
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
-  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("S.E. Mean"));
 }
 
 /* Populate the ssbox for paired values */

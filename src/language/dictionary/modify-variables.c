@@ -111,7 +111,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 
 	  if (already_encountered & 1)
 	    {
-	      msg (SE, _("REORDER subcommand may be given at most once."));
+	      msg (SE, _("%s subcommand may be given at most once."), "REORDER");
 	      goto done;
 	    }
 	  already_encountered |= 1;
@@ -144,7 +144,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 		{
 		  if (!lex_match (lexer, '('))
 		    {
-		      msg (SE, _("`(' expected on REORDER subcommand."));
+		      msg (SE, _("`(' expected on %s subcommand."), "REORDER");
 		      free (v);
 		      goto done;
 		    }
@@ -174,7 +174,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 	{
 	  if (already_encountered & 2)
 	    {
-	      msg (SE, _("RENAME subcommand may be given at most once."));
+	      msg (SE, _("%s subcommand may be given at most once."), "RENAME");
 	      goto done;
 	    }
 	  already_encountered |= 2;
@@ -187,7 +187,7 @@ cmd_modify_vars (struct lexer *lexer, struct dataset *ds)
 
 	      if (!lex_match (lexer, '('))
 		{
-		  msg (SE, _("`(' expected on RENAME subcommand."));
+		  msg (SE, _("`(' expected on %s subcommand."), "RENAME");
 		  goto done;
 		}
 	      if (!parse_variables (lexer, dataset_dict (ds),

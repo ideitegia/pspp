@@ -378,12 +378,12 @@ combine_files (enum comb_command_type command,
         }
       if (n_tables)
         {
-          msg (SE, _("BY is required when TABLE is specified."));
+          msg (SE, _("BY is required when %s is specified."), "TABLE");
           goto error;
         }
       if (saw_sort)
         {
-          msg (SE, _("BY is required when SORT is specified."));
+          msg (SE, _("BY is required when %s is specified."), "SORT");
           goto error;
         }
     }
