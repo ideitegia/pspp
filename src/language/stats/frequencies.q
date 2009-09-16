@@ -1032,32 +1032,16 @@ dump_full (const struct variable *v, const struct variable *wv)
   struct freq_tab *ft;
   struct freq_mutable *f;
   struct tab_table *t;
-  int r;
+  int r, x;
   double cum_total = 0.0;
   double cum_freq = 0.0;
 
-  struct init
-    {
-      int c, r;
-      const char *s;
-    };
-
-  const struct init *p;
-
-  static const struct init vec[] =
-  {
-    {4, 0, N_("Valid")},
-    {5, 0, N_("Cum")},
-    {1, 1, N_("Value")},
-    {2, 1, N_("Frequency")},
-    {3, 1, N_("Percent")},
-    {4, 1, N_("Percent")},
-    {5, 1, N_("Percent")},
-    {0, 0, NULL},
-    {1, 0, NULL},
-    {2, 0, NULL},
-    {3, 0, NULL},
-    {-1, -1, NULL},
+  static const char *headings[] = {
+    N_("Value"),
+    N_("Frequency"),
+    N_("Percent"),
+    N_("Valid Percent"),
+    N_("Cum Percent")
   };
 
   const bool lab = (cmd.labels == FRQ_LABELS);
@@ -1065,18 +1049,17 @@ dump_full (const struct variable *v, const struct variable *wv)
   vf = get_var_freqs (v);
   ft = &vf->tab;
   n_categories = ft->n_valid + ft->n_missing;
-  t = tab_create (5 + lab, n_categories + 3, 0);
-  tab_headers (t, 0, 0, 2, 0);
+  t = tab_create (5 + lab, n_categories + 2, 0);
+  tab_headers (t, 0, 0, 1, 0);
   tab_dim (t, full_dim, NULL);
 
   if (lab)
-    tab_text (t, 0, 1, TAB_CENTER | TAT_TITLE, _("Value Label"));
+    tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Value Label"));
 
-  for (p = vec; p->s; p++)
-    tab_text (t, lab ? p->c : p->c - 1, p->r,
-		  TAB_CENTER | TAT_TITLE, gettext (p->s));
+  for (x = 0; x < 5; x++)
+    tab_text (t, lab + x, 0, TAB_CENTER | TAT_TITLE, gettext (headings[x]));
 
-  r = 2;
+  r = 1;
   for (f = ft->valid; f < ft->missing; f++)
     {
       double percent, valid_percent;
@@ -1123,7 +1106,7 @@ dump_full (const struct variable *v, const struct variable *wv)
   tab_box (t, TAL_1, TAL_1,
 	   cmd.spaces == FRQ_SINGLE ? -1 : TAL_GAP, TAL_1,
 	   0, 0, 4 + lab, r);
-  tab_hline (t, TAL_2, 0, 4 + lab, 2);
+  tab_hline (t, TAL_2, 0, 4 + lab, 1);
   tab_hline (t, TAL_2, 0, 4 + lab, r);
   tab_joint_text (t, 0, r, 0 + lab, r, TAB_RIGHT | TAT_TITLE, _("Total"));
   tab_vline (t, TAL_0, 1, r, r);
