@@ -14,7 +14,7 @@ src_ui_terminal_libui_la_SOURCES = \
 	src/ui/terminal/terminal-opts.h	
 
 
-src_ui_terminal_libui_la_CFLAGS = -DINSTALLDIR=\"$(bindir)\" $(NCURSES_CFLAGS)
+src_ui_terminal_libui_la_CFLAGS = $(NCURSES_CFLAGS)
 
 bin_PROGRAMS += src/ui/terminal/pspp
 

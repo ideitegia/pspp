@@ -6,7 +6,11 @@ SUBDIRS = gl
 DISTCLEANFILES = ./po/stamp-po xconfigure 
 BUILT_SOURCES =
 
-AM_CPPFLAGS = -I$(top_srcdir)/gl -I$(top_builddir)/gl
+AM_CPPFLAGS = \
+	-I$(top_srcdir)/gl \
+	-I$(top_builddir)/gl \
+	-DINSTALLDIR=\"$(bindir)\" \
+	-DDOCDIR=\"$(docdir)\"
 
 AM_CFLAGS=
 
