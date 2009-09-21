@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,13 +21,10 @@
    "valgrind --leak-check=yes --show-reachable=yes" should give a
    clean report. */
 
-/* Warning:
-
-   GCC 4.3 will miscompile this test program, specifically
-   test_moved(), given small changes.  This is a bug in GCC
-   triggered by the test program, not by the library under test,
-   so you may safely ignore it.  To avoid miscompilation, compile
-   this file with GCC 4.2 or earlier or GCC 4.4 or later.
+/* GCC 4.3 miscompiles some of the tests below, so we do not run
+   these tests on GCC 4.3.  This is a bug in GCC 4.3 triggered by
+   the test program, not a bug in the library under test.  GCC
+   4.2 or earlier and GCC 4.4 or later do not have this bug.
 
    Here is a minimal test program that demonstrates the same or a
    similar bug in GCC 4.3:
@@ -741,6 +738,10 @@ test_moved (int max_elems, hash_function *hash)
   struct hmap hmap;
   int i, j;
 
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 3
+  return;
+#endif  /* GCC 4.3 */
+
   hmap_init (&hmap);
   e[0] = xnmalloc (max_elems, sizeof *e[0]);
   e[1] = xnmalloc (max_elems, sizeof *e[1]);
@@ -875,6 +876,10 @@ test_swap (int max_elems, hash_function *hash)
   struct hmap a, b;
   struct hmap *working, *empty;
   int i;
+
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 3
+  return;
+#endif  /* GCC 4.3 */
 
   hmap_init (&a);
   hmap_init (&b);
