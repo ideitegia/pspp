@@ -206,6 +206,11 @@ if test "$am_cv_func_iconv" != "yes"; then
    PSPP_REQUIRED_PREREQ([iconv (see http://www.gnu.org/software/libiconv/)])
 fi
 
+dnl Required by the gnulib 'relocatable-prog' module.
+dnl See doc/relocatable-maint.texi in the gnulib tree for details.
+RELOCATABLE_LIBRARY_PATH='$(libdir)'
+RELOCATABLE_STRIP=:
+
 PSPP_CHECK_PREREQS
 
 AC_CONFIG_FILES([Makefile gl/Makefile])
