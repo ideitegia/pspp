@@ -4,7 +4,7 @@ XGETTEXT=xgettext
 MSGMERGE=msgmerge
 MSGFMT=msgfmt
 
-POFILES=po/en_GB.po po/nl.po
+POFILES=po/en_GB.po po/nl.po po/pt_BR.po
 
 POTFILE=po/$(DOMAIN).pot
 

@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include <math/chart-geometry.h>
 #include <output/chart.h>
 
+#include <libpspp/compiler.h>
 #include <libpspp/str.h>
 #include <output/manager.h>
 #include <output/output.h>
@@ -51,11 +52,13 @@ enum tick_orientation
 void draw_tick(struct chart *chart,
 	  enum tick_orientation orientation,
 	  double position,
-	       const char *label, ...);
+	       const char *label, ...)
+  PRINTF_FORMAT (4, 5);
 
 
 /* Write the title on a chart*/
-void   chart_write_title(struct chart *chart, const char *title, ...);
+void   chart_write_title(struct chart *chart, const char *title, ...)
+  PRINTF_FORMAT (2, 3);
 
 
 /* Set the scale for the abscissa */

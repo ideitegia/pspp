@@ -47,6 +47,7 @@
 #include <output/table.h>
 #include <data/format.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 #include "xmemdup0.h"
 
@@ -1109,10 +1110,14 @@ pscbox (struct t_test_proc *proc)
   for (i = 0; i < proc->n_pairs; i++)
     {
       struct pair *pair = &proc->pairs[i];
+      double df = pair->n - 2;
       double p, q;
-      double df = pair->n -2;
-      double correlation_t = (pair->correlation * sqrt (df) /
-                              sqrt (1 - pow2 (pair->correlation)));
+
+      /* corr2 will mathematically always be in the range [0, 1.0].  Inaccurate
+         calculations sometimes cause it to be slightly greater than 1.0, so
+         force it into the correct range to avoid NaN from sqrt(). */
+      double corr2 = MIN (1.0, pow2 (pair->correlation));
+      double correlation_t = pair->correlation * sqrt (df) / sqrt (1 - corr2);
 
       /* row headings */
       tab_text_format (table, 0, i + 1, TAB_LEFT | TAT_TITLE,

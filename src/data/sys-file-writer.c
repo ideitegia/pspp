@@ -461,12 +461,12 @@ write_variable (struct sfm_writer *w, const struct variable *v, const struct dic
   /* Value label. */
   if (var_has_label (v))
     {
-      const char *label = var_get_label (v);
-      char *l = recode_string (dict_get_encoding (dict), UTF8, label, -1);
-      size_t padded_len = ROUND_UP (MIN (strlen (l), 255), 4);
-      write_int (w, padded_len);
-      write_string (w, l, padded_len);
-      free (l);
+      char *label = recode_string (dict_get_encoding (dict), UTF8, var_get_label (v), -1);
+      size_t label_len = MIN (strlen (label), 255);
+      size_t padded_len = ROUND_UP (label_len, 4);
+      write_int (w, label_len);
+      write_string (w, label, padded_len);
+      free (label);
     }
 
   /* Write the missing values, if any, range first. */

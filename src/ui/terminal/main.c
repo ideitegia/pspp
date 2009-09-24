@@ -57,6 +57,7 @@
 
 #include "fatal-signal.h"
 #include "progname.h"
+#include "relocatable.h"
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -166,6 +167,7 @@ main (int argc, char **argv)
   return any_errors ();
 }
 
+
 static void
 fpu_init (void)
 {
