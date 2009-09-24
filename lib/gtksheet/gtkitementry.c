@@ -34,6 +34,18 @@
 #include <gtk/gtk.h>
 #include "gtkitementry.h"
 
+#if GTK_CHECK_VERSION (2,17,4)
+#define HAVE_GTKENTRYBUFFER 1
+#endif
+
+#if !GTK_CHECK_VERSION (2,14,0)
+static guint16
+gtk_entry_get_text_length (GtkEntry *entry)
+{
+  return entry->text_length;
+}
+#endif
+
 #define MIN_ENTRY_WIDTH  150
 #define DRAW_TIMEOUT     20
 #define INNER_BORDER     0
@@ -586,6 +598,18 @@ gtk_entry_insert_text (GtkEditable *editable,
 		       gint         new_text_length,
 		       gint        *position)
 {
+#if HAVE_GTKENTRYBUFFER
+  g_object_ref (editable);
+
+  /*
+   * The incoming text may a password or other secret. We make sure
+   * not to copy it into temporary buffers.
+   */
+
+  g_signal_emit_by_name (editable, "insert-text", new_text, new_text_length, position);
+
+  g_object_unref (editable);
+#else  /* !HAVE_GTKENTRYBUFFER */
   GtkEntry *entry = GTK_ENTRY (editable);
   gchar buf[64];
   gchar *text;
@@ -609,6 +633,7 @@ gtk_entry_insert_text (GtkEditable *editable,
     g_free (text);
 
   g_object_unref (G_OBJECT (editable));
+#endif  /* !HAVE_GTKENTRYBUFFER */
 }
 
 static void
@@ -616,6 +641,13 @@ gtk_entry_delete_text (GtkEditable *editable,
 		       gint         start_pos,
 		       gint         end_pos)
 {
+#if HAVE_GTKENTRYBUFFER
+  g_object_ref (editable);
+
+  g_signal_emit_by_name (editable, "delete-text", start_pos, end_pos);
+
+  g_object_unref (editable);
+#else  /* !HAVE_GTKENTRYBUFFER */
   GtkEntry *entry = GTK_ENTRY (editable);
 
   if (end_pos < 0 || end_pos > entry->text_length)
@@ -630,6 +662,7 @@ gtk_entry_delete_text (GtkEditable *editable,
   g_signal_emit_by_name (editable, "delete_text", start_pos, end_pos);
 
   g_object_unref (G_OBJECT (editable));
+#endif  /* !HAVE_GTKENTRYBUFFER */
 }
 
 static void
@@ -652,9 +685,11 @@ gtk_entry_real_set_position (GtkEditable *editable,
                              gint         position)
 {
   GtkEntry *entry = GTK_ENTRY (editable);
+  guint length;
 
-  if (position < 0 || position > entry->text_length)
-    position = entry->text_length;
+  length = gtk_entry_get_text_length (entry);
+  if (position < 0 || position > length)
+    position = length;
 
   if (position != entry->current_pos ||
       position != entry->selection_bound)
@@ -679,6 +714,27 @@ gtk_entry_real_insert_text (GtkEditable *editable,
 			    gint         new_text_length,
 			    gint        *position)
 {
+#if HAVE_GTKENTRYBUFFER
+  GtkEntry *entry = GTK_ENTRY (editable);
+  GtkEntryBuffer *buffer = gtk_entry_get_buffer (entry);
+
+  guint n_inserted;
+  gint n_chars;
+
+  n_chars = g_utf8_strlen (new_text, new_text_length);
+
+  /*
+   * The actual insertion into the buffer. This will end up firing the
+   * following signal handlers: buffer_inserted_text(), buffer_notify_display_text(),
+   * buffer_notify_text(), buffer_notify_length()
+   */
+  n_inserted = gtk_entry_buffer_insert_text (buffer, *position, new_text, n_chars);
+
+  if (n_inserted != n_chars)
+      gtk_widget_error_bell (GTK_WIDGET (editable));
+
+  *position += n_inserted;
+#else  /* !HAVE_GTKENTRYBUFFER */
   gint index;
   gint n_chars;
 
@@ -746,6 +802,7 @@ gtk_entry_real_insert_text (GtkEditable *editable,
 
   g_signal_emit_by_name (editable, "changed");
   g_object_notify (G_OBJECT (editable), "text");
+#endif  /* !HAVE_GTKENTRYBUFFER */
 }
 
 static void
@@ -753,6 +810,17 @@ gtk_entry_real_delete_text (GtkEditable *editable,
 			    gint         start_pos,
 			    gint         end_pos)
 {
+#ifdef HAVE_GTKENTRYBUFFER
+  GtkEntry *entry = GTK_ENTRY (editable);
+  GtkEntryBuffer *buffer = gtk_entry_get_buffer (entry);
+  /*
+   * The actual deletion from the buffer. This will end up firing the
+   * following signal handlers: buffer_deleted_text(), buffer_notify_display_text(),
+   * buffer_notify_text(), buffer_notify_length()
+   */
+
+  gtk_entry_buffer_delete_text (buffer, start_pos, end_pos - start_pos);
+#else  /* !HAVE_GTKENTRYBUFFER */
   GtkEntry *entry = GTK_ENTRY (editable);
 
   if (start_pos < 0)
@@ -783,6 +851,7 @@ gtk_entry_real_delete_text (GtkEditable *editable,
       g_signal_emit_by_name (editable, "changed");
       g_object_notify (G_OBJECT (editable), "text");
     }
+#endif  /* !HAVE_GTKENTRYBUFFER */
 }
 
 /* Compute the X position for an offset that corresponds to the "more important
@@ -801,7 +870,8 @@ get_better_cursor_x (GtkEntry *entry,
   gboolean split_cursor;
 
   PangoLayout *layout = gtk_entry_ensure_layout (entry, TRUE);
-  gint index = g_utf8_offset_to_pointer (entry->text, offset) - entry->text;
+  const char *text = gtk_entry_get_text (entry);
+  gint index = g_utf8_offset_to_pointer (text, offset) - text;
 
   PangoRectangle strong_pos, weak_pos;
 
@@ -856,7 +926,7 @@ gtk_entry_move_cursor (GtkEntry       *entry,
 	case GTK_MOVEMENT_DISPLAY_LINE_ENDS:
 	case GTK_MOVEMENT_PARAGRAPH_ENDS:
 	case GTK_MOVEMENT_BUFFER_ENDS:
-	  new_pos = count < 0 ? 0 : entry->text_length;
+	  new_pos = count < 0 ? 0 : gtk_entry_get_text_length (entry);
 	  break;
 	case GTK_MOVEMENT_DISPLAY_LINES:
 	case GTK_MOVEMENT_PARAGRAPHS:
@@ -891,7 +961,7 @@ gtk_entry_move_cursor (GtkEntry       *entry,
 	case GTK_MOVEMENT_DISPLAY_LINE_ENDS:
 	case GTK_MOVEMENT_PARAGRAPH_ENDS:
 	case GTK_MOVEMENT_BUFFER_ENDS:
-	  new_pos = count < 0 ? 0 : entry->text_length;
+	  new_pos = count < 0 ? 0 : gtk_entry_get_text_length (entry);
 	  break;
 	case GTK_MOVEMENT_DISPLAY_LINES:
 	case GTK_MOVEMENT_PARAGRAPHS:
@@ -1032,10 +1102,13 @@ static gboolean
 gtk_entry_retrieve_surrounding_cb (GtkIMContext *context,
                                GtkEntry     *entry)
 {
+  const char *text = gtk_entry_get_text (entry);
+  size_t n_bytes = strlen (text);
+
   gtk_im_context_set_surrounding (context,
-                                  entry->text,
-                                  entry->n_bytes,
-                                  g_utf8_offset_to_pointer (entry->text, entry->current_pos) - entry->text);
+                                  text,
+                                  n_bytes,
+                                  g_utf8_offset_to_pointer (text, entry->current_pos) - text);
 
   return TRUE;
 }
@@ -1218,6 +1291,9 @@ gtk_entry_create_layout (GtkEntry *entry,
   gint preedit_length = 0;
   PangoAttrList *preedit_attrs = NULL;
 
+  const char *text = gtk_entry_get_text (entry);
+  size_t n_bytes = strlen (text);
+
   pango_layout_set_single_paragraph_mode (layout, TRUE);
 
   if (include_preedit)
@@ -1231,11 +1307,11 @@ gtk_entry_create_layout (GtkEntry *entry,
     {
       GString *tmp_string = g_string_new (NULL);
 
-      gint cursor_index = g_utf8_offset_to_pointer (entry->text, entry->current_pos) - entry->text;
+      gint cursor_index = g_utf8_offset_to_pointer (text, entry->current_pos) - text;
 
       if (entry->visible)
         {
-          g_string_prepend_len (tmp_string, entry->text, entry->n_bytes);
+          g_string_prepend_len (tmp_string, text, n_bytes);
           g_string_insert (tmp_string, cursor_index, preedit_string);
         }
       else
@@ -1244,7 +1320,7 @@ gtk_entry_create_layout (GtkEntry *entry,
           gint preedit_len_chars;
           gunichar invisible_char;
 
-          ch_len = g_utf8_strlen (entry->text, entry->n_bytes);
+          ch_len = g_utf8_strlen (text, n_bytes);
           preedit_len_chars = g_utf8_strlen (preedit_string, -1);
           ch_len += preedit_len_chars;
 
@@ -1278,7 +1354,7 @@ gtk_entry_create_layout (GtkEntry *entry,
     {
       if (entry->visible)
         {
-          pango_layout_set_text (layout, entry->text, entry->n_bytes);
+          pango_layout_set_text (layout, text, n_bytes);
         }
       else
         {
@@ -1290,7 +1366,7 @@ gtk_entry_create_layout (GtkEntry *entry,
           else
             invisible_char = ' '; /* just pick a char */
 
-          append_char (str, invisible_char, entry->text_length);
+          append_char (str, invisible_char, gtk_entry_get_text_length (entry));
           pango_layout_set_text (layout, str->str, str->len);
           g_string_free (str, TRUE);
         }
@@ -1728,7 +1804,8 @@ gtk_entry_get_cursor_locations (GtkEntry   *entry,
     }
   else /* type == CURSOR_DND */
     {
-      index = g_utf8_offset_to_pointer (entry->text, entry->dnd_position) - entry->text;
+      const char *text = gtk_entry_get_text (entry);
+      index = g_utf8_offset_to_pointer (text, entry->dnd_position) - text;
       if (entry->dnd_position > entry->current_pos)
 	index += entry->preedit_length;
     }
@@ -1803,7 +1880,7 @@ gtk_entry_adjust_scroll (GtkEntry *entry)
         case GTK_JUSTIFY_RIGHT:
 
     /* RIGHT JUSTIFICATION FOR NUMBERS */
-          if(entry->text){
+          if(gtk_entry_get_text (entry)){
 
             entry->scroll_offset=  -(text_area_width - text_width) + 1;
             if(entry->scroll_offset > 0){
@@ -1829,7 +1906,7 @@ gtk_entry_adjust_scroll (GtkEntry *entry)
           break;
         case GTK_JUSTIFY_CENTER:
 
-          if(entry->text){
+          if(gtk_entry_get_text (entry)){
 
             entry->scroll_offset=  -(text_area_width - text_width)/2;
             if(entry->scroll_offset > 0){
@@ -1882,6 +1959,7 @@ gtk_entry_move_visually (GtkEntry *entry,
 
   while (count != 0)
     {
+      const char *text = gtk_entry_get_text (entry);
       int new_index, new_trailing;
       gboolean split_cursor;
       gboolean strong;
@@ -1918,7 +1996,7 @@ gtk_entry_move_visually (GtkEntry *entry,
       index = new_index;
 
       while (new_trailing--)
-	index = g_utf8_next_char (entry->text + new_index) - entry->text;
+	index = g_utf8_next_char (text + new_index) - text;
     }
 
   return g_utf8_pointer_to_offset (text, text + index);
@@ -1929,14 +2007,16 @@ gtk_entry_move_logically (GtkEntry *entry,
 			  gint      start,
 			  gint      count)
 {
+  const char *text = gtk_entry_get_text (entry);
+  guint16 text_length = gtk_entry_get_text_length (entry);
   gint new_pos = start;
 
   /* Prevent any leak of information */
   if (!entry->visible)
     {
-      new_pos = CLAMP (start + count, 0, entry->text_length);
+      new_pos = CLAMP (start + count, 0, text_length);
     }
-  else if (entry->text)
+  else if (text)
     {
       PangoLayout *layout = gtk_entry_ensure_layout (entry, FALSE);
       PangoLogAttr *log_attrs;
@@ -1944,11 +2024,11 @@ gtk_entry_move_logically (GtkEntry *entry,
 
       pango_layout_get_log_attrs (layout, &log_attrs, &n_attrs);
 
-      while (count > 0 && new_pos < entry->text_length)
+      while (count > 0 && new_pos < text_length)
 	{
 	  do
 	    new_pos++;
-	  while (new_pos < entry->text_length && !log_attrs[new_pos].is_cursor_position);
+	  while (new_pos < text_length && !log_attrs[new_pos].is_cursor_position);
 
 	  count--;
 	}
@@ -1971,14 +2051,16 @@ static gint
 gtk_entry_move_forward_word (GtkEntry *entry,
 			     gint      start)
 {
+  const char *text = gtk_entry_get_text (entry);
+  guint16 text_length = gtk_entry_get_text_length (entry);
   gint new_pos = start;
 
   /* Prevent any leak of information */
   if (!entry->visible)
     {
-      new_pos = entry->text_length;
+      new_pos = text_length;
     }
-  else if (entry->text && (new_pos < entry->text_length))
+  else if (text && (new_pos < text_length))
     {
       PangoLayout *layout = gtk_entry_ensure_layout (entry, FALSE);
       PangoLogAttr *log_attrs;
@@ -2009,7 +2091,7 @@ gtk_entry_move_backward_word (GtkEntry *entry,
     {
       new_pos = 0;
     }
-  else if (entry->text && start > 0)
+  else if (gtk_entry_get_text (entry) && start > 0)
     {
       PangoLayout *layout = gtk_entry_ensure_layout (entry, FALSE);
       PangoLogAttr *log_attrs;
@@ -2064,7 +2146,7 @@ gtk_entry_get_public_chars (GtkEntry *entry,
 			    gint      end)
 {
   if (end < 0)
-    end = entry->text_length;
+    end = gtk_entry_get_text_length (entry);
 
   if (entry->visible)
     return gtk_editable_get_chars (GTK_EDITABLE (entry), start, end);
@@ -2174,7 +2256,7 @@ gtk_item_entry_set_text (GtkItemEntry    *entry,
   /* Actually setting the text will affect the cursor and selection;
    * if the contents don't actually change, this will look odd to the user.
    */
-  if (strcmp (GTK_ENTRY(entry)->text, text) == 0)
+  if (strcmp (gtk_entry_get_text (GTK_ENTRY(entry)), text) == 0)
     return;
 
   if (GTK_ENTRY(entry)->recompute_idle){
