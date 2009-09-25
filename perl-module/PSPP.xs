@@ -164,7 +164,11 @@ void
 onBoot (ver)
  const char *ver
 CODE:
- assert (0 == strcmp (ver, bare_version));
+ /* Check that the version is correct up to the length of 'ver'.
+    This allows PSPP autobuilders to add a "-build#" suffix to the
+    PSPP version without causing failures here. */
+ assert (0 == strncmp (ver, bare_version, strlen (ver)));
+
  i18n_init ();
  msg_init (NULL, message_handler);
  settings_init (0, 0);
