@@ -55,7 +55,7 @@ doc/tut.texi:
 
 doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	@$(MKDIR_P)  doc
-	$(MAKEINFO) --docbook -I $(top_srcdir) $< -o $@
+	$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) $< -o $@
 	$(SED) -i -e 's/Time-&-Date/Time-\&amp;-Date/g' $@
 
 docbookdir = $(docdir)
