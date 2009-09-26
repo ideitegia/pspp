@@ -34,6 +34,13 @@ AC_DEFUN([PSPP_PERL],
   if test "$PERL" != no && $PERL -e 'require 5.005_03;'; then :; else
     PSPP_REQUIRED_PREREQ([Perl 5.005_03 (or later)])
   fi
+
+  # The PSPP autobuilder appends a build number to the PSPP version number,
+  # e.g. "0.7.2-build40".  But Perl won't parse version numbers that contain
+  # anything other than digits and periods, so "-build" causes an error.  So we
+  # define $(VERSION_FOR_PERL) that drops everything from the hyphen onward.
+  VERSION_FOR_PERL=`echo "$VERSION" | sed 's/-.*//'`
+  AC_SUBST([VERSION_FOR_PERL])
 ])
 
 dnl Check that libplot is available.

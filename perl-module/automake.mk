@@ -28,7 +28,7 @@ perl-module/pspp-module-config: Makefile
 perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
-perl-module/PSPP-Perl-$(VERSION).tar.gz: $(module_sources)
+perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources)
 	$(RM) $@
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
@@ -47,7 +47,7 @@ perl_module_tarball:
 	  fi ; \
 	 done \
 	fi
-	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION).tar.gz
+	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz
 
 ALL_LOCAL += perl_module_tarball
 
@@ -66,7 +66,7 @@ perl_module_CLEAN:
 CLEAN_LOCAL += perl_module_CLEAN
 
 CLEANFILES += \
-        perl-module/PSPP-Perl-$(VERSION).tar.gz \
+        perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz \
 	perl-module/pspp-module-config \
 	perl-module/const-c.inc \
 	perl-module/const-xs.inc 
