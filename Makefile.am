@@ -87,3 +87,6 @@ uninstall-hook: $(UNINSTALL_DATA_HOOKS)
 
 clean-local: $(CLEAN_LOCAL)
 all-local: $(ALL_LOCAL)
+
+# A convenience target to build all the binaries
+programs: $(PROGRAMS)
