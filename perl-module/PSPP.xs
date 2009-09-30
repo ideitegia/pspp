@@ -17,11 +17,11 @@
    02110-1301, USA. */
 
 
+#include <config.h>
+
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
-
-#include <config.h>
 
 #include "ppport.h"
 
