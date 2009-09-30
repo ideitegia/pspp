@@ -16,14 +16,12 @@ module_sources = \
  perl-module/t/Pspp.t
 
 perl-module/pspp-module-config: Makefile
-	target=`mktemp`;\
-	echo '%Locations = (' > $$target ;\
-	printf "  SourceDir => '" >> $$target ;\
-	(cd $(top_srcdir) && echo `pwd`\', ) >> $$target ;\
-	printf "  BuildDir => '" >> $$target ;\
-	(cd $(top_builddir) && echo `pwd`\' ) >> $$target ;\
-	echo ');' >> $$target ;\
-	cp $$target $(top_builddir)/perl-module/pspp-module-config
+	(echo '%Locations = (';\
+	 printf "  SourceDir => '";\
+	 (cd $(top_srcdir) && echo `pwd`\', ) ;\
+	 printf "  BuildDir => '";\
+	 (cd $(top_builddir) && echo `pwd`\' );\
+	 echo ');') > $(top_builddir)/perl-module/pspp-module-config
 
 perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
