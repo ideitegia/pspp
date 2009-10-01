@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
    non-`NULL' pointer it returns cannot alias any other pointer
    valid when the function returns. */
 #if __GNUC__ > 2
-#define MALLOC_LIKE ATTRIBUTE ((malloc))
+#define MALLOC_LIKE ATTRIBUTE ((__malloc__))
 #else
 #define MALLOC_LIKE
 #endif
