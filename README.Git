@@ -42,7 +42,7 @@ PSPP will not work with older or newer versions of Gnulib.
 
 To clone Gnulib into a directory named "gnulib" using Git, and then
 check out this particular commit, run these commands:
-	git://git.savannah.gnu.org/gnulib.git gnulib
+	git clone git://git.savannah.gnu.org/gnulib.git gnulib
 	cd gnulib
 	git checkout $COMMIT
 where $COMMIT should be replaced by the commit number listed above
