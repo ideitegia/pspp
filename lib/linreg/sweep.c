@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2005 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@
   Numerical Linear Algebra for Applications in Statistics. JE Gentle.
   Springer. 1998. ISBN 0-387-98542-5.
  */
+
+#include <config.h>
 
 #include "sweep.h"
 
