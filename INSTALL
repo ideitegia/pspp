@@ -33,6 +33,10 @@ The following packages are required to install PSPP:
       If you don't have a version already, you can install GNU
       libiconv (http://www.gnu.org/software/libiconv/).
 
+    * GNU make (http://www.gnu.org/software/make).  Version 3.81 is
+      known to work; other versions will likely work too.  Non-GNU
+      "make" programs will probably not work.
+
 The following package is required to enable PSPP's graphing features.
 If you cannot arrange to install it, you must run `configure' with
 --without-libplot.
@@ -140,7 +144,9 @@ release.
      `configure', additional features will be available in your PSPP
      installation.
 
-  2. Type `make' to compile the package.
+  2. Type `make' to compile the package.  (If GNU make is installed
+     under a different program name, e.g. "gmake", run that program
+     instead in this step and in the following steps as well.)
 
   3. Optionally, type `make check' to run the self-tests that come
      with the package.  If any of the self-tests fail, please mail
