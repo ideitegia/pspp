@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <math/covariance.h>
 #include <math/design-matrix.h>
 #include <gsl/gsl_matrix.h>
 #include <data/casegrouper.h>
@@ -31,6 +32,7 @@
 #include <output/table.h>
 #include <libpspp/message.h>
 #include <data/format.h>
+#include <math/moments.h>
 
 #include <math.h>
 #include "xalloc.h"
@@ -42,29 +44,6 @@
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
 
-/* Returns the correlation matrix corresponding to the covariance
-matrix COV.  The return value must be freed with gsl_matrix_free
-when no longer required.
-*/
-static gsl_matrix *
-covariance_to_correlation (const gsl_matrix *cov)
-{
-  size_t r, c;
-  gsl_matrix *corr = gsl_matrix_alloc (cov->size1, cov->size2);
-
-  for (r = 0 ; r < cov->size1; ++r)
-    {
-      for (c = 0 ; c < cov->size2 ; ++c)
-	{
-	  double x = gsl_matrix_get (cov, r, c);
-	  x /= sqrt (gsl_matrix_get (cov, r, r)
-	    * gsl_matrix_get (cov, c, c) );
-	  gsl_matrix_set (corr, r, c, x);
-	}
-    }
-
-  return corr;
-}
 
 static double
 significance_of_correlation (double rho, double w)
@@ -205,28 +184,70 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
   tab_submit (t);
 }
 
+
+static gsl_matrix *
+correlation_from_covariance (const gsl_matrix *cv, const gsl_matrix *v)
+{
+  size_t i, j;
+  gsl_matrix *corr = gsl_matrix_calloc (cv->size1, cv->size2);
+  
+  for (i = 0 ; i < cv->size1; ++i)
+    {
+      for (j = 0 ; j < cv->size2; ++j)
+	{
+	  double rho = gsl_matrix_get (cv, i, j);
+	  
+	  rho /= sqrt (gsl_matrix_get (v, i, j))
+	    * 
+	    sqrt (gsl_matrix_get (v, j, i));
+	  
+	  gsl_matrix_set (corr, i, j, rho);
+	}
+    }
+  
+  return corr;
+}
+
+
+
+
 static void
 run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr *corr)
 {
   struct ccase *c;
-  const struct design_matrix *cov_matrix;
+  const gsl_matrix *var_matrix;
   const gsl_matrix *samples_matrix;
+  const gsl_matrix *cov_matrix;
+  gsl_matrix *corr_matrix;
+  struct covariance *cov = covariance_create (corr->n_vars_total, corr->vars,
+					      opts->wv, opts->exclude);
 
   for ( ; (c = casereader_read (r) ); case_unref (c))
     {
-
+      covariance_accumulate (cov, c);
     }
 
+  cov_matrix = covariance_calculate (cov);
+
+  samples_matrix = covariance_moments (cov, MOMENT_NONE);
+  var_matrix = covariance_moments (cov, MOMENT_VARIANCE);
+
+  corr_matrix = correlation_from_covariance (cov_matrix, var_matrix);
 
   output_correlation (corr, opts,
-		      covariance_to_correlation (cov_matrix->m),
+		      corr_matrix,
 		      samples_matrix );
+
+  covariance_destroy (cov);
+  gsl_matrix_free (corr_matrix);
 }
 
 int
 cmd_correlation (struct lexer *lexer, struct dataset *ds)
 {
+  int i;
   int n_all_vars = 0; /* Total number of variables involved in this command */
+  const struct variable **all_vars ;
   const struct dictionary *dict = dataset_dict (ds);
   bool ok = true;
 
@@ -336,8 +357,7 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
     }
 
 
-  const struct variable **all_vars = xmalloc (sizeof (*all_vars) * n_all_vars);
-  int i;
+  all_vars = xmalloc (sizeof (*all_vars) * n_all_vars);
 
   {
     /* FIXME:  Using a hash here would make more sense */
@@ -364,6 +384,7 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
 	  if ( opts.missing_type == CORR_LISTWISE)
 	    r = casereader_create_filter_missing (r, all_vars, n_all_vars,
 						  opts.exclude, NULL, NULL);
+
 
 	  run_corr (r, &opts,  &corr[i]);
 	  casereader_destroy (r);
