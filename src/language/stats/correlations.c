@@ -1,0 +1,387 @@
+/* PSPP - a program for statistical analysis.
+   Copyright (C) 2009 Free Software Foundation, Inc.
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+#include <config.h>
+
+#include <math/design-matrix.h>
+#include <gsl/gsl_matrix.h>
+#include <data/casegrouper.h>
+#include <data/casereader.h>
+#include <data/dictionary.h>
+#include <data/procedure.h>
+#include <data/variable.h>
+#include <language/command.h>
+#include <language/dictionary/split-file.h>
+#include <language/lexer/lexer.h>
+#include <language/lexer/variable-parser.h>
+#include <output/manager.h>
+#include <output/table.h>
+#include <libpspp/message.h>
+#include <data/format.h>
+
+#include <math.h>
+#include "xalloc.h"
+#include "minmax.h"
+#include <libpspp/misc.h>
+#include <gsl/gsl_cdf.h>
+
+#include "gettext.h"
+#define _(msgid) gettext (msgid)
+#define N_(msgid) msgid
+
+/* Returns the correlation matrix corresponding to the covariance
+matrix COV.  The return value must be freed with gsl_matrix_free
+when no longer required.
+*/
+static gsl_matrix *
+covariance_to_correlation (const gsl_matrix *cov)
+{
+  size_t r, c;
+  gsl_matrix *corr = gsl_matrix_alloc (cov->size1, cov->size2);
+
+  for (r = 0 ; r < cov->size1; ++r)
+    {
+      for (c = 0 ; c < cov->size2 ; ++c)
+	{
+	  double x = gsl_matrix_get (cov, r, c);
+	  x /= sqrt (gsl_matrix_get (cov, r, r)
+	    * gsl_matrix_get (cov, c, c) );
+	  gsl_matrix_set (corr, r, c, x);
+	}
+    }
+
+  return corr;
+}
+
+static double
+significance_of_correlation (double rho, double w)
+{
+  double t = w - 2;
+  t /= 1 - MIN (1, pow2 (rho));
+  t = sqrt (t);
+  t *= rho;
+  
+  if (t > 0)
+    return  gsl_cdf_tdist_Q (t, w - 2);
+  else
+    return  gsl_cdf_tdist_P (t, w - 2);
+}
+
+
+struct corr
+{
+  size_t n_vars_total;
+  size_t n_vars1;
+
+  const struct variable **vars;
+};
+
+
+/* Handling of missing values. */
+enum corr_missing_type
+  {
+    CORR_PAIRWISE,       /* Handle missing values on a per-variable-pair basis. */
+    CORR_LISTWISE        /* Discard entire case if any variable is missing. */
+  };
+
+struct corr_opts
+{
+  enum corr_missing_type missing_type;
+  enum mv_class exclude;      /* Classes of missing values to exclude. */
+
+  bool sig;   /* Flag significant values or not */
+  int tails;  /* Report significance with how many tails ? */
+
+  const struct variable *wv;  /* The weight variable (if any) */
+};
+
+
+static void
+output_correlation (const struct corr *corr, const struct corr_opts *opts,
+		    const gsl_matrix *cm, const gsl_matrix *samples)
+{
+  int r, c;
+  struct tab_table *t;
+  int matrix_cols;
+  int nr = corr->n_vars1;
+  int nc = matrix_cols = corr->n_vars_total > corr->n_vars1 ?
+    corr->n_vars_total - corr->n_vars1 : corr->n_vars1;
+
+  const struct fmt_spec *wfmt = opts->wv ? var_get_print_format (opts->wv) : & F_8_0;
+
+  const int heading_columns = 2;
+  const int heading_rows = 1;
+
+  const int rows_per_variable = opts->missing_type == CORR_LISTWISE ? 2 : 3;
+
+  /* Two header columns */
+  nc += heading_columns;
+
+  /* Three data per variable */
+  nr *= rows_per_variable;
+
+  /* One header row */
+  nr += heading_rows;
+
+  t = tab_create (nc, nr, 0);
+  tab_title (t, _("Correlations"));
+  tab_dim (t, tab_natural_dimensions, NULL);
+
+  tab_headers (t, heading_columns, 0, heading_rows, 0);
+
+  /* Outline the box */
+  tab_box (t,
+	   TAL_2, TAL_2,
+	   -1, -1,
+	   0, 0,
+	   nc - 1, nr - 1);
+
+  /* Vertical lines */
+  tab_box (t,
+	   -1, -1,
+	   -1, TAL_1,
+	   heading_columns, 0,
+	   nc - 1, nr - 1);
+
+  tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
+  tab_vline (t, TAL_1, 1, heading_rows, nr - 1);
+
+  for (r = 0 ; r < corr->n_vars1 ; ++r)
+    {
+      tab_text (t, 0, 1 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, 
+		var_to_string (corr->vars[r]));
+
+      tab_text (t, 1, 1 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, _("Pearson Correlation"));
+      tab_text (t, 1, 2 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, 
+		(opts->tails == 2) ? _("Sig. (2-tailed)") : _("Sig. (1-tailed)"));
+      if ( opts->missing_type != CORR_LISTWISE )
+	tab_text (t, 1, 3 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, _("N"));
+      tab_hline (t, TAL_1, 0, nc - 1, r * rows_per_variable + 1);
+    }
+
+  for (c = 0 ; c < matrix_cols ; ++c)
+    {
+      const struct variable *v = corr->n_vars_total > corr->n_vars1 ? corr->vars[corr->n_vars_total - corr->n_vars1 + c] : corr->vars[c];
+      tab_text (t, heading_columns + c, 0, TAB_LEFT | TAT_TITLE, var_to_string (v));      
+    }
+
+  for (r = 0 ; r < corr->n_vars1 ; ++r)
+    {
+      const int row = r * rows_per_variable + heading_rows;
+      for (c = 0 ; c < matrix_cols ; ++c)
+	{
+	  unsigned char flags = 0; 
+	  int col_index = corr->n_vars_total - corr->n_vars1 + c;
+	  double pearson = gsl_matrix_get (cm, r, col_index);
+	  double w = gsl_matrix_get (samples, r, col_index);
+	  double sig = opts->tails * significance_of_correlation (pearson, w);
+
+	  if ( opts->missing_type != CORR_LISTWISE )
+	    tab_double (t, c + heading_columns, row + 2, 0, w, wfmt);
+
+	  if ( c != r)
+	    tab_double (t, c + heading_columns, row + 1, 0,  sig, NULL);
+
+	  if ( opts->sig && c != r && sig < 0.05)
+	    flags = TAB_EMPH;
+	  
+	  tab_double (t, c + heading_columns, row, flags, pearson, NULL);
+	}
+    }
+
+  tab_submit (t);
+}
+
+static void
+run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr *corr)
+{
+  struct ccase *c;
+  const struct design_matrix *cov_matrix;
+  const gsl_matrix *samples_matrix;
+
+  for ( ; (c = casereader_read (r) ); case_unref (c))
+    {
+
+    }
+
+
+  output_correlation (corr, opts,
+		      covariance_to_correlation (cov_matrix->m),
+		      samples_matrix );
+}
+
+int
+cmd_correlation (struct lexer *lexer, struct dataset *ds)
+{
+  int n_all_vars = 0; /* Total number of variables involved in this command */
+  const struct dictionary *dict = dataset_dict (ds);
+  bool ok = true;
+
+  struct casegrouper *grouper;
+  struct casereader *group;
+
+  struct corr *corr = NULL;
+  size_t n_corrs = 0;
+
+  struct corr_opts opts;
+  opts.missing_type = CORR_PAIRWISE;
+  opts.wv = dict_get_weight (dict);
+  opts.tails = 2;
+  opts.sig = false;
+  opts.exclude = MV_ANY;
+
+  /* Parse CORRELATIONS. */
+  while (lex_token (lexer) != '.')
+    {
+      lex_match (lexer, '/');
+      if (lex_match_id (lexer, "MISSING"))
+        {
+          lex_match (lexer, '=');
+          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+            {
+              if (lex_match_id (lexer, "PAIRWISE"))
+                opts.missing_type = CORR_PAIRWISE;
+              else if (lex_match_id (lexer, "LISTWISE"))
+                opts.missing_type = CORR_LISTWISE;
+
+              else if (lex_match_id (lexer, "INCLUDE"))
+                opts.exclude = MV_SYSTEM;
+              else if (lex_match_id (lexer, "EXCLUDE"))
+		opts.exclude = MV_ANY;
+              else
+                {
+                  lex_error (lexer, NULL);
+                  goto error;
+                }
+              lex_match (lexer, ',');
+            }
+        }
+      else if (lex_match_id (lexer, "PRINT"))
+	{
+          lex_match (lexer, '=');
+          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+	    {
+	      if ( lex_match_id (lexer, "TWOTAIL"))
+		opts.tails = 2;
+	      else if (lex_match_id (lexer, "ONETAIL"))
+		opts.tails = 1;
+	      else if (lex_match_id (lexer, "SIG"))
+		opts.sig = false;
+	      else if (lex_match_id (lexer, "NOSIG"))
+		opts.sig = true;
+	      else
+		{
+		  lex_error (lexer, NULL);
+		  goto error;
+		}
+
+              lex_match (lexer, ',');
+	    }
+	}
+      else
+	{
+	  if (lex_match_id (lexer, "VARIABLES"))
+	    {
+	      lex_match (lexer, '=');
+	    }
+
+	  corr = xrealloc (corr, sizeof (*corr) * (n_corrs + 1));
+	  corr[n_corrs].n_vars_total = corr[n_corrs].n_vars1 = 0;
+      
+	  if ( ! parse_variables_const (lexer, dict, &corr[n_corrs].vars, 
+					&corr[n_corrs].n_vars_total,
+					PV_NUMERIC))
+	    {
+	      ok = false;
+	      break;
+	    }
+
+
+	  corr[n_corrs].n_vars1 = corr[n_corrs].n_vars_total;
+
+	  if ( lex_match (lexer, T_WITH))
+	    {
+	      if ( ! parse_variables_const (lexer, dict,
+					    &corr[n_corrs].vars, &corr[n_corrs].n_vars_total,
+					    PV_NUMERIC | PV_APPEND))
+		{
+		  ok = false;
+		  break;
+		}
+	    }
+
+	  n_all_vars += corr[n_corrs].n_vars_total;
+
+	  n_corrs++;
+	}
+    }
+
+  if (n_corrs == 0)
+    {
+      msg (SE, _("No variables specified."));
+      goto error;
+    }
+
+
+  const struct variable **all_vars = xmalloc (sizeof (*all_vars) * n_all_vars);
+  int i;
+
+  {
+    /* FIXME:  Using a hash here would make more sense */
+    const struct variable **vv = all_vars;
+
+    for (i = 0 ; i < n_corrs; ++i)
+      {
+	int v;
+	const struct corr *c = &corr[i];
+	for (v = 0 ; v < c->n_vars_total; ++v)
+	  *vv++ = c->vars[v];
+      }
+  }
+
+  grouper = casegrouper_create_splits (proc_open (ds), dict);
+
+  while (casegrouper_get_next_group (grouper, &group))
+    {
+      for (i = 0 ; i < n_corrs; ++i)
+	{
+	  /* FIXME: No need to iterate the data multiple times */
+	  struct casereader *r = casereader_clone (group);
+
+	  if ( opts.missing_type == CORR_LISTWISE)
+	    r = casereader_create_filter_missing (r, all_vars, n_all_vars,
+						  opts.exclude, NULL, NULL);
+
+	  run_corr (r, &opts,  &corr[i]);
+	  casereader_destroy (r);
+	}
+      casereader_destroy (group);
+    }
+
+  ok = casegrouper_destroy (grouper);
+  ok = proc_commit (ds) && ok;
+
+  free (all_vars);
+
+
+  /* Done. */
+  free (corr);
+  return ok ? CMD_SUCCESS : CMD_CASCADING_FAILURE;
+
+ error:
+  free (corr);
+  return CMD_FAILURE;
+}
