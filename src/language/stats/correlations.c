@@ -432,8 +432,11 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
 		opts.statistics = STATS_DESCRIPTIVES;
 	      else if (lex_match_id (lexer, "XPROD"))
 		opts.statistics = STATS_XPROD;
-	      else if (lex_match_id (lexer, "ALL"))
-		opts.statistics = STATS_ALL;
+	      else if (lex_token (lexer) == T_ALL)
+		{
+		  opts.statistics = STATS_ALL;
+		  lex_get (lexer);
+		}
 	      else 
 		{
 		  lex_error (lexer, NULL);
