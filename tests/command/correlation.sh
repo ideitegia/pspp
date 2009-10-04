@@ -57,7 +57,7 @@ mkdir -p $TEMPDIR
 
 cd $TEMPDIR
 
-activity="create program"
+activity="create program 1"
 cat << EOF > $TESTFILE
 set format = F11.3.
 data list notable list /foo * bar * wiz * bang *.
@@ -93,13 +93,12 @@ EOF
 if [ $? -ne 0 ] ; then no_result ; fi
 
 
-activity="run program"
+activity="run program 1"
 $SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
-activity="compare results"
+activity="compare results 1"
 perl -pi -e 's/^\s*$//g' $TEMPDIR/pspp.list
-cp $TEMPDIR/pspp.list /tmp
 diff -b  $TEMPDIR/pspp.list - << EOF
 1.1 CORRELATIONS.  Correlations
 #========================#=====#=====#=====#=====#
@@ -148,6 +147,75 @@ diff -b  $TEMPDIR/pspp.list - << EOF
 #    |N                  #    6|    7|    7|    7#
 #====#===================#=====#=====#=====#=====#
 EOF
+if [ $? -ne 0 ] ; then fail ; fi
+
+
+# Now test that weights are properly handled.
+
+activity="create program 2"
+cat << EOF > $TESTFILE
+set format = F11.3.
+data list notable list /foo * bar * wiz * bang * w *.
+begin data.
+1   0   3   1  1
+3   9 -50   5  2
+3   4   3 203  1
+4  -9   0  -4  1
+98 78 104   2  3
+3  50 -49 200  1
+end data.
+
+weight by w.
+
+correlations 
+	variables = foo bar wiz bang
+	/statistics=descriptives xprod
+	.
+
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+
+activity="run program 2"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="copy results"
+cp $TEMPDIR/pspp.list $TEMPDIR/weighted
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="create program 3"
+cat << EOF > $TESTFILE
+set format = F11.3.
+data list notable list /foo * bar * wiz * bang * w *.
+begin data.
+1   0   3   1  1
+3   9 -50   5  1
+3   9 -50   5  1
+3   4   3 203  1
+4  -9   0  -4  1
+98 78 104   2  1
+98 78 104   2  1
+98 78 104   2  1
+3  50 -49 200  1
+end data.
+
+weight by w.
+
+correlations 
+	variables = foo bar wiz bang
+	/statistics=descriptives xprod
+	.
+
+EOF
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="run program 3"
+$SUPERVISOR $PSPP --testing-mode -o raw-ascii $TESTFILE
+if [ $? -ne 0 ] ; then no_result ; fi
+
+activity="Compare weighted and unweighted results"
+diff $TEMPDIR/pspp.list $TEMPDIR/weighted
 if [ $? -ne 0 ] ; then fail ; fi
 
 pass;

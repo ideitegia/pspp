@@ -153,7 +153,7 @@ covariance_accumulate (struct covariance *cov, const struct ccase *c)
 	  idx = cm_idx (cov, i, j);
 	  if (idx >= 0)
 	    {
-	      cov->cm [idx] += val1->f * val2->f;
+	      cov->cm [idx] += val1->f * val2->f * weight;
 	    }
 
 	  for (m = 0 ; m < n_MOMENTS; ++m)
