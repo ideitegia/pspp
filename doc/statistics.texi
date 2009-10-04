@@ -318,6 +318,7 @@ CORRELATIONS
      ]
 
      [ /PRINT=@{TWOTAIL, ONETAIL@} @{SIG, NOSIG@} ]
+     [ /STATISTICS=DESCRIPTIVES XPROD ALL]
      [ /MISSING=@{PAIRWISE, LISTWISE@} @{INCLUDE, EXCLUDE@} ]
 @end display    
 
@@ -355,7 +356,15 @@ If the NOSIG option is specified, then correlation coefficients with significanc
 0.05 are highlighted.
 If SIG is specified, then no highlighting is performed.  This is the default.
 
-
+@cindex covariance
+The STATISTICS subcommand requests additional statistics to be displayed.  The keyword 
+DESCRIPTIVES requests that the mean, number of non-missing cases, and the non-biased
+estimator of the standard deviation are displayed.
+These statistics will be displayed in a separated table, for all the variables listed
+in any /VARIABLES subcommand.
+The XPROD keyword requests cross-product deviations and covariance estimators to 
+be displayed for each pair of variables.
+The keyword ALL is the union of DESCRIPTIVES and XPROD.
 
 @node CROSSTABS
 @section CROSSTABS
