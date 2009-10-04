@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <libpspp/assertion.h>
 #include <math/covariance.h>
 #include <math/design-matrix.h>
 #include <gsl/gsl_matrix.h>
@@ -76,6 +77,13 @@ enum corr_missing_type
     CORR_LISTWISE        /* Discard entire case if any variable is missing. */
   };
 
+enum stats_opts
+  {
+    STATS_DESCRIPTIVES = 0x01,
+    STATS_XPROD = 0x02,
+    STATS_ALL = STATS_XPROD | STATS_DESCRIPTIVES
+  };
+
 struct corr_opts
 {
   enum corr_missing_type missing_type;
@@ -83,10 +91,86 @@ struct corr_opts
 
   bool sig;   /* Flag significant values or not */
   int tails;  /* Report significance with how many tails ? */
+  enum stats_opts statistics;
 
   const struct variable *wv;  /* The weight variable (if any) */
 };
 
+
+static void
+output_descriptives (const struct corr *corr, const gsl_matrix *means,
+		     const gsl_matrix *vars, const gsl_matrix *ns)
+{
+  const int nr = corr->n_vars_total + 1;
+  const int nc = 4;
+  int c, r;
+
+  const int heading_columns = 1;
+  const int heading_rows = 1;
+
+  struct tab_table *t = tab_create (nc, nr, 0);
+  tab_title (t, _("Descriptive Statistics"));
+  tab_dim (t, tab_natural_dimensions, NULL);
+
+  tab_headers (t, heading_columns, 0, heading_rows, 0);
+
+  /* Outline the box */
+  tab_box (t,
+	   TAL_2, TAL_2,
+	   -1, -1,
+	   0, 0,
+	   nc - 1, nr - 1);
+
+  /* Vertical lines */
+  tab_box (t,
+	   -1, -1,
+	   -1, TAL_1,
+	   heading_columns, 0,
+	   nc - 1, nr - 1);
+
+  tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
+  tab_hline (t, TAL_1, 0, nc - 1, heading_rows);
+
+  tab_text (t, 1, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
+  tab_text (t, 2, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
+  tab_text (t, 3, 0, TAB_CENTER | TAT_TITLE, _("N"));
+
+  for (r = 0 ; r < corr->n_vars_total ; ++r)
+    {
+      const struct variable *v = corr->vars[r];
+      tab_text (t, 0, r + heading_rows, TAB_LEFT | TAT_TITLE, var_to_string (v));
+
+      for (c = 1 ; c < nc ; ++c)
+	{
+	  double x ;
+	  double n;
+	  switch (c)
+	    {
+	    case 1:
+	      x = gsl_matrix_get (means, r, 0);
+	      break;
+	    case 2:
+	      x = gsl_matrix_get (vars, r, 0);
+
+	      /* Here we want to display the non-biased estimator */
+	      n = gsl_matrix_get (ns, r, 0);
+	      x *= n / (n -1);
+
+	      x = sqrt (x);
+	      break;
+	    case 3:
+	      x = gsl_matrix_get (ns, r, 0);
+	      break;
+	    default: 
+	      NOT_REACHED ();
+	    };
+	  
+	  tab_double (t, c, r + heading_rows, 0, x, NULL);
+	}
+    }
+
+  tab_submit (t);
+}
 
 static void
 output_correlation (const struct corr *corr, const struct corr_opts *opts,
@@ -215,8 +299,7 @@ static void
 run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr *corr)
 {
   struct ccase *c;
-  const gsl_matrix *var_matrix;
-  const gsl_matrix *samples_matrix;
+  const gsl_matrix *var_matrix,  *samples_matrix, *mean_matrix;
   const gsl_matrix *cov_matrix;
   gsl_matrix *corr_matrix;
   struct covariance *cov = covariance_create (corr->n_vars_total, corr->vars,
@@ -231,8 +314,12 @@ run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr 
 
   samples_matrix = covariance_moments (cov, MOMENT_NONE);
   var_matrix = covariance_moments (cov, MOMENT_VARIANCE);
+  mean_matrix = covariance_moments (cov, MOMENT_MEAN);
 
   corr_matrix = correlation_from_covariance (cov_matrix, var_matrix);
+
+  if ( opts->statistics & STATS_DESCRIPTIVES) 
+    output_descriptives (corr, mean_matrix, var_matrix, samples_matrix);
 
   output_correlation (corr, opts,
 		      corr_matrix,
@@ -263,6 +350,7 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
   opts.tails = 2;
   opts.sig = false;
   opts.exclude = MV_ANY;
+  opts.statistics = 0;
 
   /* Parse CORRELATIONS. */
   while (lex_token (lexer) != '.')
@@ -308,6 +396,21 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
 		  lex_error (lexer, NULL);
 		  goto error;
 		}
+
+              lex_match (lexer, ',');
+	    }
+	}
+      else if (lex_match_id (lexer, "STATISTICS"))
+	{
+	  lex_match (lexer, '=');
+          while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
+	    {
+	      if ( lex_match_id (lexer, "DESCRIPTIVES"))
+		opts.statistics = STATS_DESCRIPTIVES;
+	      else if (lex_match_id (lexer, "XPROD"))
+		opts.statistics = STATS_XPROD;
+	      else
+		opts.statistics = STATS_ALL;
 
               lex_match (lexer, ',');
 	    }
