@@ -174,7 +174,8 @@ output_descriptives (const struct corr *corr, const gsl_matrix *means,
 
 static void
 output_correlation (const struct corr *corr, const struct corr_opts *opts,
-		    const gsl_matrix *cm, const gsl_matrix *samples)
+		    const gsl_matrix *cm, const gsl_matrix *samples,
+		    const gsl_matrix *cv)
 {
   int r, c;
   struct tab_table *t;
@@ -188,7 +189,10 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
   const int heading_columns = 2;
   const int heading_rows = 1;
 
-  const int rows_per_variable = opts->missing_type == CORR_LISTWISE ? 2 : 3;
+  int rows_per_variable = opts->missing_type == CORR_LISTWISE ? 2 : 3;
+
+  if (opts->statistics & STATS_XPROD)
+    rows_per_variable += 2;
 
   /* Two header columns */
   nc += heading_columns;
@@ -230,8 +234,16 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
       tab_text (t, 1, 1 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, _("Pearson Correlation"));
       tab_text (t, 1, 2 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, 
 		(opts->tails == 2) ? _("Sig. (2-tailed)") : _("Sig. (1-tailed)"));
+
+      if (opts->statistics & STATS_XPROD)
+	{
+	  tab_text (t, 1, 3 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, _("Cross-products"));
+	  tab_text (t, 1, 4 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, _("Covariance"));
+	}
+
       if ( opts->missing_type != CORR_LISTWISE )
-	tab_text (t, 1, 3 + r * rows_per_variable, TAB_LEFT | TAT_TITLE, _("N"));
+	tab_text (t, 1, rows_per_variable + r * rows_per_variable, TAB_LEFT | TAT_TITLE, _("N"));
+
       tab_hline (t, TAL_1, 0, nc - 1, r * rows_per_variable + 1);
     }
 
@@ -247,13 +259,13 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
       for (c = 0 ; c < matrix_cols ; ++c)
 	{
 	  unsigned char flags = 0; 
-	  int col_index = corr->n_vars_total - corr->n_vars1 + c;
+	  const int col_index = corr->n_vars_total - corr->n_vars1 + c;
 	  double pearson = gsl_matrix_get (cm, r, col_index);
 	  double w = gsl_matrix_get (samples, r, col_index);
 	  double sig = opts->tails * significance_of_correlation (pearson, w);
 
 	  if ( opts->missing_type != CORR_LISTWISE )
-	    tab_double (t, c + heading_columns, row + 2, 0, w, wfmt);
+	    tab_double (t, c + heading_columns, row + rows_per_variable - 1, 0, w, wfmt);
 
 	  if ( c != r)
 	    tab_double (t, c + heading_columns, row + 1, 0,  sig, NULL);
@@ -262,6 +274,16 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 	    flags = TAB_EMPH;
 	  
 	  tab_double (t, c + heading_columns, row, flags, pearson, NULL);
+
+	  if (opts->statistics & STATS_XPROD)
+	    {
+	      double cov = gsl_matrix_get (cv, r, col_index);
+	      const double xprod_dev = cov * w;
+	      cov *= w / (w - 1.0);
+
+	      tab_double (t, c + heading_columns, row + 2, 0, xprod_dev, NULL);
+	      tab_double (t, c + heading_columns, row + 3, 0, cov, NULL);
+	    }
 	}
     }
 
@@ -323,7 +345,8 @@ run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr 
 
   output_correlation (corr, opts,
 		      corr_matrix,
-		      samples_matrix );
+		      samples_matrix,
+		      cov_matrix);
 
   covariance_destroy (cov);
   gsl_matrix_free (corr_matrix);
@@ -409,8 +432,13 @@ cmd_correlation (struct lexer *lexer, struct dataset *ds)
 		opts.statistics = STATS_DESCRIPTIVES;
 	      else if (lex_match_id (lexer, "XPROD"))
 		opts.statistics = STATS_XPROD;
-	      else
+	      else if (lex_match_id (lexer, "ALL"))
 		opts.statistics = STATS_ALL;
+	      else 
+		{
+		  lex_error (lexer, NULL);
+		  goto error;
+		}
 
               lex_match (lexer, ',');
 	    }
