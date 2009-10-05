@@ -1000,5 +1000,12 @@ main (void)
 
   putchar ('\n');
 
+#if __GNUC__ == 4 && __GNUC_MINOR__ == 3
+  /* We skipped some of the tests, so return a value that
+     Automake will interpret as "skipped", instead of one that
+     means success. */
+  return 77;
+#else
   return 0;
+#endif
 }
