@@ -95,7 +95,53 @@ int cmd_glm (struct lexer *lexer, struct dataset *ds);
 static bool run_glm (struct casereader *,
 		     struct cmd_glm *,
 		     const struct dataset *);
+/*
+  If the DESIGN subcommand was not specified, specify all possible
+  two-way interactions.
+ */
+static void
+check_interactions (struct dataset *ds, struct cmd_glm *cmd)
+{
+  size_t i;
+  size_t j;
+  size_t k = 0;
+  struct variable **interaction_vars;
 
+  /* 
+     User did not specify the design matrix, so we 
+     specify it here.
+  */
+  n_inter = (cmd->n_by + cmd->n_with) * (cmd->n_by + cmd->n_with - 1) / 2;
+  interactions = xnmalloc (n_inter, sizeof (*interactions));
+  interaction_vars = xnmalloc (2, sizeof (*interaction_vars));
+  for (i = 0; i < cmd->n_by; i++)
+    {
+      for (j = i + 1; j < cmd->n_by; j++)
+	{
+	  interaction_vars[0] = cmd->v_by[i];
+	  interaction_vars[1] = cmd->v_by[j];
+	  interactions[k] = interaction_variable_create (interaction_vars, 2);
+	  k++;
+	}
+      for (j = 0; j < cmd->n_with; j++)
+	{
+	  interaction_vars[0] = cmd->v_by[i];
+	  interaction_vars[1] = cmd->v_with[j];
+	  interactions[k] = interaction_variable_create (interaction_vars, 2);
+	  k++;
+	}
+    }
+  for (i = 0; i < cmd->n_with; i++)
+    {
+      for (j = i + 1; j < cmd->n_with; j++)
+	{
+	  interaction_vars[0] = cmd->v_with[i];
+	  interaction_vars[1] = cmd->v_with[j];
+	  interactions[k] = interaction_variable_create (interaction_vars, 2);
+	  k++;
+	}
+    }
+}
 int
 cmd_glm (struct lexer *lexer, struct dataset *ds)
 {
@@ -107,7 +153,11 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   if (!parse_glm (lexer, ds, &cmd, NULL))
     return CMD_FAILURE;
 
-  /* Data pass. */
+  if (!lex_match_id (lexer, "DESIGN"))
+    {
+      check_interactions (ds, &cmd);
+    }
+   /* Data pass. */
   grouper = casegrouper_create_splits (proc_open (ds), dataset_dict (ds));
   while (casegrouper_get_next_group (grouper, &group))
     {
@@ -119,6 +169,7 @@ cmd_glm (struct lexer *lexer, struct dataset *ds)
   free (v_dependent);
   return ok ? CMD_SUCCESS : CMD_FAILURE;
 }
+
 static int
 parse_interactions (struct lexer *lexer, const struct variable **interaction_vars, int n_members,
 		    int max_members, struct dataset *ds)
@@ -140,14 +191,13 @@ static int
 glm_custom_design (struct lexer *lexer, struct dataset *ds,
 		   struct cmd_glm *cmd UNUSED, void *aux UNUSED)
 {
-  size_t n_inter = 0;
   size_t n_allocated = 2;
   size_t n_members;
   struct variable **interaction_vars;
   struct variable *this_var;
 
   interactions = xnmalloc (n_allocated, sizeof (*interactions));
-
+  n_inter = 1;
   while (lex_token (lexer) != T_STOP && lex_token (lexer) != '.')
     {
       this_var = parse_variable (lexer, dataset_dict (ds));
@@ -157,7 +207,6 @@ glm_custom_design (struct lexer *lexer, struct dataset *ds,
 	}
       else if (lex_match (lexer, '*'))
 	{
-	  n_members = 1;
 	  interaction_vars = xnmalloc (2 * n_inter, sizeof (*interaction_vars));
 	  n_members = parse_interactions (lexer, interaction_vars, 1, 2 * n_inter, ds);
 	  if (n_allocated < n_inter)
@@ -289,31 +338,17 @@ run_glm (struct casereader *input,
 	if (var_is_alpha (all_vars[i]))
 	  cat_stored_values_create (all_vars[i]);
       
-      cov = covariance_matrix_init (n_all_vars, all_vars, ONE_PASS, PAIRWISE, MV_ANY);
-
       reader = casereader_create_counter (reader, &row, -1);
 
       for (i = 0; i < n_inter; i++)
-	if (var_is_alpha (interaction_get_variable (interactions[i])))
-	  cat_stored_values_create (interaction_get_variable (interactions[i]));
-      covariance_interaction_set (cov, interactions, 1);
       for (; (c = casereader_read (reader)) != NULL; case_unref (c))
 	{
 	  /* 
 	     Accumulate the covariance matrix.
 	  */
-	  covariance_matrix_accumulate (cov, c, interactions, 1);
 	  n_data++;
 	}
-      covariance_matrix_compute (cov);
-      for (i = 0; i < n_dependent; i++)
-	{
-	  model = fit_model (cov, v_dependent[i], indep_vars, n_data, n_indep);
-	  pspp_linreg_cache_free (model);
-	}
-
       casereader_destroy (reader);
-      covariance_matrix_destroy (cov);
     }
   else
     {
