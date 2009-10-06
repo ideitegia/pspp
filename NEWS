@@ -26,6 +26,35 @@ Changes from 0.6.2-pre6 to 0.7.0:
     been added to commands that read and write system files, such as
     SAVE and GET, as well as to the DISPLAY command.
 
+  * Numererous improvements to the Graphical User Interface have
+    made.  Notable improvements include:
+
+    - Non-Ascii characters in strings, labels and variable names are
+      now supported.
+
+    - A "Split Window" function is available, which makes it easier to
+      see different parts of a large data file.
+
+    - Data files can now be opened by specifing their name as the first
+      argument.  This means that on a properly configured desktop, double
+      clicking on an icon will open the file.
+    
+
+  * New statistical procedures:
+    - CORRELATIONS
+    - ROC
+    - RELIABILITY
+
+    NPAR TESTS now supports the WILCOXON and SIGN subcommands.
+
+    The CROSSTABS command has been completely re-implemented to fix numerous bugs.
+
+  * Three new commands to combine data files have been added: MATCH FILES,
+   UPDATE and  ADD FILES.
+
+  * A tutorial chapter has been added to the user manual.
+
+
 Changes from 0.6.1 to 0.6.2-pre6:
 
   * New translations:
@@ -110,7 +139,6 @@ Changes from 0.6.1 to 0.6.2-pre6:
   * Documentation:
 
     - Fix typo in BINOMIAL section of user manual (bug #25892).
->>>>>>> origin/stable:NEWS
 
 Changes from 0.6.0 to 0.6.1:
 
