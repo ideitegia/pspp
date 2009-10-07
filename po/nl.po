@@ -30,7 +30,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.6.2-pre4\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2009-07-08 20:24-0700\n"
-"PO-Revision-Date: 2009-07-18 21:26+0200\n"
+"PO-Revision-Date: 2009-09-10 21:00+0200\n"
 "Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "MIME-Version: 1.0\n"
@@ -2605,7 +2605,7 @@ msgstr "Ontbrekend"
 #: src/language/stats/frequencies.q:1065 src/language/stats/frequencies.q:1066
 #: src/language/stats/frequencies.q:1067
 msgid "Percent"
-msgstr "Procent"
+msgstr "Percentage"
 
 #: src/language/stats/crosstabs.q:1128
 msgid "count"
@@ -3177,7 +3177,7 @@ msgstr "Variabele %s is meerdere keren gespecificeerd bij GROUPED subopdracht."
 #: src/language/stats/frequencies.q:1062 src/language/stats/frequencies.q:1155
 #: src/language/stats/frequencies.q:1156 src/language/stats/frequencies.q:1191
 msgid "Cum"
-msgstr ""
+msgstr "Cum."
 
 #: src/language/stats/frequencies.q:1064 src/output/charts/plot-hist.c:125
 msgid "Frequency"
@@ -3189,7 +3189,7 @@ msgstr "WaardeLabel"
 
 #: src/language/stats/frequencies.q:1189
 msgid "Freq"
-msgstr ""
+msgstr "Freq."
 
 #: src/language/stats/frequencies.q:1190 src/language/stats/frequencies.q:1192
 msgid "Pct"
@@ -6591,3 +6591,6 @@ msgstr "kon definitie voor terminal '%s' niet benaderen"
 
 #~ msgid "Diagnostic options:"
 #~ msgstr "Diagnoseopties:"
+
+#~ msgid "Valid Percent"
+#~ msgstr "Geldig Percentage"

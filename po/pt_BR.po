@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.6.2-pre4\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2009-07-08 20:24-0700\n"
-"PO-Revision-Date: 2009-09-07 02:30-0300\n"
+"PO-Revision-Date: 2009-09-10 01:15-0300\n"
 "Last-Translator: Michel Almada de Castro Boaventura <michel@cecaps.ufmg.br>\n"
 "Language-Team: Brazilian Portuguese <ldp-br@bazar.conectiva.com.br>\n"
 "MIME-Version: 1.0\n"
@@ -1756,7 +1756,7 @@ msgstr "Valor"
 #: src/language/dictionary/sys-file-info.c:564 src/ui/gui/crosstabs.glade:275
 #: src/ui/gui/psppire-var-sheet.c:104 src/ui/gui/psppire.glade:2099
 msgid "Label"
-msgstr "Label"
+msgstr "Rótulo"
 
 #: src/language/dictionary/sys-file-info.c:110
 msgid "File:"
@@ -1765,7 +1765,7 @@ msgstr "Arquivo:"
 #: src/language/dictionary/sys-file-info.c:112 src/ui/gui/psppire.glade:2052
 #: src/ui/gui/recode.glade:841
 msgid "Label:"
-msgstr "Label:"
+msgstr "Rótulo:"
 
 #: src/language/dictionary/sys-file-info.c:116
 msgid "No label."
@@ -1839,7 +1839,7 @@ msgstr "Arquivo de sistema."
 
 #: src/language/dictionary/sys-file-info.c:143
 msgid "Weight:"
-msgstr "Peso:"
+msgstr "Ponderação:"
 
 #: src/language/dictionary/sys-file-info.c:148
 msgid "Not weighted."
@@ -1959,7 +1959,7 @@ msgstr ""
 
 #: src/language/dictionary/sys-file-info.c:517
 msgid "Missing Values: "
-msgstr "Missing Values:"
+msgstr "Valores ausentes:"
 
 #: src/language/dictionary/sys-file-info.c:611
 msgid "No vectors defined."
@@ -2553,12 +2553,12 @@ msgstr "esperando BY"
 
 #: src/language/stats/crosstabs.q:447
 msgid "VARIABLES must be specified before TABLES."
-msgstr ""
+msgstr "VARIABLES deve ser especificado antes de TABLES."
 
 #: src/language/stats/crosstabs.q:485
 #, c-format
 msgid "Maximum value (%ld) less than minimum value (%ld)."
-msgstr ""
+msgstr "O valor máximo (%ld) é menor que o mínimo (%ld)."
 
 #: src/language/stats/crosstabs.q:865
 msgid "Summary."
@@ -2629,15 +2629,15 @@ msgstr "Estatística"
 
 #: src/language/stats/crosstabs.q:1172
 msgid "Asymp. Sig. (2-sided)"
-msgstr ""
+msgstr "Sig. assintótica (bi-caudal)"
 
 #: src/language/stats/crosstabs.q:1174
 msgid "Exact. Sig. (2-sided)"
-msgstr ""
+msgstr "Sig. exata (bi-caudal)"
 
 #: src/language/stats/crosstabs.q:1176
 msgid "Exact. Sig. (1-sided)"
-msgstr ""
+msgstr "Sig. exata (uni-caudal)"
 
 #: src/language/stats/crosstabs.q:1191
 msgid "Symmetric measures."
@@ -2645,15 +2645,15 @@ msgstr "Medidas simétricas."
 
 #: src/language/stats/crosstabs.q:1197 src/language/stats/crosstabs.q:1239
 msgid "Asymp. Std. Error"
-msgstr ""
+msgstr "Erro padrão assintótico"
 
 #: src/language/stats/crosstabs.q:1198 src/language/stats/crosstabs.q:1240
 msgid "Approx. T"
-msgstr ""
+msgstr "T aproximado"
 
 #: src/language/stats/crosstabs.q:1199 src/language/stats/crosstabs.q:1241
 msgid "Approx. Sig."
-msgstr ""
+msgstr "Sig. aproximada"
 
 #: src/language/stats/crosstabs.q:1210
 msgid "Risk estimate."
@@ -2667,12 +2667,12 @@ msgstr "Intervalo de confiança de 95%%"
 #: src/language/stats/crosstabs.q:1217 src/language/stats/t-test.q:1030
 #: src/language/stats/t-test.q:1216 src/language/stats/t-test.q:1319
 msgid "Lower"
-msgstr ""
+msgstr "Mínimo"
 
 #: src/language/stats/crosstabs.q:1218 src/language/stats/t-test.q:1031
 #: src/language/stats/t-test.q:1217 src/language/stats/t-test.q:1320
 msgid "Upper"
-msgstr ""
+msgstr "Máximo"
 
 #: src/language/stats/crosstabs.q:1232
 msgid "Directional measures."
@@ -2693,7 +2693,7 @@ msgstr ""
 
 #: src/language/stats/crosstabs.q:1995
 msgid "Fisher's Exact Test"
-msgstr ""
+msgstr "Teste exato de Fisher"
 
 #: src/language/stats/crosstabs.q:1996
 msgid "Continuity Correction"
@@ -2917,7 +2917,7 @@ msgstr "N válidos"
 
 #: src/language/stats/descriptives.c:887
 msgid "Missing N"
-msgstr ""
+msgstr "Missing N"
 
 #: src/language/stats/descriptives.c:915
 #, c-format
@@ -3163,7 +3163,7 @@ msgstr "Frequência"
 
 #: src/language/stats/frequencies.q:1085
 msgid "Value Label"
-msgstr ""
+msgstr "Rótulo de valor"
 
 #: src/language/stats/frequencies.q:1189
 msgid "Freq"
@@ -3192,7 +3192,7 @@ msgstr ""
 
 #: src/language/stats/means.q:100
 msgid "Missing required subcommand TABLES."
-msgstr ""
+msgstr "Faltando subcomando necessário TABLES."
 
 #: src/language/stats/means.q:134
 msgid "TABLES subcommand may not appear more than once."
@@ -4453,7 +4453,7 @@ msgstr "Transformação Pendente"
 
 #: src/ui/gui/data-editor.c:323
 msgid "_Labels"
-msgstr "_Label"
+msgstr "_Rótulos"
 
 #: src/ui/gui/data-editor.c:324
 msgid "Show/hide value labels"
@@ -4689,12 +4689,12 @@ msgstr "Filtrar por %s"
 
 #: src/ui/gui/data-editor.c:1163
 msgid "Weights off"
-msgstr "Sem Pesos"
+msgstr "Sem ponderação"
 
 #: src/ui/gui/data-editor.c:1175
 #, c-format
 msgid "Weight by %s"
-msgstr "Peso por %s"
+msgstr "Ponderar por %s"
 
 #: src/ui/gui/data-editor.c:1198 src/ui/gui/data-editor.c:1445
 #: src/ui/gui/data-editor.glade:660
@@ -4840,7 +4840,7 @@ msgstr "_Linhas da Grade"
 
 #: src/ui/gui/data-editor.glade:274
 msgid "Value _Labels"
-msgstr "_Labels"
+msgstr "_Rótulos de Valores"
 
 #: src/ui/gui/data-editor.glade:311
 msgid "_Sort Cases"
@@ -4852,7 +4852,7 @@ msgstr "_Dividir Arquivo"
 
 #: src/ui/gui/data-editor.glade:347
 msgid "_Weight Cases"
-msgstr "Dar _Peso aos Casos"
+msgstr "_Ponderar Casos"
 
 #: src/ui/gui/data-editor.glade:359
 msgid "_Transform"
@@ -4864,7 +4864,7 @@ msgstr "_Executar Transformações Pendentes"
 
 #: src/ui/gui/data-editor.glade:422
 msgid "_Analyze"
-msgstr "A_nalisar"
+msgstr "_Analisar"
 
 #: src/ui/gui/data-editor.glade:432
 msgid "_Descriptive Statistics"
@@ -4957,7 +4957,7 @@ msgstr "Dividir Arquivo"
 
 #: src/ui/gui/data-editor.glade:832
 msgid "Weight Cases"
-msgstr "Dar Peso Aos Casos"
+msgstr "Ponderar Casos"
 
 #: src/ui/gui/data-editor.glade:844
 msgid "Select Cases"
@@ -4966,7 +4966,7 @@ msgstr "Selecionar Casos"
 #: src/ui/gui/data-editor.glade:864 src/ui/gui/data-editor.glade:1452
 #: src/ui/gui/data-editor.glade:1633
 msgid "Value Labels"
-msgstr "Value Labels"
+msgstr "Rótulos de valores"
 
 #: src/ui/gui/data-editor.glade:875
 msgid "Use Sets"
@@ -4990,7 +4990,7 @@ msgstr "Área de Status do Uso de Filtros"
 
 #: src/ui/gui/data-editor.glade:1002
 msgid "Weight Status Area"
-msgstr "Área de Status dos Pesos"
+msgstr "Área de status da ponderação"
 
 #: src/ui/gui/data-editor.glade:1028
 msgid "Split File Status Area"
@@ -5046,7 +5046,7 @@ msgstr "Casas Decimais:"
 
 #: src/ui/gui/data-editor.glade:1550
 msgid "Value Label:"
-msgstr "Value Label:"
+msgstr "Rótulo de valor:"
 
 #: src/ui/gui/data-editor.glade:1563 src/ui/gui/psppire.glade:2544
 #: src/ui/gui/recode.glade:185
@@ -5056,7 +5056,7 @@ msgstr "Valor:"
 #: src/ui/gui/data-editor.glade:1700 src/ui/gui/examine.glade:423
 #: src/ui/gui/t-test.glade:460
 msgid "Missing Values"
-msgstr "Missing Values"
+msgstr "Valores Missing"
 
 #: src/ui/gui/data-editor.glade:1718
 msgid "_Range plus one optional discrete missing value"
@@ -5072,15 +5072,15 @@ msgstr "Ma_ior:"
 
 #: src/ui/gui/data-editor.glade:1813
 msgid "Di_screte value:"
-msgstr "Valor Di_screto:"
+msgstr "Valor _discreto:"
 
 #: src/ui/gui/data-editor.glade:1860
 msgid "_No missing values"
-msgstr "Sem missi_ng values"
+msgstr "Sem valores _missing"
 
 #: src/ui/gui/data-editor.glade:1878
 msgid "_Discrete missing values"
-msgstr "Missing values _discretos"
+msgstr "Valores missing _discretos"
 
 #: src/ui/gui/descriptives-dialog.c:40 src/ui/gui/frequencies-dialog.c:41
 msgid "Standard deviation"
@@ -5120,7 +5120,7 @@ msgstr "Lista de Fator:"
 
 #: src/ui/gui/examine.glade:218
 msgid "Label Cases by:"
-msgstr "Inserir Label nos Casos por:"
+msgstr "Rotular casos por:"
 
 #: src/ui/gui/examine.glade:255 src/ui/gui/t-test.glade:69
 #: src/ui/gui/t-test.glade:629 src/ui/gui/t-test.glade:780
@@ -5505,7 +5505,7 @@ msgstr "Variável alvo:"
 
 #: src/ui/gui/psppire.glade:904
 msgid "Type & Label"
-msgstr "Tipo & Label"
+msgstr "Tipo & Rótulo"
 
 #: src/ui/gui/psppire.glade:943
 msgid "="
@@ -5697,7 +5697,7 @@ msgstr ""
 # lala
 #: src/ui/gui/rank.glade:428
 msgid "Sum of case weights"
-msgstr "Soma dos pesos dos casos"
+msgstr "Soma das ponderações dos casos"
 
 #: src/ui/gui/rank.glade:450
 msgid "Proportion Estimates"
@@ -5769,11 +5769,11 @@ msgstr "Transformar Para a Mesma Variável: Antigos e Novos Valores"
 
 #: src/ui/gui/recode.glade:197
 msgid "System-Missing"
-msgstr "System-Missing"
+msgstr "Missing do sistema"
 
 #: src/ui/gui/recode.glade:211
 msgid "System-or user-missing"
-msgstr "System ou user-missing"
+msgstr "Missing do sistema ou usuário"
 
 #: src/ui/gui/recode.glade:245
 msgid "through"
@@ -5801,7 +5801,7 @@ msgstr "Valores Antigos"
 
 #: src/ui/gui/recode.glade:462
 msgid "System Missing"
-msgstr "System Missing"
+msgstr "Missing do sistema"
 
 #: src/ui/gui/recode.glade:476
 msgid "Copy old values"
@@ -6194,7 +6194,7 @@ msgstr "<b>Visualização de dados</b>"
 #: src/ui/gui/variable-info-dialog.c:89
 #, c-format
 msgid "Label: %s\n"
-msgstr "Label: %s\n"
+msgstr "Rótulo: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:98
 #, c-format
@@ -6213,7 +6213,7 @@ msgstr "Nível de medida: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:121
 msgid "Value Labels:\n"
-msgstr "Value Labels:\n"
+msgstr "Rótulos de valores:\n"
 
 #: src/ui/gui/variable-info-dialog.c:133
 #, c-format
