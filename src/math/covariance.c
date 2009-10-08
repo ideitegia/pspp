@@ -29,10 +29,20 @@
 
 struct covariance
 {
-  /* The variables for which the covariance matrix is to be calculated */
+  /* The variables for which the covariance matrix is to be calculated. */
   size_t n_vars;
   const struct variable **vars;
-  
+
+  /* Categorical variables. */
+  size_t n_catvars;
+  const struct variable **catvars;
+
+  /* Array containing number of categories per categorical variable. */
+  size_t *n_categories;
+
+  /* Dimension of the covariance matrix. */
+  size_t dim;
+
   /* The weight variable (or NULL if none) */
   const struct variable *wv;
 
@@ -65,7 +75,8 @@ covariance_moments (const struct covariance *cov, int m)
 
 
 
-/* Create a covariance struct */
+/* Create a covariance struct.
+ */
 struct covariance *
 covariance_create (size_t n_vars, const struct variable **vars,
 		   const struct variable *weight, enum mv_class exclude)
@@ -76,6 +87,7 @@ covariance_create (size_t n_vars, const struct variable **vars,
 
   cov->wv = weight;
   cov->n_vars = n_vars;
+  cov->dim = n_vars;
 
   for (i = 0; i < n_vars; ++i)
     cov->vars[i] = vars[i];
@@ -90,6 +102,43 @@ covariance_create (size_t n_vars, const struct variable **vars,
   cov->n_cm = (n_vars * (n_vars - 1)  ) / 2;
 
   cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
+
+  return cov;
+}
+
+/*
+  Create a covariance struct for a two-pass algorithm. If categorical
+  variables are involed, the dimension cannot be know until after the
+  first data pass, so the actual covariances will not be allocated
+  until then.
+ */
+struct covariance *
+covariance_2pass_create (size_t n_vars, const struct variable **vars,
+			 size_t n_catvars, const struct variable **catvars, 
+			 const struct variable *weight, enum mv_class exclude)
+{
+  size_t i;
+  struct covariance *cov = xmalloc (sizeof *cov);
+  cov->vars = xmalloc (sizeof *cov->vars * n_vars);
+  cov->catvars = xnmalloc (n_catvars, sizeof (*cov->catvars));
+  cov->n_categories = xnmalloc (n_catvars, sizeof (cov->n_categories));
+
+  cov->wv = weight;
+  cov->n_vars = n_vars;
+  cov->n_catvars = n_catvars;
+
+  for (i = 0; i < n_vars; ++i)
+    cov->vars[i] = vars[i];
+
+  for (i = 0; i < n_catvars; i++)
+    {
+      cov->catvars[i] = catvars[i];
+      cov->n_categories[i] = 0;
+    }
+
+  cov->moments = xmalloc (sizeof *cov->moments * n_MOMENTS);
+  
+  cov->exclude = exclude;
 
   return cov;
 }

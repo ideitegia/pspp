@@ -29,6 +29,10 @@ struct ccase ;
 
 struct covariance * covariance_create (size_t n_vars, const struct variable **vars, 
 				       const struct variable *wv, enum mv_class excl);
+struct covariance *
+covariance_2pass_create (size_t n_vars, const struct variable **vars,
+			 size_t n_catvars, const struct variable **catvars, 
+			 const struct variable *weight, enum mv_class excl);
 
 void covariance_accumulate (struct covariance *, const struct ccase *);
 
