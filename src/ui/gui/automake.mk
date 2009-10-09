@@ -249,6 +249,7 @@ src/ui/gui/psppire-marshal.c: src/ui/gui/marshaller-list
 src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
 	glib-genmarshal --header --prefix=psppire_marshal $< > $@
 
+SUFFIXES += .glade .ui
 .glade.ui:
 	$(top_srcdir)/lib/gtk-contrib/gtk-builder-convert $< $@
 

@@ -27,6 +27,7 @@ $(POFILES): $(POTFILE)
 	$(MSGMERGE) $(top_srcdir)/$@ $< -o $@
 
 
+SUFFIXES += .po .gmo
 .po.gmo:
 	@$(MKDIR_P) `dirname $@`
 	$(MSGFMT) $< -o $@

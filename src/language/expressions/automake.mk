@@ -27,7 +27,7 @@ EXTRA_DIST += $(helpers) $(expressions_built_sources:=.pl)
 AM_CPPFLAGS += -I$(top_builddir)/src/language/expressions \
 	-I$(top_srcdir)/src/language/expressions
 
-SUFFIXES = .h.pl .inc.pl
+SUFFIXES += .h.pl .inc.pl
 
 generate_from_pl = $(MKDIR_P) `dirname $@` && \
 	$(PERL) -I $(top_srcdir)/src/language/expressions $< -o $@ -i $(top_srcdir)/src/language/expressions/operations.def

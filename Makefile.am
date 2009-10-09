@@ -46,6 +46,7 @@ DIST_HOOKS =
 INSTALL_DATA_HOOKS = 
 UNINSTALL_DATA_HOOKS =
 PHONY =
+SUFFIXES = .q
 
 generate-changelog:
 	if test -d $(top_srcdir)/.git; then			\
