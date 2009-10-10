@@ -206,7 +206,7 @@ descriptives_dialog (GObject *o, gpointer data)
 
   struct descriptives_dialog scd;
 
-  GtkBuilder *xml = builder_new ("descriptives-dialog.ui");
+  GtkBuilder *xml = builder_new ("descriptives.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "descriptives-dialog");
 

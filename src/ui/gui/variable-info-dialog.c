@@ -151,7 +151,7 @@ variable_info_dialog (GObject *o, gpointer data)
 
   gint response ;
 
-  GtkBuilder *xml = builder_new ("variable-info-dialog.ui");
+  GtkBuilder *xml = builder_new ("variable-info.ui");
 
   GtkWidget *dialog = get_widget_assert (xml, "variable-info-dialog");
   GtkWidget *treeview = get_widget_assert (xml, "treeview2");

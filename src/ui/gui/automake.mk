@@ -54,28 +54,28 @@ UNINSTALL_DATA_HOOKS += uninstall-icons
 
 
 nodist_src_ui_gui_psppire_DATA = \
-	$(top_builddir)/src/ui/gui/crosstabs.ui \
-	$(top_builddir)/src/ui/gui/descriptives-dialog.ui \
 	$(top_builddir)/src/ui/gui/data-editor.ui \
-	$(top_builddir)/src/ui/gui/examine.ui \
-	$(top_builddir)/src/ui/gui/find.ui \
-	$(top_builddir)/src/ui/gui/frequencies.ui \
 	$(top_builddir)/src/ui/gui/message-dialog.ui \
 	$(top_builddir)/src/ui/gui/psppire.ui \
 	$(top_builddir)/src/ui/gui/oneway.ui \
 	$(top_builddir)/src/ui/gui/output-viewer.ui \
-	$(top_builddir)/src/ui/gui/rank.ui \
-	$(top_builddir)/src/ui/gui/recode.ui \
 	$(top_builddir)/src/ui/gui/regression.ui \
 	$(top_builddir)/src/ui/gui/reliability.ui \
 	$(top_builddir)/src/ui/gui/syntax-editor.ui \
 	$(top_builddir)/src/ui/gui/text-data-import.ui \
 	$(top_builddir)/src/ui/gui/t-test.ui \
-	$(top_builddir)/src/ui/gui/var-sheet-dialogs.ui \
-	$(top_builddir)/src/ui/gui/variable-info-dialog.ui
+	$(top_builddir)/src/ui/gui/var-sheet-dialogs.ui
 
 
 dist_src_ui_gui_psppire_DATA = \
+	$(top_srcdir)/src/ui/gui/crosstabs.ui \
+	$(top_srcdir)/src/ui/gui/descriptives.ui \
+	$(top_srcdir)/src/ui/gui/examine.ui \
+	$(top_srcdir)/src/ui/gui/find.ui \
+	$(top_srcdir)/src/ui/gui/frequencies.ui \
+	$(top_srcdir)/src/ui/gui/rank.ui \
+	$(top_srcdir)/src/ui/gui/recode.ui \
+	$(top_srcdir)/src/ui/gui/variable-info.ui \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
 	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\
@@ -215,25 +215,17 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/widget-io.h \
 	src/ui/gui/widgets.c \
 	src/ui/gui/widgets.h \
-	src/ui/gui/crosstabs.glade \
-	src/ui/gui/descriptives-dialog.glade \
 	src/ui/gui/data-editor.glade \
-	src/ui/gui/examine.glade \
-	src/ui/gui/find.glade \
-	src/ui/gui/frequencies.glade \
 	src/ui/gui/message-dialog.glade \
 	src/ui/gui/psppire.glade \
 	src/ui/gui/oneway.glade \
 	src/ui/gui/output-viewer.glade \
-	src/ui/gui/rank.glade \
-	src/ui/gui/recode.glade \
 	src/ui/gui/regression.glade \
 	src/ui/gui/reliability.glade \
 	src/ui/gui/syntax-editor.glade \
 	src/ui/gui/text-data-import.glade \
 	src/ui/gui/t-test.glade \
-	src/ui/gui/var-sheet-dialogs.glade \
-	src/ui/gui/variable-info-dialog.glade
+	src/ui/gui/var-sheet-dialogs.glade
 
 
 nodist_src_ui_gui_psppire_SOURCES = \

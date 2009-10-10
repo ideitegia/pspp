@@ -1,107 +1,109 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--*- mode: xml -*-->
-<glade-interface>
-  <requires lib="psppire"/>
-  <widget class="PsppireDialog" id="variable-info-dialog">
+<?xml version="1.0"?>
+<interface>
+  <requires lib="psppire" version="2054.22072"/>
+  <!-- interface-requires gtk+ 2.12 -->
+  <!-- interface-naming-policy project-wide -->
+  <object class="PsppireDialog" id="variable-info-dialog">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <property name="title">Variables</property>
     <property name="modal">True</property>
     <property name="slidable">True</property>
     <child internal-child="hbox">
-      <widget class="GtkHPaned" id="dialog-hbox2">
+      <object class="GtkHPaned" id="dialog-hbox2">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
         <child>
-          <widget class="GtkScrolledWindow" id="scrolledwindow13">
+          <object class="GtkScrolledWindow" id="scrolledwindow13">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-            <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
-            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-            <property name="shadow_type">GTK_SHADOW_IN</property>
+            <property name="hscrollbar_policy">never</property>
+            <property name="vscrollbar_policy">automatic</property>
+            <property name="shadow_type">in</property>
             <child>
-              <widget class="PsppireDictView" id="treeview2">
+              <object class="PsppireDictView" id="treeview2">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="headers_visible">False</property>
                 <property name="reorderable">True</property>
                 <property name="fixed_height_mode">True</property>
-              </widget>
+              </object>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="resize">False</property>
             <property name="shrink">True</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkVBox" id="vbox23">
+          <object class="GtkVBox" id="vbox23">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">5</property>
             <child>
-              <widget class="GtkLabel" id="label24">
+              <object class="GtkLabel" id="label24">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">Variable Information:</property>
-              </widget>
+              </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
                 <property name="padding">5</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkScrolledWindow" id="scrolledwindow14">
+              <object class="GtkScrolledWindow" id="scrolledwindow14">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
-                <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                <property name="shadow_type">GTK_SHADOW_IN</property>
+                <property name="hscrollbar_policy">never</property>
+                <property name="vscrollbar_policy">automatic</property>
+                <property name="shadow_type">in</property>
                 <child>
-                  <widget class="GtkTextView" id="textview1">
+                  <object class="GtkTextView" id="textview1">
                     <property name="height_request">200</property>
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="editable">False</property>
-                    <property name="wrap_mode">GTK_WRAP_WORD_CHAR</property>
+                    <property name="wrap_mode">word-char</property>
                     <property name="left_margin">3</property>
                     <property name="cursor_visible">False</property>
                     <property name="accepts_tab">False</property>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="padding">5</property>
                 <property name="position">2</property>
               </packing>
             </child>
             <child>
-              <widget class="PsppireHButtonBox" id="psppire-hbuttonbox4">
+              <object class="PsppireHButtonBox" id="psppire-hbuttonbox4">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="border_width">5</property>
                 <property name="homogeneous">True</property>
                 <property name="buttons">PSPPIRE_BUTTON_GOTO_MASK | PSPPIRE_BUTTON_CANCEL_MASK | PSPPIRE_BUTTON_HELP_MASK | PSPPIRE_BUTTON_PASTE_MASK</property>
-              </widget>
+              </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="pack_type">GTK_PACK_END</property>
+                <property name="pack_type">end</property>
                 <property name="position">1</property>
               </packing>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="resize">True</property>
             <property name="shrink">True</property>
           </packing>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-</glade-interface>
+  </object>
+</interface>
