@@ -46,7 +46,7 @@ INSTALL_DATA_HOOKS += install-icons
 
 uninstall-icons:
 	for size in 16x16 ; do \
-          $(RM) $(themedir)/$$size/$(context)/psppicon.png ; \
+          rm -f $(themedir)/$$size/$(context)/psppicon.png ; \
 	done 
 	gtk-update-icon-cache --ignore-theme-index $(themedir)
 

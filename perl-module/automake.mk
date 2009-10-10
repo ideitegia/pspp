@@ -27,7 +27,7 @@ perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
 perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources)
-	$(RM) $@
+	rm -f $@
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
 PHONY += module-make
@@ -57,9 +57,9 @@ check-local:
 perl_module_CLEAN:
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) clean || true
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
-	  $(RM) $(module_sources) ; \
+	  rm -f $(module_sources) ; \
 	fi
-	$(RM) perl-module/Makefile.old
+	rm -f perl-module/Makefile.old
 
 CLEAN_LOCAL += perl_module_CLEAN
 

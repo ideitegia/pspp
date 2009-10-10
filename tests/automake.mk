@@ -212,7 +212,7 @@ tests_data_datasheet_test_CFLAGS = $(AM_CFLAGS)
 # This seems to be necessary as the libtool artifacts aren't removed
 # Automake bug ?
 tests_data_datasheet_test_CLEAN:
-	$(RM) -r tests/data
+	rm -fr tests/data
 
 CLEAN_LOCAL += tests_data_datasheet_test_CLEAN
 

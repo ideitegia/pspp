@@ -46,7 +46,7 @@ install-data-hook: $(GMOFILES)
 uninstall-hook:
 	for f in $(GMOFILES); do \
 	  lang=`echo $$f | sed -e 's%po/\(.*\)\.gmo%\1%' ` ; \
-	  $(RM) $(DESTDIR)$(prefix)/share/locale/$$lang/LC_MESSAGES/$(DOMAIN).mo ; \
+	  rm -f $(DESTDIR)$(prefix)/share/locale/$$lang/LC_MESSAGES/$(DOMAIN).mo ; \
 	done
 
 
