@@ -53,6 +53,16 @@ uninstall-icons:
 UNINSTALL_DATA_HOOKS += uninstall-icons
 
 
+UI_FILES = \
+	src/ui/gui/crosstabs.ui \
+	src/ui/gui/descriptives.ui \
+	src/ui/gui/examine.ui \
+	src/ui/gui/find.ui \
+	src/ui/gui/frequencies.ui \
+	src/ui/gui/rank.ui \
+	src/ui/gui/recode.ui \
+	src/ui/gui/variable-info.ui 
+
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/data-editor.ui \
 	$(top_builddir)/src/ui/gui/message-dialog.ui \
@@ -68,14 +78,7 @@ nodist_src_ui_gui_psppire_DATA = \
 
 
 dist_src_ui_gui_psppire_DATA = \
-	$(top_srcdir)/src/ui/gui/crosstabs.ui \
-	$(top_srcdir)/src/ui/gui/descriptives.ui \
-	$(top_srcdir)/src/ui/gui/examine.ui \
-	$(top_srcdir)/src/ui/gui/find.ui \
-	$(top_srcdir)/src/ui/gui/frequencies.ui \
-	$(top_srcdir)/src/ui/gui/rank.ui \
-	$(top_srcdir)/src/ui/gui/recode.ui \
-	$(top_srcdir)/src/ui/gui/variable-info.ui \
+	$(UI_FILES) \
 	$(top_srcdir)/src/ui/gui/pspplogo.png \
 	$(top_srcdir)/src/ui/gui/icons/value-labels.png \
 	$(top_srcdir)/src/ui/gui/icons/goto-variable.png\

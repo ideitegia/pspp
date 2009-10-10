@@ -10,16 +10,17 @@ POTFILE=po/$(DOMAIN).pot
 
 TRANSLATABLE_FILES = $(DIST_SOURCES) $(all_q_sources)
 
-$(POTFILE): $(TRANSLATABLE_FILES)
-	@$(MKDIR_P) po
-	$(XGETTEXT) --directory=$(top_srcdir) $(TRANSLATABLE_FILES) \
-	$(XGETTEXT_OPTIONS) \
+XGETTEXT_OPTIONS = \
 	--copyright-holder="$(COPYRIGHT_HOLDER)" \
 	--package-name=$(PACKAGE) \
 	--package-version=$(VERSION) \
 	--msgid-bugs-address=$(MSGID_BUGS_ADDRESS) \
-	--add-comments='TRANSLATORS:' \
-	-o $(POTFILE)
+	--add-comments='TRANSLATORS:'
+
+$(POTFILE): $(TRANSLATABLE_FILES) $(UI_FILES)
+	@$(MKDIR_P) po
+	$(XGETTEXT) --directory=$(top_srcdir) $(XGETTEXT_OPTIONS)    $(TRANSLATABLE_FILES) --language=C --keyword=_ --keyword=N_ -o $@
+	$(XGETTEXT) --directory=$(top_srcdir) $(XGETTEXT_OPTIONS) -j $(UI_FILES) --language=glade -o $@
 
 
 $(POFILES): $(POTFILE)
@@ -40,7 +41,6 @@ install-data-hook: $(GMOFILES)
 	  lang=`echo $$f | sed -e 's%po/\(.*\)\.gmo%\1%' ` ; \
 	  $(INSTALL) -D $$f $(DESTDIR)$(prefix)/share/locale/$$lang/LC_MESSAGES/$(DOMAIN).mo ; \
 	done
-	
 
 uninstall-hook:
 	for f in $(GMOFILES); do \
