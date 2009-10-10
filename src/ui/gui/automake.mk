@@ -61,6 +61,7 @@ UI_FILES = \
 	src/ui/gui/frequencies.ui \
 	src/ui/gui/message-dialog.ui \
 	src/ui/gui/oneway.ui \
+	src/ui/gui/psppire.ui \
 	src/ui/gui/rank.ui \
 	src/ui/gui/recode.ui \
 	src/ui/gui/regression.ui \
@@ -72,7 +73,6 @@ UI_FILES = \
 
 nodist_src_ui_gui_psppire_DATA = \
 	$(top_builddir)/src/ui/gui/data-editor.ui \
-	$(top_builddir)/src/ui/gui/psppire.ui \
 	$(top_builddir)/src/ui/gui/output-viewer.ui \
 	$(top_builddir)/src/ui/gui/syntax-editor.ui
 
@@ -219,7 +219,6 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/widgets.c \
 	src/ui/gui/widgets.h \
 	src/ui/gui/data-editor.glade \
-	src/ui/gui/psppire.glade \
 	src/ui/gui/output-viewer.glade \
 	src/ui/gui/syntax-editor.glade
 
