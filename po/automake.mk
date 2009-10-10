@@ -23,7 +23,8 @@ $(POTFILE): $(TRANSLATABLE_FILES)
 
 
 $(POFILES): $(POTFILE)
-	$(MSGMERGE) $(top_srcdir)/$* $< -o $@
+	$(MSGMERGE) $(top_srcdir)/$@ $< -o $@
+
 
 .po.gmo:
 	@$(MKDIR_P) `dirname $@`
