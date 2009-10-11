@@ -23,19 +23,19 @@ helpers = src/language/expressions/generate.pl \
 	src/language/expressions/operations.def
 
 $(expressions_built_sources): $(helpers)
-EXTRA_DIST += $(helpers) $(expressions_built_sources:=.pl)
+EXTRA_DIST += $(helpers) $(expressions_built_sources:=pl)
 AM_CPPFLAGS += -I$(top_builddir)/src/language/expressions \
 	-I$(top_srcdir)/src/language/expressions
 
-SUFFIXES += .h.pl .inc.pl
+SUFFIXES += .h .hpl .inc .incpl
 
 generate_from_pl = $(MKDIR_P) `dirname $@` && \
 	$(PERL) -I $(top_srcdir)/src/language/expressions $< -o $@ -i $(top_srcdir)/src/language/expressions/operations.def
 
-.h.pl.h:
+.hpl.h:
 	$(generate_from_pl)
 
-.inc.pl.inc:
+.incpl.inc:
 	$(generate_from_pl)
 
 EXTRA_DIST += src/language/expressions/OChangeLog
