@@ -19,8 +19,6 @@ AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
 -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes
 endif
 
-CC_FOR_BUILD = @CC_FOR_BUILD@
-EXEEXT_FOR_BUILD = @EXEEXT_FOR_BUILD@
 .q.c:
 	@$(MKDIR_P) `dirname $@`
 	./src/language/lexer/q2c$(EXEEXT_FOR_BUILD) $< $@
