@@ -46,7 +46,7 @@ EXTRA_DIST += doc/pspp.man \
 
 doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc
-	@PERL@ $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
+	$(PERL) $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
 
 doc/tut.texi:
 	@$(MKDIR_P) doc

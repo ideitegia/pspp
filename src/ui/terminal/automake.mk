@@ -27,7 +27,7 @@ src_ui_terminal_pspp_LDADD = \
 	src/libpspp-core.la \
 	$(NCURSES_LIBS) \
 	$(LIBICONV) \
-	@LIBINTL@ @LIBREADLINE@
+	$(LIBINTL) $(LIBREADLINE)
 
 
 src_ui_terminal_pspp_LDFLAGS = $(PSPP_LDFLAGS) $(PG_LDFLAGS)

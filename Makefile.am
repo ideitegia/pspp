@@ -26,7 +26,7 @@ endif
 $(all_q_sources:.q=.c): src/language/lexer/q2c$(EXEEXT_FOR_BUILD)
 all_q_sources =
 
-pkgsysconfdir = $(sysconfdir)/@PACKAGE@
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
 
 
 EXTRA_DIST = OChangeLog ONEWS config.rpath pspp-mode.el
