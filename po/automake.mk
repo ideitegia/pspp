@@ -52,5 +52,13 @@ uninstall-hook:
 
 EXTRA_DIST += $(POFILES) $(POTFILE)
 
-CLEANFILES += $(POFILES) $(GMOFILES) $(POTFILE)
+CLEANFILES += $(GMOFILES) $(POTFILE)
 
+# Clean $(POFILES) from build directory but not if that's the same as
+# the source directory.
+po_CLEAN:
+	@if test "$(srcdir)" != .; then \
+		echo rm -f $(POFILES); \
+		rm -f $(POFILES); \
+	fi
+CLEAN_LOCAL += po_CLEAN
