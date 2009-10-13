@@ -102,7 +102,8 @@ all:
 	touch m4/Makefile.am
 	$(GNULIB_TOOL) --import --no-changelog --m4-base=gl/m4 \
 		--source-base=gl --lib=libgl --tests-base=tests \
-		--doc-base=gl/doc --aux-dir=. --import $(GNULIB_MODULES)
+		--doc-base=gl/doc --aux-dir=build-aux --import \
+		$(GNULIB_MODULES)
 	echo '*' > gl/.cvsignore
 	echo '*' > gl/m4/.cvsignore
 	libtoolize --force --automake
