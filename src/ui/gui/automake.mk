@@ -244,10 +244,10 @@ AM_CPPFLAGS += -Isrc
 
 src/ui/gui/psppire-marshal.c: src/ui/gui/marshaller-list
 	echo '#include <config.h>' > $@
-	glib-genmarshal --body --prefix=psppire_marshal $< >> $@
+	glib-genmarshal --body --prefix=psppire_marshal $? >> $@
 
 src/ui/gui/psppire-marshal.h: src/ui/gui/marshaller-list
-	glib-genmarshal --header --prefix=psppire_marshal $< > $@
+	glib-genmarshal --header --prefix=psppire_marshal $? > $@
 
 SUFFIXES += .glade .ui
 .glade.ui:

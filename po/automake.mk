@@ -24,7 +24,7 @@ $(POTFILE): $(TRANSLATABLE_FILES) $(UI_FILES)
 
 
 $(POFILES): $(POTFILE)
-	$(MSGMERGE) $(top_srcdir)/$@ $< -o $@
+	$(MSGMERGE) $(top_srcdir)/$@ $? -o $@
 
 
 SUFFIXES += .po .gmo
