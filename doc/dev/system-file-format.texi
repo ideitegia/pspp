@@ -884,6 +884,9 @@ value @var{code} - @var{bias}, where
 variable @code{bias} from the file header.  For example,
 code 105 with bias 100.0 (the normal value) indicates a numeric variable
 of value 5.
+One file has been seen written by SPSS 14 that contained such a code
+in a @emph{string} field with the value 0 (after the bias is
+subtracted) as a way of encoding null bytes.
 
 @item 252
 End of file.  This code may or may not appear at the end of the data

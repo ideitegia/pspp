@@ -86,6 +86,7 @@ struct sfm_reader
     double bias;		/* Compression bias, usually 100.0. */
     uint8_t opcodes[8];         /* Current block of opcodes. */
     size_t opcode_idx;          /* Next opcode to interpret, 8 if none left. */
+    bool corruption_warning;    /* Warned about possible corruption? */
   };
 
 static const struct casereader_class sys_file_casereader_class;
@@ -192,6 +193,7 @@ sfm_open_reader (struct file_handle *fh, struct dictionary **dict,
   r->oct_cnt = 0;
   r->has_long_var_names = false;
   r->opcode_idx = sizeof r->opcodes;
+  r->corruption_warning = false;
 
   /* TRANSLATORS: this fragment will be interpolated into
      messages in fh_lock() that identify types of files. */
@@ -1374,7 +1376,14 @@ read_compressed_number (struct sfm_reader *r, double *d)
       break;
 
     case 254:
-      sys_error (r, _("Compressed data is corrupt."));
+      float_convert (r->float_format, "        ", FLOAT_NATIVE_DOUBLE, d);
+      if (!r->corruption_warning)
+        {
+          r->corruption_warning = true;
+          sys_warn (r, _("Possible compressed data corruption: "
+                         "compressed spaces appear in numeric field."));
+        }
+      break;
 
     case 255:
       *d = SYSMIS;
@@ -1395,7 +1404,8 @@ read_compressed_number (struct sfm_reader *r, double *d)
 static bool
 read_compressed_string (struct sfm_reader *r, char *dst)
 {
-  switch (read_opcode (r))
+  int opcode = read_opcode (r);
+  switch (opcode)
     {
     case -1:
     case 252:
@@ -1410,7 +1420,25 @@ read_compressed_string (struct sfm_reader *r, char *dst)
       break;
 
     default:
-      sys_error (r, _("Compressed data is corrupt."));
+      {
+        double value = opcode - r->bias;
+        float_convert (FLOAT_NATIVE_DOUBLE, &value, r->float_format, dst);
+        if (value == 0.0)
+          {
+            /* This has actually been seen "in the wild".  The submitter of the
+               file that showed that the contents decoded as spaces, but they
+               were at the end of the field so it's possible that the null
+               bytes just acted as null terminators. */
+          }
+        else if (!r->corruption_warning)
+          {
+            r->corruption_warning = true;
+            sys_warn (r, _("Possible compressed data corruption: "
+                           "string contains compressed integer (opcode %d)"),
+                      opcode);
+          }
+      }
+      break;
     }
 
   return true;
