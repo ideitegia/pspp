@@ -45,8 +45,14 @@ struct sfm_reader
 
     int n_variable_records, n_variables;
 
+    int *var_widths;
+    size_t n_var_widths, allocated_var_widths;
+
     enum integer_format integer_format;
     enum float_format float_format;
+
+    bool compressed;
+    double bias;
   };
 
 static void read_header (struct sfm_reader *);
@@ -72,6 +78,7 @@ static void read_character_encoding (struct sfm_reader *r,
 				       size_t size, size_t count);
 static void read_long_string_value_labels (struct sfm_reader *r,
                                            size_t size, size_t count);
+static void read_compressed_data (struct sfm_reader *);
 
 static struct text_record *open_text_record (
   struct sfm_reader *, size_t size);
@@ -115,6 +122,10 @@ main (int argc, char *argv[])
         error (EXIT_FAILURE, errno, "error opening \"%s\"", r.file_name);
       r.n_variable_records = 0;
       r.n_variables = 0;
+      r.n_var_widths = 0;
+      r.allocated_var_widths = 0;
+      r.var_widths = 0;
+      r.compressed = false;
 
       if (argc > 2)
         printf ("Reading \"%s\":\n", r.file_name);
@@ -151,6 +162,9 @@ main (int argc, char *argv[])
               "(first byte of data at %08lx)\n",
               ftell (r.file), ftell (r.file) + 4);
 
+      if (r.compressed)
+        read_compressed_data (&r);
+
       fclose (r.file);
     }
   
@@ -169,7 +183,6 @@ read_header (struct sfm_reader *r)
   int32_t weight_index;
   int32_t ncases;
   uint8_t raw_bias[8];
-  double bias;
   char creation_date[10];
   char creation_time[9];
   char file_label[65];
@@ -193,9 +206,11 @@ read_header (struct sfm_reader *r)
                              raw_layout_code, sizeof raw_layout_code);
 
   nominal_case_size = read_int (r);
-  compressed = read_int (r) != 0;
+  compressed = read_int (r);
   weight_index = read_int (r);
   ncases = read_int (r);
+
+  r->compressed = compressed != 0;
 
   /* Identify floating-point format and obtain compression bias. */
   read_bytes (r, raw_bias, sizeof raw_bias);
@@ -209,7 +224,7 @@ read_header (struct sfm_reader *r)
       else
         r->float_format = FLOAT_IEEE_DOUBLE_LE;
     }
-  bias = float_get_double (r->float_format, raw_bias);
+  r->bias = float_get_double (r->float_format, raw_bias);
 
   read_string (r, creation_date, sizeof creation_date);
   read_string (r, creation_time, sizeof creation_time);
@@ -223,7 +238,7 @@ read_header (struct sfm_reader *r)
   printf ("\t%17s: %"PRId32"\n", "Compressed", compressed);
   printf ("\t%17s: %"PRId32"\n", "Weight index", weight_index);
   printf ("\t%17s: %"PRId32"\n", "Number of cases", ncases);
-  printf ("\t%17s: %g\n", "Compression bias", bias);
+  printf ("\t%17s: %g\n", "Compression bias", r->bias);
   printf ("\t%17s: %s\n", "Creation date", creation_date);
   printf ("\t%17s: %s\n", "Creation time", creation_time);
   printf ("\t%17s: \"%s\"\n", "File label", file_label);
@@ -300,6 +315,11 @@ read_variable_record (struct sfm_reader *r)
 
   if (width >= 0)
     r->n_variables++;
+
+  if (r->n_var_widths >= r->allocated_var_widths)
+    r->var_widths = x2nrealloc (r->var_widths, &r->allocated_var_widths,
+                                sizeof *r->var_widths);
+  r->var_widths[r->n_var_widths++] = width;
 
   printf ("\tWidth: %d (%s)\n",
           width,
@@ -380,6 +400,20 @@ read_variable_record (struct sfm_reader *r)
     }
 }
 
+static void
+print_untyped_value (struct sfm_reader *r, char raw_value[8])
+{
+  int n_printable;
+  double value;
+
+  value = float_get_double (r->float_format, raw_value);
+  for (n_printable = 0; n_printable < sizeof raw_value; n_printable++)
+    if (!isprint (raw_value[n_printable]))
+      break;
+
+  printf ("%g/\"%.*s\"", value, n_printable, raw_value);
+}
+
 /* Reads value labels from sysfile R and inserts them into the
    associated dictionary. */
 static void
@@ -395,17 +429,11 @@ read_value_label_record (struct sfm_reader *r)
   for (i = 0; i < label_cnt; i++)
     {
       char raw_value[8];
-      double value;
-      int n_printable;
       unsigned char label_len;
       size_t padded_len;
       char label[256];
 
       read_bytes (r, raw_value, sizeof raw_value);
-      value = float_get_double (r->float_format, raw_value);
-      for (n_printable = 0; n_printable < sizeof raw_value; n_printable++)
-        if (!isprint (raw_value[n_printable]))
-          break;
 
       /* Read label length. */
       read_bytes (r, &label_len, sizeof label_len);
@@ -415,7 +443,9 @@ read_value_label_record (struct sfm_reader *r)
       read_bytes (r, label, padded_len - 1);
       label[label_len] = 0;
 
-      printf ("\t%g/\"%.*s\": \"%s\"\n", value, n_printable, raw_value, label);
+      printf ("\t");
+      print_untyped_value (r, raw_value);
+      printf (": \"%s\"\n", label);
     }
 
   /* Now, read the type 4 record that has the list of variables
@@ -815,6 +845,82 @@ read_variable_attributes (struct sfm_reader *r, size_t size, size_t count)
         break; 
     }
   close_text_record (text);
+}
+
+static void
+read_compressed_data (struct sfm_reader *r)
+{
+  enum { N_OPCODES = 8 };
+  uint8_t opcodes[N_OPCODES];
+  long int opcode_ofs;
+  int opcode_idx;
+  int case_num;
+  int i;
+
+  read_int (r);
+  printf ("\n%08lx: compressed data:\n", ftell (r->file));
+
+  opcode_idx = N_OPCODES;
+  case_num = 0;
+  for (case_num = 0; ; case_num++)
+    {
+      printf ("%08lx: case %d's uncompressible data begins\n",
+              ftell (r->file), case_num);
+      for (i = 0; i < r->n_var_widths; i++)
+        {
+          int width = r->var_widths[i];
+          char raw_value[8];
+          int opcode;
+
+          if (opcode_idx >= N_OPCODES)
+            {
+              opcode_ofs = ftell (r->file);
+              read_bytes (r, opcodes, 8);
+              opcode_idx = 0;
+            }
+          opcode = opcodes[opcode_idx];
+          printf ("%08lx: variable %d: opcode %d: ",
+                  opcode_ofs + opcode_idx, i, opcode);
+
+          switch (opcode)
+            {
+            default:
+              printf ("%g", opcode - r->bias);
+              if (width != 0)
+                printf (", but this is a string variable (width=%d)", width);
+              printf ("\n");
+              break;
+
+            case 252:
+              printf ("end of data\n");
+              return;
+
+            case 253:
+              read_bytes (r, raw_value, 8);
+              printf ("uncompressible data: ");
+              print_untyped_value (r, raw_value);
+              printf ("\n");
+              break;
+
+            case 254:
+              printf ("spaces");
+              if (width == 0)
+                printf (", but this is a numeric variable");
+              printf ("\n");
+              break;
+
+            case 255:
+              printf ("SYSMIS");
+              if (width != 0)
+                printf (", but this is a string variable (width=%d)", width);
+
+              printf ("\n");
+              break;
+            }
+
+          opcode_idx++;
+        }
+    }
 }
 
 /* Helpers for reading records that consist of structured text
