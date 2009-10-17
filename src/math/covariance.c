@@ -24,6 +24,7 @@
 #include <data/case.h>
 #include <data/variable.h>
 #include <libpspp/misc.h>
+#include "categoricals.h"
 
 #define n_MOMENTS (MOMENT_VARIANCE + 1)
 
@@ -35,8 +36,7 @@ struct covariance
   const struct variable **vars;
 
   /* Categorical variables. */
-  size_t n_catvars;
-  const struct variable **catvars;
+  struct categoricals *categoricals;
 
   /* Array containing number of categories per categorical variable. */
   size_t *n_categories;
@@ -96,25 +96,21 @@ covariance_moments (const struct covariance *cov, int m)
 /* Create a covariance struct.
  */
 struct covariance *
-covariance_create (size_t n_vars, const struct variable **vars,
-		   const struct variable *weight, enum mv_class exclude, 
-		   short passes)
+covariance_1pass_create (size_t n_vars, const struct variable **vars,
+			 const struct variable *weight, enum mv_class exclude)
 {
   size_t i;
   struct covariance *cov = xmalloc (sizeof *cov);
-  assert (passes == 1 || passes == 2);
-  cov->passes = passes;
+
+  cov->passes = 1;
   cov->state = 0;
   cov->pass_one_first_case_seen = cov->pass_two_first_case_seen = false;
   
-  cov->vars = xmalloc (sizeof *cov->vars * n_vars);
+  cov->vars = vars;
 
   cov->wv = weight;
   cov->n_vars = n_vars;
   cov->dim = n_vars;
-
-  for (i = 0; i < n_vars; ++i)
-    cov->vars[i] = vars[i];
 
   cov->moments = xmalloc (sizeof *cov->moments * n_MOMENTS);
   
@@ -139,30 +135,32 @@ covariance_create (size_t n_vars, const struct variable **vars,
 struct covariance *
 covariance_2pass_create (size_t n_vars, const struct variable **vars,
 			 size_t n_catvars, const struct variable **catvars, 
-			 const struct variable *weight, enum mv_class exclude)
+			 const struct variable *wv, enum mv_class exclude)
 {
   size_t i;
   struct covariance *cov = xmalloc (sizeof *cov);
-  cov->vars = xmalloc (sizeof *cov->vars * n_vars);
-  cov->catvars = xnmalloc (n_catvars, sizeof (*cov->catvars));
-  cov->n_categories = xnmalloc (n_catvars, sizeof (cov->n_categories));
 
-  cov->wv = weight;
+  cov->passes = 2;
+  cov->state = 0;
+  cov->pass_one_first_case_seen = cov->pass_two_first_case_seen = false;
+  
+  cov->vars = vars;
+
+  cov->wv = wv;
   cov->n_vars = n_vars;
-  cov->n_catvars = n_catvars;
-
-  for (i = 0; i < n_vars; ++i)
-    cov->vars[i] = vars[i];
-
-  for (i = 0; i < n_catvars; i++)
-    {
-      cov->catvars[i] = catvars[i];
-      cov->n_categories[i] = 0;
-    }
+  cov->dim = n_vars;
 
   cov->moments = xmalloc (sizeof *cov->moments * n_MOMENTS);
   
+  for (i = 0; i < n_MOMENTS; ++i)
+    cov->moments[i] = gsl_matrix_calloc (n_vars, n_vars);
+
   cov->exclude = exclude;
+
+  cov->n_cm = - 1;
+  cov->cm = NULL;
+
+  cov->categoricals = categoricals_create (catvars, n_catvars, wv);
 
   return cov;
 }
@@ -226,6 +224,8 @@ covariance_accumulate_pass1 (struct covariance *cov, const struct ccase *c)
       cov->state = 1;
     }
 
+  categoricals_update (cov->categoricals, c);
+
   for (i = 0 ; i < cov->n_vars; ++i)
     {
       const union value *val1 = case_data (c, cov->vars[i]);
@@ -269,6 +269,10 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
     {
       assert (cov->state == 1);
       cov->state = 2;
+
+      cov->dim = cov->n_vars + categoricals_total (cov->categoricals);
+      cov->n_cm = (cov->dim * (cov->dim - 1)  ) / 2;
+      cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
 
       /* Divide the means by the number of samples */
       for (i = 0; i < cov->n_vars; ++i)
