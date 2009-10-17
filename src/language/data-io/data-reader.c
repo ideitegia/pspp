@@ -143,8 +143,7 @@ dfm_open_reader (struct file_handle *fh, struct lexer *lexer)
       struct stat s;
       r->where.file_name = CONST_CAST (char *, fh_get_file_name (fh));
       r->where.line_number = 0;
-      r->file = fn_open (fh_get_file_name (fh),
-                         fh_get_mode (fh) == FH_MODE_TEXT ? "r" : "rb");
+      r->file = fn_open (fh_get_file_name (fh), "rb");
       if (r->file == NULL)
         {
           msg (ME, _("Could not open \"%s\" for reading as a data file: %s."),
