@@ -16,6 +16,7 @@
 
 #include <config.h>
 
+#include <libpspp/assertion.h>
 #include "covariance.h"
 #include <gl/xalloc.h>
 #include "moments.h"
@@ -56,6 +57,23 @@ struct covariance
      Only the top triangle is included, and no diagonals */
   double *cm;
   int n_cm;
+
+  /* 1 for single pass algorithm; 
+     2 for double pass algorithm
+  */
+  short passes;
+
+  /*
+    0 : No pass has  been made
+    1 : First pass has been started
+    2 : Second pass has been 
+    
+    IE: How many passes have been (partially) made. */
+  short state;
+
+  /* Flags indicating that the first case has been seen */
+  bool pass_one_first_case_seen;
+  bool pass_two_first_case_seen;
 };
 
 
@@ -79,10 +97,16 @@ covariance_moments (const struct covariance *cov, int m)
  */
 struct covariance *
 covariance_create (size_t n_vars, const struct variable **vars,
-		   const struct variable *weight, enum mv_class exclude)
+		   const struct variable *weight, enum mv_class exclude, 
+		   short passes)
 {
   size_t i;
   struct covariance *cov = xmalloc (sizeof *cov);
+  assert (passes == 1 || passes == 2);
+  cov->passes = passes;
+  cov->state = 0;
+  cov->pass_one_first_case_seen = cov->pass_two_first_case_seen = false;
+  
   cov->vars = xmalloc (sizeof *cov->vars * n_vars);
 
   cov->wv = weight;
@@ -175,13 +199,147 @@ cm_idx (const struct covariance *cov, int i, int j)
   return i - 1 + as;
 }
 
+static void
+dump_matrix (const gsl_matrix *m)
+{
+  size_t i, j;
+
+  for (i = 0 ; i < m->size1; ++i)
+    {
+      for (j = 0 ; j < m->size2; ++j)
+	printf ("%02f ", gsl_matrix_get (m, i, j));
+      printf ("\n");
+    }
+}
 
 /* Call this function for every case in the data set */
+void
+covariance_accumulate_pass1 (struct covariance *cov, const struct ccase *c)
+{
+  size_t i, j, m;
+  const double weight = cov->wv ? case_data (c, cov->wv)->f : 1.0;
+
+  assert (cov->passes == 2);
+  if (!cov->pass_one_first_case_seen)
+    {
+      assert (cov->state == 0);
+      cov->state = 1;
+    }
+
+  for (i = 0 ; i < cov->n_vars; ++i)
+    {
+      const union value *val1 = case_data (c, cov->vars[i]);
+
+      if ( var_is_value_missing (cov->vars[i], val1, cov->exclude))
+	continue;
+
+      for (j = 0 ; j < cov->n_vars; ++j)
+	{
+	  double pwr = 1.0;
+	  const union value *val2 = case_data (c, cov->vars[j]);
+
+	  if ( var_is_value_missing (cov->vars[j], val2, cov->exclude))
+	    continue;
+
+	  for (m = 0 ; m <= MOMENT_MEAN; ++m)
+	    {
+	      double *x = gsl_matrix_ptr (cov->moments[m], i, j);
+
+	      *x += pwr * weight;
+	      pwr *= val1->f;
+	    }
+	}
+    }
+
+  cov->pass_one_first_case_seen = true;
+}
+
+
+/* Call this function for every case in the data set */
+void
+covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
+{
+  size_t i, j;
+  const double weight = cov->wv ? case_data (c, cov->wv)->f : 1.0;
+
+  assert (cov->passes == 2);
+  assert (cov->state >= 1);
+
+  if (! cov->pass_two_first_case_seen)
+    {
+      assert (cov->state == 1);
+      cov->state = 2;
+
+      /* Divide the means by the number of samples */
+      for (i = 0; i < cov->n_vars; ++i)
+	{
+	  for (j = 0; j < cov->n_vars; ++j)
+	    {
+	      double *x = gsl_matrix_ptr (cov->moments[MOMENT_MEAN], i, j);
+	      *x /= gsl_matrix_get (cov->moments[MOMENT_NONE], i, j);
+	    }
+	}
+    }
+
+  for (i = 0 ; i < cov->n_vars; ++i)
+    {
+      const union value *val1 = case_data (c, cov->vars[i]);
+
+      if ( var_is_value_missing (cov->vars[i], val1, cov->exclude))
+	continue;
+
+      for (j = 0 ; j < cov->n_vars; ++j)
+	{
+	  int idx;
+	  double ss ;
+	  const union value *val2 = case_data (c, cov->vars[j]);
+
+	  const double s = pow2 (val1->f - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j)) * weight;
+
+	  if ( var_is_value_missing (cov->vars[j], val2, cov->exclude))
+	    continue;
+
+	  {
+	    double *x = gsl_matrix_ptr (cov->moments[MOMENT_VARIANCE], i, j);
+	    *x += s;
+	  }
+
+	  ss = 
+	    (val1->f - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j))
+	    * 
+	    (val2->f - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j))
+	    * weight
+	    ;
+
+	  idx = cm_idx (cov, i, j);
+	  if (idx >= 0)
+	    {
+	      cov->cm [idx] += ss;
+	    }
+
+	}
+    }
+
+  cov->pass_two_first_case_seen = true;
+}
+
+
+/* Call this function for every case in the data set.
+   After all cases have been passed, call covariance_calculate
+ */
 void
 covariance_accumulate (struct covariance *cov, const struct ccase *c)
 {
   size_t i, j, m;
   const double weight = cov->wv ? case_data (c, cov->wv)->f : 1.0;
+
+  assert (cov->passes == 1);
+
+  if ( !cov->pass_one_first_case_seen)
+    {
+      assert ( cov->state == 0);
+      cov->state = 1;
+    }
 
   for (i = 0 ; i < cov->n_vars; ++i)
     {
@@ -214,6 +372,8 @@ covariance_accumulate (struct covariance *cov, const struct ccase *c)
 	    }
 	}
     }
+
+  cov->pass_one_first_case_seen = true;
 }
 
 
@@ -249,14 +409,32 @@ cm_to_gsl (struct covariance *cov)
 }
 
 
+static const gsl_matrix *
+covariance_calculate_double_pass (struct covariance *cov)
+{
+  size_t i, j;
+  for (i = 0 ; i < cov->n_vars; ++i)
+    {
+      for (j = 0 ; j < cov->n_vars; ++j)
+	{
+	  int idx;
+	  double *x = gsl_matrix_ptr (cov->moments[MOMENT_VARIANCE], i, j);
+	  *x /= gsl_matrix_get (cov->moments[MOMENT_NONE], i, j);
 
-/* 
-   Return a pointer to gsl_matrix containing the pairwise covariances.
-   The matrix remains owned by the COV object, and must not be freed.
-   Call this function only after all data have been accumulated.
-*/
-const gsl_matrix *
-covariance_calculate (struct covariance *cov)
+	  idx = cm_idx (cov, i, j);
+	  if ( idx >= 0)
+	    {
+	      x = &cov->cm [idx];
+	      *x /= gsl_matrix_get (cov->moments[MOMENT_NONE], i, j);
+	    }
+	}
+    }
+
+  return  cm_to_gsl (cov);
+}
+
+static const gsl_matrix *
+covariance_calculate_single_pass (struct covariance *cov)
 {
   size_t i, j;
   size_t m;
@@ -298,6 +476,33 @@ covariance_calculate (struct covariance *cov)
 
   return cm_to_gsl (cov);
 }
+
+
+
+/* 
+   Return a pointer to gsl_matrix containing the pairwise covariances.
+   The matrix remains owned by the COV object, and must not be freed.
+   Call this function only after all data have been accumulated.
+*/
+const gsl_matrix *
+covariance_calculate (struct covariance *cov)
+{
+  assert ( cov->state > 0 );
+
+  switch (cov->passes)
+    {
+    case 1:
+      return covariance_calculate_single_pass (cov);  
+      break;
+    case 2:
+      return covariance_calculate_double_pass (cov);  
+      break;
+    default:
+      NOT_REACHED ();
+    }
+}
+
+
 
 
 /* Destroy the COV object */

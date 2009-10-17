@@ -28,13 +28,17 @@ struct variable;
 struct ccase ;
 
 struct covariance * covariance_create (size_t n_vars, const struct variable **vars, 
-				       const struct variable *wv, enum mv_class excl);
+				       const struct variable *wv, enum mv_class excl,
+				       short passes);
+
 struct covariance *
 covariance_2pass_create (size_t n_vars, const struct variable **vars,
 			 size_t n_catvars, const struct variable **catvars, 
 			 const struct variable *weight, enum mv_class excl);
 
 void covariance_accumulate (struct covariance *, const struct ccase *);
+void covariance_accumulate_pass1 (struct covariance *, const struct ccase *);
+void covariance_accumulate_pass2 (struct covariance *, const struct ccase *);
 
 const gsl_matrix * covariance_calculate (struct covariance *cov);
 

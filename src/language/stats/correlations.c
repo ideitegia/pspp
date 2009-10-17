@@ -325,14 +325,24 @@ run_corr (struct casereader *r, const struct corr_opts *opts, const struct corr 
   const gsl_matrix *cov_matrix;
   gsl_matrix *corr_matrix;
   struct covariance *cov = covariance_create (corr->n_vars_total, corr->vars,
-					      opts->wv, opts->exclude);
+					      opts->wv, opts->exclude, 2);
 
+
+  struct casereader *rc = casereader_clone (r);
   for ( ; (c = casereader_read (r) ); case_unref (c))
     {
-      covariance_accumulate (cov, c);
+      covariance_accumulate_pass1 (cov, c);
+    }
+
+  for ( ; (c = casereader_read (rc) ); case_unref (c))
+    {
+      covariance_accumulate_pass2 (cov, c);
     }
 
   cov_matrix = covariance_calculate (cov);
+
+  casereader_destroy (rc);
+
 
   samples_matrix = covariance_moments (cov, MOMENT_NONE);
   var_matrix = covariance_moments (cov, MOMENT_VARIANCE);
