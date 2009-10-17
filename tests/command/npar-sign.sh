@@ -85,7 +85,7 @@ $SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 1"
-diff -c - $TEMPDIR/pspp.csv <<EOF
+diff -b -c - $TEMPDIR/pspp.csv <<EOF
 Table: Frequencies
 ,,N
 height - age,Negative Differences,1

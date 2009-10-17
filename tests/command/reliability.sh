@@ -249,7 +249,7 @@ $SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output"
-diff -c pspp.csv - << EOF
+diff -c -b pspp.csv - << EOF
 Scale: Everything
 
 Table: Case Processing Summary

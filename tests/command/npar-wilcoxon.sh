@@ -114,7 +114,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 
 
 activity="compare output 1"
-diff -c pspp.csv $TEMPDIR/results.csv
+diff -b -c pspp.csv $TEMPDIR/results.csv
 if [ $? -ne 0 ] ; then fail ; fi
 
 
@@ -158,7 +158,7 @@ $SUPERVISOR $PSPP -o pspp.csv $TESTFILE
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="compare output 2"
-diff pspp.csv $TEMPDIR/results.csv
+diff -b pspp.csv $TEMPDIR/results.csv
 if [ $? -ne 0 ] ; then fail ; fi
 
 

@@ -109,7 +109,7 @@ $SUPERVISOR $PSPP -o pspp.csv --error-file=$TEMPDIR/errs $TEMPDIR/print.stat
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare print.out"
-diff $TEMPDIR/print.out - <<EOF
+diff -b $TEMPDIR/print.out - <<EOF
  1 2 
 112
  1 -2 
@@ -134,7 +134,7 @@ EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare write.out"
-diff $TEMPDIR/write.out - <<EOF
+diff -b $TEMPDIR/write.out - <<EOF
 12
 12
 1-2
@@ -159,7 +159,7 @@ EOF
 if [ $? -ne 0 ] ; then fail ; fi
 
 activity="compare output"
-diff $TEMPDIR/pspp.csv - << EOF
+diff -b $TEMPDIR/pspp.csv - << EOF
 1 2 
 
 
