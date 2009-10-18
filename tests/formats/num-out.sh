@@ -50,7 +50,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 echo -n .
 
 activity="inexactify results"
-$top_builddir/tests/formats/inexactify < output.txt > output.inexact
+$top_builddir/tests/formats/inexactify$EXEEXT < output.txt > output.inexact
 if [ $? -ne 0 ] ; then no_result ; fi
 echo -n .
 
@@ -65,7 +65,7 @@ if [ $? -ne 0 ] ; then no_result ; fi
 echo -n .
 
 activity="inexactify expected results"
-$top_builddir/tests/formats/inexactify < expected.txt > expected.inexact
+$top_builddir/tests/formats/inexactify$EXEEXT < expected.txt > expected.inexact
 if [ $? -ne 0 ] ; then no_result ; fi
 echo -n .
 
