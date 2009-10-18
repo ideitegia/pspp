@@ -85,7 +85,7 @@ $SUPERVISOR $PSPP -o pspp.csv $TEMPDIR/sample.stat
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="create head"
-grep -v '^\ *$' $TEMPDIR/pspp.csv | head -1 > $TEMPDIR/head
+grep -v '^[ ]*$' $TEMPDIR/pspp.csv | head -1 > $TEMPDIR/head
 if [ $? -ne 0 ] ; then no_result ; fi
 
 activity="extract data"
