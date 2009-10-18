@@ -153,7 +153,7 @@ categoricals_create (const struct variable **v, size_t n_vars, const struct vari
   cat->reverse_variable_map = NULL;
   cat->pool = pool_create ();
 
-  cat->vp = pool_calloc (cat->pool, sizeof *cat->vp, n_vars);
+  cat->vp = pool_calloc (cat->pool, n_vars, sizeof *cat->vp);
 
   for (i = 0 ; i < cat->n_vars; ++i)
     hmap_init (&cat->vp[i].map);
@@ -181,7 +181,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       struct value_node  *node = lookup_value (&cat->vp[i].map, cat->vars[i], val);
       if ( NULL == node)
 	{
-	  node = pool_calloc (cat->pool, sizeof *node, 1);
+	  node = pool_malloc (cat->pool, sizeof *node);
 
 	  value_init (&node->value, width);
 	  value_copy (&node->value, val, width);
@@ -238,7 +238,7 @@ categoricals_done (struct categoricals *cat)
   */
   int v;
   int idx = 0;
-  cat->reverse_variable_map = pool_calloc (cat->pool, sizeof *cat->reverse_variable_map, cat->n_cats_total);
+  cat->reverse_variable_map = pool_calloc (cat->pool, cat->n_cats_total, sizeof *cat->reverse_variable_map);
   
   for (v = 0 ; v < cat->n_vars; ++v)
     {
@@ -247,7 +247,7 @@ categoricals_done (struct categoricals *cat)
       int n_cats_total = categoricals_n_count (cat, v);
       struct hmap_node *node ;
 
-      vp->reverse_value_map = pool_calloc (cat->pool, sizeof *vp->reverse_value_map,  n_cats_total);
+      vp->reverse_value_map = pool_calloc (cat->pool, n_cats_total, sizeof *vp->reverse_value_map);
 
       vp->base_subscript = idx;
 
