@@ -27,6 +27,7 @@
 #include <libpspp/hmap.h>
 #include <libpspp/pool.h>
 
+#include <libpspp/str.h>
 
 struct value_node
 {
@@ -104,16 +105,25 @@ categoricals_dump (const struct categoricals *cat)
       printf ("Reverse map\n");
       for (x = 0 ; x < vp->n_cats; ++x)
 	{
+	  struct string s;
 	  const struct value_node *vn = vp->reverse_value_map[x];
-	  printf ("Value for %d is %s\n", x, value_str (&vn->value, width));
+	  ds_init_empty (&s);
+	  var_append_value_name (cat->vars[v], &vn->value, &s);
+	  printf ("Value for %d is %s\n", x, ds_cstr(&s));
+	  ds_destroy (&s);
 	}
 
       printf ("\nForward map\n");
       for (node = hmap_first (m); node; node = hmap_next (m, node))
 	{
+	  struct string s;
+	  ds_init_empty (&s);
 	  const struct value_node *vn = HMAP_DATA (node, struct value_node, node);
+	  var_append_value_name (cat->vars[v], &vn->value, &s);
 	  printf ("Value: %s; Index %d; CC %g\n",
-		  value_str (&vn->value, width),  vn->subscript, vn->cc);
+		  ds_cstr (&s),
+		  vn->subscript, vn->cc);
+	  ds_destroy (&s);
 	}
     }
 }
