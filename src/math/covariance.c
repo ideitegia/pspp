@@ -29,6 +29,41 @@
 #define n_MOMENTS (MOMENT_VARIANCE + 1)
 
 
+/* Create a new matrix of NEW_SIZE x NEW_SIZE and copy the elements of
+   matrix IN into it.  IN must be a square matrix, and in normal usage
+   it will be smaller than NEW_SIZE.
+   IN is destroyed by this function.  The return value must be destroyed
+   when no longer required.
+*/
+static gsl_matrix *
+resize_matrix (gsl_matrix *in, size_t new_size)
+{
+  size_t i, j;
+
+  gsl_matrix *out = NULL;
+
+  assert (in->size1 == in->size2);
+
+  if (new_size <= in->size1)
+    return in;
+
+  out = gsl_matrix_calloc (new_size, new_size);
+
+  for (i = 0; i < in->size1; ++i)
+    {
+      for (j = 0; j < in->size2; ++j)
+	{
+	  double x = gsl_matrix_get (in, i, j);
+
+	  gsl_matrix_set (out, i, j, x);
+	}
+    }
+    
+  gsl_matrix_free (in);
+
+  return out;
+}
+
 struct covariance
 {
   /* The variables for which the covariance matrix is to be calculated. */
@@ -274,6 +309,13 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
       cov->n_cm = (cov->dim * (cov->dim - 1)  ) / 2;
       cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
 
+      /* Grow the moment matrices so that they're large enough to accommodate the
+	 categorical elements */
+      for (i = 0; i < n_MOMENTS; ++i)
+	{
+	  cov->moments[i] = resize_matrix (cov->moments[i], cov->dim);
+	}
+
       /* Divide the means by the number of samples */
       for (i = 0; i < cov->n_vars; ++i)
 	{
@@ -281,7 +323,7 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
 	    {
 	      double *x = gsl_matrix_ptr (cov->moments[MOMENT_MEAN], i, j);
 	      *x /= gsl_matrix_get (cov->moments[MOMENT_NONE], i, j);
-	    }
+ 	    }
 	}
     }
 
