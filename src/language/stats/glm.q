@@ -39,7 +39,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/hash.h>
 #include <libpspp/message.h>
-#include <math/covariance-matrix.h>
+#include <math/covariance.h>
 #include <math/coefficient.h>
 #include <math/linreg.h>
 #include <math/moments.h>
@@ -262,15 +262,12 @@ coeff_init (pspp_linreg_cache * c, const struct design_matrix *cov)
 
 
 static pspp_linreg_cache *
-fit_model (const struct covariance_matrix *cov,
+fit_model (const struct covariance *cov,
 	   const struct variable *dep_var, 
 	   const struct variable ** indep_vars, 
 	   size_t n_data, size_t n_indep)
 {
   pspp_linreg_cache *result = NULL;
-  result = pspp_linreg_cache_alloc (dep_var, indep_vars, n_data, n_indep);
-  coeff_init (result, covariance_to_design (cov));
-  pspp_linreg_with_cov (cov, result);  
   
   return result;
 }
@@ -281,17 +278,18 @@ run_glm (struct casereader *input,
 	 const struct dataset *ds)
 {
   casenumber row;
-  const struct variable **indep_vars;
-  const struct variable **all_vars;
+  const struct variable **numerics = NULL;
+  const struct variable **categoricals = NULL;
   int n_indep = 0;
   pspp_linreg_cache *model = NULL; 
   pspp_linreg_opts lopts;
   struct ccase *c;
   size_t i;
-  size_t n_all_vars;
   size_t n_data;		/* Number of valid cases. */
+  size_t n_categoricals = 0;
+  size_t n_numerics;
   struct casereader *reader;
-  struct covariance_matrix *cov;
+  struct covariance *cov;
 
   c = casereader_peek (input, 0);
   if (c == NULL)
@@ -311,50 +309,71 @@ run_glm (struct casereader *input,
   lopts.get_depvar_mean_std = 1;
 
   lopts.get_indep_mean_std = xnmalloc (n_dependent, sizeof (int));
-  indep_vars = xnmalloc (cmd->n_by, sizeof *indep_vars);
-  n_all_vars = cmd->n_by + n_dependent;
-  all_vars = xnmalloc (n_all_vars, sizeof *all_vars);
 
-  for (i = 0; i < n_dependent; i++)
-    {
-      all_vars[i] = v_dependent[i];
-    }
+
+  n_numerics = cmd->n_with + n_dependent;
   for (i = 0; i < cmd->n_by; i++)
     {
-      indep_vars[i] = cmd->v_by[i];
-      all_vars[i + n_dependent] = cmd->v_by[i];
+      if (var_is_alpha (cmd->v_by[i]))
+	{
+	  n_categoricals++;
+	}
+      else
+	{
+	  n_numerics++;
+	}
     }
-  n_indep = cmd->n_by;
+  numerics = xnmalloc (n_categoricals, sizeof *numerics);
+  categoricals = xnmalloc (n_categoricals, sizeof (*categoricals));
+  size_t k = 0;
+  for (i = 0; i < cmd->n_by; i++)
+    {
+      if (var_is_alpha (cmd->v_by[i]))
+	{
+	  categoricals[k] = cmd->v_by[i];
+	}
+      else
+	{
+	  numerics[i] = cmd->v_by[i];
+	  k++;
+	}
+    }
+  for (i = 0; i < n_dependent; i++)
+    {
+      k++;
+      numerics[k] = v_dependent[i];
+    }
+  for (i = 0; i < cmd->n_with; i++)
+    {
+      k++;
+      numerics[k] = v_dependent[i];
+    }
+
+  covariance_2pass_create (n_numerics, numerics, n_categoricals, categoricals, NULL, MV_NEVER);
 
   reader = casereader_clone (input);
-  reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
+  reader = casereader_create_filter_missing (reader, numerics, n_numerics,
 					     MV_ANY, NULL, NULL);
-  reader = casereader_create_filter_missing (reader, v_dependent, 1,
+  reader = casereader_create_filter_missing (reader, categoricals, n_categoricals,
 					     MV_ANY, NULL, NULL);
+  struct casereader *r = casereader_clone (reader);
 
-  if (n_indep > 0)
+  reader = casereader_create_counter (reader, &row, -1);
+  
+  for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
-      for (i = 0; i < n_all_vars; i++)
-	if (var_is_alpha (all_vars[i]))
-	  cat_stored_values_create (all_vars[i]);
-      
-      reader = casereader_create_counter (reader, &row, -1);
-
-      for (i = 0; i < n_inter; i++)
-      for (; (c = casereader_read (reader)) != NULL; case_unref (c))
-	{
-	  /* 
-	     Accumulate the covariance matrix.
-	  */
-	  n_data++;
-	}
-      casereader_destroy (reader);
+      covariance_accumulate_pass1 (cov, c);
     }
-  else
+  for (; (c = casereader_read (r)) != NULL; case_unref (c))
     {
-      msg (SE, gettext ("No valid data found. This command was skipped."));
+      covariance_accumulate_pass1 (cov, c);
     }
-  free (indep_vars);
+  covariance_destroy (cov);
+  casereader_destroy (reader);
+  casereader_destroy (r);
+  
+  free (numerics);
+  free (categoricals);
   free (lopts.get_indep_mean_std);
   casereader_destroy (input);
 
