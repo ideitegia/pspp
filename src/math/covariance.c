@@ -348,6 +348,8 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
 	  cov->moments[i] = resize_matrix (cov->moments[i], cov->dim);
 	}
 
+      categoricals_done (cov->categoricals);
+
       /* Divide the means by the number of samples */
       for (i = 0; i < cov->n_vars; ++i)
 	{
