@@ -16,27 +16,25 @@ module_sources = \
  perl-module/t/Pspp.t
 
 perl-module/pspp-module-config: Makefile
-	target=`mktemp`;\
-	echo '%Locations = (' > $$target ;\
-	printf "  SourceDir => '" >> $$target ;\
-	(cd $(top_srcdir) && echo `pwd`\', ) >> $$target ;\
-	printf "  BuildDir => '" >> $$target ;\
-	(cd $(top_builddir) && echo `pwd`\' ) >> $$target ;\
-	echo ');' >> $$target ;\
-	cp $$target $(top_builddir)/perl-module/pspp-module-config
+	(echo '%Locations = (';\
+	 printf "  SourceDir => '";\
+	 (cd $(top_srcdir) && echo `pwd`\', ) ;\
+	 printf "  BuildDir => '";\
+	 (cd $(top_builddir) && echo `pwd`\' );\
+	 echo ');') > $(top_builddir)/perl-module/pspp-module-config
 
 perl-module/Makefile: perl-module/Makefile.PL perl-module/pspp-module-config
 	cd perl-module && $(PERL) Makefile.PL PREFIX=$(prefix)
 
-perl-module/PSPP-Perl-$(VERSION).tar.gz: $(module_sources)
-	$(RM) $@
+perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz: $(module_sources)
+	rm -f $@
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) tardist
 
 PHONY += module-make
 module-make: perl-module/Makefile src/libpspp-core.la
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS)
 
-all-local: 
+perl_module_tarball:
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
 	 for f in $(module_sources); do \
 	  destdir=`dirname $$f` ;\
@@ -47,22 +45,26 @@ all-local:
 	  fi ; \
 	 done \
 	fi
-	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION).tar.gz
+	$(MAKE) $(AM_MAKEFLAGS) module-make perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz
+
+ALL_LOCAL += perl_module_tarball
 
 check-local:
 	loc=`pwd` ; cd $(top_builddir)/src/.libs ; llp=`pwd` ; cd $$loc ;  \
 	LANG=C LD_LIBRARY_PATH=$$llp sh -c "cd perl-module && $(MAKE) $(AM_MAKEFLAGS) test"
 
 
-clean-local:
+perl_module_CLEAN:
 	cd perl-module && $(MAKE) $(AM_MAKEFLAGS) clean || true
 	if test x"$(top_builddir)" != x"$(top_srcdir)" ; then \
-	  $(RM) $(module_sources) ; \
+	  rm -f $(module_sources) ; \
 	fi
-	$(RM) perl-module/Makefile.old
+	rm -f perl-module/Makefile.old
+
+CLEAN_LOCAL += perl_module_CLEAN
 
 CLEANFILES += \
-        perl-module/PSPP-Perl-$(VERSION).tar.gz \
+        perl-module/PSPP-Perl-$(VERSION_FOR_PERL).tar.gz \
 	perl-module/pspp-module-config \
 	perl-module/const-c.inc \
 	perl-module/const-xs.inc 

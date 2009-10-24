@@ -89,7 +89,6 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 {
   PsppireDict *dictionary = 0;
 
-
   i18n_init ();
 
   preregister_widgets ();

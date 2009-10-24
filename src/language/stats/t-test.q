@@ -47,6 +47,7 @@
 #include <output/table.h>
 #include <data/format.h>
 
+#include "minmax.h"
 #include "xalloc.h"
 #include "xmemdup0.h"
 
@@ -506,7 +507,7 @@ ssbox_one_sample_init (struct ssbox *this, struct t_test_proc *proc)
   tab_text (this->t, 1, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
-  tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+  tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("S.E. Mean"));
 }
 
 /* Initialize the independent samples ssbox */
@@ -526,7 +527,7 @@ ssbox_independent_samples_init (struct ssbox *this, struct t_test_proc *proc)
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
-  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("S.E. Mean"));
 }
 
 /* Populate the ssbox for independent samples */
@@ -625,7 +626,7 @@ ssbox_paired_init (struct ssbox *this, struct t_test_proc *proc)
   tab_text (this->t, 2, 0, TAB_CENTER | TAT_TITLE, _("Mean"));
   tab_text (this->t, 3, 0, TAB_CENTER | TAT_TITLE, _("N"));
   tab_text (this->t, 4, 0, TAB_CENTER | TAT_TITLE, _("Std. Deviation"));
-  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("SE. Mean"));
+  tab_text (this->t, 5, 0, TAB_CENTER | TAT_TITLE, _("S.E. Mean"));
 }
 
 /* Populate the ssbox for paired values */
@@ -1109,10 +1110,14 @@ pscbox (struct t_test_proc *proc)
   for (i = 0; i < proc->n_pairs; i++)
     {
       struct pair *pair = &proc->pairs[i];
+      double df = pair->n - 2;
       double p, q;
-      double df = pair->n -2;
-      double correlation_t = (pair->correlation * sqrt (df) /
-                              sqrt (1 - pow2 (pair->correlation)));
+
+      /* corr2 will mathematically always be in the range [0, 1.0].  Inaccurate
+         calculations sometimes cause it to be slightly greater than 1.0, so
+         force it into the correct range to avoid NaN from sqrt(). */
+      double corr2 = MIN (1.0, pow2 (pair->correlation));
+      double correlation_t = pair->correlation * sqrt (df) / sqrt (1 - corr2);
 
       /* row headings */
       tab_text_format (table, 0, i + 1, TAB_LEFT | TAT_TITLE,

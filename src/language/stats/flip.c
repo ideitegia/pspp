@@ -211,7 +211,7 @@ cmd_flip (struct lexer *lexer, struct dataset *ds)
     else
       {
         char s[VAR_NAME_LEN + 1];
-        sprintf (s, "VAR%03d", i);
+        sprintf (s, "VAR%03zu", i);
         dict_create_var_assert (dict, s, 0);
       }
 

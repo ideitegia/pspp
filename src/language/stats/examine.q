@@ -1776,7 +1776,6 @@ show_extremes (const struct variable **dependent_var,
 	      min_ll = ll_next (min_ll);
 	    }
 
-
 	  max_ll = ll_head (extrema_list (result->metrics[v].maxima));
 	  for (e = 0; e < cmd.st_n;)
 	    {

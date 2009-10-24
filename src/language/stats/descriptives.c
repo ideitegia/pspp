@@ -100,13 +100,13 @@ struct dsc_statistic_info
 static const struct dsc_statistic_info dsc_info[DSC_N_STATS] =
   {
     {"MEAN", N_("Mean"), MOMENT_MEAN},
-    {"SEMEAN", N_("S E Mean"), MOMENT_VARIANCE},
+    {"SEMEAN", N_("S.E. Mean"), MOMENT_VARIANCE},
     {"STDDEV", N_("Std Dev"), MOMENT_VARIANCE},
     {"VARIANCE", N_("Variance"), MOMENT_VARIANCE},
     {"KURTOSIS", N_("Kurtosis"), MOMENT_KURTOSIS},
-    {"SEKURTOSIS", N_("S E Kurt"), MOMENT_NONE},
+    {"SEKURTOSIS", N_("S.E. Kurt"), MOMENT_NONE},
     {"SKEWNESS", N_("Skewness"), MOMENT_SKEWNESS},
-    {"SESKEWNESS", N_("S E Skew"), MOMENT_NONE},
+    {"SESKEWNESS", N_("S.E. Skew"), MOMENT_NONE},
     {"RANGE", N_("Range"), MOMENT_NONE},
     {"MINIMUM", N_("Minimum"), MOMENT_NONE},
     {"MAXIMUM", N_("Maximum"), MOMENT_NONE},

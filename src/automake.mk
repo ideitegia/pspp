@@ -14,7 +14,7 @@ lib_LTLIBRARIES = src/libpspp-core.la src/libpspp.la
 src_libpspp_core_la_SOURCES = 
 
 
-src_libpspp_core_la_LDFLAGS = -release @VERSION@
+src_libpspp_core_la_LDFLAGS = -release $(VERSION)
 
 src_libpspp_core_la_LIBADD = \
 	src/data/libdata.la \
@@ -24,7 +24,7 @@ src_libpspp_core_la_LIBADD = \
 
 src_libpspp_la_SOURCES = 
 
-src_libpspp_la_LDFLAGS = -release @VERSION@
+src_libpspp_la_LDFLAGS = -release $(VERSION)
 
 src_libpspp_la_LIBADD = \
 	src/language/liblanguage.la \

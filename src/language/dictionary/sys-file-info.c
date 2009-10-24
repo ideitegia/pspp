@@ -125,9 +125,9 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
                    info.creation_date, info.creation_time, info.product);
   tab_text (t, 0, 3, TAB_LEFT, _("Integer Format:"));
   tab_text (t, 1, 3, TAB_LEFT,
-            info.integer_format == INTEGER_MSB_FIRST ? _("Big Endian.")
-            : info.integer_format == INTEGER_LSB_FIRST ? _("Little Endian.")
-            : _("Unknown."));
+            info.integer_format == INTEGER_MSB_FIRST ? _("Big Endian")
+            : info.integer_format == INTEGER_LSB_FIRST ? _("Little Endian")
+            : _("Unknown"));
   tab_text (t, 0, 4, TAB_LEFT, _("Real Format:"));
   tab_text (t, 1, 4, TAB_LEFT,
             info.float_format == FLOAT_IEEE_DOUBLE_LE ? _("IEEE 754 LE.")
@@ -135,7 +135,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
             : info.float_format == FLOAT_VAX_D ? _("VAX D.")
             : info.float_format == FLOAT_VAX_G ? _("VAX G.")
             : info.float_format == FLOAT_Z_LONG ? _("IBM 390 Hex Long.")
-            : _("Unknown."));
+            : _("Unknown"));
   tab_text (t, 0, 5, TAB_LEFT, _("Variables:"));
   tab_text_format (t, 1, 5, TAB_LEFT, "%zu", dict_get_var_cnt (d));
   tab_text (t, 0, 6, TAB_LEFT, _("Cases:"));
@@ -143,7 +143,7 @@ cmd_sysfile_info (struct lexer *lexer, struct dataset *ds UNUSED)
                    info.case_cnt == -1 ? _("Unknown") : "%ld",
                    (long int) info.case_cnt);
   tab_text (t, 0, 7, TAB_LEFT, _("Type:"));
-  tab_text (t, 1, 7, TAB_LEFT, _("System File."));
+  tab_text (t, 1, 7, TAB_LEFT, _("System File"));
   tab_text (t, 0, 8, TAB_LEFT, _("Weight:"));
   {
     struct variable *weight_var = dict_get_weight (d);

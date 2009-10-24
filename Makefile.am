@@ -1,12 +1,16 @@
 ## Process this file with automake to produce Makefile.in  -*- makefile -*-
 
-AUTOMAKE_OPTIONS = gnits 1.10 subdir-objects
+AUTOMAKE_OPTIONS = gnits 1.10.1 subdir-objects
 
-SUBDIRS = gl po
+SUBDIRS = gl
 DISTCLEANFILES = ./po/stamp-po xconfigure 
 BUILT_SOURCES =
 
-AM_CPPFLAGS = -I$(top_srcdir)/gl -I$(top_builddir)/gl
+AM_CPPFLAGS = \
+	-I$(top_srcdir)/gl \
+	-I$(top_builddir)/gl \
+	-DINSTALLDIR=\"$(bindir)\" \
+	-DDOCDIR=\"$(docdir)\"
 
 AM_CFLAGS=
 
@@ -15,8 +19,6 @@ AM_CFLAGS+=-Wall -W -Wwrite-strings -Wstrict-prototypes \
 -Wpointer-arith -Wno-sign-compare -Wmissing-prototypes
 endif
 
-CC_FOR_BUILD = @CC_FOR_BUILD@
-EXEEXT_FOR_BUILD = @EXEEXT_FOR_BUILD@
 .q.c:
 	@$(MKDIR_P) `dirname $@`
 	./src/language/lexer/q2c$(EXEEXT_FOR_BUILD) $< $@
@@ -24,12 +26,14 @@ EXEEXT_FOR_BUILD = @EXEEXT_FOR_BUILD@
 $(all_q_sources:.q=.c): src/language/lexer/q2c$(EXEEXT_FOR_BUILD)
 all_q_sources =
 
-pkgsysconfdir = $(sysconfdir)/@PACKAGE@
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
 
 
 EXTRA_DIST = OChangeLog ONEWS config.rpath pspp-mode.el
 
 CLEANFILES = 
+CLEAN_LOCAL =
+ALL_LOCAL =
 ACLOCAL_AMFLAGS = -I m4 -I gl/m4
 noinst_LIBRARIES=
 noinst_LTLIBRARIES=
@@ -40,6 +44,7 @@ DIST_HOOKS =
 INSTALL_DATA_HOOKS = 
 UNINSTALL_DATA_HOOKS =
 PHONY =
+SUFFIXES = .q
 
 generate-changelog:
 	if test -d $(top_srcdir)/.git; then			\
@@ -52,6 +57,7 @@ generate-changelog:
 DIST_HOOKS += generate-changelog
 
 
+include $(top_srcdir)/po/automake.mk
 include $(top_srcdir)/lib/automake.mk
 include $(top_srcdir)/doc/automake.mk
 include $(top_srcdir)/config/automake.mk
@@ -78,5 +84,8 @@ install-data-hook: $(INSTALL_DATA_HOOKS)
 
 uninstall-hook: $(UNINSTALL_DATA_HOOKS)
 
+clean-local: $(CLEAN_LOCAL)
+all-local: $(ALL_LOCAL)
 
-
+# A convenience target to build all the binaries
+programs: $(PROGRAMS)

@@ -8,6 +8,7 @@ far.
 * DESCRIPTIVES::                Descriptive statistics.
 * FREQUENCIES::                 Frequency tables.
 * EXAMINE::                     Testing data for normality.
+* CORRELATIONS::                Correlation tables.
 * CROSSTABS::                   Crosstabulation tables.
 * NPAR TESTS::                  Nonparametric tests.
 * T-TEST::                      Test hypotheses about means.
@@ -301,6 +302,69 @@ If many dependent variable are given, or factors are given for which
 there are many distinct values, then @cmd{EXAMINE} will produce a very
 large quantity of output.
 
+@node CORRELATIONS
+@section CORRELATIONS
+
+@vindex CORRELATIONS
+@display
+CORRELATIONS
+     /VARIABLES = varlist [ WITH varlist ]
+     [
+      .
+      .
+      .
+      /VARIABLES = varlist [ WITH varlist ]
+      /VARIABLES = varlist [ WITH varlist ]
+     ]
+
+     [ /PRINT=@{TWOTAIL, ONETAIL@} @{SIG, NOSIG@} ]
+     [ /STATISTICS=DESCRIPTIVES XPROD ALL]
+     [ /MISSING=@{PAIRWISE, LISTWISE@} @{INCLUDE, EXCLUDE@} ]
+@end display    
+
+@cindex correlation
+The @cmd{CORRELATIONS} procedure produces tables of the Pearson correlation coefficient
+for a set of variables.  The significance of the coefficients are also given.
+
+At least one VARIABLES subcommand is required. If the WITH keyword is used, then a non-square
+correlation table will be produced.
+The variables preceding WITH, will be used as the rows of the table, and the variables following
+will be the columns of the table.
+If no WITH subcommand is given, then a square, symmetrical table using all variables is produced.
+
+
+The @cmd{MISSING} subcommand determines the handling of missing variables.  
+If INCLUDE is set, then user-missing values are included in the
+calculations, but system-missing values are not.
+If EXCLUDE is set, which is the default, user-missing
+values are excluded as well as system-missing values. 
+This is the default.
+
+If LISTWISE is set, then the entire case is excluded from analysis
+whenever any variable  specified in the any @cmd{/VARIABLES} subcommand
+contains a missing value.   
+If PAIRWISE is set, then a case is considered missing only if either of the
+values  for the particular coefficient are missing.
+The default is PAIRWISE.
+
+The PRINT subcommand is used to control how the reported significance values are printed.
+If the TWOTAIL option is used, then a two-tailed test of significance is 
+printed.  If the ONETAIL option is given, then a one-tailed test is used.
+The default is TWOTAIL.
+
+If the NOSIG option is specified, then correlation coefficients with significance less than
+0.05 are highlighted.
+If SIG is specified, then no highlighting is performed.  This is the default.
+
+@cindex covariance
+The STATISTICS subcommand requests additional statistics to be displayed.  The keyword 
+DESCRIPTIVES requests that the mean, number of non-missing cases, and the non-biased
+estimator of the standard deviation are displayed.
+These statistics will be displayed in a separated table, for all the variables listed
+in any /VARIABLES subcommand.
+The XPROD keyword requests cross-product deviations and covariance estimators to 
+be displayed for each pair of variables.
+The keyword ALL is the union of DESCRIPTIVES and XPROD.
 
 @node CROSSTABS
 @section CROSSTABS

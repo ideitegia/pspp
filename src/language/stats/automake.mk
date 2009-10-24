@@ -22,6 +22,7 @@ language_stats_sources = \
 	src/language/stats/binomial.h \
 	src/language/stats/chisquare.c \
 	src/language/stats/chisquare.h \
+	src/language/stats/correlations.c \
 	src/language/stats/descriptives.c \
 	src/language/stats/npar.h \
 	src/language/stats/sort-cases.c \

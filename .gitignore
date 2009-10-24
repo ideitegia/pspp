@@ -30,7 +30,6 @@ potfiles.tmp
 pref.h
 reloc-ldflags
 stamp-h1
-texinfo.tex
 gitlog-to-changelog
 *~
 *.o

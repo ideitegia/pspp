@@ -476,7 +476,6 @@ default_output_path (void)
 	  const char *home_drive = getenv ("HOMEDRIVE");
 	  const char *home_path = getenv ("HOMEPATH");
 
-
 	  if (home_drive != NULL && home_path != NULL)
 	    home_dir = xasprintf ("%s%s",
 				  home_drive, home_path);
@@ -485,8 +484,14 @@ default_output_path (void)
       if (home_dir == NULL)
 	home_dir = "c:/users/default"; /* poor default */
 
-      path = xasprintf ("%s%c", home_dir, '/');
-
+      /* Copy home_dir into path.  Add a slash at the end but
+         only if there isn't already one there, because Windows
+         treats // specially. */
+      if (home_dir[0] == '\0'
+          || strchr ("/\\", home_dir[strlen (home_dir) - 1]) == NULL)
+        path = xasprintf ("%s%c", home_dir, '/');
+      else
+        path = xstrdup (home_dir);
 
       for(i = 0; i < strlen (path); i++)
 	if (path[i] == '\\') path[i] = '/';

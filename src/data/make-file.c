@@ -177,7 +177,7 @@ replace_file_start (const char *file_name, const char *mode,
     {
       /* Generate unique temporary file name. */
       rf->tmp_name = xasprintf ("%s.tmpXXXXXX", file_name);
-      if (gen_tempname (rf->tmp_name, GT_NOCREATE) < 0)
+      if (gen_tempname (rf->tmp_name, 0600, GT_NOCREATE) < 0)
         {
           msg (ME, _("Creating temporary file to replace %s: %s."),
                rf->file_name, strerror (errno));

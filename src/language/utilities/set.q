@@ -224,7 +224,7 @@ cmd_set (struct lexer *lexer, struct dataset *ds)
     msg (SW, _("%s is obsolete."), "TB1");
 
   if (cmd.sbc_case)
-    msg (SW, _("%s is not implemented."), "CASE");
+    msg (SW, _("%s is not yet implemented."), "CASE");
 
   if (cmd.sbc_compression)
     msg (SW, _("Active file compression is not implemented."));

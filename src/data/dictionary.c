@@ -119,7 +119,7 @@ dict_dump (const struct dictionary *d)
     {
       const struct variable *v =
 	d->var[i];
-      printf ("Name: %s;\tdict_idx: %d; case_idx: %d\n",
+      printf ("Name: %s;\tdict_idx: %zu; case_idx: %zu\n",
 	      var_get_name (v),
 	      var_get_dict_index (v),
 	      var_get_case_index (v));

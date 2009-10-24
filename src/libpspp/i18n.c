@@ -73,13 +73,13 @@ create_iconv (const char* tocode, const char* fromcode)
   hmapx_insert (&map, converter, hash);
 
   /* I don't think it's safe to translate this string or to use messaging
-     as the convertors have not yet been set up */
+     as the converters have not yet been set up */
   if ( (iconv_t) -1 == converter->conv && 0 != strcmp (tocode, fromcode))
     {
       const int err = errno;
       fprintf (stderr,
                "Warning: "
-               "cannot create a convertor for \"%s\" to \"%s\": %s\n",
+               "cannot create a converter for \"%s\" to \"%s\": %s\n",
                fromcode, tocode, strerror (err));
     }
 

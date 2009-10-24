@@ -1,89 +1,98 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Thu Dec 18 20:39:52 2008 -->
-<glade-interface>
-  <widget class="GtkWindow" id="Intro">
+<?xml version="1.0"?>
+<interface>
+  <!-- interface-requires gtk+ 2.12 -->
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="Intro">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <property name="border_width">12</property>
     <property name="title" translatable="yes">Importing Textual Data</property>
     <child>
-      <widget class="GtkVBox" id="vbox3">
+      <object class="GtkVBox" id="vbox3">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
-          <widget class="GtkLabel" id="intro-label">
+          <object class="GtkLabel" id="intro-label">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="label" translatable="yes">This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.
 
 The selected file contains N lines of text.  Only the first M of these will be shown for preview purposes in the following screens.  You may choose below how much of the file should actually be imported.</property>
             <property name="wrap">True</property>
-          </widget>
+          </object>
+          <packing>
+            <property name="position">0</property>
+          </packing>
         </child>
         <child>
-          <widget class="GtkAlignment" id="alignment10">
+          <object class="GtkAlignment" id="alignment10">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="xscale">0</property>
             <child>
-              <widget class="GtkFrame" id="frame7">
+              <object class="GtkFrame" id="frame7">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">GTK_SHADOW_NONE</property>
+                <property name="shadow_type">none</property>
                 <child>
-                  <widget class="GtkAlignment" id="alignment11">
+                  <object class="GtkAlignment" id="alignment11">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <widget class="GtkVBox" id="vbox1">
+                      <object class="GtkVBox" id="vbox1">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="orientation">vertical</property>
                         <property name="spacing">6</property>
                         <child>
-                          <widget class="GtkRadioButton" id="import-all-cases">
+                          <object class="GtkRadioButton" id="import-all-cases">
+                            <property name="label" translatable="yes">All cases</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="label" translatable="yes">All cases</property>
-                            <property name="response_id">0</property>
                             <property name="active">True</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
+                          <packing>
+                            <property name="position">0</property>
+                          </packing>
                         </child>
                         <child>
-                          <widget class="GtkHBox" id="hbox1">
+                          <object class="GtkHBox" id="hbox1">
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="spacing">6</property>
                             <child>
-                              <widget class="GtkRadioButton" id="import-n-cases">
+                              <object class="GtkRadioButton" id="import-n-cases">
+                                <property name="label" translatable="yes">Only first </property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="label" translatable="yes">Only first </property>
-                                <property name="response_id">0</property>
                                 <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">import-all-cases</property>
-                              </widget>
+                              </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkSpinButton" id="n-cases-spin">
+                              <object class="GtkSpinButton" id="n-cases-spin">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="adjustment">1000 0 100000000 1 10 10</property>
+                                <property name="adjustment">adjustment2</property>
                                 <property name="climb_rate">10</property>
                                 <property name="snap_to_ticks">True</property>
-                              </widget>
+                              </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
@@ -91,18 +100,18 @@ The selected file contains N lines of text.  Only the first M of these will be s
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkLabel" id="label1">
+                              <object class="GtkLabel" id="label1">
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="label" translatable="yes"> cases</property>
-                              </widget>
+                              </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
                                 <property name="position">2</property>
                               </packing>
                             </child>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
@@ -110,35 +119,36 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkHBox" id="hbox3">
+                          <object class="GtkHBox" id="hbox3">
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="spacing">6</property>
                             <child>
-                              <widget class="GtkRadioButton" id="import-percent">
+                              <object class="GtkRadioButton" id="import-percent">
+                                <property name="label" translatable="yes">Only first </property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="label" translatable="yes">Only first </property>
-                                <property name="response_id">0</property>
                                 <property name="active">True</property>
                                 <property name="draw_indicator">True</property>
                                 <property name="group">import-all-cases</property>
-                              </widget>
+                              </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkSpinButton" id="percent-spin">
+                              <object class="GtkSpinButton" id="percent-spin">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="adjustment">100 1 100 1 10 10</property>
+                                <property name="adjustment">adjustment1</property>
                                 <property name="snap_to_ticks">True</property>
-                              </widget>
+                              </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
@@ -146,132 +156,131 @@ The selected file contains N lines of text.  Only the first M of these will be s
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkLabel" id="label2">
+                              <object class="GtkLabel" id="label2">
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="label" translatable="yes">% of file (approximately)</property>
-                              </widget>
+                              </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
                                 <property name="position">2</property>
                               </packing>
                             </child>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="position">2</property>
                           </packing>
                         </child>
-                      </widget>
+                      </object>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-                <child>
-                  <widget class="GtkLabel" id="label8">
+                <child type="label">
+                  <object class="GtkLabel" id="label8">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="label" translatable="yes">&lt;b&gt;Amount to Import&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
-                  </widget>
-                  <packing>
-                    <property name="type">label_item</property>
-                  </packing>
+                  </object>
                 </child>
-              </widget>
+              </object>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
             <property name="position">1</property>
           </packing>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-  <widget class="GtkWindow" id="FirstLine">
+  </object>
+  <object class="GtkWindow" id="FirstLine">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <property name="border_width">12</property>
     <property name="title" translatable="yes">Select Data to Import</property>
     <child>
-      <widget class="GtkVBox" id="vbox2">
+      <object class="GtkVBox" id="vbox2">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">6</property>
         <child>
-          <widget class="GtkLabel" id="label3">
+          <object class="GtkLabel" id="label3">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="label" translatable="yes">Select the first line of the data file that contains data.</property>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkScrolledWindow" id="first-line-scroller">
+          <object class="GtkScrolledWindow" id="first-line-scroller">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+            <property name="hscrollbar_policy">automatic</property>
+            <property name="vscrollbar_policy">automatic</property>
             <child>
-              <widget class="GtkTreeView" id="first-line">
+              <object class="GtkTreeView" id="first-line">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="headers_clickable">True</property>
-              </widget>
+              </object>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="position">1</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkCheckButton" id="variable-names">
+          <object class="GtkCheckButton" id="variable-names">
+            <property name="label" translatable="yes">Line above selected line contains variable names</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-            <property name="label" translatable="yes">Line above selected line contains variable names</property>
-            <property name="response_id">0</property>
             <property name="draw_indicator">True</property>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
             <property name="position">2</property>
           </packing>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-  <widget class="GtkWindow" id="Separators">
+  </object>
+  <object class="GtkWindow" id="Separators">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <property name="border_width">12</property>
     <property name="title" translatable="yes">Choose Separators</property>
     <child>
-      <widget class="GtkVBox" id="vbox4">
+      <object class="GtkVBox" id="vbox4">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
-          <widget class="GtkHBox" id="hbox2">
+          <object class="GtkHBox" id="hbox2">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="spacing">12</property>
             <child>
-              <widget class="GtkFrame" id="foo">
+              <object class="GtkFrame" id="foo">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">GTK_SHADOW_NONE</property>
+                <property name="shadow_type">none</property>
                 <child>
-                  <widget class="GtkAlignment" id="alignment1">
+                  <object class="GtkAlignment" id="alignment1">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <widget class="GtkTable" id="table1">
+                      <object class="GtkTable" id="table1">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="n_rows">4</property>
@@ -279,11 +288,11 @@ The selected file contains N lines of text.  Only the first M of these will be s
                         <property name="column_spacing">6</property>
                         <property name="row_spacing">6</property>
                         <child>
-                          <widget class="GtkEntry" id="custom-entry">
+                          <object class="GtkEntry" id="custom-entry">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">3</property>
@@ -292,30 +301,30 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="custom-cb">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                          <object class="GtkCheckButton" id="custom-cb">
                             <property name="label" translatable="yes">C_ustom</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="top_attach">3</property>
                             <property name="bottom_attach">4</property>
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="slash">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                          <object class="GtkCheckButton" id="slash">
                             <property name="label" translatable="yes">Slas_h (/)</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">2</property>
                             <property name="right_attach">3</property>
@@ -324,15 +333,15 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="semicolon">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                          <object class="GtkCheckButton" id="semicolon">
                             <property name="label" translatable="yes">Semicolo_n (;)</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
@@ -341,30 +350,30 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="pipe">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                          <object class="GtkCheckButton" id="pipe">
                             <property name="label" translatable="yes">P_ipe (|)</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="top_attach">2</property>
                             <property name="bottom_attach">3</property>
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="hyphen">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                          <object class="GtkCheckButton" id="hyphen">
                             <property name="label" translatable="yes">H_yphen (-)</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">2</property>
                             <property name="right_attach">3</property>
@@ -373,15 +382,15 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="comma">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                          <object class="GtkCheckButton" id="comma">
                             <property name="label" translatable="yes">Co_mma (,)</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
@@ -390,91 +399,91 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="colon">
+                          <object class="GtkCheckButton" id="colon">
+                            <property name="label" translatable="yes">_Colon (:)</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="label" translatable="yes">_Colon (:)</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="bang">
+                          <object class="GtkCheckButton" id="bang">
+                            <property name="label" translatable="yes">Ban_g (!)</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="label" translatable="yes">Ban_g (!)</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">2</property>
                             <property name="right_attach">3</property>
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="tab">
+                          <object class="GtkCheckButton" id="tab">
+                            <property name="label" translatable="yes">Ta_b</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="label" translatable="yes">Ta_b</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="space">
+                          <object class="GtkCheckButton" id="space">
+                            <property name="label" translatable="yes">_Space</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="label" translatable="yes">_Space</property>
                             <property name="use_underline">True</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                         </child>
-                      </widget>
+                      </object>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-                <child>
-                  <widget class="GtkLabel" id="label5">
+                <child type="label">
+                  <object class="GtkLabel" id="label5">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="label" translatable="yes">&lt;b&gt;Separators&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
-                  </widget>
-                  <packing>
-                    <property name="type">label_item</property>
-                  </packing>
+                  </object>
                 </child>
-              </widget>
+              </object>
+              <packing>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
-              <widget class="GtkFrame" id="frame2">
+              <object class="GtkFrame" id="frame2">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">GTK_SHADOW_NONE</property>
+                <property name="shadow_type">none</property>
                 <child>
-                  <widget class="GtkAlignment" id="alignment2">
+                  <object class="GtkAlignment" id="alignment2">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <widget class="GtkTable" id="table2">
+                      <object class="GtkTable" id="table2">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="n_rows">2</property>
@@ -482,14 +491,14 @@ The selected file contains N lines of text.  Only the first M of these will be s
                         <property name="column_spacing">6</property>
                         <property name="row_spacing">6</property>
                         <child>
-                          <widget class="GtkCheckButton" id="escape">
+                          <object class="GtkCheckButton" id="escape">
+                            <property name="label" translatable="yes">Doubled quote mark treated as escape</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="label" translatable="yes">Doubled quote mark treated as escape</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="right_attach">2</property>
                             <property name="top_attach">1</property>
@@ -498,19 +507,11 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkComboBoxEntry" id="quote-combo">
+                          <object class="GtkComboBoxEntry" id="quote-combo">
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="has_frame">False</property>
-                            <child internal-child="entry">
-                              <widget class="GtkEntry" id="quote">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="width_chars">2</property>
-                              </widget>
-                            </child>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
@@ -519,215 +520,219 @@ The selected file contains N lines of text.  Only the first M of these will be s
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkCheckButton" id="quote-cb">
+                          <object class="GtkCheckButton" id="quote-cb">
+                            <property name="label" translatable="yes">Quote separator characters with</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="label" translatable="yes">Quote separator characters with</property>
-                            <property name="response_id">0</property>
                             <property name="draw_indicator">True</property>
-                          </widget>
+                          </object>
                           <packing>
                             <property name="x_options"></property>
                             <property name="y_options">GTK_FILL</property>
                           </packing>
                         </child>
-                      </widget>
+                      </object>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-                <child>
-                  <widget class="GtkLabel" id="label7">
+                <child type="label">
+                  <object class="GtkLabel" id="label7">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="label" translatable="yes">&lt;b&gt;Quoting&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
-                  </widget>
-                  <packing>
-                    <property name="type">label_item</property>
-                  </packing>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="position">1</property>
               </packing>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkFrame" id="frame3">
+          <object class="GtkFrame" id="frame3">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="label_xalign">0</property>
-            <property name="shadow_type">GTK_SHADOW_NONE</property>
+            <property name="shadow_type">none</property>
             <child>
-              <widget class="GtkAlignment" id="alignment3">
+              <object class="GtkAlignment" id="alignment3">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="left_padding">12</property>
                 <child>
-                  <widget class="GtkScrolledWindow" id="fields-scroller">
+                  <object class="GtkScrolledWindow" id="fields-scroller">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                    <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
                     <child>
-                      <widget class="GtkTreeView" id="fields">
+                      <object class="GtkTreeView" id="fields">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="headers_clickable">True</property>
-                      </widget>
+                      </object>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-              </widget>
+              </object>
             </child>
-            <child>
-              <widget class="GtkLabel" id="label9">
+            <child type="label">
+              <object class="GtkLabel" id="label9">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label" translatable="yes">&lt;b&gt;Fields Preview&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
-              </widget>
-              <packing>
-                <property name="type">label_item</property>
-              </packing>
+              </object>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="position">1</property>
           </packing>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-  <widget class="GtkWindow" id="Formats">
+  </object>
+  <object class="GtkWindow" id="Formats">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <property name="border_width">12</property>
     <property name="title" translatable="yes">Adjust Variable Formats</property>
     <child>
-      <widget class="GtkVBox" id="vbox5">
+      <object class="GtkVBox" id="vbox5">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
-          <widget class="GtkLabel" id="label12">
+          <object class="GtkLabel" id="label12">
             <property name="visible">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="label" translatable="yes">Check the data formats displayed below and fix any that are incorrect.  You may set other variable properties now or later.</property>
             <property name="wrap">True</property>
-          </widget>
+          </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
-          <widget class="GtkVPaned" id="vpaned1">
+          <object class="GtkVPaned" id="vpaned1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="position">94</property>
             <child>
-              <widget class="GtkFrame" id="frame4">
+              <object class="GtkFrame" id="frame4">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">GTK_SHADOW_NONE</property>
+                <property name="shadow_type">none</property>
                 <child>
-                  <widget class="GtkAlignment" id="alignment5">
+                  <object class="GtkAlignment" id="alignment5">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <widget class="GtkScrolledWindow" id="vars-scroller">
+                      <object class="GtkScrolledWindow" id="vars-scroller">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                        <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                        <property name="hscrollbar_policy">automatic</property>
+                        <property name="vscrollbar_policy">automatic</property>
                         <child>
                           <placeholder/>
                         </child>
-                      </widget>
+                      </object>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-                <child>
-                  <widget class="GtkLabel" id="label10">
+                <child type="label">
+                  <object class="GtkLabel" id="label10">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="label" translatable="yes">&lt;b&gt;Variables&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
-                  </widget>
-                  <packing>
-                    <property name="type">label_item</property>
-                  </packing>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="resize">False</property>
                 <property name="shrink">True</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkFrame" id="frame5">
+              <object class="GtkFrame" id="frame5">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="label_xalign">0</property>
-                <property name="shadow_type">GTK_SHADOW_NONE</property>
+                <property name="shadow_type">none</property>
                 <child>
-                  <widget class="GtkAlignment" id="alignment6">
+                  <object class="GtkAlignment" id="alignment6">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="left_padding">12</property>
                     <child>
-                      <widget class="GtkScrolledWindow" id="data-scroller">
+                      <object class="GtkScrolledWindow" id="data-scroller">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                        <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                        <property name="hscrollbar_policy">automatic</property>
+                        <property name="vscrollbar_policy">automatic</property>
                         <child>
-                          <widget class="GtkTreeView" id="data">
+                          <object class="GtkTreeView" id="data">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="headers_clickable">True</property>
-                          </widget>
+                          </object>
                         </child>
-                      </widget>
+                      </object>
                     </child>
-                  </widget>
+                  </object>
                 </child>
-                <child>
-                  <widget class="GtkLabel" id="label11">
+                <child type="label">
+                  <object class="GtkLabel" id="label11">
                     <property name="visible">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="label" translatable="yes">&lt;b&gt;Data Preview&lt;/b&gt;</property>
                     <property name="use_markup">True</property>
-                  </widget>
-                  <packing>
-                    <property name="type">label_item</property>
-                  </packing>
+                  </object>
                 </child>
-              </widget>
+              </object>
               <packing>
                 <property name="resize">True</property>
                 <property name="shrink">True</property>
               </packing>
             </child>
-          </widget>
+          </object>
           <packing>
             <property name="position">1</property>
           </packing>
         </child>
-      </widget>
+      </object>
     </child>
-  </widget>
-</glade-interface>
+  </object>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="value">100</property>
+    <property name="lower">1</property>
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <property name="page_size">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment2">
+    <property name="value">1000</property>
+    <property name="upper">100000000</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+    <property name="page_size">10</property>
+  </object>
+</interface>

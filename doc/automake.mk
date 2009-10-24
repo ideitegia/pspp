@@ -46,7 +46,7 @@ EXTRA_DIST += doc/pspp.man \
 
 doc/ni.texi: $(top_srcdir)/src/language/command.def doc/get-commands.pl
 	@$(MKDIR_P)  doc
-	@PERL@ $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
+	$(PERL) $(top_srcdir)/doc/get-commands.pl $(top_srcdir)/src/language/command.def > $@
 
 doc/tut.texi:
 	@$(MKDIR_P) doc
@@ -55,8 +55,9 @@ doc/tut.texi:
 
 doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	@$(MKDIR_P)  doc
-	$(MAKEINFO) --docbook -I $(top_srcdir) $< -o $@
-	$(SED) -i -e 's/Time-&-Date/Time-\&amp;-Date/g' $@
+	$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) \
+		$(top_srcdir)/doc/pspp.texinfo -o - \
+		| $(SED) 's/Time-&-Date/Time-\&amp;-Date/g' > $@
 
 docbookdir = $(docdir)
 docbook_DATA = doc/pspp.xml

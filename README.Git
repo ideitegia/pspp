@@ -1,0 +1,76 @@
+Prerequisites for Building PSPP from Git
+----------------------------------------
+
+To build this project from the sources direct from the Git archive,
+you must install the prerequisites listed in README, plus the
+following:
+
+	* Autoconf 2.60 (or later).
+
+	* Automake 1.10 (or later).
+
+	* Gettext 0.17 (or later).
+
+	* GNU M4 1.4.9 (or later).
+
+	* pkg-config 0.21 (or later).
+
+        * gperf 3.0.1 (or later).
+
+	* Gnulib (see below for details).
+
+	* libtool 1.5.22 (or later).
+
+	* Texinfo 4.7 or later, to build the documentation.
+
+After you install PSPP's prerequisites, you must obtain a copy of
+Gnulib, then bootstrap the tree, as described in the sections below.
+After that, you may follow the procedure described in INSTALL.
+
+Obtaining Gnulib
+----------------
+
+This version of PSPP should work with the Gnulib commit shown below.
+Gnulib does not maintain a stable API or ABI, so it is possible that
+PSPP will not work with older or newer versions of Gnulib.
+
+    commit e21985ad14508137d75b0dccf064adfc4e5888c6
+    Author: Bruno Haible <bruno@clisp.org>
+    Date:   Mon Sep 28 23:25:49 2009 +0200
+
+	Avoid identifier clash with POSIX function 'remove' defined as a macro.
+
+To clone Gnulib into a directory named "gnulib" using Git, and then
+check out this particular commit, run these commands:
+	git clone git://git.savannah.gnu.org/gnulib.git gnulib
+	cd gnulib
+	git checkout $COMMIT
+where $COMMIT should be replaced by the commit number listed above
+(usually it is sufficient to just type the first 6 or so digits).
+
+If you do not have Git installed, then you may alternately download
+http://git.savannah.gnu.org/gitweb/?p=gnulib.git;a=snapshot;h=$COMMIT;sf=tgz
+where $COMMIT is, again, at least the first few digits of the commit
+number listed above.  This download will yield a tar.gz file that you
+may extract with "gunzip" and "tar" to yield identical results.
+
+Bootstrapping
+-------------
+
+Once you have Gnulib installed, PSPP must be "bootstrapped" using the
+following command:
+	make -f Smake
+If you checked Gnulib out in a directory named `gnulib' at the same
+level as PSPP, then this is sufficient.  Otherwise, provide the
+location of GNULIB on the `make' command line:
+	make -f Smake GNULIB=/gnulib/base/directory/name
+
+After executing Smake, follow the procedure described in INSTALL to
+build and install PSPP.  On some systems this may be as simple as:
+	./configure
+	make
+
+Once PSPP is built, you may run its self-tests with:
+	make check
+or for a more thorough test:
+	make distcheck

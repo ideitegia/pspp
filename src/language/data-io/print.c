@@ -435,12 +435,12 @@ dump_table (struct print_trns *trns, const struct file_handle *fh)
     }
 
   if (fh != NULL)
-    tab_title (t, ngettext ("Writing %d record to %s.",
-                            "Writing %d records to %s.", trns->record_cnt),
+    tab_title (t, ngettext ("Writing %zu record to %s.",
+                            "Writing %zu records to %s.", trns->record_cnt),
                trns->record_cnt, fh_get_name (fh));
   else
-    tab_title (t, ngettext ("Writing %d record.",
-                            "Writing %d records.", trns->record_cnt),
+    tab_title (t, ngettext ("Writing %zu record.",
+                            "Writing %zu records.", trns->record_cnt),
                trns->record_cnt);
   tab_submit (t);
 }

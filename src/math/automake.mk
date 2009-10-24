@@ -13,6 +13,8 @@ src_math_libpspp_math_la_SOURCES = \
 	src/math/box-whisker.c src/math/box-whisker.h \
 	src/math/coefficient.c \
 	src/math/coefficient.h \
+	src/math/covariance.c \
+	src/math/covariance.h \
 	src/math/covariance-matrix.c \
 	src/math/covariance-matrix.h \
 	src/math/design-matrix.c src/math/design-matrix.h \

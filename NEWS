@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2009-07-29 20:52:41 blp>
+Time-stamp: <2009-10-24 08:12:04 blp>
 Copyright (C) 1996-9, 2000, 2008, 2009 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -25,13 +25,127 @@ Changes from 0.7.0 to 0.7.1:
  *  Added a perl module to facilitate reading and writing of pspp system 
     files from perl programs.
 
-Changes from 0.6.1 to 0.7.0:
+Changes from 0.6.2-pre6 to 0.7.0:
 
   * Custom variable and data file attributes are now supported.
     Commands VARIABLE ATTRIBUTE and DATAFILE ATTRIBUTE have been added
     for setting and clear attributes.  Support for attributes has also
     been added to commands that read and write system files, such as
     SAVE and GET, as well as to the DISPLAY command.
+
+  * Numererous improvements to the Graphical User Interface have
+    made.  Notable improvements include:
+
+    - Non-Ascii characters in strings, labels and variable names are
+      now supported.
+
+    - A "Split Window" function is available, which makes it easier to
+      see different parts of a large data file.
+
+    - Data files can now be opened by specifing their name as the first
+      argument.  This means that on a properly configured desktop, double
+      clicking on an icon will open the file.
+    
+
+  * New statistical procedures:
+    - CORRELATIONS
+    - ROC
+    - RELIABILITY
+
+    NPAR TESTS now supports the WILCOXON and SIGN subcommands.
+
+    The CROSSTABS command has been completely re-implemented to fix numerous bugs.
+
+  * Three new commands to combine data files have been added: MATCH FILES,
+   UPDATE and  ADD FILES.
+
+  * A tutorial chapter has been added to the user manual.
+
+
+Changes from 0.6.1 to 0.6.2-pre6:
+
+  * New translations:
+
+    - Dutch, thanks to Harry Thijssen.
+
+    - Brazilian Portuguese, thanks to Michel Boaventura.
+
+    Thanks for translations are also due to the coordinators at
+    translationproject.org.
+
+  * Statistical bug fixes:
+
+    - REGRESSION: Report correct standard error of the estimate (bug
+      #25677).
+
+    - T-TEST: Report correct significance of paired sample T-test in
+      the common case (bug #26936) and corner cases.  Thanks to Mike
+      Griffiths and Matej Cepl for reporting these bugs.
+
+  * Build fixes and changes:
+
+    - Make running "make" after running "configure" with different
+      settings reliably rebuild version.c.
+
+    - Cygwin and MinGW build fixes.
+
+    - Fixes for building with recent gnulib.
+
+    - The Makefile now honors two new variables, PSPP_LDFLAGS and
+      PSPPIRE_LDFLAGS, that affect linking of the PSPP and PSPPIRE
+      binaries, respectively.  This makes building easier for some
+      packagers.
+
+    - Fixes for "configure --enable-relocatable" (bug #25508).
+
+  * Data file bug fixes and changes:
+
+    - Fix reading text data files that contain a mix of white space
+      and commas.  Now "a ,b" is treated as two fields containing "a"
+      and "b"; previously it was treated as three, with an empty field
+      in the middle.
+
+    - Fix writing corrupted .sav files on Windows.
+
+    - Fix writing corrupted .por files (bug #26034).
+
+    - Fix reading .por files whose initial lines are not padded out
+      with spaces as expected.
+
+    - PSPP will no longer issue warnings about some .sav file records
+      or values that it does not understand.  These warnings were
+      harmless, but needlessly alarmed some users.
+
+    - Fix crash reading empty string fields from PostgreSQL databases.
+
+  * Bug fixes that affect PSPP and PSPPIRE:
+
+    - Users may now control precision of output statistics.  Instead
+      of hard coding the width and decimals of output numbers, respect
+      the default format in most instances.  Counts are now normally
+      displayed with the format of the weight variable, if any.
+
+    - Fix crash when an INSERT command specifies the name of a file
+      that does not exist (bug #24569).
+
+    - Fix crash when CROSSTABS specifies a long-string variable (bugs
+      #24557 and #26131).
+
+    - Fix crash drawing pie charts with many segments.
+
+    - Fix crash when NUMERIC specifies an invalid format.
+
+  * PSPPIRE bug fixes and changes:
+
+    - On Windows, write the output file to the user's home directory
+      instead of the current directory, to better match user
+      expectations.
+
+    - Some data editor fixes.
+
+  * Documentation:
+
+    - Fix typo in BINOMIAL section of user manual (bug #25892).
 
 Changes from 0.6.0 to 0.6.1:
 
@@ -672,8 +786,6 @@ Changes for version 0.1.0:
 
 ----------------------------------------------------------------------
 Copyright information:
-
-Copyright (C) 1996-9, 2000 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that

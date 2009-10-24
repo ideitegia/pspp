@@ -16,6 +16,7 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 PKG_PROG_PKG_CONFIG
 m4_pattern_forbid([PKG_CHECK_MODULES])
+PSPP_CHECK_CLICKSEQUENCE
 
 AC_ARG_ENABLE(
   anachronistic-dependencies, 
@@ -30,8 +31,11 @@ PSPP_CC_FOR_BUILD
 PSPP_PERL
 
 dnl Internationalization macros.
-AM_GNU_GETTEXT([external], [need-ngettext])
-AM_GNU_GETTEXT_VERSION([0.17])
+AC_ARG_ENABLE(nls, [AS_HELP_STRING([--disable-nls], [do not use Native Language Support])])
+if  test x"$enable_nls" != x"no"  ; then
+ AC_DEFINE(ENABLE_NLS, 1, [Define to 1 if translation of program messages to the user's native language is requested.])
+fi
+
 
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
@@ -214,9 +218,14 @@ if test "$am_cv_func_iconv" != "yes"; then
    PSPP_REQUIRED_PREREQ([iconv (see http://www.gnu.org/software/libiconv/)])
 fi
 
+dnl Required by the gnulib 'relocatable-prog' module.
+dnl See doc/relocatable-maint.texi in the gnulib tree for details.
+RELOCATABLE_LIBRARY_PATH='$(libdir)'
+RELOCATABLE_STRIP=:
+
 PSPP_CHECK_PREREQS
 
-AC_CONFIG_FILES([Makefile gl/Makefile po/Makefile.in])
+AC_CONFIG_FILES([Makefile gl/Makefile])
 
 AC_OUTPUT
 echo "PSPP configured successfully."

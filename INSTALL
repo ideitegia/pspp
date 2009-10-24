@@ -24,7 +24,7 @@ The following packages are required to install PSPP:
       MinGW (http://www.mingw.org/) are known to work.
 
     * The GNU Scientific Library (http://www.gnu.org/software/gsl/),
-      version 1.6 or later, including libgslcblas included with GSL.
+      version 1.8 or later, including libgslcblas included with GSL.
 
     * Perl (http://www.perl.org/), version 5.005_03 or later.  Perl is
       required during build but not after installation.
@@ -51,16 +51,16 @@ use the GUI, you must run `configure' with --without-gui.
 
     * GTK+ (http://www.gtk.org/), version 2.12.0 or later.
 
-Installing the following packages will allow your PSPP binary to read
-Gnumeric files.
-
     * pkg-config (http://pkg-config.freedesktop.org/wiki/).  Versions
       0.18 and 0.19 have a bug that will prevent library detection,
       but other versions should be fine.
 
-      To cross-compile PSPP, you will likely need to set the
-      PKG_CONFIG_LIBDIR environment variable to point to an
-      appropriate pkg-config for the cross-compilation environment.
+To cross-compile PSPP, you will likely need to set the
+PKG_CONFIG_LIBDIR environment variable to point to an
+appropriate pkg-config for the cross-compilation environment.
+
+Installing the following packages will allow your PSPP binary to read
+Gnumeric files.
 
     * zlib (http://www.zlib.net/).
 

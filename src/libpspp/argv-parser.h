@@ -37,6 +37,7 @@
 
 #include <getopt.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 struct argv_option
   {

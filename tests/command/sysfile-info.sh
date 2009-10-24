@@ -96,7 +96,7 @@ File:           pro.sav
 Label:          No label.
 Variables:      2
 Cases:          3
-Type:           System File.
+Type:           System File
 Weight:         Not weighted.
 Mode:           Compression on.
 Charset:        Unknown

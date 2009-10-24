@@ -129,7 +129,7 @@ cmd_file_handle (struct lexer *lexer, struct dataset *ds)
         {
           if (cmd.n_lrecl[0] == LONG_MIN)
             msg (SE, _("The specified file mode requires LRECL.  "
-                       "Assuming %d-character records."),
+                       "Assuming %zu-character records."),
                  properties.record_width);
           else if (cmd.n_lrecl[0] < 1 || cmd.n_lrecl[0] >= (1UL << 31))
             msg (SE, _("Record length (%ld) must be between 1 and %lu bytes.  "

@@ -182,7 +182,7 @@ check_state (struct mc *mc, struct test_state *ts, const struct test_model *tm)
           for (col = 0; col < params->n_columns; col++)
             if (data[col] != model->data[row][col])
               {
-                mc_error (mc, "xarray %d: element %zu,%zu (of %zu,%zu) "
+                mc_error (mc, "xarray %d: element %d,%d (of %d,%d) "
                           "differs: %d should be %d",
                           i, row, col, n_rows, n_columns, data[col],
                           model->data[row][col]);
@@ -201,7 +201,7 @@ check_state (struct mc *mc, struct test_state *ts, const struct test_model *tm)
               ds_clear (&ds);
               for (col = 0; col < n_columns; col++)
                 ds_put_format (&ds, " %d", model->data[row][col]);
-              mc_error (mc, "xarray %d: row %zu:%s", i, row, ds_cstr (&ds));
+              mc_error (mc, "xarray %d: row %d:%s", i, row, ds_cstr (&ds));
             }
 
           mc_error (mc, "xarray %d: actual:", i);
@@ -216,7 +216,7 @@ check_state (struct mc *mc, struct test_state *ts, const struct test_model *tm)
               ds_clear (&ds);
               for (col = 0; col < n_columns; col++)
                 ds_put_format (&ds, " %d", data[col]);
-              mc_error (mc, "xarray %d: row %zu:%s", i, row, ds_cstr (&ds));
+              mc_error (mc, "xarray %d: row %d:%s", i, row, ds_cstr (&ds));
             }
 
           ds_destroy (&ds);
@@ -273,8 +273,8 @@ sparse_xarray_mc_init (struct mc *mc)
   struct test_model tm;
   int i;
 
-  mc_name_operation (mc, "empty sparse_xarray with n_columns=%zu, "
-                     "max_memory_rows=%zu",
+  mc_name_operation (mc, "empty sparse_xarray with n_columns=%d, "
+                     "max_memory_rows=%d",
                      params->n_columns, params->max_memory_rows);
   ts = xmalloc (sizeof *ts);
   for (i = 0; i < params->n_xarrays; i++)
