@@ -23,7 +23,6 @@
 
 #include <data/attributes.h>
 #include <data/case.h>
-#include <data/category.h>
 #include <data/identifier.h>
 #include <data/settings.h>
 #include <data/value-labels.h>

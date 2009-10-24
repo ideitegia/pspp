@@ -18,7 +18,6 @@
 
 #include <libpspp/assertion.h>
 #include <math/covariance.h>
-#include <math/design-matrix.h>
 #include <gsl/gsl_matrix.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>

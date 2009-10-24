@@ -20,7 +20,6 @@
 #include <stdlib.h>
 
 #include <data/attributes.h>
-#include <data/category.h>
 #include <data/data-out.h>
 #include <data/format.h>
 #include <data/dictionary.h>
