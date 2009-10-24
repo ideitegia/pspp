@@ -232,6 +232,39 @@ cm_idx (const struct covariance *cov, int i, int j)
   return i - 1 + as;
 }
 
+
+/*
+  Returns true iff the variable corresponding to the Ith element of the covariance matrix 
+   has a missing value for case C
+*/
+static bool
+is_missing (const struct covariance *cov, int i, const struct ccase *c)
+{
+  const struct variable *var = i < cov->n_vars ?
+    cov->vars[i] : 
+    categoricals_get_variable_by_subscript (cov->categoricals, i - cov->n_vars);
+
+  const union value *val = case_data (c, var);
+
+  return var_is_value_missing (var, val, cov->exclude);
+}
+
+
+static double
+get_val (const struct covariance *cov, int i, const struct ccase *c)
+{
+  if ( i < cov->n_vars)
+    {
+      const struct variable *var = cov->vars[i];
+
+      const union value *val = case_data (c, var);
+
+      return val->f;
+    }
+
+  return categoricals_get_binary_by_subscript (cov->categoricals, i - cov->n_vars, c);
+}
+
 static void
 dump_matrix (const gsl_matrix *m)
 {
@@ -263,17 +296,16 @@ covariance_accumulate_pass1 (struct covariance *cov, const struct ccase *c)
 
   for (i = 0 ; i < cov->dim; ++i)
     {
-      const union value *val1 = case_data (c, cov->vars[i]);
+      double v1 = get_val (cov, i, c);
 
-      if ( var_is_value_missing (cov->vars[i], val1, cov->exclude))
+      if ( is_missing (cov, i, c))
 	continue;
 
       for (j = 0 ; j < cov->dim; ++j)
 	{
 	  double pwr = 1.0;
-	  const union value *val2 = case_data (c, cov->vars[j]);
 
-	  if ( var_is_value_missing (cov->vars[j], val2, cov->exclude))
+	  if ( is_missing (cov, j, c))
 	    continue;
 
 	  for (m = 0 ; m <= MOMENT_MEAN; ++m)
@@ -281,7 +313,7 @@ covariance_accumulate_pass1 (struct covariance *cov, const struct ccase *c)
 	      double *x = gsl_matrix_ptr (cov->moments[m], i, j);
 
 	      *x += pwr * weight;
-	      pwr *= val1->f;
+	      pwr *= v1;
 	    }
 	}
     }
@@ -329,20 +361,20 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
 
   for (i = 0 ; i < cov->dim; ++i)
     {
-      const union value *val1 = case_data (c, cov->vars[i]);
+      double v1 = get_val (cov, i, c);
 
-      if ( var_is_value_missing (cov->vars[i], val1, cov->exclude))
+      if ( is_missing (cov, i, c))
 	continue;
 
       for (j = 0 ; j < cov->dim; ++j)
 	{
 	  int idx;
 	  double ss ;
-	  const union value *val2 = case_data (c, cov->vars[j]);
+	  double v2 = get_val (cov, j, c);
 
-	  const double s = pow2 (val1->f - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j)) * weight;
+	  const double s = pow2 (v1 - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j)) * weight;
 
-	  if ( var_is_value_missing (cov->vars[j], val2, cov->exclude))
+	  if ( is_missing (cov, j, c))
 	    continue;
 
 	  {
@@ -351,9 +383,9 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
 	  }
 
 	  ss = 
-	    (val1->f - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j))
+	    (v1 - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j))
 	    * 
-	    (val2->f - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j))
+	    (v2 - gsl_matrix_get (cov->moments[MOMENT_MEAN], i, j))
 	    * weight
 	    ;
 
@@ -391,7 +423,7 @@ covariance_accumulate (struct covariance *cov, const struct ccase *c)
     {
       const union value *val1 = case_data (c, cov->vars[i]);
 
-      if ( var_is_value_missing (cov->vars[i], val1, cov->exclude))
+      if ( is_missing (cov, i, c))
 	continue;
 
       for (j = 0 ; j < cov->dim; ++j)
@@ -400,7 +432,7 @@ covariance_accumulate (struct covariance *cov, const struct ccase *c)
 	  int idx;
 	  const union value *val2 = case_data (c, cov->vars[j]);
 
-	  if ( var_is_value_missing (cov->vars[j], val2, cov->exclude))
+	  if ( is_missing (cov, j, c))
 	    continue;
 
 	  idx = cm_idx (cov, i, j);
