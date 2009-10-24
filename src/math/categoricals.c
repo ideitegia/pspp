@@ -74,6 +74,9 @@ struct categoricals
   size_t n_cats_total;
 
   struct pool *pool;
+
+  /* Missing values to be excluded */
+  enum mv_class exclude;
 };
 
 
@@ -98,7 +101,6 @@ categoricals_dump (const struct categoricals *cat)
     {
       const struct var_params *vp = &cat->vp[v];
       const struct hmap *m = &vp->map;
-      //      size_t width = var_get_width (vp->var);
       struct hmap_node *node ;
       int x;
      
@@ -155,7 +157,8 @@ lookup_value (const struct hmap *map, const struct variable *var, const union va
 
 
 struct categoricals *
-categoricals_create (const struct variable **v, size_t n_vars, const struct variable *wv)
+categoricals_create (const struct variable **v, size_t n_vars,
+		     const struct variable *wv, enum mv_class exclude)
 {
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
@@ -165,6 +168,7 @@ categoricals_create (const struct variable **v, size_t n_vars, const struct vari
   cat->n_cats_total = 0;
   cat->reverse_variable_map = NULL;
   cat->pool = pool_create ();
+  cat->exclude = exclude;
 
   cat->vp = pool_calloc (cat->pool, n_vars, sizeof *cat->vp);
 
@@ -193,10 +197,14 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
       const struct variable *var = cat->vp[i].var;
       unsigned int width = var_get_width (var);
       const union value *val = case_data (c, var);
-      size_t hash = value_hash (val, width, 0);
+      size_t hash;
+      struct value_node *node ;
 
-      struct value_node  *node = lookup_value (&cat->vp[i].map, var, val);
+      if ( var_is_value_missing (var, val, cat->exclude))
+	continue;
 
+      hash = value_hash (val, width, 0);
+      node = lookup_value (&cat->vp[i].map, var, val);
 
       if ( NULL == node)
 	{
@@ -308,7 +316,6 @@ categoricals_get_value_by_subscript (const struct categoricals *cat, int subscri
 
   return &vn->value;
 }
-
 
 /* Returns unity if the value in case C at SUBSCRIPT is equal to the category
    for that subscript */

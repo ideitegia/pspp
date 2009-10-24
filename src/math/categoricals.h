@@ -19,6 +19,7 @@
 #define _CATEGORICALS__
 
 #include <stddef.h>
+#include <data/missing-values.h>
 
 struct categoricals;
 struct variable;
@@ -27,7 +28,7 @@ struct ccase;
 union value ;
 
 struct categoricals *categoricals_create (const struct variable **v, size_t n_vars,
-					  const struct variable *wv);
+					  const struct variable *wv, enum mv_class exclude);
 
 void categoricals_destroy (struct categoricals *);
 

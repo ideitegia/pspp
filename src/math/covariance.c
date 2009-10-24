@@ -195,7 +195,7 @@ covariance_2pass_create (size_t n_vars, const struct variable **vars,
   cov->n_cm = - 1;
   cov->cm = NULL;
 
-  cov->categoricals = categoricals_create (catvars, n_catvars, wv);
+  cov->categoricals = categoricals_create (catvars, n_catvars, wv, exclude);
 
   return cov;
 }
