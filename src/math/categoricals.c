@@ -317,6 +317,27 @@ categoricals_get_value_by_subscript (const struct categoricals *cat, int subscri
   return &vn->value;
 }
 
+
+double
+categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript)
+{
+  int vindex = cat->reverse_variable_map[subscript];
+  const struct var_params *vp = &cat->vp[vindex];
+
+  return vp->cc;
+}
+
+double
+categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript)
+{
+  int vindex = cat->reverse_variable_map[subscript];
+  const struct var_params *vp = &cat->vp[vindex];
+
+  const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
+  return vn->cc;
+}
+
+
 /* Returns unity if the value in case C at SUBSCRIPT is equal to the category
    for that subscript */
 double

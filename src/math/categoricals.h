@@ -51,8 +51,14 @@ const struct variable * categoricals_get_variable_by_subscript (const struct cat
 
 const union value * categoricals_get_value_by_subscript (const struct categoricals *cat, int subscript);
 
+double categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript);
+
+double categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript);
+
 double categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscript,
 					     const struct ccase *c);
+
+
 
 
 #endif
