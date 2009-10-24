@@ -44,6 +44,8 @@ struct var_params
   /* A map indexed by a union values */
   struct hmap map;
 
+  const struct variable *var;
+
   int base_subscript;
 
   /* The number of distinct values of this variable */
@@ -51,15 +53,17 @@ struct var_params
 
   /* A map of values indexed by subscript */
   const struct value_node **reverse_value_map;
+
+  /* Total of the weights of this variable */
+  double cc; 
 };
 
 
 struct categoricals
 {
-  const struct variable **vars;
-  size_t n_vars;
-
   const struct variable *wv;
+
+  size_t n_vars;
 
   /* An array of var_params */
   struct var_params *vp;
@@ -94,11 +98,11 @@ categoricals_dump (const struct categoricals *cat)
     {
       const struct var_params *vp = &cat->vp[v];
       const struct hmap *m = &vp->map;
-      size_t width = var_get_width (cat->vars[v]);
+      //      size_t width = var_get_width (vp->var);
       struct hmap_node *node ;
       int x;
      
-      printf ("\n%s (%d):\n", var_get_name (cat->vars[v]), vp->base_subscript);
+      printf ("\n%s (%d)  CC=%g:\n", var_get_name (vp->var), vp->base_subscript, vp->cc);
 
       assert (vp->reverse_value_map);
 
@@ -108,7 +112,7 @@ categoricals_dump (const struct categoricals *cat)
 	  struct string s;
 	  const struct value_node *vn = vp->reverse_value_map[x];
 	  ds_init_empty (&s);
-	  var_append_value_name (cat->vars[v], &vn->value, &s);
+	  var_append_value_name (vp->var, &vn->value, &s);
 	  printf ("Value for %d is %s\n", x, ds_cstr(&s));
 	  ds_destroy (&s);
 	}
@@ -119,7 +123,7 @@ categoricals_dump (const struct categoricals *cat)
 	  struct string s;
 	  ds_init_empty (&s);
 	  const struct value_node *vn = HMAP_DATA (node, struct value_node, node);
-	  var_append_value_name (cat->vars[v], &vn->value, &s);
+	  var_append_value_name (vp->var, &vn->value, &s);
 	  printf ("Value: %s; Index %d; CC %g\n",
 		  ds_cstr (&s),
 		  vn->subscript, vn->cc);
@@ -156,7 +160,6 @@ categoricals_create (const struct variable **v, size_t n_vars, const struct vari
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
   
-  cat->vars = v;
   cat->n_vars = n_vars;
   cat->wv = wv;
   cat->n_cats_total = 0;
@@ -166,7 +169,10 @@ categoricals_create (const struct variable **v, size_t n_vars, const struct vari
   cat->vp = pool_calloc (cat->pool, n_vars, sizeof *cat->vp);
 
   for (i = 0 ; i < cat->n_vars; ++i)
-    hmap_init (&cat->vp[i].map);
+    {
+      hmap_init (&cat->vp[i].map);
+      cat->vp[i].var = v[i];
+    }
 
   return cat;
 }
@@ -184,11 +190,14 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 
   for (i = 0 ; i < cat->n_vars; ++i)
     {
-      unsigned int width = var_get_width (cat->vars[i]);
-      const union value *val = case_data (c, cat->vars[i]);
+      const struct variable *var = cat->vp[i].var;
+      unsigned int width = var_get_width (var);
+      const union value *val = case_data (c, var);
       size_t hash = value_hash (val, width, 0);
 
-      struct value_node  *node = lookup_value (&cat->vp[i].map, cat->vars[i], val);
+      struct value_node  *node = lookup_value (&cat->vp[i].map, var, val);
+
+
       if ( NULL == node)
 	{
 	  node = pool_malloc (cat->pool, sizeof *node);
@@ -203,6 +212,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	}
 
       node->cc += weight;
+      cat->vp[i].cc += weight;
     }
 }
 
@@ -218,7 +228,7 @@ categoricals_n_count (const struct categoricals *cat, size_t n)
 int
 categoricals_index (const struct categoricals *cat, size_t n, const union value *val)
 {
-  struct value_node *vn = lookup_value (&cat->vp[n].map, cat->vars[n], val);
+  struct value_node *vn = lookup_value (&cat->vp[n].map, cat->vp[n].var, val);
 
   if ( vn == NULL)
     return -1;
@@ -284,7 +294,7 @@ categoricals_get_variable_by_subscript (const struct categoricals *cat, int subs
   
   index = cat->reverse_variable_map[subscript];
 
-  return cat->vars[index];
+  return cat->vp[index].var;
 }
 
 
