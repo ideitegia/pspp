@@ -557,6 +557,7 @@ covariance_destroy (struct covariance *cov)
 {
   size_t i;
   free (cov->vars);
+  categoricals_destroy (cov->categoricals);
 
   for (i = 0; i < n_MOMENTS; ++i)
     gsl_matrix_free (cov->moments[i]);
