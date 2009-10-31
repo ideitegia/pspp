@@ -61,12 +61,19 @@ struct var_params
 
 struct categoricals
 {
+  /* The weight variable */
   const struct variable *wv;
 
-  size_t n_vars;
 
   /* An array of var_params */
   struct var_params *vp;
+
+  /* The size of VP. (ie, the number of variables involved.) */
+  size_t n_vp;
+
+  /* The number of categorical variables which contain entries.
+     In the absence of missing values, this will be equal to N_VP */
+  size_t n_vars;
 
   /* A map to enable the lookup of variables indexed by subscript */
   int *reverse_variable_map;
@@ -84,7 +91,7 @@ void
 categoricals_destroy ( struct categoricals *cat)
 {
   int i;
-  for (i = 0 ; i < cat->n_vars; ++i)
+  for (i = 0 ; i < cat->n_vp; ++i)
     hmap_destroy (&cat->vp[i].map);
 
   pool_destroy (cat->pool);
@@ -97,14 +104,15 @@ categoricals_dump (const struct categoricals *cat)
 {
   int v;
 
-  for (v = 0 ; v < cat->n_vars; ++v)
+  for (v = 0 ; v < cat->n_vp; ++v)
     {
       const struct var_params *vp = &cat->vp[v];
       const struct hmap *m = &vp->map;
       struct hmap_node *node ;
       int x;
      
-      printf ("\n%s (%d)  CC=%g n_cats=%d:\n", var_get_name (vp->var), vp->base_subscript, vp->cc, vp->n_cats);
+      printf ("\n%s (%d)  CC=%g n_cats=%d:\n", 
+	      var_get_name (vp->var), vp->base_subscript, vp->cc, vp->n_cats);
 
       printf ("Reverse map\n");
       for (x = 0 ; x < vp->n_cats; ++x)
@@ -130,6 +138,13 @@ categoricals_dump (const struct categoricals *cat)
 	  ds_destroy (&s);
 	}
     }
+
+  assert (cat->n_vars <= cat->n_vp);
+
+  printf ("\n");
+  printf ("Number of categorical variables: %d\n", cat->n_vp);
+  printf ("Number of non-empty categorical variables: %d\n", cat->n_vars);
+  printf ("Total number of categories: %d\n", cat->n_cats_total);
 }
 
 
@@ -161,16 +176,17 @@ categoricals_create (const struct variable **v, size_t n_vars,
   size_t i;
   struct categoricals *cat = xmalloc (sizeof *cat);
   
-  cat->n_vars = n_vars;
+  cat->n_vp = n_vars;
   cat->wv = wv;
   cat->n_cats_total = 0;
+  cat->n_vars = 0;
   cat->reverse_variable_map = NULL;
   cat->pool = pool_create ();
   cat->exclude = exclude;
 
-  cat->vp = pool_calloc (cat->pool, n_vars, sizeof *cat->vp);
+  cat->vp = pool_calloc (cat->pool, cat->n_vp, sizeof *cat->vp);
 
-  for (i = 0 ; i < cat->n_vars; ++i)
+  for (i = 0 ; i < cat->n_vp; ++i)
     {
       hmap_init (&cat->vp[i].map);
       cat->vp[i].var = v[i];
@@ -190,7 +206,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 
   assert (NULL == cat->reverse_variable_map);
 
-  for (i = 0 ; i < cat->n_vars; ++i)
+  for (i = 0 ; i < cat->n_vp; ++i)
     {
       const struct variable *var = cat->vp[i].var;
       unsigned int width = var_get_width (var);
@@ -214,6 +230,10 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 
 	  hmap_insert (&cat->vp[i].map, &node->node,  hash);
 	  cat->n_cats_total++;
+	  
+	  if ( 0 == cat->vp[i].n_cats)
+	    cat->n_vars++;
+
 	  node->subscript = cat->vp[i].n_cats++ ;
 	}
 
@@ -266,7 +286,7 @@ categoricals_done (struct categoricals *cat)
   int idx = 0;
   cat->reverse_variable_map = pool_calloc (cat->pool, cat->n_cats_total, sizeof *cat->reverse_variable_map);
   
-  for (v = 0 ; v < cat->n_vars; ++v)
+  for (v = 0 ; v < cat->n_vp; ++v)
     {
       int i;
       struct var_params *vp = &cat->vp[v];
@@ -286,6 +306,8 @@ categoricals_done (struct categoricals *cat)
       for (i = 0; i < vp->n_cats; ++i)
 	cat->reverse_variable_map[idx++] = v;
     }
+
+  assert (cat->n_vars <= cat->n_vp);
 }
 
 
@@ -348,4 +370,11 @@ categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscr
   const union value *val = case_data (c, var);
 
   return value_equal (val, categoricals_get_value_by_subscript (cat, subscript), width);
+}
+
+
+size_t
+categoricals_get_n_variables (const struct categoricals *cat)
+{
+  return cat->n_vars;
 }

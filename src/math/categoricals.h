@@ -42,6 +42,14 @@ size_t categoricals_n_count (const struct categoricals *cat, size_t n);
 /* Return the total number of categories */
 size_t categoricals_total (const struct categoricals *cat);
 
+/*
+  Return the total number of variables which participated in these categoricals.
+  Due to the possibility of missing values, this is NOT necessarily
+  equal to the number of variables passed in when the object was
+  created.
+*/
+size_t categoricals_get_n_variables (const struct categoricals *cat);
+
 /* Return the index for variable N */
 int categoricals_index (const struct categoricals *cat, size_t n, const union value *val);
 
@@ -57,6 +65,7 @@ double categoricals_get_sum_by_subscript (const struct categoricals *cat, int su
 
 double categoricals_get_binary_by_subscript (const struct categoricals *cat, int subscript,
 					     const struct ccase *c);
+
 
 
 
