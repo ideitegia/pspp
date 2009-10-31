@@ -338,7 +338,9 @@ covariance_accumulate_pass2 (struct covariance *cov, const struct ccase *c)
       assert (cov->state == 1);
       cov->state = 2;
 
-      cov->dim = cov->n_vars + categoricals_total (cov->categoricals);
+      cov->dim = cov->n_vars +
+	categoricals_total (cov->categoricals) - categoricals_get_n_variables (cov->categoricals);
+
       cov->n_cm = (cov->dim * (cov->dim - 1)  ) / 2;
       cov->cm = xcalloc (sizeof *cov->cm, cov->n_cm);
 
