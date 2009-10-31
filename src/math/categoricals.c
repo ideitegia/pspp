@@ -250,19 +250,6 @@ categoricals_n_count (const struct categoricals *cat, size_t n)
 }
 
 
-/* Return the index for value VAL in the Nth variable */
-int
-categoricals_index (const struct categoricals *cat, size_t n, const union value *val)
-{
-  struct value_node *vn = lookup_value (&cat->vp[n].map, cat->vp[n].var, val);
-
-  if ( vn == NULL)
-    return -1;
-
-  return vn->subscript;
-}
-
-
 /* Return the total number of categories */
 size_t
 categoricals_total (const struct categoricals *cat)

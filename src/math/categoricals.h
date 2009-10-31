@@ -50,9 +50,6 @@ size_t categoricals_total (const struct categoricals *cat);
 */
 size_t categoricals_get_n_variables (const struct categoricals *cat);
 
-/* Return the index for variable N */
-int categoricals_index (const struct categoricals *cat, size_t n, const union value *val);
-
 void categoricals_done (struct categoricals *cat);
 
 const struct variable * categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript);
