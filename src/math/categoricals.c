@@ -309,26 +309,31 @@ categoricals_done (struct categoricals *cat)
 }
 
 
+static int
+reverse_variable_lookup (const struct categoricals *cat, int subscript)
+{
+  assert (cat->reverse_variable_map);
+  assert (subscript >= 0);
+  assert (subscript < cat->n_cats_total - cat->n_vars);
+
+  return cat->reverse_variable_map[subscript];
+}
+
 
 /* Return the categorical variable corresponding to SUBSCRIPT */
 const struct variable *
 categoricals_get_variable_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int index;
-
-  assert (cat->reverse_variable_map);
-  
-  index = cat->reverse_variable_map[subscript];
+  int index = reverse_variable_lookup (cat, subscript);
 
   return cat->vp[index].var;
 }
-
 
 /* Return the value corresponding to SUBSCRIPT */
 const union value *
 categoricals_get_value_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int vindex = cat->reverse_variable_map[subscript];
+  int vindex = reverse_variable_lookup (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
 
@@ -339,7 +344,7 @@ categoricals_get_value_by_subscript (const struct categoricals *cat, int subscri
 double
 categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int vindex = cat->reverse_variable_map[subscript];
+  int vindex = reverse_variable_lookup (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
 
   return vp->cc;
@@ -348,7 +353,7 @@ categoricals_get_weight_by_subscript (const struct categoricals *cat, int subscr
 double
 categoricals_get_sum_by_subscript (const struct categoricals *cat, int subscript)
 {
-  int vindex = cat->reverse_variable_map[subscript];
+  int vindex = reverse_variable_lookup (cat, subscript);
   const struct var_params *vp = &cat->vp[vindex];
 
   const struct value_node *vn = vp->reverse_value_map [subscript - vp->base_subscript];
