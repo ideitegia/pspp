@@ -104,9 +104,7 @@ categoricals_dump (const struct categoricals *cat)
       struct hmap_node *node ;
       int x;
      
-      printf ("\n%s (%d)  CC=%g:\n", var_get_name (vp->var), vp->base_subscript, vp->cc);
-
-      assert (vp->reverse_value_map);
+      printf ("\n%s (%d)  CC=%g n_cats=%d:\n", var_get_name (vp->var), vp->base_subscript, vp->cc, vp->n_cats);
 
       printf ("Reverse map\n");
       for (x = 0 ; x < vp->n_cats; ++x)
@@ -215,7 +213,7 @@ categoricals_update (struct categoricals *cat, const struct ccase *c)
 	  node->cc = 0.0;
 
 	  hmap_insert (&cat->vp[i].map, &node->node,  hash);
-	  cat->n_cats_total ++;
+	  cat->n_cats_total++;
 	  node->subscript = cat->vp[i].n_cats++ ;
 	}
 
