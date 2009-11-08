@@ -43,6 +43,7 @@
 #include <libpspp/taint.h>
 #include <math/group-proc.h>
 #include <math/levene.h>
+#include <math/correlation.h>
 #include <output/manager.h>
 #include <output/table.h>
 #include <data/format.h>
@@ -1110,14 +1111,6 @@ pscbox (struct t_test_proc *proc)
   for (i = 0; i < proc->n_pairs; i++)
     {
       struct pair *pair = &proc->pairs[i];
-      double df = pair->n - 2;
-      double p, q;
-
-      /* corr2 will mathematically always be in the range [0, 1.0].  Inaccurate
-         calculations sometimes cause it to be slightly greater than 1.0, so
-         force it into the correct range to avoid NaN from sqrt(). */
-      double corr2 = MIN (1.0, pow2 (pair->correlation));
-      double correlation_t = pair->correlation * sqrt (df) / sqrt (1 - corr2);
 
       /* row headings */
       tab_text_format (table, 0, i + 1, TAB_LEFT | TAT_TITLE,
@@ -1131,10 +1124,8 @@ pscbox (struct t_test_proc *proc)
       tab_double (table, 2, i + 1, TAB_RIGHT, pair->n, &proc->weight_format);
       tab_double (table, 3, i + 1, TAB_RIGHT, pair->correlation, NULL);
 
-      p = gsl_cdf_tdist_P (correlation_t, df);
-      q = gsl_cdf_tdist_Q (correlation_t, df);
-      tab_double (table, 4, i + 1, TAB_RIGHT,
-                 2.0 * (correlation_t > 0 ? q : p), NULL);
+      tab_double (table, 4, i + 1, TAB_RIGHT, 
+		  2.0 * significance_of_correlation (pair->correlation, pair->n), NULL);
     }
 
   tab_submit (table);

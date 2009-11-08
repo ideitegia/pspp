@@ -29,7 +29,12 @@ double
 significance_of_correlation (double rho, double w)
 {
   double t = w - 2;
+
+  /* |rho| will mathematically always be in the range [0, 1.0].  Inaccurate
+     calculations sometimes cause it to be slightly greater than 1.0, so
+     force it into the correct range to avoid NaN from sqrt(). */
   t /= 1 - MIN (1, pow2 (rho));
+
   t = sqrt (t);
   t *= rho;
   
