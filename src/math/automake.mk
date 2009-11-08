@@ -17,6 +17,8 @@ src_math_libpspp_math_la_SOURCES = \
 	src/math/covariance.h \
 	src/math/covariance-matrix.c \
 	src/math/covariance-matrix.h \
+	src/math/correlation.c \
+	src/math/correlation.h \
 	src/math/design-matrix.c src/math/design-matrix.h \
 	src/math/extrema.c src/math/extrema.h \
 	src/math/group.c  src/math/group.h \
