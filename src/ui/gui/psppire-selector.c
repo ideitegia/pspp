@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007  Free Software Foundation
+   Copyright (C) 2007, 2009 Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -112,21 +112,48 @@ psppire_selector_get_type (void)
   return psppire_selector_type;
 }
 
+static GObjectClass * parent_class = NULL;
 
 static void
-psppire_selector_finalize (GObject *object)
+psppire_selector_finalize (GObject *obj)
 {
+   /* Chain up to the parent class */
+   G_OBJECT_CLASS (parent_class)->finalize (obj);
 }
+
+
+static void
+psppire_selector_dispose (GObject *obj)
+{
+  PsppireSelector *sel = PSPPIRE_SELECTOR (obj);
+
+  if (sel->dispose_has_run)
+    return;
+
+  /* Make sure dispose does not run twice. */
+  sel->dispose_has_run = TRUE;
+
+  g_object_unref (sel->dest);
+  g_object_unref (sel->source);
+
+  /* Chain up to the parent class */
+  G_OBJECT_CLASS (parent_class)->dispose (obj);
+}
+
 
 /* Properties */
 enum
 {
   PROP_0,
-  PROP_ORIENTATION
+  PROP_ORIENTATION,
+  PROP_SOURCE_WIDGET,
+  PROP_DEST_WIDGET
 };
 
 
 static void on_activate (PsppireSelector *selector, gpointer data);
+
+static void update_subjects (PsppireSelector *selector);
 
 
 static void
@@ -142,6 +169,14 @@ psppire_selector_set_property (GObject         *object,
     case PROP_ORIENTATION:
       selector->orientation = g_value_get_enum (value);
       set_direction (selector, selector->direction);
+      break;
+    case PROP_SOURCE_WIDGET:
+      selector->source = g_value_dup_object (value);
+      update_subjects (selector);
+      break;
+    case PROP_DEST_WIDGET:
+      selector->dest = g_value_dup_object (value);
+      update_subjects (selector);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -163,6 +198,12 @@ psppire_selector_get_property (GObject         *object,
     case PROP_ORIENTATION:
       g_value_set_enum (value, selector->orientation);
       break;
+    case PROP_SOURCE_WIDGET:
+      g_value_take_object (value, selector->source);
+      break;
+    case PROP_DEST_WIDGET:
+      g_value_take_object (value, selector->dest);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -183,6 +224,20 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 		       PSPPIRE_SELECT_SOURCE_BEFORE_DEST /* default value */,
 		       G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
 
+  GParamSpec *source_widget_spec = 
+    g_param_spec_object ("source-widget",
+			 "Source Widget",
+			 "The widget to be used as the source for this selector",
+			 GTK_TYPE_WIDGET,
+			 G_PARAM_READWRITE);
+
+  GParamSpec *dest_widget_spec = 
+    g_param_spec_object ("dest-widget",
+			 "Destination Widget",
+			 "The widget to be used as the destination for this selector",
+			 GTK_TYPE_WIDGET,
+			 G_PARAM_READWRITE);
+
 
   object_class->set_property = psppire_selector_set_property;
   object_class->get_property = psppire_selector_get_property;
@@ -190,6 +245,16 @@ psppire_selector_class_init (PsppireSelectorClass *class)
   g_object_class_install_property (object_class,
                                    PROP_ORIENTATION,
                                    orientation_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_SOURCE_WIDGET,
+                                   source_widget_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_DEST_WIDGET,
+                                   dest_widget_spec);
+
+  parent_class = g_type_class_peek_parent (class);
 
   signals [SELECTED] =
     g_signal_new ("selected",
@@ -219,6 +284,7 @@ psppire_selector_base_init (PsppireSelectorClass *class)
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
   object_class->finalize = psppire_selector_finalize;
+  object_class->dispose = psppire_selector_dispose;
 
   class->source_hash = g_hash_table_new (g_direct_hash, g_direct_equal);
 }
@@ -251,6 +317,10 @@ psppire_selector_init (PsppireSelector *selector)
   g_signal_connect_swapped (selector->action, "activate", G_CALLBACK (on_activate), selector);
 
   selector->selecting = FALSE;
+
+  selector->source = NULL;
+  selector->dest = NULL;
+  selector->dispose_has_run = FALSE;
 }
 
 
@@ -682,7 +752,17 @@ on_dest_data_delete (GtkTreeModel *tree_model,
 }
 
 
+static void
+xxx (PsppireSelector *selector)
+{
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->dest));
 
+  g_signal_connect (model, "row-changed", G_CALLBACK (on_dest_data_change),
+		    selector);
+
+  g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
+		    selector);
+}
 
 /* Set the destination widget to DEST */
 static void
@@ -690,18 +770,16 @@ set_tree_view_dest (PsppireSelector *selector,
 		    GtkTreeView *dest)
 {
   GtkTreeSelection* selection = gtk_tree_view_get_selection (dest);
-  GtkTreeModel *model = gtk_tree_view_get_model (dest);
+
 
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
 
   g_signal_connect (selection, "changed", G_CALLBACK (on_dest_treeview_select),
 		    selector);
 
-  g_signal_connect (model, "row-changed", G_CALLBACK (on_dest_data_change),
-		      selector);
 
-  g_signal_connect (model, "row-deleted", G_CALLBACK (on_dest_data_delete),
-		      selector);
+  g_signal_connect_swapped (dest, "notify::model",
+			    G_CALLBACK (xxx), selector);
 
 }
 
@@ -777,53 +855,69 @@ set_entry_dest (PsppireSelector *selector,
 		    G_CALLBACK (on_row_inserted), selector);
 }
 
+static void
+update_subjects (PsppireSelector *selector)
+{
+  GtkTreeModel *model = NULL;
 
-/* Set SOURCE and DEST for this selector, and
-   set SELECT_FUNC and FILTER_FUNC */
+  if ( NULL == selector->dest )
+    return;
+
+  if ( NULL == selector->source )
+    return;
+
+  g_signal_connect_swapped (selector->source, "notify::dictionary",
+			    G_CALLBACK (update_subjects), selector);
+
+  g_signal_connect_swapped (selector->source, "notify::model",
+			    G_CALLBACK (update_subjects), selector);
+
+  model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->source));
+
+  if ( NULL == model)
+    return;
+
+
+  if ( GTK_IS_TREE_VIEW (selector->source))
+    set_tree_view_source (selector, GTK_TREE_VIEW (selector->source) );
+  else
+    g_error ("Unsupported source widget: %s", G_OBJECT_TYPE_NAME (selector->source));
+
+  if ( NULL == selector->dest)
+    ;
+  else if  ( GTK_IS_TREE_VIEW (selector->dest))
+    {
+      set_tree_view_dest (selector, GTK_TREE_VIEW (selector->dest));
+    }
+
+  else if ( GTK_IS_ENTRY (selector->dest))
+    set_entry_dest (selector, GTK_ENTRY (selector->dest));
+
+  else if (GTK_IS_TEXT_VIEW (selector->dest))
+    {
+      /* Nothing to be done */
+    }
+  else
+    g_error ("Unsupported destination widget: %s", G_OBJECT_TYPE_NAME (selector->dest));
+
+}
+
+
+/* Set SELECT_FUNC and FILTER_FUNC for this selector */
 void
 psppire_selector_set_subjects (PsppireSelector *selector,
-			       GtkWidget *source,
-			       GtkWidget *dest,
 			       SelectItemsFunc *select_func,
 			       FilterItemsFunc *filter_func,
 			       gpointer user_data)
 {
-  g_assert(selector);
-
   selector->filter = filter_func ;
-
-  selector->source = source;
-  selector->dest = dest;
   selector->select_user_data = user_data;
 
   if ( filter_func == NULL)
     {
-      if  (GTK_IS_TREE_VIEW (dest))
+      if  (GTK_IS_TREE_VIEW (selector->dest))
 	selector->filter = is_item_in_dest;
     }
-
-  if ( GTK_IS_TREE_VIEW (source))
-    set_tree_view_source (selector, GTK_TREE_VIEW (source) );
-  else
-    g_error ("Unsupported source widget: %s", G_OBJECT_TYPE_NAME (source));
-
-  g_assert ( GTK_IS_TREE_MODEL_FILTER (selector->filtered_source));
-
-  if ( NULL == dest)
-    ;
-  else if  ( GTK_IS_TREE_VIEW (dest))
-    set_tree_view_dest (selector, GTK_TREE_VIEW (dest));
-
-  else if ( GTK_IS_ENTRY (dest))
-    set_entry_dest (selector, GTK_ENTRY (dest));
-
-  else if (GTK_IS_TEXT_VIEW (dest))
-    {
-      /* Nothing to be done */
-    }
-
-  else
-    g_error ("Unsupported destination widget: %s", G_OBJECT_TYPE_NAME (dest));
 
   selector->select_items = select_func;
 }
@@ -831,7 +925,7 @@ psppire_selector_set_subjects (PsppireSelector *selector,
 
 
 void
-psppire_selector_set_allow        (PsppireSelector *selector , AllowSelectionFunc *allow)
+psppire_selector_set_allow (PsppireSelector *selector, AllowSelectionFunc *allow)
 {
   selector->allow_selection = allow;
 }

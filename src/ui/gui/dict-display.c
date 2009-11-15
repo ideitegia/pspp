@@ -125,7 +125,12 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
   gint dict_index;
   gint *indeces;
   GtkTreePath *path;
-  const gchar *text =  gtk_entry_get_text (GTK_ENTRY (selector->dest));
+  GtkWidget *entry = NULL;
+  const gchar *text = NULL;
+
+  g_object_get (selector, "dest-widget", &entry, NULL);
+
+  text = gtk_entry_get_text (GTK_ENTRY (entry));
 
   get_base_model (model, iter, &dict, &dict_iter);
 

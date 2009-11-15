@@ -952,8 +952,6 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 rd.dict_treeview,
-				 rd.variable_treeview,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);

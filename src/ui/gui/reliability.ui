@@ -70,6 +70,8 @@
                         <property name="receives_default">True</property>
                         <property name="no_show_all">True</property>
                         <property name="border_width">5</property>
+                        <property name="source_widget">dict-view</property>
+                        <property name="dest_widget">treeview2</property>
                       </object>
                     </child>
                   </object>

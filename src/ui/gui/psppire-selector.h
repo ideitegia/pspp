@@ -77,7 +77,10 @@ struct _PsppireSelector
   GtkWidget *arrow;
   GtkAction *action;
 
+  gboolean dispose_has_run;
+
   enum psppire_selector_dir direction;
+
   GtkWidget *source;
   GtkWidget *dest;
 
@@ -111,8 +114,6 @@ struct _PsppireSelectorClass
 GType      psppire_selector_get_type        (void);
 GtkWidget* psppire_selector_new             (void);
 void       psppire_selector_set_subjects    (PsppireSelector *,
-					     GtkWidget *,
-					     GtkWidget *,
 					     SelectItemsFunc *,
 					     FilterItemsFunc *,
 					     gpointer );

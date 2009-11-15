@@ -311,8 +311,6 @@ rank_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (rd.rank_vars), rd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
-				 vars,
-				 rd.rank_vars,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);
@@ -320,8 +318,6 @@ rank_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (rd.group_vars), rd.dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
-				 vars,
-				 rd.group_vars,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);

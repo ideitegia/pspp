@@ -341,8 +341,6 @@ frequencies_dialog (GObject *o, gpointer data)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 dest,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);

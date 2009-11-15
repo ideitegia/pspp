@@ -432,7 +432,6 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
-				 dict_view, test_variables_treeview,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);
@@ -442,7 +441,6 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
-				 dict_view, tt_d.groups_entry,
 				 insert_source_row_into_entry,
 				 is_currently_in_entry,
 				 NULL);

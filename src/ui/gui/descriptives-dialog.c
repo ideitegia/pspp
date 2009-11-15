@@ -232,8 +232,6 @@ descriptives_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (dest), dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 dest,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);

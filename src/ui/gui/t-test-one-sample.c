@@ -157,7 +157,6 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 dict_view, tt_d.vars_treeview,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);

@@ -85,6 +85,8 @@
                                 <property name="can_focus">False</property>
                                 <property name="receives_default">False</property>
                                 <property name="border_width">5</property>
+                                <property name="source_widget">weight-cases-treeview</property>
+                                <property name="dest_widget">weight-cases-entry</property>
                               </object>
                               <packing>
                                 <property name="position">0</property>
@@ -324,6 +326,8 @@
                     <property name="can_focus">False</property>
                     <property name="receives_default">False</property>
                     <property name="border_width">5</property>
+                    <property name="source_widget">source-treeview</property>
+                    <property name="dest_widget">new-name-entry</property>
                   </object>
                   <packing>
                     <property name="top_attach">1</property>
@@ -338,6 +342,8 @@
                     <property name="can_focus">False</property>
                     <property name="receives_default">False</property>
                     <property name="border_width">5</property>
+                    <property name="source_widget">source-treeview</property>
+                    <property name="dest_widget">variables-treeview</property>
                   </object>
                   <packing>
                     <property name="x_options"></property>
@@ -501,6 +507,8 @@
                                 <property name="receives_default">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="border_width">5</property>
+                                <property name="source_widget">split-file-dict-treeview</property>
+                                <property name="dest_widget">split-file-grouping-vars</property>
                               </object>
                             </child>
                           </object>
@@ -821,6 +829,8 @@
                         <property name="receives_default">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="border_width">5</property>
+                        <property name="source_widget">compute-treeview1</property>
+                        <property name="dest_widget">compute-textview1</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -934,6 +944,8 @@
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="border_width">5</property>
                             <property name="orientation">source below destination</property>
+                            <property name="source_widget">compute-treeview2</property>
+                            <property name="dest_widget">compute-textview1</property>
                           </object>
                           <packing>
                             <property name="fill">False</property>
@@ -1241,6 +1253,8 @@
                                             <property name="receives_default">True</property>
                                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                             <property name="border_width">5</property>
+                                            <property name="source_widget">select-cases-treeview</property>
+                                            <property name="dest_widget">filter-variable-entry</property>
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>

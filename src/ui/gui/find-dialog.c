@@ -247,8 +247,6 @@ find_dialog (GObject *o, gpointer data)
 	NULL);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 fd.variable_entry,
 				 insert_source_row_into_entry,
 				 is_currently_in_entry,
 				 NULL

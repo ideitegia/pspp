@@ -403,7 +403,6 @@ compute_dialog (GObject *o, gpointer data)
 		NULL);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (var_selector),
-				 dict_view, syntax_area,
 				 insert_source_row_into_text_view,
 				 NULL,
 				 NULL);
@@ -412,7 +411,6 @@ compute_dialog (GObject *o, gpointer data)
   function_list_populate (GTK_TREE_VIEW (functions));
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (func_selector),
-				 functions, syntax_area,
 				 insert_function_into_syntax_area,
 				 NULL,
 				 NULL);

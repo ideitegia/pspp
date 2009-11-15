@@ -173,8 +173,9 @@
 	  </displayable-values>
 	</property>
 
-
-	<property id="visible" ignore="True" default="True" />
+	<property id="source-widget"     ignore="True" />
+	<property id="dest-widget"       ignore="True" />
+	<property id="visible"           ignore="True" default="True" />
      </properties>
 
     </glade-widget-class>

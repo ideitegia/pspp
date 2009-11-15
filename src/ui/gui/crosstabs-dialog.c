@@ -430,15 +430,11 @@ crosstabs_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (dest_cols), dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (row_selector),
-				 source,
-				 dest_rows,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (col_selector),
-				 source,
-				 dest_cols,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);

@@ -286,8 +286,6 @@ examine_dialog (GObject *o, gpointer data)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (dep_selector),
-				 source,
-				 ex_d.dep_list,
 				 insert_source_row_into_tree_view,
 				 NULL, NULL);
 
@@ -298,15 +296,11 @@ examine_dialog (GObject *o, gpointer data)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (fct_selector),
-				 source,
-				 ex_d.fct_list,
 				 insert_source_row_into_tree_view,
 				 NULL, NULL);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (id_selector),
-				 source,
-				 ex_d.id_entry,
 				 insert_source_row_into_entry,
 				 NULL, NULL);
 

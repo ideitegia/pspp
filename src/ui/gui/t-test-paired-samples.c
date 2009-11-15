@@ -229,8 +229,6 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 dict_view,
-				 tt_d.pairs_treeview,
 				 select_as_pair_member,
 				 NULL,
 				 &tt_d);

@@ -91,7 +91,6 @@ transpose_dialog (GObject *o, gpointer data)
   GtkWidget *dest = get_widget_assert (xml, "variables-treeview");
   GtkWidget *selector1 = get_widget_assert (xml, "psppire-selector2");
   GtkWidget *selector2 = get_widget_assert (xml, "psppire-selector3");
-  GtkWidget *new_name_entry = get_widget_assert (xml, "new-name-entry");
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
@@ -101,14 +100,12 @@ transpose_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (dest), dict);
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
-				 source, dest,
 				 insert_source_row_into_tree_view,
 				 NULL,
 				 NULL);
 
 
   psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
-				 source, new_name_entry,
 				 insert_source_row_into_entry,
 				 is_currently_in_entry,
 				 NULL);
