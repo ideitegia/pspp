@@ -96,7 +96,7 @@ sort_cases_dialog (GObject *o, gpointer data)
 
   struct sort_cases_dialog scd;
 
-  GtkBuilder *xml = builder_new ("psppire.ui");
+  GtkBuilder *xml = builder_new ("sort.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "sort-cases-dialog");
 
