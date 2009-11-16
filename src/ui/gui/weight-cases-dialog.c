@@ -132,7 +132,7 @@ weight_cases_dialog (GObject *o, gpointer data)
 		    radiobutton1);
 
   
-  g_object_set (source, "dictionary", wcd.dict,
+  g_object_set (source, "model", wcd.dict,
 				 "selection-mode", GTK_SELECTION_SINGLE,
 				 "predicate", var_is_numeric,
 				 NULL);

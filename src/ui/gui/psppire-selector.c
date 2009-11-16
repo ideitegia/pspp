@@ -866,9 +866,6 @@ update_subjects (PsppireSelector *selector)
   if ( NULL == selector->source )
     return;
 
-  g_signal_connect_swapped (selector->source, "notify::dictionary",
-			    G_CALLBACK (update_subjects), selector);
-
   g_signal_connect_swapped (selector->source, "notify::model",
 			    G_CALLBACK (update_subjects), selector);
 

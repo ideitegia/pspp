@@ -254,7 +254,7 @@ regression_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_get (vs, "dictionary", &rd.dict, NULL);
-  g_object_set (source, "dictionary", rd.dict, NULL);
+  g_object_set (source, "model", rd.dict, NULL);
 
   set_dest_model (GTK_TREE_VIEW (dest_dep), rd.dict);
   set_dest_model (GTK_TREE_VIEW (dest_indep), rd.dict);

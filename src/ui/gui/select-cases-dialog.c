@@ -326,7 +326,7 @@ select_cases_dialog (GObject *o, gpointer data)
   {
     GtkWidget *source = get_widget_assert   (scd.xml, "select-cases-treeview");
 
-    g_object_set (source, "dictionary",
+    g_object_set (source, "model",
 		  scd.data_store->dict,
 		  "selection-mode",
 		  GTK_SELECTION_SINGLE, NULL);

@@ -75,7 +75,6 @@ psppire_dict_view_finalize (GObject *object)
 enum
 {
   PROP_0,
-  PROP_MODEL,
   PROP_DICTIONARY,
   PROP_PREDICATE,
   PROP_SELECTION_MODE
@@ -137,11 +136,6 @@ psppire_dict_view_set_property (GObject         *object,
     case PROP_DICTIONARY:
       dict_view->dict = g_value_get_object (value);
       break;
-    case PROP_MODEL:
-      g_critical ("Don't set the \"model\" property on %s. "
-		  "Use the \"dictionary\" property instead.",
-		  G_OBJECT_TYPE_NAME (dict_view));
-      break;
     case PROP_PREDICATE:
       dict_view->predicate = g_value_get_pointer (value);
       break;
@@ -201,13 +195,6 @@ psppire_dict_view_class_init (PsppireDictViewClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
-  GParamSpec *dictionary_spec =
-    g_param_spec_object ("dictionary",
-			 "Dictionary",
-			 _("The dictionary to be displayed by this widget"),
-			 PSPPIRE_TYPE_DICT,
-			 G_PARAM_READABLE | G_PARAM_WRITABLE);
-
   GParamSpec *predicate_spec =
     g_param_spec_pointer ("predicate",
 			  "Predicate",
@@ -223,23 +210,12 @@ psppire_dict_view_class_init (PsppireDictViewClass *class)
 		       GTK_SELECTION_MULTIPLE,
 		       G_PARAM_CONSTRUCT | G_PARAM_READABLE | G_PARAM_WRITABLE);
 
-
-  GParamSpec *dummy_spec =
-    g_param_spec_pointer ("model",
-			  "Model",
-			  "Don't set the property",
-			  G_PARAM_WRITABLE);
-
   object_class->set_property = psppire_dict_view_set_property;
   object_class->get_property = psppire_dict_view_get_property;
 
-  g_object_class_install_property (object_class,
-                                   PROP_MODEL,
-                                   dummy_spec);
-
-  g_object_class_install_property (object_class,
-                                   PROP_DICTIONARY,
-                                   dictionary_spec);
+  g_object_class_override_property (object_class,
+				    PROP_DICTIONARY,
+				    "model");
 
   g_object_class_install_property (object_class,
                                    PROP_PREDICATE,
@@ -271,8 +247,7 @@ psppire_dict_view_base_finalize (PsppireDictViewClass *class,
 
 static void
 dv_get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
-		GtkTreeModel **model, GtkTreeIter *iter
-		)
+		GtkTreeModel **model, GtkTreeIter *iter)
 {
   *model = top_model;
 

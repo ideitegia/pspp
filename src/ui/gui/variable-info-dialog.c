@@ -65,7 +65,7 @@ populate_text (PsppireDictView *treeview, gpointer data)
   if ( var == NULL)
     return;
 
-  g_object_get (treeview, "dictionary", &dict,
+  g_object_get (treeview, "model", &dict,
 		NULL);
 
   gstring = g_string_sized_new (200);
@@ -165,7 +165,7 @@ variable_info_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_get (vs, "dictionary", &dict, NULL);
-  g_object_set (treeview, "dictionary", dict,
+  g_object_set (treeview, "model", dict,
 		"selection-mode", GTK_SELECTION_SINGLE,
 		NULL);
 
