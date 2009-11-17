@@ -303,6 +303,11 @@ psppire_selector_base_finalize(PsppireSelectorClass *class,
 static void
 psppire_selector_init (PsppireSelector *selector)
 {
+  selector->select_user_data = NULL;
+  selector->select_items = NULL;
+  selector->allow_selection = NULL;
+  selector->filter = NULL;
+
   selector->arrow = gtk_arrow_new (GTK_ARROW_LEFT, GTK_SHADOW_NONE);
   selector->filtered_source = NULL;
 
@@ -863,6 +868,12 @@ update_subjects (PsppireSelector *selector)
   if ( NULL == selector->dest )
     return;
 
+  if ( selector->filter == NULL)
+    {
+      if  (GTK_IS_TREE_VIEW (selector->dest))
+	selector->filter = is_item_in_dest;
+    }
+
   if ( NULL == selector->source )
     return;
 
@@ -900,22 +911,28 @@ update_subjects (PsppireSelector *selector)
 }
 
 
-/* Set SELECT_FUNC and FILTER_FUNC for this selector */
+/* Set FILTER_FUNC for this selector */
 void
-psppire_selector_set_subjects (PsppireSelector *selector,
-			       SelectItemsFunc *select_func,
-			       FilterItemsFunc *filter_func,
-			       gpointer user_data)
+psppire_selector_set_filter_func (PsppireSelector *selector,
+				  FilterItemsFunc *filter_func)
 {
   selector->filter = filter_func ;
-  selector->select_user_data = user_data;
 
-  if ( filter_func == NULL)
+  if ( selector->filter == NULL)
     {
       if  (GTK_IS_TREE_VIEW (selector->dest))
 	selector->filter = is_item_in_dest;
     }
+}
 
+
+/* Set SELECT_FUNC for this selector */
+void
+psppire_selector_set_select_func (PsppireSelector *selector,
+			       SelectItemsFunc *select_func,
+			       gpointer user_data)
+{
+  selector->select_user_data = user_data;
   selector->select_items = select_func;
 }
 

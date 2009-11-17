@@ -331,10 +331,14 @@ select_cases_dialog (GObject *o, gpointer data)
 		  "selection-mode",
 		  GTK_SELECTION_SINGLE, NULL);
 
-    psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
+    psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
 				   insert_source_row_into_entry,
-				   is_currently_in_entry,
 				   NULL);
+
+    psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector),
+				   is_currently_in_entry);
+
+
   }
 
 

@@ -156,9 +156,8 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (tt_d.vars_treeview), tt_d.dict);
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
 				 insert_source_row_into_tree_view,
-				 NULL,
 				 NULL);
 
 

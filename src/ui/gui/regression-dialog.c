@@ -259,14 +259,12 @@ regression_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (dest_dep), rd.dict);
   set_dest_model (GTK_TREE_VIEW (dest_indep), rd.dict);
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (dep_selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (dep_selector),
 				 insert_source_row_into_tree_view,
-				 NULL,
 				 NULL);
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (indep_selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (indep_selector),
 				 insert_source_row_into_tree_view,
-				 NULL,
 				 NULL);
 
   rd.dep_vars = GTK_TREE_VIEW (dest_dep);

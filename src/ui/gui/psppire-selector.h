@@ -113,12 +113,19 @@ struct _PsppireSelectorClass
 
 GType      psppire_selector_get_type        (void);
 GtkWidget* psppire_selector_new             (void);
-void       psppire_selector_set_subjects    (PsppireSelector *,
-					     SelectItemsFunc *,
-					     FilterItemsFunc *,
-					     gpointer );
 
-void      psppire_selector_set_allow        (PsppireSelector *, AllowSelectionFunc *);
+
+/* Set FILTER_FUNC for this selector */
+void psppire_selector_set_filter_func (PsppireSelector *selector,
+				       FilterItemsFunc *filter_func);
+
+/* Set SELECT_FUNC for this selector */
+void psppire_selector_set_select_func (PsppireSelector *selector,
+				       SelectItemsFunc *select_func,
+				       gpointer user_data);
+
+
+void psppire_selector_set_allow (PsppireSelector *, AllowSelectionFunc *);
 
 
 GType psppire_selector_orientation_get_type (void) G_GNUC_CONST;

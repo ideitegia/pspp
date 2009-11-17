@@ -285,9 +285,9 @@ examine_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (ex_d.dep_list), ex_d.dict);
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (dep_selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (dep_selector),
 				 insert_source_row_into_tree_view,
-				 NULL, NULL);
+				 NULL);
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_selector),
 			      numeric_only);
@@ -295,14 +295,14 @@ examine_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (ex_d.fct_list), ex_d.dict);
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (fct_selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (fct_selector),
 				 insert_source_row_into_tree_view,
-				 NULL, NULL);
+				 NULL);
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (id_selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (id_selector),
 				 insert_source_row_into_entry,
-				 NULL, NULL);
+				 NULL);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &ex_d);
 

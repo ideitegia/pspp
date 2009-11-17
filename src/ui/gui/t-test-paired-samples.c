@@ -228,11 +228,9 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
   }
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 select_as_pair_member,
-				 NULL,
-				 &tt_d);
-
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
+				    select_as_pair_member,
+				    &tt_d);
 
   g_signal_connect_swapped (dialog, "refresh",
 			    G_CALLBACK (refresh),  &tt_d);

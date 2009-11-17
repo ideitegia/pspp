@@ -176,17 +176,18 @@ oneway_anova_dialog (GObject *o, gpointer data)
   set_dest_model (GTK_TREE_VIEW (ow.vars_treeview), ow.dict);
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector1),
 				 insert_source_row_into_tree_view,
-				 NULL,
 				 NULL);
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector2),
 				 insert_source_row_into_entry,
-				 is_currently_in_entry,
 				 NULL);
 
+
+  psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector2),
+				    is_currently_in_entry);
 
 
   g_signal_connect_swapped (ow.dialog, "refresh", G_CALLBACK (refresh),  &ow);

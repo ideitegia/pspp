@@ -951,9 +951,8 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
 				 insert_source_row_into_tree_view,
-				 NULL,
 				 NULL);
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (selector), homogeneous_types);

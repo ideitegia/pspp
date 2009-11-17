@@ -379,7 +379,6 @@ compute_dialog (GObject *o, gpointer data)
   GtkWidget *functions = get_widget_assert (xml, "compute-treeview2");
   GtkWidget *keypad    = get_widget_assert (xml, "psppire-keypad1");
   GtkWidget *target    = get_widget_assert (xml, "compute-entry1");
-  GtkWidget *syntax_area = get_widget_assert (xml, "compute-textview1");
   GtkWidget *var_selector = get_widget_assert (xml, "compute-selector1");
   GtkWidget *func_selector = get_widget_assert (xml, "compute-selector2");
   GtkWidget *type_and_label = get_widget_assert (xml, "compute-button1");
@@ -402,19 +401,13 @@ compute_dialog (GObject *o, gpointer data)
 		"selection-mode", GTK_SELECTION_SINGLE,
 		NULL);
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (var_selector),
-				 insert_source_row_into_text_view,
-				 NULL,
-				 NULL);
-
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (var_selector),
+				    insert_source_row_into_text_view, NULL);
 
   function_list_populate (GTK_TREE_VIEW (functions));
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (func_selector),
-				 insert_function_into_syntax_area,
-				 NULL,
-				 NULL);
-
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (func_selector),
+				    insert_function_into_syntax_area, NULL);
 
   scd.xml = xml;
 

@@ -116,9 +116,8 @@ sort_cases_dialog (GObject *o, gpointer data)
 
   set_dest_model (GTK_TREE_VIEW (dest), scd.dict);
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
 				 insert_source_row_into_tree_view,
-				 NULL,
 				 NULL);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  dest);
