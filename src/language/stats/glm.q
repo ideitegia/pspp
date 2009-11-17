@@ -228,17 +228,21 @@ glm_custom_dependent (struct lexer *lexer, struct dataset *ds,
 		      struct cmd_glm *cmd UNUSED, void *aux UNUSED)
 {
   const struct dictionary *dict = dataset_dict (ds);
+  size_t i;
 
   if ((lex_token (lexer) != T_ID
        || dict_lookup_var (dict, lex_tokid (lexer)) == NULL)
       && lex_token (lexer) != T_ALL)
     return 2;
 
-  if (!parse_variables_const
-      (lexer, dict, &v_dependent, &n_dependent, PV_NONE))
+  if (!parse_variables_const (lexer, dict, &v_dependent, &n_dependent, PV_NONE))
     {
       free (v_dependent);
       return 0;
+    }
+  for (i = 0; i < n_dependent; i++)
+    {
+      assert (var_is_numeric (v_dependent[i]));
     }
   assert (n_dependent);
   if (n_dependent > 1)
@@ -311,7 +315,18 @@ run_glm (struct casereader *input,
   lopts.get_indep_mean_std = xnmalloc (n_dependent, sizeof (int));
 
 
-  n_numerics = cmd->n_with + n_dependent;
+  n_numerics = n_dependent;
+  for (i = 0; i < cmd->n_with; i++)
+    {
+      if (var_is_alpha (cmd->v_with[i]))
+	{
+	  n_categoricals++;
+	}
+      else
+	{
+	  n_numerics++;
+	}
+    }
   for (i = 0; i < cmd->n_by; i++)
     {
       if (var_is_alpha (cmd->v_by[i]))
@@ -323,33 +338,43 @@ run_glm (struct casereader *input,
 	  n_numerics++;
 	}
     }
-  numerics = xnmalloc (n_categoricals, sizeof *numerics);
+  numerics = xnmalloc (n_numerics, sizeof *numerics);
   categoricals = xnmalloc (n_categoricals, sizeof (*categoricals));
+  size_t j = 0;
   size_t k = 0;
   for (i = 0; i < cmd->n_by; i++)
     {
       if (var_is_alpha (cmd->v_by[i]))
 	{
-	  categoricals[k] = cmd->v_by[i];
+	  categoricals[j] = cmd->v_by[i];
+	  j++;
 	}
       else
 	{
-	  numerics[i] = cmd->v_by[i];
+	  numerics[k] = cmd->v_by[i];
+	  k++;
+	}
+    }
+  for (i = 0; i < cmd->n_with; i++)
+    {
+      if (var_is_alpha (cmd->v_with[i]))
+	{
+	  categoricals[j] = cmd->v_with[i];
+	  j++;
+	}
+      else
+	{
+	  numerics[k] = cmd->v_with[i];
 	  k++;
 	}
     }
   for (i = 0; i < n_dependent; i++)
     {
-      k++;
       numerics[k] = v_dependent[i];
-    }
-  for (i = 0; i < cmd->n_with; i++)
-    {
       k++;
-      numerics[k] = v_dependent[i];
     }
 
-  covariance_2pass_create (n_numerics, numerics, n_categoricals, categoricals, NULL, MV_NEVER);
+  cov = covariance_2pass_create (n_numerics, numerics, n_categoricals, categoricals, NULL, MV_NEVER);
 
   reader = casereader_clone (input);
   reader = casereader_create_filter_missing (reader, numerics, n_numerics,
