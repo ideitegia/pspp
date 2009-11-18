@@ -392,7 +392,7 @@ val_labs_dialog_create (GtkWindow *toplevel, PsppireVarStore *var_store)
   struct val_labs_dialog *dialog = g_malloc (sizeof (*dialog));
 
   dialog->var_store = var_store;
-  g_object_get (var_store, "model", &dialog->dict, NULL);
+  g_object_get (var_store, "dictionary", &dialog->dict, NULL);
   dialog->window = get_widget_assert (xml,"val_labs_dialog");
   dialog->value_entry = get_widget_assert (xml,"value_entry");
   dialog->label_entry = get_widget_assert (xml,"label_entry");
