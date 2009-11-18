@@ -391,8 +391,9 @@ run_glm (struct casereader *input,
     }
   for (; (c = casereader_read (r)) != NULL; case_unref (c))
     {
-      covariance_accumulate_pass1 (cov, c);
+      covariance_accumulate_pass2 (cov, c);
     }
+
   covariance_destroy (cov);
   casereader_destroy (reader);
   casereader_destroy (r);
