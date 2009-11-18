@@ -33,6 +33,26 @@
 #endif
 
 void
+chart_write_legend (struct chart *ch UNUSED)
+{
+}
+
+void
+chart_vector (struct chart *ch UNUSED, double x UNUSED, double y UNUSED)
+{
+}
+
+void
+chart_vector_end (struct chart *ch UNUSED)
+{
+}
+
+void
+chart_vector_start (struct chart *ch UNUSED, const char *name UNUSED)
+{
+}
+
+void
 chart_write_title (struct chart *chart UNUSED, const char *title UNUSED, ...)
 {
 }

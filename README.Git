@@ -34,11 +34,12 @@ This version of PSPP should work with the Gnulib commit shown below.
 Gnulib does not maintain a stable API or ABI, so it is possible that
 PSPP will not work with older or newer versions of Gnulib.
 
-    commit e21985ad14508137d75b0dccf064adfc4e5888c6
-    Author: Bruno Haible <bruno@clisp.org>
-    Date:   Mon Sep 28 23:25:49 2009 +0200
+    commit 0883405cc751858a633bebc56acb75381a6e50c8
+    Author: Eric Blake <ebb9@byu.net>
+    Date:   Wed Nov 18 06:59:44 2009 -0700
 
-	Avoid identifier clash with POSIX function 'remove' defined as a macro.
+        utimens: fix regression on Solaris
+
 
 To clone Gnulib into a directory named "gnulib" using Git, and then
 check out this particular commit, run these commands:
