@@ -326,6 +326,10 @@ psppire_selector_init (PsppireSelector *selector)
   selector->source = NULL;
   selector->dest = NULL;
   selector->dispose_has_run = FALSE;
+
+
+  selector->row_activate_id = 0;
+  selector->source_select_id  = 0;
 }
 
 
@@ -685,14 +689,13 @@ set_tree_view_source (PsppireSelector *selector,
   GList *list = NULL;
 
   PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
+  
+  GtkTreeModel *model = gtk_tree_view_get_model (source);
 
   if ( ! (list = g_hash_table_lookup (class->source_hash, source)))
     {
       selector->filtered_source =
-	GTK_TREE_MODEL_FILTER (gtk_tree_model_filter_new
-			       (gtk_tree_view_get_model (source),  NULL));
-
-      gtk_tree_view_set_model (source, NULL);
+	GTK_TREE_MODEL_FILTER (gtk_tree_model_filter_new (model, NULL));
 
       gtk_tree_view_set_model (source,
 			       GTK_TREE_MODEL (selector->filtered_source));
@@ -710,8 +713,7 @@ set_tree_view_source (PsppireSelector *selector,
     {  /* Append this selector to the list and push the <source,list>
 	  pair onto the hash table */
 
-      selector->filtered_source = GTK_TREE_MODEL_FILTER (
-	gtk_tree_view_get_model (source));
+      selector->filtered_source = GTK_TREE_MODEL_FILTER (model);
 
       list = g_list_append (list, selector);
       g_hash_table_replace (class->source_hash, source, list);
@@ -719,11 +721,17 @@ set_tree_view_source (PsppireSelector *selector,
 
   selection = gtk_tree_view_get_selection (source);
 
-  g_signal_connect (source, "row-activated", G_CALLBACK (on_row_activate),
-		    selector);
+  if ( selector->row_activate_id )
+    g_signal_handler_disconnect (source, selector->row_activate_id);
 
-  g_signal_connect (selection, "changed", G_CALLBACK (on_source_select),
-		    selector);
+  selector->row_activate_id =  
+    g_signal_connect (source, "row-activated", G_CALLBACK (on_row_activate), selector);
+
+  if ( selector->source_select_id )
+    g_signal_handler_disconnect (selection, selector->source_select_id);
+
+  selector->source_select_id = 
+    g_signal_connect (selection, "changed", G_CALLBACK (on_source_select), selector);
 }
 
 

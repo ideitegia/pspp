@@ -100,6 +100,10 @@ struct _PsppireSelector
   FilterItemsFunc *filter;
 
   AllowSelectionFunc *allow_selection;
+
+  gulong row_activate_id ;
+
+  gulong source_select_id ;
 };
 
 struct _PsppireSelectorClass
