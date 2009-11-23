@@ -31,7 +31,6 @@ void insert_source_row_into_tree_view (GtkTreeIter source_iter,
 				       gpointer data
 				       );
 
-
 /* A SelectItemsFunc function for GtkEntry widgets */
 void insert_source_row_into_entry (GtkTreeIter source_iter,
 				   GtkWidget *dest,

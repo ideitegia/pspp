@@ -21,6 +21,7 @@
 #include "t-test-independent-samples-dialog.h"
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
+#include "psppire-var-view.h"
 #include "executor.h"
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
@@ -160,7 +161,7 @@ generate_syntax (const struct tt_indep_samples_dialog *d)
 
   GString *str = g_string_new ("T-TEST /VARIABLES=");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (tv), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (tv), 0, str);
 
   g_string_append (str, "\n\t/GROUPS=");
 
@@ -400,9 +401,6 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
   GtkWidget *dict_view =
     get_widget_assert (xml, "indep-samples-t-test-treeview1");
 
-  GtkWidget *test_variables_treeview =
-    get_widget_assert (xml, "indep-samples-t-test-treeview2");
-
   GtkWidget *selector2 =
     get_widget_assert (xml, "indep-samples-t-test-selector2");
 
@@ -428,20 +426,9 @@ t_test_independent_samples_dialog (GObject *o, gpointer data)
 
   g_object_set (dict_view, "model", tt_d.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (test_variables_treeview), tt_d.dict);
-
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector1),
-				 insert_source_row_into_tree_view,
-				 NULL);
-
   psppire_selector_set_allow (PSPPIRE_SELECTOR (selector1),
 			      numeric_only);
 
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector2),
-				 insert_source_row_into_entry,
-				 NULL);
 
   psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector2),
 				 is_currently_in_entry);

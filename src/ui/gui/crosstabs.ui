@@ -34,7 +34,7 @@
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">etched-in</property>
                         <child>
-                          <object class="GtkTreeView" id="rows">
+                          <object class="PsppireVarView" id="rows">
                             <property name="visible">True</property>
                             <property name="headers_visible">False</property>
                           </object>
@@ -73,7 +73,7 @@
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">etched-in</property>
                         <child>
-                          <object class="GtkTreeView" id="cols">
+                          <object class="PsppireVarView" id="cols">
                             <property name="visible">True</property>
                             <property name="headers_visible">False</property>
                           </object>

@@ -1,5 +1,5 @@
 /* PSPPIRE - a graphical user interface for PSPP.
-   Copyright (C) 2007, 2008  Free Software Foundation
+   Copyright (C) 2007, 2008, 2009  Free Software Foundation
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 #include <config.h>
 
 #include "examine-dialog.h"
+#include "psppire-var-view.h"
 
 #include <gtk/gtk.h>
 #include <stdlib.h>
@@ -96,13 +97,13 @@ generate_syntax (const struct examine_dialog *ed)
   GString *str = g_string_new ("EXAMINE ");
 
   g_string_append (str, "\n\t/VARIABLES=");
-  append_variable_names (str, ed->dict, GTK_TREE_VIEW (ed->dep_list), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (ed->dep_list), 0, str);
 
   if ( 0  < gtk_tree_model_iter_n_children
        (gtk_tree_view_get_model (GTK_TREE_VIEW (ed->fct_list)), NULL))
     {
       g_string_append (str, "\n\tBY ");
-      append_variable_names (str, ed->dict, GTK_TREE_VIEW (ed->fct_list), 0);
+      psppire_var_view_append_names (PSPPIRE_VAR_VIEW (ed->fct_list), 0, str);
     }
 
   label = gtk_entry_get_text (GTK_ENTRY (ed->id_entry));
@@ -250,8 +251,6 @@ examine_dialog (GObject *o, gpointer data)
 
 
   GtkWidget *dep_selector = get_widget_assert (xml, "psppire-selector1");
-  GtkWidget *fct_selector = get_widget_assert (xml, "psppire-selector2");
-  GtkWidget *id_selector = get_widget_assert (xml, "psppire-selector3");
 
   PsppireVarStore *vs = NULL;
 
@@ -282,27 +281,8 @@ examine_dialog (GObject *o, gpointer data)
   g_object_get (vs, "dictionary", &ex_d.dict, NULL);
   g_object_set (source, "model", ex_d.dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (ex_d.dep_list), ex_d.dict);
-
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (dep_selector),
-				 insert_source_row_into_tree_view,
-				 NULL);
-
   psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_selector),
 			      numeric_only);
-
-  set_dest_model (GTK_TREE_VIEW (ex_d.fct_list), ex_d.dict);
-
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (fct_selector),
-				 insert_source_row_into_tree_view,
-				 NULL);
-
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (id_selector),
-				 insert_source_row_into_entry,
-				 NULL);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &ex_d);
 

@@ -52,6 +52,8 @@
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                     <property name="border_width">5</property>
+                    <property name="source_widget">find-variable-treeview</property>
+                    <property name="dest_widget">find-variable-entry</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>

@@ -28,6 +28,7 @@
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
+#include <ui/gui/psppire-var-view.h>
 #include "executor.h"
 
 #include "gettext.h"
@@ -110,7 +111,7 @@ generate_syntax (const struct rank_dialog *rd)
 
   GString *str = g_string_new ("RANK VARIABLES=");
 
-  append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->rank_vars), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->rank_vars), 0, str);
 
   g_string_append_printf (str, " (%c)",
 		   gtk_toggle_button_get_active (rd->ascending_togglebutton)
@@ -120,7 +121,7 @@ generate_syntax (const struct rank_dialog *rd)
     {
       g_string_append (str, "\n\tBY ");
 
-      append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->group_vars), 0);
+      psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->group_vars),  0, str);
     }
 
   g_string_append (str, "\n\t/PRINT = ");
@@ -227,9 +228,6 @@ rank_dialog (GObject *o, gpointer data)
   GtkBuilder * builder = builder_new ("rank.ui");
 
   GtkWidget *vars = get_widget_assert   (builder, "dict-treeview");
-  GtkWidget *selector1 = get_widget_assert (builder, "psppire-selector1");
-  GtkWidget *selector2 = get_widget_assert (builder, "psppire-selector2");
-
 
   GtkWidget *types_button = get_widget_assert (builder, "button1");
   GtkWidget *ties_button = get_widget_assert (builder, "button2");
@@ -307,19 +305,6 @@ rank_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
   g_object_set (vars, "model", rd.dict, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (rd.rank_vars), rd.dict);
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector1),
-				 insert_source_row_into_tree_view,
-				 NULL);
-
-  set_dest_model (GTK_TREE_VIEW (rd.group_vars), rd.dict);
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector2),
-				 insert_source_row_into_tree_view,
-				 NULL);
-
 
   g_signal_connect (types_button, "clicked",
 		    G_CALLBACK (run_types_dialog),  &rd);

@@ -98,7 +98,7 @@
                             <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">etched-in</property>
                             <child>
-                              <object class="GtkTreeView" id="treeview2">
+                              <object class="PsppireVarView" id="treeview2">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="headers_visible">False</property>

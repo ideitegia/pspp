@@ -15,6 +15,9 @@ libglade_psppire_la_SOURCES = \
 	glade/selector.c \
 	glade/acr.c \
 	glade/dictview.c \
+	glade/var-view.c \
+        src/ui/gui/psppire-var-ptr.c \
+	src/ui/gui/dict-display.c \
 	src/ui/gui/psppire-conf.c \
 	src/ui/gui/psppire-acr.c \
 	src/ui/gui/psppire-buttonbox.c \
@@ -23,7 +26,8 @@ libglade_psppire_la_SOURCES = \
 	src/ui/gui/psppire-dialog.c \
 	src/ui/gui/psppire-keypad.c \
 	src/ui/gui/psppire-dictview.c \
-	src/ui/gui/psppire-selector.c
+	src/ui/gui/psppire-selector.c \
+	src/ui/gui/psppire-var-view.c
 
 dist_catalog_DATA = \
 	glade/psppire.xml

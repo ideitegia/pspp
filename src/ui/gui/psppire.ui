@@ -299,7 +299,7 @@
                             <property name="hscrollbar_policy">never</property>
                             <property name="vscrollbar_policy">automatic</property>
                             <child>
-                              <object class="GtkTreeView" id="variables-treeview">
+                              <object class="PsppireVarView" id="variables-treeview">
                                 <property name="visible">True</property>
                                 <property name="headers_visible">False</property>
                               </object>
@@ -342,6 +342,7 @@
                     <property name="can_focus">False</property>
                     <property name="receives_default">False</property>
                     <property name="border_width">5</property>
+                    <property name="primary">True</property>
                     <property name="source_widget">source-treeview</property>
                     <property name="dest_widget">variables-treeview</property>
                   </object>
@@ -552,7 +553,7 @@
                                     <property name="hscrollbar_policy">never</property>
                                     <property name="vscrollbar_policy">automatic</property>
                                     <child>
-                                      <object class="GtkTreeView" id="split-file-grouping-vars">
+                                      <object class="PsppireVarView" id="split-file-grouping-vars">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>

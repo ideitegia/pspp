@@ -104,6 +104,8 @@ struct _PsppireSelector
   gulong row_activate_id ;
 
   gulong source_select_id ;
+
+  gboolean primary_requested;
 };
 
 struct _PsppireSelectorClass

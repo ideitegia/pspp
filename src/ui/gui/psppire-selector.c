@@ -12,7 +12,8 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 /*
   This module provides a widget, PsppireSelector derived from
@@ -56,6 +57,11 @@
 
 
 #include <config.h>
+
+#include "psppire-dictview.h"
+#include "psppire-var-view.h"
+
+
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbutton.h>
@@ -146,6 +152,7 @@ enum
 {
   PROP_0,
   PROP_ORIENTATION,
+  PROP_PRIMARY,
   PROP_SOURCE_WIDGET,
   PROP_DEST_WIDGET
 };
@@ -169,6 +176,10 @@ psppire_selector_set_property (GObject         *object,
     case PROP_ORIENTATION:
       selector->orientation = g_value_get_enum (value);
       set_direction (selector, selector->direction);
+      break;
+    case PROP_PRIMARY:
+      selector->primary_requested = TRUE;
+      update_subjects (selector);
       break;
     case PROP_SOURCE_WIDGET:
       selector->source = g_value_dup_object (value);
@@ -224,6 +235,15 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 		       PSPPIRE_SELECT_SOURCE_BEFORE_DEST /* default value */,
 		       G_PARAM_CONSTRUCT_ONLY |G_PARAM_READWRITE);
 
+
+ /* Meaningfull only if more than one selector shares this selectors source */
+  GParamSpec *primary_spec =
+    g_param_spec_boolean ("primary",
+			  "Primary",
+			  "Whether this selector should be the primary selector for the source",
+			  FALSE,
+			  G_PARAM_READWRITE);
+
   GParamSpec *source_widget_spec = 
     g_param_spec_object ("source-widget",
 			 "Source Widget",
@@ -245,6 +265,10 @@ psppire_selector_class_init (PsppireSelectorClass *class)
   g_object_class_install_property (object_class,
                                    PROP_ORIENTATION,
                                    orientation_spec);
+
+  g_object_class_install_property (object_class,
+                                   PROP_PRIMARY,
+                                   primary_spec);
 
   g_object_class_install_property (object_class,
                                    PROP_SOURCE_WIDGET,
@@ -298,11 +322,71 @@ psppire_selector_base_finalize(PsppireSelectorClass *class,
   g_hash_table_destroy (class->source_hash);
 }
 
+/* Callback for when the source treeview is activated (double clicked) */
+static void
+on_row_activate (GtkTreeView       *tree_view,
+		 GtkTreePath       *path,
+		 GtkTreeViewColumn *column,
+		 gpointer           data)
+{
+  PsppireSelector *selector  = data;
+
+  gtk_action_activate (selector->action);
+}
+
+/* Callback for when the source selection changes */
+static void
+on_source_select (GtkTreeSelection *treeselection, gpointer data)
+{
+  PsppireSelector *selector = data;
+
+  set_direction (selector, PSPPIRE_SELECTOR_SOURCE_TO_DEST);
+
+  if ( selector->allow_selection )
+    {
+      gtk_action_set_sensitive (selector->action,
+				selector->allow_selection (selector->source, selector->dest));
+    }
+  else if ( GTK_IS_ENTRY (selector->dest) )
+    {
+      gtk_action_set_sensitive (selector->action,
+				gtk_tree_selection_count_selected_rows
+				(treeselection) <= 1 );
+    }
+}
+
+
+static void
+on_realize (PsppireSelector *selector)
+{
+  PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
+  GtkTreeSelection* selection ;
+
+  GList *list = g_hash_table_lookup (class->source_hash, selector->source);
+
+  if ( g_list_first (list)->data == selector)
+    {
+      if ( selector->row_activate_id )
+	g_signal_handler_disconnect (selector->source, selector->row_activate_id);
+
+      selector->row_activate_id =  
+	g_signal_connect (selector->source, "row-activated", G_CALLBACK (on_row_activate), selector);
+    }
+
+  selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (selector->source));
+
+  if ( selector->source_select_id )
+    g_signal_handler_disconnect (selection, selector->source_select_id);
+
+  selector->source_select_id = 
+    g_signal_connect (selection, "changed", G_CALLBACK (on_source_select), selector);
+}
 
 
 static void
 psppire_selector_init (PsppireSelector *selector)
 {
+  selector->primary_requested = FALSE;
   selector->select_user_data = NULL;
   selector->select_items = NULL;
   selector->allow_selection = NULL;
@@ -330,6 +414,10 @@ psppire_selector_init (PsppireSelector *selector)
 
   selector->row_activate_id = 0;
   selector->source_select_id  = 0;
+
+  g_signal_connect (selector, "realize",
+		    G_CALLBACK (on_realize), NULL);
+
 }
 
 
@@ -389,27 +477,6 @@ set_direction (PsppireSelector *selector, enum psppire_selector_dir d)
 	  break;
 	};
 
-    }
-}
-
-/* Callback for when the source selection changes */
-static void
-on_source_select (GtkTreeSelection *treeselection, gpointer data)
-{
-  PsppireSelector *selector = data;
-
-  set_direction (selector, PSPPIRE_SELECTOR_SOURCE_TO_DEST);
-
-  if ( selector->allow_selection )
-    {
-      gtk_action_set_sensitive (selector->action,
-				selector->allow_selection (selector->source, selector->dest));
-    }
-  else if ( GTK_IS_ENTRY (selector->dest) )
-    {
-      gtk_action_set_sensitive (selector->action,
-				gtk_tree_selection_count_selected_rows
-				(treeselection) <= 1 );
     }
 }
 
@@ -559,18 +626,6 @@ select_selection (PsppireSelector *selector)
   selector->selecting = FALSE;
 }
 
-/* Callback for when the source treeview is activated (double clicked) */
-static void
-on_row_activate (GtkTreeView       *tree_view,
-		 GtkTreePath       *path,
-		 GtkTreeViewColumn *column,
-		 gpointer           data)
-{
-  PsppireSelector *selector  = data;
-
-  gtk_action_activate (selector->action);
-}
-
 /* Callback for when the selector button is clicked,
    or other event which causes the selector's action to occur.
  */
@@ -589,6 +644,13 @@ on_activate (PsppireSelector *selector, gpointer data)
       g_assert_not_reached ();
       break;
     }
+}
+
+static gboolean
+permissive_filter (GtkTreeModel *model, GtkTreeIter *iter,
+		 PsppireSelector *selector)
+{
+  return FALSE;
 }
 
 /* Default visibility filter for GtkTreeView DEST widget */
@@ -685,7 +747,7 @@ static void
 set_tree_view_source (PsppireSelector *selector,
 		      GtkTreeView *source)
 {
-  GtkTreeSelection* selection ;
+
   GList *list = NULL;
 
   PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
@@ -715,23 +777,17 @@ set_tree_view_source (PsppireSelector *selector,
 
       selector->filtered_source = GTK_TREE_MODEL_FILTER (model);
 
-      list = g_list_append (list, selector);
-      g_hash_table_replace (class->source_hash, source, list);
+      if ( NULL == g_list_find (list, selector) )
+	{
+	  if ( selector->primary_requested )
+	    list = g_list_prepend (list, selector);
+	  else
+	    list = g_list_append (list, selector);
+	  g_hash_table_replace (class->source_hash, source, list);
+	}
     }
 
-  selection = gtk_tree_view_get_selection (source);
 
-  if ( selector->row_activate_id )
-    g_signal_handler_disconnect (source, selector->row_activate_id);
-
-  selector->row_activate_id =  
-    g_signal_connect (source, "row-activated", G_CALLBACK (on_row_activate), selector);
-
-  if ( selector->source_select_id )
-    g_signal_handler_disconnect (selection, selector->source_select_id);
-
-  selector->source_select_id = 
-    g_signal_connect (selection, "changed", G_CALLBACK (on_source_select), selector);
 }
 
 
@@ -869,6 +925,16 @@ set_entry_dest (PsppireSelector *selector,
 }
 
 static void
+set_default_filter (PsppireSelector *selector)
+{
+  if ( selector->filter == NULL)
+    {
+      if  (GTK_IS_TREE_VIEW (selector->dest))
+	selector->filter = permissive_filter;
+    }
+}
+
+static void
 update_subjects (PsppireSelector *selector)
 {
   GtkTreeModel *model = NULL;
@@ -876,11 +942,7 @@ update_subjects (PsppireSelector *selector)
   if ( NULL == selector->dest )
     return;
 
-  if ( selector->filter == NULL)
-    {
-      if  (GTK_IS_TREE_VIEW (selector->dest))
-	selector->filter = is_item_in_dest;
-    }
+  set_default_filter (selector);
 
   if ( NULL == selector->source )
     return;
@@ -916,8 +978,20 @@ update_subjects (PsppireSelector *selector)
   else
     g_error ("Unsupported destination widget: %s", G_OBJECT_TYPE_NAME (selector->dest));
 
-}
+  /* FIXME: Remove this dependency */
+  if ( PSPPIRE_IS_DICT_VIEW (selector->source) )
+    {
+      if ( PSPPIRE_IS_VAR_VIEW (selector->dest))
+	psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
+					  insert_source_row_into_tree_view,
+					  NULL);
+      else if (GTK_IS_ENTRY (selector->dest))
+	psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
+					  insert_source_row_into_entry,
+					  NULL);
+    }
 
+}
 
 /* Set FILTER_FUNC for this selector */
 void
@@ -925,12 +999,8 @@ psppire_selector_set_filter_func (PsppireSelector *selector,
 				  FilterItemsFunc *filter_func)
 {
   selector->filter = filter_func ;
-
-  if ( selector->filter == NULL)
-    {
-      if  (GTK_IS_TREE_VIEW (selector->dest))
-	selector->filter = is_item_in_dest;
-    }
+  
+  set_default_filter (selector);
 }
 
 
@@ -951,7 +1021,6 @@ psppire_selector_set_allow (PsppireSelector *selector, AllowSelectionFunc *allow
 {
   selector->allow_selection = allow;
 }
-
 
 
 GType

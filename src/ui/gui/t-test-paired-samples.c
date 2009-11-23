@@ -21,6 +21,7 @@
 
 #include "psppire-data-window.h"
 #include "psppire-selector.h"
+#include "psppire-var-view.h"
 
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
@@ -56,11 +57,11 @@ generate_syntax (const struct tt_paired_samples_dialog *d)
   gchar *text = NULL;
   GString *str =   g_string_new ("T-TEST \n\tPAIRS = ");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (d->pairs_treeview), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (d->pairs_treeview), 0, str);
 
   g_string_append (str, " WITH ");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (d->pairs_treeview), 1);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (d->pairs_treeview), 1, str);
 
   g_string_append (str, " (PAIRED)");
   g_string_append (str, "\n");
@@ -151,7 +152,7 @@ select_as_pair_member (GtkTreeIter source_iter,
     }
 }
 
-
+#if 0
 /* Append a new column to TV at position C, and heading TITLE */
 static void
 add_new_column (GtkTreeView *tv, const gchar *title, gint c)
@@ -174,6 +175,8 @@ add_new_column (GtkTreeView *tv, const gchar *title, gint c)
 
   gtk_tree_view_column_add_attribute  (col, renderer, "text", c);
 }
+
+#endif
 
 
 /* Pops up the dialog box */
@@ -211,22 +214,8 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
 		"predicate",
 		var_is_numeric, NULL);
 
-  {
-    tt_d.list_store =
-      GTK_TREE_MODEL (
-		      gtk_list_store_new (2,
-					  PSPPIRE_VAR_PTR_TYPE,
-					  PSPPIRE_VAR_PTR_TYPE));
-
-
-    gtk_tree_view_set_model (GTK_TREE_VIEW (tt_d.pairs_treeview),
-			     GTK_TREE_MODEL (tt_d.list_store));
-
-
-    add_new_column (GTK_TREE_VIEW (tt_d.pairs_treeview), _("Var 1"), 0);
-    add_new_column (GTK_TREE_VIEW (tt_d.pairs_treeview), _("Var 2"), 1);
-  }
-
+  
+  tt_d.list_store = gtk_tree_view_get_model (GTK_TREE_VIEW (tt_d.pairs_treeview));
 
   psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
 				    select_as_pair_member,

@@ -18,6 +18,7 @@
 
 #include "checkbox-treeview.h"
 #include "descriptives-dialog.h"
+#include "psppire-var-view.h"
 
 #include <gtk/gtk.h>
 #include <stdlib.h>
@@ -117,7 +118,7 @@ generate_syntax (const struct descriptives_dialog *scd)
 
   string = g_string_new ("DESCRIPTIVES");
   g_string_append (string, "\n    /VARIABLES=");
-  append_variable_names (string, scd->dict, GTK_TREE_VIEW (scd->stat_vars), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (scd->stat_vars), 0, string);
 
   listwise = gtk_toggle_button_get_active (scd->exclude_missing_listwise);
   include = gtk_toggle_button_get_active (scd->include_user_missing);
@@ -212,7 +213,6 @@ descriptives_dialog (GObject *o, gpointer data)
 
 
   GtkWidget *source = get_widget_assert   (xml, "all-variables");
-  GtkWidget *selector = get_widget_assert (xml, "stat-var-selector");
   GtkWidget *dest =   get_widget_assert   (xml, "stat-variables");
 
   GtkWidget *stats_treeview = get_widget_assert    (xml, "statistics");
@@ -228,11 +228,6 @@ descriptives_dialog (GObject *o, gpointer data)
 
   g_object_set (source, "model", dict,
 	"predicate", var_is_numeric, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (dest), dict);
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
-				    insert_source_row_into_tree_view, NULL);
 
   put_checkbox_items_in_treeview (GTK_TREE_VIEW (stats_treeview),
 				  B_DS_DEFAULT,

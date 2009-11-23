@@ -26,6 +26,8 @@
 #include "helper.h"
 #include <data/dictionary.h>
 
+#include "psppire-var-view.h"
+
 #include <gtk/gtk.h>
 
 
@@ -68,8 +70,7 @@ generate_syntax (const struct split_file_dialog *sfd)
       GString * varlist = g_string_sized_new (80);
       GtkWidget *sort = get_widget_assert (sfd->xml, "split-radiobutton3");
       GtkWidget *layered = get_widget_assert (sfd->xml, "split-radiobutton1");
-      gint n_vars = append_variable_names (varlist,
-					   sfd->dict, GTK_TREE_VIEW (vars), 0);
+      gint n_vars = psppire_var_view_append_names (PSPPIRE_VAR_VIEW (vars), 0, varlist);
 
       if ( n_vars > 0 )
 	{
@@ -194,12 +195,6 @@ split_file_dialog (GObject *o, gpointer data)
   g_object_set (source, "model", sfd.dict, NULL);
 
   g_signal_connect (on_off, "toggled", G_CALLBACK(on_off_toggled),  sfd.xml);
-
-  set_dest_model (GTK_TREE_VIEW (dest), sfd.dict);
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
-				 insert_source_row_into_tree_view,
-				 NULL);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &sfd);
 

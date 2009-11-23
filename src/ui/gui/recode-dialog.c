@@ -26,6 +26,8 @@
 
 #include "executor.h"
 
+#include "psppire-var-view.h"
+
 #include <gtk/gtk.h>
 
 #include <xalloc.h>
@@ -887,14 +889,9 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
   gtk_window_set_transient_for (GTK_WINDOW (rd.dialog), GTK_WINDOW (de));
 
-
   g_object_set (rd.dict_treeview, "model", rd.dict, NULL);
 
-  if ( ! rd.different )
-    {
-      set_dest_model (GTK_TREE_VIEW (rd.variable_treeview), rd.dict);
-    }
-  else
+  if (rd.different)
     {
       GtkTreeSelection *sel;
       GtkTreeViewColumn *col;
@@ -903,7 +900,6 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
       rd.var_map = gtk_list_store_new (n_COL_VARS, G_TYPE_INT,
 						    G_TYPE_STRING,
 						    G_TYPE_STRING);
-
 
 
       gtk_tree_view_set_model (GTK_TREE_VIEW (rd.variable_treeview),
@@ -915,7 +911,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 						  NULL);
 
       gtk_tree_view_column_set_cell_data_func (col, renderer,
-					       cell_var_name,
+					       XXX_cell_var_name,
 					       rd.dict, 0);
 
 
@@ -948,12 +944,6 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
       g_signal_connect (rd.var_map, "row-inserted",
 			G_CALLBACK (select_something), &rd);
     }
-
-
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
-				 insert_source_row_into_tree_view,
-				 NULL);
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (selector), homogeneous_types);
 
@@ -1273,7 +1263,6 @@ run_old_and_new_dialog (struct recode_dialog *rd)
     /* Find the type of the first variable (it's invariant that
        all variables are of the same type) */
     const struct variable *v;
-    gint idx;
     GtkTreeIter iter;
     GtkTreeModel *model =
       gtk_tree_view_get_model (GTK_TREE_VIEW (rd->variable_treeview));
@@ -1282,9 +1271,7 @@ run_old_and_new_dialog (struct recode_dialog *rd)
 
     g_return_if_fail (not_empty);
 
-    gtk_tree_model_get (model, &iter, 0, &idx, -1);
-
-    v = psppire_dict_get_variable (rd->dict, idx);
+    gtk_tree_model_get (model, &iter, 0, &v, -1);
 
     rd->input_var_is_string = var_is_alpha (v);
 
@@ -1439,7 +1426,7 @@ generate_syntax (const struct recode_dialog *rd)
 
   g_string_append (str, "\nRECODE ");
 
-  append_variable_names (str, rd->dict, GTK_TREE_VIEW (rd->variable_treeview), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->variable_treeview), 0, str);
 
   g_string_append (str, "\n\t");
 

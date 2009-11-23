@@ -137,10 +137,6 @@ weight_cases_dialog (GObject *o, gpointer data)
 				 "predicate", var_is_numeric,
 				 NULL);
 
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
-				 insert_source_row_into_entry,
-				 NULL);
-
   psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector),
 				    is_currently_in_entry);
 

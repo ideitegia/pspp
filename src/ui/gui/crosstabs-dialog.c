@@ -18,6 +18,7 @@
 
 #include "checkbox-treeview.h"
 #include "crosstabs-dialog.h"
+#include "psppire-var-view.h"
 
 #include <gtk/gtk.h>
 #include <stdlib.h>
@@ -259,9 +260,9 @@ generate_syntax (const struct crosstabs_dialog *cd)
   GString *string = g_string_new ("CROSSTABS");
 
   g_string_append (string, "\n\t/TABLES=");
-  append_variable_names (string, cd->dict, GTK_TREE_VIEW (cd->row_vars), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (cd->row_vars), 0, string);
   g_string_append (string, "\tBY\t");
-  append_variable_names (string, cd->dict, GTK_TREE_VIEW (cd->col_vars), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (cd->col_vars), 0, string);
 
   g_string_append (string, "\n\t/FORMAT=");
 
@@ -398,8 +399,6 @@ crosstabs_dialog (GObject *o, gpointer data)
   GtkWidget *source = get_widget_assert   (xml, "dict-treeview");
   GtkWidget *dest_rows =   get_widget_assert   (xml, "rows");
   GtkWidget *dest_cols =   get_widget_assert   (xml, "cols");
-  GtkWidget *row_selector = get_widget_assert (xml, "row-selector");
-  GtkWidget *col_selector = get_widget_assert (xml, "col-selector");
   GtkWidget *format_button = get_widget_assert (xml, "format-button");
   GtkWidget *stat_button = get_widget_assert (xml, "stats-button");
   GtkWidget *cell_button = get_widget_assert (xml, "cell-button");
@@ -425,17 +424,6 @@ crosstabs_dialog (GObject *o, gpointer data)
 
   g_object_get (vs, "dictionary", &dict, NULL);
   g_object_set (source, "model", dict, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (dest_rows), dict);
-  set_dest_model (GTK_TREE_VIEW (dest_cols), dict);
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (row_selector),
-				    insert_source_row_into_tree_view,
-				    NULL);
-
-  psppire_selector_set_select_func (PSPPIRE_SELECTOR (col_selector),
-				    insert_source_row_into_tree_view,
-				    NULL);
 
   cd.row_vars = GTK_TREE_VIEW (dest_rows);
   cd.col_vars = GTK_TREE_VIEW (dest_cols);

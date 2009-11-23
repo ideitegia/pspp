@@ -23,66 +23,18 @@
 
 #include "helper.h"
 
-
-/* Append the names of selected variables to STRING.
-   TREEVIEW is the treeview containing the variables.
-   COLUMN is the column in the treeview containing the variables.
-   DICT is the dictionary for those variables.
+/* A (*GtkTreeCellDataFunc) function.
+   This function expects TREEMODEL to hold G_TYPE_BOXED, which is a pointer to a variable.
+   It renders the name of the variable into CELL.
 */
-gint
-append_variable_names (GString *string,
-		       PsppireDict *dict, GtkTreeView *treeview, gint column)
+void
+XXX_cell_var_name (GtkTreeViewColumn *tree_column,
+		   GtkCellRenderer *cell,
+		   GtkTreeModel *treemodel,
+		   GtkTreeIter *iter,
+		   gpointer data)
 {
-  gint n_vars = 0;
-  GtkTreeIter iter;
-
-  GtkTreeModel *list_store =
-    gtk_tree_view_get_model (treeview);
-
-  if ( gtk_tree_model_get_iter_first (list_store, &iter) )
-    {
-      do
-	{
-	  GValue value = {0};
-	  struct variable *var = NULL;
-	  GtkTreePath *path = gtk_tree_model_get_path (list_store, &iter);
-
-	  gtk_tree_model_get_value (list_store, &iter, column, &value);
-
-	  /* FIXME:  G_TYPE_INT should be deprecated.
-	     As well as being simpler, it'd be unecessary to pass dict */
-	  if ( G_VALUE_TYPE (&value) == G_TYPE_INT )
-	  var = psppire_dict_get_variable (dict, g_value_get_int (&value));
-
-	  else if ( G_VALUE_TYPE (&value) == PSPPIRE_VAR_PTR_TYPE)
-	    var = g_value_get_boxed (&value);
-
-	  else
-	    g_critical ("Unsupported type \"%s\", in variable name treeview.",
-			G_VALUE_TYPE_NAME (&value));
-
-	  g_value_unset (&value);
-
-	  g_string_append (string, " ");
-	  g_string_append (string, var_get_name (var));
-
-	  gtk_tree_path_free (path);
-	  n_vars++;
-	}
-      while (gtk_tree_model_iter_next (list_store, &iter));
-    }
-
-  return n_vars;
-}
-
-
-
-struct variable *
-get_selected_variable (GtkTreeModel *treemodel,
-		       GtkTreeIter *iter,
-		       PsppireDict *dict)
-{
-  struct variable *var;
+  const struct variable *var;
   GValue value = {0};
 
   GtkTreePath *path = gtk_tree_model_get_path (treemodel, iter);
@@ -91,63 +43,11 @@ get_selected_variable (GtkTreeModel *treemodel,
 
   gtk_tree_path_free (path);
 
-  var =  psppire_dict_get_variable (dict, g_value_get_int (&value));
+  var = g_value_get_boxed (&value);
 
   g_value_unset (&value);
 
-  return var;
-}
-
-
-
-
-/* A (*GtkTreeCellDataFunc) function.
-   This function expects TREEMODEL to hold G_TYPE_INT.  The ints it holds
-   are the indices of the variables in the dictionary, which DATA points to.
-   It renders the name of the variable into CELL.
-*/
-void
-cell_var_name (GtkTreeViewColumn *tree_column,
-	       GtkCellRenderer *cell,
-	       GtkTreeModel *tree_model,
-	       GtkTreeIter *iter,
-	       gpointer data)
-{
-  PsppireDict *dict = data;
-  const struct variable *var = get_selected_variable (tree_model, iter, dict);
-
   g_object_set (cell, "text", var_get_name (var), NULL);
-}
-
-
-
-/* Set a model for DEST, which is an GtkListStore of g_int's
-   whose values are the indices into DICT */
-void
-set_dest_model (GtkTreeView *dest, PsppireDict *dict)
-{
-  GtkTreeViewColumn *col;
-  GtkListStore *dest_list = gtk_list_store_new (1, G_TYPE_INT);
-  GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-
-  gtk_tree_view_set_model (GTK_TREE_VIEW (dest), GTK_TREE_MODEL (dest_list));
-
-  col = gtk_tree_view_column_new_with_attributes ("Var",
-						  renderer,
-						  "text",
-						  0,
-						  NULL);
-
-  gtk_tree_view_column_set_cell_data_func (col, renderer,
-					   cell_var_name,
-					   dict, 0);
-
-  /* FIXME: make this a value in terms of character widths */
-  g_object_set (col, "min-width",  100, NULL);
-
-  gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
-
-  gtk_tree_view_append_column (GTK_TREE_VIEW (dest), col);
 }
 
 
@@ -224,11 +124,8 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
        ok;
        ok = gtk_tree_model_iter_next (model, &iter))
     {
-      gint idx;
       const struct variable *v;
-      gtk_tree_model_get (model, &iter, 0, &idx, -1);
-
-      v = psppire_dict_get_variable (dict, idx);
+      gtk_tree_model_get (model, &iter, 0, &v, -1);
 
       if ( type != -1 )
 	{
@@ -241,7 +138,6 @@ homogeneous_types (GtkWidget *source, GtkWidget *dest)
 
       type = var_get_type (v);
     }
-
 
   return retval;
 }
