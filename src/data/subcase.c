@@ -99,6 +99,27 @@ subcase_destroy (struct subcase *sc)
   caseproto_unref (sc->proto);
 }
 
+/* Returns true if VAR already has a field in SC,
+   false otherwise. */
+bool
+subcase_contains_var (const struct subcase *sc, const struct variable *var)
+{
+  return subcase_contains (sc, var_get_case_index (var));
+}
+
+/* Returns true if CASE_INDEX already has a field in SC,
+   false otherwise. */
+bool
+subcase_contains (const struct subcase *sc, int case_index)
+{
+  size_t i;
+
+  for (i = 0; i < sc->n_fields; i++)
+    if (sc->fields[i].case_index == case_index)
+      return true;
+
+  return false;
+}
 
 /* Add a field for VAR to SC, with DIRECTION as the sort order.
    Returns true if successful, false if VAR already has a field
@@ -107,8 +128,13 @@ bool
 subcase_add_var (struct subcase *sc, const struct variable *var,
                  enum subcase_direction direction)
 {
-  return subcase_add (sc, var_get_case_index (var),
-		      var_get_width (var), direction);
+  if (!subcase_contains_var (sc, var))
+    {
+      subcase_add_var_always (sc, var, direction);
+      return true;
+    }
+  else
+    return false;
 }
 
 /* Add a field for CASE_INDEX, WIDTH to SC, with DIRECTION as the sort order.
@@ -116,14 +142,35 @@ subcase_add_var (struct subcase *sc, const struct variable *var,
    in SC. */
 bool
 subcase_add (struct subcase *sc, int case_index, int width,
-                 enum subcase_direction direction)
+             enum subcase_direction direction)
+{
+  if (!subcase_contains (sc, case_index))
+    {
+      subcase_add_always (sc, case_index, width, direction);
+      return true;
+    }
+  else
+    return false;
+}
+
+/* Add a field for VAR to SC, with DIRECTION as the sort order,
+   regardless of whether VAR already has a field in SC. */
+void
+subcase_add_var_always (struct subcase *sc, const struct variable *var,
+                        enum subcase_direction direction)
+{
+  return subcase_add_always (sc, var_get_case_index (var),
+                             var_get_width (var), direction);
+}
+
+/* Add a field for CASE_INDEX, WIDTH to SC, with DIRECTION as the
+   sort order, regardless of whether CASE_INDEX already has a
+   field in SC. */
+void
+subcase_add_always (struct subcase *sc, int case_index, int width,
+                    enum subcase_direction direction)
 {
   struct subcase_field *field;
-  size_t i;
-
-  for (i = 0; i < sc->n_fields; i++)
-    if (sc->fields[i].case_index == case_index)
-      return false;
 
   sc->fields = xnrealloc (sc->fields, sc->n_fields + 1, sizeof *sc->fields);
   field = &sc->fields[sc->n_fields++];
@@ -131,7 +178,27 @@ subcase_add (struct subcase *sc, int case_index, int width,
   field->width = width;
   field->direction = direction;
   invalidate_proto (sc);
-  return true;
+}
+
+/* Adds a field to SC for each column in PROTO, so that SC
+   contains all of the columns in PROTO in the same order as a
+   case conforming to PROTO.  The fields are added with
+   ascending direction. */
+void
+subcase_add_proto_always (struct subcase *sc, const struct caseproto *proto)
+{
+  size_t n = caseproto_get_n_widths (proto);
+  size_t i;
+
+  sc->fields = xnrealloc (sc->fields, sc->n_fields + n, sizeof *sc->fields);
+  for (i = 0; i < n; i++)
+    {
+      struct subcase_field *field = &sc->fields[sc->n_fields++];
+      field->case_index = i;
+      field->width = caseproto_get_width (proto, i);
+      field->direction = SC_ASCEND;
+    }
+  invalidate_proto (sc);
 }
 
 /* Obtains a caseproto for a case described by SC.  The caller

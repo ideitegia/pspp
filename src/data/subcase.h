@@ -60,17 +60,27 @@ void subcase_clone (struct subcase *, const struct subcase *);
 void subcase_clear (struct subcase *);
 void subcase_destroy (struct subcase *);
 
-bool subcase_add (struct subcase *sc, int index, int width,
-		  enum subcase_direction direction);
+bool subcase_contains (const struct subcase *, int case_index);
+bool subcase_contains_var (const struct subcase *, const struct variable *);
 
+bool subcase_add (struct subcase *, int case_index, int width,
+		  enum subcase_direction direction);
 bool subcase_add_var (struct subcase *, const struct variable *,
                       enum subcase_direction);
+
+void subcase_add_always (struct subcase *sc, int case_index, int width,
+                         enum subcase_direction direction);
+void subcase_add_var_always (struct subcase *, const struct variable *,
+                             enum subcase_direction);
+void subcase_add_proto_always (struct subcase *, const struct caseproto *);
 
 const struct caseproto *subcase_get_proto (const struct subcase *);
 
 static inline bool subcase_is_empty (const struct subcase *);
 static inline size_t subcase_get_n_fields (const struct subcase *);
 
+static inline size_t subcase_get_case_index (const struct subcase *,
+                                             size_t idx);
 static inline enum subcase_direction subcase_get_direction (
   const struct subcase *, size_t idx);
 
@@ -99,6 +109,12 @@ bool subcase_equal_cx (const struct subcase *,
                        const struct ccase *a, const union value *b);
 bool subcase_equal_xx (const struct subcase *,
                        const union value *a, const union value *b);
+
+static inline size_t
+subcase_get_case_index (const struct subcase *sc, size_t idx)
+{
+  return sc->fields[idx].case_index;
+}
 
 static inline enum subcase_direction
 subcase_get_direction (const struct subcase *sc, size_t idx)
