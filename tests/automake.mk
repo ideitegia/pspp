@@ -194,6 +194,7 @@ nodist_TESTS = \
 	tests/libpspp/range-set-test \
 	tests/libpspp/sparse-array-test \
 	tests/libpspp/str-test \
+	tests/libpspp/string-set-test \
 	tests/libpspp/tower-test
 
 TESTS = $(dist_TESTS) $(nodist_TESTS)
@@ -287,6 +288,14 @@ tests_libpspp_range_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 tests_libpspp_str_test_SOURCES = \
 	tests/libpspp/str-test.c
 tests_libpspp_str_test_LDADD = src/libpspp/libpspp.la gl/libgl.la $(LIBINTL) 
+
+tests_libpspp_string_set_test_SOURCES = \
+	src/libpspp/hash-functions.c \
+	src/libpspp/hmap.c \
+	src/libpspp/string-set.c \
+	tests/libpspp/string-set-test.c
+tests_libpspp_string_set_test_LDADD = gl/libgl.la $(LIBINTL)
+tests_libpspp_string_set_test_CPPFLAGS = $(AM_CPPFLAGS) -DASSERT_LEVEL=10
 
 tests_libpspp_tower_test_SOURCES = \
 	src/libpspp/abt.c \
