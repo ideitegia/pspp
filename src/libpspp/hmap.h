@@ -115,6 +115,7 @@
        }
    */
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <libpspp/cast.h>
 
@@ -182,6 +183,7 @@ static inline struct hmap_node *hmap_next (const struct hmap *,
                                            const struct hmap_node *);
 
 /* Counting. */
+static bool hmap_is_empty (const struct hmap *);
 static inline size_t hmap_count (const struct hmap *);
 static inline size_t hmap_capacity (const struct hmap *);
 
@@ -440,6 +442,14 @@ hmap_next (const struct hmap *map, const struct hmap_node *node)
   return (node->next != NULL
           ? node->next
           : hmap_first_nonempty_bucket__ (map, (node->hash & map->mask) + 1));
+}
+
+/* Returns true if MAP currently contains no data items, false
+   otherwise. */
+static inline bool
+hmap_is_empty (const struct hmap *map)
+{
+  return map->count == 0;
 }
 
 /* Returns the number of data items currently in MAP. */

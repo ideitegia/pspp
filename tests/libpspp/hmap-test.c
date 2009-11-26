@@ -342,6 +342,7 @@ check_hmap (struct hmap *hmap, const int data[], size_t cnt,
   size_t i, j;
   int *order;
 
+  check (hmap_is_empty (hmap) == (cnt == 0));
   check (hmap_count (hmap) == cnt);
   check (cnt <= hmap_capacity (hmap));
 
