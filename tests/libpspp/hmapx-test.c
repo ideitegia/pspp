@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -262,6 +262,7 @@ check_hmapx (struct hmapx *hmapx, const int data[], size_t cnt,
   size_t i, j;
   int *order;
 
+  check (hmapx_is_empty (hmapx) == (cnt == 0));
   check (hmapx_count (hmapx) == cnt);
   check (cnt <= hmapx_capacity (hmapx));
 

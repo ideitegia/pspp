@@ -1,5 +1,5 @@
 /* PSPP - a program for statistical analysis.
-   Copyright (C) 2008 Free Software Foundation, Inc.
+   Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -165,6 +165,7 @@ static inline struct hmapx_node *hmapx_next (const struct hmapx *,
                                              const struct hmapx_node *);
 
 /* Counting. */
+static inline bool hmapx_is_empty (const struct hmapx *);
 static inline size_t hmapx_count (const struct hmapx *);
 static inline size_t hmapx_capacity (const struct hmapx *);
 
@@ -402,6 +403,14 @@ static inline struct hmapx_node *
 hmapx_next (const struct hmapx *map, const struct hmapx_node *node) 
 {
   return HMAP_NEXT (node, struct hmapx_node, hmap_node, &map->hmap);
+}
+
+/* Returns true if MAP currently contains no data items, false
+   otherwise. */
+static inline bool
+hmapx_is_empty (const struct hmapx *map)
+{
+  return hmap_is_empty (&map->hmap);
 }
 
 /* Returns the number of data items currently in MAP. */
