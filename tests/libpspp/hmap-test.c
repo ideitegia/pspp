@@ -378,7 +378,6 @@ check_hmap (struct hmap *hmap, const int data[], size_t cnt,
       for (p = hmap_first (hmap), i = 0; i < cnt; p = hmap_next (hmap, p), i++)
         {
           struct element *e = hmap_node_to_element (p);
-          size_t j;
 
           check (hmap_node_hash (&e->node) == hash (e->data));
           for (j = 0; j < left; j++)
