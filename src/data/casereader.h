@@ -80,6 +80,7 @@ casenumber casereader_count_cases (struct casereader *);
 void casereader_truncate (struct casereader *, casenumber);
 const struct caseproto *casereader_get_proto (const struct casereader *);
 
+casenumber casereader_advance (struct casereader *, casenumber);
 void casereader_transfer (struct casereader *, struct casewriter *);
 
 struct casereader *

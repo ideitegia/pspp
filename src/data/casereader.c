@@ -264,13 +264,7 @@ casereader_count_cases__ (struct casereader *reader, casenumber max_cases)
   casenumber n_cases;
 
   clone = casereader_clone (reader);
-  for (n_cases = 0; n_cases < max_cases; n_cases++)
-    {
-      struct ccase *c = casereader_read (clone);
-      if (c == NULL)
-        break;
-      case_unref (c);
-    }
+  n_cases = casereader_advance (clone, max_cases);
   casereader_destroy (clone);
 
   return n_cases;
@@ -314,6 +308,26 @@ casereader_get_proto (const struct casereader *reader)
 {
   return reader->proto;
 }
+
+/* Skips past N cases in READER, stopping when the last case in
+   READER has been read or on an input error.  Returns the number
+   of cases successfully skipped. */
+casenumber
+casereader_advance (struct casereader *reader, casenumber n)
+{
+  casenumber i;
+
+  for (i = 0; i < n; i++)
+    {
+      struct ccase *c = casereader_read (reader);
+      if (c == NULL)
+        break;
+      case_unref (c);
+    }
+
+  return i;
+}
+
 
 /* Copies all the cases in READER to WRITER, propagating errors
    appropriately. */
