@@ -257,6 +257,25 @@ casereader_get_case_cnt (struct casereader *reader)
   return reader->case_cnt;
 }
 
+static casenumber
+casereader_count_cases__ (struct casereader *reader, casenumber max_cases)
+{
+  struct casereader *clone;
+  casenumber n_cases;
+
+  clone = casereader_clone (reader);
+  for (n_cases = 0; n_cases < max_cases; n_cases++)
+    {
+      struct ccase *c = casereader_read (clone);
+      if (c == NULL)
+        break;
+      case_unref (c);
+    }
+  casereader_destroy (clone);
+
+  return n_cases;
+}
+
 /* Returns the number of cases that will be read by successive
    calls to casereader_read for READER, assuming that no errors
    occur.  Upon an error condition, the case count drops to 0, so
@@ -270,20 +289,22 @@ casenumber
 casereader_count_cases (struct casereader *reader)
 {
   if (reader->case_cnt == CASENUMBER_MAX)
-    {
-      casenumber n_cases = 0;
-      struct ccase *c;
-
-      struct casereader *clone = casereader_clone (reader);
-
-      for (; (c = casereader_read (clone)) != NULL; case_unref (c))
-        n_cases++;
-
-      casereader_destroy (clone);
-      reader->case_cnt = n_cases;
-    }
-
+    reader->case_cnt = casereader_count_cases__ (reader, CASENUMBER_MAX);
   return reader->case_cnt;
+}
+
+/* Truncates READER to at most N cases. */
+void
+casereader_truncate (struct casereader *reader, casenumber n)
+{
+  /* This could be optimized, if it ever becomes too expensive, by adding a
+     "max_cases" member to struct casereader.  We could also add a "truncate"
+     function to the casereader implementation, to allow the casereader to
+     throw away data that cannot ever be read. */
+  if (reader->case_cnt == CASENUMBER_MAX)
+    reader->case_cnt = casereader_count_cases__ (reader, n);
+  if (reader->case_cnt > n)
+    reader->case_cnt = n;
 }
 
 /* Returns the prototype for the cases in READER.  The caller
