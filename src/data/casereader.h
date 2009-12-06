@@ -129,6 +129,10 @@ casereader_translate_stateless (struct casereader *,
 struct casereader *casereader_project (struct casereader *,
                                        const struct subcase *);
 struct casereader *casereader_project_1 (struct casereader *, int column);
+struct casereader *casereader_select (struct casereader *,
+                                      casenumber first, casenumber last,
+                                      casenumber by);
+
 /* A function which creates a numberic value from an existing case */
 typedef double new_value_func (const struct ccase *, casenumber, void *);
 

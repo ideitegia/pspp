@@ -27,6 +27,7 @@ src_data_libdata_la_SOURCES = \
 	src/data/casereader-filter.c \
 	src/data/casereader-project.c \
 	src/data/casereader-provider.h \
+	src/data/casereader-select.c \
 	src/data/casereader-translator.c \
 	src/data/casereader.c \
 	src/data/casereader.h \
