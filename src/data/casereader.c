@@ -699,3 +699,42 @@ static const struct casereader_random_class shim_class =
     shim_destroy,
     shim_advance,
   };
+
+static const struct casereader_class casereader_null_class;
+
+/* Returns a casereader with no cases.  The casereader has the prototype
+   specified by PROTO.  PROTO may be specified as a null pointer, in which case
+   the casereader has no variables. */
+struct casereader *
+casereader_create_empty (const struct caseproto *proto_)
+{
+  struct casereader *reader;
+  struct caseproto *proto;
+
+  proto = proto_ != NULL ? caseproto_ref (proto_) : caseproto_create ();
+  reader = casereader_create_sequential (NULL, proto, 0,
+                                         &casereader_null_class, NULL);
+  caseproto_unref (proto);
+
+  return reader;
+}
+
+static struct ccase *
+casereader_null_read (struct casereader *reader UNUSED, void *aux UNUSED)
+{
+  return NULL;
+}
+
+static void
+casereader_null_destroy (struct casereader *reader UNUSED, void *aux UNUSED)
+{
+  /* Nothing to do. */
+}
+
+static const struct casereader_class casereader_null_class =
+  {
+    casereader_null_read,
+    casereader_null_destroy,
+    NULL,                       /* clone */
+    NULL,                       /* peek */
+  };

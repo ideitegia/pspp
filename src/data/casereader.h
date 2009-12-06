@@ -83,6 +83,8 @@ const struct caseproto *casereader_get_proto (const struct casereader *);
 casenumber casereader_advance (struct casereader *, casenumber);
 void casereader_transfer (struct casereader *, struct casewriter *);
 
+struct casereader *casereader_create_empty (const struct caseproto *);
+
 struct casereader *
 casereader_create_filter_func (struct casereader *,
                                bool (*include) (const struct ccase *,
