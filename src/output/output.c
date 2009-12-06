@@ -218,6 +218,14 @@ find_defn_value (const char *key)
     return getenv (key);
 }
 
+static void
+insert_defn_value (const char *var, struct string *dst, void *aux UNUSED)
+{
+  const char *value = find_defn_value (var);
+  if (value != NULL)
+    ds_put_cstr (dst, value);
+}
+
 /* Initializes global variables. */
 void
 outp_init (void)
@@ -408,7 +416,7 @@ outp_configure_macro (char *bp)
     ep++;
 
   ds_init_cstr (&d->value, ep);
-  fn_interp_vars (ds_ss (&d->value), find_defn_value, &d->value);
+  fn_interp_vars (ds_ss (&d->value), insert_defn_value, NULL, &d->value);
   d->next = outp_macros;
   d->prev = NULL;
   if (outp_macros)
@@ -758,7 +766,7 @@ outp_configure_driver_line (struct substring line_)
   size_t save_idx;
   size_t i;
 
-  fn_interp_vars (line_, find_defn_value, &line);
+  fn_interp_vars (line_, insert_defn_value, NULL, &line);
 
   save_idx = 0;
   for (i = 0; i < 4; i++)

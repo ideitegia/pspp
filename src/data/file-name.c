@@ -63,13 +63,13 @@ fn_init (void)
 /* Functions for performing operations on file names. */
 
 
-/* Substitutes $variables in SRC, putting the result in DST,
-   properly handling the case where SRC is a substring of DST.
-   Variables are as defined by GETENV. Supports $var and ${var}
-   syntaxes; $$ substitutes as $. */
+/* Copies from SRC to DST, calling INSERT_VARIABLE to handle each
+   instance of $var or ${var} in SRC.  $$ is replaced by $. */
 void
-fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
-                struct string *dst_)
+fn_interp_vars (struct substring src,
+                void (*insert_variable) (const char *var,
+                                         struct string *dst, void *aux),
+                void *aux, struct string *dst_)
 {
   struct string dst = DS_EMPTY_INITIALIZER;
   int c;
@@ -84,8 +84,7 @@ fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
         else
           {
             struct substring var_name;
-            size_t start;
-            const char *value;
+            char *var;
 
             if (ss_match_char (&src, '('))
               ss_get_until (&src, ')', &var_name);
@@ -95,17 +94,22 @@ fn_interp_vars (struct substring src, const char *(*getenv) (const char *),
               ss_get_chars (&src, MAX (1, ss_span (src, ss_cstr (CC_ALNUM))),
                             &var_name);
 
-            start = ds_length (&dst);
-            ds_put_substring (&dst, var_name);
-            value = getenv (ds_cstr (&dst) + start);
-            ds_truncate (&dst, start);
-
-            ds_put_cstr (&dst, value);
+            var = ss_xstrdup (var_name);
+            insert_variable (var, &dst, aux);
+            free (var);
           }
       }
 
   ds_swap (&dst, dst_);
   ds_destroy (&dst);
+}
+
+static void
+insert_env_var (const char *var, struct string *dst, void *aux UNUSED)
+{
+  const char *value = fn_getenv (var);
+  if (value != NULL)
+    ds_put_cstr (dst, value);
 }
 
 /* Searches for a configuration file with name NAME in the path
@@ -126,7 +130,7 @@ fn_search_path (const char *base_name, const char *path_)
 
   /* Interpolate environment variables. */
   ds_init_cstr (&path, path_);
-  fn_interp_vars (ds_ss (&path), fn_getenv, &path);
+  fn_interp_vars (ds_ss (&path), insert_env_var, NULL, &path);
 
   verbose_msg (2, _("searching for \"%s\" in path \"%s\""),
                base_name, ds_cstr (&path));
