@@ -14,7 +14,6 @@ This chapter describe how to configure PSPP for your system.
 * Cairo driver class::          Configuration of Cairo devices.
 * ASCII driver class::          Configuration of character-code devices.
 * HTML driver class::           Configuration for HTML output.
-* PostScript driver class::     Configuration of PostScript devices.
 * Miscellaneous configuring::   Even more configuration variables.
 @end menu
 
@@ -803,104 +802,6 @@ stdout (@code{"-"}).  Default: @file{"pspp.html"}.
 Template for the file names used for charts, which are output in PNG
 format.  The name should contain a single @samp{#}, which is replaced by
 the chart number.  Default: @file{"pspp-#.png"}.
-@end table
-
-@node PostScript driver class
-@section The PostScript driver class
-
-The @code{postscript} driver class is used to produce output that is
-acceptable to PostScript printers and other interpreters.
-The PostScript driver class does not support charts.
-
-The PostScript driver class is deprecated.  It is likely to be removed
-in a future version of PSPP.  We suggest that you use the Cairo driver
-class instead, which can output PostScript as well and has better font
-support, including support for international character sets, and does
-support charts.
-
-The available options are listed below.
-
-@table @code
-@item output-file=@var{file-name}
-
-File to which output should be sent.  This can be an ordinary file name
-(i.e., @code{"pspp.ps"}), a pipe (i.e., @code{"|lpr"}), or
-stdout (@code{"-"}).  Default: @code{"pspp.ps"}.
-
-@item headers=@var{boolean}
-
-Controls whether the standard headers showing the time and date and
-title and subtitle are printed at the top of each page.  Default:
-@code{on}.
-
-@item paper-size=@var{paper-size}
-
-Paper size.  You may specify a name (e.g.@: @code{a4}, @code{letter})
-or measurements (e.g.@: @code{210x297}, @code{8.5x11in}).
-
-The default paper size is taken from the @env{PAPERSIZE} environment
-variable or the file indicated by the @env{PAPERCONF} environment
-variable, if either variable is set.  If not, and your system supports
-the @code{LC_PAPER} locale category, then the default paper size is
-taken from the locale.  Otherwise, if @file{/etc/papersize} exists,
-the default paper size is read from it.  As a last resort, A4 paper is
-assumed.
-
-@item orientation=@var{orientation}
-
-Either @code{portrait} or @code{landscape}.  Default: @code{portrait}.
-
-@item left-margin=@var{dimension}
-@itemx right-margin=@var{dimension}
-@itemx top-margin=@var{dimension}
-@itemx bottom-margin=@var{dimension}
-
-Sets the margins around the page.  The headers, if enabled, are not
-included in the margins; they are in addition to the margins.  For a
-description of dimensions, see @ref{Dimensions}.  Default: @code{0.5in}.
-
-@item prop-font=@var{afm-file}[,@var{font-file}[,@var{encoding-file}]]
-@itemx emph-font=@var{afm-file}[,@var{font-file}[,@var{encoding-file}]]
-@itemx fixed-font=@var{afm-file}[,@var{font-file}[,@var{encoding-file}]]
-
-Sets the font used for proportional, emphasized, or fixed-pitch text.
-The only required value is @var{afm-file}, the AFM file for the font.
-
-If specified, @var{font-file} will be downloaded to the printer at the
-beginning of the print job.  The font file may be in PFA or PFB format.
-
-The font is reencoded as specified in @var{encoding-file}, if specified.
-Each line in @var{encoding-file} should consist of a PostScript
-character name and a decimal encoding value (between 0 and 255),
-separated by white space.  Blank lines and comments introduced by
-@samp{#} are also allowed.
-
-The files specified on these options are located as follows.  If
-the file name begins with @samp{/}, then it is taken as an absolute
-path.  Otherwise, PSPP searches its configuration path for the specified
-name prefixed by @code{psfonts/} (@pxref{File locations}).
-
-Default: proportional font @code{Times-Roman.afm}, emphasis font
-@code{Times-Italic.afm}, fixed-pitch font @code{Courier.afm}.
-
-@item font-size=@var{font-size}
-
-Sets the size of the default fonts, in thousandths of a point.  Default:
-10000 (10 point).
-
-@item line-gutter=@var{dimension}
-
-Sets the width of white space on either side of lines that border text
-or graphics objects.  @xref{Dimensions}.  Default: @code{1pt}.
-
-@item line-spacing=@var{dimension}
-
-Sets the spacing between the lines in a double line in a table.
-Default: @code{1pt}.
-
-@item line-width=@var{dimension}
-
-Sets the width of the lines used in tables.  Default: @code{0.5pt}.
 @end table
 
 @node Miscellaneous configuring

@@ -5,8 +5,6 @@ noinst_LTLIBRARIES += src/output/liboutput.la
 src_output_liboutput_la_CPPFLAGS = $(LIBXML2_CFLAGS) $(AM_CPPFLAGS) 
 
 src_output_liboutput_la_SOURCES = \
-	src/output/afm.c \
-	src/output/afm.h \
 	src/output/ascii.c \
 	src/output/chart.c \
 	src/output/chart.h \
@@ -33,7 +31,6 @@ src_output_liboutput_la_SOURCES = \
 	src/output/odt.c \
 	src/output/output.c \
 	src/output/output.h \
-	src/output/postscript.c \
 	src/output/table.c \
 	src/output/table.h
 if HAVE_CAIRO

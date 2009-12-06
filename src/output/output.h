@@ -171,7 +171,6 @@ void som_destroy_driver (struct outp_driver *);
 
 /* Common drivers. */
 extern const struct outp_class ascii_class;
-extern const struct outp_class postscript_class;
 #ifdef HAVE_CAIRO
 extern const struct outp_class cairo_class;
 #endif

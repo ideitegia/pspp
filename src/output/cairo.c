@@ -21,7 +21,6 @@
 #include <libpspp/assertion.h>
 #include <libpspp/start-date.h>
 #include <libpspp/version.h>
-#include <output/afm.h>
 #include <output/chart-provider.h>
 #include <output/manager.h>
 #include <output/output.h>

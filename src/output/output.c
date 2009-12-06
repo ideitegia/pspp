@@ -233,7 +233,6 @@ outp_init (void)
   char def[] = "default";
 
   add_class (&html_class);
-  add_class (&postscript_class);
   add_class (&ascii_class);
 #ifdef HAVE_CAIRO
   add_class (&cairo_class);
