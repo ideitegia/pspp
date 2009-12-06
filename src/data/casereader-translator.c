@@ -46,6 +46,11 @@ static const struct casereader_class casereader_translator_class;
    INPUT and auxiliary data AUX.  TRANSLATE must destroy its
    input case.
 
+   TRANSLATE may be stateful, that is, the output for a given
+   case may depend on previous cases.  If TRANSLATE is stateless,
+   then you may want to use casereader_translate_stateless
+   instead, since it sometimes performs better.
+
    The cases returned by TRANSLATE must match OUTPUT_PROTO.
 
    When the translating casereader is destroyed, DESTROY will be
@@ -106,7 +111,110 @@ static const struct casereader_class casereader_translator_class =
     NULL,
     NULL,
   };
+
+/* Casereader that applies a user-supplied function to translate
+   each case into another in a stateless fashion. */
 
+/* A statelessly translating casereader. */
+struct casereader_stateless_translator
+  {
+    struct casereader *subreader; /* Source of input cases. */
+
+    casenumber case_offset;
+    struct ccase *(*translate) (struct ccase *input, casenumber,
+                                const void *aux);
+    bool (*destroy) (void *aux);
+    void *aux;
+  };
+
+static const struct casereader_random_class
+casereader_stateless_translator_class;
+
+/* Creates and returns a new casereader whose cases are produced by reading
+   from SUBREADER and passing through the TRANSLATE function.  TRANSLATE must
+   takes ownership of its input case and returns a translated case, populating
+   the translated case based on INPUT and auxiliary data AUX.
+
+   TRANSLATE must be stateless, that is, the output for a given case must not
+   depend on previous cases.  This is because cases may be retrieved in
+   arbitrary order, and some cases may be retrieved multiple times, and some
+   cases may be skipped and never retrieved at all.  If TRANSLATE is stateful,
+   use casereader_create_translator instead.
+
+   The casenumber argument to the TRANSLATE function is the absolute case
+   number in SUBREADER, that is, 0 when the first case in SUBREADER is being
+   translated, 1 when the second case is being translated, and so on.
+
+   The cases returned by TRANSLATE must match OUTPUT_PROTO.
+
+   When the stateless translating casereader is destroyed, DESTROY will be
+   called to allow any auxiliary data maintained by TRANSLATE to be freed.
+
+   After this function is called, SUBREADER must not ever again be referenced
+   directly.  It will be destroyed automatically when the translating
+   casereader is destroyed. */
+struct casereader *
+casereader_translate_stateless (
+  struct casereader *subreader,
+  const struct caseproto *output_proto,
+  struct ccase *(*translate) (struct ccase *input, casenumber,
+                              const void *aux),
+  bool (*destroy) (void *aux),
+  void *aux)
+{
+  struct casereader_stateless_translator *cst = xmalloc (sizeof *cst);
+  struct casereader *reader;
+  cst->subreader = casereader_rename (subreader);
+  cst->translate = translate;
+  cst->destroy = destroy;
+  cst->aux = aux;
+  reader = casereader_create_random (
+    output_proto, casereader_get_case_cnt (cst->subreader),
+    &casereader_stateless_translator_class, cst);
+  taint_propagate (casereader_get_taint (cst->subreader),
+                   casereader_get_taint (reader));
+  return reader;
+}
+
+/* Internal read function for stateless translating casereader. */
+static struct ccase *
+casereader_stateless_translator_read (struct casereader *reader UNUSED,
+                                      void *cst_, casenumber idx)
+{
+  struct casereader_stateless_translator *cst = cst_;
+  struct ccase *tmp = casereader_peek (cst->subreader, idx);
+  if (tmp != NULL)
+    tmp = cst->translate (tmp, cst->case_offset + idx, cst->aux);
+  return tmp;
+}
+
+/* Internal destroy function for translating casereader. */
+static void
+casereader_stateless_translator_destroy (struct casereader *reader UNUSED,
+                                         void *cst_)
+{
+  struct casereader_stateless_translator *cst = cst_;
+  casereader_destroy (cst->subreader);
+  cst->destroy (cst->aux);
+  free (cst);
+}
+
+static void
+casereader_stateless_translator_advance (struct casereader *reader UNUSED,
+                                         void *cst_, casenumber cnt)
+{
+  struct casereader_stateless_translator *cst = cst_;
+  cst->case_offset += casereader_advance (cst->subreader, cnt);
+}
+
+/* Casereader class for stateless translating casereader. */
+static const struct casereader_random_class
+casereader_stateless_translator_class =
+  {
+    casereader_stateless_translator_read,
+    casereader_stateless_translator_destroy,
+    casereader_stateless_translator_advance,
+  };
 
 
 struct casereader_append_numeric

@@ -116,6 +116,15 @@ casereader_create_translator (struct casereader *,
                               bool (*destroy) (void *aux),
                               void *aux);
 
+struct casereader *
+casereader_translate_stateless (struct casereader *,
+                                const struct caseproto *output_proto,
+                                struct ccase *(*translate) (struct ccase *,
+                                                            casenumber idx,
+                                                            const void *aux),
+                                bool (*destroy) (void *aux),
+                                void *aux);
+
 /* A function which creates a numberic value from an existing case */
 typedef double new_value_func (const struct ccase *, casenumber, void *);
 
