@@ -58,6 +58,7 @@
 struct dictionary;
 struct casereader;
 struct casewriter;
+struct subcase;
 
 struct ccase *casereader_read (struct casereader *);
 bool casereader_destroy (struct casereader *);
@@ -125,6 +126,9 @@ casereader_translate_stateless (struct casereader *,
                                 bool (*destroy) (void *aux),
                                 void *aux);
 
+struct casereader *casereader_project (struct casereader *,
+                                       const struct subcase *);
+struct casereader *casereader_project_1 (struct casereader *, int column);
 /* A function which creates a numberic value from an existing case */
 typedef double new_value_func (const struct ccase *, casenumber, void *);
 
