@@ -7,7 +7,14 @@
 #include <gladeui/glade.h>
 
 
-
+/* Dummy function to keep the linker happy.
+   Glade never actually needs to use this return value.
+ */
+GType
+psppire_var_ptr_get_type (void)
+{
+  return 0;
+}
 
 void
 glade_psppire_var_view_post_create (GladeWidgetAdaptor *adaptor,

@@ -115,6 +115,9 @@ struct _PsppireSelectorClass
   /* This is a hash of Lists of FilterItemsFunc pointers, keyed by address of
      the source widget */
   GHashTable *source_hash;
+
+  /* A hash of SelectItemFuncs indexed by GType */
+  GHashTable *default_selection_funcs;
 };
 
 GType      psppire_selector_get_type        (void);
@@ -147,6 +150,8 @@ typedef enum {
 #define PSPPIRE_TYPE_SELECTOR_ORIENTATION \
   (psppire_selector_orientation_get_type())
 
+
+void psppire_selector_set_default_selection_func (GType type, SelectItemsFunc *);
 
 
 G_END_DECLS

@@ -47,6 +47,9 @@
 
 #include <gtk/gtk.h>
 #include "psppire-dict.h"
+#include "dict-display.h"
+#include "psppire-selector.h"
+#include "psppire-var-view.h"
 #include "psppire-var-store.h"
 #include "psppire-data-store.h"
 #include "executor.h"
@@ -145,6 +148,10 @@ initialize (struct command_line_processor *clp, int argc, char **argv)
 
 
   the_recent_mgr = gtk_recent_manager_get_default ();
+
+  psppire_selector_set_default_selection_func (GTK_TYPE_ENTRY, insert_source_row_into_entry);
+  psppire_selector_set_default_selection_func (PSPPIRE_VAR_VIEW_TYPE, insert_source_row_into_tree_view);
+  psppire_selector_set_default_selection_func (GTK_TYPE_TREE_VIEW, insert_source_row_into_tree_view);
 
   the_data_window = psppire_data_window_new ();
 

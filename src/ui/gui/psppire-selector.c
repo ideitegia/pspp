@@ -221,8 +221,6 @@ psppire_selector_get_property (GObject         *object,
     };
 }
 
-
-
 static void
 psppire_selector_class_init (PsppireSelectorClass *class)
 {
@@ -299,6 +297,8 @@ psppire_selector_class_init (PsppireSelectorClass *class)
 		  g_cclosure_marshal_VOID__VOID,
 		  G_TYPE_NONE,
 		  0);
+
+  class->default_selection_funcs = g_hash_table_new (g_direct_hash, g_direct_equal);
 }
 
 
@@ -320,6 +320,7 @@ psppire_selector_base_finalize(PsppireSelectorClass *class,
 				gpointer class_data)
 {
   g_hash_table_destroy (class->source_hash);
+  g_hash_table_destroy (class->default_selection_funcs);
 }
 
 /* Callback for when the source treeview is activated (double clicked) */
@@ -363,6 +364,9 @@ on_realize (PsppireSelector *selector)
   GtkTreeSelection* selection ;
 
   GList *list = g_hash_table_lookup (class->source_hash, selector->source);
+
+  if ( NULL == list)
+    return;
 
   if ( g_list_first (list)->data == selector)
     {
@@ -978,20 +982,35 @@ update_subjects (PsppireSelector *selector)
   else
     g_error ("Unsupported destination widget: %s", G_OBJECT_TYPE_NAME (selector->dest));
 
+
   /* FIXME: Remove this dependency */
   if ( PSPPIRE_IS_DICT_VIEW (selector->source) )
     {
-      if ( PSPPIRE_IS_VAR_VIEW (selector->dest))
-	psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
-					  insert_source_row_into_tree_view,
-					  NULL);
-      else if (GTK_IS_ENTRY (selector->dest))
-	psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
-					  insert_source_row_into_entry,
-					  NULL);
-    }
+      GObjectClass *class = G_OBJECT_GET_CLASS (selector);
+      GType type = G_OBJECT_TYPE (selector->dest);
 
+      SelectItemsFunc *func  = 
+	g_hash_table_lookup (PSPPIRE_SELECTOR_CLASS (class)->default_selection_funcs, (gpointer) type);
+
+      if ( func )
+	psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
+					  func, NULL);
+    }
 }
+
+
+void
+psppire_selector_set_default_selection_func (GType type, SelectItemsFunc *func)
+{
+  GObjectClass *class = g_type_class_ref (PSPPIRE_SELECTOR_TYPE);
+
+  g_hash_table_insert (PSPPIRE_SELECTOR_CLASS (class)->default_selection_funcs, (gpointer) type, func);
+
+  g_type_class_unref (class);
+}
+
+
+
 
 /* Set FILTER_FUNC for this selector */
 void
