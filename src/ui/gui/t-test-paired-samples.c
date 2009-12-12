@@ -152,33 +152,6 @@ select_as_pair_member (GtkTreeIter source_iter,
     }
 }
 
-#if 0
-/* Append a new column to TV at position C, and heading TITLE */
-static void
-add_new_column (GtkTreeView *tv, const gchar *title, gint c)
-{
-  GtkTreeViewColumn *col = gtk_tree_view_column_new ();
-  GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-
-  gtk_tree_view_column_set_min_width (col, 100);
-  gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
-  gtk_tree_view_column_set_resizable (col, TRUE);
-
-
-  gtk_tree_view_column_set_title (col, title);
-
-  gtk_tree_view_column_pack_start (col, renderer, TRUE);
-
-  gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
-
-  gtk_tree_view_append_column (tv, col);
-
-  gtk_tree_view_column_add_attribute  (col, renderer, "text", c);
-}
-
-#endif
-
-
 /* Pops up the dialog box */
 void
 t_test_paired_samples_dialog (GObject *o, gpointer data)
