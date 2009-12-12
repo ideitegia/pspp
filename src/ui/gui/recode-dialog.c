@@ -339,13 +339,15 @@ struct recode_dialog
 
   gboolean input_var_is_string;
 
-  GtkListStore *var_map;
   GtkWidget *new_name_entry;
   GtkWidget *new_label_entry;
   GtkWidget *change_button;
 
   GtkWidget *string_button;
   GtkWidget *width_entry;
+
+  /* A hash table of struct nlp's indexed by variable */
+  GHashTable *varmap;
 };
 
 
@@ -354,32 +356,22 @@ static void run_old_and_new_dialog (struct recode_dialog *rd);
 static void
 refresh (PsppireDialog *dialog, struct recode_dialog *rd)
 {
+  GtkTreeModel *vars =
+    gtk_tree_view_get_model (GTK_TREE_VIEW (rd->variable_treeview));
+
+  gtk_list_store_clear (GTK_LIST_STORE (vars));
+
   gtk_widget_set_sensitive (rd->change_button, FALSE);
   gtk_widget_set_sensitive (rd->new_name_entry, FALSE);
   gtk_widget_set_sensitive (rd->new_label_entry, FALSE);
 
-
   if ( rd->different )
-    gtk_list_store_clear (GTK_LIST_STORE (rd->var_map));
-  else
-    {
-      GtkTreeModel *vars =
-	gtk_tree_view_get_model (GTK_TREE_VIEW (rd->variable_treeview));
-
-      gtk_list_store_clear (GTK_LIST_STORE (vars));
-    }
+    g_hash_table_remove_all (rd->varmap);
 
   gtk_list_store_clear (GTK_LIST_STORE (rd->value_map));
 }
 
 static char * generate_syntax (const struct recode_dialog *rd);
-
-enum {
-  COL_OLD,
-  COL_NEW_NAME,
-  COL_NEW_LABEL,
-  n_COL_VARS
-};
 
 enum {
   COL_VALUE_OLD,
@@ -405,26 +397,10 @@ dialog_state_valid (gpointer data)
 
   if ( rd->different )
     {
-      GtkTreeIter iter;
+      GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->variable_treeview)->list);
 
-      gboolean ok;
-
-      for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (rd->var_map),
-					       &iter);
-	   ok;
-	   ok = gtk_tree_model_iter_next (GTK_TREE_MODEL (rd->var_map),
-					  &iter))
-	{
-	  gchar *name = NULL;
-
-	  gtk_tree_model_get (GTK_TREE_MODEL (rd->var_map), &iter,
-			      COL_NEW_NAME, &name, -1);
-
-	  if ( name == NULL )
-	    return FALSE;
-
-	  g_free (name);
-	}
+      if (g_hash_table_size (rd->varmap) != gtk_tree_model_iter_n_children (model, NULL) )
+	return FALSE;
     }
   else
     {
@@ -433,7 +409,6 @@ dialog_state_valid (gpointer data)
 
       if ( !gtk_tree_model_get_iter_first (vars, &not_used))
 	return FALSE;
-
     }
 
   return TRUE;
@@ -494,22 +469,6 @@ recode_different_dialog (GObject *o, gpointer data)
   PsppireDataWindow *de = PSPPIRE_DATA_WINDOW (data);
 
   recode_dialog (de, TRUE);
-}
-
-static void
-render_new_var_name (GtkTreeViewColumn *tree_column,
-		     GtkCellRenderer *cell,
-		     GtkTreeModel *tree_model,
-		     GtkTreeIter *iter,
-		     gpointer data)
-{
-  gchar *new_var_name = NULL;
-
-  gtk_tree_model_get (tree_model, iter, COL_NEW_NAME, &new_var_name, -1);
-
-  g_object_set (cell, "text", new_var_name, NULL);
-
-  g_free (new_var_name);
 }
 
 
@@ -688,6 +647,41 @@ on_acr_selection_change (GtkTreeSelection *selection, gpointer data)
     }
 }
 
+/* Name-Label pair */
+struct nlp
+{
+  char *name;
+  char *label;
+};
+
+static struct nlp *
+nlp_create (const char *name, const char *label)
+{
+  struct nlp *nlp = xmalloc (sizeof *nlp);
+
+  nlp->name = g_strdup (name);
+
+  nlp->label = NULL;
+
+  if ( 0 != strcmp ("", label))
+    nlp->label = g_strdup (label);
+
+  return nlp;
+}
+
+static void
+nlp_destroy (gpointer data)
+{
+  struct nlp *nlp = data ;
+  if ( ! nlp )
+    return;
+
+  g_free (nlp->name);
+  g_free (nlp->label);
+  g_free (nlp);
+}
+
+
 /* Callback which gets called when a new row is selected
    in the variable treeview.
    It sets the name and label entry widgets to reflect the
@@ -697,18 +691,18 @@ static void
 on_selection_change (GtkTreeSelection *selection, gpointer data)
 {
   struct recode_dialog *rd = data;
-  GtkTreeModel *model = GTK_TREE_MODEL (rd->var_map);
+
+  GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->variable_treeview)->list);
 
   GList *rows = gtk_tree_selection_get_selected_rows (selection, &model);
 
   if ( rows && !rows->next)
     {
       /* Exactly one row is selected */
-
+      struct nlp *nlp;
+      struct variable *var;
       gboolean ok;
       GtkTreeIter iter;
-      gchar *name = NULL;
-      gchar *label = NULL;
 
       gtk_widget_set_sensitive  (rd->change_button, TRUE);
       gtk_widget_set_sensitive  (rd->new_name_entry, TRUE);
@@ -716,16 +710,22 @@ on_selection_change (GtkTreeSelection *selection, gpointer data)
 
       ok = gtk_tree_model_get_iter (model, &iter, (GtkTreePath*) rows->data);
 
-      gtk_tree_model_get (GTK_TREE_MODEL (rd->var_map), &iter,
-			  COL_NEW_NAME, &name,
-			  COL_NEW_LABEL, &label,
+      gtk_tree_model_get (model, &iter,
+			  0, &var, 
 			  -1);
 
-      gtk_entry_set_text (GTK_ENTRY (rd->new_name_entry), name ? name : "");
-      gtk_entry_set_text (GTK_ENTRY (rd->new_label_entry), label ? label : "");
+      nlp = g_hash_table_lookup (rd->varmap, var);
 
-      g_free (name);
-      g_free (label);
+      if (nlp)
+	{
+	  gtk_entry_set_text (GTK_ENTRY (rd->new_name_entry), nlp->name ? nlp->name : "");
+	  gtk_entry_set_text (GTK_ENTRY (rd->new_label_entry), nlp->label ? nlp->label : "");
+	}
+      else
+	{
+	  gtk_entry_set_text (GTK_ENTRY (rd->new_name_entry), "");
+	  gtk_entry_set_text (GTK_ENTRY (rd->new_label_entry), "");
+	}
     }
   else
     {
@@ -736,6 +736,7 @@ on_selection_change (GtkTreeSelection *selection, gpointer data)
       gtk_entry_set_text (GTK_ENTRY (rd->new_name_entry), "");
       gtk_entry_set_text (GTK_ENTRY (rd->new_label_entry), "");
     }
+
 
   g_list_foreach (rows, (GFunc) gtk_tree_path_free, NULL);
   g_list_free (rows);
@@ -764,12 +765,13 @@ on_convert_toggled (GtkToggleButton *b, struct recode_dialog *rd)
   gtk_widget_set_sensitive (rd->string_button, !active);
 }
 
-
 static void
 on_change_clicked (GObject *obj, gpointer data)
 {
   struct recode_dialog *rd = data;
-  GtkTreeModel *model = GTK_TREE_MODEL (rd->var_map);
+  struct variable *var = NULL;
+  struct nlp *nlp;
+  GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd->variable_treeview)->list);
   GtkTreeIter iter;
   GtkTreeSelection *selection =
     gtk_tree_view_get_selection (GTK_TREE_VIEW (rd->variable_treeview));
@@ -782,16 +784,22 @@ on_change_clicked (GObject *obj, gpointer data)
   const gchar *dest_var_label =
     gtk_entry_get_text (GTK_ENTRY (rd->new_label_entry));
 
-  if ( NULL == rows )
-    return;
+  if ( NULL == rows || rows->next != NULL)
+    goto finish;
 
   gtk_tree_model_get_iter (model, &iter, rows->data);
 
-  gtk_list_store_set (rd->var_map, &iter,
-		      COL_NEW_NAME, dest_var_name,
-		      COL_NEW_LABEL, dest_var_label,
-		      -1);
+  gtk_tree_model_get (model, &iter, 0, &var, -1);
 
+  g_hash_table_remove (rd->varmap, var);
+
+  nlp = nlp_create (dest_var_name, dest_var_label);
+
+  g_hash_table_insert (rd->varmap, var, nlp);
+
+  gtk_tree_model_row_changed (model, rows->data, &iter);
+
+ finish:
   g_list_foreach (rows, (GFunc) gtk_tree_path_free, NULL);
   g_list_free (rows);
 }
@@ -841,6 +849,32 @@ set_acr (struct recode_dialog *rd)
 }
 
 static void
+render_new_var_name (GtkTreeViewColumn *tree_column,
+		     GtkCellRenderer *cell,
+		     GtkTreeModel *tree_model,
+		     GtkTreeIter *iter,
+		     gpointer data)
+{
+  struct nlp *nlp = NULL;
+  struct recode_dialog *rd = data;
+
+  struct variable *var = NULL;
+
+  gtk_tree_model_get (tree_model, iter, 
+		      0, &var,
+		      -1);
+
+  nlp = g_hash_table_lookup (rd->varmap, var);
+
+  if ( nlp )
+    g_object_set (cell, "text", nlp->name, NULL);
+  else
+    g_object_set (cell, "text", "", NULL);
+}
+
+
+
+static void
 recode_dialog (PsppireDataWindow *de, gboolean diff)
 {
   gint response;
@@ -856,13 +890,11 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
   GtkWidget *output_variable_box = get_widget_assert (builder,"frame4");
 
-
   PsppireVarStore *vs = NULL;
-
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   rd.change_button = get_widget_assert (builder, "change-button");
-
+  rd.varmap = NULL;
   rd.dialog = get_widget_assert   (builder, "recode-dialog");
   rd.dict_treeview = get_widget_assert (builder, "treeview1");
   rd.variable_treeview =   get_widget_assert (builder, "treeview2");
@@ -893,56 +925,44 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
 
   if (rd.different)
     {
+      GtkTreeModel *model = GTK_TREE_MODEL (PSPPIRE_VAR_VIEW (rd.variable_treeview)->list);
       GtkTreeSelection *sel;
-      GtkTreeViewColumn *col;
+
       GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
 
-      rd.var_map = gtk_list_store_new (n_COL_VARS, G_TYPE_INT,
-						    G_TYPE_STRING,
-						    G_TYPE_STRING);
-
-
-      gtk_tree_view_set_model (GTK_TREE_VIEW (rd.variable_treeview),
-			       GTK_TREE_MODEL (rd.var_map));
-
-      col = gtk_tree_view_column_new_with_attributes (_("Old"),
-						  renderer,
-						  "text", NULL,
-						  NULL);
-
-      gtk_tree_view_column_set_cell_data_func (col, renderer,
-					       XXX_cell_var_name,
-					       rd.dict, 0);
-
-
-      gtk_tree_view_append_column (GTK_TREE_VIEW (rd.variable_treeview), col);
-
-
-      renderer = gtk_cell_renderer_text_new ();
-
-      col = gtk_tree_view_column_new_with_attributes (_("New"),
-						  renderer,
-						  "text", NULL,
-						  NULL);
+      GtkTreeViewColumn *col = gtk_tree_view_column_new_with_attributes (_("New"),
+									 renderer,
+									 "text", NULL,
+									 NULL);
 
       gtk_tree_view_column_set_cell_data_func (col, renderer,
 					       render_new_var_name,
-					       NULL, NULL);
+					       &rd, NULL);
 
 
       gtk_tree_view_append_column (GTK_TREE_VIEW (rd.variable_treeview), col);
 
+
+      col = gtk_tree_view_get_column (GTK_TREE_VIEW (rd.variable_treeview), 0);
+
+      g_object_set (col, "title", _("Old"), NULL);
+
       g_object_set (rd.variable_treeview, "headers-visible", TRUE, NULL);
+
+      rd.varmap = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, nlp_destroy);
+
+      sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (rd.variable_treeview));
+
+      g_signal_connect (sel, "changed",
+			G_CALLBACK (on_selection_change), &rd);
 
       g_signal_connect (rd.change_button, "clicked",
 			G_CALLBACK (on_change_clicked),  &rd);
 
-      sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (rd.variable_treeview));
-      g_signal_connect (sel, "changed",
-			G_CALLBACK (on_selection_change), &rd);
-
-      g_signal_connect (rd.var_map, "row-inserted",
+#if 0
+      g_signal_connect (model, "row-inserted",
 			G_CALLBACK (select_something), &rd);
+#endif
     }
 
   psppire_selector_set_allow (PSPPIRE_SELECTOR (selector), homogeneous_types);
@@ -1090,6 +1110,7 @@ recode_dialog (PsppireDataWindow *de, gboolean diff)
       break;
     }
 
+  g_hash_table_destroy (rd.varmap);
 
   gtk_list_store_clear (GTK_LIST_STORE (rd.value_map));
   g_object_unref (rd.value_map);
@@ -1400,27 +1421,20 @@ generate_syntax (const struct recode_dialog *rd)
   if ( rd->different &&
        gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rd->string_button)))
     {
-      GtkTreeIter iter;
+      GHashTableIter iter;
 
+      struct variable *var = NULL;
+      struct nlp *nlp = NULL;
 
-      for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (rd->var_map),
-					       &iter);
-	   ok;
-	   ok = gtk_tree_model_iter_next (GTK_TREE_MODEL (rd->var_map), &iter))
+      g_hash_table_iter_init (&iter, rd->varmap);
+      while (g_hash_table_iter_next (&iter, (void**) &var, (void**) &nlp))
 	{
-	  gchar *name = NULL;
-
-	  gtk_tree_model_get (GTK_TREE_MODEL (rd->var_map), &iter,
-			      COL_NEW_NAME, &name, -1);
-
 	  g_string_append (str, "\nSTRING ");
-	  g_string_append (str, name);
+	  g_string_append (str, nlp->name);
 	  g_string_append_printf (str, " (A%d).",
 				  (int)
 				  gtk_spin_button_get_value (GTK_SPIN_BUTTON (rd->width_entry) )
 				  );
-
-	  g_free (name);
 	}
     }
 
@@ -1467,66 +1481,42 @@ generate_syntax (const struct recode_dialog *rd)
 
   if ( rd->different )
     {
+
       GtkTreeIter iter;
       g_string_append (str, "\n\tINTO ");
 
-      for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (rd->var_map),
-					       &iter);
+      for (ok = psppire_var_view_get_iter_first (PSPPIRE_VAR_VIEW (rd->variable_treeview), &iter);
 	   ok;
-	   ok = gtk_tree_model_iter_next (GTK_TREE_MODEL (rd->var_map), &iter))
-	{
-	  gchar *name = NULL;
+	   ok = psppire_var_view_get_iter_next (PSPPIRE_VAR_VIEW (rd->variable_treeview), &iter))
+	  {
+	    struct nlp *nlp = NULL;
+	    const struct variable *var = psppire_var_view_get_variable (PSPPIRE_VAR_VIEW (rd->variable_treeview), 0, &iter);
 
-	  gtk_tree_model_get (GTK_TREE_MODEL (rd->var_map), &iter,
-			      COL_NEW_NAME, &name, -1);
-
-	  g_string_append (str, name);
-	  g_string_append (str, " ");
-
-	  g_free (name);
-	}
+	    nlp = g_hash_table_lookup (rd->varmap, var);
+	    
+	    g_string_append (str, nlp->name);
+	    g_string_append (str, " ");
+	  }
     }
 
   g_string_append (str, ".");
 
-
   /* If applicable, set labels for the new variables. */
   if ( rd->different )
     {
-      GtkTreeIter iter;
+      GHashTableIter iter;
 
-      for (ok = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (rd->var_map),
-					       &iter);
-	   ok;
-	   ok = gtk_tree_model_iter_next (GTK_TREE_MODEL (rd->var_map), &iter))
+      struct variable *var = NULL;
+      struct nlp *nlp = NULL;
+
+      g_hash_table_iter_init (&iter, rd->varmap);
+      while (g_hash_table_iter_next (&iter, (void**) &var, (void**) &nlp))
 	{
-	  struct string ls;
-	  gchar *label = NULL;
-	  gchar *name = NULL;
-
-	  gtk_tree_model_get (GTK_TREE_MODEL (rd->var_map), &iter,
-			      COL_NEW_NAME, &name,
-			      COL_NEW_LABEL, &label, -1);
-
-	  if ( 0 == strcmp (label, "") )
-	    {
-	      g_free (name);
-	      g_free (label);
-	      continue;
-	    }
-
-	  ds_init_empty (&ls);
-	  syntax_gen_string (&ls, ss_cstr (label));
-	  g_free (label);
-
-	  g_string_append_printf (str, "\nVARIABLE LABELS %s %s.",
-				  name, ds_cstr (&ls));
-
-	  g_free (name);
-	  ds_destroy (&ls);
+	  if (nlp->label)
+	    g_string_append_printf (str, "\nVARIABLE LABELS %s %s.",
+				    nlp->name, nlp->label);
 	}
     }
-
 
   g_string_append (str, "\nEXECUTE.\n");
 

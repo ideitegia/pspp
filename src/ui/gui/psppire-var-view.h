@@ -38,7 +38,7 @@ G_BEGIN_DECLS
 typedef struct _PsppireVarView       PsppireVarView;
 typedef struct _PsppireVarViewClass  PsppireVarViewClass;
 
-
+struct variable;
 
 struct _PsppireVarView
 {
@@ -59,6 +59,10 @@ struct _PsppireVarViewClass
 GType      psppire_var_view_get_type        (void);
 
 gint psppire_var_view_append_names (PsppireVarView *vv, gint column, GString *string);
+gboolean psppire_var_view_get_iter_first (PsppireVarView *vv, GtkTreeIter *iter);
+gboolean psppire_var_view_get_iter_next (PsppireVarView *vv, GtkTreeIter *iter);
+const struct variable * psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *iter);
+
 
 
 G_END_DECLS

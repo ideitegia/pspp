@@ -236,6 +236,36 @@ psppire_var_view_new (void)
 }
 
 
+gboolean
+psppire_var_view_get_iter_first (PsppireVarView *vv, GtkTreeIter *iter)
+{
+  return gtk_tree_model_get_iter_first (GTK_TREE_MODEL (vv->list), iter);
+}
+
+gboolean
+psppire_var_view_get_iter_next (PsppireVarView *vv, GtkTreeIter *iter)
+{
+  return gtk_tree_model_iter_next (GTK_TREE_MODEL (vv->list), iter);
+}
+
+const struct variable *
+psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *iter)
+{
+  const struct variable *var = NULL;
+  GValue value = {0};
+  gtk_tree_model_get_value (GTK_TREE_MODEL (vv->list), iter, column, &value);
+
+  if ( G_VALUE_TYPE (&value) == PSPPIRE_VAR_PTR_TYPE)
+    var = g_value_get_boxed (&value);
+  else
+    g_critical ("Unsupported type \"%s\", in variable name treeview.",
+		G_VALUE_TYPE_NAME (&value));
+
+  g_value_unset (&value);
+
+  return var;
+}
+
 /*
   Append the names of selected variables to STRING.
   Returns the number of variables appended.
@@ -246,35 +276,20 @@ psppire_var_view_append_names (PsppireVarView *vv, gint column, GString *string)
   gint n_vars = 0;
   GtkTreeIter iter;
 
-  if ( gtk_tree_model_get_iter_first (GTK_TREE_MODEL (vv->list), &iter) )
+  if ( psppire_var_view_get_iter_first (vv, &iter) )
     {
       do
 	{
-	  GValue value = {0};
-	  struct variable *var = NULL;
-	  GtkTreePath *path = gtk_tree_model_get_path (GTK_TREE_MODEL (vv->list), &iter);
-
-	  gtk_tree_model_get_value (GTK_TREE_MODEL (vv->list), &iter, column, &value);
-
-	  if ( G_VALUE_TYPE (&value) == PSPPIRE_VAR_PTR_TYPE)
-	    var = g_value_get_boxed (&value);
-	  else
-	    g_critical ("Unsupported type \"%s\", in variable name treeview.",
-			G_VALUE_TYPE_NAME (&value));
-
-	  g_value_unset (&value);
-
+	  const struct variable *var = psppire_var_view_get_variable (vv, column, &iter);
 	  g_string_append (string, " ");
 	  g_string_append (string, var_get_name (var));
 
-	  gtk_tree_path_free (path);
 	  n_vars++;
 	}
-      while (gtk_tree_model_iter_next (GTK_TREE_MODEL (vv->list), &iter));
+      while (psppire_var_view_get_iter_next (vv, &iter));
     }
 
   return n_vars;
 }
-
 
 
