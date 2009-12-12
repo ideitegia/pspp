@@ -56,6 +56,7 @@
 #include "examine-dialog.h"
 #include "regression-dialog.h"
 #include "reliability-dialog.h"
+#include "roc-dialog.h"
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
 #include "t-test-one-sample.h"
@@ -1690,6 +1691,20 @@ psppire_data_window_init (PsppireDataWindow *de)
 
     g_signal_connect (invoke_reliability_dialog, "activate",
 		      G_CALLBACK (reliability_dialog), de);
+  }
+
+  {
+    GtkAction *invoke_roc_dialog =
+      resolve_action (de->builder, "roc-curve", NULL);
+
+    g_object_set (invoke_roc_dialog,
+		  "tooltip", _("ROC Curve"),
+		  "stock-id", "pspp-roc",
+		  NULL
+		  );
+
+    g_signal_connect (invoke_roc_dialog, "activate",
+		      G_CALLBACK (roc_dialog), de);
   }
 
 
