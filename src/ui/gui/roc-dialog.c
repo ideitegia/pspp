@@ -100,6 +100,22 @@ dialog_state_valid (gpointer data)
   return TRUE;
 }
 
+static void
+on_curve_button_toggle  (GtkCheckButton *curve, struct roc *rd)
+{
+  if ( !gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (curve)))
+    {
+      if ( gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (rd->reference)))
+	g_object_set (rd->reference, "inconsistent", TRUE, NULL);
+      g_object_set (rd->reference, "sensitive", FALSE, NULL);
+    }
+  else 
+    {
+      g_object_set (rd->reference, "inconsistent", FALSE, NULL);
+      g_object_set (rd->reference, "sensitive", TRUE, NULL);
+    }
+}
+
 
 /* Pops up the Roc dialog box */
 void
@@ -131,6 +147,8 @@ roc_dialog (GObject *o, gpointer data)
 
   g_object_get (vs, "dictionary", &rd.dict, NULL);
   g_object_set (source, "model", rd.dict, NULL);
+
+  g_signal_connect (rd.curve, "toggled", G_CALLBACK (on_curve_button_toggle), &rd);
 
   g_signal_connect_swapped (dialog, "refresh", G_CALLBACK (refresh),  &rd);
 
