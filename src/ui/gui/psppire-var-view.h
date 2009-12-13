@@ -58,9 +58,14 @@ struct _PsppireVarViewClass
 
 GType      psppire_var_view_get_type        (void);
 
+gboolean psppire_var_view_contains_var (PsppireVarView *vv, const GValue *v);
+
 gint psppire_var_view_append_names (PsppireVarView *vv, gint column, GString *string);
+
 gboolean psppire_var_view_get_iter_first (PsppireVarView *vv, GtkTreeIter *iter);
+
 gboolean psppire_var_view_get_iter_next (PsppireVarView *vv, GtkTreeIter *iter);
+
 const struct variable * psppire_var_view_get_variable (PsppireVarView *vv, gint column, GtkTreeIter *iter);
 
 

@@ -201,7 +201,6 @@ psppire_var_view_class_init (PsppireVarViewClass *class)
   g_object_class_install_property (object_class,
                                    PROP_N_COLS,
                                    n_cols_spec);
-
 }
 
 
@@ -292,4 +291,26 @@ psppire_var_view_append_names (PsppireVarView *vv, gint column, GString *string)
   return n_vars;
 }
 
+/* Returns TRUE iff VV contains the item V.
+   V must be an initialised value containing a
+   PSPPIRE_VAR_PTR_TYPE.
+*/
+gboolean
+psppire_var_view_contains_var (PsppireVarView *vv, const GValue *v)
+{
+  gboolean ok;
+  GtkTreeIter iter;
+  g_return_val_if_fail (G_VALUE_HOLDS (v, PSPPIRE_VAR_PTR_TYPE), FALSE);
+
+  for (ok = psppire_var_view_get_iter_first (vv, &iter);
+       ok;
+       ok = psppire_var_view_get_iter_next (vv, &iter))
+    {
+      const struct variable *var = psppire_var_view_get_variable (vv, 0, &iter);
+      if (var == g_value_get_boxed (v))
+	return TRUE;
+    }
+
+  return FALSE;
+}
 
