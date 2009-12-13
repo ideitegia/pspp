@@ -584,6 +584,7 @@ CODE:
  struct file_handle *fh =
   fh_create_file (NULL, name, fh_default_properties () );
  struct sysfile_info *sfi = xmalloc (sizeof (*sfi));
+ dict_set_encoding (dict, "UTF-8");
  sfi->writer = sfm_open_writer (fh, dict, opts);
  sfi->dict = dict;
  sfi->opened = true;
