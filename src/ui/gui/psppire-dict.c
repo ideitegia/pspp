@@ -21,6 +21,7 @@
 #include <gtk/gtk.h>
 #include <ui/gui/psppire-marshal.h>
 
+#include "psppire-var-ptr.h"
 #include "psppire-dict.h"
 #include <data/dictionary.h>
 #include <data/missing-values.h>
@@ -648,7 +649,7 @@ tree_model_column_type (GtkTreeModel *model, gint index)
       return G_TYPE_STRING;
       break;
     case DICT_TVM_COL_VAR:
-      return G_TYPE_POINTER;
+      return PSPPIRE_VAR_PTR_TYPE;
       break;
     default:
       g_return_val_if_reached ((GType)0);
@@ -765,8 +766,8 @@ tree_model_get_value (GtkTreeModel *model, GtkTreeIter *iter,
       }
       break;
     case DICT_TVM_COL_VAR:
-      g_value_init (value, G_TYPE_POINTER);
-      g_value_set_pointer (value, var);
+      g_value_init (value, PSPPIRE_VAR_PTR_TYPE);
+      g_value_set_boxed (value, var);
       break;
     default:
       g_return_if_reached ();
