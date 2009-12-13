@@ -57,6 +57,7 @@
 #include "regression-dialog.h"
 #include "reliability-dialog.h"
 #include "roc-dialog.h"
+#include "correlation-dialog.h"
 #include "oneway-anova-dialog.h"
 #include "t-test-independent-samples-dialog.h"
 #include "t-test-one-sample.h"
@@ -1705,6 +1706,20 @@ psppire_data_window_init (PsppireDataWindow *de)
 
     g_signal_connect (invoke_roc_dialog, "activate",
 		      G_CALLBACK (roc_dialog), de);
+  }
+
+  {
+    GtkAction *invoke_correlation_dialog =
+      resolve_action (de->builder, "correlation", NULL);
+
+    g_object_set (invoke_correlation_dialog,
+		  "tooltip", _("Bivariate Correlation"),
+		  "stock-id", "pspp-correlation",
+		  NULL
+		  );
+
+    g_signal_connect (invoke_correlation_dialog, "activate",
+		      G_CALLBACK (correlation_dialog), de);
   }
 
 
