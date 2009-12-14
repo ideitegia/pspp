@@ -100,7 +100,10 @@ correlation_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_get (vs, "dictionary", &rd.dict, NULL);
-  g_object_set (source, "model", rd.dict, NULL);
+  g_object_set (source,
+		"model", rd.dict, 
+		"predicate", var_is_numeric,
+		NULL);
 
   rd.variables = get_widget_assert (xml, "psppire-var-view1");
   rd.significant = get_widget_assert (xml, "button-flag-significants");
