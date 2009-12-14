@@ -155,6 +155,9 @@ roc_dialog (GObject *o, gpointer data)
   psppire_dialog_set_valid_predicate (PSPPIRE_DIALOG (dialog),
 				      dialog_state_valid, &rd);
 
+  psppire_selector_set_allow (PSPPIRE_SELECTOR (get_widget_assert (xml, "dep-selector")),
+			      numeric_only);
+
   response = psppire_dialog_run (PSPPIRE_DIALOG (dialog));
 
   switch (response)
