@@ -23,34 +23,6 @@
 
 #include "helper.h"
 
-/* A (*GtkTreeCellDataFunc) function.
-   This function expects TREEMODEL to hold G_TYPE_BOXED, which is a pointer to a variable.
-   It renders the name of the variable into CELL.
-*/
-void
-XXX_cell_var_name (GtkTreeViewColumn *tree_column,
-		   GtkCellRenderer *cell,
-		   GtkTreeModel *treemodel,
-		   GtkTreeIter *iter,
-		   gpointer data)
-{
-  const struct variable *var;
-  GValue value = {0};
-
-  GtkTreePath *path = gtk_tree_model_get_path (treemodel, iter);
-
-  gtk_tree_model_get_value (treemodel, iter, 0, &value);
-
-  gtk_tree_path_free (path);
-
-  var = g_value_get_boxed (&value);
-
-  g_value_unset (&value);
-
-  g_object_set (cell, "text", var_get_name (var), NULL);
-}
-
-
 
 /* Returns FALSE if the variables represented by the union of the rows
    currently selected by SOURCE widget, and contents of the DEST
