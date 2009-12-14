@@ -8,8 +8,8 @@ src_output_liboutput_la_SOURCES = \
 	src/output/ascii.c \
 	src/output/chart.c \
 	src/output/chart.h \
-	src/output/charts/box-whisker.c \
-	src/output/charts/box-whisker.h \
+	src/output/charts/boxplot.c \
+	src/output/charts/boxplot.h \
 	src/output/charts/cartesian.c \
 	src/output/charts/cartesian.h \
 	src/output/charts/np-plot.c \

@@ -48,7 +48,7 @@
 #include <libpspp/misc.h>
 #include <libpspp/str.h>
 #include <math/moments.h>
-#include <output/charts/box-whisker.h>
+#include <output/charts/boxplot.h>
 #include <output/charts/np-plot.h>
 #include <output/manager.h>
 #include <output/table.h>

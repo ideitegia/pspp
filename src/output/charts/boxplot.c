@@ -17,7 +17,7 @@
 
 #include <config.h>
 
-#include <output/charts/box-whisker.h>
+#include <output/charts/boxplot.h>
 
 #include <math.h>
 #include <assert.h>

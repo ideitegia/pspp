@@ -14,8 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef BOX_WHISKER_H
-#define BOX_WHISKER_H
+#ifndef OUTPUT_CHARTS_BOXPLOT_H
+#define OUTPUT_CHARTS_BOXPLOT_H 1
 
 struct box_whisker;
 
@@ -24,4 +24,4 @@ void boxplot_add_box (struct boxplot *,
                       struct box_whisker *, const char *label);
 struct chart *boxplot_get_chart (struct boxplot *);
 
-#endif
+#endif /* output/charts/boxplot.h */
