@@ -136,7 +136,7 @@ var_description_cell_data_func (GtkTreeViewColumn *col,
 
   if ( var_has_label (var))
     {
-      gchar *text = g_strdup_printf (
+      gchar *text = g_markup_printf_escaped (
 				     "<span stretch=\"condensed\">%s</span>",
 				     var_get_label (var));
 
