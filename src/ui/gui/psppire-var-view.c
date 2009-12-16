@@ -20,6 +20,7 @@
 #include <gtk/gtkcellrenderertext.h>
 #include "psppire-var-view.h"
 #include "psppire-var-ptr.h"
+#include "psppire-select-dest.h"
 
 #include <data/variable.h>
 
@@ -32,6 +33,35 @@ static void psppire_var_view_base_init     (PsppireVarViewClass *class);
 static void psppire_var_view_class_init    (PsppireVarViewClass *class);
 static void psppire_var_view_init          (PsppireVarView      *var_view);
 
+/* Returns TRUE iff VV contains the item V.
+   V must be an initialised value containing a
+   PSPPIRE_VAR_PTR_TYPE.
+*/
+static gboolean
+var_view_contains_var (PsppireSelectDestWidget *sdm, const GValue *v)
+{
+  gboolean ok;
+  GtkTreeIter iter;
+  PsppireVarView *vv = PSPPIRE_VAR_VIEW (sdm);
+  g_return_val_if_fail (G_VALUE_HOLDS (v, PSPPIRE_VAR_PTR_TYPE), FALSE);
+
+  for (ok = psppire_var_view_get_iter_first (vv, &iter);
+       ok;
+       ok = psppire_var_view_get_iter_next (vv, &iter))
+    {
+      const struct variable *var = psppire_var_view_get_variable (vv, 0, &iter);
+      if (var == g_value_get_boxed (v))
+	return TRUE;
+    }
+
+  return FALSE;
+}
+
+static void
+model_init (PsppireSelectDestWidgetIface *iface)
+{
+  iface->contains_var = var_view_contains_var;
+}
 
 GType
 psppire_var_view_get_type (void)
@@ -53,9 +83,19 @@ psppire_var_view_get_type (void)
 	(GInstanceInitFunc) psppire_var_view_init,
       };
 
+      static const GInterfaceInfo var_view_model_info = {
+	(GInterfaceInitFunc) model_init, /* Fill this in */
+	NULL,
+	NULL
+      };
+
       psppire_var_view_type =
 	g_type_register_static (GTK_TYPE_TREE_VIEW, "PsppireVarView",
 				&psppire_var_view_info, 0);
+
+      g_type_add_interface_static (psppire_var_view_type,
+				   PSPPIRE_TYPE_SELECT_DEST_WIDGET,
+				   &var_view_model_info);
     }
 
   return psppire_var_view_type;
@@ -290,27 +330,3 @@ psppire_var_view_append_names (PsppireVarView *vv, gint column, GString *string)
 
   return n_vars;
 }
-
-/* Returns TRUE iff VV contains the item V.
-   V must be an initialised value containing a
-   PSPPIRE_VAR_PTR_TYPE.
-*/
-gboolean
-psppire_var_view_contains_var (PsppireVarView *vv, const GValue *v)
-{
-  gboolean ok;
-  GtkTreeIter iter;
-  g_return_val_if_fail (G_VALUE_HOLDS (v, PSPPIRE_VAR_PTR_TYPE), FALSE);
-
-  for (ok = psppire_var_view_get_iter_first (vv, &iter);
-       ok;
-       ok = psppire_var_view_get_iter_next (vv, &iter))
-    {
-      const struct variable *var = psppire_var_view_get_variable (vv, 0, &iter);
-      if (var == g_value_get_boxed (v))
-	return TRUE;
-    }
-
-  return FALSE;
-}
-

@@ -47,7 +47,6 @@ struct _PsppireVarView
   GtkListStore *list;
   
   gint *nums;
-
 };
 
 struct _PsppireVarViewClass
@@ -57,8 +56,6 @@ struct _PsppireVarViewClass
 };
 
 GType      psppire_var_view_get_type        (void);
-
-gboolean psppire_var_view_contains_var (PsppireVarView *vv, const GValue *v);
 
 gint psppire_var_view_append_names (PsppireVarView *vv, gint column, GString *string);
 

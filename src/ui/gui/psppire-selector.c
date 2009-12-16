@@ -60,8 +60,8 @@
 
 #include "psppire-dictview.h"
 #include "psppire-var-view.h"
-
-
+#include "psppire-dict.h"
+#include "psppire-select-dest.h"
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkbutton.h>
@@ -651,31 +651,20 @@ on_activate (PsppireSelector *selector, gpointer data)
 }
 
 static gboolean
-permissive_filter (GtkTreeModel *model, GtkTreeIter *iter,
-		 PsppireSelector *selector)
+is_item_in_dest (GtkTreeModel *model, GtkTreeIter *iter, PsppireSelector *selector)
 {
-  return FALSE;
-}
-
-/* Default visibility filter for GtkTreeView DEST widget */
-static gboolean
-is_item_in_dest (GtkTreeModel *model, GtkTreeIter *iter,
-		 PsppireSelector *selector)
-{
-  GtkTreeModel *dest_model;
-  GtkTreeIter dest_iter;
+  gboolean result = FALSE;
   GtkTreeIter source_iter;
-  gint index;
-  GtkTreePath *path ;
   GtkTreeModel *source_model;
+  GValue value = {0};
 
-  if ( GTK_IS_TREE_MODEL_FILTER (model) )
+  if (GTK_IS_TREE_MODEL_FILTER (model))
     {
       source_model = gtk_tree_model_filter_get_model
 	(GTK_TREE_MODEL_FILTER (model));
 
       gtk_tree_model_filter_convert_iter_to_child_iter
-	( GTK_TREE_MODEL_FILTER (model),  &source_iter,  iter  );
+	(GTK_TREE_MODEL_FILTER (model),  &source_iter, iter);
     }
   else
     {
@@ -683,40 +672,17 @@ is_item_in_dest (GtkTreeModel *model, GtkTreeIter *iter,
       source_iter = *iter;
     }
 
-  dest_model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->dest));
+  gtk_tree_model_get_value (source_model, &source_iter, DICT_TVM_COL_VAR, &value);
 
-  path = gtk_tree_model_get_path (source_model, &source_iter);
+  result = psppire_select_dest_widget_contains_var (PSPPIRE_SELECT_DEST_WIDGET (selector->dest),
+						    &value);
 
-  index = *gtk_tree_path_get_indices (path);
+  g_value_unset (&value);
 
-  gtk_tree_path_free (path);
-
-  if ( ! gtk_tree_model_get_iter_first (dest_model, &dest_iter) )
-    return FALSE;
-
-  do
-    {
-      int x;
-      GValue value = {0};
-      GValue int_value = {0};
-      gtk_tree_model_get_value (dest_model, &dest_iter, 0, &value);
-
-      g_value_init (&int_value, G_TYPE_INT);
-
-      g_value_transform (&value, &int_value);
-
-      x = g_value_get_int (&int_value);
-
-      g_value_unset (&int_value);
-      g_value_unset (&value);
-
-      if ( x == index )
-	return TRUE;
-    }
-  while (gtk_tree_model_iter_next (dest_model, &dest_iter));
-
-  return FALSE;
+  return result;
 }
+
+
 
 /* Visibility function for items in the SOURCE widget.
    Returns TRUE iff *all* the selectors for which SOURCE is associated
@@ -751,7 +717,6 @@ static void
 set_tree_view_source (PsppireSelector *selector,
 		      GtkTreeView *source)
 {
-
   GList *list = NULL;
 
   PsppireSelectorClass *class = g_type_class_peek (PSPPIRE_SELECTOR_TYPE);
@@ -790,8 +755,6 @@ set_tree_view_source (PsppireSelector *selector,
 	  g_hash_table_replace (class->source_hash, source, list);
 	}
     }
-
-
 }
 
 
@@ -826,7 +789,7 @@ on_dest_data_delete (GtkTreeModel *tree_model,
 
 
 static void
-xxx (PsppireSelector *selector)
+on_dest_model_changed (PsppireSelector *selector)
 {
   GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (selector->dest));
 
@@ -850,11 +813,11 @@ set_tree_view_dest (PsppireSelector *selector,
   g_signal_connect (selection, "changed", G_CALLBACK (on_dest_treeview_select),
 		    selector);
 
-
+  on_dest_model_changed (selector);
   g_signal_connect_swapped (dest, "notify::model",
-			    G_CALLBACK (xxx), selector);
-
+			    G_CALLBACK (on_dest_model_changed), selector);
 }
+
 
 /* Callback which causes the filter to be refiltered.
    Called when the DEST GtkEntry is activated (Enter is pressed), or when it
@@ -867,6 +830,7 @@ refilter (PsppireSelector *selector)
   return FALSE;
 }
 
+
 /* Callback for when the DEST GtkEntry is selected (clicked) */
 static gboolean
 on_entry_dest_select (GtkWidget *widget, GdkEventFocus *event, gpointer data)
@@ -878,7 +842,6 @@ on_entry_dest_select (GtkWidget *widget, GdkEventFocus *event, gpointer data)
 
   return FALSE;
 }
-
 
 
 /* Callback for when an item disappears from the source list.
@@ -934,7 +897,7 @@ set_default_filter (PsppireSelector *selector)
   if ( selector->filter == NULL)
     {
       if  (GTK_IS_TREE_VIEW (selector->dest))
-	selector->filter = permissive_filter;
+	selector->filter = is_item_in_dest;
     }
 }
 
