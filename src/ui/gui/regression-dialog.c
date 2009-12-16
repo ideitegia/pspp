@@ -238,6 +238,7 @@ regression_dialog (GObject *o, gpointer data)
   GtkWidget *stat_button = get_widget_assert (xml, "stat-button");
   GtkWidget *save_button = get_widget_assert (xml, "save-button");
 
+  GtkWidget *dep_selector = get_widget_assert (xml, "dep-selector");
 
   rd.stat_view = get_widget_assert (xml, "stat-view");
 
@@ -258,6 +259,7 @@ regression_dialog (GObject *o, gpointer data)
   rd.dep_vars = GTK_TREE_VIEW (dest_dep);
   rd.indep_vars = GTK_TREE_VIEW (dest_indep);
 
+  psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_selector), numeric_only);
 
   rd.save_dialog = get_widget_assert (xml, "save-dialog");
   rd.pred_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "pred-button"));
