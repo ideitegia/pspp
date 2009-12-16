@@ -1,5 +1,5 @@
 PSPP NEWS -- history of user-visible changes.
-Time-stamp: <2009-09-08 21:08:29 blp>
+Time-stamp: <2009-10-06 20:46:21 blp>
 Copyright (C) 1996-9, 2000, 2008, 2009 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -54,8 +54,7 @@ Changes from 0.6.2-pre6 to 0.7.0:
 
   * A tutorial chapter has been added to the user manual.
 
-
-Changes from 0.6.1 to 0.6.2-pre6:
+Changes from 0.6.1 to 0.6.2
 
   * New translations:
 
@@ -76,6 +75,8 @@ Changes from 0.6.1 to 0.6.2-pre6:
       Griffiths and Matej Cepl for reporting these bugs.
 
   * Build fixes and changes:
+
+    - Fix build with GTK+ 2.17.4 and later.
 
     - Make running "make" after running "configure" with different
       settings reliably rebuild version.c.
@@ -99,6 +100,9 @@ Changes from 0.6.1 to 0.6.2-pre6:
       in the middle.
 
     - Fix writing corrupted .sav files on Windows.
+
+    - Fix writing variable labels longer than 252 bytes to save files.
+      Thanks to Robert Westlund for reporting this bug.
 
     - Fix writing corrupted .por files (bug #26034).
 
