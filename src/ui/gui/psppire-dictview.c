@@ -198,14 +198,14 @@ psppire_dict_view_class_init (PsppireDictViewClass *class)
   GParamSpec *predicate_spec =
     g_param_spec_pointer ("predicate",
 			  "Predicate",
-			  _("A predicate function"),
+			  "A predicate function",
 			  G_PARAM_READABLE | G_PARAM_WRITABLE);
 
 
   GParamSpec *selection_mode_spec =
     g_param_spec_enum ("selection-mode",
 		       "Selection Mode",
-		       _("How many things can be selected"),
+		       "How many things can be selected",
 		       GTK_TYPE_SELECTION_MODE,
 		       GTK_SELECTION_MULTIPLE,
 		       G_PARAM_CONSTRUCT | G_PARAM_READABLE | G_PARAM_WRITABLE);
