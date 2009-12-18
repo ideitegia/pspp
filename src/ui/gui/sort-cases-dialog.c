@@ -24,6 +24,7 @@
 #include "dialog-common.h"
 #include "psppire-selector.h"
 #include "dict-display.h"
+#include "psppire-var-view.h"
 
 #include <language/syntax-string-source.h>
 #include "helper.h"
@@ -40,7 +41,7 @@ refresh (PsppireDialog *dialog, GtkTreeView *dest)
 
 struct sort_cases_dialog
 {
-  GtkTreeView *tv;
+  PsppireVarView *tv;
   PsppireDict *dict;
   GtkToggleButton *ascending;
 };
@@ -50,7 +51,7 @@ static gboolean
 dialog_state_valid (gpointer data)
 {
   struct sort_cases_dialog *scd = data;
-  GtkTreeModel *model = gtk_tree_view_get_model (scd->tv);
+  GtkTreeModel *model = gtk_tree_view_get_model (GTK_TREE_VIEW (scd->tv));
 
   gint n_rows = gtk_tree_model_iter_n_children  (model, NULL);
 
@@ -65,8 +66,8 @@ generate_syntax (const struct sort_cases_dialog *scd)
 {
   gchar *text;
   GString *string = g_string_new ("SORT CASES BY ");
-  gint n_vars = append_variable_names (string,
-				       scd->dict, GTK_TREE_VIEW (scd->tv), 0);
+
+  gint n_vars = psppire_var_view_append_names (scd->tv, 0, string);
 
   if ( n_vars == 0 )
     g_string_assign (string, "");
@@ -96,15 +97,13 @@ sort_cases_dialog (GObject *o, gpointer data)
 
   struct sort_cases_dialog scd;
 
-  GtkBuilder *xml = builder_new ("psppire.ui");
+  GtkBuilder *xml = builder_new ("sort.ui");
 
   GtkWidget *dialog = get_widget_assert   (xml, "sort-cases-dialog");
 
 
   GtkWidget *source = get_widget_assert   (xml, "sort-cases-treeview1");
-  GtkWidget *selector = get_widget_assert (xml, "sort-cases-selector");
   GtkWidget *dest =   get_widget_assert   (xml, "sort-cases-treeview2");
-
   PsppireVarStore *vs = NULL;
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
@@ -112,20 +111,11 @@ sort_cases_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_get (vs, "dictionary", &scd.dict, NULL);
-  g_object_set (source, "dictionary", scd.dict, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (dest), scd.dict);
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 dest,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
+  g_object_set (source, "model", scd.dict, NULL);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  dest);
 
-  scd.tv = GTK_TREE_VIEW (dest);
+  scd.tv = PSPPIRE_VAR_VIEW (dest);
   scd.ascending =
     GTK_TOGGLE_BUTTON (get_widget_assert (xml, "sort-cases-radiobutton0"));
 

@@ -40,6 +40,7 @@ fi
 dnl Checks for libraries.
 AC_SYS_LARGEFILE
 AC_SEARCH_LIBS([sin], [m])
+AC_SEARCH_LIBS([dcgettext], [intl])
 PSPP_LC_PAPER
 
 

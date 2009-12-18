@@ -27,7 +27,7 @@
     <property name="title" translatable="yes">Reliability Analysis</property>
     <property name="modal">True</property>
     <child internal-child="hbox">
-      <object class="GtkHBox" id="dialog-hbox1">
+      <object class="GtkHBox" id="dialog-hbox5">
         <property name="visible">True</property>
         <child>
           <object class="GtkVBox" id="vbox1">
@@ -41,7 +41,7 @@
                   <object class="GtkScrolledWindow" id="scrolledwindow1">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="hscrollbar_policy">never</property>
                     <property name="vscrollbar_policy">automatic</property>
                     <property name="shadow_type">etched-in</property>
                     <child>
@@ -70,6 +70,8 @@
                         <property name="receives_default">True</property>
                         <property name="no_show_all">True</property>
                         <property name="border_width">5</property>
+                        <property name="source_widget">dict-view</property>
+                        <property name="dest_widget">treeview2</property>
                       </object>
                     </child>
                   </object>
@@ -92,11 +94,11 @@
                           <object class="GtkScrolledWindow" id="scrolledwindow2">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">automatic</property>
+                            <property name="hscrollbar_policy">never</property>
                             <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">etched-in</property>
                             <child>
-                              <object class="GtkTreeView" id="treeview2">
+                              <object class="PsppireVarView" id="treeview2">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="headers_visible">False</property>
@@ -128,7 +130,7 @@
               <object class="GtkHBox" id="hbox2">
                 <property name="visible">True</property>
                 <child>
-                  <object class="GtkLabel">
+                  <object class="GtkLabel" id="label3">
                     <property name="visible">True</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Model:	</property>

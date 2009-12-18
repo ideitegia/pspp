@@ -54,7 +54,6 @@ get_base_model (GtkTreeModel *top_model, GtkTreeIter *top_iter,
 }
 
 
-
 void
 insert_source_row_into_entry (GtkTreeIter iter,
 			      GtkWidget *dest,
@@ -84,7 +83,6 @@ insert_source_row_into_entry (GtkTreeIter iter,
 }
 
 
-
 void
 insert_source_row_into_tree_view (GtkTreeIter iter,
 				  GtkWidget *dest,
@@ -96,10 +94,10 @@ insert_source_row_into_tree_view (GtkTreeIter iter,
   GtkTreeIter dest_iter;
   GtkTreeIter dict_iter;
   gint *row ;
-  GtkTreeModel *destmodel = gtk_tree_view_get_model ( GTK_TREE_VIEW (dest));
+  GtkTreeModel *destmodel = gtk_tree_view_get_model (GTK_TREE_VIEW (dest));
 
+  const struct variable *var;
   GtkTreeModel *dict;
-
 
   get_base_model (model, &iter, &dict, &dict_iter);
 
@@ -107,11 +105,15 @@ insert_source_row_into_tree_view (GtkTreeIter iter,
 
   row = gtk_tree_path_get_indices (path);
 
+  var = psppire_dict_get_variable (PSPPIRE_DICT (dict), *row);
+
   gtk_list_store_append (GTK_LIST_STORE (destmodel),  &dest_iter);
-  gtk_list_store_set (GTK_LIST_STORE (destmodel), &dest_iter, 0, *row, -1);
+
+  gtk_list_store_set (GTK_LIST_STORE (destmodel), &dest_iter, 0, var, -1);
 
   gtk_tree_path_free (path);
 }
+
 
 
 gboolean
@@ -125,7 +127,12 @@ is_currently_in_entry (GtkTreeModel *model, GtkTreeIter *iter,
   gint dict_index;
   gint *indeces;
   GtkTreePath *path;
-  const gchar *text =  gtk_entry_get_text (GTK_ENTRY (selector->dest));
+  GtkWidget *entry = NULL;
+  const gchar *text = NULL;
+
+  g_object_get (selector, "dest-widget", &entry, NULL);
+
+  text = gtk_entry_get_text (GTK_ENTRY (entry));
 
   get_base_model (model, iter, &dict, &dict_iter);
 

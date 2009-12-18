@@ -197,7 +197,7 @@ package PSPP::Var;
 =head3 new ($dict, $name, %input_fmt)
 
 Creates and returns a new variable in the dictionary C<dict>.  The 
-new variable will have the name C<name>.
+new variable will have the name C<name>.  C<name> must be a valid UTF8 string.
 The input format is set by the C<input_fmt> parameter 
 (See L</PSPP::Fmt>).
 By default, the write and print formats are the same as the input format.
@@ -226,7 +226,7 @@ sub new
 
 =head3 set_label ($label)
 
-Sets the variable label to C<label>.
+Sets the variable label to C<label>, which must be a valid UTF8 string.
 
 
 =cut
@@ -322,6 +322,7 @@ Removes all value labels from the variable.
 =head3 add_value_label ($key, $label)
 
 Adds the value label C<label> to the variable for the value C<key>.
+C<label> must be a valid UTF8 string.
 On error the subroutine returns zero.
 
 =head3 add_value_labels (@array)
@@ -348,7 +349,7 @@ sub add_value_labels
 
 =pod
 
-=head3 set_value_labels ($key, $value)
+=head3 set_value_labels ($key, $label)
 
 C<Set_value_labels> is identical to calling L</clear_value_labels>
 followed by L</add_value_labels>.
@@ -414,6 +415,7 @@ On error, undef is returned.
 Appends a case to the system file.
 C<Case> is an array of scalars, each of which are the values of 
 the variables in the dictionary corresponding to the system file.
+If the case contains strings, then the strings must be UTF8 encoded.
 The special value C<PSPP::SYSMIS> may be used to indicate that a value
 is system missing.
 If the array contains less elements than variables in the dictionary,
@@ -522,7 +524,7 @@ values retrieved from a reader.
 
 Returns a scalar containing a string representing C<value> formatted according 
 to the print format of C<variable>.
-In the most common ussage,  C<value> should be a value of C<variable>.
+In the most common usage,  C<value> should be a value of C<variable>.
 
 
 =head3 PSPP::value_is_missing ($value, $variable)

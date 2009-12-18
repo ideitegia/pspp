@@ -15,12 +15,12 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include <config.h>
 #include <gtk/gtk.h>
 #include "oneway-anova-dialog.h"
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
+#include "psppire-var-view.h"
 #include "helper.h"
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
@@ -28,7 +28,6 @@
 #include "psppire-acr.h"
 #include "psppire-selector.h"
 #include "dict-display.h"
-
 
 #include <language/syntax-string-source.h>
 #include "executor.h"
@@ -141,9 +140,6 @@ oneway_anova_dialog (GObject *o, gpointer data)
   GtkWidget *selector2 =
     get_widget_assert (builder, "oneway-anova-selector2");
 
-  GtkWidget *selector1 =
-    get_widget_assert (builder, "oneway-anova-selector1");
-
   GtkWidget *contrasts_button =
     get_widget_assert (builder, "contrasts-button");
 
@@ -171,24 +167,11 @@ oneway_anova_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (ow.dialog, GTK_WINDOW (de));
 
-  g_object_set (dict_view, "dictionary", ow.dict, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (ow.vars_treeview), ow.dict);
+  g_object_set (dict_view, "model", ow.dict, NULL);
 
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
-				 dict_view, ow.vars_treeview,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
-
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
-				 dict_view, ow.factor_entry,
-				 insert_source_row_into_entry,
-				 is_currently_in_entry,
-				 NULL);
-
+  psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector2),
+				    is_currently_in_entry);
 
 
   g_signal_connect_swapped (ow.dialog, "refresh", G_CALLBACK (refresh),  &ow);
@@ -265,7 +248,7 @@ static gchar * generate_syntax (const struct oneway_anova_dialog *ow)
 
   GString *str = g_string_new ("ONEWAY /VARIABLES=");
 
-  append_variable_names (str, ow->dict, GTK_TREE_VIEW (ow->vars_treeview), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (ow->vars_treeview), 0, str);
 
   g_string_append (str, " BY ");
 

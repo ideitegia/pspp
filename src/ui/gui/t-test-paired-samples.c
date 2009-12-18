@@ -21,6 +21,7 @@
 
 #include "psppire-data-window.h"
 #include "psppire-selector.h"
+#include "psppire-var-view.h"
 
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
@@ -56,11 +57,11 @@ generate_syntax (const struct tt_paired_samples_dialog *d)
   gchar *text = NULL;
   GString *str =   g_string_new ("T-TEST \n\tPAIRS = ");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (d->pairs_treeview), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (d->pairs_treeview), 0, str);
 
   g_string_append (str, " WITH ");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (d->pairs_treeview), 1);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (d->pairs_treeview), 1, str);
 
   g_string_append (str, " (PAIRED)");
   g_string_append (str, "\n");
@@ -151,31 +152,6 @@ select_as_pair_member (GtkTreeIter source_iter,
     }
 }
 
-
-/* Append a new column to TV at position C, and heading TITLE */
-static void
-add_new_column (GtkTreeView *tv, const gchar *title, gint c)
-{
-  GtkTreeViewColumn *col = gtk_tree_view_column_new ();
-  GtkCellRenderer *renderer = gtk_cell_renderer_text_new ();
-
-  gtk_tree_view_column_set_min_width (col, 100);
-  gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_AUTOSIZE);
-  gtk_tree_view_column_set_resizable (col, TRUE);
-
-
-  gtk_tree_view_column_set_title (col, title);
-
-  gtk_tree_view_column_pack_start (col, renderer, TRUE);
-
-  gtk_tree_view_column_set_sizing (col, GTK_TREE_VIEW_COLUMN_FIXED);
-
-  gtk_tree_view_append_column (tv, col);
-
-  gtk_tree_view_column_add_attribute  (col, renderer, "text", c);
-}
-
-
 /* Pops up the dialog box */
 void
 t_test_paired_samples_dialog (GObject *o, gpointer data)
@@ -207,34 +183,16 @@ t_test_paired_samples_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
-  g_object_set (dict_view, "dictionary", tt_d.dict,
+  g_object_set (dict_view, "model", tt_d.dict,
 		"predicate",
 		var_is_numeric, NULL);
 
-  {
-    tt_d.list_store =
-      GTK_TREE_MODEL (
-		      gtk_list_store_new (2,
-					  PSPPIRE_VAR_PTR_TYPE,
-					  PSPPIRE_VAR_PTR_TYPE));
+  
+  tt_d.list_store = gtk_tree_view_get_model (GTK_TREE_VIEW (tt_d.pairs_treeview));
 
-
-    gtk_tree_view_set_model (GTK_TREE_VIEW (tt_d.pairs_treeview),
-			     GTK_TREE_MODEL (tt_d.list_store));
-
-
-    add_new_column (GTK_TREE_VIEW (tt_d.pairs_treeview), _("Var 1"), 0);
-    add_new_column (GTK_TREE_VIEW (tt_d.pairs_treeview), _("Var 2"), 1);
-  }
-
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 dict_view,
-				 tt_d.pairs_treeview,
-				 select_as_pair_member,
-				 NULL,
-				 &tt_d);
-
+  psppire_selector_set_select_func (PSPPIRE_SELECTOR (selector),
+				    select_as_pair_member,
+				    &tt_d);
 
   g_signal_connect_swapped (dialog, "refresh",
 			    G_CALLBACK (refresh),  &tt_d);

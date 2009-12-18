@@ -18,6 +18,7 @@
 
 #include "checkbox-treeview.h"
 #include "frequencies-dialog.h"
+#include "psppire-var-view.h"
 
 #include <gtk/gtk.h>
 #include <stdlib.h>
@@ -147,7 +148,7 @@ generate_syntax (const struct frequencies_dialog *fd)
   GString *string = g_string_new ("FREQUENCIES");
 
   g_string_append (string, "\n\t/VARIABLES=");
-  append_variable_names (string, fd->dict, GTK_TREE_VIEW (fd->stat_vars), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (fd->stat_vars), 0, string);
 
   g_string_append (string, "\n\t/FORMAT=");
 
@@ -316,7 +317,6 @@ frequencies_dialog (GObject *o, gpointer data)
   GtkWidget *dialog = get_widget_assert   (xml, "frequencies-dialog");
   GtkWidget *source = get_widget_assert   (xml, "dict-treeview");
   GtkWidget *dest =   get_widget_assert   (xml, "var-treeview");
-  GtkWidget *selector = get_widget_assert (xml, "selector1");
   GtkWidget *format_button = get_widget_assert (xml, "button1");
   GtkWidget *stats_treeview = get_widget_assert (xml, "stats-treeview");
 
@@ -334,19 +334,7 @@ frequencies_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_get (vs, "dictionary", &fd.dict, NULL);
-  g_object_set (source, "dictionary", fd.dict, NULL);
-
-
-  set_dest_model (GTK_TREE_VIEW (dest), fd.dict);
-
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 dest,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
-
+  g_object_set (source, "model", fd.dict, NULL);
 
   fd.stat_vars = GTK_TREE_VIEW (dest);
   fd.table_button = get_widget_assert (xml, "checkbutton1");

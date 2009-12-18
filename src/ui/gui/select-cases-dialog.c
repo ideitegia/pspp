@@ -326,17 +326,13 @@ select_cases_dialog (GObject *o, gpointer data)
   {
     GtkWidget *source = get_widget_assert   (scd.xml, "select-cases-treeview");
 
-    g_object_set (source, "dictionary",
+    g_object_set (source, "model",
 		  scd.data_store->dict,
 		  "selection-mode",
 		  GTK_SELECTION_SINGLE, NULL);
 
-    psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				   source,
-				   entry,
-				   insert_source_row_into_entry,
-				   is_currently_in_entry,
-				   NULL);
+    psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector),
+				   is_currently_in_entry);
   }
 
 

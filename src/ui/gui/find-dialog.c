@@ -243,17 +243,13 @@ find_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
 
-  g_object_set (source, "dictionary", fd.dict,
+  g_object_set (source, "model", fd.dict,
 	"selection-mode", GTK_SELECTION_SINGLE,
 	NULL);
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 fd.variable_entry,
-				 insert_source_row_into_entry,
-				 is_currently_in_entry,
-				 NULL
-				 );
+
+  psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector),
+				    is_currently_in_entry);
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  &fd);
 

@@ -173,8 +173,10 @@
 	  </displayable-values>
 	</property>
 
-
-	<property id="visible" ignore="True" default="True" />
+	<property id="source-widget"     ignore="True" />
+	<property id="dest-widget"       ignore="True" />
+	<property id="visible"           ignore="True" default="True" />
+	<property id="primary"           default="False" />
      </properties>
 
     </glade-widget-class>
@@ -210,12 +212,33 @@
       <property id="child"                disabled="True" />
       <property id="homogeneous"          disabled="True" />
       <property id="visible" ignore="True" default="True" />
+      <property id="model"                visible="False"  query="False" />
+    </properties>
+
+    </glade-widget-class>
+
+
+    <glade-widget-class name="PsppireVarView" generic-name="psppire-var-view" title="Variable Treeview">
+
+      <post-create-function>glade_psppire_var_view_post_create</post-create-function>
+      <get-children-function>glade_psppire_var_view_get_children</get-children-function>
+      <get-internal-child-function>glade_psppire_var_view_get_internal_child</get-internal-child-function>
+
+
+    <properties>
+      <property id="child"                disabled="True" />
+      <property id="homogeneous"          disabled="True" />
+      <property id="visible" ignore="True" default="True" />
+      <property id="model"                visible="False"  query="False" disabled="True" />
+      <property id="n-cols"    ignore="True" />
+
     </properties>
 
     </glade-widget-class>
 
 
   </glade-widget-classes>
+
  
 
  <glade-widget-group name="psppire" title="Psppire">
@@ -223,6 +246,7 @@
   <glade-widget-class-ref name="PsppireHButtonBox"/>
   <glade-widget-class-ref name="PsppireVButtonBox"/>
   <glade-widget-class-ref name="PsppireDictView"/>
+  <glade-widget-class-ref name="PsppireVarView"/>
   <glade-widget-class-ref name="PsppireSelector"/>
   <glade-widget-class-ref name="PsppireKeypad"/>
   <glade-widget-class-ref name="PsppireAcr"/>

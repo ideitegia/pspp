@@ -55,6 +55,7 @@ UNINSTALL_DATA_HOOKS += uninstall-icons
 
 
 UI_FILES = \
+	src/ui/gui/correlation.ui \
 	src/ui/gui/crosstabs.ui \
 	src/ui/gui/descriptives.ui \
 	src/ui/gui/examine.ui \
@@ -64,9 +65,11 @@ UI_FILES = \
 	src/ui/gui/oneway.ui \
 	src/ui/gui/psppire.ui \
 	src/ui/gui/rank.ui \
+	src/ui/gui/sort.ui \
 	src/ui/gui/recode.ui \
 	src/ui/gui/regression.ui \
 	src/ui/gui/reliability.ui \
+	src/ui/gui/roc.ui \
 	src/ui/gui/t-test.ui \
 	src/ui/gui/text-data-import.ui \
 	src/ui/gui/var-sheet-dialogs.ui \
@@ -113,6 +116,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/comments-dialog.h \
 	src/ui/gui/compute-dialog.c \
 	src/ui/gui/compute-dialog.h \
+	src/ui/gui/correlation-dialog.c \
+	src/ui/gui/correlation-dialog.h \
 	src/ui/gui/crosstabs-dialog.c \
 	src/ui/gui/crosstabs-dialog.h \
 	src/ui/gui/customentry.c \
@@ -163,7 +168,11 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/psppire-keypad.h \
 	src/ui/gui/psppire-output-window.c \
 	src/ui/gui/psppire-output-window.h \
+	src/ui/gui/psppire-var-view.c \
+	src/ui/gui/psppire-var-view.h \
 	src/ui/gui/psppire-selector.h \
+	src/ui/gui/psppire-select-dest.c \
+	src/ui/gui/psppire-select-dest.h \
 	src/ui/gui/psppire-syntax-window.c \
 	src/ui/gui/psppire-syntax-window.h \
 	src/ui/gui/psppire-var-ptr.c \
@@ -185,6 +194,8 @@ src_ui_gui_psppire_SOURCES = \
 	src/ui/gui/regression-dialog.h \
 	src/ui/gui/reliability-dialog.c \
 	src/ui/gui/reliability-dialog.h \
+	src/ui/gui/roc-dialog.c \
+	src/ui/gui/roc-dialog.h \
 	src/ui/gui/select-cases-dialog.c \
 	src/ui/gui/select-cases-dialog.h \
 	src/ui/gui/sort-cases-dialog.c \

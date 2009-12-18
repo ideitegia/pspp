@@ -114,6 +114,7 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
       goto error;
     }
 
+  value_init (&roc.state_value, var_get_width (roc.state_var));
   parse_value (lexer, &roc.state_value, var_get_width (roc.state_var));
 
 
@@ -273,10 +274,12 @@ cmd_roc (struct lexer *lexer, struct dataset *ds)
   if ( ! run_roc (ds, &roc)) 
     goto error;
 
+  value_destroy (&roc.state_value, var_get_width (roc.state_var));
   free (roc.vars);
   return CMD_SUCCESS;
 
  error:
+  value_destroy (&roc.state_value, var_get_width (roc.state_var));
   free (roc.vars);
   return CMD_FAILURE;
 }

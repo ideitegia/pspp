@@ -23,38 +23,16 @@
 #include <gtk/gtk.h>
 #include "psppire-dict.h"
 
-/* Append the names of selected variables to STRING.
-   TREEVIEW is the treeview containing the variables.
-   COLUMN is column in treeview containing the variables.
-   DICT is the dictionary for those variables.
-*/
-gint append_variable_names (GString *string, PsppireDict *dict,
-			    GtkTreeView *treeview, gint column);
-
-
-/* Returns the variable currently selected by the iterator
-   pointing to TREEMODEL */
-struct variable * get_selected_variable (GtkTreeModel *treemodel,
-					 GtkTreeIter *iter,
-					 PsppireDict *dict);
-
-
-
 /* A (*GtkTreeCellDataFunc) function.
    This function expects TREEMODEL to hold G_TYPE_INT.  The ints it holds
    are the indices of the variables in the dictionary, which DATA points to.
    It renders the name of the variable into CELL.
 */
-void cell_var_name (GtkTreeViewColumn *tree_column,
+void XXX_cell_var_name (GtkTreeViewColumn *tree_column,
 		    GtkCellRenderer *cell,
 		    GtkTreeModel *tree_model,
 		    GtkTreeIter *iter,
 		    gpointer data);
-
-
-/* Set a model for DEST, which is an GtkListStore of g_int's
-   whose values are the indices into DICT */
-void set_dest_model (GtkTreeView *dest, PsppireDict *dict);
 
 
 /* Returns FALSE if the variables represented by the union of the rows

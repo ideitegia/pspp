@@ -10,6 +10,7 @@
 #include "psppire-keypad.h"
 #include "psppire-acr.h"
 #include "psppire-dictview.h"
+#include "psppire-var-view.h"
 
 
 /* Any custom widgets which are to be used in GtkBuilder ui files
@@ -25,4 +26,5 @@ preregister_widgets (void)
   psppire_keypad_get_type ();
   psppire_acr_get_type ();
   psppire_dict_view_get_type ();
+  psppire_var_view_get_type ();
 }

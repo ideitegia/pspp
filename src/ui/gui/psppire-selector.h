@@ -77,7 +77,10 @@ struct _PsppireSelector
   GtkWidget *arrow;
   GtkAction *action;
 
+  gboolean dispose_has_run;
+
   enum psppire_selector_dir direction;
+
   GtkWidget *source;
   GtkWidget *dest;
 
@@ -97,6 +100,12 @@ struct _PsppireSelector
   FilterItemsFunc *filter;
 
   AllowSelectionFunc *allow_selection;
+
+  gulong row_activate_id ;
+
+  gulong source_select_id ;
+
+  gboolean primary_requested;
 };
 
 struct _PsppireSelectorClass
@@ -106,18 +115,26 @@ struct _PsppireSelectorClass
   /* This is a hash of Lists of FilterItemsFunc pointers, keyed by address of
      the source widget */
   GHashTable *source_hash;
+
+  /* A hash of SelectItemFuncs indexed by GType */
+  GHashTable *default_selection_funcs;
 };
 
 GType      psppire_selector_get_type        (void);
 GtkWidget* psppire_selector_new             (void);
-void       psppire_selector_set_subjects    (PsppireSelector *,
-					     GtkWidget *,
-					     GtkWidget *,
-					     SelectItemsFunc *,
-					     FilterItemsFunc *,
-					     gpointer );
 
-void      psppire_selector_set_allow        (PsppireSelector *, AllowSelectionFunc *);
+
+/* Set FILTER_FUNC for this selector */
+void psppire_selector_set_filter_func (PsppireSelector *selector,
+				       FilterItemsFunc *filter_func);
+
+/* Set SELECT_FUNC for this selector */
+void psppire_selector_set_select_func (PsppireSelector *selector,
+				       SelectItemsFunc *select_func,
+				       gpointer user_data);
+
+
+void psppire_selector_set_allow (PsppireSelector *, AllowSelectionFunc *);
 
 
 GType psppire_selector_orientation_get_type (void) G_GNUC_CONST;
@@ -133,6 +150,8 @@ typedef enum {
 #define PSPPIRE_TYPE_SELECTOR_ORIENTATION \
   (psppire_selector_orientation_get_type())
 
+
+void psppire_selector_set_default_selection_func (GType type, SelectItemsFunc *);
 
 
 G_END_DECLS

@@ -54,9 +54,6 @@
  */
 
 #include <config.h>
-#include <gettext.h>
-#define _(msgid) gettext (msgid)
-
 
 #include <gtk/gtksignal.h>
 #include <gtk/gtkentry.h>
@@ -331,7 +328,7 @@ psppire_custom_entry_class_init (PsppireCustomEntryClass *klass)
     (widget_class,
      g_param_spec_enum ("shadow_type",
 			"Shadow Type",
-			_("Style of bevel around the custom entry button"),
+			"Style of bevel around the custom entry button",
 			GTK_TYPE_SHADOW_TYPE,
 			GTK_SHADOW_ETCHED_IN,
 			G_PARAM_READABLE),

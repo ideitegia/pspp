@@ -132,19 +132,13 @@ weight_cases_dialog (GObject *o, gpointer data)
 		    radiobutton1);
 
   
-  g_object_set (source, "dictionary", wcd.dict,
+  g_object_set (source, "model", wcd.dict,
 				 "selection-mode", GTK_SELECTION_SINGLE,
 				 "predicate", var_is_numeric,
 				 NULL);
 
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 entry,
-				 insert_source_row_into_entry,
-				 is_currently_in_entry,
-				 NULL
-				 );
-
+  psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector),
+				    is_currently_in_entry);
 
 
   wcd.entry = GTK_ENTRY (entry);

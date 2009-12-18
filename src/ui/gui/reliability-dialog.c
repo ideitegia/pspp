@@ -24,6 +24,7 @@
 #include "psppire-dialog.h"
 
 #include "psppire-data-window.h"
+#include "psppire-var-view.h"
 
 #include "executor.h"
 #include "helper.h"
@@ -121,8 +122,6 @@ reliability_dialog (GObject *o, gpointer data)
   GtkWidget *dialog = get_widget_assert   (xml, "reliability-dialog");
   GtkWidget *source = get_widget_assert   (xml, "dict-view");
 
-  GtkWidget *selector = get_widget_assert (xml, "psppire-selector1");
-
   rd.split_point_hbox = get_widget_assert (xml, "split-point-hbox");
 
   rd.variables = get_widget_assert   (xml, "treeview2");
@@ -138,16 +137,7 @@ reliability_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_get (vs, "dictionary", &rd.dict, NULL);
-  g_object_set (source, "dictionary", rd.dict, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (rd.variables), rd.dict);
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 source,
-				 rd.variables,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
+  g_object_set (source, "model", rd.dict, NULL);
 
   {
     GtkTreeModel *tm =
@@ -206,7 +196,7 @@ generate_syntax (const struct reliability *rd)
   GString *string = g_string_new ("RELIABILITY");
 
   g_string_append (string, "\n\t/VARIABLES=");
-  append_variable_names (string, rd->dict, GTK_TREE_VIEW (rd->variables), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->variables), 0, string);
 
 
   g_string_append (string, "\n\t/MODEL=");

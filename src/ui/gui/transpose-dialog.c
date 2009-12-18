@@ -18,6 +18,7 @@
 
 #include "transpose-dialog.h"
 #include "psppire-selector.h"
+#include "psppire-var-view.h"
 #include "psppire-dialog.h"
 #include "executor.h"
 #include "psppire-data-window.h"
@@ -88,30 +89,15 @@ transpose_dialog (GObject *o, gpointer data)
 
   GtkWidget *dialog = get_widget_assert (xml, "transpose-dialog");
   GtkWidget *source = get_widget_assert (xml, "source-treeview");
-  GtkWidget *dest = get_widget_assert (xml, "variables-treeview");
-  GtkWidget *selector1 = get_widget_assert (xml, "psppire-selector2");
   GtkWidget *selector2 = get_widget_assert (xml, "psppire-selector3");
-  GtkWidget *new_name_entry = get_widget_assert (xml, "new-name-entry");
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
 
   g_object_get (vs, "dictionary", &dict, NULL);
-  g_object_set (source, "dictionary", dict, NULL);
+  g_object_set (source, "model", dict, NULL);
 
-  set_dest_model (GTK_TREE_VIEW (dest), dict);
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector1),
-				 source, dest,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
-
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector2),
-				 source, new_name_entry,
-				 insert_source_row_into_entry,
-				 is_currently_in_entry,
-				 NULL);
+  psppire_selector_set_filter_func (PSPPIRE_SELECTOR (selector2),
+				 is_currently_in_entry);
 
 
   g_signal_connect (dialog, "refresh", G_CALLBACK (refresh),  xml);
@@ -166,7 +152,7 @@ generate_syntax (PsppireDict *dict, GtkBuilder *xml)
 
   g_string_append (string, " /VARIABLES = ");
 
-  append_variable_names (string, dict, GTK_TREE_VIEW (dest), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (dest), 0, string);
 
   text = gtk_entry_get_text (GTK_ENTRY (entry));
 

@@ -21,6 +21,7 @@
 #include "t-test-one-sample.h"
 #include "psppire-dict.h"
 #include "psppire-var-store.h"
+#include "psppire-var-view.h"
 #include "helper.h"
 #include "psppire-data-window.h"
 #include "psppire-dialog.h"
@@ -58,7 +59,7 @@ generate_syntax (const struct tt_one_sample_dialog *d)
 
   g_string_append (str, "\n\t/VARIABLES=");
 
-  append_variable_names (str, d->dict, GTK_TREE_VIEW (d->vars_treeview), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (d->vars_treeview), 0, str);
 
   tt_options_dialog_append_syntax (d->opt, str);
 
@@ -135,8 +136,6 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
   GtkWidget *options_button =
     get_widget_assert (xml, "button1");
 
-  GtkWidget *selector = get_widget_assert (xml, "psppire-selector1");
-
   GtkWidget *dialog = get_widget_assert (xml, "t-test-one-sample-dialog");
 
   g_object_get (de->data_editor, "var-store", &vs, NULL);
@@ -148,20 +147,10 @@ t_test_one_sample_dialog (GObject *o, gpointer data)
 
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
-  g_object_set (dict_view, "dictionary",
+  g_object_set (dict_view, "model",
 		tt_d.dict,
 		"predicate",
 		var_is_numeric, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (tt_d.vars_treeview), tt_d.dict);
-
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (selector),
-				 dict_view, tt_d.vars_treeview,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
-
 
   g_signal_connect_swapped (dialog, "refresh",
 			    G_CALLBACK (refresh),  &tt_d);

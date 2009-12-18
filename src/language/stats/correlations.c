@@ -18,6 +18,7 @@
 
 #include <libpspp/assertion.h>
 #include <math/covariance.h>
+#include <math/correlation.h>
 #include <math/design-matrix.h>
 #include <gsl/gsl_matrix.h>
 #include <data/casegrouper.h>
@@ -44,21 +45,6 @@
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
 #define N_(msgid) msgid
-
-
-static double
-significance_of_correlation (double rho, double w)
-{
-  double t = w - 2;
-  t /= 1 - MIN (1, pow2 (rho));
-  t = sqrt (t);
-  t *= rho;
-  
-  if (t > 0)
-    return  gsl_cdf_tdist_Q (t, w - 2);
-  else
-    return  gsl_cdf_tdist_P (t, w - 2);
-}
 
 
 struct corr
@@ -289,32 +275,6 @@ output_correlation (const struct corr *corr, const struct corr_opts *opts,
 
   tab_submit (t);
 }
-
-
-static gsl_matrix *
-correlation_from_covariance (const gsl_matrix *cv, const gsl_matrix *v)
-{
-  size_t i, j;
-  gsl_matrix *corr = gsl_matrix_calloc (cv->size1, cv->size2);
-  
-  for (i = 0 ; i < cv->size1; ++i)
-    {
-      for (j = 0 ; j < cv->size2; ++j)
-	{
-	  double rho = gsl_matrix_get (cv, i, j);
-	  
-	  rho /= sqrt (gsl_matrix_get (v, i, j))
-	    * 
-	    sqrt (gsl_matrix_get (v, j, i));
-	  
-	  gsl_matrix_set (corr, i, j, rho);
-	}
-    }
-  
-  return corr;
-}
-
-
 
 
 static void

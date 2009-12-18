@@ -30,6 +30,7 @@
 #include <ui/gui/helper.h>
 #include <ui/gui/psppire-dialog.h>
 #include <ui/gui/psppire-var-store.h>
+#include <ui/gui/psppire-var-view.h>
 
 
 #include "gettext.h"
@@ -157,9 +158,9 @@ generate_syntax (const struct regression_dialog *rd)
   GString *string = g_string_new ("REGRESSION");
 
   g_string_append (string, "\n\t/VARIABLES=");
-  append_variable_names (string, rd->dict, GTK_TREE_VIEW (rd->indep_vars), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->indep_vars), 0, string);
   g_string_append (string, "\n\t/DEPENDENT=\t");
-  append_variable_names (string, rd->dict, GTK_TREE_VIEW (rd->dep_vars), 0);
+  psppire_var_view_append_names (PSPPIRE_VAR_VIEW (rd->dep_vars), 0, string);
 
   selected = 0;
   for (i = 0, ok = gtk_tree_model_get_iter_first (rd->stat, &iter); ok; 
@@ -234,11 +235,10 @@ regression_dialog (GObject *o, gpointer data)
   GtkWidget *source = get_widget_assert   (xml, "dict-view");
   GtkWidget *dest_dep =   get_widget_assert   (xml, "dep-view");
   GtkWidget *dest_indep =   get_widget_assert   (xml, "indep-view");
-  GtkWidget *dep_selector = get_widget_assert (xml, "dep-selector");
-  GtkWidget *indep_selector = get_widget_assert (xml, "indep-selector");
   GtkWidget *stat_button = get_widget_assert (xml, "stat-button");
   GtkWidget *save_button = get_widget_assert (xml, "save-button");
 
+  GtkWidget *dep_selector = get_widget_assert (xml, "dep-selector");
 
   rd.stat_view = get_widget_assert (xml, "stat-view");
 
@@ -254,28 +254,12 @@ regression_dialog (GObject *o, gpointer data)
   gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (de));
 
   g_object_get (vs, "dictionary", &rd.dict, NULL);
-  g_object_set (source, "dictionary", rd.dict, NULL);
-
-  set_dest_model (GTK_TREE_VIEW (dest_dep), rd.dict);
-  set_dest_model (GTK_TREE_VIEW (dest_indep), rd.dict);
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (dep_selector),
-				 source,
-				 dest_dep,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
-
-  psppire_selector_set_subjects (PSPPIRE_SELECTOR (indep_selector),
-				 source,
-				 dest_indep,
-				 insert_source_row_into_tree_view,
-				 NULL,
-				 NULL);
+  g_object_set (source, "model", rd.dict, NULL);
 
   rd.dep_vars = GTK_TREE_VIEW (dest_dep);
   rd.indep_vars = GTK_TREE_VIEW (dest_indep);
 
+  psppire_selector_set_allow (PSPPIRE_SELECTOR (dep_selector), numeric_only);
 
   rd.save_dialog = get_widget_assert (xml, "save-dialog");
   rd.pred_button = GTK_TOGGLE_BUTTON (get_widget_assert (xml, "pred-button"));

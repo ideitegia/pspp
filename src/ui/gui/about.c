@@ -78,8 +78,6 @@ about_new (GtkMenuItem *m, GtkWindow *parent)
 
   gtk_window_set_modal (GTK_WINDOW (about), TRUE);
 
-  gtk_window_set_keep_above (GTK_WINDOW (about), TRUE);
-
   gtk_dialog_run (GTK_DIALOG (about));
 
   gtk_widget_hide (about);
