@@ -77,4 +77,14 @@
 #define PURE_FUNCTION
 #endif
 
+/* This attribute indicates that the argument with the given
+   IDX must be a null pointer.  IDX counts backward in the
+   argument list, so that 0 is the last argument, 1 is the
+   second-from-last argument, and so on. */
+#if __GNUC__ > 3
+#define SENTINEL(IDX) ATTRIBUTE ((sentinel(IDX)))
+#else
+#define SENTINEL
+#endif
+
 #endif /* compiler.h */
