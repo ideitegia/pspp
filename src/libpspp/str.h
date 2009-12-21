@@ -203,6 +203,7 @@ char *ds_xstrdup (const struct string *);
 
 size_t ds_capacity (const struct string *);
 char *ds_cstr (const struct string *);
+char *ds_steal_cstr (struct string *);
 
 /* File input. */
 bool ds_read_line (struct string *, FILE *, size_t max_length);

@@ -1222,6 +1222,17 @@ ds_cstr (const struct string *st_)
   return st->ss.string;
 }
 
+/* Returns the value of ST as a null-terminated string and then
+   reinitialized ST as an empty string.  The caller must free the
+   returned string with free(). */
+char *
+ds_steal_cstr (struct string *st)
+{
+  char *s = ds_cstr (st);
+  ds_init_empty (st);
+  return s;
+}
+
 /* Reads characters from STREAM and appends them to ST, stopping
    after MAX_LENGTH characters, after appending a newline, or
    after an I/O error or end of file was encountered, whichever
