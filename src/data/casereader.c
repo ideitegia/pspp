@@ -258,7 +258,8 @@ casereader_get_case_cnt (struct casereader *reader)
 }
 
 static casenumber
-casereader_count_cases__ (struct casereader *reader, casenumber max_cases)
+casereader_count_cases__ (const struct casereader *reader,
+                          casenumber max_cases)
 {
   struct casereader *clone;
   casenumber n_cases;
@@ -280,10 +281,13 @@ casereader_count_cases__ (struct casereader *reader, casenumber max_cases)
    of the contents of a clone of READER.  Thus, the return value
    is always correct in the absence of I/O errors. */
 casenumber
-casereader_count_cases (struct casereader *reader)
+casereader_count_cases (const struct casereader *reader)
 {
   if (reader->case_cnt == CASENUMBER_MAX)
-    reader->case_cnt = casereader_count_cases__ (reader, CASENUMBER_MAX);
+    {
+      struct casereader *reader_rw = CONST_CAST (struct casereader *, reader);
+      reader_rw->case_cnt = casereader_count_cases__ (reader, CASENUMBER_MAX);
+    }
   return reader->case_cnt;
 }
 

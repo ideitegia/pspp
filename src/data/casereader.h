@@ -77,7 +77,7 @@ void casereader_force_error (struct casereader *);
 const struct taint *casereader_get_taint (const struct casereader *);
 
 casenumber casereader_get_case_cnt (struct casereader *);
-casenumber casereader_count_cases (struct casereader *);
+casenumber casereader_count_cases (const struct casereader *);
 void casereader_truncate (struct casereader *, casenumber);
 const struct caseproto *casereader_get_proto (const struct casereader *);
 
