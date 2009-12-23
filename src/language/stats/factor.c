@@ -1033,9 +1033,6 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
   {
     gsl_vector_const_view r1 = gsl_matrix_const_row (fm, 0);
     gsl_vector_const_view r2 = gsl_matrix_const_row (fm, 1);
-
-    dump_vector (&r1.vector);
-    dump_vector (&r2.vector);
   }
 
   /* Initialise to the identity permutation */
@@ -1154,7 +1151,6 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 
   if (factor->print & PRINT_ROTATION)
     {
-      printf ("C is %d\n", c);
       tab_joint_text (t, c, 0, c + 2, 0, TAB_CENTER | TAT_TITLE, _("Rotation Sums of Squared Loadings"));
       c += 3;
     }
