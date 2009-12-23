@@ -28,6 +28,7 @@ language_stats_sources = \
 	src/language/stats/sort-cases.c \
 	src/language/stats/sort-criteria.c \
 	src/language/stats/sort-criteria.h \
+	src/language/stats/factor.c \
 	src/language/stats/flip.c \
 	src/language/stats/freq.c \
 	src/language/stats/freq.h \
