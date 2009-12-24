@@ -116,6 +116,10 @@ struct idata
 {
   /* Intermediate values used in calculation */
 
+  const gsl_matrix *corr ;  /* The correlation matrix */
+  const gsl_matrix *cov ;   /* The covariance matrix */
+  const gsl_matrix *n ;     /* Matrix of number of samples */
+
   gsl_vector *eval ;  /* The eigenvalues */
   gsl_matrix *evec ;  /* The eigenvectors */
 
@@ -127,7 +131,7 @@ struct idata
 static struct idata *
 idata_alloc (size_t n_vars)
 {
-  struct idata *id = xmalloc (sizeof (*id));
+  struct idata *id = xzalloc (sizeof (*id));
 
   id->n_extractions = 0;
   id->msr = gsl_vector_alloc (n_vars);
@@ -280,7 +284,7 @@ ws_destroy (struct smr_workspace *ws)
    Return the square of the regression coefficient for VAR regressed against all other variables.
  */
 static double
-squared_multiple_correlation (const gsl_matrix *analysis_matrix, int var, struct smr_workspace *ws)
+squared_multiple_correlation (const gsl_matrix *corr, int var, struct smr_workspace *ws)
 {
   /* For an explanation of what this is doing, see 
      http://www.visualstatistics.net/Visual%20Statistics%20Multimedia/multiple_regression_analysis.htm
@@ -289,7 +293,7 @@ squared_multiple_correlation (const gsl_matrix *analysis_matrix, int var, struct
   int signum = 0;
   gsl_matrix_view rxx;
 
-  gsl_matrix_memcpy (ws->m, analysis_matrix);
+  gsl_matrix_memcpy (ws->m, corr);
 
   gsl_matrix_swap_rows (ws->m, 0, var);
   gsl_matrix_swap_columns (ws->m, 0, var);
@@ -742,13 +746,17 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	      else if (lex_match_id (lexer, "AIC"))
 		{
 		}
+#endif
 	      else if (lex_match_id (lexer, "SIG"))
 		{
-		}
-	      else if (lex_match_id (lexer, "COVARIANCE"))
-		{
+		  factor.print |= PRINT_SIG;
 		}
 	      else if (lex_match_id (lexer, "CORRELATION"))
+		{
+		  factor.print |= PRINT_CORRELATION;
+		}
+#if FACTOR_FULLY_IMPLEMENTED
+	      else if (lex_match_id (lexer, "COVARIANCE"))
 		{
 		}
 #endif
@@ -1030,11 +1038,6 @@ show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const 
   tab_vline (t, TAL_2, heading_columns, 0, nr - 1);
 
 
-  {
-    gsl_vector_const_view r1 = gsl_matrix_const_row (fm, 0);
-    gsl_vector_const_view r2 = gsl_matrix_const_row (fm, 1);
-  }
-
   /* Initialise to the identity permutation */
   perm = gsl_permutation_calloc (factor->n_vars);
 
@@ -1216,18 +1219,155 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 }
 
 
+static void
+show_correlation_matrix (const struct cmd_factor *factor, const struct idata *idata)
+{
+  struct tab_table *t ;
+  size_t i, j;
+  int y_pos_corr = -1;
+  int y_pos_sig = -1;
+  int suffix_rows = 0;
+
+  const int heading_rows = 1;
+  const int heading_columns = 2;
+
+  int nc = heading_columns ;
+  int nr = heading_rows ;
+  int n_data_sets = 0;
+
+  if (factor->print & PRINT_CORRELATION)
+    {
+      y_pos_corr = n_data_sets;
+      n_data_sets++;
+      nc = heading_columns + factor->n_vars;
+    }
+
+  if (factor->print & PRINT_SIG)
+    {
+      y_pos_sig = n_data_sets;
+      n_data_sets++;
+      nc = heading_columns + factor->n_vars;
+    }
+
+  nr += n_data_sets * factor->n_vars;
+
+  if (factor->print & PRINT_DETERMINANT)
+    suffix_rows = 1;
+
+  /* If the table would contain only headings, don't bother rendering it */
+  if (nr <= heading_rows && suffix_rows == 0)
+    return;
+
+  t = tab_create (nc, nr + suffix_rows, 0);
+
+  tab_title (t, _("Correlation Matrix"));
+
+  tab_dim (t, tab_natural_dimensions, NULL);
+
+  tab_hline (t, TAL_1, 0, nc - 1, heading_rows);
+
+  if (nr > heading_rows)
+    {
+      tab_headers (t, heading_columns, 0, heading_rows, 0);
+
+      tab_vline (t, TAL_2, 2, 0, nr - 1);
+
+      /* Outline the box */
+      tab_box (t,
+	       TAL_2, TAL_2,
+	       -1, -1,
+	       0, 0,
+	       nc - 1, nr - 1);
+
+      /* Vertical lines */
+      tab_box (t,
+	       -1, -1,
+	       -1, TAL_1,
+	       heading_columns, 0,
+	       nc - 1, nr - 1);
+
+
+      for (i = 0; i < factor->n_vars; ++i)
+	tab_text (t, heading_columns + i, 0, TAT_TITLE, var_to_string (factor->vars[i]));
+
+
+      for (i = 0 ; i < n_data_sets; ++i)
+	{
+	  int y = heading_rows + i * factor->n_vars;
+	  size_t v;
+	  for (v = 0; v < factor->n_vars; ++v)
+	    tab_text (t, 1, y + v, TAT_TITLE, var_to_string (factor->vars[v]));
+
+	  tab_hline (t, TAL_1, 0, nc - 1, y);
+	}
+
+      if (factor->print & PRINT_CORRELATION)
+	{
+	  const double y = heading_rows + y_pos_corr;
+	  tab_text (t, 0, y, TAT_TITLE, _("Correlations"));
+
+	  for (i = 0; i < factor->n_vars; ++i)
+	    {
+	      for (j = 0; j < factor->n_vars; ++j)
+		tab_double (t, heading_columns + i,  y + j, 0, gsl_matrix_get (idata->corr, i, j), NULL);
+	    }
+	}
+
+      if (factor->print & PRINT_SIG)
+	{
+	  const double y = heading_rows + y_pos_sig * factor->n_vars;
+	  tab_text (t, 0, y, TAT_TITLE, _("Sig. 1-tailed"));
+
+	  for (i = 0; i < factor->n_vars; ++i)
+	    {
+	      for (j = 0; j < factor->n_vars; ++j)
+		{
+		  double rho = gsl_matrix_get (idata->corr, i, j);
+		  double w = gsl_matrix_get (idata->n, i, j);
+
+		  if (i == j)
+		    continue;
+
+		  tab_double (t, heading_columns + i,  y + j, 0, significance_of_correlation (rho, w), NULL);
+		}
+	    }
+	}
+    }
+
+  if (factor->print & PRINT_DETERMINANT)
+    {
+      int sign = 0;
+      double det = 0.0;
+
+      const int size = idata->corr->size1;
+      gsl_permutation *p = gsl_permutation_calloc (size);
+      gsl_matrix *tmp = gsl_matrix_calloc (size, size);
+      gsl_matrix_memcpy (tmp, idata->corr);
+
+      gsl_linalg_LU_decomp (tmp, p, &sign);
+      det = gsl_linalg_LU_det (tmp, sign);
+      gsl_permutation_free (p);
+      gsl_matrix_free (tmp);
+
+
+      tab_text (t, 0, nr, TAB_LEFT | TAT_TITLE, _("Determinant"));
+      tab_double (t, 1, nr, 0, det, NULL);
+    }
+
+  tab_submit (t);
+}
+
+
 
 static void
 do_factor (const struct cmd_factor *factor, struct casereader *r)
 {
   struct ccase *c;
-  const gsl_matrix *cov_matrix;
   const gsl_matrix *var_matrix;
   const gsl_matrix *mean_matrix;
-  const gsl_matrix *n_matrix;
 
   const gsl_matrix *analysis_matrix;
-  struct idata *idata;
+  struct idata *idata = idata_alloc (factor->n_vars);
 
   struct covariance *cov = covariance_create (factor->n_vars, factor->vars,
 					      factor->wv, factor->exclude);
@@ -1237,18 +1377,19 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
       covariance_accumulate (cov, c);
     }
 
-  cov_matrix = covariance_calculate (cov);
+  idata->cov = covariance_calculate (cov);
 
   var_matrix = covariance_moments (cov, MOMENT_VARIANCE);
   mean_matrix = covariance_moments (cov, MOMENT_MEAN);
-  n_matrix = covariance_moments (cov, MOMENT_NONE);
+  idata->n = covariance_moments (cov, MOMENT_NONE);
 
   if ( factor->method == METHOD_CORR)
     {
-      analysis_matrix = correlation_from_covariance (cov_matrix, var_matrix);
+      idata->corr = correlation_from_covariance (idata->cov, var_matrix);
+      analysis_matrix = idata->corr;
     }
   else
-    analysis_matrix = cov_matrix;
+    analysis_matrix = idata->cov;
 
   if ( factor->print & PRINT_UNIVARIATE)
     {
@@ -1296,54 +1437,13 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
 
 	  tab_double (t, 1, i + heading_rows, 0, gsl_matrix_get (mean_matrix, i, i), NULL);
 	  tab_double (t, 2, i + heading_rows, 0, sqrt (gsl_matrix_get (var_matrix, i, i)), NULL);
-	  tab_double (t, 3, i + heading_rows, 0, gsl_matrix_get (n_matrix, i, i), wfmt);
+	  tab_double (t, 3, i + heading_rows, 0, gsl_matrix_get (idata->n, i, i), wfmt);
 	}
 
       tab_submit (t);
     }
 
-  if ( factor->print & PRINT_DETERMINANT)
-    {
-      const int nc = 2;
-      const int heading_columns = 0;
-      const int heading_rows = 0;
-      const int nr = 1;
-      struct tab_table *t ;
-
-      int sign = 0;
-      double det = 0.0;
-      const int size = analysis_matrix->size1;
-      gsl_permutation *p = gsl_permutation_calloc (size);
-      gsl_matrix *tmp = gsl_matrix_calloc (size, size);
-
-      gsl_matrix_memcpy (tmp, analysis_matrix);
-      gsl_linalg_LU_decomp (tmp, p, &sign);
-      det = gsl_linalg_LU_det (tmp, sign);
-      gsl_permutation_free (p);
-      gsl_matrix_free (tmp);
-
-      t = tab_create (nc, nr, 0);
-
-      if ( factor->method == METHOD_CORR)
-	tab_title (t, _("Correlation Matrix"));
-      else 
-	tab_title (t, _("Covariance Matrix"));
-
-      tab_dim (t, tab_natural_dimensions, NULL);
-
-      tab_headers (t, heading_columns, 0, heading_rows, 0);
-
-      tab_hline (t, TAL_1, 0, nc - 1, heading_rows);
-
-      tab_text (t, 0, 0, TAB_LEFT | TAT_TITLE, _("Determinant"));
-      tab_double (t, 1, 0, 0, det, NULL);
-
-      tab_submit (t);
-    }
-
-
-  idata = idata_alloc (factor->n_vars);
-
+  show_correlation_matrix (factor, idata);
 
 #if 1
   {
