@@ -22,6 +22,8 @@ src_output_liboutput_la_SOURCES = \
 	src/output/charts/plot-hist.h \
 	src/output/charts/roc-chart.c \
 	src/output/charts/roc-chart.h \
+	src/output/charts/scree.c \
+	src/output/charts/scree.h \
 	src/output/html.c \
 	src/output/htmlP.h \
 	src/output/journal.c \

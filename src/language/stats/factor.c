@@ -46,6 +46,8 @@
 
 #include <output/table.h>
 
+#include <output/charts/scree.h>
+#include <output/chart.h>
 
 #include "gettext.h"
 #define _(msgid) gettext (msgid)
@@ -68,6 +70,12 @@ enum extraction_method
   {
     EXTRACTION_PC,
     EXTRACTION_PAF,
+  };
+
+enum plot_opts
+  {
+    PLOT_SCREE = 0x0001,
+    PLOT_ROTATION = 0x0002
   };
 
 enum print_opts
@@ -100,6 +108,7 @@ struct cmd_factor
   enum mv_class exclude;
   enum print_opts print;
   enum extraction_method extraction;
+  enum plot_opts plot;
 
   /* Extraction Criteria */
   int n_factors;
@@ -526,6 +535,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
   factor.econverge = 0.001;
   factor.blank = 0;
   factor.sort = false;
+  factor.plot = 0;
 
   factor.wv = dict_get_weight (dict);
 
@@ -546,7 +556,6 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
     {
       lex_match (lexer, '/');
 
-#if FACTOR_FULLY_IMPLEMENTED
       if (lex_match_id (lexer, "PLOT"))
 	{
           lex_match (lexer, '=');
@@ -554,10 +563,13 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	    {
 	      if (lex_match_id (lexer, "EIGEN"))
 		{
+		  factor.plot |= PLOT_SCREE;
 		}
+#if FACTOR_FULLY_IMPLEMENTED
 	      else if (lex_match_id (lexer, "ROTATION"))
 		{
 		}
+#endif
 	      else
 		{
 		  lex_error (lexer, NULL);
@@ -565,9 +577,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		}
 	    }
 	}
-      else
-#endif
-      if (lex_match_id (lexer, "METHOD"))
+      else if (lex_match_id (lexer, "METHOD"))
 	{
           lex_match (lexer, '=');
           while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
@@ -911,6 +921,22 @@ communality (struct idata *idata, int n, int n_factors)
 }
 
 
+static void
+show_scree (const struct cmd_factor *f, struct idata *idata)
+{
+  struct scree *s;
+  const char *label ;
+
+  if ( !(f->plot & PLOT_SCREE) )
+    return;
+
+
+  label = f->extraction == EXTRACTION_PC ? _("Component Number") : _("Factor Number");
+
+  s = scree_create (idata->eval, label);
+
+  chart_submit (scree_get_chart (s));
+}
 
 static void
 show_communalities (const struct cmd_factor * factor,
@@ -1516,6 +1542,8 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
     show_explained_variance (factor, idata, idata->eval, extracted_eigenvalues);
 
     factor_matrix_workspace_free (fmw);
+
+    show_scree (factor, idata);
 
     show_factor_matrix (factor, idata, factor_matrix);
 
