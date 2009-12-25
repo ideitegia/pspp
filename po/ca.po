@@ -4,12 +4,14 @@
 # Francisco J. Miguel Quesada <Miguel.Quesada@uab.cat>, 2009.
 # Palmira Payá Sanchez, 2009.
 # Javier Gómez Serrano, 2009.
+#
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: pspp-0.7.2-pre1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2009-09-08 21:57-0700\n"
-"PO-Revision-Date: 2009-12-18 14:50+0100\n"
+"PO-Revision-Date: 2009-12-20 23:44+0100\n"
 "Last-Translator: Francesc Josep Miguel Quesada <Miguel.Quesada@uab.cat>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -3832,1628 +3834,1524 @@ msgid "PSPP information"
 msgstr "Informació del PSPP"
 
 #: src/ui/gui/message-dialog.c:222
+#, fuzzy
 msgid "The PSPP processing engine reported the following message:"
 msgid_plural "The PSPP processing engine reported the following messages:"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "El processador de PSPP ha donat el seguent missatge:"
+msgstr[1] "El processador de PSPP ha donat el seguent missatge:"
 
 #: src/ui/gui/message-dialog.c:229
-#, c-format
+#, fuzzy, c-format
 msgid "The PSPP processing engine reported %d message."
 msgid_plural "The PSPP processing engine reported %d messages."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "El processador de PSPP ha donat el missatge %d."
+msgstr[1] "El processador de PSPP ha donat el missatge %d."
 
 #: src/ui/gui/message-dialog.c:236
-#, c-format
+#, fuzzy, c-format
 msgid "%d of these messages are displayed below."
 msgid_plural "%d of these messages are displayed below."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d d'aquests missatges es mostren a continuació."
+msgstr[1] "%d d'aquests missatges es mostren a continuació."
 
 #: src/ui/gui/missing-val-dialog.c:113 src/ui/gui/missing-val-dialog.c:167
 msgid "Incorrect value for variable type"
-msgstr ""
+msgstr "Valor incorrecte pel tipus de variable"
 
 #: src/ui/gui/missing-val-dialog.c:134 src/ui/gui/missing-val-dialog.c:143
 msgid "Incorrect range specification"
-msgstr ""
+msgstr "Especificació d'interval incorrecte"
 
 #: src/ui/gui/oneway-anova-dialog.c:331
 #, c-format
 msgid "Contrast %d of %d"
-msgstr ""
+msgstr "Contrast %d de %d"
 
 #: src/ui/gui/psppire.c:247
-#, fuzzy
 msgid "_Reset"
-msgstr "Reiniciar"
+msgstr "_Reiniciar"
 
 #: src/ui/gui/psppire.c:248
 msgid "_Select"
-msgstr ""
+msgstr "_Selecionar"
 
 #: src/ui/gui/psppire-data-editor.c:951
-#, fuzzy
 msgid "Data View"
-msgstr "arxiu de dades"
+msgstr "Vista de dades"
 
 #: src/ui/gui/psppire-data-editor.c:954
-#, fuzzy
 msgid "Variable View"
-msgstr "Variable"
+msgstr "Vista de Variables"
 
 #: src/ui/gui/psppire-data-store.c:744
 msgid "var"
-msgstr ""
+msgstr "var"
 
 #: src/ui/gui/psppire-data-store.c:755 src/ui/gui/psppire-var-store.c:699
 #: src/ui/gui/psppire-var-store.c:709 src/ui/gui/psppire-var-store.c:719
 #: src/ui/gui/psppire-var-store.c:825
 #, c-format
 msgid "%d"
-msgstr ""
+msgstr "%d"
 
 #: src/ui/gui/psppire-data-window.c:213
 msgid "Transformations Pending"
-msgstr ""
+msgstr "Transformacions pendents"
 
 #: src/ui/gui/psppire-data-window.c:229
 msgid "Filter off"
-msgstr ""
+msgstr "Filtre desactivat"
 
 #: src/ui/gui/psppire-data-window.c:243
 #, c-format
 msgid "Filter by %s"
-msgstr ""
+msgstr "Filtrat per %s"
 
 #: src/ui/gui/psppire-data-window.c:264
 msgid "No Split"
-msgstr ""
+msgstr "No dividit"
 
 #: src/ui/gui/psppire-data-window.c:273
 msgid "Split by "
-msgstr ""
+msgstr "Dividit per "
 
 #: src/ui/gui/psppire-data-window.c:301
-#, fuzzy
 msgid "Weights off"
-msgstr "Pes:"
+msgstr "Sense Ponderar:"
 
 #: src/ui/gui/psppire-data-window.c:315
-#, fuzzy, c-format
+#, c-format
 msgid "Weight by %s"
-msgstr "Pes:"
+msgstr "Ponderat per %s"
 
 #: src/ui/gui/psppire-data-window.c:383 src/ui/gui/data-editor.glade:702
 msgid "Open"
-msgstr ""
+msgstr "Obert"
 
 #: src/ui/gui/psppire-data-window.c:391 src/ui/gui/psppire-data-window.c:593
-#, fuzzy
 msgid "System Files (*.sav)"
-msgstr "Arxiu de Sistema."
+msgstr "Arxius de Sistema (*.sav)"
 
 #: src/ui/gui/psppire-data-window.c:397 src/ui/gui/psppire-data-window.c:599
-#, fuzzy
 msgid "Portable Files (*.por) "
-msgstr "arxiu portàtil"
+msgstr "Arxius Portables (*.por)"
 
 #: src/ui/gui/psppire-data-window.c:403 src/ui/gui/psppire-data-window.c:605
 #: src/ui/gui/psppire-syntax-window.c:298
 #: src/ui/gui/psppire-syntax-window.c:385
 msgid "All Files"
-msgstr ""
+msgstr "Tots els arxius"
 
 #: src/ui/gui/psppire-data-window.c:585 src/ui/gui/data-editor.glade:712
-#, fuzzy
 msgid "Save"
-msgstr "Escala"
+msgstr "Desar"
 
 #: src/ui/gui/psppire-data-window.c:613
-#, fuzzy
 msgid "System File"
-msgstr "Arxiu de Sistema."
+msgstr "Arxiu de Sistema"
 
 #: src/ui/gui/psppire-data-window.c:618
-#, fuzzy
 msgid "Portable File"
-msgstr "arxiu portàtil"
+msgstr "Arxiu Portable"
 
 #: src/ui/gui/psppire-data-window.c:768
 msgid "Font Selection"
-msgstr ""
+msgstr "Selecció de font"
 
 #: src/ui/gui/psppire-data-window.c:836
 msgid "Sort Ascending"
-msgstr ""
+msgstr "Ordenació ascendent"
 
 #: src/ui/gui/psppire-data-window.c:842
 msgid "Sort Descending"
-msgstr ""
+msgstr "Ordenació descendent"
 
 #: src/ui/gui/psppire-data-window.c:847 src/ui/gui/psppire-data-window.c:937
 #: src/ui/gui/data-editor.glade:174 src/ui/gui/data-editor.glade:843
-#, fuzzy
 msgid "Insert Variable"
-msgstr "Variable de prova"
+msgstr "Insertar Variable"
 
 #: src/ui/gui/psppire-data-window.c:850 src/ui/gui/psppire-data-window.c:904
 #: src/ui/gui/psppire-data-window.c:940 src/ui/gui/psppire-data-window.c:1307
 #: src/ui/gui/psppire-data-window.c:1325
 msgid "Clear"
-msgstr ""
+msgstr "Eliminar"
 
 #: src/ui/gui/psppire-data-window.c:901 src/ui/gui/data-editor.glade:831
 msgid "Insert Case"
-msgstr ""
+msgstr "Insertar Cas"
 
 #: src/ui/gui/psppire-data-window.c:1185
-#, fuzzy
 msgid "Open a data file"
-msgstr "arxiu de dades"
+msgstr "Obrir un arxiu de dades"
 
 #: src/ui/gui/psppire-data-window.c:1203
-#, fuzzy
 msgid "New data file"
-msgstr "arxiu de dades"
+msgstr "Nou arxiu de dades"
 
 #: src/ui/gui/psppire-data-window.c:1218
-#, fuzzy
 msgid "Import text data file"
-msgstr "arxiu de dades"
+msgstr "Importar arxiu de  text"
 
 #: src/ui/gui/psppire-data-window.c:1234 src/ui/gui/psppire-data-window.c:1250
-#, fuzzy
 msgid "Save data to file"
-msgstr "arxiu de dades"
+msgstr "Desar dades a arxiu"
 
 #: src/ui/gui/psppire-data-window.c:1288
 msgid "Show/hide value labels"
-msgstr ""
+msgstr "Mostra/Oculta etiquetes de valor"
 
 #: src/ui/gui/psppire-data-window.c:1308
 msgid "Delete the cases at the selected position(s)"
-msgstr ""
+msgstr "Esborra els casos a la(es) posició(ns) seleccionada(es)"
 
 #: src/ui/gui/psppire-data-window.c:1326
-#, fuzzy
 msgid "Delete the variables at the selected position(s)"
-msgstr "Nom de la variable %s duplicat en la posició %d."
+msgstr "Esborra les variables a la posició(ns) selecconada(es)"
 
 #: src/ui/gui/psppire-data-window.c:1344
 msgid "Create a new variable at the current position"
-msgstr ""
+msgstr "Crear una nova variable a la posició seleccionada"
 
 #: src/ui/gui/psppire-data-window.c:1359
 msgid "Create a new case at the current position"
-msgstr ""
+msgstr "Crear un nou cas a la posició actual"
 
 #: src/ui/gui/psppire-data-window.c:1375
 msgid "Jump to a Case in the Data Sheet"
-msgstr ""
+msgstr "Anar a un cas a la Matriu de Dades"
 
 #: src/ui/gui/psppire-data-window.c:1391
-#, fuzzy
 msgid "Weight cases by variable"
-msgstr "Mitjana Ponderada"
+msgstr "Pondera casos per la variable"
 
 #: src/ui/gui/psppire-data-window.c:1405
-#, fuzzy
 msgid "Transpose the cases with the variables"
-msgstr "THRU no es permet amb variables de cadena."
+msgstr "Transposar casos i variables"
 
 #: src/ui/gui/psppire-data-window.c:1419
-#, fuzzy
 msgid "Split the active file"
-msgstr "Documents a l'arxiu actiu:"
+msgstr "Dividir l'arxius actiu"
 
 #: src/ui/gui/psppire-data-window.c:1434
-#, fuzzy
 msgid "Sort cases in the active file"
-msgstr "Documents a l'arxiu actiu:"
+msgstr "Ordenar casos a l'arxiu actiu"
 
 #: src/ui/gui/psppire-data-window.c:1448
-#, fuzzy
 msgid "Select cases from the active file"
-msgstr "Documents a l'arxiu actiu:"
+msgstr "Seleccionar cassos de l'arxiu actiu"
 
 #: src/ui/gui/psppire-data-window.c:1462
 msgid "Compute new values for a variable"
-msgstr ""
+msgstr "Calcular nous valors per a la variable"
 
 #: src/ui/gui/psppire-data-window.c:1476
 msgid "Perform one way analysis of variance"
-msgstr ""
+msgstr "Realitza análisi de la variancia d'un factor"
 
 #: src/ui/gui/psppire-data-window.c:1491
 msgid "Calculate T Test for samples from independent groups"
-msgstr ""
+msgstr "Calcula proves T per a mostres de grups independents"
 
 #: src/ui/gui/psppire-data-window.c:1505
 msgid "Calculate T Test for paired samples"
-msgstr ""
+msgstr "Calcula proves T per a mostres aparellades"
 
 #: src/ui/gui/psppire-data-window.c:1519
 msgid "Calculate T Test for sample from a single distribution"
-msgstr ""
+msgstr "Calcula proves T per a mostra d'una distribució única"
 
 #: src/ui/gui/psppire-data-window.c:1534
 msgid "Commentary text for the data file"
-msgstr ""
+msgstr "Comentario textual per a l'arxiu de dades"
 
 #: src/ui/gui/psppire-data-window.c:1560
-#, fuzzy
 msgid "Rank Cases"
-msgstr "Rangs"
+msgstr "Rang de cassos"
 
 #: src/ui/gui/psppire-data-window.c:1574
 msgid "Recode values into the same variables"
-msgstr ""
+msgstr "Recodificar valors en les mateixes variables"
 
 #: src/ui/gui/psppire-data-window.c:1588
 msgid "Recode values into different variables"
-msgstr ""
+msgstr "Recodificar valors a diferents variables"
 
 #: src/ui/gui/psppire-data-window.c:1602
-#, fuzzy
 msgid "Jump to variable"
-msgstr "Variable de prova"
+msgstr "Anar a la variable"
 
 #: src/ui/gui/psppire-data-window.c:1615
 msgid "Calculate descriptive statistics (mean, variance, ...)"
-msgstr ""
+msgstr "Calcular estadístques descriptives (mitjana, variancia,...)"
 
 #: src/ui/gui/psppire-data-window.c:1629
 msgid "Generate frequency statistics"
-msgstr ""
+msgstr "Generar estadístiques de freqüències"
 
 #: src/ui/gui/psppire-data-window.c:1643
 msgid "Generate crosstabulations"
-msgstr ""
+msgstr "Generar tabulació encreuada"
 
 #: src/ui/gui/psppire-data-window.c:1658
 msgid "Examine Data by Factors"
-msgstr ""
+msgstr "Examinar les dades segons Factors"
 
 #: src/ui/gui/psppire-data-window.c:1672
 msgid "Estimate parameters of the linear model"
-msgstr ""
+msgstr "Estimar parámetres del model lineal"
 
 #: src/ui/gui/psppire-data-window.c:1686 src/ui/gui/reliability.glade:7
 msgid "Reliability Analysis"
-msgstr ""
+msgstr "Anàlsisi de fiabilitat"
 
 #: src/ui/gui/psppire-data-window.c:1849
 msgid "Split the window vertically and horizontally"
-msgstr ""
+msgstr "Dividir la finestra verticalment i horizontalment"
 
 #: src/ui/gui/psppire-data-window.c:1891
 msgid "Data Editor"
-msgstr ""
+msgstr "Editor de Dades"
 
 #: src/ui/gui/psppire-output-window.c:269
-#, fuzzy
 msgid "Output Viewer"
-msgstr "Format de sortida"
+msgstr "Vista de resultats"
 
 #: src/ui/gui/psppire-syntax-window.c:265
-#, fuzzy, c-format
+#, c-format
 msgid "Saved file \"%s\""
-msgstr "llegint l'arxiu de caràcter \"%s\""
+msgstr "Desat com a arxiu \"%s\""
 
 #: src/ui/gui/psppire-syntax-window.c:284
 msgid "Save Syntax"
-msgstr ""
+msgstr "Desar sintaxi"
 
 #: src/ui/gui/psppire-syntax-window.c:292
 #: src/ui/gui/psppire-syntax-window.c:379
 msgid "Syntax Files (*.sps) "
-msgstr ""
+msgstr "Arxius de Sintàxi (*.sps) "
 
 #: src/ui/gui/psppire-syntax-window.c:371
 msgid "Open Syntax"
-msgstr ""
+msgstr "Obrir sintaxi"
 
 #: src/ui/gui/psppire-syntax-window.c:551
-#, fuzzy
 msgid "Syntax Editor"
-msgstr "error de sintaxi"
+msgstr "Editor de sintaxi"
 
 #: src/ui/gui/psppire-syntax-window.c:565
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot load syntax file '%s'"
-msgstr "no es pot obrir l'arxiu de caràcter \"%s\""
+msgstr "No es pot obrir l'arxiu de sintaxi \"%s\""
 
 #: src/ui/gui/psppire-var-sheet.c:533 src/ui/gui/psppire-var-store.c:832
 msgid "Name"
-msgstr ""
+msgstr "Nom"
 
 #: src/ui/gui/psppire-var-sheet.c:534 src/ui/gui/psppire-var-store.c:833
 #: src/ui/gui/psppire.glade:2099 src/language/stats/crosstabs.q:1310
-#, fuzzy
 msgid "Type"
 msgstr "Tipus:"
 
 #: src/ui/gui/psppire-var-sheet.c:535 src/ui/gui/psppire-var-store.c:834
 #: src/ui/gui/psppire.glade:2020
 msgid "Width"
-msgstr ""
+msgstr "Ample"
 
 #: src/ui/gui/psppire-var-sheet.c:536 src/ui/gui/psppire-var-store.c:835
 msgid "Decimals"
-msgstr ""
+msgstr "Decimals"
 
 #: src/ui/gui/psppire-var-sheet.c:538 src/ui/gui/psppire-var-store.c:837
-#, fuzzy
 msgid "Values"
-msgstr "Valor"
+msgstr "Valores"
 
 #: src/ui/gui/psppire-var-sheet.c:539 src/ui/gui/psppire-var-store.c:838
 #: src/language/stats/crosstabs.q:844 src/language/stats/examine.q:1215
 #: src/language/stats/frequencies.q:1119 src/language/stats/frequencies.q:1401
-#, fuzzy
 msgid "Missing"
-msgstr "Perduts N"
+msgstr "Perduts"
 
 #: src/ui/gui/psppire-var-sheet.c:541 src/ui/gui/psppire-var-store.c:840
 msgid "Align"
-msgstr ""
+msgstr "Aliniament"
 
 #: src/ui/gui/psppire-var-sheet.c:542 src/ui/gui/psppire-var-store.c:841
-#, fuzzy
 msgid "Measure"
-msgstr "Mesura: %s"
+msgstr "Mesura"
 
 #: src/ui/gui/psppire-var-store.c:622 src/ui/gui/var-sheet-dialogs.glade:43
-#, fuzzy
 msgid "Comma"
-msgstr "Gamma"
+msgstr "Coma"
 
 #: src/ui/gui/psppire-var-store.c:623 src/ui/gui/var-sheet-dialogs.glade:59
 msgid "Dot"
-msgstr ""
+msgstr "Punt"
 
 #: src/ui/gui/psppire-var-store.c:624
 msgid "Scientific"
-msgstr ""
+msgstr "Científic"
 
 #: src/ui/gui/psppire-var-store.c:625 src/ui/gui/var-sheet-dialogs.glade:91
-#, fuzzy
 msgid "Date"
-msgstr "Enganxa"
+msgstr "Data"
 
 #: src/ui/gui/psppire-var-store.c:626 src/ui/gui/var-sheet-dialogs.glade:107
 msgid "Dollar"
-msgstr ""
+msgstr "Dolar"
 
 #: src/ui/gui/psppire-var-store.c:627
 msgid "Custom"
-msgstr ""
+msgstr "Usuari"
 
 #: src/ui/gui/psppire-window.c:97
 #, c-format
 msgid "%s %s PSPPIRE %s"
-msgstr ""
+msgstr "%s %s PSPPIRE %s"
 
 #: src/ui/gui/psppire-window.c:480
 #, c-format
 msgid "Save the changes to \"%s\" before closing?"
-msgstr ""
+msgstr "Desa el canvis a \"%s\" abans de sortir?"
 
 #: src/ui/gui/psppire-window.c:487
 #, c-format
 msgid "If you don't save, changes from the last %ld seconds will be permanently lost."
-msgstr ""
+msgstr "Si no es desa, els canvis dels darrers %ld segons es perdran permanentment."
 
 #: src/ui/gui/psppire-window.c:491
-#, fuzzy
 msgid "Close _without saving"
-msgstr "%s sense %s."
+msgstr "Tancar sense desar"
 
 #: src/ui/gui/recode-dialog.c:881
 msgid "Recode into Different Variables"
-msgstr ""
+msgstr "Recodifica en variables Diferents"
 
 #: src/ui/gui/recode-dialog.c:884
 msgid "Recode into Same Variables"
-msgstr ""
+msgstr "Recodifica en les Mateixes variables"
 
 #: src/ui/gui/recode-dialog.c:912 src/ui/gui/recode-dialog.c:1014
 msgid "Old"
-msgstr ""
+msgstr "Antic"
 
 #: src/ui/gui/recode-dialog.c:927 src/ui/gui/recode-dialog.c:1022
 msgid "New"
-msgstr ""
+msgstr "Nou"
 
 #: src/ui/gui/recode-dialog.c:1270
 msgid "Recode into Different Variables: Old and New Values "
-msgstr ""
+msgstr "Recodifica en variables Diferents: Antcs y Nous valors "
 
 #: src/ui/gui/recode-dialog.c:1271
 msgid "Recode into Same Variables: Old and New Values"
-msgstr ""
+msgstr "Recodifica en les mateixes variables: Antics y Nous valors"
 
 #: src/ui/gui/regression-dialog.c:41
-#, fuzzy
 msgid "Coeff"
-msgstr "desactivat"
+msgstr "Coef."
 
 #: src/ui/gui/regression-dialog.c:42 src/language/stats/regression.q:159
 msgid "R"
-msgstr ""
+msgstr "R"
 
 #: src/ui/gui/regression-dialog.c:43
 msgid "Anova"
-msgstr ""
+msgstr "Anova"
 
 #: src/ui/gui/regression-dialog.c:44
 msgid "Bcov"
-msgstr ""
+msgstr "Bcov"
 
 #: src/ui/gui/select-cases-dialog.c:82
 #, c-format
 msgid "Approximately %3d%% of all cases."
-msgstr ""
+msgstr "Aproximadament %3d%% de tots els casos."
 
 #: src/ui/gui/select-cases-dialog.c:83
 #, c-format
 msgid "Exactly %3d cases from the first %3d cases."
-msgstr ""
+msgstr "Exactament %3d casos dels primers  %3d casos."
 
 #: src/ui/gui/select-cases-dialog.c:223
 #, c-format
 msgid "%d thru %d"
-msgstr ""
+msgstr "%d fisn a %d"
 
 #: src/ui/gui/text-data-import-dialog.c:461
-#, fuzzy, c-format
+#, c-format
 msgid "Could not open \"%s\": %s"
-msgstr "no es pot trobar el caràcter \"%s\""
+msgstr "No es pot obrir \"%s\": %s"
 
 #: src/ui/gui/text-data-import-dialog.c:477
-#, fuzzy, c-format
+#, c-format
 msgid "Error reading \"%s\": %s"
-msgstr "error de lectura \"%s\""
+msgstr "Error leyendo \"%s\": %s"
 
 #: src/ui/gui/text-data-import-dialog.c:480
 #, c-format
 msgid "Failed to read \"%s\", because it contains a line over %d bytes long and therefore appears not to be a text file."
-msgstr ""
+msgstr "Error en llegir \"%s\", perquè conté una linia per sobre dels %d bytes i per tant sembla que no es un arxiu de text."
 
 #: src/ui/gui/text-data-import-dialog.c:494
 #, c-format
 msgid "\"%s\" is empty."
-msgstr ""
+msgstr "\"%s\" és buit."
 
 #: src/ui/gui/text-data-import-dialog.c:539
 msgid "Import Delimited Text Data"
-msgstr ""
+msgstr "Importar dades de text delimitat"
 
 #: src/ui/gui/text-data-import-dialog.c:590
 msgid "Importing Delimited Text Data"
-msgstr ""
+msgstr "Important dades de text deliminatat"
 
 #: src/ui/gui/text-data-import-dialog.c:749
 msgid ""
 "This assistant will guide you through the process of importing data into PSPP from a text file with one line per case,  in which fields are separated by tabs, commas, or other delimiters.\n"
 "\n"
 msgstr ""
+"Aquest asistent t'acompanyarà per tot el procés d'importar dades cap al PSPP a partir d'un arxiu de text amb una linia per cas,  al qual els camps estan separats per tabuladors, comes, o altres delimitadors.\n"
+"\n"
 
 #: src/ui/gui/text-data-import-dialog.c:755
-#, c-format
+#, fuzzy, c-format
 msgid "The selected file contains %zu line of text.  "
 msgid_plural "The selected file contains %zu lines of text.  "
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "L'arxiu seleccionat conté %zu linies de text.  "
+msgstr[1] "L'arxiu seleccionat conté %zu linies de text.  "
 
 #: src/ui/gui/text-data-import-dialog.c:763
-#, c-format
+#, fuzzy, c-format
 msgid "The selected file contains approximately %lu line of text.  "
 msgid_plural "The selected file contains approximately %lu lines of text.  "
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "L'arxiu seleccionat conté aproximadament %lu linies de text.  "
+msgstr[1] "L'arxiu seleccionat conté aproximadament %lu linies de text.  "
 
 #: src/ui/gui/text-data-import-dialog.c:769
-#, c-format
+#, fuzzy, c-format
 msgid "Only the first %zu line of the file will be shown for preview purposes in the following screens.  "
 msgid_plural "Only the first %zu lines of the file will be shown for preview purposes in the following screens.  "
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Només les primeres %zu linies de l'arxiu es previsualitzaran a les seguents pantalles.  "
+msgstr[1] "Només les primeres %zu linies de l'arxiu es previsualitzaran a les seguents pantalles.  "
 
 #: src/ui/gui/text-data-import-dialog.c:776
 msgid "You may choose below how much of the file should actually be imported."
-msgstr ""
+msgstr "Pots triar a continuació quina part de l'arxiu ha de ser importat."
 
 #: src/ui/gui/text-data-import-dialog.c:1523
 #: src/ui/gui/text-data-import-dialog.c:1768
 msgid "This input line has too few separators to fill in this field."
-msgstr ""
+msgstr "Aquesta linia d'entrada no en te prou separadors per emplenar el camp"
 
 #: src/ui/gui/text-data-import-dialog.c:1759
 #, c-format
 msgid "Field content \"%.*s\" cannot be parsed in format %s."
-msgstr ""
+msgstr "El contingut del camp \"%.*s\" no pot ser analitzat en format %s."
 
 #: src/ui/gui/t-test-options.c:60
-#, fuzzy, c-format
+#, c-format
 msgid "Confidence Interval: %2d %%"
-msgstr " Interval de Confiança Asimp. %g%%"
+msgstr "Interval de Confiança: %2d %%"
 
 #: src/ui/gui/t-test-paired-samples.c:226
 msgid "Var 1"
-msgstr ""
+msgstr "Var 1"
 
 #: src/ui/gui/t-test-paired-samples.c:227
 msgid "Var 2"
-msgstr ""
+msgstr "Var 2"
 
 #: src/ui/gui/variable-info-dialog.c:76
-#, fuzzy, c-format
+#, c-format
 msgid "Label: %s\n"
-msgstr "Etiqueta:"
+msgstr "Etiqueta: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:83
-#, fuzzy, c-format
+#, c-format
 msgid "Type: %s\n"
-msgstr "Tipus:"
+msgstr "Tipus: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:87
-#, fuzzy, c-format
+#, c-format
 msgid "Missing Values: %s\n"
-msgstr "Valors perduts:"
+msgstr "Valors perduts: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:92
-#, fuzzy, c-format
+#, c-format
 msgid "Measurement Level: %s\n"
-msgstr "Mesura: %s"
+msgstr "Nivel de Mesura: %s\n"
 
 #: src/ui/gui/variable-info-dialog.c:107
-#, fuzzy
 msgid "Value Labels:\n"
-msgstr "Etiqueta d'arxiu:"
+msgstr "Etiqueteas de valor:\n"
 
 #: src/ui/gui/variable-info-dialog.c:117
 #, c-format
 msgid "%s %s\n"
-msgstr ""
+msgstr "%s %s\n"
 
 #: src/ui/gui/weight-cases-dialog.c:79 src/ui/gui/psppire.glade:47
 #: src/ui/gui/psppire.glade:130
-#, fuzzy
 msgid "Do not weight cases"
-msgstr "No ponderat."
+msgstr "No ponderar casos."
 
 #: src/ui/gui/weight-cases-dialog.c:85
 #, c-format
 msgid "Weight cases by %s"
-msgstr ""
+msgstr "Pondera casos per %s"
 
 #: src/ui/gui/crosstabs.glade:50
-#, fuzzy
 msgid "Rows"
-msgstr "Fila"
+msgstr "Filas"
 
 #: src/ui/gui/crosstabs.glade:131 src/ui/gui/frequencies.glade:185
-#, fuzzy
 msgid "Format..."
-msgstr "Format"
+msgstr "Formato..."
 
 #: src/ui/gui/crosstabs.glade:138 src/ui/gui/examine.glade:247
 #: src/ui/gui/regression.glade:31
-#, fuzzy
 msgid "Statistics..."
-msgstr "Estatístic"
+msgstr "Estatística"
 
 #: src/ui/gui/crosstabs.glade:148
 msgid "Cells..."
-msgstr ""
+msgstr "Cel.les..."
 
 #: src/ui/gui/crosstabs.glade:230
-#, fuzzy
 msgid "Print tables"
-msgstr "Variables:"
+msgstr "Imprimir tablas:"
 
 #: src/ui/gui/crosstabs.glade:240
 msgid "Pivot"
-msgstr ""
+msgstr "Pivot"
 
 #: src/ui/gui/crosstabs.glade:253 src/ui/gui/psppire.glade:756
 msgid "Ascending"
-msgstr ""
+msgstr "Ascendent"
 
 #: src/ui/gui/crosstabs.glade:283
-#, fuzzy
 msgid "No label"
-msgstr "Sense etiqueta."
+msgstr "Sense etiqueta"
 
 #: src/ui/gui/crosstabs.glade:295
-#, fuzzy
 msgid "Suppress value labels"
-msgstr "Prefereixo les etiquetes de variable"
+msgstr "Suprimides les etiquetes de variable"
 
 #: src/ui/gui/crosstabs.glade:311
-#, fuzzy
 msgid "Labeling"
-msgstr "Etiqueta"
+msgstr "Etiquetant"
 
 #: src/ui/gui/crosstabs.glade:378
 msgid "Cell Display"
-msgstr ""
+msgstr "Contingut de cel.la"
 
 #: src/ui/gui/crosstabs.glade:439 src/ui/gui/oneway.glade:207
 #: src/ui/gui/regression.glade:322
-#, fuzzy
 msgid "Statistics"
-msgstr "Estatístic"
+msgstr "Estatísticas"
 
 #: src/ui/gui/descriptives-dialog.glade:122 src/ui/gui/frequencies.glade:139
-#, fuzzy
 msgid "Statistics:"
-msgstr "Estatístic"
+msgstr "Estadístiques:"
 
 #: src/ui/gui/descriptives-dialog.glade:184
 msgid "Exclude entire case if any selected variable is missing"
-msgstr ""
+msgstr "Excluo el cas sencer si qualsevol variable te valor perdut"
 
 #: src/ui/gui/descriptives-dialog.glade:194
 msgid "Include user-missing data in analysis"
-msgstr ""
+msgstr "Incloure els valors perduts d'usuari a l'anàlisi"
 
 #: src/ui/gui/descriptives-dialog.glade:207
 msgid "Save Z-scores of selected variables as new variables"
-msgstr ""
+msgstr "Desar puntuacions-Z de les variables seleccionades com noves variables"
 
 #: src/ui/gui/descriptives-dialog.glade:223
 msgid "Options:"
-msgstr ""
+msgstr "Opcions:"
 
 #: src/ui/gui/data-editor.glade:10 src/ui/gui/output-viewer.glade:22
 #: src/ui/gui/syntax-editor.glade:14
-#, fuzzy
 msgid "_File"
-msgstr "Arxiu:"
+msgstr "_Arxiu"
 
 #: src/ui/gui/data-editor.glade:25 src/ui/gui/data-editor.glade:51
 #: src/ui/gui/syntax-editor.glade:32 src/ui/gui/syntax-editor.glade:62
 msgid "_Syntax"
-msgstr ""
+msgstr "_Sintaxi"
 
 #: src/ui/gui/data-editor.glade:32 src/ui/gui/data-editor.glade:58
 #: src/ui/gui/data-editor.glade:311 src/ui/gui/data-editor.glade:329
 #: src/ui/gui/syntax-editor.glade:41 src/ui/gui/syntax-editor.glade:71
 msgid "_Data"
-msgstr ""
+msgstr "_Dades"
 
 #: src/ui/gui/data-editor.glade:70
 msgid "_Import Delimited Text Data"
-msgstr ""
+msgstr "_Importar dades de text delimitat"
 
 #: src/ui/gui/data-editor.glade:103
-#, fuzzy
 msgid "D_isplay Data File Information"
-msgstr "informació de l'arxiu de dades"
+msgstr "Mostra _informació de l'arxiu de dades"
 
 #: src/ui/gui/data-editor.glade:112
 msgid "Working File"
-msgstr ""
+msgstr "Arxius de treball"
 
 #: src/ui/gui/data-editor.glade:119
 msgid "External File"
-msgstr ""
+msgstr "Arxiu extern"
 
 #: src/ui/gui/data-editor.glade:135
 msgid "Recently Used Da_ta"
-msgstr ""
+msgstr "Dades usades recentment"
 
 #: src/ui/gui/data-editor.glade:142
 msgid "Recently Used _Files"
-msgstr ""
+msgstr "Arxius utilitzats recentment"
 
 #: src/ui/gui/data-editor.glade:166 src/ui/gui/output-viewer.glade:55
 #: src/ui/gui/syntax-editor.glade:118
 msgid "_Edit"
-msgstr ""
+msgstr "_Editar"
 
 #: src/ui/gui/data-editor.glade:182
 msgid "Insert Cases"
-msgstr ""
+msgstr "Insertar Casos"
 
 #: src/ui/gui/data-editor.glade:190 src/ui/gui/data-editor.glade:780
-#, fuzzy
 msgid "Go To Case"
 msgstr "Anar a"
 
 #: src/ui/gui/data-editor.glade:231
-#, fuzzy
 msgid "Cl_ear Variables"
-msgstr "Variables:"
+msgstr "_Eliminar Variables:"
 
 #: src/ui/gui/data-editor.glade:239
 msgid "_Clear Cases"
-msgstr ""
+msgstr "_Eliminar Casos"
 
 #: src/ui/gui/data-editor.glade:252
 msgid "gtk-find"
-msgstr ""
+msgstr "gtk-find"
 
 #: src/ui/gui/data-editor.glade:264
 msgid "_View"
-msgstr ""
+msgstr "_Veure"
 
 #: src/ui/gui/data-editor.glade:271
 msgid "_Status Bar"
-msgstr ""
+msgstr "Barra d'E_stat"
 
 #: src/ui/gui/data-editor.glade:284
 msgid "_Fonts"
-msgstr ""
+msgstr "_Fonts"
 
 #: src/ui/gui/data-editor.glade:291
 msgid "_Grid Lines"
-msgstr ""
+msgstr "_Linies divisories"
 
 #: src/ui/gui/data-editor.glade:299
 msgid "Value _Labels"
-msgstr ""
+msgstr "Etiquetes de _Valors"
 
 #: src/ui/gui/data-editor.glade:318 src/ui/gui/data-editor.glade:613
-#, fuzzy
 msgid "_Variables"
-msgstr "Variables:"
+msgstr "_Variables:"
 
 #: src/ui/gui/data-editor.glade:336
 msgid "_Sort Cases"
-msgstr ""
+msgstr "_Ordenar Casos"
 
 #: src/ui/gui/data-editor.glade:350
 msgid "_Transpose"
-msgstr ""
+msgstr "_Transposar"
 
 #: src/ui/gui/data-editor.glade:363
-#, fuzzy
 msgid "S_plit File"
-msgstr "Arxiu de Sistema."
+msgstr "Divideix Arxiu"
 
 #: src/ui/gui/data-editor.glade:371
 msgid "Select _Cases"
-msgstr ""
+msgstr "Seleccionar _Casos"
 
 #: src/ui/gui/data-editor.glade:378
-#, fuzzy
 msgid "_Weight Cases"
-msgstr "Ponderat"
+msgstr "Pondera Cassos"
 
 #: src/ui/gui/data-editor.glade:390
 msgid "_Transform"
-msgstr ""
+msgstr "_Transformar"
 
 #: src/ui/gui/data-editor.glade:400
-#, fuzzy
 msgid "_Compute"
-msgstr "Recompte"
+msgstr "_Calcular"
 
 #: src/ui/gui/data-editor.glade:408
-#, fuzzy
 msgid "Ran_k Cases"
-msgstr "Rangs"
+msgstr "Rang de casos"
 
 #: src/ui/gui/data-editor.glade:420
 msgid "Recode into _Same Variables"
-msgstr ""
+msgstr "Recodificar a les Mateixe_s Variables"
 
 #: src/ui/gui/data-editor.glade:427
 msgid "Recode into _Different Variables"
-msgstr ""
+msgstr "Recodificar a variables _Diferents"
 
 #: src/ui/gui/data-editor.glade:440
 msgid "_Run Pending Transforms"
-msgstr ""
+msgstr "Executa_r Transformacions pendents"
 
 #: src/ui/gui/data-editor.glade:453
 msgid "_Analyze"
-msgstr ""
+msgstr "_Analitzar"
 
 #: src/ui/gui/data-editor.glade:463
-#, fuzzy
 msgid "_Descriptive Statistics"
-msgstr "Estadístiques Descriptives"
+msgstr "Estadística _Descriptiva"
 
 #: src/ui/gui/data-editor.glade:473
-#, fuzzy
 msgid "_Frequencies"
-msgstr "Freqüències"
+msgstr "_Freqüències"
 
 #: src/ui/gui/data-editor.glade:481 src/ui/gui/oneway.glade:179
-#, fuzzy
 msgid "_Descriptives"
-msgstr "Descripció"
+msgstr "_Descriptives"
 
 #: src/ui/gui/data-editor.glade:489
 msgid "_Explore"
-msgstr ""
+msgstr "_Explorar"
 
 #: src/ui/gui/data-editor.glade:497
 msgid "_Crosstabs"
-msgstr ""
+msgstr "_Creuaments tabulars"
 
 #: src/ui/gui/data-editor.glade:509
 msgid "Compare _Means"
-msgstr ""
+msgstr "Comparar _Mitjanes"
 
 #: src/ui/gui/data-editor.glade:519
 msgid "_One Sample T Test"
-msgstr ""
+msgstr "Prova T per una mostra"
 
 #: src/ui/gui/data-editor.glade:527
 msgid "_Independent Samples T Test"
-msgstr ""
+msgstr "Prova T per mostres _Independents"
 
 #: src/ui/gui/data-editor.glade:535
 msgid "_Paired Samples T Test"
-msgstr ""
+msgstr "Prova T per mostres A_parellades"
 
 #: src/ui/gui/data-editor.glade:543
 msgid "One Way _ANOVA"
-msgstr ""
+msgstr "_ANOVA d'un factor"
 
 #: src/ui/gui/data-editor.glade:554
 msgid "Re_liability"
-msgstr ""
+msgstr "Fiabi_litat"
 
 #: src/ui/gui/data-editor.glade:562
-#, fuzzy
 msgid "Linear _Regression"
-msgstr "en l'expressió"
+msgstr "_Regressió Linear"
 
 #: src/ui/gui/data-editor.glade:569
-#, fuzzy
 msgid "_Non-Parametric Statistics"
-msgstr "Proves Estad."
+msgstr "Proves _No-Paramétriques"
 
 #: src/ui/gui/data-editor.glade:579
-#, fuzzy
 msgid "_Chi-Square"
-msgstr "Chi-quadrat"
+msgstr "_Chi-quadrat"
 
 #: src/ui/gui/data-editor.glade:587
-#, fuzzy
 msgid "_Binomial"
-msgstr "Prova Binomial"
+msgstr "_Binomial"
 
 #: src/ui/gui/data-editor.glade:603
 msgid "_Utilities"
-msgstr ""
+msgstr "_Utilitats"
 
 #: src/ui/gui/data-editor.glade:622
 msgid "Data File _Comments"
-msgstr ""
+msgstr "_Comentaris arxiu de dades"
 
 #: src/ui/gui/data-editor.glade:633 src/ui/gui/output-viewer.glade:78
 #: src/ui/gui/syntax-editor.glade:209
 msgid "_Windows"
-msgstr ""
+msgstr "Finestres"
 
 #: src/ui/gui/data-editor.glade:640 src/ui/gui/output-viewer.glade:88
 #: src/ui/gui/syntax-editor.glade:218
 msgid "_Minimize All Windows"
-msgstr ""
+msgstr "_Minimitza totes les finestres"
 
 #: src/ui/gui/data-editor.glade:647
 msgid "_Split"
-msgstr ""
+msgstr "Divideix"
 
 #: src/ui/gui/data-editor.glade:658 src/ui/gui/output-viewer.glade:99
 #: src/ui/gui/syntax-editor.glade:229
-#, fuzzy
 msgid "_Help"
-msgstr "Ajuda"
+msgstr "Ajut"
 
 #: src/ui/gui/data-editor.glade:665 src/ui/gui/output-viewer.glade:106
 #: src/ui/gui/syntax-editor.glade:237
 msgid "_Reference Manual"
-msgstr ""
+msgstr "Manual de _Referencia"
 
 #: src/ui/gui/data-editor.glade:678 src/ui/gui/output-viewer.glade:113
 #: src/ui/gui/syntax-editor.glade:244
 msgid "_About"
-msgstr ""
+msgstr "Qu_ant a..."
 
 #: src/ui/gui/data-editor.glade:722
-#, fuzzy
 msgid "Print"
-msgstr "imprimir"
+msgstr "Iimprimir"
 
 #: src/ui/gui/data-editor.glade:732
 msgid "Recall"
-msgstr ""
+msgstr "Refer"
 
 #: src/ui/gui/data-editor.glade:750
 msgid "Undo"
-msgstr ""
+msgstr "Desfer"
 
 #: src/ui/gui/data-editor.glade:760
-#, fuzzy
 msgid "Redo"
-msgstr "Registre"
+msgstr "Re-Fer"
 
 #: src/ui/gui/data-editor.glade:790
-#, fuzzy
 msgid "Variables"
 msgstr "Variables:"
 
 #: src/ui/gui/data-editor.glade:811
 msgid "Find"
-msgstr ""
+msgstr "Cercar"
 
 #: src/ui/gui/data-editor.glade:863
-#, fuzzy
 msgid "Split File"
-msgstr "Arxiu de Sistema."
+msgstr "Divideix Arxiu"
 
 #: src/ui/gui/data-editor.glade:874
-#, fuzzy
 msgid "Weight Cases"
-msgstr "Ponderat"
+msgstr "Ponderar Cassos"
 
 #: src/ui/gui/data-editor.glade:886
 msgid "Select Cases"
-msgstr ""
+msgstr "Seleccionar casos"
 
 #: src/ui/gui/data-editor.glade:906 src/ui/gui/var-sheet-dialogs.glade:401
 #: src/ui/gui/var-sheet-dialogs.glade:582
-#, fuzzy
 msgid "Value Labels"
-msgstr "Etiqueta d'arxiu:"
+msgstr "Etiquetes de Valor"
 
 #: src/ui/gui/data-editor.glade:917
 msgid "Use Sets"
-msgstr ""
+msgstr "Utilitzar conjunts"
 
 #: src/ui/gui/data-editor.glade:938
-#, fuzzy
 msgid "Information Area"
-msgstr "Informació del PSPP"
+msgstr "Àrea d'Informació"
 
 #: src/ui/gui/data-editor.glade:957
 msgid "Processor Area"
-msgstr ""
+msgstr "Area del processador"
 
 #: src/ui/gui/data-editor.glade:982
 msgid "Case Counter Area"
-msgstr ""
+msgstr "Area del Recompte"
 
 #: src/ui/gui/data-editor.glade:1007
 msgid "Filter Use Status Area"
-msgstr ""
+msgstr "Area del Filtre"
 
 #: src/ui/gui/data-editor.glade:1033
 msgid "Weight Status Area"
-msgstr ""
+msgstr "Area de Ponderació"
 
 #: src/ui/gui/data-editor.glade:1059
 msgid "Split File Status Area"
-msgstr ""
+msgstr "Area de Divisió"
 
 #: src/ui/gui/examine.glade:49
 msgid "Label Cases by:"
-msgstr ""
+msgstr "Etiqueta casos per:"
 
 #: src/ui/gui/examine.glade:100
 msgid "Factor List:"
-msgstr ""
+msgstr "Llista de Factors:"
 
 #: src/ui/gui/examine.glade:150
 msgid "Dependent List:"
-msgstr ""
+msgstr "Llista de Dependents:"
 
 #: src/ui/gui/examine.glade:257 src/ui/gui/t-test.glade:69
 #: src/ui/gui/t-test.glade:629 src/ui/gui/t-test.glade:780
 msgid "Options..."
-msgstr ""
+msgstr "Opcions..."
 
 #: src/ui/gui/examine.glade:310 src/language/stats/examine.q:1750
 #: src/language/stats/oneway.q:408
-#, fuzzy
 msgid "Descriptives"
-msgstr "Descripció"
+msgstr "Descriptives"
 
 #: src/ui/gui/examine.glade:320
 msgid "Extremes"
-msgstr ""
+msgstr "Extrems"
 
 #: src/ui/gui/examine.glade:388
-#, fuzzy
 msgid "Exclude cases listwise"
-msgstr "N Valid (listwise)"
+msgstr "Exclou casos segons llista"
 
 #: src/ui/gui/examine.glade:399
 msgid "Exclude cases pairwise"
-msgstr ""
+msgstr "Excloure casos per parelles"
 
 #: src/ui/gui/examine.glade:414
 msgid "Repeat values"
-msgstr ""
+msgstr "Repetir valors"
 
 #: src/ui/gui/examine.glade:432 src/ui/gui/t-test.glade:460
 #: src/ui/gui/var-sheet-dialogs.glade:649
-#, fuzzy
 msgid "Missing Values"
-msgstr "Valors perduts:"
+msgstr "Valors perduts"
 
 #: src/ui/gui/find.glade:80
-#, fuzzy
 msgid "Variable:"
-msgstr "Variables:"
+msgstr "Variable:"
 
 #: src/ui/gui/find.glade:111 src/ui/gui/recode.glade:185
 #: src/ui/gui/var-sheet-dialogs.glade:512
-#, fuzzy
 msgid "Value:"
-msgstr "Valor"
+msgstr "Valor:"
 
 #: src/ui/gui/find.glade:137
-#, fuzzy
 msgid "Search value labels"
-msgstr "Prefereixo les etiquetes de variable"
+msgstr "Cerca etiquetes de valor"
 
 #: src/ui/gui/find.glade:161
-#, fuzzy
 msgid "Regular expression Match"
-msgstr "Expressió regular incorrecta: %s"
+msgstr "Expressió regular coincident"
 
 #: src/ui/gui/find.glade:172
 msgid "Search substrings"
-msgstr ""
+msgstr "Cercar subcadenes"
 
 #: src/ui/gui/find.glade:185
+#, fuzzy
 msgid "Wrap around"
-msgstr ""
+msgstr "Envolcallar"
 
 #: src/ui/gui/find.glade:198
 msgid "Search backward"
-msgstr ""
+msgstr "Cerca cap enrrera"
 
 #: src/ui/gui/frequencies.glade:98 src/ui/gui/psppire.glade:252
 #: src/ui/gui/rank.glade:103
-#, fuzzy
 msgid "Variable(s):"
-msgstr "Variables:"
+msgstr "Variable(s):"
 
 #: src/ui/gui/frequencies.glade:168
 msgid "Display Frequency Table"
-msgstr ""
+msgstr "Mostrar la taula de freqüències"
 
 #: src/ui/gui/frequencies.glade:264
 msgid "Ascending Order"
-msgstr ""
+msgstr "Ordre Ascendent"
 
 #: src/ui/gui/frequencies.glade:275
 msgid "Descending Order"
-msgstr ""
+msgstr "Ordre Descendent"
 
 #: src/ui/gui/frequencies.glade:290
 msgid "Ascending Counts"
-msgstr ""
+msgstr "Recompte Ascendent"
 
 #: src/ui/gui/frequencies.glade:305
 msgid "Descending Counts"
-msgstr ""
+msgstr "Recompte Descendent"
 
 #: src/ui/gui/frequencies.glade:323
 msgid "Order by"
-msgstr ""
+msgstr "Ordenat per"
 
 #: src/ui/gui/frequencies.glade:355
 msgid "Supress tables with more than N categories"
-msgstr ""
+msgstr "Suprimir les taules amb més de N categories"
 
 #: src/ui/gui/frequencies.glade:371
 msgid "Maximum no of categories"
-msgstr ""
+msgstr "Màxim nombre de categories"
 
 #: src/ui/gui/message-dialog.glade:10
 msgid "Messages Reported"
-msgstr ""
+msgstr "S'han generat missatges"
 
 #: src/ui/gui/message-dialog.glade:47
 msgid "The PSPP processor reported # errors.  The first # and last # are shown below:"
-msgstr ""
+msgstr "El processador d'PSPP ha genrat # errors.  Els primers # y els darrers # es mostren a continuació:"
 
 #: src/ui/gui/message-dialog.glade:101
 msgid "gtk-close"
-msgstr ""
+msgstr "tanca-gtk"
 
 #: src/ui/gui/psppire.glade:58
-#, fuzzy
 msgid "Weight cases by"
-msgstr "Ponderat"
+msgstr "Pondera cassos per"
 
 #: src/ui/gui/psppire.glade:83
-#, fuzzy
 msgid "Frequency Variable"
-msgstr "Freqüències"
+msgstr "Variable de Freqüència"
 
 #: src/ui/gui/psppire.glade:123
 msgid "Current Status: "
-msgstr ""
+msgstr "Estatus actual: "
 
 #: src/ui/gui/psppire.glade:219
-#, fuzzy
 msgid "Name Variable:"
-msgstr "Variables:"
+msgstr "Nom de Variable:"
 
 #: src/ui/gui/psppire.glade:404
 msgid "Analyze all cases.  Do not create groups."
-msgstr ""
+msgstr "Analitzar tots els casos.  No crear grups."
 
 #: src/ui/gui/psppire.glade:415
-#, fuzzy
 msgid "Compare groups."
-msgstr "Compressió %s."
+msgstr "Comparar grups."
 
 #: src/ui/gui/psppire.glade:429
 msgid "Organize output by groups."
-msgstr ""
+msgstr "Organitzar els resultats per grups."
 
 #: src/ui/gui/psppire.glade:477
 msgid "Groups based on:"
-msgstr ""
+msgstr "Grups basats en:"
 
 #: src/ui/gui/psppire.glade:540
 msgid "Sort the file by grouping variables."
-msgstr ""
+msgstr "Ordena l'arxiu per variables d'agrupació."
 
 #: src/ui/gui/psppire.glade:552
 msgid "File is already sorted."
-msgstr ""
+msgstr "L'arxiu ja está ordenat."
 
 #: src/ui/gui/psppire.glade:597
 msgid "Current Status : "
-msgstr ""
+msgstr "Estatus actual : "
 
 #: src/ui/gui/psppire.glade:605
 msgid "Analysis by groups is off"
-msgstr ""
+msgstr "L'anàlisi per grups està activat"
 
 #: src/ui/gui/psppire.glade:704
 msgid "Sort by:"
-msgstr ""
+msgstr "Ordenat per:"
 
 #: src/ui/gui/psppire.glade:767
 msgid "Descending"
-msgstr ""
+msgstr "Descendent"
 
 #: src/ui/gui/psppire.glade:784
 msgid "Sort Order"
-msgstr ""
+msgstr "Ordre"
 
 #: src/ui/gui/psppire.glade:853
-#, fuzzy
 msgid "Target Variable:"
-msgstr "Variable de prova"
+msgstr "Variable objectiu:"
 
 #: src/ui/gui/psppire.glade:884
 msgid "Type & Label"
-msgstr ""
+msgstr "Tipus y Etiquetes"
 
 #: src/ui/gui/psppire.glade:924
 msgid "="
-msgstr ""
+msgstr "="
 
 #: src/ui/gui/psppire.glade:970
-#, fuzzy
 msgid "Numeric Expressions:"
-msgstr "en l'expressió"
+msgstr "Expressions Numeriques:"
 
 #: src/ui/gui/psppire.glade:1024
 msgid "Functions:"
-msgstr ""
+msgstr "Funcions:"
 
 #: src/ui/gui/psppire.glade:1087 src/ui/gui/psppire.glade:1491
 #: src/ui/gui/recode.glade:731
 msgid "If..."
-msgstr ""
+msgstr "si..."
 
 #: src/ui/gui/psppire.glade:1320
-#, fuzzy
 msgid "Use filter variable"
-msgstr "Variable de prova"
+msgstr "Utilitzar variable de filtre"
 
 #: src/ui/gui/psppire.glade:1373
 msgid "Based on time or case range"
-msgstr ""
+msgstr "Basat en interval de temps o casos"
 
 #: src/ui/gui/psppire.glade:1386
-#, fuzzy
 msgid "Range..."
-msgstr "Interval"
+msgstr "Interval..."
 
 #: src/ui/gui/psppire.glade:1425
 msgid "Random sample of cases"
-msgstr ""
+msgstr "Mostra aleatoria de casos"
 
 #: src/ui/gui/psppire.glade:1439
 msgid "Sample..."
-msgstr ""
+msgstr "Mostra..."
 
 #: src/ui/gui/psppire.glade:1477
 msgid "If condition is satisfied"
-msgstr ""
+msgstr "si la condició es satisfà"
 
 #: src/ui/gui/psppire.glade:1526
-#, fuzzy
 msgid "All Cases"
-msgstr "Casos:"
+msgstr "Tots els Casos:"
 
 #: src/ui/gui/psppire.glade:1541
 msgid "Select"
-msgstr ""
+msgstr "Selecciona"
 
 #: src/ui/gui/psppire.glade:1570
-#, fuzzy
 msgid "Filtered"
-msgstr "Arxiu:"
+msgstr "Filtrat"
 
 #: src/ui/gui/psppire.glade:1581
 msgid "Deleted"
-msgstr ""
+msgstr "Eliminat"
 
 #: src/ui/gui/psppire.glade:1599
 msgid "Unselected Cases Are"
-msgstr ""
+msgstr "Els casos no seleccionats son"
 
 #: src/ui/gui/psppire.glade:1664
-#, fuzzy
 msgid "Comments:"
-msgstr "Columnes"
+msgstr "Comentaris:"
 
 #: src/ui/gui/psppire.glade:1706
 msgid "Display comments in output"
-msgstr ""
+msgstr "Mostra comentaris al resultat"
 
 #: src/ui/gui/psppire.glade:1721
-#, fuzzy
 msgid "Column Number: 0"
-msgstr "Número de columna: %d"
+msgstr "Columna Numero: 0"
 
 #: src/ui/gui/psppire.glade:1804
 msgid "First case"
-msgstr ""
+msgstr "Primer cas"
 
 #: src/ui/gui/psppire.glade:1817
 msgid "Last case"
-msgstr ""
+msgstr "Últim cas"
 
 #: src/ui/gui/psppire.glade:1830
 msgid "Observation"
-msgstr ""
+msgstr "Observació"
 
 #: src/ui/gui/psppire.glade:1894
-#, fuzzy
 msgid "Use expression as label"
-msgstr "en l'expressió"
+msgstr "Utilitza l'expressio com a etiqueta"
 
 #: src/ui/gui/psppire.glade:2150
 msgid "Goto Case Number:"
-msgstr ""
+msgstr "Anar al cas número:"
 
 #: src/ui/gui/psppire.glade:2287
 msgid "Sample Size"
-msgstr ""
+msgstr "Grandaria de mostra"
 
 #: src/ui/gui/oneway.glade:30
 msgid "_Factor:"
-msgstr ""
+msgstr "_Factor:"
 
 #: src/ui/gui/oneway.glade:66
-#, fuzzy
 msgid "Dependent _Variable(s):"
-msgstr "Variables:"
+msgstr "_Variable(s) Depenents:"
 
 #: src/ui/gui/oneway.glade:190
 msgid "_Homogeneity"
-msgstr ""
+msgstr "_Homogeneitat"
 
 #: src/ui/gui/oneway.glade:226
 msgid "_Contrasts..."
-msgstr ""
+msgstr "_Contrasts..."
 
 #: src/ui/gui/oneway.glade:309
 msgid "gtk-go-back"
-msgstr ""
+msgstr "gtk-go-back"
 
 #: src/ui/gui/oneway.glade:320
 msgid "gtk-go-forward"
-msgstr ""
+msgstr "gtk-go-forward"
 
 #: src/ui/gui/oneway.glade:343
 msgid "_Coefficients:"
-msgstr ""
+msgstr "_Coeficients:"
 
 #: src/ui/gui/oneway.glade:389
 msgid "Coefficient Total: "
-msgstr ""
+msgstr "Coeficient Total: "
 
 #: src/ui/gui/oneway.glade:422
 msgid "Contrast 1 of 1"
-msgstr ""
+msgstr "Contrast 1 de 1"
 
 #: src/ui/gui/output-viewer.glade:32
 msgid "gtk-save"
-msgstr ""
+msgstr "gtk-save"
 
 #: src/ui/gui/output-viewer.glade:41
 msgid "gtk-save-as"
-msgstr ""
+msgstr "gtk-save-as"
 
 #: src/ui/gui/output-viewer.glade:65
 msgid "gtk-copy"
-msgstr ""
+msgstr "gtk-copy"
 
 #: src/ui/gui/rank.glade:57
 msgid "By:"
-msgstr ""
+msgstr "Per:"
 
 #: src/ui/gui/rank.glade:196
 msgid "_Smallest Value"
-msgstr ""
+msgstr "Valor Inferior"
 
 #: src/ui/gui/rank.glade:208
 msgid "_Largest Value"
-msgstr ""
+msgstr "Valor Superior"
 
 #: src/ui/gui/rank.glade:227
 msgid "Assign rank 1 to:"
-msgstr ""
+msgstr "Assigna rang 1 a:"
 
 #: src/ui/gui/rank.glade:245
 msgid "_Display summary tables"
-msgstr ""
+msgstr "Mostra taules resum"
 
 #: src/ui/gui/rank.glade:261
-#, fuzzy
 msgid "Rank T_ypes"
-msgstr "Rangs"
+msgstr "Tipus de Rangs"
 
 #: src/ui/gui/rank.glade:272
-#, fuzzy
 msgid "_Ties..."
-msgstr "Lligams"
+msgstr "Vincles..."
 
 #: src/ui/gui/rank.glade:339
 msgid "Sum of case weights"
-msgstr ""
+msgstr "Suma de casos ponderats"
 
 #: src/ui/gui/rank.glade:355
 msgid "Fractional rank as %"
-msgstr ""
+msgstr "Rang fracional com %"
 
 #: src/ui/gui/rank.glade:369
 msgid "Fractional rank"
-msgstr ""
+msgstr "Rang fraccional"
 
 #: src/ui/gui/rank.glade:383
 msgid "Savage score"
-msgstr ""
+msgstr "Puntuació de Savage"
 
 #: src/ui/gui/rank.glade:397
-#, fuzzy
 msgid "Rank"
-msgstr "Rangs"
+msgstr "Rang"
 
 #: src/ui/gui/rank.glade:411
-#, fuzzy
 msgid "Ntiles"
-msgstr "Lligams"
+msgstr "Ntiles"
 
 #: src/ui/gui/rank.glade:450
 msgid "Proportion Estimates"
-msgstr ""
+msgstr "Estimació de Proporcions"
 
 #: src/ui/gui/rank.glade:460
 msgid "Normal Scores"
-msgstr ""
+msgstr "Puntuació Normal"
 
 #: src/ui/gui/rank.glade:494
 msgid "Blom"
-msgstr ""
+msgstr "Blom"
 
 #: src/ui/gui/rank.glade:505
 msgid "Tukey"
-msgstr ""
+msgstr "Tukey"
 
 #: src/ui/gui/rank.glade:519
-#, fuzzy
 msgid "Rankit"
-msgstr "Rangs"
+msgstr "Rankit"
 
 #: src/ui/gui/rank.glade:533
 msgid "Van der Wärden"
-msgstr ""
+msgstr "Van der Wärden"
 
 #: src/ui/gui/rank.glade:550
 msgid "Proportion Estimation Formula"
-msgstr ""
+msgstr "Formula d'estimació de Porporcións"
 
 #: src/ui/gui/rank.glade:612
-#, fuzzy
 msgid "_Mean"
-msgstr "Mitjana"
+msgstr "_Mitjana"
 
 #: src/ui/gui/rank.glade:624
 msgid "_Low"
-msgstr ""
+msgstr "Baix"
 
 #: src/ui/gui/rank.glade:640
-#, fuzzy
 msgid "_High"
-msgstr "Dreta"
+msgstr "Superior"
 
 #: src/ui/gui/rank.glade:658
 msgid "_Sequential ranks to unique values"
-msgstr ""
+msgstr "Rangs _Sequencials per a valors únics"
 
 #: src/ui/gui/rank.glade:678
 msgid "Rank Assigned to Ties"
-msgstr ""
+msgstr "Rang assignat a empats"
 
 #: src/ui/gui/recode.glade:197
-#, fuzzy
 msgid "System-Missing"
-msgstr "Perduts N"
+msgstr "Perduts del sistema"
 
 #: src/ui/gui/recode.glade:211
 msgid "System-or user-missing"
-msgstr ""
+msgstr "Perdut de sistema o d'usuari"
 
 #: src/ui/gui/recode.glade:245
 msgid "through"
-msgstr ""
+msgstr "fins a"
 
 #: src/ui/gui/recode.glade:283
 msgid "Range, LOWEST thru value"
-msgstr ""
+msgstr "Interval, MENOR fins al valor"
 
 #: src/ui/gui/recode.glade:297
 msgid "Range, value thru HIGHEST"
-msgstr ""
+msgstr "Interval, valor fins al SUPERIOR"
 
 #: src/ui/gui/recode.glade:327
 msgid "All other values"
-msgstr ""
+msgstr "Tota la resta de valors"
 
 #: src/ui/gui/recode.glade:363
-#, fuzzy
 msgid "Range:"
-msgstr "Interval"
+msgstr "Interval:"
 
 #: src/ui/gui/recode.glade:380
-#, fuzzy
 msgid "Old Value"
-msgstr "Valor"
+msgstr "Valor antic"
 
 #: src/ui/gui/recode.glade:462
-#, fuzzy
 msgid "System Missing"
-msgstr "Arxiu de Sistema."
+msgstr "Perdut del Sistema"
 
 #: src/ui/gui/recode.glade:476
 msgid "Copy old values"
-msgstr ""
+msgstr "Copiar els valors antics"
 
 #: src/ui/gui/recode.glade:500
-#, fuzzy
 msgid "Value: "
-msgstr "Valor"
+msgstr "Valor:"
 
 #: src/ui/gui/recode.glade:530
-#, fuzzy
 msgid "New Value"
-msgstr "Valor"
+msgstr "Nou Valor"
 
 #: src/ui/gui/recode.glade:590
 msgid "Convert numeric strings to numbers ('5' -> 5)"
-msgstr ""
+msgstr "Convertir cadenes numériques a números ('5' -> 5)"
 
 #: src/ui/gui/recode.glade:608
-#, fuzzy
 msgid "Output variables are strings"
-msgstr "Nom de la variable %s duplicat."
+msgstr "Les variables de sortida son alfabetiques"
 
 #: src/ui/gui/recode.glade:620
 msgid "Width: "
-msgstr ""
+msgstr "Ample:"
 
 #: src/ui/gui/recode.glade:743
 msgid "(optional case selection condition)"
-msgstr ""
+msgstr "(condició opcional de selecció de casos)"
 
 #: src/ui/gui/recode.glade:823
 msgid "Name:"
-msgstr ""
+msgstr "Nom:"
 
 #: src/ui/gui/recode.glade:867
-#, fuzzy
 msgid "Change"
-msgstr "Interval"
+msgstr "Canvi"
 
 #: src/ui/gui/recode.glade:885
-#, fuzzy
 msgid "Output Variable"
-msgstr "Variable"
+msgstr "Variables de sortida"
 
 #: src/ui/gui/recode.glade:965
 msgid "Old and New Values"
-msgstr ""
+msgstr "Valors antics i nous"
 
 #: src/ui/gui/regression.glade:40
 msgid "Save..."
-msgstr ""
+msgstr "Desar..."
 
 #: src/ui/gui/regression.glade:145
 msgid "Dependent"
-msgstr ""
+msgstr "Dependent"
 
 #: src/ui/gui/regression.glade:193
 msgid "Independent"
-msgstr ""
+msgstr "Independent"
 
 #: src/ui/gui/regression.glade:243
 msgid "Predicted values"
-msgstr ""
+msgstr "Valors predits"
 
 #: src/ui/gui/regression.glade:252
-#, fuzzy
 msgid "Residuals"
-msgstr "Residual"
+msgstr "Residuals"
 
 #: src/ui/gui/reliability.glade:89
 msgid "_Items:"
-msgstr ""
+msgstr "_Items:"
 
 #: src/ui/gui/reliability.glade:111
-#, fuzzy
 msgid "Model:\t"
-msgstr "Mode:"
+msgstr "Model:\t"
 
 #: src/ui/gui/reliability.glade:122
 msgid ""
 "Alpha\n"
 "Split"
 msgstr ""
+"Alpha\n"
+"Dividit"
 
 #: src/ui/gui/reliability.glade:144
-#, fuzzy
 msgid "Variables in first split:"
-msgstr "Variable sota prova"
+msgstr "Variables a primera divissió:"
 
 #: src/ui/gui/syntax-editor.glade:163
 msgid "_Run"
-msgstr ""
+msgstr "Executa_r"
 
 #: src/ui/gui/syntax-editor.glade:172
 msgid "All"
-msgstr ""
+msgstr "Tots"
 
 #: src/ui/gui/syntax-editor.glade:180
-#, fuzzy
 msgid "Selection"
-msgstr "Descripció"
+msgstr "Selecció"
 
 #: src/ui/gui/syntax-editor.glade:188
-#, fuzzy
 msgid "Current Line"
-msgstr "Continuar"
+msgstr "Linia actual"
 
 #: src/ui/gui/syntax-editor.glade:197
 msgid "To End"
-msgstr ""
+msgstr "Fins al final"
 
 #: src/ui/gui/text-data-import.glade:8
 msgid "Importing Textual Data"
-msgstr ""
+msgstr "Important dades textuals"
 
 #: src/ui/gui/text-data-import.glade:18
 msgid ""
@@ -5461,255 +5359,241 @@ msgid ""
 "\n"
 "The selected file contains N lines of text.  Only the first M of these will be shown for preview purposes in the following screens.  You may choose below how much of the file should actually be imported."
 msgstr ""
+"Aquest assitent t'acompanyarà per tot el procés d'importar dades al PSPP des d'un arxiu de text amb una linia per cas,  al qual els camps estan separats per tabuladors, comas, o altres delimitadors.\n"
+"\n"
+"L'arxiu seleccionat conté N linies de text.  Només les primeres M seran mostrades per previsualització a les pantalles seguents.  Pots triar a continuació quina part de l'arxiu ha de ser importat."
 
 #: src/ui/gui/text-data-import.glade:50
 msgid "All cases"
-msgstr ""
+msgstr "Tots els casos"
 
 #: src/ui/gui/text-data-import.glade:66 src/ui/gui/text-data-import.glade:122
 msgid "Only first "
-msgstr ""
+msgstr "Només el primer"
 
 #: src/ui/gui/text-data-import.glade:97
-#, fuzzy
 msgid " cases"
-msgstr "Casos:"
+msgstr " cassos"
 
 #: src/ui/gui/text-data-import.glade:152
 msgid "% of file (approximately)"
-msgstr ""
+msgstr "% de l'arxiu (aproximadament)"
 
 #: src/ui/gui/text-data-import.glade:173
 msgid "<b>Amount to Import</b>"
-msgstr ""
+msgstr "<b>Quantitat a importar</b>"
 
 #: src/ui/gui/text-data-import.glade:195
 msgid "Select Data to Import"
-msgstr ""
+msgstr "Selecionar dades per a importar"
 
 #: src/ui/gui/text-data-import.glade:205
 msgid "Select the first line of the data file that contains data."
-msgstr ""
+msgstr "Seleccionar la primera linia del'arxiu que conté dades."
 
 #: src/ui/gui/text-data-import.glade:236
 msgid "Line above selected line contains variable names"
-msgstr ""
+msgstr "La linia sobre la linia seleccionada contè els noms de les variables"
 
 #: src/ui/gui/text-data-import.glade:251
 msgid "Choose Separators"
-msgstr ""
+msgstr "Triar els separadors"
 
 #: src/ui/gui/text-data-import.glade:299
 msgid "C_ustom"
-msgstr ""
+msgstr "_Usuari"
 
 #: src/ui/gui/text-data-import.glade:314
 msgid "Slas_h (/)"
-msgstr ""
+msgstr "Barra (/)"
 
 #: src/ui/gui/text-data-import.glade:331
 msgid "Semicolo_n (;)"
-msgstr ""
+msgstr "Punt i coma (;)"
 
 #: src/ui/gui/text-data-import.glade:348
 msgid "P_ipe (|)"
-msgstr ""
+msgstr "Tub (|)"
 
 #: src/ui/gui/text-data-import.glade:363
 msgid "H_yphen (-)"
-msgstr ""
+msgstr "Guionet (-)"
 
 #: src/ui/gui/text-data-import.glade:380
 msgid "Co_mma (,)"
-msgstr ""
+msgstr "Coma (,)"
 
 #: src/ui/gui/text-data-import.glade:397
 msgid "_Colon (:)"
-msgstr ""
+msgstr "Dos punts (:)"
 
 #: src/ui/gui/text-data-import.glade:412
 msgid "Ban_g (!)"
-msgstr ""
+msgstr "Exclamació (!)"
 
 #: src/ui/gui/text-data-import.glade:427
 msgid "Ta_b"
-msgstr ""
+msgstr "Tabulador"
 
 #: src/ui/gui/text-data-import.glade:442
 msgid "_Space"
-msgstr ""
+msgstr "E-spai"
 
 #: src/ui/gui/text-data-import.glade:456
 msgid "<b>Separators</b>"
-msgstr ""
+msgstr "<b>Separadors</b>"
 
 #: src/ui/gui/text-data-import.glade:489
 msgid "Doubled quote mark treated as escape"
-msgstr ""
+msgstr "La marca \" es tractada con a ESCAPE"
 
 #: src/ui/gui/text-data-import.glade:526
 msgid "Quote separator characters with"
-msgstr ""
+msgstr "Separar caracters amb comilla"
 
 #: src/ui/gui/text-data-import.glade:543
 msgid "<b>Quoting</b>"
-msgstr ""
+msgstr "<b>Comilles</b>"
 
 #: src/ui/gui/text-data-import.glade:594
 msgid "<b>Fields Preview</b>"
-msgstr ""
+msgstr "<b>Previsualitza camps</b>"
 
 #: src/ui/gui/text-data-import.glade:612
 msgid "Adjust Variable Formats"
-msgstr ""
+msgstr "Ajustar formats de variables"
 
 #: src/ui/gui/text-data-import.glade:622
 msgid "Check the data formats displayed below and fix any that are incorrect.  You may set other variable properties now or later."
-msgstr ""
+msgstr "Comprovar les formats de les dades mostrades a continuació i corregir els problemes.  Es pot asignar altres propietats de les variables ara o més tard."
 
 #: src/ui/gui/text-data-import.glade:665
-#, fuzzy
 msgid "<b>Variables</b>"
-msgstr "Variables:"
+msgstr "<b>Variables</b>"
 
 #: src/ui/gui/text-data-import.glade:712
 msgid "<b>Data Preview</b>"
-msgstr ""
+msgstr "<b>Previsualització de dades</b>"
 
 #: src/ui/gui/t-test.glade:56 src/ui/gui/t-test.glade:165
 msgid "Define Groups"
-msgstr ""
+msgstr "Definir grups"
 
 #: src/ui/gui/t-test.glade:123 src/ui/gui/t-test.glade:549
 #: src/ui/gui/t-test.glade:761
-#, fuzzy
 msgid "Test Variable(s):"
-msgstr "Variable de prova"
+msgstr "Variable(s) de prova:"
 
 #: src/ui/gui/t-test.glade:258
-#, fuzzy
 msgid "Group_2 value:"
-msgstr "Grup 2"
+msgstr "Valor del grup 2:"
 
 #: src/ui/gui/t-test.glade:271
-#, fuzzy
 msgid "Group_1 value:"
-msgstr "Grup 1"
+msgstr "Valor del Grup 1:"
 
 #: src/ui/gui/t-test.glade:320
 msgid "_Cut point:"
-msgstr ""
+msgstr "Punt de tall:"
 
 #: src/ui/gui/t-test.glade:349
 msgid "_Use specified values:"
-msgstr ""
+msgstr "Utilitza valors especificats:"
 
 #: src/ui/gui/t-test.glade:431
 msgid "Exclude cases _analysis by analysis"
-msgstr ""
+msgstr "Excloure casos _anàlisi per analìsi"
 
 #: src/ui/gui/t-test.glade:442
 msgid "Exclude cases _listwise"
-msgstr ""
+msgstr "Exclure casos per _llista"
 
 #: src/ui/gui/t-test.glade:594
-#, fuzzy
 msgid "Test Value: "
-msgstr "Valors perduts:"
+msgstr "Valor de prova: "
 
 #: src/ui/gui/var-sheet-dialogs.glade:7
-#, fuzzy
 msgid "Variable Type"
-msgstr "Variable"
+msgstr "Tipus de Variable"
 
 #: src/ui/gui/var-sheet-dialogs.glade:75
 msgid "Scientific notation"
-msgstr ""
+msgstr "Notació científica"
 
 #: src/ui/gui/var-sheet-dialogs.glade:123
 msgid "Custom currency"
-msgstr ""
+msgstr "Moneda propia"
 
 #: src/ui/gui/var-sheet-dialogs.glade:217
-#, fuzzy
 msgid "positive"
-msgstr "Positiu"
+msgstr "positiu"
 
 #: src/ui/gui/var-sheet-dialogs.glade:223
-#, fuzzy
 msgid "negative"
-msgstr "Negatiu"
+msgstr "negatiu"
 
 #: src/ui/gui/var-sheet-dialogs.glade:236
-#, fuzzy
 msgid "Sample"
-msgstr "Escala"
+msgstr "Mostra"
 
 #: src/ui/gui/var-sheet-dialogs.glade:286
-#, fuzzy
 msgid "Width:"
-msgstr "Pes:"
+msgstr "Ample:"
 
 #: src/ui/gui/var-sheet-dialogs.glade:330
 msgid "Decimal Places:"
-msgstr ""
+msgstr "Llocs decimals:"
 
 #: src/ui/gui/var-sheet-dialogs.glade:499
-#, fuzzy
 msgid "Value Label:"
-msgstr "Etiqueta d'arxiu:"
+msgstr "Etiqueta de Valor:"
 
 #: src/ui/gui/var-sheet-dialogs.glade:677
-#, fuzzy
 msgid "_No missing values"
-msgstr "Valors perduts:"
+msgstr "Sense valors perduts"
 
 #: src/ui/gui/var-sheet-dialogs.glade:747
-#, fuzzy
 msgid "_Discrete missing values"
-msgstr "Valors perduts:"
+msgstr "Valors perduts _Discrets"
 
 #: src/ui/gui/var-sheet-dialogs.glade:782
 msgid "_Low:"
-msgstr ""
+msgstr "Baix:"
 
 #: src/ui/gui/var-sheet-dialogs.glade:801
-#, fuzzy
 msgid "_High:"
-msgstr "Pes:"
+msgstr "Superior:"
 
 #: src/ui/gui/var-sheet-dialogs.glade:826
 msgid "Di_screte value:"
-msgstr ""
+msgstr "Valor Di_scret:"
 
 #: src/ui/gui/var-sheet-dialogs.glade:856
 msgid "_Range plus one optional discrete missing value"
-msgstr ""
+msgstr "Valor perdut discreto ocpional d'interval més un"
 
 #: src/ui/gui/variable-info-dialog.glade:49
-#, fuzzy
 msgid "Variable Information:"
-msgstr "informació de l'arxiu de dades"
+msgstr "Informació de la Variable"
 
 #: tests/dissect-sysfile.c:528
-#, fuzzy, c-format
+#, c-format
 msgid "Unrecognized record type 7, subtype %d."
-msgstr "Tipus de registre %d no reconegut."
+msgstr "Tipus de registre 7 no reconegut, subtipe %d."
 
 #: tests/dissect-sysfile.c:701
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Error parsing attribute value %s[%d]"
-msgstr "Error en analitzar el valor de l'atribut %s[%d]"
+msgstr "%s: Error en analitzar valor de l'atribut %s[%d]"
 
 #: tests/dissect-sysfile.c:707
-#, fuzzy, c-format
+#, c-format
 msgid "%s: Attribute value %s[%d] is not quoted: %s"
-msgstr "El valor de l'atribut %s[%d] no esta entre cometes: %s"
+msgstr "%s: El valor de l'atribut %s[%d] no esta entre cometes: %s"
 
 #: src/language/utilities/set.q:202
-#, fuzzy
 msgid "WORKSPACE must be at least 1MB"
-msgstr "Valor de FIRST ha de ser com a mínim 1."
+msgstr "WORKSPACE ha de ser com a mínim 1 Mb"
 
 #: src/language/utilities/set.q:208 src/language/utilities/set.q:210
 #: src/language/utilities/set.q:212 src/language/utilities/set.q:214
@@ -5718,1039 +5602,964 @@ msgstr "Valor de FIRST ha de ser com a mínim 1."
 #: src/language/utilities/set.q:224
 #, c-format
 msgid "%s is obsolete."
-msgstr ""
+msgstr "%s és obsolet."
 
 #: src/language/utilities/set.q:227
-#, fuzzy, c-format
+#, c-format
 msgid "%s is not implemented."
-msgstr "%s encara no està implementat."
+msgstr "%s no està implementat."
 
 #: src/language/utilities/set.q:230
-#, fuzzy
 msgid "Active file compression is not implemented."
-msgstr "%s encara no està implementat."
+msgstr "La compressió d'arxius no està implementada."
 
 #: src/language/utilities/set.q:325
 msgid "EPOCH must be 1500 or later."
-msgstr ""
+msgstr "EPOCH ha de ser 1500 o més tard."
 
 #: src/language/utilities/set.q:332
-#, fuzzy
 msgid "expecting AUTOMATIC or year"
-msgstr "esperant COMM o TAPE"
+msgstr "esperant AUTOMATICA o any"
 
 #: src/language/utilities/set.q:353
-#, fuzzy
 msgid "LENGTH must be at least 1."
-msgstr "Valor de FIRST ha de ser com a mínim 1."
+msgstr "LENGTH ha de ser com a mínim 1."
 
 #: src/language/utilities/set.q:389
-#, fuzzy, c-format
+#, c-format
 msgid "%s is not a recognised encoding or locale name"
-msgstr "%s és un nom de variable existent."
+msgstr "%s no és una codificació o un nom local reconegut"
 
 #: src/language/utilities/set.q:432
-#, fuzzy
 msgid "WIDTH must be at least 40."
-msgstr "Valor de FIRST ha de ser com a mínim 1."
+msgstr "WIDTH ha de ser com a mínim 40."
 
 #: src/language/utilities/set.q:455
 #, c-format
 msgid "FORMAT requires numeric output format as an argument.  Specified format %s is of type string."
-msgstr ""
+msgstr "FORMAT requereix format de resultat numeric com a argument.  El format %s especificat es de tipus cadena."
 
 #: src/language/utilities/set.q:668
 msgid "ISL (32-bit IEEE 754 single, little-endian)"
-msgstr ""
+msgstr "ISL (32-bit IEEE 754 single, little-endian)"
 
 #: src/language/utilities/set.q:671
 msgid "ISB (32-bit IEEE 754 single, big-endian)"
-msgstr ""
+msgstr "ISB (32-bit IEEE 754 single, big-endian)"
 
 #: src/language/utilities/set.q:674
 msgid "IDL (64-bit IEEE 754 double, little-endian)"
-msgstr ""
+msgstr "IDL (64-bit IEEE 754 double, little-endian)"
 
 #: src/language/utilities/set.q:677
 msgid "IDB (64-bit IEEE 754 double, big-endian)"
-msgstr ""
+msgstr "IDB (64-bit IEEE 754 double, big-endian)"
 
 #: src/language/utilities/set.q:681
 msgid "VF (32-bit VAX F, VAX-endian)"
-msgstr ""
+msgstr "VF (32-bit VAX F, VAX-endian)"
 
 #: src/language/utilities/set.q:684
 msgid "VD (64-bit VAX D, VAX-endian)"
-msgstr ""
+msgstr "VD (64-bit VAX D, VAX-endian)"
 
 #: src/language/utilities/set.q:687
 msgid "VG (64-bit VAX G, VAX-endian)"
-msgstr ""
+msgstr "VG (64-bit VAX G, VAX-endian)"
 
 #: src/language/utilities/set.q:691
 msgid "ZS (32-bit IBM Z hexadecimal short, big-endian)"
-msgstr ""
+msgstr "ZS (32-bit IBM Z hexadecimal short, big-endian)"
 
 #: src/language/utilities/set.q:694
 msgid "ZL (64-bit IBM Z hexadecimal long, big-endian)"
-msgstr ""
+msgstr "ZL (64-bit IBM Z hexadecimal long, big-endian)"
 
 #: src/language/utilities/set.q:793
-#, fuzzy, c-format
+#, c-format
 msgid "%s is %s."
-msgstr "%s sense %s."
+msgstr "%s és %s."
 
 #: src/language/stats/crosstabs.q:327
 msgid "Missing mode REPORT not allowed in general mode.  Assuming MISSING=TABLE."
-msgstr ""
+msgstr "L'INFORME de perduts no esta disponible el mode general.  S'assumeix MISSING=TABLE."
 
 #: src/language/stats/crosstabs.q:416
 msgid "Too many cross-tabulation variables or dimensions."
-msgstr ""
+msgstr "Massa variables o dimensions per a l'encreuament tabulat."
 
 #: src/language/stats/crosstabs.q:426
-#, fuzzy
 msgid "expecting BY"
-msgstr "esperant BREAK"
+msgstr "esperant BY"
 
 #: src/language/stats/crosstabs.q:486
 msgid "VARIABLES must be specified before TABLES."
-msgstr ""
+msgstr "Les VARIABLES han de ser especificades abans de TABLES."
 
 #: src/language/stats/crosstabs.q:524
 #, c-format
 msgid "Maximum value (%ld) less than minimum value (%ld)."
-msgstr ""
+msgstr "El valor màxim (%ld) en menor que el valor mínim (%ld)."
 
 #: src/language/stats/crosstabs.q:840
-#, fuzzy
 msgid "Summary."
-msgstr "Resum del Cas"
+msgstr "Resum."
 
 #: src/language/stats/crosstabs.q:842 src/language/stats/examine.q:1277
 #: src/language/stats/reliability.q:709
-#, fuzzy
 msgid "Cases"
-msgstr "Casos:"
+msgstr "Casos"
 
 #: src/language/stats/crosstabs.q:843 src/language/stats/examine.q:1214
 #: src/language/stats/frequencies.q:1049 src/language/stats/frequencies.q:1400
 #: src/language/stats/reliability.q:712
-#, fuzzy
 msgid "Valid"
-msgstr "N vàlids"
+msgstr "Vàlid"
 
 #: src/language/stats/crosstabs.q:853 src/language/stats/examine.q:1292
 #: src/language/stats/frequencies.q:1053 src/language/stats/frequencies.q:1054
 #: src/language/stats/frequencies.q:1055
-#, fuzzy
 msgid "Percent"
-msgstr "Percentils"
+msgstr "Percentatge"
 
 #: src/language/stats/crosstabs.q:1133
-#, fuzzy
 msgid "count"
-msgstr "Recompte"
+msgstr "recompte"
 
 #: src/language/stats/crosstabs.q:1134
 msgid "row %"
-msgstr ""
+msgstr "fila %"
 
 #: src/language/stats/crosstabs.q:1135
-#, fuzzy
 msgid "column %"
-msgstr "columna %d"
+msgstr "columna %"
 
 #: src/language/stats/crosstabs.q:1136
-#, fuzzy
 msgid "total %"
-msgstr "octal"
+msgstr "total %"
 
 #: src/language/stats/crosstabs.q:1137
-#, fuzzy
 msgid "expected"
-msgstr "Esperat"
+msgstr "esperat"
 
 #: src/language/stats/crosstabs.q:1138
-#, fuzzy
 msgid "residual"
-msgstr "Residual"
+msgstr "residual"
 
 #: src/language/stats/crosstabs.q:1139
-#, fuzzy
 msgid "std. resid."
-msgstr "Residu Tipificat"
+msgstr "residu tipificat"
 
 #: src/language/stats/crosstabs.q:1140
 msgid "adj. resid."
-msgstr ""
+msgstr "resid.ajust."
 
 #: src/language/stats/crosstabs.q:1231
-#, fuzzy
 msgid "Chi-square tests."
-msgstr "Chi-quadrat"
+msgstr "Proves Chi-quadrat."
 
 #: src/language/stats/crosstabs.q:1238
-#, fuzzy
 msgid "Asymp. Sig. (2-sided)"
 msgstr "Sig. Asimp. (2-cues)"
 
 #: src/language/stats/crosstabs.q:1240
-#, fuzzy
 msgid "Exact Sig. (2-sided)"
 msgstr "Sig. Exacta (2-cues)"
 
 #: src/language/stats/crosstabs.q:1242
-#, fuzzy
 msgid "Exact Sig. (1-sided)"
 msgstr "Sig. Exacta (1-cua)"
 
 #: src/language/stats/crosstabs.q:1257
 msgid "Symmetric measures."
-msgstr ""
+msgstr "Mesures simètriques."
 
 #: src/language/stats/crosstabs.q:1263 src/language/stats/crosstabs.q:1312
-#, fuzzy
 msgid "Asymp. Std. Error"
-msgstr "Error Est."
+msgstr "Error Est. Asimp."
 
 #: src/language/stats/crosstabs.q:1264 src/language/stats/crosstabs.q:1313
 msgid "Approx. T"
-msgstr ""
+msgstr "Aprox. T"
 
 #: src/language/stats/crosstabs.q:1265 src/language/stats/crosstabs.q:1314
-#, fuzzy
 msgid "Approx. Sig."
-msgstr "Sig. Asimpt."
+msgstr "Sig. Aproxim."
 
 #: src/language/stats/crosstabs.q:1280
 msgid "Risk estimate."
-msgstr ""
+msgstr "Estimador de Risc."
 
 #: src/language/stats/crosstabs.q:1284
-#, fuzzy, c-format
+#, c-format
 msgid "95%% Confidence Interval"
-msgstr " Interval de Confiança Asimp. %g%%"
+msgstr "Interval de Confiança del 95%%"
 
 #: src/language/stats/crosstabs.q:1287 src/language/stats/t-test.q:757
 #: src/language/stats/t-test.q:921 src/language/stats/t-test.q:1014
-#, fuzzy
 msgid "Lower"
-msgstr "Límit Inferior"
+msgstr "Inferior"
 
 #: src/language/stats/crosstabs.q:1288 src/language/stats/t-test.q:758
 #: src/language/stats/t-test.q:922 src/language/stats/t-test.q:1015
-#, fuzzy
 msgid "Upper"
-msgstr "Límit Superior"
+msgstr "Superior"
 
 #: src/language/stats/crosstabs.q:1305
 msgid "Directional measures."
-msgstr ""
+msgstr "Mesures direccionals."
 
 #: src/language/stats/crosstabs.q:1776
-#, fuzzy
 msgid "Pearson Chi-Square"
-msgstr "Chi-quadrat"
+msgstr "Chi-quadrat de Pearson"
 
 #: src/language/stats/crosstabs.q:1777
+#, fuzzy
 msgid "Likelihood Ratio"
-msgstr ""
+msgstr "Raó de Semblança"
 
 #: src/language/stats/crosstabs.q:1778
 msgid "Fisher's Exact Test"
-msgstr ""
+msgstr "Prova exacta de Fisher"
 
 #: src/language/stats/crosstabs.q:1779
 msgid "Continuity Correction"
-msgstr ""
+msgstr "Correcció per continuitat"
 
 #: src/language/stats/crosstabs.q:1780
 msgid "Linear-by-Linear Association"
-msgstr ""
+msgstr "Asociació linear per linear"
 
 #: src/language/stats/crosstabs.q:1815 src/language/stats/crosstabs.q:1890
 #: src/language/stats/crosstabs.q:1955
 msgid "N of Valid Cases"
-msgstr ""
+msgstr "N de casos vàlids"
 
 #: src/language/stats/crosstabs.q:1834 src/language/stats/crosstabs.q:1973
 msgid "Nominal by Nominal"
-msgstr ""
+msgstr "Nominal segons Nominal"
 
 #: src/language/stats/crosstabs.q:1835 src/language/stats/crosstabs.q:1974
 msgid "Ordinal by Ordinal"
-msgstr ""
+msgstr "Ordinal segons Ordinal"
 
 #: src/language/stats/crosstabs.q:1836
 msgid "Interval by Interval"
-msgstr ""
+msgstr "Interval segons Interval"
 
 #: src/language/stats/crosstabs.q:1837
 msgid "Measure of Agreement"
-msgstr ""
+msgstr "Mesura d'Acord"
 
 #: src/language/stats/crosstabs.q:1843
 msgid "Cramer's V"
-msgstr ""
+msgstr "V de Cramer"
 
 #: src/language/stats/crosstabs.q:1844
 msgid "Contingency Coefficient"
-msgstr ""
+msgstr "Coeficient de Contingencia"
 
 #: src/language/stats/crosstabs.q:1845
 msgid "Kendall's tau-b"
-msgstr ""
+msgstr "Tau-B de Kendall"
 
 #: src/language/stats/crosstabs.q:1846
 msgid "Kendall's tau-c"
-msgstr ""
+msgstr "Tau-C de Kendall"
 
 #: src/language/stats/crosstabs.q:1848
 msgid "Spearman Correlation"
-msgstr ""
+msgstr "Correlació de Spearman"
 
 #: src/language/stats/crosstabs.q:1849
 msgid "Pearson's R"
-msgstr ""
+msgstr "R de Pearson"
 
 #: src/language/stats/crosstabs.q:1928
 #, c-format
 msgid "Odds Ratio for %s (%g / %g)"
-msgstr ""
+msgstr "Raó de diferencies per a %s (%g / %g)"
 
 #: src/language/stats/crosstabs.q:1931
 #, c-format
 msgid "Odds Ratio for %s (%.*s / %.*s)"
-msgstr ""
+msgstr "Raó de diferències per a  %s (%.*s / %.*s)"
 
 #: src/language/stats/crosstabs.q:1939
 #, c-format
 msgid "For cohort %s = %g"
-msgstr ""
+msgstr "Per cohort %s = %g"
 
 #: src/language/stats/crosstabs.q:1942
 #, c-format
 msgid "For cohort %s = %.*s"
-msgstr ""
+msgstr "Per cohort %s = %.*s"
 
 #: src/language/stats/crosstabs.q:1975
 msgid "Nominal by Interval"
-msgstr ""
+msgstr "Nominal segons Interval"
 
 #: src/language/stats/crosstabs.q:1981
 msgid "Goodman and Kruskal tau"
-msgstr ""
+msgstr "Tau de Kruskal i Goodman"
 
 #: src/language/stats/crosstabs.q:1982
 msgid "Uncertainty Coefficient"
-msgstr ""
+msgstr "Coeficient d'Incertessa"
 
 #: src/language/stats/crosstabs.q:1983
 msgid "Somers' d"
-msgstr ""
+msgstr "D de Somers"
 
 #: src/language/stats/crosstabs.q:1989
-#, fuzzy
 msgid "Symmetric"
-msgstr "Numèric"
+msgstr "Simètric"
 
 #: src/language/stats/crosstabs.q:1990 src/language/stats/crosstabs.q:1991
 #, c-format
 msgid "%s Dependent"
-msgstr ""
+msgstr "%s Dependent"
 
 #: src/language/stats/examine.q:346 src/language/stats/examine.q:499
 #: src/language/stats/examine.q:1060
 msgid "Not creating plot because data set is empty."
-msgstr ""
+msgstr "No es crea el gràfic perquè el conjunt de dades es buit."
 
 #: src/language/stats/examine.q:356
 #, c-format
 msgid "Normal Q-Q Plot of %s"
-msgstr ""
+msgstr "Gràfica Normal Q-Q de %s"
 
 #: src/language/stats/examine.q:357 src/language/stats/examine.q:362
-#, fuzzy
 msgid "Observed Value"
-msgstr "N observat"
+msgstr "Valor observat"
 
 #: src/language/stats/examine.q:358
-#, fuzzy
 msgid "Expected Normal"
-msgstr "N esperat"
+msgstr "Normal esperada"
 
 #: src/language/stats/examine.q:360
-#, c-format
+#, fuzzy, c-format
 msgid "Detrended Normal Q-Q Plot of %s"
-msgstr ""
+msgstr "Gràfica Normal Detrended Q-Q de %s"
 
 #: src/language/stats/examine.q:363
 msgid "Dev from Normal"
-msgstr ""
+msgstr "Desviació de la Normal"
 
 #: src/language/stats/examine.q:516
 #, c-format
 msgid "Boxplot of %s vs. %s"
-msgstr ""
+msgstr "Diagrama de caixa de %s vs. %s"
 
 #: src/language/stats/examine.q:520
 #, c-format
 msgid "Boxplot of %s"
-msgstr ""
+msgstr "Diagrama de caixa de %s"
 
 #: src/language/stats/examine.q:756 src/language/stats/examine.q:769
 #, c-format
 msgid "%s and %s are mutually exclusive"
-msgstr ""
+msgstr "%s i %s son mutuament excloents"
 
 #: src/language/stats/examine.q:1272 src/language/stats/reliability.q:686
-#, fuzzy
 msgid "Case Processing Summary"
-msgstr "Resum del Cas"
+msgstr "Resum de processament del Casos"
 
 #: src/language/stats/examine.q:1564 src/language/stats/oneway.q:398
-#, fuzzy, c-format
+#, c-format
 msgid "%g%% Confidence Interval for Mean"
-msgstr " Interval de Confiança Asimp. %g%%"
+msgstr "Interval de Confiança de Miitjana %g%%"
 
 #: src/language/stats/examine.q:1579
 msgid "5% Trimmed Mean"
-msgstr ""
+msgstr "Mitjana retallada al 5%"
 
 #: src/language/stats/examine.q:1614
 msgid "Interquartile Range"
-msgstr ""
+msgstr "Interval inter-quartilic"
 
 #: src/language/stats/examine.q:1939
-#, fuzzy
 msgid "Highest"
-msgstr "Dreta"
+msgstr "Superior"
 
 #: src/language/stats/examine.q:1944
-#, fuzzy
 msgid "Lowest"
-msgstr "Esquerra"
+msgstr "Inferior"
 
 #: src/language/stats/examine.q:1951
 msgid "Extreme Values"
-msgstr ""
+msgstr "Valor extrems"
 
 #: src/language/stats/examine.q:1955
-#, fuzzy
 msgid "Case Number"
-msgstr "Resum del Cas"
+msgstr "Número de Cas"
 
 #: src/language/stats/examine.q:2077
 msgid "Tukey's Hinges"
-msgstr ""
+msgstr "Bisagras de Tukey"
 
 #: src/language/stats/examine.q:2124
 #, c-format
 msgid "%g"
-msgstr ""
+msgstr "%g"
 
 #: src/language/stats/frequencies.q:124
-#, fuzzy
 msgid "S.E. Mean"
-msgstr "Mitj. E.E."
+msgstr "E.E. Mitj."
 
 #: src/language/stats/frequencies.q:130
-#, fuzzy
 msgid "S.E. Kurt"
-msgstr "Curt.E.E."
+msgstr "E.E. Curt."
 
 #: src/language/stats/frequencies.q:132
-#, fuzzy
 msgid "S.E. Skew"
-msgstr "Asim.E.E."
+msgstr "E.E. Asim."
 
 #: src/language/stats/frequencies.q:407
+#, fuzzy
 msgid "At most one of BARCHART, HISTOGRAM, or HBAR should be given.  HBAR will be assumed.  Argument values will be given precedence increasing along the order given."
-msgstr ""
+msgstr "Al menys s'ha de demar un d'entre BARCHART, HISTOGRAM o HBAR.  S'assumeix HBAR.  (Argument values will be given precedence increasing along the order given)."
 
 #: src/language/stats/frequencies.q:490
 #, c-format
 msgid "MAX must be greater than or equal to MIN, if both are specified.  However, MIN was specified as %g and MAX as %g.  MIN and MAX will be ignored."
-msgstr ""
+msgstr "MAX ha de ser major o igual a MIN, si tots dos s'especifiquen.  Però,  MIN s'ha especificat com a %g i MAX com a %g.  MIN i MAX son ignorats."
 
 #: src/language/stats/frequencies.q:754
-#, fuzzy, c-format
+#, c-format
 msgid "Variable %s specified multiple times on VARIABLES subcommand."
-msgstr "La variable %s s'especifica dues vegades als criteris d'ordenació."
+msgstr "La variable %s s'ha especificat més d'una vegada a l'ordre VARIABLES."
 
 #: src/language/stats/frequencies.q:812
-#, fuzzy
 msgid "`)' expected after GROUPED interval list."
-msgstr "`(' esperat després de la llista de variables."
+msgstr "`)' esperat després de la llista de variables GRUPED."
 
 #: src/language/stats/frequencies.q:824
 #, c-format
 msgid "Variables %s specified on GROUPED but not on VARIABLES."
-msgstr ""
+msgstr "Variables %s especificades a GROUPED però no a VARIABLES."
 
 #: src/language/stats/frequencies.q:831
-#, fuzzy, c-format
+#, c-format
 msgid "Variables %s specified multiple times on GROUPED subcommand."
-msgstr "La variable %s s'especifica dues vegades als criteris d'ordenació."
+msgstr "La variable %s s'ha especificat més d'una vegada a l'ordre GROUPED."
 
 #: src/language/stats/frequencies.q:1050 src/language/stats/frequencies.q:1143
 #: src/language/stats/frequencies.q:1144 src/language/stats/frequencies.q:1179
-#, fuzzy
 msgid "Cum"
-msgstr "Suma"
+msgstr "Acumulat"
 
 #: src/language/stats/frequencies.q:1073
-#, fuzzy
 msgid "Value Label"
-msgstr "Etiqueta d'arxiu:"
+msgstr "Etiqueta de Valor"
 
 #: src/language/stats/frequencies.q:1177
-#, fuzzy
 msgid "Freq"
-msgstr "Freqüència"
+msgstr "Freq"
 
 #: src/language/stats/frequencies.q:1178 src/language/stats/frequencies.q:1180
 msgid "Pct"
-msgstr ""
+msgstr "Pct"
 
 #: src/language/stats/frequencies.q:1373
-#, fuzzy, c-format
+#, c-format
 msgid "No valid data for variable %s; statistics not displayed."
-msgstr "Cap variable per mostrar."
+msgstr "No hi ha dades vàlides per a la variable %s; not es mostren estadístiques."
 
 #: src/language/stats/frequencies.q:1414
-#, fuzzy
 msgid "50 (Median)"
-msgstr "50è (Mediana)"
+msgstr "50 (Mediana)"
 
 #: src/language/stats/glm.q:196
-#, fuzzy
 msgid "Multivariate GLM not yet supported"
-msgstr "Macros no disponibles."
+msgstr "GLM multivariable encara no disponible"
 
 #: src/language/stats/glm.q:320 src/language/stats/regression.q:1000
 msgid "No valid data found. This command was skipped."
-msgstr ""
+msgstr "No s'han trobat dades vàlides. S'gnora aquesta ordre."
 
 #: src/language/stats/means.q:100
-#, fuzzy
 msgid "Missing required subcommand TABLES."
-msgstr "subordre requerida %s absent"
+msgstr "Falta subordre requerida TABLES"
 
 #: src/language/stats/means.q:134
-#, fuzzy
 msgid "TABLES subcommand may not appear more than once."
-msgstr "El subcomando RENAME pot ser utilitzat només una vegada."
+msgstr "El subcomando TABLES no pot apareixer més d'una vegada."
 
 #: src/language/stats/npar.q:109
-#, fuzzy
 msgid "NPAR subcommand not currently implemented."
-msgstr "Només USE ALL s'està aplicant actualment."
+msgstr "Actualment no está implenetat el subcomandament NPAR."
 
 #: src/language/stats/npar.q:252
 #, c-format
 msgid "The specified value of HI (%d) is lower than the specified value of LO (%d)"
-msgstr ""
+msgstr "El valor especificatper a HI (%d) és menor que l'especificat per a LO (%d)"
 
 #: src/language/stats/npar.q:307
 #, c-format
 msgid "%d expected values were given, but the specified range (%d-%d) requires exactly %d values."
-msgstr ""
+msgstr "S'han proporcionat %d valors esperats, però l'interval especificat (%d-%d) requereix exactament %d valors."
 
 #: src/language/stats/npar.q:441 src/language/stats/t-test.q:379
 #, c-format
 msgid "PAIRED was specified but the number of variables preceding WITH (%zu) did not match the number following (%zu)."
-msgstr ""
+msgstr "S'ha especificat PAIRED però el nombre de variables abans de WITH (%zu) not conicideixen amb en nombre de variables seguents (%zu)."
 
 #: src/language/stats/oneway.q:171
 msgid "Number of contrast coefficients must equal the number of groups"
-msgstr ""
+msgstr "El nombre de coeficients de contrast ha de ser igual al nombre de grups."
 
 #: src/language/stats/oneway.q:180
 #, c-format
 msgid "Coefficients for contrast %zu do not total zero"
-msgstr ""
+msgstr "Els coeficients per contrastar %zu no sumen cero."
 
 #: src/language/stats/oneway.q:243
-#, fuzzy, c-format
+#, c-format
 msgid "`%s' is not a variable name"
-msgstr "%s no és un nom de variable."
+msgstr "`%s' no és un nom de variable"
 
 #: src/language/stats/oneway.q:277 src/language/stats/regression.q:301
-#, fuzzy
 msgid "Sum of Squares"
-msgstr "Suma de Rangs"
+msgstr "Suma de Quadrats"
 
 #: src/language/stats/oneway.q:279 src/language/stats/regression.q:303
-#, fuzzy
 msgid "Mean Square"
 msgstr "Rang mitjà"
 
 #: src/language/stats/oneway.q:280 src/language/stats/regression.q:304
 #: src/language/stats/t-test.q:750
 msgid "F"
-msgstr ""
+msgstr "F"
 
 #: src/language/stats/oneway.q:281 src/language/stats/oneway.q:539
 #: src/language/stats/regression.q:206 src/language/stats/regression.q:305
 msgid "Significance"
-msgstr ""
+msgstr "Significativitat"
 
 #: src/language/stats/oneway.q:303
 msgid "Between Groups"
-msgstr ""
+msgstr "Entre Grups"
 
 #: src/language/stats/oneway.q:304
 msgid "Within Groups"
-msgstr ""
+msgstr "Intra Grups"
 
 #: src/language/stats/oneway.q:348 src/language/stats/regression.q:330
 msgid "ANOVA"
-msgstr ""
+msgstr "ANOVA"
 
 #: src/language/stats/oneway.q:536
-#, fuzzy
 msgid "Levene Statistic"
-msgstr "Estatístic"
+msgstr "Estatístic de Levene"
 
 #: src/language/stats/oneway.q:537
-#, fuzzy
 msgid "df1"
-msgstr "df"
+msgstr "df1"
 
 #: src/language/stats/oneway.q:538
-#, fuzzy
 msgid "df2"
-msgstr "df"
+msgstr "df2"
 
 #: src/language/stats/oneway.q:541
 msgid "Test of Homogeneity of Variances"
-msgstr ""
+msgstr "Prova de Homogeneitat de variances"
 
 #: src/language/stats/oneway.q:608
 msgid "Contrast Coefficients"
-msgstr ""
+msgstr "Coeficinents de Contrast"
 
 #: src/language/stats/oneway.q:610 src/language/stats/oneway.q:687
-#, fuzzy
 msgid "Contrast"
-msgstr "Recompte"
+msgstr "Contrast"
 
 #: src/language/stats/oneway.q:685
 msgid "Contrast Tests"
-msgstr ""
+msgstr "Proves de contrats"
 
 #: src/language/stats/oneway.q:688
 msgid "Value of Contrast"
-msgstr ""
+msgstr "Valor de constrast"
 
 #: src/language/stats/oneway.q:690 src/language/stats/regression.q:205
 #: src/language/stats/t-test.q:752 src/language/stats/t-test.q:923
 #: src/language/stats/t-test.q:1010
 msgid "t"
-msgstr ""
+msgstr "t"
 
 #: src/language/stats/oneway.q:692 src/language/stats/t-test.q:754
 #: src/language/stats/t-test.q:925 src/language/stats/t-test.q:1012
-#, fuzzy
 msgid "Sig. (2-tailed)"
-msgstr "Sig. Exacta (2-cues)"
+msgstr "Sig. (2-cues)"
 
 #: src/language/stats/oneway.q:736
 msgid "Assume equal variances"
-msgstr ""
+msgstr "S'assumeix igualtat de variances"
 
 #: src/language/stats/oneway.q:740
 msgid "Does not assume equal"
-msgstr ""
+msgstr "No s'assumeix igualtat"
 
 #: src/language/stats/rank.q:221
 #, c-format
 msgid "%s of %s by %s"
-msgstr ""
+msgstr "%s de %s per %s"
 
 #: src/language/stats/rank.q:226
-#, fuzzy, c-format
+#, c-format
 msgid "%s of %s"
-msgstr "puntuació-Z de %s"
+msgstr "%s de %s"
 
 #: src/language/stats/rank.q:601
-#, fuzzy
 msgid "Cannot create new rank variable.  All candidates in use."
-msgstr "No es pot crear el nom de la variable des de %s"
+msgstr "No es pot crear la nova variable de rangs.  Tots els candidats estan en ús."
 
 #: src/language/stats/rank.q:694
 msgid "Variables Created By RANK"
-msgstr ""
+msgstr "Variables creades per RANK"
 
 #: src/language/stats/rank.q:718
 #, c-format
 msgid "%s into %s(%s of %s using %s BY %s)"
-msgstr ""
+msgstr "%s en %s(%s de %s utilitzant %s BY %s)"
 
 #: src/language/stats/rank.q:728
 #, c-format
 msgid "%s into %s(%s of %s BY %s)"
-msgstr ""
+msgstr "%s en %s(%s de %s BY %s)"
 
 #: src/language/stats/rank.q:741
 #, c-format
 msgid "%s into %s(%s of %s using %s)"
-msgstr ""
+msgstr "%s en %s(%s de %s utilitzant %s)"
 
 #: src/language/stats/rank.q:750
 #, c-format
 msgid "%s into %s(%s of %s)"
-msgstr ""
+msgstr "%s en %s(%s de %s)"
 
 #: src/language/stats/rank.q:762
 msgid "FRACTION has been specified, but NORMAL and PROPORTION rank functions have not been requested.  The FRACTION subcommand will be ignored."
-msgstr ""
+msgstr "S'ha especificat FRACTION, però no s'ahn demanat funcions de rang NORMAL o PROPORTION.  La  subordre FRACTION será ignorada."
 
 #: src/language/stats/rank.q:853
-#, fuzzy, c-format
+#, c-format
 msgid "Variable %s already exists."
-msgstr "Un vector anomenat %s ja existeix."
+msgstr "La variable %s ja existeix."
 
 #: src/language/stats/rank.q:858
-#, fuzzy
 msgid "Too many variables in INTO clause."
-msgstr "Massa valors en el comandament únic."
+msgstr "Massa variables a la clausula INTO."
 
 #: src/language/stats/regression.q:160
-#, fuzzy
 msgid "R Square"
-msgstr "Chi-quadrat"
+msgstr "R Quadrada"
 
 #: src/language/stats/regression.q:161
-#, fuzzy
 msgid "Adjusted R Square"
-msgstr "Residu Tipificat Ajustat"
+msgstr "R Quadrada Ajustada"
 
 #: src/language/stats/regression.q:162
-#, fuzzy
 msgid "Std. Error of the Estimate"
-msgstr "Error estàndard en la mitjana"
+msgstr "Error estàndard de l'Estimador"
 
 #: src/language/stats/regression.q:167
-#, fuzzy
 msgid "Model Summary"
-msgstr "Resum del Cas"
+msgstr "Resum del model"
 
 #: src/language/stats/regression.q:202
 msgid "B"
-msgstr ""
+msgstr "B"
 
 #: src/language/stats/regression.q:204
 msgid "Beta"
-msgstr ""
+msgstr "Beta"
 
 #: src/language/stats/regression.q:207
 msgid "(Constant)"
-msgstr ""
+msgstr "(Constant)"
 
 #: src/language/stats/regression.q:271
 msgid "Coefficients"
-msgstr ""
+msgstr "Coeficients"
 
 #: src/language/stats/regression.q:307
-#, fuzzy
 msgid "Regression"
-msgstr "en l'expressió"
+msgstr "Regressió"
 
 #: src/language/stats/regression.q:389
-#, fuzzy
 msgid "Model"
-msgstr "Mode"
+msgstr "Model"
 
 #: src/language/stats/regression.q:390
-#, fuzzy
 msgid "Covariances"
-msgstr "Variància"
+msgstr "Covariància"
 
 #: src/language/stats/regression.q:405
 msgid "Coefficient Correlations"
-msgstr ""
+msgstr "Correlacions de Coeficients"
 
 #: src/language/stats/regression.q:812
 msgid "The dependent variable is equal to the independent variable.The least squares line is therefore Y=X.Standard errors and related statistics may be meaningless."
-msgstr ""
+msgstr "La variable dependiente es igual a la variable independiente. La línea de minimos cuadrados es por tanto Y=X. Los errores estàndard i els estadistics relacionats podríen ser irrellevants."
 
 #: src/language/stats/regression.q:904
-#, fuzzy
 msgid "Dependent variable must be numeric."
-msgstr "Variable de ponderació ha de ser numèrica."
+msgstr "La variable dependent ha de ser numèrica."
 
 #: src/language/stats/reliability.q:433
-#, fuzzy
 msgid "Reliability Statistics"
-msgstr "Proves Estad."
+msgstr "Estadístiques de fiabilitat"
 
 #: src/language/stats/reliability.q:476
-#, fuzzy
 msgid "Item-Total Statistics"
-msgstr "Proves Estad."
+msgstr "Estadístiques de total d'Items"
 
 #: src/language/stats/reliability.q:498
 msgid "Scale Mean if Item Deleted"
-msgstr ""
+msgstr "Escalar la mitjana si s'esborra l'element"
 
 #: src/language/stats/reliability.q:501
 msgid "Scale Variance if Item Deleted"
-msgstr ""
+msgstr "Escalar la variança si s'esborra l'element"
 
 #: src/language/stats/reliability.q:504
 msgid "Corrected Item-Total Correlation"
-msgstr ""
+msgstr "Correlació total-item corregida"
 
 #: src/language/stats/reliability.q:507
 msgid "Cronbach's Alpha if Item Deleted"
-msgstr ""
+msgstr "Cronbach's Alpha si s'esborra l'element"
 
 #: src/language/stats/reliability.q:557 src/language/stats/reliability.q:576
 msgid "Cronbach's Alpha"
-msgstr ""
+msgstr "Alfa de Cronbach"
 
 #: src/language/stats/reliability.q:560
 msgid "N of items"
-msgstr ""
+msgstr "N d'elements"
 
 #: src/language/stats/reliability.q:579
 msgid "Part 1"
-msgstr ""
+msgstr "Part 1"
 
 #: src/language/stats/reliability.q:585 src/language/stats/reliability.q:596
 msgid "N of Items"
-msgstr ""
+msgstr "N d'elements"
 
 #: src/language/stats/reliability.q:590
 msgid "Part 2"
-msgstr ""
+msgstr "Part 2"
 
 #: src/language/stats/reliability.q:601
 msgid "Total N of Items"
-msgstr ""
+msgstr "N total d'elements"
 
 #: src/language/stats/reliability.q:604
+#, fuzzy
 msgid "Correlation Between Forms"
-msgstr ""
+msgstr "Correlation entre formes"
 
 #: src/language/stats/reliability.q:608
 msgid "Spearman-Brown Coefficient"
-msgstr ""
+msgstr "Coeficient d'Spearman-Brown"
 
 #: src/language/stats/reliability.q:611
 msgid "Equal Length"
-msgstr ""
+msgstr "Ample igual"
 
 #: src/language/stats/reliability.q:614
 msgid "Unequal Length"
-msgstr ""
+msgstr "Ample desigual"
 
 #: src/language/stats/reliability.q:618
 msgid "Guttman Split-Half Coefficient"
-msgstr ""
+msgstr "Coeficient Gutman de DIvisió pel mig"
 
 #: src/language/stats/reliability.q:715
-#, fuzzy
 msgid "Excluded"
-msgstr "Esperat"
+msgstr "Exclós"
 
 #: src/language/stats/reliability.q:723
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #: src/language/stats/t-test.q:189
 msgid "Exactly one of TESTVAL, GROUPS and PAIRS subcommands must be specified."
-msgstr ""
+msgstr "Exactamente un dels subcomanaments TESTVAL, GROUPS y PAIRS ha d'especificarse."
 
 #: src/language/stats/t-test.q:210
-#, fuzzy
 msgid "VARIABLES subcommand may not be used with PAIRS."
-msgstr "El subcomando END només pot ser utilitzat dins de INPUT PROGRAM."
+msgstr "La subordre VARIABLES no pot se utilitzada amb PAIRS."
 
 #: src/language/stats/t-test.q:229
-#, fuzzy
 msgid "One or more VARIABLES must be specified."
-msgstr "Al menys una variable ha de ser especificada."
+msgstr "Una o més  VARIABLES han de ser especificades."
 
 #: src/language/stats/t-test.q:323
-#, fuzzy
 msgid "When applying GROUPS to a string variable, two values must be specified."
-msgstr "Al menys una variable ha de ser especificada."
+msgstr "Quan s'aplica GROUPS a una variable alfabetica, s'han d'especificar dos valors."
 
 #: src/language/stats/t-test.q:394
-#, fuzzy
 msgid "At least two variables must be specified on PAIRS."
-msgstr "Al menys una variable ha de ser especificada."
+msgstr "Al menys dos variables s'han d'especificar a PAIRS."
 
 #: src/language/stats/t-test.q:504
-#, fuzzy
 msgid "One-Sample Statistics"
-msgstr "Proves Estad."
+msgstr "Estadisticas d'una mostra"
 
 #: src/language/stats/t-test.q:509 src/language/stats/t-test.q:529
 #: src/language/stats/t-test.q:628
-#, fuzzy
 msgid "SE. Mean"
-msgstr "Mitj. E.E."
+msgstr "E.E. Mitj."
 
 #: src/language/stats/t-test.q:523
-#, fuzzy
 msgid "Group Statistics"
-msgstr "Estatístic"
+msgstr "Estadístiques de grup"
 
 #: src/language/stats/t-test.q:622
-#, fuzzy
 msgid "Paired Sample Statistics"
-msgstr "Proves Estad."
+msgstr "Estadistiques de mostres aparellades"
 
 #: src/language/stats/t-test.q:642 src/language/stats/t-test.q:945
 #: src/language/stats/t-test.q:1119
 #, c-format
 msgid "Pair %d"
-msgstr ""
+msgstr "Parell %d"
 
 #: src/language/stats/t-test.q:738
 msgid "Independent Samples Test"
-msgstr ""
+msgstr "Prova per mostres independents"
 
 #: src/language/stats/t-test.q:746
 msgid "Levene's Test for Equality of Variances"
-msgstr ""
+msgstr "Prova de Levene per a l'igualtat de variancies"
 
 #: src/language/stats/t-test.q:748
 msgid "t-test for Equality of Means"
-msgstr ""
+msgstr "Prova T per l'igualtat de Mitjanes"
 
 #: src/language/stats/t-test.q:751 src/language/stats/t-test.q:1107
-#, fuzzy
 msgid "Sig."
-msgstr "Cadena"
+msgstr "Sig."
 
 #: src/language/stats/t-test.q:755 src/language/stats/t-test.q:1013
-#, fuzzy
 msgid "Mean Difference"
-msgstr "Diferències Negatives"
+msgstr "Diferència Mitjana"
 
 #: src/language/stats/t-test.q:756
-#, fuzzy
 msgid "Std. Error Difference"
-msgstr "Error Est."
+msgstr "Err.Est. de la Diferència"
 
 #: src/language/stats/t-test.q:761 src/language/stats/t-test.q:915
 #: src/language/stats/t-test.q:1005
-#, fuzzy, c-format
+#, c-format
 msgid "%g%% Confidence Interval of the Difference"
-msgstr " Interval de Confiança Asimp. %g%%"
+msgstr "Interval de confiança de la Diferència %g%%"
 
 #: src/language/stats/t-test.q:815
 msgid "Equal variances assumed"
-msgstr ""
+msgstr "S'asumeix igualtat de variancies"
 
 #: src/language/stats/t-test.q:861
 msgid "Equal variances not assumed"
-msgstr ""
+msgstr "Igualtat de variancies no asumida"
 
 #: src/language/stats/t-test.q:905
 msgid "Paired Samples Test"
-msgstr ""
+msgstr "Prova de mostres aparellades"
 
 #: src/language/stats/t-test.q:908
-#, fuzzy
 msgid "Paired Differences"
-msgstr "Diferències Negatives"
+msgstr "Diferències aparellades"
 
 #: src/language/stats/t-test.q:920
-#, fuzzy
 msgid "Std. Error Mean"
-msgstr "Error Est."
+msgstr "Error Est. Mitjana"
 
 #: src/language/stats/t-test.q:994
 msgid "One-Sample Test"
-msgstr ""
+msgstr "Prova d'una mostra"
 
 #: src/language/stats/t-test.q:999
 #, c-format
 msgid "Test Value = %f"
-msgstr ""
+msgstr "Valor de prova = %f"
 
 #: src/language/stats/t-test.q:1102
 msgid "Paired Samples Correlations"
-msgstr ""
+msgstr "Correlacions de mostres aparellades"
 
 #: src/language/stats/t-test.q:1106
 msgid "Correlation"
-msgstr ""
+msgstr "Correlació"
 
 #: src/language/stats/t-test.q:1121
 #, c-format
 msgid "%s & %s"
-msgstr ""
+msgstr "%s & %s"
 
 #: src/language/data-io/file-handle.q:65
 #, c-format
 msgid "File handle %s is already defined.  Use CLOSE FILE HANDLE before redefining a file handle."
-msgstr ""
+msgstr "El manipulador d'arxiu %s ja ha esta definit.  Utilitzar CLOSE FILE HANDLE abans de redefinir un manipulador d'arxius."
 
 #: src/language/data-io/file-handle.q:120
 msgid "RECFORM must be specified with MODE=360."
-msgstr ""
+msgstr "RECFORM ha de ser espeficat amb MODE=360."
 
 #: src/language/data-io/file-handle.q:131
 #, c-format
 msgid "The specified file mode requires LRECL.  Assuming %d-character records."
-msgstr ""
+msgstr "El mode d'arxiu especificat requereix LRECL.  S'asumeix %d-registres de caracter."
 
 #: src/language/data-io/file-handle.q:135
 #, c-format
 msgid "Record length (%ld) must be between 1 and %lu bytes.  Assuming %d-character records."
-msgstr ""
+msgstr "L'amplada de registre (%ld) ha d'estar entre  1 i %lu bytes.  S'asumeix %d-registres de caracter."
 
 #: src/language/data-io/file-handle.q:177
-#, fuzzy
 msgid "file"
-msgstr "Arxiu:"
+msgstr "arxiu"
 
 #: src/language/data-io/file-handle.q:179
 msgid "inline file"
-msgstr ""
+msgstr "arxiu en linia"
 
 #: src/language/data-io/file-handle.q:205
-#, fuzzy
 msgid "expecting a file name or handle name"
-msgstr "esperant nom d'arxiu"
+msgstr "experant un nom d'arxiu o un manipulador"
 
 #: src/language/data-io/file-handle.q:225
-#, fuzzy, c-format
+#, c-format
 msgid "Handle for %s not allowed here."
-msgstr "L'arxiu en línia no està permès aquí."
+msgstr "Aquí no està permès un manipulador per a %s."
 
 #: src/language/data-io/list.q:165
 #, c-format
 msgid "The first case (%ld) specified precedes the last case (%ld) specified.  The values will be swapped."
-msgstr ""
+msgstr "El primer cas (%ld) especificat precedeix a l'ultim cas (%ld) especificat.  Els valors s'intercanviaran."
 
 #: src/language/data-io/list.q:173
 #, c-format
 msgid "The first case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "EL primer cas (%ld) per llistar es menor que 1.  El valor es retorna a 1."
 
 #: src/language/data-io/list.q:179
 #, c-format
 msgid "The last case (%ld) to list is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "L'últim cas (%ld) per llistar es menor que 1.  El valor es restaura a 1.."
 
 #: src/language/data-io/list.q:185
 #, c-format
 msgid "The step value %ld is less than 1.  The value is being reset to 1."
-msgstr ""
+msgstr "El valor del pas %ld es menor que 1.  el valor es retorna a 1."
 
 #: src/language/data-io/list.q:211
 msgid "`/FORMAT WEIGHT' specified, but weighting is not on."
-msgstr ""
+msgstr "`/FORMAT WEIGHT' especificat, però la ponderació no està activada."
 
 #: src/language/data-io/list.q:468
 msgid "Line"
-msgstr ""
+msgstr "Linea"

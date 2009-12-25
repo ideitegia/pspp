@@ -58,6 +58,7 @@ doc/pspp.xml: doc/pspp.texinfo $(doc_pspp_TEXINFOS)
 	$(MAKEINFO) $(AM_MAKEINFOFLAGS) --docbook -I $(top_srcdir) \
 		$(top_srcdir)/doc/pspp.texinfo -o - \
 		| $(SED) 's/Time-&-Date/Time-\&amp;-Date/g' > $@
+	$(XMLLINT) --output /dev/null $@ 2>&1 2> /dev/null || ( $(RM) $@ && false )
 
 docbookdir = $(docdir)
 docbook_DATA = doc/pspp.xml

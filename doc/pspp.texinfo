@@ -65,9 +65,8 @@ modify this GNU manual.''
 @insertcopying
 @end titlepage
 
-@chapheading Acknowledgements
-The authors wish to thank
-Network Theory Ltd 
+@c @chapheading Acknowledgements
+The authors wish to thank Network Theory Ltd 
 @url{http://www.network-theory.co.uk}
 for their financial support 
 in the production of this manual.

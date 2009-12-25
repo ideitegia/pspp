@@ -30,7 +30,7 @@ msgstr ""
 "Project-Id-Version: pspp-0.7.2-pre1\n"
 "Report-Msgid-Bugs-To: pspp-dev@gnu.org\n"
 "POT-Creation-Date: 2009-09-08 21:57-0700\n"
-"PO-Revision-Date: 2009-11-16 18:38+0100\n"
+"PO-Revision-Date: 2009-12-21 19:12+0100\n"
 "Last-Translator: Harry Thijssen <pspp@sjpaes.nl>\n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "MIME-Version: 1.0\n"
@@ -3673,13 +3673,13 @@ msgstr "Start een interactieve sessie"
 
 #: src/ui/gui/about.c:64
 msgid "A program for the analysis of sampled data"
-msgstr "Een programma voor de analyse van bemonsterde gegevens."
+msgstr "Een programma voor de analyse van bemonsterde gegevens"
 
 #. TRANSLATORS: Use this string to list the people who have helped with
 #. translation to your language.
 #: src/ui/gui/about.c:74
 msgid "translator-credits"
-msgstr "vertaler-credits"
+msgstr "Harry Thijssen"
 
 #: src/ui/gui/checkbox-treeview.c:92 src/language/stats/crosstabs.q:1234
 #: src/language/stats/crosstabs.q:1261 src/language/stats/crosstabs.q:1285
@@ -4253,7 +4253,7 @@ msgstr "Als u niet opslaat zullen de aanpassingen van de laatste %ld seconden pe
 
 #: src/ui/gui/psppire-window.c:491
 msgid "Close _without saving"
-msgstr "%s zonder %s"
+msgstr "Sluit _zonder opslaan"
 
 #: src/ui/gui/recode-dialog.c:881
 msgid "Recode into Different Variables"
