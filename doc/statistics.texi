@@ -10,6 +10,7 @@ far.
 * EXAMINE::                     Testing data for normality.
 * CORRELATIONS::                Correlation tables.
 * CROSSTABS::                   Crosstabulation tables.
+* FACTOR::                      Factor analysis and Principal Components analysis
 * NPAR TESTS::                  Nonparametric tests.
 * T-TEST::                      Test hypotheses about means.
 * ONEWAY::                      One way analysis of variance.
@@ -341,7 +342,7 @@ values are excluded as well as system-missing values.
 This is the default.
 
 If LISTWISE is set, then the entire case is excluded from analysis
-whenever any variable  specified in the any @cmd{/VARIABLES} subcommand
+whenever any variable  specified in any @cmd{/VARIABLES} subcommand
 contains a missing value.   
 If PAIRWISE is set, then a case is considered missing only if either of the
 values  for the particular coefficient are missing.
@@ -552,6 +553,99 @@ Approximate T of uncertainty coefficient is wrong.
 @end itemize
 
 Fixes for any of these deficiencies would be welcomed.
+
+@node FACTOR
+@section FACTOR
+
+@vindex FACTOR
+@cindex factor analysis
+@cindex principal components analysis
+@cindex principal axis factoring
+@cindex data reduction
+
+@display
+FACTOR  VARIABLES=var_list
+
+        [ /METHOD = @{CORRELATION, COVARIANCE@} ]
+
+        [ /EXTRACTION=@{PC, PAF@}] 
+
+        [ /PRINT=[INITIAL] [EXTRACTION] [UNIVARIATE] [CORRELATION] [COVARIANCE] [DET] [SIG] [ALL] [DEFAULT] ]
+
+        [ /PLOT=[EIGEN] ]
+
+        [ /FORMAT=[SORT] [BLANK(@var{n})] [DEFAULT] ]
+
+        [ /CRITERIA=[FACTORS(@var{n})] [MINEIGEN(@var{l})] [ITERATE(@var{m})] [ECONVERGE (@var{delta})] [DEFAULT] ]
+
+        [ /MISSING=[@{LISTWISE, PAIRWISE@}] [@{INCLUDE, EXCLUDE@}] ]
+@end display
+
+The FACTOR command performs Factor Analysis or Principal Axis Factoring on a dataset.  It may be used to find
+common factors in the data or for data reduction purposes.
+
+The VARIABLES subcommand is required.  It lists the variables which are to partake in the analysis.
+
+The /EXTRACTION subcommand is used to specify the way in which factors (components) are extracted from the data.
+If PC is specified, then Principal Components Analysis is used.  If PAF is specified, then Principal Axis Factoring is
+used. By default Principal Components Analysis will be used.
+
+The /METHOD subcommand should be used to determine whether the covariance matrix or the correlation matrix of the data is
+to be analysed.  By default, the correlation matrix is analysed.
+
+The /PRINT subcommand may be used to select which features of the analysis are reported:
+
+@itemize
+@item UNIVARIATE
+      A table of mean values, standard deviations and total weights are printed.
+@item INITIAL
+      Initial communalities and eigenvalues are printed.
+@item EXTRACTION
+      Extracted communalities and eigenvalues are printed.
+@item CORRELATION
+      The correlation matrix is printed.
+@item COVARIANCE
+      The covariance matrix is printed.
+@item DET
+      The determinant of the correlation or covariance matrix is printed.
+@item SIG
+      The significance of the elements of correlation matrix is printed.
+@item ALL
+      All of the above are printed.
+@item DEFAULT
+      Identical to INITIAL and EXTRACTION.
+@end itemize
+
+If /PLOT=EIGEN is given, then a ``Scree'' plot of the eigenvalues will be printed.  This can be useful for visualising
+which factors (components) should be retained.
+
+The /FORMAT subcommand determined how data are to be displayed in loading matrices.  If SORT is specified, then the variables
+are sorted in descending order of significance.  If BLANK(@var{n}) is specified, then coefficients whose absolute value is less
+than @var{n} will not be printed.  If the keyword DEFAULT is given, or if no /FORMAT subcommand is given, then no sorting is 
+performed, and all coefficients will be printed.
+
+The /CRITERIA subcommand is used to specify how the number of extracted factors (components) are chosen.  If FACTORS(@var{n}) is
+specified, where @var{n} is an integer, then @var{n} factors will be extracted.  Otherwise, the MINEIGEN setting will
+be used.  MINEIGEN(@var{l}) requests that all factors whose eigenvalues are greater than or equal to @var{l} are extracted.
+The default value of @var{l} is 1.    The ECONVERGE and ITERATE settings have effect only when iterative algorithms for factor
+extraction (such as Principal Axis Factoring) are used.   ECONVERGE(@var{delta}) specifies that iteration should cease when
+the maximum absolute value of the communality estimate between one iteration and the previous is less than @var{delta}. The
+default value of @var{delta} is 0.001.
+The ITERATE(@var{m}) setting sets the maximum number of iterations to @var{m}.  The default value of @var{m} is 25.
+
+The @cmd{MISSING} subcommand determines the handling of missing variables.  
+If INCLUDE is set, then user-missing values are included in the
+calculations, but system-missing values are not.
+If EXCLUDE is set, which is the default, user-missing
+values are excluded as well as system-missing values. 
+This is the default.
+If LISTWISE is set, then the entire case is excluded from analysis
+whenever any variable  specified in the @cmd{VARIABLES} subcommand
+contains a missing value.   
+If PAIRWISE is set, then a case is considered missing only if either of the
+values  for the particular coefficient are missing.
+The default is LISTWISE.
+ 
 
 @node NPAR TESTS
 @section NPAR TESTS
