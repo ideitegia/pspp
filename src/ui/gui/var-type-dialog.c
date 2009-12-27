@@ -445,7 +445,7 @@ var_type_dialog_create (GtkWindow *toplevel)
   g_object_unref (list_store);
 
   g_signal_connect (dialog->date_format_treeview, "cursor-changed",
-		   GTK_SIGNAL_FUNC (set_format_from_treeview), dialog);
+		   G_CALLBACK (set_format_from_treeview), dialog);
 
 
   /* populate the dollar treeview */
@@ -483,11 +483,11 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   g_signal_connect (dialog->dollar_treeview,
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC (set_format_from_treeview), dialog);
+		   G_CALLBACK (set_format_from_treeview), dialog);
 
   g_signal_connect_swapped (dialog->dollar_treeview,
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC (update_width_decimals), dialog);
+		   G_CALLBACK (update_width_decimals), dialog);
 
 
   /* populate the custom treeview */
@@ -527,22 +527,22 @@ var_type_dialog_create (GtkWindow *toplevel)
 
   g_signal_connect (dialog->custom_treeview,
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC (set_format_type_from_treeview), dialog);
+		   G_CALLBACK (set_format_type_from_treeview), dialog);
 
 
   g_signal_connect (dialog->custom_treeview,
 		   "cursor-changed",
-		   GTK_SIGNAL_FUNC (preview_custom), dialog);
+		   G_CALLBACK (preview_custom), dialog);
 
 
   g_signal_connect (dialog->entry_width,
 		   "changed",
-		   GTK_SIGNAL_FUNC (preview_custom), dialog);
+		   G_CALLBACK (preview_custom), dialog);
 
 
   g_signal_connect (dialog->entry_decimals,
 		   "changed",
-		   GTK_SIGNAL_FUNC (preview_custom), dialog);
+		   G_CALLBACK (preview_custom), dialog);
 
 
   /* Connect to the OK button */
