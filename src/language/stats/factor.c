@@ -546,7 +546,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
     {
       lex_match (lexer, '/');
 
-#if FACTOR_FULLY_IMPLEMENTED
+
       if (lex_match_id (lexer, "PLOT"))
 	{
           lex_match (lexer, '=');
@@ -555,9 +555,11 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 	      if (lex_match_id (lexer, "EIGEN"))
 		{
 		}
+#if FACTOR_FULLY_IMPLEMENTED
 	      else if (lex_match_id (lexer, "ROTATION"))
 		{
 		}
+#endif
 	      else
 		{
 		  lex_error (lexer, NULL);
@@ -565,9 +567,7 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 		}
 	    }
 	}
-      else
-#endif
-      if (lex_match_id (lexer, "METHOD"))
+      else if (lex_match_id (lexer, "METHOD"))
 	{
           lex_match (lexer, '=');
           while (lex_token (lexer) != '.' && lex_token (lexer) != '/')
