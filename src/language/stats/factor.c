@@ -542,6 +542,9 @@ cmd_factor (struct lexer *lexer, struct dataset *ds)
 			      PV_NO_DUPLICATE | PV_NUMERIC))
     goto error;
 
+  if (factor.n_vars < 2)
+    msg (MW, _("Factor analysis on a single variable is not useful."));
+
   while (lex_token (lexer) != '.')
     {
       lex_match (lexer, '/');
@@ -986,7 +989,7 @@ static void
 show_factor_matrix (const struct cmd_factor *factor, struct idata *idata, const gsl_matrix *fm)
 {
   int i;
-  const int n_factors = n_extracted_factors (factor, idata);
+  const int n_factors = idata->n_extractions;
 
   const int heading_columns = 1;
   const int heading_rows = 2;
@@ -1205,7 +1208,7 @@ show_explained_variance (const struct cmd_factor * factor, struct idata *idata,
 
       if (factor->print & PRINT_EXTRACTION)
 	{
-	  if ( i < n_extracted_factors (factor, idata))
+	  if (i < idata->n_extractions)
 	    {
 	      /* Sums of squared loadings */
 	      tab_double (t, c++, i + heading_rows, 0, e_lambda, NULL);
@@ -1457,12 +1460,20 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
   gsl_eigen_symmv_sort (idata->eval, idata->evec, GSL_EIGEN_SORT_ABS_DESC);
 #endif
 
+  idata->n_extractions = n_extracted_factors (factor, idata);
+
+  if (idata->n_extractions == 0)
+    {
+      msg (MW, _("The FACTOR criteria result in zero factors extracted. Therefore no analysis will be performed."));
+      goto finish;
+    }
+    
   {
     const gsl_vector *extracted_eigenvalues = NULL;
     gsl_vector *initial_communalities = gsl_vector_alloc (factor->n_vars);
     gsl_vector *extracted_communalities = gsl_vector_alloc (factor->n_vars);
     size_t i;
-    struct factor_matrix_workspace *fmw = factor_matrix_workspace_alloc (idata->msr->size, n_extracted_factors (factor, idata));
+    struct factor_matrix_workspace *fmw = factor_matrix_workspace_alloc (idata->msr->size, idata->n_extractions);
     gsl_matrix *factor_matrix = gsl_matrix_calloc (factor->n_vars, fmw->n_factors);
 
     if ( factor->extraction == EXTRACTION_PAF)
@@ -1501,10 +1512,9 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
       }
     else if (factor->extraction == EXTRACTION_PC)
       {
-	for (i = 0 ; i < factor->n_vars; ++i)
-	  {
-	    gsl_vector_set (initial_communalities, i, communality (idata, i, factor->n_vars));
-	  }
+	for (i = 0; i < factor->n_vars; ++i)
+	  gsl_vector_set (initial_communalities, i, communality (idata, i, factor->n_vars));
+
 	gsl_vector_memcpy (extracted_communalities, initial_communalities);
 
 	iterate_factor_matrix (analysis_matrix, extracted_communalities, factor_matrix, fmw);
@@ -1522,6 +1532,8 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
     gsl_vector_free (initial_communalities);
     gsl_vector_free (extracted_communalities);
   }
+
+ finish:
 
   idata_free (idata);
 
