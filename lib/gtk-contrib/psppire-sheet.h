@@ -65,11 +65,12 @@ enum
 
 #define PSPPIRE_TYPE_SHEET_RANGE (psppire_sheet_range_get_type ())
 #define PSPPIRE_TYPE_SHEET_CELL (psppire_sheet_cell_get_type ())
-#define PSPPIRE_TYPE_SHEET (psppire_sheet_get_type ())
 
-#define PSPPIRE_SHEET(obj)          GTK_CHECK_CAST (obj, psppire_sheet_get_type (), PsppireSheet)
-#define PSPPIRE_SHEET_CLASS(klass)  GTK_CHECK_CLASS_CAST (klass, psppire_sheet_get_type (), PsppireSheetClass)
-#define PSPPIRE_IS_SHEET(obj)       GTK_CHECK_TYPE (obj, psppire_sheet_get_type ())
+
+#define PSPPIRE_TYPE_SHEET          (psppire_sheet_get_type ())
+#define PSPPIRE_SHEET(obj)          G_TYPE_CHECK_INSTANCE_CAST ((obj), PSPPIRE_TYPE_SHEET, PsppireSheet)
+#define PSPPIRE_SHEET_CLASS(klass)  G_TYPE_CHECK_CLASS_CAST ((klass),  PSPPIRE_TYPE_SHEET, PsppireSheetClass)
+#define PSPPIRE_IS_SHEET(obj)       G_TYPE_CHECK_INSTANCE_TYPE ((obj), PSPPIRE_TYPE_SHEET)
 
 
 typedef struct _PsppireSheetClass PsppireSheetClass;
@@ -123,7 +124,7 @@ struct _PsppireSheet
   GtkWidget *entry_widget;
 
   /* The type of entry_widget */
-  GtkType entry_type;
+  GType entry_type;
 
   /* global selection button */
   GtkWidget *button;
@@ -224,7 +225,7 @@ struct _PsppireSheetClass
 };
 
 GType psppire_sheet_get_type (void);
-GtkType psppire_sheet_range_get_type (void);
+GType psppire_sheet_range_get_type (void);
 
 
 /* create a new sheet */
@@ -232,10 +233,10 @@ GtkWidget * psppire_sheet_new (PsppireSheetModel *model);
 
 /* create a new sheet with custom entry */
 GtkWidget *
-psppire_sheet_new_with_custom_entry (GtkType entry_type);
+psppire_sheet_new_with_custom_entry (GType entry_type);
 
 /* Change entry */
-void psppire_sheet_change_entry		(PsppireSheet *sheet, GtkType entry_type);
+void psppire_sheet_change_entry		(PsppireSheet *sheet, GType entry_type);
 
 GtkEntry *psppire_sheet_get_entry    (PsppireSheet *sheet);
 
