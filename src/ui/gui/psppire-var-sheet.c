@@ -453,9 +453,9 @@ var_sheet_change_active_cell (PsppireVarSheet *vs,
 		  }
 
 		adj = gtk_adjustment_new (current_value,
-					 r_min, r_max,
-					 1.0, 1.0, 1.0 /* steps */
-					 );
+					  r_min, r_max,
+					  1.0, 1.0, /* steps */
+					  0);
 
 		psppire_sheet_change_entry (sheet, GTK_TYPE_SPIN_BUTTON);
 
