@@ -69,7 +69,7 @@ tt_options_dialog_create (GtkBuilder *xml, GtkWindow *parent)
 
   gtk_widget_show (tto->confidence);
 
-  gtk_box_pack_start_defaults (GTK_BOX (tto->box), tto->confidence);
+  psppire_box_pack_start_defaults (GTK_BOX (tto->box), tto->confidence);
 
   gtk_window_set_transient_for (GTK_WINDOW (tto->dialog), parent);
 

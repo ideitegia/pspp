@@ -620,8 +620,8 @@ data_save_as_dialog (PsppireDataWindow *de)
       (gtk_radio_button_get_group (GTK_RADIO_BUTTON(button_sys)),
        _("Portable File"));
 
-    gtk_box_pack_start_defaults (GTK_BOX (vbox), button_sys);
-    gtk_box_pack_start_defaults (GTK_BOX (vbox), button_por);
+    psppire_box_pack_start_defaults (GTK_BOX (vbox), button_sys);
+    psppire_box_pack_start_defaults (GTK_BOX (vbox), button_por);
 
     gtk_widget_show_all (vbox);
 

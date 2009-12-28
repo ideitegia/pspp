@@ -38,6 +38,7 @@
 #include <gtk/gtk.h>
 
 #include "psppire-acr.h"
+#include "helper.h"
 
 static void psppire_acr_init (PsppireAcr *);
 
@@ -283,9 +284,9 @@ psppire_acr_init (PsppireAcr *acr)
   gtk_widget_set_sensitive (acr->remove_button, FALSE);
   gtk_widget_set_sensitive (acr->add_button, FALSE);
 
-  gtk_box_pack_start_defaults (GTK_BOX (bb), acr->add_button);
-  gtk_box_pack_start_defaults (GTK_BOX (bb), acr->change_button);
-  gtk_box_pack_start_defaults (GTK_BOX (bb), acr->remove_button);
+  psppire_box_pack_start_defaults (GTK_BOX (bb), acr->add_button);
+  psppire_box_pack_start_defaults (GTK_BOX (bb), acr->change_button);
+  psppire_box_pack_start_defaults (GTK_BOX (bb), acr->remove_button);
 
   gtk_box_pack_start (GTK_BOX (acr), bb, FALSE, TRUE, 5);
 

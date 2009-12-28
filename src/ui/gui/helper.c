@@ -300,3 +300,12 @@ paste_syntax_in_new_window (const gchar *syntax)
 
   gtk_widget_show (se);
 }
+
+
+/* gtk_box_pack_start_defaults is deprecated.
+   Therefore we roll our own until a better solution is found */
+void
+psppire_box_pack_start_defaults (GtkBox *box, GtkWidget *widget)
+{
+  gtk_box_pack_start (box, widget, TRUE, TRUE, 0);
+}
