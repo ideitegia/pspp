@@ -212,6 +212,8 @@ factor_dialog (GObject *o, gpointer data)
   GtkWidget *extraction_button ;
 
   fd.xml = builder_new ("factor.ui");
+
+  fd.extraction = default_extraction_parameters;
   
   dialog = get_widget_assert   (fd.xml, "factor-dialog");
   source = get_widget_assert   (fd.xml, "dict-view");
