@@ -1467,6 +1467,12 @@ do_factor (const struct cmd_factor *factor, struct casereader *r)
       msg (MW, _("The FACTOR criteria result in zero factors extracted. Therefore no analysis will be performed."));
       goto finish;
     }
+
+  if (idata->n_extractions > factor->n_vars)
+    {
+      msg (MW, _("The FACTOR criteria result in more factors than variables, which is not meaningful. No analysis will be performed."));
+      goto finish;
+    }
     
   {
     const gsl_vector *extracted_eigenvalues = NULL;
