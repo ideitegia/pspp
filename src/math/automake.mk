@@ -11,15 +11,10 @@ src_math_libpspp_math_la_SOURCES = \
 	src/math/chart-geometry.c \
 	src/math/chart-geometry.h \
 	src/math/box-whisker.c src/math/box-whisker.h \
-	src/math/coefficient.c \
-	src/math/coefficient.h \
 	src/math/categoricals.h \
 	src/math/categoricals.c \
 	src/math/covariance.c \
 	src/math/covariance.h \
-	src/math/covariance-matrix.c \
-	src/math/covariance-matrix.h \
-	src/math/design-matrix.c src/math/design-matrix.h \
 	src/math/extrema.c src/math/extrema.h \
 	src/math/group.c  src/math/group.h \
 	src/math/group-proc.h \

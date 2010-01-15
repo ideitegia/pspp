@@ -252,26 +252,13 @@ glm_custom_dependent (struct lexer *lexer, struct dataset *ds,
   return 1;
 }
 
-/*
-  COV is the covariance matrix for variables included in the
-  model. That means the dependent variable is in there, too.
- */
-static void
-coeff_init (pspp_linreg_cache * c, const struct design_matrix *cov)
-{
-  c->coeff = xnmalloc (cov->m->size2, sizeof (*c->coeff));
-  c->n_coeffs = cov->m->size2 - 1;
-  pspp_coeff_init (c->coeff, cov);
-}
-
-
-static pspp_linreg_cache *
+static linreg *
 fit_model (const struct covariance *cov,
 	   const struct variable *dep_var, 
 	   const struct variable ** indep_vars, 
 	   size_t n_data, size_t n_indep)
 {
-  pspp_linreg_cache *result = NULL;
+  linreg *result = NULL;
   
   return result;
 }
@@ -285,7 +272,7 @@ run_glm (struct casereader *input,
   const struct variable **numerics = NULL;
   const struct variable **categoricals = NULL;
   int n_indep = 0;
-  pspp_linreg_cache *model = NULL; 
+  linreg *model = NULL; 
   pspp_linreg_opts lopts;
   struct ccase *c;
   size_t i;

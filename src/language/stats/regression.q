@@ -21,7 +21,6 @@
 #include <gsl/gsl_vector.h>
 #include <math.h>
 #include <stdlib.h>
-
 #include <data/case.h>
 #include <data/casegrouper.h>
 #include <data/casereader.h>
@@ -39,8 +38,7 @@
 #include <libpspp/compiler.h>
 #include <libpspp/message.h>
 #include <libpspp/taint.h>
-#include <math/design-matrix.h>
-#include <math/coefficient.h>
+#include <math/covariance.h>
 #include <math/linreg.h>
 #include <math/moments.h>
 #include <output/table.h>
@@ -99,7 +97,7 @@ struct reg_trns
 {
   int n_trns;			/* Number of transformations. */
   int trns_id;			/* Which trns is this one? */
-  pspp_linreg_cache *c;		/* Linear model for this trns. */
+  linreg *c;		/* Linear model for this trns. */
 };
 /*
   Variables used (both explanatory and response).
@@ -112,31 +110,31 @@ static const struct variable **v_variables;
 static size_t n_variables;
 
 static bool run_regression (struct casereader *, struct cmd_regression *,
-			    struct dataset *, pspp_linreg_cache **);
+			    struct dataset *, linreg **);
 
 /*
    STATISTICS subcommand output functions.
  */
-static void reg_stats_r (pspp_linreg_cache *);
-static void reg_stats_coeff (pspp_linreg_cache *);
-static void reg_stats_anova (pspp_linreg_cache *);
-static void reg_stats_outs (pspp_linreg_cache *);
-static void reg_stats_zpp (pspp_linreg_cache *);
-static void reg_stats_label (pspp_linreg_cache *);
-static void reg_stats_sha (pspp_linreg_cache *);
-static void reg_stats_ci (pspp_linreg_cache *);
-static void reg_stats_f (pspp_linreg_cache *);
-static void reg_stats_bcov (pspp_linreg_cache *);
-static void reg_stats_ses (pspp_linreg_cache *);
-static void reg_stats_xtx (pspp_linreg_cache *);
-static void reg_stats_collin (pspp_linreg_cache *);
-static void reg_stats_tol (pspp_linreg_cache *);
-static void reg_stats_selection (pspp_linreg_cache *);
-static void statistics_keyword_output (void (*)(pspp_linreg_cache *),
-				       int, pspp_linreg_cache *);
+static void reg_stats_r (linreg *);
+static void reg_stats_coeff (linreg *);
+static void reg_stats_anova (linreg *);
+static void reg_stats_outs (linreg *);
+static void reg_stats_zpp (linreg *);
+static void reg_stats_label (linreg *);
+static void reg_stats_sha (linreg *);
+static void reg_stats_ci (linreg *);
+static void reg_stats_f (linreg *);
+static void reg_stats_bcov (linreg *);
+static void reg_stats_ses (linreg *);
+static void reg_stats_xtx (linreg *);
+static void reg_stats_collin (linreg *);
+static void reg_stats_tol (linreg *);
+static void reg_stats_selection (linreg *);
+static void statistics_keyword_output (void (*)(linreg *),
+				       int, linreg *);
 
 static void
-reg_stats_r (pspp_linreg_cache * c)
+reg_stats_r (linreg * c)
 {
   struct tab_table *t;
   int n_rows = 2;
@@ -148,7 +146,7 @@ reg_stats_r (pspp_linreg_cache * c)
   assert (c != NULL);
   rsq = c->ssm / c->sst;
   adjrsq = 1.0 - (1.0 - rsq) * (c->n_obs - 1.0) / (c->n_obs - c->n_indeps);
-  std_error = sqrt (pspp_linreg_mse (c));
+  std_error = sqrt (linreg_mse (c));
   t = tab_create (n_cols, n_rows, 0);
   tab_dim (t, tab_natural_dimensions, NULL);
   tab_box (t, TAL_2, TAL_2, -1, TAL_1, 0, 0, n_cols - 1, n_rows - 1);
@@ -172,7 +170,7 @@ reg_stats_r (pspp_linreg_cache * c)
   Table showing estimated regression coefficients.
  */
 static void
-reg_stats_coeff (pspp_linreg_cache * c)
+reg_stats_coeff (linreg * c)
 {
   size_t j;
   int n_cols = 7;
@@ -185,7 +183,6 @@ reg_stats_coeff (pspp_linreg_cache * c)
   const char *label;
 
   const struct variable *v;
-  const union value *val;
   struct tab_table *t;
 
   assert (c != NULL);
@@ -205,66 +202,53 @@ reg_stats_coeff (pspp_linreg_cache * c)
   tab_text (t, 5, 0, TAB_CENTER | TAT_TITLE, _("t"));
   tab_text (t, 6, 0, TAB_CENTER | TAT_TITLE, _("Significance"));
   tab_text (t, 1, 1, TAB_LEFT | TAT_TITLE, _("(Constant)"));
-  tab_double (t, 2, 1, 0, c->intercept, NULL);
-  std_err = sqrt (gsl_matrix_get (c->cov, 0, 0));
+  tab_double (t, 2, 1, 0, linreg_intercept (c), NULL);
+  std_err = sqrt (gsl_matrix_get (linreg_cov (c), 0, 0));
   tab_double (t, 3, 1, 0, std_err, NULL);
   tab_double (t, 4, 1, 0, 0.0, NULL);
-  t_stat = c->intercept / std_err;
+  t_stat = linreg_intercept (c) / std_err;
   tab_double (t, 5, 1, 0, t_stat, NULL);
   pval = 2 * gsl_cdf_tdist_Q (fabs (t_stat), 1.0);
   tab_double (t, 6, 1, 0, pval, NULL);
-  for (j = 0; j < c->n_coeffs; j++)
+  for (j = 0; j < linreg_n_coeffs (c); j++)
     {
       struct string tstr;
       ds_init_empty (&tstr);
       this_row = j + 2;
 
-      v = pspp_coeff_get_var (c->coeff[j], 0);
+      v = linreg_indep_var (c, j);
       label = var_to_string (v);
       /* Do not overwrite the variable's name. */
       ds_put_cstr (&tstr, label);
-      if (var_is_alpha (v))
-	{
-	  /*
-	     Append the value associated with this coefficient.
-	     This makes sense only if we us the usual binary encoding
-	     for that value.
-	   */
-
-	  val = pspp_coeff_get_value (c->coeff[j], v);
-
-	  var_append_value_name (v, val, &tstr);
-	}
-
       tab_text (t, 1, this_row, TAB_CENTER, ds_cstr (&tstr));
       /*
          Regression coefficients.
        */
-      tab_double (t, 2, this_row, 0, c->coeff[j]->estimate, NULL);
+      tab_double (t, 2, this_row, 0, linreg_coeff (c, j), NULL);
       /*
          Standard error of the coefficients.
        */
-      std_err = sqrt (gsl_matrix_get (c->cov, j + 1, j + 1));
+      std_err = sqrt (gsl_matrix_get (linreg_cov (c), j + 1, j + 1));
       tab_double (t, 3, this_row, 0, std_err, NULL);
       /*
          Standardized coefficient, i.e., regression coefficient
          if all variables had unit variance.
        */
-      beta = pspp_coeff_get_sd (c->coeff[j]);
-      beta *= c->coeff[j]->estimate / c->depvar_std;
+      beta = sqrt (gsl_matrix_get (linreg_cov (c), j, j));
+      beta *= linreg_coeff (c, j) / c->depvar_std;
       tab_double (t, 4, this_row, 0, beta, NULL);
 
       /*
          Test statistic for H0: coefficient is 0.
        */
-      t_stat = c->coeff[j]->estimate / std_err;
+      t_stat = linreg_coeff (c, j) / std_err;
       tab_double (t, 5, this_row, 0, t_stat, NULL);
       /*
          P values for the test statistic above.
        */
       pval =
 	2 * gsl_cdf_tdist_Q (fabs (t_stat),
-			     (double) (c->n_obs - c->n_coeffs));
+			     (double) (linreg_n_obs (c) - linreg_n_coeffs (c)));
       tab_double (t, 6, this_row, 0, pval, NULL);
       ds_destroy (&tstr);
     }
@@ -276,12 +260,12 @@ reg_stats_coeff (pspp_linreg_cache * c)
   Display the ANOVA table.
  */
 static void
-reg_stats_anova (pspp_linreg_cache * c)
+reg_stats_anova (linreg * c)
 {
   int n_cols = 7;
   int n_rows = 4;
-  const double msm = c->ssm / c->dfm;
-  const double mse = pspp_linreg_mse (c);
+  const double msm = linreg_ssreg (c) / linreg_dfmodel (c);
+  const double mse = linreg_mse (c);
   const double F = msm / mse;
   const double pval = gsl_cdf_fdist_Q (F, c->dfm, c->dfe);
 
@@ -332,40 +316,40 @@ reg_stats_anova (pspp_linreg_cache * c)
 }
 
 static void
-reg_stats_outs (pspp_linreg_cache * c)
+reg_stats_outs (linreg * c)
 {
   assert (c != NULL);
 }
 
 static void
-reg_stats_zpp (pspp_linreg_cache * c)
+reg_stats_zpp (linreg * c)
 {
   assert (c != NULL);
 }
 
 static void
-reg_stats_label (pspp_linreg_cache * c)
+reg_stats_label (linreg * c)
 {
   assert (c != NULL);
 }
 
 static void
-reg_stats_sha (pspp_linreg_cache * c)
+reg_stats_sha (linreg * c)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_ci (pspp_linreg_cache * c)
+reg_stats_ci (linreg * c)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_f (pspp_linreg_cache * c)
+reg_stats_f (linreg * c)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_bcov (pspp_linreg_cache * c)
+reg_stats_bcov (linreg * c)
 {
   int n_cols;
   int n_rows;
@@ -388,13 +372,13 @@ reg_stats_bcov (pspp_linreg_cache * c)
   tab_vline (t, TAL_0, 1, 0, 0);
   tab_text (t, 0, 0, TAB_CENTER | TAT_TITLE, _("Model"));
   tab_text (t, 1, 1, TAB_CENTER | TAT_TITLE, _("Covariances"));
-  for (i = 0; i < c->n_coeffs; i++)
+  for (i = 0; i < linreg_n_coeffs (c); i++)
     {
-      const struct variable *v = pspp_coeff_get_var (c->coeff[i], 0);
+      const struct variable *v = linreg_indep_var (c, i);
       label = var_to_string (v);
       tab_text (t, 2, i, TAB_CENTER, label);
       tab_text (t, i + 2, 0, TAB_CENTER, label);
-      for (k = 1; k < c->n_coeffs; k++)
+      for (k = 1; k < linreg_n_coeffs (c); k++)
 	{
 	  col = (i <= k) ? k : i;
 	  row = (i <= k) ? i : k;
@@ -406,34 +390,34 @@ reg_stats_bcov (pspp_linreg_cache * c)
   tab_submit (t);
 }
 static void
-reg_stats_ses (pspp_linreg_cache * c)
+reg_stats_ses (linreg * c)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_xtx (pspp_linreg_cache * c)
+reg_stats_xtx (linreg * c)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_collin (pspp_linreg_cache * c)
+reg_stats_collin (linreg * c)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_tol (pspp_linreg_cache * c)
+reg_stats_tol (linreg * c)
 {
   assert (c != NULL);
 }
 static void
-reg_stats_selection (pspp_linreg_cache * c)
+reg_stats_selection (linreg * c)
 {
   assert (c != NULL);
 }
 
 static void
-statistics_keyword_output (void (*function) (pspp_linreg_cache *),
-			   int keyword, pspp_linreg_cache * c)
+statistics_keyword_output (void (*function) (linreg *),
+			   int keyword, linreg * c)
 {
   if (keyword)
     {
@@ -442,7 +426,7 @@ statistics_keyword_output (void (*function) (pspp_linreg_cache *),
 }
 
 static void
-subcommand_statistics (int *keywords, pspp_linreg_cache * c)
+subcommand_statistics (int *keywords, linreg * c)
 {
   /*
      The order here must match the order in which the STATISTICS
@@ -531,7 +515,7 @@ regression_trns_free (void *t_)
 
   if (t->trns_id == t->n_trns)
     {
-      result = pspp_linreg_cache_free (t->c);
+      result = linreg_free (t->c);
     }
   free (t);
 
@@ -548,9 +532,10 @@ regression_trns_pred_proc (void *t_, struct ccase **c,
   size_t i;
   size_t n_vals;
   struct reg_trns *trns = t_;
-  pspp_linreg_cache *model;
+  linreg *model;
   union value *output = NULL;
-  const union value **vals = NULL;
+  const union value *tmp;
+  double *vals;
   const struct variable **vars = NULL;
 
   assert (trns != NULL);
@@ -559,21 +544,20 @@ regression_trns_pred_proc (void *t_, struct ccase **c,
   assert (model->depvar != NULL);
   assert (model->pred != NULL);
 
-  vars = xnmalloc (model->n_coeffs, sizeof (*vars));
-  n_vals = (*model->get_vars) (model, vars);
-
+  vars = linreg_get_vars (model);
+  n_vals = linreg_n_coeffs (model);
   vals = xnmalloc (n_vals, sizeof (*vals));
   *c = case_unshare (*c);
+
   output = case_data_rw (*c, model->pred);
 
   for (i = 0; i < n_vals; i++)
     {
-      vals[i] = case_data (*c, vars[i]);
+      tmp = case_data (*c, vars[i]);
+      vals[i] = tmp->f;
     }
-  output->f = (*model->predict) ((const struct variable **) vars,
-				 vals, model, n_vals);
+  output->f = linreg_predict (model, vals, n_vals);
   free (vals);
-  free (vars);
   return TRNS_CONTINUE;
 }
 
@@ -587,10 +571,11 @@ regression_trns_resid_proc (void *t_, struct ccase **c,
   size_t i;
   size_t n_vals;
   struct reg_trns *trns = t_;
-  pspp_linreg_cache *model;
+  linreg *model;
   union value *output = NULL;
-  const union value **vals = NULL;
-  const union value *obs = NULL;
+  const union value *tmp;
+  double *vals = NULL;
+  double obs;
   const struct variable **vars = NULL;
 
   assert (trns != NULL);
@@ -599,8 +584,8 @@ regression_trns_resid_proc (void *t_, struct ccase **c,
   assert (model->depvar != NULL);
   assert (model->resid != NULL);
 
-  vars = xnmalloc (model->n_coeffs, sizeof (*vars));
-  n_vals = (*model->get_vars) (model, vars);
+  vars = linreg_get_vars (model);
+  n_vals = linreg_n_coeffs (model);
 
   vals = xnmalloc (n_vals, sizeof (*vals));
   *c = case_unshare (*c);
@@ -609,13 +594,14 @@ regression_trns_resid_proc (void *t_, struct ccase **c,
 
   for (i = 0; i < n_vals; i++)
     {
-      vals[i] = case_data (*c, vars[i]);
+      tmp = case_data (*c, vars[i]);
+      vals[i] = tmp->f;
     }
-  obs = case_data (*c, model->depvar);
-  output->f = (*model->residual) ((const struct variable **) vars,
-				  vals, obs, model, n_vals);
+  tmp = case_data (*c, model->depvar);
+  obs = tmp->f;
+  output->f = linreg_residual (model, obs, vals, n_vals);
   free (vals);
-  free (vars);
+
   return TRNS_CONTINUE;
 }
 
@@ -647,7 +633,7 @@ reg_get_name (const struct dictionary *dict, char name[VAR_NAME_LEN],
 
 static void
 reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
-	      pspp_linreg_cache * c, struct variable **v, int n_trns)
+	      linreg * c, struct variable **v, int n_trns)
 {
   struct dictionary *dict = dataset_dict (ds);
   static int trns_index = 1;
@@ -667,9 +653,9 @@ reg_save_var (struct dataset *ds, const char *prefix, trns_proc_func * f,
   trns_index++;
 }
 static void
-subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
+subcommand_save (struct dataset *ds, int save, linreg ** models)
 {
-  pspp_linreg_cache **lc;
+  linreg **lc;
   int n_trns = 0;
   int i;
 
@@ -713,7 +699,7 @@ subcommand_save (struct dataset *ds, int save, pspp_linreg_cache ** models)
 	{
 	  if (*lc != NULL)
 	    {
-	      pspp_linreg_cache_free (*lc);
+	      linreg_free (*lc);
 	    }
 	}
     }
@@ -724,7 +710,7 @@ cmd_regression (struct lexer *lexer, struct dataset *ds)
 {
   struct casegrouper *grouper;
   struct casereader *group;
-  pspp_linreg_cache **models;
+  linreg **models;
   bool ok;
   size_t i;
 
@@ -817,71 +803,93 @@ identify_indep_vars (const struct variable **indep_vars,
     }
   return n_indep_vars;
 }
-
-/* Encode categorical variables.
-   Returns number of valid cases. */
-static int
-prepare_categories (struct casereader *input,
-		    const struct variable **vars, size_t n_vars,
-		    struct moments_var *mom)
+static double
+fill_covariance (gsl_matrix *cov, struct covariance *all_cov, 
+		 const struct variable **vars,
+		 size_t n_vars, const struct variable *dep_var, 
+		 const struct variable **all_vars, size_t n_all_vars)
 {
-  int n_data;
-  struct ccase *c;
   size_t i;
-
-  assert (vars != NULL);
-  assert (mom != NULL);
-
-  for (i = 0; i < n_vars; i++)
-    if (var_is_alpha (vars[i]))
-      cat_stored_values_create (vars[i]);
-
-  n_data = 0;
-  for (; (c = casereader_read (input)) != NULL; case_unref (c))
+  size_t j;
+  size_t k = 0;
+  size_t dep_subscript;
+  size_t *rows;
+  const gsl_matrix *ssizes;
+  const gsl_matrix *cm;
+  double result = 0.0;
+  
+  cm = covariance_calculate (all_cov);
+  rows = xnmalloc (cov->size1 - 1, sizeof (*rows));
+  
+  for (i = 0; i < n_all_vars; i++)
     {
-      /*
-         The second condition ensures the program will run even if
-         there is only one variable to act as both explanatory and
-         response.
-       */
-      for (i = 0; i < n_vars; i++)
+      for (j = k; j < n_vars; j++)
 	{
-	  const union value *val = case_data (c, vars[i]);
-	  if (var_is_alpha (vars[i]))
-	    cat_value_update (vars[i], val);
-	  else
-	    moments1_add (mom[i].m, val->f, 1.0);
+	  if (vars[j] == all_vars[i])
+	    {
+	      if (vars[j] != dep_var)
+		{
+		  rows[j] = i;
+		}
+	      else
+		{
+		  dep_subscript = i;
+		}
+	      k++;
+	      break;
+	    }
 	}
-      n_data++;
     }
-  casereader_destroy (input);
-
-  return n_data;
-}
-
-static void
-coeff_init (pspp_linreg_cache * c, struct design_matrix *dm)
-{
-  c->coeff = xnmalloc (dm->m->size2, sizeof (*c->coeff));
-  pspp_coeff_init (c->coeff, dm);
+  for (i = 0; i < cov->size1 - 1; i++)
+    {
+      for (j = 0; j < cov->size2 - 1; j++)
+	{
+	  gsl_matrix_set (cov, i, j, gsl_matrix_get (cm, rows[i], rows[j]));
+	  gsl_matrix_set (cov, j, i, gsl_matrix_get (cm, rows[j], rows[i]));
+	}
+    }
+  ssizes = covariance_moments (all_cov, MOMENT_NONE);
+  result = gsl_matrix_get (ssizes, dep_subscript, rows[0]);
+  for (i = 0; i < cov->size1 - 1; i++)
+    {
+      gsl_matrix_set (cov, i, cov->size1 - 1, 
+		      gsl_matrix_get (cm, rows[i], dep_subscript));
+      gsl_matrix_set (cov, cov->size1 - 1, i, 
+		      gsl_matrix_get (cm, rows[i], dep_subscript));
+      if (result > gsl_matrix_get (ssizes, rows[i], dep_subscript))
+	{
+	  result = gsl_matrix_get (ssizes, rows[i], dep_subscript);
+	}
+    }
+  free (rows);
 }
 
 static bool
 run_regression (struct casereader *input, struct cmd_regression *cmd,
-		struct dataset *ds, pspp_linreg_cache **models)
+		struct dataset *ds, linreg **models)
 {
   size_t i;
   int n_indep = 0;
   int k;
+  double n_data;
   struct ccase *c;
-  const struct variable **indep_vars;
-  struct design_matrix *X;
-  struct moments_var *mom;
-  gsl_vector *Y;
-
-  pspp_linreg_opts lopts;
+  struct covariance *cov;
+  const struct variable **vars;
+  const struct variable *dep_var;
+  struct casereader *reader;
+  const struct dictionary *dict;
+  gsl_matrix *this_cm;
 
   assert (models != NULL);
+
+  for (i = 0; i < n_variables; i++)
+    {
+      if (!var_is_numeric (v_variables[i]))
+	{
+	  msg (SE, _("REGRESSION requires numeric variables."));
+	  return false;
+	}
+    }
 
   c = casereader_peek (input, 0);
   if (c == NULL)
@@ -892,125 +900,67 @@ run_regression (struct casereader *input, struct cmd_regression *cmd,
   output_split_file_values (ds, c);
   case_unref (c);
 
+  dict = dataset_dict (ds);
   if (!v_variables)
     {
-      dict_get_vars (dataset_dict (ds), &v_variables, &n_variables, 0);
+      dict_get_vars (dict, &v_variables, &n_variables, 0);
     }
+  vars = xnmalloc (n_variables, sizeof (*vars));
+  cov = covariance_1pass_create (n_variables, v_variables,
+				 dict_get_weight (dict), MV_ANY);
 
-  for (i = 0; i < cmd->n_dependent; i++)
+  reader = casereader_clone (input);
+  reader = casereader_create_filter_missing (reader, v_variables, n_variables,
+					     MV_ANY, NULL, NULL);
+  for (; (c = casereader_read (reader)) != NULL; case_unref (c))
     {
-      if (!var_is_numeric (cmd->v_dependent[i]))
-	{
-	  msg (SE, _("Dependent variable must be numeric."));
-	  return false;
-	}
+      covariance_accumulate (cov, c);
     }
-
-  mom = xnmalloc (n_variables, sizeof (*mom));
-  for (i = 0; i < n_variables; i++)
-    {
-      (mom + i)->m = moments1_create (MOMENT_VARIANCE);
-      (mom + i)->v = v_variables[i];
-    }
-  lopts.get_depvar_mean_std = 1;
-
-
-  indep_vars = xnmalloc (n_variables, sizeof *indep_vars);
-
+  
   for (k = 0; k < cmd->n_dependent; k++)
     {
-      const struct variable *dep_var;
-      struct casereader *reader;
-      casenumber row;
-      struct ccase *c;
-      size_t n_data;		/* Number of valid cases. */
-
       dep_var = cmd->v_dependent[k];
-      n_indep = identify_indep_vars (indep_vars, dep_var);
-      reader = casereader_clone (input);
-      reader = casereader_create_filter_missing (reader, indep_vars, n_indep,
-						 MV_ANY, NULL, NULL);
-      reader = casereader_create_filter_missing (reader, &dep_var, 1,
-						 MV_ANY, NULL, NULL);
-      n_data = prepare_categories (casereader_clone (reader),
-				   indep_vars, n_indep, mom);
-
-      if ((n_data > 0) && (n_indep > 0))
+      n_indep = identify_indep_vars (vars, dep_var);
+      
+      this_cm = gsl_matrix_alloc (n_indep + 1, n_indep + 1);
+      n_data = fill_covariance (this_cm, cov, vars, n_indep, 
+				       dep_var, v_variables, n_variables);
+      models[k] = linreg_alloc (dep_var, (const struct variable **) vars,
+				n_data, n_indep);
+      models[k]->depvar = dep_var;
+      
+      /*
+	For large data sets, use QR decomposition.
+      */
+      if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
 	{
-	  Y = gsl_vector_alloc (n_data);
-	  X =
-	    design_matrix_create (n_indep,
-				  (const struct variable **) indep_vars,
-				  n_data);
-	  lopts.get_indep_mean_std = xnmalloc (X->m->size2, sizeof (int));
-	  for (i = 0; i < X->m->size2; i++)
-	    {
-	      lopts.get_indep_mean_std[i] = 1;
-	    }
-	  models[k] = pspp_linreg_cache_alloc (dep_var, (const struct variable **) indep_vars,
-					       X->m->size1, n_indep);
-	  models[k]->depvar = dep_var;
+	  models[k]->method = LINREG_QR;
+	}
+      
+      if (n_data > 0)
+	{
 	  /*
-	     For large data sets, use QR decomposition.
-	   */
-	  if (n_data > sqrt (n_indep) && n_data > REG_LARGE_DATA)
-	    {
-	      models[k]->method = PSPP_LINREG_QR;
-	    }
-
-	  /*
-	     The second pass fills the design matrix.
-	   */
-	  reader = casereader_create_counter (reader, &row, -1);
-	  for (; (c = casereader_read (reader)) != NULL; case_unref (c))
-	    {
-	      for (i = 0; i < n_indep; ++i)
-		{
-		  const struct variable *v = indep_vars[i];
-		  const union value *val = case_data (c, v);
-		  if (var_is_alpha (v))
-		    design_matrix_set_categorical (X, row, v, val);
-		  else
-		    design_matrix_set_numeric (X, row, v, val);
-		}
-	      gsl_vector_set (Y, row, case_num (c, dep_var));
-	    }
-	  /*
-	     Now that we know the number of coefficients, allocate space
-	     and store pointers to the variables that correspond to the
-	     coefficients.
-	   */
-	  coeff_init (models[k], X);
-
-	  /*
-	     Find the least-squares estimates and other statistics.
-	   */
-	  pspp_linreg ((const gsl_vector *) Y, X, &lopts, models[k]);
-
+	    Find the least-squares estimates and other statistics.
+	  */
+	  linreg_fit (this_cm, models[k]);
+	  
 	  if (!taint_has_tainted_successor (casereader_get_taint (input)))
 	    {
 	      subcommand_statistics (cmd->a_statistics, models[k]);
 	    }
-
-	  gsl_vector_free (Y);
-	  design_matrix_destroy (X);
-	  free (lopts.get_indep_mean_std);
 	}
       else
 	{
 	  msg (SE,
 	       gettext ("No valid data found. This command was skipped."));
 	}
-      casereader_destroy (reader);
     }
-  for (i = 0; i < n_variables; i++)
-    {
-      moments1_destroy ((mom + i)->m);
-    }
-  free (mom);
-  free (indep_vars);
-  casereader_destroy (input);
 
+  casereader_destroy (reader);
+  free (vars);
+  casereader_destroy (input);
+  covariance_destroy (cov);
+  
   return true;
 }
 
