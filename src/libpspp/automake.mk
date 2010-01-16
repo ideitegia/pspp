@@ -14,6 +14,7 @@ src_libpspp_libpspp_la_SOURCES = \
 	src/libpspp/bit-vector.h \
 	src/libpspp/bt.c \
 	src/libpspp/bt.h \
+	src/libpspp/cast.h \
 	src/libpspp/compiler.h \
 	src/libpspp/copyleft.c \
 	src/libpspp/copyleft.h \

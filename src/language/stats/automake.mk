@@ -35,6 +35,7 @@ language_stats_sources = \
 	src/language/stats/npar-summary.c \
 	src/language/stats/npar-summary.h \
 	src/language/stats/roc.c \
+	src/language/stats/roc.h \
 	src/language/stats/sign.c \
 	src/language/stats/sign.h \
 	src/language/stats/wilcoxon.c \
