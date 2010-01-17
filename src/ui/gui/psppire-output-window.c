@@ -22,8 +22,10 @@
 
 #include <libpspp/cast.h>
 #include <libpspp/message.h>
+#include <libpspp/string-map.h>
 #include <output/cairo.h>
 #include <output/driver-provider.h>
+#include <output/output-item.h>
 #include <output/tab.h>
 #include <stdlib.h>
 
@@ -94,9 +96,28 @@ psppire_output_window_finalize (GObject *object)
 
 
 static void
+psppire_output_window_dispose (GObject *obj)
+{
+  PsppireOutputWindow *viewer = PSPPIRE_OUTPUT_WINDOW (obj);
+  size_t i;
+
+  for (i = 0; i < viewer->n_items; i++)
+    output_item_unref (viewer->items[i]);
+  free (viewer->items);
+  viewer->items = NULL;
+  viewer->n_items = viewer->allocated_items = 0;
+
+  /* Chain up to the parent class */
+  G_OBJECT_CLASS (parent_class)->dispose (obj);
+}
+
+static void
 psppire_output_window_class_init (PsppireOutputWindowClass *class)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+
   parent_class = g_type_class_peek_parent (class);
+  object_class->dispose = psppire_output_window_dispose;
 }
 
 
@@ -152,6 +173,7 @@ psppire_output_submit (struct output_driver *this,
                        const struct output_item *item)
 {
   struct psppire_output_driver *pod = psppire_output_cast (this);
+  PsppireOutputWindow *viewer;
   GtkWidget *drawing_area;
   struct xr_rendering *r;
   cairo_t *cr;
@@ -163,6 +185,7 @@ psppire_output_submit (struct output_driver *this,
       gtk_widget_show_all (GTK_WIDGET (pod->viewer));
       pod->viewer->driver = pod;
     }
+  viewer = pod->viewer;
 
   cr = gdk_cairo_create (GTK_WIDGET (pod->viewer)->window);
   if (pod->xr == NULL)
@@ -171,6 +194,11 @@ psppire_output_submit (struct output_driver *this,
   r = xr_rendering_create (pod->xr, item, cr);
   if (r == NULL)
     goto done;
+
+  if (viewer->n_items >= viewer->allocated_items)
+    viewer->items = x2nrealloc (viewer->items, &viewer->allocated_items,
+                                sizeof *viewer->items);
+  viewer->items[viewer->n_items++] = output_item_ref (item);
 
   xr_rendering_measure (r, &tw, &th);
 
@@ -274,6 +302,121 @@ on_row_activate (GtkTreeView *overview,
   gtk_adjustment_set_value (vadj, y);
 }
 
+static GtkFileFilter *
+add_filter (GtkFileChooser *chooser, const char *name, const char *pattern)
+{
+  GtkFileFilter *filter = gtk_file_filter_new ();
+  g_object_ref_sink (G_OBJECT (filter));
+  gtk_file_filter_set_name (filter, name);
+  gtk_file_filter_add_pattern (filter, pattern);
+  gtk_file_chooser_add_filter (chooser, filter);
+  return filter;
+}
+
+static void
+export_output (PsppireOutputWindow *window, struct string_map *options,
+               const char *class_name)
+{
+  struct output_driver *driver;
+  size_t i;
+
+  driver = output_driver_create (class_name, options);
+  if (driver == NULL)
+    return;
+
+  for (i = 0; i < window->n_items; i++)
+    driver->class->submit (driver, window->items[i]);
+  output_driver_destroy (driver);
+}
+
+static void
+psppire_output_window_export (PsppireOutputWindow *window)
+{
+  gint response;
+
+  GtkFileFilter *pdf_filter;
+  GtkFileFilter *html_filter;
+  GtkFileFilter *odt_filter;
+  GtkFileFilter *txt_filter;
+  GtkFileFilter *ps_filter;
+  GtkFileFilter *csv_filter;
+  GtkFileChooser *chooser;
+  GtkWidget *dialog;
+
+  dialog = gtk_file_chooser_dialog_new (_("Export Output"),
+                                        GTK_WINDOW (window),
+                                        GTK_FILE_CHOOSER_ACTION_SAVE,
+                                        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                        GTK_STOCK_SAVE,   GTK_RESPONSE_ACCEPT,
+                                        NULL);
+  chooser = GTK_FILE_CHOOSER (dialog);
+
+  pdf_filter = add_filter (chooser, _("PDF Files (*.pdf)"), "*.pdf");
+  html_filter = add_filter (chooser, _("HTML Files (*.html)"), "*.html");
+  odt_filter = add_filter (chooser, _("OpenDocument Files (*.odt)"), "*.odt");
+  txt_filter = add_filter (chooser, _("Text Files (*.txt)"), "*.txt");
+  ps_filter = add_filter (chooser, _("PostScript Files (*.ps)"), "*.ps");
+  csv_filter = add_filter (chooser, _("Comma-Separated Value Files (*.csv)"),
+                           "*.csv");
+
+  gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+  gtk_file_chooser_set_filter (chooser, pdf_filter);
+
+  response = gtk_dialog_run (GTK_DIALOG (dialog));
+
+  if ( response == GTK_RESPONSE_ACCEPT )
+    {
+      char *filename = gtk_file_chooser_get_filename (chooser);
+      GtkFileFilter *filter = gtk_file_chooser_get_filter (chooser);
+      struct string_map options;
+
+      g_return_if_fail (filename);
+      g_return_if_fail (filter);
+
+      string_map_init (&options);
+      string_map_insert (&options, "output-file", filename);
+      if (filter == pdf_filter)
+        {
+          string_map_insert (&options, "output-type", "pdf");
+          export_output (window, &options, "cairo");
+        }
+      else if (filter == html_filter)
+        export_output (window, &options, "html");
+      else if (filter == odt_filter)
+        export_output (window, &options, "odf");
+      else if (filter == txt_filter)
+        {
+          string_map_insert (&options, "headers", "false");
+          string_map_insert (&options, "paginate", "false");
+          string_map_insert (&options, "squeeze", "true");
+          string_map_insert (&options, "emphasis", "none");
+          string_map_insert (&options, "chart-type", "none");
+          string_map_insert (&options, "top-margin", "0");
+          string_map_insert (&options, "bottom-margin", "0");
+          export_output (window, &options, "ascii");
+        }
+      else if (filter == ps_filter)
+        {
+          string_map_insert (&options, "output-type", "ps");
+          export_output (window, &options, "cairo");
+        }
+      else if (filter == csv_filter)
+        export_output (window, &options, "csv");
+      else
+        g_return_if_reached ();
+
+      free (filename);
+    }
+
+  g_object_unref (G_OBJECT (pdf_filter));
+  g_object_unref (G_OBJECT (html_filter));
+  g_object_unref (G_OBJECT (txt_filter));
+  g_object_unref (G_OBJECT (ps_filter));
+  g_object_unref (G_OBJECT (csv_filter));
+
+  gtk_widget_destroy (dialog);
+}
+
 static void
 psppire_output_window_init (PsppireOutputWindow *window)
 {
@@ -295,6 +438,9 @@ psppire_output_window_init (PsppireOutputWindow *window)
                                              G_TYPE_STRING, /* COL_TITLE */
                                              G_TYPE_LONG))); /* COL_Y */
   window->last_table_num = -1;
+
+  window->items = NULL;
+  window->n_items = window->allocated_items = 0;
 
   column = gtk_tree_view_column_new ();
   gtk_tree_view_append_column (GTK_TREE_VIEW (window->overview), column);
@@ -336,6 +482,9 @@ psppire_output_window_init (PsppireOutputWindow *window)
     PSPPIRE_WINDOW (window)->menu =
       GTK_MENU_SHELL (gtk_ui_manager_get_widget (uim,"/ui/menubar1/windows_menuitem/windows_minimise-all")->parent);
   }
+
+  g_signal_connect_swapped (get_action_assert (xml, "file_export"), "activate",
+                            G_CALLBACK (psppire_output_window_export), window);
 
   g_object_unref (xml);
 
