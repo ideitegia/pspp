@@ -115,7 +115,8 @@ table_casereader_get_cell (const struct table *t, int x, int y,
     {
       if (y == 0)
         {
-          cell->contents = xstrdup (tc->heading);
+          s = xstrdup (tc->heading);
+          cell->contents = s;
           cell->destructor = free_string;
           cell->destructor_aux = s;
           return;
